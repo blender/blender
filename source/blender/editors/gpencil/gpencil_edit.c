@@ -3847,6 +3847,54 @@ void GPENCIL_OT_stroke_simplify_fixed(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+/* ** Resample stroke *** */
+static int gp_stroke_sample_exec(bContext *C, wmOperator *op)
+{
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  const float length = RNA_float_get(op->ptr, "length");
+
+  /* sanity checks */
+  if (ELEM(NULL, gpd)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Go through each editable + selected stroke */
+  GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
+    if (gps->flag & GP_STROKE_SELECT) {
+      BKE_gpencil_sample_stroke(gps, length, true);
+    }
+  }
+  GP_EDITABLE_STROKES_END(gpstroke_iter);
+
+  /* notifiers */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_stroke_sample(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* identifiers */
+  ot->name = "Sample Stroke";
+  ot->idname = "GPENCIL_OT_stroke_sample";
+  ot->description = "Sample stroke points to predefined segment length";
+
+  /* api callbacks */
+  ot->exec = gp_stroke_sample_exec;
+  ot->poll = gp_active_layer_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  prop = RNA_def_float(ot->srna, "length", 0.1f, 0.0f, 100.0f, "Length", "", 0.0f, 100.0f);
+  /* avoid re-using last var */
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
 /* ******************* Stroke trim ************************** */
 static int gp_stroke_trim_exec(bContext *C, wmOperator *UNUSED(op))
 {

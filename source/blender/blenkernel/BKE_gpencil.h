@@ -216,6 +216,7 @@ void BKE_gpencil_stroke_2d_flat_ref(const struct bGPDspoint *ref_points,
 
 void BKE_gpencil_transform(struct bGPdata *gpd, float mat[4][4]);
 
+bool BKE_gpencil_sample_stroke(struct bGPDstroke *gps, const float dist, const bool select);
 bool BKE_gpencil_smooth_stroke(struct bGPDstroke *gps, int i, float inf);
 bool BKE_gpencil_smooth_stroke_strength(struct bGPDstroke *gps, int point_index, float influence);
 bool BKE_gpencil_smooth_stroke_thickness(struct bGPDstroke *gps, int point_index, float influence);

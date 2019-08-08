@@ -314,6 +314,7 @@ void ED_operatortypes_gpencil(void)
   WM_operatortype_append(GPENCIL_OT_stroke_separate);
   WM_operatortype_append(GPENCIL_OT_stroke_split);
   WM_operatortype_append(GPENCIL_OT_stroke_smooth);
+  WM_operatortype_append(GPENCIL_OT_stroke_sample);
   WM_operatortype_append(GPENCIL_OT_stroke_merge);
   WM_operatortype_append(GPENCIL_OT_stroke_cutter);
   WM_operatortype_append(GPENCIL_OT_stroke_trim);

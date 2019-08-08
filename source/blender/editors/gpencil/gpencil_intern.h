@@ -486,6 +486,7 @@ void GPENCIL_OT_stroke_simplify_fixed(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_separate(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_split(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_smooth(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_sample(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_merge(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_cutter(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_trim(struct wmOperatorType *ot);

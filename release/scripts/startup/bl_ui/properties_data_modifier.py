@@ -1785,13 +1785,13 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         col.label(text="Settings:")
-        row = col.row(align=True)
-        row.enabled = md.mode == 'FIXED'
-        row.prop(md, "step")
 
-        row = col.row(align=True)
-        row.enabled = not md.mode == 'FIXED'
-        row.prop(md, "factor")
+        if md.mode == 'FIXED':
+            col.prop(md, "step")
+        elif md.mode == 'ADAPTIVE':
+            col.prop(md, "factor")
+        elif md.mode == 'SAMPLE':
+            col.prop(md, "length")
 
         col = layout.column()
         col.separator()
