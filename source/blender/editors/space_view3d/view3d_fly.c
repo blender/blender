@@ -155,6 +155,8 @@ typedef struct FlyInfo {
    * without moving the direction there looking */
   bool use_freelook;
 
+  bool anim_playing; /* needed for autokeyframing */
+
   int mval[2];         /* latest 2D mouse values */
   int center_mval[2];  /* center mouse values */
   float width, height; /* camera viewport dimensions */
@@ -184,6 +186,9 @@ typedef struct FlyInfo {
   struct View3DCameraControl *v3d_camera_control;
 
 } FlyInfo;
+
+/* prototypes */
+static int flyApply(bContext *C, struct FlyInfo *fly, bool force_autokey);
 
 static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
 {
@@ -261,6 +266,7 @@ enum {
 
 static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent *event)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
   rctf viewborder;
 
@@ -308,6 +314,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
   fly->grid = 1.0f;
   fly->use_precision = false;
   fly->use_freelook = false;
+  fly->anim_playing = ED_screen_animation_playing(wm);
 
 #ifdef NDOF_FLY_DRAW_TOOMUCH
   fly->redraw = 1;
@@ -373,6 +380,18 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 
   if (fly->state == FLY_RUNNING) {
     return OPERATOR_RUNNING_MODAL;
+  }
+  else if (fly->state == FLY_CONFIRM) {
+    /* Needed for auto_keyframe. */
+#ifdef WITH_INPUT_NDOF
+    if (fly->ndof) {
+      flyApply_ndof(C, fly, true);
+    }
+    else
+#endif /* WITH_INPUT_NDOF */
+    {
+      flyApply(C, fly, true);
+    }
   }
 
 #ifdef NDOF_FLY_DEBUG
@@ -672,12 +691,19 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
   }
 }
 
-static void flyMoveCamera(bContext *C, FlyInfo *fly, const bool do_rotate, const bool do_translate)
+static void flyMoveCamera(bContext *C,
+                          FlyInfo *fly,
+                          const bool do_rotate,
+                          const bool do_translate,
+                          const bool is_confirm)
 {
-  ED_view3d_cameracontrol_update(fly->v3d_camera_control, true, C, do_rotate, do_translate);
+  /* we only consider autokeying on playback or if user confirmed fly on the same frame
+   * otherwise we get a keyframe even if the user cancels. */
+  const bool use_autokey = is_confirm || fly->anim_playing;
+  ED_view3d_cameracontrol_update(fly->v3d_camera_control, use_autokey, C, do_rotate, do_translate);
 }
 
-static int flyApply(bContext *C, FlyInfo *fly)
+static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
 {
 #define FLY_ROTATE_FAC 10.0f        /* more is faster */
 #define FLY_ZUP_CORRECT_FAC 0.1f    /* amount to correct per step */
@@ -948,7 +974,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
                                 (fly->zlock != FLY_AXISLOCK_STATE_OFF) ||
                                 ((moffset[0] || moffset[1]) && !fly->pan_view));
         const bool do_translate = (fly->speed != 0.0f || fly->pan_view);
-        flyMoveCamera(C, fly, do_rotate, do_translate);
+        flyMoveCamera(C, fly, do_rotate, do_translate, is_confirm);
       }
     }
     else {
@@ -980,7 +1006,7 @@ static void flyApply_ndof(bContext *C, FlyInfo *fly)
     fly->redraw = true;
 
     if (fly->rv3d->persp == RV3D_CAMOB) {
-      flyMoveCamera(C, fly, has_rotate, has_translate);
+      flyMoveCamera(C, fly, has_rotate, has_translate, true);
     }
   }
 }
@@ -1035,13 +1061,13 @@ static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 #ifdef WITH_INPUT_NDOF
   if (fly->ndof) { /* 3D mouse overrules [2D mouse + timer] */
     if (event->type == NDOF_MOTION) {
-      flyApply_ndof(C, fly);
+      flyApply_ndof(C, fly, false);
     }
   }
   else
 #endif /* WITH_INPUT_NDOF */
       if (event->type == TIMER && event->customdata == fly->timer) {
-    flyApply(C, fly);
+    flyApply(C, fly, false);
   }
 
   do_draw |= fly->redraw;
