@@ -145,13 +145,8 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
           ED_region_tag_redraw(ar);
           break;
         case ND_CONSTRAINT:
-          switch (wmn->action) {
-            case NA_ADDED:
-            case NA_REMOVED:
-            case NA_RENAME:
-              ED_region_tag_redraw(ar);
-              break;
-          }
+          /* all constraint actions now, for reordering */
+          ED_region_tag_redraw(ar);
           break;
         case ND_MODIFIER:
           /* all modifier actions now */

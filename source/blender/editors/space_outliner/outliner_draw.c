@@ -31,6 +31,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_object_force_types.h"
 
 #include "BLI_math.h"
@@ -849,6 +850,7 @@ typedef struct RestrictProperties {
   PropertyRNA *layer_collection_holdout, *layer_collection_indirect_only,
       *layer_collection_hide_viewport;
   PropertyRNA *modifier_show_viewport, *modifier_show_render;
+  PropertyRNA *constraint_enable;
 } RestrictProperties;
 
 /* We don't care about the value of the property
@@ -866,6 +868,7 @@ typedef struct RestrictPropertiesActive {
   bool layer_collection_hide_viewport;
   bool modifier_show_viewport;
   bool modifier_show_render;
+  bool constraint_enable;
 } RestrictPropertiesActive;
 
 static void outliner_restrict_properties_enable_collection_set(
@@ -879,6 +882,7 @@ static void outliner_restrict_properties_enable_collection_set(
       props_active->layer_collection_indirect_only = false;
       props_active->object_hide_render = false;
       props_active->modifier_show_render = false;
+      props_active->constraint_enable = false;
     }
   }
 
@@ -892,6 +896,7 @@ static void outliner_restrict_properties_enable_collection_set(
       props_active->object_hide_viewport = false;
       props_active->base_hide_viewport = false;
       props_active->modifier_show_viewport = false;
+      props_active->constraint_enable = false;
     }
   }
 
@@ -995,6 +1000,8 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                                                          "hide_viewport");
     props.modifier_show_viewport = RNA_struct_type_find_property(&RNA_Modifier, "show_viewport");
     props.modifier_show_render = RNA_struct_type_find_property(&RNA_Modifier, "show_render");
+
+    props.constraint_enable = RNA_struct_type_find_property(&RNA_Constraint, "mute");
 
     props.initialized = true;
   }
@@ -1178,6 +1185,35 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           UI_but_func_set(bt, outliner__object_set_flag_recursive_cb, ob, (char *)"hide_render");
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           if (!props_active.object_hide_render) {
+            UI_but_flag_enable(bt, UI_BUT_INACTIVE);
+          }
+        }
+      }
+      else if (tselem->type == TSE_CONSTRAINT) {
+        bConstraint *con = (bConstraint *)te->directdata;
+
+        PointerRNA ptr;
+        RNA_pointer_create(tselem->id, &RNA_Constraint, con, &ptr);
+
+        if (soops->show_restrict_flags & SO_RESTRICT_HIDE) {
+          bt = uiDefIconButR_prop(block,
+                                  UI_BTYPE_ICON_TOGGLE,
+                                  0,
+                                  0,
+                                  (int)(ar->v2d.cur.xmax - restrict_offsets.hide),
+                                  te->ys,
+                                  UI_UNIT_X,
+                                  UI_UNIT_Y,
+                                  &ptr,
+                                  props.constraint_enable,
+                                  -1,
+                                  0,
+                                  0,
+                                  -1,
+                                  -1,
+                                  NULL);
+          UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+          if (!props_active.constraint_enable) {
             UI_but_flag_enable(bt, UI_BUT_INACTIVE);
           }
         }
@@ -1886,6 +1922,100 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       case TSE_CONSTRAINT_BASE:
         data.icon = ICON_CONSTRAINT;
         break;
+      case TSE_CONSTRAINT: {
+        bConstraint *con = te->directdata;
+        switch ((eBConstraint_Types)con->type) {
+          case CONSTRAINT_TYPE_CAMERASOLVER:
+            data.icon = ICON_CON_CAMERASOLVER;
+            break;
+          case CONSTRAINT_TYPE_FOLLOWTRACK:
+            data.icon = ICON_CON_FOLLOWTRACK;
+            break;
+          case CONSTRAINT_TYPE_OBJECTSOLVER:
+            data.icon = ICON_CON_OBJECTSOLVER;
+            break;
+          case CONSTRAINT_TYPE_LOCLIKE:
+            data.icon = ICON_CON_LOCLIKE;
+            break;
+          case CONSTRAINT_TYPE_ROTLIKE:
+            data.icon = ICON_CON_ROTLIKE;
+            break;
+          case CONSTRAINT_TYPE_SIZELIKE:
+            data.icon = ICON_CON_SIZELIKE;
+            break;
+          case CONSTRAINT_TYPE_TRANSLIKE:
+            data.icon = ICON_CON_TRANSLIKE;
+            break;
+          case CONSTRAINT_TYPE_DISTLIMIT:
+            data.icon = ICON_CON_DISTLIMIT;
+            break;
+          case CONSTRAINT_TYPE_LOCLIMIT:
+            data.icon = ICON_CON_LOCLIMIT;
+            break;
+          case CONSTRAINT_TYPE_ROTLIMIT:
+            data.icon = ICON_CON_ROTLIMIT;
+            break;
+          case CONSTRAINT_TYPE_SIZELIMIT:
+            data.icon = ICON_CON_SIZELIMIT;
+            break;
+          case CONSTRAINT_TYPE_SAMEVOL:
+            data.icon = ICON_CON_SAMEVOL;
+            break;
+          case CONSTRAINT_TYPE_TRANSFORM:
+            data.icon = ICON_CON_TRANSFORM;
+            break;
+          case CONSTRAINT_TYPE_TRANSFORM_CACHE:
+            data.icon = ICON_CON_TRANSFORM_CACHE;
+            break;
+          case CONSTRAINT_TYPE_CLAMPTO:
+            data.icon = ICON_CON_CLAMPTO;
+            break;
+          case CONSTRAINT_TYPE_DAMPTRACK:
+            data.icon = ICON_CON_TRACKTO;
+            break;
+          case CONSTRAINT_TYPE_KINEMATIC:
+            data.icon = ICON_CON_KINEMATIC;
+            break;
+          case CONSTRAINT_TYPE_LOCKTRACK:
+            data.icon = ICON_CON_LOCKTRACK;
+            break;
+          case CONSTRAINT_TYPE_SPLINEIK:
+            data.icon = ICON_CON_SPLINEIK;
+            break;
+          case CONSTRAINT_TYPE_STRETCHTO:
+            data.icon = ICON_CON_STRETCHTO;
+            break;
+          case CONSTRAINT_TYPE_TRACKTO:
+            data.icon = ICON_CON_TRACKTO;
+            break;
+          case CONSTRAINT_TYPE_ACTION:
+            data.icon = ICON_ACTION;
+            break;
+          case CONSTRAINT_TYPE_ARMATURE:
+            data.icon = ICON_CON_ARMATURE;
+            break;
+          case CONSTRAINT_TYPE_CHILDOF:
+            data.icon = ICON_CON_CHILDOF;
+            break;
+          case CONSTRAINT_TYPE_MINMAX:
+            data.icon = ICON_CON_FLOOR;
+            break;
+          case CONSTRAINT_TYPE_FOLLOWPATH:
+            data.icon = ICON_CON_FOLLOWPATH;
+            break;
+          case CONSTRAINT_TYPE_PIVOT:
+            data.icon = ICON_CON_PIVOT;
+            break;
+          case CONSTRAINT_TYPE_SHRINKWRAP:
+            data.icon = ICON_CON_SHRINKWRAP;
+            break;
+
+          default:
+            data.icon = ICON_DOT;
+            break;
+        }
+        break;
+      }
       case TSE_MODIFIER_BASE:
         data.icon = ICON_MODIFIER_DATA;
         break;
