@@ -570,6 +570,8 @@ static void image_zoom_apply(ViewZoomData *vpd,
     delta = x - vpd->origx + y - vpd->origy;
   }
 
+  delta /= U.pixelsize;
+
   if (zoom_invert) {
     delta = -delta;
   }

@@ -940,8 +940,8 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
   const bool zoom_to_pos = use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS);
 
   /* get amount to move view by */
-  dx = RNA_float_get(op->ptr, "deltax");
-  dy = RNA_float_get(op->ptr, "deltay");
+  dx = RNA_float_get(op->ptr, "deltax") / U.pixelsize;
+  dy = RNA_float_get(op->ptr, "deltay") / U.pixelsize;
 
   if (U.uiflag & USER_ZOOM_INVERT) {
     dx *= -1;

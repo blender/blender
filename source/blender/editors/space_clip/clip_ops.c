@@ -640,6 +640,8 @@ static void view_zoom_apply(
     delta = event->x - vpd->x + event->y - vpd->y;
   }
 
+  delta /= U.pixelsize;
+
   if (U.uiflag & USER_ZOOM_INVERT) {
     delta = -delta;
   }

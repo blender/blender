@@ -1959,6 +1959,8 @@ static float viewzoom_scale_value(const rcti *winrct,
       fac = (float)(xy_init[1] - xy_curr[1]);
     }
 
+    fac /= U.pixelsize;
+
     if (zoom_invert != zoom_invert_force) {
       fac = -fac;
     }
@@ -1974,8 +1976,8 @@ static float viewzoom_scale_value(const rcti *winrct,
         BLI_rcti_cent_x(winrct),
         BLI_rcti_cent_y(winrct),
     };
-    float len_new = 5 + len_v2v2_int(ctr, xy_curr);
-    float len_old = 5 + len_v2v2_int(ctr, xy_init);
+    float len_new = (5 * U.pixelsize) + ((float)len_v2v2_int(ctr, xy_curr) / U.pixelsize);
+    float len_old = (5 * U.pixelsize) + ((float)len_v2v2_int(ctr, xy_init) / U.pixelsize);
 
     /* intentionally ignore 'zoom_invert' for scale */
     if (zoom_invert_force) {
@@ -1985,16 +1987,16 @@ static float viewzoom_scale_value(const rcti *winrct,
     zfac = val_orig * (len_old / max_ff(len_new, 1.0f)) / val;
   }
   else { /* USER_ZOOM_DOLLY */
-    float len_new = 5;
-    float len_old = 5;
+    float len_new = 5 * U.pixelsize;
+    float len_old = 5 * U.pixelsize;
 
     if (U.uiflag & USER_ZOOM_HORIZ) {
-      len_new += (winrct->xmax - (xy_curr[0]));
-      len_old += (winrct->xmax - (xy_init[0]));
+      len_new += (winrct->xmax - (xy_curr[0])) / U.pixelsize;
+      len_old += (winrct->xmax - (xy_init[0])) / U.pixelsize;
     }
     else {
-      len_new += (winrct->ymax - (xy_curr[1]));
-      len_old += (winrct->ymax - (xy_init[1]));
+      len_new += (winrct->ymax - (xy_curr[1])) / U.pixelsize;
+      len_old += (winrct->ymax - (xy_init[1])) / U.pixelsize;
     }
 
     if (zoom_invert != zoom_invert_force) {
