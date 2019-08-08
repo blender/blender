@@ -1460,27 +1460,16 @@ static MDeformVert *stroke_defvert_new_count(int count, int totweight, ListBase 
   return dst;
 }
 
-static float stroke_defvert_get_nr_weight(MDeformVert *dv, int def_nr)
-{
-  int i;
-  for (i = 0; i < dv->totweight; i++) {
-    if (dv->dw[i].def_nr == def_nr) {
-      return dv->dw[i].weight;
-    }
-  }
-  return 0.0f;
-}
-
 static void stroke_interpolate_deform_weights(
     bGPDstroke *gps, int index_from, int index_to, float ratio, MDeformVert *vert)
 {
-  MDeformVert *vl = &gps->dvert[index_from];
-  MDeformVert *vr = &gps->dvert[index_to];
+  const MDeformVert *vl = &gps->dvert[index_from];
+  const MDeformVert *vr = &gps->dvert[index_to];
   int i;
 
   for (i = 0; i < vert->totweight; i++) {
-    float wl = stroke_defvert_get_nr_weight(vl, vert->dw[i].def_nr);
-    float wr = stroke_defvert_get_nr_weight(vr, vert->dw[i].def_nr);
+    float wl = defvert_find_weight(vl, vert->dw[i].def_nr);
+    float wr = defvert_find_weight(vr, vert->dw[i].def_nr);
     vert->dw[i].weight = interpf(wr, wl, ratio);
   }
 }
