@@ -60,6 +60,8 @@ enum {
   TSE_DRAG_INTO = (1 << 6),
   TSE_DRAG_BEFORE = (1 << 7),
   TSE_DRAG_AFTER = (1 << 8),
+  /* Needed because outliner-only elements can be active */
+  TSE_ACTIVE = (1 << 9),
   TSE_DRAG_ANY = (TSE_DRAG_INTO | TSE_DRAG_BEFORE | TSE_DRAG_AFTER),
 };
 

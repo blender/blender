@@ -253,6 +253,8 @@ void outliner_object_mode_toggle(struct bContext *C,
                                  ViewLayer *view_layer,
                                  Base *base);
 
+void outliner_element_activate(struct SpaceOutliner *soops, struct TreeStoreElem *tselem);
+
 /* outliner_edit.c ---------------------------------------------- */
 typedef void (*outliner_operation_cb)(struct bContext *C,
                                       struct ReportList *,
@@ -456,5 +458,9 @@ bool outliner_tree_traverse(const SpaceOutliner *soops,
                             TreeTraversalFunc func,
                             void *customdata);
 float outliner_restrict_columns_width(const struct SpaceOutliner *soops);
+
+/* outliner_sync.c ---------------------------------------------- */
+
+void outliner_sync_selection(const struct bContext *C, struct SpaceOutliner *soops);
 
 #endif /* __OUTLINER_INTERN_H__ */

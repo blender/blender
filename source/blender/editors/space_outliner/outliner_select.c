@@ -54,6 +54,7 @@
 
 #include "ED_armature.h"
 #include "ED_object.h"
+#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 #include "ED_sequencer.h"
@@ -1083,6 +1084,13 @@ eOLDrawState tree_element_type_active(bContext *C,
 
 /* ================================================ */
 
+/* Activate a tree store element and set the walk navigation start element */
+void outliner_element_activate(SpaceOutliner *soops, TreeStoreElem *tselem)
+{
+  outliner_flag_set(&soops->tree, TSE_ACTIVE, false);
+  tselem->flag |= TSE_ACTIVE;
+}
+
 /**
  * Action when clicking to activate an item (typically under the mouse cursor),
  * but don't do any cursor intersection checks.
@@ -1114,7 +1122,8 @@ static void do_outliner_item_activate_tree_element(bContext *C,
   else if (tselem->type == TSE_POSE_BASE) {
     /* Support pose mode toggle, keeping the active object as is. */
   }
-  else {
+  else if (soops->flag & SO_SYNC_SELECT) {
+    /* Only activate when synced selection is enabled */
     tree_element_set_active_object(C,
                                    scene,
                                    view_layer,
@@ -1124,6 +1133,9 @@ static void do_outliner_item_activate_tree_element(bContext *C,
                                                                    OL_SETSEL_NORMAL,
                                    recursive && tselem->type == 0);
   }
+
+  /* Mark as active in the outliner */
+  outliner_element_activate(soops, tselem);
 
   if (tselem->type == 0) {  // the lib blocks
     /* editmode? */
@@ -1189,7 +1201,7 @@ static void do_outliner_item_activate_tree_element(bContext *C,
       tree_element_active(C, scene, view_layer, soops, te, OL_SETSEL_NORMAL, false);
     }
   }
-  else {
+  else if (soops->flag & SO_SYNC_SELECT) {
     tree_element_type_active(C,
                              scene,
                              view_layer,
@@ -1211,7 +1223,8 @@ void outliner_item_select(SpaceOutliner *soops,
                           const bool toggle)
 {
   TreeStoreElem *tselem = TREESTORE(te);
-  const short new_flag = toggle ? (tselem->flag ^ TSE_SELECTED) : (tselem->flag | TSE_SELECTED);
+  const short new_flag = (toggle && (tselem->flag & TSE_ACTIVE)) ? (tselem->flag ^ TSE_SELECTED) :
+                                                                   (tselem->flag | TSE_SELECTED);
 
   if (extend == false) {
     outliner_flag_set(&soops->tree, TSE_SELECTED, false);
@@ -1318,6 +1331,10 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
       ED_region_tag_redraw_no_rebuild(ar);
     }
     ED_undo_push(C, "Outliner selection change");
+
+    if (soops->flag & SO_SYNC_SELECT) {
+      ED_outliner_select_sync_from_outliner(C, soops);
+    }
   }
 
   return OPERATOR_FINISHED;
@@ -1401,6 +1418,10 @@ static int outliner_box_select_exec(bContext *C, wmOperator *op)
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
   ED_region_tag_redraw(ar);
+
+  if (soops->flag & SO_SYNC_SELECT) {
+    ED_outliner_select_sync_from_outliner(C, soops);
+  }
 
   return OPERATOR_FINISHED;
 }

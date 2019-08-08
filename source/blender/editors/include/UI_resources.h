@@ -255,6 +255,7 @@ typedef enum ThemeColorID {
 
   TH_MATCH,            /* highlight color for search matches */
   TH_SELECT_HIGHLIGHT, /* highlight color for selected outliner item */
+  TH_SELECT_ACTIVE,    /* highlight color for active outliner item */
   TH_SELECTED_OBJECT,  /* selected object color for outliner */
   TH_ACTIVE_OBJECT,    /* active object color for outliner */
   TH_EDITED_OBJECT,    /* edited object color for outliner */

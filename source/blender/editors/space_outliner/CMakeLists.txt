@@ -41,6 +41,7 @@ set(SRC
   outliner_edit.c
   outliner_ops.c
   outliner_select.c
+  outliner_sync.c
   outliner_tools.c
   outliner_tree.c
   outliner_utils.c

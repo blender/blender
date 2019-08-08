@@ -974,6 +974,7 @@
       <ThemeOutliner
         match="#337f33"
         selected_highlight="#7a8e99"
+        active="#92aab7"
         selected_object="#ffddb3"
         active_object="#ffffff"
         edited_object="#0080624d"

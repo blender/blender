@@ -794,6 +794,10 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = ts->selected_highlight;
           break;
 
+        case TH_SELECT_ACTIVE:
+          cp = ts->active;
+          break;
+
         case TH_SELECTED_OBJECT:
           cp = ts->selected_object;
           break;

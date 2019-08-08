@@ -46,6 +46,7 @@
 
 #include "ED_armature.h"
 #include "ED_object.h"
+#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 #include "ED_view3d.h"
@@ -355,6 +356,8 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, const wmEv
       bone = NULL;
     }
   }
+
+  ED_outliner_select_sync_from_edit_bone_tag(C);
 
   ED_armature_edit_sync_selection(arm->edbo);
 
@@ -1027,6 +1030,8 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
+  ED_outliner_select_sync_from_edit_bone_tag(C);
+
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, NULL);
 
   return OPERATOR_FINISHED;
@@ -1148,6 +1153,8 @@ static int armature_de_select_more_exec(bContext *C, wmOperator *UNUSED(op))
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
   }
   MEM_freeN(objects);
+
+  ED_outliner_select_sync_from_edit_bone_tag(C);
   return OPERATOR_FINISHED;
 }
 
@@ -1178,6 +1185,8 @@ static int armature_de_select_less_exec(bContext *C, wmOperator *UNUSED(op))
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
   }
   MEM_freeN(objects);
+
+  ED_outliner_select_sync_from_edit_bone_tag(C);
   return OPERATOR_FINISHED;
 }
 
@@ -1569,6 +1578,8 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
 
 #undef STRUCT_SIZE_AND_OFFSET
 
+  ED_outliner_select_sync_from_edit_bone_tag(C);
+
   return OPERATOR_FINISHED;
 }
 
@@ -1663,6 +1674,8 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  ED_outliner_select_sync_from_edit_bone_tag(C);
+
   ED_armature_edit_sync_selection(arm->edbo);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
@@ -1747,6 +1760,8 @@ static int armature_select_mirror_exec(bContext *C, wmOperator *op)
     if (ebone_mirror_act) {
       arm->act_edbone = ebone_mirror_act;
     }
+
+    ED_outliner_select_sync_from_edit_bone_tag(C);
 
     ED_armature_edit_sync_selection(arm->edbo);
 
@@ -1876,6 +1891,7 @@ static int armature_shortest_path_pick_invoke(bContext *C, wmOperator *op, const
 
   if (changed) {
     arm->act_edbone = ebone_dst;
+    ED_outliner_select_sync_from_edit_bone_tag(C);
     ED_armature_edit_sync_selection(arm->edbo);
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 

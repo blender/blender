@@ -41,6 +41,7 @@
 
 /* for menu/popup icons etc etc*/
 
+#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_sequencer.h"
 #include "ED_select_utils.h"
@@ -49,6 +50,7 @@
 
 /* own include */
 #include "sequencer_intern.h"
+
 static void *find_nearest_marker(int UNUSED(d1), int UNUSED(d2))
 {
   return NULL;
@@ -254,6 +256,8 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
     }
   }
 
+  ED_outliner_select_sync_from_sequence_tag(C);
+
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 
   return OPERATOR_FINISHED;
@@ -292,6 +296,8 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
       seq->flag |= SELECT;
     }
   }
+
+  ED_outliner_select_sync_from_sequence_tag(C);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 
@@ -542,6 +548,8 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
     }
   }
 
+  ED_outliner_select_sync_from_sequence_tag(C);
+
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 
   /* allowing tweaks */
@@ -668,6 +676,8 @@ static int sequencer_select_more_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
+  ED_outliner_select_sync_from_sequence_tag(C);
+
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 
   return OPERATOR_FINISHED;
@@ -698,6 +708,8 @@ static int sequencer_select_less_exec(bContext *C, wmOperator *UNUSED(op))
   if (!select_more_less_seq__internal(scene, false, false)) {
     return OPERATOR_CANCELLED;
   }
+
+  ED_outliner_select_sync_from_sequence_tag(C);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 
@@ -750,6 +762,8 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, cons
     selected = select_more_less_seq__internal(scene, 1, 1);
   }
 
+  ED_outliner_select_sync_from_sequence_tag(C);
+
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 
   return OPERATOR_FINISHED;
@@ -783,6 +797,8 @@ static int sequencer_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
   while (selected) {
     selected = select_more_less_seq__internal(scene, true, true);
   }
+
+  ED_outliner_select_sync_from_sequence_tag(C);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 
@@ -832,6 +848,8 @@ static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
     }
   }
 
+  ED_outliner_select_sync_from_sequence_tag(C);
+
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 
   return OPERATOR_FINISHED;
@@ -875,6 +893,8 @@ static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
 
   select_active_side(
       ed->seqbasep, RNA_enum_get(op->ptr, "side"), seq_act->machine, seq_act->startdisp);
+
+  ED_outliner_select_sync_from_sequence_tag(C);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 
@@ -933,6 +953,8 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
       recurs_sel_seq(seq);
     }
   }
+
+  ED_outliner_select_sync_from_sequence_tag(C);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 
@@ -1311,6 +1333,7 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
   }
 
   if (changed) {
+    ED_outliner_select_sync_from_sequence_tag(C);
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
     return OPERATOR_FINISHED;
   }

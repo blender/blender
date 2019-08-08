@@ -244,7 +244,12 @@ typedef struct SpaceOutliner {
   char search_string[64];
   struct TreeStoreElem search_tse;
 
-  short flag, outlinevis, storeflag, search_flags;
+  short flag, outlinevis, storeflag;
+  char search_flags;
+
+  /** Selection syncing flag (#WM_OUTLINER_SYNC_SELECT_FROM_OBJECT and similar flags). */
+  char sync_select_dirty;
+
   int filter;
   char filter_state;
   char show_restrict_flags;
@@ -263,6 +268,7 @@ typedef enum eSpaceOutliner_Flag {
   SO_FLAG_UNUSED_1 = (1 << 2), /* cleared */
   SO_HIDE_KEYINGSETINFO = (1 << 3),
   SO_SKIP_SORT_ALPHA = (1 << 4),
+  SO_SYNC_SELECT = (1 << 5),
 } eSpaceOutliner_Flag;
 
 /* SpaceOutliner.filter */

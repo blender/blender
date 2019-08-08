@@ -103,6 +103,7 @@
 #include "ED_mesh.h"
 #include "ED_node.h"
 #include "ED_object.h"
+#include "ED_outliner.h"
 #include "ED_physics.h"
 #include "ED_render.h"
 #include "ED_screen.h"
@@ -501,6 +502,8 @@ Object *ED_object_add_type(bContext *C,
 
   /* TODO(sergey): Use proper flag for tagging here. */
   DEG_id_tag_update(&scene->id, 0);
+
+  ED_outliner_select_sync_from_object_tag(C);
 
   return ob;
 }
