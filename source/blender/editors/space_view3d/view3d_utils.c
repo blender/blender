@@ -1212,9 +1212,17 @@ float ED_view3d_radius_to_dist(const View3D *v3d,
 /** \name View Distance Utilities
  * \{ */
 
-/* problem - ofs[3] can be on same location as camera itself.
- * Blender needs proper dist value for zoom.
- * use fallback_dist to override small values
+/**
+ * This function solves the problem of having to switch between camera and non-camera views.
+ *
+ * When viewing from the perspective of \a mat, and having the view center \a ofs,
+ * this calculates a distance from \a ofs to the matrix \a mat.
+ * Using \a fallback_dist when the distance would be too small.
+ *
+ * \param mat: A matrix use for the view-point (typically the camera objects matrix).
+ * \param ofs: Orbit center (negated), matching #RegionView3D.ofs, which is typically passed in.
+ * \param fallback_dist: The distance to use if the object is too near or in front of \a ofs.
+ * \returns A newly calculated distance or the fallback.
  */
 float ED_view3d_offset_distance(float mat[4][4], const float ofs[3], const float fallback_dist)
 {
