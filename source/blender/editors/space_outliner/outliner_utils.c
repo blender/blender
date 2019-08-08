@@ -24,11 +24,15 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_action_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BKE_context.h"
 #include "BKE_outliner_treehash.h"
+#include "BKE_layer.h"
 
 #include "ED_armature.h"
+#include "ED_outliner.h"
 
 #include "UI_interface.h"
 #include "UI_view2d.h"
@@ -299,4 +303,28 @@ float outliner_restrict_columns_width(const SpaceOutliner *soops)
       break;
   }
   return (num_columns * UI_UNIT_X + V2D_SCROLL_WIDTH);
+}
+
+/* Get base of object under cursor. Used for eyedropper tool */
+Base *ED_outliner_give_base_under_cursor(bContext *C, const int mval[2])
+{
+  ARegion *ar = CTX_wm_region(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  SpaceOutliner *soops = CTX_wm_space_outliner(C);
+  TreeElement *te;
+  Base *base = NULL;
+  float view_mval[2];
+
+  UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
+
+  te = outliner_find_item_at_y(soops, &soops->tree, view_mval[1]);
+  if (te) {
+    TreeStoreElem *tselem = TREESTORE(te);
+    if (tselem->type == 0) {
+      Object *ob = (Object *)tselem->id;
+      base = (te->directdata) ? (Base *)te->directdata : BKE_view_layer_base_find(view_layer, ob);
+    }
+  }
+
+  return base;
 }

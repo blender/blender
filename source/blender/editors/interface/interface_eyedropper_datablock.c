@@ -51,6 +51,7 @@
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_outliner.h"
 
 #include "interface_intern.h"
 #include "interface_eyedropper_intern.h"
@@ -67,6 +68,7 @@ typedef struct DataDropper {
 
   ID *init_id; /* for resetting on cancel */
 
+  ScrArea *cursor_area; /* Area under the cursor */
   ARegionType *art;
   void *draw_handle_pixel;
   char name[200];
@@ -103,6 +105,7 @@ static int datadropper_init(bContext *C, wmOperator *op)
 
   ddr->is_undo = UI_but_flag_is_set(but, UI_BUT_UNDO);
 
+  ddr->cursor_area = CTX_wm_area(C);
   ddr->art = art;
   ddr->draw_handle_pixel = ED_region_draw_cb_activate(
       art, datadropper_draw_cb, ddr, REGION_DRAW_POST_PIXEL);
@@ -141,7 +144,7 @@ static void datadropper_exit(bContext *C, wmOperator *op)
 
 /* *** datadropper id helper functions *** */
 /**
- * \brief get the ID from the screen.
+ * \brief get the ID from the 3D view or outliner.
  */
 static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int my, ID **r_id)
 {
@@ -155,7 +158,7 @@ static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int 
   ddr->name[0] = '\0';
 
   if (sa) {
-    if (sa->spacetype == SPACE_VIEW3D) {
+    if (ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_OUTLINER)) {
       ARegion *ar = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
       if (ar) {
         const int mval[2] = {mx - ar->winrct.xmin, my - ar->winrct.ymin};
@@ -167,7 +170,13 @@ static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int 
         /* grr, always draw else we leave stale text */
         ED_region_tag_redraw(ar);
 
-        base = ED_view3d_give_base_under_cursor(C, mval);
+        if (sa->spacetype == SPACE_VIEW3D) {
+          base = ED_view3d_give_base_under_cursor(C, mval);
+        }
+        else {
+          base = ED_outliner_give_base_under_cursor(C, mval);
+        }
+
         if (base) {
           Object *ob = base->object;
           ID *id = NULL;
@@ -232,6 +241,36 @@ static void datadropper_cancel(bContext *C, wmOperator *op)
   datadropper_exit(C, op);
 }
 
+/* To switch the draw callback when region under mouse event changes */
+static void datadropper_set_draw_callback_region(bContext *C,
+                                                 DataDropper *ddr,
+                                                 const int mx,
+                                                 const int my)
+{
+  bScreen *screen = CTX_wm_screen(C);
+  ScrArea *sa = BKE_screen_find_area_xy(screen, -1, mx, my);
+
+  if (sa) {
+    /* If spacetype changed */
+    if (sa->spacetype != ddr->cursor_area->spacetype) {
+      /* Remove old callback */
+      ED_region_draw_cb_exit(ddr->art, ddr->draw_handle_pixel);
+
+      /* Redraw old area */
+      ARegion *ar = BKE_area_find_region_type(ddr->cursor_area, RGN_TYPE_WINDOW);
+      ED_region_tag_redraw(ar);
+
+      /* Set draw callback in new region */
+      ARegionType *art = BKE_regiontype_from_id(sa->type, RGN_TYPE_WINDOW);
+
+      ddr->cursor_area = sa;
+      ddr->art = art;
+      ddr->draw_handle_pixel = ED_region_draw_cb_activate(
+          art, datadropper_draw_cb, ddr, REGION_DRAW_POST_PIXEL);
+    }
+  }
+}
+
 /* main modal status check */
 static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -260,6 +299,10 @@ static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else if (event->type == MOUSEMOVE) {
     ID *id = NULL;
+
+    /* Set the region for eyedropper cursor text drawing */
+    datadropper_set_draw_callback_region(C, ddr, event->x, event->y);
+
     datadropper_id_sample_pt(C, ddr, event->x, event->y, &id);
   }
 
