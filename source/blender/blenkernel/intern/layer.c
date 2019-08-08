@@ -494,6 +494,36 @@ static LayerCollection *collection_from_index(ListBase *lb, const int number, in
 }
 
 /**
+ * Determine if a collection is hidden, viewport visibility restricted, or excluded
+ */
+static bool layer_collection_hidden(ViewLayer *view_layer, LayerCollection *lc)
+{
+  if (lc->flag & LAYER_COLLECTION_EXCLUDE) {
+    return true;
+  }
+
+  /* Check visiblilty restriction flags */
+  if (lc->flag & LAYER_COLLECTION_HIDE || lc->collection->flag & COLLECTION_RESTRICT_VIEWPORT) {
+    return true;
+  }
+  else {
+    /* Restriction flags stay set, so we need to check parents */
+    CollectionParent *parent = lc->collection->parents.first;
+
+    if (parent) {
+      lc = BKE_layer_collection_first_from_scene_collection(view_layer, parent->collection);
+
+      return lc && layer_collection_hidden(view_layer, lc);
+    }
+    else {
+      return false;
+    }
+  }
+
+  return false;
+}
+
+/**
  * Get the collection for a given index
  */
 LayerCollection *BKE_layer_collection_from_index(ViewLayer *view_layer, const int index)
@@ -537,8 +567,9 @@ LayerCollection *BKE_layer_collection_activate_parent(ViewLayer *view_layer, Lay
     lc = NULL;
   }
 
-  if (lc && (lc->flag & LAYER_COLLECTION_EXCLUDE)) {
-    /* Don't activate excluded collections. */
+  /* Don't activate excluded or hidden collections to prevent creating objects in a hidden
+   * collection from the UI */
+  if (lc && layer_collection_hidden(view_layer, lc)) {
     return BKE_layer_collection_activate_parent(view_layer, lc);
   }
 
@@ -817,8 +848,7 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 
   /* Always set a valid active collection. */
   LayerCollection *active = view_layer->active_collection;
-
-  if (active && (active->flag & LAYER_COLLECTION_EXCLUDE)) {
+  if (active && layer_collection_hidden(view_layer, active)) {
     BKE_layer_collection_activate_parent(view_layer, active);
   }
   else if (active == NULL) {
