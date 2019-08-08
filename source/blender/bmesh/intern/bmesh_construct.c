@@ -390,79 +390,13 @@ void BM_verts_sort_radial_plane(BMVert **vert_arr, int len)
   struct SortIntByFloat *vang = BLI_array_alloca(vang, len);
   BMVert **vert_arr_map = BLI_array_alloca(vert_arr_map, len);
 
-  float totv_inv = 1.0f / (float)len;
-  int i = 0;
+  float nor[3], cent[3];
+  int index_tangent = 0;
+  BM_verts_calc_normal_from_cloud_ex(vert_arr, len, nor, cent, &index_tangent);
+  const float *far = vert_arr[index_tangent]->co;
 
-  float cent[3], nor[3];
-
-  const float *far = NULL, *far_cross = NULL;
-
-  float far_vec[3];
-  float far_cross_vec[3];
-  float sign_vec[3]; /* work out if we are pos/neg angle */
-
-  float far_dist_sq, far_dist_max_sq;
-  float far_cross_dist, far_cross_best = 0.0f;
-
-  /* get the center point and collect vector array since we loop over these a lot */
-  zero_v3(cent);
-  for (i = 0; i < len; i++) {
-    madd_v3_v3fl(cent, vert_arr[i]->co, totv_inv);
-  }
-
-  /* find the far point from cent */
-  far_dist_max_sq = 0.0f;
-  for (i = 0; i < len; i++) {
-    far_dist_sq = len_squared_v3v3(vert_arr[i]->co, cent);
-    if (far_dist_sq > far_dist_max_sq || far == NULL) {
-      far = vert_arr[i]->co;
-      far_dist_max_sq = far_dist_sq;
-    }
-  }
-
-  sub_v3_v3v3(far_vec, far, cent);
-  // far_dist = len_v3(far_vec); /* real dist */ /* UNUSED */
-
-  /* --- */
-
-  /* find a point 90deg about to compare with */
-  far_cross_best = 0.0f;
-  for (i = 0; i < len; i++) {
-
-    if (far == vert_arr[i]->co) {
-      continue;
-    }
-
-    sub_v3_v3v3(far_cross_vec, vert_arr[i]->co, cent);
-    far_cross_dist = normalize_v3(far_cross_vec);
-
-    /* more of a weight then a distance */
-    far_cross_dist = (
-        /* First we want to have a value close to zero mapped to 1. */
-        1.0f - fabsf(dot_v3v3(far_vec, far_cross_vec)) *
-                   /* Second  we multiply by the distance
-                    * so points close to the center are not preferred. */
-                   far_cross_dist);
-
-    if (far_cross_dist > far_cross_best || far_cross == NULL) {
-      far_cross = vert_arr[i]->co;
-      far_cross_best = far_cross_dist;
-    }
-  }
-
-  sub_v3_v3v3(far_cross_vec, far_cross, cent);
-
-  /* --- */
-
-  /* now we have 2 vectors we can have a cross product */
-  cross_v3_v3v3(nor, far_vec, far_cross_vec);
-  normalize_v3(nor);
-  cross_v3_v3v3(sign_vec, far_vec, nor); /* this vector should match 'far_cross_vec' closely */
-
-  /* --- */
-
-  /* now calculate every points angle around the normal (signed) */
-  for (i = 0; i < len; i++) {
+  /* Now calculate every points angle around the normal (signed). */
+  for (int i = 0; i < len; i++) {
     vang[i].sort_value = angle_signed_on_axis_v3v3v3_v3(far, cent, vert_arr[i]->co, nor);
     vang[i].data = i;
     vert_arr_map[i] = vert_arr[i];
@@ -473,7 +407,7 @@ void BM_verts_sort_radial_plane(BMVert **vert_arr, int len)
 
   /* --- */
 
-  for (i = 0; i < len; i++) {
+  for (int i = 0; i < len; i++) {
     vert_arr[i] = vert_arr_map[vang[i].data];
   }
 }

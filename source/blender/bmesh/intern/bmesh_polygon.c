@@ -865,6 +865,113 @@ float BM_face_calc_normal_vcos(const BMesh *bm,
 }
 
 /**
+ * Calculate a normal from a vertex cloud.
+ *
+ * \note We could make a higher quality version that takes all vertices into account.
+ * Currently it finds 4 outer most points returning it's normal.
+ */
+void BM_verts_calc_normal_from_cloud_ex(
+    BMVert **varr, int varr_len, float r_normal[3], float r_center[3], int *r_index_tangent)
+{
+  const float varr_len_inv = 1.0f / (float)varr_len;
+
+  /* Get the center point and collect vector array since we loop over these a lot. */
+  float center[3] = {0.0f, 0.0f, 0.0f};
+  for (int i = 0; i < varr_len; i++) {
+    madd_v3_v3fl(center, varr[i]->co, varr_len_inv);
+  }
+
+  /* Find the 'co_a' point from center. */
+  int co_a_index = 0;
+  const float *co_a = NULL;
+  {
+    float dist_sq_max = -1.0f;
+    for (int i = 0; i < varr_len; i++) {
+      const float dist_sq_test = len_squared_v3v3(varr[i]->co, center);
+      if (!(dist_sq_test <= dist_sq_max)) {
+        co_a = varr[i]->co;
+        co_a_index = i;
+        dist_sq_max = dist_sq_test;
+      }
+    }
+  }
+
+  float dir_a[3];
+  sub_v3_v3v3(dir_a, co_a, center);
+  normalize_v3(dir_a);
+
+  const float *co_b = NULL;
+  float dir_b[3] = {0.0f, 0.0f, 0.0f};
+  {
+    float dist_sq_max = -1.0f;
+    for (int i = 0; i < varr_len; i++) {
+      if (varr[i]->co == co_a) {
+        continue;
+      }
+      float dir_test[3];
+      sub_v3_v3v3(dir_test, varr[i]->co, center);
+      project_plane_normalized_v3_v3v3(dir_test, dir_test, dir_a);
+      const float dist_sq_test = len_squared_v3(dir_test);
+      if (!(dist_sq_test <= dist_sq_max)) {
+        co_b = varr[i]->co;
+        dist_sq_max = dist_sq_test;
+        copy_v3_v3(dir_b, dir_test);
+      }
+    }
+  }
+
+  if (varr_len <= 3) {
+    normal_tri_v3(r_normal, center, co_a, co_b);
+    goto finally;
+  }
+
+  normalize_v3(dir_b);
+
+  const float *co_a_opposite = NULL;
+  const float *co_b_opposite = NULL;
+
+  {
+    float dot_a_min = FLT_MAX;
+    float dot_b_min = FLT_MAX;
+    for (int i = 0; i < varr_len; i++) {
+      const float *co_test = varr[i]->co;
+      float dot_test;
+
+      if (co_test != co_a) {
+        dot_test = dot_v3v3(dir_a, co_test);
+        if (dot_test < dot_a_min) {
+          dot_a_min = dot_test;
+          co_a_opposite = co_test;
+        }
+      }
+
+      if (co_test != co_b) {
+        dot_test = dot_v3v3(dir_b, co_test);
+        if (dot_test < dot_b_min) {
+          dot_b_min = dot_test;
+          co_b_opposite = co_test;
+        }
+      }
+    }
+  }
+
+  normal_quad_v3(r_normal, co_a, co_b, co_a_opposite, co_b_opposite);
+
+finally:
+  if (r_center != NULL) {
+    copy_v3_v3(r_center, center);
+  }
+  if (r_index_tangent != NULL) {
+    *r_index_tangent = co_a_index;
+  }
+}
+
+void BM_verts_calc_normal_from_cloud(BMVert **varr, int varr_len, float r_normal[3])
+{
+  BM_verts_calc_normal_from_cloud_ex(varr, varr_len, r_normal, NULL, NULL);
+}
+
+/**
  * Calculates the face subset normal.
  */
 float BM_face_calc_normal_subset(const BMLoop *l_first, const BMLoop *l_last, float r_no[3])
