@@ -189,7 +189,7 @@ typedef struct FlyInfo {
 
 /* prototypes */
 #ifdef WITH_INPUT_NDOF
-static void flyApply_ndof(bContext *C, FlyInfo *fly, bool is_confirm)
+static void flyApply_ndof(bContext *C, FlyInfo *fly, bool is_confirm);
 #endif /* WITH_INPUT_NDOF */
 static int flyApply(bContext *C, struct FlyInfo *fly, bool force_autokey);
 
