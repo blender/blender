@@ -1628,16 +1628,20 @@ typedef enum eSpace_Type {
   SPACE_SEQ = 8,
   SPACE_TEXT = 9,
 #ifdef DNA_DEPRECATED
-  SPACE_IMASEL = 10, /* deprecated */
+  SPACE_IMASEL = 10, /* Deprecated */
   SPACE_SOUND = 11,  /* Deprecated */
 #endif
   SPACE_ACTION = 12,
   SPACE_NLA = 13,
   /* TODO: fully deprecate */
   SPACE_SCRIPT = 14, /* Deprecated */
-  SPACE_TIME = 15,   /* Deprecated */
+#ifdef DNA_DEPRECATED
+  SPACE_TIME = 15, /* Deprecated */
+#endif
   SPACE_NODE = 16,
-  SPACE_LOGIC = 17, /* deprecated */
+#ifdef DNA_DEPRECATED
+  SPACE_LOGIC = 17, /* Deprecated */
+#endif
   SPACE_CONSOLE = 18,
   SPACE_USERPREF = 19,
   SPACE_CLIP = 20,
