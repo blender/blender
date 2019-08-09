@@ -390,6 +390,13 @@ bool isect_tri_tri_epsilon_v3(const float t_a0[3],
                               float r_i2[3],
                               const float epsilon);
 
+bool isect_tri_tri_v2(const float p1[2],
+                      const float q1[2],
+                      const float r1[2],
+                      const float p2[2],
+                      const float q2[2],
+                      const float r2[2]);
+
 /* water-tight raycast (requires pre-calculation) */
 struct IsectRayPrecalc {
   /* Maximal dimension kz, and orthogonal dimensions. */

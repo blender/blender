@@ -2346,6 +2346,213 @@ bool isect_tri_tri_epsilon_v3(const float t_a0[3],
   return false;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Tri-Tri Intersect 2D
+ *
+ * "Fast and Robust Triangle-Triangle Overlap Test
+ * Using Orientation Predicates" P. Guigue - O. Devillers
+ * Journal of Graphics Tools, 8(1), 2003.
+ *
+ * \{ */
+
+static bool isect_tri_tri_v2_impl_vert(const float t_a0[2],
+                                       const float t_a1[2],
+                                       const float t_a2[2],
+                                       const float t_b0[2],
+                                       const float t_b1[2],
+                                       const float t_b2[2])
+{
+  if (line_point_side_v2(t_b2, t_b0, t_a1) >= 0.0f) {
+    if (line_point_side_v2(t_b2, t_b1, t_a1) <= 0.0f) {
+      if (line_point_side_v2(t_a0, t_b0, t_a1) > 0.0f) {
+        if (line_point_side_v2(t_a0, t_b1, t_a1) <= 0.0f) {
+          return 1;
+        }
+        else {
+          return 0;
+        }
+      }
+      else {
+        if (line_point_side_v2(t_a0, t_b0, t_a2) >= 0.0f) {
+          if (line_point_side_v2(t_a1, t_a2, t_b0) >= 0.0f) {
+            return 1;
+          }
+          else {
+            return 0;
+          }
+        }
+        else {
+          return 0;
+        }
+      }
+    }
+    else if (line_point_side_v2(t_a0, t_b1, t_a1) <= 0.0f) {
+      if (line_point_side_v2(t_b2, t_b1, t_a2) <= 0.0f) {
+        if (line_point_side_v2(t_a1, t_a2, t_b1) >= 0.0f) {
+          return 1;
+        }
+        else {
+          return 0;
+        }
+      }
+      else {
+        return 0;
+      }
+    }
+    else {
+      return 0;
+    }
+  }
+  else if (line_point_side_v2(t_b2, t_b0, t_a2) >= 0.0f) {
+    if (line_point_side_v2(t_a1, t_a2, t_b2) >= 0.0f) {
+      if (line_point_side_v2(t_a0, t_b0, t_a2) >= 0.0f) {
+        return 1;
+      }
+      else {
+        return 0;
+      }
+    }
+    else if (line_point_side_v2(t_a1, t_a2, t_b1) >= 0.0f) {
+      if (line_point_side_v2(t_b2, t_a2, t_b1) >= 0.0f) {
+        return 1;
+      }
+      else {
+        return 0;
+      }
+    }
+    else {
+      return 0;
+    }
+  }
+  else {
+    return 0;
+  }
+}
+
+static bool isect_tri_tri_v2_impl_edge(const float t_a0[2],
+                                       const float t_a1[2],
+                                       const float t_a2[2],
+                                       const float t_b0[2],
+                                       const float t_b1[2],
+                                       const float t_b2[2])
+{
+  UNUSED_VARS(t_b1);
+
+  if (line_point_side_v2(t_b2, t_b0, t_a1) >= 0.0f) {
+    if (line_point_side_v2(t_a0, t_b0, t_a1) >= 0.0f) {
+      if (line_point_side_v2(t_a0, t_a1, t_b2) >= 0.0f) {
+        return 1;
+      }
+      else {
+        return 0;
+      }
+    }
+    else {
+      if (line_point_side_v2(t_a1, t_a2, t_b0) >= 0.0f) {
+        if (line_point_side_v2(t_a2, t_a0, t_b0) >= 0.0f) {
+          return 1;
+        }
+        else {
+          return 0;
+        }
+      }
+      else {
+        return 0;
+      }
+    }
+  }
+  else {
+    if (line_point_side_v2(t_b2, t_b0, t_a2) >= 0.0f) {
+      if (line_point_side_v2(t_a0, t_b0, t_a2) >= 0.0f) {
+        if (line_point_side_v2(t_a0, t_a2, t_b2) >= 0.0f) {
+          return 1;
+        }
+        else {
+          if (line_point_side_v2(t_a1, t_a2, t_b2) >= 0.0f) {
+            return 1;
+          }
+          else {
+            return 0;
+          }
+        }
+      }
+      else {
+        return 0;
+      }
+    }
+    else {
+      return 0;
+    }
+  }
+}
+
+static int isect_tri_tri_impl_ccw_v2(const float t_a0[2],
+                                     const float t_a1[2],
+                                     const float t_a2[2],
+                                     const float t_b0[2],
+                                     const float t_b1[2],
+                                     const float t_b2[2])
+{
+  if (line_point_side_v2(t_b0, t_b1, t_a0) >= 0.0f) {
+    if (line_point_side_v2(t_b1, t_b2, t_a0) >= 0.0f) {
+      if (line_point_side_v2(t_b2, t_b0, t_a0) >= 0.0f) {
+        return 1;
+      }
+      else {
+        return isect_tri_tri_v2_impl_edge(t_a0, t_a1, t_a2, t_b0, t_b1, t_b2);
+      }
+    }
+    else {
+      if (line_point_side_v2(t_b2, t_b0, t_a0) >= 0.0f) {
+        return isect_tri_tri_v2_impl_edge(t_a0, t_a1, t_a2, t_b2, t_b0, t_b1);
+      }
+      else {
+        return isect_tri_tri_v2_impl_vert(t_a0, t_a1, t_a2, t_b0, t_b1, t_b2);
+      }
+    }
+  }
+  else {
+    if (line_point_side_v2(t_b1, t_b2, t_a0) >= 0.0f) {
+      if (line_point_side_v2(t_b2, t_b0, t_a0) >= 0.0f) {
+        return isect_tri_tri_v2_impl_edge(t_a0, t_a1, t_a2, t_b1, t_b2, t_b0);
+      }
+      else {
+        return isect_tri_tri_v2_impl_vert(t_a0, t_a1, t_a2, t_b1, t_b2, t_b0);
+      }
+    }
+    else {
+      return isect_tri_tri_v2_impl_vert(t_a0, t_a1, t_a2, t_b2, t_b0, t_b1);
+    }
+  }
+}
+
+bool isect_tri_tri_v2(const float t_a0[2],
+                      const float t_a1[2],
+                      const float t_a2[2],
+                      const float t_b0[2],
+                      const float t_b1[2],
+                      const float t_b2[2])
+{
+  if (line_point_side_v2(t_a0, t_a1, t_a2) < 0.0f) {
+    if (line_point_side_v2(t_b0, t_b1, t_b2) < 0.0f) {
+      return isect_tri_tri_impl_ccw_v2(t_a0, t_a2, t_a1, t_b0, t_b2, t_b1);
+    }
+    else {
+      return isect_tri_tri_impl_ccw_v2(t_a0, t_a2, t_a1, t_b0, t_b1, t_b2);
+    }
+  }
+  else {
+    if (line_point_side_v2(t_b0, t_b1, t_b2) < 0.0f) {
+      return isect_tri_tri_impl_ccw_v2(t_a0, t_a1, t_a2, t_b0, t_b2, t_b1);
+    }
+    else {
+      return isect_tri_tri_impl_ccw_v2(t_a0, t_a1, t_a2, t_b0, t_b1, t_b2);
+    }
+  }
+}
+
+/** \} */
+
 /* Adapted from the paper by Kasper Fauerby */
 
 /* "Improved Collision detection and Response" */

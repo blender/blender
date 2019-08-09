@@ -283,6 +283,42 @@ static PyObject *M_Geometry_intersect_sphere_sphere_2d(PyObject *UNUSED(self), P
   return ret;
 }
 
+PyDoc_STRVAR(M_Geometry_intersect_tri_tri_2d_doc,
+             ".. function:: intersect_tri_tri_2d(tri_a1, tri_a2, tri_a3, tri_b1, tri_b2, tri_b3)\n"
+             "\n"
+             "   Check if two 2D triangles intersect.\n"
+             "\n"
+             "   :rtype: bool\n");
+static PyObject *M_Geometry_intersect_tri_tri_2d(PyObject *UNUSED(self), PyObject *args)
+{
+  const char *error_prefix = "intersect_tri_tri_2d";
+  PyObject *tri_pair_py[2][3];
+  float tri_pair[2][3][2];
+
+  if (!PyArg_ParseTuple(args,
+                        "OOOOOO:intersect_tri_tri_2d",
+                        &tri_pair_py[0][0],
+                        &tri_pair_py[0][1],
+                        &tri_pair_py[0][2],
+                        &tri_pair_py[1][0],
+                        &tri_pair_py[1][1],
+                        &tri_pair_py[1][2])) {
+    return NULL;
+  }
+
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < 3; j++) {
+      if (mathutils_array_parse(
+              tri_pair[i][j], 2, 2 | MU_ARRAY_SPILL, tri_pair_py[i][j], error_prefix) == -1) {
+        return NULL;
+      }
+    }
+  }
+
+  bool ret = isect_tri_tri_v2(UNPACK3(tri_pair[0]), UNPACK3(tri_pair[1]));
+  return PyBool_FromLong(ret);
+}
+
 PyDoc_STRVAR(M_Geometry_normal_doc,
              ".. function:: normal(vectors)\n"
              "\n"
@@ -1526,6 +1562,10 @@ static PyMethodDef M_Geometry_methods[] = {
      (PyCFunction)M_Geometry_intersect_sphere_sphere_2d,
      METH_VARARGS,
      M_Geometry_intersect_sphere_sphere_2d_doc},
+    {"intersect_tri_tri_2d",
+     (PyCFunction)M_Geometry_intersect_tri_tri_2d,
+     METH_VARARGS,
+     M_Geometry_intersect_tri_tri_2d_doc},
     {"area_tri", (PyCFunction)M_Geometry_area_tri, METH_VARARGS, M_Geometry_area_tri_doc},
     {"volume_tetrahedron",
      (PyCFunction)M_Geometry_volume_tetrahedron,
