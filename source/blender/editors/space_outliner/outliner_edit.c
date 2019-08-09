@@ -386,10 +386,10 @@ void item_rename_cb(bContext *C,
   do_item_rename(ar, te, tselem, reports);
 }
 
-static int do_outliner_item_rename(ReportList *reports,
-                                   ARegion *ar,
-                                   TreeElement *te,
-                                   const float mval[2])
+static void do_outliner_item_rename(ReportList *reports,
+                                    ARegion *ar,
+                                    TreeElement *te,
+                                    const float mval[2])
 {
   if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
     TreeStoreElem *tselem = TREESTORE(te);
@@ -397,17 +397,12 @@ static int do_outliner_item_rename(ReportList *reports,
     /* click on name */
     if (mval[0] > te->xs + UI_UNIT_X * 2 && mval[0] < te->xend) {
       do_item_rename(ar, te, tselem, reports);
-      return 1;
     }
-    return 0;
   }
 
   for (te = te->subtree.first; te; te = te->next) {
-    if (do_outliner_item_rename(reports, ar, te, mval)) {
-      return 1;
-    }
+    do_outliner_item_rename(reports, ar, te, mval);
   }
-  return 0;
 }
 
 static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *event)
@@ -416,25 +411,34 @@ static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *even
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   TreeElement *te;
   float fmval[2];
-  bool changed = false;
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+  /* Rename active element if key pressed, otherwise rename element at cursor coordinates */
+  if (event->val == KM_PRESS) {
+    TreeElement *active_element = outliner_find_element_with_flag(&soops->tree, TSE_ACTIVE);
 
-  for (te = soops->tree.first; te; te = te->next) {
-    if (do_outliner_item_rename(op->reports, ar, te, fmval)) {
-      changed = true;
-      break;
+    if (active_element) {
+      do_item_rename(ar, active_element, TREESTORE(active_element), op->reports);
+    }
+    else {
+      BKE_report(op->reports, RPT_WARNING, "No active item to rename");
+    }
+  }
+  else {
+    UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+
+    for (te = soops->tree.first; te; te = te->next) {
+      do_outliner_item_rename(op->reports, ar, te, fmval);
     }
   }
 
-  return changed ? OPERATOR_FINISHED : OPERATOR_PASS_THROUGH;
+  return OPERATOR_FINISHED;
 }
 
 void OUTLINER_OT_item_rename(wmOperatorType *ot)
 {
   ot->name = "Rename";
   ot->idname = "OUTLINER_OT_item_rename";
-  ot->description = "Rename item under cursor";
+  ot->description = "Rename the active element";
 
   ot->invoke = outliner_item_rename;
 
