@@ -23,14 +23,60 @@ from bpy.types import Header, Menu
 class INFO_HT_header(Header):
     bl_space_type = 'INFO'
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         layout.template_header()
 
-        # Empty for now until info editor gets turned into log editor
+        INFO_MT_editor_menus.draw_collapsible(context, layout)
 
 
-# Not really info, just add to re-usable location.
+class INFO_MT_editor_menus(Menu):
+    bl_idname = "INFO_MT_editor_menus"
+    bl_label = ""
+
+    def draw(self, context):
+        layout = self.layout
+        layout.menu("INFO_MT_view")
+        layout.menu("INFO_MT_info")
+
+
+class INFO_MT_view(Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.menu("INFO_MT_area")
+
+
+class INFO_MT_info(Menu):
+    bl_label = "Info"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("info.select_all", text="Select All").action = 'SELECT'
+        layout.operator("info.select_all", text="Deselect All").action = 'DESELECT'
+        layout.operator("info.select_all", text="Invert Selection").action = 'INVERT'
+        layout.operator("info.select_all", text="Toggle Selection").action = 'TOGGLE'
+
+        layout.separator()
+
+        layout.operator("info.select_box")
+
+        layout.separator()
+
+        # Disabled because users will likely try this and find
+        # it doesn't work all that well in practice.
+        # Mainly because operators needs to run in the right context.
+
+        # layout.operator("info.report_replay")
+        # layout.separator()
+
+        layout.operator("info.report_delete", text="Delete")
+        layout.operator("info.report_copy", text="Copy")
+
+
 class INFO_MT_area(Menu):
     bl_label = "Area"
 
@@ -60,7 +106,10 @@ class INFO_MT_area(Menu):
 
 classes = (
     INFO_HT_header,
+    INFO_MT_editor_menus,
     INFO_MT_area,
+    INFO_MT_view,
+    INFO_MT_info,
 )
 
 if __name__ == "__main__":  # only for live edit.
