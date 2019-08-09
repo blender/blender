@@ -47,6 +47,11 @@ class TEXT_HT_header(Header):
 
         layout.separator_spacer()
 
+        row = layout.row(align=True)
+        row.prop(st, "show_line_numbers", text="")
+        row.prop(st, "show_word_wrap", text="")
+        row.prop(st, "show_syntax_highlight", text="")
+
         if text:
             is_osl = text.name.endswith((".osl", ".osl"))
 
