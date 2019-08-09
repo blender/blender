@@ -1456,7 +1456,8 @@ void gpencil_triangulate_stroke_fill(Object *ob, bGPDstroke *gps)
 /* Check if stencil is required */
 static bool gpencil_is_stencil_required(MaterialGPencilStyle *gp_style)
 {
-  return (bool)(gp_style->stroke_style == GP_STYLE_STROKE_STYLE_SOLID);
+  return (bool)((gp_style->stroke_style == GP_STYLE_STROKE_STYLE_SOLID) &&
+                ((gp_style->flag & GP_STYLE_DISABLE_STENCIL) == 0));
 }
 
 /* draw stroke in drawing buffer */
