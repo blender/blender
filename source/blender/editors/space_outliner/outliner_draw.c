@@ -1915,6 +1915,9 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       case TSE_DEFGROUP_BASE:
         data.icon = ICON_GROUP_VERTEX;
         break;
+      case TSE_DEFGROUP:
+        data.icon = ICON_GROUP_VERTEX;
+        break;
       case TSE_BONE:
       case TSE_EBONE:
         data.icon = ICON_BONE_DATA;
@@ -2268,23 +2271,57 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         data.icon = ICON_GROUP_BONE;
         break;
       case TSE_SEQUENCE:
-        if (te->idcode == SEQ_TYPE_MOVIE) {
-          data.icon = ICON_SEQUENCE;
-        }
-        else if (te->idcode == SEQ_TYPE_META) {
-          data.icon = ICON_DOT;
-        }
-        else if (te->idcode == SEQ_TYPE_SCENE) {
-          data.icon = ICON_SCENE;
-        }
-        else if (te->idcode == SEQ_TYPE_SOUND_RAM) {
-          data.icon = ICON_SOUND;
-        }
-        else if (te->idcode == SEQ_TYPE_IMAGE) {
-          data.icon = ICON_IMAGE;
-        }
-        else {
-          data.icon = ICON_PARTICLES;
+        switch (te->idcode) {
+          case SEQ_TYPE_SCENE:
+            data.icon = ICON_SCENE_DATA;
+            break;
+          case SEQ_TYPE_MOVIECLIP:
+            data.icon = ICON_TRACKER;
+            break;
+          case SEQ_TYPE_MASK:
+            data.icon = ICON_MOD_MASK;
+            break;
+          case SEQ_TYPE_MOVIE:
+            data.icon = ICON_FILE_MOVIE;
+            break;
+          case SEQ_TYPE_SOUND_RAM:
+            data.icon = ICON_SOUND;
+            break;
+          case SEQ_TYPE_IMAGE:
+            data.icon = ICON_FILE_IMAGE;
+            break;
+          case SEQ_TYPE_COLOR:
+          case SEQ_TYPE_ADJUSTMENT:
+            data.icon = ICON_COLOR;
+            break;
+          case SEQ_TYPE_TEXT:
+            data.icon = ICON_FONT_DATA;
+            break;
+          case SEQ_TYPE_ADD:
+          case SEQ_TYPE_SUB:
+          case SEQ_TYPE_MUL:
+          case SEQ_TYPE_OVERDROP:
+          case SEQ_TYPE_ALPHAOVER:
+          case SEQ_TYPE_ALPHAUNDER:
+          case SEQ_TYPE_COLORMIX:
+          case SEQ_TYPE_MULTICAM:
+          case SEQ_TYPE_TRANSFORM:
+          case SEQ_TYPE_SPEED:
+          case SEQ_TYPE_GLOW:
+          case SEQ_TYPE_GAUSSIAN_BLUR:
+            data.icon = ICON_SHADERFX;
+            break;
+          case SEQ_TYPE_CROSS:
+          case SEQ_TYPE_GAMCROSS:
+          case SEQ_TYPE_WIPE:
+            data.icon = ICON_ARROW_LEFTRIGHT;
+            break;
+          case SEQ_TYPE_META:
+            data.icon = ICON_DOT;
+            break;
+          default:
+            data.icon = ICON_DOT;
+            break;
         }
         break;
       case TSE_SEQ_STRIP:
