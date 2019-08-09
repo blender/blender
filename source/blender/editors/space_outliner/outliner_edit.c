@@ -1243,20 +1243,17 @@ static int outliner_open_back(TreeElement *te)
   return retval;
 }
 
-static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
+/* Return element representing the active base or bone in the outliner, or NULL if none exists */
+static TreeElement *outliner_show_active_get_element(bContext *C,
+                                                     SpaceOutliner *so,
+                                                     ViewLayer *view_layer)
 {
-  SpaceOutliner *so = CTX_wm_space_outliner(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  ARegion *ar = CTX_wm_region(C);
-  View2D *v2d = &ar->v2d;
-
   TreeElement *te;
-  int xdelta, ytop;
 
   Object *obact = OBACT(view_layer);
 
   if (!obact) {
-    return OPERATOR_CANCELLED;
+    return NULL;
   }
 
   te = outliner_find_id(so, &so->tree, &obact->id);
@@ -1279,25 +1276,50 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  if (te) {
-    /* open up tree to active object/bone */
+  return te;
+}
+
+static void outliner_show_active(SpaceOutliner *so, ARegion *ar, TreeElement *te, ID *id)
+{
+  /* open up tree to active object/bone */
+  if (TREESTORE(te)->id == id) {
     if (outliner_open_back(te)) {
       outliner_set_coordinates(ar, so);
     }
+    return;
+  }
 
-    /* make te->ys center of view */
-    ytop = te->ys + BLI_rcti_size_y(&v2d->mask) / 2;
-    if (ytop > 0) {
-      ytop = 0;
+  for (TreeElement *ten = te->subtree.first; ten; ten = ten->next) {
+    outliner_show_active(so, ar, ten, id);
+  }
+}
+
+static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  SpaceOutliner *so = CTX_wm_space_outliner(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  ARegion *ar = CTX_wm_region(C);
+  View2D *v2d = &ar->v2d;
+
+  TreeElement *active_element = outliner_show_active_get_element(C, so, view_layer);
+
+  if (active_element) {
+    ID *id = TREESTORE(active_element)->id;
+
+    /* Expand all elements in the outliner with matching ID */
+    for (TreeElement *te = so->tree.first; te; te = te->next) {
+      outliner_show_active(so, ar, te, id);
     }
 
-    v2d->cur.ymax = (float)ytop;
-    v2d->cur.ymin = (float)(ytop - BLI_rcti_size_y(&v2d->mask));
+    /* Center view on first element found */
+    int size_y = BLI_rcti_size_y(&v2d->mask) + 1;
+    int ytop = (active_element->ys + (size_y / 2));
+    int delta_y = ytop - v2d->cur.ymax;
 
-    /* make te->xs ==> te->xend center of view */
-    xdelta = (int)(te->xs - v2d->cur.xmin);
-    v2d->cur.xmin += xdelta;
-    v2d->cur.xmax += xdelta;
+    outliner_scroll_view(ar, delta_y);
+  }
+  else {
+    return OPERATOR_CANCELLED;
   }
 
   ED_region_tag_redraw_no_rebuild(ar);
@@ -1323,18 +1345,15 @@ void OUTLINER_OT_show_active(wmOperatorType *ot)
 static int outliner_scroll_page_exec(bContext *C, wmOperator *op)
 {
   ARegion *ar = CTX_wm_region(C);
-  int dy = BLI_rcti_size_y(&ar->v2d.mask);
-  int up = 0;
+  int size_y = BLI_rcti_size_y(&ar->v2d.mask) + 1;
 
-  if (RNA_boolean_get(op->ptr, "up")) {
-    up = 1;
+  bool up = RNA_boolean_get(op->ptr, "up");
+
+  if (!up) {
+    size_y = -size_y;
   }
 
-  if (up == 0) {
-    dy = -dy;
-  }
-  ar->v2d.cur.ymin += dy;
-  ar->v2d.cur.ymax += dy;
+  outliner_scroll_view(ar, size_y);
 
   ED_region_tag_redraw_no_rebuild(ar);
 
