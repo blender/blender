@@ -883,7 +883,6 @@ static void TRANSFORM_OT_bend(struct wmOperatorType *ot)
   Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
-
 static bool transform_shear_poll(bContext *C)
 {
   if (!ED_operator_screenactive(C)) {
@@ -891,9 +890,8 @@ static bool transform_shear_poll(bContext *C)
   }
 
   ScrArea *sa = CTX_wm_area(C);
-  return sa && !ELEM(sa->spacetype, SPACE_ACTION, SPACE_TIME);
+  return sa && !ELEM(sa->spacetype, SPACE_ACTION);
 }
-
 
 static void TRANSFORM_OT_shear(struct wmOperatorType *ot)
 {
