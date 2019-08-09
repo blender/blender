@@ -269,6 +269,9 @@ class SEQUENCER_MT_view(Menu):
         props.sequencer = True
 
         layout.separator()
+        layout.operator("sequencer.export_subtitles", text="Export Subtitles", icon="EXPORT")
+
+        layout.separator()
 
         layout.menu("INFO_MT_area")
 
@@ -663,7 +666,7 @@ class SEQUENCER_MT_strip(Menu):
                     'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                     'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP', 'WIPE', 'GLOW',
                     'TRANSFORM', 'COLOR', 'SPEED', 'MULTICAM', 'ADJUSTMENT',
-                    'GAUSSIAN_BLUR', 'TEXT',
+                    'GAUSSIAN_BLUR',
             }:
                 layout.separator()
                 layout.menu("SEQUENCER_MT_strip_effect")
@@ -674,6 +677,9 @@ class SEQUENCER_MT_strip(Menu):
                 layout.separator()
                 layout.operator("sequencer.rendersize")
                 layout.operator("sequencer.images_separate")
+            elif strip_type == 'TEXT':
+                layout.separator()
+                layout.menu("SEQUENCER_MT_strip_effect")
             elif strip_type == 'META':
                 layout.separator()
                 layout.operator("sequencer.meta_make")
@@ -745,7 +751,7 @@ class SEQUENCER_MT_context_menu(Menu):
                     'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                     'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP', 'WIPE', 'GLOW',
                     'TRANSFORM', 'COLOR', 'SPEED', 'MULTICAM', 'ADJUSTMENT',
-                    'GAUSSIAN_BLUR', 'TEXT',
+                    'GAUSSIAN_BLUR',
             }:
                 layout.separator()
                 layout.menu("SEQUENCER_MT_strip_effect")
@@ -756,6 +762,9 @@ class SEQUENCER_MT_context_menu(Menu):
                 layout.separator()
                 layout.operator("sequencer.rendersize")
                 layout.operator("sequencer.images_separate")
+            elif strip_type == 'TEXT':
+                layout.separator()
+                layout.menu("SEQUENCER_MT_strip_effect")
             elif strip_type == 'META':
                 layout.separator()
                 layout.operator("sequencer.meta_make")
@@ -1031,26 +1040,10 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
                 col.label(text="Two or more channels are needed below this strip", icon='INFO')
 
         elif strip_type == 'TEXT':
-            col = layout.column()
-            col.prop(strip, "text")
-            col.template_ID(strip, "font", open="font.open", unlink="font.unlink")
-            col.prop(strip, "font_size")
-
-            row = col.row()
-            row.prop(strip, "color")
-            row = col.row()
-            row.prop(strip, "use_shadow")
-            rowsub = row.row()
-            rowsub.active = strip.use_shadow
-            rowsub.prop(strip, "shadow_color", text="")
-
-            col.prop(strip, "align_x", text="Horizontal")
-            col.prop(strip, "align_y", text="Vertical")
-            row = col.row(align=True)
-            row.prop(strip, "location", text="Location", slider=True)
-            col.prop(strip, "wrap_width")
-
-            layout.operator("sequencer.export_subtitles", text="Export Subtitles", icon='EXPORT')
+            layout = self.layout
+            layout.use_property_split = False
+            layout.prop(strip, "text", text="")
+            layout.use_property_split = True
 
         col = layout.column(align=True)
         if strip_type == 'SPEED':
@@ -1067,6 +1060,73 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             layout.prop(strip, "blend_effect", text="Blend Mode")
             row = layout.row(align=True)
             row.prop(strip, "factor", slider=True)
+
+
+class SEQUENCER_PT_effect_text_layout(SequencerButtonsPanel, Panel):
+    bl_label = "Layout"
+    bl_parent_id = "SEQUENCER_PT_effect"
+    bl_category = "Strip"
+
+    @classmethod
+    def poll(cls, context):
+        strip = act_strip(context)
+        return strip.type == 'TEXT'
+
+    def draw(self, context):
+        strip = act_strip(context)
+        layout = self.layout
+        layout.use_property_split = True
+        col = layout.column()
+        col.prop(strip, "location", text="Location")
+        col.prop(strip, "align_x", text="Alignment X")
+        col.prop(strip, "align_y", text="Y")
+        col.prop(strip, "wrap_width", text="Wrap Width")
+
+
+class SEQUENCER_PT_effect_text_style(SequencerButtonsPanel, Panel):
+    bl_label = "Style"
+    bl_parent_id = "SEQUENCER_PT_effect"
+    bl_category = "Strip"
+
+    @classmethod
+    def poll(cls, context):
+        strip = act_strip(context)
+        return strip.type == 'TEXT'
+
+    def draw(self, context):
+        strip = act_strip(context)
+        layout = self.layout
+        layout.use_property_split = True
+        col = layout.column()
+        col.template_ID(strip, "font", open="font.open", unlink="font.unlink")
+        col.prop(strip, "font_size")
+        col.prop(strip, "color")
+
+
+class SEQUENCER_PT_effect_text_style_shadow(SequencerButtonsPanel, Panel):
+    bl_label = "Shadow"
+    bl_parent_id = "SEQUENCER_PT_effect_text_style"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_category = "Strip"
+
+    @classmethod
+    def poll(cls, context):
+        strip = act_strip(context)
+        return strip.type != 'SOUND'
+
+    def draw_header(self, context):
+        strip = act_strip(context)
+        self.layout.prop(strip, "use_shadow", text="")
+
+    def draw(self, context):
+        strip = act_strip(context)
+        layout = self.layout
+        layout.use_property_split = True
+
+        layout.active = strip.use_shadow and (not strip.mute)
+
+        col = layout.column(align=True)
+        col.prop(strip, "shadow_color", text="Color")
 
 
 class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
@@ -2055,6 +2115,9 @@ classes = (
     SEQUENCER_PT_effect,
     SEQUENCER_PT_scene,
     SEQUENCER_PT_mask,
+    SEQUENCER_PT_effect_text_style,
+    SEQUENCER_PT_effect_text_layout,
+    SEQUENCER_PT_effect_text_style_shadow,
 
     SEQUENCER_PT_time,
     SEQUENCER_PT_source,
