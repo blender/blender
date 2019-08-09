@@ -2008,6 +2008,9 @@ static int outliner_exclude_filter_get(SpaceOutliner *soops)
     case SO_FILTER_OB_VISIBLE:
       exclude_filter |= SO_FILTER_OB_STATE_VISIBLE;
       break;
+    case SO_FILTER_OB_INVISIBLE:
+      exclude_filter |= SO_FILTER_OB_STATE_INVISIBLE;
+      break;
     case SO_FILTER_OB_SELECTED:
       exclude_filter |= SO_FILTER_OB_STATE_SELECTED;
       break;
@@ -2083,6 +2086,11 @@ static bool outliner_element_visible_get(ViewLayer *view_layer,
 
       if (exclude_filter & SO_FILTER_OB_STATE_VISIBLE) {
         if ((base->flag & BASE_VISIBLE) == 0) {
+          return false;
+        }
+      }
+      else if (exclude_filter & SO_FILTER_OB_STATE_INVISIBLE) {
+        if ((base->flag & BASE_VISIBLE) != 0) {
           return false;
         }
       }
