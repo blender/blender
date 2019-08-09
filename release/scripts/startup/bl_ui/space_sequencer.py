@@ -185,6 +185,27 @@ class SEQUENCER_MT_range(Menu):
         layout.operator("anim.end_frame_set", text="Set End Frame")
 
 
+class SEQUENCER_MT_preview_zoom(Menu):
+    bl_label = "Fractional Zoom"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_PREVIEW'
+
+        ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
+
+        for i, (a, b) in enumerate(ratios):
+            if i in {3, 4}:  # Draw separators around Zoom 1:1.
+                layout.separator()
+
+            layout.operator(
+                "sequencer.view_zoom_ratio",
+                text=iface_(f"Zoom {a:d}:{b:d}"),
+                translate=False,
+            ).ratio = a / b
+        layout.operator_context = 'INVOKE_DEFAULT'
+
+
 class SEQUENCER_MT_view(Menu):
     bl_label = "View"
 
@@ -194,6 +215,8 @@ class SEQUENCER_MT_view(Menu):
         st = context.space_data
         is_preview = st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}
         is_sequencer_view = st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}
+        scene = context.scene
+        ed = scene.sequence_editor
 
         if st.view_type == 'PREVIEW':
             # Specifying the REGION_PREVIEW context is needed in preview-only
@@ -214,6 +237,26 @@ class SEQUENCER_MT_view(Menu):
             layout.operator("sequencer.view_all", text="Frame All")
             layout.operator("view2d.zoom_border", text="Zoom")
 
+        if is_preview:
+            layout.operator_context = 'INVOKE_REGION_PREVIEW'
+            layout.separator()
+
+            layout.operator("sequencer.view_all_preview", text="Fit Preview in Window")
+
+            if st.view_type != 'SEQUENCER_PREVIEW':
+                layout.operator("view2d.zoom_border", text="Zoom")
+
+            if st.view_type == 'SEQUENCER_PREVIEW':
+                layout.menu("SEQUENCER_MT_preview_zoom", text="Fractional Preview Zoom")
+            elif st.view_type == 'PREVIEW':
+                layout.menu("SEQUENCER_MT_preview_zoom")
+
+            layout.operator_context = 'INVOKE_DEFAULT'
+
+            # # XXX, invokes in the header view
+            # layout.operator("sequencer.view_ghost_border", text="Overlay Border")
+
+        if is_sequencer_view:
             layout.separator()
 
             layout.operator_context = 'INVOKE_DEFAULT'
@@ -227,39 +270,25 @@ class SEQUENCER_MT_view(Menu):
             layout.separator()
             layout.operator_context = 'INVOKE_DEFAULT'
 
-        if is_preview:
-            layout.operator_context = 'INVOKE_REGION_PREVIEW'
-            layout.operator("sequencer.view_all_preview", text="Fit Preview in window")
-            layout.operator("view2d.zoom_border", text="Zoom")
-
-            layout.separator()
-
-            ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
-
-            for a, b in ratios:
-                layout.operator(
-                    "sequencer.view_zoom_ratio",
-                    text=iface_("Zoom %d:%d") % (a, b),
-                    translate=False,
-                ).ratio = a / b
-
-        if is_sequencer_view:
-            layout.prop(st, "show_seconds")
-            layout.prop(st, "show_frame_indicator")
+#           layout.prop(st, "show_frame_indicator") #Do not have any function and do not work.
             layout.prop(st, "show_strip_offset")
             layout.prop(st, "show_marker_lines")
 
+        if is_preview:
+            layout.separator()
+            if st.display_mode == 'IMAGE':
+                layout.prop(ed, "show_overlay", text="Show Frame Overlay")
+                layout.prop(st, "show_safe_areas", text="Show Safe Areas")
+                layout.prop(st, "show_metadata", text="Show Metadata")
+                layout.prop(st, "show_annotation", text="Show Annotations")
+            elif st.display_mode == 'WAVEFORM':
+                layout.prop(st, "show_separate_color", text="Show Separate Color Channels")
+
+        if is_sequencer_view:
             layout.separator()
 
             layout.menu("SEQUENCER_MT_view_cache")
             layout.prop_menu_enum(st, "waveform_display_type")
-
-        if is_preview:
-            if st.display_mode == 'IMAGE':
-                layout.prop(st, "show_safe_areas")
-                layout.prop(st, "show_metadata")
-            elif st.display_mode == 'WAVEFORM':
-                layout.prop(st, "show_separate_color")
 
         layout.separator()
 
@@ -2082,6 +2111,7 @@ classes = (
     SEQUENCER_MT_view,
     SEQUENCER_MT_view_cache,
     SEQUENCER_MT_view_toggle,
+    SEQUENCER_MT_preview_zoom,
     SEQUENCER_MT_select_playhead,
     SEQUENCER_MT_select_handle,
     SEQUENCER_MT_select_channel,
