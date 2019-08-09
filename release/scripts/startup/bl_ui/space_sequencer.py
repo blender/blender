@@ -243,18 +243,13 @@ class SEQUENCER_MT_view(Menu):
 
             layout.operator("sequencer.view_all_preview", text="Fit Preview in Window")
 
-            if st.view_type != 'SEQUENCER_PREVIEW':
-                layout.operator("view2d.zoom_border", text="Zoom")
-
-            if st.view_type == 'SEQUENCER_PREVIEW':
+            if is_sequencer_view:
                 layout.menu("SEQUENCER_MT_preview_zoom", text="Fractional Preview Zoom")
-            elif st.view_type == 'PREVIEW':
+            else:
+                layout.operator("view2d.zoom_border", text="Zoom")
                 layout.menu("SEQUENCER_MT_preview_zoom")
 
             layout.operator_context = 'INVOKE_DEFAULT'
-
-            # # XXX, invokes in the header view
-            # layout.operator("sequencer.view_ghost_border", text="Overlay Border")
 
         if is_sequencer_view:
             layout.separator()
