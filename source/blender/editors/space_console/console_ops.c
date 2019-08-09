@@ -742,7 +742,7 @@ static int console_clear_exec(bContext *C, wmOperator *op)
 void CONSOLE_OT_clear(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Clear";
+  ot->name = "Clear All";
   ot->description = "Clear text by type";
   ot->idname = "CONSOLE_OT_clear";
 
