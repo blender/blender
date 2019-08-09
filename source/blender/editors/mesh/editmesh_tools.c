@@ -7347,6 +7347,7 @@ static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
         }
       }
     }
+    EDBM_update_generic(em, false, false);
 
     /* No need to end cache, just free the array. */
     MEM_freeN(index);
