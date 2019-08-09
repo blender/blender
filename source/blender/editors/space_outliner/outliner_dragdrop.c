@@ -895,6 +895,12 @@ static int outliner_item_drag_drop_invoke(bContext *C,
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
+  float view_mval[2];
+  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
+  if (outliner_item_is_co_within_close_toggle(te, view_mval[0])) {
+    return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
+  }
+
   wmDrag *drag = WM_event_start_drag(C, data.icon, WM_DRAG_ID, NULL, 0.0, WM_DRAG_NOP);
 
   if (ELEM(GS(data.drag_id->name), ID_OB, ID_GR)) {

@@ -1428,6 +1428,37 @@ static int outliner_box_select_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+/* Find if x coordinate is over an icon or name */
+static bool outliner_item_is_co_over_name_icons(TreeElement *te, float view_co_x)
+{
+  /* Special case: count area left of Scene Collection as empty space */
+  bool outside_left = (TREESTORE(te)->type == TSE_VIEW_COLLECTION_BASE) ?
+                          (view_co_x > te->xs + UI_UNIT_X) :
+                          (view_co_x > te->xs);
+
+  return outside_left && (view_co_x < te->xend);
+}
+
+static int outliner_box_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  SpaceOutliner *soops = CTX_wm_space_outliner(C);
+  ARegion *ar = CTX_wm_region(C);
+  float view_mval[2];
+  const bool tweak = RNA_boolean_get(op->ptr, "tweak");
+
+  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
+
+  /* Find element clicked on */
+  TreeElement *te = outliner_find_item_at_y(soops, &soops->tree, view_mval[1]);
+
+  /* Pass through if click is over name or icons, or not tweak event */
+  if (te && tweak && outliner_item_is_co_over_name_icons(te, view_mval[0])) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  }
+
+  return WM_gesture_box_invoke(C, op, event);
+}
+
 void OUTLINER_OT_select_box(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1436,7 +1467,7 @@ void OUTLINER_OT_select_box(wmOperatorType *ot)
   ot->description = "Use box selection to select tree elements";
 
   /* api callbacks */
-  ot->invoke = WM_gesture_box_invoke;
+  ot->invoke = outliner_box_select_invoke;
   ot->exec = outliner_box_select_exec;
   ot->modal = WM_gesture_box_modal;
   ot->cancel = WM_gesture_box_cancel;
@@ -1447,6 +1478,12 @@ void OUTLINER_OT_select_box(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
+  PropertyRNA *prop;
+
+  prop = RNA_def_boolean(
+      ot->srna, "tweak", false, "Tweak", "Tweak gesture from empty space for box selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
   WM_operator_properties_gesture_box(ot);
   WM_operator_properties_select_operation_simple(ot);
 }
