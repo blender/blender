@@ -131,6 +131,9 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
           ED_region_tag_redraw(ar);
           break;
       }
+      if (wmn->action & NA_EDITED) {
+        ED_region_tag_redraw(ar);
+      }
       break;
     case NC_OBJECT:
       switch (wmn->data) {

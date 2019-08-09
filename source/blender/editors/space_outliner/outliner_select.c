@@ -51,6 +51,7 @@
 #include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "ED_armature.h"
 #include "ED_object.h"
@@ -451,9 +452,9 @@ static eOLDrawState tree_element_active_material(bContext *C,
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_active_camera(bContext *UNUSED(C),
+static eOLDrawState tree_element_active_camera(bContext *C,
                                                Scene *scene,
-                                               ViewLayer *UNUSED(sl),
+                                               ViewLayer *UNUSED(view_layer),
                                                SpaceOutliner *soops,
                                                TreeElement *te,
                                                const eOLSetState set)
@@ -461,10 +462,21 @@ static eOLDrawState tree_element_active_camera(bContext *UNUSED(C),
   Object *ob = (Object *)outliner_search_back(soops, te, ID_OB);
 
   if (set != OL_SETSEL_NONE) {
+    scene->camera = ob;
+
+    Main *bmain = CTX_data_main(C);
+    wmWindowManager *wm = bmain->wm.first;
+
+    WM_windows_scene_data_sync(&wm->windows, scene);
+    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_relations_tag_update(bmain);
+    WM_event_add_notifier(C, NC_SCENE | NA_EDITED, NULL);
+
     return OL_DRAWSEL_NONE;
   }
-
-  return scene->camera == ob;
+  else {
+    return scene->camera == ob;
+  }
 }
 
 static eOLDrawState tree_element_active_world(bContext *C,
