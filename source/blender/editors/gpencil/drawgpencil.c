@@ -866,6 +866,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
   float tfill[4];
   short sthickness;
   float ink[4];
+  const bool is_unique = (tgpw->gps != NULL);
 
   GPU_program_point_size(true);
 
@@ -1099,7 +1100,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
       }
     }
     /* if only one stroke, exit from loop */
-    if (tgpw->gps) {
+    if (is_unique) {
       break;
     }
   }
