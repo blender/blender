@@ -54,13 +54,13 @@
 #include "DEG_depsgraph_build.h"
 
 #include "ED_armature.h"
+#include "ED_gpencil.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 #include "ED_sequencer.h"
 #include "ED_undo.h"
-#include "ED_gpencil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -253,9 +253,7 @@ static eOLDrawState active_viewlayer(bContext *C,
 }
 
 /**
- * Select object tree:
- * CTRL+LMB: Select/Deselect object and all children.
- * CTRL+SHIFT+LMB: Add/Remove object and all children.
+ * Select object tree
  */
 static void do_outliner_object_select_recursive(ViewLayer *view_layer,
                                                 Object *ob_parent,
@@ -1244,6 +1242,68 @@ void outliner_item_select(SpaceOutliner *soops,
   tselem->flag = new_flag;
 }
 
+static void do_outliner_range_select_recursive(ListBase *lb,
+                                               TreeElement *active,
+                                               TreeElement *cursor,
+                                               bool *selecting)
+{
+  for (TreeElement *te = lb->first; te; te = te->next) {
+    if (*selecting) {
+      TREESTORE(te)->flag |= TSE_SELECTED;
+    }
+
+    /* Set state for selection */
+    if (te == active || te == cursor) {
+      *selecting = !*selecting;
+    }
+
+    if (*selecting) {
+      TREESTORE(te)->flag |= TSE_SELECTED;
+    }
+
+    /* Don't look inside closed elements */
+    if (!(TREESTORE(te)->flag & TSE_CLOSED)) {
+      do_outliner_range_select_recursive(&te->subtree, active, cursor, selecting);
+    }
+  }
+}
+
+/* Select a range of items between cursor and active element */
+static void do_outliner_range_select(bContext *C, SpaceOutliner *soops, TreeElement *cursor)
+{
+  TreeElement *active = outliner_find_element_with_flag(&soops->tree, TSE_ACTIVE);
+  outliner_flag_set(&soops->tree, TSE_ACTIVE_WALK, false);
+
+  if (!active) {
+    outliner_item_select(soops, cursor, false, false);
+    outliner_item_do_activate_from_tree_element(C, cursor, TREESTORE(cursor), false, false);
+    return;
+  }
+
+  TreeStoreElem *tselem = TREESTORE(active);
+  const bool active_selected = (tselem->flag & TSE_SELECTED);
+
+  outliner_flag_set(&soops->tree, TSE_SELECTED | TSE_ACTIVE_WALK, false);
+
+  /* Select active if under cursor */
+  if (active == cursor) {
+    TREESTORE(cursor)->flag |= TSE_SELECTED;
+    return;
+  }
+
+  /* If active is not selected, just select the element under the cursor */
+  if (!active_selected || !outliner_is_element_visible(active)) {
+    outliner_item_select(soops, cursor, false, false);
+    outliner_item_do_activate_from_tree_element(C, cursor, TREESTORE(cursor), false, false);
+    return;
+  }
+
+  outliner_flag_set(&soops->tree, TSE_SELECTED, false);
+
+  bool selecting = false;
+  do_outliner_range_select_recursive(&soops->tree, active, cursor, &selecting);
+}
+
 static bool outliner_is_co_within_restrict_columns(const SpaceOutliner *soops,
                                                    const ARegion *ar,
                                                    float view_co_x)
@@ -1276,10 +1336,11 @@ void outliner_item_do_activate_from_tree_element(
 static int outliner_item_do_activate_from_cursor(bContext *C,
                                                  const int mval[2],
                                                  const bool extend,
-                                                 const bool recursive,
+                                                 const bool use_range,
                                                  const bool deselect_all)
 {
   ARegion *ar = CTX_wm_region(C);
+  Scene *scene = CTX_data_scene(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   TreeElement *te;
   float view_mval[2];
@@ -1297,13 +1358,12 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
       changed = true;
     }
   }
-  /* Don't allow selection on disclosure triangles */
+  /* Don't allow toggle on scene collection */
   else if ((TREESTORE(te)->type != TSE_VIEW_COLLECTION_BASE) &&
            outliner_item_is_co_within_close_toggle(te, view_mval[0])) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
   else {
-    Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
 
     /* The row may also contain children, if one is hovered we want this instead of current te */
@@ -1319,9 +1379,15 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
 
     TreeStoreElem *activate_tselem = TREESTORE(activate_te);
 
-    outliner_item_select(soops, activate_te, extend, extend);
-    do_outliner_item_activate_tree_element(
-        C, scene, view_layer, soops, activate_te, activate_tselem, extend, recursive);
+    if (use_range) {
+      do_outliner_range_select(C, soops, activate_te);
+    }
+    else {
+      outliner_item_select(soops, activate_te, extend, extend);
+      do_outliner_item_activate_tree_element(
+          C, scene, view_layer, soops, activate_te, activate_tselem, extend, false);
+    }
+
     changed = true;
   }
 
@@ -1346,9 +1412,9 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
 static int outliner_item_activate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const bool extend = RNA_boolean_get(op->ptr, "extend");
-  const bool recursive = RNA_boolean_get(op->ptr, "recursive");
+  const bool use_range = RNA_boolean_get(op->ptr, "extend_range");
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
-  return outliner_item_do_activate_from_cursor(C, event->mval, extend, recursive, deselect_all);
+  return outliner_item_do_activate_from_cursor(C, event->mval, extend, use_range, deselect_all);
 }
 
 void OUTLINER_OT_item_activate(wmOperatorType *ot)
@@ -1363,7 +1429,10 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 
   PropertyRNA *prop;
   RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection for activation");
-  RNA_def_boolean(ot->srna, "recursive", false, "Recursive", "Select Objects and their children");
+  prop = RNA_def_boolean(
+      ot->srna, "extend_range", false, "Extend Range", "Select a range from active element");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
   prop = RNA_def_boolean(ot->srna,
                          "deselect_all",
                          false,
