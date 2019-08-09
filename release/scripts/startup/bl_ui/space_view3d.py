@@ -4458,7 +4458,7 @@ class VIEW3D_MT_edit_gpencil(Menu):
         layout.menu("VIEW3D_MT_weight_gpencil")
 
         layout.separator()
-                
+
         layout.menu("VIEW3D_MT_edit_gpencil_showhide")
 
         layout.operator_menu_enum("gpencil.stroke_separate", "mode")
@@ -4468,14 +4468,14 @@ class VIEW3D_MT_edit_gpencil(Menu):
 
         # Remove
         layout.menu("VIEW3D_MT_edit_gpencil_delete")
-        
+
 
 class VIEW3D_MT_edit_gpencil_stroke(Menu):
     bl_label = "Stroke"
 
     def draw(self, _context):
         layout = self.layout
-        
+
         layout.operator("gpencil.stroke_subdivide", text="Subdivide").only_selected = False
         layout.menu("VIEW3D_MT_gpencil_simplify")
         layout.operator("gpencil.stroke_trim", text="Trim")
@@ -4506,21 +4506,21 @@ class VIEW3D_MT_edit_gpencil_point(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        
+
         layout.operator("gpencil.extrude_move", text="Extrude Points")
 
         layout.separator()
-        
+
         layout.operator("gpencil.stroke_smooth", text="Smooth Points").only_selected = True
 
         layout.separator()
 
         layout.operator("gpencil.stroke_merge", text="Merge Points")
-        
-        # TODO: add new RIP operator        
+
+        # TODO: add new RIP operator
 
         layout.separator()
-        
+
         layout.menu("VIEW3D_MT_gpencil_vertex_group")
 
 
@@ -4554,7 +4554,7 @@ class VIEW3D_MT_gpencil_animation(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("gpencil.blank_frame_add")        
+        layout.operator("gpencil.blank_frame_add")
 
         layout.separator()
 
@@ -4593,7 +4593,7 @@ class VIEW3D_MT_edit_gpencil_showhide(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        
+
         layout.operator("gpencil.hide", text="Hide Active Layer")
         layout.operator("gpencil.reveal", text="Show All Layers")
 
