@@ -1933,7 +1933,7 @@ bool txt_replace_char(Text *text, unsigned int add)
  */
 static void txt_select_prefix(Text *text, const char *add)
 {
-  int len, num, curc_old;
+  int len, num, curc_old, selc_old;
   char *tmp;
 
   const int indentlen = strlen(add);
@@ -1941,6 +1941,7 @@ static void txt_select_prefix(Text *text, const char *add)
   BLI_assert(!ELEM(NULL, text->curl, text->sell));
 
   curc_old = text->curc;
+  selc_old = text->selc;
 
   num = 0;
   while (true) {
@@ -1978,19 +1979,24 @@ static void txt_select_prefix(Text *text, const char *add)
       num++;
     }
   }
-  if (!curc_old) {
-    text->curc = 0;
-  }
-  else {
-    text->curc = curc_old + indentlen;
-  }
 
   while (num > 0) {
     text->curl = text->curl->prev;
     num--;
   }
 
-  /* caller must handle undo */
+  /* Keep the cursor left aligned if we don't have a selection. */
+  if (curc_old == 0 && !(text->curl == text->sell && curc_old == selc_old)) {
+    if (text->curl == text->sell) {
+      if (text->curc == text->selc) {
+        text->selc = 0;
+      }
+    }
+    text->curc = 0;
+  }
+  else {
+    text->curc = curc_old + indentlen;
+  }
 }
 
 /**
