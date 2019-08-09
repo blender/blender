@@ -140,59 +140,108 @@ void OUTLINER_OT_highlight_update(wmOperatorType *ot)
 
 /* Toggle Open/Closed ------------------------------------------- */
 
-static int do_outliner_item_openclose(
-    bContext *C, SpaceOutliner *soops, TreeElement *te, const bool all, const float mval[2])
+/* Open or close a tree element, optionally toggling all children recursively */
+void outliner_item_openclose(TreeElement *te, bool open, bool toggle_all)
 {
+  TreeStoreElem *tselem = TREESTORE(te);
 
-  if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
-    TreeStoreElem *tselem = TREESTORE(te);
-
-    /* all below close/open? */
-    if (all) {
-      tselem->flag &= ~TSE_CLOSED;
-      outliner_flag_set(
-          &te->subtree, TSE_CLOSED, !outliner_flag_is_any_test(&te->subtree, TSE_CLOSED, 1));
-    }
-    else {
-      if (tselem->flag & TSE_CLOSED) {
-        tselem->flag &= ~TSE_CLOSED;
-      }
-      else {
-        tselem->flag |= TSE_CLOSED;
-      }
-    }
-
-    return 1;
+  if (open) {
+    tselem->flag &= ~TSE_CLOSED;
+  }
+  else {
+    tselem->flag |= TSE_CLOSED;
   }
 
-  for (te = te->subtree.first; te; te = te->next) {
-    if (do_outliner_item_openclose(C, soops, te, all, mval)) {
-      return 1;
-    }
+  if (toggle_all) {
+    outliner_flag_set(&te->subtree, TSE_CLOSED, !open);
   }
-  return 0;
 }
 
-/* event can enterkey, then it opens/closes */
-static int outliner_item_openclose(bContext *C, wmOperator *op, const wmEvent *event)
+typedef struct OpenCloseData {
+  TreeStoreElem *prev_tselem;
+  bool open;
+  int x_location;
+} OpenCloseData;
+
+static int outliner_item_openclose_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *ar = CTX_wm_region(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
-  TreeElement *te;
-  float fmval[2];
-  const bool all = RNA_boolean_get(op->ptr, "all");
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+  float view_mval[2];
+  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
 
-  for (te = soops->tree.first; te; te = te->next) {
-    if (do_outliner_item_openclose(C, soops, te, all, fmval)) {
-      break;
+  if (event->type == MOUSEMOVE) {
+    TreeElement *te = outliner_find_item_at_y(soops, &soops->tree, view_mval[1]);
+
+    OpenCloseData *data = (OpenCloseData *)op->customdata;
+
+    /* Only openclose if mouse is not over the previously toggled element */
+    if (te && TREESTORE(te) != data->prev_tselem) {
+
+      /* Only toggle openclose on the same level as the first clicked element */
+      if (te->xs == data->x_location) {
+        outliner_item_openclose(te, data->open, false);
+        ED_region_tag_redraw(ar);
+      }
+    }
+
+    if (te) {
+      data->prev_tselem = TREESTORE(te);
+    }
+    else {
+      data->prev_tselem = NULL;
     }
   }
+  else if (event->val == KM_RELEASE) {
+    MEM_freeN(op->customdata);
 
-  ED_region_tag_redraw(ar);
+    return OPERATOR_FINISHED;
+  }
 
-  return OPERATOR_FINISHED;
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static int outliner_item_openclose_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  ARegion *ar = CTX_wm_region(C);
+  SpaceOutliner *soops = CTX_wm_space_outliner(C);
+
+  const bool toggle_all = RNA_boolean_get(op->ptr, "all");
+
+  float view_mval[2];
+  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
+
+  TreeElement *te = outliner_find_item_at_y(soops, &soops->tree, view_mval[1]);
+
+  if (te && outliner_item_is_co_within_close_toggle(te, view_mval[0])) {
+    TreeStoreElem *tselem = TREESTORE(te);
+
+    const bool open = (tselem->flag & TSE_CLOSED) ||
+                      (toggle_all && (outliner_flag_is_any_test(&te->subtree, TSE_CLOSED, 1)));
+
+    outliner_item_openclose(te, open, toggle_all);
+    ED_region_tag_redraw(ar);
+
+    /* Only toggle once for single click toggling */
+    if (event->type == LEFTMOUSE) {
+      return OPERATOR_FINISHED;
+    }
+
+    /* Store last expanded tselem and x coordinate of disclosure triangle */
+    OpenCloseData *toggle_data = MEM_callocN(sizeof(OpenCloseData), "open_close_data");
+    toggle_data->prev_tselem = tselem;
+    toggle_data->open = open;
+    toggle_data->x_location = te->xs;
+
+    /* Store the first clicked on element */
+    op->customdata = toggle_data;
+
+    WM_event_add_modal_handler(C, op);
+    return OPERATOR_RUNNING_MODAL;
+  }
+
+  return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
 }
 
 void OUTLINER_OT_item_openclose(wmOperatorType *ot)
@@ -201,11 +250,12 @@ void OUTLINER_OT_item_openclose(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_item_openclose";
   ot->description = "Toggle whether item under cursor is enabled or closed";
 
-  ot->invoke = outliner_item_openclose;
+  ot->invoke = outliner_item_openclose_invoke;
+  ot->modal = outliner_item_openclose_modal;
 
   ot->poll = ED_operator_outliner_active;
 
-  RNA_def_boolean(ot->srna, "all", 1, "All", "Close or open all items");
+  RNA_def_boolean(ot->srna, "all", false, "All", "Close or open all items");
 }
 
 /* -------------------------------------------------------------------- */

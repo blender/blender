@@ -50,6 +50,14 @@ typedef enum TreeElementInsertType {
   TE_INSERT_INTO,
 } TreeElementInsertType;
 
+/* Use generic walk select after D4771 is committed */
+typedef enum WalkSelectDirection {
+  OUTLINER_SELECT_WALK_UP,
+  OUTLINER_SELECT_WALK_DOWN,
+  OUTLINER_SELECT_WALK_LEFT,
+  OUTLINER_SELECT_WALK_RIGHT,
+} WalkSelectDirection;
+
 typedef enum TreeTraversalAction {
   /* Continue traversal regularly, don't skip children. */
   TRAVERSE_CONTINUE = 0,
@@ -346,6 +354,8 @@ void item_object_mode_exit_cb(struct bContext *C,
 
 void outliner_set_coordinates(struct ARegion *ar, struct SpaceOutliner *soops);
 
+void outliner_item_openclose(TreeElement *te, bool open, bool toggle_all);
+
 /* outliner_dragdrop.c */
 void outliner_dropboxes(void);
 
@@ -373,6 +383,7 @@ void OUTLINER_OT_show_active(struct wmOperatorType *ot);
 void OUTLINER_OT_show_hierarchy(struct wmOperatorType *ot);
 
 void OUTLINER_OT_select_box(struct wmOperatorType *ot);
+void OUTLINER_OT_select_walk(struct wmOperatorType *ot);
 
 void OUTLINER_OT_select_all(struct wmOperatorType *ot);
 void OUTLINER_OT_expanded_toggle(struct wmOperatorType *ot);
@@ -470,6 +481,9 @@ bool outliner_tree_traverse(const SpaceOutliner *soops,
                             TreeTraversalFunc func,
                             void *customdata);
 float outliner_restrict_columns_width(const struct SpaceOutliner *soops);
+TreeElement *outliner_find_element_with_flag(const ListBase *lb, short flag);
+bool outliner_is_element_visible(const TreeElement *te);
+void outliner_scroll_view(struct ARegion *ar, int delta_y);
 
 /* outliner_sync.c ---------------------------------------------- */
 
