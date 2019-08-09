@@ -326,38 +326,57 @@ static bool parent_drop_poll(bContext *C,
   return false;
 }
 
-static int parent_drop_exec(bContext *C, wmOperator *op)
+static void parent_drop_set_parents(
+    bContext *C, ReportList *reports, wmDragID *drag, Object *parent, short parent_type)
 {
-  Object *par = NULL, *ob = NULL;
   Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  int partype = -1;
-  char parname[MAX_NAME], childname[MAX_NAME];
+  SpaceOutliner *soops = CTX_wm_space_outliner(C);
 
-  partype = RNA_enum_get(op->ptr, "type");
-  RNA_string_get(op->ptr, "parent", parname);
-  par = (Object *)BKE_libblock_find_name(bmain, ID_OB, parname);
-  RNA_string_get(op->ptr, "child", childname);
-  ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, childname);
+  TreeElement *te = outliner_find_id(soops, &soops->tree, &parent->id);
+  Scene *scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
 
-  if (ID_IS_LINKED(ob)) {
-    BKE_report(op->reports, RPT_INFO, "Can't edit library linked object");
-    return OPERATOR_CANCELLED;
+  if (scene == NULL) {
+    /* currently outliner organized in a way, that if there's no parent scene
+     * element for object it means that all displayed objects belong to
+     * active scene and parenting them is allowed (sergey)
+     */
+
+    scene = CTX_data_scene(C);
   }
 
-  ED_object_parent_set(op->reports, C, scene, ob, par, partype, false, false, NULL);
+  bool parent_set = false;
+  bool linked_objects = false;
 
-  DEG_relations_tag_update(bmain);
-  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-  WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
+  for (wmDragID *drag_id = drag; drag_id; drag_id = drag_id->next) {
+    if (GS(drag_id->id->name) == ID_OB) {
+      Object *object = (Object *)drag_id->id;
 
-  return OPERATOR_FINISHED;
+      /* Do nothing to linked data */
+      if (ID_IS_LINKED(object)) {
+        linked_objects = true;
+        continue;
+      }
+
+      if (ED_object_parent_set(
+              reports, C, scene, object, parent, parent_type, false, false, NULL)) {
+        parent_set = true;
+      }
+    }
+  }
+
+  if (linked_objects) {
+    BKE_report(reports, RPT_INFO, "Can't edit library linked object(s)");
+  }
+
+  if (parent_set) {
+    DEG_relations_tag_update(bmain);
+    WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+    WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
+  }
 }
 
 static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  Main *bmain = CTX_data_main(C);
-  SpaceOutliner *soops = CTX_wm_space_outliner(C);
   TreeElement *te = outliner_drop_find(C, event);
   TreeStoreElem *tselem = te ? TREESTORE(te) : NULL;
 
@@ -374,107 +393,15 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   if (ob == par) {
     return OPERATOR_CANCELLED;
   }
-  if (ID_IS_LINKED(ob)) {
-    BKE_report(op->reports, RPT_INFO, "Can't edit library linked object");
+
+  if (event->custom != EVT_DATA_DRAGDROP) {
     return OPERATOR_CANCELLED;
   }
 
-  char childname[MAX_NAME];
-  char parname[MAX_NAME];
-  STRNCPY(childname, ob->id.name + 2);
-  STRNCPY(parname, par->id.name + 2);
-  RNA_string_set(op->ptr, "child", childname);
-  RNA_string_set(op->ptr, "parent", parname);
+  ListBase *lb = event->customdata;
+  wmDrag *drag = lb->first;
 
-  Scene *scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
-
-  if (scene == NULL) {
-    /* currently outlier organized in a way, that if there's no parent scene
-     * element for object it means that all displayed objects belong to
-     * active scene and parenting them is allowed (sergey)
-     */
-
-    scene = CTX_data_scene(C);
-  }
-
-  if ((par->type != OB_ARMATURE) && (par->type != OB_CURVE) && (par->type != OB_LATTICE)) {
-    int partype = 0;
-    if (ED_object_parent_set(op->reports, C, scene, ob, par, partype, false, false, NULL)) {
-      DEG_relations_tag_update(bmain);
-      WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-      WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
-    }
-  }
-  else {
-    /* Menu creation */
-    wmOperatorType *ot = WM_operatortype_find("OUTLINER_OT_parent_drop", false);
-    uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Set Parent To"), ICON_NONE);
-    uiLayout *layout = UI_popup_menu_layout(pup);
-    PointerRNA ptr;
-
-    /* Cannot use uiItemEnumO()... have multiple properties to set. */
-    uiItemFullO_ptr(layout, ot, IFACE_("Object"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-    RNA_string_set(&ptr, "parent", parname);
-    RNA_string_set(&ptr, "child", childname);
-    RNA_enum_set(&ptr, "type", PAR_OBJECT);
-
-    /* par becomes parent, make the associated menus */
-    if (par->type == OB_ARMATURE) {
-      uiItemFullO_ptr(layout, ot, IFACE_("Armature Deform"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-      RNA_string_set(&ptr, "parent", parname);
-      RNA_string_set(&ptr, "child", childname);
-      RNA_enum_set(&ptr, "type", PAR_ARMATURE);
-
-      uiItemFullO_ptr(
-          layout, ot, IFACE_("   With Empty Groups"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-      RNA_string_set(&ptr, "parent", parname);
-      RNA_string_set(&ptr, "child", childname);
-      RNA_enum_set(&ptr, "type", PAR_ARMATURE_NAME);
-
-      uiItemFullO_ptr(
-          layout, ot, IFACE_("   With Envelope Weights"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-      RNA_string_set(&ptr, "parent", parname);
-      RNA_string_set(&ptr, "child", childname);
-      RNA_enum_set(&ptr, "type", PAR_ARMATURE_ENVELOPE);
-
-      uiItemFullO_ptr(
-          layout, ot, IFACE_("   With Automatic Weights"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-      RNA_string_set(&ptr, "parent", parname);
-      RNA_string_set(&ptr, "child", childname);
-      RNA_enum_set(&ptr, "type", PAR_ARMATURE_AUTO);
-
-      uiItemFullO_ptr(layout, ot, IFACE_("Bone"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-      RNA_string_set(&ptr, "parent", parname);
-      RNA_string_set(&ptr, "child", childname);
-      RNA_enum_set(&ptr, "type", PAR_BONE);
-    }
-    else if (par->type == OB_CURVE) {
-      uiItemFullO_ptr(layout, ot, IFACE_("Curve Deform"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-      RNA_string_set(&ptr, "parent", parname);
-      RNA_string_set(&ptr, "child", childname);
-      RNA_enum_set(&ptr, "type", PAR_CURVE);
-
-      uiItemFullO_ptr(layout, ot, IFACE_("Follow Path"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-      RNA_string_set(&ptr, "parent", parname);
-      RNA_string_set(&ptr, "child", childname);
-      RNA_enum_set(&ptr, "type", PAR_FOLLOW);
-
-      uiItemFullO_ptr(layout, ot, IFACE_("Path Constraint"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-      RNA_string_set(&ptr, "parent", parname);
-      RNA_string_set(&ptr, "child", childname);
-      RNA_enum_set(&ptr, "type", PAR_PATH_CONST);
-    }
-    else if (par->type == OB_LATTICE) {
-      uiItemFullO_ptr(layout, ot, IFACE_("Lattice Deform"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-      RNA_string_set(&ptr, "parent", parname);
-      RNA_string_set(&ptr, "child", childname);
-      RNA_enum_set(&ptr, "type", PAR_LATTICE);
-    }
-
-    UI_popup_menu_end(C, pup);
-
-    return OPERATOR_INTERFACE;
-  }
+  parent_drop_set_parents(C, op->reports, drag->ids.first, par, PAR_OBJECT);
 
   return OPERATOR_FINISHED;
 }
@@ -488,17 +415,11 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = parent_drop_invoke;
-  ot->exec = parent_drop_exec;
 
   ot->poll = ED_operator_outliner_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-
-  /* properties */
-  RNA_def_string(ot->srna, "child", "Object", MAX_NAME, "Child", "Child Object");
-  RNA_def_string(ot->srna, "parent", "Object", MAX_NAME, "Parent", "Parent Object");
-  RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 }
 
 /* ******************** Parent Clear Operator *********************** */
@@ -549,13 +470,21 @@ static bool parent_clear_poll(bContext *C,
 static int parent_clear_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = (Object *)WM_drag_ID_from_event(event, ID_OB);
 
-  if (ob == NULL) {
+  if (event->custom != EVT_DATA_DRAGDROP) {
     return OPERATOR_CANCELLED;
   }
 
-  ED_object_parent_clear(ob, 0);
+  ListBase *lb = event->customdata;
+  wmDrag *drag = lb->first;
+
+  for (wmDragID *drag_id = drag->ids.first; drag_id; drag_id = drag_id->next) {
+    if (GS(drag_id->id->name) == ID_OB) {
+      Object *object = (Object *)drag_id->id;
+
+      ED_object_parent_clear(object, 0);
+    }
+  }
 
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
