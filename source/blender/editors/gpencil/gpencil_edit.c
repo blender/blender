@@ -4575,7 +4575,7 @@ bool ED_object_gpencil_exit(struct Main *bmain, Object *ob)
 static bool gp_merge_by_distance_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if (ob == NULL) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
     return false;
   }
   bGPdata *gpd = (bGPdata *)ob->data;
