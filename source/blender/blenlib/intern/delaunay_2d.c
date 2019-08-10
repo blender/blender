@@ -2140,6 +2140,8 @@ static void prepare_cdt_for_output(CDT_state *cdt, const CDT_output_type output_
       BLI_assert(f->symedge != NULL);
     }
   }
+#else
+  UNUSED_VARS(f);
 #endif
 
   if (output_type == CDT_CONSTRAINTS || output_type == CDT_CONSTRAINTS_VALID_BMESH) {
