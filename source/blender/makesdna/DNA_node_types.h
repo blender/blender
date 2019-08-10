@@ -184,6 +184,8 @@ typedef enum eNodeSocketFlag {
   /** socket hidden automatically, to distinguish from manually hidden */
   SOCK_AUTO_HIDDEN__DEPRECATED = (1 << 8),
   SOCK_NO_INTERNAL_LINK = (1 << 9),
+  /** Draw socket in a more compact form. */
+  SOCK_COMPACT = (1 << 10),
 } eNodeSocketFlag;
 
 /* limit data in bNode to what we want to see saved? */

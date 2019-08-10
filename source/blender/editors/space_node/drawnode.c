@@ -3333,7 +3333,13 @@ static void std_node_socket_draw(
       uiItemR(layout, ptr, "default_value", 0, text, 0);
       break;
     case SOCK_VECTOR:
-      uiTemplateComponentMenu(layout, ptr, "default_value", text);
+      if (sock->flag & SOCK_COMPACT) {
+        uiTemplateComponentMenu(layout, ptr, "default_value", text);
+      }
+      else {
+        uiLayout *column = uiLayoutColumn(layout, true);
+        uiItemR(column, ptr, "default_value", 0, text, 0);
+      }
       break;
     case SOCK_RGBA:
     case SOCK_STRING: {
