@@ -651,6 +651,8 @@ typedef enum eGP_DrawMode {
   ((gpd) && (gpd->flag & \
              (GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | GP_DATA_STROKE_WEIGHTMODE)))
 #define GPENCIL_PAINT_MODE(gpd) ((gpd) && (gpd->flag & (GP_DATA_STROKE_PAINTMODE)))
+#define GPENCIL_SCULPT_MODE(gpd) ((gpd) && (gpd->flag & GP_DATA_STROKE_SCULPTMODE))
+#define GPENCIL_WEIGHT_MODE(gpd) ((gpd) && (gpd->flag & GP_DATA_STROKE_WEIGHTMODE))
 #define GPENCIL_SCULPT_OR_WEIGHT_MODE(gpd) \
   ((gpd) && (gpd->flag & (GP_DATA_STROKE_SCULPTMODE | GP_DATA_STROKE_WEIGHTMODE)))
 #define GPENCIL_NONE_EDIT_MODE(gpd) \
