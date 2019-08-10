@@ -36,7 +36,8 @@ static void add_input_edges(CDT_input *r_input, int (*edges)[2], int nedges)
   r_input->edges = edges;
 }
 
-static void add_input_faces(CDT_input *r_input, int *faces, int *faces_start_table, int *faces_len_table, int nfaces)
+static void add_input_faces(
+    CDT_input *r_input, int *faces, int *faces_start_table, int *faces_len_table, int nfaces)
 {
   r_input->faces_len = nfaces;
   r_input->faces = faces;
@@ -375,13 +376,15 @@ TEST(delaunay, DiamondCross)
 {
   CDT_input in;
   CDT_result *out;
-  float p[][2] = {{0.0f, 0.0f},
-                  {1.0f, 3.0f},
-                  {2.0f, 0.0f},
-                  {1.0f, -3.0f},
-                  {0.0f, 0.0f},
-                  {1.0f, -3.0f},
-                  {1.0f, 3.0f}};
+  float p[][2] = {
+      {0.0f, 0.0f},
+      {1.0f, 3.0f},
+      {2.0f, 0.0f},
+      {1.0f, -3.0f},
+      {0.0f, 0.0f},
+      {1.0f, -3.0f},
+      {1.0f, 3.0f},
+  };
   int e[][2] = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {5, 6}};
 
   fill_input_verts(&in, p, 7);
@@ -398,18 +401,20 @@ TEST(delaunay, TwoDiamondsCrossed)
   CDT_input in;
   CDT_result *out;
   /* Input has some repetition of vertices, on purpose */
-  float p[][2] = {{0.0f, 0.0f},
-                  {1.0f, 2.0f},
-                  {2.0f, 0.0f},
-                  {1.0f, -2.0f},
-                  {0.0f, 0.0f},
-                  {3.0f, 0.0f},
-                  {4.0f, 2.0f},
-                  {5.0f, 0.0f},
-                  {4.0f, -2.0f},
-                  {3.0f, 0.0f},
-                  {0.0f, 0.0f},
-                  {5.0f, 0.0f}};
+  float p[][2] = {
+      {0.0f, 0.0f},
+      {1.0f, 2.0f},
+      {2.0f, 0.0f},
+      {1.0f, -2.0f},
+      {0.0f, 0.0f},
+      {3.0f, 0.0f},
+      {4.0f, 2.0f},
+      {5.0f, 0.0f},
+      {4.0f, -2.0f},
+      {3.0f, 0.0f},
+      {0.0f, 0.0f},
+      {5.0f, 0.0f},
+  };
   int e[][2] = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {5, 6}, {6, 7}, {7, 8}, {8, 9}, {10, 11}};
   int v_out[12];
   int e_out[9], e_cross_1, e_cross_2, e_cross_3;
@@ -450,42 +455,46 @@ TEST(delaunay, ManyCross)
   CDT_input in;
   CDT_result *out;
   /* Input has some repetition of vertices, on purpose */
-  float p[][2] = {/* upper: verts 0 to 10 */
-                  {0.0f, 0.0f},
-                  {6.0f, 9.0f},
-                  {15.0f, 18.0f},
-                  {35.0f, 13.0f},
-                  {43.0f, 18.0f},
-                  {57.0f, 12.0f},
-                  {69.0f, 10.0f},
-                  {78.0f, 0.0f},
-                  {91.0f, 0.0f},
-                  {107.0f, 22.0f},
-                  {123.0f, 0.0f},
-                  /* lower part 1: verts 11 to 16 */
-                  {0.0f, 0.0f},
-                  {10.0f, -14.0f},
-                  {35.0f, -8.0f},
-                  {43.0f, -12.0f},
-                  {64.0f, -13.0f},
-                  {78.0f, 0.0f},
-                  /* lower part 2: verts 17 to 20 */
-                  {91.0f, 0.0f},
-                  {102.0f, -9.0f},
-                  {116.0f, -9.0f},
-                  {123.0f, 0.0f},
-                  /* cross 1: verts 21, 22 */
-                  {43.0f, 18.0f},
-                  {43.0f, -12.0f},
-                  /* cross 2: verts 23, 24 */
-                  {107.0f, 22.0f},
-                  {102.0f, -9.0f},
-                  /* cross all: verts 25, 26 */
-                  {0.0f, 0.0f},
-                  {123.0f, 0.0f}};
-  int e[][2] = {{0, 1},   {1, 2},   {2, 3},   {3, 4},   {4, 5},   {5, 6},   {6, 7},
-                {7, 8},   {8, 9},   {9, 10},  {11, 12}, {12, 13}, {13, 14}, {14, 15},
-                {15, 16}, {17, 18}, {18, 19}, {19, 20}, {21, 22}, {23, 24}, {25, 26}};
+  float p[][2] = {
+      /* upper: verts 0 to 10 */
+      {0.0f, 0.0f},
+      {6.0f, 9.0f},
+      {15.0f, 18.0f},
+      {35.0f, 13.0f},
+      {43.0f, 18.0f},
+      {57.0f, 12.0f},
+      {69.0f, 10.0f},
+      {78.0f, 0.0f},
+      {91.0f, 0.0f},
+      {107.0f, 22.0f},
+      {123.0f, 0.0f},
+      /* lower part 1: verts 11 to 16 */
+      {0.0f, 0.0f},
+      {10.0f, -14.0f},
+      {35.0f, -8.0f},
+      {43.0f, -12.0f},
+      {64.0f, -13.0f},
+      {78.0f, 0.0f},
+      /* lower part 2: verts 17 to 20 */
+      {91.0f, 0.0f},
+      {102.0f, -9.0f},
+      {116.0f, -9.0f},
+      {123.0f, 0.0f},
+      /* cross 1: verts 21, 22 */
+      {43.0f, 18.0f},
+      {43.0f, -12.0f},
+      /* cross 2: verts 23, 24 */
+      {107.0f, 22.0f},
+      {102.0f, -9.0f},
+      /* cross all: verts 25, 26 */
+      {0.0f, 0.0f},
+      {123.0f, 0.0f},
+  };
+  int e[][2] = {
+      {0, 1},   {1, 2},   {2, 3},   {3, 4},   {4, 5},   {5, 6},   {6, 7},
+      {7, 8},   {8, 9},   {9, 10},  {11, 12}, {12, 13}, {13, 14}, {14, 15},
+      {15, 16}, {17, 18}, {18, 19}, {19, 20}, {21, 22}, {23, 24}, {25, 26},
+  };
 
   fill_input_verts(&in, p, 27);
   add_input_edges(&in, e, 21);
@@ -496,11 +505,13 @@ TEST(delaunay, ManyCross)
   BLI_delaunay_2d_cdt_free(out);
 }
 
-TEST(delaunay, TwoFace) {
+TEST(delaunay, TwoFace)
+{
   CDT_input in;
   CDT_result *out;
-  float p[][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {0.5f, 1.0f}, {1.1f, 1.0f}, {1.1f, 0.0f}, {1.6f, 1.0f}};
-  int f[] = {/* 0 */ 0, 1, 2,  /* 1 */ 3, 4, 5};
+  float p[][2] = {
+      {0.0f, 0.0f}, {1.0f, 0.0f}, {0.5f, 1.0f}, {1.1f, 1.0f}, {1.1f, 0.0f}, {1.6f, 1.0f}};
+  int f[] = {/* 0 */ 0, 1, 2, /* 1 */ 3, 4, 5};
   int fstart[] = {0, 3};
   int flen[] = {3, 3};
   int v_out[6], f0_out, f1_out, e0_out, e1_out, e2_out;
@@ -534,13 +545,25 @@ TEST(delaunay, TwoFace) {
   BLI_delaunay_2d_cdt_free(out);
 }
 
-TEST(delaunay, OverlapFaces) {
+TEST(delaunay, OverlapFaces)
+{
   CDT_input in;
   CDT_result *out;
-  float p[][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f},
-				  {0.5f, 0.5f}, {1.5f, 0.5f}, {1.5f, 1.3f}, {0.5f, 1.3f},
-				  {0.1f, 0.1f}, {0.3f, 0.1f}, {0.3f, 0.3f}, {0.1f, 0.3f}};
-  int f[] = {/* 0 */ 0, 1, 2, 3,  /* 1 */ 4, 5, 6, 7, /* 2*/ 8, 9, 10, 11};
+  float p[][2] = {
+      {0.0f, 0.0f},
+      {1.0f, 0.0f},
+      {1.0f, 1.0f},
+      {0.0f, 1.0f},
+      {0.5f, 0.5f},
+      {1.5f, 0.5f},
+      {1.5f, 1.3f},
+      {0.5f, 1.3f},
+      {0.1f, 0.1f},
+      {0.3f, 0.1f},
+      {0.3f, 0.3f},
+      {0.1f, 0.3f},
+  };
+  int f[] = {/* 0 */ 0, 1, 2, 3, /* 1 */ 4, 5, 6, 7, /* 2*/ 8, 9, 10, 11};
   int fstart[] = {0, 4, 8};
   int flen[] = {4, 4, 4};
   int v_out[12], v_int1, v_int2, f0_out, f1_out, f2_out;
@@ -605,15 +628,15 @@ static void rand_delaunay_test(int test_kind, int max_lg_size, int reps_per_size
   CDT_input in;
   CDT_result *out;
   int lg_size, size, rep, i, npts, nedges;
-  float (*p)[2];
-  int (*e)[2];
+  float(*p)[2];
+  int(*e)[2];
   double tstart;
   double *times;
   RNG *rng;
 
   rng = BLI_rng_new(0);
   npts = (1 << max_lg_size);
-  p = (float (*)[2])MEM_malloc_arrayN(npts, 2 * sizeof(float), "delaunay");
+  p = (float(*)[2])MEM_malloc_arrayN(npts, 2 * sizeof(float), "delaunay");
   switch (test_kind) {
     case RANDOM_PTS:
       nedges = 0;
@@ -624,7 +647,7 @@ static void rand_delaunay_test(int test_kind, int max_lg_size, int reps_per_size
     case RANDOM_POLY:
       /* TODO: use faces for poly case, but need to deal with winding parity issue */
       nedges = npts - 1 + (test_kind == RANDOM_POLY);
-      e = (int (*)[2])MEM_malloc_arrayN(nedges, 2 * sizeof(int), "delaunay");
+      e = (int(*)[2])MEM_malloc_arrayN(nedges, 2 * sizeof(int), "delaunay");
       break;
 
     default:
@@ -639,7 +662,7 @@ static void rand_delaunay_test(int test_kind, int max_lg_size, int reps_per_size
       continue;
     for (rep = 0; rep < reps_per_size; rep++) {
       for (i = 0; i < size; i++) {
-        p[i][0] = (float)BLI_rng_get_double(rng);  /* will be in range in [0,1) */
+        p[i][0] = (float)BLI_rng_get_double(rng); /* will be in range in [0,1) */
         p[i][1] = (float)BLI_rng_get_double(rng);
       }
       fill_input_verts(&in, p, size);
@@ -662,12 +685,12 @@ static void rand_delaunay_test(int test_kind, int max_lg_size, int reps_per_size
       times[lg_size] += PIL_check_seconds_timer() - tstart;
     }
   }
-#  ifdef DO_TIMING
+#ifdef DO_TIMING
   fprintf(stderr, "size,time\n");
   for (lg_size = 0; lg_size <= max_lg_size; lg_size++) {
     fprintf(stderr, "%d,%f\n", 1 << lg_size, times[lg_size] / reps_per_size);
   }
-#  endif
+#endif
   MEM_freeN(p);
   if (e)
     MEM_freeN(e);
