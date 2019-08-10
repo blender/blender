@@ -379,7 +379,7 @@ void math_greater_than(float val1, float val2, out float outval)
 
 void math_modulo(float val1, float val2, out float outval)
 {
-  if (val2 == 0.0) {
+  if (val2 == 0.0 || val1 == val2) {
     outval = 0.0;
   }
   else {
