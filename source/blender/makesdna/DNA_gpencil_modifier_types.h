@@ -502,8 +502,11 @@ typedef struct SimplifyGpencilModifierData {
   short step;
   /** Custom index for passes. */
   int layer_pass;
-  /* Sample length */
+  /** Sample length */
   float length;
+  /** Merge distance */
+  float distance;
+  char _pad[4];
 } SimplifyGpencilModifierData;
 
 typedef enum eSimplifyGpencil_Flag {

@@ -46,6 +46,7 @@ static void initData(GpencilModifierData *md)
   gpmd->step = 1;
   gpmd->factor = 0.0f;
   gpmd->length = 0.1f;
+  gpmd->distance = 0.1f;
   gpmd->layername[0] = '\0';
 }
 
@@ -94,7 +95,7 @@ static void deformStroke(GpencilModifierData *md,
       break;
     }
     case GP_SIMPLIFY_MERGE: {
-      BKE_gpencil_merge_distance_stroke(gpf, gps, mmd->length, true);
+      BKE_gpencil_merge_distance_stroke(gpf, gps, mmd->distance, true);
       break;
     }
     default:
