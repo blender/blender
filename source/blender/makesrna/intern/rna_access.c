@@ -2522,18 +2522,31 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, bool value)
   }
 }
 
-static void rna_property_boolean_get_default_array_values(BoolPropertyRNA *bprop, bool *values)
+static void rna_property_boolean_fill_default_array_values(
+    const bool *defarr, int defarr_length, bool defvalue, int out_length, bool *r_values)
 {
-  unsigned int length = bprop->property.totarraylength;
-
-  if (bprop->defaultarray) {
-    memcpy(values, bprop->defaultarray, sizeof(bool) * length);
+  if (defarr && defarr_length > 0) {
+    defarr_length = MIN2(defarr_length, out_length);
+    memcpy(r_values, defarr, sizeof(bool) * defarr_length);
   }
   else {
-    for (unsigned int i = 0; i < length; i++) {
-      values[i] = bprop->defaultvalue;
-    }
+    defarr_length = 0;
   }
+
+  for (int i = defarr_length; i < out_length; i++) {
+    r_values[i] = defvalue;
+  }
+}
+
+static void rna_property_boolean_get_default_array_values(PointerRNA *ptr,
+                                                          BoolPropertyRNA *bprop,
+                                                          bool *r_values)
+{
+  int length = bprop->property.totarraylength;
+  int out_length = RNA_property_array_length(ptr, (PropertyRNA *)bprop);
+
+  rna_property_boolean_fill_default_array_values(
+      bprop->defaultarray, length, bprop->defaultvalue, out_length, r_values);
 }
 
 void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, bool *values)
@@ -2565,7 +2578,7 @@ void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, bool *va
     bprop->getarray_ex(ptr, prop, values);
   }
   else {
-    rna_property_boolean_get_default_array_values(bprop, values);
+    rna_property_boolean_get_default_array_values(ptr, bprop, values);
   }
 }
 
@@ -2684,9 +2697,7 @@ bool RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop
   return bprop->defaultvalue;
 }
 
-void RNA_property_boolean_get_default_array(PointerRNA *UNUSED(ptr),
-                                            PropertyRNA *prop,
-                                            bool *values)
+void RNA_property_boolean_get_default_array(PointerRNA *ptr, PropertyRNA *prop, bool *values)
 {
   BoolPropertyRNA *bprop = (BoolPropertyRNA *)rna_ensure_property(prop);
 
@@ -2697,7 +2708,7 @@ void RNA_property_boolean_get_default_array(PointerRNA *UNUSED(ptr),
     values[0] = bprop->defaultvalue;
   }
   else {
-    rna_property_boolean_get_default_array_values(bprop, values);
+    rna_property_boolean_get_default_array_values(ptr, bprop, values);
   }
 }
 
@@ -2709,7 +2720,7 @@ bool RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, 
   BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
   BLI_assert(RNA_property_array_check(prop) != false);
   BLI_assert(index >= 0);
-  BLI_assert(index < prop->totarraylength);
+  BLI_assert(index < len);
 
   if (len <= RNA_MAX_ARRAY_LENGTH) {
     RNA_property_boolean_get_default_array(ptr, prop, tmp);
@@ -2785,18 +2796,31 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
   }
 }
 
-static void rna_property_int_get_default_array_values(IntPropertyRNA *iprop, int *values)
+static void rna_property_int_fill_default_array_values(
+    const int *defarr, int defarr_length, int defvalue, int out_length, int *r_values)
 {
-  unsigned int length = iprop->property.totarraylength;
-
-  if (iprop->defaultarray) {
-    memcpy(values, iprop->defaultarray, sizeof(int) * length);
+  if (defarr && defarr_length > 0) {
+    defarr_length = MIN2(defarr_length, out_length);
+    memcpy(r_values, defarr, sizeof(int) * defarr_length);
   }
   else {
-    for (unsigned int i = 0; i < length; i++) {
-      values[i] = iprop->defaultvalue;
-    }
+    defarr_length = 0;
   }
+
+  for (int i = defarr_length; i < out_length; i++) {
+    r_values[i] = defvalue;
+  }
+}
+
+static void rna_property_int_get_default_array_values(PointerRNA *ptr,
+                                                      IntPropertyRNA *iprop,
+                                                      int *r_values)
+{
+  int length = iprop->property.totarraylength;
+  int out_length = RNA_property_array_length(ptr, (PropertyRNA *)iprop);
+
+  rna_property_int_fill_default_array_values(
+      iprop->defaultarray, length, iprop->defaultvalue, out_length, r_values);
 }
 
 void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
@@ -2827,7 +2851,7 @@ void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
     iprop->getarray_ex(ptr, prop, values);
   }
   else {
-    rna_property_int_get_default_array_values(iprop, values);
+    rna_property_int_get_default_array_values(ptr, iprop, values);
   }
 }
 
@@ -2999,18 +3023,34 @@ bool RNA_property_int_set_default(PointerRNA *ptr, PropertyRNA *prop, int value)
   }
 }
 
-void RNA_property_int_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *prop, int *values)
+void RNA_property_int_get_default_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
 {
   IntPropertyRNA *iprop = (IntPropertyRNA *)rna_ensure_property(prop);
 
   BLI_assert(RNA_property_type(prop) == PROP_INT);
   BLI_assert(RNA_property_array_check(prop) != false);
 
-  if (prop->arraydimension == 0) {
+  if (prop->magic != RNA_MAGIC) {
+    int length = rna_ensure_property_array_length(ptr, prop);
+
+    IDProperty *idp_ui = rna_idproperty_ui(prop);
+    IDProperty *item = idp_ui ? IDP_GetPropertyFromGroup(idp_ui, "default") : NULL;
+
+    int defval = (item && item->type == IDP_INT) ? IDP_Int(item) : iprop->defaultvalue;
+
+    if (item && item->type == IDP_ARRAY && item->subtype == IDP_INT) {
+      rna_property_int_fill_default_array_values(
+          IDP_Array(item), item->len, defval, length, values);
+    }
+    else {
+      rna_property_int_fill_default_array_values(NULL, 0, defval, length, values);
+    }
+  }
+  else if (prop->arraydimension == 0) {
     values[0] = iprop->defaultvalue;
   }
   else {
-    rna_property_int_get_default_array_values(iprop, values);
+    rna_property_int_get_default_array_values(ptr, iprop, values);
   }
 }
 
@@ -3022,7 +3062,7 @@ int RNA_property_int_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int i
   BLI_assert(RNA_property_type(prop) == PROP_INT);
   BLI_assert(RNA_property_array_check(prop) != false);
   BLI_assert(index >= 0);
-  BLI_assert(index < prop->totarraylength);
+  BLI_assert(index < len);
 
   if (len <= RNA_MAX_ARRAY_LENGTH) {
     RNA_property_int_get_default_array(ptr, prop, tmp);
@@ -3109,18 +3149,31 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
   }
 }
 
-static void rna_property_float_get_default_array_values(FloatPropertyRNA *fprop, float *values)
+static void rna_property_float_fill_default_array_values(
+    const float *defarr, int defarr_length, float defvalue, int out_length, float *r_values)
 {
-  unsigned int length = fprop->property.totarraylength;
-
-  if (fprop->defaultarray) {
-    memcpy(values, fprop->defaultarray, sizeof(float) * length);
+  if (defarr && defarr_length > 0) {
+    defarr_length = MIN2(defarr_length, out_length);
+    memcpy(r_values, defarr, sizeof(float) * defarr_length);
   }
   else {
-    for (unsigned int i = 0; i < length; i++) {
-      values[i] = fprop->defaultvalue;
-    }
+    defarr_length = 0;
   }
+
+  for (int i = defarr_length; i < out_length; i++) {
+    r_values[i] = defvalue;
+  }
+}
+
+static void rna_property_float_get_default_array_values(PointerRNA *ptr,
+                                                        FloatPropertyRNA *fprop,
+                                                        float *r_values)
+{
+  int length = fprop->property.totarraylength;
+  int out_length = RNA_property_array_length(ptr, (PropertyRNA *)fprop);
+
+  rna_property_float_fill_default_array_values(
+      fprop->defaultarray, length, fprop->defaultvalue, out_length, r_values);
 }
 
 void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *values)
@@ -3157,7 +3210,7 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
     fprop->getarray_ex(ptr, prop, values);
   }
   else {
-    rna_property_float_get_default_array_values(fprop, values);
+    rna_property_float_get_default_array_values(ptr, fprop, values);
   }
 }
 
@@ -3343,20 +3396,40 @@ bool RNA_property_float_set_default(PointerRNA *ptr, PropertyRNA *prop, float va
   }
 }
 
-void RNA_property_float_get_default_array(PointerRNA *UNUSED(ptr),
-                                          PropertyRNA *prop,
-                                          float *values)
+void RNA_property_float_get_default_array(PointerRNA *ptr, PropertyRNA *prop, float *values)
 {
   FloatPropertyRNA *fprop = (FloatPropertyRNA *)rna_ensure_property(prop);
 
   BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
   BLI_assert(RNA_property_array_check(prop) != false);
 
-  if (prop->arraydimension == 0) {
+  if (prop->magic != RNA_MAGIC) {
+    int length = rna_ensure_property_array_length(ptr, prop);
+
+    IDProperty *idp_ui = rna_idproperty_ui(prop);
+    IDProperty *item = idp_ui ? IDP_GetPropertyFromGroup(idp_ui, "default") : NULL;
+
+    float defval = (item && item->type == IDP_DOUBLE) ? IDP_Double(item) : fprop->defaultvalue;
+
+    if (item && item->type == IDP_ARRAY && item->subtype == IDP_DOUBLE) {
+      double *defarr = IDP_Array(item);
+      for (int i = 0; i < length; i++) {
+        values[i] = (i < item->len) ? (float)defarr[i] : defval;
+      }
+    }
+    else if (item && item->type == IDP_ARRAY && item->subtype == IDP_FLOAT) {
+      rna_property_float_fill_default_array_values(
+          IDP_Array(item), item->len, defval, length, values);
+    }
+    else {
+      rna_property_float_fill_default_array_values(NULL, 0, defval, length, values);
+    }
+  }
+  else if (prop->arraydimension == 0) {
     values[0] = fprop->defaultvalue;
   }
   else {
-    rna_property_float_get_default_array_values(fprop, values);
+    rna_property_float_get_default_array_values(ptr, fprop, values);
   }
 }
 
@@ -3368,7 +3441,7 @@ float RNA_property_float_get_default_index(PointerRNA *ptr, PropertyRNA *prop, i
   BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
   BLI_assert(RNA_property_array_check(prop) != false);
   BLI_assert(index >= 0);
-  BLI_assert(index < prop->totarraylength);
+  BLI_assert(index < len);
 
   if (len <= RNA_MAX_ARRAY_LENGTH) {
     RNA_property_float_get_default_array(ptr, prop, tmp);
@@ -7083,6 +7156,7 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms,
                                          FunctionRNA *func)
 {
   PropertyRNA *parm;
+  PointerRNA null_ptr = PointerRNA_NULL;
   void *data;
   int alloc_size = 0, size;
 
@@ -7122,7 +7196,8 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms,
       switch (parm->type) {
         case PROP_BOOLEAN:
           if (parm->arraydimension) {
-            rna_property_boolean_get_default_array_values((BoolPropertyRNA *)parm, data);
+            rna_property_boolean_get_default_array_values(
+                &null_ptr, (BoolPropertyRNA *)parm, data);
           }
           else {
             memcpy(data, &((BoolPropertyRNA *)parm)->defaultvalue, size);
@@ -7130,7 +7205,7 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms,
           break;
         case PROP_INT:
           if (parm->arraydimension) {
-            rna_property_int_get_default_array_values((IntPropertyRNA *)parm, data);
+            rna_property_int_get_default_array_values(&null_ptr, (IntPropertyRNA *)parm, data);
           }
           else {
             memcpy(data, &((IntPropertyRNA *)parm)->defaultvalue, size);
@@ -7138,7 +7213,7 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms,
           break;
         case PROP_FLOAT:
           if (parm->arraydimension) {
-            rna_property_float_get_default_array_values((FloatPropertyRNA *)parm, data);
+            rna_property_float_get_default_array_values(&null_ptr, (FloatPropertyRNA *)parm, data);
           }
           else {
             memcpy(data, &((FloatPropertyRNA *)parm)->defaultvalue, size);

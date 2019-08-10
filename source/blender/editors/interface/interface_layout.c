@@ -1832,7 +1832,9 @@ static void ui_item_rna_size(uiLayout *layout,
       h += len * UI_UNIT_Y;
     }
   }
-  else if (ui_layout_variable_size(layout)) {
+
+  /* Increase width requirement if in a variable size layout. */
+  if (ui_layout_variable_size(layout)) {
     if (type == PROP_BOOLEAN && name[0]) {
       w += UI_UNIT_X / 5;
     }

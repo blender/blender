@@ -1531,8 +1531,9 @@ void DepsgraphRelationBuilder::build_driver_id_property(ID *id, const char *rna_
   }
   PointerRNA id_ptr, ptr;
   PropertyRNA *prop;
+  int index;
   RNA_id_pointer_create(id, &id_ptr);
-  if (!RNA_path_resolve_full(&id_ptr, rna_path, &ptr, &prop, NULL)) {
+  if (!RNA_path_resolve_full(&id_ptr, rna_path, &ptr, &prop, &index)) {
     return;
   }
   if (prop == NULL) {

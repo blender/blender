@@ -1139,6 +1139,8 @@ class WM_OT_properties_edit(Operator):
             rna_idprop_ui_prop_get,
             rna_idprop_ui_prop_clear,
             rna_idprop_ui_prop_update,
+            rna_idprop_ui_prop_default_set,
+            rna_idprop_value_item_type,
         )
 
         data_path = self.data_path
@@ -1174,15 +1176,15 @@ class WM_OT_properties_edit(Operator):
 
         self._last_prop[:] = [prop]
 
-        prop_type = type(item[prop])
+        prop_value = item[prop]
+        prop_type_new = type(prop_value)
+        prop_type, is_array = rna_idprop_value_item_type(prop_value)
 
         prop_ui = rna_idprop_ui_prop_get(item, prop)
 
         if prop_type in {float, int}:
             prop_ui["min"] = prop_type(self.min)
             prop_ui["max"] = prop_type(self.max)
-            if type(default_eval) in {float, int} and default_eval != 0:
-                prop_ui["default"] = prop_type(default_eval)
 
             if self.use_soft_limits:
                 prop_ui["soft_min"] = prop_type(self.soft_min)
@@ -1193,8 +1195,10 @@ class WM_OT_properties_edit(Operator):
 
         prop_ui["description"] = self.description
 
+        rna_idprop_ui_prop_default_set(item, prop, default_eval)
+
         # If we have changed the type of the property, update its potential anim curves!
-        if prop_type_old != prop_type:
+        if prop_type_old != prop_type_new:
             data_path = '["%s"]' % bpy.utils.escape_identifier(prop)
             done = set()
 
@@ -1231,7 +1235,7 @@ class WM_OT_properties_edit(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, _event):
-        from rna_prop_ui import rna_idprop_ui_prop_get
+        from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_value_to_python
 
         data_path = self.data_path
 
@@ -1263,7 +1267,7 @@ class WM_OT_properties_edit(Operator):
 
             defval = prop_ui.get("default", None)
             if defval is not None:
-                self.default = str(defval)
+                self.default = str(rna_idprop_value_to_python(defval))
 
             self.soft_min = prop_ui.get("soft_min", self.min)
             self.soft_max = prop_ui.get("soft_max", self.max)
@@ -1307,12 +1311,19 @@ class WM_OT_properties_edit(Operator):
         return changed
 
     def draw(self, _context):
+        from rna_prop_ui import (
+            rna_idprop_value_item_type,
+        )
+
         layout = self.layout
         layout.prop(self, "property")
         layout.prop(self, "value")
 
+        value = self.get_value_eval()
+        proptype, is_array = rna_idprop_value_item_type(value)
+
         row = layout.row()
-        row.enabled = type(self.get_value_eval()) in {int, float}
+        row.enabled = proptype in {int, float}
         row.prop(self, "default")
 
         row = layout.row(align=True)
