@@ -71,6 +71,13 @@ static bool gpencil_select_poll(bContext *C)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
 
+  if (GPENCIL_SCULPT_MODE(gpd)) {
+    ToolSettings *ts = CTX_data_tool_settings(C);
+    if ((ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_SELECT_MASK) == 0) {
+      return false;
+    }
+  }
+
   /* we just need some visible strokes, and to be in editmode or other modes only to catch event */
   if (GPENCIL_ANY_MODE(gpd)) {
     /* TODO: include a check for visible strokes? */
