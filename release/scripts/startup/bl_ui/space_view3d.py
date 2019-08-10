@@ -725,13 +725,15 @@ class VIEW3D_MT_editor_menus(Menu):
         mode_string = context.mode
         edit_object = context.edit_object
         gp_edit = obj and obj.mode in {'EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}
+        ts = context.scene.tool_settings
 
         layout.menu("VIEW3D_MT_view")
 
         # Select Menu
         if gp_edit:
             if mode_string not in {'PAINT_GPENCIL', 'WEIGHT_GPENCIL'}:
-                layout.menu("VIEW3D_MT_select_gpencil")
+                if ts.gpencil_sculpt.use_select_mask:
+                    layout.menu("VIEW3D_MT_select_gpencil")
         elif mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
             mesh = obj.data
             if mesh.use_paint_mask:

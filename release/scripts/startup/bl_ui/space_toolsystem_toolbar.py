@@ -1503,6 +1503,15 @@ class _defs_gpencil_edit:
 class _defs_gpencil_sculpt:
 
     @staticmethod
+    def poll_select_mask(context):
+        if context is None:
+            return True
+        ob = context.active_object
+        ts = context.scene.tool_settings
+        return (ob and ob.type == 'GPENCIL' and
+                (ts.gpencil_sculpt.use_select_mask))
+
+    @staticmethod
     def generate_from_brushes(context):
         return generate_from_enum_ex(
             context,
@@ -2026,9 +2035,13 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
         ],
         'SCULPT_GPENCIL': [
-            *_tools_gpencil_select,
-            None,
             _defs_gpencil_sculpt.generate_from_brushes,
+            None,
+            lambda context: (
+                VIEW3D_PT_tools_active._tools_gpencil_select
+                if _defs_gpencil_sculpt.poll_select_mask(context)
+                else ()
+            ),
         ],
         'WEIGHT_GPENCIL': [
             _defs_gpencil_weight.generate_from_brushes,
