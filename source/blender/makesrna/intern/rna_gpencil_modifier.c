@@ -611,7 +611,7 @@ static void rna_def_modifier_gpencilsimplify(BlenderRNA *brna)
        "FIXED",
        ICON_IPO_CONSTANT,
        "Fixed",
-       "Delete alternative vertices in the stroke, except extremes"},
+       "Delete alternating vertices in the stroke, except extremes"},
       {GP_SIMPLIFY_ADAPTIVE,
        "ADAPTIVE",
        ICON_IPO_EASE_IN_OUT,
@@ -626,7 +626,7 @@ static void rna_def_modifier_gpencilsimplify(BlenderRNA *brna)
        "MERGE",
        ICON_IPO_EASE_IN_OUT,
        "Merge",
-       "Sample a curve using doing merge of vertex"},
+       "Simplify the stroke by merging vertices closer than a given distance"},
       {0, NULL, 0, NULL, NULL},
   };
 
