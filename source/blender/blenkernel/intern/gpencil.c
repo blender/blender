@@ -2313,6 +2313,12 @@ bool BKE_gpencil_close_stroke(bGPDstroke *gps)
   pt2 = &gps->points[0];
   float dist_close = len_v3v3(&pt1->x, &pt2->x);
 
+  /* if the distance to close is very small, don't need add points and just enable cyclic. */
+  if (dist_close <= dist_avg) {
+    gps->flag |= GP_STROKE_CYCLIC;
+    return true;
+  }
+
   /* Calc number of points required using the average distance. */
   int tot_newpoints = MAX2(dist_close / dist_avg, 1);
 
@@ -2329,9 +2335,11 @@ bool BKE_gpencil_close_stroke(bGPDstroke *gps)
   pt2 = &gps->points[0];
   bGPDspoint *pt = &gps->points[old_tot];
   for (int i = 1; i < tot_newpoints + 1; i++, pt++) {
-    float step = ((float)i / (float)tot_newpoints);
+    float step = (tot_newpoints > 1) ? ((float)i / (float)tot_newpoints) : 0.99f;
     /* Clamp last point to be near, but not on top of first point. */
-    CLAMP(step, 0.0f, 0.99f);
+    if ((tot_newpoints > 1) && (i == tot_newpoints)) {
+      step *= 0.99f;
+    }
 
     /* Average point. */
     interp_v3_v3v3(&pt->x, &pt1->x, &pt2->x, step);
@@ -2363,7 +2371,6 @@ bool BKE_gpencil_close_stroke(bGPDstroke *gps)
 
   return true;
 }
-
 /* Dissolve points in stroke */
 void BKE_gpencil_dissolve_points(bGPDframe *gpf, bGPDstroke *gps, const short tag)
 {
