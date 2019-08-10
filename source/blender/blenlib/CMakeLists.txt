@@ -63,6 +63,7 @@ set(SRC
   intern/buffer.c
   intern/callbacks.c
   intern/convexhull_2d.c
+  intern/delaunay_2d.c
   intern/dynlib.c
   intern/easing.c
   intern/edgehash.c
@@ -150,6 +151,7 @@ set(SRC
   BLI_compiler_typecheck.h
   BLI_console.h
   BLI_convexhull_2d.h
+  BLI_delaunay_2d.h
   BLI_dial_2d.h
   BLI_dlrbTree.h
   BLI_dynlib.h
