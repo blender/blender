@@ -188,8 +188,8 @@ class BPyOpsSubModOp:
         # Get the operator from blender
         wm = context.window_manager
 
-        # run to account for any rna values the user changes.
-        # NOTE: We only update active vew layer, since that's what
+        # Run to account for any RNA values the user changes.
+        # NOTE: We only update active view-layer, since that's what
         # operators are supposed to operate on. There might be some
         # corner cases when operator need a full scene update though.
         BPyOpsSubModOp._view_layer_update(context)

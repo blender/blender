@@ -250,7 +250,7 @@ class GetSteerableViewMapDensityF1D : public UnaryFunction1D<double> {
 
 // GetViewMapGradientNormF1D
 /*! Returns the density of the viewmap for a given Interface1D. The density of each FEdge is
- * evaluated in the proper steerable ViewMap depending on its oorientation.
+ * evaluated in the proper steerable ViewMap depending on its orientation.
  */
 class GetViewMapGradientNormF1D : public UnaryFunction1D<double> {
  private:

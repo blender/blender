@@ -20,7 +20,7 @@
 
 # <pep8 compliant>
 
-# Preprocess right-to-left languages.
+# Pre-process right-to-left languages.
 # You can use it either standalone, or through import_po_from_branches or
 # update_trunk.
 #

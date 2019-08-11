@@ -149,7 +149,7 @@ typedef struct TaskThreadLocalStorage {
    * without "interrupting" for task execution.
    *
    * We try to accumulate as much tasks as possible in a local queue without
-   * any locks first, and then we push all of them into a scheduler's queue
+   * any locks first, and then we push all of them into a schedulers queue
    * from within a single mutex lock.
    */
   bool do_delayed_push;

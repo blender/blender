@@ -79,7 +79,7 @@ def generate(context, space_type):
     use_release_confirm = True
 
     # Generate items when no keys are mapped.
-    use_auto_keymap_alpha = False  # Map manially in the default keymap
+    use_auto_keymap_alpha = False  # Map manually in the default key-map.
     use_auto_keymap_num = True
 
     # Temporary, only create so we can pass 'properties' to find_item_from_operator.

@@ -85,7 +85,7 @@ def RKS_POLL_selected_items(ksi, context):
 # Iterator Callbacks
 
 
-# all selected objects or pose bones, depending on which we've got
+# All selected objects or pose bones, depending on which we've got.
 def RKS_ITER_selected_item(ksi, context, ks):
     ob = context.active_object
     if ob and ob.mode == 'POSE':
@@ -96,13 +96,13 @@ def RKS_ITER_selected_item(ksi, context, ks):
             ksi.generate(context, ks, ob)
 
 
-# all selected objects only
+# All selected objects only.
 def RKS_ITER_selected_objects(ksi, context, ks):
     for ob in context.selected_objects:
         ksi.generate(context, ks, ob)
 
 
-# all seelcted bones only
+# All selected bones only.
 def RKS_ITER_selected_bones(ksi, context, ks):
     for bone in context.selected_pose_bones:
         ksi.generate(context, ks, bone)

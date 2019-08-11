@@ -96,7 +96,7 @@ static void covariance_m_vn_ex_task_cb(void *__restrict userdata,
  * \param center: the center (or mean point) of cos_vn. If NULL,
  * it is assumed cos_vn is already centered.
  * \param use_sample_correction: whether to apply sample correction
- *                              (i.e. get 'sample varince' instead of 'population variance').
+ *                              (i.e. get 'sample variance' instead of 'population variance').
  * \return r_covmat the computed covariance matrix.
  */
 void BLI_covariance_m_vn_ex(const int n,

@@ -4941,7 +4941,7 @@ class VIEW3D_PT_collections(Panel):
         layout.use_property_split = False
 
         view_layer = context.view_layer
-        # We pass index 0 here beause the index is increased
+        # We pass index 0 here because the index is increased
         # so the first real index is 1
         # And we start with index as 1 because we skip the master collection
         self._draw_collection(layout, view_layer, view_layer.layer_collection, 0)

@@ -73,7 +73,7 @@ def complete_indices(word, namespace, obj=None, base=None):
     :param namespace: namespace
     :type namespace: dict
     :param obj: object evaluated from base
-    :param base: substring which can be evaluated into an object
+    :param base: sub-string which can be evaluated into an object.
     :type base: str
     :returns: completion matches
     :rtype: list of str

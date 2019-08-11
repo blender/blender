@@ -565,8 +565,7 @@ float3 Camera::transform_raster_to_world(float raster_x, float raster_y)
 BoundBox Camera::viewplane_bounds_get()
 {
   /* TODO(sergey): This is all rather stupid, but is there a way to perform
-   * checks we need in a more clear and smart fasion?
-   */
+   * checks we need in a more clear and smart fashion? */
   BoundBox bounds = BoundBox::empty;
 
   if (type == CAMERA_PANORAMA) {
