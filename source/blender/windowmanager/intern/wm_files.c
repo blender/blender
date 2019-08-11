@@ -1959,6 +1959,10 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
   if (use_userdef) {
     wm_userpref_read_exceptions(&U, &U_backup);
     SET_FLAG_FROM_TEST(G.f, use_factory_settings, G_FLAG_USERPREF_NO_SAVE_ON_EXIT);
+
+    if (use_factory_settings) {
+      U.runtime.is_dirty = true;
+    }
   }
 
   return OPERATOR_FINISHED;
