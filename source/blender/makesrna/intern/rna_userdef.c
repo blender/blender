@@ -5820,7 +5820,10 @@ void RNA_def_userdef(BlenderRNA *brna)
   /* Preferences Flags */
   prop = RNA_def_property(srna, "use_preferences_save", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "pref_flag", USER_PREF_FLAG_SAVE);
-  RNA_def_property_ui_text(prop, "Save on Exit", "Save preferences on exit when modified");
+  RNA_def_property_ui_text(prop,
+                           "Save on Exit",
+                           "Save preferences on exit when modified "
+                           "(unless factory settings have been loaded)");
 
   prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "runtime.is_dirty", 0);

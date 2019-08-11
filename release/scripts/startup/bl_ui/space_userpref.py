@@ -86,7 +86,9 @@ class USERPREF_MT_save_load(Menu):
 
         prefs = context.preferences
 
-        layout.prop(prefs, "use_preferences_save", text="Auto-Save Preferences")
+        row = layout.row()
+        row.active = not bpy.app.use_userpref_skip_save_on_exit
+        row.prop(prefs, "use_preferences_save", text="Auto-Save Preferences")
 
         layout.separator()
 
