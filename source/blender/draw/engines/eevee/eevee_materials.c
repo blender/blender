@@ -382,17 +382,14 @@ static void add_standard_uniforms(DRWShadingGroup *shgrp,
   LightCache *lcache = vedata->stl->g_data->light_cache;
   EEVEE_EffectsInfo *effects = vedata->stl->effects;
 
-  if (ssr_id == NULL) {
-    static int no_ssr = -1.0f;
-    ssr_id = &no_ssr;
-  }
-
   DRW_shgroup_uniform_block(shgrp, "probe_block", sldata->probe_ubo);
   DRW_shgroup_uniform_block(shgrp, "grid_block", sldata->grid_ubo);
   DRW_shgroup_uniform_block(shgrp, "planar_block", sldata->planar_ubo);
   DRW_shgroup_uniform_block(shgrp, "light_block", sldata->light_ubo);
   DRW_shgroup_uniform_block(shgrp, "shadow_block", sldata->shadow_ubo);
   DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
+
+  DRW_shgroup_uniform_int_copy(shgrp, "outputSssId", 1);
 
   if (use_diffuse || use_glossy || use_refract) {
     DRW_shgroup_uniform_texture(shgrp, "utilTex", e_data.util_tex);
@@ -411,7 +408,7 @@ static void add_standard_uniforms(DRWShadingGroup *shgrp,
   }
   if (use_glossy) {
     DRW_shgroup_uniform_texture_ref(shgrp, "probePlanars", &vedata->txl->planar_pool);
-    DRW_shgroup_uniform_int(shgrp, "outputSsrId", ssr_id, 1);
+    DRW_shgroup_uniform_int_copy(shgrp, "outputSsrId", ssr_id ? *ssr_id : 0);
   }
   if (use_refract) {
     DRW_shgroup_uniform_float_copy(
@@ -736,7 +733,6 @@ struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene,
                                             Material *ma,
                                             EEVEE_Data *vedata,
                                             bool use_blend,
-                                            bool use_multiply,
                                             bool use_refract,
                                             bool use_translucency,
                                             int shadow_method)
@@ -746,7 +742,6 @@ struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene,
   int options = VAR_MAT_MESH;
 
   SET_FLAG_FROM_TEST(options, use_blend, VAR_MAT_BLEND);
-  SET_FLAG_FROM_TEST(options, use_multiply, VAR_MAT_MULT);
   SET_FLAG_FROM_TEST(options, use_refract, VAR_MAT_REFRACT);
   SET_FLAG_FROM_TEST(options, effects->sss_separate_albedo, VAR_MAT_SSSALBED);
   SET_FLAG_FROM_TEST(options, use_translucency, VAR_MAT_TRANSLUC);
@@ -1191,15 +1186,11 @@ static void material_opaque(Material *ma,
     *shgrp_depth_clip = emsg->depth_clip_grp;
 
     /* This will have been created already, just perform a lookup. */
-    *gpumat = (use_gpumat) ? EEVEE_material_mesh_get(scene,
-                                                     ma,
-                                                     vedata,
-                                                     false,
-                                                     false,
-                                                     use_ssrefract,
-                                                     use_translucency,
-                                                     linfo->shadow_method) :
-                             NULL;
+    *gpumat =
+        (use_gpumat) ?
+            EEVEE_material_mesh_get(
+                scene, ma, vedata, false, use_ssrefract, use_translucency, linfo->shadow_method) :
+            NULL;
     *gpumat_depth = (use_gpumat) ? EEVEE_material_mesh_depth_get(
                                        scene, ma, (ma->blend_method == MA_BM_HASHED), false) :
                                    NULL;
@@ -1213,7 +1204,7 @@ static void material_opaque(Material *ma,
 
     /* Shading */
     *gpumat = EEVEE_material_mesh_get(
-        scene, ma, vedata, false, false, use_ssrefract, use_translucency, linfo->shadow_method);
+        scene, ma, vedata, false, use_ssrefract, use_translucency, linfo->shadow_method);
 
     eGPUMaterialStatus status_mat_surface = GPU_material_status(*gpumat);
 
@@ -1286,7 +1277,7 @@ static void material_opaque(Material *ma,
 
     switch (status_mat_surface) {
       case GPU_MAT_SUCCESS: {
-        static int no_ssr = -1;
+        static int no_ssr = 0;
         static int first_ssr = 1;
         int *ssr_id = (((effects->enabled_effects & EFFECT_SSR) != 0) && !use_ssrefract) ?
                           &first_ssr :
@@ -1426,22 +1417,16 @@ static void material_transparent(Material *ma,
     static float half = 0.5f;
 
     /* Shading */
-    *gpumat = EEVEE_material_mesh_get(scene,
-                                      ma,
-                                      vedata,
-                                      true,
-                                      (ma->blend_method == MA_BM_MULTIPLY),
-                                      use_ssrefract,
-                                      false,
-                                      linfo->shadow_method);
+    *gpumat = EEVEE_material_mesh_get(
+        scene, ma, vedata, true, use_ssrefract, false, linfo->shadow_method);
 
     switch (GPU_material_status(*gpumat)) {
       case GPU_MAT_SUCCESS: {
         static int ssr_id = -1; /* TODO transparent SSR */
-        bool use_blend = (ma->blend_method & MA_BM_BLEND) != 0;
 
         *shgrp = DRW_shgroup_material_create(*gpumat, psl->transparent_pass);
 
+        bool use_blend = true;
         bool use_diffuse = GPU_material_flag_get(*gpumat, GPU_MATFLAG_DIFFUSE);
         bool use_glossy = GPU_material_flag_get(*gpumat, GPU_MATFLAG_GLOSSY);
         bool use_refract = GPU_material_flag_get(*gpumat, GPU_MATFLAG_REFRACT);
@@ -1487,7 +1472,7 @@ static void material_transparent(Material *ma,
 
   DRWState all_state = (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_CULL_BACK |
                         DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_DEPTH_EQUAL |
-                        DRW_STATE_BLEND_ALPHA | DRW_STATE_BLEND_ADD | DRW_STATE_BLEND_MUL);
+                        DRW_STATE_BLEND_CUSTOM);
 
   DRWState cur_state = DRW_STATE_WRITE_COLOR;
   cur_state |= (use_prepass) ? DRW_STATE_DEPTH_EQUAL : DRW_STATE_DEPTH_LESS_EQUAL;
@@ -1495,13 +1480,9 @@ static void material_transparent(Material *ma,
 
   switch (ma->blend_method) {
     case MA_BM_ADD:
-      cur_state |= DRW_STATE_BLEND_ADD;
-      break;
     case MA_BM_MULTIPLY:
-      cur_state |= DRW_STATE_BLEND_MUL;
-      break;
     case MA_BM_BLEND:
-      cur_state |= DRW_STATE_BLEND_ALPHA;
+      cur_state |= DRW_STATE_BLEND_CUSTOM;
       break;
     default:
       BLI_assert(0);

@@ -71,14 +71,16 @@ void main()
 
   Closure cl = nodetree_exec();
 
+  float opacity = saturate(1.0 - avg(cl.transmittance));
+
 #  if defined(USE_ALPHA_HASH)
   /* Hashed Alpha Testing */
-  if (cl.opacity < hashed_alpha_threshold(worldPosition)) {
+  if (opacity < hashed_alpha_threshold(worldPosition)) {
     discard;
   }
 #  elif defined(USE_ALPHA_CLIP)
   /* Alpha clip */
-  if (cl.opacity <= alphaThreshold) {
+  if (opacity <= alphaThreshold) {
     discard;
   }
 #  endif

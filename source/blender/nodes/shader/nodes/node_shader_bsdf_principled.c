@@ -132,8 +132,13 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
              &in[21].link);
   }
 
+  bool use_diffuse = socket_not_one(4) && socket_not_one(15);
+  bool use_subsurf = socket_not_zero(1) && use_diffuse && node->sss_id > 0;
+  bool use_refract = socket_not_one(4) && socket_not_zero(15);
+  bool use_clear = socket_not_zero(12);
+
   /* SSS Profile */
-  if (node->sss_id == 1) {
+  if (use_subsurf) {
     static short profile = SHD_SUBSURFACE_BURLEY;
     bNodeSocket *socket = BLI_findlink(&node->original->inputs, 2);
     bNodeSocketValueRGBA *socket_data = socket->default_value;
@@ -147,11 +152,6 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   else {
     GPU_link(mat, "set_rgb_one", &sss_scale);
   }
-
-  bool use_diffuse = socket_not_one(4) && socket_not_one(15);
-  bool use_subsurf = socket_not_zero(1) && use_diffuse && node->sss_id == 1;
-  bool use_refract = socket_not_one(4) && socket_not_zero(15);
-  bool use_clear = socket_not_zero(12);
 
   /* Due to the manual effort done per config, we only optimize the most common permutations. */
   char *node_name;

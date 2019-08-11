@@ -33,15 +33,13 @@ Closure nodetree_exec(void)
   vec3 out_diff, out_spec, ssr_spec;
   eevee_closure_default(N, albedo, f0, f90, 1, roughness, 1.0, out_diff, out_spec, ssr_spec);
 
-  Closure result = Closure(out_spec + out_diff * albedo,
-                           1.0,
-                           vec4(ssr_spec, roughness),
-                           normal_encode(vN, viewCameraVec),
-                           0);
+  Closure cl = CLOSURE_DEFAULT;
+  cl.radiance = out_spec + out_diff * albedo;
+  closure_load_ssr_data(ssr_spec, roughness, N, viewCameraVec, 0, cl);
 
 #ifdef LOOKDEV
   gl_FragDepth = 0.0;
 #endif
 
-  return result;
+  return cl;
 }

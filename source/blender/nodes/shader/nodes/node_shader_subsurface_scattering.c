@@ -63,7 +63,7 @@ static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat,
 
   GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_SSS);
 
-  if (node->sss_id == 1) {
+  if (node->sss_id > 0) {
     bNodeSocket *socket = BLI_findlink(&node->original->inputs, 2);
     bNodeSocketValueRGBA *socket_data = socket->default_value;
     bNodeSocket *socket_sharp = BLI_findlink(&node->original->inputs, 3);

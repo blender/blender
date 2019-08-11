@@ -934,7 +934,7 @@ static char *code_generate_fragment(GPUMaterial *material,
   BLI_dynstr_append(ds, "void main()\n");
   BLI_dynstr_append(ds, "{\n");
   BLI_dynstr_append(ds, "\tClosure cl = nodetree_exec();\n");
-  BLI_dynstr_append(ds, "\tfragColor = vec4(cl.radiance, cl.opacity);\n");
+  BLI_dynstr_append(ds, "\tfragColor = vec4(cl.radiance, saturate(avg(cl.transmittance)));\n");
   BLI_dynstr_append(ds, "}\n");
   BLI_dynstr_append(ds, "#endif\n\n");
 
