@@ -1217,36 +1217,34 @@ static int text_comment_exec(bContext *C, wmOperator *op)
   Text *text = CTX_data_edit_text(C);
   int type = RNA_enum_get(op->ptr, "type");
 
+  text_drawcache_tag_update(CTX_wm_space_text(C), 0);
+
+  ED_text_undo_push_init(C);
+
   if (txt_has_sel(text)) {
-    text_drawcache_tag_update(CTX_wm_space_text(C), 0);
-
-    ED_text_undo_push_init(C);
-
     txt_order_cursors(text, false);
-
-    switch (type) {
-      case 1:
-        txt_comment(text);
-        break;
-      case -1:
-        txt_uncomment(text);
-        break;
-      default:
-        if (txt_uncomment(text) == false) {
-          txt_comment(text);
-        }
-        break;
-    }
-
-    text_update_edited(text);
-
-    text_update_cursor_moved(C);
-    WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
-
-    return OPERATOR_FINISHED;
   }
 
-  return OPERATOR_CANCELLED;
+  switch (type) {
+    case 1:
+      txt_comment(text);
+      break;
+    case -1:
+      txt_uncomment(text);
+      break;
+    default:
+      if (txt_uncomment(text) == false) {
+        txt_comment(text);
+      }
+      break;
+  }
+
+  text_update_edited(text);
+
+  text_update_cursor_moved(C);
+  WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
+
+  return OPERATOR_FINISHED;
 }
 
 void TEXT_OT_comment_toggle(wmOperatorType *ot)

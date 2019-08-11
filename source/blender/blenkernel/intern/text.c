@@ -1931,7 +1931,7 @@ bool txt_replace_char(Text *text, unsigned int add)
  *
  * \note caller must handle undo.
  */
-static void txt_select_prefix(Text *text, const char *add)
+static void txt_select_prefix(Text *text, const char *add, bool skip_blank_lines)
 {
   int len, num, curc_old, selc_old;
   char *tmp;
@@ -1947,7 +1947,7 @@ static void txt_select_prefix(Text *text, const char *add)
   while (true) {
 
     /* don't indent blank lines */
-    if (text->curl->len != 0) {
+    if ((text->curl->len != 0) || (skip_blank_lines == 0)) {
       tmp = MEM_mallocN(text->curl->len + indentlen + 1, "textline_string");
 
       text->curc = 0;
@@ -1971,7 +1971,9 @@ static void txt_select_prefix(Text *text, const char *add)
     }
 
     if (text->curl == text->sell) {
-      text->selc += indentlen;
+      if (text->curl->len != 0) {
+        text->selc += indentlen;
+      }
       break;
     }
     else {
@@ -1995,7 +1997,9 @@ static void txt_select_prefix(Text *text, const char *add)
     text->curc = 0;
   }
   else {
-    text->curc = curc_old + indentlen;
+    if (text->curl->len != 0) {
+      text->curc = curc_old + indentlen;
+    }
   }
 }
 
@@ -2089,7 +2093,8 @@ void txt_comment(Text *text)
     return;
   }
 
-  txt_select_prefix(text, prefix);
+  const bool skip_blank_lines = txt_has_sel(text);
+  txt_select_prefix(text, prefix, skip_blank_lines);
 }
 
 bool txt_uncomment(Text *text)
@@ -2111,7 +2116,7 @@ void txt_indent(Text *text)
     return;
   }
 
-  txt_select_prefix(text, prefix);
+  txt_select_prefix(text, prefix, true);
 }
 
 bool txt_unindent(Text *text)
