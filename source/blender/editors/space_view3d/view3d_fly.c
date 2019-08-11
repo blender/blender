@@ -146,13 +146,13 @@ typedef struct FlyInfo {
   struct Depsgraph *depsgraph;
   Scene *scene;
 
-  wmTimer *timer; /* needed for redraws */
+  /** Needed for for updating that isn't triggered by input. */
+  wmTimer *timer;
 
   short state;
   bool redraw;
   bool use_precision;
-  /* if the user presses shift they can look about
-   * without moving the direction there looking */
+  /** If the user presses shift they can look about without moving the direction there looking. */
   bool use_freelook;
 
   /**
@@ -163,31 +163,43 @@ typedef struct FlyInfo {
    */
   bool anim_playing;
 
-  int mval[2];         /* latest 2D mouse values */
-  int center_mval[2];  /* center mouse values */
-  float width, height; /* camera viewport dimensions */
+  /** Latest 2D mouse values. */
+  int mval[2];
+  /** Center mouse values. */
+  int center_mval[2];
+  /** Camera viewport dimensions. */
+  float width, height;
 
 #ifdef WITH_INPUT_NDOF
-  wmNDOFMotionData *ndof; /* latest 3D mouse values */
+  /** Latest 3D mouse values. */
+  wmNDOFMotionData *ndof;
 #endif
 
   /* fly state state */
-  float speed;   /* the speed the view is moving per redraw */
-  short axis;    /* Axis index to move along by default Z to move along the view */
-  bool pan_view; /* when true, pan the view instead of rotating */
+  /** The speed the view is moving per redraw. */
+  float speed;
+  /** Axis index to move along by default Z to move along the view. */
+  short axis;
+  /** When true, pan the view instead of rotating. */
+  bool pan_view;
 
   eFlyPanState xlock, zlock;
-  float xlock_momentum, zlock_momentum; /* nicer dynamics */
-  float grid;                           /* world scale 1.0 default */
+  /** Nicer dynamics. */
+  float xlock_momentum, zlock_momentum;
+  /** World scale 1.0 default. */
+  float grid;
 
   /* compare between last state */
-  double time_lastwheel; /* used to accelerate when using the mousewheel a lot */
-  double time_lastdraw;  /* time between draws */
+  /** Used to accelerate when using the mousewheel a lot. */
+  double time_lastwheel;
+  /** Time between draws. */
+  double time_lastdraw;
 
   void *draw_handle_pixel;
 
   /* use for some lag */
-  float dvec_prev[3]; /* old for some lag */
+  /** Keep the previous value to smooth transitions (use lag). */
+  float dvec_prev[3];
 
   struct View3DCameraControl *v3d_camera_control;
 

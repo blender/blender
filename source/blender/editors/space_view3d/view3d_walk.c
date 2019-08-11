@@ -191,7 +191,8 @@ typedef struct WalkInfo {
   struct Depsgraph *depsgraph;
   Scene *scene;
 
-  wmTimer *timer; /* needed for redraws */
+  /** Needed for for updating that isn't triggered by input. */
+  wmTimer *timer;
 
   short state;
   bool redraw;
@@ -204,64 +205,75 @@ typedef struct WalkInfo {
    */
   bool anim_playing;
 
-  int prev_mval[2];   /* previous 2D mouse values */
-  int center_mval[2]; /* center mouse values */
+  /** Previous 2D mouse values. */
+  int prev_mval[2];
+  /** Center mouse values. */
+  int center_mval[2];
+
   int moffset[2];
 
 #ifdef WITH_INPUT_NDOF
-  wmNDOFMotionData *ndof; /* latest 3D mouse values */
+  /** Latest 3D mouse values. */
+  wmNDOFMotionData *ndof;
 #endif
 
   /* walk state state */
-  float base_speed; /* the base speed without run/slow down modifications */
-  float speed;      /* the speed the view is moving per redraw */
-  float grid;       /* world scale 1.0 default */
+  /** The base speed without run/slow down modifications. */
+  float base_speed;
+  /** The speed the view is moving per redraw. */
+  float speed;
+  /** World scale 1.0 default. */
+  float grid;
 
   /* compare between last state */
-  double time_lastdraw; /* time between draws */
+  /** Time between draws. */
+  double time_lastdraw;
 
   void *draw_handle_pixel;
 
   /* use for some lag */
-  float dvec_prev[3]; /* old for some lag */
+  /** Keep the previous value to smooth transitions (use lag). */
+  float dvec_prev[3];
 
-  /* walk/fly */
+  /** Walk/free movement. */
   eWalkMethod navigation_mode;
 
   /* teleport */
   WalkTeleport teleport;
 
-  /* look speed factor - user preferences */
+  /** Look speed factor - user preferences. */
   float mouse_speed;
 
-  /* speed adjustments */
+  /** Speed adjustments. */
   bool is_fast;
   bool is_slow;
 
-  /* mouse reverse */
+  /** Mouse reverse. */
   bool is_reversed;
 
 #ifdef USE_TABLET_SUPPORT
-  /* check if we had a cursor event before */
+  /** Check if we had a cursor event before. */
   bool is_cursor_first;
 
-  /* tablet devices (we can't relocate the cursor) */
+  /** Tablet devices (we can't relocate the cursor). */
   bool is_cursor_absolute;
 #endif
 
-  /* gravity system */
+  /** Gravity system. */
   eWalkGravityState gravity_state;
   float gravity;
 
-  /* height to use in walk mode */
+  /** Height to use in walk mode. */
   float view_height;
 
-  /* counting system to allow movement to continue if a direction (WASD) key is still pressed */
+  /** Counting system to allow movement to continue if a direction (WASD) key is still pressed. */
   int active_directions;
 
   float speed_jump;
-  float jump_height;  /* maximum jump height */
-  float speed_factor; /* to use for fast/slow speeds */
+  /** Maximum jump height. */
+  float jump_height;
+  /** To use for fast/slow speeds. */
+  float speed_factor;
 
   struct SnapObjectContext *snap_context;
 
