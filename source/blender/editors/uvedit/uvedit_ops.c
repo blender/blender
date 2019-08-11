@@ -4519,7 +4519,9 @@ static int uv_select_overlap(bContext *C, const bool extend)
       const float(*t1)[2] = o_a->tri;
       const float(*t2)[2] = o_b->tri;
       float vi[2];
-      bool result =
+      bool result = (
+          /* Don't use 'isect_tri_tri_v2' here
+           * because it's important to ignore overlap at end-points. */
           isect_seg_seg_v2_point_ex(t1[0], t1[1], t2[0], t2[1], endpoint_bias, vi) == 1 ||
           isect_seg_seg_v2_point_ex(t1[0], t1[1], t2[1], t2[2], endpoint_bias, vi) == 1 ||
           isect_seg_seg_v2_point_ex(t1[0], t1[1], t2[2], t2[0], endpoint_bias, vi) == 1 ||
@@ -4529,7 +4531,7 @@ static int uv_select_overlap(bContext *C, const bool extend)
           isect_seg_seg_v2_point_ex(t1[2], t1[0], t2[0], t2[1], endpoint_bias, vi) == 1 ||
           isect_seg_seg_v2_point_ex(t1[2], t1[0], t2[1], t2[2], endpoint_bias, vi) == 1 ||
           isect_point_tri_v2(t1[0], t2[0], t2[1], t2[2]) != 0 ||
-          isect_point_tri_v2(t2[0], t1[0], t1[1], t1[2]) != 0;
+          isect_point_tri_v2(t2[0], t1[0], t1[1], t1[2]) != 0);
 
       if (result) {
         uvedit_face_select_enable(scene, em_a, face_a, false, cd_loop_uv_offset_a);

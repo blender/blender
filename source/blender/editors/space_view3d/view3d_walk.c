@@ -196,7 +196,13 @@ typedef struct WalkInfo {
   short state;
   bool redraw;
 
-  bool anim_playing; /* needed for autokeyframing */
+  /**
+   * Needed for auto-keyframing, when animation isn't playing, only keyframe on confirmation.
+   *
+   * Currently we can't cancel this operator usefully while recording on animation playback
+   * (this would need to un-key all previous frames).
+   */
+  bool anim_playing;
 
   int prev_mval[2];   /* previous 2D mouse values */
   int center_mval[2]; /* center mouse values */
