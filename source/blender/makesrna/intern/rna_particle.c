@@ -449,8 +449,10 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
   }
 
   part = particlesystem->part;
-  totpart = particlesystem->totcached;
-  totchild = particlesystem->totchildcache;
+  /* Note: only hair, keyed and baked particles may have cached items... */
+  totpart = particlesystem->totcached != 0 ? particlesystem->totcached : particlesystem->totpart;
+  totchild = particlesystem->totchildcache != 0 ? particlesystem->totchildcache :
+                                                  particlesystem->totchild;
 
   /* can happen for disconnected/global hair */
   if (part->type == PART_HAIR && !particlesystem->childcache) {
