@@ -515,7 +515,7 @@ class SEQUENCER_MT_add_empty(Menu):
 
 
 class SEQUENCER_MT_add_transitions(Menu):
-    bl_label = "Transitions"
+    bl_label = "Transition"
 
     def draw(self, context):
 
