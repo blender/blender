@@ -230,7 +230,7 @@ endif
 # -----------------------------------------------------------------------------
 # build tool
 
-ifeq "$(findstring ninja, $(MAKECMDGOALS))" ""
+ifneq "$(findstring ninja, $(MAKECMDGOALS))" ""
 	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -G Ninja
 	BUILD_COMMAND:=ninja
 else
