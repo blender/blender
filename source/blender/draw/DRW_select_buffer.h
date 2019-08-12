@@ -33,7 +33,7 @@ struct View3D;
 struct ViewLayer;
 struct rcti;
 
-struct BaseOffset {
+struct ObjectOffsets {
   /* For convenience only. */
   union {
     uint offset;
@@ -54,7 +54,7 @@ struct SELECTID_Context {
   struct GPUFrameBuffer *framebuffer_select_id;
   struct GPUTexture *texture_u32;
 
-  struct BaseOffset *index_offsets;
+  struct ObjectOffsets *index_offsets;
   uint objects_len;
   uint last_object_drawn;
   /** Total number of items `base_array_index_offsets[bases_len - 1].vert`. */

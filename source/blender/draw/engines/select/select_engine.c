@@ -164,7 +164,8 @@ static void select_cache_init(void *vedata)
 static void select_cache_populate(void *vedata, Object *ob)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  struct BaseOffset *base_ofs = &e_data.context.index_offsets[e_data.context.last_object_drawn++];
+  struct ObjectOffsets *base_ofs =
+      &e_data.context.index_offsets[e_data.context.last_object_drawn++];
 
   uint offset = e_data.context.last_index_drawn;
 

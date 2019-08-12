@@ -405,7 +405,7 @@ bool DRW_select_buffer_elem_get(const uint sel_id,
   uint base_index = 0;
 
   for (; base_index < select_ctx->objects_len; base_index++) {
-    struct BaseOffset *base_ofs = &select_ctx->index_offsets[base_index];
+    struct ObjectOffsets *base_ofs = &select_ctx->index_offsets[base_index];
 
     if (base_ofs->face > sel_id) {
       elem_id = sel_id - base_ofs->face_start;
@@ -444,7 +444,7 @@ bool DRW_select_buffer_elem_get(const uint sel_id,
 uint DRW_select_buffer_context_offset_for_object_elem(const uint base_index, char elem_type)
 {
   struct SELECTID_Context *select_ctx = DRW_select_engine_context_get();
-  struct BaseOffset *base_ofs = &select_ctx->index_offsets[base_index];
+  struct ObjectOffsets *base_ofs = &select_ctx->index_offsets[base_index];
 
   if (elem_type == SCE_SELECT_VERTEX) {
     return base_ofs->vert_start - 1;
