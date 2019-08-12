@@ -575,6 +575,7 @@ class JoinUVs(Operator):
 
                                 # finally do the copy
                                 uv_other.data.foreach_set("uv", uv_array)
+                                mesh_other.update()
 
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
