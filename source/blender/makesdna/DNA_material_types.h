@@ -306,12 +306,12 @@ typedef struct Material {
 
 /* blend_method */
 enum {
-  MA_BM_SOLID,
-  MA_BM_ADD,
-  MA_BM_MULTIPLY,
-  MA_BM_CLIP,
-  MA_BM_HASHED,
-  MA_BM_BLEND,
+  MA_BM_SOLID = 0,
+  // MA_BM_ADD = 1, /* deprecated */
+  // MA_BM_MULTIPLY = 2,  /* deprecated */
+  MA_BM_CLIP = 3,
+  MA_BM_HASHED = 4,
+  MA_BM_BLEND = 5,
 };
 
 /* blend_flag */

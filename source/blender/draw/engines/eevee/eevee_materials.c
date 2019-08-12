@@ -1474,20 +1474,9 @@ static void material_transparent(Material *ma,
                         DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_DEPTH_EQUAL |
                         DRW_STATE_BLEND_CUSTOM);
 
-  DRWState cur_state = DRW_STATE_WRITE_COLOR;
+  DRWState cur_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM;
   cur_state |= (use_prepass) ? DRW_STATE_DEPTH_EQUAL : DRW_STATE_DEPTH_LESS_EQUAL;
   cur_state |= (do_cull) ? DRW_STATE_CULL_BACK : 0;
-
-  switch (ma->blend_method) {
-    case MA_BM_ADD:
-    case MA_BM_MULTIPLY:
-    case MA_BM_BLEND:
-      cur_state |= DRW_STATE_BLEND_CUSTOM;
-      break;
-    default:
-      BLI_assert(0);
-      break;
-  }
 
   /* Disable other blend modes and use the one we want. */
   DRW_shgroup_state_disable(*shgrp, all_state);
@@ -1564,8 +1553,6 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
                           &shgrp_depth_array[i],
                           &shgrp_depth_clip_array[i]);
           break;
-        case MA_BM_ADD:
-        case MA_BM_MULTIPLY:
         case MA_BM_BLEND:
           material_transparent(ma_array[i],
                                sldata,

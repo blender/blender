@@ -719,16 +719,6 @@ void RNA_def_material(BlenderRNA *brna)
 
   static EnumPropertyItem prop_eevee_blend_items[] = {
       {MA_BM_SOLID, "OPAQUE", 0, "Opaque", "Render surface without transparency"},
-      {MA_BM_ADD,
-       "ADD",
-       0,
-       "Additive",
-       "Render surface and blend the result with additive blending"},
-      {MA_BM_MULTIPLY,
-       "MULTIPLY",
-       0,
-       "Multiply",
-       "Render surface and blend the result with multiplicative blending"},
       {MA_BM_CLIP,
        "CLIP",
        0,

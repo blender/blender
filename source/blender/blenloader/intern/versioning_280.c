@@ -734,7 +734,128 @@ static void do_versions_seq_alloc_transform_and_crop(ListBase *seqbase)
   }
 }
 
-void do_versions_after_linking_280(Main *bmain)
+/* Return true if there is something to convert. */
+static bool do_versions_material_convert_legacy_blend_mode(bNodeTree *ntree,
+                                                           char blend_method,
+                                                           GSet *nodegrp_tree_set)
+{
+  bool need_update = false;
+  bool do_conversion = false;
+
+  /* Iterate backwards from end so we don't encounter newly added links. */
+  bNodeLink *prevlink;
+  for (bNodeLink *link = ntree->links.last; link; link = prevlink) {
+    prevlink = link->prev;
+
+    /* Detect link to replace. */
+    bNode *fromnode = link->fromnode;
+    bNodeSocket *fromsock = link->fromsock;
+    bNode *tonode = link->tonode;
+    bNodeSocket *tosock = link->tosock;
+
+    if (nodegrp_tree_set) {
+      if (fromnode->type == NODE_GROUP && fromnode->id != NULL) {
+        bNodeTree *group_ntree = (bNodeTree *)fromnode->id;
+        if (BLI_gset_add(nodegrp_tree_set, group_ntree)) {
+          /* Recursive but not convert (blend_method = -1). Conversion happens after. */
+          if (!do_versions_material_convert_legacy_blend_mode(group_ntree, -1, nodegrp_tree_set)) {
+            /* There is no output to convert in the tree, remove it. */
+            BLI_gset_remove(nodegrp_tree_set, group_ntree, NULL);
+          }
+        }
+      }
+      if (tonode->type == NODE_GROUP && tonode->id != NULL) {
+        bNodeTree *group_ntree = (bNodeTree *)tonode->id;
+        if (BLI_gset_add(nodegrp_tree_set, group_ntree)) {
+          /* Recursive but not convert (blend_method = -1). Conversion happens after. */
+          if (!do_versions_material_convert_legacy_blend_mode(group_ntree, -1, nodegrp_tree_set)) {
+            /* There is no output to convert in the tree, remove it. */
+            BLI_gset_remove(nodegrp_tree_set, group_ntree, NULL);
+          }
+        }
+      }
+    }
+
+    if (!(tonode->type == SH_NODE_OUTPUT_MATERIAL && STREQ(tosock->identifier, "Surface"))) {
+      continue;
+    }
+
+    /* Only do outputs that are enabled for EEVEE */
+    if (!ELEM(tonode->custom1, SHD_OUTPUT_ALL, SHD_OUTPUT_EEVEE)) {
+      continue;
+    }
+
+    do_conversion = true;
+
+    if (blend_method == 1 /* MA_BM_ADD */) {
+      nodeRemLink(ntree, link);
+
+      bNode *add_node = nodeAddStaticNode(NULL, ntree, SH_NODE_ADD_SHADER);
+      add_node->locx = 0.5f * (fromnode->locx + tonode->locx);
+      add_node->locy = 0.5f * (fromnode->locy + tonode->locy);
+
+      bNodeSocket *shader1_socket = add_node->inputs.first;
+      bNodeSocket *shader2_socket = add_node->inputs.last;
+      bNodeSocket *add_socket = nodeFindSocket(add_node, SOCK_OUT, "Shader");
+
+      bNode *transp_node = nodeAddStaticNode(NULL, ntree, SH_NODE_BSDF_TRANSPARENT);
+      transp_node->locx = add_node->locx;
+      transp_node->locy = add_node->locy - 110.0f;
+
+      bNodeSocket *transp_socket = nodeFindSocket(transp_node, SOCK_OUT, "BSDF");
+
+      /* Link to input and material output node. */
+      nodeAddLink(ntree, fromnode, fromsock, add_node, shader1_socket);
+      nodeAddLink(ntree, transp_node, transp_socket, add_node, shader2_socket);
+      nodeAddLink(ntree, add_node, add_socket, tonode, tosock);
+
+      need_update = true;
+    }
+    else if (blend_method == 2 /* MA_BM_MULTIPLY */) {
+      nodeRemLink(ntree, link);
+
+      bNode *transp_node = nodeAddStaticNode(NULL, ntree, SH_NODE_BSDF_TRANSPARENT);
+
+      bNodeSocket *color_socket = nodeFindSocket(transp_node, SOCK_IN, "Color");
+      bNodeSocket *transp_socket = nodeFindSocket(transp_node, SOCK_OUT, "BSDF");
+
+      /* If incomming link is from a closure socket, we need to convert it. */
+      if (fromsock->type == SOCK_SHADER) {
+        transp_node->locx = 0.33f * fromnode->locx + 0.66f * tonode->locx;
+        transp_node->locy = 0.33f * fromnode->locy + 0.66f * tonode->locy;
+
+        bNode *shtorgb_node = nodeAddStaticNode(NULL, ntree, SH_NODE_SHADERTORGB);
+        shtorgb_node->locx = 0.66f * fromnode->locx + 0.33f * tonode->locx;
+        shtorgb_node->locy = 0.66f * fromnode->locy + 0.33f * tonode->locy;
+
+        bNodeSocket *shader_socket = nodeFindSocket(shtorgb_node, SOCK_IN, "Shader");
+        bNodeSocket *rgba_socket = nodeFindSocket(shtorgb_node, SOCK_OUT, "Color");
+
+        nodeAddLink(ntree, fromnode, fromsock, shtorgb_node, shader_socket);
+        nodeAddLink(ntree, shtorgb_node, rgba_socket, transp_node, color_socket);
+      }
+      else {
+        transp_node->locx = 0.5f * (fromnode->locx + tonode->locx);
+        transp_node->locy = 0.5f * (fromnode->locy + tonode->locy);
+
+        nodeAddLink(ntree, fromnode, fromsock, transp_node, color_socket);
+      }
+
+      /* Link to input and material output node. */
+      nodeAddLink(ntree, transp_node, transp_socket, tonode, tosock);
+
+      need_update = true;
+    }
+  }
+
+  if (need_update) {
+    ntreeUpdateTree(NULL, ntree);
+  }
+
+  return do_conversion;
+}
+
+void do_versions_after_linking_280(Main *bmain, ReportList *reports)
 {
   bool use_collection_compat_28 = true;
 
@@ -1127,6 +1248,69 @@ void do_versions_after_linking_280(Main *bmain)
       camera->dof.aperture_ratio = camera->gpu_dof.ratio;
       camera->dof.aperture_blades = camera->gpu_dof.num_blades;
       camera->dof_ob = NULL;
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 281, 2)) {
+    /* Replace Multiply and Additive blend mode by Alpha Blend
+     * now that we use dualsource blending. */
+    /* We take care of doing only nodetrees that are always part of materials
+     * with old blending modes. */
+    GSet *ntrees_additive = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+    GSet *ntrees_multiply = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+    GSet *ntrees_nolegacy = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+    for (Material *ma = bmain->materials.first; ma; ma = ma->id.next) {
+      bNodeTree *ntree = ma->nodetree;
+      if (ma->blend_method == 1 /* MA_BM_ADD */) {
+        if (ma->use_nodes) {
+          do_versions_material_convert_legacy_blend_mode(ntree, ma->blend_method, ntrees_additive);
+        }
+        ma->blend_method = MA_BM_BLEND;
+      }
+      else if (ma->blend_method == 2 /* MA_BM_MULTIPLY */) {
+        if (ma->use_nodes) {
+          do_versions_material_convert_legacy_blend_mode(ntree, ma->blend_method, ntrees_multiply);
+        }
+        ma->blend_method = MA_BM_BLEND;
+      }
+      else {
+        /* Still tag the group nodes as not using legacy blend modes. */
+        if (ma->use_nodes) {
+          do_versions_material_convert_legacy_blend_mode(ntree, -1, ntrees_nolegacy);
+        }
+      }
+    }
+    /* Remove group nodetree that are used by material using non-legacy blend mode. */
+    GHashIterState iter = {0};
+    bNodeTree *ntree;
+    bool error = false;
+    while (BLI_gset_pop(ntrees_nolegacy, (GSetIterState *)&iter, (void **)&ntree)) {
+      if (BLI_gset_remove(ntrees_additive, ntree, NULL)) {
+        error = true;
+      }
+      if (BLI_gset_remove(ntrees_multiply, ntree, NULL)) {
+        error = true;
+      }
+    }
+    BLI_gset_free(ntrees_nolegacy, NULL);
+    /* Convert remaining group nodetree. */
+    GHashIterState iter_add = {0};
+    GHashIterState iter_mul = {0};
+    while (BLI_gset_pop(ntrees_additive, (GSetIterState *)&iter_add, (void **)&ntree)) {
+      do_versions_material_convert_legacy_blend_mode(ntree, 1 /* MA_BM_ADD */, NULL);
+    }
+    while (BLI_gset_pop(ntrees_multiply, (GSetIterState *)&iter_mul, (void **)&ntree)) {
+      do_versions_material_convert_legacy_blend_mode(ntree, 2 /* MA_BM_MULTIPLY */, NULL);
+    }
+    BLI_gset_free(ntrees_additive, NULL);
+    BLI_gset_free(ntrees_multiply, NULL);
+
+    if (error) {
+      BKE_report(reports, RPT_ERROR, "Eevee material conversion problem. Error in console");
+      printf(
+          "One or more group nodetrees containing a material output were found"
+          " in both a material using deprecated blend mode and a normal one.\n"
+          "Nothing in these nodetrees was changed and manual update is required.\n");
     }
   }
 }

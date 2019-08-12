@@ -9487,7 +9487,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   /* don't forget to set version number in BKE_blender_version.h! */
 }
 
-static void do_versions_after_linking(Main *main)
+static void do_versions_after_linking(Main *main, ReportList *reports)
 {
   //  printf("%s for %s (%s), %d.%d\n", __func__, main->curlib ? main->curlib->name : main->name,
   //         main->curlib ? "LIB" : "MAIN", main->versionfile, main->subversionfile);
@@ -9495,7 +9495,7 @@ static void do_versions_after_linking(Main *main)
   do_versions_after_linking_250(main);
   do_versions_after_linking_260(main);
   do_versions_after_linking_270(main);
-  do_versions_after_linking_280(main);
+  do_versions_after_linking_280(main, reports);
   do_versions_after_linking_cycles(main);
 }
 
@@ -9798,7 +9798,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       blo_split_main(&mainlist, bfd->main);
       for (Main *mainvar = mainlist.first; mainvar; mainvar = mainvar->next) {
         BLI_assert(mainvar->versionfile != 0);
-        do_versions_after_linking(mainvar);
+        do_versions_after_linking(mainvar, fd->reports);
       }
       blo_join_main(&mainlist);
 
@@ -11569,7 +11569,7 @@ static void library_link_end(Main *mainl,
      * or they will go again through do_versions - bad, very bad! */
     split_main_newid(mainvar, main_newid);
 
-    do_versions_after_linking(main_newid);
+    do_versions_after_linking(main_newid, (*fd)->reports);
 
     add_main_to_main(mainvar, main_newid);
   }
