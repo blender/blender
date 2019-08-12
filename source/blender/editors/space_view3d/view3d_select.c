@@ -3392,7 +3392,9 @@ static bool mesh_circle_select(ViewContext *vc,
   struct EditSelectBuf_Cache *esel = wm_userdata->data;
 
   if (use_zbuf) {
-    esel->select_bitmap = DRW_select_buffer_bitmap_from_circle(mval, (int)(rad + 1.0f), NULL);
+    if (esel->select_bitmap == NULL) {
+      esel->select_bitmap = DRW_select_buffer_bitmap_from_circle(mval, (int)(rad + 1.0f), NULL);
+    }
   }
 
   if (ts->selectmode & SCE_SELECT_VERTEX) {
@@ -3429,13 +3431,6 @@ static bool mesh_circle_select(ViewContext *vc,
     }
     else {
       mesh_foreachScreenFace(vc, mesh_circle_doSelectFace, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
-    }
-  }
-
-  if (use_zbuf) {
-    if (esel->select_bitmap != NULL) {
-      MEM_freeN(esel->select_bitmap);
-      esel->select_bitmap = NULL;
     }
   }
 
@@ -4019,6 +4014,13 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
   /* Otherwise this is freed by the gesture. */
   if (wm_userdata == &wm_userdata_buf) {
     WM_generic_user_data_free(wm_userdata);
+  }
+  else {
+    struct EditSelectBuf_Cache *esel = wm_userdata->data;
+    if (esel && esel->select_bitmap) {
+      MEM_freeN(esel->select_bitmap);
+      esel->select_bitmap = NULL;
+    }
   }
 
   return OPERATOR_FINISHED;
