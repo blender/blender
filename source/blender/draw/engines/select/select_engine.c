@@ -29,6 +29,7 @@
 #include "UI_resources.h"
 
 #include "DRW_engine.h"
+#include "DRW_select_buffer.h"
 
 #include "select_private.h"
 #include "select_engine.h"
@@ -272,7 +273,7 @@ RenderEngineType DRW_engine_viewport_select_type = {
 /** \name Exposed `select_private.h` functions
  * \{ */
 
-struct SELECTID_Context *select_context_get(void)
+struct SELECTID_Context *DRW_select_engine_context_get(void)
 {
   return &e_data.context;
 }

@@ -32,6 +32,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "DRW_select_buffer.h"
+
 #include "draw_cache_impl.h"
 
 #include "select_private.h"

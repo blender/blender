@@ -33,6 +33,36 @@ struct View3D;
 struct ViewLayer;
 struct rcti;
 
+struct BaseOffset {
+  /* For convenience only. */
+  union {
+    uint offset;
+    uint face_start;
+  };
+  union {
+    uint face;
+    uint edge_start;
+  };
+  union {
+    uint edge;
+    uint vert_start;
+  };
+  uint vert;
+};
+
+struct SELECTID_Context {
+  struct GPUFrameBuffer *framebuffer_select_id;
+  struct GPUTexture *texture_u32;
+
+  struct BaseOffset *index_offsets;
+  uint objects_len;
+  uint last_object_drawn;
+  /** Total number of items `base_array_index_offsets[bases_len - 1].vert`. */
+  uint last_index_drawn;
+
+  short select_mode;
+};
+
 /* select_buffer.c */
 void DRW_select_buffer_context_create(struct Base **bases,
                                       const uint bases_len,
@@ -61,5 +91,8 @@ uint DRW_select_buffer_find_nearest_to_point(const int center[2],
                                              const uint id_min,
                                              const uint id_max,
                                              uint *dist);
+
+/* select_engine.c */
+struct SELECTID_Context *DRW_select_engine_context_get(void);
 
 #endif /* __DRW_SELECT_BUFFER_H__ */

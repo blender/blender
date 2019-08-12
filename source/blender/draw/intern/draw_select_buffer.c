@@ -35,8 +35,7 @@
 #include "DRW_engine.h"
 #include "DRW_select_buffer.h"
 
-#include "select_private.h"
-#include "select_engine.h"
+#include "draw_manager.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Buffer of select ID's
@@ -45,7 +44,7 @@
 /* Read a block of pixels from the select frame buffer. */
 uint *DRW_select_buffer_read(const rcti *rect, uint *r_buf_len)
 {
-  struct SELECTID_Context *select_ctx = select_context_get();
+  struct SELECTID_Context *select_ctx = DRW_select_engine_context_get();
 
   /* clamp rect by texture */
   rcti r = {
@@ -104,7 +103,7 @@ uint *DRW_select_buffer_read(const rcti *rect, uint *r_buf_len)
  */
 uint *DRW_select_buffer_bitmap_from_rect(const rcti *rect, uint *r_bitmap_len)
 {
-  struct SELECTID_Context *select_ctx = select_context_get();
+  struct SELECTID_Context *select_ctx = DRW_select_engine_context_get();
 
   const uint bitmap_len = select_ctx->last_index_drawn;
   if (bitmap_len == 0) {
@@ -149,7 +148,7 @@ uint *DRW_select_buffer_bitmap_from_circle(const int center[2],
                                            const int radius,
                                            uint *r_bitmap_len)
 {
-  struct SELECTID_Context *select_ctx = select_context_get();
+  struct SELECTID_Context *select_ctx = DRW_select_engine_context_get();
 
   const uint bitmap_len = select_ctx->last_index_drawn;
   if (bitmap_len == 0) {
@@ -217,7 +216,7 @@ static void drw_select_mask_px_cb(int x, int x_end, int y, void *user_data)
  */
 uint *DRW_select_buffer_bitmap_from_poly(const int poly[][2], const int poly_len, const rcti *rect)
 {
-  struct SELECTID_Context *select_ctx = select_context_get();
+  struct SELECTID_Context *select_ctx = DRW_select_engine_context_get();
 
   const uint bitmap_len = select_ctx->last_index_drawn;
   if (bitmap_len == 0) {
@@ -399,7 +398,7 @@ bool DRW_select_buffer_elem_get(const uint sel_id,
                                 uint *r_base_index,
                                 char *r_elem_type)
 {
-  struct SELECTID_Context *select_ctx = select_context_get();
+  struct SELECTID_Context *select_ctx = DRW_select_engine_context_get();
 
   char elem_type = 0;
   uint elem_id;
@@ -444,7 +443,7 @@ bool DRW_select_buffer_elem_get(const uint sel_id,
 
 uint DRW_select_buffer_context_offset_for_object_elem(const uint base_index, char elem_type)
 {
-  struct SELECTID_Context *select_ctx = select_context_get();
+  struct SELECTID_Context *select_ctx = DRW_select_engine_context_get();
   struct BaseOffset *base_ofs = &select_ctx->index_offsets[base_index];
 
   if (elem_type == SCE_SELECT_VERTEX) {
@@ -470,7 +469,7 @@ void DRW_select_buffer_context_create(Base **UNUSED(bases),
                                       const uint bases_len,
                                       short select_mode)
 {
-  struct SELECTID_Context *select_ctx = select_context_get();
+  struct SELECTID_Context *select_ctx = DRW_select_engine_context_get();
 
   select_ctx->select_mode = select_mode;
   select_ctx->objects_len = bases_len;
