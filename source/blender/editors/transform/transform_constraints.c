@@ -326,7 +326,7 @@ static void planeProjection(const TransInfo *t, const float in[3], float out[3])
   sub_v3_v3v3(vec, out, in);
 
   factor = dot_v3v3(vec, norm);
-  if (fabsf(factor) <= 0.001f) {
+  if (factor == 0.0f) {
     return; /* prevent divide by zero */
   }
   factor = dot_v3v3(vec, vec) / factor;
