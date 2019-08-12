@@ -775,6 +775,7 @@ Closure closure_emission(vec3 rgb)
 struct Closure {
   vec3 radiance;
   vec3 transmittance;
+  float holdout;
 #  ifdef USE_SSS
   vec4 sss_data;
 #    ifdef USE_SSS_ALBEDO
@@ -792,16 +793,18 @@ Closure nodetree_exec(void); /* Prototype */
 
 #  define CLOSURE_SSR_FLAG 1
 #  define CLOSURE_SSS_FLAG 2
+#  define CLOSURE_HOLDOUT_FLAG 4
 
 #  ifdef USE_SSS
 #    ifdef USE_SSS_ALBEDO
 #      define CLOSURE_DEFAULT \
-        Closure(vec3(0.0), vec3(0.0), vec4(0.0), vec3(0.0), vec4(0.0), vec2(0.0), 0)
+        Closure(vec3(0.0), vec3(0.0), 0.0, vec4(0.0), vec3(0.0), vec4(0.0), vec2(0.0), 0)
 #    else
-#      define CLOSURE_DEFAULT Closure(vec3(0.0), vec3(0.0), vec4(0.0), vec4(0.0), vec2(0.0), 0)
+#      define CLOSURE_DEFAULT \
+        Closure(vec3(0.0), vec3(0.0), 0.0, vec4(0.0), vec4(0.0), vec2(0.0), 0)
 #    endif
 #  else
-#    define CLOSURE_DEFAULT Closure(vec3(0.0), vec3(0.0), vec4(0.0), vec2(0.0), 0)
+#    define CLOSURE_DEFAULT Closure(vec3(0.0), vec3(0.0), 0.0, vec4(0.0), vec2(0.0), 0)
 #  endif
 
 uniform int outputSsrId = 1;
@@ -848,6 +851,7 @@ void closure_load_sss_data(float radius,
 Closure closure_mix(Closure cl1, Closure cl2, float fac)
 {
   Closure cl;
+  cl.holdout = mix(cl1.holdout, cl2.holdout, fac);
   cl.transmittance = mix(cl1.transmittance, cl2.transmittance, fac);
   cl.radiance = mix(cl1.radiance, cl2.radiance, fac);
   cl.flag = cl1.flag | cl2.flag;
@@ -874,6 +878,7 @@ Closure closure_add(Closure cl1, Closure cl2)
   Closure cl;
   cl.transmittance = cl1.transmittance + cl2.transmittance;
   cl.radiance = cl1.radiance + cl2.radiance;
+  cl.holdout = cl1.holdout + cl2.holdout;
   cl.flag = cl1.flag | cl2.flag;
   cl.ssr_data = cl1.ssr_data + cl2.ssr_data;
   bool use_cl1_ssr = FLAG_TEST(cl1.flag, CLOSURE_SSR_FLAG);
@@ -933,16 +938,18 @@ void main()
 {
   Closure cl = nodetree_exec();
 
+  float holdout = 1.0 - saturate(cl.holdout);
+
 #    ifdef USE_ALPHA_BLEND
   vec2 uvs = gl_FragCoord.xy * volCoordScale.zw;
   vec3 vol_transmit, vol_scatter;
   volumetric_resolve(uvs, gl_FragCoord.z, vol_transmit, vol_scatter);
 
   float transmit = saturate(avg(cl.transmittance));
-  outRadiance = vec4(cl.radiance * vol_transmit + vol_scatter, (1.0 - transmit));
-  outTransmittance = vec4(cl.transmittance, transmit);
+  outRadiance = vec4(cl.radiance * vol_transmit + vol_scatter, (1.0 - transmit) * holdout);
+  outTransmittance = vec4(cl.transmittance, transmit * holdout);
 #    else
-  outRadiance = vec4(cl.radiance, 1.0);
+  outRadiance = vec4(cl.radiance, holdout);
   ssrNormals = cl.ssr_normal;
   ssrData = cl.ssr_data;
 #      ifdef USE_SSS

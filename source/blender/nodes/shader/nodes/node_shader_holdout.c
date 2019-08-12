@@ -30,6 +30,15 @@ static bNodeSocketTemplate sh_node_holdout_out[] = {
     {-1, 0, ""},
 };
 
+static int gpu_shader_rgb(GPUMaterial *mat,
+                          bNode *node,
+                          bNodeExecData *UNUSED(execdata),
+                          GPUNodeStack *in,
+                          GPUNodeStack *out)
+{
+  return GPU_stack_link(mat, node, "node_holdout", in, out);
+}
+
 /* node type definition */
 void register_node_type_sh_holdout(void)
 {
@@ -39,6 +48,7 @@ void register_node_type_sh_holdout(void)
   node_type_socket_templates(&ntype, sh_node_holdout_in, sh_node_holdout_out);
   node_type_init(&ntype, NULL);
   node_type_storage(&ntype, "", NULL, NULL);
+  node_type_gpu(&ntype, gpu_shader_rgb);
 
   nodeRegisterType(&ntype);
 }
