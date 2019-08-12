@@ -90,7 +90,7 @@ static void rna_gizmo_target_set_prop(wmGizmo *gz,
                 RPT_ERROR,
                 "Property '%s.%s' not found",
                 RNA_struct_identifier(ptr->type),
-                target_propname);
+                propname);
     return;
   }
 
