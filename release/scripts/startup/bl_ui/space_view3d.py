@@ -732,7 +732,9 @@ class VIEW3D_MT_editor_menus(Menu):
         # Select Menu
         if gp_edit:
             if mode_string not in {'PAINT_GPENCIL', 'WEIGHT_GPENCIL'}:
-                if ts.gpencil_sculpt.use_select_mask:
+                if mode_string == 'SCULPT_GPENCIL' and ts.gpencil_sculpt.use_select_mask:
+                    layout.menu("VIEW3D_MT_select_gpencil")
+                elif mode_string == 'EDIT_GPENCIL':
                     layout.menu("VIEW3D_MT_select_gpencil")
         elif mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
             mesh = obj.data
