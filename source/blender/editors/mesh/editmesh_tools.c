@@ -3190,7 +3190,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
                          1e-6f,
                          50.0f,
                          "Merge Distance",
-                         "Minimum distance between elements to merge",
+                         "Maximum distance between elements to merge",
                          1e-5f,
                          10.0f);
   RNA_def_boolean(ot->srna,
@@ -5791,7 +5791,7 @@ void MESH_OT_dissolve_degenerate(wmOperatorType *ot)
                          1e-6f,
                          50.0f,
                          "Merge Distance",
-                         "Minimum distance between elements to merge",
+                         "Maximum distance between elements to merge",
                          1e-5f,
                          10.0f);
 }
