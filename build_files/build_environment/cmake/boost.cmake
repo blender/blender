@@ -33,19 +33,9 @@ if(WIN32)
     set(BOOST_TOOLSET toolset=msvc-14.0)
     set(BOOST_COMPILER_STRING -vc140)
   endif()
-  set(JAM_FILE ${BUILD_DIR}/boost/src/external_boost/user-config.jam)
-  set(semi_path "${PATCH_DIR}/semi.txt")
-  FILE(TO_NATIVE_PATH ${semi_path} semi_path)
-  set(BOOST_CONFIGURE_COMMAND bootstrap.bat &&
-                echo using python : ${PYTHON_OUTPUTDIR}\\python.exe > "${JAM_FILE}" &&
-                echo.   : ${BUILD_DIR}/python/src/external_python/include ${BUILD_DIR}/python/src/external_python/pc >> "${JAM_FILE}" &&
-                echo.   : ${BUILD_DIR}/python/src/external_python/pcbuild >> "${JAM_FILE}" &&
-                type ${semi_path} >> "${JAM_FILE}"
-  )
+  set(BOOST_CONFIGURE_COMMAND bootstrap.bat)
   set(BOOST_BUILD_COMMAND bjam)
-  #--user-config=user-config.jam
   set(BOOST_BUILD_OPTIONS runtime-link=static )
-  #set(BOOST_WITH_PYTHON --with-python)
   set(BOOST_HARVEST_CMD   ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/boost/lib/ ${HARVEST_TARGET}/boost/lib/ )
   if(BUILD_MODE STREQUAL Release)
     set(BOOST_HARVEST_CMD ${BOOST_HARVEST_CMD} && ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/boost/include/boost-1_68/ ${HARVEST_TARGET}/boost/include/)
@@ -82,7 +72,6 @@ set(BOOST_OPTIONS
   --with-serialization
   --with-program_options
   --with-iostreams
-  ${BOOST_WITH_PYTHON}
   ${BOOST_TOOLSET}
 )
 
@@ -100,10 +89,3 @@ ExternalProject_Add(external_boost
   BUILD_IN_SOURCE 1
   INSTALL_COMMAND "${BOOST_HARVEST_CMD}"
 )
-
-if(WIN32)
-  add_dependencies(
-    external_boost
-    Make_Python_Environment
-  )
-endif()
