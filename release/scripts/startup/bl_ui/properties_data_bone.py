@@ -147,12 +147,12 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
 
         layout.prop(bone, "bbone_segments", text="Segments")
 
-        topcol = layout.column()
-        topcol.active = bone.bbone_segments > 1
-
-        col = topcol.column(align=True)
+        col = layout.column(align=True)
         col.prop(bone, "bbone_x", text="Display Size X")
         col.prop(bone, "bbone_z", text="Z")
+
+        topcol = layout.column()
+        topcol.active = bone.bbone_segments > 1
 
         col = topcol.column(align=True)
         col.prop(bbone, "bbone_curveinx", text="Curve In X")
