@@ -5328,6 +5328,56 @@ void MapRangeNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_map_range");
 }
 
+/* Clamp Node */
+
+NODE_DEFINE(ClampNode)
+{
+  NodeType *type = NodeType::add("clamp", create, NodeType::SHADER);
+
+  SOCKET_IN_FLOAT(value, "Value", 1.0f);
+  SOCKET_IN_FLOAT(min, "Min", 0.0f);
+  SOCKET_IN_FLOAT(max, "Max", 1.0f);
+
+  SOCKET_OUT_FLOAT(result, "Result");
+
+  return type;
+}
+
+ClampNode::ClampNode() : ShaderNode(node_type)
+{
+}
+
+void ClampNode::constant_fold(const ConstantFolder &folder)
+{
+  if (folder.all_inputs_constant()) {
+    folder.make_constant(clamp(value, min, max));
+  }
+}
+
+void ClampNode::compile(SVMCompiler &compiler)
+{
+  ShaderInput *value_in = input("Value");
+  ShaderInput *min_in = input("Min");
+  ShaderInput *max_in = input("Max");
+  ShaderOutput *result_out = output("Result");
+
+  int value_stack_offset = compiler.stack_assign(value_in);
+  int min_stack_offset = compiler.stack_assign(min_in);
+  int max_stack_offset = compiler.stack_assign(max_in);
+  int result_stack_offset = compiler.stack_assign(result_out);
+
+  compiler.add_node(NODE_CLAMP,
+                    value_stack_offset,
+                    compiler.encode_uchar4(min_stack_offset, max_stack_offset),
+                    result_stack_offset);
+  compiler.add_node(__float_as_int(min), __float_as_int(max));
+}
+
+void ClampNode::compile(OSLCompiler &compiler)
+{
+  compiler.add(this, "node_clamp");
+}
+
 /* Math */
 
 NODE_DEFINE(MathNode)

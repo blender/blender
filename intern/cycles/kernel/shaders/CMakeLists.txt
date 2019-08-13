@@ -13,6 +13,7 @@ set(SRC_OSL
   node_bump.osl
   node_camera.osl
   node_checker_texture.osl
+  node_clamp.osl
   node_combine_rgb.osl
   node_combine_hsv.osl
   node_combine_xyz.osl

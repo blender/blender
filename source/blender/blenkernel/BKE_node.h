@@ -977,6 +977,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree,
 /* 201..700 occupied by other node types, continue from 701 */
 #define SH_NODE_BSDF_HAIR_PRINCIPLED 701
 #define SH_NODE_MAP_RANGE 702
+#define SH_NODE_CLAMP 703
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF 1

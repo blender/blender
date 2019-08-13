@@ -360,7 +360,7 @@ static int gpu_shader_math(GPUMaterial *mat,
   if (node->custom2 & SHD_MATH_CLAMP) {
     float min[3] = {0.0f, 0.0f, 0.0f};
     float max[3] = {1.0f, 1.0f, 1.0f};
-    GPU_link(mat, "clamp_val", out[0].link, GPU_constant(min), GPU_constant(max), &out[0].link);
+    GPU_link(mat, "clamp_value", out[0].link, GPU_constant(min), GPU_constant(max), &out[0].link);
   }
 
   return 1;
