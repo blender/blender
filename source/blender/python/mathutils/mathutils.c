@@ -25,6 +25,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
 #ifndef MATH_STANDALONE
@@ -321,6 +322,153 @@ int mathutils_array_parse_alloc_v(float **array,
         size = -1;
         break;
       }
+    }
+  }
+
+  Py_DECREF(value_fast);
+  return size;
+}
+
+/* Parse an sequence array_dim integers into array. */
+int mathutils_int_array_parse(int *array, int array_dim, PyObject *value, const char *error_prefix)
+{
+  int size, i;
+  PyObject *value_fast, **value_fast_items, *item;
+
+  if (!(value_fast = PySequence_Fast(value, error_prefix))) {
+    /* PySequence_Fast sets the error */
+    return -1;
+  }
+
+  if ((size = PySequence_Fast_GET_SIZE(value_fast)) != array_dim) {
+    PyErr_Format(PyExc_ValueError,
+                 "%.200s: sequence size is %d, expected %d",
+                 error_prefix,
+                 size,
+                 array_dim);
+    Py_DECREF(value_fast);
+    return -1;
+  }
+
+  value_fast_items = PySequence_Fast_ITEMS(value_fast);
+  i = size;
+  while (i > 0) {
+    i--;
+    if (((array[i] = PyC_Long_AsI32((item = value_fast_items[i]))) == -1) && PyErr_Occurred()) {
+      PyErr_Format(PyExc_TypeError, "%.200s: sequence index %d expected an int", error_prefix, i);
+      size = -1;
+      break;
+    }
+  }
+  Py_DECREF(value_fast);
+
+  return size;
+}
+
+/* Parse sequence of array_dim sequences of integers and return allocated result. */
+int mathutils_array_parse_alloc_vi(int **array,
+                                   int array_dim,
+                                   PyObject *value,
+                                   const char *error_prefix)
+{
+  PyObject *value_fast;
+  int i, size;
+
+  if (!(value_fast = PySequence_Fast(value, error_prefix))) {
+    /* PySequence_Fast sets the error */
+    return -1;
+  }
+
+  size = PySequence_Fast_GET_SIZE(value_fast);
+
+  if (size != 0) {
+    PyObject **value_fast_items = PySequence_Fast_ITEMS(value_fast);
+    int *ip;
+
+    ip = *array = PyMem_Malloc(size * array_dim * sizeof(int));
+
+    for (i = 0; i < size; i++, ip += array_dim) {
+      PyObject *item = value_fast_items[i];
+
+      if (mathutils_int_array_parse(ip, array_dim, item, error_prefix) == -1) {
+        PyMem_Free(*array);
+        *array = NULL;
+        size = -1;
+        break;
+      }
+    }
+  }
+
+  Py_DECREF(value_fast);
+  return size;
+}
+
+/* Parse sequence of variable-length sequences of int and return allocated
+ * triple of arrays to represent the result:
+ * The flattened sequences are put into *array.
+ * The start index of each sequence goes into start_table.
+ * The length of each index goes into len_table.
+ */
+int mathutils_array_parse_alloc_viseq(
+    int **array, int **start_table, int **len_table, PyObject *value, const char *error_prefix)
+{
+  PyObject *value_fast, *subseq;
+  int i, size, start, subseq_len;
+  int *ip;
+
+  *array = NULL;
+  *start_table = NULL;
+  *len_table = NULL;
+  if (!(value_fast = PySequence_Fast(value, error_prefix))) {
+    /* PySequence_Fast sets the error */
+    return -1;
+  }
+
+  size = PySequence_Fast_GET_SIZE(value_fast);
+
+  if (size != 0) {
+    PyObject **value_fast_items = PySequence_Fast_ITEMS(value_fast);
+
+    *start_table = PyMem_Malloc(size * sizeof(int));
+    *len_table = PyMem_Malloc(size * sizeof(int));
+
+    /* First pass to set starts and len, and calculate size of array needed */
+    start = 0;
+    for (i = 0; i < size; i++) {
+      subseq = value_fast_items[i];
+      if ((subseq_len = (int)PySequence_Size(subseq)) == -1) {
+        PyErr_Format(
+            PyExc_ValueError, "%.200s: sequence expected to have subsequences", error_prefix);
+        PyMem_Free(*start_table);
+        PyMem_Free(*len_table);
+        Py_DECREF(value_fast);
+        *start_table = NULL;
+        *len_table = NULL;
+        return -1;
+      }
+      (*start_table)[i] = start;
+      (*len_table)[i] = subseq_len;
+      start += subseq_len;
+    }
+
+    ip = *array = PyMem_Malloc(start * sizeof(int));
+
+    /* Second pass to parse the subsequences into array */
+    for (i = 0; i < size; i++) {
+      subseq = value_fast_items[i];
+      subseq_len = (*len_table)[i];
+
+      if (mathutils_int_array_parse(ip, subseq_len, subseq, error_prefix) == -1) {
+        PyMem_Free(*array);
+        PyMem_Free(*start_table);
+        PyMem_Free(*len_table);
+        *array = NULL;
+        *len_table = NULL;
+        *start_table = NULL;
+        size = -1;
+        break;
+      }
+      ip += subseq_len;
     }
   }
 
