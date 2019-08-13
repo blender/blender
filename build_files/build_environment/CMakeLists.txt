@@ -90,6 +90,7 @@ include(cmake/tbb.cmake)
 include(cmake/openvdb.cmake)
 include(cmake/python.cmake)
 include(cmake/python_site_packages.cmake)
+include(cmake/package_python.cmake)
 include(cmake/numpy.cmake)
 if(UNIX AND NOT APPLE)
   # Rely on PugiXML compiled with OpenImageIO

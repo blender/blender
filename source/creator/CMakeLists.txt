@@ -678,13 +678,13 @@ elseif(WIN32)
 
     if(NOT CMAKE_COMPILER_IS_GNUCC)
       install(
-        FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.dll
+        FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}.dll
         DESTINATION "."
         CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
       )
 
       install(
-        FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}_d.dll
+        FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}_d.dll
         DESTINATION "."
         CONFIGURATIONS Debug
       )
@@ -696,75 +696,55 @@ elseif(WIN32)
       install(DIRECTORY DESTINATION ${TARGETDIR_VER}/python)
       install(DIRECTORY DESTINATION ${TARGETDIR_VER}/python/lib)
 
-      # WARNING: its important that 'CMAKE_INSTALL_CONFIG_NAME' is evaluated at build time
-      # and _NOT_ configuration time, when modifying the lines below,
-      # check it works in both Release & Debug mode.
-      #
-      # Edit with extreme care! - Campbell
-
-      # extract python
       install(
-        CODE
-        "
-        message(STATUS \"Extracting Python to: \${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}/python\")
-        if(\"\${CMAKE_INSTALL_CONFIG_NAME}\" MATCHES \"^([Dd][Ee][Bb][Uu][Gg])$\")
-          set(PYTHON_ZIP \"${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_d.tar.gz\")
-        else()
-          set(PYTHON_ZIP \"${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}.tar.gz\")
-        endif()
-
-        execute_process(
-          COMMAND \${CMAKE_COMMAND} -E make_directory
-                  \"\${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}/python\"
-          COMMAND \${CMAKE_COMMAND} -E
-                  chdir \"\${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}/python\"
-                  \${CMAKE_COMMAND} -E
-                  tar xzfv \"\${PYTHON_ZIP}\"
-        )
-        unset(PYTHON_ZIP)
-        "
+        DIRECTORY ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/lib
+        DESTINATION ${BLENDER_VERSION}/python/
+        CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+        PATTERN ".svn" EXCLUDE
+        PATTERN "*_d.*" EXCLUDE                  # * debug libraries *
+        PATTERN "__pycache__" EXCLUDE           # * any cache *
+        PATTERN "*.pyc" EXCLUDE                 # * any cache *
+        PATTERN "*.pyo" EXCLUDE                 # * any cache *
       )
 
-      # release/site-packages
-      install(
-        DIRECTORY ${LIBDIR}/release/site-packages
-        DESTINATION ${BLENDER_VERSION}/python/lib
+       install(
+        DIRECTORY ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/lib
+        DESTINATION ${BLENDER_VERSION}/python/
+        CONFIGURATIONS Debug
         PATTERN ".svn" EXCLUDE
         PATTERN "__pycache__" EXCLUDE           # * any cache *
         PATTERN "*.pyc" EXCLUDE                 # * any cache *
         PATTERN "*.pyo" EXCLUDE                 # * any cache *)
+
       )
 
-      if(WITH_PYTHON_INSTALL_NUMPY)
-        set(PYTHON_NUMPY_VERSION 1.15)
-        add_custom_command(
-          OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages/numpy/__init__.py
-          COMMAND ${CMAKE_COMMAND} -E
-                  tar xzvf "${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_numpy_${PYTHON_NUMPY_VERSION}$<$<CONFIG:Debug>:d>.tar.gz"
-          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages
-        )
-        add_custom_target(
-          python_numpy ALL
-          DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages/numpy/__init__.py
-        )
-        install(
-          DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages/numpy
-          DESTINATION ${BLENDER_VERSION}/python/lib/site-packages
-        )
-      endif()
-
-
-      # TODO(sergey): For unti we've got better way to deal with python binary
       install(
-        FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.dll
+        DIRECTORY ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/DLLs
+        DESTINATION ${BLENDER_VERSION}/python
+        CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+        PATTERN "*.pdb" EXCLUDE
+        PATTERN "*_d.*" EXCLUDE
+      )
+
+      install(
+        DIRECTORY ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/DLLs
+        DESTINATION ${BLENDER_VERSION}/python
+        CONFIGURATIONS Debug
+      )
+
+      install(
+        FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}.dll
+        FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python.exe
         DESTINATION ${BLENDER_VERSION}/python/bin
         CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
       )
       install(
-        FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}_d.dll
+        FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}_d.dll
+        FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python_d.exe
         DESTINATION ${BLENDER_VERSION}/python/bin
         CONFIGURATIONS Debug
       )
+
       if(WINDOWS_PYTHON_DEBUG)
         install(
           FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.pdb

@@ -347,15 +347,13 @@ if(WITH_PYTHON)
   set(PYTHON_VERSION 3.7) # CACHE STRING)
 
   string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
-  # Use shared libs for vc2008 and vc2010 until we actually have vc2010 libs
-  set(PYTHON_LIBRARY ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.lib)
-  set(PYTHON_LIBRARY_DEBUG ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}_d.lib)
-
+  set(PYTHON_LIBRARY ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/libs/python${_PYTHON_VERSION_NO_DOTS}.lib)
+  set(PYTHON_LIBRARY_DEBUG ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/libs/python${_PYTHON_VERSION_NO_DOTS}_d.lib)
+  
+  set(PYTHON_INCLUDE_DIR ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/include)
+  set(PYTHON_NUMPY_INCLUDE_DIRS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/lib/site-packages/numpy/core/include)
+  set(NUMPY_FOUND On)
   unset(_PYTHON_VERSION_NO_DOTS)
-
-  # Shared includes for both vc2008 and vc2010
-  set(PYTHON_INCLUDE_DIR ${LIBDIR}/python/include/python${PYTHON_VERSION})
-
   # uncached vars
   set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
   set(PYTHON_LIBRARIES debug "${PYTHON_LIBRARY_DEBUG}" optimized "${PYTHON_LIBRARY}" )
