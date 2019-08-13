@@ -159,6 +159,7 @@ def rna_idprop_ui_create(
         soft_min=None, soft_max=None,
         description=None,
         overridable=False,
+        subtype=None,
 ):
     """Create and initialize a custom property with limits, defaults and other settings."""
 
@@ -194,6 +195,9 @@ def rna_idprop_ui_create(
 
         if default and (not is_array or any(default)):
             rna_ui["default"] = default
+
+        if is_array and subtype and subtype != 'NONE':
+            rna_ui["subtype"] = subtype
 
     # Assign other settings
     if description is not None:

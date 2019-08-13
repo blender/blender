@@ -1136,12 +1136,34 @@ PropertyType RNA_property_type(PropertyRNA *prop)
 
 PropertySubType RNA_property_subtype(PropertyRNA *prop)
 {
-  return rna_ensure_property(prop)->subtype;
+  PropertyRNA *rna_prop = rna_ensure_property(prop);
+
+  /* For custom properties, find and parse the 'subtype' metadata field. */
+  if (prop->magic != RNA_MAGIC) {
+    IDProperty *idprop = (IDProperty *)prop;
+
+    /* Restrict to arrays only for now for performance reasons. */
+    if (idprop->type == IDP_ARRAY && ELEM(idprop->subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE)) {
+      IDProperty *idp_ui = rna_idproperty_ui(prop);
+
+      if (idp_ui) {
+        IDProperty *item = IDP_GetPropertyTypeFromGroup(idp_ui, "subtype", IDP_STRING);
+
+        if (item) {
+          int result = PROP_NONE;
+          RNA_enum_value_from_id(rna_enum_property_subtype_items, IDP_String(item), &result);
+          return (PropertySubType)result;
+        }
+      }
+    }
+  }
+
+  return rna_prop->subtype;
 }
 
 PropertyUnit RNA_property_unit(PropertyRNA *prop)
 {
-  return RNA_SUBTYPE_UNIT(rna_ensure_property(prop)->subtype);
+  return RNA_SUBTYPE_UNIT(RNA_property_subtype(prop));
 }
 
 int RNA_property_flag(PropertyRNA *prop)
@@ -1212,7 +1234,7 @@ char RNA_property_array_item_char(PropertyRNA *prop, int index)
   const char *vectoritem = "XYZW";
   const char *quatitem = "WXYZ";
   const char *coloritem = "RGBA";
-  PropertySubType subtype = rna_ensure_property(prop)->subtype;
+  PropertySubType subtype = RNA_property_subtype(prop);
 
   BLI_assert(index >= 0);
 
@@ -1240,6 +1262,7 @@ char RNA_property_array_item_char(PropertyRNA *prop, int index)
 
 int RNA_property_array_item_index(PropertyRNA *prop, char name)
 {
+  /* Don't use custom property subtypes in RNA path lookup. */
   PropertySubType subtype = rna_ensure_property(prop)->subtype;
 
   /* get index based on string name/alias */
