@@ -429,6 +429,17 @@ void squeeze(float val, float width, float center, out float outval)
   outval = 1.0 / (1.0 + pow(2.71828183, -((val - center) * width)));
 }
 
+void map_range(
+    float value, float fromMin, float fromMax, float toMin, float toMax, out float result)
+{
+  if (fromMax != fromMin) {
+    result = toMin + ((value - fromMin) / (fromMax - fromMin)) * (toMax - toMin);
+  }
+  else {
+    result = 0.0;
+  }
+}
+
 void vec_math_add(vec3 v1, vec3 v2, out vec3 outvec, out float outval)
 {
   outvec = v1 + v2;

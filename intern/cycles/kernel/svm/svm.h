@@ -192,6 +192,7 @@ CCL_NAMESPACE_END
 #include "kernel/svm/svm_vector_transform.h"
 #include "kernel/svm/svm_voxel.h"
 #include "kernel/svm/svm_bump.h"
+#include "kernel/svm/svm_map_range.h"
 
 #ifdef __SHADER_RAYTRACE__
 #  include "kernel/svm/svm_ao.h"
@@ -485,6 +486,9 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg,
         break;
       case NODE_BLACKBODY:
         svm_node_blackbody(kg, sd, stack, node.y, node.z);
+        break;
+      case NODE_MAP_RANGE:
+        svm_node_map_range(kg, sd, stack, node.y, node.z, node.w, &offset);
         break;
 #  endif /* __EXTRA_NODES__ */
 #  if NODES_FEATURE(NODE_FEATURE_VOLUME)

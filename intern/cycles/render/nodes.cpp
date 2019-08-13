@@ -5259,6 +5259,75 @@ void OutputNode::compile(OSLCompiler &compiler)
     compiler.add(this, "node_output_displacement");
 }
 
+/* Map Range Node */
+
+NODE_DEFINE(MapRangeNode)
+{
+  NodeType *type = NodeType::add("map_range", create, NodeType::SHADER);
+
+  SOCKET_IN_FLOAT(value, "Value", 1.0f);
+  SOCKET_IN_FLOAT(from_min, "From Min", 0.0f);
+  SOCKET_IN_FLOAT(from_max, "From Max", 1.0f);
+  SOCKET_IN_FLOAT(to_min, "To Min", 0.0f);
+  SOCKET_IN_FLOAT(to_max, "To Max", 1.0f);
+
+  SOCKET_OUT_FLOAT(result, "Result");
+
+  return type;
+}
+
+MapRangeNode::MapRangeNode() : ShaderNode(node_type)
+{
+}
+
+void MapRangeNode::constant_fold(const ConstantFolder &folder)
+{
+  if (folder.all_inputs_constant()) {
+    float result;
+    if (from_max != from_min) {
+      result = to_min + ((value - from_min) / (from_max - from_min)) * (to_max - to_min);
+    }
+    else {
+      result = 0.0f;
+    }
+    folder.make_constant(result);
+  }
+}
+
+void MapRangeNode::compile(SVMCompiler &compiler)
+{
+  ShaderInput *value_in = input("Value");
+  ShaderInput *from_min_in = input("From Min");
+  ShaderInput *from_max_in = input("From Max");
+  ShaderInput *to_min_in = input("To Min");
+  ShaderInput *to_max_in = input("To Max");
+  ShaderOutput *result_out = output("Result");
+
+  int value_stack_offset = compiler.stack_assign(value_in);
+  int from_min_stack_offset = compiler.stack_assign_if_linked(from_min_in);
+  int from_max_stack_offset = compiler.stack_assign_if_linked(from_max_in);
+  int to_min_stack_offset = compiler.stack_assign_if_linked(to_min_in);
+  int to_max_stack_offset = compiler.stack_assign_if_linked(to_max_in);
+  int result_stack_offset = compiler.stack_assign(result_out);
+
+  compiler.add_node(
+      NODE_MAP_RANGE,
+      value_stack_offset,
+      compiler.encode_uchar4(
+          from_min_stack_offset, from_max_stack_offset, to_min_stack_offset, to_max_stack_offset),
+      result_stack_offset);
+
+  compiler.add_node(__float_as_int(from_min),
+                    __float_as_int(from_max),
+                    __float_as_int(to_min),
+                    __float_as_int(to_max));
+}
+
+void MapRangeNode::compile(OSLCompiler &compiler)
+{
+  compiler.add(this, "node_map_range");
+}
+
 /* Math */
 
 NODE_DEFINE(MathNode)

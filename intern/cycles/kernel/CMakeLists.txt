@@ -198,6 +198,7 @@ set(SRC_SVM_HEADERS
   svm/svm_invert.h
   svm/svm_light_path.h
   svm/svm_magic.h
+  svm/svm_map_range.h
   svm/svm_mapping.h
   svm/svm_math.h
   svm/svm_math_util.h

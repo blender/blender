@@ -258,6 +258,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeVectorTransform"),
     ]),
     ShaderNodeCategory("SH_NEW_CONVERTOR", "Converter", items=[
+        NodeItem("ShaderNodeMapRange"),
         NodeItem("ShaderNodeMath"),
         NodeItem("ShaderNodeValToRGB"),
         NodeItem("ShaderNodeRGBToBW"),

@@ -46,6 +46,7 @@ set(SRC_OSL
   node_light_falloff.osl
   node_light_path.osl
   node_magic_texture.osl
+  node_map_range.osl
   node_mapping.osl
   node_math.osl
   node_mix.osl
