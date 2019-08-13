@@ -73,36 +73,44 @@ class BONE_PT_transform(BoneButtonsPanel, Panel):
             pchan = ob.pose.bones[bone.name]
             col.active = not (bone.parent and bone.use_connect)
 
-            sub = col.row(align=True)
-            sub.prop(pchan, "location")
-            sub.prop(pchan, "lock_location", text="")
+            row = col.row(align=True)
+            row.prop(pchan, "location")
+            row.use_property_decorate = False
+            row.prop(pchan, "lock_location", text="", emboss=False, icon='DECORATE_UNLOCKED')
 
-            col = layout.column()
             rotation_mode = pchan.rotation_mode
             if rotation_mode == 'QUATERNION':
-                sub = col.row(align=True)
-                sub.prop(pchan, "rotation_quaternion", text="Rotation")
-                subsub = sub.column(align=True)
-                subsub.prop(pchan, "lock_rotation_w", text="")
-                subsub.prop(pchan, "lock_rotation", text="")
+                col = layout.column()
+                row = col.row(align=True)
+                row.prop(pchan, "rotation_quaternion", text="Rotation")
+                sub = row.column(align=True)
+                sub.use_property_decorate = False
+                sub.prop(pchan, "lock_rotation_w", text="", emboss=False, icon='DECORATE_UNLOCKED')
+                sub.prop(pchan, "lock_rotation", text="", emboss=False, icon='DECORATE_UNLOCKED')
             elif rotation_mode == 'AXIS_ANGLE':
-                sub = col.row(align=True)
-                sub.prop(pchan, "rotation_axis_angle", text="Rotation")
-                subsub = sub.column(align=True)
-                subsub.prop(pchan, "lock_rotation_w", text="")
-                subsub.prop(pchan, "lock_rotation", text="")
+                col = layout.column()
+                row = col.row(align=True)
+                row.prop(pchan, "rotation_axis_angle", text="Rotation")
+
+                sub = row.column(align=True)
+                sub.use_property_decorate = False
+                sub.prop(pchan, "lock_rotation_w", text="", emboss=False, icon='DECORATE_UNLOCKED')
+                sub.prop(pchan, "lock_rotation", text="", emboss=False, icon='DECORATE_UNLOCKED')
             else:
-                sub = col.row(align=True)
-                sub.prop(pchan, "rotation_euler", text="Rotation")
-                sub.prop(pchan, "lock_rotation", text="")
+                col = layout.column()
+                row = col.row(align=True)
+                row.prop(pchan, "rotation_euler", text="Rotation")
+                row.use_property_decorate = False
+                row.prop(pchan, "lock_rotation", text="", emboss=False, icon='DECORATE_UNLOCKED')
+            row = layout.row(align=True)
+            row.prop(pchan, "rotation_mode", text='Mode')
+            row.label(text="", icon='BLANK1')
 
             col = layout.column()
-            sub = col.row(align=True)
-            sub.prop(pchan, "scale")
-            sub.prop(pchan, "lock_scale", text="")
-
-            col = layout.column()
-            col.prop(pchan, "rotation_mode")
+            row = col.row(align=True)
+            row.prop(pchan, "scale")
+            row.use_property_decorate = False
+            row.prop(pchan, "lock_scale", text="", emboss=False, icon='DECORATE_UNLOCKED')
 
         elif context.edit_bone:
             bone = context.edit_bone
@@ -113,10 +121,6 @@ class BONE_PT_transform(BoneButtonsPanel, Panel):
             col = layout.column()
             col.prop(bone, "roll")
             col.prop(bone, "lock")
-
-            col = layout.column()
-            col.prop(bone, "tail_radius")
-            col.prop(bone, "envelope_distance")
 
 
 class BONE_PT_curved(BoneButtonsPanel, Panel):
@@ -145,6 +149,10 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
 
         topcol = layout.column()
         topcol.active = bone.bbone_segments > 1
+
+        col = topcol.column(align=True)
+        col.prop(bone, "bbone_x", text="Display Size X")
+        col.prop(bone, "bbone_z", text="Z")
 
         col = topcol.column(align=True)
         col.prop(bbone, "bbone_curveinx", text="Curve In X")

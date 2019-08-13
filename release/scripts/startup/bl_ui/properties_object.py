@@ -54,11 +54,9 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-
         ob = context.object
 
-        col = flow.column()
+        col = layout.column()
         row = col.row(align=True)
         row.prop(ob, "location")
         row.use_property_decorate = False
@@ -66,7 +64,7 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
 
         rotation_mode = ob.rotation_mode
         if rotation_mode == 'QUATERNION':
-            col = flow.column()
+            col = layout.column()
             row = col.row(align=True)
             row.prop(ob, "rotation_quaternion", text="Rotation")
             sub = row.column(align=True)
@@ -74,7 +72,7 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
             sub.prop(ob, "lock_rotation_w", text="", emboss=False, icon='DECORATE_UNLOCKED')
             sub.prop(ob, "lock_rotation", text="", emboss=False, icon='DECORATE_UNLOCKED')
         elif rotation_mode == 'AXIS_ANGLE':
-            col = flow.column()
+            col = layout.column()
             row = col.row(align=True)
             row.prop(ob, "rotation_axis_angle", text="Rotation")
 
@@ -83,21 +81,20 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
             sub.prop(ob, "lock_rotation_w", text="", emboss=False, icon='DECORATE_UNLOCKED')
             sub.prop(ob, "lock_rotation", text="", emboss=False, icon='DECORATE_UNLOCKED')
         else:
-            col = flow.column()
+            col = layout.column()
             row = col.row(align=True)
             row.prop(ob, "rotation_euler", text="Rotation")
             row.use_property_decorate = False
             row.prop(ob, "lock_rotation", text="", emboss=False, icon='DECORATE_UNLOCKED')
+        row = layout.row(align=True)
+        row.prop(ob, "rotation_mode", text="Mode")
+        row.label(text="", icon='BLANK1')
 
-        col = flow.column()
+        col = layout.column()
         row = col.row(align=True)
         row.prop(ob, "scale")
         row.use_property_decorate = False
         row.prop(ob, "lock_scale", text="", emboss=False, icon='DECORATE_UNLOCKED')
-
-        row = layout.row(align=True)
-        row.prop(ob, "rotation_mode")
-        row.label(text="", icon='BLANK1')
 
 
 class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
