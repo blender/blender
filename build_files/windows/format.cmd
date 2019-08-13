@@ -9,8 +9,17 @@ exit /b 1
 :detect_done
 echo found clang-format in %CF_PATH%
 
-REM TODO(sergey): Switch to Python from libraries when available.
-set PYTHON="python.exe"
+if EXIST %BLENDER_DIR%\..\lib\win64_vc14\python\37\bin\python.exe (
+    set PYTHON=%BLENDER_DIR%\..\lib\win64_vc14\python\37\bin\python.exe
+    goto detect_python_done
+)
+
+echo python not found in lib folder
+exit /b 1
+
+:detect_python_done
+echo found python (%PYTHON%)
+
 set FORMAT_PATHS=%BLENDER_DIR%\source\tools\utils_maintenance\clang_format_paths.py
 
 REM The formatting script expects clang-format to be in the current PATH.
