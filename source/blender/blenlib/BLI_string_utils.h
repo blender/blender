@@ -38,6 +38,7 @@ struct ListBase;
 typedef bool (*UniquenameCheckCallback)(void *arg, const char *name);
 
 size_t BLI_split_name_num(char *left, int *nr, const char *name, const char delim);
+bool BLI_string_is_decimal(const char *string) ATTR_NONNULL();
 
 void BLI_string_split_suffix(const char *string, char *r_body, char *r_suf, const size_t str_len);
 void BLI_string_split_prefix(const char *string, char *r_pre, char *r_body, const size_t str_len);

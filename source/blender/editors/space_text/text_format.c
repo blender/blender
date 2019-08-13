@@ -25,9 +25,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_string_utils.h"
 
 #include "DNA_text_types.h"
 #include "DNA_space_types.h"
+
+#include "ED_text.h"
 
 #include "text_format.h"
 
@@ -223,4 +226,39 @@ TextFormatType *ED_text_format_get(Text *text)
     /* Return the "default" text format */
     return tft_lb.first;
   }
+}
+
+bool ED_text_is_syntax_highlight_supported(Text *text)
+{
+  if (text == NULL) {
+    return false;
+  }
+
+  TextFormatType *tft;
+
+  const char *text_ext = BLI_path_extension(text->id.name + 2);
+  if (text_ext == NULL) {
+    /* Extensionless datablocks are considered highlightable as Python. */
+    return true;
+  }
+  text_ext++; /* skip the '.' */
+  if (BLI_string_is_decimal(text_ext)) {
+    /* "Text.001" is treated as extensionless, and thus highlightable. */
+    return true;
+  }
+
+  /* Check all text formats in the static list */
+  for (tft = tft_lb.first; tft; tft = tft->next) {
+    /* All formats should have an ext, but just in case */
+    const char **ext;
+    for (ext = tft->ext; *ext; ext++) {
+      /* If extension matches text name, return the matching tft */
+      if (BLI_strcasecmp(text_ext, *ext) == 0) {
+        return true;
+      }
+    }
+  }
+
+  /* The filename has a non-numerical extension that we could not highlight. */
+  return false;
 }

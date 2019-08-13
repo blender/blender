@@ -1685,6 +1685,24 @@ void BLI_split_file_part(const char *string, char *file, const size_t filelen)
 }
 
 /**
+ * Returns a pointer to the last extension (e.g. the position of the last period).
+ * Returns NULL if there is no extension.
+ */
+const char *BLI_path_extension(const char *filepath)
+{
+  const char *extension = strrchr(filepath, '.');
+  if (extension == NULL) {
+    return NULL;
+  }
+  if (BLI_first_slash(extension) != NULL) {
+    /* There is a path separator in the extension, so the '.' was found in a
+     * directory component and not in the filename. */
+    return NULL;
+  }
+  return extension;
+}
+
+/**
  * Append a filename to a dir, ensuring slash separates.
  */
 void BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__restrict file)

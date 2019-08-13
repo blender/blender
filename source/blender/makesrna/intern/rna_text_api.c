@@ -23,6 +23,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "ED_text.h"
+
 #include "RNA_define.h"
 
 #include "rna_internal.h" /* own include */
@@ -59,6 +61,14 @@ void RNA_api_text(StructRNA *srna)
       func, "write text at the cursor location and advance to the end of the text block");
   parm = RNA_def_string(func, "text", "Text", 0, "", "New text for this data-block");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+  func = RNA_def_function(
+      srna, "is_syntax_highlight_supported", "ED_text_is_syntax_highlight_supported");
+  RNA_def_function_return(func,
+                          RNA_def_boolean(func, "is_syntax_highlight_supported", false, "", ""));
+  RNA_def_function_ui_description(func,
+                                  "Returns True if the editor supports syntax highlighting "
+                                  "for the current text datablock");
 }
 
 #endif

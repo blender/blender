@@ -82,6 +82,21 @@ size_t BLI_split_name_num(char *left, int *nr, const char *name, const char deli
   return name_len;
 }
 
+bool BLI_string_is_decimal(const char *string)
+{
+  if (*string == '\0') {
+    return false;
+  }
+
+  /* Keep iterating over the string until a non-digit is found. */
+  while (isdigit(*string)) {
+    string++;
+  }
+
+  /* If the non-digit we found is the terminating \0, everything was digits. */
+  return *string == '\0';
+}
+
 static bool is_char_sep(const char c)
 {
   return ELEM(c, '.', ' ', '-', '_');

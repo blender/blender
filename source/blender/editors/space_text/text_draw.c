@@ -54,6 +54,7 @@ typedef struct TextDrawContext {
   int font_id;
   int cwidth;
   int lheight_dpi;
+  bool syntax_highlight;
 } TextDrawContext;
 
 static void text_draw_context_init(const SpaceText *st, TextDrawContext *tdc)
@@ -61,6 +62,7 @@ static void text_draw_context_init(const SpaceText *st, TextDrawContext *tdc)
   tdc->font_id = blf_mono_font;
   tdc->cwidth = 0;
   tdc->lheight_dpi = st->lheight_dpi;
+  tdc->syntax_highlight = st->showsyntax && ED_text_is_syntax_highlight_supported(st->text);
 }
 
 static void text_font_begin(const TextDrawContext *tdc)
@@ -418,7 +420,7 @@ static int text_draw_wrapped(const SpaceText *st,
                              const char *format,
                              int skip)
 {
-  const bool use_syntax = (st->showsyntax && format);
+  const bool use_syntax = (tdc->syntax_highlight && format);
   FlattenString fs;
   int basex, lines;
   int i, wrap, end, max, columns, padding; /* column */
@@ -514,7 +516,7 @@ static void text_draw(const SpaceText *st,
                       int y,
                       const char *format)
 {
-  const bool use_syntax = (st->showsyntax && format);
+  const bool use_syntax = (tdc->syntax_highlight && format);
   FlattenString fs;
   int columns, size, n, w = 0, padding, amount = 0;
   const char *in = NULL;
@@ -1383,8 +1385,8 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
 
   char ch;
 
-  // showsyntax must be on or else the format string will be null
-  if (!text->curl || !st->showsyntax) {
+  // syntax_highlight must be on or else the format string will be null
+  if (!text->curl || !tdc->syntax_highlight) {
     return;
   }
 
@@ -1576,7 +1578,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
   tmp = text->lines.first;
   lineno = 0;
   for (i = 0; i < st->top && tmp; i++) {
-    if (st->showsyntax && !tmp->format) {
+    if (tdc.syntax_highlight && !tmp->format) {
       tft->format_line(st, tmp, false);
     }
 
@@ -1631,7 +1633,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
   UI_FontThemeColor(tdc.font_id, TH_TEXT);
 
   for (i = 0; y > clip_min_y && i < st->viewlines && tmp; i++, tmp = tmp->next) {
-    if (st->showsyntax && !tmp->format) {
+    if (tdc.syntax_highlight && !tmp->format) {
       tft->format_line(st, tmp, false);
     }
 

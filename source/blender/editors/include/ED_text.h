@@ -27,6 +27,7 @@
 struct ARegion;
 struct bContext;
 struct SpaceText;
+struct Text;
 struct UndoStep;
 struct UndoType;
 
@@ -39,5 +40,8 @@ bool ED_text_region_location_from_cursor(struct SpaceText *st,
 void ED_text_undosys_type(struct UndoType *ut);
 
 struct UndoStep *ED_text_undo_push_init(struct bContext *C);
+
+/* text_format.c */
+bool ED_text_is_syntax_highlight_supported(struct Text *text);
 
 #endif /* __ED_TEXT_H__ */

@@ -50,7 +50,11 @@ class TEXT_HT_header(Header):
         row = layout.row(align=True)
         row.prop(st, "show_line_numbers", text="")
         row.prop(st, "show_word_wrap", text="")
-        row.prop(st, "show_syntax_highlight", text="")
+
+        is_syntax_highlight_supported = st.is_syntax_highlight_supported()
+        syntax = row.row(align=True)
+        syntax.active = is_syntax_highlight_supported
+        syntax.prop(st, "show_syntax_highlight", text="")
 
         if text:
             is_osl = text.name.endswith((".osl", ".osl"))
@@ -65,6 +69,7 @@ class TEXT_HT_header(Header):
                 row.prop(text, "use_module")
 
                 row = layout.row()
+                row.active = is_syntax_highlight_supported
                 row.operator("text.run_script")
 
 
@@ -226,7 +231,9 @@ class TEXT_MT_view(Menu):
 
         layout.prop(st, "show_line_numbers")
         layout.prop(st, "show_word_wrap")
-        layout.prop(st, "show_syntax_highlight")
+        syntax = layout.column()
+        syntax.active = st.is_syntax_highlight_supported()
+        syntax.prop(st, "show_syntax_highlight")
         layout.prop(st, "show_line_highlight")
 
         layout.separator()

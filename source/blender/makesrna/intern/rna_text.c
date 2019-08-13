@@ -27,6 +27,8 @@
 
 #include "BKE_text.h"
 
+#include "ED_text.h"
+
 #include "RNA_define.h"
 
 #include "rna_internal.h"

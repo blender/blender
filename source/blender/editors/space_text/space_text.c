@@ -63,6 +63,8 @@ static SpaceLink *text_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
   stext->lheight = 12;
   stext->tabnumber = 4;
   stext->margin_column = 80;
+  stext->showsyntax = true;
+  stext->showlinenrs = true;
 
   /* header */
   ar = MEM_callocN(sizeof(ARegion), "header for text");

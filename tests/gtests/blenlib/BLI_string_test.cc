@@ -12,6 +12,7 @@ extern "C" {
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_string_utils.h"
 }
 
 using std::initializer_list;
@@ -587,4 +588,24 @@ TEST(string, StringStrncasestr)
 
   res = BLI_strncasestr(str_test0, "not there", 9);
   EXPECT_EQ(res, (void *)NULL);
+}
+
+
+/* BLI_string_is_decimal */
+TEST(string, StrIsDecimal)
+{
+  EXPECT_FALSE(BLI_string_is_decimal(""));
+  EXPECT_FALSE(BLI_string_is_decimal("je moeder"));
+  EXPECT_FALSE(BLI_string_is_decimal("je møder"));
+  EXPECT_FALSE(BLI_string_is_decimal("Agent 327"));
+  EXPECT_FALSE(BLI_string_is_decimal("Agent\000327"));
+  EXPECT_FALSE(BLI_string_is_decimal("\000327"));
+  EXPECT_FALSE(BLI_string_is_decimal("0x16"));
+  EXPECT_FALSE(BLI_string_is_decimal("16.4"));
+  EXPECT_FALSE(BLI_string_is_decimal("-1"));
+
+  EXPECT_TRUE(BLI_string_is_decimal("0"));
+  EXPECT_TRUE(BLI_string_is_decimal("1"));
+  EXPECT_TRUE(BLI_string_is_decimal("001"));
+  EXPECT_TRUE(BLI_string_is_decimal("11342908713948713498745980171334059871345098713405981734"));
 }

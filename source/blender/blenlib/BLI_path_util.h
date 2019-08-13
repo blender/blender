@@ -42,6 +42,8 @@ void BLI_split_dirfile(
     const char *string, char *dir, char *file, const size_t dirlen, const size_t filelen);
 void BLI_split_dir_part(const char *string, char *dir, const size_t dirlen);
 void BLI_split_file_part(const char *string, char *file, const size_t filelen);
+const char *BLI_path_extension(const char *filepath) ATTR_NONNULL();
+
 void BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__restrict file)
     ATTR_NONNULL();
 void BLI_join_dirfile(char *__restrict string,
