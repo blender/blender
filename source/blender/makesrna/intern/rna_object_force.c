@@ -140,7 +140,7 @@ static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
     if (pid.type == PTCACHE_TYPE_SMOKE_DOMAIN) {
       cache->step = 1;
     }
-    BKE_ptcache_update_info(&pid);
+    cache->flag |= PTCACHE_FLAG_INFO_DIRTY;
   }
 }
 
@@ -290,6 +290,24 @@ static void rna_PointCache_frame_step_range(
   if (pid.cache) {
     *max = pid.max_step;
   }
+}
+
+int rna_Cache_info_length(PointerRNA *ptr)
+{
+  PointCache *cache = (PointCache *)ptr->data;
+  Object *ob = (Object *)ptr->id.data;
+
+  if (!ob) {
+    return 0;
+  }
+
+  PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
+
+  if (cache->flag & PTCACHE_FLAG_INFO_DIRTY) {
+    BKE_ptcache_update_info(&pid);
+  }
+
+  return (int)strlen(cache->info);
 }
 
 static char *rna_CollisionSettings_path(PointerRNA *UNUSED(ptr))
@@ -870,6 +888,11 @@ static void rna_def_pointcache_common(StructRNA *srna)
   prop = RNA_def_property(srna, "info", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "info");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  /* Note that we do not actually need a getter here, `rna_Cache_info_length` will upate the info
+   * string just as well. */
+  RNA_def_property_string_funcs(prop, NULL, "rna_Cache_info_length", NULL);
+  RNA_def_property_string_maxlength(
+      prop, sizeof(((PointCache *)0)->info) / sizeof(*(((PointCache *)0)->info)));
   RNA_def_property_ui_text(prop, "Cache Info", "Info on current cache status");
 
   prop = RNA_def_property(srna, "use_external", PROP_BOOLEAN, PROP_NONE);

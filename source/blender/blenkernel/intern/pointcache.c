@@ -3337,7 +3337,7 @@ int BKE_ptcache_write(PTCacheID *pid, unsigned int cfra)
     cache->cached_frames[cfra - cache->startframe] = 1;
   }
 
-  BKE_ptcache_update_info(pid);
+  cache->flag |= PTCACHE_FLAG_INFO_DIRTY;
 
   return !error;
 }
@@ -3500,8 +3500,9 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
       break;
   }
 
-  BKE_ptcache_update_info(pid);
+  pid->cache->flag |= PTCACHE_FLAG_INFO_DIRTY;
 }
+
 int BKE_ptcache_id_exist(PTCacheID *pid, int cfra)
 {
   if (!pid->cache) {
@@ -4288,7 +4289,7 @@ void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
 
   BKE_ptcache_id_time(pid, NULL, 0.0f, NULL, NULL, NULL);
 
-  BKE_ptcache_update_info(pid);
+  cache->flag |= PTCACHE_FLAG_INFO_DIRTY;
 
   if ((cache->flag & PTCACHE_DISK_CACHE) == 0) {
     if (cache->index) {
@@ -4461,7 +4462,8 @@ void BKE_ptcache_load_external(PTCacheID *pid)
     cache->cached_frames = NULL;
     cache->cached_frames_len = 0;
   }
-  BKE_ptcache_update_info(pid);
+
+  cache->flag |= PTCACHE_FLAG_INFO_DIRTY;
 }
 
 void BKE_ptcache_update_info(PTCacheID *pid)
@@ -4469,7 +4471,9 @@ void BKE_ptcache_update_info(PTCacheID *pid)
   PointCache *cache = pid->cache;
   PTCacheExtra *extra = NULL;
   int totframes = 0;
-  char mem_info[64];
+  char mem_info[sizeof(((PointCache *)0)->info) / sizeof(*(((PointCache *)0)->info))];
+
+  cache->flag &= ~PTCACHE_FLAG_INFO_DIRTY;
 
   if (cache->flag & PTCACHE_EXTERNAL) {
     int cfra = cache->startframe;
