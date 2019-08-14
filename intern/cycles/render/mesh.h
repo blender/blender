@@ -318,6 +318,7 @@ class Mesh : public Node {
 
   bool has_motion_blur() const;
   bool has_true_displacement() const;
+  bool has_voxel_attributes() const;
 
   /* Convert between normalized -1..1 motion time and index
    * in the VERTEX_MOTION attribute. */

@@ -1002,6 +1002,9 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph &b_depsgraph,
   oldcurve_keys.steal_data(mesh->curve_keys);
   oldcurve_radius.steal_data(mesh->curve_radius);
 
+  /* ensure bvh rebuild (instead of refit) if has_voxel_attributes() changed */
+  bool oldhas_voxel_attributes = mesh->has_voxel_attributes();
+
   mesh->clear();
   mesh->used_shaders = used_shaders;
   mesh->name = ustring(b_ob_data.name().c_str());
@@ -1050,7 +1053,8 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph &b_depsgraph,
   /* tag update */
   bool rebuild = (oldtriangles != mesh->triangles) || (oldsubd_faces != mesh->subd_faces) ||
                  (oldsubd_face_corners != mesh->subd_face_corners) ||
-                 (oldcurve_keys != mesh->curve_keys) || (oldcurve_radius != mesh->curve_radius);
+                 (oldcurve_keys != mesh->curve_keys) || (oldcurve_radius != mesh->curve_radius) ||
+                 (oldhas_voxel_attributes != mesh->has_voxel_attributes());
 
   mesh->tag_update(scene, rebuild);
 
