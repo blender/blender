@@ -259,6 +259,8 @@ typedef struct SculptSession {
 
   struct StrokeCache *cache;
 
+  int active_vertex_index;
+
   union {
     struct {
       struct SculptVertexPaintGeomMap gmap;
