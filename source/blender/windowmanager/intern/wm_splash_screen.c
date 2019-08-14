@@ -29,93 +29,37 @@
  * - Links to web sites.
  */
 
-#include <float.h>
 #include <string.h>
-#include <ctype.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <assert.h>
-#include <errno.h>
-
-#ifdef WIN32
-#  include "GHOST_C-api.h"
-#endif
-
-#include "MEM_guardedalloc.h"
 
 #include "CLG_log.h"
 
 #include "DNA_ID.h"
-#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_workspace_types.h"
-
-#include "BLT_translation.h"
-
-#include "PIL_time.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_dial_2d.h"
-#include "BLI_dynstr.h" /*for WM_operator_pystring */
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
-
-#include "BLO_readfile.h"
 
 #include "BKE_appdir.h"
 #include "BKE_blender_version.h"
-#include "BKE_brush.h"
 #include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_icons.h"
-#include "BKE_idprop.h"
-#include "BKE_image.h"
-#include "BKE_library.h"
-#include "BKE_library_query.h"
-#include "BKE_main.h"
-#include "BKE_material.h"
-#include "BKE_report.h"
-#include "BKE_scene.h"
-#include "BKE_screen.h" /* BKE_ST_MAXNAME */
-#include "BKE_unit.h"
-
-#include "BKE_idcode.h"
+#include "BKE_screen.h"
 
 #include "BLF_api.h"
-
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "ED_numinput.h"
 #include "ED_screen.h"
-#include "ED_undo.h"
-#include "ED_view3d.h"
-
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "wm.h"
-#include "wm_draw.h"
-#include "wm_event_system.h"
-#include "wm_event_types.h"
-#include "wm_files.h"
-#include "wm_window.h"
 
 static void wm_block_splash_close(bContext *C, void *arg_block, void *UNUSED(arg))
 {

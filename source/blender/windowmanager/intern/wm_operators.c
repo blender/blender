@@ -46,7 +46,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BLT_translation.h"
 
@@ -58,10 +57,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BLO_readfile.h"
-
-#include "BKE_appdir.h"
-#include "BKE_blender_version.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -87,7 +82,6 @@
 #include "GPU_state.h"
 
 #include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 
 #include "ED_numinput.h"
 #include "ED_screen.h"
@@ -107,7 +101,6 @@
 
 #include "wm.h"
 #include "wm_draw.h"
-#include "wm_event_system.h"
 #include "wm_event_types.h"
 #include "wm_files.h"
 #include "wm_window.h"
