@@ -23,24 +23,24 @@
  * \ingroup bke
  */
 
-#include "DNA_mesh_types.h"
-
 #ifdef WITH_OPENVDB
 #  include "openvdb_capi.h"
 #endif
 
+struct Mesh;
+
 /* OpenVDB Voxel Remesher */
 #ifdef WITH_OPENVDB
 struct OpenVDBLevelSet *BKE_remesh_voxel_ovdb_mesh_to_level_set_create(
-    Mesh *mesh, struct OpenVDBTransform *transform);
-Mesh *BKE_remesh_voxel_ovdb_volume_to_mesh_nomain(struct OpenVDBLevelSet *level_set,
-                                                  double isovalue,
-                                                  double adaptivity,
-                                                  bool relax_disoriented_triangles);
+    struct Mesh *mesh, struct OpenVDBTransform *transform);
+struct Mesh *BKE_remesh_voxel_ovdb_volume_to_mesh_nomain(struct OpenVDBLevelSet *level_set,
+                                                         double isovalue,
+                                                         double adaptivity,
+                                                         bool relax_disoriented_triangles);
 #endif
-Mesh *BKE_remesh_voxel_to_mesh_nomain(Mesh *mesh, float voxel_size);
+struct Mesh *BKE_remesh_voxel_to_mesh_nomain(struct Mesh *mesh, float voxel_size);
 
 /* Data reprojection functions */
-void BKE_remesh_reproject_paint_mask(Mesh *target, Mesh *source);
+void BKE_remesh_reproject_paint_mask(struct Mesh *target, struct Mesh *source);
 
 #endif /* __BKE_REMESH_H__ */

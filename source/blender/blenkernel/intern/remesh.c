@@ -153,6 +153,8 @@ Mesh *BKE_remesh_voxel_to_mesh_nomain(Mesh *mesh, float voxel_size)
   new_mesh = BKE_remesh_voxel_ovdb_volume_to_mesh_nomain(level_set, 0.0, 0.0, false);
   OpenVDBLevelSet_free(level_set);
   OpenVDBTransform_free(xform);
+#else
+  UNUSED_VARS(mesh, voxel_size);
 #endif
   return new_mesh;
 }
