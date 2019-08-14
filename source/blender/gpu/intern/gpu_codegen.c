@@ -929,12 +929,15 @@ static char *code_generate_fragment(GPUMaterial *material,
   /* XXX This cannot go into gpu_shader_material.glsl because main()
    * would be parsed and generate error */
   /* Old glsl mode compat. */
+  /* TODO(fclem) This is only used by world shader now. get rid of it? */
   BLI_dynstr_append(ds, "#ifndef NODETREE_EXEC\n");
   BLI_dynstr_append(ds, "out vec4 fragColor;\n");
   BLI_dynstr_append(ds, "void main()\n");
   BLI_dynstr_append(ds, "{\n");
   BLI_dynstr_append(ds, "\tClosure cl = nodetree_exec();\n");
-  BLI_dynstr_append(ds, "\tfragColor = vec4(cl.radiance, saturate(avg(cl.transmittance)));\n");
+  BLI_dynstr_append(ds,
+                    "\tfragColor = vec4(cl.radiance, "
+                    "saturate(1.0 - avg(cl.transmittance)));\n");
   BLI_dynstr_append(ds, "}\n");
   BLI_dynstr_append(ds, "#endif\n\n");
 
