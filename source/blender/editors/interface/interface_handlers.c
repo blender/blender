@@ -4001,6 +4001,11 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
       return WM_UI_HANDLER_CONTINUE;
     }
     else if (event->type == UNKNOWNKEY) {
+      WM_report(RPT_WARNING, "Unsupported key: Unknown");
+      return WM_UI_HANDLER_CONTINUE;
+    }
+    else if (event->type == CAPSLOCKKEY) {
+      WM_report(RPT_WARNING, "Unsupported key: CapsLock");
       return WM_UI_HANDLER_CONTINUE;
     }
 
