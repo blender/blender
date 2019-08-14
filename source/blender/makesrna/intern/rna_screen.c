@@ -225,12 +225,15 @@ static const EnumPropertyItem *rna_Area_ui_type_itemf(bContext *C,
 
 static int rna_Area_ui_type_get(PointerRNA *ptr)
 {
-  int value = rna_Area_type_get(ptr) << 16;
   ScrArea *sa = ptr->data;
+  const int area_type = rna_Area_type_get(ptr);
+  const bool area_changing = sa->butspacetype != SPACE_EMPTY;
+  int value = area_type << 16;
+
   /* sa->type can be NULL (when not yet initialized), try to do it now. */
   /* Copied from `ED_area_initialize()`.*/
-  if (sa->type == NULL) {
-    sa->type = BKE_spacetype_from_id(sa->spacetype);
+  if (sa->type == NULL || area_changing) {
+    sa->type = BKE_spacetype_from_id(area_type);
     if (sa->type == NULL) {
       sa->spacetype = SPACE_VIEW3D;
       sa->type = BKE_spacetype_from_id(sa->spacetype);
@@ -238,7 +241,7 @@ static int rna_Area_ui_type_get(PointerRNA *ptr)
     BLI_assert(sa->type != NULL);
   }
   if (sa->type->space_subtype_item_extend != NULL) {
-    value |= sa->type->space_subtype_get(sa);
+    value |= area_changing ? sa->butspacetype_subtype : sa->type->space_subtype_get(sa);
   }
   return value;
 }
