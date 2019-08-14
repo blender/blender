@@ -1115,12 +1115,12 @@ class WM_OT_properties_edit(Operator):
     )
     subtype: EnumProperty(
         name="Subtype",
-        items=lambda self,ctx: WM_OT_properties_edit.subtype_items,
+        items=lambda self, _context: WM_OT_properties_edit.subtype_items,
     )
 
     subtype_items = rna_vector_subtype_items
 
-    def init_subtype(self, prop_type, is_array, subtype):
+    def _init_subtype(self, prop_type, is_array, subtype):
         subtype = subtype or 'NONE'
         subtype_items = rna_vector_subtype_items
 
@@ -1314,7 +1314,7 @@ class WM_OT_properties_edit(Operator):
         else:
             subtype = None
 
-        self.init_subtype(prop_type, is_array, subtype)
+        self._init_subtype(prop_type, is_array, subtype)
 
         # store for comparison
         self._cmp_props = self._cmp_props_get()
