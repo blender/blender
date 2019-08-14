@@ -201,7 +201,7 @@ class UI_UL_list(bpy.types.UIList):
         for i, item in enumerate(items):
             name = getattr(item, propname, None)
             # This is similar to a logical xor
-            if bool(name and fnmatch.fnmatchcase(name, pattern)) is not bool(reverse):
+            if bool(name and fnmatch.fnmatch(name, pattern)) is not bool(reverse):
                 flags[i] |= bitflag
         return flags
 
