@@ -955,7 +955,7 @@ static bool vfont_to_curve(Object *ob,
         }
       }
 
-      current_line_length += xof;
+      current_line_length += xof - MARGIN_X_MIN;
       if (ct->dobreak) {
         current_line_length += twidth;
       }
@@ -1026,7 +1026,7 @@ static bool vfont_to_curve(Object *ob,
     }
     ct++;
   }
-  current_line_length += xof + twidth;
+  current_line_length += xof + twidth - MARGIN_X_MIN;
   longest_line_length = MAX2(current_line_length, longest_line_length);
 
   cu->lines = 1;
