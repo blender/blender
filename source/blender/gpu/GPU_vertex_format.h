@@ -35,7 +35,7 @@
 #define GPU_VERT_ATTR_NAMES_BUF_LEN 256
 #define GPU_VERT_FORMAT_MAX_NAMES 63 /* More than enough, actual max is ~30. */
 /* Computed as GPU_VERT_ATTR_NAMES_BUF_LEN / 30 (actual max format name). */
-#define GPU_MAX_SAFE_ATTRIB_NAME 8
+#define GPU_MAX_SAFE_ATTRIB_NAME 12
 
 typedef enum {
   GPU_COMP_I8,
