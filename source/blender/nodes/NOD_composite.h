@@ -74,6 +74,7 @@ void register_node_type_cmp_dilateerode(void);
 void register_node_type_cmp_inpaint(void);
 void register_node_type_cmp_despeckle(void);
 void register_node_type_cmp_defocus(void);
+void register_node_type_cmp_denoise(void);
 
 void register_node_type_cmp_valtorgb(void);
 void register_node_type_cmp_rgbtobw(void);

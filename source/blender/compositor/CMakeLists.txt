@@ -276,11 +276,12 @@ set(SRC
   nodes/COM_VectorBlurNode.h
   operations/COM_VectorBlurOperation.cpp
   operations/COM_VectorBlurOperation.h
-
   nodes/COM_BlurNode.cpp
   nodes/COM_BlurNode.h
   nodes/COM_BokehBlurNode.cpp
   nodes/COM_BokehBlurNode.h
+  nodes/COM_DenoiseNode.h
+  nodes/COM_DenoiseNode.cpp
   nodes/COM_DespeckleNode.cpp
   nodes/COM_DespeckleNode.h
   nodes/COM_DilateErodeNode.cpp
@@ -490,6 +491,8 @@ set(SRC
   operations/COM_ConvolutionEdgeFilterOperation.h
   operations/COM_ConvolutionFilterOperation.cpp
   operations/COM_ConvolutionFilterOperation.h
+  operations/COM_DenoiseOperation.h
+  operations/COM_DenoiseOperation.cpp
   operations/COM_DespeckleOperation.cpp
   operations/COM_DespeckleOperation.h
   operations/COM_DilateErodeOperation.cpp
@@ -556,6 +559,14 @@ add_definitions(-DCL_USE_DEPRECATED_OPENCL_1_1_APIS)
 
 if(WITH_INTERNATIONAL)
   add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
+if(WITH_OPENIMAGEDENOISE)
+  add_definitions(-DWITH_OPENIMAGEDENOISE)
+  add_definitions(-DOIDN_STATIC_LIB)
+  list(APPEND INC_SYS
+    ${OPENIMAGEDENOISE_INCLUDE_DIRS}
+  )
 endif()
 
 blender_add_lib(bf_compositor "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

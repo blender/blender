@@ -97,6 +97,7 @@ if(UNIX AND NOT APPLE)
 else()
   include(cmake/pugixml.cmake)
 endif()
+include(cmake/openimagedenoise.cmake)
 
 if(WITH_WEBP)
   include(cmake/webp.cmake)

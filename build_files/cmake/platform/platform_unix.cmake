@@ -368,6 +368,15 @@ if(WITH_CYCLES_EMBREE)
   find_package(Embree 3.2.4 REQUIRED)
 endif()
 
+if(WITH_OPENIMAGEDENOISE)
+  find_package_wrapper(OpenImageDenoise)
+
+  if(NOT OPENIMAGEDENOISE_FOUND)
+    set(WITH_OPENIMAGEDENOISE OFF)
+    message(STATUS "OpenImageDenoise not found")
+  endif()
+endif()
+
 if(WITH_LLVM)
   if(EXISTS ${LIBDIR})
     set(LLVM_STATIC ON)

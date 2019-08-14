@@ -62,6 +62,7 @@ set(SRC
   composite/nodes/node_composite_cryptomatte.c
   composite/nodes/node_composite_curves.c
   composite/nodes/node_composite_defocus.c
+  composite/nodes/node_composite_denoise.c
   composite/nodes/node_composite_despeckle.c
   composite/nodes/node_composite_diffMatte.c
   composite/nodes/node_composite_dilate.c
