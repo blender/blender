@@ -151,6 +151,7 @@ set(SRC
   intern/mesh_mapping.c
   intern/mesh_merge.c
   intern/mesh_remap.c
+  intern/mesh_remesh_voxel.c
   intern/mesh_runtime.c
   intern/mesh_tangent.c
   intern/mesh_validate.c
@@ -178,7 +179,6 @@ set(SRC
   intern/pbvh.c
   intern/pbvh_bmesh.c
   intern/pointcache.c
-  intern/remesh.c
   intern/report.c
   intern/rigidbody.c
   intern/scene.c
@@ -301,6 +301,7 @@ set(SRC
   BKE_mesh_iterators.h
   BKE_mesh_mapping.h
   BKE_mesh_remap.h
+  BKE_mesh_remesh_voxel.h
   BKE_mesh_runtime.h
   BKE_mesh_tangent.h
   BKE_modifier.h
@@ -318,7 +319,6 @@ set(SRC
   BKE_particle.h
   BKE_pbvh.h
   BKE_pointcache.h
-  BKE_remesh.h
   BKE_report.h
   BKE_rigidbody.h
   BKE_scene.h

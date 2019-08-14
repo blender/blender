@@ -31,14 +31,14 @@ struct Mesh;
 
 /* OpenVDB Voxel Remesher */
 #ifdef WITH_OPENVDB
-struct OpenVDBLevelSet *BKE_remesh_voxel_ovdb_mesh_to_level_set_create(
+struct OpenVDBLevelSet *BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(
     struct Mesh *mesh, struct OpenVDBTransform *transform);
-struct Mesh *BKE_remesh_voxel_ovdb_volume_to_mesh_nomain(struct OpenVDBLevelSet *level_set,
-                                                         double isovalue,
-                                                         double adaptivity,
-                                                         bool relax_disoriented_triangles);
+struct Mesh *BKE_mesh_remesh_voxel_ovdb_volume_to_mesh_nomain(struct OpenVDBLevelSet *level_set,
+                                                              double isovalue,
+                                                              double adaptivity,
+                                                              bool relax_disoriented_triangles);
 #endif
-struct Mesh *BKE_remesh_voxel_to_mesh_nomain(struct Mesh *mesh, float voxel_size);
+struct Mesh *BKE_mesh_remesh_voxel_to_mesh_nomain(struct Mesh *mesh, float voxel_size);
 
 /* Data reprojection functions */
 void BKE_remesh_reproject_paint_mask(struct Mesh *target, struct Mesh *source);

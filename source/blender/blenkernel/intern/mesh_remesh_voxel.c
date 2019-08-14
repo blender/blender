@@ -43,14 +43,14 @@
 #include "BKE_library.h"
 #include "BKE_customdata.h"
 #include "BKE_bvhutils.h"
-#include "BKE_remesh.h"
+#include "BKE_mesh_remesh_voxel.h" /* own include */
 
 #ifdef WITH_OPENVDB
 #  include "openvdb_capi.h"
 #endif
 
 #ifdef WITH_OPENVDB
-struct OpenVDBLevelSet *BKE_remesh_voxel_ovdb_mesh_to_level_set_create(
+struct OpenVDBLevelSet *BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(
     Mesh *mesh, struct OpenVDBTransform *transform)
 {
   BKE_mesh_runtime_looptri_recalc(mesh);
@@ -90,10 +90,10 @@ struct OpenVDBLevelSet *BKE_remesh_voxel_ovdb_mesh_to_level_set_create(
   return level_set;
 }
 
-Mesh *BKE_remesh_voxel_ovdb_volume_to_mesh_nomain(struct OpenVDBLevelSet *level_set,
-                                                  double isovalue,
-                                                  double adaptivity,
-                                                  bool relax_disoriented_triangles)
+Mesh *BKE_mesh_remesh_voxel_ovdb_volume_to_mesh_nomain(struct OpenVDBLevelSet *level_set,
+                                                       double isovalue,
+                                                       double adaptivity,
+                                                       bool relax_disoriented_triangles)
 {
 #  ifdef WITH_OPENVDB
   struct OpenVDBVolumeToMeshData output_mesh;
@@ -142,15 +142,15 @@ Mesh *BKE_remesh_voxel_ovdb_volume_to_mesh_nomain(struct OpenVDBLevelSet *level_
 }
 #endif
 
-Mesh *BKE_remesh_voxel_to_mesh_nomain(Mesh *mesh, float voxel_size)
+Mesh *BKE_mesh_remesh_voxel_to_mesh_nomain(Mesh *mesh, float voxel_size)
 {
   Mesh *new_mesh = NULL;
 #ifdef WITH_OPENVDB
   struct OpenVDBLevelSet *level_set;
   struct OpenVDBTransform *xform = OpenVDBTransform_create();
   OpenVDBTransform_create_linear_transform(xform, (double)voxel_size);
-  level_set = BKE_remesh_voxel_ovdb_mesh_to_level_set_create(mesh, xform);
-  new_mesh = BKE_remesh_voxel_ovdb_volume_to_mesh_nomain(level_set, 0.0, 0.0, false);
+  level_set = BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(mesh, xform);
+  new_mesh = BKE_mesh_remesh_voxel_ovdb_volume_to_mesh_nomain(level_set, 0.0, 0.0, false);
   OpenVDBLevelSet_free(level_set);
   OpenVDBTransform_free(xform);
 #else

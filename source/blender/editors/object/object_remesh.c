@@ -47,7 +47,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_customdata.h"
-#include "BKE_remesh.h"
+#include "BKE_mesh_remesh_voxel.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -102,7 +102,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     ED_sculpt_undo_geometry_begin(ob);
   }
 
-  new_mesh = BKE_remesh_voxel_to_mesh_nomain(mesh, mesh->remesh_voxel_size);
+  new_mesh = BKE_mesh_remesh_voxel_to_mesh_nomain(mesh, mesh->remesh_voxel_size);
 
   if (!new_mesh) {
     return OPERATOR_CANCELLED;
