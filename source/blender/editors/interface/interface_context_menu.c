@@ -523,6 +523,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
     /* determine if we can key a single component of an array */
     const bool is_array = RNA_property_array_length(&but->rnapoin, but->rnaprop) != 0;
     const bool is_array_component = (is_array && but->rnaindex != -1);
+    const bool is_whole_array = (is_array && but->rnaindex == -1);
 
     const int override_status = RNA_property_override_library_status(ptr, prop, -1);
     const bool is_overridable = (override_status & RNA_OVERRIDE_STATUS_OVERRIDABLE) != 0;
@@ -658,21 +659,23 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
                        1);
       }
 
-      uiItemO(layout,
-              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Driver"),
-              ICON_NONE,
-              "ANIM_OT_copy_driver_button");
-      if (ANIM_driver_can_paste()) {
+      if (!is_whole_array) {
         uiItemO(layout,
-                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Paste Driver"),
+                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Driver"),
                 ICON_NONE,
-                "ANIM_OT_paste_driver_button");
-      }
+                "ANIM_OT_copy_driver_button");
+        if (ANIM_driver_can_paste()) {
+          uiItemO(layout,
+                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Paste Driver"),
+                  ICON_NONE,
+                  "ANIM_OT_paste_driver_button");
+        }
 
-      uiItemO(layout,
-              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Edit Driver"),
-              ICON_DRIVER,
-              "ANIM_OT_driver_button_edit");
+        uiItemO(layout,
+                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Edit Driver"),
+                ICON_DRIVER,
+                "ANIM_OT_driver_button_edit");
+      }
 
       uiItemO(layout,
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Drivers Editor"),
@@ -690,11 +693,13 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
               ICON_DRIVER,
               "ANIM_OT_driver_button_add");
 
-      if (ANIM_driver_can_paste()) {
-        uiItemO(layout,
-                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Paste Driver"),
-                ICON_NONE,
-                "ANIM_OT_paste_driver_button");
+      if (!is_whole_array) {
+        if (ANIM_driver_can_paste()) {
+          uiItemO(layout,
+                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Paste Driver"),
+                  ICON_NONE,
+                  "ANIM_OT_paste_driver_button");
+        }
       }
 
       uiItemO(layout,
@@ -862,7 +867,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
               "UI_OT_unset_property_button");
     }
 
-    if (is_idprop && !is_array_component && ELEM(type, PROP_INT, PROP_FLOAT)) {
+    if (is_idprop && !is_array && ELEM(type, PROP_INT, PROP_FLOAT)) {
       uiItemO(layout,
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Value as Default"),
               ICON_NONE,
@@ -899,7 +904,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
             ICON_NONE,
             "UI_OT_copy_data_path_button");
 
-    if (ptr->id.data && ELEM(type, PROP_BOOLEAN, PROP_INT, PROP_FLOAT, PROP_ENUM)) {
+    if (ptr->id.data && !is_whole_array &&
+        ELEM(type, PROP_BOOLEAN, PROP_INT, PROP_FLOAT, PROP_ENUM)) {
       uiItemO(layout,
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy As New Driver"),
               ICON_NONE,
