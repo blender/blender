@@ -734,13 +734,13 @@ elseif(WIN32)
 
       install(
         FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}.dll
-        FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python.exe
+              ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python.exe
         DESTINATION ${BLENDER_VERSION}/python/bin
         CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
       )
       install(
         FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}_d.dll
-        FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python_d.exe
+              ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python_d.exe
         DESTINATION ${BLENDER_VERSION}/python/bin
         CONFIGURATIONS Debug
       )
