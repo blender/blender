@@ -25,6 +25,8 @@
 #include "util/util_types.h"
 #include "util/util_vector.h"
 
+#include "subd/subd_subpatch.h"
+
 CCL_NAMESPACE_BEGIN
 
 class Camera;
@@ -67,78 +69,33 @@ class EdgeDice {
 
   explicit EdgeDice(const SubdParams &params);
 
-  void reserve(int num_verts);
+  void reserve(int num_verts, int num_triangles);
 
-  int add_vert(Patch *patch, float2 uv);
+  void set_vert(Patch *patch, int index, float2 uv);
   void add_triangle(Patch *patch, int v0, int v1, int v2);
 
-  void stitch_triangles(Patch *patch, vector<int> &outer, vector<int> &inner);
+  void stitch_triangles(Subpatch &sub, int edge);
 };
 
-/* Quad EdgeDice
- *
- * Edge tessellation factors and subpatch coordinates are as follows:
- *
- *            tu1
- *     P01 --------- P11
- *     |               |
- * tv0 |               | tv1
- *     |               |
- *     P00 --------- P10
- *            tu0
- */
+/* Quad EdgeDice */
 
 class QuadDice : public EdgeDice {
  public:
-  struct SubPatch {
-    Patch *patch;
-
-    float2 P00;
-    float2 P10;
-    float2 P01;
-    float2 P11;
-  };
-
-  struct EdgeFactors {
-    int tu0;
-    int tu1;
-    int tv0;
-    int tv1;
-  };
-
   explicit QuadDice(const SubdParams &params);
 
-  void reserve(EdgeFactors &ef, int Mu, int Mv);
-  float3 eval_projected(SubPatch &sub, float u, float v);
+  float3 eval_projected(Subpatch &sub, float u, float v);
 
-  float2 map_uv(SubPatch &sub, float u, float v);
-  int add_vert(SubPatch &sub, float u, float v);
+  float2 map_uv(Subpatch &sub, float u, float v);
+  void set_vert(Subpatch &sub, int index, float u, float v);
 
-  void add_corners(SubPatch &sub);
-  void add_grid(SubPatch &sub, int Mu, int Mv, int offset);
+  void add_grid(Subpatch &sub, int Mu, int Mv, int offset);
 
-  void add_side_u(SubPatch &sub,
-                  vector<int> &outer,
-                  vector<int> &inner,
-                  int Mu,
-                  int Mv,
-                  int tu,
-                  int side,
-                  int offset);
-
-  void add_side_v(SubPatch &sub,
-                  vector<int> &outer,
-                  vector<int> &inner,
-                  int Mu,
-                  int Mv,
-                  int tv,
-                  int side,
-                  int offset);
+  void set_side(Subpatch &sub, int edge);
 
   float quad_area(const float3 &a, const float3 &b, const float3 &c, const float3 &d);
-  float scale_factor(SubPatch &sub, EdgeFactors &ef, int Mu, int Mv);
+  float scale_factor(Subpatch &sub, int Mu, int Mv);
 
-  void dice(SubPatch &sub, EdgeFactors &ef);
+  void dice(Subpatch &sub);
 };
 
 CCL_NAMESPACE_END

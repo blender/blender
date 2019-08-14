@@ -22,7 +22,9 @@
 #include "render/shader.h"
 
 #include "util/util_foreach.h"
+#include "util/util_map.h"
 #include "util/util_progress.h"
+#include "util/util_set.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -184,6 +186,38 @@ bool MeshManager::displace(
 
   d_output.free();
 
+  /* stitch */
+  unordered_set<int> stitch_keys;
+  for (pair<int, int> i : mesh->vert_to_stitching_key_map) {
+    stitch_keys.insert(i.second); /* stitching index */
+  }
+
+  typedef unordered_multimap<int, int>::iterator map_it_t;
+
+  for (int key : stitch_keys) {
+    pair<map_it_t, map_it_t> verts = mesh->vert_stitching_map.equal_range(key);
+
+    float3 pos = make_float3(0.0f, 0.0f, 0.0f);
+    int num = 0;
+
+    for (map_it_t v = verts.first; v != verts.second; ++v) {
+      int vert = v->second;
+
+      pos += mesh->verts[vert];
+      num++;
+    }
+
+    if (num <= 1) {
+      continue;
+    }
+
+    pos *= 1.0f / num;
+
+    for (map_it_t v = verts.first; v != verts.second; ++v) {
+      mesh->verts[v->second] = pos;
+    }
+  }
+
   /* for displacement method both, we only need to recompute the face
    * normals, as bump mapping in the shader will already alter the
    * vertex normal, so we start from the non-displaced vertex normals
@@ -238,7 +272,25 @@ bool MeshManager::displace(
     for (size_t i = 0; i < num_triangles; i++) {
       if (tri_has_true_disp[i]) {
         for (size_t j = 0; j < 3; j++) {
-          vN[mesh->get_triangle(i).v[j]] += fN[i];
+          int vert = mesh->get_triangle(i).v[j];
+          vN[vert] += fN[i];
+
+          /* add face normals to stitched vertices */
+          if (stitch_keys.size()) {
+            map_it_t key = mesh->vert_to_stitching_key_map.find(vert);
+
+            if (key != mesh->vert_to_stitching_key_map.end()) {
+              pair<map_it_t, map_it_t> verts = mesh->vert_stitching_map.equal_range(key->second);
+
+              for (map_it_t v = verts.first; v != verts.second; ++v) {
+                if (v->second == vert) {
+                  continue;
+                }
+
+                vN[v->second] += fN[i];
+              }
+            }
+          }
         }
       }
     }
@@ -289,8 +341,27 @@ bool MeshManager::displace(
         for (size_t i = 0; i < num_triangles; i++) {
           if (tri_has_true_disp[i]) {
             for (size_t j = 0; j < 3; j++) {
+              int vert = mesh->get_triangle(i).v[j];
               float3 fN = compute_face_normal(mesh->get_triangle(i), mP);
-              mN[mesh->get_triangle(i).v[j]] += fN;
+              mN[vert] += fN;
+
+              /* add face normals to stitched vertices */
+              if (stitch_keys.size()) {
+                map_it_t key = mesh->vert_to_stitching_key_map.find(vert);
+
+                if (key != mesh->vert_to_stitching_key_map.end()) {
+                  pair<map_it_t, map_it_t> verts = mesh->vert_stitching_map.equal_range(
+                      key->second);
+
+                  for (map_it_t v = verts.first; v != verts.second; ++v) {
+                    if (v->second == vert) {
+                      continue;
+                    }
+
+                    mN[v->second] += fN;
+                  }
+                }
+              }
             }
           }
         }

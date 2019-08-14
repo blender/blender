@@ -23,35 +23,51 @@
  * for more details. */
 
 #include "subd/subd_dice.h"
+#include "subd/subd_subpatch.h"
 
+#include "util/util_deque.h"
 #include "util/util_types.h"
 #include "util/util_vector.h"
+
+#include <deque>
 
 CCL_NAMESPACE_BEGIN
 
 class Mesh;
 class Patch;
 
-#define DSPLIT_NON_UNIFORM -1
-
 class DiagSplit {
- public:
-  vector<QuadDice::SubPatch> subpatches_quad;
-  vector<QuadDice::EdgeFactors> edgefactors_quad;
-
   SubdParams params;
 
-  explicit DiagSplit(const SubdParams &params);
+  vector<Subpatch> subpatches;
+  /* deque is used so that element pointers remain vaild when size is changed. */
+  deque<Edge> edges;
 
   float3 to_world(Patch *patch, float2 uv);
-  int T(Patch *patch, float2 Pstart, float2 Pend);
+  int T(Patch *patch, float2 Pstart, float2 Pend, bool recursive_resolve=false);
+
+  void limit_edge_factor(int &T, Patch *patch, float2 Pstart, float2 Pend);
+  void resolve_edge_factors(Subpatch &sub);
+
   void partition_edge(
       Patch *patch, float2 *P, int *t0, int *t1, float2 Pstart, float2 Pend, int t);
 
-  void dispatch(QuadDice::SubPatch &sub, QuadDice::EdgeFactors &ef);
-  void split(QuadDice::SubPatch &sub, QuadDice::EdgeFactors &ef, int depth = 0);
+  void split(Subpatch &sub, int depth = 0);
 
-  void split_quad(Patch *patch, QuadDice::SubPatch *subpatch = NULL);
+  int num_alloced_verts = 0;
+  int alloc_verts(int n); /* Returns start index of new verts. */
+
+ public:
+  Edge *alloc_edge();
+
+  explicit DiagSplit(const SubdParams &params);
+
+  void split_patches(Patch *patches, size_t patches_byte_stride);
+
+  void split_quad(const Mesh::SubdFace &face, Patch *patch);
+  void split_ngon(const Mesh::SubdFace &face, Patch *patches, size_t patches_byte_stride);
+
+  void post_split();
 };
 
 CCL_NAMESPACE_END

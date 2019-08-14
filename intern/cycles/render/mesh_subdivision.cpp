@@ -24,6 +24,7 @@
 
 #include "util/util_foreach.h"
 #include "util/util_algorithm.h"
+#include "util/util_hash.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -318,6 +319,9 @@ class OsdData {
 struct OsdPatch : Patch {
   OsdData *osd_data;
 
+  OsdPatch()
+  {
+  }
   OsdPatch(OsdData *data) : osd_data(data)
   {
   }
@@ -358,11 +362,6 @@ struct OsdPatch : Patch {
       *N = (t != 0.0f) ? *N / t : make_float3(0.0f, 0.0f, 1.0f);
     }
   }
-
-  BoundBox bound()
-  {
-    return BoundBox::empty;
-  }
 };
 
 #endif
@@ -397,29 +396,62 @@ void Mesh::tessellate(DiagSplit *split)
   Attribute *attr_vN = subd_attributes.find(ATTR_STD_VERTEX_NORMAL);
   float3 *vN = attr_vN->data_float3();
 
+  /* count patches */
+  int num_patches = 0;
   for (int f = 0; f < num_faces; f++) {
     SubdFace &face = subd_faces[f];
 
     if (face.is_quad()) {
-      /* quad */
-      QuadDice::SubPatch subpatch;
+      num_patches++;
+    }
+    else {
+      num_patches += face.num_corners;
+    }
+  }
 
-      LinearQuadPatch quad_patch;
+  /* build patches from faces */
 #ifdef WITH_OPENSUBDIV
-      OsdPatch osd_patch(&osd_data);
+  if (subdivision_type == SUBDIVISION_CATMULL_CLARK) {
+    vector<OsdPatch> osd_patches(num_patches, &osd_data);
+    OsdPatch *patch = osd_patches.data();
 
-      if (subdivision_type == SUBDIVISION_CATMULL_CLARK) {
-        osd_patch.patch_index = face.ptex_offset;
+    for (int f = 0; f < num_faces; f++) {
+      SubdFace &face = subd_faces[f];
 
-        subpatch.patch = &osd_patch;
+      if (face.is_quad()) {
+        patch->patch_index = face.ptex_offset;
+        patch->from_ngon = false;
+        patch->shader = face.shader;
+        patch++;
       }
-      else
-#endif
-      {
-        float3 *hull = quad_patch.hull;
-        float3 *normals = quad_patch.normals;
+      else {
+        for (int corner = 0; corner < face.num_corners; corner++) {
+          patch->patch_index = face.ptex_offset + corner;
+          patch->from_ngon = true;
+          patch->shader = face.shader;
+          patch++;
+        }
+      }
+    }
 
-        quad_patch.patch_index = face.ptex_offset;
+    /* split patches */
+    split->split_patches(osd_patches.data(), sizeof(OsdPatch));
+  }
+  else
+#endif
+  {
+    vector<LinearQuadPatch> linear_patches(num_patches);
+    LinearQuadPatch *patch = linear_patches.data();
+
+    for (int f = 0; f < num_faces; f++) {
+      SubdFace &face = subd_faces[f];
+
+      if (face.is_quad()) {
+        float3 *hull = patch->hull;
+        float3 *normals = patch->normals;
+
+        patch->patch_index = face.ptex_offset;
+        patch->from_ngon = false;
 
         for (int i = 0; i < 4; i++) {
           hull[i] = verts[subd_face_corners[face.start_corner + i]];
@@ -440,55 +472,11 @@ void Mesh::tessellate(DiagSplit *split)
         swap(hull[2], hull[3]);
         swap(normals[2], normals[3]);
 
-        subpatch.patch = &quad_patch;
+        patch->shader = face.shader;
+        patch++;
       }
-
-      subpatch.patch->shader = face.shader;
-
-      /* Quad faces need to be split at least once to line up with split ngons, we do this
-       * here in this manner because if we do it later edge factors may end up slightly off.
-       */
-      subpatch.P00 = make_float2(0.0f, 0.0f);
-      subpatch.P10 = make_float2(0.5f, 0.0f);
-      subpatch.P01 = make_float2(0.0f, 0.5f);
-      subpatch.P11 = make_float2(0.5f, 0.5f);
-      split->split_quad(subpatch.patch, &subpatch);
-
-      subpatch.P00 = make_float2(0.5f, 0.0f);
-      subpatch.P10 = make_float2(1.0f, 0.0f);
-      subpatch.P01 = make_float2(0.5f, 0.5f);
-      subpatch.P11 = make_float2(1.0f, 0.5f);
-      split->split_quad(subpatch.patch, &subpatch);
-
-      subpatch.P00 = make_float2(0.0f, 0.5f);
-      subpatch.P10 = make_float2(0.5f, 0.5f);
-      subpatch.P01 = make_float2(0.0f, 1.0f);
-      subpatch.P11 = make_float2(0.5f, 1.0f);
-      split->split_quad(subpatch.patch, &subpatch);
-
-      subpatch.P00 = make_float2(0.5f, 0.5f);
-      subpatch.P10 = make_float2(1.0f, 0.5f);
-      subpatch.P01 = make_float2(0.5f, 1.0f);
-      subpatch.P11 = make_float2(1.0f, 1.0f);
-      split->split_quad(subpatch.patch, &subpatch);
-    }
-    else {
-      /* ngon */
-#ifdef WITH_OPENSUBDIV
-      if (subdivision_type == SUBDIVISION_CATMULL_CLARK) {
-        OsdPatch patch(&osd_data);
-
-        patch.shader = face.shader;
-
-        for (int corner = 0; corner < face.num_corners; corner++) {
-          patch.patch_index = face.ptex_offset + corner;
-
-          split->split_quad(&patch);
-        }
-      }
-      else
-#endif
-      {
+      else {
+        /* ngon */
         float3 center_vert = make_float3(0.0f, 0.0f, 0.0f);
         float3 center_normal = make_float3(0.0f, 0.0f, 0.0f);
 
@@ -499,13 +487,13 @@ void Mesh::tessellate(DiagSplit *split)
         }
 
         for (int corner = 0; corner < face.num_corners; corner++) {
-          LinearQuadPatch patch;
-          float3 *hull = patch.hull;
-          float3 *normals = patch.normals;
+          float3 *hull = patch->hull;
+          float3 *normals = patch->normals;
 
-          patch.patch_index = face.ptex_offset + corner;
+          patch->patch_index = face.ptex_offset + corner;
+          patch->from_ngon = true;
 
-          patch.shader = face.shader;
+          patch->shader = face.shader;
 
           hull[0] =
               verts[subd_face_corners[face.start_corner + mod(corner + 0, face.num_corners)]];
@@ -537,10 +525,13 @@ void Mesh::tessellate(DiagSplit *split)
             }
           }
 
-          split->split_quad(&patch);
+          patch++;
         }
       }
     }
+
+    /* split patches */
+    split->split_patches(linear_patches.data(), sizeof(LinearQuadPatch));
   }
 
   /* interpolate center points for attributes */

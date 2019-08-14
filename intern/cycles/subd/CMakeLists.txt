@@ -19,6 +19,7 @@ set(SRC_HEADERS
   subd_patch.h
   subd_patch_table.h
   subd_split.h
+  subd_subpatch.h
 )
 
 set(LIB

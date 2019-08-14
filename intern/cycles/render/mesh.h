@@ -283,6 +283,14 @@ class Mesh : public Node {
 
   size_t num_subd_verts;
 
+ private:
+  unordered_map<int, int> vert_to_stitching_key_map; /* real vert index -> stitching index */
+  unordered_multimap<int, int>
+      vert_stitching_map; /* stitching index -> multiple real vert indices */
+  friend class DiagSplit;
+  friend class MeshManager;
+
+ public:
   /* Functions */
   Mesh();
   ~Mesh();

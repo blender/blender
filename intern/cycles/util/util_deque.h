@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 Blender Foundation
+ * Copyright 2011-2018 Blender Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef __UTIL_MAP_H__
-#define __UTIL_MAP_H__
+#ifndef __UTIL_DEQUE_H__
+#define __UTIL_DEQUE_H__
 
-#include <map>
-#include <unordered_map>
+#include <deque>
 
 CCL_NAMESPACE_BEGIN
 
-using std::map;
-using std::pair;
-using std::unordered_map;
-using std::unordered_multimap;
-
-template<typename T> static void map_free_memory(T &data)
-{
-  /* Use swap() trick to actually free all internal memory. */
-  T empty_data;
-  data.swap(empty_data);
-}
+using std::deque;
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_MAP_H__ */
+#endif /* __UTIL_DEQUE_H__ */

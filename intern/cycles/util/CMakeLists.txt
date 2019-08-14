@@ -55,6 +55,7 @@ set(SRC_HEADERS
   util_boundbox.h
   util_debug.h
   util_defines.h
+  util_deque.h
   util_guarded_allocator.cpp
   util_foreach.h
   util_function.h

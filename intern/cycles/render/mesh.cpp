@@ -560,6 +560,9 @@ void Mesh::clear(bool preserve_voxel_data)
 
   used_shaders.clear();
 
+  vert_to_stitching_key_map.clear();
+  vert_stitching_map.clear();
+
   if (!preserve_voxel_data) {
     geometry_flags = GEOMETRY_NONE;
   }
