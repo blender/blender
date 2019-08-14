@@ -25,6 +25,7 @@
 #define __ED_TEXT_H__
 
 struct ARegion;
+struct bContext;
 struct SpaceText;
 struct UndoStep;
 struct UndoType;
