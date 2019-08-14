@@ -59,6 +59,8 @@ void gpu_context_remove_framebuffer(GPUContext *ctx, struct GPUFrameBuffer *fb);
 void gpu_context_active_framebuffer_set(GPUContext *ctx, struct GPUFrameBuffer *fb);
 struct GPUFrameBuffer *gpu_context_active_framebuffer_get(GPUContext *ctx);
 
+struct GPUMatrixState *gpu_context_active_matrix_state_get(void);
+
 #ifdef __cplusplus
 }
 #endif

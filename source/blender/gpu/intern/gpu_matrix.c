@@ -23,6 +23,9 @@
 
 #include "GPU_shader_interface.h"
 
+#include "gpu_context_private.h"
+#include "gpu_matrix_private.h"
+
 #define SUPPRESS_GENERIC_MATRIX_API
 #define USE_GPU_PY_MATRIX_API /* only so values are declared */
 #include "GPU_matrix.h"
@@ -31,6 +34,8 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+
+#include "MEM_guardedalloc.h"
 
 #define DEBUG_MATRIX_BIND 0
 
@@ -44,7 +49,7 @@ typedef struct MatrixStack {
   uint top;
 } MatrixStack;
 
-typedef struct {
+typedef struct GPUMatrixState {
   MatrixStack model_view_stack;
   MatrixStack projection_stack;
 
@@ -56,8 +61,16 @@ typedef struct {
    * TODO: separate Model from View transform? Batches/objects have model,
    * camera/eye has view & projection
    */
-} MatrixState;
+} GPUMatrixState;
 
+#define ModelViewStack gpu_context_active_matrix_state_get()->model_view_stack
+#define ModelView ModelViewStack.stack[ModelViewStack.top]
+
+#define ProjectionStack gpu_context_active_matrix_state_get()->projection_stack
+#define Projection ProjectionStack.stack[ProjectionStack.top]
+
+GPUMatrixState *GPU_matrix_state_create(void)
+{
 #define MATRIX_4X4_IDENTITY \
   { \
     {1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, \
@@ -66,27 +79,36 @@ typedef struct {
     } \
   }
 
-static MatrixState state = {
-    .model_view_stack = {{MATRIX_4X4_IDENTITY}, 0},
-    .projection_stack = {{MATRIX_4X4_IDENTITY}, 0},
-    .dirty = true,
-};
+  GPUMatrixState *state = MEM_mallocN(sizeof(*state), __func__);
+  const MatrixStack identity_stack = {{MATRIX_4X4_IDENTITY}, 0};
+
+  state->model_view_stack = state->projection_stack = identity_stack;
+  state->dirty = true;
 
 #undef MATRIX_4X4_IDENTITY
 
-#define ModelViewStack state.model_view_stack
-#define ModelView ModelViewStack.stack[ModelViewStack.top]
+  return state;
+}
 
-#define ProjectionStack state.projection_stack
-#define Projection ProjectionStack.stack[ProjectionStack.top]
+void GPU_matrix_state_discard(GPUMatrixState *state)
+{
+  MEM_freeN(state);
+}
+
+static void gpu_matrix_state_active_set_dirty(bool value)
+{
+  GPUMatrixState *state = gpu_context_active_matrix_state_get();
+  state->dirty = value;
+}
 
 void GPU_matrix_reset(void)
 {
-  state.model_view_stack.top = 0;
-  state.projection_stack.top = 0;
+  GPUMatrixState *state = gpu_context_active_matrix_state_get();
+  state->model_view_stack.top = 0;
+  state->projection_stack.top = 0;
   unit_m4(ModelView);
   unit_m4(Projection);
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 #ifdef WITH_GPU_SAFETY
@@ -123,7 +145,7 @@ void GPU_matrix_pop(void)
 {
   BLI_assert(ModelViewStack.top > 0);
   ModelViewStack.top--;
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 void GPU_matrix_push_projection(void)
@@ -137,34 +159,34 @@ void GPU_matrix_pop_projection(void)
 {
   BLI_assert(ProjectionStack.top > 0);
   ProjectionStack.top--;
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 void GPU_matrix_set(const float m[4][4])
 {
   copy_m4_m4(ModelView, m);
   CHECKMAT(ModelView3D);
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 void GPU_matrix_identity_projection_set(void)
 {
   unit_m4(Projection);
   CHECKMAT(Projection3D);
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 void GPU_matrix_projection_set(const float m[4][4])
 {
   copy_m4_m4(Projection, m);
   CHECKMAT(Projection3D);
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 void GPU_matrix_identity_set(void)
 {
   unit_m4(ModelView);
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 void GPU_matrix_translate_2f(float x, float y)
@@ -194,7 +216,7 @@ void GPU_matrix_translate_3f(float x, float y, float z)
   m[3][2] = z;
   GPU_matrix_mul(m);
 #endif
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 void GPU_matrix_translate_3fv(const float vec[3])
@@ -243,7 +265,7 @@ void GPU_matrix_mul(const float m[4][4])
 {
   mul_m4_m4_post(ModelView, m);
   CHECKMAT(ModelView);
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 void GPU_matrix_rotate_2d(float deg)
@@ -272,7 +294,7 @@ void GPU_matrix_rotate_axis(float deg, char axis)
   /* rotate_m4 works in place */
   rotate_m4(ModelView, axis, DEG2RADF(deg));
   CHECKMAT(ModelView);
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 static void mat4_ortho_set(
@@ -298,7 +320,7 @@ static void mat4_ortho_set(
   m[2][3] = 0.0f;
   m[3][3] = 1.0f;
 
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 static void mat4_frustum_set(
@@ -324,7 +346,7 @@ static void mat4_frustum_set(
   m[2][3] = -1.0f;
   m[3][3] = 0.0f;
 
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 static void mat4_look_from_origin(float m[4][4], float lookdir[3], float camup[3])
@@ -389,14 +411,14 @@ static void mat4_look_from_origin(float m[4][4], float lookdir[3], float camup[3
   m[2][3] = 0.0f;
   m[3][3] = 1.0f;
 
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 void GPU_matrix_ortho_set(float left, float right, float bottom, float top, float near, float far)
 {
   mat4_ortho_set(Projection, left, right, bottom, top, near, far);
   CHECKMAT(Projection);
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 void GPU_matrix_ortho_2d_set(float left, float right, float bottom, float top)
@@ -404,7 +426,7 @@ void GPU_matrix_ortho_2d_set(float left, float right, float bottom, float top)
   Mat4 m;
   mat4_ortho_set(m, left, right, bottom, top, -1.0f, 1.0f);
   CHECKMAT(Projection2D);
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 void GPU_matrix_frustum_set(
@@ -412,7 +434,7 @@ void GPU_matrix_frustum_set(
 {
   mat4_frustum_set(Projection, left, right, bottom, top, near, far);
   CHECKMAT(Projection);
-  state.dirty = true;
+  gpu_matrix_state_active_set_dirty(true);
 }
 
 void GPU_matrix_perspective_set(float fovy, float aspect, float near, float far)
@@ -678,12 +700,13 @@ void GPU_matrix_bind(const GPUShaderInterface *shaderface)
     glUniformMatrix4fv(P_inv->location, 1, GL_FALSE, (const float *)m);
   }
 
-  state.dirty = false;
+  gpu_matrix_state_active_set_dirty(false);
 }
 
 bool GPU_matrix_dirty_get(void)
 {
-  return state.dirty;
+  GPUMatrixState *state = gpu_context_active_matrix_state_get();
+  return state->dirty;
 }
 
 /* -------------------------------------------------------------------- */
@@ -695,12 +718,14 @@ BLI_STATIC_ASSERT(GPU_PY_MATRIX_STACK_LEN + 1 == MATRIX_STACK_DEPTH, "define mis
 
 int GPU_matrix_stack_level_get_model_view(void)
 {
-  return (int)state.model_view_stack.top;
+  GPUMatrixState *state = gpu_context_active_matrix_state_get();
+  return (int)state->model_view_stack.top;
 }
 
 int GPU_matrix_stack_level_get_projection(void)
 {
-  return (int)state.projection_stack.top;
+  GPUMatrixState *state = gpu_context_active_matrix_state_get();
+  return (int)state->projection_stack.top;
 }
 
 /** \} */

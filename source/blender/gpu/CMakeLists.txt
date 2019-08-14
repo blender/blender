@@ -116,6 +116,7 @@ set(SRC
   intern/gpu_batch_private.h
   intern/gpu_codegen.h
   intern/gpu_context_private.h
+  intern/gpu_matrix_private.h
   intern/gpu_primitive_private.h
   intern/gpu_private.h
   intern/gpu_select_private.h
