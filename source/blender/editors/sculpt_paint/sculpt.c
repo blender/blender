@@ -5695,31 +5695,19 @@ static void sculpt_dynamic_topology_disable_ex(
     CustomData_free(&me->pdata, me->totpoly);
 
     /* Copy over stored custom data */
-    me->totvert = unode->bm_enter_totvert;
-    me->totloop = unode->bm_enter_totloop;
-    me->totpoly = unode->bm_enter_totpoly;
-    me->totedge = unode->bm_enter_totedge;
+    me->totvert = unode->geom_totvert;
+    me->totloop = unode->geom_totloop;
+    me->totpoly = unode->geom_totpoly;
+    me->totedge = unode->geom_totedge;
     me->totface = 0;
-    CustomData_copy(&unode->bm_enter_vdata,
-                    &me->vdata,
-                    CD_MASK_MESH.vmask,
-                    CD_DUPLICATE,
-                    unode->bm_enter_totvert);
-    CustomData_copy(&unode->bm_enter_edata,
-                    &me->edata,
-                    CD_MASK_MESH.emask,
-                    CD_DUPLICATE,
-                    unode->bm_enter_totedge);
-    CustomData_copy(&unode->bm_enter_ldata,
-                    &me->ldata,
-                    CD_MASK_MESH.lmask,
-                    CD_DUPLICATE,
-                    unode->bm_enter_totloop);
-    CustomData_copy(&unode->bm_enter_pdata,
-                    &me->pdata,
-                    CD_MASK_MESH.pmask,
-                    CD_DUPLICATE,
-                    unode->bm_enter_totpoly);
+    CustomData_copy(
+        &unode->geom_vdata, &me->vdata, CD_MASK_MESH.vmask, CD_DUPLICATE, unode->geom_totvert);
+    CustomData_copy(
+        &unode->geom_edata, &me->edata, CD_MASK_MESH.emask, CD_DUPLICATE, unode->geom_totedge);
+    CustomData_copy(
+        &unode->geom_ldata, &me->ldata, CD_MASK_MESH.lmask, CD_DUPLICATE, unode->geom_totloop);
+    CustomData_copy(
+        &unode->geom_pdata, &me->pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, unode->geom_totpoly);
 
     BKE_mesh_update_customdata_pointers(me, false);
   }

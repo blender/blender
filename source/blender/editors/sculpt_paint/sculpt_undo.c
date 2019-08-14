@@ -44,6 +44,7 @@
 
 #include "BKE_ccg.h"
 #include "BKE_context.h"
+#include "BKE_customdata.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_key.h"
@@ -425,6 +426,32 @@ static void sculpt_undo_bmesh_restore_end(bContext *C,
   }
 }
 
+static void sculpt_undo_geometry_restore(SculptUndoNode *unode, Object *ob)
+{
+  Mesh *me;
+  sculpt_pbvh_clear(ob);
+  me = ob->data;
+  CustomData_free(&me->vdata, me->totvert);
+  CustomData_free(&me->edata, me->totedge);
+  CustomData_free(&me->fdata, me->totface);
+  CustomData_free(&me->ldata, me->totloop);
+  CustomData_free(&me->pdata, me->totpoly);
+  me->totvert = unode->geom_totvert;
+  me->totedge = unode->geom_totedge;
+  me->totloop = unode->geom_totloop;
+  me->totpoly = unode->geom_totpoly;
+  me->totface = 0;
+  CustomData_copy(
+      &unode->geom_vdata, &me->vdata, CD_MASK_MESH.vmask, CD_DUPLICATE, unode->geom_totvert);
+  CustomData_copy(
+      &unode->geom_edata, &me->edata, CD_MASK_MESH.emask, CD_DUPLICATE, unode->geom_totedge);
+  CustomData_copy(
+      &unode->geom_ldata, &me->ldata, CD_MASK_MESH.lmask, CD_DUPLICATE, unode->geom_totloop);
+  CustomData_copy(
+      &unode->geom_pdata, &me->pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, unode->geom_totpoly);
+  BKE_mesh_update_customdata_pointers(me, false);
+}
+
 /* Handle all dynamic-topology updates
  *
  * Returns true if this was a dynamic-topology undo step, otherwise
@@ -442,7 +469,6 @@ static int sculpt_undo_bmesh_restore(bContext *C,
     case SCULPT_UNDO_DYNTOPO_END:
       sculpt_undo_bmesh_restore_end(C, unode, ob, ss);
       return true;
-
     default:
       if (ss->bm_log) {
         sculpt_undo_bmesh_restore_generic(C, unode, ob, ss);
@@ -480,6 +506,24 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 
+  if (lb->first) {
+    unode = lb->first;
+    if (unode->type == SCULPT_UNDO_GEOMETRY) {
+      if (unode->applied) {
+        sculpt_undo_geometry_restore(unode->next, ob);
+        unode->next->applied = true;
+        unode->applied = false;
+      }
+      else {
+        sculpt_undo_geometry_restore(unode, ob);
+        unode->next->applied = false;
+        unode->applied = true;
+      }
+      BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask);
+      return;
+    }
+  }
+
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask);
 
   if (lb->first && sculpt_undo_bmesh_restore(C, lb->first, ob, ss)) {
@@ -487,6 +531,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   }
 
   for (unode = lb->first; unode; unode = unode->next) {
+
     if (!STREQ(unode->idname, ob->id.name)) {
       continue;
     }
@@ -529,6 +574,8 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       case SCULPT_UNDO_DYNTOPO_END:
       case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
         BLI_assert(!"Dynamic topology should've already been handled");
+        break;
+      case SCULPT_UNDO_GEOMETRY:
         break;
     }
   }
@@ -617,17 +664,17 @@ static void sculpt_undo_free_list(ListBase *lb)
       BM_log_entry_drop(unode->bm_entry);
     }
 
-    if (unode->bm_enter_totvert) {
-      CustomData_free(&unode->bm_enter_vdata, unode->bm_enter_totvert);
+    if (unode->geom_totvert) {
+      CustomData_free(&unode->geom_vdata, unode->geom_totvert);
     }
-    if (unode->bm_enter_totedge) {
-      CustomData_free(&unode->bm_enter_edata, unode->bm_enter_totedge);
+    if (unode->geom_totedge) {
+      CustomData_free(&unode->geom_edata, unode->geom_totedge);
     }
-    if (unode->bm_enter_totloop) {
-      CustomData_free(&unode->bm_enter_ldata, unode->bm_enter_totloop);
+    if (unode->geom_totloop) {
+      CustomData_free(&unode->geom_ldata, unode->geom_totloop);
     }
-    if (unode->bm_enter_totpoly) {
-      CustomData_free(&unode->bm_enter_pdata, unode->bm_enter_totpoly);
+    if (unode->geom_totpoly) {
+      CustomData_free(&unode->geom_pdata, unode->geom_totpoly);
     }
 
     MEM_freeN(unode);
@@ -743,6 +790,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     case SCULPT_UNDO_DYNTOPO_END:
     case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
       BLI_assert(!"Dynamic topology should've already been handled");
+    case SCULPT_UNDO_GEOMETRY:
       break;
   }
 
@@ -824,6 +872,36 @@ static void sculpt_undo_store_mask(Object *ob, SculptUndoNode *unode)
   BKE_pbvh_vertex_iter_end;
 }
 
+static SculptUndoNode *sculpt_undo_geometry_push(Object *ob, SculptUndoType type)
+{
+  UndoSculpt *usculpt = sculpt_undo_get_nodes();
+  Mesh *me = ob->data;
+  bool applied;
+
+  SculptUndoNode *unode = usculpt->nodes.first;
+  /* Store the original mesh in the first node, modifications in the second */
+  applied = unode != NULL;
+
+  unode = MEM_callocN(sizeof(*unode), __func__);
+
+  BLI_strncpy(unode->idname, ob->id.name, sizeof(unode->idname));
+  unode->type = type;
+  unode->applied = applied;
+
+  CustomData_copy(&me->vdata, &unode->geom_vdata, CD_MASK_MESH.vmask, CD_DUPLICATE, me->totvert);
+  CustomData_copy(&me->edata, &unode->geom_edata, CD_MASK_MESH.emask, CD_DUPLICATE, me->totedge);
+  CustomData_copy(&me->ldata, &unode->geom_ldata, CD_MASK_MESH.lmask, CD_DUPLICATE, me->totloop);
+  CustomData_copy(&me->pdata, &unode->geom_pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, me->totpoly);
+  unode->geom_totvert = me->totvert;
+  unode->geom_totedge = me->totedge;
+  unode->geom_totloop = me->totloop;
+  unode->geom_totpoly = me->totpoly;
+
+  BLI_addtail(&usculpt->nodes, unode);
+
+  return unode;
+}
+
 static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
@@ -852,17 +930,17 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
        * (converting polys to triangles) that the BMLog can't
        * fully restore from */
       CustomData_copy(
-          &me->vdata, &unode->bm_enter_vdata, CD_MASK_MESH.vmask, CD_DUPLICATE, me->totvert);
+          &me->vdata, &unode->geom_vdata, CD_MASK_MESH.vmask, CD_DUPLICATE, me->totvert);
       CustomData_copy(
-          &me->edata, &unode->bm_enter_edata, CD_MASK_MESH.emask, CD_DUPLICATE, me->totedge);
+          &me->edata, &unode->geom_edata, CD_MASK_MESH.emask, CD_DUPLICATE, me->totedge);
       CustomData_copy(
-          &me->ldata, &unode->bm_enter_ldata, CD_MASK_MESH.lmask, CD_DUPLICATE, me->totloop);
+          &me->ldata, &unode->geom_ldata, CD_MASK_MESH.lmask, CD_DUPLICATE, me->totloop);
       CustomData_copy(
-          &me->pdata, &unode->bm_enter_pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, me->totpoly);
-      unode->bm_enter_totvert = me->totvert;
-      unode->bm_enter_totedge = me->totedge;
-      unode->bm_enter_totloop = me->totloop;
-      unode->bm_enter_totpoly = me->totpoly;
+          &me->pdata, &unode->geom_pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, me->totpoly);
+      unode->geom_totvert = me->totvert;
+      unode->geom_totedge = me->totedge;
+      unode->geom_totloop = me->totloop;
+      unode->geom_totpoly = me->totpoly;
 
       unode->bm_entry = BM_log_entry_add(ss->bm_log);
       BM_log_all_added(ss->bm, ss->bm_log);
@@ -906,6 +984,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_DYNTOPO_BEGIN:
       case SCULPT_UNDO_DYNTOPO_END:
       case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
+      case SCULPT_UNDO_GEOMETRY:
         break;
     }
   }
@@ -925,6 +1004,11 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     /* Dynamic topology stores only one undo node per stroke,
      * regardless of the number of PBVH nodes modified */
     unode = sculpt_undo_bmesh_push(ob, node, type);
+    BLI_thread_unlock(LOCK_CUSTOM1);
+    return unode;
+  }
+  else if (type == SCULPT_UNDO_GEOMETRY) {
+    unode = sculpt_undo_geometry_push(ob, type);
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
@@ -967,6 +1051,7 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     case SCULPT_UNDO_DYNTOPO_END:
     case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
       BLI_assert(!"Dynamic topology should've already been handled");
+    case SCULPT_UNDO_GEOMETRY:
       break;
   }
 
@@ -1161,6 +1246,18 @@ static void sculpt_undosys_step_free(UndoStep *us_p)
 {
   SculptUndoStep *us = (SculptUndoStep *)us_p;
   sculpt_undo_free_list(&us->data.nodes);
+}
+
+void ED_sculpt_undo_geometry_begin(struct Object *ob)
+{
+  sculpt_undo_push_begin("voxel remesh");
+  sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
+}
+
+void ED_sculpt_undo_geometry_end(struct Object *ob)
+{
+  sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
+  sculpt_undo_push_end();
 }
 
 /* Export for ED_undo_sys. */

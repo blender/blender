@@ -1139,8 +1139,38 @@ class VIEW3D_PT_sculpt_dyntopo_remesh(Panel, View3DPaintPanel):
             col = flow.column()
             col.operator("sculpt.detail_flood_fill")
 
-# TODO, move to space_view3d.py
+class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
+    bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
+    bl_label = "Remesh"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 12
 
+    @classmethod
+    def poll(cls, context):
+        return (context.sculpt_object and context.tool_settings.sculpt)
+
+    def draw_header(self, context):
+        is_popover = self.is_popover
+        layout = self.layout
+        layout.operator(
+            "object.voxel_remesh",
+            text="",
+            emboss=is_popover,
+        )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        col = layout.column()
+        mesh = context.active_object.data
+        col.prop(mesh, "remesh_voxel_size")
+        col.prop(mesh, "remesh_smooth_normals")
+        col.prop(mesh, "remesh_preserve_paint_mask")
+        col.operator("object.voxel_remesh", text="Remesh")
+
+# TODO, move to space_view3d.py
 
 class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
@@ -2152,6 +2182,7 @@ classes = (
     VIEW3D_PT_sculpt_options,
     VIEW3D_PT_sculpt_options_unified,
     VIEW3D_PT_sculpt_options_gravity,
+    VIEW3D_PT_sculpt_voxel_remesh,
     VIEW3D_PT_tools_weightpaint_symmetry,
     VIEW3D_PT_tools_weightpaint_symmetry_for_topbar,
     VIEW3D_PT_tools_weightpaint_options,

@@ -63,6 +63,7 @@ typedef enum {
   SCULPT_UNDO_DYNTOPO_BEGIN,
   SCULPT_UNDO_DYNTOPO_END,
   SCULPT_UNDO_DYNTOPO_SYMMETRIZE,
+  SCULPT_UNDO_GEOMETRY,
 } SculptUndoType;
 
 typedef struct SculptUndoNode {
@@ -94,17 +95,19 @@ typedef struct SculptUndoNode {
   /* bmesh */
   struct BMLogEntry *bm_entry;
   bool applied;
-  CustomData bm_enter_vdata;
-  CustomData bm_enter_edata;
-  CustomData bm_enter_ldata;
-  CustomData bm_enter_pdata;
-  int bm_enter_totvert;
-  int bm_enter_totedge;
-  int bm_enter_totloop;
-  int bm_enter_totpoly;
 
   /* shape keys */
   char shapeName[sizeof(((KeyBlock *)0))->name];
+
+  /* geometry modification operations and bmesh enter data */
+  CustomData geom_vdata;
+  CustomData geom_edata;
+  CustomData geom_ldata;
+  CustomData geom_pdata;
+  int geom_totvert;
+  int geom_totedge;
+  int geom_totloop;
+  int geom_totpoly;
 
   size_t undo_size;
 } SculptUndoNode;
