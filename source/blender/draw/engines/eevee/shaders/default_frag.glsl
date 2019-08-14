@@ -35,7 +35,7 @@ Closure nodetree_exec(void)
 
   Closure cl = CLOSURE_DEFAULT;
   cl.radiance = out_spec + out_diff * albedo;
-  closure_load_ssr_data(ssr_spec, roughness, N, viewCameraVec, 0, cl);
+  closure_load_ssr_data(ssr_spec, roughness, N, viewCameraVec, 1, cl);
 
 #ifdef LOOKDEV
   gl_FragDepth = 0.0;
