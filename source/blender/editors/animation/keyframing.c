@@ -1484,10 +1484,10 @@ short insert_keyframe(Main *bmain,
                                             flag);
       }
     }
-  }
 
-  if (values != value_buffer) {
-    MEM_freeN(values);
+    if (values != value_buffer) {
+      MEM_freeN(values);
+    }
   }
 
   BKE_animsys_free_nla_keyframing_context_cache(&tmp_nla_cache);
