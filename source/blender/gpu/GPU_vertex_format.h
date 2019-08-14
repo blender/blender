@@ -164,9 +164,9 @@ BLI_INLINE int gpu_convert_i16_to_i10(short x)
 BLI_INLINE GPUPackedNormal GPU_normal_convert_i10_v3(const float data[3])
 {
   GPUPackedNormal n = {
-      .x = gpu_convert_normalized_f32_to_i10(data[0]),
-      .y = gpu_convert_normalized_f32_to_i10(data[1]),
-      .z = gpu_convert_normalized_f32_to_i10(data[2]),
+      gpu_convert_normalized_f32_to_i10(data[0]),
+      gpu_convert_normalized_f32_to_i10(data[1]),
+      gpu_convert_normalized_f32_to_i10(data[2]),
   };
   return n;
 }
@@ -174,9 +174,9 @@ BLI_INLINE GPUPackedNormal GPU_normal_convert_i10_v3(const float data[3])
 BLI_INLINE GPUPackedNormal GPU_normal_convert_i10_s3(const short data[3])
 {
   GPUPackedNormal n = {
-      .x = gpu_convert_i16_to_i10(data[0]),
-      .y = gpu_convert_i16_to_i10(data[1]),
-      .z = gpu_convert_i16_to_i10(data[2]),
+      gpu_convert_i16_to_i10(data[0]),
+      gpu_convert_i16_to_i10(data[1]),
+      gpu_convert_i16_to_i10(data[2]),
   };
   return n;
 }
