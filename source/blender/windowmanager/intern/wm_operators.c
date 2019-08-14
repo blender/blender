@@ -107,7 +107,11 @@
 
 #define UNDOCUMENTED_OPERATOR_TIP N_("(undocumented operator)")
 
-/* ************ operator API, exported ********** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator API
+ * \{ */
 
 /* SOME_OT_op -> some.op */
 void WM_operator_py_idname(char *to, const char *from)
@@ -688,7 +692,11 @@ void WM_operator_properties_free(PointerRNA *ptr)
   }
 }
 
-/* ************ default op callbacks, exported *********** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Default Operator Callbacks
+ * \{ */
 
 void WM_operator_view3d_unit_defaults(struct bContext *C, struct wmOperator *op)
 {
@@ -1388,7 +1396,13 @@ int WM_operator_redo_popup(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-/* ***************** Debug menu ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Debug Menu Operator
+ *
+ * Set internal debug value, mainly for developers.
+ * \{ */
 
 static int wm_debug_menu_exec(bContext *C, wmOperator *op)
 {
@@ -1418,7 +1432,12 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
   RNA_def_int(ot->srna, "debug_value", 0, SHRT_MIN, SHRT_MAX, "Debug Value", "", -10000, 10000);
 }
 
-/* ***************** Operator defaults ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reset Defaults Operator
+ * \{ */
+
 static int wm_operator_defaults_exec(bContext *C, wmOperator *op)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "active_operator", &RNA_Operator);
@@ -1444,7 +1463,11 @@ static void WM_OT_operator_defaults(wmOperatorType *ot)
   ot->flag = OPTYPE_INTERNAL;
 }
 
-/* ***************** Search menu ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Search Menu
+ * \{ */
 
 struct SearchPopupInit_Data {
   int size[2];
@@ -1653,7 +1676,11 @@ static void WM_OT_call_panel(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* ************ window / screen operator definitions ************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Window/Screen Operators
+ * \{ */
 
 /* this poll functions is needed in place of WM_operator_winactive
  * while it crashes on full screen */
@@ -1742,7 +1769,11 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
   ot->exec = wm_exit_blender_exec;
 }
 
-/* *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Console Toggle Operator (WIN32 only)
+ * \{ */
 
 #if defined(WIN32)
 
@@ -1765,12 +1796,16 @@ static void WM_OT_console_toggle(wmOperatorType *ot)
 
 #endif
 
-/* ************ default paint cursors, draw always around cursor *********** */
-/*
- * - returns handler to free
- * - poll(bContext): returns 1 if draw should happen
- * - draw(bContext): drawing callback for paint cursor
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name default paint cursors, draw always around cursor
+ *
+ * - Returns handler to free.
+ * - `poll(bContext)`: returns 1 if draw should happen.
+ * - `draw(bContext)`: drawing callback for paint cursor.
+ *
+ * \{ */
 
 wmPaintCursor *WM_paint_cursor_activate(wmWindowManager *wm,
                                         short space_type,
@@ -1807,7 +1842,11 @@ bool WM_paint_cursor_end(wmWindowManager *wm, wmPaintCursor *handle)
   return false;
 }
 
-/* *********************** radial control ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Radial Control Operator
+ * \{ */
 
 #define WM_RADIAL_CONTROL_DISPLAY_SIZE (200 * UI_DPI_FAC)
 #define WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE (35 * UI_DPI_FAC)
@@ -2771,7 +2810,13 @@ static void WM_OT_radial_control(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* ************************** timer for testing ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Redraw Timer Operator
+ *
+ * Use for simple benchmarks.
+ * \{ */
 
 /* uses no type defines, fully local testing function anyway... ;) */
 
@@ -2963,7 +3008,13 @@ static void WM_OT_redraw_timer(wmOperatorType *ot)
                 60.0);
 }
 
-/* ************************** memory statistics for testing ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reporet Memory Statistics
+ *
+ * Use for testing/debugging.
+ * \{ */
 
 static int memory_statistics_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
@@ -2980,7 +3031,13 @@ static void WM_OT_memory_statistics(wmOperatorType *ot)
   ot->exec = memory_statistics_exec;
 }
 
-/* *************************** Mat/tex/etc. previews generation ************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Data-Block Preview Generation Operator
+ *
+ * Use for material/texture/light ... etc.
+ * \{ */
 
 typedef struct PreviewsIDEnsureData {
   bContext *C;
@@ -3070,7 +3127,11 @@ static void WM_OT_previews_ensure(wmOperatorType *ot)
   ot->exec = previews_ensure_exec;
 }
 
-/* *************************** Datablocks previews clear ************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Data-Block Preview Clear Operator
+ * \{ */
 
 /* Only types supporting previews currently. */
 static const EnumPropertyItem preview_id_type_items[] = {
@@ -3169,7 +3230,11 @@ static void WM_OT_previews_clear(wmOperatorType *ot)
                                "Which data-block previews to clear");
 }
 
-/* *************************** Doc from UI ************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Doc from UI Operator
+ * \{ */
 
 static int doc_view_manual_ui_context_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -3202,8 +3267,14 @@ static void WM_OT_doc_view_manual_ui_context(wmOperatorType *ot)
   ot->exec = doc_view_manual_ui_context_exec;
 }
 
-/* ******************************************************* */
-/* toggle 3D for current window, turning it fullscreen if needed */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Toggle Stereo 3D Operator
+ *
+ * Turning it fullscreen if needed.
+ * \{ */
+
 static void WM_OT_stereo3d_set(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -3253,6 +3324,12 @@ static void WM_OT_stereo3d_set(wmOperatorType *ot)
                          "Right eye should see left image and vice-versa");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Registration & Keymaps
+ * \{ */
 
 void wm_operatortypes_register(void)
 {
@@ -3457,10 +3534,16 @@ void wm_window_keymap(wmKeyConfig *keyconf)
   WM_keymap_fix_linking();
 }
 
-/**
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Enum Filter Functions
+ *
  * Filter functions that can be used with rna_id_itemf() below.
  * Should return false if 'id' should be excluded.
- */
+ *
+ * \{ */
+
 static bool rna_id_enum_filter_single(ID *id, void *user_data)
 {
   return (id != user_data);
@@ -3613,3 +3696,5 @@ const EnumPropertyItem *RNA_mask_local_itemf(bContext *C,
   return rna_id_itemf(
       C, ptr, r_free, C ? (ID *)CTX_data_main(C)->masks.first : NULL, true, NULL, NULL);
 }
+
+/** \} */
