@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+
 #include "util/util_foreach.h"
 #include "util/util_ies.h"
 #include "util/util_math.h"
@@ -28,7 +30,7 @@ CCL_NAMESPACE_BEGIN
 // issue.
 template class GuardedAllocator<char>;
 
-bool IESFile::load(ustring ies)
+bool IESFile::load(const string &ies)
 {
   clear();
   if (!parse(ies) || !process()) {
@@ -76,7 +78,7 @@ class IESTextParser {
   vector<char> text;
   char *data;
 
-  IESTextParser(ustring str) : text(str.begin(), str.end())
+  IESTextParser(const string &str) : text(str.begin(), str.end())
   {
     std::replace(text.begin(), text.end(), ',', ' ');
     data = strstr(&text[0], "\nTILT=");
@@ -116,7 +118,7 @@ class IESTextParser {
   }
 };
 
-bool IESFile::parse(ustring ies)
+bool IESFile::parse(const string &ies)
 {
   if (ies.empty()) {
     return false;

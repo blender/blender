@@ -17,7 +17,7 @@
 #ifndef __UTIL_IES_H__
 #define __UTIL_IES_H__
 
-#include "util/util_param.h"
+#include "util/util_string.h"
 #include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -32,11 +32,11 @@ class IESFile {
   int packed_size();
   void pack(float *data);
 
-  bool load(ustring ies);
+  bool load(const string &ies);
   void clear();
 
  protected:
-  bool parse(ustring ies);
+  bool parse(const string &ies);
   bool process();
   bool process_type_b();
   bool process_type_c();

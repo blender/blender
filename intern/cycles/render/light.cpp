@@ -944,7 +944,7 @@ void LightManager::tag_update(Scene * /*scene*/)
   need_update = true;
 }
 
-int LightManager::add_ies_from_file(ustring filename)
+int LightManager::add_ies_from_file(const string &filename)
 {
   string content;
 
@@ -953,10 +953,10 @@ int LightManager::add_ies_from_file(ustring filename)
     content = "\n";
   }
 
-  return add_ies(ustring(content));
+  return add_ies(content);
 }
 
-int LightManager::add_ies(ustring content)
+int LightManager::add_ies(const string &content)
 {
   uint hash = hash_string(content.c_str());
 

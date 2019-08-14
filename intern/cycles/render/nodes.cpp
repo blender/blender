@@ -1067,10 +1067,10 @@ void IESLightNode::get_slot()
 
   if (slot == -1) {
     if (ies.empty()) {
-      slot = light_manager->add_ies_from_file(filename);
+      slot = light_manager->add_ies_from_file(filename.string());
     }
     else {
-      slot = light_manager->add_ies(ies);
+      slot = light_manager->add_ies(ies.string());
     }
   }
 }
