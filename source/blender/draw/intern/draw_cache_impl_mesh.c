@@ -464,7 +464,8 @@ static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
   FOREACH_MESH_BUFFER_CACHE(cache, mbufcache)
   {
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.pos_nor);
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.uv_tan);
+    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.uv);
+    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.tan);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.vcol);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.orco);
   }
@@ -492,7 +493,7 @@ static void mesh_batch_cache_discard_uvedit(MeshBatchCache *cache)
   {
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.stretch_angle);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.stretch_area);
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.uv_tan);
+    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.uv);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.edituv_data);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_uv);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_edituv_data);
@@ -1013,10 +1014,12 @@ void DRW_mesh_batch_cache_create_requested(
     if (cd_overlap == false) {
       FOREACH_MESH_BUFFER_CACHE(cache, mbuffercache)
       {
-        if ((cache->cd_used.uv & cache->cd_needed.uv) != cache->cd_needed.uv ||
-            (cache->cd_used.tan & cache->cd_needed.tan) != cache->cd_needed.tan ||
+        if ((cache->cd_used.uv & cache->cd_needed.uv) != cache->cd_needed.uv) {
+          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.uv);
+        }
+        if ((cache->cd_used.tan & cache->cd_needed.tan) != cache->cd_needed.tan ||
             cache->cd_used.tan_orco != cache->cd_needed.tan_orco) {
-          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.uv_tan);
+          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.tan);
         }
         if (cache->cd_used.orco != cache->cd_needed.orco) {
           GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.orco);
@@ -1050,7 +1053,7 @@ void DRW_mesh_batch_cache_create_requested(
           GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.edituv_data);
           GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.stretch_angle);
           GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.stretch_area);
-          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.uv_tan);
+          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.uv);
           GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.fdots_uv);
           GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_tris);
           GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_lines);
@@ -1094,7 +1097,7 @@ void DRW_mesh_batch_cache_create_requested(
     DRW_vbo_request(cache->batch.surface, &mbufcache->vbo.lnor);
     DRW_vbo_request(cache->batch.surface, &mbufcache->vbo.pos_nor);
     if (cache->cd_used.uv != 0) {
-      DRW_vbo_request(cache->batch.surface, &mbufcache->vbo.uv_tan);
+      DRW_vbo_request(cache->batch.surface, &mbufcache->vbo.uv);
     }
     if (cache->cd_used.vcol != 0) {
       DRW_vbo_request(cache->batch.surface, &mbufcache->vbo.vcol);
@@ -1133,7 +1136,7 @@ void DRW_mesh_batch_cache_create_requested(
     DRW_ibo_request(cache->batch.wire_loops_uvs, &mbufcache->ibo.edituv_lines);
     /* For paint overlay. Active layer should have been queried. */
     if (cache->cd_used.uv != 0) {
-      DRW_vbo_request(cache->batch.wire_loops_uvs, &mbufcache->vbo.uv_tan);
+      DRW_vbo_request(cache->batch.wire_loops_uvs, &mbufcache->vbo.uv);
     }
   }
   if (DRW_batch_requested(cache->batch.edit_mesh_analysis, GPU_PRIM_TRIS)) {
@@ -1149,9 +1152,11 @@ void DRW_mesh_batch_cache_create_requested(
       /* Order matters. First ones override latest vbos' attribs. */
       DRW_vbo_request(cache->surface_per_mat[i], &mbufcache->vbo.lnor);
       DRW_vbo_request(cache->surface_per_mat[i], &mbufcache->vbo.pos_nor);
-      if ((cache->cd_used.uv != 0) || (cache->cd_used.tan != 0) ||
-          (cache->cd_used.tan_orco != 0)) {
-        DRW_vbo_request(cache->surface_per_mat[i], &mbufcache->vbo.uv_tan);
+      if (cache->cd_used.uv != 0) {
+        DRW_vbo_request(cache->surface_per_mat[i], &mbufcache->vbo.uv);
+      }
+      if ((cache->cd_used.tan != 0) || (cache->cd_used.tan_orco != 0)) {
+        DRW_vbo_request(cache->surface_per_mat[i], &mbufcache->vbo.tan);
       }
       if (cache->cd_used.vcol != 0) {
         DRW_vbo_request(cache->surface_per_mat[i], &mbufcache->vbo.vcol);
@@ -1227,29 +1232,29 @@ void DRW_mesh_batch_cache_create_requested(
   /* Edit UV */
   if (DRW_batch_requested(cache->batch.edituv_faces, GPU_PRIM_TRIS)) {
     DRW_ibo_request(cache->batch.edituv_faces, &mbufcache->ibo.edituv_tris);
-    DRW_vbo_request(cache->batch.edituv_faces, &mbufcache->vbo.uv_tan);
+    DRW_vbo_request(cache->batch.edituv_faces, &mbufcache->vbo.uv);
     DRW_vbo_request(cache->batch.edituv_faces, &mbufcache->vbo.edituv_data);
   }
   if (DRW_batch_requested(cache->batch.edituv_faces_strech_area, GPU_PRIM_TRIS)) {
     DRW_ibo_request(cache->batch.edituv_faces_strech_area, &mbufcache->ibo.edituv_tris);
-    DRW_vbo_request(cache->batch.edituv_faces_strech_area, &mbufcache->vbo.uv_tan);
+    DRW_vbo_request(cache->batch.edituv_faces_strech_area, &mbufcache->vbo.uv);
     DRW_vbo_request(cache->batch.edituv_faces_strech_area, &mbufcache->vbo.edituv_data);
     DRW_vbo_request(cache->batch.edituv_faces_strech_area, &mbufcache->vbo.stretch_area);
   }
   if (DRW_batch_requested(cache->batch.edituv_faces_strech_angle, GPU_PRIM_TRIS)) {
     DRW_ibo_request(cache->batch.edituv_faces_strech_angle, &mbufcache->ibo.edituv_tris);
-    DRW_vbo_request(cache->batch.edituv_faces_strech_angle, &mbufcache->vbo.uv_tan);
+    DRW_vbo_request(cache->batch.edituv_faces_strech_angle, &mbufcache->vbo.uv);
     DRW_vbo_request(cache->batch.edituv_faces_strech_angle, &mbufcache->vbo.edituv_data);
     DRW_vbo_request(cache->batch.edituv_faces_strech_angle, &mbufcache->vbo.stretch_angle);
   }
   if (DRW_batch_requested(cache->batch.edituv_edges, GPU_PRIM_LINES)) {
     DRW_ibo_request(cache->batch.edituv_edges, &mbufcache->ibo.edituv_lines);
-    DRW_vbo_request(cache->batch.edituv_edges, &mbufcache->vbo.uv_tan);
+    DRW_vbo_request(cache->batch.edituv_edges, &mbufcache->vbo.uv);
     DRW_vbo_request(cache->batch.edituv_edges, &mbufcache->vbo.edituv_data);
   }
   if (DRW_batch_requested(cache->batch.edituv_verts, GPU_PRIM_POINTS)) {
     DRW_ibo_request(cache->batch.edituv_verts, &mbufcache->ibo.edituv_points);
-    DRW_vbo_request(cache->batch.edituv_verts, &mbufcache->vbo.uv_tan);
+    DRW_vbo_request(cache->batch.edituv_verts, &mbufcache->vbo.uv);
     DRW_vbo_request(cache->batch.edituv_verts, &mbufcache->vbo.edituv_data);
   }
   if (DRW_batch_requested(cache->batch.edituv_fdots, GPU_PRIM_POINTS)) {

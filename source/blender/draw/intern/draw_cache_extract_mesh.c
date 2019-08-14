@@ -1554,21 +1554,16 @@ const MeshExtract extract_lnor = {extract_lnor_init,
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name Extract UV / Tangent layers
+/** \name Extract UV  layers
  * \{ */
 
-static void *extract_uv_tan_init(const MeshRenderData *mr, void *buf)
+static void *extract_uv_init(const MeshRenderData *mr, void *buf)
 {
   GPUVertFormat format = {0};
   GPU_vertformat_deinterleave(&format);
 
   CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
-  CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
   uint32_t uv_layers = mr->cache->cd_used.uv;
-  uint32_t tan_layers = mr->cache->cd_used.tan;
-  float(*orco)[3] = CustomData_get_layer(cd_vdata, CD_ORCO);
-  bool orco_allocated = false;
-  const bool use_orco_tan = mr->cache->cd_used.tan_orco != 0;
 
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (uv_layers & (1 << i)) {
@@ -1598,6 +1593,65 @@ static void *extract_uv_tan_init(const MeshRenderData *mr, void *buf)
       }
     }
   }
+
+  int v_len = mr->loop_len;
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    /* VBO will not be used, only allocate minimum of memory. */
+    v_len = 1;
+  }
+
+  GPUVertBuf *vbo = buf;
+  GPU_vertbuf_init_with_format(vbo, &format);
+  GPU_vertbuf_data_alloc(vbo, v_len);
+
+  float(*uv_data)[2] = (float(*)[2])vbo->data;
+  for (int i = 0; i < MAX_MTFACE; i++) {
+    if (uv_layers & (1 << i)) {
+      if (mr->extract_type == MR_EXTRACT_BMESH) {
+        int cd_ofs = CustomData_get_n_offset(cd_ldata, CD_MLOOPUV, i);
+        BMIter f_iter, l_iter;
+        BMFace *efa;
+        BMLoop *loop;
+        BM_ITER_MESH (efa, &f_iter, mr->bm, BM_FACES_OF_MESH) {
+          BM_ITER_ELEM (loop, &l_iter, efa, BM_LOOPS_OF_FACE) {
+            MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(loop, cd_ofs);
+            memcpy(uv_data, luv->uv, sizeof(*uv_data));
+            uv_data++;
+          }
+        }
+      }
+      else {
+        MLoopUV *layer_data = CustomData_get_layer_n(cd_ldata, CD_MLOOPUV, i);
+        for (int l = 0; l < mr->loop_len; l++, uv_data++, layer_data++) {
+          memcpy(uv_data, layer_data->uv, sizeof(*uv_data));
+        }
+      }
+    }
+  }
+
+  return NULL;
+}
+
+const MeshExtract extract_uv = {
+    extract_uv_init, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, false};
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Extract Tangent layers
+ * \{ */
+
+static void *extract_tan_init(const MeshRenderData *mr, void *buf)
+{
+  GPUVertFormat format = {0};
+  GPU_vertformat_deinterleave(&format);
+
+  CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
+  CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
+  uint32_t tan_layers = mr->cache->cd_used.tan;
+  float(*orco)[3] = CustomData_get_layer(cd_vdata, CD_ORCO);
+  bool orco_allocated = false;
+  const bool use_orco_tan = mr->cache->cd_used.tan_orco != 0;
 
   int tan_len = 0;
   char tangent_names[MAX_MTFACE][MAX_CUSTOMDATA_LAYER_NAME];
@@ -1705,32 +1759,7 @@ static void *extract_uv_tan_init(const MeshRenderData *mr, void *buf)
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, v_len);
 
-  float(*uv_data)[2] = (float(*)[2])vbo->data;
-  for (int i = 0; i < MAX_MTFACE; i++) {
-    if (uv_layers & (1 << i)) {
-      if (mr->extract_type == MR_EXTRACT_BMESH) {
-        int cd_ofs = CustomData_get_n_offset(cd_ldata, CD_MLOOPUV, i);
-        BMIter f_iter, l_iter;
-        BMFace *efa;
-        BMLoop *loop;
-        BM_ITER_MESH (efa, &f_iter, mr->bm, BM_FACES_OF_MESH) {
-          BM_ITER_ELEM (loop, &l_iter, efa, BM_LOOPS_OF_FACE) {
-            MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(loop, cd_ofs);
-            memcpy(uv_data, luv->uv, sizeof(*uv_data));
-            uv_data++;
-          }
-        }
-      }
-      else {
-        MLoopUV *layer_data = CustomData_get_layer_n(cd_ldata, CD_MLOOPUV, i);
-        for (int l = 0; l < mr->loop_len; l++, uv_data++, layer_data++) {
-          memcpy(uv_data, layer_data->uv, sizeof(*uv_data));
-        }
-      }
-    }
-  }
-  /* Start tan_data after uv_data. */
-  float(*tan_data)[4] = (float(*)[4])uv_data;
+  float(*tan_data)[4] = (float(*)[4])vbo->data;
   for (int i = 0; i < tan_len; i++) {
     void *layer_data = CustomData_get_layer_named(cd_ldata, CD_TANGENT, tangent_names[i]);
     memcpy(tan_data, layer_data, sizeof(*tan_data) * mr->loop_len);
@@ -1746,18 +1775,18 @@ static void *extract_uv_tan_init(const MeshRenderData *mr, void *buf)
   return NULL;
 }
 
-const MeshExtract extract_uv_tan = {extract_uv_tan_init,
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR | MR_DATA_LOOPTRI,
-                                    false};
+const MeshExtract extract_tan = {extract_tan_init,
+                                 NULL,
+                                 NULL,
+                                 NULL,
+                                 NULL,
+                                 NULL,
+                                 NULL,
+                                 NULL,
+                                 NULL,
+                                 NULL,
+                                 MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR | MR_DATA_LOOPTRI,
+                                 false};
 
 /** \} */
 
@@ -4149,7 +4178,8 @@ void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
 
   TEST_ASSIGN(VBO, vbo, pos_nor);
   TEST_ASSIGN(VBO, vbo, lnor);
-  TEST_ASSIGN(VBO, vbo, uv_tan);
+  TEST_ASSIGN(VBO, vbo, uv);
+  TEST_ASSIGN(VBO, vbo, tan);
   TEST_ASSIGN(VBO, vbo, vcol);
   TEST_ASSIGN(VBO, vbo, orco);
   TEST_ASSIGN(VBO, vbo, edge_fac);
@@ -4214,7 +4244,8 @@ void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
 
   EXTRACT(vbo, pos_nor);
   EXTRACT(vbo, lnor);
-  EXTRACT(vbo, uv_tan);
+  EXTRACT(vbo, uv);
+  EXTRACT(vbo, tan);
   EXTRACT(vbo, vcol);
   EXTRACT(vbo, orco);
   EXTRACT(vbo, edge_fac);

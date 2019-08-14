@@ -40,7 +40,7 @@ typedef enum {
   GPU_BATCH_READY_TO_DRAW,
 } GPUBatchPhase;
 
-#define GPU_BATCH_VBO_MAX_LEN 5
+#define GPU_BATCH_VBO_MAX_LEN 6
 #define GPU_BATCH_VAO_STATIC_LEN 3
 #define GPU_BATCH_VAO_DYN_ALLOC_COUNT 16
 

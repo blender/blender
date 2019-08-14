@@ -86,7 +86,8 @@ typedef struct MeshBufferCache {
     GPUVertBuf *lnor;     /* extend */
     GPUVertBuf *edge_fac; /* extend */
     GPUVertBuf *weights;  /* extend */
-    GPUVertBuf *uv_tan;
+    GPUVertBuf *uv;
+    GPUVertBuf *tan;
     GPUVertBuf *vcol;
     GPUVertBuf *orco;
     /* Only for edit mode. */
