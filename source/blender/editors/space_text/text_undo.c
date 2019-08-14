@@ -187,6 +187,7 @@ static bool text_undosys_step_encode(struct bContext *C,
 
   Text *text = us->text_ref.ptr;
   BLI_assert(text == CTX_data_edit_text(C));
+  UNUSED_VARS_NDEBUG(C);
 
   us->step.data_size += text_undosys_step_encode_to_state(&us->states[1], text);
 

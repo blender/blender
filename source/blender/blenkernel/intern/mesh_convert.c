@@ -978,7 +978,7 @@ static void curve_to_mesh_eval_ensure(Object *object)
    *
    * So we create temporary copy of the object which will use same data as the original bevel, but
    * will have no modifiers. */
-  Object bevel_object = {NULL};
+  Object bevel_object = {{NULL}};
   if (remapped_curve.bevobj != NULL) {
     bevel_object = *remapped_curve.bevobj;
     BLI_listbase_clear(&bevel_object.modifiers);
@@ -986,7 +986,7 @@ static void curve_to_mesh_eval_ensure(Object *object)
   }
 
   /* Same thing for taper. */
-  Object taper_object = {NULL};
+  Object taper_object = {{NULL}};
   if (remapped_curve.taperobj != NULL) {
     taper_object = *remapped_curve.taperobj;
     BLI_listbase_clear(&taper_object.modifiers);
