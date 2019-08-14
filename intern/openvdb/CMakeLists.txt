@@ -21,6 +21,7 @@
 set(INC
   .
   intern
+  ../guardedalloc
 )
 
 set(INC_SYS
@@ -56,12 +57,16 @@ if(WITH_OPENVDB)
     intern/openvdb_dense_convert.cc
     intern/openvdb_reader.cc
     intern/openvdb_writer.cc
+    intern/openvdb_level_set.cc
+    intern/openvdb_transform.cc
     openvdb_capi.cc
     openvdb_util.cc
 
     intern/openvdb_dense_convert.h
     intern/openvdb_reader.h
     intern/openvdb_writer.h
+    intern/openvdb_level_set.h
+    intern/openvdb_transform.h
     openvdb_util.h
   )
 
