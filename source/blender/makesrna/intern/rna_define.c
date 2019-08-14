@@ -724,8 +724,10 @@ void RNA_struct_free_extension(StructRNA *srna, ExtensionRNA *ext)
 #ifdef RNA_RUNTIME
   ext->free(ext->data);                    /* decref's the PyObject that the srna owns */
   RNA_struct_blender_type_set(srna, NULL); /* this gets accessed again - XXX fixme */
-  RNA_struct_py_type_set(
-      srna, NULL); /* NULL the srna's value so RNA_struct_free wont complain of a leak */
+
+  /* NULL the srna's value so RNA_struct_free wont complain of a leak */
+  RNA_struct_py_type_set(srna, NULL);
+
 #else
   (void)srna;
   (void)ext;

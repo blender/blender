@@ -103,8 +103,9 @@ void BKE_material_resize_id(struct Main *bmain, struct ID *id, short totcol, boo
 void BKE_material_append_id(struct Main *bmain, struct ID *id, struct Material *ma);
 struct Material *BKE_material_pop_id(struct Main *bmain,
                                      struct ID *id,
+                                     /* index is an int because of RNA. */
                                      int index,
-                                     bool update_data); /* index is an int because of RNA */
+                                     bool update_data);
 void BKE_material_clear_id(struct Main *bmain, struct ID *id, bool update_data);
 /* rendering */
 

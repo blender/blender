@@ -703,9 +703,9 @@ void BKE_override_library_update(Main *bmain, ID *local)
   local->tag |= LIB_TAG_OVERRIDE_LIBRARY_REFOK;
 
   /* Full rebuild of Depsgraph! */
-  DEG_on_visible_update(
-      bmain,
-      true); /* XXX Is this actual valid replacement for old DAG_relations_tag_update(bmain) ? */
+
+  /* XXX Is this actual valid replacement for old DAG_relations_tag_update(bmain) ? */
+  DEG_on_visible_update(bmain, true);
 }
 
 /** Update all overrides from given \a bmain. */

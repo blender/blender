@@ -642,8 +642,10 @@ void BKE_gpencil_copy_data(bGPdata *gpd_dst, const bGPdata *gpd_src, const int U
   BLI_listbase_clear(&gpd_dst->layers);
   for (const bGPDlayer *gpl_src = gpd_src->layers.first; gpl_src; gpl_src = gpl_src->next) {
     /* make a copy of source layer and its data */
-    bGPDlayer *gpl_dst = BKE_gpencil_layer_duplicate(
-        gpl_src); /* TODO here too could add unused flags... */
+
+    /* TODO here too could add unused flags... */
+    bGPDlayer *gpl_dst = BKE_gpencil_layer_duplicate(gpl_src);
+
     BLI_addtail(&gpd_dst->layers, gpl_dst);
   }
 }

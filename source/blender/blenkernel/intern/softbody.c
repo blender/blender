@@ -1731,8 +1731,8 @@ static int sb_detect_vertex_collisionCached(float opco[3],
           /* switch origin to be nv2*/
           sub_v3_v3v3(edge1, nv1, nv2);
           sub_v3_v3v3(edge2, nv3, nv2);
-          sub_v3_v3v3(
-              dv1, opco, nv2); /* abuse dv1 to have vertex in question at *origin* of triangle */
+          /* Abuse dv1 to have vertex in question at *origin* of triangle. */
+          sub_v3_v3v3(dv1, opco, nv2);
 
           cross_v3_v3v3(d_nvect, edge2, edge1);
           /* n_mag = */ /* UNUSED */ normalize_v3(d_nvect);
@@ -2087,9 +2087,12 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
       if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
         float gravity[3];
         copy_v3_v3(gravity, scene->physics_settings.gravity);
+
+        /* Individual mass of node here. */
         mul_v3_fl(gravity,
                   sb_grav_force_scale(ob) * _final_mass(ob, bp) *
-                      sb->effector_weights->global_gravity); /* individual mass of node here */
+                      sb->effector_weights->global_gravity);
+
         add_v3_v3(bp->force, gravity);
       }
 
@@ -2099,8 +2102,10 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
         float kd;
         float force[3] = {0.0f, 0.0f, 0.0f};
         float speed[3] = {0.0f, 0.0f, 0.0f};
-        float eval_sb_fric_force_scale = sb_fric_force_scale(
-            ob); /* just for calling function once */
+
+        /* just for calling function once */
+        float eval_sb_fric_force_scale = sb_fric_force_scale(ob);
+
         pd_point_from_soft(scene, bp->pos, bp->vec, sb->bpoint - bp, &epoint);
         BKE_effectors_apply(effectors, NULL, sb->effector_weights, &epoint, force, speed);
 
@@ -2743,9 +2748,10 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
       build_bps_springlist(ob); /* scan for springs attached to bodypoints ONCE */
       /* insert *other second order* springs if desired */
       if (sb->secondspring > 0.0000001f) {
-        add_2nd_order_springs(
-            ob, sb->secondspring); /* exploits the first run of build_bps_springlist(ob);*/
-        build_bps_springlist(ob);  /* yes we need to do it again*/
+        /* exploits the first run of build_bps_springlist(ob); */
+        add_2nd_order_springs(ob, sb->secondspring);
+        /* yes we need to do it again. */
+        build_bps_springlist(ob);
       }
       springs_from_mesh(ob); /* write the 'rest'-length of the springs */
       if (ob->softflag & OB_SB_SELF) {

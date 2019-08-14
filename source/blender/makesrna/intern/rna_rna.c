@@ -2824,8 +2824,10 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
 
   prop = RNA_def_property(srna, "default_array", type, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_array(
-      prop, RNA_MAX_ARRAY_DIMENSION); /* no fixed default length, important its not 0 though */
+
+  /* no fixed default length, important its not 0 though. */
+  RNA_def_property_array(prop, RNA_MAX_ARRAY_DIMENSION);
+
   RNA_def_property_flag(prop, PROP_DYNAMIC);
   RNA_def_property_dynamic_array_funcs(
       prop, "rna_NumberProperty_default_array_get_length"); /* same for all types */

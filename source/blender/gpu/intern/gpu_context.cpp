@@ -103,9 +103,11 @@ static void orphans_add(GPUContext *ctx, std::vector<GLuint> *orphan_list, GLuin
 
 static void orphans_clear(GPUContext *ctx)
 {
-  BLI_assert(ctx); /* need at least an active context */
-  BLI_assert(pthread_equal(pthread_self(),
-                           ctx->thread)); /* context has been activated by another thread! */
+  /* need at least an active context */
+  BLI_assert(ctx);
+
+  /* context has been activated by another thread! */
+  BLI_assert(pthread_equal(pthread_self(), ctx->thread));
 
   ctx->orphans_mutex.lock();
   if (!ctx->orphaned_vertarray_ids.empty()) {

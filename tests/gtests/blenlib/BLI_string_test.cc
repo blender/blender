@@ -401,8 +401,8 @@ TEST(string, StrFormatByteUnits)
   BLI_str_format_byte_unit(size_str, size = -1024, true);
   EXPECT_STREQ("-1 KB", size_str);
 
-  BLI_str_format_byte_unit(
-      size_str, size = 9223372036854775807, true); /* LLONG_MAX - largest possible value */
+  /* LLONG_MAX - largest possible value */
+  BLI_str_format_byte_unit(size_str, size = 9223372036854775807, true);
   EXPECT_STREQ("9223.372 PB", size_str);
   BLI_str_format_byte_unit(size_str, size = -9223372036854775807, true);
   EXPECT_STREQ("-9223.372 PB", size_str);
@@ -428,8 +428,8 @@ TEST(string, StrFormatByteUnits)
   BLI_str_format_byte_unit(size_str, size = -1024, false);
   EXPECT_STREQ("-1 KiB", size_str);
 
-  BLI_str_format_byte_unit(
-      size_str, size = 9223372036854775807, false); /* LLONG_MAX - largest possible value */
+  /* LLONG_MAX - largest possible value */
+  BLI_str_format_byte_unit(size_str, size = 9223372036854775807, false);
   EXPECT_STREQ("8192.0 PiB", size_str);
   BLI_str_format_byte_unit(size_str, size = -9223372036854775807, false);
   EXPECT_STREQ("-8192.0 PiB", size_str);

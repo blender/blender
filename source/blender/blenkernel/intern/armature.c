@@ -2707,8 +2707,9 @@ void BKE_pose_where_is_bone(struct Depsgraph *depsgraph,
       cob = BKE_constraints_make_evalob(depsgraph, scene, ob, pchan, CONSTRAINT_OBTYPE_BONE);
 
       /* Solve PoseChannel's Constraints */
-      BKE_constraints_solve(
-          depsgraph, &pchan->constraints, cob, ctime); /* ctime doesn't alter objects */
+
+      /* ctime doesn't alter objects. */
+      BKE_constraints_solve(depsgraph, &pchan->constraints, cob, ctime);
 
       /* cleanup after Constraint Solving
        * - applies matrix back to pchan, and frees temporary struct used

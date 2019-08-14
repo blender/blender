@@ -140,8 +140,8 @@ PyObject *BPy_BMFaceSeq_CreatePyObject(BMesh *bm);
 PyObject *BPy_BMLoopSeq_CreatePyObject(BMesh *bm);
 PyObject *BPy_BMIter_CreatePyObject(BMesh *bm);
 
-PyObject *BPy_BMElem_CreatePyObject(BMesh *bm,
-                                    BMHeader *ele); /* just checks type and creates v/e/f/l */
+/* Just checks type and creates v/e/f/l. */
+PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele);
 
 void *BPy_BMElem_PySeq_As_Array_FAST(BMesh **r_bm,
                                      PyObject *seq_fast,

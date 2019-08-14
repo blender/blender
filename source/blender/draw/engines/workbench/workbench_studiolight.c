@@ -82,8 +82,9 @@ void studiolight_update_world(WORKBENCH_PrivateData *wpd,
                 -sl->spherical_harmonics_coefs[3][i],
                 sl->spherical_harmonics_coefs[2][i],
                 -sl->spherical_harmonics_coefs[1][i]);
-    mul_v3_fl(wd->spherical_harmonics_coefs[i + 1],
-              M_1_PI * 1.5f); /* 1.5f is to improve the contrast a bit. */
+
+    /* 1.5f is to improve the contrast a bit. */
+    mul_v3_fl(wd->spherical_harmonics_coefs[i + 1], M_1_PI * 1.5f);
   }
 
   /* Precompute as much as we can. See shader code for derivation. */

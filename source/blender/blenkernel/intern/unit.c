@@ -734,8 +734,9 @@ static int unit_scale_str(char *str,
 
     len_name = strlen(replace_str);
     len_move = (len - (found_ofs + len_name)) + 1; /* 1+ to copy the string terminator */
-    len_num = BLI_snprintf(
-        str_tmp, TEMP_STR_SIZE, "*%.9g" SEP_STR, unit->scalar / scale_pref); /* # removed later */
+
+    /* # removed later */
+    len_num = BLI_snprintf(str_tmp, TEMP_STR_SIZE, "*%.9g" SEP_STR, unit->scalar / scale_pref);
 
     if (len_num > len_max) {
       len_num = len_max;
@@ -748,8 +749,9 @@ static int unit_scale_str(char *str,
 
     if (len_move > 0) {
       /* resize the last part of the string */
-      memmove(
-          str_found + len_num, str_found + len_name, len_move); /* may grow or shrink the string */
+
+      /* May grow or shrink the string. */
+      memmove(str_found + len_num, str_found + len_name, len_move);
     }
 
     if (found_ofs + len_num > len_max) {

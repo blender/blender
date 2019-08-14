@@ -96,16 +96,16 @@ int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int flo
 
 typedef struct Mathutils_Callback Mathutils_Callback;
 
-typedef int (*BaseMathCheckFunc)(BaseMathObject *);    /* checks the user is still valid */
-typedef int (*BaseMathGetFunc)(BaseMathObject *, int); /* gets the vector from the user */
-typedef int (*BaseMathSetFunc)(BaseMathObject *,
-                               int); /* sets the users vector values once its modified */
-typedef int (*BaseMathGetIndexFunc)(BaseMathObject *,
-                                    int,
-                                    int); /* same as above but only for an index */
-typedef int (*BaseMathSetIndexFunc)(BaseMathObject *,
-                                    int,
-                                    int); /* same as above but only for an index */
+/** Checks the user is still valid. */
+typedef int (*BaseMathCheckFunc)(BaseMathObject *);
+/** Gets the vector from the user. */
+typedef int (*BaseMathGetFunc)(BaseMathObject *, int);
+/** Sets the users vector values once its modified. */
+typedef int (*BaseMathSetFunc)(BaseMathObject *, int);
+/** Same as above but only for an index. */
+typedef int (*BaseMathGetIndexFunc)(BaseMathObject *, int, int);
+/** Same as above but only for an index. */
+typedef int (*BaseMathSetIndexFunc)(BaseMathObject *, int, int);
 
 struct Mathutils_Callback {
   BaseMathCheckFunc check;

@@ -252,8 +252,9 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
       ReportList *reports;
 
       reports = MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
-      BKE_reports_init(reports,
-                       RPT_STORE | RPT_OP_HOLD); /* own so these don't move into global reports */
+
+      /* Own so these don't move into global reports. */
+      BKE_reports_init(reports, RPT_STORE | RPT_OP_HOLD);
 
 #ifdef BPY_RELEASE_GIL
       /* release GIL, since a thread could be started from an operator

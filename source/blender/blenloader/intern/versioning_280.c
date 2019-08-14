@@ -2852,9 +2852,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
               navigation_region = MEM_callocN(sizeof(ARegion),
                                               "userpref navigation-region do_versions");
 
-              BLI_insertlinkbefore(regionbase,
-                                   main_region,
-                                   navigation_region); /* order matters, addhead not addtail! */
+              /* Order matters, addhead not addtail! */
+              BLI_insertlinkbefore(regionbase, main_region, navigation_region);
+
               navigation_region->regiontype = RGN_TYPE_NAV_BAR;
               navigation_region->alignment = RGN_ALIGN_LEFT;
             }

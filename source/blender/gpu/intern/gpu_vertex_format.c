@@ -163,8 +163,10 @@ uint GPU_vertformat_attr_add(GPUVertFormat *format,
       /* 10_10_10 format intended for normals (xyz) or colors (rgb)
        * extra component packed.w can be manually set to { -2, -1, 0, 1 } */
       assert(comp_len == 3 || comp_len == 4);
-      assert(fetch_mode ==
-             GPU_FETCH_INT_TO_FLOAT_UNIT); /* not strictly required, may relax later */
+
+      /* Not strictly required, may relax later. */
+      assert(fetch_mode == GPU_FETCH_INT_TO_FLOAT_UNIT);
+
       break;
     default:
       /* integer types can be kept as int or converted/normalized to float */

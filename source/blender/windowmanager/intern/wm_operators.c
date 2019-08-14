@@ -1653,12 +1653,13 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
                  0.5f * U.widget_unit,
                  U.dpi_fac * 501,
                  U.dpi_fac * 250,
+                 /* Button owns the imbuf now. */
                  ibuf,
                  0.0,
                  0.0,
                  0,
                  0,
-                 ""); /* button owns the imbuf now */
+                 "");
   UI_but_func_set(but, wm_block_splash_close, block, NULL);
   UI_block_func_set(block, wm_block_splash_refreshmenu, block, NULL);
 

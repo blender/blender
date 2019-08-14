@@ -455,8 +455,8 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
       NlaStrip *strip = (NlaStrip *)ptr.data;
       FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
 
-      BLI_assert(fcu !=
-                 NULL); /* NOTE: This should be true, or else we wouldn't be able to get here */
+      /* NOTE: This should be true, or else we wouldn't be able to get here. */
+      BLI_assert(fcu != NULL);
 
       if (BKE_fcurve_is_protected(fcu)) {
         BKE_reportf(

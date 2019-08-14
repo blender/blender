@@ -1215,9 +1215,9 @@ void IMB_exr_read_channels(void *handle)
   /* check if exr was saved with previous versions of blender which flipped images */
   const StringAttribute *ta = data->ifile->header(0).findTypedAttribute<StringAttribute>(
       "BlenderMultiChannel");
-  short flip = (ta && STREQLEN(ta->value().c_str(),
-                               "Blender V2.43",
-                               13)); /* 'previous multilayer attribute, flipped */
+
+  /* 'previous multilayer attribute, flipped. */
+  short flip = (ta && STREQLEN(ta->value().c_str(), "Blender V2.43", 13));
 
   exr_printf(
       "\nIMB_exr_read_channels\n%s %-6s %-22s "

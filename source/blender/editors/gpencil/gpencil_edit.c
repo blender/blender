@@ -4052,8 +4052,10 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
               }
 
               /* add duplicate materials */
-              ma = give_current_material(
-                  ob, gps->mat_nr + 1); /* XXX same material can be in multiple slots */
+
+              /* XXX same material can be in multiple slots. */
+              ma = give_current_material(ob, gps->mat_nr + 1);
+
               idx = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma);
 
               /* selected points mode */

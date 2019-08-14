@@ -417,8 +417,9 @@ void ui_rna_collection_search_cb(const struct bContext *C,
       }
     }
 
-    name = RNA_struct_name_get_alloc(
-        &itemptr, NULL, 0, NULL); /* could use the string length here */
+    /* Could use the string length here. */
+    name = RNA_struct_name_get_alloc(&itemptr, NULL, 0, NULL);
+
     iconid = 0;
     if (itemptr.type && RNA_struct_is_ID(itemptr.type)) {
       iconid = ui_id_icon_get(C, itemptr.data, false);

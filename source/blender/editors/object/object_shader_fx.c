@@ -282,8 +282,9 @@ void OBJECT_OT_shaderfx_add(wmOperatorType *ot)
   ot->prop = RNA_def_enum(
       ot->srna, "type", rna_enum_object_shaderfx_type_items, eShaderFxType_Blur, "Type", "");
   RNA_def_enum_funcs(ot->prop, shaderfx_add_itemf);
-  RNA_def_property_translation_context(ot->prop,
-                                       BLT_I18NCONTEXT_ID_ID); /* Abused, for "Light"... */
+
+  /* Abused, for "Light"... */
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_ID);
 }
 
 /* -------------------------------------------------------------------- */

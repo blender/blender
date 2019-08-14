@@ -52,12 +52,12 @@ void GPU_matrix_translate_3f(float x, float y, float z);
 void GPU_matrix_translate_3fv(const float vec[3]);
 void GPU_matrix_scale_3f(float x, float y, float z);
 void GPU_matrix_scale_3fv(const float vec[3]);
-void GPU_matrix_rotate_3f(float deg,
-                          float x,
-                          float y,
-                          float z); /* axis of rotation should be a unit vector */
-void GPU_matrix_rotate_3fv(float deg,
-                           const float axis[3]);   /* axis of rotation should be a unit vector */
+
+/* Axis of rotation should be a unit vector. */
+void GPU_matrix_rotate_3f(float deg, float x, float y, float z);
+/* Axis of rotation should be a unit vector. */
+void GPU_matrix_rotate_3fv(float deg, const float axis[3]);
+
 void GPU_matrix_rotate_axis(float deg, char axis); /* TODO: enum for axis? */
 
 void GPU_matrix_look_at(float eyeX,

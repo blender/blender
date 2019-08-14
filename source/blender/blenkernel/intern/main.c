@@ -485,16 +485,23 @@ int set_listbasepointers(Main *bmain, ListBase **lb)
   /* BACKWARDS! also watch order of free-ing! (mesh<->mat), first items freed last.
    * This is important because freeing data decreases user-counts of other data-blocks,
    * if this data is its self freed it can crash. */
-  lb[INDEX_ID_LI] = &(
-      bmain->libraries); /* Libraries may be accessed from pretty much any other ID... */
+
+  /* Libraries may be accessed from pretty much any other ID. */
+  lb[INDEX_ID_LI] = &(bmain->libraries);
+
   lb[INDEX_ID_IP] = &(bmain->ipo);
-  lb[INDEX_ID_AC] = &(
-      bmain->actions); /* moved here to avoid problems when freeing with animato (aligorith) */
+
+  /* Moved here to avoid problems when freeing with animato (aligorith). */
+  lb[INDEX_ID_AC] = &(bmain->actions);
+
   lb[INDEX_ID_KE] = &(bmain->shapekeys);
-  lb[INDEX_ID_PAL] = &(
-      bmain->palettes); /* referenced by gpencil, so needs to be before that to avoid crashes */
-  lb[INDEX_ID_GD] = &(
-      bmain->gpencils); /* referenced by nodes, objects, view, scene etc, before to free after. */
+
+  /* Referenced by gpencil, so needs to be before that to avoid crashes. */
+  lb[INDEX_ID_PAL] = &(bmain->palettes);
+
+  /* Referenced by nodes, objects, view, scene etc, before to free after. */
+  lb[INDEX_ID_GD] = &(bmain->gpencils);
+
   lb[INDEX_ID_NT] = &(bmain->nodetrees);
   lb[INDEX_ID_IM] = &(bmain->images);
   lb[INDEX_ID_TE] = &(bmain->textures);
@@ -502,8 +509,7 @@ int set_listbasepointers(Main *bmain, ListBase **lb)
   lb[INDEX_ID_VF] = &(bmain->fonts);
 
   /* Important!: When adding a new object type,
-   * the specific data should be inserted here
-   */
+   * the specific data should be inserted here. */
 
   lb[INDEX_ID_AR] = &(bmain->armatures);
 

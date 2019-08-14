@@ -1158,12 +1158,9 @@ bool BPH_mass_spring_solve_velocities(Implicit_Data *data, float dt, ImplicitSol
   double start = PIL_check_seconds_timer();
 #  endif
 
-  cg_filtered(data->dV,
-              data->A,
-              data->B,
-              data->z,
-              data->S,
-              result); /* conjugate gradient algorithm to solve Ax=b */
+  /* Conjugate gradient algorithm to solve Ax=b. */
+  cg_filtered(data->dV, data->A, data->B, data->z, data->S, result);
+
   // cg_filtered_pre(id->dV, id->A, id->B, id->z, id->S, id->P, id->Pinv, id->bigI);
 
 #  ifdef DEBUG_TIME

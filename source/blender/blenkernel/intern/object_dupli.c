@@ -762,8 +762,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
     no_draw_flag |= PARS_NO_DISP;
   }
 
-  ctime = DEG_get_ctime(
-      ctx->depsgraph); /* NOTE: in old animsys, used parent object's timeoffset... */
+  /* NOTE: in old animsys, used parent object's timeoffset... */
+  ctime = DEG_get_ctime(ctx->depsgraph);
 
   totpart = psys->totpart;
   totchild = psys->totchild;

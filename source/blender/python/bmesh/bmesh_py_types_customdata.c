@@ -516,8 +516,10 @@ static PyObject *bpy_bmlayercollection_keys(BPy_BMLayerCollection *self)
   BPY_BM_CHECK_OBJ(self);
 
   data = bpy_bm_customdata_get(self->bm, self->htype);
-  index = CustomData_get_layer_index(data,
-                                     self->type); /* absolute, but no need to make relative */
+
+  /* Absolute, but no need to make relative. */
+  index = CustomData_get_layer_index(data, self->type);
+
   tot = (index != -1) ? CustomData_number_of_layers(data, self->type) : 0;
 
   ret = PyList_New(tot);

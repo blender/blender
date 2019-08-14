@@ -1166,9 +1166,8 @@ static void eevee_shadow_cascade_setup(Object *ob,
 
     /* Compute offset. */
     sub_v2_v2(shadow_texco, shadow_origin);
-    mul_v2_fl(shadow_texco,
-              (2.0f * sh_data->radius[c]) /
-                  linfo->shadow_cascade_size); /* Texture to light space. */
+    /* Texture to light space. */
+    mul_v2_fl(shadow_texco, (2.0f * sh_data->radius[c]) / linfo->shadow_cascade_size);
 
     /* Apply offset. */
     add_v2_v2(center, shadow_texco);

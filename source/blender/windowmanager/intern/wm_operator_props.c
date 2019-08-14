@@ -512,8 +512,9 @@ void WM_operator_properties_checker_interval_from_op(struct wmOperator *op,
 
   op_params->nth = nth;
   op_params->skip = skip;
-  op_params->offset = mod_i(offset,
-                            nth + skip); /* so input of offset zero ends up being (nth - 1) */
+
+  /* So input of offset zero ends up being (nth - 1). */
+  op_params->offset = mod_i(offset, nth + skip);
 }
 
 bool WM_operator_properties_checker_interval_test(const struct CheckerIntervalParams *op_params,

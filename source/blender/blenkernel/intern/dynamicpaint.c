@@ -4061,8 +4061,10 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
             hit_found = HIT_VOLUME;
 
             /* Mark hit info */
-            madd_v3_v3v3fl(
-                hitCoord, ray_start, ray_dir, hit.dist); /* Calculate final hit coordinates */
+
+            /* Calculate final hit coordinates */
+            madd_v3_v3v3fl(hitCoord, ray_start, ray_dir, hit.dist);
+
             depth += dist * sample_factor;
             hitTri = f_index;
           }
@@ -4113,8 +4115,10 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
             treeData->tree, ray_start, proj_ray, 0.0f, &hit, mesh_tris_spherecast_dp, treeData);
         if (hit.index != -1) {
           proxDist = hit.dist;
-          madd_v3_v3v3fl(
-              hitCo, ray_start, proj_ray, hit.dist); /* Calculate final hit coordinates */
+
+          /* Calculate final hit coordinates */
+          madd_v3_v3v3fl(hitCo, ray_start, proj_ray, hit.dist);
+
           tri = hit.index;
         }
       }

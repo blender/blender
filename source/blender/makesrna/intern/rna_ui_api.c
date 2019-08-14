@@ -796,6 +796,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_boolean(func, "emboss", true, "", "Draw the button itself, not just the icon/text");
   RNA_def_int(func,
               "index",
+              /* RNA_NO_INDEX == -1 */
               -1,
               -2,
               INT_MAX,
@@ -803,7 +804,7 @@ void RNA_api_ui_layout(StructRNA *srna)
               "The index of this button, when set a single member of an array can be accessed, "
               "when set to -1 all array members are used",
               -2,
-              INT_MAX); /* RNA_NO_INDEX == -1 */
+              INT_MAX);
   parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
   RNA_def_boolean(func, "invert_checkbox", false, "", "Draw checkbox value inverted");

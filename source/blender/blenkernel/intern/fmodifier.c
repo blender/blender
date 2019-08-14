@@ -555,8 +555,10 @@ int BKE_fcm_envelope_find_index(FCM_EnvelopeData array[],
    */
   for (loopbreaker = 0; (start <= end) && (loopbreaker < maxloop); loopbreaker++) {
     /* compute and get midpoint */
-    int mid = start + ((end - start) /
-                       2); /* we calculate the midpoint this way to avoid int overflows... */
+
+    /* we calculate the midpoint this way to avoid int overflows... */
+    int mid = start + ((end - start) / 2);
+
     float midfra = array[mid].time;
 
     /* check if exactly equal to midpoint */

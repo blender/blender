@@ -2737,8 +2737,10 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 
     /* check if we will calculate tilt data */
     do_tilt = CU_DO_TILT(cu, nu);
-    do_radius = CU_DO_RADIUS(
-        cu, nu); /* normal display uses the radius, better just to calculate them */
+
+    /* Normal display uses the radius, better just to calculate them. */
+    do_radius = CU_DO_RADIUS(cu, nu);
+
     do_weight = true;
 
     /* check we are a single point? also check we are not a surface and that the orderu is sane,

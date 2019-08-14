@@ -262,8 +262,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
             BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
               mul_transposed_m3_v3(nmat, efa->no);
               normalize_v3(efa->no);
-              BM_elem_flag_enable(
-                  efa, BM_FACE_TAG); /* temp tag to test which side split faces are from */
+
+              /* Temp tag to test which side split faces are from. */
+              BM_elem_flag_enable(efa, BM_FACE_TAG);
 
               /* remap material */
               if (LIKELY(efa->mat_nr < ob_src_totcol)) {

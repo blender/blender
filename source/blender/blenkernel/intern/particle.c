@@ -1764,8 +1764,9 @@ void psys_particle_on_dm(Mesh *mesh_final,
         copy_v3_v3(nor, tmpnor);
       }
 
-      normalize_v3(
-          tmpnor); /* XXX Why not normalize tmpnor before copying it into nor??? -- mont29 */
+      /* XXX Why not normalize tmpnor before copying it into nor??? -- mont29 */
+      normalize_v3(tmpnor);
+
       mul_v3_fl(tmpnor, -foffset);
       add_v3_v3(vec, tmpnor);
     }

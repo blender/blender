@@ -6477,8 +6477,8 @@ char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, in
   PropertyRNA *prop = RNA_struct_find_property(ptr, name);
 
   if (prop) {
-    return RNA_property_string_get_alloc(
-        ptr, prop, fixedbuf, fixedlen, NULL); /* TODO, pass length */
+    /* TODO, pass length */
+    return RNA_property_string_get_alloc(ptr, prop, fixedbuf, fixedlen, NULL);
   }
   else {
     printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name);

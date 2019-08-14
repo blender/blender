@@ -80,10 +80,12 @@ static BMFace *remdoubles_createface(BMesh *bm,
 {
   BMEdge *e_new;
 
-  BMEdge **edges = BLI_array_alloca(edges, f->len); /* new ordered edges */
-  BMVert **verts = BLI_array_alloca(verts, f->len); /* new ordered verts */
-  BMLoop **loops = BLI_array_alloca(
-      loops, f->len); /* original ordered loops to copy attrs into the new face */
+  /* New ordered edges. */
+  BMEdge **edges = BLI_array_alloca(edges, f->len);
+  /* New ordered verts. */
+  BMVert **verts = BLI_array_alloca(verts, f->len);
+  /* Original ordered loops to copy attributes into the new face. */
+  BMLoop **loops = BLI_array_alloca(loops, f->len);
 
   STACK_DECLARE(edges);
   STACK_DECLARE(loops);

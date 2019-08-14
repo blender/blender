@@ -241,9 +241,9 @@ Alembic::Abc::TimeSamplingPtr AbcExporter::createTimeSampling(double step)
 
   getShutterSamples(step, true, samples);
 
-  Alembic::Abc::TimeSamplingType ts(
-      static_cast<uint32_t>(samples.size()),
-      1.0 / m_settings.scene->r.frs_sec); /* TODO(Sybren): shouldn't we use the FPS macro here? */
+  /* TODO(Sybren): shouldn't we use the FPS macro here? */
+  Alembic::Abc::TimeSamplingType ts(static_cast<uint32_t>(samples.size()),
+                                    1.0 / m_settings.scene->r.frs_sec);
 
   return TimeSamplingPtr(new Alembic::Abc::TimeSampling(ts, samples));
 }

@@ -1149,8 +1149,9 @@ Object *MeshImporter::create_mesh_object(
   BKE_mesh_assign_object(m_bmain, ob, new_mesh);
   BKE_mesh_calc_normals(new_mesh);
 
-  id_us_plus(
-      &old_mesh->id); /* Because BKE_mesh_assign_object would have already decreased it... */
+  /* Because BKE_mesh_assign_object would have already decreased it... */
+  id_us_plus(&old_mesh->id);
+
   BKE_id_free_us(m_bmain, old_mesh);
 
   COLLADAFW::MaterialBindingArray &mat_array = geom->getMaterialBindings();

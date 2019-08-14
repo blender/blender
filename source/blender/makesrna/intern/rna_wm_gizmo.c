@@ -870,9 +870,10 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
 
   /* create a new gizmogroup type */
   dummywgt.ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummywgt.idname, &RNA_GizmoGroup);
-  RNA_def_struct_flag(
-      dummywgt.ext.srna,
-      STRUCT_NO_IDPROPERTIES); /* gizmogroup properties are registered separately */
+
+  /* Gizmo group properties are registered separately. */
+  RNA_def_struct_flag(dummywgt.ext.srna, STRUCT_NO_IDPROPERTIES);
+
   dummywgt.ext.data = data;
   dummywgt.ext.call = call;
   dummywgt.ext.free = free;

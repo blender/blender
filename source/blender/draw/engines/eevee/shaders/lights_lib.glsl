@@ -393,8 +393,8 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
         return vec3(0.0);
       }
 
-      float range = abs(data.sh_far -
-                        data.sh_near); /* Same factor as in get_cascade_world_distance(). */
+      /* Same factor as in get_cascade_world_distance(). */
+      float range = abs(data.sh_far - data.sh_near);
 
       vec4 shpos = shadows_cascade_data[scd_id].shadowmat[int(id)] * vec4(W, 1.0);
       float dist = shpos.z * range;

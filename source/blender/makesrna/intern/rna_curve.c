@@ -1215,8 +1215,8 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
   RNA_def_property_ui_text(prop, "Body Text", "Content of this text object");
   RNA_def_property_string_funcs(
       prop, "rna_Curve_body_get", "rna_Curve_body_length", "rna_Curve_body_set");
-  RNA_def_property_string_maxlength(prop,
-                                    8192); /* note that originally str did not have a limit! */
+  /* note that originally str did not have a limit! */
+  RNA_def_property_string_maxlength(prop, 8192);
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "body_format", PROP_COLLECTION, PROP_NONE);

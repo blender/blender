@@ -1406,8 +1406,10 @@ static int wm_operator_invoke(bContext *C,
 
   if (WM_operator_poll(C, ot)) {
     wmWindowManager *wm = CTX_wm_manager(C);
-    wmOperator *op = wm_operator_create(
-        wm, ot, properties, reports); /* if reports == NULL, they'll be initialized */
+
+    /* if reports == NULL, they'll be initialized */
+    wmOperator *op = wm_operator_create(wm, ot, properties, reports);
+
     const bool is_nested_call = (wm->op_undo_depth != 0);
 
     if (event != NULL) {

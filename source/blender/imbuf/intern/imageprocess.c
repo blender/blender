@@ -110,8 +110,8 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, in
     return;
   }
 
-  pixel_from_buffer(
-      out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
+  /* gcc warns these could be uninitialized, but its ok. */
+  pixel_from_buffer(out, &outI, &outF, xout, yout);
 
   bicubic_interpolation_color(in, outI, outF, u, v);
 }
@@ -220,8 +220,8 @@ void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, i
     return;
   }
 
-  pixel_from_buffer(
-      out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
+  /* gcc warns these could be uninitialized, but its ok. */
+  pixel_from_buffer(out, &outI, &outF, xout, yout);
 
   bilinear_interpolation_color(in, outI, outF, u, v);
 }
@@ -332,8 +332,8 @@ void nearest_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, in
     return;
   }
 
-  pixel_from_buffer(
-      out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
+  /* gcc warns these could be uninitialized, but its ok. */
+  pixel_from_buffer(out, &outI, &outF, xout, yout);
 
   nearest_interpolation_color(in, outI, outF, x, y);
 }

@@ -2931,8 +2931,8 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 
     prop = RNA_def_property(srna, id, PROP_STRING, subtype);
     if (maxlen != 0) {
-      RNA_def_property_string_maxlength(prop,
-                                        maxlen + 1); /* +1 since it includes null terminator */
+      /* +1 since it includes null terminator. */
+      RNA_def_property_string_maxlength(prop, maxlen + 1);
     }
     if (def && def[0]) {
       RNA_def_property_string_default(prop, def);

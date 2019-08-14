@@ -506,8 +506,10 @@ static int binarysearch_bezt_index_ex(
    */
   for (loopbreaker = 0; (start <= end) && (loopbreaker < maxloop); loopbreaker++) {
     /* compute and get midpoint */
-    int mid = start + ((end - start) /
-                       2); /* we calculate the midpoint this way to avoid int overflows... */
+
+    /* We calculate the midpoint this way to avoid int overflows... */
+    int mid = start + ((end - start) / 2);
+
     float midfra = array[mid].vec[1][0];
 
     /* check if exactly equal to midpoint */

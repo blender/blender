@@ -1168,10 +1168,8 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
     case ID_CA:
       return ELEM(id_type_used, ID_OB);
     case ID_KE:
-      return ELEM(id_type_used,
-                  ID_ME,
-                  ID_CU,
-                  ID_LT); /* Warning! key->from, could be more types in future? */
+      /* Warning! key->from, could be more types in future? */
+      return ELEM(id_type_used, ID_ME, ID_CU, ID_LT);
     case ID_SCR:
       return ELEM(id_type_used, ID_SCE);
     case ID_WO:
@@ -1190,7 +1188,8 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
     case ID_MC:
       return ELEM(id_type_used, ID_GD, ID_IM);
     case ID_MSK:
-      return ELEM(id_type_used, ID_MC); /* WARNING! mask->parent.id, not typed. */
+      /* WARNING! mask->parent.id, not typed. */
+      return ELEM(id_type_used, ID_MC);
     case ID_LS:
       return (ELEM(id_type_used, ID_TE, ID_OB));
     case ID_LP:

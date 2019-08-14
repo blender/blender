@@ -448,8 +448,9 @@ static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short 
   if (IS_EQF(strip->scale, 0.0f)) {
     strip->scale = 1.0f;
   }
-  scale = fabsf(
-      strip->scale); /* scale must be positive - we've got a special flag for reversing */
+
+  /* Scale must be positive - we've got a special flag for reversing. */
+  scale = fabsf(strip->scale);
 
   /* length of referenced action */
   actlength = strip->actend - strip->actstart;
@@ -1280,9 +1281,9 @@ static void nlastrip_fix_resize_overlaps(NlaStrip *strip)
          * then offset everything else by the remaining defict to give the strip room
          */
         nls->start = nls->end - 1.0f;
-        offset = ceilf(
-            strip->end -
-            nls->start); /* XXX: review whether preventing fractionals is good here... */
+
+        /* XXX: review whether preventing fractionals is good here... */
+        offset = ceilf(strip->end - nls->start);
 
         /* apply necessary offset to ensure that the strip has enough space */
         for (; nls; nls = nls->next) {
@@ -1329,9 +1330,9 @@ static void nlastrip_fix_resize_overlaps(NlaStrip *strip)
          * then offset everything else by the remaining defict to give the strip room
          */
         nls->end = nls->start + 1.0f;
-        offset = ceilf(
-            nls->end -
-            strip->start); /* XXX: review whether preventing fractionals is good here... */
+
+        /* XXX: review whether preventing fractionals is good here... */
+        offset = ceilf(nls->end - strip->start);
 
         /* apply necessary offset to ensure that the strip has enough space */
         for (; nls; nls = nls->next) {

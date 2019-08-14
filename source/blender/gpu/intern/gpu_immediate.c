@@ -220,8 +220,10 @@ void immBegin(GPUPrimType prim_type, uint vertex_len)
   /* does the current buffer have enough room? */
   const uint available_bytes = IMM_BUFFER_SIZE - imm.buffer_offset;
   /* ensure vertex data is aligned */
-  const uint pre_padding = padding(
-      imm.buffer_offset, imm.vertex_format.stride); /* might waste a little space, but it's safe */
+
+  /* Might waste a little space, but it's safe. */
+  const uint pre_padding = padding(imm.buffer_offset, imm.vertex_format.stride);
+
   if ((bytes_needed + pre_padding) <= available_bytes) {
     imm.buffer_offset += pre_padding;
   }

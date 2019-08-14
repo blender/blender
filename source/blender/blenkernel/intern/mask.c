@@ -892,8 +892,8 @@ void BKE_mask_copy_data(Main *UNUSED(bmain),
 {
   BLI_listbase_clear(&mask_dst->masklayers);
 
-  BKE_mask_layer_copy_list(&mask_dst->masklayers,
-                           &mask_src->masklayers); /* TODO add unused flag to those as well. */
+  /* TODO add unused flag to those as well. */
+  BKE_mask_layer_copy_list(&mask_dst->masklayers, &mask_src->masklayers);
 
   /* enable fake user by default */
   id_fake_user_set(&mask_dst->id);
@@ -1766,10 +1766,10 @@ static void interp_weights_uv_v2_calc(float r_uv[2],
 {
   float pt_on_line[2];
   r_uv[0] = closest_to_line_v2(pt_on_line, pt, pt_a, pt_b);
+
   r_uv[1] = (len_v2v2(pt_on_line, pt) / len_v2v2(pt_a, pt_b)) *
-            ((line_point_side_v2(pt_a, pt_b, pt) < 0.0f) ?
-                 -1.0f :
-                 1.0f); /* this line only sets the sign */
+            /* This line only sets the sign. */
+            ((line_point_side_v2(pt_a, pt_b, pt) < 0.0f) ? -1.0f : 1.0f);
 }
 
 static void interp_weights_uv_v2_apply(const float uv[2],

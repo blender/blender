@@ -953,8 +953,10 @@ bool RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *v
 bool RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_editable_info(PointerRNA *ptr, PropertyRNA *prop, const char **r_info);
 bool RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index);
-bool RNA_property_editable_flag(PointerRNA *ptr,
-                                PropertyRNA *prop); /* without lib check, only checks the flag */
+
+/* without lib check, only checks the flag */
+bool RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop);
+
 bool RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_overridable_get(PointerRNA *ptr, PropertyRNA *prop);

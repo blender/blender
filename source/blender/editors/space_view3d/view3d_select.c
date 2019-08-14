@@ -3504,8 +3504,8 @@ static bool paint_vertsel_circle_select(ViewContext *vc,
 
   bool changed = false;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    changed |= paintvert_deselect_all_visible(
-        ob, SEL_DESELECT, false); /* flush selection at the end */
+    /* Flush selection at the end. */
+    changed |= paintvert_deselect_all_visible(ob, SEL_DESELECT, false);
   }
 
   const bool select = (sel_op != SEL_OP_SUB);

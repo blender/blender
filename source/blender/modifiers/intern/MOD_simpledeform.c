@@ -351,10 +351,8 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
       simpleDeform_callback(smd_factor, deform_axis, dcut_remap, co_remap); /* apply deform */
       copy_v3_v3_unmap(co, co_remap, axis_map);
 
-      interp_v3_v3v3(vertexCos[i],
-                     vertexCos[i],
-                     co,
-                     weight); /* Use vertex weight has coef of linear interpolation */
+      /* Use vertex weight has coef of linear interpolation */
+      interp_v3_v3v3(vertexCos[i], vertexCos[i], co, weight);
 
       if (transf) {
         BLI_space_transform_invert(transf, vertexCos[i]);
