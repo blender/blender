@@ -78,6 +78,9 @@ void wm_autosave_delete(void);
 void wm_autosave_read(bContext *C, struct ReportList *reports);
 void wm_autosave_location(char *filepath);
 
+/* wm_splash_screen.c */
+void WM_OT_splash(wmOperatorType *ot);
+
 /* wm_stereo.c */
 void wm_stereo3d_draw_interlace(wmWindow *win, struct ARegion *ar);
 void wm_stereo3d_draw_anaglyph(wmWindow *win, struct ARegion *ar);
