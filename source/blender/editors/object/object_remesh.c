@@ -119,7 +119,6 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
-  BKE_mesh_free(new_mesh);
 
   if (mesh->flag & ME_REMESH_REPROJECT_PAINT_MASK) {
     BKE_remesh_reproject_paint_mask(mesh, obj_mesh_copy);
