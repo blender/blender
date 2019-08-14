@@ -5280,6 +5280,21 @@ MapRangeNode::MapRangeNode() : ShaderNode(node_type)
 {
 }
 
+void MapRangeNode::expand(ShaderGraph *graph)
+{
+  if (clamp) {
+    ShaderOutput *result_out = output("Result");
+    if (!result_out->links.empty()) {
+      ClampNode *clamp_node = new ClampNode();
+      clamp_node->min = to_min;
+      clamp_node->max = to_max;
+      graph->add(clamp_node);
+      graph->relink(result_out, clamp_node->output("Result"));
+      graph->connect(result_out, clamp_node->input("Value"));
+    }
+  }
+}
+
 void MapRangeNode::constant_fold(const ConstantFolder &folder)
 {
   if (folder.all_inputs_constant()) {

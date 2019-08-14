@@ -50,7 +50,7 @@ DefNode(ShaderNode,     SH_NODE_MAPPING,         def_sh_mapping,         "MAPPIN
 DefNode(ShaderNode,     SH_NODE_CURVE_VEC,       def_vector_curve,       "CURVE_VEC",      VectorCurve,      "Vector Curves",     ""              )
 DefNode(ShaderNode,     SH_NODE_CURVE_RGB,       def_rgb_curve,          "CURVE_RGB",      RGBCurve,         "RGB Curves",        ""              )
 DefNode(ShaderNode,     SH_NODE_CAMERA,          0,                      "CAMERA",         CameraData,       "Camera Data",       ""              )
-DefNode(ShaderNode,     SH_NODE_MAP_RANGE,       0,                      "MAP_RANGE",      MapRange,         "Map Range",         ""              )
+DefNode(ShaderNode,     SH_NODE_MAP_RANGE,       def_map_range,          "MAP_RANGE",      MapRange,         "Map Range",         ""              )
 DefNode(ShaderNode,     SH_NODE_CLAMP,           0,                      "CLAMP",          Clamp,            "Clamp",             ""              )
 DefNode(ShaderNode,     SH_NODE_MATH,            def_math,               "MATH",           Math,             "Math",              ""              )
 DefNode(ShaderNode,     SH_NODE_VECT_MATH,       def_vector_math,        "VECT_MATH",      VectorMath,       "Vector Math",       ""              )

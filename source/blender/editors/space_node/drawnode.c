@@ -249,6 +249,11 @@ static void node_buts_texture(uiLayout *layout, bContext *UNUSED(C), PointerRNA 
   }
 }
 
+static void node_buts_map_range(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "clamp", 0, NULL, ICON_NONE);
+}
+
 static void node_buts_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
@@ -1208,6 +1213,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
       break;
     case SH_NODE_VALTORGB:
       ntype->draw_buttons = node_buts_colorramp;
+      break;
+    case SH_NODE_MAP_RANGE:
+      ntype->draw_buttons = node_buts_map_range;
       break;
     case SH_NODE_MATH:
       ntype->draw_buttons = node_buts_math;

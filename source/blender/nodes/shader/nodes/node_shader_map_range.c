@@ -37,13 +37,22 @@ static bNodeSocketTemplate sh_node_map_range_out[] = {
     {-1, 0, ""},
 };
 
+static void node_shader_init_map_range(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  node->custom1 = true;
+}
+
 static int gpu_shader_map_range(GPUMaterial *mat,
                                 bNode *node,
                                 bNodeExecData *UNUSED(execdata),
                                 GPUNodeStack *in,
                                 GPUNodeStack *out)
 {
-  return GPU_stack_link(mat, node, "map_range", in, out);
+  GPU_stack_link(mat, node, "map_range", in, out);
+  if (node->custom1) {
+    GPU_link(mat, "clamp_value", out[0].link, in[3].link, in[4].link, &out[0].link);
+  }
+  return 1;
 }
 
 void register_node_type_sh_map_range(void)
@@ -52,6 +61,7 @@ void register_node_type_sh_map_range(void)
 
   sh_node_type_base(&ntype, SH_NODE_MAP_RANGE, "Map Range", NODE_CLASS_CONVERTOR, 0);
   node_type_socket_templates(&ntype, sh_node_map_range_in, sh_node_map_range_out);
+  node_type_init(&ntype, node_shader_init_map_range);
   node_type_gpu(&ntype, gpu_shader_map_range);
 
   nodeRegisterType(&ntype);

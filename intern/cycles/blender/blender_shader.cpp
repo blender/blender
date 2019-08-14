@@ -316,7 +316,10 @@ static ShaderNode *add_node(Scene *scene,
     node = new RGBToBWNode();
   }
   else if (b_node.is_a(&RNA_ShaderNodeMapRange)) {
-    node = new MapRangeNode();
+    BL::ShaderNodeMapRange b_map_range_node(b_node);
+    MapRangeNode *map_range_node = new MapRangeNode();
+    map_range_node->clamp = b_map_range_node.clamp();
+    node = map_range_node;
   }
   else if (b_node.is_a(&RNA_ShaderNodeClamp)) {
     node = new ClampNode();
