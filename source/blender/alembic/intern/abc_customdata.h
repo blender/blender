@@ -28,11 +28,11 @@
 #include <Alembic/AbcGeom/All.h>
 
 struct CustomData;
-struct Mesh;
 struct MLoop;
 struct MLoopUV;
 struct MPoly;
 struct MVert;
+struct Mesh;
 
 using Alembic::Abc::ICompoundProperty;
 using Alembic::Abc::OCompoundProperty;

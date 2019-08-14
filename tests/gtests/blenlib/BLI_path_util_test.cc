@@ -619,7 +619,6 @@ TEST(path_util, PathFrameGet)
 }
 #undef PATH_FRAME_GET
 
-
 /* BLI_path_extension */
 TEST(path_util, PathExtension)
 {
@@ -627,8 +626,8 @@ TEST(path_util, PathExtension)
   EXPECT_EQ(NULL, BLI_path_extension("Text"));
   EXPECT_EQ(NULL, BLI_path_extension("Text…001"));
 
-  EXPECT_STREQ(".",  BLI_path_extension("some/file."));
-  EXPECT_STREQ(".gz",  BLI_path_extension("some/file.tar.gz"));
+  EXPECT_STREQ(".", BLI_path_extension("some/file."));
+  EXPECT_STREQ(".gz", BLI_path_extension("some/file.tar.gz"));
   EXPECT_STREQ(".abc", BLI_path_extension("some.def/file.abc"));
   EXPECT_STREQ(".abc", BLI_path_extension("C:\\some.def\\file.abc"));
   EXPECT_STREQ(".001", BLI_path_extension("Text.001"));

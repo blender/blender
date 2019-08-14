@@ -28,12 +28,12 @@
 extern "C" {
 #endif
 
-struct bNode;
 struct ID;
 struct Main;
 struct Material;
 struct Object;
 struct Scene;
+struct bNode;
 
 /* materials */
 

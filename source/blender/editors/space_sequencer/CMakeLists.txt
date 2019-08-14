@@ -20,8 +20,8 @@ set(INC
   ../../blenkernel
   ../../blenlib
   ../../blentranslation
-  ../../gpu
   ../../depsgraph
+  ../../gpu
   ../../imbuf
   ../../makesdna
   ../../makesrna

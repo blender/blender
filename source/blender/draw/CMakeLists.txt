@@ -128,8 +128,8 @@ set(SRC
   engines/gpencil/gpencil_engine.h
   engines/gpencil/gpencil_render.c
   engines/gpencil/gpencil_shader_fx.c
-  engines/select/select_engine.c
   engines/select/select_draw_utils.c
+  engines/select/select_engine.c
 
   DRW_engine.h
   DRW_select_buffer.h

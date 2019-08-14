@@ -36,9 +36,9 @@
 /* Uncomment this define to get helpful debugging functions etc. defined. */
 // #define DEBUG_CDT
 
-struct CDTVert;
 struct CDTEdge;
 struct CDTFace;
+struct CDTVert;
 
 typedef struct SymEdge {
   struct SymEdge *next; /* In face, doing CCW traversal of face. */

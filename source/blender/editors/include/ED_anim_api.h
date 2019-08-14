@@ -25,9 +25,9 @@
 #define __ED_ANIM_API_H__
 
 struct AnimData;
+struct Depsgraph;
 struct ID;
 struct ListBase;
-struct Depsgraph;
 
 struct ARegion;
 struct Main;

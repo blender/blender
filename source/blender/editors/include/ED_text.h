@@ -25,11 +25,11 @@
 #define __ED_TEXT_H__
 
 struct ARegion;
-struct bContext;
 struct SpaceText;
 struct Text;
 struct UndoStep;
 struct UndoType;
+struct bContext;
 
 bool ED_text_region_location_from_cursor(struct SpaceText *st,
                                          struct ARegion *ar,

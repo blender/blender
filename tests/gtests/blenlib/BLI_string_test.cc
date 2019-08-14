@@ -590,7 +590,6 @@ TEST(string, StringStrncasestr)
   EXPECT_EQ(res, (void *)NULL);
 }
 
-
 /* BLI_string_is_decimal */
 TEST(string, StrIsDecimal)
 {

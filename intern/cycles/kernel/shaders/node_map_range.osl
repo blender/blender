@@ -16,8 +16,12 @@
 
 #include "stdosl.h"
 
-shader node_map_range(float Value = 1.0, float FromMin = 0.0, float FromMax = 1.0,
-                      float ToMin = 0.0, float ToMax = 1.0, output float Result = 0.0)
+shader node_map_range(float Value = 1.0,
+                      float FromMin = 0.0,
+                      float FromMax = 1.0,
+                      float ToMin = 0.0,
+                      float ToMax = 1.0,
+                      output float Result = 0.0)
 {
   if (FromMax != FromMin) {
     Result = ToMin + ((Value - FromMin) / (FromMax - FromMin)) * (ToMax - ToMin);
