@@ -101,34 +101,38 @@ Mesh *BKE_mesh_remesh_voxel_ovdb_volume_to_mesh_nomain(struct OpenVDBLevelSet *l
       level_set, &output_mesh, isovalue, adaptivity, relax_disoriented_triangles);
 #  endif
 
-  Mesh *mesh = BKE_mesh_new_nomain(
-      output_mesh.totvertices, 0, output_mesh.totquads + output_mesh.tottriangles, 0, 0);
-  int q = output_mesh.totquads;
+  Mesh *mesh = BKE_mesh_new_nomain(output_mesh.totvertices,
+                                   0,
+                                   0,
+                                   (output_mesh.totquads * 4) + (output_mesh.tottriangles * 3),
+                                   output_mesh.totquads + output_mesh.tottriangles);
 
   for (int i = 0; i < output_mesh.totvertices; i++) {
-    float vco[3] = {output_mesh.vertices[i * 3],
-                    output_mesh.vertices[i * 3 + 1],
-                    output_mesh.vertices[i * 3 + 2]};
-    copy_v3_v3(mesh->mvert[i].co, vco);
+    copy_v3_v3(mesh->mvert[i].co, &output_mesh.vertices[i * 3]);
   }
 
-  for (int i = 0; i < output_mesh.totquads; i++) {
-    mesh->mface[i].v4 = output_mesh.quads[i * 4];
-    mesh->mface[i].v3 = output_mesh.quads[i * 4 + 1];
-    mesh->mface[i].v2 = output_mesh.quads[i * 4 + 2];
-    mesh->mface[i].v1 = output_mesh.quads[i * 4 + 3];
+  MPoly *mp = mesh->mpoly;
+  MLoop *ml = mesh->mloop;
+  for (int i = 0; i < output_mesh.totquads; i++, mp++, ml += 4) {
+    mp->loopstart = (int)(ml - mesh->mloop);
+    mp->totloop = 4;
+
+    ml[0].v = output_mesh.quads[i * 4 + 3];
+    ml[1].v = output_mesh.quads[i * 4 + 2];
+    ml[2].v = output_mesh.quads[i * 4 + 1];
+    ml[3].v = output_mesh.quads[i * 4];
   }
 
-  for (int i = 0; i < output_mesh.tottriangles; i++) {
-    mesh->mface[i + q].v4 = 0;
-    mesh->mface[i + q].v3 = output_mesh.triangles[i * 3];
-    mesh->mface[i + q].v2 = output_mesh.triangles[i * 3 + 1];
-    mesh->mface[i + q].v1 = output_mesh.triangles[i * 3 + 2];
+  for (int i = 0; i < output_mesh.tottriangles; i++, mp++, ml += 3) {
+    mp->loopstart = (int)(ml - mesh->mloop);
+    mp->totloop = 3;
+
+    ml[0].v = output_mesh.triangles[i * 3 + 2];
+    ml[1].v = output_mesh.triangles[i * 3 + 1];
+    ml[2].v = output_mesh.triangles[i * 3];
   }
 
-  BKE_mesh_calc_edges_tessface(mesh);
-  BKE_mesh_convert_mfaces_to_mpolys(mesh);
-  BKE_mesh_tessface_clear(mesh);
+  BKE_mesh_calc_edges(mesh, false, false);
   BKE_mesh_calc_normals(mesh);
 
   MEM_freeN(output_mesh.quads);
