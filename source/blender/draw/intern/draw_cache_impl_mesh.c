@@ -244,10 +244,12 @@ static void mesh_cd_extract_auto_layers_names_and_srgb(Mesh *me,
   for (int i = 0; i < uv_len; i++) {
     if ((cd_used.uv & (1 << i)) != 0) {
       const char *name = CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, i);
-      uint hash = BLI_ghashutil_strhash_p(name);
+      char safe_name[GPU_MAX_SAFE_ATTRIB_NAME];
+      GPU_vertformat_safe_attrib_name(name, safe_name, GPU_MAX_SAFE_ATTRIB_NAME);
+      auto_ofs += BLI_snprintf_rlen(
+          auto_names + auto_ofs, auto_names_len - auto_ofs, "ba%s", safe_name);
       /* +1 to include '\0' terminator. */
-      auto_ofs += 1 + BLI_snprintf_rlen(
-                          auto_names + auto_ofs, auto_names_len - auto_ofs, "ba%u", hash);
+      auto_ofs += 1;
     }
   }
 
@@ -257,10 +259,12 @@ static void mesh_cd_extract_auto_layers_names_and_srgb(Mesh *me,
       const char *name = CustomData_get_layer_name(cd_ldata, CD_MLOOPCOL, i);
       /* We only do vcols that are not overridden by a uv layer with same name. */
       if (CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, name) == -1) {
-        uint hash = BLI_ghashutil_strhash_p(name);
+        char safe_name[GPU_MAX_SAFE_ATTRIB_NAME];
+        GPU_vertformat_safe_attrib_name(name, safe_name, GPU_MAX_SAFE_ATTRIB_NAME);
+        auto_ofs += BLI_snprintf_rlen(
+            auto_names + auto_ofs, auto_names_len - auto_ofs, "ba%s", safe_name);
         /* +1 to include '\0' terminator. */
-        auto_ofs += 1 + BLI_snprintf_rlen(
-                            auto_names + auto_ofs, auto_names_len - auto_ofs, "ba%u", hash);
+        auto_ofs += 1;
         auto_is_srgb[auto_is_srgb_ofs] = true;
         auto_is_srgb_ofs++;
       }

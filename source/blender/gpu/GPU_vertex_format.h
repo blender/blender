@@ -32,8 +32,10 @@
 
 #define GPU_VERT_ATTR_MAX_LEN 16
 #define GPU_VERT_ATTR_MAX_NAMES 6
-#define GPU_VERT_ATTR_NAME_AVERAGE_LEN 11
-#define GPU_VERT_ATTR_NAMES_BUF_LEN ((GPU_VERT_ATTR_NAME_AVERAGE_LEN + 1) * GPU_VERT_ATTR_MAX_LEN)
+#define GPU_VERT_ATTR_NAMES_BUF_LEN 256
+#define GPU_VERT_FORMAT_MAX_NAMES 63 /* More than enough, actual max is ~30. */
+/* Computed as GPU_VERT_ATTR_NAMES_BUF_LEN / 30 (actual max format name). */
+#define GPU_MAX_SAFE_ATTRIB_NAME 8
 
 typedef enum {
   GPU_COMP_I8,
@@ -80,8 +82,8 @@ BLI_STATIC_ASSERT(GPU_VERT_ATTR_NAMES_BUF_LEN <= 256,
 typedef struct GPUVertFormat {
   /** 0 to 16 (GPU_VERT_ATTR_MAX_LEN). */
   uint attr_len : 5;
-  /** Total count of active vertex attribute. */
-  uint name_len : 5;
+  /** Total count of active vertex attribute names. (max GPU_VERT_FORMAT_MAX_NAMES) */
+  uint name_len : 6;
   /** Stride in bytes, 1 to 1024. */
   uint stride : 11;
   /** Has the format been packed. */
@@ -116,6 +118,8 @@ BLI_INLINE const char *GPU_vertformat_attr_name_get(const GPUVertFormat *format,
 {
   return format->names + attr->names[n_idx];
 }
+
+void GPU_vertformat_safe_attrib_name(const char *attrib_name, char *r_safe_name, uint max_len);
 
 /* format conversion */
 

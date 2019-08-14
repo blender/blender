@@ -396,7 +396,9 @@ void GPU_shader_free_builtin_shaders(void);
 
 /* Vertex attributes for shaders */
 
-#define GPU_MAX_ATTR 32
+/* Hardware limit is 16. Position attribute is always needed so we reduce to 15.
+ * This makes sure the GPUVertexFormat name buffer does not overflow. */
+#define GPU_MAX_ATTR 15
 
 typedef struct GPUVertAttrLayers {
   struct {

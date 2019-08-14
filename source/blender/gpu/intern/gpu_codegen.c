@@ -46,6 +46,7 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 #include "GPU_uniformbuffer.h"
+#include "GPU_vertex_format.h"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 
@@ -1011,19 +1012,24 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
               ds, "#define att%d %s\n", input->attr_id, attr_prefix_get(input->attr_type));
         }
         else {
-          uint hash = BLI_ghashutil_strhash_p(input->attr_name);
+          char attr_safe_name[GPU_MAX_SAFE_ATTRIB_NAME];
+          GPU_vertformat_safe_attrib_name(
+              input->attr_name, attr_safe_name, GPU_MAX_SAFE_ATTRIB_NAME);
           BLI_dynstr_appendf(ds,
-                             "DEFINE_ATTR(%s, %s%u);\n",
+                             "DEFINE_ATTR(%s, %s%s);\n",
                              GPU_DATATYPE_STR[input->type],
                              attr_prefix_get(input->attr_type),
-                             hash);
-          BLI_dynstr_appendf(
-              ds, "#define att%d %s%u\n", input->attr_id, attr_prefix_get(input->attr_type), hash);
+                             attr_safe_name);
+          BLI_dynstr_appendf(ds,
+                             "#define att%d %s%s\n",
+                             input->attr_id,
+                             attr_prefix_get(input->attr_type),
+                             attr_safe_name);
           /* Auto attribute can be vertex color byte buffer.
            * We need to know and convert them to linear space in VS. */
           if (input->attr_type == CD_AUTO_FROM_NAME) {
-            BLI_dynstr_appendf(ds, "uniform bool ba%u;\n", hash);
-            BLI_dynstr_appendf(ds, "#define att%d_is_srgb ba%u\n", input->attr_id, hash);
+            BLI_dynstr_appendf(ds, "uniform bool ba%s;\n", attr_safe_name);
+            BLI_dynstr_appendf(ds, "#define att%d_is_srgb ba%s\n", input->attr_id, attr_safe_name);
           }
         }
         BLI_dynstr_appendf(ds,

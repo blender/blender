@@ -1570,23 +1570,17 @@ static void *extract_uv_tan_init(const MeshRenderData *mr, void *buf)
   bool orco_allocated = false;
   const bool use_orco_tan = mr->cache->cd_used.tan_orco != 0;
 
-  /* XXX FIXME XXX */
-  /* We use a hash to identify each data layer based on its name.
-   * Gawain then search for this name in the current shader and bind if it exists.
-   * NOTE : This is prone to hash collision.
-   * One solution to hash collision would be to format the cd layer name
-   * to a safe glsl var name, but without name clash.
-   * NOTE 2 : Replicate changes to code_generate_vertex_new() in gpu_codegen.c */
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (uv_layers & (1 << i)) {
-      char attr_name[32];
+      char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTRIB_NAME];
       const char *layer_name = CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, i);
-      uint hash = BLI_ghashutil_strhash_p(layer_name);
+
+      GPU_vertformat_safe_attrib_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTRIB_NAME);
       /* UV layer name. */
-      BLI_snprintf(attr_name, sizeof(attr_name), "u%u", hash);
+      BLI_snprintf(attr_name, sizeof(attr_name), "u%s", attr_safe_name);
       GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       /* Auto layer name. */
-      BLI_snprintf(attr_name, sizeof(attr_name), "a%u", hash);
+      BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
       GPU_vertformat_alias_add(&format, attr_name);
       /* Active render layer name. */
       if (i == CustomData_get_render_layer(cd_ldata, CD_MLOOPUV)) {
@@ -1610,11 +1604,11 @@ static void *extract_uv_tan_init(const MeshRenderData *mr, void *buf)
 
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (tan_layers & (1 << i)) {
-      char attr_name[32];
+      char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTRIB_NAME];
       const char *layer_name = CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, i);
-      uint hash = BLI_ghashutil_strhash_p(layer_name);
+      GPU_vertformat_safe_attrib_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTRIB_NAME);
       /* Tangent layer name. */
-      BLI_snprintf(attr_name, sizeof(attr_name), "t%u", hash);
+      BLI_snprintf(attr_name, sizeof(attr_name), "t%s", attr_safe_name);
       GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
       /* Active render layer name. */
       if (i == CustomData_get_render_layer(cd_ldata, CD_MLOOPUV)) {
@@ -1687,10 +1681,10 @@ static void *extract_uv_tan_init(const MeshRenderData *mr, void *buf)
   }
 
   if (use_orco_tan) {
-    char attr_name[32];
+    char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTRIB_NAME];
     const char *layer_name = CustomData_get_layer_name(cd_ldata, CD_TANGENT, 0);
-    uint hash = BLI_ghashutil_strhash_p(layer_name);
-    BLI_snprintf(attr_name, sizeof(*attr_name), "t%u", hash);
+    GPU_vertformat_safe_attrib_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTRIB_NAME);
+    BLI_snprintf(attr_name, sizeof(*attr_name), "t%s", attr_safe_name);
     GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     GPU_vertformat_alias_add(&format, "t");
     GPU_vertformat_alias_add(&format, "at");
@@ -1779,20 +1773,13 @@ static void *extract_vcol_init(const MeshRenderData *mr, void *buf)
   CustomData *cd_ldata = &mr->me->ldata;
   uint32_t vcol_layers = mr->cache->cd_used.vcol;
 
-  /* XXX FIXME XXX */
-  /* We use a hash to identify each data layer based on its name.
-   * Gawain then search for this name in the current shader and bind if it exists.
-   * NOTE : This is prone to hash collision.
-   * One solution to hash collision would be to format the cd layer name
-   * to a safe glsl var name, but without name clash.
-   * NOTE 2 : Replicate changes to code_generate_vertex_new() in gpu_codegen.c */
   for (int i = 0; i < 8; i++) {
     if (vcol_layers & (1 << i)) {
-      char attr_name[32];
+      char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTRIB_NAME];
       const char *layer_name = CustomData_get_layer_name(cd_ldata, CD_MLOOPCOL, i);
-      uint hash = BLI_ghashutil_strhash_p(layer_name);
+      GPU_vertformat_safe_attrib_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTRIB_NAME);
 
-      BLI_snprintf(attr_name, sizeof(attr_name), "c%u", hash);
+      BLI_snprintf(attr_name, sizeof(attr_name), "c%s", attr_safe_name);
       GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
       if (i == CustomData_get_render_layer(cd_ldata, CD_MLOOPCOL)) {
@@ -1804,7 +1791,7 @@ static void *extract_vcol_init(const MeshRenderData *mr, void *buf)
       /* Gather number of auto layers. */
       /* We only do vcols that are not overridden by uvs */
       if (CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, layer_name) == -1) {
-        BLI_snprintf(attr_name, sizeof(attr_name), "a%u", hash);
+        BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
         GPU_vertformat_alias_add(&format, attr_name);
       }
     }
