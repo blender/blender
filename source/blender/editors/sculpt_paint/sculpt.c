@@ -96,6 +96,9 @@
 
 /* Do not use these functions while working with PBVH_GRIDS data in SculptSession */
 
+/* TODO: why is this kept, should it be removed? */
+#if 0 /* UNUSED */
+
 static int sculpt_active_vertex_get(SculptSession *ss)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -206,7 +209,7 @@ static void sculpt_vertex_tag_update(SculptSession *ss, int index)
   }
 }
 
-#define SCULPT_VERTEX_NEIGHBOUR_FIXED_CAPACITY 256
+#  define SCULPT_VERTEX_NEIGHBOUR_FIXED_CAPACITY 256
 
 typedef struct SculptVertexNeighbourIter {
   int *neighbours;
@@ -309,17 +312,19 @@ static void sculpt_vertex_neighbours_get(SculptSession *ss,
   }
 }
 
-#define sculpt_vertex_neighbours_iter_begin(ss, v_index, neighbour_iterator) \
-  sculpt_vertex_neighbours_get(ss, v_index, &neighbour_iterator); \
-  for (neighbour_iterator.i = 0; neighbour_iterator.i < neighbour_iterator.size; \
-       neighbour_iterator.i++) { \
-    neighbour_iterator.index = ni.neighbours[ni.i];
+#  define sculpt_vertex_neighbours_iter_begin(ss, v_index, neighbour_iterator) \
+    sculpt_vertex_neighbours_get(ss, v_index, &neighbour_iterator); \
+    for (neighbour_iterator.i = 0; neighbour_iterator.i < neighbour_iterator.size; \
+         neighbour_iterator.i++) { \
+      neighbour_iterator.index = ni.neighbours[ni.i];
 
-#define sculpt_vertex_neighbours_iter_end(neighbour_iterator) \
-  } \
-  if (neighbour_iterator.neighbours != neighbour_iterator.neighbours_fixed) { \
-    MEM_freeN(neighbour_iterator.neighbours); \
-  }
+#  define sculpt_vertex_neighbours_iter_end(neighbour_iterator) \
+    } \
+    if (neighbour_iterator.neighbours != neighbour_iterator.neighbours_fixed) { \
+      MEM_freeN(neighbour_iterator.neighbours); \
+    }
+
+#endif /* UNUSED */
 
 /** \name Tool Capabilities
  *
