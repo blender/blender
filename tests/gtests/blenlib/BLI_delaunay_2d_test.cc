@@ -616,6 +616,33 @@ TEST(delaunay, OverlapFaces)
   BLI_delaunay_2d_cdt_free(out);
 }
 
+TEST(delaunay, TwoSquaresOverlap)
+{
+  CDT_input in;
+  CDT_result *out;
+  float p[][2] = {
+      {1.0f, -1.0f},
+      {-1.0f, -1.0f},
+      {-1.0f, 1.0f},
+      {1.0f, 1.0f},
+      {-1.5f, 1.5f},
+      {0.5f, 1.5f},
+      {0.5f, -0.5f},
+      {-1.5f, -0.5f},
+  };
+  int f[] = {/* 0 */ 7, 6, 5, 4, /* 1 */ 3, 2, 1, 0};
+  int fstart[] = {0, 4};
+  int flen[] = {4, 4};
+
+  fill_input_verts(&in, p, 8);
+  add_input_faces(&in, f, fstart, flen, 2);
+  out = BLI_delaunay_2d_cdt_calc(&in, CDT_CONSTRAINTS_VALID_BMESH);
+  EXPECT_EQ(out->verts_len, 10);
+  EXPECT_EQ(out->edges_len, 12);
+  EXPECT_EQ(out->faces_len, 3);
+  BLI_delaunay_2d_cdt_free(out);
+}
+
 enum {
   RANDOM_PTS,
   RANDOM_SEGS,
@@ -623,7 +650,7 @@ enum {
 };
 
 // #define DO_TIMING
-static void rand_delaunay_test(int test_kind, int max_lg_size, int reps_per_size)
+static void rand_delaunay_test(int test_kind, int max_lg_size, int reps_per_size, CDT_output_type otype)
 {
   CDT_input in;
   CDT_result *out;
@@ -679,7 +706,7 @@ static void rand_delaunay_test(int test_kind, int max_lg_size, int reps_per_size
         add_input_edges(&in, e, size - 1 + (test_kind == RANDOM_POLY));
       }
       tstart = PIL_check_seconds_timer();
-      out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
+      out = BLI_delaunay_2d_cdt_calc(&in, otype);
       EXPECT_NE(out->verts_len, 0);
       BLI_delaunay_2d_cdt_free(out);
       times[lg_size] += PIL_check_seconds_timer() - tstart;
@@ -700,17 +727,32 @@ static void rand_delaunay_test(int test_kind, int max_lg_size, int reps_per_size
 
 TEST(delaunay, randompts)
 {
-  rand_delaunay_test(RANDOM_PTS, 7, 1);
+  rand_delaunay_test(RANDOM_PTS, 7, 1, CDT_FULL);
 }
 
 TEST(delaunay, randomsegs)
 {
-  rand_delaunay_test(RANDOM_SEGS, 7, 1);
+  rand_delaunay_test(RANDOM_SEGS, 7, 1, CDT_FULL);
 }
 
 TEST(delaunay, randompoly)
 {
-  rand_delaunay_test(RANDOM_POLY, 7, 1);
+  rand_delaunay_test(RANDOM_POLY, 7, 1, CDT_FULL);
+}
+
+TEST(delaunay, randompoly_inside)
+{
+  rand_delaunay_test(RANDOM_POLY, 7, 1, CDT_INSIDE);
+}
+
+TEST(delaunay, randompoly_constraints)
+{
+  rand_delaunay_test(RANDOM_POLY, 7, 1, CDT_CONSTRAINTS);
+}
+
+TEST(delaunay, randompoly_validbmesh)
+{
+  rand_delaunay_test(RANDOM_POLY, 7, 1, CDT_CONSTRAINTS_VALID_BMESH);
 }
 
 #if 0

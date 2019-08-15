@@ -1961,19 +1961,31 @@ static void add_face_ids(
   }
 }
 
-/* Delete_edge but try not to mess up outer face. */
+/* Delete_edge but try not to mess up outer face. 
+ * Also faces have symedges now, so make sure not
+ * to mess those up either. */
 static void dissolve_symedge(CDT_state *cdt, SymEdge *se)
 {
-  if (sym(se)->face == cdt->outer_face) {
+  SymEdge *symse = sym(se);
+  if (symse->face == cdt->outer_face) {
     se = sym(se);
+    symse = sym(se);
   }
-  if (cdt->outer_face->symedge == se || cdt->outer_face->symedge == sym(se)) {
+  if (cdt->outer_face->symedge == se || cdt->outer_face->symedge == symse) {
     /* Advancing by 2 to get past possible 'sym(se)'. */
     if (se->next->next == se) {
       cdt->outer_face->symedge = NULL;
     }
     else {
       cdt->outer_face->symedge = se->next->next;
+    }
+  }
+  else {
+    if (se->face->symedge == se) {
+      se->face->symedge = se->next;
+    }
+    if (symse->face->symedge == se) {
+      symse->face->symedge = symse->next;
     }
   }
   delete_edge(cdt, se);
