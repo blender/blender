@@ -1744,6 +1744,7 @@ class USERPREF_PT_addons(Panel):
         row.operator("preferences.addon_refresh", icon='FILE_REFRESH', text="Refresh")
 
         row = layout.row()
+        row.prop(context.preferences.view, "show_addons_enabled_only")
         row.prop(context.window_manager, "addon_filter", text="")
         row.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
 
@@ -1770,6 +1771,7 @@ class USERPREF_PT_addons(Panel):
                 "(see console for details)",
             )
 
+        show_enabled_only = context.preferences.view.show_addons_enabled_only
         filter = context.window_manager.addon_filter
         search = context.window_manager.addon_search.lower()
         support = context.window_manager.addon_support
@@ -1786,13 +1788,15 @@ class USERPREF_PT_addons(Panel):
                 continue
 
             # check if addon should be visible with current filters
-            if (
-                    (filter == "All") or
-                    (filter == info["category"]) or
-                    (filter == "Enabled" and is_enabled) or
-                    (filter == "Disabled" and not is_enabled) or
-                    (filter == "User" and (mod.__file__.startswith(addon_user_dirs)))
-            ):
+            is_visible = (
+                (filter == "All") or
+                (filter == info["category"]) or
+                (filter == "User" and (mod.__file__.startswith(addon_user_dirs)))
+            )
+            if show_enabled_only:
+                is_visible = is_visible and is_enabled
+
+            if is_visible:
                 if search and search not in info["name"].lower():
                     if info["author"]:
                         if search not in info["author"].lower():

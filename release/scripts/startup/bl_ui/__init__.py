@@ -126,8 +126,6 @@ def register():
         items = [
             ('All', "All", "All Add-ons"),
             ('User', "User", "All Add-ons Installed by User"),
-            ('Enabled', "Enabled", "All Enabled Add-ons"),
-            ('Disabled', "Disabled", "All Disabled Add-ons"),
         ]
 
         items_unique = set()

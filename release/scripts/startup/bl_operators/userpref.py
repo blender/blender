@@ -667,6 +667,7 @@ class PREFERENCES_OT_addon_install(Operator):
                 info = addon_utils.module_bl_info(mod)
 
                 # show the newly installed addon.
+                context.preferences.view.show_addons_enabled_only = False
                 context.window_manager.addon_filter = 'All'
                 context.window_manager.addon_search = info["name"]
                 break
@@ -796,6 +797,7 @@ class PREFERENCES_OT_addon_show(Operator):
             info["show_expanded"] = True
 
             context.preferences.active_section = 'ADDONS'
+            context.preferences.view.show_addons_enabled_only = False
             context.window_manager.addon_filter = 'All'
             context.window_manager.addon_search = info["name"]
             bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
