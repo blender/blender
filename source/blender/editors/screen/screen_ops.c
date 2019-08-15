@@ -696,21 +696,9 @@ static bool actionzone_area_poll(bContext *C)
 
 /* the debug drawing of the click_rect is in area_draw_azone_fullscreen, keep both in sync */
 static void fullscreen_click_rcti_init(
-    rcti *rect, const short x1, const short y1, const short x2, const short y2)
+    rcti *rect, const short UNUSED(x1), const short UNUSED(y1), const short x2, const short y2)
 {
-  int x = x2 - ((float)x2 - x1) * 0.5f / UI_DPI_FAC;
-  int y = y2 - ((float)y2 - y1) * 0.5f / UI_DPI_FAC;
-  float icon_size = UI_DPI_ICON_SIZE + 7 * UI_DPI_FAC;
-
-  /* adjust the icon distance from the corner */
-  x += 36.0f / UI_DPI_FAC;
-  y += 36.0f / UI_DPI_FAC;
-
-  /* draws from the left bottom corner of the icon */
-  x -= UI_DPI_ICON_SIZE;
-  y -= UI_DPI_ICON_SIZE;
-
-  BLI_rcti_init(rect, x, x + icon_size, y, y + icon_size);
+  BLI_rcti_init(rect, x2 - U.widget_unit, x2, y2 - U.widget_unit, y2);
 }
 
 static bool azone_clipped_rect_calc(const AZone *az, rcti *r_rect_clip)

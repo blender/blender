@@ -188,51 +188,17 @@ void ED_area_do_refresh(bContext *C, ScrArea *sa)
 /**
  * \brief Corner widget use for quitting fullscreen.
  */
-static void area_draw_azone_fullscreen(short x1, short y1, short x2, short y2, float alpha)
+static void area_draw_azone_fullscreen(
+    short UNUSED(x1), short UNUSED(y1), short x2, short y2, float alpha)
 {
-  int x = x2 - ((float)x2 - x1) * 0.5f / UI_DPI_FAC;
-  int y = y2 - ((float)y2 - y1) * 0.5f / UI_DPI_FAC;
-
-  /* adjust the icon distance from the corner */
-  x += 36.0f / UI_DPI_FAC;
-  y += 36.0f / UI_DPI_FAC;
-
-  /* draws from the left bottom corner of the icon */
-  x -= UI_DPI_ICON_SIZE;
-  y -= UI_DPI_ICON_SIZE;
-
-  alpha = min_ff(alpha, 0.75f);
-
-  UI_icon_draw_ex(x, y, ICON_FULLSCREEN_EXIT, 0.7f * U.inv_dpi_fac, alpha, 0.0f, NULL, false);
-
-  /* debug drawing :
-   * The click_rect is the same as defined in fullscreen_click_rcti_init
-   * Keep them both in sync */
-
-  if (G.debug_value == 101) {
-    rcti click_rect;
-    float icon_size = UI_DPI_ICON_SIZE + 7 * UI_DPI_FAC;
-
-    BLI_rcti_init(&click_rect, x, x + icon_size, y, y + icon_size);
-
-    GPUVertFormat *format = immVertexFormat();
-    uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-    immUniformColor4f(1.0f, 0.0f, 0.0f, alpha);
-    imm_draw_box_wire_2d(pos, click_rect.xmin, click_rect.ymin, click_rect.xmax, click_rect.ymax);
-
-    immUniformColor4f(0.0f, 1.0f, 1.0f, alpha);
-    immBegin(GPU_PRIM_LINES, 4);
-    immVertex2f(pos, click_rect.xmin, click_rect.ymin);
-    immVertex2f(pos, click_rect.xmax, click_rect.ymax);
-    immVertex2f(pos, click_rect.xmin, click_rect.ymax);
-    immVertex2f(pos, click_rect.xmax, click_rect.ymin);
-    immEnd();
-
-    immUnbindProgram();
-  }
+  UI_icon_draw_ex(x2 - U.widget_unit,
+                  y2 - U.widget_unit,
+                  ICON_FULLSCREEN_EXIT,
+                  U.inv_dpi_fac,
+                  min_ff(alpha, 0.75f),
+                  0.0f,
+                  NULL,
+                  false);
 }
 
 /**
@@ -908,10 +874,10 @@ static void fullscreen_azone_initialize(ScrArea *sa, ARegion *ar)
   az->ar = ar;
   az->alpha = 0.0f;
 
-  az->x1 = ar->winrct.xmax - (AZONEFADEOUT - 1);
-  az->y1 = ar->winrct.ymax - (AZONEFADEOUT - 1);
   az->x2 = ar->winrct.xmax;
   az->y2 = ar->winrct.ymax;
+  az->x1 = az->x2 - AZONEFADEOUT;
+  az->y1 = az->y2 - AZONEFADEOUT;
   BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
