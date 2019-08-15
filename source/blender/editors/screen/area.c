@@ -368,7 +368,9 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
         }
       }
       else if (az->type == AZONE_FULLSCREEN) {
-        area_draw_azone_fullscreen(az->x1, az->y1, az->x2, az->y2, az->alpha);
+        if (az->alpha > 0.0f) {
+          area_draw_azone_fullscreen(az->x1, az->y1, az->x2, az->y2, az->alpha);
+        }
       }
     }
     if (!IS_EQF(az->alpha, 0.0f) && ELEM(az->type, AZONE_FULLSCREEN, AZONE_REGION_SCROLL)) {
