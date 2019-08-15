@@ -141,9 +141,7 @@ void DRW_draw_depth_object(struct ARegion *ar,
 void DRW_draw_select_id(struct Depsgraph *depsgraph,
                         struct ARegion *ar,
                         struct View3D *v3d,
-                        struct Base **bases,
-                        const uint bases_len,
-                        short select_mode);
+                        const struct rcti *rect);
 
 /* grease pencil render */
 bool DRW_render_check_grease_pencil(struct Depsgraph *depsgraph);

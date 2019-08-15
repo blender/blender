@@ -1116,11 +1116,12 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px,
   if (dist_px) {
     /* sample rect to increase chances of selecting, so that when clicking
      * on an edge in the backbuf, we can still select a face */
-    *r_index = DRW_select_buffer_find_nearest_to_point(mval, 1, me->totpoly + 1, &dist_px);
+    *r_index = DRW_select_buffer_find_nearest_to_point(
+        vc.depsgraph, vc.ar, vc.v3d, mval, 1, me->totpoly + 1, &dist_px);
   }
   else {
     /* sample only on the exact position */
-    *r_index = DRW_select_buffer_sample_point(mval);
+    *r_index = DRW_select_buffer_sample_point(vc.depsgraph, vc.ar, vc.v3d, mval);
   }
 
   if ((*r_index) == 0 || (*r_index) > (unsigned int)me->totpoly) {
@@ -1297,11 +1298,12 @@ bool ED_mesh_pick_vert(
     if (dist_px > 0) {
       /* sample rect to increase chances of selecting, so that when clicking
        * on an face in the backbuf, we can still select a vert */
-      *r_index = DRW_select_buffer_find_nearest_to_point(mval, 1, me->totvert + 1, &dist_px);
+      *r_index = DRW_select_buffer_find_nearest_to_point(
+          vc.depsgraph, vc.ar, vc.v3d, mval, 1, me->totvert + 1, &dist_px);
     }
     else {
       /* sample only on the exact position */
-      *r_index = DRW_select_buffer_sample_point(mval);
+      *r_index = DRW_select_buffer_sample_point(vc.depsgraph, vc.ar, vc.v3d, mval);
     }
 
     if ((*r_index) == 0 || (*r_index) > (uint)me->totvert) {

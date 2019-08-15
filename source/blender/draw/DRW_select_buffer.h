@@ -33,6 +33,13 @@ struct View3D;
 struct ViewLayer;
 struct rcti;
 
+typedef struct SELECTID_ObjectData {
+  DrawData dd;
+
+  uint drawn_index;
+  bool is_drawn;
+} SELECTID_ObjectData;
+
 struct ObjectOffsets {
   /* For convenience only. */
   union {
@@ -54,43 +61,75 @@ struct SELECTID_Context {
   struct GPUFrameBuffer *framebuffer_select_id;
   struct GPUTexture *texture_u32;
 
-  struct ObjectOffsets *index_offsets;
+  /* All context objects */
+  struct Object **objects;
   uint objects_len;
-  uint last_object_drawn;
-  /** Total number of items `base_array_index_offsets[bases_len - 1].vert`. */
-  uint last_index_drawn;
+
+  /* Array with only drawn objects. When a new object is found within the rect,
+   * it is added to the end of the list.
+   * The list is reset to any viewport or context update. */
+  struct ObjectOffsets *index_offsets;
+  struct Object **objects_drawn;
+  uint objects_drawn_len;
+
+  /** Total number of element indices `index_offsets[object_drawn_len - 1].vert`. */
+  uint index_drawn_len;
 
   short select_mode;
+
+  /* To check for updates. */
+  float persmat[4][4];
+  bool is_dirty;
+
+  /* rect is used to check which objects whose indexes need to be drawn. */
+  rcti last_rect;
 };
 
-/* select_buffer.c */
-void DRW_select_buffer_context_create(struct Base **bases,
-                                      const uint bases_len,
-                                      short select_mode);
+/* draw_select_buffer.c */
 bool DRW_select_buffer_elem_get(const uint sel_id,
                                 uint *r_elem,
                                 uint *r_base_index,
                                 char *r_elem_type);
-uint DRW_select_buffer_context_offset_for_object_elem(const uint base_index, char elem_type);
-uint *DRW_select_buffer_read(const struct rcti *rect, uint *r_buf_len);
-void DRW_draw_select_id_object(struct Depsgraph *depsgraph,
-                               struct ViewLayer *view_layer,
-                               struct ARegion *ar,
-                               struct View3D *v3d,
-                               struct Object *ob,
-                               short select_mode);
-uint *DRW_select_buffer_bitmap_from_rect(const struct rcti *rect, uint *r_bitmap_len);
-uint *DRW_select_buffer_bitmap_from_circle(const int center[2],
+uint DRW_select_buffer_context_offset_for_object_elem(struct Depsgraph *depsgraph,
+                                                      struct Object *object,
+                                                      char elem_type);
+uint *DRW_select_buffer_read(struct Depsgraph *depsgraph,
+                             struct ARegion *ar,
+                             struct View3D *v3d,
+                             const rcti *rect,
+                             uint *r_buf_len);
+uint *DRW_select_buffer_bitmap_from_rect(struct Depsgraph *depsgraph,
+                                         struct ARegion *ar,
+                                         struct View3D *v3d,
+                                         const struct rcti *rect,
+                                         uint *r_bitmap_len);
+uint *DRW_select_buffer_bitmap_from_circle(struct Depsgraph *depsgraph,
+                                           struct ARegion *ar,
+                                           struct View3D *v3d,
+                                           const int center[2],
                                            const int radius,
                                            uint *r_bitmap_len);
-uint *DRW_select_buffer_bitmap_from_poly(const int poly[][2],
+uint *DRW_select_buffer_bitmap_from_poly(struct Depsgraph *depsgraph,
+                                         struct ARegion *ar,
+                                         struct View3D *v3d,
+                                         const int poly[][2],
                                          const int poly_len,
-                                         const struct rcti *rect);
-uint DRW_select_buffer_sample_point(const int center[2]);
-uint DRW_select_buffer_find_nearest_to_point(const int center[2],
+                                         const struct rcti *rect,
+                                         uint *r_bitmap_len);
+uint DRW_select_buffer_sample_point(struct Depsgraph *depsgraph,
+                                    struct ARegion *ar,
+                                    struct View3D *v3d,
+                                    const int center[2]);
+uint DRW_select_buffer_find_nearest_to_point(struct Depsgraph *depsgraph,
+                                             struct ARegion *ar,
+                                             struct View3D *v3d,
+                                             const int center[2],
                                              const uint id_min,
                                              const uint id_max,
                                              uint *dist);
+void DRW_select_buffer_context_create(struct Base **bases,
+                                      const uint bases_len,
+                                      short select_mode);
 
 /* select_engine.c */
 struct SELECTID_Context *DRW_select_engine_context_get(void);

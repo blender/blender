@@ -392,7 +392,7 @@ static int imapaint_pick_face(ViewContext *vc,
 
   /* sample only on the exact position */
   ED_view3d_select_id_validate(vc);
-  *r_index = DRW_select_buffer_sample_point(mval);
+  *r_index = DRW_select_buffer_sample_point(vc->depsgraph, vc->ar, vc->v3d, mval);
 
   if ((*r_index) == 0 || (*r_index) > (unsigned int)totpoly) {
     return 0;

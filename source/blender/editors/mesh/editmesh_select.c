@@ -317,9 +317,10 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
 
     /* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
     {
-      DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, bases, bases_len, SCE_SELECT_VERTEX);
+      DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_VERTEX);
 
-      index = DRW_select_buffer_find_nearest_to_point(vc->mval, 1, UINT_MAX, &dist_px);
+      index = DRW_select_buffer_find_nearest_to_point(
+          vc->depsgraph, vc->ar, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px);
 
       if (index) {
         eve = (BMVert *)edbm_select_id_bm_elem_get(bases, index, &base_index);
@@ -539,9 +540,10 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
 
     /* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
     {
-      DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, bases, bases_len, SCE_SELECT_EDGE);
+      DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_EDGE);
 
-      index = DRW_select_buffer_find_nearest_to_point(vc->mval, 1, UINT_MAX, &dist_px);
+      index = DRW_select_buffer_find_nearest_to_point(
+          vc->depsgraph, vc->ar, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px);
 
       if (index) {
         eed = (BMEdge *)edbm_select_id_bm_elem_get(bases, index, &base_index);
@@ -745,9 +747,9 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
     BMFace *efa;
 
     {
-      DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, bases, bases_len, SCE_SELECT_FACE);
+      DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_FACE);
 
-      index = DRW_select_buffer_sample_point(vc->mval);
+      index = DRW_select_buffer_sample_point(vc->depsgraph, vc->ar, vc->v3d, vc->mval);
 
       if (index) {
         efa = (BMFace *)edbm_select_id_bm_elem_get(bases, index, &base_index);
