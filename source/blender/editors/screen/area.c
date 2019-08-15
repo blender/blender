@@ -875,10 +875,9 @@ static void fullscreen_azone_initialize(ScrArea *sa, ARegion *ar)
   az->alpha = 0.0f;
 
   if (U.uiflag2 & USER_REGION_OVERLAP) {
-    rcti rect_visible;
-    ED_region_visible_rect(ar, &rect_visible);
-    az->x2 = ar->winrct.xmin + rect_visible.xmax;
-    az->y2 = ar->winrct.ymin + rect_visible.ymax;
+    const rcti *rect_visible = ED_region_visible_rect(ar);
+    az->x2 = ar->winrct.xmin + rect_visible->xmax;
+    az->y2 = ar->winrct.ymin + rect_visible->ymax;
   }
   else {
     az->x2 = ar->winrct.xmax;
@@ -1492,6 +1491,9 @@ static void region_rect_recursive(
   if (ar->winx != prev_winx || ar->winy != prev_winy) {
     ED_region_tag_redraw(ar);
   }
+
+  /* Clear, initialize on demand. */
+  memset(&ar->runtime.visible_rect, 0, sizeof(ar->runtime.visible_rect));
 }
 
 static void area_calc_totrct(ScrArea *sa, const rcti *window_rect)
@@ -2786,11 +2788,10 @@ void ED_region_info_draw_multiline(ARegion *ar,
   uiStyle *style = UI_style_get_dpi();
   int fontid = style->widget.uifont_id;
   int scissor[4];
-  rcti rect;
   int num_lines = 0;
 
   /* background box */
-  ED_region_visible_rect(ar, &rect);
+  rcti rect = *ED_region_visible_rect(ar);
 
   /* Box fill entire width or just around text. */
   if (!full_redraw) {
@@ -3268,7 +3269,7 @@ void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)
 
 /* If the area has overlapping regions, it returns visible rect for Region *ar */
 /* rect gets returned in local region coordinates */
-void ED_region_visible_rect(ARegion *ar, rcti *rect)
+static void region_visible_rect_calc(ARegion *ar, rcti *rect)
 {
   ARegion *arn = ar;
 
@@ -3313,6 +3314,15 @@ void ED_region_visible_rect(ARegion *ar, rcti *rect)
     }
   }
   BLI_rcti_translate(rect, -ar->winrct.xmin, -ar->winrct.ymin);
+}
+
+const rcti *ED_region_visible_rect(ARegion *ar)
+{
+  rcti *rect = &ar->runtime.visible_rect;
+  if (rect->xmin == 0 && rect->ymin == 0 && rect->xmax == 0 && rect->ymax == 0) {
+    region_visible_rect_calc(ar, rect);
+  }
+  return rect;
 }
 
 /* Cache display helpers */

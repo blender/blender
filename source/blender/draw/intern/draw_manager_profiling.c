@@ -200,7 +200,7 @@ void DRW_stats_reset(void)
   }
 }
 
-static void draw_stat_5row(rcti *rect, int u, int v, const char *txt, const int size)
+static void draw_stat_5row(const rcti *rect, int u, int v, const char *txt, const int size)
 {
   BLF_draw_default_ascii(rect->xmin + (1 + u * 5) * U.widget_unit,
                          rect->ymax - (3 + v) * U.widget_unit,
@@ -209,13 +209,13 @@ static void draw_stat_5row(rcti *rect, int u, int v, const char *txt, const int 
                          size);
 }
 
-static void draw_stat(rcti *rect, int u, int v, const char *txt, const int size)
+static void draw_stat(const rcti *rect, int u, int v, const char *txt, const int size)
 {
   BLF_draw_default_ascii(
       rect->xmin + (1 + u) * U.widget_unit, rect->ymax - (3 + v) * U.widget_unit, 0.0f, txt, size);
 }
 
-void DRW_stats_draw(rcti *rect)
+void DRW_stats_draw(const rcti *rect)
 {
   char stat_string[64];
   int lvl_index[MAX_NESTED_TIMER];

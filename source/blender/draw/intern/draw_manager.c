@@ -1725,9 +1725,9 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
 
   if (G.debug_value > 20 && G.debug_value < 30) {
     GPU_depth_test(false);
-    rcti rect; /* local coordinate visible rect inside region, to accommodate overlapping ui */
-    ED_region_visible_rect(DST.draw_ctx.ar, &rect);
-    DRW_stats_draw(&rect);
+    /* local coordinate visible rect inside region, to accommodate overlapping ui */
+    const rcti *rect = ED_region_visible_rect(DST.draw_ctx.ar);
+    DRW_stats_draw(rect);
     GPU_depth_test(true);
   }
 

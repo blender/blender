@@ -675,10 +675,9 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *ar)
   WM_gizmomap_draw(ar->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
 
   if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
-    rcti rect;
-    ED_region_visible_rect(ar, &rect);
-    int xoffset = rect.xmin + U.widget_unit;
-    int yoffset = rect.ymax;
+    const rcti *rect = ED_region_visible_rect(ar);
+    int xoffset = rect->xmin + U.widget_unit;
+    int yoffset = rect->ymax;
     ED_scene_draw_fps(scene, xoffset, &yoffset);
   }
 }

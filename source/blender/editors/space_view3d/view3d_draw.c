@@ -1382,8 +1382,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar)
   ED_region_pixelspace(ar);
 
   /* local coordinate visible rect inside region, to accommodate overlapping ui */
-  rcti rect;
-  ED_region_visible_rect(ar, &rect);
+  const rcti *rect = ED_region_visible_rect(ar);
 
   view3d_draw_border(C, ar);
   view3d_draw_grease_pencil(C);
@@ -1399,14 +1398,14 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar)
         /* The gizmo handles it's own drawing. */
         break;
       case USER_MINI_AXIS_TYPE_MINIMAL:
-        draw_view_axis(rv3d, &rect);
+        draw_view_axis(rv3d, rect);
       case USER_MINI_AXIS_TYPE_NONE:
         break;
     }
   }
 
-  int xoffset = rect.xmin + U.widget_unit;
-  int yoffset = rect.ymax;
+  int xoffset = rect->xmin + U.widget_unit;
+  int yoffset = rect->ymax;
 
   if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0 && (v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) {
     if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {

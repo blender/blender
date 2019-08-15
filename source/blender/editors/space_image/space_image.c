@@ -501,11 +501,10 @@ static void image_main_region_set_view2d(SpaceImage *sima, ARegion *ar)
   int winy = BLI_rcti_size_y(&ar->winrct) + 1;
 
   /* For region overlap, move center so image doesn't overlap header. */
-  rcti visible_rect;
-  ED_region_visible_rect(ar, &visible_rect);
-  const int visible_winy = BLI_rcti_size_y(&visible_rect) + 1;
+  const rcti *visible_rect = ED_region_visible_rect(ar);
+  const int visible_winy = BLI_rcti_size_y(visible_rect) + 1;
   int visible_centerx = 0;
-  int visible_centery = visible_rect.ymin + (visible_winy - winy) / 2;
+  int visible_centery = visible_rect->ymin + (visible_winy - winy) / 2;
 
   ar->v2d.tot.xmin = 0;
   ar->v2d.tot.ymin = 0;

@@ -156,9 +156,8 @@ void ED_image_draw_info(Scene *scene,
   char str[256];
   int dx = 6;
   /* local coordinate visible rect inside region, to accommodate overlapping ui */
-  rcti rect;
-  ED_region_visible_rect(ar, &rect);
-  const int ymin = rect.ymin;
+  const rcti *rect = ED_region_visible_rect(ar);
+  const int ymin = rect->ymin;
   const int dy = ymin + 0.3f * UI_UNIT_Y;
 
   /* text colors */

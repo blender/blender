@@ -375,6 +375,13 @@ typedef struct ScrArea {
 typedef struct ARegion_Runtime {
   /* Panel category to use between 'layout' and 'draw'. */
   const char *category;
+
+  /**
+   * The visible part of the region, use with region overlap not to draw
+   * on top of the overlapping regions.
+   *
+   * Lazy initialize, zero'd when unset, relative to #ARegion.winrct x/y min. */
+  rcti visible_rect;
 } ARegion_Runtime;
 
 typedef struct ARegion {
