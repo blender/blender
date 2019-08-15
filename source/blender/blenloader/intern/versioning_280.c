@@ -737,7 +737,8 @@ static void do_versions_seq_alloc_transform_and_crop(ListBase *seqbase)
 /* Return true if there is something to convert. */
 static bool do_versions_material_convert_legacy_blend_mode(bNodeTree *ntree,
                                                            char blend_method,
-                                                           GSet *nodegrp_tree_set)
+                                                           GSet *nodegrp_tree_set,
+                                                           GSet *nooutput_tree_set)
 {
   bool need_update = false;
   bool do_conversion = false;
@@ -758,9 +759,10 @@ static bool do_versions_material_convert_legacy_blend_mode(bNodeTree *ntree,
         bNodeTree *group_ntree = (bNodeTree *)fromnode->id;
         if (BLI_gset_add(nodegrp_tree_set, group_ntree)) {
           /* Recursive but not convert (blend_method = -1). Conversion happens after. */
-          if (!do_versions_material_convert_legacy_blend_mode(group_ntree, -1, nodegrp_tree_set)) {
-            /* There is no output to convert in the tree, remove it. */
-            BLI_gset_remove(nodegrp_tree_set, group_ntree, NULL);
+          if (!do_versions_material_convert_legacy_blend_mode(
+                  group_ntree, -1, nodegrp_tree_set, nooutput_tree_set)) {
+            /* There is no output to convert in the tree. */
+            BLI_gset_add(nooutput_tree_set, group_ntree);
           }
         }
       }
@@ -768,9 +770,10 @@ static bool do_versions_material_convert_legacy_blend_mode(bNodeTree *ntree,
         bNodeTree *group_ntree = (bNodeTree *)tonode->id;
         if (BLI_gset_add(nodegrp_tree_set, group_ntree)) {
           /* Recursive but not convert (blend_method = -1). Conversion happens after. */
-          if (!do_versions_material_convert_legacy_blend_mode(group_ntree, -1, nodegrp_tree_set)) {
-            /* There is no output to convert in the tree, remove it. */
-            BLI_gset_remove(nodegrp_tree_set, group_ntree, NULL);
+          if (!do_versions_material_convert_legacy_blend_mode(
+                  group_ntree, -1, nodegrp_tree_set, nooutput_tree_set)) {
+            /* There is no output to convert in the tree. */
+            BLI_gset_add(nooutput_tree_set, group_ntree);
           }
         }
       }
@@ -1259,32 +1262,45 @@ void do_versions_after_linking_280(Main *bmain, ReportList *reports)
     GSet *ntrees_additive = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
     GSet *ntrees_multiply = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
     GSet *ntrees_nolegacy = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+    GSet *ntrees_nooutput = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
     for (Material *ma = bmain->materials.first; ma; ma = ma->id.next) {
       bNodeTree *ntree = ma->nodetree;
       if (ma->blend_method == 1 /* MA_BM_ADD */) {
         if (ma->use_nodes) {
-          do_versions_material_convert_legacy_blend_mode(ntree, ma->blend_method, ntrees_additive);
+          do_versions_material_convert_legacy_blend_mode(
+              ntree, ma->blend_method, ntrees_additive, ntrees_nooutput);
         }
         ma->blend_method = MA_BM_BLEND;
       }
       else if (ma->blend_method == 2 /* MA_BM_MULTIPLY */) {
         if (ma->use_nodes) {
-          do_versions_material_convert_legacy_blend_mode(ntree, ma->blend_method, ntrees_multiply);
+          do_versions_material_convert_legacy_blend_mode(
+              ntree, ma->blend_method, ntrees_multiply, ntrees_nooutput);
         }
         ma->blend_method = MA_BM_BLEND;
       }
       else {
         /* Still tag the group nodes as not using legacy blend modes. */
         if (ma->use_nodes) {
-          do_versions_material_convert_legacy_blend_mode(ntree, -1, ntrees_nolegacy);
+          do_versions_material_convert_legacy_blend_mode(
+              ntree, -1, ntrees_nolegacy, ntrees_nooutput);
         }
       }
     }
-    /* Remove group nodetree that are used by material using non-legacy blend mode. */
     GHashIterState iter = {0};
     bNodeTree *ntree;
+    /* Remove trees that have no output nodes.
+     * This is done separately to avoid infinite recursion. */
+    while (BLI_gset_pop(ntrees_nooutput, (GSetIterState *)&iter, (void **)&ntree)) {
+      BLI_gset_remove(ntrees_additive, ntree, NULL);
+      BLI_gset_remove(ntrees_multiply, ntree, NULL);
+      BLI_gset_remove(ntrees_nolegacy, ntree, NULL);
+    }
+    BLI_gset_free(ntrees_nooutput, NULL);
+    /* Remove group nodetree that are used by material using non-legacy blend mode. */
+    GHashIterState iter_rm = {0};
     bool error = false;
-    while (BLI_gset_pop(ntrees_nolegacy, (GSetIterState *)&iter, (void **)&ntree)) {
+    while (BLI_gset_pop(ntrees_nolegacy, (GSetIterState *)&iter_rm, (void **)&ntree)) {
       if (BLI_gset_remove(ntrees_additive, ntree, NULL)) {
         error = true;
       }
@@ -1297,10 +1313,10 @@ void do_versions_after_linking_280(Main *bmain, ReportList *reports)
     GHashIterState iter_add = {0};
     GHashIterState iter_mul = {0};
     while (BLI_gset_pop(ntrees_additive, (GSetIterState *)&iter_add, (void **)&ntree)) {
-      do_versions_material_convert_legacy_blend_mode(ntree, 1 /* MA_BM_ADD */, NULL);
+      do_versions_material_convert_legacy_blend_mode(ntree, 1 /* MA_BM_ADD */, NULL, NULL);
     }
     while (BLI_gset_pop(ntrees_multiply, (GSetIterState *)&iter_mul, (void **)&ntree)) {
-      do_versions_material_convert_legacy_blend_mode(ntree, 2 /* MA_BM_MULTIPLY */, NULL);
+      do_versions_material_convert_legacy_blend_mode(ntree, 2 /* MA_BM_MULTIPLY */, NULL, NULL);
     }
     BLI_gset_free(ntrees_additive, NULL);
     BLI_gset_free(ntrees_multiply, NULL);
