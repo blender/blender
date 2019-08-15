@@ -517,9 +517,6 @@ static void viewops_data_create(bContext *C,
 static void viewops_data_free(bContext *C, wmOperator *op)
 {
   ARegion *ar;
-#if 0
-  Paint *p = BKE_paint_get_active_from_context(C);
-#endif
   if (op->customdata) {
     ViewOpsData *vod = op->customdata;
     ar = vod->ar;
@@ -536,12 +533,9 @@ static void viewops_data_free(bContext *C, wmOperator *op)
     ar = CTX_wm_region(C);
   }
 
-#if 0
-  if (p && (p->flags & PAINT_FAST_NAVIGATE))
-#endif
-  {
-    ED_region_tag_redraw(ar);
-  }
+  /* Need to redraw because drawing code uses RV3D_NAVIGATING to draw
+   * faster while navigation operator runs. */
+  ED_region_tag_redraw(ar);
 }
 
 /** \} */
