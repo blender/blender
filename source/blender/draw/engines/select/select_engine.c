@@ -24,13 +24,9 @@
 
 #include "DNA_screen_types.h"
 
-#include "GPU_shader.h"
-
 #include "UI_resources.h"
 
 #include "DRW_engine.h"
-#include "DRW_select_buffer.h"
-
 #include "DRW_select_buffer.h"
 
 #include "draw_cache_impl.h"
