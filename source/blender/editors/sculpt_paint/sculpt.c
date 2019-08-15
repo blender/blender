@@ -211,21 +211,21 @@ static void sculpt_vertex_tag_update(SculptSession *ss, int index)
 
 #  define SCULPT_VERTEX_NEIGHBOUR_FIXED_CAPACITY 256
 
-typedef struct SculptVertexNeighbourIter {
-  int *neighbours;
+typedef struct SculptVertexNeighborIter {
+  int *neighbors;
   int size;
   int capacity;
 
-  int neighbours_fixed[SCULPT_VERTEX_NEIGHBOUR_FIXED_CAPACITY];
+  int neighbors_fixed[SCULPT_VERTEX_NEIGHBOUR_FIXED_CAPACITY];
 
   int index;
   int i;
-} SculptVertexNeighbourIter;
+} SculptVertexNeighborIter;
 
-static void sculpt_vertex_neighbour_add(SculptVertexNeighbourIter *iter, int neighbour_index)
+static void sculpt_vertex_neighbor_add(SculptVertexNeighborIter *iter, int neighbor_index)
 {
   for (int i = 0; i < iter->size; i++) {
-    if (iter->neighbours[i] == neighbour_index) {
+    if (iter->neighbors[i] == neighbor_index) {
       return;
     }
   }
@@ -233,30 +233,30 @@ static void sculpt_vertex_neighbour_add(SculptVertexNeighbourIter *iter, int nei
   if (iter->size >= iter->capacity) {
     iter->capacity += SCULPT_VERTEX_NEIGHBOUR_FIXED_CAPACITY;
 
-    if (iter->neighbours == iter->neighbours_fixed) {
-      iter->neighbours = MEM_mallocN(iter->capacity * sizeof(int), "neighbour array");
-      memcpy(iter->neighbours, iter->neighbours_fixed, sizeof(int) * iter->size);
+    if (iter->neighbors == iter->neighbors_fixed) {
+      iter->neighbors = MEM_mallocN(iter->capacity * sizeof(int), "neighbor array");
+      memcpy(iter->neighbors, iter->neighbors_fixed, sizeof(int) * iter->size);
     }
     else {
-      iter->neighbours = MEM_reallocN_id(
-          iter->neighbours, iter->capacity * sizeof(int), "neighbour array");
+      iter->neighbors = MEM_reallocN_id(
+          iter->neighbors, iter->capacity * sizeof(int), "neighbor array");
     }
   }
 
-  iter->neighbours[iter->size] = neighbour_index;
+  iter->neighbors[iter->size] = neighbor_index;
   iter->size++;
 }
 
-static void sculpt_vertex_neighbours_get_bmesh(SculptSession *ss,
-                                               int index,
-                                               SculptVertexNeighbourIter *iter)
+static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
+                                              int index,
+                                              SculptVertexNeighborIter *iter)
 {
   BMVert *v = BM_vert_at_index(ss->bm, index);
   BMIter liter;
   BMLoop *l;
   iter->size = 0;
   iter->capacity = SCULPT_VERTEX_NEIGHBOUR_FIXED_CAPACITY;
-  iter->neighbours = iter->neighbours_fixed;
+  iter->neighbors = iter->neighbors_fixed;
 
   int i = 0;
   BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
@@ -264,21 +264,21 @@ static void sculpt_vertex_neighbours_get_bmesh(SculptSession *ss,
     for (i = 0; i < ARRAY_SIZE(adj_v); i++) {
       const BMVert *v_other = adj_v[i];
       if (BM_elem_index_get(v_other) != (int)index) {
-        sculpt_vertex_neighbour_add(iter, BM_elem_index_get(v_other));
+        sculpt_vertex_neighbor_add(iter, BM_elem_index_get(v_other));
       }
     }
   }
 }
 
-static void sculpt_vertex_neighbours_get_faces(SculptSession *ss,
-                                               int index,
-                                               SculptVertexNeighbourIter *iter)
+static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
+                                              int index,
+                                              SculptVertexNeighborIter *iter)
 {
   int i;
   MeshElemMap *vert_map = &ss->pmap[(int)index];
   iter->size = 0;
   iter->capacity = SCULPT_VERTEX_NEIGHBOUR_FIXED_CAPACITY;
-  iter->neighbours = iter->neighbours_fixed;
+  iter->neighbors = iter->neighbors_fixed;
 
   for (i = 0; i < ss->pmap[(int)index].count; i++) {
     const MPoly *p = &ss->mpoly[vert_map->indices[i]];
@@ -288,7 +288,7 @@ static void sculpt_vertex_neighbours_get_faces(SculptSession *ss,
       for (j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
         if (vert_map->count != 2 || ss->pmap[f_adj_v[j]].count <= 2) {
           if (f_adj_v[j] != (int)index) {
-            sculpt_vertex_neighbour_add(iter, f_adj_v[j]);
+            sculpt_vertex_neighbor_add(iter, f_adj_v[j]);
           }
         }
       }
@@ -296,32 +296,32 @@ static void sculpt_vertex_neighbours_get_faces(SculptSession *ss,
   }
 }
 
-static void sculpt_vertex_neighbours_get(SculptSession *ss,
-                                         int index,
-                                         SculptVertexNeighbourIter *iter)
+static void sculpt_vertex_neighbors_get(SculptSession *ss,
+                                        int index,
+                                        SculptVertexNeighborIter *iter)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      sculpt_vertex_neighbours_get_faces(ss, index, iter);
+      sculpt_vertex_neighbors_get_faces(ss, index, iter);
       return;
     case PBVH_BMESH:
-      sculpt_vertex_neighbours_get_bmesh(ss, index, iter);
+      sculpt_vertex_neighbors_get_bmesh(ss, index, iter);
       return;
     default:
       break;
   }
 }
 
-#  define sculpt_vertex_neighbours_iter_begin(ss, v_index, neighbour_iterator) \
-    sculpt_vertex_neighbours_get(ss, v_index, &neighbour_iterator); \
-    for (neighbour_iterator.i = 0; neighbour_iterator.i < neighbour_iterator.size; \
-         neighbour_iterator.i++) { \
-      neighbour_iterator.index = ni.neighbours[ni.i];
+#  define sculpt_vertex_neighbors_iter_begin(ss, v_index, neighbor_iterator) \
+    sculpt_vertex_neighbors_get(ss, v_index, &neighbor_iterator); \
+    for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.size; \
+         neighbor_iterator.i++) { \
+      neighbor_iterator.index = ni.neighbors[ni.i];
 
-#  define sculpt_vertex_neighbours_iter_end(neighbour_iterator) \
+#  define sculpt_vertex_neighbors_iter_end(neighbor_iterator) \
     } \
-    if (neighbour_iterator.neighbours != neighbour_iterator.neighbours_fixed) { \
-      MEM_freeN(neighbour_iterator.neighbours); \
+    if (neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
+      MEM_freeN(neighbor_iterator.neighbors); \
     }
 
 #endif /* UNUSED */
