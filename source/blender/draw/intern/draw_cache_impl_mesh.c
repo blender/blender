@@ -969,7 +969,10 @@ void DRW_mesh_batch_cache_free_old(Mesh *me, int ctime)
 void DRW_mesh_batch_cache_create_requested(
     Object *ob, Mesh *me, const Scene *scene, const bool is_paint_mode, const bool use_hide)
 {
-  const ToolSettings *ts = scene->toolsettings;
+  const ToolSettings *ts = NULL;
+  if (scene) {
+    ts = scene->toolsettings;
+  }
   MeshBatchCache *cache = mesh_batch_cache_get(me);
 
   /* Early out */
