@@ -874,10 +874,19 @@ static void fullscreen_azone_initialize(ScrArea *sa, ARegion *ar)
   az->ar = ar;
   az->alpha = 0.0f;
 
-  az->x2 = ar->winrct.xmax;
-  az->y2 = ar->winrct.ymax;
+  if (U.uiflag2 & USER_REGION_OVERLAP) {
+    rcti rect_visible;
+    ED_region_visible_rect(ar, &rect_visible);
+    az->x2 = ar->winrct.xmin + rect_visible.xmax;
+    az->y2 = ar->winrct.ymin + rect_visible.ymax;
+  }
+  else {
+    az->x2 = ar->winrct.xmax;
+    az->y2 = ar->winrct.ymax;
+  }
   az->x1 = az->x2 - AZONEFADEOUT;
   az->y1 = az->y2 - AZONEFADEOUT;
+
   BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
