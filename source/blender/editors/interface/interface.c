@@ -2553,8 +2553,8 @@ void ui_but_string_get_ex(uiBut *but,
         }
       }
       else {
+        const int int_digits_num = integer_digits_f(value);
         if (use_exp_float) {
-          const int int_digits_num = integer_digits_f(value);
           if (int_digits_num < -6 || int_digits_num > 12) {
             BLI_snprintf(str, maxlen, "%.*g", prec, value);
             if (r_use_exp_float) {
@@ -2568,10 +2568,8 @@ void ui_but_string_get_ex(uiBut *but,
           }
         }
         else {
-#if 0 /* TODO, but will likely break some stuff, so better after 2.79 release. */
           prec -= int_digits_num;
           CLAMP(prec, 0, UI_PRECISION_FLOAT_MAX);
-#endif
           BLI_snprintf(str, maxlen, "%.*f", prec, value);
         }
       }
