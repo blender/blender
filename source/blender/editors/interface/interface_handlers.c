@@ -4820,6 +4820,9 @@ static int ui_do_but_NUM(
         }
         button_activate_state(C, but, BUTTON_STATE_EXIT);
       }
+      else {
+        button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+      }
     }
     else {
       /* Float Value. */
