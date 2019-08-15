@@ -200,9 +200,7 @@ struct EditSelectBuf_Cache {
   BLI_bitmap *select_bitmap;
 };
 
-static void editselect_buf_cache_init(struct EditSelectBuf_Cache *esel,
-                                      ViewContext *vc,
-                                      short select_mode)
+static void editselect_buf_cache_init(ViewContext *vc, short select_mode)
 {
   if (vc->obedit) {
     uint bases_len = 0;
@@ -240,7 +238,7 @@ static void editselect_buf_cache_init_with_generic_userdata(wmGenericUserData *w
   wm_userdata->data = esel;
   wm_userdata->free_fn = editselect_buf_cache_free_voidp;
   wm_userdata->use_free = true;
-  editselect_buf_cache_init(esel, vc, select_mode);
+  editselect_buf_cache_init(vc, select_mode);
 }
 
 /** \} */

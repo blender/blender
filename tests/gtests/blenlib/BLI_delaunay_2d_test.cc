@@ -650,7 +650,10 @@ enum {
 };
 
 // #define DO_TIMING
-static void rand_delaunay_test(int test_kind, int max_lg_size, int reps_per_size, CDT_output_type otype)
+static void rand_delaunay_test(int test_kind,
+                               int max_lg_size,
+                               int reps_per_size,
+                               CDT_output_type otype)
 {
   CDT_input in;
   CDT_result *out;

@@ -1961,7 +1961,7 @@ static void add_face_ids(
   }
 }
 
-/* Delete_edge but try not to mess up outer face. 
+/* Delete_edge but try not to mess up outer face.
  * Also faces have symedges now, so make sure not
  * to mess those up either. */
 static void dissolve_symedge(CDT_state *cdt, SymEdge *se)
