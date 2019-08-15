@@ -1784,33 +1784,55 @@ bool BKE_gpencil_smooth_stroke_strength(bGPDstroke *gps, int point_index, float 
   bGPDspoint *ptb = &gps->points[point_index];
 
   /* Do nothing if not enough points */
-  if (gps->totpoints <= 2) {
+  if ((gps->totpoints <= 2) || (point_index < 1)) {
     return false;
   }
-
-  /* Compute theoretical optimal value using distances */
-  bGPDspoint *pta, *ptc;
-  int before = point_index - 1;
-  int after = point_index + 1;
-
-  CLAMP_MIN(before, 0);
-  CLAMP_MAX(after, gps->totpoints - 1);
-
-  pta = &gps->points[before];
-  ptc = &gps->points[after];
-
-  /* the optimal value is the corresponding to the interpolation of the strength
-   * at the distance of point b
-   */
-  float fac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
-  /* sometimes the factor can be wrong due stroke geometry, so use middle point */
-  if ((fac < 0.0f) || (fac > 1.0f)) {
-    fac = 0.5f;
+  /* Only affect endpoints by a fraction of the normal influence */
+  float inf = influence;
+  if ((point_index == 0) || (point_index == gps->totpoints - 1)) {
+    inf *= 0.01f;
   }
-  const float optimal = (1.0f - fac) * pta->strength + fac * ptc->strength;
+  /* Limit max influence to reduce pop effect. */
+  CLAMP_MAX(inf, 0.98f);
 
-  /* Based on influence factor, blend between original and optimal */
-  ptb->strength = (1.0f - influence) * ptb->strength + influence * optimal;
+  float total = 0.0f;
+  float max_strength = 0.0f;
+  const int steps = 4;
+  const float average_fac = 1.0f / (float)(steps * 2 + 1);
+  int step;
+
+  /* add the point itself */
+  total += ptb->strength * average_fac;
+  max_strength = ptb->strength;
+
+  /* n-steps before/after current point */
+  for (step = 1; step <= steps; step++) {
+    bGPDspoint *pt1, *pt2;
+    int before = point_index - step;
+    int after = point_index + step;
+
+    CLAMP_MIN(before, 0);
+    CLAMP_MAX(after, gps->totpoints - 1);
+
+    pt1 = &gps->points[before];
+    pt2 = &gps->points[after];
+
+    /* add both these points to the average-sum (s += p[i]/n) */
+    total += pt1->strength * average_fac;
+    total += pt2->strength * average_fac;
+    /* Save max value. */
+    if (max_strength < pt1->strength) {
+      max_strength = pt1->strength;
+    }
+    if (max_strength < pt2->strength) {
+      max_strength = pt2->strength;
+    }
+  }
+
+  /* Based on influence factor, blend between original and optimal smoothed value. */
+  ptb->strength = interpf(ptb->strength, total, inf);
+  /* Clamp to maximum stroke strength to avoid weird results. */
+  CLAMP_MAX(ptb->strength, max_strength);
 
   return true;
 }
@@ -1825,31 +1847,52 @@ bool BKE_gpencil_smooth_stroke_thickness(bGPDstroke *gps, int point_index, float
   if ((gps->totpoints <= 2) || (point_index < 1)) {
     return false;
   }
-
-  /* Compute theoretical optimal value using distances */
-  bGPDspoint *pta, *ptc;
-  int before = point_index - 1;
-  int after = point_index + 1;
-
-  CLAMP_MIN(before, 0);
-  CLAMP_MAX(after, gps->totpoints - 1);
-
-  pta = &gps->points[before];
-  ptc = &gps->points[after];
-
-  /* the optimal value is the corresponding to the interpolation of the pressure
-   * at the distance of point b
-   */
-  float fac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
-  /* sometimes the factor can be wrong due stroke geometry, so use middle point */
-  if ((fac < 0.0f) || (fac > 1.0f)) {
-    fac = 0.5f;
+  /* Only affect endpoints by a fraction of the normal influence */
+  float inf = influence;
+  if ((point_index == 0) || (point_index == gps->totpoints - 1)) {
+    inf *= 0.01f;
   }
-  float optimal = interpf(ptc->pressure, pta->pressure, fac);
+  /* Limit max influence to reduce pop effect. */
+  CLAMP_MAX(inf, 0.98f);
 
-  /* Based on influence factor, blend between original and optimal */
-  ptb->pressure = interpf(optimal, ptb->pressure, influence);
+  float total = 0.0f;
+  float max_pressure = 0.0f;
+  const int steps = 4;
+  const float average_fac = 1.0f / (float)(steps * 2 + 1);
+  int step;
 
+  /* add the point itself */
+  total += ptb->pressure * average_fac;
+  max_pressure = ptb->pressure;
+
+  /* n-steps before/after current point */
+  for (step = 1; step <= steps; step++) {
+    bGPDspoint *pt1, *pt2;
+    int before = point_index - step;
+    int after = point_index + step;
+
+    CLAMP_MIN(before, 0);
+    CLAMP_MAX(after, gps->totpoints - 1);
+
+    pt1 = &gps->points[before];
+    pt2 = &gps->points[after];
+
+    /* add both these points to the average-sum (s += p[i]/n) */
+    total += pt1->pressure * average_fac;
+    total += pt2->pressure * average_fac;
+    /* Save max value. */
+    if (max_pressure < pt1->pressure) {
+      max_pressure = pt1->pressure;
+    }
+    if (max_pressure < pt2->pressure) {
+      max_pressure = pt2->pressure;
+    }
+  }
+
+  /* Based on influence factor, blend between original and optimal smoothed value. */
+  ptb->pressure = interpf(ptb->pressure, total, inf);
+  /* Clamp to maximum stroke thickness to avoid weird results. */
+  CLAMP_MAX(ptb->pressure, max_pressure);
   return true;
 }
 
