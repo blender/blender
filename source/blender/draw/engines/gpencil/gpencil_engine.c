@@ -564,6 +564,8 @@ static void gpencil_add_draw_data(void *vedata, Object *ob)
   GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
   bGPdata *gpd = (bGPdata *)ob->data;
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  View3D *v3d = draw_ctx->v3d;
 
   int i = stl->g_data->gp_cache_used - 1;
   tGPencilObjectCache *cache_ob = &stl->g_data->gp_object_cache[i];
@@ -580,7 +582,9 @@ static void gpencil_add_draw_data(void *vedata, Object *ob)
 
   /* FX passses */
   cache_ob->has_fx = false;
-  if ((!stl->storage->simplify_fx) && (!ELEM(cache_ob->shading_type[0], OB_WIRE, OB_SOLID)) &&
+  if ((!stl->storage->simplify_fx) &&
+      ((!ELEM(cache_ob->shading_type[0], OB_WIRE, OB_SOLID)) ||
+       ((v3d->spacetype != SPACE_VIEW3D))) &&
       (BKE_shaderfx_has_gpencil(ob))) {
     cache_ob->has_fx = true;
     if ((!stl->storage->simplify_fx) && (!is_multiedit)) {
