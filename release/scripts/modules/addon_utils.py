@@ -42,7 +42,7 @@ addons_fake_modules = {}
 def _initialize():
     path_list = paths()
     for path in path_list:
-        _bpy.utils._sys_path_ensure(path)
+        _bpy.utils._sys_path_ensure_append(path)
     for addon in _preferences.addons:
         enable(addon.module)
 

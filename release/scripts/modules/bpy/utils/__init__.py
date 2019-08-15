@@ -119,9 +119,15 @@ def _test_import(module_name, loaded_modules):
     return mod
 
 
-def _sys_path_ensure(path):
-    if path not in _sys.path:  # reloading would add twice
+# Reloading would add twice.
+def _sys_path_ensure_prepend(path):
+    if path not in _sys.path:
         _sys.path.insert(0, path)
+
+
+def _sys_path_ensure_append(path):
+    if path not in _sys.path:
+        _sys.path.append(path)
 
 
 def modules_from_path(path, loaded_modules):
@@ -253,7 +259,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             for path_subdir in _script_module_dirs:
                 path = _os.path.join(base_path, path_subdir)
                 if _os.path.isdir(path):
-                    _sys_path_ensure(path)
+                    _sys_path_ensure_prepend(path)
 
                     # Only add to 'sys.modules' unless this is 'startup'.
                     if path_subdir == "startup":
@@ -385,13 +391,13 @@ def refresh_script_paths():
         for path_subdir in _script_module_dirs:
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
-                _sys_path_ensure(path)
+                _sys_path_ensure_prepend(path)
 
     for path in _addon_utils.paths():
-        _sys_path_ensure(path)
+        _sys_path_ensure_append(path)
         path = _os.path.join(path, "modules")
         if _os.path.isdir(path):
-            _sys_path_ensure(path)
+            _sys_path_ensure_append(path)
 
 
 def app_template_paths(subdir=None):
