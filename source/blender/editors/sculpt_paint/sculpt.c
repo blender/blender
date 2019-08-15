@@ -209,14 +209,14 @@ static void sculpt_vertex_tag_update(SculptSession *ss, int index)
   }
 }
 
-#  define SCULPT_VERTEX_NEIGHBOUR_FIXED_CAPACITY 256
+#  define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 256
 
 typedef struct SculptVertexNeighborIter {
   int *neighbors;
   int size;
   int capacity;
 
-  int neighbors_fixed[SCULPT_VERTEX_NEIGHBOUR_FIXED_CAPACITY];
+  int neighbors_fixed[SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY];
 
   int index;
   int i;
@@ -231,7 +231,7 @@ static void sculpt_vertex_neighbor_add(SculptVertexNeighborIter *iter, int neigh
   }
 
   if (iter->size >= iter->capacity) {
-    iter->capacity += SCULPT_VERTEX_NEIGHBOUR_FIXED_CAPACITY;
+    iter->capacity += SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
 
     if (iter->neighbors == iter->neighbors_fixed) {
       iter->neighbors = MEM_mallocN(iter->capacity * sizeof(int), "neighbor array");
@@ -255,7 +255,7 @@ static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
   BMIter liter;
   BMLoop *l;
   iter->size = 0;
-  iter->capacity = SCULPT_VERTEX_NEIGHBOUR_FIXED_CAPACITY;
+  iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
   iter->neighbors = iter->neighbors_fixed;
 
   int i = 0;
@@ -277,7 +277,7 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
   int i;
   MeshElemMap *vert_map = &ss->pmap[(int)index];
   iter->size = 0;
-  iter->capacity = SCULPT_VERTEX_NEIGHBOUR_FIXED_CAPACITY;
+  iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
   iter->neighbors = iter->neighbors_fixed;
 
   for (i = 0; i < ss->pmap[(int)index].count; i++) {
