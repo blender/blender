@@ -468,7 +468,7 @@ bool DRW_select_buffer_elem_get(const uint sel_id,
     }
   }
 
-  if (base_index == select_ctx->objects_len) {
+  if (base_index == select_ctx->objects_drawn_len) {
     return false;
   }
 
