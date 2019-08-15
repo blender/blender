@@ -1150,12 +1150,19 @@ static void TargetSnapMedian(TransInfo *t)
         add_v3_v3(v, td->center);
       }
 
+      if (i == 0) {
+        /* Is this possible? */
+        continue;
+      }
+
+      mul_v3_fl(v, 1.0 / i);
+
       if (tc->use_local_mat) {
         mul_m4_v3(tc->mat, v);
       }
 
       add_v3_v3(t->tsnap.snapTarget, v);
-      i_accum += i;
+      i_accum++;
     }
 
     mul_v3_fl(t->tsnap.snapTarget, 1.0 / i_accum);
