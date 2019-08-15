@@ -565,7 +565,7 @@ static void gpencil_add_draw_data(void *vedata, Object *ob)
   bGPdata *gpd = (bGPdata *)ob->data;
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  View3D *v3d = draw_ctx->v3d;
+  const View3D *v3d = draw_ctx->v3d;
 
   int i = stl->g_data->gp_cache_used - 1;
   tGPencilObjectCache *cache_ob = &stl->g_data->gp_object_cache[i];
