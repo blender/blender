@@ -580,7 +580,7 @@ typedef struct WPGradient_userData {
   BLI_bitmap *vert_visit;
 
   /* options */
-  short use_select;
+  bool use_select;
   short type;
   float weightpaint;
 } WPGradient_userData;
@@ -786,7 +786,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   data.sco_end = sco_end;
   data.sco_line_div = 1.0f / len_v2v2(sco_start, sco_end);
   data.def_nr = ob->actdef - 1;
-  data.use_select = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL));
+  data.use_select = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) != 0;
   data.vert_cache = vert_cache;
   data.vert_visit = NULL;
   data.type = RNA_enum_get(op->ptr, "type");

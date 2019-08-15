@@ -89,7 +89,8 @@ struct bContext {
     struct Scene *scene;
 
     int recursion;
-    int py_init; /* true if python is initialized */
+    /** True if python is initialized. */
+    bool py_init;
     void *py_context;
   } data;
 };
@@ -212,11 +213,11 @@ void CTX_store_free_list(ListBase *contexts)
 
 /* is python initialized? */
 
-int CTX_py_init_get(bContext *C)
+bool CTX_py_init_get(bContext *C)
 {
   return C->data.py_init;
 }
-void CTX_py_init_set(bContext *C, int value)
+void CTX_py_init_set(bContext *C, bool value)
 {
   C->data.py_init = value;
 }

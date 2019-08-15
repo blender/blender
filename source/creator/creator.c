@@ -442,7 +442,7 @@ int main(int argc,
       "this is not intended for typical usage\n\n");
 #endif
 
-  CTX_py_init_set(C, 1);
+  CTX_py_init_set(C, true);
   WM_keyconfig_init(C);
 
 #ifdef WITH_FREESTYLE

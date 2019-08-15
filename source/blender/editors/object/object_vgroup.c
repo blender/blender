@@ -1139,7 +1139,7 @@ static bool vgroup_normalize(Object *ob)
   int i, dvert_tot = 0;
   const int def_nr = ob->actdef - 1;
 
-  const int use_vert_sel = vertex_group_use_vert_sel(ob);
+  const bool use_vert_sel = vertex_group_use_vert_sel(ob);
 
   if (!BLI_findlink(&ob->defbase, def_nr)) {
     return false;
@@ -1623,7 +1623,7 @@ static bool vgroup_normalize_all(Object *ob,
   int i, dvert_tot = 0;
   const int def_nr = ob->actdef - 1;
 
-  const int use_vert_sel = vertex_group_use_vert_sel(ob);
+  const bool use_vert_sel = vertex_group_use_vert_sel(ob);
 
   if (subset_count == 0) {
     BKE_report(reports, RPT_ERROR, "No vertex groups to operate on");
@@ -2047,7 +2047,7 @@ static int vgroup_limit_total_subset(Object *ob,
 {
   MDeformVert *dv, **dvert_array = NULL;
   int i, dvert_tot = 0;
-  const int use_vert_sel = vertex_group_use_vert_sel(ob);
+  const bool use_vert_sel = vertex_group_use_vert_sel(ob);
   int remove_tot = 0;
 
   ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);

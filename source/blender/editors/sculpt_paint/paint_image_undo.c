@@ -75,7 +75,8 @@ typedef struct UndoImageTile {
    * adds unnecessary overhead restoring undo steps when most tiles share the same image. */
   UndoRefID_Image image_ref;
 
-  short source, use_float;
+  short source;
+  bool use_float;
   char gen_type;
   bool valid;
 
@@ -172,7 +173,7 @@ void *image_undo_find_tile(ListBase *undo_tiles,
                            bool validate)
 {
   UndoImageTile *tile;
-  short use_float = ibuf->rect_float ? 1 : 0;
+  const bool use_float = (ibuf->rect_float != NULL);
 
   for (tile = undo_tiles->first; tile; tile = tile->next) {
     if (tile->x == x_tile && tile->y == y_tile && ima->gen_type == tile->gen_type &&
@@ -214,7 +215,7 @@ void *image_undo_push_tile(ListBase *undo_tiles,
 {
   UndoImageTile *tile;
   int allocsize;
-  short use_float = ibuf->rect_float ? 1 : 0;
+  const bool use_float = (ibuf->rect_float != NULL);
   void *data;
 
   /* check if tile is already pushed */
@@ -315,7 +316,6 @@ static void image_undo_restore_list(ListBase *lb)
       IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat | IB_rect);
 
   for (UndoImageTile *tile = lb->first; tile; tile = tile->next) {
-    short use_float;
 
     Image *ima = tile->image_ref.ptr;
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
@@ -341,7 +341,7 @@ static void image_undo_restore_list(ListBase *lb)
       continue;
     }
 
-    use_float = ibuf->rect_float ? 1 : 0;
+    const bool use_float = (ibuf->rect_float != NULL);
 
     if (use_float != tile->use_float) {
       BKE_image_release_ibuf(ima, ibuf, NULL);
@@ -450,7 +450,7 @@ static bool image_undosys_step_encode(struct bContext *C,
         tile = tmp_tile;
       }
       else {
-        us->step.data_size += allocsize * ((tile->use_float) ? sizeof(float) : sizeof(char));
+        us->step.data_size += allocsize * (tile->use_float ? sizeof(float) : sizeof(char));
         tile = tile->next;
       }
     }

@@ -2766,8 +2766,8 @@ static void do_makepicstring(char *string,
                              int frame,
                              const char imtype,
                              const ImageFormatData *im_format,
-                             const short use_ext,
-                             const short use_frames,
+                             const bool use_ext,
+                             const bool use_frames,
                              const char *suffix)
 {
   if (string == NULL) {

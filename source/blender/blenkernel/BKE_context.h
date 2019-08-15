@@ -137,8 +137,8 @@ void CTX_store_free(bContextStore *store);
 void CTX_store_free_list(ListBase *contexts);
 
 /* need to store if python is initialized or not */
-int CTX_py_init_get(bContext *C);
-void CTX_py_init_set(bContext *C, int value);
+bool CTX_py_init_get(bContext *C);
+void CTX_py_init_set(bContext *C, bool value);
 
 void *CTX_py_dict_get(const bContext *C);
 void CTX_py_dict_set(bContext *C, void *value);
