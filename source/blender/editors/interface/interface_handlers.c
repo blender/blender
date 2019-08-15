@@ -4807,7 +4807,8 @@ static int ui_do_but_NUM(
       /* Integer Value. */
       if (but->drawflag & (UI_BUT_ACTIVE_LEFT | UI_BUT_ACTIVE_RIGHT)) {
         button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-        const int value_step = 1;
+        const int value_step = (int)but->a1;
+        BLI_assert(value_step > 0);
         const double value_test = (but->drawflag & UI_BUT_ACTIVE_LEFT) ?
                                       (double)max_ii((int)softmin, (int)data->value - value_step) :
                                       (double)min_ii((int)softmax, (int)data->value + value_step);
@@ -4825,6 +4826,7 @@ static int ui_do_but_NUM(
       if (but->drawflag & (UI_BUT_ACTIVE_LEFT | UI_BUT_ACTIVE_RIGHT)) {
         button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
         const double value_step = (double)but->a1 * UI_PRECISION_FLOAT_SCALE;
+        BLI_assert(value_step > 0.0f);
         const double value_test = (but->drawflag & UI_BUT_ACTIVE_LEFT) ?
                                       (double)max_ff(softmin, (float)(data->value - value_step)) :
                                       (double)min_ff(softmax, (float)(data->value + value_step));
