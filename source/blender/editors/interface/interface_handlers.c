@@ -4800,64 +4800,40 @@ static int ui_do_but_NUM(
   if (click) {
     /* we can click on the side arrows to increment/decrement,
      * or click inside to edit the value directly */
-    float tempf, softmin, softmax;
-    int temp;
-
-    softmin = but->softmin;
-    softmax = but->softmax;
+    const float softmin = but->softmin;
+    const float softmax = but->softmax;
 
     if (!ui_but_is_float(but)) {
-      if (but->drawflag & UI_BUT_ACTIVE_LEFT) {
+      /* Integer Value. */
+      if (but->drawflag & (UI_BUT_ACTIVE_LEFT | UI_BUT_ACTIVE_RIGHT)) {
         button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-
-        temp = (int)data->value - 1;
-        if (temp >= softmin && temp <= softmax) {
-          data->value = (double)temp;
+        const int value_step = 1;
+        const double value_test = (but->drawflag & UI_BUT_ACTIVE_LEFT) ?
+                                      (double)max_ii((int)softmin, (int)data->value - value_step) :
+                                      (double)min_ii((int)softmax, (int)data->value + value_step);
+        if (value_test != data->value) {
+          data->value = (double)value_test;
         }
         else {
           data->cancel = true;
         }
-
         button_activate_state(C, but, BUTTON_STATE_EXIT);
-      }
-      else if (but->drawflag & UI_BUT_ACTIVE_RIGHT) {
-        button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-
-        temp = (int)data->value + 1;
-        if (temp >= softmin && temp <= softmax) {
-          data->value = (double)temp;
-        }
-        else {
-          data->cancel = true;
-        }
-
-        button_activate_state(C, but, BUTTON_STATE_EXIT);
-      }
-      else {
-        button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
       }
     }
     else {
-      if (but->drawflag & UI_BUT_ACTIVE_LEFT) {
+      /* Float Value. */
+      if (but->drawflag & (UI_BUT_ACTIVE_LEFT | UI_BUT_ACTIVE_RIGHT)) {
         button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-
-        tempf = (float)data->value - (UI_PRECISION_FLOAT_SCALE * but->a1);
-        if (tempf < softmin) {
-          tempf = softmin;
+        const double value_step = (double)but->a1 * UI_PRECISION_FLOAT_SCALE;
+        const double value_test = (but->drawflag & UI_BUT_ACTIVE_LEFT) ?
+                                      (double)max_ff(softmin, (float)(data->value - value_step)) :
+                                      (double)min_ff(softmax, (float)(data->value + value_step));
+        if (value_test != data->value) {
+          data->value = value_test;
         }
-        data->value = tempf;
-
-        button_activate_state(C, but, BUTTON_STATE_EXIT);
-      }
-      else if (but->drawflag & UI_BUT_ACTIVE_RIGHT) {
-        button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-
-        tempf = (float)data->value + (UI_PRECISION_FLOAT_SCALE * but->a1);
-        if (tempf > softmax) {
-          tempf = softmax;
+        else {
+          data->cancel = true;
         }
-        data->value = tempf;
-
         button_activate_state(C, but, BUTTON_STATE_EXIT);
       }
       else {
