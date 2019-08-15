@@ -418,7 +418,7 @@ endif()
 
 if(WITH_OPENIMAGEIO)
   windows_find_package(OpenImageIO)
-  set(OPENIMAGEIO ${LIBDIR}/openimageio)
+  set(OPENIMAGEIO ${LIBDIR}/OpenImageIO)
   set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
   set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
   set(OIIO_OPTIMIZED optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO.lib optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util.lib)
@@ -459,14 +459,14 @@ if(WITH_LLVM)
 endif()
 
 if(WITH_OPENCOLORIO)
-  set(OPENCOLORIO ${LIBDIR}/opencolorio)
+  set(OPENCOLORIO ${LIBDIR}/OpenColorIO)
   set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO}/include)
-  set(OPENCOLORIO_LIBPATH ${LIBDIR}/opencolorio/lib)
+  set(OPENCOLORIO_LIBPATH ${OPENCOLORIO}/lib)
   set(OPENCOLORIO_LIBRARIES
     optimized ${OPENCOLORIO_LIBPATH}/OpenColorIO.lib
     optimized ${OPENCOLORIO_LIBPATH}/tinyxml.lib
     optimized ${OPENCOLORIO_LIBPATH}/libyaml-cpp.lib
-    debug ${OPENCOLORIO_LIBPATH}/OpenColorIO_d.lib
+    debug ${OPENCOLORIO_LIBPATH}/OpencolorIO_d.lib
     debug ${OPENCOLORIO_LIBPATH}/tinyxml_d.lib
     debug ${OPENCOLORIO_LIBPATH}/libyaml-cpp_d.lib
   )
@@ -477,8 +477,8 @@ if(WITH_OPENVDB)
   set(BLOSC_LIBRARIES optimized ${LIBDIR}/blosc/lib/libblosc.lib debug ${LIBDIR}/blosc/lib/libblosc_d.lib)
   set(TBB_LIBRARIES optimized ${LIBDIR}/tbb/lib/tbb.lib debug ${LIBDIR}/tbb/lib/tbb_debug.lib)
   set(TBB_INCLUDE_DIR ${LIBDIR}/tbb/include)
-  set(OPENVDB ${LIBDIR}/openvdb)
-  set(OPENVDB_LIBPATH ${LIBDIR}/openvdb/lib)
+  set(OPENVDB ${LIBDIR}/openVDB)
+  set(OPENVDB_LIBPATH ${OPENVDB}/lib)
   set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include ${TBB_INCLUDE_DIR})
   set(OPENVDB_LIBRARIES optimized ${OPENVDB_LIBPATH}/openvdb.lib debug ${OPENVDB_LIBPATH}/openvdb_d.lib ${TBB_LIBRARIES} ${BLOSC_LIBRARIES})
   set(OPENVDB_DEFINITIONS -DNOMINMAX)
@@ -502,7 +502,7 @@ if(WITH_ALEMBIC)
   set(ALEMBIC_INCLUDE_DIR ${ALEMBIC}/include)
   set(ALEMBIC_INCLUDE_DIRS ${ALEMBIC_INCLUDE_DIR})
   set(ALEMBIC_LIBPATH ${ALEMBIC}/lib)
-  set(ALEMBIC_LIBRARIES optimized ${ALEMBIC}/lib/alembic.lib debug ${ALEMBIC}/lib/alembic_d.lib)
+  set(ALEMBIC_LIBRARIES optimized ${ALEMBIC}/lib/Alembic.lib debug ${ALEMBIC}/lib/Alembic_d.lib)
   set(ALEMBIC_FOUND 1)
 endif()
 
