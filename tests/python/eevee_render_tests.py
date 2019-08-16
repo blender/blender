@@ -18,16 +18,62 @@ def setup():
     scene = bpy.context.scene
     eevee = scene.eevee
 
+    eevee.use_soft_shadows = True
+
     eevee.use_ssr = True
     eevee.use_ssr_refraction = True
+
     eevee.use_gtao = True
+    eevee.gtao_distance = 1
 
     eevee.use_volumetric_shadows = True
     eevee.volumetric_tile_size = '2'
 
     for mat in bpy.data.materials:
-        mat.use_screen_refraction = True
+        # This needs to be enabled case by case,
+        # otherwise we loose SSR and GTAO everywhere.
+        # mat.use_screen_refraction = True
         mat.use_sss_translucency = True
+
+    # Simple probe setup
+    bpy.ops.object.lightprobe_add(type='CUBEMAP', location=(0.5, 0, 1.5))
+    cubemap = bpy.context.selected_objects[0]
+    cubemap.scale = (2.5,2.5,1.0)
+    cubemap.data.falloff = 0
+    cubemap.data.clip_start = 2.4
+
+    bpy.ops.object.lightprobe_add(type='GRID', location=(0, 0, 0.25))
+    grid = bpy.context.selected_objects[0]
+    grid.scale = (1.735,1.735,1.735)
+    grid.data.grid_resolution_x = 3
+    grid.data.grid_resolution_y = 3
+    grid.data.grid_resolution_z = 2
+
+    try:
+        # Try to only include the plane in reflections
+        plane = bpy.data.objects['Plane']
+
+        collection = bpy.data.collections.new("Reflection")
+        collection.objects.link(plane)
+        # Add all lights to light the plane
+        if invert == False:
+            for light in bpy.data.objects:
+                if light.type == 'LIGHT':
+                    collection.objects.link(light)
+
+        # Add collection to the scene
+        scene.collection.children.link(collection)
+
+        cubemap.data.visibility_collection = collection
+    except:
+        pass
+
+    eevee.gi_diffuse_bounces = 1
+    eevee.gi_cubemap_resolution = '128'
+    eevee.gi_visibility_resolution = '16'
+    eevee.gi_irradiance_smoothing = 0
+
+    bpy.ops.scene.light_cache_bake()
 
 
 # When run from inside Blender, render and exit.
