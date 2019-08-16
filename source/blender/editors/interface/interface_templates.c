@@ -6392,22 +6392,17 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
         block, UI_BTYPE_LABEL, 0, icon, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
   }
 
-  UI_block_emboss_set(block, UI_EMBOSS);
-
-  uiDefBut(block,
-           UI_BTYPE_LABEL,
-           0,
+  but = uiDefButO(block,
+           UI_BTYPE_BUT,
+           "SCREEN_OT_info_log_show",
+           WM_OP_INVOKE_REGION_WIN,
            report->message,
            UI_UNIT_X + 5,
            0,
            UI_UNIT_X + width,
            UI_UNIT_Y,
-           NULL,
-           0.0f,
-           0.0f,
-           0,
-           0,
-           "");
+           "Show in Info Log");
+    rgba_float_to_uchar(but->col, rti->col);
 }
 
 void uiTemplateInputStatus(uiLayout *layout, struct bContext *C)

@@ -4775,6 +4775,45 @@ static void SCREEN_OT_drivers_editor_show(struct wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Show Info Log Operator
+ * \{ */
+
+static int info_log_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  PointerRNA ptr = {{NULL}};
+  PropertyRNA *prop = NULL;
+
+  int sizex = 900 * UI_DPI_FAC;
+  int sizey = 580 * UI_DPI_FAC;
+  int shift_y = 480;
+
+  /* changes context! */
+  if (WM_window_open_temp(C, event->x, event->y+shift_y, sizex, sizey, WM_WINDOW_INFO) != NULL) {
+    ScrArea *area = CTX_wm_area(C);
+    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
+    return OPERATOR_FINISHED;
+  }
+  else {
+    BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
+    return OPERATOR_CANCELLED;
+  }
+}
+
+static void SCREEN_OT_info_log_show(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Show Info Log";
+  ot->description = "Show info log in a separate window";
+  ot->idname = "SCREEN_OT_info_log_show";
+
+  /* api callbacks */
+  ot->invoke = info_log_show_invoke;
+  ot->poll = ED_operator_screenactive;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name New Screen Operator
  * \{ */
 
@@ -5241,6 +5280,7 @@ void ED_operatortypes_screen(void)
   WM_operatortype_append(SCREEN_OT_screenshot);
   WM_operatortype_append(SCREEN_OT_userpref_show);
   WM_operatortype_append(SCREEN_OT_drivers_editor_show);
+  WM_operatortype_append(SCREEN_OT_info_log_show);
   WM_operatortype_append(SCREEN_OT_region_blend);
   WM_operatortype_append(SCREEN_OT_space_type_set_or_cycle);
   WM_operatortype_append(SCREEN_OT_space_context_cycle);

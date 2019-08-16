@@ -893,6 +893,9 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
   else if (type == WM_WINDOW_DRIVERS) {
     ED_area_newspace(C, sa, SPACE_GRAPH, false);
   }
+  else if (type == WM_WINDOW_INFO) {
+    ED_area_newspace(C,sa, SPACE_INFO,false);
+  }
   else {
     ED_area_newspace(C, sa, SPACE_USERPREF, false);
   }
@@ -916,6 +919,9 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
   }
   else if (sa->spacetype == SPACE_GRAPH) {
     title = IFACE_("Blender Drivers Editor");
+  }
+  else if (sa->spacetype == SPACE_INFO){
+    title = IFACE_("Blender Info Log");
   }
   else {
     title = "Blender";
