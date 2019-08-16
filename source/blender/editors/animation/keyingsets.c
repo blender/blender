@@ -712,9 +712,9 @@ int ANIM_scene_get_keyingset_index(Scene *scene, KeyingSet *ks)
     }
   }
 
-  /* still here, so try builtins list too
-   * - builtins are from (<= -1)
-   * - none/invalid is (= 0)
+  /* Still here, so try built-ins list too:
+   * - Built-ins are from (<= -1).
+   * - None/Invalid is (= 0).
    */
   index = BLI_findindex(&builtin_keyingsets, ks);
   if (index != -1) {

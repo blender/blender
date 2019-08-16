@@ -61,11 +61,10 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
 
   /* The tessellation is NOT calculated on the copy here,
    * because currently all the callers of this function use
-   * it to make a backup copy of the BMEditMesh to restore
-   * it in the case of errors in an operation. For perf
-   * reasons, in that case it makes more sense to do the
-   * tessellation only when/if that copy ends up getting
-   * used.*/
+   * it to make a backup copy of the #BMEditMesh to restore
+   * it in the case of errors in an operation. For performance reasons,
+   * in that case it makes more sense to do the
+   * tessellation only when/if that copy ends up getting used. */
   em_copy->looptris = NULL;
 
   return em_copy;
@@ -97,8 +96,8 @@ static void editmesh_tessface_calc_intern(BMEditMesh *em)
 
   BMesh *bm = em->bm;
 
-  /* this assumes all faces can be scan-filled, which isn't always true,
-   * worst case we over alloc a little which is acceptable */
+  /* This assumes all faces can be scan-filled, which isn't always true,
+   * worst case we over allocate a little which is acceptable. */
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
   const int looptris_tot_prev_alloc = em->looptris ?
                                           (MEM_allocN_len(em->looptris) / sizeof(*em->looptris)) :
@@ -109,7 +108,7 @@ static void editmesh_tessface_calc_intern(BMEditMesh *em)
   /* this means no reallocs for quad dominant models, for */
   if ((em->looptris != NULL) &&
       /* (*em->tottri >= looptris_tot)) */
-      /* check against alloc'd size incase we over alloc'd a little */
+      /* Check against allocated size in case we over allocated a little. */
       ((looptris_tot_prev_alloc >= looptris_tot) &&
        (looptris_tot_prev_alloc <= looptris_tot * 2))) {
     looptris = em->looptris;

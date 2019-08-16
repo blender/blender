@@ -889,7 +889,7 @@ void BKE_pose_eval_proxy_copy_bone(struct Depsgraph *depsgraph, Object *object, 
   bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
   DEG_debug_print_eval_subdata(
       depsgraph, __func__, object->id.name, object, "pchan", pchan->name, pchan);
-  /* TODO(sergey): Use indexec lookup, once it's guaranteed to be kept
+  /* TODO(sergey): Use indexed lookup, once it's guaranteed to be kept
    * around for the time while proxies are evaluating.
    */
 #if 0

@@ -222,7 +222,7 @@
  * which keeps large arrays in memory from data-blocks we may not even use.
  *
  * \note This is disabled when using compression,
- * while zlib supports seek ist's unusably slow, see: T61880.
+ * while zlib supports seek it's unusably slow, see: T61880.
  */
 #define USE_BHEAD_READ_ON_DEMAND
 
@@ -271,13 +271,13 @@ typedef struct BHeadN {
  * because ID names are used in lookup tables. */
 #define BHEAD_USE_READ_ON_DEMAND(bhead) ((bhead)->code == DATA)
 
-/* this function ensures that reports are printed,
- * in the case of libraray linking errors this is important!
+/**
+ * This function ensures that reports are printed,
+ * in the case of library linking errors this is important!
  *
  * bit kludge but better then doubling up on prints,
  * we could alternatively have a versions of a report function which forces printing - campbell
  */
-
 void blo_reportf_wrap(ReportList *reports, ReportType type, const char *format, ...)
 {
   char fixed_buf[1024]; /* should be long enough */
@@ -533,7 +533,7 @@ static void split_libdata(ListBase *lb_src, Main **lib_main_array, const uint li
 
     if (id->lib) {
       if (((uint)id->lib->temp_index < lib_main_array_len) &&
-          /* this check should never fail, just incase 'id->lib' is a dangling pointer. */
+          /* this check should never fail, just in case 'id->lib' is a dangling pointer. */
           (lib_main_array[id->lib->temp_index]->curlib == id->lib)) {
         Main *mainvar = lib_main_array[id->lib->temp_index];
         ListBase *lb_dst = which_libbase(mainvar, GS(id->name));
@@ -2498,16 +2498,13 @@ static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData
       IDP_DirectLinkIDPArray(prop, switch_endian, fd);
       break;
     case IDP_DOUBLE:
-      /* erg, stupid doubles.  since I'm storing them
-       * in the same field as int val; val2 in the
-       * IDPropertyData struct, they have to deal with
-       * endianness specifically
+      /* Workaround for doubles.
+       * They are stored in the same field as `int val, val2` in the IDPropertyData struct,
+       * they have to deal with endianness specifically.
        *
-       * in theory, val and val2 would've already been swapped
+       * In theory, val and val2 would've already been swapped
        * if switch_endian is true, so we have to first unswap
-       * them then reswap them as a single 64-bit entity.
-       */
-
+       * them then re-swap them as a single 64-bit entity. */
       if (switch_endian) {
         BLI_endian_switch_int32(&prop->data.val);
         BLI_endian_switch_int32(&prop->data.val2);
@@ -7686,8 +7683,8 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
     win->addmousemove = true;
     win->stereo3d_format = newdataadr(fd, win->stereo3d_format);
 
-    /* multiview always fallback to anaglyph at file opening
-     * otherwise quadbuffer saved files can break Blender */
+    /* Multi-view always fallback to anaglyph at file opening
+     * otherwise quad-buffer saved files can break Blender. */
     if (win->stereo3d_format) {
       win->stereo3d_format->display_mode = S3D_DISPLAY_ANAGLYPH;
     }
@@ -9192,7 +9189,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const int ta
    * flags dependency graph does not do animation update to avoid loss of unkeyed changes.,
    * which conflicts with undo/redo of changes to animation data itself.
    *
-   * But for regular file load we clear the flag, since the flags might have been changed sinde
+   * But for regular file load we clear the flag, since the flags might have been changed since
    * the version the file has been saved with. */
   if (!fd->memfile) {
     id->recalc = 0;
@@ -11265,7 +11262,7 @@ static void add_collections_to_scene(Main *mainvar,
     }
     /* We do not want to force instantiation of indirectly linked collections,
      * not even when appending. Users can now easily instantiate collections (and their objects)
-     * as needed by themsleves. See T67032. */
+     * as needed by themselves. See T67032. */
     else if ((collection->id.tag & LIB_TAG_INDIRECT) == 0) {
       bool do_add_collection = (collection->id.tag & LIB_TAG_DOIT) != 0;
       if (!do_add_collection) {

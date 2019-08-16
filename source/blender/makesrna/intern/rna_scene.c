@@ -821,8 +821,8 @@ static void rna_Scene_fps_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(p
 {
   DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_FPS | ID_RECALC_SEQUENCER_STRIPS);
   /* NOTE: Tag via dependency graph will take care of all the updates ion the evaluated domain,
-   * however, changes in FPS actually modifies an original stip length, so this we take care about
-   * here. */
+   * however, changes in FPS actually modifies an original skip length,
+   * so this we take care about here. */
   BKE_sequencer_refresh_sound_length(bmain, scene);
 }
 

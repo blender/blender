@@ -195,7 +195,7 @@ void ImageNode::convertToOperations(NodeConverter &converter,
             }
           }
 
-          /* incase we can't load the layer */
+          /* In case we can't load the layer. */
           if (operation == NULL) {
             converter.setInvalidOutput(getOutputSocket(index));
           }

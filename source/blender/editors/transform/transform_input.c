@@ -299,7 +299,7 @@ static void calcSpringFactor(MouseInput *mi)
 
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 {
-  /* incase we allocate a new value */
+  /* In case we allocate a new value. */
   void *mi_data_prev = mi->data;
 
   mi->use_virtual_mval = true;

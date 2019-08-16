@@ -1320,7 +1320,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
           }
           // print_v2("new clnors", clnors_avg);
         }
-        /* Extra bonus: since smallstack is local to this func,
+        /* Extra bonus: since small-stack is local to this function,
          * no more need to empty it at all cost! */
 
         BKE_lnor_space_custom_data_to_normal(lnor_space, *clnor_ref, lnor);
@@ -1336,7 +1336,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
         copy_v3_v3(nor, lnor);
       }
     }
-    /* Extra bonus: since smallstack is local to this func,
+    /* Extra bonus: since small-stack is local to this funcion,
      * no more need to empty it at all cost! */
   }
 }

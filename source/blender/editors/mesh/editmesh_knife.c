@@ -2949,7 +2949,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case KNF_MODAL_ADD_CUT_CLOSED:
         if (kcd->mode == MODE_DRAGGING) {
 
-          /* shouldn't be possible with default key-layout, just incase... */
+          /* Shouldn't be possible with default key-layout, just in case. */
           if (kcd->is_drag_hold) {
             kcd->is_drag_hold = false;
             knifetool_update_mval(kcd, kcd->curr.mval);

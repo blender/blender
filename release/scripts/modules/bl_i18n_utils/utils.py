@@ -834,7 +834,7 @@ class I18nMessages:
     def parse_messages_from_po(self, src, key=None):
         """
         Parse a po file.
-        Note: This function will silently "arrange" mis-formated entries, thus using afterward write_messages() should
+        Note: This function will silently "arrange" mis-formatted entries, thus using afterward write_messages() should
               always produce a po-valid file, though not correct!
         """
         reading_msgid = False

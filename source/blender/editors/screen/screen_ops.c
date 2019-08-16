@@ -3742,7 +3742,7 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
       rv3d->viewlock = 0;
       rv3d->rflag &= ~RV3D_CLIPPING;
 
-      /* accumulate locks, incase they're mixed */
+      /* Accumulate locks, in case they're mixed. */
       for (ar_iter = sa->regionbase.first; ar_iter; ar_iter = ar_iter->next) {
         if (ar_iter->regiontype == RGN_TYPE_WINDOW) {
           RegionView3D *rv3d_iter = ar_iter->regiondata;

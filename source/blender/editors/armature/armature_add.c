@@ -769,7 +769,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 
         EditBone *ebone = ebone_iter->temp.ebone;
 
-        /* copy flags incase bone is pre-existing data */
+        /* Copy flags in case bone is pre-existing data. */
         ebone->flag = (ebone->flag & ~flag_copy) | (ebone_iter->flag & flag_copy);
 
         if (ebone_iter->parent == NULL) {

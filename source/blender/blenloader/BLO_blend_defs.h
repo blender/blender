@@ -18,7 +18,7 @@
 
 /** \file
  * \ingroup blenloader
- * \brief defines for blendfile codes
+ * \brief defines for blend-file codes.
  */
 
 /* INTEGER CODES */

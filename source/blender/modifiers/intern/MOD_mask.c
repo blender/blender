@@ -138,10 +138,10 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       return mesh;
     }
 
-    /* Determine whether each vertexgroup is associated with a selected bone or not:
-     * - Each cell is a boolean saying whether bone corresponding to the ith group is selected.
+    /* Determine whether each vertex-group is associated with a selected bone or not:
+     * - Each cell is a boolean saying whether bone corresponding to the i'th group selected.
      * - Groups that don't match a bone are treated as not existing
-     *   (along with the corresponding ungrouped verts).
+     *   (along with the corresponding un-grouped verts).
      */
     bone_select_array = MEM_malloc_arrayN((size_t)defbase_tot, sizeof(char), "mask array");
 

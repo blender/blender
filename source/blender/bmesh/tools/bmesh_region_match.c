@@ -1099,7 +1099,7 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
         }
       }
       else {
-        /* use incase (depth == 0), no interior verts */
+        /* Use in case (depth == 0), no interior verts. */
         e_pivot_fallback = e;
       }
     } while ((l_iter = l_iter->next) != l_first);

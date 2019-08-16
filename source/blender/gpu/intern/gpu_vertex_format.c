@@ -253,7 +253,7 @@ void GPU_vertformat_safe_attrib_name(const char *attrib_name,
     *(uint *)&data[4] = BLI_ghashutil_strhash_p_murmur(attrib_name + 4);
   }
   else {
-    /* Copy the whole name. Collision is barelly possible
+    /* Copy the whole name. Collision is barely possible
      * (hash would have to be equal to the last 4 bytes). */
     for (int i = 0; i < 8 && attrib_name[i] != '\0'; i++) {
       data[i] = attrib_name[i];

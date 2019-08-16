@@ -4001,7 +4001,7 @@ GPUBatch *DRW_cache_cursor_get(bool crosshair_lines)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Batch Cache Impl. common
+/** \name Batch Cache Implementation (common)
  * \{ */
 
 void drw_batch_cache_validate(Object *ob)

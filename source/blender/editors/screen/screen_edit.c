@@ -1116,7 +1116,7 @@ void ED_screen_full_prevspace(bContext *C, ScrArea *sa)
 
 void ED_screen_restore_temp_type(bContext *C, ScrArea *sa)
 {
-  /* incase nether functions below run */
+  /* In case nether functions below run. */
   ED_area_tag_redraw(sa);
 
   if (sa->flag & AREA_FLAG_TEMP_TYPE) {

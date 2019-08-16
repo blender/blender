@@ -6601,7 +6601,7 @@ static void slide_origdata_interp_data_vert(SlideOrigData *sod,
      * and we do not want to mess up other shape keys */
     BM_loop_interp_from_face(bm, l, f_copy, false, false);
 
-    /* make sure face-attributes are correct (e.g. MTexPoly) */
+    /* make sure face-attributes are correct (e.g. #MLoopUV, #MLoopCol) */
     BM_elem_attrs_copy_ex(sod->bm_origfaces, bm, f_copy, l->f, 0x0, CD_MASK_NORMAL);
 
     /* weight the loop */

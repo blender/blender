@@ -294,7 +294,7 @@ static void layerInterp_mdeformvert(const void **sources,
     }
   }
 
-  /* delay writing to the destination incase dest is in sources */
+  /* Delay writing to the destination in case dest is in sources. */
 
   /* now we know how many unique deform weights there are, so realloc */
   if (dvert->dw && (dvert->totweight == totweight)) {
@@ -441,7 +441,7 @@ static void layerInterp_tface(
     }
   }
 
-  /* delay writing to the destination incase dest is in sources */
+  /* Delay writing to the destination in case dest is in sources. */
   *tf = *(MTFace *)(*sources);
   memcpy(tf->uv, uv, sizeof(tf->uv));
 }
@@ -548,7 +548,7 @@ static void layerInterp_origspace_face(
     }
   }
 
-  /* delay writing to the destination in case dest is in sources */
+  /* Delay writing to the destination in case dest is in sources. */
   memcpy(osf->uv, uv, sizeof(osf->uv));
 }
 
@@ -908,7 +908,7 @@ static void layerInterp_mloopcol(
   /* Subdivide smooth or fractal can cause problems without clamping
    * although weights should also not cause this situation */
 
-  /* also delay writing to the destination incase dest is in sources */
+  /* Also delay writing to the destination in case dest is in sources. */
   mc->r = round_fl_to_uchar_clamp(col.r);
   mc->g = round_fl_to_uchar_clamp(col.g);
   mc->b = round_fl_to_uchar_clamp(col.b);
@@ -1008,7 +1008,7 @@ static void layerInterp_mloopuv(
     }
   }
 
-  /* delay writing to the destination incase dest is in sources */
+  /* Delay writing to the destination in case dest is in sources. */
   copy_v2_v2(((MLoopUV *)dest)->uv, uv);
   ((MLoopUV *)dest)->flag = flag;
 }
@@ -1104,7 +1104,7 @@ static void layerInterp_mloop_origspace(
     }
   }
 
-  /* delay writing to the destination incase dest is in sources */
+  /* Delay writing to the destination in case dest is in sources. */
   copy_v2_v2(((OrigSpaceLoop *)dest)->uv, uv);
 }
 /* --- end copy */
@@ -1152,7 +1152,7 @@ static void layerInterp_mcol(
     }
   }
 
-  /* delay writing to the destination incase dest is in sources */
+  /* Delay writing to the destination in case dest is in sources. */
   for (j = 0; j < 4; ++j) {
 
     /* Subdivide smooth or fractal can cause problems without clamping
@@ -1220,7 +1220,7 @@ static void layerInterp_bweight(const void **sources,
     }
   }
 
-  /* delay writing to the destination incase dest is in sources */
+  /* Delay writing to the destination in case dest is in sources. */
   *((float *)dest) = f;
 }
 
@@ -1251,7 +1251,7 @@ static void layerInterp_shapekey(const void **sources,
     }
   }
 
-  /* delay writing to the destination incase dest is in sources */
+  /* Delay writing to the destination in case dest is in sources. */
   copy_v3_v3((float *)dest, co);
 }
 
@@ -1289,7 +1289,7 @@ static void layerInterp_mvert_skin(const void **sources,
     madd_v3_v3fl(radius, vs_src->radius, w);
   }
 
-  /* delay writing to the destination incase dest is in sources */
+  /* Delay writing to the destination in case dest is in sources. */
   vs_dst = dest;
   copy_v3_v3(vs_dst->radius, radius);
   vs_dst->flag &= ~MVERT_SKIN_ROOT;
@@ -2828,9 +2828,7 @@ void CustomData_interp(const CustomData *source,
   const void *source_buf[SOURCE_BUF_SIZE];
   const void **sources = source_buf;
 
-  /* slow fallback in case we're interpolating a ridiculous number of
-   * elements
-   */
+  /* Slow fallback in case we're interpolating a ridiculous number of elements. */
   if (count > SOURCE_BUF_SIZE) {
     sources = MEM_malloc_arrayN(count, sizeof(*sources), __func__);
   }
@@ -3828,9 +3826,7 @@ void CustomData_bmesh_interp(CustomData *data,
   void *source_buf[SOURCE_BUF_SIZE];
   const void **sources = (const void **)source_buf;
 
-  /* slow fallback in case we're interpolating a ridiculous number of
-   * elements
-   */
+  /* Slow fallback in case we're interpolating a ridiculous number of elements. */
   if (count > SOURCE_BUF_SIZE) {
     sources = MEM_malloc_arrayN(count, sizeof(*sources), __func__);
   }

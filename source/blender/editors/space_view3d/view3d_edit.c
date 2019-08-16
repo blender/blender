@@ -404,9 +404,7 @@ static void viewops_data_create(bContext *C,
   if (viewops_flag & VIEWOPS_FLAG_PERSP_ENSURE) {
     if (ED_view3d_persp_ensure(depsgraph, vod->v3d, vod->ar)) {
       /* If we're switching from camera view to the perspective one,
-       * need to tag viewport update, so camera vuew and borders
-       * are properly updated.
-       */
+       * need to tag viewport update, so camera view and borders are properly updated. */
       ED_region_tag_redraw(vod->ar);
     }
   }

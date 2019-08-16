@@ -1992,8 +1992,8 @@ static int render_initialize_from_main(Render *re,
   winx = (rd->size * rd->xsch) / 100;
   winy = (rd->size * rd->ysch) / 100;
 
-  /* We always render smaller part, inserting it in larger image is compositor bizz,
-   * it uses disprect for it. */
+  /* We always render smaller part, inserting it in larger image is compositor business,
+   * it uses 'disprect' for it. */
   if (scene->r.mode & R_BORDER) {
     disprect.xmin = rd->border.xmin * winx;
     disprect.xmax = rd->border.xmax * winx;

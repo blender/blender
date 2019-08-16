@@ -29,7 +29,7 @@ CCL_NAMESPACE_BEGIN
  * semantic around the units of size, it just should be the same for all
  * entries.
  *
- * This is a generic entry foi all size-related statistics, which helps
+ * This is a generic entry for all size-related statistics, which helps
  * avoiding duplicating code for things like sorting.
  */
 class NamedSizeEntry {

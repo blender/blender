@@ -73,7 +73,7 @@ class MemoryBuffer {
   rcti m_rect;
 
   /**
-   * brief refers to the chunknumber within the executiongroup where related to the MemoryProxy
+   * brief refers to the chunk-number within the execution-group where related to the MemoryProxy
    * \see memoryProxy
    */
   unsigned int m_chunkNumber;

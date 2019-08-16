@@ -1844,7 +1844,7 @@ static void scroller_activate_init(bContext *C,
    */
   scrollers = UI_view2d_scrollers_calc(v2d, NULL);
 
-  /* use a union of 'cur' & 'tot' incase the current view is far outside 'tot'. In this cases
+  /* Use a union of 'cur' & 'tot' in case the current view is far outside 'tot'. In this cases
    * moving the scroll bars has far too little effect and the view can get stuck T31476. */
   tot_cur_union = v2d->tot;
   BLI_rctf_union(&tot_cur_union, &v2d->cur);

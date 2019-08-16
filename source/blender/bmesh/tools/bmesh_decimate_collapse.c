@@ -363,7 +363,7 @@ static void bm_decim_build_edge_cost(BMesh *bm,
 struct KD_Symmetry_Data {
   /* pre-flipped coords */
   float e_v1_co[3], e_v2_co[3];
-  /* Use to compare the correct endpoints incase v1/v2 are swapped */
+  /* Use to compare the correct endpoints in case v1/v2 are swapped. */
   float e_dir[3];
 
   int e_found_index;
@@ -1371,8 +1371,8 @@ void BM_mesh_decimate_collapse(BMesh *bm,
       /* handy to detect corruptions elsewhere */
       BLI_assert(BM_elem_index_get(e) < tot_edge_orig);
 
-      /* under normal conditions wont be accessed again,
-       * but NULL just incase so we don't use freed node */
+      /* Under normal conditions wont be accessed again,
+       * but NULL just in case so we don't use freed node. */
       eheap_table[BM_elem_index_get(e)] = NULL;
 
       bm_decim_edge_collapse(bm,

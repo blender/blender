@@ -1628,7 +1628,9 @@ MaskLayerShape *BKE_mask_layer_shape_find_frame(MaskLayer *masklay, const int fr
   return NULL;
 }
 
-/* when returning 2 - the frame isnt found but before/after frames are */
+/**
+ * When returning 2 - the frame isn't found but before/after frames are.
+ */
 int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay,
                                           const float frame,
                                           MaskLayerShape **r_masklay_shape_a,

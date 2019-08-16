@@ -622,8 +622,8 @@ bool ED_view3d_camera_autokey(
 /**
  * Call after modifying a locked view.
  *
- * \note Not every view edit currently auto-keys (numpad for eg),
- * this is complicated because of smoothview.
+ * \note Not every view edit currently auto-keys (num-pad for eg),
+ * this is complicated because of smooth-view.
  */
 bool ED_view3d_camera_lock_autokey(View3D *v3d,
                                    RegionView3D *rv3d,

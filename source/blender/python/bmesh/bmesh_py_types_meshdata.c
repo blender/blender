@@ -20,8 +20,8 @@
 /** \file
  * \ingroup pybmesh
  *
- * This file defines customdata types which can't be accessed as primitive
- * python types such as MDeformVert, MLoopUV, MTexPoly
+ * This file defines custom-data types which can't be accessed as primitive
+ * python types such as #MDeformVert, #MLoopUV.
  */
 
 #include <Python.h>
@@ -515,8 +515,8 @@ static PySequenceMethods bpy_bmdeformvert_as_sequence = {
     NULL,                          /* sq_concat */
     NULL,                          /* sq_repeat */
 
-    /* note: if this is set PySequence_Check() returns True,
-     * but in this case we dont want to be treated as a seq */
+    /* Note: if this is set #PySequence_Check() returns True,
+     * but in this case we don't want to be treated as a seq. */
     NULL, /* sq_item */
 
     NULL,                                  /* sq_slice */

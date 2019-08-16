@@ -888,7 +888,7 @@ static void rna_def_pointcache_common(StructRNA *srna)
   prop = RNA_def_property(srna, "info", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "info");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  /* Note that we do not actually need a getter here, `rna_Cache_info_length` will upate the info
+  /* Note that we do not actually need a getter here, `rna_Cache_info_length` will update the info
    * string just as well. */
   RNA_def_property_string_funcs(prop, NULL, "rna_Cache_info_length", NULL);
   RNA_def_property_string_maxlength(

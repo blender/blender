@@ -2705,7 +2705,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 
   for (a = 0; a < me->totvert; a++, bp++) {
     /* get scalar values needed  *per vertex* from vertex group functions,
-     * so we can *paint* them nicly ..
+     * so we can *paint* them nicely ..
      * they are normalized [0.0..1.0] so may be we need amplitude for scale
      * which can be done by caller but still .. i'd like it to go this way
      */

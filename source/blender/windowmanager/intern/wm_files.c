@@ -1351,7 +1351,7 @@ static bool wm_file_write(bContext *C, const char *filepath, int fileflags, Repo
     }
   }
 
-  /* Call pre-save callbacks befores writing preview,
+  /* Call pre-save callbacks before writing preview,
    * that way you can generate custom file thumbnail. */
   BLI_callback_exec(bmain, NULL, BLI_CB_EVT_SAVE_PRE);
 

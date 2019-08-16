@@ -3452,7 +3452,7 @@ bool clip_segment_v3_plane(
     }
   }
 
-  /* incase input/output values match (above also) */
+  /* In case input/output values match (above also). */
   const float p1_copy[3] = {UNPACK3(p1)};
   copy_v3_v3(r_p2, p2);
   copy_v3_v3(r_p1, p1_copy);
@@ -3511,7 +3511,7 @@ bool clip_segment_v3_plane_n(const float p1[3],
     }
   }
 
-  /* incase input/output values match */
+  /* In case input/output values match. */
   const float p1_copy[3] = {UNPACK3(p1)};
 
   madd_v3_v3v3fl(r_p1, p1_copy, dp, p1_fac);

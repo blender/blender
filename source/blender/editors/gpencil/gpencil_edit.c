@@ -3331,7 +3331,7 @@ typedef enum eGP_ReprojectModes {
   GP_REPROJECT_FRONT = 0,
   GP_REPROJECT_SIDE,
   GP_REPROJECT_TOP,
-  /* On same plane, parallel to viewplane */
+  /* On same plane, parallel to view-plane. */
   GP_REPROJECT_VIEW,
   /* Reprojected on to the scene geometry */
   GP_REPROJECT_SURFACE,
@@ -3374,11 +3374,10 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
       for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
         float xy[2];
 
-        /* 3D to Screenspace */
-        /* Note: We can't use gp_point_to_xy() here because that uses ints for the screenspace
-         *       coordinates, resulting in lost precision, which in turn causes stairstepping
-         *       artifacts in the final points.
-         */
+        /* 3D to Screen-space */
+        /* Note: We can't use gp_point_to_xy() here because that uses ints for the screen-space
+         * coordinates, resulting in lost precision, which in turn causes stair-stepping
+         * artifacts in the final points. */
         bGPDspoint pt2;
         gp_point_to_parent_space(pt, gpstroke_iter.diff_mat, &pt2);
         gp_point_to_xy_fl(&gsc, gps, &pt2, &xy[0], &xy[1]);
@@ -3427,16 +3426,15 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
           /* apply parent again */
           gp_apply_parent_point(depsgraph, ob, gpd, gpl, pt);
         }
-        /* Project screenspace back to 3D space (from current perspective)
-         * so that all points have been treated the same way
-         */
+        /* Project screen-space back to 3D space (from current perspective)
+         * so that all points have been treated the same way. */
         else if (mode == GP_REPROJECT_VIEW) {
-          /* Planar - All on same plane parallel to the viewplane */
+          /* Planar - All on same plane parallel to the view-plane. */
           gp_point_xy_to_3d(&gsc, scene, xy, &pt->x);
         }
         else {
           /* Geometry - Snap to surfaces of visible geometry */
-          /* XXX: There will be precision loss (possible stairstep artifacts)
+          /* XXX: There will be precision loss (possible stair-step artifacts)
            * from this conversion to satisfy the API's */
           const int screen_co[2] = {(int)xy[0], (int)xy[1]};
 
@@ -4440,7 +4438,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
       if ((pt->flag & GP_SPOINT_SELECT) || (pt->flag & GP_SPOINT_TAG)) {
         continue;
       }
-      /* convert point coords to screenspace */
+      /* convert point coords to screen-space */
       const bool is_inside = is_inside_fn(gps, pt, &gsc, gpstroke_iter.diff_mat, user_data);
       if (is_inside) {
         tot_inside++;

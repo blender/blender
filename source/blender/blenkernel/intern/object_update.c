@@ -432,7 +432,7 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
   BKE_base_eval_flags(base);
 
   /* For render, compute base visibility again since BKE_base_eval_flags
-   * assumed viewport visibility. Selectability does not matter here. */
+   * assumed viewport visibility. Select-ability does not matter here. */
   if (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER) {
     if (base->flag & BASE_ENABLED_RENDER) {
       base->flag |= BASE_VISIBLE;

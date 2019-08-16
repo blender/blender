@@ -120,7 +120,7 @@ struct CurveDrawData {
 
   struct {
     float mouse[2];
-    /* used incase we can't calculate the depth */
+    /* Used in case we can't calculate the depth. */
     float location_world[3];
 
     float location_world_valid[3];
@@ -1053,7 +1053,7 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   const bool is_modal = RNA_boolean_get(op->ptr, "wait_for_input");
 
-  /* fallback (incase we can't find the depth on first test) */
+  /* Fallback (in case we can't find the depth on first test). */
   {
     const float mval_fl[2] = {UNPACK2(event->mval)};
     float center[3];

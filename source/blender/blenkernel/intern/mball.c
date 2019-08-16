@@ -364,12 +364,13 @@ bool BKE_mball_is_any_unselected(const MetaBall *mb)
   return false;
 }
 
-/* \brief copy some properties from object to other metaball object with same base name
+/**
+ * \brief copy some properties from object to other metaball object with same base name
  *
  * When some properties (wiresize, threshold, update flags) of metaball are changed, then this
  * properties are copied to all metaballs in same "group" (metaballs with same base name: MBall,
  * MBall.001, MBall.002, etc). The most important is to copy properties to the base metaball,
- * because this metaball influence polygonisation of metaballs. */
+ * because this metaball influence polygonization of metaballs. */
 void BKE_mball_properties_copy(Scene *scene, Object *active_object)
 {
   Scene *sce_iter = scene;

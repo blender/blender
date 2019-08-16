@@ -1015,7 +1015,7 @@ static PyObject *Quaternion_matmul(PyObject *q1, PyObject *q2)
   return NULL;
 }
 /*------------------------obj @= obj------------------------------
- * inplace quaternion multiplication */
+ * in-place quaternion multiplication */
 static PyObject *Quaternion_imatmul(PyObject *q1, PyObject *q2)
 {
   float quat[QUAT_SIZE];

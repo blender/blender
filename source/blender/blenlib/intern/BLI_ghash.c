@@ -886,7 +886,7 @@ bool BLI_ghash_ensure_p_ex(GHash *gh, const void *key, void ***r_key, void ***r_
   const bool haskey = (e != NULL);
 
   if (!haskey) {
-    /* pass 'key' incase we resize */
+    /* Pass 'key' in case we resize. */
     e = BLI_mempool_alloc(gh->entrypool);
     ghash_insert_ex_keyonly_entry(gh, (void *)key, bucket_index, (Entry *)e);
     e->e.key = NULL; /* caller must re-assign */
@@ -1189,7 +1189,7 @@ bool BLI_gset_ensure_p_ex(GSet *gs, const void *key, void ***r_key)
   const bool haskey = (e != NULL);
 
   if (!haskey) {
-    /* pass 'key' incase we resize */
+    /* Pass 'key' in case we resize */
     e = BLI_mempool_alloc(((GHash *)gs)->entrypool);
     ghash_insert_ex_keyonly_entry((GHash *)gs, (void *)key, bucket_index, (Entry *)e);
     e->key = NULL; /* caller must re-assign */

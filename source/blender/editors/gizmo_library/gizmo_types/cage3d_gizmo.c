@@ -358,7 +358,7 @@ static void gizmo_cage3d_draw_intern(
       bool show = false;
       if (gz->highlight_part == ED_GIZMO_CAGE3D_PART_TRANSLATE) {
         /* Only show if we're drawing the center handle
-         * otherwise the entire rectangle is the hotspot. */
+         * otherwise the entire rectangle is the hot-spot. */
         if (draw_options & ED_GIZMO_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE) {
           show = true;
         }

@@ -43,8 +43,7 @@ BVHNode *bvh_node_merge_children_recursively(const BVHNode *node)
   if (node->is_leaf()) {
     return new LeafNode(*reinterpret_cast<const LeafNode *>(node));
   }
-  /* Collect nodes of one layer deeper, allowing us to have more childrem in
-   * an inner layer. */
+  /* Collect nodes of one layer deeper, allowing us to have more children in an inner layer. */
   assert(node->num_children() <= 2);
   const BVHNode *children[4];
   const BVHNode *child0 = node->get_child(0);

@@ -60,9 +60,8 @@ typedef struct MPathTarget {
   Object *ob;          /* source object */
   bPoseChannel *pchan; /* source posechannel (if applicable) */
 
-  /* "Evaluated" Copies (these come from the background COW copie
-   * that provide all the coordinates we want to save off)
-   */
+  /* "Evaluated" Copies (these come from the background COW copy
+   * that provide all the coordinates we want to save off). */
   Object *ob_eval; /* evaluated object */
 } MPathTarget;
 

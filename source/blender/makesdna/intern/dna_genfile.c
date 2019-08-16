@@ -339,7 +339,7 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
 
   data = (int *)sdna->data;
 
-  /* clear pointers incase of error */
+  /* Clear pointers in case of error. */
   sdna->names = NULL;
   sdna->types = NULL;
   sdna->structs = NULL;

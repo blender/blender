@@ -1213,7 +1213,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
   PyObject *polyLine, *polyVec;
   int i, len_polylines, len_polypoints, ls_error = 0;
 
-  /* display listbase */
+  /* Display #ListBase. */
   ListBase dispbase = {NULL, NULL};
   DispList *dl;
   float *fp; /*pointer to the array of malloced dl->verts to set the points from the vectors */
@@ -1299,7 +1299,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
     BKE_displist_fill(&dispbase, &dispbase, NULL, false);
 
     /* The faces are stored in a new DisplayList
-     * that's added to the head of the listbase */
+     * that's added to the head of the #ListBase. */
     dl = dispbase.first;
 
     tri_list = PyList_New(dl->parts);

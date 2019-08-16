@@ -188,10 +188,6 @@ typedef struct MVertTri {
   unsigned int tri[3];
 } MVertTri;
 
-// typedef struct MTexPoly {
-//  void *_pad;
-//} MTexPoly;
-
 typedef struct MLoopUV {
   float uv[2];
   int flag;

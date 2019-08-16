@@ -786,10 +786,8 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
     return NULL;
   }
 
-  /*
-   * flip vector around, since vectoquat expect a vector from target to tracking object
-   * and the python function expects the inverse (a vector to the target).
-   */
+  /* Flip vector around, since #vec_to_quat expect a vector from target to tracking object
+   * and the python function expects the inverse (a vector to the target). */
   negate_v3_v3(vec, self->vec);
 
   vec_to_quat(quat, vec, track, up);

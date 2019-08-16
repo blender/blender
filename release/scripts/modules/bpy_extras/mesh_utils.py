@@ -241,9 +241,9 @@ def edge_loops_from_edges(mesh, edges=None):
 
 def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
     """
-    Takes a polyline of indices (fgon) and returns a list of face
+    Takes a polyline of indices (ngon) and returns a list of face
     index lists. Designed to be used for importers that need indices for an
-    fgon to create from existing verts.
+    ngon to create from existing verts.
 
     :arg from_data: either a mesh, or a list/tuple of vectors.
     :type from_data: list or :class:`bpy.types.Mesh`

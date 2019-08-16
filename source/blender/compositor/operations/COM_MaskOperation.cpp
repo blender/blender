@@ -148,7 +148,7 @@ void MaskOperation::executePixelSampled(float output[4],
     }
   }
   else {
-    /* incase loop below fails */
+    /* In case loop below fails. */
     output[0] = 0.0f;
 
     for (unsigned int i = 0; i < this->m_rasterMaskHandleTot; i++) {

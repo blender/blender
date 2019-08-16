@@ -519,7 +519,7 @@ static void ocean_compute_htilda(void *__restrict userdata,
 
   int j;
 
-  /* note the <= _N/2 here, see the fftw doco
+  /* Note the <= _N/2 here, see the FFTW documentation
    * about the mechanics of the complex->real fft storage. */
   for (j = 0; j <= o->_N / 2; ++j) {
     fftw_complex exp_param1;

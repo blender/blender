@@ -105,7 +105,7 @@ class ANIM_OT_keying_set_export(Operator):
             # - idtype_list is used to get the list of id-datablocks from
             #   bpy.data.* since this info isn't available elsewhere
             # - id.bl_rna.name gives a name suitable for UI,
-            #   with a capitalised first letter, but we need
+            #   with a capitalized first letter, but we need
             #   the plural form that's all lower case
             # - special handling is needed for "nested" ID-blocks
             #   (e.g. nodetree in Material)

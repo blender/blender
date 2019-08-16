@@ -1629,8 +1629,8 @@ bool IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
     return false;
   }
 
-  /* scaleup / scaledown functions below change ibuf->x and ibuf->y
-   * so we first scale the Z-buffer (if any) */
+  /* Scale-up / scale-down functions below change ibuf->x and ibuf->y
+   * so we first scale the Z-buffer (if any). */
   scalefast_Z_ImBuf(ibuf, newx, newy);
 
   /* try to scale common cases in a fast way */

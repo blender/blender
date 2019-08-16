@@ -1432,8 +1432,8 @@ bool rna_Object_constraints_override_apply(Main *UNUSED(bmain),
   Object *ob_src = (Object *)ptr_src->id.data;
 
   /* Remember that insertion operations are defined and stored in correct order, which means that
-   * even if we insert several items in a row, we alays insert first one, then second one, etc.
-   * So we should always find 'anchor' constraint in both _src *and* _dst> */
+   * even if we insert several items in a row, we always insert first one, then second one, etc.
+   * So we should always find 'anchor' constraint in both _src *and* _dst. */
   bConstraint *con_anchor = NULL;
   if (opop->subitem_local_name && opop->subitem_local_name[0]) {
     con_anchor = BLI_findstring(
@@ -1520,8 +1520,8 @@ bool rna_Object_modifiers_override_apply(Main *UNUSED(bmain),
   Object *ob_src = (Object *)ptr_src->id.data;
 
   /* Remember that insertion operations are defined and stored in correct order, which means that
-   * even if we insert several items in a row, we alays insert first one, then second one, etc.
-   * So we should always find 'anchor' constraint in both _src *and* _dst> */
+   * even if we insert several items in a row, we always insert first one, then second one, etc.
+   * So we should always find 'anchor' constraint in both _src *and* _dst. */
   ModifierData *mod_anchor = NULL;
   if (opop->subitem_local_name && opop->subitem_local_name[0]) {
     mod_anchor = BLI_findstring(
