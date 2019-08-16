@@ -1305,15 +1305,8 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
     TreeStoreElem *activate_tselem = TREESTORE(activate_te);
 
     outliner_item_select(soops, activate_te, extend, extend);
-
-    /* Only change modes when clicking on the icon/text,
-     * otherwise we can't easily select without changing modes. */
-    if ((te->flag & TE_ICONROW) == 0) {
-      if (view_mval[0] >= te->xs && view_mval[0] <= te->xend) {
-        do_outliner_item_activate_tree_element(
-            C, scene, view_layer, soops, activate_te, activate_tselem, extend, recursive);
-      }
-    }
+    do_outliner_item_activate_tree_element(
+        C, scene, view_layer, soops, activate_te, activate_tselem, extend, recursive);
     changed = true;
   }
 
