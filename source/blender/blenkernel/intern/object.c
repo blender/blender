@@ -3587,7 +3587,7 @@ bool BKE_object_shapekey_free(Main *bmain, Object *ob)
 
   BKE_id_free_us(bmain, key);
 
-  return false;
+  return true;
 }
 
 bool BKE_object_shapekey_remove(Main *bmain, Object *ob, KeyBlock *kb)
