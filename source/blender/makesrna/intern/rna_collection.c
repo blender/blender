@@ -130,9 +130,9 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
                                                   PointerRNA *UNUSED(ptr_item_storage),
                                                   IDOverrideLibraryPropertyOperation *opop)
 {
-  (void)opop;
   BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE &&
              "Unsupported RNA override operation on collections' objects");
+  UNUSED_VARS_NDEBUG(opop);
 
   Collection *coll_dst = ptr_dst->id.data;
 
@@ -233,9 +233,9 @@ static bool rna_Collection_children_override_apply(Main *bmain,
                                                    PointerRNA *UNUSED(ptr_item_storage),
                                                    IDOverrideLibraryPropertyOperation *opop)
 {
-  (void)opop;
   BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE &&
              "Unsupported RNA override operation on collections' objects");
+  UNUSED_VARS_NDEBUG(opop);
 
   Collection *coll_dst = ptr_dst->id.data;
 
