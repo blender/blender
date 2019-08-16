@@ -505,7 +505,7 @@ static void extract_tris_looptri_mesh(const MeshRenderData *mr,
                                       void *_data)
 {
   const MPoly *mpoly = &mr->mpoly[mlt->poly];
-  if (!(mpoly->flag & ME_HIDE)) {
+  if (!(mr->use_hide && (mpoly->flag & ME_HIDE))) {
     MeshExtract_Tri_Data *data = _data;
     int *mat_tri_ofs = data->tri_mat_end;
     GPU_indexbuf_set_tri_verts(
