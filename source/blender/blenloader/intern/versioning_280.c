@@ -825,7 +825,7 @@ static void do_versions_material_convert_legacy_blend_mode(bNodeTree *ntree, cha
   }
 }
 
-void do_versions_after_linking_280(Main *bmain, ReportList *reports)
+void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
 {
   bool use_collection_compat_28 = true;
 

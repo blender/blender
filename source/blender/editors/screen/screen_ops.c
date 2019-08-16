@@ -4780,17 +4780,12 @@ static void SCREEN_OT_drivers_editor_show(struct wmOperatorType *ot)
 
 static int info_log_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  PointerRNA ptr = {{NULL}};
-  PropertyRNA *prop = NULL;
-
   int sizex = 900 * UI_DPI_FAC;
   int sizey = 580 * UI_DPI_FAC;
   int shift_y = 480;
 
   /* changes context! */
-  if (WM_window_open_temp(C, event->x, event->y+shift_y, sizex, sizey, WM_WINDOW_INFO) != NULL) {
-    ScrArea *area = CTX_wm_area(C);
-    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
+  if (WM_window_open_temp(C, event->x, event->y + shift_y, sizex, sizey, WM_WINDOW_INFO) != NULL) {
     return OPERATOR_FINISHED;
   }
   else {
