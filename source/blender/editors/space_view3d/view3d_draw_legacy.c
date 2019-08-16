@@ -162,6 +162,7 @@ static void validate_object_select_id(
   Object *obact_eval = DEG_get_evaluated_object(depsgraph, obact);
 
   BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
+  UNUSED_VARS_NDEBUG(ar);
 
   if (obact_eval && (obact_eval->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT) ||
                      BKE_paint_select_face_test(obact_eval))) {

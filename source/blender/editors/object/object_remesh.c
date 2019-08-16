@@ -108,7 +108,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Mesh *obj_mesh_copy;
+  Mesh *obj_mesh_copy = NULL;
   if (mesh->flag & ME_REMESH_REPROJECT_PAINT_MASK) {
     obj_mesh_copy = BKE_mesh_new_nomain_from_template(mesh, mesh->totvert, 0, 0, 0, 0);
     CustomData_copy(
