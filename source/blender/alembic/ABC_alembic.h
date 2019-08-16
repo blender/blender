@@ -117,6 +117,12 @@ struct Mesh *ABC_read_mesh(struct CacheReader *reader,
                            const char **err_str,
                            int flags);
 
+bool ABC_mesh_topology_changed(struct CacheReader *reader,
+                               struct Object *ob,
+                               struct Mesh *existing_mesh,
+                               const float time,
+                               const char **err_str);
+
 void CacheReader_incref(struct CacheReader *reader);
 void CacheReader_free(struct CacheReader *reader);
 

@@ -110,6 +110,8 @@ class AbcMeshReader : public AbcObjectReader {
                          const Alembic::Abc::ISampleSelector &sample_sel,
                          int read_flag,
                          const char **err_str);
+  bool topology_changed(Mesh *existing_mesh,
+                        const Alembic::Abc::ISampleSelector &sample_sel) override;
 
  private:
   void readFaceSetsSample(Main *bmain,

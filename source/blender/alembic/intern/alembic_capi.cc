@@ -937,12 +937,7 @@ void ABC_get_transform(CacheReader *reader, float r_mat[4][4], float time, float
 
 /* ************************************************************************** */
 
-Mesh *ABC_read_mesh(CacheReader *reader,
-                    Object *ob,
-                    Mesh *existing_mesh,
-                    const float time,
-                    const char **err_str,
-                    int read_flag)
+static AbcObjectReader *get_abc_reader(CacheReader *reader, Object *ob, const char **err_str)
 {
   AbcObjectReader *abc_reader = reinterpret_cast<AbcObjectReader *>(reader);
   IObject iobject = abc_reader->iobject();
@@ -958,10 +953,42 @@ Mesh *ABC_read_mesh(CacheReader *reader,
     return NULL;
   }
 
+  return abc_reader;
+}
+
+static ISampleSelector sample_selector_for_time(float time)
+{
   /* kFloorIndex is used to be compatible with non-interpolating
    * properties; they use the floor. */
-  ISampleSelector sample_sel(time, ISampleSelector::kFloorIndex);
+  return ISampleSelector(time, ISampleSelector::kFloorIndex);
+}
+
+Mesh *ABC_read_mesh(CacheReader *reader,
+                    Object *ob,
+                    Mesh *existing_mesh,
+                    const float time,
+                    const char **err_str,
+                    int read_flag)
+{
+  AbcObjectReader *abc_reader = get_abc_reader(reader, ob, err_str);
+  if (abc_reader == NULL) {
+    return NULL;
+  }
+
+  ISampleSelector sample_sel = sample_selector_for_time(time);
   return abc_reader->read_mesh(existing_mesh, sample_sel, read_flag, err_str);
+}
+
+bool ABC_mesh_topology_changed(
+    CacheReader *reader, Object *ob, Mesh *existing_mesh, const float time, const char **err_str)
+{
+  AbcObjectReader *abc_reader = get_abc_reader(reader, ob, err_str);
+  if (abc_reader == NULL) {
+    return NULL;
+  }
+
+  ISampleSelector sample_sel = sample_selector_for_time(time);
+  return abc_reader->topology_changed(existing_mesh, sample_sel);
 }
 
 /* ************************************************************************** */

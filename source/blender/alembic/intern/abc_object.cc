@@ -246,6 +246,14 @@ struct Mesh *AbcObjectReader::read_mesh(struct Mesh *existing_mesh,
   return existing_mesh;
 }
 
+bool AbcObjectReader::topology_changed(Mesh * /*existing_mesh*/,
+                                       const Alembic::Abc::ISampleSelector & /*sample_sel*/)
+{
+  /* The default implementation of read_mesh() just returns the original mesh, so never changes the
+   * topology. */
+  return false;
+}
+
 void AbcObjectReader::setupObjectTransform(const float time)
 {
   bool is_constant = false;

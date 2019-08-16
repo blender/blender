@@ -114,10 +114,20 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     }
   }
 
+  /* If this invocation is for the ORCO mesh, and the mesh in Alembic hasn't changed topology, we
+   * must return the mesh as-is instead of deforming it. */
+  if (ctx->flag & MOD_APPLY_ORCO &&
+      !ABC_mesh_topology_changed(mcmd->reader, ctx->object, mesh, time, &err_str)) {
+    return mesh;
+  }
+
   if (me != NULL) {
     MVert *mvert = mesh->mvert;
     MEdge *medge = mesh->medge;
     MPoly *mpoly = mesh->mpoly;
+
+    /* TODO(sybren+bastien): possibly check relevant custom data layers (UV/color depending on
+     * flags) and duplicate those too. */
     if ((me->mvert == mvert) || (me->medge == medge) || (me->mpoly == mpoly)) {
       /* We need to duplicate data here, otherwise we'll modify org mesh, see T51701. */
       BKE_id_copy_ex(NULL,

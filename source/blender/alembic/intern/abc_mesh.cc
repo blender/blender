@@ -1131,6 +1131,31 @@ bool AbcMeshReader::accepts_object_type(
   return true;
 }
 
+bool AbcMeshReader::topology_changed(Mesh *existing_mesh, const ISampleSelector &sample_sel)
+{
+  IPolyMeshSchema::Sample sample;
+  try {
+    sample = m_schema.getValue(sample_sel);
+  }
+  catch (Alembic::Util::Exception &ex) {
+    printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
+           m_iobject.getFullName().c_str(),
+           m_schema.getName().c_str(),
+           sample_sel.getRequestedTime(),
+           ex.what());
+    // A similar error in read_mesh() would just return existing_mesh.
+    return false;
+  }
+
+  const P3fArraySamplePtr &positions = sample.getPositions();
+  const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
+  const Alembic::Abc::Int32ArraySamplePtr &face_counts = sample.getFaceCounts();
+
+  return positions->size() != existing_mesh->totvert ||
+         face_counts->size() != existing_mesh->totpoly ||
+         face_indices->size() != existing_mesh->totloop;
+}
+
 Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
                                const ISampleSelector &sample_sel,
                                int read_flag,
@@ -1162,10 +1187,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
   ImportSettings settings;
   settings.read_flag |= read_flag;
 
-  bool topology_changed = positions->size() != existing_mesh->totvert ||
-                          face_counts->size() != existing_mesh->totpoly ||
-                          face_indices->size() != existing_mesh->totloop;
-  if (topology_changed) {
+  if (topology_changed(existing_mesh, sample_sel)) {
     new_mesh = BKE_mesh_new_nomain_from_template(
         existing_mesh, positions->size(), 0, 0, face_indices->size(), face_counts->size());
 
