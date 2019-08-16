@@ -403,6 +403,7 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "Object");
   RNA_def_property_ui_text(
       prop, "All Objects", "Objects that are in this collection and its child collections");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_collection_funcs(prop,
                                     "rna_Collection_all_objects_begin",
                                     "rna_iterator_listbase_next",
