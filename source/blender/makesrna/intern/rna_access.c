@@ -8860,6 +8860,80 @@ static void rna_property_override_apply_ex(Main *bmain,
       }
       continue;
     }
+
+    /* Note: will have to think about putting that logic into its own function maybe?
+     * Would be nice to have it in a single place... */
+    PointerRNA private_ptr_item_local, private_ptr_item_override, private_ptr_item_storage;
+    if (opop->subitem_local_name != NULL || opop->subitem_reference_name != NULL ||
+        opop->subitem_local_index != -1 || opop->subitem_reference_index != -1) {
+      RNA_POINTER_INVALIDATE(&private_ptr_item_local);
+      RNA_POINTER_INVALIDATE(&private_ptr_item_override);
+      RNA_POINTER_INVALIDATE(&private_ptr_item_storage);
+      if (opop->subitem_local_name != NULL) {
+        RNA_property_collection_lookup_string(
+            ptr_local, prop_local, opop->subitem_local_name, &private_ptr_item_local);
+        if (opop->subitem_reference_name != NULL) {
+          RNA_property_collection_lookup_string(ptr_override,
+                                                prop_override,
+                                                opop->subitem_reference_name,
+                                                &private_ptr_item_override);
+        }
+        else {
+          RNA_property_collection_lookup_string(
+              ptr_override, prop_override, opop->subitem_local_name, &private_ptr_item_override);
+        }
+      }
+      else if (opop->subitem_reference_name != NULL) {
+        RNA_property_collection_lookup_string(
+            ptr_local, prop_local, opop->subitem_reference_name, &private_ptr_item_local);
+        RNA_property_collection_lookup_string(
+            ptr_override, prop_override, opop->subitem_reference_name, &private_ptr_item_override);
+      }
+      else if (opop->subitem_local_index != -1) {
+        RNA_property_collection_lookup_int(
+            ptr_local, prop_local, opop->subitem_local_index, &private_ptr_item_local);
+        if (opop->subitem_reference_index != -1) {
+          RNA_property_collection_lookup_int(ptr_override,
+                                             prop_override,
+                                             opop->subitem_reference_index,
+                                             &private_ptr_item_override);
+        }
+        else {
+          RNA_property_collection_lookup_int(
+              ptr_override, prop_override, opop->subitem_local_index, &private_ptr_item_override);
+        }
+      }
+      else if (opop->subitem_reference_index != -1) {
+        RNA_property_collection_lookup_int(
+            ptr_local, prop_local, opop->subitem_reference_index, &private_ptr_item_local);
+        RNA_property_collection_lookup_int(ptr_override,
+                                           prop_override,
+                                           opop->subitem_reference_index,
+                                           &private_ptr_item_override);
+      }
+      if (prop_storage != NULL) {
+        if (opop->subitem_local_name != NULL) {
+          RNA_property_collection_lookup_string(
+              ptr_storage, prop_storage, opop->subitem_local_name, &private_ptr_item_storage);
+        }
+        else if (opop->subitem_reference_name != NULL) {
+          RNA_property_collection_lookup_string(
+              ptr_storage, prop_storage, opop->subitem_reference_name, &private_ptr_item_storage);
+        }
+        else if (opop->subitem_local_index != -1) {
+          RNA_property_collection_lookup_int(
+              ptr_storage, prop_storage, opop->subitem_local_index, &private_ptr_item_storage);
+        }
+        else if (opop->subitem_reference_index != -1) {
+          RNA_property_collection_lookup_int(
+              ptr_storage, prop_storage, opop->subitem_reference_index, &private_ptr_item_storage);
+        }
+      }
+      ptr_item_local = &private_ptr_item_local;
+      ptr_item_override = &private_ptr_item_override;
+      ptr_item_storage = &private_ptr_item_storage;
+    }
+
     if (!rna_property_override_operation_apply(bmain,
                                                ptr_local,
                                                ptr_override,

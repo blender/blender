@@ -1241,6 +1241,10 @@ static int rna_property_override_diff_propptr(Main *bmain,
                                               const bool no_prop_name,
                                               IDOverrideLibrary *override,
                                               const char *rna_path,
+                                              const char *rna_itemname_a,
+                                              const char *rna_itemname_b,
+                                              const int rna_itemindex_a,
+                                              const int rna_itemindex_b,
                                               const int flags,
                                               bool *r_override_changed)
 {
@@ -1282,9 +1286,18 @@ static int rna_property_override_diff_propptr(Main *bmain,
         IDOverrideLibraryProperty *op = BKE_override_library_property_get(
             override, rna_path, &created);
 
-        if (op != NULL && created) { /* If not yet overridden... */
-          BKE_override_library_property_operation_get(
-              op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
+        /* If not yet overridden, or if we are handling sub-items (inside a collection)... */
+        if (op != NULL && (created || rna_itemname_a != NULL || rna_itemname_b != NULL ||
+                           rna_itemindex_a != -1 || rna_itemindex_b != -1)) {
+          BKE_override_library_property_operation_get(op,
+                                                      IDOVERRIDE_LIBRARY_OP_REPLACE,
+                                                      rna_itemname_b,
+                                                      rna_itemname_a,
+                                                      rna_itemindex_b,
+                                                      rna_itemindex_a,
+                                                      true,
+                                                      NULL,
+                                                      &created);
           if (r_override_changed) {
             *r_override_changed = created;
           }
@@ -1294,12 +1307,56 @@ static int rna_property_override_diff_propptr(Main *bmain,
       return comp;
     }
     else {
+      /* In case we got some array/collection like items identifiers, now is the time to generate a
+       * proper rna path from those. */
+#  define RNA_PATH_BUFFSIZE 8192
+
+      char extended_rna_path_buffer[RNA_PATH_BUFFSIZE];
+      char *extended_rna_path = extended_rna_path_buffer;
+
+#  define RNA_PATH_PRINTF(_str, ...) \
+    if (BLI_snprintf(extended_rna_path_buffer, RNA_PATH_BUFFSIZE, (_str), __VA_ARGS__) >= \
+        RNA_PATH_BUFFSIZE - 1) { \
+      extended_rna_path = BLI_sprintfN((_str), __VA_ARGS__); \
+    } \
+    (void)0
+#  define RNA_PATH_FREE() \
+    if (extended_rna_path != extended_rna_path_buffer && extended_rna_path != rna_path) \
+    MEM_freeN(extended_rna_path)
+
+      /* There may be a propname defined in some cases, while no actual name set
+       * (e.g. happens with point cache), in that case too we want to fall back to index.
+       * Note that we do not need the RNA path for insertion operations. */
+      if (rna_path) {
+        if ((rna_itemname_a != NULL && rna_itemname_a[0] != '\0') &&
+            (rna_itemname_b != NULL && rna_itemname_b[0] != '\0')) {
+          BLI_assert(STREQ(rna_itemname_a, rna_itemname_b));
+          char esc_item_name[RNA_PATH_BUFFSIZE];
+          BLI_strescape(esc_item_name, rna_itemname_a, RNA_PATH_BUFFSIZE);
+          RNA_PATH_PRINTF("%s[\"%s\"]", rna_path, esc_item_name);
+        }
+        else if (rna_itemindex_a != -1) { /* Based on index... */
+          BLI_assert(rna_itemindex_a == rna_itemindex_b);
+          RNA_PATH_PRINTF("%s[%d]", rna_path, rna_itemindex_a);
+        }
+        else {
+          extended_rna_path = (char *)rna_path;
+        }
+      }
+
       eRNAOverrideMatchResult report_flags = 0;
       const bool match = RNA_struct_override_matches(
-          bmain, propptr_a, propptr_b, rna_path, override, flags, &report_flags);
+          bmain, propptr_a, propptr_b, extended_rna_path, override, flags, &report_flags);
       if (r_override_changed && (report_flags & RNA_OVERRIDE_MATCH_RESULT_CREATED) != 0) {
         *r_override_changed = true;
       }
+
+      RNA_PATH_FREE();
+
+#  undef RNA_PATH_BUFFSIZE
+#  undef RNA_PATH_PRINTF
+#  undef RNA_PATH_FREE
+
       return !match;
     }
   }
@@ -1616,6 +1673,10 @@ int rna_property_override_diff_default(Main *bmain,
                                                   no_prop_name,
                                                   override,
                                                   rna_path,
+                                                  NULL,
+                                                  NULL,
+                                                  -1,
+                                                  -1,
                                                   flags,
                                                   r_override_changed);
       }
@@ -1635,21 +1696,6 @@ int rna_property_override_diff_default(Main *bmain,
       bool is_first_insert = true;
       int idx_a = 0;
       int idx_b = 0;
-
-#  define RNA_PATH_BUFFSIZE 8192
-
-      char extended_rna_path_buffer[RNA_PATH_BUFFSIZE];
-      char *extended_rna_path = extended_rna_path_buffer;
-
-#  define RNA_PATH_PRINTF(_str, ...) \
-    if (BLI_snprintf(extended_rna_path_buffer, RNA_PATH_BUFFSIZE, (_str), __VA_ARGS__) >= \
-        RNA_PATH_BUFFSIZE - 1) { \
-      extended_rna_path = BLI_sprintfN((_str), __VA_ARGS__); \
-    } \
-    (void)0
-#  define RNA_PATH_FREE() \
-    if (extended_rna_path != extended_rna_path_buffer) \
-    MEM_freeN(extended_rna_path)
 
       CollectionPropertyIterator iter_a, iter_b;
       RNA_property_collection_begin(ptr_a, prop_a, &iter_a);
@@ -1730,41 +1776,15 @@ int rna_property_override_diff_default(Main *bmain,
 #  endif
 
           if (!(is_id || is_valid_for_diffing || is_valid_for_insertion)) {
-            /* Differences we cannot handle, we can break here
-             * (we do not support replacing ID pointers in collections e.g.). */
+            /* Differences we cannot handle, we can break here. */
             equals = false;
             abort = true;
             break;
           }
 
-          /* There may be a propname defined in some cases, while no actual name set
-           * (e.g. happens with point cache), in that case too we want to fall back to index.
-           * Note that we do not need the RNA path for insertion operations. */
-          if (is_id || is_valid_for_diffing) {
-            if ((propname_a != NULL && propname_a[0] != '\0') &&
-                (propname_b != NULL && propname_b[0] != '\0')) {
-              if (rna_path) {
-                /* In case of name, either it is valid for diffing, and _a and _b are identical,
-                 * or it is valid for insertion, and we need to use _a. */
-                char esc_item_name[RNA_PATH_BUFFSIZE];
-                BLI_strescape(esc_item_name, propname_a, RNA_PATH_BUFFSIZE);
-                RNA_PATH_PRINTF("%s[\"%s\"]", rna_path, esc_item_name);
-              }
-            }
-            else { /* Based on index... */
-              if (rna_path) {
-                /* In case of indices, we need _a one for insertion,
-                 * but _b ones for in-depth diffing.
-                 * Insertion always happen once all 'replace' operations have been done,
-                 * otherwise local and reference paths for those would have to be different! */
-                RNA_PATH_PRINTF("%s[%d]", rna_path, is_valid_for_insertion ? idx_a : idx_b);
-              }
-            }
-          }
-
-          /* Collections do not support replacement of their data
-           * (since they do not support removing), only in *some* cases, insertion.
-           * We also assume then that _a data is the one where things are inserted. */
+          /* Collections do not support replacement of their data (except for collections of ID
+           * pointers), since they do not support removing, only in *some* cases, insertion. We
+           * also assume then that _a data is the one where things are inserted. */
           if (is_valid_for_insertion && use_insertion) {
             bool created;
             IDOverrideLibraryProperty *op = BKE_override_library_property_get(
@@ -1812,7 +1832,11 @@ int rna_property_override_diff_default(Main *bmain,
                                                                 no_ownership,
                                                                 no_prop_name,
                                                                 override,
-                                                                extended_rna_path,
+                                                                rna_path,
+                                                                propname_a,
+                                                                propname_b,
+                                                                idx_a,
+                                                                idx_b,
                                                                 flags,
                                                                 r_override_changed);
               equals = equals && eq;
@@ -1839,7 +1863,6 @@ int rna_property_override_diff_default(Main *bmain,
             propname_b = buff_b;
           }
           propname_b[0] = '\0';
-          RNA_PATH_FREE();
 
           if (!do_create && !equals) {
             abort = true; /* Early out in case we do not want to loop over whole collection. */
@@ -1864,10 +1887,6 @@ int rna_property_override_diff_default(Main *bmain,
           RNA_property_collection_next(&iter_b);
           idx_b++;
         }
-
-#  undef RNA_PATH_BUFFSIZE
-#  undef RNA_PATH_PRINTF
-#  undef RNA_PATH_FREE
       }
 
       /* Not same number of items in both collections. */
