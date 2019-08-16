@@ -4040,7 +4040,7 @@ static void mesh_separate_material_assign_mat_nr(Main *bmain, Object *ob, const 
       ma_obdata = NULL;
     }
 
-    BKE_material_clear_id(bmain, obdata, true);
+    BKE_material_clear_id(bmain, obdata);
     BKE_material_resize_object(bmain, ob, 1, true);
     BKE_material_resize_id(bmain, obdata, 1, true);
 
@@ -4051,7 +4051,7 @@ static void mesh_separate_material_assign_mat_nr(Main *bmain, Object *ob, const 
     id_us_plus((ID *)ma_obdata);
   }
   else {
-    BKE_material_clear_id(bmain, obdata, true);
+    BKE_material_clear_id(bmain, obdata);
     BKE_material_resize_object(bmain, ob, 0, true);
     BKE_material_resize_id(bmain, obdata, 0, true);
   }

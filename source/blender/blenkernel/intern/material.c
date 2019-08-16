@@ -461,7 +461,7 @@ void BKE_material_append_id(Main *bmain, ID *id, Material *ma)
   }
 }
 
-Material *BKE_material_pop_id(Main *bmain, ID *id, int index_i, bool update_data)
+Material *BKE_material_pop_id(Main *bmain, ID *id, int index_i)
 {
   short index = (short)index_i;
   Material *ret = NULL;
@@ -489,10 +489,7 @@ Material *BKE_material_pop_id(Main *bmain, ID *id, int index_i, bool update_data
         test_all_objects_materials(bmain, id);
       }
 
-      if (update_data) {
-        /* decrease mat_nr index */
-        material_data_index_remove_id(id, index);
-      }
+      material_data_index_remove_id(id, index);
 
       DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
       DEG_relations_tag_update(bmain);
@@ -502,7 +499,7 @@ Material *BKE_material_pop_id(Main *bmain, ID *id, int index_i, bool update_data
   return ret;
 }
 
-void BKE_material_clear_id(Main *bmain, ID *id, bool update_data)
+void BKE_material_clear_id(Main *bmain, ID *id)
 {
   Material ***matar;
   if ((matar = give_matarar_id(id))) {
@@ -516,12 +513,9 @@ void BKE_material_clear_id(Main *bmain, ID *id, bool update_data)
       MEM_freeN(*matar);
       *matar = NULL;
     }
-    test_all_objects_materials(bmain, id);
 
-    if (update_data) {
-      /* decrease mat_nr index */
-      material_data_index_clear_id(id);
-    }
+    test_all_objects_materials(bmain, id);
+    material_data_index_clear_id(id);
 
     DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
     DEG_relations_tag_update(bmain);

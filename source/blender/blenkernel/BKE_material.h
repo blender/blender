@@ -104,9 +104,8 @@ void BKE_material_append_id(struct Main *bmain, struct ID *id, struct Material *
 struct Material *BKE_material_pop_id(struct Main *bmain,
                                      struct ID *id,
                                      /* index is an int because of RNA. */
-                                     int index,
-                                     bool update_data);
-void BKE_material_clear_id(struct Main *bmain, struct ID *id, bool update_data);
+                                     int index);
+void BKE_material_clear_id(struct Main *bmain, struct ID *id);
 /* rendering */
 
 void ramp_blend(int type, float r_col[3], const float fac, const float col[3]);
