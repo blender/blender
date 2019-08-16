@@ -6393,16 +6393,16 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
   }
 
   but = uiDefButO(block,
-           UI_BTYPE_BUT,
-           "SCREEN_OT_info_log_show",
-           WM_OP_INVOKE_REGION_WIN,
-           report->message,
-           UI_UNIT_X + 5,
-           0,
-           UI_UNIT_X + width,
-           UI_UNIT_Y,
-           "Show in Info Log");
-    rgba_float_to_uchar(but->col, rti->col);
+                  UI_BTYPE_BUT,
+                  "SCREEN_OT_info_log_show",
+                  WM_OP_INVOKE_REGION_WIN,
+                  report->message,
+                  UI_UNIT_X + 5,
+                  0,
+                  UI_UNIT_X + width,
+                  UI_UNIT_Y,
+                  "Show in Info Log");
+  rgba_float_to_uchar(but->col, rti->col);
 }
 
 void uiTemplateInputStatus(uiLayout *layout, struct bContext *C)
