@@ -367,33 +367,33 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
         break;
       }
       case SI_UVDT_BLACK:
-      case SI_UVDT_WHITE: {
-        GPU_line_width(1.0f);
-        GPU_batch_program_set_builtin(edges, GPU_SHADER_2D_UNIFORM_COLOR);
-        if (sima->dt_uv == SI_UVDT_WHITE) {
-          GPU_batch_uniform_4f(edges, "color", 1.0f, 1.0f, 1.0f, 1.0f);
-        }
-        else {
-          GPU_batch_uniform_4f(edges, "color", 0.0f, 0.0f, 0.0f, 1.0f);
-        }
-        GPU_batch_draw(edges);
-        break;
-      }
+      case SI_UVDT_WHITE:
       case SI_UVDT_OUTLINE: {
         /* We could modify the vbo's data filling
          * instead of modifying the provoking vert. */
         glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 
-        UI_GetThemeColor4fv(TH_WIRE_EDIT, col1);
         UI_GetThemeColor4fv(TH_EDGE_SELECT, col2);
 
         GPU_batch_program_set_builtin(
             edges, (interpedges) ? GPU_SHADER_2D_UV_EDGES_SMOOTH : GPU_SHADER_2D_UV_EDGES);
-        /* Black Outline. */
-        GPU_line_width(3.0f);
-        GPU_batch_uniform_4f(edges, "edgeColor", 0.0f, 0.0f, 0.0f, 1.0f);
-        GPU_batch_uniform_4f(edges, "selectColor", 0.0f, 0.0f, 0.0f, 1.0f);
-        GPU_batch_draw(edges);
+
+        if (sima->dt_uv == SI_UVDT_OUTLINE) {
+          /* Black Outline. */
+          GPU_line_width(3.0f);
+          GPU_batch_uniform_4f(edges, "edgeColor", 0.0f, 0.0f, 0.0f, 1.0f);
+          GPU_batch_uniform_4f(edges, "selectColor", 0.0f, 0.0f, 0.0f, 1.0f);
+          GPU_batch_draw(edges);
+
+          UI_GetThemeColor4fv(TH_WIRE_EDIT, col1);
+        }
+        else if (sima->dt_uv == SI_UVDT_WHITE) {
+          copy_v4_fl4(col1, 1.0f, 1.0f, 1.0f, 1.0f);
+        }
+        else {
+          copy_v4_fl4(col1, 0.0f, 0.0f, 0.0f, 1.0f);
+        }
+
         /* Inner Line. Use depth test to insure selection is drawn on top. */
         GPU_depth_test(true);
         GPU_line_width(1.0f);
