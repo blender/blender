@@ -309,6 +309,7 @@ void gpu_extensions_init(void)
   }
   else if ((strstr(renderer, "Mesa DRI R")) ||
            (strstr(renderer, "Radeon") && strstr(vendor, "X.Org")) ||
+           (strstr(renderer, "AMD") && strstr(vendor, "X.Org")) ||
            (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI ")) ||
            (strstr(renderer, "Gallium ") && strstr(renderer, " on AMD "))) {
     GG.device = GPU_DEVICE_ATI;
