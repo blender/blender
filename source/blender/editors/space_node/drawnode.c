@@ -3358,8 +3358,13 @@ static void std_node_socket_draw(
         uiTemplateComponentMenu(layout, ptr, "default_value", text);
       }
       else {
-        uiLayout *column = uiLayoutColumn(layout, true);
-        uiItemR(column, ptr, "default_value", 0, text, 0);
+        if (sock->typeinfo->subtype == PROP_DIRECTION) {
+          uiItemR(layout, ptr, "default_value", 0, "", ICON_NONE);
+        }
+        else {
+          uiLayout *column = uiLayoutColumn(layout, true);
+          uiItemR(column, ptr, "default_value", 0, text, ICON_NONE);
+        }
       }
       break;
     case SOCK_RGBA:

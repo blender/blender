@@ -25,7 +25,7 @@
 
 /* **************** NORMAL  ******************** */
 static bNodeSocketTemplate sh_node_normal_in[] = {
-    {SOCK_VECTOR, 1, N_("Normal"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_DIRECTION},
+    {SOCK_VECTOR, 1, N_("Normal"), 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, PROP_DIRECTION},
     {-1, 0, ""},
 };
 
