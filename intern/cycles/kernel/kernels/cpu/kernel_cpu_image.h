@@ -19,6 +19,10 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Make template functions private so symbols don't conflict between kernels with different
+ * instruction sets. */
+namespace {
+
 template<typename T> struct TextureInterpolator {
 #define SET_CUBIC_SPLINE_WEIGHTS(u, t) \
   { \
@@ -522,6 +526,8 @@ ccl_device float4 kernel_tex_image_interp_3d(
           TEX_IMAGE_MISSING_R, TEX_IMAGE_MISSING_G, TEX_IMAGE_MISSING_B, TEX_IMAGE_MISSING_A);
   }
 }
+
+} /* Namespace. */
 
 CCL_NAMESPACE_END
 
