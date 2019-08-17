@@ -467,7 +467,7 @@ def reset_all(*, reload_scripts=False):
     paths_list = paths()
 
     for path in paths_list:
-        _bpy.utils._sys_path_ensure(path)
+        _bpy.utils._sys_path_ensure_append(path)
         for mod_name, _mod_path in _bpy.path.module_names(path):
             is_enabled, is_loaded = check(mod_name)
 
