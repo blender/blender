@@ -204,14 +204,14 @@ static void select_cache_populate(void *vedata, Object *ob)
     /* The object indices have already been drawn. Fill depth pass.
      * Opti: Most of the time this depth pass is not used. */
     struct Mesh *me = ob->data;
-    struct GPUBatch *geom_faces;
     if (e_data.context.select_mode & SCE_SELECT_FACE) {
-      geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
+      struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
+      DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_faces, ob->obmat);
     }
-    else {
-      geom_faces = DRW_mesh_batch_cache_get_surface(me);
+    else if (ob->dt >= OB_SOLID) {
+      struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_surface(me);
+      DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_faces, ob->obmat);
     }
-    DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_faces, ob->obmat);
 
     if (e_data.context.select_mode & SCE_SELECT_EDGE) {
       struct GPUBatch *geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(me);
