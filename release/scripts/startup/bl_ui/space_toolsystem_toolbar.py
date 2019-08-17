@@ -1508,8 +1508,9 @@ class _defs_gpencil_sculpt:
             return True
         ob = context.active_object
         ts = context.scene.tool_settings
-        return (ob and ob.type == 'GPENCIL' and
-                (ts.gpencil_sculpt.use_select_mask))
+        return ob and ob.type == 'GPENCIL' and (ts.use_gpencil_select_mask_point or
+                                                ts.use_gpencil_select_mask_stroke or
+                                                ts.use_gpencil_select_mask_segment)
 
     @staticmethod
     def generate_from_brushes(context):

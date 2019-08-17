@@ -635,6 +635,10 @@ struct GP_EditableStrokes_Iter {
   } \
   (void)0
 
+#define GPENCIL_ANY_SCULPT_MASK(flag) \
+  ((flag & (GP_SCULPT_MASK_SELECTMODE_POINT | GP_SCULPT_MASK_SELECTMODE_STROKE | \
+            GP_SCULPT_MASK_SELECTMODE_SEGMENT)))
+
 /* ****************************************************** */
 
 #endif /* __GPENCIL_INTERN_H__ */

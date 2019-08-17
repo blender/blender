@@ -1420,13 +1420,6 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Guide", "");
 
-  prop = RNA_def_property(srna, "use_select_mask", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SCULPT_SETT_FLAG_SELECT_MASK);
-  RNA_def_property_ui_text(prop, "Selection Mask", "Only sculpt selected stroke points");
-  RNA_def_property_ui_icon(prop, ICON_GP_ONLY_SELECTED, 0);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
-
   prop = RNA_def_property(srna, "use_edit_position", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SCULPT_SETT_FLAG_APPLY_POSITION);
   RNA_def_property_ui_text(prop, "Affect Position", "The brush affects the position of the point");

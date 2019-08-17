@@ -105,6 +105,7 @@ typedef struct tGP_BrushEditData {
   eGP_Sculpt_Types brush_type;
   eGP_Sculpt_Types brush_type_old;
   eGP_Sculpt_Flag flag;
+  eGP_Sculpt_SelectMaskFlag mask;
 
   /* Space Conversion Data */
   GP_SpaceConversion gsc;
@@ -1276,6 +1277,9 @@ static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
   gso->sa = CTX_wm_area(C);
   gso->ar = CTX_wm_region(C);
 
+  /* save mask */
+  gso->mask = ts->gpencil_selectmode_sculpt;
+
   /* multiframe settings */
   gso->is_multiframe = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gso->gpd);
   gso->use_multiframe_falloff = (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_FRAME_FALLOFF) != 0;
@@ -1486,7 +1490,7 @@ static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso,
 
       /* Skip if neither one is selected
        * (and we are only allowed to edit/consider selected points) */
-      if ((gso->settings->flag & GP_SCULPT_SETT_FLAG_SELECT_MASK) && (!gso->is_weight_mode)) {
+      if ((GPENCIL_ANY_SCULPT_MASK(gso->mask)) && (!gso->is_weight_mode)) {
         if (!(pt1->flag & GP_SPOINT_SELECT) && !(pt2->flag & GP_SPOINT_SELECT)) {
           include_last = false;
           continue;

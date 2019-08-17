@@ -2128,15 +2128,6 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
     /* Ensure this gets set... */
     p->gpf = p->gpl->actframe;
 
-    /* Restrict eraser to only affecting selected strokes, if the "selection mask" is on
-     * (though this is only available in editmode)
-     */
-    if (p->gpd->flag & GP_DATA_STROKE_EDITMODE) {
-      if (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_SELECT_MASK) {
-        p->flags |= GP_PAINTFLAG_SELECTMASK;
-      }
-    }
-
     if (has_layer_to_erase == false) {
       p->status = GP_STATUS_ERROR;
       return;
