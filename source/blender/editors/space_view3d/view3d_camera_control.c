@@ -87,8 +87,7 @@ typedef struct View3DCameraControl {
   float ofs_backup[3];
   /* backup the views offset in case the user cancels flying in non camera mode */
 
-  /* backup the views quat in case the user cancels flying in non camera mode.
-   * (quat for view, eul for camera) */
+  /* backup the views quat in case the user cancels flying in non camera mode. */
   float rot_backup[4];
   /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
   char persp_backup;

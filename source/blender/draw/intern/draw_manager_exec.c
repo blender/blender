@@ -622,12 +622,12 @@ BLI_INLINE void draw_geometry_execute(DRWShadingGroup *shgroup,
     GPU_batch_bind(geom);
   }
 
-  /* XXX hacking gawain. we don't want to call glUseProgram! (huge performance loss) */
+  /* XXX hacking #GPUBatch. we don't want to call glUseProgram! (huge performance loss) */
   geom->program_in_use = true;
 
   GPU_batch_draw_advanced(geom, vert_first, vert_count, inst_first, inst_count);
 
-  geom->program_in_use = false; /* XXX hacking gawain */
+  geom->program_in_use = false; /* XXX hacking #GPUBatch */
 }
 
 enum {

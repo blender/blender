@@ -145,7 +145,7 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
 
     facemap_data = CustomData_get_layer(&me->pdata, CD_FACEMAP);
 
-    /* use gawain immediate mode fore now */
+    /* Make a batch and free it each time for now. */
     const int looptris_len = poly_to_tri_count(mpoly_len, mloop_len);
     const int vbo_len_capacity = looptris_len * 3;
     int vbo_len_used = 0;
