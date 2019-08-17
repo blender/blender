@@ -3644,19 +3644,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
       arm->flag &= ~(ARM_FLAG_UNUSED_6);
     }
-
-    /* Marks each outliner as dirty so a sync will occur as an outliner draws. */
-    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-      for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-        for (SpaceLink *space = sa->spacedata.first; space; space = space->next) {
-          if (space->spacetype == SPACE_OUTLINER) {
-            SpaceOutliner *soutliner = (SpaceOutliner *)space;
-            soutliner->sync_select_dirty |= WM_OUTLINER_SYNC_SELECT_FROM_ALL;
-            soutliner->flag |= SO_SYNC_SELECT;
-          }
-        }
-      }
-    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 281, 1)) {
@@ -3690,6 +3677,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             if (ar) {
               ar->alignment = RGN_ALIGN_RIGHT;
             }
+          }
+          /* Mark outliners as dirty for syncing and enable synced selection */
+          if (sl->spacetype == SPACE_OUTLINER) {
+            SpaceOutliner *soutliner = (SpaceOutliner *)sl;
+            soutliner->sync_select_dirty |= WM_OUTLINER_SYNC_SELECT_FROM_ALL;
+            soutliner->flag |= SO_SYNC_SELECT;
           }
         }
       }
