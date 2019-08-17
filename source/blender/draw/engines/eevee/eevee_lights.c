@@ -779,7 +779,7 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 
 /**
  * Special ball distribution:
- * Point are distributed in a way that when they are orthogonaly
+ * Point are distributed in a way that when they are orthogonally
  * projected into any plane, the resulting distribution is (close to)
  * a uniform disc distribution.
  */

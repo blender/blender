@@ -3790,7 +3790,7 @@ static void *extract_select_idx_init(const MeshRenderData *mr, void *buf)
   return vbo->data;
 }
 
-/* TODO Use glVertexID to get loop index and use the data structure on the CPU to retreive the
+/* TODO Use glVertexID to get loop index and use the data structure on the CPU to retrieve the
  * select element associated with this loop ID. This would remove the need for this separate index
  * VBOs. We could upload the p/e/v_origindex as a buffer texture and sample it inside the shader to
  * output original index. */

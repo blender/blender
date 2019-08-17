@@ -586,7 +586,7 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
   float col[3];
 
   /* XXX This is in order to draw UI batches with the DRW
-   * olg context since we now use it for drawing the entire area */
+   * old context since we now use it for drawing the entire area. */
   gpu_batch_presets_reset();
 
   GPUViewport *viewport =

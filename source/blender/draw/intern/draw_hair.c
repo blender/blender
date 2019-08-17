@@ -253,7 +253,7 @@ void DRW_hair_update(void)
    * On some system it crashes (see T58489) and on some other it renders garbage (see T60171).
    *
    * So instead of using transform feedback we render to a texture,
-   * readback the result to system memory and reupload as VBO data.
+   * read back the result to system memory and re-upload as VBO data.
    * It is really not ideal performance wise, but it is the simplest
    * and the most local workaround that still uses the power of the GPU.
    */

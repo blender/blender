@@ -870,9 +870,11 @@ void BM_editselection_normal(BMEditSelection *ese, float r_normal[3])
   }
 }
 
-/* Calculate a plane that is rightangles to the edge/vert/faces normal
+/**
+ * Calculate a plane that is right angles to the edge/vert/faces normal
  * also make the plane run along an axis that is related to the geometry,
- * because this is used for the gizmos Y axis. */
+ * because this is used for the gizmos Y axis.
+ */
 void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 {
   if (ese->htype == BM_VERT) {

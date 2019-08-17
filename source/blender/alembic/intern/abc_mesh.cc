@@ -1336,7 +1336,7 @@ static void read_subd_sample(const std::string &iobject_full_name,
 
   if ((settings->read_flag & MOD_MESHSEQ_READ_POLY) != 0) {
     /* Alembic's 'SubD' scheme is used to store subdivision surfaces, i.e. the pre-subdivision
-     * mesh. Currently we don't add a subdivison modifier when we load such data. This code is
+     * mesh. Currently we don't add a subdivision modifier when we load such data. This code is
      * assuming that the subdivided surface should be smooth, and sets a flag that will eventually
      * mark all polygons as such. */
     abc_mesh_data.poly_flag_smooth = true;

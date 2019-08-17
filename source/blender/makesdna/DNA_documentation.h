@@ -27,7 +27,7 @@
  * blender file. There is an executable that scans all files, looking
  * for struct-s to serialize (hence sdna: Struct \ref DNA). From this
  * information, it builds a file with numbers that encode the format,
- * the names of variables, and the plce to look for them.
+ * the names of variables, and the place to look for them.
  *
  * \section dnaissues Known issues with DNA
  *

@@ -1213,7 +1213,7 @@ void EEVEE_lightbake_filter_visibility(EEVEE_ViewLayerData *sldata,
   DRW_draw_pass(psl->probe_visibility_compute);
 }
 
-/* Actually a simple downsampling */
+/* Actually a simple down-sampling. */
 static void downsample_planar(void *vedata, int level)
 {
   EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;

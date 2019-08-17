@@ -8184,7 +8184,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
           else {
             /* Do this so we can still mouse-up, closing the menu and running the button.
              * This is nice to support but there are times when the button gets left pressed.
-             * Keep disavled for now. */
+             * Keep disabled for now. */
             WM_event_remove_timer(data->wm, data->window, data->hold_action_timer);
             data->hold_action_timer = NULL;
           }

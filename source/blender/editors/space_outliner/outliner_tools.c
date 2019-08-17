@@ -479,9 +479,11 @@ void OUTLINER_OT_scene_operation(wmOperatorType *ot)
 }
 /* ******************************************** */
 
-/* Stores the parent and a child element of a merged iconrow icon for
- * the merged select popup menu. The subtree of the parent is searched and
- * the child is needed to only show elements of the same type in the popup. */
+/**
+ * Stores the parent and a child element of a merged icon-row icon for
+ * the merged select popup menu. The sub-tree of the parent is searched and
+ * the child is needed to only show elements of the same type in the popup.
+ */
 typedef struct MergedSearchData {
   TreeElement *parent_element;
   TreeElement *select_element;
@@ -545,7 +547,7 @@ static void merged_element_search_call_cb(struct bContext *C, void *UNUSED(arg1)
 }
 
 /** Merged element search menu
- * Created on activation of a merged or aggregated iconrow icon.
+ * Created on activation of a merged or aggregated icon-row icon.
  */
 static uiBlock *merged_element_search_menu(bContext *C, ARegion *ar, void *data)
 {

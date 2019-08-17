@@ -658,7 +658,7 @@ void wm_window_ghostwindows_ensure(wmWindowManager *wm)
 
   BLI_assert(G.background == false);
 
-  /* no commandline prefsize? then we set this.
+  /* No command-line prefsize? then we set this.
    * Note that these values will be used only
    * when there is no startup.blend yet.
    */

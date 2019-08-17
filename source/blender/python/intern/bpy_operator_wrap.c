@@ -58,7 +58,7 @@ static void operator_properties_init(wmOperatorType *ot)
   /* set the default property: ot->prop */
   {
     /* Picky developers will notice that 'bl_property' won't work with inheritance
-     * get direct from the dict to avoid raising a load of attribute errors (yes this isnt ideal)
+     * get direct from the dict to avoid raising a load of attribute errors (yes this isn't ideal)
      * - campbell. */
     PyObject *py_class_dict = py_class->tp_dict;
     PyObject *bl_property = PyDict_GetItem(py_class_dict, bpy_intern_str_bl_property);

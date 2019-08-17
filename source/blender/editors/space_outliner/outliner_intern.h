@@ -139,8 +139,8 @@ enum {
   TE_DISABLED = (1 << 4),
   TE_DRAGGING = (1 << 5),
   TE_CHILD_NOT_IN_COLLECTION = (1 << 6),
-  /* Child elements of the same type in the iconrow are drawn merged as one icon.
-   * TE_ICONROW_MERGED is set for an element that is part of these merged child icons. */
+  /* Child elements of the same type in the icon-row are drawn merged as one icon.
+   * This flag is set for an element that is part of these merged child icons. */
   TE_ICONROW_MERGED = (1 << 7),
 };
 

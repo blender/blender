@@ -1156,7 +1156,7 @@ static tGPsdata *gp_session_initpaint(bContext *C)
   /* create new context data */
   p = MEM_callocN(sizeof(tGPsdata), "Annotation Drawing Data");
 
-  /* Try to initialise context data
+  /* Try to initialize context data
    * WARNING: This may not always succeed (e.g. using GP in an annotation-only context)
    */
   if (gp_session_initdata(C, p) == 0) {

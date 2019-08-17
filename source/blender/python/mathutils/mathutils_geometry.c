@@ -1510,7 +1510,7 @@ static PyObject *M_Geometry_convex_hull_2d(PyObject *UNUSED(self), PyObject *poi
 
 /* Return a PyObject that is a list of lists, using the flattened list array
  * to fill values, with start_table and len_table giving the start index
- * and length of the toplevel_len sublists
+ * and length of the toplevel_len sub-lists.
  */
 static PyObject *list_of_lists_from_arrays(int *array,
                                            int *start_table,

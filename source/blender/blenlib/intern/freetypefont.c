@@ -565,7 +565,7 @@ VChar *BLI_vfontchar_copy(const VChar *vchar_src, const int UNUSED(flag))
  *       between them
  * </pre>
  *
- * Each glyph's original outline points are located on a grid of indivisible units.
+ * Each glyphs original outline points are located on a grid of indivisible units.
  * The points are stored in the font file as 16-bit integer grid coordinates,
  * with the grid origin's being at (0, 0); they thus range from -16384 to 16383.
  *

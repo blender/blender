@@ -1598,7 +1598,7 @@ void GPU_texture_generate_mipmap(GPUTexture *tex)
 
   if (GPU_texture_depth(tex)) {
     /* Some drivers have bugs when using glGenerateMipmap with depth textures (see T56789).
-     * In this case we just create a complete texture with mipmaps manually without downsampling.
+     * In this case we just create a complete texture with mipmaps manually without down-sampling.
      * You must initialize the texture levels using other methods like
      * GPU_framebuffer_recursive_downsample(). */
     int levels = 1 + floor(log2(max_ii(tex->w, tex->h)));

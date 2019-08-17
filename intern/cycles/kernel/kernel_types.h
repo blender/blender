@@ -1523,7 +1523,7 @@ static_assert_align(KernelShader, 16);
  * Queue 1 - Active rays
  * Queue 2 - Background queue
  * Queue 3 - Shadow ray cast kernel - AO
- * Queeu 4 - Shadow ray cast kernel - direct lighting
+ * Queue 4 - Shadow ray cast kernel - direct lighting
  */
 
 /* Queue names */

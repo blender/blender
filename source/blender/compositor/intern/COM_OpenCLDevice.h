@@ -78,8 +78,8 @@ class OpenCLDevice : public Device {
   bool initialize();
 
   /**
-   * \brief deinitialize the device
-   * During deintiialization the command queue is cleared
+   * \brief de-initialize the device
+   * During de-initialization the command queue is cleared
    */
   void deinitialize();
 

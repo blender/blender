@@ -393,7 +393,7 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s)
     if (s->type & CLOTH_SPRING_TYPE_SEWING) {
       /* TODO: verify, half verified (couldn't see error)
        * sewing springs usually have a large distance at first so clamp the force so we don't get
-       * tunnelling through collision objects. */
+       * tunneling through collision objects. */
       BPH_mass_spring_force_spring_linear(data,
                                           s->ij,
                                           s->kl,

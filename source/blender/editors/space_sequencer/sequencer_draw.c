@@ -1045,9 +1045,8 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain,
       bmain, depsgraph, scene, rectx, recty, proxy_size, false, &context);
   context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
 
-  /* sequencer could start rendering, in this case we need to be sure it wouldn't be canceled
-   * by Esc pressed somewhere in the past
-   */
+  /* Sequencer could start rendering, in this case we need to be sure it wouldn't be canceled
+   * by Escape pressed somewhere in the past. */
   G.is_break = false;
 
   /* Rendering can change OGL context. Save & Restore framebuffer. */

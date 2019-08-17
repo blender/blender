@@ -267,7 +267,7 @@ int imagewrap(Tex *tex,
 
   if (texres->nor) {
     if (tex->imaflag & TEX_NORMALMAP) {
-      /* qdn: normal from color
+      /* Normal from color:
        * The invert of the red channel is to make
        * the normal map compliant with the outside world.
        * It needs to be done because in Blender

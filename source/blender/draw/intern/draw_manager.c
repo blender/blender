@@ -1955,7 +1955,7 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
     DRW_opengl_context_enable();
   }
 
-  /* IMPORTANT: We dont support immediate mode in render mode!
+  /* IMPORTANT: We don't support immediate mode in render mode!
    * This shall remain in effect until immediate mode supports
    * multiple threads. */
 

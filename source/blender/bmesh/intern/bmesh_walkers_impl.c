@@ -648,7 +648,7 @@ static void *bmw_ConnectedVertexWalker_step(BMWalker *walker)
  * \note that this doesn't work on non-manifold geometry.
  * it might be better to rewrite this to extract
  * boundary info from the island walker, rather then directly walking
- * over the boundary.  raises an error if it encounters nonmanifold geometry.
+ * over the boundary.  raises an error if it encounters non-manifold geometry.
  *
  * \todo Add restriction flag/callback for wire edges.
  */

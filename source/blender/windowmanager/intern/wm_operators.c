@@ -3011,7 +3011,7 @@ static void WM_OT_redraw_timer(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Reporet Memory Statistics
+/** \name Report Memory Statistics
  *
  * Use for testing/debugging.
  * \{ */

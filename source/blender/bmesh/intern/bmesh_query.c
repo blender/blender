@@ -1542,7 +1542,7 @@ float BM_loop_calc_face_normal_safe_ex(const BMLoop *l, const float epsilon_sq, 
 /**
  * #BM_loop_calc_face_normal_safe_ex with pre-defined sane epsilon.
  *
- * Since this doesn't scale baed on triangle size, fixed value works well.
+ * Since this doesn't scale based on triangle size, fixed value works well.
  */
 float BM_loop_calc_face_normal_safe(const BMLoop *l, float r_normal[3])
 {

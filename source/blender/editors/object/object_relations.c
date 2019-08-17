@@ -1744,7 +1744,7 @@ static Collection *single_object_users_collection(Main *bmain,
   }
 
   /* Since master collection has already be duplicated as part of scene copy,
-   * we do not duplictae it here.
+   * we do not duplicate it here.
    * However, this means its children need to be re-added manually here,
    * otherwise their parent lists are empty (which will lead to crashes, see T63101). */
   CollectionChild *child_next, *child = collection->children.first;

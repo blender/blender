@@ -119,7 +119,7 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
   /*
    * 1. create cl_mem from outputbuffer
    * 2. call NodeOperation (input) executeOpenCLChunk(.....)
-   * 3. schedule readback from opencl to main device (outputbuffer)
+   * 3. schedule read back from opencl to main device (outputbuffer)
    * 4. schedule native callback
    *
    * note: list of cl_mem will be filled by 2, and needs to be cleaned up by 4

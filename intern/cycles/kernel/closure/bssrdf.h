@@ -231,7 +231,7 @@ ccl_device float bssrdf_burley_eval(const float d, float r)
    * NOTES:
    * - Surface albedo is already included into sc->weight, no need to
    *   multiply by this term here.
-   * - This is normalized diffuse model, so the equation is mutliplied
+   * - This is normalized diffuse model, so the equation is multiplied
    *   by 2*pi, which also matches cdf().
    */
   float exp_r_3_d = expf(-r / (3.0f * d));

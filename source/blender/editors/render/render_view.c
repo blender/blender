@@ -223,8 +223,8 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
   /* get the correct image, and scale it */
   sima->image = BKE_image_verify_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result");
 
-  /* if we're rendering to full screen, set appropriate hints on image editor
-   * so it can restore properly on pressing esc */
+  /* If we're rendering to full screen, set appropriate hints on image editor
+   * so it can restore properly on pressing escape. */
   if (sa->full) {
     sima->flag |= SI_FULLWINDOW;
 

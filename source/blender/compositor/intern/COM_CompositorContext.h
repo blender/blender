@@ -215,7 +215,7 @@ class CompositorContext {
   }
 
   /**
-   * \brief get the current framenumber of the scene in this context
+   * \brief get the current frame-number of the scene in this context
    */
   int getFramenumber() const;
 

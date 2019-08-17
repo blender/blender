@@ -509,7 +509,7 @@ void EEVEE_downsample_buffer(EEVEE_Data *vedata, GPUTexture *texture_src, int le
 }
 
 /**
- * Simple downsampling algorithm for cubemap. Reconstruct mip chain up to mip level.
+ * Simple down-sampling algorithm for cubemap. Reconstruct mip chain up to mip level.
  */
 void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, GPUTexture *texture_src, int level)
 {
@@ -580,7 +580,7 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
   /* NOTE: Lookdev drawing happens before TAA but after
    * motion blur and dof to avoid distortions.
    * Velocity resolve use a hack to exclude lookdev
-   * spheres from creating shimering reprojection vectors. */
+   * spheres from creating shimmering re-projection vectors. */
   EEVEE_lookdev_draw(vedata);
   EEVEE_velocity_resolve(vedata);
 
