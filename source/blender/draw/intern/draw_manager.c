@@ -2562,7 +2562,6 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, const rc
 
   /* Reset before using it. */
   drw_state_prepare_clean_for_draw(&DST);
-  DST.buffer_finish_called = true;
 
   /* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
   DST.draw_ctx = (DRWContextState){
@@ -2600,6 +2599,8 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, const rc
     }
 
     drw_engines_cache_finish();
+
+    DRW_render_instance_buffer_finish();
   }
 
   /* Start Drawing */
@@ -2608,6 +2609,8 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, const rc
   DRW_state_reset();
 
   drw_engines_disable();
+
+  drw_viewport_cache_resize();
 
 #ifdef DEBUG
   /* Avoid accidental reuse. */
