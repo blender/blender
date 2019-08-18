@@ -51,7 +51,7 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
   if (!breaked) {
     FastGaussianBlurOperation::IIR_gauss(tbuf1, s1, 1, 3);
   }
-  if (isBreaked()) {
+  if (isBraked()) {
     breaked = true;
   }
   if (!breaked) {
@@ -60,19 +60,19 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 
   MemoryBuffer *tbuf2 = tbuf1->duplicate();
 
-  if (isBreaked()) {
+  if (isBraked()) {
     breaked = true;
   }
   if (!breaked) {
     FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 0, 3);
   }
-  if (isBreaked()) {
+  if (isBraked()) {
     breaked = true;
   }
   if (!breaked) {
     FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 1, 3);
   }
-  if (isBreaked()) {
+  if (isBraked()) {
     breaked = true;
   }
   if (!breaked) {
@@ -117,7 +117,7 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 
       gbuf->writePixel(x, y, c);
     }
-    if (isBreaked()) {
+    if (isBraked()) {
       breaked = true;
     }
   }
@@ -142,7 +142,7 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
         }
         tbuf1->addPixel(x, y, tc);
       }
-      if (isBreaked()) {
+      if (isBraked()) {
         breaked = true;
       }
     }

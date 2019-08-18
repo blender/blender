@@ -368,7 +368,7 @@ class NodeOperation : public SocketReader {
     return true;
   }
 
-  inline bool isBreaked() const
+  inline bool isBraked() const
   {
     return this->m_btree->test_break(this->m_btree->tbh);
   }

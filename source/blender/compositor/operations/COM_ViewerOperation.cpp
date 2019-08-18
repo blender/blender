@@ -111,7 +111,7 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
       offset++;
       offset4 += 4;
     }
-    if (isBreaked()) {
+    if (isBraked()) {
       breaked = true;
     }
     offset += offsetadd;

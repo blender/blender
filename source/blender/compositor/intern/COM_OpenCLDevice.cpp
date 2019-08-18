@@ -248,7 +248,7 @@ void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel,
         printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
       }
       clFlush(this->m_queue);
-      if (operation->isBreaked()) {
+      if (operation->isBraked()) {
         breaked = false;
       }
     }

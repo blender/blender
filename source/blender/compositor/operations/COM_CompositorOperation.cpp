@@ -78,7 +78,7 @@ void CompositorOperation::deinitExecution()
     return;
   }
 
-  if (!isBreaked()) {
+  if (!isBraked()) {
     Render *re = RE_GetSceneRender(this->m_scene);
     RenderResult *rr = RE_AcquireResultWrite(re);
 
@@ -207,7 +207,7 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
       zbuffer[offset] = color[0];
       offset4 += COM_NUM_CHANNELS_COLOR;
       offset++;
-      if (isBreaked()) {
+      if (isBraked()) {
         breaked = true;
       }
     }

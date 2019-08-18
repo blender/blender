@@ -58,7 +58,7 @@ void GlareSimpleStarOperation::generateGlare(float *data,
         c[3] = 1.0f;
         tbuf2->writePixel(x, y, c);
       }
-      if (isBreaked()) {
+      if (isBraked()) {
         breaked = true;
       }
     }
@@ -87,7 +87,7 @@ void GlareSimpleStarOperation::generateGlare(float *data,
         c[3] = 1.0f;
         tbuf2->writePixel(x, y, c);
       }
-      if (isBreaked()) {
+      if (isBraked()) {
         breaked = true;
       }
     }

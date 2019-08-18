@@ -78,7 +78,7 @@ void GlareStreaksOperation::generateGlare(float *data,
           tdstcol[2] = 0.5f * (tdstcol[2] + c1[2] + wt * (c2[2] + wt * (c3[2] + wt * c4[2])));
           tdstcol[3] = 1.0f;
         }
-        if (isBreaked()) {
+        if (isBraked()) {
           breaked = true;
         }
       }

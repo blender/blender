@@ -76,7 +76,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/
         this->m_input->read(&(buffer[offset4]), x, y, data);
         offset4 += num_channels;
       }
-      if (isBreaked()) {
+      if (isBraked()) {
         breaked = true;
       }
     }
@@ -100,7 +100,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/
         this->m_input->readSampled(&(buffer[offset4]), x, y, COM_PS_NEAREST);
         offset4 += num_channels;
       }
-      if (isBreaked()) {
+      if (isBraked()) {
         breaked = true;
       }
     }
