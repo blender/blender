@@ -563,7 +563,7 @@ static void gp_brush_angle(bGPdata *gpd, Brush *brush, tGPspoint *pt, const floa
 static void gp_smooth_buffer(tGPsdata *p, float inf, int idx)
 {
   bGPdata *gpd = p->gpd;
-  short num_points = gpd->runtime.sbuffer_used;
+  const short num_points = gpd->runtime.sbuffer_used;
 
   /* Do nothing if not enough points to smooth out */
   if ((num_points < 3) || (idx < 3) || (inf == 0.0f)) {
@@ -571,10 +571,7 @@ static void gp_smooth_buffer(tGPsdata *p, float inf, int idx)
   }
 
   tGPspoint *points = (tGPspoint *)gpd->runtime.sbuffer;
-  float steps = 4.0f;
-  if (idx < 4) {
-    steps--;
-  }
+  const float steps = (idx < 4) ? 3.0f : 4.0f;
 
   tGPspoint *pta = idx >= 4 ? &points[idx - 4] : NULL;
   tGPspoint *ptb = idx >= 3 ? &points[idx - 3] : NULL;
@@ -583,29 +580,36 @@ static void gp_smooth_buffer(tGPsdata *p, float inf, int idx)
 
   float sco[2] = {0.0f};
   float a[2], b[2], c[2], d[2];
+  float pressure = 0.0f;
   const float average_fac = 1.0f / steps;
 
   /* Compute smoothed coordinate by taking the ones nearby */
   if (pta) {
     copy_v2_v2(a, &pta->x);
     madd_v2_v2fl(sco, a, average_fac);
+    pressure += pta->pressure * average_fac;
   }
   if (ptb) {
     copy_v2_v2(b, &ptb->x);
     madd_v2_v2fl(sco, b, average_fac);
+    pressure += ptb->pressure * average_fac;
   }
   if (ptc) {
     copy_v2_v2(c, &ptc->x);
     madd_v2_v2fl(sco, c, average_fac);
+    pressure += ptc->pressure * average_fac;
   }
   if (ptd) {
     copy_v2_v2(d, &ptd->x);
     madd_v2_v2fl(sco, d, average_fac);
+    pressure += ptd->pressure * average_fac;
   }
 
-  /* Based on influence factor, blend between original and optimal smoothed coordinate */
+  /* Based on influence factor, blend between original and optimal smoothed coordinate. */
   interp_v2_v2v2(c, c, sco, inf);
   copy_v2_v2(&ptc->x, c);
+  /* Interpolate pressure. */
+  ptc->pressure = interpf(ptc->pressure, pressure, inf);
 }
 
 /* add current stroke-point to buffer (returns whether point was successfully added) */
