@@ -2458,6 +2458,15 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
   return dist;
 }
 
+static bool is_split_edge(const int alignment, const AZEdge edge)
+{
+  return ((alignment == RGN_ALIGN_BOTTOM) && (edge == AE_TOP_TO_BOTTOMRIGHT)) ||
+         ((alignment == RGN_ALIGN_TOP) && (edge == AE_BOTTOM_TO_TOPLEFT)) ||
+         ((alignment == RGN_ALIGN_LEFT) && (edge == AE_RIGHT_TO_TOPLEFT)) ||
+         ((alignment == RGN_ALIGN_RIGHT) && (edge == AE_LEFT_TO_TOPRIGHT));
+
+}
+
 static int region_scale_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   sActionzoneData *sad = event->customdata;
@@ -2476,7 +2485,16 @@ static int region_scale_invoke(bContext *C, wmOperator *op, const wmEvent *event
     op->customdata = rmd;
 
     rmd->az = az;
-    rmd->ar = az->ar;
+    /* special case for region within region - this allows the scale of
+     * the parent region if the azone edge is not the edge splitting
+     * both regions */
+    if ((az->ar->alignment & RGN_SPLIT_PREV) && az->ar->prev &&
+        !is_split_edge(RGN_ALIGN_ENUM_FROM_MASK(az->ar->alignment), az->edge)) {
+      rmd->ar = az->ar->prev;
+    }
+    else {
+      rmd->ar = az->ar;
+    }
     rmd->sa = sad->sa1;
     rmd->edge = az->edge;
     rmd->origx = event->x;
