@@ -16,24 +16,22 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Nodes */
-
 ccl_device void svm_node_math(KernelGlobals *kg,
                               ShaderData *sd,
                               float *stack,
-                              uint itype,
-                              uint f1_offset,
-                              uint f2_offset,
+                              uint type,
+                              uint inputs_stack_offsets,
+                              uint result_stack_offset,
                               int *offset)
 {
-  NodeMath type = (NodeMath)itype;
-  float f1 = stack_load_float(stack, f1_offset);
-  float f2 = stack_load_float(stack, f2_offset);
-  float f = svm_math(type, f1, f2);
+  uint a_stack_offset, b_stack_offset;
+  decode_node_uchar4(inputs_stack_offsets, &a_stack_offset, &b_stack_offset, NULL, NULL);
 
-  uint4 node1 = read_node(kg, offset);
+  float a = stack_load_float(stack, a_stack_offset);
+  float b = stack_load_float(stack, b_stack_offset);
+  float result = svm_math((NodeMathType)type, a, b);
 
-  stack_store_float(stack, node1.y, f);
+  stack_store_float(stack, result_stack_offset, result);
 }
 
 ccl_device void svm_node_vector_math(KernelGlobals *kg,

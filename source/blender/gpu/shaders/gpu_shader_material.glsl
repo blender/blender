@@ -250,178 +250,138 @@ void camera(vec3 co, out vec3 outview, out float outdepth, out float outdist)
   outview = normalize(co);
 }
 
-void math_add(float val1, float val2, out float outval)
+void math_add(float a, float b, out float result)
 {
-  outval = val1 + val2;
+  result = a + b;
 }
 
-void math_subtract(float val1, float val2, out float outval)
+void math_subtract(float a, float b, out float result)
 {
-  outval = val1 - val2;
+  result = a - b;
 }
 
-void math_multiply(float val1, float val2, out float outval)
+void math_multiply(float a, float b, out float result)
 {
-  outval = val1 * val2;
+  result = a * b;
 }
 
-void math_divide(float val1, float val2, out float outval)
+void math_divide(float a, float b, out float result)
 {
-  if (val2 == 0.0) {
-    outval = 0.0;
+  result = (b != 0.0) ? a / b : 0.0;
+}
+
+void math_power(float a, float b, out float result)
+{
+  if (a >= 0.0) {
+    result = compatible_pow(a, b);
   }
   else {
-    outval = val1 / val2;
-  }
-}
-
-void math_sine(float val, out float outval)
-{
-  outval = sin(val);
-}
-
-void math_cosine(float val, out float outval)
-{
-  outval = cos(val);
-}
-
-void math_tangent(float val, out float outval)
-{
-  outval = tan(val);
-}
-
-void math_asin(float val, out float outval)
-{
-  if (val <= 1.0 && val >= -1.0) {
-    outval = asin(val);
-  }
-  else {
-    outval = 0.0;
-  }
-}
-
-void math_acos(float val, out float outval)
-{
-  if (val <= 1.0 && val >= -1.0) {
-    outval = acos(val);
-  }
-  else {
-    outval = 0.0;
-  }
-}
-
-void math_atan(float val, out float outval)
-{
-  outval = atan(val);
-}
-
-void math_pow(float val1, float val2, out float outval)
-{
-  if (val1 >= 0.0) {
-    outval = compatible_pow(val1, val2);
-  }
-  else {
-    float val2_mod_1 = mod(abs(val2), 1.0);
-
-    if (val2_mod_1 > 0.999 || val2_mod_1 < 0.001) {
-      outval = compatible_pow(val1, floor(val2 + 0.5));
+    float fraction = mod(abs(b), 1.0);
+    if (fraction > 0.999 || fraction < 0.001) {
+      result = compatible_pow(a, floor(b + 0.5));
     }
     else {
-      outval = 0.0;
+      result = 0.0;
     }
   }
 }
 
-void math_log(float val1, float val2, out float outval)
+void math_logarithm(float a, float b, out float result)
 {
-  if (val1 > 0.0 && val2 > 0.0) {
-    outval = log2(val1) / log2(val2);
-  }
-  else {
-    outval = 0.0;
-  }
+  result = (a > 0.0 && b > 0.0) ? log2(a) / log2(b) : 0.0;
 }
 
-void math_max(float val1, float val2, out float outval)
+void math_sqrt(float a, float b, out float result)
 {
-  outval = max(val1, val2);
+  result = (a > 0.0) ? sqrt(a) : 0.0;
 }
 
-void math_min(float val1, float val2, out float outval)
+void math_absolute(float a, float b, out float result)
 {
-  outval = min(val1, val2);
+  result = abs(a);
 }
 
-void math_round(float val, out float outval)
+void math_minimum(float a, float b, out float result)
 {
-  outval = floor(val + 0.5);
+  result = min(a, b);
 }
 
-void math_less_than(float val1, float val2, out float outval)
+void math_maximum(float a, float b, out float result)
 {
-  if (val1 < val2) {
-    outval = 1.0;
-  }
-  else {
-    outval = 0.0;
-  }
+  result = max(a, b);
 }
 
-void math_greater_than(float val1, float val2, out float outval)
+void math_less_than(float a, float b, out float result)
 {
-  if (val1 > val2) {
-    outval = 1.0;
-  }
-  else {
-    outval = 0.0;
-  }
+  result = (a < b) ? 1.0 : 0.0;
 }
 
-void math_modulo(float val1, float val2, out float outval)
+void math_greater_than(float a, float b, out float result)
 {
-  if (val2 == 0.0 || val1 == val2) {
-    outval = 0.0;
-  }
-  else {
-    /* change sign to match C convention, mod in GLSL will take absolute for negative numbers,
-     * see https://www.opengl.org/sdk/docs/man/html/mod.xhtml */
-    outval = sign(val1) * mod(abs(val1), val2);
-  }
+  result = (a > b) ? 1.0 : 0.0;
 }
 
-void math_abs(float val1, out float outval)
+void math_round(float a, float b, out float result)
 {
-  outval = abs(val1);
+  result = floor(a + 0.5);
 }
 
-void math_atan2(float val1, float val2, out float outval)
+void math_floor(float a, float b, out float result)
 {
-  outval = atan(val1, val2);
+  result = floor(a);
 }
 
-void math_floor(float val, out float outval)
+void math_ceil(float a, float b, out float result)
 {
-  outval = floor(val);
+  result = ceil(a);
 }
 
-void math_ceil(float val, out float outval)
+void math_fraction(float a, float b, out float result)
 {
-  outval = ceil(val);
+  result = a - floor(a);
 }
 
-void math_fract(float val, out float outval)
+/* Change sign to match C convention. mod in GLSL will take absolute for negative numbers.
+ * See https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/mod.xhtml
+ */
+void math_modulo(float a, float b, out float result)
 {
-  outval = val - floor(val);
+  result = (b != 0.0) ? sign(a) * mod(abs(a), b) : 0.0;
 }
 
-void math_sqrt(float val, out float outval)
+void math_sine(float a, float b, out float result)
 {
-  if (val > 0.0) {
-    outval = sqrt(val);
-  }
-  else {
-    outval = 0.0;
-  }
+  result = sin(a);
+}
+
+void math_cosine(float a, float b, out float result)
+{
+  result = cos(a);
+}
+
+void math_tangent(float a, float b, out float result)
+{
+  result = tan(a);
+}
+
+void math_arcsine(float a, float b, out float result)
+{
+  result = (a <= 1.0 && a >= -1.0) ? asin(a) : 0.0;
+}
+
+void math_arccosine(float a, float b, out float result)
+{
+  result = (a <= 1.0 && a >= -1.0) ? acos(a) : 0.0;
+}
+
+void math_arctangent(float a, float b, out float result)
+{
+  result = atan(a);
+}
+
+void math_arctan2(float a, float b, out float result)
+{
+  result = atan(a, b);
 }
 
 void squeeze(float val, float width, float center, out float outval)

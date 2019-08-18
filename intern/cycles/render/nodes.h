@@ -1260,11 +1260,12 @@ class MathNode : public ShaderNode {
   {
     return NODE_GROUP_LEVEL_1;
   }
+  void expand(ShaderGraph *graph);
   void constant_fold(const ConstantFolder &folder);
 
   float value1;
   float value2;
-  NodeMath type;
+  NodeMathType type;
   bool use_clamp;
 };
 

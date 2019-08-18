@@ -1003,7 +1003,7 @@ TEST_F(RenderGraph, constant_fold_math_clamp)
  * Includes 2 tests: constant on each side.
  */
 static void build_math_partial_test_graph(ShaderGraphBuilder &builder,
-                                          NodeMath type,
+                                          NodeMathType type,
                                           float constval)
 {
   builder

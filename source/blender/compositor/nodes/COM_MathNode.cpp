@@ -29,61 +29,61 @@ void MathNode::convertToOperations(NodeConverter &converter,
     case NODE_MATH_ADD:
       operation = new MathAddOperation();
       break;
-    case NODE_MATH_SUB:
+    case NODE_MATH_SUBTRACT:
       operation = new MathSubtractOperation();
       break;
-    case NODE_MATH_MUL:
+    case NODE_MATH_MULTIPLY:
       operation = new MathMultiplyOperation();
       break;
     case NODE_MATH_DIVIDE:
       operation = new MathDivideOperation();
       break;
-    case NODE_MATH_SIN:
+    case NODE_MATH_SINE:
       operation = new MathSineOperation();
       break;
-    case NODE_MATH_COS:
+    case NODE_MATH_COSINE:
       operation = new MathCosineOperation();
       break;
-    case NODE_MATH_TAN:
+    case NODE_MATH_TANGENT:
       operation = new MathTangentOperation();
       break;
-    case NODE_MATH_ASIN:
+    case NODE_MATH_ARCSINE:
       operation = new MathArcSineOperation();
       break;
-    case NODE_MATH_ACOS:
+    case NODE_MATH_ARCCOSINE:
       operation = new MathArcCosineOperation();
       break;
-    case NODE_MATH_ATAN:
+    case NODE_MATH_ARCTANGENT:
       operation = new MathArcTangentOperation();
       break;
-    case NODE_MATH_POW:
+    case NODE_MATH_POWER:
       operation = new MathPowerOperation();
       break;
-    case NODE_MATH_LOG:
+    case NODE_MATH_LOGARITHM:
       operation = new MathLogarithmOperation();
       break;
-    case NODE_MATH_MIN:
+    case NODE_MATH_MINIMUM:
       operation = new MathMinimumOperation();
       break;
-    case NODE_MATH_MAX:
+    case NODE_MATH_MAXIMUM:
       operation = new MathMaximumOperation();
       break;
     case NODE_MATH_ROUND:
       operation = new MathRoundOperation();
       break;
-    case NODE_MATH_LESS:
+    case NODE_MATH_LESS_THAN:
       operation = new MathLessThanOperation();
       break;
-    case NODE_MATH_GREATER:
+    case NODE_MATH_GREATER_THAN:
       operation = new MathGreaterThanOperation();
       break;
-    case NODE_MATH_MOD:
+    case NODE_MATH_MODULO:
       operation = new MathModuloOperation();
       break;
-    case NODE_MATH_ABS:
+    case NODE_MATH_ABSOLUTE:
       operation = new MathAbsoluteOperation();
       break;
-    case NODE_MATH_ATAN2:
+    case NODE_MATH_ARCTAN2:
       operation = new MathArcTan2Operation();
       break;
     case NODE_MATH_FLOOR:
@@ -92,7 +92,7 @@ void MathNode::convertToOperations(NodeConverter &converter,
     case NODE_MATH_CEIL:
       operation = new MathCeilOperation();
       break;
-    case NODE_MATH_FRACT:
+    case NODE_MATH_FRACTION:
       operation = new MathFractOperation();
       break;
     case NODE_MATH_SQRT:

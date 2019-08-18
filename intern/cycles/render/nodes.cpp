@@ -5422,14 +5422,12 @@ NODE_DEFINE(MathNode)
   type_enum.insert("arctan2", NODE_MATH_ARCTAN2);
   type_enum.insert("floor", NODE_MATH_FLOOR);
   type_enum.insert("ceil", NODE_MATH_CEIL);
-  type_enum.insert("fract", NODE_MATH_FRACT);
+  type_enum.insert("fraction", NODE_MATH_FRACTION);
   type_enum.insert("sqrt", NODE_MATH_SQRT);
   SOCKET_ENUM(type, "Type", type_enum, NODE_MATH_ADD);
 
-  SOCKET_BOOLEAN(use_clamp, "Use Clamp", false);
-
-  SOCKET_IN_FLOAT(value1, "Value1", 0.0f);
-  SOCKET_IN_FLOAT(value2, "Value2", 0.0f);
+  SOCKET_IN_FLOAT(value1, "Value1", 0.5f);
+  SOCKET_IN_FLOAT(value2, "Value2", 0.5f);
 
   SOCKET_OUT_FLOAT(value, "Value");
 
@@ -5440,13 +5438,28 @@ MathNode::MathNode() : ShaderNode(node_type)
 {
 }
 
+void MathNode::expand(ShaderGraph *graph)
+{
+  if (use_clamp) {
+    ShaderOutput *result_out = output("Value");
+    if (!result_out->links.empty()) {
+      ClampNode *clamp_node = new ClampNode();
+      clamp_node->min = 0.0f;
+      clamp_node->max = 1.0f;
+      graph->add(clamp_node);
+      graph->relink(result_out, clamp_node->output("Result"));
+      graph->connect(result_out, clamp_node->input("Value"));
+    }
+  }
+}
+
 void MathNode::constant_fold(const ConstantFolder &folder)
 {
   if (folder.all_inputs_constant()) {
-    folder.make_constant_clamp(svm_math(type, value1, value2), use_clamp);
+    folder.make_constant(svm_math(type, value1, value2));
   }
   else {
-    folder.fold_math(type, use_clamp);
+    folder.fold_math(type);
   }
 }
 
@@ -5456,20 +5469,19 @@ void MathNode::compile(SVMCompiler &compiler)
   ShaderInput *value2_in = input("Value2");
   ShaderOutput *value_out = output("Value");
 
-  compiler.add_node(
-      NODE_MATH, type, compiler.stack_assign(value1_in), compiler.stack_assign(value2_in));
-  compiler.add_node(NODE_MATH, compiler.stack_assign(value_out));
+  int value1_stack_offset = compiler.stack_assign(value1_in);
+  int value2_stack_offset = compiler.stack_assign(value2_in);
+  int value_stack_offset = compiler.stack_assign(value_out);
 
-  if (use_clamp) {
-    compiler.add_node(NODE_MATH, NODE_MATH_CLAMP, compiler.stack_assign(value_out));
-    compiler.add_node(NODE_MATH, compiler.stack_assign(value_out));
-  }
+  compiler.add_node(NODE_MATH,
+                    type,
+                    compiler.encode_uchar4(value1_stack_offset, value2_stack_offset),
+                    value_stack_offset);
 }
 
 void MathNode::compile(OSLCompiler &compiler)
 {
   compiler.parameter(this, "type");
-  compiler.parameter(this, "use_clamp");
   compiler.add(this, "node_math");
 }
 

@@ -51,64 +51,60 @@ ccl_device void svm_vector_math(
   }
 }
 
-ccl_device float svm_math(NodeMath type, float Fac1, float Fac2)
+ccl_device float svm_math(NodeMathType type, float a, float b)
 {
-  float Fac;
-
-  if (type == NODE_MATH_ADD)
-    Fac = Fac1 + Fac2;
-  else if (type == NODE_MATH_SUBTRACT)
-    Fac = Fac1 - Fac2;
-  else if (type == NODE_MATH_MULTIPLY)
-    Fac = Fac1 * Fac2;
-  else if (type == NODE_MATH_DIVIDE)
-    Fac = safe_divide(Fac1, Fac2);
-  else if (type == NODE_MATH_SINE)
-    Fac = sinf(Fac1);
-  else if (type == NODE_MATH_COSINE)
-    Fac = cosf(Fac1);
-  else if (type == NODE_MATH_TANGENT)
-    Fac = tanf(Fac1);
-  else if (type == NODE_MATH_ARCSINE)
-    Fac = safe_asinf(Fac1);
-  else if (type == NODE_MATH_ARCCOSINE)
-    Fac = safe_acosf(Fac1);
-  else if (type == NODE_MATH_ARCTANGENT)
-    Fac = atanf(Fac1);
-  else if (type == NODE_MATH_POWER)
-    Fac = safe_powf(Fac1, Fac2);
-  else if (type == NODE_MATH_LOGARITHM)
-    Fac = safe_logf(Fac1, Fac2);
-  else if (type == NODE_MATH_MINIMUM)
-    Fac = fminf(Fac1, Fac2);
-  else if (type == NODE_MATH_MAXIMUM)
-    Fac = fmaxf(Fac1, Fac2);
-  else if (type == NODE_MATH_ROUND)
-    Fac = floorf(Fac1 + 0.5f);
-  else if (type == NODE_MATH_LESS_THAN)
-    Fac = Fac1 < Fac2;
-  else if (type == NODE_MATH_GREATER_THAN)
-    Fac = Fac1 > Fac2;
-  else if (type == NODE_MATH_MODULO)
-    Fac = safe_modulo(Fac1, Fac2);
-  else if (type == NODE_MATH_ABSOLUTE)
-    Fac = fabsf(Fac1);
-  else if (type == NODE_MATH_ARCTAN2)
-    Fac = atan2f(Fac1, Fac2);
-  else if (type == NODE_MATH_FLOOR)
-    Fac = floorf(Fac1);
-  else if (type == NODE_MATH_CEIL)
-    Fac = ceilf(Fac1);
-  else if (type == NODE_MATH_FRACT)
-    Fac = Fac1 - floorf(Fac1);
-  else if (type == NODE_MATH_SQRT)
-    Fac = safe_sqrtf(Fac1);
-  else if (type == NODE_MATH_CLAMP)
-    Fac = saturate(Fac1);
-  else
-    Fac = 0.0f;
-
-  return Fac;
+  switch (type) {
+    case NODE_MATH_ADD:
+      return a + b;
+    case NODE_MATH_SUBTRACT:
+      return a - b;
+    case NODE_MATH_MULTIPLY:
+      return a * b;
+    case NODE_MATH_DIVIDE:
+      return safe_divide(a, b);
+    case NODE_MATH_POWER:
+      return safe_powf(a, b);
+    case NODE_MATH_LOGARITHM:
+      return safe_logf(a, b);
+    case NODE_MATH_SQRT:
+      return safe_sqrtf(a);
+    case NODE_MATH_ABSOLUTE:
+      return fabsf(a);
+    case NODE_MATH_MINIMUM:
+      return fminf(a, b);
+    case NODE_MATH_MAXIMUM:
+      return fmaxf(a, b);
+    case NODE_MATH_LESS_THAN:
+      return a < b;
+    case NODE_MATH_GREATER_THAN:
+      return a > b;
+    case NODE_MATH_ROUND:
+      return floorf(a + 0.5f);
+    case NODE_MATH_FLOOR:
+      return floorf(a);
+    case NODE_MATH_CEIL:
+      return ceilf(a);
+    case NODE_MATH_FRACTION:
+      return a - floorf(a);
+    case NODE_MATH_MODULO:
+      return safe_modulo(a, b);
+    case NODE_MATH_SINE:
+      return sinf(a);
+    case NODE_MATH_COSINE:
+      return cosf(a);
+    case NODE_MATH_TANGENT:
+      return tanf(a);
+    case NODE_MATH_ARCSINE:
+      return safe_asinf(a);
+    case NODE_MATH_ARCCOSINE:
+      return safe_acosf(a);
+    case NODE_MATH_ARCTANGENT:
+      return atanf(a);
+    case NODE_MATH_ARCTAN2:
+      return atan2f(a, b);
+    default:
+      return 0.0f;
+  }
 }
 
 /* Calculate color in range 800..12000 using an approximation
