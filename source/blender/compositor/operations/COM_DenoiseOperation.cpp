@@ -147,6 +147,7 @@ void DenoiseOperation::generateDenoise(float *data,
     data[i * 4 + 3] = inputBufferColor[i * 4 + 3];
   }
 #else
+  UNUSED_VARS(inputTileAlbedo, inputTileNormal, settings);
   ::memcpy(data,
            inputBufferColor,
            inputTileColor->getWidth() * inputTileColor->getHeight() * sizeof(float) * 4);
