@@ -1466,6 +1466,7 @@ static void rna_def_modifier_gpencillattice(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, NULL, "rna_LatticeGpencilModifier_object_set", NULL, "rna_Lattice_object_poll");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 
   prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
@@ -1522,6 +1523,7 @@ static void rna_def_modifier_gpencilmirror(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Object", "Object used as center");
   RNA_def_property_pointer_funcs(prop, NULL, "rna_MirrorGpencilModifier_object_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 
   prop = RNA_def_property(srna, "use_clip", PROP_BOOLEAN, PROP_NONE);
@@ -1560,6 +1562,7 @@ static void rna_def_modifier_gpencilhook(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Object", "Parent Object for hook, also recalculates and clears offset");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_pointer_funcs(prop, NULL, "rna_HookGpencilModifier_object_set", NULL, NULL);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 

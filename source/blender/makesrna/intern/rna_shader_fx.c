@@ -418,6 +418,7 @@ static void rna_def_shader_fx_shadow(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Object", "Object to determine center of rotation");
   RNA_def_property_pointer_funcs(prop, NULL, "rna_ShadowShaderFx_object_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_ShaderFx_dependency_update");
 
   prop = RNA_def_property(srna, "offset", PROP_INT, PROP_PIXEL);
@@ -588,6 +589,7 @@ static void rna_def_shader_fx_swirl(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Object", "Object to determine center location");
   RNA_def_property_pointer_funcs(prop, NULL, "rna_SwirlShaderFx_object_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_ShaderFx_dependency_update");
 }
 
@@ -640,6 +642,7 @@ static void rna_def_shader_fx_light(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Object", "Object to determine light source location");
   RNA_def_property_pointer_funcs(prop, NULL, "rna_LightShaderFx_object_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_ShaderFx_dependency_update");
 }
 
