@@ -113,10 +113,8 @@ def brush_texpaint_common(panel, context, layout, brush, _settings, projpaint=Fa
 
     col = layout.column()
 
-    if capabilities.has_color:
-        if brush.blend in {'ERASE_ALPHA', 'ADD_ALPHA'}:
-            if brush.image_tool == 'FILL' and not projpaint:
-                col.prop(brush, "fill_threshold")
+    if brush.image_tool == 'FILL' and not projpaint:
+        col.prop(brush, "fill_threshold", text="Gradient Type", slider=True)
 
     elif brush.image_tool == 'SOFTEN':
         col.row().prop(brush, "direction", expand=True)
@@ -183,7 +181,7 @@ def brush_texpaint_common_gradient(_panel, context, layout, brush, _settings, pr
 
     if brush.image_tool == 'DRAW':
         UnifiedPaintPanel.prop_unified_color(col, context, brush, "secondary_color", text="Background Color")
-        col.prop(brush, "gradient_stroke_mode", text="Mode")
+        col.prop(brush, "gradient_stroke_mode", text="Gradient Mapping")
         if brush.gradient_stroke_mode in {'SPACING_REPEAT', 'SPACING_CLAMP'}:
             col.prop(brush, "grad_spacing")
     else:  # if brush.image_tool == 'FILL':
