@@ -87,6 +87,7 @@ elseif(APPLE)
   set(OSL_EXTRA_ARGS
     ${OSL_EXTRA_ARGS}
     -DHIDE_SYMBOLS=OFF
+    -DPUGIXML_HOME=${LIBDIR}/pugixml
   )
 endif()
 
