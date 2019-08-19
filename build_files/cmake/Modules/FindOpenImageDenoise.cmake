@@ -46,6 +46,10 @@ FIND_PATH(OPENIMAGEDENOISE_INCLUDE_DIR
 
 SET(_openimagedenoise_FIND_COMPONENTS
   OpenImageDenoise
+)
+
+# These are needed when building statically
+SET(_openimagedenoise_FIND_STATIC_COMPONENTS
   common
   mkldnn
 )
@@ -63,6 +67,23 @@ FOREACH(COMPONENT ${_openimagedenoise_FIND_COMPONENTS})
       lib64 lib
     )
   LIST(APPEND _openimagedenoise_LIBRARIES "${OPENIMAGEDENOISE_${UPPERCOMPONENT}_LIBRARY}")
+ENDFOREACH()
+
+FOREACH(COMPONENT ${_openimagedenoise_FIND_STATIC_COMPONENTS})
+  STRING(TOUPPER ${COMPONENT} UPPERCOMPONENT)
+
+  FIND_LIBRARY(openimagedenoise_${UPPERCOMPONENT}_LIBRARY
+    NAMES
+      ${COMPONENT}
+    HINTS
+      ${_openimagedenoise_SEARCH_DIRS}
+    PATH_SUFFIXES
+      lib64 lib
+    )
+  MARK_AS_ADVANCED(openimagedenoise_${UPPERCOMPONENT}_LIBRARY)
+  IF(openimagedenoise_${UPPERCOMPONENT}_LIBRARY)
+    LIST(APPEND _openimagedenoise_LIBRARIES "${OPENIMAGEDENOISE_${UPPERCOMPONENT}_LIBRARY}")
+  ENDIF()
 ENDFOREACH()
 
 FIND_LIBRARY(OPENIMAGEDENOISE_LIBRARY
