@@ -690,9 +690,11 @@ uiBlock *ui_popup_block_refresh(bContext *C,
     /* Avoid menu moving down and losing cursor focus by keeping it at
      * the same height. */
     if (handle->refresh && handle->prev_block_rect.ymax > block->rect.ymax) {
-      float offset = handle->prev_block_rect.ymax - block->rect.ymax;
-      UI_block_translate(block, 0, offset);
-      block->rect.ymin = handle->prev_block_rect.ymin;
+      if (block->bounds_type != UI_BLOCK_BOUNDS_POPUP_CENTER) {
+        float offset = handle->prev_block_rect.ymax - block->rect.ymax;
+        UI_block_translate(block, 0, offset);
+        block->rect.ymin = handle->prev_block_rect.ymin;
+      }
     }
 
     handle->prev_block_rect = block->rect;
