@@ -6378,7 +6378,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
   if (reports->list.first != reports->list.last) {
     uiDefIconButO(block,
                   UI_BTYPE_BUT,
-                  "UI_OT_reports_to_textblock",
+                  "SCREEN_OT_info_log_show",
                   WM_OP_INVOKE_REGION_WIN,
                   icon,
                   2,
