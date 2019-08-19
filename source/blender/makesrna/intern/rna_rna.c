@@ -770,7 +770,8 @@ static void rna_IntProperty_default_array_get(PointerRNA *ptr, int *values)
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
   rna_idproperty_check(&prop, ptr);
   if (prop->totarraylength > 0) {
-    RNA_property_int_get_default_array(ptr, prop, values);
+    PointerRNA null_ptr = PointerRNA_NULL;
+    RNA_property_int_get_default_array(&null_ptr, prop, values);
   }
 }
 
@@ -779,7 +780,8 @@ static void rna_BoolProperty_default_array_get(PointerRNA *ptr, bool *values)
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
   rna_idproperty_check(&prop, ptr);
   if (prop->totarraylength > 0) {
-    RNA_property_boolean_get_default_array(ptr, prop, values);
+    PointerRNA null_ptr = PointerRNA_NULL;
+    RNA_property_boolean_get_default_array(&null_ptr, prop, values);
   }
 }
 
@@ -788,7 +790,8 @@ static void rna_FloatProperty_default_array_get(PointerRNA *ptr, float *values)
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
   rna_idproperty_check(&prop, ptr);
   if (prop->totarraylength > 0) {
-    RNA_property_float_get_default_array(ptr, prop, values);
+    PointerRNA null_ptr = PointerRNA_NULL;
+    RNA_property_float_get_default_array(&null_ptr, prop, values);
   }
 }
 
