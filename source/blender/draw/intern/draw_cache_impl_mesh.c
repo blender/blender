@@ -1034,7 +1034,7 @@ void DRW_mesh_batch_cache_create_requested(
       }
       /* XXX save element buffer to avoid recreating them.
        * This is only if the cd_needed changes so it is ok to keep them.*/
-      if (cache->surface_per_mat[0]->elem) {
+      if (cache->surface_per_mat[0] && cache->surface_per_mat[0]->elem) {
         saved_elem_ranges = MEM_callocN(sizeof(saved_elem_ranges) * cache->mat_len, __func__);
         for (int i = 0; i < cache->mat_len; ++i) {
           saved_elem_ranges[i] = cache->surface_per_mat[i]->elem;
