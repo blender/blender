@@ -887,6 +887,7 @@ void BKE_pose_eval_proxy_copy_bone(struct Depsgraph *depsgraph, Object *object, 
   }
   BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
   bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
+  BLI_assert(pchan != NULL);
   DEG_debug_print_eval_subdata(
       depsgraph, __func__, object->id.name, object, "pchan", pchan->name, pchan);
   /* TODO(sergey): Use indexed lookup, once it's guaranteed to be kept
@@ -897,8 +898,13 @@ void BKE_pose_eval_proxy_copy_bone(struct Depsgraph *depsgraph, Object *object, 
 #else
   bPoseChannel *pchan_from = BKE_pose_channel_find_name(object->proxy_from->pose, pchan->name);
 #endif
-  BLI_assert(pchan != NULL);
-  BLI_assert(pchan_from != NULL);
+  if (pchan_from == NULL) {
+    printf(
+        "WARNING: Could not find bone %s in linked ID anymore... "
+        "You should delete and re-generate your proxy.\n",
+        pchan->name);
+    return;
+  }
   BKE_pose_copyesult_pchan_result(pchan, pchan_from);
   copy_dq_dq(&pchan->runtime.deform_dual_quat, &pchan_from->runtime.deform_dual_quat);
   BKE_pchan_bbone_segments_cache_copy(pchan, pchan_from);
