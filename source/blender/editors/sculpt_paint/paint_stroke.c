@@ -57,6 +57,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "paint_intern.h"
+#include "sculpt_intern.h"
 
 #include <float.h>
 #include <math.h>
@@ -93,6 +94,8 @@ typedef struct PaintStroke {
   int cur_sample;
 
   float last_mouse_position[2];
+  float last_scene_space_position[3];
+  bool stroke_over_mesh;
   /* space distance covered so far */
   float stroke_distance;
 
@@ -231,6 +234,17 @@ static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
   }
 
   return true;
+}
+
+static bool paint_stroke_use_scene_spacing(Brush *brush, ePaintMode mode)
+{
+  switch (mode) {
+    case PAINT_MODE_SCULPT:
+      return brush->flag & BRUSH_SCENE_SPACING;
+    default:
+      break;
+  }
+  return false;
 }
 
 static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode mode)
@@ -523,6 +537,10 @@ static void paint_brush_stroke_add_step(bContext *C,
   copy_v2_v2(stroke->last_mouse_position, mouse_in);
   stroke->last_pressure = pressure;
 
+  if (paint_stroke_use_scene_spacing(brush, mode)) {
+    sculpt_stroke_get_location(C, stroke->last_scene_space_position, stroke->last_mouse_position);
+  }
+
   if (paint_stroke_use_jitter(mode, brush, stroke->stroke_mode == BRUSH_STROKE_INVERT)) {
     float delta[2];
     float factor = stroke->zoom_2d;
@@ -600,14 +618,32 @@ static bool paint_smooth_stroke(PaintStroke *stroke,
   return true;
 }
 
-static float paint_space_stroke_spacing(const Scene *scene,
+static float paint_space_stroke_spacing(bContext *C,
+                                        const Scene *scene,
                                         PaintStroke *stroke,
                                         float size_pressure,
                                         float spacing_pressure)
 {
-  /* brushes can have a minimum size of 1.0 but with pressure it can be smaller then a pixel
-   * causing very high step sizes, hanging blender [#32381] */
-  const float size_clamp = max_ff(1.0f, BKE_brush_size_get(scene, stroke->brush) * size_pressure);
+  Paint *paint = BKE_paint_get_active_from_context(C);
+  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  Brush *brush = BKE_paint_brush(paint);
+  float size_clamp = 0.0f;
+  float size = BKE_brush_size_get(scene, stroke->brush) * size_pressure;
+  if (paint_stroke_use_scene_spacing(brush, mode)) {
+    if (!BKE_brush_use_locked_size(scene, brush)) {
+      size_clamp = paint_calc_object_space_radius(
+          &stroke->vc, stroke->last_scene_space_position, size);
+    }
+    else {
+      size_clamp = BKE_brush_unprojected_radius_get(scene, brush) * size_pressure;
+    }
+  }
+  else {
+    /* brushes can have a minimum size of 1.0 but with pressure it can be smaller then a pixel
+     * causing very high step sizes, hanging blender [#32381] */
+    size_clamp = max_ff(1.0f, size);
+  }
+
   float spacing = stroke->brush->spacing;
 
   /* apply spacing pressure */
@@ -619,7 +655,12 @@ static float paint_space_stroke_spacing(const Scene *scene,
    * the fact that brush can be scaled there. */
   spacing *= stroke->zoom_2d;
 
-  return max_ff(1.0, size_clamp * spacing / 50.0f);
+  if (paint_stroke_use_scene_spacing(brush, mode)) {
+    return size_clamp * spacing / 50.0f;
+  }
+  else {
+    return max_ff(1.0, size_clamp * spacing / 50.0f);
+  }
 }
 
 static float paint_stroke_overlapped_curve(Brush *br, float x, float spacing)
@@ -677,14 +718,18 @@ static float paint_stroke_integrate_overlap(Brush *br, float factor)
   }
 }
 
-static float paint_space_stroke_spacing_variable(
-    const Scene *scene, PaintStroke *stroke, float pressure, float dpressure, float length)
+static float paint_space_stroke_spacing_variable(bContext *C,
+                                                 const Scene *scene,
+                                                 PaintStroke *stroke,
+                                                 float pressure,
+                                                 float dpressure,
+                                                 float length)
 {
   if (BKE_brush_use_size_pressure(scene, stroke->brush)) {
     /* use pressure to modify size. set spacing so that at 100%, the circles
      * are aligned nicely with no overlap. for this the spacing needs to be
      * the average of the previous and next size. */
-    float s = paint_space_stroke_spacing(scene, stroke, 1.0f, pressure);
+    float s = paint_space_stroke_spacing(C, scene, stroke, 1.0f, pressure);
     float q = s * dpressure / (2.0f * length);
     float pressure_fac = (1.0f + q) / (1.0f - q);
 
@@ -692,14 +737,15 @@ static float paint_space_stroke_spacing_variable(
     float new_size_pressure = stroke->last_pressure * pressure_fac;
 
     /* average spacing */
-    float last_spacing = paint_space_stroke_spacing(scene, stroke, last_size_pressure, pressure);
-    float new_spacing = paint_space_stroke_spacing(scene, stroke, new_size_pressure, pressure);
+    float last_spacing = paint_space_stroke_spacing(
+        C, scene, stroke, last_size_pressure, pressure);
+    float new_spacing = paint_space_stroke_spacing(C, scene, stroke, new_size_pressure, pressure);
 
     return 0.5f * (last_spacing + new_spacing);
   }
   else {
     /* no size pressure */
-    return paint_space_stroke_spacing(scene, stroke, 1.0f, pressure);
+    return paint_space_stroke_spacing(C, scene, stroke, 1.0f, pressure);
   }
 }
 
@@ -711,29 +757,57 @@ static int paint_space_stroke(bContext *C,
                               float final_pressure)
 {
   const Scene *scene = CTX_data_scene(C);
+  ARegion *ar = CTX_wm_region(C);
   PaintStroke *stroke = op->customdata;
   UnifiedPaintSettings *ups = stroke->ups;
+  Paint *paint = BKE_paint_get_active_from_context(C);
+  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  Brush *brush = BKE_paint_brush(paint);
   int cnt = 0;
 
   float pressure, dpressure;
   float mouse[2], dmouse[2];
+  float scene_space_position[3], d_scene_space_position[3], final_scene_space_position[3];
   float length;
-  float no_pressure_spacing = paint_space_stroke_spacing(scene, stroke, 1.0f, 1.0f);
-
-  sub_v2_v2v2(dmouse, final_mouse, stroke->last_mouse_position);
-
+  float no_pressure_spacing = paint_space_stroke_spacing(C, scene, stroke, 1.0f, 1.0f);
   pressure = stroke->last_pressure;
   dpressure = final_pressure - stroke->last_pressure;
-
+  sub_v2_v2v2(dmouse, final_mouse, stroke->last_mouse_position);
   length = normalize_v2(dmouse);
+
+  if (paint_stroke_use_scene_spacing(brush, mode)) {
+    bool hit = sculpt_stroke_get_location(C, scene_space_position, final_mouse);
+    if (hit && stroke->stroke_over_mesh) {
+      sub_v3_v3v3(d_scene_space_position, scene_space_position, stroke->last_scene_space_position);
+      length = len_v3(d_scene_space_position);
+      stroke->stroke_over_mesh = true;
+    }
+    else {
+      length = 0.0f;
+      stroke->stroke_over_mesh = hit;
+      if (stroke->stroke_over_mesh) {
+        copy_v3_v3(stroke->last_scene_space_position, scene_space_position);
+      }
+    }
+  }
 
   while (length > 0.0f) {
     float spacing = paint_space_stroke_spacing_variable(
-        scene, stroke, pressure, dpressure, length);
+        C, scene, stroke, pressure, dpressure, length);
 
     if (length >= spacing) {
-      mouse[0] = stroke->last_mouse_position[0] + dmouse[0] * spacing;
-      mouse[1] = stroke->last_mouse_position[1] + dmouse[1] * spacing;
+      if (paint_stroke_use_scene_spacing(brush, mode)) {
+        normalize_v3(d_scene_space_position);
+        mul_v3_v3fl(final_scene_space_position, d_scene_space_position, spacing);
+        add_v3_v3v3(final_scene_space_position,
+                    stroke->last_scene_space_position,
+                    final_scene_space_position);
+        ED_view3d_project(ar, final_scene_space_position, mouse);
+      }
+      else {
+        mouse[0] = stroke->last_mouse_position[0] + dmouse[0] * spacing;
+        mouse[1] = stroke->last_mouse_position[1] + dmouse[1] * spacing;
+      }
       pressure = stroke->last_pressure + (spacing / length) * dpressure;
 
       ups->overlap_factor = paint_stroke_integrate_overlap(stroke->brush,
@@ -1079,7 +1153,7 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
   if (br->flag & BRUSH_CURVE) {
     UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
     const Scene *scene = CTX_data_scene(C);
-    const float spacing = paint_space_stroke_spacing(scene, stroke, 1.0f, 1.0f);
+    const float spacing = paint_space_stroke_spacing(C, scene, stroke, 1.0f, 1.0f);
     PaintCurve *pc = br->paint_curve;
     PaintCurvePoint *pcp;
     float length_residue = 0.0f;
@@ -1250,6 +1324,10 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
   if (!stroke->stroke_started) {
     stroke->last_pressure = sample_average.pressure;
     copy_v2_v2(stroke->last_mouse_position, sample_average.mouse);
+    if (paint_stroke_use_scene_spacing(br, mode)) {
+      stroke->stroke_over_mesh = sculpt_stroke_get_location(
+          C, stroke->last_scene_space_position, sample_average.mouse);
+    }
     stroke->stroke_started = stroke->test_start(C, op, sample_average.mouse);
     BLI_assert((stroke->stroke_started & ~1) == 0); /* 0/1 */
 

@@ -1571,6 +1571,16 @@ static void rna_def_brush(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem brush_spacing_unit_items[] = {
+      {0, "VIEW", 0, "View", "Calculate brush spacing relative to the view"},
+      {BRUSH_SCENE_SPACING,
+       "SCENE",
+       0,
+       "Scene",
+       "Calculate brush spacing relative to the scene using the stroke location"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   static const EnumPropertyItem brush_curve_preset_items[] = {
       {BRUSH_CURVE_CUSTOM, "CUSTOM", ICON_RNDCURVE, "Custom", ""},
       {BRUSH_CURVE_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
@@ -1918,6 +1928,13 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Original Normal",
                            "When locked keep using normal of surface where stroke was initiated");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_scene_spacing", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+  RNA_def_property_enum_items(prop, brush_spacing_unit_items);
+  RNA_def_property_ui_text(
+      prop, "Spacing distance", "Calculate the brush spacing using view or scene distance");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_pressure_strength", PROP_BOOLEAN, PROP_NONE);

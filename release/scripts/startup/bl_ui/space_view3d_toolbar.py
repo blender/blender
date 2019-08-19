@@ -913,6 +913,8 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
             if brush.sculpt_capabilities.has_space_attenuation:
                 col.prop(brush, "use_space_attenuation")
 
+            col.prop(brush, "use_scene_spacing")
+
             if brush.sculpt_capabilities.has_jitter:
 
                 row = col.row(align=True)

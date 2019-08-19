@@ -395,7 +395,7 @@ typedef enum eBrushFlags {
   BRUSH_LOCK_ALPHA = (1 << 14),
   BRUSH_ORIGINAL_NORMAL = (1 << 15),
   BRUSH_OFFSET_PRESSURE = (1 << 16),
-  BRUSH_FLAG_UNUSED_17 = (1 << 17), /* cleared */
+  BRUSH_SCENE_SPACING = (1 << 17),
   BRUSH_SPACE_ATTEN = (1 << 18),
   BRUSH_ADAPTIVE_SPACE = (1 << 19),
   BRUSH_LOCK_SIZE = (1 << 20),
