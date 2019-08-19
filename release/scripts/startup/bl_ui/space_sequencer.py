@@ -2128,6 +2128,7 @@ classes = (
 
     SEQUENCER_PT_strip,
 
+    SEQUENCER_PT_effect,
     SEQUENCER_PT_adjust,
     SEQUENCER_PT_adjust_comp,
     SEQUENCER_PT_adjust_transform,
@@ -2137,7 +2138,6 @@ classes = (
     SEQUENCER_PT_adjust_color,
     SEQUENCER_PT_adjust_sound,
 
-    SEQUENCER_PT_effect,
     SEQUENCER_PT_scene,
     SEQUENCER_PT_mask,
     SEQUENCER_PT_effect_text_style,
