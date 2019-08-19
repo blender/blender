@@ -2777,7 +2777,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
   static const EnumPropertyItem filter_state_items[] = {
       {SO_FILTER_OB_ALL, "ALL", 0, "All", "Show all objects in the view layer"},
       {SO_FILTER_OB_VISIBLE, "VISIBLE", 0, "Visible", "Show visible objects"},
-      {SO_FILTER_OB_INVISIBLE, "INVISIBLE", 0, "Invisible", "Show invisible objects"},
+      {SO_FILTER_OB_HIDDEN, "HIDDEN", 0, "Hidden", "Show hidden objects"},
       {SO_FILTER_OB_SELECTED, "SELECTED", 0, "Selected", "Show selected objects"},
       {SO_FILTER_OB_ACTIVE, "ACTIVE", 0, "Active", "Show only the active object"},
       {0, NULL, 0, NULL, NULL},
