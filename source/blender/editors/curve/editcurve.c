@@ -51,6 +51,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -7104,14 +7105,15 @@ static int match_texture_space_exec(bContext *C, wmOperator *UNUSED(op))
   (void)depsgraph;
 
   Object *object = CTX_data_active_object(C);
+  Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
   Curve *curve = (Curve *)object->data;
   float min[3], max[3], size[3], loc[3];
   int a;
 
-  BLI_assert(object->runtime.curve_cache != NULL);
+  BLI_assert(object_eval->runtime.curve_cache != NULL);
 
   INIT_MINMAX(min, max);
-  BKE_displist_minmax(&object->runtime.curve_cache->disp, min, max);
+  BKE_displist_minmax(&object_eval->runtime.curve_cache->disp, min, max);
 
   mid_v3_v3v3(loc, min, max);
 
@@ -7138,6 +7140,7 @@ static int match_texture_space_exec(bContext *C, wmOperator *UNUSED(op))
   curve->texflag &= ~CU_AUTOSPACE;
 
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, curve);
+  DEG_id_tag_update(&curve->id, ID_RECALC_GEOMETRY);
 
   return OPERATOR_FINISHED;
 }
