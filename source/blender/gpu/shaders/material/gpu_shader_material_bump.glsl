@@ -1,5 +1,22 @@
-void node_bump(
-    float strength, float dist, float height, vec3 N, vec3 surf_pos, float invert, out vec3 result)
+void dfdx_v3(vec3 v, out vec3 dy)
+{
+  dy = v + abs(dFdx(v));
+}
+
+void dfdy_v3(vec3 v, out vec3 dy)
+{
+  dy = v + abs(dFdy(v));
+}
+
+void node_bump(float strength,
+               float dist,
+               float height,
+               float height_dx,
+               float height_dy,
+               vec3 N,
+               vec3 surf_pos,
+               float invert,
+               out vec3 result)
 {
   N = mat3(ViewMatrix) * normalize(N);
   dist *= gl_FrontFacing ? invert : -invert;
@@ -14,8 +31,8 @@ void node_bump(
   /* Compute surface gradient and determinant. */
   float det = dot(dPdx, Rx);
 
-  float dHdx = dFdx(height);
-  float dHdy = dFdy(height);
+  float dHdx = height_dx - height;
+  float dHdy = height_dy - height;
   vec3 surfgrad = dHdx * Rx + dHdy * Ry;
 
   strength = max(strength, 0.0);

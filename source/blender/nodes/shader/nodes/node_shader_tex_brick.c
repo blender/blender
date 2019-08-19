@@ -157,11 +157,7 @@ static int node_shader_gpu_tex_brick(GPUMaterial *mat,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {
-  if (!in[0].link) {
-    in[0].link = GPU_attribute(CD_ORCO, "");
-    GPU_link(mat, "generated_texco", GPU_builtin(GPU_VIEW_POSITION), in[0].link, &in[0].link);
-  }
-
+  node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
   node_shader_gpu_tex_mapping(mat, node, in, out);
   NodeTexBrick *tex = (NodeTexBrick *)node->storage;
   float offset_freq = tex->offset_freq;
@@ -171,9 +167,9 @@ static int node_shader_gpu_tex_brick(GPUMaterial *mat,
                         "node_tex_brick",
                         in,
                         out,
-                        GPU_constant(&tex->offset),
+                        GPU_uniform(&tex->offset),
                         GPU_constant(&offset_freq),
-                        GPU_constant(&tex->squash),
+                        GPU_uniform(&tex->squash),
                         GPU_constant(&squash_freq));
 }
 

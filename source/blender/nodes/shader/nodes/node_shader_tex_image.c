@@ -118,6 +118,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
 
   if (!*texco) {
     *texco = GPU_attribute(CD_MTFACE, "");
+    node_shader_gpu_bump_tex_coord(mat, node, texco);
   }
 
   node_shader_gpu_tex_mapping(mat, node, in, out);

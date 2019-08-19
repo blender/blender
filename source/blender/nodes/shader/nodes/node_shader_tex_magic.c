@@ -73,11 +73,7 @@ static int node_shader_gpu_tex_magic(GPUMaterial *mat,
   NodeTexMagic *tex = (NodeTexMagic *)node->storage;
   float depth = tex->depth;
 
-  if (!in[0].link) {
-    in[0].link = GPU_attribute(CD_ORCO, "");
-    GPU_link(mat, "generated_texco", GPU_builtin(GPU_VIEW_POSITION), in[0].link, &in[0].link);
-  }
-
+  node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
   return GPU_stack_link(mat, node, "node_tex_magic", in, out, GPU_constant(&depth));

@@ -276,7 +276,8 @@ typedef struct bNode {
   short preview_xsize, preview_ysize;
   /** Used at runtime when going through the tree. Initialize before use. */
   short tmp_flag;
-  char _pad2[2];
+  /** Used at runtime to tag derivatives branches. EEVEE only. */
+  short branch_tag;
   /** Runtime during drawing. */
   struct uiBlock *block;
 
