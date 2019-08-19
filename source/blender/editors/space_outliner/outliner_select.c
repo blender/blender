@@ -1242,30 +1242,34 @@ void outliner_item_select(SpaceOutliner *soops,
   tselem->flag = new_flag;
 }
 
-static void do_outliner_range_select_recursive(ListBase *lb,
+static bool do_outliner_range_select_recursive(ListBase *lb,
                                                TreeElement *active,
                                                TreeElement *cursor,
-                                               bool *selecting)
+                                               bool selecting)
 {
   for (TreeElement *te = lb->first; te; te = te->next) {
-    if (*selecting) {
-      TREESTORE(te)->flag |= TSE_SELECTED;
+    TreeStoreElem *tselem = TREESTORE(te);
+
+    if (selecting) {
+      tselem->flag |= TSE_SELECTED;
     }
 
     /* Set state for selection */
     if (te == active || te == cursor) {
-      *selecting = !*selecting;
+      selecting = !selecting;
     }
 
-    if (*selecting) {
-      TREESTORE(te)->flag |= TSE_SELECTED;
+    if (selecting) {
+      tselem->flag |= TSE_SELECTED;
     }
 
     /* Don't look inside closed elements */
-    if (!(TREESTORE(te)->flag & TSE_CLOSED)) {
-      do_outliner_range_select_recursive(&te->subtree, active, cursor, selecting);
+    if (!(tselem->flag & TSE_CLOSED)) {
+      selecting = do_outliner_range_select_recursive(&te->subtree, active, cursor, selecting);
     }
   }
+
+  return selecting;
 }
 
 /* Select a range of items between cursor and active element */
@@ -1275,8 +1279,8 @@ static void do_outliner_range_select(bContext *C,
                                      const bool extend)
 {
   TreeElement *active = outliner_find_element_with_flag(&soops->tree, TSE_ACTIVE);
-  outliner_flag_set(&soops->tree, TSE_ACTIVE_WALK, false);
 
+  /* If no active element exists, activate the element under the cursor */
   if (!active) {
     outliner_item_select(soops, cursor, false, false);
     outliner_item_do_activate_from_tree_element(C, cursor, TREESTORE(cursor), false, false);
@@ -1287,7 +1291,7 @@ static void do_outliner_range_select(bContext *C,
   const bool active_selected = (tselem->flag & TSE_SELECTED);
 
   if (!extend) {
-    outliner_flag_set(&soops->tree, TSE_SELECTED | TSE_ACTIVE_WALK, false);
+    outliner_flag_set(&soops->tree, TSE_SELECTED, false);
   }
 
   /* Select active if under cursor */
@@ -1296,15 +1300,14 @@ static void do_outliner_range_select(bContext *C,
     return;
   }
 
-  /* If active is not selected, just select the element under the cursor */
+  /* If active is not selected, select the element under the cursor */
   if (!active_selected || !outliner_is_element_visible(active)) {
     outliner_item_select(soops, cursor, false, false);
     outliner_item_do_activate_from_tree_element(C, cursor, TREESTORE(cursor), false, false);
     return;
   }
 
-  bool selecting = false;
-  do_outliner_range_select_recursive(&soops->tree, active, cursor, &selecting);
+  do_outliner_range_select_recursive(&soops->tree, active, cursor, false);
 }
 
 static bool outliner_is_co_within_restrict_columns(const SpaceOutliner *soops,
