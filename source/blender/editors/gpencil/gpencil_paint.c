@@ -423,7 +423,7 @@ static void gp_stroke_convertcoords(tGPsdata *p, const float mval[2], float out[
 
     /* add small offset to keep stroke over the surface */
     if ((depth) && (gpd->zdepth_offset > 0.0f) && (*p->align_flag & GP_PROJECT_DEPTH_VIEW)) {
-      *depth *= (1.0f - gpd->zdepth_offset);
+      *depth *= (1.0f - (gpd->zdepth_offset / 1000.0f));
     }
 
     int mval_i[2];

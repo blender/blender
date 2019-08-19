@@ -959,7 +959,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 
     /* add small offset to keep stroke over the surface */
     if ((depth_arr) && (gpd->zdepth_offset > 0.0f)) {
-      depth_arr[i] *= (1.0f - gpd->zdepth_offset);
+      depth_arr[i] *= (1.0f - (gpd->zdepth_offset / 1000.0f));
     }
 
     /* convert screen-coordinates to 3D coordinates */
