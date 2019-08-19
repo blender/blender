@@ -75,6 +75,12 @@ void ED_outliner_select_sync_from_sequence_tag(bContext *C)
   wm->outliner_sync_select_dirty |= WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE;
 }
 
+void ED_outliner_select_sync_from_all_tag(bContext *C)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wm->outliner_sync_select_dirty |= WM_OUTLINER_SYNC_SELECT_FROM_ALL;
+}
+
 bool ED_outliner_select_sync_is_dirty(const bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);

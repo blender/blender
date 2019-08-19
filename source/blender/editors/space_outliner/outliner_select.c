@@ -1398,7 +1398,6 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
     else {
       ED_region_tag_redraw_no_rebuild(ar);
     }
-    ED_undo_push(C, "Outliner selection change");
 
     if (soops->flag & SO_SYNC_SELECT) {
       ED_outliner_select_sync_from_outliner(C, soops);
@@ -1426,6 +1425,8 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
   ot->invoke = outliner_item_activate_invoke;
 
   ot->poll = ED_operator_outliner_active;
+
+  ot->flag |= OPTYPE_REGISTER | OPTYPE_UNDO;
 
   PropertyRNA *prop;
   RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection for activation");
@@ -1766,6 +1767,8 @@ void OUTLINER_OT_select_walk(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = outliner_walk_select_invoke;
   ot->poll = ED_operator_outliner_active;
+
+  ot->flag |= OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
   PropertyRNA *prop;

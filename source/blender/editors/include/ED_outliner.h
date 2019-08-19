@@ -36,6 +36,7 @@ void ED_outliner_select_sync_from_object_tag(struct bContext *C);
 void ED_outliner_select_sync_from_edit_bone_tag(struct bContext *C);
 void ED_outliner_select_sync_from_pose_bone_tag(struct bContext *C);
 void ED_outliner_select_sync_from_sequence_tag(struct bContext *C);
+void ED_outliner_select_sync_from_all_tag(struct bContext *C);
 
 bool ED_outliner_select_sync_is_dirty(const struct bContext *C);
 

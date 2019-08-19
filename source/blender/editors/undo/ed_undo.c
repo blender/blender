@@ -53,6 +53,7 @@
 #include "ED_gpencil.h"
 #include "ED_render.h"
 #include "ED_object.h"
+#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_undo.h"
 
@@ -390,6 +391,8 @@ static int ed_undo_exec(bContext *C, wmOperator *op)
     /* Keep button under the cursor active. */
     WM_event_add_mousemove(C);
   }
+
+  ED_outliner_select_sync_from_all_tag(C);
   return ret;
 }
 
@@ -417,6 +420,8 @@ static int ed_redo_exec(bContext *C, wmOperator *op)
     /* Keep button under the cursor active. */
     WM_event_add_mousemove(C);
   }
+
+  ED_outliner_select_sync_from_all_tag(C);
   return ret;
 }
 
