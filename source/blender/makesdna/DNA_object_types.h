@@ -183,7 +183,8 @@ typedef struct Object_Runtime {
   /** Runtime grease pencil evaluated data created by modifiers */
   struct bGPDframe *gpencil_evaluated_frames;
 
-  void *_pad2; /* Padding is here for win32s unconventional struct alignment rules. */
+  unsigned short local_collections_bits;
+  short _pad2[3];
 } Object_Runtime;
 
 typedef struct Object {

@@ -2245,6 +2245,7 @@ static int wm_open_mainfile__open(bContext *C, wmOperator *op)
     if (G.fileflags & G_FILE_NO_UI) {
       ED_outliner_select_sync_from_all_tag(C);
     }
+    ED_view3d_local_collections_reset(C, (G.fileflags & G_FILE_NO_UI) != 0);
     return OPERATOR_FINISHED;
   }
   else {

@@ -266,6 +266,8 @@ typedef struct View3D {
   unsigned short local_view_uuid;
   char _pad6[2];
   int layact DNA_DEPRECATED;
+  unsigned short local_collections_uuid;
+  short _pad7[3];
 
   /** Optional bool for 3d cursor to define center. */
   short ob_centre_cursor;
@@ -329,7 +331,7 @@ typedef struct View3D {
 #define V3D_S3D_DISPVOLUME (1 << 2)
 
 /** #View3D.flag */
-#define V3D_FLAG_UNUSED_0 (1 << 0) /* cleared */
+#define V3D_LOCAL_COLLECTIONS (1 << 0)
 #define V3D_FLAG_UNUSED_1 (1 << 1) /* cleared */
 #define V3D_HIDE_HELPLINES (1 << 2)
 #define V3D_INVALID_BACKBUF (1 << 3)

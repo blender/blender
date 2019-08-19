@@ -453,6 +453,7 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
     object->base_flag &= ~(BASE_SELECTED | BASE_SELECTABLE);
   }
   object->base_local_view_bits = base->local_view_bits;
+  object->runtime.local_collections_bits = base->local_collections_bits;
 
   if (object->mode == OB_MODE_PARTICLE_EDIT) {
     for (ParticleSystem *psys = object->particlesystem.first; psys != NULL; psys = psys->next) {

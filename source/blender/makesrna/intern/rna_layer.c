@@ -120,6 +120,26 @@ static IDProperty *rna_ViewLayer_idprops(PointerRNA *ptr, bool create)
   return view_layer->id_properties;
 }
 
+static bool rna_LayerCollection_visible_get(LayerCollection *layer_collection, bContext *C)
+{
+  View3D *v3d = CTX_wm_view3d(C);
+  const bool runtime_visible = (layer_collection->runtime_flag & LAYER_COLLECTION_VISIBLE) != 0;
+
+  if (v3d == NULL) {
+    return runtime_visible;
+  }
+
+  if ((v3d->flag & V3D_LOCAL_COLLECTIONS) == 0) {
+    return runtime_visible;
+  }
+
+  if (v3d->local_collections_uuid & layer_collection->local_collections_bits) {
+    return true;
+  }
+
+  return false;
+}
+
 static void rna_ViewLayer_update_render_passes(ID *id)
 {
   Scene *scene = (Scene *)id;
@@ -385,6 +405,13 @@ static void rna_def_layer_collection(BlenderRNA *brna)
   RNA_def_property_ui_icon(prop, ICON_HIDE_OFF, -1);
   RNA_def_property_ui_text(prop, "Hide in Viewport", "Temporarily hide in viewport");
   RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_update");
+
+  func = RNA_def_function(srna, "visible_get", "rna_LayerCollection_visible_get");
+  RNA_def_function_ui_description(func,
+                                  "Whether this collection is visible, take into account the "
+                                  "collection parent and the viewport");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  RNA_def_function_return(func, RNA_def_boolean(func, "result", 0, "", ""));
 
   /* Run-time flags. */
   prop = RNA_def_property(srna, "is_visible", PROP_BOOLEAN, PROP_NONE);

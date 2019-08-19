@@ -1565,6 +1565,20 @@ void DRW_draw_view(const bContext *C)
   DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, viewport, C);
 }
 
+static bool is_object_visible_in_viewport(View3D *v3d, Object *ob)
+{
+  if (v3d->localvd && ((v3d->local_view_uuid & ob->base_local_view_bits) == 0)) {
+    return false;
+  }
+
+  if ((v3d->flag & V3D_LOCAL_COLLECTIONS) &&
+      ((v3d->local_collections_uuid & ob->runtime.local_collections_bits) == 0)) {
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * Used for both regular and off-screen drawing.
  * Need to reset DST before calling this function
@@ -1640,7 +1654,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
         if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
           continue;
         }
-        if (v3d->localvd && ((v3d->local_view_uuid & ob->base_local_view_bits) == 0)) {
+        if (!is_object_visible_in_viewport(v3d, ob)) {
           continue;
         }
         DST.dupli_parent = data_.dupli_parent;
@@ -2336,10 +2350,9 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
                                               v3d->object_type_exclude_select);
       bool filter_exclude = false;
       DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (depsgraph, ob) {
-        if (v3d->localvd && ((v3d->local_view_uuid & ob->base_local_view_bits) == 0)) {
+        if (!is_object_visible_in_viewport(v3d, ob)) {
           continue;
         }
-
         if ((ob->base_flag & BASE_SELECTABLE) &&
             (object_type_exclude_select & (1 << ob->type)) == 0) {
           if (object_filter_fn != NULL) {
@@ -2458,11 +2471,9 @@ static void drw_draw_depth_loop_imp(void)
       if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
         continue;
       }
-
-      if (v3d->localvd && ((v3d->local_view_uuid & ob->base_local_view_bits) == 0)) {
+      if (!is_object_visible_in_viewport(v3d, ob)) {
         continue;
       }
-
       DST.dupli_parent = data_.dupli_parent;
       DST.dupli_source = data_.dupli_object_current;
       drw_duplidata_load(DST.dupli_source);

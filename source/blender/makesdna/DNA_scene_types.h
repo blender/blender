@@ -1979,6 +1979,8 @@ extern const char *RE_engine_id_CYCLES;
 #define BASE_VISIBLE(v3d, base) \
   (((v3d == NULL) || ((v3d)->localvd == NULL) || \
     ((v3d)->local_view_uuid & (base)->local_view_bits)) && \
+   ((v3d == NULL) || (((v3d)->flag & V3D_LOCAL_COLLECTIONS) == 0) || \
+    ((v3d)->local_collections_uuid & (base)->local_collections_bits)) && \
    ((v3d == NULL) || \
     (((1 << (base)->object->type) & (v3d)->object_type_exclude_viewport) == 0)) && \
    (((base)->flag & BASE_VISIBLE) != 0))

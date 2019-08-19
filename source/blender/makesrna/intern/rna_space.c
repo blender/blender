@@ -1218,6 +1218,19 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(bContext *UN
   return item;
 }
 
+static void rna_SpaceView3D_use_local_collections_update(bContext *C, PointerRNA *ptr)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  View3D *v3d = (View3D *)ptr->data;
+
+  if (ED_view3d_local_collections_set(bmain, v3d)) {
+    BKE_layer_collection_local_sync(view_layer, v3d);
+    DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
+  }
+}
+
 static const EnumPropertyItem *rna_SpaceView3D_stereo3d_camera_itemf(bContext *C,
                                                                      PointerRNA *UNUSED(ptr),
                                                                      PropertyRNA *UNUSED(prop),
@@ -3950,6 +3963,14 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   prop = RNA_def_property(srna, "fx_settings", PROP_POINTER, PROP_NONE);
   RNA_def_property_ui_text(prop, "FX Options", "Options used for real time compositing");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "use_local_collections", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_LOCAL_COLLECTIONS);
+  RNA_def_property_ui_text(
+      prop, "Local Collections", "Display a different set of collections in this viewport");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(
+      prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_use_local_collections_update");
 
   /* Stereo Settings */
   prop = RNA_def_property(srna, "stereo_3d_eye", PROP_ENUM, PROP_NONE);
