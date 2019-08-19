@@ -859,6 +859,51 @@ float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
   return v3d->grid * ED_scene_grid_scale(scene, grid_unit);
 }
 
+#define STEPS_LEN 8
+void ED_view3d_grid_steps(Scene *scene,
+                          View3D *v3d,
+                          RegionView3D *rv3d,
+                          float r_grid_steps[STEPS_LEN])
+{
+  const void *usys;
+  int i, len;
+  bUnit_GetSystem(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
+  float grid_scale = v3d->grid;
+
+  if (usys) {
+    if (rv3d->view == RV3D_VIEW_USER) {
+      /* Skip steps */
+      len = bUnit_GetBaseUnit(usys) + 1;
+    }
+
+    grid_scale /= scene->unit.scale_length;
+
+    for (i = 0; i < len; i++) {
+      r_grid_steps[i] = (float)bUnit_GetScaler(usys, len - 1 - i) * grid_scale;
+    }
+    for (; i < STEPS_LEN; i++) {
+      /* Fill last slots */
+      r_grid_steps[i] = 10.0f * r_grid_steps[i - 1];
+    }
+  }
+  else {
+    if (rv3d->view != RV3D_VIEW_USER) {
+      /* Allow 3 more subdivisions. */
+      grid_scale /= powf(v3d->gridsubdiv, 3);
+    }
+    int subdiv = 1;
+    for (i = 0;; i++) {
+      r_grid_steps[i] = grid_scale * subdiv;
+
+      if (i == STEPS_LEN - 1) {
+        break;
+      }
+      subdiv *= v3d->gridsubdiv;
+    }
+  }
+}
+#undef STEPS_LEN
+
 /* Simulates the grid scale that is actually viewed.
  * The actual code is seen in `object_grid_frag.glsl` (see `grid_res`).
  * Currently the simulation is only done when RV3D_VIEW_IS_AXIS. */
@@ -867,23 +912,23 @@ float ED_view3d_grid_view_scale(Scene *scene,
                                 RegionView3D *rv3d,
                                 const char **grid_unit)
 {
-  float grid_scale = ED_view3d_grid_scale(scene, v3d, grid_unit);
+  float grid_scale;
   if (!rv3d->is_persp && RV3D_VIEW_IS_AXIS(rv3d->view)) {
     /* Decrease the distance between grid snap points depending on zoom. */
-    float grid_subdiv = v3d->gridsubdiv;
-    if (grid_subdiv > 1) {
-      /* Allow 3 more subdivisions (see OBJECT_engine_init). */
-      grid_scale /= powf(grid_subdiv, 3);
-
-      /* `3.0` was a value obtained by trial and error in order to get
-       * a nice snap distance.*/
-      float grid_res = 3.0 * (rv3d->dist / v3d->lens);
-      float lvl = (logf(grid_res / grid_scale) / logf(grid_subdiv));
-
-      CLAMP_MIN(lvl, 0.0f);
-
-      grid_scale *= pow(grid_subdiv, (int)lvl);
+    /* `0.38` was a value visually obtained in order to get a snap distance
+     * that matches previous versions Blender.*/
+    float min_dist = 0.38f * (rv3d->dist / v3d->lens);
+    float grid_steps[8];
+    ED_view3d_grid_steps(scene, v3d, rv3d, grid_steps);
+    for (int i = 0; i < ARRAY_SIZE(grid_steps); i++) {
+      grid_scale = grid_steps[i];
+      if (grid_scale > min_dist) {
+        break;
+      }
     }
+  }
+  else {
+    grid_scale = ED_view3d_grid_scale(scene, v3d, grid_unit);
   }
 
   return grid_scale;

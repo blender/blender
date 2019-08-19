@@ -9,20 +9,18 @@ in vec3 local_pos;
 out vec4 FragColor;
 
 uniform vec3 planeAxes;
-uniform vec4 gridSettings;
+uniform vec3 screenVecs[2];
+uniform float gridDistance;
 uniform float meshSize;
 uniform float lineKernel = 0.0;
-uniform float gridOneOverLogSubdiv;
 uniform sampler2D depthBuffer;
-
-#define gridDistance gridSettings.x
-#define gridResolution gridSettings.y
-#define gridScale gridSettings.z
-#define gridSubdiv gridSettings.w
 
 #define cameraPos (ViewMatrixInverse[3].xyz)
 
 uniform int gridFlag;
+
+#define STEPS_LEN 8
+uniform float gridSteps[STEPS_LEN] = float[](0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0);
 
 #define AXIS_X (1 << 0)
 #define AXIS_Y (1 << 1)
@@ -73,10 +71,14 @@ vec3 get_axes(vec3 co, vec3 fwidthCos, float line_size)
                           axes_domain - (line_size + lineKernel));
 }
 
+#define linearstep(p0, p1, v) (clamp(((v) - (p0)) / abs((p1) - (p0)), 0.0, 1.0))
+
 void main()
 {
   vec3 wPos = local_pos * meshSize;
-  vec3 fwidthPos = fwidth(wPos);
+  vec3 dFdxPos = dFdx(wPos);
+  vec3 dFdyPos = dFdy(wPos);
+  vec3 fwidthPos = abs(dFdxPos) + abs(dFdyPos);
   wPos += cameraPos * planeAxes;
 
   float dist, fade;
@@ -116,15 +118,54 @@ void main()
   }
 
   if ((gridFlag & GRID) != 0) {
-    float grid_res = log(dist * gridResolution) * gridOneOverLogSubdiv;
+    /* Using `max(dot(dFdxPos, screenVecs[0]), dot(dFdyPos, screenVecs[1]))`
+     * would be more accurate, but not really necessary. */
+    float grid_res = dot(dFdxPos, screenVecs[0]);
 
-    float blend = fract(-max(grid_res, 0.0));
-    float lvl = floor(grid_res);
+    /* The gride begins to appear when it comprises 4 pixels */
+    grid_res *= 4;
 
     /* from biggest to smallest */
-    float scaleA = gridScale * pow(gridSubdiv, max(lvl - 1.0, 0.0));
-    float scaleB = gridScale * pow(gridSubdiv, max(lvl + 0.0, 0.0));
-    float scaleC = gridScale * pow(gridSubdiv, max(lvl + 1.0, 1.0));
+    vec4 scale;
+#if 0
+    int step_id = 0;
+    scale[0] = 0.0;
+    scale[1] = gridSteps[0];
+    while (scale[1] < grid_res && step_id != STEPS_LEN - 1) {
+      scale[0] = scale[1];
+      scale[1] = gridSteps[++step_id];
+    }
+    scale[2] = gridSteps[min(step_id + 1, STEPS_LEN - 1)];
+    scale[3] = gridSteps[min(step_id + 2, STEPS_LEN - 1)];
+#else
+    /* For more efficiency, unroll the loop above. */
+    if (gridSteps[0] > grid_res) {
+      scale = vec4(0.0, gridSteps[0], gridSteps[1], gridSteps[2]);
+    }
+    else if (gridSteps[1] > grid_res) {
+      scale = vec4(gridSteps[0], gridSteps[1], gridSteps[2], gridSteps[3]);
+    }
+    else if (gridSteps[2] > grid_res) {
+      scale = vec4(gridSteps[1], gridSteps[2], gridSteps[3], gridSteps[4]);
+    }
+    else if (gridSteps[3] > grid_res) {
+      scale = vec4(gridSteps[2], gridSteps[3], gridSteps[4], gridSteps[5]);
+    }
+    else if (gridSteps[4] > grid_res) {
+      scale = vec4(gridSteps[3], gridSteps[4], gridSteps[5], gridSteps[6]);
+    }
+    else if (gridSteps[5] > grid_res) {
+      scale = vec4(gridSteps[4], gridSteps[5], gridSteps[6], gridSteps[7]);
+    }
+    else if (gridSteps[6] > grid_res) {
+      scale = vec4(gridSteps[5], gridSteps[6], gridSteps[7], gridSteps[7]);
+    }
+    else {
+      scale = vec4(gridSteps[6], gridSteps[7], gridSteps[7], gridSteps[7]);
+    }
+#endif
+    float blend = 1.0 - linearstep(scale[0], scale[1], grid_res);
+    blend = blend * blend * blend;
 
     vec2 grid_pos, grid_fwidth;
     if ((gridFlag & PLANE_XZ) != 0) {
@@ -140,9 +181,9 @@ void main()
       grid_fwidth = fwidthPos.xy;
     }
 
-    float gridA = get_grid(grid_pos, grid_fwidth, scaleA);
-    float gridB = get_grid(grid_pos, grid_fwidth, scaleB);
-    float gridC = get_grid(grid_pos, grid_fwidth, scaleC);
+    float gridA = get_grid(grid_pos, grid_fwidth, scale[1]);
+    float gridB = get_grid(grid_pos, grid_fwidth, scale[2]);
+    float gridC = get_grid(grid_pos, grid_fwidth, scale[3]);
 
     FragColor = colorGrid;
     FragColor.a *= gridA * blend;

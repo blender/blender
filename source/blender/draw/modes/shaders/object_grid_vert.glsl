@@ -3,13 +3,7 @@
  * Clément Foucault */
 
 uniform vec3 planeAxes;
-uniform vec4 gridSettings;
 uniform float meshSize;
-
-#define gridDistance gridSettings.x
-#define gridResolution gridSettings.y
-#define gridScale gridSettings.z
-#define gridSubdiv gridSettings.w
 
 uniform int gridFlag;
 

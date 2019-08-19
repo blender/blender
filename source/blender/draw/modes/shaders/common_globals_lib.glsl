@@ -75,11 +75,6 @@ layout(std140) uniform globalsBlock
   float sizeEdgeFix;
   float sizeFaceDot;
 
-  float gridDistance;
-  float gridResolution;
-  float gridSubdivisions;
-  float gridScale;
-
   float pad_globalsBlock;
 };
 

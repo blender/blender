@@ -5354,6 +5354,8 @@ class VIEW3D_PT_overlay_guides(Panel):
         layout = self.layout
 
         view = context.space_data
+        scene = context.scene
+
         overlay = view.overlay
         shading = view.shading
         display_all = overlay.show_overlays
@@ -5381,6 +5383,8 @@ class VIEW3D_PT_overlay_guides(Panel):
                 (overlay.show_ortho_grid and grid_active)
             )
             sub.prop(overlay, "grid_scale", text="Scale")
+            sub = sub.row(align=True)
+            sub.active = scene.unit_settings.system == 'NONE'
             sub.prop(overlay, "grid_subdivisions", text="Subdivisions")
 
         sub = split.column()

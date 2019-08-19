@@ -332,7 +332,7 @@ static struct {
 
   OBJECT_Shaders sh_data[GPU_SHADER_CFG_LEN];
 
-  float grid_settings[5];
+  float grid_distance;
   float grid_mesh_size;
   int grid_flag;
   float grid_axes[3];
@@ -340,6 +340,7 @@ static struct {
   int zneg_flag;
   float zplane_axes[3];
   float inv_viewport_size[2];
+  float grid_steps[8];
   bool draw_grid;
   /* Temp buffer textures */
   struct GPUTexture *outlines_depth_tx;
@@ -559,8 +560,6 @@ static void OBJECT_engine_init(void *vedata)
     View3D *v3d = draw_ctx->v3d;
     Scene *scene = draw_ctx->scene;
     RegionView3D *rv3d = draw_ctx->rv3d;
-    float grid_scale = ED_view3d_grid_scale(scene, v3d, NULL);
-    float grid_res;
 
     const bool show_axis_x = (v3d->gridflag & V3D_SHOW_X) != 0;
     const bool show_axis_y = (v3d->gridflag & V3D_SHOW_Y) != 0;
@@ -576,21 +575,6 @@ static void OBJECT_engine_init(void *vedata)
 
     /* if perps */
     if (winmat[3][3] == 0.0f) {
-      float fov;
-      float viewvecs[2][4] = {
-          {1.0f, -1.0f, -1.0f, 1.0f},
-          {-1.0f, 1.0f, -1.0f, 1.0f},
-      };
-
-      /* convert the view vectors to view space */
-      for (int i = 0; i < 2; i++) {
-        mul_m4_v4(wininv, viewvecs[i]);
-        mul_v3_fl(viewvecs[i], 1.0f / viewvecs[i][2]); /* perspective divide */
-      }
-
-      fov = angle_v3v3(viewvecs[0], viewvecs[1]) / 2.0f;
-      grid_res = fabsf(tanf(fov)) / grid_scale;
-
       e_data.grid_flag = (1 << 4); /* XY plane */
       if (show_axis_x) {
         e_data.grid_flag |= SHOW_AXIS_X;
@@ -603,14 +587,6 @@ static void OBJECT_engine_init(void *vedata)
       }
     }
     else {
-      if (rv3d->view != RV3D_VIEW_USER) {
-        /* Allow 3 more subdivisions. */
-        grid_scale /= powf(v3d->gridsubdiv, 3);
-      }
-
-      float viewdist = 1.0f / max_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
-      grid_res = viewdist / grid_scale;
-
       if (ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) {
         e_data.draw_grid = show_ortho_grid;
         e_data.grid_flag = PLANE_YZ | SHOW_AXIS_Y | SHOW_AXIS_Z | SHOW_GRID | GRID_BACK;
@@ -688,12 +664,7 @@ static void OBJECT_engine_init(void *vedata)
       dist = v3d->clip_end;
     }
 
-    e_data.grid_settings[0] = dist / 2.0f;     /* gridDistance */
-    e_data.grid_settings[1] = grid_res;        /* gridResolution */
-    e_data.grid_settings[2] = grid_scale;      /* gridScale */
-    e_data.grid_settings[3] = v3d->gridsubdiv; /* gridSubdiv */
-    e_data.grid_settings[4] = (v3d->gridsubdiv > 1) ? 1.0f / logf(v3d->gridsubdiv) :
-                                                      0.0f; /* 1/log(gridSubdiv) */
+    e_data.grid_distance = dist / 2.0f; /* gridDistance */
 
     if (winmat[3][3] == 0.0f) {
       e_data.grid_mesh_size = dist;
@@ -702,6 +673,8 @@ static void OBJECT_engine_init(void *vedata)
       float viewdist = 1.0f / min_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
       e_data.grid_mesh_size = viewdist * dist;
     }
+
+    ED_view3d_grid_steps(scene, v3d, rv3d, e_data.grid_steps);
   }
 
   copy_v2_v2(e_data.inv_viewport_size, DRW_viewport_size_get());
@@ -1512,10 +1485,10 @@ static void OBJECT_cache_init(void *vedata)
     DRWShadingGroup *grp = DRW_shgroup_create(sh_data->grid, psl->grid);
     DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zneg_flag, 1);
     DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.zplane_axes, 1);
-    DRW_shgroup_uniform_vec4(grp, "gridSettings", e_data.grid_settings, 1);
+    DRW_shgroup_uniform_vec3(grp, "screenVecs[0]", DRW_viewport_screenvecs_get(), 2);
+    DRW_shgroup_uniform_float(grp, "gridDistance", &e_data.grid_distance, 1);
     DRW_shgroup_uniform_float_copy(grp, "lineKernel", grid_line_size);
     DRW_shgroup_uniform_float_copy(grp, "meshSize", e_data.grid_mesh_size);
-    DRW_shgroup_uniform_float(grp, "gridOneOverLogSubdiv", &e_data.grid_settings[4], 1);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
     DRW_shgroup_call(grp, geom, NULL);
@@ -1525,6 +1498,7 @@ static void OBJECT_cache_init(void *vedata)
     DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.grid_axes, 1);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
+    DRW_shgroup_uniform_float(grp, "gridSteps", e_data.grid_steps, ARRAY_SIZE(e_data.grid_steps));
     DRW_shgroup_call(grp, geom, NULL);
 
     grp = DRW_shgroup_create(sh_data->grid, psl->grid);
