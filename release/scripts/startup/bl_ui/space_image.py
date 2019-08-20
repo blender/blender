@@ -142,7 +142,7 @@ class IMAGE_MT_view_zoom(Menu):
 
             layout.operator(
                 "image.view_zoom_ratio",
-                text=iface_(f"Zoom {a:d}:{b:d}"),
+                text=iface_("Zoom %d:%d") % (a, b),
                 translate=False,
             ).ratio = a / b
 
