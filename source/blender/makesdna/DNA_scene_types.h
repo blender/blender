@@ -2051,9 +2051,11 @@ enum {
 #define SCE_SNAP_MODE_EDGE_PERPENDICULAR (1 << 6)
 
 /* ToolSettings.snap_node_mode */
-#define SCE_SNAP_MODE_GRID (1 << 5)
 #define SCE_SNAP_MODE_NODE_X (1 << 6)
 #define SCE_SNAP_MODE_NODE_Y (1 << 7)
+
+/* ToolSettings.snap_mode and ToolSettings.snap_node_mode */
+#define SCE_SNAP_MODE_GRID (1 << 8)
 
 /** #ToolSettings.snap_transform_mode_flag */
 enum {
