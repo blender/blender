@@ -66,7 +66,6 @@ typedef struct SELECTID_PrivateData {
 } SELECTID_PrivateData; /* Transient data */
 
 /* select_draw_utils.c */
-void select_id_context_clear(struct SELECTID_Context *select_ctx);
 void select_id_object_min_max(struct Object *obj, float r_min[3], float r_max[3]);
 short select_id_get_object_select_mode(Scene *scene, Object *ob);
 void select_id_draw_object(void *vedata,
