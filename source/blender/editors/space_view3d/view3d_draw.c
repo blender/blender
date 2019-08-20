@@ -1420,18 +1420,20 @@ static void draw_grid_unit_name(
     Scene *scene, RegionView3D *rv3d, View3D *v3d, int xoffset, int *yoffset)
 {
   if (!rv3d->is_persp && RV3D_VIEW_IS_AXIS(rv3d->view)) {
-    char numstr[32] = "";
-    const char *grid_unit;
+    const char *grid_unit = NULL;
     ED_view3d_grid_view_scale(scene, v3d, rv3d, &grid_unit);
 
-    UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
-    if (v3d->grid != 1.0f) {
-      BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
-    }
+    if (grid_unit) {
+      char numstr[32] = "";
+      UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
+      if (v3d->grid != 1.0f) {
+        BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
+      }
 
-    *yoffset -= U.widget_unit;
-    BLF_draw_default_ascii(
-        xoffset, *yoffset, 0.0f, numstr[0] ? numstr : grid_unit, sizeof(numstr));
+      *yoffset -= U.widget_unit;
+      BLF_draw_default_ascii(
+          xoffset, *yoffset, 0.0f, numstr[0] ? numstr : grid_unit, sizeof(numstr));
+    }
   }
 }
 
