@@ -16,9 +16,27 @@ def print_stage(text):
     print(text)
     print("")
 
+# Test if we are building a specific release version
+try:
+    branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+except subprocess.CalledProcessError as e:
+    sys.stderr("Failed to get Blender git branch\n")
+    sys.exit(1)
+
+branch = branch.strip().decode('utf8')
+release_version = re.search("^blender-v(.*)-release$", branch)
+if release_version:
+    release_version = release_version.group(1)
+    print("Using Release Blender v" + release_version)
+
 # Setup for precompiled libraries and tests from svn
 lib_dirpath = os.path.join('..', 'lib')
-svn_url = "https://svn.blender.org/svnroot/bf-blender/trunk/lib/"
+
+if release_version:
+    svn_branch = "tags/blender-" + release_version + "-release"
+else:
+    svn_branch = "trunk"
+svn_url = "https://svn.blender.org/svnroot/bf-blender/" + svn_branch + "/lib/"
 
 # Checkout precompiled libraries
 if sys.platform == 'darwin':
@@ -56,6 +74,7 @@ if os.path.isdir(lib_dirpath):
     if os.path.isdir(dirpath) and \
        (os.path.exists(svn_dirpath) or os.path.exists(svn_root_dirpath)):
         call(["svn", "cleanup", dirpath])
+        call(["svn", "switch", svn_url + dirname, dirpath])
         call(["svn", "update", dirpath])
 
 # Update blender repository and submodules
@@ -63,5 +82,10 @@ print_stage("Updating Blender Git Repository and Submodules")
 
 call(["git", "pull", "--rebase"])
 call(["git", "submodule", "update", "--init", "--recursive"])
-call(["git", "submodule", "foreach", "git", "checkout", "master"])
-call(["git", "submodule", "foreach", "git", "pull", "--rebase", "origin", "master"])
+
+if not release_version:
+    # Update submodules to latest master if not building a specific release.
+    # In that case submodules are set to a specific revision, which is checked
+    # out by running "git submodule update".
+    call(["git", "submodule", "foreach", "git", "checkout", "master"])
+    call(["git", "submodule", "foreach", "git", "pull", "--rebase", "origin", "master"])
