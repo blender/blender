@@ -960,6 +960,13 @@ TEST_F(RenderGraph, constant_fold_blackbody)
   graph.finalize(scene);
 }
 
+/* A Note About The Math Node
+ *
+ * The clamp option is implemented using graph expansion, where a
+ * Clamp node named "clamp" is added and connected to the output.
+ * So the final result is actually from the node "clamp".
+ */
+
 /*
  * Tests: Math with all constant inputs (clamp false).
  */
@@ -985,7 +992,7 @@ TEST_F(RenderGraph, constant_fold_math)
 TEST_F(RenderGraph, constant_fold_math_clamp)
 {
   EXPECT_ANY_MESSAGE(log);
-  CORRECT_INFO_MESSAGE(log, "Folding Math::Value to constant (1).");
+  CORRECT_INFO_MESSAGE(log, "Folding clamp::Result to constant (1).");
 
   builder
       .add_node(ShaderNodeBuilder<MathNode>("Math")
@@ -1038,7 +1045,7 @@ TEST_F(RenderGraph, constant_fold_part_math_add_0)
   /* X + 0 == 0 + X == X */
   CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Value to socket Attribute::Fac.");
   CORRECT_INFO_MESSAGE(log, "Folding Math_xC::Value to socket Attribute::Fac.");
-  INVALID_INFO_MESSAGE(log, "Folding Out::");
+  INVALID_INFO_MESSAGE(log, "Folding clamp::");
 
   build_math_partial_test_graph(builder, NODE_MATH_ADD, 0.0f);
   graph.finalize(scene);
@@ -1053,7 +1060,7 @@ TEST_F(RenderGraph, constant_fold_part_math_sub_0)
   /* X - 0 == X */
   INVALID_INFO_MESSAGE(log, "Folding Math_Cx::");
   CORRECT_INFO_MESSAGE(log, "Folding Math_xC::Value to socket Attribute::Fac.");
-  INVALID_INFO_MESSAGE(log, "Folding Out::");
+  INVALID_INFO_MESSAGE(log, "Folding clamp::");
 
   build_math_partial_test_graph(builder, NODE_MATH_SUBTRACT, 0.0f);
   graph.finalize(scene);
@@ -1068,7 +1075,7 @@ TEST_F(RenderGraph, constant_fold_part_math_mul_1)
   /* X * 1 == 1 * X == X */
   CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Value to socket Attribute::Fac.");
   CORRECT_INFO_MESSAGE(log, "Folding Math_xC::Value to socket Attribute::Fac.");
-  INVALID_INFO_MESSAGE(log, "Folding Out::");
+  INVALID_INFO_MESSAGE(log, "Folding clamp::");
 
   build_math_partial_test_graph(builder, NODE_MATH_MULTIPLY, 1.0f);
   graph.finalize(scene);
@@ -1083,7 +1090,7 @@ TEST_F(RenderGraph, constant_fold_part_math_div_1)
   /* X / 1 == X */
   INVALID_INFO_MESSAGE(log, "Folding Math_Cx::");
   CORRECT_INFO_MESSAGE(log, "Folding Math_xC::Value to socket Attribute::Fac.");
-  INVALID_INFO_MESSAGE(log, "Folding Out::");
+  INVALID_INFO_MESSAGE(log, "Folding clamp::");
 
   build_math_partial_test_graph(builder, NODE_MATH_DIVIDE, 1.0f);
   graph.finalize(scene);
@@ -1098,7 +1105,7 @@ TEST_F(RenderGraph, constant_fold_part_math_mul_0)
   /* X * 0 == 0 * X == 0 */
   CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Value to constant (0).");
   CORRECT_INFO_MESSAGE(log, "Folding Math_xC::Value to constant (0).");
-  CORRECT_INFO_MESSAGE(log, "Folding Out::Value to constant (0)");
+  CORRECT_INFO_MESSAGE(log, "Folding clamp::Result to constant (0)");
   CORRECT_INFO_MESSAGE(log, "Discarding closure EmissionNode.");
 
   build_math_partial_test_graph(builder, NODE_MATH_MULTIPLY, 0.0f);
@@ -1114,7 +1121,7 @@ TEST_F(RenderGraph, constant_fold_part_math_div_0)
   /* 0 / X == 0 */
   CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Value to constant (0).");
   INVALID_INFO_MESSAGE(log, "Folding Math_xC::");
-  INVALID_INFO_MESSAGE(log, "Folding Out::");
+  INVALID_INFO_MESSAGE(log, "Folding clamp::");
 
   build_math_partial_test_graph(builder, NODE_MATH_DIVIDE, 0.0f);
   graph.finalize(scene);
@@ -1129,7 +1136,7 @@ TEST_F(RenderGraph, constant_fold_part_math_pow_0)
   /* X ^ 0 == 1 */
   INVALID_INFO_MESSAGE(log, "Folding Math_Cx::");
   CORRECT_INFO_MESSAGE(log, "Folding Math_xC::Value to constant (1).");
-  INVALID_INFO_MESSAGE(log, "Folding Out::");
+  INVALID_INFO_MESSAGE(log, "Folding clamp::");
 
   build_math_partial_test_graph(builder, NODE_MATH_POWER, 0.0f);
   graph.finalize(scene);
@@ -1144,7 +1151,7 @@ TEST_F(RenderGraph, constant_fold_part_math_pow_1)
   /* 1 ^ X == 1; X ^ 1 == X */
   CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Value to constant (1)");
   CORRECT_INFO_MESSAGE(log, "Folding Math_xC::Value to socket Attribute::Fac.");
-  INVALID_INFO_MESSAGE(log, "Folding Out::");
+  INVALID_INFO_MESSAGE(log, "Folding clamp::");
 
   build_math_partial_test_graph(builder, NODE_MATH_POWER, 1.0f);
   graph.finalize(scene);
