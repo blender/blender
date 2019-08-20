@@ -161,7 +161,7 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
             if gpcolor.mode in {'DOTS', 'BOX'}:
                 col.prop(gpcolor, "alignment_mode")
 
-            if gpcolor.mode == 'LINE':
+            if gpcolor.mode == 'LINE' and gpcolor.stroke_style != 'TEXTURE':
                 col.prop(gpcolor, "use_overlap_strokes")
 
 class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
