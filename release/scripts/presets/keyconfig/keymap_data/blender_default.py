@@ -1066,7 +1066,7 @@ def km_view3d(params):
             ("view3d.select", ("toggle",), ("shift",)),
             ("view3d.select", ("center", "object"), ("ctrl",)),
             ("view3d.select", ("enumerate",), ("alt",)),
-            ("view3d.select", ("extend", "toggle", "center"), ("shift", "ctrl")),
+            ("view3d.select", ("toggle", "center"), ("shift", "ctrl")),
             ("view3d.select", ("center", "enumerate"), ("ctrl", "alt")),
             ("view3d.select", ("toggle", "enumerate"), ("shift", "alt")),
             ("view3d.select", ("toggle", "center", "enumerate"), ("shift", "ctrl", "alt")),
