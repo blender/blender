@@ -846,6 +846,86 @@ class WM_OT_url_open(Operator):
         return {'FINISHED'}
 
 
+class WM_OT_url_open_preset(Operator):
+    """Open a preset website in the web-browser"""
+    bl_idname = "wm.url_open_preset"
+    bl_label = "Open Preset Website"
+    bl_options = {'INTERNAL'}
+
+    type: EnumProperty(
+        name="Site",
+        items=lambda self, _context: (
+            item for (item, _) in WM_OT_url_open_preset.preset_items
+        ),
+    )
+
+    id: StringProperty(
+        name="Identifier",
+        description="Optional identifier",
+    )
+
+    def _url_from_bug(self, _context):
+        from bl_ui_utils.bug_report_url import url_prefill_from_blender
+        return url_prefill_from_blender()
+
+    def _url_from_bug_addon(self, _context):
+        from bl_ui_utils.bug_report_url import url_prefill_from_blender
+        return url_prefill_from_blender(addon_info=self.id)
+
+    def _url_from_release_notes(self, _context):
+        return "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]
+
+    def _url_from_manual(self, _context):
+        if bpy.app.version_cycle in {"rc", "release"}:
+            manual_version = "%d.%d" % bpy.app.version[:2]
+        else:
+            manual_version = "dev"
+        return "https://docs.blender.org/manual/en/" + manual_version + "/"
+
+    # This list is: (enum_item, url) pairs.
+    # Allow dynamically extending.
+    preset_items = [
+        # Dynamic URL's.
+        (('BUG', "Bug",
+          "Report a bug with pre-filled version information"),
+         _url_from_bug),
+        (('BUG_ADDON', "Add-On Bug",
+          "Report a bug in an add-on"),
+         _url_from_bug_addon),
+        (('RELEASE_NOTES', "Release Notes",
+          "Read about whats new in this version of Blender"),
+         _url_from_release_notes),
+        (('MANUAL', "Manual",
+          "The reference manual for this version of Blender"),
+         _url_from_manual),
+
+        # Static URL's.
+        (('FUND', "Development Fund",
+          "The donation program to support maintenance and improvements"),
+         "https://fund.blender.org"),
+        (('BLENDER', "blender.org",
+          "Blender's official web-site"),
+         "https://www.blender.org"),
+        (('CREDITS', "Credits",
+          "Lists committers to Blender's source code"),
+         "https://www.blender.org/about/credits/"),
+    ]
+
+    def execute(self, context):
+        url = None
+        type = self.type
+        for (item_id, _, _), url in self.preset_items:
+            if item_id == type:
+                if callable(url):
+                    url = url(self, context)
+                break
+
+        import webbrowser
+        webbrowser.open(url)
+
+        return {'FINISHED'}
+
+
 class WM_OT_path_open(Operator):
     """Open a path in a file browser"""
     bl_idname = "wm.path_open"
@@ -1808,23 +1888,13 @@ class WM_MT_splash(Menu):
         if found_recent:
             col2_title.label(text="Recent Files")
         else:
-            if bpy.app.version_cycle in {'rc', 'release'}:
-                manual_version = '%d.%d' % bpy.app.version[:2]
-            else:
-                manual_version = 'dev'
 
             # Links if no recent files
             col2_title.label(text="Getting Started")
 
-            col2.operator(
-                "wm.url_open", text="Manual", icon='URL'
-            ).url = "https://docs.blender.org/manual/en/" + manual_version + "/"
-            col2.operator(
-                "wm.url_open", text="Blender Website", icon='URL',
-            ).url = "https://www.blender.org"
-            col2.operator(
-                "wm.url_open", text="Credits", icon='URL',
-            ).url = "https://www.blender.org/about/credits/"
+            col2.operator("wm.url_open_preset", text="Manual", icon='URL').type = 'MANUAL'
+            col2.operator("wm.url_open_preset", text="Blender Website", icon='URL').type = 'BLENDER'
+            col2.operator("wm.url_open_preset", text="Credits", icon='URL').type = 'CREDITS'
 
         layout.separator()
 
@@ -1837,12 +1907,9 @@ class WM_MT_splash(Menu):
         col1.operator("wm.recover_last_session", icon='RECOVER_LAST')
 
         col2 = split.column()
-        col2.operator(
-            "wm.url_open", text="Release Notes", icon='URL',
-        ).url = "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]
-        col2.operator(
-            "wm.url_open", text="Development Fund", icon='FUND'
-        ).url = "https://fund.blender.org"
+
+        col2.operator("wm.url_open_preset", text="Release Notes", icon='URL').type = 'RELEASE_NOTES'
+        col2.operator("wm.url_open_preset", text="Development Fund", icon='FUND').type = 'FUND'
 
         layout.separator()
         layout.separator()
@@ -1908,6 +1975,7 @@ classes = (
     WM_OT_owner_disable,
     WM_OT_owner_enable,
     WM_OT_url_open,
+    WM_OT_url_open_preset,
     WM_OT_tool_set_by_id,
     WM_OT_tool_set_by_index,
     WM_OT_toolbar,

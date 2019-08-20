@@ -1708,7 +1708,6 @@ class USERPREF_PT_addons(Panel):
     def draw(self, context):
         import os
         import addon_utils
-        from bl_ui_utils.bug_report_url import url_prefill_from_blender
 
         layout = self.layout
 
@@ -1887,13 +1886,18 @@ class USERPREF_PT_addons(Panel):
                             ).url = info["wiki_url"]
                         # Only add "Report a Bug" button if tracker_url is set
                         # or the add-on is bundled (use official tracker then).
-                        if info.get("tracker_url") or not user_addon:
+                        if info.get("tracker_url"):
                             sub.operator(
                                 "wm.url_open", text="Report a Bug", icon='URL',
-                            ).url = info.get(
-                                "tracker_url",
-                                url_prefill_from_blender(info),
+                            ).url = info["tracker_url"]
+                        elif not user_addon:
+                            addon_info = ("Name: {} {}\nAuthor: {}\n").format(
+                                info["name"], info["version"], info["author"])
+                            props = sub.operator(
+                                "wm.url_open_preset", text="Report a Bug", icon='URL',
                             )
+                            props.type = 'BUG_ADDON'
+                            props.id = addon_info
                         if user_addon:
                             sub.operator(
                                 "preferences.addon_remove", text="Remove", icon='CANCEL',

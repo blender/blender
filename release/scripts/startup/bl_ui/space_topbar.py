@@ -344,18 +344,12 @@ class TOPBAR_MT_app_about(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator(
-            "wm.url_open", text="Release Notes", icon='URL',
-        ).url = "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]
+        layout.operator("wm.url_open_preset", text="Release Notes", icon='URL').type = 'RELEASE_NOTES'
 
         layout.separator()
 
-        layout.operator(
-            "wm.url_open", text="Blender Website", icon='URL',
-        ).url = "https://www.blender.org/"
-        layout.operator(
-            "wm.url_open", text="Credits", icon='URL',
-        ).url = "https://www.blender.org/about/credits/"
+        layout.operator("wm.url_open_preset", text="Blender Website", icon='URL').type = 'BLENDER'
+        layout.operator("wm.url_open", text="Credits", icon='URL').type = 'CREDITS'
 
         layout.separator()
 
@@ -370,9 +364,7 @@ class TOPBAR_MT_app_support(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator(
-            "wm.url_open", text="Development Fund", icon='FUND',
-        ).url = "https://fund.blender.org"
+        layout.operator("wm.url_open_preset", text="Development Fund", icon='FUND').type = 'FUND'
 
         layout.separator()
 
@@ -565,22 +557,12 @@ class TOPBAR_MT_help(Menu):
     bl_label = "Help"
 
     def draw(self, context):
-        # If 'url_prefill_from_blender' becomes slow it could be made into a separate operator
-        # to avoid constructing the bug report just to show this menu.
-        from bl_ui_utils.bug_report_url import url_prefill_from_blender
-
         layout = self.layout
 
         show_developer = context.preferences.view.show_developer_ui
 
-        if bpy.app.version_cycle in {'rc', 'release'}:
-            manual_version = '%d.%d' % bpy.app.version[:2]
-        else:
-            manual_version = 'dev'
+        layout.operator("wm.url_open_preset", text="Manual", icon='HELP',).type = 'MANUAL'
 
-        layout.operator(
-            "wm.url_open", text="Manual", icon='HELP',
-        ).url = "https://docs.blender.org/manual/en/" + manual_version + "/"
         layout.operator(
             "wm.url_open", text="Tutorials", icon='URL',
         ).url = "https://www.blender.org/tutorials"
@@ -612,9 +594,7 @@ class TOPBAR_MT_help(Menu):
 
         layout.separator()
 
-        layout.operator(
-            "wm.url_open", text="Report a Bug", icon='URL',
-        ).url = url_prefill_from_blender()
+        layout.operator("wm.url_open_preset", text="Report a Bug", icon='URL').type = 'BUG'
 
         layout.separator()
 

@@ -64,10 +64,7 @@ def url_prefill_from_blender(addon_info=None):
             "\n"
             "**Addon Information**\n"
         )
-        fh.write((
-            "Name: {name} {version}\n"
-            "Author: {author}\n").format(**addon_info)
-        )
+        fh.write(addon_info)
 
     fh.write(
         "\n"
