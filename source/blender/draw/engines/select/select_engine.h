@@ -26,4 +26,6 @@
 extern DrawEngineType draw_engine_select_type;
 extern RenderEngineType DRW_engine_viewport_select_type;
 
-#endif /* __SELECT_ID_ENGINE_H__ */
+struct SELECTID_Context *DRW_select_engine_context_get(void);
+
+#endif /* __SELECT_ENGINE_H__ */

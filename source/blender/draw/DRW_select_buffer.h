@@ -131,7 +131,4 @@ void DRW_select_buffer_context_create(struct Base **bases,
                                       const uint bases_len,
                                       short select_mode);
 
-/* select_engine.c */
-struct SELECTID_Context *DRW_select_engine_context_get(void);
-
 #endif /* __DRW_SELECT_BUFFER_H__ */
