@@ -5426,6 +5426,8 @@ NODE_DEFINE(MathNode)
   type_enum.insert("sqrt", NODE_MATH_SQRT);
   SOCKET_ENUM(type, "Type", type_enum, NODE_MATH_ADD);
 
+  SOCKET_BOOLEAN(use_clamp, "Use Clamp", false);
+
   SOCKET_IN_FLOAT(value1, "Value1", 0.5f);
   SOCKET_IN_FLOAT(value2, "Value2", 0.5f);
 
