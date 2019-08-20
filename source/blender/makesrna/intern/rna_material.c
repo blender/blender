@@ -661,6 +661,7 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "sima");
   RNA_def_property_pointer_funcs(prop, NULL, "rna_GpencilColorData_stroke_image_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Image", "");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
@@ -683,6 +684,7 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "ima");
   RNA_def_property_pointer_funcs(prop, NULL, "rna_GpencilColorData_fill_image_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Image", "");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 

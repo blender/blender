@@ -891,6 +891,7 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "collection", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "group");
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Collision Collection", "Limit colliders to this Collection");
   RNA_def_property_update(prop, 0, "rna_cloth_dependency_update");
 
