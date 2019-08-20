@@ -5680,6 +5680,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
           },
           mval,
           NULL,
+          NULL,
           location,
           NULL);
 

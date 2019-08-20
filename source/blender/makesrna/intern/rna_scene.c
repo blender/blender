@@ -172,6 +172,11 @@ const EnumPropertyItem rna_enum_snap_element_items[] = {
      ICON_SNAP_MIDPOINT,
      "Edge Center",
      "Snap to the middle of edges"},
+    {SCE_SNAP_MODE_EDGE_PERPENDICULAR,
+     "EDGE_PERPENDICULAR",
+     ICON_SNAP_PERPENDICULAR,
+     "Edge Perpendicular",
+     "Snap to the nearest point on an edge"},
     {0, NULL, 0, NULL, NULL},
 };
 

@@ -283,6 +283,7 @@ static int gizmo_move_modal(bContext *C,
                   .use_occlusion_test = true,
               },
               mval_fl,
+              NULL,
               &dist_px,
               co,
               NULL)) {

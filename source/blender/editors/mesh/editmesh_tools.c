@@ -437,6 +437,7 @@ void EDBM_project_snap_verts(bContext *C, Depsgraph *depsgraph, ARegion *ar, BME
                                                     },
                                                     mval,
                                                     NULL,
+                                                    NULL,
                                                     co_proj,
                                                     NULL)) {
           mul_v3_m4v3(eve->co, obedit->imat, co_proj);

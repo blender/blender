@@ -1260,7 +1260,8 @@ static short snap_mesh_polygon(SnapObjectContext *sctx,
 
     const MPoly *mp = &((SnapObjectData_Mesh *)sod)->poly[*r_index];
     const MLoop *ml = &treedata->loop[mp->loopstart];
-    if (snapdata->snap_to_flag & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT)) {
+    if (snapdata->snap_to_flag &
+        (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
       elem = SCE_SNAP_MODE_EDGE;
       BLI_assert(treedata->edge != NULL);
       for (int i = mp->totloop; i--; ml++) {
@@ -1297,7 +1298,8 @@ static short snap_mesh_polygon(SnapObjectContext *sctx,
     BMFace *f = BM_face_at_index(em->bm, *r_index);
     BMLoop *l_iter, *l_first;
     l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-    if (snapdata->snap_to_flag & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT)) {
+    if (snapdata->snap_to_flag &
+        (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
       elem = SCE_SNAP_MODE_EDGE;
       BM_mesh_elem_index_ensure(em->bm, BM_EDGE);
       BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE);
@@ -1352,6 +1354,7 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
                                         Object *ob,
                                         float obmat[4][4],
                                         float original_dist_px,
+                                        const float prev_co[3],
                                         /* read/write args */
                                         float *dist_px,
                                         /* return args */
@@ -1460,13 +1463,43 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
         }
       }
     }
+
+    if (prev_co && (snapdata->snap_to_flag & SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+      float v_near[3], va_g[3], vb_g[3];
+
+      mul_v3_m4v3(va_g, obmat, v_pair[0]);
+      mul_v3_m4v3(vb_g, obmat, v_pair[1]);
+      lambda = line_point_factor_v3(prev_co, va_g, vb_g);
+
+      if (IN_RANGE(lambda, 0.0f, 1.0f)) {
+        interp_v3_v3v3(v_near, va_g, vb_g, lambda);
+
+        if (test_projected_vert_dist(&neasrest_precalc,
+                                     NULL,
+                                     0,
+                                     nearest2d.is_persp,
+                                     v_near,
+                                     &nearest.dist_sq,
+                                     nearest.co)) {
+          float v_nor[2][3];
+          nearest2d.copy_vert_no(vindex[0], v_nor[0], nearest2d.userdata);
+          nearest2d.copy_vert_no(vindex[1], v_nor[1], nearest2d.userdata);
+          mid_v3_v3v3(nearest.no, v_nor[0], v_nor[1]);
+
+          nearest.index = *r_index;
+          elem = SCE_SNAP_MODE_EDGE_PERPENDICULAR;
+        }
+      }
+    }
   }
 
   if (nearest.index != -1) {
     *dist_px = sqrtf(nearest.dist_sq);
 
     copy_v3_v3(r_loc, nearest.co);
-    mul_m4_v3(obmat, r_loc);
+    if (elem != SCE_SNAP_MODE_EDGE_PERPENDICULAR) {
+      mul_m4_v3(obmat, r_loc);
+    }
 
     if (r_no) {
       float imat[4][4];
@@ -2092,7 +2125,8 @@ static short snapMesh(SnapObjectContext *sctx,
     last_index = nearest.index;
   }
 
-  if (snapdata->snap_to_flag & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT)) {
+  if (snapdata->snap_to_flag &
+      (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
     if (bvhtree[0]) {
       /* snap to loose edges */
       BLI_bvhtree_find_nearest_projected(bvhtree[0],
@@ -2258,7 +2292,8 @@ static short snapEditMesh(SnapObjectContext *sctx,
     }
   }
 
-  if (snapdata->snap_to_flag & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT)) {
+  if (snapdata->snap_to_flag &
+      (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
     if (sod->bvh_trees[1] == NULL) {
       sod->bvh_trees[1] = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(**sod->bvh_trees));
     }
@@ -2330,8 +2365,8 @@ static short snapEditMesh(SnapObjectContext *sctx,
     last_index = nearest.index;
   }
 
-  if (treedata_edge &&
-      snapdata->snap_to_flag & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT)) {
+  if (treedata_edge && snapdata->snap_to_flag & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT |
+                                                 SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
     BM_mesh_elem_table_ensure(em->bm, BM_EDGE | BM_VERT);
     BLI_bvhtree_find_nearest_projected(treedata_edge->tree,
                                        lpmat,
@@ -2727,6 +2762,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
     const unsigned short snap_to_flag,
     const struct SnapObjectParams *params,
     const float mval[2],
+    const float prev_co[3],
     float *dist_px,
     float r_loc[3],
     float r_no[3],
@@ -2735,7 +2771,8 @@ static short transform_snap_context_project_view3d_mixed_impl(
     float r_obmat[4][4])
 {
   BLI_assert((snap_to_flag & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
-                              SCE_SNAP_MODE_EDGE_MIDPOINT)) != 0);
+                              SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) !=
+             0);
 
   short retval = 0;
   bool has_hit = false;
@@ -2773,7 +2810,8 @@ static short transform_snap_context_project_view3d_mixed_impl(
     }
   }
 
-  if (snap_to_flag & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT)) {
+  if (snap_to_flag & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT |
+                      SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
     short elem;
     float dist_px_tmp = *dist_px;
 
@@ -2827,9 +2865,10 @@ static short transform_snap_context_project_view3d_mixed_impl(
     }
 
     if ((retval == SCE_SNAP_MODE_EDGE) &&
-        (snap_to_flag & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE_MIDPOINT))) {
+        (snap_to_flag & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE_MIDPOINT |
+                         SCE_SNAP_MODE_EDGE_PERPENDICULAR))) {
       elem = snap_mesh_edge_verts_mixed(
-          sctx, &snapdata, ob, obmat, *dist_px, &dist_px_tmp, loc, no, &index);
+          sctx, &snapdata, ob, obmat, *dist_px, prev_co, &dist_px_tmp, loc, no, &index);
     }
 
     if (elem) {
@@ -2864,6 +2903,7 @@ short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                                  const unsigned short snap_to,
                                                  const struct SnapObjectParams *params,
                                                  const float mval[2],
+                                                 const float prev_co[3],
                                                  float *dist_px,
                                                  float r_loc[3],
                                                  float r_no[3],
@@ -2872,7 +2912,8 @@ short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                                  float r_obmat[4][4])
 {
   return transform_snap_context_project_view3d_mixed_impl(
-             sctx, snap_to, params, mval, dist_px, r_loc, r_no, r_index, r_ob, r_obmat) != 0;
+             sctx, snap_to, params, mval, prev_co, dist_px, r_loc, r_no, r_index, r_ob, r_obmat) !=
+         0;
 }
 
 /**
@@ -2882,6 +2923,7 @@ short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
  *
  * \param sctx: Snap context.
  * \param mval: Screenspace coordinate.
+ * \param prev_co: Coordinate for perpendicular point calculation (optional).
  * \param dist_px: Maximum distance to snap (in pixels).
  * \param r_co: hit location.
  * \param r_no: hit normal (optional).
@@ -2891,12 +2933,13 @@ bool ED_transform_snap_object_project_view3d(SnapObjectContext *sctx,
                                              const unsigned short snap_to,
                                              const struct SnapObjectParams *params,
                                              const float mval[2],
+                                             const float prev_co[3],
                                              float *dist_px,
                                              float r_loc[3],
                                              float r_no[3])
 {
   return ED_transform_snap_object_project_view3d_ex(
-             sctx, snap_to, params, mval, dist_px, r_loc, r_no, NULL, NULL, NULL) != 0;
+             sctx, snap_to, params, mval, prev_co, dist_px, r_loc, r_no, NULL, NULL, NULL) != 0;
 }
 
 /**

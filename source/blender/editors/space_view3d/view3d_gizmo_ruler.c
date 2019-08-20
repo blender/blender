@@ -343,6 +343,7 @@ static bool view3d_ruler_item_mousemove(RulerInfo *ruler_info,
                                                       .use_object_edit_cage = true,
                                                   },
                                                   mval_fl,
+                                                  NULL,
                                                   &dist_px,
                                                   co,
                                                   ray_normal)) {
@@ -363,16 +364,31 @@ static bool view3d_ruler_item_mousemove(RulerInfo *ruler_info,
     }
     else if (do_snap) {
       const float mval_fl[2] = {UNPACK2(mval)};
+      float *prev_point = NULL;
+
+      if (inter->co_index != 1) {
+        if (ruler_item->flag & RULERITEM_USE_ANGLE) {
+          prev_point = ruler_item->co[1];
+        }
+        else if (inter->co_index == 0) {
+          prev_point = ruler_item->co[2];
+        }
+        else {
+          prev_point = ruler_item->co[0];
+        }
+      }
 
       if (ED_transform_snap_object_project_view3d(
               ruler_info->snap_context,
-              (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE),
+              (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
+               SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR),
               &(const struct SnapObjectParams){
                   .snap_select = SNAP_ALL,
                   .use_object_edit_cage = true,
                   .use_occlusion_test = true,
               },
               mval_fl,
+              prev_point,
               &dist_px,
               co,
               NULL)) {
