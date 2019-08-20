@@ -1820,9 +1820,6 @@ class WM_MT_splash(Menu):
                 "wm.url_open", text="Manual", icon='URL'
             ).url = "https://docs.blender.org/manual/en/" + manual_version + "/"
             col2.operator(
-                "wm.url_open", text="Release Notes", icon='URL',
-            ).url = "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]
-            col2.operator(
                 "wm.url_open", text="Blender Website", icon='URL',
             ).url = "https://www.blender.org"
             col2.operator(
