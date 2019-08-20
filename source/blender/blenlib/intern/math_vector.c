@@ -1392,4 +1392,21 @@ void mul_vn_db(double *array_tar, const int size, const double f)
   }
 }
 
+void interp_v3_v3v3_db(double target[3], const double a[3], const double b[3], const double t)
+{
+  const double s = 1.0f - t;
+
+  target[0] = s * a[0] + t * b[0];
+  target[1] = s * a[1] + t * b[1];
+  target[2] = s * a[2] + t * b[2];
+}
+
+void interp_v2_v2v2_db(double target[2], const double a[2], const double b[2], const double t)
+{
+  const double s = 1.0f - t;
+
+  target[0] = s * a[0] + t * b[0];
+  target[1] = s * a[1] + t * b[1];
+}
+
 /** \} */

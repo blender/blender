@@ -41,6 +41,7 @@ void zero_m4(float R[4][4]);
 void unit_m2(float R[2][2]);
 void unit_m3(float R[3][3]);
 void unit_m4(float R[4][4]);
+void unit_m4_db(double m[4][4]);
 
 void copy_m2_m2(float R[2][2], const float A[2][2]);
 void copy_m3_m3(float R[3][3], const float A[3][3]);
@@ -48,8 +49,13 @@ void copy_m4_m4(float R[4][4], const float A[4][4]);
 void copy_m3_m4(float R[3][3], const float A[4][4]);
 void copy_m4_m3(float R[4][4], const float A[3][3]);
 
+void copy_m4_m4_db(double m1[4][4], const double m2[4][4]);
+
 /* double->float */
 void copy_m3_m3d(float R[3][3], const double A[3][3]);
+
+/* float->double */
+void copy_m4d_m4(double R[4][4], const float A[4][4]);
 
 void swap_m3m3(float A[3][3], float B[3][3]);
 void swap_m4m4(float A[4][4], float B[4][4]);
@@ -82,6 +88,8 @@ void mul_m3_m3m3_uniq(float R[3][3], const float A[3][3], const float B[3][3]);
 void mul_m3_m3_pre(float R[3][3], const float A[3][3]);
 void mul_m3_m3_post(float R[3][3], const float B[3][3]);
 void mul_m4_m4m4_uniq(float R[4][4], const float A[4][4], const float B[4][4]);
+void mul_m4_m4m4_db_uniq(double R[4][4], const double A[4][4], const double B[4][4]);
+void mul_m4db_m4db_m4fl_uniq(double R[4][4], const double A[4][4], const float B[4][4]);
 void mul_m4_m4_pre(float R[4][4], const float A[4][4]);
 void mul_m4_m4_post(float R[4][4], const float B[4][4]);
 
@@ -173,11 +181,14 @@ void _va_mul_m4_series_9(float R[4][4],
 
 void mul_m4_v3(const float M[4][4], float r[3]);
 void mul_v3_m4v3(float r[3], const float M[4][4], const float v[3]);
+void mul_v3_m4v3_db(double r[3], const double mat[4][4], const double vec[3]);
+void mul_v4_m4v3_db(double r[4], const double mat[4][4], const double vec[3]);
 void mul_v2_m4v3(float r[2], const float M[4][4], const float v[3]);
 void mul_v2_m2v2(float r[2], const float M[2][2], const float v[2]);
 void mul_m2v2(const float M[2][2], float v[2]);
 void mul_mat3_m4_v3(const float M[4][4], float r[3]);
 void mul_v3_mat3_m4v3(float r[3], const float M[4][4], const float v[3]);
+void mul_v3_mat3_m4v3_db(double r[3], const double M[4][4], const double v[3]);
 void mul_m4_v4(const float M[4][4], float r[4]);
 void mul_v4_m4v4(float r[4], const float M[4][4], const float v[4]);
 void mul_v4_m4v3(float r[4], const float M[4][4], const float v[3]); /* v has implicit w = 1.0f */

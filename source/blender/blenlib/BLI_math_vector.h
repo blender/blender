@@ -106,6 +106,7 @@ MINLINE void add_v2_v2(float r[2], const float a[2]);
 MINLINE void add_v2_v2v2(float r[2], const float a[2], const float b[2]);
 MINLINE void add_v2_v2v2_int(int r[2], const int a[2], const int b[2]);
 MINLINE void add_v3_v3(float r[3], const float a[3]);
+MINLINE void add_v3_v3_db(double r[3], const double a[3]);
 MINLINE void add_v3_v3v3(float r[3], const float a[3], const float b[3]);
 MINLINE void add_v4_v4(float r[4], const float a[4]);
 MINLINE void add_v4_v4v4(float r[4], const float a[4], const float b[4]);
@@ -119,6 +120,7 @@ MINLINE void sub_v2_v2v2_int(int r[2], const int a[2], const int b[2]);
 MINLINE void sub_v3_v3(float r[3], const float a[3]);
 MINLINE void sub_v3_v3v3(float r[3], const float a[3], const float b[3]);
 MINLINE void sub_v3_v3v3_int(int r[3], const int a[3], const int b[3]);
+MINLINE void sub_v3_v3v3_db(double r[3], const double a[3], const double b[3]);
 MINLINE void sub_v4_v4(float r[4], const float a[4]);
 MINLINE void sub_v4_v4v4(float r[4], const float a[4], const float b[4]);
 
@@ -127,6 +129,7 @@ MINLINE void sub_v3db_v3fl_v3fl(double r[3], const float a[3], const float b[3])
 MINLINE void mul_v2_fl(float r[2], float f);
 MINLINE void mul_v2_v2fl(float r[2], const float a[2], float f);
 MINLINE void mul_v3_fl(float r[3], float f);
+MINLINE void mul_v3db_db(double r[3], double f);
 MINLINE void mul_v3_v3fl(float r[3], const float a[3], float f);
 MINLINE void mul_v2_v2(float r[2], const float a[2]);
 MINLINE void mul_v2_v2v2(float r[2], const float a[2], const float b[2]);
@@ -189,9 +192,12 @@ MINLINE float dot_v4v4(const float a[4], const float b[4]) ATTR_WARN_UNUSED_RESU
 
 MINLINE double dot_v3db_v3fl(const double a[3], const float b[3]) ATTR_WARN_UNUSED_RESULT;
 
+MINLINE double dot_v3v3_db(const double a[3], const double b[3]) ATTR_WARN_UNUSED_RESULT;
+
 MINLINE float cross_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3]);
 MINLINE void cross_v3_v3v3_hi_prec(float r[3], const float a[3], const float b[3]);
+MINLINE void cross_v3_v3v3_db(double r[3], const double a[3], const double b[3]);
 
 MINLINE void add_newell_cross_v3_v3v3(float n[3], const float v_prev[3], const float v_curr[3]);
 
@@ -231,9 +237,11 @@ MINLINE double normalize_v3_d(double n[3]);
 /******************************* Interpolation *******************************/
 
 void interp_v2_v2v2(float r[2], const float a[2], const float b[2], const float t);
+void interp_v2_v2v2_db(double target[2], const double a[2], const double b[2], const double t);
 void interp_v2_v2v2v2(
     float r[2], const float a[2], const float b[2], const float c[2], const float t[3]);
 void interp_v3_v3v3(float r[3], const float a[3], const float b[3], const float t);
+void interp_v3_v3v3_db(double target[3], const double a[3], const double b[3], const double t);
 void interp_v3_v3v3v3(
     float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3]);
 void interp_v3_v3v3v3v3(float p[3],

@@ -112,6 +112,7 @@ MINLINE float saasin(float fac);
 MINLINE float sasqrt(float fac);
 
 MINLINE float interpf(float a, float b, float t);
+MINLINE double interpd(double a, double b, double t);
 
 MINLINE float min_ff(float a, float b);
 MINLINE float max_ff(float a, float b);
