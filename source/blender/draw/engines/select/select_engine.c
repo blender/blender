@@ -40,15 +40,53 @@
 /* *********** STATIC *********** */
 
 static struct {
+  struct GPUFrameBuffer *framebuffer_select_id;
+  struct GPUTexture *texture_u32;
+
   SELECTID_Shaders sh_data[GPU_SHADER_CFG_LEN];
   struct SELECTID_Context context;
   uint runtime_new_objects;
-} e_data = {{{NULL}}}; /* Engine data */
+} e_data = {NULL}; /* Engine data */
 
 /* Shaders */
 extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_selection_id_3D_vert_glsl[];
 extern char datatoc_selection_id_frag_glsl[];
+
+/* -------------------------------------------------------------------- */
+/** \name Utils
+ * \{ */
+
+static void select_engine_framebuffer_setup(void)
+{
+  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+  int size[2];
+  size[0] = GPU_texture_width(dtxl->depth);
+  size[1] = GPU_texture_height(dtxl->depth);
+
+  if (e_data.framebuffer_select_id == NULL) {
+    e_data.framebuffer_select_id = GPU_framebuffer_create();
+  }
+
+  if ((e_data.texture_u32 != NULL) && ((GPU_texture_width(e_data.texture_u32) != size[0]) ||
+                                       (GPU_texture_height(e_data.texture_u32) != size[1]))) {
+    GPU_texture_free(e_data.texture_u32);
+    e_data.texture_u32 = NULL;
+  }
+
+  /* Make sure the depth texture is attached.
+   * It may disappear when loading another Blender session. */
+  GPU_framebuffer_texture_attach(e_data.framebuffer_select_id, dtxl->depth, 0, 0);
+
+  if (e_data.texture_u32 == NULL) {
+    e_data.texture_u32 = GPU_texture_create_2d(size[0], size[1], GPU_R32UI, NULL, NULL);
+    GPU_framebuffer_texture_attach(e_data.framebuffer_select_id, e_data.texture_u32, 0, 0);
+
+    GPU_framebuffer_check_valid(e_data.framebuffer_select_id, NULL);
+  }
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Engine Functions
@@ -186,8 +224,13 @@ static void select_cache_init(void *vedata)
   float(*persmat)[4] = draw_ctx->rv3d->persmat;
   e_data.context.is_dirty = !compare_m4m4(e_data.context.persmat, persmat, FLT_EPSILON);
   if (e_data.context.is_dirty) {
+    /* Remove all tags from drawn or culled objects. */
     copy_m4_m4(e_data.context.persmat, persmat);
-    select_id_context_clear(&e_data.context);
+    e_data.context.objects_drawn_len = 0;
+    e_data.context.index_drawn_len = 1;
+    select_engine_framebuffer_setup();
+    GPU_framebuffer_bind(e_data.framebuffer_select_id);
+    GPU_framebuffer_clear_color_depth(e_data.framebuffer_select_id, (const float[4]){0.0f}, 1.0f);
   }
   e_data.runtime_new_objects = 0;
 }
@@ -283,7 +326,7 @@ static void select_draw_scene(void *vedata)
   }
 
   /* Setup framebuffer */
-  GPU_framebuffer_bind(e_data.context.framebuffer_select_id);
+  GPU_framebuffer_bind(e_data.framebuffer_select_id);
 
   DRW_draw_pass(psl->select_id_face_pass);
 
@@ -306,8 +349,8 @@ static void select_engine_free(void)
     DRW_SHADER_FREE_SAFE(sh_data->select_id_uniform);
   }
 
-  DRW_TEXTURE_FREE_SAFE(e_data.context.texture_u32);
-  GPU_FRAMEBUFFER_FREE_SAFE(e_data.context.framebuffer_select_id);
+  DRW_TEXTURE_FREE_SAFE(e_data.texture_u32);
+  GPU_FRAMEBUFFER_FREE_SAFE(e_data.framebuffer_select_id);
   MEM_SAFE_FREE(e_data.context.objects);
   MEM_SAFE_FREE(e_data.context.index_offsets);
   MEM_SAFE_FREE(e_data.context.objects_drawn);
@@ -366,6 +409,16 @@ RenderEngineType DRW_engine_viewport_select_type = {
 struct SELECTID_Context *DRW_select_engine_context_get(void)
 {
   return &e_data.context;
+}
+
+GPUFrameBuffer *DRW_engine_select_framebuffer_get(void)
+{
+  return e_data.framebuffer_select_id;
+}
+
+GPUTexture *DRW_engine_select_texture_get(void)
+{
+  return e_data.texture_u32;
 }
 
 /** \} */

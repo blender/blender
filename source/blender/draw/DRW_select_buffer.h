@@ -58,9 +58,6 @@ struct ObjectOffsets {
 };
 
 struct SELECTID_Context {
-  struct GPUFrameBuffer *framebuffer_select_id;
-  struct GPUTexture *texture_u32;
-
   /* All context objects */
   struct Object **objects;
   uint objects_len;

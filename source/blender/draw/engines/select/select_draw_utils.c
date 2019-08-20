@@ -44,48 +44,6 @@
 /** \name Draw Utilities
  * \{ */
 
-static void select_id_framebuffer_setup(struct SELECTID_Context *select_ctx)
-{
-  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  int size[2];
-  size[0] = GPU_texture_width(dtxl->depth);
-  size[1] = GPU_texture_height(dtxl->depth);
-
-  if (select_ctx->framebuffer_select_id == NULL) {
-    select_ctx->framebuffer_select_id = GPU_framebuffer_create();
-  }
-
-  if ((select_ctx->texture_u32 != NULL) &&
-      ((GPU_texture_width(select_ctx->texture_u32) != size[0]) ||
-       (GPU_texture_height(select_ctx->texture_u32) != size[1]))) {
-    GPU_texture_free(select_ctx->texture_u32);
-    select_ctx->texture_u32 = NULL;
-  }
-
-  /* Make sure the depth texture is attached.
-   * It may disappear when loading another Blender session. */
-  GPU_framebuffer_texture_attach(select_ctx->framebuffer_select_id, dtxl->depth, 0, 0);
-
-  if (select_ctx->texture_u32 == NULL) {
-    select_ctx->texture_u32 = GPU_texture_create_2d(size[0], size[1], GPU_R32UI, NULL, NULL);
-    GPU_framebuffer_texture_attach(
-        select_ctx->framebuffer_select_id, select_ctx->texture_u32, 0, 0);
-
-    GPU_framebuffer_check_valid(select_ctx->framebuffer_select_id, NULL);
-  }
-}
-
-/* Remove all tags from drawn or culled objects. */
-void select_id_context_clear(struct SELECTID_Context *select_ctx)
-{
-  select_ctx->objects_drawn_len = 0;
-  select_ctx->index_drawn_len = 1;
-  select_id_framebuffer_setup(select_ctx);
-  GPU_framebuffer_bind(select_ctx->framebuffer_select_id);
-  GPU_framebuffer_clear_color_depth(
-      select_ctx->framebuffer_select_id, (const float[4]){0.0f}, 1.0f);
-}
-
 void select_id_object_min_max(Object *obj, float r_min[3], float r_max[3])
 {
   BoundBox *bb;

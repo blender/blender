@@ -75,14 +75,15 @@ uint *DRW_select_buffer_read(struct Depsgraph *depsgraph,
     DRW_draw_select_id(depsgraph, ar, v3d, rect);
 
     if (select_ctx->index_drawn_len > 1) {
-      BLI_assert(ar->winx == GPU_texture_width(select_ctx->texture_u32) &&
-                 ar->winy == GPU_texture_height(select_ctx->texture_u32));
+      BLI_assert(ar->winx == GPU_texture_width(DRW_engine_select_texture_get()) &&
+                 ar->winy == GPU_texture_height(DRW_engine_select_texture_get()));
 
       /* Read the UI32 pixels. */
       buf_len = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
       r_buf = MEM_mallocN(buf_len * sizeof(*r_buf), __func__);
 
-      GPU_framebuffer_bind(select_ctx->framebuffer_select_id);
+      GPUFrameBuffer *select_id_fb = DRW_engine_select_framebuffer_get();
+      GPU_framebuffer_bind(select_id_fb);
       glReadBuffer(GL_COLOR_ATTACHMENT0);
       glReadPixels(rect_clamp.xmin,
                    rect_clamp.ymin,
