@@ -167,6 +167,11 @@ const EnumPropertyItem rna_enum_snap_element_items[] = {
     {SCE_SNAP_MODE_EDGE, "EDGE", ICON_SNAP_EDGE, "Edge", "Snap to edges"},
     {SCE_SNAP_MODE_FACE, "FACE", ICON_SNAP_FACE, "Face", "Snap to faces"},
     {SCE_SNAP_MODE_VOLUME, "VOLUME", ICON_SNAP_VOLUME, "Volume", "Snap to volume"},
+    {SCE_SNAP_MODE_EDGE_MIDPOINT,
+     "EDGE_MIDPOINT",
+     ICON_SNAP_MIDPOINT,
+     "Edge Center",
+     "Snap to the middle of edges"},
     {0, NULL, 0, NULL, NULL},
 };
 

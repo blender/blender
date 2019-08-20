@@ -998,7 +998,8 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
     mval[0] = t->mval[0];
     mval[1] = t->mval[1];
 
-    if (t->tsnap.mode & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE)) {
+    if (t->tsnap.mode & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
+                         SCE_SNAP_MODE_EDGE_MIDPOINT)) {
       zero_v3(no); /* objects won't set this */
       found = snapObjectsTransform(t, mval, &dist_px, loc, no);
     }
