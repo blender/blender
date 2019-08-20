@@ -141,12 +141,15 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_outliner.row_alternate);
   }
 
+  if (!USER_VERSION_ATLEAST(281, 3)) {
+    FROM_DEFAULT_V4_UCHAR(space_outliner.selected_highlight);
+    FROM_DEFAULT_V4_UCHAR(space_outliner.active);
+  }
+
   /**
    * Include next version bump.
    */
   {
-    FROM_DEFAULT_V4_UCHAR(space_outliner.selected_highlight);
-    FROM_DEFAULT_V4_UCHAR(space_outliner.active);
   }
 
 #undef FROM_DEFAULT_V4_UCHAR
