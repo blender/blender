@@ -280,8 +280,8 @@ set(SRC
   nodes/COM_BlurNode.h
   nodes/COM_BokehBlurNode.cpp
   nodes/COM_BokehBlurNode.h
-  nodes/COM_DenoiseNode.h
   nodes/COM_DenoiseNode.cpp
+  nodes/COM_DenoiseNode.h
   nodes/COM_DespeckleNode.cpp
   nodes/COM_DespeckleNode.h
   nodes/COM_DilateErodeNode.cpp
@@ -491,8 +491,8 @@ set(SRC
   operations/COM_ConvolutionEdgeFilterOperation.h
   operations/COM_ConvolutionFilterOperation.cpp
   operations/COM_ConvolutionFilterOperation.h
-  operations/COM_DenoiseOperation.h
   operations/COM_DenoiseOperation.cpp
+  operations/COM_DenoiseOperation.h
   operations/COM_DespeckleOperation.cpp
   operations/COM_DespeckleOperation.h
   operations/COM_DilateErodeOperation.cpp

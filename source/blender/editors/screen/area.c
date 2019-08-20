@@ -1071,7 +1071,6 @@ static void region_azones_add_edge(ScrArea *sa,
   else if (alignment == RGN_ALIGN_LEFT) {
     region_azone_edge_initialize(sa, ar, AE_RIGHT_TO_TOPLEFT, is_fullscreen);
   }
-
 }
 
 static void region_azones_add(const bScreen *screen, ScrArea *sa, ARegion *ar)
@@ -1089,8 +1088,7 @@ static void region_azones_add(const bScreen *screen, ScrArea *sa, ARegion *ar)
   /* For a split region also continue the azone edge from the next region if this region is aligned
    * with the next */
   if ((ar->alignment & RGN_SPLIT_PREV) && ar->prev) {
-    region_azones_add_edge(
-        sa, ar, RGN_ALIGN_ENUM_FROM_MASK(ar->prev->alignment), is_fullscreen);
+    region_azones_add_edge(sa, ar, RGN_ALIGN_ENUM_FROM_MASK(ar->prev->alignment), is_fullscreen);
   }
 
   if (is_fullscreen) {

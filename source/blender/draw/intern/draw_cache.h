@@ -27,8 +27,8 @@ struct GPUBatch;
 struct GPUMaterial;
 struct ModifierData;
 struct Object;
-struct ParticleSystem;
 struct PTCacheEdit;
+struct ParticleSystem;
 
 void DRW_shape_cache_free(void);
 void DRW_shape_cache_reset(void);

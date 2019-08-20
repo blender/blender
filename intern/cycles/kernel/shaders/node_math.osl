@@ -17,7 +17,7 @@
 #include "stdosl.h"
 
 float safe_divide(float a, float b)
-{ 
+{
   return (b != 0.0) ? a / b : 0.0;
 }
 
