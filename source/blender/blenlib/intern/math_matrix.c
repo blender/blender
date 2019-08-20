@@ -297,7 +297,8 @@ void mul_m4_m4m4_db_uniq(double R[4][4], const double A[4][4], const double B[4]
 
 void mul_m4db_m4db_m4fl_uniq(double R[4][4], const double A[4][4], const float B[4][4])
 {
-  BLI_assert(R != A && R != B);
+  /* Remove second check since types don't match. */
+  BLI_assert(R != A /* && R != B */);
 
   /* matrix product: R[j][k] = A[j][i] . B[i][k] */
 
@@ -320,7 +321,6 @@ void mul_m4db_m4db_m4fl_uniq(double R[4][4], const double A[4][4], const float B
   R[3][1] = B[3][0] * A[0][1] + B[3][1] * A[1][1] + B[3][2] * A[2][1] + B[3][3] * A[3][1];
   R[3][2] = B[3][0] * A[0][2] + B[3][1] * A[1][2] + B[3][2] * A[2][2] + B[3][3] * A[3][2];
   R[3][3] = B[3][0] * A[0][3] + B[3][1] * A[1][3] + B[3][2] * A[2][3] + B[3][3] * A[3][3];
-
 }
 
 void mul_m4_m4_pre(float R[4][4], const float A[4][4])
