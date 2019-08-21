@@ -2322,6 +2322,35 @@ void node_attribute_volume_temperature(
   outcol = vec4(outf, outf, outf, 1.0);
 }
 
+void node_volume_info(sampler3D densitySampler,
+                      sampler3D flameSampler,
+                      vec2 temperature,
+                      out vec4 outColor,
+                      out float outDensity,
+                      out float outFlame,
+                      out float outTemprature)
+{
+#if defined(MESH_SHADER) && defined(VOLUMETRICS)
+  vec3 p = volumeObjectLocalCoord;
+#else
+  vec3 p = vec3(0.0);
+#endif
+
+  vec4 density = texture(densitySampler, p);
+  outDensity = density.a;
+
+  /* Density is premultiplied for interpolation, divide it out here. */
+  if (density.a > 1e-8) {
+    density.rgb /= density.a;
+  }
+  outColor = vec4(density.rgb * volumeColor, 1.0);
+
+  float flame = texture(flameSampler, p).r;
+  outFlame = flame;
+
+  outTemprature = (flame > 0.01) ? temperature.x + flame * (temperature.y - temperature.x) : 0.0;
+}
+
 void node_attribute(vec3 attr, out vec4 outcol, out vec3 outvec, out float outf)
 {
   outcol = vec4(attr, 1.0);

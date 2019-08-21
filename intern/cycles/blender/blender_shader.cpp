@@ -607,6 +607,9 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_a(&RNA_ShaderNodeHairInfo)) {
     node = new HairInfoNode();
   }
+  else if (b_node.is_a(&RNA_ShaderNodeVolumeInfo)) {
+    node = new VolumeInfoNode();
+  }
   else if (b_node.is_a(&RNA_ShaderNodeBump)) {
     BL::ShaderNodeBump b_bump_node(b_node);
     BumpNode *bump = new BumpNode();

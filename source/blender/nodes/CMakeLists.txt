@@ -209,6 +209,7 @@ set(SRC
   shader/nodes/node_shader_vectTransform.c
   shader/nodes/node_shader_vector_displacement.c
   shader/nodes/node_shader_volume_absorption.c
+  shader/nodes/node_shader_volume_info.c
   shader/nodes/node_shader_volume_principled.c
   shader/nodes/node_shader_volume_scatter.c
   shader/nodes/node_shader_wavelength.c

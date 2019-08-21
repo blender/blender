@@ -961,6 +961,21 @@ class HairInfoNode : public ShaderNode {
   }
 };
 
+class VolumeInfoNode : public ShaderNode {
+ public:
+  SHADER_NODE_CLASS(VolumeInfoNode)
+  void attributes(Shader *shader, AttributeRequestSet *attributes);
+  bool has_attribute_dependency()
+  {
+    return true;
+  }
+  bool has_spatial_varying()
+  {
+    return true;
+  }
+  void expand(ShaderGraph *graph);
+};
+
 class ValueNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(ValueNode)

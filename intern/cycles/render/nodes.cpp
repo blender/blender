@@ -4168,6 +4168,90 @@ void HairInfoNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_hair_info");
 }
 
+/* Volume Info */
+
+NODE_DEFINE(VolumeInfoNode)
+{
+  NodeType *type = NodeType::add("volume_info", create, NodeType::SHADER);
+
+  SOCKET_OUT_COLOR(color, "Color");
+  SOCKET_OUT_FLOAT(density, "Density");
+  SOCKET_OUT_FLOAT(flame, "Flame");
+  SOCKET_OUT_FLOAT(temperature, "Temperature");
+
+  return type;
+}
+
+VolumeInfoNode::VolumeInfoNode() : ShaderNode(node_type)
+{
+}
+
+/* The requested attributes are not updated after node expansion.
+ * So we explicitly request the required attributes.
+ */
+void VolumeInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
+{
+  if (shader->has_volume) {
+    if (!output("Color")->links.empty()) {
+      attributes->add(ATTR_STD_VOLUME_COLOR);
+    }
+    if (!output("Density")->links.empty()) {
+      attributes->add(ATTR_STD_VOLUME_DENSITY);
+    }
+    if (!output("Flame")->links.empty()) {
+      attributes->add(ATTR_STD_VOLUME_FLAME);
+    }
+    if (!output("Temperature")->links.empty()) {
+      attributes->add(ATTR_STD_VOLUME_TEMPERATURE);
+    }
+    attributes->add(ATTR_STD_GENERATED_TRANSFORM);
+  }
+  ShaderNode::attributes(shader, attributes);
+}
+
+void VolumeInfoNode::expand(ShaderGraph *graph)
+{
+  ShaderOutput *color_out = output("Color");
+  if (!color_out->links.empty()) {
+    AttributeNode *attr = new AttributeNode();
+    attr->attribute = "color";
+    graph->add(attr);
+    graph->relink(color_out, attr->output("Color"));
+  }
+
+  ShaderOutput *density_out = output("Density");
+  if (!density_out->links.empty()) {
+    AttributeNode *attr = new AttributeNode();
+    attr->attribute = "density";
+    graph->add(attr);
+    graph->relink(density_out, attr->output("Fac"));
+  }
+
+  ShaderOutput *flame_out = output("Flame");
+  if (!flame_out->links.empty()) {
+    AttributeNode *attr = new AttributeNode();
+    attr->attribute = "flame";
+    graph->add(attr);
+    graph->relink(flame_out, attr->output("Fac"));
+  }
+
+  ShaderOutput *temperature_out = output("Temperature");
+  if (!temperature_out->links.empty()) {
+    AttributeNode *attr = new AttributeNode();
+    attr->attribute = "temperature";
+    graph->add(attr);
+    graph->relink(temperature_out, attr->output("Fac"));
+  }
+}
+
+void VolumeInfoNode::compile(SVMCompiler &)
+{
+}
+
+void VolumeInfoNode::compile(OSLCompiler &)
+{
+}
+
 /* Value */
 
 NODE_DEFINE(ValueNode)

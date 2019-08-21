@@ -3960,6 +3960,7 @@ static void registerTextureNodes(void)
   register_node_type_sh_tangent();
   register_node_type_sh_normal_map();
   register_node_type_sh_hair_info();
+  register_node_type_sh_volume_info();
 
   register_node_type_tex_checker();
   register_node_type_tex_texture();
