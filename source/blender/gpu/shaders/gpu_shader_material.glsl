@@ -400,7 +400,8 @@ void map_range(
   }
 }
 
-vec3 safe_divide(vec3 a, vec3 b) {
+vec3 safe_divide(vec3 a, vec3 b)
+{
   return vec3((b.x != 0.0) ? a.x / b.x : 0.0,
               (b.y != 0.0) ? a.y / b.y : 0.0,
               (b.z != 0.0) ? a.z / b.z : 0.0);

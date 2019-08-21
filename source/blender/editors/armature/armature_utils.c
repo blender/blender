@@ -381,8 +381,12 @@ void armature_tag_unselect(bArmature *arm)
 
 void ED_armature_ebone_transform_mirror_update(bArmature *arm, EditBone *ebo, bool check_select)
 {
-  /* TODO When this function is called by property updates, cancelling the value change will not restore mirrored bone correctly. */
-  /* Currently check_select==true when this function is called from a transform operator, eg. from 3d viewport. */
+  /* TODO When this function is called by property updates,
+   * cancelling the value change will not restore mirrored bone correctly. */
+
+  /* Currently check_select==true when this function is called from a transform operator,
+   * eg. from 3d viewport. */
+
   /* no layer check, correct mirror is more important */
   if (!check_select || ebo->flag & (BONE_TIPSEL | BONE_ROOTSEL)) {
     EditBone *eboflip = ED_armature_ebone_get_mirrored(arm->edbo, ebo);
@@ -440,7 +444,8 @@ void ED_armature_ebone_transform_mirror_update(bArmature *arm, EditBone *ebo, bo
 
       if (!check_select || ebo->flag & BONE_SELECTED) {
         /* Mirror bone body properties (both head and tail are selected). */
-        /* TODO: These values can also be changed from pose mode, so only mirroring them in edit mode is not ideal. */
+        /* TODO: These values can also be changed from pose mode,
+         * so only mirroring them in edit mode is not ideal. */
         eboflip->dist = ebo->dist;
         eboflip->weight = ebo->weight;
 
