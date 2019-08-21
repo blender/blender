@@ -66,13 +66,13 @@ ccl_device_noinline float svm_ao(KernelGlobals *kg,
     ray.dD = differential3_zero();
 
     if (flags & NODE_AO_ONLY_LOCAL) {
-      if (!scene_intersect_local(kg, ray, NULL, sd->object, NULL, 0)) {
+      if (!scene_intersect_local(kg, &ray, NULL, sd->object, NULL, 0)) {
         unoccluded++;
       }
     }
     else {
       Intersection isect;
-      if (!scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, &isect)) {
+      if (!scene_intersect(kg, &ray, PATH_RAY_SHADOW_OPAQUE, &isect)) {
         unoccluded++;
       }
     }

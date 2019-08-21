@@ -649,9 +649,8 @@ typedef struct Ray {
  * is fixed.
  */
 #ifndef __KERNEL_OPENCL_AMD__
-  float3 P; /* origin */
-  float3 D; /* direction */
-
+  float3 P;   /* origin */
+  float3 D;   /* direction */
   float t;    /* length of the ray */
   float time; /* time (for motion blur) */
 #else

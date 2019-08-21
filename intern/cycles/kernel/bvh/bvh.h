@@ -177,24 +177,23 @@ ccl_device_inline bool scene_intersect_valid(const Ray *ray)
   return isfinite_safe(ray->P.x) && isfinite_safe(ray->D.x);
 }
 
-/* Note: ray is passed by value to work around a possible CUDA compiler bug. */
 ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
-                                          const Ray ray,
+                                          const Ray *ray,
                                           const uint visibility,
                                           Intersection *isect)
 {
   PROFILING_INIT(kg, PROFILING_INTERSECT);
 
-  if (!scene_intersect_valid(&ray)) {
+  if (!scene_intersect_valid(ray)) {
     return false;
   }
 #ifdef __EMBREE__
   if (kernel_data.bvh.scene) {
-    isect->t = ray.t;
+    isect->t = ray->t;
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_REGULAR);
     IntersectContext rtc_ctx(&ctx);
     RTCRayHit ray_hit;
-    kernel_embree_setup_rayhit(ray, ray_hit, visibility);
+    kernel_embree_setup_rayhit(*ray, ray_hit, visibility);
     rtcIntersect1(kernel_data.bvh.scene, &rtc_ctx.context, &ray_hit);
     if (ray_hit.hit.geomID != RTC_INVALID_GEOMETRY_ID &&
         ray_hit.hit.primID != RTC_INVALID_GEOMETRY_ID) {
@@ -207,42 +206,43 @@ ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
 #ifdef __OBJECT_MOTION__
   if (kernel_data.bvh.have_motion) {
 #  ifdef __HAIR__
-    if (kernel_data.bvh.have_curves)
-      return bvh_intersect_hair_motion(kg, &ray, isect, visibility);
+    if (kernel_data.bvh.have_curves) {
+      return bvh_intersect_hair_motion(kg, ray, isect, visibility);
+    }
 #  endif /* __HAIR__ */
 
-    return bvh_intersect_motion(kg, &ray, isect, visibility);
+    return bvh_intersect_motion(kg, ray, isect, visibility);
   }
 #endif /* __OBJECT_MOTION__ */
 
 #ifdef __HAIR__
-  if (kernel_data.bvh.have_curves)
-    return bvh_intersect_hair(kg, &ray, isect, visibility);
+  if (kernel_data.bvh.have_curves) {
+    return bvh_intersect_hair(kg, ray, isect, visibility);
+  }
 #endif /* __HAIR__ */
 
 #ifdef __KERNEL_CPU__
 
 #  ifdef __INSTANCING__
-  if (kernel_data.bvh.have_instancing)
-    return bvh_intersect_instancing(kg, &ray, isect, visibility);
+  if (kernel_data.bvh.have_instancing) {
+    return bvh_intersect_instancing(kg, ray, isect, visibility);
+  }
 #  endif /* __INSTANCING__ */
-
-  return bvh_intersect(kg, &ray, isect, visibility);
+  return bvh_intersect(kg, ray, isect, visibility);
 #else /* __KERNEL_CPU__ */
 
 #  ifdef __INSTANCING__
-  return bvh_intersect_instancing(kg, &ray, isect, visibility);
+  return bvh_intersect_instancing(kg, ray, isect, visibility);
 #  else
-  return bvh_intersect(kg, &ray, isect, visibility);
+  return bvh_intersect(kg, ray, isect, visibility);
 #  endif /* __INSTANCING__ */
 
 #endif /* __KERNEL_CPU__ */
 }
 
 #ifdef __BVH_LOCAL__
-/* Note: ray is passed by value to work around a possible CUDA compiler bug. */
 ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
-                                                const Ray ray,
+                                                const Ray *ray,
                                                 LocalIntersection *local_isect,
                                                 int local_object,
                                                 uint *lcg_state,
@@ -250,7 +250,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
 {
   PROFILING_INIT(kg, PROFILING_INTERSECT_LOCAL);
 
-  if (!scene_intersect_valid(&ray)) {
+  if (!scene_intersect_valid(ray)) {
     local_isect->num_hits = 0;
     return false;
   }
@@ -264,19 +264,19 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
     ctx.sss_object_id = local_object;
     IntersectContext rtc_ctx(&ctx);
     RTCRay rtc_ray;
-    kernel_embree_setup_ray(ray, rtc_ray, PATH_RAY_ALL_VISIBILITY);
+    kernel_embree_setup_ray(*ray, rtc_ray, PATH_RAY_ALL_VISIBILITY);
 
     /* Get the Embree scene for this intersection. */
     RTCGeometry geom = rtcGetGeometry(kernel_data.bvh.scene, local_object * 2);
     if (geom) {
-      float3 P = ray.P;
-      float3 dir = ray.D;
-      float3 idir = ray.D;
+      float3 P = ray->P;
+      float3 dir = ray->D;
+      float3 idir = ray->D;
       const int object_flag = kernel_tex_fetch(__object_flag, local_object);
       if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
         Transform ob_itfm;
         rtc_ray.tfar = bvh_instance_motion_push(
-            kg, local_object, &ray, &P, &dir, &idir, ray.t, &ob_itfm);
+            kg, local_object, ray, &P, &dir, &idir, ray->t, &ob_itfm);
         /* bvh_instance_motion_push() returns the inverse transform but
          * it's not needed here. */
         (void)ob_itfm;
@@ -299,10 +299,10 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
 #  endif /* __EMBREE__ */
 #  ifdef __OBJECT_MOTION__
   if (kernel_data.bvh.have_motion) {
-    return bvh_intersect_local_motion(kg, &ray, local_isect, local_object, lcg_state, max_hits);
+    return bvh_intersect_local_motion(kg, ray, local_isect, local_object, lcg_state, max_hits);
   }
 #  endif /* __OBJECT_MOTION__ */
-  return bvh_intersect_local(kg, &ray, local_isect, local_object, lcg_state, max_hits);
+  return bvh_intersect_local(kg, ray, local_isect, local_object, lcg_state, max_hits);
 }
 #endif
 
@@ -377,15 +377,18 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals *kg,
   if (!scene_intersect_valid(ray)) {
     return false;
   }
+
 #  ifdef __OBJECT_MOTION__
   if (kernel_data.bvh.have_motion) {
     return bvh_intersect_volume_motion(kg, ray, isect, visibility);
   }
 #  endif /* __OBJECT_MOTION__ */
+
 #  ifdef __KERNEL_CPU__
 #    ifdef __INSTANCING__
-  if (kernel_data.bvh.have_instancing)
+  if (kernel_data.bvh.have_instancing) {
     return bvh_intersect_volume_instancing(kg, ray, isect, visibility);
+  }
 #    endif /* __INSTANCING__ */
   return bvh_intersect_volume(kg, ray, isect, visibility);
 #  else /* __KERNEL_CPU__ */
@@ -422,15 +425,18 @@ ccl_device_intersect uint scene_intersect_volume_all(KernelGlobals *kg,
     rtcOccluded1(kernel_data.bvh.scene, &rtc_ctx.context, &rtc_ray);
     return rtc_ray.tfar == -INFINITY;
   }
-#  endif
+#  endif /* __EMBREE__ */
+
 #  ifdef __OBJECT_MOTION__
   if (kernel_data.bvh.have_motion) {
     return bvh_intersect_volume_all_motion(kg, ray, isect, max_hits, visibility);
   }
 #  endif /* __OBJECT_MOTION__ */
+
 #  ifdef __INSTANCING__
-  if (kernel_data.bvh.have_instancing)
+  if (kernel_data.bvh.have_instancing) {
     return bvh_intersect_volume_all_instancing(kg, ray, isect, max_hits, visibility);
+  }
 #  endif /* __INSTANCING__ */
   return bvh_intersect_volume_all(kg, ray, isect, max_hits, visibility);
 }
