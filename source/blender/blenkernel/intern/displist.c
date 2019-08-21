@@ -920,7 +920,7 @@ static void curve_calc_modifiers_pre(
   }
 
   if (deformedVerts) {
-    BK_curve_nurbs_vert_coords_apply(nurb, deformedVerts);
+    BKE_curve_nurbs_vert_coords_apply(nurb, deformedVerts);
     MEM_freeN(deformedVerts);
   }
   if (keyVerts) { /* these are not passed through modifier stack */

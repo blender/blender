@@ -4641,7 +4641,7 @@ float (*BKE_curve_nurbs_vert_coords_alloc(ListBase *lb, int *r_vert_len))[3]
   return vert_coords;
 }
 
-void BK_curve_nurbs_vert_coords_apply(ListBase *lb, const float (*vert_coords)[3])
+void BKE_curve_nurbs_vert_coords_apply(ListBase *lb, const float (*vert_coords)[3])
 {
   const float *co = vert_coords[0];
 

@@ -716,7 +716,7 @@ static int modifier_apply_obdata(
 
     vertexCos = BKE_curve_nurbs_vert_coords_alloc(&curve_eval->nurb, &numVerts);
     mti->deformVerts(md_eval, &mectx, NULL, vertexCos, numVerts);
-    BK_curve_nurbs_vert_coords_apply(&curve->nurb, vertexCos);
+    BKE_curve_nurbs_vert_coords_apply(&curve->nurb, vertexCos);
 
     MEM_freeN(vertexCos);
 
