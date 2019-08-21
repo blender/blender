@@ -319,10 +319,12 @@ ccl_device_inline void path_radiance_accum_ao(PathRadiance *L,
                                               float3 bsdf,
                                               float3 ao)
 {
+#ifdef __PASSES__
   /* Store AO pass. */
   if (L->use_light_pass && state->bounce == 0) {
     L->ao += alpha * throughput * ao;
   }
+#endif
 
 #ifdef __SHADOW_TRICKS__
   /* For shadow catcher, accumulate ratio. */

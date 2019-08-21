@@ -590,7 +590,9 @@ ccl_device_forceinline void kernel_path_integrate(KernelGlobals *kg,
           throughput /= probability;
         }
 
+#  ifdef __DENOISING_FEATURES__
         kernel_update_denoising_features(kg, &sd, state, L);
+#  endif
 
 #  ifdef __AO__
         /* ambient occlusion */
@@ -610,8 +612,10 @@ ccl_device_forceinline void kernel_path_integrate(KernelGlobals *kg,
         }
 #  endif /* __SUBSURFACE__ */
 
+#  ifdef __EMISSION__
         /* direct lighting */
         kernel_path_surface_connect_light(kg, &sd, emission_sd, throughput, state, L);
+#  endif /* __EMISSION__ */
 
 #  ifdef __VOLUME__
       }

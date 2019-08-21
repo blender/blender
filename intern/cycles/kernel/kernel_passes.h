@@ -114,14 +114,12 @@ ccl_device_inline void kernel_write_denoising_shadow(KernelGlobals *kg,
   float value = path_total_shaded / max(path_total, 1e-7f);
   kernel_write_pass_float(buffer + 2, value * value);
 }
-#endif /* __DENOISING_FEATURES__ */
 
 ccl_device_inline void kernel_update_denoising_features(KernelGlobals *kg,
                                                         ShaderData *sd,
                                                         ccl_addr_space PathState *state,
                                                         PathRadiance *L)
 {
-#ifdef __DENOISING_FEATURES__
   if (state->denoising_feature_weight == 0.0f) {
     return;
   }
@@ -162,13 +160,8 @@ ccl_device_inline void kernel_update_denoising_features(KernelGlobals *kg,
 
     state->denoising_feature_weight = 0.0f;
   }
-#else
-  (void)kg;
-  (void)sd;
-  (void)state;
-  (void)L;
-#endif /* __DENOISING_FEATURES__ */
 }
+#endif /* __DENOISING_FEATURES__ */
 
 #ifdef __KERNEL_DEBUG__
 ccl_device_inline void kernel_write_debug_passes(KernelGlobals *kg,

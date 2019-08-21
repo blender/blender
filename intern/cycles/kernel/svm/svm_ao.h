@@ -16,6 +16,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+#ifdef __SHADER_RAYTRACE__
+
 ccl_device_noinline float svm_ao(KernelGlobals *kg,
                                  ShaderData *sd,
                                  float3 N,
@@ -101,5 +103,7 @@ ccl_device void svm_node_ao(
     stack_store_float3(stack, out_color_offset, ao * color);
   }
 }
+
+#endif /* __SHADER_RAYTRACE__ */
 
 CCL_NAMESPACE_END

@@ -445,7 +445,9 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
         }
       }
 
+#    ifdef __DENOISING_FEATURES__
       kernel_update_denoising_features(kg, &sd, &state, L);
+#    endif
 
 #    ifdef __AO__
       /* ambient occlusion */

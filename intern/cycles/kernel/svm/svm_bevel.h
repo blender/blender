@@ -16,6 +16,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+#ifdef __SHADER_RAYTRACE__
+
 /* Bevel shader averaging normals from nearby surfaces.
  *
  * Sampling strategy from: BSSRDF Importance Sampling, SIGGRAPH 2013
@@ -120,14 +122,14 @@ ccl_device_noinline float3 svm_bevel(KernelGlobals *kg,
       if (sd->type & PRIMITIVE_TRIANGLE) {
         hit_P = triangle_refine_local(kg, sd, &isect.hits[hit], ray);
       }
-#ifdef __OBJECT_MOTION__
+#  ifdef __OBJECT_MOTION__
       else if (sd->type & PRIMITIVE_MOTION_TRIANGLE) {
         float3 verts[3];
         motion_triangle_vertices(
             kg, sd->object, kernel_tex_fetch(__prim_index, isect.hits[hit].prim), sd->time, verts);
         hit_P = motion_triangle_refine_local(kg, sd, &isect.hits[hit], ray, verts);
       }
-#endif /* __OBJECT_MOTION__ */
+#  endif /* __OBJECT_MOTION__ */
 
       /* Get geometric normal. */
       float3 hit_Ng = isect.Ng[hit];
@@ -151,11 +153,11 @@ ccl_device_noinline float3 svm_bevel(KernelGlobals *kg,
         if (sd->type & PRIMITIVE_TRIANGLE) {
           N = triangle_smooth_normal(kg, N, prim, u, v);
         }
-#ifdef __OBJECT_MOTION__
+#  ifdef __OBJECT_MOTION__
         else if (sd->type & PRIMITIVE_MOTION_TRIANGLE) {
           N = motion_triangle_smooth_normal(kg, N, sd->object, prim, u, v, sd->time);
         }
-#endif /* __OBJECT_MOTION__ */
+#  endif /* __OBJECT_MOTION__ */
       }
 
       /* Transform normals to world space. */
@@ -213,5 +215,7 @@ ccl_device void svm_node_bevel(
 
   stack_store_float3(stack, out_offset, bevel_N);
 }
+
+#endif /* __SHADER_RAYTRACE__ */
 
 CCL_NAMESPACE_END

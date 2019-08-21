@@ -16,6 +16,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+#ifdef __TEXTURES__
+
 ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint flags)
 {
   float4 r = kernel_tex_image_interp(kg, id, x, y);
@@ -198,5 +200,7 @@ ccl_device void svm_node_tex_environment(KernelGlobals *kg,
   if (stack_valid(alpha_offset))
     stack_store_float(stack, alpha_offset, f.w);
 }
+
+#endif /* __TEXTURES__ */
 
 CCL_NAMESPACE_END

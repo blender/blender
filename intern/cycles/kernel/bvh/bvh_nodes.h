@@ -39,7 +39,9 @@ ccl_device_forceinline int bvh_aligned_node_intersect(KernelGlobals *kg,
 {
 
   /* fetch node data */
+#  ifdef __VISIBILITY_FLAG__
   float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr + 0);
+#  endif
   float4 node0 = kernel_tex_fetch(__bvh_nodes, node_addr + 1);
   float4 node1 = kernel_tex_fetch(__bvh_nodes, node_addr + 2);
   float4 node2 = kernel_tex_fetch(__bvh_nodes, node_addr + 3);
@@ -111,7 +113,9 @@ ccl_device_forceinline int bvh_unaligned_node_intersect(KernelGlobals *kg,
                                                         float dist[2])
 {
   int mask = 0;
+#  ifdef __VISIBILITY_FLAG__
   float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr + 0);
+#  endif
   if (bvh_unaligned_node_intersect_child(kg, P, dir, t, node_addr, 0, &dist[0])) {
 #  ifdef __VISIBILITY_FLAG__
     if ((__float_as_uint(cnodes.x) & visibility))

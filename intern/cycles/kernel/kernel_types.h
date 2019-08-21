@@ -115,7 +115,6 @@ CCL_NAMESPACE_BEGIN
 #  define __LAMP_MIS__
 #  define __CAMERA_MOTION__
 #  define __OBJECT_MOTION__
-#  define __HAIR__
 #  define __BAKING__
 #  define __PRINCIPLED__
 #  define __SUBSURFACE__
