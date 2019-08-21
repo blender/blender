@@ -89,7 +89,7 @@ void armature_deform_verts(struct Object *armOb,
                            struct bGPDstroke *gps);
 
 float (*BKE_lattice_vertexcos_get(struct Object *ob, int *r_numVerts))[3];
-void BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3]);
+void BKE_lattice_vertexcos_apply(struct Object *ob, const float (*vertexCos)[3]);
 void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph,
                                 struct Scene *scene,
                                 struct Object *ob);

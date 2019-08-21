@@ -1075,7 +1075,7 @@ float (*BKE_lattice_vertexcos_get(struct Object *ob, int *r_numVerts))[3]
   return vertexCos;
 }
 
-void BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3])
+void BKE_lattice_vertexcos_apply(struct Object *ob, const float (*vertexCos)[3])
 {
   Lattice *lt = ob->data;
   int i, numVerts = lt->pntsu * lt->pntsv * lt->pntsw;

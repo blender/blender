@@ -2324,7 +2324,7 @@ float (*BKE_pbvh_get_vertCos(PBVH *pbvh))[3]
   return vertCos;
 }
 
-void BKE_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3], const int totvert)
+void BKE_pbvh_apply_vertCos(PBVH *pbvh, const float (*vertCos)[3], const int totvert)
 {
   if (totvert != pbvh->totvert) {
     BLI_assert(!"PBVH: Given deforming vcos number does not natch PBVH vertex number!");

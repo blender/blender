@@ -2066,9 +2066,9 @@ void BKE_keyblock_mesh_calc_normals(struct KeyBlock *kb,
 }
 
 /************************* raw coords ************************/
-void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)[3])
+void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
 {
-  float(*co)[3] = vertCos;
+  const float(*co)[3] = vertCos;
   float *fp = kb->data;
   int tot, a;
 
@@ -2126,7 +2126,7 @@ void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)
   }
 }
 
-void BKE_keyblock_convert_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)[3])
+void BKE_keyblock_convert_from_vertcos(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
 {
   int tot = 0, elemsize;
 
@@ -2219,7 +2219,7 @@ float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
 }
 
 /************************* raw coord offsets ************************/
-void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, float (*ofs)[3])
+void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, const float (*ofs)[3])
 {
   int a;
   float *fp = kb->data;

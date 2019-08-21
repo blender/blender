@@ -1665,35 +1665,25 @@ void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])
   /* We could support faces in paint modes. */
 }
 
-void BKE_mesh_apply_vert_coords(Mesh *mesh, float (*vertCoords)[3])
+void BKE_mesh_apply_vert_coords(Mesh *mesh, const float (*vertCoords)[3])
 {
-  MVert *vert;
-  int i;
-
-  /* this will just return the pointer if it wasn't a referenced layer */
-  vert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MVERT, mesh->totvert);
-  mesh->mvert = vert;
-
-  for (i = 0; i < mesh->totvert; ++i, ++vert) {
-    copy_v3_v3(vert->co, vertCoords[i]);
+  /* This will just return the pointer if it wasn't a referenced layer. */
+  MVert *mv = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MVERT, mesh->totvert);
+  mesh->mvert = mv;
+  for (int i = 0; i < mesh->totvert; i++, mv++) {
+    copy_v3_v3(mv->co, vertCoords[i]);
   }
-
   mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 }
 
-void BKE_mesh_apply_vert_normals(Mesh *mesh, short (*vertNormals)[3])
+void BKE_mesh_apply_vert_normals(Mesh *mesh, const short (*vertNormals)[3])
 {
-  MVert *vert;
-  int i;
-
-  /* this will just return the pointer if it wasn't a referenced layer */
-  vert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MVERT, mesh->totvert);
-  mesh->mvert = vert;
-
-  for (i = 0; i < mesh->totvert; ++i, ++vert) {
-    copy_v3_v3_short(vert->no, vertNormals[i]);
+  /* This will just return the pointer if it wasn't a referenced layer. */
+  MVert *mv = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MVERT, mesh->totvert);
+  mesh->mvert = mv;
+  for (int i = 0; i < mesh->totvert; i++, mv++) {
+    copy_v3_v3_short(mv->no, vertNormals[i]);
   }
-
   mesh->runtime.cd_dirty_vert &= ~CD_MASK_NORMAL;
 }
 

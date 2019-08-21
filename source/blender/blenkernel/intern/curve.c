@@ -4639,7 +4639,7 @@ float (*BKE_curve_nurbs_vertexCos_get(ListBase *lb, int *r_numVerts))[3]
   return cos;
 }
 
-void BK_curve_nurbs_vertexCos_apply(ListBase *lb, float (*vertexCos)[3])
+void BK_curve_nurbs_vertexCos_apply(ListBase *lb, const float (*vertexCos)[3])
 {
   const float *co = vertexCos[0];
   Nurb *nu;

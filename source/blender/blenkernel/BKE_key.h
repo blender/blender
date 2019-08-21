@@ -92,13 +92,17 @@ void BKE_keyblock_mesh_calc_normals(struct KeyBlock *kb,
                                     float (*r_polynors)[3],
                                     float (*r_loopnors)[3]);
 
-void BKE_keyblock_update_from_vertcos(struct Object *ob, struct KeyBlock *kb, float (*vertCos)[3]);
+void BKE_keyblock_update_from_vertcos(struct Object *ob,
+                                      struct KeyBlock *kb,
+                                      const float (*vertCos)[3]);
 void BKE_keyblock_convert_from_vertcos(struct Object *ob,
                                        struct KeyBlock *kb,
-                                       float (*vertCos)[3]);
+                                       const float (*vertCos)[3]);
 float (*BKE_keyblock_convert_to_vertcos(struct Object *ob, struct KeyBlock *kb))[3];
 
-void BKE_keyblock_update_from_offset(struct Object *ob, struct KeyBlock *kb, float (*ofs)[3]);
+void BKE_keyblock_update_from_offset(struct Object *ob,
+                                     struct KeyBlock *kb,
+                                     const float (*ofs)[3]);
 
 /* other management */
 bool BKE_keyblock_move(struct Object *ob, int org_index, int new_index);
