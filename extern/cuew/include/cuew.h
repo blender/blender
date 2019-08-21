@@ -27,7 +27,7 @@ extern "C" {
 #define CUEW_VERSION_MAJOR 2
 #define CUEW_VERSION_MINOR 0
 
-#define CUDA_VERSION 9010
+#define CUDA_VERSION 9020
 #define CU_IPC_HANDLE_SIZE 64
 #define CU_STREAM_LEGACY ((CUstream)0x1)
 #define CU_STREAM_PER_THREAD ((CUstream)0x2)
@@ -383,6 +383,10 @@ typedef enum CUdevice_attribute_enum {
   CU_DEVICE_ATTRIBUTE_COOPERATIVE_LAUNCH = 95,
   CU_DEVICE_ATTRIBUTE_COOPERATIVE_MULTI_DEVICE_LAUNCH = 96,
   CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK_OPTIN = 97,
+  CU_DEVICE_ATTRIBUTE_CAN_FLUSH_REMOTE_WRITES = 98,
+  CU_DEVICE_ATTRIBUTE_HOST_REGISTER_SUPPORTED = 99,
+  CU_DEVICE_ATTRIBUTE_PAGEABLE_MEMORY_ACCESS_USES_HOST_PAGE_TABLES = 100,
+  CU_DEVICE_ATTRIBUTE_DIRECT_MANAGED_MEM_ACCESS_FROM_HOST = 101,
   CU_DEVICE_ATTRIBUTE_MAX,
 } CUdevice_attribute;
 
@@ -408,6 +412,7 @@ typedef enum CUpointer_attribute_enum {
   CU_POINTER_ATTRIBUTE_SYNC_MEMOPS = 6,
   CU_POINTER_ATTRIBUTE_BUFFER_ID = 7,
   CU_POINTER_ATTRIBUTE_IS_MANAGED = 8,
+  CU_POINTER_ATTRIBUTE_DEVICE_ORDINAL = 9,
 } CUpointer_attribute;
 
 typedef enum CUfunction_attribute_enum {
@@ -640,6 +645,7 @@ typedef enum CUdevice_P2PAttribute_enum {
   CU_DEVICE_P2P_ATTRIBUTE_PERFORMANCE_RANK = 0x01,
   CU_DEVICE_P2P_ATTRIBUTE_ACCESS_SUPPORTED = 0x02,
   CU_DEVICE_P2P_ATTRIBUTE_NATIVE_ATOMIC_SUPPORTED = 0x03,
+  CU_DEVICE_P2P_ATTRIBUTE_ARRAY_ACCESS_ACCESS_SUPPORTED = 0x04,
 } CUdevice_P2PAttribute;
 
 typedef void (CUDA_CB *CUstreamCallback)(CUstream hStream, CUresult status, void* userData);
@@ -888,6 +894,7 @@ typedef CUresult CUDAAPI tcuDriverGetVersion(int* driverVersion);
 typedef CUresult CUDAAPI tcuDeviceGet(CUdevice* device, int ordinal);
 typedef CUresult CUDAAPI tcuDeviceGetCount(int* count);
 typedef CUresult CUDAAPI tcuDeviceGetName(char* name, int len, CUdevice dev);
+typedef CUresult CUDAAPI tcuDeviceGetUuid(CUuuid* uuid, CUdevice dev);
 typedef CUresult CUDAAPI tcuDeviceTotalMem_v2(size_t* bytes, CUdevice dev);
 typedef CUresult CUDAAPI tcuDeviceGetAttribute(int* pi, CUdevice_attribute attrib, CUdevice dev);
 typedef CUresult CUDAAPI tcuDeviceGetProperties(CUdevprop* prop, CUdevice dev);
@@ -1005,6 +1012,7 @@ typedef CUresult CUDAAPI tcuStreamCreate(CUstream* phStream, unsigned int Flags)
 typedef CUresult CUDAAPI tcuStreamCreateWithPriority(CUstream* phStream, unsigned int flags, int priority);
 typedef CUresult CUDAAPI tcuStreamGetPriority(CUstream hStream, int* priority);
 typedef CUresult CUDAAPI tcuStreamGetFlags(CUstream hStream, unsigned int* flags);
+typedef CUresult CUDAAPI tcuStreamGetCtx(CUstream hStream, CUcontext* pctx);
 typedef CUresult CUDAAPI tcuStreamWaitEvent(CUstream hStream, CUevent hEvent, unsigned int Flags);
 typedef CUresult CUDAAPI tcuStreamAddCallback(CUstream hStream, CUstreamCallback callback, void* userData, unsigned int flags);
 typedef CUresult CUDAAPI tcuStreamAttachMemAsync(CUstream hStream, CUdeviceptr dptr, size_t length, unsigned int flags);
@@ -1127,6 +1135,7 @@ extern tcuDriverGetVersion *cuDriverGetVersion;
 extern tcuDeviceGet *cuDeviceGet;
 extern tcuDeviceGetCount *cuDeviceGetCount;
 extern tcuDeviceGetName *cuDeviceGetName;
+extern tcuDeviceGetUuid *cuDeviceGetUuid;
 extern tcuDeviceTotalMem_v2 *cuDeviceTotalMem_v2;
 extern tcuDeviceGetAttribute *cuDeviceGetAttribute;
 extern tcuDeviceGetProperties *cuDeviceGetProperties;
@@ -1244,6 +1253,7 @@ extern tcuStreamCreate *cuStreamCreate;
 extern tcuStreamCreateWithPriority *cuStreamCreateWithPriority;
 extern tcuStreamGetPriority *cuStreamGetPriority;
 extern tcuStreamGetFlags *cuStreamGetFlags;
+extern tcuStreamGetCtx *cuStreamGetCtx;
 extern tcuStreamWaitEvent *cuStreamWaitEvent;
 extern tcuStreamAddCallback *cuStreamAddCallback;
 extern tcuStreamAttachMemAsync *cuStreamAttachMemAsync;
