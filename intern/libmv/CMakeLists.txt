@@ -38,6 +38,9 @@ set(LIB
 )
 
 if(WITH_LIBMV)
+  if(WIN32)
+    add_definitions(-D_USE_MATH_DEFINES)
+  endif()
   add_definitions(${GFLAGS_DEFINES})
   add_definitions(${GLOG_DEFINES})
   add_definitions(${CERES_DEFINES})

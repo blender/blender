@@ -25,9 +25,6 @@
 // smart coder went through the TODO's and made the suggested performance
 // enhancements.
 
-// Necessary for M_E when building with MSVC.
-#define _USE_MATH_DEFINES
-
 #include "libmv/tracking/track_region.h"
 
 #include <Eigen/SVD>
