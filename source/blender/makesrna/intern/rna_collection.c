@@ -234,7 +234,7 @@ static bool rna_Collection_children_override_apply(Main *bmain,
                                                    IDOverrideLibraryPropertyOperation *opop)
 {
   BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE &&
-             "Unsupported RNA override operation on collections' objects");
+             "Unsupported RNA override operation on collections' children");
   UNUSED_VARS_NDEBUG(opop);
 
   Collection *coll_dst = ptr_dst->id.data;
