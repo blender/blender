@@ -1088,6 +1088,25 @@ void DRW_mesh_batch_cache_create_requested(
     }
   }
 
+  /* HACK: if MBC_SURF_PER_MAT is requested and ibo.tris is already available, it won't have it's
+   * index ranges initialized. So discard ibo.tris in order to recreate it. */
+  if ((batch_requested & MBC_SURF_PER_MAT) != 0 && (cache->batch_ready & MBC_SURF_PER_MAT) == 0) {
+    FOREACH_MESH_BUFFER_CACHE(cache, mbuffercache)
+    {
+      GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.tris);
+    }
+    /* Clear all batches that reference ibo.tris. */
+    GPU_BATCH_CLEAR_SAFE(cache->batch.surface);
+    GPU_BATCH_CLEAR_SAFE(cache->batch.surface_weights);
+    GPU_BATCH_CLEAR_SAFE(cache->batch.edit_mesh_analysis);
+    GPU_BATCH_CLEAR_SAFE(cache->batch.edit_triangles);
+    GPU_BATCH_CLEAR_SAFE(cache->batch.edit_lnor);
+    GPU_BATCH_CLEAR_SAFE(cache->batch.edit_selection_faces);
+
+    cache->batch_ready &= ~(MBC_SURFACE | MBC_SURFACE_WEIGHTS | MBC_EDIT_MESH_ANALYSIS |
+                            MBC_EDIT_TRIANGLES | MBC_EDIT_LNOR | MBC_EDIT_SELECTION_FACES);
+  }
+
   /* Second chance to early out */
   if ((batch_requested & ~cache->batch_ready) == 0) {
 #ifdef DEBUG
