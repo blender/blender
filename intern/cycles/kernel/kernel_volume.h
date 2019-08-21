@@ -1275,7 +1275,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
    */
   if (stack_index == 0 && kernel_data.background.volume_shader == SHADER_NONE) {
     stack[0].shader = kernel_data.background.volume_shader;
-    stack[0].object = PRIM_NONE;
+    stack[0].object = OBJECT_NONE;
     stack[1].shader = SHADER_NONE;
   }
   else {
