@@ -1055,9 +1055,8 @@ void outside_lattice(Lattice *lt)
   }
 }
 
-float (*BKE_lattice_vertexcos_get(struct Object *ob, int *r_numVerts))[3]
+float (*BKE_lattice_vertexcos_get(const Lattice *lt, int *r_numVerts))[3]
 {
-  Lattice *lt = ob->data;
   int i, numVerts;
   float(*vertexCos)[3];
 
@@ -1075,9 +1074,8 @@ float (*BKE_lattice_vertexcos_get(struct Object *ob, int *r_numVerts))[3]
   return vertexCos;
 }
 
-void BKE_lattice_vertexcos_apply(struct Object *ob, const float (*vertexCos)[3])
+void BKE_lattice_vertexcos_apply(Lattice *lt, const float (*vertexCos)[3])
 {
-  Lattice *lt = ob->data;
   int i, numVerts = lt->pntsu * lt->pntsv * lt->pntsw;
 
   for (i = 0; i < numVerts; i++) {
@@ -1124,21 +1122,21 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
     }
 
     if (!vertexCos) {
-      vertexCos = BKE_lattice_vertexcos_get(ob_orig, &numVerts);
+      vertexCos = BKE_lattice_vertexcos_get(ob_orig->data, &numVerts);
     }
     mti->deformVerts(md, &mectx, NULL, vertexCos, numVerts);
   }
 
   if (ob->id.tag & LIB_TAG_COPIED_ON_WRITE) {
     if (vertexCos) {
-      BKE_lattice_vertexcos_apply(ob, vertexCos);
+      BKE_lattice_vertexcos_apply(ob->data, vertexCos);
       MEM_freeN(vertexCos);
     }
   }
   else {
     /* Displist won't do anything; this is just for posterity's sake until we remove it. */
     if (!vertexCos) {
-      vertexCos = BKE_lattice_vertexcos_get(ob_orig, &numVerts);
+      vertexCos = BKE_lattice_vertexcos_get(ob_orig->data, &numVerts);
     }
 
     DispList *dl = MEM_callocN(sizeof(*dl), "lt_dl");
