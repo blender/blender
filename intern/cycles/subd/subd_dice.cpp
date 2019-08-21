@@ -323,8 +323,8 @@ void QuadDice::dice(SubPatch &sub, EdgeFactors &ef)
   float S = 1.0f;
 #endif
 
-  Mu = max((int)ceil(S * Mu), 2);  // XXX handle 0 & 1?
-  Mv = max((int)ceil(S * Mv), 2);  // XXX handle 0 & 1?
+  Mu = max((int)ceilf(S * Mu), 2);  // XXX handle 0 & 1?
+  Mv = max((int)ceilf(S * Mv), 2);  // XXX handle 0 & 1?
 
   /* reserve space for new verts */
   int offset = params.mesh->verts.size();

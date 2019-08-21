@@ -1292,7 +1292,8 @@ class VectorMathNode : public ShaderNode {
 
   float3 vector1;
   float3 vector2;
-  NodeVectorMath type;
+  float scale;
+  NodeVectorMathType type;
 };
 
 class VectorTransformNode : public ShaderNode {

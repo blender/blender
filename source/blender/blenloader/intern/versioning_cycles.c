@@ -45,6 +45,11 @@
 #include "BLO_readfile.h"
 #include "readfile.h"
 
+static bool socket_is_used(bNodeSocket *sock)
+{
+  return sock->flag & SOCK_IN_USE;
+}
+
 static float *cycles_node_socket_float_value(bNodeSocket *socket)
 {
   bNodeSocketValueFloat *socket_data = socket->default_value;
@@ -54,6 +59,12 @@ static float *cycles_node_socket_float_value(bNodeSocket *socket)
 static float *cycles_node_socket_rgba_value(bNodeSocket *socket)
 {
   bNodeSocketValueRGBA *socket_data = socket->default_value;
+  return socket_data->value;
+}
+
+static float *cycles_node_socket_vector_value(bNodeSocket *socket)
+{
+  bNodeSocketValueVector *socket_data = socket->default_value;
   return socket_data->value;
 }
 
@@ -426,6 +437,325 @@ static void update_math_node_single_operand_operators(bNodeTree *ntree)
   }
 }
 
+/* The Value output of the Vector Math node is no longer available in the Add
+ * and Subtract operators. Previously, this Value output was computed from the
+ * Vector output V as follows:
+ *
+ *   Value = (abs(V.x) + abs(V.y) + abs(V.z)) / 3
+ *
+ * Or more compactly using vector operators:
+ *
+ *   Value = dot(abs(V), (1 / 3, 1 / 3, 1 / 3))
+ *
+ * To correct this, if the Value output was used, we are going to compute
+ * it using the second equation by adding an absolute and a dot node, and
+ * then connect them appropriately.
+ */
+static void update_vector_math_node_add_and_subtract_operators(bNodeTree *ntree)
+{
+  bool need_update = false;
+
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_VECTOR_MATH) {
+      bNodeSocket *sockOutValue = nodeFindSocket(node, SOCK_OUT, "Value");
+      if (socket_is_used(sockOutValue) &&
+          ELEM(node->custom1, NODE_VECTOR_MATH_ADD, NODE_VECTOR_MATH_SUBTRACT)) {
+
+        bNode *absNode = nodeAddStaticNode(NULL, ntree, SH_NODE_VECTOR_MATH);
+        absNode->custom1 = NODE_VECTOR_MATH_ABSOLUTE;
+        absNode->locx = node->locx + node->width + 20.0f;
+        absNode->locy = node->locy;
+
+        bNode *dotNode = nodeAddStaticNode(NULL, ntree, SH_NODE_VECTOR_MATH);
+        dotNode->custom1 = NODE_VECTOR_MATH_DOT_PRODUCT;
+        dotNode->locx = absNode->locx + absNode->width + 20.0f;
+        dotNode->locy = absNode->locy;
+        bNodeSocket *sockDotB = BLI_findlink(&dotNode->inputs, 1);
+        bNodeSocket *sockDotOutValue = nodeFindSocket(dotNode, SOCK_OUT, "Value");
+        copy_v3_fl(cycles_node_socket_vector_value(sockDotB), 1 / 3.0f);
+
+        LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
+          if (link->fromsock == sockOutValue) {
+            nodeAddLink(ntree, dotNode, sockDotOutValue, link->tonode, link->tosock);
+            nodeRemLink(ntree, link);
+          }
+        }
+
+        bNodeSocket *sockAbsA = BLI_findlink(&absNode->inputs, 0);
+        bNodeSocket *sockDotA = BLI_findlink(&dotNode->inputs, 0);
+        bNodeSocket *sockOutVector = nodeFindSocket(node, SOCK_OUT, "Vector");
+        bNodeSocket *sockAbsOutVector = nodeFindSocket(absNode, SOCK_OUT, "Vector");
+
+        nodeAddLink(ntree, node, sockOutVector, absNode, sockAbsA);
+        nodeAddLink(ntree, absNode, sockAbsOutVector, dotNode, sockDotA);
+
+        need_update = true;
+      }
+    }
+  }
+
+  if (need_update) {
+    ntreeUpdateTree(NULL, ntree);
+  }
+}
+
+/* The Vector output of the Vector Math node is no longer available in the Dot
+ * Product operator. Previously, this Vector was always zero initialized. To
+ * correct this, we zero out any socket the Vector Output was connected to.
+ */
+static void update_vector_math_node_dot_product_operator(bNodeTree *ntree)
+{
+  bool need_update = false;
+
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_VECTOR_MATH) {
+      bNodeSocket *sockOutVector = nodeFindSocket(node, SOCK_OUT, "Vector");
+      if (socket_is_used(sockOutVector) && node->custom1 == NODE_VECTOR_MATH_DOT_PRODUCT) {
+        LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
+          if (link->fromsock == sockOutVector) {
+            switch (link->tosock->type) {
+              case SOCK_FLOAT:
+                *cycles_node_socket_float_value(link->tosock) = 0.0f;
+                break;
+              case SOCK_VECTOR:
+                copy_v3_fl(cycles_node_socket_vector_value(link->tosock), 0.0f);
+                break;
+              case SOCK_RGBA:
+                copy_v4_fl(cycles_node_socket_rgba_value(link->tosock), 0.0f);
+                break;
+            }
+            nodeRemLink(ntree, link);
+          }
+        }
+        need_update = true;
+      }
+    }
+  }
+
+  if (need_update) {
+    ntreeUpdateTree(NULL, ntree);
+  }
+}
+
+/* Previously, the Vector output of the cross product operator was normalized.
+ * To correct this, a Normalize node is added to normalize the output if used.
+ * Moreover, the Value output was removed. This Value was equal to the length
+ * of the cross product. To correct this, a Length node is added if needed.
+ */
+static void update_vector_math_node_cross_product_operator(bNodeTree *ntree)
+{
+  bool need_update = false;
+
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_VECTOR_MATH) {
+      if (node->custom1 == NODE_VECTOR_MATH_CROSS_PRODUCT) {
+        bNodeSocket *sockOutVector = nodeFindSocket(node, SOCK_OUT, "Vector");
+        if (socket_is_used(sockOutVector)) {
+          bNode *normalizeNode = nodeAddStaticNode(NULL, ntree, SH_NODE_VECTOR_MATH);
+          normalizeNode->custom1 = NODE_VECTOR_MATH_NORMALIZE;
+          normalizeNode->locx = node->locx + node->width + 20.0f;
+          normalizeNode->locy = node->locy;
+          bNodeSocket *sockNormalizeOut = nodeFindSocket(normalizeNode, SOCK_OUT, "Vector");
+
+          LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
+            if (link->fromsock == sockOutVector) {
+              nodeAddLink(ntree, normalizeNode, sockNormalizeOut, link->tonode, link->tosock);
+              nodeRemLink(ntree, link);
+            }
+          }
+          bNodeSocket *sockNormalizeA = BLI_findlink(&normalizeNode->inputs, 0);
+          nodeAddLink(ntree, node, sockOutVector, normalizeNode, sockNormalizeA);
+
+          need_update = true;
+        }
+
+        bNodeSocket *sockOutValue = nodeFindSocket(node, SOCK_OUT, "Value");
+        if (socket_is_used(sockOutValue)) {
+          bNode *lengthNode = nodeAddStaticNode(NULL, ntree, SH_NODE_VECTOR_MATH);
+          lengthNode->custom1 = NODE_VECTOR_MATH_LENGTH;
+          lengthNode->locx = node->locx + node->width + 20.0f;
+          if (socket_is_used(sockOutVector)) {
+            lengthNode->locy = node->locy - lengthNode->height - 20.0f;
+          }
+          else {
+            lengthNode->locy = node->locy;
+          }
+          bNodeSocket *sockLengthOut = nodeFindSocket(lengthNode, SOCK_OUT, "Value");
+
+          LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
+            if (link->fromsock == sockOutValue) {
+              nodeAddLink(ntree, lengthNode, sockLengthOut, link->tonode, link->tosock);
+              nodeRemLink(ntree, link);
+            }
+          }
+          bNodeSocket *sockLengthA = BLI_findlink(&lengthNode->inputs, 0);
+          nodeAddLink(ntree, node, sockOutVector, lengthNode, sockLengthA);
+
+          need_update = true;
+        }
+      }
+    }
+  }
+
+  if (need_update) {
+    ntreeUpdateTree(NULL, ntree);
+  }
+}
+
+/* The Value output of the Vector Math node is no longer available in the
+ * Normalize operator. This Value output was equal to the length of the
+ * the input vector A. To correct this, we either add a Length node or
+ * convert the Normalize node into a Length node, depending on if the
+ * Vector output is needed.
+ */
+static void update_vector_math_node_normalize_operator(bNodeTree *ntree)
+{
+  bool need_update = false;
+
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_VECTOR_MATH) {
+      bNodeSocket *sockOutValue = nodeFindSocket(node, SOCK_OUT, "Value");
+      if (node->custom1 == NODE_VECTOR_MATH_NORMALIZE && socket_is_used(sockOutValue)) {
+        bNodeSocket *sockOutVector = nodeFindSocket(node, SOCK_OUT, "Vector");
+        if (socket_is_used(sockOutVector)) {
+          bNode *lengthNode = nodeAddStaticNode(NULL, ntree, SH_NODE_VECTOR_MATH);
+          lengthNode->custom1 = NODE_VECTOR_MATH_LENGTH;
+          lengthNode->locx = node->locx + node->width + 20.0f;
+          lengthNode->locy = node->locy;
+          bNodeSocket *sockLengthValue = nodeFindSocket(lengthNode, SOCK_OUT, "Value");
+
+          LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
+            if (link->fromsock == sockOutValue) {
+              nodeAddLink(ntree, lengthNode, sockLengthValue, link->tonode, link->tosock);
+              nodeRemLink(ntree, link);
+            }
+          }
+          bNodeSocket *sockA = BLI_findlink(&node->inputs, 0);
+          bNodeSocket *sockLengthA = BLI_findlink(&lengthNode->inputs, 0);
+          if (sockA->link) {
+            bNodeLink *link = sockA->link;
+            nodeAddLink(ntree, link->fromnode, link->fromsock, lengthNode, sockLengthA);
+          }
+          else {
+            copy_v3_v3(cycles_node_socket_vector_value(sockLengthA),
+                       cycles_node_socket_vector_value(sockA));
+          }
+
+          need_update = true;
+        }
+        else {
+          node->custom1 = NODE_VECTOR_MATH_LENGTH;
+        }
+      }
+    }
+  }
+  if (need_update) {
+    ntreeUpdateTree(NULL, ntree);
+  }
+}
+
+/* The Vector Math operator types didn't have an enum, but rather, their
+ * values were hard coded into the code. After the enum was created and
+ * after more vector operators were added, the hard coded values needs
+ * to be remapped to their correct enum values. To fix this, we remap
+ * the values according to the following rules:
+ *
+ * Dot Product Operator : 3 -> 7
+ * Normalize Operator   : 5 -> 11
+ *
+ * Additionally, since the Average operator was removed, it is assigned
+ * a value of -1 just to be identified later in the versioning code:
+ *
+ * Average Operator : 2 -> -1
+ *
+ */
+static void update_vector_math_node_operators_enum_mapping(bNodeTree *ntree)
+{
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_VECTOR_MATH) {
+      switch (node->custom1) {
+        case 2:
+          node->custom1 = -1;
+          break;
+        case 3:
+          node->custom1 = 7;
+          break;
+        case 5:
+          node->custom1 = 11;
+          break;
+      }
+    }
+  }
+}
+
+/* The Average operator is no longer available in the Vector Math node.
+ * The Vector output was equal to the normalized sum of input vectors while
+ * the Value output was equal to the length of the sum of input vectors.
+ * To correct this, we convert the node into an Add node and add a length
+ * node or a normalize node if needed.
+ */
+static void update_vector_math_node_average_operator(bNodeTree *ntree)
+{
+  bool need_update = false;
+
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_VECTOR_MATH) {
+      /* See update_vector_math_node_operators_enum_mapping. */
+      if (node->custom1 == -1) {
+        node->custom1 = NODE_VECTOR_MATH_ADD;
+        bNodeSocket *sockOutVector = nodeFindSocket(node, SOCK_OUT, "Vector");
+        if (socket_is_used(sockOutVector)) {
+          bNode *normalizeNode = nodeAddStaticNode(NULL, ntree, SH_NODE_VECTOR_MATH);
+          normalizeNode->custom1 = NODE_VECTOR_MATH_NORMALIZE;
+          normalizeNode->locx = node->locx + node->width + 20.0f;
+          normalizeNode->locy = node->locy;
+          bNodeSocket *sockNormalizeOut = nodeFindSocket(normalizeNode, SOCK_OUT, "Vector");
+
+          LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
+            if (link->fromsock == sockOutVector) {
+              nodeAddLink(ntree, normalizeNode, sockNormalizeOut, link->tonode, link->tosock);
+              nodeRemLink(ntree, link);
+            }
+          }
+          bNodeSocket *sockNormalizeA = BLI_findlink(&normalizeNode->inputs, 0);
+          nodeAddLink(ntree, node, sockOutVector, normalizeNode, sockNormalizeA);
+
+          need_update = true;
+        }
+
+        bNodeSocket *sockOutValue = nodeFindSocket(node, SOCK_OUT, "Value");
+        if (socket_is_used(sockOutValue)) {
+          bNode *lengthNode = nodeAddStaticNode(NULL, ntree, SH_NODE_VECTOR_MATH);
+          lengthNode->custom1 = NODE_VECTOR_MATH_LENGTH;
+          lengthNode->locx = node->locx + node->width + 20.0f;
+          if (socket_is_used(sockOutVector)) {
+            lengthNode->locy = node->locy - lengthNode->height - 20.0f;
+          }
+          else {
+            lengthNode->locy = node->locy;
+          }
+          bNodeSocket *sockLengthOut = nodeFindSocket(lengthNode, SOCK_OUT, "Value");
+
+          LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
+            if (link->fromsock == sockOutValue) {
+              nodeAddLink(ntree, lengthNode, sockLengthOut, link->tonode, link->tosock);
+              nodeRemLink(ntree, link);
+            }
+          }
+          bNodeSocket *sockLengthA = BLI_findlink(&lengthNode->inputs, 0);
+          nodeAddLink(ntree, node, sockOutVector, lengthNode, sockLengthA);
+
+          need_update = true;
+        }
+      }
+    }
+  }
+
+  if (need_update) {
+    ntreeUpdateTree(NULL, ntree);
+  }
+}
+
 void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bmain)
 {
   /* Particle shape shared with Eevee. */
@@ -457,6 +787,15 @@ void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bm
         }
       }
     }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 281, 3)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        update_vector_math_node_operators_enum_mapping(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 }
 
@@ -572,6 +911,19 @@ void do_versions_after_linking_cycles(Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_SHADER) {
         update_math_node_single_operand_operators(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 281, 3)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        update_vector_math_node_add_and_subtract_operators(ntree);
+        update_vector_math_node_dot_product_operator(ntree);
+        update_vector_math_node_cross_product_operator(ntree);
+        update_vector_math_node_normalize_operator(ntree);
+        update_vector_math_node_average_operator(ntree);
       }
     }
     FOREACH_NODETREE_END;

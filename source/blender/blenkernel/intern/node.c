@@ -3232,11 +3232,6 @@ void ntreeTagUsedSockets(bNodeTree *ntree)
   }
 
   for (link = ntree->links.first; link; link = link->next) {
-    /* link is unused if either side is disabled */
-    if ((link->fromsock->flag & SOCK_UNAVAIL) || (link->tosock->flag & SOCK_UNAVAIL)) {
-      continue;
-    }
-
     link->fromsock->flag |= SOCK_IN_USE;
     link->tosock->flag |= SOCK_IN_USE;
   }

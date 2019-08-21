@@ -16,38 +16,73 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float average_fac(float3 v)
-{
-  return (fabsf(v.x) + fabsf(v.y) + fabsf(v.z)) / 3.0f;
-}
-
 ccl_device void svm_vector_math(
-    float *Fac, float3 *Vector, NodeVectorMath type, float3 Vector1, float3 Vector2)
+    float *value, float3 *vector, NodeVectorMathType type, float3 a, float3 b, float scale)
 {
-  if (type == NODE_VECTOR_MATH_ADD) {
-    *Vector = Vector1 + Vector2;
-    *Fac = average_fac(*Vector);
-  }
-  else if (type == NODE_VECTOR_MATH_SUBTRACT) {
-    *Vector = Vector1 - Vector2;
-    *Fac = average_fac(*Vector);
-  }
-  else if (type == NODE_VECTOR_MATH_AVERAGE) {
-    *Vector = safe_normalize_len(Vector1 + Vector2, Fac);
-  }
-  else if (type == NODE_VECTOR_MATH_DOT_PRODUCT) {
-    *Fac = dot(Vector1, Vector2);
-    *Vector = make_float3(0.0f, 0.0f, 0.0f);
-  }
-  else if (type == NODE_VECTOR_MATH_CROSS_PRODUCT) {
-    *Vector = safe_normalize_len(cross(Vector1, Vector2), Fac);
-  }
-  else if (type == NODE_VECTOR_MATH_NORMALIZE) {
-    *Vector = safe_normalize_len(Vector1, Fac);
-  }
-  else {
-    *Fac = 0.0f;
-    *Vector = make_float3(0.0f, 0.0f, 0.0f);
+  switch (type) {
+    case NODE_VECTOR_MATH_ADD:
+      *vector = a + b;
+      break;
+    case NODE_VECTOR_MATH_SUBTRACT:
+      *vector = a - b;
+      break;
+    case NODE_VECTOR_MATH_MULTIPLY:
+      *vector = a * b;
+      break;
+    case NODE_VECTOR_MATH_DIVIDE:
+      *vector = safe_divide_float3_float3(a, b);
+      break;
+    case NODE_VECTOR_MATH_CROSS_PRODUCT:
+      *vector = cross(a, b);
+      break;
+    case NODE_VECTOR_MATH_PROJECT:
+      *vector = project(a, b);
+      break;
+    case NODE_VECTOR_MATH_REFLECT:
+      *vector = reflect(a, b);
+      break;
+    case NODE_VECTOR_MATH_DOT_PRODUCT:
+      *value = dot(a, b);
+      break;
+    case NODE_VECTOR_MATH_DISTANCE:
+      *value = distance(a, b);
+      break;
+    case NODE_VECTOR_MATH_LENGTH:
+      *value = len(a);
+      break;
+    case NODE_VECTOR_MATH_SCALE:
+      *vector = a * scale;
+      break;
+    case NODE_VECTOR_MATH_NORMALIZE:
+      *vector = safe_normalize(a);
+      break;
+    case NODE_VECTOR_MATH_SNAP:
+      *vector = floor(safe_divide_float3_float3(a, b)) * b;
+      break;
+    case NODE_VECTOR_MATH_FLOOR:
+      *vector = floor(a);
+      break;
+    case NODE_VECTOR_MATH_CEIL:
+      *vector = ceil(a);
+      break;
+    case NODE_VECTOR_MATH_MODULO:
+      *vector = make_float3(safe_modulo(a.x, b.x), safe_modulo(a.y, b.y), safe_modulo(a.z, b.z));
+      break;
+    case NODE_VECTOR_MATH_FRACTION:
+      *vector = fract(a);
+      break;
+    case NODE_VECTOR_MATH_ABSOLUTE:
+      *vector = fabs(a);
+      break;
+    case NODE_VECTOR_MATH_MINIMUM:
+      *vector = min(a, b);
+      break;
+    case NODE_VECTOR_MATH_MAXIMUM:
+      *vector = max(a, b);
+      break;
+    default:
+      *vector = make_float3(0.0f, 0.0f, 0.0f);
+      *value = 0.0f;
   }
 }
 

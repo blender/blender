@@ -124,7 +124,7 @@ BakeData *BakeManager::init(const int object, const size_t tri_offset, const siz
 void BakeManager::set_shader_limit(const size_t x, const size_t y)
 {
   m_shader_limit = x * y;
-  m_shader_limit = (size_t)pow(2, ceil(log(m_shader_limit) / log(2)));
+  m_shader_limit = (size_t)pow(2, std::ceil(log(m_shader_limit) / log(2)));
 }
 
 bool BakeManager::bake(Device *device,

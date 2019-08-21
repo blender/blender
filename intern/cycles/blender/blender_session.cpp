@@ -1481,8 +1481,8 @@ void BlenderSession::update_resumable_tile_manager(int num_samples)
 
   /* Round after doing the multiplications with num_chunks and num_samples_per_chunk
    * to allow for many small chunks. */
-  int rounded_range_start_sample = (int)floor(range_start_sample + 0.5f);
-  int rounded_range_num_samples = max((int)floor(range_num_samples + 0.5f), 1);
+  int rounded_range_start_sample = (int)floorf(range_start_sample + 0.5f);
+  int rounded_range_num_samples = max((int)floorf(range_num_samples + 0.5f), 1);
 
   /* Make sure we don't overshoot. */
   if (rounded_range_start_sample + rounded_range_num_samples > num_samples) {

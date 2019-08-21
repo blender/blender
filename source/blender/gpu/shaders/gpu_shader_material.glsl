@@ -400,46 +400,118 @@ void map_range(
   }
 }
 
-void vec_math_add(vec3 v1, vec3 v2, out vec3 outvec, out float outval)
-{
-  outvec = v1 + v2;
-  outval = (abs(outvec[0]) + abs(outvec[1]) + abs(outvec[2])) * 0.333333;
+vec3 safe_divide(vec3 a, vec3 b) {
+  return vec3((b.x != 0.0) ? a.x / b.x : 0.0,
+              (b.y != 0.0) ? a.y / b.y : 0.0,
+              (b.z != 0.0) ? a.z / b.z : 0.0);
 }
 
-void vec_math_sub(vec3 v1, vec3 v2, out vec3 outvec, out float outval)
+void vector_math_add(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
 {
-  outvec = v1 - v2;
-  outval = (abs(outvec[0]) + abs(outvec[1]) + abs(outvec[2])) * 0.333333;
+  outVector = a + b;
 }
 
-void vec_math_average(vec3 v1, vec3 v2, out vec3 outvec, out float outval)
+void vector_math_subtract(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
 {
-  outvec = v1 + v2;
-  outval = length(outvec);
-  outvec = normalize(outvec);
-}
-void vec_math_mix(float strength, vec3 v1, vec3 v2, out vec3 outvec)
-{
-  outvec = strength * v1 + (1 - strength) * v2;
+  outVector = a - b;
 }
 
-void vec_math_dot(vec3 v1, vec3 v2, out vec3 outvec, out float outval)
+void vector_math_multiply(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
 {
-  outvec = vec3(0);
-  outval = dot(v1, v2);
+  outVector = a * b;
 }
 
-void vec_math_cross(vec3 v1, vec3 v2, out vec3 outvec, out float outval)
+void vector_math_divide(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
 {
-  outvec = cross(v1, v2);
-  outval = length(outvec);
-  outvec /= outval;
+  outVector = safe_divide(a, b);
 }
 
-void vec_math_normalize(vec3 v, out vec3 outvec, out float outval)
+void vector_math_cross(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
 {
-  outval = length(v);
-  outvec = normalize(v);
+  outVector = cross(a, b);
+}
+
+void vector_math_project(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  float lenSquared = dot(b, b);
+  outVector = (lenSquared != 0.0) ? (dot(a, b) / lenSquared) * b : vec3(0.0);
+}
+
+void vector_math_reflect(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  outVector = reflect(a, normalize(b));
+}
+
+void vector_math_dot(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  outValue = dot(a, b);
+}
+
+void vector_math_distance(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  outValue = distance(a, b);
+}
+
+void vector_math_length(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  outValue = length(a);
+}
+
+void vector_math_scale(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  outVector = a * scale;
+}
+
+void vector_math_normalize(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  outVector = normalize(a);
+}
+
+void vector_math_snap(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  outVector = floor(safe_divide(a, b)) * b;
+}
+
+void vector_math_floor(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  outVector = floor(a);
+}
+
+void vector_math_ceil(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  outVector = ceil(a);
+}
+
+void vector_math_modulo(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  math_modulo(a.x, b.x, outVector.x);
+  math_modulo(a.y, b.y, outVector.y);
+  math_modulo(a.z, b.z, outVector.z);
+}
+
+void vector_math_fraction(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  outVector = fract(a);
+}
+
+void vector_math_absolute(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  outVector = abs(a);
+}
+
+void vector_math_minimum(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  outVector = min(a, b);
+}
+
+void vector_math_maximum(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
+{
+  outVector = max(a, b);
+}
+
+void vector_math_mix(float strength, vec3 a, vec3 b, out vec3 outVector)
+{
+  outVector = strength * a + (1 - strength) * b;
 }
 
 void vec_math_negate(vec3 v, out vec3 outv)

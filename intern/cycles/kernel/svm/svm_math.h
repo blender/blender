@@ -37,25 +37,29 @@ ccl_device void svm_node_math(KernelGlobals *kg,
 ccl_device void svm_node_vector_math(KernelGlobals *kg,
                                      ShaderData *sd,
                                      float *stack,
-                                     uint itype,
-                                     uint v1_offset,
-                                     uint v2_offset,
+                                     uint type,
+                                     uint inputs_stack_offsets,
+                                     uint outputs_stack_offsets,
                                      int *offset)
 {
-  NodeVectorMath type = (NodeVectorMath)itype;
-  float3 v1 = stack_load_float3(stack, v1_offset);
-  float3 v2 = stack_load_float3(stack, v2_offset);
-  float f;
-  float3 v;
+  uint value_stack_offset, vector_stack_offset;
+  uint a_stack_offset, b_stack_offset, scale_stack_offset;
+  decode_node_uchar4(
+      inputs_stack_offsets, &a_stack_offset, &b_stack_offset, &scale_stack_offset, NULL);
+  decode_node_uchar4(outputs_stack_offsets, &value_stack_offset, &vector_stack_offset, NULL, NULL);
 
-  svm_vector_math(&f, &v, type, v1, v2);
+  float3 a = stack_load_float3(stack, a_stack_offset);
+  float3 b = stack_load_float3(stack, b_stack_offset);
+  float scale = stack_load_float(stack, scale_stack_offset);
 
-  uint4 node1 = read_node(kg, offset);
+  float value;
+  float3 vector;
+  svm_vector_math(&value, &vector, (NodeVectorMathType)type, a, b, scale);
 
-  if (stack_valid(node1.y))
-    stack_store_float(stack, node1.y, f);
-  if (stack_valid(node1.z))
-    stack_store_float3(stack, node1.z, v);
+  if (stack_valid(value_stack_offset))
+    stack_store_float(stack, value_stack_offset, value);
+  if (stack_valid(vector_stack_offset))
+    stack_store_float3(stack, vector_stack_offset, vector);
 }
 
 CCL_NAMESPACE_END

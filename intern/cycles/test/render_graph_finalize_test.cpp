@@ -1163,21 +1163,14 @@ TEST_F(RenderGraph, constant_fold_part_math_pow_1)
 TEST_F(RenderGraph, constant_fold_vector_math)
 {
   EXPECT_ANY_MESSAGE(log);
-  CORRECT_INFO_MESSAGE(log, "Folding VectorMath::Value to constant (1).");
   CORRECT_INFO_MESSAGE(log, "Folding VectorMath::Vector to constant (3, 0, 0).");
-  CORRECT_INFO_MESSAGE(log, "Folding convert_vector_to_float::value_float to constant (1).");
-  CORRECT_INFO_MESSAGE(log, "Folding Math::Value to constant (2).");
-  CORRECT_INFO_MESSAGE(log, "Folding convert_float_to_color::value_color to constant (2, 2, 2).");
 
   builder
       .add_node(ShaderNodeBuilder<VectorMathNode>("VectorMath")
                     .set(&VectorMathNode::type, NODE_VECTOR_MATH_SUBTRACT)
                     .set("Vector1", make_float3(1.3f, 0.5f, 0.7f))
                     .set("Vector2", make_float3(-1.7f, 0.5f, 0.7f)))
-      .add_node(ShaderNodeBuilder<MathNode>("Math").set(&MathNode::type, NODE_MATH_ADD))
-      .add_connection("VectorMath::Vector", "Math::Value1")
-      .add_connection("VectorMath::Value", "Math::Value2")
-      .output_color("Math::Value");
+      .output_color("VectorMath::Vector");
 
   graph.finalize(scene);
 }
@@ -1187,7 +1180,7 @@ TEST_F(RenderGraph, constant_fold_vector_math)
  * Includes 2 tests: constant on each side.
  */
 static void build_vecmath_partial_test_graph(ShaderGraphBuilder &builder,
-                                             NodeVectorMath type,
+                                             NodeVectorMathType type,
                                              float3 constval)
 {
   builder
@@ -1237,22 +1230,6 @@ TEST_F(RenderGraph, constant_fold_part_vecmath_sub_0)
   INVALID_INFO_MESSAGE(log, "Folding Out::");
 
   build_vecmath_partial_test_graph(builder, NODE_VECTOR_MATH_SUBTRACT, make_float3(0, 0, 0));
-  graph.finalize(scene);
-}
-
-/*
- * Tests: partial folding for Vector Math Dot Product with known 0.
- */
-TEST_F(RenderGraph, constant_fold_part_vecmath_dot_0)
-{
-  EXPECT_ANY_MESSAGE(log);
-  /* X * 0 == 0 * X == X */
-  CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Vector to constant (0, 0, 0).");
-  CORRECT_INFO_MESSAGE(log, "Folding Math_xC::Vector to constant (0, 0, 0).");
-  CORRECT_INFO_MESSAGE(log, "Folding Out::Vector to constant (0, 0, 0).");
-  CORRECT_INFO_MESSAGE(log, "Discarding closure EmissionNode.");
-
-  build_vecmath_partial_test_graph(builder, NODE_VECTOR_MATH_DOT_PRODUCT, make_float3(0, 0, 0));
   graph.finalize(scene);
 }
 

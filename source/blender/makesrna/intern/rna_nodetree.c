@@ -136,12 +136,37 @@ const EnumPropertyItem rna_enum_node_math_items[] = {
 };
 
 const EnumPropertyItem rna_enum_node_vec_math_items[] = {
-    {0, "ADD", 0, "Add", ""},
-    {1, "SUBTRACT", 0, "Subtract", ""},
-    {2, "AVERAGE", 0, "Average", ""},
-    {3, "DOT_PRODUCT", 0, "Dot Product", ""},
-    {4, "CROSS_PRODUCT", 0, "Cross Product", ""},
-    {5, "NORMALIZE", 0, "Normalize", ""},
+    {NODE_VECTOR_MATH_ADD, "ADD", 0, "Add", "A + B"},
+    {NODE_VECTOR_MATH_SUBTRACT, "SUBTRACT", 0, "Subtract", "A - B"},
+    {NODE_VECTOR_MATH_MULTIPLY, "MULTIPLY", 0, "Multiply", "Entrywise multiply"},
+    {NODE_VECTOR_MATH_DIVIDE, "DIVIDE", 0, "Divide", "Entrywise divide"},
+    {0, "", ICON_NONE, NULL, NULL},
+    {NODE_VECTOR_MATH_CROSS_PRODUCT, "CROSS_PRODUCT", 0, "Cross Product", "A cross B"},
+    {NODE_VECTOR_MATH_PROJECT, "PROJECT", 0, "Project", "Project A onto B"},
+    {NODE_VECTOR_MATH_REFLECT,
+     "REFLECT",
+     0,
+     "Reflect",
+     "Reflect A around the normal B. B needn't be normalized"},
+    {NODE_VECTOR_MATH_DOT_PRODUCT, "DOT_PRODUCT", 0, "Dot Product", "A dot B"},
+    {0, "", ICON_NONE, NULL, NULL},
+    {NODE_VECTOR_MATH_DISTANCE, "DISTANCE", 0, "Distance", "Distance between A and B"},
+    {NODE_VECTOR_MATH_LENGTH, "LENGTH", 0, "Length", "Length of A"},
+    {NODE_VECTOR_MATH_SCALE, "SCALE", 0, "Scale", "A multiplied by Scale"},
+    {NODE_VECTOR_MATH_NORMALIZE, "NORMALIZE", 0, "Normalize", "Normalize A"},
+    {0, "", ICON_NONE, NULL, NULL},
+    {NODE_VECTOR_MATH_SNAP,
+     "SNAP",
+     0,
+     "Snap",
+     "Round A to the largest integer multiple of B less than or equal A"},
+    {NODE_VECTOR_MATH_FLOOR, "FLOOR", 0, "Floor", "Entrywise floor"},
+    {NODE_VECTOR_MATH_CEIL, "CEIL", 0, "Ceil", "Entrywise ceil"},
+    {NODE_VECTOR_MATH_MODULO, "MODULO", 0, "Modulo", "Entrywise modulo"},
+    {NODE_VECTOR_MATH_FRACTION, "FRACTION", 0, "Fraction", "The fraction part of A entrywise"},
+    {NODE_VECTOR_MATH_ABSOLUTE, "ABSOLUTE", 0, "Absolute", "Entrywise absolute"},
+    {NODE_VECTOR_MATH_MINIMUM, "MINIMUM", 0, "Minimum", "Entrywise minimum"},
+    {NODE_VECTOR_MATH_MAXIMUM, "MAXIMUM", 0, "Maximum", "Entrywise maximum"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -3873,7 +3898,7 @@ static void def_vector_math(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
   RNA_def_property_enum_items(prop, rna_enum_node_vec_math_items);
   RNA_def_property_ui_text(prop, "Operation", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
 }
 
 static void def_rgb_curve(StructRNA *srna)

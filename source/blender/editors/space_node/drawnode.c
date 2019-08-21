@@ -1220,7 +1220,7 @@ static void node_shader_set_butfunc(bNodeType *ntype)
     case SH_NODE_MATH:
       ntype->draw_buttons = node_buts_math;
       break;
-    case SH_NODE_VECT_MATH:
+    case SH_NODE_VECTOR_MATH:
       ntype->draw_buttons = node_shader_buts_vect_math;
       break;
     case SH_NODE_VECT_TRANSFORM:

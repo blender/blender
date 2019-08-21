@@ -799,7 +799,7 @@ static void ntree_shader_relink_displacement(bNodeTree *ntree, bNode *output_nod
   nodeRemLink(ntree, displacement_link);
 
   /* Convert displacement vector to bump height. */
-  bNode *dot_node = nodeAddStaticNode(NULL, ntree, SH_NODE_VECT_MATH);
+  bNode *dot_node = nodeAddStaticNode(NULL, ntree, SH_NODE_VECTOR_MATH);
   bNode *geo_node = nodeAddStaticNode(NULL, ntree, SH_NODE_NEW_GEOMETRY);
   bNodeSocket *normal_socket = ntree_shader_node_find_output(geo_node, "Normal");
   dot_node->custom1 = 3; /* dot product */

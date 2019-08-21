@@ -100,7 +100,7 @@ void node_math_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int max
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-void node_vect_math_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
+void node_vector_math_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
 {
   const char *name;
   RNA_enum_name(rna_enum_node_vec_math_items, node->custom1, &name);

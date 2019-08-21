@@ -16,34 +16,97 @@
 
 #include "stdosl.h"
 
+float safe_divide(float a, float b)
+{
+  return (b != 0.0) ? a / b : 0.0;
+}
+
+vector safe_divide(vector a, vector b)
+{
+  return vector((b[0] != 0.0) ? a[0] / b[0] : 0.0,
+                (b[1] != 0.0) ? a[1] / b[1] : 0.0,
+                (b[2] != 0.0) ? a[2] / b[2] : 0.0);
+}
+
+vector project(vector v, vector v_proj)
+{
+  float lenSquared = dot(v_proj, v_proj);
+  return (lenSquared != 0.0) ? (dot(v, v_proj) / lenSquared) * v_proj : vector(0.0);
+}
+
+vector snap(vector a, vector b)
+{
+  return floor(safe_divide(a, b)) * b;
+}
+
 shader node_vector_math(string type = "add",
                         vector Vector1 = vector(0.0, 0.0, 0.0),
                         vector Vector2 = vector(0.0, 0.0, 0.0),
+                        float Scale = 1.0,
                         output float Value = 0.0,
                         output vector Vector = vector(0.0, 0.0, 0.0))
 {
   if (type == "add") {
     Vector = Vector1 + Vector2;
-    Value = (abs(Vector[0]) + abs(Vector[1]) + abs(Vector[2])) / 3.0;
   }
   else if (type == "subtract") {
     Vector = Vector1 - Vector2;
-    Value = (abs(Vector[0]) + abs(Vector[1]) + abs(Vector[2])) / 3.0;
   }
-  else if (type == "average") {
-    Value = length(Vector1 + Vector2);
-    Vector = normalize(Vector1 + Vector2);
+  else if (type == "multiply") {
+    Vector = Vector1 * Vector2;
+  }
+  else if (type == "divide") {
+    Vector = safe_divide(Vector1, Vector2);
+  }
+  else if (type == "cross_product") {
+    Vector = cross(Vector1, Vector2);
+  }
+  else if (type == "project") {
+    Vector = project(Vector1, Vector2);
+  }
+  else if (type == "reflect") {
+    Vector = reflect(Vector1, normalize(Vector2));
   }
   else if (type == "dot_product") {
     Value = dot(Vector1, Vector2);
   }
-  else if (type == "cross_product") {
-    vector c = cross(Vector1, Vector2);
-    Value = length(c);
-    Vector = normalize(c);
+  else if (type == "distance") {
+    Value = distance(Vector1, Vector2);
+  }
+  else if (type == "length") {
+    Value = length(Vector1);
+  }
+  else if (type == "scale") {
+    Vector = Vector1 * Scale;
   }
   else if (type == "normalize") {
-    Value = length(Vector1);
     Vector = normalize(Vector1);
+  }
+  else if (type == "snap") {
+    Vector = snap(Vector1, Vector2);
+  }
+  else if (type == "floor") {
+    Vector = floor(Vector1);
+  }
+  else if (type == "ceil") {
+    Vector = ceil(Vector1);
+  }
+  else if (type == "modulo") {
+    Vector = mod(Vector1, Vector2);
+  }
+  else if (type == "fraction") {
+    Vector = Vector1 - floor(Vector1);
+  }
+  else if (type == "absolute") {
+    Vector = abs(Vector1);
+  }
+  else if (type == "minimum") {
+    Vector = min(Vector1, Vector2);
+  }
+  else if (type == "maximum") {
+    Vector = max(Vector1, Vector2);
+  }
+  else {
+    warning("%s", "Unknown vector math operator!");
   }
 }
