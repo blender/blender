@@ -34,6 +34,7 @@ struct bGPDstroke;
 
 bool is_stroke_affected_by_modifier(struct Object *ob,
                                     char *mlayername,
+                                    char *mmaterialname,
                                     int mpassindex,
                                     int gpl_passindex,
                                     int minpoints,
@@ -41,7 +42,8 @@ bool is_stroke_affected_by_modifier(struct Object *ob,
                                     bGPDstroke *gps,
                                     bool inv1,
                                     bool inv2,
-                                    bool inv3);
+                                    bool inv3,
+                                    bool inv4);
 
 float get_modifier_point_weight(struct MDeformVert *dvert, bool inverse, int def_nr);
 

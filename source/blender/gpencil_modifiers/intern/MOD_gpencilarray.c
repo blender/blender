@@ -171,6 +171,7 @@ static void generate_geometry(GpencilModifierData *md,
      */
     if (is_stroke_affected_by_modifier(ob,
                                        mmd->layername,
+                                       mmd->materialname,
                                        mmd->pass_index,
                                        mmd->layer_pass,
                                        1,
@@ -178,7 +179,8 @@ static void generate_geometry(GpencilModifierData *md,
                                        gps,
                                        mmd->flag & GP_ARRAY_INVERT_LAYER,
                                        mmd->flag & GP_ARRAY_INVERT_PASS,
-                                       mmd->flag & GP_ARRAY_INVERT_LAYERPASS)) {
+                                       mmd->flag & GP_ARRAY_INVERT_LAYERPASS,
+                                       mmd->flag & GP_ARRAY_INVERT_MATERIAL)) {
       valid_strokes[idx] = true;
       num_valid++;
     }

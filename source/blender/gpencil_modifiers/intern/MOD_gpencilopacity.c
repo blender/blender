@@ -52,6 +52,7 @@ static void initData(GpencilModifierData *md)
   gpmd->pass_index = 0;
   gpmd->factor = 1.0f;
   gpmd->layername[0] = '\0';
+  gpmd->materialname[0] = '\0';
   gpmd->vgname[0] = '\0';
   gpmd->flag |= GP_OPACITY_CREATE_COLORS;
   gpmd->modify_color = GP_MODIFY_COLOR_BOTH;
@@ -75,6 +76,7 @@ static void deformStroke(GpencilModifierData *md,
 
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,
+                                      mmd->materialname,
                                       mmd->pass_index,
                                       mmd->layer_pass,
                                       1,
@@ -82,7 +84,8 @@ static void deformStroke(GpencilModifierData *md,
                                       gps,
                                       mmd->flag & GP_OPACITY_INVERT_LAYER,
                                       mmd->flag & GP_OPACITY_INVERT_PASS,
-                                      mmd->flag & GP_OPACITY_INVERT_LAYERPASS)) {
+                                      mmd->flag & GP_OPACITY_INVERT_LAYERPASS,
+                                      mmd->flag & GP_OPACITY_INVERT_MATERIAL)) {
     return;
   }
 

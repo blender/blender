@@ -80,6 +80,8 @@ typedef struct NoiseGpencilModifierData {
   GpencilModifierData modifier;
   /** Layer name. */
   char layername[64];
+  /** Material name. */
+  char materialname[64];
   /** Optional vertexgroup name, MAX_VGROUP_NAME. */
   char vgname[64];
   /** Custom index for passes. */
@@ -108,12 +110,15 @@ typedef enum eNoiseGpencil_Flag {
   GP_NOISE_INVERT_VGROUP = (1 << 8),
   GP_NOISE_MOD_UV = (1 << 9),
   GP_NOISE_INVERT_LAYERPASS = (1 << 10),
+  GP_NOISE_INVERT_MATERIAL = (1 << 11),
 } eNoiseGpencil_Flag;
 
 typedef struct SubdivGpencilModifierData {
   GpencilModifierData modifier;
   /** Layer name. */
   char layername[64];
+  /** Material name. */
+  char materialname[64];
   /** Custom index for passes. */
   int pass_index;
   /** Flags. */
@@ -129,12 +134,15 @@ typedef enum eSubdivGpencil_Flag {
   GP_SUBDIV_INVERT_LAYER = (1 << 1),
   GP_SUBDIV_INVERT_PASS = (1 << 2),
   GP_SUBDIV_INVERT_LAYERPASS = (1 << 3),
+  GP_SUBDIV_INVERT_MATERIAL = (1 << 4),
 } eSubdivGpencil_Flag;
 
 typedef struct ThickGpencilModifierData {
   GpencilModifierData modifier;
   /** Layer name. */
   char layername[64];
+  /** Material name. */
+  char materialname[64];
   /** Optional vertexgroup name, MAX_VGROUP_NAME. */
   char vgname[64];
   /** Custom index for passes. */
@@ -155,6 +163,7 @@ typedef enum eThickGpencil_Flag {
   GP_THICK_CUSTOM_CURVE = (1 << 3),
   GP_THICK_NORMALIZE = (1 << 4),
   GP_THICK_INVERT_LAYERPASS = (1 << 5),
+  GP_THICK_INVERT_MATERIAL = (1 << 6),
 } eThickGpencil_Flag;
 
 typedef struct TimeGpencilModifierData {
@@ -197,6 +206,8 @@ typedef struct TintGpencilModifierData {
   GpencilModifierData modifier;
   /** Layer name. */
   char layername[64];
+  /** Material name. */
+  char materialname[64];
   /** Custom index for passes. */
   int pass_index;
   /** Flags. */
@@ -218,12 +229,15 @@ typedef enum eTintGpencil_Flag {
   GP_TINT_INVERT_LAYER = (1 << 1),
   GP_TINT_INVERT_PASS = (1 << 2),
   GP_TINT_INVERT_LAYERPASS = (1 << 3),
+  GP_TINT_INVERT_MATERIAL = (1 << 4),
 } eTintGpencil_Flag;
 
 typedef struct ColorGpencilModifierData {
   GpencilModifierData modifier;
   /** Layer name. */
   char layername[64];
+  /** Material name. */
+  char materialname[64];
   /** Custom index for passes. */
   int pass_index;
   /** Flags. */
@@ -243,12 +257,15 @@ typedef enum eColorGpencil_Flag {
   GP_COLOR_INVERT_LAYER = (1 << 1),
   GP_COLOR_INVERT_PASS = (1 << 2),
   GP_COLOR_INVERT_LAYERPASS = (1 << 3),
+  GP_COLOR_INVERT_MATERIAL = (1 << 4),
 } eColorGpencil_Flag;
 
 typedef struct OpacityGpencilModifierData {
   GpencilModifierData modifier;
   /** Layer name. */
   char layername[64];
+  /** Material name. */
+  char materialname[64];
   /** Optional vertexgroup name, MAX_VGROUP_NAME. */
   char vgname[64];
   /** Custom index for passes. */
@@ -271,6 +288,7 @@ typedef enum eOpacityGpencil_Flag {
   GP_OPACITY_INVERT_VGROUP = (1 << 2),
   GP_OPACITY_CREATE_COLORS = (1 << 3),
   GP_OPACITY_INVERT_LAYERPASS = (1 << 4),
+  GP_OPACITY_INVERT_MATERIAL = (1 << 5),
 } eOpacityGpencil_Flag;
 
 typedef struct ArrayGpencilModifierData {
@@ -300,6 +318,8 @@ typedef struct ArrayGpencilModifierData {
   int pass_index;
   /** Layer name. */
   char layername[64];
+  /** Material name. */
+  char materialname[64];
   /** Material replace (0 keep default). */
   int mat_rpl;
   /** Custom index for passes. */
@@ -313,6 +333,7 @@ typedef enum eArrayGpencil_Flag {
   GP_ARRAY_INVERT_PASS = (1 << 3),
   GP_ARRAY_KEEP_ONTOP = (1 << 4),
   GP_ARRAY_INVERT_LAYERPASS = (1 << 5),
+  GP_ARRAY_INVERT_MATERIAL = (1 << 6),
 } eArrayGpencil_Flag;
 
 typedef struct BuildGpencilModifierData {
@@ -321,6 +342,9 @@ typedef struct BuildGpencilModifierData {
   /** If set, restrict modifier to operating on this layer. */
   char layername[64];
   int pass_index;
+
+  /** Material name. */
+  char materialname[64];
 
   /** Custom index for passes. */
   int layer_pass;
@@ -392,6 +416,8 @@ typedef struct LatticeGpencilModifierData {
   struct Object *object;
   /** Layer name. */
   char layername[64];
+  /** Material name. */
+  char materialname[64];
   /** Optional vertexgroup name, MAX_VGROUP_NAME. */
   char vgname[64];
   /** Custom index for passes. */
@@ -410,6 +436,7 @@ typedef enum eLatticeGpencil_Flag {
   GP_LATTICE_INVERT_PASS = (1 << 1),
   GP_LATTICE_INVERT_VGROUP = (1 << 2),
   GP_LATTICE_INVERT_LAYERPASS = (1 << 3),
+  GP_LATTICE_INVERT_MATERIAL = (1 << 4),
 } eLatticeGpencil_Flag;
 
 typedef struct MirrorGpencilModifierData {
@@ -417,6 +444,8 @@ typedef struct MirrorGpencilModifierData {
   struct Object *object;
   /** Layer name. */
   char layername[64];
+  /** Material name. */
+  char materialname[64];
   /** Custom index for passes. */
   int pass_index;
   /** Flags. */
@@ -434,6 +463,7 @@ typedef enum eMirrorGpencil_Flag {
   GP_MIRROR_AXIS_Y = (1 << 4),
   GP_MIRROR_AXIS_Z = (1 << 5),
   GP_MIRROR_INVERT_LAYERPASS = (1 << 6),
+  GP_MIRROR_INVERT_MATERIAL = (1 << 7),
 } eMirrorGpencil_Flag;
 
 typedef struct HookGpencilModifierData {
@@ -444,6 +474,8 @@ typedef struct HookGpencilModifierData {
   char subtarget[64];
   /** Layer name. */
   char layername[64];
+  /** Material name. */
+  char materialname[64];
   /** Optional vertexgroup name, MAX_VGROUP_NAME. */
   char vgname[64];
   /** Custom index for passes. */
@@ -472,6 +504,7 @@ typedef enum eHookGpencil_Flag {
   GP_HOOK_INVERT_VGROUP = (1 << 2),
   GP_HOOK_UNIFORM_SPACE = (1 << 3),
   GP_HOOK_INVERT_LAYERPASS = (1 << 4),
+  GP_HOOK_INVERT_MATERIAL = (1 << 5),
 } eHookGpencil_Flag;
 
 typedef enum eHookGpencil_Falloff {
@@ -490,6 +523,8 @@ typedef struct SimplifyGpencilModifierData {
   GpencilModifierData modifier;
   /** Layer name. */
   char layername[64];
+  /** Material name. */
+  char materialname[64];
   /** Custom index for passes. */
   int pass_index;
   /** Flags. */
@@ -513,6 +548,7 @@ typedef enum eSimplifyGpencil_Flag {
   GP_SIMPLIFY_INVERT_LAYER = (1 << 0),
   GP_SIMPLIFY_INVERT_PASS = (1 << 1),
   GP_SIMPLIFY_INVERT_LAYERPASS = (1 << 2),
+  GP_SIMPLIFY_INVERT_MATERIAL = (1 << 3),
 } eSimplifyGpencil_Flag;
 
 typedef enum eSimplifyGpencil_Mode {
@@ -530,6 +566,8 @@ typedef struct OffsetGpencilModifierData {
   GpencilModifierData modifier;
   /** Layer name. */
   char layername[64];
+  /** Material name. */
+  char materialname[64];
   /** Optional vertexgroup name, MAX_VGROUP_NAME. */
   char vgname[64];
   /** Custom index for passes. */
@@ -548,12 +586,15 @@ typedef enum eOffsetGpencil_Flag {
   GP_OFFSET_INVERT_PASS = (1 << 1),
   GP_OFFSET_INVERT_VGROUP = (1 << 2),
   GP_OFFSET_INVERT_LAYERPASS = (1 << 3),
+  GP_OFFSET_INVERT_MATERIAL = (1 << 4),
 } eOffsetGpencil_Flag;
 
 typedef struct SmoothGpencilModifierData {
   GpencilModifierData modifier;
   /** Layer name. */
   char layername[64];
+  /** Material name. */
+  char materialname[64];
   /** Optional vertexgroup name, MAX_VGROUP_NAME. */
   char vgname[64];
   /** Custom index for passes. */
@@ -578,6 +619,7 @@ typedef enum eSmoothGpencil_Flag {
   GP_SMOOTH_INVERT_VGROUP = (1 << 5),
   GP_SMOOTH_MOD_UV = (1 << 6),
   GP_SMOOTH_INVERT_LAYERPASS = (1 << 7),
+  GP_SMOOTH_INVERT_MATERIAL = (1 << 4),
 } eSmoothGpencil_Flag;
 
 typedef struct ArmatureGpencilModifierData {

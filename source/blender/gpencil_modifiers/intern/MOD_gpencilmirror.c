@@ -57,6 +57,7 @@ static void initData(GpencilModifierData *md)
   MirrorGpencilModifierData *gpmd = (MirrorGpencilModifierData *)md;
   gpmd->pass_index = 0;
   gpmd->layername[0] = '\0';
+  gpmd->materialname[0] = '\0';
   gpmd->object = NULL;
   gpmd->flag |= GP_MIRROR_AXIS_X;
 }
@@ -134,6 +135,7 @@ static void generateStrokes(GpencilModifierData *md,
       for (i = 0, gps = gpf->strokes.first; i < tot_strokes; i++, gps = gps->next) {
         if (is_stroke_affected_by_modifier(ob,
                                            mmd->layername,
+                                           mmd->materialname,
                                            mmd->pass_index,
                                            mmd->layer_pass,
                                            1,
@@ -141,7 +143,8 @@ static void generateStrokes(GpencilModifierData *md,
                                            gps,
                                            mmd->flag & GP_MIRROR_INVERT_LAYER,
                                            mmd->flag & GP_MIRROR_INVERT_PASS,
-                                           mmd->flag & GP_MIRROR_INVERT_LAYERPASS)) {
+                                           mmd->flag & GP_MIRROR_INVERT_LAYERPASS,
+                                           mmd->flag & GP_MIRROR_INVERT_MATERIAL)) {
           gps_new = BKE_gpencil_stroke_duplicate(gps);
           update_position(ob, mmd, gps_new, xi);
           BLI_addtail(&gpf->strokes, gps_new);

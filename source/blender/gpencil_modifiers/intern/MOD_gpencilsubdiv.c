@@ -47,6 +47,7 @@ static void initData(GpencilModifierData *md)
   gpmd->pass_index = 0;
   gpmd->level = 1;
   gpmd->layername[0] = '\0';
+  gpmd->materialname[0] = '\0';
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
@@ -66,6 +67,7 @@ static void deformStroke(GpencilModifierData *md,
 
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,
+                                      mmd->materialname,
                                       mmd->pass_index,
                                       mmd->layer_pass,
                                       3,
@@ -73,7 +75,8 @@ static void deformStroke(GpencilModifierData *md,
                                       gps,
                                       mmd->flag & GP_SUBDIV_INVERT_LAYER,
                                       mmd->flag & GP_SUBDIV_INVERT_PASS,
-                                      mmd->flag & GP_SUBDIV_INVERT_LAYERPASS)) {
+                                      mmd->flag & GP_SUBDIV_INVERT_LAYERPASS,
+                                      mmd->flag & GP_SUBDIV_INVERT_MATERIAL)) {
     return;
   }
 

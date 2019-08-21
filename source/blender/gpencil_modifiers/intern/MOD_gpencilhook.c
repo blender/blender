@@ -77,6 +77,7 @@ static void initData(GpencilModifierData *md)
   HookGpencilModifierData *gpmd = (HookGpencilModifierData *)md;
   gpmd->pass_index = 0;
   gpmd->layername[0] = '\0';
+  gpmd->materialname[0] = '\0';
   gpmd->vgname[0] = '\0';
   gpmd->object = NULL;
   gpmd->force = 0.5f;
@@ -206,6 +207,7 @@ static void deformStroke(GpencilModifierData *md,
 
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,
+                                      mmd->materialname,
                                       mmd->pass_index,
                                       mmd->layer_pass,
                                       1,
@@ -213,7 +215,8 @@ static void deformStroke(GpencilModifierData *md,
                                       gps,
                                       mmd->flag & GP_HOOK_INVERT_LAYER,
                                       mmd->flag & GP_HOOK_INVERT_PASS,
-                                      mmd->flag & GP_HOOK_INVERT_LAYERPASS)) {
+                                      mmd->flag & GP_HOOK_INVERT_LAYERPASS,
+                                      mmd->flag & GP_HOOK_INVERT_MATERIAL)) {
     return;
   }
 
