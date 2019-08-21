@@ -149,7 +149,7 @@ ccl_device void svm_node_particle_info(
     }
     case NODE_INFO_PAR_RANDOM: {
       int particle_id = object_particle_id(kg, sd->object);
-      float random = hash_int_01(particle_index(kg, particle_id));
+      float random = hash_uint2_to_float(particle_index(kg, particle_id), 0);
       stack_store_float(stack, out_offset, random);
       break;
     }

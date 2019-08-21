@@ -1166,9 +1166,34 @@ float integer_noise(int n)
   return 0.5 * (float(nn) / 1073741824.0);
 }
 
-uint hash(uint kx, uint ky, uint kz)
-{
+/* ***** Jenkins Lookup3 Hash Functions ***** */
+
+/* Source: http://burtleburtle.net/bob/c/lookup3.c */
+
 #define rot(x, k) (((x) << (k)) | ((x) >> (32 - (k))))
+
+#define mix(a, b, c) \
+  { \
+    a -= c; \
+    a ^= rot(c, 4); \
+    c += b; \
+    b -= a; \
+    b ^= rot(a, 6); \
+    a += c; \
+    c -= b; \
+    c ^= rot(b, 8); \
+    b += a; \
+    a -= c; \
+    a ^= rot(c, 16); \
+    c += b; \
+    b -= a; \
+    b ^= rot(a, 19); \
+    a += c; \
+    c -= b; \
+    c ^= rot(b, 4); \
+    b += a; \
+  }
+
 #define final(a, b, c) \
   { \
     c ^= b; \
@@ -1186,9 +1211,34 @@ uint hash(uint kx, uint ky, uint kz)
     c ^= b; \
     c -= rot(b, 24); \
   }
-  // now hash the data!
-  uint a, b, c, len = 3u;
-  a = b = c = 0xdeadbeefu + (len << 2u) + 13u;
+
+uint hash_uint(uint kx)
+{
+  uint a, b, c;
+  a = b = c = 0xdeadbeefu + (1u << 2u) + 13u;
+
+  a += kx;
+  final(a, b, c);
+
+  return c;
+}
+
+uint hash_uint2(uint kx, uint ky)
+{
+  uint a, b, c;
+  a = b = c = 0xdeadbeefu + (2u << 2u) + 13u;
+
+  b += ky;
+  a += kx;
+  final(a, b, c);
+
+  return c;
+}
+
+uint hash_uint3(uint kx, uint ky, uint kz)
+{
+  uint a, b, c;
+  a = b = c = 0xdeadbeefu + (3u << 2u) + 13u;
 
   c += kz;
   b += ky;
@@ -1196,14 +1246,156 @@ uint hash(uint kx, uint ky, uint kz)
   final(a, b, c);
 
   return c;
-#undef rot
-#undef final
 }
 
-uint hash(int kx, int ky, int kz)
+uint hash_uint4(uint kx, uint ky, uint kz, uint kw)
 {
-  return hash(uint(kx), uint(ky), uint(kz));
+  uint a, b, c;
+  a = b = c = 0xdeadbeefu + (4u << 2u) + 13u;
+
+  a += kx;
+  b += ky;
+  c += kz;
+  mix(a, b, c);
+
+  a += kw;
+  final(a, b, c);
+
+  return c;
 }
+
+#undef rot
+#undef final
+#undef mix
+
+uint hash_int(int kx)
+{
+  return hash_uint(uint(kx));
+}
+
+uint hash_int2(int kx, int ky)
+{
+  return hash_uint2(uint(kx), uint(ky));
+}
+
+uint hash_int3(int kx, int ky, int kz)
+{
+  return hash_uint3(uint(kx), uint(ky), uint(kz));
+}
+
+uint hash_int4(int kx, int ky, int kz, int kw)
+{
+  return hash_uint4(uint(kx), uint(ky), uint(kz), uint(kw));
+}
+
+/* Hashing uint or uint[234] into a float in the range [0, 1]. */
+
+float hash_uint_to_float(uint kx)
+{
+  return float(hash_uint(kx)) / float(0xFFFFFFFFu);
+}
+
+float hash_uint2_to_float(uint kx, uint ky)
+{
+  return float(hash_uint2(kx, ky)) / float(0xFFFFFFFFu);
+}
+
+float hash_uint3_to_float(uint kx, uint ky, uint kz)
+{
+  return float(hash_uint3(kx, ky, kz)) / float(0xFFFFFFFFu);
+}
+
+float hash_uint4_to_float(uint kx, uint ky, uint kz, uint kw)
+{
+  return float(hash_uint4(kx, ky, kz, kw)) / float(0xFFFFFFFFu);
+}
+
+/* Hashing float or vec[234] into a float in the range [0, 1]. */
+
+float hash_float_to_float(float k)
+{
+  return hash_uint_to_float(floatBitsToUint(k));
+}
+
+float hash_vec2_to_float(vec2 k)
+{
+  return hash_uint2_to_float(floatBitsToUint(k.x), floatBitsToUint(k.y));
+}
+
+float hash_vec3_to_float(vec3 k)
+{
+  return hash_uint3_to_float(floatBitsToUint(k.x), floatBitsToUint(k.y), floatBitsToUint(k.z));
+}
+
+float hash_vec4_to_float(vec4 k)
+{
+  return hash_uint4_to_float(
+      floatBitsToUint(k.x), floatBitsToUint(k.y), floatBitsToUint(k.z), floatBitsToUint(k.w));
+}
+
+/* Hashing vec[234] into vec[234] of components in the range [0, 1]. */
+
+vec2 hash_vec2_to_vec2(vec2 k)
+{
+  return vec2(hash_vec2_to_float(k), hash_vec3_to_float(vec3(k, 1.0)));
+}
+
+vec3 hash_vec3_to_vec3(vec3 k)
+{
+  return vec3(
+      hash_vec3_to_float(k), hash_vec4_to_float(vec4(k, 1.0)), hash_vec4_to_float(vec4(k, 2.0)));
+}
+
+vec4 hash_vec4_to_vec4(vec4 k)
+{
+  return vec4(hash_vec4_to_float(k.xyzw),
+              hash_vec4_to_float(k.wxyz),
+              hash_vec4_to_float(k.zwxy),
+              hash_vec4_to_float(k.yzwx));
+}
+
+/* Hashing float or vec[234] into vec3 of components in range [0, 1]. */
+
+vec3 hash_float_to_vec3(float k)
+{
+  return vec3(
+      hash_float_to_float(k), hash_vec2_to_float(vec2(k, 1.0)), hash_vec2_to_float(vec2(k, 2.0)));
+}
+
+vec3 hash_vec2_to_vec3(vec2 k)
+{
+  return vec3(
+      hash_vec2_to_float(k), hash_vec3_to_float(vec3(k, 1.0)), hash_vec3_to_float(vec3(k, 2.0)));
+}
+
+vec3 hash_vec4_to_vec3(vec4 k)
+{
+  return vec3(hash_vec4_to_float(k.xyzw), hash_vec4_to_float(k.zxwy), hash_vec4_to_float(k.wzyx));
+}
+
+/* White Noise */
+
+void node_white_noise_1d(vec3 vector, float w, out float value)
+{
+  value = hash_float_to_float(w);
+}
+
+void node_white_noise_2d(vec3 vector, float w, out float value)
+{
+  value = hash_vec2_to_float(vector.xy);
+}
+
+void node_white_noise_3d(vec3 vector, float w, out float value)
+{
+  value = hash_vec3_to_float(vector);
+}
+
+void node_white_noise_4d(vec3 vector, float w, out float value)
+{
+  value = hash_vec4_to_float(vec4(vector, w));
+}
+
+/* Cell Noise */
 
 float bits_to_01(uint bits)
 {
@@ -1216,7 +1408,7 @@ float cellnoise(vec3 p)
   int iy = quick_floor(p.y);
   int iz = quick_floor(p.z);
 
-  return bits_to_01(hash(uint(ix), uint(iy), uint(iz)));
+  return hash_uint3_to_float(uint(ix), uint(iy), uint(iz));
 }
 
 vec3 cellnoise_color(vec3 p)
@@ -2901,22 +3093,24 @@ float noise_perlin(float x, float y, float z)
 
   float noise_u[2], noise_v[2];
 
-  noise_u[0] = noise_nerp(
-      u, noise_grad(hash(X, Y, Z), fx, fy, fz), noise_grad(hash(X + 1, Y, Z), fx - 1.0, fy, fz));
+  noise_u[0] = noise_nerp(u,
+                          noise_grad(hash_int3(X, Y, Z), fx, fy, fz),
+                          noise_grad(hash_int3(X + 1, Y, Z), fx - 1.0, fy, fz));
 
   noise_u[1] = noise_nerp(u,
-                          noise_grad(hash(X, Y + 1, Z), fx, fy - 1.0, fz),
-                          noise_grad(hash(X + 1, Y + 1, Z), fx - 1.0, fy - 1.0, fz));
+                          noise_grad(hash_int3(X, Y + 1, Z), fx, fy - 1.0, fz),
+                          noise_grad(hash_int3(X + 1, Y + 1, Z), fx - 1.0, fy - 1.0, fz));
 
   noise_v[0] = noise_nerp(v, noise_u[0], noise_u[1]);
 
   noise_u[0] = noise_nerp(u,
-                          noise_grad(hash(X, Y, Z + 1), fx, fy, fz - 1.0),
-                          noise_grad(hash(X + 1, Y, Z + 1), fx - 1.0, fy, fz - 1.0));
+                          noise_grad(hash_int3(X, Y, Z + 1), fx, fy, fz - 1.0),
+                          noise_grad(hash_int3(X + 1, Y, Z + 1), fx - 1.0, fy, fz - 1.0));
 
-  noise_u[1] = noise_nerp(u,
-                          noise_grad(hash(X, Y + 1, Z + 1), fx, fy - 1.0, fz - 1.0),
-                          noise_grad(hash(X + 1, Y + 1, Z + 1), fx - 1.0, fy - 1.0, fz - 1.0));
+  noise_u[1] = noise_nerp(
+      u,
+      noise_grad(hash_int3(X, Y + 1, Z + 1), fx, fy - 1.0, fz - 1.0),
+      noise_grad(hash_int3(X + 1, Y + 1, Z + 1), fx - 1.0, fy - 1.0, fz - 1.0));
 
   noise_v[1] = noise_nerp(v, noise_u[0], noise_u[1]);
 

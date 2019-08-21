@@ -3933,6 +3933,7 @@ static void registerShaderNodes(void)
   register_node_type_sh_tex_brick();
   register_node_type_sh_tex_pointdensity();
   register_node_type_sh_tex_ies();
+  register_node_type_sh_tex_white_noise();
 }
 
 static void registerTextureNodes(void)

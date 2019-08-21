@@ -539,8 +539,8 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
     /* Make sure all views have different noise patterns. - hardcoded value just to make it random
      */
     if (view_index != 0) {
-      scene->integrator->seed += hash_int_2d(scene->integrator->seed,
-                                             hash_int(view_index * 0xdeadbeef));
+      scene->integrator->seed += hash_uint2(scene->integrator->seed,
+                                            hash_uint2(view_index * 0xdeadbeef, 0));
       scene->integrator->tag_update(scene);
     }
 

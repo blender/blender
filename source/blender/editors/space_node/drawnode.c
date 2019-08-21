@@ -1186,6 +1186,11 @@ static void node_shader_buts_ambient_occlusion(uiLayout *layout,
   uiItemR(layout, ptr, "only_local", 0, NULL, ICON_NONE);
 }
 
+static void node_shader_buts_white_noise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "dimensions", 0, "", ICON_NONE);
+}
+
 /* only once called */
 static void node_shader_set_butfunc(bNodeType *ntype)
 {
@@ -1329,6 +1334,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
       break;
     case SH_NODE_AMBIENT_OCCLUSION:
       ntype->draw_buttons = node_shader_buts_ambient_occlusion;
+      break;
+    case SH_NODE_TEX_WHITE_NOISE:
+      ntype->draw_buttons = node_shader_buts_white_noise;
       break;
   }
 }

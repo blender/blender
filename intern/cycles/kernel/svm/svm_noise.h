@@ -41,42 +41,6 @@ ccl_device_inline ssei quick_floor_sse(const ssef &x)
 }
 #endif
 
-ccl_device uint hash(uint kx, uint ky, uint kz)
-{
-  // define some handy macros
-#define rot(x, k) (((x) << (k)) | ((x) >> (32 - (k))))
-#define final(a, b, c) \
-  { \
-    c ^= b; \
-    c -= rot(b, 14); \
-    a ^= c; \
-    a -= rot(c, 11); \
-    b ^= a; \
-    b -= rot(a, 25); \
-    c ^= b; \
-    c -= rot(b, 16); \
-    a ^= c; \
-    a -= rot(c, 4); \
-    b ^= a; \
-    b -= rot(a, 14); \
-    c ^= b; \
-    c -= rot(b, 24); \
-  }
-  // now hash the data!
-  uint a, b, c, len = 3;
-  a = b = c = 0xdeadbeef + (len << 2) + 13;
-
-  c += kz;
-  b += ky;
-  a += kx;
-  final(a, b, c);
-
-  return c;
-  // macros not needed anymore
-#undef rot
-#undef final
-}
-
 #ifdef __KERNEL_SSE2__
 ccl_device_inline ssei hash_sse(const ssei &kx, const ssei &ky, const ssei &kz)
 {
@@ -236,17 +200,19 @@ ccl_device_noinline float perlin(float x, float y, float z)
   result = nerp(
       w,
       nerp(v,
-           nerp(u, grad(hash(X, Y, Z), fx, fy, fz), grad(hash(X + 1, Y, Z), fx - 1.0f, fy, fz)),
            nerp(u,
-                grad(hash(X, Y + 1, Z), fx, fy - 1.0f, fz),
-                grad(hash(X + 1, Y + 1, Z), fx - 1.0f, fy - 1.0f, fz))),
+                grad(hash_uint3(X, Y, Z), fx, fy, fz),
+                grad(hash_uint3(X + 1, Y, Z), fx - 1.0f, fy, fz)),
+           nerp(u,
+                grad(hash_uint3(X, Y + 1, Z), fx, fy - 1.0f, fz),
+                grad(hash_uint3(X + 1, Y + 1, Z), fx - 1.0f, fy - 1.0f, fz))),
       nerp(v,
            nerp(u,
-                grad(hash(X, Y, Z + 1), fx, fy, fz - 1.0f),
-                grad(hash(X + 1, Y, Z + 1), fx - 1.0f, fy, fz - 1.0f)),
+                grad(hash_uint3(X, Y, Z + 1), fx, fy, fz - 1.0f),
+                grad(hash_uint3(X + 1, Y, Z + 1), fx - 1.0f, fy, fz - 1.0f)),
            nerp(u,
-                grad(hash(X, Y + 1, Z + 1), fx, fy - 1.0f, fz - 1.0f),
-                grad(hash(X + 1, Y + 1, Z + 1), fx - 1.0f, fy - 1.0f, fz - 1.0f))));
+                grad(hash_uint3(X, Y + 1, Z + 1), fx, fy - 1.0f, fz - 1.0f),
+                grad(hash_uint3(X + 1, Y + 1, Z + 1), fx - 1.0f, fy - 1.0f, fz - 1.0f))));
   float r = scale3(result);
 
   /* can happen for big coordinates, things even out to 0.0 then anyway */
@@ -312,16 +278,16 @@ ccl_device float snoise(float3 p)
 ccl_device float cellnoise(float3 p)
 {
   int3 ip = quick_floor_to_int3(p);
-  return bits_to_01(hash(ip.x, ip.y, ip.z));
+  return hash_uint3_to_float(ip.x, ip.y, ip.z);
 }
 
 ccl_device float3 cellnoise3(float3 p)
 {
   int3 ip = quick_floor_to_int3(p);
 #ifndef __KERNEL_SSE__
-  float r = bits_to_01(hash(ip.x, ip.y, ip.z));
-  float g = bits_to_01(hash(ip.y, ip.x, ip.z));
-  float b = bits_to_01(hash(ip.y, ip.z, ip.x));
+  float r = hash_uint3_to_float(ip.x, ip.y, ip.z);
+  float g = hash_uint3_to_float(ip.y, ip.x, ip.z);
+  float b = hash_uint3_to_float(ip.y, ip.z, ip.x);
   return make_float3(r, g, b);
 #else
   ssei ip_yxz = shuffle<1, 0, 2, 3>(ssei(ip.m128));

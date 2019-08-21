@@ -697,7 +697,7 @@ bool OSLRenderServices::get_object_standard_attribute(
   }
   else if (name == u_particle_random) {
     int particle_id = object_particle_id(kg, sd->object);
-    float f = hash_int_01(particle_index(kg, particle_id));
+    float f = hash_uint2_to_float(particle_index(kg, particle_id), 0);
     return set_attribute_float(f, type, derivatives, val);
   }
 

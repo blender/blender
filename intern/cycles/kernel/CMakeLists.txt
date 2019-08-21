@@ -221,6 +221,7 @@ set(SRC_SVM_HEADERS
   svm/svm_voronoi.h
   svm/svm_voxel.h
   svm/svm_wave.h
+  svm/svm_white_noise.h
 )
 
 set(SRC_GEOM_HEADERS

@@ -1110,6 +1110,53 @@ void IESLightNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_ies_light");
 }
 
+/* White Noise Texture */
+
+NODE_DEFINE(WhiteNoiseTextureNode)
+{
+  NodeType *type = NodeType::add("white_noise_texture", create, NodeType::SHADER);
+
+  static NodeEnum dimensions_enum;
+  dimensions_enum.insert("1D", 1);
+  dimensions_enum.insert("2D", 2);
+  dimensions_enum.insert("3D", 3);
+  dimensions_enum.insert("4D", 4);
+  SOCKET_ENUM(dimensions, "Dimensions", dimensions_enum, 3);
+
+  SOCKET_IN_POINT(vector, "Vector", make_float3(0.0f, 0.0f, 0.0f));
+  SOCKET_IN_FLOAT(w, "W", 0.0f);
+
+  SOCKET_OUT_FLOAT(value, "Value");
+
+  return type;
+}
+
+WhiteNoiseTextureNode::WhiteNoiseTextureNode() : ShaderNode(node_type)
+{
+}
+
+void WhiteNoiseTextureNode::compile(SVMCompiler &compiler)
+{
+  ShaderInput *vector_in = input("Vector");
+  ShaderInput *w_in = input("W");
+  ShaderOutput *value_out = output("Value");
+
+  int vector_stack_offset = compiler.stack_assign(vector_in);
+  int w_stack_offset = compiler.stack_assign(w_in);
+  int value_stack_offset = compiler.stack_assign(value_out);
+
+  compiler.add_node(NODE_TEX_WHITE_NOISE,
+                    dimensions,
+                    compiler.encode_uchar4(vector_stack_offset, w_stack_offset),
+                    value_stack_offset);
+}
+
+void WhiteNoiseTextureNode::compile(OSLCompiler &compiler)
+{
+  compiler.parameter(this, "dimensions");
+  compiler.add(this, "node_white_noise_texture");
+}
+
 /* Musgrave Texture */
 
 NODE_DEFINE(MusgraveTextureNode)

@@ -217,7 +217,7 @@ void BlenderSync::sync_light(BL::Object &b_parent,
     light->random_id = random_id;
   }
   else {
-    light->random_id = hash_int_2d(hash_string(b_ob.name().c_str()), 0);
+    light->random_id = hash_uint2(hash_string(b_ob.name().c_str()), 0);
   }
 
   if (light->type == LIGHT_AREA)
@@ -490,7 +490,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
     else {
       object->dupli_generated = make_float3(0.0f, 0.0f, 0.0f);
       object->dupli_uv = make_float2(0.0f, 0.0f);
-      object->random_id = hash_int_2d(hash_string(object->name.c_str()), 0);
+      object->random_id = hash_uint2(hash_string(object->name.c_str()), 0);
     }
 
     object->tag_update(scene);

@@ -85,6 +85,7 @@ set(SRC_OSL
   node_wavelength.osl
   node_blackbody.osl
   node_wave_texture.osl
+  node_white_noise_texture.osl
   node_wireframe.osl
   node_hair_bsdf.osl
   node_principled_hair_bsdf.osl

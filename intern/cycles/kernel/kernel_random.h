@@ -130,7 +130,7 @@ ccl_device_inline void path_rng_init(KernelGlobals *kg,
                                      float *fy)
 {
   /* load state */
-  *rng_hash = hash_int_2d(x, y);
+  *rng_hash = hash_uint2(x, y);
   *rng_hash ^= kernel_data.integrator.seed;
 
 #ifdef __DEBUG_CORRELATION__

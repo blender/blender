@@ -141,7 +141,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   kintegrator->caustics_refractive = caustics_refractive;
   kintegrator->filter_glossy = (filter_glossy == 0.0f) ? FLT_MAX : 1.0f / filter_glossy;
 
-  kintegrator->seed = hash_int(seed);
+  kintegrator->seed = hash_uint2(seed, 0);
 
   kintegrator->use_ambient_occlusion = ((Pass::contains(scene->film->passes, PASS_AO)) ||
                                         dscene->data.background.ao_factor != 0.0f);

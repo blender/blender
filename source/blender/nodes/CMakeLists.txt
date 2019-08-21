@@ -200,6 +200,7 @@ set(SRC
   shader/nodes/node_shader_tex_sky.c
   shader/nodes/node_shader_tex_voronoi.c
   shader/nodes/node_shader_tex_wave.c
+  shader/nodes/node_shader_tex_white_noise.c
   shader/nodes/node_shader_uvAlongStroke.c
   shader/nodes/node_shader_uvmap.c
   shader/nodes/node_shader_valToRgb.c

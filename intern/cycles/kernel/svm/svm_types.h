@@ -140,6 +140,7 @@ typedef enum ShaderNodeType {
   NODE_IES,
   NODE_MAP_RANGE,
   NODE_CLAMP,
+  NODE_TEX_WHITE_NOISE,
 } ShaderNodeType;
 
 typedef enum NodeAttributeType {
