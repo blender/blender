@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Checker */
 
-ccl_device_noinline float svm_checker(float3 p)
+ccl_device float svm_checker(float3 p)
 {
   /* avoid precision issues on unit coordinates */
   p.x = (p.x + 0.000001f) * 0.999999f;

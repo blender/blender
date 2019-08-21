@@ -778,7 +778,7 @@ ccl_device_inline int shader_bsdf_sample(KernelGlobals *kg,
   kernel_assert(CLOSURE_IS_BSDF(sc->type));
 
   int label;
-  float3 eval;
+  float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 
   *pdf = 0.0f;
   label = bsdf_sample(kg, sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
@@ -808,7 +808,7 @@ ccl_device int shader_bsdf_sample_closure(KernelGlobals *kg,
   PROFILING_INIT(kg, PROFILING_CLOSURE_SAMPLE);
 
   int label;
-  float3 eval;
+  float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 
   *pdf = 0.0f;
   label = bsdf_sample(kg, sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
@@ -1221,7 +1221,7 @@ ccl_device int shader_volume_phase_sample(KernelGlobals *kg,
    * depending on color channels, even if this is perhaps not a common case */
   const ShaderClosure *sc = &sd->closure[sampled];
   int label;
-  float3 eval;
+  float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 
   *pdf = 0.0f;
   label = volume_phase_sample(sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
@@ -1246,7 +1246,7 @@ ccl_device int shader_phase_sample_closure(KernelGlobals *kg,
   PROFILING_INIT(kg, PROFILING_CLOSURE_VOLUME_SAMPLE);
 
   int label;
-  float3 eval;
+  float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 
   *pdf = 0.0f;
   label = volume_phase_sample(sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);

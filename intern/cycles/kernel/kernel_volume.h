@@ -187,7 +187,7 @@ ccl_device void kernel_volume_shadow_homogeneous(KernelGlobals *kg,
                                                  ShaderData *sd,
                                                  float3 *throughput)
 {
-  float3 sigma_t;
+  float3 sigma_t = make_float3(0.0f, 0.0f, 0.0f);
 
   if (volume_shader_extinction_sample(kg, sd, state, ray->P, &sigma_t))
     *throughput *= volume_color_transmittance(sigma_t, ray->t);
@@ -225,7 +225,7 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg,
     }
 
     float3 new_P = ray->P + ray->D * (t + step_offset);
-    float3 sigma_t;
+    float3 sigma_t = make_float3(0.0f, 0.0f, 0.0f);
 
     /* compute attenuation over segment */
     if (volume_shader_extinction_sample(kg, sd, state, new_P, &sigma_t)) {
@@ -621,6 +621,7 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
         new_tp = tp * transmittance;
       }
       else {
+        transmittance = make_float3(0.0f, 0.0f, 0.0f);
         new_tp = tp;
       }
 

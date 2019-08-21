@@ -27,7 +27,7 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg,
                                                 float time)
 {
   /* setup shading at emitter */
-  float3 eval;
+  float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 
   if (shader_constant_emission_eval(kg, ls->shader, &eval)) {
     if ((ls->prim != PRIM_NONE) && dot(ls->Ng, I) < 0.0f) {
@@ -314,7 +314,7 @@ ccl_device_noinline float3 indirect_background(KernelGlobals *kg,
   }
 
   /* Evaluate background shader. */
-  float3 L;
+  float3 L = make_float3(0.0f, 0.0f, 0.0f);
   if (!shader_constant_emission_eval(kg, shader, &L)) {
 #  ifdef __SPLIT_KERNEL__
     Ray priv_ray = *ray;

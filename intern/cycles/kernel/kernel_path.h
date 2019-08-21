@@ -103,7 +103,7 @@ ccl_device_forceinline void kernel_path_lamp_emission(KernelGlobals *kg,
     light_ray.dP = ray->dP;
 
     /* intersect with lamp */
-    float3 emission;
+    float3 emission = make_float3(0.0f, 0.0f, 0.0f);
 
     if (indirect_lamp_emission(kg, emission_sd, state, &light_ray, &emission))
       path_radiance_accum_emission(L, state, throughput, emission);

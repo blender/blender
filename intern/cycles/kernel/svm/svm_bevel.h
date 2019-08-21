@@ -53,7 +53,7 @@ ccl_device_noinline float3 svm_bevel(KernelGlobals *kg,
   float3 sum_N = make_float3(0.0f, 0.0f, 0.0f);
 
   for (int sample = 0; sample < num_samples; sample++) {
-    float disk_u, disk_v;
+    float disk_u = 0.0f, disk_v = 0.0f;
     path_branched_rng_2D(
         kg, state->rng_hash, state, sample, num_samples, PRNG_BEVEL_U, &disk_u, &disk_v);
 

@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Brick */
 
-ccl_device_noinline float brick_noise(uint n) /* fast integer noise */
+ccl_device_inline float brick_noise(uint n) /* fast integer noise */
 {
   uint nn;
   n = (n + 1013) & 0x7fffffff;

@@ -46,8 +46,8 @@ ccl_device AttributeDescriptor svm_node_attr_init(
 
 ccl_device void svm_node_attr(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
-  NodeAttributeType type;
-  uint out_offset;
+  NodeAttributeType type = NODE_ATTR_FLOAT;
+  uint out_offset = 0;
   AttributeDescriptor desc = svm_node_attr_init(kg, sd, node, &type, &out_offset);
 
   /* fetch and store attribute */
@@ -88,8 +88,8 @@ ccl_device_noinline
     void
     svm_node_attr_bump_dx(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
-  NodeAttributeType type;
-  uint out_offset;
+  NodeAttributeType type = NODE_ATTR_FLOAT;
+  uint out_offset = 0;
   AttributeDescriptor desc = svm_node_attr_init(kg, sd, node, &type, &out_offset);
 
   /* fetch and store attribute */
@@ -133,8 +133,8 @@ ccl_device_noinline
     void
     svm_node_attr_bump_dy(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
-  NodeAttributeType type;
-  uint out_offset;
+  NodeAttributeType type = NODE_ATTR_FLOAT;
+  uint out_offset = 0;
   AttributeDescriptor desc = svm_node_attr_init(kg, sd, node, &type, &out_offset);
 
   /* fetch and store attribute */
