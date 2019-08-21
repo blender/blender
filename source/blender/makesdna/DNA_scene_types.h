@@ -1460,16 +1460,14 @@ typedef struct ToolSettings {
 
   char edge_mode_live_unwrap;
 
-  char _pad1[1];
-
   /* Transform */
   char transform_pivot_point;
   char transform_flag;
-  char snap_mode, snap_node_mode;
-  char snap_uv_mode;
   char snap_flag;
   char snap_target;
   char snap_transform_mode_flag;
+  short snap_mode, snap_node_mode;
+  short snap_uv_mode;
 
   char proportional_edit, prop_mode;
   /** Proportional edit, object mode. */
@@ -1492,7 +1490,7 @@ typedef struct ToolSettings {
   char vgroupsubset;
 
   /* UV painting */
-  char _pad2[3];
+  char _pad2[1];
   char uv_sculpt_settings;
   char uv_relax_method;
   /* XXX: these sculpt_paint_* fields are deprecated, use the
