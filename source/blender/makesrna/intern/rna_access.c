@@ -8871,45 +8871,41 @@ static void rna_property_override_apply_ex(Main *bmain,
       RNA_POINTER_INVALIDATE(&private_ptr_item_storage);
       if (opop->subitem_local_name != NULL) {
         RNA_property_collection_lookup_string(
-            ptr_local, prop_local, opop->subitem_local_name, &private_ptr_item_local);
+            ptr_override, prop_override, opop->subitem_local_name, &private_ptr_item_override);
         if (opop->subitem_reference_name != NULL) {
-          RNA_property_collection_lookup_string(ptr_override,
-                                                prop_override,
-                                                opop->subitem_reference_name,
-                                                &private_ptr_item_override);
+          RNA_property_collection_lookup_string(
+              ptr_local, prop_local, opop->subitem_reference_name, &private_ptr_item_local);
         }
         else {
           RNA_property_collection_lookup_string(
-              ptr_override, prop_override, opop->subitem_local_name, &private_ptr_item_override);
+              ptr_local, prop_local, opop->subitem_local_name, &private_ptr_item_local);
         }
       }
       else if (opop->subitem_reference_name != NULL) {
         RNA_property_collection_lookup_string(
-            ptr_local, prop_local, opop->subitem_reference_name, &private_ptr_item_local);
-        RNA_property_collection_lookup_string(
             ptr_override, prop_override, opop->subitem_reference_name, &private_ptr_item_override);
+        RNA_property_collection_lookup_string(
+            ptr_local, prop_local, opop->subitem_reference_name, &private_ptr_item_local);
       }
       else if (opop->subitem_local_index != -1) {
         RNA_property_collection_lookup_int(
-            ptr_local, prop_local, opop->subitem_local_index, &private_ptr_item_local);
+            ptr_override, prop_override, opop->subitem_local_index, &private_ptr_item_override);
         if (opop->subitem_reference_index != -1) {
-          RNA_property_collection_lookup_int(ptr_override,
-                                             prop_override,
-                                             opop->subitem_reference_index,
-                                             &private_ptr_item_override);
+          RNA_property_collection_lookup_int(
+              ptr_local, prop_local, opop->subitem_reference_index, &private_ptr_item_local);
         }
         else {
           RNA_property_collection_lookup_int(
-              ptr_override, prop_override, opop->subitem_local_index, &private_ptr_item_override);
+              ptr_local, prop_local, opop->subitem_local_index, &private_ptr_item_local);
         }
       }
       else if (opop->subitem_reference_index != -1) {
-        RNA_property_collection_lookup_int(
-            ptr_local, prop_local, opop->subitem_reference_index, &private_ptr_item_local);
         RNA_property_collection_lookup_int(ptr_override,
                                            prop_override,
                                            opop->subitem_reference_index,
                                            &private_ptr_item_override);
+        RNA_property_collection_lookup_int(
+            ptr_local, prop_local, opop->subitem_reference_index, &private_ptr_item_local);
       }
       if (prop_storage != NULL) {
         if (opop->subitem_local_name != NULL) {
