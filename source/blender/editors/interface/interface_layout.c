@@ -1180,11 +1180,6 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
 
   assert(but->optype != NULL);
 
-  /* text alignment for toolbar buttons */
-  if ((layout->root->type == UI_LAYOUT_TOOLBAR) && !icon) {
-    but->drawflag |= UI_BUT_TEXT_LEFT;
-  }
-
   if (flag & UI_ITEM_R_NO_BG) {
     layout->emboss = prev_emboss;
   }
