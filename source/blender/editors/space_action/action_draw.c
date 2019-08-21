@@ -352,179 +352,231 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 /* ************************************************************************* */
 /* Timeline - Caches */
 
-void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
+static bool timeline_cache_is_hidden_by_setting(SpaceAction *saction, PTCacheID *pid)
 {
-  PTCacheID *pid;
-  ListBase pidlist;
-  const float cache_draw_height = (4.0f * UI_DPI_FAC * U.pixelsize);
-  float yoffs = 0.f;
+  switch (pid->type) {
+    case PTCACHE_TYPE_SOFTBODY:
+      if ((saction->cache_display & TIME_CACHE_SOFTBODY) == 0) {
+        return true;
+      }
+      break;
+    case PTCACHE_TYPE_PARTICLES:
+      if ((saction->cache_display & TIME_CACHE_PARTICLES) == 0) {
+        return true;
+      }
+      break;
+    case PTCACHE_TYPE_CLOTH:
+      if ((saction->cache_display & TIME_CACHE_CLOTH) == 0) {
+        return true;
+      }
+      break;
+    case PTCACHE_TYPE_SMOKE_DOMAIN:
+    case PTCACHE_TYPE_SMOKE_HIGHRES:
+      if ((saction->cache_display & TIME_CACHE_SMOKE) == 0) {
+        return true;
+      }
+      break;
+    case PTCACHE_TYPE_DYNAMICPAINT:
+      if ((saction->cache_display & TIME_CACHE_DYNAMICPAINT) == 0) {
+        return true;
+      }
+      break;
+    case PTCACHE_TYPE_RIGIDBODY:
+      if ((saction->cache_display & TIME_CACHE_RIGIDBODY) == 0) {
+        return true;
+      }
+      break;
+  }
+  return false;
+}
 
-  if (!(saction->cache_display & TIME_CACHE_DISPLAY) || (!ob)) {
+static void timeline_cache_color_get(PTCacheID *pid, float color[4])
+{
+  switch (pid->type) {
+    case PTCACHE_TYPE_SOFTBODY:
+      color[0] = 1.0;
+      color[1] = 0.4;
+      color[2] = 0.02;
+      color[3] = 0.1;
+      break;
+    case PTCACHE_TYPE_PARTICLES:
+      color[0] = 1.0;
+      color[1] = 0.1;
+      color[2] = 0.02;
+      color[3] = 0.1;
+      break;
+    case PTCACHE_TYPE_CLOTH:
+      color[0] = 0.1;
+      color[1] = 0.1;
+      color[2] = 0.75;
+      color[3] = 0.1;
+      break;
+    case PTCACHE_TYPE_SMOKE_DOMAIN:
+    case PTCACHE_TYPE_SMOKE_HIGHRES:
+      color[0] = 0.2;
+      color[1] = 0.2;
+      color[2] = 0.2;
+      color[3] = 0.1;
+      break;
+    case PTCACHE_TYPE_DYNAMICPAINT:
+      color[0] = 1.0;
+      color[1] = 0.1;
+      color[2] = 0.75;
+      color[3] = 0.1;
+      break;
+    case PTCACHE_TYPE_RIGIDBODY:
+      color[0] = 1.0;
+      color[1] = 0.6;
+      color[2] = 0.0;
+      color[3] = 0.1;
+      break;
+    default:
+      color[0] = 1.0;
+      color[1] = 0.0;
+      color[2] = 1.0;
+      color[3] = 0.1;
+      BLI_assert(0);
+      break;
+  }
+}
+
+static void timeline_cache_modify_color_based_on_state(PointCache *cache, float color[4])
+{
+  if (cache->flag & PTCACHE_BAKED) {
+    color[0] -= 0.4f;
+    color[1] -= 0.4f;
+    color[2] -= 0.4f;
+  }
+  else if (cache->flag & PTCACHE_OUTDATED) {
+    color[0] += 0.4f;
+    color[1] += 0.4f;
+    color[2] += 0.4f;
+  }
+}
+
+static bool timeline_cache_find_next_cached_segment(PointCache *cache,
+                                                    int search_start_frame,
+                                                    int *r_segment_start,
+                                                    int *r_segment_end)
+{
+  int offset = cache->startframe;
+  int current = search_start_frame;
+
+  /* Find segment start frame. */
+  while (true) {
+    if (current > cache->endframe) {
+      return false;
+    }
+    if (cache->cached_frames[current - offset]) {
+      *r_segment_start = current;
+      break;
+    }
+    current++;
+  }
+
+  /* Find segment end frame. */
+  while (true) {
+    if (current > cache->endframe) {
+      *r_segment_end = current - 1;
+      return true;
+    }
+    if (!cache->cached_frames[current - offset]) {
+      *r_segment_end = current - 1;
+      return true;
+    }
+    current++;
+  }
+}
+
+static uint timeline_cache_segments_count(PointCache *cache)
+{
+  uint count = 0;
+
+  int current = cache->startframe;
+  int segment_start;
+  int segment_end;
+  while (timeline_cache_find_next_cached_segment(cache, current, &segment_start, &segment_end)) {
+    count++;
+    current = segment_end + 1;
+  }
+
+  return count;
+}
+
+static void timeline_cache_draw_cached_segments(PointCache *cache, uint pos_id)
+{
+  uint segments_count = timeline_cache_segments_count(cache);
+  if (segments_count == 0) {
     return;
   }
 
+  immBeginAtMost(GPU_PRIM_TRIS, segments_count * 6);
+
+  int current = cache->startframe;
+  int segment_start;
+  int segment_end;
+  while (timeline_cache_find_next_cached_segment(cache, current, &segment_start, &segment_end)) {
+    immRectf_fast(pos_id, segment_start - 0.5f, 0, segment_end + 0.5f, 1.0f);
+    current = segment_end + 1;
+  }
+
+  immEnd();
+}
+
+static void timeline_cache_draw_single(PTCacheID *pid, float y_offset, float height, uint pos_id)
+{
+  GPU_matrix_push();
+  GPU_matrix_translate_2f(0.0, (float)V2D_SCROLL_HANDLE_HEIGHT + y_offset);
+  GPU_matrix_scale_2f(1.0, height);
+
+  float color[4];
+  timeline_cache_color_get(pid, color);
+
+  immUniformColor4fv(color);
+  immRectf(pos_id, (float)pid->cache->startframe, 0.0, (float)pid->cache->endframe, 1.0);
+
+  color[3] = 0.4f;
+  timeline_cache_modify_color_based_on_state(pid->cache, color);
+  immUniformColor4fv(color);
+
+  timeline_cache_draw_cached_segments(pid->cache, pos_id);
+
+  GPU_matrix_pop();
+}
+
+void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
+{
+  if ((saction->cache_display & TIME_CACHE_DISPLAY) == 0 || ob == NULL) {
+    return;
+  }
+
+  ListBase pidlist;
   BKE_ptcache_ids_from_object(&pidlist, ob, scene, 0);
 
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos_id = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  /* iterate over pointcaches on the active object, and draw each one's range */
-  for (pid = pidlist.first; pid; pid = pid->next) {
-    float col[4];
+  GPU_blend(true);
 
-    switch (pid->type) {
-      case PTCACHE_TYPE_SOFTBODY:
-        if (!(saction->cache_display & TIME_CACHE_SOFTBODY)) {
-          continue;
-        }
-        break;
-      case PTCACHE_TYPE_PARTICLES:
-        if (!(saction->cache_display & TIME_CACHE_PARTICLES)) {
-          continue;
-        }
-        break;
-      case PTCACHE_TYPE_CLOTH:
-        if (!(saction->cache_display & TIME_CACHE_CLOTH)) {
-          continue;
-        }
-        break;
-      case PTCACHE_TYPE_SMOKE_DOMAIN:
-      case PTCACHE_TYPE_SMOKE_HIGHRES:
-        if (!(saction->cache_display & TIME_CACHE_SMOKE)) {
-          continue;
-        }
-        break;
-      case PTCACHE_TYPE_DYNAMICPAINT:
-        if (!(saction->cache_display & TIME_CACHE_DYNAMICPAINT)) {
-          continue;
-        }
-        break;
-      case PTCACHE_TYPE_RIGIDBODY:
-        if (!(saction->cache_display & TIME_CACHE_RIGIDBODY)) {
-          continue;
-        }
-        break;
+  /* Iterate over pointcaches on the active object, and draw each one's range. */
+  float y_offset = 0.0f;
+  const float cache_draw_height = 4.0f * UI_DPI_FAC * U.pixelsize;
+  for (PTCacheID *pid = pidlist.first; pid; pid = pid->next) {
+    if (timeline_cache_is_hidden_by_setting(saction, pid)) {
+      continue;
     }
 
     if (pid->cache->cached_frames == NULL) {
       continue;
     }
 
-    GPU_matrix_push();
-    GPU_matrix_translate_2f(0.0, (float)V2D_SCROLL_HANDLE_HEIGHT + yoffs);
-    GPU_matrix_scale_2f(1.0, cache_draw_height);
+    timeline_cache_draw_single(pid, y_offset, cache_draw_height, pos_id);
 
-    switch (pid->type) {
-      case PTCACHE_TYPE_SOFTBODY:
-        col[0] = 1.0;
-        col[1] = 0.4;
-        col[2] = 0.02;
-        col[3] = 0.1;
-        break;
-      case PTCACHE_TYPE_PARTICLES:
-        col[0] = 1.0;
-        col[1] = 0.1;
-        col[2] = 0.02;
-        col[3] = 0.1;
-        break;
-      case PTCACHE_TYPE_CLOTH:
-        col[0] = 0.1;
-        col[1] = 0.1;
-        col[2] = 0.75;
-        col[3] = 0.1;
-        break;
-      case PTCACHE_TYPE_SMOKE_DOMAIN:
-      case PTCACHE_TYPE_SMOKE_HIGHRES:
-        col[0] = 0.2;
-        col[1] = 0.2;
-        col[2] = 0.2;
-        col[3] = 0.1;
-        break;
-      case PTCACHE_TYPE_DYNAMICPAINT:
-        col[0] = 1.0;
-        col[1] = 0.1;
-        col[2] = 0.75;
-        col[3] = 0.1;
-        break;
-      case PTCACHE_TYPE_RIGIDBODY:
-        col[0] = 1.0;
-        col[1] = 0.6;
-        col[2] = 0.0;
-        col[3] = 0.1;
-        break;
-      default:
-        col[0] = 1.0;
-        col[1] = 0.0;
-        col[2] = 1.0;
-        col[3] = 0.1;
-        BLI_assert(0);
-        break;
-    }
-
-    const int sta = pid->cache->startframe, end = pid->cache->endframe;
-
-    GPU_blend(true);
-
-    immUniformColor4fv(col);
-    immRectf(pos, (float)sta, 0.0, (float)end, 1.0);
-
-    col[3] = 0.4f;
-    if (pid->cache->flag & PTCACHE_BAKED) {
-      col[0] -= 0.4f;
-      col[1] -= 0.4f;
-      col[2] -= 0.4f;
-    }
-    else if (pid->cache->flag & PTCACHE_OUTDATED) {
-      col[0] += 0.4f;
-      col[1] += 0.4f;
-      col[2] += 0.4f;
-    }
-
-    immUniformColor4fv(col);
-
-    {
-      /* draw a quad for each chunk of consecutive cached frames */
-      const int chunk_tot = 32;
-      int chunk_len = 0;
-      int ista = 0, iend = -1;
-
-      for (int i = sta; i <= end; i++) {
-        if (pid->cache->cached_frames[i - sta]) {
-          if (chunk_len == 0) {
-            immBeginAtMost(GPU_PRIM_TRIS, chunk_tot * 6);
-          }
-          if (ista > iend) {
-            chunk_len++;
-            ista = i;
-          }
-          iend = i;
-        }
-        else {
-          if (ista <= iend) {
-            immRectf_fast(pos, (float)ista - 0.5f, 0.0f, (float)iend + 0.5f, 1.0f);
-            iend = ista - 1;
-          }
-          if (chunk_len >= chunk_tot) {
-            immEnd();
-            chunk_len = 0;
-          }
-        }
-      }
-      if (ista <= iend) {
-        immRectf_fast(pos, (float)ista - 0.5f, 0.0f, (float)iend + 0.5f, 1.0f);
-      }
-      if (chunk_len != 0) {
-        immEnd();
-      }
-    }
-
-    GPU_blend(false);
-
-    GPU_matrix_pop();
-
-    yoffs += cache_draw_height;
+    y_offset += cache_draw_height;
   }
 
+  GPU_blend(false);
   immUnbindProgram();
 
   BLI_freelistN(&pidlist);
