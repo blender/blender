@@ -1023,7 +1023,7 @@ static void rna_def_modifier_gpenciltime(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "offset", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "offset");
-  RNA_def_property_range(prop, -INT_MAX, INT_MAX);
+  RNA_def_property_range(prop, SHRT_MIN, SHRT_MAX);
   RNA_def_property_ui_text(
       prop, "Frame Offset", "Number of frames to offset original keyframe number or frame to fix");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
@@ -1256,7 +1256,7 @@ static void rna_def_modifier_gpencilinstance(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "count", PROP_INT, PROP_NONE);
-  RNA_def_property_range(prop, 1, INT_MAX);
+  RNA_def_property_range(prop, 1, SHRT_MAX);
   RNA_def_property_ui_range(prop, 1, 50, 1, -1);
   RNA_def_property_ui_text(prop, "Count", "Number of items");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
@@ -1321,7 +1321,7 @@ static void rna_def_modifier_gpencilinstance(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "replace_material", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "mat_rpl");
-  RNA_def_property_range(prop, 0, INT_MAX);
+  RNA_def_property_range(prop, 0, SHRT_MAX);
   RNA_def_property_ui_text(
       prop,
       "Material",

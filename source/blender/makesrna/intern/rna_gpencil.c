@@ -1649,7 +1649,7 @@ static void rna_def_gpencil_grid(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "lines", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "lines");
-  RNA_def_property_range(prop, 0, INT_MAX);
+  RNA_def_property_range(prop, 0, SHRT_MAX);
   RNA_def_property_int_default(prop, GP_DEFAULT_GRID_LINES);
   RNA_def_property_ui_text(
       prop, "Grid Subdivisions", "Number of subdivisions in each side of symmetry line");
