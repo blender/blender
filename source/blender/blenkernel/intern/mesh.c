@@ -801,7 +801,7 @@ Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(BMEditMesh *em,
   me->runtime.is_original = true;
   if (vertexCos) {
     /* We will own this array in the future. */
-    BKE_mesh_apply_vert_coords(me, vertexCos);
+    BKE_mesh_vert_coords_apply(me, vertexCos);
     MEM_freeN(vertexCos);
     me->runtime.is_original = false;
   }
@@ -1302,25 +1302,6 @@ void BKE_mesh_smooth_flag_set(Object *meshOb, int enableSmooth)
 }
 
 /**
- * Return a newly MEM_malloc'd array of all the mesh vertex locations
- * \note \a r_verts_len may be NULL
- */
-float (*BKE_mesh_vertexCos_get(const Mesh *me, int *r_verts_len))[3]
-{
-  int i, verts_len = me->totvert;
-  float(*cos)[3] = MEM_malloc_arrayN(verts_len, sizeof(*cos), "vertexcos1");
-
-  if (r_verts_len) {
-    *r_verts_len = verts_len;
-  }
-  for (i = 0; i < verts_len; i++) {
-    copy_v3_v3(cos[i], me->mvert[i].co);
-  }
-
-  return cos;
-}
-
-/**
  * Find the index of the loop in 'poly' which references vertex,
  * returns -1 if not found
  */
@@ -1665,24 +1646,42 @@ void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])
   /* We could support faces in paint modes. */
 }
 
-void BKE_mesh_apply_vert_coords(Mesh *mesh, const float (*vertCoords)[3])
+void BKE_mesh_vert_coords_get(const Mesh *mesh, float (*vert_coords)[3])
+{
+  const MVert *mv = mesh->mvert;
+  for (int i = 0; i < mesh->totvert; i++, mv++) {
+    copy_v3_v3(vert_coords[i], mv->co);
+  }
+}
+
+float (*BKE_mesh_vert_coords_alloc(const Mesh *mesh, int *r_vert_len))[3]
+{
+  float(*vert_coords)[3] = MEM_mallocN(sizeof(float[3]) * mesh->totvert, __func__);
+  BKE_mesh_vert_coords_get(mesh, vert_coords);
+  if (r_vert_len) {
+    *r_vert_len = mesh->totvert;
+  }
+  return vert_coords;
+}
+
+void BKE_mesh_vert_coords_apply(Mesh *mesh, const float (*vert_coords)[3])
 {
   /* This will just return the pointer if it wasn't a referenced layer. */
   MVert *mv = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MVERT, mesh->totvert);
   mesh->mvert = mv;
   for (int i = 0; i < mesh->totvert; i++, mv++) {
-    copy_v3_v3(mv->co, vertCoords[i]);
+    copy_v3_v3(mv->co, vert_coords[i]);
   }
   mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 }
 
-void BKE_mesh_apply_vert_normals(Mesh *mesh, const short (*vertNormals)[3])
+void BKE_mesh_vert_normals_apply(Mesh *mesh, const short (*vert_normals)[3])
 {
   /* This will just return the pointer if it wasn't a referenced layer. */
   MVert *mv = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MVERT, mesh->totvert);
   mesh->mvert = mv;
   for (int i = 0; i < mesh->totvert; i++, mv++) {
-    copy_v3_v3_short(mv->no, vertNormals[i]);
+    copy_v3_v3_short(mv->no, vert_normals[i]);
   }
   mesh->runtime.cd_dirty_vert &= ~CD_MASK_NORMAL;
 }

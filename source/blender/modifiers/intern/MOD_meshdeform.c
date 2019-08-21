@@ -401,7 +401,7 @@ static void meshdeformModifier_do(ModifierData *md,
   }
 
   /* setup deformation data */
-  cagecos = BKE_mesh_vertexCos_get(cagemesh, NULL);
+  cagecos = BKE_mesh_vert_coords_alloc(cagemesh, NULL);
   bindcagecos = (float(*)[3])mmd->bindcagecos;
 
   /* We allocate 1 element extra to make it possible to

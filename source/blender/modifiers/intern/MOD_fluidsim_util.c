@@ -290,7 +290,7 @@ static Mesh *fluidsim_read_obj(const char *filename, const MPoly *mp_example)
   gzclose(gzf);
 
   BKE_mesh_calc_edges(mesh, false, false);
-  BKE_mesh_apply_vert_normals(mesh, (short(*)[3])normals);
+  BKE_mesh_vert_normals_apply(mesh, (short(*)[3])normals);
   MEM_freeN(normals);
 
   // CDDM_calc_normals(result);

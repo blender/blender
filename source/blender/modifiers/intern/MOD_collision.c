@@ -120,7 +120,7 @@ static void deformVerts(ModifierData *md,
     float current_time = 0;
     unsigned int mvert_num = 0;
 
-    BKE_mesh_apply_vert_coords(mesh_src, vertexCos);
+    BKE_mesh_vert_coords_apply(mesh_src, vertexCos);
     BKE_mesh_calc_normals(mesh_src);
 
     current_time = DEG_get_ctime(ctx->depsgraph);

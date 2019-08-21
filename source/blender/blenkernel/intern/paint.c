@@ -1222,10 +1222,10 @@ static void sculpt_update_object(
       BKE_sculptsession_free_deformMats(ss);
 
       ss->orig_cos = (ss->kb) ? BKE_keyblock_convert_to_vertcos(ob, ss->kb) :
-                                BKE_mesh_vertexCos_get(me, NULL);
+                                BKE_mesh_vert_coords_alloc(me, NULL);
 
       BKE_crazyspace_build_sculpt(depsgraph, scene, ob, &ss->deform_imats, &ss->deform_cos);
-      BKE_pbvh_apply_vertCos(ss->pbvh, ss->deform_cos, me->totvert);
+      BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos, me->totvert);
 
       for (a = 0; a < me->totvert; ++a) {
         invert_m3(ss->deform_imats[a]);
@@ -1242,14 +1242,14 @@ static void sculpt_update_object(
 
   /* if pbvh is deformed, key block is already applied to it */
   if (ss->kb) {
-    bool pbvh_deformed = BKE_pbvh_isDeformed(ss->pbvh);
+    bool pbvh_deformed = BKE_pbvh_is_deformed(ss->pbvh);
     if (!pbvh_deformed || ss->deform_cos == NULL) {
       float(*vertCos)[3] = BKE_keyblock_convert_to_vertcos(ob, ss->kb);
 
       if (vertCos) {
         if (!pbvh_deformed) {
           /* apply shape keys coordinates to PBVH */
-          BKE_pbvh_apply_vertCos(ss->pbvh, vertCos, me->totvert);
+          BKE_pbvh_vert_coords_apply(ss->pbvh, vertCos, me->totvert);
         }
         if (ss->deform_cos == NULL) {
           ss->deform_cos = vertCos;
@@ -1477,8 +1477,8 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
   if (is_deformed && me_eval_deform != NULL) {
     int totvert;
-    float(*v_cos)[3] = BKE_mesh_vertexCos_get(me_eval_deform, &totvert);
-    BKE_pbvh_apply_vertCos(pbvh, v_cos, totvert);
+    float(*v_cos)[3] = BKE_mesh_vert_coords_alloc(me_eval_deform, &totvert);
+    BKE_pbvh_vert_coords_apply(pbvh, v_cos, totvert);
     MEM_freeN(v_cos);
   }
 

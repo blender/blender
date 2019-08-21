@@ -892,8 +892,7 @@ static void curve_calc_modifiers_pre(
        * tilts, which is passed through in the modifier stack.
        * this is also the reason curves do not use a virtual
        * shape key modifier yet. */
-      deformedVerts = BKE_curve_nurbs_keyVertexCos_get(nurb, keyVerts);
-      numVerts = BKE_nurbList_verts_count(nurb);
+      deformedVerts = BKE_curve_nurbs_key_vert_coords_alloc(nurb, keyVerts, &numVerts);
     }
   }
 
@@ -909,7 +908,7 @@ static void curve_calc_modifiers_pre(
       }
 
       if (!deformedVerts) {
-        deformedVerts = BKE_curve_nurbs_vertexCos_get(nurb, &numVerts);
+        deformedVerts = BKE_curve_nurbs_vert_coords_alloc(nurb, &numVerts);
       }
 
       mti->deformVerts(md, &mectx, NULL, deformedVerts, numVerts);
@@ -921,11 +920,11 @@ static void curve_calc_modifiers_pre(
   }
 
   if (deformedVerts) {
-    BK_curve_nurbs_vertexCos_apply(nurb, deformedVerts);
+    BK_curve_nurbs_vert_coords_apply(nurb, deformedVerts);
     MEM_freeN(deformedVerts);
   }
   if (keyVerts) { /* these are not passed through modifier stack */
-    BKE_curve_nurbs_keyVertexTilts_apply(nurb, keyVerts);
+    BKE_curve_nurbs_key_vert_tilts_apply(nurb, keyVerts);
   }
 
   if (keyVerts) {
@@ -933,18 +932,18 @@ static void curve_calc_modifiers_pre(
   }
 }
 
-static float (*displist_get_allverts(ListBase *dispbase, int *totvert))[3]
+static float (*displist_vert_coords_alloc(ListBase *dispbase, int *r_vert_len))[3]
 {
   DispList *dl;
   float(*allverts)[3], *fp;
 
-  *totvert = 0;
+  *r_vert_len = 0;
 
   for (dl = dispbase->first; dl; dl = dl->next) {
-    *totvert += (dl->type == DL_INDEX3) ? dl->nr : dl->parts * dl->nr;
+    *r_vert_len += (dl->type == DL_INDEX3) ? dl->nr : dl->parts * dl->nr;
   }
 
-  allverts = MEM_mallocN((*totvert) * sizeof(float) * 3, "displist_get_allverts allverts");
+  allverts = MEM_mallocN((*r_vert_len) * sizeof(float) * 3, "displist_vert_coords_alloc allverts");
   fp = (float *)allverts;
   for (dl = dispbase->first; dl; dl = dl->next) {
     int offs = 3 * ((dl->type == DL_INDEX3) ? dl->nr : dl->parts * dl->nr);
@@ -955,7 +954,7 @@ static float (*displist_get_allverts(ListBase *dispbase, int *totvert))[3]
   return allverts;
 }
 
-static void displist_apply_allverts(ListBase *dispbase, float (*allverts)[3])
+static void displist_vert_coords_apply(ListBase *dispbase, float (*allverts)[3])
 {
   DispList *dl;
   const float *fp;
@@ -1027,7 +1026,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
      * we need to create a Mesh for each curve that uses modifiers. */
     if (modified == NULL /* && need_normal */) {
       if (vertCos != NULL) {
-        displist_apply_allverts(dispbase, vertCos);
+        displist_vert_coords_apply(dispbase, vertCos);
       }
 
       if (ELEM(ob->type, OB_CURVE, OB_FONT) && (cu->flag & CU_DEFORM_FILL)) {
@@ -1041,7 +1040,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
         (mti->type == eModifierTypeType_DeformOrConstruct && !modified)) {
       if (modified) {
         if (!vertCos) {
-          vertCos = BKE_mesh_vertexCos_get(modified, &totvert);
+          vertCos = BKE_mesh_vert_coords_alloc(modified, &totvert);
         }
         if (need_normal) {
           BKE_mesh_ensure_normals(modified);
@@ -1050,7 +1049,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
       }
       else {
         if (!vertCos) {
-          vertCos = displist_get_allverts(dispbase, &totvert);
+          vertCos = displist_vert_coords_alloc(dispbase, &totvert);
         }
         mti->deformVerts(md, &mectx_deform, NULL, vertCos, totvert);
       }
@@ -1071,12 +1070,12 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
           BKE_id_free(NULL, modified);
           modified = temp_mesh;
 
-          BKE_mesh_apply_vert_coords(modified, vertCos);
+          BKE_mesh_vert_coords_apply(modified, vertCos);
         }
       }
       else {
         if (vertCos) {
-          displist_apply_allverts(dispbase, vertCos);
+          displist_vert_coords_apply(dispbase, vertCos);
         }
 
         if (ELEM(ob->type, OB_CURVE, OB_FONT) && (cu->flag & CU_DEFORM_FILL)) {
@@ -1115,13 +1114,13 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
       BKE_id_free(NULL, modified);
       modified = temp_mesh;
 
-      BKE_mesh_apply_vert_coords(modified, vertCos);
+      BKE_mesh_vert_coords_apply(modified, vertCos);
       BKE_mesh_calc_normals_mapping_simple(modified);
 
       MEM_freeN(vertCos);
     }
     else {
-      displist_apply_allverts(dispbase, vertCos);
+      displist_vert_coords_apply(dispbase, vertCos);
       MEM_freeN(vertCos);
       vertCos = NULL;
     }

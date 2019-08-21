@@ -293,7 +293,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
         BLI_linklist_free((LinkNode *)datamasks, NULL);
 
         me = BKE_mesh_from_editmesh_with_coords_thin_wrap(em, &data_mask, NULL);
-        deformedVerts = editbmesh_get_vertex_cos(em, &numVerts);
+        deformedVerts = editbmesh_vert_coords_alloc(em, &numVerts);
         defmats = MEM_mallocN(sizeof(*defmats) * numVerts, "defmats");
 
         for (a = 0; a < numVerts; a++) {
@@ -383,7 +383,7 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
          * state. */
         Mesh *me = object_eval.data;
         me_eval = BKE_mesh_copy_for_eval(me, true);
-        deformedVerts = BKE_mesh_vertexCos_get(me, &numVerts);
+        deformedVerts = BKE_mesh_vert_coords_alloc(me, &numVerts);
         defmats = MEM_callocN(sizeof(*defmats) * numVerts, "defmats");
 
         for (a = 0; a < numVerts; a++) {
@@ -485,7 +485,7 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
     int a, numVerts;
     Mesh *mesh = (Mesh *)object->data;
 
-    *deformcos = BKE_mesh_vertexCos_get(mesh, &numVerts);
+    *deformcos = BKE_mesh_vert_coords_alloc(mesh, &numVerts);
     *deformmats = MEM_callocN(sizeof(*(*deformmats)) * numVerts, "defmats");
 
     for (a = 0; a < numVerts; a++) {

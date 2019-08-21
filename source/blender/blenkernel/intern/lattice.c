@@ -139,7 +139,7 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
   BPoint *bp;
   int i, u, v, w;
   float fu, fv, fw, uc, vc, wc, du = 0.0, dv = 0.0, dw = 0.0;
-  float *co, (*vertexCos)[3] = NULL;
+  float *co, (*vert_coords)[3] = NULL;
 
   /* vertex weight groups are just freed all for now */
   if (lt->dvert) {
@@ -159,7 +159,7 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
     }
   }
 
-  vertexCos = MEM_mallocN(sizeof(*vertexCos) * uNew * vNew * wNew, "tmp_vcos");
+  vert_coords = MEM_mallocN(sizeof(*vert_coords) * uNew * vNew * wNew, "tmp_vcos");
 
   calc_lat_fudu(lt->flag, uNew, &fu, &du);
   calc_lat_fudu(lt->flag, vNew, &fv, &dv);
@@ -187,7 +187,7 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
     }
   }
 
-  co = vertexCos[0];
+  co = vert_coords[0];
   for (w = 0, wc = fw; w < wNew; w++, wc += dw) {
     for (v = 0, vc = fv; v < vNew; v++, vc += dv) {
       for (u = 0, uc = fu; u < uNew; u++, co += 3, uc += du) {
@@ -212,7 +212,7 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 
     copy_m4_m4(mat, ltOb->obmat);
     unit_m4(ltOb->obmat);
-    lattice_deform_verts(ltOb, NULL, NULL, vertexCos, uNew * vNew * wNew, NULL, 1.0f);
+    lattice_deform_verts(ltOb, NULL, NULL, vert_coords, uNew * vNew * wNew, NULL, 1.0f);
     copy_m4_m4(ltOb->obmat, mat);
 
     lt->typeu = typeu;
@@ -238,10 +238,10 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
   bp = lt->def;
 
   for (i = 0; i < lt->pntsu * lt->pntsv * lt->pntsw; i++, bp++) {
-    copy_v3_v3(bp->vec, vertexCos[i]);
+    copy_v3_v3(bp->vec, vert_coords[i]);
   }
 
-  MEM_freeN(vertexCos);
+  MEM_freeN(vert_coords);
 }
 
 void BKE_lattice_init(Lattice *lt)
@@ -747,7 +747,7 @@ static bool calc_curve_deform(
 
 void curve_deform_verts(Object *cuOb,
                         Object *target,
-                        float (*vertexCos)[3],
+                        float (*vert_coords)[3],
                         int numVerts,
                         MDeformVert *dvert,
                         const int defgrp_index,
@@ -786,11 +786,11 @@ void curve_deform_verts(Object *cuOb,
         const float weight = defvert_find_weight(dvert_iter, defgrp_index);
 
         if (weight > 0.0f) {
-          mul_m4_v3(cd.curvespace, vertexCos[a]);
-          copy_v3_v3(vec, vertexCos[a]);
+          mul_m4_v3(cd.curvespace, vert_coords[a]);
+          copy_v3_v3(vec, vert_coords[a]);
           calc_curve_deform(cuOb, vec, defaxis, &cd, NULL);
-          interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
-          mul_m4_v3(cd.objectspace, vertexCos[a]);
+          interp_v3_v3v3(vert_coords[a], vert_coords[a], vec, weight);
+          mul_m4_v3(cd.objectspace, vert_coords[a]);
         }
       }
     }
@@ -800,8 +800,8 @@ void curve_deform_verts(Object *cuOb,
 
       for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
         if (defvert_find_weight(dvert_iter, defgrp_index) > 0.0f) {
-          mul_m4_v3(cd.curvespace, vertexCos[a]);
-          minmax_v3v3_v3(cd.dmin, cd.dmax, vertexCos[a]);
+          mul_m4_v3(cd.curvespace, vert_coords[a]);
+          minmax_v3v3_v3(cd.dmin, cd.dmax, vert_coords[a]);
         }
       }
 
@@ -810,10 +810,10 @@ void curve_deform_verts(Object *cuOb,
 
         if (weight > 0.0f) {
           /* already in 'cd.curvespace', prev for loop */
-          copy_v3_v3(vec, vertexCos[a]);
+          copy_v3_v3(vec, vert_coords[a]);
           calc_curve_deform(cuOb, vec, defaxis, &cd, NULL);
-          interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
-          mul_m4_v3(cd.objectspace, vertexCos[a]);
+          interp_v3_v3v3(vert_coords[a], vert_coords[a], vec, weight);
+          mul_m4_v3(cd.objectspace, vert_coords[a]);
         }
       }
     }
@@ -821,9 +821,9 @@ void curve_deform_verts(Object *cuOb,
   else {
     if (cu->flag & CU_DEFORM_BOUNDS_OFF) {
       for (a = 0; a < numVerts; a++) {
-        mul_m4_v3(cd.curvespace, vertexCos[a]);
-        calc_curve_deform(cuOb, vertexCos[a], defaxis, &cd, NULL);
-        mul_m4_v3(cd.objectspace, vertexCos[a]);
+        mul_m4_v3(cd.curvespace, vert_coords[a]);
+        calc_curve_deform(cuOb, vert_coords[a], defaxis, &cd, NULL);
+        mul_m4_v3(cd.objectspace, vert_coords[a]);
       }
     }
     else {
@@ -831,14 +831,14 @@ void curve_deform_verts(Object *cuOb,
       INIT_MINMAX(cd.dmin, cd.dmax);
 
       for (a = 0; a < numVerts; a++) {
-        mul_m4_v3(cd.curvespace, vertexCos[a]);
-        minmax_v3v3_v3(cd.dmin, cd.dmax, vertexCos[a]);
+        mul_m4_v3(cd.curvespace, vert_coords[a]);
+        minmax_v3v3_v3(cd.dmin, cd.dmax, vert_coords[a]);
       }
 
       for (a = 0; a < numVerts; a++) {
         /* already in 'cd.curvespace', prev for loop */
-        calc_curve_deform(cuOb, vertexCos[a], defaxis, &cd, NULL);
-        mul_m4_v3(cd.objectspace, vertexCos[a]);
+        calc_curve_deform(cuOb, vert_coords[a], defaxis, &cd, NULL);
+        mul_m4_v3(cd.objectspace, vert_coords[a]);
       }
     }
   }
@@ -881,7 +881,7 @@ void curve_deform_vector(
 
 typedef struct LatticeDeformUserdata {
   LatticeDeformData *lattice_deform_data;
-  float (*vertexCos)[3];
+  float (*vert_coords)[3];
   MDeformVert *dvert;
   int defgrp_index;
   float fac;
@@ -896,18 +896,18 @@ static void lattice_deform_vert_task(void *__restrict userdata,
   if (data->dvert != NULL) {
     const float weight = defvert_find_weight(data->dvert + index, data->defgrp_index);
     if (weight > 0.0f) {
-      calc_latt_deform(data->lattice_deform_data, data->vertexCos[index], weight * data->fac);
+      calc_latt_deform(data->lattice_deform_data, data->vert_coords[index], weight * data->fac);
     }
   }
   else {
-    calc_latt_deform(data->lattice_deform_data, data->vertexCos[index], data->fac);
+    calc_latt_deform(data->lattice_deform_data, data->vert_coords[index], data->fac);
   }
 }
 
 void lattice_deform_verts(Object *laOb,
                           Object *target,
                           Mesh *mesh,
-                          float (*vertexCos)[3],
+                          float (*vert_coords)[3],
                           int numVerts,
                           const char *vgroup,
                           float fac)
@@ -942,11 +942,13 @@ void lattice_deform_verts(Object *laOb,
     }
   }
 
-  LatticeDeformUserdata data = {.lattice_deform_data = lattice_deform_data,
-                                .vertexCos = vertexCos,
-                                .dvert = dvert,
-                                .defgrp_index = defgrp_index,
-                                .fac = fac};
+  LatticeDeformUserdata data = {
+      .lattice_deform_data = lattice_deform_data,
+      .vert_coords = vert_coords,
+      .dvert = dvert,
+      .defgrp_index = defgrp_index,
+      .fac = fac,
+  };
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
@@ -1055,31 +1057,30 @@ void outside_lattice(Lattice *lt)
   }
 }
 
-float (*BKE_lattice_vertexcos_get(const Lattice *lt, int *r_numVerts))[3]
+float (*BKE_lattice_vert_coords_alloc(const Lattice *lt, int *r_vert_len))[3]
 {
-  int i, numVerts;
-  float(*vertexCos)[3];
+  int vert_len;
+  float(*vert_coords)[3];
 
   if (lt->editlatt) {
     lt = lt->editlatt->latt;
   }
-  numVerts = *r_numVerts = lt->pntsu * lt->pntsv * lt->pntsw;
+  vert_len = *r_vert_len = lt->pntsu * lt->pntsv * lt->pntsw;
 
-  vertexCos = MEM_mallocN(sizeof(*vertexCos) * numVerts, "lt_vcos");
+  vert_coords = MEM_mallocN(sizeof(*vert_coords) * vert_len, __func__);
 
-  for (i = 0; i < numVerts; i++) {
-    copy_v3_v3(vertexCos[i], lt->def[i].vec);
+  for (int i = 0; i < vert_len; i++) {
+    copy_v3_v3(vert_coords[i], lt->def[i].vec);
   }
 
-  return vertexCos;
+  return vert_coords;
 }
 
-void BKE_lattice_vertexcos_apply(Lattice *lt, const float (*vertexCos)[3])
+void BKE_lattice_vert_coords_apply(Lattice *lt, const float (*vert_coords)[3])
 {
-  int i, numVerts = lt->pntsu * lt->pntsv * lt->pntsw;
-
-  for (i = 0; i < numVerts; i++) {
-    copy_v3_v3(lt->def[i].vec, vertexCos[i]);
+  const int vert_len = lt->pntsu * lt->pntsv * lt->pntsw;
+  for (int i = 0; i < vert_len; i++) {
+    copy_v3_v3(lt->def[i].vec, vert_coords[i]);
   }
 }
 
@@ -1091,7 +1092,7 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
   Object *ob_orig = DEG_get_original_object(ob);
   VirtualModifierData virtualModifierData;
   ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
-  float(*vertexCos)[3] = NULL;
+  float(*vert_coords)[3] = NULL;
   int numVerts, editmode = (lt->editlatt != NULL);
   const ModifierEvalContext mectx = {depsgraph, ob, 0};
 
@@ -1121,29 +1122,29 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
       continue;
     }
 
-    if (!vertexCos) {
-      vertexCos = BKE_lattice_vertexcos_get(ob_orig->data, &numVerts);
+    if (!vert_coords) {
+      vert_coords = BKE_lattice_vert_coords_alloc(ob_orig->data, &numVerts);
     }
-    mti->deformVerts(md, &mectx, NULL, vertexCos, numVerts);
+    mti->deformVerts(md, &mectx, NULL, vert_coords, numVerts);
   }
 
   if (ob->id.tag & LIB_TAG_COPIED_ON_WRITE) {
-    if (vertexCos) {
-      BKE_lattice_vertexcos_apply(ob->data, vertexCos);
-      MEM_freeN(vertexCos);
+    if (vert_coords) {
+      BKE_lattice_vert_coords_apply(ob->data, vert_coords);
+      MEM_freeN(vert_coords);
     }
   }
   else {
     /* Displist won't do anything; this is just for posterity's sake until we remove it. */
-    if (!vertexCos) {
-      vertexCos = BKE_lattice_vertexcos_get(ob_orig->data, &numVerts);
+    if (!vert_coords) {
+      vert_coords = BKE_lattice_vert_coords_alloc(ob_orig->data, &numVerts);
     }
 
     DispList *dl = MEM_callocN(sizeof(*dl), "lt_dl");
     dl->type = DL_VERTS;
     dl->parts = 1;
     dl->nr = numVerts;
-    dl->verts = (float *)vertexCos;
+    dl->verts = (float *)vert_coords;
 
     BLI_addtail(&ob->runtime.curve_cache->disp, dl);
   }

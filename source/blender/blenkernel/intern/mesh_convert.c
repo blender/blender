@@ -1341,11 +1341,11 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
 
   if (mti->type == eModifierTypeType_OnlyDeform) {
     int numVerts;
-    float(*deformedVerts)[3] = BKE_mesh_vertexCos_get(me, &numVerts);
+    float(*deformedVerts)[3] = BKE_mesh_vert_coords_alloc(me, &numVerts);
 
     BKE_id_copy_ex(NULL, &me->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
     mti->deformVerts(md_eval, &mectx, result, deformedVerts, numVerts);
-    BKE_mesh_apply_vert_coords(result, deformedVerts);
+    BKE_mesh_vert_coords_apply(result, deformedVerts);
 
     if (build_shapekey_layers) {
       add_shapekey_layers(result, me);

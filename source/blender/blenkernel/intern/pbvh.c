@@ -533,7 +533,7 @@ static void pbvh_build(PBVH *bvh, BB *cb, BBC *prim_bbc, int totprim)
  * Do a full rebuild with on Mesh data structure.
  *
  * \note Unlike mpoly/mloop/verts, looptri is **totally owned** by PBVH
- * (which means it may rewrite it if needed, see #BKE_pbvh_apply_vertCos().
+ * (which means it may rewrite it if needed, see #BKE_pbvh_vert_coords_apply().
  */
 void BKE_pbvh_build_mesh(PBVH *bvh,
                          const MPoly *mpoly,
@@ -2306,7 +2306,7 @@ void BKE_pbvh_node_layer_disp_free(PBVHNode *node)
   }
 }
 
-float (*BKE_pbvh_get_vertCos(PBVH *pbvh))[3]
+float (*BKE_pbvh_vert_coords_alloc(PBVH *pbvh))[3]
 {
   float(*vertCos)[3] = NULL;
 
@@ -2324,7 +2324,7 @@ float (*BKE_pbvh_get_vertCos(PBVH *pbvh))[3]
   return vertCos;
 }
 
-void BKE_pbvh_apply_vertCos(PBVH *pbvh, const float (*vertCos)[3], const int totvert)
+void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int totvert)
 {
   if (totvert != pbvh->totvert) {
     BLI_assert(!"PBVH: Given deforming vcos number does not natch PBVH vertex number!");
@@ -2368,7 +2368,7 @@ void BKE_pbvh_apply_vertCos(PBVH *pbvh, const float (*vertCos)[3], const int tot
   }
 }
 
-bool BKE_pbvh_isDeformed(PBVH *pbvh)
+bool BKE_pbvh_is_deformed(PBVH *pbvh)
 {
   return pbvh->deformed;
 }

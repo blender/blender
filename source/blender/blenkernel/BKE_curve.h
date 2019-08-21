@@ -124,11 +124,15 @@ void BKE_curve_nurb_vert_active_set(struct Curve *cu, const struct Nurb *nu, con
 bool BKE_curve_nurb_vert_active_get(struct Curve *cu, struct Nurb **r_nu, void **r_vert);
 void BKE_curve_nurb_vert_active_validate(struct Curve *cu);
 
-float (*BKE_curve_nurbs_vertexCos_get(struct ListBase *lb, int *r_numVerts))[3];
-void BK_curve_nurbs_vertexCos_apply(struct ListBase *lb, const float (*vertexCos)[3]);
+float (*BKE_curve_nurbs_vert_coords_alloc(struct ListBase *lb, int *r_vert_len))[3];
+void BKE_curve_nurbs_vert_coords_get(struct ListBase *lb, float (*vert_coords)[3], int vert_len);
 
-float (*BKE_curve_nurbs_keyVertexCos_get(struct ListBase *lb, float *key))[3];
-void BKE_curve_nurbs_keyVertexTilts_apply(struct ListBase *lb, float *key);
+void BK_curve_nurbs_vert_coords_apply(struct ListBase *lb, const float (*vert_coords)[3]);
+
+float (*BKE_curve_nurbs_key_vert_coords_alloc(struct ListBase *lb,
+                                              float *key,
+                                              int *r_vert_len))[3];
+void BKE_curve_nurbs_key_vert_tilts_apply(struct ListBase *lb, float *key);
 
 void BKE_curve_editNurb_keyIndex_delCV(struct GHash *keyindex, const void *cv);
 void BKE_curve_editNurb_keyIndex_free(struct GHash **keyindex);

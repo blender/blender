@@ -891,7 +891,7 @@ bool multiresModifier_reshapeFromObject(struct Depsgraph *depsgraph,
   Object *src_eval = DEG_get_evaluated_object(depsgraph, src);
   Mesh *src_mesh_eval = mesh_get_eval_final(depsgraph, scene_eval, src_eval, &CD_MASK_BAREMESH);
   int num_deformed_verts;
-  float(*deformed_verts)[3] = BKE_mesh_vertexCos_get(src_mesh_eval, &num_deformed_verts);
+  float(*deformed_verts)[3] = BKE_mesh_vert_coords_alloc(src_mesh_eval, &num_deformed_verts);
   bool result = multires_reshape_from_vertcos(
       depsgraph, dst, &reshape_mmd, deformed_verts, num_deformed_verts, false);
   MEM_freeN(deformed_verts);
@@ -926,7 +926,7 @@ bool multiresModifier_reshapeFromDeformModifier(struct Depsgraph *depsgraph,
    * deformation modifiers will be applied though). */
   Mesh *multires_mesh = BKE_multires_create_mesh(depsgraph, scene_eval, &highest_mmd, object);
   int num_deformed_verts;
-  float(*deformed_verts)[3] = BKE_mesh_vertexCos_get(multires_mesh, &num_deformed_verts);
+  float(*deformed_verts)[3] = BKE_mesh_vert_coords_alloc(multires_mesh, &num_deformed_verts);
   /* Apply deformation modifier on the multires, */
   const ModifierEvalContext modifier_ctx = {
       .depsgraph = depsgraph,

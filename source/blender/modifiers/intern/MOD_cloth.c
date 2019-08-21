@@ -114,7 +114,7 @@ static void deformVerts(ModifierData *md,
     }
   }
 
-  BKE_mesh_apply_vert_coords(mesh_src, vertexCos);
+  BKE_mesh_vert_coords_apply(mesh_src, vertexCos);
 
   clothModifier_do(clmd, ctx->depsgraph, scene, ctx->object, mesh_src, vertexCos);
 

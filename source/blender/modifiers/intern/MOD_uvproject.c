@@ -204,7 +204,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   mloop_uv = CustomData_duplicate_referenced_layer_named(
       &mesh->ldata, CD_MLOOPUV, uvname, numLoops);
 
-  coords = BKE_mesh_vertexCos_get(mesh, &numVerts);
+  coords = BKE_mesh_vert_coords_alloc(mesh, &numVerts);
 
   /* convert coords to world space */
   for (i = 0, co = coords; i < numVerts; ++i, ++co) {

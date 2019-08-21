@@ -58,7 +58,7 @@ void outside_lattice(struct Lattice *lt);
 
 void curve_deform_verts(struct Object *cuOb,
                         struct Object *target,
-                        float (*vertexCos)[3],
+                        float (*vert_coords)[3],
                         int numVerts,
                         struct MDeformVert *dvert,
                         const int defgrp_index,
@@ -73,14 +73,14 @@ void curve_deform_vector(struct Object *cuOb,
 void lattice_deform_verts(struct Object *laOb,
                           struct Object *target,
                           struct Mesh *mesh,
-                          float (*vertexCos)[3],
+                          float (*vert_coords)[3],
                           int numVerts,
                           const char *vgroup,
                           float influence);
 void armature_deform_verts(struct Object *armOb,
                            struct Object *target,
                            const struct Mesh *mesh,
-                           float (*vertexCos)[3],
+                           float (*vert_coords)[3],
                            float (*defMats)[3][3],
                            int numVerts,
                            int deformflag,
@@ -88,8 +88,8 @@ void armature_deform_verts(struct Object *armOb,
                            const char *defgrp_name,
                            struct bGPDstroke *gps);
 
-float (*BKE_lattice_vertexcos_get(const struct Lattice *lt, int *r_numVerts))[3];
-void BKE_lattice_vertexcos_apply(struct Lattice *lt, const float (*vertexCos)[3]);
+float (*BKE_lattice_vert_coords_alloc(const struct Lattice *lt, int *r_vert_len))[3];
+void BKE_lattice_vert_coords_apply(struct Lattice *lt, const float (*vert_coords)[3]);
 void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph,
                                 struct Scene *scene,
                                 struct Object *ob);

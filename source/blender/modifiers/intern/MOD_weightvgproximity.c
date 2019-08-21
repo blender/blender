@@ -492,7 +492,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
   /* Get our vertex coordinates. */
   if (numIdx != numVerts) {
-    float(*tv_cos)[3] = BKE_mesh_vertexCos_get(mesh, NULL);
+    float(*tv_cos)[3] = BKE_mesh_vert_coords_alloc(mesh, NULL);
     v_cos = MEM_malloc_arrayN(numIdx, sizeof(float[3]), "WeightVGProximity Modifier, v_cos");
     for (i = 0; i < numIdx; i++) {
       copy_v3_v3(v_cos[i], tv_cos[indices[i]]);
@@ -500,7 +500,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     MEM_freeN(tv_cos);
   }
   else {
-    v_cos = BKE_mesh_vertexCos_get(mesh, NULL);
+    v_cos = BKE_mesh_vert_coords_alloc(mesh, NULL);
   }
 
   /* Compute wanted distances. */

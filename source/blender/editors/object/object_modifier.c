@@ -714,9 +714,9 @@ static int modifier_apply_obdata(
                RPT_INFO,
                "Applied modifier only changed CV points, not tessellated/bevel vertices");
 
-    vertexCos = BKE_curve_nurbs_vertexCos_get(&curve_eval->nurb, &numVerts);
+    vertexCos = BKE_curve_nurbs_vert_coords_alloc(&curve_eval->nurb, &numVerts);
     mti->deformVerts(md_eval, &mectx, NULL, vertexCos, numVerts);
-    BK_curve_nurbs_vertexCos_apply(&curve->nurb, vertexCos);
+    BK_curve_nurbs_vert_coords_apply(&curve->nurb, vertexCos);
 
     MEM_freeN(vertexCos);
 

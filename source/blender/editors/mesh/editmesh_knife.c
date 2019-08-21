@@ -2658,7 +2658,7 @@ static void knifetool_init_bmbvh(KnifeTool_OpData *kcd)
   Object *obedit_eval = (Object *)DEG_get_evaluated_id(kcd->vc.depsgraph, &kcd->em->ob->id);
   BMEditMesh *em_eval = BKE_editmesh_from_object(obedit_eval);
 
-  kcd->cagecos = (const float(*)[3])BKE_editmesh_vertexCos_get(
+  kcd->cagecos = (const float(*)[3])BKE_editmesh_vert_coords_alloc(
       kcd->vc.depsgraph, em_eval, scene_eval, NULL);
 
   kcd->bmbvh = BKE_bmbvh_new_from_editmesh(

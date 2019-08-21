@@ -66,7 +66,7 @@ static int dl_tri_len(const DispList *dl)
   return 0;
 }
 
-/* see: displist_get_allverts */
+/* see: displist_vert_coords_alloc */
 static int curve_render_surface_vert_len_get(const ListBase *lb)
 {
   int vert_len = 0;

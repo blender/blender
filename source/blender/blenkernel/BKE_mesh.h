@@ -208,8 +208,6 @@ bool BKE_mesh_uv_cdlayer_rename(struct Mesh *me,
                                 const char *new_name,
                                 bool do_tessface);
 
-float (*BKE_mesh_vertexCos_get(const struct Mesh *me, int *r_numVerts))[3];
-
 void BKE_mesh_split_faces(struct Mesh *mesh, bool free_loop_normals);
 
 /* Create new mesh from the given object at its current state.
@@ -268,8 +266,11 @@ void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
 
 void BKE_mesh_count_selected_items(const struct Mesh *mesh, int r_count[3]);
 
-void BKE_mesh_apply_vert_coords(struct Mesh *mesh, const float (*vertCoords)[3]);
-void BKE_mesh_apply_vert_normals(struct Mesh *mesh, const short (*vertNormals)[3]);
+float (*BKE_mesh_vert_coords_alloc(const struct Mesh *mesh, int *r_vert_len))[3];
+void BKE_mesh_vert_coords_get(const struct Mesh *mesh, float (*vert_coords)[3]);
+
+void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]);
+void BKE_mesh_vert_normals_apply(struct Mesh *mesh, const short (*vertNormals)[3]);
 
 /* *** mesh_evaluate.c *** */
 

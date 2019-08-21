@@ -198,7 +198,7 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
     /* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether
      * we really need vertexCos here. */
     if (vertexCos) {
-      BKE_mesh_apply_vert_coords(mesh, vertexCos);
+      BKE_mesh_vert_coords_apply(mesh, vertexCos);
       mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
     }
 

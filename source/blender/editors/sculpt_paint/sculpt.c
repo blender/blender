@@ -4349,7 +4349,7 @@ static void sculpt_update_keyblock(Object *ob)
     vertCos = ss->orig_cos;
   }
   else {
-    vertCos = BKE_pbvh_get_vertCos(ss->pbvh);
+    vertCos = BKE_pbvh_vert_coords_alloc(ss->pbvh);
   }
 
   if (vertCos) {

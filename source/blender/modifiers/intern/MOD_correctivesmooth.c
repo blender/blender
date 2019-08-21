@@ -635,12 +635,12 @@ static void correctivesmooth_modifier_do(ModifierData *md,
     if (csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) {
       /* caller needs to do sanity check here */
       csmd->bind_coords_num = numVerts;
-      rest_coords = (const float(*)[3])csmd->bind_coords;
+      rest_coords = csmd->bind_coords;
     }
     else {
       int me_numVerts;
-      rest_coords = (const float(*)[3])((em) ? BKE_editmesh_vertexCos_get_orco(em, &me_numVerts) :
-                                               BKE_mesh_vertexCos_get(ob->data, &me_numVerts));
+      rest_coords = em ? BKE_editmesh_vert_coords_alloc_orco(em, &me_numVerts) :
+                         BKE_mesh_vert_coords_alloc(ob->data, &me_numVerts);
 
       BLI_assert((unsigned int)me_numVerts == numVerts);
       is_rest_coords_alloc = true;
