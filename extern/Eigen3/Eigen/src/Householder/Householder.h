@@ -75,8 +75,9 @@ void MatrixBase<Derived>::makeHouseholder(
   
   RealScalar tailSqNorm = size()==1 ? RealScalar(0) : tail.squaredNorm();
   Scalar c0 = coeff(0);
+  const RealScalar tol = (std::numeric_limits<RealScalar>::min)();
 
-  if(tailSqNorm == RealScalar(0) && numext::imag(c0)==RealScalar(0))
+  if(tailSqNorm <= tol && numext::abs2(numext::imag(c0))<=tol)
   {
     tau = RealScalar(0);
     beta = numext::real(c0);
@@ -118,7 +119,7 @@ void MatrixBase<Derived>::applyHouseholderOnTheLeft(
   {
     *this *= Scalar(1)-tau;
   }
-  else
+  else if(tau!=Scalar(0))
   {
     Map<typename internal::plain_row_type<PlainObject>::type> tmp(workspace,cols());
     Block<Derived, EssentialPart::SizeAtCompileTime, Derived::ColsAtCompileTime> bottom(derived(), 1, 0, rows()-1, cols());
@@ -155,7 +156,7 @@ void MatrixBase<Derived>::applyHouseholderOnTheRight(
   {
     *this *= Scalar(1)-tau;
   }
-  else
+  else if(tau!=Scalar(0))
   {
     Map<typename internal::plain_col_type<PlainObject>::type> tmp(workspace,rows());
     Block<Derived, Derived::RowsAtCompileTime, EssentialPart::SizeAtCompileTime> right(derived(), 0, 1, rows(), cols()-1);
