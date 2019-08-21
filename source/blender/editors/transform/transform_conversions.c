@@ -1517,6 +1517,7 @@ void restoreBones(TransDataContainer *tc)
     ebo = bid->bone;
 
     ebo->dist = bid->dist;
+    ebo->rad_head = bid->rad_head;
     ebo->rad_tail = bid->rad_tail;
     ebo->roll = bid->roll;
     ebo->xwidth = bid->xwidth;
@@ -1782,6 +1783,7 @@ static void createTransArmatureVerts(TransInfo *t)
         if (eboflip) {
           bid[i].bone = eboflip;
           bid[i].dist = eboflip->dist;
+          bid[i].rad_head = eboflip->rad_head;
           bid[i].rad_tail = eboflip->rad_tail;
           bid[i].roll = eboflip->roll;
           bid[i].xwidth = eboflip->xwidth;

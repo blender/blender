@@ -375,6 +375,7 @@ typedef struct VertSlideParams {
 typedef struct BoneInitData {
   struct EditBone *bone;
   float tail[3];
+  float rad_head;
   float rad_tail;
   float roll;
   float head[3];

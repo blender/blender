@@ -621,7 +621,7 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
         RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update"); \
       } \
       else { \
-        RNA_def_property_update(prop, 0, "rna_Armature_update_data"); \
+        RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update"); \
       } \
     } \
     ((void)0)
@@ -871,11 +871,16 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   /* Number values */
   /* envelope deform settings */
   prop = RNA_def_property(srna, "envelope_distance", PROP_FLOAT, PROP_DISTANCE);
+  if (editbone) {
+    RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
+  }
+  else {
+    RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+  }
   RNA_def_property_float_sdna(prop, NULL, "dist");
   RNA_def_property_range(prop, 0.0f, 1000.0f);
   RNA_def_property_ui_text(
       prop, "Envelope Deform Distance", "Bone deformation distance (for Envelope deform only)");
-  RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 
   prop = RNA_def_property(srna, "envelope_weight", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "weight");
@@ -914,23 +919,38 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 
   /* b-bones deform settings */
   prop = RNA_def_property(srna, "bbone_segments", PROP_INT, PROP_NONE);
+  if (editbone) {
+    RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
+  }
+  else {
+    RNA_def_property_update(prop, 0, "rna_Armature_dependency_update");
+  }
   RNA_def_property_int_sdna(prop, NULL, "segments");
   RNA_def_property_range(prop, 1, 32);
   RNA_def_property_ui_text(
       prop, "B-Bone Segments", "Number of subdivisions of bone (for B-Bones only)");
-  RNA_def_property_update(prop, 0, "rna_Armature_dependency_update");
 
   prop = RNA_def_property(srna, "bbone_x", PROP_FLOAT, PROP_NONE);
+  if (editbone) {
+    RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
+  }
+  else {
+    RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+  }
   RNA_def_property_float_sdna(prop, NULL, "xwidth");
   RNA_def_property_ui_range(prop, 0.0f, 1000.0f, 1, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_ui_text(prop, "B-Bone Display X Width", "B-Bone X size");
-  RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 
   prop = RNA_def_property(srna, "bbone_z", PROP_FLOAT, PROP_NONE);
+  if (editbone) {
+    RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
+  }
+  else {
+    RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+  }
   RNA_def_property_float_sdna(prop, NULL, "zwidth");
   RNA_def_property_ui_range(prop, 0.0f, 1000.0f, 1, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_ui_text(prop, "B-Bone Display Z Width", "B-Bone Z size");
-  RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 
   prop = RNA_def_property(srna, "bbone_handle_type_start", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "bbone_prev_type");
