@@ -27,7 +27,7 @@ ccl_device void svm_node_clamp(KernelGlobals *kg,
                                int *offset)
 {
   uint min_stack_offset, max_stack_offset;
-  decode_node_uchar4(parameters_stack_offsets, &min_stack_offset, &max_stack_offset, NULL, NULL);
+  svm_unpack_node_uchar2(parameters_stack_offsets, &min_stack_offset, &max_stack_offset);
 
   uint4 defaults = read_node(kg, offset);
 

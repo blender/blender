@@ -116,8 +116,8 @@ ccl_device void svm_node_tex_voronoi(
   uint co_offset, coloring, distance, feature;
   uint scale_offset, e_offset, fac_offset, color_offset;
 
-  decode_node_uchar4(node.y, &co_offset, &coloring, &distance, &feature);
-  decode_node_uchar4(node.z, &scale_offset, &e_offset, &fac_offset, &color_offset);
+  svm_unpack_node_uchar4(node.y, &co_offset, &coloring, &distance, &feature);
+  svm_unpack_node_uchar4(node.z, &scale_offset, &e_offset, &fac_offset, &color_offset);
 
   float3 co = stack_load_float3(stack, co_offset);
   float scale = stack_load_float_default(stack, scale_offset, node2.x);

@@ -26,8 +26,8 @@ ccl_device void svm_node_vector_transform(KernelGlobals *kg,
   uint itype, ifrom, ito;
   uint vector_in, vector_out;
 
-  decode_node_uchar4(node.y, &itype, &ifrom, &ito, NULL);
-  decode_node_uchar4(node.z, &vector_in, &vector_out, NULL, NULL);
+  svm_unpack_node_uchar3(node.y, &itype, &ifrom, &ito);
+  svm_unpack_node_uchar2(node.z, &vector_in, &vector_out);
 
   float3 in = stack_load_float3(stack, vector_in);
 

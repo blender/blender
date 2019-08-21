@@ -257,7 +257,7 @@ ccl_device void svm_node_tex_coord_bump_dy(
 ccl_device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
   uint color_offset, strength_offset, normal_offset, space;
-  decode_node_uchar4(node.y, &color_offset, &strength_offset, &normal_offset, &space);
+  svm_unpack_node_uchar4(node.y, &color_offset, &strength_offset, &normal_offset, &space);
 
   float3 color = stack_load_float3(stack, color_offset);
   color = 2.0f * make_float3(color.x - 0.5f, color.y - 0.5f, color.z - 0.5f);
@@ -349,7 +349,7 @@ ccl_device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *st
 ccl_device void svm_node_tangent(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
   uint tangent_offset, direction_type, axis;
-  decode_node_uchar4(node.y, &tangent_offset, &direction_type, &axis, NULL);
+  svm_unpack_node_uchar3(node.y, &tangent_offset, &direction_type, &axis);
 
   float3 tangent;
   float3 attribute_value;

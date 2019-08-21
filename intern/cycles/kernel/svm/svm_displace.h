@@ -23,7 +23,7 @@ ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stac
 #ifdef __RAY_DIFFERENTIALS__
   /* get normal input */
   uint normal_offset, scale_offset, invert, use_object_space;
-  decode_node_uchar4(node.y, &normal_offset, &scale_offset, &invert, &use_object_space);
+  svm_unpack_node_uchar4(node.y, &normal_offset, &scale_offset, &invert, &use_object_space);
 
   float3 normal_in = stack_valid(normal_offset) ? stack_load_float3(stack, normal_offset) : sd->N;
 
@@ -42,7 +42,7 @@ ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stac
 
   /* get bump values */
   uint c_offset, x_offset, y_offset, strength_offset;
-  decode_node_uchar4(node.z, &c_offset, &x_offset, &y_offset, &strength_offset);
+  svm_unpack_node_uchar4(node.z, &c_offset, &x_offset, &y_offset, &strength_offset);
 
   float h_c = stack_load_float(stack, c_offset);
   float h_x = stack_load_float(stack, x_offset);
@@ -95,7 +95,7 @@ ccl_device void svm_node_set_displacement(KernelGlobals *kg,
 ccl_device void svm_node_displacement(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
   uint height_offset, midlevel_offset, scale_offset, normal_offset;
-  decode_node_uchar4(node.y, &height_offset, &midlevel_offset, &scale_offset, &normal_offset);
+  svm_unpack_node_uchar4(node.y, &height_offset, &midlevel_offset, &scale_offset, &normal_offset);
 
   float height = stack_load_float(stack, height_offset);
   float midlevel = stack_load_float(stack, midlevel_offset);
@@ -126,7 +126,7 @@ ccl_device void svm_node_vector_displacement(
   uint space = data_node.x;
 
   uint vector_offset, midlevel_offset, scale_offset, displacement_offset;
-  decode_node_uchar4(
+  svm_unpack_node_uchar4(
       node.y, &vector_offset, &midlevel_offset, &scale_offset, &displacement_offset);
 
   float3 vector = stack_load_float3(stack, vector_offset);

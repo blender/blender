@@ -93,8 +93,8 @@ ccl_device void svm_node_tex_magic(
   uint depth;
   uint scale_offset, distortion_offset, co_offset, fac_offset, color_offset;
 
-  decode_node_uchar4(node.y, &depth, &color_offset, &fac_offset, NULL);
-  decode_node_uchar4(node.z, &co_offset, &scale_offset, &distortion_offset, NULL);
+  svm_unpack_node_uchar3(node.y, &depth, &color_offset, &fac_offset);
+  svm_unpack_node_uchar3(node.z, &co_offset, &scale_offset, &distortion_offset);
 
   uint4 node2 = read_node(kg, offset);
   float3 co = stack_load_float3(stack, co_offset);

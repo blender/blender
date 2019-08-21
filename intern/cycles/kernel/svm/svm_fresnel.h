@@ -22,7 +22,7 @@ ccl_device void svm_node_fresnel(
     ShaderData *sd, float *stack, uint ior_offset, uint ior_value, uint node)
 {
   uint normal_offset, out_offset;
-  decode_node_uchar4(node, &normal_offset, &out_offset, NULL, NULL);
+  svm_unpack_node_uchar2(node, &normal_offset, &out_offset);
   float eta = (stack_valid(ior_offset)) ? stack_load_float(stack, ior_offset) :
                                           __uint_as_float(ior_value);
   float3 normal_in = stack_valid(normal_offset) ? stack_load_float3(stack, normal_offset) : sd->N;
@@ -43,7 +43,7 @@ ccl_device void svm_node_layer_weight(ShaderData *sd, float *stack, uint4 node)
   uint blend_value = node.z;
 
   uint type, normal_offset, out_offset;
-  decode_node_uchar4(node.w, &type, &normal_offset, &out_offset, NULL);
+  svm_unpack_node_uchar3(node.w, &type, &normal_offset, &out_offset);
 
   float blend = (stack_valid(blend_offset)) ? stack_load_float(stack, blend_offset) :
                                               __uint_as_float(blend_value);

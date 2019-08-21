@@ -84,7 +84,7 @@ ccl_device void svm_node_light_falloff(ShaderData *sd, float *stack, uint4 node)
 {
   uint strength_offset, out_offset, smooth_offset;
 
-  decode_node_uchar4(node.z, &strength_offset, &smooth_offset, &out_offset, NULL);
+  svm_unpack_node_uchar3(node.z, &strength_offset, &smooth_offset, &out_offset);
 
   float strength = stack_load_float(stack, strength_offset);
   uint type = node.y;

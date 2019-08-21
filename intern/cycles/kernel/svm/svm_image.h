@@ -50,7 +50,7 @@ ccl_device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *sta
   uint id = node.y;
   uint co_offset, out_offset, alpha_offset, flags;
 
-  decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &flags);
+  svm_unpack_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &flags);
 
   float3 co = stack_load_float3(stack, co_offset);
   float2 tex_co;
@@ -145,7 +145,7 @@ ccl_device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float 
 
   /* now fetch textures */
   uint co_offset, out_offset, alpha_offset, flags;
-  decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &flags);
+  svm_unpack_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &flags);
 
   float3 co = stack_load_float3(stack, co_offset);
   uint id = node.y;
@@ -181,7 +181,7 @@ ccl_device void svm_node_tex_environment(KernelGlobals *kg,
   uint co_offset, out_offset, alpha_offset, flags;
   uint projection = node.w;
 
-  decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &flags);
+  svm_unpack_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &flags);
 
   float3 co = stack_load_float3(stack, co_offset);
   float2 uv;

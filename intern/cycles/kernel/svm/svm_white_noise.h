@@ -25,7 +25,7 @@ ccl_device void svm_node_tex_white_noise(KernelGlobals *kg,
                                          int *offset)
 {
   uint vector_stack_offset, w_stack_offset;
-  decode_node_uchar4(inputs_stack_offsets, &vector_stack_offset, &w_stack_offset, NULL, NULL);
+  svm_unpack_node_uchar2(inputs_stack_offsets, &vector_stack_offset, &w_stack_offset);
 
   float3 vector = stack_load_float3(stack, vector_stack_offset);
   float w = stack_load_float(stack, w_stack_offset);

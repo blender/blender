@@ -64,7 +64,7 @@ ccl_device void svm_node_tex_gradient(ShaderData *sd, float *stack, uint4 node)
 {
   uint type, co_offset, color_offset, fac_offset;
 
-  decode_node_uchar4(node.y, &type, &co_offset, &fac_offset, &color_offset);
+  svm_unpack_node_uchar4(node.y, &type, &co_offset, &fac_offset, &color_offset);
 
   float3 co = stack_load_float3(stack, co_offset);
 

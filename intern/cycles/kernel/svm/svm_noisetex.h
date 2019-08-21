@@ -23,8 +23,8 @@ ccl_device void svm_node_tex_noise(
 {
   uint co_offset, scale_offset, detail_offset, distortion_offset, fac_offset, color_offset;
 
-  decode_node_uchar4(node.y, &co_offset, &scale_offset, &detail_offset, &distortion_offset);
-  decode_node_uchar4(node.z, &color_offset, &fac_offset, NULL, NULL);
+  svm_unpack_node_uchar4(node.y, &co_offset, &scale_offset, &detail_offset, &distortion_offset);
+  svm_unpack_node_uchar2(node.z, &color_offset, &fac_offset);
 
   uint4 node2 = read_node(kg, offset);
 

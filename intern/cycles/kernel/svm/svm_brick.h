@@ -87,13 +87,13 @@ ccl_device void svm_node_tex_brick(
   /* RNA properties */
   uint offset_frequency, squash_frequency;
 
-  decode_node_uchar4(node.y, &co_offset, &color1_offset, &color2_offset, &mortar_offset);
-  decode_node_uchar4(
+  svm_unpack_node_uchar4(node.y, &co_offset, &color1_offset, &color2_offset, &mortar_offset);
+  svm_unpack_node_uchar4(
       node.z, &scale_offset, &mortar_size_offset, &bias_offset, &brick_width_offset);
-  decode_node_uchar4(
+  svm_unpack_node_uchar4(
       node.w, &row_height_offset, &color_offset, &fac_offset, &mortar_smooth_offset);
 
-  decode_node_uchar4(node2.x, &offset_frequency, &squash_frequency, NULL, NULL);
+  svm_unpack_node_uchar2(node2.x, &offset_frequency, &squash_frequency);
 
   float3 co = stack_load_float3(stack, co_offset);
 

@@ -202,7 +202,7 @@ ccl_device void svm_node_bevel(
     KernelGlobals *kg, ShaderData *sd, ccl_addr_space PathState *state, float *stack, uint4 node)
 {
   uint num_samples, radius_offset, normal_offset, out_offset;
-  decode_node_uchar4(node.y, &num_samples, &radius_offset, &normal_offset, &out_offset);
+  svm_unpack_node_uchar4(node.y, &num_samples, &radius_offset, &normal_offset, &out_offset);
 
   float radius = stack_load_float(stack, radius_offset);
   float3 bevel_N = svm_bevel(kg, sd, state, radius, num_samples);

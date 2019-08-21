@@ -54,8 +54,8 @@ ccl_device void svm_node_tex_wave(
   uint co_offset, scale_offset, detail_offset, dscale_offset, distortion_offset, color_offset,
       fac_offset;
 
-  decode_node_uchar4(node.y, &type, &color_offset, &fac_offset, &dscale_offset);
-  decode_node_uchar4(node.z, &co_offset, &scale_offset, &detail_offset, &distortion_offset);
+  svm_unpack_node_uchar4(node.y, &type, &color_offset, &fac_offset, &dscale_offset);
+  svm_unpack_node_uchar4(node.z, &co_offset, &scale_offset, &detail_offset, &distortion_offset);
 
   float3 co = stack_load_float3(stack, co_offset);
   float scale = stack_load_float_default(stack, scale_offset, node2.x);

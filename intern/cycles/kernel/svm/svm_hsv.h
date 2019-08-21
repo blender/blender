@@ -24,8 +24,8 @@ ccl_device void svm_node_hsv(
 {
   uint in_color_offset, fac_offset, out_color_offset;
   uint hue_offset, sat_offset, val_offset;
-  decode_node_uchar4(node.y, &in_color_offset, &fac_offset, &out_color_offset, NULL);
-  decode_node_uchar4(node.z, &hue_offset, &sat_offset, &val_offset, NULL);
+  svm_unpack_node_uchar3(node.y, &in_color_offset, &fac_offset, &out_color_offset);
+  svm_unpack_node_uchar3(node.z, &hue_offset, &sat_offset, &val_offset);
 
   float fac = stack_load_float(stack, fac_offset);
   float3 in_color = stack_load_float3(stack, in_color_offset);

@@ -25,7 +25,7 @@ ccl_device void svm_node_math(KernelGlobals *kg,
                               int *offset)
 {
   uint a_stack_offset, b_stack_offset;
-  decode_node_uchar4(inputs_stack_offsets, &a_stack_offset, &b_stack_offset, NULL, NULL);
+  svm_unpack_node_uchar2(inputs_stack_offsets, &a_stack_offset, &b_stack_offset);
 
   float a = stack_load_float(stack, a_stack_offset);
   float b = stack_load_float(stack, b_stack_offset);
@@ -44,9 +44,9 @@ ccl_device void svm_node_vector_math(KernelGlobals *kg,
 {
   uint value_stack_offset, vector_stack_offset;
   uint a_stack_offset, b_stack_offset, scale_stack_offset;
-  decode_node_uchar4(
-      inputs_stack_offsets, &a_stack_offset, &b_stack_offset, &scale_stack_offset, NULL);
-  decode_node_uchar4(outputs_stack_offsets, &value_stack_offset, &vector_stack_offset, NULL, NULL);
+  svm_unpack_node_uchar3(
+      inputs_stack_offsets, &a_stack_offset, &b_stack_offset, &scale_stack_offset);
+  svm_unpack_node_uchar2(outputs_stack_offsets, &value_stack_offset, &vector_stack_offset);
 
   float3 a = stack_load_float3(stack, a_stack_offset);
   float3 b = stack_load_float3(stack, b_stack_offset);

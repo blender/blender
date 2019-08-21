@@ -85,7 +85,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
   uint type, param1_offset, param2_offset;
 
   uint mix_weight_offset;
-  decode_node_uchar4(node.y, &type, &param1_offset, &param2_offset, &mix_weight_offset);
+  svm_unpack_node_uchar4(node.y, &type, &param1_offset, &param2_offset, &mix_weight_offset);
   float mix_weight = (stack_valid(mix_weight_offset) ? stack_load_float(stack, mix_weight_offset) :
                                                        1.0f);
 
@@ -122,21 +122,21 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
       uint4 data_node2 = read_node(kg, offset);
 
       float3 T = stack_load_float3(stack, data_node.y);
-      decode_node_uchar4(data_node.z,
-                         &specular_offset,
-                         &roughness_offset,
-                         &specular_tint_offset,
-                         &anisotropic_offset);
-      decode_node_uchar4(data_node.w,
-                         &sheen_offset,
-                         &sheen_tint_offset,
-                         &clearcoat_offset,
-                         &clearcoat_roughness_offset);
-      decode_node_uchar4(data_node2.x,
-                         &eta_offset,
-                         &transmission_offset,
-                         &anisotropic_rotation_offset,
-                         &transmission_roughness_offset);
+      svm_unpack_node_uchar4(data_node.z,
+                             &specular_offset,
+                             &roughness_offset,
+                             &specular_tint_offset,
+                             &anisotropic_offset);
+      svm_unpack_node_uchar4(data_node.w,
+                             &sheen_offset,
+                             &sheen_tint_offset,
+                             &clearcoat_offset,
+                             &clearcoat_roughness_offset);
+      svm_unpack_node_uchar4(data_node2.x,
+                             &eta_offset,
+                             &transmission_offset,
+                             &anisotropic_rotation_offset,
+                             &transmission_roughness_offset);
 
       // get Disney principled parameters
       float metallic = param1;
@@ -793,19 +793,19 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
       float3 weight = sd->svm_closure_weight * mix_weight;
 
       uint offset_ofs, ior_ofs, color_ofs, parametrization;
-      decode_node_uchar4(data_node.y, &offset_ofs, &ior_ofs, &color_ofs, &parametrization);
+      svm_unpack_node_uchar4(data_node.y, &offset_ofs, &ior_ofs, &color_ofs, &parametrization);
       float alpha = stack_load_float_default(stack, offset_ofs, data_node.z);
       float ior = stack_load_float_default(stack, ior_ofs, data_node.w);
 
       uint coat_ofs, melanin_ofs, melanin_redness_ofs, absorption_coefficient_ofs;
-      decode_node_uchar4(data_node2.x,
-                         &coat_ofs,
-                         &melanin_ofs,
-                         &melanin_redness_ofs,
-                         &absorption_coefficient_ofs);
+      svm_unpack_node_uchar4(data_node2.x,
+                             &coat_ofs,
+                             &melanin_ofs,
+                             &melanin_redness_ofs,
+                             &absorption_coefficient_ofs);
 
       uint tint_ofs, random_ofs, random_color_ofs, random_roughness_ofs;
-      decode_node_uchar4(
+      svm_unpack_node_uchar4(
           data_node3.x, &tint_ofs, &random_ofs, &random_color_ofs, &random_roughness_ofs);
 
       const AttributeDescriptor attr_descr_random = find_attribute(kg, sd, data_node4.y);
@@ -982,7 +982,7 @@ ccl_device void svm_node_closure_volume(
   uint type, density_offset, anisotropy_offset;
 
   uint mix_weight_offset;
-  decode_node_uchar4(node.y, &type, &density_offset, &anisotropy_offset, &mix_weight_offset);
+  svm_unpack_node_uchar4(node.y, &type, &density_offset, &anisotropy_offset, &mix_weight_offset);
   float mix_weight = (stack_valid(mix_weight_offset) ? stack_load_float(stack, mix_weight_offset) :
                                                        1.0f);
 
@@ -1040,7 +1040,7 @@ ccl_device void svm_node_principled_volume(KernelGlobals *kg,
   }
 
   uint density_offset, anisotropy_offset, absorption_color_offset, mix_weight_offset;
-  decode_node_uchar4(
+  svm_unpack_node_uchar4(
       node.y, &density_offset, &anisotropy_offset, &absorption_color_offset, &mix_weight_offset);
   float mix_weight = (stack_valid(mix_weight_offset) ? stack_load_float(stack, mix_weight_offset) :
                                                        1.0f);
@@ -1099,7 +1099,7 @@ ccl_device void svm_node_principled_volume(KernelGlobals *kg,
   }
 
   uint emission_offset, emission_color_offset, blackbody_offset, temperature_offset;
-  decode_node_uchar4(
+  svm_unpack_node_uchar4(
       node.z, &emission_offset, &emission_color_offset, &blackbody_offset, &temperature_offset);
   float emission = (stack_valid(emission_offset)) ? stack_load_float(stack, emission_offset) :
                                                     __uint_as_float(value_node.z);
@@ -1229,7 +1229,8 @@ ccl_device void svm_node_mix_closure(ShaderData *sd, float *stack, uint4 node)
   /* fetch weight from blend input, previous mix closures,
    * and write to stack to be used by closure nodes later */
   uint weight_offset, in_weight_offset, weight1_offset, weight2_offset;
-  decode_node_uchar4(node.y, &weight_offset, &in_weight_offset, &weight1_offset, &weight2_offset);
+  svm_unpack_node_uchar4(
+      node.y, &weight_offset, &in_weight_offset, &weight1_offset, &weight2_offset);
 
   float weight = stack_load_float(stack, weight_offset);
   weight = saturate(weight);

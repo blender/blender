@@ -59,7 +59,7 @@ ccl_device void svm_node_rgb_ramp(
   uint fac_offset, color_offset, alpha_offset;
   uint interpolate = node.z;
 
-  decode_node_uchar4(node.y, &fac_offset, &color_offset, &alpha_offset, NULL);
+  svm_unpack_node_uchar3(node.y, &fac_offset, &color_offset, &alpha_offset);
 
   uint table_size = read_node(kg, offset).x;
 
@@ -78,7 +78,7 @@ ccl_device void svm_node_curves(
     KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
   uint fac_offset, color_offset, out_offset;
-  decode_node_uchar4(node.y, &fac_offset, &color_offset, &out_offset, NULL);
+  svm_unpack_node_uchar3(node.y, &fac_offset, &color_offset, &out_offset);
 
   uint table_size = read_node(kg, offset).x;
 

@@ -22,7 +22,7 @@ ccl_device void svm_node_brightness(
   uint bright_offset, contrast_offset;
   float3 color = stack_load_float3(stack, in_color);
 
-  decode_node_uchar4(node, &bright_offset, &contrast_offset, NULL, NULL);
+  svm_unpack_node_uchar2(node, &bright_offset, &contrast_offset);
   float brightness = stack_load_float(stack, bright_offset);
   float contrast = stack_load_float(stack, contrast_offset);
 

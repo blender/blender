@@ -27,11 +27,11 @@ ccl_device void svm_node_map_range(KernelGlobals *kg,
                                    int *offset)
 {
   uint from_min_stack_offset, from_max_stack_offset, to_min_stack_offset, to_max_stack_offset;
-  decode_node_uchar4(parameters_stack_offsets,
-                     &from_min_stack_offset,
-                     &from_max_stack_offset,
-                     &to_min_stack_offset,
-                     &to_max_stack_offset);
+  svm_unpack_node_uchar4(parameters_stack_offsets,
+                         &from_min_stack_offset,
+                         &from_max_stack_offset,
+                         &to_min_stack_offset,
+                         &to_max_stack_offset);
 
   uint4 defaults = read_node(kg, offset);
 

@@ -101,8 +101,8 @@ ccl_device_inline float kernel_ies_interp(KernelGlobals *kg,
 ccl_device void svm_node_ies(
     KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
-  uint vector_offset, strength_offset, fac_offset, dummy, slot = node.z;
-  decode_node_uchar4(node.y, &strength_offset, &vector_offset, &fac_offset, &dummy);
+  uint vector_offset, strength_offset, fac_offset, slot = node.z;
+  svm_unpack_node_uchar3(node.y, &strength_offset, &vector_offset, &fac_offset);
 
   float3 vector = stack_load_float3(stack, vector_offset);
   float strength = stack_load_float_default(stack, strength_offset, node.w);

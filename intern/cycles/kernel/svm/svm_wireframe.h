@@ -93,7 +93,7 @@ ccl_device void svm_node_wireframe(KernelGlobals *kg, ShaderData *sd, float *sta
   uint in_size = node.y;
   uint out_fac = node.z;
   uint use_pixel_size, bump_offset;
-  decode_node_uchar4(node.w, &use_pixel_size, &bump_offset, NULL, NULL);
+  svm_unpack_node_uchar2(node.w, &use_pixel_size, &bump_offset);
 
   /* Input Data */
   float size = stack_load_float(stack, in_size);
