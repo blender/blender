@@ -150,23 +150,6 @@ struct DerivedMesh {
   /** Calculate vert and face normals */
   void (*calcNormals)(DerivedMesh *dm);
 
-  /** Calculate loop (split) normals */
-  void (*calcLoopNormals)(DerivedMesh *dm, const bool use_split_normals, const float split_angle);
-
-  /** Calculate loop (split) normals, and returns split loop normal spacearr. */
-  void (*calcLoopNormalsSpaceArray)(DerivedMesh *dm,
-                                    const bool use_split_normals,
-                                    const float split_angle,
-                                    struct MLoopNorSpaceArray *r_lnors_spacearr);
-
-  void (*calcLoopTangents)(DerivedMesh *dm,
-                           bool calc_active_tangent,
-                           const char (*tangent_names)[MAX_NAME],
-                           int tangent_names_count);
-
-  /** Recalculates mesh tessellation */
-  void (*recalcTessellation)(DerivedMesh *dm);
-
   /** Loop tessellation cache (WARNING! Only call inside threading-protected code!) */
   void (*recalcLoopTri)(DerivedMesh *dm);
   /** accessor functions */
@@ -261,51 +244,6 @@ struct DerivedMesh {
   DMFlagMat *(*getGridFlagMats)(DerivedMesh *dm);
   unsigned int **(*getGridHidden)(DerivedMesh *dm);
 
-  /** Iterate over each mapped vertex in the derived mesh, calling the
-   * given function with the original vert and the mapped vert's new
-   * coordinate and normal. For historical reasons the normal can be
-   * passed as a float or short array, only one should be non-NULL.
-   */
-  void (*foreachMappedVert)(DerivedMesh *dm,
-                            void (*func)(void *userData,
-                                         int index,
-                                         const float co[3],
-                                         const float no_f[3],
-                                         const short no_s[3]),
-                            void *userData,
-                            DMForeachFlag flag);
-
-  /** Iterate over each mapped edge in the derived mesh, calling the
-   * given function with the original edge and the mapped edge's new
-   * coordinates.
-   */
-  void (*foreachMappedEdge)(
-      DerivedMesh *dm,
-      void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
-      void *userData);
-
-  /** Iterate over each mapped loop in the derived mesh, calling the given function
-   * with the original loop index and the mapped loops's new coordinate and normal.
-   */
-  void (*foreachMappedLoop)(DerivedMesh *dm,
-                            void (*func)(void *userData,
-                                         int vertex_index,
-                                         int face_index,
-                                         const float co[3],
-                                         const float no[3]),
-                            void *userData,
-                            DMForeachFlag flag);
-
-  /** Iterate over each mapped face in the derived mesh, calling the
-   * given function with the original face and the mapped face's (or
-   * faces') center and normal.
-   */
-  void (*foreachMappedFaceCenter)(
-      DerivedMesh *dm,
-      void (*func)(void *userData, int index, const float cent[3], const float no[3]),
-      void *userData,
-      DMForeachFlag flag);
-
   /** Iterate over all vertex points, calling DO_MINMAX with given args.
    *
    * Also called in Editmode
@@ -319,9 +257,6 @@ struct DerivedMesh {
   /** Get vertex location, undefined if index is not valid */
   void (*getVertCo)(DerivedMesh *dm, int index, float r_co[3]);
 
-  /** Fill the array (of length .getNumVerts()) with all vertex locations */
-  void (*getVertCos)(DerivedMesh *dm, float (*r_cos)[3]);
-
   /** Get smooth vertex normal, undefined if index is not valid */
   void (*getVertNo)(DerivedMesh *dm, int index, float r_no[3]);
   void (*getPolyNo)(DerivedMesh *dm, int index, float r_no[3]);
@@ -329,10 +264,6 @@ struct DerivedMesh {
   /** Get a map of vertices to faces
    */
   const struct MeshElemMap *(*getPolyMap)(struct Object *ob, DerivedMesh *dm);
-
-  /** Get the BVH used for paint modes
-   */
-  struct PBVH *(*getPBVH)(struct Object *ob, DerivedMesh *dm);
 
   /** Release reference to the DerivedMesh. This function decides internally
    * if the DerivedMesh will be freed, or cached for later use. */
@@ -446,8 +377,6 @@ DerivedMesh *mesh_create_derived_render(struct Depsgraph *depsgraph,
                                         const struct CustomData_MeshMasks *dataMask);
 
 /* same as above but wont use render settings */
-DerivedMesh *mesh_create_derived(struct Mesh *me, float (*vertCos)[3]);
-
 struct Mesh *editbmesh_get_eval_cage(struct Depsgraph *depsgraph,
                                      struct Scene *scene,
                                      struct Object *,

@@ -819,21 +819,6 @@ void DM_interp_vert_data(DerivedMesh *source,
       &source->vertData, &dest->vertData, src_indices, weights, NULL, count, dest_index);
 }
 
-DerivedMesh *mesh_create_derived(Mesh *me, float (*vertCos)[3])
-{
-  DerivedMesh *dm = CDDM_from_mesh(me);
-
-  if (!dm) {
-    return NULL;
-  }
-
-  if (vertCos) {
-    CDDM_apply_vert_coords(dm, vertCos);
-  }
-
-  return dm;
-}
-
 static float (*get_editbmesh_orco_verts(BMEditMesh *em))[3]
 {
   BMIter iter;

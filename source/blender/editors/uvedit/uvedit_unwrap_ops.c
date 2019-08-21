@@ -524,7 +524,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene,
   smd.levels = smd_real->levels;
   smd.subdivType = smd_real->subdivType;
 
-  initialDerived = CDDM_from_editbmesh(em, false, false);
+  initialDerived = CDDM_from_editbmesh(em, false);
   derivedMesh = subsurf_make_derived_from_derived(
       initialDerived, &smd, scene, NULL, SUBSURF_IN_EDIT_MODE);
 
