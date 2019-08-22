@@ -76,7 +76,7 @@ static int gpencil_select_mode_from_sculpt(eGP_Sculpt_SelectMaskFlag mode)
   else if (mode & GP_SCULPT_MASK_SELECTMODE_STROKE) {
     return GP_SELECTMODE_STROKE;
   }
-  else if (GP_SCULPT_MASK_SELECTMODE_SEGMENT) {
+  else if (mode & GP_SCULPT_MASK_SELECTMODE_SEGMENT) {
     return GP_SELECTMODE_SEGMENT;
   }
   else {
