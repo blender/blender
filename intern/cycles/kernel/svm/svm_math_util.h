@@ -69,7 +69,7 @@ ccl_device void svm_vector_math(
       *vector = make_float3(safe_modulo(a.x, b.x), safe_modulo(a.y, b.y), safe_modulo(a.z, b.z));
       break;
     case NODE_VECTOR_MATH_FRACTION:
-      *vector = fract(a);
+      *vector = a - floor(a);
       break;
     case NODE_VECTOR_MATH_ABSOLUTE:
       *vector = fabs(a);
