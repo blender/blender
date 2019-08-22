@@ -1118,7 +1118,44 @@ static void SCREEN_OT_actionzone(wmOperatorType *ot)
   RNA_def_int(ot->srna, "modifier", 0, 0, 2, "Modifier", "Modifier state", 0, 2);
 }
 
-/** \} */
+/* -------------------------------------------------------------------- */
+/** \name Area edge detection utility
+ * \{ */
+
+static ScrEdge *screen_area_edge_from_cursor(const bContext *C,
+                                             const int cursor[2],
+                                             ScrArea **r_sa1,
+                                             ScrArea **r_sa2)
+{
+  wmWindow *win = CTX_wm_window(C);
+  bScreen *sc = CTX_wm_screen(C);
+  ScrEdge *actedge;
+  rcti window_rect;
+  WM_window_rect_calc(win, &window_rect);
+  actedge = screen_geom_area_map_find_active_scredge(
+      AREAMAP_FROM_SCREEN(sc), &window_rect, cursor[0], cursor[1]);
+  *r_sa1 = NULL;
+  *r_sa2 = NULL;
+  if (actedge == NULL) {
+    return NULL;
+  }
+  int borderwidth = (4 * UI_DPI_FAC);
+  ScrArea *sa1, *sa2;
+  if (screen_geom_edge_is_horizontal(actedge)) {
+    sa1 = BKE_screen_find_area_xy(sc, SPACE_TYPE_ANY, cursor[0], cursor[1] + borderwidth);
+    sa2 = BKE_screen_find_area_xy(sc, SPACE_TYPE_ANY, cursor[0], cursor[1] - borderwidth);
+  }
+  else {
+    sa1 = BKE_screen_find_area_xy(sc, SPACE_TYPE_ANY, cursor[0] + borderwidth, cursor[1]);
+    sa2 = BKE_screen_find_area_xy(sc, SPACE_TYPE_ANY, cursor[0] - borderwidth, cursor[1]);
+  }
+  bool isGlobal = ((sa1 && ED_area_is_global(sa1)) || (sa2 && ED_area_is_global(sa2)));
+  if (!isGlobal) {
+    *r_sa1 = sa1;
+    *r_sa2 = sa2;
+  }
+  return actedge;
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Swap Area Operator
@@ -1139,6 +1176,7 @@ static void SCREEN_OT_actionzone(wmOperatorType *ot)
  * callbacks:
  *
  * invoke() gets called on shift+lmb drag in action-zone
+ * exec()   execute without any user interaction, based on properties
  * call init(), add handler
  *
  * modal()  accept modal events while doing it
@@ -1229,6 +1267,19 @@ static int area_swap_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
+static int area_swap_exec(bContext *C, wmOperator *op)
+{
+  ScrArea *sa1, *sa2;
+  int cursor[2];
+  RNA_int_get_array(op->ptr, "cursor", cursor);
+  screen_area_edge_from_cursor(C, cursor, &sa1, &sa2);
+  if (sa1 == NULL || sa2 == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+  ED_area_swapspace(C, sa1, sa2);
+  return OPERATOR_FINISHED;
+}
+
 static void SCREEN_OT_area_swap(wmOperatorType *ot)
 {
   ot->name = "Swap Areas";
@@ -1237,10 +1288,15 @@ static void SCREEN_OT_area_swap(wmOperatorType *ot)
 
   ot->invoke = area_swap_invoke;
   ot->modal = area_swap_modal;
-  ot->poll = ED_operator_areaactive;
+  ot->exec = area_swap_exec;
+  ot->poll = screen_active_editable;
   ot->cancel = area_swap_cancel;
 
   ot->flag = OPTYPE_BLOCKING;
+
+  /* rna */
+  RNA_def_int_vector(
+      ot->srna, "cursor", 2, NULL, INT_MIN, INT_MAX, "Cursor", "", INT_MIN, INT_MAX);
 }
 
 /** \} */
@@ -3180,40 +3236,19 @@ static void area_join_draw_cb(const struct wmWindow *UNUSED(win), void *userdata
 
 /* validate selection inside screen, set variables OK */
 /* return 0: init failed */
-/* XXX todo: find edge based on (x,y) and set other area? */
-static int area_join_init(bContext *C, wmOperator *op)
+static int area_join_init(bContext *C, wmOperator *op, ScrArea *sa1, ScrArea *sa2)
 {
-  const wmWindow *win = CTX_wm_window(C);
-  bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa1, *sa2;
-  sAreaJoinData *jd = NULL;
-  int x1, y1;
-  int x2, y2;
-
-  /* required properties, make negative to get return 0 if not set by caller */
-  x1 = RNA_int_get(op->ptr, "min_x");
-  y1 = RNA_int_get(op->ptr, "min_y");
-  x2 = RNA_int_get(op->ptr, "max_x");
-  y2 = RNA_int_get(op->ptr, "max_y");
-
-  sa1 = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, x1, y1);
-  if (sa1 == NULL) {
-    sa1 = BKE_screen_area_map_find_area_xy(&win->global_areas, SPACE_TYPE_ANY, x1, y1);
+  if (sa1 == NULL || sa2 == NULL) {
+    /* Get areas from cursor location if not specified. */
+    int cursor[2];
+    RNA_int_get_array(op->ptr, "cursor", cursor);
+    screen_area_edge_from_cursor(C, cursor, &sa1, &sa2);
   }
-  sa2 = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, x2, y2);
-  if (sa2 == NULL) {
-    sa2 = BKE_screen_area_map_find_area_xy(&win->global_areas, SPACE_TYPE_ANY, x2, y2);
-  }
-  if ((sa1 && ED_area_is_global(sa1)) || (sa2 && ED_area_is_global(sa2))) {
-    BKE_report(
-        op->reports, RPT_ERROR, "Global areas (Top Bar, Status Bar) do not support joining");
-    return 0;
-  }
-  else if (sa1 == NULL || sa2 == NULL || sa1 == sa2) {
+  if (sa1 == NULL || sa2 == NULL) {
     return 0;
   }
 
-  jd = (sAreaJoinData *)MEM_callocN(sizeof(sAreaJoinData), "op_area_join");
+  sAreaJoinData *jd = MEM_callocN(sizeof(sAreaJoinData), "op_area_join");
 
   jd->sa1 = sa1;
   jd->sa2 = sa2;
@@ -3266,7 +3301,7 @@ static void area_join_exit(bContext *C, wmOperator *op)
 
 static int area_join_exec(bContext *C, wmOperator *op)
 {
-  if (!area_join_init(C, op)) {
+  if (!area_join_init(C, op, NULL, NULL)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3296,16 +3331,11 @@ static int area_join_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     if (sad->sa1 == sad->sa2) {
       return OPERATOR_PASS_THROUGH;
     }
-
-    /* prepare operator state vars */
-    RNA_int_set(op->ptr, "min_x", sad->sa1->totrct.xmin);
-    RNA_int_set(op->ptr, "min_y", sad->sa1->totrct.ymin);
-    RNA_int_set(op->ptr, "max_x", sad->sa2->totrct.xmin);
-    RNA_int_set(op->ptr, "max_y", sad->sa2->totrct.ymin);
-  }
-
-  if (!area_join_init(C, op)) {
-    return OPERATOR_CANCELLED;
+    else {
+      if (!area_join_init(C, op, sad->sa1, sad->sa2)) {
+        return OPERATOR_CANCELLED;
+      }
+    }
   }
 
   /* add temp handler */
@@ -3326,7 +3356,12 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   bScreen *sc = CTX_wm_screen(C);
   wmWindow *win = CTX_wm_window(C);
-  sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
+  sAreaJoinData *jd;
+
+  if (op->customdata == NULL) {
+    area_join_init(C, op, NULL, NULL);
+  }
+  jd = (sAreaJoinData *)op->customdata;
 
   /* execute the events */
   switch (event->type) {
@@ -3436,10 +3471,8 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
   ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 
   /* rna */
-  RNA_def_int(ot->srna, "min_x", -100, INT_MIN, INT_MAX, "X 1", "", INT_MIN, INT_MAX);
-  RNA_def_int(ot->srna, "min_y", -100, INT_MIN, INT_MAX, "Y 1", "", INT_MIN, INT_MAX);
-  RNA_def_int(ot->srna, "max_x", -100, INT_MIN, INT_MAX, "X 2", "", INT_MIN, INT_MAX);
-  RNA_def_int(ot->srna, "max_y", -100, INT_MIN, INT_MAX, "Y 2", "", INT_MIN, INT_MAX);
+  RNA_def_int_vector(
+      ot->srna, "cursor", 2, NULL, INT_MIN, INT_MAX, "Cursor", "", INT_MIN, INT_MAX);
 }
 
 /** \} */
@@ -3450,36 +3483,74 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 
 static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const wmWindow *win = CTX_wm_window(C);
-  const bScreen *sc = CTX_wm_screen(C);
   uiPopupMenu *pup;
   uiLayout *layout;
   PointerRNA ptr;
-  ScrEdge *actedge;
-  rcti window_rect;
 
-  WM_window_rect_calc(win, &window_rect);
-  actedge = screen_geom_area_map_find_active_scredge(
-      AREAMAP_FROM_SCREEN(sc), &window_rect, event->x, event->y);
+  ScrArea *sa1, *sa2;
 
-  if (actedge == NULL) {
+  if (screen_area_edge_from_cursor(C, &event->x, &sa1, &sa2) == NULL) {
     return OPERATOR_CANCELLED;
   }
 
   pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
   layout = UI_popup_menu_layout(pup);
 
-  uiItemFullO(
-      layout, "SCREEN_OT_area_split", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, &ptr);
-  /* store initial mouse cursor position */
+  /* Vertical Split */
+  uiItemFullO(layout,
+              "SCREEN_OT_area_split",
+              IFACE_("Vertical Split"),
+              ICON_NONE,
+              NULL,
+              WM_OP_INVOKE_DEFAULT,
+              0,
+              &ptr);
+  /* store initial mouse cursor position. */
   RNA_int_set_array(&ptr, "cursor", &event->x);
+  RNA_enum_set(&ptr, "direction", 'v');
 
-  uiItemFullO(layout, "SCREEN_OT_area_join", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, &ptr);
-  /* mouse cursor on edge, '4' can fail on wide edges... */
-  RNA_int_set(&ptr, "min_x", event->x + 4);
-  RNA_int_set(&ptr, "min_y", event->y + 4);
-  RNA_int_set(&ptr, "max_x", event->x - 4);
-  RNA_int_set(&ptr, "max_y", event->y - 4);
+  /* Horizontal Split */
+  uiItemFullO(layout,
+              "SCREEN_OT_area_split",
+              IFACE_("Horizontal Split"),
+              ICON_NONE,
+              NULL,
+              WM_OP_INVOKE_DEFAULT,
+              0,
+              &ptr);
+  /* store initial mouse cursor position. */
+  RNA_int_set_array(&ptr, "cursor", &event->x);
+  RNA_enum_set(&ptr, "direction", 'h');
+
+  if (sa1 && sa2) {
+    uiItemS(layout);
+  }
+
+  /* Join needs two very similar areas. */
+  if (sa1 && sa2 && (area_getorientation(sa1, sa2) != -1)) {
+    uiItemFullO(layout,
+                "SCREEN_OT_area_join",
+                IFACE_("Join Areas"),
+                ICON_NONE,
+                NULL,
+                WM_OP_INVOKE_DEFAULT,
+                0,
+                &ptr);
+    RNA_int_set_array(&ptr, "cursor", &event->x);
+  }
+
+  /* Swap just needs two areas. */
+  if (sa1 && sa2) {
+    uiItemFullO(layout,
+                "SCREEN_OT_area_swap",
+                IFACE_("Swap Areas"),
+                ICON_NONE,
+                NULL,
+                WM_OP_EXEC_DEFAULT,
+                0,
+                &ptr);
+    RNA_int_set_array(&ptr, "cursor", &event->x);
+  }
 
   UI_popup_menu_end(C, pup);
 
