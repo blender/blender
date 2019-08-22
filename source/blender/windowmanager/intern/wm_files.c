@@ -77,6 +77,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_library_override.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
@@ -1354,6 +1355,9 @@ static bool wm_file_write(bContext *C, const char *filepath, int fileflags, Repo
   /* Call pre-save callbacks before writing preview,
    * that way you can generate custom file thumbnail. */
   BLI_callback_exec(bmain, NULL, BLI_CB_EVT_SAVE_PRE);
+
+  /* Enforce full override check/generation on file save. */
+  BKE_main_override_library_operations_create(bmain, true);
 
   /* blend file thumbnail */
   /* Save before exit_editmode, otherwise derivedmeshes for shared data corrupt T27765. */
