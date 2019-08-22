@@ -133,7 +133,7 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
   /* EEVEE_effects_init needs to go first for TAA */
   EEVEE_effects_init(sldata, vedata, ob_camera_eval, false);
   EEVEE_materials_init(sldata, stl, fbl);
-  EEVEE_lights_init(sldata);
+  EEVEE_shadows_init(sldata);
   EEVEE_lightprobes_init(sldata, vedata);
 
   /* INIT CACHE */
@@ -198,7 +198,7 @@ void EEVEE_render_cache(void *vedata,
   }
 
   if (cast_shadow) {
-    EEVEE_lights_cache_shcaster_object_add(sldata, ob);
+    EEVEE_shadows_caster_register(sldata, ob);
   }
 }
 
@@ -478,7 +478,8 @@ static void eevee_render_draw_background(EEVEE_Data *vedata)
                                  GPU_ATTACHMENT_LEAVE,
                                  GPU_ATTACHMENT_TEXTURE(stl->effects->ssr_normal_input),
                                  GPU_ATTACHMENT_TEXTURE(stl->effects->ssr_specrough_input),
-                                 GPU_ATTACHMENT_TEXTURE(stl->effects->sss_data),
+                                 GPU_ATTACHMENT_TEXTURE(stl->effects->sss_irradiance),
+                                 GPU_ATTACHMENT_TEXTURE(stl->effects->sss_radius),
                                  GPU_ATTACHMENT_TEXTURE(stl->effects->sss_albedo)});
   GPU_framebuffer_bind(fbl->main_fb);
 }
@@ -582,8 +583,8 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     EEVEE_lightprobes_refresh_planar(sldata, vedata);
 
     /* Refresh Shadows */
-    EEVEE_lights_update(sldata, vedata);
-    EEVEE_draw_shadows(sldata, vedata, stl->effects->taa_view);
+    EEVEE_shadows_update(sldata, vedata);
+    EEVEE_shadows_draw(sldata, vedata, stl->effects->taa_view);
 
     /* Set matrices. */
     DRW_view_set_active(stl->effects->taa_view);
@@ -605,9 +606,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     /* Shading pass */
     eevee_render_draw_background(vedata);
     GPU_framebuffer_bind(fbl->main_fb);
-    EEVEE_draw_default_passes(psl);
-    DRW_draw_pass(psl->material_pass);
-    DRW_draw_pass(psl->material_pass_cull);
+    EEVEE_materials_draw_opaque(sldata, psl);
     EEVEE_subsurface_data_render(sldata, vedata);
     /* Effects pre-transparency */
     EEVEE_subsurface_compute(sldata, vedata);

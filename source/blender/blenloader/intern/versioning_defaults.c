@@ -265,6 +265,9 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   /* Change default cubemap quality. */
   scene->eevee.gi_filter_quality = 3.0f;
 
+  /* Enable Soft Shadows by default. */
+  scene->eevee.flag |= SCE_EEVEE_SHADOW_SOFT;
+
   /* Be sure curfalloff and primitive are initializated */
   ToolSettings *ts = scene->toolsettings;
   if (ts->gp_sculpt.cur_falloff == NULL) {

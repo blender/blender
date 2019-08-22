@@ -84,7 +84,7 @@ static void eevee_engine_init(void *ved)
   /* EEVEE_effects_init needs to go first for TAA */
   EEVEE_effects_init(sldata, vedata, camera, false);
   EEVEE_materials_init(sldata, stl, fbl);
-  EEVEE_lights_init(sldata);
+  EEVEE_shadows_init(sldata);
   EEVEE_lightprobes_init(sldata, vedata);
 }
 
@@ -139,7 +139,7 @@ void EEVEE_cache_populate(void *vedata, Object *ob)
   }
 
   if (cast_shadow) {
-    EEVEE_lights_cache_shcaster_object_add(sldata, ob);
+    EEVEE_shadows_caster_register(sldata, ob);
   }
 }
 
@@ -223,7 +223,7 @@ static void eevee_draw_background(void *vedata)
 
     /* Refresh shadows */
     DRW_stats_group_start("Shadows");
-    EEVEE_draw_shadows(sldata, vedata, stl->effects->taa_view);
+    EEVEE_shadows_draw(sldata, vedata, stl->effects->taa_view);
     DRW_stats_group_end();
 
     if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) &&
@@ -269,9 +269,7 @@ static void eevee_draw_background(void *vedata)
     if (DRW_state_draw_background()) {
       DRW_draw_pass(psl->background_pass);
     }
-    EEVEE_draw_default_passes(psl);
-    DRW_draw_pass(psl->material_pass);
-    DRW_draw_pass(psl->material_pass_cull);
+    EEVEE_materials_draw_opaque(sldata, psl);
     EEVEE_subsurface_data_render(sldata, vedata);
     DRW_stats_group_end();
 
@@ -368,11 +366,21 @@ static void eevee_draw_background(void *vedata)
       }
       break;
     case 8:
-      if (effects->sss_data) {
-        DRW_transform_to_display(effects->sss_data, false, false);
+      if (effects->sss_irradiance) {
+        DRW_transform_to_display(effects->sss_irradiance, false, false);
       }
       break;
     case 9:
+      if (effects->sss_radius) {
+        DRW_transform_to_display(effects->sss_radius, false, false);
+      }
+      break;
+    case 10:
+      if (effects->sss_albedo) {
+        DRW_transform_to_display(effects->sss_albedo, false, false);
+      }
+      break;
+    case 11:
       if (effects->velocity_tx) {
         DRW_transform_to_display(effects->velocity_tx, false, false);
       }
@@ -467,7 +475,7 @@ static void eevee_engine_free(void)
   EEVEE_depth_of_field_free();
   EEVEE_effects_free();
   EEVEE_lightprobes_free();
-  EEVEE_lights_free();
+  EEVEE_shadows_free();
   EEVEE_materials_free();
   EEVEE_mist_free();
   EEVEE_motion_blur_free();

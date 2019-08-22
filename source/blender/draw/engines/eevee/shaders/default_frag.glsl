@@ -31,7 +31,7 @@ Closure nodetree_exec(void)
   vec3 f0 = mix(dielectric, basecol, metallic);
   vec3 f90 = mix(vec3(1.0), f0, (1.0 - specular) * metallic);
   vec3 out_diff, out_spec, ssr_spec;
-  eevee_closure_default(N, albedo, f0, f90, 1, roughness, 1.0, out_diff, out_spec, ssr_spec);
+  eevee_closure_default(N, albedo, f0, f90, 1, roughness, 1.0, true, out_diff, out_spec, ssr_spec);
 
   Closure cl = CLOSURE_DEFAULT;
   cl.radiance = out_spec + out_diff * albedo;

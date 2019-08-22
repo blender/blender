@@ -743,7 +743,7 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
 
   EEVEE_effects_init(sldata, vedata, NULL, true);
   EEVEE_materials_init(sldata, stl, fbl);
-  EEVEE_lights_init(sldata);
+  EEVEE_shadows_init(sldata);
   EEVEE_lightprobes_init(sldata, vedata);
 
   EEVEE_effects_cache_init(sldata, vedata);

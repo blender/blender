@@ -25,6 +25,7 @@ void node_eevee_specular(vec4 diffuse,
                                   clearcoat * 0.25,
                                   clearcoat_roughness,
                                   occlusion,
+                                  true,
                                   out_diff,
                                   out_spec,
                                   ssr_spec);

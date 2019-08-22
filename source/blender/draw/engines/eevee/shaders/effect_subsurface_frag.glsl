@@ -10,7 +10,8 @@ layout(std140) uniform sssProfile
 };
 
 uniform sampler2D depthBuffer;
-uniform sampler2D sssData;
+uniform sampler2D sssIrradiance;
+uniform sampler2D sssRadius;
 uniform sampler2D sssAlbedo;
 
 #ifndef UTIL_TEX
@@ -19,9 +20,12 @@ uniform sampler2DArray utilTex;
 #  define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
 #endif /* UTIL_TEX */
 
-layout(location = 0) out vec4 FragColor;
 #ifdef RESULT_ACCUM
+/* Render Passes Accumulation */
+layout(location = 0) out vec4 sssDirect;
 layout(location = 1) out vec4 sssColor;
+#else
+layout(location = 0) out vec4 sssRadiance;
 #endif
 
 float get_view_z_from_depth(float depth)
@@ -43,7 +47,8 @@ void main(void)
 {
   vec2 pixel_size = 1.0 / vec2(textureSize(depthBuffer, 0).xy); /* TODO precompute */
   vec2 uvs = gl_FragCoord.xy * pixel_size;
-  vec4 sss_data = texture(sssData, uvs).rgba;
+  vec3 sss_irradiance = texture(sssIrradiance, uvs).rgb;
+  float sss_radius = texture(sssRadius, uvs).r;
   float depth_view = get_view_z_from_depth(texture(depthBuffer, uvs).r);
 
   float rand = texelfetch_noise_tex(gl_FragCoord.xy).r;
@@ -58,44 +63,36 @@ void main(void)
 
   /* Compute kernel bounds in 2D. */
   float homcoord = ProjectionMatrix[2][3] * depth_view + ProjectionMatrix[3][3];
-  vec2 scale = vec2(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) * sss_data.aa / homcoord;
+  vec2 scale = vec2(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) * sss_radius / homcoord;
   vec2 finalStep = scale * radii_max_radius.w;
   finalStep *= 0.5; /* samples range -1..1 */
 
   /* Center sample */
-  vec3 accum = sss_data.rgb * kernel[0].rgb;
+  vec3 accum = sss_irradiance * kernel[0].rgb;
 
   for (int i = 1; i < sss_samples && i < MAX_SSS_SAMPLES; i++) {
     vec2 sample_uv = uvs + kernel[i].a * finalStep *
                                ((abs(kernel[i].a) > sssJitterThreshold) ? dir : dir_rand);
-    vec3 color = texture(sssData, sample_uv).rgb;
+    vec3 color = texture(sssIrradiance, sample_uv).rgb;
     float sample_depth = texture(depthBuffer, sample_uv).r;
     sample_depth = get_view_z_from_depth(sample_depth);
-
     /* Depth correction factor. */
     float depth_delta = depth_view - sample_depth;
-    float s = clamp(1.0 - exp(-(depth_delta * depth_delta) / (2.0 * sss_data.a)), 0.0, 1.0);
-
+    float s = clamp(1.0 - exp(-(depth_delta * depth_delta) / (2.0 * sss_radius)), 0.0, 1.0);
     /* Out of view samples. */
     if (any(lessThan(sample_uv, vec2(0.0))) || any(greaterThan(sample_uv, vec2(1.0)))) {
       s = 1.0;
     }
-
-    accum += kernel[i].rgb * mix(color, sss_data.rgb, s);
+    /* Mix with first sample in failure case and apply kernel color. */
+    accum += kernel[i].rgb * mix(color, sss_irradiance, s);
   }
 
-#ifdef FIRST_PASS
-  FragColor = vec4(accum, sss_data.a);
+#ifdef RESULT_ACCUM
+  sssDirect = vec4(accum, 1.0);
+  sssColor = vec4(texture(sssAlbedo, uvs).rgb, 1.0);
+#elif defined(FIRST_PASS)
+  sssRadiance = vec4(accum, 1.0);
 #else /* SECOND_PASS */
-#  ifdef USE_SEP_ALBEDO
-#    ifdef RESULT_ACCUM
-  FragColor = vec4(accum, 1.0);
-  sssColor = texture(sssAlbedo, uvs);
-#    else
-  FragColor = vec4(accum * texture(sssAlbedo, uvs).rgb, 1.0);
-#    endif
-#  else
-  FragColor = vec4(accum, 1.0);
-#  endif
+  sssRadiance = vec4(accum * texture(sssAlbedo, uvs).rgb, 1.0);
 #endif
 }

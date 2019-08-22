@@ -297,44 +297,12 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
                            "Shadow map clip start, below which objects will not generate shadows");
   RNA_def_property_update(prop, 0, "rna_Light_draw_update");
 
-  prop = RNA_def_property(srna, "shadow_buffer_clip_end", PROP_FLOAT, PROP_DISTANCE);
-  RNA_def_property_float_sdna(prop, NULL, "clipend");
-  RNA_def_property_float_default(prop, 40.0f);
-  RNA_def_property_range(prop, 1e-6f, FLT_MAX);
-  RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
-  RNA_def_property_ui_text(prop,
-                           "Shadow Buffer Clip End",
-                           "Shadow map clip end, beyond which objects will not generate shadows");
-  RNA_def_property_update(prop, 0, "rna_Light_draw_update");
-
   prop = RNA_def_property(srna, "shadow_buffer_bias", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "bias");
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0.001f, 9999.0f);
   RNA_def_property_ui_range(prop, 0.001f, 5.0f, 1.0, 3);
   RNA_def_property_ui_text(prop, "Shadow Buffer Bias", "Bias for reducing self shadowing");
-  RNA_def_property_update(prop, 0, "rna_Light_update");
-
-  prop = RNA_def_property(srna, "shadow_buffer_bleed_bias", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "bleedbias");
-  RNA_def_property_range(prop, 0.f, 1.f);
-  RNA_def_property_ui_text(
-      prop, "Shadow Buffer Bleed Bias", "Bias for reducing light-bleed on variance shadow maps");
-  RNA_def_property_update(prop, 0, "rna_Light_update");
-
-  prop = RNA_def_property(srna, "shadow_buffer_exp", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "bleedexp");
-  RNA_def_property_float_default(prop, 2.5f);
-  RNA_def_property_range(prop, 1.0f, 9999.0f);
-  RNA_def_property_ui_text(
-      prop, "Shadow Buffer Exponent", "Bias for reducing light-bleed on exponential shadow maps");
-  RNA_def_property_update(prop, 0, "rna_Light_update");
-
-  prop = RNA_def_property(srna, "shadow_buffer_soft", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "soft");
-  RNA_def_property_float_default(prop, 3.0f);
-  RNA_def_property_range(prop, 0.0f, 100.0f);
-  RNA_def_property_ui_text(prop, "Shadow Buffer Soft", "Size of shadow buffer sampling area");
   RNA_def_property_update(prop, 0, "rna_Light_update");
 
   prop = RNA_def_property(srna, "shadow_buffer_samples", PROP_INT, PROP_NONE);
@@ -384,14 +352,6 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
   RNA_def_property_range(prop, 0.001f, 9999.0f);
   RNA_def_property_ui_range(prop, 0.001f, 5.0f, 1.0, 3);
   RNA_def_property_ui_text(prop, "Contact Shadow Bias", "Bias to avoid self shadowing");
-  RNA_def_property_update(prop, 0, "rna_Light_update");
-
-  prop = RNA_def_property(srna, "contact_shadow_soft_size", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "contact_spread");
-  RNA_def_property_float_default(prop, 0.2f);
-  RNA_def_property_range(prop, 0.0f, 9999.0f);
-  RNA_def_property_ui_text(
-      prop, "Contact Shadow Soft", "Control how soft the contact shadows will be");
   RNA_def_property_update(prop, 0, "rna_Light_update");
 
   prop = RNA_def_property(srna, "contact_shadow_thickness", PROP_FLOAT, PROP_DISTANCE);

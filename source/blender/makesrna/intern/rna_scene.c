@@ -6662,12 +6662,6 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem eevee_shadow_method_items[] = {
-      {SHADOW_ESM, "ESM", 0, "ESM", "Exponential Shadow Mapping"},
-      {SHADOW_VSM, "VSM", 0, "VSM", "Variance Shadow Mapping"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   static const EnumPropertyItem eevee_shadow_size_items[] = {
       {64, "64", 0, "64px", ""},
       {128, "128", 0, "128px", ""},
@@ -6834,16 +6828,6 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Jitter Threshold", "Rotate samples that are below this threshold");
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-
-  prop = RNA_def_property(srna, "use_sss_separate_albedo", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_SSS_SEPARATE_ALBEDO);
-  RNA_def_property_boolean_default(prop, 0);
-  RNA_def_property_ui_text(prop,
-                           "Separate Albedo",
-                           "Avoid albedo being blurred by the subsurface scattering "
-                           "but uses more video memory");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
@@ -7127,13 +7111,6 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   /* Shadows */
-  prop = RNA_def_property(srna, "shadow_method", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_default(prop, SHADOW_ESM);
-  RNA_def_property_enum_items(prop, eevee_shadow_method_items);
-  RNA_def_property_ui_text(prop, "Method", "Technique use to compute the shadows");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-
   prop = RNA_def_property(srna, "shadow_cube_size", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_default(prop, 512);
   RNA_def_property_enum_items(prop, eevee_shadow_size_items);

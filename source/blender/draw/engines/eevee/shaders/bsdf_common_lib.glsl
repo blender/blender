@@ -56,12 +56,12 @@ struct LightData {
 #endif
 
 struct ShadowData {
-  vec4 near_far_bias_exp;
-  vec4 shadow_data_start_end;
+  vec4 near_far_bias_id;
   vec4 contact_shadow_data;
 };
 
 struct ShadowCubeData {
+  mat4 shadowmat;
   vec4 position;
 };
 
@@ -69,22 +69,20 @@ struct ShadowCascadeData {
   mat4 shadowmat[MAX_CASCADE_NUM];
   vec4 split_start_distances;
   vec4 split_end_distances;
+  vec4 shadow_vec_id;
 };
 
 /* convenience aliases */
-#define sh_near near_far_bias_exp.x
-#define sh_far near_far_bias_exp.y
-#define sh_bias near_far_bias_exp.z
-#define sh_exp near_far_bias_exp.w
-#define sh_bleed near_far_bias_exp.w
-#define sh_tex_start shadow_data_start_end.x
-#define sh_data_start shadow_data_start_end.y
-#define sh_multi_nbr shadow_data_start_end.z
-#define sh_blur shadow_data_start_end.w
+#define sh_near near_far_bias_id.x
+#define sh_far near_far_bias_id.y
+#define sh_bias near_far_bias_id.z
+#define sh_data_index near_far_bias_id.w
 #define sh_contact_dist contact_shadow_data.x
 #define sh_contact_offset contact_shadow_data.y
 #define sh_contact_spread contact_shadow_data.z
 #define sh_contact_thickness contact_shadow_data.w
+#define sh_shadow_vec shadow_vec_id.xyz
+#define sh_tex_index shadow_vec_id.w
 
 /* ------- Convenience functions --------- */
 
@@ -777,10 +775,9 @@ struct Closure {
   vec3 transmittance;
   float holdout;
 #  ifdef USE_SSS
-  vec4 sss_data;
-#    ifdef USE_SSS_ALBEDO
+  vec3 sss_irradiance;
   vec3 sss_albedo;
-#    endif
+  float sss_radius;
 #  endif
   vec4 ssr_data;
   vec2 ssr_normal;
@@ -796,13 +793,8 @@ Closure nodetree_exec(void); /* Prototype */
 #  define CLOSURE_HOLDOUT_FLAG 4
 
 #  ifdef USE_SSS
-#    ifdef USE_SSS_ALBEDO
-#      define CLOSURE_DEFAULT \
-        Closure(vec3(0.0), vec3(0.0), 0.0, vec4(0.0), vec3(0.0), vec4(0.0), vec2(0.0), 0)
-#    else
-#      define CLOSURE_DEFAULT \
-        Closure(vec3(0.0), vec3(0.0), 0.0, vec4(0.0), vec4(0.0), vec2(0.0), 0)
-#    endif
+#    define CLOSURE_DEFAULT \
+      Closure(vec3(0.0), vec3(0.0), 0.0, vec3(0.0), vec3(0.0), 0.0, vec4(0.0), vec2(0.0), 0)
 #  else
 #    define CLOSURE_DEFAULT Closure(vec3(0.0), vec3(0.0), 0.0, vec4(0.0), vec2(0.0), 0)
 #  endif
@@ -823,30 +815,22 @@ void closure_load_ssr_data(
   }
 }
 
-#  ifdef USE_SSS
-void closure_load_sss_data(float radius,
-                           vec3 sss_radiance,
-#    ifdef USE_SSS_ALBEDO
-                           vec3 sss_albedo,
-#    endif
-                           int sss_id,
-                           inout Closure cl)
+void closure_load_sss_data(
+    float radius, vec3 sss_irradiance, vec3 sss_albedo, int sss_id, inout Closure cl)
 {
+#  ifdef USE_SSS
   if (sss_id == outputSssId) {
-    cl.sss_data = vec4(sss_radiance, radius);
-#    ifdef USE_SSS_ALBEDO
+    cl.sss_irradiance = sss_irradiance;
+    cl.sss_radius = radius;
     cl.sss_albedo = sss_albedo;
-#    endif
     cl.flag |= CLOSURE_SSS_FLAG;
   }
-  else {
-    cl.radiance += sss_radiance;
-#    ifdef USE_SSS_ALBEDO
-    cl.radiance += sss_radiance * sss_albedo;
-#    endif
+  else
+#  endif
+  {
+    cl.radiance += sss_irradiance * sss_albedo;
   }
 }
-#  endif
 
 Closure closure_mix(Closure cl1, Closure cl2, float fac)
 {
@@ -862,13 +846,11 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
   cl.ssr_normal = (use_cl1_ssr) ? cl1.ssr_normal : cl2.ssr_normal;
 
 #  ifdef USE_SSS
-  cl.sss_data = mix(cl1.sss_data, cl2.sss_data, fac);
+  cl.sss_albedo = mix(cl1.sss_albedo, cl2.sss_albedo, fac);
   bool use_cl1_sss = FLAG_TEST(cl1.flag, CLOSURE_SSS_FLAG);
-  /* It also does not make sense to mix SSS radius or albedo. */
-  cl.sss_data.w = (use_cl1_sss) ? cl1.sss_data.w : cl2.sss_data.w;
-#    ifdef USE_SSS_ALBEDO
-  cl.sss_albedo = (use_cl1_sss) ? cl1.sss_albedo : cl2.sss_albedo;
-#    endif
+  /* It also does not make sense to mix SSS radius or irradiance. */
+  cl.sss_radius = (use_cl1_sss) ? cl1.sss_radius : cl2.sss_radius;
+  cl.sss_irradiance = (use_cl1_sss) ? cl1.sss_irradiance : cl2.sss_irradiance;
 #  endif
   return cl;
 }
@@ -887,13 +869,11 @@ Closure closure_add(Closure cl1, Closure cl2)
   cl.ssr_normal = (use_cl1_ssr) ? cl1.ssr_normal : cl2.ssr_normal;
 
 #  ifdef USE_SSS
-  cl.sss_data = cl1.sss_data + cl2.sss_data;
+  cl.sss_albedo = cl1.sss_albedo + cl2.sss_albedo;
   bool use_cl1_sss = FLAG_TEST(cl1.flag, CLOSURE_SSS_FLAG);
-  /* It also does not make sense to mix SSS radius or albedo. */
-  cl.sss_data.w = (use_cl1_sss) ? cl1.sss_data.w : cl2.sss_data.w;
-#    ifdef USE_SSS_ALBEDO
-  cl.sss_albedo = (use_cl1_sss) ? cl1.sss_albedo : cl2.sss_albedo;
-#    endif
+  /* It also does not make sense to mix SSS radius or irradiance. */
+  cl.sss_radius = (use_cl1_sss) ? cl1.sss_radius : cl2.sss_radius;
+  cl.sss_irradiance = (use_cl1_sss) ? cl1.sss_irradiance : cl2.sss_irradiance;
 #  endif
   return cl;
 }
@@ -914,10 +894,9 @@ layout(location = 0) out vec4 outRadiance;
 layout(location = 1) out vec2 ssrNormals;
 layout(location = 2) out vec4 ssrData;
 #      ifdef USE_SSS
-layout(location = 3) out vec4 sssData;
-#        ifdef USE_SSS_ALBEDO
-layout(location = 4) out vec4 sssAlbedo;
-#        endif
+layout(location = 3) out vec3 sssIrradiance;
+layout(location = 4) out float sssRadius;
+layout(location = 5) out vec3 sssAlbedo;
 #      endif
 #    else  /* USE_ALPHA_BLEND */
 /* Use dual source blending to be able to make a whole range of effects. */
@@ -953,10 +932,9 @@ void main()
   ssrNormals = cl.ssr_normal;
   ssrData = cl.ssr_data;
 #      ifdef USE_SSS
-  sssData = cl.sss_data;
-#        ifdef USE_SSS_ALBEDO
-  sssAlbedo = cl.sss_albedo.rgbb;
-#        endif
+  sssIrradiance = cl.sss_irradiance;
+  sssRadius = cl.sss_radius;
+  sssAlbedo = cl.sss_albedo;
 #      endif
 #    endif
 
@@ -964,6 +942,8 @@ void main()
 #    ifdef USE_SSS
   float fac = float(!sssToggle);
 
+  /* TODO(fclem) we shouldn't need this.
+   * Just disable USE_SSS when USE_REFRACTION is enabled. */
 #      ifdef USE_REFRACTION
   /* SSRefraction pass is done after the SSS pass.
    * In order to not loose the diffuse light totally we
@@ -971,11 +951,7 @@ void main()
   fac = 1.0;
 #      endif
 
-#      ifdef USE_SSS_ALBEDO
-  outRadiance.rgb += cl.sss_data.rgb * cl.sss_albedo.rgb * fac;
-#      else
-  outRadiance.rgb += cl.sss_data.rgb * fac;
-#      endif
+  outRadiance.rgb += cl.sss_irradiance.rgb * cl.sss_albedo.rgb * fac;
 #    endif
 }
 

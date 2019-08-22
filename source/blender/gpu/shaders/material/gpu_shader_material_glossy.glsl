@@ -3,7 +3,8 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, float ssr_id, out Clo
 {
   N = normalize(N);
   vec3 out_spec, ssr_spec;
-  eevee_closure_glossy(N, vec3(1.0), vec3(1.0), int(ssr_id), roughness, 1.0, out_spec, ssr_spec);
+  eevee_closure_glossy(
+      N, vec3(1.0), vec3(1.0), int(ssr_id), roughness, 1.0, true, out_spec, ssr_spec);
   vec3 vN = mat3(ViewMatrix) * N;
   result = CLOSURE_DEFAULT;
   result.radiance = out_spec * color.rgb;

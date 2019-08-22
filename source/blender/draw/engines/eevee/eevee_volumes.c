@@ -595,7 +595,7 @@ void EEVEE_volumes_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   effects->volume_transmit = e_data.dummy_transmit;
 }
 
-void EEVEE_volumes_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_volumes_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_TextureList *txl = vedata->txl;
@@ -604,6 +604,15 @@ void EEVEE_volumes_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
   EEVEE_EffectsInfo *effects = stl->effects;
   if ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) {
     DRW_stats_group_start("Volumetrics");
+
+    /* We sample the shadowmaps using shadow sampler. We need to enable Comparison mode.
+     * TODO(fclem) avoid this by using sampler objects.*/
+    GPU_texture_bind(sldata->shadow_cube_pool, 0);
+    GPU_texture_compare_mode(sldata->shadow_cube_pool, true);
+    GPU_texture_unbind(sldata->shadow_cube_pool);
+    GPU_texture_bind(sldata->shadow_cascade_pool, 0);
+    GPU_texture_compare_mode(sldata->shadow_cascade_pool, true);
+    GPU_texture_unbind(sldata->shadow_cascade_pool);
 
     GPU_framebuffer_bind(fbl->volumetric_fb);
     DRW_draw_pass(psl->volumetric_world_ps);

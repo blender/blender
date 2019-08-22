@@ -961,7 +961,6 @@ void BKE_scene_init(Scene *sce)
   sce->eevee.motion_blur_samples = 8;
   sce->eevee.motion_blur_shutter = 0.5f;
 
-  sce->eevee.shadow_method = SHADOW_ESM;
   sce->eevee.shadow_cube_size = 512;
   sce->eevee.shadow_cascade_size = 1024;
 
@@ -972,7 +971,7 @@ void BKE_scene_init(Scene *sce)
 
   sce->eevee.flag = SCE_EEVEE_VOLUMETRIC_LIGHTS | SCE_EEVEE_GTAO_BENT_NORMALS |
                     SCE_EEVEE_GTAO_BOUNCE | SCE_EEVEE_TAA_REPROJECTION |
-                    SCE_EEVEE_SSR_HALF_RESOLUTION;
+                    SCE_EEVEE_SSR_HALF_RESOLUTION | SCE_EEVEE_SHADOW_SOFT;
 }
 
 Scene *BKE_scene_add(Main *bmain, const char *name)

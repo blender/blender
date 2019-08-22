@@ -35,23 +35,13 @@ void EEVEE_view_layer_data_free(void *storage)
   MEM_SAFE_FREE(sldata->lights);
   DRW_UBO_FREE_SAFE(sldata->light_ubo);
   DRW_UBO_FREE_SAFE(sldata->shadow_ubo);
-  DRW_UBO_FREE_SAFE(sldata->shadow_render_ubo);
-  GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cube_target_fb);
-  GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cube_store_fb);
-  GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cube_copy_fb);
-  GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cascade_target_fb);
-  GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cascade_store_fb);
-  GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cascade_copy_fb);
-  DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_target);
-  DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_blur);
+  GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_fb);
   DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_pool);
-  DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_target);
-  DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_blur);
   DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_pool);
-  MEM_SAFE_FREE(sldata->shcasters_buffers[0].shadow_casters);
-  MEM_SAFE_FREE(sldata->shcasters_buffers[0].flags);
-  MEM_SAFE_FREE(sldata->shcasters_buffers[1].shadow_casters);
-  MEM_SAFE_FREE(sldata->shcasters_buffers[1].flags);
+  for (int i = 0; i < 2; i++) {
+    MEM_SAFE_FREE(sldata->shcasters_buffers[i].bbox);
+    MEM_SAFE_FREE(sldata->shcasters_buffers[i].update);
+  }
 
   if (sldata->fallback_lightcache) {
     EEVEE_lightcache_free(sldata->fallback_lightcache);
@@ -153,7 +143,6 @@ static void eevee_light_data_init(DrawData *dd)
 {
   EEVEE_LightEngineData *led = (EEVEE_LightEngineData *)dd;
   led->need_update = true;
-  led->prev_cube_shadow_id = -1;
 }
 
 EEVEE_LightEngineData *EEVEE_light_data_get(Object *ob)

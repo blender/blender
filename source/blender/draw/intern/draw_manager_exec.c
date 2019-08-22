@@ -279,6 +279,23 @@ void drw_state_set(DRWState state)
     }
   }
 
+  /* Shadow Bias */
+  {
+    int test;
+    if ((test = CHANGED_TO(DRW_STATE_SHADOW_OFFSET))) {
+      if (test == 1) {
+        glEnable(GL_POLYGON_OFFSET_FILL);
+        glEnable(GL_POLYGON_OFFSET_LINE);
+        /* 2.0 Seems to be the lowest possible slope bias that works in every case. */
+        glPolygonOffset(2.0f, 1.0f);
+      }
+      else {
+        glDisable(GL_POLYGON_OFFSET_FILL);
+        glDisable(GL_POLYGON_OFFSET_LINE);
+      }
+    }
+  }
+
   /* Clip Planes */
   {
     int test;

@@ -144,13 +144,11 @@ void CLOSURE_NAME(vec3 N
                   ,
                   float ior
 #endif
+                  ,
+                  const bool use_contact_shadows
 #ifdef CLOSURE_DIFFUSE
                   ,
                   out vec3 out_diff
-#endif
-#ifdef CLOSURE_SUBSURFACE
-                  ,
-                  out vec3 out_trans
 #endif
 #ifdef CLOSURE_GLOSSY
                   ,
@@ -168,10 +166,6 @@ void CLOSURE_NAME(vec3 N
 {
 #ifdef CLOSURE_DIFFUSE
   out_diff = vec3(0.0);
-#endif
-
-#ifdef CLOSURE_SUBSURFACE
-  out_trans = vec3(0.0);
 #endif
 
 #ifdef CLOSURE_GLOSSY
@@ -230,6 +224,16 @@ void CLOSURE_NAME(vec3 N
   vec3 out_spec_clear = vec3(0.0);
 #  endif
 
+  float tracing_depth = gl_FragCoord.z;
+  /* Constant bias (due to depth buffer precision) */
+  /* Magic numbers for 24bits of precision.
+   * From http://terathon.com/gdc07_lengyel.pdf (slide 26) */
+  tracing_depth -= mix(2.4e-7, 4.8e-7, gl_FragCoord.z);
+  /* Convert to view Z. */
+  tracing_depth = get_view_z_from_depth(tracing_depth);
+
+  vec3 true_normal = normalize(cross(dFdx(viewPosition), dFdy(viewPosition)));
+
   for (int i = 0; i < MAX_LIGHT && i < laNumLight; ++i) {
     LightData ld = lights_data[i];
 
@@ -237,7 +241,14 @@ void CLOSURE_NAME(vec3 N
     l_vector.xyz = ld.l_position - worldPosition;
     l_vector.w = length(l_vector.xyz);
 
-    float l_vis = light_visibility(ld, worldPosition, viewPosition, viewNormal, l_vector);
+    float l_vis = light_visibility(ld,
+                                   worldPosition,
+                                   viewPosition,
+                                   tracing_depth,
+                                   true_normal,
+                                   rand.x,
+                                   use_contact_shadows,
+                                   l_vector);
 
     if (l_vis < 1e-8) {
       continue;
@@ -247,10 +258,6 @@ void CLOSURE_NAME(vec3 N
 
 #  ifdef CLOSURE_DIFFUSE
     out_diff += l_color_vis * light_diffuse(ld, N, V, l_vector);
-#  endif
-
-#  ifdef CLOSURE_SUBSURFACE
-    out_trans += ld.l_color * light_translucent(ld, worldPosition, -N, l_vector, sss_scale);
 #  endif
 
 #  ifdef CLOSURE_GLOSSY
@@ -441,10 +448,17 @@ void CLOSURE_NAME(vec3 N
   /*       Ambient Occlusion      */
   /* ---------------------------- */
 #  if defined(CLOSURE_GLOSSY) || defined(CLOSURE_DIFFUSE)
-  /* HACK: Fix for translucent BSDF. (see T65631) */
-  bool same_side = dot((gl_FrontFacing) ? worldNormal : -worldNormal, N) > 0.0;
+  if (!use_contact_shadows) {
+    /* HACK: Fix for translucent BSDF. (see T65631) */
+    N = -N;
+  }
   vec3 bent_normal;
-  float final_ao = occlusion_compute(same_side ? N : -N, viewPosition, ao, rand, bent_normal);
+  float final_ao = occlusion_compute(gl_FrontFacing ? N : -N, viewPosition, ao, rand, bent_normal);
+  if (!use_contact_shadows) {
+    N = -N;
+    /* Bypass bent normal. */
+    bent_normal = N;
+  }
 #  endif
 
   /* ---------------------------- */

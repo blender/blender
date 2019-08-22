@@ -6,8 +6,17 @@ void node_bsdf_glass(
   vec3 out_spec, out_refr, ssr_spec;
   vec3 refr_color = (refractionDepth > 0.0) ? color.rgb * color.rgb :
                                               color.rgb; /* Simulate 2 transmission event */
-  eevee_closure_glass(
-      N, vec3(1.0), vec3(1.0), int(ssr_id), roughness, 1.0, ior, out_spec, out_refr, ssr_spec);
+  eevee_closure_glass(N,
+                      vec3(1.0),
+                      vec3(1.0),
+                      int(ssr_id),
+                      roughness,
+                      1.0,
+                      ior,
+                      true,
+                      out_spec,
+                      out_refr,
+                      ssr_spec);
   out_refr *= refr_color;
   out_spec *= color.rgb;
   float fresnel = F_eta(ior, dot(N, cameraVec));

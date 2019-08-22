@@ -120,7 +120,8 @@ void prepare_raycast(vec3 ray_origin,
   ss_ray = ss_start * m.xyyy + 0.5;
   ss_step *= m.xyyy;
 
-  ss_ray.xy += m * ssrPixelSize * 2.0; /* take the center of the texel. * 2 because halfres. */
+  /* take the center of the texel. */
+  // ss_ray.xy += sign(ss_ray.xy) * m * ssrPixelSize * (1.0 + hizMipOffset);
 }
 
 /* See times_and_deltas. */

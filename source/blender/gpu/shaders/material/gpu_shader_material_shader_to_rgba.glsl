@@ -15,11 +15,7 @@ void node_shader_to_rgba(Closure cl, out vec4 outcol, out float outalpha)
   outcol = vec4((spec_accum.rgb * cl.ssr_data.rgb) + cl.radiance, 1.0);
 
 #  ifdef USE_SSS
-#    ifdef USE_SSS_ALBEDO
-  outcol.rgb += cl.sss_data.rgb * cl.sss_albedo;
-#    else
-  outcol.rgb += cl.sss_data.rgb;
-#    endif
+  outcol.rgb += cl.sss_irradiance.rgb * cl.sss_albedo;
 #  endif
 }
 #endif /* VOLUMETRICS */

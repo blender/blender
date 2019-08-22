@@ -1637,7 +1637,7 @@ typedef struct SceneEEVEE {
   int motion_blur_samples;
   float motion_blur_shutter;
 
-  int shadow_method;
+  int shadow_method DNA_DEPRECATED;
   int shadow_cube_size;
   int shadow_cascade_size;
 
@@ -2392,7 +2392,7 @@ enum {
   SCE_EEVEE_SHADOW_HIGH_BITDEPTH = (1 << 10),
   SCE_EEVEE_TAA_REPROJECTION = (1 << 11),
   // SCE_EEVEE_SSS_ENABLED = (1 << 12), /* Unused */
-  SCE_EEVEE_SSS_SEPARATE_ALBEDO = (1 << 13),
+  // SCE_EEVEE_SSS_SEPARATE_ALBEDO = (1 << 13), /* Unused */
   SCE_EEVEE_SSR_ENABLED = (1 << 14),
   SCE_EEVEE_SSR_REFRACTION = (1 << 15),
   SCE_EEVEE_SSR_HALF_RESOLUTION = (1 << 16),

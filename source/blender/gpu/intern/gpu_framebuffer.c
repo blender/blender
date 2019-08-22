@@ -46,8 +46,9 @@ typedef enum {
   GPU_FB_COLOR_ATTACHMENT2,
   GPU_FB_COLOR_ATTACHMENT3,
   GPU_FB_COLOR_ATTACHMENT4,
+  GPU_FB_COLOR_ATTACHMENT5,
   /* Number of maximum output slots.
-   * We support 5 outputs for now (usually we wouldn't need more to preserve fill rate). */
+   * We support 6 outputs for now (usually we wouldn't need more to preserve fill rate). */
   /* Keep in mind that GL max is GL_MAX_DRAW_BUFFERS and is at least 8, corresponding to
    * the maximum number of COLOR attachments specified by glDrawBuffers. */
   GPU_FB_MAX_ATTACHEMENT,
@@ -82,6 +83,7 @@ static GLenum convert_attachment_type_to_gl(GPUAttachmentType type)
       [GPU_FB_COLOR_ATTACHMENT2] = GL_COLOR_ATTACHMENT2,
       [GPU_FB_COLOR_ATTACHMENT3] = GL_COLOR_ATTACHMENT3,
       [GPU_FB_COLOR_ATTACHMENT4] = GL_COLOR_ATTACHMENT4,
+      [GPU_FB_COLOR_ATTACHMENT5] = GL_COLOR_ATTACHMENT5,
   };
   return table[type];
 }
