@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
     defined(__BAKING__)
 /* branched path tracing: connect path directly to position on one or more lights and add it to L
  */
-ccl_device_noinline void kernel_branched_path_surface_connect_light(
+ccl_device_noinline_cpu void kernel_branched_path_surface_connect_light(
     KernelGlobals *kg,
     ShaderData *sd,
     ShaderData *emission_sd,

@@ -198,14 +198,14 @@ ccl_device_forceinline void kernel_branched_path_volume(KernelGlobals *kg,
 #    endif /* __VOLUME__ */
 
 /* bounce off surface and integrate indirect light */
-ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGlobals *kg,
-                                                                     ShaderData *sd,
-                                                                     ShaderData *indirect_sd,
-                                                                     ShaderData *emission_sd,
-                                                                     float3 throughput,
-                                                                     float num_samples_adjust,
-                                                                     PathState *state,
-                                                                     PathRadiance *L)
+ccl_device_noinline_cpu void kernel_branched_path_surface_indirect_light(KernelGlobals *kg,
+                                                                         ShaderData *sd,
+                                                                         ShaderData *indirect_sd,
+                                                                         ShaderData *emission_sd,
+                                                                         float3 throughput,
+                                                                         float num_samples_adjust,
+                                                                         PathState *state,
+                                                                         PathRadiance *L)
 {
   float sum_sample_weight = 0.0f;
 #    ifdef __DENOISING_FEATURES__

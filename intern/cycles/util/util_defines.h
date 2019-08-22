@@ -30,6 +30,7 @@
 #  ifndef __KERNEL_GPU__
 #    define ccl_device static inline
 #    define ccl_device_noinline static
+#    define ccl_device_noinline_cpu ccl_device_noinline
 #    define ccl_global
 #    define ccl_static_constant static const
 #    define ccl_constant const

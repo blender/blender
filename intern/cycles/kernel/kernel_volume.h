@@ -672,7 +672,7 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
  * ray, with the assumption that there are no surfaces blocking light
  * between the endpoints. distance sampling is used to decide if we will
  * scatter or not. */
-ccl_device_noinline VolumeIntegrateResult
+ccl_device_noinline_cpu VolumeIntegrateResult
 kernel_volume_integrate(KernelGlobals *kg,
                         ccl_addr_space PathState *state,
                         ShaderData *sd,

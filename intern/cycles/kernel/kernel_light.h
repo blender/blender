@@ -182,17 +182,7 @@ ccl_device float lamp_light_pdf(KernelGlobals *kg, const float3 Ng, const float3
 
 #ifdef __BACKGROUND_MIS__
 
-/* TODO(sergey): In theory it should be all fine to use noinline for all
- * devices, but we're so close to the release so better not screw things
- * up for CPU at least.
- */
-#  ifdef __KERNEL_GPU__
-ccl_device_noinline
-#  else
-ccl_device
-#  endif
-    float3
-    background_map_sample(KernelGlobals *kg, float randu, float randv, float *pdf)
+ccl_device float3 background_map_sample(KernelGlobals *kg, float randu, float randv, float *pdf)
 {
   /* for the following, the CDF values are actually a pair of floats, with the
    * function value as X and the actual CDF as Y.  The last entry's function
@@ -274,13 +264,7 @@ ccl_device
 /* TODO(sergey): Same as above, after the release we should consider using
  * 'noinline' for all devices.
  */
-#  ifdef __KERNEL_GPU__
-ccl_device_noinline
-#  else
-ccl_device
-#  endif
-    float
-    background_map_pdf(KernelGlobals *kg, float3 direction)
+ccl_device float background_map_pdf(KernelGlobals *kg, float3 direction)
 {
   float2 uv = direction_to_equirectangular(direction);
   int res_x = kernel_data.integrator.pdf_background_res_x;

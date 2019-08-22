@@ -27,16 +27,16 @@ ccl_device_inline float brick_noise(uint n) /* fast integer noise */
   return 0.5f * ((float)nn / 1073741824.0f);
 }
 
-ccl_device_noinline float2 svm_brick(float3 p,
-                                     float mortar_size,
-                                     float mortar_smooth,
-                                     float bias,
-                                     float brick_width,
-                                     float row_height,
-                                     float offset_amount,
-                                     int offset_frequency,
-                                     float squash_amount,
-                                     int squash_frequency)
+ccl_device_noinline_cpu float2 svm_brick(float3 p,
+                                         float mortar_size,
+                                         float mortar_smooth,
+                                         float bias,
+                                         float brick_width,
+                                         float row_height,
+                                         float offset_amount,
+                                         int offset_frequency,
+                                         float squash_amount,
+                                         int squash_frequency)
 {
   int bricknum, rownum;
   float offset = 0.0f;

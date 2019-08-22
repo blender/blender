@@ -80,13 +80,7 @@ ccl_device void svm_node_attr(KernelGlobals *kg, ShaderData *sd, float *stack, u
   }
 }
 
-#ifndef __KERNEL_CUDA__
-ccl_device
-#else
-ccl_device_noinline
-#endif
-    void
-    svm_node_attr_bump_dx(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+ccl_device void svm_node_attr_bump_dx(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
   NodeAttributeType type = NODE_ATTR_FLOAT;
   uint out_offset = 0;
@@ -125,13 +119,7 @@ ccl_device_noinline
   }
 }
 
-#ifndef __KERNEL_CUDA__
-ccl_device
-#else
-ccl_device_noinline
-#endif
-    void
-    svm_node_attr_bump_dy(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+ccl_device void svm_node_attr_bump_dy(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
   NodeAttributeType type = NODE_ATTR_FLOAT;
   uint out_offset = 0;

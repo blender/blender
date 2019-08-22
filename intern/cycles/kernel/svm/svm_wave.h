@@ -18,12 +18,12 @@ CCL_NAMESPACE_BEGIN
 
 /* Wave */
 
-ccl_device_noinline float svm_wave(NodeWaveType type,
-                                   NodeWaveProfile profile,
-                                   float3 p,
-                                   float detail,
-                                   float distortion,
-                                   float dscale)
+ccl_device_noinline_cpu float svm_wave(NodeWaveType type,
+                                       NodeWaveProfile profile,
+                                       float3 p,
+                                       float detail,
+                                       float distortion,
+                                       float dscale)
 {
   float n;
 

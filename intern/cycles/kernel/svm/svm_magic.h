@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Magic */
 
-ccl_device_noinline float3 svm_magic(float3 p, int n, float distortion)
+ccl_device_noinline_cpu float3 svm_magic(float3 p, int n, float distortion)
 {
   float x = sinf((p.x + p.y + p.z) * 5.0f);
   float y = cosf((-p.x + p.y - p.z) * 5.0f);

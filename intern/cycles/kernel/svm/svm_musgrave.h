@@ -25,7 +25,10 @@ CCL_NAMESPACE_BEGIN
  * from "Texturing and Modelling: A procedural approach"
  */
 
-ccl_device_noinline float noise_musgrave_fBm(float3 p, float H, float lacunarity, float octaves)
+ccl_device_noinline_cpu float noise_musgrave_fBm(float3 p,
+                                                 float H,
+                                                 float lacunarity,
+                                                 float octaves)
 {
   float rmd;
   float value = 0.0f;
@@ -53,10 +56,10 @@ ccl_device_noinline float noise_musgrave_fBm(float3 p, float H, float lacunarity
  * octaves: number of frequencies in the fBm
  */
 
-ccl_device_noinline float noise_musgrave_multi_fractal(float3 p,
-                                                       float H,
-                                                       float lacunarity,
-                                                       float octaves)
+ccl_device_noinline_cpu float noise_musgrave_multi_fractal(float3 p,
+                                                           float H,
+                                                           float lacunarity,
+                                                           float octaves)
 {
   float rmd;
   float value = 1.0f;
@@ -85,7 +88,7 @@ ccl_device_noinline float noise_musgrave_multi_fractal(float3 p,
  * offset: raises the terrain from `sea level'
  */
 
-ccl_device_noinline float noise_musgrave_hetero_terrain(
+ccl_device_noinline_cpu float noise_musgrave_hetero_terrain(
     float3 p, float H, float lacunarity, float octaves, float offset)
 {
   float value, increment, rmd;
@@ -121,7 +124,7 @@ ccl_device_noinline float noise_musgrave_hetero_terrain(
  * offset: raises the terrain from `sea level'
  */
 
-ccl_device_noinline float noise_musgrave_hybrid_multi_fractal(
+ccl_device_noinline_cpu float noise_musgrave_hybrid_multi_fractal(
     float3 p, float H, float lacunarity, float octaves, float offset, float gain)
 {
   float result, signal, weight, rmd;
@@ -159,7 +162,7 @@ ccl_device_noinline float noise_musgrave_hybrid_multi_fractal(
  * offset: raises the terrain from `sea level'
  */
 
-ccl_device_noinline float noise_musgrave_ridged_multi_fractal(
+ccl_device_noinline_cpu float noise_musgrave_ridged_multi_fractal(
     float3 p, float H, float lacunarity, float octaves, float offset, float gain)
 {
   float result, signal, weight;

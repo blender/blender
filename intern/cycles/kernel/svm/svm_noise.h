@@ -182,7 +182,7 @@ ccl_device_inline ssef scale3_sse(const ssef &result)
 #endif
 
 #ifndef __KERNEL_SSE2__
-ccl_device_noinline float perlin(float x, float y, float z)
+ccl_device_noinline_cpu float perlin(float x, float y, float z)
 {
   int X;
   float fx = floorfrac(x, &X);
