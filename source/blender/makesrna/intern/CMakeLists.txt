@@ -364,9 +364,11 @@ add_custom_command(
 # Build bf_rna
 set(SRC
   rna_access.c
+  rna_access_compare_override.c
   ${GENSRC}
 
   ${SRC_RNA_INC}
+  rna_access_internal.h
   rna_internal.h
   rna_internal_types.h
   rna_mesh_utils.h
