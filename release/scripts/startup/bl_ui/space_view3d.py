@@ -5890,7 +5890,9 @@ class VIEW3D_PT_pivot_point(Panel):
         if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
             col.separator()
 
-            col.prop(tool_settings, "use_transform_pivot_point_align")
+            col.label(text="Affect Only")
+            col.prop(tool_settings, "use_transform_data_origin", text="Origins")
+            col.prop(tool_settings, "use_transform_pivot_point_align", text="Locations")
 
 
 class VIEW3D_PT_snapping(Panel):

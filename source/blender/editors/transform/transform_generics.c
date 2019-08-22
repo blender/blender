@@ -81,6 +81,7 @@
 #include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -1149,6 +1150,10 @@ static void recalcData_objects(TransInfo *t)
       /* Update motion paths once for all transformed objects. */
       ED_objects_recalculate_paths(t->context, t->scene, true);
     }
+
+    if (t->flag & T_OBJECT_DATA_IN_OBJECT_MODE) {
+      trans_obdata_in_obmode_update_all(t);
+    }
   }
 }
 
@@ -1916,6 +1921,10 @@ void postTrans(bContext *C, TransInfo *t)
 
   if (t->rng != NULL) {
     BLI_rng_free(t->rng);
+  }
+
+  if (t->flag & T_OBJECT_DATA_IN_OBJECT_MODE) {
+    trans_obdata_in_obmode_free_all(t);
   }
 
   freeSnapping(t);

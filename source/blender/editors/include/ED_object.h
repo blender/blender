@@ -44,6 +44,7 @@ struct Scene;
 struct ShaderFxData;
 struct View3D;
 struct ViewLayer;
+struct XFormObjectData;
 struct bConstraint;
 struct bContext;
 struct bFaceMap;
@@ -402,6 +403,12 @@ bool ED_object_jump_to_bone(struct bContext *C,
 /* object_facemap_ops.c */
 void ED_object_facemap_face_add(struct Object *ob, struct bFaceMap *fmap, int facenum);
 void ED_object_facemap_face_remove(struct Object *ob, struct bFaceMap *fmap, int facenum);
+
+/* object_data_transform.c */
+struct XFormObjectData *ED_object_data_xform_create(struct ID *id);
+void ED_object_data_xform_destroy(struct XFormObjectData *xod);
+
+void ED_object_data_xform_by_mat4(struct XFormObjectData *xod, const float mat[4][4]);
 
 #ifdef __cplusplus
 }

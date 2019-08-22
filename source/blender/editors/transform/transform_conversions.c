@@ -7678,6 +7678,90 @@ int special_transform_moving(TransInfo *t)
   return 0;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Object Data in Object Mode
+ *
+ * Use to implement 'Affect Only Origins' feature.
+ * We need this to be detached from transform data because,
+ * unlike transforming regular objects, we need to transform the children.
+ *
+ * \{ */
+
+struct XFormObjectData_Extra {
+  Object *ob;
+  float obmat_orig[4][4];
+  bool ob_dtx_axis_orig;
+  struct XFormObjectData *xod;
+};
+
+static void trans_obdata_in_obmode_ensure_object(TransInfo *t, Object *ob)
+{
+  if (t->obdata_in_obmode_map == NULL) {
+    t->obdata_in_obmode_map = BLI_ghash_ptr_new(__func__);
+  }
+
+  void **xf_p;
+  if (!BLI_ghash_ensure_p(t->obdata_in_obmode_map, ob->data, &xf_p)) {
+    struct XFormObjectData_Extra *xf = MEM_mallocN(sizeof(*xf), __func__);
+    copy_m4_m4(xf->obmat_orig, ob->obmat);
+    xf->ob = ob;
+    /* Result may be NULL, that's OK. */
+    xf->xod = ED_object_data_xform_create(ob->data);
+    if (xf->xod) {
+      xf->ob_dtx_axis_orig = ob->dtx & OB_AXIS;
+      ob->dtx |= OB_AXIS;
+    }
+    *xf_p = xf;
+  }
+}
+
+void trans_obdata_in_obmode_update_all(TransInfo *t)
+{
+  struct Main *bmain = CTX_data_main(t->context);
+  BKE_scene_graph_evaluated_ensure(t->depsgraph, bmain);
+
+  GHashIterator gh_iter;
+  GHASH_ITER (gh_iter, t->obdata_in_obmode_map) {
+    ID *id = BLI_ghashIterator_getKey(&gh_iter);
+    struct XFormObjectData_Extra *xf = BLI_ghashIterator_getValue(&gh_iter);
+    if (xf->xod == NULL) {
+      continue;
+    }
+
+    Object *ob_eval = DEG_get_evaluated_object(t->depsgraph, xf->ob);
+    float imat[4][4], dmat[4][4];
+    invert_m4_m4(imat, xf->obmat_orig);
+    mul_m4_m4m4(dmat, imat, ob_eval->obmat);
+    invert_m4(dmat);
+
+    ED_object_data_xform_by_mat4(xf->xod, dmat);
+    DEG_id_tag_update(id, 0);
+  }
+}
+
+/** Callback for #GHash free. */
+static void trans_obdata_in_obmode_free_elem(void *xf_p)
+{
+  struct XFormObjectData_Extra *xf = xf_p;
+  if (xf->xod) {
+    if (!xf->ob_dtx_axis_orig) {
+      xf->ob->dtx &= ~OB_AXIS;
+      DEG_id_tag_update(&xf->ob->id, ID_RECALC_COPY_ON_WRITE);
+    }
+    ED_object_data_xform_destroy(xf->xod);
+  }
+  MEM_freeN(xf);
+}
+
+void trans_obdata_in_obmode_free_all(TransInfo *t)
+{
+  if (t->obdata_in_obmode_map != NULL) {
+    BLI_ghash_free(t->obdata_in_obmode_map, NULL, trans_obdata_in_obmode_free_elem);
+  }
+}
+
+/** \} */
+
 static void createTransObject(bContext *C, TransInfo *t)
 {
   TransData *td = NULL;
@@ -7722,6 +7806,24 @@ static void createTransObject(bContext *C, TransInfo *t)
       td->flag |= TD_SKIP;
     }
 
+    if (t->flag & T_OBJECT_DATA_IN_OBJECT_MODE) {
+      ID *id = ob->data;
+      if (!id || id->lib) {
+        td->flag |= TD_SKIP;
+      }
+      else if (BKE_object_is_in_editmode(ob)) {
+        /* The object could have edit-mode data from another view-layer,
+         * it's such a corner-case it can be skipped for now - Campbell. */
+        td->flag |= TD_SKIP;
+      }
+    }
+
+    if (t->flag & T_OBJECT_DATA_IN_OBJECT_MODE) {
+      if ((td->flag & TD_SKIP) == 0) {
+        trans_obdata_in_obmode_ensure_object(t, ob);
+      }
+    }
+
     ObjectToTransData(t, td, ob);
     td->val = NULL;
     td++;
@@ -7752,6 +7854,47 @@ static void createTransObject(bContext *C, TransInfo *t)
         tx++;
       }
     }
+  }
+
+  if (t->flag & T_OBJECT_DATA_IN_OBJECT_MODE) {
+    GSet *objects_in_transdata = BLI_gset_ptr_new_ex(__func__, tc->data_len);
+    td = tc->data;
+    for (int i = 0; i < tc->data_len; i++, td++) {
+      if ((td->flag & TD_SKIP) == 0) {
+        BLI_gset_add(objects_in_transdata, td->ob);
+      }
+    }
+
+    ViewLayer *view_layer = t->view_layer;
+    View3D *v3d = t->view;
+
+    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+      Object *ob = base->object;
+
+      /* if base is not selected, not a parent of selection
+       * or not a child of selection and it is editable and selectable */
+      if ((base->flag & BASE_SELECTED) == 0 && BASE_EDITABLE(v3d, base) &&
+          BASE_SELECTABLE(v3d, base)) {
+
+        Object *ob_parent = ob->parent;
+        if (ob_parent != NULL) {
+          if (!BLI_gset_haskey(objects_in_transdata, ob)) {
+            bool parent_in_transdata = false;
+            while (ob_parent != NULL) {
+              if (BLI_gset_haskey(objects_in_transdata, ob_parent)) {
+                parent_in_transdata = true;
+                break;
+              }
+              ob_parent = ob_parent->parent;
+            }
+            if (parent_in_transdata) {
+              trans_obdata_in_obmode_ensure_object(t, ob);
+            }
+          }
+        }
+      }
+    }
+    BLI_gset_free(objects_in_transdata, NULL);
   }
 }
 
@@ -9738,6 +9881,10 @@ void createTransData(bContext *C, TransInfo *t)
   else {
     /* Needed for correct Object.obmat after duplication, see: T62135. */
     BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
+
+    if ((scene->toolsettings->transform_flag & SCE_XFORM_DATA_ORIGIN) != 0) {
+      t->flag |= T_OBJECT_DATA_IN_OBJECT_MODE;
+    }
 
     createTransObject(C, t);
     countAndCleanTransDataContainer(t);

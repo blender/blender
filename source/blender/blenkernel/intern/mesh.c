@@ -1675,6 +1675,19 @@ void BKE_mesh_vert_coords_apply(Mesh *mesh, const float (*vert_coords)[3])
   mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 }
 
+void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
+                                          const float (*vert_coords)[3],
+                                          const float mat[4][4])
+{
+  /* This will just return the pointer if it wasn't a referenced layer. */
+  MVert *mv = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MVERT, mesh->totvert);
+  mesh->mvert = mv;
+  for (int i = 0; i < mesh->totvert; i++, mv++) {
+    mul_v3_m4v3(mv->co, mat, vert_coords[i]);
+  }
+  mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+}
+
 void BKE_mesh_vert_normals_apply(Mesh *mesh, const short (*vert_normals)[3])
 {
   /* This will just return the pointer if it wasn't a referenced layer. */

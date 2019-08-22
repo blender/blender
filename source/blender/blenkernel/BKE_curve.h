@@ -127,7 +127,14 @@ void BKE_curve_nurb_vert_active_validate(struct Curve *cu);
 float (*BKE_curve_nurbs_vert_coords_alloc(struct ListBase *lb, int *r_vert_len))[3];
 void BKE_curve_nurbs_vert_coords_get(struct ListBase *lb, float (*vert_coords)[3], int vert_len);
 
-void BKE_curve_nurbs_vert_coords_apply(struct ListBase *lb, const float (*vert_coords)[3]);
+void BKE_curve_nurbs_vert_coords_apply_with_mat4(struct ListBase *lb,
+                                                 const float (*vert_coords)[3],
+                                                 const float mat[4][4],
+                                                 const bool constrain_2d);
+
+void BKE_curve_nurbs_vert_coords_apply(struct ListBase *lb,
+                                       const float (*vert_coords)[3],
+                                       const bool constrain_2d);
 
 float (*BKE_curve_nurbs_key_vert_coords_alloc(struct ListBase *lb,
                                               float *key,

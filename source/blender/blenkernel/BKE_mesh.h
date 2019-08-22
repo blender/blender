@@ -269,6 +269,9 @@ void BKE_mesh_count_selected_items(const struct Mesh *mesh, int r_count[3]);
 float (*BKE_mesh_vert_coords_alloc(const struct Mesh *mesh, int *r_vert_len))[3];
 void BKE_mesh_vert_coords_get(const struct Mesh *mesh, float (*vert_coords)[3]);
 
+void BKE_mesh_vert_coords_apply_with_mat4(struct Mesh *mesh,
+                                          const float (*vert_coords)[3],
+                                          const float mat[4][4]);
 void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]);
 void BKE_mesh_vert_normals_apply(struct Mesh *mesh, const short (*vertNormals)[3]);
 

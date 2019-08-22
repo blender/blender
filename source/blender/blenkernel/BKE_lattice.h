@@ -90,6 +90,9 @@ void armature_deform_verts(struct Object *armOb,
 
 float (*BKE_lattice_vert_coords_alloc(const struct Lattice *lt, int *r_vert_len))[3];
 void BKE_lattice_vert_coords_get(const struct Lattice *lt, float (*vert_coords)[3]);
+void BKE_lattice_vert_coords_apply_with_mat4(struct Lattice *lt,
+                                             const float (*vert_coords)[3],
+                                             const float mat[4][4]);
 void BKE_lattice_vert_coords_apply(struct Lattice *lt, const float (*vert_coords)[3]);
 void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph,
                                 struct Scene *scene,

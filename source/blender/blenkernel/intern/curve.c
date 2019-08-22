@@ -4641,7 +4641,50 @@ float (*BKE_curve_nurbs_vert_coords_alloc(ListBase *lb, int *r_vert_len))[3]
   return vert_coords;
 }
 
-void BKE_curve_nurbs_vert_coords_apply(ListBase *lb, const float (*vert_coords)[3])
+void BKE_curve_nurbs_vert_coords_apply_with_mat4(ListBase *lb,
+                                                 const float (*vert_coords)[3],
+                                                 const float mat[4][4],
+                                                 const bool constrain_2d)
+{
+  const float *co = vert_coords[0];
+  Nurb *nu;
+  int i;
+
+  for (nu = lb->first; nu; nu = nu->next) {
+    if (nu->type == CU_BEZIER) {
+      BezTriple *bezt = nu->bezt;
+
+      for (i = 0; i < nu->pntsu; i++, bezt++) {
+        mul_v3_m4v3(bezt->vec[0], mat, co);
+        co += 3;
+        mul_v3_m4v3(bezt->vec[1], mat, co);
+        co += 3;
+        mul_v3_m4v3(bezt->vec[2], mat, co);
+        co += 3;
+      }
+    }
+    else {
+      BPoint *bp = nu->bp;
+
+      for (i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
+        mul_v3_m4v3(bp->vec, mat, co);
+        co += 3;
+      }
+    }
+
+    if (constrain_2d) {
+      if (nu->flag & CU_2D) {
+        BKE_nurb_test_2d(nu);
+      }
+    }
+
+    calchandlesNurb_intern(nu, true);
+  }
+}
+
+void BKE_curve_nurbs_vert_coords_apply(ListBase *lb,
+                                       const float (*vert_coords)[3],
+                                       const bool constrain_2d)
 {
   const float *co = vert_coords[0];
 
@@ -4664,6 +4707,12 @@ void BKE_curve_nurbs_vert_coords_apply(ListBase *lb, const float (*vert_coords)[
       for (int i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
         copy_v3_v3(bp->vec, co);
         co += 3;
+      }
+    }
+
+    if (constrain_2d) {
+      if (nu->flag & CU_2D) {
+        BKE_nurb_test_2d(nu);
       }
     }
 
