@@ -109,7 +109,7 @@ void BKE_world_copy_data(Main *bmain, World *wrld_dst, const World *wrld_src, co
   if (wrld_src->nodetree) {
     /* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
      *       (see BKE_libblock_copy_ex()). */
-    BKE_id_copy_ex(bmain, (ID *)wrld_src->nodetree, (ID **)&wrld_dst->nodetree, flag);
+    BKE_nodetree_copy_owned_ex(bmain, wrld_src->nodetree, &wrld_dst->nodetree, &wrld_dst->id, flag);
   }
 
   BLI_listbase_clear(&wrld_dst->gpumaterial);

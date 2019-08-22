@@ -252,7 +252,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
 
   if (iNodeTree) {
     // make a copy of linestyle->nodetree
-    ntree = ntreeCopyTree_ex(iNodeTree, bmain, do_id_user);
+    ntree = ntreeCopyTree_ex(iNodeTree, bmain, &ma->id, do_id_user);
 
     // find the active Output Line Style node
     for (bNode *node = (bNode *)ntree->nodes.first; node; node = node->next) {
@@ -263,7 +263,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
     }
   }
   else {
-    ntree = ntreeAddTree(NULL, "stroke_shader", "ShaderNodeTree");
+    ntree = ntreeAddTree(NULL, "stroke_shader", "ShaderNodeTree", &ma->id);
   }
   ma->nodetree = ntree;
   ma->use_nodes = 1;

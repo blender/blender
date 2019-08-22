@@ -436,7 +436,7 @@ void BKE_texture_copy_data(Main *bmain, Tex *tex_dst, const Tex *tex_src, const 
     }
     /* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
      *       (see BKE_libblock_copy_ex()). */
-    BKE_id_copy_ex(bmain, (ID *)tex_src->nodetree, (ID **)&tex_dst->nodetree, flag);
+    BKE_nodetree_copy_owned_ex(bmain, tex_src->nodetree, &tex_dst->nodetree, &tex_dst->id, flag);
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {

@@ -366,7 +366,10 @@ struct GHashIterator *ntreeTypeGetIterator(void);
 void ntreeSetTypes(const struct bContext *C, struct bNodeTree *ntree);
 
 void ntreeInitDefault(struct bNodeTree *ntree);
-struct bNodeTree *ntreeAddTree(struct Main *bmain, const char *name, const char *idname, struct ID *owner);
+struct bNodeTree *ntreeAddTree(struct Main *bmain,
+                               const char *name,
+                               const char *idname,
+                               struct ID *owner);
 
 /* copy/free funcs, need to manage ID users */
 void ntreeFreeTree(struct bNodeTree *ntree);
@@ -376,10 +379,15 @@ void BKE_node_tree_copy_data(struct Main *bmain,
                              struct bNodeTree *ntree_dst,
                              const struct bNodeTree *ntree_src,
                              const int flag);
+void BKE_nodetree_copy_owned_ex(
+    struct Main *bmain, struct bNodeTree *src, struct bNodeTree **dst, struct ID *owner, int flag);
 struct bNodeTree *ntreeCopyTree_ex(const struct bNodeTree *ntree,
                                    struct Main *bmain,
+                                   struct ID *owner,
                                    const bool do_id_user);
-struct bNodeTree *ntreeCopyTree(struct Main *bmain, const struct bNodeTree *ntree);
+struct bNodeTree *ntreeCopyTree(struct Main *bmain,
+                                const struct bNodeTree *ntree,
+                                struct ID *owner);
 /* node->id user count */
 void ntreeUserIncrefID(struct bNodeTree *ntree);
 void ntreeUserDecrefID(struct bNodeTree *ntree);
