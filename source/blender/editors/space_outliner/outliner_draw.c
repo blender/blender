@@ -1994,7 +1994,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
             data.icon = ICON_CON_TRACKTO;
             break;
           case CONSTRAINT_TYPE_ACTION:
-            data.icon = ICON_ACTION;
+            data.icon = ICON_CON_ACTION;
             break;
           case CONSTRAINT_TYPE_ARMATURE:
             data.icon = ICON_CON_ARMATURE;
@@ -2319,7 +2319,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
             data.icon = ICON_ARROW_LEFTRIGHT;
             break;
           case SEQ_TYPE_META:
-            data.icon = ICON_DOT;
+            data.icon = ICON_SEQ_STRIP_META;
             break;
           default:
             data.icon = ICON_DOT;
@@ -2330,7 +2330,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         data.icon = ICON_LIBRARY_DATA_DIRECT;
         break;
       case TSE_SEQUENCE_DUP:
-        data.icon = ICON_OBJECT_DATA;
+        data.icon = ICON_SEQ_STRIP_DUPLICATE;
         break;
       case TSE_RNA_STRUCT:
         if (RNA_struct_is_ID(te->rnaptr.type)) {
