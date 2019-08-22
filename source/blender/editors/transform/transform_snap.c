@@ -1273,7 +1273,7 @@ bool snapObjectsTransform(
           .use_occlusion_test = t->scene->toolsettings->snap_mode != SCE_SNAP_MODE_FACE,
       },
       mval,
-      t->center_global,
+      t->tsnap.snapTarget,
       dist_px,
       r_loc,
       r_no);
