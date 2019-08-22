@@ -1132,7 +1132,7 @@ bNodeTree *ntreeCopyTree_ex_new_pointers(const bNodeTree *ntree,
                                          Main *bmain,
                                          const bool do_id_user)
 {
-  bNodeTree *new_ntree = ntreeCopyTree_ex(ntree, bmain, NULL, do_id_user);
+  bNodeTree *new_ntree = ntreeCopyTree_ex(ntree, bmain, do_id_user);
   bNode *new_node = new_ntree->nodes.first;
   bNode *node_src = ntree->nodes.first;
   while (new_node != NULL) {
@@ -1394,7 +1394,7 @@ void ntreeInitDefault(bNodeTree *ntree)
   ntree_set_typeinfo(ntree, NULL);
 }
 
-bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname, ID *owner)
+bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
 {
   bNodeTree *ntree;
 
@@ -1408,7 +1408,6 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname, ID *o
     ntree = MEM_callocN(sizeof(bNodeTree), "new node tree");
     *((short *)ntree->id.name) = ID_NT;
     BLI_strncpy(ntree->id.name + 2, name, sizeof(ntree->id.name));
-    ntree->owner = owner;
   }
 
   /* Types are fully initialized at this point,
@@ -1529,22 +1528,16 @@ void BKE_node_tree_copy_data(Main *UNUSED(bmain),
   ntree_dst->interface_type = NULL;
 }
 
-void BKE_nodetree_copy_owned_ex(Main *bmain, bNodeTree *src, bNodeTree **dst, ID *owner, int flag)
+bNodeTree *ntreeCopyTree_ex(const bNodeTree *ntree, Main *bmain, const bool do_id_user)
 {
-  if (BKE_id_copy_ex(bmain, (ID *)src, (ID **)dst, flag)) {
-    (*dst)->owner = owner;
-  }
-}
-bNodeTree *ntreeCopyTree_ex(const bNodeTree *ntree, Main *bmain, ID *owner, const bool do_id_user)
-{
-  bNodeTree *ntree_copy = NULL;
+  bNodeTree *ntree_copy;
   const int flag = do_id_user ? LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_MAIN : 0;
-  BKE_nodetree_copy_owned_ex(bmain, ntree, &ntree_copy, owner, flag);
+  BKE_id_copy_ex(bmain, (ID *)ntree, (ID **)&ntree_copy, flag);
   return ntree_copy;
 }
-bNodeTree *ntreeCopyTree(Main *bmain, const bNodeTree *ntree, ID *owner)
+bNodeTree *ntreeCopyTree(Main *bmain, const bNodeTree *ntree)
 {
-  return ntreeCopyTree_ex(ntree, bmain, owner, true);
+  return ntreeCopyTree_ex(ntree, bmain, true);
 }
 
 void ntreeUserIncrefID(bNodeTree *ntree)

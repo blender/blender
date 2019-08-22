@@ -183,7 +183,7 @@ void BKE_material_copy_data(Main *bmain, Material *ma_dst, const Material *ma_sr
   if (ma_src->nodetree) {
     /* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
      *       (see BKE_libblock_copy_ex()). */
-    BKE_nodetree_copy_owned_ex(bmain, ma_src->nodetree, &ma_dst->nodetree, &ma_dst->id, flag);
+    BKE_id_copy_ex(bmain, (ID *)ma_src->nodetree, (ID **)&ma_dst->nodetree, flag);
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
@@ -1562,7 +1562,7 @@ void copy_matcopybuf(Main *bmain, Material *ma)
   memcpy(&matcopybuf, ma, sizeof(Material));
 
   if (ma->nodetree != NULL) {
-    matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, bmain, NULL, false);
+    matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, bmain, false);
   }
 
   matcopybuf.preview = NULL;
@@ -1592,7 +1592,7 @@ void paste_matcopybuf(Main *bmain, Material *ma)
   (ma->id) = id;
 
   if (matcopybuf.nodetree != NULL) {
-    ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, bmain, &ma->id, false);
+    ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, bmain, false);
   }
 }
 

@@ -113,7 +113,7 @@ void BKE_light_copy_data(Main *bmain, Light *la_dst, const Light *la_src, const 
   if (la_src->nodetree) {
     /* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
      *       (see BKE_libblock_copy_ex()). */
-    BKE_nodetree_copy_owned_ex(bmain, la_src->nodetree, &la_dst->nodetree, &la_dst->id, flag);
+    BKE_id_copy_ex(bmain, (ID *)la_src->nodetree, (ID **)&la_dst->nodetree, flag);
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {

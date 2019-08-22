@@ -403,11 +403,6 @@ bool ANIM_driver_vars_paste(struct ReportList *reports, struct FCurve *fcu, bool
 
 /* -------- */
 
-/** Compute an ID pointer and path to property valid for use in a driver.
- *  Corrects for ID references that are not independent (e.g. material NodeTree). */
-bool ANIM_get_target_ID_and_path_to_property(
-    struct PointerRNA *ptr, struct PropertyRNA *prop, int index, struct ID **r_id, char **r_path);
-
 /* Create a driver & variable that reads the specified property,
  * and store it in the buffers for Paste Driver and Paste Variables. */
 void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const char *var_name);

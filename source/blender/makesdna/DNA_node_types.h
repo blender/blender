@@ -477,9 +477,6 @@ typedef struct bNodeTree {
    */
   struct bNodeTreeExec *execdata;
 
-  /** Data block that owns this tree (Material, etc). Not saved. */
-  struct ID *owner;
-
   /* callbacks */
   void (*progress)(void *, float progress);
   /** \warning may be called by different threads */

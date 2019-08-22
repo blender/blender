@@ -3477,14 +3477,12 @@ static void direct_link_node_socket(FileData *fd, bNodeSocket *sock)
 }
 
 /* ntree itself has been read! */
-static void direct_link_nodetree(FileData *fd, bNodeTree *ntree, ID *owner)
+static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 {
   /* note: writing and reading goes in sync, for speed */
   bNode *node;
   bNodeSocket *sock;
   bNodeLink *link;
-
-  ntree->owner = owner;
 
   ntree->init = 0; /* to set callbacks and force setting types */
   ntree->is_updating = false;
@@ -3960,7 +3958,7 @@ static void direct_link_light(FileData *fd, Light *la)
   la->nodetree = newdataadr(fd, la->nodetree);
   if (la->nodetree) {
     direct_link_id(fd, &la->nodetree->id);
-    direct_link_nodetree(fd, la->nodetree, &la->id);
+    direct_link_nodetree(fd, la->nodetree);
   }
 
   la->preview = direct_link_preview_image(fd, la->preview);
@@ -4123,7 +4121,7 @@ static void direct_link_world(FileData *fd, World *wrld)
   wrld->nodetree = newdataadr(fd, wrld->nodetree);
   if (wrld->nodetree) {
     direct_link_id(fd, &wrld->nodetree->id);
-    direct_link_nodetree(fd, wrld->nodetree, &wrld->id);
+    direct_link_nodetree(fd, wrld->nodetree);
   }
 
   wrld->preview = direct_link_preview_image(fd, wrld->preview);
@@ -4423,7 +4421,7 @@ static void direct_link_texture(FileData *fd, Tex *tex)
   tex->nodetree = newdataadr(fd, tex->nodetree);
   if (tex->nodetree) {
     direct_link_id(fd, &tex->nodetree->id);
-    direct_link_nodetree(fd, tex->nodetree, &tex->id);
+    direct_link_nodetree(fd, tex->nodetree);
   }
 
   tex->preview = direct_link_preview_image(fd, tex->preview);
@@ -4478,7 +4476,7 @@ static void direct_link_material(FileData *fd, Material *ma)
   ma->nodetree = newdataadr(fd, ma->nodetree);
   if (ma->nodetree) {
     direct_link_id(fd, &ma->nodetree->id);
-    direct_link_nodetree(fd, ma->nodetree, &ma->id);
+    direct_link_nodetree(fd, ma->nodetree);
   }
 
   ma->preview = direct_link_preview_image(fd, ma->preview);
@@ -6909,7 +6907,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
   sce->nodetree = newdataadr(fd, sce->nodetree);
   if (sce->nodetree) {
     direct_link_id(fd, &sce->nodetree->id);
-    direct_link_nodetree(fd, sce->nodetree, &sce->id);
+    direct_link_nodetree(fd, sce->nodetree);
   }
 
   direct_link_view_settings(fd, &sce->view_settings);
@@ -8933,7 +8931,7 @@ static void direct_link_linestyle(FileData *fd, FreestyleLineStyle *linestyle)
   linestyle->nodetree = newdataadr(fd, linestyle->nodetree);
   if (linestyle->nodetree) {
     direct_link_id(fd, &linestyle->nodetree->id);
-    direct_link_nodetree(fd, linestyle->nodetree, &linestyle->id);
+    direct_link_nodetree(fd, linestyle->nodetree);
   }
 }
 
@@ -9295,7 +9293,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const int ta
       direct_link_action(fd, (bAction *)id);
       break;
     case ID_NT:
-      direct_link_nodetree(fd, (bNodeTree *)id, NULL);
+      direct_link_nodetree(fd, (bNodeTree *)id);
       break;
     case ID_BR:
       direct_link_brush(fd, (Brush *)id);

@@ -644,7 +644,7 @@ static bool node_group_make_test_selected(bNodeTree *ntree,
   int ok = true;
 
   /* make a local pseudo node tree to pass to the node poll functions */
-  ngroup = ntreeAddTree(NULL, "Pseudo Node Group", ntree_idname, NULL);
+  ngroup = ntreeAddTree(NULL, "Pseudo Node Group", ntree_idname);
 
   /* check poll functions for selected nodes */
   for (node = ntree->nodes.first; node; node = node->next) {
@@ -953,7 +953,7 @@ static bNode *node_group_make_from_selected(const bContext *C,
   }
 
   /* new nodetree */
-  ngroup = ntreeAddTree(bmain, "NodeGroup", ntreetype, NULL);
+  ngroup = ntreeAddTree(bmain, "NodeGroup", ntreetype);
 
   /* make group node */
   gnode = nodeAddNode(C, ntree, ntype);
