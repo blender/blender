@@ -1057,22 +1057,19 @@ void outside_lattice(Lattice *lt)
   }
 }
 
-float (*BKE_lattice_vert_coords_alloc(const Lattice *lt, int *r_vert_len))[3]
+void BKE_lattice_vert_coords_get(const Lattice *lt, float (*vert_coords)[3])
 {
-  int vert_len;
-  float(*vert_coords)[3];
-
-  if (lt->editlatt) {
-    lt = lt->editlatt->latt;
-  }
-  vert_len = *r_vert_len = lt->pntsu * lt->pntsv * lt->pntsw;
-
-  vert_coords = MEM_mallocN(sizeof(*vert_coords) * vert_len, __func__);
-
+  const int vert_len = lt->pntsu * lt->pntsv * lt->pntsw;
   for (int i = 0; i < vert_len; i++) {
     copy_v3_v3(vert_coords[i], lt->def[i].vec);
   }
+}
 
+float (*BKE_lattice_vert_coords_alloc(const Lattice *lt, int *r_vert_len))[3]
+{
+  const int vert_len = *r_vert_len = lt->pntsu * lt->pntsv * lt->pntsw;
+  float(*vert_coords)[3] = MEM_mallocN(sizeof(*vert_coords) * vert_len, __func__);
+  BKE_lattice_vert_coords_get(lt, vert_coords);
   return vert_coords;
 }
 
@@ -1123,7 +1120,11 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
     }
 
     if (!vert_coords) {
-      vert_coords = BKE_lattice_vert_coords_alloc(ob_orig->data, &numVerts);
+      Lattice *lt_orig = ob_orig->data;
+      if (lt_orig->editlatt) {
+        lt_orig = lt_orig->editlatt->latt;
+      }
+      vert_coords = BKE_lattice_vert_coords_alloc(lt_orig, &numVerts);
     }
     mti->deformVerts(md, &mectx, NULL, vert_coords, numVerts);
   }
@@ -1137,7 +1138,11 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
   else {
     /* Displist won't do anything; this is just for posterity's sake until we remove it. */
     if (!vert_coords) {
-      vert_coords = BKE_lattice_vert_coords_alloc(ob_orig->data, &numVerts);
+      Lattice *lt_orig = ob_orig->data;
+      if (lt_orig->editlatt) {
+        lt_orig = lt_orig->editlatt->latt;
+      }
+      vert_coords = BKE_lattice_vert_coords_alloc(lt_orig, &numVerts);
     }
 
     DispList *dl = MEM_callocN(sizeof(*dl), "lt_dl");
