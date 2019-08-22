@@ -1504,8 +1504,8 @@ bool RNA_struct_override_store(struct Main *bmain,
                                struct IDOverrideLibrary *override);
 
 void RNA_struct_override_apply(struct Main *bmain,
-                               struct PointerRNA *ptr_local,
-                               struct PointerRNA *ptr_override,
+                               struct PointerRNA *ptr_dst,
+                               struct PointerRNA *ptr_src,
                                struct PointerRNA *ptr_storage,
                                struct IDOverrideLibrary *override);
 
