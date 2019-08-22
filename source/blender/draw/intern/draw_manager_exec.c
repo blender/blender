@@ -592,6 +592,10 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCall *call)
     infos[3] = (state->flag & DRW_CALL_NEGSCALE) ? -1.0f : 1.0f;
     GPU_shader_uniform_vector(shgroup->shader, shgroup->objectinfo, 4, 1, (float *)infos);
   }
+  if (shgroup->objectcolor != -1) {
+    GPU_shader_uniform_vector(
+        shgroup->shader, shgroup->objectcolor, 4, 1, (float *)state->ob_color);
+  }
   if (shgroup->orcotexfac != -1) {
     GPU_shader_uniform_vector(
         shgroup->shader, shgroup->orcotexfac, 3, 2, (float *)state->orcotexfac);

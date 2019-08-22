@@ -48,9 +48,10 @@ typedef enum {
   GPU_UNIFORM_ORCO,       /* vec3 OrcoTexCoFactors[] */
   GPU_UNIFORM_CLIPPLANES, /* vec4 WorldClipPlanes[] */
 
-  GPU_UNIFORM_COLOR,       /* vec4 color */
-  GPU_UNIFORM_CALLID,      /* int callId */
-  GPU_UNIFORM_OBJECT_INFO, /* vec3 objectInfo */
+  GPU_UNIFORM_COLOR,        /* vec4 color */
+  GPU_UNIFORM_CALLID,       /* int callId */
+  GPU_UNIFORM_OBJECT_INFO,  /* vec3 objectInfo */
+  GPU_UNIFORM_OBJECT_COLOR, /* vec4 objectColor */
 
   GPU_UNIFORM_CUSTOM, /* custom uniform, not one of the above built-ins */
 

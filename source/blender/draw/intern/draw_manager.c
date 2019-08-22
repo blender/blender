@@ -603,6 +603,7 @@ static DRWCallState *draw_unit_state_create(void)
 
   state->ob_index = 0;
   state->ob_random = 0.0f;
+  copy_v3_fl(state->ob_color, 1.0f);
 
   /* TODO(fclem) get rid of this. */
   state->culling = BLI_memblock_alloc(DST.vmempool->cullstates);

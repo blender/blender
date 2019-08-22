@@ -67,6 +67,7 @@ static const char *BuiltinUniform_name(GPUUniformBuiltin u)
       [GPU_UNIFORM_COLOR] = "color",
       [GPU_UNIFORM_CALLID] = "callId",
       [GPU_UNIFORM_OBJECT_INFO] = "unfobjectinfo",
+      [GPU_UNIFORM_OBJECT_COLOR] = "unfobjectcolor",
 
       [GPU_UNIFORM_CUSTOM] = NULL,
       [GPU_NUM_UNIFORMS] = NULL,

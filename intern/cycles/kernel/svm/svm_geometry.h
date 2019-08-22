@@ -113,6 +113,10 @@ ccl_device void svm_node_object_info(
       stack_store_float3(stack, out_offset, object_location(kg, sd));
       return;
     }
+    case NODE_INFO_OB_COLOR: {
+      stack_store_float3(stack, out_offset, object_color(kg, sd->object));
+      return;
+    }
     case NODE_INFO_OB_INDEX:
       data = object_pass_id(kg, sd->object);
       break;

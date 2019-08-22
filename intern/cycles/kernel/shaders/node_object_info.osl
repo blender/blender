@@ -17,11 +17,13 @@
 #include "stdosl.h"
 
 shader node_object_info(output point Location = point(0.0, 0.0, 0.0),
+                        output color Color = color(1.0, 1.0, 1.0),
                         output float ObjectIndex = 0.0,
                         output float MaterialIndex = 0.0,
                         output float Random = 0.0)
 {
   getattribute("object:location", Location);
+  getattribute("object:color", Color);
   getattribute("object:index", ObjectIndex);
   getattribute("material:index", MaterialIndex);
   getattribute("object:random", Random);

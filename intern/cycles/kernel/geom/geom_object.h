@@ -227,6 +227,17 @@ ccl_device_inline float object_surface_area(KernelGlobals *kg, int object)
   return kernel_tex_fetch(__objects, object).surface_area;
 }
 
+/* Color of the object */
+
+ccl_device_inline float3 object_color(KernelGlobals *kg, int object)
+{
+  if (object == OBJECT_NONE)
+    return make_float3(0.0f, 0.0f, 0.0f);
+
+  const ccl_global KernelObject *kobject = &kernel_tex_fetch(__objects, object);
+  return make_float3(kobject->color[0], kobject->color[1], kobject->color[2]);
+}
+
 /* Pass ID number of object */
 
 ccl_device_inline float object_pass_id(KernelGlobals *kg, int object)

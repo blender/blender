@@ -444,6 +444,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   if (object_updated || (object->mesh && object->mesh->need_update) || tfm != object->tfm) {
     object->name = b_ob.name().c_str();
     object->pass_id = b_ob.pass_index();
+    object->color = get_float3(b_ob.color());
     object->tfm = tfm;
     object->motion.clear();
 

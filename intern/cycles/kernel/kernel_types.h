@@ -1408,6 +1408,7 @@ typedef struct KernelObject {
   float surface_area;
   float pass_id;
   float random_number;
+  float color[3];
   int particle_index;
 
   float dupli_generated[3];
@@ -1420,11 +1421,9 @@ typedef struct KernelObject {
   uint patch_map_offset;
   uint attribute_map_offset;
   uint motion_offset;
-  uint pad1;
 
   float cryptomatte_object;
   float cryptomatte_asset;
-  float pad2, pad3;
 } KernelObject;
 static_assert_align(KernelObject, 16);
 

@@ -90,6 +90,7 @@ NODE_DEFINE(Object)
   SOCKET_NODE(mesh, "Mesh", &Mesh::node_type);
   SOCKET_TRANSFORM(tfm, "Transform", transform_identity());
   SOCKET_UINT(visibility, "Visibility", ~0);
+  SOCKET_COLOR(color, "Color", make_float3(0.0f, 0.0f, 0.0f));
   SOCKET_UINT(random_id, "Random ID", 0);
   SOCKET_INT(pass_id, "Pass ID", 0);
   SOCKET_BOOLEAN(use_holdout, "Use Holdout", false);
@@ -371,6 +372,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
    */
   float uniform_scale;
   float surface_area = 0.0f;
+  float3 color = ob->color;
   float pass_id = ob->pass_id;
   float random_number = (float)ob->random_id * (1.0f / (float)0xFFFFFFFF);
   int particle_index = (ob->particle_system) ?
@@ -425,6 +427,9 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.tfm = tfm;
   kobject.itfm = itfm;
   kobject.surface_area = surface_area;
+  kobject.color[0] = color.x;
+  kobject.color[1] = color.y;
+  kobject.color[2] = color.z;
   kobject.pass_id = pass_id;
   kobject.random_number = random_number;
   kobject.particle_index = particle_index;

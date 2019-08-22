@@ -101,6 +101,7 @@ enum {
   DRW_CALL_MODELVIEWPROJECTION = (1 << 1),
   DRW_CALL_ORCOTEXFAC = (1 << 2),
   DRW_CALL_OBJECTINFO = (1 << 3),
+  DRW_CALL_OBJECTCOLOR = (1 << 4),
 };
 
 typedef struct DRWCullingState {
@@ -122,6 +123,7 @@ typedef struct DRWCallState {
   float modelinverse[4][4];
   float orcotexfac[2][3];
   float ob_random;
+  float ob_color[4];
 } DRWCallState;
 
 typedef struct DRWCall {
@@ -196,6 +198,7 @@ struct DRWShadingGroup {
   int orcotexfac;
   int callid;
   int objectinfo;
+  int objectcolor;
   uchar matflag; /* Matrices needed, same as DRWCall.flag */
 
   DRWPass *pass_parent; /* backlink to pass we're in */

@@ -387,6 +387,10 @@ static void drw_call_state_update_matflag(DRWCallState *state,
     }
     state->ob_random = random * (1.0f / (float)0xFFFFFFFF);
   }
+
+  if (new_flags & DRW_CALL_OBJECTCOLOR) {
+    copy_v4_v4(state->ob_color, ob->color);
+  }
 }
 
 static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obmat)[4], Object *ob)
@@ -836,6 +840,7 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   shgroup->modelviewprojection = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MVP);
   shgroup->orcotexfac = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_ORCO);
   shgroup->objectinfo = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_OBJECT_INFO);
+  shgroup->objectcolor = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_OBJECT_COLOR);
   shgroup->callid = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_CALLID);
 
   shgroup->matflag = 0;
@@ -850,6 +855,9 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   }
   if (shgroup->objectinfo > -1) {
     shgroup->matflag |= DRW_CALL_OBJECTINFO;
+  }
+  if (shgroup->objectcolor > -1) {
+    shgroup->matflag |= DRW_CALL_OBJECTCOLOR;
   }
 }
 

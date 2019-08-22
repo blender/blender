@@ -51,6 +51,7 @@ class Object : public Node {
   BoundBox bounds;
   uint random_id;
   int pass_id;
+  float3 color;
   ustring asset_name;
   vector<ParamValue> attributes;
   uint visibility;
