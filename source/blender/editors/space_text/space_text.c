@@ -29,6 +29,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_global.h"
 #include "BKE_context.h"
 #include "BKE_library.h"
 #include "BKE_screen.h"
@@ -356,7 +357,7 @@ static void text_drop_paste(wmDrag *drag, wmDropBox *drop)
   ID *id = WM_drag_ID(drag, 0);
 
   /* copy drag path to properties */
-  text = RNA_path_full_ID_py(id);
+  text = RNA_path_full_ID_py(G_MAIN, id);
   RNA_string_set(drop->ptr, "text", text);
   MEM_freeN(text);
 }

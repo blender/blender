@@ -100,10 +100,12 @@ static bool copy_data_path_button_poll(bContext *C)
 
 static int copy_data_path_button_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   PointerRNA ptr;
   PropertyRNA *prop;
   char *path;
   int index;
+  ID *id;
 
   const bool full_path = RNA_boolean_get(op->ptr, "full_path");
 
@@ -111,18 +113,20 @@ static int copy_data_path_button_exec(bContext *C, wmOperator *op)
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (ptr.owner_id != NULL) {
-
     if (full_path) {
-
       if (prop) {
-        path = RNA_path_full_property_py_ex(&ptr, prop, index, true);
+        path = RNA_path_full_property_py_ex(bmain, &ptr, prop, index, true);
       }
       else {
-        path = RNA_path_full_struct_py(&ptr);
+        path = RNA_path_full_struct_py(bmain, &ptr);
       }
     }
     else {
-      path = RNA_path_from_ID_to_property(&ptr, prop);
+      path = RNA_path_from_real_ID_to_property_index(bmain, &ptr, prop, 0, -1, &id);
+
+      if (!path) {
+        path = RNA_path_from_ID_to_property(&ptr, prop);
+      }
     }
 
     if (path) {
@@ -185,8 +189,9 @@ static bool copy_as_driver_button_poll(bContext *C)
   return 0;
 }
 
-static int copy_as_driver_button_exec(bContext *C, wmOperator *UNUSED(op))
+static int copy_as_driver_button_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   PointerRNA ptr;
   PropertyRNA *prop;
   int index;
@@ -195,13 +200,18 @@ static int copy_as_driver_button_exec(bContext *C, wmOperator *UNUSED(op))
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (ptr.owner_id && ptr.data && prop) {
+    ID *id;
     int dim = RNA_property_array_dimension(&ptr, prop, NULL);
-    char *path = RNA_path_from_ID_to_property_index(&ptr, prop, dim, index);
+    char *path = RNA_path_from_real_ID_to_property_index(bmain, &ptr, prop, dim, index, &id);
 
     if (path) {
-      ANIM_copy_as_driver(ptr.owner_id, path, RNA_property_identifier(prop));
+      ANIM_copy_as_driver(id, path, RNA_property_identifier(prop));
       MEM_freeN(path);
       return OPERATOR_FINISHED;
+    }
+    else {
+      BKE_reportf(op->reports, RPT_ERROR, "Could not compute a valid data path");
+      return OPERATOR_CANCELLED;
     }
   }
 

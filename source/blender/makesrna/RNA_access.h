@@ -1151,24 +1151,37 @@ struct PropertyElemRNA {
 };
 bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, struct ListBase *r_elements);
 
+struct ID *RNA_find_real_ID_and_path(struct Main *bmain, struct ID *id, const char **r_path);
+
 char *RNA_path_from_ID_to_struct(PointerRNA *ptr);
+
+char *RNA_path_from_real_ID_to_struct(struct Main *bmain, PointerRNA *ptr, struct ID **r_real);
+
 char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop);
 char *RNA_path_from_ID_to_property_index(PointerRNA *ptr,
                                          PropertyRNA *prop,
                                          int array_dim,
                                          int index);
 
+char *RNA_path_from_real_ID_to_property_index(struct Main *bmain,
+                                              PointerRNA *ptr,
+                                              PropertyRNA *prop,
+                                              int array_dim,
+                                              int index,
+                                              struct ID **r_real);
+
 char *RNA_path_resolve_from_type_to_property(struct PointerRNA *ptr,
                                              struct PropertyRNA *prop,
                                              const struct StructRNA *type);
 
-char *RNA_path_full_ID_py(struct ID *id);
-char *RNA_path_full_struct_py(struct PointerRNA *ptr);
-char *RNA_path_full_property_py_ex(PointerRNA *ptr,
-                                   PropertyRNA *prop,
-                                   int index,
-                                   bool use_fallback);
-char *RNA_path_full_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
+char *RNA_path_full_ID_py(struct Main *bmain, struct ID *id);
+char *RNA_path_full_struct_py(struct Main *bmain, struct PointerRNA *ptr);
+char *RNA_path_full_property_py_ex(
+    struct Main *bmain, PointerRNA *ptr, PropertyRNA *prop, int index, bool use_fallback);
+char *RNA_path_full_property_py(struct Main *bmain,
+                                struct PointerRNA *ptr,
+                                struct PropertyRNA *prop,
+                                int index);
 char *RNA_path_struct_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 char *RNA_path_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 

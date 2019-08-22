@@ -467,7 +467,11 @@ typedef enum ID_Type {
 
 /* id->flag (persitent). */
 enum {
+  /* Don't delete the datablock even if unused. */
   LIB_FAKEUSER = 1 << 9,
+  /* The datablock structure is a sub-object of a different one.
+   * Direct persistent references are not allowed. */
+  LIB_PRIVATE_DATA = 1 << 10,
 };
 
 /**

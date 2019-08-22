@@ -47,6 +47,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
+#include "BKE_node.h"
 
 #include "DEG_depsgraph.h"
 
@@ -5757,6 +5758,61 @@ static char *rna_path_from_ID_to_idpgroup(PointerRNA *ptr)
   }
 }
 
+/**
+ * Find the actual ID pointer and path from it to the given ID.
+ *
+ * \param id: ID reference to search the global owner for.
+ * \param[out] r_path: Path from the real ID to the initial ID.
+ * \return The ID pointer, or NULL in case of failure.
+ */
+ID *RNA_find_real_ID_and_path(Main *bmain, ID *id, const char **r_path)
+{
+  if (r_path) {
+    *r_path = "";
+  }
+
+  if ((id != NULL) && (id->flag & LIB_PRIVATE_DATA)) {
+    switch (GS(id->name)) {
+      case ID_NT:
+        if (r_path) {
+          *r_path = "node_tree";
+        }
+        return BKE_node_tree_find_owner_ID(bmain, (bNodeTree *)id);
+
+      default:
+        return NULL;
+    }
+  }
+  else {
+    return id;
+  }
+}
+
+static char *rna_prepend_real_ID_path(Main *bmain, ID *id, char *path, ID **r_real)
+{
+  if (path) {
+    const char *prefix;
+    char *new_path = NULL;
+
+    *r_real = RNA_find_real_ID_and_path(bmain, id, &prefix);
+
+    if (*r_real) {
+      if (prefix[0]) {
+        new_path = BLI_sprintfN("%s%s%s", prefix, path[0] == '[' ? "" : ".", path);
+      }
+      else {
+        return path;
+      }
+    }
+
+    MEM_freeN(path);
+    return new_path;
+  }
+  else {
+    return NULL;
+  }
+}
+
 char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
 {
   char *ptrpath = NULL;
@@ -5797,6 +5853,13 @@ char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
   }
 
   return ptrpath;
+}
+
+char *RNA_path_from_real_ID_to_struct(Main *bmain, PointerRNA *ptr, struct ID **r_real)
+{
+  char *path = RNA_path_from_ID_to_struct(ptr);
+
+  return rna_prepend_real_ID_path(bmain, ptr->owner_id, path, r_real);
 }
 
 static void rna_path_array_multi_from_flat_index(const int dimsize[RNA_MAX_ARRAY_LENGTH],
@@ -5905,6 +5968,14 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
   return RNA_path_from_ID_to_property_index(ptr, prop, 0, -1);
 }
 
+char *RNA_path_from_real_ID_to_property_index(
+    Main *bmain, PointerRNA *ptr, PropertyRNA *prop, int index_dim, int index, ID **r_real)
+{
+  char *path = RNA_path_from_ID_to_property_index(ptr, prop, index_dim, index);
+
+  return rna_prepend_real_ID_path(bmain, ptr->owner_id, path, r_real);
+}
+
 /**
  * \return the path to given ptr/prop from the closest ancestor of given type,
  * if any (else return NULL).
@@ -5951,20 +6022,34 @@ char *RNA_path_resolve_from_type_to_property(PointerRNA *ptr,
  * Get the ID as a python representation, eg:
  *   bpy.data.foo["bar"]
  */
-char *RNA_path_full_ID_py(ID *id)
+char *RNA_path_full_ID_py(Main *bmain, ID *id)
 {
+  const char *path;
+  ID *id_real = RNA_find_real_ID_and_path(bmain, id, &path);
+
+  if (id_real) {
+    id = id_real;
+  }
+  else {
+    path = "";
+  }
+
   char id_esc[(sizeof(id->name) - 2) * 2];
 
   BLI_strescape(id_esc, id->name + 2, sizeof(id_esc));
 
-  return BLI_sprintfN("bpy.data.%s[\"%s\"]", BKE_idcode_to_name_plural(GS(id->name)), id_esc);
+  return BLI_sprintfN("bpy.data.%s[\"%s\"]%s%s",
+                      BKE_idcode_to_name_plural(GS(id->name)),
+                      id_esc,
+                      path[0] ? "." : "",
+                      path);
 }
 
 /**
  * Get the ID.struct as a python representation, eg:
  *   bpy.data.foo["bar"].some_struct
  */
-char *RNA_path_full_struct_py(struct PointerRNA *ptr)
+char *RNA_path_full_struct_py(Main *bmain, struct PointerRNA *ptr)
 {
   char *id_path;
   char *data_path;
@@ -5976,7 +6061,7 @@ char *RNA_path_full_struct_py(struct PointerRNA *ptr)
   }
 
   /* never fails */
-  id_path = RNA_path_full_ID_py(ptr->owner_id);
+  id_path = RNA_path_full_ID_py(bmain, ptr->owner_id);
 
   data_path = RNA_path_from_ID_to_struct(ptr);
 
@@ -5996,10 +6081,8 @@ char *RNA_path_full_struct_py(struct PointerRNA *ptr)
  * Get the ID.struct.property as a python representation, eg:
  *   bpy.data.foo["bar"].some_struct.some_prop[10]
  */
-char *RNA_path_full_property_py_ex(PointerRNA *ptr,
-                                   PropertyRNA *prop,
-                                   int index,
-                                   bool use_fallback)
+char *RNA_path_full_property_py_ex(
+    Main *bmain, PointerRNA *ptr, PropertyRNA *prop, int index, bool use_fallback)
 {
   char *id_path;
   const char *data_delim;
@@ -6013,7 +6096,7 @@ char *RNA_path_full_property_py_ex(PointerRNA *ptr,
   }
 
   /* never fails */
-  id_path = RNA_path_full_ID_py(ptr->owner_id);
+  id_path = RNA_path_full_ID_py(bmain, ptr->owner_id);
 
   data_path = RNA_path_from_ID_to_property(ptr, prop);
   if (data_path) {
@@ -6046,9 +6129,9 @@ char *RNA_path_full_property_py_ex(PointerRNA *ptr,
   return ret;
 }
 
-char *RNA_path_full_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
+char *RNA_path_full_property_py(Main *bmain, PointerRNA *ptr, PropertyRNA *prop, int index)
 {
-  return RNA_path_full_property_py_ex(ptr, prop, index, false);
+  return RNA_path_full_property_py_ex(bmain, ptr, prop, index, false);
 }
 
 /**
@@ -6646,16 +6729,16 @@ char *RNA_pointer_as_string_id(bContext *C, PointerRNA *ptr)
   return cstring;
 }
 
-static char *rna_pointer_as_string__bldata(PointerRNA *ptr)
+static char *rna_pointer_as_string__bldata(Main *bmain, PointerRNA *ptr)
 {
   if (ptr->type == NULL || ptr->owner_id == NULL) {
     return BLI_strdup("None");
   }
   else if (RNA_struct_is_ID(ptr->type)) {
-    return RNA_path_full_ID_py(ptr->owner_id);
+    return RNA_path_full_ID_py(bmain, ptr->owner_id);
   }
   else {
-    return RNA_path_full_struct_py(ptr);
+    return RNA_path_full_struct_py(bmain, ptr);
   }
 }
 
@@ -6672,7 +6755,7 @@ char *RNA_pointer_as_string(bContext *C,
     return RNA_pointer_as_string_id(C, ptr_prop);
   }
   else {
-    return rna_pointer_as_string__bldata(ptr_prop);
+    return rna_pointer_as_string__bldata(CTX_data_main(C), ptr_prop);
   }
 }
 

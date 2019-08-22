@@ -539,7 +539,7 @@ char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, i
 
   if (lhs == NULL) {
     /* fallback to bpy.data.foo[id] if we dont find in the context */
-    lhs = RNA_path_full_property_py(ptr, prop, index);
+    lhs = RNA_path_full_property_py(CTX_data_main(C), ptr, prop, index);
   }
 
   if (!lhs) {
