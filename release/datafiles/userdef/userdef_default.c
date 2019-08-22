@@ -26,6 +26,8 @@
 
 #include "BKE_blender_version.h"
 
+#include "BLO_readfile.h" /* own include */
+
 const UserDef U_default = {
     .versionfile = BLENDER_VERSION,
     .subversionfile = BLENDER_SUBVERSION,
