@@ -63,10 +63,13 @@ const EnumPropertyItem rna_enum_node_socket_in_out_items[] = {
     {SOCK_IN, "IN", 0, "Input", ""}, {SOCK_OUT, "OUT", 0, "Output", ""}, {0, NULL, 0, NULL, NULL}};
 
 #ifndef RNA_RUNTIME
-static const EnumPropertyItem rna_enum_node_socket_draw_shape_items[] = {
-    {SOCK_DRAW_SHAPE_CIRCLE, "CIRCLE", 0, "Circle", ""},
-    {SOCK_DRAW_SHAPE_SQUARE, "SQUARE", 0, "Square", ""},
-    {SOCK_DRAW_SHAPE_DIAMOND, "DIAMOND", 0, "Diamond", ""},
+static const EnumPropertyItem rna_enum_node_socket_display_shape_items[] = {
+    {SOCK_DISPLAY_SHAPE_CIRCLE, "CIRCLE", 0, "Circle", ""},
+    {SOCK_DISPLAY_SHAPE_SQUARE, "SQUARE", 0, "Square", ""},
+    {SOCK_DISPLAY_SHAPE_DIAMOND, "DIAMOND", 0, "Diamond", ""},
+    {SOCK_DISPLAY_SHAPE_CIRCLE_DOT, "CIRCLE_DOT", 0, "Circle with inner dot", ""},
+    {SOCK_DISPLAY_SHAPE_SQUARE_DOT, "SQUARE_DOT", 0, "Square with inner dot", ""},
+    {SOCK_DISPLAY_SHAPE_DIAMOND_DOT, "DIAMOND_DOT", 0, "Diamond with inner dot", ""},
     {0, NULL, 0, NULL, NULL}};
 
 static const EnumPropertyItem node_socket_type_items[] = {
@@ -7858,10 +7861,10 @@ static void rna_def_node_socket(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Type", "Data type");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocket_update");
 
-  prop = RNA_def_property(srna, "draw_shape", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "draw_shape");
-  RNA_def_property_enum_items(prop, rna_enum_node_socket_draw_shape_items);
-  RNA_def_property_enum_default(prop, SOCK_DRAW_SHAPE_CIRCLE);
+  prop = RNA_def_property(srna, "display_shape", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "display_shape");
+  RNA_def_property_enum_items(prop, rna_enum_node_socket_display_shape_items);
+  RNA_def_property_enum_default(prop, SOCK_DISPLAY_SHAPE_CIRCLE);
   RNA_def_property_ui_text(prop, "Shape", "Socket shape");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocket_update");
 

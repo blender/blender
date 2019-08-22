@@ -713,15 +713,28 @@ static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
   GPU_blend(false);
 }
 
-static void node_socket_circle_draw(const bContext *C,
-                                    bNodeTree *ntree,
-                                    PointerRNA node_ptr,
-                                    bNodeSocket *sock,
-                                    unsigned pos,
-                                    unsigned col)
+/* flags used in gpu_shader_keyframe_diamond_frag.glsl */
+#define MARKER_SHAPE_DIAMOND 0x1
+#define MARKER_SHAPE_SQUARE 0xC
+#define MARKER_SHAPE_CIRCLE 0x2
+#define MARKER_SHAPE_INNER_DOT 0x10
+
+static void node_socket_draw(const bContext *C,
+                             bNodeTree *ntree,
+                             PointerRNA node_ptr,
+                             bNodeSocket *sock,
+                             unsigned pos_id,
+                             unsigned col_id,
+                             unsigned shape_id,
+                             unsigned size_id,
+                             unsigned outline_col_id,
+                             float size,
+                             bool selected)
 {
   PointerRNA ptr;
   float color[4];
+  float outline_color[4];
+  unsigned int flags = 0;
 
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
   sock->typeinfo->draw_color((bContext *)C, &ptr, &node_ptr, color);
@@ -731,8 +744,44 @@ static void node_socket_circle_draw(const bContext *C,
     color[3] *= 0.25f;
   }
 
-  immAttr4fv(col, color);
-  immVertex2f(pos, sock->locx, sock->locy);
+  if (selected) {
+    UI_GetThemeColor4fv(TH_TEXT_HI, outline_color);
+    outline_color[3] = 0.9f;
+  }
+  else {
+    copy_v4_fl(outline_color, 0.0f);
+    outline_color[3] = 0.6f;
+  }
+
+  /* sets shape flags */
+  switch (sock->display_shape) {
+    case SOCK_DISPLAY_SHAPE_DIAMOND:
+    case SOCK_DISPLAY_SHAPE_DIAMOND_DOT:
+      flags = MARKER_SHAPE_DIAMOND;
+      break;
+    case SOCK_DISPLAY_SHAPE_SQUARE:
+    case SOCK_DISPLAY_SHAPE_SQUARE_DOT:
+      flags = MARKER_SHAPE_SQUARE;
+      break;
+    default:
+    case SOCK_DISPLAY_SHAPE_CIRCLE:
+    case SOCK_DISPLAY_SHAPE_CIRCLE_DOT:
+      flags = MARKER_SHAPE_CIRCLE;
+      break;
+  }
+
+  if (ELEM(sock->display_shape,
+           SOCK_DISPLAY_SHAPE_DIAMOND_DOT,
+           SOCK_DISPLAY_SHAPE_SQUARE_DOT,
+           SOCK_DISPLAY_SHAPE_CIRCLE_DOT)) {
+    flags |= MARKER_SHAPE_INNER_DOT;
+  }
+
+  immAttr4fv(col_id, color);
+  immAttr1u(shape_id, flags);
+  immAttr1f(size_id, size); 
+  immAttr4fv(outline_col_id, outline_color);
+  immVertex2f(pos_id, sock->locx, sock->locy);
 }
 
 /* **************  Socket callbacks *********** */
@@ -888,26 +937,26 @@ void node_draw_sockets(View2D *v2d,
   PointerRNA node_ptr;
   RNA_pointer_create((ID *)ntree, &RNA_Node, node, &node_ptr);
 
-  float scale;
-  UI_view2d_scale_get(v2d, &scale, NULL);
+  bool selected = false;
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint col_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  uint shape_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
+  uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  uint outline_col_id = GPU_vertformat_attr_add(format, "outlineColor", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
   GPU_blend(true);
   GPU_program_point_size(true);
-
-  immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_VARYING_COLOR_OUTLINE_AA);
+  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+  immUniform1f("outline_scale", 0.7f);
 
   /* set handle size */
-  immUniform1f("size", 2.0f * NODE_SOCKSIZE * scale); /* 2 * size to have diameter */
+  float scale;
+  UI_view2d_scale_get(v2d, &scale, NULL);
+  scale *= 2.25f * NODE_SOCKSIZE;
 
   if (!select_all) {
-    /* outline for unselected sockets */
-    immUniform1f("outlineWidth", 1.0f);
-    immUniform4f("outlineColor", 0.0f, 0.0f, 0.0f, 0.6f);
-
     immBeginAtMost(GPU_PRIM_POINTS, total_input_len + total_output_len);
   }
 
@@ -923,7 +972,17 @@ void node_draw_sockets(View2D *v2d,
       continue;
     }
 
-    node_socket_circle_draw(C, ntree, node_ptr, sock, pos, col);
+    node_socket_draw(C,
+                     ntree,
+                     node_ptr,
+                     sock,
+                     pos_id,
+                     col_id,
+                     shape_id,
+                     size_id,
+                     outline_col_id,
+                     scale,
+                     selected);
   }
 
   /* socket outputs */
@@ -938,7 +997,17 @@ void node_draw_sockets(View2D *v2d,
         continue;
       }
 
-      node_socket_circle_draw(C, ntree, node_ptr, sock, pos, col);
+      node_socket_draw(C,
+                       ntree,
+                       node_ptr,
+                       sock,
+                       pos_id,
+                       col_id,
+                       shape_id,
+                       size_id,
+                       outline_col_id,
+                       scale,
+                       selected);
     }
   }
 
@@ -949,10 +1018,8 @@ void node_draw_sockets(View2D *v2d,
   /* go back and draw selected sockets */
   if (selected_input_len + selected_output_len > 0) {
     /* outline for selected sockets */
-    float c[3];
-    UI_GetThemeColor3fv(TH_TEXT_HI, c);
-    immUniform4f("outlineColor", c[0], c[1], c[2], 1.0f);
-    immUniform1f("outlineWidth", 1.5f);
+    
+    selected = true;
 
     immBegin(GPU_PRIM_POINTS, selected_input_len + selected_output_len);
 
@@ -963,7 +1030,17 @@ void node_draw_sockets(View2D *v2d,
           continue;
         }
         if (select_all || (sock->flag & SELECT)) {
-          node_socket_circle_draw(C, ntree, node_ptr, sock, pos, col);
+          node_socket_draw(C,
+                           ntree,
+                           node_ptr,
+                           sock,
+                           pos_id,
+                           col_id,
+                           shape_id,
+                           size_id,
+                           outline_col_id,
+                           scale,
+                           selected);
           if (--selected_input_len == 0) {
             break; /* stop as soon as last one is drawn */
           }
@@ -978,7 +1055,17 @@ void node_draw_sockets(View2D *v2d,
           continue;
         }
         if (select_all || (sock->flag & SELECT)) {
-          node_socket_circle_draw(C, ntree, node_ptr, sock, pos, col);
+          node_socket_draw(C,
+                           ntree,
+                           node_ptr,
+                           sock,
+                           pos_id,
+                           col_id,
+                           shape_id,
+                           size_id,
+                           outline_col_id,
+                           scale,
+                           selected);
           if (--selected_output_len == 0) {
             break; /* stop as soon as last one is drawn */
           }

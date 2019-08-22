@@ -1,11 +1,11 @@
 
 uniform mat4 ModelViewProjectionMatrix;
 uniform vec2 ViewportSize = vec2(-1, -1);
+uniform float outline_scale = 1.0;
 
 const float line_falloff = 1.0;
 const float circle_scale = sqrt(2.0 / 3.1416);
 const float square_scale = sqrt(0.5);
-
 const float diagonal_scale = sqrt(0.5);
 
 in vec2 pos;
@@ -58,7 +58,7 @@ void main()
   float line_width = half_width + line_falloff;
 
   /* Outline thresholds. */
-  thresholds.xy = line_thresholds(line_width);
+  thresholds.xy = line_thresholds(line_width * outline_scale);
 
   /* Inner dot thresholds. */
   thresholds.zw = line_thresholds(line_width * 1.6);

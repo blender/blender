@@ -113,7 +113,7 @@ typedef struct bNodeSocket {
   short stack_index;
   /* XXX deprecated, kept for forward compatibility */
   short stack_type DNA_DEPRECATED;
-  char draw_shape;
+  char display_shape;
   char _pad[3];
 
   /** Cached data from execution. */
@@ -153,11 +153,14 @@ typedef enum eNodeSocketDatatype {
 } eNodeSocketDatatype;
 
 /* socket shape */
-typedef enum eNodeSocketDrawShape {
-  SOCK_DRAW_SHAPE_CIRCLE = 0,
-  SOCK_DRAW_SHAPE_SQUARE = 1,
-  SOCK_DRAW_SHAPE_DIAMOND = 2,
-} eNodeSocketDrawShape;
+typedef enum eNodeSocketDisplayShape {
+  SOCK_DISPLAY_SHAPE_CIRCLE = 0,
+  SOCK_DISPLAY_SHAPE_SQUARE = 1,
+  SOCK_DISPLAY_SHAPE_DIAMOND = 2,
+  SOCK_DISPLAY_SHAPE_CIRCLE_DOT = 3,
+  SOCK_DISPLAY_SHAPE_SQUARE_DOT = 4,
+  SOCK_DISPLAY_SHAPE_DIAMOND_DOT = 5,
+} eNodeSocketDisplayShape;
 
 /* socket side (input/output) */
 typedef enum eNodeSocketInOut {
