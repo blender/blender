@@ -115,7 +115,9 @@ BVHTree *bvhtree_from_mesh_verts_ex(struct BVHTreeFromMesh *data,
                                     int verts_num_active,
                                     float epsilon,
                                     int tree_type,
-                                    int axis);
+                                    int axis,
+                                    const int bvh_cache_type,
+                                    BVHCache **bvh_cache);
 
 BVHTree *bvhtree_from_editmesh_edges(BVHTreeFromEditMesh *data,
                                      struct BMEditMesh *em,
@@ -141,7 +143,9 @@ BVHTree *bvhtree_from_mesh_edges_ex(struct BVHTreeFromMesh *data,
                                     int edges_num_active,
                                     float epsilon,
                                     int tree_type,
-                                    int axis);
+                                    int axis,
+                                    const int bvh_cache_type,
+                                    BVHCache **bvh_cache);
 
 BVHTree *bvhtree_from_mesh_faces_ex(struct BVHTreeFromMesh *data,
                                     const struct MVert *vert,
@@ -153,7 +157,9 @@ BVHTree *bvhtree_from_mesh_faces_ex(struct BVHTreeFromMesh *data,
                                     int numFaces_active,
                                     float epsilon,
                                     int tree_type,
-                                    int axis);
+                                    int axis,
+                                    const int bvh_cache_type,
+                                    BVHCache **bvh_cache);
 
 BVHTree *bvhtree_from_editmesh_looptri(BVHTreeFromEditMesh *data,
                                        struct BMEditMesh *em,
@@ -182,7 +188,9 @@ BVHTree *bvhtree_from_mesh_looptri_ex(struct BVHTreeFromMesh *data,
                                       int looptri_num_active,
                                       float epsilon,
                                       int tree_type,
-                                      int axis);
+                                      int axis,
+                                      const int bvh_cache_type,
+                                      BVHCache **bvh_cache);
 
 BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
                                    struct Mesh *mesh,
