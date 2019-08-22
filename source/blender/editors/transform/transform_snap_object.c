@@ -2913,8 +2913,7 @@ short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                                  float r_obmat[4][4])
 {
   return transform_snap_context_project_view3d_mixed_impl(
-             sctx, snap_to, params, mval, prev_co, dist_px, r_loc, r_no, r_index, r_ob, r_obmat) !=
-         0;
+      sctx, snap_to, params, mval, prev_co, dist_px, r_loc, r_no, r_index, r_ob, r_obmat);
 }
 
 /**
