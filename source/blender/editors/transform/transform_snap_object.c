@@ -1474,7 +1474,8 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
       if (IN_RANGE(lambda, 0.0f, 1.0f)) {
         interp_v3_v3v3(v_near, va_g, vb_g, lambda);
 
-        if (test_projected_vert_dist(&neasrest_precalc,
+        if ((len_squared_v3v3(prev_co, v_near) > FLT_EPSILON) &&
+            test_projected_vert_dist(&neasrest_precalc,
                                      NULL,
                                      0,
                                      nearest2d.is_persp,
