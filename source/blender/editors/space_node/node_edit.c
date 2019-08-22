@@ -448,7 +448,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
   int output_type, shader_type;
   float color[4] = {0.0f, 0.0f, 0.0f, 1.0f}, strength = 1.0f;
 
-  ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
+  ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname, id);
 
   switch (GS(id->name)) {
     case ID_MA: {
@@ -534,7 +534,7 @@ void ED_node_composit_default(const bContext *C, struct Scene *sce)
     return;
   }
 
-  sce->nodetree = ntreeAddTree(NULL, "Compositing Nodetree", ntreeType_Composite->idname);
+  sce->nodetree = ntreeAddTree(NULL, "Compositing Nodetree", ntreeType_Composite->idname, &sce->id);
 
   sce->nodetree->chunksize = 256;
   sce->nodetree->edit_quality = NTREE_QUALITY_HIGH;
@@ -572,7 +572,7 @@ void ED_node_texture_default(const bContext *C, Tex *tx)
     return;
   }
 
-  tx->nodetree = ntreeAddTree(NULL, "Texture Nodetree", ntreeType_Texture->idname);
+  tx->nodetree = ntreeAddTree(NULL, "Texture Nodetree", ntreeType_Texture->idname, &tx->id);
 
   out = nodeAddStaticNode(C, tx->nodetree, TEX_NODE_OUTPUT);
   out->locx = 300.0f;

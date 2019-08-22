@@ -195,11 +195,11 @@ static int copy_as_driver_button_exec(bContext *C, wmOperator *UNUSED(op))
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (ptr.id.data && ptr.data && prop) {
-    int dim = RNA_property_array_dimension(&ptr, prop, NULL);
-    char *path = RNA_path_from_ID_to_property_index(&ptr, prop, dim, index);
+    ID *id;
+    char *path;
 
-    if (path) {
-      ANIM_copy_as_driver(ptr.id.data, path, RNA_property_identifier(prop));
+    if (ANIM_get_target_ID_and_path_to_property(&ptr, prop, index, &id, &path)) {
+      ANIM_copy_as_driver(id, path, RNA_property_identifier(prop));
       MEM_freeN(path);
       return OPERATOR_FINISHED;
     }

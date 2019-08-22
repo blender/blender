@@ -366,7 +366,7 @@ struct GHashIterator *ntreeTypeGetIterator(void);
 void ntreeSetTypes(const struct bContext *C, struct bNodeTree *ntree);
 
 void ntreeInitDefault(struct bNodeTree *ntree);
-struct bNodeTree *ntreeAddTree(struct Main *bmain, const char *name, const char *idname);
+struct bNodeTree *ntreeAddTree(struct Main *bmain, const char *name, const char *idname, struct ID *owner);
 
 /* copy/free funcs, need to manage ID users */
 void ntreeFreeTree(struct bNodeTree *ntree);

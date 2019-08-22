@@ -1394,7 +1394,7 @@ void ntreeInitDefault(bNodeTree *ntree)
   ntree_set_typeinfo(ntree, NULL);
 }
 
-bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
+bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname, ID *owner)
 {
   bNodeTree *ntree;
 
@@ -1408,6 +1408,7 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
     ntree = MEM_callocN(sizeof(bNodeTree), "new node tree");
     *((short *)ntree->id.name) = ID_NT;
     BLI_strncpy(ntree->id.name + 2, name, sizeof(ntree->id.name));
+    ntree->owner = owner;
   }
 
   /* Types are fully initialized at this point,

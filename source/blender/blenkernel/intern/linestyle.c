@@ -1456,7 +1456,7 @@ void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linesty
 
   BLI_assert(linestyle->nodetree == NULL);
 
-  ntree = ntreeAddTree(NULL, "stroke_shader", "ShaderNodeTree");
+  ntree = ntreeAddTree(NULL, "stroke_shader", "ShaderNodeTree", &linestyle->id);
 
   linestyle->nodetree = ntree;
 

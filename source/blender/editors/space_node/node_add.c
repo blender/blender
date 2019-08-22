@@ -509,7 +509,7 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ntree = ntreeAddTree(bmain, treename, idname);
+  ntree = ntreeAddTree(bmain, treename, idname, NULL);
 
   /* hook into UI */
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
