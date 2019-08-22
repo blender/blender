@@ -135,7 +135,6 @@ class TIME_MT_view(Menu):
         layout.separator()
 
         layout.prop(st, "show_marker_lines")
-        layout.prop(st, "show_frame_indicator")
         layout.prop(scene, "show_keys_from_selected_only")
 
         layout.separator()

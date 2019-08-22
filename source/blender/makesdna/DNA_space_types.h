@@ -427,8 +427,7 @@ typedef enum eGraphEdit_Flag {
   SIPO_NOTRANSKEYCULL = (1 << 1),
   /* don't show any keyframe handles at all */
   SIPO_NOHANDLES = (1 << 2),
-  /* don't show current frame number beside indicator line */
-  SIPO_NODRAWCFRANUM = (1 << 3),
+  /* SIPO_NODRAWCFRANUM = (1 << 3), DEPRECATED */
   /* show timing in seconds instead of frames */
   SIPO_DRAWTIME = (1 << 4),
   /* only show keyframes for selected F-Curves */
@@ -503,8 +502,7 @@ typedef enum eSpaceNla_Flag {
   /* draw timing in seconds instead of frames */
   SNLA_DRAWTIME = (1 << 2),
   SNLA_FLAG_UNUSED_3 = (1 << 3),
-  /* don't draw frame number beside frame indicator */
-  SNLA_NODRAWCFRANUM = (1 << 4),
+  /* SNLA_NODRAWCFRANUM = (1 << 4), DEPRECATED */
   /* don't draw influence curves on strips */
   SNLA_NOSTRIPCURVES = (1 << 5),
   /* don't perform realtime updates */
@@ -588,7 +586,7 @@ typedef enum eSpaceSeq_Flag {
   SEQ_DRAW_COLOR_SEPARATED = (1 << 2),
   SEQ_SHOW_SAFE_MARGINS = (1 << 3),
   SEQ_SHOW_GPENCIL = (1 << 4),
-  SEQ_NO_DRAW_CFRANUM = (1 << 5),
+  /* SEQ_NO_DRAW_CFRANUM = (1 << 5), DEPRECATED */
   SEQ_USE_ALPHA = (1 << 6),     /* use RGBA display mode for preview */
   SEQ_ALL_WAVEFORMS = (1 << 7), /* draw all waveforms */
   SEQ_NO_WAVEFORMS = (1 << 8),  /* draw no waveforms */

@@ -91,7 +91,6 @@ class NLA_MT_view(Menu):
         layout.separator()
 
         layout.prop(st, "use_realtime_update")
-        layout.prop(st, "show_frame_indicator")
 
         layout.prop(st, "show_seconds")
         layout.prop(st, "show_locked_time")

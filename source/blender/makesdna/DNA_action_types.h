@@ -847,8 +847,7 @@ typedef enum eSAction_Flag {
   SACTION_POSEMARKERS_SHOW = (1 << 6),
   /* don't draw action channels using group colors (where applicable) */
   SACTION_NODRAWGCOLORS = (1 << 7),
-  /* don't draw current frame number beside frame indicator */
-  SACTION_NODRAWCFRANUM = (1 << 8),
+  /* SACTION_NODRAWCFRANUM = (1 << 8), DEPRECATED */
   /* don't perform realtime updates */
   SACTION_NOREALTIMEUPDATES = (1 << 10),
   /* move markers as well as keyframes */
