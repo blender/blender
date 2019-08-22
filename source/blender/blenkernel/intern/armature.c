@@ -2285,7 +2285,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3])
 
 /* recursive part, calculates restposition of entire tree of children */
 /* used by exiting editmode too */
-void BKE_armature_where_is_bone(Bone *bone, Bone *prevbone, const bool use_recursion)
+void BKE_armature_where_is_bone(Bone *bone, const Bone *bone_parent, const bool use_recursion)
 {
   float vec[3];
 
@@ -2301,13 +2301,13 @@ void BKE_armature_where_is_bone(Bone *bone, Bone *prevbone, const bool use_recur
     bone->segments = 1;
   }
 
-  if (prevbone) {
+  if (bone_parent) {
     float offs_bone[4][4];
     /* yoffs(b-1) + root(b) + bonemat(b) */
     BKE_bone_offset_matrix_get(bone, offs_bone);
 
     /* Compose the matrix for this bone  */
-    mul_m4_m4m4(bone->arm_mat, prevbone->arm_mat, offs_bone);
+    mul_m4_m4m4(bone->arm_mat, bone_parent->arm_mat, offs_bone);
   }
   else {
     copy_m4_m3(bone->arm_mat, bone->bone_mat);
@@ -2316,9 +2316,9 @@ void BKE_armature_where_is_bone(Bone *bone, Bone *prevbone, const bool use_recur
 
   /* and the kiddies */
   if (use_recursion) {
-    prevbone = bone;
+    bone_parent = bone;
     for (bone = bone->childbase.first; bone; bone = bone->next) {
-      BKE_armature_where_is_bone(bone, prevbone, use_recursion);
+      BKE_armature_where_is_bone(bone, bone_parent, use_recursion);
     }
   }
 }

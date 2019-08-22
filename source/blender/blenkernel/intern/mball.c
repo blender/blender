@@ -526,7 +526,7 @@ bool BKE_mball_center_bounds(const MetaBall *mb, float r_cent[3])
   return false;
 }
 
-void BKE_mball_transform(MetaBall *mb, float mat[4][4], const bool do_props)
+void BKE_mball_transform(MetaBall *mb, const float mat[4][4], const bool do_props)
 {
   float quat[4];
   const float scale = mat4_to_scale(mat);

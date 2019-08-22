@@ -779,7 +779,7 @@ static void node_socket_draw(const bContext *C,
 
   immAttr4fv(col_id, color);
   immAttr1u(shape_id, flags);
-  immAttr1f(size_id, size); 
+  immAttr1f(size_id, size);
   immAttr4fv(outline_col_id, outline_color);
   immVertex2f(pos_id, sock->locx, sock->locy);
 }
@@ -944,7 +944,8 @@ void node_draw_sockets(View2D *v2d,
   uint col_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   uint shape_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
   uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  uint outline_col_id = GPU_vertformat_attr_add(format, "outlineColor", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  uint outline_col_id = GPU_vertformat_attr_add(
+      format, "outlineColor", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
   GPU_blend(true);
   GPU_program_point_size(true);
@@ -1018,7 +1019,7 @@ void node_draw_sockets(View2D *v2d,
   /* go back and draw selected sockets */
   if (selected_input_len + selected_output_len > 0) {
     /* outline for selected sockets */
-    
+
     selected = true;
 
     immBegin(GPU_PRIM_POINTS, selected_input_len + selected_output_len);

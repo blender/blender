@@ -100,7 +100,7 @@ float distfactor_to_bone(
 
 void BKE_armature_where_is(struct bArmature *arm);
 void BKE_armature_where_is_bone(struct Bone *bone,
-                                struct Bone *prevbone,
+                                const struct Bone *bone_parent,
                                 const bool use_recursion);
 void BKE_pose_clear_pointers(struct bPose *pose);
 void BKE_pose_remap_bone_pointers(struct bArmature *armature, struct bPose *pose);

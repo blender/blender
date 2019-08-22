@@ -1118,6 +1118,8 @@ static void SCREEN_OT_actionzone(wmOperatorType *ot)
   RNA_def_int(ot->srna, "modifier", 0, 0, 2, "Modifier", "Modifier state", 0, 2);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Area edge detection utility
  * \{ */
@@ -1156,6 +1158,8 @@ static ScrEdge *screen_area_edge_from_cursor(const bContext *C,
   }
   return actedge;
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Swap Area Operator
