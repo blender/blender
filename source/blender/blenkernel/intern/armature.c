@@ -268,6 +268,90 @@ void BKE_armature_copy_bone_transforms(bArmature *armature_dst, const bArmature 
   }
 }
 
+/** Helper for #ED_armature_transform */
+static void armature_transform_recurse(ListBase *bonebase,
+                                       const float mat[4][4],
+                                       const bool do_props,
+                                       /* Cached from 'mat'. */
+                                       const float mat3[3][3],
+                                       const float scale,
+                                       /* Child bones. */
+                                       const Bone *bone_parent,
+                                       const float arm_mat_parent_inv[4][4])
+{
+  for (Bone *bone = bonebase->first; bone; bone = bone->next) {
+
+    /* Transform the bone's roll. */
+    if (bone_parent == NULL) {
+
+      float roll_mat[3][3];
+      {
+        float delta[3];
+        sub_v3_v3v3(delta, bone->tail, bone->head);
+        vec_roll_to_mat3(delta, bone->roll, roll_mat);
+      }
+
+      /* Transform the roll matrix. */
+      mul_m3_m3m3(roll_mat, mat3, roll_mat);
+
+      /* Apply the transformed roll back. */
+      mat3_to_vec_roll(roll_mat, NULL, &bone->roll);
+    }
+
+    mul_m4_v3(mat, bone->arm_head);
+    mul_m4_v3(mat, bone->arm_tail);
+
+    /* Get the new head and tail */
+    if (bone_parent) {
+      sub_v3_v3v3(bone->head, bone->arm_head, bone_parent->arm_tail);
+      sub_v3_v3v3(bone->tail, bone->arm_tail, bone_parent->arm_tail);
+
+      mul_mat3_m4_v3(arm_mat_parent_inv, bone->head);
+      mul_mat3_m4_v3(arm_mat_parent_inv, bone->tail);
+    }
+    else {
+      copy_v3_v3(bone->head, bone->arm_head);
+      copy_v3_v3(bone->tail, bone->arm_tail);
+    }
+
+    BKE_armature_where_is_bone(bone, bone_parent, false);
+
+    {
+      float arm_mat3[3][3];
+      copy_m3_m4(arm_mat3, bone->arm_mat);
+      mat3_to_vec_roll(arm_mat3, NULL, &bone->arm_roll);
+    }
+
+    if (do_props) {
+      bone->rad_head *= scale;
+      bone->rad_tail *= scale;
+      bone->dist *= scale;
+
+      /* we could be smarter and scale by the matrix along the x & z axis */
+      bone->xwidth *= scale;
+      bone->zwidth *= scale;
+    }
+
+    if (!BLI_listbase_is_empty(&bone->childbase)) {
+      float arm_mat_inv[4][4];
+      invert_m4_m4(arm_mat_inv, bone->arm_mat);
+      armature_transform_recurse(&bone->childbase, mat, do_props, mat3, scale, bone, arm_mat_inv);
+    }
+  }
+}
+
+void BKE_armature_transform(bArmature *arm, const float mat[4][4], const bool do_props)
+{
+  /* Store the scale of the matrix here to use on envelopes. */
+  float scale = mat4_to_scale(mat);
+  float mat3[3][3];
+
+  copy_m3_m4(mat3, mat);
+  normalize_m3(mat3);
+
+  armature_transform_recurse(&arm->bonebase, mat, do_props, mat3, scale, NULL, NULL);
+}
+
 static Bone *get_named_bone_bonechildren(ListBase *lb, const char *name)
 {
   Bone *curBone, *rbone;
