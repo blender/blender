@@ -146,7 +146,7 @@ static void rna_ParticleHairKey_location_object_info(PointerRNA *ptr,
                                                      ParticleData **pa_pt)
 {
   HairKey *hkey = (HairKey *)ptr->data;
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   ModifierData *md;
   ParticleSystemModifierData *psmd = NULL;
   ParticleSystem *psys;
@@ -193,7 +193,7 @@ static void rna_ParticleHairKey_location_object_info(PointerRNA *ptr,
 static void rna_ParticleHairKey_location_object_get(PointerRNA *ptr, float *values)
 {
   HairKey *hkey = (HairKey *)ptr->data;
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   ParticleSystemModifierData *psmd;
   ParticleData *pa;
 
@@ -221,7 +221,7 @@ static void rna_ParticleHairKey_location_object_get(PointerRNA *ptr, float *valu
 static void rna_ParticleHairKey_location_object_set(PointerRNA *ptr, const float *values)
 {
   HairKey *hkey = (HairKey *)ptr->data;
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   ParticleSystemModifierData *psmd;
   ParticleData *pa;
 
@@ -618,7 +618,7 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem,
 static void particle_recalc(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr, short flag)
 {
   if (ptr->type == &RNA_ParticleSystem) {
-    Object *ob = ptr->id.data;
+    Object *ob = (Object *)ptr->owner_id;
     ParticleSystem *psys = (ParticleSystem *)ptr->data;
 
     psys->recalc = flag;
@@ -626,7 +626,7 @@ static void particle_recalc(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
   else {
-    DEG_id_tag_update(ptr->id.data, ID_RECALC_GEOMETRY | flag);
+    DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY | flag);
   }
 
   WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
@@ -663,7 +663,7 @@ static void rna_Particle_reset_dependency(Main *bmain, Scene *scene, PointerRNA 
 
 static void rna_Particle_change_type(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  ParticleSettings *part = ptr->id.data;
+  ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
 
   /* Iterating over all object is slow, but no better solution exists at the moment. */
   for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
@@ -716,7 +716,7 @@ static void rna_Particle_redo_child(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Particle_cloth_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
@@ -741,7 +741,7 @@ static ParticleSystem *rna_particle_system_for_target(Object *ob, ParticleTarget
 static void rna_Particle_target_reset(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
   if (ptr->type == &RNA_ParticleTarget) {
-    Object *ob = (Object *)ptr->id.data;
+    Object *ob = (Object *)ptr->owner_id;
     ParticleTarget *pt = (ParticleTarget *)ptr->data;
     ParticleSystem *kpsys = NULL, *psys = rna_particle_system_for_target(ob, pt);
 
@@ -780,7 +780,7 @@ static void rna_Particle_target_reset(Main *bmain, Scene *UNUSED(scene), Pointer
 static void rna_Particle_target_redo(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   if (ptr->type == &RNA_ParticleTarget) {
-    Object *ob = (Object *)ptr->id.data;
+    Object *ob = (Object *)ptr->owner_id;
     ParticleTarget *pt = (ParticleTarget *)ptr->data;
     ParticleSystem *psys = rna_particle_system_for_target(ob, pt);
 
@@ -793,7 +793,7 @@ static void rna_Particle_target_redo(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 
 static void rna_Particle_hair_dynamics_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   ParticleSystem *psys = (ParticleSystem *)ptr->data;
 
   if (psys && !psys->clmd) {
@@ -823,7 +823,7 @@ static void rna_particle_settings_set(PointerRNA *ptr,
                                       PointerRNA value,
                                       struct ReportList *UNUSED(reports))
 {
-  Object *ob = ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   ParticleSystem *psys = (ParticleSystem *)ptr->data;
   int old_type = 0;
 
@@ -1000,7 +1000,7 @@ static void rna_ParticleSettings_use_twist_curve_update(Main *bmain, Scene *scen
 
 static void rna_ParticleSystem_name_set(PointerRNA *ptr, const char *value)
 {
-  Object *ob = ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   ParticleSystem *part = (ParticleSystem *)ptr->data;
 
   /* copy the new name into the name slot */
@@ -1076,7 +1076,7 @@ static void rna_ParticleTarget_name_get(PointerRNA *ptr, char *str)
       psys = BLI_findlink(&pt->ob->particlesystem, pt->psys - 1);
     }
     else {
-      Object *ob = (Object *)ptr->id.data;
+      Object *ob = (Object *)ptr->owner_id;
       psys = BLI_findlink(&ob->particlesystem, pt->psys - 1);
     }
 
@@ -1108,7 +1108,7 @@ static int rna_ParticleTarget_name_length(PointerRNA *ptr)
 
 static int particle_id_check(PointerRNA *ptr)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
 
   return (GS(id->name) == ID_PA);
 }
@@ -1118,7 +1118,7 @@ static char *rna_SPHFluidSettings_path(PointerRNA *ptr)
   SPHFluidSettings *fluid = (SPHFluidSettings *)ptr->data;
 
   if (particle_id_check(ptr)) {
-    ParticleSettings *part = (ParticleSettings *)ptr->id.data;
+    ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
 
     if (part->fluid == fluid) {
       return BLI_strdup("fluid");
@@ -1152,7 +1152,7 @@ static bool rna_ParticleSystem_edited_get(PointerRNA *ptr)
 }
 static PointerRNA rna_ParticleDupliWeight_active_get(PointerRNA *ptr)
 {
-  ParticleSettings *part = (ParticleSettings *)ptr->id.data;
+  ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
   ParticleDupliWeight *dw = part->instance_weights.first;
 
   for (; dw; dw = dw->next) {
@@ -1165,14 +1165,14 @@ static PointerRNA rna_ParticleDupliWeight_active_get(PointerRNA *ptr)
 static void rna_ParticleDupliWeight_active_index_range(
     PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
 {
-  ParticleSettings *part = (ParticleSettings *)ptr->id.data;
+  ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
   *min = 0;
   *max = max_ii(0, BLI_listbase_count(&part->instance_weights) - 1);
 }
 
 static int rna_ParticleDupliWeight_active_index_get(PointerRNA *ptr)
 {
-  ParticleSettings *part = (ParticleSettings *)ptr->id.data;
+  ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
   ParticleDupliWeight *dw = part->instance_weights.first;
   int i = 0;
 
@@ -1187,7 +1187,7 @@ static int rna_ParticleDupliWeight_active_index_get(PointerRNA *ptr)
 
 static void rna_ParticleDupliWeight_active_index_set(struct PointerRNA *ptr, int value)
 {
-  ParticleSettings *part = (ParticleSettings *)ptr->id.data;
+  ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
   ParticleDupliWeight *dw = part->instance_weights.first;
   int i = 0;
 
@@ -1203,7 +1203,7 @@ static void rna_ParticleDupliWeight_active_index_set(struct PointerRNA *ptr, int
 
 static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *str)
 {
-  ParticleSettings *part = (ParticleSettings *)ptr->id.data;
+  ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
   psys_find_group_weights(part);
 
   ParticleDupliWeight *dw = ptr->data;
@@ -1241,7 +1241,7 @@ static const EnumPropertyItem *rna_Particle_dist_itemf(bContext *UNUSED(C),
                                                        PropertyRNA *UNUSED(prop),
                                                        bool *UNUSED(r_free))
 {
-  ParticleSettings *part = ptr->id.data;
+  ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
 
   if (part->type == PART_HAIR) {
     return part_hair_dist_items;
@@ -1256,7 +1256,7 @@ static const EnumPropertyItem *rna_Particle_draw_as_itemf(bContext *UNUSED(C),
                                                           PropertyRNA *UNUSED(prop),
                                                           bool *UNUSED(r_free))
 {
-  ParticleSettings *part = ptr->id.data;
+  ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
 
   if (part->type == PART_HAIR) {
     return part_hair_draw_as_items;
@@ -1271,7 +1271,7 @@ static const EnumPropertyItem *rna_Particle_ren_as_itemf(bContext *UNUSED(C),
                                                          PropertyRNA *UNUSED(prop),
                                                          bool *UNUSED(r_free))
 {
-  ParticleSettings *part = ptr->id.data;
+  ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
 
   if (part->type == PART_HAIR) {
     return part_hair_ren_as_items;
@@ -1283,7 +1283,7 @@ static const EnumPropertyItem *rna_Particle_ren_as_itemf(bContext *UNUSED(C),
 
 static PointerRNA rna_Particle_field1_get(PointerRNA *ptr)
 {
-  ParticleSettings *part = (ParticleSettings *)ptr->id.data;
+  ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
 
   /* weak */
   if (!part->pd) {
@@ -1295,7 +1295,7 @@ static PointerRNA rna_Particle_field1_get(PointerRNA *ptr)
 
 static PointerRNA rna_Particle_field2_get(PointerRNA *ptr)
 {
-  ParticleSettings *part = (ParticleSettings *)ptr->id.data;
+  ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
 
   /* weak */
   if (!part->pd2) {
@@ -1307,7 +1307,7 @@ static PointerRNA rna_Particle_field2_get(PointerRNA *ptr)
 
 static void psys_vg_name_get__internal(PointerRNA *ptr, char *value, int index)
 {
-  Object *ob = ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   ParticleSystem *psys = (ParticleSystem *)ptr->data;
 
   if (psys->vgroup[index] > 0) {
@@ -1323,7 +1323,7 @@ static void psys_vg_name_get__internal(PointerRNA *ptr, char *value, int index)
 }
 static int psys_vg_name_len__internal(PointerRNA *ptr, int index)
 {
-  Object *ob = ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   ParticleSystem *psys = (ParticleSystem *)ptr->data;
 
   if (psys->vgroup[index] > 0) {
@@ -1337,7 +1337,7 @@ static int psys_vg_name_len__internal(PointerRNA *ptr, int index)
 }
 static void psys_vg_name_set__internal(PointerRNA *ptr, const char *value, int index)
 {
-  Object *ob = ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   ParticleSystem *psys = (ParticleSystem *)ptr->data;
 
   if (value[0] == '\0') {

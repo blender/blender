@@ -121,7 +121,7 @@ static void template_add_button_search_menu(const bContext *C,
 {
   PointerRNA active_ptr = RNA_property_pointer_get(ptr, prop);
   ID *id = (active_ptr.data && RNA_struct_is_ID(active_ptr.type)) ? active_ptr.data : NULL;
-  const ID *idfrom = ptr->id.data;
+  const ID *idfrom = ptr->owner_id;
   const StructRNA *type = active_ptr.type ? active_ptr.type : RNA_property_pointer_type(ptr, prop);
   uiBut *but;
 
@@ -310,7 +310,7 @@ static bool id_search_add(const bContext *C,
                           uiSearchItems *items,
                           ID *id)
 {
-  ID *id_from = template_ui->ptr.id.data;
+  ID *id_from = template_ui->ptr.owner_id;
 
   if (!((flag & PROP_ID_SELF_CHECK) && id == id_from)) {
 
@@ -401,7 +401,7 @@ static void id_search_cb_objects_from_scene(const bContext *C,
   TemplateID *template_ui = (TemplateID *)arg_template;
   ListBase *lb = template_ui->idlb;
   Scene *scene = NULL;
-  ID *id_from = template_ui->ptr.id.data;
+  ID *id_from = template_ui->ptr.owner_id;
 
   if (id_from && GS(id_from->name) == ID_SCE) {
     scene = (Scene *)id_from;
@@ -667,7 +667,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
                                       const bool use_tab_but,
                                       int but_height)
 {
-  ID *idfrom = template_ui->ptr.id.data;
+  ID *idfrom = template_ui->ptr.owner_id;
   uiBut *but;
   const int w = id ? UI_UNIT_X : id_open ? UI_UNIT_X * 3 : UI_UNIT_X * 6;
   const int but_type = use_tab_but ? UI_BTYPE_TAB : UI_BTYPE_BUT;
@@ -769,7 +769,7 @@ static void template_ID(bContext *C,
 
   idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
   id = idptr.data;
-  idfrom = template_ui->ptr.id.data;
+  idfrom = template_ui->ptr.owner_id;
   // lb = template_ui->idlb;
 
   block = uiLayoutGetBlock(layout);
@@ -2037,7 +2037,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
     return NULL;
   }
 
-  ob = ptr->id.data;
+  ob = (Object *)ptr->owner_id;
   md = ptr->data;
 
   if (!ob || !(GS(ob->id.name) == ID_OB)) {
@@ -2179,7 +2179,7 @@ uiLayout *uiTemplateGpencilModifier(uiLayout *layout, bContext *UNUSED(C), Point
     return NULL;
   }
 
-  ob = ptr->id.data;
+  ob = (Object *)ptr->owner_id;
   md = ptr->data;
 
   if (!ob || !(GS(ob->id.name) == ID_OB)) {
@@ -2297,7 +2297,7 @@ uiLayout *uiTemplateShaderFx(uiLayout *layout, bContext *UNUSED(C), PointerRNA *
     return NULL;
   }
 
-  ob = ptr->id.data;
+  ob = (Object *)ptr->owner_id;
   fx = ptr->data;
 
   if (!ob || !(GS(ob->id.name) == ID_OB)) {
@@ -2579,7 +2579,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
     return NULL;
   }
 
-  ob = ptr->id.data;
+  ob = (Object *)ptr->owner_id;
   con = ptr->data;
 
   if (!ob || !(GS(ob->id.name) == ID_OB)) {
@@ -3098,7 +3098,7 @@ static void colorband_buttons_layout(uiLayout *layout,
   float ys = butr->ymin;
   PointerRNA ptr;
 
-  RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRamp, coba, &ptr);
+  RNA_pointer_create(cb->ptr.owner_id, &RNA_ColorRamp, coba, &ptr);
 
   split = uiLayoutSplit(layout, 0.4f, false);
 
@@ -3190,7 +3190,7 @@ static void colorband_buttons_layout(uiLayout *layout,
   if (coba->tot) {
     CBData *cbd = coba->data + coba->cur;
 
-    RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRampElement, cbd, &ptr);
+    RNA_pointer_create(cb->ptr.owner_id, &RNA_ColorRampElement, cbd, &ptr);
 
     if (!expand) {
       split = uiLayoutSplit(layout, 0.3f, false);
@@ -3283,7 +3283,7 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, const char *propname
 
   block = uiLayoutAbsoluteBlock(layout);
 
-  id = cptr.id.data;
+  id = cptr.owner_id;
   UI_block_lock_set(block, (id && ID_IS_LINKED(id)), ERROR_LIBDATA_MESSAGE);
 
   colorband_buttons_layout(layout, block, cptr.data, &rect, cb, expand);
@@ -4405,7 +4405,7 @@ void uiTemplateCurveMapping(uiLayout *layout,
   cb->ptr = *ptr;
   cb->prop = prop;
 
-  id = cptr.id.data;
+  id = cptr.owner_id;
   UI_block_lock_set(block, (id && ID_IS_LINKED(id)), ERROR_LIBDATA_MESSAGE);
 
   curvemap_buttons_layout(layout, &cptr, type, levels, brush, neg_slope, tone, cb);

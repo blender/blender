@@ -173,7 +173,7 @@ void WM_msg_subscribe_static(struct wmMsgBus *mbus,
 /* wm_message_bus_rna.c */
 
 typedef struct wmMsgParams_RNA {
-  /** when #PointerRNA.data & id.data are NULL. match against all. */
+  /** when #PointerRNA.data & owner_id are NULL. match against all. */
   PointerRNA ptr;
   /** when NULL, match against any property. */
   const PropertyRNA *prop;
@@ -233,7 +233,7 @@ void WM_msg_publish_ID(struct wmMsgBus *mbus, struct ID *id);
 
 #define WM_msg_publish_rna_prop(mbus, id_, data_, type_, prop_) \
   { \
-    wmMsgParams_RNA msg_key_params_ = {{{0}}}; \
+    wmMsgParams_RNA msg_key_params_ = {{0}}; \
     _WM_MESSAGE_EXTERN_BEGIN; \
     extern PropertyRNA rna_##type_##_##prop_; \
     _WM_MESSAGE_EXTERN_END; \
@@ -244,7 +244,7 @@ void WM_msg_publish_ID(struct wmMsgBus *mbus, struct ID *id);
   ((void)0)
 #define WM_msg_subscribe_rna_prop(mbus, id_, data_, type_, prop_, value) \
   { \
-    wmMsgParams_RNA msg_key_params_ = {{{0}}}; \
+    wmMsgParams_RNA msg_key_params_ = {{0}}; \
     _WM_MESSAGE_EXTERN_BEGIN; \
     extern PropertyRNA rna_##type_##_##prop_; \
     _WM_MESSAGE_EXTERN_END; \

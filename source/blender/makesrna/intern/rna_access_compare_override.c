@@ -101,7 +101,7 @@ bool RNA_property_overridable_library_set(PointerRNA *UNUSED(ptr),
 bool RNA_property_overridden(PointerRNA *ptr, PropertyRNA *prop)
 {
   char *rna_path = RNA_path_from_ID_to_property(ptr, prop);
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
 
   if (rna_path == NULL || id == NULL || id->override_library == NULL) {
     return false;
@@ -558,7 +558,7 @@ bool RNA_struct_override_matches(Main *bmain,
   bool matching = true;
 
   BLI_assert(ptr_local->type == ptr_reference->type);
-  BLI_assert(ptr_local->id.data && ptr_reference->id.data);
+  BLI_assert(ptr_local->owner_id && ptr_reference->owner_id);
 
   const bool ignore_non_overridable = (flags & RNA_OVERRIDE_COMPARE_IGNORE_NON_OVERRIDABLE) != 0;
   const bool ignore_overridden = (flags & RNA_OVERRIDE_COMPARE_IGNORE_OVERRIDDEN) != 0;
@@ -747,7 +747,7 @@ bool RNA_struct_override_matches(Main *bmain,
     _num_time_global++;
     _sum_time_diffing += _delta_time_diffing;
     _num_time_diffing++;
-    printf("ID: %s\n", ((ID *)ptr_local->id.data)->name);
+    printf("ID: %s\n", ((ID *)ptr_local->owner_id)->name);
     printf("time end      (%s): %.6f\n", __func__, _delta_time);
     printf("time averaged (%s): %.6f (total: %.6f, in %d runs)\n",
            __func__,
@@ -794,7 +794,7 @@ bool RNA_struct_override_store(Main *bmain,
 
       /* It is totally OK if this does not success,
        * only a subset of override operations actually need storage. */
-      if (ptr_storage && (ptr_storage->id.data != NULL)) {
+      if (ptr_storage && (ptr_storage->owner_id != NULL)) {
         RNA_path_resolve_property(ptr_storage, op->rna_path, &data_storage, &prop_storage);
       }
 
@@ -959,7 +959,7 @@ void RNA_struct_override_apply(Main *bmain,
 
         /* It is totally OK if this does not success,
          * only a subset of override operations actually need storage. */
-        if (ptr_storage && (ptr_storage->id.data != NULL)) {
+        if (ptr_storage && (ptr_storage->owner_id != NULL)) {
           RNA_path_resolve_property_and_item_pointer(
               ptr_storage, op->rna_path, &data_storage, &prop_storage, &data_item_storage);
         }
@@ -982,7 +982,7 @@ void RNA_struct_override_apply(Main *bmain,
         printf(
             "Failed to apply library override operation to '%s.%s' "
             "(could not resolve some properties, local:  %d, override: %d)\n",
-            ((ID *)ptr_src->id.data)->name,
+            ((ID *)ptr_src->owner_id)->name,
             op->rna_path,
             RNA_path_resolve_property(ptr_dst, op->rna_path, &data_dst, &prop_dst),
             RNA_path_resolve_property(ptr_src, op->rna_path, &data_src, &prop_src));
@@ -997,7 +997,7 @@ void RNA_struct_override_apply(Main *bmain,
 
 IDOverrideLibraryProperty *RNA_property_override_property_find(PointerRNA *ptr, PropertyRNA *prop)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
 
   if (!id || !id->override_library) {
     return NULL;
@@ -1017,7 +1017,7 @@ IDOverrideLibraryProperty *RNA_property_override_property_get(PointerRNA *ptr,
                                                               PropertyRNA *prop,
                                                               bool *r_created)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
 
   if (!id || !id->override_library) {
     return NULL;
@@ -1075,7 +1075,7 @@ eRNAOverrideStatus RNA_property_override_library_status(PointerRNA *ptr,
     return override_status;
   }
 
-  if (!ptr || !prop || !ptr->id.data || !((ID *)ptr->id.data)->override_library) {
+  if (!ptr || !prop || !ptr->owner_id || !(ptr->owner_id)->override_library) {
     return override_status;
   }
 

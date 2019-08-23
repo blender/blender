@@ -75,7 +75,7 @@ static StructRNA *rna_FluidSettings_refine(struct PointerRNA *ptr)
 
 static void rna_fluid_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Object *ob = ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
@@ -101,7 +101,7 @@ static int fluidsim_find_lastframe(Main *bmain, Object *ob, FluidsimSettings *fs
 
 static void rna_fluid_find_enframe(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Object *ob = ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(
       ob, eModifierType_Fluidsim);
 
@@ -116,7 +116,7 @@ static void rna_fluid_find_enframe(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_FluidSettings_update_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   FluidsimModifierData *fluidmd;
   ParticleSystemModifierData *psmd;
   ParticleSystem *psys, *next_psys;
@@ -177,7 +177,7 @@ static void rna_DomainFluidSettings_memory_estimate_get(PointerRNA *ptr, char *v
   (void)ptr;
   value[0] = '\0';
 #  else
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   FluidsimSettings *fss = (FluidsimSettings *)ptr->data;
 
   fluid_estimate_memory(ob, fss, value);

@@ -103,9 +103,9 @@ void animated_property_cb(ID * /*id*/, FCurve *fcurve, void *data_v)
   /* Get storage for the ID.
    * This is needed to deal with cases when nested datablock is animated by its parent. */
   AnimatedPropertyStorage *animated_property_storage = data->animated_property_storage;
-  if (pointer_rna.id.data != data->pointer_rna.id.data) {
+  if (pointer_rna.owner_id != data->pointer_rna.owner_id) {
     animated_property_storage = data->builder_cache->ensureAnimatedPropertyStorage(
-        reinterpret_cast<ID *>(pointer_rna.id.data));
+        pointer_rna.owner_id);
   }
   /* Set the property as animated. */
   animated_property_storage->tagPropertyAsAnimated(&pointer_rna, property_rna);

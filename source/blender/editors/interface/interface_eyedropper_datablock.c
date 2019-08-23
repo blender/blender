@@ -118,7 +118,7 @@ static int datadropper_init(bContext *C, wmOperator *op)
   ddr->idcode_name = TIP_(BKE_idcode_to_name(ddr->idcode));
 
   PointerRNA ptr = RNA_property_pointer_get(&ddr->ptr, ddr->prop);
-  ddr->init_id = ptr.id.data;
+  ddr->init_id = ptr.owner_id;
 
   return true;
 }
@@ -222,7 +222,7 @@ static bool datadropper_id_set(bContext *C, DataDropper *ddr, ID *id)
 
   ptr_value = RNA_property_pointer_get(&ddr->ptr, ddr->prop);
 
-  return (ptr_value.id.data == id);
+  return (ptr_value.owner_id == id);
 }
 
 /* single point sample & set */

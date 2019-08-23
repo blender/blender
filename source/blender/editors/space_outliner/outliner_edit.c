@@ -1780,7 +1780,7 @@ static void tree_element_to_path(TreeElement *te,
       /* no ID, so check if entry is RNA-struct,
        * and if that RNA-struct is an ID datablock to extract info from. */
       if (tse->type == TSE_RNA_STRUCT) {
-        /* ptr->data not ptr->id.data seems to be the one we want,
+        /* ptr->data not ptr->owner_id seems to be the one we want,
          * since ptr->data is sometimes the owner of this ID? */
         if (RNA_struct_is_ID(ptr->type)) {
           *id = (ID *)ptr->data;

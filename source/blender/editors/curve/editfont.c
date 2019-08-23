@@ -2031,7 +2031,7 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
 
   if (pprop->prop) {
     idptr = RNA_property_pointer_get((PointerRNA *)pprop, pprop->prop);
-    vfont = idptr.id.data;
+    vfont = (VFont *)idptr.owner_id;
   }
 
   path = (vfont && !BKE_vfont_is_builtin(vfont)) ? vfont->name : U.fontdir;

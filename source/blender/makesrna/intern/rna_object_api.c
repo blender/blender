@@ -243,7 +243,7 @@ static Base *rna_Object_local_view_property_helper(
 
 static bool rna_Object_local_view_get(Object *ob, ReportList *reports, PointerRNA *v3d_ptr)
 {
-  bScreen *sc = v3d_ptr->id.data;
+  bScreen *sc = (bScreen *)v3d_ptr->owner_id;
   View3D *v3d = v3d_ptr->data;
   Base *base = rna_Object_local_view_property_helper(sc, v3d, ob, reports, NULL);
   if (base == NULL) {
@@ -257,7 +257,7 @@ static void rna_Object_local_view_set(Object *ob,
                                       PointerRNA *v3d_ptr,
                                       bool state)
 {
-  bScreen *sc = v3d_ptr->id.data;
+  bScreen *sc = (bScreen *)v3d_ptr->owner_id;
   View3D *v3d = v3d_ptr->data;
   Scene *scene;
   Base *base = rna_Object_local_view_property_helper(sc, v3d, ob, reports, &scene);

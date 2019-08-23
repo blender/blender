@@ -442,7 +442,7 @@ static void pose_slide_apply_props(tPoseSlideOp *pso,
                                    tPChanFCurveLink *pfl,
                                    const char prop_prefix[])
 {
-  PointerRNA ptr = {{NULL}};
+  PointerRNA ptr = {NULL};
   LinkData *ld;
   int len = strlen(pfl->pchan_path);
 

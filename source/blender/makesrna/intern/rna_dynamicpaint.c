@@ -92,7 +92,7 @@ static void rna_DynamicPaint_redoModifier(Main *UNUSED(bmain),
                                           Scene *UNUSED(scene),
                                           PointerRNA *ptr)
 {
-  DEG_id_tag_update(ptr->id.data, ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
 }
 
 static void rna_DynamicPaintSurfaces_updateFrames(Main *UNUSED(bmain),

@@ -139,7 +139,7 @@ static void id_release_gc(struct ID *id)
       if (PyType_IsSubtype(Py_TYPE(ob), &pyrna_struct_Type) ||
           PyType_IsSubtype(Py_TYPE(ob), &pyrna_prop_Type)) {
         BPy_DummyPointerRNA *ob_ptr = (BPy_DummyPointerRNA *)ob;
-        if (ob_ptr->ptr.id.data == id) {
+        if (ob_ptr->ptr.owner_id == id) {
           pyrna_invalidate(ob_ptr);
           // printf("freeing: %p %s, %.200s\n", (void *)ob, id->name, Py_TYPE(ob)->tp_name);
           // i++;
@@ -308,7 +308,7 @@ static bool rna_disallow_writes = false;
 
 static bool rna_id_write_error(PointerRNA *ptr, PyObject *key)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
   if (id) {
     const short idcode = GS(id->name);
     /* May need more ID types added here. */
@@ -907,7 +907,7 @@ static PyObject *pyrna_struct_str(BPy_StructRNA *self)
 
 static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
 {
-  ID *id = self->ptr.id.data;
+  ID *id = self->ptr.owner_id;
   PyObject *tmp_str;
   PyObject *ret;
 
@@ -1019,7 +1019,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 
 static PyObject *pyrna_prop_repr_ex(BPy_PropertyRNA *self, const int index_dim, const int index)
 {
-  ID *id = self->ptr.id.data;
+  ID *id = self->ptr.owner_id;
   PyObject *tmp_str;
   PyObject *ret;
   const char *path;
@@ -1982,7 +1982,7 @@ static int pyrna_py_to_prop(
           return -1;
         }
         else if ((value != Py_None) && ((flag & PROP_ID_SELF_CHECK) &&
-                                        ptr->id.data == ((BPy_StructRNA *)value)->ptr.id.data)) {
+                                        ptr->owner_id == ((BPy_StructRNA *)value)->ptr.owner_id)) {
           PyErr_Format(PyExc_TypeError,
                        "%.200s %.200s.%.200s ID type does not support assignment to itself",
                        error_prefix,
@@ -3447,7 +3447,7 @@ static PyObject *pyrna_struct_subscript(BPy_StructRNA *self, PyObject *key)
     return NULL;
   }
 
-  return BPy_IDGroup_WrapData(self->ptr.id.data, idprop, group);
+  return BPy_IDGroup_WrapData(self->ptr.owner_id, idprop, group);
 }
 
 static int pyrna_struct_ass_subscript(BPy_StructRNA *self, PyObject *key, PyObject *value)
@@ -3543,7 +3543,7 @@ static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
     return PyList_New(0);
   }
 
-  return BPy_Wrap_GetItems(self->ptr.id.data, group);
+  return BPy_Wrap_GetItems(self->ptr.owner_id, group);
 }
 
 PyDoc_STRVAR(pyrna_struct_values_doc,
@@ -3571,7 +3571,7 @@ static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
     return PyList_New(0);
   }
 
-  return BPy_Wrap_GetValues(self->ptr.id.data, group);
+  return BPy_Wrap_GetValues(self->ptr.owner_id, group);
 }
 
 PyDoc_STRVAR(pyrna_struct_is_property_set_doc,
@@ -4708,9 +4708,9 @@ PyDoc_STRVAR(pyrna_struct_get_id_data_doc,
 static PyObject *pyrna_struct_get_id_data(BPy_DummyPointerRNA *self)
 {
   /* Used for struct and pointer since both have a ptr. */
-  if (self->ptr.id.data) {
+  if (self->ptr.owner_id) {
     PointerRNA id_ptr;
-    RNA_id_pointer_create((ID *)self->ptr.id.data, &id_ptr);
+    RNA_id_pointer_create((ID *)self->ptr.owner_id, &id_ptr);
     return pyrna_struct_CreatePyObject(&id_ptr);
   }
 
@@ -4894,7 +4894,7 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
     idprop = IDP_GetPropertyFromGroup(group, key);
 
     if (idprop) {
-      return BPy_IDGroup_WrapData(self->ptr.id.data, idprop, group);
+      return BPy_IDGroup_WrapData(self->ptr.owner_id, idprop, group);
     }
   }
 
@@ -4937,7 +4937,7 @@ static PyObject *pyrna_struct_pop(BPy_StructRNA *self, PyObject *args)
     idprop = IDP_GetPropertyFromGroup(group, key);
 
     if (idprop) {
-      PyObject *ret = BPy_IDGroup_WrapData(self->ptr.id.data, idprop, group);
+      PyObject *ret = BPy_IDGroup_WrapData(self->ptr.owner_id, idprop, group);
       IDP_RemoveFromGroup(group, idprop);
       return ret;
     }
@@ -5787,7 +5787,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
              * and will break if a function returns a pointer from
              * another ID block, watch this! - it should at least be
              * easy to debug since they are all ID's */
-            RNA_pointer_create(ptr->id.data, ptype, *(void **)data, &newptr);
+            RNA_pointer_create(ptr->owner_id, ptype, *(void **)data, &newptr);
           }
         }
 
@@ -5903,7 +5903,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
   /* include the ID pointer for pyrna_param_to_py() so we can include the
    * ID pointer on return values, this only works when returned values have
    * the same ID as the functions. */
-  RNA_pointer_create(self_ptr->id.data, &RNA_Function, self_func, &funcptr);
+  RNA_pointer_create(self_ptr->owner_id, &RNA_Function, self_func, &funcptr);
 
   pyargs_len = PyTuple_GET_SIZE(args);
   pykw_len = kw ? PyDict_Size(kw) : 0;
@@ -6987,7 +6987,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 
   /* Add staticmethods and classmethods. */
   {
-    const PointerRNA func_ptr = {{NULL}, srna, NULL};
+    const PointerRNA func_ptr = {NULL, srna, NULL};
     const ListBase *lb;
     Link *link;
 
@@ -7285,8 +7285,8 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
   // PyC_ObSpit("NewStructRNA: ", (PyObject *)pyrna);
 
 #ifdef USE_PYRNA_INVALIDATE_WEAKREF
-  if (ptr->id.data) {
-    id_weakref_pool_add(ptr->id.data, (BPy_DummyPointerRNA *)pyrna);
+  if (ptr->owner_id) {
+    id_weakref_pool_add(ptr->owner_id, (BPy_DummyPointerRNA *)pyrna);
   }
 #endif
   return (PyObject *)pyrna;
@@ -7334,8 +7334,8 @@ PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop)
   pyrna->prop = prop;
 
 #ifdef USE_PYRNA_INVALIDATE_WEAKREF
-  if (ptr->id.data) {
-    id_weakref_pool_add(ptr->id.data, (BPy_DummyPointerRNA *)pyrna);
+  if (ptr->owner_id) {
+    id_weakref_pool_add(ptr->owner_id, (BPy_DummyPointerRNA *)pyrna);
   }
 #endif
 
@@ -7358,7 +7358,7 @@ PyObject *pyrna_id_CreatePyObject(ID *id)
 bool pyrna_id_FromPyObject(PyObject *obj, ID **id)
 {
   if (pyrna_id_CheckPyObject(obj)) {
-    *id = ((BPy_StructRNA *)obj)->ptr.id.data;
+    *id = ((BPy_StructRNA *)obj)->ptr.owner_id;
     return true;
   }
   else {

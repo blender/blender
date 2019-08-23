@@ -808,7 +808,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
     ptr = &(((BPy_StructRNA *)item)->ptr);
 
     // result->ptr = ((BPy_StructRNA *)item)->ptr;
-    CTX_data_pointer_set(result, ptr->id.data, ptr->type, ptr->data);
+    CTX_data_pointer_set(result, ptr->owner_id, ptr->type, ptr->data);
     CTX_data_type_set(result, CTX_DATA_TYPE_POINTER);
     done = true;
   }
@@ -834,7 +834,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
           BLI_addtail(&result->list, link);
 #endif
           ptr = &(((BPy_StructRNA *)list_item)->ptr);
-          CTX_data_list_add(result, ptr->id.data, ptr->type, ptr->data);
+          CTX_data_list_add(result, ptr->owner_id, ptr->type, ptr->data);
         }
         else {
           CLOG_INFO(BPY_LOG_CONTEXT,

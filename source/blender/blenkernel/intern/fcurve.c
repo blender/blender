@@ -382,8 +382,8 @@ FCurve *rna_get_fcurve_context_ui(bContext *C,
   }
 
   /* there must be some RNA-pointer + property combon */
-  if (prop && tptr.id.data && RNA_property_animateable(&tptr, prop)) {
-    AnimData *adt = BKE_animdata_from_id(tptr.id.data);
+  if (prop && tptr.owner_id && RNA_property_animateable(&tptr, prop)) {
+    AnimData *adt = BKE_animdata_from_id(tptr.owner_id);
     int step = (
         /* Always 1 in case we have no context (can't check in 'ancestors' of given RNA ptr). */
         C ? 2 : 1);
@@ -391,7 +391,7 @@ FCurve *rna_get_fcurve_context_ui(bContext *C,
 
     if (!adt && C) {
       path = BKE_animdata_driver_path_hack(C, &tptr, prop, NULL);
-      adt = BKE_animdata_from_id(tptr.id.data);
+      adt = BKE_animdata_from_id(tptr.owner_id);
       step--;
     }
 
@@ -438,7 +438,7 @@ FCurve *rna_get_fcurve_context_ui(bContext *C,
             if (tpath && tpath != path) {
               MEM_freeN(path);
               path = tpath;
-              adt = BKE_animdata_from_id(tptr.id.data);
+              adt = BKE_animdata_from_id(tptr.owner_id);
             }
             else {
               adt = NULL;

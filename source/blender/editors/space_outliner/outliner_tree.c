@@ -766,7 +766,7 @@ static TreeElement *outliner_add_element(
   ID *id = idv;
 
   if (ELEM(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
-    id = ((PointerRNA *)idv)->id.data;
+    id = ((PointerRNA *)idv)->owner_id;
     if (!id) {
       id = ((PointerRNA *)idv)->data;
     }

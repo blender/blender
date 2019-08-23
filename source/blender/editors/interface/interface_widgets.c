@@ -3802,7 +3802,7 @@ static void widget_swatch(
 
   widgetbase_draw_ex(&wtb, wcol, show_alpha_checkers);
   if (but->a1 == UI_PALETTE_COLOR &&
-      ((Palette *)but->rnapoin.id.data)->active_color == (int)but->a2) {
+      ((Palette *)but->rnapoin.owner_id)->active_color == (int)but->a2) {
     float width = rect->xmax - rect->xmin;
     float height = rect->ymax - rect->ymin;
     /* find color luminance and change it slightly */

@@ -164,8 +164,8 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
   char *path = NULL;
 
   /* handle the cases where a single data-block may have 2 ramp types */
-  if (ptr->id.data) {
-    ID *id = ptr->id.data;
+  if (ptr->owner_id) {
+    ID *id = ptr->owner_id;
 
     switch (GS(id->name)) {
       case ID_NT: {
@@ -237,8 +237,8 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 
   /* determine the path from the ID-block to the ramp */
   /* FIXME: this is a very slow way to do it, but it will have to suffice... */
-  if (ptr->id.data) {
-    ID *id = ptr->id.data;
+  if (ptr->owner_id) {
+    ID *id = ptr->owner_id;
 
     switch (GS(id->name)) {
       case ID_NT: {
@@ -286,12 +286,12 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 
 static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  if (ptr->id.data) {
-    ID *id = ptr->id.data;
+  if (ptr->owner_id) {
+    ID *id = ptr->owner_id;
 
     switch (GS(id->name)) {
       case ID_MA: {
-        Material *ma = ptr->id.data;
+        Material *ma = (Material *)ptr->owner_id;
 
         DEG_id_tag_update(&ma->id, 0);
         WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
@@ -309,20 +309,20 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
         break;
       }
       case ID_TE: {
-        Tex *tex = ptr->id.data;
+        Tex *tex = (Tex *)ptr->owner_id;
 
         DEG_id_tag_update(&tex->id, 0);
         WM_main_add_notifier(NC_TEXTURE, tex);
         break;
       }
       case ID_LS: {
-        FreestyleLineStyle *linestyle = ptr->id.data;
+        FreestyleLineStyle *linestyle = (FreestyleLineStyle *)ptr->owner_id;
 
         WM_main_add_notifier(NC_LINESTYLE, linestyle);
         break;
       }
       case ID_PA: {
-        ParticleSettings *part = ptr->id.data;
+        ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
 
         DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
         WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, part);
@@ -417,7 +417,7 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain,
                                                                   Scene *UNUSED(scene),
                                                                   PointerRNA *ptr)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
 
   if (!id) {
     return;
@@ -582,7 +582,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
                                                              Scene *UNUSED(scene),
                                                              PointerRNA *ptr)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
 
   if (GS(id->name) == ID_IM) {
     Image *ima = (Image *)id;
@@ -657,7 +657,7 @@ static char *rna_ColorManagedInputColorspaceSettings_path(PointerRNA *UNUSED(ptr
 
 static void rna_ColorManagement_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
 
   if (!id) {
     return;

@@ -376,8 +376,8 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
   BLI_strncpy_utf8(con->name, value, sizeof(con->name));
 
   /* make sure name is unique */
-  if (ptr->id.data) {
-    Object *ob = ptr->id.data;
+  if (ptr->owner_id) {
+    Object *ob = (Object *)ptr->owner_id;
     ListBase *list = get_constraint_lb(ob, con, NULL);
 
     /* if we have the list, check for unique name, otherwise give up */
@@ -418,7 +418,7 @@ static char *rna_Constraint_do_compute_path(Object *ob, bConstraint *con)
 
 static char *rna_Constraint_path(PointerRNA *ptr)
 {
-  Object *ob = ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   bConstraint *con = ptr->data;
 
   return rna_Constraint_do_compute_path(ob, con);
@@ -426,7 +426,7 @@ static char *rna_Constraint_path(PointerRNA *ptr)
 
 static bConstraint *rna_constraint_from_target(PointerRNA *ptr)
 {
-  Object *ob = ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   bConstraintTarget *tgt = ptr->data;
 
   return BKE_constraint_find_from_target(ob, tgt, NULL);
@@ -434,7 +434,7 @@ static bConstraint *rna_constraint_from_target(PointerRNA *ptr)
 
 static char *rna_ConstraintTarget_path(PointerRNA *ptr)
 {
-  Object *ob = ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   bConstraintTarget *tgt = ptr->data;
   bConstraint *con = rna_constraint_from_target(ptr);
   int index = -1;
@@ -469,29 +469,30 @@ static char *rna_ConstraintTarget_path(PointerRNA *ptr)
 
 static void rna_Constraint_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  ED_object_constraint_tag_update(bmain, ptr->id.data, ptr->data);
+  ED_object_constraint_tag_update(bmain, (Object *)ptr->owner_id, ptr->data);
 }
 
 static void rna_Constraint_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  ED_object_constraint_dependency_tag_update(bmain, ptr->id.data, ptr->data);
+  ED_object_constraint_dependency_tag_update(bmain, (Object *)ptr->owner_id, ptr->data);
 }
 
 static void rna_ConstraintTarget_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  ED_object_constraint_tag_update(bmain, ptr->id.data, rna_constraint_from_target(ptr));
+  ED_object_constraint_tag_update(bmain, (Object *)ptr->owner_id, rna_constraint_from_target(ptr));
 }
 
 static void rna_ConstraintTarget_dependency_update(Main *bmain,
                                                    Scene *UNUSED(scene),
                                                    PointerRNA *ptr)
 {
-  ED_object_constraint_dependency_tag_update(bmain, ptr->id.data, rna_constraint_from_target(ptr));
+  ED_object_constraint_dependency_tag_update(
+      bmain, (Object *)ptr->owner_id, rna_constraint_from_target(ptr));
 }
 
 static void rna_Constraint_influence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Object *ob = ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
 
   if (ob->pose) {
     ob->pose->flag |= (POSE_LOCKED | POSE_DO_UNLOCK);
@@ -523,7 +524,7 @@ static const EnumPropertyItem *rna_Constraint_owner_space_itemf(bContext *UNUSED
                                                                 PropertyRNA *UNUSED(prop),
                                                                 bool *UNUSED(r_free))
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   bConstraint *con = (bConstraint *)ptr->data;
 
   if (BLI_findindex(&ob->constraints, con) == -1) {
@@ -671,7 +672,7 @@ static bool rna_Constraint_cameraObject_poll(PointerRNA *ptr, PointerRNA value)
   Object *ob = (Object *)value.data;
 
   if (ob) {
-    if (ob->type == OB_CAMERA && ob != (Object *)ptr->id.data) {
+    if (ob->type == OB_CAMERA && ob != (Object *)ptr->owner_id) {
       return 1;
     }
   }
@@ -688,7 +689,7 @@ static void rna_Constraint_followTrack_camera_set(PointerRNA *ptr,
   Object *ob = (Object *)value.data;
 
   if (ob) {
-    if (ob->type == OB_CAMERA && ob != (Object *)ptr->id.data) {
+    if (ob->type == OB_CAMERA && ob != (Object *)ptr->owner_id) {
       data->camera = ob;
       id_lib_extern((ID *)ob);
     }
@@ -707,7 +708,7 @@ static void rna_Constraint_followTrack_depthObject_set(PointerRNA *ptr,
   Object *ob = (Object *)value.data;
 
   if (ob) {
-    if (ob->type == OB_MESH && ob != (Object *)ptr->id.data) {
+    if (ob->type == OB_MESH && ob != (Object *)ptr->owner_id) {
       data->depth_ob = ob;
       id_lib_extern((ID *)ob);
     }
@@ -722,7 +723,7 @@ static bool rna_Constraint_followTrack_depthObject_poll(PointerRNA *ptr, Pointer
   Object *ob = (Object *)value.data;
 
   if (ob) {
-    if (ob->type == OB_MESH && ob != (Object *)ptr->id.data) {
+    if (ob->type == OB_MESH && ob != (Object *)ptr->owner_id) {
       return 1;
     }
   }
@@ -739,7 +740,7 @@ static void rna_Constraint_objectSolver_camera_set(PointerRNA *ptr,
   Object *ob = (Object *)value.data;
 
   if (ob) {
-    if (ob->type == OB_CAMERA && ob != (Object *)ptr->id.data) {
+    if (ob->type == OB_CAMERA && ob != (Object *)ptr->owner_id) {
       data->camera = ob;
       id_lib_extern((ID *)ob);
     }

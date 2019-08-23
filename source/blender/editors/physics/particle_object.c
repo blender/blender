@@ -186,7 +186,7 @@ static int new_particle_settings_exec(bContext *C, wmOperator *UNUSED(op))
     part = BKE_particlesettings_add(bmain, "ParticleSettings");
   }
 
-  ob = ptr.id.data;
+  ob = (Object *)ptr.owner_id;
 
   if (psys->part) {
     id_us_min(&psys->part->id);
@@ -226,7 +226,7 @@ static int new_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
   Main *bmain = CTX_data_main(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
   ParticleSystem *psys = ptr.data;
-  Object *ob = ptr.id.data;
+  Object *ob = (Object *)ptr.owner_id;
 
   ParticleTarget *pt;
 
@@ -273,7 +273,7 @@ static int remove_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
   Main *bmain = CTX_data_main(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
   ParticleSystem *psys = ptr.data;
-  Object *ob = ptr.id.data;
+  Object *ob = (Object *)ptr.owner_id;
 
   ParticleTarget *pt;
 
@@ -323,7 +323,7 @@ static int target_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
   ParticleSystem *psys = ptr.data;
-  Object *ob = ptr.id.data;
+  Object *ob = (Object *)ptr.owner_id;
   ParticleTarget *pt;
 
   if (!psys) {
@@ -363,7 +363,7 @@ static int target_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
   ParticleSystem *psys = ptr.data;
-  Object *ob = ptr.id.data;
+  Object *ob = (Object *)ptr.owner_id;
   ParticleTarget *pt;
 
   if (!psys) {

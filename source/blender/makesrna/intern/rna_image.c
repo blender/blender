@@ -91,7 +91,7 @@ static bool rna_Image_dirty_get(PointerRNA *ptr)
 
 static void rna_Image_source_set(PointerRNA *ptr, int value)
 {
-  Image *ima = ptr->id.data;
+  Image *ima = (Image *)ptr->owner_id;
 
   if (value != ima->source) {
     ima->source = value;
@@ -105,7 +105,7 @@ static void rna_Image_source_set(PointerRNA *ptr, int value)
 
 static void rna_Image_reload_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Image *ima = ptr->id.data;
+  Image *ima = (Image *)ptr->owner_id;
   BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_RELOAD);
   WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
   DEG_id_tag_update(&ima->id, 0);
@@ -114,13 +114,13 @@ static void rna_Image_reload_update(Main *bmain, Scene *UNUSED(scene), PointerRN
 
 static void rna_Image_generated_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Image *ima = ptr->id.data;
+  Image *ima = (Image *)ptr->owner_id;
   BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_FREE);
 }
 
 static void rna_Image_colormanage_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Image *ima = ptr->id.data;
+  Image *ima = (Image *)ptr->owner_id;
   BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_COLORMANAGE);
   DEG_id_tag_update(&ima->id, 0);
   DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS);
@@ -130,7 +130,7 @@ static void rna_Image_colormanage_update(Main *bmain, Scene *UNUSED(scene), Poin
 
 static void rna_Image_views_format_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Image *ima = ptr->id.data;
+  Image *ima = (Image *)ptr->owner_id;
   ImBuf *ibuf;
   void *lock;
 
@@ -148,7 +148,7 @@ static void rna_Image_views_format_update(Main *bmain, Scene *scene, PointerRNA 
 static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   ImageUser *iuser = ptr->data;
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
 
   BKE_image_user_frame_calc(NULL, iuser, scene->r.cfra);
 
@@ -173,10 +173,10 @@ static void rna_ImageUser_relations_update(Main *bmain, Scene *scene, PointerRNA
 
 static char *rna_ImageUser_path(PointerRNA *ptr)
 {
-  if (ptr->id.data) {
+  if (ptr->owner_id) {
     /* ImageUser *iuser = ptr->data; */
 
-    switch (GS(((ID *)ptr->id.data)->name)) {
+    switch (GS(ptr->owner_id->name)) {
       case ID_OB:
       case ID_TE: {
         return BLI_strdup("image_user");
@@ -331,7 +331,7 @@ static int rna_Image_depth_get(PointerRNA *ptr)
 
 static int rna_Image_frame_duration_get(PointerRNA *ptr)
 {
-  Image *ima = ptr->id.data;
+  Image *ima = (Image *)ptr->owner_id;
   int duration = 1;
 
   if (BKE_image_has_anim(ima)) {
@@ -352,7 +352,7 @@ static int rna_Image_frame_duration_get(PointerRNA *ptr)
 
 static int rna_Image_pixels_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
-  Image *ima = ptr->id.data;
+  Image *ima = (Image *)ptr->owner_id;
   ImBuf *ibuf;
   void *lock;
 
@@ -372,7 +372,7 @@ static int rna_Image_pixels_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY
 
 static void rna_Image_pixels_get(PointerRNA *ptr, float *values)
 {
-  Image *ima = ptr->id.data;
+  Image *ima = (Image *)ptr->owner_id;
   ImBuf *ibuf;
   void *lock;
   int i, size;
@@ -397,7 +397,7 @@ static void rna_Image_pixels_get(PointerRNA *ptr, float *values)
 
 static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
 {
-  Image *ima = ptr->id.data;
+  Image *ima = (Image *)ptr->owner_id;
   ImBuf *ibuf;
   void *lock;
   int i, size;
@@ -463,7 +463,7 @@ static bool rna_Image_is_float_get(PointerRNA *ptr)
 
 static PointerRNA rna_Image_packed_file_get(PointerRNA *ptr)
 {
-  Image *ima = (Image *)ptr->id.data;
+  Image *ima = (Image *)ptr->owner_id;
 
   if (BKE_image_has_packedfile(ima)) {
     ImagePackedFile *imapf = ima->packedfiles.first;
@@ -485,7 +485,7 @@ static void rna_RenderSlot_clear(ID *id, RenderSlot *slot, ImageUser *iuser)
 
 static PointerRNA rna_render_slots_active_get(PointerRNA *ptr)
 {
-  Image *image = (Image *)ptr->id.data;
+  Image *image = (Image *)ptr->owner_id;
   RenderSlot *render_slot = BKE_image_get_renderslot(image, image->render_slot);
 
   return rna_pointer_inherit_refine(ptr, &RNA_RenderSlot, render_slot);
@@ -495,8 +495,8 @@ static void rna_render_slots_active_set(PointerRNA *ptr,
                                         PointerRNA value,
                                         struct ReportList *UNUSED(reports))
 {
-  Image *image = (Image *)ptr->id.data;
-  if (value.id.data == image) {
+  Image *image = (Image *)ptr->owner_id;
+  if (value.owner_id == &image->id) {
     RenderSlot *slot = (RenderSlot *)value.data;
     int index = BLI_findindex(&image->renderslots, slot);
     if (index != -1) {
@@ -507,13 +507,13 @@ static void rna_render_slots_active_set(PointerRNA *ptr,
 
 static int rna_render_slots_active_index_get(PointerRNA *ptr)
 {
-  Image *image = (Image *)ptr->id.data;
+  Image *image = (Image *)ptr->owner_id;
   return image->render_slot;
 }
 
 static void rna_render_slots_active_index_set(PointerRNA *ptr, int value)
 {
-  Image *image = (Image *)ptr->id.data;
+  Image *image = (Image *)ptr->owner_id;
   int num_slots = BLI_listbase_count(&image->renderslots);
   image->render_slot = value;
   CLAMP(image->render_slot, 0, num_slots - 1);
@@ -522,7 +522,7 @@ static void rna_render_slots_active_index_set(PointerRNA *ptr, int value)
 static void rna_render_slots_active_index_range(
     PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
 {
-  Image *image = (Image *)ptr->id.data;
+  Image *image = (Image *)ptr->owner_id;
   *min = 0;
   *max = max_ii(0, BLI_listbase_count(&image->renderslots) - 1);
 }

@@ -4847,7 +4847,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
 
   /* step 4) draw text - check if renaming widget is in use... */
   if (is_being_renamed) {
-    PointerRNA ptr = {{NULL}};
+    PointerRNA ptr = {NULL};
     PropertyRNA *prop = NULL;
 
     /* draw renaming widget if we can get RNA pointer for it

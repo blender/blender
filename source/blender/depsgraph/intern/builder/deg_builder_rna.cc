@@ -177,7 +177,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     return node_identifier;
   }
   /* Set default values for returns. */
-  node_identifier.id = static_cast<ID *>(ptr->id.data);
+  node_identifier.id = ptr->owner_id;
   node_identifier.component_name = "";
   node_identifier.operation_code = OperationCode::OPERATION;
   node_identifier.operation_name = "";
@@ -239,7 +239,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     return node_identifier;
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
-    const Object *object = static_cast<const Object *>(ptr->id.data);
+    const Object *object = reinterpret_cast<const Object *>(ptr->owner_id);
     const bConstraint *constraint = static_cast<const bConstraint *>(ptr->data);
     RNANodeQueryIDData *id_data = ensure_id_data(&object->id);
     /* Check whether is object or bone constraint. */
@@ -259,7 +259,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     return node_identifier;
   }
   else if (ELEM(ptr->type, &RNA_ConstraintTarget, &RNA_ConstraintTargetBone)) {
-    Object *object = (Object *)ptr->id.data;
+    Object *object = reinterpret_cast<Object *>(ptr->owner_id);
     bConstraintTarget *tgt = (bConstraintTarget *)ptr->data;
     /* Check whether is object or bone constraint. */
     bPoseChannel *pchan = NULL;
@@ -323,14 +323,14 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
   }
   else if (ptr->type == &RNA_ShapeKey) {
     KeyBlock *key_block = static_cast<KeyBlock *>(ptr->data);
-    node_identifier.id = static_cast<ID *>(ptr->id.data);
+    node_identifier.id = ptr->owner_id;
     node_identifier.type = NodeType::PARAMETERS;
     node_identifier.operation_code = OperationCode::PARAMETERS_EVAL;
     node_identifier.operation_name = key_block->name;
     return node_identifier;
   }
   else if (ptr->type == &RNA_Key) {
-    node_identifier.id = static_cast<ID *>(ptr->id.data);
+    node_identifier.id = ptr->owner_id;
     node_identifier.type = NodeType::GEOMETRY;
     return node_identifier;
   }
@@ -348,12 +348,12 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     return node_identifier;
   }
   else if (ELEM(ptr->type, &RNA_Curve, &RNA_TextCurve)) {
-    node_identifier.id = (ID *)ptr->id.data;
+    node_identifier.id = ptr->owner_id;
     node_identifier.type = NodeType::GEOMETRY;
     return node_identifier;
   }
   else if (ELEM(ptr->type, &RNA_BezierSplinePoint, &RNA_SplinePoint)) {
-    node_identifier.id = (ID *)ptr->id.data;
+    node_identifier.id = ptr->owner_id;
     node_identifier.type = NodeType::GEOMETRY;
     return node_identifier;
   }

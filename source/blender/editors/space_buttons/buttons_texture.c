@@ -385,7 +385,7 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
     if (user->ptr.type == &RNA_ParticleSettingsTextureSlot) {
       /* stupid exception for particle systems which still uses influence
        * from the old texture system, set the active texture slots as well */
-      ParticleSettings *part = user->ptr.id.data;
+      ParticleSettings *part = (ParticleSettings *)user->ptr.owner_id;
       int a;
 
       for (a = 0; a < MAX_MTEX; a++) {

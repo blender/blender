@@ -58,7 +58,7 @@ static void rna_window_update_all(Main *UNUSED(bmain),
 
 void rna_workspace_screens_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  WorkSpace *workspace = ptr->id.data;
+  WorkSpace *workspace = (WorkSpace *)ptr->owner_id;
   rna_iterator_listbase_begin(iter, BKE_workspace_layouts_get(workspace), NULL);
 }
 

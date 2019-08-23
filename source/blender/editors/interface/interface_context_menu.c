@@ -904,7 +904,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
             ICON_NONE,
             "UI_OT_copy_data_path_button");
 
-    if (ptr->id.data && !is_whole_array &&
+    if (ptr->owner_id && !is_whole_array &&
         ELEM(type, PROP_BOOLEAN, PROP_INT, PROP_FLOAT, PROP_ENUM)) {
       uiItemO(layout,
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy As New Driver"),

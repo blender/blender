@@ -116,7 +116,7 @@ static void cmp_node_switch_view_update(bNodeTree *ntree, bNode *node)
 static void init_switch_view(const bContext *C, PointerRNA *ptr)
 {
   Scene *scene = CTX_data_scene(C);
-  bNodeTree *ntree = ptr->id.data;
+  bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   bNode *node = ptr->data;
   SceneRenderView *srv;
   bNodeSocket *sock;

@@ -88,7 +88,7 @@ static int pyrna_struct_anim_args_parse_ex(PointerRNA *ptr,
                    path);
       return -1;
     }
-    else if (ptr->id.data != r_ptr.id.data) {
+    else if (ptr->owner_id != r_ptr.owner_id) {
       PyErr_Format(PyExc_ValueError, "%.200s path spans ID blocks", error_prefix, path);
       return -1;
     }
@@ -370,7 +370,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
     return PyBool_FromLong(result);
   }
   else {
-    ID *id = self->ptr.id.data;
+    ID *id = self->ptr.owner_id;
     ReportList reports;
     short result;
 
@@ -451,7 +451,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
     }
 
     if (prop) {
-      ID *id = ptr.id.data;
+      ID *id = ptr.owner_id;
       NlaStrip *strip = (NlaStrip *)ptr.data;
       FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
 
@@ -502,7 +502,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
     BKE_reports_init(&reports, RPT_STORE);
 
     result = delete_keyframe(
-        G.main, &reports, (ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, 0);
+        G.main, &reports, (ID *)self->ptr.owner_id, NULL, group_name, path_full, index, cfra, 0);
     MEM_freeN((void *)path_full);
 
     if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1) {
@@ -548,7 +548,7 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
     BKE_reports_init(&reports, RPT_STORE);
 
     result = ANIM_add_driver(&reports,
-                             (ID *)self->ptr.id.data,
+                             (ID *)self->ptr.owner_id,
                              path_full,
                              index,
                              CREATEDRIVER_WITH_FMODIFIER,
@@ -559,7 +559,7 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
     }
 
     if (result) {
-      ID *id = self->ptr.id.data;
+      ID *id = self->ptr.owner_id;
       AnimData *adt = BKE_animdata_from_id(id);
       FCurve *fcu;
 
@@ -629,7 +629,7 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 
     BKE_reports_init(&reports, RPT_STORE);
 
-    result = ANIM_remove_driver(&reports, (ID *)self->ptr.id.data, path_full, index, 0);
+    result = ANIM_remove_driver(&reports, (ID *)self->ptr.owner_id, path_full, index, 0);
 
     if (path != path_full) {
       MEM_freeN((void *)path_full);

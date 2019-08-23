@@ -595,8 +595,8 @@ static void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
   BLI_strncpy_utf8(md->name, value, sizeof(md->name));
 
   /* make sure the name is truly unique */
-  if (ptr->id.data) {
-    Object *ob = ptr->id.data;
+  if (ptr->owner_id) {
+    Object *ob = (Object *)ptr->owner_id;
     modifier_unique_name(&ob->modifiers, md);
   }
 
@@ -615,8 +615,8 @@ static char *rna_Modifier_path(PointerRNA *ptr)
 
 static void rna_Modifier_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  DEG_id_tag_update(ptr->id.data, ID_RECALC_GEOMETRY);
-  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->id.data);
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->owner_id);
 }
 
 static void rna_Modifier_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -723,7 +723,7 @@ static void modifier_object_set(Object *self, Object **ob_p, int type, PointerRN
         PointerRNA *ptr, PointerRNA value, struct ReportList *UNUSED(reports)) \
     { \
       _type##ModifierData *tmd = (_type##ModifierData *)ptr->data; \
-      modifier_object_set(ptr->id.data, &tmd->_prop, _obtype, value); \
+      modifier_object_set((Object *)ptr->owner_id, &tmd->_prop, _obtype, value); \
     }
 
 RNA_MOD_OBJECT_SET(Armature, object, OB_ARMATURE);
@@ -746,7 +746,7 @@ static void rna_HookModifier_object_set(PointerRNA *ptr,
                                         PointerRNA value,
                                         struct ReportList *UNUSED(reports))
 {
-  Object *owner = (Object *)ptr->id.data;
+  Object *owner = (Object *)ptr->owner_id;
   HookModifierData *hmd = ptr->data;
   Object *ob = (Object *)value.data;
 
@@ -757,7 +757,7 @@ static void rna_HookModifier_object_set(PointerRNA *ptr,
 
 static void rna_HookModifier_subtarget_set(PointerRNA *ptr, const char *value)
 {
-  Object *owner = (Object *)ptr->id.data;
+  Object *owner = (Object *)ptr->owner_id;
   HookModifierData *hmd = ptr->data;
 
   BLI_strncpy(hmd->subtarget, value, sizeof(hmd->subtarget));
@@ -844,7 +844,7 @@ static void rna_UVProjector_object_set(PointerRNA *ptr,
 static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   SmokeModifierData *smd = (SmokeModifierData *)ptr->data;
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
 
   /* nothing changed */
   if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
@@ -871,7 +871,7 @@ static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_MultiresModifier_type_set(PointerRNA *ptr, int value)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   MultiresModifierData *mmd = (MultiresModifierData *)ptr->data;
 
   multires_force_update(ob);
@@ -889,7 +889,7 @@ static void rna_MultiresModifier_level_range(
 
 static bool rna_MultiresModifier_external_get(PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   Mesh *me = ob->data;
 
   return CustomData_external_test(&me->ldata, CD_MDISPS);
@@ -897,7 +897,7 @@ static bool rna_MultiresModifier_external_get(PointerRNA *ptr)
 
 static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   CustomDataExternal *external = ((Mesh *)ob->data)->ldata.external;
 
   BLI_strncpy(value, (external) ? external->filename : "", sizeof(external->filename));
@@ -905,7 +905,7 @@ static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
 
 static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   CustomDataExternal *external = ((Mesh *)ob->data)->ldata.external;
 
   if (external && !STREQ(external->filename, value)) {
@@ -916,7 +916,7 @@ static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value
 
 static int rna_MultiresModifier_filepath_length(PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   CustomDataExternal *external = ((Mesh *)ob->data)->ldata.external;
 
   return strlen((external) ? external->filename : "");
@@ -941,19 +941,19 @@ static bool rna_MeshDeformModifier_is_bound_get(PointerRNA *ptr)
 
 static PointerRNA rna_SoftBodyModifier_settings_get(PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   return rna_pointer_inherit_refine(ptr, &RNA_SoftBodySettings, ob->soft);
 }
 
 static PointerRNA rna_SoftBodyModifier_point_cache_get(PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   return rna_pointer_inherit_refine(ptr, &RNA_PointCache, ob->soft->shared->pointcache);
 }
 
 static PointerRNA rna_CollisionModifier_settings_get(PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   return rna_pointer_inherit_refine(ptr, &RNA_CollisionSettings, ob->pd);
 }
 

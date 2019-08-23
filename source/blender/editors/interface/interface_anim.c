@@ -228,7 +228,7 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
   /* make sure we have animdata for this */
   /* FIXME: until materials can be handled by depsgraph,
    * don't allow drivers to be created for them */
-  id = (ID *)but->rnapoin.id.data;
+  id = but->rnapoin.owner_id;
   if ((id == NULL) || (GS(id->name) == ID_MA) || (GS(id->name) == ID_TE)) {
     if (G.debug & G_DEBUG) {
       printf("ERROR: create expression failed - invalid data-block for adding drivers (%p)\n", id);
@@ -314,7 +314,7 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
     }
   }
   else {
-    id = but->rnapoin.id.data;
+    id = but->rnapoin.owner_id;
 
     /* TODO: this should probably respect the keyingset only option for anim */
     if (autokeyframe_cfra_can_key(scene, id)) {

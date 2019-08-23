@@ -80,7 +80,7 @@ const EnumPropertyItem rna_enum_mesh_delimit_mode_items[] = {
 
 static Mesh *rna_mesh(PointerRNA *ptr)
 {
-  Mesh *me = (Mesh *)ptr->id.data;
+  Mesh *me = (Mesh *)ptr->owner_id;
   return me;
 }
 
@@ -146,7 +146,7 @@ static void rna_cd_layer_name_set(CustomData *cdata, CustomDataLayer *cdl, const
 static CustomData *rna_cd_from_layer(PointerRNA *ptr, CustomDataLayer *cdl)
 {
   /* find out where we come from by */
-  Mesh *me = ptr->id.data;
+  Mesh *me = (Mesh *)ptr->owner_id;
   CustomData *cd;
 
   /* rely on negative values wrapping */
@@ -202,7 +202,7 @@ static bool rna_Mesh_has_custom_normals_get(PointerRNA *ptr)
 
 static void rna_Mesh_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
 
   /* cheating way for importers to avoid slow updates */
   if (id->us > 0) {
@@ -226,7 +226,7 @@ static void rna_Mesh_update_data_edit_active_color(Main *bmain, Scene *scene, Po
 }
 static void rna_Mesh_update_select(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
   /* cheating way for importers to avoid slow updates */
   if (id->us > 0) {
     WM_main_add_notifier(NC_GEOM | ND_SELECT, id);
@@ -235,7 +235,7 @@ static void rna_Mesh_update_select(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 
 void rna_Mesh_update_draw(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
   /* cheating way for importers to avoid slow updates */
   if (id->us > 0) {
     WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -403,7 +403,7 @@ static void rna_MeshPolygon_center_get(PointerRNA *ptr, float *values)
 
 static float rna_MeshPolygon_area_get(PointerRNA *ptr)
 {
-  Mesh *me = (Mesh *)ptr->id.data;
+  Mesh *me = (Mesh *)ptr->owner_id;
   MPoly *mp = (MPoly *)ptr->data;
 
   return BKE_mesh_calc_poly_area(mp, me->mloop + mp->loopstart, me->mvert);
@@ -571,7 +571,7 @@ static int rna_CustomDataLayer_clone_get(PointerRNA *ptr, CustomData *data, int 
 static void rna_CustomDataLayer_active_set(
     PointerRNA *ptr, CustomData *data, int value, int type, int render)
 {
-  Mesh *me = ptr->id.data;
+  Mesh *me = (Mesh *)ptr->owner_id;
   int n = (((CustomDataLayer *)ptr->data) - data->layers) - CustomData_get_layer_index(data, type);
 
   if (value == 0) {

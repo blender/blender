@@ -4806,7 +4806,7 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 
 static int drivers_editor_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  PointerRNA ptr = {{NULL}};
+  PointerRNA ptr = {NULL};
   PropertyRNA *prop = NULL;
   int index = -1;
   uiBut *but = NULL;

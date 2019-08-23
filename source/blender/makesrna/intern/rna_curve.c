@@ -326,7 +326,7 @@ static void rna_Curve_texspace_size_set(PointerRNA *ptr, const float *values)
 static void rna_Curve_material_index_range(
     PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   *min = 0;
   *max = max_ii(0, cu->totcol - 1);
 }
@@ -347,14 +347,14 @@ static void rna_ChariInfo_material_index_set(PointerRNA *ptr, int value)
 static void rna_Curve_active_textbox_index_range(
     PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   *min = 0;
   *max = max_ii(0, cu->totbox - 1);
 }
 
 static void rna_Curve_dimension_set(PointerRNA *ptr, int value)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   if (value == CU_3D) {
     cu->flag |= CU_3D;
   }
@@ -370,7 +370,7 @@ static const EnumPropertyItem *rna_Curve_fill_mode_itemf(bContext *UNUSED(C),
                                                          PropertyRNA *UNUSED(prop),
                                                          bool *UNUSED(r_free))
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
 
   /* cast to quiet warning it IS a const still */
   return (EnumPropertyItem *)((cu->flag & CU_3D) ? curve3d_fill_mode_items :
@@ -388,7 +388,7 @@ static int rna_Nurb_length(PointerRNA *ptr)
 
 static void rna_Nurb_type_set(PointerRNA *ptr, int value)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   Nurb *nu = (Nurb *)ptr->data;
   const int pntsu_prev = nu->pntsu;
 
@@ -418,7 +418,7 @@ static void rna_Curve_update_data_id(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 
 static void rna_Curve_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  rna_Curve_update_data_id(bmain, scene, ptr->id.data);
+  rna_Curve_update_data_id(bmain, scene, ptr->owner_id);
 }
 
 static void rna_Curve_update_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -429,7 +429,7 @@ static void rna_Curve_update_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Curve_update_points(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   Nurb *nu = curve_nurb_from_point(cu, ptr->data, NULL, NULL);
 
   if (nu) {
@@ -441,7 +441,7 @@ static void rna_Curve_update_points(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static PointerRNA rna_Curve_bevelObject_get(PointerRNA *ptr)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   Object *ob = cu->bevobj;
 
   if (ob) {
@@ -455,7 +455,7 @@ static void rna_Curve_bevelObject_set(PointerRNA *ptr,
                                       PointerRNA value,
                                       struct ReportList *UNUSED(reports))
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   Object *ob = (Object *)value.data;
 
   if (ob) {
@@ -473,7 +473,7 @@ static void rna_Curve_bevelObject_set(PointerRNA *ptr,
 
 static bool rna_Curve_otherObject_poll(PointerRNA *ptr, PointerRNA value)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   Object *ob = (Object *)value.data;
 
   if (ob) {
@@ -487,7 +487,7 @@ static bool rna_Curve_otherObject_poll(PointerRNA *ptr, PointerRNA value)
 
 static PointerRNA rna_Curve_taperObject_get(PointerRNA *ptr)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   Object *ob = cu->taperobj;
 
   if (ob) {
@@ -501,7 +501,7 @@ static void rna_Curve_taperObject_set(PointerRNA *ptr,
                                       PointerRNA value,
                                       struct ReportList *UNUSED(reports))
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   Object *ob = (Object *)value.data;
 
   if (ob) {
@@ -519,7 +519,7 @@ static void rna_Curve_taperObject_set(PointerRNA *ptr,
 
 static void rna_Curve_resolution_u_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   ListBase *nurbs = BKE_curve_nurbs_get(cu);
   Nurb *nu = nurbs->first;
 
@@ -533,7 +533,7 @@ static void rna_Curve_resolution_u_update_data(Main *bmain, Scene *scene, Pointe
 
 static void rna_Curve_resolution_v_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   ListBase *nurbs = BKE_curve_nurbs_get(cu);
   Nurb *nu = nurbs->first;
 
@@ -547,26 +547,26 @@ static void rna_Curve_resolution_v_update_data(Main *bmain, Scene *scene, Pointe
 
 static float rna_Curve_offset_get(PointerRNA *ptr)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   return cu->width - 1.0f;
 }
 
 static void rna_Curve_offset_set(PointerRNA *ptr, float value)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   cu->width = 1.0f + value;
 }
 
 static int rna_Curve_body_length(PointerRNA *ptr);
 static void rna_Curve_body_get(PointerRNA *ptr, char *value)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   BLI_strncpy(value, cu->str, rna_Curve_body_length(ptr) + 1);
 }
 
 static int rna_Curve_body_length(PointerRNA *ptr)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   return cu->len;
 }
 
@@ -576,7 +576,7 @@ static void rna_Curve_body_set(PointerRNA *ptr, const char *value)
   size_t len_bytes;
   size_t len_chars = BLI_strlen_utf8_ex(value, &len_bytes);
 
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
 
   cu->len_wchar = len_chars;
   cu->len = len_bytes;
@@ -770,7 +770,7 @@ static void rna_Curve_active_spline_set(PointerRNA *ptr,
 
 static char *rna_Curve_spline_path(PointerRNA *ptr)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   ListBase *nubase = BKE_curve_nurbs_get(cu);
   Nurb *nu = ptr->data;
   int index = BLI_findindex(nubase, nu);
@@ -786,7 +786,7 @@ static char *rna_Curve_spline_path(PointerRNA *ptr)
 /* use for both bezier and nurbs */
 static char *rna_Curve_spline_point_path(PointerRNA *ptr)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   Nurb *nu;
   void *point = ptr->data;
   int nu_index, pt_index;
@@ -808,7 +808,7 @@ static char *rna_Curve_spline_point_path(PointerRNA *ptr)
 
 static char *rna_TextBox_path(PointerRNA *ptr)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   TextBox *tb = ptr->data;
   int index = (int)(tb - cu->tb);
 
@@ -822,13 +822,13 @@ static char *rna_TextBox_path(PointerRNA *ptr)
 
 static void rna_Curve_splines_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   rna_iterator_listbase_begin(iter, BKE_curve_nurbs_get(cu), NULL);
 }
 
 static bool rna_Curve_is_editmode_get(PointerRNA *ptr)
 {
-  Curve *cu = (Curve *)ptr->id.data;
+  Curve *cu = (Curve *)ptr->owner_id;
   const short type = BKE_curve_type_get(cu);
   if (type == OB_FONT) {
     return (cu->editfont != NULL);

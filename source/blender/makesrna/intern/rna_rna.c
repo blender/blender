@@ -388,10 +388,10 @@ void rna_builtin_properties_begin(CollectionPropertyIterator *iter, PointerRNA *
   newptr.data = ptr->type;
 
   if (ptr->type->flag & STRUCT_ID) {
-    newptr.id.data = ptr->data;
+    newptr.owner_id = ptr->data;
   }
   else {
-    newptr.id.data = NULL;
+    newptr.owner_id = NULL;
   }
 
   iter->parent = newptr;
@@ -414,7 +414,7 @@ int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Point
 {
   StructRNA *srna;
   PropertyRNA *prop;
-  PointerRNA propptr = {{NULL}};
+  PointerRNA propptr = {NULL};
 
   srna = ptr->type;
 
@@ -1229,7 +1229,7 @@ static bool rna_property_override_diff_propptr_validate_diffing(PointerRNA *prop
   }
 
   if (*r_is_id) {
-    BLI_assert(propptr_a->data == propptr_a->id.data && propptr_b->data == propptr_b->id.data);
+    BLI_assert(propptr_a->data == propptr_a->owner_id && propptr_b->data == propptr_b->owner_id);
   }
 
   return is_valid_for_diffing;

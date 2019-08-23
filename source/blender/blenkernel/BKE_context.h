@@ -239,7 +239,7 @@ bool CTX_data_dir(const char *member);
 
 #define CTX_DATA_BEGIN_WITH_ID(C, Type, instance, member, Type_id, instance_id) \
   CTX_DATA_BEGIN (C, Type, instance, member) \
-    Type_id instance_id = ctx_link->ptr.id.data;
+    Type_id instance_id = (Type_id)ctx_link->ptr.owner_id;
 
 int ctx_data_list_count(const bContext *C, int (*func)(const bContext *, ListBase *));
 

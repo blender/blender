@@ -64,7 +64,7 @@
 #include "rna_internal.h"
 #include "rna_access_internal.h"
 
-const PointerRNA PointerRNA_NULL = {{NULL}};
+const PointerRNA PointerRNA_NULL = {NULL};
 
 /* Init/Exit */
 
@@ -112,7 +112,7 @@ void RNA_exit(void)
 
 void RNA_main_pointer_create(struct Main *main, PointerRNA *r_ptr)
 {
-  r_ptr->id.data = NULL;
+  r_ptr->owner_id = NULL;
   r_ptr->type = &RNA_BlendData;
   r_ptr->data = main;
 }
@@ -122,7 +122,7 @@ void RNA_id_pointer_create(ID *id, PointerRNA *r_ptr)
   StructRNA *type, *idtype = NULL;
 
   if (id) {
-    PointerRNA tmp = {{NULL}};
+    PointerRNA tmp = {NULL};
     tmp.data = id;
     idtype = rna_ID_refine(&tmp);
 
@@ -138,7 +138,7 @@ void RNA_id_pointer_create(ID *id, PointerRNA *r_ptr)
     }
   }
 
-  r_ptr->id.data = id;
+  r_ptr->owner_id = id;
   r_ptr->type = idtype;
   r_ptr->data = id;
 }
@@ -149,13 +149,13 @@ void RNA_pointer_create(ID *id, StructRNA *type, void *data, PointerRNA *r_ptr)
   StructRNA *idtype = NULL;
 
   if (id) {
-    PointerRNA tmp = {{0}};
+    PointerRNA tmp = {0};
     tmp.data = id;
     idtype = rna_ID_refine(&tmp);
   }
 #endif
 
-  r_ptr->id.data = id;
+  r_ptr->owner_id = id;
   r_ptr->type = type;
   r_ptr->data = data;
 
@@ -175,22 +175,22 @@ void RNA_pointer_create(ID *id, StructRNA *type, void *data, PointerRNA *r_ptr)
 
 bool RNA_pointer_is_null(const PointerRNA *ptr)
 {
-  return !((ptr->data != NULL) && (ptr->id.data != NULL) && (ptr->type != NULL));
+  return !((ptr->data != NULL) && (ptr->owner_id != NULL) && (ptr->type != NULL));
 }
 
 static void rna_pointer_inherit_id(StructRNA *type, PointerRNA *parent, PointerRNA *ptr)
 {
   if (type && type->flag & STRUCT_ID) {
-    ptr->id.data = ptr->data;
+    ptr->owner_id = ptr->data;
   }
   else {
-    ptr->id.data = parent->id.data;
+    ptr->owner_id = parent->owner_id;
   }
 }
 
 void RNA_blender_rna_pointer_create(PointerRNA *r_ptr)
 {
-  r_ptr->id.data = NULL;
+  r_ptr->owner_id = NULL;
   r_ptr->type = &RNA_BlenderRNA;
   r_ptr->data = &BLENDER_RNA;
 }
@@ -225,7 +225,7 @@ void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr)
 #if 0 /* works but this case if covered by more general code below. */
   if (RNA_struct_is_ID(ptr->type)) {
     /* simple case */
-    RNA_id_pointer_create(ptr->id.data, r_ptr);
+    RNA_id_pointer_create(ptr->owner_id, r_ptr);
   }
   else
 #endif
@@ -2058,7 +2058,7 @@ int RNA_property_ui_icon(PropertyRNA *prop)
 
 bool RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
   int flag;
   const char *dummy_info;
 
@@ -2076,7 +2076,7 @@ bool RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
  */
 bool RNA_property_editable_info(PointerRNA *ptr, PropertyRNA *prop, const char **r_info)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
   int flag;
 
   prop = rna_ensure_property(prop);
@@ -2143,7 +2143,7 @@ bool RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index)
     flag &= prop->itemeditable(ptr, index);
   }
 
-  id = ptr->id.data;
+  id = ptr->owner_id;
 
   return (flag & PROP_EDITABLE) && (!id || !ID_IS_LINKED(id) || (prop->flag & PROP_LIB_EXCEPTION));
 }
@@ -2151,7 +2151,7 @@ bool RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 bool RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 {
   /* check that base ID-block can support animation data */
-  if (!id_can_have_animdata(ptr->id.data)) {
+  if (!id_can_have_animdata(ptr->owner_id)) {
     return false;
   }
 
@@ -2197,7 +2197,7 @@ bool RNA_property_path_from_ID_check(PointerRNA *ptr, PropertyRNA *prop)
     PointerRNA r_ptr;
     PropertyRNA *r_prop;
 
-    RNA_id_pointer_create(ptr->id.data, &id_ptr);
+    RNA_id_pointer_create(ptr->owner_id, &id_ptr);
     if (RNA_path_resolve(&id_ptr, path, &r_ptr, &r_prop) == true) {
       ret = (prop == r_prop);
     }
@@ -2236,7 +2236,7 @@ static void rna_property_update(
     /* TODO(campbell): Should eventually be replaced entirely by message bus (below)
      * for now keep since COW, bugs are hard to track when we have other missing updates. */
     if (prop->noteflag) {
-      WM_main_add_notifier(prop->noteflag, ptr->id.data);
+      WM_main_add_notifier(prop->noteflag, ptr->owner_id);
     }
 #endif
 
@@ -2247,10 +2247,10 @@ static void rna_property_update(
       /* we could add NULL check, for now don't */
       WM_msg_publish_rna(mbus, ptr, prop);
     }
-    if (ptr->id.data != NULL && ((prop->flag & PROP_NO_DEG_UPDATE) == 0)) {
-      const short id_type = GS(((ID *)ptr->id.data)->name);
+    if (ptr->owner_id != NULL && ((prop->flag & PROP_NO_DEG_UPDATE) == 0)) {
+      const short id_type = GS(ptr->owner_id->name);
       if (ID_TYPE_IS_COW(id_type)) {
-        DEG_id_tag_update(ptr->id.data, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(ptr->owner_id, ID_RECALC_COPY_ON_WRITE);
       }
     }
     /* End message bus. */
@@ -2259,14 +2259,14 @@ static void rna_property_update(
   if (!is_rna || (prop->flag & PROP_IDPROPERTY)) {
     /* WARNING! This is so property drivers update the display!
      * not especially nice  */
-    DEG_id_tag_update(ptr->id.data,
+    DEG_id_tag_update(ptr->owner_id,
                       ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_PARAMETERS);
     WM_main_add_notifier(NC_WINDOW, NULL);
     /* Not nice as well, but the only way to make sure material preview
      * is updated with custom nodes.
      */
-    if ((prop->flag & PROP_IDPROPERTY) != 0 && (ptr->id.data != NULL) &&
-        (GS(((ID *)ptr->id.data)->name) == ID_NT)) {
+    if ((prop->flag & PROP_IDPROPERTY) != 0 && (ptr->owner_id != NULL) &&
+        (GS(ptr->owner_id->name) == ID_NT)) {
       WM_main_add_notifier(NC_MATERIAL | ND_SHADING, NULL);
     }
   }
@@ -2299,7 +2299,7 @@ void RNA_property_update_main(Main *bmain, Scene *scene, PointerRNA *ptr, Proper
  * property updates to actually work).
  *
  * The cache is structured with a dual-layer structure
- * - L1 = PointerRNA used as key; id.data is used (it should always be defined,
+ * - L1 = PointerRNA used as key; owner_id is used (it should always be defined,
  *        and most updates end up using just that anyways)
  * - L2 = Update functions to be called on those PointerRNA's
  */
@@ -2343,7 +2343,7 @@ void RNA_property_update_cache_add(PointerRNA *ptr, PropertyRNA *prop)
      * since most update calls that we'll encounter only really care about this. */
     /* TODO: later, the cache might need to have some nesting on L1 to cope better
      * with these problems + some tagging to indicate we need this */
-    if (uce->ptr.id.data == ptr->id.data) {
+    if (uce->ptr.owner_id == ptr->owner_id) {
       break;
     }
   }
@@ -2353,7 +2353,7 @@ void RNA_property_update_cache_add(PointerRNA *ptr, PropertyRNA *prop)
     BLI_addtail(&rna_updates_cache, uce);
 
     /* copy pointer */
-    RNA_pointer_create(ptr->id.data, ptr->type, ptr->data, &uce->ptr);
+    RNA_pointer_create(ptr->owner_id, ptr->type, ptr->data, &uce->ptr);
   }
 
   /* check on the update func */
@@ -3771,7 +3771,7 @@ void RNA_property_pointer_set(PointerRNA *ptr,
 
   /* RNA */
   if (pprop->set && !((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL) &&
-      !((prop->flag & PROP_ID_SELF_CHECK) && ptr->id.data == ptr_value.id.data)) {
+      !((prop->flag & PROP_ID_SELF_CHECK) && ptr->owner_id == ptr_value.owner_id)) {
     pprop->set(ptr, ptr_value, reports);
   }
   /* IDProperty */
@@ -5734,14 +5734,14 @@ static char *rna_path_from_ID_to_idpgroup(PointerRNA *ptr)
   IDProperty *haystack;
   IDProperty *needle;
 
-  BLI_assert(ptr->id.data != NULL);
+  BLI_assert(ptr->owner_id != NULL);
 
   /* TODO, Support Bones/PoseBones. no pointers stored to the bones from here, only the ID.
    *       See example in T25746.
    *       Unless this is added only way to find this is to also search
    *       all bones and pose bones of an armature or object.
    */
-  RNA_id_pointer_create(ptr->id.data, &id_ptr);
+  RNA_id_pointer_create(ptr->owner_id, &id_ptr);
 
   haystack = RNA_struct_idprops(&id_ptr, false);
   if (haystack) { /* can fail when called on bones */
@@ -5757,7 +5757,7 @@ char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
 {
   char *ptrpath = NULL;
 
-  if (!ptr->id.data || !ptr->data) {
+  if (!ptr->owner_id || !ptr->data) {
     return NULL;
   }
 
@@ -5773,7 +5773,7 @@ char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
       /* find the property in the struct we're nested in that references this struct, and
        * use its identifier as the first part of the path used...
        */
-      RNA_id_pointer_create(ptr->id.data, &parentptr);
+      RNA_id_pointer_create(ptr->owner_id, &parentptr);
       userprop = RNA_struct_find_nested(&parentptr, ptr->type);
 
       if (userprop) {
@@ -5849,7 +5849,7 @@ char *RNA_path_from_ID_to_property_index(PointerRNA *ptr,
   const char *propname;
   char *ptrpath, *path;
 
-  if (!ptr->id.data || !ptr->data) {
+  if (!ptr->owner_id || !ptr->data) {
     return NULL;
   }
 
@@ -5920,7 +5920,7 @@ char *RNA_path_resolve_from_type_to_property(PointerRNA *ptr,
     return NULL;
   }
 
-  RNA_id_pointer_create(ptr->id.data, &idptr);
+  RNA_id_pointer_create(ptr->owner_id, &idptr);
 
   if (RNA_path_resolve_elements(&idptr, full_path, &path_elems)) {
     PropertyElemRNA *prop_elem;
@@ -5967,12 +5967,12 @@ char *RNA_path_full_struct_py(struct PointerRNA *ptr)
 
   char *ret;
 
-  if (!ptr->id.data) {
+  if (!ptr->owner_id) {
     return NULL;
   }
 
   /* never fails */
-  id_path = RNA_path_full_ID_py(ptr->id.data);
+  id_path = RNA_path_full_ID_py(ptr->owner_id);
 
   data_path = RNA_path_from_ID_to_struct(ptr);
 
@@ -6004,12 +6004,12 @@ char *RNA_path_full_property_py_ex(PointerRNA *ptr,
 
   char *ret;
 
-  if (!ptr->id.data) {
+  if (!ptr->owner_id) {
     return NULL;
   }
 
   /* never fails */
-  id_path = RNA_path_full_ID_py(ptr->id.data);
+  id_path = RNA_path_full_ID_py(ptr->owner_id);
 
   data_path = RNA_path_from_ID_to_property(ptr, prop);
   if (data_path) {
@@ -6057,7 +6057,7 @@ char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 
   char *ret;
 
-  if (!ptr->id.data) {
+  if (!ptr->owner_id) {
     return NULL;
   }
 
@@ -6644,11 +6644,11 @@ char *RNA_pointer_as_string_id(bContext *C, PointerRNA *ptr)
 
 static char *rna_pointer_as_string__bldata(PointerRNA *ptr)
 {
-  if (ptr->type == NULL || ptr->id.data == NULL) {
+  if (ptr->type == NULL || ptr->owner_id == NULL) {
     return BLI_strdup("None");
   }
   else if (RNA_struct_is_ID(ptr->type)) {
-    return RNA_path_full_ID_py(ptr->id.data);
+    return RNA_path_full_ID_py(ptr->owner_id);
   }
   else {
     return RNA_path_full_struct_py(ptr);

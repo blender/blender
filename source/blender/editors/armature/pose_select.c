@@ -807,7 +807,7 @@ static bool pose_select_same_group(bContext *C, bool extend)
   group_flags = NULL;
   ob_index = -1;
   ob_prev = NULL;
-  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object, *ob) {
+  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob) {
     if (ob != ob_prev) {
       ob_index++;
       group_flags = group_flags_array + (ob_index * groups_len);

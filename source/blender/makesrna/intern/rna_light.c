@@ -77,7 +77,7 @@ static StructRNA *rna_Light_refine(struct PointerRNA *ptr)
 
 static void rna_Light_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Light *la = ptr->id.data;
+  Light *la = (Light *)ptr->owner_id;
 
   DEG_id_tag_update(&la->id, 0);
   WM_main_add_notifier(NC_LAMP | ND_LIGHTING, la);
@@ -85,7 +85,7 @@ static void rna_Light_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 
 static void rna_Light_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Light *la = ptr->id.data;
+  Light *la = (Light *)ptr->owner_id;
 
   DEG_id_tag_update(&la->id, 0);
   WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, la);

@@ -636,7 +636,7 @@ static const EnumPropertyItem constraint_owner_items[] = {
 static bool edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", rna_type);
-  Object *ob = (ptr.id.data) ? ptr.id.data : ED_object_active_context(C);
+  Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
 
   if (!ptr.data) {
     CTX_wm_operator_poll_msg_set(C, "Context missing 'constraint'");
@@ -648,7 +648,7 @@ static bool edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
     return 0;
   }
 
-  if (ID_IS_LINKED(ob) || (ptr.id.data && ID_IS_LINKED(ptr.id.data))) {
+  if (ID_IS_LINKED(ob) || (ptr.owner_id && ID_IS_LINKED(ptr.owner_id))) {
     CTX_wm_operator_poll_msg_set(C, "Cannot edit library data");
     return 0;
   }
@@ -680,7 +680,7 @@ static void edit_constraint_properties(wmOperatorType *ot)
 static int edit_constraint_invoke_properties(bContext *C, wmOperator *op)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
-  Object *ob = (ptr.id.data) ? ptr.id.data : ED_object_active_context(C);
+  Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
   bConstraint *con;
   ListBase *list;
 
@@ -1422,14 +1422,14 @@ void ED_object_constraint_dependency_tag_update(Main *bmain, Object *ob, bConstr
 static bool constraint_poll(bContext *C)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
-  return (ptr.id.data && ptr.data);
+  return (ptr.owner_id && ptr.data);
 }
 
 static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
-  Object *ob = ptr.id.data;
+  Object *ob = (Object *)ptr.owner_id;
   bConstraint *con = ptr.data;
   ListBase *lb = get_constraint_lb(ob, con, NULL);
 

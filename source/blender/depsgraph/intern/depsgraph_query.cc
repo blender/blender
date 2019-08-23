@@ -205,11 +205,11 @@ void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
   if ((ptr == NULL) || (r_ptr_eval == NULL)) {
     return;
   }
-  ID *orig_id = (ID *)ptr->id.data;
+  ID *orig_id = ptr->owner_id;
   ID *cow_id = DEG_get_evaluated_id(depsgraph, orig_id);
-  if (ptr->id.data == ptr->data) {
+  if (ptr->owner_id == ptr->data) {
     /* For ID pointers, it's easy... */
-    r_ptr_eval->id.data = (void *)cow_id;
+    r_ptr_eval->owner_id = cow_id;
     r_ptr_eval->data = (void *)cow_id;
     r_ptr_eval->type = ptr->type;
   }
@@ -220,7 +220,7 @@ void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
     const Object *ob_eval = (Object *)cow_id;
     bPoseChannel *pchan = (bPoseChannel *)ptr->data;
     const bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
-    r_ptr_eval->id.data = (void *)cow_id;
+    r_ptr_eval->owner_id = cow_id;
     r_ptr_eval->data = (void *)pchan_eval;
     r_ptr_eval->type = ptr->type;
   }

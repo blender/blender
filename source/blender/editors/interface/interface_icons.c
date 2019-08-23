@@ -2137,7 +2137,7 @@ int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big
 
   /* try ID, material, texture or dynapaint slot */
   if (RNA_struct_is_ID(ptr->type)) {
-    id = ptr->id.data;
+    id = ptr->owner_id;
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_MaterialSlot)) {
     id = RNA_pointer_get(ptr, "material").data;

@@ -287,7 +287,7 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   KeyingSet *ks = NULL;
   PropertyRNA *prop = NULL;
-  PointerRNA ptr = {{NULL}};
+  PointerRNA ptr = {NULL};
   char *path = NULL;
   short success = 0;
   int index = 0, pflag = 0;
@@ -332,7 +332,7 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
   }
 
   /* check if property is able to be added */
-  if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
+  if (ptr.owner_id && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
     path = RNA_path_from_ID_to_property(&ptr, prop);
 
     if (path) {
@@ -348,7 +348,7 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
       }
 
       /* add path to this setting */
-      BKE_keyingset_add_path(ks, ptr.id.data, NULL, path, index, pflag, KSP_GROUP_KSNAME);
+      BKE_keyingset_add_path(ks, ptr.owner_id, NULL, path, index, pflag, KSP_GROUP_KSNAME);
       ks->active_path = BLI_listbase_count(&ks->paths);
       success = 1;
 
@@ -393,7 +393,7 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   KeyingSet *ks = NULL;
   PropertyRNA *prop = NULL;
-  PointerRNA ptr = {{NULL}};
+  PointerRNA ptr = {NULL};
   char *path = NULL;
   short success = 0;
   int index = 0;
@@ -420,14 +420,14 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
     ks = BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1);
   }
 
-  if (ptr.id.data && ptr.data && prop) {
+  if (ptr.owner_id && ptr.data && prop) {
     path = RNA_path_from_ID_to_property(&ptr, prop);
 
     if (path) {
       KS_Path *ksp;
 
       /* try to find a path matching this description */
-      ksp = BKE_keyingset_find_path(ks, ptr.id.data, ks->name, path, index, KSP_GROUP_KSNAME);
+      ksp = BKE_keyingset_find_path(ks, ptr.owner_id, ks->name, path, index, KSP_GROUP_KSNAME);
 
       if (ksp) {
         BKE_keyingset_free_path(ks, ksp);

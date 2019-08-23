@@ -778,7 +778,7 @@ static void singleuser_action_cb(bContext *C,
 
   if (id) {
     IdAdtTemplate *iat = (IdAdtTemplate *)tsep->id;
-    PointerRNA ptr = {{NULL}};
+    PointerRNA ptr = {NULL};
     PropertyRNA *prop;
 
     RNA_pointer_create(&iat->id, &RNA_AnimData, iat->adt, &ptr);
@@ -801,7 +801,7 @@ static void singleuser_world_cb(bContext *C,
   /* need to use parent scene not just scene, otherwise may end up getting wrong one */
   if (id) {
     Scene *parscene = (Scene *)tsep->id;
-    PointerRNA ptr = {{NULL}};
+    PointerRNA ptr = {NULL};
     PropertyRNA *prop;
 
     RNA_id_pointer_create(&parscene->id, &ptr);

@@ -522,7 +522,7 @@ static void nla_channel_region_message_subscribe(const struct bContext *UNUSED(C
    * so just whitelist the entire struct for updates
    */
   {
-    wmMsgParams_RNA msg_key_params = {{{0}}};
+    wmMsgParams_RNA msg_key_params = {{0}};
     StructRNA *type_array[] = {
         &RNA_DopeSheet,
     };

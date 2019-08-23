@@ -49,7 +49,7 @@
 
 static void rna_LatticePoint_co_get(PointerRNA *ptr, float *values)
 {
-  Lattice *lt = (Lattice *)ptr->id.data;
+  Lattice *lt = (Lattice *)ptr->owner_id;
   BPoint *bp = (BPoint *)ptr->data;
   int index = bp - lt->def;
   int u, v, w;
@@ -63,7 +63,7 @@ static void rna_LatticePoint_co_get(PointerRNA *ptr, float *values)
 
 static void rna_LatticePoint_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  Lattice *lt = (Lattice *)ptr->id.data;
+  Lattice *lt = (Lattice *)ptr->owner_id;
 
   if (lt->dvert) {
     BPoint *bp = (BPoint *)ptr->data;
@@ -95,7 +95,7 @@ static void rna_Lattice_points_begin(CollectionPropertyIterator *iter, PointerRN
 
 static void rna_Lattice_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
 
   DEG_id_tag_update(id, 0);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -109,8 +109,8 @@ static void rna_Lattice_update_data_editlatt(Main *UNUSED(bmain),
                                              Scene *UNUSED(scene),
                                              PointerRNA *ptr)
 {
-  ID *id = ptr->id.data;
-  Lattice *lt = (Lattice *)ptr->id.data;
+  ID *id = ptr->owner_id;
+  Lattice *lt = (Lattice *)ptr->owner_id;
 
   if (lt->editlatt) {
     Lattice *lt_em = lt->editlatt->latt;
@@ -127,7 +127,7 @@ static void rna_Lattice_update_data_editlatt(Main *UNUSED(bmain),
 
 static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Lattice *lt = ptr->id.data;
+  Lattice *lt = (Lattice *)ptr->owner_id;
   Object *ob;
   int newu, newv, neww;
 
@@ -224,7 +224,7 @@ static void rna_Lattice_vg_name_set(PointerRNA *ptr, const char *value)
 /* annoying, but is a consequence of RNA structures... */
 static char *rna_LatticePoint_path(PointerRNA *ptr)
 {
-  Lattice *lt = (Lattice *)ptr->id.data;
+  Lattice *lt = (Lattice *)ptr->owner_id;
   void *point = ptr->data;
   BPoint *points = NULL;
 
@@ -251,7 +251,7 @@ static char *rna_LatticePoint_path(PointerRNA *ptr)
 
 static bool rna_Lattice_is_editmode_get(PointerRNA *ptr)
 {
-  Lattice *lt = (Lattice *)ptr->id.data;
+  Lattice *lt = (Lattice *)ptr->owner_id;
   return (lt->editlatt != NULL);
 }
 

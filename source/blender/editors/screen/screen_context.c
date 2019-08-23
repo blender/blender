@@ -533,7 +533,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     gpd_ptr = ED_gpencil_data_get_pointers_direct((ID *)sc, sa, scene, obact, &ptr);
 
     if (gpd_ptr) {
-      CTX_data_pointer_set(result, ptr.id.data, ptr.type, ptr.data);
+      CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
       return 1;
     }
   }

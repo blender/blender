@@ -434,27 +434,27 @@ static bool rna_BrushCapabilitiesImagePaint_has_radius_get(PointerRNA *ptr)
 
 static PointerRNA rna_Sculpt_tool_capabilities_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_BrushCapabilitiesSculpt, ptr->id.data);
+  return rna_pointer_inherit_refine(ptr, &RNA_BrushCapabilitiesSculpt, ptr->owner_id);
 }
 
 static PointerRNA rna_Imapaint_tool_capabilities_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_BrushCapabilitiesImagePaint, ptr->id.data);
+  return rna_pointer_inherit_refine(ptr, &RNA_BrushCapabilitiesImagePaint, ptr->owner_id);
 }
 
 static PointerRNA rna_Vertexpaint_tool_capabilities_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_BrushCapabilitiesVertexPaint, ptr->id.data);
+  return rna_pointer_inherit_refine(ptr, &RNA_BrushCapabilitiesVertexPaint, ptr->owner_id);
 }
 
 static PointerRNA rna_Weightpaint_tool_capabilities_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_BrushCapabilitiesWeightPaint, ptr->id.data);
+  return rna_pointer_inherit_refine(ptr, &RNA_BrushCapabilitiesWeightPaint, ptr->owner_id);
 }
 
 static PointerRNA rna_Brush_capabilities_get(PointerRNA *ptr)
 {
-  return rna_pointer_inherit_refine(ptr, &RNA_BrushCapabilities, ptr->id.data);
+  return rna_pointer_inherit_refine(ptr, &RNA_BrushCapabilities, ptr->owner_id);
 }
 
 static void rna_Brush_reset_icon(Brush *br)
@@ -764,7 +764,7 @@ static void rna_BrushGpencilSettings_use_material_pin_update(bContext *C, Pointe
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
-  Brush *brush = ptr->id.data;
+  Brush *brush = (Brush *)ptr->owner_id;
 
   if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
     Material *material = give_current_material(ob, ob->actcol);

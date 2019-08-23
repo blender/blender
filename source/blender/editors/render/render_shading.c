@@ -1836,7 +1836,7 @@ void SCENE_OT_freestyle_stroke_material_create(wmOperatorType *ot)
 
 static int texture_slot_move_exec(bContext *C, wmOperator *op)
 {
-  ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
+  ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).owner_id;
 
   if (id) {
     MTex **mtex_ar, *mtexswap;
@@ -2031,7 +2031,7 @@ static void paste_mtex_copybuf(ID *id)
 
 static int copy_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
+  ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).owner_id;
 
   if (id == NULL) {
     /* copying empty slot */
@@ -2046,7 +2046,7 @@ static int copy_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 
 static bool copy_mtex_poll(bContext *C)
 {
-  ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
+  ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).owner_id;
 
   return (id != NULL);
 }
@@ -2069,7 +2069,7 @@ void TEXTURE_OT_slot_copy(wmOperatorType *ot)
 
 static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
+  ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).owner_id;
 
   if (id == NULL) {
     Material *ma = CTX_data_pointer_get_type(C, "material", &RNA_Material).data;

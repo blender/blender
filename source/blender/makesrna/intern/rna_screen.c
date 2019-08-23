@@ -149,7 +149,7 @@ static void rna_Area_type_set(PointerRNA *ptr, int value)
 
 static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
 {
-  bScreen *sc = (bScreen *)ptr->id.data;
+  bScreen *sc = (bScreen *)ptr->owner_id;
   ScrArea *sa = (ScrArea *)ptr->data;
 
   /* Running update without having called 'set', see: T64049 */

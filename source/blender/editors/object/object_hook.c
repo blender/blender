@@ -436,7 +436,7 @@ static void object_hook_from_context(
   HookModifierData *hmd;
 
   if (ptr->data) { /* if modifier context is available, use that */
-    ob = ptr->id.data;
+    ob = (Object *)ptr->owner_id;
     hmd = ptr->data;
   }
   else { /* use the provided property */

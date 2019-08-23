@@ -45,7 +45,7 @@
 
 static void rna_cloth_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
@@ -59,7 +59,7 @@ static void rna_cloth_dependency_update(Main *bmain, Scene *scene, PointerRNA *p
 
 static void rna_cloth_pinning_changed(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   /*  ClothSimSettings *settings = (ClothSimSettings *)ptr->data; */
   ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 
@@ -311,7 +311,7 @@ static void rna_CollSettings_selfcol_vgroup_set(PointerRNA *ptr, const char *val
 
 static PointerRNA rna_ClothSettings_rest_shape_key_get(PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 
   return rna_object_shapekey_index_get(ob->data, sim->shapekey_rest);
@@ -321,7 +321,7 @@ static void rna_ClothSettings_rest_shape_key_set(PointerRNA *ptr,
                                                  PointerRNA value,
                                                  struct ReportList *UNUSED(reports))
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 
   sim->shapekey_rest = rna_object_shapekey_index_set(ob->data, value, sim->shapekey_rest);
@@ -347,7 +347,7 @@ static void rna_ClothSettings_gravity_set(PointerRNA *ptr, const float *values)
 
 static char *rna_ClothSettings_path(PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
 
   if (md) {
@@ -362,7 +362,7 @@ static char *rna_ClothSettings_path(PointerRNA *ptr)
 
 static char *rna_ClothCollisionSettings_path(PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->id.data;
+  Object *ob = (Object *)ptr->owner_id;
   ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
 
   if (md) {

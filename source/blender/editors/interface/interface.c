@@ -908,12 +908,12 @@ void UI_but_execute(const bContext *C, ARegion *ar, uiBut *but)
  * returns false if undo needs to be disabled. */
 static bool ui_but_is_rna_undo(const uiBut *but)
 {
-  if (but->rnapoin.id.data) {
+  if (but->rnapoin.owner_id) {
     /* avoid undo push for buttons who's ID are screen or wm level
      * we could disable undo for buttons with no ID too but may have
      * unforeseen consequences, so best check for ID's we _know_ are not
      * handled by undo - campbell */
-    ID *id = but->rnapoin.id.data;
+    ID *id = but->rnapoin.owner_id;
     if (ID_CHECK_UNDO(id) == false) {
       return false;
     }
@@ -1226,8 +1226,8 @@ static bool ui_but_event_property_operator_string(const bContext *C,
      */
     char *data_path = NULL;
 
-    if (ptr->id.data) {
-      ID *id = ptr->id.data;
+    if (ptr->owner_id) {
+      ID *id = ptr->owner_id;
 
       if (GS(id->name) == ID_SCR) {
         /* screen/editor property
@@ -1731,7 +1731,7 @@ static void ui_block_message_subscribe(ARegion *ar, struct wmMsgBus *mbus, uiBlo
       if ((but_prev && (but_prev->rnaprop == but->rnaprop) &&
            (but_prev->rnapoin.type == but->rnapoin.type) &&
            (but_prev->rnapoin.data == but->rnapoin.data) &&
-           (but_prev->rnapoin.id.data == but->rnapoin.id.data)) == false) {
+           (but_prev->rnapoin.owner_id == but->rnapoin.owner_id)) == false) {
         /* TODO: could make this into utility function. */
         WM_msg_subscribe_rna(mbus,
                              &but->rnapoin,
@@ -2055,7 +2055,7 @@ bool ui_but_is_compatible(const uiBut *but_a, const uiBut *but_b)
   }
 
   if (but_a->rnaprop) {
-    /* skip 'rnapoin.data', 'rnapoin.id.data'
+    /* skip 'rnapoin.data', 'rnapoin.owner_id'
      * allow different data to have the same props edited at once */
     if (but_a->rnapoin.type != but_b->rnapoin.type) {
       return false;
@@ -2479,7 +2479,7 @@ void ui_but_string_get_ex(uiBut *but,
 
       /* uiBut.custom_data points to data this tab represents (e.g. workspace).
        * uiBut.rnapoin/prop store an active value (e.g. active workspace). */
-      RNA_pointer_create(but->rnapoin.id.data, ptr_type, but->custom_data, &ptr);
+      RNA_pointer_create(but->rnapoin.owner_id, ptr_type, but->custom_data, &ptr);
       buf = RNA_struct_name_get_alloc(&ptr, str, maxlen, &buf_len);
     }
     else if (type == PROP_STRING) {
@@ -2822,7 +2822,7 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
 
       /* uiBut.custom_data points to data this tab represents (e.g. workspace).
        * uiBut.rnapoin/prop store an active value (e.g. active workspace). */
-      RNA_pointer_create(but->rnapoin.id.data, ptr_type, but->custom_data, &ptr);
+      RNA_pointer_create(but->rnapoin.owner_id, ptr_type, but->custom_data, &ptr);
       prop = RNA_struct_name_property(ptr_type);
       if (RNA_property_editable(&ptr, prop)) {
         RNA_property_string_set(&ptr, prop, str);

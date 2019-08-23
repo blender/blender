@@ -389,7 +389,7 @@ static void rna_print_data_get(FILE *f, PropertyDefRNA *dp)
 
 static void rna_print_id_get(FILE *f, PropertyDefRNA *UNUSED(dp))
 {
-  fprintf(f, "    ID *id = ptr->id.data;\n");
+  fprintf(f, "    ID *id = ptr->owner_id;\n");
 }
 
 static void rna_construct_function_name(
@@ -2470,7 +2470,7 @@ static void rna_def_struct_function_call_impl_cpp(FILE *f, StructRNA *srna, Func
   dsrna = rna_find_struct_def(srna);
 
   if (func->flag & FUNC_USE_SELF_ID) {
-    WRITE_PARAM("(::ID *) ptr.id.data");
+    WRITE_PARAM("(::ID *) ptr.owner_id");
   }
 
   if ((func->flag & FUNC_NO_SELF) == 0) {
@@ -2579,7 +2579,7 @@ static void rna_def_struct_function_impl_cpp(FILE *f, StructRNA *srna, FunctionD
         }
         else {
           fprintf(f,
-                  "\t\tRNA_pointer_create((::ID *) ptr.id.data, &RNA_%s, retdata, &result);\n",
+                  "\t\tRNA_pointer_create((::ID *) ptr.owner_id, &RNA_%s, retdata, &result);\n",
                   (const char *)pprop->type);
         }
       }
@@ -2792,7 +2792,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
   /* assign self */
   if (func->flag & FUNC_USE_SELF_ID) {
-    fprintf(f, "\t_selfid = (struct ID *)_ptr->id.data;\n");
+    fprintf(f, "\t_selfid = (struct ID *)_ptr->owner_id;\n");
   }
 
   if ((func->flag & FUNC_NO_SELF) == 0) {

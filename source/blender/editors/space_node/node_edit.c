@@ -1838,7 +1838,7 @@ static int node_output_file_add_socket_exec(bContext *C, wmOperator *op)
 
   if (ptr.data) {
     node = ptr.data;
-    ntree = ptr.id.data;
+    ntree = (bNodeTree *)ptr.owner_id;
   }
   else if (snode && snode->edittree) {
     ntree = snode->edittree;
@@ -1886,7 +1886,7 @@ static int node_output_file_remove_active_socket_exec(bContext *C, wmOperator *U
 
   if (ptr.data) {
     node = ptr.data;
-    ntree = ptr.id.data;
+    ntree = (bNodeTree *)ptr.owner_id;
   }
   else if (snode && snode->edittree) {
     ntree = snode->edittree;
@@ -2535,7 +2535,7 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 
   /* get node */
   if (nodeptr.data) {
-    ntree_base = nodeptr.id.data;
+    ntree_base = (bNodeTree *)nodeptr.owner_id;
     node = nodeptr.data;
   }
   else if (snode && snode->edittree) {
@@ -2734,7 +2734,7 @@ static int node_cryptomatte_add_socket_exec(bContext *C, wmOperator *UNUSED(op))
 
   if (ptr.data) {
     node = ptr.data;
-    ntree = ptr.id.data;
+    ntree = (bNodeTree *)ptr.owner_id;
   }
   else if (snode && snode->edittree) {
     ntree = snode->edittree;
@@ -2778,7 +2778,7 @@ static int node_cryptomatte_remove_socket_exec(bContext *C, wmOperator *UNUSED(o
 
   if (ptr.data) {
     node = ptr.data;
-    ntree = ptr.id.data;
+    ntree = (bNodeTree *)ptr.owner_id;
   }
   else if (snode && snode->edittree) {
     ntree = snode->edittree;

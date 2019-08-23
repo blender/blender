@@ -57,7 +57,7 @@ static bool ptcache_bake_all_poll(bContext *C)
 static bool ptcache_poll(bContext *C)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
-  return (ptr.data && ptr.id.data);
+  return (ptr.data && ptr.owner_id);
 }
 
 typedef struct PointCacheJob {
@@ -165,7 +165,7 @@ static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
 
   if (!all) {
     PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
-    Object *ob = ptr.id.data;
+    Object *ob = (Object *)ptr.owner_id;
     PointCache *cache = ptr.data;
     baker->pid = BKE_ptcache_id_find(ob, baker->scene, cache);
   }
@@ -300,7 +300,7 @@ static int ptcache_free_bake_exec(bContext *C, wmOperator *UNUSED(op))
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
   PointCache *cache = ptr.data;
-  Object *ob = ptr.id.data;
+  Object *ob = (Object *)ptr.owner_id;
 
   ptcache_free_bake(cache);
 
@@ -312,7 +312,7 @@ static int ptcache_bake_from_cache_exec(bContext *C, wmOperator *UNUSED(op))
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
   PointCache *cache = ptr.data;
-  Object *ob = ptr.id.data;
+  Object *ob = (Object *)ptr.owner_id;
 
   cache->flag |= PTCACHE_BAKED;
 
@@ -372,7 +372,7 @@ static int ptcache_add_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
-  Object *ob = ptr.id.data;
+  Object *ob = (Object *)ptr.owner_id;
   PointCache *cache = ptr.data;
   PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
@@ -392,7 +392,7 @@ static int ptcache_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
   Scene *scene = CTX_data_scene(C);
-  Object *ob = ptr.id.data;
+  Object *ob = (Object *)ptr.owner_id;
   PointCache *cache = ptr.data;
   PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 

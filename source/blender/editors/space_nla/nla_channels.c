@@ -446,7 +446,7 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
 
   /* get anim-channel to use (or more specifically, the animdata block behind it) */
   if (channel_index == -1) {
-    PointerRNA adt_ptr = {{NULL}};
+    PointerRNA adt_ptr = {NULL};
 
     /* active animdata block */
     if (nla_panel_context(C, &adt_ptr, NULL, NULL) == 0 || (adt_ptr.data == NULL)) {
@@ -458,7 +458,7 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
     else {
-      id = adt_ptr.id.data;
+      id = adt_ptr.owner_id;
       adt = adt_ptr.data;
     }
   }
@@ -581,7 +581,7 @@ static int nla_action_unlink_exec(bContext *C, wmOperator *op)
   /* do unlinking */
   if (adt && adt->action) {
     bool force_delete = RNA_boolean_get(op->ptr, "force_delete");
-    ED_animedit_unlink_action(C, adt_ptr.id.data, adt, adt->action, op->reports, force_delete);
+    ED_animedit_unlink_action(C, adt_ptr.owner_id, adt, adt->action, op->reports, force_delete);
   }
 
   return OPERATOR_FINISHED;

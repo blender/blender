@@ -222,7 +222,7 @@ FCurve *verify_fcurve(Main *bmain,
 
         /* sync bone group colors if applicable */
         if (ptr && (ptr->type == &RNA_PoseBone)) {
-          Object *ob = (Object *)ptr->id.data;
+          Object *ob = (Object *)ptr->owner_id;
           bPoseChannel *pchan = (bPoseChannel *)ptr->data;
           bPose *pose = ob->pose;
           bActionGroup *grp;
@@ -286,7 +286,7 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
   PropertyRNA *prop;
   int old_flag = fcu->flag;
 
-  if ((ptr->id.data == NULL) && (ptr->data == NULL)) {
+  if ((ptr->owner_id == NULL) && (ptr->data == NULL)) {
     BKE_report(reports, RPT_ERROR, "No RNA pointer available to retrieve values for this fcurve");
     return;
   }
@@ -294,7 +294,7 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
   /* try to get property we should be affecting */
   if (RNA_path_resolve_property(ptr, fcu->rna_path, &tmp_ptr, &prop) == false) {
     /* property not found... */
-    const char *idname = (ptr->id.data) ? ((ID *)ptr->id.data)->name : TIP_("<No ID pointer>");
+    const char *idname = (ptr->owner_id) ? ptr->owner_id->name : TIP_("<No ID pointer>");
 
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -1203,7 +1203,7 @@ bool insert_keyframe_direct(ReportList *reports,
   }
 
   /* if no property given yet, try to validate from F-Curve info */
-  if ((ptr.id.data == NULL) && (ptr.data == NULL)) {
+  if ((ptr.owner_id == NULL) && (ptr.data == NULL)) {
     BKE_report(
         reports, RPT_ERROR, "No RNA pointer available to retrieve values for keyframing from");
     return false;
@@ -1214,7 +1214,7 @@ bool insert_keyframe_direct(ReportList *reports,
     /* try to get property we should be affecting */
     if (RNA_path_resolve_property(&ptr, fcu->rna_path, &tmp_ptr, &prop) == false) {
       /* property not found... */
-      const char *idname = (ptr.id.data) ? ((ID *)ptr.id.data)->name : TIP_("<No ID pointer>");
+      const char *idname = (ptr.owner_id) ? ptr.owner_id->name : TIP_("<No ID pointer>");
 
       BKE_reportf(reports,
                   RPT_ERROR,
@@ -2350,7 +2350,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
-  PointerRNA ptr = {{NULL}};
+  PointerRNA ptr = {NULL};
   PropertyRNA *prop = NULL;
   char *path;
   uiBut *but;
@@ -2369,7 +2369,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
-  if ((ptr.id.data && ptr.data && prop) && RNA_property_animateable(&ptr, prop)) {
+  if ((ptr.owner_id && ptr.data && prop) && RNA_property_animateable(&ptr, prop)) {
     if (ptr.type == &RNA_NlaStrip) {
       /* Handle special properties for NLA Strips, whose F-Curves are stored on the
        * strips themselves. These are stored separately or else the properties will
@@ -2435,7 +2435,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 
         success = insert_keyframe(bmain,
                                   op->reports,
-                                  ptr.id.data,
+                                  ptr.owner_id,
                                   NULL,
                                   group,
                                   path,
@@ -2473,7 +2473,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
   }
 
   if (success) {
-    ID *id = ptr.id.data;
+    ID *id = ptr.owner_id;
     AnimData *adt = BKE_animdata_from_id(id);
     if (adt->action != NULL) {
       DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
@@ -2513,7 +2513,7 @@ void ANIM_OT_keyframe_insert_button(wmOperatorType *ot)
 static int delete_key_button_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  PointerRNA ptr = {{NULL}};
+  PointerRNA ptr = {NULL};
   PropertyRNA *prop = NULL;
   Main *bmain = CTX_data_main(C);
   char *path;
@@ -2528,13 +2528,13 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
-  if (ptr.id.data && ptr.data && prop) {
+  if (ptr.owner_id && ptr.data && prop) {
     if (BKE_nlastrip_has_curves_for_property(&ptr, prop)) {
       /* Handle special properties for NLA Strips, whose F-Curves are stored on the
        * strips themselves. These are stored separately or else the properties will
        * not have any effect.
        */
-      ID *id = ptr.id.data;
+      ID *id = ptr.owner_id;
       NlaStrip *strip = (NlaStrip *)ptr.data;
       FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), 0);
 
@@ -2577,7 +2577,7 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
         }
 
         success = delete_keyframe(
-            bmain, op->reports, ptr.id.data, NULL, NULL, path, index, cfra, 0);
+            bmain, op->reports, ptr.owner_id, NULL, NULL, path, index, cfra, 0);
         MEM_freeN(path);
       }
       else if (G.debug & G_DEBUG) {
@@ -2622,7 +2622,7 @@ void ANIM_OT_keyframe_delete_button(wmOperatorType *ot)
 
 static int clear_key_button_exec(bContext *C, wmOperator *op)
 {
-  PointerRNA ptr = {{NULL}};
+  PointerRNA ptr = {NULL};
   PropertyRNA *prop = NULL;
   Main *bmain = CTX_data_main(C);
   char *path;
@@ -2636,7 +2636,7 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
-  if (ptr.id.data && ptr.data && prop) {
+  if (ptr.owner_id && ptr.data && prop) {
     path = RNA_path_from_ID_to_property(&ptr, prop);
 
     if (path) {
@@ -2645,7 +2645,7 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
         index = -1;
       }
 
-      success += clear_keyframe(bmain, op->reports, ptr.id.data, NULL, NULL, path, index, 0);
+      success += clear_keyframe(bmain, op->reports, ptr.owner_id, NULL, NULL, path, index, 0);
       MEM_freeN(path);
     }
     else if (G.debug & G_DEBUG) {

@@ -373,7 +373,7 @@ static void saction_channel_region_message_subscribe(const struct bContext *UNUS
    * so just whitelist the entire structs for updates
    */
   {
-    wmMsgParams_RNA msg_key_params = {{{0}}};
+    wmMsgParams_RNA msg_key_params = {{0}};
     StructRNA *type_array[] = {
         &RNA_DopeSheet, /* dopesheet filters */
 

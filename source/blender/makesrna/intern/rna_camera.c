@@ -43,52 +43,52 @@
 
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {
-  Camera *cam = ptr->id.data;
+  Camera *cam = (Camera *)ptr->owner_id;
   float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
   return focallength_to_fov(cam->lens, sensor);
 }
 
 static void rna_Camera_angle_set(PointerRNA *ptr, float value)
 {
-  Camera *cam = ptr->id.data;
+  Camera *cam = (Camera *)ptr->owner_id;
   float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
   cam->lens = fov_to_focallength(value, sensor);
 }
 
 static float rna_Camera_angle_x_get(PointerRNA *ptr)
 {
-  Camera *cam = ptr->id.data;
+  Camera *cam = (Camera *)ptr->owner_id;
   return focallength_to_fov(cam->lens, cam->sensor_x);
 }
 
 static void rna_Camera_angle_x_set(PointerRNA *ptr, float value)
 {
-  Camera *cam = ptr->id.data;
+  Camera *cam = (Camera *)ptr->owner_id;
   cam->lens = fov_to_focallength(value, cam->sensor_x);
 }
 
 static float rna_Camera_angle_y_get(PointerRNA *ptr)
 {
-  Camera *cam = ptr->id.data;
+  Camera *cam = (Camera *)ptr->owner_id;
   return focallength_to_fov(cam->lens, cam->sensor_y);
 }
 
 static void rna_Camera_angle_y_set(PointerRNA *ptr, float value)
 {
-  Camera *cam = ptr->id.data;
+  Camera *cam = (Camera *)ptr->owner_id;
   cam->lens = fov_to_focallength(value, cam->sensor_y);
 }
 
 static void rna_Camera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Camera *camera = (Camera *)ptr->id.data;
+  Camera *camera = (Camera *)ptr->owner_id;
 
   DEG_id_tag_update(&camera->id, 0);
 }
 
 static void rna_Camera_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Camera *camera = (Camera *)ptr->id.data;
+  Camera *camera = (Camera *)ptr->owner_id;
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&camera->id, 0);
 }
@@ -136,8 +136,8 @@ char *rna_CameraDOFSettings_path(PointerRNA *ptr)
    * since the name used is the name of the texture assigned, but the texture
    * may be used multiple times in the same stack
    */
-  if (ptr->id.data) {
-    if (GS(((ID *)ptr->id.data)->name) == ID_CA) {
+  if (ptr->owner_id) {
+    if (GS(ptr->owner_id->name) == ID_CA) {
       return BLI_strdup("dof");
     }
   }

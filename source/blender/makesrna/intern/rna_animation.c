@@ -128,7 +128,7 @@ const EnumPropertyItem rna_enum_keying_flag_items_api[] = {
 
 static void rna_AnimData_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
 
   ANIM_id_update(bmain, id);
 }
@@ -157,7 +157,7 @@ static void rna_AnimData_action_set(PointerRNA *ptr,
                                     PointerRNA value,
                                     struct ReportList *UNUSED(reports))
 {
-  ID *ownerId = (ID *)ptr->id.data;
+  ID *ownerId = ptr->owner_id;
 
   /* set action */
   BKE_animdata_set_action(NULL, ownerId, value.data);
@@ -303,7 +303,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
 {
   KeyingSetInfo dummyksi = {NULL};
   KeyingSetInfo *ksi;
-  PointerRNA dummyptr = {{NULL}};
+  PointerRNA dummyptr = {NULL};
   int have_function[3];
 
   /* setup dummy type info to store static properties in */
@@ -727,12 +727,12 @@ bool rna_AnimaData_override_apply(Main *UNUSED(bmain),
 
   if (adt_dst == NULL && adt_src != NULL) {
     /* Copy anim data from reference into final local ID. */
-    BKE_animdata_copy_id(NULL, ptr_dst->id.data, ptr_src->id.data, 0);
+    BKE_animdata_copy_id(NULL, ptr_dst->owner_id, ptr_src->owner_id, 0);
     return true;
   }
   else if (adt_dst != NULL && adt_src == NULL) {
     /* Override has cleared/removed anim data from its reference. */
-    BKE_animdata_free(ptr_dst->id.data, true);
+    BKE_animdata_free(ptr_dst->owner_id, true);
     return true;
   }
 

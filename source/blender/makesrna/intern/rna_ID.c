@@ -620,9 +620,9 @@ static int rna_IDPArray_length(PointerRNA *ptr)
 
 int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assign_ptr)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
   short *totcol = give_totcolp_id(id);
-  Material *mat_id = assign_ptr->id.data;
+  Material *mat_id = (Material *)assign_ptr->owner_id;
   if (totcol && (key >= 0 && key < *totcol)) {
     BLI_assert(BKE_id_is_in_global_main(id));
     BLI_assert(BKE_id_is_in_global_main(&mat_id->id));
@@ -690,7 +690,7 @@ static void rna_Library_filepath_set(PointerRNA *ptr, const char *value)
 
 static void rna_ImagePreview_is_custom_set(PointerRNA *ptr, int value, enum eIconSizes size)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
   PreviewImage *prv_img = (PreviewImage *)ptr->data;
 
   if (id != NULL) {
@@ -716,7 +716,7 @@ static void rna_ImagePreview_is_custom_set(PointerRNA *ptr, int value, enum eIco
 
 static void rna_ImagePreview_size_get(PointerRNA *ptr, int *values, enum eIconSizes size)
 {
-  ID *id = (ID *)ptr->id.data;
+  ID *id = ptr->owner_id;
   PreviewImage *prv_img = (PreviewImage *)ptr->data;
 
   if (id != NULL) {
@@ -731,7 +731,7 @@ static void rna_ImagePreview_size_get(PointerRNA *ptr, int *values, enum eIconSi
 
 static void rna_ImagePreview_size_set(PointerRNA *ptr, const int *values, enum eIconSizes size)
 {
-  ID *id = (ID *)ptr->id.data;
+  ID *id = ptr->owner_id;
   PreviewImage *prv_img = (PreviewImage *)ptr->data;
 
   if (id != NULL) {
@@ -754,7 +754,7 @@ static int rna_ImagePreview_pixels_get_length(PointerRNA *ptr,
                                               int length[RNA_MAX_ARRAY_DIMENSION],
                                               enum eIconSizes size)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
   PreviewImage *prv_img = (PreviewImage *)ptr->data;
 
   if (id != NULL) {
@@ -770,7 +770,7 @@ static int rna_ImagePreview_pixels_get_length(PointerRNA *ptr,
 
 static void rna_ImagePreview_pixels_get(PointerRNA *ptr, int *values, enum eIconSizes size)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
   PreviewImage *prv_img = (PreviewImage *)ptr->data;
 
   if (id != NULL) {
@@ -784,7 +784,7 @@ static void rna_ImagePreview_pixels_get(PointerRNA *ptr, int *values, enum eIcon
 
 static void rna_ImagePreview_pixels_set(PointerRNA *ptr, const int *values, enum eIconSizes size)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
   PreviewImage *prv_img = (PreviewImage *)ptr->data;
 
   if (id != NULL) {
@@ -799,7 +799,7 @@ static int rna_ImagePreview_pixels_float_get_length(PointerRNA *ptr,
                                                     int length[RNA_MAX_ARRAY_DIMENSION],
                                                     enum eIconSizes size)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
   PreviewImage *prv_img = (PreviewImage *)ptr->data;
 
   BLI_assert(sizeof(unsigned int) == 4);
@@ -817,7 +817,7 @@ static int rna_ImagePreview_pixels_float_get_length(PointerRNA *ptr,
 
 static void rna_ImagePreview_pixels_float_get(PointerRNA *ptr, float *values, enum eIconSizes size)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
   PreviewImage *prv_img = (PreviewImage *)ptr->data;
 
   unsigned char *data = (unsigned char *)prv_img->rect[size];
@@ -841,7 +841,7 @@ static void rna_ImagePreview_pixels_float_set(PointerRNA *ptr,
                                               const float *values,
                                               enum eIconSizes size)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
   PreviewImage *prv_img = (PreviewImage *)ptr->data;
 
   unsigned char *data = (unsigned char *)prv_img->rect[size];
@@ -958,7 +958,7 @@ static int rna_ImagePreview_icon_id_get(PointerRNA *ptr)
 {
   /* Using a callback here allows us to only generate icon matching
    * that preview when icon_id is requested. */
-  return BKE_icon_preview_ensure(ptr->id.data, (PreviewImage *)(ptr->data));
+  return BKE_icon_preview_ensure(ptr->owner_id, (PreviewImage *)(ptr->data));
 }
 static void rna_ImagePreview_icon_reload(PreviewImage *prv)
 {

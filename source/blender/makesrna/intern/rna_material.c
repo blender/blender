@@ -89,7 +89,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 
 static void rna_Material_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Material *ma = ptr->id.data;
+  Material *ma = (Material *)ptr->owner_id;
 
   DEG_id_tag_update(&ma->id, ID_RECALC_SHADING);
   WM_main_add_notifier(NC_MATERIAL | ND_SHADING, ma);
@@ -99,7 +99,7 @@ static void rna_Material_update_previews(Main *UNUSED(bmain),
                                          Scene *UNUSED(scene),
                                          PointerRNA *ptr)
 {
-  Material *ma = ptr->id.data;
+  Material *ma = (Material *)ptr->owner_id;
 
   if (ma->nodetree) {
     BKE_node_preview_clear_tree(ma->nodetree);
@@ -110,7 +110,7 @@ static void rna_Material_update_previews(Main *UNUSED(bmain),
 
 static void rna_MaterialGpencil_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Material *ma = ptr->id.data;
+  Material *ma = (Material *)ptr->owner_id;
 
   rna_Material_update(bmain, scene, ptr);
   WM_main_add_notifier(NC_GPENCIL | ND_DATA, ma);
@@ -118,7 +118,7 @@ static void rna_MaterialGpencil_update(Main *bmain, Scene *scene, PointerRNA *pt
 
 static void rna_MaterialGpencil_nopreview_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Material *ma = ptr->id.data;
+  Material *ma = (Material *)ptr->owner_id;
 
   rna_Material_update(bmain, scene, ptr);
   WM_main_add_notifier(NC_GPENCIL | ND_DATA, ma);
@@ -126,7 +126,7 @@ static void rna_MaterialGpencil_nopreview_update(Main *bmain, Scene *scene, Poin
 
 static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Material *ma = ptr->id.data;
+  Material *ma = (Material *)ptr->owner_id;
 
   DEG_id_tag_update(&ma->id, ID_RECALC_SHADING);
   WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
@@ -144,7 +144,7 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain,
                                                            PointerRNA *ptr)
 {
   bScreen *sc;
-  Material *ma = ptr->id.data;
+  Material *ma = (Material *)ptr->owner_id;
 
   if (ma->use_nodes && ma->nodetree) {
     struct bNode *node = BKE_texpaint_slot_material_find_node(ma, ma->paint_active_slot);
@@ -303,7 +303,7 @@ static bool rna_is_grease_pencil_get(PointerRNA *ptr)
 static void rna_gpcolordata_uv_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   /* update all uv strokes of this color */
-  Material *ma = ptr->id.data;
+  Material *ma = (Material *)ptr->owner_id;
   ED_gpencil_update_color_uv(bmain, ma);
 
   rna_MaterialGpencil_update(bmain, scene, ptr);

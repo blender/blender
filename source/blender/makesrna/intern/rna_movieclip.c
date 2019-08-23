@@ -53,14 +53,14 @@
 
 static void rna_MovieClip_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  MovieClip *clip = (MovieClip *)ptr->id.data;
+  MovieClip *clip = (MovieClip *)ptr->owner_id;
 
   DEG_id_tag_update(&clip->id, ID_RECALC_SOURCE);
 }
 
 static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
 {
-  MovieClip *clip = (MovieClip *)ptr->id.data;
+  MovieClip *clip = (MovieClip *)ptr->owner_id;
 
   values[0] = clip->lastsize[0];
   values[1] = clip->lastsize[1];
@@ -68,13 +68,13 @@ static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
 
 static float rna_MovieClip_fps_get(PointerRNA *ptr)
 {
-  MovieClip *clip = (MovieClip *)ptr->id.data;
+  MovieClip *clip = (MovieClip *)ptr->owner_id;
   return BKE_movieclip_get_fps(clip);
 }
 
 static void rna_MovieClip_use_proxy_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  MovieClip *clip = (MovieClip *)ptr->id.data;
+  MovieClip *clip = (MovieClip *)ptr->owner_id;
   BKE_movieclip_clear_cache(clip);
   BKE_sequence_invalidate_movieclip_strips(bmain, clip);
 }
@@ -83,7 +83,7 @@ static void rna_MovieClipUser_proxy_render_settings_update(Main *bmain,
                                                            Scene *UNUSED(scene),
                                                            PointerRNA *ptr)
 {
-  ID *id = (ID *)ptr->id.data;
+  ID *id = ptr->owner_id;
   MovieClipUser *user = (MovieClipUser *)ptr->data;
 
   /* when changing render settings of space clip user

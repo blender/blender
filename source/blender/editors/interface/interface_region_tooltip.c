@@ -765,8 +765,8 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
       }
     }
 
-    if (but->rnapoin.id.data) {
-      const ID *id = but->rnapoin.id.data;
+    if (but->rnapoin.owner_id) {
+      const ID *id = but->rnapoin.owner_id;
       if (ID_IS_LINKED(id)) {
         uiTooltipField *field = text_field_add(data,
                                                &(uiTooltipFormat){
@@ -847,7 +847,7 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
       }
     }
 
-    if (but->rnapoin.id.data) {
+    if (but->rnapoin.owner_id) {
       uiTooltipField *field = text_field_add(data,
                                              &(uiTooltipFormat){
                                                  .style = UI_TIP_STYLE_MONO,

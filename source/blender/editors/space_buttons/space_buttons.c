@@ -561,7 +561,7 @@ static void buttons_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, 
     int i;
 
     for (i = 0; i < path->len; i++) {
-      if (path->ptr[i].id.data == old_id) {
+      if (path->ptr[i].owner_id == old_id) {
         break;
       }
     }

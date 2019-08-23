@@ -228,8 +228,8 @@ static void rna_GpencilModifier_name_set(PointerRNA *ptr, const char *value)
   BLI_strncpy_utf8(gmd->name, value, sizeof(gmd->name));
 
   /* make sure the name is truly unique */
-  if (ptr->id.data) {
-    Object *ob = ptr->id.data;
+  if (ptr->owner_id) {
+    Object *ob = (Object *)ptr->owner_id;
     BKE_gpencil_modifier_unique_name(&ob->greasepencil_modifiers, gmd);
   }
 
@@ -248,8 +248,8 @@ static char *rna_GpencilModifier_path(PointerRNA *ptr)
 
 static void rna_GpencilModifier_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  DEG_id_tag_update(ptr->id.data, ID_RECALC_GEOMETRY);
-  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->id.data);
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->owner_id);
 }
 
 static void rna_GpencilModifier_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -300,7 +300,7 @@ static void greasepencil_modifier_object_set(Object *self,
         PointerRNA *ptr, PointerRNA value, struct ReportList *UNUSED(reports)) \
     { \
       _type##GpencilModifierData *tmd = (_type##GpencilModifierData *)ptr->data; \
-      greasepencil_modifier_object_set(ptr->id.data, &tmd->_prop, _obtype, value); \
+      greasepencil_modifier_object_set((Object *)ptr->owner_id, &tmd->_prop, _obtype, value); \
     }
 
 RNA_GP_MOD_OBJECT_SET(Armature, object, OB_ARMATURE);

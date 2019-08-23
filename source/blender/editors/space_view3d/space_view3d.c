@@ -992,7 +992,7 @@ static void view3d_main_region_message_subscribe(const struct bContext *C,
    * accepting some redundant redraws.
    *
    * For other space types we might try avoid this, keep the 3D view as an exceptional case! */
-  wmMsgParams_RNA msg_key_params = {{{0}}};
+  wmMsgParams_RNA msg_key_params = {{0}};
 
   /* Only subscribe to types. */
   StructRNA *type_array[] = {
@@ -1176,7 +1176,7 @@ static void view3d_header_region_message_subscribe(const struct bContext *UNUSED
                                                    struct ARegion *ar,
                                                    struct wmMsgBus *mbus)
 {
-  wmMsgParams_RNA msg_key_params = {{{0}}};
+  wmMsgParams_RNA msg_key_params = {{0}};
 
   /* Only subscribe to types. */
   StructRNA *type_array[] = {

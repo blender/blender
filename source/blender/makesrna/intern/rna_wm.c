@@ -530,7 +530,7 @@ const EnumPropertyItem rna_enum_wm_report_items[] = {
 
 static wmOperator *rna_OperatorProperties_find_operator(PointerRNA *ptr)
 {
-  wmWindowManager *wm = ptr->id.data;
+  wmWindowManager *wm = (wmWindowManager *)ptr->owner_id;
 
   if (wm) {
     IDProperty *properties = (IDProperty *)ptr->data;
@@ -668,7 +668,7 @@ static PointerRNA rna_PopupMenu_layout_get(PointerRNA *ptr)
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   PointerRNA rptr;
-  RNA_pointer_create(ptr->id.data, &RNA_UILayout, layout, &rptr);
+  RNA_pointer_create(ptr->owner_id, &RNA_UILayout, layout, &rptr);
 
   return rptr;
 }
@@ -679,7 +679,7 @@ static PointerRNA rna_PopoverMenu_layout_get(PointerRNA *ptr)
   uiLayout *layout = UI_popover_layout(pup);
 
   PointerRNA rptr;
-  RNA_pointer_create(ptr->id.data, &RNA_UILayout, layout, &rptr);
+  RNA_pointer_create(ptr->owner_id, &RNA_UILayout, layout, &rptr);
 
   return rptr;
 }
@@ -690,7 +690,7 @@ static PointerRNA rna_PieMenu_layout_get(PointerRNA *ptr)
   uiLayout *layout = UI_pie_menu_layout(pie);
 
   PointerRNA rptr;
-  RNA_pointer_create(ptr->id.data, &RNA_UILayout, layout, &rptr);
+  RNA_pointer_create(ptr->owner_id, &RNA_UILayout, layout, &rptr);
 
   return rptr;
 }
@@ -804,7 +804,7 @@ static void rna_Window_screen_set(PointerRNA *ptr,
 
 static bool rna_Window_screen_assign_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
-  bScreen *screen = value.id.data;
+  bScreen *screen = (bScreen *)value.owner_id;
   return !screen->temp;
 }
 

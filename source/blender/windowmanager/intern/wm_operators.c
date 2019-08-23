@@ -368,7 +368,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
       continue;
     }
 
-    if (ptr->id.data == ctx_item_ptr.id.data) {
+    if (ptr->owner_id == ctx_item_ptr.owner_id) {
       if ((ptr->data == ctx_item_ptr.data) && (ptr->type == ctx_item_ptr.type)) {
         /* found! */
         member_found = identifier;
@@ -402,13 +402,13 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 {
   const char *member_id = NULL;
 
-  if (ptr->id.data) {
+  if (ptr->owner_id) {
 
 #  define CTX_TEST_PTR_ID(C, member, idptr) \
     { \
       const char *ctx_member = member; \
       PointerRNA ctx_item_ptr = CTX_data_pointer_get(C, ctx_member); \
-      if (ctx_item_ptr.id.data == idptr) { \
+      if (ctx_item_ptr.owner_id == idptr) { \
         member_id = ctx_member; \
         break; \
       } \
@@ -420,7 +420,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
       const char *ctx_member = member; \
       const char *ctx_member_full = member_full; \
       PointerRNA ctx_item_ptr = CTX_data_pointer_get(C, ctx_member); \
-      if (ctx_item_ptr.id.data && cast(ctx_item_ptr.id.data) == idptr) { \
+      if (ctx_item_ptr.owner_id && (ID *)cast(ctx_item_ptr.owner_id) == idptr) { \
         member_id = ctx_member_full; \
         break; \
       } \
@@ -447,19 +447,19 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
     } \
     (void)0
 
-    switch (GS(((ID *)ptr->id.data)->name)) {
+    switch (GS(ptr->owner_id->name)) {
       case ID_SCE: {
-        CTX_TEST_PTR_ID(C, "scene", ptr->id.data);
+        CTX_TEST_PTR_ID(C, "scene", ptr->owner_id);
         break;
       }
       case ID_OB: {
-        CTX_TEST_PTR_ID(C, "object", ptr->id.data);
+        CTX_TEST_PTR_ID(C, "object", ptr->owner_id);
         break;
       }
       /* from rna_Main_objects_new */
       case OB_DATA_SUPPORT_ID_CASE: {
 #  define ID_CAST_OBDATA(id_pt) (((Object *)(id_pt))->data)
-        CTX_TEST_PTR_ID_CAST(C, "object", "object.data", ID_CAST_OBDATA, ptr->id.data);
+        CTX_TEST_PTR_ID_CAST(C, "object", "object.data", ID_CAST_OBDATA, ptr->owner_id);
         break;
 #  undef ID_CAST_OBDATA
       }
@@ -467,18 +467,18 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 #  define ID_CAST_OBMATACT(id_pt) \
     (give_current_material(((Object *)id_pt), ((Object *)id_pt)->actcol))
         CTX_TEST_PTR_ID_CAST(
-            C, "object", "object.active_material", ID_CAST_OBMATACT, ptr->id.data);
+            C, "object", "object.active_material", ID_CAST_OBMATACT, ptr->owner_id);
         break;
 #  undef ID_CAST_OBMATACT
       }
       case ID_WO: {
 #  define ID_CAST_SCENEWORLD(id_pt) (((Scene *)(id_pt))->world)
-        CTX_TEST_PTR_ID_CAST(C, "scene", "scene.world", ID_CAST_SCENEWORLD, ptr->id.data);
+        CTX_TEST_PTR_ID_CAST(C, "scene", "scene.world", ID_CAST_SCENEWORLD, ptr->owner_id);
         break;
 #  undef ID_CAST_SCENEWORLD
       }
       case ID_SCR: {
-        CTX_TEST_PTR_ID(C, "screen", ptr->id.data);
+        CTX_TEST_PTR_ID(C, "screen", ptr->owner_id);
 
         SpaceLink *space_data = CTX_wm_space_data(C);
 

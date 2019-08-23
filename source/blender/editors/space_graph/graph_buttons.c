@@ -1236,7 +1236,7 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *pa)
 {
   uiLayout *layout = pa->layout;
 
-  PointerRNA ptr = {{NULL}};
+  PointerRNA ptr = {NULL};
   PropertyRNA *prop = NULL;
   int index = -1;
   uiBut *but = NULL;
@@ -1258,7 +1258,7 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *pa)
 
     /* Populate Panel - With a combination of the contents of the Driven and Driver panels */
     if (fcu && fcu->driver) {
-      ID *id = ptr.id.data;
+      ID *id = ptr.owner_id;
 
       PointerRNA ptr_fcurve;
       RNA_pointer_create(id, &RNA_FCurve, fcu, &ptr_fcurve);

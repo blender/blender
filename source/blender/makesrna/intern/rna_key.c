@@ -87,8 +87,8 @@ static void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
   BLI_strncpy_utf8(kb->name, value, sizeof(kb->name));
 
   /* make sure the name is truly unique */
-  if (ptr->id.data) {
-    Key *key = rna_ShapeKey_find_key(ptr->id.data);
+  if (ptr->owner_id) {
+    Key *key = rna_ShapeKey_find_key(ptr->owner_id);
     BLI_uniquename(&key->block,
                    kb,
                    CTX_DATA_(BLT_I18NCONTEXT_ID_SHAPEKEY, "Key"),
@@ -174,7 +174,7 @@ static void rna_ShapeKey_slider_max_set(PointerRNA *ptr, float value)
 
 static Mesh *rna_KeyBlock_normals_get_mesh(PointerRNA *ptr, ID *id)
 {
-  Key *key = rna_ShapeKey_find_key((id == NULL && ptr != NULL) ? ptr->id.data : id);
+  Key *key = rna_ShapeKey_find_key((id == NULL && ptr != NULL) ? ptr->owner_id : id);
   id = key ? key->from : NULL;
 
   if (id != NULL) {
@@ -315,7 +315,7 @@ static PointerRNA rna_ShapeKey_relative_key_get(PointerRNA *ptr)
 {
   KeyBlock *kb = (KeyBlock *)ptr->data;
 
-  return rna_object_shapekey_index_get(ptr->id.data, kb->relative);
+  return rna_object_shapekey_index_get(ptr->owner_id, kb->relative);
 }
 
 static void rna_ShapeKey_relative_key_set(PointerRNA *ptr,
@@ -324,7 +324,7 @@ static void rna_ShapeKey_relative_key_set(PointerRNA *ptr,
 {
   KeyBlock *kb = (KeyBlock *)ptr->data;
 
-  kb->relative = rna_object_shapekey_index_set(ptr->id.data, value, kb->relative);
+  kb->relative = rna_object_shapekey_index_set(ptr->owner_id, value, kb->relative);
 }
 
 static void rna_ShapeKeyPoint_co_get(PointerRNA *ptr, float *values)
@@ -565,7 +565,7 @@ static void rna_ShapeKey_data_begin_mixed(CollectionPropertyIterator *iter,
 
 static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  Key *key = rna_ShapeKey_find_key(ptr->id.data);
+  Key *key = rna_ShapeKey_find_key(ptr->owner_id);
   KeyBlock *kb = (KeyBlock *)ptr->data;
   int tot = kb->totelem, size = key->elemsize;
 
@@ -602,7 +602,7 @@ static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA
 
 static int rna_ShapeKey_data_length(PointerRNA *ptr)
 {
-  Key *key = rna_ShapeKey_find_key(ptr->id.data);
+  Key *key = rna_ShapeKey_find_key(ptr->owner_id);
   KeyBlock *kb = (KeyBlock *)ptr->data;
   int tot = kb->totelem;
 
@@ -615,7 +615,7 @@ static int rna_ShapeKey_data_length(PointerRNA *ptr)
 
 static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
 {
-  Key *key = rna_ShapeKey_find_key(iter->parent.id.data);
+  Key *key = rna_ShapeKey_find_key(iter->parent.owner_id);
   void *ptr = rna_iterator_array_get(iter);
   StructRNA *type = &RNA_ShapeKeyPoint;
 
@@ -637,7 +637,7 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
 
 int rna_ShapeKey_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
-  Key *key = rna_ShapeKey_find_key(ptr->id.data);
+  Key *key = rna_ShapeKey_find_key(ptr->owner_id);
   KeyBlock *kb = (KeyBlock *)ptr->data;
   int elemsize = key->elemsize;
   char *databuf = kb->data;
@@ -672,7 +672,7 @@ int rna_ShapeKey_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 static char *rna_ShapeKey_path(PointerRNA *ptr)
 {
   KeyBlock *kb = (KeyBlock *)ptr->data;
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
   char name_esc[sizeof(kb->name) * 2];
 
   BLI_strescape(name_esc, kb->name, sizeof(name_esc));
@@ -687,7 +687,7 @@ static char *rna_ShapeKey_path(PointerRNA *ptr)
 
 static void rna_Key_update_data(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Key *key = ptr->id.data;
+  Key *key = (Key *)ptr->owner_id;
   Object *ob;
 
   for (ob = bmain->objects.first; ob; ob = ob->id.next) {
@@ -756,8 +756,8 @@ static int rna_ShapeKeyPoint_get_index(Key *key, KeyBlock *kb, float *point)
 
 static char *rna_ShapeKeyPoint_path(PointerRNA *ptr)
 {
-  ID *id = (ID *)ptr->id.data;
-  Key *key = rna_ShapeKey_find_key(ptr->id.data);
+  ID *id = ptr->owner_id;
+  Key *key = rna_ShapeKey_find_key(ptr->owner_id);
   KeyBlock *kb;
   float *point = (float *)ptr->data;
 

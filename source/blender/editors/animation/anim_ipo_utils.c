@@ -122,7 +122,7 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
           MEM_freeN(constName);
         }
       }
-      else if (ptr.data != ptr.id.data) {
+      else if (ptr.data != ptr.owner_id) {
         PropertyRNA *nameprop = RNA_struct_name_property(ptr.type);
         if (nameprop) {
           /* this gets a string which will need to be freed */

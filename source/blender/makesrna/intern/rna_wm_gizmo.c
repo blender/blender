@@ -252,7 +252,7 @@ static void rna_Gizmo_update_redraw(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 static wmGizmo *rna_GizmoProperties_find_operator(PointerRNA *ptr)
 {
 #  if 0
-  wmWindowManager *wm = ptr->id.data;
+  wmWindowManager *wm = (wmWindowManager *)ptr->owner_id;
 #  endif
 
   /* We could try workaruond this lookup, but not trivial. */

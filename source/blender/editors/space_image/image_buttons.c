@@ -991,7 +991,7 @@ void uiTemplateImage(uiLayout *layout,
 void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_management)
 {
   ImageFormatData *imf = imfptr->data;
-  ID *id = imfptr->id.data;
+  ID *id = imfptr->owner_id;
   PointerRNA display_settings_ptr;
   PropertyRNA *prop;
   const int depth_ok = BKE_imtype_valid_depths(imf->imtype);

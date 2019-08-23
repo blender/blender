@@ -138,7 +138,7 @@ typedef struct EEVEE_LightBake {
   float vis_res;
   /** Result of previous light bounce. */
   GPUTexture *grid_prev;
-  /** Pointer to the id.data of the probe object. */
+  /** Pointer to the owner_id of the probe object. */
   LightProbe **grid_prb;
 
   /* Reflection probe */
@@ -148,7 +148,7 @@ typedef struct EEVEE_LightBake {
   int ref_cube_res;
   /** Index of the current cube. */
   int cube_offset;
-  /** Pointer to the id.data of the probe object. */
+  /** Pointer to the owner_id of the probe object. */
   LightProbe **cube_prb;
 
   /* Dummy Textures */

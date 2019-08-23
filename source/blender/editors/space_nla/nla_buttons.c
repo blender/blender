@@ -268,8 +268,8 @@ static void nla_panel_animdata(const bContext *C, Panel *pa)
   /* icon + id-block name of block where AnimData came from to prevent
    * accidentally changing the properties of the wrong action
    */
-  if (adt_ptr.id.data) {
-    ID *id = adt_ptr.id.data;
+  if (adt_ptr.owner_id) {
+    ID *id = adt_ptr.owner_id;
     PointerRNA id_ptr;
 
     RNA_id_pointer_create(id, &id_ptr);
@@ -513,7 +513,7 @@ static void nla_panel_modifiers(const bContext *C, Panel *pa)
   for (fcm = strip->modifiers.first; fcm; fcm = fcm->next) {
     col = uiLayoutColumn(pa->layout, true);
 
-    ANIM_uiTemplate_fmodifier_draw(col, strip_ptr.id.data, &strip->modifiers, fcm);
+    ANIM_uiTemplate_fmodifier_draw(col, strip_ptr.owner_id, &strip->modifiers, fcm);
   }
 }
 

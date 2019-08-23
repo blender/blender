@@ -89,7 +89,7 @@ static void rna_Meta_texspace_size_set(PointerRNA *ptr, const float *values)
 
 static void rna_MetaBall_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  MetaBall *mb = ptr->id.data;
+  MetaBall *mb = (MetaBall *)ptr->owner_id;
   Object *ob;
 
   /* cheating way for importers to avoid slow updates */
@@ -158,13 +158,13 @@ static void rna_MetaBall_elements_clear(MetaBall *mb)
 
 static bool rna_Meta_is_editmode_get(PointerRNA *ptr)
 {
-  MetaBall *mb = ptr->id.data;
+  MetaBall *mb = (MetaBall *)ptr->owner_id;
   return (mb->editelems != NULL);
 }
 
 static char *rna_MetaElement_path(PointerRNA *ptr)
 {
-  MetaBall *mb = ptr->id.data;
+  MetaBall *mb = (MetaBall *)ptr->owner_id;
   MetaElem *ml = ptr->data;
   int index = -1;
 

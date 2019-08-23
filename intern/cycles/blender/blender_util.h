@@ -594,7 +594,7 @@ template<typename K, typename T> class id_map {
 
   T *find(const BL::ID &id)
   {
-    return find(id.ptr.id.data);
+    return find(id.ptr.owner_id);
   }
 
   T *find(const K &key)
@@ -629,7 +629,7 @@ template<typename K, typename T> class id_map {
 
   bool sync(T **r_data, const BL::ID &id)
   {
-    return sync(r_data, id, id, id.ptr.id.data);
+    return sync(r_data, id, id, id.ptr.owner_id);
   }
 
   bool sync(T **r_data, const BL::ID &id, const BL::ID &parent, const K &key)

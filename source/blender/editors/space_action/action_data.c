@@ -220,7 +220,7 @@ static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
     PointerRNA oldptr;
 
     oldptr = RNA_property_pointer_get(&ptr, prop);
-    oldact = (bAction *)oldptr.id.data;
+    oldact = (bAction *)oldptr.owner_id;
 
     /* stash the old action to prevent it from being lost */
     if (ptr.type == &RNA_AnimData) {

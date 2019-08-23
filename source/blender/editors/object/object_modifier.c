@@ -918,7 +918,7 @@ bool edit_modifier_poll_generic(bContext *C,
                                 const bool is_editmode_allowed)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", rna_type);
-  Object *ob = (ptr.id.data) ? ptr.id.data : ED_object_active_context(C);
+  Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
 
   if (!ob || ID_IS_LINKED(ob)) {
     return 0;
@@ -926,7 +926,7 @@ bool edit_modifier_poll_generic(bContext *C,
   if (obtype_flag && ((1 << ob->type) & obtype_flag) == 0) {
     return 0;
   }
-  if (ptr.id.data && ID_IS_LINKED(ptr.id.data)) {
+  if (ptr.owner_id && ID_IS_LINKED(ptr.owner_id)) {
     return 0;
   }
 

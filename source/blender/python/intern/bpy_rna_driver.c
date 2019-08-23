@@ -91,7 +91,7 @@ bool pyrna_driver_is_equal_anim_rna(const PathResolvedRNA *anim_rna, const PyObj
     const PointerRNA *ptr_a = &anim_rna->ptr;
     const PointerRNA *ptr_b = &(((const BPy_StructRNA *)py_anim_rna)->ptr);
 
-    if ((ptr_a->id.data == ptr_b->id.data) && (ptr_a->type == ptr_b->type) &&
+    if ((ptr_a->owner_id == ptr_b->owner_id) && (ptr_a->type == ptr_b->type) &&
         (ptr_a->data == ptr_b->data)) {
       return true;
     }

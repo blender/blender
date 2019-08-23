@@ -140,8 +140,8 @@ static void rna_ShaderFx_name_set(PointerRNA *ptr, const char *value)
   BLI_strncpy_utf8(gmd->name, value, sizeof(gmd->name));
 
   /* make sure the name is truly unique */
-  if (ptr->id.data) {
-    Object *ob = ptr->id.data;
+  if (ptr->owner_id) {
+    Object *ob = (Object *)ptr->owner_id;
     BKE_shaderfx_unique_name(&ob->shader_fx, gmd);
   }
 
@@ -160,8 +160,8 @@ static char *rna_ShaderFx_path(PointerRNA *ptr)
 
 static void rna_ShaderFx_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  DEG_id_tag_update(ptr->id.data, ID_RECALC_GEOMETRY);
-  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->id.data);
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->owner_id);
 }
 
 static void rna_ShaderFx_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -189,7 +189,7 @@ static void shaderfx_object_set(Object *self, Object **ob_p, int type, PointerRN
         PointerRNA *ptr, PointerRNA value, struct ReportList *UNUSED(reports)) \
     { \
       _type##ShaderFxData *tmd = (_type##ShaderFxData *)ptr->data; \
-      shaderfx_object_set(ptr->id.data, &tmd->_prop, _obtype, value); \
+      shaderfx_object_set((Object *)ptr->owner_id, &tmd->_prop, _obtype, value); \
     }
 
 RNA_FX_OBJECT_SET(Light, object, OB_EMPTY);

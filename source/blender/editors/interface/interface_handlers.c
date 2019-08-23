@@ -757,7 +757,7 @@ static void ui_apply_but_undo(uiBut *but)
     }
 
     /* Optionally override undo when undo system doesn't support storing properties. */
-    if (but->rnapoin.id.data) {
+    if (but->rnapoin.owner_id) {
       /* Exception for renaming ID data, we always need undo pushes in this case,
        * because undo systems track data by their ID, see: T67002. */
       extern PropertyRNA rna_ID_name;
@@ -765,7 +765,7 @@ static void ui_apply_but_undo(uiBut *but)
         /* pass */
       }
       else {
-        ID *id = but->rnapoin.id.data;
+        ID *id = but->rnapoin.owner_id;
         if (!ED_undo_is_legacy_compatible_for_property(but->block->evil_C, id)) {
           str = "";
         }
@@ -1558,7 +1558,7 @@ static bool ui_selectcontext_begin(bContext *C, uiBut *but, uiSelectContextStore
           if (use_path_from_id) {
             /* Path relative to ID. */
             lprop = NULL;
-            RNA_id_pointer_create(link->ptr.id.data, &idptr);
+            RNA_id_pointer_create(link->ptr.owner_id, &idptr);
             RNA_path_resolve_property(&idptr, path, &lptr, &lprop);
           }
           else if (path) {
@@ -5488,7 +5488,7 @@ static bool ui_numedit_but_UNITVEC(
 static void ui_palette_set_active(uiBut *but)
 {
   if ((int)(but->a1) == UI_PALETTE_COLOR) {
-    Palette *palette = but->rnapoin.id.data;
+    Palette *palette = (Palette *)but->rnapoin.owner_id;
     PaletteColor *color = but->rnapoin.data;
     palette->active_color = BLI_findindex(&palette->colors, color);
   }
@@ -5551,7 +5551,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
     }
     else if ((int)(but->a1) == UI_PALETTE_COLOR && event->type == DELKEY &&
              event->val == KM_PRESS) {
-      Palette *palette = but->rnapoin.id.data;
+      Palette *palette = (Palette *)but->rnapoin.owner_id;
       PaletteColor *color = but->rnapoin.data;
 
       BKE_palette_color_remove(palette, color);

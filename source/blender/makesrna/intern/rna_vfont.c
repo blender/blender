@@ -40,7 +40,7 @@
 /* matching fnction in rna_ID.c */
 static int rna_VectorFont_filepath_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
-  VFont *vfont = ptr->id.data;
+  VFont *vfont = (VFont *)ptr->owner_id;
   if (BKE_vfont_is_builtin(vfont)) {
     return 0;
   }
@@ -51,7 +51,7 @@ static void rna_VectorFont_reload_update(Main *UNUSED(bmain),
                                          Scene *UNUSED(scene),
                                          PointerRNA *ptr)
 {
-  VFont *vf = ptr->id.data;
+  VFont *vf = (VFont *)ptr->owner_id;
   BKE_vfont_free_data(vf);
 
   /* update */

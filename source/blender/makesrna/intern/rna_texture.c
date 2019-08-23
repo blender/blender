@@ -186,10 +186,10 @@ static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 
 static void rna_Texture_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
 
   if (GS(id->name) == ID_TE) {
-    Tex *tex = ptr->id.data;
+    Tex *tex = (Tex *)ptr->owner_id;
 
     DEG_id_tag_update(&tex->id, 0);
     DEG_id_tag_update(&tex->id, ID_RECALC_EDITORS);
@@ -197,7 +197,7 @@ static void rna_Texture_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *pt
     WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, NULL);
   }
   else if (GS(id->name) == ID_NT) {
-    bNodeTree *ntree = ptr->id.data;
+    bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
     ED_node_tag_update_nodetree(bmain, ntree, NULL);
   }
 }
@@ -219,7 +219,7 @@ static void rna_Color_mapping_update(Main *UNUSED(bmain),
 /* Used for Texture Properties, used (also) for/in Nodes */
 static void rna_Texture_nodes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Tex *tex = ptr->id.data;
+  Tex *tex = (Tex *)ptr->owner_id;
 
   DEG_id_tag_update(&tex->id, 0);
   DEG_id_tag_update(&tex->id, ID_RECALC_EDITORS);
@@ -235,7 +235,7 @@ static void rna_Texture_type_set(PointerRNA *ptr, int value)
 
 void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
 {
-  ID *id = ptr->id.data;
+  ID *id = ptr->owner_id;
 
   DEG_id_tag_update(id, 0);
 
@@ -290,8 +290,8 @@ char *rna_TextureSlot_path(PointerRNA *ptr)
    * since the name used is the name of the texture assigned, but the texture
    * may be used multiple times in the same stack
    */
-  if (ptr->id.data) {
-    if (GS(((ID *)ptr->id.data)->name) == ID_BR) {
+  if (ptr->owner_id) {
+    if (GS(ptr->owner_id->name) == ID_BR) {
       return BLI_strdup("texture_slot");
     }
     else {
@@ -299,7 +299,7 @@ char *rna_TextureSlot_path(PointerRNA *ptr)
       PropertyRNA *prop;
 
       /* find the 'textures' property of the ID-struct */
-      RNA_id_pointer_create(ptr->id.data, &id_ptr);
+      RNA_id_pointer_create(ptr->owner_id, &id_ptr);
       prop = RNA_struct_find_property(&id_ptr, "texture_slots");
 
       /* get an iterator for this property, and try to find the relevant index */
