@@ -141,9 +141,14 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
                        ModifierData *md,
                        bool UNUSED(useRenderParams))
 {
-  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
   /* If no source object, bypass. */
-  return (dtmd->ob_source == NULL);
+  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
+  /* The object type check is only needed here in case we have a placeholder
+   * object assigned (because the library containing the mesh is missing).
+   *
+   * In other cases it should be impossible to have a type missmatch.
+   */
+  return !dtmd->ob_source || dtmd->ob_source->type != OB_MESH;
 }
 
 #define HIGH_POLY_WARNING 10000

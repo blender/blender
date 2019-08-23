@@ -1279,7 +1279,13 @@ static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED
 {
   SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 
-  return smd->target == NULL && !(smd->verts != NULL && !(smd->flags & MOD_SDEF_BIND));
+  /* The object type check is only needed here in case we have a placeholder
+   * object assigned (because the library containing the mesh is missing).
+   *
+   * In other cases it should be impossible to have a type missmatch.
+   */
+  return (smd->target == NULL || smd->target->type != OB_MESH) &&
+         !(smd->verts != NULL && !(smd->flags & MOD_SDEF_BIND));
 }
 
 ModifierTypeInfo modifierType_SurfaceDeform = {

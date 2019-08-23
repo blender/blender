@@ -155,7 +155,12 @@ static bool isDisabled(GpencilModifierData *md, int UNUSED(userRenderParams))
 {
   ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
 
-  return !mmd->object;
+  /* The object type check is only needed here in case we have a placeholder
+   * object assigned (because the library containing the armature is missing).
+   *
+   * In other cases it should be impossible to have a type missmatch.
+   */
+  return !mmd->object || mmd->object->type != OB_ARMATURE;
 }
 
 static void updateDepsgraph(GpencilModifierData *md, const ModifierUpdateDepsgraphContext *ctx)

@@ -64,7 +64,12 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
 
-  return !lmd->object;
+  /* The object type check is only needed here in case we have a placeholder
+   * object assigned (because the library containing the lattice is missing).
+   *
+   * In other cases it should be impossible to have a type missmatch.
+   */
+  return !lmd->object || lmd->object->type != OB_LATTICE;
 }
 
 static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)

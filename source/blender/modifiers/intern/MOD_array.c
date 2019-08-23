@@ -395,7 +395,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   count = amd->count;
 
   Object *start_cap_ob = amd->start_cap;
-  if (start_cap_ob && start_cap_ob != ctx->object && start_cap_ob->type == OB_MESH) {
+  if (start_cap_ob && start_cap_ob != ctx->object) {
     vgroup_start_cap_remap = BKE_object_defgroup_index_map_create(
         start_cap_ob, ctx->object, &vgroup_start_cap_remap_len);
 
@@ -408,7 +408,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     }
   }
   Object *end_cap_ob = amd->end_cap;
-  if (end_cap_ob && end_cap_ob != ctx->object && end_cap_ob->type == OB_MESH) {
+  if (end_cap_ob && end_cap_ob != ctx->object) {
     vgroup_end_cap_remap = BKE_object_defgroup_index_map_create(
         end_cap_ob, ctx->object, &vgroup_end_cap_remap_len);
 
@@ -465,13 +465,10 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
   if (amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob != NULL) {
     Object *curve_ob = amd->curve_ob;
-    Curve *cu = curve_ob->data;
-    if (cu) {
-      CurveCache *curve_cache = curve_ob->runtime.curve_cache;
-      if (curve_cache != NULL && curve_cache->path != NULL) {
-        float scale_fac = mat4_to_scale(curve_ob->obmat);
-        length = scale_fac * curve_cache->path->totdist;
-      }
+    CurveCache *curve_cache = curve_ob->runtime.curve_cache;
+    if (curve_cache != NULL && curve_cache->path != NULL) {
+      float scale_fac = mat4_to_scale(curve_ob->obmat);
+      length = scale_fac * curve_cache->path->totdist;
     }
   }
 
@@ -769,6 +766,31 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   return arrayModifier_doArray(amd, ctx, mesh);
 }
 
+static bool isDisabled(const struct Scene *UNUSED(scene),
+                       ModifierData *md,
+                       bool UNUSED(useRenderParams))
+{
+  ArrayModifierData *amd = (ArrayModifierData *)md;
+
+  /* The object type check is only needed here in case we have a placeholder
+   * object assigned (because the library containing the curve/mesh is missing).
+   *
+   * In other cases it should be impossible to have a type missmatch.
+   */
+
+  if (amd->curve_ob && amd->curve_ob->type != OB_CURVE) {
+    return true;
+  }
+  else if (amd->start_cap && amd->start_cap->type != OB_MESH) {
+    return true;
+  }
+  else if (amd->end_cap && amd->end_cap->type != OB_MESH) {
+    return true;
+  }
+
+  return false;
+}
+
 ModifierTypeInfo modifierType_Array = {
     /* name */ "Array",
     /* structName */ "ArrayModifierData",
@@ -789,7 +811,7 @@ ModifierTypeInfo modifierType_Array = {
     /* initData */ initData,
     /* requiredDataMask */ NULL,
     /* freeData */ NULL,
-    /* isDisabled */ NULL,
+    /* isDisabled */ isDisabled,
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ NULL,

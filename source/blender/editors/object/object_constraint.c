@@ -493,8 +493,12 @@ static void test_constraint(
                CONSTRAINT_TYPE_CLAMPTO,
                CONSTRAINT_TYPE_SPLINEIK)) {
         if (ct->tar) {
+          /* The object type check is only needed here in case we have a placeholder
+           * object assigned (because the library containing the curve is missing).
+           *
+           * In other cases it should be impossible to have a type missmatch.
+           */
           if (ct->tar->type != OB_CURVE) {
-            ct->tar = NULL;
             con->flag |= CONSTRAINT_DISABLE;
           }
           else {
@@ -507,8 +511,12 @@ static void test_constraint(
       }
       else if (con->type == CONSTRAINT_TYPE_ARMATURE) {
         if (ct->tar) {
+          /* The object type check is only needed here in case we have a placeholder
+           * object assigned (because the library containing the armature is missing).
+           *
+           * In other cases it should be impossible to have a type missmatch.
+           */
           if (ct->tar->type != OB_ARMATURE) {
-            ct->tar = NULL;
             con->flag |= CONSTRAINT_DISABLE;
           }
           else if (!BKE_armature_find_bone_name(BKE_armature_from_object(ct->tar),

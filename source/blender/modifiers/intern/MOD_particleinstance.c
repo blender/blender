@@ -80,7 +80,12 @@ static bool isDisabled(const struct Scene *scene, ModifierData *md, bool useRend
   ParticleSystem *psys;
   ModifierData *ob_md;
 
-  if (!pimd->ob) {
+  /* The object type check is only needed here in case we have a placeholder
+   * object assigned (because the library containing the mesh is missing).
+   *
+   * In other cases it should be impossible to have a type missmatch.
+   */
+  if (!pimd->ob || pimd->ob->type != OB_MESH) {
     return true;
   }
 

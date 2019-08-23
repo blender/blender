@@ -82,7 +82,7 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   /* The object type check is only needed here in case we have a placeholder
    * object assigned (because the library containing the armature is missing).
    *
-   * In other cases it should be impossible.
+   * In other cases it should be impossible to have a type missmatch.
    */
   return !amd->object || amd->object->type != OB_ARMATURE;
 }

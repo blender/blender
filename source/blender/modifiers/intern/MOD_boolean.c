@@ -71,7 +71,12 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
 
-  return !bmd->object;
+  /* The object type check is only needed here in case we have a placeholder
+   * object assigned (because the library containing the mesh is missing).
+   *
+   * In other cases it should be impossible to have a type missmatch.
+   */
+  return !bmd->object || bmd->object->type != OB_MESH;
 }
 
 static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
