@@ -1866,7 +1866,7 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
   View3D *v3d = draw_ctx->v3d;
   int cfra_eval = (int)DEG_get_ctime(draw_ctx->depsgraph);
 
-  bGPDframe *eval_gpf = NULL;
+  bGPDframe *gpf_eval = NULL;
   const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) : true;
   const bool time_remap = BKE_gpencil_has_time_modifiers(ob);
 
@@ -1937,7 +1937,7 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
 
     /* Get evaluated frames array data */
     int eval_idx = BLI_findindex(&gpd->layers, gpl);
-    eval_gpf = &ob->runtime.gpencil_evaluated_frames[eval_idx];
+    gpf_eval = &ob->runtime.gpencil_evaluated_frames[eval_idx];
 
     /* draw onion skins */
     if (!ID_IS_LINKED(&gpd->id)) {
@@ -1952,7 +1952,7 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
     }
     /* draw normal strokes */
     gpencil_draw_strokes(
-        cache, e_data, vedata, ob, gpd, gpl, eval_gpf, opacity, gpl->tintcolor, false, cache_ob);
+        cache, e_data, vedata, ob, gpd, gpl, gpf_eval, opacity, gpl->tintcolor, false, cache_ob);
   }
 
   /* create batchs and shading groups */

@@ -205,14 +205,14 @@ static void draw_uvs_shadow(SpaceImage *UNUSED(sima),
                             Object *obedit,
                             Depsgraph *depsgraph)
 {
-  Object *eval_ob = DEG_get_evaluated_object(depsgraph, obedit);
-  Mesh *me = eval_ob->data;
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, obedit);
+  Mesh *me = ob_eval->data;
   float col[4];
   UI_GetThemeColor4fv(TH_UV_SHADOW, col);
 
   DRW_mesh_batch_cache_validate(me);
   GPUBatch *edges = DRW_mesh_batch_cache_get_uv_edges(me);
-  DRW_mesh_batch_cache_create_requested(eval_ob, me, scene, false, false);
+  DRW_mesh_batch_cache_create_requested(ob_eval, me, scene, false, false);
 
   if (edges) {
     GPU_batch_program_set_builtin(edges, GPU_SHADER_2D_UV_UNIFORM_COLOR);
@@ -223,8 +223,8 @@ static void draw_uvs_shadow(SpaceImage *UNUSED(sima),
 
 static void draw_uvs_texpaint(Scene *scene, Object *ob, Depsgraph *depsgraph)
 {
-  Object *eval_ob = DEG_get_evaluated_object(depsgraph, ob);
-  Mesh *me = eval_ob->data;
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Mesh *me = ob_eval->data;
   ToolSettings *ts = scene->toolsettings;
   float col[4];
   UI_GetThemeColor4fv(TH_UV_SHADOW, col);
@@ -235,7 +235,7 @@ static void draw_uvs_texpaint(Scene *scene, Object *ob, Depsgraph *depsgraph)
 
   DRW_mesh_batch_cache_validate(me);
   GPUBatch *geom = DRW_mesh_batch_cache_get_uv_edges(me);
-  DRW_mesh_batch_cache_create_requested(eval_ob, me, scene, false, false);
+  DRW_mesh_batch_cache_create_requested(ob_eval, me, scene, false, false);
 
   GPU_batch_program_set_builtin(geom, GPU_SHADER_2D_UV_UNIFORM_COLOR);
   GPU_batch_uniform_4fv(geom, "color", col);
@@ -246,7 +246,7 @@ static void draw_uvs_texpaint(Scene *scene, Object *ob, Depsgraph *depsgraph)
     MPoly *mpoly = me->mpoly;
     uint draw_start = 0;
     uint idx = 0;
-    bool prev_ma_match = (mpoly->mat_nr == (eval_ob->actcol - 1));
+    bool prev_ma_match = (mpoly->mat_nr == (ob_eval->actcol - 1));
 
     GPU_matrix_bind(geom->interface);
     GPU_batch_bind(geom);
@@ -255,7 +255,7 @@ static void draw_uvs_texpaint(Scene *scene, Object *ob, Depsgraph *depsgraph)
      * we can use multi draw indirect drawcalls for this.
      * (not implemented in GPU module at the time of writing). */
     for (int a = 0; a < me->totpoly; a++, mpoly++) {
-      bool ma_match = (mpoly->mat_nr == (eval_ob->actcol - 1));
+      bool ma_match = (mpoly->mat_nr == (ob_eval->actcol - 1));
       if (ma_match != prev_ma_match) {
         if (ma_match == false) {
           GPU_batch_draw_advanced(geom, draw_start, idx - draw_start, 0, 0);
@@ -282,13 +282,13 @@ static void draw_uvs_texpaint(Scene *scene, Object *ob, Depsgraph *depsgraph)
 static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *depsgraph)
 {
   GPUBatch *faces, *edges, *verts, *facedots;
-  Object *eval_ob = DEG_get_evaluated_object(depsgraph, obedit);
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, obedit);
   const ToolSettings *ts = scene->toolsettings;
   float col1[4], col2[4], col3[4], transparent[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
   if (sima->flag & SI_DRAWSHADOW) {
     bool is_cage_like_final_meshes = false;
-    Mesh *me = (Mesh *)eval_ob->data;
+    Mesh *me = (Mesh *)ob_eval->data;
     BMEditMesh *embm = me->edit_mesh;
     is_cage_like_final_meshes = embm && embm->mesh_eval_final &&
                                 embm->mesh_eval_final->runtime.is_original;
@@ -300,7 +300,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
     }
   }
 
-  uvedit_get_batches(eval_ob, sima, scene, &faces, &edges, &verts, &facedots);
+  uvedit_get_batches(ob_eval, sima, scene, &faces, &edges, &verts, &facedots);
 
   bool interpedges;
   bool draw_stretch = (sima->flag & SI_DRAW_STRETCH) != 0;
