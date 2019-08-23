@@ -170,6 +170,7 @@ class DATA_PT_gpencil_layers(DataButtonsPanel, Panel):
             col = layout.row(align=True)
             col.prop(gpl, "opacity", text="Opacity", slider=True)
 
+
 class DATA_PT_gpencil_layer_adjustments(LayerDataButtonsPanel, Panel):
     bl_label = "Adjustments"
     bl_parent_id = 'DATA_PT_gpencil_layers'
@@ -203,6 +204,7 @@ class DATA_PT_gpencil_layer_adjustments(LayerDataButtonsPanel, Panel):
 
         col = layout.row(align=True)
         col.prop(gpl, "lock_material")
+
 
 class DATA_PT_gpencil_layer_relations(LayerDataButtonsPanel, Panel):
     bl_label = "Relations"
@@ -245,6 +247,7 @@ class DATA_PT_gpencil_layer_display(LayerDataButtonsPanel, Panel):
 
         col = layout.row(align=True)
         col.prop(gpl, "use_solo_mode", text="Show Only On Keyframed")
+
 
 class DATA_PT_gpencil_onion_skinning(DataButtonsPanel, Panel):
     bl_label = "Onion Skinning"
