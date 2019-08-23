@@ -62,22 +62,10 @@
 /* ************************** Object Tools Exports ******************************* */
 /* NOTE: these functions are exported to the Object module to be called from the tools there */
 
-void ED_armature_transform_apply(Main *bmain, Object *ob, float mat[4][4], const bool do_props)
-{
-  bArmature *arm = ob->data;
-
-  /* Put the armature into editmode */
-  ED_armature_to_edit(arm);
-
-  /* Transform the bones */
-  ED_armature_transform_bones(arm, mat, do_props);
-
-  /* Turn the list into an armature */
-  ED_armature_from_edit(bmain, arm);
-  ED_armature_edit_free(arm);
-}
-
-void ED_armature_transform_bones(struct bArmature *arm, float mat[4][4], const bool do_props)
+/**
+ * See #BKE_armature_transform for object-mode transform.
+ */
+void ED_armature_edit_transform(bArmature *arm, const float mat[4][4], const bool do_props)
 {
   EditBone *ebone;
   float scale = mat4_to_scale(mat); /* store the scale of the matrix here to use on envelopes */
@@ -114,21 +102,13 @@ void ED_armature_transform_bones(struct bArmature *arm, float mat[4][4], const b
   }
 }
 
-void ED_armature_transform(Main *bmain, bArmature *arm, float mat[4][4], const bool do_props)
+void ED_armature_transform(bArmature *arm, const float mat[4][4], const bool do_props)
 {
   if (arm->edbo) {
-    ED_armature_transform_bones(arm, mat, do_props);
+    ED_armature_edit_transform(arm, mat, do_props);
   }
   else {
-    /* Put the armature into editmode */
-    ED_armature_to_edit(arm);
-
-    /* Transform the bones */
-    ED_armature_transform_bones(arm, mat, do_props);
-
-    /* Go back to object mode*/
-    ED_armature_from_edit(bmain, arm);
-    ED_armature_edit_free(arm);
+    BKE_armature_transform(arm, mat, do_props);
   }
 }
 

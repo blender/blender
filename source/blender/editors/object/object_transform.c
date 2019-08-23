@@ -768,7 +768,8 @@ static int apply_objects_internal(bContext *C,
       BKE_mesh_calc_normals(me);
     }
     else if (ob->type == OB_ARMATURE) {
-      ED_armature_transform_apply(bmain, ob, mat, do_props);
+      bArmature *arm = ob->data;
+      BKE_armature_transform(arm, mat, do_props);
     }
     else if (ob->type == OB_LATTICE) {
       Lattice *lt = ob->data;
