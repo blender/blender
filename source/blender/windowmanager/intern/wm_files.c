@@ -2836,6 +2836,12 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
   /* Buttons */
   uiBut *but;
   uiLayout *split = uiLayoutSplit(layout, 0.0f, true);
+  uiLayoutSetScaleY(split, 1.2f);
+
+  /* empty space */
+  col = uiLayoutColumn(split, false);
+  uiItemS(col);
+
   col = uiLayoutColumn(split, false);
 
   /* Allow reload if we have a saved file.
@@ -2876,12 +2882,10 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
                            TIP_("Enable scripts"));
     UI_but_func_set(but, wm_block_autorun_warning_enable_scripts, block, NULL);
   }
+  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
 
-  /* empty space between buttons */
+
   col = uiLayoutColumn(split, false);
-  uiItemS(col);
-
-  col = uiLayoutColumn(split, 1);
   but = uiDefIconTextBut(block,
                          UI_BTYPE_BUT,
                          0,
@@ -2898,8 +2902,10 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
                          0,
                          TIP_("Continue using file without Python scripts"));
   UI_but_func_set(but, wm_block_autorun_warning_ignore, block, NULL);
+  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+  UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
 
-  UI_block_bounds_set_centered(block, 10);
+  UI_block_bounds_set_centered(block, 14 * U.dpi_fac);
 
   return block;
 }
