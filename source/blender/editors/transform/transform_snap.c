@@ -166,7 +166,10 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
   activeCol[3] = 192;
 
   if (t->spacetype == SPACE_VIEW3D) {
-    if (validSnap(t)) {
+    bool draw_target = (t->tsnap.status & TARGET_INIT) &&
+                       (t->scene->toolsettings->snap_mode & SCE_SNAP_MODE_EDGE_PERPENDICULAR);
+
+    if (draw_target || validSnap(t)) {
       TransSnapPoint *p;
       RegionView3D *rv3d = CTX_wm_region_view3d(C);
       float imat[4][4];
@@ -212,6 +215,48 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
                     t->tsnap.snapPoint[1] + t->tsnap.snapNormal[1],
                     t->tsnap.snapPoint[2] + t->tsnap.snapNormal[2]);
         immEnd();
+      }
+
+      if (draw_target) {
+        /* Draw snapTarget */
+        float targ_co[3], vx[3], vy[3], v1[3], v2[3], v3[3], v4[4];
+        copy_v3_v3(targ_co, t->tsnap.snapTarget);
+        float px_size = 0.75f * size * ED_view3d_pixel_size(rv3d, targ_co);
+
+        mul_v3_v3fl(vx, imat[0], px_size);
+        mul_v3_v3fl(vy, imat[1], px_size);
+
+        add_v3_v3v3(v1, vx, vy);
+        sub_v3_v3v3(v2, vx, vy);
+        negate_v3_v3(v3, v1);
+        negate_v3_v3(v4, v2);
+
+        add_v3_v3(v1, targ_co);
+        add_v3_v3(v2, targ_co);
+        add_v3_v3(v3, targ_co);
+        add_v3_v3(v4, targ_co);
+
+        immUniformColor4ubv(col);
+        immBegin(GPU_PRIM_LINES, 4);
+        immVertex3fv(pos, v3);
+        immVertex3fv(pos, v1);
+        immVertex3fv(pos, v4);
+        immVertex3fv(pos, v2);
+        immEnd();
+
+        if (t->tsnap.snapElem & SCE_SNAP_MODE_EDGE_PERPENDICULAR) {
+          immUnbindProgram();
+
+          immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
+          immUniform1f("dash_width", 6.0f * U.pixelsize);
+          immUniform1f("dash_factor", 1.0f / 4.0f);
+          immUniformColor4ubv(col);
+
+          immBegin(GPU_PRIM_LINES, 2);
+          immVertex3fv(pos, targ_co);
+          immVertex3fv(pos, t->tsnap.snapPoint);
+          immEnd();
+        }
       }
 
       immUnbindProgram();
@@ -994,6 +1039,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
     float no[3];
     float mval[2];
     bool found = false;
+    short snap_elem = 0;
     float dist_px = SNAP_MIN_DISTANCE;  // Use a user defined value here
 
     mval[0] = t->mval[0];
@@ -1002,11 +1048,16 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
     if (t->tsnap.mode & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
                          SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
       zero_v3(no); /* objects won't set this */
-      found = snapObjectsTransform(t, mval, &dist_px, loc, no);
+      snap_elem = snapObjectsTransform(t, mval, &dist_px, loc, no);
+      found = snap_elem != 0;
     }
     if ((found == false) && (t->tsnap.mode & SCE_SNAP_MODE_VOLUME)) {
       found = peelObjectsTransform(
           t, mval, (t->settings->snap_flag & SCE_SNAP_PEEL_OBJECT) != 0, loc, no, NULL);
+
+      if (found) {
+        snap_elem = SCE_SNAP_MODE_VOLUME;
+      }
     }
 
     if (found == true) {
@@ -1018,6 +1069,8 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
     else {
       t->tsnap.status &= ~POINT_INIT;
     }
+
+    t->tsnap.snapElem = (char)snap_elem;
   }
   else if (t->spacetype == SPACE_IMAGE && t->obedit_type == OB_MESH) {
     if (t->tsnap.mode & SCE_SNAP_MODE_VERTEX) {
@@ -1261,10 +1314,10 @@ static void TargetSnapClosest(TransInfo *t)
   }
 }
 
-bool snapObjectsTransform(
+short snapObjectsTransform(
     TransInfo *t, const float mval[2], float *dist_px, float r_loc[3], float r_no[3])
 {
-  return ED_transform_snap_object_project_view3d(
+  return ED_transform_snap_object_project_view3d_ex(
       t->tsnap.object_context,
       t->scene->toolsettings->snap_mode,
       &(const struct SnapObjectParams){
@@ -1276,7 +1329,10 @@ bool snapObjectsTransform(
       t->tsnap.snapTarget,
       dist_px,
       r_loc,
-      r_no);
+      r_no,
+      NULL,
+      NULL,
+      NULL);
 }
 
 /******************** PEELING *********************************/

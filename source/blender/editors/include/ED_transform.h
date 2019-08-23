@@ -197,12 +197,12 @@ bool peelObjectsSnapContext(struct SnapObjectContext *sctx,
                             float r_no[3],
                             float *r_thickness);
 
-bool snapObjectsTransform(struct TransInfo *t,
-                          const float mval[2],
-                          float *dist_px,
-                          /* return args */
-                          float r_loc[3],
-                          float r_no[3]);
+short snapObjectsTransform(struct TransInfo *t,
+                           const float mval[2],
+                           float *dist_px,
+                           /* return args */
+                           float r_loc[3],
+                           float r_no[3]);
 bool snapNodesTransform(struct TransInfo *t,
                         const int mval[2],
                         /* return args */
