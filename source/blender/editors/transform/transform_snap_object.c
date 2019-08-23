@@ -583,37 +583,31 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
   }
 
   if (treedata->tree == NULL) {
-    BVHCache **bvh_cache = NULL;
-    BLI_bitmap *elem_mask = NULL;
-    BMEditMesh *em_orig;
-    int looptri_num_active = -1;
-
     /* Get original version of the edit_mesh. */
-    em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
+    BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
 
     if (sctx->callbacks.edit_mesh.test_face_fn) {
       BMesh *bm = em_orig->bm;
       BLI_assert(poly_to_tri_count(bm->totface, bm->totloop) == em_orig->tottri);
 
-      elem_mask = BLI_BITMAP_NEW(em_orig->tottri, __func__);
-      looptri_num_active = BM_iter_mesh_bitmap_from_filter_tessface(
+      BLI_bitmap *elem_mask = BLI_BITMAP_NEW(em_orig->tottri, __func__);
+      int looptri_num_active = BM_iter_mesh_bitmap_from_filter_tessface(
           bm,
           elem_mask,
           sctx->callbacks.edit_mesh.test_face_fn,
           sctx->callbacks.edit_mesh.user_data);
+
+      bvhtree_from_editmesh_looptri_ex(
+          treedata, em_orig, elem_mask, looptri_num_active, 0.0f, 4, 6, 0, NULL);
+
+      MEM_freeN(elem_mask);
     }
     else {
       /* Only cache if bvhtree is created without a mask.
        * This helps keep a standardized bvhtree in cache. */
-      bvh_cache = em_bvh_cache;
+      BKE_bvhtree_from_editmesh_get(treedata, em_orig, 4, BVHTREE_FROM_EM_LOOPTRI, em_bvh_cache);
     }
 
-    bvhtree_from_editmesh_looptri_ex(
-        treedata, em_orig, elem_mask, looptri_num_active, 0.0f, 4, 6, bvh_cache);
-
-    if (elem_mask) {
-      MEM_freeN(elem_mask);
-    }
     if (treedata->tree == NULL) {
       return retval;
     }
@@ -2284,11 +2278,11 @@ static short snapEditMesh(SnapObjectContext *sctx,
             sctx->callbacks.edit_mesh.user_data);
 
         bvhtree_from_editmesh_verts_ex(
-            treedata_vert, em, verts_mask, verts_num_active, 0.0f, 2, 6);
+            treedata_vert, em, verts_mask, verts_num_active, 0.0f, 2, 6, 0, NULL);
         MEM_freeN(verts_mask);
       }
       else {
-        bvhtree_from_editmesh_verts(treedata_vert, em, 0.0f, 2, 6, em_bvh_cache);
+        BKE_bvhtree_from_editmesh_get(treedata_vert, em, 2, BVHTREE_FROM_EM_VERTS, em_bvh_cache);
       }
     }
   }
@@ -2320,11 +2314,11 @@ static short snapEditMesh(SnapObjectContext *sctx,
             sctx->callbacks.edit_mesh.user_data);
 
         bvhtree_from_editmesh_edges_ex(
-            treedata_edge, em, edges_mask, edges_num_active, 0.0f, 2, 6);
+            treedata_edge, em, edges_mask, edges_num_active, 0.0f, 2, 6, 0, NULL);
         MEM_freeN(edges_mask);
       }
       else {
-        bvhtree_from_editmesh_edges(treedata_edge, em, 0.0f, 2, 6, em_bvh_cache);
+        BKE_bvhtree_from_editmesh_get(treedata_vert, em, 2, BVHTREE_FROM_EM_EDGES, em_bvh_cache);
       }
     }
   }
