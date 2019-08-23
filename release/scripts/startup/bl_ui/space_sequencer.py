@@ -103,15 +103,14 @@ class SEQUENCER_HT_header(Header):
 
         SEQUENCER_MT_editor_menus.draw_collapsible(context, layout)
 
-        layout.separator_spacer()
-
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
+
+            layout.separator_spacer()
+
             layout.prop(st, "display_mode", text="", icon_only=True)
 
-        if st.view_type != 'SEQUENCER':
             layout.prop(st, "preview_channels", text="", icon_only=True)
 
-        if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
             gpd = context.gpencil_data
             tool_settings = context.tool_settings
 
