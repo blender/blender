@@ -2471,7 +2471,11 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
           DEG_id_tag_update_ex(bmain, &new_ob->id, ID_RECALC_TRANSFORM | ID_RECALC_BASE_FLAGS);
         }
         /* parent to 'collection' empty */
-        if (new_ob->parent == NULL) {
+        /* Disabled for now, according to some artist this is probably not really useful anyway.
+         * And it breaks things like objects parented to bones
+         * (most likely due to missing proper setting of inverse parent matrix?)... */
+        /* Note: we might even actually want to get rid of that instanciating empty... */
+        if (0 && new_ob->parent == NULL) {
           new_ob->parent = obcollection;
         }
         if (new_ob == (Object *)obact->id.newid) {
