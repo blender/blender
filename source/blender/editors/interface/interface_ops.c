@@ -629,8 +629,9 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
   /* We need source (i.e. linked data) to restore values of deleted overrides...
    * If this is an override template, we obviously do not need to restore anything. */
   if (!is_template) {
+    PropertyRNA *src_prop;
     RNA_id_pointer_create(id->override_library->reference, &id_refptr);
-    if (!RNA_path_resolve(&id_refptr, oprop->rna_path, &src, NULL)) {
+    if (!RNA_path_resolve_property(&id_refptr, oprop->rna_path, &src, &src_prop)) {
       BLI_assert(0 && "Failed to create matching source (linked data) RNA pointer");
     }
   }

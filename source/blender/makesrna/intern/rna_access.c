@@ -5360,6 +5360,10 @@ static bool rna_path_parse(PointerRNA *ptr,
  * Resolve the given RNA Path to find the pointer and/or property
  * indicated by fully resolving the path.
  *
+ * \warning Unlike \a RNA_path_resolve_property(), that one *will* try to follow RNAPointers,
+ * e.g. the path 'parent' applied to a RNAObject \a ptr will return the object.parent in \a r_ptr,
+ * and a NULL \a r_prop...
+ *
  * \note Assumes all pointers provided are valid
  * \return True if path can be resolved to a valid "pointer + property" OR "pointer only"
  */
