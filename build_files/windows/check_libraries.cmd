@@ -39,6 +39,15 @@ if NOT EXIST %BUILD_VS_LIBDIR% (
 			)
 		)
 	)
+) else (
+	if NOT EXIST %PYTHON% (
+		if not "%SVN%"=="" (
+			echo.
+			echo Python not found in external libraries, updating to latest version
+			echo.
+			"%SVN%" update %BUILD_VS_LIBDIR%
+		)
+	)
 )
 
 if NOT EXIST %BUILD_VS_LIBDIR% (

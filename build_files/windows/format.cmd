@@ -9,7 +9,7 @@ exit /b 1
 :detect_done
 echo found clang-format in %CF_PATH%
 
-if EXIST %BLENDER_DIR%\..\lib\win64_vc14\python\37\bin\python.exe (
+if EXIST %PYTHON% (
     set PYTHON=%BLENDER_DIR%\..\lib\win64_vc14\python\37\bin\python.exe
     goto detect_python_done
 )
@@ -25,6 +25,7 @@ set FORMAT_PATHS=%BLENDER_DIR%\source\tools\utils_maintenance\clang_format_paths
 REM The formatting script expects clang-format to be in the current PATH.
 set PATH=%CF_PATH%;%PATH%
 
-%PYTHON% %FORMAT_PATHS% %FORMAT_ARGS%
+REM Use -B to avoid writing __pycache__ in lib directory and causing update conflicts.
+%PYTHON% -B %FORMAT_PATHS% %FORMAT_ARGS%
 
 :EOF

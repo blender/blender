@@ -26,12 +26,6 @@ if "%SHOW_HELP%" == "1" (
 	goto EOF
 )
 
-if "%BUILD_UPDATE%" == "1" (
-	call "%BLENDER_DIR%\build_files\windows\update_sources.cmd"
-	goto EOF
-)
-
-
 if "%FORMAT%" == "1" (
 	call "%BLENDER_DIR%\build_files\windows\format.cmd"
 	goto EOF
@@ -52,6 +46,14 @@ if "%BUILD_VS_YEAR%" == "" (
 		echo Visual Studio %BUILD_VS_YEAR% not found ^(try with the 'verbose' switch for more information^)
 		goto EOF
 	)
+)
+
+if "%BUILD_UPDATE%" == "1" (
+	call "%BLENDER_DIR%\build_files\windows\check_libraries.cmd"
+	if errorlevel 1 goto EOF
+
+	call "%BLENDER_DIR%\build_files\windows\update_sources.cmd"
+	goto EOF
 )
 
 call "%BLENDER_DIR%\build_files\windows\set_build_dir.cmd"
