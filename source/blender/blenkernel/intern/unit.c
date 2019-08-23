@@ -501,12 +501,12 @@ static PreferredUnits preferred_units_from_UnitSettings(const UnitSettings *sett
   return units;
 }
 
-static size_t unit_as_string_splitted(char *str,
-                                      int len_max,
-                                      double value,
-                                      int prec,
-                                      const bUnitCollection *usys,
-                                      const bUnitDef *main_unit)
+static size_t unit_as_string_split_pair(char *str,
+                                        int len_max,
+                                        double value,
+                                        int prec,
+                                        const bUnitCollection *usys,
+                                        const bUnitDef *main_unit)
 {
   const bUnitDef *unit_a, *unit_b;
   double value_a, value_b;
@@ -602,7 +602,7 @@ static size_t unit_as_string_main(char *str,
   }
 
   if (split && unit_should_be_split(type)) {
-    int length = unit_as_string_splitted(str, len_max, value, prec, usys, main_unit);
+    int length = unit_as_string_split_pair(str, len_max, value, prec, usys, main_unit);
     /* failed when length is negative, fallback to no split */
     if (length >= 0) {
       return length;

@@ -879,7 +879,7 @@ static bool joint_callback(const iTaSC::Timestamp &timestamp,
   bPoseChannel *chan = ikchan->pchan;
   int dof;
 
-  // a channel can be splitted into multiple joints, so we get called multiple
+  // a channel can be split into multiple joints, so we get called multiple
   // times for one channel (this callback is only for 1 joint in the armature)
   // the IK_JointTarget structure is shared between multiple joint constraint
   // and the target joint values is computed only once, remember this in jointValid
