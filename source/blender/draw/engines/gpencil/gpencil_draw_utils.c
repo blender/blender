@@ -65,8 +65,7 @@
 static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
                                 tGPencilObjectCache *cache_ob,
                                 GpencilBatchCache *cache,
-                                bGPdata *gpd,
-                                int cfra_eval)
+                                bGPdata *gpd)
 {
   if (!cache->is_dirty) {
     return;
@@ -1797,7 +1796,7 @@ void gpencil_populate_multiedit(GPENCIL_e_data *e_data,
   const bool playing = stl->storage->is_playing;
 
   /* calc max size of VBOs */
-  gpencil_calc_vertex(stl, cache_ob, cache, gpd, cfra_eval);
+  gpencil_calc_vertex(stl, cache_ob, cache, gpd);
 
   /* draw strokes */
   for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
@@ -1887,7 +1886,7 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
   }
 
   /* calc max size of VBOs */
-  gpencil_calc_vertex(stl, cache_ob, cache, gpd, cfra_eval);
+  gpencil_calc_vertex(stl, cache_ob, cache, gpd);
 
   /* draw normal strokes */
   for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {

@@ -813,8 +813,10 @@ static void gpencil_frame_copy_noalloc(Object *ob, bGPDframe *gpf, bGPDframe *ev
 }
 
 /* Ensure there is a evaluated frame */
-static void gpencil_evaluated_frame_ensure(
-    int idx, Object *ob, bGPDlayer *gpl, bGPDframe *gpf, bGPDframe **eval_gpf)
+static void gpencil_evaluated_frame_ensure(int idx,
+                                           Object *ob,
+                                           bGPDframe *gpf,
+                                           bGPDframe **eval_gpf)
 {
   /* Create evaluated frames array data or expand. */
   bGPDframe *evaluated_frames = ob->runtime.gpencil_evaluated_frames;
@@ -879,7 +881,7 @@ void BKE_gpencil_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
     /* Create a duplicate data set of stroke to modify. */
     bGPDframe *eval_gpf = NULL;
-    gpencil_evaluated_frame_ensure(idx, ob, gpl, gpf, &eval_gpf);
+    gpencil_evaluated_frame_ensure(idx, ob, gpf, &eval_gpf);
 
     /* Skip all if some disable flag is enabled. */
     if ((ob->greasepencil_modifiers.first == NULL) || (is_multiedit) || (simplify_modif)) {
