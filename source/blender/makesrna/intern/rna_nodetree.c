@@ -6733,7 +6733,7 @@ static void def_cmp_colorbalance(StructRNA *srna)
   RNA_def_property_float_sdna(prop, NULL, "offset");
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Offset", "Correction for Shadows");
+  RNA_def_property_ui_text(prop, "Offset", "Correction for entire tonal range");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeColorBalance_update_cdl");
 
   prop = RNA_def_property(srna, "power", PROP_FLOAT, PROP_COLOR_GAMMA);

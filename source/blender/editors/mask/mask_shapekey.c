@@ -81,6 +81,7 @@ void MASK_OT_shape_key_insert(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Insert Shape Key";
+  ot->description = "Insert mask shape keyframe for active mask layer at the current frame";
   ot->idname = "MASK_OT_shape_key_insert";
 
   /* api callbacks */
@@ -129,6 +130,7 @@ void MASK_OT_shape_key_clear(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Clear Shape Key";
+  ot->description = "Remove mask shape keyframe for active mask layer at the current frame";
   ot->idname = "MASK_OT_shape_key_clear";
 
   /* api callbacks */

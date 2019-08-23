@@ -87,15 +87,15 @@ static const EnumPropertyItem empty_shape_items[] = {
 static const EnumPropertyItem vortex_shape_items[] = {
     {PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
     {PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
-    {PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Surface falloff (New)", ""},
-    {PFIELD_SHAPE_POINTS, "POINTS", 0, "Every Point (New)", ""},
+    {PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Surface", ""},
+    {PFIELD_SHAPE_POINTS, "POINTS", 0, "Every Point", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem curve_vortex_shape_items[] = {
     {PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
     {PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
-    {PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Curve (New)", ""},
+    {PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Curve", ""},
     {0, NULL, 0, NULL, NULL},
 };
 

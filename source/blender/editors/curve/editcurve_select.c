@@ -1417,7 +1417,7 @@ void CURVE_OT_select_nth(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Checker Deselect";
-  ot->description = "Deselect every other vertex";
+  ot->description = "Deselect every Nth point starting from the active one";
   ot->idname = "CURVE_OT_select_nth";
 
   /* api callbacks */

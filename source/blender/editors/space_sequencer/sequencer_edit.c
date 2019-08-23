@@ -3405,6 +3405,7 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Copy";
   ot->idname = "SEQUENCER_OT_copy";
+  ot->description = "Copy selected strips to clipboard";
 
   /* api callbacks */
   ot->exec = sequencer_copy_exec;
@@ -3470,6 +3471,7 @@ void SEQUENCER_OT_paste(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Paste";
   ot->idname = "SEQUENCER_OT_paste";
+  ot->description = "Paste strips from clipboard";
 
   /* api callbacks */
   ot->exec = sequencer_paste_exec;

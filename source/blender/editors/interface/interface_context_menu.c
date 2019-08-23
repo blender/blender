@@ -1222,7 +1222,7 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *ar, Panel *pa)
                  sizeof(tmpstr),
                  "%s" UI_SEP_CHAR_S "%s",
                  IFACE_("Pin"),
-                 IFACE_("Shift+Left Mouse"));
+                 IFACE_("Shift Left Mouse"));
     uiItemR(layout, &ptr, "use_pin", 0, tmpstr, ICON_NONE);
 
     /* evil, force shortcut flag */
@@ -1230,6 +1230,7 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *ar, Panel *pa)
       uiBlock *block = uiLayoutGetBlock(layout);
       uiBut *but = block->buttons.last;
       but->flag |= UI_BUT_HAS_SEP_CHAR;
+      but->drawflag |= UI_BUT_HAS_SHORTCUT;
     }
   }
   UI_popup_menu_end(C, pup);
