@@ -43,6 +43,7 @@
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_effect.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
@@ -214,6 +215,9 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
 
     case OB_LATTICE:
       BKE_lattice_modifiers_calc(depsgraph, scene, ob);
+      break;
+    case OB_GPENCIL:
+      BKE_gpencil_modifiers_calc(depsgraph, scene, ob);
       break;
   }
 

@@ -274,11 +274,6 @@ static GpencilBatchCache *gpencil_batch_cache_init(Object *ob, int cfra)
 
   cache->cache_frame = cfra;
 
-  /* create array of derived frames equal to number of layers */
-  cache->tot_layers = BLI_listbase_count(&gpd->layers);
-  CLAMP_MIN(cache->tot_layers, 1);
-  cache->derived_array = MEM_callocN(sizeof(struct bGPDframe) * cache->tot_layers, "Derived GPF");
-
   return cache;
 }
 
@@ -301,18 +296,16 @@ static void gpencil_batch_cache_clear(GpencilBatchCache *cache)
   MEM_SAFE_FREE(cache->b_edit.batch);
   MEM_SAFE_FREE(cache->b_edlin.batch);
 
+  /* internal format data */
+  MEM_SAFE_FREE(cache->b_stroke.format);
+  MEM_SAFE_FREE(cache->b_point.format);
+  MEM_SAFE_FREE(cache->b_fill.format);
+  MEM_SAFE_FREE(cache->b_edit.format);
+  MEM_SAFE_FREE(cache->b_edlin.format);
+
   MEM_SAFE_FREE(cache->grp_cache);
   cache->grp_size = 0;
   cache->grp_used = 0;
-
-  /* clear all frames derived data */
-  for (int i = 0; i < cache->tot_layers; i++) {
-    bGPDframe *derived_gpf = &cache->derived_array[i];
-    BKE_gpencil_free_frame_runtime_data(derived_gpf);
-    derived_gpf = NULL;
-  }
-  cache->tot_layers = 0;
-  MEM_SAFE_FREE(cache->derived_array);
 }
 
 /* get cache */
@@ -355,4 +348,14 @@ void DRW_gpencil_freecache(struct Object *ob)
       gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
     }
   }
+
+  /* clear all frames evaluated data */
+  for (int i = 0; i < ob->runtime.gpencil_tot_layers; i++) {
+    bGPDframe *eval_gpf = &ob->runtime.gpencil_evaluated_frames[i];
+    BKE_gpencil_free_frame_runtime_data(eval_gpf);
+    eval_gpf = NULL;
+  }
+
+  ob->runtime.gpencil_tot_layers = 0;
+  MEM_SAFE_FREE(ob->runtime.gpencil_evaluated_frames);
 }

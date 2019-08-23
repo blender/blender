@@ -405,10 +405,10 @@ void GPENCIL_cache_init(void *vedata)
     }
 
     /* save simplify flags (can change while drawing, so it's better to save) */
-    stl->storage->simplify_fill = GP_SIMPLIFY_FILL(scene, stl->storage->is_playing);
-    stl->storage->simplify_modif = GP_SIMPLIFY_MODIF(scene, stl->storage->is_playing);
-    stl->storage->simplify_fx = GP_SIMPLIFY_FX(scene, stl->storage->is_playing);
-    stl->storage->simplify_blend = GP_SIMPLIFY_BLEND(scene, stl->storage->is_playing);
+    stl->storage->simplify_fill = GPENCIL_SIMPLIFY_FILL(scene, stl->storage->is_playing);
+    stl->storage->simplify_modif = GPENCIL_SIMPLIFY_MODIF(scene, stl->storage->is_playing);
+    stl->storage->simplify_fx = GPENCIL_SIMPLIFY_FX(scene, stl->storage->is_playing);
+    stl->storage->simplify_blend = GPENCIL_SIMPLIFY_BLEND(scene, stl->storage->is_playing);
 
     /* xray mode */
     if (v3d) {

@@ -61,10 +61,6 @@
 #define TEXTURE 4
 #define PATTERN 5
 
-#define GP_SET_SRC_GPS(src_gps) \
-  if (src_gps) \
-  src_gps = src_gps->next
-
 /* Get number of vertex for using in GPU VBOs */
 static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
                                 tGPencilObjectCache *cache_ob,
@@ -88,16 +84,17 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
   const bool do_onion = (bool)((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0) && overlay &&
                         main_onion && gpencil_onion_active(gpd) && !playing;
 
-  const bool time_remap = BKE_gpencil_has_time_modifiers(ob);
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
   cache_ob->tot_vertex = 0;
   cache_ob->tot_triangles = 0;
+  int eval_idx = 0;
 
   for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
     bGPDframe *init_gpf = NULL;
     const bool is_onion = ((do_onion) && (gpl->onion_flag & GP_LAYER_ONIONSKIN));
     if (gpl->flag & GP_LAYER_HIDE) {
+      eval_idx++;
       continue;
     }
 
@@ -106,15 +103,7 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
       init_gpf = gpl->frames.first;
     }
     else {
-      /* verify time modifiers */
-      if ((time_remap) && (!stl->storage->simplify_modif)) {
-        int remap_cfra = BKE_gpencil_time_modifier(
-            draw_ctx->depsgraph, draw_ctx->scene, ob, gpl, cfra_eval, stl->storage->is_render);
-        init_gpf = BKE_gpencil_layer_getframe(gpl, remap_cfra, GP_GETFRAME_USE_PREV);
-      }
-      else {
-        init_gpf = gpl->actframe;
-      }
+      init_gpf = &ob->runtime.gpencil_evaluated_frames[eval_idx];
     }
 
     if (init_gpf == NULL) {
@@ -130,6 +119,7 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
         break;
       }
     }
+    eval_idx++;
   }
 
   cache->b_fill.tot_vertex = cache_ob->tot_triangles * 3;
@@ -1009,8 +999,7 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
                                  Object *ob,
                                  bGPdata *gpd,
                                  bGPDlayer *gpl,
-                                 bGPDframe *src_gpf,
-                                 bGPDframe *derived_gpf,
+                                 bGPDframe *gpf,
                                  const float opacity,
                                  const float tintcolor[4],
                                  const bool custonion,
@@ -1021,7 +1010,7 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Scene *scene = draw_ctx->scene;
   View3D *v3d = draw_ctx->v3d;
-  bGPDstroke *gps, *src_gps;
+  bGPDstroke *gps;
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   const bool playing = stl->storage->is_playing;
   const bool is_render = (bool)stl->storage->is_render;
@@ -1036,42 +1025,24 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
 
   /* get parent matrix and save as static data */
   if ((cache_ob != NULL) && (cache_ob->is_dup_ob)) {
-    copy_m4_m4(derived_gpf->runtime.parent_obmat, cache_ob->obmat);
+    copy_m4_m4(gpf->runtime.parent_obmat, cache_ob->obmat);
   }
   else {
-    ED_gpencil_parent_location(depsgraph, ob, gpd, gpl, derived_gpf->runtime.parent_obmat);
+    ED_gpencil_parent_location(depsgraph, ob, gpd, gpl, gpf->runtime.parent_obmat);
   }
 
-  /* apply geometry modifiers */
-  if ((cache->is_dirty) && (ob->greasepencil_modifiers.first) && (!is_multiedit)) {
-    if (!stl->storage->simplify_modif) {
-      if (BKE_gpencil_has_geometry_modifiers(ob)) {
-        BKE_gpencil_geometry_modifiers(depsgraph, ob, gpl, derived_gpf, stl->storage->is_render);
-      }
-    }
-  }
-
-  if (src_gpf) {
-    src_gps = src_gpf->strokes.first;
-  }
-  else {
-    src_gps = NULL;
-  }
-
-  for (gps = derived_gpf->strokes.first; gps; gps = gps->next) {
+  for (gps = gpf->strokes.first; gps; gps = gps->next) {
     MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
 
     /* check if stroke can be drawn */
     if (gpencil_can_draw_stroke(gp_style, gps, false, is_mat_preview) == false) {
-      GP_SET_SRC_GPS(src_gps);
       continue;
     }
 
     /* be sure recalc all cache in source stroke to avoid recalculation when frame change
      * and improve fps */
-    if (src_gps) {
-      gpencil_recalc_geometry_caches(ob, gpl, gp_style, src_gps);
-    }
+    gpencil_recalc_geometry_caches(
+        ob, gpl, gp_style, (gps->runtime.gps_orig) ? gps->runtime.gps_orig : gps);
 
     /* if the fill has any value, it's considered a fill and is not drawn if simplify fill is
      * enabled */
@@ -1080,32 +1051,19 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
       if ((gp_style->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
           (gp_style->fill_style > GP_STYLE_FILL_STYLE_SOLID) ||
           (gpl->blend_mode != eGplBlendMode_Regular)) {
-        GP_SET_SRC_GPS(src_gps);
+
         continue;
       }
     }
 
-    if ((gpl->actframe->framenum == derived_gpf->framenum) || (!is_multiedit) ||
-        (overlay_multiedit)) {
-      /* copy color to temp fields to apply temporal changes in the stroke */
-      copy_v4_v4(gps->runtime.tmp_stroke_rgba, gp_style->stroke_rgba);
-      copy_v4_v4(gps->runtime.tmp_fill_rgba, gp_style->fill_rgba);
-
-      /* apply modifiers (only modify geometry, but not create ) */
-      if ((cache->is_dirty) && (ob->greasepencil_modifiers.first) && (!is_multiedit)) {
-        if (!stl->storage->simplify_modif) {
-          BKE_gpencil_stroke_modifiers(
-              depsgraph, ob, gpl, derived_gpf, gps, stl->storage->is_render);
-        }
-      }
-
+    if ((gpl->actframe->framenum == gpf->framenum) || (!is_multiedit) || (overlay_multiedit)) {
       /* hide any blend layer */
       if ((!stl->storage->simplify_blend) || (gpl->blend_mode == eGplBlendMode_Regular)) {
         /* fill */
         if ((gp_style->flag & GP_STYLE_FILL_SHOW) && (!stl->storage->simplify_fill) &&
             ((gps->flag & GP_STROKE_NOFILL) == 0)) {
           gpencil_add_fill_vertexdata(
-              cache, ob, gpl, derived_gpf, gps, opacity, tintcolor, false, custonion);
+              cache, ob, gpl, gpf, gps, opacity, tintcolor, false, custonion);
         }
         /* stroke */
         /* No fill strokes, must show stroke always */
@@ -1118,14 +1076,13 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
           }
 
           gpencil_add_stroke_vertexdata(
-              cache, ob, gpl, derived_gpf, gps, opacity, tintcolor, false, custonion);
+              cache, ob, gpl, gpf, gps, opacity, tintcolor, false, custonion);
         }
       }
     }
 
     /* edit points (only in edit mode and not play animation not render) */
-    if ((draw_ctx->obact == ob) && (src_gps) && (!playing) && (!is_render) &&
-        (!cache_ob->is_dup_ob)) {
+    if ((draw_ctx->obact == ob) && (!playing) && (!is_render) && (!cache_ob->is_dup_ob)) {
       if ((gpl->flag & GP_LAYER_LOCKED) == 0) {
         if (!stl->g_data->shgrps_edit_line) {
           stl->g_data->shgrps_edit_line = DRW_shgroup_create(e_data->gpencil_line_sh,
@@ -1138,11 +1095,9 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
           DRW_shgroup_uniform_vec2(stl->g_data->shgrps_edit_point, "Viewport", viewport_size, 1);
         }
 
-        gpencil_add_editpoints_vertexdata(cache, ob, gpd, gpl, derived_gpf, src_gps);
+        gpencil_add_editpoints_vertexdata(cache, ob, gpd, gpl, gpf, gps);
       }
     }
-
-    GP_SET_SRC_GPS(src_gps);
   }
 }
 
@@ -1353,25 +1308,6 @@ static void gpencil_draw_onionskins(GpencilBatchCache *cache,
       gpencil_get_onion_alpha(color, gpd);
       gpencil_draw_onion_strokes(cache, vedata, ob, gpd, gpl, gpf_loop, color[3], color, colflag);
     }
-  }
-}
-
-static void gpencil_copy_frame(bGPDframe *gpf, bGPDframe *derived_gpf)
-{
-  derived_gpf->prev = gpf->prev;
-  derived_gpf->next = gpf->next;
-  derived_gpf->framenum = gpf->framenum;
-  derived_gpf->flag = gpf->flag;
-  derived_gpf->key_type = gpf->key_type;
-  derived_gpf->runtime = gpf->runtime;
-  copy_m4_m4(derived_gpf->runtime.parent_obmat, gpf->runtime.parent_obmat);
-
-  /* copy strokes */
-  BLI_listbase_clear(&derived_gpf->strokes);
-  for (bGPDstroke *gps_src = gpf->strokes.first; gps_src; gps_src = gps_src->next) {
-    /* make copy of source stroke */
-    bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(gps_src);
-    BLI_addtail(&derived_gpf->strokes, gps_dst);
   }
 }
 
@@ -1881,7 +1817,6 @@ void gpencil_populate_multiedit(GPENCIL_e_data *e_data,
                                gpd,
                                gpl,
                                gpf,
-                               gpf,
                                gpl->opacity,
                                gpl->tintcolor,
                                false,
@@ -1899,7 +1834,6 @@ void gpencil_populate_multiedit(GPENCIL_e_data *e_data,
                              gpd,
                              gpl,
                              gpf,
-                             gpf,
                              gpl->opacity,
                              gpl->tintcolor,
                              false,
@@ -1915,28 +1849,6 @@ void gpencil_populate_multiedit(GPENCIL_e_data *e_data,
   cache->is_dirty = false;
 }
 
-/* ensure there is a derived frame */
-static void gpencil_ensure_derived_frame(bGPdata *gpd,
-                                         bGPDlayer *gpl,
-                                         bGPDframe *gpf,
-                                         GpencilBatchCache *cache,
-                                         bGPDframe **derived_gpf)
-{
-  /* create derived frames array data or expand */
-  int derived_idx = BLI_findindex(&gpd->layers, gpl);
-  *derived_gpf = &cache->derived_array[derived_idx];
-
-  /* if no derived frame or dirty cache, create a new one */
-  if ((*derived_gpf == NULL) || (cache->is_dirty)) {
-    if (*derived_gpf != NULL) {
-      /* first clear temp data */
-      BKE_gpencil_free_frame_runtime_data(*derived_gpf);
-    }
-    /* create new data (do not assign new memory)*/
-    gpencil_copy_frame(gpf, *derived_gpf);
-  }
-}
-
 /* helper for populate a complete grease pencil datablock */
 void gpencil_populate_datablock(GPENCIL_e_data *e_data,
                                 void *vedata,
@@ -1948,12 +1860,14 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
   const ViewLayer *view_layer = DEG_get_evaluated_view_layer(draw_ctx->depsgraph);
   Scene *scene = draw_ctx->scene;
 
-  bGPdata *gpd = (bGPdata *)ob->data;
+  /* Use original data to shared in edit/transform operators */
+  bGPdata *gpd_eval = (bGPdata *)ob->data;
+  bGPdata *gpd = (bGPdata *)DEG_get_original_id(&gpd_eval->id);
 
   View3D *v3d = draw_ctx->v3d;
   int cfra_eval = (int)DEG_get_ctime(draw_ctx->depsgraph);
 
-  bGPDframe *derived_gpf = NULL;
+  bGPDframe *eval_gpf = NULL;
   const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) : true;
   const bool time_remap = BKE_gpencil_has_time_modifiers(ob);
 
@@ -1975,12 +1889,6 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
   /* calc max size of VBOs */
   gpencil_calc_vertex(stl, cache_ob, cache, gpd, cfra_eval);
 
-  /* init general modifiers data */
-  if (!stl->storage->simplify_modif) {
-    if ((cache->is_dirty) && (ob->greasepencil_modifiers.first)) {
-      BKE_gpencil_lattice_init(ob);
-    }
-  }
   /* draw normal strokes */
   for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
     /* don't draw layer if hidden */
@@ -2028,8 +1936,9 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
       opacity = opacity * v3d->overlay.gpencil_fade_layer;
     }
 
-    /* create derived frames array data or expand */
-    gpencil_ensure_derived_frame(gpd, gpl, gpf, cache, &derived_gpf);
+    /* Get evaluated frames array data */
+    int eval_idx = BLI_findindex(&gpd->layers, gpl);
+    eval_gpf = &ob->runtime.gpencil_evaluated_frames[eval_idx];
 
     /* draw onion skins */
     if (!ID_IS_LINKED(&gpd->id)) {
@@ -2043,23 +1952,8 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
       }
     }
     /* draw normal strokes */
-    gpencil_draw_strokes(cache,
-                         e_data,
-                         vedata,
-                         ob,
-                         gpd,
-                         gpl,
-                         gpf,
-                         derived_gpf,
-                         opacity,
-                         gpl->tintcolor,
-                         false,
-                         cache_ob);
-  }
-
-  /* clear any lattice data */
-  if ((cache->is_dirty) && (ob->greasepencil_modifiers.first)) {
-    BKE_gpencil_lattice_clear(ob);
+    gpencil_draw_strokes(
+        cache, e_data, vedata, ob, gpd, gpl, eval_gpf, opacity, gpl->tintcolor, false, cache_ob);
   }
 
   /* create batchs and shading groups */

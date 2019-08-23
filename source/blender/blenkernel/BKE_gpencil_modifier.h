@@ -27,7 +27,6 @@
 struct BMEditMesh;
 struct DepsNodeHandle;
 struct Depsgraph;
-struct DerivedMesh;
 struct GpencilModifierData;
 struct ID;
 struct ListBase;
@@ -327,5 +326,9 @@ int BKE_gpencil_time_modifier(struct Depsgraph *depsgraph,
 
 void BKE_gpencil_lattice_init(struct Object *ob);
 void BKE_gpencil_lattice_clear(struct Object *ob);
+
+void BKE_gpencil_modifiers_calc(struct Depsgraph *depsgraph,
+                                struct Scene *scene,
+                                struct Object *ob);
 
 #endif /* __BKE_GPENCIL_MODIFIER_H__ */

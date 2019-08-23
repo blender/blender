@@ -148,19 +148,19 @@ bool BKE_gpencil_free_strokes(bGPDframe *gpf)
 }
 
 /* Free strokes and colors belonging to a gp-frame */
-bool BKE_gpencil_free_frame_runtime_data(bGPDframe *derived_gpf)
+bool BKE_gpencil_free_frame_runtime_data(bGPDframe *eval_gpf)
 {
   bGPDstroke *gps_next;
-  if (!derived_gpf) {
+  if (!eval_gpf) {
     return false;
   }
 
   /* free strokes */
-  for (bGPDstroke *gps = derived_gpf->strokes.first; gps; gps = gps_next) {
+  for (bGPDstroke *gps = eval_gpf->strokes.first; gps; gps = gps_next) {
     gps_next = gps->next;
     BKE_gpencil_free_stroke(gps);
   }
-  BLI_listbase_clear(&derived_gpf->strokes);
+  BLI_listbase_clear(&eval_gpf->strokes);
 
   return true;
 }

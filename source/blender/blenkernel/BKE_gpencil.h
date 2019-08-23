@@ -24,6 +24,7 @@
  * \ingroup bke
  */
 
+struct Scene;
 struct ArrayGpencilModifierData;
 struct BoundBox;
 struct Brush;
@@ -49,6 +50,23 @@ struct bGPdata;
 struct MDeformVert;
 struct MDeformWeight;
 
+#define GPENCIL_SIMPLIFY(scene) ((scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ENABLE))
+#define GPENCIL_SIMPLIFY_ONPLAY(playing) \
+  (((playing == true) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ON_PLAY)) || \
+   ((scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ON_PLAY) == 0))
+#define GPENCIL_SIMPLIFY_FILL(scene, playing) \
+  ((GPENCIL_SIMPLIFY_ONPLAY(playing) && (GPENCIL_SIMPLIFY(scene)) && \
+    (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_FILL)))
+#define GPENCIL_SIMPLIFY_MODIF(scene, playing) \
+  ((GPENCIL_SIMPLIFY_ONPLAY(playing) && (GPENCIL_SIMPLIFY(scene)) && \
+    (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_MODIFIER)))
+#define GPENCIL_SIMPLIFY_FX(scene, playing) \
+  ((GPENCIL_SIMPLIFY_ONPLAY(playing) && (GPENCIL_SIMPLIFY(scene)) && \
+    (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_FX)))
+#define GPENCIL_SIMPLIFY_BLEND(scene, playing) \
+  ((GPENCIL_SIMPLIFY_ONPLAY(playing) && (GPENCIL_SIMPLIFY(scene)) && \
+    (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_BLEND)))
+
 /* ------------ Grease-Pencil API ------------------ */
 
 void BKE_gpencil_free_point_weights(struct MDeformVert *dvert);
@@ -57,7 +75,7 @@ void BKE_gpencil_free_stroke(struct bGPDstroke *gps);
 bool BKE_gpencil_free_strokes(struct bGPDframe *gpf);
 void BKE_gpencil_free_frames(struct bGPDlayer *gpl);
 void BKE_gpencil_free_layers(struct ListBase *list);
-bool BKE_gpencil_free_frame_runtime_data(struct bGPDframe *derived_gpf);
+bool BKE_gpencil_free_frame_runtime_data(struct bGPDframe *eval_gpf);
 void BKE_gpencil_free(struct bGPdata *gpd, bool free_all);
 
 void BKE_gpencil_batch_cache_dirty_tag(struct bGPdata *gpd);
