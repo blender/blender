@@ -37,7 +37,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
     {0, "", ICON_NONE, NULL, NULL},
     {MA_RAMP_DARK, "DARKEN", 0, "Darken", ""},
     {MA_RAMP_MULT, "MULTIPLY", 0, "Multiply", ""},
-    {MA_RAMP_BURN, "BURN", 0, "Burn", ""},
+    {MA_RAMP_BURN, "BURN", 0, "Color Burn", ""},
     {0, "", ICON_NONE, NULL, NULL},
     {MA_RAMP_LIGHT, "LIGHTEN", 0, "Lighten", ""},
     {MA_RAMP_SCREEN, "SCREEN", 0, "Screen", ""},

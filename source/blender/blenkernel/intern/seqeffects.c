@@ -1646,7 +1646,7 @@ static void do_blend_effect_float(
     case SEQ_TYPE_DARKEN:
       apply_blend_function_float(facf0, facf1, x, y, rect1, rect2, out, blend_color_darken_float);
       break;
-    case SEQ_TYPE_BURN:
+    case SEQ_TYPE_COLOR_BURN:
       apply_blend_function_float(facf0, facf1, x, y, rect1, rect2, out, blend_color_burn_float);
       break;
     case SEQ_TYPE_LINEAR_BURN:
@@ -1734,7 +1734,7 @@ static void do_blend_effect_byte(float facf0,
     case SEQ_TYPE_DARKEN:
       apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_darken_byte);
       break;
-    case SEQ_TYPE_BURN:
+    case SEQ_TYPE_COLOR_BURN:
       apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_burn_byte);
       break;
     case SEQ_TYPE_LINEAR_BURN:
@@ -4130,7 +4130,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
       break;
     case SEQ_TYPE_SCREEN:
     case SEQ_TYPE_OVERLAY:
-    case SEQ_TYPE_BURN:
+    case SEQ_TYPE_COLOR_BURN:
     case SEQ_TYPE_LINEAR_BURN:
     case SEQ_TYPE_DARKEN:
     case SEQ_TYPE_LIGHTEN:

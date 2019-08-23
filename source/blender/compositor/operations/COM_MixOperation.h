@@ -95,9 +95,9 @@ class MixBlendOperation : public MixBaseOperation {
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
-class MixBurnOperation : public MixBaseOperation {
+class MixColorBurnOperation : public MixBaseOperation {
  public:
-  MixBurnOperation();
+  MixColorBurnOperation();
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 

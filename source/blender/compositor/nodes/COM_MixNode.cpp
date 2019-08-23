@@ -52,7 +52,7 @@ void MixNode::convertToOperations(NodeConverter &converter,
       convertProg = new MixLightenOperation();
       break;
     case MA_RAMP_BURN:
-      convertProg = new MixBurnOperation();
+      convertProg = new MixColorBurnOperation();
       break;
     case MA_RAMP_HUE:
       convertProg = new MixHueOperation();
