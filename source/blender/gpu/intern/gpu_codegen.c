@@ -51,14 +51,10 @@
 #include "BLI_sys_types.h" /* for intptr_t support */
 
 #include "gpu_codegen.h"
+#include "gpu_material_library.h"
 
 #include <string.h>
 #include <stdarg.h>
-
-extern char datatoc_gpu_shader_material_glsl[];
-extern char datatoc_gpu_shader_geometry_glsl[];
-
-static char *glsl_material_library = NULL;
 
 /* -------------------- GPUPass Cache ------------------ */
 /**
@@ -147,6 +143,7 @@ typedef struct GPUFunction {
   eGPUType paramtype[MAX_PARAMETER];
   GPUFunctionQual paramqual[MAX_PARAMETER];
   int totparam;
+  GPUMaterialLibrary *library;
 } GPUFunction;
 
 /* Indices match the eGPUType enum */
@@ -230,15 +227,17 @@ static char *gpu_str_skip_token(char *str, char *token, int max)
   return str;
 }
 
-static void gpu_parse_functions_string(GHash *hash, char *code)
+static void gpu_parse_material_library(GHash *hash, GPUMaterialLibrary *library)
 {
   GPUFunction *function;
   eGPUType type;
   GPUFunctionQual qual;
   int i;
+  char *code = library->code;
 
   while ((code = strstr(code, "void "))) {
     function = MEM_callocN(sizeof(GPUFunction), "GPUFunction");
+    function->library = library;
 
     code = gpu_str_skip_token(code, NULL, 0);
     code = gpu_str_skip_token(code, function->name, MAX_FUNCTION_NAME);
@@ -367,11 +366,6 @@ static char *gpu_generate_function_prototyps(GHash *hash)
 
 static GPUFunction *gpu_lookup_function(const char *name)
 {
-  if (!FUNCTION_HASH) {
-    FUNCTION_HASH = BLI_ghash_str_new("GPU_lookup_function gh");
-    gpu_parse_functions_string(FUNCTION_HASH, glsl_material_library);
-  }
-
   return BLI_ghash_lookup(FUNCTION_HASH, (const void *)name);
 }
 
@@ -394,11 +388,6 @@ void gpu_codegen_exit(void)
   }
 
   GPU_shader_free_builtin_shaders();
-
-  if (glsl_material_library) {
-    MEM_freeN(glsl_material_library);
-    glsl_material_library = NULL;
-  }
 
 #if 0
   if (FUNCTION_PROTOTYPES) {
@@ -1381,20 +1370,15 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code, cons
 
 void GPU_code_generate_glsl_lib(void)
 {
-  DynStr *ds;
-
-  /* only initialize the library once */
-  if (glsl_material_library) {
+  /* Only parse GLSL shader files once. */
+  if (FUNCTION_HASH) {
     return;
   }
 
-  ds = BLI_dynstr_new();
-
-  BLI_dynstr_append(ds, datatoc_gpu_shader_material_glsl);
-
-  glsl_material_library = BLI_dynstr_get_cstring(ds);
-
-  BLI_dynstr_free(ds);
+  FUNCTION_HASH = BLI_ghash_str_new("GPU_lookup_function gh");
+  for (int i = 0; gpu_material_libraries[i].code; i++) {
+    gpu_parse_material_library(FUNCTION_HASH, &gpu_material_libraries[i]);
+  }
 }
 
 /* GPU pass binding/unbinding */
@@ -1796,6 +1780,19 @@ GPUNodeLink *GPU_builtin(eGPUBuiltin builtin)
   return link;
 }
 
+static void gpu_material_use_library(GPUMaterial *material, GPUMaterialLibrary *library)
+{
+  GSet *used_libraries = gpu_material_used_libraries(material);
+
+  if (BLI_gset_add(used_libraries, library->code)) {
+    if (library->dependencies) {
+      for (int i = 0; library->dependencies[i]; i++) {
+        BLI_gset_add(used_libraries, library->dependencies[i]);
+      }
+    }
+  }
+}
+
 bool GPU_link(GPUMaterial *mat, const char *name, ...)
 {
   GPUNode *node;
@@ -1809,6 +1806,8 @@ bool GPU_link(GPUMaterial *mat, const char *name, ...)
     fprintf(stderr, "GPU failed to find function %s\n", name);
     return false;
   }
+
+  gpu_material_use_library(mat, function->library);
 
   node = GPU_node_begin(name);
 
@@ -1848,6 +1847,8 @@ bool GPU_stack_link(GPUMaterial *material,
     fprintf(stderr, "GPU failed to find function %s\n", name);
     return false;
   }
+
+  gpu_material_use_library(material, function->library);
 
   node = GPU_node_begin(name);
   totin = 0;
@@ -1962,6 +1963,30 @@ static bool gpu_pass_is_valid(GPUPass *pass)
   return (pass->compiled == false || pass->shader != NULL);
 }
 
+static char *code_generate_material_library(GPUMaterial *material, const char *frag_lib)
+{
+  DynStr *ds = BLI_dynstr_new();
+
+  if (frag_lib) {
+    BLI_dynstr_append(ds, frag_lib);
+  }
+
+  GSet *used_libraries = gpu_material_used_libraries(material);
+
+  /* Add library code in order, for dependencies. */
+  for (int i = 0; gpu_material_libraries[i].code; i++) {
+    GPUMaterialLibrary *library = &gpu_material_libraries[i];
+    if (BLI_gset_haskey(used_libraries, library->code)) {
+      BLI_dynstr_append(ds, library->code);
+    }
+  }
+
+  char *result = BLI_dynstr_get_cstring(ds);
+  BLI_dynstr_free(ds);
+
+  return result;
+}
+
 GPUPass *GPU_generate_pass(GPUMaterial *material,
                            GPUNodeLink *frag_outlink,
                            struct GPUVertAttrLayers *attrs,
@@ -2000,7 +2025,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
 
   /* Either the shader is not compiled or there is a hash collision...
    * continue generating the shader strings. */
-  char *tmp = BLI_strdupcat(frag_lib, glsl_material_library);
+  char *tmp = code_generate_material_library(material, frag_lib);
 
   geometrycode = code_generate_geometry(nodes, geom_code, defines);
   vertexcode = code_generate_vertex(nodes, vert_code, (geometrycode != NULL));

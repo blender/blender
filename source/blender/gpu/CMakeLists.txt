@@ -116,6 +116,7 @@ set(SRC
   intern/gpu_batch_private.h
   intern/gpu_codegen.h
   intern/gpu_context_private.h
+  intern/gpu_material_library.h
   intern/gpu_matrix_private.h
   intern/gpu_primitive_private.h
   intern/gpu_private.h
@@ -232,6 +233,9 @@ data_to_c_simple(shaders/gpu_shader_keyframe_diamond_frag.glsl SRC)
 
 data_to_c_simple(shaders/gpu_shader_geometry.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_material.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_material_hash.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_material_magic.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_material_white_noise.glsl SRC)
 
 data_to_c_simple(shaders/gpu_shader_gpencil_stroke_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_gpencil_stroke_frag.glsl SRC)

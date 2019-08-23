@@ -37,6 +37,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
+#include "BLI_ghash.h"
 
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -101,6 +102,8 @@ struct GPUMaterial {
 
   GPUTexture *coba_tex; /* 1D Texture array containing all color bands. */
   GPUColorBandBuilder *coba_builder;
+
+  GSet *used_libraries;
 
 #ifndef NDEBUG
   char name[64];
@@ -183,6 +186,8 @@ static void gpu_material_free_single(GPUMaterial *material)
   if (material->coba_tex != NULL) {
     GPU_texture_free(material->coba_tex);
   }
+
+  BLI_gset_free(material->used_libraries, NULL);
 }
 
 void GPU_material_free(ListBase *gpumaterial)
@@ -582,6 +587,11 @@ void gpu_material_add_node(GPUMaterial *material, GPUNode *node)
   BLI_addtail(&material->nodes, node);
 }
 
+GSet *gpu_material_used_libraries(GPUMaterial *material)
+{
+  return material->used_libraries;
+}
+
 /* Return true if the material compilation has not yet begin or begin. */
 eGPUMaterialStatus GPU_material_status(GPUMaterial *mat)
 {
@@ -658,6 +668,9 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
 #else
   UNUSED_VARS(name);
 #endif
+
+  mat->used_libraries = BLI_gset_new(
+      BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "GPUMaterial.used_libraries");
 
   /* localize tree to create links for reroute and mute */
   bNodeTree *localtree = ntreeLocalize(ntree);

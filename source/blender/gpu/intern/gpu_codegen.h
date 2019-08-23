@@ -33,6 +33,7 @@ struct GPUNode;
 struct GPUOutput;
 struct GPUShader;
 struct GPUVertAttrLayers;
+struct GSet;
 struct ListBase;
 
 /* Pass Generation
@@ -206,5 +207,7 @@ struct GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
                                                       int size,
                                                       float *pixels,
                                                       float *row);
+
+struct GSet *gpu_material_used_libraries(struct GPUMaterial *material);
 
 #endif
