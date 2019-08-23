@@ -1218,6 +1218,25 @@ class CLIP_PT_tools_grease_pencil_draw(AnnotationDrawingToolsPanel, Panel):
     bl_region_type = 'TOOLS'
 
 
+class CLIP_MT_view_zoom(Menu):
+    bl_label = "Fractional Zoom"
+
+    def draw(self, context):
+        layout = self.layout
+
+        ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
+
+        for i, (a, b) in enumerate(ratios):
+            if i in {3, 4}:  # Draw separators around Zoom 1:1.
+                layout.separator()
+
+            layout.operator(
+                "clip.view_zoom_ratio",
+                text=iface_(f"Zoom {a:d}:{b:d}"),
+                translate=False,
+            ).ratio = a / b
+
+
 class CLIP_MT_view(Menu):
     bl_label = "View"
 
@@ -1238,20 +1257,17 @@ class CLIP_MT_view(Menu):
             layout.operator("clip.view_all", text="View Fit").fit_view = True
 
             layout.separator()
+            
             layout.operator("clip.view_zoom_in")
             layout.operator("clip.view_zoom_out")
 
             layout.separator()
+            
             layout.prop(sc, "show_metadata")
+            
             layout.separator()
 
-            ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
-
-            text = iface_("Zoom %d:%d")
-            for a, b in ratios:
-                layout.operator("clip.view_zoom_ratio",
-                                text=text % (a, b),
-                                translate=False).ratio = a / b
+            layout.menu("CLIP_MT_view_zoom")
         else:
             if sc.view == 'GRAPH':
                 layout.operator_context = 'INVOKE_REGION_PREVIEW'
@@ -1762,6 +1778,7 @@ classes = (
     CLIP_PT_tools_scenesetup,
     CLIP_PT_annotation,
     CLIP_PT_tools_grease_pencil_draw,
+    CLIP_MT_view_zoom,
     CLIP_MT_view,
     CLIP_MT_clip,
     CLIP_MT_proxy,
