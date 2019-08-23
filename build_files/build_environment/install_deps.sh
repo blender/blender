@@ -1974,7 +1974,8 @@ compile_OSL() {
     cmake_d="$cmake_d -D OSL_BUILD_PLUGINS=OFF"
     cmake_d="$cmake_d -D OSL_BUILD_TESTS=OFF"
     cmake_d="$cmake_d -D USE_SIMD=sse2"
-    cmake_d="$cmake_d -D OSL_BUILD_CPP11=1"
+    cmake_d="$cmake_d -D USE_LLVM_BITCODE=OFF"
+    cmake_d="$cmake_d -D USE_PARTIO=OFF"
 
     #~ cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
 
