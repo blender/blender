@@ -867,6 +867,8 @@ class SEQUENCER_PT_strip(SequencerButtonsPanel, Panel):
             icon_header = 'FONT_DATA'
         elif strip_type == 'ADJUSTMENT':
             icon_header = 'COLOR'
+        elif strip_type == 'META':
+            icon_header = 'SEQ_STRIP_META'
         else:
             icon_header = 'SEQ_SEQUENCER'
 
