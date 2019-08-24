@@ -2318,7 +2318,7 @@ static short snapEditMesh(SnapObjectContext *sctx,
         MEM_freeN(edges_mask);
       }
       else {
-        BKE_bvhtree_from_editmesh_get(treedata_vert, em, 2, BVHTREE_FROM_EM_EDGES, em_bvh_cache);
+        BKE_bvhtree_from_editmesh_get(treedata_edge, em, 2, BVHTREE_FROM_EM_EDGES, em_bvh_cache);
       }
     }
   }
