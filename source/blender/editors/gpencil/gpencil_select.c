@@ -111,6 +111,19 @@ static bool gpencil_select_poll(bContext *C)
 /* -------------------------------------------------------------------- */
 /** \name Select All Operator
  * \{ */
+static bool gpencil_select_all_poll(bContext *C)
+{
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
+
+  /* we just need some visible strokes, and to be in editmode or other modes only to catch event */
+  if (GPENCIL_ANY_MODE(gpd)) {
+    if (gpd->layers.first) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 static int gpencil_select_all_exec(bContext *C, wmOperator *op)
 {
@@ -125,6 +138,14 @@ static int gpencil_select_all_exec(bContext *C, wmOperator *op)
   /* if not edit/sculpt mode, the event is catched but not processed */
   if (GPENCIL_NONE_EDIT_MODE(gpd)) {
     return OPERATOR_CANCELLED;
+  }
+
+  /* For sculpt mode, if mask is disable, only allows deselect */
+  if (GPENCIL_SCULPT_MODE(gpd)) {
+    ToolSettings *ts = CTX_data_tool_settings(C);
+    if ((!(GPENCIL_ANY_SCULPT_MASK(ts->gpencil_selectmode_sculpt))) && (action != SEL_DESELECT)) {
+      return OPERATOR_CANCELLED;
+    }
   }
 
   ED_gpencil_select_toggle_all(C, action);
@@ -149,7 +170,7 @@ void GPENCIL_OT_select_all(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gpencil_select_all_exec;
-  ot->poll = gpencil_select_poll;
+  ot->poll = gpencil_select_all_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
