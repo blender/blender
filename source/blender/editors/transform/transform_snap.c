@@ -1241,7 +1241,11 @@ static void TargetSnapClosest(TransInfo *t)
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         TransData *td = tc->data;
         for (td = tc->data, i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
-          struct BoundBox *bb = BKE_object_boundbox_get(td->ob);
+          const BoundBox *bb = NULL;
+
+          if ((t->flag & T_OBJECT_DATA_IN_OBJECT_MODE) == 0) {
+            bb = BKE_object_boundbox_get(td->ob);
+          }
 
           /* use boundbox if possible */
           if (bb) {
