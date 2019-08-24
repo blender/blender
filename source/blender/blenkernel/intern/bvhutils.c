@@ -1277,8 +1277,6 @@ static BLI_bitmap *loose_edges_map_get(const MEdge *medge,
   return loose_edges_mask;
 }
 
-/* TODO: implement hidden check. */
-#if 0
 static BLI_bitmap *looptri_no_hidden_map_get(const MPoly *mpoly,
                                              const int looptri_len,
                                              int *r_looptri_active_len)
@@ -1307,7 +1305,6 @@ static BLI_bitmap *looptri_no_hidden_map_get(const MPoly *mpoly,
 
   return looptri_mask;
 }
-#endif
 
 /**
  * Builds or queries a bvhcache for the cache bvhtree of the request type.
@@ -1434,15 +1431,12 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
         const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
         int looptri_len = BKE_mesh_runtime_looptri_len(mesh);
 
-        /* TODO: implement hidden check. */
-#if 0
         int looptri_mask_active_len = -1;
         BLI_bitmap *looptri_mask = NULL;
         if (bvh_cache_type == BVHTREE_FROM_LOOPTRI_NO_HIDDEN) {
           looptri_mask = looptri_no_hidden_map_get(
               mesh->mpoly, looptri_len, &looptri_mask_active_len);
         }
-#endif
 
         tree = bvhtree_from_mesh_looptri_ex(data,
                                             mesh->mvert,
@@ -1452,8 +1446,8 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
                                             mlooptri,
                                             looptri_len,
                                             false,
-                                            NULL,
-                                            -1,
+                                            looptri_mask,
+                                            looptri_mask_active_len,
                                             0.0,
                                             tree_type,
                                             6,
