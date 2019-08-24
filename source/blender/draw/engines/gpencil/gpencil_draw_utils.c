@@ -87,13 +87,13 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
 
   cache_ob->tot_vertex = 0;
   cache_ob->tot_triangles = 0;
-  int eval_idx = 0;
+  int idx_eval = 0;
 
   for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
     bGPDframe *init_gpf = NULL;
     const bool is_onion = ((do_onion) && (gpl->onion_flag & GP_LAYER_ONIONSKIN));
     if (gpl->flag & GP_LAYER_HIDE) {
-      eval_idx++;
+      idx_eval++;
       continue;
     }
 
@@ -102,7 +102,7 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
       init_gpf = gpl->frames.first;
     }
     else {
-      init_gpf = &ob->runtime.gpencil_evaluated_frames[eval_idx];
+      init_gpf = &ob->runtime.gpencil_evaluated_frames[idx_eval];
     }
 
     if (init_gpf == NULL) {
@@ -118,7 +118,7 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
         break;
       }
     }
-    eval_idx++;
+    idx_eval++;
   }
 
   cache->b_fill.tot_vertex = cache_ob->tot_triangles * 3;
@@ -1936,8 +1936,8 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
     }
 
     /* Get evaluated frames array data */
-    int eval_idx = BLI_findindex(&gpd->layers, gpl);
-    gpf_eval = &ob->runtime.gpencil_evaluated_frames[eval_idx];
+    int idx_eval = BLI_findindex(&gpd->layers, gpl);
+    gpf_eval = &ob->runtime.gpencil_evaluated_frames[idx_eval];
 
     /* draw onion skins */
     if (!ID_IS_LINKED(&gpd->id)) {
