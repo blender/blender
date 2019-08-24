@@ -845,7 +845,7 @@ static bool poly_is_island_boundary_smooth_cb(const MPoly *mp,
     const MPoly *mp_other = (mp == &mpoly_array[edge_poly_map->indices[0]]) ?
                                 &mpoly_array[edge_poly_map->indices[1]] :
                                 &mpoly_array[edge_poly_map->indices[0]];
-    return (mp_other->flag & ME_SMOOTH) != 0;
+    return (mp_other->flag & ME_SMOOTH) == 0;
   }
   return true;
 }
