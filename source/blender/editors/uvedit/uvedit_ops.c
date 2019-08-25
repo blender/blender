@@ -138,7 +138,7 @@ static int UNUSED_FUNCTION(ED_operator_uvmap_mesh)(bContext *C)
   if (ob && ob->type == OB_MESH) {
     Mesh *me = ob->data;
 
-    if (CustomData_get_layer(&me->fdata, CD_MTFACE) != NULL) {
+    if (CustomData_get_layer(&me->ldata, CD_MLOOPUV) != NULL) {
       return 1;
     }
   }

@@ -289,18 +289,14 @@ int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set, co
     if (me->mloopuv && do_init) {
       CustomData_add_layer_named(
           &me->ldata, CD_MLOOPUV, CD_DUPLICATE, me->mloopuv, me->totloop, name);
-      CustomData_add_layer_named(
-          &me->fdata, CD_MTFACE, CD_DUPLICATE, me->mtface, me->totface, name);
       is_init = true;
     }
     else {
       CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, me->totloop, name);
-      CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_DEFAULT, NULL, me->totface, name);
     }
 
     if (active_set || layernum_dst == 0) {
       CustomData_set_layer_active(&me->ldata, CD_MLOOPUV, layernum_dst);
-      CustomData_set_layer_active(&me->fdata, CD_MTFACE, layernum_dst);
     }
 
     BKE_mesh_update_customdata_pointers(me, true);
@@ -418,16 +414,13 @@ int ED_mesh_color_add(Mesh *me, const char *name, const bool active_set, const b
     if (me->mloopcol && do_init) {
       CustomData_add_layer_named(
           &me->ldata, CD_MLOOPCOL, CD_DUPLICATE, me->mloopcol, me->totloop, name);
-      CustomData_add_layer_named(&me->fdata, CD_MCOL, CD_DUPLICATE, me->mcol, me->totface, name);
     }
     else {
       CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop, name);
-      CustomData_add_layer_named(&me->fdata, CD_MCOL, CD_DEFAULT, NULL, me->totface, name);
     }
 
     if (active_set || layernum == 0) {
       CustomData_set_layer_active(&me->ldata, CD_MLOOPCOL, layernum);
-      CustomData_set_layer_active(&me->fdata, CD_MCOL, layernum);
     }
 
     BKE_mesh_update_customdata_pointers(me, true);
