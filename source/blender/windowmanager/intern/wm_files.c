@@ -2884,7 +2884,6 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
   }
   UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
 
-
   col = uiLayoutColumn(split, false);
   but = uiDefIconTextBut(block,
                          UI_BTYPE_BUT,

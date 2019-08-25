@@ -167,7 +167,10 @@ MixColorBurnOperation::MixColorBurnOperation() : MixBaseOperation()
   /* pass */
 }
 
-void MixColorBurnOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void MixColorBurnOperation::executePixelSampled(float output[4],
+                                                float x,
+                                                float y,
+                                                PixelSampler sampler)
 {
   float inputColor1[4];
   float inputColor2[4];
