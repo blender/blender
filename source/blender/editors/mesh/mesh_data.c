@@ -971,39 +971,6 @@ static void mesh_add_edges(Mesh *mesh, int len)
   mesh->totedge = totedge;
 }
 
-static void mesh_add_tessfaces(Mesh *mesh, int len)
-{
-  CustomData fdata;
-  MFace *mface;
-  int i, totface;
-
-  if (len == 0) {
-    return;
-  }
-
-  totface = mesh->totface + len; /* new face count */
-
-  /* update customdata */
-  CustomData_copy(&mesh->fdata, &fdata, CD_MASK_MESH.fmask, CD_DEFAULT, totface);
-  CustomData_copy_data(&mesh->fdata, &fdata, 0, 0, mesh->totface);
-
-  if (!CustomData_has_layer(&fdata, CD_MFACE)) {
-    CustomData_add_layer(&fdata, CD_MFACE, CD_CALLOC, NULL, totface);
-  }
-
-  CustomData_free(&mesh->fdata, mesh->totface);
-  mesh->fdata = fdata;
-  BKE_mesh_update_customdata_pointers(mesh, true);
-
-  /* set default flags */
-  mface = &mesh->mface[mesh->totface];
-  for (i = 0; i < len; i++, mface++) {
-    mface->flag = ME_FACE_SEL;
-  }
-
-  mesh->totface = totface;
-}
-
 static void mesh_add_loops(Mesh *mesh, int len)
 {
   CustomData ldata;
@@ -1092,20 +1059,6 @@ static void mesh_remove_edges(Mesh *mesh, int len)
   mesh->totedge = totedge;
 }
 
-static void mesh_remove_faces(Mesh *mesh, int len)
-{
-  int totface;
-
-  if (len == 0) {
-    return;
-  }
-
-  totface = mesh->totface - len; /* new face count */
-  CustomData_free_elem(&mesh->fdata, totface, len);
-
-  mesh->totface = totface;
-}
-
 #if 0
 void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges, int faces)
 {
@@ -1126,21 +1079,6 @@ void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges,
 }
 #endif
 
-void ED_mesh_tessfaces_add(Mesh *mesh, ReportList *reports, int count)
-{
-  if (mesh->edit_mesh) {
-    BKE_report(reports, RPT_ERROR, "Cannot add tessfaces in edit mode");
-    return;
-  }
-
-  if (mesh->mpoly) {
-    BKE_report(reports, RPT_ERROR, "Cannot add tessfaces to a mesh that already has polygons");
-    return;
-  }
-
-  mesh_add_tessfaces(mesh, count);
-}
-
 void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count)
 {
   if (mesh->edit_mesh) {
@@ -1159,20 +1097,6 @@ void ED_mesh_vertices_add(Mesh *mesh, ReportList *reports, int count)
   }
 
   mesh_add_verts(mesh, count);
-}
-
-void ED_mesh_faces_remove(Mesh *mesh, ReportList *reports, int count)
-{
-  if (mesh->edit_mesh) {
-    BKE_report(reports, RPT_ERROR, "Cannot remove faces in edit mode");
-    return;
-  }
-  else if (count > mesh->totface) {
-    BKE_report(reports, RPT_ERROR, "Cannot remove more faces than the mesh contains");
-    return;
-  }
-
-  mesh_remove_faces(mesh, count);
 }
 
 void ED_mesh_edges_remove(Mesh *mesh, ReportList *reports, int count)
@@ -1221,26 +1145,6 @@ void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
   }
 
   mesh_add_polys(mesh, count);
-}
-
-void ED_mesh_calc_tessface(Mesh *mesh, bool free_mpoly)
-{
-  if (mesh->edit_mesh) {
-    BKE_editmesh_tessface_calc(mesh->edit_mesh);
-  }
-  else {
-    BKE_mesh_tessface_calc(mesh);
-  }
-  if (free_mpoly) {
-    CustomData_free(&mesh->ldata, mesh->totloop);
-    CustomData_free(&mesh->pdata, mesh->totpoly);
-    mesh->totloop = 0;
-    mesh->totpoly = 0;
-    mesh->mloop = NULL;
-    mesh->mloopcol = NULL;
-    mesh->mloopuv = NULL;
-    mesh->mpoly = NULL;
-  }
 }
 
 void ED_mesh_report_mirror_ex(wmOperator *op, int totmirr, int totfail, char selectmode)

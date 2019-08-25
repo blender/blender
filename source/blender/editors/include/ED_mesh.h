@@ -358,16 +358,13 @@ void ED_mesh_geometry_add(
     struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);
 #endif
 void ED_mesh_polys_add(struct Mesh *mesh, struct ReportList *reports, int count);
-void ED_mesh_tessfaces_add(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_loops_add(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count);
 
-void ED_mesh_faces_remove(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_edges_remove(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_vertices_remove(struct Mesh *mesh, struct ReportList *reports, int count);
 
-void ED_mesh_calc_tessface(struct Mesh *mesh, bool free_mpoly);
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C, bool calc_edges, bool calc_edges_loose);
 
 void ED_mesh_uv_texture_ensure(struct Mesh *me, const char *name);
