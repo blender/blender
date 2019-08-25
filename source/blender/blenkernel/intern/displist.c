@@ -1128,15 +1128,6 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
 
   if (r_final) {
     if (modified) {
-      /* see: mesh_calc_modifiers */
-      if (modified->totface == 0) {
-        BKE_mesh_tessface_calc(modified);
-      }
-      /* Even if tessellation is not needed, some modifiers might have modified CD layers
-       * (like mloopcol or mloopuv), hence we have to update those. */
-      else if (modified->runtime.cd_dirty_vert & CD_MASK_TESSLOOPNORMAL) {
-        BKE_mesh_tessface_calc(modified);
-      }
 
       /* XXX2.8(Sybren): make sure the face normals are recalculated as well */
       BKE_mesh_ensure_normals(modified);
