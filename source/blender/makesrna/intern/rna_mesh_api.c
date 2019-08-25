@@ -311,11 +311,6 @@ void RNA_api_mesh(StructRNA *srna)
                   0,
                   "Calculate Loose Edges",
                   "Calculate the loose state of each edge");
-  RNA_def_boolean(func,
-                  "calc_loop_triangles",
-                  0,
-                  "Calculate Triangules",
-                  "Force recalculation of triangle tessellation");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
   RNA_def_function(srna, "update_gpu_tag", "rna_Mesh_update_gpu_tag");

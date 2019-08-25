@@ -885,18 +885,8 @@ void MESH_OT_customdata_custom_splitnormals_clear(wmOperatorType *ot)
 
 /************************** Add Geometry Layers *************************/
 
-void ED_mesh_update(
-    Mesh *mesh, bContext *C, bool calc_edges, bool calc_edges_loose, bool calc_tessface)
+void ED_mesh_update(Mesh *mesh, bContext *C, bool calc_edges, bool calc_edges_loose)
 {
-  bool tessface_input = false;
-
-  if (mesh->totface > 0 && mesh->totpoly == 0) {
-    BKE_mesh_convert_mfaces_to_mpolys(mesh);
-
-    /* would only be converting back again, don't bother */
-    tessface_input = true;
-  }
-
   if (calc_edges_loose && mesh->totedge) {
     BKE_mesh_calc_edges_loose(mesh);
   }
@@ -905,15 +895,8 @@ void ED_mesh_update(
     BKE_mesh_calc_edges(mesh, calc_edges, true);
   }
 
-  if (calc_tessface) {
-    if (tessface_input == false) {
-      BKE_mesh_tessface_calc(mesh);
-    }
-  }
-  else {
-    /* default state is not to have tessface's so make sure this is the case */
-    BKE_mesh_tessface_clear(mesh);
-  }
+  /* Default state is not to have tessface's so make sure this is the case. */
+  BKE_mesh_tessface_clear(mesh);
 
   BKE_mesh_calc_normals(mesh);
 
