@@ -700,7 +700,7 @@ void RE_bake_pixels_populate(Mesh *me,
   }
   else {
     int uv_id = CustomData_get_named_layer(&me->ldata, CD_MLOOPUV, uv_layer);
-    mloopuv = CustomData_get_layer_n(&me->ldata, CD_MTFACE, uv_id);
+    mloopuv = CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, uv_id);
   }
 
   if (mloopuv == NULL) {
