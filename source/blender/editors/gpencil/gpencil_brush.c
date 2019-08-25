@@ -497,7 +497,7 @@ static void gp_brush_grab_stroke_init(tGP_BrushEditData *gso, bGPDstroke *gps)
 
     data->points = MEM_callocN(sizeof(int) * data->capacity, "GP Stroke Grab Indices");
     data->weights = MEM_callocN(sizeof(float) * data->capacity, "GP Stroke Grab Weights");
-    data->rot_eval = MEM_callocN(sizeof(float) * data->capacity, "GP Stroke Grab X");
+    data->rot_eval = MEM_callocN(sizeof(float) * data->capacity, "GP Stroke Grab Rotations");
 
     /* hook up to the cache */
     BLI_ghash_insert(gso->stroke_customdata, gps, data);
