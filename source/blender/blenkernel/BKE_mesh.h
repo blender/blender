@@ -198,16 +198,6 @@ void BKE_mesh_texspace_get_reference(
     struct Mesh *me, short **r_texflag, float **r_loc, float **r_rot, float **r_size);
 void BKE_mesh_texspace_copy_from_object(struct Mesh *me, struct Object *ob);
 
-bool BKE_mesh_uv_cdlayer_rename_index(struct Mesh *me,
-                                      const int loop_index,
-                                      const int face_index,
-                                      const char *new_name,
-                                      const bool do_tessface);
-bool BKE_mesh_uv_cdlayer_rename(struct Mesh *me,
-                                const char *old_name,
-                                const char *new_name,
-                                bool do_tessface);
-
 void BKE_mesh_split_faces(struct Mesh *mesh, bool free_loop_normals);
 
 /* Create new mesh from the given object at its current state.

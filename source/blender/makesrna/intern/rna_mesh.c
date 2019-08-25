@@ -651,14 +651,6 @@ static void rna_MPoly_freestyle_face_mark_set(PointerRNA *ptr, int value)
   }
 }
 
-/* Generic UV rename! */
-static void rna_MeshUVLayer_name_set(PointerRNA *ptr, const char *name)
-{
-  char buf[MAX_CUSTOMDATA_LAYER_NAME];
-  BLI_strncpy_utf8(buf, name, MAX_CUSTOMDATA_LAYER_NAME);
-  BKE_mesh_uv_cdlayer_rename(rna_mesh(ptr), ((CustomDataLayer *)ptr->data)->name, buf, true);
-}
-
 /* uv_layers */
 
 DEFINE_CUSTOMDATA_LAYER_COLLECTION(uv_layer, ldata, CD_MLOOPUV)
@@ -1941,7 +1933,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_struct_name_property(srna, prop);
-  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshUVLayer_name_set");
+  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshLoopLayer_name_set");
   RNA_def_property_ui_text(prop, "Name", "Name of UV map");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
