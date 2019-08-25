@@ -26,33 +26,38 @@ ccl_device_inline void kernel_path_volume_connect_light(KernelGlobals *kg,
                                                         PathRadiance *L)
 {
 #  ifdef __EMISSION__
-  if (!kernel_data.integrator.use_direct_light)
-    return;
-
   /* sample illumination from lights to find path contribution */
-  float light_u, light_v;
-  path_state_rng_2D(kg, state, PRNG_LIGHT_U, &light_u, &light_v);
-
   Ray light_ray;
   BsdfEval L_light;
-  LightSample ls;
-  bool is_lamp;
+  bool is_lamp = false;
+  bool has_emission = false;
 
+  light_ray.t = 0.0f;
+#    ifdef __OBJECT_MOTION__
   /* connect to light from given point where shader has been evaluated */
   light_ray.time = sd->time;
+#    endif
 
-  if (light_sample(kg, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
-    float terminate = path_state_rng_light_termination(kg, state);
-    if (direct_emission(
-            kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
-      /* trace shadow ray */
-      float3 shadow;
+  if (kernel_data.integrator.use_direct_light) {
+    float light_u, light_v;
+    path_state_rng_2D(kg, state, PRNG_LIGHT_U, &light_u, &light_v);
 
-      if (!shadow_blocked(kg, sd, emission_sd, state, &light_ray, &shadow)) {
-        /* accumulate */
-        path_radiance_accum_light(L, state, throughput, &L_light, shadow, 1.0f, is_lamp);
-      }
+    LightSample ls;
+    if (light_sample(kg, -1, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
+      float terminate = path_state_rng_light_termination(kg, state);
+      has_emission = direct_emission(
+          kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate);
     }
+  }
+
+  /* trace shadow ray */
+  float3 shadow;
+
+  const bool blocked = shadow_blocked(kg, sd, emission_sd, state, &light_ray, &shadow);
+
+  if (has_emission && !blocked) {
+    /* accumulate */
+    path_radiance_accum_light(L, state, throughput, &L_light, shadow, 1.0f, is_lamp);
   }
 #  endif /* __EMISSION__ */
 }
@@ -122,7 +127,7 @@ ccl_device_noinline_cpu bool kernel_path_volume_bounce(KernelGlobals *kg,
   return true;
 }
 
-#  ifndef __SPLIT_KERNEL__
+#  if !defined(__SPLIT_KERNEL__) && (defined(__BRANCHED_PATH__) || defined(__VOLUME_DECOUPLED__))
 ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg,
                                                           ShaderData *sd,
                                                           ShaderData *emission_sd,
@@ -134,96 +139,71 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg,
                                                           const VolumeSegment *segment)
 {
 #    ifdef __EMISSION__
-  if (!kernel_data.integrator.use_direct_light)
-    return;
-
-  Ray light_ray;
   BsdfEval L_light;
-  bool is_lamp;
 
-  light_ray.time = sd->time;
-
+  int num_lights = 1;
   if (sample_all_lights) {
-    /* lamp sampling */
-    for (int i = 0; i < kernel_data.integrator.num_all_lights; i++) {
-      if (UNLIKELY(light_select_reached_max_bounces(kg, i, state->bounce)))
-        continue;
+    num_lights = kernel_data.integrator.num_all_lights;
+    if (kernel_data.integrator.pdf_triangles != 0.0f) {
+      num_lights += 1;
+    }
+  }
 
-      int num_samples = light_select_num_samples(kg, i);
-      float num_samples_inv = 1.0f / (num_samples * kernel_data.integrator.num_all_lights);
-      uint lamp_rng_hash = cmj_hash(state->rng_hash, i);
+  for (int i = 0; i < num_lights; ++i) {
+    /* sample one light at random */
+    int num_samples = 1;
+    int num_all_lights = 1;
+    uint lamp_rng_hash = state->rng_hash;
+    bool double_pdf = false;
+    bool is_mesh_light = false;
+    bool is_lamp = false;
 
-      for (int j = 0; j < num_samples; j++) {
-        /* sample random position on given light */
+    if (sample_all_lights) {
+      /* lamp sampling */
+      is_lamp = i < kernel_data.integrator.num_all_lights;
+      if (is_lamp) {
+        if (UNLIKELY(light_select_reached_max_bounces(kg, i, state->bounce))) {
+          continue;
+        }
+        num_samples = light_select_num_samples(kg, i);
+        num_all_lights = kernel_data.integrator.num_all_lights;
+        lamp_rng_hash = cmj_hash(state->rng_hash, i);
+        double_pdf = kernel_data.integrator.pdf_triangles != 0.0f;
+      }
+      /* mesh light sampling */
+      else {
+        num_samples = kernel_data.integrator.mesh_light_samples;
+        double_pdf = kernel_data.integrator.num_all_lights != 0;
+        is_mesh_light = true;
+      }
+    }
+
+    float num_samples_inv = 1.0f / (num_samples * num_all_lights);
+
+    for (int j = 0; j < num_samples; j++) {
+      Ray light_ray;
+      light_ray.t = 0.0f; /* reset ray */
+#      ifdef __OBJECT_MOTION__
+      light_ray.time = sd->time;
+#      endif
+      bool has_emission = false;
+
+      float3 tp = throughput;
+
+      if (kernel_data.integrator.use_direct_light) {
+        /* sample random position on random light/triangle */
         float light_u, light_v;
         path_branched_rng_2D(
             kg, lamp_rng_hash, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
 
-        LightSample ls;
-        lamp_light_sample(kg, i, light_u, light_v, ray->P, &ls);
-
-        float3 tp = throughput;
-
-        /* sample position on volume segment */
-        float rphase = path_branched_rng_1D(
-            kg, state->rng_hash, state, j, num_samples, PRNG_PHASE_CHANNEL);
-        float rscatter = path_branched_rng_1D(
-            kg, state->rng_hash, state, j, num_samples, PRNG_SCATTER_DISTANCE);
-
-        VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
-                                                                       state,
-                                                                       ray,
-                                                                       sd,
-                                                                       &tp,
-                                                                       rphase,
-                                                                       rscatter,
-                                                                       segment,
-                                                                       (ls.t != FLT_MAX) ? &ls.P :
-                                                                                           NULL,
-                                                                       false);
-
-        /* todo: split up light_sample so we don't have to call it again with new position */
-        if (result == VOLUME_PATH_SCATTERED &&
-            lamp_light_sample(kg, i, light_u, light_v, sd->P, &ls)) {
-          if (kernel_data.integrator.pdf_triangles != 0.0f)
-            ls.pdf *= 2.0f;
-
-          float terminate = path_branched_rng_light_termination(
-              kg, state->rng_hash, state, j, num_samples);
-          if (direct_emission(
-                  kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
-            /* trace shadow ray */
-            float3 shadow;
-
-            if (!shadow_blocked(kg, sd, emission_sd, state, &light_ray, &shadow)) {
-              /* accumulate */
-              path_radiance_accum_light(
-                  L, state, tp * num_samples_inv, &L_light, shadow, num_samples_inv, is_lamp);
-            }
-          }
-        }
-      }
-    }
-
-    /* mesh light sampling */
-    if (kernel_data.integrator.pdf_triangles != 0.0f) {
-      int num_samples = kernel_data.integrator.mesh_light_samples;
-      float num_samples_inv = 1.0f / num_samples;
-
-      for (int j = 0; j < num_samples; j++) {
-        /* sample random position on random triangle */
-        float light_u, light_v;
-        path_branched_rng_2D(
-            kg, state->rng_hash, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
-
         /* only sample triangle lights */
-        if (kernel_data.integrator.num_all_lights)
+        if (is_mesh_light && double_pdf) {
           light_u = 0.5f * light_u;
+        }
 
         LightSample ls;
-        light_sample(kg, light_u, light_v, sd->time, ray->P, state->bounce, &ls);
-
-        float3 tp = throughput;
+        const int lamp = is_lamp ? i : -1;
+        light_sample(kg, lamp, light_u, light_v, sd->time, ray->P, state->bounce, &ls);
 
         /* sample position on volume segment */
         float rphase = path_branched_rng_1D(
@@ -243,69 +223,31 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg,
                                                                                            NULL,
                                                                        false);
 
-        /* todo: split up light_sample so we don't have to call it again with new position */
-        if (result == VOLUME_PATH_SCATTERED &&
-            light_sample(kg, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
-          if (kernel_data.integrator.num_all_lights)
-            ls.pdf *= 2.0f;
-
-          float terminate = path_branched_rng_light_termination(
-              kg, state->rng_hash, state, j, num_samples);
-          if (direct_emission(
-                  kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
-            /* trace shadow ray */
-            float3 shadow;
-
-            if (!shadow_blocked(kg, sd, emission_sd, state, &light_ray, &shadow)) {
-              /* accumulate */
-              path_radiance_accum_light(
-                  L, state, tp * num_samples_inv, &L_light, shadow, num_samples_inv, is_lamp);
+        if (result == VOLUME_PATH_SCATTERED) {
+          /* todo: split up light_sample so we don't have to call it again with new position */
+          if (light_sample(kg, lamp, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
+            if (double_pdf) {
+              ls.pdf *= 2.0f;
             }
+
+            /* sample random light */
+            float terminate = path_branched_rng_light_termination(
+                kg, state->rng_hash, state, j, num_samples);
+            has_emission = direct_emission(
+                kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate);
           }
         }
       }
-    }
-  }
-  else {
-    /* sample random position on random light */
-    float light_u, light_v;
-    path_state_rng_2D(kg, state, PRNG_LIGHT_U, &light_u, &light_v);
 
-    LightSample ls;
-    light_sample(kg, light_u, light_v, sd->time, ray->P, state->bounce, &ls);
+      /* trace shadow ray */
+      float3 shadow;
 
-    float3 tp = throughput;
+      const bool blocked = shadow_blocked(kg, sd, emission_sd, state, &light_ray, &shadow);
 
-    /* sample position on volume segment */
-    float rphase = path_state_rng_1D(kg, state, PRNG_PHASE_CHANNEL);
-    float rscatter = path_state_rng_1D(kg, state, PRNG_SCATTER_DISTANCE);
-
-    VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
-                                                                   state,
-                                                                   ray,
-                                                                   sd,
-                                                                   &tp,
-                                                                   rphase,
-                                                                   rscatter,
-                                                                   segment,
-                                                                   (ls.t != FLT_MAX) ? &ls.P :
-                                                                                       NULL,
-                                                                   false);
-
-    /* todo: split up light_sample so we don't have to call it again with new position */
-    if (result == VOLUME_PATH_SCATTERED &&
-        light_sample(kg, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
-      /* sample random light */
-      float terminate = path_state_rng_light_termination(kg, state);
-      if (direct_emission(
-              kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
-        /* trace shadow ray */
-        float3 shadow;
-
-        if (!shadow_blocked(kg, sd, emission_sd, state, &light_ray, &shadow)) {
-          /* accumulate */
-          path_radiance_accum_light(L, state, tp, &L_light, shadow, 1.0f, is_lamp);
-        }
+      if (has_emission && !blocked) {
+        /* accumulate */
+        path_radiance_accum_light(
+            L, state, tp * num_samples_inv, &L_light, shadow, num_samples_inv, is_lamp);
       }
     }
   }

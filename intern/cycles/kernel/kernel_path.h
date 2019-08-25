@@ -474,12 +474,10 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 #    endif /* __SUBSURFACE__ */
 
 #    if defined(__EMISSION__)
-        if (kernel_data.integrator.use_direct_light) {
-          int all = (kernel_data.integrator.sample_all_lights_indirect) ||
-                    (state->flag & PATH_RAY_SHADOW_CATCHER);
-          kernel_branched_path_surface_connect_light(
-              kg, sd, emission_sd, state, throughput, 1.0f, L, all);
-        }
+        int all = (kernel_data.integrator.sample_all_lights_indirect) ||
+                  (state->flag & PATH_RAY_SHADOW_CATCHER);
+        kernel_branched_path_surface_connect_light(
+            kg, sd, emission_sd, state, throughput, 1.0f, L, all);
 #    endif /* defined(__EMISSION__) */
 
 #    ifdef __VOLUME__

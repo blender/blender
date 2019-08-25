@@ -32,140 +32,100 @@ ccl_device_noinline_cpu void kernel_branched_path_surface_connect_light(
 {
 #  ifdef __EMISSION__
   /* sample illumination from lights to find path contribution */
-  if (!(sd->flag & SD_BSDF_HAS_EVAL))
-    return;
-
-  Ray light_ray;
   BsdfEval L_light;
-  bool is_lamp;
 
+  int num_lights = 0;
+  if (kernel_data.integrator.use_direct_light) {
+    if (sample_all_lights) {
+      num_lights = kernel_data.integrator.num_all_lights;
+      if (kernel_data.integrator.pdf_triangles != 0.0f) {
+        num_lights += 1;
+      }
+    }
+    else {
+      num_lights = 1;
+    }
+  }
+
+  for (int i = 0; i < num_lights; i++) {
+    /* sample one light at random */
+    int num_samples = 1;
+    int num_all_lights = 1;
+    uint lamp_rng_hash = state->rng_hash;
+    bool double_pdf = false;
+    bool is_mesh_light = false;
+    bool is_lamp = false;
+
+    if (sample_all_lights) {
+      /* lamp sampling */
+      is_lamp = i < kernel_data.integrator.num_all_lights;
+      if (is_lamp) {
+        if (UNLIKELY(light_select_reached_max_bounces(kg, i, state->bounce))) {
+          continue;
+        }
+        num_samples = ceil_to_int(num_samples_adjust * light_select_num_samples(kg, i));
+        num_all_lights = kernel_data.integrator.num_all_lights;
+        lamp_rng_hash = cmj_hash(state->rng_hash, i);
+        double_pdf = kernel_data.integrator.pdf_triangles != 0.0f;
+      }
+      /* mesh light sampling */
+      else {
+        num_samples = ceil_to_int(num_samples_adjust * kernel_data.integrator.mesh_light_samples);
+        double_pdf = kernel_data.integrator.num_all_lights != 0;
+        is_mesh_light = true;
+      }
+    }
+
+    float num_samples_inv = num_samples_adjust / (num_samples * num_all_lights);
+
+    for (int j = 0; j < num_samples; j++) {
+      Ray light_ray;
+      light_ray.t = 0.0f; /* reset ray */
 #    ifdef __OBJECT_MOTION__
-  light_ray.time = sd->time;
+      light_ray.time = sd->time;
 #    endif
+      bool has_emission = false;
 
-  if (sample_all_lights) {
-    /* lamp sampling */
-    for (int i = 0; i < kernel_data.integrator.num_all_lights; i++) {
-      if (UNLIKELY(light_select_reached_max_bounces(kg, i, state->bounce)))
-        continue;
-
-      int num_samples = ceil_to_int(num_samples_adjust * light_select_num_samples(kg, i));
-      float num_samples_inv = num_samples_adjust /
-                              (num_samples * kernel_data.integrator.num_all_lights);
-      uint lamp_rng_hash = cmj_hash(state->rng_hash, i);
-
-      for (int j = 0; j < num_samples; j++) {
+      if (kernel_data.integrator.use_direct_light && (sd->flag & SD_BSDF_HAS_EVAL)) {
         float light_u, light_v;
         path_branched_rng_2D(
             kg, lamp_rng_hash, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
         float terminate = path_branched_rng_light_termination(
             kg, lamp_rng_hash, state, j, num_samples);
 
-        LightSample ls;
-        if (lamp_light_sample(kg, i, light_u, light_v, sd->P, &ls)) {
-          /* The sampling probability returned by lamp_light_sample assumes that all lights were
-           * sampled.
-           * However, this code only samples lamps, so if the scene also had mesh lights, the real
-           * probability is twice as high. */
-          if (kernel_data.integrator.pdf_triangles != 0.0f)
-            ls.pdf *= 2.0f;
-
-          if (direct_emission(
-                  kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
-            /* trace shadow ray */
-            float3 shadow;
-
-            if (!shadow_blocked(kg, sd, emission_sd, state, &light_ray, &shadow)) {
-              /* accumulate */
-              path_radiance_accum_light(L,
-                                        state,
-                                        throughput * num_samples_inv,
-                                        &L_light,
-                                        shadow,
-                                        num_samples_inv,
-                                        is_lamp);
-            }
-            else {
-              path_radiance_accum_total_light(L, state, throughput * num_samples_inv, &L_light);
-            }
-          }
-        }
-      }
-    }
-
-    /* mesh light sampling */
-    if (kernel_data.integrator.pdf_triangles != 0.0f) {
-      int num_samples = ceil_to_int(num_samples_adjust *
-                                    kernel_data.integrator.mesh_light_samples);
-      float num_samples_inv = num_samples_adjust / num_samples;
-
-      for (int j = 0; j < num_samples; j++) {
-        float light_u, light_v;
-        path_branched_rng_2D(
-            kg, state->rng_hash, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
-        float terminate = path_branched_rng_light_termination(
-            kg, state->rng_hash, state, j, num_samples);
-
         /* only sample triangle lights */
-        if (kernel_data.integrator.num_all_lights)
+        if (is_mesh_light && double_pdf) {
           light_u = 0.5f * light_u;
+        }
 
         LightSample ls;
-        if (light_sample(kg, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
-          /* Same as above, probability needs to be corrected since the sampling was forced to
-           * select a mesh light. */
-          if (kernel_data.integrator.num_all_lights)
+        const int lamp = is_lamp ? i : -1;
+        if (light_sample(kg, lamp, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
+          /* The sampling probability returned by lamp_light_sample assumes that all lights were
+           * sampled. However, this code only samples lamps, so if the scene also had mesh lights,
+           * the real probability is twice as high. */
+          if (double_pdf) {
             ls.pdf *= 2.0f;
-
-          if (direct_emission(
-                  kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
-            /* trace shadow ray */
-            float3 shadow;
-
-            if (!shadow_blocked(kg, sd, emission_sd, state, &light_ray, &shadow)) {
-              /* accumulate */
-              path_radiance_accum_light(L,
-                                        state,
-                                        throughput * num_samples_inv,
-                                        &L_light,
-                                        shadow,
-                                        num_samples_inv,
-                                        is_lamp);
-            }
-            else {
-              path_radiance_accum_total_light(L, state, throughput * num_samples_inv, &L_light);
-            }
           }
+
+          has_emission = direct_emission(
+              kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate);
         }
       }
-    }
-  }
-  else {
-    /* sample one light at random */
-    float light_u, light_v;
-    path_state_rng_2D(kg, state, PRNG_LIGHT_U, &light_u, &light_v);
-    float terminate = path_state_rng_light_termination(kg, state);
 
-    LightSample ls;
-    if (light_sample(kg, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
-      /* sample random light */
-      if (direct_emission(
-              kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
-        /* trace shadow ray */
-        float3 shadow;
+      /* trace shadow ray */
+      float3 shadow;
 
-        if (!shadow_blocked(kg, sd, emission_sd, state, &light_ray, &shadow)) {
+      const bool blocked = shadow_blocked(kg, sd, emission_sd, state, &light_ray, &shadow);
+
+      if (has_emission) {
+        if (!blocked) {
           /* accumulate */
-          path_radiance_accum_light(L,
-                                    state,
-                                    throughput * num_samples_adjust,
-                                    &L_light,
-                                    shadow,
-                                    num_samples_adjust,
-                                    is_lamp);
+          path_radiance_accum_light(
+              L, state, throughput * num_samples_inv, &L_light, shadow, num_samples_inv, is_lamp);
         }
         else {
-          path_radiance_accum_total_light(L, state, throughput * num_samples_adjust, &L_light);
+          path_radiance_accum_total_light(L, state, throughput * num_samples_inv, &L_light);
         }
       }
     }
@@ -255,45 +215,48 @@ ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg,
   PROFILING_INIT(kg, PROFILING_CONNECT_LIGHT);
 
 #ifdef __EMISSION__
-  if (!(kernel_data.integrator.use_direct_light && (sd->flag & SD_BSDF_HAS_EVAL)))
-    return;
-
 #  ifdef __SHADOW_TRICKS__
-  if (state->flag & PATH_RAY_SHADOW_CATCHER) {
-    kernel_branched_path_surface_connect_light(kg, sd, emission_sd, state, throughput, 1.0f, L, 1);
-    return;
-  }
-#  endif
-
+  int all = (state->flag & PATH_RAY_SHADOW_CATCHER);
+  kernel_branched_path_surface_connect_light(kg, sd, emission_sd, state, throughput, 1.0f, L, all);
+#  else
   /* sample illumination from lights to find path contribution */
-  float light_u, light_v;
-  path_state_rng_2D(kg, state, PRNG_LIGHT_U, &light_u, &light_v);
-
   Ray light_ray;
   BsdfEval L_light;
-  bool is_lamp;
+  bool is_lamp = false;
+  bool has_emission = false;
 
-#  ifdef __OBJECT_MOTION__
+  light_ray.t = 0.0f;
+#    ifdef __OBJECT_MOTION__
   light_ray.time = sd->time;
-#  endif
+#    endif
 
-  LightSample ls;
-  if (light_sample(kg, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
-    float terminate = path_state_rng_light_termination(kg, state);
-    if (direct_emission(
-            kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
-      /* trace shadow ray */
-      float3 shadow;
+  if (kernel_data.integrator.use_direct_light && (sd->flag & SD_BSDF_HAS_EVAL)) {
+    float light_u, light_v;
+    path_state_rng_2D(kg, state, PRNG_LIGHT_U, &light_u, &light_v);
 
-      if (!shadow_blocked(kg, sd, emission_sd, state, &light_ray, &shadow)) {
-        /* accumulate */
-        path_radiance_accum_light(L, state, throughput, &L_light, shadow, 1.0f, is_lamp);
-      }
-      else {
-        path_radiance_accum_total_light(L, state, throughput, &L_light);
-      }
+    LightSample ls;
+    if (light_sample(kg, -1, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
+      float terminate = path_state_rng_light_termination(kg, state);
+      has_emission = direct_emission(
+          kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate);
     }
   }
+
+  /* trace shadow ray */
+  float3 shadow;
+
+  const bool blocked = shadow_blocked(kg, sd, emission_sd, state, &light_ray, &shadow);
+
+  if (has_emission) {
+    if (!blocked) {
+      /* accumulate */
+      path_radiance_accum_light(L, state, throughput, &L_light, shadow, 1.0f, is_lamp);
+    }
+    else {
+      path_radiance_accum_total_light(L, state, throughput, &L_light);
+    }
+  }
+#  endif
 #endif
 }
 
