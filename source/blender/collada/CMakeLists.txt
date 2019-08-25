@@ -28,10 +28,7 @@ FIND_FILE(OPENCOLLADA_ANIMATION_CLIP
     )
 
 IF(OPENCOLLADA_ANIMATION_CLIP)
-   message(STATUS "Found opencollada: ${OPENCOLLADA_ANIMATION_CLIP} ")
    add_definitions(-DWITH_OPENCOLLADA_ANIMATION_CLIP)
-ELSE()
-   message(STATUS "opencollada: Build without animation clip support")
 ENDIF()
 
 set(INC
