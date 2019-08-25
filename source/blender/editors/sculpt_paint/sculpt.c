@@ -5154,10 +5154,11 @@ static bool sculpt_any_smooth_mode(const Brush *brush, StrokeCache *cache, int s
 static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush)
 {
   SculptSession *ss = ob->sculpt;
+  View3D *v3d = CTX_wm_view3d(C);
 
-  if (ss->kb || ss->modifiers_active) {
+  bool need_pmap = sculpt_any_smooth_mode(brush, ss->cache, 0);
+  if (ss->kb || ss->modifiers_active || (!BKE_sculptsession_use_pbvh_draw(ob, v3d) && need_pmap)) {
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-    bool need_pmap = sculpt_any_smooth_mode(brush, ss->cache, 0);
     BKE_sculpt_update_object_for_edit(depsgraph, ob, need_pmap, false);
   }
 }
