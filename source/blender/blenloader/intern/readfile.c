@@ -4898,6 +4898,11 @@ static void lib_link_mesh(FileData *fd, Main *main)
       /* Deprecated, only kept for conversion. */
       BKE_mesh_tessface_clear(me);
 
+      /* Moved from do_versions because we need updated polygons for calculating normals. */
+      if (MAIN_VERSION_OLDER(main, 256, 6)) {
+        BKE_mesh_calc_normals(me);
+      }
+
       me->id.tag &= ~LIB_TAG_NEED_LINK;
     }
   }

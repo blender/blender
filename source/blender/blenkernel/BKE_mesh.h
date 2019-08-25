@@ -313,11 +313,6 @@ void BKE_mesh_calc_normals_poly(struct MVert *mverts,
 void BKE_mesh_calc_normals(struct Mesh *me);
 void BKE_mesh_ensure_normals(struct Mesh *me);
 void BKE_mesh_ensure_normals_for_display(struct Mesh *mesh);
-void BKE_mesh_calc_normals_tessface(struct MVert *mverts,
-                                    int numVerts,
-                                    const struct MFace *mfaces,
-                                    int numFaces,
-                                    float (*r_faceNors)[3]);
 void BKE_mesh_calc_normals_looptri(struct MVert *mverts,
                                    int numVerts,
                                    const struct MLoop *mloop,
