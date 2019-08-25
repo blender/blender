@@ -56,8 +56,6 @@ class GeometryExporter : COLLADASW::LibraryGeometries {
     unsigned int v1, v2, v3, v4;
   };
 
-  Normal n;
-
  public:
   /* TODO: optimize UV sets by making indexed list with duplicates removed */
   GeometryExporter(BlenderContext &blender_context,
