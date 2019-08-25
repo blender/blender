@@ -24,31 +24,23 @@
  * \ingroup bke
  */
 
-struct Scene;
-struct ArrayGpencilModifierData;
 struct BoundBox;
 struct Brush;
 struct CurveMapping;
 struct Depsgraph;
-struct GpencilModifierData;
-struct LatticeGpencilModifierData;
 struct ListBase;
 struct Main;
 struct Material;
 struct Object;
-struct SimplifyGpencilModifierData;
 struct ToolSettings;
 struct bDeformGroup;
 struct bGPDframe;
 struct bGPDlayer;
-struct bGPDpalette;
-struct bGPDpalettecolor;
 struct bGPDspoint;
 struct bGPDstroke;
 struct bGPdata;
 
 struct MDeformVert;
-struct MDeformWeight;
 
 #define GPENCIL_SIMPLIFY(scene) ((scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ENABLE))
 #define GPENCIL_SIMPLIFY_ONPLAY(playing) \

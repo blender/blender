@@ -47,7 +47,6 @@ struct Material;
 struct Mesh;
 struct Object;
 struct PartDeflect;
-struct ParticleSystem;
 struct Path;
 struct RigidBodyOb;
 struct SculptSession;

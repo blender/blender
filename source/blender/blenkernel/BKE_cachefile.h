@@ -33,7 +33,6 @@ struct CacheReader;
 struct Depsgraph;
 struct Main;
 struct Object;
-struct Scene;
 
 void BKE_cachefiles_init(void);
 void BKE_cachefiles_exit(void);

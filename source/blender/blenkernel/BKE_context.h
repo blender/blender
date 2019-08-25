@@ -33,7 +33,6 @@ extern "C" {
 
 struct ARegion;
 struct Base;
-struct Brush;
 struct CacheFile;
 struct Collection;
 struct Depsgraph;
@@ -59,7 +58,6 @@ struct Text;
 struct ToolSettings;
 struct View3D;
 struct ViewLayer;
-struct ViewRender;
 struct bGPDframe;
 struct bGPDlayer;
 struct bGPdata;

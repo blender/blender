@@ -45,7 +45,6 @@ struct Mesh;
 struct Object;
 struct ReportList;
 struct Scene;
-struct ToolSettings;
 struct UndoType;
 struct UvMapVert;
 struct UvMapVert;
@@ -55,7 +54,6 @@ struct View3D;
 struct ViewContext;
 struct bContext;
 struct bDeformGroup;
-struct rcti;
 struct wmKeyConfig;
 struct wmOperator;
 

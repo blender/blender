@@ -25,9 +25,7 @@ struct Depsgraph;
 struct DynamicPaintCanvasSettings;
 struct DynamicPaintModifierData;
 struct DynamicPaintRuntime;
-struct Main;
 struct Scene;
-struct ViewLayer;
 
 /* Actual surface point */
 typedef struct PaintSurfaceData {

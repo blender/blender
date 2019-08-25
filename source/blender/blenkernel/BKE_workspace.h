@@ -24,9 +24,6 @@
 #include "BLI_compiler_attrs.h"
 
 struct Main;
-struct Scene;
-struct TransformOrientation;
-struct ViewLayer;
 struct bScreen;
 struct bToolRef;
 

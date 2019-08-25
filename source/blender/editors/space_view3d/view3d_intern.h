@@ -30,18 +30,11 @@
 
 struct ARegion;
 struct ARegionType;
-struct Base;
 struct BoundBox;
 struct Depsgraph;
-struct GPUBatch;
-struct Mesh;
 struct Object;
-struct SmokeDomainSettings;
 struct ViewLayer;
-struct bAnimVizSettings;
 struct bContext;
-struct bMotionPath;
-struct bPoseChannel;
 struct wmGizmoGroupType;
 struct wmGizmoType;
 struct wmKeyConfig;

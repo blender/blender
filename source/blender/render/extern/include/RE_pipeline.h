@@ -28,11 +28,9 @@
 #include "DNA_vec_types.h"
 #include "DEG_depsgraph.h"
 
-struct Depsgraph;
 struct Image;
 struct ImageFormatData;
 struct Main;
-struct NodeBlurData;
 struct Object;
 struct RenderData;
 struct RenderResult;
@@ -41,7 +39,6 @@ struct Scene;
 struct StampData;
 struct ViewLayer;
 struct bMovieHandle;
-struct bNodeTree;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is what is exposed of render to outside world */

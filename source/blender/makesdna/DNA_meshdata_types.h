@@ -27,8 +27,6 @@
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 
-struct Image;
-
 /*tessellation face, see MLoop/MPoly for the real face data*/
 typedef struct MFace {
   unsigned int v1, v2, v3, v4;

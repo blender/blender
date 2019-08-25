@@ -34,7 +34,6 @@ struct GPUOutput;
 struct GPUShader;
 struct GPUVertAttrLayers;
 struct ListBase;
-struct PreviewImage;
 
 /* Pass Generation
  * - Takes a list of nodes and a desired output, and makes a pass. This

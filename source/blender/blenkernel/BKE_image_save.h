@@ -31,7 +31,6 @@ extern "C" {
 
 struct Image;
 struct Main;
-struct RenderResult;
 struct ReportList;
 struct Scene;
 

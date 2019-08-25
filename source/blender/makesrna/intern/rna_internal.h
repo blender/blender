@@ -29,15 +29,12 @@
 
 #define RNA_MAGIC ((int)~0)
 
-struct Depsgraph;
 struct FreestyleSettings;
 struct ID;
 struct IDOverrideLibrary;
-struct IDOverrideLibraryProperty;
 struct IDOverrideLibraryPropertyOperation;
 struct IDProperty;
 struct Main;
-struct Mesh;
 struct Object;
 struct ReportList;
 struct SDNA;

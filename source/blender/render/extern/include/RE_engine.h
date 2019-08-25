@@ -33,7 +33,6 @@
 
 struct BakePixel;
 struct Depsgraph;
-struct IDProperty;
 struct Main;
 struct Object;
 struct Render;

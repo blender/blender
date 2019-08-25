@@ -23,7 +23,6 @@
 
 #include <stdio.h>
 
-struct GSet;
 struct ID;
 struct bContext;
 struct wmMsg;

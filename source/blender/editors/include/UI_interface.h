@@ -31,7 +31,6 @@
 /* Struct Declarations */
 
 struct ARegion;
-struct ARegionType;
 struct AutoComplete;
 struct ID;
 struct IDProperty;

@@ -35,7 +35,6 @@
 #include "BLI_compiler_attrs.h"
 
 struct DynStr;
-struct MemArena;
 
 /** The abstract DynStr type */
 typedef struct DynStr DynStr;

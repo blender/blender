@@ -36,7 +36,6 @@ struct ImageUser;
 struct MovieClip;
 struct MovieClipUser;
 struct PreviewImage;
-struct rcti;
 
 struct GPUFrameBuffer;
 typedef struct GPUTexture GPUTexture;

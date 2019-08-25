@@ -32,14 +32,13 @@
 /* Needed for the instance iterator. */
 #include "DNA_object_types.h"
 
-struct ID;
-
 struct BLI_Iterator;
-struct Base;
 struct CustomData_MeshMasks;
 struct Depsgraph;
 struct DupliObject;
+struct ID;
 struct ListBase;
+struct PointerRNA;
 struct Scene;
 struct ViewLayer;
 

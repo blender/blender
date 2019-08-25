@@ -22,8 +22,6 @@
 #define __WM_GIZMO_INTERN_H__
 
 struct BLI_Buffer;
-struct GHashIterator;
-struct GizmoGeomInfo;
 struct wmGizmoMap;
 struct wmKeyConfig;
 

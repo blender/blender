@@ -29,7 +29,6 @@
 struct ClothModifierData;
 struct CollisionModifierData;
 struct Depsgraph;
-struct MFace;
 struct Mesh;
 struct Object;
 struct Scene;

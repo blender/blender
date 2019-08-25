@@ -31,11 +31,9 @@
 #ifndef __WM_GIZMO_WMAPI_H__
 #define __WM_GIZMO_WMAPI_H__
 
-struct wmEventHandler;
 struct wmEventHandler_Gizmo;
 struct wmEventHandler_Op;
 struct wmGizmoMap;
-struct wmOperator;
 struct wmOperatorType;
 
 /* -------------------------------------------------------------------- */

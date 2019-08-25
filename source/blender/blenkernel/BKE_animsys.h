@@ -34,7 +34,6 @@ struct KeyingSet;
 struct ListBase;
 struct Main;
 struct NlaKeyframingContext;
-struct PathResolvedRNA;
 struct PointerRNA;
 struct PropertyRNA;
 struct ReportList;

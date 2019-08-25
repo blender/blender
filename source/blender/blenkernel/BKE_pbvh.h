@@ -28,12 +28,10 @@
 
 struct BMLog;
 struct BMesh;
-struct CCGDerivedMesh;
 struct CCGElem;
 struct CCGKey;
 struct CustomData;
 struct DMFlagMat;
-struct GPUBatch;
 struct GPU_PBVH_Buffers;
 struct IsectRayPrecalc;
 struct MLoop;

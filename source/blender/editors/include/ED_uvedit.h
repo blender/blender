@@ -37,7 +37,6 @@ struct Object;
 struct Scene;
 struct SpaceImage;
 struct ToolSettings;
-struct View3D;
 struct ViewLayer;
 struct bNode;
 struct wmKeyConfig;

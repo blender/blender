@@ -29,12 +29,10 @@
 
 struct Mesh;
 struct MultiresModifierData;
-struct Object;
 struct OpenSubdiv_Converter;
 struct OpenSubdiv_Evaluator;
 struct OpenSubdiv_TopologyRefiner;
 struct Subdiv;
-struct SubdivToMeshSettings;
 
 typedef enum eSubdivVtxBoundaryInterpolation {
   /* Do not interpolate boundaries. */

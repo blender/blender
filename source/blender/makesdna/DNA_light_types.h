@@ -34,7 +34,6 @@
 struct AnimData;
 struct CurveMapping;
 struct Ipo;
-struct MTex;
 struct bNodeTree;
 
 typedef struct Light {

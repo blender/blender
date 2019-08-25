@@ -40,7 +40,6 @@ struct MLoopCol;
 struct MLoopTri;
 struct MLoopUV;
 struct MPoly;
-struct MTexPoly;
 struct MVert;
 struct Material;
 struct Mesh;

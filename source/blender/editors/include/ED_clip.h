@@ -29,7 +29,6 @@ struct ImBuf;
 struct Main;
 struct Mask;
 struct MovieClip;
-struct Scene;
 struct SpaceClip;
 struct bContext;
 struct bScreen;

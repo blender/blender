@@ -31,17 +31,13 @@ struct Brush;
 struct ColorBand;
 struct FreestyleLineStyle;
 struct ImagePool;
-struct Light;
 struct MTex;
 struct Main;
-struct Material;
 struct ParticleSettings;
 struct PointDensity;
 struct Tex;
 struct TexMapping;
 struct TexResult;
-struct World;
-struct bNode;
 
 /*  in ColorBand struct */
 #define MAXCOLORBAND 32

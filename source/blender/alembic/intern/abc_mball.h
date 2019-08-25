@@ -24,9 +24,7 @@
 #include "abc_object.h"
 #include "abc_mesh.h"
 
-struct EvaluationContext;
 struct Main;
-struct MetaBall;
 struct Object;
 
 /* AbcMBallWriter converts the metaballs to meshes at every frame,

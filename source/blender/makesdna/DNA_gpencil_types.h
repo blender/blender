@@ -30,8 +30,6 @@
 
 struct ARegion;
 struct AnimData;
-struct CurveMapping;
-struct GHash;
 struct MDeformVert;
 
 #define GP_DEFAULT_PIX_FACTOR 1.0f

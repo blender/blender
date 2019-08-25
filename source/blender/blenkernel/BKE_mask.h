@@ -38,7 +38,6 @@ struct MaskSplinePoint;
 struct MaskSplinePointUW;
 struct MovieClip;
 struct MovieClipUser;
-struct Scene;
 
 /* mask_ops.c */
 typedef enum {

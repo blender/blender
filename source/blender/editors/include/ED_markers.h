@@ -29,7 +29,6 @@ struct TimeMarker;
 struct bAnimContext;
 struct bContext;
 struct wmKeyConfig;
-struct wmKeyMap;
 
 /* Drawing API ------------------------------ */
 

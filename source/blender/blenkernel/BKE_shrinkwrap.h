@@ -41,7 +41,6 @@
 
 struct BVHTree;
 struct MDeformVert;
-struct MVert;
 struct Mesh;
 struct ModifierEvalContext;
 struct Object;

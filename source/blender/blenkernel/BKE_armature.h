@@ -25,7 +25,6 @@
 
 struct Bone;
 struct Depsgraph;
-struct GHash;
 struct ListBase;
 struct Main;
 struct Object;

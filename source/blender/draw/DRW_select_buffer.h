@@ -30,7 +30,6 @@ struct Base;
 struct Depsgraph;
 struct Object;
 struct View3D;
-struct ViewLayer;
 struct rcti;
 
 typedef struct SELECTID_ObjectData {

@@ -31,7 +31,6 @@
 struct BMLoop;
 struct BMesh;
 struct Depsgraph;
-struct DerivedMesh;
 struct EditMeshData;
 struct Mesh;
 struct MeshStatVis;

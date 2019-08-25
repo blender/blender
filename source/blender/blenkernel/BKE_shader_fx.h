@@ -24,22 +24,11 @@
 #include "BLI_compiler_attrs.h"
 #include "BKE_customdata.h"
 
-struct DepsNodeHandle;
-struct Depsgraph;
-struct DerivedMesh;
 struct ID;
 struct ListBase;
-struct Main;
-struct Mesh;
 struct ModifierUpdateDepsgraphContext;
 struct Object;
-struct Scene;
 struct ShaderFxData;
-struct ViewLayer;
-struct bArmature;
-struct bGPDframe;
-struct bGPDlayer;
-struct bGPDstroke;
 
 #define SHADER_FX_ACTIVE(_fx, _is_render) \
   (((_fx->mode & eShaderFxMode_Realtime) && (_is_render == false)) || \

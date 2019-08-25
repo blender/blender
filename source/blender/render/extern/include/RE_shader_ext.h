@@ -41,10 +41,8 @@ typedef struct BakeImBufuserData {
 } BakeImBufuserData;
 
 /* node shaders... */
-struct ImBuf;
 struct ImagePool;
 struct MTex;
-struct Object;
 struct Tex;
 
 /* this one uses nodes */

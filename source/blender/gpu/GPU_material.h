@@ -45,10 +45,7 @@ struct ImageUser;
 struct ListBase;
 struct Main;
 struct Material;
-struct Object;
-struct PreviewImage;
 struct Scene;
-struct World;
 struct bNode;
 struct bNodeTree;
 

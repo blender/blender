@@ -24,7 +24,6 @@
 #ifndef __BIF_GLUTIL_H__
 #define __BIF_GLUTIL_H__
 
-struct rctf;
 struct rcti;
 
 struct ColorManagedDisplaySettings;

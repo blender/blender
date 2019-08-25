@@ -49,9 +49,7 @@ enum {
 /* prototypes */
 
 struct Depsgraph;
-struct LinkNode;
 struct ListBase;
-struct Main;
 struct Mesh;
 struct Object;
 struct Scene;

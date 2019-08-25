@@ -29,7 +29,6 @@ struct FreestyleConfig;
 struct FreestyleLineStyle;
 struct Material;
 struct Render;
-struct RenderLayer;
 
 struct FreestyleGlobals {
   struct Scene *scene;

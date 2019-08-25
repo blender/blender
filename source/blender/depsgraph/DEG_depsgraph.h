@@ -55,9 +55,6 @@ typedef struct Depsgraph Depsgraph;
 
 struct Main;
 
-struct PointerRNA;
-struct PropertyRNA;
-struct RenderEngineType;
 struct Scene;
 struct ViewLayer;
 

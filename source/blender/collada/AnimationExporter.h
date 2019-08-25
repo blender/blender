@@ -78,8 +78,6 @@ extern "C" {
 #include <map>
 #include <algorithm>  // std::find
 
-struct Depsgraph;
-
 typedef enum BC_animation_source_type {
   BC_SOURCE_TYPE_VALUE,
   BC_SOURCE_TYPE_ANGLE,

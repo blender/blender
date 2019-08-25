@@ -34,9 +34,6 @@ extern "C" {
 #include "BLI_path_util.h"
 #include "RNA_types.h"
 
-struct Depsgraph;
-struct Scene;
-struct ViewLayer;
 struct bContext;
 
 /*

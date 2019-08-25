@@ -41,7 +41,6 @@ struct UserDef;
 struct View3D;
 struct ViewLayer;
 struct WorkSpace;
-struct bContext;
 struct bScreen;
 struct wmWindowManager;
 

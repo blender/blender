@@ -31,7 +31,6 @@ struct FCurve;
 struct ListBase;
 struct MaskLayer;
 struct Object;
-struct Palette;
 struct Scene;
 struct View2D;
 struct bAction;

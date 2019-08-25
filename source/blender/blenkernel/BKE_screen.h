@@ -24,7 +24,6 @@
  */
 
 struct ARegion;
-struct GPUFXSettings;
 struct Header;
 struct ID;
 struct ListBase;
@@ -35,7 +34,6 @@ struct ScrArea;
 struct ScrAreaMap;
 struct ScrVert;
 struct SpaceType;
-struct TransformOrientation;
 struct View3D;
 struct View3DShading;
 struct WorkSpace;

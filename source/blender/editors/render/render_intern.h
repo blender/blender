@@ -24,7 +24,6 @@
 #ifndef __RENDER_INTERN_H__
 #define __RENDER_INTERN_H__
 
-struct RenderEngine;
 struct ScrArea;
 struct bContext;
 struct wmOperatorType;

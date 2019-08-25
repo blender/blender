@@ -23,18 +23,14 @@
 #ifndef __DRAW_CACHE_IMPL_H__
 #define __DRAW_CACHE_IMPL_H__
 
-struct CurveCache;
 struct GPUBatch;
 struct GPUIndexBuf;
 struct GPUMaterial;
-struct GPUTexture;
 struct GPUVertBuf;
 struct ListBase;
 struct ModifierData;
 struct PTCacheEdit;
 struct ParticleSystem;
-struct SpaceImage;
-struct ToolSettings;
 
 struct Curve;
 struct Lattice;

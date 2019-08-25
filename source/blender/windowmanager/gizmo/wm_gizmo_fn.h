@@ -25,6 +25,8 @@
 
 #include "BLI_compiler_attrs.h"
 
+struct wmMsgBus;
+
 /* wmGizmoGroup */
 typedef bool (*wmGizmoGroupFnPoll)(const struct bContext *,
                                    struct wmGizmoGroupType *) ATTR_WARN_UNUSED_RESULT;

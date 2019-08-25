@@ -34,12 +34,9 @@ struct Depsgraph;
 /* ------------------------------------------------ */
 
 struct CacheFile;
-struct Collection;
 struct CustomData_MeshMasks;
-struct EffectorWeights;
 struct ID;
 struct Main;
-struct ModifierData;
 struct Object;
 struct Scene;
 struct ViewLayer;

@@ -29,8 +29,6 @@
  */
 
 struct Mesh;
-struct Scene;
-struct Subdiv;
 
 typedef enum ModifierType {
   eModifierType_None = 0,

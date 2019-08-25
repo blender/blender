@@ -48,7 +48,6 @@ struct PointerRNA;
 struct Report;
 struct ReportList;
 struct Stereo3dFormat;
-struct UndoStep;
 struct bContext;
 struct bScreen;
 struct uiLayout;

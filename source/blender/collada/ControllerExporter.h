@@ -47,7 +47,6 @@
 
 #include "BKE_key.h"
 
-struct Depsgraph;
 class SceneExporter;
 
 class ControllerExporter : public COLLADASW::LibraryControllers,

@@ -33,7 +33,6 @@ struct Depsgraph;
 struct Implicit_Data;
 struct ListBase;
 struct Object;
-struct VoxelData;
 
 typedef enum eMassSpringSolverStatus {
   BPH_SOLVER_SUCCESS = (1 << 0),

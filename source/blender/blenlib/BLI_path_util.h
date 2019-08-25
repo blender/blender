@@ -29,8 +29,6 @@ extern "C" {
 
 #include "BLI_compiler_attrs.h"
 
-struct ListBase;
-
 void BLI_setenv(const char *env, const char *val) ATTR_NONNULL(1);
 void BLI_setenv_if_new(const char *env, const char *val) ATTR_NONNULL(1);
 const char *BLI_getenv(const char *env) ATTR_NONNULL(1);

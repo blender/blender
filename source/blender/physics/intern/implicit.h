@@ -186,8 +186,6 @@ bool BPH_mass_spring_force_spring_goal(struct Implicit_Data *data,
 
 struct HairGrid;
 
-struct VoxelData;
-
 #define MAX_HAIR_GRID_RES 256
 
 struct HairGrid *BPH_hair_volume_create_vertex_grid(float cellsize,

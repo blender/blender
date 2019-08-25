@@ -28,8 +28,6 @@ struct Brush;
 struct ImBuf;
 struct ImagePool;
 struct Main;
-struct Material;
-struct Paint;
 struct Scene;
 struct ToolSettings;
 struct UnifiedPaintSettings;

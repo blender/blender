@@ -31,7 +31,6 @@ struct ContainerRNA;
 struct FunctionRNA;
 struct GHash;
 struct IDOverrideLibrary;
-struct IDOverrideLibraryProperty;
 struct IDOverrideLibraryPropertyOperation;
 struct IDProperty;
 struct Main;

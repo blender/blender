@@ -39,8 +39,6 @@
 #include "BlenderContext.h"
 #include "BKE_key.h"
 
-struct Depsgraph;
-
 class Normal {
  public:
   float x;

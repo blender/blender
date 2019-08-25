@@ -26,15 +26,12 @@
 struct BezTriple;
 struct Curve;
 struct Depsgraph;
-struct EditNurb;
 struct GHash;
-struct LinkNode;
 struct ListBase;
 struct Main;
 struct Nurb;
 struct Object;
 struct Path;
-struct Scene;
 struct TextBox;
 struct rctf;
 

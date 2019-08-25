@@ -26,13 +26,11 @@
 
 struct Depsgraph;
 struct Editing;
-struct GPUFX;
 struct GPUOffScreen;
 struct GSet;
 struct ImBuf;
 struct Main;
 struct Mask;
-struct RenderEngineType;
 struct Scene;
 struct Sequence;
 struct SequenceModifierData;

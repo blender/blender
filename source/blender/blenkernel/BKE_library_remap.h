@@ -25,6 +25,8 @@ extern "C" {
 
 #include "BLI_compiler_attrs.h"
 
+struct wmWindowManager;
+
 /* BKE_libblock_free, delete are declared in BKE_library.h for convenience. */
 
 /* Also IDRemap->flag. */

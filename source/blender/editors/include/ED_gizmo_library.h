@@ -43,10 +43,8 @@ void ED_gizmotypes_value_2d(void);
 void ED_gizmogrouptypes_value_2d(void);
 
 struct Object;
-struct Scene;
 struct bContext;
 struct wmGizmo;
-struct wmGizmoGroup;
 
 /* -------------------------------------------------------------------- */
 /* Shape Presets

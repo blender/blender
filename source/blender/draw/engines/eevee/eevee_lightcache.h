@@ -26,7 +26,6 @@
 #include "BLI_sys_types.h" /* for bool */
 
 struct EEVEE_Data;
-struct EEVEE_LightBake;
 struct EEVEE_ViewLayerData;
 struct LightCache;
 struct Scene;

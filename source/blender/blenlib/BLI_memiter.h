@@ -33,7 +33,6 @@ extern "C" {
 #define BLI_MEMITER_DEFAULT_SIZE (1 << 19)
 
 struct BLI_memiter;
-struct BLI_memiter_chunk;
 
 typedef struct BLI_memiter BLI_memiter;
 

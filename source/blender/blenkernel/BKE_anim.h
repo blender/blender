@@ -24,7 +24,6 @@
  */
 struct Depsgraph;
 struct ListBase;
-struct Main;
 struct Object;
 struct ParticleSystem;
 struct Path;

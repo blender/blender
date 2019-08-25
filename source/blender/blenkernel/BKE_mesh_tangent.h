@@ -20,6 +20,8 @@
  * \ingroup bke
  */
 
+struct ReportList;
+
 void BKE_mesh_calc_loop_tangent_single_ex(const struct MVert *mverts,
                                           const int numVerts,
                                           const struct MLoop *mloops,

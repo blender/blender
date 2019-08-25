@@ -39,8 +39,6 @@
 
 #include "NOD_socket.h"
 
-struct Main;
-
 struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree,
                                                   struct bNode *node,
                                                   struct bNodeSocketTemplate *stemp,

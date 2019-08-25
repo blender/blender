@@ -32,8 +32,6 @@ struct Main;
 struct Object;
 struct Scene;
 struct View3D;
-struct ViewLayer;
-struct bContext;
 
 /* transform_snap_object.c */
 

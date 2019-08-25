@@ -26,28 +26,20 @@
 #include "BLI_sys_types.h" /* for bool */
 
 struct ARegion;
-struct Base;
 struct DRWInstanceDataList;
-struct DRWPass;
 struct Depsgraph;
 struct DrawEngineType;
 struct GPUMaterial;
 struct GPUOffScreen;
 struct GPUViewport;
 struct ID;
-struct IDProperty;
 struct Main;
-struct Material;
 struct Object;
-struct RegionView3D;
 struct RenderEngine;
 struct RenderEngineType;
 struct Scene;
 struct View3D;
-struct ViewContext;
 struct ViewLayer;
-struct ViewportEngineData;
-struct WorkSpace;
 struct bContext;
 struct rcti;
 

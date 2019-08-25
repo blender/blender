@@ -34,9 +34,7 @@
 #include "BKE_pbvh.h"
 
 struct KeyBlock;
-struct Main;
 struct Object;
-struct SculptOrigVertData;
 struct SculptUndoNode;
 struct bContext;
 

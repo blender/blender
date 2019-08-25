@@ -29,7 +29,6 @@
 
 #include "DEG_depsgraph_build.h"
 
-struct GHash;
 struct ID;
 struct Scene;
 

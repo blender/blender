@@ -35,8 +35,6 @@
 typedef struct DRWInstanceData DRWInstanceData;
 typedef struct DRWInstanceDataList DRWInstanceDataList;
 
-struct DRWShadingGroup;
-
 void *DRW_instance_data_next(DRWInstanceData *idata);
 DRWInstanceData *DRW_instance_data_request(DRWInstanceDataList *idatalist, uint attr_size);
 

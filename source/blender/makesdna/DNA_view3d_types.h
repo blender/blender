@@ -25,11 +25,6 @@
 #define __DNA_VIEW3D_TYPES_H__
 
 struct BoundBox;
-struct GPUViewport;
-struct Image;
-struct Material;
-struct MovieClip;
-struct MovieClipUser;
 struct Object;
 struct RenderEngine;
 struct SmoothView3DStore;

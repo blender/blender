@@ -31,7 +31,6 @@
 
 #include "DEG_depsgraph.h"
 
-struct Base;
 struct CacheFile;
 struct Camera;
 struct Collection;
@@ -44,14 +43,12 @@ struct LayerCollection;
 struct Light;
 struct LightProbe;
 struct ListBase;
-struct MTex;
 struct Main;
 struct Mask;
 struct Material;
 struct MovieClip;
 struct Object;
 struct ParticleSettings;
-struct Probe;
 struct Scene;
 struct Speaker;
 struct Tex;
@@ -64,15 +61,12 @@ struct bNodeTree;
 struct bPoseChannel;
 struct bSound;
 
-struct PropertyRNA;
-
 namespace DEG {
 
 struct ComponentNode;
 struct Depsgraph;
 class DepsgraphBuilderCache;
 struct IDNode;
-struct Node;
 struct OperationNode;
 struct TimeSourceNode;
 

@@ -45,13 +45,11 @@
 struct GHash;
 struct GSet;
 struct ID;
-struct Main;
 struct Scene;
 struct ViewLayer;
 
 namespace DEG {
 
-struct ComponentNode;
 struct IDNode;
 struct Node;
 struct OperationNode;

@@ -27,7 +27,6 @@
 /* internal exports only */
 struct ARegion;
 struct ARegionType;
-struct ScrArea;
 struct SpaceImage;
 struct bContext;
 struct bNodeTree;

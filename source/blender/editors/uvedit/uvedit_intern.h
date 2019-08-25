@@ -24,7 +24,6 @@
 #ifndef __UVEDIT_INTERN_H__
 #define __UVEDIT_INTERN_H__
 
-struct BMEditMesh;
 struct BMFace;
 struct BMLoop;
 struct Image;

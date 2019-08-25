@@ -58,8 +58,6 @@ struct MovieClip;
 struct Object;
 struct Scene;
 struct SceneCollection;
-struct SceneStats;
-struct Text;
 struct World;
 struct bGPdata;
 struct bNodeTree;

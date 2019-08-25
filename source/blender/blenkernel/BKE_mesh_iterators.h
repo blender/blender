@@ -20,12 +20,6 @@
  * \ingroup bke
  */
 
-struct MEdge;
-struct MLoop;
-struct MLoopTri;
-struct MLoopUV;
-struct MPoly;
-struct MVert;
 struct Mesh;
 
 typedef enum MeshForeachFlag {

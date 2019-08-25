@@ -27,7 +27,6 @@
 
 //#include "BKE_customdata.h"  /* for CustomDataMask */
 
-struct ColorBand;
 struct CustomData;
 struct CustomData_MeshMasks;
 struct Depsgraph;

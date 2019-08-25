@@ -25,7 +25,6 @@
  */
 
 struct Camera;
-struct Depsgraph;
 struct ImBuf;
 struct ListBase;
 struct MovieClipUser;

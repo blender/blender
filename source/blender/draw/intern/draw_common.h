@@ -30,7 +30,6 @@ struct GPUBatch;
 struct GPUMaterial;
 struct ModifierData;
 struct Object;
-struct PTCacheEdit;
 struct ParticleSystem;
 struct ViewLayer;
 

@@ -46,17 +46,14 @@ extern "C" {
  * except in some specific cases requiring advanced (and potentially dangerous) handling.
  */
 
-struct BlendThumbnail;
 struct GHash;
 struct ID;
-struct ImBuf;
 struct Library;
 struct ListBase;
 struct Main;
 struct PointerRNA;
 struct PropertyRNA;
 struct bContext;
-struct wmWindowManager;
 
 size_t BKE_libblock_get_alloc_info(short type, const char **name);
 void *BKE_libblock_alloc_notest(short type) ATTR_WARN_UNUSED_RESULT;

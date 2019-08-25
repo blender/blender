@@ -26,6 +26,8 @@
 #include "intern/node/deg_node.h"
 #include "BLI_sys_types.h"
 
+struct GHash;
+
 namespace DEG {
 
 struct ComponentNode;

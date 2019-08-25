@@ -38,7 +38,6 @@ extern "C" {
 
 struct ColorBand;
 struct Main;
-struct Object;
 struct ViewLayer;
 struct bContext;
 

@@ -24,7 +24,6 @@
 #ifndef __ED_TIME_SCRUB_UI_H__
 #define __ED_TIME_SCRUB_UI_H__
 
-struct View2DGrid;
 struct bContext;
 struct bDopeSheet;
 struct wmEvent;

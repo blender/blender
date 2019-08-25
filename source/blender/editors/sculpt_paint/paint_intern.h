@@ -33,7 +33,6 @@ struct ListBase;
 struct MTex;
 struct Object;
 struct Paint;
-struct PaintCurve;
 struct PaintStroke;
 struct PointerRNA;
 struct RegionView3D;

@@ -26,7 +26,6 @@
 
 struct ARegion;
 struct ARegionType;
-struct ScrArea;
 struct SpaceGraph;
 struct bAnimContext;
 struct bAnimListElem;

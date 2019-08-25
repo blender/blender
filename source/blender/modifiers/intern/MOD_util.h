@@ -31,8 +31,6 @@ struct Mesh;
 struct ModifierData;
 struct ModifierEvalContext;
 struct Object;
-struct Scene;
-struct Tex;
 
 void MOD_init_texture(struct MappingInfoModifierData *dmd, const struct ModifierEvalContext *ctx);
 void MOD_get_texture_coords(struct MappingInfoModifierData *dmd,

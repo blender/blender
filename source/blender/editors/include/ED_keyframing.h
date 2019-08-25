@@ -44,8 +44,6 @@ struct bPoseChannel;
 struct ReportList;
 struct bContext;
 
-struct Depsgraph;
-
 struct EnumPropertyItem;
 struct PointerRNA;
 struct PropertyRNA;

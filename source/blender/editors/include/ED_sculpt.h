@@ -25,10 +25,7 @@
 #define __ED_SCULPT_H__
 
 struct ARegion;
-struct ListBase;
 struct Object;
-struct RegionView3D;
-struct UndoStep;
 struct UndoType;
 struct ViewContext;
 struct bContext;

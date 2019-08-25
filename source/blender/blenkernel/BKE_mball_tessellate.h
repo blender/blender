@@ -20,7 +20,6 @@
  * \ingroup bke
  */
 struct Depsgraph;
-struct Main;
 struct Object;
 struct Scene;
 

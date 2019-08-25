@@ -53,13 +53,11 @@ struct MLoopTri;
 struct MLoopUV;
 struct MPoly;
 struct MVert;
-struct MVertTri;
 struct Main;
 struct MemArena;
 struct Mesh;
 struct ModifierData;
 struct Object;
-struct ReportList;
 struct Scene;
 
 #ifdef __cplusplus

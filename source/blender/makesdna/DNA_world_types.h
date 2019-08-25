@@ -29,7 +29,6 @@
 
 struct AnimData;
 struct Ipo;
-struct MTex;
 struct bNodeTree;
 
 #ifndef MAX_MTEX

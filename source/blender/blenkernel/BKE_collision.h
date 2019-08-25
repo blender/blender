@@ -37,11 +37,9 @@
 struct Collection;
 struct CollisionModifierData;
 struct Depsgraph;
-struct MFace;
 struct MVert;
 struct MVertTri;
 struct Object;
-struct Scene;
 
 ////////////////////////////////////////
 // used for collisions in collision.c

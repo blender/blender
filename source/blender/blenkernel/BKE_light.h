@@ -32,7 +32,6 @@ extern "C" {
 
 struct Light;
 struct Main;
-struct Scene;
 
 void BKE_light_init(struct Light *la);
 struct Light *BKE_light_add(struct Main *bmain, const char *name) ATTR_WARN_UNUSED_RESULT;

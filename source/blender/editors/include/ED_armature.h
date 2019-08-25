@@ -42,7 +42,6 @@ struct ReportList;
 struct Scene;
 struct UndoType;
 struct View3D;
-struct ViewContext;
 struct ViewLayer;
 struct bArmature;
 struct bContext;

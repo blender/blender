@@ -34,7 +34,6 @@ struct EnumPropertyItem;
 struct EnumPropertyItem;
 struct ID;
 struct Main;
-struct Menu;
 struct ModifierData;
 struct Object;
 struct PointerRNA;
@@ -51,10 +50,8 @@ struct bFaceMap;
 struct bPoseChannel;
 struct uiLayout;
 struct wmKeyConfig;
-struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
-struct wmWindow;
 struct wmWindowManager;
 
 #include "DNA_object_enums.h"

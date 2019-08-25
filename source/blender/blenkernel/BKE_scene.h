@@ -38,8 +38,6 @@ struct TransformOrientation;
 struct UnitSettings;
 struct View3DCursor;
 struct ViewLayer;
-struct ViewRender;
-struct WorkSpace;
 
 typedef enum eSceneCopyMethod {
   SCE_COPY_NEW = 0,

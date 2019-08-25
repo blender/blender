@@ -35,7 +35,6 @@ struct Mesh;
 struct ModifierData;
 struct Object;
 struct Scene;
-struct ViewLayer;
 struct bArmature;
 
 typedef enum {

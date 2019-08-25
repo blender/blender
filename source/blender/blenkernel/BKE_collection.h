@@ -35,8 +35,6 @@ extern "C" {
 struct BLI_Iterator;
 struct Base;
 struct Collection;
-struct Depsgraph;
-struct ID;
 struct Main;
 struct Object;
 struct Scene;

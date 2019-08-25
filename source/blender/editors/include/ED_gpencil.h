@@ -27,7 +27,6 @@
 struct ID;
 struct ListBase;
 struct PointerRNA;
-struct rcti;
 
 struct Brush;
 struct bGPDframe;
@@ -39,13 +38,11 @@ struct tGPspoint;
 
 struct ARegion;
 struct Depsgraph;
-struct EvaluationContext;
 struct Main;
 struct RegionView3D;
 struct ReportList;
 struct Scene;
 struct ScrArea;
-struct ToolSettings;
 struct View3D;
 struct ViewLayer;
 struct bContext;
@@ -58,8 +55,6 @@ struct bAnimContext;
 
 struct wmKeyConfig;
 struct wmOperator;
-struct wmWindow;
-struct wmWindowManager;
 
 /* ------------- Grease-Pencil Runtime Data ---------------- */
 

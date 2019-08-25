@@ -31,7 +31,6 @@ struct ListBase;
 struct Main;
 struct Mesh;
 struct Object;
-struct WeightsArrayCache;
 
 /* Kernel prototypes */
 #ifdef __cplusplus

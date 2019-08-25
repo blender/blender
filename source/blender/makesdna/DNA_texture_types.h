@@ -35,7 +35,6 @@ extern "C" {
 struct AnimData;
 struct ColorBand;
 struct CurveMapping;
-struct ImBuf;
 struct Image;
 struct Ipo;
 struct Object;

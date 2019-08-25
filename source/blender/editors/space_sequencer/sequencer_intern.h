@@ -34,7 +34,6 @@ struct ARegionType;
 struct Depsgraph;
 struct Main;
 struct Scene;
-struct ScrArea;
 struct Sequence;
 struct SpaceSeq;
 struct StripElem;

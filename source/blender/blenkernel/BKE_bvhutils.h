@@ -31,7 +31,6 @@
  */
 
 struct BMEditMesh;
-struct DerivedMesh;
 struct MFace;
 struct MVert;
 struct Mesh;

@@ -31,7 +31,6 @@ struct ImageUser;
 struct ReportList;
 struct Scene;
 struct SpaceImage;
-struct ToolSettings;
 struct ViewLayer;
 struct bContext;
 struct wmWindowManager;

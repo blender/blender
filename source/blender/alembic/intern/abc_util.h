@@ -44,7 +44,6 @@ using Alembic::Abc::chrono_t;
 class AbcObjectReader;
 struct ImportSettings;
 
-struct Base;
 struct ID;
 struct Object;
 

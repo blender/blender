@@ -79,12 +79,10 @@ struct CustomData_MeshMasks;
 struct Depsgraph;
 struct MEdge;
 struct MFace;
-struct MLoopNorSpaceArray;
 struct MVert;
 struct Mesh;
 struct ModifierData;
 struct Object;
-struct PBVH;
 struct Scene;
 
 /*

@@ -25,7 +25,6 @@
 
 #include "intern/depsgraph_type.h"
 
-struct GSet;
 struct ID;
 
 namespace DEG {

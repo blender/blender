@@ -69,8 +69,6 @@ extern "C" {
 
 constexpr int LIMITTED_PRECISION = 6;
 
-struct Depsgraph;
-
 typedef std::map<COLLADAFW::UniqueId, Image *> UidImageMap;
 typedef std::map<std::string, Image *> KeyImageMap;
 typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex *>> TexIndexTextureArrayMap;

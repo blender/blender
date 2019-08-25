@@ -40,7 +40,6 @@ extern "C" {
 
 struct BLI_mempool;
 struct BlendThumbnail;
-struct Depsgraph;
 struct GHash;
 struct GSet;
 struct ImBuf;

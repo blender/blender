@@ -117,7 +117,6 @@ struct ID;
 struct ImBuf;
 struct bContext;
 struct wmEvent;
-struct wmMsgBus;
 struct wmOperator;
 struct wmWindowManager;
 

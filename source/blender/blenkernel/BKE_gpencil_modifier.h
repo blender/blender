@@ -24,22 +24,16 @@
 #include "BLI_compiler_attrs.h"
 #include "BKE_customdata.h"
 
-struct BMEditMesh;
-struct DepsNodeHandle;
 struct Depsgraph;
 struct GpencilModifierData;
 struct ID;
 struct ListBase;
 struct Main;
-struct Mesh;
 struct ModifierUpdateDepsgraphContext;
 struct Object;
 struct Scene;
-struct ViewLayer;
-struct bArmature;
 /* NOTE: bakeModifier() called from UI:
  * needs to create new databloc-ks, hence the need for this. */
-struct bContext;
 struct bGPDframe;
 struct bGPDlayer;
 struct bGPDstroke;

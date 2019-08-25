@@ -40,7 +40,6 @@ struct TreeStoreElem;
 struct ViewLayer;
 struct bContext;
 struct bPoseChannel;
-struct wmEvent;
 struct wmKeyConfig;
 struct wmOperatorType;
 

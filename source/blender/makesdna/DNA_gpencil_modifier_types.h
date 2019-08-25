@@ -28,8 +28,6 @@
  * (ONLY ADD NEW ITEMS AT THE END)
  */
 
-struct RNG;
-
 typedef enum GpencilModifierType {
   eGpencilModifierType_None = 0,
   eGpencilModifierType_Noise = 1,

@@ -30,7 +30,6 @@ struct PTCacheEdit;
 struct ParticleSystem;
 struct PointCache;
 struct Scene;
-struct ViewLayer;
 struct wmOperatorType;
 
 /* particle_edit.c */
