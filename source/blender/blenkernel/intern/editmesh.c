@@ -39,7 +39,7 @@ BMEditMesh *BKE_editmesh_create(BMesh *bm, const bool do_tessellate)
 
   em->bm = bm;
   if (do_tessellate) {
-    BKE_editmesh_tessface_calc(em);
+    BKE_editmesh_looptri_calc(em);
   }
 
   return em;
@@ -126,7 +126,7 @@ static void editmesh_tessface_calc_intern(BMEditMesh *em)
   BM_mesh_calc_tessellation(em->bm, em->looptris, &em->tottri);
 }
 
-void BKE_editmesh_tessface_calc(BMEditMesh *em)
+void BKE_editmesh_looptri_calc(BMEditMesh *em)
 {
   editmesh_tessface_calc_intern(em);
 

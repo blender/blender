@@ -901,7 +901,7 @@ static void recalcData_objects(TransInfo *t)
         DEG_id_tag_update(tc->obedit->data, 0); /* sets recalc flags */
         BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
         EDBM_mesh_normals_update(em);
-        BKE_editmesh_tessface_calc(em);
+        BKE_editmesh_looptri_calc(em);
       }
     }
     else if (t->obedit_type == OB_ARMATURE) { /* no recalc flag, does pose */

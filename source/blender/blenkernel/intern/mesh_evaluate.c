@@ -2945,14 +2945,14 @@ void BKE_mesh_tangent_loops_to_tessdata(CustomData *fdata,
  *
  * \return number of tessellation faces.
  */
-int BKE_mesh_recalc_tessellation(CustomData *fdata,
-                                 CustomData *ldata,
-                                 CustomData *pdata,
-                                 MVert *mvert,
-                                 int totface,
-                                 int totloop,
-                                 int totpoly,
-                                 const bool do_face_nor_copy)
+int BKE_mesh_tessface_calc_ex(CustomData *fdata,
+                              CustomData *ldata,
+                              CustomData *pdata,
+                              MVert *mvert,
+                              int totface,
+                              int totloop,
+                              int totpoly,
+                              const bool do_face_nor_copy)
 {
   /* use this to avoid locking pthread for _every_ polygon
    * and calling the fill function */

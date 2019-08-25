@@ -85,7 +85,7 @@ void EDBM_redo_state_restore(BMBackup backup, BMEditMesh *em, int recalctess)
   tmpbm = NULL;
 
   if (recalctess) {
-    BKE_editmesh_tessface_calc(em);
+    BKE_editmesh_looptri_calc(em);
   }
 }
 
@@ -105,7 +105,7 @@ void EDBM_redo_state_free(BMBackup *backup, BMEditMesh *em, int recalctess)
   backup->bmcopy = NULL;
 
   if (recalctess && em) {
-    BKE_editmesh_tessface_calc(em);
+    BKE_editmesh_looptri_calc(em);
   }
 }
 
@@ -162,7 +162,7 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
     /* when copying, tessellation isn't to for faster copying,
      * but means we need to re-tessellate here */
     if (em->looptris == NULL) {
-      BKE_editmesh_tessface_calc(em);
+      BKE_editmesh_looptri_calc(em);
     }
 
     if (em->ob) {
@@ -1389,15 +1389,15 @@ void EDBM_stats_update(BMEditMesh *em)
 
 /* so many tools call these that we better make it a generic function.
  */
-void EDBM_update_generic(BMEditMesh *em, const bool do_tessface, const bool is_destructive)
+void EDBM_update_generic(BMEditMesh *em, const bool do_tessellation, const bool is_destructive)
 {
   Object *ob = em->ob;
   /* order of calling isn't important */
   DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, ob->data);
 
-  if (do_tessface) {
-    BKE_editmesh_tessface_calc(em);
+  if (do_tessellation) {
+    BKE_editmesh_looptri_calc(em);
   }
 
   if (is_destructive) {

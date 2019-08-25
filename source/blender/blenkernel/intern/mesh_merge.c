@@ -235,7 +235,7 @@ static bool poly_gset_compare_fn(const void *k1, const void *k2)
  * but the additional checks are costly and not necessary in the case of mirror,
  * because each vertex is only merged to its own mirror.
  *
- * \note #BKE_mesh_recalc_tessellation has to run on the returned DM
+ * \note #BKE_mesh_tessface_calc_ex has to run on the returned DM
  * if you want to access tessfaces.
  */
 Mesh *BKE_mesh_merge_verts(Mesh *mesh,

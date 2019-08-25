@@ -79,7 +79,7 @@ typedef struct BMEditMesh {
 } BMEditMesh;
 
 /* editmesh.c */
-void BKE_editmesh_tessface_calc(BMEditMesh *em);
+void BKE_editmesh_looptri_calc(BMEditMesh *em);
 BMEditMesh *BKE_editmesh_create(BMesh *bm, const bool do_tessellate);
 BMEditMesh *BKE_editmesh_copy(BMEditMesh *em);
 BMEditMesh *BKE_editmesh_from_object(struct Object *ob);

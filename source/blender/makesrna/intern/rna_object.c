@@ -403,7 +403,7 @@ static void rna_Object_active_shape_update(bContext *C, PointerRNA *ptr)
         DEG_id_tag_update(ob->data, 0);
 
         EDBM_mesh_normals_update(((Mesh *)ob->data)->edit_mesh);
-        BKE_editmesh_tessface_calc(((Mesh *)ob->data)->edit_mesh);
+        BKE_editmesh_looptri_calc(((Mesh *)ob->data)->edit_mesh);
         break;
       case OB_CURVE:
       case OB_SURF:

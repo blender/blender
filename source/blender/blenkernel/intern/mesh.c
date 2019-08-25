@@ -1438,7 +1438,7 @@ void BKE_mesh_ensure_navmesh(Mesh *me)
 
 void BKE_mesh_tessface_calc(Mesh *mesh)
 {
-  mesh->totface = BKE_mesh_recalc_tessellation(
+  mesh->totface = BKE_mesh_tessface_calc_ex(
       &mesh->fdata,
       &mesh->ldata,
       &mesh->pdata,
