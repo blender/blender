@@ -951,6 +951,7 @@ void node_draw_sockets(View2D *v2d,
   GPU_program_point_size(true);
   immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
   immUniform1f("outline_scale", 0.7f);
+  immUniform2f("ViewportSize", -1.0f, -1.0f);
 
   /* set handle size */
   float scale;
