@@ -303,14 +303,6 @@ void DM_from_template(DerivedMesh *dm,
  */
 int DM_release(DerivedMesh *dm);
 
-/** utility function to convert a DerivedMesh to a Mesh
- */
-void DM_to_mesh(DerivedMesh *dm,
-                struct Mesh *me,
-                struct Object *ob,
-                const struct CustomData_MeshMasks *mask,
-                bool take_ownership);
-
 void DM_set_only_copy(DerivedMesh *dm, const struct CustomData_MeshMasks *mask);
 
 /* adds a vertex/edge/face custom data layer to a DerivedMesh, optionally
