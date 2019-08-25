@@ -270,10 +270,4 @@ enum {
 
 #define MESH_MAX_VERTS 2000000000L
 
-/* this is so we can save bmesh files that load in trunk, ignoring NGons
- * will eventually be removed */
-
-/* enable this so meshes get tessfaces calculated by default */
-/* #define USE_TESSFACE_DEFAULT */
-
 #endif
