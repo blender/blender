@@ -292,10 +292,6 @@ void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
   Mesh *me = ob->data;
   BMesh *bm;
 
-  if (UNLIKELY(!me->mpoly && me->totface)) {
-    BKE_mesh_convert_mfaces_to_mpolys(me);
-  }
-
   bm = BKE_mesh_to_bmesh(me,
                          ob,
                          add_key_index,
