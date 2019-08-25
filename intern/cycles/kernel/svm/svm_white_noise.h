@@ -45,7 +45,9 @@ ccl_device void svm_node_tex_white_noise(KernelGlobals *kg,
       value = hash_float4_to_float(make_float4(vector.x, vector.y, vector.z, w));
       break;
     default:
+      value = 0.0f;
       kernel_assert(0);
+      break;
   }
   stack_store_float(stack, value_stack_offset, value);
 }
