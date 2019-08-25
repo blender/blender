@@ -1273,30 +1273,16 @@ void BKE_mesh_material_remap(Mesh *me, const unsigned int *remap, unsigned int r
 #undef MAT_NR_REMAP
 }
 
-void BKE_mesh_smooth_flag_set(Object *meshOb, int enableSmooth)
+void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
 {
-  Mesh *me = meshOb->data;
-  int i;
-
-  for (i = 0; i < me->totpoly; i++) {
-    MPoly *mp = &me->mpoly[i];
-
-    if (enableSmooth) {
-      mp->flag |= ME_SMOOTH;
-    }
-    else {
-      mp->flag &= ~ME_SMOOTH;
+  if (use_smooth) {
+    for (int i = 0; i < me->totpoly; i++) {
+      me->mpoly[i].flag |= ME_SMOOTH;
     }
   }
-
-  for (i = 0; i < me->totface; i++) {
-    MFace *mf = &me->mface[i];
-
-    if (enableSmooth) {
-      mf->flag |= ME_SMOOTH;
-    }
-    else {
-      mf->flag &= ~ME_SMOOTH;
+  else {
+    for (int i = 0; i < me->totpoly; i++) {
+      me->mpoly[i].flag &= ~ME_SMOOTH;
     }
   }
 }

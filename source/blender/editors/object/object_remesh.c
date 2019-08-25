@@ -126,7 +126,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   if (mesh->flag & ME_REMESH_SMOOTH_NORMALS) {
-    BKE_mesh_smooth_flag_set(ob, true);
+    BKE_mesh_smooth_flag_set(ob->data, true);
   }
 
   if (ob->mode == OB_MODE_SCULPT) {
