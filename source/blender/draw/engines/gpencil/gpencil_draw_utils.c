@@ -938,6 +938,12 @@ static void gpencil_add_editpoints_vertexdata(GpencilBatchCache *cache,
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   View3D *v3d = draw_ctx->v3d;
+  ToolSettings *ts = draw_ctx->scene->toolsettings;
+  const bool use_sculpt_mask = (GPENCIL_SCULPT_MODE(gpd) && (ts->gpencil_selectmode_sculpt &
+                                                             (GP_SCULPT_MASK_SELECTMODE_POINT |
+                                                              GP_SCULPT_MASK_SELECTMODE_STROKE |
+                                                              GP_SCULPT_MASK_SELECTMODE_SEGMENT)));
+
   MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
 
   /* alpha factor for edit points/line to make them more subtle */
@@ -949,12 +955,14 @@ static void gpencil_add_editpoints_vertexdata(GpencilBatchCache *cache,
       return;
     }
     const bool is_weight_paint = (gpd) && (gpd->flag & GP_DATA_STROKE_WEIGHTMODE);
+    const bool hide_select = GPENCIL_SCULPT_MODE(gpd) && !use_sculpt_mask;
 
     if (cache->is_dirty) {
       if ((obact == ob) && ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) &&
           (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES)) {
+
         /* line of the original stroke */
-        gpencil_get_edlin_geom(&cache->b_edlin, gps, edit_alpha, gpd->flag);
+        gpencil_get_edlin_geom(&cache->b_edlin, gps, edit_alpha, hide_select);
 
         /* add to list of groups */
         cache->grp_cache = gpencil_group_cache_add(cache->grp_cache,
@@ -967,6 +975,12 @@ static void gpencil_add_editpoints_vertexdata(GpencilBatchCache *cache,
                                                    &cache->grp_size,
                                                    &cache->grp_used);
       }
+
+      /* In sculpt mode, the point are only visible if masking is enabled. */
+      if (hide_select) {
+        return;
+      }
+
       /* edit points */
       if ((gps->flag & GP_STROKE_SELECT) || (is_weight_paint)) {
         if ((gpl->flag & GP_LAYER_UNLOCK_COLOR) ||

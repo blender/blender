@@ -437,7 +437,7 @@ void gpencil_get_edit_geom(struct GpencilBatchCacheElem *be,
 void gpencil_get_edlin_geom(struct GpencilBatchCacheElem *be,
                             struct bGPDstroke *gps,
                             float alpha,
-                            short dflag);
+                            const bool hide_select);
 
 struct GPUBatch *gpencil_get_buffer_stroke_geom(struct bGPdata *gpd, short thickness);
 struct GPUBatch *gpencil_get_buffer_fill_geom(struct bGPdata *gpd);

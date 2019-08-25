@@ -821,7 +821,7 @@ void gpencil_get_edit_geom(struct GpencilBatchCacheElem *be,
 void gpencil_get_edlin_geom(struct GpencilBatchCacheElem *be,
                             bGPDstroke *gps,
                             float alpha,
-                            short UNUSED(dflag))
+                            const bool hide_select)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Object *ob = draw_ctx->obact;
@@ -866,7 +866,7 @@ void gpencil_get_edlin_geom(struct GpencilBatchCacheElem *be,
       copy_v4_v4(fcolor, selectColor);
     }
     else {
-      if (pt->flag & GP_SPOINT_SELECT) {
+      if ((pt->flag & GP_SPOINT_SELECT) && (!hide_select)) {
         copy_v4_v4(fcolor, selectColor);
       }
       else {
