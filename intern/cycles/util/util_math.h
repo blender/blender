@@ -619,12 +619,12 @@ ccl_device float bits_to_01(uint bits)
 
 ccl_device_inline uint count_leading_zeros(uint x)
 {
-  assert(x != 0);
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__)
   return __clz(x);
 #elif defined(__KERNEL_OPENCL__)
   return clz(x);
 #else
+  assert(x != 0);
 #  ifdef _MSC_VER
   unsigned long leading_zero = 0;
   _BitScanReverse(&leading_zero, x);
@@ -637,12 +637,12 @@ ccl_device_inline uint count_leading_zeros(uint x)
 
 ccl_device_inline uint count_trailing_zeros(uint x)
 {
-  assert(x != 0);
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__)
   return (__ffs(x) - 1);
 #elif defined(__KERNEL_OPENCL__)
   return (31 - count_leading_zeros(x & -x));
 #else
+  assert(x != 0);
 #  ifdef _MSC_VER
   unsigned long ctz = 0;
   _BitScanForward(&ctz, x);
