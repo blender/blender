@@ -55,6 +55,12 @@ const EnumPropertyItem rna_enum_mesh_delimit_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_mesh_remesh_mode_items[] = {
+    {REMESH_VOXEL, "VOXEL", 0, "Voxel", "Use the voxel remesher"},
+    {REMESH_QUAD, "QUAD", 0, "Quad", "Use the quad remesher"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "DNA_scene_types.h"
@@ -3012,6 +3018,13 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_boolean_default(prop, false);
   RNA_def_property_ui_text(prop, "Preserve Paint Mask", "Keep the current mask on the new mesh");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
+  prop = RNA_def_property(srna, "remesh_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "remesh_mode");
+  RNA_def_property_enum_items(prop, rna_enum_mesh_remesh_mode_items);
+  RNA_def_property_ui_text(prop, "Remesh Mode", "");
+  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
   /* End remesh */
 
   prop = RNA_def_property(srna, "use_auto_smooth", PROP_BOOLEAN, PROP_NONE);

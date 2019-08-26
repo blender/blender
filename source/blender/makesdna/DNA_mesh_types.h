@@ -193,7 +193,8 @@ typedef struct Mesh {
   short totcol;
 
   float remesh_voxel_size;
-  char _pad1[4];
+  char remesh_mode;
+  char _pad1[3];
   /** Deprecated multiresolution modeling data, only keep for loading old files. */
   struct Multires *mr DNA_DEPRECATED;
 
@@ -259,6 +260,12 @@ enum {
   ME_CDFLAG_VERT_BWEIGHT = 1 << 0,
   ME_CDFLAG_EDGE_BWEIGHT = 1 << 1,
   ME_CDFLAG_EDGE_CREASE = 1 << 2,
+};
+
+/* me->remesh_mode */
+enum {
+  REMESH_VOXEL = 0,
+  REMESH_QUAD = 1,
 };
 
 /* Subsurf Type */

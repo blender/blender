@@ -1,0 +1,167 @@
+Installation Instructions
+=========================
+
+This file contains instructions for building and installing LEMON from
+source on Linux. The process on Windows is similar.
+
+Note that it is not necessary to install LEMON in order to use
+it. Instead, you can easily integrate it with your own code
+directly. For instructions, see
+https://lemon.cs.elte.hu/trac/lemon/wiki/HowToCompile
+
+
+In order to install LEMON from the extracted source tarball you have to
+issue the following commands:
+
+   1. Step into the root of the source directory.
+
+      $ cd lemon-x.y.z
+
+   2. Create a build subdirectory and step into it.
+
+      $ mkdir build
+      $ cd build
+
+   3. Perform system checks and create the makefiles.
+
+      $ cmake ..
+
+   4. Build LEMON.
+
+      $ make 
+
+      This command compiles the non-template part of LEMON into
+      libemon.a file. It also compiles the programs in the 'tools' and
+      'demo' subdirectories.
+
+   5. [Optional] Compile and run the self-tests.
+
+      $ make check
+
+   5. [Optional] Generate the user documentation.
+
+      $ make html
+
+      The release tarballs already include the documentation.
+
+      Note that for this step you need to have the following tools
+      installed: Python, Doxygen, Graphviz, Ghostscript, LaTeX.
+
+   6. [Optional] Install LEMON
+
+      $ make install
+
+      This command installs LEMON under /usr/local (you will need root
+      privileges to be able to do that). If you want to install it to
+      some other location, then pass the
+      -DCMAKE_INSTALL_PREFIX=DIRECTORY flag to cmake in Step 3.
+      For example:
+      
+      $ cmake -DCMAKE_INSTALL_PREFIX=/home/username/lemon'
+
+Configure Options and Variables
+===============================
+
+In Step 3, you can customize the build process by passing options to CMAKE.
+
+$ cmake [OPTIONS] ..
+
+You find a list of the most useful options below.
+
+-DCMAKE_INSTALL_PREFIX=PREFIX
+
+  Set the installation prefix to PREFIX. By default it is /usr/local.
+
+-DCMAKE_BUILD_TYPE=[Release|Debug|Maintainer|...]
+
+  This sets the compiler options. The choices are the following
+
+  'Release': A strong optimization is turned on (-O3 with gcc). This
+    is the default setting and we strongly recommend using this for
+    the final compilation.
+
+  'Debug': Optimization is turned off and debug info is added (-O0
+    -ggdb with gcc). If is recommended during the development.
+
+  'Maintainer': The same as 'Debug' but the compiler warnings are
+    converted to errors (-Werror with gcc). In addition, 'make' will
+    also automatically compile and execute the test codes. It is the
+    best way of ensuring that LEMON codebase is clean and safe.
+
+  'RelWithDebInfo': Optimized build with debug info.
+
+  'MinSizeRel': Size optimized build (-Os with gcc)
+
+-DTEST_WITH_VALGRIND=YES
+
+  Using this, the test codes will be executed using valgrind. It is a
+  very effective way of identifying indexing problems and memory leaks.
+
+-DCMAKE_CXX_COMPILER=path-to-compiler
+
+  Change the compiler to be used.
+
+-DBUILD_SHARED_LIBS=TRUE
+
+  Build shared library instead of static one. Think twice if you
+  really want to use this option.
+
+-DLEMON_DOC_SOURCE_BROWSER=YES
+
+  Include the browsable cross referenced LEMON source code into the
+  doc. It makes the doc quite bloated, but may be useful for
+  developing LEMON itself.
+
+-DLEMON_DOC_USE_MATHJAX=YES
+
+  Use MathJax (http://mathjax.org) for rendering the math formulae in
+  the doc.  It of much higher quality compared to the default LaTeX
+  generated static images and it allows copy&paste of the formulae to
+  LaTeX, Open Office, MS Word etc. documents.
+
+  On the other hand, it needs either Internet access or a locally
+  installed version of MathJax to properly render the doc.
+
+-DLEMON_DOC_MATHJAX_RELPATH=DIRECTORY
+  
+  The location of the MathJax library. It defaults to
+  http://www.mathjax.org/mathjax, which necessitates Internet access
+  for proper rendering. The easiest way to make it usable offline is
+  to set this parameter to 'mathjax' and copy all files of the MathJax
+  library into the 'doc/html/mathjax' subdirectory of the build
+  location.
+
+  See http://docs.mathjax.org/en/latest/installation.html for more details.
+
+  
+-DLEMON_ENABLE_GLPK=NO
+-DLEMON_ENABLE_COIN=NO
+-DLEMON_ENABLE_ILOG=NO
+
+  Enable optional third party libraries. They are all enabled by default. 
+
+-DLEMON_DEFAULT_LP=GLPK
+
+  Sets the default LP solver backend. The supported values are
+  CPLEX, CLP and GLPK. By default, it is set to the first one which
+  is enabled and succesfully discovered.
+
+-DLEMON_DEFAULT_MIP=GLPK
+
+  Sets the default MIP solver backend. The supported values are
+  CPLEX, CBC and GLPK. By default, it is set to the first one which
+  is enabled and succesfully discovered.
+
+-DGLPK_ROOT_DIR=DIRECTORY
+-DCOIN_ROOT_DIR=DIRECTORY
+-DILOG_ROOT_DIR=DIRECTORY
+
+  Root directory prefixes of optional third party libraries.
+
+Makefile Variables
+==================
+
+make VERBOSE=1
+
+   This results in a more verbose output by showing the full
+   compiler and linker commands.

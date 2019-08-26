@@ -620,6 +620,16 @@ if(WITH_OPENVDB)
   endif()
 endif()
 
+if(WITH_QUADRIFLOW)
+  list(APPEND INC
+     ../../../intern/quadriflow
+  )
+  list(APPEND LIB
+     bf_intern_quadriflow
+  )
+  add_definitions(-DWITH_QUADRIFLOW)
+endif()
+
 ## Warnings as errors, this is too strict!
 #if(MSVC)
 #   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
