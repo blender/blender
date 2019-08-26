@@ -1873,6 +1873,14 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
   const ViewLayer *view_layer = DEG_get_evaluated_view_layer(draw_ctx->depsgraph);
   Scene *scene = draw_ctx->scene;
 
+  /* TODO: Review why is needed this recalc when render cycles + GP object in background.
+   * We need these lines to keep running the background render, but asap we get an alternative
+   * solution, we must remove it and keep all logic inside gpencil_modifier module. (antoniov)
+   */
+  if (ob->runtime.gpencil_tot_layers == 0) {
+    BKE_gpencil_modifiers_calc(draw_ctx->depsgraph, draw_ctx->scene, ob);
+  }
+
   /* Use original data to shared in edit/transform operators */
   bGPdata *gpd_eval = (bGPdata *)ob->data;
   bGPdata *gpd = (bGPdata *)DEG_get_original_id(&gpd_eval->id);
