@@ -1831,6 +1831,7 @@ void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, Object *ob, RigidBodyWorld *r
   pid->file_type = PTCACHE_FILE_PTCACHE;
 }
 
+/** Both \param ob and \param scene may be NULL. */
 PTCacheID BKE_ptcache_id_find(Object *ob, Scene *scene, PointCache *cache)
 {
   PTCacheID result = {0};
@@ -1934,39 +1935,44 @@ static bool foreach_object_ptcache(
     Scene *scene, Object *object, int duplis, ForeachPtcacheCb callback, void *callback_user_data)
 {
   PTCacheID pid;
-  /* Soft body. */
-  if (object->soft != NULL) {
-    BKE_ptcache_id_from_softbody(&pid, object, object->soft);
-    if (!callback(&pid, callback_user_data)) {
+
+  if (object != NULL) {
+    /* Soft body. */
+    if (object->soft != NULL) {
+      BKE_ptcache_id_from_softbody(&pid, object, object->soft);
+      if (!callback(&pid, callback_user_data)) {
+        return false;
+      }
+    }
+    /* Particle systems. */
+    if (!foreach_object_particle_ptcache(object, callback, callback_user_data)) {
       return false;
     }
+    /* Modifiers. */
+    if (!foreach_object_modifier_ptcache(object, callback, callback_user_data)) {
+      return false;
+    }
+    /* Consider all object in dupli groups to be part of the same object,
+     * for baking with linking dupligroups. Once we have better overrides
+     * this can be revisited so users select the local objects directly. */
+    if (scene != NULL && (duplis-- > 0) && (object->instance_collection != NULL)) {
+      FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (object->instance_collection, current_object) {
+        if (current_object == object) {
+          continue;
+        }
+        foreach_object_ptcache(scene, current_object, duplis, callback, callback_user_data);
+      }
+      FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+    }
   }
-  /* Particle systems. */
-  if (!foreach_object_particle_ptcache(object, callback, callback_user_data)) {
-    return false;
-  }
-  /* Modifiers. */
-  if (!foreach_object_modifier_ptcache(object, callback, callback_user_data)) {
-    return false;
-  }
+
   /* Rigid body. */
-  if (scene != NULL && object->rigidbody_object != NULL && scene->rigidbody_world != NULL) {
+  if (scene != NULL && (object == NULL || object->rigidbody_object != NULL) &&
+      scene->rigidbody_world != NULL) {
     BKE_ptcache_id_from_rigidbody(&pid, object, scene->rigidbody_world);
     if (!callback(&pid, callback_user_data)) {
       return false;
     }
-  }
-  /* Consider all object in dupli groups to be part of the same object,
-   * for baking with linking dupligroups. Once we have better overrides
-   * this can be revisited so users select the local objects directly. */
-  if (scene != NULL && (duplis-- > 0) && (object->instance_collection != NULL)) {
-    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (object->instance_collection, current_object) {
-      if (current_object == object) {
-        continue;
-      }
-      foreach_object_ptcache(scene, current_object, duplis, callback, callback_user_data);
-    }
-    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
   return true;
 }

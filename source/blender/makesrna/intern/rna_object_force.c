@@ -120,18 +120,38 @@ static const EnumPropertyItem empty_vortex_shape_items[] = {
 
 #  include "ED_object.h"
 
+static bool rna_Cache_get_valid_owner_ID(PointerRNA *ptr, Object **ob, Scene **scene)
+{
+  switch (GS(ptr->owner_id->name)) {
+    case ID_OB:
+      *ob = (Object *)ptr->owner_id;
+      break;
+    case ID_SCE:
+      *scene = (Scene *)ptr->owner_id;
+      break;
+    default:
+      BLI_assert(!"Trying to get PTCacheID from an invalid ID type "
+                  "(Only scenes and objects are supported).");
+      break;
+  }
+
+  return (*ob != NULL || *scene != NULL);
+}
+
 static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
-  PointCache *cache = (PointCache *)ptr->data;
+  Object *ob = NULL;
+  Scene *scene = NULL;
 
-  if (!ob) {
+  if (!rna_Cache_get_valid_owner_ID(ptr, &ob, &scene)) {
     return;
   }
 
+  PointCache *cache = (PointCache *)ptr->data;
+
   cache->flag |= PTCACHE_OUTDATED;
 
-  PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
+  PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
@@ -146,14 +166,16 @@ static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 
 static void rna_Cache_toggle_disk_cache(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
-  PointCache *cache = (PointCache *)ptr->data;
+  Object *ob = NULL;
+  Scene *scene = NULL;
 
-  if (!ob) {
+  if (!rna_Cache_get_valid_owner_ID(ptr, &ob, &scene)) {
     return;
   }
 
-  PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
+  PointCache *cache = (PointCache *)ptr->data;
+
+  PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
   /* smoke can only use disk cache */
   if (pid.cache && pid.type != PTCACHE_TYPE_SMOKE_DOMAIN) {
@@ -166,18 +188,20 @@ static void rna_Cache_toggle_disk_cache(Main *UNUSED(bmain), Scene *UNUSED(scene
 
 static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
-  PointCache *cache = (PointCache *)ptr->data;
-  bool use_new_name = true;
+  Object *ob = NULL;
+  Scene *scene = NULL;
 
-  if (!ob) {
+  if (!rna_Cache_get_valid_owner_ID(ptr, &ob, &scene)) {
     return;
   }
+
+  PointCache *cache = (PointCache *)ptr->data;
+  bool use_new_name = true;
 
   /* TODO: check for proper characters */
 
   if (cache->flag & PTCACHE_EXTERNAL) {
-    PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
+    PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
     if (pid.cache) {
       BKE_ptcache_load_external(&pid);
@@ -190,7 +214,7 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
     PTCacheID *pid = NULL, *pid2 = NULL;
     ListBase pidlist;
 
-    BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+    BKE_ptcache_ids_from_object(&pidlist, ob, scene, 0);
 
     for (pid = pidlist.first; pid; pid = pid->next) {
       if (pid->cache == cache) {
@@ -240,12 +264,18 @@ static void rna_Cache_list_begin(CollectionPropertyIterator *iter, PointerRNA *p
 static void rna_Cache_active_point_cache_index_range(
     PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
 {
-  Object *ob = (Object *)ptr->owner_id;
-  PointCache *cache = ptr->data;
-  PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
-
   *min = 0;
   *max = 0;
+
+  Object *ob = NULL;
+  Scene *scene = NULL;
+
+  if (!rna_Cache_get_valid_owner_ID(ptr, &ob, &scene)) {
+    return;
+  }
+
+  PointCache *cache = ptr->data;
+  PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
   if (pid.cache) {
     *max = max_ii(0, BLI_listbase_count(pid.ptcaches) - 1);
@@ -254,10 +284,17 @@ static void rna_Cache_active_point_cache_index_range(
 
 static int rna_Cache_active_point_cache_index_get(PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
-  PointCache *cache = ptr->data;
-  PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
   int num = 0;
+
+  Object *ob = NULL;
+  Scene *scene = NULL;
+
+  if (!rna_Cache_get_valid_owner_ID(ptr, &ob, &scene)) {
+    return num;
+  }
+
+  PointCache *cache = ptr->data;
+  PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
   if (pid.cache) {
     num = BLI_findindex(pid.ptcaches, cache);
@@ -268,9 +305,15 @@ static int rna_Cache_active_point_cache_index_get(PointerRNA *ptr)
 
 static void rna_Cache_active_point_cache_index_set(struct PointerRNA *ptr, int value)
 {
-  Object *ob = (Object *)ptr->owner_id;
+  Object *ob = NULL;
+  Scene *scene = NULL;
+
+  if (!rna_Cache_get_valid_owner_ID(ptr, &ob, &scene)) {
+    return;
+  }
+
   PointCache *cache = ptr->data;
-  PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
+  PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
   if (pid.cache) {
     *(pid.cache_ptr) = BLI_findlink(pid.ptcaches, value);
@@ -280,12 +323,18 @@ static void rna_Cache_active_point_cache_index_set(struct PointerRNA *ptr, int v
 static void rna_PointCache_frame_step_range(
     PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
 {
-  Object *ob = (Object *)ptr->owner_id;
-  PointCache *cache = ptr->data;
-  PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
-
   *min = 1;
   *max = 20;
+
+  Object *ob = NULL;
+  Scene *scene = NULL;
+
+  if (!rna_Cache_get_valid_owner_ID(ptr, &ob, &scene)) {
+    return;
+  }
+
+  PointCache *cache = ptr->data;
+  PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
   if (pid.cache) {
     *max = pid.max_step;
@@ -294,14 +343,16 @@ static void rna_PointCache_frame_step_range(
 
 int rna_Cache_info_length(PointerRNA *ptr)
 {
-  PointCache *cache = (PointCache *)ptr->data;
-  Object *ob = (Object *)ptr->owner_id;
+  Object *ob = NULL;
+  Scene *scene = NULL;
 
-  if (!ob) {
+  if (!rna_Cache_get_valid_owner_ID(ptr, &ob, &scene)) {
     return 0;
   }
 
-  PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
+  PointCache *cache = (PointCache *)ptr->data;
+
+  PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
   if (cache->flag & PTCACHE_FLAG_INFO_DIRTY) {
     BKE_ptcache_update_info(&pid);
