@@ -49,8 +49,6 @@ class BlenderSession {
 
   ~BlenderSession();
 
-  void create();
-
   /* session */
   void create_session();
   void free_session();

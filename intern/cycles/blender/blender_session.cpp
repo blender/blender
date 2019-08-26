@@ -114,11 +114,6 @@ BlenderSession::~BlenderSession()
   free_session();
 }
 
-void BlenderSession::create()
-{
-  create_session();
-}
-
 void BlenderSession::create_session()
 {
   SessionParams session_params = BlenderSync::get_session_params(
@@ -199,8 +194,12 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
     height = render_resolution_y(b_render);
   }
 
-  if (session == NULL) {
-    create();
+  bool is_new_session = (session == NULL);
+  if (is_new_session) {
+    /* Initialize session and remember it was just created so not to
+     * re-create it below.
+     */
+    create_session();
   }
 
   if (b_v3d) {
@@ -219,8 +218,10 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
     /* if scene or session parameters changed, it's easier to simply re-create
      * them rather than trying to distinguish which settings need to be updated
      */
-    free_session();
-    create_session();
+    if (!is_new_session) {
+      free_session();
+      create_session();
+    }
     return;
   }
 
