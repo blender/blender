@@ -52,6 +52,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -109,6 +110,9 @@ static void object_force_modifier_update_for_bind(Depsgraph *depsgraph, Object *
   }
   else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
     BKE_displist_make_curveTypes(depsgraph, scene_eval, ob_eval, false, false);
+  }
+  else if (ob->type == OB_GPENCIL) {
+    BKE_gpencil_modifiers_calc(depsgraph, scene_eval, ob_eval);
   }
 }
 
