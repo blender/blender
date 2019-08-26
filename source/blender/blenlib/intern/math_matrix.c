@@ -2013,7 +2013,7 @@ void rotate_m4(float mat[4][4], const char axis, const float angle)
   const float angle_cos = cosf(angle);
   const float angle_sin = sinf(angle);
 
-  assert(axis >= 'X' && axis <= 'Z');
+  BLI_assert(axis >= 'X' && axis <= 'Z');
 
   switch (axis) {
     case 'X':

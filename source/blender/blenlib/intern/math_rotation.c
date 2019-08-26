@@ -644,8 +644,8 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
   float nor[3], tvec[3];
   float angle, si, co, len;
 
-  assert(axis >= 0 && axis <= 5);
-  assert(upflag >= 0 && upflag <= 2);
+  BLI_assert(axis >= 0 && axis <= 5);
+  BLI_assert(upflag >= 0 && upflag <= 2);
 
   /* first set the quat to unit */
   unit_qt(q);
@@ -1194,7 +1194,7 @@ void axis_angle_to_quat_single(float q[4], const char axis, const float angle)
   const float angle_sin = sinf(angle_half);
   const int axis_index = (axis - 'X');
 
-  assert(axis >= 'X' && axis <= 'Z');
+  BLI_assert(axis >= 'X' && axis <= 'Z');
 
   q[0] = angle_cos;
   zero_v3(q + 1);
@@ -1398,7 +1398,7 @@ void rotate_eul(float beul[3], const char axis, const float ang)
 {
   float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
 
-  assert(axis >= 'X' && axis <= 'Z');
+  BLI_assert(axis >= 'X' && axis <= 'Z');
 
   eul[0] = eul[1] = eul[2] = 0.0f;
   if (axis == 'X') {
@@ -1544,7 +1544,7 @@ static const RotOrderInfo rotOrders[] = {
  */
 static const RotOrderInfo *get_rotation_order_info(const short order)
 {
-  assert(order >= 0 && order <= 6);
+  BLI_assert(order >= 0 && order <= 6);
   if (order < 1) {
     return &rotOrders[0];
   }
@@ -1813,7 +1813,7 @@ void rotate_eulO(float beul[3], const short order, char axis, float ang)
 {
   float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
 
-  assert(axis >= 'X' && axis <= 'Z');
+  BLI_assert(axis >= 'X' && axis <= 'Z');
 
   zero_v3(eul);
 
@@ -2119,8 +2119,8 @@ void quat_apply_track(float quat[4], short axis, short upflag)
       {0.0, sqrt_1_2, sqrt_1_2, 0.0},
   };
 
-  assert(axis >= 0 && axis <= 5);
-  assert(upflag >= 0 && upflag <= 2);
+  BLI_assert(axis >= 0 && axis <= 5);
+  BLI_assert(upflag >= 0 && upflag <= 2);
 
   mul_qt_qtqt(quat, quat, quat_track[axis]);
 
@@ -2142,7 +2142,7 @@ void vec_apply_track(float vec[3], short axis)
 {
   float tvec[3];
 
-  assert(axis >= 0 && axis <= 5);
+  BLI_assert(axis >= 0 && axis <= 5);
 
   copy_v3_v3(tvec, vec);
 

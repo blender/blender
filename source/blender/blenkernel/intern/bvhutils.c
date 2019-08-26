@@ -1666,7 +1666,7 @@ void bvhcache_insert(BVHCache **cache_p, BVHTree *tree, int type)
 {
   BVHCacheItem *item = NULL;
 
-  assert(bvhcache_find(*cache_p, type, &(BVHTree *){0}) == false);
+  BLI_assert(bvhcache_find(*cache_p, type, &(BVHTree *){0}) == false);
 
   item = MEM_mallocN(sizeof(BVHCacheItem), "BVHCacheItem");
 

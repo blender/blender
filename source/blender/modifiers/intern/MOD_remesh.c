@@ -105,7 +105,7 @@ static void dualcon_add_vert(void *output_v, const float co[3])
   DualConOutput *output = output_v;
   Mesh *mesh = output->mesh;
 
-  assert(output->curvert < mesh->totvert);
+  BLI_assert(output->curvert < mesh->totvert);
 
   copy_v3_v3(mesh->mvert[output->curvert].co, co);
   output->curvert++;
@@ -119,7 +119,7 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
   MPoly *cur_poly;
   int i;
 
-  assert(output->curface < mesh->totpoly);
+  BLI_assert(output->curface < mesh->totpoly);
 
   mloop = mesh->mloop;
   cur_poly = &mesh->mpoly[output->curface];

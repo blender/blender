@@ -1318,7 +1318,7 @@ static bool view3d_lasso_select(
           changed = do_lasso_select_meta(vc, mcords, moves, sel_op);
           break;
         default:
-          assert(!"lasso select on incorrect object type");
+          BLI_assert(!"lasso select on incorrect object type");
           break;
       }
 
@@ -3266,7 +3266,7 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
           }
           break;
         default:
-          assert(!"box select on incorrect object type");
+          BLI_assert(!"box select on incorrect object type");
           break;
       }
       changed_multi |= changed;

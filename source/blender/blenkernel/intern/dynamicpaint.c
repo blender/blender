@@ -2755,7 +2755,7 @@ static bool dynamicPaint_symmetrizeAdjData(PaintAdjData *ed, int active_points)
       for (int i = 0, idx = ed->n_index[index]; i < ed->n_num[index]; i++) {
         const int target = ed->n_target[idx + i];
 
-        assert(!(ed->flags[target] & ADJ_BORDER_PIXEL));
+        BLI_assert(!(ed->flags[target] & ADJ_BORDER_PIXEL));
 
         if (!dynamicPaint_pointHasNeighbor(ed, target, index)) {
           new_n_num[target]++;
@@ -2782,7 +2782,7 @@ static bool dynamicPaint_symmetrizeAdjData(PaintAdjData *ed, int active_points)
         new_n_num[index] = ed->n_num[index];
       }
 
-      assert(n_pos == total_targets);
+      BLI_assert(n_pos == total_targets);
 
       /* Add symmetrized - this loop behavior must exactly match the count pass above */
       for (int index = 0; index < active_points; index++) {
@@ -5572,7 +5572,7 @@ static void dynamic_paint_border_cb(void *__restrict userdata,
 
     PaintPoint *pPoint2 = &((PaintPoint *)sData->type_data)[target];
 
-    assert(!(sData->adj_data->flags[target] & ADJ_BORDER_PIXEL));
+    BLI_assert(!(sData->adj_data->flags[target] & ADJ_BORDER_PIXEL));
 
     madd_v3_v3fl(mix_color, pPoint2->color, pPoint2->color[3]);
     mix_color[3] += pPoint2->color[3];

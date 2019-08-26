@@ -313,7 +313,7 @@ int textview_draw(
   /* constants for the sequencer context */
   cdc.font_id = font_id;
   cdc.cwidth = (int)BLF_fixed_width(font_id);
-  assert(cdc.cwidth > 0);
+  BLI_assert(cdc.cwidth > 0);
   cdc.lheight = tvc->lheight;
   cdc.lofs = -BLF_descender(font_id);
   /* note, scroll bar must be already subtracted () */
