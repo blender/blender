@@ -5674,8 +5674,8 @@ VectorMathNode::VectorMathNode() : ShaderNode(node_type)
 
 void VectorMathNode::constant_fold(const ConstantFolder &folder)
 {
-  float value;
-  float3 vector;
+  float value = 0.0f;
+  float3 vector = make_float3(0.0f, 0.0f, 0.0f);
 
   if (folder.all_inputs_constant()) {
     svm_vector_math(&value, &vector, type, vector1, vector2, scale);
