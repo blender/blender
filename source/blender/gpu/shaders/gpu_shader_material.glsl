@@ -346,7 +346,7 @@ void math_fraction(float a, float b, out float result)
  */
 void math_modulo(float a, float b, out float result)
 {
-  result = (b != 0.0) ? sign(a) * mod(abs(a), b) : 0.0;
+  result = (b != 0.0 && a != b) ? sign(a) * mod(abs(a), b) : 0.0;
 }
 
 void math_sine(float a, float b, out float result)
