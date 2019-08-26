@@ -36,7 +36,10 @@
 
 CCL_NAMESPACE_BEGIN
 
-BVH8::BVH8(const BVHParams &params_, const vector<Object *> &objects_) : BVH(params_, objects_)
+BVH8::BVH8(const BVHParams &params_,
+           const vector<Mesh *> &meshes_,
+           const vector<Object *> &objects_)
+    : BVH(params_, meshes_, objects_)
 {
 }
 

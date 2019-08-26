@@ -57,7 +57,7 @@ class BVH8 : public BVH {
  protected:
   /* constructor */
   friend class BVH;
-  BVH8(const BVHParams &params, const vector<Object *> &objects);
+  BVH8(const BVHParams &params, const vector<Mesh *> &meshes, const vector<Object *> &objects);
 
   /* Building process. */
   virtual BVHNode *widen_children_nodes(const BVHNode *root) override;

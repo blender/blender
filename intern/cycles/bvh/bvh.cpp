@@ -71,7 +71,11 @@ BVHLayout BVHParams::best_bvh_layout(BVHLayout requested_layout, BVHLayoutMask s
   /* This is a mask of supported BVH layouts which are narrower than the
    * requested one.
    */
-  const BVHLayoutMask allowed_layouts_mask = (supported_layouts & (requested_layout_mask - 1));
+  BVHLayoutMask allowed_layouts_mask = (supported_layouts & (requested_layout_mask - 1));
+  /* If the requested layout is not supported, choose from the supported layouts instead. */
+  if (allowed_layouts_mask == 0) {
+    allowed_layouts_mask = supported_layouts;
+  }
   /* We get widest from allowed ones and convert mask to actual layout. */
   const BVHLayoutMask widest_allowed_layout_mask = __bsr(allowed_layouts_mask);
   return (BVHLayout)(1 << widest_allowed_layout_mask);
@@ -90,23 +94,27 @@ int BVHStackEntry::encodeIdx() const
 
 /* BVH */
 
-BVH::BVH(const BVHParams &params_, const vector<Object *> &objects_)
-    : params(params_), objects(objects_)
+BVH::BVH(const BVHParams &params_, const vector<Mesh *> &meshes_, const vector<Object *> &objects_)
+    : params(params_), meshes(meshes_), objects(objects_)
 {
 }
 
-BVH *BVH::create(const BVHParams &params, const vector<Object *> &objects)
+BVH *BVH::create(const BVHParams &params,
+                 const vector<Mesh *> &meshes,
+                 const vector<Object *> &objects)
 {
   switch (params.bvh_layout) {
     case BVH_LAYOUT_BVH2:
-      return new BVH2(params, objects);
+      return new BVH2(params, meshes, objects);
     case BVH_LAYOUT_BVH4:
-      return new BVH4(params, objects);
+      return new BVH4(params, meshes, objects);
     case BVH_LAYOUT_BVH8:
-      return new BVH8(params, objects);
+      return new BVH8(params, meshes, objects);
     case BVH_LAYOUT_EMBREE:
 #ifdef WITH_EMBREE
-      return new BVHEmbree(params, objects);
+      return new BVHEmbree(params, meshes, objects);
+#else
+      break;
 #endif
     case BVH_LAYOUT_NONE:
     case BVH_LAYOUT_ALL:
@@ -356,25 +364,16 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
   size_t pack_leaf_nodes_offset = leaf_nodes_size;
   size_t object_offset = 0;
 
-  map<Mesh *, int> mesh_map;
-
-  foreach (Object *ob, objects) {
-    Mesh *mesh = ob->mesh;
+  foreach (Mesh *mesh, meshes) {
     BVH *bvh = mesh->bvh;
 
-    if (mesh->need_build_bvh()) {
-      if (mesh_map.find(mesh) == mesh_map.end()) {
-        prim_index_size += bvh->pack.prim_index.size();
-        prim_tri_verts_size += bvh->pack.prim_tri_verts.size();
-        nodes_size += bvh->pack.nodes.size();
-        leaf_nodes_size += bvh->pack.leaf_nodes.size();
-
-        mesh_map[mesh] = 1;
-      }
+    if (mesh->need_build_bvh(params.bvh_layout)) {
+      prim_index_size += bvh->pack.prim_index.size();
+      prim_tri_verts_size += bvh->pack.prim_tri_verts.size();
+      nodes_size += bvh->pack.nodes.size();
+      leaf_nodes_size += bvh->pack.leaf_nodes.size();
     }
   }
-
-  mesh_map.clear();
 
   pack.prim_index.resize(prim_index_size);
   pack.prim_type.resize(prim_index_size);
@@ -400,6 +399,8 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
   int4 *pack_leaf_nodes = (pack.leaf_nodes.size()) ? &pack.leaf_nodes[0] : NULL;
   float2 *pack_prim_time = (pack.prim_time.size()) ? &pack.prim_time[0] : NULL;
 
+  map<Mesh *, int> mesh_map;
+
   /* merge */
   foreach (Object *ob, objects) {
     Mesh *mesh = ob->mesh;
@@ -407,7 +408,7 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
     /* We assume that if mesh doesn't need own BVH it was already included
      * into a top-level BVH and no packing here is needed.
      */
-    if (!mesh->need_build_bvh()) {
+    if (!mesh->need_build_bvh(params.bvh_layout)) {
       pack.object_node[object_offset++] = 0;
       continue;
     }

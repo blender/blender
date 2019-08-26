@@ -36,6 +36,7 @@ class Mesh;
 class BVHEmbree : public BVH {
  public:
   virtual void build(Progress &progress, Stats *stats) override;
+  virtual void copy_to_device(Progress &progress, DeviceScene *dscene) override;
   virtual ~BVHEmbree();
   RTCScene scene;
   static void destroy(RTCScene);
@@ -45,7 +46,9 @@ class BVHEmbree : public BVH {
 
  protected:
   friend class BVH;
-  BVHEmbree(const BVHParams &params, const vector<Object *> &objects);
+  BVHEmbree(const BVHParams &params,
+            const vector<Mesh *> &meshes,
+            const vector<Object *> &objects);
 
   virtual void pack_nodes(const BVHNode *) override;
   virtual void refit_nodes() override;

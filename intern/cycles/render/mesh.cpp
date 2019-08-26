@@ -433,6 +433,8 @@ Mesh::Mesh() : Node(node_type)
 
   attr_map_offset = 0;
 
+  prim_offset = 0;
+
   num_subd_verts = 0;
 
   attributes.triangle_mesh = this;
@@ -1013,9 +1015,11 @@ void Mesh::compute_bvh(
 
   compute_bounds();
 
-  if (need_build_bvh()) {
+  const BVHLayout bvh_layout = BVHParams::best_bvh_layout(params->bvh_layout,
+                                                          device->get_bvh_layout_mask());
+  if (need_build_bvh(bvh_layout)) {
     string msg = "Updating Mesh BVH ";
-    if (name == "")
+    if (name.empty())
       msg += string_printf("%u/%u", (uint)(n + 1), (uint)total);
     else
       msg += string_printf("%s %u/%u", name.c_str(), (uint)(n + 1), (uint)total);
@@ -1023,12 +1027,17 @@ void Mesh::compute_bvh(
     Object object;
     object.mesh = this;
 
+    vector<Mesh *> meshes;
+    meshes.push_back(this);
     vector<Object *> objects;
     objects.push_back(&object);
 
     if (bvh && !need_update_rebuild) {
       progress->set_status(msg, "Refitting BVH");
+
+      bvh->meshes = meshes;
       bvh->objects = objects;
+
       bvh->refit(*progress);
     }
     else {
@@ -1036,8 +1045,7 @@ void Mesh::compute_bvh(
 
       BVHParams bparams;
       bparams.use_spatial_split = params->use_bvh_spatial_split;
-      bparams.bvh_layout = BVHParams::best_bvh_layout(params->bvh_layout,
-                                                      device->get_bvh_layout_mask());
+      bparams.bvh_layout = bvh_layout;
       bparams.use_unaligned_nodes = dscene->data.bvh.have_curves &&
                                     params->use_bvh_unaligned_nodes;
       bparams.num_motion_triangle_steps = params->num_bvh_time_steps;
@@ -1047,7 +1055,7 @@ void Mesh::compute_bvh(
       bparams.curve_subdivisions = dscene->data.curve.subdivisions;
 
       delete bvh;
-      bvh = BVH::create(bparams, objects);
+      bvh = BVH::create(bparams, meshes, objects);
       MEM_GUARDED_CALL(progress, bvh->build, *progress);
     }
   }
@@ -1128,7 +1136,7 @@ int Mesh::motion_step(float time) const
   return -1;
 }
 
-bool Mesh::need_build_bvh() const
+bool Mesh::need_build_bvh(BVHLayout) const
 {
   return !transform_applied || has_surface_bssrdf;
 }
@@ -1722,6 +1730,8 @@ void MeshManager::mesh_calc_offset(Scene *scene)
   size_t face_size = 0;
   size_t corner_size = 0;
 
+  size_t prim_size = 0;
+
   foreach (Mesh *mesh, scene->meshes) {
     mesh->vert_offset = vert_size;
     mesh->tri_offset = tri_size;
@@ -1751,6 +1761,9 @@ void MeshManager::mesh_calc_offset(Scene *scene)
     }
     face_size += mesh->subd_faces.size();
     corner_size += mesh->subd_face_corners.size();
+
+    mesh->prim_offset = prim_size;
+    prim_size += mesh->num_primitives();
   }
 }
 
@@ -1929,7 +1942,7 @@ void MeshManager::device_update_bvh(Device *device,
   }
 #endif
 
-  BVH *bvh = BVH::create(bparams, scene->objects);
+  BVH *bvh = BVH::create(bparams, scene->meshes, scene->objects);
   bvh->build(progress, &device->stats);
 
   if (progress.get_cancel()) {
@@ -1994,14 +2007,7 @@ void MeshManager::device_update_bvh(Device *device,
   dscene->data.bvh.bvh_layout = bparams.bvh_layout;
   dscene->data.bvh.use_bvh_steps = (scene->params.num_bvh_time_steps != 0);
 
-#ifdef WITH_EMBREE
-  if (bparams.bvh_layout == BVH_LAYOUT_EMBREE) {
-    dscene->data.bvh.scene = ((BVHEmbree *)bvh)->scene;
-  }
-  else {
-    dscene->data.bvh.scene = NULL;
-  }
-#endif
+  bvh->copy_to_device(progress, dscene);
 
   delete bvh;
 }
@@ -2213,6 +2219,8 @@ void MeshManager::device_update(Device *device,
   /* Update displacement. */
   bool displacement_done = false;
   size_t num_bvh = 0;
+  BVHLayout bvh_layout = BVHParams::best_bvh_layout(scene->params.bvh_layout,
+                                                    device->get_bvh_layout_mask());
 
   foreach (Mesh *mesh, scene->meshes) {
     if (mesh->need_update) {
@@ -2220,7 +2228,7 @@ void MeshManager::device_update(Device *device,
         displacement_done = true;
       }
 
-      if (mesh->need_build_bvh()) {
+      if (mesh->need_build_bvh(bvh_layout)) {
         num_bvh++;
       }
     }
@@ -2245,7 +2253,7 @@ void MeshManager::device_update(Device *device,
     if (mesh->need_update) {
       pool.push(function_bind(
           &Mesh::compute_bvh, mesh, device, dscene, &scene->params, &progress, i, num_bvh));
-      if (mesh->need_build_bvh()) {
+      if (mesh->need_build_bvh(bvh_layout)) {
         i++;
       }
     }
