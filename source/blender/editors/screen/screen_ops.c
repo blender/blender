@@ -3363,7 +3363,9 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
   sAreaJoinData *jd;
 
   if (op->customdata == NULL) {
-    area_join_init(C, op, NULL, NULL);
+    if (!area_join_init(C, op, NULL, NULL)) {
+      return OPERATOR_CANCELLED;
+    }
   }
   jd = (sAreaJoinData *)op->customdata;
 
