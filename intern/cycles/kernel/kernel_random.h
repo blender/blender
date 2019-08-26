@@ -41,10 +41,9 @@ ccl_device uint sobol_dimension(KernelGlobals *kg, int index, int dimension)
 {
   uint result = 0;
   uint i = index + SOBOL_SKIP;
-  for (uint j = 0; i; i >>= 1, j++) {
-    if (i & 1) {
-      result ^= kernel_tex_fetch(__sobol_directions, 32 * dimension + j);
-    }
+  for (int j = 0, x; (x = find_first_set(i)); i >>= x) {
+    j += x;
+    result ^= kernel_tex_fetch(__sobol_directions, 32 * dimension + j - 1);
   }
   return result;
 }
