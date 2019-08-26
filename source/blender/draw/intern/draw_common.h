@@ -160,6 +160,10 @@ struct DRWCallBuffer *buffer_instance_screen_aligned(struct DRWPass *pass,
 struct DRWCallBuffer *buffer_instance_empty_axes(struct DRWPass *pass,
                                                  struct GPUBatch *geom,
                                                  eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance_color_axes(struct DRWPass *pass,
+                                                 struct GPUBatch *geom,
+                                                 struct DRWShadingGroup **r_grp,
+                                                 eGPUShaderConfig sh_cfg);
 struct DRWCallBuffer *buffer_instance_scaled(struct DRWPass *pass,
                                              struct GPUBatch *geom,
                                              eGPUShaderConfig sh_cfg);

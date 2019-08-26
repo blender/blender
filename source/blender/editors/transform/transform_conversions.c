@@ -7693,7 +7693,6 @@ int special_transform_moving(TransInfo *t)
 struct XFormObjectData_Extra {
   Object *ob;
   float obmat_orig[4][4];
-  bool ob_dtx_axis_orig;
   struct XFormObjectData *xod;
 };
 
@@ -7710,10 +7709,6 @@ static void trans_obdata_in_obmode_ensure_object(TransInfo *t, Object *ob)
     xf->ob = ob;
     /* Result may be NULL, that's OK. */
     xf->xod = ED_object_data_xform_create(ob->data);
-    if (xf->xod) {
-      xf->ob_dtx_axis_orig = ob->dtx & OB_AXIS;
-      ob->dtx |= OB_AXIS;
-    }
     *xf_p = xf;
   }
 }
@@ -7747,10 +7742,6 @@ static void trans_obdata_in_obmode_free_elem(void *xf_p)
 {
   struct XFormObjectData_Extra *xf = xf_p;
   if (xf->xod) {
-    if (!xf->ob_dtx_axis_orig) {
-      xf->ob->dtx &= ~OB_AXIS;
-      DEG_id_tag_update(&xf->ob->id, ID_RECALC_COPY_ON_WRITE);
-    }
     ED_object_data_xform_destroy(xf->xod);
   }
   MEM_freeN(xf);
