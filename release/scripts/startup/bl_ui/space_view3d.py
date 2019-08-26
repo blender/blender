@@ -6276,66 +6276,123 @@ class VIEW3D_PT_gpencil_multi_frame(Panel):
 
 
 class VIEW3D_MT_gpencil_edit_context_menu(Menu):
-    bl_label = "Edit Context Menu"
+    bl_label = ""
 
     def draw(self, context):
-        layout = self.layout
+
+        is_point_mode = context.tool_settings.gpencil_selectmode_edit == 'POINT'
+        is_stroke_mode = context.tool_settings.gpencil_selectmode_edit == 'STROKE'
+        is_segment_mode = context.tool_settings.gpencil_selectmode_edit == 'SEGMENT'
+
         is_3d_view = context.space_data.type == 'VIEW_3D'
+
+        layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        # Add
-        layout.operator("gpencil.stroke_subdivide", text="Subdivide")
+        row = layout.row()
 
-        layout.separator()
+        if is_point_mode or is_segment_mode:
+            col = row.column()
 
-        # Transform
-        layout.operator("transform.transform", text="Shrink/Fatten").mode = 'GPENCIL_SHRINKFATTEN'
-        layout.operator("gpencil.stroke_smooth", text="Smooth")
-        layout.operator("gpencil.stroke_trim", text="Trim")
+            col.label(text="Point Context Menu", icon='GP_SELECT_POINTS')
+            col.separator()
 
-        layout.separator()
+            # Additive Operators
+            col.operator("gpencil.stroke_subdivide", text="Subdivide").only_selected = True
 
-        # Modify
-        layout.menu("VIEW3D_MT_assign_material")
-        layout.operator_menu_enum("gpencil.stroke_arrange", "direction", text="Arrange Strokes")
-        layout.operator("gpencil.stroke_flip", text="Flip Direction")
-        layout.operator_menu_enum("gpencil.stroke_caps_set", text="Toggle Caps", property="type")
+            col.separator()
 
-        layout.separator()
+            col.operator("gpencil.extrude_move", text="Extrude Points")
 
-        layout.operator("gpencil.duplicate_move", text="Duplicate")
-        layout.operator("gpencil.copy", text="Copy", icon='COPYDOWN')
-        layout.operator("gpencil.paste", text="Paste", icon='PASTEDOWN').type = 'ACTIVE'
-        layout.operator("gpencil.paste", text="Paste by Layer").type = 'LAYER'
-        layout.menu("VIEW3D_MT_gpencil_copy_layer")
-        layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame")
-        layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame All Layers").mode = 'ALL'
+            col.separator()
 
-        layout.separator()
+            # Deform Operators
+            col.operator("gpencil.stroke_smooth", text="Smooth Points").only_selected = True
+            col.operator("transform.bend", text="Bend")
+            col.operator("transform.shear", text="Shear")
+            col.operator("transform.tosphere", text="To Sphere")
+            col.operator("transform.transform", text="Shrink Fatten").mode = 'GPENCIL_SHRINKFATTEN'
 
-        layout.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
-        layout.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
-        layout.operator_menu_enum("gpencil.stroke_separate", "mode")
-        layout.operator("gpencil.stroke_split", text="Split")
-        op = layout.operator("gpencil.stroke_cyclical_set", text="Close")
-        op.type = 'CLOSE'
-        op.geometry = True
+            col.separator()
 
-        layout.separator()
+            col.menu("VIEW3D_MT_mirror", text="Mirror Points")
+            col.menu("VIEW3D_MT_snap", text="Snap Points")
 
-        layout.menu("VIEW3D_MT_mirror")
-        layout.menu("VIEW3D_MT_snap")
+            col.separator()
 
-        layout.separator()
+            # Duplicate operators
+            col.operator("gpencil.duplicate_move", text="Duplicate")
+            col.operator("gpencil.copy", text="Copy", icon='COPYDOWN')
+            col.operator("gpencil.paste", text="Paste", icon='PASTEDOWN').type = 'ACTIVE'
+            col.operator("gpencil.paste", text="Paste by Layer").type = 'LAYER'
 
-        # Remove
-        if is_3d_view:
-            layout.menu("GPENCIL_MT_cleanup")
+            col.separator()
 
-        layout.menu("VIEW3D_MT_gpencil_simplify")
-        layout.operator("gpencil.stroke_merge", text="Merge")
-        layout.menu("VIEW3D_MT_edit_gpencil_delete")
+            # Removal Operators
+            col.operator("gpencil.stroke_merge", text="Merge Points")
+            col.operator("gpencil.stroke_merge_by_distance").use_unselected = False
+            col.operator("gpencil.stroke_split", text="Split")
+            col.operator("gpencil.stroke_separate", text="Separate").mode = 'POINT'
+
+            col.separator()
+
+            col.operator("gpencil.delete", text="Delete Points").type = 'POINTS'
+            col.operator("gpencil.dissolve", text="Dissolve Points").type = 'POINTS'
+            col.operator("gpencil.dissolve", text="Dissolve Between").type = 'BETWEEN'
+            col.operator("gpencil.dissolve", text="Dissolve Unselected").type = 'UNSELECTED'
+
+        if is_stroke_mode:
+
+            col = row.column()
+            col.label(text="Stroke Context Menu", icon='GP_SELECT_STROKES')
+            col.separator()
+
+            # Main Strokes Operators
+            col.operator("gpencil.stroke_subdivide", text="Subdivide").only_selected = False
+            col.menu("VIEW3D_MT_gpencil_simplify")
+            col.operator("gpencil.stroke_trim", text="Trim")
+
+            col.separator()
+
+            col.operator("gpencil.stroke_smooth", text="Smooth Stroke").only_selected = False
+            col.operator("transform.transform", text="Shrink Fatten").mode = 'GPENCIL_SHRINKFATTEN'
+
+            col.separator()
+
+            # Layer and Materials operators
+            col.operator_menu_enum("gpencil.move_to_layer", "layer", text="Move to Layer")
+            col.menu("VIEW3D_MT_assign_material")
+            col.operator_menu_enum("gpencil.stroke_arrange", "direction", text="Arrange Strokes")
+
+            col.separator()
+
+            col.menu("VIEW3D_MT_mirror", text="Mirror Stroke")
+            col.menu("VIEW3D_MT_snap", text="Snap Stroke")
+
+            col.separator()
+
+            # Duplicate operators
+            col.operator("gpencil.duplicate_move", text="Duplicate")
+            col.operator("gpencil.copy", text="Copy", icon='COPYDOWN')
+            col.operator("gpencil.paste", text="Paste", icon='PASTEDOWN').type = 'ACTIVE'
+            col.operator("gpencil.paste", text="Paste by Layer").type = 'LAYER'
+
+            col.separator()
+
+            # Removal Operators
+            col.operator("gpencil.stroke_merge_by_distance").use_unselected = True
+            col.operator_menu_enum("gpencil.stroke_join", "type", text="Join...")
+            col.operator("gpencil.stroke_split", text="Split")
+            col.operator("gpencil.stroke_separate", text="Separate").mode = 'STROKE'
+
+            col.separator()
+            
+            col.operator("gpencil.delete", text="Delete Strokes").type = 'STROKES'
+
+            col.separator()
+
+            col.operator("gpencil.reproject", text="Reproject Strokes")
 
 
 class VIEW3D_PT_gpencil_sculpt_context_menu(Panel):
