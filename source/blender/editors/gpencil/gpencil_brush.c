@@ -623,7 +623,7 @@ static void gp_brush_grab_stroke_free(void *ptr)
 /* NOTE: Depends on gp_brush_grab_calc_dvec() */
 static bool gp_brush_push_apply(tGP_BrushEditData *gso,
                                 bGPDstroke *gps,
-                                float rot_eval,
+                                float UNUSED(rot_eval),
                                 int pt_index,
                                 const int radius,
                                 const int co[2])
