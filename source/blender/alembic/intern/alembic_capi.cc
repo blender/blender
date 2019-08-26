@@ -984,7 +984,7 @@ bool ABC_mesh_topology_changed(
 {
   AbcObjectReader *abc_reader = get_abc_reader(reader, ob, err_str);
   if (abc_reader == NULL) {
-    return NULL;
+    return false;
   }
 
   ISampleSelector sample_sel = sample_selector_for_time(time);

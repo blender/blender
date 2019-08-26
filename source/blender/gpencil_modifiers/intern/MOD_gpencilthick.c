@@ -149,7 +149,7 @@ static void deformStroke(GpencilModifierData *md,
     if (mmd->flag & GP_THICK_NORMALIZE) {
       if (gps_has_unaffected_points) {
         /* Clamp value for very weird situations when stroke thickness can be zero. */
-        CLAMP_MIN(gps->thickness, 0.001f);
+        CLAMP_MIN(gps->thickness, 1);
         /* Calculate pressure value to match the width of strokes with reset thickness and 1.0
          * pressure. */
         pt->pressure = (float)mmd->thickness / (float)gps->thickness;

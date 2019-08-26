@@ -18,6 +18,13 @@
 # All rights reserved.
 # ***** END GPL LICENSE BLOCK *****
 
+# avoid noisy warnings
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+  add_c_flag(
+    "-Wno-self-assign"
+  )
+endif()
+
 set(INC
   .
 )
