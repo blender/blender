@@ -549,6 +549,7 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
       {
         GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.lines_paint_mask);
         GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.pos_nor);
+        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.lnor);
       }
       GPU_BATCH_DISCARD_SAFE(cache->batch.surface);
       GPU_BATCH_DISCARD_SAFE(cache->batch.wire_loops);
@@ -1140,6 +1141,8 @@ void DRW_mesh_batch_cache_create_requested(
   }
   if (DRW_batch_requested(cache->batch.wire_loops, GPU_PRIM_LINES)) {
     DRW_ibo_request(cache->batch.wire_loops, &mbufcache->ibo.lines_paint_mask);
+    /* Order matters. First ones override latest vbos' attribs. */
+    DRW_vbo_request(cache->batch.wire_loops, &mbufcache->vbo.lnor);
     DRW_vbo_request(cache->batch.wire_loops, &mbufcache->vbo.pos_nor);
   }
   if (DRW_batch_requested(cache->batch.wire_edges, GPU_PRIM_LINES)) {

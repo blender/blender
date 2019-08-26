@@ -1433,7 +1433,7 @@ static void extract_pos_nor_loop_mesh(const MeshRenderData *mr,
                                       int l,
                                       const MLoop *mloop,
                                       int UNUSED(p),
-                                      const MPoly *mpoly,
+                                      const MPoly *UNUSED(mpoly),
                                       void *_data)
 {
   MeshExtract_PosNor_Data *data = _data;
@@ -1442,9 +1442,9 @@ static void extract_pos_nor_loop_mesh(const MeshRenderData *mr,
   copy_v3_v3(vert->pos, mvert->co);
   vert->nor = data->packed_nor[mloop->v];
   /* Flag for paint mode overlay. */
-  if (mpoly->flag & ME_HIDE)
+  if (mvert->flag & ME_HIDE)
     vert->nor.w = -1;
-  else if (mpoly->flag & ME_FACE_SEL)
+  else if (mvert->flag & SELECT)
     vert->nor.w = 1;
   else
     vert->nor.w = 0;
@@ -1526,7 +1526,7 @@ static void *extract_lnor_init(const MeshRenderData *mr, void *buf)
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I10, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     GPU_vertformat_alias_add(&format, "lnor");
   }
   GPUVertBuf *vbo = buf;
@@ -1561,6 +1561,13 @@ static void extract_lnor_loop_mesh(
   else {
     ((GPUPackedNormal *)data)[l] = GPU_normal_convert_i10_v3(mr->poly_normals[p]);
   }
+  /* Flag for paint mode overlay. */
+  if (mpoly->flag & ME_HIDE)
+    ((GPUPackedNormal *)data)[l].w = -1;
+  else if (mpoly->flag & ME_FACE_SEL)
+    ((GPUPackedNormal *)data)[l].w = 1;
+  else
+    ((GPUPackedNormal *)data)[l].w = 0;
 }
 
 static const MeshExtract extract_lnor = {
