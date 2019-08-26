@@ -38,43 +38,13 @@ ccl_device_inline int cmj_fast_mod_pow2(int a, int b)
 ccl_device_inline int cmj_fast_div_pow2(int a, int b)
 {
   kernel_assert(b > 1);
-#if defined(__KERNEL_SSE2__)
-#  ifdef _MSC_VER
-  unsigned long ctz;
-  _BitScanForward(&ctz, b);
-  return a >> ctz;
-#  else
-  return a >> __builtin_ctz(b);
-#  endif
-#elif defined(__KERNEL_CUDA__)
-  return a >> (__ffs(b) - 1);
-#else
-  return a / b;
-#endif
+  return a >> count_trailing_zeros(b);
 }
 
 ccl_device_inline uint cmj_w_mask(uint w)
 {
   kernel_assert(w > 1);
-#if defined(__KERNEL_SSE2__)
-#  ifdef _MSC_VER
-  unsigned long leading_zero;
-  _BitScanReverse(&leading_zero, w);
-  return ((1 << (1 + leading_zero)) - 1);
-#  else
-  return ((1 << (32 - __builtin_clz(w))) - 1);
-#  endif
-#elif defined(__KERNEL_CUDA__)
-  return ((1 << (32 - __clz(w))) - 1);
-#else
-  w |= w >> 1;
-  w |= w >> 2;
-  w |= w >> 4;
-  w |= w >> 8;
-  w |= w >> 16;
-
-  return w;
-#endif
+  return ((1 << (32 - count_leading_zeros(w))) - 1);
 }
 
 ccl_device_inline uint cmj_permute(uint i, uint l, uint p)

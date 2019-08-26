@@ -617,6 +617,57 @@ ccl_device float bits_to_01(uint bits)
   return bits * (1.0f / (float)0xFFFFFFFF);
 }
 
+ccl_device_inline uint count_leading_zeros(uint x)
+{
+  assert(x != 0);
+#if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__)
+  return __clz(x);
+#elif defined(__KERNEL_OPENCL__)
+  return clz(x);
+#else
+#  ifdef _MSC_VER
+  unsigned long leading_zero = 0;
+  _BitScanReverse(&leading_zero, x);
+  return (31 - leading_zero);
+#  else
+  return __builtin_clz(x);
+#  endif
+#endif
+}
+
+ccl_device_inline uint count_trailing_zeros(uint x)
+{
+  assert(x != 0);
+#if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__)
+  return (__ffs(x) - 1);
+#elif defined(__KERNEL_OPENCL__)
+  return (31 - count_leading_zeros(x & -x));
+#else
+#  ifdef _MSC_VER
+  unsigned long ctz = 0;
+  _BitScanForward(&ctz, x);
+  return ctz;
+#  else
+  return __builtin_ctz(x);
+#  endif
+#endif
+}
+
+ccl_device_inline uint find_first_set(uint x)
+{
+#if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__)
+  return __ffs(x);
+#elif defined(__KERNEL_OPENCL__)
+  return (x != 0) ? (32 - count_leading_zeros(x & (-x))) : 0;
+#else
+#  ifdef _MSC_VER
+  return (x != 0) ? (32 - count_leading_zeros(x & (-x))) : 0;
+#  else
+  return __builtin_ffs(x);
+#  endif
+#endif
+}
+
 /* projections */
 ccl_device_inline float2 map_to_tube(const float3 co)
 {
