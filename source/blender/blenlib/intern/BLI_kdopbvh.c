@@ -1467,6 +1467,95 @@ int BLI_bvhtree_find_nearest(BVHTree *tree,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name BLI_bvhtree_find_nearest_first
+ * \{ */
+
+static bool isect_aabb_v3(BVHNode *node, const float co[3])
+{
+  const BVHTreeAxisRange *bv = (const BVHTreeAxisRange *)node->bv;
+
+  if (co[0] > bv[0].min && co[0] < bv[0].max && co[1] > bv[1].min && co[1] < bv[1].max &&
+      co[2] > bv[2].min && co[2] < bv[2].max) {
+    return true;
+  }
+
+  return false;
+}
+
+static bool dfs_find_duplicate_fast_dfs(BVHNearestData *data, BVHNode *node)
+{
+  if (node->totnode == 0) {
+    if (isect_aabb_v3(node, data->co)) {
+      if (data->callback) {
+        const float dist_sq = data->nearest.dist_sq;
+        data->callback(data->userdata, node->index, data->co, &data->nearest);
+        return (data->nearest.dist_sq < dist_sq);
+      }
+      else {
+        data->nearest.index = node->index;
+        return true;
+      }
+    }
+  }
+  else {
+    /* Better heuristic to pick the closest node to dive on */
+    int i;
+
+    if (data->proj[node->main_axis] <= node->children[0]->bv[node->main_axis * 2 + 1]) {
+      for (i = 0; i != node->totnode; i++) {
+        if (isect_aabb_v3(node->children[i], data->co)) {
+          if (dfs_find_duplicate_fast_dfs(data, node->children[i])) {
+            return true;
+          }
+        }
+      }
+    }
+    else {
+      for (i = node->totnode; i--;) {
+        if (isect_aabb_v3(node->children[i], data->co)) {
+          if (dfs_find_duplicate_fast_dfs(data, node->children[i])) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Find the first node nearby.
+ * Favors speed over quality since it doesn't find the best target node.
+ */
+int BLI_bvhtree_find_nearest_first(BVHTree *tree,
+                                   const float co[3],
+                                   const float dist_sq,
+                                   BVHTree_NearestPointCallback callback,
+                                   void *userdata)
+{
+  BVHNearestData data;
+  BVHNode *root = tree->nodes[tree->totleaf];
+
+  /* init data to search */
+  data.tree = tree;
+  data.co = co;
+
+  data.callback = callback;
+  data.userdata = userdata;
+  data.nearest.index = -1;
+  data.nearest.dist_sq = dist_sq;
+
+  /* dfs search */
+  if (root) {
+    dfs_find_duplicate_fast_dfs(&data, root);
+  }
+
+  return data.nearest.index;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name BLI_bvhtree_ray_cast
  *
  * raycast is done by performing a DFS on the BVHTree and saving the closest hit.

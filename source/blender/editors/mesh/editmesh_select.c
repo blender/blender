@@ -31,8 +31,10 @@
 #include "BLI_math.h"
 #include "BLI_math_bits.h"
 #include "BLI_rand.h"
+#include "BLI_sort.h"
 #include "BLI_array.h"
 
+#include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_paint.h"
@@ -187,6 +189,314 @@ void EDBM_automerge(Scene *scene, Object *obedit, bool update, const char hflag)
                     "automerge verts=%hv dist=%f",
                     hflag,
                     scene->toolsettings->doublimit);
+
+  if (LIKELY(ok) && update) {
+    EDBM_update_generic(em, true, true);
+  }
+}
+
+struct EDBMSplitEdge {
+  BMVert *v;
+  BMEdge *e;
+  float lambda;
+};
+
+struct EDBMSplitEdgeData {
+  BMesh *bm;
+
+  BMEdge *r_edge;
+  float r_lambda;
+};
+
+static bool edbm_automerge_and_split_check_best_face_cb(BMFace *UNUSED(f),
+                                                        BMLoop *l_a,
+                                                        BMLoop *l_b,
+                                                        void *userdata)
+{
+  float(*data)[3] = userdata;
+  float *v_a_co = data[0];
+  float *v_a_b_dir = data[1];
+
+  float lambda;
+  if (isect_ray_seg_v3(v_a_co, v_a_b_dir, l_a->prev->v->co, l_a->next->v->co, &lambda)) {
+    if (IN_RANGE(lambda, 0.0f, 1.0f)) {
+      if (isect_ray_seg_v3(v_a_co, v_a_b_dir, l_b->prev->v->co, l_b->next->v->co, &lambda)) {
+        return IN_RANGE(lambda, 0.0f, 1.0f);
+      }
+    }
+  }
+
+  return false;
+}
+
+static bool edbm_automerge_check_and_split_faces(BMesh *bm, BMVert *v_src, BMVert *v_dst)
+{
+  BMIter iter;
+  BMEdge *e_iter;
+  BM_ITER_ELEM (e_iter, &iter, v_src, BM_EDGES_OF_VERT) {
+    BMVert *vert_other = BM_edge_other_vert(e_iter, v_src);
+    if (vert_other != v_dst) {
+      float data[2][3];
+      copy_v3_v3(data[0], vert_other->co);
+      sub_v3_v3v3(data[1], v_dst->co, data[0]);
+
+      BMLoop *l_a, *l_b;
+      BMFace *f = BM_vert_pair_shared_face_cb(
+          vert_other, v_dst, false, edbm_automerge_and_split_check_best_face_cb, data, &l_a, &l_b);
+
+      if (f) {
+        BM_face_split(bm, f, l_a, l_b, NULL, NULL, true);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+static void ebbm_automerge_and_split_find_duplicate_cb(void *userdata,
+                                                       int index,
+                                                       const float co[3],
+                                                       BVHTreeNearest *nearest)
+{
+  struct EDBMSplitEdgeData *data = userdata;
+  BMEdge *e = BM_edge_at_index(data->bm, index);
+  float lambda = line_point_factor_v3_ex(co, e->v1->co, e->v2->co, 0.0f, -1.0f);
+  if (IN_RANGE(lambda, 0.0f, 1.0f)) {
+    float near_co[3];
+    interp_v3_v3v3(near_co, e->v1->co, e->v2->co, lambda);
+    float dist_sq = len_squared_v3v3(near_co, co);
+    if (dist_sq < nearest->dist_sq) {
+      nearest->dist_sq = dist_sq;
+      nearest->index = index;
+
+      data->r_edge = e;
+      data->r_lambda = lambda;
+    }
+  }
+}
+
+static int edbm_automerge_and_split_sort_cmp_by_keys_cb(const void *index1_v,
+                                                        const void *index2_v,
+                                                        void *keys_v)
+{
+  const struct EDBMSplitEdge *cuts = keys_v;
+  const int *index1 = (int *)index1_v;
+  const int *index2 = (int *)index2_v;
+
+  if (cuts[*index1].lambda > cuts[*index2].lambda) {
+    return 1;
+  }
+  else {
+    return -1;
+  }
+}
+
+void EDBM_automerge_and_split(
+    Scene *scene, Object *obedit, bool split_edges, bool update, const char hflag)
+{
+  bool ok = false;
+
+  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  BMesh *bm = em->bm;
+  float dist = scene->toolsettings->doublimit;
+  BMOperator findop, weldop;
+  BMOpSlot *slot_targetmap;
+  BMIter iter;
+  BMVert *v;
+
+  /* tag and count the verts to be tested. */
+  BM_mesh_elem_toolflags_ensure(bm);
+  int verts_len = 0;
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    if (BM_elem_flag_test(v, hflag)) {
+      BM_elem_flag_enable(v, BM_ELEM_TAG);
+      BMO_vert_flag_enable(bm, v, BMO_ELE_TAG);
+      verts_len++;
+    }
+    else {
+      BM_elem_flag_disable(v, BM_ELEM_TAG);
+    }
+  }
+
+  /* Search for doubles among all vertices, but only merge non-BMO_ELE_TAG
+   * vertices into BMO_ELE_TAG vertices. */
+  BMO_op_initf(bm, &findop, 0, "find_doubles verts=%av keep_verts=%Fv dist=%f", BMO_ELE_TAG, dist);
+  BMO_op_exec(bm, &findop);
+
+  /* Init weld_verts operator to later fill the targetmap. */
+  BMO_op_init(bm, &weldop, 0, "weld_verts");
+  BMO_slot_copy(&findop, slots_out, "targetmap.out", &weldop, slots_in, "targetmap");
+
+  slot_targetmap = BMO_slot_get(weldop.slots_in, "targetmap");
+
+  /* Remove duplicate vertices from the split edge test and check and split faces. */
+  GHashIterator gh_iter;
+  GHash *ghash_targetmap = BMO_SLOT_AS_GHASH(slot_targetmap);
+  GHASH_ITER (gh_iter, ghash_targetmap) {
+    v = BLI_ghashIterator_getKey(&gh_iter);
+    BMVert *v_dst = BLI_ghashIterator_getValue(&gh_iter);
+    if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
+      /* Should this happen? */
+      SWAP(BMVert *, v, v_dst);
+    }
+    BLI_assert(BM_elem_flag_test(v, BM_ELEM_TAG));
+    BM_elem_flag_disable(v, BM_ELEM_TAG);
+
+    edbm_automerge_check_and_split_faces(bm, v, v_dst);
+
+    ok = true;
+    verts_len--;
+  }
+
+  int totedge = bm->totedge;
+  if (totedge == 0 || verts_len == 0) {
+    split_edges = false;
+  }
+
+  if (split_edges) {
+    /* Count and tag edges. */
+    BMEdge *e;
+    int edges_len = 0;
+    BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+      if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN) && !BM_elem_flag_test(e->v1, BM_ELEM_TAG) &&
+          !BM_elem_flag_test(e->v2, BM_ELEM_TAG)) {
+        BM_elem_flag_enable(e, BM_ELEM_TAG);
+        edges_len++;
+      }
+      else {
+        BM_elem_flag_disable(e, BM_ELEM_TAG);
+      }
+    }
+
+    if (edges_len) {
+      /* Create a BVHTree of edges with `dist` as epsilon. */
+      BVHTree *tree_edges = BLI_bvhtree_new(edges_len, dist, 2, 6);
+      int i;
+      BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
+        if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+          float co[2][3];
+          copy_v3_v3(co[0], e->v1->co);
+          copy_v3_v3(co[1], e->v2->co);
+
+          BLI_bvhtree_insert(tree_edges, i, co[0], 2);
+
+          /* Use `e->head.index` to count intersections. */
+          e->head.index = 0;
+        }
+      }
+      BLI_bvhtree_balance(tree_edges);
+
+      struct EDBMSplitEdge *cuts_iter, *cuts;
+
+      /* Store all intersections in this array. */
+      cuts = MEM_mallocN(verts_len * sizeof(*cuts), __func__);
+      cuts_iter = &cuts[0];
+
+      int cuts_len = 0;
+      int cut_edges_len = 0;
+      float dist_sq = SQUARE(dist);
+      struct EDBMSplitEdgeData data = {bm};
+
+      /* Start the search for intersections. */
+      BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+        if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+          float co[3];
+          copy_v3_v3(co, v->co);
+          int e_index = BLI_bvhtree_find_nearest_first(
+              tree_edges, co, dist_sq, ebbm_automerge_and_split_find_duplicate_cb, &data);
+
+          if (e_index != -1) {
+            e = data.r_edge;
+            e->head.index++;
+
+            cuts_iter->v = v;
+            cuts_iter->e = e;
+            cuts_iter->lambda = data.r_lambda;
+            cuts_iter++;
+            cuts_len++;
+
+            if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+              BM_elem_flag_disable(e, BM_ELEM_TAG);
+              cut_edges_len++;
+            }
+          }
+        }
+      }
+      BLI_bvhtree_free(tree_edges);
+
+      if (cuts_len) {
+        /* Map intersections per edge. */
+        union {
+          struct {
+            int cuts_len;
+            int cuts_index[];
+          };
+          int as_int[0];
+        } * e_map_iter, *e_map;
+
+        e_map = MEM_mallocN((cut_edges_len * sizeof(*e_map)) +
+                                (cuts_len * sizeof(*(e_map->cuts_index))),
+                            __func__);
+
+        int map_len = 0;
+        cuts_iter = &cuts[0];
+        for (i = 0; i < cuts_len; i++, cuts_iter++) {
+          e = cuts_iter->e;
+          if (!BM_elem_flag_test(e, BM_ELEM_TAG)) {
+            BM_elem_flag_enable(e, BM_ELEM_TAG);
+            int e_cuts_len = e->head.index;
+
+            e_map_iter = (void *)&e_map->as_int[map_len];
+            e_map_iter->cuts_len = e_cuts_len;
+            e_map_iter->cuts_index[0] = i;
+
+            /* Use `e->head.index` to indicate which slot to fill with the `cuts` index. */
+            e->head.index = map_len + 1;
+            map_len += 1 + e_cuts_len;
+          }
+          else {
+            e_map->as_int[++e->head.index] = i;
+          }
+        }
+
+        /* Split Edges and Faces. */
+        for (i = 0; i < map_len;
+             e_map_iter = (void *)&e_map->as_int[i], i += 1 + e_map_iter->cuts_len) {
+
+          /* sort by lambda! */
+          BLI_qsort_r(e_map_iter->cuts_index,
+                      e_map_iter->cuts_len,
+                      sizeof(*(e_map->cuts_index)),
+                      edbm_automerge_and_split_sort_cmp_by_keys_cb,
+                      cuts);
+
+          float lambda, lambda_prev = 0.0f;
+          for (int j = 0; j < e_map_iter->cuts_len; j++) {
+            cuts_iter = &cuts[e_map_iter->cuts_index[j]];
+            lambda = (cuts_iter->lambda - lambda_prev) / (1.0f - lambda_prev);
+            lambda_prev = cuts_iter->lambda;
+            v = cuts_iter->v;
+            e = cuts_iter->e;
+
+            BMVert *v_new = BM_edge_split(bm, e, e->v1, NULL, lambda);
+
+            edbm_automerge_check_and_split_faces(bm, v, v_new);
+            BMO_slot_map_elem_insert(&weldop, slot_targetmap, v_new, v);
+          }
+        }
+
+        ok = true;
+        MEM_freeN(e_map);
+      }
+
+      MEM_freeN(cuts);
+    }
+  }
+
+  BMO_op_exec(bm, &weldop);
+
+  BMO_op_finish(bm, &findop);
+  BMO_op_finish(bm, &weldop);
 
   if (LIKELY(ok) && update) {
     EDBM_update_generic(em, true, true);

@@ -1366,6 +1366,12 @@ typedef struct MeshStatVis {
 /* *************************************************************** */
 /* Tool Settings */
 
+/* CurvePaintSettings.surface_plane */
+enum {
+  AUTO_MERGE = 1 << 0,
+  AUTO_MERGE_AND_SPLIT = 1 << 1,
+};
+
 typedef struct ToolSettings {
   /** Vertex paint. */
   VPaint *vpaint;

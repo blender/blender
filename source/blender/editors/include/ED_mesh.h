@@ -145,6 +145,8 @@ void ED_mesh_undosys_type(struct UndoType *ut);
 void EDBM_select_mirrored(
     struct BMEditMesh *em, const int axis, const bool extend, int *r_totmirr, int *r_totfail);
 void EDBM_automerge(struct Scene *scene, struct Object *ob, bool update, const char hflag);
+void EDBM_automerge_and_split(
+    struct Scene *scene, struct Object *ob, bool split_edges, bool update, const char hflag);
 
 struct BMVert *EDBM_vert_find_nearest_ex(struct ViewContext *vc,
                                          float *r_dist,

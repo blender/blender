@@ -7126,7 +7126,14 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
         hflag = BM_ELEM_SELECT;
       }
 
-      EDBM_automerge(t->scene, tc->obedit, true, hflag);
+      if (t->scene->toolsettings->automerge & AUTO_MERGE) {
+        if (t->scene->toolsettings->automerge & AUTO_MERGE_AND_SPLIT) {
+          EDBM_automerge_and_split(t->scene, tc->obedit, true, true, hflag);
+        }
+        else {
+          EDBM_automerge(t->scene, tc->obedit, true, hflag);
+        }
+      }
 
       /* Special case, this is needed or faces won't re-select.
        * Flush selected edges to faces. */

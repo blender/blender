@@ -62,6 +62,13 @@ bool BM_vert_pair_share_face_check_cb(BMVert *v_a,
                                       bool (*test_fn)(BMFace *f, void *user_data),
                                       void *user_data) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2, 3);
+BMFace *BM_vert_pair_shared_face_cb(BMVert *v_a,
+                                    BMVert *v_b,
+                                    const bool allow_adjacent,
+                                    bool (*callback)(BMFace *, BMLoop *, BMLoop *, void *userdata),
+                                    void *user_data,
+                                    BMLoop **r_l_a,
+                                    BMLoop **r_l_b) ATTR_NONNULL(1, 2, 4, 6, 7);
 BMFace *BM_vert_pair_share_face_by_len(BMVert *v_a,
                                        BMVert *v_b,
                                        BMLoop **r_l_a,
