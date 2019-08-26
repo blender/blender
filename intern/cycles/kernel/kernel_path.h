@@ -92,7 +92,7 @@ ccl_device_forceinline void kernel_path_lamp_emission(KernelGlobals *kg,
 #ifdef __LAMP_MIS__
   if (kernel_data.integrator.use_lamp_mis && !(state->flag & PATH_RAY_CAMERA)) {
     /* ray starting from previous non-transparent bounce */
-    Ray light_ray;
+    Ray light_ray ccl_optional_struct_init;
 
     light_ray.P = ray->P - state->ray_t * ray->D;
     state->ray_t += isect->t;

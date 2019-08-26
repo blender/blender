@@ -27,8 +27,8 @@ ccl_device_inline void kernel_path_volume_connect_light(KernelGlobals *kg,
 {
 #  ifdef __EMISSION__
   /* sample illumination from lights to find path contribution */
-  Ray light_ray;
-  BsdfEval L_light;
+  Ray light_ray ccl_optional_struct_init;
+  BsdfEval L_light ccl_optional_struct_init;
   bool is_lamp = false;
   bool has_emission = false;
 
@@ -42,7 +42,7 @@ ccl_device_inline void kernel_path_volume_connect_light(KernelGlobals *kg,
     float light_u, light_v;
     path_state_rng_2D(kg, state, PRNG_LIGHT_U, &light_u, &light_v);
 
-    LightSample ls;
+    LightSample ls ccl_optional_struct_init;
     if (light_sample(kg, -1, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
       float terminate = path_state_rng_light_termination(kg, state);
       has_emission = direct_emission(
@@ -71,9 +71,9 @@ ccl_device_noinline_cpu bool kernel_path_volume_bounce(KernelGlobals *kg,
 {
   /* sample phase function */
   float phase_pdf;
-  BsdfEval phase_eval;
-  float3 phase_omega_in;
-  differential3 phase_domega_in;
+  BsdfEval phase_eval ccl_optional_struct_init;
+  float3 phase_omega_in ccl_optional_struct_init;
+  differential3 phase_domega_in ccl_optional_struct_init;
   float phase_u, phase_v;
   path_state_rng_2D(kg, state, PRNG_BSDF_U, &phase_u, &phase_v);
   int label;
@@ -139,7 +139,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg,
                                                           const VolumeSegment *segment)
 {
 #    ifdef __EMISSION__
-  BsdfEval L_light;
+  BsdfEval L_light ccl_optional_struct_init;
 
   int num_lights = 1;
   if (sample_all_lights) {
@@ -181,7 +181,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg,
     float num_samples_inv = 1.0f / (num_samples * num_all_lights);
 
     for (int j = 0; j < num_samples; j++) {
-      Ray light_ray;
+      Ray light_ray ccl_optional_struct_init;
       light_ray.t = 0.0f; /* reset ray */
 #      ifdef __OBJECT_MOTION__
       light_ray.time = sd->time;
@@ -201,7 +201,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg,
           light_u = 0.5f * light_u;
         }
 
-        LightSample ls;
+        LightSample ls ccl_optional_struct_init;
         const int lamp = is_lamp ? i : -1;
         light_sample(kg, lamp, light_u, light_v, sd->time, ray->P, state->bounce, &ls);
 

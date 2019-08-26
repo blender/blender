@@ -46,6 +46,7 @@
 #define ccl_restrict restrict
 #define ccl_ref
 #define ccl_align(n) __attribute__((aligned(n)))
+#define ccl_optional_struct_init
 
 #ifdef __SPLIT_KERNEL__
 #  define ccl_addr_space __global

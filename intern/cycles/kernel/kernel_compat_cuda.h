@@ -73,6 +73,7 @@ __device__ half __float2half(const float f)
  */
 #define ccl_ref
 #define ccl_align(n) __align__(n)
+#define ccl_optional_struct_init
 
 #define ATTR_FALLTHROUGH
 

@@ -39,6 +39,7 @@
 #    define ccl_private
 #    define ccl_restrict __restrict
 #    define ccl_ref &
+#    define ccl_optional_struct_init
 #    define __KERNEL_WITH_SSE_ALIGN__
 
 #    if defined(_WIN32) && !defined(FREE_WINDOWS)

@@ -245,7 +245,7 @@ ccl_device_noinline_cpu bool indirect_lamp_emission(KernelGlobals *kg,
   *emission = make_float3(0.0f, 0.0f, 0.0f);
 
   for (int lamp = 0; lamp < kernel_data.integrator.num_all_lights; lamp++) {
-    LightSample ls;
+    LightSample ls ccl_optional_struct_init;
 
     if (!lamp_light_eval(kg, lamp, ray->P, ray->D, ray->t, &ls))
       continue;

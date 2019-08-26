@@ -32,7 +32,7 @@ ccl_device_noinline_cpu void kernel_branched_path_surface_connect_light(
 {
 #  ifdef __EMISSION__
   /* sample illumination from lights to find path contribution */
-  BsdfEval L_light;
+  BsdfEval L_light ccl_optional_struct_init;
 
   int num_lights = 0;
   if (kernel_data.integrator.use_direct_light) {
@@ -79,7 +79,7 @@ ccl_device_noinline_cpu void kernel_branched_path_surface_connect_light(
     float num_samples_inv = num_samples_adjust / (num_samples * num_all_lights);
 
     for (int j = 0; j < num_samples; j++) {
-      Ray light_ray;
+      Ray light_ray ccl_optional_struct_init;
       light_ray.t = 0.0f; /* reset ray */
 #    ifdef __OBJECT_MOTION__
       light_ray.time = sd->time;
@@ -98,7 +98,7 @@ ccl_device_noinline_cpu void kernel_branched_path_surface_connect_light(
           light_u = 0.5f * light_u;
         }
 
-        LightSample ls;
+        LightSample ls ccl_optional_struct_init;
         const int lamp = is_lamp ? i : -1;
         if (light_sample(kg, lamp, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
           /* The sampling probability returned by lamp_light_sample assumes that all lights were
@@ -147,9 +147,9 @@ ccl_device bool kernel_branched_path_surface_bounce(KernelGlobals *kg,
 {
   /* sample BSDF */
   float bsdf_pdf;
-  BsdfEval bsdf_eval;
-  float3 bsdf_omega_in;
-  differential3 bsdf_domega_in;
+  BsdfEval bsdf_eval ccl_optional_struct_init;
+  float3 bsdf_omega_in ccl_optional_struct_init;
+  differential3 bsdf_domega_in ccl_optional_struct_init;
   float bsdf_u, bsdf_v;
   path_branched_rng_2D(
       kg, state->rng_hash, state, sample, num_samples, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
@@ -220,8 +220,8 @@ ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg,
   kernel_branched_path_surface_connect_light(kg, sd, emission_sd, state, throughput, 1.0f, L, all);
 #  else
   /* sample illumination from lights to find path contribution */
-  Ray light_ray;
-  BsdfEval L_light;
+  Ray light_ray ccl_optional_struct_init;
+  BsdfEval L_light ccl_optional_struct_init;
   bool is_lamp = false;
   bool has_emission = false;
 
@@ -234,7 +234,7 @@ ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg,
     float light_u, light_v;
     path_state_rng_2D(kg, state, PRNG_LIGHT_U, &light_u, &light_v);
 
-    LightSample ls;
+    LightSample ls ccl_optional_struct_init;
     if (light_sample(kg, -1, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
       float terminate = path_state_rng_light_termination(kg, state);
       has_emission = direct_emission(
@@ -274,9 +274,9 @@ ccl_device bool kernel_path_surface_bounce(KernelGlobals *kg,
   if (sd->flag & SD_BSDF) {
     /* sample BSDF */
     float bsdf_pdf;
-    BsdfEval bsdf_eval;
-    float3 bsdf_omega_in;
-    differential3 bsdf_domega_in;
+    BsdfEval bsdf_eval ccl_optional_struct_init;
+    float3 bsdf_omega_in ccl_optional_struct_init;
+    differential3 bsdf_domega_in ccl_optional_struct_init;
     float bsdf_u, bsdf_v;
     path_state_rng_2D(kg, state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
     int label;

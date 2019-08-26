@@ -428,7 +428,7 @@ kernel_volume_integrate_homogeneous(KernelGlobals *kg,
                                     ccl_addr_space float3 *throughput,
                                     bool probalistic_scatter)
 {
-  VolumeShaderCoefficients coeff;
+  VolumeShaderCoefficients coeff ccl_optional_struct_init;
 
   if (!volume_shader_sample(kg, sd, state, ray->P, &coeff))
     return VOLUME_PATH_MISSED;
@@ -565,7 +565,7 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
     }
 
     float3 new_P = ray->P + ray->D * (t + step_offset);
-    VolumeShaderCoefficients coeff;
+    VolumeShaderCoefficients coeff ccl_optional_struct_init;
 
     /* compute segment */
     if (volume_shader_sample(kg, sd, state, new_P, &coeff)) {
@@ -801,7 +801,7 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
     }
 
     float3 new_P = ray->P + ray->D * (t + step_offset);
-    VolumeShaderCoefficients coeff;
+    VolumeShaderCoefficients coeff ccl_optional_struct_init;
 
     /* compute segment */
     if (volume_shader_sample(kg, sd, state, new_P, &coeff)) {
