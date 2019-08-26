@@ -1660,12 +1660,13 @@ bool bvhcache_has_tree(const BVHCache *cache, const BVHTree *tree)
  * as that will be done when the cache is freed.
  *
  * A call to this assumes that there was no previous cached tree of the given type
+ * \warning The #BVHTree can be NULL.
  */
 void bvhcache_insert(BVHCache **cache_p, BVHTree *tree, int type)
 {
   BVHCacheItem *item = NULL;
 
-  assert(tree && bvhcache_find(*cache_p, type, &(BVHTree *){0}) == false);
+  assert(bvhcache_find(*cache_p, type, &(BVHTree *){0}) == false);
 
   item = MEM_mallocN(sizeof(BVHCacheItem), "BVHCacheItem");
 
