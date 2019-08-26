@@ -44,6 +44,29 @@ device_memory::~device_memory()
 {
 }
 
+device_memory::device_memory(device_memory &&other)
+    : data_type(other.data_type),
+      data_elements(other.data_elements),
+      data_size(other.data_size),
+      device_size(other.device_size),
+      data_width(other.data_width),
+      data_height(other.data_height),
+      data_depth(other.data_depth),
+      type(other.type),
+      name(other.name),
+      interpolation(other.interpolation),
+      extension(other.extension),
+      device(other.device),
+      device_pointer(other.device_pointer),
+      host_pointer(other.host_pointer),
+      shared_pointer(other.shared_pointer)
+{
+  other.device_size = 0;
+  other.device_pointer = 0;
+  other.host_pointer = 0;
+  other.shared_pointer = 0;
+}
+
 void *device_memory::host_alloc(size_t size)
 {
   if (!size) {
