@@ -6536,11 +6536,14 @@ static void flush_trans_object_base_deps_flag(Depsgraph *depsgraph, Object *obje
       depsgraph, &object->id, DEG_OB_COMP_TRANSFORM, set_trans_object_base_deps_flag_cb, NULL);
 }
 
-static void trans_object_base_deps_flag_finish(ViewLayer *view_layer)
+static void trans_object_base_deps_flag_finish(const TransInfo *t, ViewLayer *view_layer)
 {
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-    if (base->object->id.tag & LIB_TAG_DOIT) {
-      base->flag_legacy |= BA_SNAP_FIX_DEPS_FIASCO;
+
+  if ((t->flag & T_OBJECT_DATA_IN_OBJECT_MODE) == 0) {
+    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+      if (base->object->id.tag & LIB_TAG_DOIT) {
+        base->flag_legacy |= BA_SNAP_FIX_DEPS_FIASCO;
+      }
     }
   }
 }
@@ -6602,7 +6605,7 @@ static void set_trans_object_base_flags(TransInfo *t)
   /* Store temporary bits in base indicating that base is being modified
    * (directly or indirectly) by transforming objects.
    */
-  trans_object_base_deps_flag_finish(view_layer);
+  trans_object_base_deps_flag_finish(t, view_layer);
 }
 
 static bool mark_children(Object *ob)
@@ -6670,7 +6673,7 @@ static int count_proportional_objects(TransInfo *t)
   /* Store temporary bits in base indicating that base is being modified
    * (directly or indirectly) by transforming objects.
    */
-  trans_object_base_deps_flag_finish(view_layer);
+  trans_object_base_deps_flag_finish(t, view_layer);
   return total;
 }
 

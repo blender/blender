@@ -632,12 +632,20 @@ static void initSnappingMode(TransInfo *t)
     else if (t->tsnap.applySnap != NULL &&  // A snapping function actually exist
              (obedit_type == -1))           // Object Mode
     {
-      /* In "Edit Strokes" mode,
-       * snap tool can perform snap to selected or active objects (see T49632)
-       * TODO: perform self snap in gpencil_strokes */
-      t->tsnap.modeSelect = (((t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR)) != 0) ?
-                                 SNAP_ALL :
-                                 SNAP_NOT_SELECTED);
+
+      if (t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR)) {
+        /* In "Edit Strokes" mode,
+         * snap tool can perform snap to selected or active objects (see T49632)
+         * TODO: perform self snap in gpencil_strokes */
+        t->tsnap.modeSelect = SNAP_ALL;
+      }
+      else if (t->flag & T_OBJECT_DATA_IN_OBJECT_MODE) {
+        /* When we're moving the origins, allow snapping onto our own geometry (see T69132). */
+        t->tsnap.modeSelect = SNAP_ALL;
+      }
+      else {
+        t->tsnap.modeSelect = SNAP_NOT_SELECTED;
+      }
     }
     else {
       /* Grid if snap is not possible */
