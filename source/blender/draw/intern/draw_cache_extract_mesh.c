@@ -2577,7 +2577,7 @@ static void *extract_edituv_data_init(const MeshRenderData *mr, void *buf)
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len);
 
-  CustomData *cd_ldata = &mr->me->ldata;
+  CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
 
   MeshExtract_EditUVData_Data *data = MEM_callocN(sizeof(*data), __func__);
   data->vbo_data = (EditLoopData *)vbo->data;
