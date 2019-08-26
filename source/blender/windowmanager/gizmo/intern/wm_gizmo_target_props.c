@@ -84,6 +84,7 @@ void WM_gizmo_target_property_def_rna_ptr(wmGizmo *gz,
 
   /* if gizmo evokes an operator we cannot use it for property manipulation */
   BLI_assert(gz->op_data == NULL);
+  BLI_assert(prop != NULL);
 
   gz_prop->type = gz_prop_type;
 
@@ -101,6 +102,9 @@ void WM_gizmo_target_property_def_rna(
 {
   const wmGizmoPropertyType *gz_prop_type = WM_gizmotype_target_property_find(gz->type, idname);
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+  if (prop == NULL) {
+    RNA_warning("%s: %s.%s not found", __func__, RNA_struct_identifier(ptr->type), propname);
+  }
   WM_gizmo_target_property_def_rna_ptr(gz, gz_prop_type, ptr, prop, index);
 }
 
