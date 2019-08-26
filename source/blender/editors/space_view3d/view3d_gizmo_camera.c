@@ -152,9 +152,11 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     WM_gizmo_set_scale(cagzgroup->dop_dist, ca->drawsize);
     WM_gizmo_set_flag(cagzgroup->dop_dist, WM_GIZMO_HIDDEN, false);
 
-    /* need to set property here for undo. TODO would prefer to do this in _init */
+    /* Need to set property here for undo. TODO would prefer to do this in _init */
+    PointerRNA camera_dof_ptr;
+    RNA_pointer_create(&ca->id, &RNA_CameraDOFSettings, &ca->dof, &camera_dof_ptr);
     WM_gizmo_target_property_def_rna(
-        cagzgroup->dop_dist, "offset", &camera_ptr, "dof.focus_distance", -1);
+        cagzgroup->dop_dist, "offset", &camera_dof_ptr, "focus_distance", -1);
   }
   else {
     WM_gizmo_set_flag(cagzgroup->dop_dist, WM_GIZMO_HIDDEN, true);
