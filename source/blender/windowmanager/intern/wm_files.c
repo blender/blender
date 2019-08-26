@@ -3038,7 +3038,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegi
     BLI_path_extension_replace(filename, sizeof(filename), "");
   }
   else {
-    STRNCPY(filename, IFACE_("Untitled"));
+    BLI_snprintf(filename, sizeof(filename), IFACE_("Untitled"));
   }
 
   /* Title */

@@ -1241,8 +1241,8 @@ static bool gp_strokes_paste_poll(bContext *C)
 }
 
 typedef enum eGP_PasteMode {
-  GP_COPY_ONLY = -1,
-  GP_COPY_MERGE = 1,
+  GP_COPY_BY_LAYER = -1,
+  GP_COPY_TO_ACTIVE = 1,
 } eGP_PasteMode;
 
 static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
@@ -1275,7 +1275,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
     /* no active layer - let's just create one */
     gpl = BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true);
   }
-  else if ((gpencil_layer_is_editable(gpl) == false) && (type == GP_COPY_MERGE)) {
+  else if ((gpencil_layer_is_editable(gpl) == false) && (type == GP_COPY_TO_ACTIVE)) {
     BKE_report(
         op->reports, RPT_ERROR, "Can not paste strokes when active layer is hidden or locked");
     return OPERATOR_CANCELLED;
@@ -1328,7 +1328,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
   for (bGPDstroke *gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
     if (ED_gpencil_stroke_can_use(C, gps)) {
       /* Need to verify if layer exists */
-      if (type != GP_COPY_MERGE) {
+      if (type != GP_COPY_TO_ACTIVE) {
         gpl = BLI_findstring(&gpd->layers, gps->runtime.tmp_layerinfo, offsetof(bGPDlayer, info));
         if (gpl == NULL) {
           /* no layer - use active (only if layer deleted before paste) */
@@ -1379,15 +1379,15 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 void GPENCIL_OT_paste(wmOperatorType *ot)
 {
   static const EnumPropertyItem copy_type[] = {
-      {GP_COPY_ONLY, "COPY", 0, "Copy", ""},
-      {GP_COPY_MERGE, "MERGE", 0, "Merge", ""},
+      {GP_COPY_TO_ACTIVE, "ACTIVE", 0, "Paste to Active", ""},
+      {GP_COPY_BY_LAYER, "LAYER", 0, "Paste by Layer", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
   /* identifiers */
   ot->name = "Paste Strokes";
   ot->idname = "GPENCIL_OT_paste";
-  ot->description = "Paste previously copied strokes or copy and merge in active layer";
+  ot->description = "Paste previously copied strokes to active layer or to original layer";
 
   /* callbacks */
   ot->exec = gp_strokes_paste_exec;
@@ -1397,7 +1397,7 @@ void GPENCIL_OT_paste(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  ot->prop = RNA_def_enum(ot->srna, "type", copy_type, 0, "Type", "");
+  ot->prop = RNA_def_enum(ot->srna, "type", copy_type, GP_COPY_TO_ACTIVE, "Type", "");
 }
 
 /* ******************* Move To Layer ****************************** */

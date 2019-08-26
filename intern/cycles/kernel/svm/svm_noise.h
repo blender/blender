@@ -181,9 +181,9 @@ ccl_device_inline ssef scale3_sse(const ssef &result)
 }
 #endif
 
+#ifndef __KERNEL_SSE2__
 ccl_device_noinline_cpu float perlin(float x, float y, float z)
 {
-#ifndef __KERNEL_SSE2__
   int X;
   float fx = floorfrac(x, &X);
   int Y;
@@ -217,7 +217,10 @@ ccl_device_noinline_cpu float perlin(float x, float y, float z)
 
   /* can happen for big coordinates, things even out to 0.0 then anyway */
   return (isfinite(r)) ? r : 0.0f;
+}
 #else
+ccl_device_noinline float perlin(float x, float y, float z)
+{
   ssef xyz = ssef(x, y, z, 0.0f);
   ssei XYZ;
 
@@ -255,8 +258,8 @@ ccl_device_noinline_cpu float perlin(float x, float y, float z)
   ssef rinfmask = ((r & infmask) == infmask).m128;  // 0xffffffff if r is inf/-inf/nan else 0
   ssef rfinite = andnot(rinfmask, r);               // 0 if r is inf/-inf/nan else r
   return extract<0>(rfinite);
-#endif
 }
+#endif
 
 /* perlin noise in range 0..1 */
 ccl_device float noise(float3 p)

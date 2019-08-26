@@ -169,8 +169,8 @@ class GreasePencilStrokeEditPanel:
         layout.label(text="Edit:")
         row = layout.row(align=True)
         row.operator("gpencil.copy", text="Copy")
-        row.operator("gpencil.paste", text="Paste").type = 'COPY'
-        row.operator("gpencil.paste", text="Paste & Merge").type = 'MERGE'
+        row.operator("gpencil.paste", text="Paste").type = 'ACTIVE'
+        row.operator("gpencil.paste", text="Paste by Layer").type = 'LAYER'
 
         col = layout.column(align=True)
         col.operator("gpencil.delete")
@@ -507,8 +507,9 @@ class GPENCIL_MT_pie_tools_more(Menu):
         # gpd = context.gpencil_data
 
         col = pie.column(align=True)
-        col.operator("gpencil.copy", icon='COPYDOWN', text="Copy")
-        col.operator("gpencil.paste", icon='PASTEDOWN', text="Paste")
+        col.operator("gpencil.copy", text="Copy", icon='COPYDOWN')
+        col.operator("gpencil.paste", text="Paste", icon='PASTEDOWN').type = 'ACTIVE'
+        col.operator("gpencil.paste", text="Paste by Layer").type = 'LAYER'
 
         col = pie.column(align=True)
         col.operator("gpencil.select_more", icon='ADD')

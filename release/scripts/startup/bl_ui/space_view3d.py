@@ -4460,8 +4460,8 @@ class VIEW3D_MT_edit_gpencil(Menu):
         layout.operator("gpencil.duplicate_move", text="Duplicate")
         layout.operator("gpencil.stroke_split", text="Split")
         layout.operator("gpencil.copy", text="Copy", icon='COPYDOWN')
-        layout.operator("gpencil.paste", text="Paste", icon='PASTEDOWN').type = 'COPY'
-        layout.operator("gpencil.paste", text="Paste & Merge").type = 'MERGE'
+        layout.operator("gpencil.paste", text="Paste", icon='PASTEDOWN').type = 'ACTIVE'
+        layout.operator("gpencil.paste", text="Paste by Layer").type = 'LAYER'
 
         layout.separator()
 
@@ -6306,8 +6306,8 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
 
         layout.operator("gpencil.duplicate_move", text="Duplicate")
         layout.operator("gpencil.copy", text="Copy", icon='COPYDOWN')
-        layout.operator("gpencil.paste", text="Paste", icon='PASTEDOWN').type = 'COPY'
-        layout.operator("gpencil.paste", text="Paste & Merge").type = 'MERGE'
+        layout.operator("gpencil.paste", text="Paste", icon='PASTEDOWN').type = 'ACTIVE'
+        layout.operator("gpencil.paste", text="Paste by Layer").type = 'LAYER'
         layout.menu("VIEW3D_MT_gpencil_copy_layer")
         layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame")
         layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame All Layers").mode = 'ALL'
