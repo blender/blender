@@ -100,7 +100,7 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmGizmoGroup *gzgroup)
     wmGizmo *gz;
     gz = cagzgroup->dop_dist = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
     RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_CROSS);
-    WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_HOVER, true);
+    WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_HOVER | WM_GIZMO_DRAW_NO_SCALE, true);
 
     UI_GetThemeColor3fv(TH_GIZMO_A, gz->color);
     UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
