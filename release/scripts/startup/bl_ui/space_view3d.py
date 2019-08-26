@@ -4389,7 +4389,7 @@ class VIEW3D_MT_gpencil_simplify(Menu):
 
 
 class VIEW3D_MT_paint_gpencil(Menu):
-    bl_label = "Strokes"
+    bl_label = "Draw"
 
     def draw(self, _context):
 
@@ -4400,8 +4400,8 @@ class VIEW3D_MT_paint_gpencil(Menu):
 
         layout.separator()
 
-        layout.operator("gpencil.delete", text="Delete Frame").type = 'FRAME'
-        layout.operator("gpencil.active_frames_delete_all")
+        layout.menu("VIEW3D_MT_edit_gpencil_showhide")
+        layout.menu("GPENCIL_MT_cleanup")
 
 
 class VIEW3D_MT_assign_material(Menu):
