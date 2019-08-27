@@ -7128,7 +7128,7 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 
       if (t->scene->toolsettings->automerge & AUTO_MERGE) {
         if (t->scene->toolsettings->automerge & AUTO_MERGE_AND_SPLIT) {
-          EDBM_automerge_and_split(t->scene, tc->obedit, true, true, hflag);
+          EDBM_automerge_and_split(t->scene, tc->obedit, true, true, true, hflag);
         }
         else {
           EDBM_automerge(t->scene, tc->obedit, true, hflag);

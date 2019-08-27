@@ -201,6 +201,14 @@ struct EDBMSplitEdge {
   float lambda;
 };
 
+struct EDBMSplitBestFaceData {
+  BMEdge **edgenet;
+  int edgenet_len;
+  float average;
+
+  BMFace *r_best_face;
+};
+
 struct EDBMSplitEdgeData {
   BMesh *bm;
 
@@ -208,10 +216,49 @@ struct EDBMSplitEdgeData {
   float r_lambda;
 };
 
-static bool edbm_automerge_and_split_check_best_face_cb(BMFace *UNUSED(f),
-                                                        BMLoop *l_a,
-                                                        BMLoop *l_b,
-                                                        void *userdata)
+static bool edbm_vert_pair_share_best_splittable_face_cb(BMFace *f,
+                                                         BMLoop *l_a,
+                                                         BMLoop *l_b,
+                                                         void *userdata)
+{
+  struct EDBMSplitBestFaceData *data = userdata;
+  float no[3], min = FLT_MAX, max = -FLT_MAX;
+  copy_v3_v3(no, f->no);
+
+  BMVert *verts[2] = {NULL};
+  BMEdge **e_iter = &data->edgenet[0];
+  for (int i = data->edgenet_len; i--; e_iter++) {
+    BMIter iter;
+    BMVert *v;
+    BM_ITER_ELEM (v, &iter, *e_iter, BM_VERTS_OF_EDGE) {
+      if (!ELEM(v, verts[0], verts[1])) {
+        float dot = dot_v3v3(v->co, no);
+        if (dot < min) {
+          min = dot;
+        }
+        if (dot > max) {
+          max = dot;
+        }
+      }
+    }
+    verts[0] = (*e_iter)->v1;
+    verts[1] = (*e_iter)->v2;
+  }
+
+  float average = max - min;
+  if (average < data->average) {
+    data->average = average;
+    data->r_best_face = f;
+  }
+
+  return false;
+}
+
+/* find the best splittable face between the two vertices. */
+static bool edbm_vert_pair_share_splittable_face_cb(BMFace *f,
+                                                    BMLoop *l_a,
+                                                    BMLoop *l_b,
+                                                    void *userdata)
 {
   float(*data)[3] = userdata;
   float *v_a_co = data[0];
@@ -225,32 +272,71 @@ static bool edbm_automerge_and_split_check_best_face_cb(BMFace *UNUSED(f),
       }
     }
   }
-
   return false;
 }
 
-static bool edbm_automerge_check_and_split_faces(BMesh *bm, BMVert *v_src, BMVert *v_dst)
+static void edbm_automerge_weld_linked_wire_edges_into_linked_faces(BMesh *bm,
+                                                                    BMVert *v,
+                                                                    BMEdge **r_edgenet[],
+                                                                    int *r_edgenet_max_len)
 {
+  BMEdge **edgenet = *r_edgenet;
+  int edgenet_max_len = *r_edgenet_max_len;
+
   BMIter iter;
-  BMEdge *e_iter;
-  BM_ITER_ELEM (e_iter, &iter, v_src, BM_EDGES_OF_VERT) {
-    BMVert *vert_other = BM_edge_other_vert(e_iter, v_src);
-    if (vert_other != v_dst) {
-      float data[2][3];
-      copy_v3_v3(data[0], vert_other->co);
-      sub_v3_v3v3(data[1], v_dst->co, data[0]);
-
-      BMLoop *l_a, *l_b;
-      BMFace *f = BM_vert_pair_shared_face_cb(
-          vert_other, v_dst, false, edbm_automerge_and_split_check_best_face_cb, data, &l_a, &l_b);
-
-      if (f) {
-        BM_face_split(bm, f, l_a, l_b, NULL, NULL, true);
-        return true;
+  BMEdge *e;
+  BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
+    int edgenet_len = 0;
+    BMVert *v_other = v;
+    while (BM_edge_is_wire(e)) {
+      if (edgenet_max_len == edgenet_len) {
+        edgenet_max_len = (edgenet_max_len + 1) * 2;
+        edgenet = MEM_reallocN(edgenet, (edgenet_max_len) * sizeof(*edgenet));
       }
+      edgenet[edgenet_len++] = e;
+      v_other = BM_edge_other_vert(e, v_other);
+      BMEdge *e_next = BM_DISK_EDGE_NEXT(e, v_other);
+      if (e_next == e) {
+        /* Vert is wire_endpoint */
+        edgenet_len = 0;
+        break;
+      }
+      e = e_next;
+    }
+
+    BMLoop *dummy;
+    BMFace *best_face;
+    if (edgenet_len == 0) {
+      /* Nothing to do. */
+      continue;
+    }
+    if (edgenet_len == 1) {
+      float data[2][3];
+      copy_v3_v3(data[0], v_other->co);
+      sub_v3_v3v3(data[1], v->co, data[0]);
+      best_face = BM_vert_pair_shared_face_cb(
+          v_other, v, true, edbm_vert_pair_share_splittable_face_cb, &data, &dummy, &dummy);
+    }
+    else {
+      struct EDBMSplitBestFaceData data = {
+          .edgenet = edgenet,
+          .edgenet_len = edgenet_len,
+          .average = FLT_MAX,
+          .r_best_face = NULL,
+      };
+      BM_vert_pair_shared_face_cb(
+          v_other, v, true, edbm_vert_pair_share_best_splittable_face_cb, &data, &dummy, &dummy);
+
+      best_face = data.r_best_face;
+    }
+
+    if (best_face) {
+      BM_face_split_edgenet(bm, best_face, edgenet, edgenet_len, NULL, NULL);
     }
   }
-  return false;
+
+  *r_edgenet = edgenet;
+  *r_edgenet_max_len = edgenet_max_len;
 }
 
 static void ebbm_automerge_and_split_find_duplicate_cb(void *userdata,
@@ -291,8 +377,12 @@ static int edbm_automerge_and_split_sort_cmp_by_keys_cb(const void *index1_v,
   }
 }
 
-void EDBM_automerge_and_split(
-    Scene *scene, Object *obedit, bool split_edges, bool update, const char hflag)
+void EDBM_automerge_and_split(Scene *scene,
+                              Object *obedit,
+                              bool split_edges,
+                              bool split_faces,
+                              bool update,
+                              const char hflag)
 {
   bool ok = false;
 
@@ -342,8 +432,6 @@ void EDBM_automerge_and_split(
     BLI_assert(BM_elem_flag_test(v, BM_ELEM_TAG));
     BM_elem_flag_disable(v, BM_ELEM_TAG);
 
-    edbm_automerge_check_and_split_faces(bm, v, v_dst);
-
     ok = true;
     verts_len--;
   }
@@ -369,6 +457,9 @@ void EDBM_automerge_and_split(
     }
 
     if (edges_len) {
+      /* Use `e->head.index` to count intersections. */
+      bm->elem_index_dirty &= ~BM_EDGE;
+
       /* Create a BVHTree of edges with `dist` as epsilon. */
       BVHTree *tree_edges = BLI_bvhtree_new(edges_len, dist, 2, 6);
       int i;
@@ -380,7 +471,6 @@ void EDBM_automerge_and_split(
 
           BLI_bvhtree_insert(tree_edges, i, co[0], 2);
 
-          /* Use `e->head.index` to count intersections. */
           e->head.index = 0;
         }
       }
@@ -463,7 +553,7 @@ void EDBM_automerge_and_split(
         for (i = 0; i < map_len;
              e_map_iter = (void *)&e_map->as_int[i], i += 1 + e_map_iter->cuts_len) {
 
-          /* sort by lambda! */
+          /* sort by lambda. */
           BLI_qsort_r(e_map_iter->cuts_index,
                       e_map_iter->cuts_len,
                       sizeof(*(e_map->cuts_index)),
@@ -480,7 +570,6 @@ void EDBM_automerge_and_split(
 
             BMVert *v_new = BM_edge_split(bm, e, e->v1, NULL, lambda);
 
-            edbm_automerge_check_and_split_faces(bm, v, v_new);
             BMO_slot_map_elem_insert(&weldop, slot_targetmap, v_new, v);
           }
         }
@@ -494,6 +583,20 @@ void EDBM_automerge_and_split(
   }
 
   BMO_op_exec(bm, &weldop);
+
+  BMEdge **edgenet = NULL;
+  int edgenet_len_max = 0;
+  if (split_faces) {
+    GHASH_ITER (gh_iter, ghash_targetmap) {
+      v = BLI_ghashIterator_getValue(&gh_iter);
+      BLI_assert(BM_elem_flag_test(v, hflag) || hflag == BM_ELEM_TAG);
+      edbm_automerge_weld_linked_wire_edges_into_linked_faces(bm, v, &edgenet, &edgenet_len_max);
+    }
+  }
+
+  if (edgenet) {
+    MEM_freeN(edgenet);
+  }
 
   BMO_op_finish(bm, &findop);
   BMO_op_finish(bm, &weldop);
