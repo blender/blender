@@ -150,9 +150,9 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
         }
       }
 
-      /* All actions use same vertex preselection */
-      /* Retopology should always prioritize edge preselection. Only preselct a vertex when the
-       * cursor is really close to it*/
+      /* All actions use same vertex pre-selection. */
+      /* Re-topology should always prioritize edge pre-selection.
+       * Only pre-select a vertex when the cursor is really close to it. */
       if (eve_test) {
         BMVert *vert = (BMVert *)eve_test;
         float vert_p_co[3], vert_co[3];

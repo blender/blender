@@ -7517,7 +7517,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
   else if (t->flag & T_POSE && (t->mode == TFM_BONESIZE)) {
     /* Handle the exception where for TFM_BONESIZE in edit mode we pretend to be
      * in pose mode (to use bone orientation matrix),
-     * in that case we don't do operations like autokeyframing. */
+     * in that case we don't do operations like auto-keyframing. */
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       ob = tc->poseobj;
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

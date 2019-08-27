@@ -1129,8 +1129,8 @@ static void stabilization_data_to_mat4(float pixel_aspect,
 }
 
 /* Calculate scale factor necessary to eliminate black image areas
- * caused by the compensating movements of the stabilizator.
- * This function visits every frame where stabilisation data is
+ * caused by the compensating movements of the stabilizer.
+ * This function visits every frame where stabilization data is
  * available and determines the factor for this frame. The overall
  * largest factor found is returned as result.
  *

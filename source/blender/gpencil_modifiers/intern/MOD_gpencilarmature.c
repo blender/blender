@@ -158,8 +158,7 @@ static bool isDisabled(GpencilModifierData *md, int UNUSED(userRenderParams))
   /* The object type check is only needed here in case we have a placeholder
    * object assigned (because the library containing the armature is missing).
    *
-   * In other cases it should be impossible to have a type missmatch.
-   */
+   * In other cases it should be impossible to have a type mismatch. */
   return !mmd->object || mmd->object->type != OB_ARMATURE;
 }
 

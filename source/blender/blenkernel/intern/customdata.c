@@ -4181,7 +4181,7 @@ bool CustomData_verify_versions(struct CustomData *data, int index)
     if (!typeInfo->defaultname && (index > 0) && data->layers[index - 1].type == layer->type) {
       keeplayer = false; /* multiple layers of which we only support one */
     }
-    /* This is a pre-emptive fix for cases that should not happen
+    /* This is a preemptive fix for cases that should not happen
      * (layers that should not be written in .blend files),
      * but can happen due to bugs (see e.g. T62318).
      * Also for forward compatibility, in future,

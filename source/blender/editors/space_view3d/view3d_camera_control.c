@@ -208,8 +208,8 @@ void ED_view3d_cameracontrol_update(View3DCameraControl *vctrl,
                                     const bool do_rotate,
                                     const bool do_translate)
 {
-  /* we are in camera view so apply the view ofs and quat to the view matrix and set the camera
-   * to the view */
+  /* We are in camera view so apply the view offset and rotation to the view matrix
+   * and set the camera to the view. */
 
   Scene *scene = vctrl->ctx_scene;
   View3D *v3d = vctrl->ctx_v3d;

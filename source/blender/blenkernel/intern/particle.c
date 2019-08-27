@@ -2691,7 +2691,7 @@ static void psys_thread_create_path(ParticleTask *task,
       pa = &psys->particles[cpa->parent];
       par = pcache[cpa->parent];
 
-      /* If particle is unexisting, try to pick a viable parent from particles
+      /* If particle is non-existing, try to pick a viable parent from particles
        * used for interpolation. */
       for (k = 0; k < 4 && pa && (pa->flag & PARS_UNEXIST); k++) {
         if (cpa->pa[k] >= 0) {
