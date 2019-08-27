@@ -197,6 +197,9 @@ typedef enum CustomDataType {
 /** Data types that may be defined for all mesh elements types. */
 #define CD_MASK_GENERIC_DATA (CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR)
 
+/** Multires loop data. */
+#define CD_MASK_MULTIRES_GRIDS (CD_MASK_MDISPS | CD_GRID_PAINT_MASK)
+
 typedef struct CustomData_MeshMasks {
   uint64_t vmask;
   uint64_t emask;

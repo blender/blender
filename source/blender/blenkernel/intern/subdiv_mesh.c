@@ -498,9 +498,14 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
                                       const int num_loops,
                                       const int num_polygons)
 {
+  /* Multires grid data will be applied or become invalid after subdivision,
+   * so don't try to preserve it and use memory. */
+  CustomData_MeshMasks mask = CD_MASK_EVERYTHING;
+  mask.lmask &= ~CD_MASK_MULTIRES_GRIDS;
+
   SubdivMeshContext *subdiv_context = foreach_context->user_data;
-  subdiv_context->subdiv_mesh = BKE_mesh_new_nomain_from_template(
-      subdiv_context->coarse_mesh, num_vertices, num_edges, 0, num_loops, num_polygons);
+  subdiv_context->subdiv_mesh = BKE_mesh_new_nomain_from_template_ex(
+      subdiv_context->coarse_mesh, num_vertices, num_edges, 0, num_loops, num_polygons, mask);
   subdiv_mesh_ctx_cache_custom_data_layers(subdiv_context);
   subdiv_mesh_prepare_accumulator(subdiv_context, num_vertices);
   return true;

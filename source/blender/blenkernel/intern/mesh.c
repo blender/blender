@@ -661,13 +661,13 @@ Mesh *BKE_mesh_new_nomain(
   return mesh;
 }
 
-static Mesh *mesh_new_nomain_from_template_ex(const Mesh *me_src,
-                                              int verts_len,
-                                              int edges_len,
-                                              int tessface_len,
-                                              int loops_len,
-                                              int polys_len,
-                                              CustomData_MeshMasks mask)
+Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
+                                           int verts_len,
+                                           int edges_len,
+                                           int tessface_len,
+                                           int loops_len,
+                                           int polys_len,
+                                           CustomData_MeshMasks mask)
 {
   /* Only do tessface if we are creating tessfaces or copying from mesh with only tessfaces. */
   const bool do_tessface = (tessface_len || ((me_src->totface != 0) && (me_src->totpoly == 0)));
@@ -713,7 +713,7 @@ Mesh *BKE_mesh_new_nomain_from_template(const Mesh *me_src,
                                         int loops_len,
                                         int polys_len)
 {
-  return mesh_new_nomain_from_template_ex(
+  return BKE_mesh_new_nomain_from_template_ex(
       me_src, verts_len, edges_len, tessface_len, loops_len, polys_len, CD_MASK_EVERYTHING);
 }
 
