@@ -22,7 +22,9 @@
 #include "COM_DenoiseOperation.h"
 #include "BLI_math.h"
 #ifdef WITH_OPENIMAGEDENOISE
+#  include "BLI_threads.h"
 #  include <OpenImageDenoise/oidn.hpp>
+static pthread_mutex_t oidn_lock = BLI_MUTEX_INITIALIZER;
 #endif
 #include <iostream>
 
@@ -139,7 +141,11 @@ void DenoiseOperation::generateDenoise(float *data,
   }
 
   filter.commit();
+  /* Since it's memory intensive, it's better to run only one instance of OIDN at a time.
+   * OpenImageDenoise is multithreaded internally and should use all available cores nonetheless. */
+  BLI_mutex_lock(&oidn_lock);
   filter.execute();
+  BLI_mutex_unlock(&oidn_lock);
 
   /* copy the alpha channel, OpenImageDenoise currently only supports RGB */
   size_t numPixels = inputTileColor->getWidth() * inputTileColor->getHeight();
