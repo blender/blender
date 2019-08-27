@@ -1880,7 +1880,7 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
         col = layout.column()
         col.prop(render, "sequencer_gl_preview", text="Preview Shading")
 
-        if render.sequencer_gl_preview in ['SOLID', 'WIREFRAME']:
+        if render.sequencer_gl_preview in {'SOLID', 'WIREFRAME'}:
             col.prop(render, "use_sequencer_override_scene_strip")
 
 

@@ -178,7 +178,7 @@ def complete(line):
     words = line.split(' ')
     if len(words) == 3 and words[0] == 'from':
         return ['import ']
-    if len(words) < 3 and (words[0] in ['import', 'from']):
+    if len(words) < 3 and (words[0] in {'import', 'from'}):
         if len(words) == 1:
             return get_root_modules()
         mod = words[1].split('.')

@@ -5253,7 +5253,7 @@ class VIEW3D_PT_shading_options(Panel):
 
         if shading.type == 'SOLID':
             col = layout.column()
-            if (shading.light in ['STUDIO', 'MATCAP']):
+            if shading.light in {'STUDIO', 'MATCAP'}:
                 col.active = shading.selected_studio_light.has_specular_highlight_pass
                 col.prop(shading, "show_specular_highlight", text="Specular Lighting")
 
@@ -6389,7 +6389,7 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
             col.operator("gpencil.stroke_separate", text="Separate").mode = 'STROKE'
 
             col.separator()
-            
+
             col.operator("gpencil.delete", text="Delete Strokes").type = 'STROKES'
 
             col.separator()
