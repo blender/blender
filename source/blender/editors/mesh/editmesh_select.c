@@ -204,8 +204,12 @@ struct EDBMSplitEdge {
 struct EDBMSplitBestFaceData {
   BMEdge **edgenet;
   int edgenet_len;
-  float average;
 
+  /**
+   * Track the range of vertices on the faces normal,
+   * find the lowest since it's most likely to be most co-planar with the face.
+   */
+  float best_face_range_on_normal_axis;
   BMFace *r_best_face;
 };
 
@@ -245,9 +249,9 @@ static bool edbm_vert_pair_share_best_splittable_face_cb(BMFace *f,
     verts[1] = (*e_iter)->v2;
   }
 
-  float average = max - min;
-  if (average < data->average) {
-    data->average = average;
+  const float test_face_range_on_normal_axis = max - min;
+  if (test_face_range_on_normal_axis < data->best_face_range_on_normal_axis) {
+    data->best_face_range_on_normal_axis = test_face_range_on_normal_axis;
     data->r_best_face = f;
   }
 
@@ -321,7 +325,7 @@ static void edbm_automerge_weld_linked_wire_edges_into_linked_faces(BMesh *bm,
       struct EDBMSplitBestFaceData data = {
           .edgenet = edgenet,
           .edgenet_len = edgenet_len,
-          .average = FLT_MAX,
+          .best_face_range_on_normal_axis = FLT_MAX,
           .r_best_face = NULL,
       };
       BM_vert_pair_shared_face_cb(
