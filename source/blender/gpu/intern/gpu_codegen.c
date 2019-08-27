@@ -1785,10 +1785,8 @@ static void gpu_material_use_library(GPUMaterial *material, GPUMaterialLibrary *
   GSet *used_libraries = gpu_material_used_libraries(material);
 
   if (BLI_gset_add(used_libraries, library->code)) {
-    if (library->dependencies) {
-      for (int i = 0; library->dependencies[i]; i++) {
-        BLI_gset_add(used_libraries, library->dependencies[i]);
-      }
+    for (int i = 0; library->dependencies[i]; i++) {
+      BLI_gset_add(used_libraries, library->dependencies[i]);
     }
   }
 }
