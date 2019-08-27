@@ -21,6 +21,7 @@
 
 #include "COM_DenoiseOperation.h"
 #include "BLI_math.h"
+#include "BLI_system.h"
 #ifdef WITH_OPENIMAGEDENOISE
 #  include "BLI_threads.h"
 #  include <OpenImageDenoise/oidn.hpp>

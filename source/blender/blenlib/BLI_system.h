@@ -19,6 +19,10 @@
 
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** \file
  * \ingroup bli
  */
@@ -51,6 +55,10 @@ int BLI_system_memory_max_in_megabytes_int(void);
 #  define BLI_SYSTEM_PID_H <process.h>
 #else
 #  define BLI_SYSTEM_PID_H <unistd.h>
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __BLI_SYSTEM_H__ */
