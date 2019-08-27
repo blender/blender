@@ -2683,6 +2683,8 @@ compile_OIDN() {
     INFO "Own OpenImageDenoise-$OIDN_VERSION is up to date, nothing to do!"
     INFO "If you want to force rebuild of this lib, use the --force-oidn option."
   fi
+
+  run_ldconfig "oidn"
 }
 
 #### Build FFMPEG ####
