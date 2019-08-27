@@ -681,11 +681,6 @@ static void object_delete_cb(bContext *C,
       ED_object_editmode_exit(C, EM_FREEDATA);
     }
     BKE_id_delete(bmain, ob);
-    /* leave for ED_outliner_id_unref to handle */
-#if 0
-    te->directdata = NULL;
-    tselem->id = NULL;
-#endif
   }
 }
 
@@ -1204,11 +1199,6 @@ static void object_delete_hierarchy_cb(bContext *C,
     }
 
     outline_delete_hierarchy(C, reports, scene, base);
-    /* leave for ED_outliner_id_unref to handle */
-#if 0
-    te->directdata = NULL;
-    tselem->id = NULL;
-#endif
   }
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
@@ -1292,11 +1282,6 @@ static void object_batch_delete_hierarchy_cb(bContext *C,
     }
 
     outline_batch_delete_hierarchy(reports, CTX_data_main(C), view_layer, scene, base);
-    /* leave for ED_outliner_id_unref to handle */
-#if 0
-    te->directdata = NULL;
-    tselem->id = NULL;
-#endif
   }
 }
 
