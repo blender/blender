@@ -680,7 +680,7 @@ static void object_delete_cb(bContext *C,
     if (ob == CTX_data_edit_object(C)) {
       ED_object_editmode_exit(C, EM_FREEDATA);
     }
-    ED_object_base_free_and_unlink(CTX_data_main(C), scene, ob);
+    BKE_id_delete(bmain, ob);
     /* leave for ED_outliner_id_unref to handle */
 #if 0
     te->directdata = NULL;
