@@ -6622,7 +6622,7 @@ static uiBlock *component_menu(bContext *C, ARegion *ar, void *args_v)
 
   uiItemR(layout, &args->ptr, args->propname, UI_ITEM_R_EXPAND, "", ICON_NONE);
 
-  UI_block_bounds_set_normal(block, 6);
+  UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
   UI_block_direction_set(block, UI_DIR_DOWN);
 
   return block;

@@ -850,7 +850,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg)
            NULL);
 
   /* Move it downwards, mouse over button. */
-  UI_block_bounds_set_popup(block, 6, (const int[2]){0, -UI_UNIT_Y});
+  UI_block_bounds_set_popup(block, 0.3f * U.widget_unit, (const int[2]){0, -UI_UNIT_Y});
 
   UI_but_focus_on_enter_event(win, but);
 
@@ -1134,7 +1134,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
         C, layout, op, UI_BUT_LABEL_ALIGN_NONE, UI_TEMPLATE_OP_PROPS_SHOW_TITLE);
   }
 
-  UI_block_bounds_set_popup(block, 4, NULL);
+  UI_block_bounds_set_popup(block, 6 * U.dpi_fac, NULL);
 
   return block;
 }
@@ -1214,7 +1214,8 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
   }
 
   /* center around the mouse */
-  UI_block_bounds_set_popup(block, 4, (const int[2]){data->width / -2, data->height / 2});
+  UI_block_bounds_set_popup(
+      block, 6 * U.dpi_fac, (const int[2]){data->width / -2, data->height / 2});
 
   UI_block_active_only_flagged_buttons(C, ar, block);
 
@@ -1242,7 +1243,7 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
 
   UI_block_func_set(block, NULL, NULL, NULL);
 
-  UI_block_bounds_set_popup(block, 4, NULL);
+  UI_block_bounds_set_popup(block, 6 * U.dpi_fac, NULL);
 
   UI_block_active_only_flagged_buttons(C, ar, block);
 
@@ -1513,7 +1514,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *userdata)
            NULL);
 
   /* Move it downwards, mouse over button. */
-  UI_block_bounds_set_popup(block, 6, (const int[2]){0, -UI_UNIT_Y});
+  UI_block_bounds_set_popup(block, 0.3f * U.widget_unit, (const int[2]){0, -UI_UNIT_Y});
 
   return block;
 }

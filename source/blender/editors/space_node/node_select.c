@@ -1234,8 +1234,18 @@ static uiBlock *node_find_menu(bContext *C, ARegion *ar, void *arg_op)
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
-  but = uiDefSearchBut(
-      block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9 * UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
+  but = uiDefSearchBut(block,
+                       search,
+                       0,
+                       ICON_VIEWZOOM,
+                       sizeof(search),
+                       10,
+                       10,
+                       UI_searchbox_size_x(),
+                       UI_UNIT_Y,
+                       0,
+                       0,
+                       "");
   UI_but_func_search_set(but, NULL, node_find_cb, op->type, false, node_find_call_cb, NULL);
   UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
 
@@ -1256,7 +1266,7 @@ static uiBlock *node_find_menu(bContext *C, ARegion *ar, void *arg_op)
            NULL);
 
   /* Move it downwards, mouse over button. */
-  UI_block_bounds_set_popup(block, 6, (const int[2]){0, -UI_UNIT_Y});
+  UI_block_bounds_set_popup(block, 0.3f * U.widget_unit, (const int[2]){0, -UI_UNIT_Y});
 
   return block;
 }
