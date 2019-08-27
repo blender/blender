@@ -194,8 +194,11 @@ bool EDBM_unified_findnearest(struct ViewContext *vc,
 bool EDBM_unified_findnearest_from_raycast(struct ViewContext *vc,
                                            struct Base **bases,
                                            const uint bases_len,
-                                           bool use_boundary,
-                                           int *r_base_index,
+                                           bool use_boundary_vertices,
+                                           bool use_boundary_edges,
+                                           int *r_base_index_vert,
+                                           int *r_base_index_edge,
+                                           int *r_base_index_face,
                                            struct BMVert **r_eve,
                                            struct BMEdge **r_eed,
                                            struct BMFace **r_efa);
@@ -245,15 +248,30 @@ void EDBM_preselect_edgering_update_from_edge(struct EditMesh_PreSelEdgeRing *ps
 
 /* editmesh_preselect_elem.c */
 struct EditMesh_PreSelElem;
+typedef enum eEditMesh_PreSelPreviewAction {
+  PRESELECT_ACTION_TRANSFORM = 1,
+  PRESELECT_ACTION_CREATE = 2,
+  PRESELECT_ACTION_DELETE = 3,
+} eEditMesh_PreSelPreviewAction;
+
 struct EditMesh_PreSelElem *EDBM_preselect_elem_create(void);
 void EDBM_preselect_elem_destroy(struct EditMesh_PreSelElem *psel);
 void EDBM_preselect_elem_clear(struct EditMesh_PreSelElem *psel);
+void EDBM_preselect_preview_clear(struct EditMesh_PreSelElem *psel);
 void EDBM_preselect_elem_draw(struct EditMesh_PreSelElem *psel, const float matrix[4][4]);
 void EDBM_preselect_elem_update_from_single(struct EditMesh_PreSelElem *psel,
                                             struct BMesh *bm,
                                             struct BMElem *ele,
                                             const float (*coords)[3]);
 
+void EDBM_preselect_elem_update_preview(struct EditMesh_PreSelElem *psel,
+                                        struct ViewContext *vc,
+                                        struct BMesh *bm,
+                                        struct BMElem *ele,
+                                        const int mval[2]);
+void EDBM_preselect_action_set(struct EditMesh_PreSelElem *psel,
+                               eEditMesh_PreSelPreviewAction action);
+eEditMesh_PreSelPreviewAction EDBM_preselect_action_get(struct EditMesh_PreSelElem *psel);
 /* mesh_ops.c */
 void ED_operatortypes_mesh(void);
 void ED_operatormacros_mesh(void);

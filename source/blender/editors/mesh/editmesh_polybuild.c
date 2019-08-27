@@ -122,15 +122,151 @@ static bool edbm_preselect_or_active_init_viewcontext(bContext *C,
   return ok;
 }
 
+static int edbm_polybuild_transform_at_cursor_invoke(bContext *C,
+                                                     wmOperator *UNUSED(op),
+                                                     const wmEvent *UNUSED(event))
+{
+  ViewContext vc;
+  Base *basact = NULL;
+  BMElem *ele_act = NULL;
+  edbm_preselect_or_active_init_viewcontext(C, &vc, &basact, &ele_act);
+  BMEditMesh *em = vc.em;
+  BMesh *bm = em->bm;
+
+  invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
+  ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
+
+  edbm_selectmode_ensure(vc.scene, vc.em, SCE_SELECT_VERTEX);
+
+  edbm_flag_disable_all_multi(vc.view_layer, vc.v3d, BM_ELEM_SELECT);
+  if (ele_act->head.htype == BM_VERT) {
+    BM_vert_select_set(bm, (BMVert *)ele_act, true);
+  }
+  if (ele_act->head.htype == BM_EDGE) {
+    BM_edge_select_set(bm, (BMEdge *)ele_act, true);
+  }
+  if (ele_act->head.htype == BM_FACE) {
+    BM_face_select_set(bm, (BMFace *)ele_act, true);
+  }
+
+  EDBM_mesh_normals_update(em);
+  EDBM_update_generic(em, true, true);
+  if (basact != NULL) {
+    if (vc.view_layer->basact != basact) {
+      ED_object_base_activate(C, basact);
+    }
+  }
+  BM_select_history_store(bm, ele_act);
+  WM_event_add_mousemove(C);
+  return OPERATOR_FINISHED;
+}
+
+void MESH_OT_polybuild_transform_at_cursor(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Poly Build Transform at Cursor";
+  ot->idname = "MESH_OT_polybuild_transform_at_cursor";
+
+  /* api callbacks */
+  ot->invoke = edbm_polybuild_transform_at_cursor_invoke;
+  ot->poll = EDBM_view3d_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* to give to transform */
+  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+}
+
+static int edbm_polybuild_delete_at_cursor_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *UNUSED(event))
+{
+  bool changed = false;
+
+  ViewContext vc;
+  Base *basact = NULL;
+  BMElem *ele_act = NULL;
+  edbm_preselect_or_active_init_viewcontext(C, &vc, &basact, &ele_act);
+  BMEditMesh *em = vc.em;
+  BMesh *bm = em->bm;
+
+  invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
+  ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
+
+  edbm_selectmode_ensure(vc.scene, vc.em, SCE_SELECT_VERTEX);
+
+  if (ele_act->head.htype == BM_FACE) {
+    BMFace *f_act = (BMFace *)ele_act;
+    EDBM_flag_disable_all(em, BM_ELEM_TAG);
+    BM_elem_flag_enable(f_act, BM_ELEM_TAG);
+    if (!EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_TAG, DEL_FACES)) {
+      return OPERATOR_CANCELLED;
+    }
+    changed = true;
+  }
+  if (ele_act->head.htype == BM_VERT) {
+    BMVert *v_act = (BMVert *)ele_act;
+    if (BM_vert_is_edge_pair(v_act)) {
+      BM_edge_collapse(bm, v_act->e, v_act, true, true);
+      changed = true;
+    }
+    else {
+      EDBM_flag_disable_all(em, BM_ELEM_TAG);
+      BM_elem_flag_enable(v_act, BM_ELEM_TAG);
+
+      if (!EDBM_op_callf(em,
+                         op,
+                         "dissolve_verts verts=%hv use_face_split=%b use_boundary_tear=%b",
+                         BM_ELEM_TAG,
+                         false,
+                         false)) {
+        return OPERATOR_CANCELLED;
+      }
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    EDBM_mesh_normals_update(em);
+    EDBM_update_generic(em, true, true);
+    if (basact != NULL) {
+      if (vc.view_layer->basact != basact) {
+        ED_object_base_activate(C, basact);
+      }
+    }
+    WM_event_add_mousemove(C);
+    return OPERATOR_FINISHED;
+  }
+  else {
+    return OPERATOR_CANCELLED;
+  }
+}
+
+void MESH_OT_polybuild_delete_at_cursor(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Poly Build Delete at Cursor";
+  ot->idname = "MESH_OT_polybuild_delete_at_cursor";
+
+  /* api callbacks */
+  ot->invoke = edbm_polybuild_delete_at_cursor_invoke;
+  ot->poll = EDBM_view3d_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* to give to transform */
+  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Face at Cursor
  * \{ */
 
-static int edbm_polybuild_face_at_cursor_invoke(bContext *C,
-                                                wmOperator *UNUSED(op),
-                                                const wmEvent *event)
+static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   float center[3];
   bool changed = false;
@@ -168,20 +304,27 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C,
     mul_m4_v3(vc.obedit->obmat, center);
     ED_view3d_win_to_3d_int(vc.v3d, vc.ar, center, event->mval, center);
     mul_m4_v3(vc.obedit->imat, center);
-
-    BMVert *v_tri[3];
-    v_tri[0] = e_act->v1;
-    v_tri[1] = e_act->v2;
-    v_tri[2] = BM_vert_create(bm, center, NULL, BM_CREATE_NOP);
-    if (e_act->l && e_act->l->v == v_tri[0]) {
-      SWAP(BMVert *, v_tri[0], v_tri[1]);
+    if (f_reference->len == 3 && RNA_boolean_get(op->ptr, "create_quads")) {
+      const float fac = line_point_factor_v3(center, e_act->v1->co, e_act->v2->co);
+      BMVert *v_new = BM_edge_split(bm, e_act, e_act->v1, NULL, CLAMPIS(fac, 0.0f, 1.0f));
+      copy_v3_v3(v_new->co, center);
+      edbm_flag_disable_all_multi(vc.view_layer, vc.v3d, BM_ELEM_SELECT);
+      BM_vert_select_set(bm, v_new, true);
+      BM_select_history_store(bm, v_new);
     }
-    // BMFace *f_new =
-    BM_face_create_verts(bm, v_tri, 3, f_reference, BM_CREATE_NOP, true);
-
-    edbm_flag_disable_all_multi(vc.view_layer, vc.v3d, BM_ELEM_SELECT);
-    BM_vert_select_set(bm, v_tri[2], true);
-    BM_select_history_store(bm, v_tri[2]);
+    else {
+      BMVert *v_tri[3];
+      v_tri[0] = e_act->v1;
+      v_tri[1] = e_act->v2;
+      v_tri[2] = BM_vert_create(bm, center, NULL, BM_CREATE_NOP);
+      if (e_act->l && e_act->l->v == v_tri[0]) {
+        SWAP(BMVert *, v_tri[0], v_tri[1]);
+      }
+      BM_face_create_verts(bm, v_tri, 3, f_reference, BM_CREATE_NOP, true);
+      edbm_flag_disable_all_multi(vc.view_layer, vc.v3d, BM_ELEM_SELECT);
+      BM_vert_select_set(bm, v_tri[2], true);
+      BM_select_history_store(bm, v_tri[2]);
+    }
     changed = true;
   }
   else if (ele_act->head.htype == BM_VERT) {
@@ -281,6 +424,11 @@ void MESH_OT_polybuild_face_at_cursor(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+  RNA_def_boolean(ot->srna,
+                  "create_quads",
+                  true,
+                  "Create quads",
+                  "Automatically split edges in triangles to maintain quad topology");
   /* to give to transform */
   Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }

@@ -77,7 +77,20 @@ static void gizmo_preselect_elem_draw(const bContext *UNUSED(C), wmGizmo *gz)
 
 static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 {
+  wmEvent *event = CTX_wm_window(C)->eventstate;
   MeshElemGizmo3D *gz_ele = (MeshElemGizmo3D *)gz;
+
+  /* Hack: Switch action mode based on key input */
+  const bool is_ctrl_pressed = WM_event_modifier_flag(event) & KM_CTRL;
+  const bool is_shift_pressed = WM_event_modifier_flag(event) & KM_SHIFT;
+  EDBM_preselect_action_set(gz_ele->psel, PRESELECT_ACTION_TRANSFORM);
+  if (is_ctrl_pressed && !is_shift_pressed) {
+    EDBM_preselect_action_set(gz_ele->psel, PRESELECT_ACTION_CREATE);
+  }
+  if (!is_ctrl_pressed && is_shift_pressed) {
+    EDBM_preselect_action_set(gz_ele->psel, PRESELECT_ACTION_DELETE);
+  }
+
   struct {
     Object *ob;
     BMElem *ele;
@@ -85,18 +98,6 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
     int base_index;
   } best = {
       .dist = ED_view3d_select_dist_px(),
-  };
-
-  struct {
-    int base_index;
-    int vert_index;
-    int edge_index;
-    int face_index;
-  } prev = {
-      .base_index = gz_ele->base_index,
-      .vert_index = gz_ele->vert_index,
-      .edge_index = gz_ele->edge_index,
-      .face_index = gz_ele->face_index,
   };
 
   {
@@ -115,32 +116,66 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
 
   {
     /* TODO: support faces. */
-    int base_index = -1;
+    int base_index_vert = -1;
+    int base_index_edge = -1;
+    int base_index_face = -1;
     BMVert *eve_test;
     BMEdge *eed_test;
+    BMFace *efa_test;
 
     if (EDBM_unified_findnearest_from_raycast(&vc,
                                               gz_ele->bases,
                                               gz_ele->bases_len,
+                                              false,
                                               true,
-                                              &base_index,
+                                              &base_index_vert,
+                                              &base_index_edge,
+                                              &base_index_face,
                                               &eve_test,
                                               &eed_test,
-                                              NULL)) {
-      Base *base = gz_ele->bases[base_index];
-      best.ob = base->object;
-      if (eve_test) {
-        best.ele = (BMElem *)eve_test;
+                                              &efa_test)) {
+      if (EDBM_preselect_action_get(gz_ele->psel) == PRESELECT_ACTION_DELETE) {
+        /* Delete action */
+        if (efa_test) {
+          best.ele = (BMElem *)efa_test;
+          best.base_index = base_index_face;
+        }
       }
-      else if (eed_test) {
-        best.ele = (BMElem *)eed_test;
-      }
+
       else {
-        BLI_assert(0);
+        /* Transform and create action */
+        if (eed_test) {
+          best.ele = (BMElem *)eed_test;
+          best.base_index = base_index_edge;
+        }
       }
-      best.base_index = base_index;
+
+      /* All actions use same vertex preselection */
+      /* Retopology should always prioritize edge preselection. Only preselct a vertex when the
+       * cursor is really close to it*/
+      if (eve_test) {
+        BMVert *vert = (BMVert *)eve_test;
+        float vert_p_co[3], vert_co[3];
+        float mval_f[2] = {UNPACK2(vc.mval)};
+        mul_v3_m4v3(vert_co, gz_ele->bases[base_index_vert]->object->obmat, vert->co);
+        ED_view3d_project(vc.ar, vert_co, vert_p_co);
+        float len = len_v2v2(vert_p_co, mval_f);
+        if (len < 35) {
+          best.ele = (BMElem *)eve_test;
+          best.base_index = base_index_vert;
+        }
+        if (!BM_vert_is_boundary(vert) &&
+            EDBM_preselect_action_get(gz_ele->psel) != PRESELECT_ACTION_DELETE) {
+          best.ele = (BMElem *)eve_test;
+          best.base_index = base_index_vert;
+        }
+      }
+
       /* Check above should never fail, if it does it's an internal error. */
       BLI_assert(best.base_index != -1);
+
+      Base *base = gz_ele->bases[best.base_index];
+      best.ob = base->object;
     }
   }
 
@@ -167,32 +202,30 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
     }
   }
 
-  if ((prev.base_index == gz_ele->base_index) && (prev.vert_index == gz_ele->vert_index) &&
-      (prev.edge_index == gz_ele->edge_index) && (prev.face_index == gz_ele->face_index)) {
-    /* pass (only recalculate on change) */
+  if (best.ele) {
+    const float(*coords)[3] = NULL;
+    {
+      Object *ob = gz_ele->bases[gz_ele->base_index]->object;
+      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+      Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(depsgraph, ob->data);
+      if (me_eval->runtime.edit_data) {
+        coords = me_eval->runtime.edit_data->vertexCos;
+      }
+    }
+    EDBM_preselect_elem_update_from_single(gz_ele->psel, bm, best.ele, coords);
+    EDBM_preselect_elem_update_preview(gz_ele->psel, &vc, bm, best.ele, mval);
   }
   else {
-    if (best.ele) {
-      const float(*coords)[3] = NULL;
-      {
-        Object *ob = gz_ele->bases[gz_ele->base_index]->object;
-        Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-        Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(depsgraph, ob->data);
-        if (me_eval->runtime.edit_data) {
-          coords = me_eval->runtime.edit_data->vertexCos;
-        }
-      }
-      EDBM_preselect_elem_update_from_single(gz_ele->psel, bm, best.ele, coords);
-    }
-    else {
-      EDBM_preselect_elem_clear(gz_ele->psel);
-    }
+    EDBM_preselect_elem_clear(gz_ele->psel);
+    EDBM_preselect_preview_clear(gz_ele->psel);
+  }
 
-    RNA_int_set(gz->ptr, "object_index", gz_ele->base_index);
-    RNA_int_set(gz->ptr, "vert_index", gz_ele->vert_index);
-    RNA_int_set(gz->ptr, "edge_index", gz_ele->edge_index);
-    RNA_int_set(gz->ptr, "face_index", gz_ele->face_index);
+  RNA_int_set(gz->ptr, "object_index", gz_ele->base_index);
+  RNA_int_set(gz->ptr, "vert_index", gz_ele->vert_index);
+  RNA_int_set(gz->ptr, "edge_index", gz_ele->edge_index);
+  RNA_int_set(gz->ptr, "face_index", gz_ele->face_index);
 
+  if (best.ele) {
     ARegion *ar = CTX_wm_region(C);
     ED_region_tag_redraw(ar);
   }
@@ -471,5 +504,4 @@ void ED_view3d_gizmo_mesh_preselect_get_active(bContext *C,
     }
   }
 }
-
 /** \} */

@@ -490,12 +490,17 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def poly_build():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("mesh.polybuild_face_at_cursor_move")
+            props_macro = props.MESH_OT_polybuild_face_at_cursor
+            layout.prop(props_macro, "create_quads")
         return dict(
             idname="builtin.poly_build",
             label="Poly Build",
             icon="ops.mesh.polybuild_hover",
             widget="VIEW3D_GGT_mesh_preselect_elem",
             keymap=(),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn

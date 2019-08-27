@@ -148,6 +148,8 @@ void ED_operatortypes_mesh(void)
   WM_operatortype_append(MESH_OT_polybuild_face_at_cursor);
   WM_operatortype_append(MESH_OT_polybuild_split_at_cursor);
   WM_operatortype_append(MESH_OT_polybuild_dissolve_at_cursor);
+  WM_operatortype_append(MESH_OT_polybuild_transform_at_cursor);
+  WM_operatortype_append(MESH_OT_polybuild_delete_at_cursor);
 
   WM_operatortype_append(MESH_OT_uv_texture_add);
   WM_operatortype_append(MESH_OT_uv_texture_remove);
@@ -331,6 +333,25 @@ void ED_operatormacros_mesh(void)
                                     "",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "MESH_OT_polybuild_split_at_cursor");
+  otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+  RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
+  RNA_boolean_set(otmacro->ptr, "mirror", false);
+
+  ot = WM_operatortype_append_macro("MESH_OT_polybuild_transform_at_cursor_move",
+                                    "Transform at Cursor Move",
+                                    "",
+                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  WM_operatortype_macro_define(ot, "MESH_OT_polybuild_transform_at_cursor");
+  otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+  RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
+  RNA_boolean_set(otmacro->ptr, "mirror", false);
+
+  ot = WM_operatortype_append_macro("MESH_OT_polybuild_extrude_at_cursor_move",
+                                    "Extrude at Cursor Move",
+                                    "",
+                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  WM_operatortype_macro_define(ot, "MESH_OT_polybuild_transform_at_cursor");
+  otmacro = WM_operatortype_macro_define(ot, "MESH_OT_extrude_edges_indiv");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
   RNA_boolean_set(otmacro->ptr, "mirror", false);
