@@ -205,7 +205,7 @@ static void draw_fcurve_keyframe_vertices(FCurve *fcu, View2D *v2d, bool edit, u
 {
   immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 
-  immUniform1f("size", UI_GetThemeValuef(TH_VERTEX_SIZE) * U.pixelsize);
+  immUniform1f("size", UI_GetThemeValuef(TH_VERTEX_SIZE) * U.dpi_fac);
 
   draw_fcurve_selected_keyframe_vertices(fcu, v2d, edit, false, pos);
   draw_fcurve_selected_keyframe_vertices(fcu, v2d, edit, true, pos);
@@ -269,8 +269,8 @@ static void draw_fcurve_handle_vertices(FCurve *fcu,
   immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 
   /* set handle size */
-  immUniform1f("size", (1.4f * UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE)) * U.pixelsize);
-  immUniform1f("outlineWidth", 1.5f * U.pixelsize);
+  immUniform1f("size", (1.4f * UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE)) * U.dpi_fac);
+  immUniform1f("outlineWidth", 1.5f * U.dpi_fac);
 
   draw_fcurve_selected_handle_vertices(fcu, v2d, false, sel_handle_only, pos);
   draw_fcurve_selected_handle_vertices(fcu, v2d, true, sel_handle_only, pos);
