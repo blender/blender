@@ -2335,7 +2335,6 @@ static short snapEditMesh(SnapObjectContext *sctx,
       .index = -1,
       .dist_sq = dist_px_sq,
   };
-  int last_index = nearest.index;
   short elem = SCE_SNAP_MODE_VERTEX;
 
   float tobmat[4][4], clip_planes_local[MAX_CLIPPLANE_LEN][4];
@@ -2356,12 +2355,12 @@ static short snapEditMesh(SnapObjectContext *sctx,
                                        &nearest,
                                        cb_snap_vert,
                                        &nearest2d);
-
-    last_index = nearest.index;
   }
 
   if (treedata_edge && snapdata->snap_to_flag & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT |
                                                  SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+    int last_index = nearest.index;
+    nearest.index = -1;
     BM_mesh_elem_table_ensure(em->bm, BM_EDGE | BM_VERT);
     BLI_bvhtree_find_nearest_projected(treedata_edge->tree,
                                        lpmat,
@@ -2373,8 +2372,11 @@ static short snapEditMesh(SnapObjectContext *sctx,
                                        cb_snap_edge,
                                        &nearest2d);
 
-    if (last_index != nearest.index) {
+    if (nearest.index != -1) {
       elem = SCE_SNAP_MODE_EDGE;
+    }
+    else {
+      nearest.index = last_index;
     }
   }
 
