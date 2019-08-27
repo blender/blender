@@ -217,8 +217,8 @@ struct EDBMSplitEdgeData {
 };
 
 static bool edbm_vert_pair_share_best_splittable_face_cb(BMFace *f,
-                                                         BMLoop *l_a,
-                                                         BMLoop *l_b,
+                                                         BMLoop *UNUSED(l_a),
+                                                         BMLoop *UNUSED(l_b),
                                                          void *userdata)
 {
   struct EDBMSplitBestFaceData *data = userdata;
@@ -255,7 +255,7 @@ static bool edbm_vert_pair_share_best_splittable_face_cb(BMFace *f,
 }
 
 /* find the best splittable face between the two vertices. */
-static bool edbm_vert_pair_share_splittable_face_cb(BMFace *f,
+static bool edbm_vert_pair_share_splittable_face_cb(BMFace *UNUSED(f),
                                                     BMLoop *l_a,
                                                     BMLoop *l_b,
                                                     void *userdata)
