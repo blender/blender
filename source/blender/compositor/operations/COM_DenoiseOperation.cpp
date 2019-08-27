@@ -31,8 +31,8 @@ static pthread_mutex_t oidn_lock = BLI_MUTEX_INITIALIZER;
 DenoiseOperation::DenoiseOperation() : SingleThreadedOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VECTOR);
+  this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);
   this->m_settings = NULL;
 }
@@ -40,23 +40,23 @@ void DenoiseOperation::initExecution()
 {
   SingleThreadedOperation::initExecution();
   this->m_inputProgramColor = getInputSocketReader(0);
-  this->m_inputProgramAlbedo = getInputSocketReader(1);
-  this->m_inputProgramNormal = getInputSocketReader(2);
+  this->m_inputProgramNormal = getInputSocketReader(1);
+  this->m_inputProgramAlbedo = getInputSocketReader(2);
 }
 
 void DenoiseOperation::deinitExecution()
 {
   this->m_inputProgramColor = NULL;
-  this->m_inputProgramAlbedo = NULL;
   this->m_inputProgramNormal = NULL;
+  this->m_inputProgramAlbedo = NULL;
   SingleThreadedOperation::deinitExecution();
 }
 
 MemoryBuffer *DenoiseOperation::createMemoryBuffer(rcti *rect2)
 {
   MemoryBuffer *tileColor = (MemoryBuffer *)this->m_inputProgramColor->initializeTileData(rect2);
-  MemoryBuffer *tileAlbedo = (MemoryBuffer *)this->m_inputProgramAlbedo->initializeTileData(rect2);
   MemoryBuffer *tileNormal = (MemoryBuffer *)this->m_inputProgramNormal->initializeTileData(rect2);
+  MemoryBuffer *tileAlbedo = (MemoryBuffer *)this->m_inputProgramAlbedo->initializeTileData(rect2);
   rcti rect;
   rect.xmin = 0;
   rect.ymin = 0;
@@ -64,7 +64,7 @@ MemoryBuffer *DenoiseOperation::createMemoryBuffer(rcti *rect2)
   rect.ymax = getHeight();
   MemoryBuffer *result = new MemoryBuffer(COM_DT_COLOR, &rect);
   float *data = result->getBuffer();
-  this->generateDenoise(data, tileColor, tileAlbedo, tileNormal, this->m_settings);
+  this->generateDenoise(data, tileColor, tileNormal, tileAlbedo, this->m_settings);
   return result;
 }
 
@@ -87,8 +87,8 @@ bool DenoiseOperation::determineDependingAreaOfInterest(rcti * /*input*/,
 
 void DenoiseOperation::generateDenoise(float *data,
                                        MemoryBuffer *inputTileColor,
-                                       MemoryBuffer *inputTileAlbedo,
                                        MemoryBuffer *inputTileNormal,
+                                       MemoryBuffer *inputTileAlbedo,
                                        NodeDenoise *settings)
 {
   float *inputBufferColor = inputTileColor->getBuffer();
@@ -109,15 +109,6 @@ void DenoiseOperation::generateDenoise(float *data,
                     inputTileColor->getHeight(),
                     0,
                     4 * sizeof(float));
-    if (inputTileAlbedo && inputTileAlbedo->getBuffer()) {
-      filter.setImage("albedo",
-                      inputTileAlbedo->getBuffer(),
-                      oidn::Format::Float3,
-                      inputTileAlbedo->getWidth(),
-                      inputTileAlbedo->getHeight(),
-                      0,
-                      4 * sizeof(float));
-    }
     if (inputTileNormal && inputTileNormal->getBuffer()) {
       filter.setImage("normal",
                       inputTileNormal->getBuffer(),
@@ -126,6 +117,15 @@ void DenoiseOperation::generateDenoise(float *data,
                       inputTileNormal->getHeight(),
                       0,
                       3 * sizeof(float));
+    }
+    if (inputTileAlbedo && inputTileAlbedo->getBuffer()) {
+      filter.setImage("albedo",
+                      inputTileAlbedo->getBuffer(),
+                      oidn::Format::Float3,
+                      inputTileAlbedo->getWidth(),
+                      inputTileAlbedo->getHeight(),
+                      0,
+                      4 * sizeof(float));
     }
     filter.setImage("output",
                     data,
