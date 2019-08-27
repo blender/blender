@@ -48,26 +48,27 @@ class TIME_HT_editor_buttons(Header):
             #   hide the play-reversed button
             #   since JACK transport doesn't support reversed playback
             if scene.sync_mode == 'AUDIO_SYNC' and context.preferences.system.audio_device == 'JACK':
-                sub = row.row(align=True)
-                sub.scale_x = 1.4
-                sub.operator("screen.animation_play", text="", icon='PLAY')
+                row.scale_x = 2
+                row.operator("screen.animation_play", text="", icon='PLAY')
+                row.scale_x = 1
             else:
                 row.operator("screen.animation_play", text="", icon='PLAY_REVERSE').reverse = True
                 row.operator("screen.animation_play", text="", icon='PLAY')
         else:
-            sub = row.row(align=True)
-            sub.scale_x = 1.4
-            sub.operator("screen.animation_play", text="", icon='PAUSE')
+            row.scale_x = 2
+            row.operator("screen.animation_play", text="", icon='PAUSE')
+            row.scale_x = 1
         row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
         row.operator("screen.frame_jump", text="", icon='FF').end = True
 
         layout.separator_spacer()
 
         row = layout.row()
-        row.scale_x = 0.95
         if scene.show_subframe:
+            row.scale_x = 1.15
             row.prop(scene, "frame_float", text="")
         else:
+            row.scale_x = 0.95
             row.prop(scene, "frame_current", text="")
 
         row = layout.row(align=True)
