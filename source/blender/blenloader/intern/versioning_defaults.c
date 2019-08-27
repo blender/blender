@@ -329,6 +329,14 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
       BLI_libblock_ensure_unique_name(bmain, screen->id.name);
     }
+
+    /* For some reason we have unused screens, needed until re-saving.
+     * Clear unused layouts because they're visible in the outliner & Python API. */
+    LISTBASE_FOREACH_MUTABLE (WorkSpaceLayout *, layout_iter, &workspace->layouts) {
+      if (layout != layout_iter) {
+        BKE_workspace_layout_remove(bmain, workspace, layout_iter);
+      }
+    }
   }
 
   /* Scenes */
