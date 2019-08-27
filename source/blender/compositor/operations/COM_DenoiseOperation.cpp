@@ -97,66 +97,69 @@ void DenoiseOperation::generateDenoise(float *data,
     return;
   }
 #ifdef WITH_OPENIMAGEDENOISE
-  oidn::DeviceRef device = oidn::newDevice();
-  device.commit();
+  if (BLI_cpu_support_sse41()) {
+    oidn::DeviceRef device = oidn::newDevice();
+    device.commit();
 
-  oidn::FilterRef filter = device.newFilter("RT");
-  filter.setImage("color",
-                  inputBufferColor,
-                  oidn::Format::Float3,
-                  inputTileColor->getWidth(),
-                  inputTileColor->getHeight(),
-                  0,
-                  4 * sizeof(float));
-  if (inputTileAlbedo && inputTileAlbedo->getBuffer()) {
-    filter.setImage("albedo",
-                    inputTileAlbedo->getBuffer(),
+    oidn::FilterRef filter = device.newFilter("RT");
+    filter.setImage("color",
+                    inputBufferColor,
                     oidn::Format::Float3,
-                    inputTileAlbedo->getWidth(),
-                    inputTileAlbedo->getHeight(),
+                    inputTileColor->getWidth(),
+                    inputTileColor->getHeight(),
                     0,
                     4 * sizeof(float));
-  }
-  if (inputTileNormal && inputTileNormal->getBuffer()) {
-    filter.setImage("normal",
-                    inputTileNormal->getBuffer(),
+    if (inputTileAlbedo && inputTileAlbedo->getBuffer()) {
+      filter.setImage("albedo",
+                      inputTileAlbedo->getBuffer(),
+                      oidn::Format::Float3,
+                      inputTileAlbedo->getWidth(),
+                      inputTileAlbedo->getHeight(),
+                      0,
+                      4 * sizeof(float));
+    }
+    if (inputTileNormal && inputTileNormal->getBuffer()) {
+      filter.setImage("normal",
+                      inputTileNormal->getBuffer(),
+                      oidn::Format::Float3,
+                      inputTileNormal->getWidth(),
+                      inputTileNormal->getHeight(),
+                      0,
+                      3 * sizeof(float));
+    }
+    filter.setImage("output",
+                    data,
                     oidn::Format::Float3,
-                    inputTileNormal->getWidth(),
-                    inputTileNormal->getHeight(),
+                    inputTileColor->getWidth(),
+                    inputTileColor->getHeight(),
                     0,
-                    3 * sizeof(float));
-  }
-  filter.setImage("output",
-                  data,
-                  oidn::Format::Float3,
-                  inputTileColor->getWidth(),
-                  inputTileColor->getHeight(),
-                  0,
-                  4 * sizeof(float));
+                    4 * sizeof(float));
 
-  BLI_assert(settings);
-  if (settings) {
-    filter.set("hdr", settings->hdr);
-    filter.set("srgb", false);
-  }
+    BLI_assert(settings);
+    if (settings) {
+      filter.set("hdr", settings->hdr);
+      filter.set("srgb", false);
+    }
 
-  filter.commit();
-  /* Since it's memory intensive, it's better to run only one instance of OIDN at a time.
-   * OpenImageDenoise is multithreaded internally and should use all available cores nonetheless.
-   */
-  BLI_mutex_lock(&oidn_lock);
-  filter.execute();
-  BLI_mutex_unlock(&oidn_lock);
+    filter.commit();
+    /* Since it's memory intensive, it's better to run only one instance of OIDN at a time.
+     * OpenImageDenoise is multithreaded internally and should use all available cores nonetheless.
+     */
+    BLI_mutex_lock(&oidn_lock);
+    filter.execute();
+    BLI_mutex_unlock(&oidn_lock);
 
-  /* copy the alpha channel, OpenImageDenoise currently only supports RGB */
-  size_t numPixels = inputTileColor->getWidth() * inputTileColor->getHeight();
-  for (size_t i = 0; i < numPixels; ++i) {
-    data[i * 4 + 3] = inputBufferColor[i * 4 + 3];
+    /* copy the alpha channel, OpenImageDenoise currently only supports RGB */
+    size_t numPixels = inputTileColor->getWidth() * inputTileColor->getHeight();
+    for (size_t i = 0; i < numPixels; ++i) {
+      data[i * 4 + 3] = inputBufferColor[i * 4 + 3];
+    }
+    return;
   }
-#else
+#endif
+  /* If built without OIDN or running on an unsupported CPU, just pass through. */
   UNUSED_VARS(inputTileAlbedo, inputTileNormal, settings);
   ::memcpy(data,
            inputBufferColor,
            inputTileColor->getWidth() * inputTileColor->getHeight() * sizeof(float) * 4);
-#endif
 }

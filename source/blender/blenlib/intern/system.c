@@ -179,6 +179,19 @@ char *BLI_cpu_brand_string(void)
   return NULL;
 }
 
+int BLI_cpu_support_sse41(void)
+{
+  int result[4], num;
+  __cpuid(result, 0);
+  num = result[0];
+
+  if (num >= 1) {
+    __cpuid(result, 0x00000001);
+    return (result[2] & ((int)1 << 19)) != 0;
+  }
+  return 0;
+}
+
 void BLI_hostname_get(char *buffer, size_t bufsize)
 {
 #ifndef WIN32
