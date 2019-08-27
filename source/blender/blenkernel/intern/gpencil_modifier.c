@@ -797,8 +797,10 @@ static void gpencil_frame_copy_noalloc(Object *ob, bGPDframe *gpf, bGPDframe *gp
 
     /* copy color to temp fields to apply temporal changes in the stroke */
     MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps_src->mat_nr + 1);
-    copy_v4_v4(gps_dst->runtime.tmp_stroke_rgba, gp_style->stroke_rgba);
-    copy_v4_v4(gps_dst->runtime.tmp_fill_rgba, gp_style->fill_rgba);
+    if (gp_style) {
+      copy_v4_v4(gps_dst->runtime.tmp_stroke_rgba, gp_style->stroke_rgba);
+      copy_v4_v4(gps_dst->runtime.tmp_fill_rgba, gp_style->fill_rgba);
+    }
 
     /* Save original pointers for using in edit and select operators. */
     gps_dst->runtime.gps_orig = gps_src;
