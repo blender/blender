@@ -433,7 +433,7 @@ static void studiolight_load_equirect_image(StudioLight *sl)
          * This file is currently only supported for MATCAPS where
          * the first found 'diffuse' pass will be used for diffuse lighting
          * and the first found 'specular' pass will be used for specular lighting */
-        MultilayerConvertContext ctx = {};
+        MultilayerConvertContext ctx = {0};
         IMB_exr_multilayer_convert(ibuf->userdata,
                                    &ctx,
                                    &studiolight_multilayer_addview,
