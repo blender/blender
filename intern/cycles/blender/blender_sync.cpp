@@ -80,7 +80,7 @@ BlenderSync::~BlenderSync()
 
 /* Sync */
 
-void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph)
+void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d)
 {
   /* Sync recalc flags from blender to cycles. Actual update is done separate,
    * so we can do it later on if doing it immediate is not suitable. */
@@ -175,6 +175,11 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph)
     }
   }
 
+  BlenderViewportParameters new_viewport_parameters(b_v3d);
+  if (viewport_parameters.modified(new_viewport_parameters)) {
+    world_recalc = true;
+  }
+
   /* Updates shader with object dependency if objects changed. */
   if (has_updated_objects) {
     if (scene->default_background->has_object_dependency) {
@@ -202,7 +207,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
   sync_view_layer(b_v3d, b_view_layer);
   sync_integrator();
   sync_film();
-  sync_shaders(b_depsgraph);
+  sync_shaders(b_depsgraph, b_v3d);
   sync_images();
   sync_curve_settings();
 
@@ -210,9 +215,9 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
 
   if (scene->need_motion() == Scene::MOTION_PASS || scene->need_motion() == Scene::MOTION_NONE ||
       scene->camera->motion_position == Camera::MOTION_POSITION_CENTER) {
-    sync_objects(b_depsgraph);
+    sync_objects(b_depsgraph, b_v3d);
   }
-  sync_motion(b_render, b_depsgraph, b_override, width, height, python_thread_state);
+  sync_motion(b_render, b_depsgraph, b_v3d, b_override, width, height, python_thread_state);
 
   mesh_synced.clear();
 

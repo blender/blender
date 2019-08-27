@@ -3732,6 +3732,28 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 281, 6)) {
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+        for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+          if (sl->spacetype == SPACE_VIEW3D) {
+            View3D *v3d = (View3D *)sl;
+            v3d->shading.flag |= V3D_SHADING_SCENE_LIGHTS_RENDER | V3D_SHADING_SCENE_WORLD_RENDER;
+
+            /* files by default don't have studio lights selected unless interacted
+             * with the shading popover. When no studiolight could be read, we will
+             * select the default world one. */
+            StudioLight *studio_light = BKE_studiolight_find(v3d->shading.lookdev_light,
+                                                             STUDIOLIGHT_TYPE_WORLD);
+            if (studio_light != NULL) {
+              STRNCPY(v3d->shading.lookdev_light, studio_light->name);
+            }
+          }
+        }
+      }
+    }
+  }
+
   {
     /* Versioning code until next subversion bump goes here. */
 

@@ -23,6 +23,7 @@
 #include "RNA_blender_cpp.h"
 
 #include "blender/blender_util.h"
+#include "blender/blender_viewport.h"
 
 #include "render/scene.h"
 #include "render/session.h"
@@ -36,6 +37,7 @@ CCL_NAMESPACE_BEGIN
 
 class Background;
 class BlenderObjectCulling;
+class BlenderViewportParameters;
 class Camera;
 class Film;
 class Light;
@@ -59,7 +61,7 @@ class BlenderSync {
   ~BlenderSync();
 
   /* sync */
-  void sync_recalc(BL::Depsgraph &b_depsgraph);
+  void sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d);
   void sync_data(BL::RenderSettings &b_render,
                  BL::Depsgraph &b_depsgraph,
                  BL::SpaceView3D &b_v3d,
@@ -106,17 +108,18 @@ class BlenderSync {
   /* sync */
   void sync_lights(BL::Depsgraph &b_depsgraph, bool update_all);
   void sync_materials(BL::Depsgraph &b_depsgraph, bool update_all);
-  void sync_objects(BL::Depsgraph &b_depsgraph, float motion_time = 0.0f);
+  void sync_objects(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, float motion_time = 0.0f);
   void sync_motion(BL::RenderSettings &b_render,
                    BL::Depsgraph &b_depsgraph,
+                   BL::SpaceView3D &b_v3d,
                    BL::Object &b_override,
                    int width,
                    int height,
                    void **python_thread_state);
   void sync_film();
   void sync_view();
-  void sync_world(BL::Depsgraph &b_depsgraph, bool update_all);
-  void sync_shaders(BL::Depsgraph &b_depsgraph);
+  void sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, bool update_all);
+  void sync_shaders(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d);
   void sync_curve_settings();
 
   void sync_nodes(Shader *shader, BL::ShaderNodeTree &b_ntree);
@@ -134,6 +137,7 @@ class BlenderSync {
                       float motion_time,
                       bool show_self,
                       bool show_particles,
+                      bool show_lights,
                       BlenderObjectCulling &culling,
                       bool *use_portal);
   void sync_light(BL::Object &b_parent,
@@ -143,7 +147,7 @@ class BlenderSync {
                   int random_id,
                   Transform &tfm,
                   bool *use_portal);
-  void sync_background_light(bool use_portal);
+  void sync_background_light(BL::SpaceView3D &b_v3d, bool use_portal);
   void sync_mesh_motion(BL::Depsgraph &b_depsgraph,
                         BL::Object &b_ob,
                         Object *object,
@@ -183,6 +187,7 @@ class BlenderSync {
   set<float> motion_times;
   void *world_map;
   bool world_recalc;
+  BlenderViewportParameters viewport_parameters;
 
   Scene *scene;
   bool preview;

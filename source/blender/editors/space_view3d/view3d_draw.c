@@ -39,6 +39,7 @@
 #include "BKE_scene.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_studiolight.h"
 #include "BKE_unit.h"
 
 #include "BLF_api.h"
@@ -1859,6 +1860,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
 
   if (drawtype == OB_MATERIAL) {
     v3d.shading.flag = V3D_SHADING_SCENE_WORLD | V3D_SHADING_SCENE_LIGHTS;
+  }
+  else if (drawtype == OB_RENDER) {
+    v3d.shading.flag = V3D_SHADING_SCENE_WORLD_RENDER | V3D_SHADING_SCENE_LIGHTS_RENDER;
   }
 
   v3d.flag2 = V3D_HIDE_OVERLAYS;

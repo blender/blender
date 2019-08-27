@@ -29,6 +29,7 @@ set(SRC
   blender_shader.cpp
   blender_sync.cpp
   blender_texture.cpp
+  blender_viewport.cpp
 
   CCL_api.h
   blender_object_cull.h
@@ -36,6 +37,7 @@ set(SRC
   blender_session.h
   blender_texture.h
   blender_util.h
+  blender_viewport.h
 )
 
 set(LIB

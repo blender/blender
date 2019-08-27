@@ -202,33 +202,47 @@ class EEVEE_MATERIAL_PT_volume(MaterialButtonsPanel, Panel):
         panel_node_draw(layout, mat.node_tree, 'OUTPUT_MATERIAL', "Volume")
 
 
+def draw_material_settings(self, context):
+    layout = self.layout
+    layout.use_property_split = True
+    layout.use_property_decorate = False
+
+    mat = context.material
+
+    layout.prop(mat, "use_backface_culling")
+    layout.prop(mat, "blend_method")
+    layout.prop(mat, "shadow_method")
+
+    row = layout.row()
+    row.active = ((mat.blend_method == 'CLIP') or (mat.shadow_method == 'CLIP'))
+    row.prop(mat, "alpha_threshold")
+
+    if mat.blend_method not in {'OPAQUE', 'CLIP', 'HASHED'}:
+        layout.prop(mat, "show_transparent_back")
+
+    layout.prop(mat, "use_screen_refraction")
+    layout.prop(mat, "refraction_depth")
+    layout.prop(mat, "use_sss_translucency")
+    layout.prop(mat, "pass_index")
+
+
 class EEVEE_MATERIAL_PT_settings(MaterialButtonsPanel, Panel):
     bl_label = "Settings"
     bl_context = "material"
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
+        draw_material_settings(self, context)
 
-        mat = context.material
 
-        layout.prop(mat, "use_backface_culling")
-        layout.prop(mat, "blend_method")
-        layout.prop(mat, "shadow_method")
+class EEVEE_MATERIAL_PT_viewport_settings(MaterialButtonsPanel, Panel):
+    bl_label = "Settings"
+    bl_context = "material"
+    bl_parent_id = "MATERIAL_PT_viewport"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-        row = layout.row()
-        row.active = ((mat.blend_method == 'CLIP') or (mat.shadow_method == 'CLIP'))
-        row.prop(mat, "alpha_threshold")
-
-        if mat.blend_method not in {'OPAQUE', 'CLIP', 'HASHED'}:
-            layout.prop(mat, "show_transparent_back")
-
-        layout.prop(mat, "use_screen_refraction")
-        layout.prop(mat, "refraction_depth")
-        layout.prop(mat, "use_sss_translucency")
-        layout.prop(mat, "pass_index")
+    def draw(self, context):
+        draw_material_settings(self, context)
 
 
 class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
@@ -263,6 +277,7 @@ classes = (
     EEVEE_MATERIAL_PT_volume,
     EEVEE_MATERIAL_PT_settings,
     MATERIAL_PT_viewport,
+    EEVEE_MATERIAL_PT_viewport_settings,
     MATERIAL_PT_custom_props,
 )
 

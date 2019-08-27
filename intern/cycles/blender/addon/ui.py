@@ -2050,6 +2050,45 @@ class CYCLES_RENDER_PT_simplify_culling(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "distance_cull_margin", text="Distance")
 
 
+class CYCLES_VIEW3D_PT_shading_lighting(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Lighting"
+    bl_parent_id = 'VIEW3D_PT_shading'
+    COMPAT_ENGINES = {'CYCLES'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES
+            and context.space_data.shading.type == 'RENDERED')
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        split = col.split(factor=0.9)
+
+        shading = context.space_data.shading
+        col.prop(shading, "use_scene_lights_render")
+        col.prop(shading, "use_scene_world_render")
+
+        if not shading.use_scene_world_render:
+            col = layout.column()
+            split = col.split(factor=0.9)
+
+            col = split.column()
+            sub = col.row()
+            sub.scale_y = 0.6
+            sub.template_icon_view(shading, "studio_light", scale_popup=3)
+
+            col = split.column()
+            col.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
+
+            split = layout.split(factor=0.9)
+            col = split.column()
+            col.prop(shading, "studiolight_rotate_z", text="Rotation")
+            col.prop(shading, "studiolight_background_alpha")
+
+
 def draw_device(self, context):
     scene = context.scene
     layout = self.layout
@@ -2131,6 +2170,7 @@ classes = (
     CYCLES_RENDER_PT_simplify_viewport,
     CYCLES_RENDER_PT_simplify_render,
     CYCLES_RENDER_PT_simplify_culling,
+    CYCLES_VIEW3D_PT_shading_lighting,
     CYCLES_RENDER_PT_motion_blur,
     CYCLES_RENDER_PT_motion_blur_curve,
     CYCLES_RENDER_PT_film,

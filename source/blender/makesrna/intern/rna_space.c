@@ -343,7 +343,11 @@ static const EnumPropertyItem autosnap_items[] = {
 const EnumPropertyItem rna_enum_shading_type_items[] = {
     {OB_WIRE, "WIREFRAME", ICON_SHADING_WIRE, "Wireframe", "Display the object as wire edges"},
     {OB_SOLID, "SOLID", ICON_SHADING_SOLID, "Solid", "Display in solid mode"},
-    {OB_MATERIAL, "MATERIAL", ICON_SHADING_TEXTURE, "Look Dev", "Display in Look Dev mode"},
+    {OB_MATERIAL,
+     "MATERIAL",
+     ICON_SHADING_TEXTURE,
+     "Material Preview",
+     "Display in Material Preview mode"},
     {OB_RENDER, "RENDERED", ICON_SHADING_RENDERED, "Rendered", "Display render preview"},
     {0, NULL, 0, NULL, NULL},
 };
@@ -967,6 +971,11 @@ static Scene *rna_3DViewShading_scene(PointerRNA *ptr)
 {
   /* Get scene, depends if using 3D view or OpenGL render settings. */
   ID *id = ptr->owner_id;
+  if (!id) {
+    /* When accessed from an external render engine the id.data is NULL
+     * This might be missing from the RNA CPP Api */
+    return NULL;
+  }
   if (GS(id->name) == ID_SCE) {
     return (Scene *)id;
   }
@@ -1054,6 +1063,7 @@ static PointerRNA rna_View3DShading_selected_studio_light_get(PointerRNA *ptr)
     sl = BKE_studiolight_find(shading->studio_light, STUDIOLIGHT_FLAG_ALL);
   }
   else {
+    /* OB_MATERIAL and OB_RENDER */
     sl = BKE_studiolight_find(shading->lookdev_light, STUDIOLIGHT_FLAG_ALL);
   }
   return rna_pointer_inherit_refine(ptr, &RNA_StudioLight, sl);
@@ -1088,21 +1098,32 @@ static const EnumPropertyItem *rna_View3DShading_color_type_itemf(bContext *UNUS
   }
 }
 
-/* Studio light */
+static void rna_View3DShading_studio_light_get_storage(View3DShading *shading,
+                                                       char **dna_storage,
+                                                       int *flag)
+{
+  *dna_storage = shading->studio_light;
+
+  *flag = STUDIOLIGHT_TYPE_STUDIO;
+  if (shading->type == OB_SOLID) {
+    if (shading->light == V3D_LIGHTING_MATCAP) {
+      *flag = STUDIOLIGHT_TYPE_MATCAP;
+      *dna_storage = shading->matcap;
+    }
+  }
+  else {
+    *flag = STUDIOLIGHT_TYPE_WORLD;
+    *dna_storage = shading->lookdev_light;
+  }
+}
+
 static int rna_View3DShading_studio_light_get(PointerRNA *ptr)
 {
   View3DShading *shading = (View3DShading *)ptr->data;
-  char *dna_storage = shading->studio_light;
+  char *dna_storage;
+  int flag;
 
-  int flag = STUDIOLIGHT_TYPE_STUDIO;
-  if (shading->type == OB_SOLID && shading->light == V3D_LIGHTING_MATCAP) {
-    flag = STUDIOLIGHT_TYPE_MATCAP;
-    dna_storage = shading->matcap;
-  }
-  else if (shading->type == OB_MATERIAL) {
-    flag = STUDIOLIGHT_TYPE_WORLD;
-    dna_storage = shading->lookdev_light;
-  }
+  rna_View3DShading_studio_light_get_storage(shading, &dna_storage, &flag);
   StudioLight *sl = BKE_studiolight_find(dna_storage, flag);
   if (sl) {
     BLI_strncpy(dna_storage, sl->name, FILE_MAXFILE);
@@ -1116,17 +1137,10 @@ static int rna_View3DShading_studio_light_get(PointerRNA *ptr)
 static void rna_View3DShading_studio_light_set(PointerRNA *ptr, int value)
 {
   View3DShading *shading = (View3DShading *)ptr->data;
-  char *dna_storage = shading->studio_light;
+  char *dna_storage;
+  int flag;
 
-  int flag = STUDIOLIGHT_TYPE_STUDIO;
-  if (shading->type == OB_SOLID && shading->light == V3D_LIGHTING_MATCAP) {
-    flag = STUDIOLIGHT_TYPE_MATCAP;
-    dna_storage = shading->matcap;
-  }
-  else if (shading->type == OB_MATERIAL) {
-    flag = STUDIOLIGHT_TYPE_WORLD;
-    dna_storage = shading->lookdev_light;
-  }
+  rna_View3DShading_studio_light_get_storage(shading, &dna_storage, &flag);
   StudioLight *sl = BKE_studiolight_findindex(value, flag);
   if (sl) {
     BLI_strncpy(dna_storage, sl->name, FILE_MAXFILE);
@@ -1173,6 +1187,7 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(bContext *UN
             break;
 
           case OB_MATERIAL:
+          case OB_RENDER:
             show_studiolight = ((sl->flag & STUDIOLIGHT_TYPE_WORLD) != 0);
             icon_id = sl->icon_id_radiance;
             break;
@@ -3093,6 +3108,15 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+  prop = RNA_def_property(srna, "studiolight_background_alpha", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "studiolight_background");
+  RNA_def_property_float_default(prop, 0.0);
+  RNA_def_property_ui_text(prop, "Background", "Show the studiolight in the background");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_range(prop, 0.00f, 1.0f, 1, 3);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
   prop = RNA_def_property(srna, "color_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "color_type");
   RNA_def_property_enum_items(prop, rna_enum_shading_color_type_items);
@@ -3172,12 +3196,28 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_scene_lights", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SHADING_SCENE_LIGHTS);
+  RNA_def_property_boolean_default(prop, false);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Scene Lights", "Render lights and light probes of the scene");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   prop = RNA_def_property(srna, "use_scene_world", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SHADING_SCENE_WORLD);
+  RNA_def_property_boolean_default(prop, false);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Scene World", "Use scene world for lighting");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "use_scene_lights_render", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SHADING_SCENE_LIGHTS_RENDER);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Scene Lights", "Render lights and light probes of the scene");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "use_scene_world_render", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SHADING_SCENE_WORLD_RENDER);
+  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Scene World", "Use scene world for lighting");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
@@ -3199,15 +3239,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "shadow_intensity");
   RNA_def_property_float_default(prop, 0.5);
   RNA_def_property_ui_text(prop, "Shadow Intensity", "Darkness of shadows");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_range(prop, 0.00f, 1.0f, 1, 3);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-  prop = RNA_def_property(srna, "studiolight_background_alpha", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, NULL, "studiolight_background");
-  RNA_def_property_float_default(prop, 0.0);
-  RNA_def_property_ui_text(prop, "Background", "Show the studiolight in the background");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.00f, 1.0f, 1, 3);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -3371,7 +3402,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_look_dev", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_LOOK_DEV);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Look Dev Preview", "Show look development spheres and palette");
+  RNA_def_property_ui_text(prop, "Look Dev Preview", "Show look development spheres");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   prop = RNA_def_property(srna, "show_wireframes", PROP_BOOLEAN, PROP_NONE);

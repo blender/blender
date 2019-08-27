@@ -1314,19 +1314,23 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
 
 /* Sync World */
 
-void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, bool update_all)
+void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, bool update_all)
 {
   Background *background = scene->background;
   Background prevbackground = *background;
 
   BL::World b_world = b_scene.world();
 
-  if (world_recalc || update_all || b_world.ptr.data != world_map) {
+  BlenderViewportParameters new_viewport_parameters(b_v3d);
+
+  if (world_recalc || update_all || b_world.ptr.data != world_map ||
+      viewport_parameters.modified(new_viewport_parameters)) {
     Shader *shader = scene->default_background;
     ShaderGraph *graph = new ShaderGraph();
 
     /* create nodes */
-    if (b_world && b_world.use_nodes() && b_world.node_tree()) {
+    if (new_viewport_parameters.use_scene_world && b_world && b_world.use_nodes() &&
+        b_world.node_tree()) {
       BL::ShaderNodeTree b_ntree(b_world.node_tree());
 
       add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph, b_ntree);
@@ -1337,12 +1341,51 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, bool update_all)
       shader->volume_sampling_method = get_volume_sampling(cworld);
       shader->volume_interpolation_method = get_volume_interpolation(cworld);
     }
-    else if (b_world) {
+    else if (new_viewport_parameters.use_scene_world && b_world) {
       BackgroundNode *background = new BackgroundNode();
       background->color = get_float3(b_world.color());
       graph->add(background);
 
       ShaderNode *out = graph->output();
+      graph->connect(background->output("Background"), out->input("Surface"));
+    }
+    else if (!new_viewport_parameters.use_scene_world) {
+      BackgroundNode *background = new BackgroundNode();
+      graph->add(background);
+
+      LightPathNode *light_path = new LightPathNode();
+      graph->add(light_path);
+
+      MixNode *mix_scene_with_background = new MixNode();
+      mix_scene_with_background->color2 = get_float3(b_world.color());
+      graph->add(mix_scene_with_background);
+
+      EnvironmentTextureNode *texture_environment = new EnvironmentTextureNode();
+      texture_environment->tex_mapping.type = TextureMapping::VECTOR;
+      texture_environment->tex_mapping.rotation[2] = new_viewport_parameters.studiolight_rotate_z;
+      texture_environment->filename = new_viewport_parameters.studiolight_path;
+      graph->add(texture_environment);
+
+      TextureCoordinateNode *texture_coordinate = new TextureCoordinateNode();
+      graph->add(texture_coordinate);
+
+      MixNode *mix_background_with_environment = new MixNode();
+      mix_background_with_environment->fac = new_viewport_parameters.studiolight_background_alpha;
+      mix_background_with_environment->color1 = get_float3(b_world.color());
+      graph->add(mix_background_with_environment);
+
+      ShaderNode *out = graph->output();
+
+      graph->connect(texture_coordinate->output("Generated"),
+                     texture_environment->input("Vector"));
+      graph->connect(light_path->output("Is Camera Ray"), mix_scene_with_background->input("Fac"));
+      graph->connect(texture_environment->output("Color"),
+                     mix_scene_with_background->input("Color1"));
+      graph->connect(texture_environment->output("Color"),
+                     mix_background_with_environment->input("Color2"));
+      graph->connect(mix_background_with_environment->output("Color"),
+                     mix_scene_with_background->input("Color2"));
+      graph->connect(mix_scene_with_background->output("Color"), background->input("Color"));
       graph->connect(background->output("Background"), out->input("Surface"));
     }
 
@@ -1389,7 +1432,8 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, bool update_all)
     background->transparent_roughness_threshold = 0.0f;
   }
 
-  background->use_shader = view_layer.use_background_shader;
+  background->use_shader = view_layer.use_background_shader |
+                           viewport_parameters.custom_viewport_parameters();
   background->use_ao = background->use_ao && view_layer.use_background_ao;
 
   if (background->modified(prevbackground))
@@ -1439,7 +1483,7 @@ void BlenderSync::sync_lights(BL::Depsgraph &b_depsgraph, bool update_all)
   }
 }
 
-void BlenderSync::sync_shaders(BL::Depsgraph &b_depsgraph)
+void BlenderSync::sync_shaders(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d)
 {
   /* for auto refresh images */
   bool auto_refresh_update = false;
@@ -1452,7 +1496,7 @@ void BlenderSync::sync_shaders(BL::Depsgraph &b_depsgraph)
 
   shader_map.pre_sync();
 
-  sync_world(b_depsgraph, auto_refresh_update);
+  sync_world(b_depsgraph, b_v3d, auto_refresh_update);
   sync_lights(b_depsgraph, auto_refresh_update);
   sync_materials(b_depsgraph, auto_refresh_update);
 }
