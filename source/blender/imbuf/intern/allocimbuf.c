@@ -428,7 +428,8 @@ bool imb_addrectImBuf(ImBuf *ibuf)
 struct ImBuf *IMB_allocFromBuffer(const unsigned int *rect,
                                   const float *rectf,
                                   unsigned int w,
-                                  unsigned int h)
+                                  unsigned int h,
+                                  unsigned int channels)
 {
   ImBuf *ibuf = NULL;
 
@@ -438,6 +439,7 @@ struct ImBuf *IMB_allocFromBuffer(const unsigned int *rect,
 
   ibuf = IMB_allocImBuf(w, h, 32, 0);
 
+  ibuf->channels = channels;
   if (rectf) {
     ibuf->rect_float = MEM_dupallocN(rectf);
     ibuf->flags |= IB_rectfloat;

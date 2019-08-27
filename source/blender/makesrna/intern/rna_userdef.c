@@ -912,6 +912,13 @@ static bool rna_UserDef_studiolight_is_user_defined_get(PointerRNA *ptr)
   return (sl->flag & STUDIOLIGHT_USER_DEFINED) != 0;
 }
 
+/* StudioLight.is_user_defined */
+static bool rna_UserDef_studiolight_has_specular_highlight_pass_get(PointerRNA *ptr)
+{
+  StudioLight *sl = (StudioLight *)ptr->data;
+  return sl->flag & STUDIOLIGHT_SPECULAR_HIGHLIGHT_PASS;
+}
+
 /* StudioLight.type */
 
 static int rna_UserDef_studiolight_type_get(PointerRNA *ptr)
@@ -3699,6 +3706,15 @@ static void rna_def_userdef_studiolight(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, "rna_UserDef_studiolight_is_user_defined_get", NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "User Defined", "");
+
+  prop = RNA_def_property(srna, "has_specular_highlight_pass", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_UserDef_studiolight_has_specular_highlight_pass_get", NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Has Specular Highlight",
+      "Studio light image file has separate \"diffuse\" and \"specular\" passes");
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_studio_light_type_items);

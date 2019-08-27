@@ -186,11 +186,17 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(WORKBENCH_
     DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
     workbench_material_copy(material, &material_template);
     if (STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)) {
-      BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE);
+      BKE_studiolight_ensure_flag(wpd->studio_light,
+                                  STUDIOLIGHT_MATCAP_DIFFUSE_GPUTEXTURE |
+                                      STUDIOLIGHT_MATCAP_SPECULAR_GPUTEXTURE);
       DRW_shgroup_uniform_texture(
-          grp, "matcapImage", wpd->studio_light->equirect_radiance_gputexture);
+          grp, "matcapDiffuseImage", wpd->studio_light->matcap_diffuse.gputexture);
+      if (workbench_is_specular_highlight_enabled(wpd)) {
+        DRW_shgroup_uniform_texture(
+            grp, "matcapSpecularImage", wpd->studio_light->matcap_specular.gputexture);
+      }
     }
-    if (SPECULAR_HIGHLIGHT_ENABLED(wpd) || MATCAP_ENABLED(wpd)) {
+    if (workbench_is_specular_highlight_enabled(wpd) || MATCAP_ENABLED(wpd)) {
       DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
     }
     if (SHADOW_ENABLED(wpd)) {
@@ -528,11 +534,17 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
       float hair_alpha = XRAY_ALPHA(wpd) * 0.33f;
       DRW_shgroup_uniform_float_copy(shgrp, "alpha", hair_alpha);
       if (STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)) {
-        BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE);
+        BKE_studiolight_ensure_flag(wpd->studio_light,
+                                    STUDIOLIGHT_MATCAP_DIFFUSE_GPUTEXTURE |
+                                        STUDIOLIGHT_MATCAP_SPECULAR_GPUTEXTURE);
         DRW_shgroup_uniform_texture(
-            shgrp, "matcapImage", wpd->studio_light->equirect_radiance_gputexture);
+            shgrp, "matcapDiffuseImage", wpd->studio_light->matcap_diffuse.gputexture);
+        if (workbench_is_specular_highlight_enabled(wpd)) {
+          DRW_shgroup_uniform_texture(
+              shgrp, "matcapSpecularImage", wpd->studio_light->matcap_specular.gputexture);
+        }
       }
-      if (SPECULAR_HIGHLIGHT_ENABLED(wpd) || MATCAP_ENABLED(wpd)) {
+      if (workbench_is_specular_highlight_enabled(wpd) || MATCAP_ENABLED(wpd)) {
         DRW_shgroup_uniform_vec2(shgrp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
       }
 

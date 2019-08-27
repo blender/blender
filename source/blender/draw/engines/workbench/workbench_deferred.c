@@ -694,16 +694,22 @@ static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingG
   if (CAVITY_ENABLED(wpd)) {
     DRW_shgroup_uniform_texture_ref(grp, "cavityBuffer", &e_data.cavity_buffer_tx);
   }
-  if (SPECULAR_HIGHLIGHT_ENABLED(wpd) || STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)) {
+  if (workbench_is_specular_highlight_enabled(wpd) || STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)) {
     DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
   }
-  if (SPECULAR_HIGHLIGHT_ENABLED(wpd) || STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)) {
+  if (workbench_is_specular_highlight_enabled(wpd) || STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)) {
     DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
   }
   if (STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)) {
-    BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE);
+    BKE_studiolight_ensure_flag(wpd->studio_light,
+                                STUDIOLIGHT_MATCAP_DIFFUSE_GPUTEXTURE |
+                                    STUDIOLIGHT_MATCAP_SPECULAR_GPUTEXTURE);
     DRW_shgroup_uniform_texture(
-        grp, "matcapImage", wpd->studio_light->equirect_radiance_gputexture);
+        grp, "matcapDiffuseImage", wpd->studio_light->matcap_diffuse.gputexture);
+    if (workbench_is_specular_highlight_enabled(wpd)) {
+      DRW_shgroup_uniform_texture(
+          grp, "matcapSpecularImage", wpd->studio_light->matcap_specular.gputexture);
+    }
   }
 }
 

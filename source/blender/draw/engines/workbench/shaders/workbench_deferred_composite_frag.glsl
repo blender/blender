@@ -5,7 +5,8 @@ uniform sampler2D materialBuffer;
 uniform sampler2D normalBuffer;
 /* normalBuffer contains viewport normals */
 uniform sampler2D cavityBuffer;
-uniform sampler2D matcapImage;
+uniform sampler2D matcapDiffuseImage;
+uniform sampler2D matcapSpecularImage;
 
 uniform vec2 invertedViewportSize;
 uniform vec4 viewvecs[3];
@@ -55,8 +56,15 @@ void main()
   normal_viewport = (metallic > 0.0) ? normal_viewport : -normal_viewport;
   bool flipped = world_data.matcap_orientation != 0;
   vec2 matcap_uv = matcap_uv_compute(I_vs, normal_viewport, flipped);
-  vec3 matcap = textureLod(matcapImage, matcap_uv, 0.0).rgb;
-  vec3 shaded_color = matcap * base_color;
+  vec3 matcap_diffuse = textureLod(matcapDiffuseImage, matcap_uv, 0.0).rgb;
+
+#  ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
+  vec3 matcap_specular = textureLod(matcapSpecularImage, matcap_uv, 0.0).rgb;
+#  else
+  vec3 matcap_specular = vec3(0.0);
+#  endif
+
+  vec3 shaded_color = matcap_diffuse * base_color + matcap_specular;
 
 #elif defined(V3D_LIGHTING_STUDIO)
 

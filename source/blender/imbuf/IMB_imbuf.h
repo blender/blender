@@ -145,7 +145,8 @@ bool IMB_initImBuf(
 struct ImBuf *IMB_allocFromBuffer(const unsigned int *rect,
                                   const float *rectf,
                                   unsigned int w,
-                                  unsigned int h);
+                                  unsigned int h,
+                                  unsigned int channels);
 
 /**
  *

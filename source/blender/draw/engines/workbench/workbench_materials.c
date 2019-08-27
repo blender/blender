@@ -79,7 +79,7 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd,
     /* V3D_SHADING_MATERIAL_COLOR or V3D_SHADING_TEXTURE_COLOR */
     if (mat) {
       data->alpha *= mat->a;
-      if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
+      if (workbench_is_specular_highlight_enabled(wpd)) {
         copy_v3_v3(data->base_color, &mat->r);
         mul_v3_v3fl(data->diffuse_color, &mat->r, 1.0f - mat->metallic);
         mul_v3_v3fl(data->specular_color, &mat->r, mat->metallic);
@@ -121,7 +121,7 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd,
   if (SSAO_ENABLED(wpd) || CURVATURE_ENABLED(wpd)) {
     BLI_dynstr_append(ds, "#define WB_CAVITY\n");
   }
-  if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
+  if (workbench_is_specular_highlight_enabled(wpd)) {
     BLI_dynstr_append(ds, "#define V3D_SHADING_SPECULAR_HIGHLIGHT\n");
   }
   if (STUDIOLIGHT_ENABLED(wpd)) {
@@ -195,11 +195,12 @@ int workbench_material_get_composite_shader_index(WORKBENCH_PrivateData *wpd)
   /* NOTE: change MAX_COMPOSITE_SHADERS accordingly when modifying this function. */
   int index = 0;
   /* 2 bits FLAT/STUDIO/MATCAP + Specular highlight */
-  index = SPECULAR_HIGHLIGHT_ENABLED(wpd) ? 3 : wpd->shading.light;
+  index = wpd->shading.light;
   SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_SHADOW, 1 << 2);
   SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_CAVITY, 1 << 3);
   SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE, 1 << 4);
   SET_FLAG_FROM_TEST(index, workbench_is_matdata_pass_enabled(wpd), 1 << 5);
+  SET_FLAG_FROM_TEST(index, workbench_is_specular_highlight_enabled(wpd), 1 << 6);
   BLI_assert(index < MAX_COMPOSITE_SHADERS);
   return index;
 }
@@ -246,12 +247,13 @@ int workbench_material_get_accum_shader_index(WORKBENCH_PrivateData *wpd,
   /* NOTE: change MAX_ACCUM_SHADERS accordingly when modifying this function. */
   int index = 0;
   /* 2 bits FLAT/STUDIO/MATCAP + Specular highlight */
-  index = SPECULAR_HIGHLIGHT_ENABLED(wpd) ? 3 : wpd->shading.light;
+  index = wpd->shading.light;
   SET_FLAG_FROM_TEST(index, use_textures, 1 << 2);
   SET_FLAG_FROM_TEST(index, use_vertex_colors, 1 << 3);
   SET_FLAG_FROM_TEST(index, is_hair, 1 << 4);
   /* 1 bits SHADOWS (only facing factor) */
   SET_FLAG_FROM_TEST(index, SHADOW_ENABLED(wpd), 1 << 5);
+  SET_FLAG_FROM_TEST(index, workbench_is_specular_highlight_enabled(wpd), 1 << 6);
   BLI_assert(index < MAX_ACCUM_SHADERS);
   return index;
 }
@@ -333,7 +335,7 @@ void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd,
                                1);
     }
 
-    if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
+    if (workbench_is_specular_highlight_enabled(wpd)) {
       if (use_metallic) {
         DRW_shgroup_uniform_float(grp, "materialMetallic", &material->metallic, 1);
       }

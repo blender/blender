@@ -27,7 +27,8 @@ in vec2 uv_interp;
 in vec3 vertexColor;
 #endif
 #ifdef V3D_LIGHTING_MATCAP
-uniform sampler2D matcapImage;
+uniform sampler2D matcapDiffuseImage;
+uniform sampler2D matcapSpecularImage;
 #endif
 
 layout(std140) uniform world_block
@@ -68,8 +69,13 @@ void main()
 #elif defined(V3D_LIGHTING_MATCAP)
   bool flipped = world_data.matcap_orientation != 0;
   vec2 matcap_uv = matcap_uv_compute(I_vs, nor, flipped);
-  vec3 matcap = textureLod(matcapImage, matcap_uv, 0.0).rgb;
-  vec3 shaded_color = matcap * diffuse_color.rgb;
+  vec3 matcap_diffuse = textureLod(matcapDiffuseImage, matcap_uv, 0.0).rgb;
+#  ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
+  vec3 matcap_specular = textureLod(matcapSpecularImage, matcap_uv, 0.0).rgb;
+#  else
+  vec3 matcap_specular = vec3(0.0);
+#  endif
+  vec3 shaded_color = matcap_diffuse * diffuse_color.rgb + matcap_specular;
 
 #elif defined(V3D_LIGHTING_STUDIO)
   vec3 shaded_color = get_world_lighting(
