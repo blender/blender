@@ -7722,6 +7722,10 @@ static void trans_obdata_in_obmode_ensure_object(TransInfo *t, Object *ob)
 
 void trans_obdata_in_obmode_update_all(TransInfo *t)
 {
+  if (t->obdata_in_obmode_map == NULL) {
+    return;
+  }
+
   struct Main *bmain = CTX_data_main(t->context);
   BKE_scene_graph_evaluated_ensure(t->depsgraph, bmain);
 
