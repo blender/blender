@@ -136,9 +136,14 @@ static int edbm_polybuild_transform_at_cursor_invoke(bContext *C,
   invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
+  if (!ele_act) {
+    return OPERATOR_CANCELLED;
+  }
+
   edbm_selectmode_ensure(vc.scene, vc.em, SCE_SELECT_VERTEX);
 
   edbm_flag_disable_all_multi(vc.view_layer, vc.v3d, BM_ELEM_SELECT);
+
   if (ele_act->head.htype == BM_VERT) {
     BM_vert_select_set(bm, (BMVert *)ele_act, true);
   }
@@ -193,6 +198,10 @@ static int edbm_polybuild_delete_at_cursor_invoke(bContext *C,
 
   invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
+
+  if (!ele_act) {
+    return OPERATOR_CANCELLED;
+  }
 
   edbm_selectmode_ensure(vc.scene, vc.em, SCE_SELECT_VERTEX);
 
