@@ -357,7 +357,7 @@ size_t system_physical_ram()
   MEMORYSTATUSEX ram;
   ram.dwLength = sizeof(ram);
   GlobalMemoryStatusEx(&ram);
-  return ram.ullTotalPhys * 1024;
+  return ram.ullTotalPhys;
 #elif defined(__APPLE__)
   uint64_t ram = 0;
   size_t len = sizeof(ram);
