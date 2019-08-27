@@ -1442,12 +1442,15 @@ static void extract_pos_nor_loop_mesh(const MeshRenderData *mr,
   copy_v3_v3(vert->pos, mvert->co);
   vert->nor = data->packed_nor[mloop->v];
   /* Flag for paint mode overlay. */
-  if (mvert->flag & ME_HIDE)
+  if (mvert->flag & ME_HIDE) {
     vert->nor.w = -1;
-  else if (mvert->flag & SELECT)
+  }
+  else if (mvert->flag & SELECT) {
     vert->nor.w = 1;
-  else
+  }
+  else {
     vert->nor.w = 0;
+  }
 }
 
 static void extract_pos_nor_ledge_bmesh(const MeshRenderData *mr, int e, BMEdge *eed, void *_data)
@@ -1562,12 +1565,15 @@ static void extract_lnor_loop_mesh(
     ((GPUPackedNormal *)data)[l] = GPU_normal_convert_i10_v3(mr->poly_normals[p]);
   }
   /* Flag for paint mode overlay. */
-  if (mpoly->flag & ME_HIDE)
+  if (mpoly->flag & ME_HIDE) {
     ((GPUPackedNormal *)data)[l].w = -1;
-  else if (mpoly->flag & ME_FACE_SEL)
+  }
+  else if (mpoly->flag & ME_FACE_SEL) {
     ((GPUPackedNormal *)data)[l].w = 1;
-  else
+  }
+  else {
     ((GPUPackedNormal *)data)[l].w = 0;
+  }
 }
 
 static const MeshExtract extract_lnor = {
