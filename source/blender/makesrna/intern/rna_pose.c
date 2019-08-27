@@ -1044,7 +1044,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
   /* Curved bones settings - Applied on top of restpose values */
-  rna_def_bone_curved_common(srna, true);
+  rna_def_bone_curved_common(srna, true, false);
 
   /* Custom BBone next/prev sources */
   prop = RNA_def_property(srna, "bbone_custom_handle_start", PROP_POINTER, PROP_NONE);
