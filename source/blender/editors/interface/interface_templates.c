@@ -3745,12 +3745,11 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *ar, void *cumap_v)
   float width = 8 * UI_UNIT_X;
 
   block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
-
-  /* use this for a fake extra empty space around the buttons */
-  uiDefBut(block, UI_BTYPE_LABEL, 0, "", -4, 16, width + 8, 6 * UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+  UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_MOVEMOUSE_QUIT);
+  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
   bt = uiDefButBitI(block,
-                    UI_BTYPE_TOGGLE,
+                    UI_BTYPE_CHECKBOX,
                     CUMA_DO_CLIP,
                     1,
                     IFACE_("Use Clipping"),
@@ -3770,7 +3769,7 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *ar, void *cumap_v)
   uiDefButF(block,
             UI_BTYPE_NUM,
             0,
-            IFACE_("Min X "),
+            IFACE_("Min X:"),
             0,
             4 * UI_UNIT_Y,
             width,
@@ -3784,7 +3783,7 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *ar, void *cumap_v)
   uiDefButF(block,
             UI_BTYPE_NUM,
             0,
-            IFACE_("Min Y "),
+            IFACE_("Min Y:"),
             0,
             3 * UI_UNIT_Y,
             width,
@@ -3798,7 +3797,7 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *ar, void *cumap_v)
   uiDefButF(block,
             UI_BTYPE_NUM,
             0,
-            IFACE_("Max X "),
+            IFACE_("Max X:"),
             0,
             2 * UI_UNIT_Y,
             width,
@@ -3812,7 +3811,7 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *ar, void *cumap_v)
   uiDefButF(block,
             UI_BTYPE_NUM,
             0,
-            IFACE_("Max Y "),
+            IFACE_("Max Y:"),
             0,
             UI_UNIT_Y,
             width,
@@ -3824,7 +3823,8 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *ar, void *cumap_v)
             2,
             "");
 
-  UI_block_direction_set(block, UI_DIR_RIGHT);
+  UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
+  UI_block_direction_set(block, UI_DIR_DOWN);
 
   return block;
 }
