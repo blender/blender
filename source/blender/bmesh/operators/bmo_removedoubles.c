@@ -706,34 +706,3 @@ void bmo_find_doubles_exec(BMesh *bm, BMOperator *op)
   slot_targetmap_out = BMO_slot_get(op->slots_out, "targetmap.out");
   bmesh_find_doubles_common(bm, op, op, slot_targetmap_out);
 }
-
-void bmo_automerge_exec(BMesh *bm, BMOperator *op)
-{
-  BMOperator findop, weldop;
-  BMIter viter;
-  BMVert *v;
-
-  /* The "verts" input sent to this op is the set of verts that
-   * can be merged away into any other verts. Mark all other verts
-   * as VERT_KEEP. */
-  BMO_slot_buffer_flag_enable(bm, op->slots_in, "verts", BM_VERT, VERT_IN);
-  BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
-    if (!BMO_vert_flag_test(bm, v, VERT_IN)) {
-      BMO_vert_flag_enable(bm, v, VERT_KEEP);
-    }
-  }
-
-  /* Search for doubles among all vertices, but only merge non-VERT_KEEP
-   * vertices into VERT_KEEP vertices. */
-  BMO_op_initf(bm, &findop, op->flag, "find_doubles verts=%av keep_verts=%fv", VERT_KEEP);
-  BMO_slot_copy(op, slots_in, "dist", &findop, slots_in, "dist");
-  BMO_op_exec(bm, &findop);
-
-  /* weld the vertices */
-  BMO_op_init(bm, &weldop, op->flag, "weld_verts");
-  BMO_slot_copy(&findop, slots_out, "targetmap.out", &weldop, slots_in, "targetmap");
-  BMO_op_exec(bm, &weldop);
-
-  BMO_op_finish(bm, &findop);
-  BMO_op_finish(bm, &weldop);
-}

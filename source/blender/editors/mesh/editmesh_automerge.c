@@ -56,16 +56,32 @@
 
 void EDBM_automerge(Scene *scene, Object *obedit, bool update, const char hflag)
 {
-  bool ok;
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  BMesh *bm = em->bm;
+  int totvert_prev = bm->totvert;
 
-  ok = BMO_op_callf(em->bm,
-                    BMO_FLAG_DEFAULTS,
-                    "automerge verts=%hv dist=%f",
-                    hflag,
-                    scene->toolsettings->doublimit);
+  BMOperator findop, weldop;
 
-  if (LIKELY(ok) && update) {
+  /* Search for doubles among all vertices, but only merge non-VERT_KEEP
+   * vertices into VERT_KEEP vertices. */
+  BMO_op_initf(bm,
+               &findop,
+               BMO_FLAG_DEFAULTS,
+               "find_doubles verts=%av keep_verts=%Hv dist=%f",
+               hflag,
+               scene->toolsettings->doublimit);
+
+  BMO_op_exec(bm, &findop);
+
+  /* weld the vertices */
+  BMO_op_init(bm, &weldop, BMO_FLAG_DEFAULTS, "weld_verts");
+  BMO_slot_copy(&findop, slots_out, "targetmap.out", &weldop, slots_in, "targetmap");
+  BMO_op_exec(bm, &weldop);
+
+  BMO_op_finish(bm, &findop);
+  BMO_op_finish(bm, &weldop);
+
+  if ((totvert_prev != bm->totvert) && update) {
     EDBM_update_generic(em, true, true);
   }
 }

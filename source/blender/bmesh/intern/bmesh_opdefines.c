@@ -369,28 +369,6 @@ static BMOpDefine bmo_remove_doubles_def = {
 };
 
 /*
- * Auto Merge.
- *
- * Finds groups of vertices closer then **dist** and merges them together,
- * using the weld verts bmop.  The merges must go from a vert not in
- * **verts** to one in **verts**.
- */
-static BMOpDefine bmo_automerge_def = {
-  "automerge",
-  /* slots_in */
-  {{"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}}, /* input verts */
-   {"dist",         BMO_OP_SLOT_FLT}, /* maximum distance */
-   {{'\0'}},
-  },
-  {{{'\0'}}},  /* no output */
-  bmo_automerge_exec,
-  (BMO_OPTYPE_FLAG_UNTAN_MULTIRES |
-   BMO_OPTYPE_FLAG_NORMALS_CALC |
-   BMO_OPTYPE_FLAG_SELECT_FLUSH |
-   BMO_OPTYPE_FLAG_SELECT_VALIDATE),
-};
-
-/*
  * Collapse Connected.
  *
  * Collapses connected vertices
@@ -2073,7 +2051,6 @@ static BMOpDefine bmo_symmetrize_def = {
 /* clang-format on */
 
 const BMOpDefine *bmo_opdefines[] = {
-    &bmo_automerge_def,
     &bmo_average_vert_facedata_def,
     &bmo_beautify_fill_def,
     &bmo_bevel_def,
