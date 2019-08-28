@@ -138,12 +138,7 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree,
                        struct View3D *v3d,
                        struct Object *obedit);
 
-/* editmesh_undo.c */
-void ED_mesh_undosys_type(struct UndoType *ut);
-
-/* editmesh_select.c */
-void EDBM_select_mirrored(
-    struct BMEditMesh *em, const int axis, const bool extend, int *r_totmirr, int *r_totfail);
+/* editmesh_automerge.c */
 void EDBM_automerge(struct Scene *scene, struct Object *ob, bool update, const char hflag);
 void EDBM_automerge_and_split(struct Scene *scene,
                               struct Object *ob,
@@ -151,6 +146,13 @@ void EDBM_automerge_and_split(struct Scene *scene,
                               bool split_faces,
                               bool update,
                               const char hflag);
+
+/* editmesh_undo.c */
+void ED_mesh_undosys_type(struct UndoType *ut);
+
+/* editmesh_select.c */
+void EDBM_select_mirrored(
+    struct BMEditMesh *em, const int axis, const bool extend, int *r_totmirr, int *r_totfail);
 
 struct BMVert *EDBM_vert_find_nearest_ex(struct ViewContext *vc,
                                          float *r_dist,
