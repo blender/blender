@@ -20,6 +20,8 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
     set(TEST_INC
       ${_current_include_directories}
       ${CMAKE_SOURCE_DIR}/tests/gtests
+    )
+    set(TEST_INC_SYS
       ${GLOG_INCLUDE_DIRS}
       ${GFLAGS_INCLUDE_DIRS}
       ${CMAKE_SOURCE_DIR}/extern/gtest/include
@@ -28,6 +30,8 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
     unset(_current_include_directories)
 
     add_executable(${NAME}_test ${SRC})
+    target_include_directories(${NAME}_test PUBLIC "${TEST_INC}")
+    target_include_directories(${NAME}_test SYSTEM PUBLIC "${TEST_INC_SYS}")
     target_link_libraries(${NAME}_test
                           ${EXTRA_LIBS}
                           ${PLATFORM_LINKLIBS}
@@ -46,8 +50,7 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
     set_target_properties(${NAME}_test PROPERTIES
                           RUNTIME_OUTPUT_DIRECTORY         "${TESTS_OUTPUT_DIR}"
                           RUNTIME_OUTPUT_DIRECTORY_RELEASE "${TESTS_OUTPUT_DIR}"
-                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${TESTS_OUTPUT_DIR}"
-                          INCLUDE_DIRECTORIES              "${TEST_INC}")
+                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${TESTS_OUTPUT_DIR}")
     if(${DO_ADD_TEST})
       add_test(NAME ${NAME}_test COMMAND ${TESTS_OUTPUT_DIR}/${NAME}_test WORKING_DIRECTORY $<TARGET_FILE_DIR:blender>)
 
