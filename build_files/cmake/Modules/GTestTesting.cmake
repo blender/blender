@@ -55,6 +55,8 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
       # that we can't fix.
       set_tests_properties(${NAME}_test PROPERTIES ENVIRONMENT LSAN_OPTIONS=exitcode=0)
     endif()
+    unset(TEST_INC)
+    unset(TEST_INC_SYS)
   endif()
 endmacro()
 
