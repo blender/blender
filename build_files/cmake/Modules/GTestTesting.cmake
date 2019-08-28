@@ -14,6 +14,7 @@
 
 macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
   if(WITH_GTESTS)
+    set(TARGET_NAME ${NAME}_test)
     get_property(_current_include_directories
                  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                  PROPERTY INCLUDE_DIRECTORIES)
@@ -29,10 +30,10 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
     )
     unset(_current_include_directories)
 
-    add_executable(${NAME}_test ${SRC})
-    target_include_directories(${NAME}_test PUBLIC "${TEST_INC}")
-    target_include_directories(${NAME}_test SYSTEM PUBLIC "${TEST_INC_SYS}")
-    target_link_libraries(${NAME}_test
+    add_executable(${TARGET_NAME} ${SRC})
+    target_include_directories(${TARGET_NAME} PUBLIC "${TEST_INC}")
+    target_include_directories(${TARGET_NAME} SYSTEM PUBLIC "${TEST_INC_SYS}")
+    target_link_libraries(${TARGET_NAME}
                           ${EXTRA_LIBS}
                           ${PLATFORM_LINKLIBS}
                           bf_testing_main
@@ -45,21 +46,22 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
                           ${GLOG_LIBRARIES}
                           ${GFLAGS_LIBRARIES})
     if(WITH_OPENMP_STATIC)
-      target_link_libraries(${NAME}_test ${OpenMP_LIBRARIES})
+      target_link_libraries(${TARGET_NAME} ${OpenMP_LIBRARIES})
     endif()
-    set_target_properties(${NAME}_test PROPERTIES
+    set_target_properties(${TARGET_NAME} PROPERTIES
                           RUNTIME_OUTPUT_DIRECTORY         "${TESTS_OUTPUT_DIR}"
                           RUNTIME_OUTPUT_DIRECTORY_RELEASE "${TESTS_OUTPUT_DIR}"
                           RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${TESTS_OUTPUT_DIR}")
     if(${DO_ADD_TEST})
-      add_test(NAME ${NAME}_test COMMAND ${TESTS_OUTPUT_DIR}/${NAME}_test WORKING_DIRECTORY $<TARGET_FILE_DIR:blender>)
+      add_test(NAME ${TARGET_NAME} COMMAND ${TESTS_OUTPUT_DIR}/${TARGET_NAME} WORKING_DIRECTORY $<TARGET_FILE_DIR:blender>)
 
       # Don't fail tests on leaks since these often happen in external libraries
       # that we can't fix.
-      set_tests_properties(${NAME}_test PROPERTIES ENVIRONMENT LSAN_OPTIONS=exitcode=0)
+      set_tests_properties(${TARGET_NAME} PROPERTIES ENVIRONMENT LSAN_OPTIONS=exitcode=0)
     endif()
     unset(TEST_INC)
     unset(TEST_INC_SYS)
+    unset(TARGET_NAME)
   endif()
 endmacro()
 
