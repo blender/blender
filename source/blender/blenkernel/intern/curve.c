@@ -4630,6 +4630,7 @@ void BKE_curve_nurbs_vert_coords_get(ListBase *lb, float (*vert_coords)[3], int 
     }
   }
   BLI_assert(co == vert_coords[vert_len]);
+  UNUSED_VARS_NDEBUG(vert_len);
 }
 
 float (*BKE_curve_nurbs_vert_coords_alloc(ListBase *lb, int *r_vert_len))[3]
