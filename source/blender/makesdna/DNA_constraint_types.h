@@ -748,6 +748,7 @@ typedef enum eCopyScale_Flags {
   SIZELIKE_Z = (1 << 2),
   SIZELIKE_OFFSET = (1 << 3),
   SIZELIKE_MULTIPLY = (1 << 4),
+  SIZELIKE_UNIFORM = (1 << 5),
 } eCopyScale_Flags;
 
 /* bTransformConstraint.to/from */

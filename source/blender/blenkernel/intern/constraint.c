@@ -1927,8 +1927,38 @@ static void sizelike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *ta
   if (VALID_CONS_TARGET(ct)) {
     float obsize[3], size[3];
 
-    mat4_to_size(size, ct->matrix);
     mat4_to_size(obsize, cob->matrix);
+
+    /* Compute one uniform scale factor to apply to all three axes. */
+    if (data->flag & SIZELIKE_UNIFORM) {
+      const int all_axes = SIZELIKE_X | SIZELIKE_Y | SIZELIKE_Z;
+      float total = 1.0f;
+
+      /* If all axes are selected, use the determinant. */
+      if ((data->flag & all_axes) == all_axes) {
+        total = fabsf(mat4_to_volume_scale(ct->matrix));
+      }
+      /* Otherwise multiply individual values. */
+      else {
+        mat4_to_size(size, ct->matrix);
+
+        if (data->flag & SIZELIKE_X) {
+          total *= size[0];
+        }
+        if (data->flag & SIZELIKE_Y) {
+          total *= size[1];
+        }
+        if (data->flag & SIZELIKE_Z) {
+          total *= size[2];
+        }
+      }
+
+      copy_v3_fl(size, cbrt(total));
+    }
+    /* Regular per-axis scaling. */
+    else {
+      mat4_to_size(size, ct->matrix);
+    }
 
     for (int i = 0; i < 3; i++) {
       size[i] = powf(size[i], data->power);
@@ -1948,13 +1978,13 @@ static void sizelike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *ta
       }
     }
 
-    if ((data->flag & SIZELIKE_X) && (obsize[0] != 0)) {
+    if ((data->flag & (SIZELIKE_X | SIZELIKE_UNIFORM)) && (obsize[0] != 0)) {
       mul_v3_fl(cob->matrix[0], size[0] / obsize[0]);
     }
-    if ((data->flag & SIZELIKE_Y) && (obsize[1] != 0)) {
+    if ((data->flag & (SIZELIKE_Y | SIZELIKE_UNIFORM)) && (obsize[1] != 0)) {
       mul_v3_fl(cob->matrix[1], size[1] / obsize[1]);
     }
-    if ((data->flag & SIZELIKE_Z) && (obsize[2] != 0)) {
+    if ((data->flag & (SIZELIKE_Z | SIZELIKE_UNIFORM)) && (obsize[2] != 0)) {
       mul_v3_fl(cob->matrix[2], size[2] / obsize[2]);
     }
   }
