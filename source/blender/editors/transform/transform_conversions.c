@@ -6539,7 +6539,7 @@ static void flush_trans_object_base_deps_flag(Depsgraph *depsgraph, Object *obje
 static void trans_object_base_deps_flag_finish(const TransInfo *t, ViewLayer *view_layer)
 {
 
-  if ((t->flag & T_OBJECT_DATA_IN_OBJECT_MODE) == 0) {
+  if ((t->options & CTX_OBMODE_XFORM_OBDATA) == 0) {
     for (Base *base = view_layer->object_bases.first; base; base = base->next) {
       if (base->object->id.tag & LIB_TAG_DOIT) {
         base->flag_legacy |= BA_SNAP_FIX_DEPS_FIASCO;
@@ -7811,7 +7811,7 @@ static void createTransObject(bContext *C, TransInfo *t)
       td->flag |= TD_SKIP;
     }
 
-    if (t->flag & T_OBJECT_DATA_IN_OBJECT_MODE) {
+    if (t->options & CTX_OBMODE_XFORM_OBDATA) {
       ID *id = ob->data;
       if (!id || id->lib) {
         td->flag |= TD_SKIP;
@@ -7823,7 +7823,7 @@ static void createTransObject(bContext *C, TransInfo *t)
       }
     }
 
-    if (t->flag & T_OBJECT_DATA_IN_OBJECT_MODE) {
+    if (t->options & CTX_OBMODE_XFORM_OBDATA) {
       if ((td->flag & TD_SKIP) == 0) {
         trans_obdata_in_obmode_ensure_object(t, ob);
       }
@@ -7861,7 +7861,7 @@ static void createTransObject(bContext *C, TransInfo *t)
     }
   }
 
-  if (t->flag & T_OBJECT_DATA_IN_OBJECT_MODE) {
+  if (t->options & CTX_OBMODE_XFORM_OBDATA) {
     GSet *objects_in_transdata = BLI_gset_ptr_new_ex(__func__, tc->data_len);
     td = tc->data;
     for (int i = 0; i < tc->data_len; i++, td++) {
@@ -9888,7 +9888,7 @@ void createTransData(bContext *C, TransInfo *t)
     BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
 
     if ((scene->toolsettings->transform_flag & SCE_XFORM_DATA_ORIGIN) != 0) {
-      t->flag |= T_OBJECT_DATA_IN_OBJECT_MODE;
+      t->options |= CTX_OBMODE_XFORM_OBDATA;
     }
 
     createTransObject(C, t);

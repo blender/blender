@@ -802,10 +802,6 @@ enum {
   T_MODAL_CURSOR_SET = 1 << 26,
 
   T_CLNOR_REBUILD = 1 << 27,
-
-  /** When transforming object's, adjust the object data so it stays in the same place. */
-  T_OBJECT_DATA_IN_OBJECT_MODE = 1 << 28,
-
 };
 
 /** #TransInfo.modifiers */

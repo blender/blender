@@ -90,6 +90,8 @@ enum TfmMode {
 #define CTX_PAINT_CURVE (1 << 8)
 #define CTX_GPENCIL_STROKES (1 << 9)
 #define CTX_CURSOR (1 << 10)
+/** When transforming object's, adjust the object data so it stays in the same place. */
+#define CTX_OBMODE_XFORM_OBDATA (1 << 11)
 
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)
