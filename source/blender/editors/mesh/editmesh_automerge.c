@@ -170,9 +170,10 @@ static bool edbm_vert_pair_share_splittable_face_cb(BMFace *UNUSED(f),
   float lambda;
   if (isect_ray_seg_v3(v_a_co, v_a_b_dir, l_a->prev->v->co, l_a->next->v->co, &lambda)) {
     if (IN_RANGE(lambda, 0.0f, 1.0f)) {
-      if (isect_ray_seg_v3(v_a_co, v_a_b_dir, l_b->prev->v->co, l_b->next->v->co, &lambda)) {
-        return IN_RANGE(lambda, 0.0f, 1.0f);
-      }
+      return true;
+    }
+    else if (isect_ray_seg_v3(v_a_co, v_a_b_dir, l_b->prev->v->co, l_b->next->v->co, &lambda)) {
+      return IN_RANGE(lambda, 0.0f, 1.0f);
     }
   }
   return false;
