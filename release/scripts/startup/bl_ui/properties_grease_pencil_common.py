@@ -592,14 +592,15 @@ class GPENCIL_MT_snap(Menu):
 
 
 class GPENCIL_MT_gpencil_draw_delete(Menu):
-    bl_label = "GPencil Draw Delete"
+    bl_label = "Delete"
 
     def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.operator("gpencil.active_frames_delete_all", text="Delete Frame")
+        layout.operator("gpencil.delete", text="Delete Active Keyframe (Active Layer)").type = 'FRAME'
+        layout.operator("gpencil.active_frames_delete_all", text="Delete Active Keyframes (All Layers)")
 
 
 class GPENCIL_MT_cleanup(Menu):

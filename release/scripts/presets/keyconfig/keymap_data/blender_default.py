@@ -2948,13 +2948,6 @@ def km_grease_pencil(_params):
         # Erase
         ("gpencil.annotate", {"type": 'RIGHTMOUSE', "value": 'PRESS', "key_modifier": 'D'},
          {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
-
-        # Add blank frame (B because it's easy to reach from D).
-        ("gpencil.blank_frame_add", {"type": 'B', "value": 'PRESS', "key_modifier": 'D'}, None),
-        # Delete active frame - for easier video tutorials/review sessions.
-        # This works even when not in edit mode.
-        ("gpencil.active_frames_delete_all", {"type": 'X', "value": 'PRESS', "key_modifier": 'D'}, None),
-        ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "key_modifier": 'D'}, None),
     ])
 
     return keymap
@@ -3037,6 +3030,8 @@ def km_grease_pencil_stroke_edit_mode(params):
         op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'DEL', "value": 'PRESS'}),
         ("gpencil.dissolve", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
         ("gpencil.dissolve", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
+        # Animation menu
+        ("gpencil.blank_frame_add", {"type": 'I', "value": 'PRESS', "shift": True}, None),
         ("gpencil.active_frames_delete_all", {"type": 'X', "value": 'PRESS', "shift": True}, None),
         ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
         # Context menu
@@ -3125,6 +3120,19 @@ def km_grease_pencil_stroke_paint_mode(params):
         op_panel("VIEW3D_PT_gpencil_draw_context_menu", params.context_menu_event),
         # Draw delete menu
         op_menu("GPENCIL_MT_gpencil_draw_delete", {"type": 'X', "value": 'PRESS'}),
+        # Animation menu
+        ("gpencil.blank_frame_add", {"type": 'I', "value": 'PRESS', "shift": True}, None),
+        ("gpencil.active_frames_delete_all", {"type": 'X', "value": 'PRESS', "shift": True}, None),
+        ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
+        # Interpolation
+        ("gpencil.interpolate", {"type": 'E', "value": 'PRESS', "ctrl": True, "alt": True}, None),
+        ("gpencil.interpolate_sequence", {"type": 'E', "value": 'PRESS', "shift": True, "ctrl": True}, None),
+        # Show/hide
+        ("gpencil.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
+        ("gpencil.hide", {"type": 'H', "value": 'PRESS'},
+         {"properties": [("unselected", False)]}),
+        ("gpencil.hide", {"type": 'H', "value": 'PRESS', "shift": True},
+         {"properties": [("unselected", True)]}),
     ])
 
     return keymap
