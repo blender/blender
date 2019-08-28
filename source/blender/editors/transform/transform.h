@@ -731,6 +731,13 @@ typedef struct TransInfo {
    */
   struct GHash *obdata_in_obmode_map;
 
+  /**
+   * Transform
+   * - The key is object data #Object.
+   * - The value is #XFormObjectSkipChild.
+   */
+  struct GHash *obchild_in_obmode_map;
+
 } TransInfo;
 
 /* ******************** Macros & Prototypes *********************** */
@@ -1177,5 +1184,8 @@ bool checkUseAxisMatrix(TransInfo *t);
 
 void trans_obdata_in_obmode_free_all(struct TransInfo *t);
 void trans_obdata_in_obmode_update_all(struct TransInfo *t);
+
+void trans_obchild_in_obmode_free_all(struct TransInfo *t);
+void trans_obchild_in_obmode_update_all(struct TransInfo *t);
 
 #endif

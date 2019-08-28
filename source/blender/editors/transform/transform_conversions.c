@@ -7767,6 +7767,148 @@ void trans_obdata_in_obmode_free_all(TransInfo *t)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Object Child Skip
+ *
+ * Don't transform unselected children, this is done using the parent inverse matrix.
+ *
+ * \note The complex logic here is caused by mixed selection within a single selection chain,
+ * otherwise we only need #OB_SKIP_CHILD_PARENT_IS_XFORM for single objects.
+ *
+ * \{ */
+
+enum {
+  /**
+   * The parent is transformed this isn't.
+   */
+  OB_SKIP_CHILD_PARENT_IS_XFORM = 1,
+  /**
+   * The parent is transformed this isn't,
+   * however this objects parent isn't transformed directly.
+   */
+  OB_SKIP_CHILD_PARENT_IS_XFORM_INDIRECT = 3,
+  /**
+   * Use the parent invert matrix to apply transformation,
+   * this is needed, because breaks in the selection chain prevents this from being transformed.
+   * This is used to add the transform.
+   */
+  OB_SKIP_CHILD_PARENT_APPLY_TRANSFORM = 2,
+};
+
+struct XFormObjectSkipChild {
+  float obmat_orig[4][4];
+  float parent_obmat_orig[4][4];
+  float parent_obmat_inv_orig[4][4];
+  float parent_recurse_obmat_orig[4][4];
+  float parentinv_orig[4][4];
+  Object *ob_parent_recurse;
+  int mode;
+};
+
+static void trans_obchild_in_obmode_ensure_object(TransInfo *t,
+                                                  Object *ob,
+                                                  Object *ob_parent_recurse,
+                                                  int mode)
+{
+  if (t->obchild_in_obmode_map == NULL) {
+    t->obchild_in_obmode_map = BLI_ghash_ptr_new(__func__);
+  }
+
+  void **xf_p;
+  if (!BLI_ghash_ensure_p(t->obchild_in_obmode_map, ob, &xf_p)) {
+    struct XFormObjectSkipChild *xf = MEM_mallocN(sizeof(*xf), __func__);
+    copy_m4_m4(xf->parentinv_orig, ob->parentinv);
+    copy_m4_m4(xf->obmat_orig, ob->obmat);
+    copy_m4_m4(xf->parent_obmat_orig, ob->parent->obmat);
+    invert_m4_m4(xf->parent_obmat_inv_orig, ob->parent->obmat);
+    if (ob_parent_recurse) {
+      copy_m4_m4(xf->parent_recurse_obmat_orig, ob_parent_recurse->obmat);
+    }
+    xf->mode = mode;
+    xf->ob_parent_recurse = ob_parent_recurse;
+    *xf_p = xf;
+  }
+}
+
+void trans_obchild_in_obmode_update_all(TransInfo *t)
+{
+  if (t->obchild_in_obmode_map == NULL) {
+    return;
+  }
+
+  struct Main *bmain = CTX_data_main(t->context);
+  BKE_scene_graph_evaluated_ensure(t->depsgraph, bmain);
+
+  GHashIterator gh_iter;
+  GHASH_ITER (gh_iter, t->obchild_in_obmode_map) {
+    Object *ob = BLI_ghashIterator_getKey(&gh_iter);
+    struct XFormObjectSkipChild *xf = BLI_ghashIterator_getValue(&gh_iter);
+
+    /* The following blocks below assign 'dmat'. */
+    float dmat[4][4];
+
+    if (xf->mode == OB_SKIP_CHILD_PARENT_IS_XFORM) {
+      /* Parent is transformed, this isn't so compensate. */
+      Object *ob_parent_eval = DEG_get_evaluated_object(t->depsgraph, ob->parent);
+      mul_m4_m4m4(dmat, xf->parent_obmat_inv_orig, ob_parent_eval->obmat);
+      invert_m4(dmat);
+    }
+    else if (xf->mode == OB_SKIP_CHILD_PARENT_IS_XFORM_INDIRECT) {
+      /* Calculate parent matrix (from the root transform). */
+      Object *ob_parent_recurse_eval = DEG_get_evaluated_object(t->depsgraph,
+                                                                xf->ob_parent_recurse);
+      float parent_recurse_obmat_inv[4][4];
+      invert_m4_m4(parent_recurse_obmat_inv, ob_parent_recurse_eval->obmat);
+      mul_m4_m4m4(dmat, xf->parent_recurse_obmat_orig, parent_recurse_obmat_inv);
+      invert_m4(dmat);
+      float parent_obmat_calc[4][4];
+      mul_m4_m4m4(parent_obmat_calc, dmat, xf->parent_obmat_orig);
+
+      /* Apply to the parent inverse matrix. */
+      mul_m4_m4m4(dmat, xf->parent_obmat_inv_orig, parent_obmat_calc);
+      invert_m4(dmat);
+    }
+    else {
+      BLI_assert(xf->mode == OB_SKIP_CHILD_PARENT_APPLY_TRANSFORM);
+      /* Transform this - without transform data. */
+      Object *ob_parent_recurse_eval = DEG_get_evaluated_object(t->depsgraph,
+                                                                xf->ob_parent_recurse);
+      float parent_recurse_obmat_inv[4][4];
+      invert_m4_m4(parent_recurse_obmat_inv, ob_parent_recurse_eval->obmat);
+      mul_m4_m4m4(dmat, xf->parent_recurse_obmat_orig, parent_recurse_obmat_inv);
+      invert_m4(dmat);
+      float obmat_calc[4][4];
+      mul_m4_m4m4(obmat_calc, dmat, xf->obmat_orig);
+      /* obmat_calc is just obmat. */
+
+      /* Get the matrices relative to the parent. */
+      float obmat_parent_relative_orig[4][4];
+      float obmat_parent_relative_calc[4][4];
+      float obmat_parent_relative_inv_orig[4][4];
+
+      mul_m4_m4m4(obmat_parent_relative_orig, xf->parent_obmat_inv_orig, xf->obmat_orig);
+      mul_m4_m4m4(obmat_parent_relative_calc, xf->parent_obmat_inv_orig, obmat_calc);
+      invert_m4_m4(obmat_parent_relative_inv_orig, obmat_parent_relative_orig);
+
+      /* Apply to the parent inverse matrix. */
+      mul_m4_m4m4(dmat, obmat_parent_relative_calc, obmat_parent_relative_inv_orig);
+    }
+
+    mul_m4_m4m4(ob->parentinv, dmat, xf->parentinv_orig);
+
+    DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+  }
+}
+
+void trans_obchild_in_obmode_free_all(TransInfo *t)
+{
+  if (t->obchild_in_obmode_map != NULL) {
+    BLI_ghash_free(t->obchild_in_obmode_map, NULL, MEM_freeN);
+  }
+}
+
+/** \} */
+
 static void createTransObject(bContext *C, TransInfo *t)
 {
   TransData *td = NULL;
@@ -7900,6 +8042,78 @@ static void createTransObject(bContext *C, TransInfo *t)
       }
     }
     BLI_gset_free(objects_in_transdata, NULL);
+  }
+
+  if (t->options & CTX_OBMODE_XFORM_SKIP_CHILDREN) {
+
+#define BASE_XFORM_INDIRECT(base) \
+  ((base->flag_legacy & BA_WAS_SEL) && (base->flag & BASE_SELECTED) == 0)
+
+    GSet *objects_in_transdata = BLI_gset_ptr_new_ex(__func__, tc->data_len);
+    GHash *objects_parent_root = BLI_ghash_ptr_new_ex(__func__, tc->data_len);
+    td = tc->data;
+    for (int i = 0; i < tc->data_len; i++, td++) {
+      if ((td->flag & TD_SKIP) == 0) {
+        BLI_gset_add(objects_in_transdata, td->ob);
+      }
+    }
+
+    ViewLayer *view_layer = t->view_layer;
+
+    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+      Object *ob = base->object;
+      if (ob->parent != NULL) {
+        if (ob->parent && !BLI_gset_haskey(objects_in_transdata, ob->parent) &&
+            !BLI_gset_haskey(objects_in_transdata, ob)) {
+          if (((base->flag_legacy & BA_WAS_SEL) && (base->flag & BASE_SELECTED) == 0)) {
+            Base *base_parent = BKE_view_layer_base_find(view_layer, ob->parent);
+            if (base_parent && !BASE_XFORM_INDIRECT(base_parent)) {
+              Object *ob_parent_recurse = ob->parent;
+              if (ob_parent_recurse != NULL) {
+                while (ob_parent_recurse != NULL) {
+                  if (BLI_gset_haskey(objects_in_transdata, ob_parent_recurse)) {
+                    break;
+                  }
+                  ob_parent_recurse = ob_parent_recurse->parent;
+                }
+
+                if (ob_parent_recurse) {
+                  trans_obchild_in_obmode_ensure_object(
+                      t, ob, ob_parent_recurse, OB_SKIP_CHILD_PARENT_APPLY_TRANSFORM);
+                  BLI_ghash_insert(objects_parent_root, ob, ob_parent_recurse);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+      Object *ob = base->object;
+
+      if (BASE_XFORM_INDIRECT(base) || BLI_gset_haskey(objects_in_transdata, ob)) {
+        /* pass. */
+      }
+      else if (ob->parent != NULL) {
+        Base *base_parent = BKE_view_layer_base_find(view_layer, ob->parent);
+        if (base_parent) {
+          if (BASE_XFORM_INDIRECT(base_parent) ||
+              BLI_gset_haskey(objects_in_transdata, ob->parent)) {
+            trans_obchild_in_obmode_ensure_object(t, ob, NULL, OB_SKIP_CHILD_PARENT_IS_XFORM);
+          }
+          else {
+            Object *ob_parent_recurse = BLI_ghash_lookup(objects_parent_root, ob->parent);
+            if (ob_parent_recurse) {
+              trans_obchild_in_obmode_ensure_object(
+                  t, ob, ob_parent_recurse, OB_SKIP_CHILD_PARENT_IS_XFORM_INDIRECT);
+            }
+          }
+        }
+      }
+    }
+    BLI_gset_free(objects_in_transdata, NULL);
+    BLI_ghash_free(objects_parent_root, NULL, NULL);
   }
 }
 
@@ -9889,6 +10103,9 @@ void createTransData(bContext *C, TransInfo *t)
 
     if ((scene->toolsettings->transform_flag & SCE_XFORM_DATA_ORIGIN) != 0) {
       t->options |= CTX_OBMODE_XFORM_OBDATA;
+    }
+    if ((scene->toolsettings->transform_flag & SCE_XFORM_SKIP_CHILDREN) != 0) {
+      t->options |= CTX_OBMODE_XFORM_SKIP_CHILDREN;
     }
 
     createTransObject(C, t);
