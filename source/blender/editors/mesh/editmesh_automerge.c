@@ -198,6 +198,11 @@ static void edbm_automerge_weld_linked_wire_edges_into_linked_faces(BMesh *bm,
       }
       edgenet[edgenet_len++] = e;
       v_other = BM_edge_other_vert(e, v_other);
+      if (v_other == v) {
+        /* Endless loop. */
+        break;
+      }
+
       BMEdge *e_next = BM_DISK_EDGE_NEXT(e, v_other);
       if (e_next == e) {
         /* Vert is wire_endpoint */
