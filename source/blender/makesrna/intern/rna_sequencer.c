@@ -2758,14 +2758,16 @@ static void rna_def_text(StructRNA *srna)
   prop = RNA_def_property(srna, "align_x", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "align");
   RNA_def_property_enum_items(prop, text_align_x_items);
-  RNA_def_property_ui_text(prop, "Align X", "Align the text along the X axis");
+  RNA_def_property_ui_text(
+      prop, "Align X", "Align the text along the X axis, relative to the text midpoint");
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
   prop = RNA_def_property(srna, "align_y", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "align_y");
   RNA_def_property_enum_items(prop, text_align_y_items);
-  RNA_def_property_ui_text(prop, "Align Y", "Align the image along the Y axis");
+  RNA_def_property_ui_text(
+      prop, "Align Y", "Align the image along the Y axis, relative to the text midpoint");
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
