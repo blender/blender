@@ -111,11 +111,11 @@ void BKE_override_library_copy(ID *dst_id, const ID *src_id)
 
   if (dst_id->override_library != NULL) {
     if (src_id->override_library == NULL) {
-      BKE_override_library_free(&dst_id->override_library);
+      BKE_override_library_free(&dst_id->override_library, true);
       return;
     }
     else {
-      BKE_override_library_clear(dst_id->override_library);
+      BKE_override_library_clear(dst_id->override_library, true);
     }
   }
   else if (src_id->override_library == NULL) {
@@ -144,7 +144,7 @@ void BKE_override_library_copy(ID *dst_id, const ID *src_id)
 }
 
 /** Clear any overriding data from given \a override. */
-void BKE_override_library_clear(IDOverrideLibrary *override)
+void BKE_override_library_clear(IDOverrideLibrary *override, const bool do_id_user)
 {
   BLI_assert(override != NULL);
 
@@ -153,16 +153,18 @@ void BKE_override_library_clear(IDOverrideLibrary *override)
   }
   BLI_freelistN(&override->properties);
 
-  id_us_min(override->reference);
-  /* override->storage should never be refcounted... */
+  if (do_id_user) {
+    id_us_min(override->reference);
+    /* override->storage should never be refcounted... */
+  }
 }
 
 /** Free given \a override. */
-void BKE_override_library_free(struct IDOverrideLibrary **override)
+void BKE_override_library_free(struct IDOverrideLibrary **override, const bool do_id_user)
 {
   BLI_assert(*override != NULL);
 
-  BKE_override_library_clear(*override);
+  BKE_override_library_clear(*override, do_id_user);
   MEM_freeN(*override);
   *override = NULL;
 }
