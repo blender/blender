@@ -721,23 +721,6 @@ typedef struct TransInfo {
 
   /** Typically for mode settings. */
   TransCustomDataContainer custom;
-
-  /**
-   * Object to object data transform table.
-   * Don't add these to transform data because we may want to include child objects
-   * which aren't being transformed.
-   * - The key is object data #ID.
-   * - The value is #XFormObjectData_Extra.
-   */
-  struct GHash *obdata_in_obmode_map;
-
-  /**
-   * Transform
-   * - The key is object data #Object.
-   * - The value is #XFormObjectSkipChild.
-   */
-  struct GHash *obchild_in_obmode_map;
-
 } TransInfo;
 
 /* ******************** Macros & Prototypes *********************** */
@@ -1182,10 +1165,7 @@ bool checkUseAxisMatrix(TransInfo *t);
        th != tc_end; \
        th++, i++)
 
-void trans_obdata_in_obmode_free_all(struct TransInfo *t);
 void trans_obdata_in_obmode_update_all(struct TransInfo *t);
-
-void trans_obchild_in_obmode_free_all(struct TransInfo *t);
 void trans_obchild_in_obmode_update_all(struct TransInfo *t);
 
 #endif

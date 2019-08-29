@@ -7689,6 +7689,54 @@ int special_transform_moving(TransInfo *t)
 }
 
 /* -------------------------------------------------------------------- */
+/** \name Object Mode Custom Data
+ * \{ */
+
+typedef struct TransDataObject {
+
+  /**
+   * Object to object data transform table.
+   * Don't add these to transform data because we may want to include child objects
+   * which aren't being transformed.
+   * - The key is object data #ID.
+   * - The value is #XFormObjectData_Extra.
+   */
+  struct GHash *obdata_in_obmode_map;
+
+  /**
+   * Transform
+   * - The key is object data #Object.
+   * - The value is #XFormObjectSkipChild.
+   */
+  struct GHash *obchild_in_obmode_map;
+
+} TransDataObject;
+
+/** \} */
+
+static void trans_obdata_in_obmode_free_all(TransDataObject *tdo);
+static void trans_obchild_in_obmode_free_all(TransDataObject *tdo);
+
+static void freeTransObjectCustomData(TransInfo *t,
+                                      TransDataContainer *UNUSED(tc),
+                                      TransCustomData *custom_data)
+{
+  TransDataObject *tdo = custom_data->data;
+  custom_data->data = NULL;
+
+  if (t->options & CTX_OBMODE_XFORM_OBDATA) {
+    trans_obdata_in_obmode_free_all(tdo);
+  }
+
+  if (t->options & CTX_OBMODE_XFORM_SKIP_CHILDREN) {
+    trans_obchild_in_obmode_free_all(tdo);
+  }
+  MEM_freeN(tdo);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Object Data in Object Mode
  *
  * Use to implement 'Affect Only Origins' feature.
@@ -7703,14 +7751,14 @@ struct XFormObjectData_Extra {
   struct XFormObjectData *xod;
 };
 
-static void trans_obdata_in_obmode_ensure_object(TransInfo *t, Object *ob)
+static void trans_obdata_in_obmode_ensure_object(TransDataObject *tdo, Object *ob)
 {
-  if (t->obdata_in_obmode_map == NULL) {
-    t->obdata_in_obmode_map = BLI_ghash_ptr_new(__func__);
+  if (tdo->obdata_in_obmode_map == NULL) {
+    tdo->obdata_in_obmode_map = BLI_ghash_ptr_new(__func__);
   }
 
   void **xf_p;
-  if (!BLI_ghash_ensure_p(t->obdata_in_obmode_map, ob->data, &xf_p)) {
+  if (!BLI_ghash_ensure_p(tdo->obdata_in_obmode_map, ob->data, &xf_p)) {
     struct XFormObjectData_Extra *xf = MEM_mallocN(sizeof(*xf), __func__);
     copy_m4_m4(xf->obmat_orig, ob->obmat);
     xf->ob = ob;
@@ -7722,7 +7770,8 @@ static void trans_obdata_in_obmode_ensure_object(TransInfo *t, Object *ob)
 
 void trans_obdata_in_obmode_update_all(TransInfo *t)
 {
-  if (t->obdata_in_obmode_map == NULL) {
+  TransDataObject *tdo = t->custom.type.data;
+  if (tdo->obdata_in_obmode_map == NULL) {
     return;
   }
 
@@ -7730,7 +7779,7 @@ void trans_obdata_in_obmode_update_all(TransInfo *t)
   BKE_scene_graph_evaluated_ensure(t->depsgraph, bmain);
 
   GHashIterator gh_iter;
-  GHASH_ITER (gh_iter, t->obdata_in_obmode_map) {
+  GHASH_ITER (gh_iter, tdo->obdata_in_obmode_map) {
     ID *id = BLI_ghashIterator_getKey(&gh_iter);
     struct XFormObjectData_Extra *xf = BLI_ghashIterator_getValue(&gh_iter);
     if (xf->xod == NULL) {
@@ -7758,10 +7807,10 @@ static void trans_obdata_in_obmode_free_elem(void *xf_p)
   MEM_freeN(xf);
 }
 
-void trans_obdata_in_obmode_free_all(TransInfo *t)
+static void trans_obdata_in_obmode_free_all(TransDataObject *tdo)
 {
-  if (t->obdata_in_obmode_map != NULL) {
-    BLI_ghash_free(t->obdata_in_obmode_map, NULL, trans_obdata_in_obmode_free_elem);
+  if (tdo->obdata_in_obmode_map != NULL) {
+    BLI_ghash_free(tdo->obdata_in_obmode_map, NULL, trans_obdata_in_obmode_free_elem);
   }
 }
 
@@ -7779,18 +7828,19 @@ void trans_obdata_in_obmode_free_all(TransInfo *t)
 
 enum {
   /**
-   * The parent is transformed this isn't.
+   * The parent is transformed, this is held in place.
    */
   OB_SKIP_CHILD_PARENT_IS_XFORM = 1,
   /**
-   * The parent is transformed this isn't,
+   * The same as #OB_SKIP_CHILD_PARENT_IS_XFORM,
    * however this objects parent isn't transformed directly.
    */
   OB_SKIP_CHILD_PARENT_IS_XFORM_INDIRECT = 3,
   /**
    * Use the parent invert matrix to apply transformation,
    * this is needed, because breaks in the selection chain prevents this from being transformed.
-   * This is used to add the transform.
+   * This is used to add the transform which would have been added
+   * if there weren't breaks in the parent/child chain.
    */
   OB_SKIP_CHILD_PARENT_APPLY_TRANSFORM = 2,
 };
@@ -7805,17 +7855,17 @@ struct XFormObjectSkipChild {
   int mode;
 };
 
-static void trans_obchild_in_obmode_ensure_object(TransInfo *t,
+static void trans_obchild_in_obmode_ensure_object(TransDataObject *tdo,
                                                   Object *ob,
                                                   Object *ob_parent_recurse,
                                                   int mode)
 {
-  if (t->obchild_in_obmode_map == NULL) {
-    t->obchild_in_obmode_map = BLI_ghash_ptr_new(__func__);
+  if (tdo->obchild_in_obmode_map == NULL) {
+    tdo->obchild_in_obmode_map = BLI_ghash_ptr_new(__func__);
   }
 
   void **xf_p;
-  if (!BLI_ghash_ensure_p(t->obchild_in_obmode_map, ob, &xf_p)) {
+  if (!BLI_ghash_ensure_p(tdo->obchild_in_obmode_map, ob, &xf_p)) {
     struct XFormObjectSkipChild *xf = MEM_mallocN(sizeof(*xf), __func__);
     copy_m4_m4(xf->parentinv_orig, ob->parentinv);
     copy_m4_m4(xf->obmat_orig, ob->obmat);
@@ -7832,7 +7882,8 @@ static void trans_obchild_in_obmode_ensure_object(TransInfo *t,
 
 void trans_obchild_in_obmode_update_all(TransInfo *t)
 {
-  if (t->obchild_in_obmode_map == NULL) {
+  TransDataObject *tdo = t->custom.type.data;
+  if (tdo->obchild_in_obmode_map == NULL) {
     return;
   }
 
@@ -7840,7 +7891,7 @@ void trans_obchild_in_obmode_update_all(TransInfo *t)
   BKE_scene_graph_evaluated_ensure(t->depsgraph, bmain);
 
   GHashIterator gh_iter;
-  GHASH_ITER (gh_iter, t->obchild_in_obmode_map) {
+  GHASH_ITER (gh_iter, tdo->obchild_in_obmode_map) {
     Object *ob = BLI_ghashIterator_getKey(&gh_iter);
     struct XFormObjectSkipChild *xf = BLI_ghashIterator_getValue(&gh_iter);
 
@@ -7900,10 +7951,10 @@ void trans_obchild_in_obmode_update_all(TransInfo *t)
   }
 }
 
-void trans_obchild_in_obmode_free_all(TransInfo *t)
+static void trans_obchild_in_obmode_free_all(TransDataObject *tdo)
 {
-  if (t->obchild_in_obmode_map != NULL) {
-    BLI_ghash_free(t->obchild_in_obmode_map, NULL, MEM_freeN);
+  if (tdo->obchild_in_obmode_map != NULL) {
+    BLI_ghash_free(tdo->obchild_in_obmode_map, NULL, MEM_freeN);
   }
 }
 
@@ -7934,6 +7985,10 @@ static void createTransObject(bContext *C, TransInfo *t)
 
   td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransOb");
   tx = tc->data_ext = MEM_callocN(tc->data_len * sizeof(TransDataExtension), "TransObExtension");
+
+  TransDataObject *tdo = MEM_callocN(sizeof(*tdo), __func__);
+  t->custom.type.data = tdo;
+  t->custom.type.free_cb = freeTransObjectCustomData;
 
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
     Object *ob = base->object;
@@ -7967,7 +8022,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 
     if (t->options & CTX_OBMODE_XFORM_OBDATA) {
       if ((td->flag & TD_SKIP) == 0) {
-        trans_obdata_in_obmode_ensure_object(t, ob);
+        trans_obdata_in_obmode_ensure_object(tdo, ob);
       }
     }
 
@@ -8035,7 +8090,7 @@ static void createTransObject(bContext *C, TransInfo *t)
               ob_parent = ob_parent->parent;
             }
             if (parent_in_transdata) {
-              trans_obdata_in_obmode_ensure_object(t, ob);
+              trans_obdata_in_obmode_ensure_object(tdo, ob);
             }
           }
         }
@@ -8079,7 +8134,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 
                 if (ob_parent_recurse) {
                   trans_obchild_in_obmode_ensure_object(
-                      t, ob, ob_parent_recurse, OB_SKIP_CHILD_PARENT_APPLY_TRANSFORM);
+                      tdo, ob, ob_parent_recurse, OB_SKIP_CHILD_PARENT_APPLY_TRANSFORM);
                   BLI_ghash_insert(objects_parent_root, ob, ob_parent_recurse);
                 }
               }
@@ -8100,13 +8155,13 @@ static void createTransObject(bContext *C, TransInfo *t)
         if (base_parent) {
           if (BASE_XFORM_INDIRECT(base_parent) ||
               BLI_gset_haskey(objects_in_transdata, ob->parent)) {
-            trans_obchild_in_obmode_ensure_object(t, ob, NULL, OB_SKIP_CHILD_PARENT_IS_XFORM);
+            trans_obchild_in_obmode_ensure_object(tdo, ob, NULL, OB_SKIP_CHILD_PARENT_IS_XFORM);
           }
           else {
             Object *ob_parent_recurse = BLI_ghash_lookup(objects_parent_root, ob->parent);
             if (ob_parent_recurse) {
               trans_obchild_in_obmode_ensure_object(
-                  t, ob, ob_parent_recurse, OB_SKIP_CHILD_PARENT_IS_XFORM_INDIRECT);
+                  tdo, ob, ob_parent_recurse, OB_SKIP_CHILD_PARENT_IS_XFORM_INDIRECT);
             }
           }
         }
@@ -8114,6 +8169,8 @@ static void createTransObject(bContext *C, TransInfo *t)
     }
     BLI_gset_free(objects_in_transdata, NULL);
     BLI_ghash_free(objects_parent_root, NULL, NULL);
+
+#undef BASE_XFORM_INDIRECT
   }
 }
 
