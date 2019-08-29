@@ -944,6 +944,11 @@ static void gpencil_add_editpoints_vertexdata(GpencilBatchCache *cache,
                                                               GP_SCULPT_MASK_SELECTMODE_STROKE |
                                                               GP_SCULPT_MASK_SELECTMODE_SEGMENT)));
 
+  const bool show_sculpt_points = (GPENCIL_SCULPT_MODE(gpd) &&
+                                   (ts->gpencil_selectmode_sculpt &
+                                    (GP_SCULPT_MASK_SELECTMODE_POINT |
+                                     GP_SCULPT_MASK_SELECTMODE_SEGMENT)));
+
   MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
 
   /* alpha factor for edit points/line to make them more subtle */
@@ -955,7 +960,18 @@ static void gpencil_add_editpoints_vertexdata(GpencilBatchCache *cache,
       return;
     }
     const bool is_weight_paint = (gpd) && (gpd->flag & GP_DATA_STROKE_WEIGHTMODE);
+
+    /* If Sculpt mode and the mask is disabled, the select must be hidden. */
     const bool hide_select = GPENCIL_SCULPT_MODE(gpd) && !use_sculpt_mask;
+
+    /* Show Edit points if:
+     *  Edit mode: Not in Stroke selection mode
+     *  Sculpt mode: Not in Stroke mask mode and any other mask mode enabled
+     *  Weight mode: Always
+     */
+    const bool show_points = (show_sculpt_points) || (is_weight_paint) ||
+                             (GPENCIL_EDIT_MODE(gpd) &&
+                              ((ts->gpencil_selectmode_edit & GP_SELECTMODE_STROKE) == 0));
 
     if (cache->is_dirty) {
       if ((obact == ob) && ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) &&
@@ -976,8 +992,8 @@ static void gpencil_add_editpoints_vertexdata(GpencilBatchCache *cache,
                                                    &cache->grp_used);
       }
 
-      /* In sculpt mode, the point are only visible if masking is enabled. */
-      if (hide_select) {
+      /* If the points are hidden return. */
+      if ((!show_points) || (hide_select)) {
         return;
       }
 
