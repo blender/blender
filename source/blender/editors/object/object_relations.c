@@ -2426,6 +2426,8 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
 
   if (!ID_IS_LINKED(obact) && obact->instance_collection != NULL &&
       ID_IS_LINKED(obact->instance_collection)) {
+    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+
     Object *obcollection = obact;
     Collection *collection = obcollection->instance_collection;
 
@@ -2503,7 +2505,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
 
     /* Cleanup. */
     BKE_main_id_clear_newpoins(bmain);
-    BKE_main_id_tag_listbase(&bmain->objects, LIB_TAG_DOIT, false);
+    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
   }
   /* Else, poll func ensures us that ID_IS_LINKED(obact) is true. */
   else if (obact->type == OB_ARMATURE) {
@@ -2522,7 +2524,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
 
     /* Cleanup. */
     BKE_main_id_clear_newpoins(bmain);
-    BKE_main_id_tag_listbase(&bmain->objects, LIB_TAG_DOIT, false);
+    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
   }
   /* TODO: probably more cases where we want to do automated smart things in the future! */
   else {
