@@ -43,6 +43,7 @@ project("BlenderDependencies")
 cmake_minimum_required(VERSION 3.5)
 
 include(ExternalProject)
+include(cmake/check_software.cmake)
 include(cmake/options.cmake)
 include(cmake/versions.cmake)
 
