@@ -676,7 +676,7 @@ OpenCLDevice::OpenCLDevice(DeviceInfo &info, Stats &stats, Profiler &profiler, b
   device_initialized = true;
 
   split_kernel = new OpenCLSplitKernel(this);
-  if (!background) {
+  if (use_preview_kernels) {
     load_preview_kernels();
   }
 }

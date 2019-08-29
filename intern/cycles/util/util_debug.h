@@ -33,6 +33,8 @@ class DebugFlags {
   /* Use static BVH in viewport, to match final render exactly. */
   bool viewport_static_bvh;
 
+  bool running_inside_blender;
+
   /* Descriptor of CPU feature-set to be used. */
   struct CPU {
     CPU();

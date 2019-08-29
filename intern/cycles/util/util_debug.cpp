@@ -120,7 +120,7 @@ void DebugFlags::OpenCL::reset()
   debug = (getenv("CYCLES_OPENCL_DEBUG") != NULL);
 }
 
-DebugFlags::DebugFlags() : viewport_static_bvh(false)
+DebugFlags::DebugFlags() : viewport_static_bvh(false), running_inside_blender(false)
 {
   /* Nothing for now. */
 }

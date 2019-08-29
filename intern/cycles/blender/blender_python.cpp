@@ -177,6 +177,8 @@ static PyObject *init_func(PyObject * /*self*/, PyObject *args)
 
   BlenderSession::headless = headless;
 
+  DebugFlags().running_inside_blender = true;
+
   VLOG(2) << "Debug flags initialized to:\n" << DebugFlags();
 
   Py_RETURN_NONE;

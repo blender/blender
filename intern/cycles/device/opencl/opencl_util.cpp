@@ -619,15 +619,16 @@ void OpenCLDevice::OpenCLProgram::compile()
       debug_src = &clsrc;
     }
 
-    /* If binary kernel exists already, try use it. */
-    if (compile_separate(clbin)) {
+    if (DebugFlags().running_inside_blender && compile_separate(clbin)) {
       add_log(string("Built and loaded program from ") + clbin + ".", true);
       loaded = true;
     }
     else {
-      add_log(string("Separate-process building of ") + clbin +
-                  " failed, will fall back to regular building.",
-              true);
+      if (DebugFlags().running_inside_blender) {
+        add_log(string("Separate-process building of ") + clbin +
+                    " failed, will fall back to regular building.",
+                true);
+      }
 
       /* If does not exist or loading binary failed, compile kernel. */
       if (!compile_kernel(debug_src)) {
