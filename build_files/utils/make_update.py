@@ -8,11 +8,10 @@
 
 import argparse
 import os
-import re
 import shutil
-import subprocess
 import sys
 
+import make_utils
 from make_utils import call
 
 # Parse arguments
@@ -43,27 +42,12 @@ def print_stage(text):
     print("")
 
 # Test if we are building a specific release version.
-try:
-    branch = subprocess.check_output([git_command, "rev-parse", "--abbrev-ref", "HEAD"])
-except subprocess.CalledProcessError as e:
-    sys.stderr.write("Failed to get Blender git branch\n")
-    sys.exit(1)
-
-branch = branch.strip().decode('utf8')
-release_version = re.search("^blender-v(.*)-release$", branch)
-if release_version:
-    release_version = release_version.group(1)
-    print("Using Release Blender v" + release_version)
+release_version = make_utils.git_branch_release_version(git_command)
 
 # Setup for precompiled libraries and tests from svn.
 if not only_code:
     lib_dirpath = os.path.join('..', 'lib')
-
-    if release_version:
-        svn_branch = "tags/blender-" + release_version + "-release"
-    else:
-        svn_branch = "trunk"
-    svn_url = "https://svn.blender.org/svnroot/bf-blender/" + svn_branch + "/lib/"
+    svn_url = make_utils.svn_libraries_base_url(release_version)
 
     # Checkout precompiled libraries
     if sys.platform == 'darwin':
