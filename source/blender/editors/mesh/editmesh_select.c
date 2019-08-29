@@ -1018,6 +1018,8 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
     uint base_index;
     BMElem *ele;
   } best = {0, NULL};
+  /* Currently unused, keep since we may want to pick the best. */
+  UNUSED_VARS(best);
 
   struct {
     uint base_index;
