@@ -652,12 +652,11 @@ void BKE_libblock_unlink(Main *bmain,
  *     ... sigh
  */
 void BKE_libblock_relink_ex(
-    Main *bmain, void *idv, void *old_idv, void *new_idv, const bool us_min_never_null)
+    Main *bmain, void *idv, void *old_idv, void *new_idv, const short remap_flags)
 {
   ID *id = idv;
   ID *old_id = old_idv;
   ID *new_id = new_idv;
-  int remap_flags = us_min_never_null ? 0 : ID_REMAP_SKIP_NEVER_NULL_USAGE;
 
   /* No need to lock here, we are only affecting given ID, not bmain database. */
 
@@ -945,7 +944,7 @@ void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_i
 #endif
 
   if ((flag & LIB_ID_FREE_NO_USER_REFCOUNT) == 0) {
-    BKE_libblock_relink_ex(bmain, id, NULL, NULL, true);
+    BKE_libblock_relink_ex(bmain, id, NULL, NULL, 0);
   }
 
   BKE_libblock_free_datablock(id, flag);
@@ -1091,7 +1090,7 @@ static void id_delete(Main *bmain, const bool do_tagged_deletion)
             bmain, id, NULL, ID_REMAP_FLAG_NEVER_NULL_USAGE | ID_REMAP_FORCE_NEVER_NULL_USAGE);
         /* Since we removed ID from Main,
          * we also need to unlink its own other IDs usages ourself. */
-        BKE_libblock_relink_ex(bmain, id, NULL, NULL, true);
+        BKE_libblock_relink_ex(bmain, id, NULL, NULL, 0);
         /* Now we can safely mark that ID as not being in Main database anymore. */
         id->tag |= LIB_TAG_NO_MAIN;
         /* This is needed because we may not have remapped usages

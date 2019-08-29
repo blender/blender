@@ -851,8 +851,8 @@ void BKE_id_swap(Main *bmain, ID *id_a, ID *id_b)
   id_b->properties = id_a_back.properties;
 
   /* Swap will have broken internal references to itself, restore them. */
-  BKE_libblock_relink_ex(bmain, id_a, id_b, id_a, false);
-  BKE_libblock_relink_ex(bmain, id_b, id_a, id_b, false);
+  BKE_libblock_relink_ex(bmain, id_a, id_b, id_a, ID_REMAP_SKIP_NEVER_NULL_USAGE);
+  BKE_libblock_relink_ex(bmain, id_b, id_a, id_b, ID_REMAP_SKIP_NEVER_NULL_USAGE);
 }
 
 /** Does *not* set ID->newid pointer. */

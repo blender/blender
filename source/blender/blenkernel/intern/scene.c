@@ -268,7 +268,11 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
     /* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
      *       (see BKE_libblock_copy_ex()). */
     BKE_id_copy_ex(bmain, (ID *)sce_src->nodetree, (ID **)&sce_dst->nodetree, flag);
-    BKE_libblock_relink_ex(bmain, sce_dst->nodetree, (void *)(&sce_src->id), &sce_dst->id, false);
+    BKE_libblock_relink_ex(bmain,
+                           sce_dst->nodetree,
+                           (void *)(&sce_src->id),
+                           &sce_dst->id,
+                           ID_REMAP_SKIP_NEVER_NULL_USAGE);
   }
 
   if (sce_src->rigidbody_world) {
