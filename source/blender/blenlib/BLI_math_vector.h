@@ -103,6 +103,7 @@ MINLINE void add_v2_fl(float r[2], float f);
 MINLINE void add_v3_fl(float r[3], float f);
 MINLINE void add_v4_fl(float r[4], float f);
 MINLINE void add_v2_v2(float r[2], const float a[2]);
+MINLINE void add_v2_v2_db(double r[2], const double a[2]);
 MINLINE void add_v2_v2v2(float r[2], const float a[2], const float b[2]);
 MINLINE void add_v2_v2v2_int(int r[2], const int a[2], const int b[2]);
 MINLINE void add_v3_v3(float r[3], const float a[3]);
@@ -116,6 +117,7 @@ MINLINE void add_v3fl_v3fl_v3s(float r[3], const float a[3], const short b[3]);
 
 MINLINE void sub_v2_v2(float r[2], const float a[2]);
 MINLINE void sub_v2_v2v2(float r[2], const float a[2], const float b[2]);
+MINLINE void sub_v2_v2v2_db(double r[2], const double a[2], const double b[2]);
 MINLINE void sub_v2_v2v2_int(int r[2], const int a[2], const int b[2]);
 MINLINE void sub_v3_v3(float r[3], const float a[3]);
 MINLINE void sub_v3_v3v3(float r[3], const float a[3], const float b[3]);
@@ -184,6 +186,7 @@ MINLINE void abs_v4(float r[4]);
 MINLINE void abs_v4_v4(float r[4], const float a[4]);
 
 MINLINE float dot_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE double dot_v2v2_db(const double a[2], const double b[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float dot_v3v3(const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float dot_v3v3v3(const float p[3],
                          const float a[3],
@@ -212,8 +215,10 @@ MINLINE int len_manhattan_v2_int(const int v[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_manhattan_v3(const float v[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_v2(const float a[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE double len_v2v2_db(const double a[2], const double b[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_v2v2_int(const int v1[2], const int v2[2]);
 MINLINE float len_squared_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE double len_squared_v2v2_db(const double a[2], const double b[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_squared_v3v3(const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_squared_v4v4(const float a[4], const float b[4]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_manhattan_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;

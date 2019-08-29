@@ -121,6 +121,9 @@ MINLINE float max_fff(float a, float b, float c);
 MINLINE float min_ffff(float a, float b, float c, float d);
 MINLINE float max_ffff(float a, float b, float c, float d);
 
+MINLINE double min_dd(double a, double b);
+MINLINE double max_dd(double a, double b);
+
 MINLINE int min_ii(int a, int b);
 MINLINE int max_ii(int a, int b);
 MINLINE int min_iii(int a, int b, int c);

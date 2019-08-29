@@ -355,6 +355,12 @@ MINLINE void add_v2_v2(float r[2], const float a[2])
   r[1] += a[1];
 }
 
+MINLINE void add_v2_v2_db(double r[2], const double a[2])
+{
+  r[0] += a[0];
+  r[1] += a[1];
+}
+
 MINLINE void add_v2_v2v2(float r[2], const float a[2], const float b[2])
 {
   r[0] = a[0] + b[0];
@@ -425,6 +431,12 @@ MINLINE void sub_v2_v2(float r[2], const float a[2])
 }
 
 MINLINE void sub_v2_v2v2(float r[2], const float a[2], const float b[2])
+{
+  r[0] = a[0] - b[0];
+  r[1] = a[1] - b[1];
+}
+
+MINLINE void sub_v2_v2v2_db(double r[2], const double a[2], const double b[2])
 {
   r[0] = a[0] - b[0];
   r[1] = a[1] - b[1];
@@ -830,6 +842,11 @@ MINLINE float dot_v2v2(const float a[2], const float b[2])
   return a[0] * b[0] + a[1] * b[1];
 }
 
+MINLINE double dot_v2v2_db(const double a[2], const double b[2])
+{
+  return a[0] * b[0] + a[1] * b[1];
+}
+
 MINLINE float dot_v3v3(const float a[3], const float b[3])
 {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
@@ -956,6 +973,15 @@ MINLINE float len_v2v2(const float v1[2], const float v2[2])
   return sqrtf(x * x + y * y);
 }
 
+MINLINE double len_v2v2_db(const double v1[2], const double v2[2])
+{
+  double x, y;
+
+  x = v1[0] - v2[0];
+  y = v1[1] - v2[1];
+  return sqrt(x * x + y * y);
+}
+
 MINLINE float len_v2v2_int(const int v1[2], const int v2[2])
 {
   float x, y;
@@ -976,6 +1002,14 @@ MINLINE float len_squared_v2v2(const float a[2], const float b[2])
 
   sub_v2_v2v2(d, b, a);
   return dot_v2v2(d, d);
+}
+
+MINLINE double len_squared_v2v2_db(const double a[2], const double b[2])
+{
+  double d[2];
+
+  sub_v2_v2v2_db(d, b, a);
+  return dot_v2v2_db(d, d);
 }
 
 MINLINE float len_squared_v3v3(const float a[3], const float b[3])

@@ -188,6 +188,10 @@ float dist_squared_to_projected_aabb_simple(const float projmat[4][4],
                                             const float bbmax[3]);
 
 float closest_to_line_v2(float r_close[2], const float p[2], const float l1[2], const float l2[2]);
+double closest_to_line_v2_db(double r_close[2],
+                             const double p[2],
+                             const double l1[2],
+                             const double l2[2]);
 float closest_to_line_v3(float r_close[3], const float p[3], const float l1[3], const float l2[3]);
 void closest_to_line_segment_v2(float r_close[2],
                                 const float p[2],
@@ -267,7 +271,12 @@ bool isect_seg_seg_v2_simple(const float v1[2],
                              const float v2[2],
                              const float v3[2],
                              const float v4[2]);
-
+int isect_seg_seg_v2_lambda_mu_db(const double v1[2],
+                                  const double v2[2],
+                                  const double v3[2],
+                                  const double v4[2],
+                                  double *r_lambda,
+                                  double *r_mu);
 int isect_line_sphere_v3(const float l1[3],
                          const float l2[3],
                          const float sp[3],

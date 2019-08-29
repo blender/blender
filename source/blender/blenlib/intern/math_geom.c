@@ -1356,6 +1356,52 @@ bool isect_seg_seg_v2_simple(const float v1[2],
 }
 
 /**
+ * If intersection == ISECT_LINE_LINE_CROSS or ISECT_LINE_LINE_NONE:
+ * <pre>
+ * pt = v1 + lamba * (v2 - v1) = v3 + mu * (v4 - v3)
+ * </pre>
+ * \returns intersection type:
+ * - ISECT_LINE_LINE_COLINEAR: collinear.
+ * - ISECT_LINE_LINE_EXACT: intersection at an endpoint of either.
+ * - ISECT_LINE_LINE_CROSS: interection, not at an endpoint.
+ * - ISECT_LINE_LINE_NONE: no intersection.
+ * Also returns lambda and mu in r_lambda and r_mu.
+ */
+int isect_seg_seg_v2_lambda_mu_db(const double v1[2],
+                                  const double v2[2],
+                                  const double v3[2],
+                                  const double v4[2],
+                                  double *r_lambda,
+                                  double *r_mu)
+{
+  double div, lambda, mu;
+
+  div = (v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]);
+  if (fabs(div) < DBL_EPSILON) {
+    return ISECT_LINE_LINE_COLINEAR;
+  }
+
+  lambda = ((v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
+
+  mu = ((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
+
+  if (r_lambda) {
+    *r_lambda = lambda;
+  }
+  if (r_mu) {
+    *r_mu = mu;
+  }
+
+  if (lambda >= 0.0 && lambda <= 1.0 && mu >= 0.0 && mu <= 1.0) {
+    if (lambda == 0.0 || lambda == 1.0 || mu == 0.0 || mu == 1.0) {
+      return ISECT_LINE_LINE_EXACT;
+    }
+    return ISECT_LINE_LINE_CROSS;
+  }
+  return ISECT_LINE_LINE_NONE;
+}
+
+/**
  * \param l1, l2: Coordinates (point of line).
  * \param sp, r:  Coordinate and radius (sphere).
  * \return r_p1, r_p2: Intersection coordinates.
@@ -3182,6 +3228,26 @@ float closest_to_line_v2(float r_close[2], const float p[2], const float l1[2], 
   sub_v2_v2v2(u, l2, l1);
   sub_v2_v2v2(h, p, l1);
   lambda = dot_v2v2(u, h) / dot_v2v2(u, u);
+  r_close[0] = l1[0] + u[0] * lambda;
+  r_close[1] = l1[1] + u[1] * lambda;
+  return lambda;
+}
+
+double closest_to_line_v2_db(double r_close[2],
+                             const double p[2],
+                             const double l1[2],
+                             const double l2[2])
+{
+  double h[2], u[2], lambda, denom;
+  sub_v2_v2v2_db(u, l2, l1);
+  sub_v2_v2v2_db(h, p, l1);
+  denom = dot_v2v2_db(u, u);
+  if (denom < DBL_EPSILON) {
+    r_close[0] = l1[0];
+    r_close[1] = l1[1];
+    return 0.0;
+  }
+  lambda = dot_v2v2_db(u, h) / dot_v2v2_db(u, u);
   r_close[0] = l1[0] + u[0] * lambda;
   r_close[1] = l1[1] + u[1] * lambda;
   return lambda;

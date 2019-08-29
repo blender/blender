@@ -353,6 +353,15 @@ MINLINE float max_ff(float a, float b)
   return (a > b) ? a : b;
 }
 
+MINLINE double min_dd(double a, double b)
+{
+  return (a < b) ? a : b;
+}
+MINLINE double max_dd(double a, double b)
+{
+  return (a > b) ? a : b;
+}
+
 MINLINE int min_ii(int a, int b)
 {
   return (a < b) ? a : b;
