@@ -1107,13 +1107,14 @@ _create_inst_shortcut() {
 # ldconfig
 run_ldconfig() {
   _lib_path="$INST/$1/lib"
+  _lib64_path="$INST/$1/lib64"
   _ldconf_path="/etc/ld.so.conf.d/$1.conf"
   PRINT ""
   if [ ! $SUDO ]; then
     WARNING "--no-sudo enabled, impossible to run ldconfig for $1, you'll have to do it yourself..."
   else
     INFO "Running ldconfig for $1..."
-    $SUDO sh -c "echo \"$_lib_path\" > $_ldconf_path"
+    $SUDO sh -c "echo -e \"$_lib_path\n$_lib64_path\" > $_ldconf_path"
     $SUDO /sbin/ldconfig  # XXX OpenSuse does not include sbin in command path with sudo!!!
   fi
   PRINT ""
