@@ -199,7 +199,7 @@ static float bm_edge_calc_rotate_beauty__area(const float v1[3],
      * Allowing to rotate out of a degenerate state can flip the faces
      * (when performed iteratively).
      */
-    return BLI_polyfill_beautify_quad_rotate_calc_ex(v1_xy, v2_xy, v3_xy, v4_xy, true);
+    return BLI_polyfill_beautify_quad_rotate_calc_ex(v1_xy, v2_xy, v3_xy, v4_xy, true, NULL);
   } while (false);
 
   return FLT_MAX;

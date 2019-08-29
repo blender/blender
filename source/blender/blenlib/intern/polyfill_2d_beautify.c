@@ -100,6 +100,10 @@ BLI_INLINE bool is_boundary_edge(uint i_a, uint i_b, const uint coord_last)
  * - When true, an existing zero area face on either side of the (2 - 4
  *   split will return a positive value.
  * - When false, the check must be non-biased towards either split direction.
+ * \param r_area: Return the area of the quad,
+ * This can be useful when comparing the return value with near zero epsilons.
+ * In this case the epsilon can be scaled by the area to avoid the return value
+ * of very large faces not having a reliable way to detect near-zero output.
  *
  * \return (negative number means the edge can be rotated, lager == better).
  */
@@ -107,7 +111,8 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(const float v1[2],
                                                 const float v2[2],
                                                 const float v3[2],
                                                 const float v4[2],
-                                                const bool lock_degenerate)
+                                                const bool lock_degenerate,
+                                                float *r_area)
 {
   /* not a loop (only to be able to break out) */
   do {
@@ -181,17 +186,28 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(const float v1[2],
       prim_b = len_34 + len_41 + len_13;
       fac_13 = (area_a / prim_a) + (area_b / prim_b);
 
+      if (r_area) {
+        *r_area = fabsf(area_2x_234) + fabsf(area_2x_241) +
+                  /* Include both pairs for predictable results. */
+                  fabsf(area_2x_123) + fabsf(area_2x_134) / 8.0f;
+      }
+
       /* negative number if (1-3) is an improved state */
       return fac_24 - fac_13;
     }
   } while (false);
+
+  if (r_area) {
+    *r_area = 0.0f;
+  }
 
   return FLT_MAX;
 }
 
 static float polyedge_rotate_beauty_calc(const float (*coords)[2],
                                          const struct HalfEdge *edges,
-                                         const struct HalfEdge *e_a)
+                                         const struct HalfEdge *e_a,
+                                         float *r_area)
 {
   const struct HalfEdge *e_b = &edges[e_a->e_radial];
 
@@ -205,7 +221,7 @@ static float polyedge_rotate_beauty_calc(const float (*coords)[2],
   v3 = coords[e_b_other->v];
   v4 = coords[e_b->v];
 
-  return BLI_polyfill_beautify_quad_rotate_calc(v1, v2, v3, v4);
+  return BLI_polyfill_beautify_quad_rotate_calc_ex(v1, v2, v3, v4, false, r_area);
 }
 
 static void polyedge_beauty_cost_update_single(const float (*coords)[2],
@@ -216,13 +232,18 @@ static void polyedge_beauty_cost_update_single(const float (*coords)[2],
 {
   const uint i = e->base_index;
   /* recalculate edge */
-  const float cost = polyedge_rotate_beauty_calc(coords, edges, e);
+  float area;
+  const float cost = polyedge_rotate_beauty_calc(coords, edges, e, &area);
   /* We can get cases where both choices generate very small negative costs,
    * which leads to infinite loop. Anyway, costs above that are not worth recomputing,
    * maybe we could even optimize it to a smaller limit?
    * Actually, FLT_EPSILON is too small in some cases, 1e-6f seems to work OK hopefully?
-   * See T43578, T49478. */
-  if (cost < -1e-6f) {
+   * See T43578, T49478.
+   *
+   * In fact a larger epsilon can still fail when the area of the face is very large,
+   * how the epsilon is scaled by the face area.
+   * See T56532. */
+  if (cost < -1e-6f * max_ff(area, 1.0f)) {
     BLI_heap_insert_or_update(eheap, &eheap_table[i], cost, e);
   }
   else {
@@ -381,7 +402,7 @@ void BLI_polyfill_beautify(const float (*coords)[2],
     for (uint i = 0; i < half_edges_len; i++, e++) {
       /* Accounts for boundary edged too (UINT_MAX). */
       if (e->e_radial < i) {
-        const float cost = polyedge_rotate_beauty_calc(coords, half_edges, e);
+        const float cost = polyedge_rotate_beauty_calc(coords, half_edges, e, NULL);
         if (cost < 0.0f) {
           eheap_table[e->base_index] = BLI_heap_insert(eheap, cost, e);
         }
