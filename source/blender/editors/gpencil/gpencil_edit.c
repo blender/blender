@@ -1402,28 +1402,13 @@ void GPENCIL_OT_paste(wmOperatorType *ot)
 
 /* ******************* Move To Layer ****************************** */
 
-static int gp_move_to_layer_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(evt))
-{
-  uiPopupMenu *pup;
-  uiLayout *layout;
-
-  /* call the menu, which will call this operator again, hence the canceled */
-  pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
-  layout = UI_popup_menu_layout(pup);
-  uiItemsEnumO(layout, "GPENCIL_OT_move_to_layer", "layer");
-  UI_popup_menu_end(C, pup);
-
-  return OPERATOR_INTERFACE;
-}
-
-// FIXME: allow moving partial strokes
 static int gp_move_to_layer_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = CTX_data_gpencil_data(C);
   Scene *scene = CTX_data_scene(C);
   bGPDlayer *target_layer = NULL;
   ListBase strokes = {NULL, NULL};
-  int layer_num = RNA_enum_get(op->ptr, "layer");
+  int layer_num = RNA_int_get(op->ptr, "layer");
   const bool use_autolock = (bool)(gpd->flag & GP_DATA_AUTOLOCK_LAYERS);
 
   if (GPENCIL_MULTIEDIT_SESSIONS_ON(gpd)) {
@@ -1436,23 +1421,16 @@ static int gp_move_to_layer_exec(bContext *C, wmOperator *op)
     gpd->flag &= ~GP_DATA_AUTOLOCK_LAYERS;
   }
 
-  /* Get layer or create new one */
-  if (layer_num == -1) {
-    /* Create layer */
-    target_layer = BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true);
-  }
-  else {
-    /* Try to get layer */
-    target_layer = BLI_findlink(&gpd->layers, layer_num);
+  /* Try to get layer */
+  target_layer = BLI_findlink(&gpd->layers, layer_num);
 
-    if (target_layer == NULL) {
-      /* back autolock status */
-      if (use_autolock) {
-        gpd->flag |= GP_DATA_AUTOLOCK_LAYERS;
-      }
-      BKE_reportf(op->reports, RPT_ERROR, "There is no layer number %d", layer_num);
-      return OPERATOR_CANCELLED;
+  if (target_layer == NULL) {
+    /* back autolock status */
+    if (use_autolock) {
+      gpd->flag |= GP_DATA_AUTOLOCK_LAYERS;
     }
+    BKE_reportf(op->reports, RPT_ERROR, "There is no layer number %d", layer_num);
+    return OPERATOR_CANCELLED;
   }
 
   /* Extract all strokes to move to this layer
@@ -1520,16 +1498,14 @@ void GPENCIL_OT_move_to_layer(wmOperatorType *ot)
       "Move selected strokes to another layer";  // XXX: allow moving individual points too?
 
   /* callbacks */
-  ot->invoke = gp_move_to_layer_invoke;
   ot->exec = gp_move_to_layer_exec;
   ot->poll = gp_stroke_edit_poll;  // XXX?
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* gp layer to use (dynamic enum) */
-  ot->prop = RNA_def_enum(ot->srna, "layer", DummyRNA_DEFAULT_items, 0, "Grease Pencil Layer", "");
-  RNA_def_enum_funcs(ot->prop, ED_gpencil_layers_with_new_enum_itemf);
+  /* GPencil layer to use. */
+  ot->prop = RNA_def_int(ot->srna, "layer", 0, 0, INT_MAX, "Grease Pencil Layer", "", 0, INT_MAX);
 }
 
 /* ********************* Add Blank Frame *************************** */
