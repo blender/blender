@@ -153,3 +153,7 @@ endif()
 if(WITH_ALEMBIC)
   add_subdirectory(alembic)
 endif()
+
+if(WIN32)
+  add_subdirectory(blendthumb)
+endif()

@@ -172,17 +172,7 @@ void RegisterBlendExtension(void)
 
   BLI_getInstallationDir(InstallDir);
   GetSystemDirectory(SysDir, FILE_MAXDIR);
-#  ifdef _WIN64
-  ThumbHandlerDLL = "BlendThumb64.dll";
-#  else
-  IsWow64Process(GetCurrentProcess(), &IsWOW64);
-  if (IsWOW64 == true) {
-    ThumbHandlerDLL = "BlendThumb64.dll";
-  }
-  else {
-    ThumbHandlerDLL = "BlendThumb.dll";
-  }
-#  endif
+  ThumbHandlerDLL = "BlendThumb.dll";
   snprintf(
       RegCmd, MAX_PATH * 2, "%s\\regsvr32 /s \"%s\\%s\"", SysDir, InstallDir, ThumbHandlerDLL);
   system(RegCmd);
