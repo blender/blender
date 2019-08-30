@@ -497,61 +497,69 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
   elseif(NOT EXISTS "${TEST_SRC_DIR}/render/shader")
     MESSAGE(STATUS "Disabling render tests because tests folder does not exist at ${TEST_SRC_DIR}")
   else()
-    macro(add_cycles_render_test subject)
-      if(WITH_CYCLES)
+    set(render_tests
+      bsdf
+      denoise
+      denoise_animation
+      displacement
+      hair
+      image_colorspace
+      image_data_types
+      image_mapping
+      image_texture_limit
+      integrator
+      light
+      mesh
+      motion_blur
+      render_layer
+      reports
+      shader
+      shadow_catcher
+      sss
+      volume
+    )
+
+    if(WITH_OPENGL_RENDER_TESTS)
+      list(APPEND render_tests grease_pencil)
+    endif()
+
+    if(WITH_CYCLES)
+      foreach(render_test bake;${render_tests})
+        message(STATUS ${render_test})
         add_python_test(
-          cycles_${subject}
+          cycles_${render_test}
           ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
           -blender "$<TARGET_FILE:blender>"
-          -testdir "${TEST_SRC_DIR}/render/${subject}"
+          -testdir "${TEST_SRC_DIR}/render/${render_test}"
           -idiff "${OPENIMAGEIO_IDIFF}"
           -outdir "${TEST_OUT_DIR}/cycles"
         )
-      endif()
+      endforeach()
+    endif()
 
-      if(WITH_OPENGL_RENDER_TESTS AND (NOT ${subject} MATCHES "bake"))
+    if(WITH_OPENGL_RENDER_TESTS)
+      foreach(render_test ${render_tests})
         add_python_test(
-          eevee_${subject}_test
+          eevee_${render_test}_test
           ${CMAKE_CURRENT_LIST_DIR}/eevee_render_tests.py
           -blender "$<TARGET_FILE:blender>"
-          -testdir "${TEST_SRC_DIR}/render/${subject}"
+          -testdir "${TEST_SRC_DIR}/render/${render_test}"
           -idiff "${OPENIMAGEIO_IDIFF}"
           -outdir "${TEST_OUT_DIR}/eevee"
         )
+      endforeach()
 
+      foreach(render_test ${render_tests})
         add_python_test(
-          workbench_${subject}_test
+          workbench_${render_test}_test
           ${CMAKE_CURRENT_LIST_DIR}/workbench_render_tests.py
           -blender "$<TARGET_FILE:blender>"
-          -testdir "${TEST_SRC_DIR}/render/${subject}"
+          -testdir "${TEST_SRC_DIR}/render/${render_test}"
           -idiff "${OPENIMAGEIO_IDIFF}"
           -outdir "${TEST_OUT_DIR}/workbench"
         )
-      endif()
-    endmacro()
-    add_cycles_render_test(bake)
-    add_cycles_render_test(bsdf)
-    add_cycles_render_test(denoise)
-    add_cycles_render_test(denoise_animation)
-    add_cycles_render_test(displacement)
-    if(WITH_OPENGL_RENDER_TESTS)
-      add_cycles_render_test(grease_pencil)
+      endforeach()
     endif()
-    add_cycles_render_test(hair)
-    add_cycles_render_test(image_colorspace)
-    add_cycles_render_test(image_data_types)
-    add_cycles_render_test(image_mapping)
-    add_cycles_render_test(image_texture_limit)
-    add_cycles_render_test(integrator)
-    add_cycles_render_test(light)
-    add_cycles_render_test(mesh)
-    add_cycles_render_test(motion_blur)
-    add_cycles_render_test(render_layer)
-    add_cycles_render_test(reports)
-    add_cycles_render_test(shader)
-    add_cycles_render_test(shadow_catcher)
-    add_cycles_render_test(sss)
-    add_cycles_render_test(volume)
   endif()
 endif()
 
