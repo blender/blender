@@ -92,7 +92,7 @@ static int gpu_shader_mix_rgb(GPUMaterial *mat,
   if (ret && node->custom2 & SHD_MIXRGB_CLAMP) {
     float min[3] = {0.0f, 0.0f, 0.0f};
     float max[3] = {1.0f, 1.0f, 1.0f};
-    GPU_link(mat, "clamp_vec3", out[0].link, GPU_constant(min), GPU_constant(max), &out[0].link);
+    GPU_link(mat, "clamp_color", out[0].link, GPU_constant(min), GPU_constant(max), &out[0].link);
   }
   return ret;
 }

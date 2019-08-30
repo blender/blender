@@ -115,7 +115,7 @@ static int gpu_shader_mapping(GPUMaterial *mat,
   GPU_stack_link(mat, node, "mapping", in, out, tmat0, tmat1, tmat2, tmat3, tmin, tmax);
 
   if (texmap->type == TEXMAP_TYPE_NORMAL) {
-    GPU_link(mat, "texco_norm", out[0].link, &out[0].link);
+    GPU_link(mat, "vector_normalize", out[0].link, &out[0].link);
   }
 
   return true;

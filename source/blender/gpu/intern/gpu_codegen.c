@@ -414,7 +414,7 @@ static void codegen_convert_datatype(DynStr *ds, int from, int to, const char *t
   }
   else if (to == GPU_FLOAT) {
     if (from == GPU_VEC4) {
-      BLI_dynstr_appendf(ds, "convert_rgba_to_float(%s)", name);
+      BLI_dynstr_appendf(ds, "dot(%s.rgb, vec3(0.2126, 0.7152, 0.0722))", name);
     }
     else if (from == GPU_VEC3) {
       BLI_dynstr_appendf(ds, "(%s.r + %s.g + %s.b) / 3.0", name, name, name);
@@ -1376,8 +1376,8 @@ void GPU_code_generate_glsl_lib(void)
   }
 
   FUNCTION_HASH = BLI_ghash_str_new("GPU_lookup_function gh");
-  for (int i = 0; gpu_material_libraries[i].code; i++) {
-    gpu_parse_material_library(FUNCTION_HASH, &gpu_material_libraries[i]);
+  for (int i = 0; gpu_material_libraries[i]; i++) {
+    gpu_parse_material_library(FUNCTION_HASH, gpu_material_libraries[i]);
   }
 }
 
@@ -1780,15 +1780,20 @@ GPUNodeLink *GPU_builtin(eGPUBuiltin builtin)
   return link;
 }
 
+static void gpu_material_use_library_with_dependencies(GSet *used_libraries,
+                                                       GPUMaterialLibrary *library)
+{
+  if (BLI_gset_add(used_libraries, library->code)) {
+    for (int i = 0; library->dependencies[i]; i++) {
+      gpu_material_use_library_with_dependencies(used_libraries, library->dependencies[i]);
+    }
+  }
+}
+
 static void gpu_material_use_library(GPUMaterial *material, GPUMaterialLibrary *library)
 {
   GSet *used_libraries = gpu_material_used_libraries(material);
-
-  if (BLI_gset_add(used_libraries, library->code)) {
-    for (int i = 0; library->dependencies[i]; i++) {
-      BLI_gset_add(used_libraries, library->dependencies[i]);
-    }
-  }
+  gpu_material_use_library_with_dependencies(used_libraries, library);
 }
 
 bool GPU_link(GPUMaterial *mat, const char *name, ...)
@@ -1971,9 +1976,13 @@ static char *code_generate_material_library(GPUMaterial *material, const char *f
 
   GSet *used_libraries = gpu_material_used_libraries(material);
 
+  /* Always include those because they may be needed by the execution function. */
+  gpu_material_use_library_with_dependencies(used_libraries,
+                                             &gpu_shader_material_world_normals_library);
+
   /* Add library code in order, for dependencies. */
-  for (int i = 0; gpu_material_libraries[i].code; i++) {
-    GPUMaterialLibrary *library = &gpu_material_libraries[i];
+  for (int i = 0; gpu_material_libraries[i]; i++) {
+    GPUMaterialLibrary *library = gpu_material_libraries[i];
     if (BLI_gset_haskey(used_libraries, library->code)) {
       BLI_dynstr_append(ds, library->code);
     }

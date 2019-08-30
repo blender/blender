@@ -132,7 +132,7 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
   }
 
   if (nodeprop->type == SHD_VECT_TRANSFORM_TYPE_NORMAL) {
-    GPU_link(mat, "vect_normalize", out[0].link, &out[0].link);
+    GPU_link(mat, "vector_normalize", out[0].link, &out[0].link);
   }
 
   return true;

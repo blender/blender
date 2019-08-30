@@ -204,3 +204,14 @@ vec3 hash_vec4_to_vec3(vec4 k)
 {
   return vec3(hash_vec4_to_float(k.xyzw), hash_vec4_to_float(k.zxwy), hash_vec4_to_float(k.wzyx));
 }
+
+/* Other Hash Functions */
+
+float integer_noise(int n)
+{
+  int nn;
+  n = (n + 1013) & 0x7fffffff;
+  n = (n >> 13) ^ n;
+  nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
+  return 0.5 * (float(nn) / 1073741824.0);
+}

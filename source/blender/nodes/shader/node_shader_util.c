@@ -283,7 +283,7 @@ void node_shader_gpu_tex_mapping(GPUMaterial *mat,
     GPU_link(mat, "mapping", in[0].link, tmat0, tmat1, tmat2, tmat3, tmin, tmax, &in[0].link);
 
     if (texmap->type == TEXMAP_TYPE_NORMAL) {
-      GPU_link(mat, "texco_norm", in[0].link, &in[0].link);
+      GPU_link(mat, "vector_normalize", in[0].link, &in[0].link);
     }
   }
 }

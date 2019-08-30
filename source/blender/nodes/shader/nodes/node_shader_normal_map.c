@@ -114,8 +114,8 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
       break;
   }
 
-  GPU_link(mat, "vector_math_mix", strength, realnorm, negnorm, &out[0].link);
-  GPU_link(mat, "vect_normalize", out[0].link, &out[0].link);
+  GPU_link(mat, "vector_mix", strength, realnorm, negnorm, &out[0].link);
+  GPU_link(mat, "vector_normalize", out[0].link, &out[0].link);
 
   return true;
 }

@@ -183,7 +183,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
     if (ELEM(ima->alpha_mode, IMA_ALPHA_IGNORE, IMA_ALPHA_CHANNEL_PACKED) ||
         IMB_colormanagement_space_name_is_data(ima->colorspace_settings.name)) {
       /* Don't let alpha affect color output in these cases. */
-      GPU_link(mat, "tex_color_alpha_clear", out[0].link, &out[0].link);
+      GPU_link(mat, "color_alpha_clear", out[0].link, &out[0].link);
     }
     else {
       /* Output premultiplied alpha depending on alpha socket usage. This makes
@@ -192,18 +192,18 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
        * not, then there will be no artifacts from zero alpha areas. */
       if (ima->alpha_mode == IMA_ALPHA_PREMUL) {
         if (out[1].hasoutput) {
-          GPU_link(mat, "tex_color_alpha_unpremultiply", out[0].link, &out[0].link);
+          GPU_link(mat, "color_alpha_unpremultiply", out[0].link, &out[0].link);
         }
         else {
-          GPU_link(mat, "tex_color_alpha_clear", out[0].link, &out[0].link);
+          GPU_link(mat, "color_alpha_clear", out[0].link, &out[0].link);
         }
       }
       else {
         if (out[1].hasoutput) {
-          GPU_link(mat, "tex_color_alpha_clear", out[0].link, &out[0].link);
+          GPU_link(mat, "color_alpha_clear", out[0].link, &out[0].link);
         }
         else {
-          GPU_link(mat, "tex_color_alpha_premultiply", out[0].link, &out[0].link);
+          GPU_link(mat, "color_alpha_premultiply", out[0].link, &out[0].link);
         }
       }
     }
