@@ -221,7 +221,7 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
        *
        * There's one weak part tho, which is requirement object
        * motion starts at the same frame as camera motion does,
-       * otherwise that;' be a russian roulette whether object is
+       * otherwise that;' be a Russian roulette whether object is
        * aligned correct or not.
        */
       if (!origin_set) {

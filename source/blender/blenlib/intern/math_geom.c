@@ -1358,7 +1358,7 @@ bool isect_seg_seg_v2_simple(const float v1[2],
 /**
  * If intersection == ISECT_LINE_LINE_CROSS or ISECT_LINE_LINE_NONE:
  * <pre>
- * pt = v1 + lamba * (v2 - v1) = v3 + mu * (v4 - v3)
+ * pt = v1 + lambda * (v2 - v1) = v3 + mu * (v4 - v3)
  * </pre>
  * \returns intersection type:
  * - ISECT_LINE_LINE_COLINEAR: collinear.

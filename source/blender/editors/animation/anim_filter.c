@@ -630,9 +630,8 @@ static bAnimListElem *make_new_animlistelem(void *data,
     /* do specifics */
     switch (datatype) {
       case ANIMTYPE_SUMMARY: {
-        /* nothing to include for now... this is just a dummy wrappy around all the other channels
-         * in the DopeSheet, and gets included at the start of the list
-         */
+        /* Nothing to include for now... this is just a dummy wrapper around
+         * all the other channels in the DopeSheet, and gets included at the start of the list. */
         ale->key_data = NULL;
         ale->datatype = ALE_ALL;
         break;

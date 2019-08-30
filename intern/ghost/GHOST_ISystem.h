@@ -402,7 +402,7 @@ class GHOST_ISystem {
 #ifdef WITH_INPUT_NDOF
   /**
    * Sets 3D mouse deadzone
-   * \param deadzone: Deadzone of the 3D mouse (both for rotation and pan) relative to full range
+   * \param deadzone: Dead-zone of the 3D mouse (both for rotation and pan) relative to full range
    */
   virtual void setNDOFDeadZone(float deadzone) = 0;
 #endif

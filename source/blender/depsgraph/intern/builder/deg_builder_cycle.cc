@@ -149,7 +149,7 @@ bool check_relation_can_murder(Relation *relation)
 
 Relation *select_relation_to_murder(Relation *relation, StackEntry *cycle_start_entry)
 {
-  /* More or less russian roulette solver, which will make sure only
+  /* More or less Russian roulette solver, which will make sure only
    * specially marked relations are kept alive.
    *
    * TODO(sergey): There might be better strategies here. */

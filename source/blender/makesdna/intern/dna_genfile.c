@@ -1102,7 +1102,7 @@ static void reconstruct_elem(const SDNA *newsdna,
    *          - cast type
    *      - name partially equal (array differs)
    *          - type equal: memcpy
-   *          - types casten
+   *          - type cast (per element).
    * (nzc 2-4-2001 I want the 'unsigned' bit to be parsed as well. Where
    * can I force this?)
    */

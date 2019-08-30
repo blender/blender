@@ -232,7 +232,7 @@ void Session::run_gpu()
     }
 
     /* Don't go in pause mode when image was rendered with preview kernels
-     * When feature kernels become available the session will be resetted. */
+     * When feature kernels become available the session will be reset. */
     else if (no_tiles && kernel_state == DEVICE_KERNEL_WAITING_FOR_FEATURE_KERNEL) {
       time_sleep(0.1);
     }

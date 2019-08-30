@@ -79,7 +79,7 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   /* The object type check is only needed here in case we have a placeholder
    * object assigned (because the library containing the mesh is missing).
    *
-   * In other cases it should be impossible to have a type missmatch.
+   * In other cases it should be impossible to have a type mismatch.
    */
   if (!smd->target || smd->target->type != OB_MESH) {
     return true;

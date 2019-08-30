@@ -2062,7 +2062,7 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_dissolve_boundaries", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_DECIM_FLAG_ALL_BOUNDARY_VERTS);
   RNA_def_property_ui_text(
-      prop, "All Boundaries", "Dissolve all vertices inbetween face boundaries (planar only)");
+      prop, "All Boundaries", "Dissolve all vertices in between face boundaries (planar only)");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "delimit", PROP_ENUM, PROP_NONE);

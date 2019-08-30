@@ -750,7 +750,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar),
 /**
  * Draw title and text safe areas.
  *
- * \Note This functionn is to be used with the 2D dashed shader enabled.
+ * \note This function is to be used with the 2D dashed shader enabled.
  *
  * \param pos: is a PRIM_FLOAT, 2, GPU_FETCH_FLOAT vertex attribute.
  * \param line_origin: is a PRIM_FLOAT, 2, GPU_FETCH_FLOAT vertex attribute.

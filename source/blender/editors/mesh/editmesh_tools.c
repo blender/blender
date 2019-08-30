@@ -5711,7 +5711,7 @@ void MESH_OT_dissolve_limited(wmOperatorType *ot)
                   "use_dissolve_boundaries",
                   false,
                   "All Boundaries",
-                  "Dissolve all vertices inbetween face boundaries");
+                  "Dissolve all vertices in between face boundaries");
   RNA_def_enum_flag(ot->srna,
                     "delimit",
                     rna_enum_mesh_delimit_mode_items,

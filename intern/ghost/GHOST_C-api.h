@@ -477,7 +477,7 @@ extern GHOST_TEventDataPtr GHOST_GetEventData(GHOST_EventHandle eventhandle);
 
 /**
  * Returns the timer callback.
- * \param timertaskhandle The handle to the timertask
+ * \param timertaskhandle The handle to the timer-task.
  * \return The timer callback.
  */
 extern GHOST_TimerProcPtr GHOST_GetTimerProc(GHOST_TimerTaskHandle timertaskhandle);

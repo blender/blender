@@ -717,7 +717,7 @@ typedef struct UserDef {
   /** Overall sensitivity of 3D mouse. */
   float ndof_sensitivity;
   float ndof_orbit_sensitivity;
-  /** Deadzone of 3D mouse. */
+  /** Dead-zone of 3D mouse. */
   float ndof_deadzone;
   /** #eNdof_Flag, flags for 3D mouse. */
   int ndof_flag;

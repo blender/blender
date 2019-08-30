@@ -1370,7 +1370,7 @@ static int rna_MeshPolygonStringPropertyLayer_data_length(PointerRNA *ptr)
 }
 
 /* XXX, we dont have proper byte string support yet, so for now use the (bytes + 1)
- * bmesh API exposes correct python/bytestring access */
+ * bmesh API exposes correct python/byte-string access. */
 void rna_MeshStringProperty_s_get(PointerRNA *ptr, char *value)
 {
   MStringProperty *ms = (MStringProperty *)ptr->data;

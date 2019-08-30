@@ -364,7 +364,7 @@ void avcodec_free_frame(AVFrame **frame)
 #  define avio_size url_fsize
 #endif
 
-/* there are some version inbetween, which have avio_... functions but no
+/* There are some version in between, which have avio_... functions but no
  * AVIO_FLAG_... */
 #ifndef AVIO_FLAG_WRITE
 #  define AVIO_FLAG_WRITE URL_WRONLY

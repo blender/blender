@@ -142,7 +142,7 @@ static char *buf_tabs_to_spaces(const char *in_buf, const int tab_size)
 
 BLI_INLINE int text_pixel_x_to_column(SpaceText *st, const int x)
 {
-  /* add half the char width so mouse cursor selection is inbetween letters */
+  /* Add half the char width so mouse cursor selection is in between letters. */
   return (x + (st->cwidth / 2)) / st->cwidth;
 }
 

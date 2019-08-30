@@ -1831,7 +1831,10 @@ void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, Object *ob, RigidBodyWorld *r
   pid->file_type = PTCACHE_FILE_PTCACHE;
 }
 
-/** Both \param ob and \param scene may be NULL. */
+/**
+ * \param ob: Optional, may be NULL.
+ * \param scene: Optional may be NULL.
+ */
 PTCacheID BKE_ptcache_id_find(Object *ob, Scene *scene, PointCache *cache)
 {
   PTCacheID result = {0};

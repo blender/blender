@@ -2760,7 +2760,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
       startx += UI_DPI_ICON_SIZE / aspect;
     }
   }
-  /* but this extra .05 makes clicks inbetween characters feel nicer */
+  /* But this extra .05 makes clicks in between characters feel nicer. */
   startx += ((UI_TEXT_MARGIN_X + 0.05f) * U.widget_unit) / aspect;
 
   /* mouse dragged outside the widget to the left */

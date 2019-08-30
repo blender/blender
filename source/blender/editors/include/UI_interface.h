@@ -89,7 +89,7 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
  * For #ARegion.overlap regions, pass events though if they don't overlap
  * the regions contents (the usable part of the #View2D and buttons).
  *
- * The margin is needed so it's not possible to accidentally click inbetween buttons.
+ * The margin is needed so it's not possible to accidentally click in between buttons.
  */
 #define UI_REGION_OVERLAP_MARGIN (U.widget_unit / 3)
 

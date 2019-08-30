@@ -69,7 +69,7 @@ static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED
   /* The object type check is only needed here in case we have a placeholder
    * object assigned (because the library containing the curve is missing).
    *
-   * In other cases it should be impossible to have a type missmatch.
+   * In other cases it should be impossible to have a type mismatch.
    */
   return !cmd->object || cmd->object->type != OB_CURVE;
 }

@@ -496,7 +496,7 @@ static void test_constraint(
           /* The object type check is only needed here in case we have a placeholder
            * object assigned (because the library containing the curve is missing).
            *
-           * In other cases it should be impossible to have a type missmatch.
+           * In other cases it should be impossible to have a type mismatch.
            */
           if (ct->tar->type != OB_CURVE) {
             con->flag |= CONSTRAINT_DISABLE;
@@ -514,7 +514,7 @@ static void test_constraint(
           /* The object type check is only needed here in case we have a placeholder
            * object assigned (because the library containing the armature is missing).
            *
-           * In other cases it should be impossible to have a type missmatch.
+           * In other cases it should be impossible to have a type mismatch.
            */
           if (ct->tar->type != OB_ARMATURE) {
             con->flag |= CONSTRAINT_DISABLE;
