@@ -1717,22 +1717,25 @@ static void mouse_action_keys(bAnimContext *ac,
 
       /* Highlight GPencil Layer */
       if (ale != NULL && ale->data != NULL && ale->type == ANIMTYPE_GPLAYER) {
+        bGPdata *gpd = (bGPdata *)ale->id;
         bGPDlayer *gpl = ale->data;
 
         gpl->flag |= GP_LAYER_SELECT;
-        // gpencil_layer_setactive(gpd, gpl);
+        /* Update other layer status. */
+        if (BKE_gpencil_layer_getactive(gpd) != gpl) {
+          BKE_gpencil_layer_setactive(gpd, gpl);
+          WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+        }
       }
     }
     else if (ac->datatype == ANIMCONT_MASK) {
       /* deselect all other channels first */
       ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 
-      /* Highlight GPencil Layer */
       if (ale != NULL && ale->data != NULL && ale->type == ANIMTYPE_MASKLAYER) {
         MaskLayer *masklay = ale->data;
 
         masklay->flag |= MASK_LAYERFLAG_SELECT;
-        // gpencil_layer_setactive(gpd, gpl);
       }
     }
   }
