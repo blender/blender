@@ -675,10 +675,7 @@ int BLI_natstrcmp(const char *s1, const char *s2)
    * numeric, else do a tolower and char compare */
 
   while (1) {
-    c1 = tolower(s1[d1]);
-    c2 = tolower(s2[d2]);
-
-    if (isdigit(c1) && isdigit(c2)) {
+    if (isdigit(s1[d1]) && isdigit(s2[d2])) {
       int numcompare = left_number_strcmp(s1 + d1, s2 + d2, &tiebreaker);
 
       if (numcompare != 0) {
@@ -693,10 +690,10 @@ int BLI_natstrcmp(const char *s1, const char *s2)
       while (isdigit(s2[d2])) {
         d2++;
       }
-
-      c1 = tolower(s1[d1]);
-      c2 = tolower(s2[d2]);
     }
+
+    c1 = tolower(s1[d1]);
+    c2 = tolower(s2[d2]);
 
     /* first check for '.' so "foo.bar" comes before "foo 1.bar" */
     if (c1 == '.' && c2 != '.') {
