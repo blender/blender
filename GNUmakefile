@@ -233,11 +233,18 @@ endif
 ifneq "$(findstring ninja, $(MAKECMDGOALS))" ""
 	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -G Ninja
 	BUILD_COMMAND:=ninja
+	DEPS_BUILD_COMMAND:=ninja
 else
 	ifneq ("$(wildcard $(BUILD_DIR)/build.ninja)","")
 		BUILD_COMMAND:=ninja
 	else
 		BUILD_COMMAND:=make -s
+	endif
+
+	ifneq ("$(wildcard $(DEPS_BUILD_DIR)/build.ninja)","")
+		DEPS_BUILD_COMMAND:=ninja
+	else
+		DEPS_BUILD_COMMAND:=make -s
 	endif
 endif
 
@@ -333,7 +340,7 @@ deps: .FORCE
 
 	@echo
 	@echo Building dependencies ...
-	$(BUILD_COMMAND) -C "$(DEPS_BUILD_DIR)" -j $(NPROCS) $(DEPS_TARGET)
+	$(DEPS_BUILD_COMMAND) -C "$(DEPS_BUILD_DIR)" -j $(NPROCS) $(DEPS_TARGET)
 	@echo
 	@echo Dependencies successfully built and installed to $(DEPS_INSTALL_DIR).
 	@echo
