@@ -840,6 +840,10 @@ static int gp_hide_exec(bContext *C, wmOperator *op)
       if (gpl != layer) {
         gpl->flag |= GP_LAYER_HIDE;
       }
+      else {
+        /* Be sure the active layer is unhidden. */
+        gpl->flag &= ~GP_LAYER_HIDE;
+      }
     }
   }
   else {
