@@ -525,7 +525,6 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
 
     if(WITH_CYCLES)
       foreach(render_test bake;${render_tests})
-        message(STATUS ${render_test})
         add_python_test(
           cycles_${render_test}
           ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
