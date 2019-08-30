@@ -7793,7 +7793,7 @@ void trans_obdata_in_obmode_update_all(TransInfo *t)
     invert_m4(dmat);
 
     ED_object_data_xform_by_mat4(xf->xod, dmat);
-    DEG_id_tag_update(id, 0);
+    DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   }
 }
 
