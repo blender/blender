@@ -375,7 +375,7 @@ package_archive: .FORCE
 # Tests
 #
 test: .FORCE
-	cd $(BUILD_DIR) ; ctest . --output-on-failure
+	python3 ./build_files/utils/make_test.py "$(BUILD_DIR)"
 
 # run pep8 check check on scripts we distribute.
 test_pep8: .FORCE

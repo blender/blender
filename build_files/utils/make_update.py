@@ -13,6 +13,8 @@ import shutil
 import subprocess
 import sys
 
+from make_utils import call
+
 # Parse arguments
 
 def parse_arguments():
@@ -34,19 +36,6 @@ if shutil.which(git_command) is None:
 if shutil.which(svn_command) is None:
     sys.stderr.write("svn not found, can't update libraries\n")
     sys.exit(1)
-
-# Utility functions
-
-def call(cmd):
-    print(" ".join(cmd))
-
-    # Flush to ensure correct order output on Windows.
-    sys.stdout.flush()
-    sys.stderr.flush()
-
-    retcode = subprocess.call(cmd)
-    if retcode != 0:
-      sys.exit(retcode)
 
 def print_stage(text):
     print("")
