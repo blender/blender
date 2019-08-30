@@ -6371,7 +6371,7 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
             col.separator()
 
             # Layer and Materials operators
-            col.operator_menu_enum("gpencil.move_to_layer", "layer", text="Move to Layer")
+            col.menu("GPENCIL_MT_move_to_layer")            
             col.menu("VIEW3D_MT_assign_material")
             col.operator_menu_enum("gpencil.stroke_arrange", "direction", text="Arrange Strokes")
 
