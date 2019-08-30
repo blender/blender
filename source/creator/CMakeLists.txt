@@ -1026,16 +1026,6 @@ if (WIN32)
 endif()
 
 # -----------------------------------------------------------------------------
-# Thumbnailer
-if(WIN32)
-  install(
-    TARGETS BlendThumb
-    COMPONENT Blender
-    DESTINATION "."
-  )
-endif()
-
-# -----------------------------------------------------------------------------
 # Setup launcher
 
 if(WIN32 AND NOT WITH_PYTHON_MODULE)
