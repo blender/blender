@@ -1090,7 +1090,7 @@ static void cursor_draw_point_screen_space(const uint gpuattr,
                                            float true_location[3],
                                            float obmat[4][4])
 {
-  float translation_vertex_cursor[2], location[3];
+  float translation_vertex_cursor[3], location[3];
   copy_v3_v3(location, true_location);
   mul_m4_v3(obmat, location);
   ED_view3d_project(ar, location, translation_vertex_cursor);
