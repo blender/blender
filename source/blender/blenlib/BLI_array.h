@@ -83,9 +83,9 @@ void _bli_array_grow_func(void **arr_p,
           ((void *)(_##arr##_static) != \
            NULL) && /* don't add _##arr##_len below because it must be zero */ \
           (_bli_array_totalsize_static(arr) >= \
-           _##arr##_len + (num))) ? /* we have an empty array and a static var big enough */ \
+           (size_t)(_##arr##_len + (num)))) ? /* we have an empty array and a static var big enough */ \
              (void)(arr = (void *)_##arr##_static) : /* use existing static array or allocate */ \
-             (LIKELY(_bli_array_totalsize(arr) >= _##arr##_len + (num)) ? \
+             (LIKELY(_bli_array_totalsize(arr) >= (size_t)(_##arr##_len + (num))) ? \
                   (void)0 /* do nothing */ : \
                   _bli_array_grow_func((void **)&(arr), \
                                        _##arr##_static, \
