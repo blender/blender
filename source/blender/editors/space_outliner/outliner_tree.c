@@ -1601,7 +1601,7 @@ typedef struct tTreeSort {
   short idcode;
 } tTreeSort;
 
-/* alphabetical comparator, tryping to put objects first */
+/* alphabetical comparator, trying to put objects first */
 static int treesort_alpha_ob(const void *v1, const void *v2)
 {
   const tTreeSort *x1 = v1, *x2 = v2;
@@ -1627,7 +1627,7 @@ static int treesort_alpha_ob(const void *v1, const void *v2)
       return (x1->te->flag & TE_CHILD_NOT_IN_COLLECTION) ? 1 : -1;
     }
 
-    comp = strcmp(x1->name, x2->name);
+    comp = BLI_natstrcmp(x1->name, x2->name);
 
     if (comp > 0) {
       return 1;
@@ -1659,7 +1659,7 @@ static int treesort_alpha(const void *v1, const void *v2)
   const tTreeSort *x1 = v1, *x2 = v2;
   int comp;
 
-  comp = strcmp(x1->name, x2->name);
+  comp = BLI_natstrcmp(x1->name, x2->name);
 
   if (comp > 0) {
     return 1;
@@ -1697,7 +1697,7 @@ static int treesort_obtype_alpha(const void *v1, const void *v2)
       }
     }
     else {
-      int comp = strcmp(x1->name, x2->name);
+      int comp = BLI_natstrcmp(x1->name, x2->name);
 
       if (comp > 0) {
         return 1;
