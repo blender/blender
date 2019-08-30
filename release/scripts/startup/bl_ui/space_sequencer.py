@@ -1467,7 +1467,7 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
         split.alignment = 'RIGHT'
         split.label(text="End")
         split = split.split(factor=0.8 + max_factor, align=True)
-        split.label(text="{:>14}".format(smpte_from_frame(frame_final_end) + ":"))
+        split.label(text="{:>14}".format(smpte_from_frame(frame_final_end)))
         split.alignment = 'RIGHT'
         split.label(text=str(frame_final_end) + " ")
 
@@ -1511,7 +1511,7 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
         split.label(text="Playhead")
         split = split.split(factor=0.8 + max_factor, align=True)
         playhead = frame_current - frame_final_start
-        split.label(text="{:>14}".format(smpte_from_frame(playhead) + ":"))
+        split.label(text="{:>14}".format(smpte_from_frame(playhead)))
         split.alignment = 'RIGHT'
         split.label(text=str(playhead) + " ")
 

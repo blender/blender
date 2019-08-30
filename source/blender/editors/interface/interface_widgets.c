@@ -2188,7 +2188,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     drawstr_right = strrchr(drawstr + but->ofs, ':');
     if (drawstr_right) {
       drawstr_right++;
-      drawstr_left_len = (drawstr_right - drawstr);
+      drawstr_left_len = (drawstr_right - drawstr - 1);
 
       while (*drawstr_right == ' ') {
         drawstr_right++;
