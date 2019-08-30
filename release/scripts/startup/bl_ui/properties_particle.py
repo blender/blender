@@ -1196,7 +1196,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
                 row = layout.row()
                 row.prop(rule, "use_line")
                 sub = row.row()
-                sub.active = rule.line
+                sub.active = rule.use_line
                 sub.prop(rule, "queue_count")
             elif rule.type == 'AVERAGE_SPEED':
                 row.prop(rule, "speed", slider=True)
