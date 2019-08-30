@@ -1140,6 +1140,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 
     /* append to the object */
     BLI_addtail(&ob_to->particlesystem, psys);
+    psys_unique_name(ob_to, psys, psys->name);
 
     /* add a particle system modifier for each system */
     md = modifier_new(eModifierType_ParticleSystem);
