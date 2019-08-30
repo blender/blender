@@ -364,6 +364,11 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             if not self.is_popover:
                 brush_basic_sculpt_settings(col, context, brush)
 
+            # normal_radius_factor
+            col.separator()
+            row = col.row()
+            row.prop(brush, "normal_radius_factor", slider=True)
+
             # topology_rake_factor
             if (
                     capabilities.has_topology_rake and

@@ -206,9 +206,12 @@ void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag);
 /* pbvh_bmesh.c */
 bool pbvh_bmesh_node_raycast(PBVHNode *node,
                              const float ray_start[3],
+                             const float ray_normal[3],
                              struct IsectRayPrecalc *isect_precalc,
                              float *dist,
-                             bool use_original);
+                             bool use_original,
+                             int *r_active_vertex_index,
+                             float *r_face_normal);
 bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,
                                     const float ray_start[3],
                                     const float ray_normal[3],

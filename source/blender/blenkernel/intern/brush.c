@@ -72,6 +72,7 @@ static void brush_defaults(Brush *brush)
   brush->autosmooth_factor = 0.0f;
   brush->topology_rake_factor = 0.0f;
   brush->crease_pinch_factor = 0.5f;
+  brush->normal_radius_factor = 0.5f;
   brush->sculpt_plane = SCULPT_DISP_DIR_AREA;
   /* How far above or below the plane that is found by averaging the faces. */
   brush->plane_offset = 0.0f;

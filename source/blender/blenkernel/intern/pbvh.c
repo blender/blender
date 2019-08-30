@@ -1753,14 +1753,21 @@ static bool pbvh_faces_node_raycast(PBVH *bvh,
                                     const PBVHNode *node,
                                     float (*origco)[3],
                                     const float ray_start[3],
+                                    const float ray_normal[3],
                                     struct IsectRayPrecalc *isect_precalc,
-                                    float *depth)
+                                    float *depth,
+                                    int *r_active_vertex_index,
+                                    float *r_face_normal)
 {
   const MVert *vert = bvh->verts;
   const MLoop *mloop = bvh->mloop;
   const int *faces = node->prim_indices;
   int i, totface = node->totprim;
   bool hit = false;
+  float min_depth = FLT_MAX;
+  float location[3] = {0.0f};
+  float nearest_vertex_co[3];
+  copy_v3_fl(nearest_vertex_co, 0.0f);
 
   for (i = 0; i < totface; ++i) {
     const MLoopTri *lt = &bvh->looptri[faces[i]];
@@ -1787,6 +1794,22 @@ static bool pbvh_faces_node_raycast(PBVH *bvh,
                                        vert[mloop[lt->tri[1]].v].co,
                                        vert[mloop[lt->tri[2]].v].co,
                                        depth);
+
+      if (hit && *depth < min_depth) {
+        min_depth = *depth;
+        normal_tri_v3(r_face_normal,
+                      vert[mloop[lt->tri[0]].v].co,
+                      vert[mloop[lt->tri[1]].v].co,
+                      vert[mloop[lt->tri[2]].v].co);
+        madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
+        for (int j = 0; j < 3; j++) {
+          if (len_squared_v3v3(location, vert[mloop[lt->tri[j]].v].co) <
+              len_squared_v3v3(location, nearest_vertex_co)) {
+            copy_v3_v3(nearest_vertex_co, vert[mloop[lt->tri[j]].v].co);
+            *r_active_vertex_index = mloop[lt->tri[j]].v;
+          }
+        }
+      }
     }
   }
 
@@ -1857,8 +1880,11 @@ bool BKE_pbvh_node_raycast(PBVH *bvh,
                            float (*origco)[3],
                            bool use_origco,
                            const float ray_start[3],
+                           const float ray_normal[3],
                            struct IsectRayPrecalc *isect_precalc,
-                           float *depth)
+                           float *depth,
+                           int *active_vertex_index,
+                           float *face_normal)
 {
   bool hit = false;
 
@@ -1868,13 +1894,29 @@ bool BKE_pbvh_node_raycast(PBVH *bvh,
 
   switch (bvh->type) {
     case PBVH_FACES:
-      hit |= pbvh_faces_node_raycast(bvh, node, origco, ray_start, isect_precalc, depth);
+      hit |= pbvh_faces_node_raycast(bvh,
+                                     node,
+                                     origco,
+                                     ray_start,
+                                     ray_normal,
+                                     isect_precalc,
+                                     depth,
+                                     active_vertex_index,
+                                     face_normal);
       break;
     case PBVH_GRIDS:
       hit |= pbvh_grids_node_raycast(bvh, node, origco, ray_start, isect_precalc, depth);
       break;
     case PBVH_BMESH:
-      hit = pbvh_bmesh_node_raycast(node, ray_start, isect_precalc, depth, use_origco);
+      BM_mesh_elem_index_ensure(bvh->bm, BM_VERT);
+      hit = pbvh_bmesh_node_raycast(node,
+                                    ray_start,
+                                    ray_normal,
+                                    isect_precalc,
+                                    depth,
+                                    use_origco,
+                                    active_vertex_index,
+                                    face_normal);
       break;
   }
 

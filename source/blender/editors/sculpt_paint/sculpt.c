@@ -96,7 +96,18 @@
 
 /* Do not use these functions while working with PBVH_GRIDS data in SculptSession */
 
-/* TODO: why is this kept, should it be removed? */
+static float *sculpt_vertex_co_get(SculptSession *ss, int index)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      return ss->mvert[index].co;
+    case PBVH_BMESH:
+      return BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index)->co;
+    default:
+      return NULL;
+  }
+}
+
 #if 0 /* UNUSED */
 
 static int sculpt_active_vertex_get(SculptSession *ss)
@@ -133,18 +144,6 @@ static void sculpt_vertex_normal_get(SculptSession *ss, int index, float no[3])
       copy_v3_v3(no, BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index)->no);
     default:
       return;
-  }
-}
-
-static float *sculpt_vertex_co_get(SculptSession *ss, int index)
-{
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      return ss->mvert[index].co;
-    case PBVH_BMESH:
-      return BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index)->co;
-    default:
-      return NULL;
   }
 }
 
@@ -748,17 +747,26 @@ void ED_sculpt_redraw_planes_get(float planes[4][4], ARegion *ar, Object *ob)
 
 void sculpt_brush_test_init(SculptSession *ss, SculptBrushTest *test)
 {
-  RegionView3D *rv3d = ss->cache->vc->rv3d;
+  RegionView3D *rv3d = ss->cache ? ss->cache->vc->rv3d : ss->rv3d;
 
-  test->radius_squared = ss->cache->radius_squared;
-  copy_v3_v3(test->location, ss->cache->location);
+  test->radius_squared = ss->cache ? ss->cache->radius_squared :
+                                     ss->cursor_radius * ss->cursor_radius;
+  if (ss->cache) {
+    copy_v3_v3(test->location, ss->cache->location);
+    test->mirror_symmetry_pass = ss->cache->mirror_symmetry_pass;
+  }
+  else {
+    copy_v3_v3(test->location, ss->cursor_location);
+    test->mirror_symmetry_pass = 0;
+  }
+
   test->dist = 0.0f; /* just for initialize */
 
   /* Only for 2D projection. */
   zero_v4(test->plane_view);
   zero_v4(test->plane_tool);
 
-  test->mirror_symmetry_pass = ss->cache->mirror_symmetry_pass;
+  test->mirror_symmetry_pass = ss->cache ? ss->cache->mirror_symmetry_pass : 0;
 
   if (rv3d->rflag & RV3D_CLIPPING) {
     test->clip_rv3d = rv3d;
@@ -1050,7 +1058,7 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
   int private_count[2] = {0};
   bool use_original = false;
 
-  if (ss->cache->original) {
+  if (ss->cache && ss->cache->original) {
     unode = sculpt_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
     use_original = (unode->co || unode->bm_entry);
   }
@@ -1058,6 +1066,13 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = sculpt_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
+
+  /* Update the test radius to sample the normal using the normal radius of the brush */
+  if (data->brush->ob_mode == OB_MODE_SCULPT) {
+    float test_radius = sqrtf(test.radius_squared);
+    test_radius *= data->brush->normal_radius_factor;
+    test.radius_squared = test_radius * test_radius;
+  }
 
   /* when the mesh is edited we can't rely on original coords
    * (original mesh may not even have verts in brush radius) */
@@ -1120,6 +1135,8 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
         const float *no;
         int flip_index;
 
+        data->any_vertex_sampled = true;
+
         if (use_original) {
           normal_short_to_float_v3(no_buf, no_s);
           no = no_buf;
@@ -1134,7 +1151,8 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
           }
         }
 
-        flip_index = (dot_v3v3(ss->cache->view_normal, no) <= 0.0f);
+        flip_index = (dot_v3v3(ss->cache ? ss->cache->view_normal : ss->cursor_view_normal, no) <=
+                      0.0f);
         if (area_cos) {
           add_v3_v3(private_co[flip_index], co);
         }
@@ -1223,7 +1241,7 @@ static void calc_area_normal(
 }
 
 /* expose 'calc_area_normal' externally. */
-void sculpt_pbvh_calc_area_normal(const Brush *brush,
+bool sculpt_pbvh_calc_area_normal(const Brush *brush,
                                   Object *ob,
                                   PBVHNode **nodes,
                                   int totnode,
@@ -1249,6 +1267,7 @@ void sculpt_pbvh_calc_area_normal(const Brush *brush,
       .area_cos = NULL,
       .area_nos = area_nos,
       .count = count,
+      .any_vertex_sampled = false,
   };
   BLI_mutex_init(&data.mutex);
 
@@ -1265,6 +1284,8 @@ void sculpt_pbvh_calc_area_normal(const Brush *brush,
       break;
     }
   }
+
+  return data.any_vertex_sampled;
 }
 
 /* this calculates flatten center and area normal together,
@@ -1508,7 +1529,8 @@ float tex_strength(SculptSession *ss,
 bool sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
 {
   SculptSearchSphereData *data = data_v;
-  float *center = data->ss->cache->location, nearest[3];
+  float *center, nearest[3];
+  center = data->ss->cache ? data->ss->cache->location : data->ss->cursor_location;
   float t[3], bb_min[3], bb_max[3];
   int i;
 
@@ -1585,12 +1607,13 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
   SculptSession *ss = ob->sculpt;
   PBVHNode **nodes = NULL;
 
-  /* Build a list of all nodes that are potentially within the brush's area of influence */
+  /* Build a list of all nodes that are potentially within the cursor or brush's area of influence
+   */
   if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
     SculptSearchSphereData data = {
         .ss = ss,
         .sd = sd,
-        .radius_squared = SQUARE(ss->cache->radius * radius_scale),
+        .radius_squared = ss->cache ? SQUARE(ss->cache->radius * radius_scale) : ss->cursor_radius,
         .original = use_original,
     };
     BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, r_totnode);
@@ -1602,7 +1625,7 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
     SculptSearchCircleData data = {
         .ss = ss,
         .sd = sd,
-        .radius_squared = SQUARE(ss->cache->radius * radius_scale),
+        .radius_squared = ss->cache ? SQUARE(ss->cache->radius * radius_scale) : ss->cursor_radius,
         .original = use_original,
         .dist_ray_to_aabb_precalc = &dist_ray_to_aabb_precalc,
     };
@@ -1964,9 +1987,13 @@ typedef struct SculptDoBrushSmoothGridDataChunk {
 typedef struct {
   SculptSession *ss;
   const float *ray_start;
+  const float *ray_normal;
   bool hit;
   float depth;
   bool original;
+
+  int active_vertex_index;
+  float *face_normal;
 
   struct IsectRayPrecalc isect_precalc;
 } SculptRaycastData;
@@ -4513,7 +4540,7 @@ static void do_tiled(
   float orgLoc[3]; /* position of the "prototype" stroke for tiling */
   copy_v3_v3(orgLoc, cache->location);
 
-  for (dim = 0; dim < 3; ++dim) {
+  for (dim = 0; dim < 3; dim++) {
     if ((sd->paint.symmetry_flags & (PAINT_TILE_X << dim)) && step[dim] > 0) {
       start[dim] = (bbMin[dim] - orgLoc[dim] - radius) / step[dim];
       end[dim] = (bbMax[dim] - orgLoc[dim] + radius) / step[dim];
@@ -4529,16 +4556,16 @@ static void do_tiled(
 
   /* now do it for all the tiles */
   copy_v3_v3_int(cur, start);
-  for (cur[0] = start[0]; cur[0] <= end[0]; ++cur[0]) {
-    for (cur[1] = start[1]; cur[1] <= end[1]; ++cur[1]) {
-      for (cur[2] = start[2]; cur[2] <= end[2]; ++cur[2]) {
+  for (cur[0] = start[0]; cur[0] <= end[0]; cur[0]++) {
+    for (cur[1] = start[1]; cur[1] <= end[1]; cur[1]++) {
+      for (cur[2] = start[2]; cur[2] <= end[2]; cur[2]++) {
         if (!cur[0] && !cur[1] && !cur[2]) {
           continue; /* skip tile at orgLoc, this was already handled before all others */
         }
 
         ++cache->tile_pass;
 
-        for (dim = 0; dim < 3; ++dim) {
+        for (dim = 0; dim < 3; dim++) {
           cache->location[dim] = cur[dim] * step[dim] + orgLoc[dim];
           cache->plane_offset[dim] = cur[dim] * step[dim];
         }
@@ -5187,8 +5214,11 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
                               origco,
                               use_origco,
                               srd->ray_start,
+                              srd->ray_normal,
                               &srd->isect_precalc,
-                              &srd->depth)) {
+                              &srd->depth,
+                              &srd->active_vertex_index,
+                              srd->face_normal)) {
       srd->hit = 1;
       *tmin = srd->depth;
     }
@@ -5276,6 +5306,120 @@ static float sculpt_raycast_init(ViewContext *vc,
   return dist;
 }
 
+/* Gets the normal, location and active vertex location of the geometry under the cursor. This also
+ * updates
+ * the active vertex and cursor related data of the SculptSession using the mouse position */
+bool sculpt_cursor_geometry_info_update(bContext *C,
+                                        SculptCursorGeometryInfo *out,
+                                        const float mouse[2],
+                                        bool use_sampled_normal)
+{
+  Scene *scene = CTX_data_scene(C);
+  Sculpt *sd = scene->toolsettings->sculpt;
+  Object *ob;
+  SculptSession *ss;
+  ViewContext vc;
+  const Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
+  float ray_start[3], ray_end[3], ray_normal[3], depth, face_normal[3], sampled_normal[3],
+      mat[3][3];
+  float viewDir[3] = {0.0f, 0.0f, 1.0f};
+  int totnode;
+  bool original = false, hit = false;
+
+  ED_view3d_viewcontext_init(C, &vc);
+
+  ob = vc.obact;
+  ss = ob->sculpt;
+
+  if (!ss->pbvh) {
+    copy_v3_fl(out->location, 0.0f);
+    copy_v3_fl(out->normal, 0.0f);
+    copy_v3_fl(out->active_vertex_co, 0.0f);
+    return false;
+  }
+
+  /* PBVH raycast to get active vertex and face normal */
+  depth = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, original);
+  sculpt_stroke_modifiers_check(C, ob, brush);
+
+  SculptRaycastData srd = {
+      .original = original,
+      .ss = ob->sculpt,
+      .hit = 0,
+      .ray_start = ray_start,
+      .ray_normal = ray_normal,
+      .depth = depth,
+      .face_normal = face_normal,
+  };
+  isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
+  BKE_pbvh_raycast(ss->pbvh, sculpt_raycast_cb, &srd, ray_start, ray_normal, srd.original);
+
+  /* Cursor is not over the mesh, return default values */
+  if (!srd.hit) {
+    copy_v3_fl(out->location, 0.0f);
+    copy_v3_fl(out->normal, 0.0f);
+    copy_v3_fl(out->active_vertex_co, 0.0f);
+    return false;
+  }
+
+  /* Update the active vertex of the SculptSession */
+  ss->active_vertex_index = srd.active_vertex_index;
+
+  copy_v3_v3(out->active_vertex_co, sculpt_vertex_co_get(ss, srd.active_vertex_index));
+  copy_v3_v3(out->location, ray_normal);
+  mul_v3_fl(out->location, srd.depth);
+  add_v3_v3(out->location, ray_start);
+
+  /* Option to return the face normal directly for performance o accuracy reasons */
+  if (!use_sampled_normal) {
+    copy_v3_v3(out->normal, srd.face_normal);
+    return hit;
+  }
+
+  /* Sampled normal calculation */
+  const float radius_scale = 1.0f;
+  float radius;
+
+  /* Update cursor data in SculptSession */
+  invert_m4_m4(ob->imat, ob->obmat);
+  copy_m3_m4(mat, vc.rv3d->viewinv);
+  mul_m3_v3(mat, viewDir);
+  copy_m3_m4(mat, ob->imat);
+  mul_m3_v3(mat, viewDir);
+  normalize_v3_v3(ss->cursor_view_normal, viewDir);
+  copy_v3_v3(ss->cursor_normal, srd.face_normal);
+  copy_v3_v3(ss->cursor_location, out->location);
+  ss->rv3d = vc.rv3d;
+
+  if (!BKE_brush_use_locked_size(scene, brush)) {
+    radius = paint_calc_object_space_radius(&vc, out->location, BKE_brush_size_get(scene, brush));
+  }
+  else {
+    radius = BKE_brush_unprojected_radius_get(scene, brush);
+  }
+  ss->cursor_radius = radius;
+
+  PBVHNode **nodes = sculpt_pbvh_gather_generic(ob, sd, brush, original, radius_scale, &totnode);
+
+  /* In case there are no nodes under the cursor, return the face normal */
+  if (!totnode) {
+    MEM_freeN(nodes);
+    copy_v3_v3(out->normal, srd.face_normal);
+    return true;
+  }
+
+  /* Calculate the sampled normal */
+  if (sculpt_pbvh_calc_area_normal(brush, ob, nodes, totnode, true, sampled_normal)) {
+    copy_v3_v3(out->normal, sampled_normal);
+  }
+  else {
+    /* Use face normal when there are no vertices to sample inside the cursor radius */
+    copy_v3_v3(out->normal, srd.face_normal);
+  }
+  MEM_freeN(nodes);
+  return true;
+}
+
 /* Do a raycast in the tree to find the 3d brush location
  * (This allows us to ignore the GL depth buffer)
  * Returns 0 if the ray doesn't hit the mesh, non-zero otherwise
@@ -5285,7 +5429,7 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
   Object *ob;
   SculptSession *ss;
   StrokeCache *cache;
-  float ray_start[3], ray_end[3], ray_normal[3], depth;
+  float ray_start[3], ray_end[3], ray_normal[3], depth, face_normal[3];
   bool original;
   ViewContext vc;
 
@@ -5303,14 +5447,21 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 
   depth = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, original);
 
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    BM_mesh_elem_table_ensure(ss->bm, BM_VERT);
+    BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
+  }
+
   bool hit = false;
   {
     SculptRaycastData srd;
     srd.ss = ob->sculpt;
     srd.ray_start = ray_start;
+    srd.ray_normal = ray_normal;
     srd.hit = 0;
     srd.depth = depth;
     srd.original = original;
+    srd.face_normal = face_normal;
     isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
 
     BKE_pbvh_raycast(ss->pbvh, sculpt_raycast_cb, &srd, ray_start, ray_normal, srd.original);
@@ -5578,7 +5729,6 @@ static void sculpt_stroke_update_step(bContext *C,
   }
 
   do_symmetrical_brush_actions(sd, ob, do_brush_action, ups);
-
   sculpt_combine_proxies(sd, ob);
 
   /* hack to fix noise texture tearing mesh */
