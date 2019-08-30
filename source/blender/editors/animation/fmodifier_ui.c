@@ -197,7 +197,7 @@ static void draw_modifier__generator(uiLayout *layout,
           &data->poly_order,
           1,
           100,
-          0,
+          1,
           0,
           TIP_("'Order' of the Polynomial (for a polynomial with n terms, 'order' is n-1)"));
       UI_but_func_set(but, validate_fmodifier_cb, fcm, fcurve_owner_id);
@@ -335,7 +335,7 @@ static void draw_modifier__generator(uiLayout *layout,
           &data->poly_order,
           1,
           100,
-          0,
+          1,
           0,
           TIP_("'Order' of the Polynomial (for a polynomial with n terms, 'order' is n-1)"));
       UI_but_func_set(but, validate_fmodifier_cb, fcm, fcurve_owner_id);
