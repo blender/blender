@@ -2822,8 +2822,8 @@ static void compute_normalize_edge_vectors(float auv[2][2],
                                            float av[2][3],
                                            const float uv[2],
                                            const float uv_prev[2],
-                                           const float co[2],
-                                           const float co_prev[2])
+                                           const float co[3],
+                                           const float co_prev[3])
 {
   /* Move previous edge. */
   copy_v2_v2(auv[0], auv[1]);
@@ -2986,7 +2986,7 @@ static const MeshExtract extract_stretch_angle = {
     NULL,
     extract_stretch_angle_finish,
     0,
-    true,
+    false,
 };
 
 /** \} */
