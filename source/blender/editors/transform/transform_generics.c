@@ -1151,12 +1151,12 @@ static void recalcData_objects(TransInfo *t)
       ED_objects_recalculate_paths(t->context, t->scene, true);
     }
 
-    if (t->options & CTX_OBMODE_XFORM_OBDATA) {
-      trans_obdata_in_obmode_update_all(t);
-    }
-
     if (t->options & CTX_OBMODE_XFORM_SKIP_CHILDREN) {
       trans_obchild_in_obmode_update_all(t);
+    }
+
+    if (t->options & CTX_OBMODE_XFORM_OBDATA) {
+      trans_obdata_in_obmode_update_all(t);
     }
   }
 }
