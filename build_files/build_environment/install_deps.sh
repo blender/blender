@@ -3454,7 +3454,7 @@ install_RPM() {
       $SUDO dnf -y update
 
     elif [ "$RPM" = "RHEL" ]; then
-      if [ "`grep '6\.' /etc/redhat-release`" ]; then
+      if [ "`grep '[^.]6\.' /etc/redhat-release`" ]; then
         ERROR "Building with GCC 4.4 is not supported!"
         exit 1
       else
