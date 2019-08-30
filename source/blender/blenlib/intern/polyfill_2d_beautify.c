@@ -75,7 +75,7 @@ static int oedge_cmp(const void *a1, const void *a2)
     return -1;
   }
 
-  /* only for pradictability */
+  /* Only for predictability. */
   if (x1->e_half > x2->e_half) {
     return 1;
   }
@@ -126,6 +126,13 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(const float v1[2],
 
     BLI_assert((ELEM(v1, v2, v3, v4) == false) && (ELEM(v2, v1, v3, v4) == false) &&
                (ELEM(v3, v1, v2, v4) == false) && (ELEM(v4, v1, v2, v3) == false));
+
+    if (r_area) {
+      *r_area = fabsf(area_2x_234) + fabsf(area_2x_241) +
+                /* Include both pairs for predictable results. */
+                fabsf(area_2x_123) + fabsf(area_2x_134) / 8.0f;
+    }
+
     /*
      * Test for unusable (1-3) state.
      * - Area sign flipping to check faces aren't going to point in opposite directions.
@@ -186,20 +193,10 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(const float v1[2],
       prim_b = len_34 + len_41 + len_13;
       fac_13 = (area_a / prim_a) + (area_b / prim_b);
 
-      if (r_area) {
-        *r_area = fabsf(area_2x_234) + fabsf(area_2x_241) +
-                  /* Include both pairs for predictable results. */
-                  fabsf(area_2x_123) + fabsf(area_2x_134) / 8.0f;
-      }
-
       /* negative number if (1-3) is an improved state */
       return fac_24 - fac_13;
     }
   } while (false);
-
-  if (r_area) {
-    *r_area = 0.0f;
-  }
 
   return FLT_MAX;
 }
@@ -241,7 +238,7 @@ static void polyedge_beauty_cost_update_single(const float (*coords)[2],
    * See T43578, T49478.
    *
    * In fact a larger epsilon can still fail when the area of the face is very large,
-   * how the epsilon is scaled by the face area.
+   * now the epsilon is scaled by the face area.
    * See T56532. */
   if (cost < -1e-6f * max_ff(area, 1.0f)) {
     BLI_heap_insert_or_update(eheap, &eheap_table[i], cost, e);
