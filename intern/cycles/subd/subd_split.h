@@ -44,7 +44,7 @@ class DiagSplit {
   deque<Edge> edges;
 
   float3 to_world(Patch *patch, float2 uv);
-  int T(Patch *patch, float2 Pstart, float2 Pend, bool recursive_resolve=false);
+  int T(Patch *patch, float2 Pstart, float2 Pend, bool recursive_resolve = false);
 
   void limit_edge_factor(int &T, Patch *patch, float2 Pstart, float2 Pend);
   void resolve_edge_factors(Subpatch &sub);

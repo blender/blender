@@ -1363,7 +1363,7 @@ bool isect_seg_seg_v2_simple(const float v1[2],
  * \returns intersection type:
  * - ISECT_LINE_LINE_COLINEAR: collinear.
  * - ISECT_LINE_LINE_EXACT: intersection at an endpoint of either.
- * - ISECT_LINE_LINE_CROSS: interection, not at an endpoint.
+ * - ISECT_LINE_LINE_CROSS: interaction, not at an endpoint.
  * - ISECT_LINE_LINE_NONE: no intersection.
  * Also returns lambda and mu in r_lambda and r_mu.
  */

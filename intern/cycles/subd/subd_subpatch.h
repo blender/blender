@@ -128,21 +128,30 @@ class Subpatch {
 };
 
 struct Edge {
-  int T; /* Number of segments the edge will be diced into, see DiagSplit paper. */
+  /* Number of segments the edge will be diced into, see DiagSplit paper. */
+  int T;
 
-  Edge *top, *bottom; /* top is edge adjacent to start, bottom is adjacent to end. */
+  /* top is edge adjacent to start, bottom is adjacent to end. */
+  Edge *top, *bottom;
+
   int top_offset, bottom_offset;
   bool top_indices_decrease, bottom_indices_decrease;
 
   int start_vert_index;
   int end_vert_index;
-  int second_vert_index; /* Index of the second vert from this edges corner along the edge towards the next corner */
 
-  bool is_stitch_edge; /* Verties on edge are to be stitched. */
-  /* Key to match this edge with others to be stitched with. The ints in the pair are ordered stitching indices */
+  /* Index of the second vert from this edges corner along the edge towards the next corner. */
+  int second_vert_index;
+
+  /* Vertices on edge are to be stitched. */
+  bool is_stitch_edge;
+
+  /* Key to match this edge with others to be stitched with.
+   * The ints in the pair are ordered stitching indices */
   pair<int, int> stitch_edge_key;
 
-  int stitch_edge_T; /* Full T along edge (may be larger than T for edges split from ngon edges) */
+  /* Full T along edge (may be larger than T for edges split from ngon edges) */
+  int stitch_edge_T;
   int stitch_offset;
   int stitch_top_offset;
   int stitch_start_vert_index;

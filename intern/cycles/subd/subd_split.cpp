@@ -91,7 +91,7 @@ int DiagSplit::T(Patch *patch, float2 Pstart, float2 Pend, bool recursive_resolv
 
   int tmin = (int)ceilf(Lsum / params.dicing_rate);
   int tmax = (int)ceilf((params.test_steps - 1) * Lmax /
-                       params.dicing_rate);  // XXX paper says N instead of N-1, seems wrong?
+                        params.dicing_rate);  // XXX paper says N instead of N-1, seems wrong?
   int res = max(tmax, 1);
 
   if (tmax - tmin > params.split_threshold) {
