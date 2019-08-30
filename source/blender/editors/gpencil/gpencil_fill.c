@@ -48,6 +48,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 
 #include "ED_gpencil.h"
 #include "ED_screen.h"
@@ -1038,7 +1039,15 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   gps->flag |= GP_STROKE_CYCLIC;
   gps->flag |= GP_STROKE_3DSPACE;
 
-  gps->mat_nr = BKE_gpencil_object_material_ensure(tgpf->bmain, tgpf->ob, tgpf->mat);
+  gps->mat_nr = BKE_gpencil_object_material_get_index_from_brush(tgpf->ob, brush);
+  if (gps->mat_nr < 0) {
+    if (tgpf->ob->actcol - 1 < 0) {
+      gps->mat_nr = 0;
+    }
+    else {
+      gps->mat_nr = tgpf->ob->actcol - 1;
+    }
+  }
 
   /* allocate memory for storage points */
   gps->totpoints = tgpf->sbuffer_used;
@@ -1346,7 +1355,27 @@ static int gpencil_fill_init(bContext *C, wmOperator *op)
 /* start of interactive part of operator */
 static int gpencil_fill_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
+  Object *ob = CTX_data_active_object(C);
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
   tGPDfill *tgpf = NULL;
+
+  /* Fill tool needs a material (cannot use default material) */
+  bool valid = true;
+  if ((brush) && (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED)) {
+    if (brush->gpencil_settings->material == NULL) {
+      valid = false;
+    }
+  }
+  else {
+    if (give_current_material(ob, ob->actcol) == NULL) {
+      valid = false;
+    }
+  }
+  if (!valid) {
+    BKE_report(op->reports, RPT_ERROR, "Fill tool needs active material.");
+    return OPERATOR_CANCELLED;
+  }
 
   /* try to initialize context data needed */
   if (!gpencil_fill_init(C, op)) {

@@ -330,7 +330,15 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 
   gps->flag |= GP_STROKE_3DSPACE;
 
-  gps->mat_nr = BKE_gpencil_object_material_get_index(tgpi->ob, tgpi->mat);
+  gps->mat_nr = BKE_gpencil_object_material_get_index_from_brush(tgpi->ob, tgpi->brush);
+  if (gps->mat_nr < 0) {
+    if (tgpi->ob->actcol - 1 < 0) {
+      gps->mat_nr = 0;
+    }
+    else {
+      gps->mat_nr = tgpi->ob->actcol - 1;
+    }
+  }
 
   /* allocate memory for storage points, but keep empty */
   gps->totpoints = 0;

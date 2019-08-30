@@ -1191,10 +1191,15 @@ static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
     GHash *ma_to_name = gp_strokes_copypastebuf_colors_material_to_name_create(bmain);
     for (bGPDstroke *gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
       if (ED_gpencil_stroke_can_use(C, gps)) {
+        Material *ma = give_current_material(ob, gps->mat_nr + 1);
+        /* Avoid default material. */
+        if (ma == NULL) {
+          continue;
+        }
+
         char **ma_name_val;
         if (!BLI_ghash_ensure_p(
                 gp_strokes_copypastebuf_colors, &gps->mat_nr, (void ***)&ma_name_val)) {
-          Material *ma = give_current_material(ob, gps->mat_nr + 1);
           char *ma_name = BLI_ghash_lookup(ma_to_name, ma);
           *ma_name_val = MEM_dupallocN(ma_name);
         }
@@ -1361,7 +1366,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
         /* Remap material */
         Material *ma = BLI_ghash_lookup(new_colors, POINTER_FROM_INT(new_stroke->mat_nr));
         new_stroke->mat_nr = BKE_gpencil_object_material_get_index(ob, ma);
-        BLI_assert(new_stroke->mat_nr >= 0); /* have to add the material first */
+        CLAMP_MIN(new_stroke->mat_nr, 0);
       }
     }
   }
@@ -4068,7 +4073,7 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
               /* add duplicate materials */
 
               /* XXX same material can be in multiple slots. */
-              ma = give_current_material(ob, gps->mat_nr + 1);
+              ma = BKE_material_gpencil_get(ob, gps->mat_nr + 1);
 
               idx = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma);
 
@@ -4141,7 +4146,7 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
           if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
           }
-          ma = give_current_material(ob, gps->mat_nr + 1);
+          ma = BKE_material_gpencil_get(ob, gps->mat_nr + 1);
           gps->mat_nr = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma);
         }
       }

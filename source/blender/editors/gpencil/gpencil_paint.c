@@ -1244,6 +1244,14 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 
   /* Save material index */
   gps->mat_nr = BKE_gpencil_object_material_get_index_from_brush(p->ob, p->brush);
+  if (gps->mat_nr < 0) {
+    if (p->ob->actcol - 1 < 0) {
+      gps->mat_nr = 0;
+    }
+    else {
+      gps->mat_nr = p->ob->actcol - 1;
+    }
+  }
 
   /* calculate UVs along the stroke */
   ED_gpencil_calc_stroke_uv(obact, gps);

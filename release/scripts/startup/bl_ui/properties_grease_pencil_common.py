@@ -892,7 +892,8 @@ class GreasePencilMaterialsPanel:
             if is_view3d and brush is not None:
                 gp_settings = brush.gpencil_settings
                 if gp_settings.use_material_pin is False:
-                    ma = ob.material_slots[ob.active_material_index].material
+                    if ob.active_material_index > 0:
+                        ma = ob.material_slots[ob.active_material_index].material
                 else:
                     ma = gp_settings.material
 

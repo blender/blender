@@ -155,7 +155,7 @@ struct Material *BKE_gpencil_brush_material_get(struct Brush *brush);
 void BKE_gpencil_brush_material_set(struct Brush *brush, struct Material *material);
 
 /* Object */
-struct Material *BKE_gpencil_object_material_ensure_active(struct Main *bmain, struct Object *ob);
+struct Material *BKE_gpencil_object_material_ensure_active(struct Object *ob);
 struct Material *BKE_gpencil_object_material_ensure_from_brush(struct Main *bmain,
                                                                struct Object *ob,
                                                                struct Brush *brush);
@@ -179,8 +179,7 @@ struct Material *BKE_gpencil_object_material_ensure_from_active_input_toolsettin
 struct Material *BKE_gpencil_object_material_ensure_from_active_input_brush(struct Main *bmain,
                                                                             struct Object *ob,
                                                                             struct Brush *brush);
-struct Material *BKE_gpencil_object_material_ensure_from_active_input_material(struct Main *bmain,
-                                                                               struct Object *ob);
+struct Material *BKE_gpencil_object_material_ensure_from_active_input_material(struct Object *ob);
 
 /* object boundbox */
 bool BKE_gpencil_data_minmax(const struct bGPdata *gpd, float r_min[3], float r_max[3]);

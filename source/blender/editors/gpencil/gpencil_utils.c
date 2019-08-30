@@ -2064,7 +2064,7 @@ void ED_gpencil_update_color_uv(Main *bmain, Material *mat)
               if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
                 continue;
               }
-              gps_ma = give_current_material(ob, gps->mat_nr + 1);
+              gps_ma = BKE_material_gpencil_get(ob, gps->mat_nr + 1);
               /* update */
               if ((gps_ma) && (gps_ma == mat)) {
                 ED_gpencil_calc_stroke_uv(ob, gps);

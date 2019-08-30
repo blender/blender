@@ -449,7 +449,7 @@ static bool gp_strokes_merge_poll(bContext *C)
 
   /* check material */
   Material *ma = NULL;
-  ma = give_current_material(ob, ob->actcol);
+  ma = BKE_material_gpencil_get(ob, ob->actcol);
   if ((ma == NULL) || (ma->gp_style == NULL)) {
     return false;
   }

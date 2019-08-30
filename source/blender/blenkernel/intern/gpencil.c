@@ -1161,38 +1161,34 @@ Material *BKE_gpencil_object_material_ensure_from_active_input_brush(Main *bmain
       brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;
     }
   }
-  return BKE_gpencil_object_material_ensure_from_active_input_material(bmain, ob);
+  return BKE_gpencil_object_material_ensure_from_active_input_material(ob);
 }
 
 /**
  * Guaranteed to return a material assigned to object. Returns never NULL.
  * Only use this for materials unrelated to user input.
  */
-Material *BKE_gpencil_object_material_ensure_from_active_input_material(Main *bmain, Object *ob)
+Material *BKE_gpencil_object_material_ensure_from_active_input_material(Object *ob)
 {
   Material *ma = give_current_material(ob, ob->actcol);
   if (ma) {
     return ma;
   }
-  /* If the slot is empty, remove because will be added again,
-   * if not, we will get an empty slot. */
-  if ((ob->totcol > 0) && (ob->actcol == ob->totcol)) {
-    BKE_object_material_slot_remove(bmain, ob);
-  }
-  return BKE_gpencil_object_material_new(bmain, ob, "Material", NULL);
+
+  return &defgpencil_material;
 }
 
 /* Get active color, and add all default settings if we don't find anything */
-Material *BKE_gpencil_object_material_ensure_active(Main *bmain, Object *ob)
+Material *BKE_gpencil_object_material_ensure_active(Object *ob)
 {
   Material *ma = NULL;
 
   /* sanity checks */
-  if (ELEM(NULL, bmain, ob)) {
+  if (ob == NULL) {
     return NULL;
   }
 
-  ma = BKE_gpencil_object_material_ensure_from_active_input_material(bmain, ob);
+  ma = BKE_gpencil_object_material_ensure_from_active_input_material(ob);
   if (ma->gp_style == NULL) {
     BKE_material_init_gpencil_settings(ma);
   }
@@ -2008,6 +2004,7 @@ void BKE_gpencil_material_index_reassign(bGPdata *gpd, int totcol, int index)
         /* reassign strokes */
         if ((gps->mat_nr > index) || (gps->mat_nr > totcol - 1)) {
           gps->mat_nr--;
+          CLAMP_MIN(gps->mat_nr, 0);
         }
       }
     }
