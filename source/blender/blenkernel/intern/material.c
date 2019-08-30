@@ -82,7 +82,7 @@ void init_def_material(void)
   BKE_material_gpencil_init(&defgpencil_material);
 }
 
-/* Free the GPencil data of the deafult material, creator.c */
+/* Free the GPencil data of the default material, creator.c */
 void BKE_material_gpencil_default_free(void)
 {
   MEM_SAFE_FREE(defgpencil_material.gp_style);
