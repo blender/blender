@@ -3586,6 +3586,14 @@ static uiBut *ui_def_but(uiBlock *block,
                 (a1 != 0.0f && a1 != 1.0f)) == false);
   }
 
+  /* Number buttons must have a click-step,
+   * assert instead of correcting the value to ensure the caller knowns what they're doing.  */
+  if ((type & BUTTYPE) == UI_BTYPE_NUM) {
+    if (ELEM((type & UI_BUT_POIN_TYPES), UI_BUT_POIN_CHAR, UI_BUT_POIN_SHORT, UI_BUT_POIN_INT)) {
+      BLI_assert((int)a1 > 0);
+    }
+  }
+
   if (type & UI_BUT_POIN_TYPES) { /* a pointer is required */
     if (poin == NULL) {
       BLI_assert(0);
