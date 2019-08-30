@@ -32,7 +32,7 @@ add_library(BlendThumb SHARED ${SRC})
 target_link_libraries(BlendThumb ${ZLIB_LIBRARIES})
 
 install(
-    FILES $<TARGET_FILE:BlendThumb>
-    COMPONENT Blender
-    DESTINATION "."
+  FILES $<TARGET_FILE:BlendThumb>
+  COMPONENT Blender
+  DESTINATION "."
 )
