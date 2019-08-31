@@ -134,7 +134,7 @@ static void outliner_sync_select_from_outliner_set_types(bContext *C,
 
   const bool sequence_view = soops->outlinevis == SO_SEQUENCE;
 
-  sync_types->object = !sequence_view && (obact && obact->mode == OB_MODE_OBJECT);
+  sync_types->object = !sequence_view;
   sync_types->edit_bone = !sequence_view && (obedit && obedit->type == OB_ARMATURE);
   sync_types->pose_bone = !sequence_view && (obact && obact->mode == OB_MODE_POSE);
   sync_types->sequence = sequence_view;
@@ -143,8 +143,9 @@ static void outliner_sync_select_from_outliner_set_types(bContext *C,
 /**
  * Current dirty flags and outliner display mode determine which type of syncing should occur.
  * This is to ensure sync flag data is not lost on sync in the wrong display mode.
+ * Returns true if a sync is needed.
  */
-static void outliner_sync_select_to_outliner_set_types(const bContext *C,
+static bool outliner_sync_select_to_outliner_set_types(const bContext *C,
                                                        SpaceOutliner *soops,
                                                        SyncSelectTypes *sync_types)
 {
@@ -153,7 +154,7 @@ static void outliner_sync_select_to_outliner_set_types(const bContext *C,
 
   const bool sequence_view = soops->outlinevis == SO_SEQUENCE;
 
-  sync_types->object = !sequence_view && (obact && obact->mode == OB_MODE_OBJECT) &&
+  sync_types->object = !sequence_view &&
                        (soops->sync_select_dirty & WM_OUTLINER_SYNC_SELECT_FROM_OBJECT);
   sync_types->edit_bone = !sequence_view && (obedit && obedit->type == OB_ARMATURE) &&
                           (soops->sync_select_dirty & WM_OUTLINER_SYNC_SELECT_FROM_EDIT_BONE);
@@ -161,6 +162,9 @@ static void outliner_sync_select_to_outliner_set_types(const bContext *C,
                           (soops->sync_select_dirty & WM_OUTLINER_SYNC_SELECT_FROM_POSE_BONE);
   sync_types->sequence = sequence_view &&
                          (soops->sync_select_dirty & WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE);
+
+  return sync_types->object || sync_types->edit_bone || sync_types->pose_bone ||
+         sync_types->sequence;
 }
 
 /**
@@ -366,17 +370,22 @@ void ED_outliner_select_sync_from_outliner(bContext *C, SpaceOutliner *soops)
 
   selected_items_free(&selected_items);
 
-  /* Tag for updates */
+  /* Tag for updates and clear dirty flag toprevent a sync to the outliner on draw */
   if (sync_types.object) {
+    soops->sync_select_dirty &= ~WM_OUTLINER_SYNC_SELECT_FROM_OBJECT;
     DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
   }
+  else if (sync_types.edit_bone) {
+    soops->sync_select_dirty &= ~WM_OUTLINER_SYNC_SELECT_FROM_EDIT_BONE;
+  }
+  else if (sync_types.pose_bone) {
+    soops->sync_select_dirty &= ~WM_OUTLINER_SYNC_SELECT_FROM_POSE_BONE;
+  }
   if (sync_types.sequence) {
+    soops->sync_select_dirty &= ~WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE;
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
   }
-
-  /* Clear outliner sync select dirty flag to prevent a sync to the outliner on draw */
-  soops->sync_select_dirty &= ~WM_OUTLINER_SYNC_SELECT_FROM_ALL;
 }
 
 static void outliner_select_sync_from_object(ViewLayer *view_layer,
@@ -392,6 +401,9 @@ static void outliner_select_sync_from_object(ViewLayer *view_layer,
 
   if (base && (ob == obact)) {
     outliner_element_activate(soops, tselem);
+  }
+  else {
+    tselem->flag &= ~TSE_ACTIVE;
   }
 
   if (is_selected) {
@@ -411,6 +423,9 @@ static void outliner_select_sync_from_edit_bone(SpaceOutliner *soops,
 
   if (ebone == ebone_active) {
     outliner_element_activate(soops, tselem);
+  }
+  else {
+    tselem->flag &= ~TSE_ACTIVE;
   }
 
   if (ebone->flag & BONE_SELECTED) {
@@ -432,6 +447,9 @@ static void outliner_select_sync_from_pose_bone(SpaceOutliner *soops,
   if (pchan == pchan_active) {
     outliner_element_activate(soops, tselem);
   }
+  else {
+    tselem->flag &= ~TSE_ACTIVE;
+  }
 
   if (bone->flag & BONE_SELECTED) {
     tselem->flag |= TSE_SELECTED;
@@ -449,6 +467,9 @@ static void outliner_select_sync_from_sequence(SpaceOutliner *soops,
 
   if (seq == sequence_active) {
     outliner_element_activate(soops, tselem);
+  }
+  else {
+    tselem->flag &= ~TSE_ACTIVE;
   }
 
   if (seq->flag & SELECT) {
