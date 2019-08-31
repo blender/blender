@@ -1714,7 +1714,10 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
      * of scale over all three axes unless the matrix includes shear. */
     return cbrtf(mat4_to_volume_scale(mat));
   }
-  else if (dtar->transChan >= DTAR_TRANSCHAN_SCALEX) {
+  else if (ELEM(dtar->transChan,
+                DTAR_TRANSCHAN_SCALEX,
+                DTAR_TRANSCHAN_SCALEY,
+                DTAR_TRANSCHAN_SCALEZ)) {
     /* Extract scale, and choose the right axis,
      * inline 'mat4_to_size'. */
     return len_v3(mat[dtar->transChan - DTAR_TRANSCHAN_SCALEX]);
@@ -1728,7 +1731,18 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
      *     b) [NOT USED] directly use the original values (no decomposition)
      *         - only an option for "transform space", if quality is really bad with a)
      */
-    float eul[3];
+    float quat[4];
+    float *const eul = quat + 1;
+    int channel;
+
+    if (dtar->transChan == DTAR_TRANSCHAN_ROTW) {
+      channel = 0;
+      quat[0] = 0.0f;
+    }
+    else {
+      channel = 1 + dtar->transChan - DTAR_TRANSCHAN_ROTX;
+      BLI_assert(channel < 4);
+    }
 
     if (dtar->rotation_mode == DTAR_ROTMODE_AUTO) {
       mat4_to_eulO(eul, rot_order, mat);
@@ -1741,12 +1755,15 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
              dtar->rotation_mode <= DTAR_ROTMODE_EULER_MAX) {
       mat4_to_eulO(eul, dtar->rotation_mode, mat);
     }
+    else if (dtar->rotation_mode == DTAR_ROTMODE_QUATERNION) {
+      mat4_to_quat(quat, mat);
+    }
     else {
       BLI_assert(false);
       zero_v3(eul);
     }
 
-    return eul[dtar->transChan - DTAR_TRANSCHAN_ROTX];
+    return quat[channel];
   }
   else {
     /* extract location and choose right axis */
