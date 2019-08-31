@@ -29,14 +29,6 @@ git_command = args.git_command
 svn_command = args.svn_command
 svn_non_interactive = [args.svn_command, '--non-interactive']
 
-if shutil.which(git_command) is None:
-    sys.stderr.write("git not found, can't update code\n")
-    sys.exit(1)
-
-if shutil.which(svn_command) is None:
-    sys.stderr.write("svn not found, can't update libraries\n")
-    sys.exit(1)
-
 def print_stage(text):
     print("")
     print(text)
@@ -68,6 +60,10 @@ if not only_code:
         if not os.path.exists(lib_platform_dirpath):
             print_stage("Checking out Precompiled Libraries")
 
+            if shutil.which(svn_command) is None:
+                sys.stderr.write("svn not found, can't checkout libraries\n")
+                sys.exit(1)
+
             svn_url_platform = svn_url + lib_platform
             call(svn_non_interactive + ["checkout", svn_url_platform, lib_platform_dirpath])
 
@@ -85,12 +81,20 @@ if not only_code:
 
         if os.path.isdir(dirpath) and \
            (os.path.exists(svn_dirpath) or os.path.exists(svn_root_dirpath)):
+            if shutil.which(svn_command) is None:
+                sys.stderr.write("svn not found, can't update libraries\n")
+                sys.exit(1)
+
             call(svn_non_interactive + ["cleanup", dirpath])
             call(svn_non_interactive + ["switch", svn_url + dirname, dirpath])
             call(svn_non_interactive + ["update", dirpath])
 
 # Update blender repository and submodules.
 print_stage("Updating Blender Git Repository and Submodules")
+
+if shutil.which(git_command) is None:
+    sys.stderr.write("git not found, can't update code\n")
+    sys.exit(1)
 
 call([git_command, "pull", "--rebase"])
 call([git_command, "submodule", "update", "--init", "--recursive"])
