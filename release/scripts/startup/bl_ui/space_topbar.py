@@ -505,6 +505,8 @@ class TOPBAR_MT_edit(Menu):
         props.name = "TOPBAR_PT_name"
         props.keep_open = False
 
+        layout.operator("wm.batch_rename")
+
         layout.separator()
 
         # Should move elsewhere (impacts outliner & 3D view).
