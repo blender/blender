@@ -2578,7 +2578,7 @@ void BKE_gpencil_merge_distance_stroke(bGPDframe *gpf,
 }
 
 /* Helper: Check materials with same color. */
-static int gpencil_check_same_material_color(Object *ob_gp, float color[4], Material *r_mat)
+static int gpencil_check_same_material_color(Object *ob_gp, float color[4], Material **r_mat)
 {
   Material *ma = NULL;
   float color_cu[4];
@@ -2595,12 +2595,12 @@ static int gpencil_check_same_material_color(Object *ob_gp, float color[4], Mate
     rgb_to_hsv_v(gp_style->fill_rgba, hsv2);
     hsv2[3] = gp_style->fill_rgba[3];
     if ((gp_style->fill_style == GP_STYLE_FILL_STYLE_SOLID) && (compare_v4v4(hsv1, hsv2, 0.01f))) {
-      r_mat = ma;
+      *r_mat = ma;
       return i - 1;
     }
   }
 
-  r_mat = NULL;
+  *r_mat = NULL;
   return -1;
 }
 
@@ -2688,11 +2688,9 @@ static Collection *gpencil_get_parent_collection(Scene *scene, Object *ob)
 
 /* Helper: Convert one spline to grease pencil stroke. */
 static void gpencil_convert_spline(Main *bmain,
-                                   Scene *scene,
                                    Object *ob_gp,
                                    Object *ob_cu,
                                    const bool gpencil_lines,
-                                   const bool use_collections,
                                    const bool only_stroke,
                                    bGPDframe *gpf,
                                    Nurb *nu)
@@ -2763,7 +2761,7 @@ static void gpencil_convert_spline(Main *bmain,
     }
   }
 
-  int r_idx = gpencil_check_same_material_color(ob_gp, color, mat_gp);
+  int r_idx = gpencil_check_same_material_color(ob_gp, color, &mat_gp);
   if ((ob_cu->totcol > 0) && (r_idx < 0)) {
     Material *mat_curve = give_current_material(ob_cu, 1);
     mat_gp = gpencil_add_from_curve_material(bmain, ob_gp, color, gpencil_lines, fill, &r_idx);
@@ -2939,8 +2937,7 @@ void BKE_gpencil_convert_curve(Main *bmain,
 
   /* Read all splines of the curve and create a stroke for each. */
   for (Nurb *nu = cu->nurb.first; nu; nu = nu->next) {
-    gpencil_convert_spline(
-        bmain, scene, ob_gp, ob_cu, gpencil_lines, use_collections, only_stroke, gpf, nu);
+    gpencil_convert_spline(bmain, ob_gp, ob_cu, gpencil_lines, only_stroke, gpf, nu);
   }
 
   /* Tag for recalculation */
