@@ -27,6 +27,7 @@ args = parse_arguments()
 only_code = args.only_code
 git_command = args.git_command
 svn_command = args.svn_command
+svn_non_interactive = [args.svn_command, '--non-interactive']
 
 if shutil.which(git_command) is None:
     sys.stderr.write("git not found, can't update code\n")
@@ -68,7 +69,7 @@ if not only_code:
             print_stage("Checking out Precompiled Libraries")
 
             svn_url_platform = svn_url + lib_platform
-            call([svn_command, "checkout", svn_url_platform, lib_platform_dirpath])
+            call(svn_non_interactive + ["checkout", svn_url_platform, lib_platform_dirpath])
 
     # Update precompiled libraries and tests
     print_stage("Updating Precompiled Libraries and Tests")
@@ -84,9 +85,9 @@ if not only_code:
 
         if os.path.isdir(dirpath) and \
            (os.path.exists(svn_dirpath) or os.path.exists(svn_root_dirpath)):
-            call([svn_command, "cleanup", dirpath])
-            call([svn_command, "switch", svn_url + dirname, dirpath])
-            call([svn_command, "update", dirpath])
+            call(svn_non_interactive + ["cleanup", dirpath])
+            call(svn_non_interactive + ["switch", svn_url + dirname, dirpath])
+            call(svn_non_interactive + ["update", dirpath])
 
 # Update blender repository and submodules.
 print_stage("Updating Blender Git Repository and Submodules")
