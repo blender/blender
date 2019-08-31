@@ -441,7 +441,7 @@ static int ui_node_item_name_compare(const void *a, const void *b)
 {
   const bNodeType *type_a = *(const bNodeType **)a;
   const bNodeType *type_b = *(const bNodeType **)b;
-  return BLI_natstrcmp(type_a->ui_name, type_b->ui_name);
+  return BLI_strcasecmp_natural(type_a->ui_name, type_b->ui_name);
 }
 
 static bool ui_node_item_special_poll(const bNodeTree *UNUSED(ntree), const bNodeType *ntype)

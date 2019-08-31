@@ -663,8 +663,11 @@ static int left_number_strcmp(const char *s1, const char *s2, int *tiebreaker)
   return 0;
 }
 
-/* natural string compare, keeping numbers in order */
-int BLI_natstrcmp(const char *s1, const char *s2)
+/**
+ * Case insensitive, *natural* string comparison,
+ * keeping numbers in order.
+ */
+int BLI_strcasecmp_natural(const char *s1, const char *s2)
 {
   register int d1 = 0, d2 = 0;
   register char c1, c2;

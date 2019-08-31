@@ -434,7 +434,7 @@ static int compare_name(void *UNUSED(user_data), const void *a1, const void *a2)
   name1 = entry1->name;
   name2 = entry2->name;
 
-  return BLI_natstrcmp(name1, name2);
+  return BLI_strcasecmp_natural(name1, name2);
 }
 
 static int compare_date(void *UNUSED(user_data), const void *a1, const void *a2)
@@ -461,7 +461,7 @@ static int compare_date(void *UNUSED(user_data), const void *a1, const void *a2)
   name1 = entry1->name;
   name2 = entry2->name;
 
-  return BLI_natstrcmp(name1, name2);
+  return BLI_strcasecmp_natural(name1, name2);
 }
 
 static int compare_size(void *UNUSED(user_data), const void *a1, const void *a2)
@@ -488,7 +488,7 @@ static int compare_size(void *UNUSED(user_data), const void *a1, const void *a2)
   name1 = entry1->name;
   name2 = entry2->name;
 
-  return BLI_natstrcmp(name1, name2);
+  return BLI_strcasecmp_natural(name1, name2);
 }
 
 static int compare_extension(void *UNUSED(user_data), const void *a1, const void *a2)
@@ -546,7 +546,7 @@ static int compare_extension(void *UNUSED(user_data), const void *a1, const void
   name1 = entry1->name;
   name2 = entry2->name;
 
-  return BLI_natstrcmp(name1, name2);
+  return BLI_strcasecmp_natural(name1, name2);
 }
 
 void filelist_sort(struct FileList *filelist)

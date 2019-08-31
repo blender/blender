@@ -100,7 +100,7 @@ char *BLI_strncasestr(const char *s, const char *find, size_t len) ATTR_WARN_UNU
 int BLI_strcasecmp(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int BLI_strncasecmp(const char *s1, const char *s2, size_t len) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
-int BLI_natstrcmp(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int BLI_strcasecmp_natural(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int BLI_strcmp_ignore_pad(const char *str1,
                           const char *str2,
                           const char pad) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
