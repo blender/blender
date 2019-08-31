@@ -319,6 +319,10 @@ typedef struct DriverTarget {
   /** Transform channel index (for DVAR_TYPE_TRANSFORM_CHAN.)*/
   short transChan;
 
+  /** Rotation channel calculation type. */
+  char rotation_mode;
+  char _pad[7];
+
   /**
    * Flags for the validity of the target
    * (NOTE: these get reset every time the types change).
@@ -361,6 +365,23 @@ typedef enum eDriverTarget_TransformChannels {
 
   MAX_DTAR_TRANSCHAN_TYPES,
 } eDriverTarget_TransformChannels;
+
+/* Rotation channel mode for Driver Targets */
+typedef enum eDriverTarget_RotationMode {
+  /** Automatic euler mode. */
+  DTAR_ROTMODE_AUTO = 0,
+
+  /** Explicit euler rotation modes - must sync with BLI_math_rotation.h defines. */
+  DTAR_ROTMODE_EULER_XYZ = 1,
+  DTAR_ROTMODE_EULER_XZY,
+  DTAR_ROTMODE_EULER_YXZ,
+  DTAR_ROTMODE_EULER_YZX,
+  DTAR_ROTMODE_EULER_ZXY,
+  DTAR_ROTMODE_EULER_ZYX,
+
+  DTAR_ROTMODE_EULER_MIN = DTAR_ROTMODE_EULER_XYZ,
+  DTAR_ROTMODE_EULER_MAX = DTAR_ROTMODE_EULER_ZYX,
+} eDriverTarget_RotationMode;
 
 /* --- */
 

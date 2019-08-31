@@ -1730,10 +1730,20 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
      */
     float eul[3];
 
-    mat4_to_eulO(eul, rot_order, mat);
+    if (dtar->rotation_mode == DTAR_ROTMODE_AUTO) {
+      mat4_to_eulO(eul, rot_order, mat);
 
-    if (use_eulers) {
-      compatible_eul(eul, oldEul);
+      if (use_eulers) {
+        compatible_eul(eul, oldEul);
+      }
+    }
+    else if (dtar->rotation_mode >= DTAR_ROTMODE_EULER_MIN &&
+             dtar->rotation_mode <= DTAR_ROTMODE_EULER_MAX) {
+      mat4_to_eulO(eul, dtar->rotation_mode, mat);
+    }
+    else {
+      BLI_assert(false);
+      zero_v3(eul);
     }
 
     return eul[dtar->transChan - DTAR_TRANSCHAN_ROTX];

@@ -1701,6 +1701,17 @@ static void rna_def_drivertarget(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem prop_rotation_mode_items[] = {
+      {DTAR_ROTMODE_AUTO, "AUTO", 0, "Auto Euler", "Euler using the rotation order of the target"},
+      {DTAR_ROTMODE_EULER_XYZ, "XYZ", 0, "XYZ Euler", "Euler using the XYZ rotation order"},
+      {DTAR_ROTMODE_EULER_XZY, "XZY", 0, "XZY Euler", "Euler using the XZY rotation order"},
+      {DTAR_ROTMODE_EULER_YXZ, "YXZ", 0, "YXZ Euler", "Euler using the YXZ rotation order"},
+      {DTAR_ROTMODE_EULER_YZX, "YZX", 0, "YZX Euler", "Euler using the YZX rotation order"},
+      {DTAR_ROTMODE_EULER_ZXY, "ZXY", 0, "ZXY Euler", "Euler using the ZXY rotation order"},
+      {DTAR_ROTMODE_EULER_ZYX, "ZYX", 0, "ZYX Euler", "Euler using the ZYX rotation order"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "DriverTarget", NULL);
   RNA_def_struct_ui_text(srna, "Driver Target", "Source of input values for driver variables");
 
@@ -1747,6 +1758,12 @@ static void rna_def_drivertarget(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "transChan");
   RNA_def_property_enum_items(prop, prop_trans_chan_items);
   RNA_def_property_ui_text(prop, "Type", "Driver variable type");
+  RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
+
+  prop = RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "rotation_mode");
+  RNA_def_property_enum_items(prop, prop_rotation_mode_items);
+  RNA_def_property_ui_text(prop, "Rotation Mode", "Mode for calculating rotation channel values");
   RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 
   prop = RNA_def_property(srna, "transform_space", PROP_ENUM, PROP_NONE);

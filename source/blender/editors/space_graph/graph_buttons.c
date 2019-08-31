@@ -861,6 +861,11 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
 
   sub = uiLayoutColumn(layout, true);
   uiItemR(sub, &dtar_ptr, "transform_type", 0, NULL, ICON_NONE);
+
+  if (ELEM(dtar->transChan, DTAR_TRANSCHAN_ROTX, DTAR_TRANSCHAN_ROTY, DTAR_TRANSCHAN_ROTZ)) {
+    uiItemR(sub, &dtar_ptr, "rotation_mode", 0, IFACE_("Mode"), ICON_NONE);
+  }
+
   uiItemR(sub, &dtar_ptr, "transform_space", 0, IFACE_("Space"), ICON_NONE);
 }
 
