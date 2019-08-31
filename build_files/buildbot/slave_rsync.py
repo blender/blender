@@ -21,23 +21,17 @@
 # Runs on buildbot slave, rsync zip directly to buildbot server rather
 # than using upload which is much slower
 
+import buildbot_utils
 import os
 import sys
 
-# get builder name
-if len(sys.argv) < 2:
-    sys.stderr.write("Not enough arguments, expecting builder name\n")
-    sys.exit(1)
+if __name__ == "__main__":
+    builder = buildbot_utils.create_builder_from_arguments()
 
-builder = sys.argv[1]
+    # rsync, this assumes ssh keys are setup so no password is needed
+    local_zip = "buildbot_upload.zip"
+    remote_folder = "builder.blender.org:/data/buildbot-master/uploaded/"
+    remote_zip = remote_folder + "buildbot_upload_" + builder.name + ".zip"
 
-# rsync, this assumes ssh keys are setup so no password is needed
-local_zip = "buildbot_upload.zip"
-remote_folder = "builder.blender.org:/data/buildbot-master/uploaded/"
-remote_zip = remote_folder + "buildbot_upload_" + builder + ".zip"
-command = "rsync -avz %s %s" % (local_zip, remote_zip)
-
-print(command)
-
-ret = os.system(command)
-sys.exit(ret)
+    command = ["rsync", "-avz", local_zip, remote_zip]
+    buildbot_utils.call(command)

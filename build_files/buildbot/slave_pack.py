@@ -22,47 +22,35 @@
 # system and zipping it into buildbot_upload.zip. This is then uploaded
 # to the master in the next buildbot step.
 
+import buildbot_utils
 import os
-import subprocess
 import sys
-import zipfile
 
-# get builder name
-if len(sys.argv) < 2:
-    sys.stderr.write("Not enough arguments, expecting builder name\n")
-    sys.exit(1)
+def get_package_name(builder, platform=None):
+    info = buildbot_utils.VersionInfo(builder)
 
-builder = sys.argv[1]
-# Never write branch if it is master.
-branch = sys.argv[2] if (len(sys.argv) >= 3 and sys.argv[2] != 'master') else ''
+    package_name = 'blender-' + info.version + '-' + info.hash
+    if platform:
+      package_name += '-' + platform
+    if builder.branch != 'master':
+        package_name = builder.branch + "-" + package_name
 
-blender_dir = os.path.join('..', 'blender.git')
-build_dir = os.path.join('..', 'build', builder)
-install_dir = os.path.join('..', 'install', builder)
-buildbot_upload_zip = os.path.abspath(os.path.join(os.path.dirname(install_dir), "buildbot_upload.zip"))
+    return package_name
 
-upload_filename = None  # Name of the archive to be uploaded
-                        # (this is the name of archive which will appear on the
-                        # download page)
-upload_filepath = None  # Filepath to be uploaded to the server
-                        # (this folder will be packed)
+def create_buildbot_upload_zip(builder, package_filepath, package_filename):
+    import zipfile
 
+    buildbot_upload_zip = os.path.join(builder.upload_dir, "buildbot_upload.zip")
+    if os.path.exists(buildbot_upload_zip):
+        os.remove(buildbot_upload_zip)
 
-def parse_header_file(filename, define):
-    import re
-    regex = re.compile("^#\s*define\s+%s\s+(.*)" % define)
-    with open(filename, "r") as file:
-        for l in file:
-            match = regex.match(l)
-            if match:
-                return match.group(1)
-    return None
-
-
-# Make sure install directory always exists
-if not os.path.exists(install_dir):
-    os.makedirs(install_dir)
-
+    try:
+        z = zipfile.ZipFile(buildbot_upload_zip, "w", compression=zipfile.ZIP_STORED)
+        z.write(package_filepath, arcname=package_filename)
+        z.close()
+    except Exception as ex:
+        sys.stderr.write('Create buildbot_upload.zip failed: ' + str(ex) + '\n')
+        sys.exit(1)
 
 def create_tar_bz2(src, dest, package_name):
     # One extra to remove leading os.sep when cleaning root for package_root
@@ -80,163 +68,97 @@ def create_tar_bz2(src, dest, package_name):
         package.add(entry[0], entry[1], recursive=False)
     package.close()
 
+def cleanup_files(dirpath, extension):
+    for f in os.listdir(dirpath):
+        filepath = os.path.join(dirpath, f)
+        if os.path.isfile(filepath) and f.endswith(extension):
+            os.remove(filepath)
 
-if builder.find('cmake') != -1:
-    # CMake
-    if 'win' in builder or 'mac' in builder:
-        os.chdir(build_dir)
-
-        files = [f for f in os.listdir('.') if os.path.isfile(f) and f.endswith('.zip')]
-        for f in files:
-            os.remove(f)
-        retcode = subprocess.call(['cpack', '-G', 'ZIP'])
-        result_file = [f for f in os.listdir('.') if os.path.isfile(f) and f.endswith('.zip')][0]
-
-        # TODO(sergey): Such magic usually happens in SCon's packaging but we don't have it
-        # in the CMake yet. For until then we do some magic here.
-        tokens = result_file.split('-')
-        blender_version = tokens[1].split('.')
-        blender_full_version = '.'.join(blender_version[0:2])
-        git_hash = tokens[2].split('.')[1]
-        platform = builder.split('_')[0]
-        if platform == 'mac':
-            # Special exception for OSX
-            platform = 'OSX-10.9-'
-            if builder.endswith('x86_64_10_9_cmake'):
-                platform += 'x86_64'
-        if builder.endswith('vc2015'):
-            platform += "-vc14"
-        builderified_name = 'blender-{}-{}-{}'.format(blender_full_version, git_hash, platform)
-        # NOTE: Blender 2.7 is already respected by blender_full_version.
-        if branch != '' and branch != 'blender2.7':
-            builderified_name = branch + "-" + builderified_name
-
-        os.rename(result_file, "{}.zip".format(builderified_name))
-        # create zip file
-        try:
-            if os.path.exists(buildbot_upload_zip):
-                os.remove(buildbot_upload_zip)
-            z = zipfile.ZipFile(buildbot_upload_zip, "w", compression=zipfile.ZIP_STORED)
-            z.write("{}.zip".format(builderified_name))
-            z.close()
-            sys.exit(retcode)
-        except Exception as ex:
-            sys.stderr.write('Create buildbot_upload.zip failed' + str(ex) + '\n')
-            sys.exit(1)
-
-    elif builder.startswith('linux_'):
-        blender = os.path.join(install_dir, 'blender')
-
-        buildinfo_h = os.path.join(build_dir, "source", "creator", "buildinfo.h")
-        blender_h = os.path.join(blender_dir, "source", "blender", "blenkernel", "BKE_blender_version.h")
-
-        # Get version information
-        blender_version = int(parse_header_file(blender_h, 'BLENDER_VERSION'))
-        blender_version = "%d.%d" % (blender_version // 100, blender_version % 100)
-        blender_hash = parse_header_file(buildinfo_h, 'BUILD_HASH')[1:-1]
-        blender_glibc = builder.split('_')[1]
-        command_prefix = []
-        bits = 64
-        blender_arch = 'x86_64'
-
-        if blender_glibc == 'glibc224':
-            if builder.endswith('x86_64_cmake'):
-                chroot_name = 'buildbot_stretch_x86_64'
-            elif builder.endswith('i686_cmake'):
-                chroot_name = 'buildbot_stretch_i686'
-                bits = 32
-                blender_arch = 'i686'
-            command_prefix = ['schroot', '-c', chroot_name, '--']
-        elif blender_glibc == 'glibc217':
-            command_prefix = ['scl', 'enable', 'devtoolset-6', '--']
-
-        # Strip all unused symbols from the binaries
-        print("Stripping binaries...")
-        subprocess.call(command_prefix + ['strip', '--strip-all', blender])
-
-        print("Stripping python...")
-        py_target = os.path.join(install_dir, blender_version)
-        subprocess.call(command_prefix + ['find', py_target, '-iname', '*.so', '-exec', 'strip', '-s', '{}', ';'])
-
-        # Copy all specific files which are too specific to be copied by
-        # the CMake rules themselves
-        print("Copying extra scripts and libs...")
-
-        extra = '/' + os.path.join('home', 'sources', 'release-builder', 'extra')
-        mesalibs = os.path.join(extra, 'mesalibs' + str(bits) + '.tar.bz2')
-        software_gl = os.path.join(blender_dir, 'release', 'bin', 'blender-softwaregl')
-        icons = os.path.join(blender_dir, 'release', 'freedesktop', 'icons')
-
-        os.system('tar -xpf %s -C %s' % (mesalibs, install_dir))
-        os.system('cp %s %s' % (software_gl, install_dir))
-        os.system('cp -r %s %s' % (icons, install_dir))
-        os.system('chmod 755 %s' % (os.path.join(install_dir, 'blender-softwaregl')))
-
-        # Construct archive name
-        package_name = 'blender-%s-%s-linux-%s-%s' % (blender_version,
-                                                      blender_hash,
-                                                      blender_glibc,
-                                                      blender_arch)
-        # NOTE: Blender 2.7 is already respected by blender_full_version.
-        if branch != '' and branch != 'blender2.7':
-            package_name = branch + "-" + package_name
-
-        upload_filename = package_name + ".tar.bz2"
-
-        print("Creating .tar.bz2 archive")
-        upload_filepath = install_dir + '.tar.bz2'
-        create_tar_bz2(install_dir, upload_filepath, package_name)
-else:
-    print("Unknown building system")
-    sys.exit(1)
+def find_file(dirpath, extension):
+    for f in os.listdir(dirpath):
+        filepath = os.path.join(dirpath, f)
+        if os.path.isfile(filepath) and f.endswith(extension):
+            return f
+    return None
 
 
-if upload_filepath is None:
-    # clean release directory if it already exists
-    release_dir = 'release'
+def pack_mac(builder):
+    os.chdir(builder.build_dir)
+    cleanup_files(builder.build_dir, '.zip')
 
-    if os.path.exists(release_dir):
-        for f in os.listdir(release_dir):
-            if os.path.isfile(os.path.join(release_dir, f)):
-                os.remove(os.path.join(release_dir, f))
+    package_name = get_package_name(builder, 'OSX-10.9-x86_64')
+    package_filename = package_name + '.zip'
 
-    # create release package
-    try:
-        subprocess.call(['make', 'package_archive'])
-    except Exception as ex:
-        sys.stderr.write('Make package release failed' + str(ex) + '\n')
-        sys.exit(1)
+    buildbot_utils.call(['cpack', '-G', 'ZIP'])
+    package_filepath = find_file(builder.build_dir, '.zip')
 
-    # find release directory, must exist this time
-    if not os.path.exists(release_dir):
-        sys.stderr.write("Failed to find release directory %r.\n" % release_dir)
-        sys.exit(1)
+    create_buildbot_upload_zip(builder, package_filepath, package_filename)
 
-    # find release package
-    file = None
-    filepath = None
 
-    for f in os.listdir(release_dir):
-        rf = os.path.join(release_dir, f)
-        if os.path.isfile(rf) and f.startswith('blender'):
-            file = f
-            filepath = rf
+def pack_win(builder):
+    os.chdir(builder.build_dir)
+    cleanup_files(builder.build_dir, '.zip')
 
-    if not file:
-        sys.stderr.write("Failed to find release package.\n")
-        sys.exit(1)
+    package_name = get_package_name(builder, 'win' + str(builder.bits))
+    package_filename = package_name + '.zip'
 
-    upload_filename = file
-    upload_filepath = filepath
+    buildbot_utils.call(['cpack', '-G', 'ZIP'])
+    package_filepath = find_file(builder.build_dir, '.zip')
 
-# create zip file
-try:
-    upload_zip = os.path.join(buildbot_upload_zip)
-    if os.path.exists(upload_zip):
-        os.remove(upload_zip)
-    z = zipfile.ZipFile(upload_zip, "w", compression=zipfile.ZIP_STORED)
-    z.write(upload_filepath, arcname=upload_filename)
-    z.close()
-except Exception as ex:
-    sys.stderr.write('Create buildbot_upload.zip failed' + str(ex) + '\n')
-    sys.exit(1)
+    create_buildbot_upload_zip(builder, package_filepath, package_filename)
+
+
+def pack_linux(builder):
+    blender_executable = os.path.join(builder.install_dir, 'blender')
+
+    info = buildbot_utils.VersionInfo(builder)
+    blender_glibc = builder.name.split('_')[1]
+    blender_arch = 'x86_64'
+
+    # Strip all unused symbols from the binaries
+    print("Stripping binaries...")
+    buildbot_utils.call(builder.command_prefix + ['strip', '--strip-all', blender_executable])
+
+    print("Stripping python...")
+    py_target = os.path.join(builder.install_dir, info.version)
+    buildbot_utils.call(builder.command_prefix + ['find', py_target, '-iname', '*.so', '-exec', 'strip', '-s', '{}', ';'])
+
+    # Copy all specific files which are too specific to be copied by
+    # the CMake rules themselves
+    print("Copying extra scripts and libs...")
+
+    extra = '/' + os.path.join('home', 'sources', 'release-builder', 'extra')
+    mesalibs = os.path.join(extra, 'mesalibs' + str(builder.bits) + '.tar.bz2')
+    software_gl = os.path.join(builder.blender_dir, 'release', 'bin', 'blender-softwaregl')
+    icons = os.path.join(builder.blender_dir, 'release', 'freedesktop', 'icons')
+
+    os.system('tar -xpf %s -C %s' % (mesalibs, builder.install_dir))
+    os.system('cp %s %s' % (software_gl, builder.install_dir))
+    os.system('cp -r %s %s' % (icons, builder.install_dir))
+    os.system('chmod 755 %s' % (os.path.join(builder.install_dir, 'blender-softwaregl')))
+
+    # Construct package name
+    platform_name = 'linux-' + blender_glibc + '-' + blender_arch
+    package_name = get_package_name(builder, platform_name)
+    package_filename = package_name + ".tar.bz2"
+
+    print("Creating .tar.bz2 archive")
+    package_filepath = builder.install_dir + '.tar.bz2'
+    create_tar_bz2(builder.install_dir, package_filepath, package_name)
+
+    # Create buildbot_upload.zip
+    create_buildbot_upload_zip(builder, package_filepath, package_filename)
+
+
+if __name__ == "__main__":
+    builder = buildbot_utils.create_builder_from_arguments()
+
+    # Make sure install directory always exists
+    os.makedirs(builder.install_dir, exist_ok=True)
+
+    if builder.platform == 'mac':
+        pack_mac(builder)
+    elif builder.platform == 'win':
+        pack_win(builder)
+    elif builder.platform == 'linux':
+        pack_linux(builder)

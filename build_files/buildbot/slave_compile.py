@@ -18,149 +18,80 @@
 
 # <pep8 compliant>
 
+import buildbot_utils
 import os
-import subprocess
-import sys
 import shutil
 
-# get builder name
-if len(sys.argv) < 2:
-    sys.stderr.write("Not enough arguments, expecting builder name\n")
-    sys.exit(1)
+def get_cmake_options(builder):
+    config_file = "build_files/cmake/config/blender_release.cmake"
+    options = ['-DCMAKE_BUILD_TYPE:STRING=Release', '-DWITH_GTESTS=ON']
 
-builder = sys.argv[1]
+    if builder.platform == 'mac':
+        options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
+        options.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=10.9')
+    elif builder.platform == 'win':
+        options.extend(['-G', 'Visual Studio 15 2017 Win64'])
+    elif builder.platform == 'linux':
+        config_file = "build_files/buildbot/config/blender_linux.cmake"
 
-# we run from build/ directory
-blender_dir = os.path.join('..', 'blender.git')
+    options.append("-C" + os.path.join(builder.blender_dir, config_file))
+    options.append("-DCMAKE_INSTALL_PREFIX=%s" % (builder.install_dir))
 
+    return options
 
-def parse_header_file(filename, define):
-    import re
-    regex = re.compile("^#\s*define\s+%s\s+(.*)" % define)
-    with open(filename, "r") as file:
-        for l in file:
-            match = regex.match(l)
-            if match:
-                return match.group(1)
-    return None
+def update_git(builder):
+    # Do extra git fetch because not all platform/git/buildbot combinations
+    # update the origin remote, causing buildinfo to detect local changes.
+    os.chdir(builder.blender_dir)
 
-if 'cmake' in builder:
-    # cmake
+    print("Fetching remotes")
+    command = ['git', 'fetch', '--all']
+    buildbot_utils.call(builder.command_prefix + command)
 
-    # Some fine-tuning configuration
-    blender_dir = os.path.abspath(blender_dir)
-    build_dir = os.path.abspath(os.path.join('..', 'build', builder))
-    install_dir = os.path.abspath(os.path.join('..', 'install', builder))
-    targets = ['blender']
-    command_prefix = []
-
-    bits = 64
-
-    # Config file to be used (relative to blender's sources root)
-    cmake_config_file = "build_files/cmake/config/blender_release.cmake"
-
-    # Set build options.
-    cmake_options = []
-    cmake_extra_options = ['-DCMAKE_BUILD_TYPE:STRING=Release',
-                           '-DWITH_GTESTS=ON']
-
-    if builder.startswith('mac'):
-        # Set up OSX architecture
-        if builder.endswith('x86_64_10_9_cmake'):
-            cmake_extra_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
-        cmake_extra_options.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=10.9')
-
-    elif builder.startswith('win'):
-        if builder.startswith('win64'):
-            cmake_options.extend(['-G', 'Visual Studio 15 2017 Win64'])
-        elif builder.startswith('win32'):
-            bits = 32
-            cmake_options.extend(['-G', 'Visual Studio 15 2017'])
-
-    elif builder.startswith('linux'):
-        cmake_config_file = "build_files/buildbot/config/blender_linux.cmake"
-        tokens = builder.split("_")
-        glibc = tokens[1]
-        if glibc == 'glibc224':
-            deb_name = "stretch"
-            if builder.endswith('x86_64_cmake'):
-                chroot_name = 'buildbot_' + deb_name + '_x86_64'
-            elif builder.endswith('i686_cmake'):
-                bits = 32
-                chroot_name = 'buildbot_' + deb_name + '_i686'
-            command_prefix = ['schroot', '-c', chroot_name, '--']
-        elif glibc == 'glibc217':
-            command_prefix = ['scl', 'enable', 'devtoolset-6', '--']
-
-    cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
-
-    # Prepare CMake options needed to configure cuda binaries compilation, 64bit only.
-    if bits == 64:
-        cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=ON")
-        cmake_options.append("-DCUDA_64_BIT_DEVICE_CODE=ON")
-    else:
-        cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=OFF")
-
-    cmake_options.append("-DCMAKE_INSTALL_PREFIX=%s" % (install_dir))
-
-    cmake_options += cmake_extra_options
-
+def clean_directories(builder):
     # Make sure no garbage remained from the previous run
-    if os.path.isdir(install_dir):
-        shutil.rmtree(install_dir)
+    if os.path.isdir(builder.install_dir):
+        shutil.rmtree(builder.install_dir)
 
-    for target in targets:
-        print("Building target %s" % (target))
-        # Construct build directory name based on the target
-        target_build_dir = build_dir
-        target_command_prefix = command_prefix[:]
-        if target != 'blender':
-            target_build_dir += '_' + target
-        target_name = 'install'
-        # Tweaking CMake options to respect the target
-        target_cmake_options = cmake_options[:]
-        # Do extra git fetch because not all platform/git/buildbot combinations
-        # update the origin remote, causing buildinfo to detect local changes.
-        os.chdir(blender_dir)
-        print("Fetching remotes")
-        command = ['git', 'fetch', '--all']
-        print(command)
-        retcode = subprocess.call(target_command_prefix + command)
-        if retcode != 0:
-            sys.exit(retcode)
-        # Make sure build directory exists and enter it
-        if not os.path.isdir(target_build_dir):
-            os.mkdir(target_build_dir)
-        os.chdir(target_build_dir)
-        # Configure the build
-        print("CMake options:")
-        print(target_cmake_options)
-        if os.path.exists('CMakeCache.txt'):
-            print("Removing CMake cache")
-            os.remove('CMakeCache.txt')
-        # Remove buildinfo files to force buildbot to re-generate them.
-        for buildinfo in ('buildinfo.h', 'buildinfo.h.txt', ):
-            full_path = os.path.join('source', 'creator', buildinfo)
-            if os.path.exists(full_path):
-                print("Removing {}" . format(buildinfo))
-                os.remove(full_path)
-        retcode = subprocess.call(target_command_prefix + ['cmake', blender_dir] + target_cmake_options)
-        if retcode != 0:
-            print('Configuration FAILED!')
-            sys.exit(retcode)
+    # Make sure build directory exists and enter it
+    os.makedirs(builder.build_dir, exist_ok=True)
 
-        if 'win32' in builder or 'win64' in builder:
-            command = ['cmake', '--build', '.', '--target', target_name, '--config', 'Release']
-        else:
-            command = ['make', '-s', '-j2', target_name]
+    # Remove buildinfo files to force buildbot to re-generate them.
+    for buildinfo in ('buildinfo.h', 'buildinfo.h.txt', ):
+        full_path = os.path.join(builder.build_dir, 'source', 'creator', buildinfo)
+        if os.path.exists(full_path):
+            print("Removing {}" . format(buildinfo))
+            os.remove(full_path)
 
-        print("Executing command:")
-        print(command)
-        retcode = subprocess.call(target_command_prefix + command)
+def cmake_configure(builder):
+    # CMake configuration
+    os.chdir(builder.build_dir)
 
-        if retcode != 0:
-            sys.exit(retcode)
+    cmake_cache = os.path.join(builder.build_dir, 'CMakeCache.txt')
+    if os.path.exists(cmake_cache):
+        print("Removing CMake cache")
+        os.remove(cmake_cache)
 
-else:
-    print("Unknown building system")
-    sys.exit(1)
+    print("CMake configure:")
+    cmake_options = get_cmake_options(builder)
+    command = ['cmake', builder.blender_dir] + cmake_options
+    buildbot_utils.call(builder.command_prefix + command)
+
+def cmake_build(builder):
+    # CMake build
+    os.chdir(builder.build_dir)
+
+    if builder.platform == 'win':
+        command = ['cmake', '--build', '.', '--target', 'install', '--config', 'Release']
+    else:
+        command = ['make', '-s', '-j2', 'install']
+
+    print("CMake build:")
+    buildbot_utils.call(builder.command_prefix + command)
+
+if __name__ == "__main__":
+    builder = buildbot_utils.create_builder_from_arguments()
+    update_git(builder)
+    clean_directories(builder)
+    cmake_configure(builder)
+    cmake_build(builder)

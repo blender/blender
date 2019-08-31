@@ -18,59 +18,39 @@
 
 # <pep8 compliant>
 
-import subprocess
+import buildbot_utils
 import os
 import sys
 
-# get builder name
-if len(sys.argv) < 2:
-    sys.stderr.write("Not enough arguments, expecting builder name\n")
-    sys.exit(1)
+def get_ctest_environment(builder):
+    info = buildbot_utils.VersionInfo(builder)
+    blender_version_dir = os.path.join(builder.install_dir, info.version)
 
-builder = sys.argv[1]
+    env = os.environ.copy()
+    env['BLENDER_SYSTEM_SCRIPTS'] = os.path.join(blender_version_dir, 'scripts')
+    env['BLENDER_SYSTEM_DATAFILES'] = os.path.join(blender_version_dir, 'datafiles')
+    return env
 
-# we run from build/ directory
-blender_dir = '../blender.git'
+def get_ctest_arguments(builder):
+    args = ['--output-on-failure']
+    if builder.platform == 'win':
+        args += ['-C', 'Release']
+    return args
 
-if "cmake" in builder:
+def test(builder):
+    os.chdir(builder.build_dir)
+
+    command = builder.command_prefix  + ['ctest'] + get_ctest_arguments(builder)
+    ctest_env = get_ctest_environment(builder)
+    buildbot_utils.call(command, env=ctest_env, exit_on_error=False)
+
+if __name__ == "__main__":
     print("Automated tests are still DISABLED!")
     sys.exit(0)
 
-    build_dir = os.path.abspath(os.path.join('..', 'build', builder))
-    install_dir = os.path.abspath(os.path.join('..', 'install', builder))
-    # NOTE: For quick test only to see if the approach work.
-    # n the future must be replaced with an actual blender version.
-    blender_version = '2.80'
-    blender_version_dir = os.path.join(install_dir, blender_version)
-    command_prefix = []
-    extra_ctest_args = []
-
-    if builder.startswith('win'):
-        extra_ctest_args += ['-C', 'Release']
-    elif builder.startswith('linux'):
-        tokens = builder.split("_")
-        glibc = tokens[1]
-        if glibc == 'glibc224':
-            deb_name = "stretch"
-            if builder.endswith('x86_64_cmake'):
-                chroot_name = 'buildbot_' + deb_name + '_x86_64'
-            elif builder.endswith('i686_cmake'):
-                chroot_name = 'buildbot_' + deb_name + '_i686'
-            command_prefix = ['schroot', '--preserve-environment', '-c', chroot_name, '--']
-        elif glibc == 'glibc217':
-            command_prefix = ['scl', 'enable', 'devtoolset-6', '--']
-
-    ctest_env = os.environ.copy()
-    ctest_env['BLENDER_SYSTEM_SCRIPTS'] = os.path.join(blender_version_dir, 'scripts')
-    ctest_env['BLENDER_SYSTEM_DATAFILES'] = os.path.join(blender_version_dir, 'datafiles')
-
-    os.chdir(build_dir)
-    retcode = subprocess.call(command_prefix + ['ctest', '--output-on-failure'] + extra_ctest_args,
-                              env=ctest_env)
+    builder = buildbot_utils.create_builder_from_arguments()
+    test(builder)
 
     # Always exit with a success, for until we know all the tests are passing
     # on all builders.
     sys.exit(0)
-else:
-    print("Unknown building system")
-    sys.exit(1)
