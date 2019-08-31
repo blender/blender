@@ -29,15 +29,15 @@ import sys
 def get_package_name(builder, platform=None):
     info = buildbot_utils.VersionInfo(builder)
 
-    package_name = 'blender-' + info.version + '-' + info.hash
+    package_name = 'blender-' + info.full_version
     if platform:
       package_name += '-' + platform
-    if builder.branch != 'master':
+    if builder.branch != 'master' and info.is_development_build:
         package_name = builder.branch + "-" + package_name
 
     return package_name
 
-def create_buildbot_upload_zip(builder, package_filepath, package_filename):
+def create_buildbot_upload_zip(builder, package_files):
     import zipfile
 
     buildbot_upload_zip = os.path.join(builder.upload_dir, "buildbot_upload.zip")
@@ -46,7 +46,8 @@ def create_buildbot_upload_zip(builder, package_filepath, package_filename):
 
     try:
         z = zipfile.ZipFile(buildbot_upload_zip, "w", compression=zipfile.ZIP_STORED)
-        z.write(package_filepath, arcname=package_filename)
+        for filepath, filename in package_files:
+            z.write(filepath, arcname=filename)
         z.close()
     except Exception as ex:
         sys.stderr.write('Create buildbot_upload.zip failed: ' + str(ex) + '\n')
@@ -74,38 +75,61 @@ def cleanup_files(dirpath, extension):
         if os.path.isfile(filepath) and f.endswith(extension):
             os.remove(filepath)
 
-def find_file(dirpath, extension):
-    for f in os.listdir(dirpath):
-        filepath = os.path.join(dirpath, f)
-        if os.path.isfile(filepath) and f.endswith(extension):
-            return f
-    return None
-
 
 def pack_mac(builder):
+    info = buildbot_utils.VersionInfo(builder)
+
     os.chdir(builder.build_dir)
-    cleanup_files(builder.build_dir, '.zip')
+    cleanup_files(builder.build_dir, '.dmg')
 
-    package_name = get_package_name(builder, 'OSX-10.9-x86_64')
-    package_filename = package_name + '.zip'
+    package_name = get_package_name(builder, 'macOS')
+    package_filename = package_name + '.dmg'
+    package_filepath = os.path.join(builder.build_dir, package_filename)
 
-    buildbot_utils.call(['cpack', '-G', 'ZIP'])
-    package_filepath = find_file(builder.build_dir, '.zip')
+    release_dir = os.path.join(builder.blender_dir, 'release', 'darwin')
+    bundle_sh = os.path.join(release_dir, 'bundle.sh')
+    if info.is_development_build:
+        background_image = os.path.join(release_dir, 'buildbot', 'background.tif')
 
-    create_buildbot_upload_zip(builder, package_filepath, package_filename)
+    command = [bundle_sh]
+    command += ['--source', builder.install_dir]
+    command += ['--dmg', package_filepath]
+    command += ['--background-image', background_image]
+    buildbot_utils.call(command)
+
+    create_buildbot_upload_zip(builder, [(package_filepath, package_filename)])
 
 
 def pack_win(builder):
+    info = buildbot_utils.VersionInfo(builder)
+
     os.chdir(builder.build_dir)
     cleanup_files(builder.build_dir, '.zip')
 
-    package_name = get_package_name(builder, 'win' + str(builder.bits))
+    # CPack will add the platform name
+    cpack_name = get_package_name(builder, None)
+    package_name = get_package_name(builder, 'windows' + str(builder.bits))
+
+    command = ['cmake', '-DCPACK_OVERRIDE_PACKAGENAME:STRING=' + cpack_name, '.']
+    buildbot_utils.call(builder.command_prefix + command)
+    command = ['cpack', '-G', 'ZIP']
+    buildbot_utils.call(builder.command_prefix + command)
+
     package_filename = package_name + '.zip'
+    package_filepath = os.path.join(builder.build_dir, package_filename)
+    package_files = [(package_filepath, package_filename)]
 
-    buildbot_utils.call(['cpack', '-G', 'ZIP'])
-    package_filepath = find_file(builder.build_dir, '.zip')
+    if info.version_cycle == 'release':
+        # Installer only for final release builds, otherwise will get
+        # 'this product is already installed' messages.
+        command = ['cpack', '-G', 'WIX']
+        buildbot_utils.call(builder.command_prefix + command)
 
-    create_buildbot_upload_zip(builder, package_filepath, package_filename)
+        package_filename = package_name + '.msi'
+        package_filepath = os.path.join(builder.build_dir, package_filename)
+        package_files += [(package_filepath, package_filename)]
+
+    create_buildbot_upload_zip(builder, package_files)
 
 
 def pack_linux(builder):
@@ -147,7 +171,7 @@ def pack_linux(builder):
     create_tar_bz2(builder.install_dir, package_filepath, package_name)
 
     # Create buildbot_upload.zip
-    create_buildbot_upload_zip(builder, package_filepath, package_filename)
+    create_buildbot_upload_zip(builder, [(package_filepath, package_filename)])
 
 
 if __name__ == "__main__":

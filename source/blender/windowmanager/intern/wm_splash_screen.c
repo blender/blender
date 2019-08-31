@@ -139,6 +139,11 @@ static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
                BLENDER_VERSION % 100,
                version_suffix);
 
+  const char *cycle_number_suffix = STRINGIFY(BLENDER_VERSION_CYCLE_NUMBER);
+  if (strlen(cycle_number_suffix)) {
+    BLI_snprintf(version_buf, sizeof(version_buf), "%s %s", version_buf, cycle_number_suffix);
+  }
+
   wm_block_splash_add_label(block, version_buf, x, &y);
 
 #ifdef WITH_BUILDINFO

@@ -54,6 +54,11 @@ while [[ $# -gt 0 ]]; do
             shift
             shift
             ;;
+        --background-image)
+            _background_image="$2"
+            shift
+            shift
+            ;;
         -h|--help)
             echo "Usage:"
             echo " $(basename "$0") --source DIR --dmg IMAGENAME "
