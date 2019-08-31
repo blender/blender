@@ -544,12 +544,12 @@ static void get_sync_select_active_data(const bContext *C, SyncSelectActiveData 
 /* If outliner is dirty sync selection from view layer and sequwncer */
 void outliner_sync_selection(const bContext *C, SpaceOutliner *soops)
 {
-  if (soops->sync_select_dirty & WM_OUTLINER_SYNC_SELECT_FROM_ALL) {
-    ViewLayer *view_layer = CTX_data_view_layer(C);
+  /* Set which types of data to sync from sync dirty flag and outliner display mode */
+  SyncSelectTypes sync_types;
+  const bool sync_required = outliner_sync_select_to_outliner_set_types(C, soops, &sync_types);
 
-    /* Set which types of data to sync from sync dirty flag and outliner display mode */
-    SyncSelectTypes sync_types;
-    outliner_sync_select_to_outliner_set_types(C, soops, &sync_types);
+  if (sync_required) {
+    ViewLayer *view_layer = CTX_data_view_layer(C);
 
     /* Store active object, bones, and sequence */
     SyncSelectActiveData active_data;
