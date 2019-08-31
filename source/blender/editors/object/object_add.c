@@ -2009,6 +2009,7 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 static const EnumPropertyItem convert_target_items[] = {
     {OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve from Mesh/Text", ""},
     {OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Text", ""},
+    {OB_GPENCIL, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil from Curve", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -2133,12 +2134,14 @@ static int convert_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  View3D *v3d = CTX_wm_view3d(C);
   Base *basen = NULL, *basact = NULL;
   Object *ob1, *obact = CTX_data_active_object(C);
   Curve *cu;
   Nurb *nu;
   MetaBall *mb;
   Mesh *me;
+  Object *gpencil_ob = NULL;
   const short target = RNA_enum_get(op->ptr, "target");
   bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
   int a, mballConverted = 0;
@@ -2379,6 +2382,24 @@ static int convert_exec(bContext *C, wmOperator *op)
         curvetomesh(bmain, depsgraph, newob);
         /* meshes doesn't use displist */
         BKE_object_free_curve_cache(newob);
+      }
+      else if (target == OB_GPENCIL) {
+        if (ob->type != OB_CURVE) {
+          BKE_report(
+              op->reports, RPT_ERROR, "Convert Surfaces to Grease Pencil is not supported.");
+        }
+        else {
+          /* Create a new grease pencil object only if it was not created before.
+           * All curves selected are converted as strokes of the same grease pencil object.
+           * Nurbs Surface are not supported.
+           */
+          if (gpencil_ob == NULL) {
+            const float *cur = scene->cursor.location;
+            ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
+            gpencil_ob = ED_gpencil_add_object(C, scene, cur, local_view_bits);
+          }
+          BKE_gpencil_convert_curve(bmain, scene, gpencil_ob, ob, false, false, true);
+        }
       }
     }
     else if (ob->type == OB_MBALL && target == OB_MESH) {

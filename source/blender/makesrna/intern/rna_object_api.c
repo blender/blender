@@ -37,6 +37,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_layer.h"
+#include "BKE_gpencil.h"
 
 #include "DEG_depsgraph.h"
 
@@ -685,6 +686,30 @@ static bool rna_Object_update_from_editmode(Object *ob, Main *bmain)
   }
   return result;
 }
+
+bool rna_Object_generate_gpencil_strokes(Object *ob,
+                                         bContext *C,
+                                         ReportList *reports,
+                                         Object *ob_gpencil,
+                                         bool gpencil_lines,
+                                         bool use_collections)
+{
+  if (ob->type != OB_CURVE) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Object '%s' not valid for this operation! Only curves supported.",
+                ob->id.name + 2);
+    return false;
+  }
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+
+  BKE_gpencil_convert_curve(bmain, scene, ob_gpencil, ob, gpencil_lines, use_collections, false);
+
+  WM_main_add_notifier(NC_GPENCIL | ND_DATA, NULL);
+
+  return true;
+}
 #else /* RNA_RUNTIME */
 
 void RNA_api_object(StructRNA *srna)
@@ -1128,6 +1153,20 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_ui_description(func,
                                   "Release memory used by caches associated with this object. "
                                   "Intended to be used by render engines only");
+
+  /* Convert curve object to gpencil strokes. */
+  func = RNA_def_function(srna, "generate_gpencil_strokes", "rna_Object_generate_gpencil_strokes");
+  RNA_def_function_ui_description(func, "Convert a curve object to grease pencil strokes.");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+
+  parm = RNA_def_pointer(
+      func, "ob_gpencil", "Object", "", "Grease Pencil object used to create new strokes");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_boolean(func, "gpencil_lines", 0, "", "Create Lines");
+  parm = RNA_def_boolean(func, "use_collections", 1, "", "Use Collections");
+
+  parm = RNA_def_boolean(func, "result", 0, "", "Result");
+  RNA_def_function_return(func, parm);
 }
 
 #endif /* RNA_RUNTIME */
