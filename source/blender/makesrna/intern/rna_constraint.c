@@ -256,6 +256,17 @@ static const EnumPropertyItem track_axis_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem euler_order_items[] = {
+    {CONSTRAINT_EULER_AUTO, "AUTO", 0, "Default", "Euler using the default rotation order"},
+    {CONSTRAINT_EULER_XYZ, "XYZ", 0, "XYZ Euler", "Euler using the XYZ rotation order"},
+    {CONSTRAINT_EULER_XZY, "XZY", 0, "XZY Euler", "Euler using the XZY rotation order"},
+    {CONSTRAINT_EULER_YXZ, "YXZ", 0, "YXZ Euler", "Euler using the YXZ rotation order"},
+    {CONSTRAINT_EULER_YZX, "YZX", 0, "YZX Euler", "Euler using the YZX rotation order"},
+    {CONSTRAINT_EULER_ZXY, "ZXY", 0, "ZXY Euler", "Euler using the ZXY rotation order"},
+    {CONSTRAINT_EULER_ZYX, "ZYX", 0, "ZYX Euler", "Euler using the ZYX rotation order"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 static const EnumPropertyItem space_object_items[] = {
@@ -1324,6 +1335,12 @@ static void rna_def_constraint_rotate_like(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Invert Z", "Invert the Z rotation");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
+  prop = RNA_def_property(srna, "euler_order", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "euler_order");
+  RNA_def_property_enum_items(prop, euler_order_items);
+  RNA_def_property_ui_text(prop, "Euler Order", "Explicitly specify the euler rotation order");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
   prop = RNA_def_property(srna, "use_offset", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_OFFSET);
   RNA_def_property_ui_text(prop, "Offset", "Add original rotation into copied rotation");
@@ -1883,6 +1900,18 @@ static void rna_def_constraint_transform(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_motion_extrapolate", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "expo", CLAMPTO_CYCLIC);
   RNA_def_property_ui_text(prop, "Extrapolate Motion", "Extrapolate ranges");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
+  prop = RNA_def_property(srna, "from_rotation_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "from_rotation_mode");
+  RNA_def_property_enum_items(prop, rna_enum_driver_target_rotation_mode_items);
+  RNA_def_property_ui_text(prop, "From Mode", "Specify the type of rotation channels to use");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
+  prop = RNA_def_property(srna, "to_euler_order", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "to_euler_order");
+  RNA_def_property_enum_items(prop, euler_order_items);
+  RNA_def_property_ui_text(prop, "To Order", "Explicitly specify the output euler rotation order");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   /* Loc */

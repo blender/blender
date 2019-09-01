@@ -89,6 +89,9 @@ struct ChannelDriver *fcurve_copy_driver(const struct ChannelDriver *driver);
 
 void driver_variables_copy(struct ListBase *dst_list, const struct ListBase *src_list);
 
+void BKE_driver_target_matrix_to_rot_channels(
+    float mat[4][4], int auto_order, int rotation_mode, int channel, bool angles, float r_buf[4]);
+
 void driver_free_variable(struct ListBase *variables, struct DriverVar *dvar);
 void driver_free_variable_ex(struct ChannelDriver *driver, struct DriverVar *dvar);
 

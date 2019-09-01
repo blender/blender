@@ -62,6 +62,7 @@
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
@@ -1808,18 +1809,25 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     copy_v3_v3(loc, cob->matrix[3]);
     mat4_to_size(size, cob->matrix);
 
+    /* Select the Euler rotation order, defaulting to the owner. */
+    short rot_order = cob->rotOrder;
+
+    if (data->euler_order != CONSTRAINT_EULER_AUTO) {
+      rot_order = data->euler_order;
+    }
+
     /* To allow compatible rotations, must get both rotations in the order of the owner... */
-    mat4_to_eulO(obeul, cob->rotOrder, cob->matrix);
+    mat4_to_eulO(obeul, rot_order, cob->matrix);
     /* We must get compatible eulers from the beginning because
      * some of them can be modified below (see bug T21875). */
-    mat4_to_compatible_eulO(eul, obeul, cob->rotOrder, ct->matrix);
+    mat4_to_compatible_eulO(eul, obeul, rot_order, ct->matrix);
 
     if ((data->flag & ROTLIKE_X) == 0) {
       eul[0] = obeul[0];
     }
     else {
       if (data->flag & ROTLIKE_OFFSET) {
-        rotate_eulO(eul, cob->rotOrder, 'X', obeul[0]);
+        rotate_eulO(eul, rot_order, 'X', obeul[0]);
       }
 
       if (data->flag & ROTLIKE_X_INVERT) {
@@ -1832,7 +1840,7 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     }
     else {
       if (data->flag & ROTLIKE_OFFSET) {
-        rotate_eulO(eul, cob->rotOrder, 'Y', obeul[1]);
+        rotate_eulO(eul, rot_order, 'Y', obeul[1]);
       }
 
       if (data->flag & ROTLIKE_Y_INVERT) {
@@ -1845,7 +1853,7 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     }
     else {
       if (data->flag & ROTLIKE_OFFSET) {
-        rotate_eulO(eul, cob->rotOrder, 'Z', obeul[2]);
+        rotate_eulO(eul, rot_order, 'Z', obeul[2]);
       }
 
       if (data->flag & ROTLIKE_Z_INVERT) {
@@ -1856,7 +1864,7 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     /* Good to make eulers compatible again,
      * since we don't know how much they were changed above. */
     compatible_eul(eul, obeul);
-    loc_eulO_size_to_mat4(cob->matrix, loc, eul, size, cob->rotOrder);
+    loc_eulO_size_to_mat4(cob->matrix, loc, eul, size, rot_order);
   }
 }
 
@@ -3719,7 +3727,8 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
   if (VALID_CONS_TARGET(ct)) {
     float *from_min, *from_max, *to_min, *to_max;
     float loc[3], eul[3], size[3];
-    float dvec[3], sval[3];
+    float dbuf[4], sval[3];
+    float *const dvec = dbuf + 1;
     int i;
 
     /* obtain target effect */
@@ -3738,7 +3747,8 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         from_max = data->from_max_scale;
         break;
       case TRANS_ROTATION:
-        mat4_to_eulO(dvec, cob->rotOrder, ct->matrix);
+        BKE_driver_target_matrix_to_rot_channels(
+            ct->matrix, cob->rotOrder, data->from_rotation_mode, -1, true, dbuf);
         from_min = data->from_min_rot;
         from_max = data->from_max_rot;
         break;
@@ -3750,9 +3760,16 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         break;
     }
 
+    /* Select the output Euler rotation order, defaulting to the owner. */
+    short rot_order = cob->rotOrder;
+
+    if (data->to == TRANS_ROTATION && data->to_euler_order != CONSTRAINT_EULER_AUTO) {
+      rot_order = data->to_euler_order;
+    }
+
     /* extract components of owner's matrix */
     copy_v3_v3(loc, cob->matrix[3]);
-    mat4_to_eulO(eul, cob->rotOrder, cob->matrix);
+    mat4_to_eulO(eul, rot_order, cob->matrix);
     mat4_to_size(size, cob->matrix);
 
     /* determine where in range current transforms lie */
@@ -3811,7 +3828,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
     }
 
     /* apply to matrix */
-    loc_eulO_size_to_mat4(cob->matrix, loc, eul, size, cob->rotOrder);
+    loc_eulO_size_to_mat4(cob->matrix, loc, eul, size, rot_order);
   }
 }
 

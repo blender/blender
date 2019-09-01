@@ -370,6 +370,8 @@ class ConstraintButtonsPanel:
     def COPY_ROTATION(self, _context, layout, con):
         self.target_template(layout, con)
 
+        layout.prop(con, "euler_order", text="Order")
+
         split = layout.split()
 
         col = split.column()
@@ -685,6 +687,9 @@ class ConstraintButtonsPanel:
         col.row().label(text="Source:")
         col.row().prop(con, "map_from", expand=True)
 
+        if con.map_from == 'ROTATION':
+            layout.prop(con, "from_rotation_mode", text="Mode")
+
         split = layout.split()
         ext = "" if con.map_from == 'LOCATION' else "_rot" if con.map_from == 'ROTATION' else "_scale"
 
@@ -726,6 +731,9 @@ class ConstraintButtonsPanel:
         col = split.column()
         col.label(text="Destination:")
         col.row().prop(con, "map_to", expand=True)
+
+        if con.map_to == 'ROTATION':
+            layout.prop(con, "to_euler_order", text="Order")
 
         split = layout.split()
         ext = "" if con.map_to == 'LOCATION' else "_rot" if con.map_to == 'ROTATION' else "_scale"

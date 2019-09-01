@@ -271,7 +271,8 @@ typedef struct bTrackToConstraint {
 typedef struct bRotateLikeConstraint {
   struct Object *tar;
   int flag;
-  int reserved1;
+  char euler_order;
+  char _pad[3];
   /** MAX_ID_NAME-2. */
   char subtarget[64];
 } bRotateLikeConstraint;
@@ -440,6 +441,13 @@ typedef struct bTransformConstraint {
   char map[3];
   /** Extrapolate motion? if 0, confine to ranges. */
   char expo;
+
+  /** Input rotation type - uses the same values as driver targets. */
+  char from_rotation_mode;
+  /** Output euler order override. */
+  char to_euler_order;
+
+  char _pad[6];
 
   /** From_min/max defines range of target transform. */
   float from_min[3];
@@ -714,6 +722,20 @@ typedef enum eConstraintChannel_Flags {
   CONSTRAINT_CHANNEL_SELECT = (1 << 0),
   CONSTRAINT_CHANNEL_PROTECTED = (1 << 1),
 } eConstraintChannel_Flags;
+
+/* Common enum for constraints that support override. */
+typedef enum eConstraint_EulerOrder {
+  /** Automatic euler mode. */
+  CONSTRAINT_EULER_AUTO = 0,
+
+  /** Explicit euler rotation modes - must sync with BLI_math_rotation.h defines. */
+  CONSTRAINT_EULER_XYZ = 1,
+  CONSTRAINT_EULER_XZY,
+  CONSTRAINT_EULER_YXZ,
+  CONSTRAINT_EULER_YZX,
+  CONSTRAINT_EULER_ZXY,
+  CONSTRAINT_EULER_ZYX,
+} eConstraint_EulerOrder;
 
 /* -------------------------------------- */
 
