@@ -2788,10 +2788,15 @@ static void gpencil_convert_spline(Main *bmain,
         mat_curve = give_current_material(ob_cu, 1);
         linearrgb_to_srgb_v3_v3(mat_gp->gp_style->stroke_rgba, &mat_curve->r);
         mat_gp->gp_style->stroke_rgba[3] = mat_curve->a;
-        /* Set stroke to on. */
-        mat_gp->gp_style->flag |= GP_STYLE_STROKE_SHOW;
-        /* Set fill to off. */
-        mat_gp->gp_style->flag &= ~GP_STYLE_FILL_SHOW;
+        /* Set fill and stroke depending of curve type (3D or 2D). */
+        if ((cu->flag & CU_3D) || ((cu->flag & (CU_FRONT | CU_BACK)) == 0)) {
+          mat_gp->gp_style->flag |= GP_STYLE_STROKE_SHOW;
+          mat_gp->gp_style->flag &= ~GP_STYLE_FILL_SHOW;
+        }
+        else {
+          mat_gp->gp_style->flag &= ~GP_STYLE_STROKE_SHOW;
+          mat_gp->gp_style->flag |= GP_STYLE_FILL_SHOW;
+        }
       }
     }
   }
