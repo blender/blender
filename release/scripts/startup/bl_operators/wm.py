@@ -1838,6 +1838,30 @@ class WM_OT_batch_rename(Operator):
 
     bl_options = {'UNDO', 'INTERNAL'}
 
+    data_type: EnumProperty(
+        name="Type",
+        items=(
+            ('OBJECT', "Objects", ""),
+            ('MATERIAL', "Materials", ""),
+            None,
+            # Match object types.
+            ('MESH', "Meshs", ""),
+            ('CURVE', "Curves", ""),
+            ('META', "MetaBalls", ""),
+            ('ARMATURE', "Armatures", ""),
+            ('LATTICE', "Lattices", ""),
+            ('GPENCIL', "Grease Pencils", ""),
+            ('CAMERA', "Cameras", ""),
+            ('SPEAKER', "Speakers", ""),
+            ('LIGHT_PROBE', "LightProbes", ""),
+            None,
+            ('BONE', "Bones", ""),
+            ('NODE', "Nodes", ""),
+            ('SEQUENCE_STRIP', "Sequence Strips", ""),
+        ),
+        description="Type of data to rename",
+    )
+
     data_source: EnumProperty(
         name="Source",
         items=(
@@ -1849,7 +1873,7 @@ class WM_OT_batch_rename(Operator):
     actions: CollectionProperty(type=BatchRenameAction)
 
     @staticmethod
-    def _data_from_context(context, only_selected):
+    def _data_from_context(context, data_type, only_selected, check_context=False):
 
         mode = context.mode
         scene = context.scene
@@ -1858,47 +1882,112 @@ class WM_OT_batch_rename(Operator):
 
         data = None
         if space_type == 'SEQUENCE_EDITOR':
-            data = (
-                # TODO, we don't have access to seqbasep, this won't work when inside metas.
-                [seq for seq in context.scene.sequence_editor.sequences_all if seq.select]
-                if only_selected else
-                context.scene.sequence_editor.sequences_all,
-                "name",
-                "Strip(s)",
-            )
+            data_type_test = 'SEQUENCE_STRIP'
+            if check_context:
+                return data_type_test
+            if data_type == data_type_test:
+                data = (
+                    # TODO, we don't have access to seqbasep, this won't work when inside metas.
+                    [seq for seq in context.scene.sequence_editor.sequences_all if seq.select]
+                    if only_selected else
+                    context.scene.sequence_editor.sequences_all,
+                    "name",
+                    "Strip(s)",
+                )
         elif space_type == 'NODE_EDITOR':
-            data = (
-                context.selected_nodes
-                if only_selected else
-                list(space.node_tree.nodes),
-                "name",
-                "Node(s)",
-            )
+            data_type_test = 'NODE'
+            if check_context:
+                return data_type_test
+            if data_type == data_type_test:
+                data = (
+                    context.selected_nodes
+                    if only_selected else
+                    list(space.node_tree.nodes),
+                    "name",
+                    "Node(s)",
+                )
         else:
             if mode == 'POSE' or (mode == 'WEIGHT_PAINT' and context.pose_object):
-                data = (
-                    [pchan.bone for pchan in context.selected_pose_bones]
-                    if only_selected else
-                    [pchan.bone for ob in context.objects_in_mode_unique_data for pbone in ob.pose.bones],
-                    "name",
-                    "Bone(s)",
-                )
+                data_type_test = 'BONE'
+                if check_context:
+                    return data_type_test
+                if data_type == data_type_test:
+                    data = (
+                        [pchan.bone for pchan in context.selected_pose_bones]
+                        if only_selected else
+                        [pchan.bone for ob in context.objects_in_mode_unique_data for pbone in ob.pose.bones],
+                        "name",
+                        "Bone(s)",
+                    )
             elif mode == 'EDIT_ARMATURE':
-                data = (
-                    context.selected_editable_bones
-                    if only_selected else
-                    [ebone for ob in context.objects_in_mode_unique_data for ebone in ob.data.edit_bones],
-                    "name",
-                    "Edit Bone(s)",
-                )
-            else:
+                data_type_test = 'BONE'
+                if check_context:
+                    return data_type_test
+                if data_type == data_type_test:
+                    data = (
+                        context.selected_editable_bones
+                        if only_selected else
+                        [ebone for ob in context.objects_in_mode_unique_data for ebone in ob.data.edit_bones],
+                        "name",
+                        "Edit Bone(s)",
+                    )
+
+        if check_context:
+            return 'OBJECT'
+
+        object_data_type_attrs_map = {
+            'MESH': ("meshes", "Mesh(es)"),
+            'CURVE': ("curves", "Curve(s)"),
+            'META': ("metaballs", "MetaBall(s)"),
+            'ARMATURE': ("armatures", "Armature(s)"),
+            'LATTICE': ("lattices", "Lattice(s)"),
+            'GPENCIL': ("grease_pencils", "Grease Pencil(s)"),
+            'CAMERA': ("cameras", "Camera(s)"),
+            'SPEAKER': ("speakers", "Speaker(s)"),
+            'LIGHT_PROBE': ("light_probes", "LightProbe(s)"),
+        }
+
+        # Finish with space types.
+        if data is None:
+
+            if data_type == 'OBJECT':
                 data = (
                     context.selected_editable_objects
                     if only_selected else
-                    [ob for ob in bpy.data.objects if ob.library is None],
+                    [id for id in bpy.data.objects if id.library is None],
                     "name",
                     "Object(s)",
                 )
+            elif data_type == 'MATERIAL':
+                data = (
+                    tuple(set(
+                        slot.material
+                        for ob in context.selected_objects
+                        for slot in ob.material_slots
+                        if slot.material is not None
+                    ))
+                    if only_selected else
+                    [id for id in bpy.data.materials if id.library is None],
+                    "name",
+                    "Material(s)",
+                )
+            elif data_type in object_data_type_attrs_map.keys():
+                attr, descr = object_data_type_attrs_map[data_type]
+                data = (
+                    tuple(set(
+                        id
+                        for ob in context.selected_objects
+                        if ob.type == data_type
+                        for id in (ob.data,)
+                        if id is not None and id.library is None
+                    ))
+                    if only_selected else
+                    [id for id in getattr(bpy.data, attr) if id.library is None],
+                    "name",
+                    descr,
+                )
+
+
         return data
 
     @staticmethod
@@ -1962,8 +2051,22 @@ class WM_OT_batch_rename(Operator):
                 assert(0)
         return name
 
+    def _data_update(self, context):
+        only_selected = self.data_source == 'SELECT'
+
+        self._data = self._data_from_context(context, self.data_type, only_selected)
+        if self._data is None:
+            self.data_type = self._data_from_context(context, None, False, check_context=True)
+            self._data = self._data_from_context(context, self.data_type, only_selected)
+
+        self._data_source_prev = self.data_source
+        self._data_type_prev = self.data_type
+
     def draw(self, context):
         layout = self.layout
+
+        row = layout.row()
+        row.prop(self, "data_type")
 
         row = layout.row()
         row.label(text="Rename {:d} {:s}".format(len(self._data[0]), self._data[2]))
@@ -2008,10 +2111,11 @@ class WM_OT_batch_rename(Operator):
                 changed = True
                 break
 
-        if self._data_source_prev != self.data_source:
-            only_selected = self.data_source == 'SELECT'
-            self._data = self._data_from_context(context, only_selected)
-            self._data_source_prev = self.data_source
+        if (
+                (self._data_source_prev != self.data_source) or
+                (self._data_type_prev != self.data_type)
+        ):
+            self._data_update(context)
             changed = True
 
         return changed
@@ -2037,15 +2141,7 @@ class WM_OT_batch_rename(Operator):
 
     def invoke(self, context, event):
 
-        only_selected = self.data_source == 'SELECT'
-        data = self._data_from_context(context, only_selected)
-        self._data_source_prev = self.data_source
-
-        if data is None:
-            self.report({'ERROR'}, "No usable items in this context")
-            return {'CANCELLED'}
-
-        self._data = data
+        self._data_update(context)
 
         if not self.actions:
             self.actions.add()
