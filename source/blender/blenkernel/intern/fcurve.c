@@ -1798,6 +1798,25 @@ void BKE_driver_target_matrix_to_rot_channels(
       quaternion_to_angles(quat, channel);
     }
   }
+  else if (rotation_mode >= DTAR_ROTMODE_SWING_TWIST_X &&
+           rotation_mode <= DTAR_ROTMODE_SWING_TWIST_Z) {
+    int axis = rotation_mode - DTAR_ROTMODE_SWING_TWIST_X;
+    float raw_quat[4], twist;
+
+    mat4_to_quat(raw_quat, mat);
+
+    if (channel == axis + 1) {
+      /* If only the twist angle is needed, skip computing swing. */
+      twist = quat_split_swing_and_twist(raw_quat, axis, NULL, NULL);
+    }
+    else {
+      twist = quat_split_swing_and_twist(raw_quat, axis, quat, NULL);
+
+      quaternion_to_angles(quat, channel);
+    }
+
+    quat[axis + 1] = twist;
+  }
   else {
     BLI_assert(false);
   }

@@ -382,6 +382,12 @@ typedef enum eDriverTarget_RotationMode {
 
   DTAR_ROTMODE_QUATERNION,
 
+  /** Implements the very common Damped Track + child trick to decompose
+   *  rotation into bending followed by twist around the remaining axis. */
+  DTAR_ROTMODE_SWING_TWIST_X,
+  DTAR_ROTMODE_SWING_TWIST_Y,
+  DTAR_ROTMODE_SWING_TWIST_Z,
+
   DTAR_ROTMODE_EULER_MIN = DTAR_ROTMODE_EULER_XYZ,
   DTAR_ROTMODE_EULER_MAX = DTAR_ROTMODE_EULER_ZYX,
 } eDriverTarget_RotationMode;

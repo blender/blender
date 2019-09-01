@@ -96,6 +96,8 @@ void rotation_between_vecs_to_mat3(float m[3][3], const float v1[3], const float
 void rotation_between_vecs_to_quat(float q[4], const float v1[3], const float v2[3]);
 void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q2[4]);
 
+float quat_split_swing_and_twist(const float q[4], int axis, float r_swing[4], float r_twist[4]);
+
 float angle_normalized_qt(const float q[4]);
 float angle_normalized_qtqt(const float q1[4], const float q2[4]);
 float angle_qt(const float q[4]);
