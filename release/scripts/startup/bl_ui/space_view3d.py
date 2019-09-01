@@ -2333,6 +2333,7 @@ class VIEW3D_MT_object_context_menu(Menu):
             layout.separator()
 
             layout.operator("object.convert", text="Convert to Mesh").target = 'MESH'
+            layout.operator("object.convert", text="Convert to Grease Pencil").target = 'GPENCIL'
             layout.operator_menu_enum("object.origin_set", text="Set Origin", property="type")
 
             layout.separator()
