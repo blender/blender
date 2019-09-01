@@ -2587,6 +2587,10 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
     }
   }
   else {
+    if (state & UI_BUT_ACTIVE_DEFAULT) {
+      copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
+      copy_v4_v4_uchar(wt->wcol.text, wt->wcol.text_sel);
+    }
     if (color_blend != NULL) {
       widget_state_blend(wt->wcol.inner, color_blend, wcol_state->blend);
     }
@@ -3266,20 +3270,6 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
   CLAMP(y, rect->ymin + 3.0f, rect->ymax - 3.0f);
 
   ui_hsv_cursor(x, y);
-}
-
-/* Generic round-box drawing. */
-static void ui_draw_roundbox(const rcti *rect, const float rad, const uiWidgetColors *wcol)
-{
-  uiWidgetBase wtb;
-  widget_init(&wtb);
-  round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
-  widgetbase_draw(&wtb, wcol);
-
-  /* We are drawing on top of widget bases. Flush cache. */
-  GPU_blend(true);
-  UI_widgetbase_draw_cache_flush();
-  GPU_blend(false);
 }
 
 /* ************ separator, for menus etc ***************** */
@@ -4497,10 +4487,6 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
   const uiFontStyle *fstyle = &style->widget;
   uiWidgetType *wt = NULL;
 
-#ifdef USE_UI_POPOVER_ONCE
-  const rcti rect_orig = *rect;
-#endif
-
   /* handle menus separately */
   if (but->dt == UI_EMBOSS_PULLDOWN) {
     switch (but->type) {
@@ -4786,6 +4772,14 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
       ui_widget_color_disabled(wt);
     }
 
+#ifdef USE_UI_POPOVER_ONCE
+    if (but->block->flag & UI_BLOCK_POPOVER_ONCE) {
+      if ((state & UI_ACTIVE) && ui_but_is_popover_once_compat(but)) {
+        state |= UI_BUT_ACTIVE_DEFAULT;
+      }
+    }
+#endif
+
     wt->state(wt, state, drawflag);
     if (wt->custom) {
       wt->custom(but, &wt->wcol, rect, state, roundboxalign);
@@ -4798,42 +4792,10 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
       GPU_blend(true);
     }
 
-    bool show_semi_highlight = false;
-
-#ifdef USE_UI_POPOVER_ONCE
-    if (but->block->flag & UI_BLOCK_POPOVER_ONCE) {
-      if ((state & UI_ACTIVE) && ui_but_is_popover_once_compat(but)) {
-        show_semi_highlight = true;
-      }
-    }
-#endif
-    if (but->flag & UI_BUT_ACTIVE_DEFAULT) {
-      show_semi_highlight = true;
-    }
-
-    if (show_semi_highlight) {
-      uiWidgetType wt_back = *wt;
-      uiWidgetType *wt_temp = widget_type(UI_WTYPE_MENU_ITEM);
-      wt_temp->state(wt_temp, state, drawflag);
-      copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
-      wt->wcol.inner[3] = 128;
-      wt->wcol.roundness = 0.5f;
-      ui_draw_roundbox(&rect_orig,
-                       0.25f * min_ff(BLI_rcti_size_x(&rect_orig), BLI_rcti_size_y(&rect_orig)),
-                       &wt_temp->wcol);
-      *wt = wt_back;
-    }
-
     wt->text(fstyle, &wt->wcol, but, rect);
     if (disabled) {
       GPU_blend(false);
     }
-
-    //      if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
-    //          if (but->dt != UI_EMBOSS_PULLDOWN) {
-    //              widget_disabled(&disablerect);
-    //          }
-    //      }
   }
 }
 
