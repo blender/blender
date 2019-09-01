@@ -1770,9 +1770,9 @@ class BatchRenameAction(bpy.types.PropertyGroup):
     type: EnumProperty(
         name="Operation",
         items=(
+            ('REPLACE', "Find/Replace", "Replace text in the name"),
             ('SET', "Set Name", "Set a new name or prefix/suffix the existing one"),
             ('STRIP', "Strip Characters", "Strip leading/trailing text from the name"),
-            ('REPLACE', "Find/Replace", "Replace text in the name"),
             ('CASE', "Change Case", "Change case of each name"),
         ),
     )
