@@ -8075,8 +8075,8 @@ static void createTransObject(bContext *C, TransInfo *t)
 
       /* if base is not selected, not a parent of selection
        * or not a child of selection and it is editable and selectable */
-      if ((base->flag & BASE_SELECTED) == 0 && BASE_EDITABLE(v3d, base) &&
-          BASE_SELECTABLE(v3d, base)) {
+      if ((base->flag_legacy & BA_WAS_SEL) && (base->flag & BASE_SELECTED) == 0 &&
+          BASE_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base)) {
 
         Object *ob_parent = ob->parent;
         if (ob_parent != NULL) {
