@@ -309,22 +309,26 @@ int area_getorientation(ScrArea *sa, ScrArea *sb)
   int tolerance = U.pixelsize * 4;
 
   if (saBL->vec.x == sbBR->vec.x && saTL->vec.x == sbTR->vec.x) { /* sa to right of sb = W */
-    if (ABS(saBL->vec.y - sbBR->vec.y) <= tolerance) {
+    if ((ABS(saBL->vec.y - sbBR->vec.y) <= tolerance) &&
+        (ABS(saTL->vec.y - sbTR->vec.y) <= tolerance)) {
       return 0;
     }
   }
   else if (saTL->vec.y == sbBL->vec.y && saTR->vec.y == sbBR->vec.y) { /* sa to bottom of sb = N */
-    if (ABS(saTL->vec.x - sbBL->vec.x) <= tolerance) {
+    if ((ABS(saTL->vec.x - sbBL->vec.x) <= tolerance) &&
+        (ABS(saTR->vec.x - sbBR->vec.x) <= tolerance)) {
       return 1;
     }
   }
   else if (saTR->vec.x == sbTL->vec.x && saBR->vec.x == sbBL->vec.x) { /* sa to left of sb = E */
-    if (ABS(saTR->vec.y - sbTL->vec.y) <= tolerance) {
+    if ((ABS(saTR->vec.y - sbTL->vec.y) <= tolerance) &&
+        (ABS(saBR->vec.y - sbBL->vec.y) <= tolerance)) {
       return 2;
     }
   }
   else if (saBL->vec.y == sbTL->vec.y && saBR->vec.y == sbTR->vec.y) { /* sa on top of sb = S*/
-    if (ABS(saBL->vec.x - sbTL->vec.x) <= tolerance) {
+    if ((ABS(saBL->vec.x - sbTL->vec.x) <= tolerance) &&
+        (ABS(saBR->vec.x - sbTR->vec.x) <= tolerance)) {
       return 3;
     }
   }
