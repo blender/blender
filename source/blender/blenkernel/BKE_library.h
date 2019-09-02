@@ -114,10 +114,7 @@ enum {
                          LIB_ID_CREATE_NO_DEG_TAG | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_CACHES,
 };
 
-void BKE_libblock_copy_ex(struct Main *bmain,
-                          const struct ID *id,
-                          struct ID **r_newid,
-                          const int flag);
+void BKE_libblock_copy_ex(struct Main *bmain, const struct ID *id, struct ID **r_newid, int flag);
 void *BKE_libblock_copy(struct Main *bmain, const struct ID *id) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 /* Special version. sued by datablock localization. */

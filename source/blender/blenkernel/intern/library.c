@@ -1408,23 +1408,23 @@ void *BKE_id_new_nomain(const short type, const char *name)
   return id;
 }
 
-void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
+void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, int flag)
 {
   ID *new_id = *r_newid;
-
-  /* Grrrrrrrrr... Not adding 'root' nodetrees to bmain.... grrrrrrrrrrrrrrrrrrrr! */
-  /* This is taken from original ntree copy code, might be weak actually? */
-  const bool use_nodetree_alloc_exception = ((GS(id->name) == ID_NT) && (bmain != NULL) &&
-                                             (BLI_findindex(&bmain->nodetrees, id) < 0));
-
-  /* The id->flag bits to copy over. */
-  const int copy_flag_mask = LIB_PRIVATE_DATA;
 
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || bmain != NULL);
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || (flag & LIB_ID_CREATE_NO_ALLOCATE) == 0);
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) == 0 || (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) != 0);
   /* Never implicitly copy shapekeys when generating temp data outside of Main database. */
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) == 0 || (flag & LIB_ID_COPY_SHAPEKEY) == 0);
+
+  /* 'Private ID' data handling. */
+  if ((bmain != NULL) && (id->flag & LIB_PRIVATE_DATA) != 0) {
+    flag |= LIB_ID_CREATE_NO_MAIN;
+  }
+
+  /* The id->flag bits to copy over. */
+  const int copy_flag_mask = LIB_PRIVATE_DATA;
 
   if ((flag & LIB_ID_CREATE_NO_ALLOCATE) != 0) {
     /* r_newid already contains pointer to allocated memory. */
@@ -1435,10 +1435,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int fla
     /* TODO Do we want/need to copy more from ID struct itself? */
   }
   else {
-    new_id = BKE_libblock_alloc(bmain,
-                                GS(id->name),
-                                id->name + 2,
-                                flag | (use_nodetree_alloc_exception ? LIB_ID_CREATE_NO_MAIN : 0));
+    new_id = BKE_libblock_alloc(bmain, GS(id->name), id->name + 2, flag);
   }
   BLI_assert(new_id != NULL);
 
