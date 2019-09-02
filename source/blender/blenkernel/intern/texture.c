@@ -423,6 +423,11 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
  */
 void BKE_texture_copy_data(Main *bmain, Tex *tex_dst, const Tex *tex_src, const int flag)
 {
+  /* We never handle usercount here for own data. */
+  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+  /* We always need allocation of our private ID data. */
+  const int flag_private_id_data = flag_subdata & ~LIB_ID_CREATE_NO_ALLOCATE;
+
   if (!BKE_texture_is_image_user(tex_src)) {
     tex_dst->ima = NULL;
   }
@@ -434,9 +439,8 @@ void BKE_texture_copy_data(Main *bmain, Tex *tex_dst, const Tex *tex_src, const 
     if (tex_src->nodetree->execdata) {
       ntreeTexEndExecTree(tex_src->nodetree->execdata);
     }
-    /* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
-     *       (see BKE_libblock_copy_ex()). */
-    BKE_id_copy_ex(bmain, (ID *)tex_src->nodetree, (ID **)&tex_dst->nodetree, flag);
+    BKE_id_copy_ex(
+        bmain, (ID *)tex_src->nodetree, (ID **)&tex_dst->nodetree, flag_private_id_data);
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {

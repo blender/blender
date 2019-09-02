@@ -239,6 +239,8 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 {
   /* We never handle usercount here for own data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+  /* We always need allocation of our private ID data. */
+  const int flag_private_id_data = flag_subdata & ~LIB_ID_CREATE_NO_ALLOCATE;
 
   sce_dst->ed = NULL;
   sce_dst->depsgraph_hash = NULL;
@@ -265,9 +267,8 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
   BKE_keyingsets_copy(&(sce_dst->keyingsets), &(sce_src->keyingsets));
 
   if (sce_src->nodetree) {
-    /* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
-     *       (see BKE_libblock_copy_ex()). */
-    BKE_id_copy_ex(bmain, (ID *)sce_src->nodetree, (ID **)&sce_dst->nodetree, flag);
+    BKE_id_copy_ex(
+        bmain, (ID *)sce_src->nodetree, (ID **)&sce_dst->nodetree, flag_private_id_data);
     BKE_libblock_relink_ex(bmain,
                            sce_dst->nodetree,
                            (void *)(&sce_src->id),

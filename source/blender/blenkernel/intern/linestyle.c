@@ -167,6 +167,8 @@ void BKE_linestyle_copy_data(struct Main *bmain,
 {
   /* We never handle usercount here for own data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+  /* We always need allocation of our private ID data. */
+  const int flag_private_id_data = flag_subdata & ~LIB_ID_CREATE_NO_ALLOCATE;
 
   for (int a = 0; a < MAX_MTEX; a++) {
     if (linestyle_src->mtex[a]) {
@@ -176,9 +178,10 @@ void BKE_linestyle_copy_data(struct Main *bmain,
   }
 
   if (linestyle_src->nodetree) {
-    /* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
-     *       (see BKE_libblock_copy_ex()). */
-    BKE_id_copy_ex(bmain, (ID *)linestyle_src->nodetree, (ID **)&linestyle_dst->nodetree, flag);
+    BKE_id_copy_ex(bmain,
+                   (ID *)linestyle_src->nodetree,
+                   (ID **)&linestyle_dst->nodetree,
+                   flag_private_id_data);
   }
 
   LineStyleModifier *m;
