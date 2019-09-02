@@ -203,6 +203,9 @@ void BKE_collection_copy_data(Main *bmain,
                               const Collection *collection_src,
                               const int flag)
 {
+  BLI_assert(((collection_src->flag & COLLECTION_IS_MASTER) != 0) ==
+             ((collection_src->id.flag & LIB_PRIVATE_DATA) != 0));
+
   /* Do not copy collection's preview (same behavior as for objects). */
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) { /* XXX TODO temp hack */
     BKE_previewimg_id_copy(&collection_dst->id, &collection_src->id);
@@ -364,16 +367,6 @@ Collection *BKE_collection_duplicate(Main *bmain,
   BKE_main_collection_sync(bmain);
 
   return collection_new;
-}
-
-Collection *BKE_collection_copy_master(Main *bmain, Collection *collection, const int flag)
-{
-  BLI_assert(collection->flag & COLLECTION_IS_MASTER);
-  BLI_assert(collection->id.flag & LIB_PRIVATE_DATA);
-
-  Collection *collection_dst = MEM_dupallocN(collection);
-  BKE_collection_copy_data(bmain, collection_dst, collection, flag);
-  return collection_dst;
 }
 
 void BKE_collection_make_local(Main *bmain, Collection *collection, const bool lib_local)

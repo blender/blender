@@ -248,8 +248,10 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 
   /* Master Collection */
   if (sce_src->master_collection) {
-    sce_dst->master_collection = BKE_collection_copy_master(
-        bmain, sce_src->master_collection, flag);
+    BKE_id_copy_ex(bmain,
+                   (ID *)sce_src->master_collection,
+                   (ID **)&sce_dst->master_collection,
+                   flag_private_id_data);
   }
 
   /* View Layers */

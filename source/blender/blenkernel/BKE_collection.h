@@ -70,9 +70,6 @@ struct Collection *BKE_collection_duplicate(struct Main *bmain,
                                             const bool do_hierarchy,
                                             const bool do_objects,
                                             const bool do_obdata);
-struct Collection *BKE_collection_copy_master(struct Main *bmain,
-                                              struct Collection *collection,
-                                              const int flag);
 
 /* Master Collection for Scene */
 
