@@ -54,7 +54,7 @@
  * Used after transform operations.
  * \{ */
 
-void EDBM_automerge(Scene *scene, Object *obedit, bool update, const char hflag)
+void EDBM_automerge(Object *obedit, bool update, const char hflag, const float dist)
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
@@ -69,7 +69,7 @@ void EDBM_automerge(Scene *scene, Object *obedit, bool update, const char hflag)
                BMO_FLAG_DEFAULTS,
                "find_doubles verts=%av keep_verts=%Hv dist=%f",
                hflag,
-               scene->toolsettings->doublimit);
+               dist);
 
   BMO_op_exec(bm, &findop);
 
@@ -286,18 +286,17 @@ static int edbm_automerge_and_split_sort_cmp_by_keys_cb(const void *index1_v,
   }
 }
 
-void EDBM_automerge_and_split(Scene *scene,
-                              Object *obedit,
+void EDBM_automerge_and_split(Object *obedit,
                               bool split_edges,
                               bool split_faces,
                               bool update,
-                              const char hflag)
+                              const char hflag,
+                              const float dist)
 {
   bool ok = false;
 
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
-  float dist = scene->toolsettings->doublimit;
   BMOperator findop, weldop;
   BMOpSlot *slot_targetmap;
   BMIter iter;

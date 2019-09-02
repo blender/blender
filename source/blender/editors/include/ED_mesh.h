@@ -139,13 +139,13 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree,
                        struct Object *obedit);
 
 /* editmesh_automerge.c */
-void EDBM_automerge(struct Scene *scene, struct Object *ob, bool update, const char hflag);
-void EDBM_automerge_and_split(struct Scene *scene,
-                              struct Object *ob,
+void EDBM_automerge(struct Object *ob, bool update, const char hflag, const float dist);
+void EDBM_automerge_and_split(struct Object *ob,
                               bool split_edges,
                               bool split_faces,
                               bool update,
-                              const char hflag);
+                              const char hflag,
+                              const float dist);
 
 /* editmesh_undo.c */
 void ED_mesh_undosys_type(struct UndoType *ut);
