@@ -1168,7 +1168,7 @@ char *RNA_path_from_real_ID_to_property_index(struct Main *bmain,
                                               PropertyRNA *prop,
                                               int array_dim,
                                               int index,
-                                              struct ID **r_real);
+                                              struct ID **r_real_id);
 
 char *RNA_path_resolve_from_type_to_property(struct PointerRNA *ptr,
                                              struct PropertyRNA *prop,
