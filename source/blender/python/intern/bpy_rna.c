@@ -918,21 +918,21 @@ static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
 
   tmp_str = PyUnicode_FromString(id->name + 2);
 
-  if (RNA_struct_is_ID(self->ptr.type)) {
+  if (RNA_struct_is_ID(self->ptr.type) && (id->flag & LIB_PRIVATE_DATA) == 0) {
     ret = PyUnicode_FromFormat(
         "bpy.data.%s[%R]", BKE_idcode_to_name_plural(GS(id->name)), tmp_str);
   }
   else {
     const char *path;
-    path = RNA_path_from_ID_to_struct(&self->ptr);
+    ID *real_id = NULL;
+    path = RNA_path_from_real_ID_to_struct(G_MAIN, &self->ptr, &real_id);
     if (path) {
-      if (GS(id->name) == ID_NT) { /* Nodetree paths are not accurate. */
-        ret = PyUnicode_FromFormat("bpy.data...%s", path);
+      if (real_id != id) {
+        Py_DECREF(tmp_str);
+        tmp_str = PyUnicode_FromString(real_id->name + 2);
       }
-      else {
-        ret = PyUnicode_FromFormat(
-            "bpy.data.%s[%R].%s", BKE_idcode_to_name_plural(GS(id->name)), tmp_str, path);
-      }
+      ret = PyUnicode_FromFormat(
+          "bpy.data.%s[%R].%s", BKE_idcode_to_name_plural(GS(real_id->name)), tmp_str, path);
 
       MEM_freeN((void *)path);
     }
@@ -1033,20 +1033,23 @@ static PyObject *pyrna_prop_repr_ex(BPy_PropertyRNA *self, const int index_dim, 
 
   tmp_str = PyUnicode_FromString(id->name + 2);
 
-  path = RNA_path_from_ID_to_property_index(&self->ptr, self->prop, index_dim, index);
+  /* Note that using G_MAIN is absolutely not ideal, but we have no access to actual Main DB from
+   * here. */
+  ID *real_id = NULL;
+  path = RNA_path_from_real_ID_to_property_index(
+      G_MAIN, &self->ptr, self->prop, index_dim, index, &real_id);
 
   if (path) {
+    if (real_id != id) {
+      Py_DECREF(tmp_str);
+      tmp_str = PyUnicode_FromString(real_id->name + 2);
+    }
     const char *data_delim = (path[0] == '[') ? "" : ".";
-    if (GS(id->name) == ID_NT) { /* Nodetree paths are not accurate. */
-      ret = PyUnicode_FromFormat("bpy.data...%s", path);
-    }
-    else {
-      ret = PyUnicode_FromFormat("bpy.data.%s[%R]%s%s",
-                                 BKE_idcode_to_name_plural(GS(id->name)),
-                                 tmp_str,
-                                 data_delim,
-                                 path);
-    }
+    ret = PyUnicode_FromFormat("bpy.data.%s[%R]%s%s",
+                               BKE_idcode_to_name_plural(GS(real_id->name)),
+                               tmp_str,
+                               data_delim,
+                               path);
 
     MEM_freeN((void *)path);
   }
