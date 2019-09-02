@@ -76,7 +76,6 @@ struct Collection *BKE_collection_copy_master(struct Main *bmain,
 
 /* Master Collection for Scene */
 
-struct Collection *BKE_collection_master(const struct Scene *scene);
 struct Collection *BKE_collection_master_add(void);
 struct Scene *BKE_collection_master_scene_search(const struct Main *bmain,
                                                  const struct Collection *master_collection);
@@ -225,7 +224,7 @@ void BKE_scene_objects_iterator_end(struct BLI_Iterator *iter);
     bool is_scene_collection = (_scene) != NULL; \
 \
     if (_scene) { \
-      _instance_next = BKE_collection_master(_scene); \
+      _instance_next = _scene->master_collection; \
     } \
     else { \
       _instance_next = (_bmain)->collections.first; \

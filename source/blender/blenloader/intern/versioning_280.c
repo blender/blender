@@ -406,7 +406,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
   }
 
   /* Create collections from layers. */
-  Collection *collection_master = BKE_collection_master(scene);
+  Collection *collection_master = scene->master_collection;
   Collection *collections[20] = {NULL};
 
   for (int layer = 0; layer < 20; layer++) {

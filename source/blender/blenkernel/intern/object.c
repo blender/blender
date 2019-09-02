@@ -3871,7 +3871,7 @@ int BKE_object_scenes_users_get(Main *bmain, Object *ob)
 {
   int num_scenes = 0;
   for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
-    if (BKE_collection_has_object_recursive(BKE_collection_master(scene), ob)) {
+    if (BKE_collection_has_object_recursive(scene->master_collection, ob)) {
       num_scenes++;
     }
   }

@@ -1434,7 +1434,7 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Collection *collection_to = BKE_collection_master(scene_to);
+  Collection *collection_to = scene_to->master_collection;
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
     BKE_collection_object_add(bmain, collection_to, base->object);
   }
@@ -1771,7 +1771,7 @@ static void single_object_users(
     Main *bmain, Scene *scene, View3D *v3d, const int flag, const bool copy_collections)
 {
   /* duplicate all the objects of the scene (and matching collections, if required). */
-  Collection *master_collection = BKE_collection_master(scene);
+  Collection *master_collection = scene->master_collection;
   single_object_users_collection(bmain, scene, master_collection, flag, copy_collections, true);
 
   /* duplicate collections that consist entirely of duplicated objects */

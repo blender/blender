@@ -1452,7 +1452,7 @@ void BKE_rigidbody_remove_object(Main *bmain, Scene *scene, Object *ob)
       /* Some users seems to find it funny to use a view-layer instancing collection
        * as RBW collection... Despite this being a bad (ab)use of the system, avoid losing objects
        * when we remove them from RB simulation. */
-      BKE_collection_object_add(bmain, BKE_collection_master(scene), ob);
+      BKE_collection_object_add(bmain, scene->master_collection, ob);
     }
     BKE_collection_object_remove(bmain, rbw->group, ob, false);
   }

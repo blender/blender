@@ -1691,7 +1691,7 @@ static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent 
     return move_to_collection_exec(C, op);
   }
 
-  Collection *master_collection = BKE_collection_master(scene);
+  Collection *master_collection = scene->master_collection;
 
   /* We need the data to be allocated so it's available during menu drawing.
    * Technically we could use wmOperator->customdata. However there is no free callback

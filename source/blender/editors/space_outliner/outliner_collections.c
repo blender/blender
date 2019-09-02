@@ -89,7 +89,7 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
   }
   else if (ELEM(tselem->type, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
     Scene *scene = (Scene *)tselem->id;
-    return BKE_collection_master(scene);
+    return scene->master_collection;
   }
   else if (tselem->type == 0 && te->idcode == ID_GR) {
     return (Collection *)tselem->id;
@@ -199,7 +199,7 @@ static int collection_new_exec(bContext *C, wmOperator *op)
   }
 
   if (data.collection == NULL || ID_IS_LINKED(data.collection)) {
-    data.collection = BKE_collection_master(scene);
+    data.collection = scene->master_collection;
   }
 
   if (ID_IS_LINKED(scene)) {
@@ -514,14 +514,14 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
    * This can happen when a whole scene is linked e.g. */
   if (parent != NULL && ID_IS_LINKED(parent)) {
     Scene *scene = CTX_data_scene(C);
-    parent = ID_IS_LINKED(scene) ? NULL : BKE_collection_master(scene);
+    parent = ID_IS_LINKED(scene) ? NULL : scene->master_collection;
   }
   else if (parent != NULL && (parent->flag & COLLECTION_IS_MASTER) != 0) {
     Scene *scene = BKE_collection_master_scene_search(bmain, parent);
     BLI_assert(scene != NULL);
     if (ID_IS_LINKED(scene)) {
       scene = CTX_data_scene(C);
-      parent = ID_IS_LINKED(scene) ? NULL : BKE_collection_master(scene);
+      parent = ID_IS_LINKED(scene) ? NULL : scene->master_collection;
     }
   }
 

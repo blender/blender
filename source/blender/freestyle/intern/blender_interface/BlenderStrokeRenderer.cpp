@@ -865,7 +865,7 @@ Object *BlenderStrokeRenderer::NewMesh() const
   BLI_snprintf(name, MAX_ID_NAME, "0%08xME", mesh_id);
   ob->data = BKE_mesh_add(freestyle_bmain, name);
 
-  Collection *collection_master = BKE_collection_master(freestyle_scene);
+  Collection *collection_master = freestyle_scene->master_collection;
   BKE_collection_object_add(freestyle_bmain, collection_master, ob);
   DEG_graph_tag_relations_update(freestyle_depsgraph);
 

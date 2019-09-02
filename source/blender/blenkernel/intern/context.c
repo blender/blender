@@ -1053,7 +1053,7 @@ Collection *CTX_data_collection(const bContext *C)
 
   /* fallback */
   Scene *scene = CTX_data_scene(C);
-  return BKE_collection_master(scene);
+  return scene->master_collection;
 }
 
 enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,

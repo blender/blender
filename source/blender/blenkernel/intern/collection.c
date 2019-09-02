@@ -506,11 +506,6 @@ Collection *BKE_collection_master_add()
   return master_collection;
 }
 
-Collection *BKE_collection_master(const Scene *scene)
-{
-  return scene->master_collection;
-}
-
 Scene *BKE_collection_master_scene_search(const Main *bmain, const Collection *master_collection)
 {
   BLI_assert((master_collection->flag & COLLECTION_IS_MASTER) != 0);
@@ -587,7 +582,7 @@ bool BKE_collection_has_object_recursive(Collection *collection, Object *ob)
 
 static Collection *collection_next_find(Main *bmain, Scene *scene, Collection *collection)
 {
-  if (scene && collection == BKE_collection_master(scene)) {
+  if (scene && collection == scene->master_collection) {
     return bmain->collections.first;
   }
   else {
@@ -604,7 +599,7 @@ Collection *BKE_collection_object_find(Main *bmain,
     collection = collection_next_find(bmain, scene, collection);
   }
   else if (scene) {
-    collection = BKE_collection_master(scene);
+    collection = scene->master_collection;
   }
   else {
     collection = bmain->collections.first;
@@ -746,7 +741,7 @@ void BKE_collection_object_add_from(Main *bmain, Scene *scene, Object *ob_src, O
   if (!is_instantiated) {
     /* In case we could not find any non-linked collections in which instantiate our ob_dst,
      * fallback to scene's master collection... */
-    collection_object_add(bmain, BKE_collection_master(scene), ob_dst, 0, true);
+    collection_object_add(bmain, scene->master_collection, ob_dst, 0, true);
   }
 
   BKE_main_collection_sync(bmain);
@@ -888,7 +883,7 @@ void BKE_collections_child_remove_nulls(Main *bmain, Collection *collection)
       collection_null_children_remove(collection);
     }
     for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
-      collection_null_children_remove(BKE_collection_master(scene));
+      collection_null_children_remove(scene->master_collection);
     }
 
     for (collection = bmain->collections.first; collection != NULL;
@@ -896,7 +891,7 @@ void BKE_collections_child_remove_nulls(Main *bmain, Collection *collection)
       collection_missing_parents_remove(collection);
     }
     for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
-      collection_missing_parents_remove(BKE_collection_master(scene));
+      collection_missing_parents_remove(scene->master_collection);
     }
   }
   else {
@@ -1172,7 +1167,7 @@ static Collection *collection_from_index_recursive(Collection *collection,
 Collection *BKE_collection_from_index(Scene *scene, const int index)
 {
   int index_current = 0;
-  Collection *master_collection = BKE_collection_master(scene);
+  Collection *master_collection = scene->master_collection;
   return collection_from_index_recursive(master_collection, index, &index_current);
 }
 
@@ -1366,7 +1361,7 @@ static void scene_collections_array(Scene *scene, Collection ***collections_arra
     return;
   }
 
-  collection = BKE_collection_master(scene);
+  collection = scene->master_collection;
   BLI_assert(collection != NULL);
   scene_collection_callback(collection, scene_collections_count, tot);
 
