@@ -338,8 +338,9 @@ Collection *BKE_collection_duplicate(Main *bmain,
                                      const bool do_obdata)
 {
   /* It's not allowed to copy the master collection. */
+  BLI_assert((collection->id.flag & LIB_PRIVATE_DATA) == 0);
+  BLI_assert((collection->flag & COLLECTION_IS_MASTER) == 0);
   if (collection->flag & COLLECTION_IS_MASTER) {
-    BLI_assert("!Master collection can't be duplicated");
     return NULL;
   }
 
@@ -368,6 +369,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
 Collection *BKE_collection_copy_master(Main *bmain, Collection *collection, const int flag)
 {
   BLI_assert(collection->flag & COLLECTION_IS_MASTER);
+  BLI_assert(collection->id.flag & LIB_PRIVATE_DATA);
 
   Collection *collection_dst = MEM_dupallocN(collection);
   BKE_collection_copy_data(bmain, collection_dst, collection, flag);
@@ -499,6 +501,7 @@ Collection *BKE_collection_master_add()
   /* Not an actual datablock, but owned by scene. */
   Collection *master_collection = MEM_callocN(sizeof(Collection), "Master Collection");
   STRNCPY(master_collection->id.name, "GRMaster Collection");
+  master_collection->id.flag |= LIB_PRIVATE_DATA;
   master_collection->flag |= COLLECTION_IS_MASTER;
   return master_collection;
 }

@@ -41,6 +41,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_animsys.h"
+#include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_idcode.h"
 #include "BKE_idprop.h"
@@ -5778,6 +5779,11 @@ ID *RNA_find_real_ID_and_path(Main *bmain, ID *id, const char **r_path)
           *r_path = "node_tree";
         }
         return BKE_node_tree_find_owner_ID(bmain, (bNodeTree *)id);
+      case ID_GR:
+        if (r_path) {
+          *r_path = "collection";
+        }
+        return (ID *)BKE_collection_master_scene_search(bmain, (Collection *)id);
 
       default:
         return NULL;
