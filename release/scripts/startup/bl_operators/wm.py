@@ -1815,7 +1815,11 @@ class BatchRenameAction(bpy.types.PropertyGroup):
     # type: 'REPLACE'.
     replace_src: StringProperty(name="Find")
     replace_dst: StringProperty(name="Replace")
-    replace_match_case: BoolProperty(name="Match Case")
+    replace_match_case: BoolProperty(name="Case Sensitive")
+    replace_regex: BoolProperty(
+        name="Regular Expression",
+        description="Use regular expressions to match text in the 'Find' field"
+    )
 
     # type: 'CASE'.
     case_method: EnumProperty(
@@ -1844,16 +1848,16 @@ class WM_OT_batch_rename(Operator):
             ('OBJECT', "Objects", ""),
             ('MATERIAL', "Materials", ""),
             None,
-            # Match object types.
-            ('MESH', "Meshs", ""),
+            # Enum identifiers are compared with 'object.type'.
+            ('MESH', "Meshes", ""),
             ('CURVE', "Curves", ""),
-            ('META', "MetaBalls", ""),
+            ('META', "Meta Balls", ""),
             ('ARMATURE', "Armatures", ""),
             ('LATTICE', "Lattices", ""),
             ('GPENCIL', "Grease Pencils", ""),
             ('CAMERA', "Cameras", ""),
             ('SPEAKER', "Speakers", ""),
-            ('LIGHT_PROBE', "LightProbes", ""),
+            ('LIGHT_PROBE', "Light Probes", ""),
             None,
             ('BONE', "Bones", ""),
             ('NODE', "Nodes", ""),
@@ -2025,18 +2029,19 @@ class WM_OT_batch_rename(Operator):
                     name = name.rstrip(chars_strip)
 
             elif ty == 'REPLACE':
-                if action.replace_match_case:
-                    name = name.replace(
-                        action.replace_src,
-                        action.replace_dst,
-                    )
+                if action.replace_regex:
+                    replace_src = action.replace_src
                 else:
-                    name = re.sub(
-                        re.escape(action.replace_src),
-                        re.escape(action.replace_dst),
-                        name,
-                        flags=re.IGNORECASE,
-                    )
+                    replace_src = re.escape(action.replace_src)
+                name = re.sub(
+                    replace_src,
+                    re.escape(action.replace_dst),
+                    name,
+                    flags=(
+                        0 if action.replace_match_case else
+                        re.IGNORECASE
+                    ),
+                )
             elif ty == 'CASE':
                 method = action.case_method
                 if method == 'UPPER':
@@ -2063,14 +2068,17 @@ class WM_OT_batch_rename(Operator):
         self._data_type_prev = self.data_type
 
     def draw(self, context):
+        import re
+
         layout = self.layout
 
-        row = layout.row()
-        row.prop(self, "data_type")
+        split = layout.split(factor=0.5)
+        split.label(text="Data Type:")
+        split.prop(self, "data_type", text="")
 
-        row = layout.row()
-        row.label(text="Rename {:d} {:s}".format(len(self._data[0]), self._data[2]))
-        row.prop(self, "data_source", expand=True)
+        split = layout.split(factor=0.5)
+        split.label(text="Rename {:d} {:s}:".format(len(self._data[0]), self._data[2]))
+        split.row().prop(self, "data_source", expand=True)
 
         for action in self.actions:
             box = layout.box()
@@ -2088,9 +2096,23 @@ class WM_OT_batch_rename(Operator):
                 box.row().prop(action, "strip_chars")
                 box.row().prop(action, "strip_part")
             elif ty == 'REPLACE':
-                box.row().prop(action, "replace_src")
+
+                row = box.row()
+                re_error = None
+                if action.replace_regex:
+                    try:
+                        re.compile(action.replace_src)
+                    except Exception as ex:
+                        row.alert = True
+                        re_error = str(ex)
+                row.prop(action, "replace_src")
+                if re_error is not None:
+                    box.label(text=re_error)
+
                 box.row().prop(action, "replace_dst")
-                box.row().prop(action, "replace_match_case")
+                row = box.row()
+                row.prop(action, "replace_match_case")
+                row.prop(action, "replace_regex")
             elif ty == 'CASE':
                 box.row().prop(action, "case_method", expand=True)
 
@@ -2121,9 +2143,20 @@ class WM_OT_batch_rename(Operator):
         return changed
 
     def execute(self, context):
+        import re
+
         seq, attr, descr = self._data
 
         actions = self.actions
+
+        # Sanitize actions.
+        for action in actions:
+            if action.replace_regex:
+                try:
+                    re.compile(action.replace_src)
+                except Exception as ex:
+                    self.report({'ERROR'}, "Invalid regular expression: " + str(ex))
+                    return {'CANCELLED'}
 
         total_len = 0
         change_len = 0
