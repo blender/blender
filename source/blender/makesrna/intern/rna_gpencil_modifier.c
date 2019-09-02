@@ -133,6 +133,16 @@ static const EnumPropertyItem modifier_modify_color_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem modifier_opacity_mode_items[] = {
+    {GP_OPACITY_MODE_MATERIAL,
+     "MATERIAL",
+     0,
+     "Material",
+     "Modify opacity using alpha channel of material"},
+    {GP_OPACITY_MODE_STRENGTH, "STRENGTH", 0, "Strength", "Modify opacity using point strength"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static const EnumPropertyItem modifier_gphook_falloff_items[] = {
     {eGPHook_Falloff_None, "NONE", 0, "No Falloff", ""},
     {eGPHook_Falloff_Curve, "CURVE", 0, "Curve", ""},
@@ -1162,6 +1172,11 @@ static void rna_def_modifier_gpencilopacity(BlenderRNA *brna)
   prop = RNA_def_property(srna, "modify_color", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, modifier_modify_color_items); /* share the enum */
   RNA_def_property_ui_text(prop, "Mode", "Set what colors of the stroke are affected");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "opacity_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, modifier_opacity_mode_items);
+  RNA_def_property_ui_text(prop, "Opacity Mode", "Set what mode used to define opacity");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "layer", PROP_STRING, PROP_NONE);

@@ -200,6 +200,11 @@ typedef enum eModifyColorGpencil_Flag {
   GP_MODIFY_COLOR_FILL = 2,
 } eModifyColorGpencil_Flag;
 
+typedef enum eOpacityModesGpencil_Flag {
+  GP_OPACITY_MODE_MATERIAL = 0,
+  GP_OPACITY_MODE_STRENGTH = 1,
+} eOpacityModesGpencil_Flag;
+
 typedef struct TintGpencilModifierData {
   GpencilModifierData modifier;
   /** Layer name. */
@@ -274,7 +279,9 @@ typedef struct OpacityGpencilModifierData {
   float factor;
   /** Modify stroke, fill or both. */
   char modify_color;
-  char _pad[3];
+  /** Mode of opacity, colors or strength */
+  char opacity_mode;
+  char _pad[2];
   /** Custom index for passes. */
   int layer_pass;
   char _pad1[4];
