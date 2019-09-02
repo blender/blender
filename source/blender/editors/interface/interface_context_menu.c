@@ -490,8 +490,9 @@ static void ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
 
 bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 {
-  /* having this menu for some buttons makes no sense */
-  if (but->type == UI_BTYPE_IMAGE) {
+  /* ui_but_is_interactive() may let some buttons through that should not get a context menu - it
+   * doesn't make sense for them. */
+  if (ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_IMAGE)) {
     return false;
   }
 
