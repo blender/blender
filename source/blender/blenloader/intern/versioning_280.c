@@ -3712,7 +3712,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      /* Older files do not hqve a msater collection, which is then added through
+      /* Older files do not have a master collection, which is then added through
        * `BKE_collection_master_add()`, so everything is fine. */
       if (scene->master_collection != NULL) {
         scene->master_collection->id.flag |= LIB_PRIVATE_DATA;

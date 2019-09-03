@@ -503,7 +503,7 @@ enum {
   OB_DUPLIROT = 1 << 5,
   OB_TRANSFLAG_UNUSED_6 = 1 << 6, /* cleared */
   /* runtime, calculate derivedmesh for dupli before it's used */
-  OB_DUPLICALCDERIVED = 1 << 7,
+  OB_TRANSFLAG_UNUSED_7 = 1 << 7, /* dirty */
   OB_DUPLICOLLECTION = 1 << 8,
   OB_DUPLIFACES = 1 << 9,
   OB_DUPLIFACES_SCALE = 1 << 10,
