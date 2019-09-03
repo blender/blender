@@ -812,8 +812,20 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
   switch (object->partype) {
     /* Armature Deform (Virtual Modifier) */
     case PARSKEL: {
-      ComponentKey parent_key(parent_id, NodeType::TRANSFORM);
-      add_relation(parent_key, object_transform_key, "Armature Deform Parent");
+      ComponentKey parent_transform_key(parent_id, NodeType::TRANSFORM);
+      add_relation(parent_transform_key, object_transform_key, "Parent Armature Transform");
+
+      if (parent->type == OB_ARMATURE) {
+        ComponentKey object_geometry_key(&object->id, NodeType::GEOMETRY);
+        ComponentKey parent_pose_key(parent_id, NodeType::EVAL_POSE);
+        add_relation(
+            parent_transform_key, object_geometry_key, "Parent Armature Transform -> Geometry");
+        add_relation(parent_pose_key, object_geometry_key, "Parent Armature Pose -> Geometry");
+
+        add_depends_on_transform_relation(
+            &object->id, object_geometry_key, "Virtual Armature Modifier");
+      }
+
       break;
     }
 
