@@ -584,6 +584,11 @@ static bool file_walk_select_selection_set(bContext *C,
 
   BLI_assert(params);
 
+  if (numfiles == 0) {
+    /* No files visible, nothing to do. */
+    return false;
+  }
+
   if (has_selection) {
     if (extend && filelist_entry_select_index_get(files, active_old, CHECK_ALL) &&
         filelist_entry_select_index_get(files, active_new, CHECK_ALL)) {
@@ -691,6 +696,11 @@ static bool file_walk_select_do(bContext *C,
   int other_site = -1; /* file on the other site of active_old */
 
   /* *** get all needed files for handling selection *** */
+
+  if (numfiles == 0) {
+    /* No files visible, nothing to do. */
+    return false;
+  }
 
   if (has_selection) {
     ARegion *ar = CTX_wm_region(C);
