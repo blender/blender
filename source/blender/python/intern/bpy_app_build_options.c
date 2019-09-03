@@ -46,6 +46,7 @@ static PyStructSequence_Field app_builtopts_info_fields[] = {
     {(char *)"audaspace", NULL},
     {(char *)"international", NULL},
     {(char *)"openal", NULL},
+    {(char *)"opensubdiv", NULL},
     {(char *)"sdl", NULL},
     {(char *)"sdl_dynload", NULL},
     {(char *)"jack", NULL},
@@ -185,6 +186,12 @@ static PyObject *make_builtopts_info(void)
 #endif
 
 #ifdef WITH_OPENAL
+  SetObjIncref(Py_True);
+#else
+  SetObjIncref(Py_False);
+#endif
+
+#ifdef WITH_OPENSUBDIV
   SetObjIncref(Py_True);
 #else
   SetObjIncref(Py_False);

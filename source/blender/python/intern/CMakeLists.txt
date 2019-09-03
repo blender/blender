@@ -231,6 +231,10 @@ if(WITH_OPENAL)
   add_definitions(-DWITH_OPENAL)
 endif()
 
+if(WITH_OPENSUBDIV)
+  add_definitions(-DWITH_OPENSUBDIV)
+endif()
+
 if(WITH_SDL)
   list(APPEND INC_SYS
     ${SDL_INCLUDE_DIR}
