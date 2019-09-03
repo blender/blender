@@ -2209,22 +2209,6 @@ def km_grease_pencil(_params):
     )
 
     items.extend([
-        # Draw
-        ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "key_modifier": 'D'},
-         {"properties": [("mode", 'DRAW'), ("wait_for_input", False)]}),
-        # Draw - straight lines
-        ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True, "key_modifier": 'D'},
-         {"properties": [("mode", 'DRAW_STRAIGHT'), ("wait_for_input", False)]}),
-        # Draw - poly lines
-        ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True, "key_modifier": 'D'},
-         {"properties": [("mode", 'DRAW_POLY'), ("wait_for_input", False)]}),
-        # Erase
-        ("gpencil.annotate", {"type": 'RIGHTMOUSE', "value": 'PRESS', "key_modifier": 'D'},
-         {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
-
-        # Add blank frame (B because it's easy to reach from D).
-        ("gpencil.blank_frame_add", {"type": 'B', "value": 'PRESS', "key_modifier": 'D'}, None),
-        # Delete active frame - for easier video tutorials/review sessions.
         # This works even when not in edit mode.
         ("gpencil.active_frames_delete_all", {"type": 'BACK_SPACE', "value": 'PRESS', "key_modifier": 'D'}, None),
         ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "key_modifier": 'D'}, None),
@@ -2874,6 +2858,14 @@ def km_image_paint(params):
          {"properties": [("data_path", 'tool_settings.image_paint.brush.use_smooth_stroke')]}),
         op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         op_panel("VIEW3D_PT_paint_texture_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
+        # Tools
+        ("paint.brush_select", {"type": 'D', "value": 'PRESS'},
+         {"properties": [("image_tool", 'DRAW')]}),
+        ("paint.brush_select", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("image_tool", 'SOFTEN')]}),
+        ("paint.brush_select", {"type": 'G', "value": 'PRESS'},
+         {"properties": [("image_tool", 'FILL')]}),
+        op_tool("builtin.select_box", {"type": 'Q', "value": 'PRESS'}),
     ])
 
     return keymap
@@ -2916,6 +2908,12 @@ def km_vertex_paint(params):
          {"properties": [("data_path", 'tool_settings.vertex_paint.brush.use_smooth_stroke')]}),
         op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         op_panel("VIEW3D_PT_paint_vertex_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
+        # Tools
+        ("paint.brush_select", {"type": 'D', "value": 'PRESS'},
+         {"properties": [("vertex_tool", 'DRAW')]}),
+        ("paint.brush_select", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("vertex_tool", 'BLUR')]}),
+        op_tool("builtin.select_box", {"type": 'Q', "value": 'PRESS'}),
     ])
 
     return keymap
@@ -2931,7 +2929,6 @@ def km_weight_paint(params):
 
     items.extend([
         ("paint.weight_paint", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
-        ("paint.weight_sample", {"type": 'I', "value": 'PRESS'}, None),
         ("paint.weight_sample_group", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True}, None),
         ("brush.scale_size", {"type": 'LEFT_BRACKET', "value": 'PRESS'},
          {"properties": [("scalar", 0.9)]}),
@@ -2947,6 +2944,13 @@ def km_weight_paint(params):
         op_panel("VIEW3D_PT_paint_weight_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         # Bone selection for combined weight paint + pose mode.
         ("view3d.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True}, None),
+         # Tools
+        ("paint.brush_select", {"type": 'D', "value": 'PRESS'},
+         {"properties": [("weight_tool", 'DRAW')]}),
+        ("paint.brush_select", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("weight_tool", 'BLUR')]}),
+        op_tool("builtin.sample_weight", {"type": 'I', "value": 'PRESS'}),
+        op_tool("builtin.select_box", {"type": 'Q', "value": 'PRESS'}),
     ])
 
     return keymap
