@@ -835,7 +835,7 @@ static void rna_def_texture_clouds(BlenderRNA *brna)
   prop = RNA_def_property(srna, "noise_depth", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "noisedepth");
   RNA_def_property_range(prop, 0, 30);
-  RNA_def_property_ui_range(prop, 0, 24, 0, 2);
+  RNA_def_property_ui_range(prop, 0, 24, 1, 2);
   RNA_def_property_ui_text(prop, "Noise Depth", "Depth of the cloud calculation");
   RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
@@ -974,7 +974,7 @@ static void rna_def_texture_marble(BlenderRNA *brna)
   prop = RNA_def_property(srna, "noise_depth", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "noisedepth");
   RNA_def_property_range(prop, 0, 30);
-  RNA_def_property_ui_range(prop, 0, 24, 0, 2);
+  RNA_def_property_ui_range(prop, 0, 24, 1, 2);
   RNA_def_property_ui_text(prop, "Noise Depth", "Depth of the cloud calculation");
   RNA_def_property_update(prop, 0, "rna_Texture_update");
 
@@ -1028,7 +1028,7 @@ static void rna_def_texture_magic(BlenderRNA *brna)
   prop = RNA_def_property(srna, "noise_depth", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "noisedepth");
   RNA_def_property_range(prop, 0, 30);
-  RNA_def_property_ui_range(prop, 0, 24, 0, 2);
+  RNA_def_property_ui_range(prop, 0, 24, 1, 2);
   RNA_def_property_ui_text(prop, "Noise Depth", "Depth of the noise");
   RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
