@@ -117,6 +117,10 @@ unsigned int filelist_entry_select_get(struct FileList *filelist,
 unsigned int filelist_entry_select_index_get(struct FileList *filelist,
                                              const int index,
                                              FileCheckType check);
+void filelist_entry_parent_select_set(struct FileList *filelist,
+                                      FileSelType select,
+                                      unsigned int flag,
+                                      FileCheckType check);
 
 void filelist_setrecursion(struct FileList *filelist, const int recursion_level);
 

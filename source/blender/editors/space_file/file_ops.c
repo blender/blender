@@ -450,7 +450,7 @@ static int file_box_select_exec(bContext *C, wmOperator *op)
 
   /* unselect '..' parent entry - it's not supposed to be selected if more than
    * one file is selected */
-  filelist_entry_select_index_set(sfile->files, 0, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
+  filelist_entry_parent_select_set(sfile->files, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
 
   if (FILE_SELECT_DIR == ret) {
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
@@ -518,8 +518,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   if (extend) {
     /* unselect '..' parent entry - it's not supposed to be selected if more
      * than one file is selected */
-    filelist_entry_select_index_set(
-        sfile->files, 0, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
+    filelist_entry_parent_select_set(sfile->files, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
   }
 
   if (FILE_SELECT_DIR == ret) {
@@ -618,7 +617,7 @@ static bool file_walk_select_selection_set(bContext *C,
     }
     /* select first file */
     else if (ELEM(direction, FILE_SELECT_WALK_DOWN, FILE_SELECT_WALK_RIGHT)) {
-      params->active_file = active = extend ? 1 : 0;
+      params->active_file = active = 0;
     }
     else {
       BLI_assert(0);
@@ -635,7 +634,7 @@ static bool file_walk_select_selection_set(bContext *C,
 
     /* unselect '..' parent entry - it's not supposed to be selected if more
      * than one file is selected */
-    filelist_entry_select_index_set(files, 0, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
+    filelist_entry_parent_select_set(files, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
   }
   else {
     /* deselect all first */
@@ -650,17 +649,18 @@ static bool file_walk_select_selection_set(bContext *C,
   if (fill) {
     FileSelection sel = {MIN2(active, last_sel), MAX2(active, last_sel)};
 
-    /* clamping selection to not include '..' parent entry */
-    if (sel.first == 0) {
-      sel.first = 1;
-    }
-
     /* fill selection between last and first selected file */
     filelist_entries_select_index_range_set(
         files, &sel, deselect ? FILE_SEL_REMOVE : FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
     /* entire sel is cleared here, so select active again */
     if (deselect) {
       filelist_entry_select_index_set(files, active, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
+    }
+
+    /* unselect '..' parent entry - it's not supposed to be selected if more
+     * than one file is selected */
+    if ((sel.last - sel.first) > 1) {
+      filelist_entry_parent_select_set(files, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
     }
   }
   else {
@@ -732,7 +732,7 @@ static bool file_walk_select_do(bContext *C,
       BLI_assert(0);
     }
 
-    if (!IN_RANGE(active_new, 0, numfiles)) {
+    if (!IN_RANGE(active_new, -1, numfiles)) {
       if (extend) {
         /* extend to invalid file -> abort */
         return false;

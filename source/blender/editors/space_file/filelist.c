@@ -2299,6 +2299,19 @@ unsigned int filelist_entry_select_index_get(FileList *filelist,
   return 0;
 }
 
+/**
+ * Set selection of the '..' parent entry, but only if it's actually visible.
+ */
+void filelist_entry_parent_select_set(FileList *filelist,
+                                      FileSelType select,
+                                      unsigned int flag,
+                                      FileCheckType check)
+{
+  if ((filelist->filter_data.flags & FLF_HIDE_PARENT) == 0) {
+    filelist_entry_select_index_set(filelist, 0, select, flag, check);
+  }
+}
+
 /* WARNING! dir must be FILE_MAX_LIBEXTRA long! */
 bool filelist_islibrary(struct FileList *filelist, char *dir, char **group)
 {
