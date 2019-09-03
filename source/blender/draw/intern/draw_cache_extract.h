@@ -136,8 +136,8 @@ typedef enum DRWBatchFlag {
   MBC_EDIT_LNOR = (1 << 6),
   MBC_EDIT_FACEDOTS = (1 << 7),
   MBC_EDIT_MESH_ANALYSIS = (1 << 8),
-  MBC_EDITUV_FACES_STRECH_AREA = (1 << 9),
-  MBC_EDITUV_FACES_STRECH_ANGLE = (1 << 10),
+  MBC_EDITUV_FACES_STRETCH_AREA = (1 << 9),
+  MBC_EDITUV_FACES_STRETCH_ANGLE = (1 << 10),
   MBC_EDITUV_FACES = (1 << 11),
   MBC_EDITUV_EDGES = (1 << 12),
   MBC_EDITUV_VERTS = (1 << 13),
@@ -157,7 +157,7 @@ typedef enum DRWBatchFlag {
 } DRWBatchFlag;
 
 #define MBC_EDITUV \
-  (MBC_EDITUV_FACES_STRECH_AREA | MBC_EDITUV_FACES_STRECH_ANGLE | MBC_EDITUV_FACES | \
+  (MBC_EDITUV_FACES_STRETCH_AREA | MBC_EDITUV_FACES_STRETCH_ANGLE | MBC_EDITUV_FACES | \
    MBC_EDITUV_EDGES | MBC_EDITUV_VERTS | MBC_EDITUV_FACEDOTS | MBC_WIRE_LOOPS_UVS)
 
 #define FOREACH_MESH_BUFFER_CACHE(batch_cache, mbc) \
@@ -183,8 +183,8 @@ typedef struct MeshBatchCache {
     GPUBatch *edit_fdots;
     GPUBatch *edit_mesh_analysis;
     /* Edit UVs */
-    GPUBatch *edituv_faces_strech_area;
-    GPUBatch *edituv_faces_strech_angle;
+    GPUBatch *edituv_faces_stretch_area;
+    GPUBatch *edituv_faces_stretch_angle;
     GPUBatch *edituv_faces;
     GPUBatch *edituv_edges;
     GPUBatch *edituv_verts;
@@ -233,6 +233,12 @@ typedef struct MeshBatchCache {
 
   /* Valid only if edge_detection is up to date. */
   bool is_manifold;
+
+  /* Total areas for drawing UV Stretching. Contains the summed area in mesh
+   * space (`tot_area`) and the summed area in uv space (`tot_uvarea`).
+   *
+   * Only valid after `DRW_mesh_batch_cache_create_requested` has been called. */
+  float tot_area, tot_uv_area;
 
   bool no_loose_wire;
 } MeshBatchCache;

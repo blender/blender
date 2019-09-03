@@ -4,12 +4,15 @@ uniform vec2 aspect;
 
 in vec2 pos;
 
-#ifndef STRETCH_ANGLE
-in float stretch;
-#else
-
+#ifdef STRETCH_ANGLE
 in vec2 uv_angles;
 in float angle;
+
+#else
+in float ratio;
+uniform float totalAreaRatio;
+uniform float totalAreaRatioInv;
+
 #endif
 
 noperspective out vec4 finalColor;
@@ -69,6 +72,12 @@ float angle_normalized_v2v2(vec2 v1, vec2 v2)
   return (q) ? a : M_PI - a;
 }
 
+float area_ratio_to_stretch(float ratio, float tot_ratio, float inv_tot_ratio)
+{
+  ratio *= (ratio > 0.0f) ? tot_ratio : -inv_tot_ratio;
+  return (ratio > 1.0f) ? (1.0f / ratio) : ratio;
+}
+
 void main()
 {
   gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
@@ -80,6 +89,9 @@ void main()
   float stretch = 1.0 - abs(uv_angle - angle);
   stretch = stretch;
   stretch = 1.0 - stretch * stretch;
+#else
+  float stretch = 1.0 - area_ratio_to_stretch(ratio, totalAreaRatio, -totalAreaRatioInv);
+
 #endif
 
   finalColor = vec4(weight_to_rgb(stretch), 1.0);
