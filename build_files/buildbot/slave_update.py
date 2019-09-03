@@ -20,6 +20,7 @@
 
 import buildbot_utils
 import os
+import sys
 
 if __name__ == "__main__":
     builder = buildbot_utils.create_builder_from_arguments()
@@ -27,4 +28,4 @@ if __name__ == "__main__":
 
     # Run make update which handles all libraries and submodules.
     make_update = os.path.join(builder.blender_dir, "build_files", "utils", "make_update.py")
-    buildbot_utils.call(['python3', make_update])
+    buildbot_utils.call([sys.executable, make_update])
