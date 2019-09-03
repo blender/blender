@@ -62,13 +62,19 @@ void select_id_object_min_max(Object *obj, float r_min[3], float r_max[3])
 short select_id_get_object_select_mode(Scene *scene, Object *ob)
 {
   short r_select_mode = 0;
-  if (ob->mode & (OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT)) {
+  if (ob->mode & (OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT)) {
     Mesh *me_orig = DEG_get_original_object(ob)->data;
     if (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL) {
       r_select_mode = SCE_SELECT_FACE;
     }
-    if (me_orig->editflag & ME_EDIT_PAINT_VERT_SEL) {
-      r_select_mode |= SCE_SELECT_VERTEX;
+    else if (me_orig->editflag & ME_EDIT_PAINT_VERT_SEL) {
+      r_select_mode = SCE_SELECT_VERTEX;
+    }
+  }
+  else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
+    Mesh *me_orig = DEG_get_original_object(ob)->data;
+    if (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL) {
+      r_select_mode = SCE_SELECT_FACE;
     }
   }
   else {
