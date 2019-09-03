@@ -96,7 +96,7 @@ typedef struct bContextStore {
 
 /* for the context's rna mode enum
  * keep aligned with data_mode_strings in context.c */
-enum eContextObjectMode {
+typedef enum eContextObjectMode {
   CTX_MODE_EDIT_MESH = 0,
   CTX_MODE_EDIT_CURVE,
   CTX_MODE_EDIT_SURFACE,
@@ -115,7 +115,7 @@ enum eContextObjectMode {
   CTX_MODE_EDIT_GPENCIL,
   CTX_MODE_SCULPT_GPENCIL,
   CTX_MODE_WEIGHT_GPENCIL,
-};
+} eContextObjectMode;
 #define CTX_MODE_NUM (CTX_MODE_WEIGHT_GPENCIL + 1)
 
 /* Context */
