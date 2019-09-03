@@ -686,6 +686,7 @@ enum {
   OB_EMPTY_IMAGE_HIDE_ORTHOGRAPHIC = 1 << 1,
   OB_EMPTY_IMAGE_HIDE_BACK = 1 << 2,
   OB_EMPTY_IMAGE_HIDE_FRONT = 1 << 3,
+  OB_EMPTY_IMAGE_HIDE_NON_AXIS_ALIGNED = 1 << 4,
 };
 
 /** #Object.empty_image_flag */

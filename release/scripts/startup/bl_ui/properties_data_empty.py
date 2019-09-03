@@ -60,6 +60,7 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
             col.row().prop(ob, "empty_image_side", text="Side", expand=True)
             col.prop(ob, "show_empty_image_orthographic", text="Display Orthographic")
             col.prop(ob, "show_empty_image_perspective", text="Display Perspective")
+            col.prop(ob, "show_empty_image_only_axis_aligned")
 
 
 class DATA_PT_empty_image(DataButtonsPanel, Panel):

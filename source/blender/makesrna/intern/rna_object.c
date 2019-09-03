@@ -2821,6 +2821,14 @@ static void rna_def_object(BlenderRNA *brna)
       prop, "Display in Orthographic Mode", "Display image in orthographic mode");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
+  prop = RNA_def_property(srna, "show_empty_image_only_axis_aligned", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, NULL, "empty_image_visibility_flag", OB_EMPTY_IMAGE_HIDE_NON_AXIS_ALIGNED);
+  RNA_def_property_ui_text(prop,
+                           "Display Only Axis Aligned",
+                           "Only display the image when it is aligned with the view axis");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
   prop = RNA_def_property(srna, "use_empty_image_alpha", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "empty_image_flag", OB_EMPTY_IMAGE_USE_ALPHA_BLEND);
   RNA_def_property_ui_text(
