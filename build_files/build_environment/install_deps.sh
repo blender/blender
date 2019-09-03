@@ -1114,7 +1114,7 @@ run_ldconfig() {
     WARNING "--no-sudo enabled, impossible to run ldconfig for $1, you'll have to do it yourself..."
   else
     INFO "Running ldconfig for $1..."
-    $SUDO sh -c "echo -e \"$_lib_path\n$_lib64_path\" > $_ldconf_path"
+    $SUDO sh -c "/bin/echo -e \"$_lib_path\n$_lib64_path\" > $_ldconf_path"
     $SUDO /sbin/ldconfig  # XXX OpenSuse does not include sbin in command path with sudo!!!
   fi
   PRINT ""
