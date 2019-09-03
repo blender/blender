@@ -808,7 +808,7 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
   Object *parent = object->parent;
   ID *parent_id = &object->parent->id;
   ComponentKey ob_key(&object->id, NodeType::TRANSFORM);
-  /* Type-specific links/ */
+  /* Type-specific links. */
   switch (object->partype) {
     /* Armature Deform (Virtual Modifier) */
     case PARSKEL: {
