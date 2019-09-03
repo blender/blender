@@ -802,10 +802,12 @@ static void ntree_shader_relink_displacement(bNodeTree *ntree, bNode *output_nod
   bNode *dot_node = nodeAddStaticNode(NULL, ntree, SH_NODE_VECTOR_MATH);
   bNode *geo_node = nodeAddStaticNode(NULL, ntree, SH_NODE_NEW_GEOMETRY);
   bNodeSocket *normal_socket = ntree_shader_node_find_output(geo_node, "Normal");
-  dot_node->custom1 = 3; /* dot product */
+  bNodeSocket *dot_input1 = dot_node->inputs.first;
+  bNodeSocket *dot_input2 = dot_input1->next;
+  dot_node->custom1 = NODE_VECTOR_MATH_DOT_PRODUCT;
 
-  nodeAddLink(ntree, displacement_node, displacement_socket, dot_node, dot_node->inputs.first);
-  nodeAddLink(ntree, geo_node, normal_socket, dot_node, dot_node->inputs.last);
+  nodeAddLink(ntree, displacement_node, displacement_socket, dot_node, dot_input1);
+  nodeAddLink(ntree, geo_node, normal_socket, dot_node, dot_input2);
   displacement_node = dot_node;
   displacement_socket = ntree_shader_node_find_output(dot_node, "Value");
 
