@@ -113,36 +113,37 @@ static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, 
 static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
 {
   /* Version number. */
-  const char *version_suffix = NULL;
+  const char *version_cycle = NULL;
   bool show_build_info = true;
 
   if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha")) {
-    version_suffix = " Alpha";
+    version_cycle = " Alpha";
   }
   else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "beta")) {
-    version_suffix = " Beta";
+    version_cycle = " Beta";
   }
   else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "rc")) {
-    version_suffix = " Release Candidate";
+    version_cycle = " Release Candidate";
     show_build_info = false;
   }
   else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
-    version_suffix = STRINGIFY(BLENDER_VERSION_CHAR);
+    version_cycle = STRINGIFY(BLENDER_VERSION_CHAR);
     show_build_info = false;
+  }
+
+  const char *version_cycle_number = "";
+  if (strlen(STRINGIFY(BLENDER_VERSION_CYCLE_NUMBER))) {
+    version_cycle_number = " " STRINGIFY(BLENDER_VERSION_CYCLE_NUMBER);
   }
 
   char version_buf[256] = "\0";
   BLI_snprintf(version_buf,
                sizeof(version_buf),
-               "v %d.%d%s",
+               "v %d.%d%s%s",
                BLENDER_VERSION / 100,
                BLENDER_VERSION % 100,
-               version_suffix);
-
-  const char *cycle_number_suffix = STRINGIFY(BLENDER_VERSION_CYCLE_NUMBER);
-  if (strlen(cycle_number_suffix)) {
-    BLI_snprintf(version_buf, sizeof(version_buf), "%s %s", version_buf, cycle_number_suffix);
-  }
+               version_cycle,
+               version_cycle_number);
 
   wm_block_splash_add_label(block, version_buf, x, &y);
 
