@@ -349,7 +349,7 @@ class TOPBAR_MT_app_about(Menu):
         layout.separator()
 
         layout.operator("wm.url_open_preset", text="Blender Website", icon='URL').type = 'BLENDER'
-        layout.operator("wm.url_open", text="Credits", icon='URL').type = 'CREDITS'
+        layout.operator("wm.url_open_preset", text="Credits", icon='URL').type = 'CREDITS'
 
         layout.separator()
 
