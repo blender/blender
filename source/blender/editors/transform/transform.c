@@ -3520,7 +3520,7 @@ static void initShear_mouseInputMode(TransInfo *t)
     copy_v3_v3(dir, t->orient_matrix[t->orient_axis_ortho]);
   }
   else {
-    cross_v3_v3v3(dir, t->orient_matrix[t->orient_axis_ortho], t->orient_matrix[t->orient_axis]);
+    cross_v3_v3v3(dir, t->orient_matrix[t->orient_axis], t->orient_matrix[t->orient_axis_ortho]);
   }
 
   /* Without this, half the gizmo handles move in the opposite direction. */
