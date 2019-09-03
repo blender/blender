@@ -329,25 +329,20 @@ enum {
   FL_IS_PENDING = 1 << 2,
   FL_NEED_SORTING = 1 << 3,
   FL_NEED_FILTERING = 1 << 4,
+  FL_SORT_INVERT = 1 << 5,
 };
 
-#define SPECIAL_IMG_SIZE 48
-#define SPECIAL_IMG_ROWS 4
-#define SPECIAL_IMG_COLS 4
+#define SPECIAL_IMG_SIZE 256
+#define SPECIAL_IMG_ROWS 1
+#define SPECIAL_IMG_COLS 6
 
 enum {
-  SPECIAL_IMG_FOLDER = 0,
-  SPECIAL_IMG_PARENT = 1,
-  SPECIAL_IMG_REFRESH = 2,
-  SPECIAL_IMG_BLENDFILE = 3,
-  SPECIAL_IMG_SOUNDFILE = 4,
-  SPECIAL_IMG_MOVIEFILE = 5,
-  SPECIAL_IMG_PYTHONFILE = 6,
-  SPECIAL_IMG_TEXTFILE = 7,
-  SPECIAL_IMG_FONTFILE = 8,
-  SPECIAL_IMG_UNKNOWNFILE = 9,
-  SPECIAL_IMG_LOADING = 10,
-  SPECIAL_IMG_BACKUP = 11,
+  SPECIAL_IMG_DOCUMENT = 0,
+  SPECIAL_IMG_FOLDER = 1,
+  SPECIAL_IMG_PARENT = 2,
+  SPECIAL_IMG_DRIVE_FIXED = 3,
+  SPECIAL_IMG_DRIVE_ATTACHED = 4,
+  SPECIAL_IMG_DRIVE_REMOTE = 5,
   SPECIAL_IMG_MAX,
 };
 
@@ -369,6 +364,19 @@ static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size);
 
 /* ********** Sort helpers ********** */
 
+struct FileSortData {
+  bool inverted;
+};
+
+static int compare_apply_inverted(int val, const struct FileSortData *sort_data)
+{
+  return sort_data->inverted ? -val : val;
+}
+
+/**
+ * Handles inverted sorting itself (currently there's nothing to invert), so if this returns non-0,
+ * it should be used as-is and not inverted.
+ */
 static int compare_direntry_generic(const FileListInternEntry *entry1,
                                     const FileListInternEntry *entry2)
 {
@@ -420,10 +428,11 @@ static int compare_direntry_generic(const FileListInternEntry *entry1,
   return 0;
 }
 
-static int compare_name(void *UNUSED(user_data), const void *a1, const void *a2)
+static int compare_name(void *user_data, const void *a1, const void *a2)
 {
   const FileListInternEntry *entry1 = a1;
   const FileListInternEntry *entry2 = a2;
+  const struct FileSortData *sort_data = user_data;
   char *name1, *name2;
   int ret;
 
@@ -434,13 +443,14 @@ static int compare_name(void *UNUSED(user_data), const void *a1, const void *a2)
   name1 = entry1->name;
   name2 = entry2->name;
 
-  return BLI_strcasecmp_natural(name1, name2);
+  return compare_apply_inverted(BLI_strcasecmp_natural(name1, name2), sort_data);
 }
 
-static int compare_date(void *UNUSED(user_data), const void *a1, const void *a2)
+static int compare_date(void *user_data, const void *a1, const void *a2)
 {
   const FileListInternEntry *entry1 = a1;
   const FileListInternEntry *entry2 = a2;
+  const struct FileSortData *sort_data = user_data;
   char *name1, *name2;
   int64_t time1, time2;
   int ret;
@@ -452,22 +462,23 @@ static int compare_date(void *UNUSED(user_data), const void *a1, const void *a2)
   time1 = (int64_t)entry1->st.st_mtime;
   time2 = (int64_t)entry2->st.st_mtime;
   if (time1 < time2) {
-    return 1;
+    return compare_apply_inverted(1, sort_data);
   }
   if (time1 > time2) {
-    return -1;
+    return compare_apply_inverted(-1, sort_data);
   }
 
   name1 = entry1->name;
   name2 = entry2->name;
 
-  return BLI_strcasecmp_natural(name1, name2);
+  return compare_apply_inverted(BLI_strcasecmp_natural(name1, name2), sort_data);
 }
 
-static int compare_size(void *UNUSED(user_data), const void *a1, const void *a2)
+static int compare_size(void *user_data, const void *a1, const void *a2)
 {
   const FileListInternEntry *entry1 = a1;
   const FileListInternEntry *entry2 = a2;
+  const struct FileSortData *sort_data = user_data;
   char *name1, *name2;
   uint64_t size1, size2;
   int ret;
@@ -479,22 +490,23 @@ static int compare_size(void *UNUSED(user_data), const void *a1, const void *a2)
   size1 = entry1->st.st_size;
   size2 = entry2->st.st_size;
   if (size1 < size2) {
-    return 1;
+    return compare_apply_inverted(1, sort_data);
   }
   if (size1 > size2) {
-    return -1;
+    return compare_apply_inverted(-1, sort_data);
   }
 
   name1 = entry1->name;
   name2 = entry2->name;
 
-  return BLI_strcasecmp_natural(name1, name2);
+  return compare_apply_inverted(BLI_strcasecmp_natural(name1, name2), sort_data);
 }
 
-static int compare_extension(void *UNUSED(user_data), const void *a1, const void *a2)
+static int compare_extension(void *user_data, const void *a1, const void *a2)
 {
   const FileListInternEntry *entry1 = a1;
   const FileListInternEntry *entry2 = a2;
+  const struct FileSortData *sort_data = user_data;
   char *name1, *name2;
   int ret;
 
@@ -516,10 +528,10 @@ static int compare_extension(void *UNUSED(user_data), const void *a1, const void
       return -1;
     }
     if (entry1->blentype < entry2->blentype) {
-      return -1;
+      return compare_apply_inverted(-1, sort_data);
     }
     if (entry1->blentype > entry2->blentype) {
-      return 1;
+      return compare_apply_inverted(1, sort_data);
     }
   }
   else {
@@ -539,48 +551,58 @@ static int compare_extension(void *UNUSED(user_data), const void *a1, const void
     }
 
     if ((ret = BLI_strcasecmp(sufix1, sufix2))) {
-      return ret;
+      return compare_apply_inverted(ret, sort_data);
     }
   }
 
   name1 = entry1->name;
   name2 = entry2->name;
 
-  return BLI_strcasecmp_natural(name1, name2);
+  return compare_apply_inverted(BLI_strcasecmp_natural(name1, name2), sort_data);
 }
 
 void filelist_sort(struct FileList *filelist)
 {
   if ((filelist->flags & FL_NEED_SORTING) && (filelist->sort != FILE_SORT_NONE)) {
+    void *sort_cb = NULL;
+
     switch (filelist->sort) {
       case FILE_SORT_ALPHA:
-        BLI_listbase_sort_r(&filelist->filelist_intern.entries, compare_name, NULL);
+        sort_cb = compare_name;
         break;
       case FILE_SORT_TIME:
-        BLI_listbase_sort_r(&filelist->filelist_intern.entries, compare_date, NULL);
+        sort_cb = compare_date;
         break;
       case FILE_SORT_SIZE:
-        BLI_listbase_sort_r(&filelist->filelist_intern.entries, compare_size, NULL);
+        sort_cb = compare_size;
         break;
       case FILE_SORT_EXTENSION:
-        BLI_listbase_sort_r(&filelist->filelist_intern.entries, compare_extension, NULL);
+        sort_cb = compare_extension;
         break;
       case FILE_SORT_NONE: /* Should never reach this point! */
       default:
         BLI_assert(0);
         break;
     }
+    BLI_listbase_sort_r(
+        &filelist->filelist_intern.entries,
+        sort_cb,
+        &(struct FileSortData){.inverted = (filelist->flags & FL_SORT_INVERT) != 0});
 
     filelist_filter_clear(filelist);
     filelist->flags &= ~FL_NEED_SORTING;
   }
 }
 
-void filelist_setsorting(struct FileList *filelist, const short sort)
+void filelist_setsorting(struct FileList *filelist, const short sort, bool invert_sort)
 {
-  if (filelist->sort != sort) {
+  const bool was_invert_sort = filelist->flags & FL_SORT_INVERT;
+
+  if ((filelist->sort != sort) || (was_invert_sort != invert_sort)) {
     filelist->sort = sort;
     filelist->flags |= FL_NEED_SORTING;
+    filelist->flags = invert_sort ? (filelist->flags | FL_SORT_INVERT) :
+                                    (filelist->flags & ~FL_SORT_INVERT);
   }
 }
 
@@ -635,9 +657,9 @@ static bool is_filtered_file(FileListInternEntry *file,
 {
   bool is_filtered = !is_hidden_file(file->relpath, filter);
 
-  if (is_filtered && (filter->flags & FLF_DO_FILTER) && !FILENAME_IS_CURRPAR(file->relpath)) {
+  if (is_filtered && !FILENAME_IS_CURRPAR(file->relpath)) {
     /* We only check for types if some type are enabled in filtering. */
-    if (filter->filter) {
+    if (filter->filter && (filter->flags & FLF_DO_FILTER)) {
       if (file->typeflag & FILE_TYPE_DIR) {
         if (file->typeflag &
             (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) {
@@ -657,6 +679,7 @@ static bool is_filtered_file(FileListInternEntry *file,
         }
       }
     }
+    /* If there's a filter string, apply it as filter even if FLF_DO_FILTER is not set. */
     if (is_filtered && (filter->filter_search[0] != '\0')) {
       if (fnmatch(filter->filter_search, file->relpath, FNM_CASEFOLD) != 0) {
         is_filtered = false;
@@ -676,9 +699,9 @@ static bool is_filtered_lib(FileListInternEntry *file, const char *root, FileLis
 
   if (BLO_library_path_explode(path, dir, &group, &name)) {
     is_filtered = !is_hidden_file(file->relpath, filter);
-    if (is_filtered && (filter->flags & FLF_DO_FILTER) && !FILENAME_IS_CURRPAR(file->relpath)) {
+    if (is_filtered && !FILENAME_IS_CURRPAR(file->relpath)) {
       /* We only check for types if some type are enabled in filtering. */
-      if (filter->filter || filter->filter_id) {
+      if ((filter->filter || filter->filter_id) && (filter->flags & FLF_DO_FILTER)) {
         if (file->typeflag & FILE_TYPE_DIR) {
           if (file->typeflag &
               (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) {
@@ -704,6 +727,7 @@ static bool is_filtered_lib(FileListInternEntry *file, const char *root, FileLis
           }
         }
       }
+      /* If there's a filter string, apply it as filter even if FLF_DO_FILTER is not set. */
       if (is_filtered && (filter->filter_search[0] != '\0')) {
         if (fnmatch(filter->filter_search, file->relpath, FNM_CASEFOLD) != 0) {
           is_filtered = false;
@@ -904,42 +928,12 @@ static ImBuf *filelist_geticon_image_ex(const unsigned int typeflag, const char 
     if (FILENAME_IS_PARENT(relpath)) {
       ibuf = gSpecialFileImages[SPECIAL_IMG_PARENT];
     }
-    else if (FILENAME_IS_CURRENT(relpath)) {
-      ibuf = gSpecialFileImages[SPECIAL_IMG_REFRESH];
-    }
     else {
       ibuf = gSpecialFileImages[SPECIAL_IMG_FOLDER];
     }
   }
-  else if (typeflag & FILE_TYPE_BLENDER) {
-    ibuf = gSpecialFileImages[SPECIAL_IMG_BLENDFILE];
-  }
-  else if (typeflag & FILE_TYPE_BLENDERLIB) {
-    ibuf = gSpecialFileImages[SPECIAL_IMG_UNKNOWNFILE];
-  }
-  else if (typeflag & (FILE_TYPE_MOVIE)) {
-    ibuf = gSpecialFileImages[SPECIAL_IMG_MOVIEFILE];
-  }
-  else if (typeflag & FILE_TYPE_SOUND) {
-    ibuf = gSpecialFileImages[SPECIAL_IMG_SOUNDFILE];
-  }
-  else if (typeflag & FILE_TYPE_PYSCRIPT) {
-    ibuf = gSpecialFileImages[SPECIAL_IMG_PYTHONFILE];
-  }
-  else if (typeflag & FILE_TYPE_FTFONT) {
-    ibuf = gSpecialFileImages[SPECIAL_IMG_FONTFILE];
-  }
-  else if (typeflag & FILE_TYPE_TEXT) {
-    ibuf = gSpecialFileImages[SPECIAL_IMG_TEXTFILE];
-  }
-  else if (typeflag & FILE_TYPE_IMAGE) {
-    ibuf = gSpecialFileImages[SPECIAL_IMG_LOADING];
-  }
-  else if (typeflag & FILE_TYPE_BLENDER_BACKUP) {
-    ibuf = gSpecialFileImages[SPECIAL_IMG_BACKUP];
-  }
   else {
-    ibuf = gSpecialFileImages[SPECIAL_IMG_UNKNOWNFILE];
+    ibuf = gSpecialFileImages[SPECIAL_IMG_DOCUMENT];
   }
 
   return ibuf;
@@ -1001,10 +995,13 @@ static int filelist_geticon_ex(const int typeflag,
     return ICON_FILE_BLANK;
   }
   else if (typeflag & FILE_TYPE_COLLADA) {
-    return ICON_FILE_BLANK;
+    return ICON_FILE_3D;
   }
   else if (typeflag & FILE_TYPE_ALEMBIC) {
-    return ICON_FILE_BLANK;
+    return ICON_FILE_3D;
+  }
+  else if (typeflag & FILE_TYPE_OBJECT_IO) {
+    return ICON_FILE_3D;
   }
   else if (typeflag & FILE_TYPE_TEXT) {
     return ICON_FILE_TEXT;
@@ -1243,7 +1240,8 @@ static void filelist_cache_previews_clear(FileListEntryCache *cache)
     BLI_task_pool_cancel(cache->previews_pool);
 
     while ((preview = BLI_thread_queue_pop_timeout(cache->previews_done, 0))) {
-      // printf("%s: DONE %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
+      // printf("%s: DONE %d - %s - %p\n", __func__, preview->index, preview->path,
+      // preview->img);
       if (preview->img) {
         IMB_freeImBuf(preview->img);
       }
@@ -2128,6 +2126,9 @@ int ED_path_extension_type(const char *path)
   else if (BLI_path_extension_check(path, ".abc")) {
     return FILE_TYPE_ALEMBIC;
   }
+  else if (BLI_path_extension_check_n(path, ".obj", ".3ds", ".fbx", ".glb", ".gltf", NULL)) {
+    return FILE_TYPE_OBJECT_IO;
+  }
   else if (BLI_path_extension_check_array(path, imb_ext_image)) {
     return FILE_TYPE_IMAGE;
   }
@@ -2177,9 +2178,9 @@ int ED_file_extension_icon(const char *path)
     case FILE_TYPE_BTX:
       return ICON_FILE_BLANK;
     case FILE_TYPE_COLLADA:
-      return ICON_FILE_BLANK;
     case FILE_TYPE_ALEMBIC:
-      return ICON_FILE_BLANK;
+    case FILE_TYPE_OBJECT_IO:
+      return ICON_FILE_3D;
     case FILE_TYPE_TEXT:
       return ICON_FILE_TEXT;
     default:

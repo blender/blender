@@ -150,6 +150,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
    * Include next version bump.
    */
   {
+    FROM_DEFAULT_V4_UCHAR(space_file.execution_buts);
   }
 
 #undef FROM_DEFAULT_V4_UCHAR

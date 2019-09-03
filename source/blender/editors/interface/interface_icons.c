@@ -2244,6 +2244,8 @@ int UI_idcode_icon_get(const int idcode)
       return ICON_FONT_DATA;
     case ID_WO:
       return ICON_WORLD_DATA;
+    case ID_WS:
+      return ICON_WORKSPACE;
     default:
       return ICON_NONE;
   }

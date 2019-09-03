@@ -561,7 +561,7 @@ static void wm_link_append_properties_common(wmOperatorType *ot, bool is_link)
 
 void WM_OT_link(wmOperatorType *ot)
 {
-  ot->name = "Link from Library";
+  ot->name = "Link";
   ot->idname = "WM_OT_link";
   ot->description = "Link from a Library .blend file";
 
@@ -585,7 +585,7 @@ void WM_OT_link(wmOperatorType *ot)
 
 void WM_OT_append(wmOperatorType *ot)
 {
-  ot->name = "Append from Library";
+  ot->name = "Append";
   ot->idname = "WM_OT_append";
   ot->description = "Append from a Library .blend file";
 

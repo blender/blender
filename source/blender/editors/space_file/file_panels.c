@@ -103,6 +103,7 @@ void file_panels_register(ARegionType *art)
   strcpy(pt->idname, "FILE_PT_operator");
   strcpy(pt->label, N_("Operator"));
   strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  pt->flag = PNL_NO_HEADER;
   pt->poll = file_panel_operator_poll;
   pt->draw_header = file_panel_operator_header;
   pt->draw = file_panel_operator;

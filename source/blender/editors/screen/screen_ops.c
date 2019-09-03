@@ -3936,6 +3936,65 @@ static void SCREEN_OT_region_quadview(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Region Toggle Operator
+ * \{ */
+
+static int region_toggle_exec(bContext *C, wmOperator *op)
+{
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "region_type");
+  ARegion *region;
+
+  if (RNA_property_is_set(op->ptr, prop)) {
+    region = BKE_area_find_region_type(CTX_wm_area(C), RNA_property_enum_get(op->ptr, prop));
+  }
+  else {
+    region = CTX_wm_region(C);
+  }
+
+  if (region) {
+    ED_region_toggle_hidden(C, region);
+  }
+  ED_region_tag_redraw(region);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool region_toggle_poll(bContext *C)
+{
+  ScrArea *area = CTX_wm_area(C);
+
+  /* don't flip anything around in topbar */
+  if (area && area->spacetype == SPACE_TOPBAR) {
+    CTX_wm_operator_poll_msg_set(C, "Toggling regions in the Top-bar is not allowed");
+    return 0;
+  }
+
+  return ED_operator_areaactive(C);
+}
+
+static void SCREEN_OT_region_toggle(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Toggle Region";
+  ot->idname = "SCREEN_OT_region_toggle";
+  ot->description = "Hide or unhide the region";
+
+  /* api callbacks */
+  ot->exec = region_toggle_exec;
+  ot->poll = region_toggle_poll;
+  ot->flag = 0;
+
+  RNA_def_enum(ot->srna,
+               "region_type",
+               rna_enum_region_type_items,
+               0,
+               "Region Type",
+               "Type of the region to toggle");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Region Flip Operator
  * \{ */
 
@@ -5361,6 +5420,7 @@ void ED_operatortypes_screen(void)
   WM_operatortype_append(SCREEN_OT_area_swap);
   WM_operatortype_append(SCREEN_OT_region_quadview);
   WM_operatortype_append(SCREEN_OT_region_scale);
+  WM_operatortype_append(SCREEN_OT_region_toggle);
   WM_operatortype_append(SCREEN_OT_region_flip);
   WM_operatortype_append(SCREEN_OT_header_toggle_menus);
   WM_operatortype_append(SCREEN_OT_region_context_menu);

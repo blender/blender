@@ -807,6 +807,7 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
   ScrArea *sa;
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  eSpace_Type space_type = SPACE_EMPTY;
   const char *title;
 
   /* convert to native OS window coordinates */
@@ -888,17 +889,24 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
   CTX_wm_area_set(C, sa);
 
   if (type == WM_WINDOW_RENDER) {
-    ED_area_newspace(C, sa, SPACE_IMAGE, false);
+    space_type = SPACE_IMAGE;
   }
   else if (type == WM_WINDOW_DRIVERS) {
-    ED_area_newspace(C, sa, SPACE_GRAPH, false);
+    space_type = SPACE_GRAPH;
+  }
+  else if (type == WM_WINDOW_USERPREFS) {
+    space_type = SPACE_USERPREF;
+  }
+  else if (type == WM_WINDOW_FILESEL) {
+    space_type = SPACE_FILE;
   }
   else if (type == WM_WINDOW_INFO) {
     ED_area_newspace(C, sa, SPACE_INFO, false);
   }
   else {
-    ED_area_newspace(C, sa, SPACE_USERPREF, false);
+    BLI_assert(false);
   }
+  ED_area_newspace(C, sa, space_type, false);
 
   ED_screen_change(C, screen);
   ED_screen_refresh(CTX_wm_manager(C), win); /* test scale */

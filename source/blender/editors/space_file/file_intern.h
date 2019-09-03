@@ -30,9 +30,11 @@ struct ARegion;
 struct ARegionType;
 struct FileSelectParams;
 struct SpaceFile;
+struct View2D;
 
 /* file_ops.c */
 struct ARegion *file_tools_region(struct ScrArea *sa);
+struct ARegion *file_tool_props_region(struct ScrArea *sa);
 
 /* file_draw.c */
 #define TILE_BORDER_X (UI_UNIT_X / 4)
@@ -42,9 +44,10 @@ struct ARegion *file_tools_region(struct ScrArea *sa);
 #define IMASEL_BUTTONS_HEIGHT (UI_UNIT_Y * 2)
 #define IMASEL_BUTTONS_MARGIN (UI_UNIT_Y / 6)
 
+#define ATTRIBUTE_COLUMN_PADDING (0.5f * UI_UNIT_X)
+
 #define SMALL_SIZE_CHECK(_size) ((_size) < 64) /* Related to FileSelectParams.thumbnail_size. */
 
-void file_draw_buttons(const bContext *C, ARegion *ar);
 void file_calc_previews(const bContext *C, ARegion *ar);
 void file_draw_list(const bContext *C, ARegion *ar);
 
@@ -64,6 +67,7 @@ typedef enum WalkSelectDirection {
 } WalkSelectDirections;
 
 void FILE_OT_highlight(struct wmOperatorType *ot);
+void FILE_OT_sort_column_ui_context(struct wmOperatorType *ot);
 void FILE_OT_select(struct wmOperatorType *ot);
 void FILE_OT_select_walk(struct wmOperatorType *ot);
 void FILE_OT_select_all(struct wmOperatorType *ot);
@@ -112,6 +116,16 @@ void file_operator_to_sfile(bContext *C, struct SpaceFile *sfile, struct wmOpera
 
 /* filesel.c */
 void fileselect_file_set(SpaceFile *sfile, const int index);
+bool file_attribute_column_type_enabled(const FileSelectParams *params,
+                                        FileAttributeColumnType column);
+bool file_attribute_column_header_is_inside(const struct View2D *v2d,
+                                            const FileLayout *layout,
+                                            int x,
+                                            int y);
+FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
+                                                              const FileSelectParams *params,
+                                                              FileLayout *layout,
+                                                              int x);
 float file_string_width(const char *str);
 
 float file_font_pointsize(void);

@@ -34,17 +34,32 @@ struct wmWindowManager;
 #define FILE_LAYOUT_HOR 1
 #define FILE_LAYOUT_VER 2
 
-#define MAX_FILE_COLUMN 4
-
-typedef enum FileListColumns {
+typedef enum FileAttributeColumnType {
+  COLUMN_NONE = -1,
   COLUMN_NAME = 0,
-  COLUMN_DATE,
-  COLUMN_TIME,
+  COLUMN_DATETIME,
   COLUMN_SIZE,
-} FileListColumns;
+
+  ATTRIBUTE_COLUMN_MAX
+} FileAttributeColumnType;
+
+typedef struct FileAttributeColumn {
+  /** UI name for this column */
+  const char *name;
+
+  float width;
+  /* The sort type to use when sorting by this column. */
+  int sort_type; /* eFileSortType */
+
+  /* Alignment of column texts, header text is always left aligned */
+  int text_align; /* eFontStyle_Align */
+} FileAttributeColumn;
 
 typedef struct FileLayout {
   /* view settings - XXX - move into own struct */
+  int offset_top;
+  /* Height of the header for the different FileAttributeColumn's. */
+  int attribute_column_header_h;
   int prv_w;
   int prv_h;
   int tile_w;
@@ -54,13 +69,17 @@ typedef struct FileLayout {
   int prv_border_x;
   int prv_border_y;
   int rows;
-  int columns;
+  /* Those are the major layout columns the files are distributed across, not to be confused with
+   * 'attribute_columns' array below. */
+  int flow_columns;
   int width;
   int height;
   int flag;
   int dirty;
   int textheight;
-  float column_widths[MAX_FILE_COLUMN];
+  /* The columns for each item (name, modification date/time, size). Not to be confused with the
+   * 'flow_columns' above. */
+  FileAttributeColumn attribute_columns[ATTRIBUTE_COLUMN_MAX];
 
   /* When we change display size, we may have to update static strings like size of files... */
   short curr_size;
@@ -72,6 +91,7 @@ typedef struct FileSelection {
 } FileSelection;
 
 struct rcti;
+struct View2D;
 
 struct FileSelectParams *ED_fileselect_get_params(struct SpaceFile *sfile);
 
@@ -87,6 +107,17 @@ int ED_fileselect_layout_numfiles(FileLayout *layout, struct ARegion *ar);
 int ED_fileselect_layout_offset(FileLayout *layout, int x, int y);
 FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const struct rcti *rect);
 
+void ED_fileselect_layout_maskrect(const FileLayout *layout,
+                                   const struct View2D *v2d,
+                                   struct rcti *r_rect);
+bool ED_fileselect_layout_is_inside_pt(const FileLayout *layout,
+                                       const struct View2D *v2d,
+                                       int x,
+                                       int y);
+bool ED_fileselect_layout_isect_rect(const FileLayout *layout,
+                                     const struct View2D *v2d,
+                                     const struct rcti *rect,
+                                     struct rcti *r_dst);
 void ED_fileselect_layout_tilepos(FileLayout *layout, int tile, int *x, int *y);
 
 void ED_operatormacros_file(void);

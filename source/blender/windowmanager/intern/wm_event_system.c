@@ -2339,45 +2339,31 @@ static int wm_handler_fileselect_do(bContext *C,
 
   switch (val) {
     case EVT_FILESELECT_FULL_OPEN: {
-      ScrArea *sa;
+      wmWindow *win = CTX_wm_window(C);
+      const int sizex = 1020 * UI_DPI_FAC;
+      const int sizey = 600 * UI_DPI_FAC;
 
-      /* sa can be null when window A is active, but mouse is over window B
-       * in this case, open file select in original window A. Also don't
-       * use global areas. */
-      if (handler->context.area == NULL || ED_area_is_global(handler->context.area)) {
-        bScreen *screen = CTX_wm_screen(C);
-        sa = (ScrArea *)screen->areabase.first;
+      if (WM_window_open_temp(
+              C, win->sizex / 2, win->sizey / 2, sizex, sizey, WM_WINDOW_FILESEL) != NULL) {
+        ScrArea *area = CTX_wm_area(C);
+        ARegion *region_header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
+
+        BLI_assert(area->spacetype == SPACE_FILE);
+
+        region_header->flag |= RGN_FLAG_HIDDEN;
+        /* Header on bottom, AZone triangle to toggle header looks misplaced at the top */
+        region_header->alignment = RGN_ALIGN_BOTTOM;
+
+        /* settings for filebrowser, sfile is not operator owner but sends events */
+        sfile = (SpaceFile *)area->spacedata.first;
+        sfile->op = handler->op;
+
+        ED_fileselect_set_params(sfile);
       }
       else {
-        sa = handler->context.area;
+        BKE_report(&wm->reports, RPT_ERROR, "Failed to open window!");
+        return OPERATOR_CANCELLED;
       }
-
-      if (sa->full) {
-        /* ensure the first area becomes the file browser, because the second one is the small
-         * top (info-)area which might be too small (in fullscreens we have max two areas) */
-        if (sa->prev) {
-          sa = sa->prev;
-        }
-        ED_area_newspace(C, sa, SPACE_FILE, true); /* 'sa' is modified in-place */
-        /* we already had a fullscreen here -> mark new space as a stacked fullscreen */
-        sa->flag |= (AREA_FLAG_STACKED_FULLSCREEN | AREA_FLAG_TEMP_TYPE);
-      }
-      else if (sa->spacetype == SPACE_FILE) {
-        sa = ED_screen_state_toggle(C, CTX_wm_window(C), sa, SCREENMAXIMIZED);
-      }
-      else {
-        sa = ED_screen_full_newspace(C, sa, SPACE_FILE); /* sets context */
-      }
-
-      /* note, getting the 'sa' back from the context causes a nasty bug where the newly created
-       * 'sa' != CTX_wm_area(C). removed the line below and set 'sa' in the 'if' above */
-      /* sa = CTX_wm_area(C); */
-
-      /* settings for filebrowser, sfile is not operator owner but sends events */
-      sfile = (SpaceFile *)sa->spacedata.first;
-      sfile->op = handler->op;
-
-      ED_fileselect_set_params(sfile);
 
       action = WM_HANDLER_BREAK;
       break;
@@ -2390,14 +2376,27 @@ static int wm_handler_fileselect_do(bContext *C,
       BLI_remlink(handlers, handler);
 
       if (val != EVT_FILESELECT_EXTERNAL_CANCEL) {
-        ScrArea *sa = CTX_wm_area(C);
+        for (wmWindow *win = wm->windows.first; win; win = win->next) {
+          if (WM_window_is_temp_screen(win)) {
+            bScreen *screen = WM_window_get_active_screen(win);
+            ScrArea *file_sa = screen->areabase.first;
 
-        if (sa->full) {
-          ED_screen_full_prevspace(C, sa);
-        }
-        /* user may have left fullscreen */
-        else {
-          ED_area_prevspace(C, sa);
+            BLI_assert(file_sa->spacetype == SPACE_FILE);
+
+            if (BLI_listbase_is_single(&file_sa->spacedata)) {
+              wmWindow *ctx_win = CTX_wm_window(C);
+              wm_window_close(C, wm, win);
+              CTX_wm_window_set(C, ctx_win);  // wm_window_close() NULLs.
+            }
+            else if (file_sa->full) {
+              ED_screen_full_prevspace(C, file_sa);
+            }
+            else {
+              ED_area_prevspace(C, file_sa);
+            }
+
+            break;
+          }
         }
       }
 

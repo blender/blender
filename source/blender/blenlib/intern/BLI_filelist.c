@@ -261,36 +261,17 @@ unsigned int BLI_filelist_dir_contents(const char *dirname, struct direntry **r_
  */
 void BLI_filelist_entry_size_to_string(const struct stat *st,
                                        const uint64_t sz,
-                                       const bool compact,
+                                       /* Used to change MB -> M, etc. - is that really useful? */
+                                       const bool UNUSED(compact),
                                        char r_size[FILELIST_DIRENTRY_SIZE_LEN])
 {
-  double size;
-  const char *fmt;
-  const char *units[] = {"KiB", "MiB", "GiB", "TiB", NULL};
-  const char *units_compact[] = {"K", "M", "G", "T", NULL};
-  const char *unit = "B";
-
   /*
    * Seems st_size is signed 32-bit value in *nix and Windows.  This
    * will buy us some time until files get bigger than 4GB or until
    * everyone starts using __USE_FILE_OFFSET64 or equivalent.
    */
-  size = (double)(st ? st->st_size : sz);
-
-  if (size > 1024.0) {
-    const char **u;
-    for (u = compact ? units_compact : units, size /= 1024.0; size > 1024.0 && *(u + 1);
-         u++, size /= 1024.0) {
-      /* pass */
-    }
-    fmt = size > 100.0 ? "%.0f %s" : (size > 10.0 ? "%.1f %s" : "%.2f %s");
-    unit = *u;
-  }
-  else {
-    fmt = "%.0f %s";
-  }
-
-  BLI_snprintf(r_size, sizeof(*r_size) * FILELIST_DIRENTRY_SIZE_LEN, fmt, size, unit);
+  double size = (double)(st ? st->st_size : sz);
+  BLI_str_format_byte_unit(r_size, size, true);
 }
 
 /**
@@ -366,14 +347,45 @@ void BLI_filelist_entry_owner_to_string(const struct stat *st,
 
 /**
  * Convert given entry's time into human-readable strings.
+ *
+ * \param r_is_today: optional, returns true if the date matches today's.
+ * \param r_is_yesterday: optional, returns true if the date matches yesterday's.
  */
 void BLI_filelist_entry_datetime_to_string(const struct stat *st,
                                            const int64_t ts,
                                            const bool compact,
                                            char r_time[FILELIST_DIRENTRY_TIME_LEN],
-                                           char r_date[FILELIST_DIRENTRY_DATE_LEN])
+                                           char r_date[FILELIST_DIRENTRY_DATE_LEN],
+                                           bool *r_is_today,
+                                           bool *r_is_yesterday)
 {
-  time_t ts_mtime = ts;
+  int today_year = 0;
+  int today_yday = 0;
+  int yesterday_year = 0;
+  int yesterday_yday = 0;
+
+  if (r_is_today || r_is_yesterday) {
+    /* Localtime() has only one buffer so need to get data out before called again. */
+    const time_t ts_now = time(NULL);
+    struct tm *today = localtime(&ts_now);
+
+    today_year = today->tm_year;
+    today_yday = today->tm_yday;
+    /* Handle a yesterday that spans a year */
+    today->tm_mday--;
+    mktime(today);
+    yesterday_year = today->tm_year;
+    yesterday_yday = today->tm_yday;
+
+    if (r_is_today) {
+      *r_is_today = false;
+    }
+    if (r_is_yesterday) {
+      *r_is_yesterday = false;
+    }
+  }
+
+  const time_t ts_mtime = ts;
   const struct tm *tm = localtime(st ? &st->st_mtime : &ts_mtime);
   const time_t zero = 0;
 
@@ -385,11 +397,19 @@ void BLI_filelist_entry_datetime_to_string(const struct stat *st,
   if (r_time) {
     strftime(r_time, sizeof(*r_time) * FILELIST_DIRENTRY_TIME_LEN, "%H:%M", tm);
   }
+
   if (r_date) {
     strftime(r_date,
              sizeof(*r_date) * FILELIST_DIRENTRY_DATE_LEN,
-             compact ? "%d/%m/%y" : "%d-%b-%y",
+             compact ? "%d/%m/%y" : "%d %b %Y",
              tm);
+  }
+
+  if (r_is_today && (tm->tm_year == today_year) && (tm->tm_yday == today_yday)) {
+    *r_is_today = true;
+  }
+  else if (r_is_yesterday && (tm->tm_year == yesterday_year) && (tm->tm_yday == yesterday_yday)) {
+    *r_is_yesterday = true;
   }
 }
 

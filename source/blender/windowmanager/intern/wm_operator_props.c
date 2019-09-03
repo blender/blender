@@ -65,18 +65,26 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
        0,
        "Default",
        "Automatically determine display type for files"},
-      {FILE_SHORTDISPLAY,
-       "LIST_SHORT",
-       ICON_SHORTDISPLAY,
+      {FILE_VERTICALDISPLAY,
+       "LIST_VERTICAL",
+       ICON_SHORTDISPLAY, /* Name of deprecated short list */
        "Short List",
        "Display files as short list"},
-      {FILE_LONGDISPLAY,
-       "LIST_LONG",
-       ICON_LONGDISPLAY,
+      {FILE_HORIZONTALDISPLAY,
+       "LIST_HORIZONTAL",
+       ICON_LONGDISPLAY, /* Name of deprecated long list */
        "Long List",
        "Display files as a detailed list"},
       {FILE_IMGDISPLAY, "THUMBNAIL", ICON_IMGDISPLAY, "Thumbnails", "Display files as thumbnails"},
       {0, NULL, 0, NULL, NULL},
+  };
+  static const EnumPropertyItem file_action_types[] = {
+      {FILE_OPENFILE,
+       "OPENFILE",
+       0,
+       "Open",
+       "Use the file browser for opening files or a directory"},
+      {FILE_SAVE, "SAVE", 0, "Save", "Use the file browser for saving a file"},
   };
 
   if (flag & WM_FILESEL_FILEPATH) {
@@ -96,6 +104,15 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
   if (flag & WM_FILESEL_FILES) {
     prop = RNA_def_collection_runtime(
         ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
+    RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  }
+
+  if ((flag & WM_FILESEL_SHOW_PROPS) == 0) {
+    prop = RNA_def_boolean(ot->srna,
+                           "hide_props_region",
+                           true,
+                           "Hide Operator Properties",
+                           "Collapse the region displaying the operator settings");
     RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   }
 
@@ -185,6 +202,9 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
 
   prop = RNA_def_enum(
       ot->srna, "sort_method", rna_enum_file_sort_items, sort, "File sorting mode", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+  prop = RNA_def_enum(ot->srna, "action_type", file_action_types, action, "Action Type", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
