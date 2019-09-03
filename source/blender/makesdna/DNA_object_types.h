@@ -607,7 +607,11 @@ enum {
 /* NOTE: this was used as a proper setting in past, so nullify before using */
 #define BA_TEMP_TAG (1 << 5)
 
-/* #define BA_FROMSET          (1 << 7) */ /*UNUSED*/
+/**
+ * Even if this is is tagged for transform, this flag means it's being locked in place.
+ * Use for #SCE_XFORM_SKIP_CHILDREN.
+ */
+#define BA_TRANSFORM_LOCKED_IN_PLACE (1 << 7)
 
 #define BA_TRANSFORM_CHILD (1 << 8)   /* child of a transformed object */
 #define BA_TRANSFORM_PARENT (1 << 13) /* parent of a transformed object */

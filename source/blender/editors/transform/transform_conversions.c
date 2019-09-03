@@ -6572,7 +6572,7 @@ static void set_trans_object_base_flags(TransInfo *t)
   trans_object_base_deps_flag_prepare(view_layer);
   /* Traverse all bases and set all possible flags. */
   for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-    base->flag_legacy &= ~BA_WAS_SEL;
+    base->flag_legacy &= ~(BA_WAS_SEL | BA_TRANSFORM_LOCKED_IN_PLACE);
     if (BASE_SELECTED_EDITABLE(v3d, base)) {
       Object *ob = base->object;
       Object *parsel = ob->parent;
@@ -6688,7 +6688,8 @@ static void clear_trans_object_base_flags(TransInfo *t)
     }
 
     base->flag_legacy &= ~(BA_WAS_SEL | BA_SNAP_FIX_DEPS_FIASCO | BA_TEMP_TAG |
-                           BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT);
+                           BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT |
+                           BA_TRANSFORM_LOCKED_IN_PLACE);
   }
 }
 
@@ -8137,6 +8138,7 @@ static void createTransObject(bContext *C, TransInfo *t)
                   trans_obchild_in_obmode_ensure_object(
                       tdo, ob, ob_parent_recurse, OB_SKIP_CHILD_PARENT_APPLY_TRANSFORM);
                   BLI_ghash_insert(objects_parent_root, ob, ob_parent_recurse);
+                  base->flag_legacy |= BA_TRANSFORM_LOCKED_IN_PLACE;
                 }
               }
             }
@@ -8157,6 +8159,7 @@ static void createTransObject(bContext *C, TransInfo *t)
           if (BASE_XFORM_INDIRECT(base_parent) ||
               BLI_gset_haskey(objects_in_transdata, ob->parent)) {
             trans_obchild_in_obmode_ensure_object(tdo, ob, NULL, OB_SKIP_CHILD_PARENT_IS_XFORM);
+            base->flag_legacy |= BA_TRANSFORM_LOCKED_IN_PLACE;
           }
           else {
             Object *ob_parent_recurse = BLI_ghash_lookup(objects_parent_root, ob->parent);
