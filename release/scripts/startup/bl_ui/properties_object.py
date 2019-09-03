@@ -109,20 +109,18 @@ class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
 
         ob = context.object
 
-        col = flow.column()
-        col.prop(ob, "delta_location")
+        col = layout.column()
+        col.prop(ob, "delta_location", text="Location")
 
-        col = flow.column()
         rotation_mode = ob.rotation_mode
         if rotation_mode == 'QUATERNION':
             col.prop(ob, "delta_rotation_quaternion", text="Rotation")
         elif rotation_mode == 'AXIS_ANGLE':
-            col.label(text="Not for Axis-Angle")
+            pass
         else:
-            col.prop(ob, "delta_rotation_euler", text="Delta Rotation")
+            col.prop(ob, "delta_rotation_euler", text="Rotation")
 
-        col = flow.column()
-        col.prop(ob, "delta_scale")
+        col.prop(ob, "delta_scale", text="Scale")
 
 
 class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
