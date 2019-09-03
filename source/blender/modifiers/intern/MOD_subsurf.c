@@ -208,6 +208,10 @@ static SubsurfRuntimeData *subsurf_ensure_runtime(SubsurfModifierData *smd)
 static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result = mesh;
+#if !defined(WITH_OPENSUBDIV)
+  modifier_setError(md, "Disabled, built without OpenSubdiv");
+  return result;
+#endif
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
   SubdivSettings subdiv_settings;
   subdiv_settings_init(&subdiv_settings, smd);

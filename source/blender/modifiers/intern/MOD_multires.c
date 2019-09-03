@@ -168,6 +168,10 @@ static Mesh *multires_as_ccg(MultiresModifierData *mmd,
 static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result = mesh;
+#if !defined(WITH_OPENSUBDIV)
+  modifier_setError(md, "Disabled, built without OpenSubdiv");
+  return result;
+#endif
   MultiresModifierData *mmd = (MultiresModifierData *)md;
   SubdivSettings subdiv_settings;
   BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);

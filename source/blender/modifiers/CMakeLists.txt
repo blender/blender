@@ -141,6 +141,10 @@ if(WITH_MOD_OCEANSIM)
   add_definitions(-DWITH_OCEANSIM)
 endif()
 
+if(WITH_OPENSUBDIV)
+  add_definitions(-DWITH_OPENSUBDIV)
+endif()
+
 if(WITH_BULLET)
   list(APPEND LIB
     extern_bullet
