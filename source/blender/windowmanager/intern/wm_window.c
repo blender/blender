@@ -901,7 +901,7 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
     space_type = SPACE_FILE;
   }
   else if (type == WM_WINDOW_INFO) {
-    ED_area_newspace(C, sa, SPACE_INFO, false);
+    space_type = SPACE_INFO;
   }
   else {
     BLI_assert(false);
