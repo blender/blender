@@ -149,6 +149,7 @@ bool BKE_gpencil_layer_delframe(struct bGPDlayer *gpl, struct bGPDframe *gpf);
 struct bGPDlayer *BKE_gpencil_layer_getactive(struct bGPdata *gpd);
 void BKE_gpencil_layer_setactive(struct bGPdata *gpd, struct bGPDlayer *active);
 void BKE_gpencil_layer_delete(struct bGPdata *gpd, struct bGPDlayer *gpl);
+void BKE_gpencil_layer_autolock_set(struct bGPdata *gpd);
 
 /* Brush */
 struct Material *BKE_gpencil_brush_material_get(struct Brush *brush);

@@ -1724,6 +1724,7 @@ static void mouse_action_keys(bAnimContext *ac,
         /* Update other layer status. */
         if (BKE_gpencil_layer_getactive(gpd) != gpl) {
           BKE_gpencil_layer_setactive(gpd, gpl);
+          BKE_gpencil_layer_autolock_set(gpd);
           WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
         }
       }

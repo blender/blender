@@ -267,7 +267,8 @@ bGPDframe *BKE_gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
 
   /* check whether frame was added successfully */
   if (state == -1) {
-    CLOG_ERROR(&LOG, "Frame (%d) existed already for this layer. Using existing frame", cframe);
+    CLOG_ERROR(
+        &LOG, "Frame (%d) existed already for this layer_active. Using existing frame", cframe);
 
     /* free the newly created one, and use the old one instead */
     MEM_freeN(gpf);
@@ -1012,6 +1013,37 @@ void BKE_gpencil_layer_setactive(bGPdata *gpd, bGPDlayer *active)
   active->flag |= GP_LAYER_ACTIVE;
   if (gpd->flag & GP_DATA_AUTOLOCK_LAYERS) {
     active->flag &= ~GP_LAYER_LOCKED;
+  }
+}
+
+/* Set locked layers for autolock mode. */
+void BKE_gpencil_layer_autolock_set(bGPdata *gpd)
+{
+  BLI_assert(gpd != NULL);
+
+  bGPDlayer *gpl;
+
+  if (gpd->flag & GP_DATA_AUTOLOCK_LAYERS) {
+    bGPDlayer *layer_active = BKE_gpencil_layer_getactive(gpd);
+
+    /* Lock all other layers */
+    for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+      /* unlock active layer */
+      if (gpl == layer_active) {
+        gpl->flag &= ~GP_LAYER_LOCKED;
+      }
+      else {
+        gpl->flag |= GP_LAYER_LOCKED;
+      }
+    }
+  }
+  else {
+    /* If disable is better unlock all layers by default or it looks there is
+     * a problem in the UI because the user expects all layers will be unlocked
+     */
+    for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+      gpl->flag &= ~GP_LAYER_LOCKED;
+    }
   }
 }
 

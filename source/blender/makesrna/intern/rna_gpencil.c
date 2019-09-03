@@ -151,30 +151,7 @@ static void rna_GPencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 static void rna_GPencil_autolock(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   bGPdata *gpd = (bGPdata *)ptr->owner_id;
-  bGPDlayer *gpl = NULL;
-
-  if (gpd->flag & GP_DATA_AUTOLOCK_LAYERS) {
-    bGPDlayer *layer = BKE_gpencil_layer_getactive(gpd);
-
-    /* Lock all other layers */
-    for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-      /* unlock active layer */
-      if (gpl == layer) {
-        gpl->flag &= ~GP_LAYER_LOCKED;
-      }
-      else {
-        gpl->flag |= GP_LAYER_LOCKED;
-      }
-    }
-  }
-  else {
-    /* If disable is better unlock all layers by default or it looks there is
-     * a problem in the UI because the user expects all layers will be unlocked
-     */
-    for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-      gpl->flag &= ~GP_LAYER_LOCKED;
-    }
-  }
+  BKE_gpencil_layer_autolock_set(gpd);
 
   /* standard update */
   rna_GPencil_update(bmain, scene, ptr);
