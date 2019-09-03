@@ -445,12 +445,12 @@ class FILEBROWSER_PT_file_operation(Panel):
         # subsub.operator("file.filenum", text="", icon='REMOVE').increment = -1
 
         # organize buttons according to the OS standard
-        if sys.platform != "win":
+        if sys.platform[:3] != "win":
             sub.operator("FILE_OT_cancel", text="Cancel")
         subsub = sub.row()
         subsub.active_default = True
         subsub.operator("FILE_OT_execute", text=params.title)
-        if sys.platform == "win":
+        if sys.platform[:3] == "win":
             sub.operator("FILE_OT_cancel", text="Cancel")
 
 
