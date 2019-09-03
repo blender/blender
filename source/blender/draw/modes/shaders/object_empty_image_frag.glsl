@@ -37,9 +37,15 @@ void main()
 
   if (depthMode == DEPTH_BACK) {
     gl_FragDepth = 0.999999;
+#ifdef USE_WIRE
+    gl_FragDepth -= 1e-5;
+#endif
   }
   else if (depthMode == DEPTH_FRONT) {
     gl_FragDepth = 0.000001;
+#ifdef USE_WIRE
+    gl_FragDepth -= 1e-5;
+#endif
   }
   else if (depthMode == DEPTH_UNCHANGED) {
     gl_FragDepth = gl_FragCoord.z;
