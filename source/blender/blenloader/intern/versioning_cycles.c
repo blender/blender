@@ -942,7 +942,7 @@ void do_versions_after_linking_cycles(Main *bmain)
     FOREACH_NODETREE_END;
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 281, 4)) {
+  if (!MAIN_VERSION_ATLEAST(bmain, 281, 7)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_SHADER) {
         update_noise_node_dimensions(ntree);
