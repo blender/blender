@@ -465,8 +465,10 @@ typedef struct bTheme {
   char _pad0[4];
 } bTheme;
 
-#define UI_THEMESPACE_START(btheme) (CHECK_TYPE_INLINE(btheme, bTheme *), &((btheme)->tbuts))
-#define UI_THEMESPACE_END(btheme) (CHECK_TYPE_INLINE(btheme, bTheme *), (&((btheme)->tclip) + 1))
+#define UI_THEMESPACE_START(btheme) \
+  (CHECK_TYPE_INLINE(btheme, bTheme *), &((btheme)->space_properties))
+#define UI_THEMESPACE_END(btheme) \
+  (CHECK_TYPE_INLINE(btheme, bTheme *), (&((btheme)->space_statusbar) + 1))
 
 typedef struct bAddon {
   struct bAddon *next, *prev;
