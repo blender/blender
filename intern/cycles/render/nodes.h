@@ -206,7 +206,8 @@ class NoiseTextureNode : public TextureNode {
  public:
   SHADER_NODE_CLASS(NoiseTextureNode)
 
-  float scale, detail, distortion;
+  int dimensions;
+  float w, scale, detail, distortion;
   float3 vector;
 };
 

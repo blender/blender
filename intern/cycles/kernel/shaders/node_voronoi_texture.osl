@@ -15,7 +15,15 @@
  */
 
 #include "stdosl.h"
-#include "node_texture.h"
+
+color cellnoise_color(point p)
+{
+  float r = cellnoise(p);
+  float g = cellnoise(point(p[1], p[0], p[2]));
+  float b = cellnoise(point(p[1], p[2], p[0]));
+
+  return color(r, g, b);
+}
 
 void voronoi_m(point p, string metric, float e, float da[4], point pa[4])
 {

@@ -214,7 +214,7 @@ set(SRC_SVM_HEADERS
   svm/svm_sepcomb_vector.h
   svm/svm_sky.h
   svm/svm_tex_coord.h
-  svm/svm_texture.h
+  svm/svm_fractal_noise.h
   svm/svm_types.h
   svm/svm_value.h
   svm/svm_vector_transform.h

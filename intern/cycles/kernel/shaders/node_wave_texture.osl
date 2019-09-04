@@ -15,7 +15,7 @@
  */
 
 #include "stdosl.h"
-#include "node_texture.h"
+#include "node_noise.h"
 
 /* Wave */
 
@@ -31,7 +31,7 @@ float wave(point p, string type, string profile, float detail, float distortion,
   }
 
   if (distortion != 0.0) {
-    n = n + (distortion * noise_turbulence(p * dscale, detail, 0));
+    n = n + (distortion * fractal_noise(p * dscale, detail));
   }
 
   if (profile == "sine") {

@@ -948,6 +948,11 @@ static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext *UNUSED(C), 
   uiItemR(layout, ptr, "feature", 0, "", ICON_NONE);
 }
 
+static void node_shader_buts_tex_noise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "dimensions", 0, "", ICON_NONE);
+}
+
 static void node_shader_buts_tex_pointdensity(uiLayout *layout,
                                               bContext *UNUSED(C),
                                               PointerRNA *ptr)
@@ -1266,6 +1271,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
       break;
     case SH_NODE_TEX_VORONOI:
       ntype->draw_buttons = node_shader_buts_tex_voronoi;
+      break;
+    case SH_NODE_TEX_NOISE:
+      ntype->draw_buttons = node_shader_buts_tex_noise;
       break;
     case SH_NODE_TEX_POINTDENSITY:
       ntype->draw_buttons = node_shader_buts_tex_pointdensity;

@@ -756,6 +756,19 @@ static void update_vector_math_node_average_operator(bNodeTree *ntree)
   }
 }
 
+/* The Noise node now have a dimension property. This property should be
+ * initialized to 3 by default.
+ */
+static void update_noise_node_dimensions(bNodeTree *ntree)
+{
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_TEX_NOISE) {
+      NodeTexNoise *tex = (NodeTexNoise *)node->storage;
+      tex->dimensions = 3;
+    }
+  }
+}
+
 void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bmain)
 {
   /* Particle shape shared with Eevee. */
@@ -924,6 +937,15 @@ void do_versions_after_linking_cycles(Main *bmain)
         update_vector_math_node_cross_product_operator(ntree);
         update_vector_math_node_normalize_operator(ntree);
         update_vector_math_node_average_operator(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 281, 4)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        update_noise_node_dimensions(ntree);
       }
     }
     FOREACH_NODETREE_END;

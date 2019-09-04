@@ -310,6 +310,15 @@ __forceinline ssei &operator|=(ssei &a, const int32_t &b)
   return a = a | b;
 }
 
+__forceinline ssei &operator^=(ssei &a, const ssei &b)
+{
+  return a = a ^ b;
+}
+__forceinline ssei &operator^=(ssei &a, const int32_t &b)
+{
+  return a = a ^ b;
+}
+
 __forceinline ssei &operator<<=(ssei &a, const int32_t &b)
 {
   return a = a << b;

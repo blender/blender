@@ -23,6 +23,7 @@
 
 static bNodeSocketTemplate sh_node_tex_noise_in[] = {
     {SOCK_VECTOR, 1, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+    {SOCK_FLOAT, 1, N_("W"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
     {SOCK_FLOAT, 1, N_("Scale"), 5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
     {SOCK_FLOAT, 1, N_("Detail"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 16.0f},
     {SOCK_FLOAT, 1, N_("Distortion"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
@@ -30,17 +31,6 @@ static bNodeSocketTemplate sh_node_tex_noise_in[] = {
 };
 
 static bNodeSocketTemplate sh_node_tex_noise_out[] = {
-    {SOCK_RGBA,
-     0,
-     N_("Color"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
     {SOCK_FLOAT,
      0,
      N_("Fac"),
@@ -52,6 +42,17 @@ static bNodeSocketTemplate sh_node_tex_noise_out[] = {
      1.0f,
      PROP_FACTOR,
      SOCK_NO_INTERNAL_LINK},
+    {SOCK_RGBA,
+     0,
+     N_("Color"),
+     0.0f,
+     0.0f,
+     0.0f,
+     0.0f,
+     0.0f,
+     1.0f,
+     PROP_NONE,
+     SOCK_NO_INTERNAL_LINK},
     {-1, 0, ""},
 };
 
@@ -60,6 +61,7 @@ static void node_shader_init_tex_noise(bNodeTree *UNUSED(ntree), bNode *node)
   NodeTexNoise *tex = MEM_callocN(sizeof(NodeTexNoise), "NodeTexNoise");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
+  tex->dimensions = 3;
 
   node->storage = tex;
 }
@@ -74,10 +76,27 @@ static int node_shader_gpu_tex_noise(GPUMaterial *mat,
     in[0].link = GPU_attribute(CD_ORCO, "");
     GPU_link(mat, "generated_texco", GPU_builtin(GPU_VIEW_POSITION), in[0].link, &in[0].link);
   }
-
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
-  return GPU_stack_link(mat, node, "node_tex_noise", in, out);
+  NodeTexNoise *tex = (NodeTexNoise *)node->storage;
+  static const char *names[] = {
+      "",
+      "node_noise_texture_1d",
+      "node_noise_texture_2d",
+      "node_noise_texture_3d",
+      "node_noise_texture_4d",
+  };
+  return GPU_stack_link(mat, node, names[tex->dimensions], in, out);
+}
+
+static void node_shader_update_tex_noise(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  bNodeSocket *sockVector = nodeFindSocket(node, SOCK_IN, "Vector");
+  bNodeSocket *sockW = nodeFindSocket(node, SOCK_IN, "W");
+
+  NodeTexNoise *tex = (NodeTexNoise *)node->storage;
+  nodeSetSocketAvailability(sockVector, tex->dimensions != 1);
+  nodeSetSocketAvailability(sockW, tex->dimensions == 1 || tex->dimensions == 4);
 }
 
 /* node type definition */
@@ -91,6 +110,7 @@ void register_node_type_sh_tex_noise(void)
   node_type_storage(
       &ntype, "NodeTexNoise", node_free_standard_storage, node_copy_standard_storage);
   node_type_gpu(&ntype, node_shader_gpu_tex_noise);
+  node_type_update(&ntype, node_shader_update_tex_noise);
 
   nodeRegisterType(&ntype);
 }

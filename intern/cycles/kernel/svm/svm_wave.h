@@ -33,7 +33,7 @@ ccl_device_noinline_cpu float svm_wave(NodeWaveType type,
     n = len(p) * 20.0f;
 
   if (distortion != 0.0f)
-    n += distortion * noise_turbulence(p * dscale, detail, 0);
+    n += distortion * fractal_noise_3d(p * dscale, detail);
 
   if (profile == NODE_WAVE_PROFILE_SIN) {
     return 0.5f + 0.5f * sinf(n);

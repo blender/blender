@@ -37,14 +37,14 @@ ccl_device_noinline_cpu float noise_musgrave_fBm(float3 p,
   int i;
 
   for (i = 0; i < float_to_int(octaves); i++) {
-    value += snoise(p) * pwr;
+    value += snoise_3d(p) * pwr;
     pwr *= pwHL;
     p *= lacunarity;
   }
 
   rmd = octaves - floorf(octaves);
   if (rmd != 0.0f)
-    value += rmd * snoise(p) * pwr;
+    value += rmd * snoise_3d(p) * pwr;
 
   return value;
 }
@@ -68,14 +68,14 @@ ccl_device_noinline_cpu float noise_musgrave_multi_fractal(float3 p,
   int i;
 
   for (i = 0; i < float_to_int(octaves); i++) {
-    value *= (pwr * snoise(p) + 1.0f);
+    value *= (pwr * snoise_3d(p) + 1.0f);
     pwr *= pwHL;
     p *= lacunarity;
   }
 
   rmd = octaves - floorf(octaves);
   if (rmd != 0.0f)
-    value *= (rmd * pwr * snoise(p) + 1.0f); /* correct? */
+    value *= (rmd * pwr * snoise_3d(p) + 1.0f); /* correct? */
 
   return value;
 }
@@ -97,11 +97,11 @@ ccl_device_noinline_cpu float noise_musgrave_hetero_terrain(
   int i;
 
   /* first unscaled octave of function; later octaves are scaled */
-  value = offset + snoise(p);
+  value = offset + snoise_3d(p);
   p *= lacunarity;
 
   for (i = 1; i < float_to_int(octaves); i++) {
-    increment = (snoise(p) + offset) * pwr * value;
+    increment = (snoise_3d(p) + offset) * pwr * value;
     value += increment;
     pwr *= pwHL;
     p *= lacunarity;
@@ -109,7 +109,7 @@ ccl_device_noinline_cpu float noise_musgrave_hetero_terrain(
 
   rmd = octaves - floorf(octaves);
   if (rmd != 0.0f) {
-    increment = (snoise(p) + offset) * pwr * value;
+    increment = (snoise_3d(p) + offset) * pwr * value;
     value += rmd * increment;
   }
 
@@ -132,7 +132,7 @@ ccl_device_noinline_cpu float noise_musgrave_hybrid_multi_fractal(
   float pwr = pwHL;
   int i;
 
-  result = snoise(p) + offset;
+  result = snoise_3d(p) + offset;
   weight = gain * result;
   p *= lacunarity;
 
@@ -140,7 +140,7 @@ ccl_device_noinline_cpu float noise_musgrave_hybrid_multi_fractal(
     if (weight > 1.0f)
       weight = 1.0f;
 
-    signal = (snoise(p) + offset) * pwr;
+    signal = (snoise_3d(p) + offset) * pwr;
     pwr *= pwHL;
     result += weight * signal;
     weight *= gain * signal;
@@ -149,7 +149,7 @@ ccl_device_noinline_cpu float noise_musgrave_hybrid_multi_fractal(
 
   rmd = octaves - floorf(octaves);
   if (rmd != 0.0f)
-    result += rmd * ((snoise(p) + offset) * pwr);
+    result += rmd * ((snoise_3d(p) + offset) * pwr);
 
   return result;
 }
@@ -170,7 +170,7 @@ ccl_device_noinline_cpu float noise_musgrave_ridged_multi_fractal(
   float pwr = pwHL;
   int i;
 
-  signal = offset - fabsf(snoise(p));
+  signal = offset - fabsf(snoise_3d(p));
   signal *= signal;
   result = signal;
   weight = 1.0f;
@@ -178,7 +178,7 @@ ccl_device_noinline_cpu float noise_musgrave_ridged_multi_fractal(
   for (i = 1; i < float_to_int(octaves); i++) {
     p *= lacunarity;
     weight = saturate(signal * gain);
-    signal = offset - fabsf(snoise(p));
+    signal = offset - fabsf(snoise_3d(p));
     signal *= signal;
     signal *= weight;
     result += signal * pwr;
