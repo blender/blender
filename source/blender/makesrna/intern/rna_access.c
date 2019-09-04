@@ -5873,6 +5873,7 @@ char *RNA_path_from_real_ID_to_struct(Main *bmain, PointerRNA *ptr, struct ID **
 {
   char *path = RNA_path_from_ID_to_struct(ptr);
 
+  /* NULL path is valid in that case, when given struct is an ID one... */
   return rna_prepend_real_ID_path(bmain, ptr->owner_id, path, r_real);
 }
 
@@ -5987,7 +5988,9 @@ char *RNA_path_from_real_ID_to_property_index(
 {
   char *path = RNA_path_from_ID_to_property_index(ptr, prop, index_dim, index);
 
-  return rna_prepend_real_ID_path(bmain, ptr->owner_id, path, r_real_id);
+  /* NULL path is always an error here, in that case do not return the 'fake ID from real ID' part
+   * of the path either. */
+  return path != NULL ? rna_prepend_real_ID_path(bmain, ptr->owner_id, path, r_real_id) : NULL;
 }
 
 /**
