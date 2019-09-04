@@ -724,8 +724,6 @@ class _defs_edit_mesh:
     def shear():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("transform.shear")
-            layout.label(text="View Axis:")
-            layout.prop(props, "shear_axis", expand=True)
             _template_widget.VIEW3D_GGT_xform_gizmo.draw_settings_with_index(context, layout, 2)
         return dict(
             idname="builtin.shear",
