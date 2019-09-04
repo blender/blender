@@ -1111,6 +1111,12 @@ int BPH_cloth_solve(
     ImplicitSolverResult result;
 
     if (is_hair) {
+      /* copy velocities for collision */
+      for (i = 0; i < mvert_num; i++) {
+        BPH_mass_spring_get_motion_state(id, i, NULL, verts[i].tv);
+        copy_v3_v3(verts[i].v, verts[i].tv);
+      }
+
       /* determine contact points */
       if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
         cloth_find_point_contacts(depsgraph, ob, clmd, 0.0f, tf, &contacts, &totcolliders);
