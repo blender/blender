@@ -1571,7 +1571,7 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
   /* Update all objects: drivers, matrices, displists, etc. flags set
    * by depgraph or manual, no layer check here, gets correct flushed.
    */
-  DEG_evaluate_on_refresh(depsgraph);
+  DEG_evaluate_on_refresh(bmain, depsgraph);
   /* Update sound system. */
   BKE_scene_update_sound(depsgraph, bmain);
   /* Notify python about depsgraph update. */

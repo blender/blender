@@ -156,7 +156,7 @@ void DEG_evaluate_on_framechange(struct Main *bmain, Depsgraph *graph, float cti
 /* Data changed recalculation entry point.
  * < context_type: context to perform evaluation for
  */
-void DEG_evaluate_on_refresh(Depsgraph *graph);
+void DEG_evaluate_on_refresh(struct Main *bmain, Depsgraph *graph);
 
 bool DEG_needs_eval(Depsgraph *graph);
 
