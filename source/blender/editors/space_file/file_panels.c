@@ -95,7 +95,7 @@ static void file_panel_operator(const bContext *C, Panel *pa)
   UI_block_func_set(uiLayoutGetBlock(pa->layout), NULL, NULL, NULL);
 }
 
-void file_panels_register(ARegionType *art)
+void file_tool_props_region_panels_register(ARegionType *art)
 {
   PanelType *pt;
 
@@ -107,5 +107,113 @@ void file_panels_register(ARegionType *art)
   pt->poll = file_panel_operator_poll;
   pt->draw_header = file_panel_operator_header;
   pt->draw = file_panel_operator;
+  BLI_addtail(&art->paneltypes, pt);
+}
+
+static void file_panel_execution_cancel_button(uiBlock *block)
+{
+  uiDefButO(block,
+            UI_BTYPE_BUT,
+            "FILE_OT_cancel",
+            WM_OP_EXEC_REGION_WIN,
+            IFACE_("Cancel"),
+            0,
+            0,
+            UI_UNIT_X,
+            UI_UNIT_Y,
+            "");
+}
+
+static void file_panel_execution_buttons_draw(const bContext *C, Panel *pa)
+{
+  bScreen *screen = CTX_wm_screen(C);
+  SpaceFile *sfile = CTX_wm_space_file(C);
+  FileSelectParams *params = ED_fileselect_get_params(sfile);
+  uiBlock *block = uiLayoutGetBlock(pa->layout);
+  uiBut *but;
+  uiLayout *row;
+  PointerRNA params_rna_ptr;
+
+  const bool overwrite_alert = file_draw_check_exists(sfile);
+  const bool windows_layout =
+#ifdef _WIN32
+      true;
+#else
+      false;
+#endif
+
+  RNA_pointer_create(&screen->id, &RNA_FileSelectParams, params, &params_rna_ptr);
+
+  row = uiLayoutRow(pa->layout, false);
+  uiLayoutSetScaleX(row, 1.3f);
+  uiLayoutSetScaleY(row, 1.3f);
+
+  /* callbacks for operator check functions */
+  UI_block_func_set(block, file_draw_check_cb, NULL, NULL);
+
+  but = uiDefButR(block,
+                  UI_BTYPE_TEXT,
+                  -1,
+                  "",
+                  0,
+                  0,
+                  UI_UNIT_X * 5,
+                  UI_UNIT_Y,
+                  &params_rna_ptr,
+                  "filename",
+                  0,
+                  0.0f,
+                  (float)FILE_MAXFILE,
+                  0,
+                  0,
+                  TIP_(overwrite_alert ? N_("File name, overwrite existing") : N_("File name")));
+
+  BLI_assert(!UI_but_flag_is_set(but, UI_BUT_UNDO));
+  BLI_assert(!UI_but_is_utf8(but));
+
+  UI_but_func_complete_set(but, autocomplete_file, NULL);
+  /* silly workaround calling NFunc to ensure this does not get called
+   * immediate ui_apply_but_func but only after button deactivates */
+  UI_but_funcN_set(but, file_filename_enter_handle, NULL, but);
+
+  /* check if this overrides a file and if the operator option is used */
+  if (overwrite_alert) {
+    UI_but_flag_enable(but, UI_BUT_REDALERT);
+  }
+  UI_block_func_set(block, NULL, NULL, NULL);
+
+  {
+    if (windows_layout == false) {
+      file_panel_execution_cancel_button(block);
+    }
+    but = uiDefButO(block,
+                    UI_BTYPE_BUT,
+                    "FILE_OT_execute",
+                    WM_OP_EXEC_REGION_WIN,
+                    params->title,
+                    0,
+                    0,
+                    UI_UNIT_X,
+                    UI_UNIT_Y,
+                    "");
+    /* Just a display hint. */
+    UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
+    if (windows_layout) {
+      file_panel_execution_cancel_button(block);
+    }
+  }
+}
+
+void file_execute_region_panels_register(ARegionType *art)
+{
+  PanelType *pt;
+
+  pt = MEM_callocN(sizeof(PanelType), "spacetype file execution buttons");
+  strcpy(pt->idname, "FILE_PT_execution_buttons");
+  strcpy(pt->label, N_("Execute Buttons"));
+  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  pt->flag = PNL_NO_HEADER;
+  pt->poll = file_panel_operator_poll;
+  pt->draw = file_panel_execution_buttons_draw;
   BLI_addtail(&art->paneltypes, pt);
 }

@@ -136,7 +136,8 @@ int autocomplete_file(struct bContext *C, char *str, void *arg_v);
 void file_params_renamefile_activate(struct SpaceFile *sfile, struct FileSelectParams *params);
 
 /* file_panels.c */
-void file_panels_register(struct ARegionType *art);
+void file_tool_props_region_panels_register(struct ARegionType *art);
+void file_execute_region_panels_register(struct ARegionType *art);
 
 /* file_utils.c */
 void file_tile_boundbox(const ARegion *ar, FileLayout *layout, const int file, rcti *r_bounds);

@@ -704,6 +704,7 @@ void ED_spacetype_file(void)
   art->init = file_execution_region_init;
   art->draw = file_execution_region_draw;
   BLI_addhead(&st->regiontypes, art);
+  file_execute_region_panels_register(art);
 
   /* regions: channels (directories) */
   art = MEM_callocN(sizeof(ARegionType), "spacetype file region");
@@ -726,7 +727,7 @@ void ED_spacetype_file(void)
   art->init = file_tools_region_init;
   art->draw = file_tools_region_draw;
   BLI_addhead(&st->regiontypes, art);
-  file_panels_register(art);
+  file_tool_props_region_panels_register(art);
 
   BKE_spacetype_register(st);
 }
