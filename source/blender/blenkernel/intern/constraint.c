@@ -2090,13 +2090,43 @@ static void translike_flush_tars(bConstraint *con, ListBase *list, bool no_copy)
   }
 }
 
-static void translike_evaluate(bConstraint *UNUSED(con), bConstraintOb *cob, ListBase *targets)
+static void translike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
+  bTransLikeConstraint *data = con->data;
   bConstraintTarget *ct = targets->first;
 
   if (VALID_CONS_TARGET(ct)) {
-    /* just copy the entire transform matrix of the target */
-    copy_m4_m4(cob->matrix, ct->matrix);
+    if (data->mix_mode == TRANSLIKE_MIX_REPLACE) {
+      /* just copy the entire transform matrix of the target */
+      copy_m4_m4(cob->matrix, ct->matrix);
+    }
+    else {
+      float old_loc[3], old_rot[3][3], old_size[3];
+      float new_loc[3], new_rot[3][3], new_size[3];
+
+      /* Separate matrices so they can be combined in a way that avoids shear. */
+      mat4_to_loc_rot_size(old_loc, old_rot, old_size, cob->matrix);
+      mat4_to_loc_rot_size(new_loc, new_rot, new_size, ct->matrix);
+
+      switch (data->mix_mode) {
+        case TRANSLIKE_MIX_BEFORE:
+          mul_v3_m4v3(new_loc, ct->matrix, old_loc);
+          mul_m3_m3m3(new_rot, new_rot, old_rot);
+          mul_v3_v3(new_size, old_size);
+          break;
+
+        case TRANSLIKE_MIX_AFTER:
+          mul_v3_m4v3(new_loc, cob->matrix, new_loc);
+          mul_m3_m3m3(new_rot, old_rot, new_rot);
+          mul_v3_v3(new_size, old_size);
+          break;
+
+        default:
+          BLI_assert(false);
+      }
+
+      loc_rot_size_to_mat4(cob->matrix, new_loc, new_rot, new_size);
+    }
   }
 }
 

@@ -459,6 +459,8 @@ class ConstraintButtonsPanel:
     def COPY_TRANSFORMS(self, _context, layout, con):
         self.target_template(layout, con)
 
+        layout.prop(con, "mix_mode", text="Mix")
+
         self.space_template(layout, con)
 
     # def SCRIPT(self, context, layout, con):

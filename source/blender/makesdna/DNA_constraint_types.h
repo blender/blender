@@ -307,6 +307,8 @@ typedef struct bSameVolumeConstraint {
 /* Copy Transform Constraint */
 typedef struct bTransLikeConstraint {
   struct Object *tar;
+  char mix_mode;
+  char _pad[7];
   /** MAX_ID_NAME-2. */
   char subtarget[64];
 } bTransLikeConstraint;
@@ -789,6 +791,16 @@ typedef enum eCopyScale_Flags {
   SIZELIKE_MULTIPLY = (1 << 4),
   SIZELIKE_UNIFORM = (1 << 5),
 } eCopyScale_Flags;
+
+/* bTransLikeConstraint.mix_mode */
+typedef enum eCopyTransforms_MixMode {
+  /* Replace rotation channel values. */
+  TRANSLIKE_MIX_REPLACE = 0,
+  /* Multiply the copied transformation on the left, with anti-shear scale handling. */
+  TRANSLIKE_MIX_BEFORE,
+  /* Multiply the copied transformation on the right, with anti-shear scale handling. */
+  TRANSLIKE_MIX_AFTER,
+} eCopyTransforms_MixMode;
 
 /* bTransformConstraint.to/from */
 typedef enum eTransform_ToFrom {

@@ -1335,6 +1335,15 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
             return true;
           }
         }
+        else if (con->type == CONSTRAINT_TYPE_TRANSLIKE) {
+          /* Copy Transforms constraint only does this in the Before mode. */
+          bTransLikeConstraint *data = (bTransLikeConstraint *)con->data;
+
+          if (ELEM(data->mix_mode, TRANSLIKE_MIX_BEFORE) &&
+              ELEM(t->mode, TFM_ROTATION, TFM_TRANSLATION)) {
+            return true;
+          }
+        }
         else if (con->type == CONSTRAINT_TYPE_TRANSFORM) {
           /* Transform constraint needs it for rotation at least (r.57309),
            * but doing so when translating may also mess things up [#36203]

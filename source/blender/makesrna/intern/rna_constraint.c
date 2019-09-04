@@ -1515,6 +1515,28 @@ static void rna_def_constraint_same_volume(BlenderRNA *brna)
 static void rna_def_constraint_transform_like(BlenderRNA *brna)
 {
   StructRNA *srna;
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem mix_mode_items[] = {
+      {TRANSLIKE_MIX_REPLACE,
+       "REPLACE",
+       0,
+       "Replace",
+       "Replace the original transformation with copied"},
+      {TRANSLIKE_MIX_BEFORE,
+       "BEFORE",
+       0,
+       "Before Original",
+       "Apply copied transformation before original, as if the constraint target is a parent. "
+       "Scale is handled specially to avoid creating shear"},
+      {TRANSLIKE_MIX_AFTER,
+       "AFTER",
+       0,
+       "After Original",
+       "Apply copied transformation after original, as if the constraint target is a child. "
+       "Scale is handled specially to avoid creating shear"},
+      {0, NULL, 0, NULL, NULL},
+  };
 
   srna = RNA_def_struct(brna, "CopyTransformsConstraint", "Constraint");
   RNA_def_struct_ui_text(
@@ -1527,6 +1549,13 @@ static void rna_def_constraint_transform_like(BlenderRNA *brna)
   RNA_def_struct_ui_icon(srna, ICON_CON_TRANSLIKE);
 
   rna_def_constraint_target_common(srna);
+
+  prop = RNA_def_property(srna, "mix_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "mix_mode");
+  RNA_def_property_enum_items(prop, mix_mode_items);
+  RNA_def_property_ui_text(
+      prop, "Mix Mode", "Specify how the copied and existing transformations are combined");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 }
 
 static void rna_def_constraint_minmax(BlenderRNA *brna)
