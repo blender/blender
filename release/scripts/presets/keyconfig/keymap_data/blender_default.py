@@ -5020,7 +5020,7 @@ def km_image_editor_tool_uv_cursor(params):
 
 def km_image_editor_tool_uv_select(params):
     return (
-        "Image Editor Tool: Uv, Select",
+        "Image Editor Tool: Uv, Tweak",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": _template_items_tool_select(params, "uv.select", "uv.cursor_set")},
     )
@@ -5107,7 +5107,7 @@ def km_image_editor_tool_uv_scale(params):
 
 def km_node_editor_tool_select(params):
     return (
-        "Node Tool: Select",
+        "Node Tool: Tweak",
         {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             ("node.select", {"type": params.select_mouse, "value": 'PRESS'},
@@ -5171,7 +5171,7 @@ def km_3d_view_tool_cursor(params):
 
 def km_3d_view_tool_select(params):
     return (
-        "3D View Tool: Select",
+        "3D View Tool: Tweak",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": _template_items_tool_select(params, "view3d.select", "view3d.cursor3d")},
     )
@@ -5844,7 +5844,7 @@ def km_3d_view_tool_paint_gpencil_cutter(params):
 
 def km_3d_view_tool_edit_gpencil_select(params):
     return (
-        "3D View Tool: Edit Gpencil, Select",
+        "3D View Tool: Edit Gpencil, Tweak",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": _template_items_tool_select(params, "gpencil.select", "view3d.cursor3d")},
     )
@@ -5939,7 +5939,7 @@ def km_3d_view_tool_sculpt_gpencil_paint(_params):
 
 def km_3d_view_tool_sculpt_gpencil_select(params):
     return (
-        "3D View Tool: Sculpt Gpencil, Select",
+        "3D View Tool: Sculpt Gpencil, Tweak",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": _template_items_tool_select(params, "gpencil.select", "view3d.cursor3d")},
     )
