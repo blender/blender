@@ -252,6 +252,9 @@ void normalize_m4_m4(float R[4][4], const float A[4][4]) ATTR_NONNULL();
 void orthogonalize_m3(float R[3][3], int axis);
 void orthogonalize_m4(float R[4][4], int axis);
 
+void orthogonalize_m3_stable(float R[3][3], int axis, bool normalize);
+void orthogonalize_m4_stable(float R[4][4], int axis, bool normalize);
+
 bool is_orthogonal_m3(const float mat[3][3]);
 bool is_orthogonal_m4(const float mat[4][4]);
 bool is_orthonormal_m3(const float mat[3][3]);
@@ -303,8 +306,11 @@ void size_to_mat4(float R[4][4], const float size[3]);
 void mat3_to_size(float r[3], const float M[3][3]);
 void mat4_to_size(float r[3], const float M[4][4]);
 
+void mat4_to_size_fix_shear(float r[3], const float M[4][4]);
+
 void translate_m4(float mat[4][4], float tx, float ty, float tz);
 void rotate_m4(float mat[4][4], const char axis, const float angle);
+void rescale_m4(float mat[4][4], float scale[3]);
 void transform_pivot_set_m4(float mat[4][4], const float pivot[3]);
 
 void mat3_to_rot_size(float rot[3][3], float size[3], const float mat3[3][3]);

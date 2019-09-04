@@ -491,6 +491,7 @@ static EditBone *make_boneList_rec(ListBase *edbo,
     eBone->parent = parent;
     BLI_strncpy(eBone->name, curBone->name, sizeof(eBone->name));
     eBone->flag = curBone->flag;
+    eBone->inherit_scale_mode = curBone->inherit_scale_mode;
 
     /* fix selection flags */
     if (eBone->flag & BONE_SELECTED) {
@@ -719,6 +720,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     newBone->arm_roll = eBone->roll;
 
     newBone->flag = eBone->flag;
+    newBone->inherit_scale_mode = eBone->inherit_scale_mode;
 
     if (eBone == arm->act_edbone) {
       /* don't change active selection, this messes up separate which uses

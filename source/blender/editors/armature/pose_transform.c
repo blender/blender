@@ -241,13 +241,21 @@ static void applyarmature_process_selected_rec(bArmature *arm,
 
       /* Parent effects on the bone transform that have to be removed. */
       BKE_bone_offset_matrix_get(bone, offs_bone);
-      BKE_bone_parent_transform_calc_from_matrices(
-          bone->flag, offs_bone, bone->parent->arm_mat, pchan_eval->parent->pose_mat, &old_bpt);
+      BKE_bone_parent_transform_calc_from_matrices(bone->flag,
+                                                   bone->inherit_scale_mode,
+                                                   offs_bone,
+                                                   bone->parent->arm_mat,
+                                                   pchan_eval->parent->pose_mat,
+                                                   &old_bpt);
 
       /* Applied parent effects that have to be kept, if any. */
       float(*new_parent_pose)[4] = pstate ? pstate->new_rest_mat : bone->parent->arm_mat;
-      BKE_bone_parent_transform_calc_from_matrices(
-          bone->flag, offs_bone, bone->parent->arm_mat, new_parent_pose, &new_bpt);
+      BKE_bone_parent_transform_calc_from_matrices(bone->flag,
+                                                   bone->inherit_scale_mode,
+                                                   offs_bone,
+                                                   bone->parent->arm_mat,
+                                                   new_parent_pose,
+                                                   &new_bpt);
 
       BKE_bone_parent_transform_invert(&old_bpt);
       BKE_bone_parent_transform_combine(&new_bpt, &old_bpt, &invparent);
@@ -283,8 +291,12 @@ static void applyarmature_process_selected_rec(bArmature *arm,
 
     /* Include applied parent effects. */
     BKE_bone_offset_matrix_get(bone, offs_bone);
-    BKE_bone_parent_transform_calc_from_matrices(
-        bone->flag, offs_bone, pstate->bone->arm_mat, pstate->new_rest_mat, &bpt);
+    BKE_bone_parent_transform_calc_from_matrices(bone->flag,
+                                                 bone->inherit_scale_mode,
+                                                 offs_bone,
+                                                 pstate->bone->arm_mat,
+                                                 pstate->new_rest_mat,
+                                                 &bpt);
 
     unit_m4(new_pstate.new_rest_mat);
     BKE_bone_parent_transform_apply(&bpt, new_pstate.new_rest_mat, new_pstate.new_rest_mat);
@@ -306,8 +318,12 @@ static void applyarmature_process_selected_rec(bArmature *arm,
       /* Compute the channel coordinate space matrices for the new rest state. */
       invert_m4_m4(inv_parent_arm, pstate->new_arm_mat);
       mul_m4_m4m4(offs_bone, inv_parent_arm, new_pstate.new_arm_mat);
-      BKE_bone_parent_transform_calc_from_matrices(
-          bone->flag, offs_bone, pstate->new_arm_mat, pstate->new_arm_mat, &bpt);
+      BKE_bone_parent_transform_calc_from_matrices(bone->flag,
+                                                   bone->inherit_scale_mode,
+                                                   offs_bone,
+                                                   pstate->new_arm_mat,
+                                                   pstate->new_arm_mat,
+                                                   &bpt);
 
       /* Re-apply the location to keep the final effect. */
       invert_m4(bpt.loc_mat);

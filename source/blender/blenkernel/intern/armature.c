@@ -1867,11 +1867,16 @@ void BKE_bone_parent_transform_calc_from_pchan(const bPoseChannel *pchan,
     /* yoffs(b-1) + root(b) + bonemat(b). */
     BKE_bone_offset_matrix_get(bone, offs_bone);
 
-    BKE_bone_parent_transform_calc_from_matrices(
-        bone->flag, offs_bone, parbone->arm_mat, parchan->pose_mat, r_bpt);
+    BKE_bone_parent_transform_calc_from_matrices(bone->flag,
+                                                 bone->inherit_scale_mode,
+                                                 offs_bone,
+                                                 parbone->arm_mat,
+                                                 parchan->pose_mat,
+                                                 r_bpt);
   }
   else {
-    BKE_bone_parent_transform_calc_from_matrices(bone->flag, bone->arm_mat, NULL, NULL, r_bpt);
+    BKE_bone_parent_transform_calc_from_matrices(
+        bone->flag, bone->inherit_scale_mode, bone->arm_mat, NULL, NULL, r_bpt);
   }
 }
 
@@ -1882,39 +1887,90 @@ void BKE_bone_parent_transform_calc_from_pchan(const bPoseChannel *pchan,
  * parent_arm_mat, parent_pose_mat: arm_mat and pose_mat of parent, or NULL
  * r_bpt: OUTPUT parent transform */
 void BKE_bone_parent_transform_calc_from_matrices(int bone_flag,
+                                                  int inherit_scale_mode,
                                                   const float offs_bone[4][4],
                                                   const float parent_arm_mat[4][4],
                                                   const float parent_pose_mat[4][4],
                                                   BoneParentTransform *r_bpt)
 {
   if (parent_pose_mat) {
+    const bool use_rotation = (bone_flag & BONE_HINGE) == 0;
+    const bool full_transform = use_rotation && inherit_scale_mode == BONE_INHERIT_SCALE_FULL;
+
     /* Compose the rotscale matrix for this bone. */
-    if ((bone_flag & BONE_HINGE) && (bone_flag & BONE_NO_SCALE)) {
-      /* Parent rest rotation and scale. */
-      mul_m4_m4m4(r_bpt->rotscale_mat, parent_arm_mat, offs_bone);
-    }
-    else if (bone_flag & BONE_HINGE) {
-      /* Parent rest rotation and pose scale. */
-      float tmat[4][4], tscale[3];
-
-      /* Extract the scale of the parent pose matrix. */
-      mat4_to_size(tscale, parent_pose_mat);
-      size_to_mat4(tmat, tscale);
-
-      /* Applies the parent pose scale to the rest matrix. */
-      mul_m4_m4m4(tmat, tmat, parent_arm_mat);
-
-      mul_m4_m4m4(r_bpt->rotscale_mat, tmat, offs_bone);
-    }
-    else if (bone_flag & BONE_NO_SCALE) {
-      /* Parent pose rotation and rest scale (i.e. no scaling). */
-      float tmat[4][4];
-      copy_m4_m4(tmat, parent_pose_mat);
-      normalize_m4(tmat);
-      mul_m4_m4m4(r_bpt->rotscale_mat, tmat, offs_bone);
+    if (full_transform) {
+      /* Parent pose rotation and scale. */
+      mul_m4_m4m4(r_bpt->rotscale_mat, parent_pose_mat, offs_bone);
     }
     else {
-      mul_m4_m4m4(r_bpt->rotscale_mat, parent_pose_mat, offs_bone);
+      float tmat[4][4], tscale[3];
+
+      /* If using parent pose rotation: */
+      if (use_rotation) {
+        copy_m4_m4(tmat, parent_pose_mat);
+
+        /* Normalize the matrix when needed. */
+        switch (inherit_scale_mode) {
+          case BONE_INHERIT_SCALE_FULL:
+          case BONE_INHERIT_SCALE_FIX_SHEAR:
+            /* Keep scale and shear. */
+            break;
+
+          case BONE_INHERIT_SCALE_NONE:
+          case BONE_INHERIT_SCALE_AVERAGE:
+            /* Remove scale and shear from parent. */
+            orthogonalize_m4_stable(tmat, 1, true);
+            break;
+
+          case BONE_INHERIT_SCALE_NONE_LEGACY:
+            /* Remove only scale - bad legacy way. */
+            normalize_m4(tmat);
+            break;
+
+          default:
+            BLI_assert(false);
+        }
+      }
+      /* If removing parent pose rotation: */
+      else {
+        copy_m4_m4(tmat, parent_arm_mat);
+
+        /* Copy the parent scale when needed. */
+        switch (inherit_scale_mode) {
+          case BONE_INHERIT_SCALE_FULL:
+            /* Ignore effects of shear. */
+            mat4_to_size(tscale, parent_pose_mat);
+            rescale_m4(tmat, tscale);
+            break;
+
+          case BONE_INHERIT_SCALE_FIX_SHEAR:
+            /* Take the effects of parent shear into account to get exact volume. */
+            mat4_to_size_fix_shear(tscale, parent_pose_mat);
+            rescale_m4(tmat, tscale);
+            break;
+
+          case BONE_INHERIT_SCALE_NONE:
+          case BONE_INHERIT_SCALE_AVERAGE:
+          case BONE_INHERIT_SCALE_NONE_LEGACY:
+            /* Keep unscaled. */
+            break;
+
+          default:
+            BLI_assert(false);
+        }
+      }
+
+      /* Apply the average parent scale when needed. */
+      if (inherit_scale_mode == BONE_INHERIT_SCALE_AVERAGE) {
+        mul_mat3_m4_fl(tmat, cbrtf(fabsf(mat4_to_volume_scale(parent_pose_mat))));
+      }
+
+      mul_m4_m4m4(r_bpt->rotscale_mat, tmat, offs_bone);
+
+      /* Remove remaining shear when needed, preserving volume. */
+      if (inherit_scale_mode == BONE_INHERIT_SCALE_FIX_SHEAR) {
+        orthogonalize_m4_stable(r_bpt->rotscale_mat, 1, false);
+      }
     }
 
     /* Compose the loc matrix for this bone. */
@@ -1938,7 +1994,7 @@ void BKE_bone_parent_transform_calc_from_matrices(int bone_flag,
       mul_m4_m4m4(r_bpt->loc_mat, bone_loc, tmat4);
     }
     /* Those flags do not affect position, use plain parent transform space! */
-    else if (bone_flag & (BONE_HINGE | BONE_NO_SCALE)) {
+    else if (!full_transform) {
       mul_m4_m4m4(r_bpt->loc_mat, parent_pose_mat, offs_bone);
     }
     /* Else (i.e. default, usual case),

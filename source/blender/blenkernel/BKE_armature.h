@@ -182,6 +182,7 @@ void BKE_bone_parent_transform_apply(const struct BoneParentTransform *bpt,
 void BKE_bone_parent_transform_calc_from_pchan(const struct bPoseChannel *pchan,
                                                struct BoneParentTransform *r_bpt);
 void BKE_bone_parent_transform_calc_from_matrices(int bone_flag,
+                                                  int inherit_scale_mode,
                                                   const float offs_bone[4][4],
                                                   const float parent_arm_mat[4][4],
                                                   const float parent_pose_mat[4][4],

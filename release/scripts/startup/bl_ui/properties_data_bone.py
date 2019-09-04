@@ -232,11 +232,13 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
         sub = col.column()
         sub.active = (bone.parent is not None)
         sub.prop(bone, "use_connect")
-        sub.prop(bone, "use_inherit_rotation")
-        sub.prop(bone, "use_inherit_scale")
         sub = col.column()
         sub.active = (not bone.parent or not bone.use_connect)
         sub.prop(bone, "use_local_location")
+        sub = col.column()
+        sub.active = (bone.parent is not None)
+        sub.prop(bone, "use_inherit_rotation")
+        sub.prop(bone, "inherit_scale")
 
 
 class BONE_PT_display(BoneButtonsPanel, Panel):

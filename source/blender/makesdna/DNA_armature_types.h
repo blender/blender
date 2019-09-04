@@ -60,6 +60,9 @@ typedef struct Bone {
 
   int flag;
 
+  char inherit_scale_mode;
+  char _pad[7];
+
   float arm_head[3];
   /**  head/tail in Armature Space (rest pos). */
   float arm_tail[3];
@@ -229,8 +232,10 @@ typedef enum eBone_Flag {
   BONE_UNKEYED = (1 << 13),
   /** set to prevent hinge child bones from influencing the transform center */
   BONE_HINGE_CHILD_TRANSFORM = (1 << 14),
+#ifdef DNA_DEPRECATED
   /** No parent scale */
   BONE_NO_SCALE = (1 << 15),
+#endif
   /** hidden bone when drawing PoseChannels (for ghost drawing) */
   BONE_HIDDEN_PG = (1 << 16),
   /** bone should be drawn as OB_WIRE, regardless of draw-types of view+armature */
@@ -253,6 +258,20 @@ typedef enum eBone_Flag {
   BONE_TRANSFORM_MIRROR = (1 << 25),
 
 } eBone_Flag;
+
+/* bone->inherit_scale_mode */
+typedef enum eBone_InheritScaleMode {
+  /* Inherit all scale and shear. */
+  BONE_INHERIT_SCALE_FULL = 0,
+  /* Inherit scale, but remove final shear. */
+  BONE_INHERIT_SCALE_FIX_SHEAR,
+  /* Inherit average scale. */
+  BONE_INHERIT_SCALE_AVERAGE,
+  /* Inherit no scale or shear. */
+  BONE_INHERIT_SCALE_NONE,
+  /* Inherit effects of shear on parent (same as old disabled Inherit Scale). */
+  BONE_INHERIT_SCALE_NONE_LEGACY,
+} eBone_InheritScaleMode;
 
 /* bone->bbone_prev_type, bbone_next_type */
 typedef enum eBone_BBoneHandleType {

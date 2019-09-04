@@ -1516,6 +1516,111 @@ void orthogonalize_m4(float mat[4][4], int axis)
   mul_v3_fl(mat[2], size[2]);
 }
 
+/** Make an orthonormal basis around v1 in a way that is stable and symmetric. */
+static void orthogonalize_stable(float v1[3], float v2[3], float v3[3], bool normalize)
+{
+  /* Make secondary axis vectors orthogonal to the primary via
+   * plane projection, which preserves the determinant. */
+  float len_sq_v1 = len_squared_v3(v1);
+
+  if (len_sq_v1 > 0.0f) {
+    madd_v3_v3fl(v2, v1, -dot_v3v3(v2, v1) / len_sq_v1);
+    madd_v3_v3fl(v3, v1, -dot_v3v3(v3, v1) / len_sq_v1);
+
+    if (normalize) {
+      mul_v3_fl(v1, 1.0f / sqrtf(len_sq_v1));
+    }
+  }
+
+  /* Make secondary axis vectors orthogonal relative to each other. */
+  float norm_v2[3], norm_v3[3], tmp[3];
+  float length_v2 = normalize_v3_v3(norm_v2, v2);
+  float length_v3 = normalize_v3_v3(norm_v3, v3);
+  float cos_angle = dot_v3v3(norm_v2, norm_v3);
+  float abs_cos_angle = fabsf(cos_angle);
+
+  /* Apply correction if the shear angle is significant, and not degenerate. */
+  if (abs_cos_angle > 1e-4f && abs_cos_angle < 1.0f - FLT_EPSILON) {
+    /* Adjust v2 by half of the necessary angle correction.
+     * Thus the angle change is the same for both axis directions. */
+    float angle = acosf(cos_angle);
+    float target_angle = angle + ((float)M_PI_2 - angle) / 2;
+
+    madd_v3_v3fl(norm_v2, norm_v3, -cos_angle);
+    mul_v3_fl(norm_v2, sinf(target_angle) / len_v3(norm_v2));
+    madd_v3_v3fl(norm_v2, norm_v3, cosf(target_angle));
+
+    /* Make v3 orthogonal. */
+    cross_v3_v3v3(tmp, norm_v2, norm_v3);
+    cross_v3_v3v3(norm_v3, tmp, norm_v2);
+    normalize_v3(norm_v3);
+
+    /* Re-apply scale, preserving area and proportion. */
+    if (!normalize) {
+      float scale_fac = sqrtf(sinf(angle));
+      mul_v3_v3fl(v2, norm_v2, length_v2 * scale_fac);
+      mul_v3_v3fl(v3, norm_v3, length_v3 * scale_fac);
+    }
+  }
+
+  if (normalize) {
+    copy_v3_v3(v2, norm_v2);
+    copy_v3_v3(v3, norm_v3);
+  }
+}
+
+/**
+ * Make an orthonormal matrix around the selected axis of the given matrix,
+ * in a way that is symmetric and stable to variations in the input, and
+ * preserving the value of the determinant, i.e. the overall volume change.
+ *
+ * \param axis: Axis to build the orthonormal basis around.
+ * \param normalize: Normalize the matrix instead of preserving volume.
+ */
+void orthogonalize_m3_stable(float R[3][3], int axis, bool normalize)
+{
+  switch (axis) {
+    case 0:
+      orthogonalize_stable(R[0], R[1], R[2], normalize);
+      break;
+    case 1:
+      orthogonalize_stable(R[1], R[0], R[2], normalize);
+      break;
+    case 2:
+      orthogonalize_stable(R[2], R[0], R[1], normalize);
+      break;
+    default:
+      BLI_assert(0);
+      break;
+  }
+}
+
+/**
+ * Make an orthonormal matrix around the selected axis of the given matrix,
+ * in a way that is symmetric and stable to variations in the input, and
+ * preserving the value of the determinant, i.e. the overall volume change.
+ *
+ * \param axis: Axis to build the orthonormal basis around.
+ * \param normalize: Normalize the matrix instead of preserving volume.
+ */
+void orthogonalize_m4_stable(float R[4][4], int axis, bool normalize)
+{
+  switch (axis) {
+    case 0:
+      orthogonalize_stable(R[0], R[1], R[2], normalize);
+      break;
+    case 1:
+      orthogonalize_stable(R[1], R[0], R[2], normalize);
+      break;
+    case 2:
+      orthogonalize_stable(R[2], R[0], R[1], normalize);
+      break;
+    default:
+      BLI_assert(0);
+      break;
+  }
+}
+
 bool is_orthogonal_m3(const float m[3][3])
 {
   int i, j;
@@ -1851,6 +1956,19 @@ void mat4_to_size(float size[3], const float mat[4][4])
   size[2] = len_v3(mat[2]);
 }
 
+/** Extract scale factors from the matrix, with correction to ensure
+ *  exact volume in case of a sheared matrix. */
+void mat4_to_size_fix_shear(float size[3], const float mat[4][4])
+{
+  mat4_to_size(size, mat);
+
+  float volume = size[0] * size[1] * size[2];
+
+  if (volume != 0.0f) {
+    mul_v3_fl(size, cbrtf(fabsf(mat4_to_volume_scale(mat) / volume)));
+  }
+}
+
 /**
  * This computes the overall volume scale factor of a transformation matrix.
  * For an orthogonal matrix, it is the product of all three scale values.
@@ -2043,6 +2161,14 @@ void rotate_m4(float mat[4][4], const char axis, const float angle)
       BLI_assert(0);
       break;
   }
+}
+
+/** Scale a matrix in-place. */
+void rescale_m4(float mat[4][4], float scale[3])
+{
+  mul_v3_fl(mat[0], scale[0]);
+  mul_v3_fl(mat[1], scale[1]);
+  mul_v3_fl(mat[2], scale[2]);
 }
 
 /**

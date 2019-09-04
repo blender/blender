@@ -73,6 +73,7 @@ typedef struct EditBone {
    * animation are automatically relative to the bones' rest positions*/
   int flag;
   int layer;
+  char inherit_scale_mode;
 
   /* Envelope distance & weight */
   float dist, weight;

@@ -908,8 +908,10 @@ static void bones_merge(
   newbone->parent = start->parent;
 
   /* TODO, copy more things to the new bone */
-  newbone->flag = start->flag & (BONE_HINGE | BONE_NO_DEFORM | BONE_NO_SCALE |
-                                 BONE_NO_CYCLICOFFSET | BONE_NO_LOCAL_LOCATION | BONE_DONE);
+  newbone->flag = start->flag & (BONE_HINGE | BONE_NO_DEFORM | BONE_NO_CYCLICOFFSET |
+                                 BONE_NO_LOCAL_LOCATION | BONE_DONE);
+
+  newbone->inherit_scale_mode = start->inherit_scale_mode;
 
   /* Step 2a: reparent any side chains which may be parented to any bone in the chain
    * of bones to merge - potentially several tips for side chains leading to some tree exist.

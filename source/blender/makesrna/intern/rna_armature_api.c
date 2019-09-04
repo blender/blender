@@ -71,14 +71,15 @@ static void rna_Bone_convert_local_to_pose(Bone *bone,
 
   if (is_zero_m4(parent_pose_mat) || is_zero_m4(parent_arm_mat)) {
     /* No parent case. */
-    BKE_bone_parent_transform_calc_from_matrices(bone->flag, bone_arm_mat, NULL, NULL, &bpt);
+    BKE_bone_parent_transform_calc_from_matrices(
+        bone->flag, bone->inherit_scale_mode, bone_arm_mat, NULL, NULL, &bpt);
   }
   else {
     invert_m4_m4(offs_bone, parent_arm_mat);
     mul_m4_m4m4(offs_bone, offs_bone, bone_arm_mat);
 
     BKE_bone_parent_transform_calc_from_matrices(
-        bone->flag, offs_bone, parent_arm_mat, parent_pose_mat, &bpt);
+        bone->flag, bone->inherit_scale_mode, offs_bone, parent_arm_mat, parent_pose_mat, &bpt);
   }
 
   if (invert) {

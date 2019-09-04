@@ -637,6 +637,18 @@ static void do_version_bones_split_bbone_scale(ListBase *lb)
   }
 }
 
+static void do_version_bones_inherit_scale(ListBase *lb)
+{
+  for (Bone *bone = lb->first; bone; bone = bone->next) {
+    if (bone->flag & BONE_NO_SCALE) {
+      bone->inherit_scale_mode = BONE_INHERIT_SCALE_NONE_LEGACY;
+      bone->flag &= ~BONE_NO_SCALE;
+    }
+
+    do_version_bones_inherit_scale(&bone->childbase);
+  }
+}
+
 static bool replace_bbone_scale_rnapath(char **p_old_path)
 {
   char *old_path = *p_old_path;
@@ -3754,6 +3766,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             }
           }
         }
+      }
+    }
+
+    /* Convert the BONE_NO_SCALE flag to inherit_scale_mode enum. */
+    if (!DNA_struct_elem_find(fd->filesdna, "Bone", "char", "inherit_scale_mode")) {
+      LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
+        do_version_bones_inherit_scale(&arm->bonebase);
       }
     }
   }
