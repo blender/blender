@@ -2702,7 +2702,7 @@ static void ui_textedit_string_set(uiBut *but, uiHandleButtonData *data, const c
     ui_textedit_string_ensure_max_length(but, data, strlen(str) + 1);
   }
 
-  if (ui_but_is_utf8(but)) {
+  if (UI_but_is_utf8(but)) {
     BLI_strncpy_utf8(data->str, str, data->maxlen);
   }
   else {
@@ -2887,7 +2887,7 @@ static bool ui_textedit_insert_buf(uiBut *but,
     }
 
     if ((len + step >= data->maxlen) && (data->maxlen - (len + 1) > 0)) {
-      if (ui_but_is_utf8(but)) {
+      if (UI_but_is_utf8(but)) {
         /* shorten 'step' to a utf8 aligned size that fits  */
         BLI_strnlen_utf8_ex(buf, data->maxlen - (len + 1), &step);
       }
@@ -2911,7 +2911,7 @@ static bool ui_textedit_insert_ascii(uiBut *but, uiHandleButtonData *data, char 
 {
   char buf[2] = {ascii, '\0'};
 
-  if (ui_but_is_utf8(but) && (BLI_str_utf8_size(buf) == -1)) {
+  if (UI_but_is_utf8(but) && (BLI_str_utf8_size(buf) == -1)) {
     printf(
         "%s: entering invalid ascii char into an ascii key (%d)\n", __func__, (int)(uchar)ascii);
 
@@ -3092,7 +3092,7 @@ static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const in
     pbuf = WM_clipboard_text_get_firstline(false, &buf_len);
 
     if (pbuf) {
-      if (ui_but_is_utf8(but)) {
+      if (UI_but_is_utf8(but)) {
         buf_len -= BLI_utf8_invalid_strip(pbuf, (size_t)buf_len);
       }
 
@@ -3261,7 +3261,7 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
   wmWindow *win = CTX_wm_window(C);
 
   if (but) {
-    if (ui_but_is_utf8(but)) {
+    if (UI_but_is_utf8(but)) {
       int strip = BLI_utf8_invalid_strip(but->editstr, strlen(but->editstr));
       /* not a file?, strip non utf-8 chars */
       if (strip) {
@@ -4162,7 +4162,7 @@ static int ui_do_but_TEX(
 {
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     if (ELEM(event->type, LEFTMOUSE, EVT_BUT_OPEN, PADENTER, RETKEY) && event->val == KM_PRESS) {
-      if (ELEM(event->type, PADENTER, RETKEY) && (!ui_but_is_utf8(but))) {
+      if (ELEM(event->type, PADENTER, RETKEY) && (!UI_but_is_utf8(but))) {
         /* pass - allow filesel, enter to execute */
       }
       else if (but->dt == UI_EMBOSS_NONE && !event->ctrl) {

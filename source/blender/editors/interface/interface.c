@@ -2509,7 +2509,7 @@ void ui_but_string_get_ex(uiBut *but,
     else if (buf && buf != str) {
       BLI_assert(maxlen <= buf_len + 1);
       /* string was too long, we have to truncate */
-      if (ui_but_is_utf8(but)) {
+      if (UI_but_is_utf8(but)) {
         BLI_strncpy_utf8(str, buf, maxlen);
       }
       else {
@@ -2834,7 +2834,7 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
     if (!but->poin) {
       str = "";
     }
-    else if (ui_but_is_utf8(but)) {
+    else if (UI_but_is_utf8(but)) {
       BLI_strncpy_utf8(but->poin, str, but->hardmax);
     }
     else {

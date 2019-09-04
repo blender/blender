@@ -100,7 +100,7 @@ bool ui_but_is_interactive(const uiBut *but, const bool labeledit)
 }
 
 /* file selectors are exempt from utf-8 checks */
-bool ui_but_is_utf8(const uiBut *but)
+bool UI_but_is_utf8(const uiBut *but)
 {
   if (but->rnaprop) {
     const int subtype = RNA_property_subtype(but->rnaprop);

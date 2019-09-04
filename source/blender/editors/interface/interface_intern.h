@@ -892,7 +892,6 @@ bool ui_but_is_editable(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_is_editable_as_text(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_is_toggle(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_is_interactive(const uiBut *but, const bool labeledit) ATTR_WARN_UNUSED_RESULT;
-bool ui_but_is_utf8(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_is_popover_once_compat(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_has_array_value(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 void ui_but_pie_dir(RadialDirection dir, float vec[2]);
