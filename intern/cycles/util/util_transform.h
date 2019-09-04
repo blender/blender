@@ -148,6 +148,32 @@ ccl_device_inline Transform make_transform(float a,
   return t;
 }
 
+ccl_device_inline Transform euler_to_transform(const float3 euler)
+{
+  float cx = cosf(euler.x);
+  float cy = cosf(euler.y);
+  float cz = cosf(euler.z);
+  float sx = sinf(euler.x);
+  float sy = sinf(euler.y);
+  float sz = sinf(euler.z);
+
+  Transform t;
+  t.x.x = cy * cz;
+  t.y.x = cy * sz;
+  t.z.x = -sy;
+
+  t.x.y = sy * sx * cz - cx * sz;
+  t.y.y = sy * sx * sz + cx * cz;
+  t.z.y = cy * sx;
+
+  t.x.z = sy * cx * cz + sx * sz;
+  t.y.z = sy * cx * sz - sx * cz;
+  t.z.z = cy * cx;
+
+  t.x.w = t.y.w = t.z.w = 0.0f;
+  return t;
+}
+
 /* Constructs a coordinate frame from a normalized normal. */
 ccl_device_inline Transform make_transform_frame(float3 N)
 {

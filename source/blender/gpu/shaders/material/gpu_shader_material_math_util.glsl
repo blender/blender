@@ -85,6 +85,30 @@ void vector_normalize(vec3 normal, out vec3 outnormal)
 
 /* Matirx Math */
 
+mat3 euler_to_mat3(vec3 euler)
+{
+  float cx = cos(euler.x);
+  float cy = cos(euler.y);
+  float cz = cos(euler.z);
+  float sx = sin(euler.x);
+  float sy = sin(euler.y);
+  float sz = sin(euler.z);
+
+  mat3 mat;
+  mat[0][0] = cy * cz;
+  mat[0][1] = cy * sz;
+  mat[0][2] = -sy;
+
+  mat[1][0] = sy * sx * cz - cx * sz;
+  mat[1][1] = sy * sx * sz + cx * cz;
+  mat[1][2] = cy * sx;
+
+  mat[2][0] = sy * cx * cz + sx * sz;
+  mat[2][1] = sy * cx * sz - sx * cz;
+  mat[2][2] = cy * cx;
+  return mat;
+}
+
 void direction_transform_m4v3(vec3 vin, mat4 mat, out vec3 vout)
 {
   vout = (mat * vec4(vin, 0.0)).xyz;

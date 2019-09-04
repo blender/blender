@@ -208,24 +208,6 @@ static void get_tex_mapping(TextureMapping *mapping, BL::TexMapping &b_mapping)
   mapping->z_mapping = (TextureMapping::Mapping)b_mapping.mapping_z();
 }
 
-static void get_tex_mapping(TextureMapping *mapping, BL::ShaderNodeMapping &b_mapping)
-{
-  if (!b_mapping)
-    return;
-
-  mapping->translation = get_float3(b_mapping.translation());
-  mapping->rotation = get_float3(b_mapping.rotation());
-  mapping->scale = get_float3(b_mapping.scale());
-  mapping->type = (TextureMapping::Type)b_mapping.vector_type();
-
-  mapping->use_minmax = b_mapping.use_min() || b_mapping.use_max();
-
-  if (b_mapping.use_min())
-    mapping->min = get_float3(b_mapping.min());
-  if (b_mapping.use_max())
-    mapping->max = get_float3(b_mapping.max());
-}
-
 static ShaderNode *add_node(Scene *scene,
                             BL::RenderEngine &b_engine,
                             BL::BlendData &b_data,
@@ -357,9 +339,7 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_a(&RNA_ShaderNodeMapping)) {
     BL::ShaderNodeMapping b_mapping_node(b_node);
     MappingNode *mapping = new MappingNode();
-
-    get_tex_mapping(&mapping->tex_mapping, b_mapping_node);
-
+    mapping->type = (NodeMappingType)b_mapping_node.vector_type();
     node = mapping;
   }
   else if (b_node.is_a(&RNA_ShaderNodeFresnel)) {

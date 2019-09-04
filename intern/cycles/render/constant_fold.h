@@ -66,6 +66,7 @@ class ConstantFolder {
   void fold_mix(NodeMix type, bool clamp) const;
   void fold_math(NodeMathType type) const;
   void fold_vector_math(NodeVectorMathType type) const;
+  void fold_mapping(NodeMappingType type) const;
 };
 
 CCL_NAMESPACE_END

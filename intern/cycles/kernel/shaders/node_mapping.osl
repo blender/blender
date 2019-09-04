@@ -16,17 +16,58 @@
 
 #include "stdosl.h"
 
-shader node_mapping(matrix Matrix = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                    point mapping_min = point(0.0, 0.0, 0.0),
-                    point mapping_max = point(0.0, 0.0, 0.0),
-                    int use_minmax = 0,
+point safe_divide(point a, point b)
+{
+  return point((b[0] != 0.0) ? a[0] / b[0] : 0.0,
+               (b[1] != 0.0) ? a[1] / b[1] : 0.0,
+               (b[2] != 0.0) ? a[2] / b[2] : 0.0);
+}
+
+matrix euler_to_mat(point euler)
+{
+  float cx = cos(euler[0]);
+  float cy = cos(euler[1]);
+  float cz = cos(euler[2]);
+  float sx = sin(euler[0]);
+  float sy = sin(euler[1]);
+  float sz = sin(euler[2]);
+
+  matrix mat = matrix(1.0);
+  mat[0][0] = cy * cz;
+  mat[0][1] = cy * sz;
+  mat[0][2] = -sy;
+
+  mat[1][0] = sy * sx * cz - cx * sz;
+  mat[1][1] = sy * sx * sz + cx * cz;
+  mat[1][2] = cy * sx;
+
+  mat[2][0] = sy * cx * cz + sx * sz;
+  mat[2][1] = sy * cx * sz - sx * cz;
+  mat[2][2] = cy * cx;
+  return mat;
+}
+
+shader node_mapping(string type = "point",
                     point VectorIn = point(0.0, 0.0, 0.0),
+                    point Location = point(0.0, 0.0, 0.0),
+                    point Rotation = point(0.0, 0.0, 0.0),
+                    point Scale = point(1.0, 1.0, 1.0),
                     output point VectorOut = point(0.0, 0.0, 0.0))
 {
-  point p = transform(Matrix, VectorIn);
-
-  if (use_minmax)
-    p = min(max(mapping_min, p), mapping_max);
-
-  VectorOut = p;
+  if (type == "point") {
+    VectorOut = transform(euler_to_mat(Rotation), (VectorIn * Scale)) + Location;
+  }
+  else if (type == "texture") {
+    VectorOut = safe_divide(transform(transpose(euler_to_mat(Rotation)), (VectorIn - Location)),
+                            Scale);
+  }
+  else if (type == "vector") {
+    VectorOut = transform(euler_to_mat(Rotation), (VectorIn * Scale));
+  }
+  else if (type == "normal") {
+    VectorOut = normalize(transform(euler_to_mat(Rotation), safe_divide(VectorIn, Scale)));
+  }
+  else {
+    warning("%s", "Unknown Mapping vector type!");
+  }
 }

@@ -140,6 +140,7 @@ typedef enum ShaderNodeType {
   NODE_IES,
   NODE_MAP_RANGE,
   NODE_CLAMP,
+  NODE_TEXTURE_MAPPING,
   NODE_TEX_WHITE_NOISE,
 } ShaderNodeType;
 
@@ -298,6 +299,13 @@ typedef enum NodeVectorMathType {
   NODE_VECTOR_MATH_MINIMUM,
   NODE_VECTOR_MATH_MAXIMUM,
 } NodeVectorMathType;
+
+typedef enum NodeMappingType {
+  NODE_MAPPING_TYPE_POINT,
+  NODE_MAPPING_TYPE_TEXTURE,
+  NODE_MAPPING_TYPE_VECTOR,
+  NODE_MAPPING_TYPE_NORMAL
+} NodeMappingType;
 
 typedef enum NodeVectorTransformType {
   NODE_VECTOR_TRANSFORM_TYPE_VECTOR,

@@ -34,11 +34,15 @@
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_anim_types.h"
 
 #include "BKE_colortools.h"
+#include "BKE_animsys.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "IMB_colormanagement.h"
 
@@ -769,6 +773,141 @@ static void update_noise_node_dimensions(bNodeTree *ntree)
   }
 }
 
+/* The Mapping node has been rewritten to support dynamic inputs. Previously,
+ * the transformation information was stored in a TexMapping struct in the
+ * node->storage member of bNode. Currently, the transformation information
+ * is stored in input sockets. To correct this, we transfer the information
+ * from the TexMapping struct to the input sockets.
+ *
+ * Additionally, the Minimum and Maximum properties are no longer available
+ * in the node. To correct this, a Vector Minimum and/or a Vector Maximum
+ * nodes are added if needed.
+ *
+ * Finally, the TexMapping struct is freed and node->storage is set to NULL.
+ *
+ * Since the RNA paths of the properties changed, we also have to update the
+ * rna_path of the FCurves if they exist. To do that, we loop over FCurves
+ * and check if they control a property of the node, if they do, we update
+ * the path to be that of the corrsponding socket in the node or the added
+ * minimum/maximum node.
+ *
+ */
+static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
+{
+  bool need_update = false;
+
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_MAPPING) {
+      TexMapping *mapping = (TexMapping *)node->storage;
+      node->custom1 = mapping->type;
+      node->width = 140.0f;
+
+      bNodeSocket *sockLocation = nodeFindSocket(node, SOCK_IN, "Location");
+      copy_v3_v3(cycles_node_socket_vector_value(sockLocation), mapping->loc);
+      bNodeSocket *sockRotation = nodeFindSocket(node, SOCK_IN, "Rotation");
+      copy_v3_v3(cycles_node_socket_vector_value(sockRotation), mapping->rot);
+      bNodeSocket *sockScale = nodeFindSocket(node, SOCK_IN, "Scale");
+      copy_v3_v3(cycles_node_socket_vector_value(sockScale), mapping->size);
+
+      bNode *maximumNode = NULL;
+      if (mapping->flag & TEXMAP_CLIP_MAX) {
+        maximumNode = nodeAddStaticNode(NULL, ntree, SH_NODE_VECTOR_MATH);
+        maximumNode->custom1 = NODE_VECTOR_MATH_MAXIMUM;
+        if (mapping->flag & TEXMAP_CLIP_MIN) {
+          maximumNode->locx = node->locx + (node->width + 20.0f) * 2.0f;
+        }
+        else {
+          maximumNode->locx = node->locx + node->width + 20.0f;
+        }
+        maximumNode->locy = node->locy;
+        bNodeSocket *sockMaximumB = BLI_findlink(&maximumNode->inputs, 1);
+        copy_v3_v3(cycles_node_socket_vector_value(sockMaximumB), mapping->max);
+        bNodeSocket *sockMappingResult = nodeFindSocket(node, SOCK_OUT, "Vector");
+
+        LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
+          if (link->fromsock == sockMappingResult) {
+            bNodeSocket *sockMaximumResult = nodeFindSocket(maximumNode, SOCK_OUT, "Vector");
+            nodeAddLink(ntree, maximumNode, sockMaximumResult, link->tonode, link->tosock);
+            nodeRemLink(ntree, link);
+          }
+        }
+        if (!(mapping->flag & TEXMAP_CLIP_MIN)) {
+          bNodeSocket *sockMaximumA = BLI_findlink(&maximumNode->inputs, 0);
+          nodeAddLink(ntree, node, sockMappingResult, maximumNode, sockMaximumA);
+        }
+
+        need_update = true;
+      }
+
+      bNode *minimumNode = NULL;
+      if (mapping->flag & TEXMAP_CLIP_MIN) {
+        minimumNode = nodeAddStaticNode(NULL, ntree, SH_NODE_VECTOR_MATH);
+        minimumNode->custom1 = NODE_VECTOR_MATH_MINIMUM;
+        minimumNode->locx = node->locx + node->width + 20.0f;
+        minimumNode->locy = node->locy;
+        bNodeSocket *sockMinimumB = BLI_findlink(&minimumNode->inputs, 1);
+        copy_v3_v3(cycles_node_socket_vector_value(sockMinimumB), mapping->min);
+
+        bNodeSocket *sockMinimumResult = nodeFindSocket(minimumNode, SOCK_OUT, "Vector");
+        bNodeSocket *sockMappingResult = nodeFindSocket(node, SOCK_OUT, "Vector");
+
+        if (maximumNode) {
+          bNodeSocket *sockMaximumA = BLI_findlink(&maximumNode->inputs, 0);
+          nodeAddLink(ntree, minimumNode, sockMinimumResult, maximumNode, sockMaximumA);
+        }
+        else {
+          LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
+            if (link->fromsock == sockMappingResult) {
+              nodeAddLink(ntree, minimumNode, sockMinimumResult, link->tonode, link->tosock);
+              nodeRemLink(ntree, link);
+            }
+          }
+        }
+        bNodeSocket *sockMinimumA = BLI_findlink(&minimumNode->inputs, 0);
+        nodeAddLink(ntree, node, sockMappingResult, minimumNode, sockMinimumA);
+
+        need_update = true;
+      }
+
+      MEM_freeN(node->storage);
+      node->storage = NULL;
+
+      AnimData *animData = BKE_animdata_from_id(&ntree->id);
+      if (animData && animData->action) {
+        const char *nodePath = BLI_sprintfN("nodes[\"%s\"]", node->name);
+        for (FCurve *fcu = animData->action->curves.first; fcu; fcu = fcu->next) {
+          if (STRPREFIX(fcu->rna_path, nodePath) &&
+              !BLI_str_endswith(fcu->rna_path, "default_value")) {
+
+            MEM_freeN(fcu->rna_path);
+            if (BLI_str_endswith(fcu->rna_path, "translation")) {
+              fcu->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[1].default_value");
+            }
+            else if (BLI_str_endswith(fcu->rna_path, "rotation")) {
+              fcu->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[2].default_value");
+            }
+            else if (BLI_str_endswith(fcu->rna_path, "scale")) {
+              fcu->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[3].default_value");
+            }
+            else if (minimumNode && BLI_str_endswith(fcu->rna_path, "min")) {
+              fcu->rna_path = BLI_sprintfN(
+                  "nodes[\"%s\"].%s", minimumNode->name, "inputs[1].default_value");
+            }
+            else if (maximumNode && BLI_str_endswith(fcu->rna_path, "max")) {
+              fcu->rna_path = BLI_sprintfN(
+                  "nodes[\"%s\"].%s", maximumNode->name, "inputs[1].default_value");
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (need_update) {
+    ntreeUpdateTree(NULL, ntree);
+  }
+}
+
 void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bmain)
 {
   /* Particle shape shared with Eevee. */
@@ -946,6 +1085,15 @@ void do_versions_after_linking_cycles(Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_SHADER) {
         update_noise_node_dimensions(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 281, 8)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        update_mapping_node_inputs_and_properties(ntree);
       }
     }
     FOREACH_NODETREE_END;

@@ -391,9 +391,10 @@ class MappingNode : public ShaderNode {
   {
     return NODE_GROUP_LEVEL_2;
   }
+  void constant_fold(const ConstantFolder &folder);
 
-  float3 vector;
-  TextureMapping tex_mapping;
+  float3 vector, location, rotation, scale;
+  NodeMappingType type;
 };
 
 class RGBToBWNode : public ShaderNode {

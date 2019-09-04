@@ -318,7 +318,7 @@ static GPUMaterialLibrary gpu_shader_material_light_path_library = {
 
 static GPUMaterialLibrary gpu_shader_material_mapping_library = {
     .code = datatoc_gpu_shader_material_mapping_glsl,
-    .dependencies = {NULL},
+    .dependencies = {&gpu_shader_material_math_util_library, NULL},
 };
 
 static GPUMaterialLibrary gpu_shader_material_map_range_library = {
