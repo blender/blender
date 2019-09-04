@@ -63,8 +63,6 @@ const UserDef U_default = {
     .gpu_flag = 0,
     .app_flag = 0,
     .language = 0,
-    .userpref = USER_SECTION_INTERFACE,
-    .userpref_flag = 0,
     .viewzoom = USER_ZOOM_DOLLY,
     .mixbufsize = 2048,
     .audiodevice = 0,
@@ -182,6 +180,11 @@ const UserDef U_default = {
     .pie_menu_confirm = 0,
     .pie_menu_radius = 100,
     .pie_menu_threshold = 12,
+    .opensubdiv_compute_type = 0,
+    .gpencil_multisamples = 4,
+    .factor_display_type = USER_FACTOR_AS_FACTOR,
+    .viewport_aa = 8,
+
     .walk_navigation =
         {
             .mouse_speed = 1,
@@ -192,10 +195,12 @@ const UserDef U_default = {
             .teleport_time = 0.2,
             .flag = 0,
         },
-    .opensubdiv_compute_type = 0,
-    .gpencil_multisamples = 4,
-    .factor_display_type = USER_FACTOR_AS_FACTOR,
-    .viewport_aa = 8,
+
+    .space_data =
+        {
+            .section_active = USER_SECTION_INTERFACE,
+        },
+
     .runtime =
         {
             .is_dirty = 0,

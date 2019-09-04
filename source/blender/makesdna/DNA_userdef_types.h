@@ -562,6 +562,17 @@ typedef struct UserDef_Runtime {
   char _pad0[7];
 } UserDef_Runtime;
 
+/**
+ * Store UI data here instead of the space
+ * since the space is typically a window which is freed.
+ */
+typedef struct UserDef_SpaceData {
+  char section_active;
+  /** #eUserPrefUI_Flag UI options. */
+  char flag;
+  char _pad0[6];
+} UserDef_SpaceData;
+
 typedef struct UserDef {
   /** UserDef has separate do-version handling, and can be read from other files. */
   int versionfile, subversionfile;
@@ -570,8 +581,7 @@ typedef struct UserDef {
   int flag;
   /** #eDupli_ID_Flags. */
   short dupflag;
-  /**
-   * #eUserPref_PrefFlag preferences for the preferences. */
+  /** #eUserPref_PrefFlag preferences for the preferences. */
   char pref_flag;
   char savetime;
   char _pad4[4];
@@ -609,14 +619,12 @@ typedef struct UserDef {
   /** #eUserpref_UI_Flag2. */
   char uiflag2;
   char gpu_flag;
-  char _pad8[2];
+  char _pad8[6];
   /* Experimental flag for app-templates to make changes to behavior
    * which are outside the scope of typical preferences. */
-  short app_flag;
-  short language;
-  short userpref;
-  char userpref_flag;
+  char app_flag;
   char viewzoom;
+  short language;
 
   int mixbufsize;
   int audiodevice;
@@ -774,7 +782,6 @@ typedef struct UserDef {
 
   /** Legacy, for backwards compatibility only. */
   int compute_device_type;
-  char _pad6[4];
 
   /** Opacity of inactive F-Curves in F-Curve Editor. */
   float fcu_inactive_alpha;
@@ -796,8 +803,6 @@ typedef struct UserDef {
   /** Pie menu distance from center before a direction is set. */
   short pie_menu_threshold;
 
-  struct WalkNavigation walk_navigation;
-
   short opensubdiv_compute_type;
   /** #eMultiSample_Type, amount of samples for Grease Pencil. */
   short gpencil_multisamples;
@@ -806,7 +811,12 @@ typedef struct UserDef {
 
   char viewport_aa;
 
-  char _pad5[2];
+  char _pad5[6];
+
+  struct WalkNavigation walk_navigation;
+
+  /** The UI for the user preferences. */
+  UserDef_SpaceData space_data;
 
   /** Runtime data (keep last). */
   UserDef_Runtime runtime;
@@ -820,7 +830,7 @@ extern UserDef U;
 /* Toggles for unfinished 2.8 UserPref design. */
 //#define WITH_USERDEF_WORKSPACES
 
-/** #UserDef.userpref (UI active_section) */
+/** #UserDef_SpaceData.section_active (UI active_section) */
 typedef enum eUserPref_Section {
   USER_SECTION_INTERFACE = 0,
   USER_SECTION_EDITING = 1,
@@ -842,11 +852,12 @@ typedef enum eUserPref_Section {
   USER_SECTION_FILE_PATHS = 15,
 } eUserPref_Section;
 
-/** UserDef.userpref_flag (State of the user preferences UI). */
-typedef enum eUserPref_SectionFlag {
-  /* Hide/expand keymap preferences. */
-  USER_SECTION_INPUT_HIDE_UI_KEYCONFIG = (1 << 0),
-} eUserPref_SectionFlag;
+/** #UserDef_SpaceData.flag (State of the user preferences UI). */
+typedef enum eUserPrefUI_Flag {
+  /** Hide/expand key-map preferences. */
+  USER_SPACEDATA_INPUT_HIDE_UI_KEYCONFIG = (1 << 0),
+  USER_SPACEDATA_ADDONS_SHOW_ONLY_ENABLED = (1 << 1),
+} eUserPrefUI_Flag;
 
 /** #UserDef.flag */
 typedef enum eUserPref_Flag {
@@ -877,7 +888,7 @@ typedef enum eUserPref_Flag {
   USER_NONEGFRAMES = (1 << 24),
   USER_TXT_TABSTOSPACES_DISABLE = (1 << 25),
   USER_TOOLTIPS_PYTHON = (1 << 26),
-  USER_ADDONS_ENABLED_ONLY = (1 << 27),
+  USER_FLAG_UNUSED_27 = (1 << 27), /* dirty */
 } eUserPref_Flag;
 
 typedef enum eUserPref_PrefFlag {

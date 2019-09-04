@@ -1767,7 +1767,7 @@ static void wm_userpref_read_exceptions(UserDef *userdef_curr, const UserDef *us
   ((void)0)
 
   /* Current visible preferences category. */
-  USERDEF_RESTORE(userpref);
+  USERDEF_RESTORE(space_data.section_active);
 
 #undef USERDEF_RESTORE
 }
