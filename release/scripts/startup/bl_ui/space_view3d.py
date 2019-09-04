@@ -5131,6 +5131,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                 split = layout.split(factor=0.9)
                 col = split.column()
                 col.prop(shading, "studiolight_rotate_z", text="Rotation")
+                col.prop(shading, "studiolight_intensity")
                 col.prop(shading, "studiolight_background_alpha")
                 col = split.column()  # to align properly with above
 
@@ -5153,6 +5154,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                 split = layout.split(factor=0.9)
                 col = split.column()
                 col.prop(shading, "studiolight_rotate_z", text="Rotation")
+                col.prop(shading, "studiolight_intensity")
                 col.prop(shading, "studiolight_background_alpha")
                 col = split.column()  # to align properly with above
 

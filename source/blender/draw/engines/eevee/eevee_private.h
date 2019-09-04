@@ -789,6 +789,7 @@ typedef struct EEVEE_PrivateData {
   /* LookDev Settings */
   int studiolight_index;
   float studiolight_rot_z;
+  float studiolight_intensity;
   int studiolight_cubemap_res;
   float studiolight_glossy_clamp;
   float studiolight_filter_quality;

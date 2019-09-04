@@ -1347,6 +1347,14 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
       texture_environment->filename = new_viewport_parameters.studiolight_path;
       graph->add(texture_environment);
 
+      MixNode *mix_intensity = new MixNode();
+      mix_intensity->type = NODE_MIX_MUL;
+      mix_intensity->fac = 1.0f;
+      mix_intensity->color2 = make_float3(new_viewport_parameters.studiolight_intensity,
+                                          new_viewport_parameters.studiolight_intensity,
+                                          new_viewport_parameters.studiolight_intensity);
+      graph->add(mix_intensity);
+
       TextureCoordinateNode *texture_coordinate = new TextureCoordinateNode();
       graph->add(texture_coordinate);
 
@@ -1359,10 +1367,10 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
 
       graph->connect(texture_coordinate->output("Generated"),
                      texture_environment->input("Vector"));
+      graph->connect(texture_environment->output("Color"), mix_intensity->input("Color1"));
       graph->connect(light_path->output("Is Camera Ray"), mix_scene_with_background->input("Fac"));
-      graph->connect(texture_environment->output("Color"),
-                     mix_scene_with_background->input("Color1"));
-      graph->connect(texture_environment->output("Color"),
+      graph->connect(mix_intensity->output("Color"), mix_scene_with_background->input("Color1"));
+      graph->connect(mix_intensity->output("Color"),
                      mix_background_with_environment->input("Color2"));
       graph->connect(mix_background_with_environment->output("Color"),
                      mix_scene_with_background->input("Color2"));

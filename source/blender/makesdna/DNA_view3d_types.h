@@ -152,7 +152,7 @@ typedef struct View3DShading {
   char background_type;
   char cavity_type;
   char wire_color_type;
-  char _pad[6];
+  char _pad[2];
 
   /** FILE_MAXFILE. */
   char studio_light[256];
@@ -166,6 +166,7 @@ typedef struct View3DShading {
 
   float studiolight_rot_z;
   float studiolight_background;
+  float studiolight_intensity;
 
   float object_outline_color[3];
   float xray_alpha;
@@ -178,7 +179,6 @@ typedef struct View3DShading {
 
   float curvature_ridge_factor;
   float curvature_valley_factor;
-
 } View3DShading;
 
 /** 3D Viewport Overlay settings. */

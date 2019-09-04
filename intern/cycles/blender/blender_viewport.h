@@ -31,6 +31,7 @@ class BlenderViewportParameters {
   bool use_scene_world;
   bool use_scene_lights;
   float studiolight_rotate_z;
+  float studiolight_intensity;
   float studiolight_background_alpha;
   ustring studiolight_path;
 

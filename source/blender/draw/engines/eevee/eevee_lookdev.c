@@ -151,6 +151,9 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
           stl->g_data->studiolight_matrix, 'Z', v3d->shading.studiolight_rot_z);
       DRW_shgroup_uniform_mat3(*grp, "StudioLightMatrix", stl->g_data->studiolight_matrix);
       DRW_shgroup_uniform_float_copy(*grp, "backgroundAlpha", background_alpha);
+      DRW_shgroup_uniform_float(
+          *grp, "studioLightIntensity", &v3d->shading.studiolight_intensity, 1);
+
       DRW_shgroup_uniform_vec3(*grp, "color", background_color, 1);
       DRW_shgroup_call(*grp, geom, NULL);
       if (!pinfo) {
@@ -170,12 +173,14 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       /* Do we need to recalc the lightprobes? */
       if (g_data->studiolight_index != sl->index ||
           g_data->studiolight_rot_z != v3d->shading.studiolight_rot_z ||
+          g_data->studiolight_intensity != v3d->shading.studiolight_intensity ||
           g_data->studiolight_cubemap_res != scene->eevee.gi_cubemap_resolution ||
           g_data->studiolight_glossy_clamp != scene->eevee.gi_glossy_clamp ||
           g_data->studiolight_filter_quality != scene->eevee.gi_filter_quality) {
         stl->lookdev_lightcache->flag |= LIGHTCACHE_UPDATE_WORLD;
         g_data->studiolight_index = sl->index;
         g_data->studiolight_rot_z = v3d->shading.studiolight_rot_z;
+        g_data->studiolight_intensity = v3d->shading.studiolight_intensity;
         g_data->studiolight_cubemap_res = scene->eevee.gi_cubemap_resolution;
         g_data->studiolight_glossy_clamp = scene->eevee.gi_glossy_clamp;
         g_data->studiolight_filter_quality = scene->eevee.gi_filter_quality;
