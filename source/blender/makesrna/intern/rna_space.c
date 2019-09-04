@@ -384,26 +384,26 @@ const EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
  * but helps for context-less access (e.g. doc, i18n...). */
 static const EnumPropertyItem buttons_context_items[] = {
     {BCONTEXT_TOOL, "TOOL", ICON_TOOL_SETTINGS, "Tool", "Active Tool and Workspace settings"},
-    {BCONTEXT_SCENE, "SCENE", ICON_SCENE_DATA, "Scene", "Scene"},
-    {BCONTEXT_RENDER, "RENDER", ICON_SCENE, "Render", "Render"},
-    {BCONTEXT_OUTPUT, "OUTPUT", ICON_OUTPUT, "Output", "Output"},
-    {BCONTEXT_VIEW_LAYER, "VIEW_LAYER", ICON_RENDER_RESULT, "View Layer", "View Layer"},
-    {BCONTEXT_WORLD, "WORLD", ICON_WORLD, "World", "World"},
-    {BCONTEXT_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Object"},
-    {BCONTEXT_CONSTRAINT, "CONSTRAINT", ICON_CONSTRAINT, "Constraints", "Object Constraints"},
-    {BCONTEXT_MODIFIER, "MODIFIER", ICON_MODIFIER, "Modifiers", "Modifiers"},
-    {BCONTEXT_DATA, "DATA", ICON_NONE, "Data", "Object Data"},
-    {BCONTEXT_BONE, "BONE", ICON_BONE_DATA, "Bone", "Bone"},
+    {BCONTEXT_SCENE, "SCENE", ICON_SCENE_DATA, "Scene", "Scene Properties"},
+    {BCONTEXT_RENDER, "RENDER", ICON_SCENE, "Render", "Render Properties"},
+    {BCONTEXT_OUTPUT, "OUTPUT", ICON_OUTPUT, "Output", "Output Properties"},
+    {BCONTEXT_VIEW_LAYER, "VIEW_LAYER", ICON_RENDER_RESULT, "View Layer", "View Layer Properties"},
+    {BCONTEXT_WORLD, "WORLD", ICON_WORLD, "World", "World Properties"},
+    {BCONTEXT_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Object Properties"},
+    {BCONTEXT_CONSTRAINT, "CONSTRAINT", ICON_CONSTRAINT, "Constraints", "Object Constraint Properties"},
+    {BCONTEXT_MODIFIER, "MODIFIER", ICON_MODIFIER, "Modifiers", "Modifier Properties"},
+    {BCONTEXT_DATA, "DATA", ICON_NONE, "Data", "Object Data Properties"},
+    {BCONTEXT_BONE, "BONE", ICON_BONE_DATA, "Bone", "Bone Properties"},
     {BCONTEXT_BONE_CONSTRAINT,
      "BONE_CONSTRAINT",
      ICON_CONSTRAINT_BONE,
      "Bone Constraints",
-     "Bone Constraints"},
-    {BCONTEXT_MATERIAL, "MATERIAL", ICON_MATERIAL, "Material", "Material"},
-    {BCONTEXT_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture"},
-    {BCONTEXT_PARTICLE, "PARTICLES", ICON_PARTICLES, "Particles", "Particles"},
-    {BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics"},
-    {BCONTEXT_SHADERFX, "SHADERFX", ICON_SHADERFX, "Effects", "Object visual effects"},
+     "Bone Constraint Properties"},
+    {BCONTEXT_MATERIAL, "MATERIAL", ICON_MATERIAL, "Material", "Material Properties"},
+    {BCONTEXT_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture Properties"},
+    {BCONTEXT_PARTICLE, "PARTICLES", ICON_PARTICLES, "Particles", "Particle Properties"},
+    {BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics Properties"},
+    {BCONTEXT_SHADERFX, "SHADERFX", ICON_SHADERFX, "Effects", "Visual Effects Properties"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -4191,7 +4191,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, buttons_context_items);
   RNA_def_property_enum_funcs(
       prop, NULL, "rna_SpaceProperties_context_set", "rna_SpaceProperties_context_itemf");
-  RNA_def_property_ui_text(prop, "Context", "");
+  RNA_def_property_ui_text(prop, "", "");
   RNA_def_property_update(
       prop, NC_SPACE | ND_SPACE_PROPERTIES, "rna_SpaceProperties_context_update");
 
