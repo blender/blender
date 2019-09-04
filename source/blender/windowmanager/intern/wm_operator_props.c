@@ -500,19 +500,26 @@ void WM_operator_properties_mouse_select(wmOperatorType *ot)
  */
 void WM_operator_properties_checker_interval(wmOperatorType *ot, bool nth_can_disable)
 {
-  const int nth_default = nth_can_disable ? 1 : 2;
-  const int nth_min = min_ii(nth_default, 2);
+  const int nth_default = nth_can_disable ? 0 : 1;
+  const int nth_min = min_ii(nth_default, 1);
   RNA_def_int(ot->srna,
-              "nth",
+              "skip",
               nth_default,
               nth_min,
               INT_MAX,
-              "Nth Element",
-              "Skip every Nth element",
+              "Deselected",
+              "Number of deselected elements in the repetitive sequence",
               nth_min,
               100);
-  RNA_def_int(
-      ot->srna, "skip", 1, 1, INT_MAX, "Skip", "Number of elements to skip at once", 1, 100);
+  RNA_def_int(ot->srna,
+              "nth",
+              1,
+              1,
+              INT_MAX,
+              "Selected",
+              "Number of selected elements in the repetitive sequence",
+              1,
+              100);
   RNA_def_int(ot->srna,
               "offset",
               0,
@@ -527,7 +534,7 @@ void WM_operator_properties_checker_interval(wmOperatorType *ot, bool nth_can_di
 void WM_operator_properties_checker_interval_from_op(struct wmOperator *op,
                                                      struct CheckerIntervalParams *op_params)
 {
-  const int nth = RNA_int_get(op->ptr, "nth") - 1;
+  const int nth = RNA_int_get(op->ptr, "nth");
   const int skip = RNA_int_get(op->ptr, "skip");
   int offset = RNA_int_get(op->ptr, "offset");
 
@@ -541,6 +548,6 @@ void WM_operator_properties_checker_interval_from_op(struct wmOperator *op,
 bool WM_operator_properties_checker_interval_test(const struct CheckerIntervalParams *op_params,
                                                   int depth)
 {
-  return ((op_params->nth == 0) ||
+  return ((op_params->skip == 0) ||
           ((op_params->offset + depth) % (op_params->skip + op_params->nth) >= op_params->skip));
 }

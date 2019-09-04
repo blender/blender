@@ -3734,7 +3734,7 @@ static void walker_deselect_nth(BMEditMesh *em,
     if (!BM_elem_flag_test(ele, BM_ELEM_TAG)) {
       /* Deselect elements that aren't at "nth" depth from active */
       const int depth = BMW_current_depth(&walker) - 1;
-      if (WM_operator_properties_checker_interval_test(op_params, depth)) {
+      if (!WM_operator_properties_checker_interval_test(op_params, depth)) {
         BM_elem_select_set(bm, ele, false);
       }
       BM_elem_flag_enable(ele, BM_ELEM_TAG);
