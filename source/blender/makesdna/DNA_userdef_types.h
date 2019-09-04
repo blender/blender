@@ -568,7 +568,7 @@ typedef struct UserDef_Runtime {
  */
 typedef struct UserDef_SpaceData {
   char section_active;
-  /** #eUserPrefUI_Flag UI options. */
+  /** #eUserPref_SpaceData_Flag UI options. */
   char flag;
   char _pad0[6];
 } UserDef_SpaceData;
@@ -853,11 +853,11 @@ typedef enum eUserPref_Section {
 } eUserPref_Section;
 
 /** #UserDef_SpaceData.flag (State of the user preferences UI). */
-typedef enum eUserPrefUI_Flag {
+typedef enum eUserPref_SpaceData_Flag {
   /** Hide/expand key-map preferences. */
   USER_SPACEDATA_INPUT_HIDE_UI_KEYCONFIG = (1 << 0),
   USER_SPACEDATA_ADDONS_SHOW_ONLY_ENABLED = (1 << 1),
-} eUserPrefUI_Flag;
+} eUserPref_SpaceData_Flag;
 
 /** #UserDef.flag */
 typedef enum eUserPref_Flag {
