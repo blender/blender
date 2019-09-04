@@ -85,6 +85,7 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
        "Open",
        "Use the file browser for opening files or a directory"},
       {FILE_SAVE, "SAVE", 0, "Save", "Use the file browser for saving a file"},
+      {0, NULL, 0, NULL, NULL},
   };
 
   if (flag & WM_FILESEL_FILEPATH) {
