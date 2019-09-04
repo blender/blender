@@ -2164,7 +2164,7 @@ void rotate_m4(float mat[4][4], const char axis, const float angle)
 }
 
 /** Scale a matrix in-place. */
-void rescale_m4(float mat[4][4], float scale[3])
+void rescale_m4(float mat[4][4], const float scale[3])
 {
   mul_v3_fl(mat[0], scale[0]);
   mul_v3_fl(mat[1], scale[1]);
@@ -2354,6 +2354,20 @@ bool equals_m4m4(const float mat1[4][4], const float mat2[4][4])
 {
   return (equals_v4v4(mat1[0], mat2[0]) && equals_v4v4(mat1[1], mat2[1]) &&
           equals_v4v4(mat1[2], mat2[2]) && equals_v4v4(mat1[3], mat2[3]));
+}
+
+/**
+ * Make a 4x4 matrix out of 3 transform components.
+ * Matrices are made in the order: `scale * rot * loc`
+ */
+void loc_rot_size_to_mat4(float mat[4][4],
+                          const float loc[3],
+                          const float rot[3][3],
+                          const float size[3])
+{
+  copy_m4_m3(mat, rot);
+  rescale_m4(mat, size);
+  copy_v3_v3(mat[3], loc);
 }
 
 /**

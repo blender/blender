@@ -530,6 +530,24 @@ static void rna_Constraint_ik_type_set(struct PointerRNA *ptr, int value)
   }
 }
 
+/* DEPRECATED: use_offset replaced with mix_mode */
+static bool rna_Constraint_RotLike_use_offset_get(struct PointerRNA *ptr)
+{
+  bConstraint *con = ptr->data;
+  bRotateLikeConstraint *rotlike = con->data;
+  return rotlike->mix_mode != ROTLIKE_MIX_REPLACE;
+}
+
+static void rna_Constraint_RotLike_use_offset_set(struct PointerRNA *ptr, bool value)
+{
+  bConstraint *con = ptr->data;
+  bRotateLikeConstraint *rotlike = con->data;
+  bool curval = (rotlike->mix_mode != ROTLIKE_MIX_REPLACE);
+  if (curval != value) {
+    rotlike->mix_mode = (value ? ROTLIKE_MIX_OFFSET : ROTLIKE_MIX_REPLACE);
+  }
+}
+
 static const EnumPropertyItem *rna_Constraint_owner_space_itemf(bContext *UNUSED(C),
                                                                 PointerRNA *ptr,
                                                                 PropertyRNA *UNUSED(prop),
@@ -1298,6 +1316,28 @@ static void rna_def_constraint_rotate_like(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
+  static const EnumPropertyItem mix_mode_items[] = {
+      {ROTLIKE_MIX_REPLACE, "REPLACE", 0, "Replace", "Replace the original rotation with copied"},
+      {ROTLIKE_MIX_ADD, "ADD", 0, "Add", "Add euler component values together"},
+      {ROTLIKE_MIX_BEFORE,
+       "BEFORE",
+       0,
+       "Before Original",
+       "Apply copied rotation before original, as if the constraint target is a parent"},
+      {ROTLIKE_MIX_AFTER,
+       "AFTER",
+       0,
+       "After Original",
+       "Apply copied rotation after original, as if the constraint target is a child"},
+      {ROTLIKE_MIX_OFFSET,
+       "OFFSET",
+       0,
+       "Offset (Legacy)",
+       "Combine rotations like the original Offset checkbox. Does not work well for "
+       "multiple axis rotations"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "CopyRotationConstraint", "Constraint");
   RNA_def_struct_ui_text(srna, "Copy Rotation Constraint", "Copy the rotation of the target");
   RNA_def_struct_sdna_from(srna, "bRotateLikeConstraint", "data");
@@ -1341,9 +1381,19 @@ static void rna_def_constraint_rotate_like(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Euler Order", "Explicitly specify the euler rotation order");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
+  prop = RNA_def_property(srna, "mix_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "mix_mode");
+  RNA_def_property_enum_items(prop, mix_mode_items);
+  RNA_def_property_ui_text(
+      prop, "Mix Mode", "Specify how the copied and existing rotations are combined");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
+  /* DEPRECATED: replaced with mix_mode */
   prop = RNA_def_property(srna, "use_offset", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_OFFSET);
-  RNA_def_property_ui_text(prop, "Offset", "Add original rotation into copied rotation");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_Constraint_RotLike_use_offset_get", "rna_Constraint_RotLike_use_offset_set");
+  RNA_def_property_ui_text(
+      prop, "Offset", "DEPRECATED: Add original rotation into copied rotation");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 }
 

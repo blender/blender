@@ -272,7 +272,8 @@ typedef struct bRotateLikeConstraint {
   struct Object *tar;
   int flag;
   char euler_order;
-  char _pad[3];
+  char mix_mode;
+  char _pad[2];
   /** MAX_ID_NAME-2. */
   char subtarget[64];
 } bRotateLikeConstraint;
@@ -747,8 +748,24 @@ typedef enum eCopyRotation_Flags {
   ROTLIKE_X_INVERT = (1 << 4),
   ROTLIKE_Y_INVERT = (1 << 5),
   ROTLIKE_Z_INVERT = (1 << 6),
+#ifdef DNA_DEPRECATED
   ROTLIKE_OFFSET = (1 << 7),
+#endif
 } eCopyRotation_Flags;
+
+/* bRotateLikeConstraint.mix_mode */
+typedef enum eCopyRotation_MixMode {
+  /* Replace rotation channel values. */
+  ROTLIKE_MIX_REPLACE = 0,
+  /* Legacy Offset mode - don't use. */
+  ROTLIKE_MIX_OFFSET,
+  /* Add Euler components together. */
+  ROTLIKE_MIX_ADD,
+  /* Multiply the copied rotation on the left. */
+  ROTLIKE_MIX_BEFORE,
+  /* Multiply the copied rotation on the right. */
+  ROTLIKE_MIX_AFTER,
+} eCopyRotation_MixMode;
 
 /* bLocateLikeConstraint.flag */
 typedef enum eCopyLocation_Flags {

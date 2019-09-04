@@ -727,6 +727,17 @@ static void do_version_constraints_copy_scale_power(ListBase *lb)
   }
 }
 
+static void do_version_constraints_copy_rotation_mix_mode(ListBase *lb)
+{
+  for (bConstraint *con = lb->first; con; con = con->next) {
+    if (con->type == CONSTRAINT_TYPE_ROTLIKE) {
+      bRotateLikeConstraint *data = (bRotateLikeConstraint *)con->data;
+      data->mix_mode = (data->flag & ROTLIKE_OFFSET) ? ROTLIKE_MIX_OFFSET : ROTLIKE_MIX_REPLACE;
+      data->flag &= ~ROTLIKE_OFFSET;
+    }
+  }
+}
+
 static void do_versions_seq_alloc_transform_and_crop(ListBase *seqbase)
 {
   for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
@@ -3795,6 +3806,18 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     if (!DNA_struct_elem_find(fd->filesdna, "Bone", "char", "inherit_scale_mode")) {
       LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
         do_version_bones_inherit_scale(&arm->bonebase);
+      }
+    }
+
+    /* Convert the Offset flag to the mix mode enum. */
+    if (!DNA_struct_elem_find(fd->filesdna, "bRotateLikeConstraint", "char", "mix_mode")) {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        do_version_constraints_copy_rotation_mix_mode(&ob->constraints);
+        if (ob->pose) {
+          LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+            do_version_constraints_copy_rotation_mix_mode(&pchan->constraints);
+          }
+        }
       }
     }
   }

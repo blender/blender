@@ -310,7 +310,7 @@ void mat4_to_size_fix_shear(float r[3], const float M[4][4]);
 
 void translate_m4(float mat[4][4], float tx, float ty, float tz);
 void rotate_m4(float mat[4][4], const char axis, const float angle);
-void rescale_m4(float mat[4][4], float scale[3]);
+void rescale_m4(float mat[4][4], const float scale[3]);
 void transform_pivot_set_m4(float mat[4][4], const float pivot[3]);
 
 void mat3_to_rot_size(float rot[3][3], float size[3], const float mat3[3][3]);
@@ -320,6 +320,10 @@ void mat4_decompose(float loc[3], float quat[4], float size[3], const float wmat
 
 void mat3_polar_decompose(const float mat3[3][3], float r_U[3][3], float r_P[3][3]);
 
+void loc_rot_size_to_mat4(float R[4][4],
+                          const float loc[3],
+                          const float rot[3][3],
+                          const float size[3]);
 void loc_eul_size_to_mat4(float R[4][4],
                           const float loc[3],
                           const float eul[3],

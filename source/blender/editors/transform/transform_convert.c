@@ -1330,7 +1330,8 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
           /* CopyRot constraint only does this when rotating, and offset is on */
           bRotateLikeConstraint *data = (bRotateLikeConstraint *)con->data;
 
-          if ((data->flag & ROTLIKE_OFFSET) && (t->mode == TFM_ROTATION)) {
+          if (ELEM(data->mix_mode, ROTLIKE_MIX_OFFSET, ROTLIKE_MIX_BEFORE) &&
+              ELEM(t->mode, TFM_ROTATION)) {
             return true;
           }
         }

@@ -392,7 +392,7 @@ class ConstraintButtonsPanel:
         sub.active = con.use_z
         sub.prop(con, "invert_z", text="Invert")
 
-        layout.prop(con, "use_offset")
+        layout.prop(con, "mix_mode", text="Mix")
 
         self.space_template(layout, con)
 

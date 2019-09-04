@@ -1802,12 +1802,10 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
   bConstraintTarget *ct = targets->first;
 
   if (VALID_CONS_TARGET(ct)) {
-    float loc[3];
-    float eul[3], obeul[3];
-    float size[3];
+    float loc[3], size[3], oldrot[3][3], newrot[3][3];
+    float eul[3], obeul[3], defeul[3];
 
-    copy_v3_v3(loc, cob->matrix[3]);
-    mat4_to_size(size, cob->matrix);
+    mat4_to_loc_rot_size(loc, oldrot, size, cob->matrix);
 
     /* Select the Euler rotation order, defaulting to the owner. */
     short rot_order = cob->rotOrder;
@@ -1822,11 +1820,28 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
      * some of them can be modified below (see bug T21875). */
     mat4_to_compatible_eulO(eul, obeul, rot_order, ct->matrix);
 
+    /* Prepare the copied euler rotation. */
+    bool legacy_offset = false;
+
+    switch (data->mix_mode) {
+      case ROTLIKE_MIX_OFFSET:
+        legacy_offset = true;
+        copy_v3_v3(defeul, obeul);
+        break;
+
+      case ROTLIKE_MIX_REPLACE:
+        copy_v3_v3(defeul, obeul);
+        break;
+
+      default:
+        zero_v3(defeul);
+    }
+
     if ((data->flag & ROTLIKE_X) == 0) {
-      eul[0] = obeul[0];
+      eul[0] = defeul[0];
     }
     else {
-      if (data->flag & ROTLIKE_OFFSET) {
+      if (legacy_offset) {
         rotate_eulO(eul, rot_order, 'X', obeul[0]);
       }
 
@@ -1836,10 +1851,10 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     }
 
     if ((data->flag & ROTLIKE_Y) == 0) {
-      eul[1] = obeul[1];
+      eul[1] = defeul[1];
     }
     else {
-      if (data->flag & ROTLIKE_OFFSET) {
+      if (legacy_offset) {
         rotate_eulO(eul, rot_order, 'Y', obeul[1]);
       }
 
@@ -1849,10 +1864,10 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     }
 
     if ((data->flag & ROTLIKE_Z) == 0) {
-      eul[2] = obeul[2];
+      eul[2] = defeul[2];
     }
     else {
-      if (data->flag & ROTLIKE_OFFSET) {
+      if (legacy_offset) {
         rotate_eulO(eul, rot_order, 'Z', obeul[2]);
       }
 
@@ -1861,10 +1876,36 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
       }
     }
 
+    /* Add the euler components together if needed. */
+    if (data->mix_mode == ROTLIKE_MIX_ADD) {
+      add_v3_v3(eul, obeul);
+    }
+
     /* Good to make eulers compatible again,
      * since we don't know how much they were changed above. */
     compatible_eul(eul, obeul);
-    loc_eulO_size_to_mat4(cob->matrix, loc, eul, size, rot_order);
+    eulO_to_mat3(newrot, eul, rot_order);
+
+    /* Mix the rotation matrices: */
+    switch (data->mix_mode) {
+      case ROTLIKE_MIX_REPLACE:
+      case ROTLIKE_MIX_OFFSET:
+      case ROTLIKE_MIX_ADD:
+        break;
+
+      case ROTLIKE_MIX_BEFORE:
+        mul_m3_m3m3(newrot, newrot, oldrot);
+        break;
+
+      case ROTLIKE_MIX_AFTER:
+        mul_m3_m3m3(newrot, oldrot, newrot);
+        break;
+
+      default:
+        BLI_assert(false);
+    }
+
+    loc_rot_size_to_mat4(cob->matrix, loc, newrot, size);
   }
 }
 
