@@ -1410,6 +1410,22 @@ static void rna_Object_constraints_clear(Object *object, Main *bmain)
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, object);
 }
 
+static void rna_Object_constraints_move(
+    Object *object, Main *bmain, ReportList *reports, int from, int to)
+{
+  if (from == to) {
+    return;
+  }
+
+  if (!BLI_listbase_move_index(&object->constraints, from, to)) {
+    BKE_reportf(reports, RPT_ERROR, "Could not move constraint from index '%d' to '%d'", from, to);
+    return;
+  }
+
+  ED_object_constraint_tag_update(bmain, object, NULL);
+  WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT, object);
+}
+
 bool rna_Object_constraints_override_apply(Main *UNUSED(bmain),
                                            PointerRNA *ptr_dst,
                                            PointerRNA *ptr_src,
@@ -2041,6 +2057,15 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(srna, "clear", "rna_Object_constraints_clear");
   RNA_def_function_flag(func, FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Remove all constraint from this object");
+
+  func = RNA_def_function(srna, "move", "rna_Object_constraints_move");
+  RNA_def_function_ui_description(func, "Move a constraint to a different position");
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
+  parm = RNA_def_int(
+      func, "from_index", -1, INT_MIN, INT_MAX, "From Index", "Index to move", 0, 10000);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_int(func, "to_index", -1, INT_MIN, INT_MAX, "To Index", "Target index", 0, 10000);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
 /* object.modifiers */

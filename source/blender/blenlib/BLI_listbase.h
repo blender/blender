@@ -93,6 +93,7 @@ void BLI_listbase_sort_r(ListBase *listbase,
                          int (*cmp)(void *, const void *, const void *),
                          void *thunk) ATTR_NONNULL(1, 2);
 bool BLI_listbase_link_move(ListBase *listbase, void *vlink, int step) ATTR_NONNULL();
+bool BLI_listbase_move_index(ListBase *listbase, int from, int to) ATTR_NONNULL();
 void BLI_freelist(struct ListBase *listbase) ATTR_NONNULL(1);
 int BLI_listbase_count_at_most(const struct ListBase *listbase,
                                const int count_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);

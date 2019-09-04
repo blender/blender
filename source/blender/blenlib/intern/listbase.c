@@ -504,6 +504,27 @@ bool BLI_listbase_link_move(ListBase *listbase, void *vlink, int step)
 }
 
 /**
+ * Move the link at the index \a from to the position at index \a to.
+ *
+ * @return If the move was successful.
+ */
+bool BLI_listbase_move_index(ListBase *listbase, int from, int to)
+{
+  if (from == to) {
+    return false;
+  }
+
+  /* Find the link to move. */
+  void *link = BLI_findlink(listbase, from);
+
+  if (!link) {
+    return false;
+  }
+
+  return BLI_listbase_link_move(listbase, link, to - from);
+}
+
+/**
  * Removes and disposes of the entire contents of listbase using direct free(3).
  */
 void BLI_freelist(ListBase *listbase)
