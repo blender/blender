@@ -1566,8 +1566,6 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
   // DEG_debug_graph_relations_validate(depsgraph, bmain, scene);
   /* Flush editing data if needed. */
   prepare_mesh_for_viewport_render(bmain, view_layer);
-  /* Flush recalc flags to dependencies. */
-  DEG_graph_flush_update(bmain, depsgraph);
   /* Update all objects: drivers, matrices, displists, etc. flags set
    * by depgraph or manual, no layer check here, gets correct flushed.
    */

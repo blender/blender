@@ -49,7 +49,7 @@ extern "C" {
 #include "intern/depsgraph.h"
 
 /* Evaluate all nodes tagged for updating. */
-void DEG_evaluate_on_refresh(Main * /*bmain*/, Depsgraph *graph)
+void DEG_evaluate_on_refresh(Main *bmain, Depsgraph *graph)
 {
   DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
   deg_graph->ctime = BKE_scene_frame_get(deg_graph->scene);
@@ -60,6 +60,7 @@ void DEG_evaluate_on_refresh(Main * /*bmain*/, Depsgraph *graph)
   if (deg_graph->scene_cow) {
     BKE_scene_frame_set(deg_graph->scene_cow, deg_graph->ctime);
   }
+  DEG::deg_graph_flush_updates(bmain, deg_graph);
   DEG::deg_evaluate_on_refresh(deg_graph);
   deg_graph->need_update_time = false;
 }

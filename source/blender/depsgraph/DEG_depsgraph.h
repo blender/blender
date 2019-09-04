@@ -128,11 +128,6 @@ void DEG_id_type_tag(struct Main *bmain, short id_type);
 
 void DEG_ids_clear_recalc(struct Main *bmain, Depsgraph *depsgraph);
 
-/* Update Flushing ------------------------------- */
-
-/* Flush updates for IDs in a single scene. */
-void DEG_graph_flush_update(struct Main *bmain, Depsgraph *depsgraph);
-
 /* Check if something was changed in the database and inform
  * editors about this.
  */

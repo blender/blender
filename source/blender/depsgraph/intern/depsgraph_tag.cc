@@ -779,14 +779,6 @@ void DEG_id_type_tag(Main *bmain, short id_type)
   }
 }
 
-void DEG_graph_flush_update(Main *bmain, Depsgraph *depsgraph)
-{
-  if (depsgraph == NULL) {
-    return;
-  }
-  DEG::deg_graph_flush_updates(bmain, (DEG::Depsgraph *)depsgraph);
-}
-
 /* Update dependency graph when visible scenes/layers changes. */
 void DEG_graph_on_visible_update(Main *bmain, Depsgraph *depsgraph, const bool do_time)
 {
