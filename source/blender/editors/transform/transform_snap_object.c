@@ -1436,8 +1436,14 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
     /* do nothing */
   }
   else {
-    if (snapdata->snap_to_flag & SCE_SNAP_MODE_VERTEX) {
-      if (lambda < 0.25f || 0.75f < lambda) {
+    short snap_to_flag = snapdata->snap_to_flag;
+    int e_mode_len = ((snap_to_flag & SCE_SNAP_MODE_EDGE) != 0) +
+                     ((snap_to_flag & SCE_SNAP_MODE_VERTEX) != 0) +
+                     ((snap_to_flag & SCE_SNAP_MODE_EDGE_MIDPOINT) != 0);
+
+    float range = 1.0f / (2 * e_mode_len - 1);
+    if (snap_to_flag & SCE_SNAP_MODE_VERTEX) {
+      if (lambda < (range) || (1.0f - range) < lambda) {
         int v_id = lambda < 0.5f ? 0 : 1;
 
         if (test_projected_vert_dist(&neasrest_precalc,
@@ -1454,8 +1460,9 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
       }
     }
 
-    if (snapdata->snap_to_flag & SCE_SNAP_MODE_EDGE_MIDPOINT) {
-      if (0.375f < lambda && lambda < 0.625f) {
+    if (snap_to_flag & SCE_SNAP_MODE_EDGE_MIDPOINT) {
+      range *= e_mode_len - 1;
+      if ((range) < lambda && lambda < (1.0f - range)) {
         float vmid[3];
         mid_v3_v3v3(vmid, v_pair[0], v_pair[1]);
 
