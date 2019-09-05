@@ -364,6 +364,7 @@ static void buttons_area_listener(wmWindow *UNUSED(win),
       switch (wmn->data) {
         case ND_RENDER_OPTIONS:
           buttons_area_redraw(sa, BCONTEXT_RENDER);
+          buttons_area_redraw(sa, BCONTEXT_OUTPUT);
           buttons_area_redraw(sa, BCONTEXT_VIEW_LAYER);
           break;
         case ND_WORLD:
