@@ -289,7 +289,7 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
             elif bg.source == 'MOVIE_CLIP' and bg.clip:
                 row.prop(bg.clip, "name", text="", emboss=False)
             elif bg.source and bg.use_camera_clip:
-                row.label(text="Camera Clip")
+                row.label(text="Active Clip")
             else:
                 row.label(text="Not Set")
 
@@ -329,7 +329,7 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
                             sub.template_image_stereo_3d(bg.image.stereo_3d_format)
 
                 elif bg.source == 'MOVIE_CLIP':
-                    box.prop(bg, "use_camera_clip")
+                    box.prop(bg, "use_camera_clip", text="Active Clip")
 
                     column = box.column()
                     column.active = not bg.use_camera_clip
