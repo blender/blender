@@ -59,7 +59,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_origin_set);
 
   WM_operatortype_append(OBJECT_OT_mode_set);
-  WM_operatortype_append(OBJECT_OT_mode_set_or_submode);
+  WM_operatortype_append(OBJECT_OT_mode_set_with_submode);
   WM_operatortype_append(OBJECT_OT_editmode_toggle);
   WM_operatortype_append(OBJECT_OT_posemode_toggle);
   WM_operatortype_append(OBJECT_OT_proxy_make);

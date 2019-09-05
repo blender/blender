@@ -109,17 +109,17 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 
   switch (event) {
     case B_SEL_VERT:
-      if (EDBM_selectmode_toggle(C, SCE_SELECT_VERTEX, -1, shift, ctrl)) {
+      if (EDBM_selectmode_toggle_multi(C, SCE_SELECT_VERTEX, -1, shift, ctrl)) {
         ED_undo_push(C, "Selectmode Set: Vertex");
       }
       break;
     case B_SEL_EDGE:
-      if (EDBM_selectmode_toggle(C, SCE_SELECT_EDGE, -1, shift, ctrl)) {
+      if (EDBM_selectmode_toggle_multi(C, SCE_SELECT_EDGE, -1, shift, ctrl)) {
         ED_undo_push(C, "Selectmode Set: Edge");
       }
       break;
     case B_SEL_FACE:
-      if (EDBM_selectmode_toggle(C, SCE_SELECT_FACE, -1, shift, ctrl)) {
+      if (EDBM_selectmode_toggle_multi(C, SCE_SELECT_FACE, -1, shift, ctrl)) {
         ED_undo_push(C, "Selectmode Set: Face");
       }
       break;

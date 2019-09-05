@@ -214,11 +214,12 @@ void EDBM_selectmode_convert(struct BMEditMesh *em,
                              const short selectmode_new);
 
 /* user access this */
-bool EDBM_selectmode_toggle(struct bContext *C,
-                            const short selectmode_new,
-                            const int action,
-                            const bool use_extend,
-                            const bool use_expand);
+bool EDBM_selectmode_set_multi(struct bContext *C, const short selectmode);
+bool EDBM_selectmode_toggle_multi(struct bContext *C,
+                                  const short selectmode_new,
+                                  const int action,
+                                  const bool use_extend,
+                                  const bool use_expand);
 
 bool EDBM_selectmode_disable(struct Scene *scene,
                              struct BMEditMesh *em,

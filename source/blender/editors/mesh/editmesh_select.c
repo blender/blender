@@ -1343,7 +1343,7 @@ static int edbm_select_mode_exec(bContext *C, wmOperator *op)
   const bool use_extend = RNA_boolean_get(op->ptr, "use_extend");
   const bool use_expand = RNA_boolean_get(op->ptr, "use_expand");
 
-  if (EDBM_selectmode_toggle(C, type, action, use_extend, use_expand)) {
+  if (EDBM_selectmode_toggle_multi(C, type, action, use_extend, use_expand)) {
     return OPERATOR_FINISHED;
   }
   else {
@@ -2346,11 +2346,11 @@ void EDBM_selectmode_convert(BMEditMesh *em,
 }
 
 /* user facing function, does notification */
-bool EDBM_selectmode_toggle(bContext *C,
-                            const short selectmode_new,
-                            const int action,
-                            const bool use_extend,
-                            const bool use_expand)
+bool EDBM_selectmode_toggle_multi(bContext *C,
+                                  const short selectmode_new,
+                                  const int action,
+                                  const bool use_extend,
+                                  const bool use_expand)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2470,6 +2470,54 @@ bool EDBM_selectmode_toggle(bContext *C,
 
   MEM_freeN(objects);
   return ret;
+}
+
+bool EDBM_selectmode_set_multi(bContext *C, const short selectmode)
+{
+  BLI_assert(selectmode != 0);
+  bool changed = false;
+
+  {
+    Object *obedit = CTX_data_edit_object(C);
+    BMEditMesh *em = NULL;
+    if (obedit && obedit->type == OB_MESH) {
+      em = BKE_editmesh_from_object(obedit);
+    }
+    if (em == NULL) {
+      return changed;
+    }
+  }
+
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Scene *scene = CTX_data_scene(C);
+  ToolSettings *ts = scene->toolsettings;
+
+  if (ts->selectmode != selectmode) {
+    ts->selectmode = selectmode;
+    changed = true;
+  }
+
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      view_layer, CTX_wm_view3d(C), &objects_len);
+
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *ob_iter = objects[ob_index];
+    BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
+    if (em_iter->selectmode != ts->selectmode) {
+      em_iter->selectmode = ts->selectmode;
+      EDBM_selectmode_set(em_iter);
+      DEG_id_tag_update(ob_iter->data, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+      WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, NULL);
+    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  }
+  return changed;
 }
 
 /**
