@@ -1405,7 +1405,7 @@ void BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob, ListBa
     process.converge_res = 2;
   }
 
-  if (is_render && (mb->flag == MB_UPDATE_NEVER)) {
+  if (!is_render && (mb->flag == MB_UPDATE_NEVER)) {
     return;
   }
   if ((G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) && mb->flag == MB_UPDATE_FAST) {
