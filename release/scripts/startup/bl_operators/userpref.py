@@ -537,7 +537,7 @@ class PREFERENCES_OT_addon_refresh(Operator):
 class PREFERENCES_OT_addon_install(Operator):
     """Install an add-on"""
     bl_idname = "preferences.addon_install"
-    bl_label = "Install Add-on from File..."
+    bl_label = "Install"
 
     overwrite: BoolProperty(
         name="Overwrite",
