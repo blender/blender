@@ -1916,12 +1916,6 @@ static short snapCamera(const SnapObjectContext *sctx,
     return retval;
   }
 
-  float tobmat[4][4], clip_planes_local[MAX_CLIPPLANE_LEN][4];
-  transpose_m4_m4(tobmat, obmat);
-  for (int i = snapdata->clip_plane_len; i--;) {
-    mul_v4_m4v4(clip_planes_local[i], tobmat, snapdata->clip_plane[i]);
-  }
-
   tracking = &clip->tracking;
 
   BKE_tracking_get_camera_object_matrix(scene, object, orig_camera_mat);
@@ -1967,7 +1961,7 @@ static short snapCamera(const SnapObjectContext *sctx,
 
         mul_m4_v3(vertex_obmat, bundle_pos);
         if (test_projected_vert_dist(&neasrest_precalc,
-                                     clip_planes_local,
+                                     snapdata->clip_plane,
                                      snapdata->clip_plane_len,
                                      is_persp,
                                      bundle_pos,
