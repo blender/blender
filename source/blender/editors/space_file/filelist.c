@@ -1006,6 +1006,9 @@ static int filelist_geticon_ex(const int typeflag,
   else if (typeflag & FILE_TYPE_TEXT) {
     return ICON_FILE_TEXT;
   }
+  else if (typeflag & FILE_TYPE_ARCHIVE) {
+    return ICON_FILE_ARCHIVE;
+  }
   else if (typeflag & FILE_TYPE_BLENDERLIB) {
     const int ret = UI_idcode_icon_get(blentype);
     if (ret != ICON_NONE) {
@@ -2126,6 +2129,9 @@ int ED_path_extension_type(const char *path)
   else if (BLI_path_extension_check(path, ".abc")) {
     return FILE_TYPE_ALEMBIC;
   }
+  else if (BLI_path_extension_check(path, ".zip")) {
+    return FILE_TYPE_ARCHIVE;
+  }
   else if (BLI_path_extension_check_n(path, ".obj", ".3ds", ".fbx", ".glb", ".gltf", NULL)) {
     return FILE_TYPE_OBJECT_IO;
   }
@@ -2183,6 +2189,8 @@ int ED_file_extension_icon(const char *path)
       return ICON_FILE_3D;
     case FILE_TYPE_TEXT:
       return ICON_FILE_TEXT;
+    case FILE_TYPE_ARCHIVE:
+      return ICON_FILE_ARCHIVE;
     default:
       return ICON_FILE_BLANK;
   }

@@ -199,6 +199,9 @@ short ED_fileselect_set_params(SpaceFile *sfile)
     if ((prop = RNA_struct_find_property(op->ptr, "filter_text"))) {
       params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_TEXT : 0;
     }
+    if ((prop = RNA_struct_find_property(op->ptr, "filter_archive"))) {
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_ARCHIVE : 0;
+    }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_folder"))) {
       params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_FOLDER : 0;
     }

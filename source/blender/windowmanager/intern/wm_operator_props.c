@@ -156,6 +156,9 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
       ot->srna, "filter_text", (filter & FILE_TYPE_TEXT) != 0, "Filter text files", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
+      ot->srna, "filter_archive", (filter & FILE_TYPE_ARCHIVE) != 0, "Filter archive files", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(
       ot->srna, "filter_btx", (filter & FILE_TYPE_BTX) != 0, "Filter btx files", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
