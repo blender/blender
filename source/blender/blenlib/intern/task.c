@@ -732,9 +732,7 @@ static TaskPool *task_pool_create_ex(TaskScheduler *scheduler,
 }
 
 /**
- * Create a normal task pool.
- * This means that in single-threaded context, it will not be executed at all until you call
- * \a BLI_task_pool_work_and_wait() on it.
+ * Create a normal task pool. Tasks will be executed as soon as they are added.
  */
 TaskPool *BLI_task_pool_create(TaskScheduler *scheduler, void *userdata)
 {
