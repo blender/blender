@@ -2920,6 +2920,54 @@ void GPENCIL_OT_color_select(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
+/* ***************** Set selected stroke material the active material ************************ */
+
+static int gpencil_set_active_material_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  bool changed = false;
+
+  /* Sanity checks. */
+  if (gpd == NULL) {
+    BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Loop all selected strokes. */
+  GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
+    if (gps->flag & GP_STROKE_SELECT) {
+      /* Change Active material. */
+      ob->actcol = gps->mat_nr + 1;
+      changed = true;
+      break;
+    }
+  }
+  GP_EDITABLE_STROKES_END(gpstroke_iter);
+
+  /* notifiers */
+  if (changed) {
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_set_active_material(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Set active material";
+  ot->idname = "GPENCIL_OT_set_active_material";
+  ot->description = "Set the selected stroke material as the active material";
+
+  /* callbacks */
+  ot->exec = gpencil_set_active_material_exec;
+  ot->poll = gpencil_active_color_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /* Parent GPencil object to Lattice */
 bool ED_gpencil_add_lattice_modifier(const bContext *C,
                                      ReportList *reports,
