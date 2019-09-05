@@ -391,7 +391,7 @@ class FILEBROWSER_PT_directory_path(Panel):
         row.operator("file.directory_new", icon='NEWFOLDER', text="")
 
         subrow = row.row()
-        subrow.prop(params, "directory", text="")
+        subrow.template_file_select_path(params)
 
         subrow = row.row()
         subrow.scale_x = 0.5

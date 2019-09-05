@@ -32,6 +32,7 @@
 
 struct ARegion;
 struct AutoComplete;
+struct FileSelectParams;
 struct ID;
 struct IDProperty;
 struct ImBuf;
@@ -2082,6 +2083,9 @@ void uiTemplateColormanagedViewSettings(struct uiLayout *layout,
                                         const char *propname);
 
 int uiTemplateRecentFiles(struct uiLayout *layout, int rows);
+void uiTemplateFileSelectPath(uiLayout *layout,
+                              struct bContext *C,
+                              struct FileSelectParams *params);
 
 /* items */
 void uiItemO(uiLayout *layout, const char *name, int icon, const char *opname);

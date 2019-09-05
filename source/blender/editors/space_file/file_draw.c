@@ -71,6 +71,52 @@
 
 #include "file_intern.h"  // own include
 
+void ED_file_path_button(bScreen *screen,
+                         const SpaceFile *sfile,
+                         FileSelectParams *params,
+                         uiBlock *block)
+{
+  PointerRNA params_rna_ptr;
+  uiBut *but;
+
+  RNA_pointer_create(&screen->id, &RNA_FileSelectParams, params, &params_rna_ptr);
+
+  /* callbacks for operator check functions */
+  UI_block_func_set(block, file_draw_check_cb, NULL, NULL);
+
+  but = uiDefButR(block,
+                  UI_BTYPE_TEXT,
+                  -1,
+                  "",
+                  0,
+                  0,
+                  UI_UNIT_X * 10,
+                  UI_UNIT_Y,
+                  &params_rna_ptr,
+                  "directory",
+                  0,
+                  0.0f,
+                  (float)FILE_MAX,
+                  0.0f,
+                  0.0f,
+                  TIP_("File path"));
+
+  BLI_assert(!UI_but_flag_is_set(but, UI_BUT_UNDO));
+  BLI_assert(!UI_but_is_utf8(but));
+
+  UI_but_func_complete_set(but, autocomplete_directory, NULL);
+  UI_but_funcN_set(but, file_directory_enter_handle, NULL, but);
+
+  /* TODO, directory editing is non-functional while a library is loaded
+   * until this is properly supported just disable it. */
+  if (sfile && sfile->files && filelist_lib(sfile->files)) {
+    UI_but_flag_enable(but, UI_BUT_DISABLED);
+  }
+
+  /* clear func */
+  UI_block_func_set(block, NULL, NULL, NULL);
+}
+
 /* Dummy helper - we need dynamic tooltips here. */
 static char *file_draw_tooltip_func(bContext *UNUSED(C), void *argN, const char *UNUSED(tip))
 {

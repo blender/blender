@@ -1519,6 +1519,13 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_int(func, "rows", 5, 1, INT_MAX, "", "Maximum number of items to show", 1, INT_MAX);
   parm = RNA_def_int(func, "found", 0, 0, INT_MAX, "", "Number of items drawn", 0, INT_MAX);
   RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "template_file_select_path", "uiTemplateFileSelectPath");
+  RNA_def_function_ui_description(func,
+                                  "Item. A text button to set the active file browser path.");
+  parm = RNA_def_pointer(func, "params", "FileSelectParams", "", "");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 }
 
 #endif

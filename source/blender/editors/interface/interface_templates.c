@@ -76,6 +76,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+#include "ED_fileselect.h"
 #include "ED_screen.h"
 #include "ED_object.h"
 #include "ED_render.h"
@@ -6778,4 +6779,14 @@ int uiTemplateRecentFiles(uiLayout *layout, int rows)
   }
 
   return i;
+}
+
+/******************************* FileSelectParams Path Button *******************************/
+
+void uiTemplateFileSelectPath(uiLayout *layout, bContext *C, FileSelectParams *params)
+{
+  bScreen *screen = CTX_wm_screen(C);
+  SpaceFile *sfile = CTX_wm_space_file(C);
+
+  ED_file_path_button(screen, sfile, params, uiLayoutGetBlock(layout));
 }
