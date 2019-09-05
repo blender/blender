@@ -1437,28 +1437,11 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 
 void OBJECT_OT_mode_set_or_submode(wmOperatorType *ot)
 {
-  PropertyRNA *prop;
+  OBJECT_OT_mode_set(ot);
 
   /* identifiers */
   ot->name = "Set Object Mode or Submode";
-  ot->description = "Sets the object interaction mode";
   ot->idname = "OBJECT_OT_mode_set_or_submode";
-
-  /* api callbacks */
-  ot->exec = object_mode_set_exec;
-
-  ot->poll = object_mode_set_poll;  // ED_operator_object_active_editable;
-
-  /* flags */
-  ot->flag = 0; /* no register/undo here, leave it to operators being called */
-
-  ot->prop = RNA_def_enum(
-      ot->srna, "mode", rna_enum_object_mode_items, OB_MODE_OBJECT, "Mode", "");
-  RNA_def_enum_funcs(ot->prop, object_mode_set_itemsf);
-  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
-
-  prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static ListBase selected_objects_get(bContext *C)
