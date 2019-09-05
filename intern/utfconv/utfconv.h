@@ -31,15 +31,15 @@ extern "C" {
 
 /**
  * Counts how many bytes is requered for for future utf-8 string using utf-16
- * @param string-16 pointer to working utf-16 string
- * @return How many bytes must be allocated includeng NULL.
+ * \param string16: pointer to working utf-16 string
+ * \return How many bytes must be allocated includeng NULL.
  */
 size_t count_utf_8_from_16(const wchar_t *string16);
 
 /**
  * Counts how many wchar_t (two byte) is requered for for future utf-16 string using utf-8
- * @param string-8 pointer to working utf-8 string
- * @return How many bytes must be allocated includeng NULL.
+ * \param string8: pointer to working utf-8 string
+ * \return How many bytes must be allocated includeng NULL.
  */
 size_t count_utf_16_from_8(const char *string8);
 
@@ -54,36 +54,36 @@ size_t count_utf_16_from_8(const char *string8);
 
 /**
  * Converts utf-16 string to allocated utf-8 string
- * @param in16 utf-16 string to convert
- * @param out8 utf-8 string to string the conversion
- * @param size8 the allocated size in bytes of out8
- * @return Returns any errors occured during conversion. See the block above,
+ * \param in16: utf-16 string to convert
+ * \param out8: utf-8 string to string the conversion
+ * \param size8: the allocated size in bytes of out8
+ * \return Returns any errors occured during conversion. See the block above,
  */
 int conv_utf_16_to_8(const wchar_t *in16, char *out8, size_t size8);
 
 /**
  * Converts utf-8 string to allocated utf-16 string
- * @param in8 utf-8 string to convert
- * @param out16 utf-16 string to string the conversion
- * @param size16 the allocated size in wchar_t (two byte) of out16
- * @return Returns any errors occured during conversion. See the block above,
+ * \param in8: utf-8 string to convert
+ * \param out16: utf-16 string to string the conversion
+ * \param size16: the allocated size in wchar_t (two byte) of out16
+ * \return Returns any errors occured during conversion. See the block above,
  */
 int conv_utf_8_to_16(const char *in8, wchar_t *out16, size_t size16);
 
 /**
  * Allocates and converts the utf-8 string from utf-16
- * @param in16 utf-16 string to convert
- * @param add any additional size which will be allocated for new utf-8 string in bytes
- * @return New allocated and converted utf-8 string or NULL if in16 is 0.
+ * \param in16: utf-16 string to convert
+ * \param add: any additional size which will be allocated for new utf-8 string in bytes
+ * \return New allocated and converted utf-8 string or NULL if in16 is 0.
  */
 char *alloc_utf_8_from_16(const wchar_t *in16, size_t add);
 
 /**
  * Allocates and converts the utf-16 string from utf-8
- * @param in8 utf-8 string to convert
- * @param add any additional size which will be allocated for new utf-16 string
+ * \param in8: utf-8 string to convert
+ * \param add: any additional size which will be allocated for new utf-16 string
  * in wchar_t (two bytes)
- * @return New allocated and converted utf-16 string or NULL if in8 is 0.
+ * \return New allocated and converted utf-16 string or NULL if in8 is 0.
  */
 wchar_t *alloc_utf16_from_8(const char *in8, size_t add);
 

@@ -506,7 +506,7 @@ bool BLI_listbase_link_move(ListBase *listbase, void *vlink, int step)
 /**
  * Move the link at the index \a from to the position at index \a to.
  *
- * @return If the move was successful.
+ * \return If the move was successful.
  */
 bool BLI_listbase_move_index(ListBase *listbase, int from, int to)
 {

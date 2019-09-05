@@ -1768,7 +1768,9 @@ void DRW_draw_render_loop(struct Depsgraph *depsgraph,
   DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, viewport, NULL);
 }
 
-/* @viewport CAN be NULL, in this case we create one. */
+/**
+ * \param viewport: can be NULL, in this case we create one.
+ */
 void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
                                     RenderEngineType *engine_type,
                                     ARegion *ar,

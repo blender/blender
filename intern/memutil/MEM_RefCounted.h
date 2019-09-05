@@ -34,8 +34,8 @@
  * The default destructor of this object has been made protected on purpose.
  * This disables the creation of shared objects on the stack.
  *
- * @author  Maarten Gribnau
- * @date    March 31, 2001
+ * \author  Maarten Gribnau
+ * \date    March 31, 2001
  */
 
 class MEM_RefCounted {
@@ -49,20 +49,20 @@ class MEM_RefCounted {
 
   /**
    * Returns the reference count of this object.
-   * @return the reference count.
+   * \return the reference count.
    */
   inline virtual int getRef() const;
 
   /**
    * Increases the reference count of this object.
-   * @return the new reference count.
+   * \return the new reference count.
    */
   inline virtual int incRef();
 
   /**
    * Decreases the reference count of this object.
    * If the reference count reaches zero, the object self-destructs.
-   * @return the new reference count.
+   * \return the new reference count.
    */
   inline virtual int decRef();
 

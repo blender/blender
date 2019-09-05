@@ -535,14 +535,15 @@ void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q
   mul_qt_qtqt(q, tquat, q2);
 }
 
-/** Decompose a quaternion into a swing rotation (quaternion with the selected
- *  axis component locked at zero), followed by a twist rotation around the axis.
+/**
+ * Decompose a quaternion into a swing rotation (quaternion with the selected
+ * axis component locked at zero), followed by a twist rotation around the axis.
  *
- *  \param q: input quaternion.
- *  \param axis: twist axis in [0,1,2]
- *  \param r_swing[out]: if not NULL, receives the swing quaternion.
- *  \param r_twist[out]: if not NULL, receives the twist quaternion.
- *  \returns twist angle.
+ * \param q: input quaternion.
+ * \param axis: twist axis in [0,1,2]
+ * \param r_swing[out]: if not NULL, receives the swing quaternion.
+ * \param r_twist[out]: if not NULL, receives the twist quaternion.
+ * \returns twist angle.
  */
 float quat_split_swing_and_twist(const float q[4], int axis, float r_swing[4], float r_twist[4])
 {
