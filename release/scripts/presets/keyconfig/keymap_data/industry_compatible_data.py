@@ -3385,12 +3385,12 @@ def km_object_non_modal(params):
 
     items.extend([
 
-        ("ic_keymap.mesh_select_mode",{"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("type", 'VERT')]}),
-        ("ic_keymap.mesh_select_mode",{"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("type", 'EDGE')]}),
-        ("ic_keymap.mesh_select_mode",{"type": 'THREE', "value": 'PRESS'},
-         {"properties": [("type", 'FACE')]}),
+        ("object.mode_set_with_submode",{"type": 'ONE', "value": 'PRESS'},
+         {"properties": [("mode", 'EDIT'), ("mesh_select_mode", {'VERT'})]}),
+        ("object.mode_set_with_submode",{"type": 'TWO', "value": 'PRESS'},
+         {"properties": [("mode", 'EDIT'), ("mesh_select_mode", {'EDGE'})]}),
+        ("object.mode_set_with_submode",{"type": 'THREE', "value": 'PRESS'},
+         {"properties": [("mode", 'EDIT'), ("mesh_select_mode", {'FACE'})]}),
         ("object.mode_set",{"type": 'ONE', "value": 'PRESS'},
          {"properties": [("mode", 'EDIT')]}),
         ("object.mode_set",{"type": 'FOUR', "value": 'PRESS'},
