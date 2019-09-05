@@ -1958,12 +1958,6 @@ static void rna_def_filter_video(StructRNA *srna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  static const EnumPropertyItem playback_direction_items[] = {
-      {0, "FORWARD", 0, "Forwards", "Play strip forwards"},
-      {SEQ_REVERSE_FRAMES, "BACKWARD", 0, "Backwards", "Play strip backwards"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   prop = RNA_def_property(srna, "use_deinterlace", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_FILTERY);
   RNA_def_property_ui_text(prop, "Deinterlace", "Remove fields from video movies");
@@ -1990,10 +1984,9 @@ static void rna_def_filter_video(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Convert Float", "Convert input to float data");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
-  prop = RNA_def_property(srna, "playback_direction", PROP_ENUM, PROP_NONE); /* as an enum */
-  RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-  RNA_def_property_enum_items(prop, playback_direction_items);
-  RNA_def_property_ui_text(prop, "Playback Direction", "Play strip forwards or backwards");
+  prop = RNA_def_property(srna, "use_reverse_frames", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_REVERSE_FRAMES);
+  RNA_def_property_ui_text(prop, "Reverse Frames", "Reverse frame order");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
   prop = RNA_def_property(srna, "color_multiply", PROP_FLOAT, PROP_UNSIGNED);
