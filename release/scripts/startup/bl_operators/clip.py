@@ -39,6 +39,17 @@ def CLIP_spaces_walk(context, all_screens, tarea, tspace, callback, *args):
 
 
 def CLIP_set_viewport_background(context, clip, clip_user):
+
+    def check_camera_has_distortion(tracking_camera):
+        if tracking_camera.distortion_model == 'POLYNOMIAL':
+            return not all(k == 0 for k in (tracking_camera.k1,
+                                            tracking_camera.k2,
+                                            tracking_camera.k3))
+        elif tracking_camera.distortion_model == 'DIVISION':
+            return not all(k == 0 for k in (tracking_camera.division_k1,
+                                            tracking_camera.division_k2))
+        return False
+
     def set_background(cam, clip, user):
         bgpic = None
 
@@ -53,7 +64,8 @@ def CLIP_set_viewport_background(context, clip, clip_user):
         bgpic.source = 'MOVIE_CLIP'
         bgpic.clip = clip
         bgpic.clip_user.proxy_render_size = user.proxy_render_size
-        bgpic.clip_user.use_render_undistorted = True
+        if check_camera_has_distortion(clip.tracking.camera):
+            bgpic.clip_user.use_render_undistorted = True
         bgpic.use_camera_clip = False
 
         cam.show_background_images = True
