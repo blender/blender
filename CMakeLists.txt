@@ -752,14 +752,12 @@ if(NOT WITH_CUDA_DYNLOAD)
 endif()
 
 #-----------------------------------------------------------------------------
-# Check for valid directories
-# ... a partial checkout may cause this.
-#
-# note: we need to check for a known subdir in both cases.
-#       since uninitialized git submodules will give blank dirs
+# Check check if submodules are cloned
 
 if(WITH_INTERNATIONAL)
-  if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/datafiles/locale/languages")
+  file(GLOB RESULT "${CMAKE_SOURCE_DIR}/release/datafiles/locale")
+  list(LENGTH RESULT DIR_LEN)
+  if(DIR_LEN EQUAL 0)
     message(WARNING
       "Translation path '${CMAKE_SOURCE_DIR}/release/datafiles/locale' is missing, "
       "This is a 'git submodule', which are known not to work with bridges to other version "
@@ -781,7 +779,9 @@ if(WITH_PYTHON)
     message(FATAL_ERROR "At least Python 3.7 is required to build")
   endif()
 
-  if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/scripts/addons/modules")
+  file(GLOB RESULT "${CMAKE_SOURCE_DIR}/release/scripts/addons")
+  list(LENGTH RESULT DIR_LEN)
+  if(DIR_LEN EQUAL 0)
     message(WARNING
       "Addons path '${CMAKE_SOURCE_DIR}/release/scripts/addons' is missing, "
       "This is a 'git submodule', which are known not to work with bridges to other version "
