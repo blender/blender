@@ -715,10 +715,13 @@ static void id_override_library_cb(bContext *C,
 {
   if (ID_IS_LINKED(tselem->id) && (tselem->id->tag & LIB_TAG_EXTERN)) {
     Main *bmain = CTX_data_main(C);
-    ID *override_id = BKE_override_library_create_from_id(bmain, tselem->id);
+    /* For now, remapp all local usages of linked ID to local override one here. */
+    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, true);
+    ID *override_id = BKE_override_library_create_from_id(bmain, tselem->id, true);
     if (override_id != NULL) {
       BKE_main_id_clear_newpoins(bmain);
     }
+    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
   }
 }
 

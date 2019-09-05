@@ -185,19 +185,28 @@ static ID *override_library_create_from(Main *bmain, ID *reference_id)
 }
 
 /** Create an overridden local copy of linked reference. */
-ID *BKE_override_library_create_from_id(Main *bmain, ID *reference_id)
+ID *BKE_override_library_create_from_id(Main *bmain, ID *reference_id, const bool do_tagged_remap)
 {
   BLI_assert(reference_id != NULL);
   BLI_assert(reference_id->lib != NULL);
 
   ID *local_id = override_library_create_from(bmain, reference_id);
 
-  /* Remapping, we obviously only want to affect local data
-   * (and not our own reference pointer to overridden ID). */
-  BKE_libblock_remap(bmain,
-                     reference_id,
-                     local_id,
-                     ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_OVERRIDE_LIBRARY);
+  if (do_tagged_remap) {
+    ID *other_id;
+    FOREACH_MAIN_ID_BEGIN (bmain, other_id) {
+      if ((other_id->tag & LIB_TAG_DOIT) != 0 && other_id->lib == NULL) {
+        /* Note that using ID_REMAP_SKIP_INDIRECT_USAGE below is superfluous, as we only remap
+         * local IDs usages anyway... */
+        BKE_libblock_relink_ex(bmain,
+                               other_id,
+                               reference_id,
+                               local_id,
+                               ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_OVERRIDE_LIBRARY);
+      }
+    }
+    FOREACH_MAIN_ID_END;
+  }
 
   return local_id;
 }

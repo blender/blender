@@ -2528,7 +2528,10 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
   }
   /* TODO: probably more cases where we want to do automated smart things in the future! */
   else {
-    success = (BKE_override_library_create_from_id(bmain, &obact->id) != NULL);
+    /* For now, remapp all local usages of linked ID to local override one here. */
+    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, true);
+    success = (BKE_override_library_create_from_id(bmain, &obact->id, true) != NULL);
+    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
   }
 
   WM_event_add_notifier(C, NC_WINDOW, NULL);

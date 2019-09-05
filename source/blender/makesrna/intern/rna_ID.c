@@ -491,13 +491,22 @@ static ID *rna_ID_copy(ID *id, Main *bmain)
   return NULL;
 }
 
-static ID *rna_ID_override_create(ID *id, Main *bmain)
+static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
 {
   if (!BKE_override_library_is_enabled() || id->lib == NULL) {
     return NULL;
   }
 
-  return BKE_override_library_create_from_id(bmain, id);
+  if (remap_local_usages) {
+    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, true);
+  }
+
+  ID *local_id = BKE_override_library_create_from_id(bmain, id, remap_local_usages);
+
+  if (remap_local_usages) {
+    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+  }
+  return local_id;
 }
 
 static void rna_ID_update_tag(ID *id, Main *bmain, ReportList *reports, int flag)
@@ -1519,6 +1528,12 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_MAIN);
   parm = RNA_def_pointer(func, "id", "ID", "", "New overridden local copy of the ID");
   RNA_def_function_return(func, parm);
+  RNA_def_boolean(func,
+                  "remap_local_usages",
+                  false,
+                  "",
+                  "Whether local usages of the linked ID should be remapped to the new "
+                  "library override of it");
 
   func = RNA_def_function(srna, "user_clear", "rna_ID_user_clear");
   RNA_def_function_ui_description(func,
