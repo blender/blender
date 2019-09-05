@@ -21,6 +21,7 @@ def parse_arguments():
     parser.add_argument("--no-libraries", action="store_true")
     parser.add_argument("--no-blender", action="store_true")
     parser.add_argument("--no-submodules", action="store_true")
+    parser.add_argument("--use-tests", action="store_true")
     parser.add_argument("--svn-command", default="svn")
     parser.add_argument("--git-command", default="git")
     return parser.parse_args()
@@ -29,6 +30,7 @@ args = parse_arguments()
 no_libraries = args.no_libraries
 no_blender = args.no_blender
 no_submodules = args.no_submodules
+use_tests = args.use_tests
 git_command = args.git_command
 svn_command = args.svn_command
 svn_non_interactive = [args.svn_command, '--non-interactive']
@@ -70,6 +72,20 @@ if not no_libraries:
 
             svn_url_platform = svn_url + lib_platform
             call(svn_non_interactive + ["checkout", svn_url_platform, lib_platform_dirpath])
+
+    if use_tests:
+        lib_tests = "tests"
+        lib_tests_dirpath = os.path.join(lib_dirpath, lib_tests)
+
+        if not os.path.exists(lib_tests_dirpath):
+            print_stage("Checking out Tests")
+
+            if shutil.which(svn_command) is None:
+                sys.stderr.write("svn not found, can't checkout tests\n")
+                sys.exit(1)
+
+            svn_url_tests = svn_url + lib_tests
+            call(svn_non_interactive + ["checkout", svn_url_tests, lib_tests_dirpath])
 
     # Update precompiled libraries and tests
     print_stage("Updating Precompiled Libraries and Tests")

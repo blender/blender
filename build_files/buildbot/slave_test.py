@@ -45,12 +45,5 @@ def test(builder):
     buildbot_utils.call(command, env=ctest_env, exit_on_error=False)
 
 if __name__ == "__main__":
-    print("Automated tests are still DISABLED!")
-    sys.exit(0)
-
     builder = buildbot_utils.create_builder_from_arguments()
     test(builder)
-
-    # Always exit with a success, for until we know all the tests are passing
-    # on all builders.
-    sys.exit(0)
