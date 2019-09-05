@@ -151,6 +151,44 @@ enum_texture_limit = (
     ('8192', "8192", "Limit texture size to 8192 pixels", 7),
 )
 
+enum_view3d_shading_render_pass= (
+    ('', "General", ""),
+
+    ('COMBINED', "Combined", "Show the Combined Render pass", 1),
+    ('EMISSION', "Emission", "Show the Emission render pass", 33),
+    ('BACKGROUND', "Background", "Show the Background render pass", 34),
+    ('AO', "Ambient Occlusion", "Show the Ambient Occlusion render pass", 35),
+
+    ('', "Light", ""),
+
+    ('DIFFUSE_DIRECT', "Diffuse Direct", "Show the Diffuse Direct render pass", 38),
+    ('DIFFUSE_INDIRECT', "Diffuse Indirect", "Show the Diffuse Indirect render pass", 39),
+    ('DIFFUSE_COLOR', "Diffuse Color", "Show the Diffuse Color render pass", 40),
+
+    ('GLOSSY_DIRECT', "Glossy Direct", "Show the Glossy Direct render pass", 41),
+    ('GLOSSY_INDIRECT', "Glossy Indirect", "Show the Glossy Indirect render pass", 42),
+    ('GLOSSY_COLOR', "Glossy Color", "Show the Glossy Color render pass", 43),
+
+    ('', "", ""),
+
+    ('TRANSMISSION_DIRECT', "Transmission Direct", "Show the Transmission Direct render pass", 44),
+    ('TRANSMISSION_INDIRECT', "Transmission Indirect", "Show the Transmission Indirect render pass", 45),
+    ('TRANSMISSION_COLOR', "Transmission Color", "Show the Transmission Color render pass", 46),
+
+    ('SUBSURFACE_DIRECT', "Subsurface Direct", "Show the Subsurface Direct render pass", 47),
+    ('SUBSURFACE_INDIRECT', "Subsurface Indirect", "Show the Subsurface Indirect render pass", 48),
+    ('SUBSURFACE_COLOR', "Subsurface Color", "Show the Subsurface Color render pass", 49),
+
+    ('VOLUME_DIRECT', "Volume Direct", "Show the Volume Direct render pass", 50),
+    ('VOLUME_INDIRECT', "Volume Indirect", "Show the Volume Indirect render pass", 51),
+
+    ('', "Data", ""),
+
+    ('NORMAL', "Normal", "Show the Normal render pass", 3),
+    ('UV', "UV", "Show the UV render pass", 4),
+    ('MIST', "Mist", "Show the Mist render pass", 32),
+)
+
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
 
@@ -1475,6 +1513,15 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         self.draw_impl(self.layout, context)
 
 
+class CyclesView3DShadingSettings(bpy.types.PropertyGroup):
+    render_pass: EnumProperty(
+        name="Render Pass",
+        description="Render pass to show in the 3D Viewport",
+        items=enum_view3d_shading_render_pass,
+        default='COMBINED',
+    )
+
+
 def register():
     bpy.utils.register_class(CyclesRenderSettings)
     bpy.utils.register_class(CyclesCameraSettings)
@@ -1488,6 +1535,12 @@ def register():
     bpy.utils.register_class(CyclesDeviceSettings)
     bpy.utils.register_class(CyclesPreferences)
     bpy.utils.register_class(CyclesRenderLayerSettings)
+    bpy.utils.register_class(CyclesView3DShadingSettings)
+
+    bpy.types.View3DShading.cycles = bpy.props.PointerProperty(
+        name="Cycles Settings",
+        type=CyclesView3DShadingSettings,
+    )
 
 
 def unregister():
@@ -1503,3 +1556,4 @@ def unregister():
     bpy.utils.unregister_class(CyclesDeviceSettings)
     bpy.utils.unregister_class(CyclesPreferences)
     bpy.utils.unregister_class(CyclesRenderLayerSettings)
+    bpy.utils.unregister_class(CyclesView3DShadingSettings)

@@ -39,6 +39,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_icons.h"
+#include "BKE_idprop.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
@@ -362,6 +363,11 @@ static void view3d_free(SpaceLink *sl)
   }
   if (vd->fx_settings.dof) {
     MEM_freeN(vd->fx_settings.dof);
+  }
+
+  if (vd->shading.prop) {
+    IDP_FreeProperty(vd->shading.prop);
+    vd->shading.prop = NULL;
   }
 }
 

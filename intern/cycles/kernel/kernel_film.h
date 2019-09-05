@@ -16,18 +16,66 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float4 film_map(KernelGlobals *kg, float4 irradiance, float scale)
+ccl_device float4 film_get_pass_result(KernelGlobals *kg,
+                                       ccl_global float *buffer,
+                                       float sample_scale,
+                                       int index,
+                                       bool use_display_sample_scale)
 {
-  float exposure = kernel_data.film.exposure;
-  float4 result = irradiance * scale;
+  float4 pass_result;
+
+  int display_pass_stride = kernel_data.film.display_pass_stride;
+  int display_pass_components = kernel_data.film.display_pass_components;
+
+  if (display_pass_components == 4) {
+    ccl_global float4 *in = (ccl_global float4 *)(buffer + display_pass_stride +
+                                                  index * kernel_data.film.pass_stride);
+    float alpha = use_display_sample_scale ?
+                      (kernel_data.film.use_display_pass_alpha ? in->w : 1.0f / sample_scale) :
+                      1.0f;
+
+    pass_result = make_float4(in->x, in->y, in->z, alpha);
+
+    int display_divide_pass_stride = kernel_data.film.display_divide_pass_stride;
+    if (display_divide_pass_stride != -1) {
+      ccl_global float4 *divide_in = (ccl_global float4 *)(buffer + display_divide_pass_stride +
+                                                           index * kernel_data.film.pass_stride);
+      if (divide_in->x != 0.0f) {
+        pass_result.x /= divide_in->x;
+      }
+      if (divide_in->y != 0.0f) {
+        pass_result.y /= divide_in->y;
+      }
+      if (divide_in->z != 0.0f) {
+        pass_result.z /= divide_in->z;
+      }
+    }
+
+    if (kernel_data.film.use_display_exposure) {
+      float exposure = kernel_data.film.exposure;
+      pass_result *= make_float4(exposure, exposure, exposure, alpha);
+    }
+  }
+  else if (display_pass_components == 1) {
+    ccl_global float *in = (ccl_global float *)(buffer + display_pass_stride +
+                                                index * kernel_data.film.pass_stride);
+    pass_result = make_float4(*in, *in, *in, 1.0f / sample_scale);
+  }
+
+  return pass_result;
+}
+
+ccl_device float4 film_map(KernelGlobals *kg, float4 rgba_in, float scale)
+{
+  float4 result;
 
   /* conversion to srgb */
-  result.x = color_linear_to_srgb(result.x * exposure);
-  result.y = color_linear_to_srgb(result.y * exposure);
-  result.z = color_linear_to_srgb(result.z * exposure);
+  result.x = color_linear_to_srgb(rgba_in.x);
+  result.y = color_linear_to_srgb(rgba_in.y);
+  result.z = color_linear_to_srgb(rgba_in.z);
 
   /* clamp since alpha might be > 1.0 due to russian roulette */
-  result.w = saturate(result.w);
+  result.w = saturate(rgba_in.w);
 
   return result;
 }
@@ -57,15 +105,22 @@ ccl_device void kernel_film_convert_to_byte(KernelGlobals *kg,
   /* buffer offset */
   int index = offset + x + y * stride;
 
+  bool use_display_sample_scale = (kernel_data.film.display_divide_pass_stride == -1);
+  float4 rgba_in = film_get_pass_result(kg, buffer, sample_scale, index, use_display_sample_scale);
+
   rgba += index;
-  buffer += index * kernel_data.film.pass_stride;
 
   /* map colors */
-  float4 irradiance = *((ccl_global float4 *)buffer);
-  float4 float_result = film_map(kg, irradiance, sample_scale);
-  uchar4 byte_result = film_float_to_byte(float_result);
-
-  *rgba = byte_result;
+  if (use_display_sample_scale) {
+    float4 float_result = film_map(kg, rgba_in, sample_scale);
+    uchar4 byte_result = film_float_to_byte(float_result);
+    *rgba = byte_result;
+  }
+  else {
+    float4 float_result = film_map(kg, rgba_in, 1.0);
+    uchar4 byte_result = film_float_to_byte(float_result);
+    *rgba = byte_result;
+  }
 }
 
 ccl_device void kernel_film_convert_to_half_float(KernelGlobals *kg,
@@ -79,21 +134,16 @@ ccl_device void kernel_film_convert_to_half_float(KernelGlobals *kg,
 {
   /* buffer offset */
   int index = offset + x + y * stride;
+  bool use_display_sample_scale = (kernel_data.film.display_divide_pass_stride == -1);
+  float4 rgba_in = film_get_pass_result(kg, buffer, sample_scale, index, use_display_sample_scale);
 
-  ccl_global float4 *in = (ccl_global float4 *)(buffer + index * kernel_data.film.pass_stride);
   ccl_global half *out = (ccl_global half *)rgba + index * 4;
-
-  float exposure = kernel_data.film.exposure;
-
-  float4 rgba_in = *in;
-
-  if (exposure != 1.0f) {
-    rgba_in.x *= exposure;
-    rgba_in.y *= exposure;
-    rgba_in.z *= exposure;
+  if (use_display_sample_scale) {
+    float4_store_half(out, rgba_in, sample_scale);
   }
-
-  float4_store_half(out, rgba_in, sample_scale);
+  else {
+    float4_store_half(out, rgba_in, 1.0f);
+  }
 }
 
 CCL_NAMESPACE_END

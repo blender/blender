@@ -22,6 +22,7 @@
 #include "RNA_access.h"
 #include "RNA_blender_cpp.h"
 
+#include "render/film.h"
 #include "util/util_param.h"
 
 CCL_NAMESPACE_BEGIN
@@ -41,7 +42,16 @@ class BlenderViewportParameters {
   const bool modified(const BlenderViewportParameters &other) const;
   const bool custom_viewport_parameters() const;
   friend class BlenderSync;
+
+ public:
+  /* Retrieve the render pass that needs to be displayed on the given `SpaceView3D`
+   * When the `b_v3d` parameter is not given `PASS_NONE` will be returned. */
+  static PassType get_viewport_display_render_pass(BL::SpaceView3D &b_v3d);
 };
+
+PassType update_viewport_display_passes(BL::SpaceView3D &b_v3d,
+                                        vector<Pass> &passes,
+                                        bool reset_passes);
 
 CCL_NAMESPACE_END
 

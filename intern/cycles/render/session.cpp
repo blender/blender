@@ -83,7 +83,7 @@ Session::Session(const SessionParams &params_)
 
   display_outdated = false;
   gpu_draw_ready = false;
-  gpu_need_tonemap = false;
+  gpu_need_display_buffer_update = false;
   pause = false;
   kernels_loaded = false;
 
@@ -97,8 +97,8 @@ Session::~Session()
     /* wait for session thread to end */
     progress.set_cancel("Exiting");
 
-    gpu_need_tonemap = false;
-    gpu_need_tonemap_cond.notify_all();
+    gpu_need_display_buffer_update = false;
+    gpu_need_display_buffer_update_cond.notify_all();
 
     {
       thread_scoped_lock pause_lock(pause_mutex);
@@ -110,12 +110,12 @@ Session::~Session()
   }
 
   if (params.write_render_cb) {
-    /* tonemap and write out image if requested */
+    /* Copy to display buffer and write out image if requested */
     delete display;
 
     display = new DisplayBuffer(device, false);
     display->reset(buffers->params);
-    tonemap(params.samples);
+    copy_to_display_buffer(params.samples);
 
     int w = display->draw_width;
     int h = display->draw_height;
@@ -168,8 +168,8 @@ void Session::reset_gpu(BufferParams &buffer_params, int samples)
 
   reset_(buffer_params, samples);
 
-  gpu_need_tonemap = false;
-  gpu_need_tonemap_cond.notify_all();
+  gpu_need_display_buffer_update = false;
+  gpu_need_display_buffer_update_cond.notify_all();
 
   pause_cond.notify_all();
 }
@@ -186,11 +186,11 @@ bool Session::draw_gpu(BufferParams &buffer_params, DeviceDrawParams &draw_param
     if (!buffer_params.modified(display->params)) {
       /* for CUDA we need to do tone-mapping still, since we can
        * only access GL buffers from the main thread. */
-      if (gpu_need_tonemap) {
+      if (gpu_need_display_buffer_update) {
         thread_scoped_lock buffers_lock(buffers_mutex);
-        tonemap(tile_manager.state.sample);
-        gpu_need_tonemap = false;
-        gpu_need_tonemap_cond.notify_all();
+        copy_to_display_buffer(tile_manager.state.sample);
+        gpu_need_display_buffer_update = false;
+        gpu_need_display_buffer_update_cond.notify_all();
       }
 
       display->draw(device, draw_params);
@@ -307,17 +307,17 @@ void Session::run_gpu()
       /* update status and timing */
       update_status_time();
 
-      gpu_need_tonemap = true;
+      gpu_need_display_buffer_update = true;
       gpu_draw_ready = true;
       progress.set_update();
 
-      /* wait for tonemap */
+      /* wait for until display buffer is updated */
       if (!params.background) {
-        while (gpu_need_tonemap) {
+        while (gpu_need_display_buffer_update) {
           if (progress.get_cancel())
             break;
 
-          gpu_need_tonemap_cond.wait(buffers_lock);
+          gpu_need_display_buffer_update_cond.wait(buffers_lock);
         }
       }
 
@@ -561,7 +561,7 @@ void Session::run_cpu()
   while (!progress.get_cancel()) {
     /* advance to next tile */
     bool no_tiles = !tile_manager.next();
-    bool need_tonemap = false;
+    bool need_copy_to_display_buffer = false;
 
     DeviceKernelStatus kernel_state = DEVICE_KERNEL_UNKNOWN;
     if (no_tiles) {
@@ -650,7 +650,7 @@ void Session::run_cpu()
       update_status_time();
 
       if (!params.background)
-        need_tonemap = true;
+        need_copy_to_display_buffer = true;
 
       if (!device->error_message().empty())
         progress.set_error(device->error_message());
@@ -668,10 +668,10 @@ void Session::run_cpu()
         delayed_reset.do_reset = false;
         reset_(delayed_reset.params, delayed_reset.samples);
       }
-      else if (need_tonemap) {
-        /* tonemap only if we do not reset, we don't we don't
+      else if (need_copy_to_display_buffer) {
+        /* Only copy to display_buffer if we do not reset, we don't
          * want to show the result of an incomplete sample */
-        tonemap(tile_manager.state.sample);
+        copy_to_display_buffer(tile_manager.state.sample);
       }
 
       if (!device->error_message().empty())
@@ -1044,9 +1044,9 @@ void Session::render()
   device->task_add(task);
 }
 
-void Session::tonemap(int sample)
+void Session::copy_to_display_buffer(int sample)
 {
-  /* add tonemap task */
+  /* add film conversion task */
   DeviceTask task(DeviceTask::FILM_CONVERT);
 
   task.x = tile_manager.state.buffer.full_x;

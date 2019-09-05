@@ -458,6 +458,7 @@ const EnumPropertyItem rna_enum_file_sort_items[] = {
 #  include "BKE_brush.h"
 #  include "BKE_colortools.h"
 #  include "BKE_context.h"
+#  include "BKE_idprop.h"
 #  include "BKE_layer.h"
 #  include "BKE_global.h"
 #  include "BKE_nla.h"
@@ -936,6 +937,18 @@ static bool rna_RegionView3D_is_orthographic_side_view_get(PointerRNA *ptr)
 {
   RegionView3D *rv3d = (RegionView3D *)(ptr->data);
   return RV3D_VIEW_IS_AXIS(rv3d->view);
+}
+
+static IDProperty *rna_View3DShading_idprops(PointerRNA *ptr, bool create)
+{
+  View3DShading *shading = ptr->data;
+
+  if (create && !shading->prop) {
+    IDPropertyTemplate val = {0};
+    shading->prop = IDP_New(IDP_GROUP, &val, "View3DShading ID properties");
+  }
+
+  return shading->prop;
 }
 
 static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -3003,6 +3016,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_View3DShading_path");
   RNA_def_struct_ui_text(
       srna, "3D View Shading Settings", "Settings for shading in the 3D viewport");
+  RNA_def_struct_idprops_func(srna, "rna_View3DShading_idprops");
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_shading_type_items);

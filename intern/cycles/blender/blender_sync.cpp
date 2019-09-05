@@ -206,7 +206,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
 
   sync_view_layer(b_v3d, b_view_layer);
   sync_integrator();
-  sync_film();
+  sync_film(b_v3d);
   sync_shaders(b_depsgraph, b_v3d);
   sync_images();
   sync_curve_settings();
@@ -336,12 +336,16 @@ void BlenderSync::sync_integrator()
 
 /* Film */
 
-void BlenderSync::sync_film()
+void BlenderSync::sync_film(BL::SpaceView3D &b_v3d)
 {
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
   Film *film = scene->film;
   Film prevfilm = *film;
+
+  if (b_v3d) {
+    film->display_pass = update_viewport_display_passes(b_v3d, film->passes, true);
+  }
 
   film->exposure = get_float(cscene, "film_exposure");
   film->filter_type = (FilterType)get_enum(
@@ -368,8 +372,10 @@ void BlenderSync::sync_film()
     }
   }
 
-  if (film->modified(prevfilm))
+  if (film->modified(prevfilm)) {
     film->tag_update(scene);
+    film->tag_passes_update(scene, prevfilm.passes, false);
+  }
 }
 
 /* Render Layer */

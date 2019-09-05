@@ -179,6 +179,8 @@ typedef struct View3DShading {
 
   float curvature_ridge_factor;
   float curvature_valley_factor;
+
+  struct IDProperty *prop;
 } View3DShading;
 
 /** 3D Viewport Overlay settings. */

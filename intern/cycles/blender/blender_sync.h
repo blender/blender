@@ -116,7 +116,7 @@ class BlenderSync {
                    int width,
                    int height,
                    void **python_thread_state);
-  void sync_film();
+  void sync_film(BL::SpaceView3D &b_v3d);
   void sync_view();
   void sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, bool update_all);
   void sync_shaders(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d);

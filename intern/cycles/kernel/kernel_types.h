@@ -1168,6 +1168,7 @@ static_assert_align(KernelCamera, 16);
 typedef struct KernelFilm {
   float exposure;
   int pass_flag;
+
   int light_pass_flag;
   int pass_stride;
   int use_light_pass;
@@ -1233,6 +1234,13 @@ typedef struct KernelFilm {
   int pass_bvh_intersections;
   int pass_ray_bounces;
 #endif
+
+  /* viewport rendering options */
+  int display_pass_stride;
+  int display_pass_components;
+  int display_divide_pass_stride;
+  int use_display_exposure;
+  int use_display_pass_alpha;
 } KernelFilm;
 static_assert_align(KernelFilm, 16);
 

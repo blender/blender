@@ -899,6 +899,8 @@ BufferParams BlenderSync::get_buffer_params(BL::RenderSettings &b_render,
     params.height = height;
   }
 
+  update_viewport_display_passes(b_v3d, params.passes, false);
+
   return params;
 }
 

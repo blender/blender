@@ -550,6 +550,11 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
     sce->eevee.light_cache = NULL;
   }
 
+  if (sce->display.shading.prop) {
+    IDP_FreeProperty(sce->display.shading.prop);
+    sce->display.shading.prop = NULL;
+  }
+
   /* These are freed on doversion. */
   BLI_assert(sce->layer_properties == NULL);
 }
