@@ -2426,6 +2426,14 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
 
   if (!ID_IS_LINKED(obact) && obact->instance_collection != NULL &&
       ID_IS_LINKED(obact->instance_collection)) {
+    if (!ID_IS_OVERRIDABLE_LIBRARY(obact->instance_collection)) {
+      BKE_reportf(op->reports,
+                  RPT_ERROR_INVALID_INPUT,
+                  "Collection '%s' (instantiated by the active object) is not overridable",
+                  obact->instance_collection->id.name + 2);
+      return OPERATOR_CANCELLED;
+    }
+
     BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
     Object *obcollection = obact;
@@ -2506,6 +2514,13 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     /* Cleanup. */
     BKE_main_id_clear_newpoins(bmain);
     BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+  }
+  else if (!ID_IS_OVERRIDABLE_LIBRARY(obact)) {
+    BKE_reportf(op->reports,
+                RPT_ERROR_INVALID_INPUT,
+                "Active object '%s' is not overridable",
+                obact->id.name + 2);
+    return OPERATOR_CANCELLED;
   }
   /* Else, poll func ensures us that ID_IS_LINKED(obact) is true. */
   else if (obact->type == OB_ARMATURE) {

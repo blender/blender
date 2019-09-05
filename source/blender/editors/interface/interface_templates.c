@@ -516,13 +516,15 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       if (id) {
         Main *bmain = CTX_data_main(C);
         if (BKE_override_library_is_enabled() && CTX_wm_window(C)->eventstate->shift) {
-          /* Only remap that specific ID usage to overriding local data-block. */
-          ID *override_id = BKE_override_library_create_from_id(bmain, id, false);
-          if (override_id != NULL) {
-            BKE_main_id_clear_newpoins(bmain);
+          if (ID_IS_OVERRIDABLE_LIBRARY(id)) {
+            /* Only remap that specific ID usage to overriding local data-block. */
+            ID *override_id = BKE_override_library_create_from_id(bmain, id, false);
+            if (override_id != NULL) {
+              BKE_main_id_clear_newpoins(bmain);
 
-            /* Assign new pointer, takes care of updates/notifiers */
-            RNA_id_pointer_create(override_id, &idptr);
+              /* Assign new pointer, takes care of updates/notifiers */
+              RNA_id_pointer_create(override_id, &idptr);
+            }
           }
         }
         else {
