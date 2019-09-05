@@ -2389,6 +2389,8 @@ static int wm_handler_fileselect_do(bContext *C,
 
             if (BLI_listbase_is_single(&file_sa->spacedata)) {
               wmWindow *ctx_win = CTX_wm_window(C);
+              BLI_assert(ctx_win != win);
+
               wm_window_close(C, wm, win);
               CTX_wm_window_set(C, ctx_win);  // wm_window_close() NULLs.
             }
@@ -3514,41 +3516,14 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
+  /* Don't add the file handler to the temporary window, or else it owns the handlers for itself,
+   * causing dangling pointers once it's destructed through a handler. It has a parent which should
+   * hold the handlers itself. */
+  ListBase *modalhandlers = WM_window_is_temp_screen(win) ? &win->parent->modalhandlers :
+                                                            &win->modalhandlers;
 
   /* Close any popups, like when opening a file browser from the splash. */
-  UI_popup_handlers_remove_all(C, &win->modalhandlers);
-
-  /* only allow 1 file selector open per window */
-  LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, &win->modalhandlers) {
-    if (handler_base->type == WM_HANDLER_TYPE_OP) {
-      wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
-      if (handler->is_fileselect == false) {
-        continue;
-      }
-      bScreen *screen = CTX_wm_screen(C);
-      bool cancel_handler = true;
-
-      /* find the area with the file selector for this handler */
-      ED_screen_areas_iter(win, screen, sa)
-      {
-        if (sa->spacetype == SPACE_FILE) {
-          SpaceFile *sfile = sa->spacedata.first;
-
-          if (sfile->op == handler->op) {
-            CTX_wm_area_set(C, sa);
-            wm_handler_fileselect_do(C, &win->modalhandlers, handler, EVT_FILESELECT_CANCEL);
-            cancel_handler = false;
-            break;
-          }
-        }
-      }
-
-      /* if not found we stop the handler without changing the screen */
-      if (cancel_handler) {
-        wm_handler_fileselect_do(C, &win->modalhandlers, handler, EVT_FILESELECT_EXTERNAL_CANCEL);
-      }
-    }
-  }
+  UI_popup_handlers_remove_all(C, modalhandlers);
 
   wmEventHandler_Op *handler = MEM_callocN(sizeof(*handler), __func__);
   handler->head.type = WM_HANDLER_TYPE_OP;
@@ -3558,7 +3533,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
   handler->context.area = CTX_wm_area(C);
   handler->context.region = CTX_wm_region(C);
 
-  BLI_addhead(&win->modalhandlers, handler);
+  BLI_addhead(modalhandlers, handler);
 
   /* check props once before invoking if check is available
    * ensures initial properties are valid */
