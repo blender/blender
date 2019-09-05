@@ -254,6 +254,10 @@ static void set_wireframe_color(Object *ob,
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   World *world = draw_ctx->scene->world;
+  const bool is_fade = (v3d) && (v3d->gp_flag & V3D_GP_FADE_NOACTIVE_LAYERS) &&
+                       (draw_ctx->obact) && (draw_ctx->obact == ob) &&
+                       ((gpl->flag & GP_LAYER_ACTIVE) == 0);
+  const float opacity = is_fade ? v3d->overlay.gpencil_fade_layer : 1.0f;
 
   float color[4];
   if (((gp_style->stroke_rgba[3] < GPENCIL_ALPHA_OPACITY_THRESH) ||
@@ -264,7 +268,7 @@ static void set_wireframe_color(Object *ob,
   else {
     copy_v4_v4(color, gp_style->stroke_rgba);
   }
-  float alpha = color[3];
+  float alpha = color[3] * opacity;
 
   /* wire color */
   if ((v3d) && (id > -1)) {
@@ -301,13 +305,13 @@ static void set_wireframe_color(Object *ob,
         else {
           copy_v3_v3(color, v3d->shading.single_color);
         }
-        color[3] = alpha;
+        color[3] = is_fade ? alpha : 1.0f;
         linearrgb_to_srgb_v4(stl->shgroups[id].wire_color, color);
         break;
       }
       case V3D_SHADING_OBJECT_COLOR: {
         copy_v4_v4(color, ob->color);
-        color[3] = alpha;
+        color[3] = is_fade ? alpha : 1.0f;
         linearrgb_to_srgb_v4(stl->shgroups[id].wire_color, color);
         break;
       }
@@ -324,7 +328,7 @@ static void set_wireframe_color(Object *ob,
         hsv_to_rgb_v(hsv, &wire_col[0]);
 
         copy_v3_v3(stl->shgroups[id].wire_color, wire_col);
-        stl->shgroups[id].wire_color[3] = alpha;
+        stl->shgroups[id].wire_color[3] = is_fade ? alpha : 1.0f;
         break;
       }
       default: {
@@ -337,9 +341,9 @@ static void set_wireframe_color(Object *ob,
     copy_v4_v4(stl->shgroups[id].wire_color, color);
   }
 
-  /* if solid, the alpha must be set to 1.0 */
+  /* if solid, the alpha must be set to alpha */
   if (stl->shgroups[id].shading_type[0] == OB_SOLID) {
-    stl->shgroups[id].wire_color[3] = 1.0f;
+    stl->shgroups[id].wire_color[3] = is_fade ? alpha : 1.0f;
   }
 }
 
