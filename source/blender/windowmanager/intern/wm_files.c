@@ -52,6 +52,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_utildefines.h"
+#include "BLI_timer.h"
 #include "BLI_threads.h"
 #include "BLI_callbacks.h"
 #include "BLI_system.h"
@@ -609,6 +610,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   WM_cursor_wait(1);
 
   BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
+  BLI_timer_on_file_load();
 
   UI_view2d_zoom_cache_reset();
 
@@ -806,6 +808,7 @@ void wm_homefile_read(bContext *C,
 
   if (use_data) {
     BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
+    BLI_timer_on_file_load();
 
     G.relbase_valid = 0;
 

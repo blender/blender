@@ -23,7 +23,6 @@
 
 #include "BLI_timer.h"
 #include "BLI_listbase.h"
-#include "BLI_callbacks.h"
 
 #include "MEM_guardedalloc.h"
 #include "PIL_time.h"
@@ -48,8 +47,6 @@ typedef struct TimerContainer {
 
 static TimerContainer GlobalTimer = {{0}};
 
-static void ensure_callback_is_registered(void);
-
 void BLI_timer_register(uintptr_t uuid,
                         BLI_timer_func func,
                         void *user_data,
@@ -57,8 +54,6 @@ void BLI_timer_register(uintptr_t uuid,
                         double first_interval,
                         bool persistent)
 {
-  ensure_callback_is_registered();
-
   TimedFunction *timed_func = MEM_callocN(sizeof(TimedFunction), __func__);
   timed_func->func = func;
   timed_func->user_data_free = user_data_free;
@@ -156,11 +151,7 @@ void BLI_timer_free()
   remove_tagged_functions();
 }
 
-struct ID;
-struct Main;
-static void remove_non_persistent_functions(struct Main *UNUSED(_1),
-                                            struct ID *UNUSED(_2),
-                                            void *UNUSED(_3))
+static void remove_non_persistent_functions(void)
 {
   LISTBASE_FOREACH (TimedFunction *, timed_func, &GlobalTimer.funcs) {
     if (!timed_func->persistent) {
@@ -169,18 +160,7 @@ static void remove_non_persistent_functions(struct Main *UNUSED(_1),
   }
 }
 
-static bCallbackFuncStore load_pre_callback = {
-    NULL,
-    NULL,                            /* next, prev */
-    remove_non_persistent_functions, /* func */
-    NULL,                            /* arg */
-    0,                               /* alloc */
-};
-
-static void ensure_callback_is_registered()
+void BLI_timer_on_file_load(void)
 {
-  if (!GlobalTimer.file_load_cb_registered) {
-    BLI_callback_add(&load_pre_callback, BLI_CB_EVT_LOAD_PRE);
-    GlobalTimer.file_load_cb_registered = true;
-  }
+  remove_non_persistent_functions();
 }
