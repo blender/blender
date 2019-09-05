@@ -95,6 +95,7 @@
 #include "BLT_translation.h"
 
 #include "transform.h"
+#include "transform_convert.h"
 
 /* Disabling, since when you type you know what you are doing,
  * and being able to set it to zero is handy. */

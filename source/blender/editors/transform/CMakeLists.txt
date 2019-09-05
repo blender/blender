@@ -40,7 +40,24 @@ set(INC_SYS
 set(SRC
   transform.c
   transform_constraints.c
-  transform_conversions.c
+  transform_convert.c
+  transform_convert_action.c
+  transform_convert_armature.c
+  transform_convert_paintcurve.c
+  transform_convert_cursor.c
+  transform_convert_curve.c
+  transform_convert_graph.c
+  transform_convert_gpencil.c
+  transform_convert_lattice.c
+  transform_convert_mask.c
+  transform_convert_mball.c
+  transform_convert_mesh.c
+  transform_convert_nla.c
+  transform_convert_node.c
+  transform_convert_object.c
+  transform_convert_particle.c
+  transform_convert_sequencer.c
+  transform_convert_tracking.c
   transform_generics.c
   transform_gizmo_2d.c
   transform_gizmo_3d.c
@@ -52,6 +69,7 @@ set(SRC
   transform_snap_object.c
 
   transform.h
+  transform_convert.h
 )
 
 set(LIB

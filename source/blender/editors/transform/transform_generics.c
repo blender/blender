@@ -109,6 +109,7 @@
 #include "UI_view2d.h"
 
 #include "transform.h"
+#include "transform_convert.h"
 
 /* ************************** Functions *************************** */
 

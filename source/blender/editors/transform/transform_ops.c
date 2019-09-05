@@ -53,6 +53,7 @@
 #include "ED_mesh.h"
 
 #include "transform.h"
+#include "transform_convert.h"
 
 typedef struct TransformModeItem {
   const char *idname;
