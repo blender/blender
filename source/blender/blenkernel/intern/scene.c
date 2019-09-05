@@ -1557,29 +1557,37 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
     BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_DEPSGRAPH_UPDATE_PRE);
   }
 
-  /* TODO(sergey): Some functions here are changing global state,
-   * for example, clearing update tags from bmain.
-   */
-  /* (Re-)build dependency graph if needed. */
-  DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
-  /* Uncomment this to check if graph was properly tagged for update. */
-  // DEG_debug_graph_relations_validate(depsgraph, bmain, scene);
-  /* Flush editing data if needed. */
-  prepare_mesh_for_viewport_render(bmain, view_layer);
-  /* Update all objects: drivers, matrices, displists, etc. flags set
-   * by depgraph or manual, no layer check here, gets correct flushed.
-   */
-  DEG_evaluate_on_refresh(bmain, depsgraph);
-  /* Update sound system. */
-  BKE_scene_update_sound(depsgraph, bmain);
-  /* Notify python about depsgraph update. */
-  if (run_callbacks) {
-    BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_DEPSGRAPH_UPDATE_POST);
+  for (int pass = 0; pass < 2; ++pass) {
+    /* (Re-)build dependency graph if needed. */
+    DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
+    /* Uncomment this to check if graph was properly tagged for update. */
+    // DEG_debug_graph_relations_validate(depsgraph, bmain, scene);
+    /* Flush editing data if needed. */
+    prepare_mesh_for_viewport_render(bmain, view_layer);
+    /* Update all objects: drivers, matrices, displists, etc. flags set
+     * by depgraph or manual, no layer check here, gets correct flushed.
+     */
+    DEG_evaluate_on_refresh(bmain, depsgraph);
+    /* Update sound system. */
+    BKE_scene_update_sound(depsgraph, bmain);
+    /* Notify python about depsgraph update. */
+    if (run_callbacks) {
+      BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_DEPSGRAPH_UPDATE_POST);
+    }
+    /* Inform editors about possible changes. */
+    DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, false);
+    /* Clear recalc flags. */
+    DEG_ids_clear_recalc(bmain, depsgraph);
+
+    /* If user callback did not tag anything for update we can skip second iteration.
+     * Otherwise we update scene once again, but without running callbacks to bring
+     * scene to a fully evaluated state with user modifications taken into account. */
+    if (DEG_is_fully_evaluated(depsgraph)) {
+      break;
+    }
+
+    run_callbacks = false;
   }
-  /* Inform editors about possible changes. */
-  DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, false);
-  /* Clear recalc flags. */
-  DEG_ids_clear_recalc(bmain, depsgraph);
 }
 
 void BKE_scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain)
@@ -1598,33 +1606,44 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph, Main *bmain)
   Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
 
-  /* TODO(sergey): Some functions here are changing global state,
-   * for example, clearing update tags from bmain.
-   */
-  const float ctime = BKE_scene_frame_get(scene);
   /* Keep this first. */
   BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
-  /* Update animated image textures for particles, modifiers, gpu, etc,
-   * call this at the start so modifiers with textures don't lag 1 frame.
-   */
-  BKE_image_editors_update_frame(bmain, scene->r.cfra);
-  BKE_sound_set_cfra(scene->r.cfra);
-  DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
+
+  for (int pass = 0; pass < 2; ++pass) {
+    /* Update animated image textures for particles, modifiers, gpu, etc,
+     * call this at the start so modifiers with textures don't lag 1 frame.
+     */
+    BKE_image_editors_update_frame(bmain, scene->r.cfra);
+    BKE_sound_set_cfra(scene->r.cfra);
+    DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
 #ifdef POSE_ANIMATION_WORKAROUND
-  scene_armature_depsgraph_workaround(bmain, depsgraph);
+    scene_armature_depsgraph_workaround(bmain, depsgraph);
 #endif
-  /* Update all objects: drivers, matrices, displists, etc. flags set
-   * by depgraph or manual, no layer check here, gets correct flushed.
-   */
-  DEG_evaluate_on_framechange(bmain, depsgraph, ctime);
-  /* Update sound system animation. */
-  BKE_scene_update_sound(depsgraph, bmain);
-  /* Notify editors and python about recalc. */
-  BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_FRAME_CHANGE_POST);
-  /* Inform editors about possible changes. */
-  DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, true);
-  /* clear recalc flags */
-  DEG_ids_clear_recalc(bmain, depsgraph);
+    /* Update all objects: drivers, matrices, displists, etc. flags set
+     * by depgraph or manual, no layer check here, gets correct flushed.
+     */
+    const float ctime = BKE_scene_frame_get(scene);
+    DEG_evaluate_on_framechange(bmain, depsgraph, ctime);
+    /* Update sound system animation. */
+    BKE_scene_update_sound(depsgraph, bmain);
+
+    /* Notify editors and python about recalc. */
+    if (pass == 0) {
+      BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_FRAME_CHANGE_POST);
+    }
+
+    /* Inform editors about possible changes. */
+    DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, true);
+    /* clear recalc flags */
+    DEG_ids_clear_recalc(bmain, depsgraph);
+
+    /* If user callback did not tag anything for update we can skip second iteration.
+     * Otherwise we update scene once again, but without running callbacks to bring
+     * scene to a fully evaluated state with user modifications taken into account. */
+    if (DEG_is_fully_evaluated(depsgraph)) {
+      break;
+    }
+  }
 }
 
 /** Ensures given scene/view_layer pair has a valid, up-to-date depsgraph.
