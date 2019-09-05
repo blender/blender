@@ -41,7 +41,6 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_callbacks.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -55,6 +54,7 @@
 #include "BKE_blendfile.h"
 #include "BKE_blender.h"
 #include "BKE_blender_undo.h"
+#include "BKE_callbacks.h"
 #include "BKE_context.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
@@ -378,10 +378,10 @@ void WM_init(bContext *C, int argc, const char **argv)
      * note that recovering the last session does its own callbacks. */
     CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
-    BLI_callback_exec(bmain, NULL, BLI_CB_EVT_VERSION_UPDATE);
-    BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_POST);
+    BKE_callback_exec(bmain, NULL, BKE_CB_EVT_VERSION_UPDATE);
+    BKE_callback_exec(bmain, NULL, BKE_CB_EVT_LOAD_POST);
     if (is_factory_startup) {
-      BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_FACTORY_STARTUP_POST);
+      BKE_callback_exec(bmain, NULL, BKE_CB_EVT_LOAD_FACTORY_STARTUP_POST);
     }
 
     wm_file_read_report(C, bmain);

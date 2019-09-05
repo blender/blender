@@ -24,7 +24,8 @@
 
 #include <Python.h>
 #include "BLI_utildefines.h"
-#include "BLI_callbacks.h"
+
+#include "BKE_callbacks.h"
 
 #include "RNA_types.h"
 #include "RNA_access.h"
@@ -80,7 +81,7 @@ static PyStructSequence_Desc app_cb_info_desc = {
 };
 
 #if 0
-#  if (BLI_CB_EVT_TOT != ARRAY_SIZE(app_cb_info_fields))
+#  if (BKE_CB_EVT_TOT != ARRAY_SIZE(app_cb_info_fields))
 #    error "Callbacks are out of sync"
 #  endif
 #endif
@@ -175,7 +176,7 @@ static PyTypeObject BPyPersistent_Type = {
     0,                                                             /* tp_free */
 };
 
-static PyObject *py_cb_array[BLI_CB_EVT_TOT] = {NULL};
+static PyObject *py_cb_array[BKE_CB_EVT_TOT] = {NULL};
 
 static PyObject *make_app_cb_info(void)
 {
@@ -187,7 +188,7 @@ static PyObject *make_app_cb_info(void)
     return NULL;
   }
 
-  for (pos = 0; pos < BLI_CB_EVT_TOT; pos++) {
+  for (pos = 0; pos < BKE_CB_EVT_TOT; pos++) {
     if (app_cb_info_fields[pos].name == NULL) {
       Py_FatalError("invalid callback slots 1");
     }
@@ -227,16 +228,16 @@ PyObject *BPY_app_handlers_struct(void)
 
   /* assign the C callbacks */
   if (ret) {
-    static bCallbackFuncStore funcstore_array[BLI_CB_EVT_TOT] = {{NULL}};
+    static bCallbackFuncStore funcstore_array[BKE_CB_EVT_TOT] = {{NULL}};
     bCallbackFuncStore *funcstore;
     int pos = 0;
 
-    for (pos = 0; pos < BLI_CB_EVT_TOT; pos++) {
+    for (pos = 0; pos < BKE_CB_EVT_TOT; pos++) {
       funcstore = &funcstore_array[pos];
       funcstore->func = bpy_app_generic_callback;
       funcstore->alloc = 0;
       funcstore->arg = POINTER_FROM_INT(pos);
-      BLI_callback_add(funcstore, pos);
+      BKE_callback_add(funcstore, pos);
     }
   }
 
@@ -251,7 +252,7 @@ void BPY_app_handlers_reset(const short do_all)
   gilstate = PyGILState_Ensure();
 
   if (do_all) {
-    for (pos = 0; pos < BLI_CB_EVT_TOT; pos++) {
+    for (pos = 0; pos < BKE_CB_EVT_TOT; pos++) {
       /* clear list */
       PyList_SetSlice(py_cb_array[pos], 0, PY_SSIZE_T_MAX, NULL);
     }
@@ -260,7 +261,7 @@ void BPY_app_handlers_reset(const short do_all)
     /* save string conversion thrashing */
     PyObject *perm_id_str = PyUnicode_FromString(PERMINENT_CB_ID);
 
-    for (pos = 0; pos < BLI_CB_EVT_TOT; pos++) {
+    for (pos = 0; pos < BKE_CB_EVT_TOT; pos++) {
       /* clear only items without PERMINENT_CB_ID */
       PyObject *ls = py_cb_array[pos];
       Py_ssize_t i;

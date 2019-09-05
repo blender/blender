@@ -42,6 +42,7 @@ extern "C" {
 #include "DNA_material_types.h"
 #include "DNA_text_types.h"
 
+#include "BKE_callbacks.h"
 #include "BKE_context.h"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
@@ -55,7 +56,6 @@ extern "C" {
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
-#include "BLI_callbacks.h"
 
 #include "BPY_extern.h"
 
@@ -111,7 +111,7 @@ void FRS_initialize()
   g_freestyle.scene = NULL;
   lineset_copied = false;
 
-  BLI_callback_add(&load_post_callback_funcstore, BLI_CB_EVT_LOAD_POST);
+  BKE_callback_add(&load_post_callback_funcstore, BKE_CB_EVT_LOAD_POST);
 
   freestyle_is_initialized = 1;
 }

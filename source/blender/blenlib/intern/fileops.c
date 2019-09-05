@@ -35,8 +35,8 @@
 #ifdef WIN32
 #  include <io.h>
 #  include "BLI_winstuff.h"
-#  include "BLI_callbacks.h"
 #  include "BLI_fileops_types.h"
+#  include "BKE_callbacks.h"
 #  include "utf_winfunc.h"
 #  include "utfconv.h"
 #else

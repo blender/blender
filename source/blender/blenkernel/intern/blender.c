@@ -32,7 +32,6 @@
 #include "BLI_string.h"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
-#include "BLI_callbacks.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_moviecache.h"
@@ -44,6 +43,7 @@
 #include "BKE_blendfile.h"
 #include "BKE_brush.h"
 #include "BKE_cachefile.h"
+#include "BKE_callbacks.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
@@ -95,7 +95,7 @@ void BKE_blender_free(void)
   BKE_brush_system_exit();
   RE_texture_rng_exit();
 
-  BLI_callback_global_finalize();
+  BKE_callback_global_finalize();
 
   IMB_moviecache_destruct();
 

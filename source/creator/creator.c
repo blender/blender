@@ -38,7 +38,6 @@
 #include "BLI_args.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
-#include "BLI_callbacks.h"
 #include "BLI_string.h"
 #include "BLI_system.h"
 
@@ -47,6 +46,7 @@
 #include "BKE_blender.h"
 #include "BKE_brush.h"
 #include "BKE_cachefile.h"
+#include "BKE_callbacks.h"
 #include "BKE_context.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
@@ -357,7 +357,7 @@ int main(int argc,
   BKE_brush_system_init();
   RE_texture_rng_init();
 
-  BLI_callback_global_init();
+  BKE_callback_global_init();
 
   /* first test for background */
 #ifndef WITH_PYTHON_MODULE

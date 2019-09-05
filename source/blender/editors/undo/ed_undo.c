@@ -31,12 +31,12 @@
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_callbacks.h"
 #include "BLI_listbase.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_blender_undo.h"
+#include "BKE_callbacks.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -172,8 +172,8 @@ static int ed_undo_step_impl(
     /* Note: ignore grease pencil for now. */
     Main *bmain = CTX_data_main(C);
     wm->op_undo_depth++;
-    BLI_callback_exec(
-        bmain, &scene->id, (step_for_callback > 0) ? BLI_CB_EVT_UNDO_PRE : BLI_CB_EVT_REDO_PRE);
+    BKE_callback_exec(
+        bmain, &scene->id, (step_for_callback > 0) ? BKE_CB_EVT_UNDO_PRE : BKE_CB_EVT_REDO_PRE);
     wm->op_undo_depth--;
   }
 
@@ -220,8 +220,8 @@ static int ed_undo_step_impl(
     Main *bmain = CTX_data_main(C);
     scene = CTX_data_scene(C);
     wm->op_undo_depth++;
-    BLI_callback_exec(
-        bmain, &scene->id, step_for_callback > 0 ? BLI_CB_EVT_UNDO_POST : BLI_CB_EVT_REDO_POST);
+    BKE_callback_exec(
+        bmain, &scene->id, step_for_callback > 0 ? BKE_CB_EVT_UNDO_POST : BKE_CB_EVT_REDO_POST);
     wm->op_undo_depth--;
   }
 

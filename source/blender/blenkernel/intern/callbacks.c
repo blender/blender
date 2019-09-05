@@ -15,18 +15,19 @@
  */
 
 /** \file
- * \ingroup bli
+ * \ingroup bke
  */
 
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
-#include "BLI_callbacks.h"
+
+#include "BKE_callbacks.h"
 
 #include "MEM_guardedalloc.h"
 
-static ListBase callback_slots[BLI_CB_EVT_TOT] = {{NULL}};
+static ListBase callback_slots[BKE_CB_EVT_TOT] = {{NULL}};
 
-void BLI_callback_exec(struct Main *bmain, struct ID *self, eCbEvent evt)
+void BKE_callback_exec(struct Main *bmain, struct ID *self, eCbEvent evt)
 {
   ListBase *lb = &callback_slots[evt];
   bCallbackFuncStore *funcstore;
@@ -36,22 +37,22 @@ void BLI_callback_exec(struct Main *bmain, struct ID *self, eCbEvent evt)
   }
 }
 
-void BLI_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt)
+void BKE_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt)
 {
   ListBase *lb = &callback_slots[evt];
   BLI_addtail(lb, funcstore);
 }
 
-void BLI_callback_global_init(void)
+void BKE_callback_global_init(void)
 {
   /* do nothing */
 }
 
 /* call on application exit */
-void BLI_callback_global_finalize(void)
+void BKE_callback_global_finalize(void)
 {
   eCbEvent evt;
-  for (evt = 0; evt < BLI_CB_EVT_TOT; evt++) {
+  for (evt = 0; evt < BKE_CB_EVT_TOT; evt++) {
     ListBase *lb = &callback_slots[evt];
     bCallbackFuncStore *funcstore;
     bCallbackFuncStore *funcstore_next;

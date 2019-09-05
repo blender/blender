@@ -48,11 +48,11 @@
 #include "BLI_timecode.h"
 #include "BLI_fileops.h"
 #include "BLI_threads.h"
-#include "BLI_callbacks.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_animsys.h" /* <------ should this be here?, needed for sequencer update */
+#include "BKE_callbacks.h"
 #include "BKE_camera.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h" /* XXX needed by wm_window.h */
@@ -226,7 +226,7 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 
   /* NOTE: using G_MAIN seems valid here???
    * Not sure it's actually even used anyway, we could as well pass NULL? */
-  BLI_callback_exec(G_MAIN, NULL, BLI_CB_EVT_RENDER_STATS);
+  BKE_callback_exec(G_MAIN, NULL, BKE_CB_EVT_RENDER_STATS);
 
   fputc('\n', stdout);
   fflush(stdout);
@@ -2090,7 +2090,7 @@ void RE_RenderFrame(Render *re,
                     int frame,
                     const bool write_still)
 {
-  BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_INIT);
+  BKE_callback_exec(re->main, (ID *)scene, BKE_CB_EVT_RENDER_INIT);
 
   /* Ugly global still...
    * is to prevent preview events and signal subsurfs etc to make full resol. */
@@ -2105,7 +2105,7 @@ void RE_RenderFrame(Render *re,
 
     render_init_depsgraph(re);
 
-    BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
+    BKE_callback_exec(re->main, (ID *)scene, BKE_CB_EVT_RENDER_PRE);
 
     do_render_all_options(re);
 
@@ -2131,14 +2131,14 @@ void RE_RenderFrame(Render *re,
     }
 
     /* keep after file save */
-    BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST);
+    BKE_callback_exec(re->main, (ID *)scene, BKE_CB_EVT_RENDER_POST);
     if (write_still) {
-      BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_WRITE);
+      BKE_callback_exec(re->main, (ID *)scene, BKE_CB_EVT_RENDER_WRITE);
     }
   }
 
-  BLI_callback_exec(
-      re->main, (ID *)scene, G.is_break ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
+  BKE_callback_exec(
+      re->main, (ID *)scene, G.is_break ? BKE_CB_EVT_RENDER_CANCEL : BKE_CB_EVT_RENDER_COMPLETE);
 
   RE_CleanAfterRender(re);
 
@@ -2429,7 +2429,7 @@ static int do_write_image_or_movie(Render *re,
 
   /* NOTE: using G_MAIN seems valid here???
    * Not sure it's actually even used anyway, we could as well pass NULL? */
-  BLI_callback_exec(G_MAIN, NULL, BLI_CB_EVT_RENDER_STATS);
+  BKE_callback_exec(G_MAIN, NULL, BKE_CB_EVT_RENDER_STATS);
 
   BLI_timecode_string_from_time_simple(name, sizeof(name), re->i.lastframetime - render_time);
   printf(" (Saving: %s)\n", name);
@@ -2495,7 +2495,7 @@ void RE_RenderAnim(Render *re,
   const bool is_multiview_name = ((rd.scemode & R_MULTIVIEW) != 0 &&
                                   (rd.im_format.views_format == R_IMF_VIEWS_INDIVIDUAL));
 
-  BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_INIT);
+  BKE_callback_exec(re->main, (ID *)scene, BKE_CB_EVT_RENDER_INIT);
 
   /* do not fully call for each frame, it initializes & pops output window */
   if (!render_initialize_from_main(re, &rd, bmain, scene, single_layer, camera_override, 0, 1)) {
@@ -2661,7 +2661,7 @@ void RE_RenderAnim(Render *re,
       re->r.cfra = scene->r.cfra; /* weak.... */
 
       /* run callbacs before rendering, before the scene is updated */
-      BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
+      BKE_callback_exec(re->main, (ID *)scene, BKE_CB_EVT_RENDER_PRE);
 
       do_render_all_options(re);
       totrendered++;
@@ -2712,8 +2712,8 @@ void RE_RenderAnim(Render *re,
 
       if (G.is_break == false) {
         /* keep after file save */
-        BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST);
-        BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_WRITE);
+        BKE_callback_exec(re->main, (ID *)scene, BKE_CB_EVT_RENDER_POST);
+        BKE_callback_exec(re->main, (ID *)scene, BKE_CB_EVT_RENDER_WRITE);
       }
     }
   }
@@ -2731,8 +2731,8 @@ void RE_RenderAnim(Render *re,
 
   re->flag &= ~R_ANIMATION;
 
-  BLI_callback_exec(
-      re->main, (ID *)scene, G.is_break ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
+  BKE_callback_exec(
+      re->main, (ID *)scene, G.is_break ? BKE_CB_EVT_RENDER_CANCEL : BKE_CB_EVT_RENDER_COMPLETE);
   BKE_sound_reset_scene_specs(re->pipeline_scene_eval);
 
   RE_CleanAfterRender(re);

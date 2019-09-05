@@ -50,7 +50,7 @@ void BLI_timer_execute(void);
 
 void BLI_timer_free(void);
 
-/* This function is to be called next to BLI_CB_EVT_LOAD_PRE, to make sure the module
+/* This function is to be called next to BKE_CB_EVT_LOAD_PRE, to make sure the module
  * is properly configured for the new file. */
 void BLI_timer_on_file_load(void);
 

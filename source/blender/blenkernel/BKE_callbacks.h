@@ -15,11 +15,11 @@
  */
 
 /** \file
- * \ingroup bli
+ * \ingroup bke
  */
 
-#ifndef __BLI_CALLBACKS_H__
-#define __BLI_CALLBACKS_H__
+#ifndef __BKE_CALLBACKS_H__
+#define __BKE_CALLBACKS_H__
 
 struct ID;
 struct Main;
@@ -32,29 +32,29 @@ struct Main;
  *   For handling jobs (which may in turn cause other handlers to be called).
  */
 typedef enum {
-  BLI_CB_EVT_FRAME_CHANGE_PRE,
-  BLI_CB_EVT_FRAME_CHANGE_POST,
-  BLI_CB_EVT_RENDER_PRE,
-  BLI_CB_EVT_RENDER_POST,
-  BLI_CB_EVT_RENDER_WRITE,
-  BLI_CB_EVT_RENDER_STATS,
-  BLI_CB_EVT_RENDER_INIT,
-  BLI_CB_EVT_RENDER_COMPLETE,
-  BLI_CB_EVT_RENDER_CANCEL,
-  BLI_CB_EVT_LOAD_PRE,
-  BLI_CB_EVT_LOAD_POST,
-  BLI_CB_EVT_SAVE_PRE,
-  BLI_CB_EVT_SAVE_POST,
-  BLI_CB_EVT_UNDO_PRE,
-  BLI_CB_EVT_UNDO_POST,
-  BLI_CB_EVT_REDO_PRE,
-  BLI_CB_EVT_REDO_POST,
-  BLI_CB_EVT_DEPSGRAPH_UPDATE_PRE,
-  BLI_CB_EVT_DEPSGRAPH_UPDATE_POST,
-  BLI_CB_EVT_VERSION_UPDATE,
-  BLI_CB_EVT_LOAD_FACTORY_USERDEF_POST,
-  BLI_CB_EVT_LOAD_FACTORY_STARTUP_POST,
-  BLI_CB_EVT_TOT,
+  BKE_CB_EVT_FRAME_CHANGE_PRE,
+  BKE_CB_EVT_FRAME_CHANGE_POST,
+  BKE_CB_EVT_RENDER_PRE,
+  BKE_CB_EVT_RENDER_POST,
+  BKE_CB_EVT_RENDER_WRITE,
+  BKE_CB_EVT_RENDER_STATS,
+  BKE_CB_EVT_RENDER_INIT,
+  BKE_CB_EVT_RENDER_COMPLETE,
+  BKE_CB_EVT_RENDER_CANCEL,
+  BKE_CB_EVT_LOAD_PRE,
+  BKE_CB_EVT_LOAD_POST,
+  BKE_CB_EVT_SAVE_PRE,
+  BKE_CB_EVT_SAVE_POST,
+  BKE_CB_EVT_UNDO_PRE,
+  BKE_CB_EVT_UNDO_POST,
+  BKE_CB_EVT_REDO_PRE,
+  BKE_CB_EVT_REDO_POST,
+  BKE_CB_EVT_DEPSGRAPH_UPDATE_PRE,
+  BKE_CB_EVT_DEPSGRAPH_UPDATE_POST,
+  BKE_CB_EVT_VERSION_UPDATE,
+  BKE_CB_EVT_LOAD_FACTORY_USERDEF_POST,
+  BKE_CB_EVT_LOAD_FACTORY_STARTUP_POST,
+  BKE_CB_EVT_TOT,
 } eCbEvent;
 
 typedef struct bCallbackFuncStore {
@@ -64,10 +64,10 @@ typedef struct bCallbackFuncStore {
   short alloc;
 } bCallbackFuncStore;
 
-void BLI_callback_exec(struct Main *bmain, struct ID *self, eCbEvent evt);
-void BLI_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt);
+void BKE_callback_exec(struct Main *bmain, struct ID *self, eCbEvent evt);
+void BKE_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt);
 
-void BLI_callback_global_init(void);
-void BLI_callback_global_finalize(void);
+void BKE_callback_global_init(void);
+void BKE_callback_global_finalize(void);
 
-#endif /* __BLI_CALLBACKS_H__ */
+#endif /* __BKE_CALLBACKS_H__ */
