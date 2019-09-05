@@ -97,26 +97,6 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
         row.prop(ob, "lock_scale", text="", emboss=False, icon='DECORATE_UNLOCKED')
 
 
-class OBJECT_PT_transform_dimensions(ObjectButtonsPanel, Panel):
-    bl_label = "Dimensions"
-    bl_parent_id = "OBJECT_PT_transform"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        ob = context.object
-        obj_type = ob.type
-        return obj_type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'ARMATURE', 'LATTICE'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        ob = context.object
-
-        layout.prop(ob, "dimensions", text=" ")
-
-
 class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
     bl_label = "Delta Transform"
     bl_parent_id = "OBJECT_PT_transform"
@@ -427,7 +407,6 @@ class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, Panel):
 classes = (
     OBJECT_PT_context_object,
     OBJECT_PT_transform,
-    OBJECT_PT_transform_dimensions,
     OBJECT_PT_delta_transform,
     OBJECT_PT_relations,
     COLLECTION_MT_context_menu,
