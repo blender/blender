@@ -552,8 +552,7 @@ ccl_device_inline float noise_scale4(float result)
 
 ccl_device_inline float snoise_1d(float p)
 {
-  float r = perlin_1d(p);
-  return isinf(r) ? 0.0f : noise_scale1(r);
+  return noise_scale1(ensure_finite(perlin_1d(p)));
 }
 
 ccl_device_inline float noise_1d(float p)
@@ -563,8 +562,7 @@ ccl_device_inline float noise_1d(float p)
 
 ccl_device_inline float snoise_2d(float2 p)
 {
-  float r = perlin_2d(p.x, p.y);
-  return isinf(r) ? 0.0f : noise_scale2(r);
+  return noise_scale2(ensure_finite(perlin_2d(p.x, p.y)));
 }
 
 ccl_device_inline float noise_2d(float2 p)
@@ -574,8 +572,7 @@ ccl_device_inline float noise_2d(float2 p)
 
 ccl_device_inline float snoise_3d(float3 p)
 {
-  float r = perlin_3d(p.x, p.y, p.z);
-  return isinf(r) ? 0.0f : noise_scale3(r);
+  return noise_scale3(ensure_finite(perlin_3d(p.x, p.y, p.z)));
 }
 
 ccl_device_inline float noise_3d(float3 p)
@@ -585,8 +582,7 @@ ccl_device_inline float noise_3d(float3 p)
 
 ccl_device_inline float snoise_4d(float4 p)
 {
-  float r = perlin_4d(p.x, p.y, p.z, p.w);
-  return isinf(r) ? 0.0f : noise_scale4(r);
+  return noise_scale4(ensure_finite(perlin_4d(p.x, p.y, p.z, p.w)));
 }
 
 ccl_device_inline float noise_4d(float4 p)
