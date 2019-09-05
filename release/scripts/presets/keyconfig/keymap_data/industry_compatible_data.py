@@ -182,6 +182,8 @@ def km_window(params):
     )
 
     items.extend([
+        ("wm.batch_rename", {"type": 'RET', "value": 'PRESS', "alt": True}, None),
+
         # File operations
         ("wm.read_homefile", {"type": 'N', "value": 'PRESS', "ctrl": True}, None),
         op_menu("TOPBAR_MT_file_open_recent", {"type": 'O', "value": 'PRESS', "shift": True, "ctrl": True}),
