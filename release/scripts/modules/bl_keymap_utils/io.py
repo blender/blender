@@ -80,7 +80,7 @@ def _kmi_properties_to_lines_recursive(level, properties, lines):
     from bpy.types import OperatorProperties
 
     def string_value(value):
-        if isinstance(value, (str, bool, int)):
+        if isinstance(value, (str, bool, int, set)):
             return repr(value)
         elif isinstance(value, float):
             return repr_f32(value)
