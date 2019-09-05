@@ -143,7 +143,7 @@ const EnumPropertyItem rna_enum_proportional_falloff_curve_only_items[] = {
 
 /* keep for operators, not used here */
 const EnumPropertyItem rna_enum_mesh_select_mode_items[] = {
-    {SCE_SELECT_VERTEX, "VERTEX", ICON_VERTEXSEL, "Vertex", "Vertex selection mode"},
+    {SCE_SELECT_VERTEX, "VERT", ICON_VERTEXSEL, "Vertex", "Vertex selection mode"},
     {SCE_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edge", "Edge selection mode"},
     {SCE_SELECT_FACE, "FACE", ICON_FACESEL, "Face", "Face selection mode"},
     {0, NULL, 0, NULL, NULL},

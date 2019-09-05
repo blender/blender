@@ -1381,13 +1381,6 @@ void MESH_OT_select_mode(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
-  static const EnumPropertyItem elem_items[] = {
-      {SCE_SELECT_VERTEX, "VERT", ICON_VERTEXSEL, "Vertices", ""},
-      {SCE_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edges", ""},
-      {SCE_SELECT_FACE, "FACE", ICON_FACESEL, "Faces", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   static const EnumPropertyItem actions_items[] = {
       {0, "DISABLE", 0, "Disable", "Disable selected markers"},
       {1, "ENABLE", 0, "Enable", "Enable selected markers"},
@@ -1414,7 +1407,7 @@ void MESH_OT_select_mode(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "use_expand", false, "Expand", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-  ot->prop = prop = RNA_def_enum(ot->srna, "type", elem_items, 0, "Type", "");
+  ot->prop = prop = RNA_def_enum(ot->srna, "type", rna_enum_mesh_select_mode_items, 0, "Type", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   prop = RNA_def_enum(
