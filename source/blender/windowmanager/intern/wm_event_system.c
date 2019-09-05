@@ -2376,6 +2376,8 @@ static int wm_handler_fileselect_do(bContext *C,
     case EVT_FILESELECT_EXEC:
     case EVT_FILESELECT_CANCEL:
     case EVT_FILESELECT_EXTERNAL_CANCEL: {
+      wmWindow *ctx_win = CTX_wm_window(C);
+
       /* remlink now, for load file case before removing*/
       BLI_remlink(handlers, handler);
 
@@ -2388,11 +2390,13 @@ static int wm_handler_fileselect_do(bContext *C,
             BLI_assert(file_sa->spacetype == SPACE_FILE);
 
             if (BLI_listbase_is_single(&file_sa->spacedata)) {
-              wmWindow *ctx_win = CTX_wm_window(C);
               BLI_assert(ctx_win != win);
 
               wm_window_close(C, wm, win);
+
               CTX_wm_window_set(C, ctx_win);  // wm_window_close() NULLs.
+              /* Some operators expect a drawable context (for EVT_FILESELECT_EXEC) */
+              wm_window_make_drawable(wm, ctx_win);
             }
             else if (file_sa->full) {
               ED_screen_full_prevspace(C, file_sa);
@@ -2406,7 +2410,7 @@ static int wm_handler_fileselect_do(bContext *C,
         }
       }
 
-      wm_handler_op_context(C, handler, CTX_wm_window(C)->eventstate);
+      wm_handler_op_context(C, handler, ctx_win->eventstate);
 
       /* needed for UI_popup_menu_reports */
 
