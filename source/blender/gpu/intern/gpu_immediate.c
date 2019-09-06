@@ -72,8 +72,9 @@ typedef struct {
   uint16_t prev_enabled_attr_bits; /* <-- only affects this VAO, so we're ok */
 } Immediate;
 
-/* size of internal buffer -- make this adjustable? */
-#define IMM_BUFFER_SIZE (4 * 1024 * 1024)
+/* size of internal buffer */
+#define DEFAULT_INTERNAL_BUFFER_SIZE (4 * 1024 * 1024)
+static uint imm_buffer_size = DEFAULT_INTERNAL_BUFFER_SIZE;
 
 static bool initialized = false;
 static Immediate imm;
@@ -87,7 +88,7 @@ void immInit(void)
 
   imm.vbo_id = GPU_buf_alloc();
   glBindBuffer(GL_ARRAY_BUFFER, imm.vbo_id);
-  glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, imm_buffer_size, NULL, GL_DYNAMIC_DRAW);
 
   imm.prim_type = GPU_PRIM_NONE;
   imm.strict_vertex_len = true;
@@ -211,26 +212,35 @@ void immBegin(GPUPrimType prim_type, uint vertex_len)
   /* how many bytes do we need for this draw call? */
   const uint bytes_needed = vertex_buffer_size(&imm.vertex_format, vertex_len);
 
-#if TRUST_NO_ONE
-  assert(bytes_needed <= IMM_BUFFER_SIZE);
-#endif
-
   glBindBuffer(GL_ARRAY_BUFFER, imm.vbo_id);
 
   /* does the current buffer have enough room? */
-  const uint available_bytes = IMM_BUFFER_SIZE - imm.buffer_offset;
-  /* ensure vertex data is aligned */
+  const uint available_bytes = imm_buffer_size - imm.buffer_offset;
 
+  bool recreate_buffer = false;
+  if (bytes_needed > imm_buffer_size) {
+    /* expand the internal buffer */
+    imm_buffer_size = bytes_needed;
+    recreate_buffer = true;
+  }
+  else if (bytes_needed < DEFAULT_INTERNAL_BUFFER_SIZE &&
+           imm_buffer_size > DEFAULT_INTERNAL_BUFFER_SIZE) {
+    /* shrink the internal buffer */
+    imm_buffer_size = DEFAULT_INTERNAL_BUFFER_SIZE;
+    recreate_buffer = true;
+  }
+
+  /* ensure vertex data is aligned */
   /* Might waste a little space, but it's safe. */
   const uint pre_padding = padding(imm.buffer_offset, imm.vertex_format.stride);
 
-  if ((bytes_needed + pre_padding) <= available_bytes) {
+  if (!recreate_buffer && ((bytes_needed + pre_padding) <= available_bytes)) {
     imm.buffer_offset += pre_padding;
   }
   else {
     /* orphan this buffer & start with a fresh one */
     /* this method works on all platforms, old & new */
-    glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, imm_buffer_size, NULL, GL_DYNAMIC_DRAW);
 
     imm.buffer_offset = 0;
   }
