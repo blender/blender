@@ -453,7 +453,7 @@ void CLOSURE_NAME(vec3 N
     N = -N;
   }
   vec3 bent_normal;
-  float final_ao = occlusion_compute(gl_FrontFacing ? N : -N, viewPosition, ao, rand, bent_normal);
+  float final_ao = occlusion_compute(N, viewPosition, ao, rand, bent_normal);
   if (!use_contact_shadows) {
     N = -N;
     /* Bypass bent normal. */
