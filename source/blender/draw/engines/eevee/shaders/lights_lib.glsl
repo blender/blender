@@ -92,7 +92,7 @@ float sample_cube_shadow(int shadow_id, vec3 W)
 {
   int data_id = int(sd(shadow_id).sh_data_index);
   vec3 cubevec = transform_point(scube(data_id).shadowmat, W);
-  float dist = max_v3(abs(cubevec)) - sd(shadow_id).sh_bias;
+  float dist = max(sd(shadow_id).sh_near, max_v3(abs(cubevec)) - sd(shadow_id).sh_bias);
   dist = buffer_depth(true, dist, sd(shadow_id).sh_far, sd(shadow_id).sh_near);
   /* Manual Shadow Cube Layer indexing. */
   /* TODO Shadow Cube Array. */
