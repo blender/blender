@@ -1299,6 +1299,7 @@ static void rna_def_gpencil_guides(BlenderRNA *brna)
       {GP_GUIDE_RADIAL, "RADIAL", 0, "Radial", "Use single point as direction"},
       {GP_GUIDE_PARALLEL, "PARALLEL", 0, "Parallel", "Parallel lines"},
       {GP_GUIDE_GRID, "GRID", 0, "Grid", "Grid allows horizontal and vertical lines"},
+      {GP_GUIDE_ISO, "ISO", 0, "Isometric", "Grid allows isometric and vertical lines"},
       {0, NULL, 0, NULL, NULL},
   };
 

@@ -113,6 +113,28 @@ typedef enum eGPencil_PaintFlags {
   GP_PAINTFLAG_REQ_VECTOR = (1 << 6),
 } eGPencil_PaintFlags;
 
+/* Temporary Guide data */
+typedef struct tGPguide {
+  /** guide spacing */
+  float spacing;
+  /** half guide spacing */
+  float half_spacing;
+  /** origin */
+  float origin[2];
+  /** rotated point */
+  float rot_point[2];
+  /** rotated point */
+  float rot_angle;
+  /** initial stroke direction */
+  float stroke_angle;
+  /** initial origin direction */
+  float origin_angle;
+  /** initial origin distance */
+  float origin_distance;
+  /** initial line for guides */
+  float unit[2];
+} tGPguide;
+
 /* Temporary 'Stroke' Operation data
  *   "p" = op->customdata
  */
@@ -224,12 +246,7 @@ typedef struct tGPsdata {
   float totpixlen;
 
   /* guide */
-  /** guide spacing */
-  float guide_spacing;
-  /** half guide spacing */
-  float half_spacing;
-  /** origin */
-  float origin[2];
+  tGPguide guide;
 
   ReportList *reports;
 } tGPsdata;
@@ -2642,19 +2659,26 @@ static void gp_rotate_v2_v2v2fl(float v[2],
 static float gp_snap_to_grid_fl(float v, const float offset, const float spacing)
 {
   if (spacing > 0.0f) {
-    return roundf(v / spacing) * spacing + fmodf(offset, spacing);
+    v -= spacing * 0.5f;
+    v -= offset;
+    v = roundf((v + spacing * 0.5f) / spacing) * spacing;
+    v += offset;
+    return v;
   }
   else {
     return v;
   }
 }
 
-static void UNUSED_FUNCTION(gp_snap_to_grid_v2)(float v[2],
-                                                const float offset[2],
-                                                const float spacing)
+/* Helper to snap value to grid */
+static void gp_snap_to_rotated_grid_fl(float v[2],
+                                       const float origin[2],
+                                       const float spacing,
+                                       const float angle)
 {
-  v[0] = gp_snap_to_grid_fl(v[0], offset[0], spacing);
-  v[1] = gp_snap_to_grid_fl(v[1], offset[1], spacing);
+  gp_rotate_v2_v2v2fl(v, v, origin, -angle);
+  v[1] = gp_snap_to_grid_fl(v[1], origin[1], spacing);
+  gp_rotate_v2_v2v2fl(v, v, origin, angle);
 }
 
 /* get reference point - screen coords to buffer coords */
@@ -2692,6 +2716,105 @@ static void gp_origin_get(tGPsdata *p, float origin[2])
   gp_point_3d_to_xy(gsc, p->gpd->runtime.sbuffer_sflag, location, origin);
 }
 
+/* speed guide initial values */
+static void gpencil_speed_guide_init(tGPsdata *p, GP_Sculpt_Guide *guide)
+{
+  /* calculate initial guide values */
+  RegionView3D *rv3d = p->ar->regiondata;
+  float scale = 1.0f;
+  if (rv3d->is_persp) {
+    float vec[3];
+    gp_get_3d_reference(p, vec);
+    mul_m4_v3(rv3d->persmat, vec);
+    scale = vec[2] * rv3d->pixsize;
+  }
+  else {
+    scale = rv3d->pixsize;
+  }
+  p->guide.spacing = guide->spacing / scale;
+  p->guide.half_spacing = p->guide.spacing * 0.5f;
+  gp_origin_get(p, p->guide.origin);
+
+  /* reference for angled snap */
+  copy_v2_v2(p->guide.unit, p->mvali);
+  p->guide.unit[0] += 1.0f;
+
+  float xy[2];
+  sub_v2_v2v2(xy, p->mvali, p->guide.origin);
+  p->guide.origin_angle = atan2f(xy[1], xy[0]) + (M_PI * 2.0f);
+
+  p->guide.origin_distance = len_v2v2(p->mvali, p->guide.origin);
+  if (guide->use_snapping && (guide->spacing > 0.0f)) {
+    p->guide.origin_distance = gp_snap_to_grid_fl(
+        p->guide.origin_distance, 0.0f, p->guide.spacing);
+  }
+
+  if (ELEM(guide->type, GP_GUIDE_RADIAL)) {
+    float angle;
+    float half_angle = guide->angle_snap * 0.5f;
+    angle = p->guide.origin_angle + guide->angle;
+    angle = fmodf(angle + half_angle, guide->angle_snap);
+    angle -= half_angle;
+    gp_rotate_v2_v2v2fl(p->guide.rot_point, p->mvali, p->guide.origin, -angle );
+  }
+  else {
+    gp_rotate_v2_v2v2fl(p->guide.rot_point, p->guide.unit, p->mvali, guide->angle);
+  }
+}
+
+/* apply speed guide */
+static void gpencil_speed_guide(tGPsdata *p, GP_Sculpt_Guide *guide)
+{
+  switch (guide->type) {
+    default:
+    case GP_GUIDE_CIRCULAR: {
+      dist_ensure_v2_v2fl(p->mval, p->guide.origin, p->guide.origin_distance);
+      break;
+    }
+    case GP_GUIDE_RADIAL: {
+      if (guide->use_snapping && (guide->angle_snap > 0.0f)) {
+        closest_to_line_v2(p->mval, p->mval, p->guide.rot_point, p->guide.origin);
+      }
+      else {
+        closest_to_line_v2(p->mval, p->mval, p->mvali, p->guide.origin);
+      }
+      break;
+    }
+    case GP_GUIDE_PARALLEL: {
+      closest_to_line_v2(p->mval, p->mval, p->mvali, p->guide.rot_point);
+      if (guide->use_snapping && (guide->spacing > 0.0f)) {
+        gp_snap_to_rotated_grid_fl(p->mval, p->guide.origin, p->guide.spacing, guide->angle);
+      }
+      break;
+    }
+    case GP_GUIDE_ISO: {
+      closest_to_line_v2(p->mval, p->mval, p->mvali, p->guide.rot_point);
+      if (guide->use_snapping && (guide->spacing > 0.0f)) {
+        gp_snap_to_rotated_grid_fl(p->mval, p->guide.origin, p->guide.spacing, p->guide.rot_angle);
+      }
+      break;
+    }
+    case GP_GUIDE_GRID: {
+      if (guide->use_snapping && (guide->spacing > 0.0f)) {
+        closest_to_line_v2(p->mval, p->mval, p->mvali, p->guide.rot_point);
+        if (p->straight == STROKE_HORIZONTAL) {
+          p->mval[1] = gp_snap_to_grid_fl(p->mval[1], p->guide.origin[1], p->guide.spacing);
+        }
+        else {
+          p->mval[0] = gp_snap_to_grid_fl(p->mval[0], p->guide.origin[0], p->guide.spacing);
+        }
+      }
+      else if (p->straight == STROKE_HORIZONTAL) {
+        p->mval[1] = p->mvali[1]; /* replace y */
+      }
+      else {
+        p->mval[0] = p->mvali[0]; /* replace x */
+      }
+      break;
+    }
+  }
+}
+
 /* handle draw event */
 static void gpencil_draw_apply_event(
     bContext *C, wmOperator *op, const wmEvent *event, Depsgraph *depsgraph, float x, float y)
@@ -2725,6 +2848,10 @@ static void gpencil_draw_apply_event(
         else if (dx < dy) {
           p->straight = STROKE_VERTICAL;
         }
+      }
+      /* reset if a stroke angle is required */
+      if ((p->flags & GP_PAINTFLAG_REQ_VECTOR) && ((dx == 0) || (dy == 0))) {
+        p->straight = 0;
       }
     }
   }
@@ -2773,6 +2900,14 @@ static void gpencil_draw_apply_event(
 
   /* special exception for start of strokes (i.e. maybe for just a dot) */
   if (p->flags & GP_PAINTFLAG_FIRSTRUN) {
+
+    /* special exception here for too high pressure values on first touch in
+     * windows for some tablets, then we just skip first touch...
+     */
+    if (tablet && (p->pressure >= 0.99f)) {
+      return;
+    }
+
     p->flags &= ~GP_PAINTFLAG_FIRSTRUN;
 
     /* set values */
@@ -2784,51 +2919,58 @@ static void gpencil_draw_apply_event(
     /* save initial mouse */
     copy_v2_v2(p->mvali, p->mval);
 
-    /* calculate once and store snapping distance and origin */
-    RegionView3D *rv3d = p->ar->regiondata;
-    float scale = 1.0f;
-    if (rv3d->is_persp) {
-      float vec[3];
-      gp_get_3d_reference(p, vec);
-      mul_m4_v3(rv3d->persmat, vec);
-      scale = vec[2] * rv3d->pixsize;
-    }
-    else {
-      scale = rv3d->pixsize;
-    }
-    p->guide_spacing = guide->spacing / scale;
-    p->half_spacing = p->guide_spacing * 0.5f;
-    gp_origin_get(p, p->origin);
-
-    /* special exception here for too high pressure values on first touch in
-     * windows for some tablets, then we just skip first touch...
-     */
-    if (tablet && (p->pressure >= 0.99f)) {
-      return;
-    }
-
-    /* special exception for grid snapping
-     * it requires direction which needs at least two points
-     */
-    if (!ELEM(p->paintmode, GP_PAINTMODE_ERASER, GP_PAINTMODE_SET_CP) && is_speed_guide &&
-        guide->use_snapping && (guide->type == GP_GUIDE_GRID)) {
+    if (is_speed_guide && !ELEM(p->paintmode, GP_PAINTMODE_ERASER, GP_PAINTMODE_SET_CP) &&
+        ((guide->use_snapping && (guide->type == GP_GUIDE_GRID)) ||
+         (guide->type == GP_GUIDE_ISO)))
+    {
       p->flags |= GP_PAINTFLAG_REQ_VECTOR;
+    }
+
+    /* calculate initial guide values */
+    if (is_speed_guide) {
+      gpencil_speed_guide_init(p, guide);
     }
   }
 
   /* wait for vector then add initial point */
-  if (p->flags & GP_PAINTFLAG_REQ_VECTOR) {
+  if (is_speed_guide && p->flags & GP_PAINTFLAG_REQ_VECTOR) {
     if (p->straight == 0) {
       return;
     }
 
     p->flags &= ~GP_PAINTFLAG_REQ_VECTOR;
 
+    /* get initial point */
+    float pt[2];
+    sub_v2_v2v2(pt, p->mval, p->mvali);
+
+    /* get stroke angle for grids */
+    if (ELEM(guide->type, GP_GUIDE_ISO)) {
+      p->guide.stroke_angle = atan2f(pt[1], pt[0]);
+      /* determine iso angle, less weight is given for vertical strokes */
+      if (((p->guide.stroke_angle >= 0.0f) && (p->guide.stroke_angle < DEG2RAD(75))) ||
+          (p->guide.stroke_angle < DEG2RAD(-105))) {
+        p->guide.rot_angle = guide->angle;
+      }
+      else if (((p->guide.stroke_angle < 0.0f) && (p->guide.stroke_angle > DEG2RAD(-75))) ||
+               (p->guide.stroke_angle > DEG2RAD(105))) {
+        p->guide.rot_angle = -guide->angle;
+      }
+      else {
+        p->guide.rot_angle = DEG2RAD(90);
+      }
+      gp_rotate_v2_v2v2fl(p->guide.rot_point, p->guide.unit, p->mvali, p->guide.rot_angle);
+    }
+    else if (ELEM(guide->type, GP_GUIDE_GRID)) {
+        gp_rotate_v2_v2v2fl(p->guide.rot_point,
+                            p->guide.unit,
+                            p->mvali,
+                            (p->straight == STROKE_VERTICAL) ? M_PI_2 : 0.0f);
+    }
+
     /* create fake events */
     float tmp[2];
-    float pt[2];
     copy_v2_v2(tmp, p->mval);
-    sub_v2_v2v2(pt, p->mval, p->mvali);
     gpencil_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1]);
     if (len_v2v2(p->mval, p->mvalo)) {
       sub_v2_v2v2(pt, p->mval, p->mvalo);
@@ -2841,83 +2983,7 @@ static void gpencil_draw_apply_event(
   if ((p->paintmode != GP_PAINTMODE_ERASER) && ((p->straight) || (is_speed_guide))) {
     /* guided stroke */
     if (is_speed_guide) {
-      switch (guide->type) {
-        default:
-        case GP_GUIDE_CIRCULAR: {
-          float distance;
-          distance = len_v2v2(p->mvali, p->origin);
-
-          if (guide->use_snapping && (guide->spacing > 0.0f)) {
-            distance = gp_snap_to_grid_fl(distance, 0.0f, p->guide_spacing);
-          }
-
-          dist_ensure_v2_v2fl(p->mval, p->origin, distance);
-          break;
-        }
-        case GP_GUIDE_RADIAL: {
-          if (guide->use_snapping && (guide->angle_snap > 0.0f)) {
-            float point[2];
-            float xy[2];
-            float angle;
-            float half_angle = guide->angle_snap * 0.5f;
-            sub_v2_v2v2(xy, p->mvali, p->origin);
-            angle = atan2f(xy[1], xy[0]);
-            angle += (M_PI * 2.0f);
-            angle = fmodf(angle + half_angle, guide->angle_snap);
-            angle -= half_angle;
-            gp_rotate_v2_v2v2fl(point, p->mvali, p->origin, -angle);
-            closest_to_line_v2(p->mval, p->mval, point, p->origin);
-          }
-          else {
-            closest_to_line_v2(p->mval, p->mval, p->mvali, p->origin);
-          }
-          break;
-        }
-        case GP_GUIDE_PARALLEL: {
-          float point[2];
-          float unit[2];
-          copy_v2_v2(unit, p->mvali);
-          unit[0] += 1.0f; /* start from horizontal */
-          gp_rotate_v2_v2v2fl(point, unit, p->mvali, guide->angle);
-          closest_to_line_v2(p->mval, p->mval, p->mvali, point);
-
-          if (guide->use_snapping && (guide->spacing > 0.0f)) {
-            gp_rotate_v2_v2v2fl(p->mval, p->mval, p->origin, -guide->angle);
-            p->mval[1] = gp_snap_to_grid_fl(
-                p->mval[1] - p->half_spacing, p->origin[1], p->guide_spacing);
-            gp_rotate_v2_v2v2fl(p->mval, p->mval, p->origin, guide->angle);
-          }
-          break;
-        }
-        case GP_GUIDE_GRID: {
-          if (guide->use_snapping && (guide->spacing > 0.0f)) {
-            float point[2];
-            float unit[2];
-            float angle;
-            copy_v2_v2(unit, p->mvali);
-            unit[0] += 1.0f; /* start from horizontal */
-            angle = (p->straight == STROKE_VERTICAL) ? M_PI_2 : 0.0f;
-            gp_rotate_v2_v2v2fl(point, unit, p->mvali, angle);
-            closest_to_line_v2(p->mval, p->mval, p->mvali, point);
-
-            if (p->straight == STROKE_HORIZONTAL) {
-              p->mval[1] = gp_snap_to_grid_fl(
-                  p->mval[1] - p->half_spacing, p->origin[1], p->guide_spacing);
-            }
-            else {
-              p->mval[0] = gp_snap_to_grid_fl(
-                  p->mval[0] - p->half_spacing, p->origin[0], p->guide_spacing);
-            }
-          }
-          else if (p->straight == STROKE_HORIZONTAL) {
-            p->mval[1] = p->mvali[1]; /* replace y */
-          }
-          else {
-            p->mval[0] = p->mvali[0]; /* replace x */
-          }
-          break;
-        }
-      }
+      gpencil_speed_guide(p, guide);
     }
     else if (p->straight == STROKE_HORIZONTAL) {
       p->mval[1] = p->mvali[1]; /* replace y */
