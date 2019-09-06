@@ -595,4 +595,35 @@ const char *WM_operatortype_name(struct wmOperatorType *ot, struct PointerRNA *p
   return (name && name[0]) ? name : RNA_struct_ui_name(ot->srna);
 }
 
+char *WM_operatortype_description(struct bContext *C,
+                                  struct wmOperatorType *ot,
+                                  struct PointerRNA *properties)
+{
+  if (ot->get_description && properties) {
+    char *description = ot->get_description(C, ot, properties);
+
+    if (description) {
+      if (description[0]) {
+        return description;
+      }
+      else {
+        MEM_freeN(description);
+      }
+    }
+  }
+
+  const char *info = RNA_struct_ui_description(ot->srna);
+
+  if (!(info && info[0])) {
+    info = RNA_struct_ui_name(ot->srna);
+  }
+
+  if (info && info[0]) {
+    return BLI_strdup(info);
+  }
+  else {
+    return NULL;
+  }
+}
+
 /** \} */

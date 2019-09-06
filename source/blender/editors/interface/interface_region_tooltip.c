@@ -932,18 +932,14 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
                                 NULL;
       if (gzop != NULL) {
         /* Description */
-        const char *info = RNA_struct_ui_description(gzop->type->srna);
-        if (!(info && info[0])) {
-          info = RNA_struct_ui_name(gzop->type->srna);
-        }
+        char *info = WM_operatortype_description(C, gzop->type, &gzop->ptr);
 
-        if (info && info[0]) {
-          char *text = NULL;
+        if (info != NULL) {
+          char *text = info;
+
           if (gzop_actions[i].prefix != NULL) {
             text = BLI_sprintfN("%s: %s", gzop_actions[i].prefix, info);
-          }
-          else {
-            text = BLI_strdup(info);
+            MEM_freeN(info);
           }
 
           if (text != NULL) {

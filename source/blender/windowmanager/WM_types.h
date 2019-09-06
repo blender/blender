@@ -737,6 +737,12 @@ typedef struct wmOperatorType {
    */
   const char *(*get_name)(struct wmOperatorType *, struct PointerRNA *);
 
+  /**
+   * Return a different description to use in the user interface, based on property values.
+   * The returned string must be freed by the caller, unless NULL.
+   */
+  char *(*get_description)(struct bContext *C, struct wmOperatorType *, struct PointerRNA *);
+
   /** rna for properties */
   struct StructRNA *srna;
 

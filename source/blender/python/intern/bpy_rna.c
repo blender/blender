@@ -1768,7 +1768,12 @@ static int pyrna_py_to_prop(
         if (value == Py_None) {
           if ((RNA_property_flag(prop) & PROP_NEVER_NULL) == 0) {
             if (data) {
-              *((char **)data) = (char *)NULL;
+              if (RNA_property_flag(prop) & PROP_THICK_WRAP) {
+                *(char *)data = 0;
+              }
+              else {
+                *((char **)data) = (char *)NULL;
+              }
             }
             else {
               RNA_property_string_set(ptr, prop, NULL);
@@ -1813,7 +1818,12 @@ static int pyrna_py_to_prop(
           }
           else {
             if (data) {
-              *((char **)data) = (char *)param;
+              if (RNA_property_flag(prop) & PROP_THICK_WRAP) {
+                BLI_strncpy((char *)data, (char *)param, RNA_property_string_maxlength(prop));
+              }
+              else {
+                *((char **)data) = (char *)param;
+              }
             }
             else {
               RNA_property_string_set_bytes(ptr, prop, param, PyBytes_Size(value));
@@ -1862,7 +1872,12 @@ static int pyrna_py_to_prop(
             /* XXX, this is suspect, but needed for function calls,
              * need to see if there's a better way. */
             if (data) {
-              *((char **)data) = (char *)param;
+              if (RNA_property_flag(prop) & PROP_THICK_WRAP) {
+                BLI_strncpy((char *)data, (char *)param, RNA_property_string_maxlength(prop));
+              }
+              else {
+                *((char **)data) = (char *)param;
+              }
             }
             else {
               RNA_property_string_set(ptr, prop, param);

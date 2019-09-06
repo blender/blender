@@ -4250,7 +4250,7 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block,
     }
   }
 
-  if ((!tip || tip[0] == '\0') && ot && ot->srna) {
+  if ((!tip || tip[0] == '\0') && ot && ot->srna && !ot->get_description) {
     tip = RNA_struct_ui_description(ot->srna);
   }
 
@@ -6349,6 +6349,9 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       }
       else if (but->tip && but->tip[0]) {
         tmp = BLI_strdup(but->tip);
+      }
+      else if (but->optype && but->optype->get_description) {
+        tmp = WM_operatortype_description(C, but->optype, but->opptr);
       }
       else {
         type = BUT_GET_RNA_TIP; /* Fail-safe solution... */
