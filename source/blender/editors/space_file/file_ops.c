@@ -1976,6 +1976,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   ScrArea *sa = CTX_wm_area(C);
+  const bool do_diropen = RNA_boolean_get(op->ptr, "open");
 
   if (!sfile->params) {
     BKE_report(op->reports, RPT_WARNING, "No parent directory given");
@@ -2024,9 +2025,11 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* now remember file to jump into editing */
-  BLI_strncpy(sfile->params->renamefile, name, FILE_MAXFILE);
-  sfile->params->rename_flag = FILE_PARAMS_RENAME_PENDING;
+  /* If we don't enter the directory directly, remember file to jump into editing. */
+  if (do_diropen == false) {
+    BLI_strncpy(sfile->params->renamefile, name, FILE_MAXFILE);
+    sfile->params->rename_flag = FILE_PARAMS_RENAME_PENDING;
+  }
 
   /* set timer to smoothly view newly generated file */
   /* max 30 frs/sec */
@@ -2039,7 +2042,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
   /* reload dir to make sure we're seeing what's in the directory */
   ED_fileselect_clear(wm, sa, sfile);
 
-  if (RNA_boolean_get(op->ptr, "open")) {
+  if (do_diropen) {
     BLI_strncpy(sfile->params->dir, path, sizeof(sfile->params->dir));
     ED_file_change_dir(C);
   }
