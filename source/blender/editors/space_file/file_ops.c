@@ -2059,6 +2059,7 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
   ot->idname = "FILE_OT_directory_new";
 
   /* api callbacks */
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = file_directory_new_exec;
   ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 
@@ -2067,6 +2068,7 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "open", false, "Open", "Open new directory");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  WM_operator_properties_confirm_or_exec(ot);
 }
 
 /* TODO This should go to BLI_path_utils. */
@@ -2198,6 +2200,8 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
         WM_operator_properties_create_ptr(&ptr, ot);
         RNA_string_set(&ptr, "directory", sfile->params->dir);
         RNA_boolean_set(&ptr, "open", true);
+        /* Enable confirmation prompt, else it's too easy to accidentaly create new directories. */
+        RNA_boolean_set(&ptr, "confirm", true);
 
         if (lastdir) {
           BLI_strncpy(sfile->params->dir, lastdir, sizeof(sfile->params->dir));
