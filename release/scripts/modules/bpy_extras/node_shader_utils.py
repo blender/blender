@@ -619,10 +619,6 @@ class ShaderImageTextureWrapper():
             self.translation = tex.translation
             self.rotation = tex.rotation
             self.scale = tex.scale
-            self.use_min = tex.use_min
-            self.use_max = tex.use_max
-            self.min = tex.min
-            self.max = tex.max
 
         tex.is_readonly = is_readonly_back
 
@@ -750,70 +746,36 @@ class ShaderImageTextureWrapper():
 
 
     def translation_get(self):
-        return self.node_mapping.translation if self.node_mapping is not None else Vector((0.0, 0.0, 0.0))
+        if self.node_mapping is None:
+            return Vector((0.0, 0.0, 0.0))
+        return self.node_mapping.inputs['Location'].default_value
 
     @_set_check
     def translation_set(self, translation):
-        self.node_mapping.translation = translation
+        self.node_mapping.inputs['Location'].default_value = translation
 
     translation = property(translation_get, translation_set)
 
 
     def rotation_get(self):
-        return self.node_mapping.rotation if self.node_mapping is not None else Vector((0.0, 0.0, 0.0))
+        if self.node_mapping is None:
+            return Vector((0.0, 0.0, 0.0))
+        return self.node_mapping.inputs['Rotation'].default_value
 
     @_set_check
     def rotation_set(self, rotation):
-        self.node_mapping.rotation = rotation
+        self.node_mapping.inputs['Rotation'].default_value = rotation
 
     rotation = property(rotation_get, rotation_set)
 
 
     def scale_get(self):
-        return self.node_mapping.scale if self.node_mapping is not None else Vector((1.0, 1.0, 1.0))
+        if self.node_mapping is None:
+            return Vector((0.0, 0.0, 0.0))
+        return self.node_mapping.inputs['Scale'].default_value
 
     @_set_check
     def scale_set(self, scale):
-        self.node_mapping.scale = scale
+        self.node_mapping.inputs['Scale'].default_value = scale
 
     scale = property(scale_get, scale_set)
-
-
-    def use_min_get(self):
-        return self.node_mapping.use_min if self.node_mapping is not None else False
-
-    @_set_check
-    def use_min_set(self, use_min):
-        self.node_mapping.use_min = use_min
-
-    use_min = property(use_min_get, use_min_set)
-
-
-    def use_max_get(self):
-        return self.node_mapping.use_max if self.node_mapping is not None else False
-
-    @_set_check
-    def use_max_set(self, use_max):
-        self.node_mapping.use_max = use_max
-
-    use_max = property(use_max_get, use_max_set)
-
-
-    def min_get(self):
-        return self.node_mapping.min if self.node_mapping is not None else Vector((0.0, 0.0, 0.0))
-
-    @_set_check
-    def min_set(self, min):
-        self.node_mapping.min = min
-
-    min = property(min_get, min_set)
-
-
-    def max_get(self):
-        return self.node_mapping.max if self.node_mapping is not None else Vector((0.0, 0.0, 0.0))
-
-    @_set_check
-    def max_set(self, max):
-        self.node_mapping.max = max
-
-    max = property(max_get, max_set)
