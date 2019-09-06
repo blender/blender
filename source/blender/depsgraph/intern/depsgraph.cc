@@ -45,6 +45,8 @@ extern "C" {
 #include "DEG_depsgraph_debug.h"
 
 #include "intern/depsgraph_update.h"
+#include "intern/depsgraph_physics.h"
+#include "intern/depsgraph_registry.h"
 
 #include "intern/eval/deg_eval_copy_on_write.h"
 
@@ -54,8 +56,6 @@ extern "C" {
 #include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
 #include "intern/node/deg_node_time.h"
-
-#include "intern/depsgraph_physics.h"
 
 namespace DEG {
 
@@ -318,14 +318,19 @@ Depsgraph *DEG_graph_new(Main *bmain, Scene *scene, ViewLayer *view_layer, eEval
 {
   DEG::Depsgraph *deg_depsgraph = OBJECT_GUARDED_NEW(
       DEG::Depsgraph, bmain, scene, view_layer, mode);
+  DEG::register_graph(deg_depsgraph);
   return reinterpret_cast<Depsgraph *>(deg_depsgraph);
 }
 
 /* Free graph's contents and graph itself */
 void DEG_graph_free(Depsgraph *graph)
 {
+  if (graph == NULL) {
+    return;
+  }
   using DEG::Depsgraph;
   DEG::Depsgraph *deg_depsgraph = reinterpret_cast<DEG::Depsgraph *>(graph);
+  DEG::unregister_graph(deg_depsgraph);
   OBJECT_GUARDED_DELETE(deg_depsgraph, Depsgraph);
 }
 
