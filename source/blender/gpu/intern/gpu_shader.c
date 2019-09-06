@@ -275,6 +275,22 @@ static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH])
     strcat(defines, "#define OS_UNIX\n");
   }
 
+  float derivatives_factors[2];
+  GPU_get_dfdy_factors(derivatives_factors);
+  if (derivatives_factors[0] == 1.0f) {
+    strcat(defines, "#define DFDX_SIGN 1.0\n");
+  }
+  else {
+    strcat(defines, "#define DFDX_SIGN -1.0\n");
+  }
+
+  if (derivatives_factors[1] == 1.0f) {
+    strcat(defines, "#define DFDY_SIGN 1.0\n");
+  }
+  else {
+    strcat(defines, "#define DFDY_SIGN -1.0\n");
+  }
+
   return;
 }
 

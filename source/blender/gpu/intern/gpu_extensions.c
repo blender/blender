@@ -369,6 +369,9 @@ void gpu_extensions_init(void)
   }
 
   /* df/dy calculation factors, those are dependent on driver */
+  GG.dfdyfactors[0] = 1.0;
+  GG.dfdyfactors[1] = 1.0;
+
   if ((strstr(vendor, "ATI") && strstr(version, "3.3.10750"))) {
     GG.dfdyfactors[0] = 1.0;
     GG.dfdyfactors[1] = -1.0;
@@ -381,10 +384,6 @@ void gpu_extensions_init(void)
         strstr(version, "3.1.0 - Build 9.17.10.4101") ||
         strstr(version, "3.3.0 - Build 8.15.10.2618")) {
       GG.dfdyfactors[0] = -1.0;
-      GG.dfdyfactors[1] = 1.0;
-    }
-    else {
-      GG.dfdyfactors[0] = 1.0;
       GG.dfdyfactors[1] = 1.0;
     }
 

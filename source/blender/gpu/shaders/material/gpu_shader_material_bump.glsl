@@ -1,11 +1,11 @@
 void dfdx_v3(vec3 v, out vec3 dy)
 {
-  dy = v + abs(dFdx(v));
+  dy = v + DFDX_SIGN * dFdx(v);
 }
 
 void dfdy_v3(vec3 v, out vec3 dy)
 {
-  dy = v + abs(dFdy(v));
+  dy = v + DFDY_SIGN * dFdy(v);
 }
 
 void node_bump(float strength,
