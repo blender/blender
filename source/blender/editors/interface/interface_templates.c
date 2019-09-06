@@ -106,6 +106,20 @@ void UI_template_fix_linking(void)
 }
 
 /* -------------------------------------------------------------------- */
+/** \name Header Template
+ * \{ */
+
+void uiTemplateHeader(uiLayout *layout, bContext *C)
+{
+  uiBlock *block;
+
+  block = uiLayoutAbsoluteBlock(layout);
+  ED_area_header_switchbutton(C, block, 0);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Search Menu Helpers
  * \{ */
 
@@ -267,20 +281,6 @@ static uiBlock *template_common_search_menu(const bContext *C,
   but->flag |= UI_BUT_UNDO;
 
   return block;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Header Template
- * \{ */
-
-void uiTemplateHeader(uiLayout *layout, bContext *C)
-{
-  uiBlock *block;
-
-  block = uiLayoutAbsoluteBlock(layout);
-  ED_area_header_switchbutton(C, block, 0);
 }
 
 /** \} */

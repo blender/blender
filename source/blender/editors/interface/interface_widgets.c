@@ -133,7 +133,61 @@ enum {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Widget Base Functions
+/** \name Internal Color Utilities
+ * \{ */
+
+static void color_blend_v3_v3(uchar cp[3], const uchar cpstate[3], const float fac)
+{
+  if (fac != 0.0f) {
+    cp[0] = (int)((1.0f - fac) * cp[0] + fac * cpstate[0]);
+    cp[1] = (int)((1.0f - fac) * cp[1] + fac * cpstate[1]);
+    cp[2] = (int)((1.0f - fac) * cp[2] + fac * cpstate[2]);
+  }
+}
+
+static void color_blend_v4_v4v4(uchar r_col[4],
+                                const uchar col1[4],
+                                const uchar col2[4],
+                                const float fac)
+{
+  const int faci = unit_float_to_uchar_clamp(fac);
+  const int facm = 255 - faci;
+
+  r_col[0] = (faci * col1[0] + facm * col2[0]) / 256;
+  r_col[1] = (faci * col1[1] + facm * col2[1]) / 256;
+  r_col[2] = (faci * col1[2] + facm * col2[2]) / 256;
+  r_col[3] = (faci * col1[3] + facm * col2[3]) / 256;
+}
+
+static void color_add_v3_i(uchar cp[3], int tint)
+{
+  cp[0] = clamp_i(cp[0] + tint, 0, 255);
+  cp[1] = clamp_i(cp[1] + tint, 0, 255);
+  cp[2] = clamp_i(cp[2] + tint, 0, 255);
+}
+
+static void color_ensure_contrast_v3(uchar cp[3], const uchar cp_other[3], int contrast)
+{
+  BLI_assert(contrast > 0);
+  const int item_value = rgb_to_grayscale_byte(cp);
+  const int inner_value = rgb_to_grayscale_byte(cp_other);
+  const int delta = item_value - inner_value;
+  if (delta >= 0) {
+    if (contrast > delta) {
+      color_add_v3_i(cp, contrast - delta);
+    }
+  }
+  else {
+    if (contrast > -delta) {
+      color_add_v3_i(cp, -contrast - delta);
+    }
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Widget Base Type
  * \{ */
 
 /**
@@ -1157,7 +1211,7 @@ static void shape_preset_trias_from_rect_checkmark(uiWidgetTrias *tria, const rc
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Widget Base Mini API
+/** \name Widget Base Drawing
  * \{ */
 
 /* prepares shade colors */
@@ -1173,20 +1227,6 @@ static void shadecolors4(
   coldown[1] = CLAMPIS(color[1] + shadedown, 0, 255);
   coldown[2] = CLAMPIS(color[2] + shadedown, 0, 255);
   coldown[3] = color[3];
-}
-
-static void round_box_shade_col4_r(uchar r_col[4],
-                                   const uchar col1[4],
-                                   const uchar col2[4],
-                                   const float fac)
-{
-  const int faci = unit_float_to_uchar_clamp(fac);
-  const int facm = 255 - faci;
-
-  r_col[0] = (faci * col1[0] + facm * col2[0]) / 256;
-  r_col[1] = (faci * col1[1] + facm * col2[1]) / 256;
-  r_col[2] = (faci * col1[2] + facm * col2[2]) / 256;
-  r_col[3] = (faci * col1[3] + facm * col2[3]) / 256;
 }
 
 static void widget_verts_to_triangle_strip(uiWidgetBase *wtb,
@@ -1251,6 +1291,12 @@ static void widgetbase_set_uniform_colors_ubv(uiWidgetBase *wtb,
       wtb->uniform_params.color_emboss, emboss[0], emboss[1], emboss[2], emboss[3]);
   rgba_float_args_set_ch(wtb->uniform_params.color_tria, tria[0], tria[1], tria[2], tria[3]);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Widget Base Drawing #GPUBatch Cache
+ * \{ */
 
 /* keep in sync with shader */
 #define MAX_WIDGET_BASE_BATCH 6
@@ -2510,15 +2556,6 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
  * Adjust widget display based on animated, driven, overridden ... etc.
  * \{ */
 
-static void widget_state_blend(uchar cp[3], const uchar cpstate[3], const float fac)
-{
-  if (fac != 0.0f) {
-    cp[0] = (int)((1.0f - fac) * cp[0] + fac * cpstate[0]);
-    cp[1] = (int)((1.0f - fac) * cp[1] + fac * cpstate[1]);
-    cp[2] = (int)((1.0f - fac) * cp[2] + fac * cpstate[2]);
-  }
-}
-
 /* put all widget colors on half alpha, use local storage */
 static void ui_widget_color_disabled(uiWidgetType *wt)
 {
@@ -2534,31 +2571,6 @@ static void ui_widget_color_disabled(uiWidgetType *wt)
   wcol_theme_s.text_sel[3] *= 0.5;
 
   wt->wcol_theme = &wcol_theme_s;
-}
-
-static void rgb_tint(uchar cp[3], int tint)
-{
-  cp[0] = clamp_i(cp[0] + tint, 0, 255);
-  cp[1] = clamp_i(cp[1] + tint, 0, 255);
-  cp[2] = clamp_i(cp[2] + tint, 0, 255);
-}
-
-static void rgb_ensure_contrast(uchar cp[3], const uchar cp_other[3], int contrast)
-{
-  BLI_assert(contrast > 0);
-  const int item_value = rgb_to_grayscale_byte(cp);
-  const int inner_value = rgb_to_grayscale_byte(cp_other);
-  const int delta = item_value - inner_value;
-  if (delta >= 0) {
-    if (contrast > delta) {
-      rgb_tint(cp, contrast - delta);
-    }
-  }
-  else {
-    if (contrast > -delta) {
-      rgb_tint(cp, -contrast - delta);
-    }
-  }
 }
 
 static void widget_active_color(uchar cp[3])
@@ -2612,7 +2624,7 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
   if (state & UI_SELECT) {
     copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     if (color_blend != NULL) {
-      widget_state_blend(wt->wcol.inner, color_blend, wcol_state->blend);
+      color_blend_v3_v3(wt->wcol.inner, color_blend, wcol_state->blend);
     }
 
     copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
@@ -2627,7 +2639,7 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
       copy_v4_v4_uchar(wt->wcol.text, wt->wcol.text_sel);
     }
     if (color_blend != NULL) {
-      widget_state_blend(wt->wcol.inner, color_blend, wcol_state->blend);
+      color_blend_v3_v3(wt->wcol.inner, color_blend, wcol_state->blend);
     }
 
     if (state & UI_ACTIVE) { /* mouse over? */
@@ -2638,10 +2650,10 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
   if (state & UI_BUT_REDALERT) {
     uchar red[4] = {255, 0, 0};
     if (wt->draw) {
-      widget_state_blend(wt->wcol.inner, red, 0.4f);
+      color_blend_v3_v3(wt->wcol.inner, red, 0.4f);
     }
     else {
-      widget_state_blend(wt->wcol.text, red, 0.4f);
+      color_blend_v3_v3(wt->wcol.text, red, 0.4f);
     }
   }
 
@@ -2649,12 +2661,12 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
     /* the button isn't SELECT but we're editing this so draw with sel color */
     copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
-    widget_state_blend(wt->wcol.text, wt->wcol.text_sel, 0.85f);
+    color_blend_v3_v3(wt->wcol.text, wt->wcol.text_sel, 0.85f);
   }
 
   if (state & UI_BUT_NODE_ACTIVE) {
     uchar blue[4] = {86, 128, 194};
-    widget_state_blend(wt->wcol.inner, blue, 0.3f);
+    color_blend_v3_v3(wt->wcol.inner, blue, 0.3f);
   }
 }
 
@@ -2678,8 +2690,8 @@ static void widget_state_numslider(uiWidgetType *wt, int state, int drawflag)
      * De-saturate so the color of the slider doesn't conflict with the blend color,
      * which can make the color hard to see when the slider is set to full (see T66102). */
     wt->wcol.item[0] = wt->wcol.item[1] = wt->wcol.item[2] = rgb_to_grayscale_byte(wt->wcol.item);
-    widget_state_blend(wt->wcol.item, color_blend, wcol_state->blend);
-    rgb_ensure_contrast(wt->wcol.item, wt->wcol.inner, 30);
+    color_blend_v3_v3(wt->wcol.item, color_blend, wcol_state->blend);
+    color_ensure_contrast_v3(wt->wcol.item, wt->wcol.inner, 30);
   }
 
   if (state & UI_SELECT) {
@@ -2722,7 +2734,7 @@ static void widget_state_pie_menu_item(uiWidgetType *wt, int state, int UNUSED(d
 
   /* active and disabled (not so common) */
   if ((state & UI_BUT_DISABLED) && (state & UI_ACTIVE)) {
-    widget_state_blend(wt->wcol.text, wt->wcol.text_sel, 0.5f);
+    color_blend_v3_v3(wt->wcol.text, wt->wcol.text_sel, 0.5f);
     /* draw the backdrop at low alpha, helps navigating with keys
      * when disabled items are active */
     copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.item);
@@ -2735,7 +2747,7 @@ static void widget_state_pie_menu_item(uiWidgetType *wt, int state, int UNUSED(d
     }
     else if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
       /* regular disabled */
-      widget_state_blend(wt->wcol.text, wt->wcol.inner, 0.5f);
+      color_blend_v3_v3(wt->wcol.text, wt->wcol.inner, 0.5f);
     }
 
     if (state & UI_SELECT) {
@@ -2757,7 +2769,7 @@ static void widget_state_menu_item(uiWidgetType *wt, int state, int UNUSED(drawf
     /* draw the backdrop at low alpha, helps navigating with keys
      * when disabled items are active */
     wt->wcol.text[3] = 128;
-    widget_state_blend(wt->wcol.inner, wt->wcol.text, 0.5f);
+    color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.5f);
     wt->wcol.inner[3] = 64;
   }
   else {
@@ -2767,7 +2779,7 @@ static void widget_state_menu_item(uiWidgetType *wt, int state, int UNUSED(drawf
     }
     else if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
       /* regular disabled */
-      widget_state_blend(wt->wcol.text, wt->wcol.inner, 0.5f);
+      color_blend_v3_v3(wt->wcol.text, wt->wcol.inner, 0.5f);
     }
 
     if (state & UI_ACTIVE) {
@@ -2779,7 +2791,7 @@ static void widget_state_menu_item(uiWidgetType *wt, int state, int UNUSED(drawf
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Menu Backdrop
+/** \name Draw Menu Backdrop
  * \{ */
 
 /* outside of rect, rad to left/bottom/right */
@@ -3034,7 +3046,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Custom Buttons
+/** \name Draw Custom Buttons
  * \{ */
 
 /* draws in resolution of 48x4 colors */
@@ -4112,7 +4124,7 @@ static void widget_state_label(uiWidgetType *wt, int state, int drawflag)
 
   if (state & UI_BUT_REDALERT) {
     uchar red[4] = {255, 0, 0};
-    widget_state_blend(wt->wcol.text, red, 0.4f);
+    color_blend_v3_v3(wt->wcol.text, red, 0.4f);
   }
 }
 
@@ -5006,14 +5018,14 @@ static void draw_disk_shaded(float start,
 
     if (shaded) {
       fac = (y1 + radius_ext) * radius_ext_scale;
-      round_box_shade_col4_r(r_col, col1, col2, fac);
+      color_blend_v4_v4v4(r_col, col1, col2, fac);
       immAttr4ubv(col, r_col);
     }
     immVertex2f(pos, c * radius_int, s * radius_int);
 
     if (shaded) {
       fac = (y2 + radius_ext) * radius_ext_scale;
-      round_box_shade_col4_r(r_col, col1, col2, fac);
+      color_blend_v4_v4v4(r_col, col1, col2, fac);
       immAttr4ubv(col, r_col);
     }
     immVertex2f(pos, c * radius_ext, s * radius_ext);
