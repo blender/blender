@@ -92,6 +92,7 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_SIMPLIFY, "SIMPLIFY", ICON_BRUSH_DATA, "Simplify", ""},
     {SCULPT_TOOL_MASK, "MASK", ICON_BRUSH_MASK, "Mask", ""},
     {SCULPT_TOOL_DRAW_SHARP, "DRAW_SHARP", ICON_BRUSH_SCULPT_DRAW, "Draw Sharp", ""},
+    {SCULPT_TOOL_ELASTIC_DEFORM, "ELASTIC_DEFORM", ICON_BRUSH_GRAB, "Elastic Deform", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1595,6 +1596,19 @@ static void rna_def_brush(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem brush_elastic_deform_type_items[] = {
+      {BRUSH_ELASTIC_DEFORM_GRAB, "ELASTIC_DEFORM_GRAB", 0, "Grab", ""},
+      {BRUSH_ELASTIC_DEFORM_GRAB_BISCALE, "ELASTIC_DEFORM_GRAB_BISCALE", 0, "Bi-scale Grab", ""},
+      {BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE,
+       "ELASTIC_DEFORM_GRAB_TRISCALE",
+       0,
+       "Tri-scale Grab",
+       ""},
+      {BRUSH_ELASTIC_DEFORM_SCALE, "ELASTIC_DEFORM_SCALE", 0, "Scale", ""},
+      {BRUSH_ELASTIC_DEFORM_TWIST, "ELASTIC_DEFORM_TWIST", 0, "Twist", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "Brush", "ID");
   RNA_def_struct_ui_text(
       srna, "Brush", "Brush data-block for storing brush settings for painting and sculpting");
@@ -1673,6 +1687,11 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "curve_preset", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, brush_curve_preset_items);
   RNA_def_property_ui_text(prop, "Curve Preset", "");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "elastic_deform_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, brush_elastic_deform_type_items);
+  RNA_def_property_ui_text(prop, "Deformation", "Deformation type that is used in the brush");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   /* number values */
@@ -1808,6 +1827,14 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(
       prop, "Normal Weight", "How much grab will pull vertexes out of surface during a grab");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "elastic_deform_compressibility", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "elastic_deform_compressibility");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.01f, 3);
+  RNA_def_property_ui_text(
+      prop, "Compressibility", "Material compressibility when simulating the elasticity");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "rake_factor", PROP_FLOAT, PROP_FACTOR);

@@ -198,6 +198,14 @@ typedef enum eBrushCurvePreset {
   BRUSH_CURVE_CONSTANT = 8,
 } eBrushCurvePreset;
 
+typedef enum eBrushElasticDeformType {
+  BRUSH_ELASTIC_DEFORM_GRAB = 0,
+  BRUSH_ELASTIC_DEFORM_GRAB_BISCALE = 1,
+  BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE = 2,
+  BRUSH_ELASTIC_DEFORM_SCALE = 3,
+  BRUSH_ELASTIC_DEFORM_TWIST = 4,
+} eBrushElasticDeformType;
+
 typedef struct Brush {
   ID id;
 
@@ -304,6 +312,9 @@ typedef struct Brush {
   float texture_sample_bias;
 
   int curve_preset;
+
+  int elastic_deform_type;
+  float elastic_deform_compressibility;
 
   /* overlay */
   int texture_overlay_alpha;
@@ -454,6 +465,7 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_CLAY_STRIPS = 18,
   SCULPT_TOOL_MASK = 19,
   SCULPT_TOOL_DRAW_SHARP = 20,
+  SCULPT_TOOL_ELASTIC_DEFORM = 21,
 } eBrushSculptTool;
 
 /* Brush.uv_sculpt_tool */
@@ -488,6 +500,7 @@ typedef enum eBrushUVSculptTool {
         SCULPT_TOOL_THUMB, \
         SCULPT_TOOL_LAYER, \
         SCULPT_TOOL_DRAW_SHARP, \
+        SCULPT_TOOL_ELASTIC_DEFORM, \
 \
         /* These brushes could handle dynamic topology, \
          * but user feedback indicates it's better not to */ \

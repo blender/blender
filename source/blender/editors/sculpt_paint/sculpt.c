@@ -358,7 +358,8 @@ static bool sculpt_tool_needs_original(const char sculpt_tool)
               SCULPT_TOOL_ROTATE,
               SCULPT_TOOL_THUMB,
               SCULPT_TOOL_LAYER,
-              SCULPT_TOOL_DRAW_SHARP);
+              SCULPT_TOOL_DRAW_SHARP,
+              SCULPT_TOOL_ELASTIC_DEFORM);
 }
 
 static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
@@ -388,6 +389,7 @@ static int sculpt_brush_needs_normal(const SculptSession *ss, const Brush *brush
                SCULPT_TOOL_LAYER,
                SCULPT_TOOL_NUDGE,
                SCULPT_TOOL_ROTATE,
+               SCULPT_TOOL_ELASTIC_DEFORM,
                SCULPT_TOOL_THUMB) ||
 
           (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA)) ||
@@ -1444,6 +1446,9 @@ static float brush_strength(const Sculpt *sd,
 
     case SCULPT_TOOL_ROTATE:
       return alpha * pressure * feather;
+
+    case SCULPT_TOOL_ELASTIC_DEFORM:
+      return root_alpha * feather;
 
     default:
       return 0;
@@ -2918,6 +2923,252 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BLI_task_parallel_range(0, totnode, &data, do_grab_brush_task_cb_ex, &settings);
 }
 
+/* Regularized Kelvinlets: Sculpting Brushes based on Fundamental Solutions of Elasticity
+ * Pixar Technical Memo #17-03 */
+
+typedef struct KelvinletParams {
+  float f;
+  float a;
+  float b;
+  float c;
+  float radius_scaled;
+} KelvinletParams;
+
+static int sculpt_kelvinlet_get_scale_iteration_count(eBrushElasticDeformType type)
+{
+  if (type == BRUSH_ELASTIC_DEFORM_GRAB) {
+    return 1;
+  }
+  if (type == BRUSH_ELASTIC_DEFORM_GRAB_BISCALE) {
+    return 2;
+  }
+  if (type == BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE) {
+    return 3;
+  }
+  return 0;
+}
+
+static void sculpt_kelvinet_integrate(void (*kelvinlet)(float disp[3],
+                                                        const float vertex_co[3],
+                                                        const float location[3],
+                                                        float normal[3],
+                                                        KelvinletParams *p),
+                                      float r_disp[3],
+                                      const float vertex_co[3],
+                                      const float location[3],
+                                      float normal[3],
+                                      KelvinletParams *p)
+{
+  float k[4][3], k_it[4][3];
+  kelvinlet(k[0], vertex_co, location, normal, p);
+  copy_v3_v3(k_it[0], k[0]);
+  mul_v3_fl(k_it[0], 0.5f);
+  add_v3_v3v3(k_it[0], vertex_co, k_it[0]);
+  kelvinlet(k[1], k_it[0], location, normal, p);
+  copy_v3_v3(k_it[1], k[1]);
+  mul_v3_fl(k_it[1], 0.5f);
+  add_v3_v3v3(k_it[1], vertex_co, k_it[1]);
+  kelvinlet(k[2], k_it[1], location, normal, p);
+  copy_v3_v3(k_it[2], k[2]);
+  add_v3_v3v3(k_it[2], vertex_co, k_it[2]);
+  sub_v3_v3v3(k_it[2], k_it[2], location);
+  kelvinlet(k[3], k_it[2], location, normal, p);
+  copy_v3_v3(r_disp, k[0]);
+  madd_v3_v3fl(r_disp, k[1], 2);
+  madd_v3_v3fl(r_disp, k[2], 2);
+  add_v3_v3(r_disp, k[3]);
+  mul_v3_fl(r_disp, 1.0f / 6.0f);
+}
+
+/* Regularized Kelvinlets: Formula (16) */
+static void sculpt_kelvinlet_scale(float disp[3],
+                                   const float vertex_co[3],
+                                   const float location[3],
+                                   float UNUSED(normal[3]),
+                                   KelvinletParams *p)
+{
+  float r_v[3];
+  sub_v3_v3v3(r_v, vertex_co, location);
+  float r = len_v3(r_v);
+  float r_e = sqrtf(r * r + p->radius_scaled * p->radius_scaled);
+  float u = (2.0f * p->b - p->a) * ((1.0f / (r_e * r_e * r_e))) +
+            ((3.0f * p->radius_scaled * p->radius_scaled) / (2.0f * r_e * r_e * r_e * r_e * r_e));
+  float fade = u * p->c;
+  mul_v3_v3fl(disp, r_v, fade * p->f);
+}
+
+/* Regularized Kelvinlets: Formula (15) */
+static void sculpt_kelvinlet_twist(float disp[3],
+                                   const float vertex_co[3],
+                                   const float location[3],
+                                   float normal[3],
+                                   KelvinletParams *p)
+{
+  float r_v[3], q_r[3];
+  sub_v3_v3v3(r_v, vertex_co, location);
+  float r = len_v3(r_v);
+  float r_e = sqrtf(r * r + p->radius_scaled * p->radius_scaled);
+  float u = -p->a * ((1.0f / (r_e * r_e * r_e))) +
+            ((3.0f * p->radius_scaled * p->radius_scaled) / (2.0f * r_e * r_e * r_e * r_e * r_e));
+  float fade = u * p->c;
+  cross_v3_v3v3(q_r, normal, r_v);
+  mul_v3_v3fl(disp, q_r, fade * p->f);
+}
+
+static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
+                                               const int n,
+                                               const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+  const float *grab_delta = data->grab_delta;
+  const float *location = ss->cache->location;
+
+  PBVHVertexIter vd;
+  SculptOrigVertData orig_data;
+  float(*proxy)[3];
+
+  const float bstrength = ss->cache->bstrength;
+
+  sculpt_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+
+  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
+
+  /* Maybe this can be exposed to the user */
+  float radius_e[3] = {1.0f, 2.0f, 2.0f};
+  float r_e[3];
+  float kvl[3];
+  float radius_scaled[3];
+
+  radius_scaled[0] = ss->cache->radius * radius_e[0];
+  radius_scaled[1] = radius_scaled[0] * radius_e[1];
+  radius_scaled[2] = radius_scaled[1] * radius_e[2];
+
+  float shear_modulus = 1.0f;
+  float poisson_ratio = brush->elastic_deform_compressibility;
+
+  float a = 1.0f / (4.0f * (float)M_PI * shear_modulus);
+  float b = a / (4.0f * (1.0f - poisson_ratio));
+  float c = 2 * (3.0f * a - 2.0f * b);
+
+  float dir;
+  if (ss->cache->mouse[0] > ss->cache->initial_mouse[0]) {
+    dir = 1.0f;
+  }
+  else {
+    dir = -1.0f;
+  }
+
+  if (brush->elastic_deform_type == BRUSH_ELASTIC_DEFORM_TWIST) {
+    int symm = ss->cache->mirror_symmetry_pass;
+    if (symm == 1 || symm == 2 || symm == 4 || symm == 7) {
+      dir = -dir;
+    }
+  }
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    sculpt_orig_vert_data_update(&orig_data, &vd);
+    float fade, u, final_disp[3], weights[3];
+    float r = len_v3v3(location, orig_data.co);
+    KelvinletParams params;
+    params.a = a;
+    params.b = b;
+    params.c = c;
+    params.radius_scaled = radius_scaled[0];
+
+    int multi_scale_it = sculpt_kelvinlet_get_scale_iteration_count(brush->elastic_deform_type);
+    for (int it = 0; it < max_ii(1, multi_scale_it); it++) {
+      r_e[it] = sqrtf(r * r + radius_scaled[it] * radius_scaled[it]);
+    }
+
+    /* Regularized Kelvinlets: Formula (6) */
+    for (int s_it = 0; s_it < multi_scale_it; s_it++) {
+      kvl[s_it] = ((a - b) / r_e[s_it]) + ((b * r * r) / (r_e[s_it] * r_e[s_it] * r_e[s_it])) +
+                  ((a * radius_scaled[s_it] * radius_scaled[s_it]) /
+                   (2.0f * r_e[s_it] * r_e[s_it] * r_e[s_it]));
+    }
+
+    switch (brush->elastic_deform_type) {
+      /* Regularized Kelvinlets: Multi-scale extrapolation. Formula (11) */
+      case BRUSH_ELASTIC_DEFORM_GRAB:
+        fade = kvl[0] * c;
+        mul_v3_v3fl(final_disp, grab_delta, fade * bstrength * 20.f);
+        break;
+      case BRUSH_ELASTIC_DEFORM_GRAB_BISCALE:
+        u = kvl[0] - kvl[1];
+        fade = u * c / ((1.0f / radius_scaled[0]) - (1.0f / radius_scaled[1]));
+        mul_v3_v3fl(final_disp, grab_delta, fade * bstrength * 20.0f);
+        break;
+      case BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE:
+        weights[0] = 1.0f;
+        weights[1] = -(
+            (radius_scaled[2] * radius_scaled[2] - radius_scaled[0] * radius_scaled[0]) /
+            (radius_scaled[2] * radius_scaled[2] - radius_scaled[1] * radius_scaled[1]));
+        weights[2] = ((radius_scaled[1] * radius_scaled[1] - radius_scaled[0] * radius_scaled[0]) /
+                      (radius_scaled[2] * radius_scaled[2] - radius_scaled[1] * radius_scaled[1]));
+
+        float u = weights[0] * kvl[0] + weights[1] * kvl[1] + weights[2] * kvl[2];
+        fade = u * c /
+               (weights[0] / radius_scaled[0] + weights[1] / radius_scaled[1] +
+                weights[2] / radius_scaled[2]);
+        mul_v3_v3fl(final_disp, grab_delta, fade * bstrength * 20.0f);
+        break;
+      case BRUSH_ELASTIC_DEFORM_SCALE:
+        params.f = len_v3(grab_delta) * dir * bstrength;
+        sculpt_kelvinet_integrate(sculpt_kelvinlet_scale,
+                                  final_disp,
+                                  orig_data.co,
+                                  location,
+                                  ss->cache->sculpt_normal_symm,
+                                  &params);
+        break;
+      case BRUSH_ELASTIC_DEFORM_TWIST:
+        params.f = len_v3(grab_delta) * dir * bstrength;
+        sculpt_kelvinet_integrate(sculpt_kelvinlet_twist,
+                                  final_disp,
+                                  orig_data.co,
+                                  location,
+                                  ss->cache->sculpt_normal_symm,
+                                  &params);
+        break;
+    }
+
+    if (vd.mask) {
+      mul_v3_fl(final_disp, 1.0f - *vd.mask);
+    }
+
+    copy_v3_v3(proxy[vd.i], final_disp);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static void do_elastic_deform_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+  float grab_delta[3];
+
+  copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
+
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+      .grab_delta = grab_delta,
+  };
+
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT);
+  BLI_task_parallel_range(0, totnode, &data, do_elastic_deform_brush_task_cb_ex, &settings);
+}
+
 static void do_nudge_brush_task_cb_ex(void *__restrict userdata,
                                       const int n,
                                       const TaskParallelTLS *__restrict tls)
@@ -4219,13 +4470,26 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 {
   SculptSession *ss = ob->sculpt;
   int totnode;
+  PBVHNode **nodes;
 
   /* Build a list of all nodes that are potentially within the brush's area of influence */
-  const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
-                                                                             ss->cache->original;
-  const float radius_scale = 1.0f;
-  PBVHNode **nodes = sculpt_pbvh_gather_generic(
-      ob, sd, brush, use_original, radius_scale, &totnode);
+
+  /* These brushes need to update all nodes as they are not constrained by the brush radius */
+  if (brush->sculpt_tool == SCULPT_TOOL_ELASTIC_DEFORM) {
+    SculptSearchSphereData data = {
+        .ss = ss,
+        .sd = sd,
+        .radius_squared = FLT_MAX,
+        .original = true,
+    };
+    BKE_pbvh_search_gather(ss->pbvh, NULL, &data, &nodes, &totnode);
+  }
+  else {
+    const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
+                                                                               ss->cache->original;
+    const float radius_scale = 1.0f;
+    nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
+  }
 
   /* Only act if some verts are inside the brush area */
   if (totnode) {
@@ -4309,6 +4573,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         break;
       case SCULPT_TOOL_DRAW_SHARP:
         do_draw_sharp_brush(sd, ob, nodes, totnode);
+      case SCULPT_TOOL_ELASTIC_DEFORM:
+        do_elastic_deform_brush(sd, ob, nodes, totnode);
         break;
     }
 
@@ -4374,8 +4640,11 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
   Object *ob = data->ob;
 
   /* these brushes start from original coordinates */
-  const bool use_orco = ELEM(
-      data->brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB);
+  const bool use_orco = ELEM(data->brush->sculpt_tool,
+                             SCULPT_TOOL_GRAB,
+                             SCULPT_TOOL_ROTATE,
+                             SCULPT_TOOL_THUMB,
+                             SCULPT_TOOL_ELASTIC_DEFORM);
 
   PBVHVertexIter vd;
   PBVHProxyNode *proxies;
@@ -4817,6 +5086,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Simplify Brush";
     case SCULPT_TOOL_DRAW_SHARP:
       return "Draw Sharp Brush";
+    case SCULPT_TOOL_ELASTIC_DEFORM:
+      return "Elastic Deform Brush";
   }
 
   return "Sculpting";
@@ -5055,6 +5326,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 
   if (ELEM(tool,
            SCULPT_TOOL_GRAB,
+           SCULPT_TOOL_ELASTIC_DEFORM,
            SCULPT_TOOL_NUDGE,
            SCULPT_TOOL_CLAY_STRIPS,
            SCULPT_TOOL_SNAKE_HOOK,
@@ -5078,6 +5350,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
       switch (tool) {
         case SCULPT_TOOL_GRAB:
         case SCULPT_TOOL_THUMB:
+        case SCULPT_TOOL_ELASTIC_DEFORM:
           sub_v3_v3v3(delta, grab_location, cache->old_grab_location);
           invert_m4_m4(imat, ob->obmat);
           mul_mat3_m4_v3(imat, delta);
@@ -5116,11 +5389,14 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
     if (tool == SCULPT_TOOL_GRAB) {
       copy_v3_v3(cache->anchored_location, cache->true_location);
     }
+    else if (tool == SCULPT_TOOL_ELASTIC_DEFORM) {
+      copy_v3_v3(cache->anchored_location, cache->true_location);
+    }
     else if (tool == SCULPT_TOOL_THUMB) {
       copy_v3_v3(cache->anchored_location, cache->orig_grab_location);
     }
 
-    if (ELEM(tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB)) {
+    if (ELEM(tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ELASTIC_DEFORM)) {
       /* location stays the same for finding vertices in brush radius */
       copy_v3_v3(cache->true_location, cache->orig_grab_location);
 
@@ -5636,7 +5912,8 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
 
   /* Restore the mesh before continuing with anchored stroke */
   if ((brush->flag & BRUSH_ANCHORED) ||
-      (brush->sculpt_tool == SCULPT_TOOL_GRAB &&
+      ((brush->sculpt_tool == SCULPT_TOOL_GRAB ||
+        brush->sculpt_tool == SCULPT_TOOL_ELASTIC_DEFORM) &&
        BKE_brush_use_size_pressure(ss->cache->vc->scene, brush)) ||
       (brush->flag & BRUSH_DRAG_DOT)) {
     paint_mesh_restore_co(sd, ob);

@@ -3834,5 +3834,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Elatic deform brush */
+    for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
+      if (br->ob_mode & OB_MODE_SCULPT && br->elastic_deform_compressibility == 0.0f) {
+        br->elastic_deform_compressibility = 0.5f;
+      }
+    }
   }
 }
