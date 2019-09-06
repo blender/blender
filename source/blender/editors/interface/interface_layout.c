@@ -63,7 +63,9 @@
  * giving more room for the text at the expense of nicely aligned text. */
 #define UI_PROP_SEP_ICON_WIDTH_EXCEPTION
 
-/************************ Structs and Defines *************************/
+/* -------------------------------------------------------------------- */
+/** \name Structs and Defines
+ * \{ */
 
 #define UI_OPERATOR_ERROR_RET(_ot, _opname, return_statement) \
   if (ot == NULL) { \
@@ -211,7 +213,11 @@ typedef struct uiLayoutItemRoot {
   uiLayout litem;
 } uiLayoutItemRoot;
 
-/************************** Item ***************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Item
+ * \{ */
 
 static const char *ui_item_name_add_colon(const char *name, char namestr[UI_MAX_NAME_STR])
 {
@@ -408,7 +414,11 @@ static void ui_item_move(uiItem *item, int delta_xmin, int delta_xmax)
   }
 }
 
-/******************** Special RNA Items *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Special RNA Items
+ * \{ */
 
 int uiLayoutGetLocalDir(const uiLayout *layout)
 {
@@ -1088,7 +1098,11 @@ void UI_context_active_but_prop_get_filebrowser(const bContext *C,
   }
 }
 
-/********************* Button Items *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Items
+ * \{ */
 
 /**
  * Update a buttons tip with an enum's description if possible.
@@ -3235,7 +3249,11 @@ void uiItemTabsEnumR_prop(
   ui_item_enum_expand_tabs(layout, C, block, ptr, prop, NULL, UI_UNIT_Y, icon_only);
 }
 
-/**************************** Layout Items ***************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Layout Items
+ * \{ */
 
 /* single-row layout */
 static void ui_litem_estimate_row(uiLayout *litem)
@@ -4733,7 +4751,11 @@ int uiLayoutGetEmboss(uiLayout *layout)
   }
 }
 
-/********************** Layout *******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Layout
+ * \{ */
 
 static void ui_item_scale(uiLayout *litem, const float scale[2])
 {
@@ -5267,3 +5289,5 @@ void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout)
     CTX_store_set(C, NULL);
   }
 }
+
+/** \} */

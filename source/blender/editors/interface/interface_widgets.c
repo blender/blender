@@ -58,6 +58,10 @@
 #  include "WM_types.h"
 #endif
 
+/* -------------------------------------------------------------------- */
+/** \name Local Enums/Defines
+ * \{ */
+
 /* icons are 80% of height of button (16 pixels inside 20 height) */
 #define ICON_SIZE_FROM_BUTRECT(rect) (0.8f * BLI_rcti_size_y(rect))
 
@@ -126,7 +130,12 @@ enum {
 #define UI_BUT_UPDATE_DELAY ((void)0)
 #define UI_BUT_UNDO ((void)0)
 
-/* ************** widget base functions ************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Widget Base Functions
+ * \{ */
+
 /**
  * - in: roundbox codes for corner types and radius
  * - return: array of `[size][2][x, y]` points, the edges of the roundbox, + UV coords
@@ -193,7 +202,11 @@ typedef struct uiWidgetType {
 
 } uiWidgetType;
 
-/* *********************** draw data ************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shape Preset Data
+ * \{ */
 
 static const float cornervec[WIDGET_CURVE_RESOLU][2] = {
     {0.0, 0.0},
@@ -219,10 +232,6 @@ const float ui_pixel_jitter[UI_PIXEL_AA_JITTER][2] = {
 };
 #define WIDGET_AA_JITTER UI_PIXEL_AA_JITTER
 #define jit ui_pixel_jitter
-
-/* -------------------------------------------------------------------- */
-/** \name Shape Preset Data
- * \{ */
 
 static const float g_shape_preset_number_arrow_vert[3][2] = {
     {-0.352077, 0.532607},
@@ -307,12 +316,14 @@ static const uint g_shape_preset_hold_action_face[2][3] = {{2, 0, 1}, {3, 5, 4}}
 
 /** \} */
 
-/* **************** Batch creations ****************** */
-/**
+/* -------------------------------------------------------------------- */
+/** \name #GPUBatch Creation
+ *
  * In order to speed up UI drawing we create some batches that are then
  * modified by specialized shaders to draw certain elements really fast.
  * TODO: find a better place. Maybe it's own file?
- */
+ *
+ * \{ */
 
 /* offset in triavec[] in shader per type */
 static const int tria_ofs[ROUNDBOX_TRIA_MAX] = {
@@ -596,7 +607,11 @@ GPUBatch *ui_batch_roundbox_shadow_get(void)
 #undef EMBOSS
 #undef NO_AA
 
-/* ************************************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Draw Triangle Arrow
+ * \{ */
 
 void UI_draw_anti_tria(
     float x1, float y1, float x2, float y2, float x3, float y3, const float color[4])
@@ -695,6 +710,12 @@ static void widget_init(uiWidgetBase *wtb)
   wtb->uniform_params.shade_dir = 1.0f;
   wtb->uniform_params.alpha_discard = 1.0f;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Draw Round Box
+ * \{ */
 
 /* helper call, makes shadow rect, with 'sun' above menu, so only shadow to left/right/bottom */
 /* return tot */
@@ -954,6 +975,8 @@ static void round_box_edges(uiWidgetBase *wt, int roundboxalign, const rcti *rec
   round_box__edges(wt, roundboxalign, rect, rad, rad - U.pixelsize);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Shape Preset Mini API
  * \{ */
@@ -1132,6 +1155,10 @@ static void shape_preset_trias_from_rect_checkmark(uiWidgetTrias *tria, const rc
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Widget Base Mini API
+ * \{ */
 
 /* prepares shade colors */
 static void shadecolors4(
@@ -1400,7 +1427,11 @@ static void widgetbase_draw(uiWidgetBase *wtb, const uiWidgetColors *wcol)
   widgetbase_draw_ex(wtb, wcol, false);
 }
 
-/* *********************** text/icon ************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Text/Icon Drawing
+ * \{ */
 
 #define UI_TEXT_CLIP_MARGIN (0.25f * U.widget_unit / but->block->aspect)
 
@@ -2471,9 +2502,13 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
 
 #undef UI_TEXT_CLIP_MARGIN
 
-/* *********************** widget types ************************************* */
+/** \} */
 
-/* ************ button callbacks, state ***************** */
+/* -------------------------------------------------------------------- */
+/** \name Widget State Management
+ *
+ * Adjust widget display based on animated, driven, overridden ... etc.
+ * \{ */
 
 static void widget_state_blend(uchar cp[3], const uchar cpstate[3], const float fac)
 {
@@ -2623,6 +2658,12 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Widget Types
+ * \{ */
+
 /* sliders use special hack which sets 'item' as inner when drawing filling */
 static void widget_state_numslider(uiWidgetType *wt, int state, int drawflag)
 {
@@ -2735,7 +2776,11 @@ static void widget_state_menu_item(uiWidgetType *wt, int state, int UNUSED(drawf
   }
 }
 
-/* ************ menu backdrop ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Menu Backdrop
+ * \{ */
 
 /* outside of rect, rad to left/bottom/right */
 static void widget_softshadow(const rcti *rect, int roundboxalign, const float radin)
@@ -2986,7 +3031,11 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
   ui_hsv_cursor(xpos, ypos);
 }
 
-/* ************ custom buttons, old stuff ************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Custom Buttons
+ * \{ */
 
 /* draws in resolution of 48x4 colors */
 void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, const float alpha)
@@ -3272,7 +3321,7 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
   ui_hsv_cursor(x, y);
 }
 
-/* ************ separator, for menus etc ***************** */
+/** Separator for menus. */
 static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
 {
   int y = rect->ymin + BLI_rcti_size_y(rect) / 2 - 1;
@@ -3300,7 +3349,12 @@ static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
   immUnbindProgram();
 }
 
-/* ************ button callbacks, draw ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Draw Callbacks
+ * \{ */
+
 static void widget_numbut_draw(
     uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, bool emboss)
 {
