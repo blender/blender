@@ -94,7 +94,7 @@ typedef struct PaintStroke {
   int cur_sample;
 
   float last_mouse_position[2];
-  float last_scene_space_position[3];
+  float last_world_space_position[3];
   bool stroke_over_mesh;
   /* space distance covered so far */
   float stroke_distance;
@@ -538,7 +538,8 @@ static void paint_brush_stroke_add_step(bContext *C,
   stroke->last_pressure = pressure;
 
   if (paint_stroke_use_scene_spacing(brush, mode)) {
-    sculpt_stroke_get_location(C, stroke->last_scene_space_position, stroke->last_mouse_position);
+    sculpt_stroke_get_location(C, stroke->last_world_space_position, stroke->last_mouse_position);
+    mul_m4_v3(stroke->vc.obact->obmat, stroke->last_world_space_position);
   }
 
   if (paint_stroke_use_jitter(mode, brush, stroke->stroke_mode == BRUSH_STROKE_INVERT)) {
@@ -631,8 +632,10 @@ static float paint_space_stroke_spacing(bContext *C,
   float size = BKE_brush_size_get(scene, stroke->brush) * size_pressure;
   if (paint_stroke_use_scene_spacing(brush, mode)) {
     if (!BKE_brush_use_locked_size(scene, brush)) {
-      size_clamp = paint_calc_object_space_radius(
-          &stroke->vc, stroke->last_scene_space_position, size);
+      float last_object_space_position[3];
+      mul_v3_m4v3(
+          last_object_space_position, stroke->vc.obact->imat, stroke->last_world_space_position);
+      size_clamp = paint_calc_object_space_radius(&stroke->vc, last_object_space_position, size);
     }
     else {
       size_clamp = BKE_brush_unprojected_radius_get(scene, brush) * size_pressure;
@@ -656,7 +659,7 @@ static float paint_space_stroke_spacing(bContext *C,
   spacing *= stroke->zoom_2d;
 
   if (paint_stroke_use_scene_spacing(brush, mode)) {
-    return size_clamp * spacing / 50.0f;
+    return max_ff(0.001f, size_clamp * spacing / 50.f);
   }
   else {
     return max_ff(1.0, size_clamp * spacing / 50.0f);
@@ -767,7 +770,7 @@ static int paint_space_stroke(bContext *C,
 
   float pressure, dpressure;
   float mouse[2], dmouse[2];
-  float scene_space_position[3], d_scene_space_position[3], final_scene_space_position[3];
+  float world_space_position[3], d_world_space_position[3], final_world_space_position[3];
   float length;
   float no_pressure_spacing = paint_space_stroke_spacing(C, scene, stroke, 1.0f, 1.0f);
   pressure = stroke->last_pressure;
@@ -776,17 +779,18 @@ static int paint_space_stroke(bContext *C,
   length = normalize_v2(dmouse);
 
   if (paint_stroke_use_scene_spacing(brush, mode)) {
-    bool hit = sculpt_stroke_get_location(C, scene_space_position, final_mouse);
+    bool hit = sculpt_stroke_get_location(C, world_space_position, final_mouse);
+    mul_m4_v3(stroke->vc.obact->obmat, world_space_position);
     if (hit && stroke->stroke_over_mesh) {
-      sub_v3_v3v3(d_scene_space_position, scene_space_position, stroke->last_scene_space_position);
-      length = len_v3(d_scene_space_position);
+      sub_v3_v3v3(d_world_space_position, world_space_position, stroke->last_world_space_position);
+      length = len_v3(d_world_space_position);
       stroke->stroke_over_mesh = true;
     }
     else {
       length = 0.0f;
       stroke->stroke_over_mesh = hit;
       if (stroke->stroke_over_mesh) {
-        copy_v3_v3(stroke->last_scene_space_position, scene_space_position);
+        copy_v3_v3(stroke->last_world_space_position, world_space_position);
       }
     }
   }
@@ -797,12 +801,12 @@ static int paint_space_stroke(bContext *C,
 
     if (length >= spacing) {
       if (paint_stroke_use_scene_spacing(brush, mode)) {
-        normalize_v3(d_scene_space_position);
-        mul_v3_v3fl(final_scene_space_position, d_scene_space_position, spacing);
-        add_v3_v3v3(final_scene_space_position,
-                    stroke->last_scene_space_position,
-                    final_scene_space_position);
-        ED_view3d_project(ar, final_scene_space_position, mouse);
+        normalize_v3(d_world_space_position);
+        mul_v3_v3fl(final_world_space_position, d_world_space_position, spacing);
+        add_v3_v3v3(final_world_space_position,
+                    stroke->last_world_space_position,
+                    final_world_space_position);
+        ED_view3d_project(ar, final_world_space_position, mouse);
       }
       else {
         mouse[0] = stroke->last_mouse_position[0] + dmouse[0] * spacing;
@@ -1326,7 +1330,8 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
     copy_v2_v2(stroke->last_mouse_position, sample_average.mouse);
     if (paint_stroke_use_scene_spacing(br, mode)) {
       stroke->stroke_over_mesh = sculpt_stroke_get_location(
-          C, stroke->last_scene_space_position, sample_average.mouse);
+          C, stroke->last_world_space_position, sample_average.mouse);
+      mul_m4_v3(stroke->vc.obact->obmat, stroke->last_world_space_position);
     }
     stroke->stroke_started = stroke->test_start(C, op, sample_average.mouse);
     BLI_assert((stroke->stroke_started & ~1) == 0); /* 0/1 */
