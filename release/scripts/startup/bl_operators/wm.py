@@ -1816,9 +1816,13 @@ class BatchRenameAction(bpy.types.PropertyGroup):
     replace_src: StringProperty(name="Find")
     replace_dst: StringProperty(name="Replace")
     replace_match_case: BoolProperty(name="Case Sensitive")
-    replace_regex: BoolProperty(
-        name="Regular Expression",
+    use_replace_regex_src: BoolProperty(
+        name="Regular Expression Find",
         description="Use regular expressions to match text in the 'Find' field"
+    )
+    use_replace_regex_dst: BoolProperty(
+        name="Regular Expression Replace",
+        description="Use regular expression for the replacement text (supporting groups)"
     )
 
     # type: 'CASE'.
@@ -2029,13 +2033,18 @@ class WM_OT_batch_rename(Operator):
                     name = name.rstrip(chars_strip)
 
             elif ty == 'REPLACE':
-                if action.replace_regex:
+                if action.use_replace_regex_src:
                     replace_src = action.replace_src
+                    if action.use_replace_regex_dst:
+                        replace_dst = action.replace_dst
+                    else:
+                        replace_dst = re.escape(action.replace_dst)
                 else:
                     replace_src = re.escape(action.replace_src)
+                    replace_dst = re.escape(action.replace_dst)
                 name = re.sub(
                     replace_src,
-                    re.escape(action.replace_dst),
+                    replace_dst,
                     name,
                     flags=(
                         0 if action.replace_match_case else
@@ -2097,22 +2106,39 @@ class WM_OT_batch_rename(Operator):
                 box.row().prop(action, "strip_part")
             elif ty == 'REPLACE':
 
-                row = box.row()
-                re_error = None
-                if action.replace_regex:
+                row = box.row(align=True)
+                re_error_src = None
+                if action.use_replace_regex_src:
                     try:
                         re.compile(action.replace_src)
                     except Exception as ex:
+                        re_error_src = str(ex)
                         row.alert = True
-                        re_error = str(ex)
                 row.prop(action, "replace_src")
-                if re_error is not None:
-                    box.label(text=re_error)
+                row.prop(action, "use_replace_regex_src", text="", icon='SORTBYEXT')
+                if re_error_src is not None:
+                    box.label(text=re_error_src)
 
-                box.row().prop(action, "replace_dst")
+                re_error_dst = None
+                row = box.row(align=True)
+                if action.use_replace_regex_src:
+                    if action.use_replace_regex_dst:
+                        if re_error_src is None:
+                            try:
+                                re.sub(action.replace_src, action.replace_dst, "")
+                            except Exception as ex:
+                                re_error_dst = str(ex)
+                                row.alert = True
+
+                row.prop(action, "replace_dst")
+                rowsub = row.row(align=True)
+                rowsub.active = action.use_replace_regex_src
+                rowsub.prop(action, "use_replace_regex_dst", text="", icon='SORTBYEXT')
+                if re_error_dst is not None:
+                    box.label(text=re_error_dst)
+
                 row = box.row()
                 row.prop(action, "replace_match_case")
-                row.prop(action, "replace_regex")
             elif ty == 'CASE':
                 box.row().prop(action, "case_method", expand=True)
 
@@ -2151,12 +2177,19 @@ class WM_OT_batch_rename(Operator):
 
         # Sanitize actions.
         for action in actions:
-            if action.replace_regex:
+            if action.use_replace_regex_src:
                 try:
                     re.compile(action.replace_src)
                 except Exception as ex:
-                    self.report({'ERROR'}, "Invalid regular expression: " + str(ex))
+                    self.report({'ERROR'}, "Invalid regular expression (find): " + str(ex))
                     return {'CANCELLED'}
+
+                if action.use_replace_regex_dst:
+                    try:
+                        re.sub(action.replace_src, action.replace_dst, "")
+                    except Exception as ex:
+                        self.report({'ERROR'}, "Invalid regular expression (replace): " + str(ex))
+                        return {'CANCELLED'}
 
         total_len = 0
         change_len = 0
