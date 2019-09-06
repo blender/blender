@@ -14,6 +14,10 @@ in vec4 mColor;
 in vec2 mTexCoord;
 out vec4 fragColor;
 
+uniform bool fade_on;
+uniform vec3 fade_color;
+uniform float fade_factor;
+
 #define texture2D texture
 
 #define GPENCIL_MODE_LINE 0
@@ -103,5 +107,10 @@ void main()
 
   if (fragColor.a < 0.0035) {
     discard;
+  }
+
+  /* Apply paper opacity */
+  if (fade_on == true) {
+    fragColor.rgb = mix(fade_color.rgb, fragColor.rgb, fade_factor);
   }
 }

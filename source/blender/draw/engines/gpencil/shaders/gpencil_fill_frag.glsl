@@ -26,6 +26,10 @@ uniform int viewport_xray;
 uniform int shading_type[2];
 uniform vec4 wire_color;
 
+uniform bool fade_on;
+uniform vec3 fade_color;
+uniform float fade_factor;
+
 /* keep this list synchronized with list in gpencil_draw_utils.c */
 #define SOLID 0
 #define GRADIENT 1
@@ -210,5 +214,9 @@ void main()
     if (viewport_xray == 1) {
       fragColor.a *= 0.5;
     }
+  }
+  /* Apply paper opacity */
+  if (fade_on == true) {
+    fragColor.rgb = mix(fade_color.rgb, fragColor.rgb, fade_factor);
   }
 }

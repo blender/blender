@@ -3630,10 +3630,10 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_gpencil_paper", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_SHOW_PAPER);
-  RNA_def_property_ui_text(prop,
-                           "Use Paper",
-                           "Cover all viewport with a full color layer to improve visibility "
-                           "while drawing over complex scenes");
+  RNA_def_property_ui_text(
+      prop,
+      "Fade Objects",
+      "Fade all viewport objects with a full color layer to improve visibility");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   prop = RNA_def_property(srna, "use_gpencil_grid", PROP_BOOLEAN, PROP_NONE);
@@ -3645,6 +3645,12 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_FADE_NOACTIVE_LAYERS);
   RNA_def_property_ui_text(
       prop, "Fade Layers", "Toggle fading of Grease Pencil layers except the active one");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
+
+  prop = RNA_def_property(srna, "use_gpencil_fade_objects", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_FADE_NOACTIVE_GPENCIL);
+  RNA_def_property_ui_text(
+      prop, "Fade Grease Pencil Objects", "Fade Grease Pencil Objects, except the active one");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 
   prop = RNA_def_property(srna, "gpencil_grid_opacity", PROP_FLOAT, PROP_NONE);
@@ -3659,7 +3665,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "overlay.gpencil_paper_opacity");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_float_default(prop, 0.5f);
-  RNA_def_property_ui_text(prop, "Opacity", "Paper opacity");
+  RNA_def_property_ui_text(prop, "Opacity", "Fade factor");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   /* Paper opacity factor */

@@ -6137,9 +6137,10 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
 
         row = col.row()
         row.prop(overlay, "use_gpencil_paper", text="")
-        sub = row.row()
+        sub = row.row(align=True)
         sub.active = overlay.use_gpencil_paper
-        sub.prop(overlay, "gpencil_paper_opacity", text="Fade 3D Objects", slider=True)
+        sub.prop(overlay, "gpencil_paper_opacity", text="Fade Objects", slider=True)
+        sub.prop(overlay, "use_gpencil_fade_objects", text="", icon='OUTLINER_OB_GREASEPENCIL')
 
         if context.object.mode == 'PAINT_GPENCIL':
             row = col.row()
