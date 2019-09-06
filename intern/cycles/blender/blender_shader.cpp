@@ -778,7 +778,7 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_a(&RNA_ShaderNodeTexNoise)) {
     BL::ShaderNodeTexNoise b_noise_node(b_node);
     NoiseTextureNode *noise = new NoiseTextureNode();
-    noise->dimensions = b_noise_node.dimensions();
+    noise->dimensions = b_noise_node.noise_dimensions();
     BL::TexMapping b_texture_mapping(b_noise_node.texture_mapping());
     get_tex_mapping(&noise->tex_mapping, b_texture_mapping);
     node = noise;
@@ -831,7 +831,7 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_a(&RNA_ShaderNodeTexWhiteNoise)) {
     BL::ShaderNodeTexWhiteNoise b_tex_white_noise_node(b_node);
     WhiteNoiseTextureNode *white_noise_node = new WhiteNoiseTextureNode();
-    white_noise_node->dimensions = b_tex_white_noise_node.dimensions();
+    white_noise_node->dimensions = b_tex_white_noise_node.noise_dimensions();
     node = white_noise_node;
   }
   else if (b_node.is_a(&RNA_ShaderNodeNormalMap)) {

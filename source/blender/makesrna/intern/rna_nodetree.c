@@ -4309,7 +4309,7 @@ static void def_sh_tex_noise(StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeTexNoise", "storage");
   def_sh_tex(srna);
 
-  prop = RNA_def_property(srna, "dimensions", PROP_ENUM, PROP_NONE);
+  prop = RNA_def_property(srna, "noise_dimensions", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "dimensions");
   RNA_def_property_enum_items(prop, rna_enum_node_tex_dimensions_items);
   RNA_def_property_ui_text(
@@ -4479,7 +4479,7 @@ static void def_sh_tex_white_noise(StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  prop = RNA_def_property(srna, "dimensions", PROP_ENUM, PROP_NONE);
+  prop = RNA_def_property(srna, "noise_dimensions", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
   RNA_def_property_enum_items(prop, rna_enum_node_tex_dimensions_items);
   RNA_def_property_ui_text(

@@ -920,7 +920,7 @@ static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext *UNUSED(C), 
 
 static void node_shader_buts_tex_noise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "dimensions", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "noise_dimensions", 0, "", ICON_NONE);
 }
 
 static void node_shader_buts_tex_pointdensity(uiLayout *layout,
@@ -1164,7 +1164,7 @@ static void node_shader_buts_ambient_occlusion(uiLayout *layout,
 
 static void node_shader_buts_white_noise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "dimensions", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "noise_dimensions", 0, "", ICON_NONE);
 }
 
 /* only once called */
