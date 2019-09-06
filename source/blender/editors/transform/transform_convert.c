@@ -1348,11 +1348,13 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
           /* Transform constraint needs it for rotation at least (r.57309),
            * but doing so when translating may also mess things up [#36203]
            */
+          bTransformConstraint *data = (bTransformConstraint *)con->data;
 
-          if (t->mode == TFM_ROTATION) {
-            return true;
+          if (data->to == TRANS_ROTATION) {
+            if (t->mode == TFM_ROTATION && data->mix_mode_rot == TRANS_MIXROT_BEFORE) {
+              return true;
+            }
           }
-          /* ??? (t->mode == TFM_SCALE) ? */
         }
       }
     }

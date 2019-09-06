@@ -761,6 +761,8 @@ class ConstraintButtonsPanel:
         sub.prop(con, "to_min_z" + ext, text="Min")
         sub.prop(con, "to_max_z" + ext, text="Max")
 
+        layout.prop(con, "mix_mode" + ext, text="Mix")
+
         self.space_template(layout, con)
 
     def SHRINKWRAP(self, _context, layout, con):

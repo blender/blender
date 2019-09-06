@@ -450,7 +450,12 @@ typedef struct bTransformConstraint {
   /** Output euler order override. */
   char to_euler_order;
 
-  char _pad[6];
+  /** Mixing modes for location, rotation, and scale. */
+  char mix_mode_loc;
+  char mix_mode_rot;
+  char mix_mode_scale;
+
+  char _pad[3];
 
   /** From_min/max defines range of target transform. */
   float from_min[3];
@@ -808,6 +813,34 @@ typedef enum eTransform_ToFrom {
   TRANS_ROTATION = 1,
   TRANS_SCALE = 2,
 } eTransform_ToFrom;
+
+/* bTransformConstraint.mix_mode_loc */
+typedef enum eTransform_MixModeLoc {
+  /* Add component values together (default). */
+  TRANS_MIXLOC_ADD = 0,
+  /* Replace component values. */
+  TRANS_MIXLOC_REPLACE,
+} eTransform_MixModeLoc;
+
+/* bTransformConstraint.mix_mode_rot */
+typedef enum eTransform_MixModeRot {
+  /* Add component values together (default). */
+  TRANS_MIXROT_ADD = 0,
+  /* Replace component values. */
+  TRANS_MIXROT_REPLACE,
+  /* Multiply the generated rotation on the left. */
+  TRANS_MIXROT_BEFORE,
+  /* Multiply the generated rotation on the right. */
+  TRANS_MIXROT_AFTER,
+} eTransform_MixModeRot;
+
+/* bTransformConstraint.mix_mode_scale */
+typedef enum eTransform_MixModeScale {
+  /* Replace component values (default). */
+  TRANS_MIXSCALE_REPLACE = 0,
+  /* Multiply component values together. */
+  TRANS_MIXSCALE_MULTIPLY,
+} eTransform_MixModeScale;
 
 /* bSameVolumeConstraint.free_axis */
 typedef enum eSameVolume_Axis {
