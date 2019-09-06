@@ -436,6 +436,17 @@ static void wm_draw_region_blit(ARegion *ar, int view)
     return;
   }
 
+  if (view == -1) {
+    /* Non-stereo drawing. */
+    view = 0;
+  }
+  else if (view > 0) {
+    if (ar->draw_buffer->viewport[view] == NULL && ar->draw_buffer->offscreen[view] == NULL) {
+      /* Region does not need stereo or failed to allocate stereo buffers. */
+      view = 0;
+    }
+  }
+
   if (ar->draw_buffer->viewport[view]) {
     GPU_viewport_draw_to_screen(ar->draw_buffer->viewport[view], &ar->winrct);
   }
@@ -688,7 +699,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
         }
         else {
           /* Blit from offscreen buffer. */
-          wm_draw_region_blit(ar, 0);
+          wm_draw_region_blit(ar, view);
         }
       }
     }
