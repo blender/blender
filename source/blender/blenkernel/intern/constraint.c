@@ -3753,6 +3753,11 @@ static void transform_new_data(void *cdata)
   data->map[0] = 0;
   data->map[1] = 1;
   data->map[2] = 2;
+
+  for (int i = 0; i < 3; i++) {
+    data->from_min_scale[i] = data->from_max_scale[i] = 1.0f;
+    data->to_min_scale[i] = data->to_max_scale[i] = 1.0f;
+  }
 }
 
 static void transform_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
