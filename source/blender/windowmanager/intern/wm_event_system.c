@@ -2397,6 +2397,7 @@ static int wm_handler_fileselect_do(bContext *C,
               CTX_wm_window_set(C, ctx_win);  // wm_window_close() NULLs.
               /* Some operators expect a drawable context (for EVT_FILESELECT_EXEC) */
               wm_window_make_drawable(wm, ctx_win);
+              wm->winactive = ctx_win; /* Reports use this... */
             }
             else if (file_sa->full) {
               ED_screen_full_prevspace(C, file_sa);
