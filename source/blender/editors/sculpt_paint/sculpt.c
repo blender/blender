@@ -353,8 +353,12 @@ static bool sculpt_has_active_modifiers(Scene *scene, Object *ob)
 
 static bool sculpt_tool_needs_original(const char sculpt_tool)
 {
-  return ELEM(
-      sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB, SCULPT_TOOL_LAYER);
+  return ELEM(sculpt_tool,
+              SCULPT_TOOL_GRAB,
+              SCULPT_TOOL_ROTATE,
+              SCULPT_TOOL_THUMB,
+              SCULPT_TOOL_LAYER,
+              SCULPT_TOOL_DRAW_SHARP);
 }
 
 static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
@@ -380,6 +384,7 @@ static int sculpt_brush_needs_normal(const SculptSession *ss, const Brush *brush
                SCULPT_TOOL_BLOB,
                SCULPT_TOOL_CREASE,
                SCULPT_TOOL_DRAW,
+               SCULPT_TOOL_DRAW_SHARP,
                SCULPT_TOOL_LAYER,
                SCULPT_TOOL_NUDGE,
                SCULPT_TOOL_ROTATE,
@@ -1374,6 +1379,7 @@ static float brush_strength(const Sculpt *sd,
     case SCULPT_TOOL_CLAY:
     case SCULPT_TOOL_CLAY_STRIPS:
     case SCULPT_TOOL_DRAW:
+    case SCULPT_TOOL_DRAW_SHARP:
     case SCULPT_TOOL_LAYER:
       return alpha * flip * pressure * overlap * feather;
 
@@ -2584,6 +2590,82 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT);
   BLI_task_parallel_range(0, totnode, &data, do_draw_brush_task_cb_ex, &settings);
+}
+
+static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
+                                           const int n,
+                                           const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+  const float *offset = data->offset;
+
+  PBVHVertexIter vd;
+  SculptOrigVertData orig_data;
+  float(*proxy)[3];
+
+  sculpt_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+
+  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = sculpt_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    sculpt_orig_vert_data_update(&orig_data, &vd);
+    if (sculpt_brush_test_sq_fn(&test, orig_data.co)) {
+      /* offset vertex */
+      const float fade = tex_strength(ss,
+                                      brush,
+                                      orig_data.co,
+                                      sqrtf(test.dist),
+                                      orig_data.no,
+                                      NULL,
+                                      vd.mask ? *vd.mask : 0.0f,
+                                      tls->thread_id);
+
+      mul_v3_v3fl(proxy[vd.i], offset, fade);
+
+      if (vd.mvert) {
+        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      }
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static void do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+  float offset[3];
+  const float bstrength = ss->cache->bstrength;
+
+  /* offset with as much as possible factored in already */
+  mul_v3_v3fl(offset, ss->cache->sculpt_normal_symm, ss->cache->radius);
+  mul_v3_v3(offset, ss->cache->scale);
+  mul_v3_fl(offset, bstrength);
+
+  /* XXX - this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
+   * initialize before threads so they can do curve mapping */
+  BKE_curvemapping_initialize(brush->curve);
+
+  /* threaded loop over nodes */
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+      .offset = offset,
+  };
+
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT);
+  BLI_task_parallel_range(0, totnode, &data, do_draw_sharp_brush_task_cb_ex, &settings);
 }
 
 /**
@@ -4225,6 +4307,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       case SCULPT_TOOL_MASK:
         do_mask_brush(sd, ob, nodes, totnode);
         break;
+      case SCULPT_TOOL_DRAW_SHARP:
+        do_draw_sharp_brush(sd, ob, nodes, totnode);
+        break;
     }
 
     if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
@@ -4730,6 +4815,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Mask Brush";
     case SCULPT_TOOL_SIMPLIFY:
       return "Simplify Brush";
+    case SCULPT_TOOL_DRAW_SHARP:
+      return "Draw Sharp Brush";
   }
 
   return "Sculpting";

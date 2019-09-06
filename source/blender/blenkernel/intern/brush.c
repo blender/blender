@@ -840,6 +840,12 @@ void BKE_brush_sculpt_reset(Brush *br)
   brush_defaults(br);
   BKE_brush_curve_preset(br, CURVE_PRESET_SMOOTH);
 
+  /* Use the curve presets by default */
+  br->curve_preset = BRUSH_CURVE_SMOOTH;
+  if (br->sculpt_tool == SCULPT_TOOL_DRAW_SHARP) {
+    br->curve_preset = BRUSH_CURVE_POW4;
+  }
+
   switch (br->sculpt_tool) {
     case SCULPT_TOOL_CLAY:
       br->flag |= BRUSH_FRONTFACE;
@@ -1265,6 +1271,7 @@ bool BKE_brush_sculpt_has_secondary_color(const Brush *brush)
   return ELEM(brush->sculpt_tool,
               SCULPT_TOOL_BLOB,
               SCULPT_TOOL_DRAW,
+              SCULPT_TOOL_DRAW_SHARP,
               SCULPT_TOOL_INFLATE,
               SCULPT_TOOL_CLAY,
               SCULPT_TOOL_CLAY_STRIPS,
