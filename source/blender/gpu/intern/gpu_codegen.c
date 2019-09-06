@@ -1307,7 +1307,7 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code, cons
       BLI_dynstr_append(ds, "\tgl_Position = gl_in[2].gl_Position;\n");
       BLI_dynstr_append(ds, "\tpass_attr(2);\n");
       BLI_dynstr_append(ds, "\tEmitVertex();\n");
-      BLI_dynstr_append(ds, "};\n");
+      BLI_dynstr_append(ds, "}\n");
     }
   }
   else {
