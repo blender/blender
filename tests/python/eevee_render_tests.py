@@ -35,19 +35,25 @@ def setup():
         # mat.use_screen_refraction = True
         mat.use_sss_translucency = True
 
-    # Simple probe setup
-    bpy.ops.object.lightprobe_add(type='CUBEMAP', location=(0.5, 0, 1.5))
-    cubemap = bpy.context.selected_objects[0]
-    cubemap.scale = (2.5,2.5,1.0)
-    cubemap.data.falloff = 0
-    cubemap.data.clip_start = 2.4
+    cubemap = None
+    grid = None
+    # Does not work in edit mode
+    try:
+        # Simple probe setup
+        bpy.ops.object.lightprobe_add(type='CUBEMAP', location=(0.5, 0, 1.5))
+        cubemap = bpy.context.selected_objects[0]
+        cubemap.scale = (2.5,2.5,1.0)
+        cubemap.data.falloff = 0
+        cubemap.data.clip_start = 2.4
 
-    bpy.ops.object.lightprobe_add(type='GRID', location=(0, 0, 0.25))
-    grid = bpy.context.selected_objects[0]
-    grid.scale = (1.735,1.735,1.735)
-    grid.data.grid_resolution_x = 3
-    grid.data.grid_resolution_y = 3
-    grid.data.grid_resolution_z = 2
+        bpy.ops.object.lightprobe_add(type='GRID', location=(0, 0, 0.25))
+        grid = bpy.context.selected_objects[0]
+        grid.scale = (1.735,1.735,1.735)
+        grid.data.grid_resolution_x = 3
+        grid.data.grid_resolution_y = 3
+        grid.data.grid_resolution_z = 2
+    except:
+        pass
 
     try:
         # Try to only include the plane in reflections
