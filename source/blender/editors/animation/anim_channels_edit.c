@@ -3114,7 +3114,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
         ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, gpl, ANIMTYPE_GPLAYER);
         /* update other layer status */
         BKE_gpencil_layer_setactive(gpd, gpl);
-        BKE_gpencil_layer_autolock_set(gpd);
+        BKE_gpencil_layer_autolock_set(gpd, false);
       }
 
       /* Grease Pencil updates */

@@ -151,7 +151,7 @@ static void rna_GPencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 static void rna_GPencil_autolock(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   bGPdata *gpd = (bGPdata *)ptr->owner_id;
-  BKE_gpencil_layer_autolock_set(gpd);
+  BKE_gpencil_layer_autolock_set(gpd, true);
 
   /* standard update */
   rna_GPencil_update(bmain, scene, ptr);
