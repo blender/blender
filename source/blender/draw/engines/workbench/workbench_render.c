@@ -24,6 +24,8 @@
 
 #include "BLI_rect.h"
 
+#include "DNA_node_types.h"
+
 #include "BKE_report.h"
 
 #include "DRW_render.h"

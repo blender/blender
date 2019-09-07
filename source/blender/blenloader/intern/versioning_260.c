@@ -41,6 +41,8 @@
 #include "DNA_sdna_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_space_types.h"
+#include "DNA_world_types.h"
+#include "DNA_light_types.h"
 
 #include "MEM_guardedalloc.h"
 

@@ -55,6 +55,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_text_types.h"
+#include "DNA_world_types.h"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"

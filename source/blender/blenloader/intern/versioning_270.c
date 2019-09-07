@@ -48,6 +48,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_rigidbody_types.h"
+#include "DNA_light_types.h"
 
 #include "DNA_genfile.h"
 

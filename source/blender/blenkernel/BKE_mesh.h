@@ -26,9 +26,6 @@
 /* defines BLI_INLINE */
 #include "BLI_compiler_compat.h"
 
-/* defines CustomDataMask */
-//#include "BKE_customdata.h"
-
 struct BLI_Stack;
 struct BMEditMesh;
 struct BMesh;

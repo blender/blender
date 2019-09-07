@@ -26,14 +26,13 @@
  * Studio lighting for the 3dview
  */
 
-#include "BKE_context.h"
-
 #include "BLI_sys_types.h"
 
-#include "DNA_space_types.h"
+#include "BLI_path_util.h"
+
 #include "DNA_userdef_types.h"
 
-#include "IMB_imbuf_types.h"
+struct ImBuf;
 
 /*
  * These defines are the indexes in the StudioLight.diffuse_light
@@ -103,7 +102,7 @@ enum StudioLightFlag {
 typedef void StudioLightFreeFunction(struct StudioLight *, void *data);
 
 typedef struct StudioLightImage {
-  ImBuf *ibuf;
+  struct ImBuf *ibuf;
   struct GPUTexture *gputexture;
 } StudioLightImage;
 
@@ -124,9 +123,9 @@ typedef struct StudioLight {
   float light_direction[3];
   StudioLightImage matcap_diffuse;
   StudioLightImage matcap_specular;
-  ImBuf *equirect_radiance_buffer;
-  ImBuf *equirect_irradiance_buffer;
-  ImBuf *radiance_cubemap_buffers[6];
+  struct ImBuf *equirect_radiance_buffer;
+  struct ImBuf *equirect_irradiance_buffer;
+  struct ImBuf *radiance_cubemap_buffers[6];
   struct GPUTexture *equirect_radiance_gputexture;
   struct GPUTexture *equirect_irradiance_gputexture;
   SolidLight light[STUDIOLIGHT_MAX_LIGHT];

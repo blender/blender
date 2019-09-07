@@ -38,6 +38,7 @@
 #include "DNA_workspace_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_light_types.h"
 
 #include "BKE_appdir.h"
 #include "BKE_colortools.h"

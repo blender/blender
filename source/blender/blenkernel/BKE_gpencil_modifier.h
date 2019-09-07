@@ -21,8 +21,6 @@
  */
 
 #include "DNA_gpencil_modifier_types.h" /* needed for all enum typdefs */
-#include "BLI_compiler_attrs.h"
-#include "BKE_customdata.h"
 
 struct Depsgraph;
 struct GpencilModifierData;

@@ -28,8 +28,6 @@
 extern "C" {
 #endif
 
-#include "DNA_vec_types.h"
-
 struct Camera;
 struct Depsgraph;
 struct Main;
