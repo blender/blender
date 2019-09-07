@@ -88,13 +88,13 @@ def pack_mac(builder):
 
     release_dir = os.path.join(builder.blender_dir, 'release', 'darwin')
     bundle_sh = os.path.join(release_dir, 'bundle.sh')
-    if info.is_development_build:
-        background_image = os.path.join(release_dir, 'buildbot', 'background.tif')
 
     command = [bundle_sh]
     command += ['--source', builder.install_dir]
     command += ['--dmg', package_filepath]
-    command += ['--background-image', background_image]
+    if info.is_development_build:
+        background_image = os.path.join(release_dir, 'buildbot', 'background.tif')
+        command += ['--background-image', background_image]
     buildbot_utils.call(command)
 
     create_buildbot_upload_zip(builder, [(package_filepath, package_filename)])
