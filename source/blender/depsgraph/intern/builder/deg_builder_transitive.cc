@@ -92,7 +92,7 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
          * set/cleared. */
         /* TODO: there will be other types in future, so iterators above
          * need modifying. */
-        it_rel++;
+        ++it_rel;
       }
       else if (rel->from->custom_flags & OP_REACHABLE) {
         rel->unlink();
@@ -100,7 +100,7 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
         num_removed_relations++;
       }
       else {
-        it_rel++;
+        ++it_rel;
       }
     }
   }

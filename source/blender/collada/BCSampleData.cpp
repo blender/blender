@@ -23,7 +23,7 @@
 BCSample::~BCSample()
 {
   BCBoneMatrixMap::iterator it;
-  for (it = bonemats.begin(); it != bonemats.end(); it++) {
+  for (it = bonemats.begin(); it != bonemats.end(); ++it) {
     delete it->second;
   }
 }
@@ -50,7 +50,7 @@ const bool BCSample::get_value(std::string channel_target, const int array_index
     bname = bname.substr(2);
     bname = bc_string_before(bname, "\"");
     BCBoneMatrixMap::const_iterator it;
-    for (it = bonemats.begin(); it != bonemats.end(); it++) {
+    for (it = bonemats.begin(); it != bonemats.end(); ++it) {
       Bone *bone = it->first;
       if (bname == bone->name) {
         matrix = it->second;

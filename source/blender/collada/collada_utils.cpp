@@ -525,7 +525,7 @@ BoneExtensionMap &BoneExtensionManager::getExtensionMap(bArmature *armature)
 BoneExtensionManager::~BoneExtensionManager()
 {
   std::map<std::string, BoneExtensionMap *>::iterator map_it;
-  for (map_it = extended_bone_maps.begin(); map_it != extended_bone_maps.end(); map_it++) {
+  for (map_it = extended_bone_maps.begin(); map_it != extended_bone_maps.end(); ++map_it) {
     BoneExtensionMap *extended_bones = map_it->second;
     for (BoneExtensionMap::iterator ext_it = extended_bones->begin();
          ext_it != extended_bones->end();
@@ -916,7 +916,7 @@ bool bc_is_animated(BCMatrixSampleMap &values)
 
   BCMatrixSampleMap::iterator it;
   const BCMatrix *refmat = NULL;
-  for (it = values.begin(); it != values.end(); it++) {
+  for (it = values.begin(); it != values.end(); ++it) {
     const BCMatrix *matrix = it->second;
 
     if (refmat == NULL) {

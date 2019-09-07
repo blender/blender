@@ -70,7 +70,7 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
    * so multiple operations can use the same node input.
    */
   OpInputInverseMap inverse_input_map;
-  for (InputSocketMap::const_iterator it = m_input_map.begin(); it != m_input_map.end(); it++) {
+  for (InputSocketMap::const_iterator it = m_input_map.begin(); it != m_input_map.end(); ++it) {
     inverse_input_map[it->second].push_back(it->first);
   }
 
@@ -92,7 +92,7 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
       continue;
     }
 
-    for (OpInputs::const_iterator it = op_to_list.begin(); it != op_to_list.end(); it++) {
+    for (OpInputs::const_iterator it = op_to_list.begin(); it != op_to_list.end(); ++it) {
       NodeOperationInput *op_to = *it;
       addLink(op_from, op_to);
     }
@@ -166,7 +166,7 @@ void NodeOperationBuilder::addLink(NodeOperationOutput *from, NodeOperationInput
 
 void NodeOperationBuilder::removeInputLink(NodeOperationInput *to)
 {
-  for (Links::iterator it = m_links.begin(); it != m_links.end(); it++) {
+  for (Links::iterator it = m_links.begin(); it != m_links.end(); ++it) {
     Link &link = *it;
     if (link.to() == to) {
       /* unregister with the input */
@@ -274,7 +274,7 @@ void NodeOperationBuilder::registerViewer(ViewerOperation *viewer)
 void NodeOperationBuilder::add_datatype_conversions()
 {
   Links convert_links;
-  for (Links::const_iterator it = m_links.begin(); it != m_links.end(); it++) {
+  for (Links::const_iterator it = m_links.begin(); it != m_links.end(); ++it) {
     const Link &link = *it;
 
     /* proxy operations can skip data type conversion */
@@ -288,7 +288,7 @@ void NodeOperationBuilder::add_datatype_conversions()
       convert_links.push_back(link);
     }
   }
-  for (Links::const_iterator it = convert_links.begin(); it != convert_links.end(); it++) {
+  for (Links::const_iterator it = convert_links.begin(); it != convert_links.end(); ++it) {
     const Link &link = *it;
     NodeOperation *converter = Converter::convertDataType(link.from(), link.to());
     if (converter) {
@@ -308,16 +308,16 @@ void NodeOperationBuilder::add_operation_input_constants()
    */
   typedef std::vector<NodeOperationInput *> Inputs;
   Inputs pending_inputs;
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); it++) {
+  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
     NodeOperation *op = *it;
-    for (int k = 0; k < op->getNumberOfInputSockets(); k++) {
+    for (int k = 0; k < op->getNumberOfInputSockets(); ++k) {
       NodeOperationInput *input = op->getInputSocket(k);
       if (!input->isConnected()) {
         pending_inputs.push_back(input);
       }
     }
   }
-  for (Inputs::const_iterator it = pending_inputs.begin(); it != pending_inputs.end(); it++) {
+  for (Inputs::const_iterator it = pending_inputs.begin(); it != pending_inputs.end(); ++it) {
     NodeOperationInput *input = *it;
     add_input_constant_value(input, find_node_input(m_input_map, input));
   }
@@ -378,7 +378,7 @@ void NodeOperationBuilder::add_input_constant_value(NodeOperationInput *input,
 void NodeOperationBuilder::resolve_proxies()
 {
   Links proxy_links;
-  for (Links::const_iterator it = m_links.begin(); it != m_links.end(); it++) {
+  for (Links::const_iterator it = m_links.begin(); it != m_links.end(); ++it) {
     const Link &link = *it;
     /* don't replace links from proxy to proxy, since we may need them for replacing others! */
     if (link.from()->getOperation().isProxyOperation() &&
@@ -387,7 +387,7 @@ void NodeOperationBuilder::resolve_proxies()
     }
   }
 
-  for (Links::const_iterator it = proxy_links.begin(); it != proxy_links.end(); it++) {
+  for (Links::const_iterator it = proxy_links.begin(); it != proxy_links.end(); ++it) {
     const Link &link = *it;
 
     NodeOperationInput *to = link.to();
@@ -410,7 +410,7 @@ void NodeOperationBuilder::resolve_proxies()
 void NodeOperationBuilder::determineResolutions()
 {
   /* determine all resolutions of the operations (Width/Height) */
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); it++) {
+  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
     NodeOperation *op = *it;
 
     if (op->isOutputOperation(m_context->isRendering()) && !op->isPreviewOperation()) {
@@ -421,7 +421,7 @@ void NodeOperationBuilder::determineResolutions()
     }
   }
 
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); it++) {
+  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
     NodeOperation *op = *it;
 
     if (op->isOutputOperation(m_context->isRendering()) && op->isPreviewOperation()) {
@@ -435,7 +435,7 @@ void NodeOperationBuilder::determineResolutions()
   /* add convert resolution operations when needed */
   {
     Links convert_links;
-    for (Links::const_iterator it = m_links.begin(); it != m_links.end(); it++) {
+    for (Links::const_iterator it = m_links.begin(); it != m_links.end(); ++it) {
       const Link &link = *it;
 
       if (link.to()->getResizeMode() != COM_SC_NO_RESIZE) {
@@ -446,7 +446,7 @@ void NodeOperationBuilder::determineResolutions()
         }
       }
     }
-    for (Links::const_iterator it = convert_links.begin(); it != convert_links.end(); it++) {
+    for (Links::const_iterator it = convert_links.begin(); it != convert_links.end(); ++it) {
       const Link &link = *it;
       Converter::convertResolution(*this, link.from(), link.to());
     }
@@ -457,7 +457,7 @@ NodeOperationBuilder::OpInputs NodeOperationBuilder::cache_output_links(
     NodeOperationOutput *output) const
 {
   OpInputs inputs;
-  for (Links::const_iterator it = m_links.begin(); it != m_links.end(); it++) {
+  for (Links::const_iterator it = m_links.begin(); it != m_links.end(); ++it) {
     const Link &link = *it;
     if (link.from() == output) {
       inputs.push_back(link.to());
@@ -469,7 +469,7 @@ NodeOperationBuilder::OpInputs NodeOperationBuilder::cache_output_links(
 WriteBufferOperation *NodeOperationBuilder::find_attached_write_buffer_operation(
     NodeOperationOutput *output) const
 {
-  for (Links::const_iterator it = m_links.begin(); it != m_links.end(); it++) {
+  for (Links::const_iterator it = m_links.begin(); it != m_links.end(); ++it) {
     const Link &link = *it;
     if (link.from() == output) {
       NodeOperation &op = link.to()->getOperation();
@@ -529,7 +529,7 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation,
   }
 
   WriteBufferOperation *writeOperation = NULL;
-  for (OpInputs::const_iterator it = targets.begin(); it != targets.end(); it++) {
+  for (OpInputs::const_iterator it = targets.begin(); it != targets.end(); ++it) {
     NodeOperationInput *target = *it;
 
     /* try to find existing write buffer operation */
@@ -555,7 +555,7 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation,
   writeOperation->readResolutionFromInputSocket();
 
   /* add readbuffer op for every former connected input */
-  for (OpInputs::const_iterator it = targets.begin(); it != targets.end(); it++) {
+  for (OpInputs::const_iterator it = targets.begin(); it != targets.end(); ++it) {
     NodeOperationInput *target = *it;
     if (&target->getOperation() == writeOperation) {
       continue; /* skip existing write op links */
@@ -578,13 +578,13 @@ void NodeOperationBuilder::add_complex_operation_buffers()
    * will invalidate iterators over the main m_operations
    */
   Operations complex_ops;
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); it++) {
+  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
     if ((*it)->isComplex()) {
       complex_ops.push_back(*it);
     }
   }
 
-  for (Operations::const_iterator it = complex_ops.begin(); it != complex_ops.end(); it++) {
+  for (Operations::const_iterator it = complex_ops.begin(); it != complex_ops.end(); ++it) {
     NodeOperation *op = *it;
 
     DebugInfo::operation_read_write_buffer(op);
@@ -626,7 +626,7 @@ static void find_reachable_operations_recursive(Tags &reachable, NodeOperation *
 void NodeOperationBuilder::prune_operations()
 {
   Tags reachable;
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); it++) {
+  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
     NodeOperation *op = *it;
 
     /* output operations are primary executed operations */
@@ -637,7 +637,7 @@ void NodeOperationBuilder::prune_operations()
 
   /* delete unreachable operations */
   Operations reachable_ops;
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); it++) {
+  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
     NodeOperation *op = *it;
 
     if (reachable.find(op) != reachable.end()) {
@@ -677,7 +677,7 @@ void NodeOperationBuilder::sort_operations()
   sorted.reserve(m_operations.size());
   Tags visited;
 
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); it++) {
+  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
     sort_operations_recursive(sorted, visited, *it);
   }
 
@@ -717,7 +717,7 @@ ExecutionGroup *NodeOperationBuilder::make_group(NodeOperation *op)
 
 void NodeOperationBuilder::group_operations()
 {
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); it++) {
+  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
     NodeOperation *op = *it;
 
     if (op->isOutputOperation(m_context->isRendering())) {

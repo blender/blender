@@ -525,7 +525,7 @@ template<typename Schema> void AbcGenericMeshWriter::writeFaceSets(struct Mesh *
   getGeoGroups(me, geo_groups);
 
   std::map<std::string, std::vector<int32_t>>::iterator it;
-  for (it = geo_groups.begin(); it != geo_groups.end(); it++) {
+  for (it = geo_groups.begin(); it != geo_groups.end(); ++it) {
     OFaceSet face_set = schema.createFaceSet(it->first);
     OFaceSetSchema::Sample samp;
     samp.setFaces(Int32ArraySample(it->second));
@@ -707,7 +707,7 @@ static void assign_materials(Main *bmain,
   std::map<std::string, int>::const_iterator it = mat_index_map.begin();
 
   int matcount = 0;
-  for (; it != mat_index_map.end(); it++, matcount++) {
+  for (; it != mat_index_map.end(); ++it, matcount++) {
     if (!BKE_object_material_slot_add(bmain, ob)) {
       can_assign = false;
       break;
@@ -723,7 +723,7 @@ static void assign_materials(Main *bmain,
   if (can_assign) {
     it = mat_index_map.begin();
 
-    for (; it != mat_index_map.end(); it++) {
+    for (; it != mat_index_map.end(); ++it) {
       std::string mat_name = it->first;
       mat_iter = mat_map.find(mat_name.c_str());
 

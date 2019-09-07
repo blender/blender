@@ -201,7 +201,7 @@ struct IK_Scene {
     if (scene) {
       delete scene;
     }
-    for (std::vector<IK_Target *>::iterator it = targets.begin(); it != targets.end(); it++) {
+    for (std::vector<IK_Target *>::iterator it = targets.begin(); it != targets.end(); ++it) {
       delete (*it);
     }
     targets.clear();

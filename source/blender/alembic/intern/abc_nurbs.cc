@@ -208,7 +208,7 @@ bool AbcNurbsReader::valid() const
   }
 
   std::vector<std::pair<INuPatchSchema, IObject>>::const_iterator it;
-  for (it = m_schemas.begin(); it != m_schemas.end(); it++) {
+  for (it = m_schemas.begin(); it != m_schemas.end(); ++it) {
     const INuPatchSchema &schema = it->first;
 
     if (!schema.valid()) {
@@ -243,7 +243,7 @@ void AbcNurbsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
 
   std::vector<std::pair<INuPatchSchema, IObject>>::iterator it;
 
-  for (it = m_schemas.begin(); it != m_schemas.end(); it++) {
+  for (it = m_schemas.begin(); it != m_schemas.end(); ++it) {
     Nurb *nu = static_cast<Nurb *>(MEM_callocN(sizeof(Nurb), "abc_getnurb"));
     nu->flag = CU_SMOOTH;
     nu->type = CU_NURBS;

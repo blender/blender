@@ -718,7 +718,7 @@ void IMB_exr_add_view(void *handle, const char *name)
 static int imb_exr_get_multiView_id(StringVector &views, const std::string &name)
 {
   int count = 0;
-  for (StringVector::const_iterator i = views.begin(); count < views.size(); i++) {
+  for (StringVector::const_iterator i = views.begin(); count < views.size(); ++i) {
     if (name == *i) {
       return count;
     }
@@ -736,7 +736,7 @@ static void imb_exr_get_views(MultiPartInputFile &file, StringVector &views)
   if (exr_has_multipart_file(file) == false) {
     if (exr_has_multiview(file)) {
       StringVector sv = multiView(file.header(0));
-      for (StringVector::const_iterator i = sv.begin(); i != sv.end(); i++) {
+      for (StringVector::const_iterator i = sv.begin(); i != sv.end(); ++i) {
         views.push_back(*i);
       }
     }
@@ -1686,7 +1686,7 @@ static void exr_print_filecontents(MultiPartInputFile &file)
     const StringVector views = multiView(file.header(0));
     printf("OpenEXR-load: MultiView file\n");
     printf("OpenEXR-load: Default view: %s\n", defaultViewName(views).c_str());
-    for (StringVector::const_iterator i = views.begin(); i != views.end(); i++) {
+    for (StringVector::const_iterator i = views.begin(); i != views.end(); ++i) {
       printf("OpenEXR-load: Found view %s\n", (*i).c_str());
     }
   }
@@ -1701,7 +1701,7 @@ static void exr_print_filecontents(MultiPartInputFile &file)
 
   for (int j = 0; j < numparts; j++) {
     const ChannelList &channels = file.header(j).channels();
-    for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); i++) {
+    for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i) {
       const Channel &channel = i.channel();
       printf("OpenEXR-load: Found channel %s of type %d\n", i.name(), channel.type);
     }
@@ -1713,7 +1713,7 @@ static const char *exr_rgba_channelname(MultiPartInputFile &file, const char *ch
 {
   const ChannelList &channels = file.header(0).channels();
 
-  for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); i++) {
+  for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i) {
     /* const Channel &channel = i.channel(); */ /* Not used yet */
     const char *str = i.name();
     int len = strlen(str);

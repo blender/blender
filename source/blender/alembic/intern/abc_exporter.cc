@@ -197,7 +197,7 @@ AbcExporter::~AbcExporter()
 {
   /* Free xforms map */
   m_xforms_type::iterator it_x, e_x;
-  for (it_x = m_xforms.begin(), e_x = m_xforms.end(); it_x != e_x; it_x++) {
+  for (it_x = m_xforms.begin(), e_x = m_xforms.end(); it_x != e_x; ++it_x) {
     delete it_x->second;
   }
 
@@ -331,7 +331,7 @@ void AbcExporter::operator()(float &progress, bool &was_canceled)
   const float size = static_cast<float>(frames.size());
   size_t i = 0;
 
-  for (; begin != end; begin++) {
+  for (; begin != end; ++begin) {
     progress = (++i / size);
 
     if (G.is_break) {
@@ -355,14 +355,14 @@ void AbcExporter::operator()(float &progress, bool &was_canceled)
     }
 
     m_xforms_type::iterator xit, xe;
-    for (xit = m_xforms.begin(), xe = m_xforms.end(); xit != xe; xit++) {
+    for (xit = m_xforms.begin(), xe = m_xforms.end(); xit != xe; ++xit) {
       xit->second->write();
     }
 
     /* Save the archive 's bounding box. */
     Imath::Box3d bounds;
 
-    for (xit = m_xforms.begin(), xe = m_xforms.end(); xit != xe; xit++) {
+    for (xit = m_xforms.begin(), xe = m_xforms.end(); xit != xe; ++xit) {
       Imath::Box3d box = xit->second->bounds();
       bounds.extendBy(box);
     }
