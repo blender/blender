@@ -2384,7 +2384,13 @@ static int wm_handler_fileselect_do(bContext *C,
       /* remlink now, for load file case before removing*/
       BLI_remlink(handlers, handler);
 
-      if (val != EVT_FILESELECT_EXTERNAL_CANCEL) {
+      if (val == EVT_FILESELECT_EXTERNAL_CANCEL) {
+        /* The window might have been freed already. */
+        if (BLI_findindex(&wm->windows, handler->context.win) == -1) {
+          handler->context.win = NULL;
+        }
+      }
+      else {
         for (wmWindow *win = wm->windows.first; win; win = win->next) {
           if (WM_window_is_temp_screen(win)) {
             bScreen *screen = WM_window_get_active_screen(win);
