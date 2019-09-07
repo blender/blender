@@ -2397,7 +2397,7 @@ static int wm_handler_fileselect_do(bContext *C,
               CTX_wm_window_set(C, ctx_win);  // wm_window_close() NULLs.
               /* Some operators expect a drawable context (for EVT_FILESELECT_EXEC) */
               wm_window_make_drawable(wm, ctx_win);
-              /* Ensure correct cursor positon, otherwise, popups may close immediately after
+              /* Ensure correct cursor position, otherwise, popups may close immediately after
                * opening (UI_BLOCK_MOVEMOUSE_QUIT) */
               wm_get_cursor_position(ctx_win, &ctx_win->eventstate->x, &ctx_win->eventstate->y);
               wm->winactive = ctx_win; /* Reports use this... */

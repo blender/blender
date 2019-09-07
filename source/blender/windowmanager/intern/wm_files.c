@@ -2408,7 +2408,10 @@ void WM_OT_revert_mainfile(wmOperatorType *ot)
   ot->name = "Revert";
   ot->idname = "WM_OT_revert_mainfile";
   ot->description = "Reload the saved file";
+
   ot->invoke = WM_operator_confirm;
+  ot->exec = wm_revert_mainfile_exec;
+  ot->poll = wm_revert_mainfile_poll;
 
   RNA_def_boolean(ot->srna,
                   "use_scripts",
@@ -2416,9 +2419,6 @@ void WM_OT_revert_mainfile(wmOperatorType *ot)
                   "Trusted Source",
                   "Allow .blend file to execute scripts automatically, default available from "
                   "system preferences");
-
-  ot->exec = wm_revert_mainfile_exec;
-  ot->poll = wm_revert_mainfile_poll;
 }
 
 /** \} */
@@ -2463,8 +2463,8 @@ void WM_OT_recover_last_session(wmOperatorType *ot)
   ot->name = "Recover Last Session";
   ot->idname = "WM_OT_recover_last_session";
   ot->description = "Open the last closed file (\"" BLENDER_QUIT_FILE "\")";
-  ot->invoke = WM_operator_confirm;
 
+  ot->invoke = WM_operator_confirm;
   ot->exec = wm_recover_last_session_exec;
 }
 
@@ -2506,8 +2506,8 @@ void WM_OT_recover_auto_save(wmOperatorType *ot)
   ot->idname = "WM_OT_recover_auto_save";
   ot->description = "Open an automatically saved file to recover it";
 
-  ot->exec = wm_recover_auto_save_exec;
   ot->invoke = wm_recover_auto_save_invoke;
+  ot->exec = wm_recover_auto_save_exec;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_BLENDER,

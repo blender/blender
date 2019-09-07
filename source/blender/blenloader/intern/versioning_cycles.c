@@ -788,7 +788,7 @@ static void update_noise_node_dimensions(bNodeTree *ntree)
  * Since the RNA paths of the properties changed, we also have to update the
  * rna_path of the FCurves if they exist. To do that, we loop over FCurves
  * and check if they control a property of the node, if they do, we update
- * the path to be that of the corrsponding socket in the node or the added
+ * the path to be that of the corresponding socket in the node or the added
  * minimum/maximum node.
  *
  */

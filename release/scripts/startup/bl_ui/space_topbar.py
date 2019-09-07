@@ -563,7 +563,7 @@ class TOPBAR_MT_help(Menu):
 
         show_developer = context.preferences.view.show_developer_ui
 
-        layout.operator("wm.url_open_preset", text="Manual", icon='HELP',).type = 'MANUAL'
+        layout.operator("wm.url_open_preset", text="Manual", icon='HELP').type = 'MANUAL'
 
         layout.operator(
             "wm.url_open", text="Tutorials", icon='URL',

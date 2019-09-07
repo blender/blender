@@ -232,8 +232,7 @@ def test_restrictions1():
         bl_context = "render"
 
         def draw(self, context):
-            self.layout.prop_search(context.scene, "prop", bpy.data,
-                                    "objects")
+            self.layout.prop_search(context.scene, "prop", bpy.data, "objects")
             self.layout.template_ID(context.scene, "prop1")
             self.layout.prop_search(context.scene, "prop2", bpy.data, "node_groups")
 

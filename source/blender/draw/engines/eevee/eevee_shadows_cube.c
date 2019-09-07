@@ -116,12 +116,12 @@ bool EEVEE_shadows_cube_setup(EEVEE_LightsInfo *linfo, const EEVEE_Light *evli, 
     /**
      * Anti-Aliasing jitter: Add random rotation.
      *
-     * The 2.0 factor is because texel angular size is not even across the cubemap,
+     * The 2.0 factor is because texel angular size is not even across the cube-map,
      * so we make the rotation range a bit bigger.
      * This will not blur the shadow even if the spread is too big since we are just
-     * rotating the shadow cubemap.
+     * rotating the shadow cube-map.
      * Note that this may be a rough approximation an may not converge to a perfectly
-     * smooth shadow (because sample distribution is quite non-uniform) but is enought
+     * smooth shadow (because sample distribution is quite non-uniform) but is enough
      * in practice.
      **/
     /* NOTE: this has implication for spotlight rendering optimization
@@ -202,11 +202,13 @@ void EEVEE_shadows_draw_cubemap(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
   for (int j = 0; j < 6; j++) {
     /* Optimization: Only render the needed faces. */
     /* Skip all but -Z face. */
-    if (evli->light_type == LA_SPOT && j != 5 && spot_angle_fit_single_face(evli))
+    if (evli->light_type == LA_SPOT && j != 5 && spot_angle_fit_single_face(evli)) {
       continue;
+    }
     /* Skip +Z face. */
-    if (evli->light_type != LA_LOCAL && j == 4)
+    if (evli->light_type != LA_LOCAL && j == 4) {
       continue;
+    }
     /* TODO(fclem) some cube sides can be invisible in the main views. Cull them. */
     // if (frustum_intersect(g_data->cube_views[j], main_view))
     //   continue;

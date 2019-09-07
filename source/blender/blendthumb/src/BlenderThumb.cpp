@@ -174,11 +174,13 @@ IFACEMETHODIMP CBlendThumb::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE 
   char version[4];
   version[3] = '\0';
   _pStream->Read(&version, 3, &BytesRead);
-  if (BytesRead != 3)
+  if (BytesRead != 3) {
     return E_UNEXPECTED;
+  }
   int iVersion = atoi(version);
-  if (iVersion < 250)
+  if (iVersion < 250) {
     return S_FALSE;
+  }
 
   // 32 or 64 bit blend?
   SeekPos.QuadPart = 7;
@@ -208,8 +210,9 @@ IFACEMETHODIMP CBlendThumb::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE 
         continue;
       }
     }
-    else
+    else {
       break;  // eof
+    }
 
     // Found the block
     SeekPos.QuadPart = BlockOffset + HeaderSize;
@@ -224,8 +227,9 @@ IFACEMETHODIMP CBlendThumb::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE 
     char *pRGBA = new char[BlockSize];
     _pStream->Read(pRGBA, BlockSize, &BytesRead);
 
-    if (BytesRead != (ULONG)BlockSize)
+    if (BytesRead != (ULONG)BlockSize) {
       return E_UNEXPECTED;
+    }
 
     // Convert to BGRA for Windows
     for (int i = 0; i < BlockSize; i += 4) {
@@ -244,16 +248,18 @@ IFACEMETHODIMP CBlendThumb::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE 
       if (0 != memcpy_s(&FlippedImage[(height - i - 1) * LineSize],
                         LineSize,
                         &pRGBA[i * LineSize],
-                        LineSize))
+                        LineSize)) {
         return E_UNEXPECTED;
+      }
     }
     delete[] pRGBA;
     pRGBA = FlippedImage;
 
     // Create image
     *phbmp = CreateBitmap(width, height, 1, 32, pRGBA);
-    if (!*phbmp)
+    if (!*phbmp) {
       return E_FAIL;
+    }
     *pdwAlpha = WTSAT_ARGB;  // it's actually BGRA, not sure why this works
 
     // Scale down if required
@@ -297,16 +303,18 @@ IFACEMETHODIMP CBlendThumb::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE 
           DeleteObject(*phbmp);
           *phbmp = ResizedHBmp;
         }
-        else
+        else {
           DeleteObject(ResizedHBmp);
+        }
 
         pIScaler->Release();
       }
       WICBmp->Release();
       pImgFac->Release();
     }
-    else
+    else {
       hr = S_OK;
+    }
     break;
   }
   return hr;

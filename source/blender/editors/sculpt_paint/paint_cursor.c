@@ -1121,15 +1121,18 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
       start[dim] = (bbMin[dim] - orgLoc[dim] - radius) / step[dim];
       end[dim] = (bbMax[dim] - orgLoc[dim] + radius) / step[dim];
     }
-    else
+    else {
       start[dim] = end[dim] = 0;
+    }
   }
   copy_v3_v3_int(cur, start);
   for (cur[0] = start[0]; cur[0] <= end[0]; cur[0]++) {
     for (cur[1] = start[1]; cur[1] <= end[1]; cur[1]++) {
       for (cur[2] = start[2]; cur[2] <= end[2]; cur[2]++) {
-        if (!cur[0] && !cur[1] && !cur[2])
-          continue; /* skip tile at orgLoc, this was already handled before all others */
+        if (!cur[0] && !cur[1] && !cur[2]) {
+          /* skip tile at orgLoc, this was already handled before all others */
+          continue;
+        }
         tile_pass++;
         for (dim = 0; dim < 3; dim++) {
           location[dim] = cur[dim] * step[dim] + orgLoc[dim];

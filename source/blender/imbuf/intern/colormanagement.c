@@ -3961,8 +3961,7 @@ static void update_glsl_display_processor(const ColorManagedViewSettings *view_s
 
     /* We're using curve mapping's address as a cache ID,
      * so we need to make sure re-allocation gives new address here.
-     * We do this by allocating new curve mapping before freeing ol one.
-     */
+     * We do this by allocating new curve mapping before freeing old one. */
     if (use_curve_mapping) {
       new_curve_mapping = BKE_curvemapping_copy(view_settings->curve_mapping);
     }

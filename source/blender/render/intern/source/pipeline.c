@@ -1637,7 +1637,7 @@ static void do_render_seq(Render *re)
         BKE_stamp_info_from_imbuf(rr, ibuf_arr[view_id]);
       }
 
-      if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
+      if (recurs_depth == 0) { /* With nested scenes, only free on top-level. */
         Editing *ed = re->pipeline_scene_eval->ed;
         if (ed) {
           BKE_sequencer_free_imbuf(re->pipeline_scene_eval, &ed->seqbase, true);

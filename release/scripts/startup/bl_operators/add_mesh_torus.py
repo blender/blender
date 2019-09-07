@@ -252,10 +252,12 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
             self.major_radius = self.abso_minor_rad + extra_helper
             self.minor_radius = extra_helper
 
-        verts_loc, faces = add_torus(self.major_radius,
-                                     self.minor_radius,
-                                     self.major_segments,
-                                     self.minor_segments)
+        verts_loc, faces = add_torus(
+            self.major_radius,
+            self.minor_radius,
+            self.major_segments,
+            self.minor_segments,
+        )
 
         mesh = bpy.data.meshes.new(data_("Torus"))
 
