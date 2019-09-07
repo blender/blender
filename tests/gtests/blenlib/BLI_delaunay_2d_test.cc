@@ -15,8 +15,6 @@ extern "C" {
 #include <fstream>
 #include <sstream>
 
-#define DLNY_EPSILON 1e-8
-
 static void fill_input_verts(CDT_input *r_input, float (*vcos)[2], int nverts)
 {
   r_input->verts_len = nverts;
@@ -27,7 +25,7 @@ static void fill_input_verts(CDT_input *r_input, float (*vcos)[2], int nverts)
   r_input->faces = NULL;
   r_input->faces_start_table = NULL;
   r_input->faces_len_table = NULL;
-  r_input->epsilon = 1e-6f;
+  r_input->epsilon = 1e-5f;
 }
 
 static void add_input_edges(CDT_input *r_input, int (*edges)[2], int nedges)
@@ -640,6 +638,32 @@ TEST(delaunay, TwoSquaresOverlap)
   EXPECT_EQ(out->verts_len, 10);
   EXPECT_EQ(out->edges_len, 12);
   EXPECT_EQ(out->faces_len, 3);
+  BLI_delaunay_2d_cdt_free(out);
+}
+
+TEST(delaunay, TriCutoff)
+{
+  CDT_input in;
+  CDT_result *out;
+  float p[][2] = {
+      {-3.53009f, 1.29403f},
+      {-4.11844f, -1.08375f},
+      {1.56893f, 1.29403f},
+      {0.621034f, 0.897734f},
+      {0.549125f, 1.29403f},
+  };
+  int f[] = {0, 2, 1};
+  int fstart[] = {0};
+  int flen[] = {3};
+  int e[][2] = {{3, 4}};
+
+  fill_input_verts(&in, p, 5);
+  add_input_faces(&in, f, fstart, flen, 1);
+  add_input_edges(&in, e, 1);
+  out = BLI_delaunay_2d_cdt_calc(&in, CDT_CONSTRAINTS_VALID_BMESH);
+  EXPECT_EQ(out->verts_len, 5);
+  EXPECT_EQ(out->edges_len, 6);
+  EXPECT_EQ(out->faces_len, 2);
   BLI_delaunay_2d_cdt_free(out);
 }
 
