@@ -322,7 +322,6 @@ endif()
 
 if(WITH_LLVM)
   set(LLVM_ROOT_DIR ${LIBDIR}/llvm)
-  set(LLVM_VERSION 3.4)
   if(EXISTS "${LLVM_ROOT_DIR}/bin/llvm-config")
     set(LLVM_CONFIG "${LLVM_ROOT_DIR}/bin/llvm-config")
   else()
@@ -333,6 +332,9 @@ if(WITH_LLVM)
       OUTPUT_STRIP_TRAILING_WHITESPACE)
   execute_process(COMMAND ${LLVM_CONFIG} --prefix
       OUTPUT_VARIABLE LLVM_ROOT_DIR
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(COMMAND ${LLVM_CONFIG} --includedir
+      OUTPUT_VARIABLE LLVM_INCLUDE_DIRS
       OUTPUT_STRIP_TRAILING_WHITESPACE)
   execute_process(COMMAND ${LLVM_CONFIG} --libdir
       OUTPUT_VARIABLE LLVM_LIBPATH
