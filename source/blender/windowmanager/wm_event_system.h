@@ -116,6 +116,10 @@ typedef struct wmEventHandler_Op {
 
   /** Store context for this handler for derived/modal handlers. */
   struct {
+    /* To override the window, and hence the screen. Set for few cases only, usually window/screen
+     * can be taken from current context. */
+    struct wmWindow *win;
+
     struct ScrArea *area;
     struct ARegion *region;
     short region_type;
