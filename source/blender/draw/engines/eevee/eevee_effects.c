@@ -206,7 +206,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   /**
    * Compute Mipmap texel alignment.
    */
-  for (int i = 0; i < 10; ++i) {
+  for (int i = 0; i < 10; i++) {
     int mip_size[2];
     GPU_texture_get_mipmap_size(txl->color, i, mip_size);
     common_data->mip_ratio[i][0] = viewport_size[0] / (mip_size[0] * powf(2.0f, i));

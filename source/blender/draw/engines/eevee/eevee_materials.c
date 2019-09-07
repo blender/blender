@@ -447,7 +447,7 @@ static void eevee_init_util_texture(void)
   texels_layer += 64 * 64;
 
   /* Copy Refraction GGX LUT in layer 5 - 21 */
-  for (int j = 0; j < 16; ++j) {
+  for (int j = 0; j < 16; j++) {
     for (int i = 0; i < 64 * 64; i++) {
       texels_layer[i][0] = btdf_split_sum_ggx[j * 2][i];
       texels_layer[i][1] = 0.0; /* UNUSED */
@@ -1457,7 +1457,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
     struct GPUMaterial **gpumat_depth_array = BLI_array_alloca(gpumat_array, materials_len);
     struct Material **ma_array = BLI_array_alloca(ma_array, materials_len);
 
-    for (int i = 0; i < materials_len; ++i) {
+    for (int i = 0; i < materials_len; i++) {
       ma_array[i] = eevee_object_material_get(ob, i);
       gpumat_array[i] = NULL;
       gpumat_depth_array[i] = NULL;
@@ -1525,7 +1525,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
         /* TODO(fclem): Support shadows in sculpt mode. */
       }
       else if (mat_geom) {
-        for (int i = 0; i < materials_len; ++i) {
+        for (int i = 0; i < materials_len; i++) {
           if (mat_geom[i] == NULL) {
             continue;
           }
@@ -1551,7 +1551,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
           ADD_SHGROUP_CALL_SAFE(shgrp_depth_clip_array[i], ob, mat_geom[i], oedata);
 
           char *name = auto_layer_names;
-          for (int j = 0; j < auto_layer_count; ++j) {
+          for (int j = 0; j < auto_layer_count; j++) {
             /* TODO don't add these uniform when not needed (default pass shaders). */
             /* FIXME: This is broken, as it overrides any autolayers srgb bool of the previous mesh
              * that shares the same material.  */
@@ -1728,7 +1728,7 @@ void EEVEE_materials_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 
 void EEVEE_materials_free(void)
 {
-  for (int i = 0; i < VAR_MAT_MAX; ++i) {
+  for (int i = 0; i < VAR_MAT_MAX; i++) {
     DRW_SHADER_FREE_SAFE(e_data.default_lit[i]);
   }
   MEM_SAFE_FREE(e_data.frag_shader_lib);
@@ -1747,7 +1747,7 @@ void EEVEE_materials_free(void)
 
 void EEVEE_materials_draw_opaque(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_PassList *psl)
 {
-  for (int i = 0; i < VAR_MAT_MAX; ++i) {
+  for (int i = 0; i < VAR_MAT_MAX; i++) {
     if (psl->default_pass[i]) {
       DRW_draw_pass(psl->default_pass[i]);
     }

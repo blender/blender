@@ -1557,7 +1557,7 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
     BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_DEPSGRAPH_UPDATE_PRE);
   }
 
-  for (int pass = 0; pass < 2; ++pass) {
+  for (int pass = 0; pass < 2; pass++) {
     /* (Re-)build dependency graph if needed. */
     DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
     /* Uncomment this to check if graph was properly tagged for update. */
@@ -1609,7 +1609,7 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph, Main *bmain)
   /* Keep this first. */
   BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
 
-  for (int pass = 0; pass < 2; ++pass) {
+  for (int pass = 0; pass < 2; pass++) {
     /* Update animated image textures for particles, modifiers, gpu, etc,
      * call this at the start so modifiers with textures don't lag 1 frame.
      */

@@ -333,7 +333,7 @@ std::string DocumentImporter::get_import_version(const COLLADAFW::FileInfo *asse
   const char AUTORING_TOOL[] = "authoring_tool";
   const std::string BLENDER("Blender ");
   const COLLADAFW::FileInfo::ValuePairPointerArray &valuePairs = asset->getValuePairArray();
-  for (size_t i = 0, count = valuePairs.getCount(); i < count; ++i) {
+  for (size_t i = 0, count = valuePairs.getCount(); i < count; i++) {
     const COLLADAFW::FileInfo::ValuePair *valuePair = valuePairs[i];
     const COLLADAFW::String &key = valuePair->first;
     const COLLADAFW::String &value = valuePair->second;
@@ -567,7 +567,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
           root_objects->push_back(ob);
         }
       }
-      ++geom_done;
+      geom_done++;
     }
     while (camera_done < camera.getCount()) {
       ob = create_camera_object(camera[camera_done], sce);
@@ -580,7 +580,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
           root_objects->push_back(ob);
         }
       }
-      ++camera_done;
+      camera_done++;
     }
     while (lamp_done < lamp.getCount()) {
       ob = create_light_object(lamp[lamp_done], sce);
@@ -593,7 +593,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
           root_objects->push_back(ob);
         }
       }
-      ++lamp_done;
+      lamp_done++;
     }
     while (controller_done < controller.getCount()) {
       COLLADAFW::InstanceGeometry *geometry = (COLLADAFW::InstanceGeometry *)
@@ -608,7 +608,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
           root_objects->push_back(ob);
         }
       }
-      ++controller_done;
+      controller_done++;
     }
     /* XXX instance_node is not supported yet */
     while (inst_done < inst_node.getCount()) {
@@ -635,7 +635,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
           }
         }
       }
-      ++inst_done;
+      inst_done++;
 
       read_transform = false;
     }

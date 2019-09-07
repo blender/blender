@@ -1808,7 +1808,7 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
         GPU_vertbuf_attr_set(
             vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + 2]);
 
-        for (j = 1; j < stitch_preview->uvs_per_polygon[i] - 1; ++j) {
+        for (j = 1; j < stitch_preview->uvs_per_polygon[i] - 1; j++) {
           GPU_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index]);
           GPU_vertbuf_attr_set(
               vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j + 0) * 2]);

@@ -618,14 +618,14 @@ void BLI_path_rel(char *file, const char *relfile)
      */
     if (*q != '/') {
       while ((q >= file) && (*q != '/')) {
-        --q;
-        --p;
+        q--;
+        p--;
       }
     }
     else if (*p != '/') {
       while ((p >= temp) && (*p != '/')) {
-        --p;
-        --q;
+        p--;
+        q--;
       }
     }
 

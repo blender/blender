@@ -343,7 +343,7 @@ static bool delete_recursive(const char *dir)
         err = true;
       }
     }
-    ++fl;
+    fl++;
   }
 
   if (!err && delete_unique(dir, true)) {

@@ -240,7 +240,7 @@ BLI_INLINE void insert_list(struct SortInfo *si, list_node *list, unsigned int r
       rank = MAX_RANKS;
     }
     list = merge_lists(sweep_up(si, NULL, si->n_ranks), list, THUNK_APPEND1(si->func, si->thunk));
-    for (i = si->n_ranks; i < rank; ++i) {
+    for (i = si->n_ranks; i < rank; i++) {
       si->ranks[i] = NULL;
     }
   }
@@ -248,7 +248,7 @@ BLI_INLINE void insert_list(struct SortInfo *si, list_node *list, unsigned int r
     if (rank) {
       list = merge_lists(sweep_up(si, NULL, rank), list, THUNK_APPEND1(si->func, si->thunk));
     }
-    for (i = rank; i < si->n_ranks && si->ranks[i]; ++i) {
+    for (i = rank; i < si->n_ranks && si->ranks[i]; i++) {
       list = merge_lists(si->ranks[i], list, THUNK_APPEND1(si->func, si->thunk));
       si->ranks[i] = NULL;
     }

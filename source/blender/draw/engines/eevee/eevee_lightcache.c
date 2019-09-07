@@ -188,7 +188,7 @@ static uint eevee_lightcache_memsize_get(LightCache *lcache)
   }
   if (lcache->cube_tx.data) {
     size += MEM_allocN_len(lcache->cube_tx.data);
-    for (int mip = 0; mip < lcache->mips_len; ++mip) {
+    for (int mip = 0; mip < lcache->mips_len; mip++) {
       size += MEM_allocN_len(lcache->cube_mips[mip].data);
     }
   }
@@ -199,7 +199,7 @@ static int eevee_lightcache_irradiance_sample_count(LightCache *lcache)
 {
   int total_irr_samples = 0;
 
-  for (int i = 1; i < lcache->grid_len; ++i) {
+  for (int i = 1; i < lcache->grid_len; i++) {
     EEVEE_LightGrid *egrid = lcache->grid_data + i;
     total_irr_samples += egrid->resolution[0] * egrid->resolution[1] * egrid->resolution[2];
   }
@@ -305,7 +305,7 @@ LightCache *EEVEE_lightcache_create(const int grid_len,
   light_cache->cube_mips = MEM_callocN(sizeof(LightCacheTexture) * light_cache->mips_len,
                                        "LightCacheTexture");
 
-  for (int mip = 0; mip < light_cache->mips_len; ++mip) {
+  for (int mip = 0; mip < light_cache->mips_len; mip++) {
     GPU_texture_get_mipmap_size(
         light_cache->cube_tx.tex, mip + 1, light_cache->cube_mips[mip].tex_size);
   }
@@ -346,7 +346,7 @@ void EEVEE_lightcache_load(LightCache *lcache)
                                                 NULL);
     GPU_texture_bind(lcache->cube_tx.tex, 0);
     GPU_texture_mipmap_mode(lcache->cube_tx.tex, true, true);
-    for (int mip = 0; mip < lcache->mips_len; ++mip) {
+    for (int mip = 0; mip < lcache->mips_len; mip++) {
       GPU_texture_add_mipmap(
           lcache->cube_tx.tex, GPU_DATA_10_11_11_REV, mip + 1, lcache->cube_mips[mip].data);
     }
@@ -369,7 +369,7 @@ static void eevee_lightbake_readback_reflections(LightCache *lcache)
   lcache->cube_tx.data_type = LIGHTCACHETEX_UINT;
   lcache->cube_tx.components = 1;
 
-  for (int mip = 0; mip < lcache->mips_len; ++mip) {
+  for (int mip = 0; mip < lcache->mips_len; mip++) {
     LightCacheTexture *cube_mip = lcache->cube_mips + mip;
     MEM_SAFE_FREE(cube_mip->data);
     GPU_texture_get_mipmap_size(lcache->cube_tx.tex, mip + 1, cube_mip->tex_size);
@@ -388,7 +388,7 @@ void EEVEE_lightcache_free(LightCache *lcache)
   MEM_SAFE_FREE(lcache->grid_tx.data);
 
   if (lcache->cube_mips) {
-    for (int i = 0; i < lcache->mips_len; ++i) {
+    for (int i = 0; i < lcache->mips_len; i++) {
       MEM_SAFE_FREE(lcache->cube_mips[i].data);
     }
     MEM_SAFE_FREE(lcache->cube_mips);
@@ -471,7 +471,7 @@ static void eevee_lightbake_create_render_target(EEVEE_LightBake *lbake, int rt_
   lbake->rt_color = DRW_texture_create_cube(
       rt_res, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
 
-  for (int i = 0; i < 6; ++i) {
+  for (int i = 0; i < 6; i++) {
     GPU_framebuffer_ensure_config(&lbake->rt_fb[i],
                                   {GPU_ATTACHMENT_TEXTURE_CUBEFACE(lbake->rt_depth, i),
                                    GPU_ATTACHMENT_TEXTURE_CUBEFACE(lbake->rt_color, i)});
@@ -670,7 +670,7 @@ static void eevee_lightbake_delete_resources(EEVEE_LightBake *lbake)
   DRW_TEXTURE_FREE_SAFE(lbake->rt_color);
   DRW_TEXTURE_FREE_SAFE(lbake->grid_prev);
   GPU_FRAMEBUFFER_FREE_SAFE(lbake->store_fb);
-  for (int i = 0; i < 6; ++i) {
+  for (int i = 0; i < 6; i++) {
     GPU_FRAMEBUFFER_FREE_SAFE(lbake->rt_fb[i]);
   }
 
@@ -875,10 +875,10 @@ static void compute_cell_id(EEVEE_LightGrid *egrid,
   *r_stride = 0;
   *r_final_idx = 0;
   r_local_cell[0] = r_local_cell[1] = r_local_cell[2] = 0;
-  for (int lvl = max_lvl; lvl >= 0; --lvl) {
+  for (int lvl = max_lvl; lvl >= 0; lvl--) {
     *r_stride = 1 << lvl;
     int prev_stride = *r_stride << 1;
-    for (int i = 0; i < cell_count; ++i) {
+    for (int i = 0; i < cell_count; i++) {
       *r_final_idx = i;
       cell_id_to_grid_loc(egrid, *r_final_idx, r_local_cell);
       if (((r_local_cell[0] % *r_stride) == 0) && ((r_local_cell[1] % *r_stride) == 0) &&
@@ -1210,12 +1210,12 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
 
   /* Render irradiance grids */
   if (lcache->flag & LIGHTCACHE_UPDATE_GRID) {
-    for (lbake->bounce_curr = 0; lbake->bounce_curr < lbake->bounce_len; ++lbake->bounce_curr) {
+    for (lbake->bounce_curr = 0; lbake->bounce_curr < lbake->bounce_len; lbake->bounce_curr++) {
       /* Bypass world, start at 1. */
       lbake->probe = lbake->grid_prb + 1;
       lbake->grid = lcache->grid_data + 1;
       for (lbake->grid_curr = 1; lbake->grid_curr < lbake->grid_len;
-           ++lbake->grid_curr, ++lbake->probe, ++lbake->grid) {
+           lbake->grid_curr++, lbake->probe++, lbake->grid++) {
         LightProbe *prb = *lbake->probe;
         lbake->grid_sample_len = prb->grid_resolution_x * prb->grid_resolution_y *
                                  prb->grid_resolution_z;
@@ -1233,7 +1233,7 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
     lbake->probe = lbake->cube_prb + 1;
     lbake->cube = lcache->cube_data + 1;
     for (lbake->cube_offset = 1; lbake->cube_offset < lbake->cube_len;
-         ++lbake->cube_offset, ++lbake->probe, ++lbake->cube) {
+         lbake->cube_offset++, lbake->probe++, lbake->cube++) {
       lightbake_do_sample(lbake, eevee_lightbake_render_probe_sample);
     }
   }

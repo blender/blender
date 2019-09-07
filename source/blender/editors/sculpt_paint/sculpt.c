@@ -994,7 +994,7 @@ static float calc_radial_symmetry_feather(Sculpt *sd,
   float overlap;
 
   overlap = 0;
-  for (i = 1; i < sd->radial_symm[axis - 'X']; ++i) {
+  for (i = 1; i < sd->radial_symm[axis - 'X']; i++) {
     const float angle = 2 * M_PI * i / sd->radial_symm[axis - 'X'];
     overlap += calc_overlap(cache, symm, axis, angle);
   }
@@ -1541,7 +1541,7 @@ bool sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
     BKE_pbvh_node_get_BB(node, bb_min, bb_max);
   }
 
-  for (i = 0; i < 3; ++i) {
+  for (i = 0; i < 3; i++) {
     if (bb_min[i] > center[i]) {
       nearest[i] = bb_min[i];
     }
@@ -1583,7 +1583,7 @@ static void sculpt_clip(Sculpt *sd, SculptSession *ss, float co[3], const float 
 {
   int i;
 
-  for (i = 0; i < 3; ++i) {
+  for (i = 0; i < 3; i++) {
     if (sd->flags & (SCULPT_LOCK_X << i)) {
       continue;
     }
@@ -2363,7 +2363,7 @@ static void smooth(Sculpt *sd,
     return;
   }
 
-  for (iteration = 0; iteration <= count; ++iteration) {
+  for (iteration = 0; iteration <= count; iteration++) {
     const float strength = (iteration != count) ? 1.0f : last;
 
     SculptThreadedTaskData data = {
@@ -2426,7 +2426,7 @@ static void bmesh_topology_rake(
   const int count = iterations * bstrength + 1;
   const float factor = iterations * bstrength / count;
 
-  for (iteration = 0; iteration <= count; ++iteration) {
+  for (iteration = 0; iteration <= count; iteration++) {
 
     SculptThreadedTaskData data = {
         .sd = sd,
@@ -4587,7 +4587,7 @@ static void do_radial_symmetry(Sculpt *sd,
   SculptSession *ss = ob->sculpt;
   int i;
 
-  for (i = 1; i < sd->radial_symm[axis - 'X']; ++i) {
+  for (i = 1; i < sd->radial_symm[axis - 'X']; i++) {
     const float angle = 2 * M_PI * i / sd->radial_symm[axis - 'X'];
     ss->cache->radial_symmetry_pass = i;
     sculpt_cache_calc_brushdata_symm(ss->cache, symm, axis, angle);
@@ -4627,7 +4627,7 @@ static void do_symmetrical_brush_actions(Sculpt *sd,
 
   /* symm is a bit combination of XYZ -
    * 1 is mirror X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
-  for (i = 0; i <= symm; ++i) {
+  for (i = 0; i <= symm; i++) {
     if (i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5)))) {
       cache->mirror_symmetry_pass = i;
       cache->radial_symmetry_pass = 0;
@@ -4759,7 +4759,7 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 
       if (mmd->flag & MOD_MIR_CLIPPING) {
         /* check each axis for mirroring */
-        for (i = 0; i < 3; ++i) {
+        for (i = 0; i < 3; i++) {
           if (mmd->flag & (MOD_MIR_AXIS_X << i)) {
             /* enable sculpt clipping */
             ss->cache->flag |= CLIP_X << i;
@@ -4921,7 +4921,7 @@ static void sculpt_update_cache_invariants(
         memcpy(ss->layer_co, ss->deform_cos, ss->totvert);
       }
       else {
-        for (i = 0; i < ss->totvert; ++i) {
+        for (i = 0; i < ss->totvert; i++) {
           copy_v3_v3(ss->layer_co[i], ss->mvert[i].co);
         }
       }

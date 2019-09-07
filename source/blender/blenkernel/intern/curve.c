@@ -697,7 +697,7 @@ float BKE_nurb_calc_length(const Nurb *nu, int resolution)
     a = nu->pntsu - 1;
     bp = nu->bp;
     if (nu->flagu & CU_NURB_CYCLIC) {
-      ++a;
+      a++;
       prevbp = nu->bp + (nu->pntsu - 1);
     }
     else {
@@ -708,7 +708,7 @@ float BKE_nurb_calc_length(const Nurb *nu, int resolution)
     while (a--) {
       length += len_v3v3(prevbp->vec, bp->vec);
       prevbp = bp;
-      ++bp;
+      bp++;
     }
   }
   else if (nu->type == CU_BEZIER) {
@@ -716,12 +716,12 @@ float BKE_nurb_calc_length(const Nurb *nu, int resolution)
     a = nu->pntsu - 1;
     bezt = nu->bezt;
     if (nu->flagu & CU_NURB_CYCLIC) {
-      ++a;
+      a++;
       prevbezt = nu->bezt + (nu->pntsu - 1);
     }
     else {
       prevbezt = bezt;
-      ++bezt;
+      bezt++;
     }
 
     while (a--) {
@@ -748,7 +748,7 @@ float BKE_nurb_calc_length(const Nurb *nu, int resolution)
         }
       }
       prevbezt = bezt;
-      ++bezt;
+      bezt++;
     }
 
     MEM_freeN(points);

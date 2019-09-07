@@ -90,8 +90,8 @@ Imath::M44d convert_matrix(float mat[4][4])
 {
   Imath::M44d m;
 
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 4; ++j) {
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
       m[i][j] = mat[i][j];
     }
   }
@@ -226,8 +226,8 @@ void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMod
 
 void convert_matrix(const Imath::M44d &xform, Object *ob, float r_mat[4][4])
 {
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 4; ++j) {
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
       r_mat[i][j] = static_cast<float>(xform[i][j]);
     }
   }

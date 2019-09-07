@@ -369,7 +369,7 @@ static void eevee_render_result_z(RenderLayer *rl,
     DRW_view_winmat_get(NULL, winmat, false);
 
     /* Convert ogl depth [0..1] to view Z [near..far] */
-    for (int i = 0; i < rp->rectx * rp->recty; ++i) {
+    for (int i = 0; i < rp->rectx * rp->recty; i++) {
       if (rp->rect[i] == 1.0f) {
         rp->rect[i] = 1e10f; /* Background */
       }

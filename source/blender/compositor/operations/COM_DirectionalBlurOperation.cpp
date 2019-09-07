@@ -72,7 +72,7 @@ void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void 
   float lsc = this->m_sc;
   float lrot = this->m_rot;
   /* blur the image */
-  for (int i = 0; i < iterations; ++i) {
+  for (int i = 0; i < iterations; i++) {
     const float cs = cosf(lrot), ss = sinf(lrot);
     const float isc = 1.0f / (1.0f + lsc);
 

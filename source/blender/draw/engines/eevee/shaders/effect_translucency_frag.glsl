@@ -141,7 +141,7 @@ void main(void)
   rand.xy *= fast_sqrt(rand.z);
 
   vec3 accum = vec3(0.0);
-  for (int i = 0; i < MAX_LIGHT && i < laNumLight; ++i) {
+  for (int i = 0; i < MAX_LIGHT && i < laNumLight; i++) {
     LightData ld = lights_data[i];
 
     /* Only shadowed light can produce translucency */

@@ -501,7 +501,7 @@ void psys_tasks_free(ParticleTask *tasks, int numtasks)
   int i;
 
   /* threads */
-  for (i = 0; i < numtasks; ++i) {
+  for (i = 0; i < numtasks; i++) {
     if (tasks[i].rng) {
       BLI_rng_free(tasks[i].rng);
     }

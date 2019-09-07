@@ -148,7 +148,7 @@ void ScreenLensDistortionOperation::accumulate(MemoryBuffer *buffer,
   float k4 = m_k4[a];
   float dk4 = m_dk4[a];
 
-  for (float z = 0; z < ds; ++z) {
+  for (float z = 0; z < ds; z++) {
     float tz = (z + (m_jitter ? BLI_rng_get_float(m_rng) : 0.5f)) * sd;
     float t = 1.0f - (k4 + tz * dk4) * r_sq;
 

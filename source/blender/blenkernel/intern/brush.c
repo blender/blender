@@ -1504,8 +1504,8 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary)
   im->rect_float = MEM_callocN(sizeof(float) * side * side, "radial control rect");
   im->x = im->y = side;
 
-  for (i = 0; i < side; ++i) {
-    for (j = 0; j < side; ++j) {
+  for (i = 0; i < side; i++) {
+    for (j = 0; j < side; j++) {
       float magn = sqrtf(pow2f(i - half) + pow2f(j - half));
       im->rect_float[i * side + j] = BKE_brush_curve_strength_clamped(br, magn, half);
     }
@@ -1513,8 +1513,8 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary)
 
   /* Modulate curve with texture */
   if (texcache) {
-    for (i = 0; i < side; ++i) {
-      for (j = 0; j < side; ++j) {
+    for (i = 0; i < side; i++) {
+      for (j = 0; j < side; j++) {
         const int col = texcache[i * side + j];
         im->rect_float[i * side + j] *= (((char *)&col)[0] + ((char *)&col)[1] +
                                          ((char *)&col)[2]) /

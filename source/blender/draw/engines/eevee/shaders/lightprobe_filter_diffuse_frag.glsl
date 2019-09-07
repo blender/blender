@@ -64,7 +64,7 @@ void main()
   float weight_accum = 0.0;
   vec3 sh = vec3(0.0);
 
-  for (int face = 0; face < 6; ++face) {
+  for (int face = 0; face < 6; face++) {
     for (float x = halfpix; x < 1.0; x += pixstep) {
       for (float y = halfpix; y < 1.0; y += pixstep) {
         float weight, coef;

@@ -206,7 +206,7 @@ void ImageNode::convertToOperations(NodeConverter &converter,
 
     /* without this, multilayer that fail to load will crash blender [#32490] */
     if (is_multilayer_ok == false) {
-      for (int i = 0; i < getNumberOfOutputSockets(); ++i) {
+      for (int i = 0; i < getNumberOfOutputSockets(); i++) {
         converter.setInvalidOutput(getOutputSocket(i));
       }
     }

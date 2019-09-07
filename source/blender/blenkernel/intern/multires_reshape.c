@@ -650,7 +650,7 @@ static void multires_reshape_neighour_boundary_vertices(MultiresReshapeContext *
   const int start_ptex_face_index = ctx->face_ptex_offset[coarse_poly_index];
   const bool is_quad = (coarse_poly->totloop == 4);
   if (corner_u == 1.0f && corner_v == 1.0f) {
-    for (int current_corner = 0; current_corner < num_corners; ++current_corner) {
+    for (int current_corner = 0; current_corner < num_corners; current_corner++) {
       if (current_corner == coarse_corner) {
         continue;
       }

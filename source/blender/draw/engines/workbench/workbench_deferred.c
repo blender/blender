@@ -652,7 +652,7 @@ void workbench_deferred_engine_free(void)
   for (int index = 0; index < MAX_COMPOSITE_SHADERS; index++) {
     DRW_SHADER_FREE_SAFE(e_data.composite_sh_cache[index]);
   }
-  for (int index = 0; index < MAX_CAVITY_SHADERS; ++index) {
+  for (int index = 0; index < MAX_CAVITY_SHADERS; index++) {
     DRW_SHADER_FREE_SAFE(e_data.cavity_sh[index]);
   }
   DRW_SHADER_FREE_SAFE(e_data.ghost_resolve_sh);
@@ -1105,7 +1105,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
       if (use_sculpt_pbvh) {
         struct DRWShadingGroup **shgrps = BLI_array_alloca(shgrps, materials_len);
 
-        for (int i = 0; i < materials_len; ++i) {
+        for (int i = 0; i < materials_len; i++) {
           struct Material *mat = give_current_material(ob, i + 1);
           if (mat != NULL && mat->a < 1.0f) {
             material = workbench_forward_get_or_create_material_data(
@@ -1127,7 +1127,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 
         geoms = DRW_cache_object_surface_material_get(
             ob, gpumat_array, materials_len, NULL, NULL, NULL);
-        for (int i = 0; i < materials_len; ++i) {
+        for (int i = 0; i < materials_len; i++) {
           if (geoms != NULL && geoms[i] != NULL) {
             Material *mat = give_current_material(ob, i + 1);
             if (mat != NULL && mat->a < 1.0f) {

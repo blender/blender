@@ -172,7 +172,7 @@ vec4 volume_integration(vec3 ray_ori, vec3 ray_dir, float ray_inc, float ray_max
   float noise = fract(dither_mat[tx.x][tx.y] + noiseOfs);
 
   float ray_len = noise * ray_inc;
-  for (int i = 0; i < samplesLen && ray_len < ray_max; ++i, ray_len += ray_inc) {
+  for (int i = 0; i < samplesLen && ray_len < ray_max; i++, ray_len += ray_inc) {
     vec3 ls_pos = ray_ori + ray_dir * ray_len;
 
     vec3 Lscat;

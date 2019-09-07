@@ -1296,7 +1296,7 @@ static void icon_preview_endjob(void *customdata)
       int i;
 
       /* signal to gpu texture */
-      for (i = 0; i < NUM_ICON_SIZES; ++i) {
+      for (i = 0; i < NUM_ICON_SIZES; i++) {
         if (prv_img->gputexture[i]) {
           GPU_texture_free(prv_img->gputexture[i]);
           prv_img->gputexture[i] = NULL;

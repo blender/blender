@@ -603,14 +603,14 @@ static void mesh_batch_cache_clear(Mesh *me)
   {
     GPUVertBuf **vbos = (GPUVertBuf **)&mbufcache->vbo;
     GPUIndexBuf **ibos = (GPUIndexBuf **)&mbufcache->ibo;
-    for (int i = 0; i < sizeof(mbufcache->vbo) / sizeof(void *); ++i) {
+    for (int i = 0; i < sizeof(mbufcache->vbo) / sizeof(void *); i++) {
       GPU_VERTBUF_DISCARD_SAFE(vbos[i]);
     }
-    for (int i = 0; i < sizeof(mbufcache->ibo) / sizeof(void *); ++i) {
+    for (int i = 0; i < sizeof(mbufcache->ibo) / sizeof(void *); i++) {
       GPU_INDEXBUF_DISCARD_SAFE(ibos[i]);
     }
   }
-  for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); ++i) {
+  for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); i++) {
     GPUBatch **batch = (GPUBatch **)&cache->batch;
     GPU_BATCH_DISCARD_SAFE(batch[i]);
   }
@@ -756,7 +756,7 @@ GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(Mesh *me,
     *auto_layer_is_srgb = cache->auto_layer_is_srgb;
     *auto_layer_count = cache->auto_layer_len;
   }
-  for (int i = 0; i < cache->mat_len; ++i) {
+  for (int i = 0; i < cache->mat_len; i++) {
     DRW_batch_request(&cache->surface_per_mat[i]);
   }
   return cache->surface_per_mat;
@@ -767,7 +767,7 @@ GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(Mesh *me)
   MeshBatchCache *cache = mesh_batch_cache_get(me);
   mesh_batch_cache_add_request(cache, MBC_SURF_PER_MAT);
   texpaint_request_active_uv(cache, me);
-  for (int i = 0; i < cache->mat_len; ++i) {
+  for (int i = 0; i < cache->mat_len; i++) {
     DRW_batch_request(&cache->surface_per_mat[i]);
   }
   return cache->surface_per_mat;
@@ -1054,7 +1054,7 @@ void DRW_mesh_batch_cache_create_requested(
        * This is only if the cd_needed changes so it is ok to keep them.*/
       if (cache->surface_per_mat[0] && cache->surface_per_mat[0]->elem) {
         saved_elem_ranges = MEM_callocN(sizeof(saved_elem_ranges) * cache->mat_len, __func__);
-        for (int i = 0; i < cache->mat_len; ++i) {
+        for (int i = 0; i < cache->mat_len; i++) {
           saved_elem_ranges[i] = cache->surface_per_mat[i]->elem;
           /* Avoid deletion as the batch is owner. */
           cache->surface_per_mat[i]->elem = NULL;
@@ -1063,7 +1063,7 @@ void DRW_mesh_batch_cache_create_requested(
       }
       /* We can't discard batches at this point as they have been
        * referenced for drawing. Just clear them in place. */
-      for (int i = 0; i < cache->mat_len; ++i) {
+      for (int i = 0; i < cache->mat_len; i++) {
         GPU_BATCH_CLEAR_SAFE(cache->surface_per_mat[i]);
       }
       GPU_BATCH_CLEAR_SAFE(cache->batch.surface);
@@ -1181,7 +1181,7 @@ void DRW_mesh_batch_cache_create_requested(
   }
 
   /* Per Material */
-  for (int i = 0; i < cache->mat_len; ++i) {
+  for (int i = 0; i < cache->mat_len; i++) {
     if (DRW_batch_requested(cache->surface_per_mat[i], GPU_PRIM_TRIS)) {
       if (saved_elem_ranges && saved_elem_ranges[i]) {
         /* XXX assign old element buffer range (it did not change).*/
@@ -1325,25 +1325,25 @@ void DRW_mesh_batch_cache_create_requested(
 #ifdef DEBUG
 check:
   /* Make sure all requested batches have been setup. */
-  for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); ++i) {
+  for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); i++) {
     BLI_assert(!DRW_batch_requested(((GPUBatch **)&cache->batch)[i], 0));
   }
-  for (int i = 0; i < sizeof(cache->final.vbo) / sizeof(void *); ++i) {
+  for (int i = 0; i < sizeof(cache->final.vbo) / sizeof(void *); i++) {
     BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->final.vbo)[i]));
   }
-  for (int i = 0; i < sizeof(cache->final.ibo) / sizeof(void *); ++i) {
+  for (int i = 0; i < sizeof(cache->final.ibo) / sizeof(void *); i++) {
     BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->final.ibo)[i]));
   }
-  for (int i = 0; i < sizeof(cache->cage.vbo) / sizeof(void *); ++i) {
+  for (int i = 0; i < sizeof(cache->cage.vbo) / sizeof(void *); i++) {
     BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->cage.vbo)[i]));
   }
-  for (int i = 0; i < sizeof(cache->cage.ibo) / sizeof(void *); ++i) {
+  for (int i = 0; i < sizeof(cache->cage.ibo) / sizeof(void *); i++) {
     BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->cage.ibo)[i]));
   }
-  for (int i = 0; i < sizeof(cache->uv_cage.vbo) / sizeof(void *); ++i) {
+  for (int i = 0; i < sizeof(cache->uv_cage.vbo) / sizeof(void *); i++) {
     BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->uv_cage.vbo)[i]));
   }
-  for (int i = 0; i < sizeof(cache->uv_cage.ibo) / sizeof(void *); ++i) {
+  for (int i = 0; i < sizeof(cache->uv_cage.ibo) / sizeof(void *); i++) {
     BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->uv_cage.ibo)[i]));
   }
 #endif

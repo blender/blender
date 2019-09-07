@@ -2129,7 +2129,7 @@ static int count_active_texture_sampler(GPUShader *shader, char *source)
         }
         /* Catch duplicates. */
         bool is_duplicate = false;
-        for (int i = 0; i < sampler_len; ++i) {
+        for (int i = 0; i < sampler_len; i++) {
           if (samplers_id[i] == id) {
             is_duplicate = true;
           }

@@ -576,7 +576,7 @@ static int get_sequence_len(char *filename, int *ofs)
     (*ofs) = frame_curr;
 
     while (cache_frame && (cache_frame->framenr == frame_curr)) {
-      ++frame_curr;
+      frame_curr++;
       cache_frame = cache_frame->next;
     }
 

@@ -204,7 +204,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
        * copies are made for flat shading because normals
        * shouldn't be shared. */
       if (buffers->smooth) {
-        for (uint i = 0; i < totvert; ++i) {
+        for (uint i = 0; i < totvert; i++) {
           const MVert *v = &mvert[vert_indices[i]];
           GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, i, v->co);
           GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, i, v->no);
@@ -319,7 +319,7 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const int (*face_vert_indices)[3],
   buffers->show_mask = false;
 
   /* Count the number of visible triangles */
-  for (i = 0, tottri = 0; i < face_indices_len; ++i) {
+  for (i = 0, tottri = 0; i < face_indices_len; i++) {
     const MLoopTri *lt = &looptri[face_indices[i]];
     if (!paint_is_face_hidden(lt, mvert, mloop)) {
       tottri++;
@@ -352,7 +352,7 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const int (*face_vert_indices)[3],
     GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, tottri, INT_MAX);
     GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, tottri * 3, INT_MAX);
 
-    for (i = 0; i < face_indices_len; ++i) {
+    for (i = 0; i < face_indices_len; i++) {
       const MLoopTri *lt = &looptri[face_indices[i]];
 
       /* Skip hidden faces */
@@ -376,7 +376,7 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const int (*face_vert_indices)[3],
     GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, tottri * 3, INT_MAX);
     int vert_idx = 0;
 
-    for (i = 0; i < face_indices_len; ++i) {
+    for (i = 0; i < face_indices_len; i++) {
       const MLoopTri *lt = &looptri[face_indices[i]];
 
       /* Skip hidden faces */
@@ -431,8 +431,8 @@ static void gpu_pbvh_grid_fill_index_buffers(
 
       BLI_bitmap *gh = buffers->grid_hidden[grid_indices[i]];
 
-      for (int j = 0; j < gridsize - 1; ++j) {
-        for (int k = 0; k < gridsize - 1; ++k) {
+      for (int j = 0; j < gridsize - 1; j++) {
+        for (int k = 0; k < gridsize - 1; k++) {
           /* Skip hidden grid face */
           if (gh && paint_is_grid_face_hidden(gh, gridsize, k, j)) {
             continue;
@@ -589,7 +589,7 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
       GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, totgrid * key->grid_area * 2, vert_count);
     }
 
-    for (i = 0; i < totgrid; ++i) {
+    for (i = 0; i < totgrid; i++) {
       CCGElem *grid = grids[grid_indices[i]];
       int vbo_index = vbo_index_offset;
 

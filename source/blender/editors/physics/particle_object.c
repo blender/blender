@@ -1116,7 +1116,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 
   tmp_psys = MEM_mallocN(sizeof(ParticleSystem *) * totpsys, "temporary particle system array");
 
-  for (psys_from = PSYS_FROM_FIRST, i = 0; psys_from; psys_from = PSYS_FROM_NEXT(psys_from), ++i) {
+  for (psys_from = PSYS_FROM_FIRST, i = 0; psys_from; psys_from = PSYS_FROM_NEXT(psys_from), i++) {
     psys = BKE_object_copy_particlesystem(psys_from, 0);
     tmp_psys[i] = psys;
 
@@ -1168,7 +1168,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
    * the remapping otherwise makes final_dm invalid!
    */
   for (psys = psys_start, psys_from = PSYS_FROM_FIRST, i = 0; psys;
-       psys = psys->next, psys_from = PSYS_FROM_NEXT(psys_from), ++i) {
+       psys = psys->next, psys_from = PSYS_FROM_NEXT(psys_from), i++) {
     float(*from_mat)[4], (*to_mat)[4];
 
     switch (space) {

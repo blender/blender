@@ -410,7 +410,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
     /* Grid Display */
     if (scene_eval->eevee.flag & SCE_EEVEE_SHOW_IRRADIANCE) {
       EEVEE_LightGrid *egrid = lcache->grid_data + 1;
-      for (int p = 1; p < lcache->grid_len; ++p, egrid++) {
+      for (int p = 1; p < lcache->grid_len; p++, egrid++) {
         DRWShadingGroup *shgrp = DRW_shgroup_create(EEVEE_shaders_probe_grid_display_sh_get(),
                                                     psl->probe_display);
 
@@ -471,7 +471,7 @@ static bool eevee_lightprobes_culling_test(Object *ob)
       normalize_v3(tmp[2]);
       mul_v3_fl(tmp[2], probe->distinf);
 
-      for (int v = 0; v < 8; ++v) {
+      for (int v = 0; v < 8; v++) {
         mul_m4_v3(tmp, bbox.vec[v]);
       }
       const DRWView *default_view = DRW_view_default_get();
@@ -845,7 +845,7 @@ static void render_cubemap(void (*callback)(int face, EEVEE_BakeRenderData *user
     }
   }
 
-  for (int i = 0; i < 6; ++i) {
+  for (int i = 0; i < 6; i++) {
     DRW_view_set_active(views[i]);
     callback(i, user_data);
   }
@@ -860,11 +860,11 @@ static void render_reflections(void (*callback)(int face, EEVEE_BakeRenderData *
   DRWView *main_view = stl->effects->taa_view;
   DRWView **views = stl->g_data->planar_views;
   /* Prepare views at the same time for faster culling. */
-  for (int i = 0; i < ref_count; ++i) {
+  for (int i = 0; i < ref_count; i++) {
     lightbake_planar_ensure_view(&planar_data[i], main_view, &views[i]);
   }
 
-  for (int i = 0; i < ref_count; ++i) {
+  for (int i = 0; i < ref_count; i++) {
     DRW_view_set_active(views[i]);
     callback(i, user_data);
   }
@@ -1217,7 +1217,7 @@ static void downsample_planar(void *vedata, int level)
 
   const float *size = DRW_viewport_size_get();
   copy_v2_v2(stl->g_data->planar_texel_size, size);
-  for (int i = 0; i < level - 1; ++i) {
+  for (int i = 0; i < level - 1; i++) {
     stl->g_data->planar_texel_size[0] /= 2.0f;
     stl->g_data->planar_texel_size[1] /= 2.0f;
     min_ff(floorf(stl->g_data->planar_texel_size[0]), 1.0f);

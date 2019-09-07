@@ -269,7 +269,7 @@ static uint index_range(const uint values[], uint value_len, uint *min_out, uint
   }
   uint min_value = RESTART_INDEX;
   uint max_value = 0;
-  for (uint i = 0; i < value_len; ++i) {
+  for (uint i = 0; i < value_len; i++) {
     const uint value = values[i];
     if (value == RESTART_INDEX) {
       continue;
@@ -307,13 +307,13 @@ static void squeeze_indices_short(GPUIndexBufBuilder *builder,
 
   if (max_index >= 0xFFFF) {
     elem->base_index = min_index;
-    for (uint i = 0; i < index_len; ++i) {
+    for (uint i = 0; i < index_len; i++) {
       data[i] = (values[i] == RESTART_INDEX) ? 0xFFFF : (GLushort)(values[i] - min_index);
     }
   }
   else {
     elem->base_index = 0;
-    for (uint i = 0; i < index_len; ++i) {
+    for (uint i = 0; i < index_len; i++) {
       data[i] = (GLushort)(values[i]);
     }
   }

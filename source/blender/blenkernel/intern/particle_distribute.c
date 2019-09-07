@@ -787,17 +787,17 @@ static void exec_distribute_parent(TaskPool *__restrict UNUSED(pool),
   pa = psys->particles + task->begin;
   switch (psys->part->from) {
     case PART_FROM_FACE:
-      for (p = task->begin; p < task->end; ++p, ++pa) {
+      for (p = task->begin; p < task->end; p++, pa++) {
         distribute_from_faces_exec(task, pa, p);
       }
       break;
     case PART_FROM_VOLUME:
-      for (p = task->begin; p < task->end; ++p, ++pa) {
+      for (p = task->begin; p < task->end; p++, pa++) {
         distribute_from_volume_exec(task, pa, p);
       }
       break;
     case PART_FROM_VERT:
-      for (p = task->begin; p < task->end; ++p, ++pa) {
+      for (p = task->begin; p < task->end; p++, pa++) {
         distribute_from_verts_exec(task, pa, p);
       }
       break;
@@ -815,11 +815,11 @@ static void exec_distribute_child(TaskPool *__restrict UNUSED(pool),
 
   /* RNG skipping at the beginning */
   cpa = psys->child;
-  for (p = 0; p < task->begin; ++p, ++cpa) {
+  for (p = 0; p < task->begin; p++, cpa++) {
     BLI_rng_skip(task->rng, PSYS_RND_DIST_SKIP);
   }
 
-  for (; p < task->end; ++p, ++cpa) {
+  for (; p < task->end; p++, cpa++) {
     distribute_children_exec(task, cpa, p);
   }
 }
@@ -1341,7 +1341,7 @@ static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
 
   totpart = (from == PART_FROM_CHILD ? sim->psys->totchild : sim->psys->totpart);
   psys_tasks_create(&ctx, 0, totpart, &tasks, &numtasks);
-  for (i = 0; i < numtasks; ++i) {
+  for (i = 0; i < numtasks; i++) {
     ParticleTask *task = &tasks[i];
 
     psys_task_init_distribute(task, sim);

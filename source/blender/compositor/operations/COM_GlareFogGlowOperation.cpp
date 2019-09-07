@@ -61,7 +61,7 @@ static void FHT(fREAL *data, unsigned int M, unsigned int inverse)
 
   int i, j = 0;
   unsigned int Nh = len >> 1;
-  for (i = 1; i < (len - 1); ++i) {
+  for (i = 1; i < (len - 1); i++) {
     j = revbin_upd(j, Nh);
     if (j > i) {
       t1 = data[i];
@@ -117,7 +117,7 @@ static void FHT(fREAL *data, unsigned int M, unsigned int inverse)
 
   if (inverse) {
     fREAL sc = (fREAL)1 / (fREAL)len;
-    for (k = 0; k < len; ++k) {
+    for (k = 0; k < len; k++) {
       data[k] *= sc;
     }
   }
@@ -136,14 +136,14 @@ static void FHT2D(
 
   // rows (forward transform skips 0 pad data)
   maxy = inverse ? Ny : nzp;
-  for (j = 0; j < maxy; ++j) {
+  for (j = 0; j < maxy; j++) {
     FHT(&data[Nx * j], Mx, inverse);
   }
 
   // transpose data
   if (Nx == Ny) {  // square
-    for (j = 0; j < Ny; ++j) {
-      for (i = j + 1; i < Nx; ++i) {
+    for (j = 0; j < Ny; j++) {
+      for (i = j + 1; i < Nx; i++) {
         unsigned int op = i + (j << Mx), np = j + (i << My);
         SWAP(fREAL, data[op], data[np]);
       }
@@ -171,7 +171,7 @@ static void FHT2D(
   SWAP(unsigned int, Mx, My);
 
   // now columns == transposed rows
-  for (j = 0; j < Ny; ++j) {
+  for (j = 0; j < Ny; j++) {
     FHT(&data[Nx * j], Mx, inverse);
   }
 
@@ -421,9 +421,9 @@ void GlareFogGlowOperation::generateGlare(float *data,
 
   scale = 0.25f * sqrtf((float)(sz * sz));
 
-  for (y = 0; y < sz; ++y) {
+  for (y = 0; y < sz; y++) {
     v = 2.0f * (y / (float)sz) - 1.0f;
-    for (x = 0; x < sz; ++x) {
+    for (x = 0; x < sz; x++) {
       u = 2.0f * (x / (float)sz) - 1.0f;
       r = (u * u + v * v) * scale;
       d = -sqrtf(sqrtf(sqrtf(r))) * 9.0f;

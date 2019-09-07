@@ -269,7 +269,7 @@ void EEVEE_depth_of_field_draw(EEVEE_Data *vedata)
 
 void EEVEE_depth_of_field_free(void)
 {
-  for (int i = 0; i < 2; ++i) {
+  for (int i = 0; i < 2; i++) {
     DRW_SHADER_FREE_SAFE(e_data.dof_downsample_sh[i]);
     DRW_SHADER_FREE_SAFE(e_data.dof_scatter_sh[i]);
     DRW_SHADER_FREE_SAFE(e_data.dof_resolve_sh[i]);

@@ -1518,7 +1518,7 @@ static void skin_update_merged_vertices(SkinNode *skin_nodes, int totvert)
 {
   int v;
 
-  for (v = 0; v < totvert; ++v) {
+  for (v = 0; v < totvert; v++) {
     SkinNode *sn = &skin_nodes[v];
     int i, j;
 
@@ -1566,7 +1566,7 @@ static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes, int totv
 {
   int v;
 
-  for (v = 0; v < totvert; ++v) {
+  for (v = 0; v < totvert; v++) {
     SkinNode *sn = &skin_nodes[v];
     /* Assuming here just two frames */
     if (sn->flag & SEAM_FRAME) {
@@ -1769,7 +1769,7 @@ static BMesh *build_skin(SkinNode *skin_nodes,
   skin_merge_close_frame_verts(skin_nodes, totvert, emap, medge);
 
   /* Write out all frame vertices to the mesh */
-  for (v = 0; v < totvert; ++v) {
+  for (v = 0; v < totvert; v++) {
     if (skin_nodes[v].totframe) {
       output_frames(so.bm, &skin_nodes[v], input_dvert ? &input_dvert[v] : NULL);
     }

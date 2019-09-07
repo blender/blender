@@ -130,7 +130,7 @@ static bool node_link_socket_match(bNodeSocket *a, bNodeSocket *b)
    */
   int prefix_len = 0;
   char *ca = a->name, *cb = b->name;
-  for (; *ca != '\0' && *cb != '\0'; ++ca, ++cb) {
+  for (; *ca != '\0' && *cb != '\0'; ca++, cb++) {
     /* end of common prefix? */
     if (*ca != *cb) {
       /* prefix delimited by non-alphabetic char */
@@ -139,7 +139,7 @@ static bool node_link_socket_match(bNodeSocket *a, bNodeSocket *b)
       }
       break;
     }
-    ++prefix_len;
+    prefix_len++;
   }
   return prefix_len > 0;
 }
@@ -150,10 +150,10 @@ static int node_count_links(bNodeTree *ntree, bNodeSocket *sock)
   int count = 0;
   for (link = ntree->links.first; link; link = link->next) {
     if (link->fromsock == sock) {
-      ++count;
+      count++;
     }
     if (link->tosock == sock) {
-      ++count;
+      count++;
     }
   }
   return count;
@@ -321,7 +321,7 @@ static bNodeSocket *select_internal_link_input(bNode *node, bNodeSocket *output)
   int sel_priority = -1;
   bool sel_is_linked = false;
 
-  for (input = node->inputs.first, i = 0; input; input = input->next, ++i) {
+  for (input = node->inputs.first, i = 0; input; input = input->next, i++) {
     int priority = node_datatype_priority(input->type, output->type);
     bool is_linked = (input->link != NULL);
     bool preferred;

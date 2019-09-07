@@ -523,7 +523,7 @@ static void extract_tris_finish(const MeshRenderData *mr, void *ibo, void *_data
   /* HACK Create ibo subranges and assign them to each GPUBatch. */
   if (mr->use_final_mesh && mr->cache->surface_per_mat && mr->cache->surface_per_mat[0]) {
     BLI_assert(mr->cache->surface_per_mat[0]->elem == ibo);
-    for (int i = 0; i < mr->mat_len; ++i) {
+    for (int i = 0; i < mr->mat_len; i++) {
       /* Multiply by 3 because these are triangle indices. */
       int start = data->tri_mat_start[i] * 3;
       int len = data->tri_mat_end[i] * 3 - data->tri_mat_start[i] * 3;

@@ -234,7 +234,7 @@ static void envelope_bone_weighting(Object *ob,
     iflip = (dgroupflip) ? mesh_get_x_mirror_vert(ob, NULL, i, use_topology) : -1;
 
     /* for each skinnable bone */
-    for (j = 0; j < numbones; ++j) {
+    for (j = 0; j < numbones; j++) {
       if (!selected[j]) {
         continue;
       }
@@ -346,7 +346,7 @@ static void add_verts_to_dgroups(ReportList *reports,
   tip = MEM_callocN(numbones * sizeof(float) * 3, "tip");
   selected = MEM_callocN(numbones * sizeof(int), "selected");
 
-  for (j = 0; j < numbones; ++j) {
+  for (j = 0; j < numbones; j++) {
     bone = bonelist[j];
     dgroup = dgrouplist[j];
 

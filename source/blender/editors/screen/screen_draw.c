@@ -273,8 +273,8 @@ static GPUBatch *batch_screen_edges_get(int *corner_len)
     GPU_vertbuf_data_alloc(vbo, CORNER_RESOLUTION * 2 * 4 + 2);
 
     uint vidx = 0;
-    for (int corner = 0; corner < 4; ++corner) {
-      for (int c = 0; c < CORNER_RESOLUTION; ++c) {
+    for (int corner = 0; corner < 4; corner++) {
+      for (int c = 0; c < CORNER_RESOLUTION; c++) {
         do_vert_pair(vbo, pos, &vidx, corner, c);
       }
     }

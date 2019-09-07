@@ -978,7 +978,7 @@ size_t BLI_str_partition_ex(const char *str,
 
   *sep = *suf = NULL;
 
-  for (d = delim; *d != '\0'; ++d) {
+  for (d = delim; *d != '\0'; d++) {
     const char *tmp;
 
     if (end) {

@@ -139,7 +139,7 @@ void AbcHairWriter::write_hair_sample(Mesh *mesh,
   float normal[3];
   Imath::V3f tmp_nor;
 
-  for (int p = 0; p < m_psys->totpart; ++p, ++pa) {
+  for (int p = 0; p < m_psys->totpart; p++, pa++) {
     /* underlying info for faces-only emission */
     path = cache[p];
 
@@ -173,7 +173,7 @@ void AbcHairWriter::write_hair_sample(Mesh *mesh,
       const int num = (pa->num_dmcache >= 0) ? pa->num_dmcache : pa->num;
 
       /* iterate over all faces to find a corresponding underlying UV */
-      for (int n = 0; n < mesh->totface; ++n) {
+      for (int n = 0; n < mesh->totface; n++) {
         MFace *face = &mface[n];
         MTFace *tface = mtface + n;
         unsigned int vtx[4];
@@ -183,7 +183,7 @@ void AbcHairWriter::write_hair_sample(Mesh *mesh,
         vtx[3] = face->v4;
         bool found = false;
 
-        for (int o = 0; o < 4; ++o) {
+        for (int o = 0; o < 4; o++) {
           if (o > 2 && vtx[o] == 0) {
             break;
           }
@@ -210,7 +210,7 @@ void AbcHairWriter::write_hair_sample(Mesh *mesh,
     int steps = path->segments + 1;
     hvertices.push_back(steps);
 
-    for (k = 0; k < steps; ++k, ++path) {
+    for (k = 0; k < steps; k++, path++) {
       float vert[3];
       copy_v3_v3(vert, path->co);
       mul_m4_v3(inv_mat, vert);
@@ -240,7 +240,7 @@ void AbcHairWriter::write_hair_child_sample(Mesh *mesh,
 
   ChildParticle *pc = m_psys->child;
 
-  for (int p = 0; p < m_psys->totchild; ++p, ++pc) {
+  for (int p = 0; p < m_psys->totchild; p++, pc++) {
     path = cache[p];
 
     if (part->from == PART_FROM_FACE && part->childtype != PART_CHILD_PARTICLES && mtface) {
@@ -278,7 +278,7 @@ void AbcHairWriter::write_hair_child_sample(Mesh *mesh,
     int steps = path->segments + 1;
     hvertices.push_back(steps);
 
-    for (int k = 0; k < steps; ++k) {
+    for (int k = 0; k < steps; k++) {
       float vert[3];
       copy_v3_v3(vert, path->co);
       mul_m4_v3(inv_mat, vert);
@@ -286,7 +286,7 @@ void AbcHairWriter::write_hair_child_sample(Mesh *mesh,
       /* Convert Z-up to Y-up. */
       verts.push_back(Imath::V3f(vert[0], vert[2], -vert[1]));
 
-      ++path;
+      path++;
     }
   }
 }

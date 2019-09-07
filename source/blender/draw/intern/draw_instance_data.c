@@ -298,7 +298,7 @@ void DRW_instance_data_list_free(DRWInstanceDataList *idatalist)
 {
   DRWInstanceData *idata, *next_idata;
 
-  for (int i = 0; i < MAX_INSTANCE_DATA_SIZE; ++i) {
+  for (int i = 0; i < MAX_INSTANCE_DATA_SIZE; i++) {
     for (idata = idatalist->idata_head[i]; idata; idata = next_idata) {
       next_idata = idata->next;
       DRW_instance_data_free(idata);
@@ -319,7 +319,7 @@ void DRW_instance_data_list_reset(DRWInstanceDataList *idatalist)
 {
   DRWInstanceData *idata;
 
-  for (int i = 0; i < MAX_INSTANCE_DATA_SIZE; ++i) {
+  for (int i = 0; i < MAX_INSTANCE_DATA_SIZE; i++) {
     for (idata = idatalist->idata_head[i]; idata; idata = idata->next) {
       idata->used = false;
     }
@@ -331,7 +331,7 @@ void DRW_instance_data_list_free_unused(DRWInstanceDataList *idatalist)
   DRWInstanceData *idata, *next_idata;
 
   /* Remove unused data blocks and sanitize each list. */
-  for (int i = 0; i < MAX_INSTANCE_DATA_SIZE; ++i) {
+  for (int i = 0; i < MAX_INSTANCE_DATA_SIZE; i++) {
     idatalist->idata_tail[i] = NULL;
     for (idata = idatalist->idata_head[i]; idata; idata = next_idata) {
       next_idata = idata->next;
@@ -360,7 +360,7 @@ void DRW_instance_data_list_resize(DRWInstanceDataList *idatalist)
 {
   DRWInstanceData *idata;
 
-  for (int i = 0; i < MAX_INSTANCE_DATA_SIZE; ++i) {
+  for (int i = 0; i < MAX_INSTANCE_DATA_SIZE; i++) {
     for (idata = idatalist->idata_head[i]; idata; idata = idata->next) {
       BLI_mempool_clear_ex(idata->mempool, BLI_mempool_len(idata->mempool));
     }

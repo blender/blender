@@ -61,7 +61,7 @@ static void shadow_cascade_random_matrix_set(float mat[4][4], float radius, int 
 #ifndef DEBUG_SHADOW_DISTRIBUTION
   EEVEE_sample_ellipse(sample_ofs, mat[0], mat[1], radius, radius, jitter);
 #else
-  for (int i = 0; i <= sample_ofs; ++i) {
+  for (int i = 0; i <= sample_ofs; i++) {
     EEVEE_sample_ellipse(i, mat[0], mat[1], radius, radius, jitter);
     float p[3];
     add_v3_v3v3(p, jitter, mat[2]);
@@ -87,7 +87,7 @@ static void frustum_min_bounding_sphere(const float corners[8][3],
 
   /* compute the bounding box */
   INIT_MINMAX(minvec, maxvec);
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 8; i++) {
     minmax_v3v3_v3(minvec, maxvec, corners[i]);
   }
 
@@ -98,14 +98,14 @@ static void frustum_min_bounding_sphere(const float corners[8][3],
 #else
   /* Find averaged center. */
   zero_v3(r_center);
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 8; i++) {
     add_v3_v3(r_center, corners[i]);
   }
   mul_v3_fl(r_center, 1.0f / 8.0f);
 
   /* Search the largest distance from the sphere center. */
   *r_radius = 0.0f;
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 8; i++) {
     float rad = len_squared_v3v3(corners[i], r_center);
     if (rad > *r_radius) {
       *r_radius = rad;
@@ -218,7 +218,7 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
   }
 
   /* init near/far */
-  for (int c = 0; c < MAX_CASCADE_NUM; ++c) {
+  for (int c = 0; c < MAX_CASCADE_NUM; c++) {
     csm_data->split_start[c] = csm_end;
     csm_data->split_end[c] = csm_end;
   }
@@ -252,7 +252,7 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
   csm_data->split_start[0] = csm_start;
   csm_data->split_end[cascade_nbr - 1] = csm_end;
 
-  for (int c = 1; c < cascade_nbr; ++c) {
+  for (int c = 1; c < cascade_nbr; c++) {
     /* View Space */
     float linear_split = lerp(((float)(c) / (float)cascade_nbr), csm_start, csm_end);
     float exp_split = csm_start * powf(csm_end / csm_start, (float)(c) / (float)cascade_nbr);
@@ -301,7 +301,7 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
   csm_data->split_start[0] = lerp(cascade_fade, csm_data->split_end[cascade_nbr - 1], prev_split);
 
   /* For each cascade */
-  for (int c = 0; c < cascade_nbr; ++c) {
+  for (int c = 0; c < cascade_nbr; c++) {
     float(*projmat)[4] = csm_render->projmat[c];
     /* Given 8 frustum corners */
     float corners[8][3] = {
@@ -318,7 +318,7 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
     };
 
     /* Transform them into world space */
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 8; i++) {
       mul_project_m4_v3(persinv, corners[i]);
     }
 

@@ -160,7 +160,7 @@ BLI_INLINE void hair_grid_interpolate(const HairGridVert *grid,
 
   if (velocity) {
     int k;
-    for (k = 0; k < 3; ++k) {
+    for (k = 0; k < 3; k++) {
       velocity[k] = muvw[2] *
                         (muvw[1] * (muvw[0] * data[0].velocity[k] + uvw[0] * data[1].velocity[k]) +
                          uvw[1] * (muvw[0] * data[2].velocity[k] + uvw[0] * data[3].velocity[k])) +
@@ -172,7 +172,7 @@ BLI_INLINE void hair_grid_interpolate(const HairGridVert *grid,
 
   if (vel_smooth) {
     int k;
-    for (k = 0; k < 3; ++k) {
+    for (k = 0; k < 3; k++) {
       vel_smooth[k] = muvw[2] * (muvw[1] * (muvw[0] * data[0].velocity_smooth[k] +
                                             uvw[0] * data[1].velocity_smooth[k]) +
                                  uvw[1] * (muvw[0] * data[2].velocity_smooth[k] +
@@ -297,7 +297,7 @@ void BPH_hair_volume_grid_clear(HairGrid *grid)
 {
   const int size = hair_grid_size(grid->res);
   int i;
-  for (i = 0; i < size; ++i) {
+  for (i = 0; i < size; i++) {
     zero_v3(grid->verts[i].velocity);
     zero_v3(grid->verts[i].velocity_smooth);
     grid->verts[i].density = 0.0f;
@@ -321,7 +321,7 @@ BLI_INLINE float weights_sum(const float weights[8])
 {
   float totweight = 0.0f;
   int i;
-  for (i = 0; i < 8; ++i) {
+  for (i = 0; i < 8; i++) {
     totweight += weights[i];
   }
   return totweight;
@@ -377,9 +377,9 @@ void BPH_hair_volume_add_vertex(HairGrid *grid, const float x[3], const float v[
 
   offset = hair_grid_weights(res, grid->gmin, grid->inv_cellsize, x, weights);
 
-  for (di = 0; di < 2; ++di) {
-    for (dj = 0; dj < 2; ++dj) {
-      for (dk = 0; dk < 2; ++dk) {
+  for (di = 0; di < 2; di++) {
+    for (dj = 0; dj < 2; dj++) {
+      for (dk = 0; dk < 2; dk++) {
         int voffset = offset + di + (dj + dk * res[1]) * res[0];
         int iw = di + dj * 2 + dk * 4;
 
@@ -465,12 +465,12 @@ BLI_INLINE void hair_volume_add_segment_2D(HairGrid *grid,
   HairGridVert *vert_j = vert + jmin * stride_j;
   float loc_j[3] = {loc[0], loc[1], loc[2]};
   loc_j[axis_j] += (float)jmin;
-  for (j = jmin; j <= jmax; ++j, vert_j += stride_j, loc_j[axis_j] += 1.0f) {
+  for (j = jmin; j <= jmax; j++, vert_j += stride_j, loc_j[axis_j] += 1.0f) {
 
     HairGridVert *vert_k = vert_j + kmin * stride_k;
     float loc_k[3] = {loc_j[0], loc_j[1], loc_j[2]};
     loc_k[axis_k] += (float)kmin;
-    for (k = kmin; k <= kmax; ++k, vert_k += stride_k, loc_k[axis_k] += 1.0f) {
+    for (k = kmin; k <= kmax; k++, vert_k += stride_k, loc_k[axis_k] += 1.0f) {
 
       hair_volume_eval_grid_vertex(vert_k, loc_k, radius, dist_scale, x2, v2, x3, v3);
 
@@ -553,7 +553,7 @@ void BPH_hair_volume_add_segment(HairGrid *grid,
   int j0, k0, j0_prev, k0_prev;
   int i;
 
-  for (i = imin; i <= imax; ++i) {
+  for (i = imin; i <= imax; i++) {
     float shift1, shift2; /* fraction of a full cell shift [0.0, 1.0) */
     int jmin, jmax, kmin, kmax;
 
@@ -657,7 +657,7 @@ void BPH_hair_volume_add_segment(HairGrid *grid,
 
   int s;
 
-  for (s = 0; s < num_samples; ++s) {
+  for (s = 0; s < num_samples; s++) {
     float x[3], v[3];
     int i, j, k;
 
@@ -672,9 +672,9 @@ void BPH_hair_volume_add_segment(HairGrid *grid,
     int kmin = max_ii(floor_int(x[2]) - 2, 0);
     int kmax = min_ii(floor_int(x[2]) + 2, res[2] - 1);
 
-    for (k = kmin; k <= kmax; ++k) {
-      for (j = jmin; j <= jmax; ++j) {
-        for (i = imin; i <= imax; ++i) {
+    for (k = kmin; k <= kmax; k++) {
+      for (j = jmin; j <= jmax; j++) {
+        for (i = imin; i <= imax; i++) {
           float loc[3] = {(float)i, (float)j, (float)k};
           HairGridVert *vert = grid->verts + i * stride[0] + j * stride[1] + k * stride[2];
 
@@ -761,9 +761,9 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
 
   /* Calculate divergence */
   lVector B(num_cellsA);
-  for (k = 0; k < resA[2]; ++k) {
-    for (j = 0; j < resA[1]; ++j) {
-      for (i = 0; i < resA[0]; ++i) {
+  for (k = 0; k < resA[2]; k++) {
+    for (j = 0; j < resA[1]; j++) {
+      for (i = 0; i < resA[0]; i++) {
         int u = i * strideA0 + j * strideA1 + k * strideA2;
         bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 ||
                          MARGIN_k1;
@@ -855,9 +855,9 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
    */
   A.reserve(Eigen::VectorXi::Constant(num_cellsA, 7));
 
-  for (k = 0; k < resA[2]; ++k) {
-    for (j = 0; j < resA[1]; ++j) {
-      for (i = 0; i < resA[0]; ++i) {
+  for (k = 0; k < resA[2]; k++) {
+    for (j = 0; j < resA[1]; j++) {
+      for (i = 0; i < resA[0]; i++) {
         int u = i * strideA0 + j * strideA1 + k * strideA2;
         bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 ||
                          MARGIN_k1;
@@ -897,11 +897,11 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
           /*int liquid_neighbors = neighbors_lo + neighbors_hi;*/
           non_solid_neighbors = 6;
 
-          for (n = 0; n < neighbors_lo; ++n) {
+          for (n = 0; n < neighbors_lo; n++) {
             A.insert(neighbor_lo_index[n], u) = -1.0f;
           }
           A.insert(u, u) = (float)non_solid_neighbors;
-          for (n = 0; n < neighbors_hi; ++n) {
+          for (n = 0; n < neighbors_hi; n++) {
             A.insert(neighbor_hi_index[n], u) = -1.0f;
           }
         }
@@ -922,9 +922,9 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
 
   if (cg.info() == Eigen::Success) {
     /* Calculate velocity = grad(p) */
-    for (k = 0; k < resA[2]; ++k) {
-      for (j = 0; j < resA[1]; ++j) {
-        for (i = 0; i < resA[0]; ++i) {
+    for (k = 0; k < resA[2]; k++) {
+      for (j = 0; j < resA[1]; j++) {
+        for (i = 0; i < resA[0]; i++) {
           int u = i * strideA0 + j * strideA1 + k * strideA2;
           bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 ||
                            MARGIN_k1;
@@ -965,9 +965,9 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
 
       int slice = (offset - grid->gmin[axis]) / grid->cellsize;
 
-      for (k = 0; k < resA[2]; ++k) {
-        for (j = 0; j < resA[1]; ++j) {
-          for (i = 0; i < resA[0]; ++i) {
+      for (k = 0; k < resA[2]; k++) {
+        for (j = 0; j < resA[1]; j++) {
+          for (i = 0; i < resA[0]; i++) {
             int u = i * strideA0 + j * strideA1 + k * strideA2;
             bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 ||
                              MARGIN_k1;
@@ -1034,7 +1034,7 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
   }
   else {
     /* Clear result in case of error */
-    for (i = 0, vert = grid->verts; i < num_cells; ++i, ++vert) {
+    for (i = 0, vert = grid->verts; i < num_cells; i++, vert++) {
       zero_v3(vert->velocity_smooth);
     }
 
@@ -1066,9 +1066,9 @@ BLI_INLINE void hair_volume_filter_box_convolute(
   kernel_offset = minp + (minq + minr * res) * res;
   kernel_dq = res;
   kernel_dr = res * res;
-  for (r = minr; r <= maxr; ++r) {
-    for (q = minq; q <= maxq; ++q) {
-      for (p = minp; p <= maxp; ++p) {
+  for (r = minr; r <= maxr; r++) {
+    for (q = minq; q <= maxq; q++) {
+      for (p = minp; p <= maxp; p++) {
 
         madd_v3_v3fl(vel_smooth, verts[kernel_offset].velocity, invD);
 
@@ -1096,20 +1096,20 @@ void BPH_hair_volume_vertex_grid_filter_box(HairVertexGrid *grid, int kernel_siz
   invD = 1.0f / (float)(tot * tot * tot);
 
   /* clear values for convolution */
-  for (i = 0; i < size; ++i) {
+  for (i = 0; i < size; i++) {
     zero_v3(grid->verts[i].velocity_smooth);
   }
 
-  for (i = 0; i < grid->res; ++i) {
-    for (j = 0; j < grid->res; ++j) {
-      for (k = 0; k < grid->res; ++k) {
+  for (i = 0; i < grid->res; i++) {
+    for (j = 0; j < grid->res; j++) {
+      for (k = 0; k < grid->res; k++) {
         hair_volume_filter_box_convolute(grid, invD, kernel_sizev, i, j, k);
       }
     }
   }
 
   /* apply as new velocity */
-  for (i = 0; i < size; ++i) {
+  for (i = 0; i < size; i++) {
     copy_v3_v3(grid->verts[i].velocity, grid->verts[i].velocity_smooth);
   }
 }
@@ -1134,7 +1134,7 @@ HairGrid *BPH_hair_volume_create_vertex_grid(float cellsize,
   scale = 1.0f / cellsize;
 
   sub_v3_v3v3(extent, gmax, gmin);
-  for (i = 0; i < 3; ++i) {
+  for (i = 0; i < 3; i++) {
     resmin[i] = floor_int(gmin[i] * scale);
     resmax[i] = floor_int(gmax[i] * scale) + 1;
 
@@ -1221,7 +1221,7 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
   collgrid = MEM_mallocN(sizeof(HairGridVert) * size, "hair collider voxel data");
 
   /* initialize grid */
-  for (i = 0; i < size; ++i) {
+  for (i = 0; i < size; i++) {
     zero_v3(collgrid[i].velocity);
     collgrid[i].density = 0.0f;
   }
@@ -1247,9 +1247,9 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
 
         sub_v3_v3v3(vel, loc1->co, loc0->co);
 
-        for (di = 0; di < 2; ++di) {
-          for (dj = 0; dj < 2; ++dj) {
-            for (dk = 0; dk < 2; ++dk) {
+        for (di = 0; di < 2; di++) {
+          for (dj = 0; dj < 2; dj++) {
+            for (dk = 0; dk < 2; dk++) {
               int voffset = offset + di + (dj + dk * res) * res;
               int iw = di + dj * 2 + dk * 4;
 

@@ -158,7 +158,7 @@ bNodeTree *ED_node_tree_get(SpaceNode *snode, int level)
 {
   bNodeTreePath *path;
   int i;
-  for (path = snode->treepath.last, i = 0; path; path = path->prev, ++i) {
+  for (path = snode->treepath.last, i = 0; path; path = path->prev, i++) {
     if (i == level) {
       return path->nodetree;
     }
@@ -171,7 +171,7 @@ int ED_node_tree_path_length(SpaceNode *snode)
   bNodeTreePath *path;
   int length = 0;
   int i;
-  for (path = snode->treepath.first, i = 0; path; path = path->next, ++i) {
+  for (path = snode->treepath.first, i = 0; path; path = path->next, i++) {
     length += strlen(path->node_name);
     if (i > 0) {
       length += 1; /* for separator char */
@@ -186,7 +186,7 @@ void ED_node_tree_path_get(SpaceNode *snode, char *value)
   int i;
 
   value[0] = '\0';
-  for (path = snode->treepath.first, i = 0; path; path = path->next, ++i) {
+  for (path = snode->treepath.first, i = 0; path; path = path->next, i++) {
     if (i == 0) {
       strcpy(value, path->node_name);
       value += strlen(path->node_name);
@@ -204,7 +204,7 @@ void ED_node_tree_path_get_fixedbuf(SpaceNode *snode, char *value, int max_lengt
   int size, i;
 
   value[0] = '\0';
-  for (path = snode->treepath.first, i = 0; path; path = path->next, ++i) {
+  for (path = snode->treepath.first, i = 0; path; path = path->next, i++) {
     if (i == 0) {
       size = BLI_strncpy_rlen(value, path->node_name, max_length);
     }

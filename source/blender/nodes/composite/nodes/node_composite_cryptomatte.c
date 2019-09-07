@@ -60,7 +60,7 @@ static void cryptomatte_add(NodeCryptomatte *n, float f)
     while (start < end) {
       /* Ignore leading whitespace. */
       while (start < end && n->matte_id[start] == ' ') {
-        ++start;
+        start++;
       }
 
       /* Find the next separator. */
@@ -139,7 +139,7 @@ static void cryptomatte_remove(NodeCryptomatte *n, float f)
     bool skip = false;
     /* Ignore leading whitespace or commas. */
     while (start < end && ((n->matte_id[start] == ' ') || (n->matte_id[start] == ','))) {
-      ++start;
+      start++;
     }
 
     /* Find the next separator. */

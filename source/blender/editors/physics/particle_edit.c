@@ -5438,7 +5438,7 @@ static float calculate_average_length(PTCacheEdit *edit)
   LOOP_SELECTED_POINTS
   {
     total_length += calculate_point_length(point);
-    ++num_selected;
+    num_selected++;
   }
   if (num_selected == 0) {
     return 0.0f;

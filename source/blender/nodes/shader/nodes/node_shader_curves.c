@@ -141,7 +141,7 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat,
   float ext_rgba[4][4];
   float range_rgba[4];
 
-  for (int a = 0; a < CM_TOT; ++a) {
+  for (int a = 0; a < CM_TOT; a++) {
     const CurveMap *cm = &cumap->cm[a];
     ext_rgba[a][0] = cm->mintable;
     ext_rgba[a][2] = cm->maxtable;

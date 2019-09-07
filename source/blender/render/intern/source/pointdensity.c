@@ -355,11 +355,11 @@ static void pointdensity_cache_vertex_weight(PointDensity *pd,
     return;
   }
 
-  for (i = 0, dv = mdef; i < totvert; ++i, ++dv, data_color += 3) {
+  for (i = 0, dv = mdef; i < totvert; i++, dv++, data_color += 3) {
     MDeformWeight *dw;
     int j;
 
-    for (j = 0, dw = dv->dw; j < dv->totweight; ++j, ++dw) {
+    for (j = 0, dw = dv->dw; j < dv->totweight; j++, dw++) {
       if (dw->def_nr == mdef_index) {
         copy_v3_fl(data_color, dw->weight);
         break;
@@ -910,8 +910,8 @@ static void point_density_sample_func(void *__restrict data_v,
   }
 
   size_t z = (size_t)iter;
-  for (size_t y = 0; y < resolution; ++y) {
-    for (size_t x = 0; x < resolution; ++x) {
+  for (size_t y = 0; y < resolution; y++) {
+    for (size_t x = 0; x < resolution; x++) {
       size_t index = z * resolution2 + y * resolution + x;
       float texvec[3];
       float age, vec[3], col[3];

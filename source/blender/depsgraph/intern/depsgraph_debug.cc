@@ -112,13 +112,13 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
       int counter1 = 0;
       for (DEG::Relation *tmp_rel : node->outlinks) {
         if (tmp_rel == rel) {
-          ++counter1;
+          counter1++;
         }
       }
       int counter2 = 0;
       for (DEG::Relation *tmp_rel : rel->to->inlinks) {
         if (tmp_rel == rel) {
-          ++counter2;
+          counter2++;
         }
       }
       if (counter1 != counter2) {
@@ -137,13 +137,13 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
       int counter1 = 0;
       for (DEG::Relation *tmp_rel : node->inlinks) {
         if (tmp_rel == rel) {
-          ++counter1;
+          counter1++;
         }
       }
       int counter2 = 0;
       for (DEG::Relation *tmp_rel : rel->from->outlinks) {
         if (tmp_rel == rel) {
-          ++counter2;
+          counter2++;
         }
       }
       if (counter1 != counter2) {
@@ -179,7 +179,7 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
     int num_links_pending = 0;
     for (DEG::Relation *rel : node->inlinks) {
       if (rel->from->type == DEG::NodeType::OPERATION) {
-        ++num_links_pending;
+        num_links_pending++;
       }
     }
     if (node->num_links_pending != num_links_pending) {

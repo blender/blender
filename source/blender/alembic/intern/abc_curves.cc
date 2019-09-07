@@ -111,7 +111,7 @@ void AbcCurveWriter::do_write()
 
       const BPoint *point = nurbs->bp;
 
-      for (int i = 0; i < totpoint; ++i, ++point) {
+      for (int i = 0; i < totpoint; i++, point++) {
         copy_yup_from_zup(temp_vert.getValue(), point->vec);
         verts.push_back(temp_vert);
         weights.push_back(point->vec[3]);
@@ -127,7 +127,7 @@ void AbcCurveWriter::do_write()
       const BezTriple *bezier = nurbs->bezt;
 
       /* TODO(kevin): store info about handles, Alembic doesn't have this. */
-      for (int i = 0; i < totpoint; ++i, ++bezier) {
+      for (int i = 0; i < totpoint; i++, bezier++) {
         copy_yup_from_zup(temp_vert.getValue(), bezier->vec[1]);
         verts.push_back(temp_vert);
         widths.push_back(bezier->radius);
@@ -144,7 +144,7 @@ void AbcCurveWriter::do_write()
        * cyclic since other software need those.
        */
 
-      for (int i = 0; i < nurbs->orderu; ++i) {
+      for (int i = 0; i < nurbs->orderu; i++) {
         verts.push_back(verts[i]);
       }
     }
@@ -156,7 +156,7 @@ void AbcCurveWriter::do_write()
        * require/expect them. */
       knots.resize(num_knots + 2);
 
-      for (int i = 0; i < num_knots; ++i) {
+      for (int i = 0; i < num_knots; i++) {
         knots[i + 1] = nurbs->knotsu[i];
       }
 
@@ -316,7 +316,7 @@ void AbcCurveReader::read_curve_sample(Curve *cu,
   int knot_offset = 0;
 
   size_t idx = 0;
-  for (size_t i = 0; i < num_vertices->size(); ++i) {
+  for (size_t i = 0; i < num_vertices->size(); i++) {
     const int num_verts = (*num_vertices)[i];
 
     Nurb *nu = static_cast<Nurb *>(MEM_callocN(sizeof(Nurb), "abc_getnurb"));
@@ -357,7 +357,7 @@ void AbcCurveReader::read_curve_sample(Curve *cu,
       const int end = idx + num_verts;
       int overlap = 0;
 
-      for (int j = start, k = end - nu->orderu; j < nu->orderu; ++j, ++k) {
+      for (int j = start, k = end - nu->orderu; j < nu->orderu; j++, k++) {
         const Imath::V3f &p1 = (*positions)[j];
         const Imath::V3f &p2 = (*positions)[k];
 
@@ -365,7 +365,7 @@ void AbcCurveReader::read_curve_sample(Curve *cu,
           break;
         }
 
-        ++overlap;
+        overlap++;
       }
 
       /* TODO: Special case, need to figure out how it coincides with knots. */
@@ -393,7 +393,7 @@ void AbcCurveReader::read_curve_sample(Curve *cu,
     nu->bp = static_cast<BPoint *>(MEM_callocN(sizeof(BPoint) * nu->pntsu, "abc_getnurb"));
     BPoint *bp = nu->bp;
 
-    for (int j = 0; j < nu->pntsu; ++j, ++bp, ++idx) {
+    for (int j = 0; j < nu->pntsu; j++, bp++, idx++) {
       const Imath::V3f &pos = (*positions)[idx];
 
       if (do_radius) {
@@ -418,7 +418,7 @@ void AbcCurveReader::read_curve_sample(Curve *cu,
       /* TODO: second check is temporary, for until the check for cycles is rock solid. */
       if (periodicity == Alembic::AbcGeom::kPeriodic && (KNOTSU(nu) == knots->size() - 2)) {
         /* Skip first and last knots. */
-        for (size_t i = 1; i < knots->size() - 1; ++i) {
+        for (size_t i = 1; i < knots->size() - 1; i++) {
           nu->knotsu[i - 1] = (*knots)[knot_offset + i];
         }
       }
@@ -476,7 +476,7 @@ Mesh *AbcCurveReader::read_mesh(Mesh *existing_mesh,
 
   if (same_topology) {
     Nurb *nurbs = static_cast<Nurb *>(curve->nurb.first);
-    for (curve_idx = 0; nurbs; nurbs = nurbs->next, ++curve_idx) {
+    for (curve_idx = 0; nurbs; nurbs = nurbs->next, curve_idx++) {
       const int num_in_alembic = (*num_vertices)[curve_idx];
       const int num_in_blender = nurbs->pntsu;
 
@@ -493,13 +493,13 @@ Mesh *AbcCurveReader::read_mesh(Mesh *existing_mesh,
   }
   else {
     Nurb *nurbs = static_cast<Nurb *>(curve->nurb.first);
-    for (curve_idx = 0; nurbs; nurbs = nurbs->next, ++curve_idx) {
+    for (curve_idx = 0; nurbs; nurbs = nurbs->next, curve_idx++) {
       const int totpoint = (*num_vertices)[curve_idx];
 
       if (nurbs->bp) {
         BPoint *point = nurbs->bp;
 
-        for (int i = 0; i < totpoint; ++i, ++point, ++vertex_idx) {
+        for (int i = 0; i < totpoint; i++, point++, vertex_idx++) {
           const Imath::V3f &pos = (*positions)[vertex_idx];
           copy_zup_from_yup(point->vec, pos.getValue());
         }
@@ -507,7 +507,7 @@ Mesh *AbcCurveReader::read_mesh(Mesh *existing_mesh,
       else if (nurbs->bezt) {
         BezTriple *bezier = nurbs->bezt;
 
-        for (int i = 0; i < totpoint; ++i, ++bezier, ++vertex_idx) {
+        for (int i = 0; i < totpoint; i++, bezier++, vertex_idx++) {
           const Imath::V3f &pos = (*positions)[vertex_idx];
           copy_zup_from_yup(bezier->vec[1], pos.getValue());
         }

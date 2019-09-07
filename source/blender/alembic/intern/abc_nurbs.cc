@@ -74,7 +74,7 @@ AbcNurbsWriter::AbcNurbsWriter(Object *ob,
   Curve *curve = static_cast<Curve *>(m_object->data);
   size_t numNurbs = BLI_listbase_count(&curve->nurb);
 
-  for (size_t i = 0; i < numNurbs; ++i) {
+  for (size_t i = 0; i < numNurbs; i++) {
     std::stringstream str;
     str << m_name << '_' << i;
 
@@ -106,7 +106,7 @@ static void get_knots(std::vector<float> &knots, const int num_knots, float *nu_
 
   knots.push_back(0.0f);
 
-  for (int i = 0; i < num_knots; ++i) {
+  for (int i = 0; i < num_knots; i++) {
     knots.push_back(nu_knots[i]);
   }
 
@@ -136,7 +136,7 @@ void AbcNurbsWriter::do_write()
   }
 
   size_t count = 0;
-  for (Nurb *nu = static_cast<Nurb *>(nulb->first); nu; nu = nu->next, ++count) {
+  for (Nurb *nu = static_cast<Nurb *>(nulb->first); nu; nu = nu->next, count++) {
     std::vector<float> knotsU;
     get_knots(knotsU, KNOTSU(nu), nu->knotsu);
 
@@ -149,7 +149,7 @@ void AbcNurbsWriter::do_write()
 
     const BPoint *bp = nu->bp;
 
-    for (int i = 0; i < size; ++i, ++bp) {
+    for (int i = 0; i < size; i++, bp++) {
       copy_yup_from_zup(positions[i].getValue(), bp->vec);
       weights[i] = bp->vec[3];
     }
@@ -208,7 +208,7 @@ bool AbcNurbsReader::valid() const
   }
 
   std::vector<std::pair<INuPatchSchema, IObject>>::const_iterator it;
-  for (it = m_schemas.begin(); it != m_schemas.end(); ++it) {
+  for (it = m_schemas.begin(); it != m_schemas.end(); it++) {
     const INuPatchSchema &schema = it->first;
 
     if (!schema.valid()) {
@@ -229,7 +229,7 @@ static bool set_knots(const FloatArraySamplePtr &knots, float *&nu_knots)
   const size_t num_knots = knots->size() - 2;
   nu_knots = static_cast<float *>(MEM_callocN(num_knots * sizeof(float), "abc_setsplineknotsu"));
 
-  for (size_t i = 0; i < num_knots; ++i) {
+  for (size_t i = 0; i < num_knots; i++) {
     nu_knots[i] = (*knots)[i + 1];
   }
 
@@ -243,7 +243,7 @@ void AbcNurbsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
 
   std::vector<std::pair<INuPatchSchema, IObject>>::iterator it;
 
-  for (it = m_schemas.begin(); it != m_schemas.end(); ++it) {
+  for (it = m_schemas.begin(); it != m_schemas.end(); it++) {
     Nurb *nu = static_cast<Nurb *>(MEM_callocN(sizeof(Nurb), "abc_getnurb"));
     nu->flag = CU_SMOOTH;
     nu->type = CU_NURBS;
@@ -281,7 +281,7 @@ void AbcNurbsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
     BPoint *bp = nu->bp;
     float posw_in = 1.0f;
 
-    for (int i = 0; i < num_points; ++i, ++bp) {
+    for (int i = 0; i < num_points; i++, bp++) {
       const Imath::V3f &pos_in = (*positions)[i];
 
       if (weights) {
@@ -349,7 +349,7 @@ void AbcNurbsReader::getNurbsPatches(const IObject &obj)
     return;
   }
 
-  for (int i = 0; i < num_children; ++i) {
+  for (int i = 0; i < num_children; i++) {
     bool ok = true;
     IObject child(obj, obj.getChildHeader(i).getName());
 

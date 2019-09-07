@@ -249,7 +249,7 @@ const int BCAnimationCurve::closest_index_below(const float sample_frame) const
   int lower_index = 0;
   int upper_index = 0;
 
-  for (int fcu_index = 0; fcu_index < fcurve->totvert; ++fcu_index) {
+  for (int fcu_index = 0; fcu_index < fcurve->totvert; fcu_index++) {
     upper_index = fcu_index;
 
     const int cframe = fcurve->bezt[fcu_index].vec[1][0];  // inacurate!
@@ -537,7 +537,7 @@ bool BCAnimationCurve::is_keyframe(int frame)
     return false;
   }
 
-  for (int i = 0; i < fcurve->totvert; ++i) {
+  for (int i = 0; i < fcurve->totvert; i++) {
     const int cframe = nearbyint(fcurve->bezt[i].vec[1][0]);
     if (cframe == frame) {
       return true;

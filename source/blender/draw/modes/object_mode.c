@@ -1517,7 +1517,7 @@ static void OBJECT_cache_init(void *vedata)
     psl->camera_images_front = DRW_pass_create("Camera Images Front", state);
   }
 
-  for (int i = 0; i < 2; ++i) {
+  for (int i = 0; i < 2; i++) {
     OBJECT_ShadingGroupList *sgl = (i == 1) ? &stl->g_data->sgl_ghost : &stl->g_data->sgl;
 
     /* Solid bones */
@@ -1540,7 +1540,7 @@ static void OBJECT_cache_init(void *vedata)
     sgl->bone_axes = psl->bone_axes[i] = DRW_pass_create("Bone Axes Pass", state);
   }
 
-  for (int i = 0; i < 2; ++i) {
+  for (int i = 0; i < 2; i++) {
     OBJECT_ShadingGroupList *sgl = (i == 1) ? &stl->g_data->sgl_ghost : &stl->g_data->sgl;
 
     /* Non Meshes Pass (Camera, empties, lights ...) */
@@ -2982,7 +2982,7 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
            {0.0, 0.0, 0.0, 1.0}},
       };
 
-      for (int i = 0; i < 6; ++i) {
+      for (int i = 0; i < 6; i++) {
         float clipmat[4][4];
         normalize_m4_m4(clipmat, ob->obmat);
         mul_m4_m4m4(clipmat, clipmat, cubefacemat[i]);

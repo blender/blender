@@ -101,9 +101,9 @@ bool paint_convert_bb_to_rect(rcti *rect,
 
   ED_view3d_ob_project_mat_get(rv3d, ob, projection_mat);
 
-  for (i = 0; i < 2; ++i) {
-    for (j = 0; j < 2; ++j) {
-      for (k = 0; k < 2; ++k) {
+  for (i = 0; i < 2; i++) {
+    for (j = 0; j < 2; j++) {
+      for (k = 0; k < 2; k++) {
         float vec[3], proj[2];
         int proj_i[2];
         vec[0] = i ? bb_min[0] : bb_max[0];

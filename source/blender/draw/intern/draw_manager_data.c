@@ -787,7 +787,7 @@ void DRW_buffer_add_entry_array(DRWCallBuffer *callbuf, const void *attr[], uint
     GPU_vertbuf_data_resize(buf, count + DRW_BUFFER_VERTS_CHUNK);
   }
 
-  for (int i = 0; i < attr_len; ++i) {
+  for (int i = 0; i < attr_len; i++) {
     GPU_vertbuf_attr_set(buf, i, count, attr[i]);
   }
 
@@ -939,7 +939,7 @@ GPUVertFormat *DRW_shgroup_instance_format_array(const DRWInstanceAttrFormat att
 {
   GPUVertFormat *format = MEM_callocN(sizeof(GPUVertFormat), "GPUVertFormat");
 
-  for (int i = 0; i < arraysize; ++i) {
+  for (int i = 0; i < arraysize; i++) {
     GPU_vertformat_attr_add(format,
                             attrs[i].name,
                             (attrs[i].type == DRW_ATTR_INT) ? GPU_COMP_I32 : GPU_COMP_F32,

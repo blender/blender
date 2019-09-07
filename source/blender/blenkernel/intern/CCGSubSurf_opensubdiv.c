@@ -697,7 +697,7 @@ static void opensubdiv_evaluateNGonFaceGrids(CCGSubSurf *ss,
     int x, S0 = 0, S1 = 0;
     bool flip;
 
-    for (x = 0; x < face->numVerts; ++x) {
+    for (x = 0; x < face->numVerts; x++) {
       if (all_verts[x] == edge->v0) {
         S0 = x;
       }
@@ -806,7 +806,7 @@ void ccgSubSurf_prepareTopologyRefiner(CCGSubSurf *ss, DerivedMesh *dm)
     const MPoly *mpoly = dm->getPolyArray(dm);
     int poly;
     ss->numGrids = 0;
-    for (poly = 0; poly < num_polys; ++poly) {
+    for (poly = 0; poly < num_polys; poly++) {
       ss->numGrids += mpoly[poly].totloop;
     }
   }

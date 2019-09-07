@@ -716,7 +716,7 @@ size_t BLI_str_utf8_from_unicode(uint c, char *outbuf)
   }
 
   if (outbuf) {
-    for (i = len - 1; i > 0; --i) {
+    for (i = len - 1; i > 0; i--) {
       outbuf[i] = (c & 0x3f) | 0x80;
       c >>= 6;
     }
@@ -744,7 +744,7 @@ size_t BLI_str_utf8_from_unicode(uint c, char *outbuf)
  */
 char *BLI_str_find_prev_char_utf8(const char *str, const char *p)
 {
-  for (--p; p >= str; --p) {
+  for (--p; p >= str; p--) {
     if ((*p & 0xc0) != 0x80) {
       return (char *)p;
     }
@@ -771,12 +771,12 @@ char *BLI_str_find_next_char_utf8(const char *p, const char *end)
 {
   if (*p) {
     if (end) {
-      for (++p; p < end && (*p & 0xc0) == 0x80; ++p) {
+      for (++p; p < end && (*p & 0xc0) == 0x80; p++) {
         /* do nothing */
       }
     }
     else {
-      for (++p; (*p & 0xc0) == 0x80; ++p) {
+      for (++p; (*p & 0xc0) == 0x80; p++) {
         /* do nothing */
       }
     }
@@ -852,7 +852,7 @@ size_t BLI_str_partition_ex_utf8(const char *str,
       break;
     }
 
-    for (d = delim; *d != '\0'; ++d) {
+    for (d = delim; *d != '\0'; d++) {
       if (*d == c) {
         /* *suf is already correct in case from_right is true. */
         if (!from_right) {

@@ -338,7 +338,7 @@ void EEVEE_reflection_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 
 void EEVEE_screen_raytrace_free(void)
 {
-  for (int i = 0; i < SSR_MAX_SHADER; ++i) {
+  for (int i = 0; i < SSR_MAX_SHADER; i++) {
     DRW_SHADER_FREE_SAFE(e_data.ssr_sh[i]);
   }
 }

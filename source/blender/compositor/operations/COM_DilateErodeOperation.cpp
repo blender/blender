@@ -387,7 +387,7 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
     for (x = 0; x < bwidth + 5 * half_window; x++) {
       buf[x] = -FLT_MAX;
     }
-    for (x = xmin; x < xmax; ++x) {
+    for (x = xmin; x < xmax; x++) {
       buf[x - rect->xmin + window - 1] = buffer[(y * width + x)];
     }
 
@@ -516,7 +516,7 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
     for (x = 0; x < bwidth + 5 * half_window; x++) {
       buf[x] = FLT_MAX;
     }
-    for (x = xmin; x < xmax; ++x) {
+    for (x = xmin; x < xmax; x++) {
       buf[x - rect->xmin + window - 1] = buffer[(y * width + x)];
     }
 

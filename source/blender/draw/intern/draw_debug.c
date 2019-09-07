@@ -63,7 +63,7 @@ void DRW_debug_polygon_v3(const float (*v)[3], const int vert_len, const float c
 {
   BLI_assert(vert_len > 1);
 
-  for (int i = 0; i < vert_len; ++i) {
+  for (int i = 0; i < vert_len; i++) {
     DRW_debug_line_v3v3(v[i], v[(i + 1) % vert_len], color);
   }
 }
@@ -117,7 +117,7 @@ void DRW_debug_m4_as_bbox(const float m[4][4], const float color[4], const bool 
   }
 
   BKE_boundbox_init_from_minmax(&bb, min, max);
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 8; i++) {
     mul_project_m4_v3(project_matrix, bb.vec[i]);
   }
   DRW_debug_bbox(&bb, color);

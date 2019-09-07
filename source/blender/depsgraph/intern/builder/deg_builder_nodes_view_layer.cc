@@ -105,7 +105,7 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
        *
        * TODO(sergey): Need to go more granular on visibility checks. */
       build_object(base_index, base->object, linked_state, true);
-      ++base_index;
+      base_index++;
     }
   }
   build_layer_collections(&view_layer->layer_collections);

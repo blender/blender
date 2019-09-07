@@ -129,7 +129,7 @@ static bool gather_objects_paths(const IObject &object, ListBase *object_paths)
   size_t children_claiming_this_object = 0;
   size_t num_children = object.getNumChildren();
 
-  for (size_t i = 0; i < num_children; ++i) {
+  for (size_t i = 0; i < num_children; i++) {
     bool child_claims_this_object = gather_objects_paths(object.getChild(i), object_paths);
     children_claiming_this_object += child_claims_this_object ? 1 : 0;
   }
@@ -211,7 +211,7 @@ static void find_iobject(const IObject &object, IObject &ret, const std::string 
   IObject tmp = object;
 
   std::vector<std::string>::iterator iter;
-  for (iter = tokens.begin(); iter != tokens.end(); ++iter) {
+  for (iter = tokens.begin(); iter != tokens.end(); iter++) {
     IObject child = tmp.getChild(*iter);
     tmp = child;
   }
@@ -452,7 +452,7 @@ static std::pair<bool, AbcObjectReader *> visit_object(
   AbcObjectReader::ptr_vector claiming_child_readers;
   AbcObjectReader::ptr_vector nonclaiming_child_readers;
   AbcObjectReader::ptr_vector assign_as_parent;
-  for (size_t i = 0; i < num_children; ++i) {
+  for (size_t i = 0; i < num_children; i++) {
     const IObject ichild = object.getChild(i);
 
     /* TODO: When we only support C++11, use std::tie() instead. */
@@ -704,7 +704,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 
   ISampleSelector sample_sel(0.0f);
   std::vector<AbcObjectReader *>::iterator iter;
-  for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
+  for (iter = data->readers.begin(); iter != data->readers.end(); iter++) {
     AbcObjectReader *reader = *iter;
 
     if (reader->valid()) {
@@ -743,7 +743,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
   }
 
   /* Setup parenthood. */
-  for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
+  for (iter = data->readers.begin(); iter != data->readers.end(); iter++) {
     const AbcObjectReader *reader = *iter;
     const AbcObjectReader *parent_reader = reader->parent_reader;
     Object *ob = reader->object();
@@ -758,7 +758,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 
   /* Setup transformations and constraints. */
   i = 0;
-  for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
+  for (iter = data->readers.begin(); iter != data->readers.end(); iter++) {
     AbcObjectReader *reader = *iter;
     reader->setupObjectTransform(0.0f);
 
@@ -782,7 +782,7 @@ static void import_endjob(void *user_data)
 
   /* Delete objects on cancellation. */
   if (data->was_cancelled) {
-    for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
+    for (iter = data->readers.begin(); iter != data->readers.end(); iter++) {
       Object *ob = (*iter)->object();
 
       /* It's possible that cancellation occurred between the creation of
@@ -804,7 +804,7 @@ static void import_endjob(void *user_data)
 
     lc = BKE_layer_collection_get_active(view_layer);
 
-    for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
+    for (iter = data->readers.begin(); iter != data->readers.end(); iter++) {
       Object *ob = (*iter)->object();
 
       BKE_collection_object_add(data->bmain, lc->collection, ob);
@@ -824,7 +824,7 @@ static void import_endjob(void *user_data)
     DEG_relations_tag_update(data->bmain);
   }
 
-  for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
+  for (iter = data->readers.begin(); iter != data->readers.end(); iter++) {
     AbcObjectReader *reader = *iter;
     reader->decref();
 

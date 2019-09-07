@@ -794,7 +794,7 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf, bool use_srgb)
   }
 
   blocksize = (ibuf->dds_data.fourcc == FOURCC_DXT1) ? 8 : 16;
-  for (i = 0; i < ibuf->dds_data.nummipmaps && (width || height); ++i) {
+  for (i = 0; i < ibuf->dds_data.nummipmaps && (width || height); i++) {
     if (width == 0) {
       width = 1;
     }

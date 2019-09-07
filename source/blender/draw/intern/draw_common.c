@@ -296,13 +296,13 @@ static struct {
 void DRW_globals_free(void)
 {
   struct GPUVertFormat **format = &g_formats.instance_screenspace;
-  for (int i = 0; i < sizeof(g_formats) / sizeof(void *); ++i, ++format) {
+  for (int i = 0; i < sizeof(g_formats) / sizeof(void *); i++, format++) {
     MEM_SAFE_FREE(*format);
   }
 
   for (int j = 0; j < GPU_SHADER_CFG_LEN; j++) {
     struct GPUShader **shader = &g_shaders[j].shape_outline;
-    for (int i = 0; i < sizeof(g_shaders[j]) / sizeof(void *); ++i, ++shader) {
+    for (int i = 0; i < sizeof(g_shaders[j]) / sizeof(void *); i++, shader++) {
       DRW_SHADER_FREE_SAFE(*shader);
     }
   }

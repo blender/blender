@@ -94,9 +94,9 @@ static void workbench_dof_setup_samples(struct GPUUniformBuffer **ubo,
   }
 
   float *samp = *data;
-  for (int i = 0; i <= KERNEL_RAD; ++i) {
-    for (int j = -KERNEL_RAD; j <= KERNEL_RAD; ++j) {
-      for (int k = -KERNEL_RAD; k <= KERNEL_RAD; ++k) {
+  for (int i = 0; i <= KERNEL_RAD; i++) {
+    for (int j = -KERNEL_RAD; j <= KERNEL_RAD; j++) {
+      for (int k = -KERNEL_RAD; k <= KERNEL_RAD; k++) {
         if (abs(j) > i || abs(k) > i) {
           continue;
         }

@@ -687,11 +687,11 @@ void BLI_ewa_filter(const int width,
 
   d = 0.0f;
   zero_v4(result);
-  for (v = v1; v <= v2; ++v) {
+  for (v = v1; v <= v2; v++) {
     const float V = (float)v - V0;
     float DQ = ac1 + B * V;
     float Q = (C * V + BU) * V + ac2;
-    for (u = u1; u <= u2; ++u) {
+    for (u = u1; u <= u2; u++) {
       if (Q < (float)(EWA_MAXIDX + 1)) {
         float tc[4];
         const float wt = EWA_WTS[(Q < 0.0f) ? 0 : (unsigned int)Q];

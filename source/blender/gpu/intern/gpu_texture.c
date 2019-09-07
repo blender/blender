@@ -1471,7 +1471,7 @@ void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat gpu_data_format, int mipl
 
   if (GPU_texture_cube(tex)) {
     int cube_face_size = buf_size / 6;
-    for (int i = 0; i < 6; ++i) {
+    for (int i = 0; i < 6; i++) {
       glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
                     miplvl,
                     data_format,
@@ -1540,7 +1540,7 @@ void GPU_texture_bind(GPUTexture *tex, int number)
   }
 
   if ((G.debug & G_DEBUG)) {
-    for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; ++i) {
+    for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; i++) {
       if (tex->fb[i] && GPU_framebuffer_bound(tex->fb[i])) {
         fprintf(stderr,
                 "Feedback loop warning!: Attempting to bind "
@@ -1603,7 +1603,7 @@ void GPU_texture_generate_mipmap(GPUTexture *tex)
      * GPU_framebuffer_recursive_downsample(). */
     int levels = 1 + floor(log2(max_ii(tex->w, tex->h)));
     eGPUDataFormat data_format = gpu_get_data_format_from_tex_format(tex->format);
-    for (int i = 1; i < levels; ++i) {
+    for (int i = 1; i < levels; i++) {
       GPU_texture_add_mipmap(tex, data_format, i, NULL);
     }
     glBindTexture(tex->target, tex->bindcode);
@@ -1712,7 +1712,7 @@ void GPU_texture_free(GPUTexture *tex)
   }
 
   if (tex->refcount == 0) {
-    for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; ++i) {
+    for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; i++) {
       if (tex->fb[i] != NULL) {
         GPU_framebuffer_texture_detach_slot(tex->fb[i], tex, tex->fb_attachment[i]);
       }
@@ -1806,7 +1806,7 @@ int GPU_texture_opengl_bindcode(const GPUTexture *tex)
 
 void GPU_texture_attach_framebuffer(GPUTexture *tex, GPUFrameBuffer *fb, int attachment)
 {
-  for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; ++i) {
+  for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; i++) {
     if (tex->fb[i] == NULL) {
       tex->fb[i] = fb;
       tex->fb_attachment[i] = attachment;
@@ -1820,7 +1820,7 @@ void GPU_texture_attach_framebuffer(GPUTexture *tex, GPUFrameBuffer *fb, int att
 /* Return previous attachment point */
 int GPU_texture_detach_framebuffer(GPUTexture *tex, GPUFrameBuffer *fb)
 {
-  for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; ++i) {
+  for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; i++) {
     if (tex->fb[i] == fb) {
       tex->fb[i] = NULL;
       return tex->fb_attachment[i];

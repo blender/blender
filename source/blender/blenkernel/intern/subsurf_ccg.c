@@ -1784,7 +1784,7 @@ static void *ccgDM_get_tessface_data_layer(DerivedMesh *dm, int type)
 
       /* With ccgdm, we have a simple one to one mapping between loops
        * and tessellated face corners. */
-      for (i = 0; i < numLoops; ++i, ++tlnors_it, ++lnors) {
+      for (i = 0; i < numLoops; i++, tlnors_it++, lnors++) {
         normal_float_to_short_v3(*tlnors_it, *lnors);
       }
     }
@@ -2263,7 +2263,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
     }
 
     if (edgeOrigIndex) {
-      for (i = 0; i < numFinalEdges; ++i) {
+      for (i = 0; i < numFinalEdges; i++) {
         edgeOrigIndex[edgeNum + i] = ORIGINDEX_NONE;
       }
     }
@@ -2321,7 +2321,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
     edgeNum += numFinalEdges;
   }
 
-  for (index = 0; index < totedge; ++index) {
+  for (index = 0; index < totedge; index++) {
     CCGEdge *e = ccgdm->edgeMap[index].edge;
     int numFinalEdges = edgeSize - 1;
     int mapIndex = ccgDM_getEdgeMapIndex(ss, e);
@@ -2359,13 +2359,13 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
 
     if (has_edge_cd) {
       BLI_assert(edgeIdx >= 0 && edgeIdx < dm->getNumEdges(dm));
-      for (i = 0; i < numFinalEdges; ++i) {
+      for (i = 0; i < numFinalEdges; i++) {
         CustomData_copy_data(&dm->edgeData, &ccgdm->dm.edgeData, edgeIdx, edgeNum + i, 1);
       }
     }
 
     if (edgeOrigIndex) {
-      for (i = 0; i < numFinalEdges; ++i) {
+      for (i = 0; i < numFinalEdges; i++) {
         edgeOrigIndex[edgeNum + i] = mapIndex;
       }
     }
@@ -2384,7 +2384,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
     }
   }
 
-  for (index = 0; index < totvert; ++index) {
+  for (index = 0; index < totvert; index++) {
     CCGVert *v = ccgdm->vertMap[index].vert;
     int mapIndex = ccgDM_getVertMapIndex(ccgdm->ss, v);
     int vertIdx;

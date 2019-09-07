@@ -122,7 +122,7 @@ Imath::Box3d AbcTransformWriter::bounds()
 {
   Imath::Box3d bounds;
 
-  for (int i = 0; i < m_children.size(); ++i) {
+  for (int i = 0; i < m_children.size(); i++) {
     Imath::Box3d box(m_children[i]->bounds());
     bounds.extendBy(box);
   }

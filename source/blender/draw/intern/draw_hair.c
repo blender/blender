@@ -151,13 +151,13 @@ static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(Object *object,
   }
 
   /* TODO optimize this. Only bind the ones GPUMaterial needs. */
-  for (int i = 0; i < hair_cache->num_uv_layers; ++i) {
-    for (int n = 0; n < MAX_LAYER_NAME_CT && hair_cache->uv_layer_names[i][n][0] != '\0'; ++n) {
+  for (int i = 0; i < hair_cache->num_uv_layers; i++) {
+    for (int n = 0; n < MAX_LAYER_NAME_CT && hair_cache->uv_layer_names[i][n][0] != '\0'; n++) {
       DRW_shgroup_uniform_texture(shgrp, hair_cache->uv_layer_names[i][n], hair_cache->uv_tex[i]);
     }
   }
-  for (int i = 0; i < hair_cache->num_col_layers; ++i) {
-    for (int n = 0; n < MAX_LAYER_NAME_CT && hair_cache->col_layer_names[i][n][0] != '\0'; ++n) {
+  for (int i = 0; i < hair_cache->num_col_layers; i++) {
+    for (int n = 0; n < MAX_LAYER_NAME_CT && hair_cache->col_layer_names[i][n][0] != '\0'; n++) {
       DRW_shgroup_uniform_texture(
           shgrp, hair_cache->col_layer_names[i][n], hair_cache->col_tex[i]);
     }
@@ -323,7 +323,7 @@ void DRW_hair_update(void)
 
 void DRW_hair_free(void)
 {
-  for (int i = 0; i < PART_REFINE_MAX_SHADER; ++i) {
+  for (int i = 0; i < PART_REFINE_MAX_SHADER; i++) {
     DRW_SHADER_FREE_SAFE(g_refine_shaders[i]);
   }
 }

@@ -60,7 +60,7 @@ static bool check_corners(float corners[4][2])
 
 static void readCornersFromSockets(rcti *rect, SocketReader *readers[4], float corners[4][2])
 {
-  for (int i = 0; i < 4; ++i) {
+  for (int i = 0; i < 4; i++) {
     float result[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     readers[i]->readSampled(result, rect->xmin, rect->ymin, COM_PS_NEAREST);
     corners[i][0] = result[0];
@@ -208,7 +208,7 @@ void *PlaneCornerPinWarpImageOperation::initializeTileData(rcti *rect)
 bool PlaneCornerPinWarpImageOperation::determineDependingAreaOfInterest(
     rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
-  for (int i = 0; i < 4; ++i) {
+  for (int i = 0; i < 4; i++) {
     if (getInputOperation(i + 1)->determineDependingAreaOfInterest(input, readOperation, output)) {
       return true;
     }

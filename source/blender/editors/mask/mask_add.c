@@ -230,7 +230,7 @@ static void setup_vertex_point(Mask *mask,
       int point_index = reference_point - spline->points;
       int delta = new_point == spline->points ? 1 : -1;
       int i = 0;
-      for (i = 0; i < spline->tot_point - 1; ++i) {
+      for (i = 0; i < spline->tot_point - 1; i++) {
         MaskSplinePoint *current_point;
 
         point_index += delta;

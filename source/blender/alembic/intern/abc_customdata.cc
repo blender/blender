@@ -72,12 +72,12 @@ static void get_uvs(const CDStreamConfig &config,
     uvs.resize(config.totloop);
 
     /* Iterate in reverse order to match exported polygons. */
-    for (int i = 0; i < num_poly; ++i) {
+    for (int i = 0; i < num_poly; i++) {
       MPoly &current_poly = polygons[i];
       MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
 
-      for (int j = 0; j < current_poly.totloop; ++j, ++cnt) {
-        --loopuv;
+      for (int j = 0; j < current_poly.totloop; j++, cnt++) {
+        loopuv--;
 
         uvidx[cnt] = cnt;
         uvs[cnt][0] = loopuv->uv[0];
@@ -90,14 +90,14 @@ static void get_uvs(const CDStreamConfig &config,
     std::vector<std::vector<uint32_t>> idx_map(config.totvert);
     int idx_count = 0;
 
-    for (int i = 0; i < num_poly; ++i) {
+    for (int i = 0; i < num_poly; i++) {
       MPoly &current_poly = polygons[i];
       MLoop *looppoly = mloop + current_poly.loopstart + current_poly.totloop;
       MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
 
-      for (int j = 0; j < current_poly.totloop; ++j) {
-        --looppoly;
-        --loopuv;
+      for (int j = 0; j < current_poly.totloop; j++) {
+        looppoly--;
+        loopuv--;
 
         Imath::V2f uv(loopuv->uv[0], loopuv->uv[1]);
         bool found_same = false;
@@ -188,12 +188,12 @@ static void write_mcol(const OCompoundProperty &prop,
 
   Imath::C4f col;
 
-  for (int i = 0; i < config.totpoly; ++i) {
+  for (int i = 0; i < config.totpoly; i++) {
     MPoly *p = &polys[i];
     MCol *cface = &cfaces[p->loopstart + p->totloop];
     MLoop *mloop = &mloops[p->loopstart + p->totloop];
 
-    for (int j = 0; j < p->totloop; ++j) {
+    for (int j = 0; j < p->totloop; j++) {
       cface--;
       mloop--;
 
@@ -230,7 +230,7 @@ void write_custom_data(const OCompoundProperty &prop,
   const int active_layer = CustomData_get_active_layer(data, cd_data_type);
   const int tot_layers = CustomData_number_of_layers(data, cd_data_type);
 
-  for (int i = 0; i < tot_layers; ++i) {
+  for (int i = 0; i < tot_layers; i++) {
     void *cd_data = CustomData_get_layer_n(data, cd_data_type, i);
     const char *name = CustomData_get_layer_name(data, cd_data_type, i);
 
@@ -268,11 +268,11 @@ static void read_uvs(const CDStreamConfig &config,
 
   unsigned int uv_index, loop_index, rev_loop_index;
 
-  for (int i = 0; i < config.totpoly; ++i) {
+  for (int i = 0; i < config.totpoly; i++) {
     MPoly &poly = mpolys[i];
     unsigned int rev_loop_offset = poly.loopstart + poly.totloop - 1;
 
-    for (int f = 0; f < poly.totloop; ++f) {
+    for (int f = 0; f < poly.totloop; f++) {
       loop_index = poly.loopstart + f;
       rev_loop_index = rev_loop_offset - f;
       uv_index = (*indices)[loop_index];
@@ -368,14 +368,14 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
    * is why we have to check for indices->size() > 0 */
   bool use_dual_indexing = is_facevarying && indices->size() > 0;
 
-  for (int i = 0; i < config.totpoly; ++i) {
+  for (int i = 0; i < config.totpoly; i++) {
     MPoly *poly = &mpolys[i];
     MCol *cface = &cfaces[poly->loopstart + poly->totloop];
     MLoop *mloop = &mloops[poly->loopstart + poly->totloop];
 
-    for (int j = 0; j < poly->totloop; ++j, ++face_index) {
-      --cface;
-      --mloop;
+    for (int j = 0; j < poly->totloop; j++, face_index++) {
+      cface--;
+      mloop--;
 
       color_index = is_facevarying ? face_index : mloop->v;
       if (use_dual_indexing) {
@@ -456,7 +456,7 @@ void read_custom_data(const std::string &iobject_full_name,
 
   const size_t num_props = prop.getNumProperties();
 
-  for (size_t i = 0; i < num_props; ++i) {
+  for (size_t i = 0; i < num_props; i++) {
     const Alembic::Abc::PropertyHeader &prop_header = prop.getPropertyHeader(i);
 
     /* Read UVs according to convention. */

@@ -234,7 +234,7 @@ void CLOSURE_NAME(vec3 N
 
   vec3 true_normal = normalize(cross(dFdx(viewPosition), dFdy(viewPosition)));
 
-  for (int i = 0; i < MAX_LIGHT && i < laNumLight; ++i) {
+  for (int i = 0; i < MAX_LIGHT && i < laNumLight; i++) {
     LightData ld = lights_data[i];
 
     vec4 l_vector; /* Non-Normalized Light Vector with length in last component. */
@@ -304,7 +304,7 @@ void CLOSURE_NAME(vec3 N
   /*      Planar Reflections      */
   /* ---------------------------- */
 
-  for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar && spec_accum.a < 0.999; ++i) {
+  for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar && spec_accum.a < 0.999; i++) {
     PlanarData pd = planars_data[i];
 
     /* Fade on geometric normal. */
@@ -380,7 +380,7 @@ void CLOSURE_NAME(vec3 N
 #    endif
 
   /* Starts at 1 because 0 is world probe */
-  for (int i = 1; ACCUM < 0.999 && i < prbNumRenderCube && i < MAX_PROBE; ++i) {
+  for (int i = 1; ACCUM < 0.999 && i < prbNumRenderCube && i < MAX_PROBE; i++) {
     float fade = probe_attenuation_cube(i, worldPosition);
 
     if (fade > 0.0) {
@@ -515,7 +515,7 @@ void CLOSURE_NAME(vec3 N
   /*       Irradiance Grids       */
   /* ---------------------------- */
   /* Start at 1 because 0 is world irradiance */
-  for (int i = 1; i < MAX_GRID && i < prbNumRenderGrid && diff_accum.a < 0.999; ++i) {
+  for (int i = 1; i < MAX_GRID && i < prbNumRenderGrid && diff_accum.a < 0.999; i++) {
     GridData gd = grids_data[i];
 
     vec3 localpos;

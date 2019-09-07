@@ -1365,7 +1365,7 @@ void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_s
   immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
   immBeginAtMost(GPU_PRIM_LINES, vertex_count);
 
-  for (int level = 0; level < totlevels; ++level) {
+  for (int level = 0; level < totlevels; level++) {
     UI_GetThemeColorShade3ubv(colorid, offset, grid_line_color);
 
     int i = (int)(v2d->cur.xmin / lstep);
@@ -1374,7 +1374,7 @@ void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_s
     }
     float start = i * lstep;
 
-    for (; start < v2d->cur.xmax; start += lstep, ++i) {
+    for (; start < v2d->cur.xmax; start += lstep, i++) {
       if (i == 0 || (level < totlevels - 1 && i % level_size == 0)) {
         continue;
       }
@@ -1391,7 +1391,7 @@ void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_s
     }
     start = i * lstep;
 
-    for (; start < v2d->cur.ymax; start += lstep, ++i) {
+    for (; start < v2d->cur.ymax; start += lstep, i++) {
       if (i == 0 || (level < totlevels - 1 && i % level_size == 0)) {
         continue;
       }

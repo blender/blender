@@ -176,7 +176,7 @@ void solve_cycles(CyclesSolverState *state)
     OperationNode *node = entry->node;
     bool all_child_traversed = true;
     const int num_visited = get_node_num_visited_children(node);
-    for (int i = num_visited; i < node->outlinks.size(); ++i) {
+    for (int i = num_visited; i < node->outlinks.size(); i++) {
       Relation *rel = node->outlinks[i];
       if (rel->to->type == NodeType::OPERATION) {
         OperationNode *to = (OperationNode *)rel->to;

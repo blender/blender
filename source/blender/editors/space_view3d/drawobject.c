@@ -96,7 +96,7 @@ void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], un
   circball_array_fill(verts, cent, rad, tmat);
 
   immBegin(GPU_PRIM_LINE_LOOP, CIRCLE_RESOL);
-  for (int i = 0; i < CIRCLE_RESOL; ++i) {
+  for (int i = 0; i < CIRCLE_RESOL; i++) {
     immVertex3fv(pos, verts[i]);
   }
   immEnd();

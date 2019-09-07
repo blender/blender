@@ -105,7 +105,7 @@ void PlaneDistortWarpImageOperation::executePixelSampled(float output[4],
   }
   else {
     zero_v4(output);
-    for (int sample = 0; sample < this->m_motion_blur_samples; ++sample) {
+    for (int sample = 0; sample < this->m_motion_blur_samples; sample++) {
       float color[4];
       warpCoord(x, y, this->m_samples[sample].perspectiveMatrix, uv, deriv);
       m_pixelReader->readFiltered(color, uv[0], uv[1], deriv[0], deriv[1]);
@@ -121,7 +121,7 @@ bool PlaneDistortWarpImageOperation::determineDependingAreaOfInterest(
   float min[2], max[2];
   INIT_MINMAX2(min, max);
 
-  for (int sample = 0; sample < this->m_motion_blur_samples; ++sample) {
+  for (int sample = 0; sample < this->m_motion_blur_samples; sample++) {
     float UVs[4][2];
     float deriv[2][2];
     MotionSample *sample_data = &this->m_samples[sample];
@@ -208,9 +208,9 @@ void PlaneDistortMaskOperation::executePixelSampled(float output[4],
     output[0] = (float)inside_counter / this->m_osa;
   }
   else {
-    for (int motion_sample = 0; motion_sample < this->m_motion_blur_samples; ++motion_sample) {
+    for (int motion_sample = 0; motion_sample < this->m_motion_blur_samples; motion_sample++) {
       MotionSample *sample_data = &this->m_samples[motion_sample];
-      for (int osa_sample = 0; osa_sample < this->m_osa; ++osa_sample) {
+      for (int osa_sample = 0; osa_sample < this->m_osa; osa_sample++) {
         point[0] = x + this->m_jitter[osa_sample][0];
         point[1] = y + this->m_jitter[osa_sample][1];
         if (isect_point_tri_v2(point,

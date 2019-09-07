@@ -90,7 +90,7 @@ void CryptomatteNode::convertToOperations(NodeConverter &converter,
 
   converter.addOperation(operation);
 
-  for (int i = 0; i < getNumberOfInputSockets() - 1; ++i) {
+  for (int i = 0; i < getNumberOfInputSockets() - 1; i++) {
     converter.mapInputSocket(this->getInputSocket(i + 1), operation->getInputSocket(i));
   }
 

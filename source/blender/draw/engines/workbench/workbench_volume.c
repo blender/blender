@@ -101,7 +101,7 @@ void workbench_volume_engine_init(void)
 
 void workbench_volume_engine_free(void)
 {
-  for (int i = 0; i < VOLUME_SH_MAX; ++i) {
+  for (int i = 0; i < VOLUME_SH_MAX; i++) {
     DRW_SHADER_FREE_SAFE(e_data.volume_sh[i]);
   }
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_tex);

@@ -126,7 +126,7 @@ static void generateStrokes(GpencilModifierData *md,
   int i;
 
   /* check each axis for mirroring */
-  for (int xi = 0; xi < 3; ++xi) {
+  for (int xi = 0; xi < 3; xi++) {
     if (mmd->flag & (GP_MIRROR_AXIS_X << xi)) {
 
       /* count strokes to avoid infinite loop after adding new strokes to tail of listbase */
@@ -208,7 +208,7 @@ static int getDuplicationFactor(GpencilModifierData *md)
   MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
   int factor = 1;
   /* create a duplication for each axis */
-  for (int xi = 0; xi < 3; ++xi) {
+  for (int xi = 0; xi < 3; xi++) {
     if (mmd->flag & (GP_MIRROR_AXIS_X << xi)) {
       factor++;
     }

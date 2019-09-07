@@ -82,7 +82,7 @@ static void subdiv_mesh_ctx_cache_uv_layers(SubdivMeshContext *ctx)
 {
   Mesh *subdiv_mesh = ctx->subdiv_mesh;
   ctx->num_uv_layers = CustomData_number_of_layers(&subdiv_mesh->ldata, CD_MLOOPUV);
-  for (int layer_index = 0; layer_index < ctx->num_uv_layers; ++layer_index) {
+  for (int layer_index = 0; layer_index < ctx->num_uv_layers; layer_index++) {
     ctx->uv_layers[layer_index] = CustomData_get_layer_n(
         &subdiv_mesh->ldata, CD_MLOOPUV, layer_index);
   }
@@ -220,7 +220,7 @@ static void vertex_interpolation_init(const SubdivMeshContext *ctx,
     const float weight = 1.0f / (float)coarse_poly->totloop;
     float *weights = BLI_array_alloca(weights, coarse_poly->totloop);
     int *indices = BLI_array_alloca(indices, coarse_poly->totloop);
-    for (int i = 0; i < coarse_poly->totloop; ++i) {
+    for (int i = 0; i < coarse_poly->totloop; i++) {
       weights[i] = weight;
       indices[i] = coarse_mloop[coarse_poly->loopstart + i].v;
     }
@@ -352,7 +352,7 @@ static void loop_interpolation_init(const SubdivMeshContext *ctx,
     const float weight = 1.0f / (float)coarse_poly->totloop;
     float *weights = BLI_array_alloca(weights, coarse_poly->totloop);
     int *indices = BLI_array_alloca(indices, coarse_poly->totloop);
-    for (int i = 0; i < coarse_poly->totloop; ++i) {
+    for (int i = 0; i < coarse_poly->totloop; i++) {
       weights[i] = weight;
       indices[i] = coarse_poly->loopstart + i;
     }

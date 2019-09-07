@@ -895,7 +895,7 @@ void filelist_free_icons(void)
 
   BLI_assert(G.background == false);
 
-  for (i = 0; i < SPECIAL_IMG_MAX; ++i) {
+  for (i = 0; i < SPECIAL_IMG_MAX; i++) {
     IMB_freeImBuf(gSpecialFileImages[i]);
     gSpecialFileImages[i] = NULL;
   }

@@ -762,7 +762,7 @@ static void studiolight_spherical_harmonics_calculate_coefficients(StudioLight *
 
   /* The sum of solid angle should be equal to the solid angle of the sphere (4 PI),
    * so normalize in order to make our weightAccum exactly match 4 PI. */
-  for (int i = 0; i < STUDIOLIGHT_SH_COEFS_LEN; ++i) {
+  for (int i = 0; i < STUDIOLIGHT_SH_COEFS_LEN; i++) {
     mul_v3_fl(sh[i], M_PI * 4.0f / weight_accum);
   }
 }
@@ -801,11 +801,11 @@ static float studiolight_spherical_harmonics_lambda_get(float *sh, float max_lap
   }
 
   const int no_iterations = 10000000;
-  for (int i = 0; i < no_iterations; ++i) {
+  for (int i = 0; i < no_iterations; i++) {
     float f = 0.0f;
     float fd = 0.0f;
 
-    for (int level = 1; level < STUDIOLIGHT_SH_BANDS; ++level) {
+    for (int level = 1; level < STUDIOLIGHT_SH_BANDS; level++) {
       f += table_l[level] * table_b[level] / SQUARE(1.0f + lambda * table_l[level]);
       fd += (2.0f * SQUARE(table_l[level]) * table_b[level]) /
             CUBE(1.0f + lambda * table_l[level]);
@@ -882,7 +882,7 @@ BLI_INLINE void studiolight_spherical_harmonics_eval(StudioLight *sl,
 {
 #if STUDIOLIGHT_SH_BANDS == 2
   float(*sh)[3] = (float(*)[3])sl->spherical_harmonics_coefs;
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 3; i++) {
     color[i] = studiolight_spherical_harmonics_geomerics_eval(
         normal, sh[0][i], sh[1][i], sh[2][i], sh[3][i]);
   }
@@ -1118,7 +1118,7 @@ static void studiolight_lights_eval(StudioLight *sl, float color[3], const float
   copy_v3_v3(spec_light, sl->light_ambient);
 
   reflect_v3_v3v3(R, I, N);
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 3; i++) {
     SolidLight *light = &sl->light[i];
     if (light->flag) {
       /* Diffuse lighting */

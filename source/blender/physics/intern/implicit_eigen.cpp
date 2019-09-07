@@ -98,14 +98,14 @@ class fVector : public Eigen::Vector3f {
 
   fVector(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k) {
+    for (int k = 0; k < 3; k++) {
       coeffRef(k) = v[k];
     }
   }
 
   fVector &operator=(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k) {
+    for (int k = 0; k < 3; k++) {
       coeffRef(k) = v[k];
     }
     return *this;
@@ -130,8 +130,8 @@ class fMatrix : public Eigen::Matrix3f {
 
   fMatrix(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k) {
-      for (int l = 0; l < 3; ++l) {
+    for (int k = 0; k < 3; k++) {
+      for (int l = 0; l < 3; l++) {
         coeffRef(l, k) = v[k][l];
       }
     }
@@ -139,8 +139,8 @@ class fMatrix : public Eigen::Matrix3f {
 
   fMatrix &operator=(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k) {
-      for (int l = 0; l < 3; ++l) {
+    for (int k = 0; k < 3; k++) {
+      for (int l = 0; l < 3; l++) {
         coeffRef(l, k) = v[k][l];
       }
     }
@@ -212,8 +212,8 @@ struct lMatrixCtor {
   {
     i *= 3;
     j *= 3;
-    for (int k = 0; k < 3; ++k) {
-      for (int l = 0; l < 3; ++l) {
+    for (int k = 0; k < 3; k++) {
+      for (int l = 0; l < 3; l++) {
         m_trips.push_back(Triplet(i + k, j + l, m.coeff(l, k)));
       }
     }
@@ -223,8 +223,8 @@ struct lMatrixCtor {
   {
     i *= 3;
     j *= 3;
-    for (int k = 0; k < 3; ++k) {
-      for (int l = 0; l < 3; ++l) {
+    for (int k = 0; k < 3; k++) {
+      for (int l = 0; l < 3; l++) {
         m_trips.push_back(Triplet(i + k, j + l, -m.coeff(l, k)));
       }
     }
@@ -255,7 +255,7 @@ using Eigen::ComputationInfo;
 
 static void print_lvector(const lVector &v)
 {
-  for (int i = 0; i < v.rows(); ++i) {
+  for (int i = 0; i < v.rows(); i++) {
     if (i > 0 && i % 3 == 0) {
       printf("\n");
     }
@@ -266,12 +266,12 @@ static void print_lvector(const lVector &v)
 
 static void print_lmatrix(const lMatrix &m)
 {
-  for (int j = 0; j < m.rows(); ++j) {
+  for (int j = 0; j < m.rows(); j++) {
     if (j > 0 && j % 3 == 0) {
       printf("\n");
     }
 
-    for (int i = 0; i < m.cols(); ++i) {
+    for (int i = 0; i < m.cols(); i++) {
       if (i > 0 && i % 3 == 0) {
         printf("  ");
       }
@@ -302,8 +302,8 @@ BLI_INLINE void triplets_m3(TripletList &tlist, float m[3][3], int i, int j)
 {
   i *= 3;
   j *= 3;
-  for (int l = 0; l < 3; ++l) {
-    for (int k = 0; k < 3; ++k) {
+  for (int l = 0; l < 3; l++) {
+    for (int k = 0; k < 3; k++) {
       tlist.push_back(Triplet(i + k, j + l, m[k][l]));
     }
   }
@@ -313,8 +313,8 @@ BLI_INLINE void triplets_m3fl(TripletList &tlist, float m[3][3], int i, int j, f
 {
   i *= 3;
   j *= 3;
-  for (int l = 0; l < 3; ++l) {
-    for (int k = 0; k < 3; ++k) {
+  for (int l = 0; l < 3; l++) {
+    for (int k = 0; k < 3; k++) {
       tlist.push_back(Triplet(i + k, j + l, m[k][l] * factor));
     }
   }
@@ -667,7 +667,7 @@ void BPH_mass_spring_set_new_velocity(Implicit_Data *data, int index, const floa
 void BPH_mass_spring_clear_constraints(Implicit_Data *data)
 {
   int numverts = data->numverts;
-  for (int i = 0; i < numverts; ++i) {
+  for (int i = 0; i < numverts; i++) {
     data->iS.add(i, i, I);
     zero_v3(data->z.v3(i));
   }
@@ -1236,7 +1236,7 @@ BLI_INLINE void spring_angbend_estimate_dfdx(Implicit_Data *data,
 
   /* XXX TODO offset targets to account for position dependency */
 
-  for (a = 0; a < 3; ++a) {
+  for (a = 0; a < 3; a++) {
     spring_angbend_forces(
         data, i, j, k, goal, stiffness, damping, q, dvec_pos[a], dvec_null[a], f);
     copy_v3_v3(dfdx[a], f);
@@ -1245,7 +1245,7 @@ BLI_INLINE void spring_angbend_estimate_dfdx(Implicit_Data *data,
         data, i, j, k, goal, stiffness, damping, q, dvec_neg[a], dvec_null[a], f);
     sub_v3_v3(dfdx[a], f);
 
-    for (b = 0; b < 3; ++b) {
+    for (b = 0; b < 3; b++) {
       dfdx[a][b] /= delta;
     }
   }
@@ -1275,7 +1275,7 @@ BLI_INLINE void spring_angbend_estimate_dfdv(Implicit_Data *data,
 
   /* XXX TODO offset targets to account for position dependency */
 
-  for (a = 0; a < 3; ++a) {
+  for (a = 0; a < 3; a++) {
     spring_angbend_forces(
         data, i, j, k, goal, stiffness, damping, q, dvec_null[a], dvec_pos[a], f);
     copy_v3_v3(dfdv[a], f);
@@ -1284,7 +1284,7 @@ BLI_INLINE void spring_angbend_estimate_dfdv(Implicit_Data *data,
         data, i, j, k, goal, stiffness, damping, q, dvec_null[a], dvec_neg[a], f);
     sub_v3_v3(dfdv[a], f);
 
-    for (b = 0; b < 3; ++b) {
+    for (b = 0; b < 3; b++) {
       dfdv[a][b] /= delta;
     }
   }

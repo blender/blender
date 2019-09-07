@@ -3126,12 +3126,12 @@ static void node_template_properties_update(bNodeType *ntype)
   bNodeSocketTemplate *stemp;
 
   if (ntype->inputs) {
-    for (stemp = ntype->inputs; stemp->type >= 0; ++stemp) {
+    for (stemp = ntype->inputs; stemp->type >= 0; stemp++) {
       node_socket_template_properties_update(ntype, stemp);
     }
   }
   if (ntype->outputs) {
-    for (stemp = ntype->outputs; stemp->type >= 0; ++stemp) {
+    for (stemp = ntype->outputs; stemp->type >= 0; stemp++) {
       node_socket_template_properties_update(ntype, stemp);
     }
   }
@@ -3752,7 +3752,7 @@ static void nodelink_batch_init(void)
   GPU_vertbuf_data_alloc(vbo, vcount);
   int v = 0;
 
-  for (int k = 0; k < 2; ++k) {
+  for (int k = 0; k < 2; k++) {
     unsigned char uv[2] = {0, 0};
     float pos[2] = {0.0f, 0.0f};
     float exp[2] = {0.0f, 1.0f};
@@ -3763,7 +3763,7 @@ static void nodelink_batch_init(void)
     }
 
     /* curve strip */
-    for (int i = 0; i < LINK_RESOL; ++i) {
+    for (int i = 0; i < LINK_RESOL; i++) {
       uv[0] = 255 * (i / (float)(LINK_RESOL - 1));
       uv[1] = 0;
       set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
@@ -3779,7 +3779,7 @@ static void nodelink_batch_init(void)
     copy_v2_v2(exp, arrow_expand_axis[0]);
     set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
     /* arrow */
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 3; i++) {
       uv[1] = 0;
       copy_v2_v2(pos, arrow_verts[i]);
       copy_v2_v2(exp, arrow_expand_axis[i]);

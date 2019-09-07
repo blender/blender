@@ -54,14 +54,14 @@ class Vector3 : public Eigen::Vector3f {
 
   Vector3(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k) {
+    for (int k = 0; k < 3; k++) {
       coeffRef(k) = v[k];
     }
   }
 
   Vector3 &operator=(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k) {
+    for (int k = 0; k < 3; k++) {
       coeffRef(k) = v[k];
     }
     return *this;
@@ -86,8 +86,8 @@ class Matrix3 : public Eigen::Matrix3f {
 
   Matrix3(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k) {
-      for (int l = 0; l < 3; ++l) {
+    for (int k = 0; k < 3; k++) {
+      for (int l = 0; l < 3; l++) {
         coeffRef(l, k) = v[k][l];
       }
     }
@@ -95,8 +95,8 @@ class Matrix3 : public Eigen::Matrix3f {
 
   Matrix3 &operator=(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k) {
-      for (int l = 0; l < 3; ++l) {
+    for (int k = 0; k < 3; k++) {
+      for (int l = 0; l < 3; l++) {
         coeffRef(l, k) = v[k][l];
       }
     }
@@ -170,8 +170,8 @@ struct lMatrix3fCtor {
   {
     i *= 3;
     j *= 3;
-    for (int k = 0; k < 3; ++k) {
-      for (int l = 0; l < 3; ++l) {
+    for (int k = 0; k < 3; k++) {
+      for (int l = 0; l < 3; l++) {
         m_trips.push_back(Triplet(i + k, j + l, m.coeff(l, k)));
       }
     }
@@ -181,8 +181,8 @@ struct lMatrix3fCtor {
   {
     i *= 3;
     j *= 3;
-    for (int k = 0; k < 3; ++k) {
-      for (int l = 0; l < 3; ++l) {
+    for (int k = 0; k < 3; k++) {
+      for (int l = 0; l < 3; l++) {
         m_trips.push_back(Triplet(i + k, j + l, -m.coeff(l, k)));
       }
     }
@@ -205,7 +205,7 @@ using Eigen::ComputationInfo;
 
 BLI_INLINE void print_lvector(const lVector3f &v)
 {
-  for (int i = 0; i < v.rows(); ++i) {
+  for (int i = 0; i < v.rows(); i++) {
     if (i > 0 && i % 3 == 0) {
       printf("\n");
     }
@@ -216,12 +216,12 @@ BLI_INLINE void print_lvector(const lVector3f &v)
 
 BLI_INLINE void print_lmatrix(const lMatrix &m)
 {
-  for (int j = 0; j < m.rows(); ++j) {
+  for (int j = 0; j < m.rows(); j++) {
     if (j > 0 && j % 3 == 0) {
       printf("\n");
     }
 
-    for (int i = 0; i < m.cols(); ++i) {
+    for (int i = 0; i < m.cols(); i++) {
       if (i > 0 && i % 3 == 0) {
         printf("  ");
       }

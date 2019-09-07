@@ -93,7 +93,7 @@ __m128 *BlurBaseOperation::convert_gausstab_sse(const float *gausstab, int size)
 {
   int n = 2 * size + 1;
   __m128 *gausstab_sse = (__m128 *)MEM_mallocN_aligned(sizeof(__m128) * n, 16, "gausstab sse");
-  for (int i = 0; i < n; ++i) {
+  for (int i = 0; i < n; i++) {
     gausstab_sse[i] = _mm_set1_ps(gausstab[i]);
   }
   return gausstab_sse;

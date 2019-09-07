@@ -149,7 +149,7 @@ GPU_INLINE const GPUShaderInput *buckets_lookup(
 
 GPU_INLINE void buckets_free(GPUShaderInput *buckets[GPU_NUM_SHADERINTERFACE_BUCKETS])
 {
-  for (uint bucket_index = 0; bucket_index < GPU_NUM_SHADERINTERFACE_BUCKETS; ++bucket_index) {
+  for (uint bucket_index = 0; bucket_index < GPU_NUM_SHADERINTERFACE_BUCKETS; bucket_index++) {
     GPUShaderInput *input = buckets[bucket_index];
     while (input != NULL) {
       GPUShaderInput *input_next = input->next;
@@ -164,7 +164,7 @@ static bool setup_builtin_uniform(GPUShaderInput *input, const char *name)
   /* TODO: reject DOUBLE, IMAGE, ATOMIC_COUNTER gl_types */
 
   /* detect built-in uniforms (name must match) */
-  for (GPUUniformBuiltin u = GPU_UNIFORM_NONE + 1; u < GPU_UNIFORM_CUSTOM; ++u) {
+  for (GPUUniformBuiltin u = GPU_UNIFORM_NONE + 1; u < GPU_UNIFORM_CUSTOM; u++) {
     const char *builtin_name = BuiltinUniform_name(u);
     if (match(name, builtin_name)) {
       input->builtin_type = u;
@@ -236,7 +236,7 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
   shaderface->name_buffer = MEM_mallocN(name_buffer_len, "name_buffer");
 
   /* Attributes */
-  for (uint32_t i = 0; i < attr_len; ++i) {
+  for (uint32_t i = 0; i < attr_len; i++) {
     GPUShaderInput *input = MEM_mallocN(sizeof(GPUShaderInput), "GPUShaderInput Attr");
     GLsizei remaining_buffer = name_buffer_len - shaderface->name_buffer_offset;
     char *name = shaderface->name_buffer + shaderface->name_buffer_offset;
@@ -264,7 +264,7 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 #endif
   }
   /* Uniform Blocks */
-  for (uint32_t i = 0; i < ubo_len; ++i) {
+  for (uint32_t i = 0; i < ubo_len; i++) {
     GPUShaderInput *input = MEM_mallocN(sizeof(GPUShaderInput), "GPUShaderInput UBO");
     GLsizei remaining_buffer = name_buffer_len - shaderface->name_buffer_offset;
     char *name = shaderface->name_buffer + shaderface->name_buffer_offset;
@@ -283,7 +283,7 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 #endif
   }
   /* Builtin Uniforms */
-  for (GPUUniformBuiltin u = GPU_UNIFORM_NONE + 1; u < GPU_UNIFORM_CUSTOM; ++u) {
+  for (GPUUniformBuiltin u = GPU_UNIFORM_NONE + 1; u < GPU_UNIFORM_CUSTOM; u++) {
     const char *builtin_name = BuiltinUniform_name(u);
     if (glGetUniformLocation(program, builtin_name) != -1) {
       add_uniform((GPUShaderInterface *)shaderface, builtin_name);
@@ -306,7 +306,7 @@ void GPU_shaderinterface_discard(GPUShaderInterface *shaderface)
   /* Free memory used by name_buffer. */
   MEM_freeN(shaderface->name_buffer);
   /* Remove this interface from all linked Batches vao cache. */
-  for (int i = 0; i < shaderface->batches_len; ++i) {
+  for (int i = 0; i < shaderface->batches_len; i++) {
     if (shaderface->batches[i] != NULL) {
       gpu_batch_remove_interface_ref(shaderface->batches[i], shaderface);
     }
@@ -374,7 +374,7 @@ const GPUShaderInput *GPU_shaderinterface_attr(const GPUShaderInterface *shaderf
 void GPU_shaderinterface_add_batch_ref(GPUShaderInterface *shaderface, GPUBatch *batch)
 {
   int i; /* find first unused slot */
-  for (i = 0; i < shaderface->batches_len; ++i) {
+  for (i = 0; i < shaderface->batches_len; i++) {
     if (shaderface->batches[i] == NULL) {
       break;
     }
@@ -391,7 +391,7 @@ void GPU_shaderinterface_add_batch_ref(GPUShaderInterface *shaderface, GPUBatch 
 
 void GPU_shaderinterface_remove_batch_ref(GPUShaderInterface *shaderface, GPUBatch *batch)
 {
-  for (int i = 0; i < shaderface->batches_len; ++i) {
+  for (int i = 0; i < shaderface->batches_len; i++) {
     if (shaderface->batches[i] == batch) {
       shaderface->batches[i] = NULL;
       break; /* cannot have duplicates */

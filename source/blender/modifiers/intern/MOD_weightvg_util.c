@@ -76,7 +76,7 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
   }
 
   /* Map each weight (vertex) to its new value, accordingly to the chosen mode. */
-  for (i = 0; i < num; ++i) {
+  for (i = 0; i < num; i++) {
     float fac = new_w[i];
 
     /* Code borrowed from the warp modifier. */
@@ -164,7 +164,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     MOD_init_texture(&t_map, ctx);
 
     /* For each weight (vertex), make the mix between org and new weights. */
-    for (i = 0; i < num; ++i) {
+    for (i = 0; i < num; i++) {
       int idx = indices ? indices[i] : i;
       TexResult texres;
       float hsv[3]; /* For HSV color space. */

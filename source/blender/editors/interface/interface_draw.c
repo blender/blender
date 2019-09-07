@@ -2220,8 +2220,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar),
       /* Do stipple cross with geometry */
       immBegin(GPU_PRIM_LINES, 7 * 2 * 2);
       float pos_sel[8] = {-10.0f, -7.0f, -4.0f, -1.0f, 2.0f, 5.0f, 8.0f, 11.0f};
-      for (int axe = 0; axe < 2; ++axe) {
-        for (int i = 0; i < 7; ++i) {
+      for (int axe = 0; axe < 2; axe++) {
+        for (int i = 0; i < 7; i++) {
           float x1 = pos_sel[i] * (1 - axe);
           float y1 = pos_sel[i] * axe;
           float x2 = pos_sel[i + 1] * (1 - axe);

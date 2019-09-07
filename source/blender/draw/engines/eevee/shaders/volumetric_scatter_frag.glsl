@@ -38,7 +38,7 @@ void main()
                        phase_function_isotropic();
 
 #ifdef VOLUME_LIGHTING /* Lights */
-  for (int i = 0; i < MAX_LIGHT && i < laNumLight; ++i) {
+  for (int i = 0; i < MAX_LIGHT && i < laNumLight; i++) {
 
     LightData ld = lights_data[i];
 

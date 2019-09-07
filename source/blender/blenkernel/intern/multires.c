@@ -452,7 +452,7 @@ static int get_levels_from_disps(Object *ob)
 
   mdisp = CustomData_get_layer(&me->ldata, CD_MDISPS);
 
-  for (i = 0; i < me->totpoly; ++i) {
+  for (i = 0; i < me->totpoly; i++) {
     md = mdisp + me->mpoly[i].loopstart;
 
     for (j = 0; j < me->mpoly[i].totloop; j++, md++) {
@@ -520,7 +520,7 @@ static void multires_reallocate_mdisps(int totloop, MDisps *mdisps, int lvl)
   int i;
 
   /* reallocate displacements to be filled in */
-  for (i = 0; i < totloop; ++i) {
+  for (i = 0; i < totloop; i++) {
     int totdisp = multires_grid_tot[lvl];
     float(*disps)[3] = MEM_calloc_arrayN(totdisp, 3 * sizeof(float), "multires disps");
 
@@ -633,7 +633,7 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
       int hsize = multires_side_tot[mmd->totlvl];
       int i, j;
 
-      for (i = 0; i < me->totpoly; ++i) {
+      for (i = 0; i < me->totpoly; i++) {
         for (j = 0; j < me->mpoly[i].totloop; j++) {
           int g = me->mpoly[i].loopstart + j;
           MDisps *mdisp = &mdisps[g];
@@ -802,7 +802,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Scene *scene, Object
 
   /* copy the new locations of the base verts into the mesh */
   offset = dispdm->getNumVerts(dispdm) - me->totvert;
-  for (i = 0; i < me->totvert; ++i) {
+  for (i = 0; i < me->totvert; i++) {
     dispdm->getVertCo(dispdm, offset + i, me->mvert[i].co);
   }
 
@@ -811,11 +811,11 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Scene *scene, Object
   cddm = CDDM_from_mesh(me);
   pmap = cddm->getPolyMap(ob, cddm);
   origco = MEM_calloc_arrayN(me->totvert, 3 * sizeof(float), "multires apply base origco");
-  for (i = 0; i < me->totvert; ++i) {
+  for (i = 0; i < me->totvert; i++) {
     copy_v3_v3(origco[i], me->mvert[i].co);
   }
 
-  for (i = 0; i < me->totvert; ++i) {
+  for (i = 0; i < me->totvert; i++) {
     float avg_no[3] = {0, 0, 0}, center[3] = {0, 0, 0}, push[3];
     float dist;
     int tot = 0;
@@ -830,7 +830,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Scene *scene, Object
       const MPoly *p = &me->mpoly[pmap[i].indices[j]];
 
       /* this double counts, not sure if that's bad or good */
-      for (k = 0; k < p->totloop; ++k) {
+      for (k = 0; k < p->totloop; k++) {
         int vndx = me->mloop[p->loopstart + k].v;
         if (vndx != i) {
           add_v3_v3(center, origco[vndx]);
@@ -855,7 +855,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Scene *scene, Object
       fake_loops = MEM_malloc_arrayN(p->totloop, sizeof(MLoop), "fake_loops");
       fake_co = MEM_malloc_arrayN(p->totloop, 3 * sizeof(float), "fake_co");
 
-      for (k = 0; k < p->totloop; ++k) {
+      for (k = 0; k < p->totloop; k++) {
         int vndx = me->mloop[p->loopstart + k].v;
 
         fake_loops[k].v = k;
@@ -975,7 +975,7 @@ static void multires_subdivide(
 
     subGridData = MEM_calloc_arrayN(numGrids, sizeof(float *), "subGridData*");
 
-    for (i = 0; i < numGrids; ++i) {
+    for (i = 0; i < numGrids; i++) {
       /* backup subsurf grids */
       subGridData[i] = MEM_calloc_arrayN(
           highGridKey.elem_size, highGridSize * highGridSize, "subGridData");
@@ -1000,7 +1000,7 @@ static void multires_subdivide(
 
     /* free */
     highdm->release(highdm);
-    for (i = 0; i < numGrids; ++i) {
+    for (i = 0; i < numGrids; i++) {
       MEM_freeN(subGridData[i]);
     }
     MEM_freeN(subGridData);
@@ -1097,7 +1097,7 @@ static void multires_disp_run_cb(void *__restrict userdata,
   const int numVerts = mpoly[pidx].totloop;
   int S, x, y, gIndex = gridOffset[pidx];
 
-  for (S = 0; S < numVerts; ++S, ++gIndex) {
+  for (S = 0; S < numVerts; S++, gIndex++) {
     GridPaintMask *gpm = grid_paint_mask ? &grid_paint_mask[gIndex] : NULL;
     MDisps *mdisp = &mdisps[mpoly[pidx].loopstart + S];
     CCGElem *grid = gridData[gIndex];
@@ -1223,7 +1223,7 @@ static void multiresModifier_disp_run(
   }
 
   /* when adding new faces in edit mode, need to allocate disps */
-  for (i = 0; i < totloop; ++i) {
+  for (i = 0; i < totloop; i++) {
     if (mdisps[i].disps == NULL) {
       multires_reallocate_mdisps(totloop, mdisps, totlvl);
       break;
@@ -1324,7 +1324,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
       subGridData = MEM_calloc_arrayN(numGrids, sizeof(CCGElem *), "subGridData*");
       diffGrid = MEM_calloc_arrayN(lowGridKey.elem_size, lowGridSize * lowGridSize, "diff");
 
-      for (i = 0; i < numGrids; ++i) {
+      for (i = 0; i < numGrids; i++) {
         /* backup subsurf grids */
         subGridData[i] = MEM_calloc_arrayN(
             highGridKey.elem_size, highGridSize * highGridSize, "subGridData");
@@ -1332,7 +1332,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
             subGridData[i], highGridData[i], highGridKey.elem_size * highGridSize * highGridSize);
 
         /* write difference of subsurf and displaced low level into high subsurf */
-        for (j = 0; j < lowGridSize * lowGridSize; ++j) {
+        for (j = 0; j < lowGridSize * lowGridSize; j++) {
           sub_v4_v4v4(CCG_elem_offset_co(&lowGridKey, diffGrid, j),
                       CCG_elem_offset_co(&lowGridKey, gridData[i], j),
                       CCG_elem_offset_co(&lowGridKey, lowGridData[i], j));
@@ -1354,7 +1354,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
 
       /* free */
       highdm->release(highdm);
-      for (i = 0; i < numGrids; ++i) {
+      for (i = 0; i < numGrids; i++) {
         MEM_freeN(subGridData[i]);
       }
       MEM_freeN(subGridData);
@@ -1617,8 +1617,8 @@ static void old_mdisps_convert(MFace *mface, MDisps *mdisp)
 
   out = disps;
   for (S = 0; S < nvert; S++) {
-    for (y = 0; y < newside; ++y) {
-      for (x = 0; x < newside; ++x, ++out) {
+    for (y = 0; y < newside; y++) {
+      for (x = 0; x < newside; x++, out++) {
         old_mdisps_rotate(S, newside, oldside, x, y, &u, &v);
         old_mdisps_bilinear(*out, mdisp->disps, oldside, u, v);
 
@@ -1749,8 +1749,8 @@ static void create_old_vert_face_map(ListBase **map,
   node = *mem;
 
   /* Find the users */
-  for (i = 0; i < totface; ++i) {
-    for (j = 0; j < (mface[i].v[3] ? 4 : 3); ++j, ++node) {
+  for (i = 0; i < totface; i++) {
+    for (j = 0; j < (mface[i].v[3] ? 4 : 3); j++, node++) {
       node->index = i;
       BLI_addtail(&(*map)[mface[i].v[j]], node);
     }
@@ -1771,8 +1771,8 @@ static void create_old_vert_edge_map(ListBase **map,
   node = *mem;
 
   /* Find the users */
-  for (i = 0; i < totedge; ++i) {
-    for (j = 0; j < 2; ++j, ++node) {
+  for (i = 0; i < totedge; i++) {
+    for (j = 0; j < 2; j++, node++) {
       node->index = i;
       BLI_addtail(&(*map)[medge[i].v[j]], node);
     }
@@ -1793,8 +1793,8 @@ static MultiresFace *find_old_face(
   for (n1 = map[v1].first; n1; n1 = n1->next) {
     int fnd[4] = {0, 0, 0, 0};
 
-    for (i = 0; i < 4; ++i) {
-      for (j = 0; j < 4; ++j) {
+    for (i = 0; i < 4; i++) {
+      for (j = 0; j < 4; j++) {
         if (v[i] == faces[n1->index].v[j]) {
           fnd[i] = 1;
         }
@@ -2006,24 +2006,24 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 
   lvl1 = mr->levels.first;
   /* Load base verts */
-  for (i = 0; i < lvl1->totvert; ++i) {
+  for (i = 0; i < lvl1->totvert; i++) {
     vvmap[totvert - lvl1->totvert + i] = src;
     src++;
   }
 
   /* Original edges */
   dst = totvert - lvl1->totvert - extedgelen * lvl1->totedge;
-  for (i = 0; i < lvl1->totedge; ++i) {
+  for (i = 0; i < lvl1->totedge; i++) {
     int ldst = dst + extedgelen * i;
     int lsrc = src;
     lvl = lvl1->next;
 
-    for (j = 2; j <= mr->level_count; ++j) {
+    for (j = 2; j <= mr->level_count; j++) {
       int base = multires_side_tot[totlvl - j + 1] - 2;
       int skip = multires_side_tot[totlvl - j + 2] - 1;
       int st = multires_side_tot[j - 1] - 1;
 
-      for (x = 0; x < st; ++x) {
+      for (x = 0; x < st; x++) {
         vvmap[ldst + base + x * skip] = lsrc + st * i + x;
       }
 
@@ -2034,7 +2034,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 
   /* Center points */
   dst = 0;
-  for (i = 0; i < lvl1->totface; ++i) {
+  for (i = 0; i < lvl1->totface; i++) {
     int sides = lvl1->faces[i].v[3] ? 4 : 3;
 
     vvmap[dst] = src + lvl1->totedge + i;
@@ -2050,13 +2050,13 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
     tottri = totquad = 0;
     crossedgelen = multires_side_tot[totlvl - 1] - 2;
     dst = 0;
-    for (i = 0; i < lvl1->totface; ++i) {
+    for (i = 0; i < lvl1->totface; i++) {
       int sides = lvl1->faces[i].v[3] ? 4 : 3;
 
       lvl = lvl1->next->next;
       dst++;
 
-      for (j = 3; j <= mr->level_count; ++j) {
+      for (j = 3; j <= mr->level_count; j++) {
         int base = multires_side_tot[totlvl - j + 1] - 2;
         int skip = multires_side_tot[totlvl - j + 2] - 1;
         int st = pow(2, j - 2);
@@ -2069,8 +2069,8 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
         /* Skip earlier face edge crosses */
         lsrc += st2 * (tottri * 3 + totquad * 4);
 
-        for (s = 0; s < sides; ++s) {
-          for (x = 0; x < st2; ++x) {
+        for (s = 0; s < sides; s++) {
+          for (x = 0; x < st2; x++) {
             vvmap[dst + crossedgelen * (s + 1) - base - x * skip - 1] = lsrc;
             lsrc++;
           }
@@ -2082,10 +2082,10 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
       dst += sides * (st_last - 1) * st_last;
 
       if (sides == 4) {
-        ++totquad;
+        totquad++;
       }
       else {
-        ++tottri;
+        tottri++;
       }
     }
 
@@ -2095,7 +2095,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
     fmem = MEM_calloc_arrayN((mr->level_count - 1), sizeof(IndexNode *), "multires fmem");
     emem = MEM_calloc_arrayN((mr->level_count - 1), sizeof(IndexNode *), "multires emem");
     lvl = lvl1;
-    for (i = 0; i < (unsigned int)mr->level_count - 1; ++i) {
+    for (i = 0; i < (unsigned int)mr->level_count - 1; i++) {
       create_old_vert_face_map(fmap + i, fmem + i, lvl->faces, lvl->totvert, lvl->totface);
       create_old_vert_edge_map(emap + i, emem + i, lvl->edges, lvl->totvert, lvl->totedge);
       lvl = lvl->next;
@@ -2104,11 +2104,11 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
     /* Interior face verts */
     /* lvl = lvl1->next->next; */ /* UNUSED */
     dst = 0;
-    for (j = 0; j < lvl1->totface; ++j) {
+    for (j = 0; j < lvl1->totface; j++) {
       int sides = lvl1->faces[j].v[3] ? 4 : 3;
       int ldst = dst + 1 + sides * (st_last - 1);
 
-      for (s = 0; s < sides; ++s) {
+      for (s = 0; s < sides; s++) {
         int st2 = multires_side_tot[totlvl - 1] - 2;
         int st3 = multires_side_tot[totlvl - 2] - 2;
         int st4 = st3 == 0 ? 1 : (st3 + 1) / 2;
@@ -2137,7 +2137,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 
     /*lvl = lvl->next;*/ /*UNUSED*/
 
-    for (i = 0; i < (unsigned int)(mr->level_count - 1); ++i) {
+    for (i = 0; i < (unsigned int)(mr->level_count - 1); i++) {
       MEM_freeN(fmap[i]);
       MEM_freeN(fmem[i]);
       MEM_freeN(emap[i]);
@@ -2151,7 +2151,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
   }
 
   /* Transfer verts */
-  for (i = 0; i < totvert; ++i) {
+  for (i = 0; i < totvert; i++) {
     copy_v3_v3(vdst[i].co, vsrc[vvmap[i]].co);
   }
 
@@ -2183,8 +2183,8 @@ static void multires_load_old_vcols(Mesh *me)
     return;
   }
 
-  for (i = 0; i < me->totface; ++i) {
-    for (j = 0; j < 4; ++j) {
+  for (i = 0; i < me->totface; i++) {
+    for (j = 0; j < 4; j++) {
       mcol[i * 4 + j].a = colface[i].col[j].a;
       mcol[i * 4 + j].r = colface[i].col[j].r;
       mcol[i * 4 + j].g = colface[i].col[j].g;
@@ -2208,7 +2208,7 @@ static void multires_load_old_face_flags(Mesh *me)
     return;
   }
 
-  for (i = 0; i < me->totface; ++i) {
+  for (i = 0; i < me->totface; i++) {
     me->mface[i].flag = faces[i].flag;
   }
 }
@@ -2234,11 +2234,11 @@ void multires_load_old(Object *ob, Mesh *me)
   me->medge = CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, me->totedge);
   me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
   memcpy(me->mvert, me->mr->verts, sizeof(MVert) * me->totvert);
-  for (i = 0; i < me->totedge; ++i) {
+  for (i = 0; i < me->totedge; i++) {
     me->medge[i].v1 = lvl->edges[i].v[0];
     me->medge[i].v2 = lvl->edges[i].v[1];
   }
-  for (i = 0; i < me->totface; ++i) {
+  for (i = 0; i < me->totface; i++) {
     me->mface[i].v1 = lvl->faces[i].v[0];
     me->mface[i].v2 = lvl->faces[i].v[1];
     me->mface[i].v3 = lvl->faces[i].v[2];
@@ -2248,10 +2248,10 @@ void multires_load_old(Object *ob, Mesh *me)
 
   /* Copy the first-level data to the mesh */
   /* XXX We must do this before converting tessfaces to polys/lopps! */
-  for (i = 0, l = me->mr->vdata.layers; i < me->mr->vdata.totlayer; ++i, ++l) {
+  for (i = 0, l = me->mr->vdata.layers; i < me->mr->vdata.totlayer; i++, l++) {
     CustomData_add_layer(&me->vdata, l->type, CD_REFERENCE, l->data, me->totvert);
   }
-  for (i = 0, l = me->mr->fdata.layers; i < me->mr->fdata.totlayer; ++i, ++l) {
+  for (i = 0, l = me->mr->fdata.layers; i < me->mr->fdata.totlayer; i++, l++) {
     CustomData_add_layer(&me->fdata, l->type, CD_REFERENCE, l->data, me->totface);
   }
   CustomData_reset(&me->mr->vdata);
@@ -2271,7 +2271,7 @@ void multires_load_old(Object *ob, Mesh *me)
   mmd = (MultiresModifierData *)modifier_new(eModifierType_Multires);
   BLI_insertlinkbefore(&ob->modifiers, md, mmd);
 
-  for (i = 0; i < me->mr->level_count - 1; ++i) {
+  for (i = 0; i < me->mr->level_count - 1; i++) {
     multiresModifier_subdivide(mmd, NULL, ob, 1, 0);
   }
 
@@ -2337,9 +2337,9 @@ static void multires_apply_uniform_scale(Object *object, const float scale)
 {
   Mesh *mesh = (Mesh *)object->data;
   MDisps *mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
-  for (int i = 0; i < mesh->totloop; ++i) {
+  for (int i = 0; i < mesh->totloop; i++) {
     MDisps *grid = &mdisps[i];
-    for (int j = 0; j < grid->totdisp; ++j) {
+    for (int j = 0; j < grid->totdisp; j++) {
       mul_v3_fl(grid->disps[j], scale);
     }
   }

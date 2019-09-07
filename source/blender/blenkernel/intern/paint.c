@@ -1227,7 +1227,7 @@ static void sculpt_update_object(
       BKE_crazyspace_build_sculpt(depsgraph, scene, ob, &ss->deform_imats, &ss->deform_cos);
       BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos, me->totvert);
 
-      for (a = 0; a < me->totvert; ++a) {
+      for (a = 0; a < me->totvert; a++) {
         invert_m3(ss->deform_imats[a]);
       }
     }

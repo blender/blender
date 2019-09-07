@@ -74,7 +74,7 @@ static void EDIT_ARMATURE_cache_init(void *vedata)
   }
   stl->g_data->transparent_bones = (draw_ctx->v3d->shading.type == OB_WIRE);
 
-  for (int i = 0; i < 2; ++i) {
+  for (int i = 0; i < 2; i++) {
     /* Solid bones */
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK;
     psl->bone_solid[i] = DRW_pass_create("Bone Solid Pass", state | DRW_STATE_WRITE_DEPTH);

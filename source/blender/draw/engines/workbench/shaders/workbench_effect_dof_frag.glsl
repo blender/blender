@@ -256,7 +256,7 @@ void main()
   float coc = decode_coc(texelFetch(inputCocTex, texel, 0).rg);
   float max_radius = coc;
   vec2 noise = get_random_vector(noiseOffset) * 0.2 * clamp(max_radius * 0.2 - 4.0, 0.0, 1.0);
-  for (int i = 0; i < NUM_SAMPLES; ++i) {
+  for (int i = 0; i < NUM_SAMPLES; i++) {
     vec2 tc = uv + (noise + samples[i].xy) * invertedViewportSize * max_radius;
 
     /* decode_signed_coc return biggest coc. */
@@ -359,8 +359,8 @@ void main()
   vec v[9];
 
   /* Add the pixels which make up our window to the pixel array. */
-  for (int dX = -1; dX <= 1; ++dX) {
-    for (int dY = -1; dY <= 1; ++dY) {
+  for (int dX = -1; dX <= 1; dX++) {
+    for (int dY = -1; dY <= 1; dY++) {
       vec2 offset = vec2(float(dX), float(dY));
       /* If a pixel in the window is located at (x+dX, y+dY), put it at index (dX + R)(2R + 1) +
        * (dY + R) of the pixel array. This will fill the pixel array, with the top left pixel of

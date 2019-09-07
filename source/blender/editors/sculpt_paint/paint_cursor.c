@@ -1116,7 +1116,7 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
   const float *step = sd->paint.tile_offset;
 
   copy_v3_v3(orgLoc, true_location);
-  for (dim = 0; dim < 3; ++dim) {
+  for (dim = 0; dim < 3; dim++) {
     if ((sd->paint.symmetry_flags & (PAINT_TILE_X << dim)) && step[dim] > 0) {
       start[dim] = (bbMin[dim] - orgLoc[dim] - radius) / step[dim];
       end[dim] = (bbMax[dim] - orgLoc[dim] + radius) / step[dim];
@@ -1153,7 +1153,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
   const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
   float location[3], symm_rot_mat[4][4];
 
-  for (int i = 0; i <= symm; ++i) {
+  for (int i = 0; i <= symm; i++) {
     if (i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5)))) {
 
       /* Axis Symmetry */

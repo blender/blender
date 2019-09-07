@@ -1843,18 +1843,18 @@ void BKE_tracking_plane_marker_get_subframe_corners(MovieTrackingPlaneTrack *pla
     MovieTrackingPlaneMarker *marker_next = marker + 1;
     if (marker_next->framenr == marker->framenr + 1) {
       float fac = (framenr - (int)framenr) / (marker_next->framenr - marker->framenr);
-      for (i = 0; i < 4; ++i) {
+      for (i = 0; i < 4; i++) {
         interp_v2_v2v2(corners[i], marker->corners[i], marker_next->corners[i], fac);
       }
     }
     else {
-      for (i = 0; i < 4; ++i) {
+      for (i = 0; i < 4; i++) {
         copy_v2_v2(corners[i], marker->corners[i]);
       }
     }
   }
   else {
-    for (i = 0; i < 4; ++i) {
+    for (i = 0; i < 4; i++) {
       copy_v2_v2(corners[i], marker->corners[i]);
     }
   }

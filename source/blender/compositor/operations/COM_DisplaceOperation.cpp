@@ -111,12 +111,12 @@ void DisplaceOperation::pixelTransform(const float xy[2], float r_uv[2], float r
   if (read_displacement(xy[0] + epsilon[0], xy[1], xs, ys, xy, uv[0], uv[1])) {
     r_deriv[0][0] += uv[0] - r_uv[0];
     r_deriv[1][0] += uv[1] - r_uv[1];
-    ++num;
+    num++;
   }
   if (read_displacement(xy[0] - epsilon[0], xy[1], xs, ys, xy, uv[0], uv[1])) {
     r_deriv[0][0] += r_uv[0] - uv[0];
     r_deriv[1][0] += r_uv[1] - uv[1];
-    ++num;
+    num++;
   }
   if (num > 0) {
     float numinv = 1.0f / (float)num;
@@ -128,12 +128,12 @@ void DisplaceOperation::pixelTransform(const float xy[2], float r_uv[2], float r
   if (read_displacement(xy[0], xy[1] + epsilon[1], xs, ys, xy, uv[0], uv[1])) {
     r_deriv[0][1] += uv[0] - r_uv[0];
     r_deriv[1][1] += uv[1] - r_uv[1];
-    ++num;
+    num++;
   }
   if (read_displacement(xy[0], xy[1] - epsilon[1], xs, ys, xy, uv[0], uv[1])) {
     r_deriv[0][1] += r_uv[0] - uv[0];
     r_deriv[1][1] += r_uv[1] - uv[1];
-    ++num;
+    num++;
   }
   if (num > 0) {
     float numinv = 1.0f / (float)num;

@@ -298,7 +298,7 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
                       tlink->fromsock,
                       link->tonode->new_node,
                       link->tosock->new_sock);
-          ++num_external_links;
+          num_external_links++;
         }
       }
 
@@ -331,7 +331,7 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
                         tlink->fromsock->new_sock,
                         link->tonode,
                         link->tosock);
-            ++num_internal_links;
+            num_internal_links++;
           }
         }
       }
@@ -695,7 +695,7 @@ static int node_get_selected_minmax(bNodeTree *ntree, bNode *gnode, float *min, 
     if (node_group_make_use_node(node, gnode)) {
       nodeToView(node, 0.0f, 0.0f, &loc[0], &loc[1]);
       minmax_v2v2_v2(min, max, loc);
-      ++totselect;
+      totselect++;
     }
   }
 

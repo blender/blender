@@ -100,7 +100,7 @@ bool AnimationExporter::exportAnimations()
       openLibrary();
 
       BCObjectSet::iterator it;
-      for (it = animated_subset.begin(); it != animated_subset.end(); ++it) {
+      for (it = animated_subset.begin(); it != animated_subset.end(); it++) {
         Object *ob = *it;
         exportAnimation(ob, animation_sampler);
       }
@@ -183,7 +183,7 @@ void AnimationExporter::export_curve_animation_set(Object *ob,
   bool keep_flat_curves = this->export_settings.get_keep_flat_curves();
 
   BCAnimationCurveMap::iterator it;
-  for (it = curves->begin(); it != curves->end(); ++it) {
+  for (it = curves->begin(); it != curves->end(); it++) {
     BCAnimationCurve &curve = *it->second;
     std::string channel_type = curve.get_channel_type();
     if (channel_type == "rotation_quaternion") {
@@ -310,7 +310,7 @@ BCAnimationCurve *AnimationExporter::get_modified_export_curve(Object *ob,
     }
 
     BCValueMap::const_iterator vit;
-    for (vit = lens_values.begin(); vit != lens_values.end(); ++vit) {
+    for (vit = lens_values.begin(); vit != lens_values.end(); vit++) {
       int frame = vit->first;
       float lens_value = vit->second;
 
@@ -594,7 +594,7 @@ std::string AnimationExporter::collada_tangent_from_curve(
   const FCurve *fcu = curve.get_fcurve();
   int tangent = (semantic == COLLADASW::InputSemantic::IN_TANGENT) ? 0 : 2;
 
-  for (int i = 0; i < fcu->totvert; ++i) {
+  for (int i = 0; i < fcu->totvert; i++) {
     BezTriple &bezt = fcu->bezt[i];
 
     float sampled_time = bezt.vec[tangent][0];

@@ -84,7 +84,7 @@ static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
 
   for (node = ngroup->nodes.first; node; node = node->next) {
     if (node->type == NODE_GROUP_INPUT) {
-      for (sock = node->outputs.first, a = 0; sock; sock = sock->next, ++a) {
+      for (sock = node->outputs.first, a = 0; sock; sock = sock->next, a++) {
         if (in[a]) { /* shouldn't need to check this [#36694] */
           ns = node_get_socket_stack(gstack, sock);
           if (ns) {
@@ -108,7 +108,7 @@ static void group_copy_outputs(bNode *gnode, bNodeStack **out, bNodeStack *gstac
 
   for (node = ngroup->nodes.first; node; node = node->next) {
     if (node->type == NODE_GROUP_OUTPUT && (node->flag & NODE_DO_OUTPUT)) {
-      for (sock = node->inputs.first, a = 0; sock; sock = sock->next, ++a) {
+      for (sock = node->inputs.first, a = 0; sock; sock = sock->next, a++) {
         if (out[a]) { /* shouldn't need to check this [#36694] */
           ns = node_get_socket_stack(gstack, sock);
           if (ns) {

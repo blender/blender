@@ -688,7 +688,7 @@ static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
     grayscale->mall |= IB_rectfloat;
     grayscale->flags |= IB_rectfloat;
 
-    for (i = 0; i < grayscale->x * grayscale->y; ++i) {
+    for (i = 0; i < grayscale->x * grayscale->y; i++) {
       const float *pixel = ibuf->rect_float + ibuf->channels * i;
 
       grayscale->rect_float[i] = 0.2126f * pixel[0] + 0.7152f * pixel[1] + 0.0722f * pixel[2];
@@ -790,9 +790,9 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
        * here. Probably Libmv is better to work in the linear space,
        * but keep sRGB space here for compatibility for now.
        */
-      for (y = 0; y < clamped_height; ++y) {
+      for (y = 0; y < clamped_height; y++) {
         int x;
-        for (x = 0; x < clamped_width; ++x) {
+        for (x = 0; x < clamped_width; x++) {
           int src_x = x + clamped_origin_x, src_y = y + clamped_origin_y;
           int dst_x = x + dst_offset_x, dst_y = y + dst_offset_y;
           int dst_index = (dst_y * width + dst_x) * 4,

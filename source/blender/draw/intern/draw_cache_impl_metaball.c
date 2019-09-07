@@ -212,7 +212,7 @@ GPUBatch **DRW_metaball_batch_cache_get_surface_shaded(Object *ob,
     cache->shaded_triangles = MEM_callocN(sizeof(*cache->shaded_triangles) * cache->mat_len,
                                           __func__);
     cache->shaded_triangles[0] = DRW_metaball_batch_cache_get_triangles_with_normals(ob);
-    for (int i = 1; i < cache->mat_len; ++i) {
+    for (int i = 1; i < cache->mat_len; i++) {
       cache->shaded_triangles[i] = NULL;
     }
   }

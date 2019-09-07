@@ -308,7 +308,7 @@ static void immDrawSetup(void)
 
   /* Enable/Disable vertex attributes as needed. */
   if (imm.attr_binding.enabled_bits != imm.prev_enabled_attr_bits) {
-    for (uint loc = 0; loc < GPU_VERT_ATTR_MAX_LEN; ++loc) {
+    for (uint loc = 0; loc < GPU_VERT_ATTR_MAX_LEN; loc++) {
       bool is_enabled = imm.attr_binding.enabled_bits & (1 << loc);
       bool was_enabled = imm.prev_enabled_attr_bits & (1 << loc);
 
@@ -325,7 +325,7 @@ static void immDrawSetup(void)
 
   const uint stride = imm.vertex_format.stride;
 
-  for (uint a_idx = 0; a_idx < imm.vertex_format.attr_len; ++a_idx) {
+  for (uint a_idx = 0; a_idx < imm.vertex_format.attr_len; a_idx++) {
     const GPUVertAttr *a = &imm.vertex_format.attrs[a_idx];
 
     const uint offset = imm.buffer_offset + a->offset;
@@ -650,7 +650,7 @@ static void immEndVertex(void) /* and move on to the next vertex */
 #if TRUST_NO_ONE
     assert(imm.vertex_idx > 0); /* first vertex must have all attributes specified */
 #endif
-    for (uint a_idx = 0; a_idx < imm.vertex_format.attr_len; ++a_idx) {
+    for (uint a_idx = 0; a_idx < imm.vertex_format.attr_len; a_idx++) {
       if ((imm.unassigned_attr_bits >> a_idx) & 1) {
         const GPUVertAttr *a = &imm.vertex_format.attrs[a_idx];
 

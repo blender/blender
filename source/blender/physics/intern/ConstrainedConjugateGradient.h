@@ -283,7 +283,7 @@ class ConstrainedConjugateGradient
     m_iterations = Base::maxIterations();
     m_error = Base::m_tolerance;
 
-    for (int j = 0; j < b.cols(); ++j) {
+    for (int j = 0; j < b.cols(); j++) {
       m_iterations = Base::maxIterations();
       m_error = Base::m_tolerance;
 

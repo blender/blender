@@ -37,7 +37,7 @@ void main()
   fFace = face[0];
   gl_Layer = Layer + fFace;
 
-  for (int v = 0; v < 3; ++v) {
+  for (int v = 0; v < 3; v++) {
     gl_Position = vPos[v];
     worldPosition = x_axis[fFace] * vPos[v].x + y_axis[fFace] * vPos[v].y + maj_axes[fFace];
 #ifdef USE_ATTR

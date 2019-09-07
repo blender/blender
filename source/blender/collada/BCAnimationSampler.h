@@ -47,7 +47,7 @@ class BCAnimation {
   ~BCAnimation()
   {
     BCAnimationCurveMap::iterator it;
-    for (it = curve_map.begin(); it != curve_map.end(); ++it) {
+    for (it = curve_map.begin(); it != curve_map.end(); it++) {
       delete it->second;
     }
 
@@ -79,7 +79,7 @@ class BCSampleFrame {
   ~BCSampleFrame()
   {
     BCSampleMap::iterator it;
-    for (it = sampleMap.begin(); it != sampleMap.end(); ++it) {
+    for (it = sampleMap.begin(); it != sampleMap.end(); it++) {
       BCSample *sample = it->second;
       delete sample;
     }

@@ -70,7 +70,7 @@ void EEVEE_shadows_init(EEVEE_ViewLayerData *sldata)
     sldata->light_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_Light) * MAX_LIGHT, NULL);
     sldata->shadow_ubo = DRW_uniformbuffer_create(shadow_ubo_size, NULL);
 
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 2; i++) {
       sldata->shcasters_buffers[i].bbox = MEM_callocN(
           sizeof(EEVEE_BoundBox) * SH_CASTER_ALLOC_CHUNK, __func__);
       sldata->shcasters_buffers[i].update = BLI_BITMAP_NEW(SH_CASTER_ALLOC_CHUNK, __func__);
@@ -221,7 +221,7 @@ void EEVEE_shadows_caster_register(EEVEE_ViewLayerData *sldata, Object *ob)
   BoundBox *bb = BKE_object_boundbox_get(ob);
   float min[3], max[3];
   INIT_MINMAX(min, max);
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 8; i++) {
     float vec[3];
     copy_v3_v3(vec, bb->vec[i]);
     mul_m4_v3(ob->obmat, vec);
@@ -316,7 +316,7 @@ void EEVEE_shadows_update(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   EEVEE_BoundBox *bbox = backbuffer->bbox;
   BoundSphere *bsphere = linfo->shadow_bounds;
   /* Search for deleted shadow casters or if shcaster WAS in shadow radius. */
-  for (int i = 0; i < backbuffer->count; ++i) {
+  for (int i = 0; i < backbuffer->count; i++) {
     /* If the shadowcaster has been deleted or updated. */
     if (BLI_BITMAP_TEST(backbuffer->update, i)) {
       for (int j = 0; j < linfo->cube_len; j++) {

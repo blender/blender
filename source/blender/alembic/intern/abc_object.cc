@@ -195,14 +195,14 @@ static Imath::M44d blend_matrices(const Imath::M44d &m0, const Imath::M44d &m1, 
    * the matrices manually.
    */
 
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 4; ++j) {
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
       mat0[i][j] = static_cast<float>(m0[i][j]);
     }
   }
 
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 4; ++j) {
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
       mat1[i][j] = static_cast<float>(m1[i][j]);
     }
   }
@@ -211,8 +211,8 @@ static Imath::M44d blend_matrices(const Imath::M44d &m0, const Imath::M44d &m1, 
 
   Imath::M44d m;
 
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 4; ++j) {
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
       m[i][j] = ret[i][j];
     }
   }
@@ -389,11 +389,11 @@ int AbcObjectReader::refcount() const
 
 void AbcObjectReader::incref()
 {
-  ++m_refcount;
+  m_refcount++;
 }
 
 void AbcObjectReader::decref()
 {
-  --m_refcount;
+  m_refcount--;
   BLI_assert(m_refcount >= 0);
 }

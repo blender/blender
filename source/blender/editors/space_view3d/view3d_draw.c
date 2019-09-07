@@ -1089,7 +1089,7 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
       color[3] = 63; /* somewhat faint */
       immAttr4ubv(col, color);
       float angle = 0.0f;
-      for (int i = 0; i < ROT_AXIS_DETAIL; ++i, angle += step) {
+      for (int i = 0; i < ROT_AXIS_DETAIL; i++, angle += step) {
         float p[3] = {s * cosf(angle), s * sinf(angle), 0.0f};
 
         if (!upright) {

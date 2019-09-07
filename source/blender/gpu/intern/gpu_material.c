@@ -333,7 +333,7 @@ static float eval_integral(float x0, float x1, short falloff_type, float sharpne
   const float step = range / INTEGRAL_RESOLUTION;
   float integral = 0.0f;
 
-  for (int i = 0; i < INTEGRAL_RESOLUTION; ++i) {
+  for (int i = 0; i < INTEGRAL_RESOLUTION; i++) {
     float x = x0 + range * ((float)i + 0.5f) / (float)INTEGRAL_RESOLUTION;
     float y = eval_profile(x, falloff_type, sharpness, param);
     integral += y * step;
@@ -414,7 +414,7 @@ static void compute_sss_kernel(
     sum[2] += kd->kernel[i][2];
   }
 
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 3; i++) {
     if (sum[i] > 0.0f) {
       /* Normalize */
       for (int j = 0; j < sample_len; j++) {
@@ -450,7 +450,7 @@ static void compute_sss_translucence_kernel(const GPUSssKernelData *kd,
   *output = (float *)texels;
 
   /* Last texel should be black, hence the - 1. */
-  for (int i = 0; i < resolution - 1; ++i) {
+  for (int i = 0; i < resolution - 1; i++) {
     /* Distance from surface. */
     float d = kd->max_radius * ((float)i + 0.00001f) / ((float)resolution);
 

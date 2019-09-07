@@ -160,7 +160,7 @@ void NodeGraph::add_bNode(const CompositorContext &context,
 NodeGraph::NodeInputs NodeGraph::find_inputs(const NodeRange &node_range, bNodeSocket *b_socket)
 {
   NodeInputs result;
-  for (NodeGraph::NodeIterator it = node_range.first; it != node_range.second; ++it) {
+  for (NodeGraph::NodeIterator it = node_range.first; it != node_range.second; it++) {
     Node *node = *it;
     for (int index = 0; index < node->getNumberOfInputSockets(); index++) {
       NodeInput *input = node->getInputSocket(index);
@@ -174,7 +174,7 @@ NodeGraph::NodeInputs NodeGraph::find_inputs(const NodeRange &node_range, bNodeS
 
 NodeOutput *NodeGraph::find_output(const NodeRange &node_range, bNodeSocket *b_socket)
 {
-  for (NodeGraph::NodeIterator it = node_range.first; it != node_range.second; ++it) {
+  for (NodeGraph::NodeIterator it = node_range.first; it != node_range.second; it++) {
     Node *node = *it;
     for (int index = 0; index < node->getNumberOfOutputSockets(); index++) {
       NodeOutput *output = node->getOutputSocket(index);
@@ -206,7 +206,7 @@ void NodeGraph::add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink
   }
 
   NodeInputs inputs = find_inputs(node_range, b_nodelink->tosock);
-  for (NodeInputs::const_iterator it = inputs.begin(); it != inputs.end(); ++it) {
+  for (NodeInputs::const_iterator it = inputs.begin(); it != inputs.end(); it++) {
     NodeInput *input = *it;
     if (input->isLinked()) {
       continue;

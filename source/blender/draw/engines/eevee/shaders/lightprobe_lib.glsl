@@ -233,7 +233,7 @@ void fallback_cubemap(vec3 N,
 #endif
 
   /* Starts at 1 because 0 is world probe */
-  for (int i = 1; i < MAX_PROBE && i < prbNumRenderCube && spec_accum.a < 0.999; ++i) {
+  for (int i = 1; i < MAX_PROBE && i < prbNumRenderCube && spec_accum.a < 0.999; i++) {
     float fade = probe_attenuation_cube(i, W);
 
     if (fade > 0.0) {
@@ -262,7 +262,7 @@ vec3 probe_evaluate_grid(GridData gd, vec3 W, vec3 N, vec3 localpos)
   vec3 irradiance_accum = vec3(0.0);
 
   /* For each neighbor cells */
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 8; i++) {
     ivec3 offset = ivec3(i, i >> 1, i >> 2) & ivec3(1);
     vec3 cell_cos = clamp(localpos_floored + vec3(offset), vec3(0.0), vec3(gd.g_resolution) - 1.0);
 

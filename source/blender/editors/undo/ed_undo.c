@@ -670,7 +670,7 @@ static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
         }
         if (item[i].identifier) {
           uiItemIntO(column, item[i].name, item[i].icon, op->type->idname, "item", item[i].value);
-          ++c;
+          c++;
           add_col = true;
         }
       }

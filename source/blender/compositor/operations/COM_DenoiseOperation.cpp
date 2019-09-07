@@ -152,7 +152,7 @@ void DenoiseOperation::generateDenoise(float *data,
 
     /* copy the alpha channel, OpenImageDenoise currently only supports RGB */
     size_t numPixels = inputTileColor->getWidth() * inputTileColor->getHeight();
-    for (size_t i = 0; i < numPixels; ++i) {
+    for (size_t i = 0; i < numPixels; i++) {
       data[i * 4 + 3] = inputBufferColor[i * 4 + 3];
     }
     return;

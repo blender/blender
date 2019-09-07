@@ -266,7 +266,7 @@ int rna_node_tree_type_to_enum(bNodeTreeType *typeinfo)
       result = i;
       break;
     }
-    ++i;
+    i++;
   }
   NODE_TREE_TYPES_END;
   return result;
@@ -280,7 +280,7 @@ int rna_node_tree_idname_to_enum(const char *idname)
       result = i;
       break;
     }
-    ++i;
+    i++;
   }
   NODE_TREE_TYPES_END;
   return result;
@@ -295,7 +295,7 @@ bNodeTreeType *rna_node_tree_type_from_enum(int value)
       result = nt;
       break;
     }
-    ++i;
+    i++;
   }
   NODE_TREE_TYPES_END;
   return result;
@@ -311,7 +311,7 @@ const EnumPropertyItem *rna_node_tree_type_itemf(void *data,
 
   NODE_TREE_TYPES_BEGIN (nt) {
     if (poll && !poll(data, nt)) {
-      ++i;
+      i++;
       continue;
     }
 
@@ -323,7 +323,7 @@ const EnumPropertyItem *rna_node_tree_type_itemf(void *data,
 
     RNA_enum_item_add(&item, &totitem, &tmp);
 
-    ++i;
+    i++;
   }
   NODE_TREE_TYPES_END;
 
@@ -346,7 +346,7 @@ int rna_node_type_to_enum(bNodeType *typeinfo)
       result = i;
       break;
     }
-    ++i;
+    i++;
   }
   NODE_TYPES_END;
   return result;
@@ -360,7 +360,7 @@ int rna_node_idname_to_enum(const char *idname)
       result = i;
       break;
     }
-    ++i;
+    i++;
   }
   NODE_TYPES_END;
   return result;
@@ -375,7 +375,7 @@ bNodeType *rna_node_type_from_enum(int value)
       result = ntype;
       break;
     }
-    ++i;
+    i++;
   }
   NODE_TYPES_END;
   return result;
@@ -391,7 +391,7 @@ const EnumPropertyItem *rna_node_type_itemf(void *data,
 
   NODE_TYPES_BEGIN (ntype) {
     if (poll && !poll(data, ntype)) {
-      ++i;
+      i++;
       continue;
     }
 
@@ -403,7 +403,7 @@ const EnumPropertyItem *rna_node_type_itemf(void *data,
 
     RNA_enum_item_add(&item, &totitem, &tmp);
 
-    ++i;
+    i++;
   }
   NODE_TYPES_END;
 
@@ -426,7 +426,7 @@ int rna_node_socket_type_to_enum(bNodeSocketType *typeinfo)
       result = i;
       break;
     }
-    ++i;
+    i++;
   }
   NODE_SOCKET_TYPES_END;
   return result;
@@ -440,7 +440,7 @@ int rna_node_socket_idname_to_enum(const char *idname)
       result = i;
       break;
     }
-    ++i;
+    i++;
   }
   NODE_SOCKET_TYPES_END;
   return result;
@@ -455,7 +455,7 @@ bNodeSocketType *rna_node_socket_type_from_enum(int value)
       result = stype;
       break;
     }
-    ++i;
+    i++;
   }
   NODE_SOCKET_TYPES_END;
   return result;
@@ -472,7 +472,7 @@ const EnumPropertyItem *rna_node_socket_type_itemf(void *data,
 
   NODE_SOCKET_TYPES_BEGIN (stype) {
     if (poll && !poll(data, stype)) {
-      ++i;
+      i++;
       continue;
     }
 
@@ -485,7 +485,7 @@ const EnumPropertyItem *rna_node_socket_type_itemf(void *data,
 
     RNA_enum_item_add(&item, &totitem, &tmp);
 
-    ++i;
+    i++;
   }
   NODE_SOCKET_TYPES_END;
 
@@ -2652,8 +2652,8 @@ static PointerRNA rna_NodeInternal_input_template(StructRNA *srna, int index)
     bNodeSocketTemplate *stemp = ntype->inputs;
     int i = 0;
     while (i < index && stemp->type >= 0) {
-      ++i;
-      ++stemp;
+      i++;
+      stemp++;
     }
     if (i == index && stemp->type >= 0) {
       PointerRNA ptr;
@@ -2671,8 +2671,8 @@ static PointerRNA rna_NodeInternal_output_template(StructRNA *srna, int index)
     bNodeSocketTemplate *stemp = ntype->outputs;
     int i = 0;
     while (i < index && stemp->type >= 0) {
-      ++i;
-      ++stemp;
+      i++;
+      stemp++;
     }
     if (i == index && stemp->type >= 0) {
       PointerRNA ptr;

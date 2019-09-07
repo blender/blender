@@ -266,7 +266,7 @@ BLI_INLINE TaskThreadLocalStorage *get_task_tls(TaskPool *pool, const int thread
 BLI_INLINE void free_task_tls(TaskThreadLocalStorage *tls)
 {
   TaskMemPool *task_mempool = &tls->task_mempool;
-  for (int i = 0; i < task_mempool->num_tasks; ++i) {
+  for (int i = 0; i < task_mempool->num_tasks; i++) {
     MEM_freeN(task_mempool->tasks[i]);
   }
 }
@@ -561,7 +561,7 @@ void BLI_task_scheduler_free(TaskScheduler *scheduler)
 
   /* Delete task thread data */
   if (scheduler->task_threads) {
-    for (int i = 0; i < scheduler->num_threads + 1; ++i) {
+    for (int i = 0; i < scheduler->num_threads + 1; i++) {
       TaskThreadLocalStorage *tls = &scheduler->task_threads[i].tls;
       free_task_tls(tls);
     }
@@ -777,7 +777,7 @@ void BLI_task_pool_free(TaskPool *pool)
 
 #ifdef DEBUG_STATS
   printf("Thread ID    Allocated   Reused   Discarded\n");
-  for (int i = 0; i < pool->scheduler->num_threads + 1; ++i) {
+  for (int i = 0; i < pool->scheduler->num_threads + 1; i++) {
     printf("%02d           %05d       %05d    %05d\n",
            i,
            pool->mempool_stats[i].num_alloc,
@@ -1116,7 +1116,7 @@ static void parallel_range_func(TaskPool *__restrict pool, void *userdata_chunk,
   };
   int iter, count;
   while (parallel_range_next_iter_get(state, &iter, &count)) {
-    for (int i = 0; i < count; ++i) {
+    for (int i = 0; i < count; i++) {
       state->func(state->userdata, iter + i, &tls);
     }
   }
@@ -1140,7 +1140,7 @@ static void parallel_range_single_thread(const int start,
       .thread_id = 0,
       .userdata_chunk = userdata_chunk_local,
   };
-  for (int i = start; i < stop; ++i) {
+  for (int i = start; i < stop; i++) {
     func(userdata, i, &tls);
   }
   if (settings->func_finalize != NULL) {
@@ -1273,7 +1273,7 @@ BLI_INLINE Link *parallel_listbase_next_iter_get(ParallelListState *__restrict s
   if (LIKELY(result != NULL)) {
     *index = state->index;
     while (state->link != NULL && task_count < state->chunk_size) {
-      ++task_count;
+      task_count++;
       state->link = state->link->next;
     }
     state->index += task_count;
@@ -1292,7 +1292,7 @@ static void parallel_listbase_func(TaskPool *__restrict pool,
   int index, count;
 
   while ((link = parallel_listbase_next_iter_get(state, &index, &count)) != NULL) {
-    for (int i = 0; i < count; ++i) {
+    for (int i = 0; i < count; i++) {
       state->func(state->userdata, link, index + i);
       link = link->next;
     }
@@ -1304,7 +1304,7 @@ static void task_parallel_listbase_no_threads(struct ListBase *listbase,
                                               TaskParallelListbaseFunc func)
 {
   int i = 0;
-  for (Link *link = listbase->first; link != NULL; link = link->next, ++i) {
+  for (Link *link = listbase->first; link != NULL; link = link->next, i++) {
     func(userdata, link, i);
   }
 }

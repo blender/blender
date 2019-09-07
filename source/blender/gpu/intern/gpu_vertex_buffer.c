@@ -214,7 +214,7 @@ void GPU_vertbuf_attr_fill_stride(GPUVertBuf *verts, uint a_idx, uint stride, co
   }
   else {
     /* we must copy it per vertex */
-    for (uint v = 0; v < vertex_len; ++v) {
+    for (uint v = 0; v < vertex_len; v++) {
       memcpy((GLubyte *)verts->data + a->offset + v * format->stride,
              (const GLubyte *)data + v * stride,
              a->sz);

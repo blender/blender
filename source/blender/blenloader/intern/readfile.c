@@ -2597,7 +2597,7 @@ static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_p
 
   if (prv) {
     int i;
-    for (i = 0; i < NUM_ICON_SIZES; ++i) {
+    for (i = 0; i < NUM_ICON_SIZES; i++) {
       if (prv->rect[i]) {
         prv->rect[i] = newdataadr(fd, prv->rect[i]);
       }
@@ -4938,7 +4938,7 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
   if (mdisps) {
     int i;
 
-    for (i = 0; i < count; ++i) {
+    for (i = 0; i < count; i++) {
       mdisps[i].disps = newdataadr(fd, mdisps[i].disps);
       mdisps[i].hidden = newdataadr(fd, mdisps[i].hidden);
 
@@ -4968,7 +4968,7 @@ static void direct_link_grid_paint_mask(FileData *fd, int count, GridPaintMask *
   if (grid_paint_mask) {
     int i;
 
-    for (i = 0; i < count; ++i) {
+    for (i = 0; i < count; i++) {
       GridPaintMask *gpm = &grid_paint_mask[i];
       if (gpm->data) {
         gpm->data = newdataadr(fd, gpm->data);
@@ -6344,7 +6344,7 @@ static void direct_link_lightcache(FileData *fd, LightCache *cache)
 
   if (cache->cube_mips) {
     cache->cube_mips = newdataadr(fd, cache->cube_mips);
-    for (int i = 0; i < cache->mips_len; ++i) {
+    for (int i = 0; i < cache->mips_len; i++) {
       direct_link_lightcache_texture(fd, &cache->cube_mips[i]);
     }
   }

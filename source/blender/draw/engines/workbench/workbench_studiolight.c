@@ -77,7 +77,7 @@ void studiolight_update_world(WORKBENCH_PrivateData *wpd,
   /* Use Geomerics non-linear SH. */
   mul_v3_v3fl(wd->spherical_harmonics_coefs[0], sl->spherical_harmonics_coefs[0], M_1_PI);
   /* Swizzle to make shader code simpler. */
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 3; i++) {
     copy_v3_fl3(wd->spherical_harmonics_coefs[i + 1],
                 -sl->spherical_harmonics_coefs[3][i],
                 sl->spherical_harmonics_coefs[2][i],
@@ -89,7 +89,7 @@ void studiolight_update_world(WORKBENCH_PrivateData *wpd,
 
   /* Precompute as much as we can. See shader code for derivation. */
   float len_r1[3], lr1_r0[3], p[3], a[3];
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 3; i++) {
     mul_v3_fl(wd->spherical_harmonics_coefs[i + 1], 0.5f);
     len_r1[i] = len_v3(wd->spherical_harmonics_coefs[i + 1]);
     mul_v3_fl(wd->spherical_harmonics_coefs[i + 1], 1.0f / len_r1[i]);
@@ -179,7 +179,7 @@ void studiolight_update_light(WORKBENCH_PrivateData *wpd, const float light_dire
   mul_v3_mat3_m4v3(wpd->shadow_near_corners[3], wpd->shadow_inv, frustum_corners.vec[4]);
 
   INIT_MINMAX(wpd->shadow_near_min, wpd->shadow_near_max);
-  for (int i = 0; i < 4; ++i) {
+  for (int i = 0; i < 4; i++) {
     minmax_v3v3_v3(wpd->shadow_near_min, wpd->shadow_near_max, wpd->shadow_near_corners[i]);
   }
 
@@ -206,7 +206,7 @@ static BoundBox *studiolight_object_shadow_bbox_get(WORKBENCH_PrivateData *wpd,
 
     /* From object space to shadow space */
     BoundBox *bbox = BKE_object_boundbox_get(ob);
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 8; i++) {
       float corner[3];
       mul_v3_m4v3(corner, tmp_mat, bbox->vec[i]);
       minmax_v3v3_v3(oed->shadow_min, oed->shadow_max, corner);
@@ -217,7 +217,7 @@ static BoundBox *studiolight_object_shadow_bbox_get(WORKBENCH_PrivateData *wpd,
 
     /* Get extended AABB in world space. */
     BKE_boundbox_init_from_minmax(&oed->shadow_bbox, oed->shadow_min, oed->shadow_max);
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 8; i++) {
       mul_m4_v3(wpd->shadow_mat, oed->shadow_bbox.vec[i]);
     }
     oed->shadow_bbox_dirty = false;
@@ -243,7 +243,7 @@ float studiolight_object_shadow_distance(WORKBENCH_PrivateData *wpd,
 
   int corners[4] = {0, 3, 4, 7};
   float dist = 1e4f, dist_isect;
-  for (int i = 0; i < 4; ++i) {
+  for (int i = 0; i < 4; i++) {
     if (isect_ray_plane_v3(shadow_bbox->vec[corners[i]],
                            wpd->cached_shadow_direction,
                            wpd->shadow_far_plane,
@@ -291,9 +291,9 @@ bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd,
       {oed->shadow_max[0], oed->shadow_max[1]},
   };
 
-  for (int i = 0; i < 2; ++i) {
+  for (int i = 0; i < 2; i++) {
     float min_dst = FLT_MAX, max_dst = -FLT_MAX;
-    for (int j = 0; j < 4; ++j) {
+    for (int j = 0; j < 4; j++) {
       float dst = dot_v2v2(wpd->shadow_near_sides[i], pts[j]);
       /* Do min max */
       if (min_dst > dst) {

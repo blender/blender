@@ -1150,7 +1150,7 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
 
   /* Don't generate the same file twice! */
   if (file_list) {
-    for (i = 0; i < IMB_PROXY_MAX_SLOT; ++i) {
+    for (i = 0; i < IMB_PROXY_MAX_SLOT; i++) {
       IMB_Proxy_Size proxy_size = proxy_sizes[i];
       if (proxy_size & proxy_sizes_to_build) {
         char filename[FILE_MAX];
@@ -1172,7 +1172,7 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
     IMB_Proxy_Size built_proxies = IMB_anim_proxy_get_existing(anim);
     if (built_proxies != 0) {
 
-      for (i = 0; i < IMB_PROXY_MAX_SLOT; ++i) {
+      for (i = 0; i < IMB_PROXY_MAX_SLOT; i++) {
         IMB_Proxy_Size proxy_size = proxy_sizes[i];
         if (proxy_size & built_proxies) {
           char filename[FILE_MAX];
@@ -1345,7 +1345,7 @@ IMB_Proxy_Size IMB_anim_proxy_get_existing(struct anim *anim)
   const int num_proxy_sizes = IMB_PROXY_MAX_SLOT;
   IMB_Proxy_Size existing = 0;
   int i;
-  for (i = 0; i < num_proxy_sizes; ++i) {
+  for (i = 0; i < num_proxy_sizes; i++) {
     IMB_Proxy_Size proxy_size = proxy_sizes[i];
     char filename[FILE_MAX];
     get_proxy_filename(anim, proxy_size, filename, false);

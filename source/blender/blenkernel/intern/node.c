@@ -3146,7 +3146,7 @@ void BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash,
     }
   }
 
-  for (i = 0; i < num_untagged; ++i) {
+  for (i = 0; i < num_untagged; i++) {
     BKE_node_instance_hash_remove(hash, untagged[i], valfreefp);
   }
 
@@ -3571,7 +3571,7 @@ static bool unique_socket_template_identifier_check(void *arg, const char *name)
     bNodeSocketTemplate *ntemp;
   } *data = arg;
 
-  for (ntemp = data->list; ntemp->type >= 0; ++ntemp) {
+  for (ntemp = data->list; ntemp->type >= 0; ntemp++) {
     if (ntemp != data->ntemp) {
       if (STREQ(ntemp->identifier, name)) {
         return true;
@@ -3614,22 +3614,22 @@ void node_type_socket_templates(struct bNodeType *ntype,
   /* automatically generate unique identifiers */
   if (inputs) {
     /* clear identifier strings (uninitialized memory) */
-    for (ntemp = inputs; ntemp->type >= 0; ++ntemp) {
+    for (ntemp = inputs; ntemp->type >= 0; ntemp++) {
       ntemp->identifier[0] = '\0';
     }
 
-    for (ntemp = inputs; ntemp->type >= 0; ++ntemp) {
+    for (ntemp = inputs; ntemp->type >= 0; ntemp++) {
       BLI_strncpy(ntemp->identifier, ntemp->name, sizeof(ntemp->identifier));
       unique_socket_template_identifier(inputs, ntemp, ntemp->identifier, '_');
     }
   }
   if (outputs) {
     /* clear identifier strings (uninitialized memory) */
-    for (ntemp = outputs; ntemp->type >= 0; ++ntemp) {
+    for (ntemp = outputs; ntemp->type >= 0; ntemp++) {
       ntemp->identifier[0] = '\0';
     }
 
-    for (ntemp = outputs; ntemp->type >= 0; ++ntemp) {
+    for (ntemp = outputs; ntemp->type >= 0; ntemp++) {
       BLI_strncpy(ntemp->identifier, ntemp->name, sizeof(ntemp->identifier));
       unique_socket_template_identifier(outputs, ntemp, ntemp->identifier, '_');
     }

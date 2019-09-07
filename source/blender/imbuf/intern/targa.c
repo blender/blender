@@ -748,7 +748,7 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
   if (cmap) {
     /* apply color map */
     rect = ibuf->rect;
-    for (size = ibuf->x * ibuf->y; size > 0; --size, ++rect) {
+    for (size = ibuf->x * ibuf->y; size > 0; size--, rect++) {
       int cmap_index = *rect;
       if (cmap_index >= 0 && cmap_index < cmap_max) {
         *rect = cmap[cmap_index];
@@ -761,7 +761,7 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
   if (tga.pixsize == 16) {
     unsigned int col;
     rect = ibuf->rect;
-    for (size = ibuf->x * ibuf->y; size > 0; --size, ++rect) {
+    for (size = ibuf->x * ibuf->y; size > 0; size--, rect++) {
       col = *rect;
       cp = (uchar *)rect;
       mem = (uchar *)&col;

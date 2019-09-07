@@ -464,7 +464,7 @@ static void curve_batch_cache_init(Curve *cu)
   cache->surf_per_mat = MEM_mallocN(sizeof(*cache->surf_per_mat) * cache->mat_len, __func__);
 
   /* TODO Might be wiser to alloc in one chunk. */
-  for (int i = 0; i < cache->mat_len; ++i) {
+  for (int i = 0; i < cache->mat_len; i++) {
     cache->surf_per_mat_tris[i] = MEM_callocN(sizeof(GPUIndexBuf), "GPUIndexBuf");
     cache->surf_per_mat[i] = MEM_callocN(sizeof(GPUBatch), "GPUBatch");
   }
@@ -516,24 +516,24 @@ static void curve_batch_cache_clear(Curve *cu)
     return;
   }
 
-  for (int i = 0; i < sizeof(cache->ordered) / sizeof(void *); ++i) {
+  for (int i = 0; i < sizeof(cache->ordered) / sizeof(void *); i++) {
     GPUVertBuf **vbo = (GPUVertBuf **)&cache->ordered;
     GPU_VERTBUF_DISCARD_SAFE(vbo[i]);
   }
-  for (int i = 0; i < sizeof(cache->edit) / sizeof(void *); ++i) {
+  for (int i = 0; i < sizeof(cache->edit) / sizeof(void *); i++) {
     GPUVertBuf **vbo = (GPUVertBuf **)&cache->edit;
     GPU_VERTBUF_DISCARD_SAFE(vbo[i]);
   }
-  for (int i = 0; i < sizeof(cache->ibo) / sizeof(void *); ++i) {
+  for (int i = 0; i < sizeof(cache->ibo) / sizeof(void *); i++) {
     GPUIndexBuf **ibo = (GPUIndexBuf **)&cache->ibo;
     GPU_INDEXBUF_DISCARD_SAFE(ibo[i]);
   }
-  for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); ++i) {
+  for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); i++) {
     GPUBatch **batch = (GPUBatch **)&cache->batch;
     GPU_BATCH_DISCARD_SAFE(batch[i]);
   }
 
-  for (int i = 0; i < cache->mat_len; ++i) {
+  for (int i = 0; i < cache->mat_len; i++) {
     GPU_INDEXBUF_DISCARD_SAFE(cache->surf_per_mat_tris[i]);
     GPU_BATCH_DISCARD_SAFE(cache->surf_per_mat[i]);
   }
@@ -891,7 +891,7 @@ GPUBatch **DRW_curve_batch_cache_get_surface_shaded(struct Curve *cu,
 
   curve_cd_calc_used_gpu_layers(&cache->cd_needed, gpumat_array, gpumat_array_len);
 
-  for (int i = 0; i < cache->mat_len; ++i) {
+  for (int i = 0; i < cache->mat_len; i++) {
     DRW_batch_request(&cache->surf_per_mat[i]);
   }
   return cache->surf_per_mat;
@@ -929,7 +929,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 
   /* Verify that all surface batches have needed attribute layers. */
   /* TODO(fclem): We could be a bit smarter here and only do it per material. */
-  for (int i = 0; i < cache->mat_len; ++i) {
+  for (int i = 0; i < cache->mat_len; i++) {
     if ((cache->cd_used & cache->cd_needed) != cache->cd_needed) {
       /* We can't discard batches at this point as they have been
        * referenced for drawing. Just clear them in place. */
@@ -979,7 +979,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
   if (DRW_batch_requested(cache->batch.edit_normals, GPU_PRIM_LINES)) {
     DRW_vbo_request(cache->batch.edit_normals, &cache->edit.curves_nor);
   }
-  for (int i = 0; i < cache->mat_len; ++i) {
+  for (int i = 0; i < cache->mat_len; i++) {
     if (DRW_batch_requested(cache->surf_per_mat[i], GPU_PRIM_TRIS)) {
       if (cache->mat_len > 1) {
         DRW_ibo_request(cache->surf_per_mat[i], &cache->surf_per_mat_tris[i]);
@@ -1014,7 +1014,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
   DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.edit_verts_points, CU_DATATYPE_OVERLAY);
   DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.edit_lines, CU_DATATYPE_OVERLAY);
 
-  for (int i = 0; i < cache->mat_len; ++i) {
+  for (int i = 0; i < cache->mat_len; i++) {
     DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->surf_per_mat_tris[i], CU_DATATYPE_SURFACE);
   }
 
@@ -1080,7 +1080,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 
 #ifdef DEBUG
   /* Make sure all requested batches have been setup. */
-  for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); ++i) {
+  for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); i++) {
     BLI_assert(!DRW_batch_requested(((GPUBatch **)&cache->batch)[i], 0));
   }
 #endif

@@ -692,7 +692,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 
               if (oldbezt) {
                 int j;
-                for (j = 0; j < 3; ++j) {
+                for (j = 0; j < 3; j++) {
                   sub_v3_v3v3(ofs[i], bezt->vec[j], oldbezt->vec[j]);
                   i++;
                 }

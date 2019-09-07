@@ -39,7 +39,7 @@ void main()
   /* Without compute shader and arbitrary write we need to
    * accumulate from the beginning of the ray for each cell. */
   float integration_end = float(slice);
-  for (int i = 0; i < slice; ++i) {
+  for (int i = 0; i < slice; i++) {
     ivec3 volume_cell = ivec3(gl_FragCoord.xy, i);
 
     vec3 Lscat = texelFetch(volumeScattering, volume_cell, 0).rgb;

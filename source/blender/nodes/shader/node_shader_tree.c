@@ -235,7 +235,7 @@ static bNode *ntree_shader_relink_output_from_group(bNodeTree *ntree,
 
   /* Create output sockets to plug output connection to. */
   i = 0;
-  for (bNodeSocket *sock = sh_output_node->inputs.first; sock; sock = sock->next, ++i) {
+  for (bNodeSocket *sock = sh_output_node->inputs.first; sock; sock = sock->next, i++) {
     group_surface_sockets[i] = ntreeAddSocketInterface(
         group_ntree, SOCK_OUT, sock->typeinfo->idname, sock->name);
   }
@@ -264,7 +264,7 @@ static bNode *ntree_shader_relink_output_from_group(bNodeTree *ntree,
   new_output_node->custom1 = target;
 
   i = 0;
-  for (bNodeSocket *sock = sh_output_node->inputs.first; sock; sock = sock->next, ++i) {
+  for (bNodeSocket *sock = sh_output_node->inputs.first; sock; sock = sock->next, i++) {
     if (sock->link != NULL) {
       /* Link the shader output node incoming link to the group output sockets */
       bNodeSocket *group_output_node_surface_input_sock = nodeFindSocket(

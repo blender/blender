@@ -208,7 +208,7 @@ int FlipDXTCImage(
   unsigned int mip_width = width;
   unsigned int mip_height = height;
 
-  for (unsigned int i = 0; i < levels; ++i) {
+  for (unsigned int i = 0; i < levels; i++) {
     unsigned int blocks_per_row = (mip_width + 3) / 4;
     unsigned int blocks_per_col = (mip_height + 3) / 4;
     unsigned int blocks = blocks_per_row * blocks_per_col;
@@ -219,13 +219,13 @@ int FlipDXTCImage(
     }
     else if (mip_height == 2) {
       // flip the first 2 lines in each block.
-      for (unsigned int i = 0; i < blocks_per_row; ++i) {
+      for (unsigned int i = 0; i < blocks_per_row; i++) {
         half_block_function(data + i * block_bytes);
       }
     }
     else {
       // flip each block.
-      for (unsigned int i = 0; i < blocks; ++i) {
+      for (unsigned int i = 0; i < blocks; i++) {
         full_block_function(data + i * block_bytes);
       }
 
@@ -235,7 +235,7 @@ int FlipDXTCImage(
       unsigned int row_bytes = block_bytes * blocks_per_row;
       uint8_t *temp_line = new uint8_t[row_bytes];
 
-      for (unsigned int y = 0; y < blocks_per_col / 2; ++y) {
+      for (unsigned int y = 0; y < blocks_per_col / 2; y++) {
         uint8_t *line1 = data + y * row_bytes;
         uint8_t *line2 = data + (blocks_per_col - y - 1) * row_bytes;
 

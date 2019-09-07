@@ -24,7 +24,7 @@ uniform int osd_fvar_count;
   { \
     vec2 v[4]; \
     int primOffset = (gl_PrimitiveID + PrimitiveIdBase) * 4; \
-    for (int i = 0; i < 4; ++i) { \
+    for (int i = 0; i < 4; i++) { \
       int index = (primOffset + i) * osd_fvar_count + fvarOffset; \
       v[i] = vec2(texelFetch(FVarDataBuffer, index).s, texelFetch(FVarDataBuffer, index + 1).s); \
     } \

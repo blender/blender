@@ -167,7 +167,7 @@ static void imm_draw_circle(GPUPrimType prim_type,
                             int nsegments)
 {
   immBegin(prim_type, nsegments);
-  for (int i = 0; i < nsegments; ++i) {
+  for (int i = 0; i < nsegments; i++) {
     const float angle = (float)(2 * M_PI) * ((float)i / (float)nsegments);
     immVertex2f(shdr_pos, x + (rad_x * cosf(angle)), y + (rad_y * sinf(angle)));
   }
@@ -229,7 +229,7 @@ static void imm_draw_circle_partial(GPUPrimType prim_type,
   const float angle_end = -(DEG2RADF(sweep) - angle_start);
   nsegments += 1;
   immBegin(prim_type, nsegments);
-  for (int i = 0; i < nsegments; ++i) {
+  for (int i = 0; i < nsegments; i++) {
     const float angle = interpf(angle_start, angle_end, ((float)i / (float)(nsegments - 1)));
     const float angle_sin = sinf(angle);
     const float angle_cos = cosf(angle);
@@ -263,7 +263,7 @@ static void imm_draw_disk_partial(GPUPrimType prim_type,
   const float angle_end = -(DEG2RADF(sweep) - angle_start);
   nsegments += 1;
   immBegin(prim_type, nsegments * 2);
-  for (int i = 0; i < nsegments; ++i) {
+  for (int i = 0; i < nsegments; i++) {
     const float angle = interpf(angle_start, angle_end, ((float)i / (float)(nsegments - 1)));
     const float angle_sin = sinf(angle);
     const float angle_cos = cosf(angle);
@@ -305,7 +305,7 @@ static void imm_draw_circle_3D(
     GPUPrimType prim_type, uint pos, float x, float y, float rad, int nsegments)
 {
   immBegin(prim_type, nsegments);
-  for (int i = 0; i < nsegments; ++i) {
+  for (int i = 0; i < nsegments; i++) {
     float angle = (float)(2 * M_PI) * ((float)i / (float)nsegments);
     immVertex3f(pos, x + rad * cosf(angle), y + rad * sinf(angle), 0.0f);
   }
@@ -422,7 +422,7 @@ void imm_draw_cylinder_fill_normal_3d(
     uint pos, uint nor, float base, float top, float height, int slices, int stacks)
 {
   immBegin(GPU_PRIM_TRIS, 6 * slices * stacks);
-  for (int i = 0; i < slices; ++i) {
+  for (int i = 0; i < slices; i++) {
     const float angle1 = (float)(2 * M_PI) * ((float)i / (float)slices);
     const float angle2 = (float)(2 * M_PI) * ((float)(i + 1) / (float)slices);
     const float cos1 = cosf(angle1);
@@ -430,7 +430,7 @@ void imm_draw_cylinder_fill_normal_3d(
     const float cos2 = cosf(angle2);
     const float sin2 = sinf(angle2);
 
-    for (int j = 0; j < stacks; ++j) {
+    for (int j = 0; j < stacks; j++) {
       float fac1 = (float)j / (float)stacks;
       float fac2 = (float)(j + 1) / (float)stacks;
       float r1 = base * (1.f - fac1) + top * fac1;
@@ -478,7 +478,7 @@ void imm_draw_cylinder_wire_3d(
     uint pos, float base, float top, float height, int slices, int stacks)
 {
   immBegin(GPU_PRIM_LINES, 6 * slices * stacks);
-  for (int i = 0; i < slices; ++i) {
+  for (int i = 0; i < slices; i++) {
     const float angle1 = (float)(2 * M_PI) * ((float)i / (float)slices);
     const float angle2 = (float)(2 * M_PI) * ((float)(i + 1) / (float)slices);
     const float cos1 = cosf(angle1);
@@ -486,7 +486,7 @@ void imm_draw_cylinder_wire_3d(
     const float cos2 = cosf(angle2);
     const float sin2 = sinf(angle2);
 
-    for (int j = 0; j < stacks; ++j) {
+    for (int j = 0; j < stacks; j++) {
       float fac1 = (float)j / (float)stacks;
       float fac2 = (float)(j + 1) / (float)stacks;
       float r1 = base * (1.f - fac1) + top * fac1;
@@ -516,7 +516,7 @@ void imm_draw_cylinder_fill_3d(
     uint pos, float base, float top, float height, int slices, int stacks)
 {
   immBegin(GPU_PRIM_TRIS, 6 * slices * stacks);
-  for (int i = 0; i < slices; ++i) {
+  for (int i = 0; i < slices; i++) {
     const float angle1 = (float)(2 * M_PI) * ((float)i / (float)slices);
     const float angle2 = (float)(2 * M_PI) * ((float)(i + 1) / (float)slices);
     const float cos1 = cosf(angle1);
@@ -524,7 +524,7 @@ void imm_draw_cylinder_fill_3d(
     const float cos2 = cosf(angle2);
     const float sin2 = sinf(angle2);
 
-    for (int j = 0; j < stacks; ++j) {
+    for (int j = 0; j < stacks; j++) {
       float fac1 = (float)j / (float)stacks;
       float fac2 = (float)(j + 1) / (float)stacks;
       float r1 = base * (1.f - fac1) + top * fac1;

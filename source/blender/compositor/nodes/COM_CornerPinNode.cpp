@@ -45,7 +45,7 @@ void CornerPinNode::convertToOperations(NodeConverter &converter,
   converter.addOperation(plane_mask_operation);
 
   converter.mapInputSocket(input_image, warp_image_operation->getInputSocket(0));
-  for (int i = 0; i < 4; ++i) {
+  for (int i = 0; i < 4; i++) {
     NodeInput *corner_input = getInputSocket(node_corner_index[i]);
     converter.mapInputSocket(corner_input, warp_image_operation->getInputSocket(i + 1));
     converter.mapInputSocket(corner_input, plane_mask_operation->getInputSocket(i));

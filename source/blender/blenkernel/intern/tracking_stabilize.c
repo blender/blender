@@ -274,10 +274,10 @@ static int search_closest_marker_index(MovieTrackingTrack *track, int ref_frame)
 
   i = MAX2(0, i);
   i = MIN2(i, end - 1);
-  for (; i < end - 1 && markers[i].framenr <= ref_frame; ++i) {
+  for (; i < end - 1 && markers[i].framenr <= ref_frame; i++) {
     /* pass */
   }
-  for (; 0 < i && markers[i].framenr > ref_frame; --i) {
+  for (; 0 < i && markers[i].framenr > ref_frame; i--) {
     /* pass */
   }
 
@@ -294,7 +294,7 @@ static void retrieve_next_higher_usable_frame(
 
   while (i < end &&
          (markers[i].framenr < ref_frame || is_effectively_disabled(ctx, track, &markers[i]))) {
-    ++i;
+    i++;
   }
   if (i < end && markers[i].framenr < *next_higher) {
     BLI_assert(markers[i].framenr >= ref_frame);
@@ -309,7 +309,7 @@ static void retrieve_next_lower_usable_frame(
   BLI_assert(0 <= i && i < track->markersnr);
   while (i >= 0 &&
          (markers[i].framenr > ref_frame || is_effectively_disabled(ctx, track, &markers[i]))) {
-    --i;
+    i--;
   }
   if (0 <= i && markers[i].framenr > *next_lower) {
     BLI_assert(markers[i].framenr <= ref_frame);
@@ -782,7 +782,7 @@ static int establish_track_initialization_order(StabContext *ctx, TrackInitOrder
     if (marker != NULL && (track->flag & (TRACK_USE_2D_STAB | TRACK_USE_2D_STAB_ROT))) {
       order[tracknr].sort_value = abs(marker->framenr - anchor_frame);
       order[tracknr].reference_frame = marker->framenr;
-      ++tracknr;
+      tracknr++;
     }
   }
   if (tracknr) {
@@ -907,7 +907,7 @@ static void initialize_all_tracks(StabContext *ctx, float aspect)
     local_data->track_weight_curve = retrieve_track_weight_animation(clip, track);
     local_data->is_init_for_stabilization = false;
 
-    ++track_len;
+    track_len++;
   }
   if (!track_len) {
     return;
@@ -927,7 +927,7 @@ static void initialize_all_tracks(StabContext *ctx, float aspect)
   average_marker_positions(ctx, reference_frame, average_pos);
   setup_pivot(average_pos, pivot);
 
-  for (i = 0; i < track_len; ++i) {
+  for (i = 0; i < track_len; i++) {
     track = order[i].data;
     if (reference_frame != order[i].reference_frame) {
       reference_frame = order[i].reference_frame;

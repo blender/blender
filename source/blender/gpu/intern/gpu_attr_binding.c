@@ -67,9 +67,9 @@ void get_attr_locations(const GPUVertFormat *format,
 {
   AttrBinding_clear(binding);
 
-  for (uint a_idx = 0; a_idx < format->attr_len; ++a_idx) {
+  for (uint a_idx = 0; a_idx < format->attr_len; a_idx++) {
     const GPUVertAttr *a = &format->attrs[a_idx];
-    for (uint n_idx = 0; n_idx < a->name_len; ++n_idx) {
+    for (uint n_idx = 0; n_idx < a->name_len; n_idx++) {
       const char *name = GPU_vertformat_attr_name_get(format, a, n_idx);
       const GPUShaderInput *input = GPU_shaderinterface_attr(shaderface, name);
 #if TRUST_NO_ONE

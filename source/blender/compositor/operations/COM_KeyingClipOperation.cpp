@@ -71,8 +71,8 @@ void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data
     ok = true;
   }
 
-  for (int cx = start_x; ok == false && cx <= end_x; ++cx) {
-    for (int cy = start_y; ok == false && cy <= end_y; ++cy) {
+  for (int cx = start_x; ok == false && cx <= end_x; cx++) {
+    for (int cy = start_y; ok == false && cy <= end_y; cy++) {
       if (UNLIKELY(cx == x && cy == y)) {
         continue;
       }

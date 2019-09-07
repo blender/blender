@@ -183,7 +183,7 @@ void *OutputOpenExrMultiLayerMultiViewOperation::get_handle(const char *filename
 
       IMB_exr_add_view(exrhandle, srv->name);
 
-      for (unsigned int i = 0; i < this->m_layers.size(); ++i) {
+      for (unsigned int i = 0; i < this->m_layers.size(); i++) {
         add_exr_channels(exrhandle,
                          this->m_layers[i].name,
                          this->m_layers[i].datatype,
@@ -229,7 +229,7 @@ void OutputOpenExrMultiLayerMultiViewOperation::deinitExecution()
 
     exrhandle = this->get_handle(filename);
 
-    for (unsigned int i = 0; i < this->m_layers.size(); ++i) {
+    for (unsigned int i = 0; i < this->m_layers.size(); i++) {
       add_exr_channels(exrhandle,
                        this->m_layers[i].name,
                        this->m_layers[i].datatype,
@@ -239,7 +239,7 @@ void OutputOpenExrMultiLayerMultiViewOperation::deinitExecution()
                        this->m_layers[i].outputBuffer);
     }
 
-    for (unsigned int i = 0; i < this->m_layers.size(); ++i) {
+    for (unsigned int i = 0; i < this->m_layers.size(); i++) {
       /* memory can only be freed after we write all views to the file */
       this->m_layers[i].outputBuffer = NULL;
       this->m_layers[i].imageInput = NULL;
@@ -250,7 +250,7 @@ void OutputOpenExrMultiLayerMultiViewOperation::deinitExecution()
       IMB_exr_write_channels(exrhandle);
 
       /* free buffer memory for all the views */
-      for (unsigned int i = 0; i < this->m_layers.size(); ++i) {
+      for (unsigned int i = 0; i < this->m_layers.size(); i++) {
         free_exr_channels(
             exrhandle, this->m_rd, this->m_layers[i].name, this->m_layers[i].datatype);
       }

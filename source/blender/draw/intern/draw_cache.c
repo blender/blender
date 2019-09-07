@@ -296,15 +296,15 @@ static GPUVertBuf *sphere_wire_vbo(const float rad)
 
   /* a single ring of vertices */
   float p[NSEGMENTS][2];
-  for (int i = 0; i < NSEGMENTS; ++i) {
+  for (int i = 0; i < NSEGMENTS; i++) {
     float angle = 2 * M_PI * ((float)i / (float)NSEGMENTS);
     p[i][0] = rad * cosf(angle);
     p[i][1] = rad * sinf(angle);
   }
 
-  for (int axis = 0; axis < 3; ++axis) {
-    for (int i = 0; i < NSEGMENTS; ++i) {
-      for (int j = 0; j < 2; ++j) {
+  for (int axis = 0; axis < 3; axis++) {
+    for (int i = 0; i < NSEGMENTS; i++) {
+      for (int j = 0; j < 2; j++) {
         float cv[2], v[3];
 
         cv[0] = p[(i + j) % NSEGMENTS][0];
@@ -352,7 +352,7 @@ GPUBatch *DRW_cache_fullscreen_quad_get(void)
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 3);
 
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 3; i++) {
       GPU_vertbuf_attr_set(vbo, attr_id.pos, i, pos[i]);
       GPU_vertbuf_attr_set(vbo, attr_id.uvs, i, uvs[i]);
     }
@@ -382,7 +382,7 @@ GPUBatch *DRW_cache_quad_get(void)
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 4);
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 4; i++) {
       GPU_vertbuf_attr_set(vbo, attr_id.pos, i, pos[i]);
       GPU_vertbuf_attr_set(vbo, attr_id.uvs, i, uvs[i]);
     }
@@ -437,8 +437,8 @@ GPUBatch *DRW_cache_grid_get(void)
     GPU_vertbuf_data_alloc(vbo, 8 * 8 * 2 * 3);
 
     uint v_idx = 0;
-    for (int i = 0; i < 8; ++i) {
-      for (int j = 0; j < 8; ++j) {
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
         float pos0[2] = {(float)i / 8.0f, (float)j / 8.0f};
         float pos1[2] = {(float)(i + 1) / 8.0f, (float)j / 8.0f};
         float pos2[2] = {(float)i / 8.0f, (float)(j + 1) / 8.0f};
@@ -510,7 +510,7 @@ GPUBatch *DRW_cache_cube_get(void)
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 36);
 
-    for (int i = 0; i < 36; ++i) {
+    for (int i = 0; i < 36; i++) {
       GPU_vertbuf_attr_set(vbo, attr_id.pos, i, verts[indices[i]]);
     }
 
@@ -549,7 +549,7 @@ GPUBatch *DRW_cache_empty_cube_get(void)
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 24);
 
-    for (int i = 0; i < 24; ++i) {
+    for (int i = 0; i < 24; i++) {
       GPU_vertbuf_attr_set(vbo, attr_id.pos, i, verts[indices[i]]);
     }
 
@@ -751,7 +751,7 @@ GPUBatch *DRW_cache_gpencil_axes_get(void)
     }
 
     /* draw cube */
-    for (int i = 0; i < 24; ++i) {
+    for (int i = 0; i < 24; i++) {
       GPU_vertbuf_attr_set(vbo, pos_id, i + 6, verts[indices[i]]);
     }
 
@@ -982,7 +982,7 @@ GPUBatch *DRW_cache_empty_cone_get(void)
   if (!SHC.drw_empty_cone) {
     /* a single ring of vertices */
     float p[NSEGMENTS][2];
-    for (int i = 0; i < NSEGMENTS; ++i) {
+    for (int i = 0; i < NSEGMENTS; i++) {
       float angle = 2 * M_PI * ((float)i / (float)NSEGMENTS);
       p[i][0] = cosf(angle);
       p[i][1] = sinf(angle);
@@ -1000,7 +1000,7 @@ GPUBatch *DRW_cache_empty_cone_get(void)
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, NSEGMENTS * 4);
 
-    for (int i = 0; i < NSEGMENTS; ++i) {
+    for (int i = 0; i < NSEGMENTS; i++) {
       float cv[2], v[3];
       cv[0] = p[(i) % NSEGMENTS][0];
       cv[1] = p[(i) % NSEGMENTS][1];
@@ -1032,7 +1032,7 @@ GPUBatch *DRW_cache_empty_cylinder_get(void)
   if (!SHC.drw_empty_cylinder) {
     /* a single ring of vertices */
     float p[NSEGMENTS][2];
-    for (int i = 0; i < NSEGMENTS; ++i) {
+    for (int i = 0; i < NSEGMENTS; i++) {
       float angle = 2 * M_PI * ((float)i / (float)NSEGMENTS);
       p[i][0] = cosf(angle);
       p[i][1] = sinf(angle);
@@ -1050,7 +1050,7 @@ GPUBatch *DRW_cache_empty_cylinder_get(void)
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, NSEGMENTS * 6);
 
-    for (int i = 0; i < NSEGMENTS; ++i) {
+    for (int i = 0; i < NSEGMENTS; i++) {
       float cv[2], pv[2], v[3];
       cv[0] = p[(i) % NSEGMENTS][0];
       cv[1] = p[(i) % NSEGMENTS][1];
@@ -1121,7 +1121,7 @@ GPUBatch *DRW_cache_empty_capsule_cap_get(void)
   if (!SHC.drw_empty_capsule_cap) {
     /* a single ring of vertices */
     float p[NSEGMENTS][2];
-    for (int i = 0; i < NSEGMENTS; ++i) {
+    for (int i = 0; i < NSEGMENTS; i++) {
       float angle = 2 * M_PI * ((float)i / (float)NSEGMENTS);
       p[i][0] = cosf(angle);
       p[i][1] = sinf(angle);
@@ -1141,7 +1141,7 @@ GPUBatch *DRW_cache_empty_capsule_cap_get(void)
 
     /* Base circle */
     int vidx = 0;
-    for (int i = 0; i < NSEGMENTS; ++i) {
+    for (int i = 0; i < NSEGMENTS; i++) {
       float v[3] = {0.0f, 0.0f, 0.0f};
       copy_v2_v2(v, p[(i) % NSEGMENTS]);
       GPU_vertbuf_attr_set(vbo, attr_id.pos, vidx++, v);
@@ -1149,7 +1149,7 @@ GPUBatch *DRW_cache_empty_capsule_cap_get(void)
       GPU_vertbuf_attr_set(vbo, attr_id.pos, vidx++, v);
     }
 
-    for (int i = 0; i < NSEGMENTS / 2; ++i) {
+    for (int i = 0; i < NSEGMENTS / 2; i++) {
       float v[3] = {0.0f, 0.0f, 0.0f};
       int ci = i % NSEGMENTS;
       int pi = (i + 1) % NSEGMENTS;
@@ -1690,7 +1690,7 @@ GPUBatch *DRW_cache_light_spot_get(void)
     float n[NSEGMENTS][3];
     float neg[NSEGMENTS][3];
     float half_angle = 2 * M_PI / ((float)NSEGMENTS * 2);
-    for (int i = 0; i < NSEGMENTS; ++i) {
+    for (int i = 0; i < NSEGMENTS; i++) {
       float angle = 2 * M_PI * ((float)i / (float)NSEGMENTS);
       p[i][0] = cosf(angle);
       p[i][1] = sinf(angle);
@@ -1715,7 +1715,7 @@ GPUBatch *DRW_cache_light_spot_get(void)
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, NSEGMENTS * 4);
 
-    for (int i = 0; i < NSEGMENTS; ++i) {
+    for (int i = 0; i < NSEGMENTS; i++) {
       float cv[2], v[3];
       cv[0] = p[i % NSEGMENTS][0];
       cv[1] = p[i % NSEGMENTS][1];
@@ -1757,7 +1757,7 @@ GPUBatch *DRW_cache_light_spot_volume_get(void)
   if (!SHC.drw_light_spot_volume) {
     /* a single ring of vertices */
     float p[NSEGMENTS][2];
-    for (int i = 0; i < NSEGMENTS; ++i) {
+    for (int i = 0; i < NSEGMENTS; i++) {
       float angle = 2 * M_PI * ((float)i / (float)NSEGMENTS);
       p[i][0] = cosf(angle);
       p[i][1] = sinf(angle);
@@ -1775,7 +1775,7 @@ GPUBatch *DRW_cache_light_spot_volume_get(void)
     GPU_vertbuf_data_alloc(vbo, NSEGMENTS * 3);
 
     uint v_idx = 0;
-    for (int i = 0; i < NSEGMENTS; ++i) {
+    for (int i = 0; i < NSEGMENTS; i++) {
       float cv[2], v[3];
 
       ARRAY_SET_ITEMS(v, 0.0f, 0.0f, 0.0f);
@@ -1824,7 +1824,7 @@ GPUBatch *DRW_cache_light_spot_square_get(void)
     GPU_vertbuf_data_alloc(vbo, 16);
 
     /* piramid sides */
-    for (int i = 1; i <= 4; ++i) {
+    for (int i = 1; i <= 4; i++) {
       GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, p[0]);
       GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, p[i]);
 
@@ -1863,7 +1863,7 @@ GPUBatch *DRW_cache_light_spot_square_volume_get(void)
     GPU_vertbuf_data_alloc(vbo, 12);
 
     /* piramid sides */
-    for (int i = 1; i <= 4; ++i) {
+    for (int i = 1; i <= 4; i++) {
       GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, p[0]);
       GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, p[((i + 1) % 4) + 1]);
       GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, p[(i % 4) + 1]);
@@ -1974,7 +1974,7 @@ GPUBatch *DRW_cache_lightprobe_cube_get(void)
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, (6 + 3) * 2);
 
-    for (int i = 0; i < 6; ++i) {
+    for (int i = 0; i < 6; i++) {
       GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, v[i]);
       GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, v[(i + 1) % 6]);
     }
@@ -2021,7 +2021,7 @@ GPUBatch *DRW_cache_lightprobe_grid_get(void)
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, (6 * 2 + 3) * 2);
 
-    for (int i = 0; i < 6; ++i) {
+    for (int i = 0; i < 6; i++) {
       float tmp_v1[3], tmp_v2[3], tmp_tr[3];
       copy_v3_v3(tmp_v1, v[i]);
       copy_v3_v3(tmp_v2, v[(i + 1) % 6]);
@@ -2029,7 +2029,7 @@ GPUBatch *DRW_cache_lightprobe_grid_get(void)
       GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, tmp_v2);
 
       /* Internal wires. */
-      for (int j = 1; j < 2; ++j) {
+      for (int j = 1; j < 2; j++) {
         mul_v3_v3fl(tmp_tr, v[(i / 2) * 2 + 1], -0.5f * j);
         add_v3_v3v3(tmp_v1, v[i], tmp_tr);
         add_v3_v3v3(tmp_v2, v[(i + 1) % 6], tmp_tr);
@@ -2076,7 +2076,7 @@ GPUBatch *DRW_cache_lightprobe_planar_get(void)
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 4 * 2);
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 4; i++) {
       GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, v[i]);
       GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, v[(i + 1) % 4]);
     }
@@ -2214,7 +2214,7 @@ GPUBatch *DRW_cache_bone_octahedral_get(void)
     GPU_vertbuf_data_alloc(vbo, 24);
 
     for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 3; ++j) {
+      for (int j = 0; j < 3; j++) {
         GPU_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
         GPU_vertbuf_attr_set(vbo,
                              attr_id.snor,
@@ -2710,7 +2710,7 @@ GPUBatch *DRW_cache_bone_stick_get(void)
     GPU_indexbuf_init_ex(&elb, GPU_PRIM_TRI_FAN, (CIRCLE_RESOL + 2) * 2 + 6 + 2, vcount);
 
     /* head/tail points */
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 2; i++) {
       /* center vertex */
       copy_v2_fl(pos, 0.0f);
       flag = (i == 0) ? POS_HEAD : POS_TAIL;
@@ -2735,7 +2735,7 @@ GPUBatch *DRW_cache_bone_stick_get(void)
 
     /* Bone rectangle */
     pos[0] = 0.0f;
-    for (int i = 0; i < 6; ++i) {
+    for (int i = 0; i < 6; i++) {
       pos[1] = (i == 0 || i == 3) ? 0.0f : ((i < 3) ? 1.0f : -1.0f);
       flag = ((i < 2 || i > 4) ? POS_HEAD : POS_TAIL) | ((i == 0 || i == 3) ? 0 : COL_WIRE) |
              COL_BONE | POS_BONE;
@@ -2896,8 +2896,8 @@ GPUBatch *DRW_cache_bone_arrows_get(void)
       set_bone_axis_vert(vbo, attr_id.axis, attr_id.pos, attr_id.col, &v, &a, pos, c);
 
       /* Axis end marker */
-      for (int j = 1; j < MARKER_FILL_LAYER + 1; ++j) {
-        for (int i = 0; i < MARKER_LEN; ++i) {
+      for (int j = 1; j < MARKER_FILL_LAYER + 1; j++) {
+        for (int i = 0; i < MARKER_LEN; i++) {
           float tmp[2];
           mul_v2_v2fl(tmp, axis_marker[i], j / (float)MARKER_FILL_LAYER);
           set_bone_axis_vert(vbo, attr_id.axis, attr_id.pos, attr_id.col, &v, &a, tmp, c);
@@ -2924,8 +2924,8 @@ GPUBatch *DRW_cache_bone_arrows_get(void)
       /* Axis name shadows */
       copy_v3_fl(c, 0.0f);
       c[axis] = 0.3f;
-      for (int j = 0; j < SHADOW_RES; ++j) {
-        for (int i = 0; i < axis_v_len; ++i) {
+      for (int j = 0; j < SHADOW_RES; j++) {
+        for (int i = 0; i < axis_v_len; i++) {
           float tmp[2];
           add_v2_v2v2(tmp, axis_verts[i], axis_name_shadow[j]);
           set_bone_axis_vert(vbo, attr_id.axis, attr_id.pos, attr_id.col, &v, &a, tmp, c);
@@ -2935,7 +2935,7 @@ GPUBatch *DRW_cache_bone_arrows_get(void)
       /* Axis name */
       copy_v3_fl(c, 0.1f);
       c[axis] = 1.0f;
-      for (int i = 0; i < axis_v_len; ++i) {
+      for (int i = 0; i < axis_v_len; i++) {
         set_bone_axis_vert(vbo, attr_id.axis, attr_id.pos, attr_id.col, &v, &a, axis_verts[i], c);
       }
     }
@@ -2990,12 +2990,12 @@ GPUBatch *DRW_cache_bone_dof_sphere_get(void)
     GPU_vertbuf_data_alloc(vbo, n * n * 6 * 4);
 
     uint v = 0;
-    for (q = 0; q < 4; ++q) {
+    for (q = 0; q < 4; q++) {
       pz = 0.0f;
-      for (i = 1; i < n; ++i) {
+      for (i = 1; i < n; i++) {
         z = staticSine[i];
         px = 0.0f;
-        for (j = 1; j <= (n - i); ++j) {
+        for (j = 1; j <= (n - i); j++) {
           x = staticSine[j];
           if (j == n - i) {
             set_vert(px, z, q);
@@ -3937,7 +3937,7 @@ GPUBatch *DRW_cache_cursor_get(bool crosshair_lines)
     GPU_vertbuf_data_alloc(vbo, vert_len);
 
     int v = 0;
-    for (int i = 0; i < segments; ++i) {
+    for (int i = 0; i < segments; i++) {
       float angle = (float)(2 * M_PI) * ((float)i / (float)segments);
       float x = f10 * cosf(angle);
       float y = f10 * sinf(angle);

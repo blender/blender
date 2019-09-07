@@ -197,12 +197,12 @@ AbcExporter::~AbcExporter()
 {
   /* Free xforms map */
   m_xforms_type::iterator it_x, e_x;
-  for (it_x = m_xforms.begin(), e_x = m_xforms.end(); it_x != e_x; ++it_x) {
+  for (it_x = m_xforms.begin(), e_x = m_xforms.end(); it_x != e_x; it_x++) {
     delete it_x->second;
   }
 
   /* Free shapes vector */
-  for (int i = 0, e = m_shapes.size(); i != e; ++i) {
+  for (int i = 0, e = m_shapes.size(); i != e; i++) {
     delete m_shapes[i];
   }
 
@@ -223,7 +223,7 @@ void AbcExporter::getShutterSamples(unsigned int nr_of_samples,
   double time_inc = (shutter_close - shutter_open) / nr_of_samples;
 
   /* sample between shutter open & close */
-  for (int sample = 0; sample < nr_of_samples; ++sample) {
+  for (int sample = 0; sample < nr_of_samples; sample++) {
     double sample_time = shutter_open + time_inc * sample;
     double time = (frame_offset + sample_time) / time_factor;
 
@@ -257,7 +257,7 @@ void AbcExporter::getFrameSet(unsigned int nr_of_samples, std::set<double> &fram
   getShutterSamples(nr_of_samples, false, shutter_samples);
 
   for (double frame = m_settings.frame_start; frame <= m_settings.frame_end; frame += 1.0) {
-    for (size_t j = 0; j < nr_of_samples; ++j) {
+    for (size_t j = 0; j < nr_of_samples; j++) {
       frames.insert(frame + shutter_samples[j]);
     }
   }
@@ -331,7 +331,7 @@ void AbcExporter::operator()(float &progress, bool &was_canceled)
   const float size = static_cast<float>(frames.size());
   size_t i = 0;
 
-  for (; begin != end; ++begin) {
+  for (; begin != end; begin++) {
     progress = (++i / size);
 
     if (G.is_break) {
@@ -345,7 +345,7 @@ void AbcExporter::operator()(float &progress, bool &was_canceled)
     setCurrentFrame(m_bmain, frame);
 
     if (shape_frames.count(frame) != 0) {
-      for (int i = 0, e = m_shapes.size(); i != e; ++i) {
+      for (int i = 0, e = m_shapes.size(); i != e; i++) {
         m_shapes[i]->write();
       }
     }
@@ -355,14 +355,14 @@ void AbcExporter::operator()(float &progress, bool &was_canceled)
     }
 
     m_xforms_type::iterator xit, xe;
-    for (xit = m_xforms.begin(), xe = m_xforms.end(); xit != xe; ++xit) {
+    for (xit = m_xforms.begin(), xe = m_xforms.end(); xit != xe; xit++) {
       xit->second->write();
     }
 
     /* Save the archive 's bounding box. */
     Imath::Box3d bounds;
 
-    for (xit = m_xforms.begin(), xe = m_xforms.end(); xit != xe; ++xit) {
+    for (xit = m_xforms.begin(), xe = m_xforms.end(); xit != xe; xit++) {
       Imath::Box3d box = xit->second->bounds();
       bounds.extendBy(box);
     }

@@ -1742,7 +1742,7 @@ void cloth_free_contacts(ColliderContacts *collider_contacts, int totcolliders)
 {
   if (collider_contacts) {
     int i;
-    for (i = 0; i < totcolliders; ++i) {
+    for (i = 0; i < totcolliders; i++) {
       ColliderContacts *ct = collider_contacts + i;
       if (ct->collisions) {
         MEM_freeN(ct->collisions);

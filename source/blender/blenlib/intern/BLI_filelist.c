@@ -437,7 +437,7 @@ void BLI_filelist_duplicate(struct direntry **dest_filelist,
   unsigned int i;
 
   *dest_filelist = MEM_mallocN(sizeof(**dest_filelist) * (size_t)(nrentries), __func__);
-  for (i = 0; i < nrentries; ++i) {
+  for (i = 0; i < nrentries; i++) {
     struct direntry *const src = &src_filelist[i];
     struct direntry *dst = &(*dest_filelist)[i];
     BLI_filelist_entry_duplicate(dst, src);
@@ -463,7 +463,7 @@ void BLI_filelist_entry_free(struct direntry *entry)
 void BLI_filelist_free(struct direntry *filelist, const unsigned int nrentries)
 {
   unsigned int i;
-  for (i = 0; i < nrentries; ++i) {
+  for (i = 0; i < nrentries; i++) {
     BLI_filelist_entry_free(&filelist[i]);
   }
 

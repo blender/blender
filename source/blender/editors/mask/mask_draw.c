@@ -391,7 +391,7 @@ static void mask_draw_array(unsigned int pos,
                             unsigned int vertex_len)
 {
   immBegin(prim_type, vertex_len);
-  for (unsigned int i = 0; i < vertex_len; ++i) {
+  for (unsigned int i = 0; i < vertex_len; i++) {
     immVertex2fv(pos, points[i]);
   }
   immEnd();

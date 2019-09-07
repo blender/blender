@@ -126,7 +126,7 @@ static uchar copy_attr_name(GPUVertFormat *format, const char *name)
   uint available = GPU_VERT_ATTR_NAMES_BUF_LEN - name_offset;
   bool terminated = false;
 
-  for (uint i = 0; i < available; ++i) {
+  for (uint i = 0; i < available; i++) {
     const char c = name[i];
     name_copy[i] = c;
     if (c == '\0') {
@@ -303,10 +303,10 @@ uint padding(uint offset, uint alignment)
 static void show_pack(uint a_idx, uint sz, uint pad)
 {
   const char c = 'A' + a_idx;
-  for (uint i = 0; i < pad; ++i) {
+  for (uint i = 0; i < pad; i++) {
     putchar('-');
   }
-  for (uint i = 0; i < sz; ++i) {
+  for (uint i = 0; i < sz; i++) {
     putchar(c);
   }
 }
@@ -330,7 +330,7 @@ void VertexFormat_pack(GPUVertFormat *format)
   show_pack(0, a0->sz, 0);
 #endif
 
-  for (uint a_idx = 1; a_idx < format->attr_len; ++a_idx) {
+  for (uint a_idx = 1; a_idx < format->attr_len; a_idx++) {
     GPUVertAttr *a = &format->attrs[a_idx];
     uint mid_padding = padding(offset, attr_align(a));
     offset += mid_padding;

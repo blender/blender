@@ -701,7 +701,7 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
       if (use_sculpt_pbvh) {
         struct DRWShadingGroup **shgrps = BLI_array_alloca(shgrps, materials_len);
 
-        for (int i = 0; i < materials_len; ++i) {
+        for (int i = 0; i < materials_len; i++) {
           struct Material *mat = give_current_material(ob, i + 1);
           material = workbench_forward_get_or_create_material_data(
               vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0);
@@ -720,7 +720,7 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
         struct GPUBatch **mat_geom = DRW_cache_object_surface_material_get(
             ob, gpumat_array, materials_len, NULL, NULL, NULL);
         if (mat_geom) {
-          for (int i = 0; i < materials_len; ++i) {
+          for (int i = 0; i < materials_len; i++) {
             if (mat_geom[i] == NULL) {
               continue;
             }

@@ -147,7 +147,7 @@ void main()
   make_orthonormal_basis(N, T, B); /* Generate tangent space */
 
   /* Planar Reflections */
-  for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar; ++i) {
+  for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar; i++) {
     PlanarData pd = planars_data[i];
 
     float fade = probe_attenuation_planar(pd, worldPosition, wN, 0.0);
@@ -504,7 +504,7 @@ void main()
     /* Find Planar Reflections affecting this pixel */
     PlanarData pd;
     float planar_index;
-    for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar; ++i) {
+    for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar; i++) {
       pd = planars_data[i];
 
       float fade = probe_attenuation_planar(pd, worldPosition, N, 0.0);

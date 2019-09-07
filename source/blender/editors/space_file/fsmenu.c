@@ -404,7 +404,7 @@ void fsmenu_write_file(struct FSMenu *fsmenu, const char *filename)
   fprintf(fp, "[Recent]\n");
   for (fsm_iter = ED_fsmenu_get_category(fsmenu, FS_CATEGORY_RECENT);
        fsm_iter && (nwritten < FSMENU_RECENT_MAX);
-       fsm_iter = fsm_iter->next, ++nwritten) {
+       fsm_iter = fsm_iter->next, nwritten++) {
     if (fsm_iter->path && fsm_iter->save) {
       fsmenu_entry_generate_name(fsm_iter, fsm_name, sizeof(fsm_name));
       if (fsm_iter->name[0] && !STREQ(fsm_iter->name, fsm_name)) {

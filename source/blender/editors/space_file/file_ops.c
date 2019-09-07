@@ -239,7 +239,7 @@ static bool file_is_any_selected(struct FileList *files)
   int i;
 
   /* Is any file selected ? */
-  for (i = 0; i < numfiles; ++i) {
+  for (i = 0; i < numfiles; i++) {
     if (filelist_entry_select_index_get(files, i, CHECK_ALL)) {
       return true;
     }
@@ -1744,7 +1744,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
 
   /* check if we are editing a name */
   int edit_idx = -1;
-  for (i = 0; i < numfiles; ++i) {
+  for (i = 0; i < numfiles; i++) {
     if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL) &
         (FILE_SEL_EDITING | FILE_SEL_HIGHLIGHTED)) {
       edit_idx = i;

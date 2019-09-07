@@ -88,7 +88,7 @@ void SceneExporter::writeNodeList(std::vector<Object *> &child_objects, Object *
    * I really prefer to enforce the export of hidden
    * elements in an object hierarchy. When the children of
    * the hidden elements are exported as well. */
-  for (int i = 0; i < child_objects.size(); ++i) {
+  for (int i = 0; i < child_objects.size(); i++) {
     Object *child = child_objects[i];
     writeNode(child);
     if (bc_is_marked(child)) {
