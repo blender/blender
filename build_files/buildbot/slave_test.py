@@ -22,15 +22,6 @@ import buildbot_utils
 import os
 import sys
 
-def get_ctest_environment(builder):
-    info = buildbot_utils.VersionInfo(builder)
-    blender_version_dir = os.path.join(builder.install_dir, info.version)
-
-    env = os.environ.copy()
-    env['BLENDER_SYSTEM_SCRIPTS'] = os.path.join(blender_version_dir, 'scripts')
-    env['BLENDER_SYSTEM_DATAFILES'] = os.path.join(blender_version_dir, 'datafiles')
-    return env
-
 def get_ctest_arguments(builder):
     args = ['--output-on-failure']
     if builder.platform == 'win':
@@ -41,8 +32,7 @@ def test(builder):
     os.chdir(builder.build_dir)
 
     command = builder.command_prefix  + ['ctest'] + get_ctest_arguments(builder)
-    ctest_env = get_ctest_environment(builder)
-    buildbot_utils.call(command, env=ctest_env, exit_on_error=False)
+    buildbot_utils.call(command, exit_on_error=False)
 
 if __name__ == "__main__":
     builder = buildbot_utils.create_builder_from_arguments()
