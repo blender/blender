@@ -53,7 +53,7 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
                           RUNTIME_OUTPUT_DIRECTORY_RELEASE "${TESTS_OUTPUT_DIR}"
                           RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${TESTS_OUTPUT_DIR}")
     if(${DO_ADD_TEST})
-      add_test(NAME ${TARGET_NAME} COMMAND ${TESTS_OUTPUT_DIR}/${TARGET_NAME} WORKING_DIRECTORY $<TARGET_FILE_DIR:blender>)
+      add_test(NAME ${TARGET_NAME} COMMAND ${TESTS_OUTPUT_DIR}/${TARGET_NAME} WORKING_DIRECTORY ${TEST_INSTALL_DIR})
 
       # Don't fail tests on leaks since these often happen in external libraries
       # that we can't fix.
