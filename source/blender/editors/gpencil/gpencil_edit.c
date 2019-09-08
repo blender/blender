@@ -4489,6 +4489,10 @@ static int gpencil_cutter_lasso_select(bContext *C,
   /* dissolve selected points */
   bGPDstroke *gpsn;
   for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    if (gpl->flag & GP_LAYER_LOCKED) {
+      continue;
+    }
+
     bGPDframe *gpf = gpl->actframe;
     if (gpf == NULL) {
       continue;
