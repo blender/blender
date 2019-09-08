@@ -24,7 +24,7 @@ def check_output(cmd, exit_on_error=True):
     sys.stderr.flush()
 
     try:
-        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True)
+        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, universal_newlines=True)
     except subprocess.CalledProcessError as e:
         if exit_on_error:
             sys.stderr.write(" ".join(cmd))
