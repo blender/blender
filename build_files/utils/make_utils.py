@@ -6,7 +6,7 @@ import re
 import subprocess
 import sys
 
-def call(cmd):
+def call(cmd, exit_on_error=True):
     print(" ".join(cmd))
 
     # Flush to ensure correct order output on Windows.
@@ -14,8 +14,25 @@ def call(cmd):
     sys.stderr.flush()
 
     retcode = subprocess.call(cmd)
-    if retcode != 0:
-      sys.exit(retcode)
+    if exit_on_error and retcode != 0:
+        sys.exit(retcode)
+    return retcode
+
+def check_output(cmd, exit_on_error=True):
+    # Flush to ensure correct order output on Windows.
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    try:
+        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True)
+    except subprocess.CalledProcessError as e:
+        if exit_on_error:
+            sys.stderr.write(" ".join(cmd))
+            sys.stderr.write(e.output + "\n")
+            sys.exit(e.returncode)
+        output = ""
+
+    return output.strip()
 
 def git_branch_release_version(git_command):
     # Test if we are building a specific release version.
