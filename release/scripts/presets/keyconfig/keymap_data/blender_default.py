@@ -1762,7 +1762,7 @@ def km_info(params):
     return keymap
 
 
-def km_file_browser(_params):
+def km_file_browser(params):
     items = []
     keymap = (
         "File Browser",
@@ -1800,6 +1800,7 @@ def km_file_browser(_params):
          {"properties": [("increment", -10)]}),
         ("file.filenum", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True},
          {"properties": [("increment", -100)]}),
+        op_menu("FILEBROWSER_MT_context_menu", params.context_menu_event),
     ])
 
     return keymap
@@ -1859,7 +1860,6 @@ def km_file_browser_main(params):
          {"properties": [("mode", 'SUB')]}),
         ("file.highlight", {"type": 'MOUSEMOVE', "value": 'ANY', "any": True}, None),
         ("file.sort_column_ui_context", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
-        op_menu("FILEBROWSER_MT_context_menu", params.context_menu_event),
     ])
 
     return keymap
