@@ -1831,7 +1831,7 @@ class BatchRenameAction(bpy.types.PropertyGroup):
         items=(
             ('UPPER', "Upper Case", ""),
             ('LOWER', "Lower Case", ""),
-            ('TITLE', "Title Caps", ""),
+            ('TITLE', "Title Case", ""),
         ),
     )
 
