@@ -37,6 +37,8 @@ BLACKLIST = {
     "io_export_dxf",  # TODO, check on why this fails
     'io_import_dxf',  # Because of cydxfentity.so dependency
 
+    # Utility scripts not meant to be used as modules
+    os.path.join("power_sequencer", "scripts"),
     # The unpacked wheel is only loaded when actually used, not directly on import:
     os.path.join("io_blend_utils", "blender_bam-unpacked.whl"),
 }
