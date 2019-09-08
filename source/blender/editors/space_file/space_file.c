@@ -593,8 +593,14 @@ static void file_ui_region_draw(const bContext *C, ARegion *ar)
 
 static void file_execution_region_init(wmWindowManager *wm, ARegion *ar)
 {
+  wmKeyMap *keymap;
+
   ED_region_panels_init(wm, ar);
   ar->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
+
+  /* own keymap */
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
 }
 
 static void file_execution_region_draw(const bContext *C, ARegion *ar)
