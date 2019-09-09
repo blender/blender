@@ -5127,6 +5127,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         break;
       case SCULPT_TOOL_MASK:
         do_mask_brush(sd, ob, nodes, totnode);
+        break;
       case SCULPT_TOOL_POSE:
         do_pose_brush(sd, ob, nodes, totnode);
         break;
