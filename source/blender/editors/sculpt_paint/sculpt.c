@@ -151,7 +151,9 @@ static void sculpt_vertex_normal_get(SculptSession *ss, int index, float no[3])
       return;
     case PBVH_BMESH:
       copy_v3_v3(no, BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index)->no);
+      break;
     default:
+      zero_v3(no);
       return;
   }
 }
@@ -396,7 +398,7 @@ static void do_nearest_vertex_get_task_cb(void *__restrict userdata,
   BLI_mutex_unlock(&data->mutex);
 }
 
-int sculpt_nearest_vertex_get(
+static int sculpt_nearest_vertex_get(
     Sculpt *sd, Object *ob, float co[3], float max_distance, bool use_original)
 {
   SculptSession *ss = ob->sculpt;
@@ -1111,7 +1113,7 @@ static bool sculpt_automasking_enabled(SculptSession *ss, const Brush *br)
   return false;
 }
 
-static float sculpt_automasking_factor_get(SculptSession *ss, const Brush *br, int vert)
+static float sculpt_automasking_factor_get(SculptSession *ss, int vert)
 {
   if (ss->cache->automask) {
     return ss->cache->automask[vert];
@@ -1808,7 +1810,7 @@ float tex_strength(SculptSession *ss,
   avg *= 1.0f - mask;
 
   /* Automasking */
-  avg *= sculpt_automasking_factor_get(ss, br, vertex_index);
+  avg *= sculpt_automasking_factor_get(ss, vertex_index);
 
   return avg;
 }
@@ -3436,7 +3438,7 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
       mul_v3_fl(final_disp, 1.0f - *vd.mask);
     }
 
-    mul_v3_fl(final_disp, sculpt_automasking_factor_get(ss, brush, vd.index));
+    mul_v3_fl(final_disp, sculpt_automasking_factor_get(ss, vd.index));
 
     copy_v3_v3(proxy[vd.i], final_disp);
 
@@ -3471,7 +3473,7 @@ static void do_elastic_deform_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
 
 static void do_pose_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
-                                     const TaskParallelTLS *__restrict tls)
+                                     const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
