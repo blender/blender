@@ -42,6 +42,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_defaults.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -136,20 +137,7 @@ void BKE_material_init(Material *ma)
 {
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ma, id));
 
-  ma->r = ma->g = ma->b = 0.8;
-  ma->specr = ma->specg = ma->specb = 1.0;
-  ma->a = 1.0f;
-  ma->spec = 0.5;
-
-  ma->roughness = 0.4f;
-
-  ma->pr_type = MA_SPHERE;
-
-  ma->preview = NULL;
-
-  ma->alpha_threshold = 0.5f;
-
-  ma->blend_shadow = MA_BS_SOLID;
+  MEMCPY_STRUCT_AFTER(ma, DNA_struct_default_get(Material), id);
 }
 
 void BKE_material_gpencil_init(Material *ma)

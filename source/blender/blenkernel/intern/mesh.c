@@ -27,6 +27,7 @@
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_defaults.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_bitmap.h"
@@ -533,10 +534,7 @@ void BKE_mesh_init(Mesh *me)
 {
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(me, id));
 
-  me->size[0] = me->size[1] = me->size[2] = 1.0;
-  me->smoothresh = DEG2RADF(30);
-  me->texflag = ME_AUTOSPACE;
-  me->remesh_voxel_size = 0.1f;
+  MEMCPY_STRUCT_AFTER(me, DNA_struct_default_get(Mesh), id);
 
   CustomData_reset(&me->vdata);
   CustomData_reset(&me->edata);

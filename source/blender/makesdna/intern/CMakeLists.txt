@@ -128,7 +128,11 @@ set(SRC
   ../../blenlib/intern/hash_mm2a.c
   ../../blenlib/intern/listbase.c
 
+  ../DNA_material_defaults.h
+  ../DNA_mesh_defaults.h
+  ../DNA_object_defaults.h
   ../DNA_scene_defaults.h
+  ../DNA_vec_defaults.h
   ../DNA_view3d_defaults.h
 )
 

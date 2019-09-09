@@ -110,7 +110,7 @@ typedef enum eObjectVisibilityResult {
 
 int BKE_object_visibility(const struct Object *ob, const int dag_eval_mode);
 
-void BKE_object_init(struct Object *ob);
+void BKE_object_init(struct Object *ob, const short ob_type);
 struct Object *BKE_object_add_only_object(struct Main *bmain, int type, const char *name)
     ATTR_NONNULL(1) ATTR_RETURNS_NONNULL;
 struct Object *BKE_object_add(struct Main *bmain,

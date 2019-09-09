@@ -55,6 +55,7 @@
 #include "DNA_object_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_rigidbody_types.h"
+#include "DNA_defaults.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -803,38 +804,16 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
   }
 }
 
-void BKE_object_init(Object *ob)
+void BKE_object_init(Object *ob, const short ob_type)
 {
-  /* BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ob, id)); */ /* ob->type is already initialized... */
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ob, id));
 
-  copy_v4_fl(ob->color, 1.0f);
+  MEMCPY_STRUCT_AFTER(ob, DNA_struct_default_get(Object), id);
 
-  ob->scale[0] = ob->scale[1] = ob->scale[2] = 1.0;
-  ob->dscale[0] = ob->dscale[1] = ob->dscale[2] = 1.0;
+  ob->type = ob_type;
 
-  /* objects should default to having Euler XYZ rotations,
-   * but rotations default to quaternions
-   */
-  ob->rotmode = ROT_MODE_EUL;
-
-  unit_axis_angle(ob->rotAxis, &ob->rotAngle);
-  unit_axis_angle(ob->drotAxis, &ob->drotAngle);
-
-  unit_qt(ob->quat);
-  unit_qt(ob->dquat);
-
-  /* rotation locks should be 4D for 4 component rotations by default... */
-  ob->protectflag = OB_LOCK_ROT4D;
-
-  unit_m4(ob->constinv);
-  unit_m4(ob->parentinv);
-  unit_m4(ob->obmat);
-  ob->dt = OB_TEXTURE;
-  ob->empty_drawtype = OB_PLAINAXES;
-  ob->empty_drawsize = 1.0;
-  ob->empty_image_depth = OB_EMPTY_IMAGE_DEPTH_DEFAULT;
-  if (ob->type == OB_EMPTY) {
-    copy_v2_fl(ob->ima_ofs, -0.5f);
+  if (ob->type != OB_EMPTY) {
+    zero_v2(ob->ima_ofs);
   }
 
   if (ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
@@ -845,18 +824,6 @@ void BKE_object_init(Object *ob)
     ob->trackflag = OB_POSY;
     ob->upflag = OB_POSZ;
   }
-
-  ob->instance_faces_scale = 1.0;
-
-  ob->col_group = 0x01;
-  ob->col_mask = 0xffff;
-  ob->preview = NULL;
-  ob->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT | OB_DUPLI_FLAG_RENDER;
-
-  /* NT fluid sim defaults */
-  ob->fluidsimSettings = NULL;
-
-  BLI_listbase_clear(&ob->pc_ids);
 
   /* Animation Visualization defaults */
   animviz_settings_init(&ob->avs);
@@ -877,9 +844,7 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
   id_us_min(&ob->id);
 
   /* default object vars */
-  ob->type = type;
-
-  BKE_object_init(ob);
+  BKE_object_init(ob, type);
 
   return ob;
 }

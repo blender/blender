@@ -1264,8 +1264,7 @@ void BKE_libblock_init_empty(ID *id)
       break;
     case ID_OB: {
       Object *ob = (Object *)id;
-      ob->type = OB_EMPTY;
-      BKE_object_init(ob);
+      BKE_object_init(ob, OB_EMPTY);
       break;
     }
     case ID_ME:
