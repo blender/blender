@@ -131,7 +131,7 @@ shader node_noise_texture(int use_mapping = 0,
   vector3 p = Vector;
   if (use_mapping)
     p = transform(mapping, p);
-  
+
   p *= Scale;
   float w = W * Scale;
 

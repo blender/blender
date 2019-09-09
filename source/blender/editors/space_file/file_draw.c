@@ -224,7 +224,7 @@ static void file_draw_preview(uiBlock *block,
   float scale;
   int ex, ey;
   bool show_outline = !is_icon &&
-                        (typeflags & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_BLENDER));
+                      (typeflags & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_BLENDER));
 
   BLI_assert(imb != NULL);
 
@@ -315,8 +315,7 @@ static void file_draw_preview(uiBlock *block,
       uchar icon_color[4] = {0, 0, 0, 255};
       float bgcolor[4];
       UI_GetThemeColor4fv(TH_TEXT, bgcolor);
-      if (rgb_to_grayscale(bgcolor) < 0.5f)
-      {
+      if (rgb_to_grayscale(bgcolor) < 0.5f) {
         icon_color[0] = 255;
         icon_color[1] = 255;
         icon_color[2] = 255;

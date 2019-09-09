@@ -2755,7 +2755,7 @@ static void gpencil_speed_guide_init(tGPsdata *p, GP_Sculpt_Guide *guide)
     angle = p->guide.origin_angle + guide->angle;
     angle = fmodf(angle + half_angle, guide->angle_snap);
     angle -= half_angle;
-    gp_rotate_v2_v2v2fl(p->guide.rot_point, p->mvali, p->guide.origin, -angle );
+    gp_rotate_v2_v2v2fl(p->guide.rot_point, p->mvali, p->guide.origin, -angle);
   }
   else {
     gp_rotate_v2_v2v2fl(p->guide.rot_point, p->guide.unit, p->mvali, guide->angle);
@@ -2921,8 +2921,7 @@ static void gpencil_draw_apply_event(
 
     if (is_speed_guide && !ELEM(p->paintmode, GP_PAINTMODE_ERASER, GP_PAINTMODE_SET_CP) &&
         ((guide->use_snapping && (guide->type == GP_GUIDE_GRID)) ||
-         (guide->type == GP_GUIDE_ISO)))
-    {
+         (guide->type == GP_GUIDE_ISO))) {
       p->flags |= GP_PAINTFLAG_REQ_VECTOR;
     }
 
@@ -2962,10 +2961,10 @@ static void gpencil_draw_apply_event(
       gp_rotate_v2_v2v2fl(p->guide.rot_point, p->guide.unit, p->mvali, p->guide.rot_angle);
     }
     else if (ELEM(guide->type, GP_GUIDE_GRID)) {
-        gp_rotate_v2_v2v2fl(p->guide.rot_point,
-                            p->guide.unit,
-                            p->mvali,
-                            (p->straight == STROKE_VERTICAL) ? M_PI_2 : 0.0f);
+      gp_rotate_v2_v2v2fl(p->guide.rot_point,
+                          p->guide.unit,
+                          p->mvali,
+                          (p->straight == STROKE_VERTICAL) ? M_PI_2 : 0.0f);
     }
 
     /* create fake events */
