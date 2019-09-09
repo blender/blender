@@ -132,7 +132,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *pa)
   uiBlock *block = uiLayoutGetBlock(pa->layout);
   uiBut *but;
   uiLayout *row;
-  PointerRNA params_rna_ptr;
+  PointerRNA params_rna_ptr, *but_extra_rna_ptr;
 
   const bool overwrite_alert = file_draw_check_exists(sfile);
   const bool windows_layout =
@@ -175,6 +175,15 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *pa)
   /* silly workaround calling NFunc to ensure this does not get called
    * immediate ui_apply_but_func but only after button deactivates */
   UI_but_funcN_set(but, file_filename_enter_handle, NULL, but);
+
+  if (params->action_type == FILE_SAVE) {
+    but_extra_rna_ptr = UI_but_extra_operator_icon_add(
+        but, "FILE_OT_filenum", WM_OP_EXEC_REGION_WIN, ICON_ADD);
+    RNA_int_set(but_extra_rna_ptr, "increment", 1);
+    but_extra_rna_ptr = UI_but_extra_operator_icon_add(
+        but, "FILE_OT_filenum", WM_OP_EXEC_REGION_WIN, ICON_REMOVE);
+    RNA_int_set(but_extra_rna_ptr, "increment", -1);
+  }
 
   /* check if this overrides a file and if the operator option is used */
   if (overwrite_alert) {
