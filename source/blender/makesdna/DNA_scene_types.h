@@ -669,9 +669,8 @@ typedef struct RenderData {
 
   char _pad0[1];
 
-  /* safety, border and display rect */
-  rctf safety, border;
-  rcti disprect;
+  /** Render border to render sub-resions. */
+  rctf border;
 
   /* information on different layers to be rendered */
   /** Converted to Scene->view_layers. */

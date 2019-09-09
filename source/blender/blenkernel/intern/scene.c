@@ -772,8 +772,6 @@ void BKE_scene_init(Scene *sce)
 
   BLI_strncpy(sce->r.pic, U.renderdir, sizeof(sce->r.pic));
 
-  BLI_rctf_init(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
-
   /* Note; in header_info.c the scene copy happens...,
    * if you add more to renderdata it has to be checked there. */
 
