@@ -27,6 +27,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
+#include "BLI_hash.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -108,6 +109,13 @@ static float *sculpt_vertex_co_get(SculptSession *ss, int index)
   }
 }
 
+static void sculpt_vertex_random_access_init(SculptSession *ss)
+{
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
+  }
+}
+
 #if 0 /* UNUSED */
 
 static int sculpt_active_vertex_get(SculptSession *ss)
@@ -133,6 +141,7 @@ static int sculpt_vertex_count_get(SculptSession *ss)
       return 0;
   }
 }
+
 
 static void sculpt_vertex_normal_get(SculptSession *ss, int index, float no[3])
 {
@@ -4766,12 +4775,12 @@ static void sculpt_flush_stroke_deform_task_cb(void *__restrict userdata,
 }
 
 /* flush displacement from deformed PBVH to original layer */
-static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
+static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob, bool is_proxy_used)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  if (sculpt_tool_is_proxy_used(brush->sculpt_tool)) {
+  if (is_proxy_used) {
     /* this brushes aren't using proxies, so sculpt_combine_proxies() wouldn't
      * propagate needed deformation to original base */
 
@@ -6109,7 +6118,7 @@ static void sculpt_stroke_update_step(bContext *C,
    * sculpt_flush_update_step().
    */
   if (ss->modifiers_active) {
-    sculpt_flush_stroke_deform(sd, ob);
+    sculpt_flush_stroke_deform(sd, ob, sculpt_tool_is_proxy_used(brush->sculpt_tool));
   }
   else if (ss->kb) {
     sculpt_update_keyblock(ob);
@@ -7256,6 +7265,346 @@ static void SCULPT_OT_set_detail_size(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static void filter_cache_init_task_cb(void *__restrict userdata,
+                                      const int i,
+                                      const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  PBVHNode *node = data->nodes[i];
+
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+  {
+    if (!vd.mask || (vd.mask && *vd.mask < 1.0f)) {
+      data->node_mask[i] = 1;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  if (data->node_mask[i] == 1) {
+    sculpt_undo_push_node(data->ob, node, SCULPT_UNDO_COORDS);
+  }
+}
+
+static void sculpt_filter_cache_init(Object *ob, Sculpt *sd)
+{
+  SculptSession *ss = ob->sculpt;
+  PBVH *pbvh = ob->sculpt->pbvh;
+  PBVHNode **nodes;
+  int totnode;
+
+  ss->filter_cache = MEM_callocN(sizeof(FilterCache), "filter cache");
+
+  ss->filter_cache->random_seed = rand();
+
+  SculptSearchSphereData search_data = {
+      .original = true,
+  };
+  BKE_pbvh_search_gather(pbvh, NULL, &search_data, &nodes, &totnode);
+
+  int *node_mask = MEM_callocN((unsigned int)totnode * sizeof(int), "node mask");
+
+  for (int i = 0; i < totnode; i++) {
+    BKE_pbvh_node_mark_normals_update(nodes[i]);
+  }
+  BKE_pbvh_update_normals(ss->pbvh, NULL);
+
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .nodes = nodes,
+      .node_mask = node_mask,
+  };
+
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT);
+  BLI_task_parallel_range(0, totnode, &data, filter_cache_init_task_cb, &settings);
+
+  int tot_active_nodes = 0;
+  int active_node_index = 0;
+  PBVHNode **active_nodes;
+
+  /* Count number of PBVH nodes that are not fully masked */
+  for (int i = 0; i < totnode; i++) {
+    if (node_mask[i] == 1) {
+      tot_active_nodes++;
+    }
+  }
+
+  /* Create the final list of nodes that is going to be processed in the filter */
+  active_nodes = MEM_callocN(tot_active_nodes * sizeof(PBVHNode *), "active nodes");
+
+  for (int i = 0; i < totnode; i++) {
+    if (node_mask[i] == 1) {
+      active_nodes[active_node_index] = nodes[i];
+      active_node_index++;
+    }
+  }
+
+  ss->filter_cache->nodes = active_nodes;
+  ss->filter_cache->totnode = tot_active_nodes;
+
+  if (nodes) {
+    MEM_freeN(nodes);
+  }
+  if (node_mask) {
+    MEM_freeN(node_mask);
+  }
+}
+
+static void sculpt_filter_cache_free(SculptSession *ss)
+{
+  if (ss->filter_cache->nodes) {
+    MEM_freeN(ss->filter_cache->nodes);
+  }
+  if (ss->filter_cache->mask_update_it) {
+    MEM_freeN(ss->filter_cache->mask_update_it);
+  }
+  MEM_freeN(ss->filter_cache);
+  ss->filter_cache = NULL;
+}
+
+typedef enum eSculptMeshFilterTypes {
+  MESH_FILTER_SMOOTH = 0,
+  MESH_FILTER_SCALE = 1,
+  MESH_FILTER_INFLATE = 2,
+  MESH_FILTER_SPHERE = 3,
+  MESH_FILTER_RANDOM = 4,
+} eSculptMeshFilterTypes;
+
+static EnumPropertyItem prop_mesh_filter_types[] = {
+    {MESH_FILTER_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth mesh"},
+    {MESH_FILTER_SCALE, "SCALE", 0, "Scale", "Scale mesh"},
+    {MESH_FILTER_INFLATE, "INFLATE", 0, "Inflate", "Inflate mesh"},
+    {MESH_FILTER_SPHERE, "SPHERE", 0, "Sphere", "Morph into sphere"},
+    {MESH_FILTER_RANDOM, "RANDOM", 0, "Random", "Randomize vertex positions"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+typedef enum eMeshFilterDeformAxis {
+  MESH_FILTER_DEFORM_X = 1 << 0,
+  MESH_FILTER_DEFORM_Y = 1 << 1,
+  MESH_FILTER_DEFORM_Z = 1 << 2,
+} eMeshFilterDeformAxis;
+
+static EnumPropertyItem prop_mesh_filter_deform_axis_items[] = {
+    {MESH_FILTER_DEFORM_X, "X", 0, "X", "Deform in the X axis"},
+    {MESH_FILTER_DEFORM_Y, "Y", 0, "Y", "Deform in the Y axis"},
+    {MESH_FILTER_DEFORM_Z, "Z", 0, "Z", "Deform in the Z axis"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static void mesh_filter_task_cb(void *__restrict userdata,
+                                const int i,
+                                const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  PBVHNode *node = data->nodes[i];
+
+  const int filter_type = data->filter_type;
+
+  SculptOrigVertData orig_data;
+  sculpt_orig_vert_data_init(&orig_data, data->ob, data->nodes[i]);
+
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+  {
+    sculpt_orig_vert_data_update(&orig_data, &vd);
+    float orig_co[3], val[3], avg[3], normal[3], disp[3], disp2[3], transform[3][3], final_pos[3];
+    float fade = vd.mask ? *vd.mask : 0.0f;
+    fade = 1 - fade;
+    fade *= data->filter_strength;
+    copy_v3_v3(orig_co, orig_data.co);
+    switch (filter_type) {
+      case MESH_FILTER_SMOOTH:
+        CLAMP(fade, -1.0f, 1.0f);
+        if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+          neighbor_average(ss, avg, vd.index);
+        }
+        else if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+          bmesh_neighbor_average(avg, vd.bm_vert);
+        }
+        sub_v3_v3v3(val, avg, orig_co);
+        madd_v3_v3v3fl(val, orig_co, val, fade);
+        sub_v3_v3v3(disp, val, orig_co);
+        break;
+      case MESH_FILTER_INFLATE:
+        normal_short_to_float_v3(normal, orig_data.no);
+        mul_v3_v3fl(disp, normal, fade);
+        break;
+      case MESH_FILTER_SCALE:
+        unit_m3(transform);
+        scale_m3_fl(transform, 1 + fade);
+        copy_v3_v3(val, orig_co);
+        mul_m3_v3(transform, val);
+        sub_v3_v3v3(disp, val, orig_co);
+        break;
+      case MESH_FILTER_SPHERE:
+        normalize_v3_v3(disp, orig_co);
+        if (fade > 0) {
+          mul_v3_v3fl(disp, disp, fade);
+        }
+        else {
+          mul_v3_v3fl(disp, disp, -fade);
+        }
+
+        unit_m3(transform);
+        if (fade > 0) {
+          scale_m3_fl(transform, 1 - fade);
+        }
+        else {
+          scale_m3_fl(transform, 1 + fade);
+        }
+        copy_v3_v3(val, orig_co);
+        mul_m3_v3(transform, val);
+        sub_v3_v3v3(disp2, val, orig_co);
+
+        mid_v3_v3v3(disp, disp, disp2);
+        break;
+      case MESH_FILTER_RANDOM:
+        normal_short_to_float_v3(normal, orig_data.no);
+        mul_v3_fl(normal, BLI_hash_int_01(vd.index ^ ss->filter_cache->random_seed) - 0.5f);
+        mul_v3_v3fl(disp, normal, fade);
+        break;
+    }
+
+    for (int it = 0; it < 3; it++) {
+      if (!ss->filter_cache->enabled_axis[it]) {
+        disp[it] = 0.0f;
+      }
+    }
+
+    add_v3_v3v3(final_pos, orig_co, disp);
+    copy_v3_v3(vd.co, final_pos);
+    if (vd.mvert)
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  BKE_pbvh_node_mark_redraw(node);
+  BKE_pbvh_node_mark_normals_update(node);
+}
+
+static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object *ob = CTX_data_active_object(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  SculptSession *ss = ob->sculpt;
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  int filter_type = RNA_enum_get(op->ptr, "type");
+  float filter_strength = RNA_float_get(op->ptr, "strength");
+
+  if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
+    sculpt_filter_cache_free(ss);
+    sculpt_undo_push_end();
+    sculpt_flush_update_done(C, ob);
+    return OPERATOR_FINISHED;
+  }
+
+  if (event->type != MOUSEMOVE) {
+    return OPERATOR_RUNNING_MODAL;
+  }
+
+  float len = event->prevclickx - event->mval[0];
+  filter_strength = filter_strength * -len * 0.001f * UI_DPI_FAC;
+
+  sculpt_vertex_random_access_init(ss);
+
+  bool needs_pmap = (filter_type == MESH_FILTER_SMOOTH);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_pmap, false);
+
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .nodes = ss->filter_cache->nodes,
+      .filter_type = filter_type,
+      .filter_strength = filter_strength,
+  };
+
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) &&
+                            ss->filter_cache->totnode > SCULPT_THREADED_LIMIT);
+  BLI_task_parallel_range(0, ss->filter_cache->totnode, &data, mesh_filter_task_cb, &settings);
+
+  if (ss->modifiers_active || ss->kb) {
+    sculpt_flush_stroke_deform(sd, ob, true);
+  }
+
+  sculpt_flush_update_step(C);
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  Object *ob = CTX_data_active_object(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  int filter_type = RNA_enum_get(op->ptr, "type");
+  SculptSession *ss = ob->sculpt;
+  PBVH *pbvh = ob->sculpt->pbvh;
+
+  int deform_axis = RNA_enum_get(op->ptr, "deform_axis");
+  if (deform_axis == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  sculpt_vertex_random_access_init(ss);
+
+  bool needs_pmap = (filter_type == MESH_FILTER_SMOOTH);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_pmap, false);
+
+  if (BKE_pbvh_type(pbvh) == PBVH_FACES && needs_pmap && !ob->sculpt->pmap) {
+    return OPERATOR_CANCELLED;
+  }
+
+  sculpt_undo_push_begin("Mesh filter");
+
+  sculpt_filter_cache_init(ob, sd);
+
+  ss->filter_cache->enabled_axis[0] = deform_axis & MESH_FILTER_DEFORM_X;
+  ss->filter_cache->enabled_axis[1] = deform_axis & MESH_FILTER_DEFORM_Y;
+  ss->filter_cache->enabled_axis[2] = deform_axis & MESH_FILTER_DEFORM_Z;
+
+  WM_event_add_modal_handler(C, op);
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static void SCULPT_OT_mesh_filter(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Filter mesh";
+  ot->idname = "SCULPT_OT_mesh_filter";
+  ot->description = "Applies a filter to modify the current mesh";
+
+  /* api callbacks */
+  ot->invoke = sculpt_mesh_filter_invoke;
+  ot->modal = sculpt_mesh_filter_modal;
+  ot->poll = sculpt_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* rna */
+  RNA_def_enum(ot->srna,
+               "type",
+               prop_mesh_filter_types,
+               MESH_FILTER_INFLATE,
+               "Filter type",
+               "Operation that is going to be applied to the mesh");
+  RNA_def_float(
+      ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter Strength", -10.0f, 10.0f);
+  RNA_def_enum_flag(ot->srna,
+                    "deform_axis",
+                    prop_mesh_filter_deform_axis_items,
+                    MESH_FILTER_DEFORM_X | MESH_FILTER_DEFORM_Y | MESH_FILTER_DEFORM_Z,
+                    "Deform axis",
+                    "Apply the deformation in the selected axis");
+}
+
 void ED_operatortypes_sculpt(void)
 {
   WM_operatortype_append(SCULPT_OT_brush_stroke);
@@ -7267,4 +7616,5 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_detail_flood_fill);
   WM_operatortype_append(SCULPT_OT_sample_detail_size);
   WM_operatortype_append(SCULPT_OT_set_detail_size);
+  WM_operatortype_append(SCULPT_OT_mesh_filter);
 }

@@ -175,6 +175,10 @@ typedef struct SculptThreadedTaskData {
   int *count;
   bool any_vertex_sampled;
 
+  int filter_type;
+  float filter_strength;
+  int *node_mask;
+
   ThreadMutex mutex;
 
 } SculptThreadedTaskData;
@@ -340,6 +344,20 @@ typedef struct StrokeCache {
   rcti current_r;  /* current redraw rectangle */
 
 } StrokeCache;
+
+typedef struct FilterCache {
+  bool enabled_axis[3];
+  int random_seed;
+
+  /* unmasked nodes */
+  PBVHNode **nodes;
+  int totnode;
+
+  /* mask expand iteration caches */
+  int mask_update_current_it;
+  int mask_update_last_it;
+  int *mask_update_it;
+} FilterCache;
 
 void sculpt_cache_calc_brushdata_symm(StrokeCache *cache,
                                       const char symm,

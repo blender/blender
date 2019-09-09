@@ -256,6 +256,7 @@ typedef struct SculptSession {
   float (*layer_co)[3]; /* Copy of the mesh vertices' locations */
 
   struct StrokeCache *cache;
+  struct FilterCache *filter_cache;
 
   /* Cursor data and active vertex for tools */
   int active_vertex_index;
