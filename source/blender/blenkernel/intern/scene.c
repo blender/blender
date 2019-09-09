@@ -1408,7 +1408,7 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph, Main *bmain)
  */
 void BKE_scene_view_layer_graph_evaluated_ensure(Main *bmain, Scene *scene, ViewLayer *view_layer)
 {
-  Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+  Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
   DEG_make_active(depsgraph);
   BKE_scene_graph_update_tagged(depsgraph, bmain);
 }
@@ -2040,7 +2040,7 @@ void BKE_scene_free_depsgraph_hash(Scene *scene)
 
 /* Query depsgraph for a specific contexts. */
 
-Depsgraph *BKE_scene_get_depsgraph(Scene *scene, ViewLayer *view_layer, bool allocate)
+Depsgraph *BKE_scene_get_depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, bool allocate)
 {
   BLI_assert(scene != NULL);
   BLI_assert(view_layer != NULL);
@@ -2064,7 +2064,7 @@ Depsgraph *BKE_scene_get_depsgraph(Scene *scene, ViewLayer *view_layer, bool all
             scene->depsgraph_hash, &key, (void ***)&key_ptr, (void ***)&depsgraph_ptr)) {
       *key_ptr = MEM_mallocN(sizeof(DepsgraphKey), __func__);
       **key_ptr = key;
-      *depsgraph_ptr = DEG_graph_new(scene, view_layer, DAG_EVAL_VIEWPORT);
+      *depsgraph_ptr = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_VIEWPORT);
       /* TODO(sergey): Would be cool to avoid string format print,
        * but is a bit tricky because we can't know in advance  whether
        * we will ever enable debug messages for this depsgraph.

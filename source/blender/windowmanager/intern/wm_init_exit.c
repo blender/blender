@@ -215,7 +215,7 @@ static void sound_jack_sync_callback(Main *bmain, int mode, float time)
       continue;
     }
     ViewLayer *view_layer = WM_window_get_active_view_layer(window);
-    Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, false);
+    Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, false);
     if (depsgraph == NULL) {
       continue;
     }

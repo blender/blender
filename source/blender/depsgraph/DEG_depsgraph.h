@@ -87,7 +87,10 @@ extern "C" {
 
 /* Create new Depsgraph instance */
 // TODO: what args are needed here? What's the building-graph entry point?
-Depsgraph *DEG_graph_new(struct Scene *scene, struct ViewLayer *view_layer, eEvaluationMode mode);
+Depsgraph *DEG_graph_new(struct Main *bmain,
+                         struct Scene *scene,
+                         struct ViewLayer *view_layer,
+                         eEvaluationMode mode);
 
 /* Free Depsgraph itself and all its data */
 void DEG_graph_free(Depsgraph *graph);

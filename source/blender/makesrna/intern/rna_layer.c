@@ -156,7 +156,10 @@ static PointerRNA rna_ViewLayer_depsgraph_get(PointerRNA *ptr)
   if (GS(id->name) == ID_SCE) {
     Scene *scene = (Scene *)id;
     ViewLayer *view_layer = (ViewLayer *)ptr->data;
-    Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, false);
+    // NOTE: We don't allocate new depsgraph here, so the bmain is ignored. So it's easier to pass
+    // NULL.
+    // Still weak though.
+    Depsgraph *depsgraph = BKE_scene_get_depsgraph(NULL, scene, view_layer, false);
     return rna_pointer_inherit_refine(ptr, &RNA_Depsgraph, depsgraph);
   }
   return PointerRNA_NULL;
@@ -177,7 +180,7 @@ static void rna_ViewLayer_update_tagged(ID *id_ptr, ViewLayer *view_layer, Main 
 #  endif
 
   Scene *scene = (Scene *)id_ptr;
-  Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+  Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
   /* NOTE: This is similar to CTX_data_depsgraph_pointer(). Ideally such access would be
    * de-duplicated across all possible cases, but for now this is safest and easiest way to go.
    *

@@ -65,10 +65,11 @@ template<typename T> static void remove_from_vector(vector<T> *vector, const T &
   vector->erase(std::remove(vector->begin(), vector->end(), value), vector->end());
 }
 
-Depsgraph::Depsgraph(Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
+Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
     : time_source(NULL),
       need_update(true),
       need_update_time(false),
+      bmain(bmain),
       scene(scene),
       view_layer(view_layer),
       mode(mode),
@@ -313,9 +314,10 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
 /* Public Graph API */
 
 /* Initialize a new Depsgraph */
-Depsgraph *DEG_graph_new(Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
+Depsgraph *DEG_graph_new(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
 {
-  DEG::Depsgraph *deg_depsgraph = OBJECT_GUARDED_NEW(DEG::Depsgraph, scene, view_layer, mode);
+  DEG::Depsgraph *deg_depsgraph = OBJECT_GUARDED_NEW(
+      DEG::Depsgraph, bmain, scene, view_layer, mode);
   return reinterpret_cast<Depsgraph *>(deg_depsgraph);
 }
 

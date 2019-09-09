@@ -519,7 +519,7 @@ static void set_trans_object_base_flags(TransInfo *t)
   ViewLayer *view_layer = t->view_layer;
   View3D *v3d = t->view;
   Scene *scene = t->scene;
-  Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+  Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
   /* NOTE: if Base selected and has parent selected:
    *   base->flag_legacy = BA_WAS_SEL
    */
@@ -592,8 +592,9 @@ static int count_proportional_objects(TransInfo *t)
   int total = 0;
   ViewLayer *view_layer = t->view_layer;
   View3D *v3d = t->view;
+  struct Main *bmain = CTX_data_main(t->context);
   Scene *scene = t->scene;
-  Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+  Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
   /* Clear all flags we need. It will be used to detect dependencies. */
   trans_object_base_deps_flag_prepare(view_layer);
   /* Rotations around local centers are allowed to propagate, so we take all objects. */

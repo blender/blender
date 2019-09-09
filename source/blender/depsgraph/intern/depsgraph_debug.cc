@@ -91,7 +91,7 @@ bool DEG_debug_graph_relations_validate(Depsgraph *graph,
                                         Scene *scene,
                                         ViewLayer *view_layer)
 {
-  Depsgraph *temp_depsgraph = DEG_graph_new(scene, view_layer, DEG_get_mode(graph));
+  Depsgraph *temp_depsgraph = DEG_graph_new(bmain, scene, view_layer, DEG_get_mode(graph));
   bool valid = true;
   DEG_graph_build_from_view_layer(temp_depsgraph, bmain, scene, view_layer);
   if (!DEG_debug_compare(temp_depsgraph, graph)) {

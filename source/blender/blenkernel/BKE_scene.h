@@ -220,7 +220,8 @@ void BKE_scene_allocate_depsgraph_hash(struct Scene *scene);
 void BKE_scene_ensure_depsgraph_hash(struct Scene *scene);
 void BKE_scene_free_depsgraph_hash(struct Scene *scene);
 
-struct Depsgraph *BKE_scene_get_depsgraph(struct Scene *scene,
+struct Depsgraph *BKE_scene_get_depsgraph(struct Main *bmain,
+                                          struct Scene *scene,
                                           struct ViewLayer *view_layer,
                                           bool allocate);
 

@@ -204,7 +204,7 @@ static void compo_initjob(void *cjv)
   Scene *scene = cj->scene;
   ViewLayer *view_layer = cj->view_layer;
 
-  cj->compositor_depsgraph = DEG_graph_new(scene, view_layer, DAG_EVAL_RENDER);
+  cj->compositor_depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_RENDER);
   DEG_graph_build_for_compositor_preview(
       cj->compositor_depsgraph, bmain, scene, view_layer, cj->ntree);
 

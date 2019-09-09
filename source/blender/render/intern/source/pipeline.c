@@ -1953,7 +1953,7 @@ static void update_physics_cache(Render *re,
   baker.bmain = re->main;
   baker.scene = scene;
   baker.view_layer = view_layer;
-  baker.depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+  baker.depsgraph = BKE_scene_get_depsgraph(re->main, scene, view_layer, true);
   baker.bake = 0;
   baker.render = 1;
   baker.anim_init = 1;
@@ -2069,7 +2069,7 @@ static void render_init_depsgraph(Render *re)
   Scene *scene = re->scene;
   ViewLayer *view_layer = BKE_view_layer_default_render(re->scene);
 
-  re->pipeline_depsgraph = DEG_graph_new(scene, view_layer, DAG_EVAL_RENDER);
+  re->pipeline_depsgraph = DEG_graph_new(re->main, scene, view_layer, DAG_EVAL_RENDER);
   DEG_debug_name_set(re->pipeline_depsgraph, "RENDER PIPELINE");
 
   /* Make sure there is a correct evaluated scene pointer. */

@@ -40,6 +40,7 @@ static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d, bContext *C)
   area_region_from_regiondata(sc, rv3d, &sa, &ar);
 
   if (sa && ar && sa->spacetype == SPACE_VIEW3D) {
+    Main *bmain = CTX_data_main(C);
     View3D *v3d = sa->spacedata.first;
     wmWindowManager *wm = CTX_wm_manager(C);
     wmWindow *win;
@@ -48,7 +49,7 @@ static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d, bContext *C)
       if (WM_window_get_active_screen(win) == sc) {
         Scene *scene = WM_window_get_active_scene(win);
         ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-        Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+        Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
 
         ED_view3d_update_viewmat(depsgraph, scene, v3d, ar, NULL, NULL, NULL, false);
         break;

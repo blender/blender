@@ -509,7 +509,7 @@ static void engine_depsgraph_init(RenderEngine *engine, ViewLayer *view_layer)
   Main *bmain = engine->re->main;
   Scene *scene = engine->re->scene;
 
-  engine->depsgraph = DEG_graph_new(scene, view_layer, DAG_EVAL_RENDER);
+  engine->depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_RENDER);
   DEG_debug_name_set(engine->depsgraph, "RENDER");
 
   if (engine->re->r.scemode & R_BUTS_PREVIEW) {

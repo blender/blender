@@ -581,7 +581,7 @@ const char *ED_info_stats_string(Main *bmain, Scene *scene, ViewLayer *view_laye
   if (wm->is_interface_locked) {
     return "";
   }
-  Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+  Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
   if (!view_layer->stats) {
     stats_update(depsgraph, view_layer);
   }

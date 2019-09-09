@@ -3534,7 +3534,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
     }
 
     /* opengl offscreen render */
-    depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+    depsgraph = BKE_scene_get_depsgraph(context->bmain, scene, view_layer, true);
     BKE_scene_graph_update_for_newframe(depsgraph, context->bmain);
     ibuf = sequencer_view3d_cb(
         /* set for OpenGL render (NULL when scrubbing) */

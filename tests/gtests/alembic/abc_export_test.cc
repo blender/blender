@@ -54,7 +54,7 @@ class AlembicExportTest : public testing::Test {
 
     /* TODO(sergey): Pass scene layer somehow? */
     ViewLayer *view_layer = (ViewLayer *)scene.view_layers.first;
-    settings.depsgraph = depsgraph = DEG_graph_new(&scene, view_layer, DAG_EVAL_VIEWPORT);
+    settings.depsgraph = depsgraph = DEG_graph_new(bmain, &scene, view_layer, DAG_EVAL_VIEWPORT);
 
     settings.scene = &scene;
     settings.view_layer = view_layer;

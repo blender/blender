@@ -80,7 +80,7 @@ static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subf
 
   for (ViewLayer *view_layer = scene->view_layers.first; view_layer != NULL;
        view_layer = view_layer->next) {
-    Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+    Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
     BKE_scene_graph_update_for_newframe(depsgraph, bmain);
   }
 
@@ -156,7 +156,7 @@ static void rna_Scene_ray_cast(Scene *scene,
 {
   normalize_v3(direction);
 
-  Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+  Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
   SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, depsgraph, 0);
 
   bool ret = ED_transform_snap_object_project_ray_ex(sctx,
