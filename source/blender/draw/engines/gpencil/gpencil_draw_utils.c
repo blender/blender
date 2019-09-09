@@ -2004,6 +2004,16 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
   bGPdata *gpd_eval = (bGPdata *)ob->data;
   bGPdata *gpd = (bGPdata *)DEG_get_original_id(&gpd_eval->id);
 
+  const bool main_onion = draw_ctx->v3d != NULL ?
+                              (draw_ctx->v3d->gp_flag & V3D_GP_SHOW_ONION_SKIN) :
+                              true;
+  const bool playing = stl->storage->is_playing;
+  const bool overlay = draw_ctx->v3d != NULL ?
+                           (bool)((draw_ctx->v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) :
+                           true;
+  const bool do_onion = (bool)((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0) && overlay &&
+                        main_onion && !playing && gpencil_onion_active(gpd);
+
   View3D *v3d = draw_ctx->v3d;
   int cfra_eval = (int)DEG_get_ctime(draw_ctx->depsgraph);
 
@@ -2012,9 +2022,6 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
 
   float opacity;
   bGPDframe *gpf = NULL;
-
-  /* check if playing animation */
-  const bool playing = stl->storage->is_playing;
 
   GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra_eval);
 
@@ -2074,7 +2081,7 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
 
     /* draw onion skins */
     if (!ID_IS_LINKED(&gpd->id)) {
-      if ((gpl->onion_flag & GP_LAYER_ONIONSKIN) &&
+      if ((do_onion) && (gpl->onion_flag & GP_LAYER_ONIONSKIN) &&
           ((!playing) || (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)) && (!cache_ob->is_dup_ob) &&
           (gpd->id.us <= 1)) {
         if ((!stl->storage->is_render) ||
