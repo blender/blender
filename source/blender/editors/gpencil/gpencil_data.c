@@ -1391,9 +1391,9 @@ static int gp_stroke_arrange_exec(bContext *C, wmOperator *op)
 void GPENCIL_OT_stroke_arrange(wmOperatorType *ot)
 {
   static const EnumPropertyItem slot_move[] = {
+      {GP_STROKE_MOVE_TOP, "TOP", 0, "Bring to Front", ""},
       {GP_STROKE_MOVE_UP, "UP", 0, "Bring Forward", ""},
       {GP_STROKE_MOVE_DOWN, "DOWN", 0, "Send Backward", ""},
-      {GP_STROKE_MOVE_TOP, "TOP", 0, "Bring to Front", ""},
       {GP_STROKE_MOVE_BOTTOM, "BOTTOM", 0, "Send to Back", ""},
       {0, NULL, 0, NULL, NULL}};
 
