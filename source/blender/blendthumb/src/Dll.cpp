@@ -215,7 +215,7 @@ STDAPI DllRegisterServer()
   }
   else {
     const REGISTRY_ENTRY rgRegistryEntries[] = {
-        // RootKey			KeyName																			ValueName			ValueType		Data
+        // RootKey KeyName ValueName ValueType Data
         {HKEY_CURRENT_USER,
          L"Software\\Classes\\CLSID\\" SZ_CLSID_BLENDTHUMBHANDLER,
          NULL,

@@ -270,7 +270,7 @@ IFACEMETHODIMP CBlendThumb::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE 
 
 #ifdef _DEBUG
 #  if 0
-			MessageBox(0,"Attach now","Debugging",MB_OK);
+      MessageBox(0, "Attach now", "Debugging", MB_OK);
 #  endif
 #endif
       IWICImagingFactory *pImgFac;
