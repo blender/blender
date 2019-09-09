@@ -3026,7 +3026,7 @@ static void sculpt_kelvinlet_twist(float disp[3],
 
 static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
                                                const int n,
-                                               const TaskParallelTLS *__restrict tls)
+                                               const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -3078,7 +3078,7 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     sculpt_orig_vert_data_update(&orig_data, &vd);
-    float fade, u, final_disp[3], weights[3];
+    float fade, final_disp[3], weights[3];
     float r = len_v3v3(location, orig_data.co);
     KelvinletParams params;
     params.a = a;
@@ -3104,12 +3104,13 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
         fade = kvl[0] * c;
         mul_v3_v3fl(final_disp, grab_delta, fade * bstrength * 20.f);
         break;
-      case BRUSH_ELASTIC_DEFORM_GRAB_BISCALE:
-        u = kvl[0] - kvl[1];
+      case BRUSH_ELASTIC_DEFORM_GRAB_BISCALE: {
+        const float u = kvl[0] - kvl[1];
         fade = u * c / ((1.0f / radius_scaled[0]) - (1.0f / radius_scaled[1]));
         mul_v3_v3fl(final_disp, grab_delta, fade * bstrength * 20.0f);
         break;
-      case BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE:
+      }
+      case BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE: {
         weights[0] = 1.0f;
         weights[1] = -(
             (radius_scaled[2] * radius_scaled[2] - radius_scaled[0] * radius_scaled[0]) /
@@ -3117,12 +3118,13 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
         weights[2] = ((radius_scaled[1] * radius_scaled[1] - radius_scaled[0] * radius_scaled[0]) /
                       (radius_scaled[2] * radius_scaled[2] - radius_scaled[1] * radius_scaled[1]));
 
-        float u = weights[0] * kvl[0] + weights[1] * kvl[1] + weights[2] * kvl[2];
+        const float u = weights[0] * kvl[0] + weights[1] * kvl[1] + weights[2] * kvl[2];
         fade = u * c /
                (weights[0] / radius_scaled[0] + weights[1] / radius_scaled[1] +
                 weights[2] / radius_scaled[2]);
         mul_v3_v3fl(final_disp, grab_delta, fade * bstrength * 20.0f);
         break;
+      }
       case BRUSH_ELASTIC_DEFORM_SCALE:
         params.f = len_v3(grab_delta) * dir * bstrength;
         sculpt_kelvinet_integrate(sculpt_kelvinlet_scale,
@@ -4582,6 +4584,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         break;
       case SCULPT_TOOL_DRAW_SHARP:
         do_draw_sharp_brush(sd, ob, nodes, totnode);
+        break;
       case SCULPT_TOOL_ELASTIC_DEFORM:
         do_elastic_deform_brush(sd, ob, nodes, totnode);
         break;
