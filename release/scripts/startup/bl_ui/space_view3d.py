@@ -6136,18 +6136,17 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
         sub.prop(overlay, "gpencil_grid_opacity", text="Canvas", slider=True)
 
         row = col.row()
+        row.prop(overlay, "use_gpencil_fade_layers", text="")
+        sub = row.row()
+        sub.active = overlay.use_gpencil_fade_layers
+        sub.prop(overlay, "gpencil_fade_layer", text="Fade Layers", slider=True)
+
+        row = col.row()
         row.prop(overlay, "use_gpencil_paper", text="")
         sub = row.row(align=True)
         sub.active = overlay.use_gpencil_paper
         sub.prop(overlay, "gpencil_paper_opacity", text="Fade Objects", slider=True)
         sub.prop(overlay, "use_gpencil_fade_objects", text="", icon='OUTLINER_OB_GREASEPENCIL')
-
-        if context.object.mode == 'PAINT_GPENCIL':
-            row = col.row()
-            row.prop(overlay, "use_gpencil_fade_layers", text="")
-            sub = row.row()
-            sub.active = overlay.use_gpencil_fade_layers
-            sub.prop(overlay, "gpencil_fade_layer", text="Fade Layers", slider=True)
 
         if context.object.mode in {'EDIT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}:
             layout.prop(overlay, "use_gpencil_edit_lines", text="Edit Lines")

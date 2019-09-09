@@ -14,9 +14,11 @@ in vec4 mColor;
 in vec2 mTexCoord;
 out vec4 fragColor;
 
-uniform bool fade_on;
+uniform int fade_layer;
+uniform float fade_layer_factor;
+uniform bool fade_ob;
 uniform vec3 fade_color;
-uniform float fade_factor;
+uniform float fade_ob_factor;
 
 #define texture2D texture
 
@@ -110,7 +112,15 @@ void main()
   }
 
   /* Apply paper opacity */
-  if (fade_on == true) {
-    fragColor.rgb = mix(fade_color.rgb, fragColor.rgb, fade_factor);
+  if (fade_layer == 1) {
+    /* Layer is below, mix with background. */
+    fragColor.rgb = mix(fade_color.rgb, fragColor.rgb, fade_layer_factor);
+  }
+  else if (fade_layer == 2) {
+    /* Layer is above, change opacity. */
+    fragColor.a *= fade_layer_factor;
+  }
+  else if (fade_ob == true) {
+    fragColor.rgb = mix(fade_color.rgb, fragColor.rgb, fade_ob_factor);
   }
 }

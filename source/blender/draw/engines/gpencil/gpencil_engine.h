@@ -145,6 +145,7 @@ typedef struct GPENCIL_Storage {
   bool is_mat_preview;
   bool background_ready;
   int is_xray;
+  bool is_ontop;
   bool reset_cache;
   const float *pixsize;
   float render_pixsize;
