@@ -447,7 +447,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals *kg,
     }
   }
   else if (label & LABEL_DIFFUSE) {
-    if (sc->N != sd->N) {
+    if (!isequal_float3(sc->N, sd->N)) {
       *eval *= bump_shadowing_term((label & LABEL_TRANSMIT) ? -sd->N : sd->N, sc->N, *omega_in);
     }
   }
@@ -563,7 +563,9 @@ ccl_device_inline
         break;
     }
     if (CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
-      eval *= bump_shadowing_term(sd->N, sc->N, omega_in);
+      if (!isequal_float3(sc->N, sd->N)) {
+        eval *= bump_shadowing_term(sd->N, sc->N, omega_in);
+      }
     }
   }
   else {
@@ -652,7 +654,9 @@ ccl_device_inline
         break;
     }
     if (CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
-      eval *= bump_shadowing_term(-sd->N, sc->N, omega_in);
+      if (!isequal_float3(sc->N, sd->N)) {
+        eval *= bump_shadowing_term(-sd->N, sc->N, omega_in);
+      }
     }
   }
 
