@@ -1158,6 +1158,7 @@ class VIEW3D_PT_sculpt_dyntopo_remesh(Panel, View3DPaintPanel):
             col = flow.column()
             col.operator("sculpt.detail_flood_fill")
 
+
 class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Remesh"
@@ -1190,6 +1191,7 @@ class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
         col.operator("object.voxel_remesh", text="Remesh")
 
 # TODO, move to space_view3d.py
+
 
 class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)

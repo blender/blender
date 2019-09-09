@@ -48,6 +48,7 @@ class GPENCIL_MT_color_context_menu(Menu):
 
         layout.operator("object.material_slot_remove_unused")
 
+
 class GPENCIL_UL_matslots(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         slot = item
@@ -164,6 +165,7 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
             if gpcolor.mode == 'LINE' and gpcolor.stroke_style != 'TEXTURE':
                 col.prop(gpcolor, "use_overlap_strokes")
 
+
 class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
     bl_label = "Fill"
     bl_parent_id = 'MATERIAL_PT_gpencil_surface'
@@ -274,7 +276,8 @@ class MATERIAL_PT_gpencil_material_presets(PresetPanel, Panel):
     preset_add_operator = "scene.gpencil_material_preset_add"
 
 
-classes = (GPENCIL_UL_matslots,
+classes = (
+    GPENCIL_UL_matslots,
     GPENCIL_MT_color_context_menu,
     MATERIAL_PT_gpencil_slots,
     MATERIAL_PT_gpencil_preview,
@@ -283,7 +286,8 @@ classes = (GPENCIL_UL_matslots,
     MATERIAL_PT_gpencil_strokecolor,
     MATERIAL_PT_gpencil_fillcolor,
     MATERIAL_PT_gpencil_options,
-    MATERIAL_PT_gpencil_custom_props,)
+    MATERIAL_PT_gpencil_custom_props,
+)
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class

@@ -998,9 +998,10 @@ class _defs_sculpt:
             label="Mesh Filter",
             icon="ops.sculpt.mesh_filter",
             widget=None,
-            keymap= (),
+            keymap=(),
             draw_settings=draw_settings,
         )
+
 
 class _defs_vertex_paint:
 

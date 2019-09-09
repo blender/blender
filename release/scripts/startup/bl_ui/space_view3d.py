@@ -605,7 +605,7 @@ class VIEW3D_HT_header(Header):
                 row.prop(tool_settings, "gpencil_selectmode_edit", text="", expand=True)
 
             # Select mode for Sculpt
-            if gpd.is_stroke_sculpt_mode :
+            if gpd.is_stroke_sculpt_mode:
                 row = layout.row(align=True)
                 row.prop(tool_settings, "use_gpencil_select_mask_point", text="")
                 row.prop(tool_settings, "use_gpencil_select_mask_stroke", text="")
@@ -2654,7 +2654,6 @@ class VIEW3D_MT_make_links(Menu):
         layout.operator("object.join_uvs")  # stupid place to add this!
 
 
-
 class VIEW3D_MT_brush_paint_modes(Menu):
     bl_label = "Enabled Modes"
 
@@ -2849,27 +2848,27 @@ class VIEW3D_MT_sculpt(Menu):
 
         props = layout.operator("sculpt.mask_filter", text='Smooth Mask')
         props.filter_type = 'SMOOTH'
-        props.auto_iteration_count = True;
+        props.auto_iteration_count = True
 
         props = layout.operator("sculpt.mask_filter", text='Sharpen Mask')
         props.filter_type = 'SHARPEN'
-        props.auto_iteration_count = True;
+        props.auto_iteration_count = True
 
         props = layout.operator("sculpt.mask_filter", text='Grow Mask')
         props.filter_type = 'GROW'
-        props.auto_iteration_count = True;
+        props.auto_iteration_count = True
 
         props = layout.operator("sculpt.mask_filter", text='Shrink Mask')
         props.filter_type = 'SHRINK'
-        props.auto_iteration_count = True;
+        props.auto_iteration_count = True
 
         props = layout.operator("sculpt.mask_filter", text='Increase Contrast')
         props.filter_type = 'CONTRAST_INCREASE'
-        props.auto_iteration_count = False;
+        props.auto_iteration_count = False
 
         props = layout.operator("sculpt.mask_filter", text='Decrease Contrast')
         props.filter_type = 'CONTRAST_DECREASE'
-        props.auto_iteration_count = False;
+        props.auto_iteration_count = False
 
         layout.separator()
 
@@ -4813,6 +4812,7 @@ class VIEW3D_MT_proportional_editing_falloff_pie(Menu):
 
         pie.prop(tool_settings, "proportional_edit_falloff", expand=True)
 
+
 class VIEW3D_MT_sculpt_mask_edit_pie(Menu):
     bl_label = "Mask Edit"
 
@@ -4826,22 +4826,22 @@ class VIEW3D_MT_sculpt_mask_edit_pie(Menu):
         op.mode = 'VALUE'
         op = pie.operator("sculpt.mask_filter", text='Smooth Mask')
         op.filter_type = 'SMOOTH'
-        op.auto_iteration_count = True;
+        op.auto_iteration_count = True
         op = pie.operator("sculpt.mask_filter", text='Sharpen Mask')
         op.filter_type = 'SHARPEN'
-        op.auto_iteration_count = True;
+        op.auto_iteration_count = True
         op = pie.operator("sculpt.mask_filter", text='Grow Mask')
         op.filter_type = 'GROW'
-        op.auto_iteration_count = True;
+        op.auto_iteration_count = True
         op = pie.operator("sculpt.mask_filter", text='Shrink Mask')
         op.filter_type = 'SHRINK'
-        op.auto_iteration_count = True;
+        op.auto_iteration_count = True
         op = pie.operator("sculpt.mask_filter", text='Increase Contrast')
         op.filter_type = 'CONTRAST_INCREASE'
-        op.auto_iteration_count = False;
+        op.auto_iteration_count = False
         op = pie.operator("sculpt.mask_filter", text='Decrease Contrast')
         op.filter_type = 'CONTRAST_DECREASE'
-        op.auto_iteration_count = False;
+        op.auto_iteration_count = False
 
 
 # ********** Panel **********

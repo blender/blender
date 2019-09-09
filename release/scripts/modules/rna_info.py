@@ -542,7 +542,7 @@ def BuildRNAInfo():
     # Use for faster lookups
     # use rna_struct.identifier as the key for each dict
     rna_struct_dict = {}  # store identifier:rna lookups
-    rna_full_path_dict = {}	 # store the result of full_rna_struct_path(rna_struct)
+    rna_full_path_dict = {}  # store the result of full_rna_struct_path(rna_struct)
     rna_children_dict = {}  # store all rna_structs nested from here
     rna_references_dict = {}  # store a list of rna path strings that reference this type
     # rna_functions_dict = {}  # store all functions directly in this type (not inherited)

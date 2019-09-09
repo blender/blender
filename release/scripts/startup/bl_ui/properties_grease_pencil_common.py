@@ -604,10 +604,10 @@ class GPENCIL_MT_move_to_layer(Menu):
             while(i >= 0):
                 gpl = gpd.layers[i]
                 if gpl.info == gpl_active.info:
-                    icon='GREASEPENCIL'
+                    icon = 'GREASEPENCIL'
                 else:
                     icon = 'NONE'
-                layout.operator("gpencil.move_to_layer", text=gpl.info, icon=icon).layer=i
+                layout.operator("gpencil.move_to_layer", text=gpl.info, icon=icon).layer = i
                 i -= 1
 
             layout.separator()
@@ -640,7 +640,7 @@ class GPENCIL_MT_cleanup(Menu):
 
         if ob.mode != 'PAINT_GPENCIL':
             layout.operator("gpencil.stroke_merge_by_distance", text="Merge by Distance")
-        
+
         layout.separator()
 
         layout.operator("gpencil.frame_clean_fill", text="Boundary Strokes").mode = 'ACTIVE'

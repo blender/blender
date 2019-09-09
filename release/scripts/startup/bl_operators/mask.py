@@ -20,7 +20,7 @@
 
 from bpy.types import Menu
 from bpy.app.translations import contexts as i18n_contexts
- 
+
 
 class MASK_MT_add(Menu):
     bl_idname = "MASK_MT_add"

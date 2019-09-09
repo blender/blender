@@ -459,6 +459,7 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
         col.operator("mesh.vertex_color_add", icon='ADD', text="")
         col.operator("mesh.vertex_color_remove", icon='REMOVE', text="")
 
+
 class DATA_PT_remesh(MeshButtonsPanel, Panel):
     bl_label = "Remesh"
     bl_options = {'DEFAULT_CLOSED'}

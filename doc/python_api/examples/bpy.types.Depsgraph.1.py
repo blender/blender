@@ -35,7 +35,7 @@ class OBJECT_OT_evaluated_example(bpy.types.Operator):
         # modifiers.
         #
         # For mesh objects the object.data will be a mesh with all modifiers applied.
-        # This means that in access to vertices or faces after modifier stack happens via fields of 
+        # This means that in access to vertices or faces after modifier stack happens via fields of
         # object_eval.object.
         #
         # For other types of objects the object_eval.data does not have modifiers applied on it,

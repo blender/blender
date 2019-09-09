@@ -125,6 +125,7 @@ class CONSOLE_MT_console(Menu):
 
         layout.operator("console.autocomplete", text="Autocomplete")
 
+
 class CONSOLE_MT_context_menu(Menu):
     bl_label = "Console Context Menu"
 

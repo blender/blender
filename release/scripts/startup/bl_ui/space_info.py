@@ -113,6 +113,7 @@ class INFO_MT_context_menu(Menu):
         layout.operator("info.report_copy", text="Copy")
         layout.operator("info.report_delete", text="Delete")
 
+
 classes = (
     INFO_HT_header,
     INFO_MT_editor_menus,

@@ -1783,7 +1783,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
 
         col.label(text="Material:")
         row = col.row(align=True)
-        
+
         row.prop_search(md, "material", gpd, "materials", text="", icon='SHADING_TEXTURE')
         row.prop(md, "invert_materials", text="", icon='ARROW_LEFTRIGHT')
         row = layout.row(align=True)

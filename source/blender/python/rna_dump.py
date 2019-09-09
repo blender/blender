@@ -133,8 +133,10 @@ seek(bpy.data, 'bpy.data', 0)
 '''
 for d in dir(bpy.types):
     t = getattr(bpy.types, d)
-    try:	r = t.bl_rna
-    except:	r = None
+    try:
+        r = t.bl_rna
+    except:
+        r = None
     if r:
         seek(r, 'bpy.types.' + d + '.bl_rna', 0)
 '''

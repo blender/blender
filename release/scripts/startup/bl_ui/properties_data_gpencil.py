@@ -127,7 +127,7 @@ class DATA_PT_gpencil_layers(DataButtonsPanel, Panel):
 
         row = layout.row()
         layer_rows = 7
-        
+
         col = row.column()
         col.template_list("GPENCIL_UL_layer", "", gpd, "layers", gpd.layers, "active_index",
                           rows=layer_rows, sort_reverse=True, sort_lock=True)
@@ -152,13 +152,13 @@ class DATA_PT_gpencil_layers(DataButtonsPanel, Panel):
                 sub = col.column(align=True)
                 sub.operator("gpencil.layer_isolate", icon='LOCKED', text="").affect_visibility = False
                 sub.operator("gpencil.layer_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
-        
+
         # Layer main properties
-        row = layout.row()        
+        row = layout.row()
         col = layout.column(align=True)
 
         if gpl:
-            
+
             layout = self.layout
             layout.use_property_split = True
             layout.use_property_decorate = True

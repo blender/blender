@@ -450,7 +450,7 @@ class FILEBROWSER_MT_select(Menu):
         layout.separator()
 
         layout.operator("file.select_box")
-        
+
 
 class FILEBROWSER_MT_context_menu(Menu):
     bl_label = "Files Context Menu"
