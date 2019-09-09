@@ -473,6 +473,7 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_MASK = 19,
   SCULPT_TOOL_DRAW_SHARP = 20,
   SCULPT_TOOL_ELASTIC_DEFORM = 21,
+  SCULPT_TOOL_POSE = 22,
 } eBrushSculptTool;
 
 /* Brush.uv_sculpt_tool */
@@ -508,6 +509,7 @@ typedef enum eBrushUVSculptTool {
         SCULPT_TOOL_LAYER, \
         SCULPT_TOOL_DRAW_SHARP, \
         SCULPT_TOOL_ELASTIC_DEFORM, \
+        SCULPT_TOOL_POSE, \
 \
         /* These brushes could handle dynamic topology, \
          * but user feedback indicates it's better not to */ \

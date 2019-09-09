@@ -181,6 +181,10 @@ typedef struct SculptThreadedTaskData {
 
   float *prev_mask;
 
+  float *pose_origin;
+  float *pose_initial_co;
+  float (*transform_rot)[4], (*transform_trans)[4], (*transform_trans_inv)[4];
+
   float max_distance_squared;
   float nearest_vertex_search_co[3];
   int nearest_vertex_index;
@@ -333,6 +337,11 @@ typedef struct StrokeCache {
   float symm_rot_mat_inv[4][4];
   bool original;
   float anchored_location[3];
+
+  /* Pose brush */
+  float *pose_factor;
+  float pose_initial_co[3];
+  float pose_origin[3];
 
   float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
   struct Dial *dial;

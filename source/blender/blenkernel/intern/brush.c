@@ -902,6 +902,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       break;
     case SCULPT_TOOL_GRAB:
     case SCULPT_TOOL_ELASTIC_DEFORM:
+    case SCULPT_TOOL_POSE:
     case SCULPT_TOOL_SNAKE_HOOK:
     case SCULPT_TOOL_THUMB:
       br->size = 75;

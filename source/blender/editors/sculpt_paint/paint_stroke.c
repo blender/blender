@@ -222,6 +222,7 @@ static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
       if (ELEM(brush->sculpt_tool,
                SCULPT_TOOL_GRAB,
                SCULPT_TOOL_ELASTIC_DEFORM,
+               SCULPT_TOOL_POSE,
                SCULPT_TOOL_ROTATE,
                SCULPT_TOOL_SNAKE_HOOK,
                SCULPT_TOOL_THUMB)) {
@@ -256,7 +257,8 @@ static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode m
                SCULPT_TOOL_GRAB,
                SCULPT_TOOL_ROTATE,
                SCULPT_TOOL_THUMB,
-               SCULPT_TOOL_ELASTIC_DEFORM)) {
+               SCULPT_TOOL_ELASTIC_DEFORM,
+               SCULPT_TOOL_POSE)) {
         return false;
       }
       else {
