@@ -181,6 +181,10 @@ typedef struct SculptThreadedTaskData {
 
   float *prev_mask;
 
+  float max_distance_squared;
+  float nearest_vertex_search_co[3];
+  int nearest_vertex_index;
+
   ThreadMutex mutex;
 
 } SculptThreadedTaskData;
@@ -208,6 +212,7 @@ typedef struct {
   struct Sculpt *sd;
   struct SculptSession *ss;
   float radius_squared;
+  float *center;
   bool original;
 } SculptSearchSphereData;
 
@@ -241,6 +246,7 @@ float tex_strength(struct SculptSession *ss,
                    const short vno[3],
                    const float fno[3],
                    const float mask,
+                   const int vertex_index,
                    const int thread_id);
 
 /* just for vertex paint. */
@@ -341,6 +347,8 @@ typedef struct StrokeCache {
   bool supports_gravity;
   float true_gravity_direction[3];
   float gravity_direction[3];
+
+  float *automask;
 
   rcti previous_r; /* previous redraw rectangle */
   rcti current_r;  /* current redraw rectangle */

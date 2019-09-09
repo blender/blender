@@ -376,6 +376,10 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 row = col.row()
                 row.prop(brush, "elastic_deform_compressibility", slider=True)
 
+            col.separator()
+            row = col.row()
+            row.prop(brush, "use_automasking_topology")
+
             # topology_rake_factor
             if (
                     capabilities.has_topology_rake and

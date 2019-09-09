@@ -28,6 +28,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
 #include "BLI_hash.h"
+#include "BLI_gsqueue.h"
+#include "BLI_stack.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -116,7 +118,7 @@ static void sculpt_vertex_random_access_init(SculptSession *ss)
   }
 }
 
-static int UNUSED_FUNCTION(sculpt_active_vertex_get)(SculptSession *ss)
+static int sculpt_active_vertex_get(SculptSession *ss)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
@@ -339,6 +341,99 @@ static void sculpt_vertex_mask_clamp(SculptSession *ss, int index, float min, fl
   else if (mask < min) {
     sculpt_vertex_mask_set(ss, index, min);
   }
+}
+
+static void do_nearest_vertex_get_task_cb(void *__restrict userdata,
+                                          const int n,
+                                          const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  PBVHVertexIter vd;
+  int node_nearest_vertex_index = -1;
+  float node_nearest_vertex_distance_squared = FLT_MAX;
+
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    float distance_squared = len_squared_v3v3(vd.co, data->nearest_vertex_search_co);
+    if (distance_squared < node_nearest_vertex_distance_squared &&
+        distance_squared < data->max_distance_squared) {
+      node_nearest_vertex_index = vd.index;
+      node_nearest_vertex_distance_squared = distance_squared;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  BLI_mutex_lock(&data->mutex);
+  if (data->nearest_vertex_index == -1) {
+    data->nearest_vertex_index = node_nearest_vertex_index;
+  }
+  else if (node_nearest_vertex_distance_squared <
+           len_squared_v3v3(data->nearest_vertex_search_co,
+                            sculpt_vertex_co_get(ss, data->nearest_vertex_index))) {
+    data->nearest_vertex_index = node_nearest_vertex_index;
+  }
+  BLI_mutex_unlock(&data->mutex);
+}
+
+int sculpt_nearest_vertex_get(
+    Sculpt *sd, Object *ob, float co[3], float max_distance, bool use_original)
+{
+  SculptSession *ss = ob->sculpt;
+  PBVHNode **nodes = NULL;
+  int totnode;
+  SculptSearchSphereData data = {
+      .ss = ss,
+      .sd = sd,
+      .radius_squared = max_distance * max_distance,
+      .original = use_original,
+      .center = co,
+  };
+  BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
+  if (totnode == 0) {
+    return -1;
+  }
+
+  SculptThreadedTaskData task_data = {
+      .sd = sd,
+      .ob = ob,
+      .nodes = nodes,
+      .max_distance_squared = max_distance * max_distance,
+      .nearest_vertex_index = -1,
+  };
+  copy_v3_v3(task_data.nearest_vertex_search_co, co);
+
+  BLI_mutex_init(&task_data.mutex);
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT);
+  BLI_task_parallel_range(0, totnode, &task_data, do_nearest_vertex_get_task_cb, &settings);
+  BLI_mutex_end(&task_data.mutex);
+
+  return task_data.nearest_vertex_index;
+}
+
+static bool is_symmetry_iteration_valid(char i, char symm)
+{
+  return i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5)));
+}
+
+/* Checks if a vertex is inside the brush radius from any of its mirrored axis */
+static bool sculpt_is_vertex_inside_brush_radius_symm(float vertex[3],
+                                                      float br_co[3],
+                                                      float radius,
+                                                      char symm)
+{
+  for (char i = 0; i <= symm; ++i) {
+    if (is_symmetry_iteration_valid(i, symm)) {
+      float location[3];
+      flip_v3_v3(location, br_co, (char)i);
+      if (len_squared_v3v3(location, vertex) < radius * radius) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 /** \name Tool Capabilities
@@ -976,6 +1071,145 @@ static bool sculpt_brush_test_cyl(SculptBrushTest *test,
 
 #endif
 
+/* Automasking */
+
+static bool sculpt_automasking_enabled(SculptSession *ss, const Brush *br)
+{
+  // REMOVE WITH PBVH_GRIDS
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    return false;
+  }
+
+  if (sculpt_stroke_is_dynamic_topology(ss, br)) {
+    return false;
+  }
+  if (br->automasking_flags & BRUSH_AUTOMASKING_TOPOLOGY) {
+    return true;
+  }
+  return false;
+}
+
+static float sculpt_automasking_factor_get(SculptSession *ss, const Brush *br, int vert)
+{
+  if (ss->cache->automask) {
+    return ss->cache->automask[vert];
+  }
+  else {
+    return 1.0f;
+  }
+}
+
+static void sculpt_automasking_end(Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+  if (ss->cache && ss->cache->automask) {
+    MEM_freeN(ss->cache->automask);
+  }
+}
+
+static bool sculpt_automasking_is_constrained_by_radius(Brush *br)
+{
+  if (ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB)) {
+    return true;
+  }
+  return false;
+}
+
+typedef struct VertexTopologyIterator {
+  int v;
+  int it;
+} VertexTopologyIterator;
+
+static float *sculpt_topology_automasking_init(Sculpt *sd, Object *ob, float *automask_factor)
+{
+
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  if (!sculpt_automasking_enabled(ss, brush)) {
+    return NULL;
+  }
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
+    BLI_assert(!"Topology masking: pmap missing");
+    return NULL;
+  }
+
+  bool *visited_vertices = MEM_callocN(sculpt_vertex_count_get(ss) * sizeof(bool),
+                                       "visited vertices");
+
+  BLI_Stack *not_visited_vertices = BLI_stack_new(sizeof(VertexTopologyIterator),
+                                                  "not vertices stack");
+
+  VertexTopologyIterator mevit;
+
+  /* Add active vertex and symmetric vertices to the stack. */
+  float location[3];
+  const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  for (char i = 0; i <= symm; ++i) {
+    if (is_symmetry_iteration_valid(i, symm)) {
+      flip_v3_v3(location, sculpt_vertex_co_get(ss, sculpt_active_vertex_get(ss)), i);
+      if (i == 0) {
+        mevit.v = sculpt_active_vertex_get(ss);
+      }
+      else {
+        mevit.v = sculpt_nearest_vertex_get(
+            sd, ob, location, ss->cache->radius * ss->cache->radius, false);
+      }
+      if (mevit.v != -1) {
+        mevit.it = 1;
+        BLI_stack_push(not_visited_vertices, &mevit);
+      }
+    }
+  }
+
+  copy_v3_v3(location, sculpt_vertex_co_get(ss, sculpt_active_vertex_get(ss)));
+  bool use_radius = sculpt_automasking_is_constrained_by_radius(brush);
+
+  /* Flood fill automask to connected vertices. Limited to vertices inside the brush radius if the
+   * tool requires it */
+  while (!BLI_stack_is_empty(not_visited_vertices)) {
+    VertexTopologyIterator c_mevit;
+    BLI_stack_pop(not_visited_vertices, &c_mevit);
+    SculptVertexNeighborIter ni;
+    sculpt_vertex_neighbors_iter_begin(ss, c_mevit.v, ni)
+    {
+      if (!visited_vertices[(int)ni.index]) {
+        VertexTopologyIterator new_entry;
+        new_entry.v = ni.index;
+        automask_factor[new_entry.v] = 1.0f;
+        visited_vertices[(int)ni.index] = true;
+        if (!use_radius ||
+            sculpt_is_vertex_inside_brush_radius_symm(
+                sculpt_vertex_co_get(ss, new_entry.v), location, ss->cache->radius, symm)) {
+          BLI_stack_push(not_visited_vertices, &new_entry);
+        }
+      }
+    }
+    sculpt_vertex_neighbors_iter_end(ni)
+  }
+
+  BLI_stack_free(not_visited_vertices);
+
+  MEM_freeN(visited_vertices);
+
+  return automask_factor;
+}
+
+static void sculpt_automasking_init(Sculpt *sd, Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  ss->cache->automask = MEM_callocN(sizeof(float) * sculpt_vertex_count_get(ss),
+                                    "automask_factor");
+
+  if (brush->automasking_flags & BRUSH_AUTOMASKING_TOPOLOGY) {
+    sculpt_vertex_random_access_init(ss);
+    sculpt_topology_automasking_init(sd, ob, ss->cache->automask);
+  }
+}
+
 /* ===== Sculpting =====
  */
 static void flip_v3(float v[3], const char symm)
@@ -1479,6 +1713,7 @@ float tex_strength(SculptSession *ss,
                    const short vno[3],
                    const float fno[3],
                    const float mask,
+                   const int vertex_index,
                    const int thread_id)
 {
   StrokeCache *cache = ss->cache;
@@ -1549,6 +1784,9 @@ float tex_strength(SculptSession *ss,
   /* Paint mask */
   avg *= 1.0f - mask;
 
+  /* Automasking */
+  avg *= sculpt_automasking_factor_get(ss, br, vertex_index);
+
   return avg;
 }
 
@@ -1557,7 +1795,12 @@ bool sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
 {
   SculptSearchSphereData *data = data_v;
   float *center, nearest[3];
-  center = data->ss->cache ? data->ss->cache->location : data->ss->cursor_location;
+  if (data->center) {
+    center = data->center;
+  }
+  else {
+    center = data->ss->cache ? data->ss->cache->location : data->ss->cursor_location;
+  }
   float t[3], bb_min[3], bb_max[3];
   int i;
 
@@ -1642,6 +1885,7 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
         .sd = sd,
         .radius_squared = ss->cache ? SQUARE(ss->cache->radius * radius_scale) : ss->cursor_radius,
         .original = use_original,
+        .center = NULL,
     };
     BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, r_totnode);
   }
@@ -2072,6 +2316,7 @@ static void do_smooth_brush_mesh_task_cb_ex(void *__restrict userdata,
                                                   vd.no,
                                                   vd.fno,
                                                   smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
+                                                  vd.index,
                                                   tls->thread_id);
       if (smooth_mask) {
         float val = neighbor_average_mask(ss, vd.vert_indices[vd.i]) - *vd.mask;
@@ -2127,6 +2372,7 @@ static void do_smooth_brush_bmesh_task_cb_ex(void *__restrict userdata,
                                                   vd.no,
                                                   vd.fno,
                                                   smooth_mask ? 0.0f : *vd.mask,
+                                                  vd.index,
                                                   tls->thread_id);
       if (smooth_mask) {
         float val = bmesh_neighbor_average_mask(vd.bm_vert, vd.cd_vert_mask_offset) - *vd.mask;
@@ -2186,11 +2432,17 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      const float fade =
-          bstrength *
-          tex_strength(
-              ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, *vd.mask, tls->thread_id) *
-          ss->cache->pressure;
+      const float fade = bstrength *
+                         tex_strength(ss,
+                                      brush,
+                                      vd.co,
+                                      sqrtf(test.dist),
+                                      vd.no,
+                                      vd.fno,
+                                      *vd.mask,
+                                      vd.index,
+                                      tls->thread_id) *
+                         ss->cache->pressure;
 
       float avg[3], val[3];
 
@@ -2334,7 +2586,7 @@ static void do_smooth_brush_multires_task_cb_ex(void *__restrict userdata,
           const float fade =
               bstrength *
               tex_strength(
-                  ss, brush, co, sqrtf(test.dist), NULL, fno, strength_mask, tls->thread_id);
+                  ss, brush, co, sqrtf(test.dist), NULL, fno, strength_mask, 0, tls->thread_id);
           float f = 1.0f / 16.0f;
 
           if (x == 0 || x == gridsize - 1) {
@@ -2495,7 +2747,7 @@ static void do_mask_brush_draw_task_cb_ex(void *__restrict userdata,
   {
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
       const float fade = tex_strength(
-          ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, 0.0f, tls->thread_id);
+          ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, 0.0f, vd.index, tls->thread_id);
 
       (*vd.mask) += fade * bstrength;
       CLAMP(*vd.mask, 0, 1);
@@ -2570,6 +2822,7 @@ static void do_draw_brush_task_cb_ex(void *__restrict userdata,
                                       vd.no,
                                       vd.fno,
                                       vd.mask ? *vd.mask : 0.0f,
+                                      vd.index,
                                       tls->thread_id);
 
       mul_v3_v3fl(proxy[vd.i], offset, fade);
@@ -2646,6 +2899,7 @@ static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
                                       orig_data.no,
                                       NULL,
                                       vd.mask ? *vd.mask : 0.0f,
+                                      vd.index,
                                       tls->thread_id);
 
       mul_v3_v3fl(proxy[vd.i], offset, fade);
@@ -2723,6 +2977,7 @@ static void do_crease_brush_task_cb_ex(void *__restrict userdata,
                                       vd.no,
                                       vd.fno,
                                       vd.mask ? *vd.mask : 0.0f,
+                                      vd.index,
                                       tls->thread_id);
       float val1[3];
       float val2[3];
@@ -2833,6 +3088,7 @@ static void do_pinch_brush_task_cb_ex(void *__restrict userdata,
                                                   vd.no,
                                                   vd.fno,
                                                   vd.mask ? *vd.mask : 0.0f,
+                                                  vd.index,
                                                   tls->thread_id);
       float val[3];
 
@@ -2901,6 +3157,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
                                                   orig_data.no,
                                                   NULL,
                                                   vd.mask ? *vd.mask : 0.0f,
+                                                  vd.index,
                                                   tls->thread_id);
 
       mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
@@ -3156,6 +3413,8 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
       mul_v3_fl(final_disp, 1.0f - *vd.mask);
     }
 
+    mul_v3_fl(final_disp, sculpt_automasking_factor_get(ss, brush, vd.index));
+
     copy_v3_v3(proxy[vd.i], final_disp);
 
     if (vd.mvert) {
@@ -3216,6 +3475,7 @@ static void do_nudge_brush_task_cb_ex(void *__restrict userdata,
                                                   vd.no,
                                                   vd.fno,
                                                   vd.mask ? *vd.mask : 0.0f,
+                                                  vd.index,
                                                   tls->thread_id);
 
       mul_v3_v3fl(proxy[vd.i], cono, fade);
@@ -3289,6 +3549,7 @@ static void do_snake_hook_brush_task_cb_ex(void *__restrict userdata,
                                                   vd.no,
                                                   vd.fno,
                                                   vd.mask ? *vd.mask : 0.0f,
+                                                  vd.index,
                                                   tls->thread_id);
 
       mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
@@ -3409,6 +3670,7 @@ static void do_thumb_brush_task_cb_ex(void *__restrict userdata,
                                                   orig_data.no,
                                                   NULL,
                                                   vd.mask ? *vd.mask : 0.0f,
+                                                  vd.index,
                                                   tls->thread_id);
 
       mul_v3_v3fl(proxy[vd.i], cono, fade);
@@ -3482,6 +3744,7 @@ static void do_rotate_brush_task_cb_ex(void *__restrict userdata,
                                                   orig_data.no,
                                                   NULL,
                                                   vd.mask ? *vd.mask : 0.0f,
+                                                  vd.index,
                                                   tls->thread_id);
 
       sub_v3_v3v3(vec, orig_data.co, ss->cache->location);
@@ -3561,6 +3824,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
                                                   vd.no,
                                                   vd.fno,
                                                   vd.mask ? *vd.mask : 0.0f,
+                                                  vd.index,
                                                   tls->thread_id);
       float *disp = &layer_disp[vd.i];
       float val[3];
@@ -3647,6 +3911,7 @@ static void do_inflate_brush_task_cb_ex(void *__restrict userdata,
                                                   vd.no,
                                                   vd.fno,
                                                   vd.mask ? *vd.mask : 0.0f,
+                                                  vd.index,
                                                   tls->thread_id);
       float val[3];
 
@@ -3833,6 +4098,7 @@ static void do_flatten_brush_task_cb_ex(void *__restrict userdata,
                                                     vd.no,
                                                     vd.fno,
                                                     vd.mask ? *vd.mask : 0.0f,
+                                                    vd.index,
                                                     tls->thread_id);
 
         mul_v3_v3fl(proxy[vd.i], val, fade);
@@ -3927,6 +4193,7 @@ static void do_clay_brush_task_cb_ex(void *__restrict userdata,
                                                       vd.no,
                                                       vd.fno,
                                                       vd.mask ? *vd.mask : 0.0f,
+                                                      vd.index,
                                                       tls->thread_id);
 
           mul_v3_v3fl(proxy[vd.i], val, fade);
@@ -4024,6 +4291,7 @@ static void do_clay_strips_brush_task_cb_ex(void *__restrict userdata,
                                                       vd.no,
                                                       vd.fno,
                                                       vd.mask ? *vd.mask : 0.0f,
+                                                      vd.index,
                                                       tls->thread_id);
 
           mul_v3_v3fl(proxy[vd.i], val, fade);
@@ -4152,6 +4420,7 @@ static void do_fill_brush_task_cb_ex(void *__restrict userdata,
                                                       vd.no,
                                                       vd.fno,
                                                       vd.mask ? *vd.mask : 0.0f,
+                                                      vd.index,
                                                       tls->thread_id);
 
           mul_v3_v3fl(proxy[vd.i], val, fade);
@@ -4244,6 +4513,7 @@ static void do_scrape_brush_task_cb_ex(void *__restrict userdata,
                                                       vd.no,
                                                       vd.fno,
                                                       vd.mask ? *vd.mask : 0.0f,
+                                                      vd.index,
                                                       tls->thread_id);
 
           mul_v3_v3fl(proxy[vd.i], val, fade);
@@ -4324,6 +4594,7 @@ static void do_gravity_task_cb_ex(void *__restrict userdata,
                                       vd.no,
                                       vd.fno,
                                       vd.mask ? *vd.mask : 0.0f,
+                                      vd.index,
                                       tls->thread_id);
 
       mul_v3_v3fl(proxy[vd.i], offset, fade);
@@ -4531,6 +4802,12 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 
     if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA) {
       update_brush_local_mat(sd, ob);
+    }
+
+    if (ss->cache->first_time && ss->cache->mirror_symmetry_pass == 0) {
+      if (sculpt_automasking_enabled(ss, brush)) {
+        sculpt_automasking_init(sd, ob);
+      }
     }
 
     /* Apply one type of brush action */
@@ -5553,9 +5830,12 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
 /* Returns true if any of the smoothing modes are active (currently
  * one of smooth brush, autosmooth, mask smooth, or shift-key
  * smooth) */
-static bool sculpt_any_smooth_mode(const Brush *brush, StrokeCache *cache, int stroke_mode)
+static bool sculpt_needs_conectivity_info(const Brush *brush, SculptSession *ss, int stroke_mode)
 {
-  return ((stroke_mode == BRUSH_STROKE_SMOOTH) || (cache && cache->alt_smooth) ||
+  if (ss && sculpt_automasking_enabled(ss, brush)) {
+    return true;
+  }
+  return ((stroke_mode == BRUSH_STROKE_SMOOTH) || (ss && ss->cache && ss->cache->alt_smooth) ||
           (brush->sculpt_tool == SCULPT_TOOL_SMOOTH) || (brush->autosmooth_factor > 0) ||
           ((brush->sculpt_tool == SCULPT_TOOL_MASK) && (brush->mask_tool == BRUSH_MASK_SMOOTH)));
 }
@@ -5565,7 +5845,7 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob, const B
   SculptSession *ss = ob->sculpt;
   View3D *v3d = CTX_wm_view3d(C);
 
-  bool need_pmap = sculpt_any_smooth_mode(brush, ss->cache, 0);
+  bool need_pmap = sculpt_needs_conectivity_info(brush, ss, 0);
   if (ss->kb || ss->modifiers_active || (!BKE_sculptsession_use_pbvh_draw(ob, v3d) && need_pmap)) {
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
     BKE_sculpt_update_object_for_edit(depsgraph, ob, need_pmap, false);
@@ -5920,7 +6200,7 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
   view3d_operator_needs_opengl(C);
   sculpt_brush_init_tex(scene, sd, ss);
 
-  is_smooth = sculpt_any_smooth_mode(brush, NULL, mode);
+  is_smooth = sculpt_needs_conectivity_info(brush, ss, mode);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, is_smooth, need_mask);
 }
 
@@ -6179,6 +6459,10 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
           BKE_paint_brush_set(&sd->paint, brush);
         }
       }
+    }
+
+    if (sculpt_automasking_enabled(ss, brush)) {
+      sculpt_automasking_end(ob);
     }
 
     sculpt_cache_free(ss->cache);

@@ -206,6 +206,10 @@ typedef enum eBrushElasticDeformType {
   BRUSH_ELASTIC_DEFORM_TWIST = 4,
 } eBrushElasticDeformType;
 
+typedef enum eAutomasking_flag {
+  BRUSH_AUTOMASKING_TOPOLOGY = (1 << 0),
+} eAutomasking_flag;
+
 typedef struct Brush {
   ID id;
 
@@ -312,6 +316,9 @@ typedef struct Brush {
   float texture_sample_bias;
 
   int curve_preset;
+  int automasking_flags;
+
+  char _pad1[4];
 
   int elastic_deform_type;
   float elastic_deform_compressibility;
