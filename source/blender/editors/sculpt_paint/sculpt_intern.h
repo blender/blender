@@ -57,6 +57,10 @@ bool sculpt_cursor_geometry_info_update(bContext *C,
                                         SculptCursorGeometryInfo *out,
                                         const float mouse[2],
                                         bool use_sampled_normal);
+void sculpt_geometry_preview_lines_update(bContext *C, struct SculptSession *ss, float radius);
+
+/* Sculpt PBVH abstraction API */
+float *sculpt_vertex_co_get(struct SculptSession *ss, int index);
 
 /* Dynamic topology */
 void sculpt_pbvh_clear(Object *ob);

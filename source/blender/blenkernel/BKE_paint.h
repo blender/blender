@@ -269,6 +269,10 @@ typedef struct SculptSession {
 
   float pivot_pos[3];
 
+  /* Dynamic mesh preview */
+  int *preview_vert_index_list;
+  int preview_vert_index_count;
+
   union {
     struct {
       struct SculptVertexPaintGeomMap gmap;

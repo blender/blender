@@ -31,6 +31,7 @@
 #include "BLI_gsqueue.h"
 #include "BLI_stack.h"
 #include "BLI_task.h"
+#include "BLI_stack.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
@@ -99,7 +100,7 @@
 
 /* Do not use these functions while working with PBVH_GRIDS data in SculptSession */
 
-static float *sculpt_vertex_co_get(SculptSession *ss, int index)
+float *sculpt_vertex_co_get(SculptSession *ss, int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
@@ -5902,7 +5903,13 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
     float grab_location[3], imat[4][4], delta[3], loc[3];
 
     if (cache->first_time) {
-      copy_v3_v3(cache->orig_grab_location, cache->true_location);
+      if (tool == SCULPT_TOOL_GRAB && brush->flag2 & BRUSH_GRAB_ACTIVE_VERTEX) {
+        copy_v3_v3(cache->orig_grab_location,
+                   sculpt_vertex_co_get(ss, sculpt_active_vertex_get(ss)));
+      }
+      else {
+        copy_v3_v3(cache->orig_grab_location, cache->true_location);
+      }
     }
     else if (tool == SCULPT_TOOL_SNAKE_HOOK) {
       add_v3_v3(cache->true_location, cache->grab_delta);
@@ -5955,7 +5962,12 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
     copy_v3_v3(cache->old_grab_location, grab_location);
 
     if (tool == SCULPT_TOOL_GRAB) {
-      copy_v3_v3(cache->anchored_location, cache->true_location);
+      if (brush->flag2 & BRUSH_GRAB_ACTIVE_VERTEX) {
+        copy_v3_v3(cache->anchored_location, cache->orig_grab_location);
+      }
+      else {
+        copy_v3_v3(cache->anchored_location, cache->true_location);
+      }
     }
     else if (tool == SCULPT_TOOL_ELASTIC_DEFORM) {
       copy_v3_v3(cache->anchored_location, cache->true_location);
@@ -8993,6 +9005,72 @@ static void SCULPT_OT_mask_expand(wmOperatorType *ot)
                          "using normals to generate the mask",
                          0,
                          2000);
+}
+
+void sculpt_geometry_preview_lines_update(bContext *C, SculptSession *ss, float radius)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Object *ob = CTX_data_active_object(C);
+
+  ss->preview_vert_index_count = 0;
+  int totpoints = 0;
+
+  /* This function is called from the cursor drawing code, so the PBVH may not be build yet */
+  if (!ss->pbvh) {
+    return;
+  }
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true);
+
+  if (!ss->pmap) {
+    return;
+  }
+
+  float brush_co[3];
+  copy_v3_v3(brush_co, sculpt_vertex_co_get(ss, sculpt_active_vertex_get(ss)));
+
+  char *visited_vertices = MEM_callocN(sculpt_vertex_count_get(ss) * sizeof(char),
+                                       "visited vertices");
+
+  if (ss->preview_vert_index_list == NULL) {
+    ss->preview_vert_index_list = MEM_callocN(4 * sizeof(int) * sculpt_vertex_count_get(ss),
+                                              "preview lines");
+  }
+
+  BLI_Stack *not_visited_vertices = BLI_stack_new(sizeof(VertexTopologyIterator),
+                                                  "Not visited vertices stack");
+  VertexTopologyIterator mevit;
+  mevit.v = sculpt_active_vertex_get(ss);
+  BLI_stack_push(not_visited_vertices, &mevit);
+
+  while (!BLI_stack_is_empty(not_visited_vertices)) {
+    VertexTopologyIterator c_mevit;
+    BLI_stack_pop(not_visited_vertices, &c_mevit);
+    SculptVertexNeighborIter ni;
+    sculpt_vertex_neighbors_iter_begin(ss, c_mevit.v, ni)
+    {
+      VertexTopologyIterator new_entry;
+      new_entry.v = ni.index;
+      new_entry.it = c_mevit.it + 1;
+      ss->preview_vert_index_list[totpoints] = c_mevit.v;
+      totpoints++;
+      ss->preview_vert_index_list[totpoints] = new_entry.v;
+      totpoints++;
+      if (visited_vertices[(int)ni.index] == 0) {
+        visited_vertices[(int)ni.index] = 1;
+        if (len_squared_v3v3(brush_co, sculpt_vertex_co_get(ss, new_entry.v)) < radius * radius) {
+          BLI_stack_push(not_visited_vertices, &new_entry);
+        }
+      }
+    }
+    sculpt_vertex_neighbors_iter_end(ni)
+  }
+
+  BLI_stack_free(not_visited_vertices);
+
+  MEM_freeN(visited_vertices);
+
+  ss->preview_vert_index_count = totpoints;
 }
 
 void ED_operatortypes_sculpt(void)

@@ -1180,6 +1180,20 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
   }
 }
 
+static void sculpt_geometry_preview_lines_draw(const uint gpuattr, SculptSession *ss)
+{
+  immUniformColor4f(1.0f, 1.0f, 1.0f, 0.6f);
+  GPU_depth_test(true);
+  GPU_line_width(1.0f);
+  if (ss->preview_vert_index_count > 0) {
+    immBegin(GPU_PRIM_LINES, ss->preview_vert_index_count);
+    for (int i = 0; i < ss->preview_vert_index_count; i++) {
+      immVertex3fv(gpuattr, sculpt_vertex_co_get(ss, ss->preview_vert_index_list[i]));
+    }
+    immEnd();
+  }
+}
+
 static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 {
   Scene *scene = CTX_data_scene(C);
@@ -1348,6 +1362,17 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
         imm_draw_circle_wire_3d(pos, 0, 0, rds, 40);
         GPU_matrix_pop();
 
+        /* Update and draw dynamic mesh preview lines */
+        GPU_matrix_push();
+        GPU_matrix_mul(vc.obact->obmat);
+        if (brush->sculpt_tool == SCULPT_TOOL_GRAB && brush->flag2 & BRUSH_GRAB_ACTIVE_VERTEX) {
+          if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && ss->modifiers_active) {
+            sculpt_geometry_preview_lines_update(C, ss, rds);
+            sculpt_geometry_preview_lines_draw(pos, ss);
+          }
+        }
+        GPU_matrix_pop();
+
         GPU_matrix_pop_projection();
 
         wmWindowViewport(win);
@@ -1370,6 +1395,27 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
           add_v3_v3(cursor_location, ss->cache->grab_delta);
         }
         cursor_draw_point_with_symmetry(pos, ar, cursor_location, sd, vc.obact, ss->cache->radius);
+
+        /* Draw cached dynamic mesh preview lines */
+        if (brush->sculpt_tool == SCULPT_TOOL_GRAB && brush->flag2 & BRUSH_GRAB_ACTIVE_VERTEX) {
+          if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && ss->modifiers_active) {
+            GPU_matrix_push_projection();
+            ED_view3d_draw_setup_view(CTX_wm_window(C),
+                                      CTX_data_depsgraph_pointer(C),
+                                      CTX_data_scene(C),
+                                      ar,
+                                      CTX_wm_view3d(C),
+                                      NULL,
+                                      NULL,
+                                      NULL);
+            GPU_matrix_push();
+            GPU_matrix_mul(vc.obact->obmat);
+            sculpt_geometry_preview_lines_draw(pos, ss);
+            GPU_matrix_pop();
+            GPU_matrix_pop_projection();
+          }
+        }
+
         wmWindowViewport(win);
       }
     }

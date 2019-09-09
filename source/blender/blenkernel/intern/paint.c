@@ -1060,6 +1060,10 @@ void BKE_sculptsession_free(Object *ob)
       MEM_freeN(ss->deform_imats);
     }
 
+    if (ss->preview_vert_index_list) {
+      MEM_freeN(ss->preview_vert_index_list);
+    }
+
     BKE_sculptsession_free_vwpaint_data(ob->sculpt);
 
     MEM_freeN(ss);

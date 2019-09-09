@@ -380,6 +380,11 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             row = col.row()
             row.prop(brush, "use_automasking_topology")
 
+            if brush.sculpt_tool == 'GRAB':
+                col.separator()
+                row = col.row()
+                row.prop(brush, "grab_active_vertex")
+
             # topology_rake_factor
             if (
                     capabilities.has_topology_rake and
