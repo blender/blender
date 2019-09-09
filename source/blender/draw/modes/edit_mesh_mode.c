@@ -459,7 +459,12 @@ static void EDIT_MESH_cache_init(void *vedata)
       }
       if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGES) == 0) {
         if ((tsettings->selectmode & SCE_SELECT_EDGE) == 0) {
-          g_data->do_edges = false;
+          if ((v3d->shading.type < OB_SOLID) || (v3d->shading.flag & V3D_SHADING_XRAY)) {
+            /* Special case, when drawing wire, draw edges, see: T67637. */
+          }
+          else {
+            g_data->do_edges = false;
+          }
         }
       }
       if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CREASES) == 0) {

@@ -2099,7 +2099,7 @@ class VIEW3D_MT_object_relations(Menu):
         layout = self.layout
 
         layout.operator("object.proxy_make", text="Make Proxy...")
-        
+
         if bpy.app.use_override_library:
             layout.operator("object.make_override_library", text="Make Library Override...")
 
@@ -5613,6 +5613,7 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         layout = self.layout
 
         view = context.space_data
+        shading = view.shading
         overlay = view.overlay
         display_all = overlay.show_overlays
 
@@ -5622,6 +5623,7 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         split = col.split()
 
         sub = split.column()
+        sub.active = not ((shading.type == 'WIREFRAME') or shading.show_xray)
         sub.prop(overlay, "show_edges", text="Edges")
         sub = split.column()
         sub.prop(overlay, "show_faces", text="Faces")
