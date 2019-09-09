@@ -149,7 +149,7 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
                            (bool)((draw_ctx->v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) :
                            true;
   const bool do_onion = (bool)((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0) && overlay &&
-                        main_onion && gpencil_onion_active(gpd) && !playing;
+                        main_onion && !playing && gpencil_onion_active(gpd);
 
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
@@ -1721,7 +1721,7 @@ static void gpencil_shgroups_create(GPENCIL_e_data *e_data,
                            true;
   const bool main_onion = v3d != NULL ? (v3d->gp_flag & V3D_GP_SHOW_ONION_SKIN) : true;
   const bool do_onion = (bool)((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0) && main_onion &&
-                        gpencil_onion_active(gpd) && overlay;
+                        overlay && gpencil_onion_active(gpd);
 
   int start_stroke = 0;
   int start_point = 0;
