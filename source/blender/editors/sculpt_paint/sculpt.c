@@ -116,7 +116,7 @@ static void sculpt_vertex_random_access_init(SculptSession *ss)
   }
 }
 
-static int sculpt_active_vertex_get(SculptSession *ss)
+static int UNUSED_FUNCTION(sculpt_active_vertex_get)(SculptSession *ss)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
@@ -187,7 +187,7 @@ static float sculpt_vertex_mask_get(SculptSession *ss, int index)
   }
 }
 
-static void sculpt_vertex_co_set(SculptSession *ss, int index, float co[3])
+static void UNUSED_FUNCTION(sculpt_vertex_co_set)(SculptSession *ss, int index, float co[3])
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
@@ -201,7 +201,7 @@ static void sculpt_vertex_co_set(SculptSession *ss, int index, float co[3])
   }
 }
 
-static void sculpt_vertex_tag_update(SculptSession *ss, int index)
+static void UNUSED_FUNCTION(sculpt_vertex_tag_update)(SculptSession *ss, int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
