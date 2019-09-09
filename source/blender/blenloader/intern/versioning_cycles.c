@@ -877,31 +877,38 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
 
       AnimData *animData = BKE_animdata_from_id(&ntree->id);
       if (animData && animData->action) {
-        const char *nodePath = BLI_sprintfN("nodes[\"%s\"]", node->name);
+        char *nodePath = BLI_sprintfN("nodes[\"%s\"]", node->name);
+
         for (FCurve *fcu = animData->action->curves.first; fcu; fcu = fcu->next) {
           if (STRPREFIX(fcu->rna_path, nodePath) &&
               !BLI_str_endswith(fcu->rna_path, "default_value")) {
+            char *old_fcu_rna_path = fcu->rna_path;
 
-            MEM_freeN(fcu->rna_path);
-            if (BLI_str_endswith(fcu->rna_path, "translation")) {
+            if (BLI_str_endswith(old_fcu_rna_path, "translation")) {
               fcu->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[1].default_value");
             }
-            else if (BLI_str_endswith(fcu->rna_path, "rotation")) {
+            else if (BLI_str_endswith(old_fcu_rna_path, "rotation")) {
               fcu->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[2].default_value");
             }
-            else if (BLI_str_endswith(fcu->rna_path, "scale")) {
+            else if (BLI_str_endswith(old_fcu_rna_path, "scale")) {
               fcu->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[3].default_value");
             }
-            else if (minimumNode && BLI_str_endswith(fcu->rna_path, "min")) {
+            else if (minimumNode && BLI_str_endswith(old_fcu_rna_path, "min")) {
               fcu->rna_path = BLI_sprintfN(
                   "nodes[\"%s\"].%s", minimumNode->name, "inputs[1].default_value");
             }
-            else if (maximumNode && BLI_str_endswith(fcu->rna_path, "max")) {
+            else if (maximumNode && BLI_str_endswith(old_fcu_rna_path, "max")) {
               fcu->rna_path = BLI_sprintfN(
                   "nodes[\"%s\"].%s", maximumNode->name, "inputs[1].default_value");
             }
+
+            if (fcu->rna_path != old_fcu_rna_path) {
+              MEM_freeN(old_fcu_rna_path);
+            }
           }
         }
+
+        MEM_freeN(nodePath);
       }
     }
   }
