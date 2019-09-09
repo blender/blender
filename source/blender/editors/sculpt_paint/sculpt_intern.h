@@ -179,6 +179,8 @@ typedef struct SculptThreadedTaskData {
   float filter_strength;
   int *node_mask;
 
+  float *prev_mask;
+
   ThreadMutex mutex;
 
 } SculptThreadedTaskData;

@@ -3900,6 +3900,7 @@ def km_sculpt(params):
          {"properties": [("data_path", 'tool_settings.sculpt.brush.use_smooth_stroke')]}),
         op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         op_panel("VIEW3D_PT_sculpt_context_menu", params.context_menu_event),
+        op_menu_pie("VIEW3D_MT_sculpt_mask_edit_pie", {"type" : 'A', "value": 'PRESS'})
     ])
 
     if params.legacy:
