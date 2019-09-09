@@ -797,7 +797,10 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
   bool need_update = false;
 
   for (bNode *node = ntree->nodes.first; node; node = node->next) {
-    if (node->type == SH_NODE_MAPPING) {
+    /* If node->storage is NULL, then conversion has already taken place.
+     * This can happen if a file with the new mapping node [saved from (2, 81, 8) or newer]
+     * is opened in a blender version prior to (2, 81, 8) and saved from there again. */
+    if (node->type == SH_NODE_MAPPING && node->storage) {
       TexMapping *mapping = (TexMapping *)node->storage;
       node->custom1 = mapping->type;
       node->width = 140.0f;
