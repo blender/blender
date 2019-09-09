@@ -36,7 +36,10 @@
 
 #include "BPY_extern.h"
 
-void bpy_app_generic_callback(struct Main *main, struct ID *id, void *arg);
+void bpy_app_generic_callback(struct Main *main,
+                              struct PointerRNA **pointers,
+                              const int num_pointers,
+                              void *arg);
 
 static PyTypeObject BlenderAppCbType;
 
@@ -290,32 +293,58 @@ void BPY_app_handlers_reset(const short do_all)
   PyGILState_Release(gilstate);
 }
 
+static PyObject *choose_arguments(PyObject *func, PyObject *args_all, PyObject *args_single)
+{
+  if (!PyFunction_Check(func)) {
+    return args_all;
+  }
+  PyCodeObject *code = (PyCodeObject *)PyFunction_GetCode(func);
+  if (code->co_argcount == 1) {
+    return args_single;
+  }
+  return args_all;
+}
+
 /* the actual callback - not necessarily called from py */
-void bpy_app_generic_callback(struct Main *UNUSED(main), struct ID *id, void *arg)
+void bpy_app_generic_callback(struct Main *UNUSED(main),
+                              struct PointerRNA **pointers,
+                              const int num_pointers,
+                              void *arg)
 {
   PyObject *cb_list = py_cb_array[POINTER_AS_INT(arg)];
   if (PyList_GET_SIZE(cb_list) > 0) {
     PyGILState_STATE gilstate = PyGILState_Ensure();
 
-    PyObject *args = PyTuple_New(1); /* save python creating each call */
+    const int num_arguments = 2;
+    PyObject *args_all = PyTuple_New(num_arguments); /* save python creating each call */
+    PyObject *args_single = PyTuple_New(1);
     PyObject *func;
     PyObject *ret;
     Py_ssize_t pos;
 
     /* setup arguments */
-    if (id) {
-      PointerRNA id_ptr;
-      RNA_id_pointer_create(id, &id_ptr);
-      PyTuple_SET_ITEM(args, 0, pyrna_struct_CreatePyObject(&id_ptr));
+    for (int i = 0; i < num_pointers; ++i) {
+      PyTuple_SET_ITEM(args_all, i, pyrna_struct_CreatePyObject(pointers[i]));
+    }
+    for (int i = num_pointers; i < num_arguments; ++i) {
+      PyTuple_SET_ITEM(args_all, i, Py_INCREF_RET(Py_None));
+    }
+
+    if (num_pointers == 0) {
+      PyTuple_SET_ITEM(args_single, 0, Py_INCREF_RET(Py_None));
+    }
+    else if (num_pointers == 1) {
+      args_single = args_all;
     }
     else {
-      PyTuple_SET_ITEM(args, 0, Py_INCREF_RET(Py_None));
+      PyTuple_SET_ITEM(args_single, 0, pyrna_struct_CreatePyObject(pointers[0]));
     }
 
     /* Iterate the list and run the callbacks
      * note: don't store the list size since the scripts may remove themselves */
     for (pos = 0; pos < PyList_GET_SIZE(cb_list); pos++) {
       func = PyList_GET_ITEM(cb_list, pos);
+      PyObject *args = choose_arguments(func, args_all, args_single);
       ret = PyObject_Call(func, args, NULL);
       if (ret == NULL) {
         /* Don't set last system variables because they might cause some
@@ -332,7 +361,10 @@ void bpy_app_generic_callback(struct Main *UNUSED(main), struct ID *id, void *ar
       }
     }
 
-    Py_DECREF(args);
+    Py_DECREF(args_all);
+    if (args_single != args_all) {
+      Py_DECREF(args_single);
+    }
 
     PyGILState_Release(gilstate);
   }

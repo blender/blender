@@ -80,7 +80,10 @@ static AppView *view = NULL;
 static FreestyleLineSet lineset_buffer;
 static bool lineset_copied = false;
 
-static void load_post_callback(struct Main * /*main*/, struct ID * /*id*/, void * /*arg*/)
+static void load_post_callback(struct Main * /*main*/,
+                               struct PointerRNA ** /*pointers*/,
+                               const int /*num_pointers*/,
+                               void * /*arg*/)
 {
   lineset_copied = false;
 }

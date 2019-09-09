@@ -1309,7 +1309,7 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
 
   bool run_callbacks = DEG_id_type_any_updated(depsgraph);
   if (run_callbacks) {
-    BKE_callback_exec(bmain, &scene->id, BKE_CB_EVT_DEPSGRAPH_UPDATE_PRE);
+    BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_DEPSGRAPH_UPDATE_PRE);
   }
 
   for (int pass = 0; pass < 2; pass++) {
@@ -1327,7 +1327,8 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
     BKE_scene_update_sound(depsgraph, bmain);
     /* Notify python about depsgraph update. */
     if (run_callbacks) {
-      BKE_callback_exec(bmain, &scene->id, BKE_CB_EVT_DEPSGRAPH_UPDATE_POST);
+      BKE_callback_exec_id_depsgraph(
+          bmain, &scene->id, depsgraph, BKE_CB_EVT_DEPSGRAPH_UPDATE_POST);
     }
     /* Inform editors about possible changes. */
     DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, false);
@@ -1362,7 +1363,7 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph, Main *bmain)
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
 
   /* Keep this first. */
-  BKE_callback_exec(bmain, &scene->id, BKE_CB_EVT_FRAME_CHANGE_PRE);
+  BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_FRAME_CHANGE_PRE);
 
   for (int pass = 0; pass < 2; pass++) {
     /* Update animated image textures for particles, modifiers, gpu, etc,
@@ -1384,7 +1385,7 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph, Main *bmain)
 
     /* Notify editors and python about recalc. */
     if (pass == 0) {
-      BKE_callback_exec(bmain, &scene->id, BKE_CB_EVT_FRAME_CHANGE_POST);
+      BKE_callback_exec_id_depsgraph(bmain, &scene->id, depsgraph, BKE_CB_EVT_FRAME_CHANGE_POST);
     }
 
     /* Inform editors about possible changes. */

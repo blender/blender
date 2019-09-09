@@ -378,10 +378,10 @@ void WM_init(bContext *C, int argc, const char **argv)
      * note that recovering the last session does its own callbacks. */
     CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
-    BKE_callback_exec(bmain, NULL, BKE_CB_EVT_VERSION_UPDATE);
-    BKE_callback_exec(bmain, NULL, BKE_CB_EVT_LOAD_POST);
+    BKE_callback_exec_null(bmain, BKE_CB_EVT_VERSION_UPDATE);
+    BKE_callback_exec_null(bmain, BKE_CB_EVT_LOAD_POST);
     if (is_factory_startup) {
-      BKE_callback_exec(bmain, NULL, BKE_CB_EVT_LOAD_FACTORY_STARTUP_POST);
+      BKE_callback_exec_null(bmain, BKE_CB_EVT_LOAD_FACTORY_STARTUP_POST);
     }
 
     wm_file_read_report(C, bmain);
