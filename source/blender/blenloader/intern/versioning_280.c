@@ -3766,8 +3766,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  {
-    /* Versioning code until next subversion bump goes here. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 281, 9)) {
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
         for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
@@ -3841,5 +3840,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         br->elastic_deform_compressibility = 0.5f;
       }
     }
+  }
+
+  {
+    /* Versioning code until next subversion bump goes here. */
   }
 }

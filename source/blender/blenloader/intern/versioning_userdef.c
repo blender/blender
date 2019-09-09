@@ -610,6 +610,11 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
     userdef->drag_threshold_tablet = 10;
   }
 
+  if (!USER_VERSION_ATLEAST(281, 9)) {
+    /* X3D is no longer enabled by default. */
+    BKE_addon_remove_safe(&userdef->addons, "io_scene_x3d");
+  }
+
   /**
    * Include next version bump.
    */
