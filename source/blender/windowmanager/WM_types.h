@@ -775,6 +775,16 @@ typedef struct wmOperatorType {
 
 } wmOperatorType;
 
+/**
+ * Wrapper to reference a wmOperatorType together with some set properties and othere relevant
+ * information to invoke the operator in a customizable way.
+ */
+typedef struct wmOperatorCallParams {
+  struct wmOperatorType *optype;
+  struct PointerRNA *opptr;
+  short opcontext;
+} wmOperatorCallParams;
+
 #ifdef WITH_INPUT_IME
 /* *********** Input Method Editor (IME) *********** */
 /**

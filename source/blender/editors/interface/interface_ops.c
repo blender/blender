@@ -1590,6 +1590,34 @@ static void UI_OT_button_execute(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Text Button Clear Operator
+ * \{ */
+
+static int button_string_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  uiBut *but = UI_context_active_but_get(C);
+
+  if (but) {
+    ui_but_active_string_clear_and_exit(C, but);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_button_string_clear(wmOperatorType *ot)
+{
+  ot->name = "Clear Button String";
+  ot->idname = "UI_OT_button_string_clear";
+  ot->description = "Unsets the text of the active button";
+
+  ot->poll = ED_operator_regionactive;
+  ot->exec = button_string_clear_exec;
+  ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Drop Color Operator
  * \{ */
 
@@ -1714,6 +1742,7 @@ void ED_operatortypes_ui(void)
 #endif
   WM_operatortype_append(UI_OT_reloadtranslation);
   WM_operatortype_append(UI_OT_button_execute);
+  WM_operatortype_append(UI_OT_button_string_clear);
 
   /* external */
   WM_operatortype_append(UI_OT_eyedropper_color);

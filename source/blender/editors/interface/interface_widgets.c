@@ -2371,13 +2371,29 @@ static BIFIconID widget_icon_id(uiBut *but)
   }
 }
 
+static void widget_draw_extra_icons(const uiWidgetColors *wcol,
+                                    uiBut *but,
+                                    rcti *rect,
+                                    float alpha)
+{
+  /* inverse order, from right to left. */
+  for (uiButExtraOpIcon *op_icon = but->extra_op_icons.last; op_icon; op_icon = op_icon->prev) {
+    rcti temp = *rect;
+
+    temp.xmin = temp.xmax - (BLI_rcti_size_y(rect) * 1.08f);
+
+    widget_draw_icon(but, op_icon->icon, alpha, &temp, wcol->text);
+
+    rect->xmax -= ICON_SIZE_FROM_BUTRECT(rect);
+  }
+}
+
 /* draws text and icons for buttons */
 static void widget_draw_text_icon(const uiFontStyle *fstyle,
                                   const uiWidgetColors *wcol,
                                   uiBut *but,
                                   rcti *rect)
 {
-  const uiButExtraIconType extra_icon_type = ui_but_icon_extra_get(but);
   const bool show_menu_icon = ui_but_draw_menu_icon(but);
   float alpha = (float)wcol->text[3] / 255.0f;
   char password_str[UI_MAX_DRAW_STR];
@@ -2499,23 +2515,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
   }
 
   /* extra icons, e.g. 'x' icon to clear text or icon for eyedropper */
-  if (extra_icon_type != UI_BUT_ICONEXTRA_NONE) {
-    rcti temp = *rect;
-
-    temp.xmin = temp.xmax - (BLI_rcti_size_y(rect) * 1.08f);
-
-    if (extra_icon_type == UI_BUT_ICONEXTRA_CLEAR) {
-      widget_draw_icon(but, ICON_PANEL_CLOSE, alpha, &temp, wcol->text);
-    }
-    else if (extra_icon_type == UI_BUT_ICONEXTRA_EYEDROPPER) {
-      widget_draw_icon(but, ICON_EYEDROPPER, alpha, &temp, wcol->text);
-    }
-    else {
-      BLI_assert(0);
-    }
-
-    rect->xmax -= ICON_SIZE_FROM_BUTRECT(rect);
-  }
+  widget_draw_extra_icons(wcol, but, rect, alpha);
 
   /* clip but->drawstr to fit in available space */
   if (but->editstr && but->pos >= 0) {

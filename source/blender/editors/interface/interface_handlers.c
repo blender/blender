@@ -2673,15 +2673,19 @@ void ui_but_text_password_hide(char password_str[UI_MAX_PASSWORD_STR],
 /** \name Button Text Selection/Editing
  * \{ */
 
-static void ui_textedit_string_clear_and_exit(bContext *C, uiBut *but, uiHandleButtonData *data)
+void ui_but_active_string_clear_and_exit(bContext *C, uiBut *but)
 {
-  /* most likely NULL, but let's check, and give it temp zero string */
-  if (!data->str) {
-    data->str = MEM_callocN(1, "temp str");
+  if (!but->active) {
+    return;
   }
-  data->str[0] = 0;
 
-  ui_apply_but_TEX(C, but, data);
+  /* most likely NULL, but let's check, and give it temp zero string */
+  if (!but->active->str) {
+    but->active->str = MEM_callocN(1, "temp str");
+  }
+  but->active->str[0] = 0;
+
+  ui_apply_but_TEX(C, but, but->active);
   button_activate_state(C, but, BUTTON_STATE_EXIT);
 }
 
@@ -3768,6 +3772,19 @@ static void ui_numedit_apply(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
   ED_region_tag_redraw(data->region);
 }
 
+static void ui_but_extra_operator_icon_apply(bContext *C, uiBut *but, uiButExtraOpIcon *op_icon)
+{
+  WM_operator_name_call_ptr(C,
+                            op_icon->optype_params->optype,
+                            op_icon->optype_params->opcontext,
+                            op_icon->optype_params->opptr);
+
+  /* Force recreation of extra operator icons (pseudo update). */
+  ui_but_extra_operator_icons_free(but);
+
+  WM_event_add_mousemove(C);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -3910,6 +3927,46 @@ static uiBut *ui_but_list_row_text_activate(bContext *C,
 /* -------------------------------------------------------------------- */
 /** \name Events for Various Button Types
  * \{ */
+
+static uiButExtraOpIcon *ui_but_extra_operator_icon_mouse_over_get(uiBut *but,
+                                                                   uiHandleButtonData *data,
+                                                                   const wmEvent *event)
+{
+  float xmax = but->rect.xmax;
+  const float icon_size = BLI_rctf_size_y(&but->rect);
+  int x = event->x, y = event->y;
+
+  ui_window_to_block(data->region, but->block, &x, &y);
+  if (!BLI_rctf_isect_pt(&but->rect, x, y)) {
+    return NULL;
+  }
+
+  /* Inverse order, from right to left. */
+  for (uiButExtraOpIcon *op_icon = but->extra_op_icons.last; op_icon; op_icon = op_icon->prev) {
+    if ((x > (xmax - icon_size)) && x < xmax) {
+      return op_icon;
+    }
+    xmax -= icon_size;
+  }
+
+  return NULL;
+}
+
+static bool ui_do_but_extra_operator_icon(bContext *C,
+                                          uiBut *but,
+                                          uiHandleButtonData *data,
+                                          const wmEvent *event)
+{
+  uiButExtraOpIcon *op_icon = ui_but_extra_operator_icon_mouse_over_get(but, data, event);
+
+  if (op_icon) {
+    ui_but_extra_operator_icon_apply(C, but, op_icon);
+    button_activate_exit(C, but, data, false, false);
+    return true;
+  }
+
+  return false;
+}
 
 #ifdef USE_DRAG_TOGGLE
 /* Shared by any button that supports drag-toggle. */
@@ -4098,23 +4155,6 @@ static int ui_do_but_KEYEVT(bContext *C,
   return WM_UI_HANDLER_CONTINUE;
 }
 
-static bool ui_but_is_mouse_over_icon_extra(const ARegion *region,
-                                            uiBut *but,
-                                            const int mouse_xy[2])
-{
-  int x = mouse_xy[0], y = mouse_xy[1];
-  rcti icon_rect;
-
-  BLI_assert(ui_but_icon_extra_get(but) != UI_BUT_ICONEXTRA_NONE);
-
-  ui_window_to_block(region, but->block, &x, &y);
-
-  BLI_rcti_rctf_copy(&icon_rect, &but->rect);
-  icon_rect.xmin = icon_rect.xmax - (BLI_rcti_size_y(&icon_rect));
-
-  return BLI_rcti_isect_pt(&icon_rect, x, y);
-}
-
 static int ui_do_but_TAB(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
@@ -4168,17 +4208,11 @@ static int ui_do_but_TEX(
       else if (but->dt == UI_EMBOSS_NONE && !event->ctrl) {
         /* pass */
       }
-      else {
-        const bool has_icon_extra = ui_but_icon_extra_get(but) == UI_BUT_ICONEXTRA_CLEAR;
-
-        if (has_icon_extra && ui_but_is_mouse_over_icon_extra(data->region, but, &event->x)) {
-          ui_textedit_string_clear_and_exit(C, but, data);
-        }
-        else {
-          button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
-        }
-        return WM_UI_HANDLER_BREAK;
+      else if (!ui_but_extra_operator_icon_mouse_over_get(but, data, event)) {
+        button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
       }
+
+      return WM_UI_HANDLER_BREAK;
     }
   }
   else if (data->state == BUTTON_STATE_TEXT_EDITING) {
@@ -4196,27 +4230,12 @@ static int ui_do_but_TEX(
 static int ui_do_but_SEARCH_UNLINK(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
-  const uiButExtraIconType extra_icon_type = ui_but_icon_extra_get(but);
-  const bool has_icon_extra = (extra_icon_type != UI_BUT_ICONEXTRA_NONE);
-
   /* unlink icon is on right */
-  if ((ELEM(event->type, LEFTMOUSE, EVT_BUT_OPEN, PADENTER, RETKEY)) && (has_icon_extra == true) &&
-      (ui_but_is_mouse_over_icon_extra(data->region, but, &event->x) == true)) {
+  if (ELEM(event->type, LEFTMOUSE, EVT_BUT_OPEN, PADENTER, RETKEY)) {
     /* doing this on KM_PRESS calls eyedropper after clicking unlink icon */
-    if (event->val == KM_RELEASE) {
-      /* unlink */
-      if (extra_icon_type == UI_BUT_ICONEXTRA_CLEAR) {
-        ui_textedit_string_clear_and_exit(C, but, data);
-      }
-      /* eyedropper */
-      else if (extra_icon_type == UI_BUT_ICONEXTRA_EYEDROPPER) {
-        WM_operator_name_call(C, "UI_OT_eyedropper_id", WM_OP_INVOKE_DEFAULT, NULL);
-      }
-      else {
-        BLI_assert(0);
-      }
+    if ((event->val == KM_RELEASE) && ui_do_but_extra_operator_icon(C, but, data, event)) {
+      return WM_UI_HANDLER_BREAK;
     }
-    return WM_UI_HANDLER_BREAK;
   }
   return ui_do_but_TEX(C, block, but, data, event);
 }
@@ -6975,6 +6994,14 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
     /* handle drop */
     if (event->type == EVT_DROP) {
       ui_but_drop(C, event, but, data);
+    }
+
+    if ((data->state == BUTTON_STATE_HIGHLIGHT) &&
+        ELEM(event->type, LEFTMOUSE, EVT_BUT_OPEN, PADENTER, RETKEY) &&
+        (event->val == KM_RELEASE) &&
+        /* Only returns true if the event was handled. */
+        ui_do_but_extra_operator_icon(C, but, data, event)) {
+      return WM_UI_HANDLER_BREAK;
     }
   }
 

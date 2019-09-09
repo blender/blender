@@ -78,14 +78,6 @@ enum {
   /* warn: rest of uiBut->flag in UI_interface.h */
 };
 
-/* some buttons display icons only under special conditions
- * (e.g. 'x' icon in search menu) - used with ui_but_icon_extra_get */
-typedef enum uiButExtraIconType {
-  UI_BUT_ICONEXTRA_NONE = 1,
-  UI_BUT_ICONEXTRA_CLEAR,
-  UI_BUT_ICONEXTRA_EYEDROPPER,
-} uiButExtraIconType;
-
 /* uiBut->dragflag */
 enum {
   UI_BUT_DRAGPOIN_FREE = (1 << 0),
@@ -262,6 +254,8 @@ struct uiBut {
   short opcontext;
   uchar menu_key; /* 'a'-'z', always lower case */
 
+  ListBase extra_op_icons; /* uiButExtraOpIcon */
+
   /* Draggable data, type is WM_DRAG_... */
   char dragtype;
   short dragflag;
@@ -292,6 +286,16 @@ typedef struct uiButTab {
   uiBut but;
   struct MenuType *menu;
 } uiButTab;
+
+/**
+ * Additional, superimposed icon for a button, invoking an operator.
+ */
+typedef struct uiButExtraOpIcon {
+  struct uiButExtraOpIcon *next, *prev;
+
+  BIFIconID icon;
+  struct wmOperatorCallParams *optype_params;
+} uiButExtraOpIcon;
 
 typedef struct ColorPicker {
   struct ColorPicker *next, *prev;
@@ -497,13 +501,16 @@ extern bool ui_but_string_set_eval_num(struct bContext *C,
                                        const char *str,
                                        double *value) ATTR_NONNULL();
 extern int ui_but_string_get_max_length(uiBut *but);
+/* Clear & exit the active button's string. */
+extern void ui_but_active_string_clear_and_exit(struct bContext *C, uiBut *but) ATTR_NONNULL();
 extern uiBut *ui_but_drag_multi_edit_get(uiBut *but);
 
 void ui_def_but_icon(uiBut *but, const int icon, const int flag);
 void ui_def_but_icon_clear(uiBut *but);
-extern uiButExtraIconType ui_but_icon_extra_get(uiBut *but);
 
 extern void ui_but_default_set(struct bContext *C, const bool all, const bool use_afterfunc);
+
+void ui_but_extra_operator_icons_free(uiBut *but);
 
 extern void ui_but_rna_menu_convert_to_panel_type(struct uiBut *but, const char *panel_type);
 extern void ui_but_rna_menu_convert_to_menu_type(struct uiBut *but, const char *menu_type);
