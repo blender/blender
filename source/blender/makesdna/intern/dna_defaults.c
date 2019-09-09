@@ -36,6 +36,8 @@
  * - #DNA_struct_default_alloc
  *
  * These access the struct table #DNA_default_table using the struct number.
+ *
+ * \note Struct members only define their members (pointers are left as NULL set).
  */
 
 #include <stdio.h>
@@ -58,6 +60,13 @@
 
 const Scene DNA_DEFAULT_Scene = _DNA_DEFAULT_Scene;
 const ToolSettings DNA_DEFAULT_ToolSettings = _DNA_DEFAULT_ToolSettings;
+
+/* Reuse existing definitions. */
+extern const struct UserDef U_default;
+#define DNA_DEFAULT_UserDef U_default
+
+extern const bTheme U_theme_default;
+#define DNA_DEFAULT_bTheme U_theme_default
 
 /**
  * Prevent assigning the wrong struct types since all elements in #DNA_default_table are `void *`.
@@ -96,6 +105,12 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL_EX(MeshStatVis, ToolSettings.statvis),
     SDNA_DEFAULT_DECL_EX(GP_Sculpt_Settings, ToolSettings.gp_sculpt),
     SDNA_DEFAULT_DECL_EX(GP_Sculpt_Guide, ToolSettings.gp_sculpt.guide),
+
+    /* DNA_userdef_types.h */
+    SDNA_DEFAULT_DECL(UserDef),
+    SDNA_DEFAULT_DECL(bTheme),
+    SDNA_DEFAULT_DECL_EX(UserDef_SpaceData, UserDef.space_data),
+    SDNA_DEFAULT_DECL_EX(WalkNavigation, UserDef.walk_navigation),
 
     /* DNA_view3d_defaults.h */
     SDNA_DEFAULT_DECL_EX(View3DShading, Scene.display.shading),
