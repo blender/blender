@@ -639,7 +639,7 @@ static void file_attribute_columns_widths(const FileSelectParams *params, FileLa
   columns[COLUMN_DATETIME].width = file_string_width(small_size ? "23/08/89" :
                                                                   "23 Dec 6789, 23:59") +
                                    pad;
-  columns[COLUMN_SIZE].width = file_string_width(small_size ? "98.7 M" : "098.7 MB") + pad;
+  columns[COLUMN_SIZE].width = file_string_width(small_size ? "98.7 M" : "098.7 MiB") + pad;
   if (params->display == FILE_IMGDISPLAY) {
     columns[COLUMN_NAME].width = ((float)params->thumbnail_size / 8.0f) * UI_UNIT_X;
   }

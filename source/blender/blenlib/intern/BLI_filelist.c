@@ -271,7 +271,11 @@ void BLI_filelist_entry_size_to_string(const struct stat *st,
    * everyone starts using __USE_FILE_OFFSET64 or equivalent.
    */
   double size = (double)(st ? st->st_size : sz);
+#ifdef WIN32
+  BLI_str_format_byte_unit(r_size, size, false);
+#else
   BLI_str_format_byte_unit(r_size, size, true);
+#endif
 }
 
 /**
