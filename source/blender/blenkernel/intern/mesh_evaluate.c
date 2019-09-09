@@ -2320,6 +2320,24 @@ float BKE_mesh_calc_poly_area(const MPoly *mpoly, const MLoop *loopstart, const 
   }
 }
 
+float BKE_mesh_calc_area(const Mesh *me)
+{
+  MVert *mvert = me->mvert;
+  MLoop *mloop = me->mloop;
+  MPoly *mpoly = me->mpoly;
+
+  MPoly *mp;
+  int i = me->totpoly;
+  float total_area = 0;
+
+  for (mp = mpoly; i--; mp++) {
+    MLoop *ml_start = &mloop[mp->loopstart];
+
+    total_area += BKE_mesh_calc_poly_area(mp, ml_start, mvert);
+  }
+  return total_area;
+}
+
 float BKE_mesh_calc_poly_uv_area(const MPoly *mpoly, const MLoopUV *uv_array)
 {
 

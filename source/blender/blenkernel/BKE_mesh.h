@@ -477,6 +477,7 @@ void BKE_mesh_calc_poly_center(const struct MPoly *mpoly,
 float BKE_mesh_calc_poly_area(const struct MPoly *mpoly,
                               const struct MLoop *loopstart,
                               const struct MVert *mvarray);
+float BKE_mesh_calc_area(const struct Mesh *me);
 float BKE_mesh_calc_poly_uv_area(const struct MPoly *mpoly, const struct MLoopUV *uv_array);
 void BKE_mesh_calc_poly_angles(const struct MPoly *mpoly,
                                const struct MLoop *loopstart,
