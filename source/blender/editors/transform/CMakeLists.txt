@@ -43,11 +43,10 @@ set(SRC
   transform_convert.c
   transform_convert_action.c
   transform_convert_armature.c
-  transform_convert_paintcurve.c
   transform_convert_cursor.c
   transform_convert_curve.c
-  transform_convert_graph.c
   transform_convert_gpencil.c
+  transform_convert_graph.c
   transform_convert_lattice.c
   transform_convert_mask.c
   transform_convert_mball.c
@@ -55,6 +54,7 @@ set(SRC
   transform_convert_nla.c
   transform_convert_node.c
   transform_convert_object.c
+  transform_convert_paintcurve.c
   transform_convert_particle.c
   transform_convert_sequencer.c
   transform_convert_tracking.c

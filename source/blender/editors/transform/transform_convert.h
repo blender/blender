@@ -24,9 +24,6 @@
 #ifndef __TRANSFORM_CONVERT_H__
 #define __TRANSFORM_CONVERT_H__
 
-struct bContext;
-struct bKinematicConstraint;
-struct bPoseChannel;
 struct BezTriple;
 struct ListBase;
 struct Object;
@@ -34,6 +31,9 @@ struct TransData;
 struct TransDataContainer;
 struct TransDataCurveHandleFlags;
 struct TransInfo;
+struct bContext;
+struct bKinematicConstraint;
+struct bPoseChannel;
 
 /* transform_convert.c */
 int count_set_pose_transflags(Object *ob,

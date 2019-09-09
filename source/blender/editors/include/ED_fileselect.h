@@ -25,13 +25,13 @@
 #define __ED_FILESELECT_H__
 
 struct ARegion;
-struct bScreen;
 struct FileSelectParams;
 struct ScrArea;
 struct SpaceFile;
 struct bContext;
-struct wmWindowManager;
+struct bScreen;
 struct uiBlock;
+struct wmWindowManager;
 
 #define FILE_LAYOUT_HOR 1
 #define FILE_LAYOUT_VER 2
