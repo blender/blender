@@ -4546,7 +4546,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
     }
 
     BLI_str_format_int_grouped(formatted_tot, totframes);
-    BLI_str_format_byte_unit(formatted_mem, bytes, true);
+    BLI_str_format_byte_unit(formatted_mem, bytes, false);
 
     BLI_snprintf(mem_info,
                  sizeof(mem_info),

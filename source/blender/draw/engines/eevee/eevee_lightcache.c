@@ -218,7 +218,7 @@ void EEVEE_lightcache_info_update(SceneEEVEE *eevee)
     }
 
     char formatted_mem[15];
-    BLI_str_format_byte_unit(formatted_mem, eevee_lightcache_memsize_get(lcache), true);
+    BLI_str_format_byte_unit(formatted_mem, eevee_lightcache_memsize_get(lcache), false);
 
     int irr_samples = eevee_lightcache_irradiance_sample_count(lcache);
 
