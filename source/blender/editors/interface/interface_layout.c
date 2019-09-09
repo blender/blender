@@ -1110,7 +1110,8 @@ void UI_context_active_but_prop_get_filebrowser(const bContext *C,
 static void ui_but_tip_from_enum_item(uiBut *but, const EnumPropertyItem *item)
 {
   if (but->tip == NULL || but->tip[0] == '\0') {
-    if (item->description && item->description[0]) {
+    if (item->description && item->description[0] &&
+        !(but->optype && but->optype->get_description)) {
       but->tip = item->description;
     }
   }

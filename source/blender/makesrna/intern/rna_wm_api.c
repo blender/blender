@@ -963,6 +963,7 @@ void RNA_api_operator(StructRNA *srna)
   RNA_def_function_ui_description(func, "Compute a description string that depends on parameters");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   parm = RNA_def_string(func, "result", NULL, 4096, "result", "");
+  RNA_def_parameter_clear_flags(parm, PROP_NEVER_NULL, 0);
   RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
   RNA_def_function_output(func, parm);
   parm = RNA_def_pointer(func, "context", "Context", "", "");
