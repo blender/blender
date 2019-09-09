@@ -50,6 +50,8 @@ set(INC
   ../../../intern/opensubdiv
   ../../../extern/curve_fit_nd
   ../../../intern/smoke/extern
+
+  ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
 )
 
 set(INC_SYS

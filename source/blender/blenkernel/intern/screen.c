@@ -36,6 +36,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_workspace_types.h"
+#include "DNA_defaults.h"
 
 #include "BLI_math_vector.h"
 #include "BLI_listbase.h"
@@ -852,24 +853,8 @@ void BKE_screen_view3d_scene_sync(bScreen *sc, Scene *scene)
 
 void BKE_screen_view3d_shading_init(View3DShading *shading)
 {
-  memset(shading, 0, sizeof(*shading));
-
-  shading->type = OB_SOLID;
-  shading->prev_type = OB_SOLID;
-  shading->flag = V3D_SHADING_SPECULAR_HIGHLIGHT | V3D_SHADING_XRAY_WIREFRAME |
-                  V3D_SHADING_SCENE_LIGHTS_RENDER | V3D_SHADING_SCENE_WORLD_RENDER;
-  shading->light = V3D_LIGHTING_STUDIO;
-  shading->shadow_intensity = 0.5f;
-  shading->xray_alpha = 0.5f;
-  shading->xray_alpha_wire = 0.0f;
-  shading->cavity_valley_factor = 1.0f;
-  shading->cavity_ridge_factor = 1.0f;
-  shading->cavity_type = V3D_SHADING_CAVITY_CURVATURE;
-  shading->curvature_ridge_factor = 1.0f;
-  shading->curvature_valley_factor = 1.0f;
-  copy_v3_fl(shading->single_color, 0.8f);
-  copy_v3_fl(shading->background_color, 0.05f);
-  shading->studiolight_intensity = 1.0f;
+  const View3DShading *shading_default = DNA_struct_default_get(View3DShading);
+  memcpy(shading, shading_default, sizeof(*shading));
 }
 
 /* magic zoom calculation, no idea what

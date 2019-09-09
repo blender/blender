@@ -44,6 +44,7 @@
 #include "DNA_workspace_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_world_types.h"
+#include "DNA_defaults.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -558,107 +559,20 @@ void BKE_scene_free(Scene *sce)
   BKE_scene_free_ex(sce, true);
 }
 
+/**
+ * \note Use DNA_scene_defaults.h where possible.
+ */
 void BKE_scene_init(Scene *sce)
 {
-  ParticleEditSettings *pset;
-  int a;
   const char *colorspace_name;
   SceneRenderView *srv;
   CurveMapping *mblur_shutter_curve;
 
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(sce, id));
 
-  sce->cursor.rotation_mode = ROT_MODE_XYZ;
-  sce->cursor.rotation_quaternion[0] = 1.0f;
-  sce->cursor.rotation_axis[1] = 1.0f;
+  MEMCPY_STRUCT_AFTER(sce, DNA_struct_default_get(Scene), id);
 
-  sce->r.mode = 0;
-  sce->r.cfra = 1;
-  sce->r.sfra = 1;
-  sce->r.efra = 250;
-  sce->r.frame_step = 1;
-  sce->r.xsch = 1920;
-  sce->r.ysch = 1080;
-  sce->r.xasp = 1;
-  sce->r.yasp = 1;
-  sce->r.tilex = 256;
-  sce->r.tiley = 256;
-  sce->r.size = 100;
-
-  sce->r.im_format.planes = R_IMF_PLANES_RGBA;
-  sce->r.im_format.imtype = R_IMF_IMTYPE_PNG;
-  sce->r.im_format.depth = R_IMF_CHAN_DEPTH_8;
-  sce->r.im_format.quality = 90;
-  sce->r.im_format.compress = 15;
-
-  sce->r.displaymode = R_OUTPUT_WINDOW;
-  sce->r.framapto = 100;
-  sce->r.images = 100;
-  sce->r.framelen = 1.0;
-  sce->r.blurfac = 0.5;
-  sce->r.frs_sec = 24;
-  sce->r.frs_sec_base = 1;
-
-  /* OCIO_TODO: for forwards compatibility only, so if no tonecurve are used,
-   *            images would look in the same way as in current blender
-   *
-   *            perhaps at some point should be completely deprecated?
-   */
-  sce->r.color_mgt_flag |= R_COLOR_MANAGEMENT;
-
-  sce->r.gauss = 1.5;
-  sce->r.dither_intensity = 1.0f;
-
-  sce->r.bake_mode = 0;
-  sce->r.bake_filter = 16;
-  sce->r.bake_flag = R_BAKE_CLEAR;
-  sce->r.bake_samples = 256;
-  sce->r.bake_biasdist = 0.001;
-
-  sce->r.bake.flag = R_BAKE_CLEAR;
-  sce->r.bake.pass_filter = R_BAKE_PASS_FILTER_ALL;
-  sce->r.bake.width = 512;
-  sce->r.bake.height = 512;
-  sce->r.bake.margin = 16;
-  sce->r.bake.normal_space = R_BAKE_SPACE_TANGENT;
-  sce->r.bake.normal_swizzle[0] = R_BAKE_POSX;
-  sce->r.bake.normal_swizzle[1] = R_BAKE_POSY;
-  sce->r.bake.normal_swizzle[2] = R_BAKE_POSZ;
   BLI_strncpy(sce->r.bake.filepath, U.renderdir, sizeof(sce->r.bake.filepath));
-
-  sce->r.bake.im_format.planes = R_IMF_PLANES_RGBA;
-  sce->r.bake.im_format.imtype = R_IMF_IMTYPE_PNG;
-  sce->r.bake.im_format.depth = R_IMF_CHAN_DEPTH_8;
-  sce->r.bake.im_format.quality = 90;
-  sce->r.bake.im_format.compress = 15;
-
-  sce->r.scemode = R_DOCOMP | R_DOSEQ | R_EXTENSION;
-  sce->r.stamp = R_STAMP_TIME | R_STAMP_FRAME | R_STAMP_DATE | R_STAMP_CAMERA | R_STAMP_SCENE |
-                 R_STAMP_FILENAME | R_STAMP_RENDERTIME | R_STAMP_MEMORY;
-  sce->r.stamp_font_id = 12;
-  sce->r.fg_stamp[0] = sce->r.fg_stamp[1] = sce->r.fg_stamp[2] = 0.8f;
-  sce->r.fg_stamp[3] = 1.0f;
-  sce->r.bg_stamp[0] = sce->r.bg_stamp[1] = sce->r.bg_stamp[2] = 0.0f;
-  sce->r.bg_stamp[3] = 0.25f;
-
-  sce->r.seq_prev_type = OB_SOLID;
-  sce->r.seq_rend_type = OB_SOLID;
-  sce->r.seq_flag = 0;
-
-  sce->r.threads = 1;
-
-  sce->r.simplify_subsurf = 6;
-  sce->r.simplify_particles = 1.0f;
-
-  sce->r.border.xmin = 0.0f;
-  sce->r.border.ymin = 0.0f;
-  sce->r.border.xmax = 1.0f;
-  sce->r.border.ymax = 1.0f;
-
-  sce->r.preview_start_resolution = 64;
-
-  sce->r.line_thickness_mode = R_LINE_THICKNESS_ABSOLUTE;
-  sce->r.unit_line_thickness = 1.0f;
 
   mblur_shutter_curve = &sce->r.mblur_shutter_curve;
   BKE_curvemapping_set_defaults(mblur_shutter_curve, 1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -668,48 +582,9 @@ void BKE_scene_init(Scene *sce)
                      CURVE_PRESET_MAX,
                      CURVEMAP_SLOPE_POS_NEG);
 
-  sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
+  sce->toolsettings = DNA_struct_default_alloc(ToolSettings);
 
-  sce->toolsettings->object_flag |= SCE_OBJECT_MODE_LOCK;
-  sce->toolsettings->doublimit = 0.001;
-  sce->toolsettings->vgroup_weight = 1.0f;
-  sce->toolsettings->uvcalc_margin = 0.001f;
-  sce->toolsettings->uvcalc_flag = UVCALC_TRANSFORM_CORRECT;
-  sce->toolsettings->unwrapper = 1;
-  sce->toolsettings->select_thresh = 0.01f;
-
-  sce->toolsettings->selectmode = SCE_SELECT_VERTEX;
-  sce->toolsettings->uv_selectmode = UV_SELECT_VERTEX;
   sce->toolsettings->autokey_mode = U.autokey_mode;
-
-  sce->toolsettings->transform_pivot_point = V3D_AROUND_CENTER_MEDIAN;
-  sce->toolsettings->snap_mode = SCE_SNAP_MODE_INCREMENT;
-  sce->toolsettings->snap_node_mode = SCE_SNAP_MODE_GRID;
-  sce->toolsettings->snap_uv_mode = SCE_SNAP_MODE_INCREMENT;
-  sce->toolsettings->snap_transform_mode_flag = SCE_SNAP_TRANSFORM_MODE_TRANSLATE;
-
-  sce->toolsettings->curve_paint_settings.curve_type = CU_BEZIER;
-  sce->toolsettings->curve_paint_settings.flag |= CURVE_PAINT_FLAG_CORNERS_DETECT;
-  sce->toolsettings->curve_paint_settings.error_threshold = 8;
-  sce->toolsettings->curve_paint_settings.radius_max = 1.0f;
-  sce->toolsettings->curve_paint_settings.corner_angle = DEG2RADF(70.0f);
-
-  sce->toolsettings->statvis.overhang_axis = OB_NEGZ;
-  sce->toolsettings->statvis.overhang_min = 0;
-  sce->toolsettings->statvis.overhang_max = DEG2RADF(45.0f);
-  sce->toolsettings->statvis.thickness_max = 0.1f;
-  sce->toolsettings->statvis.thickness_samples = 1;
-  sce->toolsettings->statvis.distort_min = DEG2RADF(5.0f);
-  sce->toolsettings->statvis.distort_max = DEG2RADF(45.0f);
-
-  sce->toolsettings->statvis.sharp_min = DEG2RADF(90.0f);
-  sce->toolsettings->statvis.sharp_max = DEG2RADF(180.0f);
-
-  sce->toolsettings->proportional_size = 1.0f;
-
-  sce->toolsettings->imapaint.paint.flags |= PAINT_SHOW_BRUSH;
-  sce->toolsettings->imapaint.normal_angle = 80;
-  sce->toolsettings->imapaint.seam_bleed = 2;
 
   /* grease pencil multiframe falloff curve */
   sce->toolsettings->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -726,49 +601,22 @@ void BKE_scene_init(Scene *sce)
                      CURVE_PRESET_BELL,
                      CURVEMAP_SLOPE_POSITIVE);
 
-  sce->toolsettings->gp_sculpt.guide.spacing = 20.0f;
-
-  sce->physics_settings.gravity[0] = 0.0f;
-  sce->physics_settings.gravity[1] = 0.0f;
-  sce->physics_settings.gravity[2] = -9.81f;
-  sce->physics_settings.flag = PHYS_GLOBAL_GRAVITY;
-
   sce->unit.system = USER_UNIT_METRIC;
   sce->unit.scale_length = 1.0f;
   sce->unit.length_unit = bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_LENGTH);
   sce->unit.mass_unit = bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_MASS);
   sce->unit.time_unit = bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_TIME);
 
-  pset = &sce->toolsettings->particle;
-  pset->flag = PE_KEEP_LENGTHS | PE_LOCK_FIRST | PE_DEFLECT_EMITTER | PE_AUTO_VELOCITY;
-  pset->emitterdist = 0.25f;
-  pset->totrekey = 5;
-  pset->totaddkey = 5;
-  pset->brushtype = PE_BRUSH_COMB;
-  pset->draw_step = 2;
-  pset->fade_frames = 2;
-  pset->selectmode = SCE_SELECT_PATH;
-
-  for (a = 0; a < ARRAY_SIZE(pset->brush); a++) {
-    pset->brush[a].strength = 0.5f;
-    pset->brush[a].size = 50;
-    pset->brush[a].step = 10;
-    pset->brush[a].count = 10;
+  {
+    ParticleEditSettings *pset;
+    pset = &sce->toolsettings->particle;
+    for (int i = 1; i < ARRAY_SIZE(pset->brush); i++) {
+      pset->brush[i] = pset->brush[0];
+    }
+    pset->brush[PE_BRUSH_CUT].strength = 1.0f;
   }
-  pset->brush[PE_BRUSH_CUT].strength = 1.0f;
-
-  sce->r.ffcodecdata.audio_mixrate = 48000;
-  sce->r.ffcodecdata.audio_volume = 1.0f;
-  sce->r.ffcodecdata.audio_bitrate = 192;
-  sce->r.ffcodecdata.audio_channels = 2;
 
   BLI_strncpy(sce->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(sce->r.engine));
-
-  sce->audio.distance_model = 2.0f;
-  sce->audio.doppler_factor = 1.0f;
-  sce->audio.speed_of_sound = 343.3f;
-  sce->audio.volume = 1.0f;
-  sce->audio.flag = AUDIO_SYNC;
 
   BLI_strncpy(sce->r.pic, U.renderdir, sizeof(sce->r.pic));
 
@@ -805,14 +653,6 @@ void BKE_scene_init(Scene *sce)
   BKE_color_managed_display_settings_init(&sce->r.bake.im_format.display_settings);
   BKE_color_managed_view_settings_init_render(
       &sce->r.bake.im_format.view_settings, &sce->r.bake.im_format.display_settings, "Filmic");
-
-  /* Safe Areas */
-  copy_v2_fl2(sce->safe_areas.title, 10.0f / 100.0f, 5.0f / 100.0f);
-  copy_v2_fl2(sce->safe_areas.action, 3.5f / 100.0f, 3.5f / 100.0f);
-  copy_v2_fl2(sce->safe_areas.title_center, 17.5f / 100.0f, 5.0f / 100.0f);
-  copy_v2_fl2(sce->safe_areas.action_center, 15.0f / 100.0f, 5.0f / 100.0f);
-
-  sce->preview = NULL;
 
   /* GP Sculpt brushes */
   {
@@ -880,16 +720,6 @@ void BKE_scene_init(Scene *sce)
     copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
   }
 
-  /* GP Stroke Placement */
-  sce->toolsettings->gpencil_v3d_align = GP_PROJECT_VIEWSPACE;
-  sce->toolsettings->gpencil_v2d_align = GP_PROJECT_VIEWSPACE;
-  sce->toolsettings->gpencil_seq_align = GP_PROJECT_VIEWSPACE;
-  sce->toolsettings->gpencil_ima_align = GP_PROJECT_VIEWSPACE;
-
-  /* Annotations */
-  sce->toolsettings->annotate_v3d_align = GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR;
-  sce->toolsettings->annotate_thickness = 3;
-
   for (int i = 0; i < ARRAY_SIZE(sce->orientation_slots); i++) {
     sce->orientation_slots[i].index_custom = -1;
   }
@@ -898,79 +728,6 @@ void BKE_scene_init(Scene *sce)
   sce->master_collection = BKE_collection_master_add();
 
   BKE_view_layer_add(sce, "View Layer");
-
-  /* SceneDisplay */
-  copy_v3_v3(sce->display.light_direction, (float[3]){M_SQRT1_3, M_SQRT1_3, M_SQRT1_3});
-  sce->display.shadow_shift = 0.1f;
-  sce->display.shadow_focus = 0.0f;
-
-  sce->display.matcap_ssao_distance = 0.2f;
-  sce->display.matcap_ssao_attenuation = 1.0f;
-  sce->display.matcap_ssao_samples = 16;
-
-  sce->display.render_aa = SCE_DISPLAY_AA_SAMPLES_8;
-  sce->display.viewport_aa = SCE_DISPLAY_AA_FXAA;
-
-  /* OpenGL Render. */
-  BKE_screen_view3d_shading_init(&sce->display.shading);
-
-  /* SceneEEVEE */
-  sce->eevee.gi_diffuse_bounces = 3;
-  sce->eevee.gi_cubemap_resolution = 512;
-  sce->eevee.gi_visibility_resolution = 32;
-  sce->eevee.gi_cubemap_draw_size = 0.3f;
-  sce->eevee.gi_irradiance_draw_size = 0.1f;
-  sce->eevee.gi_irradiance_smoothing = 0.1f;
-  sce->eevee.gi_filter_quality = 3.0f;
-
-  sce->eevee.taa_samples = 16;
-  sce->eevee.taa_render_samples = 64;
-
-  sce->eevee.sss_samples = 7;
-  sce->eevee.sss_jitter_threshold = 0.3f;
-
-  sce->eevee.ssr_quality = 0.25f;
-  sce->eevee.ssr_max_roughness = 0.5f;
-  sce->eevee.ssr_thickness = 0.2f;
-  sce->eevee.ssr_border_fade = 0.075f;
-  sce->eevee.ssr_firefly_fac = 10.0f;
-
-  sce->eevee.volumetric_start = 0.1f;
-  sce->eevee.volumetric_end = 100.0f;
-  sce->eevee.volumetric_tile_size = 8;
-  sce->eevee.volumetric_samples = 64;
-  sce->eevee.volumetric_sample_distribution = 0.8f;
-  sce->eevee.volumetric_light_clamp = 0.0f;
-  sce->eevee.volumetric_shadow_samples = 16;
-
-  sce->eevee.gtao_distance = 0.2f;
-  sce->eevee.gtao_factor = 1.0f;
-  sce->eevee.gtao_quality = 0.25f;
-
-  sce->eevee.bokeh_max_size = 100.0f;
-  sce->eevee.bokeh_threshold = 1.0f;
-
-  copy_v3_fl(sce->eevee.bloom_color, 1.0f);
-  sce->eevee.bloom_threshold = 0.8f;
-  sce->eevee.bloom_knee = 0.5f;
-  sce->eevee.bloom_intensity = 0.05f;
-  sce->eevee.bloom_radius = 6.5f;
-  sce->eevee.bloom_clamp = 0.0f;
-
-  sce->eevee.motion_blur_samples = 8;
-  sce->eevee.motion_blur_shutter = 0.5f;
-
-  sce->eevee.shadow_cube_size = 512;
-  sce->eevee.shadow_cascade_size = 1024;
-
-  sce->eevee.light_cache = NULL;
-  sce->eevee.light_threshold = 0.01f;
-
-  sce->eevee.overscan = 3.0f;
-
-  sce->eevee.flag = SCE_EEVEE_VOLUMETRIC_LIGHTS | SCE_EEVEE_GTAO_BENT_NORMALS |
-                    SCE_EEVEE_GTAO_BOUNCE | SCE_EEVEE_TAA_REPROJECTION |
-                    SCE_EEVEE_SSR_HALF_RESOLUTION | SCE_EEVEE_SHADOW_SOFT;
 }
 
 Scene *BKE_scene_add(Main *bmain, const char *name)
