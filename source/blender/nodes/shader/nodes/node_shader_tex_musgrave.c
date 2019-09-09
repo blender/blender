@@ -23,6 +23,7 @@
 
 static bNodeSocketTemplate sh_node_tex_musgrave_in[] = {
     {SOCK_VECTOR, 1, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+    {SOCK_FLOAT, 1, N_("W"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
     {SOCK_FLOAT, 1, N_("Scale"), 5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
     {SOCK_FLOAT, 1, N_("Detail"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 16.0f},
     {SOCK_FLOAT, 1, N_("Dimension"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
@@ -33,17 +34,6 @@ static bNodeSocketTemplate sh_node_tex_musgrave_in[] = {
 };
 
 static bNodeSocketTemplate sh_node_tex_musgrave_out[] = {
-    {SOCK_RGBA,
-     0,
-     N_("Color"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
     {SOCK_FLOAT,
      0,
      N_("Fac"),
@@ -64,6 +54,7 @@ static void node_shader_init_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *node)
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->musgrave_type = SHD_MUSGRAVE_FBM;
+  tex->dimensions = 3;
 
   node->storage = tex;
 }
@@ -78,12 +69,77 @@ static int node_shader_gpu_tex_musgrave(GPUMaterial *mat,
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
   NodeTexMusgrave *tex = (NodeTexMusgrave *)node->storage;
-  float type = tex->musgrave_type;
+  int dimensions = tex->dimensions;
+  int type = tex->musgrave_type;
 
-  return GPU_stack_link(mat, node, "node_tex_musgrave", in, out, GPU_constant(&type));
+  static const char *names[][5] = {
+      [SHD_MUSGRAVE_MULTIFRACTAL] =
+          {
+              "",
+              "node_tex_musgrave_multi_fractal_1d",
+              "node_tex_musgrave_multi_fractal_2d",
+              "node_tex_musgrave_multi_fractal_3d",
+              "node_tex_musgrave_multi_fractal_4d",
+          },
+      [SHD_MUSGRAVE_FBM] =
+          {
+              "",
+              "node_tex_musgrave_fBm_1d",
+              "node_tex_musgrave_fBm_2d",
+              "node_tex_musgrave_fBm_3d",
+              "node_tex_musgrave_fBm_4d",
+          },
+      [SHD_MUSGRAVE_HYBRID_MULTIFRACTAL] =
+          {
+              "",
+              "node_tex_musgrave_hybrid_multi_fractal_1d",
+              "node_tex_musgrave_hybrid_multi_fractal_2d",
+              "node_tex_musgrave_hybrid_multi_fractal_3d",
+              "node_tex_musgrave_hybrid_multi_fractal_4d",
+          },
+      [SHD_MUSGRAVE_RIDGED_MULTIFRACTAL] =
+          {
+              "",
+              "node_tex_musgrave_ridged_multi_fractal_1d",
+              "node_tex_musgrave_ridged_multi_fractal_2d",
+              "node_tex_musgrave_ridged_multi_fractal_3d",
+              "node_tex_musgrave_ridged_multi_fractal_4d",
+          },
+      [SHD_MUSGRAVE_HETERO_TERRAIN] =
+          {
+              "",
+              "node_tex_musgrave_hetero_terrain_1d",
+              "node_tex_musgrave_hetero_terrain_2d",
+              "node_tex_musgrave_hetero_terrain_3d",
+              "node_tex_musgrave_hetero_terrain_4d",
+          },
+  };
+
+  BLI_assert(type >= 0 && type < 5);
+  BLI_assert(dimensions > 0 && dimensions < 5);
+
+  return GPU_stack_link(mat, node, names[type][dimensions], in, out);
 }
 
-/* node type definition */
+static void node_shader_update_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  NodeTexMusgrave *tex = (NodeTexMusgrave *)node->storage;
+
+  bNodeSocket *inVectorSock = nodeFindSocket(node, SOCK_IN, "Vector");
+  bNodeSocket *inWSock = nodeFindSocket(node, SOCK_IN, "W");
+  bNodeSocket *inOffsetSock = nodeFindSocket(node, SOCK_IN, "Offset");
+  bNodeSocket *inGainSock = nodeFindSocket(node, SOCK_IN, "Gain");
+
+  nodeSetSocketAvailability(inVectorSock, tex->dimensions != 1);
+  nodeSetSocketAvailability(inWSock, tex->dimensions == 1 || tex->dimensions == 4);
+  nodeSetSocketAvailability(inOffsetSock,
+                            tex->musgrave_type != SHD_MUSGRAVE_MULTIFRACTAL &&
+                                tex->musgrave_type != SHD_MUSGRAVE_FBM);
+  nodeSetSocketAvailability(inGainSock,
+                            tex->musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL &&
+                                tex->musgrave_type != SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
+}
+
 void register_node_type_sh_tex_musgrave(void)
 {
   static bNodeType ntype;
@@ -95,6 +151,7 @@ void register_node_type_sh_tex_musgrave(void)
   node_type_storage(
       &ntype, "NodeTexMusgrave", node_free_standard_storage, node_copy_standard_storage);
   node_type_gpu(&ntype, node_shader_gpu_tex_musgrave);
+  node_type_update(&ntype, node_shader_update_tex_musgrave);
 
   nodeRegisterType(&ntype);
 }

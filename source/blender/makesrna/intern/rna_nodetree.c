@@ -4389,11 +4389,17 @@ static void def_sh_tex_musgrave(StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeTexMusgrave", "storage");
   def_sh_tex(srna);
 
+  prop = RNA_def_property(srna, "musgrave_dimensions", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "dimensions");
+  RNA_def_property_enum_items(prop, rna_enum_node_tex_dimensions_items);
+  RNA_def_property_ui_text(prop, "Dimensions", "");
+  RNA_def_property_update(prop, 0, "rna_ShaderNode_socket_update");
+
   prop = RNA_def_property(srna, "musgrave_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "musgrave_type");
   RNA_def_property_enum_items(prop, prop_musgrave_type);
   RNA_def_property_ui_text(prop, "Type", "");
-  RNA_def_property_update(prop, 0, "rna_Node_update");
+  RNA_def_property_update(prop, 0, "rna_ShaderNode_socket_update");
 }
 
 static void def_sh_tex_voronoi(StructRNA *srna)

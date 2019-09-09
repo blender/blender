@@ -236,8 +236,9 @@ class MusgraveTextureNode : public TextureNode {
     return NODE_GROUP_LEVEL_2;
   }
 
+  int dimensions;
   NodeMusgraveType type;
-  float scale, detail, dimension, lacunarity, offset, gain;
+  float w, scale, detail, dimension, lacunarity, offset, gain;
   float3 vector;
 };
 

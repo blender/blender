@@ -911,6 +911,34 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
   }
 }
 
+/* The Musgrave node now has a dimension property. This property should
+ * be initialized to 3 by default.
+ */
+static void update_musgrave_node_dimensions(bNodeTree *ntree)
+{
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_TEX_MUSGRAVE) {
+      NodeTexMusgrave *tex = (NodeTexMusgrave *)node->storage;
+      tex->dimensions = 3;
+    }
+  }
+}
+
+/* The Color output of the Musgrave node has been removed. Previously, this
+ * output was just equal to the Fac output. To correct this, we move links
+ * from the Color output to the Fac output if they exist.
+ */
+static void update_musgrave_node_color_output(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    if (link->fromnode && link->fromnode->type == SH_NODE_TEX_MUSGRAVE) {
+      if (link->fromsock->type == SOCK_RGBA) {
+        link->fromsock = link->fromsock->next;
+      }
+    }
+  }
+}
+
 void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bmain)
 {
   /* Particle shape shared with Eevee. */
@@ -948,6 +976,15 @@ void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bm
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_SHADER) {
         update_vector_math_node_operators_enum_mapping(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 281, 10)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        update_musgrave_node_color_output(ntree);
       }
     }
     FOREACH_NODETREE_END;
@@ -1097,6 +1134,15 @@ void do_versions_after_linking_cycles(Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_SHADER) {
         update_mapping_node_inputs_and_properties(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 281, 10)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        update_musgrave_node_dimensions(ntree);
       }
     }
     FOREACH_NODETREE_END;

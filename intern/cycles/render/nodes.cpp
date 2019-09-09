@@ -1183,6 +1183,13 @@ NODE_DEFINE(MusgraveTextureNode)
 
   TEXTURE_MAPPING_DEFINE(MusgraveTextureNode);
 
+  static NodeEnum dimensions_enum;
+  dimensions_enum.insert("1D", 1);
+  dimensions_enum.insert("2D", 2);
+  dimensions_enum.insert("3D", 3);
+  dimensions_enum.insert("4D", 4);
+  SOCKET_ENUM(dimensions, "Dimensions", dimensions_enum, 3);
+
   static NodeEnum type_enum;
   type_enum.insert("multifractal", NODE_MUSGRAVE_MULTIFRACTAL);
   type_enum.insert("fBM", NODE_MUSGRAVE_FBM);
@@ -1191,16 +1198,16 @@ NODE_DEFINE(MusgraveTextureNode)
   type_enum.insert("hetero_terrain", NODE_MUSGRAVE_HETERO_TERRAIN);
   SOCKET_ENUM(type, "Type", type_enum, NODE_MUSGRAVE_FBM);
 
+  SOCKET_IN_POINT(
+      vector, "Vector", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_TEXTURE_GENERATED);
+  SOCKET_IN_FLOAT(w, "W", 0.0f);
   SOCKET_IN_FLOAT(scale, "Scale", 1.0f);
   SOCKET_IN_FLOAT(detail, "Detail", 2.0f);
   SOCKET_IN_FLOAT(dimension, "Dimension", 2.0f);
   SOCKET_IN_FLOAT(lacunarity, "Lacunarity", 1.0f);
   SOCKET_IN_FLOAT(offset, "Offset", 0.0f);
   SOCKET_IN_FLOAT(gain, "Gain", 1.0f);
-  SOCKET_IN_POINT(
-      vector, "Vector", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_TEXTURE_GENERATED);
 
-  SOCKET_OUT_COLOR(color, "Color");
   SOCKET_OUT_FLOAT(fac, "Fac");
 
   return type;
@@ -1213,35 +1220,38 @@ MusgraveTextureNode::MusgraveTextureNode() : TextureNode(node_type)
 void MusgraveTextureNode::compile(SVMCompiler &compiler)
 {
   ShaderInput *vector_in = input("Vector");
+  ShaderInput *w_in = input("W");
   ShaderInput *scale_in = input("Scale");
+  ShaderInput *detail_in = input("Detail");
   ShaderInput *dimension_in = input("Dimension");
   ShaderInput *lacunarity_in = input("Lacunarity");
-  ShaderInput *detail_in = input("Detail");
   ShaderInput *offset_in = input("Offset");
   ShaderInput *gain_in = input("Gain");
   ShaderOutput *fac_out = output("Fac");
-  ShaderOutput *color_out = output("Color");
 
-  int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
+  int vector_stack_offset = tex_mapping.compile_begin(compiler, vector_in);
+  int w_stack_offset = compiler.stack_assign_if_linked(w_in);
+  int scale_stack_offset = compiler.stack_assign_if_linked(scale_in);
+  int detail_stack_offset = compiler.stack_assign_if_linked(detail_in);
+  int dimension_stack_offset = compiler.stack_assign_if_linked(dimension_in);
+  int lacunarity_stack_offset = compiler.stack_assign_if_linked(lacunarity_in);
+  int offset_stack_offset = compiler.stack_assign_if_linked(offset_in);
+  int gain_stack_offset = compiler.stack_assign_if_linked(gain_in);
+  int fac_stack_offset = compiler.stack_assign(fac_out);
 
-  compiler.add_node(NODE_TEX_MUSGRAVE,
-                    compiler.encode_uchar4(type,
-                                           vector_offset,
-                                           compiler.stack_assign_if_linked(color_out),
-                                           compiler.stack_assign_if_linked(fac_out)),
-                    compiler.encode_uchar4(compiler.stack_assign_if_linked(dimension_in),
-                                           compiler.stack_assign_if_linked(lacunarity_in),
-                                           compiler.stack_assign_if_linked(detail_in),
-                                           compiler.stack_assign_if_linked(offset_in)),
-                    compiler.encode_uchar4(compiler.stack_assign_if_linked(gain_in),
-                                           compiler.stack_assign_if_linked(scale_in)));
-  compiler.add_node(__float_as_int(dimension),
-                    __float_as_int(lacunarity),
-                    __float_as_int(detail),
-                    __float_as_int(offset));
-  compiler.add_node(__float_as_int(gain), __float_as_int(scale));
+  compiler.add_node(
+      NODE_TEX_MUSGRAVE,
+      compiler.encode_uchar4(type, dimensions, vector_stack_offset, w_stack_offset),
+      compiler.encode_uchar4(scale_stack_offset,
+                             detail_stack_offset,
+                             dimension_stack_offset,
+                             lacunarity_stack_offset),
+      compiler.encode_uchar4(offset_stack_offset, gain_stack_offset, fac_stack_offset));
+  compiler.add_node(
+      __float_as_int(w), __float_as_int(scale), __float_as_int(detail), __float_as_int(dimension));
+  compiler.add_node(__float_as_int(lacunarity), __float_as_int(offset), __float_as_int(gain));
 
-  tex_mapping.compile_end(compiler, vector_in, vector_offset);
+  tex_mapping.compile_end(compiler, vector_in, vector_stack_offset);
 }
 
 void MusgraveTextureNode::compile(OSLCompiler &compiler)
@@ -1249,6 +1259,7 @@ void MusgraveTextureNode::compile(OSLCompiler &compiler)
   tex_mapping.compile(compiler);
 
   compiler.parameter(this, "type");
+  compiler.parameter(this, "dimensions");
   compiler.add(this, "node_musgrave_texture");
 }
 

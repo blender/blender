@@ -885,7 +885,7 @@ typedef struct NodeTexVoronoi {
 typedef struct NodeTexMusgrave {
   NodeTexBase base;
   int musgrave_type;
-  char _pad[4];
+  int dimensions;
 } NodeTexMusgrave;
 
 typedef struct NodeTexWave {

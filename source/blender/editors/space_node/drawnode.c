@@ -908,6 +908,7 @@ static void node_shader_buts_tex_wave(uiLayout *layout, bContext *UNUSED(C), Poi
 
 static void node_shader_buts_tex_musgrave(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
+  uiItemR(layout, ptr, "musgrave_dimensions", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "musgrave_type", 0, "", ICON_NONE);
 }
 

@@ -785,11 +785,12 @@ static ShaderNode *add_node(Scene *scene,
   }
   else if (b_node.is_a(&RNA_ShaderNodeTexMusgrave)) {
     BL::ShaderNodeTexMusgrave b_musgrave_node(b_node);
-    MusgraveTextureNode *musgrave = new MusgraveTextureNode();
-    musgrave->type = (NodeMusgraveType)b_musgrave_node.musgrave_type();
+    MusgraveTextureNode *musgrave_node = new MusgraveTextureNode();
+    musgrave_node->type = (NodeMusgraveType)b_musgrave_node.musgrave_type();
+    musgrave_node->dimensions = b_musgrave_node.musgrave_dimensions();
     BL::TexMapping b_texture_mapping(b_musgrave_node.texture_mapping());
-    get_tex_mapping(&musgrave->tex_mapping, b_texture_mapping);
-    node = musgrave;
+    get_tex_mapping(&musgrave_node->tex_mapping, b_texture_mapping);
+    node = musgrave_node;
   }
   else if (b_node.is_a(&RNA_ShaderNodeTexCoord)) {
     BL::ShaderNodeTexCoord b_tex_coord_node(b_node);
