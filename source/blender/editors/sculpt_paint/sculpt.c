@@ -8676,6 +8676,7 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
 
 static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -8716,6 +8717,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
     };
 
     int smooth_iterations = RNA_int_get(op->ptr, "smooth_iterations");
+    BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false);
     for (int i = 0; i < smooth_iterations; i++) {
       TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
