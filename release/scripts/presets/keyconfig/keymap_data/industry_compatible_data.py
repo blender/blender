@@ -1213,7 +1213,7 @@ def km_file_browser_main(params):
         ("file.refresh", {"type": 'R', "value": 'PRESS', "ctrl": True}, None),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, None),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'CLICK'},
-         {"properties": [("open", False)]}),
+         {"properties": [("open", False), ("deselect_all", True)]}),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "ctrl": True},
          {"properties": [("extend", True)]}),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True,},

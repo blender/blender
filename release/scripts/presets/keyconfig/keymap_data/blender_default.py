@@ -1819,7 +1819,7 @@ def km_file_browser_main(params):
          {"properties": [("need_active", True)]}),
         ("file.refresh", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'CLICK'},
-         {"properties": [("open", False)]}),
+         {"properties": [("open", False), ("deselect_all", not params.legacy)]}),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, None),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "ctrl": True},
          {"properties": [("extend", True)]}),
