@@ -385,6 +385,7 @@ static bool rna_BrushCapabilitiesSculpt_has_direction_get(PointerRNA *ptr)
   Brush *br = (Brush *)ptr->data;
   return !ELEM(br->sculpt_tool,
                SCULPT_TOOL_DRAW,
+               SCULPT_TOOL_DRAW_SHARP,
                SCULPT_TOOL_CLAY,
                SCULPT_TOOL_CLAY_STRIPS,
                SCULPT_TOOL_LAYER,
@@ -648,6 +649,7 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
     case PAINT_MODE_SCULPT:
       switch (me->sculpt_tool) {
         case SCULPT_TOOL_DRAW:
+        case SCULPT_TOOL_DRAW_SHARP:
         case SCULPT_TOOL_CREASE:
         case SCULPT_TOOL_BLOB:
         case SCULPT_TOOL_LAYER:
