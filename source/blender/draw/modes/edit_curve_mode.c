@@ -270,7 +270,7 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 
       geom = DRW_cache_curve_edge_wire_get(ob);
       if (geom) {
-        DRW_shgroup_call(wire_shgrp, geom, ob);
+        DRW_shgroup_call_no_cull(wire_shgrp, geom, ob);
       }
 
       if ((cu->flag & CU_3D) && (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_NORMALS) != 0) {
@@ -280,12 +280,12 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 
       geom = DRW_cache_curve_edge_overlay_get(ob);
       if (geom) {
-        DRW_shgroup_call(stl->g_data->overlay_edge_shgrp, geom, ob);
+        DRW_shgroup_call_no_cull(stl->g_data->overlay_edge_shgrp, geom, ob);
       }
 
       geom = DRW_cache_curve_vert_overlay_get(ob, stl->g_data->show_handles);
       if (geom) {
-        DRW_shgroup_call(stl->g_data->overlay_vert_shgrp, geom, ob);
+        DRW_shgroup_call_no_cull(stl->g_data->overlay_vert_shgrp, geom, ob);
       }
     }
   }
@@ -294,12 +294,12 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
     if (BKE_object_is_in_editmode(ob)) {
       struct GPUBatch *geom = DRW_cache_curve_edge_overlay_get(ob);
       if (geom) {
-        DRW_shgroup_call(stl->g_data->overlay_edge_shgrp, geom, ob);
+        DRW_shgroup_call_no_cull(stl->g_data->overlay_edge_shgrp, geom, ob);
       }
 
       geom = DRW_cache_curve_vert_overlay_get(ob, false);
       if (geom) {
-        DRW_shgroup_call(stl->g_data->overlay_vert_shgrp, geom, ob);
+        DRW_shgroup_call_no_cull(stl->g_data->overlay_vert_shgrp, geom, ob);
       }
     }
   }
