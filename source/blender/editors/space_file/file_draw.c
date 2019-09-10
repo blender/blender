@@ -138,12 +138,9 @@ static void file_draw_icon(
 {
   uiBut *but;
   int x, y;
-  // float alpha = 1.0f;
 
   x = sx;
   y = sy - height;
-
-  /*if (icon == ICON_FILE_BLANK) alpha = 0.375f;*/
 
   but = uiDefIconBut(
       block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, NULL, 0.0f, 0.0f, 0.0f, 0.0f, NULL);
@@ -265,15 +262,11 @@ static void file_draw_preview(uiBlock *block,
 
   float col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   if (is_icon) {
-    /*  File and Folder icons draw with lowered opacity until we add themes */
-    col[3] = 0.6f;
-    /*  Use dark images if background is light */
-    float bg[3];
-    UI_GetThemeColor3fv(TH_BACK, bg);
-    if (rgb_to_grayscale(bg) > 0.5f) {
-      col[0] = 0;
-      col[1] = 0;
-      col[2] = 0;
+    if (typeflags & FILE_TYPE_DIR) {
+      UI_GetThemeColor4fv(TH_ICON_FOLDER, col);
+    }
+    else {
+      UI_GetThemeColor4fv(TH_TEXT, col);
     }
   }
   else if (typeflags & FILE_TYPE_FTFONT) {
@@ -314,7 +307,7 @@ static void file_draw_preview(uiBlock *block,
       float icon_opacity = 0.3f;
       uchar icon_color[4] = {0, 0, 0, 255};
       float bgcolor[4];
-      UI_GetThemeColor4fv(TH_TEXT, bgcolor);
+      UI_GetThemeColor4fv(TH_ICON_FOLDER, bgcolor);
       if (rgb_to_grayscale(bgcolor) < 0.5f) {
         icon_color[0] = 255;
         icon_color[1] = 255;

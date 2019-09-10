@@ -196,6 +196,9 @@ typedef struct ThemeUI {
   unsigned char icon_modifier[4];
   /** Shading related items. */
   unsigned char icon_shading[4];
+  /** File folders. */
+  unsigned char icon_folder[4];
+  char _pad2[4];
   /** Intensity of the border icons. >0 will render an border around themed
    * icons. */
   float icon_border_intensity;

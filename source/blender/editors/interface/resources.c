@@ -905,6 +905,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_ICON_SHADING:
           cp = btheme->tui.icon_shading;
           break;
+        case TH_ICON_FOLDER:
+          cp = btheme->tui.icon_folder;
+          break;
         case TH_ICON_FUND: {
           /* Development fund icon color is not part of theme. */
           static const uchar red[4] = {204, 48, 72, 255};
@@ -1391,8 +1394,9 @@ bool UI_GetIconThemeColor4ubv(int colorid, uchar col[4])
     /* Always color development fund icon. */
   }
   else if (!((theme_spacetype == SPACE_OUTLINER && theme_regionid == RGN_TYPE_WINDOW) ||
-             (theme_spacetype == SPACE_PROPERTIES && theme_regionid == RGN_TYPE_NAV_BAR))) {
-    /* Only colored icons in outliner and popups, overall UI is intended
+             (theme_spacetype == SPACE_PROPERTIES && theme_regionid == RGN_TYPE_NAV_BAR) ||
+             (theme_spacetype == SPACE_FILE && theme_regionid == RGN_TYPE_WINDOW))) {
+    /* Only colored icons in specific places, overall UI is intended
      * to stay monochrome and out of the way except a few places where it
      * is important to communicate different data types. */
     return false;
