@@ -1377,9 +1377,17 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph, Main *bmain)
 #endif
     /* Update all objects: drivers, matrices, displists, etc. flags set
      * by depgraph or manual, no layer check here, gets correct flushed.
-     */
-    const float ctime = BKE_scene_frame_get(scene);
-    DEG_evaluate_on_framechange(bmain, depsgraph, ctime);
+     *
+     * NOTE: Only update for new frame on first iteration. Second iteration is for ensuring user
+     * edits from callback are properly taken into account. Doing a time update on those would
+     * loose any possible unkeyed changes made by the handler. */
+    if (pass == 0) {
+      const float ctime = BKE_scene_frame_get(scene);
+      DEG_evaluate_on_framechange(bmain, depsgraph, ctime);
+    }
+    else {
+      DEG_evaluate_on_refresh(bmain, depsgraph);
+    }
     /* Update sound system animation. */
     BKE_scene_update_sound(depsgraph, bmain);
 
