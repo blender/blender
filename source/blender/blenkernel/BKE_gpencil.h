@@ -58,6 +58,9 @@ struct MDeformVert;
 #define GPENCIL_SIMPLIFY_BLEND(scene, playing) \
   ((GPENCIL_SIMPLIFY_ONPLAY(playing) && (GPENCIL_SIMPLIFY(scene)) && \
     (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_BLEND)))
+#define GPENCIL_SIMPLIFY_TINT(scene, playing) \
+  ((GPENCIL_SIMPLIFY_ONPLAY(playing) && (GPENCIL_SIMPLIFY(scene)) && \
+    (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_TINT)))
 
 /* ------------ Grease-Pencil API ------------------ */
 

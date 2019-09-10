@@ -1922,6 +1922,7 @@ void gpencil_populate_multiedit(GPENCIL_e_data *e_data,
 
   GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
   const DRWContextState *draw_ctx = DRW_context_state_get();
+  Scene *scene = draw_ctx->scene;
   int cfra_eval = (int)DEG_get_ctime(draw_ctx->depsgraph);
   GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra_eval);
 
@@ -1937,39 +1938,23 @@ void gpencil_populate_multiedit(GPENCIL_e_data *e_data,
     if (gpl->flag & GP_LAYER_HIDE) {
       continue;
     }
+    const float alpha = GPENCIL_SIMPLIFY_TINT(scene, playing) ? 0.0f : gpl->tintcolor[3];
+    const float tintcolor[4] = {gpl->tintcolor[0], gpl->tintcolor[1], gpl->tintcolor[2], alpha};
 
     /* list of frames to draw */
     if (!playing) {
       for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
         if ((gpf == gpl->actframe) || (gpf->flag & GP_FRAME_SELECT)) {
-          gpencil_draw_strokes(cache,
-                               e_data,
-                               vedata,
-                               ob,
-                               gpd,
-                               gpl,
-                               gpf,
-                               gpl->opacity,
-                               gpl->tintcolor,
-                               false,
-                               cache_ob);
+          gpencil_draw_strokes(
+              cache, e_data, vedata, ob, gpd, gpl, gpf, gpl->opacity, tintcolor, false, cache_ob);
         }
       }
     }
     else {
       gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV);
       if (gpf) {
-        gpencil_draw_strokes(cache,
-                             e_data,
-                             vedata,
-                             ob,
-                             gpd,
-                             gpl,
-                             gpf,
-                             gpl->opacity,
-                             gpl->tintcolor,
-                             false,
-                             cache_ob);
+        gpencil_draw_strokes(
+            cache, e_data, vedata, ob, gpd, gpl, gpf, gpl->opacity, tintcolor, false, cache_ob);
       }
     }
   }
@@ -2091,8 +2076,10 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
       }
     }
     /* draw normal strokes */
+    const float alpha = GPENCIL_SIMPLIFY_TINT(scene, playing) ? 0.0f : gpl->tintcolor[3];
+    const float tintcolor[4] = {gpl->tintcolor[0], gpl->tintcolor[1], gpl->tintcolor[2], alpha};
     gpencil_draw_strokes(
-        cache, e_data, vedata, ob, gpd, gpl, gpf_eval, opacity, gpl->tintcolor, false, cache_ob);
+        cache, e_data, vedata, ob, gpd, gpl, gpf_eval, opacity, tintcolor, false, cache_ob);
   }
 
   /* create batchs and shading groups */
