@@ -47,7 +47,7 @@ void main()
   int slice = textureSize(volumeScattering, 0).z;
   ivec2 texco = ivec2(gl_FragCoord.xy);
 #endif
-  for (int i = 0; i < slice; i++) {
+  for (int i = 0; i <= slice; i++) {
     ivec3 volume_cell = ivec3(gl_FragCoord.xy, i);
 
     vec3 Lscat = texelFetch(volumeScattering, volume_cell, 0).rgb;
