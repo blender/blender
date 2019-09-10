@@ -492,19 +492,16 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
         /* Flee from horrible win querying hover floppy drives! */
         if (i > 1) {
-          /* Try to get volume label as well... */
+          /* Try to get a friendly drive description. */
+          SHFILEINFOW shFile = {0};
           BLI_strncpy_wchar_from_utf8(wline, tmps, 4);
-          if (GetVolumeInformationW(
-                  wline, wline + 4, FILE_MAXDIR - 4, NULL, NULL, NULL, NULL, 0)) {
-            size_t label_len;
-
-            BLI_strncpy_wchar_as_utf8(line, wline + 4, FILE_MAXDIR - 4);
-
-            label_len = MIN2(strlen(line), FILE_MAXDIR - 6);
-            BLI_snprintf(line + label_len, 6, " (%.2s)", tmps);
-
+          if (SHGetFileInfoW(wline, 0, &shFile, sizeof(SHFILEINFOW), SHGFI_DISPLAYNAME)) {
+            BLI_strncpy_wchar_as_utf8(line, shFile.szDisplayName, FILE_MAXDIR);
             name = line;
           }
+        }
+        if (name == NULL) {
+          name = tmps;
         }
 
         fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, tmps, name, FS_INSERT_SORTED);
