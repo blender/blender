@@ -110,6 +110,11 @@ void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd,
                                float (*vertexCos)[3],
                                int numVerts);
 
+/* Used in editmesh_mask_extract.c to shrinkwrap the extracted mesh to the sculpt */
+void BKE_shrinkwrap_mesh_nearest_surface_deform(struct bContext *C,
+                                                struct Object *ob_source,
+                                                struct Object *ob_target);
+
 /*
  * This function casts a ray in the given BVHTree.
  * but it takes into consideration the space_transform, that is:

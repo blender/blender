@@ -194,6 +194,8 @@ void ED_operatortypes_mesh(void)
   WM_operatortype_append(MESH_OT_symmetrize);
   WM_operatortype_append(MESH_OT_symmetry_snap);
 
+  WM_operatortype_append(MESH_OT_paint_mask_extract);
+
   WM_operatortype_append(MESH_OT_point_normals);
   WM_operatortype_append(MESH_OT_merge_normals);
   WM_operatortype_append(MESH_OT_split_normals);

@@ -2886,6 +2886,10 @@ class VIEW3D_MT_sculpt(Menu):
 
         layout.separator()
 
+        props = layout.operator("mesh.paint_mask_extract", text="Mask Extract")
+
+        layout.separator()
+
         props = layout.operator("sculpt.dirty_mask", text='Dirty Mask')
 
 

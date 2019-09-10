@@ -145,10 +145,10 @@ static bool edbm_extrude_discrete_faces(BMEditMesh *em, wmOperator *op, const ch
 }
 
 /* extrudes individual edges */
-static bool edbm_extrude_edges_indiv(BMEditMesh *em,
-                                     wmOperator *op,
-                                     const char hflag,
-                                     const bool use_normal_flip)
+bool edbm_extrude_edges_indiv(BMEditMesh *em,
+                              wmOperator *op,
+                              const char hflag,
+                              const bool use_normal_flip)
 {
   BMesh *bm = em->bm;
   BMOperator bmop;
