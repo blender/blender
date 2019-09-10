@@ -1639,6 +1639,8 @@ static void sdna_expand_names(SDNA *sdna)
     names_expand_len += sp[1];
   }
   const char **names_expand = MEM_mallocN(sizeof(*names_expand) * names_expand_len, __func__);
+  short *names_array_len_expand = MEM_mallocN(sizeof(*names_array_len_expand) * names_expand_len,
+                                              __func__);
 
   int names_expand_index = 0;
   for (int struct_nr = 0; struct_nr < sdna->structs_len; struct_nr++) {
@@ -1652,6 +1654,7 @@ static void sdna_expand_names(SDNA *sdna)
     sp_expand += 2;
     for (int i = 0; i < names_len; i++, sp += 2, sp_expand += 2) {
       names_expand[names_expand_index] = sdna->names[sp[1]];
+      names_array_len_expand[names_expand_index] = sdna->names_array_len[sp[1]];
       BLI_assert(names_expand_index < SHRT_MAX);
       sp_expand[1] = names_expand_index;
       names_expand_index++;
@@ -1659,6 +1662,10 @@ static void sdna_expand_names(SDNA *sdna)
   }
   MEM_freeN((void *)sdna->names);
   sdna->names = names_expand;
+
+  MEM_freeN((void *)sdna->names_array_len);
+  sdna->names_array_len = names_array_len_expand;
+
   sdna->names_len = names_expand_len;
 }
 
