@@ -2354,7 +2354,7 @@ static int hide_exec(bContext *C, wmOperator *op)
   POINT_P;
   KEY_K;
 
-  if (RNA_enum_get(op->ptr, "unselected")) {
+  if (RNA_boolean_get(op->ptr, "unselected")) {
     LOOP_UNSELECTED_POINTS
     {
       point->flag |= PEP_HIDE;
