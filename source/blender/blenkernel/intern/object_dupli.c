@@ -822,8 +822,10 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
     /* gather list of objects or single object */
     int totcollection = 0;
 
+    const bool use_whole_collection = part->draw & PART_DRAW_WHOLE_GR;
+    const bool use_collection_count = part->draw & PART_DRAW_COUNT_GR && !use_whole_collection;
     if (part->ren_as == PART_DRAW_GR) {
-      if (part->draw & PART_DRAW_COUNT_GR) {
+      if (use_collection_count) {
         psys_find_group_weights(part);
 
         for (dw = part->instance_weights.first; dw; dw = dw->next) {
@@ -848,7 +850,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
       oblist = MEM_callocN((size_t)totcollection * sizeof(Object *), "dupcollection object list");
 
-      if (part->draw & PART_DRAW_COUNT_GR) {
+      if (use_collection_count) {
         a = 0;
         for (dw = part->instance_weights.first; dw; dw = dw->next) {
           FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (
@@ -916,7 +918,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
         }
 
         /* for collections, pick the object based on settings */
-        if (part->draw & PART_DRAW_RAND_GR) {
+        if (part->draw & PART_DRAW_RAND_GR && !use_whole_collection) {
           b = BLI_rng_get_int(rng) % totcollection;
         }
         else {
