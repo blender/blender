@@ -494,6 +494,9 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   bool partial_update = true;
 
   for (unode = lb->first; unode; unode = unode->next) {
+    /* restore pivot */
+    copy_v3_v3(ss->pivot_pos, unode->pivot_pos);
+    copy_v3_v3(ss->pivot_rot, unode->pivot_rot);
     if (STREQ(unode->idname, ob->id.name)) {
       if (unode->type == SCULPT_UNDO_MASK) {
         /* is possible that we can't do the mask undo (below)
@@ -1054,6 +1057,10 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     case SCULPT_UNDO_GEOMETRY:
       break;
   }
+
+  /* store sculpt pivot */
+  copy_v3_v3(unode->pivot_pos, ss->pivot_pos);
+  copy_v3_v3(unode->pivot_rot, ss->pivot_rot);
 
   /* store active shape key */
   if (ss->kb) {

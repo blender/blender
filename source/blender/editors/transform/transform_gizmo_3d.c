@@ -55,6 +55,7 @@
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 
 #include "DEG_depsgraph.h"
 
@@ -1056,7 +1057,13 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     }
   }
   else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
-    /* pass */
+    if (ob->mode & OB_MODE_SCULPT) {
+      totsel = 1;
+      calc_tw_center_with_matrix(tbounds, ob->sculpt->pivot_pos, false, ob->obmat);
+      mul_m4_v3(ob->obmat, tbounds->center);
+      mul_m4_v3(ob->obmat, tbounds->min);
+      mul_m4_v3(ob->obmat, tbounds->max);
+    }
   }
   else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
     PTCacheEdit *edit = PE_get_current(scene, ob);
@@ -1167,6 +1174,10 @@ static void gizmo_prepare_mat(const bContext *C,
         Object *ob = OBACT(view_layer);
         if (gpd && (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
           /* pass */
+        }
+        else if (ob->sculpt) {
+          SculptSession *ss = ob->sculpt;
+          copy_v3_v3(rv3d->twmat[3], ss->pivot_pos);
         }
         else if (ob != NULL) {
           ED_object_calc_active_center(ob, false, rv3d->twmat[3]);

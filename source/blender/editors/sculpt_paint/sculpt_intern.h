@@ -122,6 +122,10 @@ typedef struct SculptUndoNode {
   int geom_totloop;
   int geom_totpoly;
 
+  /* pivot */
+  float pivot_pos[3];
+  float pivot_rot[4];
+
   size_t undo_size;
 } SculptUndoNode;
 
@@ -173,15 +177,15 @@ typedef struct SculptThreadedTaskData {
   float (*mat)[4];
   float (*vertCos)[3];
 
+  int filter_type;
+  float filter_strength;
+  int *node_mask;
+
   /* 0=towards view, 1=flipped */
   float (*area_cos)[3];
   float (*area_nos)[3];
   int *count;
   bool any_vertex_sampled;
-
-  int filter_type;
-  float filter_strength;
-  int *node_mask;
 
   float *prev_mask;
 
@@ -197,6 +201,8 @@ typedef struct SculptThreadedTaskData {
   bool mask_expand_invert_mask;
   bool mask_expand_use_normals;
   bool mask_expand_keep_prev_mask;
+
+  float transform_mats[8][4][4];
 
   ThreadMutex mutex;
 
@@ -387,6 +393,7 @@ typedef struct FilterCache {
   int *mask_update_it;
   float *normal_factor;
   float *prev_mask;
+  float mask_expand_initial_co[3];
 } FilterCache;
 
 void sculpt_cache_calc_brushdata_symm(StrokeCache *cache,

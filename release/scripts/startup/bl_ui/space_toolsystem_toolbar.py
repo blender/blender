@@ -1986,6 +1986,11 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_sculpt.mesh_filter,
             None,
+            _defs_transform.translate,
+            _defs_transform.rotate,
+            _defs_transform.scale,
+            _defs_transform.transform,
+            None,
             *_tools_annotate,
         ],
         'PAINT_TEXTURE': [

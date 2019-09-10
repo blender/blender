@@ -129,6 +129,8 @@ void createTransTexspace(TransInfo *t);
 void createTransPaintCurveVerts(bContext *C, TransInfo *t);
 /* transform_convert_particle.c */
 void createTransParticleVerts(bContext *C, TransInfo *t);
+/* transform_convert_sculpt.c */
+void createTransSculpt(TransInfo *t);
 /* transform_convert_sequence.c */
 void createTransSeqData(bContext *C, TransInfo *t);
 /* transform_convert_tracking.c */

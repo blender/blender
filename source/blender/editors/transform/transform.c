@@ -79,6 +79,7 @@
 #include "ED_clip.h"
 #include "ED_node.h"
 #include "ED_gpencil.h"
+#include "ED_sculpt.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -2299,6 +2300,10 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     }
   }
 
+  if (t->options & CTX_SCULPT) {
+    ED_sculpt_end_transform(C);
+  }
+
   if ((prop = RNA_struct_find_property(op->ptr, "correct_uv"))) {
     RNA_property_boolean_set(
         op->ptr, prop, (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) != 0);
@@ -2340,6 +2345,11 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     if (RNA_property_boolean_get(op->ptr, prop)) {
       options |= CTX_GPENCIL_STROKES;
     }
+  }
+
+  Object *ob = CTX_data_active_object(C);
+  if (ob && ob->mode == OB_MODE_SCULPT && ob->sculpt) {
+    options |= CTX_SCULPT;
   }
 
   t->options = options;
@@ -2403,6 +2413,10 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   createTransData(C, t);  // make TransData structs from selection
+
+  if (t->options & CTX_SCULPT) {
+    ED_sculpt_init_transform(C);
+  }
 
   if (t->data_len_all == 0) {
     postTrans(C, t);

@@ -8737,7 +8737,8 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
       for (int i = 0; i < vertex_count; i++) {
         if (sculpt_vertex_mask_get(ss, i) < (0.5f + threshold) &&
             sculpt_vertex_mask_get(ss, i) > (0.5f - threshold) &&
-            check_vertex_pivot_symmetry(sculpt_vertex_co_get(ss, i), ss->pivot_pos, symm)) {
+            check_vertex_pivot_symmetry(
+                sculpt_vertex_co_get(ss, i), ss->filter_cache->mask_expand_initial_co, symm)) {
           total++;
           add_v3_v3(avg, sculpt_vertex_co_get(ss, i));
         }
@@ -8858,6 +8859,9 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   ss->filter_cache->mask_update_last_it = 1;
   ss->filter_cache->mask_update_current_it = 1;
   ss->filter_cache->mask_update_it[(int)sculpt_active_vertex_get(ss)] = 1;
+
+  copy_v3_v3(ss->filter_cache->mask_expand_initial_co,
+             sculpt_vertex_co_get(ss, sculpt_active_vertex_get(ss)));
 
   char *visited_vertices = MEM_callocN(vertex_count * sizeof(char), "visited vertices");
 
@@ -9074,6 +9078,364 @@ void sculpt_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
 
   ss->preview_vert_index_count = totpoints;
 }
+void ED_sculpt_init_transform(struct bContext *C)
+{
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+
+  copy_v3_v3(ss->init_pivot_pos, ss->pivot_pos);
+  copy_v4_v4(ss->init_pivot_rot, ss->pivot_rot);
+
+  ss->init_pivot_scale[0] = 1.0f;
+  ss->init_pivot_scale[1] = 1.0f;
+  ss->init_pivot_scale[2] = 1.0f;
+
+  ss->pivot_scale[0] = 1.0f;
+  ss->pivot_scale[1] = 1.0f;
+  ss->pivot_scale[2] = 1.0f;
+
+  sculpt_undo_push_begin("Transform");
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false);
+
+  ss->pivot_rot[3] = 1.0f;
+
+  sculpt_vertex_random_access_init(ss);
+  sculpt_filter_cache_init(ob, sd);
+}
+
+typedef enum PaintSymmetryAreas {
+  AREA_SYMM_X = (1 << 0),
+  AREA_SYMM_Y = (1 << 1),
+  AREA_SYMM_Z = (1 << 2),
+} PaintSymmetryAreas;
+
+static char sculpt_get_vertex_symm_area(float co[3])
+{
+  float vco[3];
+  char symm_area = 0;
+  copy_v3_v3(vco, co);
+  if (vco[0] < 0) {
+    symm_area |= AREA_SYMM_X;
+  }
+  if (vco[1] < 0) {
+    symm_area |= AREA_SYMM_Y;
+  }
+  if (vco[2] < 0) {
+    symm_area |= AREA_SYMM_Z;
+  }
+  return symm_area;
+}
+
+static void flip_qt(float qt[4], char symm)
+{
+  float euler[3];
+  if (symm & PAINT_SYMM_X) {
+    quat_to_eul(euler, qt);
+    euler[1] = -euler[1];
+    euler[2] = -euler[2];
+    eul_to_quat(qt, euler);
+  }
+  if (symm & PAINT_SYMM_Y) {
+    quat_to_eul(euler, qt);
+    euler[0] = -euler[0];
+    euler[2] = -euler[2];
+    eul_to_quat(qt, euler);
+  }
+  if (symm & PAINT_SYMM_Z) {
+    quat_to_eul(euler, qt);
+    euler[0] = -euler[0];
+    euler[1] = -euler[1];
+    eul_to_quat(qt, euler);
+  }
+}
+
+static void sculpt_flip_transform_by_symm_area(
+    float disp[3], float rot[4], char symm, char symmarea, float pivot[3])
+{
+
+  for (char i = 0; i < 3; i++) {
+    char symm_it = 1 << i;
+    if (symm & symm_it) {
+      if (symmarea & symm_it) {
+        if (disp) {
+          flip_v3(disp, symm_it);
+        }
+        if (rot) {
+          flip_qt(rot, symm_it);
+        }
+      }
+      if (pivot[0] < 0) {
+        if (disp) {
+          flip_v3(disp, symm_it);
+        }
+        if (rot) {
+          flip_qt(rot, symm_it);
+        }
+      }
+    }
+  }
+}
+
+static void sculpt_transform_task_cb(void *__restrict userdata,
+                                     const int i,
+                                     const TaskParallelTLS *__restrict UNUSED(tls))
+{
+
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  PBVHNode *node = data->nodes[i];
+
+  SculptOrigVertData orig_data;
+  sculpt_orig_vert_data_init(&orig_data, data->ob, data->nodes[i]);
+
+  PBVHVertexIter vd;
+
+  sculpt_undo_push_node(data->ob, node, SCULPT_UNDO_COORDS);
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
+  {
+    sculpt_orig_vert_data_update(&orig_data, &vd);
+    float transformed_co[3], orig_co[3], disp[3];
+    float fade = vd.mask ? *vd.mask : 0.0f;
+    copy_v3_v3(orig_co, orig_data.co);
+    char symm_area = sculpt_get_vertex_symm_area(orig_co);
+
+    copy_v3_v3(transformed_co, orig_co);
+    mul_m4_v3(data->transform_mats[(int)symm_area], transformed_co);
+    sub_v3_v3v3(disp, transformed_co, orig_co);
+    mul_v3_fl(disp, 1.0f - fade);
+
+    add_v3_v3v3(vd.co, orig_co, disp);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  BKE_pbvh_node_mark_redraw(node);
+  BKE_pbvh_node_mark_normals_update(node);
+}
+
+void ED_sculpt_update_modal_transform(struct bContext *C)
+{
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+
+  sculpt_vertex_random_access_init(ss);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false);
+
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .nodes = ss->filter_cache->nodes,
+  };
+
+  float final_pivot_pos[3], d_t[3], d_r[4];
+  float t_mat[4][4], r_mat[4][4], s_mat[4][4], pivot_mat[4][4], pivot_imat[4][4],
+      transform_mat[4][4];
+
+  copy_v3_v3(final_pivot_pos, ss->pivot_pos);
+  for (int i = 0; i < 8; i++) {
+    copy_v3_v3(final_pivot_pos, ss->pivot_pos);
+
+    unit_m4(pivot_mat);
+
+    unit_m4(t_mat);
+    unit_m4(r_mat);
+    unit_m4(s_mat);
+
+    /* Translation matrix */
+    sub_v3_v3v3(d_t, ss->pivot_pos, ss->init_pivot_pos);
+    sculpt_flip_transform_by_symm_area(d_t, NULL, symm, (char)i, ss->init_pivot_pos);
+    translate_m4(t_mat, d_t[0], d_t[1], d_t[2]);
+
+    /* Rotation matrix */
+    sub_qt_qtqt(d_r, ss->pivot_rot, ss->init_pivot_rot);
+    normalize_qt(d_r);
+    sculpt_flip_transform_by_symm_area(NULL, d_r, symm, (char)i, ss->init_pivot_pos);
+    quat_to_mat4(r_mat, d_r);
+
+    /* Scale matrix */
+    size_to_mat4(s_mat, ss->pivot_scale);
+
+    /* Pivot matrix */
+    sculpt_flip_transform_by_symm_area(final_pivot_pos, NULL, symm, (char)i, ss->init_pivot_pos);
+    translate_m4(pivot_mat, final_pivot_pos[0], final_pivot_pos[1], final_pivot_pos[2]);
+    invert_m4_m4(pivot_imat, pivot_mat);
+
+    /* Final transform matrix */
+    mul_m4_m4m4(transform_mat, r_mat, t_mat);
+    mul_m4_m4m4(transform_mat, transform_mat, s_mat);
+    mul_m4_m4m4(data.transform_mats[i], transform_mat, pivot_imat);
+    mul_m4_m4m4(data.transform_mats[i], pivot_mat, data.transform_mats[i]);
+  }
+
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) &&
+                            ss->filter_cache->totnode > SCULPT_THREADED_LIMIT);
+  BLI_task_parallel_range(
+      0, ss->filter_cache->totnode, &data, sculpt_transform_task_cb, &settings);
+
+  if (ss->modifiers_active || ss->kb) {
+    sculpt_flush_stroke_deform(sd, ob, true);
+  }
+
+  sculpt_flush_update_step(C);
+}
+
+void ED_sculpt_end_transform(struct bContext *C)
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  if (ss->filter_cache) {
+    sculpt_filter_cache_free(ss);
+  }
+  sculpt_undo_push_end();
+  sculpt_flush_update_done(C, ob);
+}
+
+typedef enum eSculptPivotPositionModes {
+  SCULPT_PIVOT_POSITION_ORIGIN = 0,
+  SCULPT_PIVOT_POSITION_UNMASKED = 1,
+  SCULPT_PIVOT_POSITION_MASK_BORDER = 2,
+  SCULPT_PIVOT_POSITION_ACTIVE_VERTEX = 3,
+  SCULPT_PIVOT_POSITION_CURSOR_SURFACE = 4,
+} eSculptPivotPositionModes;
+
+EnumPropertyItem prop_sculpt_pivot_position_types[] = {
+    {SCULPT_PIVOT_POSITION_ORIGIN,
+     "ORIGIN",
+     0,
+     "Origin",
+     "Sets the pivot to the origin of the sculpt"},
+    {SCULPT_PIVOT_POSITION_UNMASKED,
+     "UNMASKED",
+     0,
+     "Unmasked",
+     "Sets the pivot position to the average position of the unmasked vertices"},
+    {SCULPT_PIVOT_POSITION_MASK_BORDER,
+     "BORDER",
+     0,
+     "Mask border",
+     "Sets the pivot position to the center of the border of the mask"},
+    {SCULPT_PIVOT_POSITION_ACTIVE_VERTEX,
+     "ACTIVE",
+     0,
+     "Active vertex",
+     "Sets the pivot position to the active vertex position"},
+    {SCULPT_PIVOT_POSITION_CURSOR_SURFACE,
+     "SURFACE",
+     0,
+     "Surface",
+     "Sets the pivot position to the surface under the cursor"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static int sculpt_set_pivot_position_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  ARegion *ar = CTX_wm_region(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+
+  int mode = RNA_enum_get(op->ptr, "mode");
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true);
+
+  int vert_count = sculpt_vertex_count_get(ss);
+
+  /* Pivot to center */
+  if (mode == SCULPT_PIVOT_POSITION_ORIGIN) {
+    zero_v3(ss->pivot_pos);
+  }
+
+  /* Pivot to unmasked */
+  if (mode == SCULPT_PIVOT_POSITION_UNMASKED) {
+    float avg[3];
+    int total = 0;
+    zero_v3(avg);
+    for (int i = 0; i < vert_count; i++) {
+      if (sculpt_vertex_mask_get(ss, i) < 1.0f &&
+          check_vertex_pivot_symmetry(sculpt_vertex_co_get(ss, i), ss->pivot_pos, symm)) {
+        total++;
+        add_v3_v3(avg, sculpt_vertex_co_get(ss, i));
+      }
+    }
+    if (total > 0) {
+      mul_v3_fl(avg, 1.0f / total);
+      copy_v3_v3(ss->pivot_pos, avg);
+    }
+  }
+
+  /* Pivot to mask border */
+  if (mode == SCULPT_PIVOT_POSITION_MASK_BORDER) {
+    float avg[3];
+    int total = 0;
+    float threshold = 0.2f;
+    zero_v3(avg);
+    for (int i = 0; i < vert_count; i++) {
+      if (sculpt_vertex_mask_get(ss, i) < (0.5f + threshold) &&
+          sculpt_vertex_mask_get(ss, i) > (0.5f - threshold) &&
+          check_vertex_pivot_symmetry(sculpt_vertex_co_get(ss, i), ss->pivot_pos, symm)) {
+        total++;
+        add_v3_v3(avg, sculpt_vertex_co_get(ss, i));
+      }
+    }
+    if (total > 0) {
+      mul_v3_fl(avg, 1.0f / total);
+      copy_v3_v3(ss->pivot_pos, avg);
+    }
+  }
+
+  /* Pivot to active vertex */
+  if (mode == SCULPT_PIVOT_POSITION_ACTIVE_VERTEX) {
+    copy_v3_v3(ss->pivot_pos, sculpt_vertex_co_get(ss, sculpt_active_vertex_get(ss)));
+  }
+
+  /* Pivot to raycast surface */
+  if (mode == SCULPT_PIVOT_POSITION_CURSOR_SURFACE) {
+    float stroke_location[3];
+    float mouse[2];
+    mouse[0] = event->mval[0];
+    mouse[1] = event->mval[1];
+    if (sculpt_stroke_get_location(C, stroke_location, mouse)) {
+      copy_v3_v3(ss->pivot_pos, stroke_location);
+    }
+  }
+
+  ED_region_tag_redraw(ar);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
+
+  return OPERATOR_FINISHED;
+}
+
+static void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Set Pivot Position";
+  ot->idname = "SCULPT_OT_set_pivot_position";
+  ot->description = "Sets the sculpt transform pivot position";
+
+  /* api callbacks */
+  ot->invoke = sculpt_set_pivot_position_invoke;
+  ot->poll = sculpt_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  RNA_def_enum(ot->srna,
+               "mode",
+               prop_sculpt_pivot_position_types,
+               SCULPT_PIVOT_POSITION_UNMASKED,
+               "Mode",
+               "");
+}
 
 void ED_operatortypes_sculpt(void)
 {
@@ -9090,4 +9452,5 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_mask_filter);
   WM_operatortype_append(SCULPT_OT_dirty_mask);
   WM_operatortype_append(SCULPT_OT_mask_expand);
+  WM_operatortype_append(SCULPT_OT_set_pivot_position);
 }

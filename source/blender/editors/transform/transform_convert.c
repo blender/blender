@@ -2264,6 +2264,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
   else if (t->options & CTX_PAINT_CURVE) {
     /* pass */
   }
+  else if (t->options & CTX_SCULPT) {
+    /* pass */
+  }
   else if ((t->view_layer->basact) && (ob = t->view_layer->basact->object) &&
            (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, ob)) {
     /* do nothing */
@@ -2412,6 +2415,10 @@ void createTransData(bContext *C, TransInfo *t)
     else {
       createTransCursor_view3d(t);
     }
+    countAndCleanTransDataContainer(t);
+  }
+  else if (t->options & CTX_SCULPT) {
+    createTransSculpt(t);
     countAndCleanTransDataContainer(t);
   }
   else if (t->options & CTX_TEXTURE) {

@@ -267,11 +267,18 @@ typedef struct SculptSession {
   float cursor_view_normal[3];
   struct RegionView3D *rv3d;
 
-  float pivot_pos[3];
-
   /* Dynamic mesh preview */
   int *preview_vert_index_list;
   int preview_vert_index_count;
+
+  /* Transform operator */
+  float pivot_pos[3];
+  float pivot_rot[4];
+  float pivot_scale[3];
+
+  float init_pivot_pos[3];
+  float init_pivot_rot[4];
+  float init_pivot_scale[3];
 
   union {
     struct {

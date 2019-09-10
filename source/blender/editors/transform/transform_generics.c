@@ -99,6 +99,7 @@
 #include "ED_clip.h"
 #include "ED_screen.h"
 #include "ED_gpencil.h"
+#include "ED_sculpt.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -1206,6 +1207,11 @@ static void recalcData_gpencil_strokes(TransInfo *t)
   }
 }
 
+static void recalcData_sculpt(TransInfo *t)
+{
+  ED_sculpt_update_modal_transform(t->context);
+}
+
 /* called for updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
@@ -1225,6 +1231,9 @@ void recalcData(TransInfo *t)
   else if (t->options & CTX_GPENCIL_STROKES) {
     /* set recalc triangle cache flag */
     recalcData_gpencil_strokes(t);
+  }
+  if (t->options & CTX_SCULPT) {
+    recalcData_sculpt(t);
   }
   else if (t->spacetype == SPACE_IMAGE) {
     recalcData_image(t);
