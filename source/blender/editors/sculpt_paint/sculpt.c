@@ -1141,6 +1141,7 @@ static bool sculpt_automasking_is_constrained_by_radius(Brush *br)
 typedef struct VertexTopologyIterator {
   int v;
   int it;
+  float edge_factor;
 } VertexTopologyIterator;
 
 static float *sculpt_topology_automasking_init(Sculpt *sd, Object *ob, float *automask_factor)
@@ -8586,13 +8587,7 @@ static void SCULPT_OT_dirty_mask(struct wmOperatorType *ot)
       ot->srna, "dirty_only", false, "Dirty Only", "Don't calculate cleans for convex areas");
 }
 
-typedef struct vertex_topology_it {
-  int v;
-  int it;
-  float edge_factor;
-} vertex_topology_it;
-
-static int sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
+static void sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -8613,7 +8608,6 @@ static int sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
   sculpt_undo_push_end();
   sculpt_flush_update_done(C, ob);
   ED_workspace_status_text(C, NULL);
-  return OPERATOR_CANCELLED;
 }
 
 static void sculpt_expand_task_cb(void *__restrict userdata,
@@ -8693,7 +8687,8 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
 
   if ((event->type == ESCKEY && event->val == KM_PRESS) ||
       (event->type == RIGHTMOUSE && event->val == KM_PRESS)) {
-    return sculpt_mask_expand_cancel(C, op);
+    sculpt_mask_expand_cancel(C, op);
+    return OPERATOR_CANCELLED;
   }
 
   if ((event->type == LEFTMOUSE && event->val == KM_RELEASE) ||
@@ -8854,8 +8849,8 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   sculpt_vertex_normal_get(ss, sculpt_active_vertex_get(ss), original_normal);
 
-  GSQueue *queue = BLI_gsqueue_new(sizeof(vertex_topology_it));
-  vertex_topology_it mevit;
+  GSQueue *queue = BLI_gsqueue_new(sizeof(VertexTopologyIterator));
+  VertexTopologyIterator mevit;
 
   const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
   for (char i = 0; i <= symm; ++i) {
@@ -8879,13 +8874,13 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   }
 
   while (!BLI_gsqueue_is_empty(queue)) {
-    vertex_topology_it c_mevit;
+    VertexTopologyIterator c_mevit;
     BLI_gsqueue_pop(queue, &c_mevit);
     SculptVertexNeighborIter ni;
     sculpt_vertex_neighbors_iter_begin(ss, c_mevit.v, ni)
     {
       if (visited_vertices[(int)ni.index] == 0) {
-        vertex_topology_it new_entry;
+        VertexTopologyIterator new_entry;
         new_entry.v = ni.index;
         new_entry.it = c_mevit.it + 1;
         ss->filter_cache->mask_update_it[(int)new_entry.v] = new_entry.it;
