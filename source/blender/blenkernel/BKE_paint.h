@@ -267,6 +267,8 @@ typedef struct SculptSession {
   float cursor_view_normal[3];
   struct RegionView3D *rv3d;
 
+  float pivot_pos[3];
+
   union {
     struct {
       struct SculptVertexPaintGeomMap gmap;

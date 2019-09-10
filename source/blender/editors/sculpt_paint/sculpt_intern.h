@@ -189,6 +189,11 @@ typedef struct SculptThreadedTaskData {
   float nearest_vertex_search_co[3];
   int nearest_vertex_index;
 
+  int mask_expand_update_it;
+  bool mask_expand_invert_mask;
+  bool mask_expand_use_normals;
+  bool mask_expand_keep_prev_mask;
+
   ThreadMutex mutex;
 
 } SculptThreadedTaskData;
@@ -376,6 +381,8 @@ typedef struct FilterCache {
   int mask_update_current_it;
   int mask_update_last_it;
   int *mask_update_it;
+  float *normal_factor;
+  float *prev_mask;
 } FilterCache;
 
 void sculpt_cache_calc_brushdata_symm(StrokeCache *cache,
