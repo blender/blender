@@ -1551,6 +1551,9 @@ static void ensure_edit_inner_points_count(const PTCacheEdit *edit, ParticleBatc
   cache->edit_inner_point_len = 0;
   for (int point_index = 0; point_index < edit->totpoint; point_index++) {
     const PTCacheEditPoint *point = &edit->points[point_index];
+    if (point->flag & PEP_HIDE) {
+      continue;
+    }
     BLI_assert(point->totkey >= 1);
     cache->edit_inner_point_len += (point->totkey - 1);
   }
@@ -1572,6 +1575,9 @@ static void particle_batch_cache_ensure_edit_inner_pos(PTCacheEdit *edit,
   int global_key_index = 0;
   for (int point_index = 0; point_index < edit->totpoint; point_index++) {
     const PTCacheEditPoint *point = &edit->points[point_index];
+    if (point->flag & PEP_HIDE) {
+      continue;
+    }
     for (int key_index = 0; key_index < point->totkey - 1; key_index++) {
       PTCacheEditKey *key = &point->keys[key_index];
       float color = (key->flag & PEK_SELECT) ? 1.0f : 0.0f;
@@ -1602,7 +1608,14 @@ static void ensure_edit_tip_points_count(const PTCacheEdit *edit, ParticleBatchC
   if (cache->edit_tip_pos != NULL) {
     return;
   }
-  cache->edit_tip_point_len = edit->totpoint;
+  cache->edit_tip_point_len = 0;
+  for (int point_index = 0; point_index < edit->totpoint; point_index++) {
+    const PTCacheEditPoint *point = &edit->points[point_index];
+    if (point->flag & PEP_HIDE) {
+      continue;
+    }
+    cache->edit_tip_point_len += 1;
+  }
 }
 
 static void particle_batch_cache_ensure_edit_tip_pos(PTCacheEdit *edit, ParticleBatchCache *cache)
@@ -1617,13 +1630,18 @@ static void particle_batch_cache_ensure_edit_tip_pos(PTCacheEdit *edit, Particle
   cache->edit_tip_pos = GPU_vertbuf_create_with_format(edit_point_format);
   GPU_vertbuf_data_alloc(cache->edit_tip_pos, cache->edit_tip_point_len);
 
+  int global_point_index = 0;
   for (int point_index = 0; point_index < edit->totpoint; point_index++) {
     const PTCacheEditPoint *point = &edit->points[point_index];
+    if (point->flag & PEP_HIDE) {
+      continue;
+    }
     PTCacheEditKey *key = &point->keys[point->totkey - 1];
     float color = (key->flag & PEK_SELECT) ? 1.0f : 0.0f;
 
-    GPU_vertbuf_attr_set(cache->edit_tip_pos, pos_id, point_index, key->world_co);
-    GPU_vertbuf_attr_set(cache->edit_tip_pos, color_id, point_index, &color);
+    GPU_vertbuf_attr_set(cache->edit_tip_pos, pos_id, global_point_index, key->world_co);
+    GPU_vertbuf_attr_set(cache->edit_tip_pos, color_id, global_point_index, &color);
+    global_point_index++;
   }
 }
 
