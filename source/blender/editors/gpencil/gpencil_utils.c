@@ -46,6 +46,7 @@
 
 #include "BKE_action.h"
 #include "BKE_colortools.h"
+#include "BKE_collection.h"
 #include "BKE_deform.h"
 #include "BKE_main.h"
 #include "BKE_brush.h"
@@ -57,6 +58,7 @@
 #include "BKE_tracking.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 #include "WM_toolsystem.h"
 
 #include "RNA_access.h"
@@ -2558,4 +2560,25 @@ tGPspoint *ED_gpencil_sbuffer_ensure(tGPspoint *buffer_array,
   }
 
   return buffer_array;
+}
+
+/* Tag all scene grease pencil object to update. */
+void ED_gpencil_tag_scene_gpencil(Scene *scene)
+{
+  /* mark all grease pencil datablocks of the scene */
+  FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection, ob) {
+      if (ob->type == OB_GPENCIL) {
+        bGPdata *gpd = (bGPdata *)ob->data;
+        gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
+        DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+      }
+    }
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+  }
+  FOREACH_SCENE_COLLECTION_END;
+
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
