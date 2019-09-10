@@ -82,6 +82,8 @@ extern char datatoc_volumetric_integration_frag_glsl[];
 extern char datatoc_volumetric_lib_glsl[];
 extern char datatoc_common_fullscreen_vert_glsl[];
 
+#define USE_VOLUME_OPTI (GLEW_ARB_shader_image_load_store && GLEW_ARB_shading_language_420pack)
+
 static void eevee_create_shader_volumes(void)
 {
   e_data.volumetric_common_lib = BLI_string_joinN(datatoc_common_view_lib_glsl,
@@ -123,7 +125,10 @@ static void eevee_create_shader_volumes(void)
       datatoc_volumetric_geom_glsl,
       datatoc_volumetric_integration_frag_glsl,
       e_data.volumetric_common_lib,
-      NULL);
+      USE_VOLUME_OPTI ? "#extension GL_ARB_shader_image_load_store: enable\n"
+                        "#extension GL_ARB_shading_language_420pack: enable\n"
+                        "#define USE_VOLUME_OPTI\n" :
+                        NULL);
   e_data.volumetric_resolve_sh = DRW_shader_create_with_lib(datatoc_common_fullscreen_vert_glsl,
                                                             NULL,
                                                             datatoc_volumetric_resolve_frag_glsl,
@@ -509,7 +514,8 @@ void EEVEE_volumes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_texture_ref(grp, "volumeExtinction", &txl->volume_transmit);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 
-    DRW_shgroup_call_procedural_triangles(grp, NULL, common_data->vol_tex_size[2]);
+    DRW_shgroup_call_procedural_triangles(
+        grp, NULL, USE_VOLUME_OPTI ? 1 : common_data->vol_tex_size[2]);
 
     DRW_PASS_CREATE(psl->volumetric_resolve_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
     grp = DRW_shgroup_create(e_data.volumetric_resolve_sh, psl->volumetric_resolve_ps);
@@ -621,8 +627,30 @@ void EEVEE_volumes_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     GPU_framebuffer_bind(fbl->volumetric_scat_fb);
     DRW_draw_pass(psl->volumetric_scatter_ps);
 
-    GPU_framebuffer_bind(fbl->volumetric_integ_fb);
+    if (USE_VOLUME_OPTI) {
+      int tex_scatter = GPU_texture_opengl_bindcode(txl->volume_scatter_history);
+      int tex_transmit = GPU_texture_opengl_bindcode(txl->volume_transmit_history);
+      /* TODO(fclem) Encapsulate these GL calls into DRWManager. */
+      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+      /* Subtility here! we need to tell the GL that the texture is layered (GL_TRUE)
+       * in order to bind the full 3D texture and not just a 2D slice. */
+      glBindImageTexture(0, tex_scatter, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
+      glBindImageTexture(1, tex_transmit, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
+
+      GPU_framebuffer_bind(fbl->volumetric_fb);
+    }
+    else {
+      GPU_framebuffer_bind(fbl->volumetric_integ_fb);
+    }
+
     DRW_draw_pass(psl->volumetric_integration_ps);
+
+    if (USE_VOLUME_OPTI) {
+      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+      glBindImageTexture(0, 0, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
+      glBindImageTexture(1, 0, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
+    }
 
     SWAP(struct GPUFrameBuffer *, fbl->volumetric_scat_fb, fbl->volumetric_integ_fb);
     SWAP(GPUTexture *, txl->volume_scatter, txl->volume_scatter_history);

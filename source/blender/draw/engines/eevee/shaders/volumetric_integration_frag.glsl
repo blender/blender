@@ -8,10 +8,17 @@
 uniform sampler3D volumeScattering; /* Result of the scatter step */
 uniform sampler3D volumeExtinction;
 
+#ifdef USE_VOLUME_OPTI
+uniform layout(binding = 0, r11f_g11f_b10f) writeonly restrict image3D finalScattering_img;
+uniform layout(binding = 1, r11f_g11f_b10f) writeonly restrict image3D finalTransmittance_img;
+vec3 finalScattering;
+vec3 finalTransmittance;
+#else
 flat in int slice;
 
 layout(location = 0) out vec3 finalScattering;
 layout(location = 1) out vec3 finalTransmittance;
+#endif
 
 void main()
 {
@@ -36,9 +43,10 @@ void main()
     orig_ray_len = prev_ray_len / view_cell.z;
   }
 
-  /* Without compute shader and arbitrary write we need to
-   * accumulate from the beginning of the ray for each cell. */
-  float integration_end = float(slice);
+#ifdef USE_VOLUME_OPTI
+  int slice = textureSize(volumeScattering, 0).z;
+  ivec2 texco = ivec2(gl_FragCoord.xy);
+#endif
   for (int i = 0; i < slice; i++) {
     ivec3 volume_cell = ivec3(gl_FragCoord.xy, i);
 
@@ -63,5 +71,11 @@ void main()
     finalScattering += finalTransmittance * Lscat;
 
     finalTransmittance *= Tr;
+
+#ifdef USE_VOLUME_OPTI
+    ivec3 coord = ivec3(texco, i);
+    imageStore(finalScattering_img, coord, vec4(finalScattering, 0.0));
+    imageStore(finalTransmittance_img, coord, vec4(finalTransmittance, 0.0));
+#endif
   }
 }
