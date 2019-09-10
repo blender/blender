@@ -1984,8 +1984,8 @@ static void rna_def_brush(BlenderRNA *brna)
       prop, "Spacing distance", "Calculate the brush spacing using view or scene distance");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "grab_active_vertex", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_GRAB_ACTIVE_VERTEX);
+  prop = RNA_def_property(srna, "use_grab_active_vertex", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_GRAB_ACTIVE_VERTEX);
   RNA_def_property_ui_text(
       prop,
       "Grab Active Vertex",

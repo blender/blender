@@ -1748,7 +1748,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     if (!DNA_struct_elem_find(fd->filesdna, "Brush", "float", "falloff_angle")) {
       for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
         br->falloff_angle = DEG2RADF(80);
-        br->flag &= ~(BRUSH_FLAG_UNUSED_1 | BRUSH_FLAG_UNUSED_6 | BRUSH_FLAG_UNUSED_7 |
+        br->flag &= ~(BRUSH_FLAG_UNUSED_1 | BRUSH_FLAG_UNUSED_6 | BRUSH_GRAB_ACTIVE_VERTEX |
                       BRUSH_SCENE_SPACING | BRUSH_FRONTFACE_FALLOFF);
       }
 

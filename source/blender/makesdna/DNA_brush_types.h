@@ -244,8 +244,6 @@ typedef struct Brush {
   int size;
   /** General purpose flag. */
   int flag;
-  int flag2;
-  char _pad[4];
   /** Pressure influence for mask. */
   int mask_pressure;
   /** Jitter the position of the brush. */
@@ -282,7 +280,7 @@ typedef struct Brush {
   /** Source for fill tool color gradient application. */
   char gradient_fill_mode;
 
-  char _pad0;
+  char _pad;
   /** Projection shape (sphere, circle). */
   char falloff_shape;
   float falloff_angle;
@@ -291,6 +289,7 @@ typedef struct Brush {
   char sculpt_tool;
   /** Active sculpt tool. */
   char uv_sculpt_tool;
+  /** Active vertex paint. */
   char vertexpaint_tool;
   /** Active weight paint. */
   char weightpaint_tool;
@@ -300,7 +299,7 @@ typedef struct Brush {
   char mask_tool;
   /** Active grease pencil tool. */
   char gpencil_tool;
-  char _pad1[1];
+  char _pad0[1];
 
   float autosmooth_factor;
 
@@ -319,7 +318,7 @@ typedef struct Brush {
   int curve_preset;
   int automasking_flags;
 
-  char _pad2[4];
+  char _pad1[4];
 
   int elastic_deform_type;
   float elastic_deform_compressibility;
@@ -405,7 +404,7 @@ typedef enum eBrushFlags {
   BRUSH_JITTER_PRESSURE = (1 << 4),
   BRUSH_SPACING_PRESSURE = (1 << 5),
   BRUSH_FLAG_UNUSED_6 = (1 << 6), /* cleared */
-  BRUSH_FLAG_UNUSED_7 = (1 << 7), /* cleared */
+  BRUSH_GRAB_ACTIVE_VERTEX = (1 << 7),
   BRUSH_ANCHORED = (1 << 8),
   BRUSH_DIR_IN = (1 << 9),
   BRUSH_SPACE = (1 << 10),
@@ -431,10 +430,6 @@ typedef enum eBrushFlags {
   BRUSH_ABSOLUTE_JITTER = (1 << 30),
   BRUSH_CURVE = (1u << 31),
 } eBrushFlags;
-
-typedef enum eBrushFlags2 {
-  BRUSH_GRAB_ACTIVE_VERTEX = (1 << 0),
-} eBrushFlags2;
 
 typedef enum {
   BRUSH_MASK_PRESSURE_RAMP = (1 << 1),

@@ -383,7 +383,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             if brush.sculpt_tool == 'GRAB':
                 col.separator()
                 row = col.row()
-                row.prop(brush, "grab_active_vertex")
+                row.prop(brush, "use_grab_active_vertex")
 
             # topology_rake_factor
             if (

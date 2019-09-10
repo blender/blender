@@ -5903,7 +5903,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
     float grab_location[3], imat[4][4], delta[3], loc[3];
 
     if (cache->first_time) {
-      if (tool == SCULPT_TOOL_GRAB && brush->flag2 & BRUSH_GRAB_ACTIVE_VERTEX) {
+      if (tool == SCULPT_TOOL_GRAB && brush->flag & BRUSH_GRAB_ACTIVE_VERTEX) {
         copy_v3_v3(cache->orig_grab_location,
                    sculpt_vertex_co_get(ss, sculpt_active_vertex_get(ss)));
       }
@@ -5962,7 +5962,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
     copy_v3_v3(cache->old_grab_location, grab_location);
 
     if (tool == SCULPT_TOOL_GRAB) {
-      if (brush->flag2 & BRUSH_GRAB_ACTIVE_VERTEX) {
+      if (brush->flag & BRUSH_GRAB_ACTIVE_VERTEX) {
         copy_v3_v3(cache->anchored_location, cache->orig_grab_location);
       }
       else {
