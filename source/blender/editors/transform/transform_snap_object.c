@@ -1272,8 +1272,7 @@ static short snap_mesh_polygon(SnapObjectContext *sctx,
 
     const MPoly *mp = &((SnapObjectData_Mesh *)sod)->poly[*r_index];
     const MLoop *ml = &treedata->loop[mp->loopstart];
-    if (snapdata->snap_to_flag &
-        (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+    if (snapdata->snap_to_flag & SCE_SNAP_MODE_EDGE) {
       elem = SCE_SNAP_MODE_EDGE;
       BLI_assert(treedata->edge != NULL);
       for (int i = mp->totloop; i--; ml++) {
@@ -1310,8 +1309,7 @@ static short snap_mesh_polygon(SnapObjectContext *sctx,
     BMFace *f = BM_face_at_index(em->bm, *r_index);
     BMLoop *l_iter, *l_first;
     l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-    if (snapdata->snap_to_flag &
-        (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+    if (snapdata->snap_to_flag & SCE_SNAP_MODE_EDGE) {
       elem = SCE_SNAP_MODE_EDGE;
       BM_mesh_elem_index_ensure(em->bm, BM_EDGE);
       BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE);
@@ -1380,22 +1378,6 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
     return elem;
   }
 
-  float lpmat[4][4];
-  mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
-
-  struct DistProjectedAABBPrecalc neasrest_precalc;
-  dist_squared_to_projected_aabb_precalc(
-      &neasrest_precalc, lpmat, snapdata->win_size, snapdata->mval);
-
-  Nearest2dUserData nearest2d = {
-      .is_persp = snapdata->view_proj == VIEW_PROJ_PERSP,
-  };
-
-  BVHTreeNearest nearest = {
-      .index = -1,
-      .dist_sq = SQUARE(original_dist_px),
-  };
-
   SnapObjectData *sod = BLI_ghash_lookup(sctx->cache.object_map, ob);
   if (sod == NULL) {
     /* The object is in edit mode, and the key used
@@ -1406,18 +1388,22 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
 
   BLI_assert(sod != NULL);
 
-  if (sod->type == SNAP_MESH) {
-    nearest2d.userdata = &((SnapObjectData_Mesh *)sod)->treedata;
-    nearest2d.get_vert_co = (Nearest2DGetVertCoCallback)cb_mvert_co_get;
-    nearest2d.get_edge_verts_index = (Nearest2DGetEdgeVertsCallback)cb_medge_verts_get;
-    nearest2d.copy_vert_no = (Nearest2DCopyVertNoCallback)cb_mvert_no_copy;
-  }
-  else {
-    BLI_assert(sod->type == SNAP_EDIT_MESH);
-    nearest2d.userdata = BKE_editmesh_from_object(ob);
-    nearest2d.get_vert_co = (Nearest2DGetVertCoCallback)cb_bvert_co_get;
-    nearest2d.get_edge_verts_index = (Nearest2DGetEdgeVertsCallback)cb_bedge_verts_get;
-    nearest2d.copy_vert_no = (Nearest2DCopyVertNoCallback)cb_bvert_no_copy;
+  Nearest2dUserData nearest2d;
+  {
+    nearest2d.is_persp = snapdata->view_proj == VIEW_PROJ_PERSP;
+    if (sod->type == SNAP_MESH) {
+      nearest2d.userdata = &((SnapObjectData_Mesh *)sod)->treedata;
+      nearest2d.get_vert_co = (Nearest2DGetVertCoCallback)cb_mvert_co_get;
+      nearest2d.get_edge_verts_index = (Nearest2DGetEdgeVertsCallback)cb_medge_verts_get;
+      nearest2d.copy_vert_no = (Nearest2DCopyVertNoCallback)cb_mvert_no_copy;
+    }
+    else {
+      BLI_assert(sod->type == SNAP_EDIT_MESH);
+      nearest2d.userdata = BKE_editmesh_from_object(ob);
+      nearest2d.get_vert_co = (Nearest2DGetVertCoCallback)cb_bvert_co_get;
+      nearest2d.get_edge_verts_index = (Nearest2DGetEdgeVertsCallback)cb_bedge_verts_get;
+      nearest2d.copy_vert_no = (Nearest2DCopyVertNoCallback)cb_bvert_no_copy;
+    }
   }
 
   int vindex[2];
@@ -1426,6 +1412,20 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
   const float *v_pair[2];
   nearest2d.get_vert_co(vindex[0], &v_pair[0], nearest2d.userdata);
   nearest2d.get_vert_co(vindex[1], &v_pair[1], nearest2d.userdata);
+
+  struct DistProjectedAABBPrecalc neasrest_precalc;
+  {
+    float lpmat[4][4];
+    mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
+
+    dist_squared_to_projected_aabb_precalc(
+        &neasrest_precalc, lpmat, snapdata->win_size, snapdata->mval);
+  }
+
+  BVHTreeNearest nearest = {
+      .index = -1,
+      .dist_sq = SQUARE(original_dist_px),
+  };
 
   float lambda;
   if (!isect_ray_seg_v3(neasrest_precalc.ray_origin,
@@ -1493,21 +1493,25 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
       if (IN_RANGE(lambda, 0.0f, 1.0f)) {
         interp_v3_v3v3(v_near, va_g, vb_g, lambda);
 
-        if ((len_squared_v3v3(prev_co, v_near) > FLT_EPSILON) &&
-            test_projected_vert_dist(&neasrest_precalc,
-                                     NULL,
-                                     0,
-                                     nearest2d.is_persp,
-                                     v_near,
-                                     &nearest.dist_sq,
-                                     nearest.co)) {
-          float v_nor[2][3];
-          nearest2d.copy_vert_no(vindex[0], v_nor[0], nearest2d.userdata);
-          nearest2d.copy_vert_no(vindex[1], v_nor[1], nearest2d.userdata);
-          mid_v3_v3v3(nearest.no, v_nor[0], v_nor[1]);
+        if (len_squared_v3v3(prev_co, v_near) > FLT_EPSILON) {
+          dist_squared_to_projected_aabb_precalc(
+              &neasrest_precalc, snapdata->pmat, snapdata->win_size, snapdata->mval);
 
-          nearest.index = *r_index;
-          elem = SCE_SNAP_MODE_EDGE_PERPENDICULAR;
+          if (test_projected_vert_dist(&neasrest_precalc,
+                                       NULL,
+                                       0,
+                                       nearest2d.is_persp,
+                                       v_near,
+                                       &nearest.dist_sq,
+                                       nearest.co)) {
+            float v_nor[2][3];
+            nearest2d.copy_vert_no(vindex[0], v_nor[0], nearest2d.userdata);
+            nearest2d.copy_vert_no(vindex[1], v_nor[1], nearest2d.userdata);
+            mid_v3_v3v3(nearest.no, v_nor[0], v_nor[1]);
+
+            nearest.index = *r_index;
+            elem = SCE_SNAP_MODE_EDGE_PERPENDICULAR;
+          }
         }
       }
     }
@@ -2139,8 +2143,7 @@ static short snapMesh(SnapObjectContext *sctx,
     last_index = nearest.index;
   }
 
-  if (snapdata->snap_to_flag &
-      (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+  if (snapdata->snap_to_flag & SCE_SNAP_MODE_EDGE) {
     if (bvhtree[0]) {
       /* snap to loose edges */
       BLI_bvhtree_find_nearest_projected(bvhtree[0],
@@ -2306,8 +2309,7 @@ static short snapEditMesh(SnapObjectContext *sctx,
     }
   }
 
-  if (snapdata->snap_to_flag &
-      (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+  if (snapdata->snap_to_flag & SCE_SNAP_MODE_EDGE) {
     if (sod->bvh_trees[1] == NULL) {
       sod->bvh_trees[1] = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(**sod->bvh_trees));
     }
@@ -2363,7 +2365,7 @@ static short snapEditMesh(SnapObjectContext *sctx,
     mul_v4_m4v4(clip_planes_local[i], tobmat, snapdata->clip_plane[i]);
   }
 
-  if (treedata_vert && snapdata->snap_to_flag & SCE_SNAP_MODE_VERTEX) {
+  if (treedata_vert && (snapdata->snap_to_flag & SCE_SNAP_MODE_VERTEX)) {
     BM_mesh_elem_table_ensure(em->bm, BM_VERT);
     BLI_bvhtree_find_nearest_projected(treedata_vert->tree,
                                        lpmat,
@@ -2376,8 +2378,7 @@ static short snapEditMesh(SnapObjectContext *sctx,
                                        &nearest2d);
   }
 
-  if (treedata_edge && snapdata->snap_to_flag & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT |
-                                                 SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+  if (treedata_edge && (snapdata->snap_to_flag & SCE_SNAP_MODE_EDGE)) {
     int last_index = nearest.index;
     nearest.index = -1;
     BM_mesh_elem_table_ensure(em->bm, BM_EDGE | BM_VERT);
@@ -2791,11 +2792,11 @@ static short transform_snap_context_project_view3d_mixed_impl(
              0);
 
   short retval = 0;
-  bool has_hit = false;
-  int index = -1;
 
-  float loc[3], no[3], obmat[4][4];
+  bool has_hit = false;
   Object *ob = NULL;
+  float loc[3], no[3], obmat[4][4];
+  int index = -1;
 
   const ARegion *ar = sctx->v3d_data.ar;
   const RegionView3D *rv3d = ar->regiondata;
@@ -2804,7 +2805,6 @@ static short transform_snap_context_project_view3d_mixed_impl(
 
   if (snap_to_flag & SCE_SNAP_MODE_FACE || use_occlusion_test) {
     float ray_start[3], ray_normal[3];
-
     if (!ED_view3d_win_to_ray_clipped_ex(sctx->depsgraph,
                                          sctx->v3d_data.ar,
                                          sctx->v3d_data.v3d,
@@ -2823,12 +2823,26 @@ static short transform_snap_context_project_view3d_mixed_impl(
 
     if (has_hit && (snap_to_flag & SCE_SNAP_MODE_FACE)) {
       retval = SCE_SNAP_MODE_FACE;
+
+      copy_v3_v3(r_loc, loc);
+      if (r_no) {
+        copy_v3_v3(r_no, no);
+      }
+      if (r_ob) {
+        *r_ob = ob;
+      }
+      if (r_obmat) {
+        copy_m4_m4(r_obmat, obmat);
+      }
+      if (r_index) {
+        *r_index = index;
+      }
     }
   }
 
   if (snap_to_flag & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT |
                       SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
-    short elem;
+    short elem_test, elem = 0;
     float dist_px_tmp = *dist_px;
 
     SnapData snapdata;
@@ -2836,8 +2850,13 @@ static short transform_snap_context_project_view3d_mixed_impl(
     snapdata.win_size[0] = ar->winx;
     snapdata.win_size[1] = ar->winy;
     copy_v2_v2(snapdata.mval, mval);
-    snapdata.snap_to_flag = snap_to_flag;
     snapdata.view_proj = rv3d->is_persp ? VIEW_PROJ_PERSP : VIEW_PROJ_ORTHO;
+
+    /* First snap to edge instead of middle or perpendicular. */
+    snapdata.snap_to_flag = snap_to_flag & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE);
+    if (snap_to_flag & (SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+      snapdata.snap_to_flag |= SCE_SNAP_MODE_EDGE;
+    }
 
     planes_from_projmat(
         snapdata.pmat, NULL, NULL, NULL, NULL, snapdata.clip_plane[0], snapdata.clip_plane[1]);
@@ -2859,10 +2878,9 @@ static short transform_snap_context_project_view3d_mixed_impl(
       new_clipplane[3] += 0.01f;
 
       /* Try to snap only to the polygon. */
-      elem = snap_mesh_polygon(sctx, &snapdata, ob, obmat, &dist_px_tmp, loc, no, &index);
-
-      if (elem) {
-        retval = elem;
+      elem_test = snap_mesh_polygon(sctx, &snapdata, ob, obmat, &dist_px_tmp, loc, no, &index);
+      if (elem_test) {
+        elem = elem_test;
       }
 
       /* Add the new clip plane to the beginning of the list. */
@@ -2874,45 +2892,41 @@ static short transform_snap_context_project_view3d_mixed_impl(
       snapdata.has_occlusion_plane = true;
     }
 
-    elem = snapObjectsRay(sctx, &snapdata, params, &dist_px_tmp, loc, no, &index, &ob, obmat);
-
-    if (elem) {
-      retval = elem;
+    elem_test = snapObjectsRay(sctx, &snapdata, params, &dist_px_tmp, loc, no, &index, &ob, obmat);
+    if (elem_test) {
+      elem = elem_test;
     }
 
-    if ((retval == SCE_SNAP_MODE_EDGE) &&
+    if ((elem == SCE_SNAP_MODE_EDGE) &&
         (snap_to_flag & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE_MIDPOINT |
                          SCE_SNAP_MODE_EDGE_PERPENDICULAR))) {
+      snapdata.snap_to_flag = snap_to_flag;
       elem = snap_mesh_edge_verts_mixed(
           sctx, &snapdata, ob, obmat, *dist_px, prev_co, &dist_px_tmp, loc, no, &index);
     }
 
-    if (elem) {
+    if (elem & snap_to_flag) {
       retval = elem;
-    }
 
-    retval &= snap_to_flag;
-    *dist_px = dist_px_tmp;
+      copy_v3_v3(r_loc, loc);
+      if (r_no) {
+        copy_v3_v3(r_no, no);
+      }
+      if (r_ob) {
+        *r_ob = ob;
+      }
+      if (r_obmat) {
+        copy_m4_m4(r_obmat, obmat);
+      }
+      if (r_index) {
+        *r_index = index;
+      }
+
+      *dist_px = dist_px_tmp;
+    }
   }
 
-  if (retval) {
-    copy_v3_v3(r_loc, loc);
-    if (r_no) {
-      copy_v3_v3(r_no, no);
-    }
-    if (r_ob) {
-      *r_ob = ob;
-    }
-    if (r_obmat) {
-      copy_m4_m4(r_obmat, obmat);
-    }
-    if (r_index) {
-      *r_index = index;
-    }
-    return retval;
-  }
-
-  return 0;
+  return retval;
 }
 
 short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
