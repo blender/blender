@@ -33,6 +33,9 @@ set(INC
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
   ../../../../intern/smoke/extern
+
+  # dna_type_offsets.h
+  ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
 )
 
 set(INC_SYS
@@ -96,3 +99,6 @@ if(WITH_MOD_SMOKE)
 endif()
 
 blender_add_lib(bf_editor_space_view3d "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# Needed so we can use dna_type_offsets.h for defaults initialization.
+add_dependencies(bf_editor_space_view3d bf_dna)

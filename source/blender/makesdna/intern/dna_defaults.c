@@ -69,6 +69,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
@@ -144,6 +145,9 @@ SDNA_DEFAULT_DECL_STRUCT(Speaker);
 
 /* DNA_texture_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Tex);
+
+/* DNA_view3d_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(View3D);
 
 /* DNA_world_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(World);
@@ -250,7 +254,9 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL_EX(WalkNavigation, UserDef.walk_navigation),
 
     /* DNA_view3d_defaults.h */
-    SDNA_DEFAULT_DECL_EX(View3DShading, Scene.display.shading),
+    SDNA_DEFAULT_DECL(View3D),
+    SDNA_DEFAULT_DECL_EX(View3DOverlay, View3D.overlay),
+    SDNA_DEFAULT_DECL_EX(View3DShading, View3D.shading),
     SDNA_DEFAULT_DECL_EX(View3DCursor, Scene.cursor),
 
     /* DNA_world_defaults.h */

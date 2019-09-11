@@ -51,6 +51,7 @@ set(INC
   ../../../extern/curve_fit_nd
   ../../../intern/smoke/extern
 
+  # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
 )
 

@@ -29,6 +29,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_defaults.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -247,56 +248,11 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
   View3D *v3d;
   RegionView3D *rv3d;
 
-  v3d = MEM_callocN(sizeof(View3D), "initview3d");
-  v3d->spacetype = SPACE_VIEW3D;
+  v3d = DNA_struct_default_alloc(View3D);
+
   if (scene) {
     v3d->camera = scene->camera;
   }
-  v3d->scenelock = true;
-  v3d->grid = 1.0f;
-  v3d->gridlines = 16;
-  v3d->gridsubdiv = 10;
-  BKE_screen_view3d_shading_init(&v3d->shading);
-
-  v3d->overlay.wireframe_threshold = 1.0f;
-  v3d->overlay.xray_alpha_bone = 0.5f;
-  v3d->overlay.texture_paint_mode_opacity = 1.0f;
-  v3d->overlay.weight_paint_mode_opacity = 1.0f;
-  v3d->overlay.vertex_paint_mode_opacity = 1.0f;
-  /* Intentionally different to vertex/paint mode,
-   * we typically want to see shading too. */
-  v3d->overlay.sculpt_mode_mask_opacity = 0.75f;
-
-  v3d->overlay.edit_flag = V3D_OVERLAY_EDIT_FACES | V3D_OVERLAY_EDIT_SEAMS |
-                           V3D_OVERLAY_EDIT_SHARP | V3D_OVERLAY_EDIT_FREESTYLE_EDGE |
-                           V3D_OVERLAY_EDIT_FREESTYLE_FACE | V3D_OVERLAY_EDIT_EDGES |
-                           V3D_OVERLAY_EDIT_CREASES | V3D_OVERLAY_EDIT_BWEIGHTS |
-                           V3D_OVERLAY_EDIT_CU_HANDLES | V3D_OVERLAY_EDIT_CU_NORMALS;
-
-  v3d->gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR | V3D_SHOW_ORTHO_GRID;
-
-  v3d->flag = V3D_SELECT_OUTLINE;
-  v3d->flag2 = V3D_SHOW_RECONSTRUCTION | V3D_SHOW_ANNOTATION;
-
-  v3d->lens = 50.0f;
-  v3d->clip_start = 0.01f;
-  v3d->clip_end = 1000.0f;
-
-  v3d->overlay.gpencil_paper_opacity = 0.5f;
-  v3d->overlay.gpencil_grid_opacity = 0.9f;
-
-  v3d->bundle_size = 0.2f;
-  v3d->bundle_drawtype = OB_PLAINAXES;
-
-  /* stereo */
-  v3d->stereo3d_camera = STEREO_3D_ID;
-  v3d->stereo3d_flag |= V3D_S3D_DISPPLANE;
-  v3d->stereo3d_convergence_alpha = 0.15f;
-  v3d->stereo3d_volume_alpha = 0.05f;
-
-  /* grease pencil settings */
-  v3d->vertex_opacity = 1.0f;
-  v3d->gp_flag |= V3D_GP_SHOW_EDIT_LINES;
 
   /* tool header */
   ar = MEM_callocN(sizeof(ARegion), "tool header for view3d");

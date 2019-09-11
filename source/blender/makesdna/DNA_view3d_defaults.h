@@ -48,11 +48,65 @@
     .studiolight_intensity = 1.0f, \
   }
 
+#define _DNA_DEFAULT_View3DOverlay \
+  { \
+    .wireframe_threshold = 1.0f, \
+    .xray_alpha_bone = 0.5f, \
+    .texture_paint_mode_opacity = 1.0f, \
+    .weight_paint_mode_opacity = 1.0f, \
+    .vertex_paint_mode_opacity = 1.0f, \
+    /* Intentionally different to vertex/paint mode, \
+     * we typically want to see shading too. */ \
+    .sculpt_mode_mask_opacity = 0.75f, \
+ \
+    .edit_flag = V3D_OVERLAY_EDIT_FACES | V3D_OVERLAY_EDIT_SEAMS | \
+                             V3D_OVERLAY_EDIT_SHARP | V3D_OVERLAY_EDIT_FREESTYLE_EDGE | \
+                             V3D_OVERLAY_EDIT_FREESTYLE_FACE | V3D_OVERLAY_EDIT_EDGES | \
+                             V3D_OVERLAY_EDIT_CREASES | V3D_OVERLAY_EDIT_BWEIGHTS | \
+                             V3D_OVERLAY_EDIT_CU_HANDLES | V3D_OVERLAY_EDIT_CU_NORMALS, \
+ \
+    .gpencil_paper_opacity = 0.5f, \
+    .gpencil_grid_opacity = 0.9f, \
+  }
+
 #define _DNA_DEFAULT_View3DCursor \
   { \
     .rotation_mode = ROT_MODE_XYZ, \
     .rotation_quaternion = {1, 0, 0, 0}, \
     .rotation_axis = {0, 1, 0}, \
+  }
+
+#define _DNA_DEFAULT_View3D \
+  { \
+    .spacetype = SPACE_VIEW3D, \
+    .scenelock = true, \
+    .grid = 1.0f, \
+    .gridlines = 16, \
+    .gridsubdiv = 10, \
+    .shading = _DNA_DEFAULT_View3DShading, \
+    .overlay = _DNA_DEFAULT_View3DOverlay, \
+ \
+    .gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR | V3D_SHOW_ORTHO_GRID, \
+ \
+    .flag = V3D_SELECT_OUTLINE, \
+    .flag2 = V3D_SHOW_RECONSTRUCTION | V3D_SHOW_ANNOTATION, \
+ \
+    .lens = 50.0f, \
+    .clip_start = 0.01f, \
+    .clip_end = 1000.0f, \
+ \
+    .bundle_size = 0.2f, \
+    .bundle_drawtype = OB_PLAINAXES, \
+ \
+    /* stereo */ \
+    .stereo3d_camera = STEREO_3D_ID, \
+    .stereo3d_flag = V3D_S3D_DISPPLANE, \
+    .stereo3d_convergence_alpha = 0.15f, \
+    .stereo3d_volume_alpha = 0.05f, \
+ \
+    /* Grease pencil settings. */ \
+    .vertex_opacity = 1.0f, \
+    .gp_flag = V3D_GP_SHOW_EDIT_LINES, \
   }
 
 /** \} */
