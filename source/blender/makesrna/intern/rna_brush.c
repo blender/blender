@@ -1189,6 +1189,14 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
+  /* Simplify factor */
+  prop = RNA_def_property(srna, "simplify_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "simplify_f");
+  RNA_def_property_range(prop, 0, 100.0);
+  RNA_def_property_ui_range(prop, 0, 100.0, 1.0f, 3);
+  RNA_def_property_ui_text(prop, "Simplify", "Factor of Simplify using adaptive algorithm");
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+
   /* Curves for pressure */
   prop = RNA_def_property(srna, "curve_sensitivity", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "curve_sensitivity");

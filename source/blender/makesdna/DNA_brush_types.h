@@ -113,7 +113,8 @@ typedef struct BrushGpencilSettings {
   float gradient_f;
   /** factor xy of shape for dots gradients */
   float gradient_s[2];
-  char _pad_2[4];
+  /** Simplify adaptive factor */
+  float simplify_f;
 
   struct CurveMapping *curve_sensitivity;
   struct CurveMapping *curve_strength;

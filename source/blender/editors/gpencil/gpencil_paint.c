@@ -1235,6 +1235,13 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
         reduce += 0.25f; /* reduce the factor */
       }
     }
+
+    /* Simplify adaptive */
+    if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) &&
+        (brush->gpencil_settings->simplify_f > 0.0f)) {
+      BKE_gpencil_simplify_stroke(gps, brush->gpencil_settings->simplify_f);
+    }
+
     /* smooth thickness */
     if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) &&
         (brush->gpencil_settings->thick_smoothfac > 0.0f)) {
