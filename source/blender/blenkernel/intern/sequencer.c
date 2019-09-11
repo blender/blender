@@ -4933,7 +4933,7 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, 
         changed = true;
       }
     }
-    else if (seq->type == SEQ_TYPE_SOUND_RAM) {
+    else if (seq->type == SEQ_TYPE_SOUND_RAM && seq->sound) {
       const float length = BKE_sound_get_length(bmain, seq->sound);
       int old = seq->len;
       float fac;
