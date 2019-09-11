@@ -342,6 +342,28 @@ static void crazyspace_init_object_for_eval(struct Depsgraph *depsgraph,
   }
 }
 
+static void crazyspace_init_verts_and_matrices(const Mesh *mesh,
+                                               float (**deformmats)[3][3],
+                                               float (**deformcos)[3])
+{
+  int num_verts;
+  *deformcos = BKE_mesh_vert_coords_alloc(mesh, &num_verts);
+  *deformmats = MEM_callocN(sizeof(**deformmats) * num_verts, "defmats");
+  for (int a = 0; a < num_verts; a++) {
+    unit_m3((*deformmats)[a]);
+  }
+  BLI_assert(num_verts == mesh->totvert);
+}
+
+static bool crazyspace_modifier_supports_deform(ModifierData *md)
+{
+  if (ELEM(md->type, eModifierType_Subsurf, eModifierType_Multires)) {
+    return true;
+  }
+  const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+  return (mti->type == eModifierTypeType_OnlyDeform);
+}
+
 int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
                                          Scene *scene,
                                          Object *object,
@@ -349,24 +371,22 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
                                          float (**deformcos)[3])
 {
   ModifierData *md;
-  Mesh *me_eval;
-  int a, numVerts = 0;
+  Mesh *me_eval = NULL;
   float(*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
   int numleft = 0;
   VirtualModifierData virtualModifierData;
   Object object_eval;
   crazyspace_init_object_for_eval(depsgraph, object, &object_eval);
   MultiresModifierData *mmd = get_multires_modifier(scene, &object_eval, 0);
+  const bool is_sculpt_mode = (object->mode & OB_MODE_SCULPT) != 0;
   const bool has_multires = mmd != NULL && mmd->sculptlvl > 0;
   const ModifierEvalContext mectx = {depsgraph, &object_eval, 0};
 
-  if (has_multires) {
+  if (is_sculpt_mode && has_multires) {
     *deformmats = NULL;
     *deformcos = NULL;
     return numleft;
   }
-
-  me_eval = NULL;
 
   md = modifiers_getVirtualModifierList(&object_eval, &virtualModifierData);
 
@@ -378,41 +398,37 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
     }
 
     if (mti->type == eModifierTypeType_OnlyDeform) {
-      if (!defmats) {
+      if (defmats == NULL) {
         /* NOTE: Evaluated object si re-set to its original undeformed
          * state. */
         Mesh *me = object_eval.data;
         me_eval = BKE_mesh_copy_for_eval(me, true);
-        deformedVerts = BKE_mesh_vert_coords_alloc(me, &numVerts);
-        defmats = MEM_callocN(sizeof(*defmats) * numVerts, "defmats");
-
-        for (a = 0; a < numVerts; a++) {
-          unit_m3(defmats[a]);
-        }
+        crazyspace_init_verts_and_matrices(me_eval, &defmats, &deformedVerts);
       }
 
       if (mti->deformMatrices) {
-        mti->deformMatrices(md, &mectx, me_eval, deformedVerts, defmats, numVerts);
+        mti->deformMatrices(md, &mectx, me_eval, deformedVerts, defmats, me_eval->totvert);
       }
       else {
         break;
       }
     }
+    else {
+      break;
+    }
   }
 
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-
     if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
       continue;
     }
 
-    if (mti->type == eModifierTypeType_OnlyDeform) {
+    if (crazyspace_modifier_supports_deform(md)) {
       numleft++;
     }
   }
 
-  if (me_eval) {
+  if (me_eval != NULL) {
     BKE_id_free(NULL, me_eval);
   }
 
@@ -435,6 +451,13 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
     /* there are deformation modifier which doesn't support deformation matrices
      * calculation. Need additional crazyspace correction */
 
+    Mesh *mesh = (Mesh *)object->data;
+    Mesh *mesh_eval = NULL;
+
+    if (*deformcos == NULL) {
+      crazyspace_init_verts_and_matrices(mesh, deformmats, deformcos);
+    }
+
     float(*deformedVerts)[3] = *deformcos;
     float(*origVerts)[3] = MEM_dupallocN(deformedVerts);
     float(*quats)[4];
@@ -444,23 +467,26 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
     crazyspace_init_object_for_eval(depsgraph, object, &object_eval);
     ModifierData *md = modifiers_getVirtualModifierList(&object_eval, &virtualModifierData);
     const ModifierEvalContext mectx = {depsgraph, &object_eval, 0};
-    Mesh *mesh = (Mesh *)object->data;
 
     for (; md; md = md->next) {
-      const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-
       if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
         continue;
       }
 
-      if (mti->type == eModifierTypeType_OnlyDeform) {
+      if (crazyspace_modifier_supports_deform(md)) {
+        const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
         /* skip leading modifiers which have been already
          * handled in sculpt_get_first_deform_matrices */
         if (mti->deformMatrices && !deformed) {
           continue;
         }
 
-        mti->deformVerts(md, &mectx, NULL, deformedVerts, mesh->totvert);
+        if (mesh_eval == NULL) {
+          mesh_eval = BKE_mesh_copy_for_eval(mesh, true);
+        }
+
+        mti->deformVerts(md, &mectx, mesh_eval, deformedVerts, mesh_eval->totvert);
         deformed = 1;
       }
     }
@@ -479,6 +505,10 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
 
     MEM_freeN(origVerts);
     MEM_freeN(quats);
+
+    if (mesh_eval != NULL) {
+      BKE_id_free(NULL, mesh_eval);
+    }
   }
 
   if (*deformmats == NULL) {

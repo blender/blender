@@ -1104,6 +1104,12 @@ MultiresModifierData *BKE_sculpt_multires_active(Scene *scene, Object *ob)
     return NULL;
   }
 
+  /* Weight paint operates on original vertices, and needs to treat multires as regular modifier
+   * to make it so that PBVH vertices are at the multires surface. */
+  if ((ob->mode & OB_MODE_SCULPT) == 0) {
+    return NULL;
+  }
+
   for (md = modifiers_getVirtualModifierList(ob, &virtualModifierData); md; md = md->next) {
     if (md->type == eModifierType_Multires) {
       MultiresModifierData *mmd = (MultiresModifierData *)md;
@@ -1149,7 +1155,10 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
     if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
       continue;
     }
-    if (ELEM(md->type, eModifierType_ShapeKey, eModifierType_Multires)) {
+    if (md->type == eModifierType_Multires && (ob->mode & OB_MODE_SCULPT)) {
+      continue;
+    }
+    if (md->type == eModifierType_ShapeKey) {
       continue;
     }
 
@@ -1199,8 +1208,9 @@ static void sculpt_update_object(
 
   ss->kb = (mmd == NULL) ? BKE_keyblock_from_object(ob) : NULL;
 
-  /* VWPaint require mesh info for loop lookup, so require sculpt mode here */
-  if (mmd && ob->mode & OB_MODE_SCULPT) {
+  /* NOTE: Weight pPaint require mesh info for loop lookup, but it never uses multires code path,
+   * so no extra checks is needed here. */
+  if (mmd) {
     ss->multires = mmd;
     ss->totvert = me_eval->totvert;
     ss->totpoly = me_eval->totpoly;
