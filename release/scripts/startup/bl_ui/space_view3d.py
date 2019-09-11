@@ -6000,14 +6000,6 @@ class VIEW3D_PT_pivot_point(Panel):
         col.label(text="Pivot Point")
         col.prop(tool_settings, "transform_pivot_point", expand=True)
 
-        if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
-            col.separator()
-
-            col.label(text="Affect Only")
-            col.prop(tool_settings, "use_transform_data_origin", text="Origins")
-            col.prop(tool_settings, "use_transform_pivot_point_align", text="Locations")
-            col.prop(tool_settings, "use_transform_skip_children", text="Parents (Skip Children)")
-
 
 class VIEW3D_PT_snapping(Panel):
     bl_space_type = 'VIEW_3D'

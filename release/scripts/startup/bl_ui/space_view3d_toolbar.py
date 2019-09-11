@@ -122,6 +122,39 @@ def is_not_gpencil_edit_mode(context):
     return not is_gpmode
 
 
+# ********** default tools for object mode ****************
+
+
+class VIEW3D_PT_tools_object_options(View3DPanel, Panel):
+    bl_category = "Tool"
+    bl_context = ".objectmode"  # dot on purpose (access from topbar)
+    bl_label = "Options"
+
+    def draw(self, context):
+        # layout = self.layout
+        pass
+
+
+class VIEW3D_PT_tools_object_options_transform(View3DPanel, Panel):
+    bl_category = "Tool"
+    bl_context = ".objectmode"  # dot on purpose (access from topbar)
+    bl_label = "Transform"
+    bl_parent_id = "VIEW3D_PT_tools_object_options"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        tool_settings = context.tool_settings
+
+        layout.label(text="Affect Only")
+        layout.prop(tool_settings, "use_transform_data_origin", text="Origins")
+        layout.prop(tool_settings, "use_transform_pivot_point_align", text="Locations")
+        layout.prop(tool_settings, "use_transform_skip_children", text="Parents (Skip Children)")
+
+
 # ********** default tools for editmode_mesh ****************
 
 
@@ -262,11 +295,16 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
         pose = context.active_object.pose
         layout = self.layout
 
+        tool_settings = context.tool_settings
+
         layout.prop(pose, "use_auto_ik")
         layout.prop(pose, "use_mirror_x")
         col = layout.column()
         col.active = pose.use_mirror_x
         col.prop(pose, "use_mirror_relative")
+
+        layout.label(text="Affect Only")
+        layout.prop(tool_settings, "use_transform_pivot_point_align", text="Locations")
 
 # ********** default tools for paint modes ****************
 
@@ -2180,6 +2218,8 @@ class VIEW3D_PT_gpencil_brush_presets(PresetPanel, Panel):
 classes = (
     VIEW3D_MT_brush_context_menu,
     VIEW3D_MT_brush_context_menu_paint_modes,
+    VIEW3D_PT_tools_object_options,
+    VIEW3D_PT_tools_object_options_transform,
     VIEW3D_PT_tools_meshedit_options,
     VIEW3D_PT_tools_meshedit_options_automerge,
     VIEW3D_PT_tools_curveedit_options_stroke,
