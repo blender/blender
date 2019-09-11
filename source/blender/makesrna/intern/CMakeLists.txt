@@ -164,10 +164,19 @@ set(SRC
   ../../../../intern/guardedalloc/intern/mallocn_guarded_impl.c
   ../../../../intern/guardedalloc/intern/mallocn_lockfree_impl.c
   ../../../../intern/guardedalloc/intern/mmap_win.c
+
+  # Needed for defaults.
+  ../../../../release/datafiles/userdef/userdef_default.c
+  ../../../../release/datafiles/userdef/userdef_default_theme.c
 )
 
 set(INC
-    ../../../../intern/clog
+  ../../../../intern/clog
+
+  # Needed for defaults forward declarations.
+  ../../../blender/blenloader
+
+  ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern
 )
 
 set(INC_SYS

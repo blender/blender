@@ -74,6 +74,11 @@ typedef struct PropertyDefRNA {
   const char *dnatype;
   int dnaarraylength;
   int dnapointerlevel;
+  /**
+   * Offset in bytes within `dnastructname`.
+   * -1 when unusable (follows pointer for e.g.). */
+  int dnaoffset;
+  int dnasize;
 
   /* for finding length of array collections */
   const char *dnalengthstructname;
