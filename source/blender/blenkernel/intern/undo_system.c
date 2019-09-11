@@ -503,7 +503,7 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack,
   /* Might not be final place for this to be called - probably only want to call it from some
    * undo handlers, not all of them? */
   if (BKE_override_library_is_enabled()) {
-    BKE_main_override_library_operations_create(CTX_data_main(C), false);
+    BKE_main_override_library_operations_create(G_MAIN, false);
   }
 
   /* Remove all undos after (also when 'ustack->step_active == NULL'). */
