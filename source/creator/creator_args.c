@@ -1109,14 +1109,14 @@ static int arg_handle_factory_startup_set(int UNUSED(argc),
   return 0;
 }
 
-static const char arg_handle_enable_override_library_doc[] =
+static const char arg_handle_disable_override_library_doc[] =
     "\n\t"
     "Enable Library Override features in the UI.";
-static int arg_handle_enable_override_library(int UNUSED(argc),
-                                              const char **UNUSED(argv),
-                                              void *UNUSED(data))
+static int arg_handle_disable_override_library(int UNUSED(argc),
+                                               const char **UNUSED(argv),
+                                               void *UNUSED(data))
 {
-  BKE_override_library_enable(true);
+  BKE_override_library_enable(false);
   return 0;
 }
 
@@ -2174,7 +2174,7 @@ void main_args_setup(bContext *C, bArgs *ba)
   BLI_argsAdd(ba, 1, NULL, "--app-template", CB(arg_handle_app_template), NULL);
   BLI_argsAdd(ba, 1, NULL, "--factory-startup", CB(arg_handle_factory_startup_set), NULL);
   BLI_argsAdd(
-      ba, 1, NULL, "--enable-library-override", CB(arg_handle_enable_override_library), NULL);
+      ba, 1, NULL, "--disable-library-override", CB(arg_handle_disable_override_library), NULL);
   BLI_argsAdd(ba, 1, NULL, "--enable-event-simulate", CB(arg_handle_enable_event_simulate), NULL);
 
   /* TODO, add user env vars? */

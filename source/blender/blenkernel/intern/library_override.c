@@ -57,7 +57,7 @@ static void bke_override_property_operation_clear(IDOverrideLibraryPropertyOpera
 
 /* Temp, for until library override is ready and tested enough to go 'public',
  * we hide it by default in UI and such. */
-static bool _override_library_enabled = false;
+static bool _override_library_enabled = true;
 
 void BKE_override_library_enable(const bool do_enable)
 {
