@@ -8015,7 +8015,6 @@ static bool createVertSlideVerts(TransInfo *t, TransDataContainer *tc)
 void projectVertSlideData(TransInfo *t, bool is_final)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    VertSlideData *sld = tc->custom.mode.data;
     trans_mesh_customdata_correction_apply(tc, is_final);
   }
 }
