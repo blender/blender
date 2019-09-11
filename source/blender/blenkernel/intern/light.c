@@ -32,6 +32,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_defaults.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -48,40 +49,9 @@ void BKE_light_init(Light *la)
 {
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(la, id));
 
-  la->r = la->g = la->b = la->k = 1.0f;
-  la->energy = 10.0f;
-  la->dist = 25.0f;
-  la->spotsize = DEG2RADF(45.0f);
-  la->spotblend = 0.15f;
-  la->att2 = 1.0f;
-  la->mode = LA_SHADOW;
-  la->bufsize = 512;
-  la->clipsta = 0.05f;
-  la->clipend = 40.0f;
-  la->bleedexp = 2.5f;
-  la->samp = 3;
-  la->bias = 1.0f;
-  la->soft = 3.0f;
-  la->area_size = la->area_sizey = la->area_sizez = 0.25f;
-  la->buffers = 1;
-  la->preview = NULL;
-  la->falloff_type = LA_FALLOFF_INVSQUARE;
-  la->coeff_const = 1.0f;
-  la->coeff_lin = 0.0f;
-  la->coeff_quad = 0.0f;
-  la->curfalloff = BKE_curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
-  la->cascade_max_dist = 200.0f;
-  la->cascade_count = 4;
-  la->cascade_exponent = 0.8f;
-  la->cascade_fade = 0.1f;
-  la->contact_dist = 0.2f;
-  la->contact_bias = 0.03f;
-  la->contact_spread = 0.2f;
-  la->contact_thickness = 0.2f;
-  la->spec_fac = 1.0f;
-  la->att_dist = 40.0f;
-  la->sun_angle = DEG2RADF(0.526f);
+  MEMCPY_STRUCT_AFTER(la, DNA_struct_default_get(Light), id);
 
+  la->curfalloff = BKE_curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
   BKE_curvemapping_initialize(la->curfalloff);
 }
 

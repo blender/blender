@@ -21,6 +21,7 @@
 #include "DNA_object_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
+#include "DNA_defaults.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -34,18 +35,7 @@ void BKE_speaker_init(Speaker *spk)
 {
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(spk, id));
 
-  spk->attenuation = 1.0f;
-  spk->cone_angle_inner = 360.0f;
-  spk->cone_angle_outer = 360.0f;
-  spk->cone_volume_outer = 1.0f;
-  spk->distance_max = FLT_MAX;
-  spk->distance_reference = 1.0f;
-  spk->flag = 0;
-  spk->pitch = 1.0f;
-  spk->sound = NULL;
-  spk->volume = 1.0f;
-  spk->volume_max = 1.0f;
-  spk->volume_min = 0.0f;
+  MEMCPY_STRUCT_AFTER(spk, DNA_struct_default_get(Speaker), id);
 }
 
 void *BKE_speaker_add(Main *bmain, const char *name)

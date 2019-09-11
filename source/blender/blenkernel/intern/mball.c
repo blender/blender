@@ -39,6 +39,7 @@
 #include "DNA_object_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_defaults.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -79,12 +80,7 @@ void BKE_mball_init(MetaBall *mb)
 {
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mb, id));
 
-  mb->size[0] = mb->size[1] = mb->size[2] = 1.0;
-  mb->texflag = MB_AUTOSPACE;
-
-  mb->wiresize = 0.4f;
-  mb->rendersize = 0.2f;
-  mb->thresh = 0.6f;
+  MEMCPY_STRUCT_AFTER(mb, DNA_struct_default_get(MetaBall), id);
 }
 
 MetaBall *BKE_mball_add(Main *bmain, const char *name)

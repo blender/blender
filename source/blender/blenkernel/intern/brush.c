@@ -24,6 +24,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_defaults.h"
 
 #include "BLI_math.h"
 #include "BLI_rand.h"
@@ -60,74 +61,48 @@ void BKE_brush_system_exit(void)
 
 static void brush_defaults(Brush *brush)
 {
-  brush->blend = 0;
-  brush->flag = 0;
 
-  brush->ob_mode = OB_MODE_ALL_PAINT;
+  const Brush *brush_def = DNA_struct_default_get(Brush);
 
-  /* BRUSH SCULPT TOOL SETTINGS */
-  brush->weight = 1.0f; /* weight of brush 0 - 1.0 */
-  brush->size = 35;     /* radius of the brush in pixels */
-  brush->alpha = 0.5f;  /* brush strength/intensity probably variable should be renamed? */
-  brush->autosmooth_factor = 0.0f;
-  brush->topology_rake_factor = 0.0f;
-  brush->crease_pinch_factor = 0.5f;
-  brush->normal_radius_factor = 0.5f;
-  brush->sculpt_plane = SCULPT_DISP_DIR_AREA;
-  /* How far above or below the plane that is found by averaging the faces. */
-  brush->plane_offset = 0.0f;
-  brush->plane_trim = 0.5f;
-  brush->clone.alpha = 0.5f;
-  brush->normal_weight = 0.0f;
-  brush->fill_threshold = 0.2f;
-  brush->flag |= BRUSH_ALPHA_PRESSURE;
+#define FROM_DEFAULT(member) memcpy(&brush->member, &brush_def->member, sizeof(brush->member))
+#define FROM_DEFAULT_PTR(member) memcpy(brush->member, brush_def->member, sizeof(brush->member))
 
-  /* BRUSH PAINT TOOL SETTINGS */
-  /* Default rgb color of the brush when painting - white. */
-  brush->rgb[0] = 1.0f;
-  brush->rgb[1] = 1.0f;
-  brush->rgb[2] = 1.0f;
+  FROM_DEFAULT(blend);
+  FROM_DEFAULT(flag);
+  FROM_DEFAULT(weight);
+  FROM_DEFAULT(size);
+  FROM_DEFAULT(alpha);
+  FROM_DEFAULT(autosmooth_factor);
+  FROM_DEFAULT(topology_rake_factor);
+  FROM_DEFAULT(crease_pinch_factor);
+  FROM_DEFAULT(normal_radius_factor);
+  FROM_DEFAULT(sculpt_plane);
+  FROM_DEFAULT(plane_offset);
+  FROM_DEFAULT(clone.alpha);
+  FROM_DEFAULT(normal_weight);
+  FROM_DEFAULT(fill_threshold);
+  FROM_DEFAULT(flag);
+  FROM_DEFAULT_PTR(rgb);
+  FROM_DEFAULT_PTR(secondary_rgb);
+  FROM_DEFAULT(spacing);
+  FROM_DEFAULT(smooth_stroke_radius);
+  FROM_DEFAULT(smooth_stroke_factor);
+  FROM_DEFAULT(rate);
+  FROM_DEFAULT(jitter);
+  FROM_DEFAULT(texture_sample_bias);
+  FROM_DEFAULT(texture_overlay_alpha);
+  FROM_DEFAULT(mask_overlay_alpha);
+  FROM_DEFAULT(cursor_overlay_alpha);
+  FROM_DEFAULT(overlay_flags);
+  FROM_DEFAULT_PTR(add_col);
+  FROM_DEFAULT_PTR(sub_col);
+  FROM_DEFAULT(stencil_pos);
+  FROM_DEFAULT(stencil_dimension);
+  FROM_DEFAULT(mtex);
+  FROM_DEFAULT(mask_mtex);
 
-  zero_v3(brush->secondary_rgb);
-
-  /* BRUSH STROKE SETTINGS */
-  brush->flag |= (BRUSH_SPACE | BRUSH_SPACE_ATTEN);
-  /* How far each brush dot should be spaced as a percentage of brush diameter. */
-  brush->spacing = 10;
-
-  brush->smooth_stroke_radius = 75;
-  brush->smooth_stroke_factor = 0.9f;
-
-  /* Time delay between dots of paint or sculpting when doing airbrush mode. */
-  brush->rate = 0.1f;
-
-  brush->jitter = 0.0f;
-
-  /* BRUSH TEXTURE SETTINGS */
-  BKE_texture_mtex_default(&brush->mtex);
-  BKE_texture_mtex_default(&brush->mask_mtex);
-
-  brush->texture_sample_bias = 0; /* value to added to texture samples */
-  brush->texture_overlay_alpha = 33;
-  brush->mask_overlay_alpha = 33;
-  brush->cursor_overlay_alpha = 33;
-  brush->overlay_flags = 0;
-
-  /* brush appearance  */
-
-  brush->add_col[0] = 1.00; /* add mode color is light red */
-  brush->add_col[1] = 0.39;
-  brush->add_col[2] = 0.39;
-
-  brush->sub_col[0] = 0.39; /* subtract mode color is light blue */
-  brush->sub_col[1] = 0.39;
-  brush->sub_col[2] = 1.00;
-
-  brush->stencil_pos[0] = 256;
-  brush->stencil_pos[1] = 256;
-
-  brush->stencil_dimension[0] = 256;
-  brush->stencil_dimension[1] = 256;
+#undef FROM_DEFAULT
+#undef FROM_DEFAULT_PTR
 }
 
 /* Datablock add/copy/free/make_local */
@@ -136,15 +111,10 @@ void BKE_brush_init(Brush *brush)
 {
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(brush, id));
 
+  MEMCPY_STRUCT_AFTER(brush, DNA_struct_default_get(Brush), id);
+
   /* enable fake user by default */
   id_fake_user_set(&brush->id);
-
-  brush_defaults(brush);
-
-  brush->sculpt_tool = SCULPT_TOOL_DRAW; /* sculpting defaults to the draw tool for new brushes */
-
-  /* A kernel radius of 1 has almost no effect (T63233). */
-  brush->blur_kernel_radius = 2;
 
   /* the default alpha falloff curve */
   BKE_brush_curve_preset(brush, CURVE_PRESET_SMOOTH);

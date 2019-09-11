@@ -54,32 +54,99 @@
 
 #include "DNA_defaults.h"
 
+#include "DNA_brush_types.h"
+#include "DNA_cachefile_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_image_types.h"
+#include "DNA_key_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_light_types.h"
+#include "DNA_lightprobe_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_speaker_types.h"
+#include "DNA_texture_types.h"
+#include "DNA_world_types.h"
 
+#include "DNA_brush_defaults.h"
+#include "DNA_cachefile_defaults.h"
+#include "DNA_camera_defaults.h"
+#include "DNA_curve_defaults.h"
+#include "DNA_image_defaults.h"
+#include "DNA_lattice_defaults.h"
+#include "DNA_light_defaults.h"
+#include "DNA_lightprobe_defaults.h"
+#include "DNA_linestyle_defaults.h"
 #include "DNA_material_defaults.h"
 #include "DNA_mesh_defaults.h"
+#include "DNA_meta_defaults.h"
 #include "DNA_object_defaults.h"
 #include "DNA_scene_defaults.h"
+#include "DNA_speaker_defaults.h"
+#include "DNA_texture_defaults.h"
+#include "DNA_world_defaults.h"
 
 #define SDNA_DEFAULT_DECL_STRUCT(struct_name) \
   const struct_name DNA_DEFAULT_##struct_name = _DNA_DEFAULT_##struct_name
 
-/* DNA_scene_material.h */
+/* DNA_brush_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(Brush);
+
+/* DNA_cachefile_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(CacheFile);
+
+/* DNA_camera_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(Camera);
+SDNA_DEFAULT_DECL_STRUCT(CameraDOFSettings);
+SDNA_DEFAULT_DECL_STRUCT(CameraStereoSettings);
+
+/* DNA_curve_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(Curve);
+
+/* DNA_image_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(Image);
+
+/* DNA_lattice_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(Lattice);
+
+/* DNA_light_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(Light);
+
+/* DNA_lightprobe_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(LightProbe);
+
+/* DNA_linestyle_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(FreestyleLineStyle);
+
+/* DNA_material_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Material);
 
-/* DNA_scene_mesh.h */
+/* DNA_mesh_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Mesh);
 
-/* DNA_scene_object.h */
+/* DNA_meta_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(MetaBall);
+
+/* DNA_object_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Object);
 
 /* DNA_scene_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Scene);
 SDNA_DEFAULT_DECL_STRUCT(ToolSettings);
+
+/* DNA_speaker_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(Speaker);
+
+/* DNA_texture_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(Tex);
+
+/* DNA_world_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(World);
 
 #undef SDNA_DEFAULT_DECL_STRUCT
 
@@ -108,11 +175,43 @@ extern const bTheme U_theme_default;
 /** Keep headers sorted. */
 const void *DNA_default_table[SDNA_TYPE_MAX] = {
 
+    /* DNA_brush_defaults.h */
+    SDNA_DEFAULT_DECL(Brush),
+
+    /* DNA_cachefile_defaults.h */
+    SDNA_DEFAULT_DECL(CacheFile),
+
+    /* DNA_camera_defaults.h */
+    SDNA_DEFAULT_DECL(Camera),
+    SDNA_DEFAULT_DECL_EX(CameraDOFSettings, Camera.dof),
+    SDNA_DEFAULT_DECL_EX(CameraStereoSettings, Camera.stereo),
+
+    /* DNA_curve_defaults.h */
+    SDNA_DEFAULT_DECL(Curve),
+
+    /* DNA_image_defaults.h */
+    SDNA_DEFAULT_DECL(Image),
+
+    /* DNA_lattice_defaults.h */
+    SDNA_DEFAULT_DECL(Lattice),
+
+    /* DNA_light_defaults.h */
+    SDNA_DEFAULT_DECL(Light),
+
+    /* DNA_lightprobe_defaults.h */
+    SDNA_DEFAULT_DECL(LightProbe),
+
+    /* DNA_linestyle_defaults.h */
+    SDNA_DEFAULT_DECL(FreestyleLineStyle),
+
     /* DNA_material_defaults.h */
     SDNA_DEFAULT_DECL(Material),
 
     /* DNA_mesh_defaults.h */
     SDNA_DEFAULT_DECL(Mesh),
+
+    /* DNA_meta_defaults.h */
+    SDNA_DEFAULT_DECL(MetaBall),
 
     /* DNA_object_defaults.h */
     SDNA_DEFAULT_DECL(Object),
@@ -137,6 +236,13 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL_EX(GP_Sculpt_Settings, ToolSettings.gp_sculpt),
     SDNA_DEFAULT_DECL_EX(GP_Sculpt_Guide, ToolSettings.gp_sculpt.guide),
 
+    /* DNA_speaker_defaults.h */
+    SDNA_DEFAULT_DECL(Speaker),
+
+    /* DNA_texture_defaults.h */
+    SDNA_DEFAULT_DECL(Tex),
+    SDNA_DEFAULT_DECL_EX(MTex, Brush.mtex),
+
     /* DNA_userdef_types.h */
     SDNA_DEFAULT_DECL(UserDef),
     SDNA_DEFAULT_DECL(bTheme),
@@ -146,6 +252,9 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     /* DNA_view3d_defaults.h */
     SDNA_DEFAULT_DECL_EX(View3DShading, Scene.display.shading),
     SDNA_DEFAULT_DECL_EX(View3DCursor, Scene.cursor),
+
+    /* DNA_world_defaults.h */
+    SDNA_DEFAULT_DECL(World),
 };
 #undef SDNA_DEFAULT_DECL
 #undef SDNA_DEFAULT_DECL_EX

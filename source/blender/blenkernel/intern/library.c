@@ -1271,7 +1271,7 @@ void BKE_libblock_init_empty(ID *id)
       BKE_mesh_init((Mesh *)id);
       break;
     case ID_CU:
-      BKE_curve_init((Curve *)id);
+      BKE_curve_init((Curve *)id, 0);
       break;
     case ID_MB:
       BKE_mball_init((MetaBall *)id);

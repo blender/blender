@@ -72,7 +72,7 @@ typedef struct CVKeyIndex {
 /* ** Curve ** */
 void BKE_curve_free(struct Curve *cu);
 void BKE_curve_editfont_free(struct Curve *cu);
-void BKE_curve_init(struct Curve *cu);
+void BKE_curve_init(struct Curve *cu, const short curve_type);
 struct Curve *BKE_curve_add(struct Main *bmain, const char *name, int type);
 void BKE_curve_copy_data(struct Main *bmain,
                          struct Curve *cu_dst,

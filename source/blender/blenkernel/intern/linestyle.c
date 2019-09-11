@@ -30,6 +30,7 @@
 #include "DNA_object_types.h"
 #include "DNA_material_types.h" /* for ramp blend */
 #include "DNA_texture_types.h"
+#include "DNA_defaults.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -76,34 +77,9 @@ void BKE_linestyle_init(FreestyleLineStyle *linestyle)
 {
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(linestyle, id));
 
-  linestyle->panel = LS_PANEL_STROKES;
-  linestyle->r = linestyle->g = linestyle->b = 0.0f;
-  linestyle->alpha = 1.0f;
-  linestyle->thickness = 3.0f;
-  linestyle->thickness_position = LS_THICKNESS_CENTER;
-  linestyle->thickness_ratio = 0.5f;
-  linestyle->flag = LS_SAME_OBJECT | LS_NO_SORTING | LS_TEXTURE;
-  linestyle->chaining = LS_CHAINING_PLAIN;
-  linestyle->rounds = 3;
-  linestyle->min_angle = DEG2RADF(0.0f);
-  linestyle->max_angle = DEG2RADF(0.0f);
-  linestyle->min_length = 0.0f;
-  linestyle->max_length = 10000.0f;
-  linestyle->split_length = 100;
-  linestyle->chain_count = 10;
-  linestyle->sort_key = LS_SORT_KEY_DISTANCE_FROM_CAMERA;
-  linestyle->integration_type = LS_INTEGRATION_MEAN;
-  linestyle->texstep = 1.0f;
-  linestyle->pr_texture = TEX_PR_TEXTURE;
-
-  BLI_listbase_clear(&linestyle->color_modifiers);
-  BLI_listbase_clear(&linestyle->alpha_modifiers);
-  BLI_listbase_clear(&linestyle->thickness_modifiers);
-  BLI_listbase_clear(&linestyle->geometry_modifiers);
+  MEMCPY_STRUCT_AFTER(linestyle, DNA_struct_default_get(FreestyleLineStyle), id);
 
   BKE_linestyle_geometry_modifier_add(linestyle, NULL, LS_MODIFIER_SAMPLING);
-
-  linestyle->caps = LS_CAPS_BUTT;
 }
 
 FreestyleLineStyle *BKE_linestyle_new(struct Main *bmain, const char *name)

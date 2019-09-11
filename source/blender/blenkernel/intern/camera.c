@@ -30,6 +30,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_ID.h"
+#include "DNA_defaults.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -56,25 +57,7 @@ void BKE_camera_init(Camera *cam)
 {
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cam, id));
 
-  cam->lens = 50.0f;
-  cam->sensor_x = DEFAULT_SENSOR_WIDTH;
-  cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
-  cam->clip_start = 0.1f;
-  cam->clip_end = 1000.0f;
-  cam->drawsize = 1.0f;
-  cam->ortho_scale = 6.0;
-  cam->flag |= CAM_SHOWPASSEPARTOUT;
-  cam->passepartalpha = 0.5f;
-
-  cam->dof.aperture_fstop = 2.8f;
-  cam->dof.aperture_ratio = 1.0f;
-  cam->dof.focus_distance = 10.0f;
-
-  /* stereoscopy 3d */
-  cam->stereo.interocular_distance = 0.065f;
-  cam->stereo.convergence_distance = 30.f * 0.065f;
-  cam->stereo.pole_merge_angle_from = DEG2RADF(60.0f);
-  cam->stereo.pole_merge_angle_to = DEG2RADF(75.0f);
+  MEMCPY_STRUCT_AFTER(cam, DNA_struct_default_get(Camera), id);
 }
 
 void *BKE_camera_add(Main *bmain, const char *name)

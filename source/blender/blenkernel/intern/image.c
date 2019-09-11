@@ -57,6 +57,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_light_types.h"
 #include "DNA_world_types.h"
+#include "DNA_defaults.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
@@ -298,10 +299,7 @@ static void image_init(Image *ima, short source, short type)
 
   ima->ok = IMA_OK;
 
-  ima->aspx = ima->aspy = 1.0;
-  ima->gen_x = 1024;
-  ima->gen_y = 1024;
-  ima->gen_type = IMA_GENTYPE_GRID;
+  MEMCPY_STRUCT_AFTER(ima, DNA_struct_default_get(Image), id);
 
   ima->source = source;
   ima->type = type;
@@ -318,8 +316,6 @@ static void image_init(Image *ima, short source, short type)
 
   BKE_color_managed_colorspace_settings_init(&ima->colorspace_settings);
   ima->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Image Stereo Format");
-
-  ima->gpuframenr = INT_MAX;
 }
 
 void BKE_image_init(struct Image *image)

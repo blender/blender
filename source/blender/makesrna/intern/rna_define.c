@@ -71,7 +71,7 @@ static struct {
 
 #ifndef RNA_RUNTIME
 /**
- * When set, report report details about which defaults are used.
+ * When set, report details about which defaults are used.
  * Noisy but handy when investigating default extraction.
  */
 static bool debugSRNA_defaults = false;

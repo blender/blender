@@ -36,6 +36,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_material_types.h"
+#include "DNA_defaults.h"
 
 /* for dereferencing pointers */
 #include "DNA_key_types.h"
@@ -145,28 +146,13 @@ void BKE_curve_free(Curve *cu)
   MEM_SAFE_FREE(cu->tb);
 }
 
-void BKE_curve_init(Curve *cu)
+void BKE_curve_init(Curve *cu, const short curve_type)
 {
-  /* BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cu, id)); */ /* cu->type is already initialized... */
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cu, id));
 
-  copy_v3_fl(cu->size, 1.0f);
-  cu->flag = CU_DEFORM_BOUNDS_OFF | CU_PATH_RADIUS;
-  cu->pathlen = 100;
-  cu->resolu = cu->resolv = (cu->type == OB_SURF) ? 4 : 12;
-  cu->width = 1.0;
-  cu->wordspace = 1.0;
-  cu->spacing = cu->linedist = 1.0;
-  cu->fsize = 1.0;
-  cu->ulheight = 0.05;
-  cu->texflag = CU_AUTOSPACE;
-  cu->smallcaps_scale = 0.75f;
-  /* XXX: this one seems to be the best one in most cases, at least for curve deform... */
-  cu->twist_mode = CU_TWIST_MINIMUM;
-  cu->bevfac1 = 0.0f;
-  cu->bevfac2 = 1.0f;
-  cu->bevfac1_mapping = CU_BEVFAC_MAP_RESOLU;
-  cu->bevfac2_mapping = CU_BEVFAC_MAP_RESOLU;
-  cu->bevresol = 4;
+  MEMCPY_STRUCT_AFTER(cu, DNA_struct_default_get(Curve), id);
+
+  cu->type = curve_type;
 
   cu->bb = BKE_boundbox_alloc_unit();
 
@@ -182,6 +168,9 @@ void BKE_curve_init(Curve *cu)
     cu->tb = MEM_calloc_arrayN(MAXTEXTBOX, sizeof(TextBox), "textbox");
     cu->tb[0].w = cu->tb[0].h = 0.0;
   }
+  else if (cu->type == OB_SURF) {
+    cu->resolv = 4;
+  }
 }
 
 Curve *BKE_curve_add(Main *bmain, const char *name, int type)
@@ -189,9 +178,8 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
   Curve *cu;
 
   cu = BKE_libblock_alloc(bmain, ID_CU, name, 0);
-  cu->type = type;
 
-  BKE_curve_init(cu);
+  BKE_curve_init(cu, type);
 
   return cu;
 }

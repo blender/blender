@@ -41,6 +41,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
+#include "DNA_defaults.h"
 
 #include "BKE_animsys.h"
 #include "BKE_anim.h"
@@ -248,13 +249,10 @@ void BKE_lattice_init(Lattice *lt)
 {
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(lt, id));
 
-  lt->flag = LT_GRID;
-
-  lt->typeu = lt->typev = lt->typew = KEY_BSPLINE;
+  MEMCPY_STRUCT_AFTER(lt, DNA_struct_default_get(Lattice), id);
 
   lt->def = MEM_callocN(sizeof(BPoint), "lattvert"); /* temporary */
   BKE_lattice_resize(lt, 2, 2, 2, NULL);             /* creates a uniform lattice */
-  lt->actbp = LT_ACTBP_NONE;
 }
 
 Lattice *BKE_lattice_add(Main *bmain, const char *name)
