@@ -543,6 +543,11 @@ PointerRNA rna_array_lookup_int(
 
 /* Duplicated code since we can't link in blenlib */
 
+#ifndef RNA_RUNTIME
+void *rna_alloc_from_buffer(const char *buffer, int buffer_len);
+void *rna_calloc(int buffer_len);
+#endif
+
 void rna_addtail(struct ListBase *listbase, void *vlink);
 void rna_freelinkN(struct ListBase *listbase, void *vlink);
 void rna_freelistN(struct ListBase *listbase);

@@ -409,23 +409,30 @@ static void rna_construct_wrapper_function_name(
   }
 }
 
+void *rna_alloc_from_buffer(const char *buffer, int buffer_len)
+{
+  AllocDefRNA *alloc = MEM_callocN(sizeof(AllocDefRNA), "AllocDefRNA");
+  alloc->mem = MEM_mallocN(buffer_len, __func__);
+  memcpy(alloc->mem, buffer, buffer_len);
+  rna_addtail(&DefRNA.allocs, alloc);
+  return alloc->mem;
+}
+
+void *rna_calloc(int buffer_len)
+{
+  AllocDefRNA *alloc = MEM_callocN(sizeof(AllocDefRNA), "AllocDefRNA");
+  alloc->mem = MEM_callocN(buffer_len, __func__);
+  rna_addtail(&DefRNA.allocs, alloc);
+  return alloc->mem;
+}
+
 static char *rna_alloc_function_name(const char *structname,
                                      const char *propname,
                                      const char *type)
 {
-  AllocDefRNA *alloc;
   char buffer[2048];
-  char *result;
-
   rna_construct_function_name(buffer, sizeof(buffer), structname, propname, type);
-  result = MEM_callocN(sizeof(char) * strlen(buffer) + 1, "rna_alloc_function_name");
-  strcpy(result, buffer);
-
-  alloc = MEM_callocN(sizeof(AllocDefRNA), "AllocDefRNA");
-  alloc->mem = result;
-  rna_addtail(&DefRNA.allocs, alloc);
-
-  return result;
+  return rna_alloc_from_buffer(buffer, strlen(buffer) + 1);
 }
 
 static StructRNA *rna_find_struct(const char *identifier)
