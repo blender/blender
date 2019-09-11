@@ -35,6 +35,7 @@
 #include "BKE_scene.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_ccg.h"
+#include "BKE_subdiv_deform.h"
 #include "BKE_subdiv_mesh.h"
 #include "BKE_subsurf.h"
 
@@ -240,6 +241,35 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   return result;
 }
 
+static void deformVerts(ModifierData *md,
+                        const ModifierEvalContext *UNUSED(ctx),
+                        Mesh *mesh,
+                        float (*vertex_cos)[3],
+                        int num_verts)
+{
+#if !defined(WITH_OPENSUBDIV)
+  modifier_setError(md, "Disabled, built without OpenSubdiv");
+  return;
+#endif
+  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+  SubdivSettings subdiv_settings;
+  subdiv_settings_init(&subdiv_settings, smd);
+  if (subdiv_settings.level == 0) {
+    return;
+  }
+  BKE_subdiv_settings_validate_for_mesh(&subdiv_settings, mesh);
+  SubsurfRuntimeData *runtime_data = subsurf_ensure_runtime(smd);
+  Subdiv *subdiv = subdiv_descriptor_ensure(smd, &subdiv_settings, mesh);
+  if (subdiv == NULL) {
+    /* Happens on bad topology, but also on empty input mesh. */
+    return;
+  }
+  BKE_subdiv_deform_coarse_vertices(subdiv, mesh, vertex_cos, num_verts);
+  if (subdiv != runtime_data->subdiv) {
+    BKE_subdiv_free(subdiv);
+  }
+}
+
 ModifierTypeInfo modifierType_Subsurf = {
     /* name */ "Subdivision",
     /* structName */ "SubsurfModifierData",
@@ -251,7 +281,7 @@ ModifierTypeInfo modifierType_Subsurf = {
 
     /* copyData */ copyData,
 
-    /* deformVerts */ NULL,
+    /* deformVerts */ deformVerts,
     /* deformMatrices */ NULL,
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
