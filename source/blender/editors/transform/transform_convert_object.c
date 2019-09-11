@@ -148,7 +148,13 @@ void trans_obdata_in_obmode_update_all(TransInfo *t)
     invert_m4(dmat);
 
     ED_object_data_xform_by_mat4(xf->xod, dmat);
-    DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
+    if (xf->ob->type == OB_ARMATURE) {
+      /* TODO: none of the current flags properly update armatures, needs investigation. */
+      DEG_id_tag_update(id, 0);
+    }
+    else {
+      DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
+    }
   }
 }
 
