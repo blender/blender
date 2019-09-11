@@ -252,18 +252,6 @@ class _GenericBone:
         return (self.head + self.tail) * 0.5
 
     @property
-    def length(self):
-        """
-        The distance from head to tail,
-        when set the head is moved to fit the length.
-        """
-        return self.vector.length
-
-    @length.setter
-    def length(self, value):
-        self.tail = self.head + ((self.tail - self.head).normalized() * value)
-
-    @property
     def vector(self):
         """
         The direction this bone is pointing.

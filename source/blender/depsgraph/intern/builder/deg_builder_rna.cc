@@ -211,7 +211,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
         }
         /* Final transform properties go to the Done node for the exit. */
         else if (STREQ(prop_name, "head") || STREQ(prop_name, "tail") ||
-                 STRPREFIX(prop_name, "matrix")) {
+                 STREQ(prop_name, "length") || STRPREFIX(prop_name, "matrix")) {
           if (source == RNAPointerSource::EXIT) {
             node_identifier.operation_code = OperationCode::BONE_DONE;
           }
