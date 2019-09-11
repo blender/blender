@@ -482,6 +482,8 @@ static void subdiv_accumulate_vertex_normal_and_displacement(SubdivMeshContext *
   }
   /* Accumulate displacement if needed. */
   if (ctx->have_displacement) {
+    /* NOTE: The subdivided mesh is allocated in this module, and its vertices are kept at zero
+     * locations as a default calloc(). */
     BKE_subdiv_eval_displacement(subdiv, ptex_face_index, u, v, dPdu, dPdv, D);
     add_v3_v3(subdiv_vert->co, D);
   }
@@ -1175,7 +1177,7 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
       return NULL;
     }
   }
-  /* Initialize subdivion mesh creation context/ */
+  /* Initialize subdivion mesh creation context. */
   SubdivMeshContext subdiv_context = {0};
   subdiv_context.settings = settings;
   subdiv_context.coarse_mesh = coarse_mesh;
@@ -1198,7 +1200,7 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   if (!subdiv_context.can_evaluate_normals) {
     result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
   }
-  /* Free used memoty. */
+  /* Free used memory. */
   subdiv_mesh_context_free(&subdiv_context);
   return result;
 }
