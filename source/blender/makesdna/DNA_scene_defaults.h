@@ -41,6 +41,8 @@
 
 #define _DNA_DEFAULT_BakeData \
   { \
+    .im_format = _DNA_DEFAULT_ImageFormatData, \
+    .filepath = "//", \
     .flag = R_BAKE_CLEAR, \
     .pass_filter = R_BAKE_PASS_FILTER_ALL, \
     .width = 512, \
@@ -48,8 +50,6 @@
     .margin = 16, \
     .normal_space = R_BAKE_SPACE_TANGENT, \
     .normal_swizzle = {R_BAKE_POSX, R_BAKE_POSY, R_BAKE_POSZ}, \
- \
-    .im_format = _DNA_DEFAULT_ImageFormatData, \
   }
 
 #define _DNA_DEFAULT_FFMpegCodecData \
@@ -113,6 +113,9 @@
     .bake = _DNA_DEFAULT_BakeData, \
  \
     .scemode = R_DOCOMP | R_DOSEQ | R_EXTENSION, \
+ \
+    .pic = "//", \
+ \
     .stamp = R_STAMP_TIME | R_STAMP_FRAME | R_STAMP_DATE | R_STAMP_CAMERA | R_STAMP_SCENE | \
              R_STAMP_FILENAME | R_STAMP_RENDERTIME | R_STAMP_MEMORY, \
     .stamp_font_id = 12, \
