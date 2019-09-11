@@ -196,18 +196,13 @@ static void blo_update_defaults_screen(bScreen *screen,
     }
   }
 
-  /* Show toopbar for sculpt/paint modes. */
-  const bool show_tool_header = STR_ELEM(
-      workspace_name, "Sculpting", "Texture Paint", "2D Animation", "2D Full Canvas");
-
-  if (show_tool_header) {
-    for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-      for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-        ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
-        for (ARegion *ar = regionbase->first; ar; ar = ar->next) {
-          if (ar->regiontype == RGN_TYPE_TOOL_HEADER) {
-            ar->flag &= ~(RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER);
-          }
+  /* Show top-bar by default. */
+  for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+    for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+      ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+      for (ARegion *ar = regionbase->first; ar; ar = ar->next) {
+        if (ar->regiontype == RGN_TYPE_TOOL_HEADER) {
+          ar->flag &= ~(RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER);
         }
       }
     }
