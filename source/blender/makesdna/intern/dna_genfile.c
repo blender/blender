@@ -184,7 +184,7 @@ static bool ispointer(const char *name)
  * \param name: Index into sdna->names,
  * needed to extract possible pointer/array information.
  */
-static int elementsize(const SDNA *sdna, short type, short name)
+int DNA_elem_size_nr(const SDNA *sdna, short type, short name)
 {
   int len;
   const char *cp = sdna->names[name];
@@ -1059,7 +1059,7 @@ static const char *find_elem(const SDNA *sdna,
     otype = sdna->types[old[0]];
     oname = sdna->names[old[1]];
 
-    len = elementsize(sdna, old[0], old[1]);
+    len = DNA_elem_size_nr(sdna, old[0], old[1]);
 
     if (elem_strcmp(name, oname) == 0) { /* name equal */
       if (strcmp(type, otype) == 0) {    /* type equal */
@@ -1128,7 +1128,7 @@ static void reconstruct_elem(const SDNA *newsdna,
     const int old_name_nr = old[1];
     otype = oldsdna->types[old[0]];
     oname = oldsdna->names[old[1]];
-    len = elementsize(oldsdna, old[0], old[1]);
+    len = DNA_elem_size_nr(oldsdna, old[0], old[1]);
 
     if (strcmp(name, oname) == 0) { /* name equal */
 
@@ -1247,7 +1247,7 @@ static void reconstruct_struct(const SDNA *newsdna,
     type = newsdna->types[spc[0]];
     name = newsdna->names[spc[1]];
 
-    elen = elementsize(newsdna, spc[0], spc[1]);
+    elen = DNA_elem_size_nr(newsdna, spc[0], spc[1]);
 
     /* Skip pad bytes which must start with '_pad', see makesdna.c 'is_name_legal'.
      * for exact rules. Note that if we fail to skip a pad byte it's harmless,
@@ -1269,7 +1269,7 @@ static void reconstruct_struct(const SDNA *newsdna,
         mul = newsdna->names_array_len[spc[1]];
         mulo = oldsdna->names_array_len[sppo[1]];
 
-        eleno = elementsize(oldsdna, sppo[0], sppo[1]);
+        eleno = DNA_elem_size_nr(oldsdna, sppo[0], sppo[1]);
 
         elen /= mul;
         eleno /= mulo;
@@ -1333,8 +1333,8 @@ void DNA_struct_switch_endian(const SDNA *oldsdna, int oldSDNAnr, char *data)
     name = oldsdna->names[spc[1]];
     const int old_name_array_len = oldsdna->names_array_len[spc[1]];
 
-    /* elementsize = including arraysize */
-    elen = elementsize(oldsdna, spc[0], spc[1]);
+    /* DNA_elem_size_nr = including arraysize */
+    elen = DNA_elem_size_nr(oldsdna, spc[0], spc[1]);
 
     /* test: is type a struct? */
     if (spc[0] >= firststructtypenr && !ispointer(name)) {
