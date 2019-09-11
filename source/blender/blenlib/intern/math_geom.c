@@ -4773,29 +4773,24 @@ void projmat_from_subregion(const float projmat[4][4],
   float rect_width = (float)(x_max - x_min);
   float rect_height = (float)(y_max - y_min);
 
+  float x_sca = (float)win_size[0] / rect_width;
+  float y_sca = (float)win_size[1] / rect_height;
+
   float x_fac = (float)((x_min + x_max) - win_size[0]) / rect_width;
   float y_fac = (float)((y_min + y_max) - win_size[1]) / rect_height;
 
   copy_m4_m4(r_projmat, projmat);
-  r_projmat[0][0] *= (float)win_size[0] / rect_width;
-  r_projmat[1][1] *= (float)win_size[1] / rect_height;
+  r_projmat[0][0] *= x_sca;
+  r_projmat[1][1] *= y_sca;
 
-#if 0 /* TODO: check if this is more efficient. */
-  r_projmat[2][0] -= x_fac * r_projmat[2][3];
-  r_projmat[2][1] -= y_fac * r_projmat[2][3];
-
-  r_projmat[3][0] -= x_fac * r_projmat[3][3];
-  r_projmat[3][1] -= y_fac * r_projmat[3][3];
-#else
   if (projmat[3][3] == 0.0f) {
-    r_projmat[2][0] += x_fac;
-    r_projmat[2][1] += y_fac;
+    r_projmat[2][0] = r_projmat[2][0] * x_sca + x_fac;
+    r_projmat[2][1] = r_projmat[2][1] * y_sca + y_fac;
   }
   else {
-    r_projmat[3][0] -= x_fac;
-    r_projmat[3][1] -= y_fac;
+    r_projmat[3][0] = r_projmat[3][0] * x_sca - x_fac;
+    r_projmat[3][1] = r_projmat[3][1] * y_sca - y_fac;
   }
-#endif
 }
 
 static void i_multmatrix(float icand[4][4], float Vm[4][4])
