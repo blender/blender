@@ -2993,7 +2993,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
        "Use a custom color limited to this viewport only"},
       {0, NULL, 0, NULL, NULL},
   };
-  static const float default_background_color[] = {0.05f, 0.05f, 0.05f};
 
   static const EnumPropertyItem cavity_type_items[] = {
       {V3D_SHADING_CAVITY_SSAO,
@@ -3076,7 +3075,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "curvature_ridge_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "curvature_ridge_factor");
-  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop, "Curvature Ridge", "Factor for the curvature ridges");
   RNA_def_property_range(prop, 0.0f, 2.0f);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -3084,7 +3082,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "curvature_valley_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "curvature_valley_factor");
-  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop, "Curvature Valley", "Factor for the curvature valleys");
   RNA_def_property_range(prop, 0.0f, 2.0f);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -3092,7 +3089,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "cavity_ridge_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "cavity_ridge_factor");
-  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop, "Cavity Ridge", "Factor for the cavity ridges");
   RNA_def_property_range(prop, 0.0f, 250.0f);
   RNA_def_property_ui_range(prop, 0.00f, 2.5f, 1, 3);
@@ -3101,7 +3097,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "cavity_valley_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "cavity_valley_factor");
-  RNA_def_property_float_default(prop, 1.0);
   RNA_def_property_ui_text(prop, "Cavity Valley", "Factor for the cavity valleys");
   RNA_def_property_range(prop, 0.0f, 250.0f);
   RNA_def_property_ui_range(prop, 0.00f, 2.5f, 1, 3);
@@ -3119,7 +3114,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "studiolight_rotate_z", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "studiolight_rot_z");
-  RNA_def_property_float_default(prop, 0.0);
   RNA_def_property_ui_text(
       prop, "Studiolight Rotation", "Rotation of the studiolight around the Z-Axis");
   RNA_def_property_range(prop, -M_PI, M_PI);
@@ -3128,7 +3122,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "studiolight_intensity", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "studiolight_intensity");
-  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Strength", "Strength of the studiolight");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
@@ -3137,7 +3130,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "studiolight_background_alpha", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "studiolight_background");
-  RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_ui_text(prop, "Background", "Show the studiolight in the background");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.00f, 1.0f, 1, 3);
@@ -3173,7 +3165,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "background_color", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_array(prop, 3);
-  RNA_def_property_float_array_default(prop, default_background_color);
   RNA_def_property_ui_text(prop, "Background Color", "Color for custom background color");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
@@ -3198,7 +3189,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "xray_alpha", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "xray_alpha");
-  RNA_def_property_float_default(prop, 0.5);
   RNA_def_property_ui_text(prop, "X-Ray Alpha", "Amount of alpha to use");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -3206,7 +3196,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "xray_alpha_wireframe", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "xray_alpha_wire");
-  RNA_def_property_float_default(prop, 0.5);
   RNA_def_property_ui_text(prop, "X-Ray Alpha", "Amount of alpha to use");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -3237,14 +3226,12 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_scene_lights_render", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SHADING_SCENE_LIGHTS_RENDER);
-  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Scene Lights", "Render lights and light probes of the scene");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   prop = RNA_def_property(srna, "use_scene_world_render", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SHADING_SCENE_WORLD_RENDER);
-  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Scene World", "Use scene world for lighting");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
@@ -3264,7 +3251,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "shadow_intensity", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "shadow_intensity");
-  RNA_def_property_float_default(prop, 0.5);
   RNA_def_property_ui_text(prop, "Shadow Intensity", "Darkness of shadows");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.00f, 1.0f, 1, 3);

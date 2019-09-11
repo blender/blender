@@ -1781,7 +1781,6 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
   RNA_def_property_ui_text(prop, "Weight", "Vertex weight when brush is applied");
@@ -1789,7 +1788,6 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "alpha");
-  RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, 0.0f, 10.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
   RNA_def_property_ui_text(
@@ -1809,7 +1807,6 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "plane_trim", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "plane_trim");
-  RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, 0, 1.0f);
   RNA_def_property_ui_text(
       prop,
@@ -1858,7 +1855,6 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "crease_pinch_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "crease_pinch_factor");
-  RNA_def_property_float_default(prop, 2.0f / 3.0f);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop, "Crease Brush Pinch Factor", "How much the crease brush pinches");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
@@ -1886,7 +1882,6 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "normal_radius_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "normal_radius_factor");
-  RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
   RNA_def_property_ui_text(prop,
@@ -1939,7 +1934,6 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "blur_kernel_radius", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "blur_kernel_radius");
   RNA_def_property_range(prop, 1, 10000);
-  RNA_def_property_int_default(prop, 2);
   RNA_def_property_ui_range(prop, 1, 50, 1, -1);
   RNA_def_property_ui_text(
       prop, "Kernel Radius", "Radius of kernel used for soften and sharpen in pixels");

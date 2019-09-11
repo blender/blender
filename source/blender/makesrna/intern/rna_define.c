@@ -1876,6 +1876,12 @@ void RNA_def_property_boolean_default(PropertyRNA *prop, bool value)
     case PROP_BOOLEAN: {
       BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
       BLI_assert(ELEM(value, false, true));
+#ifndef RNA_RUNTIME
+      /* Default may be set from items. */
+      if (bprop->defaultvalue) {
+        CLOG_ERROR(&LOG, "\"%s.%s\", set from DNA.", srna->identifier, prop->identifier);
+      }
+#endif
       bprop->defaultvalue = value;
       break;
     }
@@ -1910,6 +1916,11 @@ void RNA_def_property_int_default(PropertyRNA *prop, int value)
   switch (prop->type) {
     case PROP_INT: {
       IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
+#ifndef RNA_RUNTIME
+      if (iprop->defaultvalue != 0) {
+        CLOG_ERROR(&LOG, "\"%s.%s\", set from DNA.", srna->identifier, prop->identifier);
+      }
+#endif
       iprop->defaultvalue = value;
       break;
     }
@@ -1927,6 +1938,11 @@ void RNA_def_property_int_array_default(PropertyRNA *prop, const int *array)
   switch (prop->type) {
     case PROP_INT: {
       IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
+#ifndef RNA_RUNTIME
+      if (iprop->defaultarray != NULL) {
+        CLOG_ERROR(&LOG, "\"%s.%s\", set from DNA.", srna->identifier, prop->identifier);
+      }
+#endif
       iprop->defaultarray = array;
       break;
     }
@@ -1944,6 +1960,11 @@ void RNA_def_property_float_default(PropertyRNA *prop, float value)
   switch (prop->type) {
     case PROP_FLOAT: {
       FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
+#ifndef RNA_RUNTIME
+      if (fprop->defaultvalue != 0) {
+        CLOG_ERROR(&LOG, "\"%s.%s\", set from DNA.", srna->identifier, prop->identifier);
+      }
+#endif
       fprop->defaultvalue = value;
       break;
     }
@@ -1961,6 +1982,11 @@ void RNA_def_property_float_array_default(PropertyRNA *prop, const float *array)
   switch (prop->type) {
     case PROP_FLOAT: {
       FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
+#ifndef RNA_RUNTIME
+      if (fprop->defaultarray != NULL) {
+        CLOG_ERROR(&LOG, "\"%s.%s\", set from DNA.", srna->identifier, prop->identifier);
+      }
+#endif
       fprop->defaultarray = array; /* WARNING, this array must not come from the stack and lost */
       break;
     }
@@ -1997,7 +2023,11 @@ void RNA_def_property_string_default(PropertyRNA *prop, const char *value)
         // BLI_assert(0);
         break;
       }
-
+#ifndef RNA_RUNTIME
+      if (sprop->defaultvalue != NULL && sprop->defaultvalue[0]) {
+        CLOG_ERROR(&LOG, "\"%s.%s\", set from DNA.", srna->identifier, prop->identifier);
+      }
+#endif
       sprop->defaultvalue = value;
       break;
     }

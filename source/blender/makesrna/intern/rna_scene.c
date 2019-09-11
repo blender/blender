@@ -2641,7 +2641,6 @@ static void rna_def_view3d_cursor(BlenderRNA *brna)
   prop = RNA_def_property(srna, "rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_float_sdna(prop, NULL, "rotation_quaternion");
-  RNA_def_property_float_array_default(prop, rna_default_quaternion);
   RNA_def_property_ui_text(
       prop, "Quaternion Rotation", "Rotation in quaternions (keep normalized)");
   RNA_def_property_update(prop, NC_WINDOW, NULL);
@@ -3564,7 +3563,6 @@ static void rna_def_statvis(BlenderRNA *brna)
   /* overhang */
   prop = RNA_def_property(srna, "overhang_min", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "overhang_min");
-  RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
   RNA_def_property_ui_range(prop, 0.0f, DEG2RADF(180.0f), 10, 3);
   RNA_def_property_ui_text(prop, "Overhang Min", "Minimum angle to display");
@@ -3573,7 +3571,6 @@ static void rna_def_statvis(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "overhang_max", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "overhang_max");
-  RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
   RNA_def_property_ui_range(prop, 0.0f, DEG2RADF(180.0f), 10, 3);
   RNA_def_property_ui_text(prop, "Overhang Max", "Maximum angle to display");
@@ -3590,7 +3587,6 @@ static void rna_def_statvis(BlenderRNA *brna)
   /* thickness */
   prop = RNA_def_property(srna, "thickness_min", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "thickness_min");
-  RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, 0.0f, 1000.0);
   RNA_def_property_ui_range(prop, 0.0f, 100.0, 0.001, 3);
   RNA_def_property_ui_text(prop, "Thickness Min", "Minimum for measuring thickness");
@@ -3599,7 +3595,6 @@ static void rna_def_statvis(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "thickness_max", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "thickness_max");
-  RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, 0.0f, 1000.0);
   RNA_def_property_ui_range(prop, 0.0f, 100.0, 0.001, 3);
   RNA_def_property_ui_text(prop, "Thickness Max", "Maximum for measuring thickness");
@@ -3616,7 +3611,6 @@ static void rna_def_statvis(BlenderRNA *brna)
   /* distort */
   prop = RNA_def_property(srna, "distort_min", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "distort_min");
-  RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
   RNA_def_property_ui_range(prop, 0.0f, DEG2RADF(180.0f), 10, 3);
   RNA_def_property_ui_text(prop, "Distort Min", "Minimum angle to display");
@@ -3625,7 +3619,6 @@ static void rna_def_statvis(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "distort_max", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "distort_max");
-  RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
   RNA_def_property_ui_range(prop, 0.0f, DEG2RADF(180.0f), 10, 3);
   RNA_def_property_ui_text(prop, "Distort Max", "Maximum angle to display");
@@ -3635,7 +3628,6 @@ static void rna_def_statvis(BlenderRNA *brna)
   /* sharp */
   prop = RNA_def_property(srna, "sharp_min", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "sharp_min");
-  RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, -DEG2RADF(180.0f), DEG2RADF(180.0f));
   RNA_def_property_ui_range(prop, -DEG2RADF(180.0f), DEG2RADF(180.0f), 10, 3);
   RNA_def_property_ui_text(prop, "Distort Min", "Minimum angle to display");
@@ -3644,7 +3636,6 @@ static void rna_def_statvis(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "sharp_max", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "sharp_max");
-  RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, -DEG2RADF(180.0f), DEG2RADF(180.0f));
   RNA_def_property_ui_range(prop, -DEG2RADF(180.0f), DEG2RADF(180.0f), 10, 3);
   RNA_def_property_ui_text(prop, "Distort Max", "Maximum angle to display");
@@ -5661,7 +5652,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   prop = RNA_def_property(srna, "preview_start_resolution", PROP_INT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 8, 16384);
-  RNA_def_property_int_default(prop, 64);
   RNA_def_property_ui_text(prop,
                            "Start Resolution",
                            "Resolution to start rendering preview at, "
@@ -6015,7 +6005,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   prop = RNA_def_property(srna, "bake_samples", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "bake_samples");
   RNA_def_property_range(prop, 64, 1024);
-  RNA_def_property_int_default(prop, 256);
   RNA_def_property_ui_text(
       prop, "Samples", "Number of samples used for ambient occlusion baking from multires");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
@@ -6530,12 +6519,6 @@ static void rna_def_display_safe_areas(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static float default_title[2] = {0.1f, 0.05f};
-  static float default_action[2] = {0.035f, 0.035f};
-
-  static float default_title_center[2] = {0.175f, 0.05f};
-  static float default_action_center[2] = {0.15f, 0.05f};
-
   srna = RNA_def_struct(brna, "DisplaySafeAreas", NULL);
   RNA_def_struct_ui_text(srna, "Safe Areas", "Safe areas used in 3D view and the sequencer");
   RNA_def_struct_sdna(srna, "DisplaySafeAreas");
@@ -6545,14 +6528,12 @@ static void rna_def_display_safe_areas(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "title");
   RNA_def_property_array(prop, 2);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_float_array_default(prop, default_title);
   RNA_def_property_ui_text(prop, "Title Safe Margins", "Safe area for text and graphics");
   RNA_def_property_update(prop, NC_SCENE | ND_DRAW_RENDER_VIEWPORT, NULL);
 
   prop = RNA_def_property(srna, "action", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_float_sdna(prop, NULL, "action");
   RNA_def_property_array(prop, 2);
-  RNA_def_property_float_array_default(prop, default_action);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop, "Action Safe Margins", "Safe area for general elements");
   RNA_def_property_update(prop, NC_SCENE | ND_DRAW_RENDER_VIEWPORT, NULL);
@@ -6560,7 +6541,6 @@ static void rna_def_display_safe_areas(BlenderRNA *brna)
   prop = RNA_def_property(srna, "title_center", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_float_sdna(prop, NULL, "title_center");
   RNA_def_property_array(prop, 2);
-  RNA_def_property_float_array_default(prop, default_title_center);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop,
                            "Center Title Safe Margins",
@@ -6570,7 +6550,6 @@ static void rna_def_display_safe_areas(BlenderRNA *brna)
   prop = RNA_def_property(srna, "action_center", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_float_sdna(prop, NULL, "action_center");
   RNA_def_property_array(prop, 2);
-  RNA_def_property_float_array_default(prop, default_action_center);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop,
                            "Center Action Safe Margins",
@@ -6583,8 +6562,6 @@ static void rna_def_scene_display(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static float default_light_direction[3] = {-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3};
-
   srna = RNA_def_struct(brna, "SceneDisplay", NULL);
   RNA_def_struct_ui_text(srna, "Scene Display", "Scene display settings for 3d viewport");
   RNA_def_struct_sdna(srna, "SceneDisplay");
@@ -6593,13 +6570,11 @@ static void rna_def_scene_display(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "light_direction");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_array(prop, 3);
-  RNA_def_property_float_array_default(prop, default_light_direction);
   RNA_def_property_ui_text(
       prop, "Light Direction", "Direction of the light for shadows and highlights");
   RNA_def_property_update(prop, NC_SCENE | NA_EDITED, "rna_Scene_set_update");
 
   prop = RNA_def_property(srna, "shadow_shift", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_float_default(prop, 0.1);
   RNA_def_property_ui_text(prop, "Shadow Shift", "Shadow termination angle");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.00f, 1.0f, 1, 2);
@@ -6615,20 +6590,17 @@ static void rna_def_scene_display(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | NA_EDITED, "rna_Scene_set_update");
 
   prop = RNA_def_property(srna, "matcap_ssao_distance", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_default(prop, 0.2f);
   RNA_def_property_ui_text(
       prop, "Distance", "Distance of object that contribute to the Cavity/Edge effect");
   RNA_def_property_range(prop, 0.0f, 100000.0f);
   RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
 
   prop = RNA_def_property(srna, "matcap_ssao_attenuation", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop, "Attenuation", "Attenuation constant");
   RNA_def_property_range(prop, 1.0f, 100000.0f);
   RNA_def_property_ui_range(prop, 1.0f, 100.0f, 1, 3);
 
   prop = RNA_def_property(srna, "matcap_ssao_samples", PROP_INT, PROP_NONE);
-  RNA_def_property_int_default(prop, 16);
   RNA_def_property_ui_text(prop, "Samples", "Number of samples");
   RNA_def_property_range(prop, 1, 500);
 
@@ -7272,7 +7244,6 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "r.sfra");
   RNA_def_property_int_funcs(prop, NULL, "rna_Scene_start_frame_set", NULL);
   RNA_def_property_range(prop, MINFRAME, MAXFRAME);
-  RNA_def_property_int_default(prop, 1);
   RNA_def_property_ui_text(prop, "Start Frame", "First frame of the playback/rendering range");
   RNA_def_property_update(prop, NC_SCENE | ND_FRAME_RANGE, NULL);
 
@@ -7281,7 +7252,6 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "r.efra");
   RNA_def_property_int_funcs(prop, NULL, "rna_Scene_end_frame_set", NULL);
   RNA_def_property_range(prop, MINFRAME, MAXFRAME);
-  RNA_def_property_int_default(prop, 250);
   RNA_def_property_ui_text(prop, "End Frame", "Final frame of the playback/rendering range");
   RNA_def_property_update(prop, NC_SCENE | ND_FRAME_RANGE, NULL);
 

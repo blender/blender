@@ -2562,7 +2562,6 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "quat");
   RNA_def_property_editable_array_func(prop, "rna_Object_rotation_4d_editable");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_float_array_default(prop, rna_default_quaternion);
   RNA_def_property_ui_text(prop, "Quaternion Rotation", "Rotation in Quaternions");
   RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
 
@@ -2599,7 +2598,6 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_editable_array_func(prop, "rna_Object_scale_editable");
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3);
-  RNA_def_property_float_array_default(prop, rna_default_scale_3d);
   RNA_def_property_ui_text(prop, "Scale", "Scaling of the object");
   RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
 
@@ -2636,7 +2634,6 @@ static void rna_def_object(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "delta_rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
   RNA_def_property_float_sdna(prop, NULL, "dquat");
-  RNA_def_property_float_array_default(prop, rna_default_quaternion);
   RNA_def_property_ui_text(
       prop,
       "Delta Rotation (Quaternion)",
@@ -2659,7 +2656,6 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "dscale");
   RNA_def_property_flag(prop, PROP_PROPORTIONAL);
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3);
-  RNA_def_property_float_array_default(prop, rna_default_scale_3d);
   RNA_def_property_ui_text(prop, "Delta Scale", "Extra scaling added to the scale of the object");
   RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
 

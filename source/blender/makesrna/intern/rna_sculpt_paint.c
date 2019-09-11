@@ -1350,7 +1350,6 @@ static void rna_def_gpencil_guides(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "spacing", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "spacing");
-  RNA_def_property_float_default(prop, 0.01f);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0f, FLT_MAX, 1, 3);
   RNA_def_property_ui_text(prop, "Spacing", "Guide spacing");

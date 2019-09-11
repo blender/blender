@@ -2994,7 +2994,6 @@ static void rna_def_mesh(BlenderRNA *brna)
   /* Remesh */
   prop = RNA_def_property(srna, "remesh_voxel_size", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "remesh_voxel_size");
-  RNA_def_property_float_default(prop, 0.1f);
   RNA_def_property_range(prop, 0.00001f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0001f, FLT_MAX, 0.01, 4);
   RNA_def_property_ui_text(prop,
@@ -3026,7 +3025,6 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "auto_smooth_angle", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "smoothresh");
-  RNA_def_property_float_default(prop, DEG2RADF(180.0f));
   RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
   RNA_def_property_ui_text(prop,
                            "Auto Smooth Angle",
