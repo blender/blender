@@ -333,9 +333,6 @@ void bpy_app_generic_callback(struct Main *UNUSED(main),
     if (num_pointers == 0) {
       PyTuple_SET_ITEM(args_single, 0, Py_INCREF_RET(Py_None));
     }
-    else if (num_pointers == 1) {
-      args_single = args_all;
-    }
     else {
       PyTuple_SET_ITEM(args_single, 0, pyrna_struct_CreatePyObject(pointers[0]));
     }
@@ -362,9 +359,7 @@ void bpy_app_generic_callback(struct Main *UNUSED(main),
     }
 
     Py_DECREF(args_all);
-    if (args_single != args_all) {
-      Py_DECREF(args_single);
-    }
+    Py_DECREF(args_single);
 
     PyGILState_Release(gilstate);
   }
