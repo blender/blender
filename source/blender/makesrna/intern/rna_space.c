@@ -988,11 +988,6 @@ static Scene *rna_3DViewShading_scene(PointerRNA *ptr)
 {
   /* Get scene, depends if using 3D view or OpenGL render settings. */
   ID *id = ptr->owner_id;
-  if (!id) {
-    /* When accessed from an external render engine the id.data is NULL
-     * This might be missing from the RNA CPP Api */
-    return NULL;
-  }
   if (GS(id->name) == ID_SCE) {
     return (Scene *)id;
   }

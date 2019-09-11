@@ -2539,6 +2539,12 @@ static void rna_def_struct_function_call_impl_cpp(FILE *f, StructRNA *srna, Func
                   rna_safe_id(dp->prop->identifier));
         }
       }
+      else if (dp->prop->flag_parameter & PARM_RNAPTR) {
+        fprintf(f,
+                "(::%s *) &%s",
+                rna_parameter_type_name(dp->prop),
+                rna_safe_id(dp->prop->identifier));
+      }
       else {
         fprintf(f,
                 "(::%s *) %s.ptr.data",

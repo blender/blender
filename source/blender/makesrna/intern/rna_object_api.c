@@ -221,32 +221,43 @@ static bool rna_Object_indirect_only_get(Object *ob, bContext *C, ViewLayer *vie
   return ((base->flag & BASE_INDIRECT_ONLY) != 0);
 }
 
-static Base *rna_Object_local_view_property_helper(
-    bScreen *sc, View3D *v3d, Object *ob, ReportList *reports, Scene **r_scene)
+static Base *rna_Object_local_view_property_helper(bScreen *sc,
+                                                   View3D *v3d,
+                                                   ViewLayer *view_layer,
+                                                   Object *ob,
+                                                   ReportList *reports,
+                                                   Scene **r_scene)
 {
+  wmWindow *win = NULL;
   if (v3d->localvd == NULL) {
     BKE_report(reports, RPT_ERROR, "Viewport not in local view");
     return NULL;
   }
 
-  wmWindow *win = ED_screen_window_find(sc, G_MAIN->wm.first);
-  ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+  if (view_layer == NULL) {
+    win = ED_screen_window_find(sc, G_MAIN->wm.first);
+    view_layer = WM_window_get_active_view_layer(win);
+  }
+
   Base *base = BKE_view_layer_base_find(view_layer, ob);
   if (base == NULL) {
     BKE_reportf(
         reports, RPT_WARNING, "Object %s not in view layer %s", ob->id.name + 2, view_layer->name);
   }
-  if (r_scene) {
+  if (r_scene != NULL && win != NULL) {
     *r_scene = win->scene;
   }
   return base;
 }
 
-static bool rna_Object_local_view_get(Object *ob, ReportList *reports, PointerRNA *v3d_ptr)
+static bool rna_Object_local_view_get(Object *ob,
+                                      ReportList *reports,
+                                      PointerRNA *v3d_ptr,
+                                      ViewLayer *view_layer)
 {
   bScreen *sc = (bScreen *)v3d_ptr->owner_id;
   View3D *v3d = v3d_ptr->data;
-  Base *base = rna_Object_local_view_property_helper(sc, v3d, ob, reports, NULL);
+  Base *base = rna_Object_local_view_property_helper(sc, v3d, view_layer, ob, reports, NULL);
   if (base == NULL) {
     return false; /* Error reported. */
   }
@@ -261,7 +272,7 @@ static void rna_Object_local_view_set(Object *ob,
   bScreen *sc = (bScreen *)v3d_ptr->owner_id;
   View3D *v3d = v3d_ptr->data;
   Scene *scene;
-  Base *base = rna_Object_local_view_property_helper(sc, v3d, ob, reports, &scene);
+  Base *base = rna_Object_local_view_property_helper(sc, v3d, NULL, ob, reports, &scene);
   if (base == NULL) {
     return; /* Error reported. */
   }
@@ -276,7 +287,8 @@ static void rna_Object_local_view_set(Object *ob,
   }
 }
 
-/* Convert a given matrix from a space to another (using the object and/or a bone as reference). */
+/* Convert a given matrix from a space to another (using the object and/or a bone as
+ * reference). */
 static void rna_Object_mat_convert_space(Object *ob,
                                          ReportList *reports,
                                          bPoseChannel *pchan,
@@ -466,8 +478,8 @@ static int mesh_looptri_to_poly_index(Mesh *me_eval, const MLoopTri *lt)
   return index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
 }
 
-/* TOOD(sergey): Make the Python API more clear that evaluation might happen, or requite passing
- * fully evaluated depsgraph. */
+/* TOOD(sergey): Make the Python API more clear that evaluation might happen, or requite
+ * passing fully evaluated depsgraph. */
 static Object *eval_object_ensure(Object *ob,
                                   bContext *C,
                                   ReportList *reports,
@@ -505,8 +517,8 @@ static void rna_Object_ray_cast(Object *ob,
 {
   bool success = false;
 
-  /* TODO(sergey): This isn't very reliable check. It is possible to have non-NULL pointer but
-   * which is out of date, and possibly dangling one. */
+  /* TODO(sergey): This isn't very reliable check. It is possible to have non-NULL pointer
+   * but which is out of date, and possibly dangling one. */
   if (ob->runtime.mesh_eval == NULL &&
       (ob = eval_object_ensure(ob, C, reports, rnaptr_depsgraph)) == NULL) {
     return;
@@ -806,6 +818,11 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "viewport", "SpaceView3D", "", "Viewport in local view");
   RNA_def_parameter_flags(parm, 0, PARM_RNAPTR | PARM_REQUIRED);
+  parm = RNA_def_pointer(func,
+                         "view_layer",
+                         "ViewLayer",
+                         "",
+                         "Optional ViewLayer. Preferably passed for additional performance");
   parm = RNA_def_boolean(func, "result", 0, "", "Object local view state");
   RNA_def_function_return(func, parm);
 

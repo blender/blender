@@ -139,15 +139,19 @@ def create(engine, data, region=None, v3d=None, rv3d=None, preview_osl=False):
 
     data = data.as_pointer()
     prefs = bpy.context.preferences.as_pointer()
+    screen = None
     if region:
+        screen = region.id_data.as_pointer()
         region = region.as_pointer()
     if v3d:
+        screen = screen or v3d.id_data.as_pointer()
         v3d = v3d.as_pointer()
     if rv3d:
+        screen = screen or rv3d.id_data.as_pointer()
         rv3d = rv3d.as_pointer()
 
     engine.session = _cycles.create(
-            engine.as_pointer(), prefs, data, region, v3d, rv3d, preview_osl)
+            engine.as_pointer(), prefs, data, screen, region, v3d, rv3d, preview_osl)
 
 
 def free(engine):

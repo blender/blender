@@ -541,6 +541,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
   const bool show_lights = BlenderViewportParameters(b_v3d).use_scene_lights;
 
   BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
+  const bool has_local_view = b_v3d && b_v3d.local_view();
 
   BL::Depsgraph::object_instances_iterator b_instance_iter;
   for (b_depsgraph.object_instances.begin(b_instance_iter);
@@ -554,9 +555,10 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
 
     /* test if object needs to be hidden */
     const bool show_self = b_instance.show_self();
+    const bool show_local_view = !has_local_view || b_ob.local_view_get(b_v3d, b_view_layer);
     const bool show_particles = b_instance.show_particles();
 
-    if (show_self || show_particles) {
+    if (show_local_view && (show_self || show_particles)) {
       /* object itself */
       sync_object(b_depsgraph,
                   b_view_layer,

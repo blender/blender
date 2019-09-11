@@ -194,14 +194,15 @@ static PyObject *exit_func(PyObject * /*self*/, PyObject * /*args*/)
 
 static PyObject *create_func(PyObject * /*self*/, PyObject *args)
 {
-  PyObject *pyengine, *pypreferences, *pydata, *pyregion, *pyv3d, *pyrv3d;
+  PyObject *pyengine, *pypreferences, *pydata, *pyscreen, *pyregion, *pyv3d, *pyrv3d;
   int preview_osl;
 
   if (!PyArg_ParseTuple(args,
-                        "OOOOOOi",
+                        "OOOOOOOi",
                         &pyengine,
                         &pypreferences,
                         &pydata,
+                        &pyscreen,
                         &pyregion,
                         &pyv3d,
                         &pyrv3d,
@@ -210,6 +211,8 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
   }
 
   /* RNA */
+  ID *bScreen = (ID *)PyLong_AsVoidPtr(pyscreen);
+
   PointerRNA engineptr;
   RNA_pointer_create(NULL, &RNA_RenderEngine, (void *)PyLong_AsVoidPtr(pyengine), &engineptr);
   BL::RenderEngine engine(engineptr);
@@ -224,15 +227,15 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
   BL::BlendData data(dataptr);
 
   PointerRNA regionptr;
-  RNA_pointer_create(NULL, &RNA_Region, pylong_as_voidptr_typesafe(pyregion), &regionptr);
+  RNA_pointer_create(bScreen, &RNA_Region, pylong_as_voidptr_typesafe(pyregion), &regionptr);
   BL::Region region(regionptr);
 
   PointerRNA v3dptr;
-  RNA_pointer_create(NULL, &RNA_SpaceView3D, pylong_as_voidptr_typesafe(pyv3d), &v3dptr);
+  RNA_pointer_create(bScreen, &RNA_SpaceView3D, pylong_as_voidptr_typesafe(pyv3d), &v3dptr);
   BL::SpaceView3D v3d(v3dptr);
 
   PointerRNA rv3dptr;
-  RNA_pointer_create(NULL, &RNA_RegionView3D, pylong_as_voidptr_typesafe(pyrv3d), &rv3dptr);
+  RNA_pointer_create(bScreen, &RNA_RegionView3D, pylong_as_voidptr_typesafe(pyrv3d), &rv3dptr);
   BL::RegionView3D rv3d(rv3dptr);
 
   /* create session */
