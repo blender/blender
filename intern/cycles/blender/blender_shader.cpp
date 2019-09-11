@@ -1165,8 +1165,10 @@ static void add_nodes(Scene *scene,
   BL::NodeTree::links_iterator b_link;
 
   for (b_ntree.links.begin(b_link); b_link != b_ntree.links.end(); ++b_link) {
-    /* Ignore invalid links to avoid unwanted cycles created in graph. */
-    if (!b_link->is_valid()) {
+    /* Ignore invalid links to avoid unwanted cycles created in graph.
+     * Also ignore links with unavailable sockets. */
+    if (!(b_link->is_valid() && b_link->from_socket().enabled() &&
+          b_link->to_socket().enabled())) {
       continue;
     }
     /* get blender link data */
