@@ -224,35 +224,31 @@ static void clipMirrorModifier(TransInfo *t)
 }
 
 /* assumes obedit set to mesh object */
-static void editbmesh_apply_to_mirror(TransInfo *t)
+static void transform_apply_to_mirror(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    if (tc->mirror.axis_flag) {
-      TransData *td = tc->data;
-      BMVert *eve;
+    if (tc->mirror.use_mirror_any) {
       int i;
+      TransData *td;
+      for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
+        if (td->flag & (TD_MIRROR_EDGE_X | TD_MIRROR_EDGE_Y | TD_MIRROR_EDGE_Z)) {
+          if (td->flag & TD_MIRROR_EDGE_X) {
+            td->loc[0] = 0.0f;
+          }
+          if (td->flag & TD_MIRROR_EDGE_Y) {
+            td->loc[1] = 0.0f;
+          }
+          if (td->flag & TD_MIRROR_EDGE_Z) {
+            td->loc[2] = 0.0f;
+          }
+        }
+      }
 
-      for (i = 0; i < tc->data_len; i++, td++) {
-        if (td->flag & TD_NOACTION) {
-          break;
-        }
-        if (td->loc == NULL) {
-          break;
-        }
-        if (td->flag & TD_SKIP) {
-          continue;
-        }
-
-        eve = td->extra;
-        if (eve) {
-          eve->co[0] = -td->loc[0];
-          eve->co[1] = td->loc[1];
-          eve->co[2] = td->loc[2];
-        }
-
-        if (td->flag & TD_MIRROR_EDGE) {
-          td->loc[0] = 0;
-        }
+      TransDataMirror *tdm;
+      for (i = 0, tdm = tc->mirror.data; i < tc->mirror.data_len; i++, tdm++) {
+        tdm->loc_dst[0] = tdm->loc_src[0] * tdm->sign_x;
+        tdm->loc_dst[1] = tdm->loc_src[1] * tdm->sign_y;
+        tdm->loc_dst[2] = tdm->loc_src[2] * tdm->sign_z;
       }
     }
   }
@@ -889,7 +885,7 @@ static void recalcData_objects(TransInfo *t)
         clipMirrorModifier(t);
       }
       if ((t->flag & T_NO_MIRROR) == 0 && (t->options & CTX_NO_MIRROR) == 0) {
-        editbmesh_apply_to_mirror(t);
+        transform_apply_to_mirror(t);
       }
 
       if (t->mode == TFM_EDGE_SLIDE) {
@@ -1361,11 +1357,12 @@ void initTransDataContainers_FromObjectData(TransInfo *t,
 
     for (int i = 0; i < objects_len; i++) {
       TransDataContainer *tc = &t->data_container[i];
-      /* TODO, multiple axes. */
-      tc->mirror.axis_flag = (((t->flag & T_NO_MIRROR) == 0) &&
-                              ((t->options & CTX_NO_MIRROR) == 0) &&
-                              (objects[i]->type == OB_MESH) &&
-                              (((Mesh *)objects[i]->data)->editflag & ME_EDIT_MIRROR_X) != 0);
+      if (((t->flag & T_NO_MIRROR) == 0) && ((t->options & CTX_NO_MIRROR) == 0) &&
+          (objects[i]->type == OB_MESH)) {
+        tc->mirror.axis_x = (((Mesh *)objects[i]->data)->editflag & ME_EDIT_MIRROR_X) != 0;
+        tc->mirror.axis_y = (((Mesh *)objects[i]->data)->editflag & ME_EDIT_MIRROR_Y) != 0;
+        tc->mirror.axis_z = (((Mesh *)objects[i]->data)->editflag & ME_EDIT_MIRROR_Z) != 0;
+      }
 
       if (object_mode & OB_MODE_EDIT) {
         tc->obedit = objects[i];
@@ -1902,6 +1899,7 @@ void postTrans(bContext *C, TransInfo *t)
 
       MEM_SAFE_FREE(tc->data_ext);
       MEM_SAFE_FREE(tc->data_2d);
+      MEM_SAFE_FREE(tc->mirror.data);
     }
   }
 
@@ -2348,11 +2346,6 @@ void calculatePropRatio(TransInfo *t)
       for (i = 0; i < tc->data_len; i++, td++) {
         if (td->flag & TD_SELECTED) {
           td->factor = 1.0f;
-        }
-        else if (tc->mirror.axis_flag && (td->loc[0] * tc->mirror.sign) < -0.00001f) {
-          td->flag |= TD_SKIP;
-          td->factor = 0.0f;
-          restoreElement(td);
         }
         else if ((connected && (td->flag & TD_NOTCONNECTED || td->dist > t->prop_size)) ||
                  (connected == 0 && td->rdist > t->prop_size)) {

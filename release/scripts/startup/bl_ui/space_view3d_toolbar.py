@@ -177,11 +177,21 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         ob = context.active_object
         mesh = ob.data
 
-        col = layout.column(align=True)
-        col.prop(mesh, "use_mirror_x")
+        split = layout.split()
+
+        col = split.column()
+        col.alignment = 'RIGHT'
+        col.label(text="Mirror")
+
+        col = split.column()
 
         row = col.row(align=True)
-        row.active = ob.data.use_mirror_x
+        row.prop(mesh, "use_mirror_x", text="X", toggle=True)
+        row.prop(mesh, "use_mirror_y", text="Y", toggle=True)
+        row.prop(mesh, "use_mirror_z", text="Z", toggle=True)
+
+        row = layout.row(align=True)
+        row.active = ob.data.use_mirror_x or ob.data.use_mirror_y or ob.data.use_mirror_z
         row.prop(mesh, "use_mirror_topology")
 
 

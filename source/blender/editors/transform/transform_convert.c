@@ -1778,18 +1778,16 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
       char hflag;
       bool has_face_sel = (bm->totfacesel != 0);
 
-      if (tc->mirror.axis_flag) {
-        TransData *td;
+      if (tc->mirror.use_mirror_any) {
+        TransDataMirror *tdm;
         int i;
 
         /* Rather then adjusting the selection (which the user would notice)
          * tag all mirrored verts, then auto-merge those. */
         BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 
-        for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
-          if (td->extra) {
-            BM_elem_flag_enable((BMVert *)td->extra, BM_ELEM_TAG);
-          }
+        for (i = tc->mirror.data_len, tdm = tc->mirror.data; i--; tdm++) {
+          BM_elem_flag_enable((BMVert *)tdm->extra, BM_ELEM_TAG);
         }
 
         hflag = BM_ELEM_SELECT | BM_ELEM_TAG;
@@ -1850,26 +1848,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
            * on transform completion since it's
            * really slow -joeedh */
           projectEdgeSlideData(t, true);
-
-          FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-            EdgeSlideData *sld = tc->custom.mode.data;
-
-            if (sld == NULL) {
-              continue;
-            }
-
-            /* Free temporary faces to avoid auto-merging and deleting
-             * during cleanup - psy-fi. */
-            freeEdgeSlideTempFaces(sld);
-          }
         }
         else if (t->mode == TFM_VERT_SLIDE) {
           /* as above */
           projectVertSlideData(t, true);
-          FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-            VertSlideData *sld = tc->custom.mode.data;
-            freeVertSlideTempFaces(sld);
-          }
         }
 
         if (t->obedit_type == OB_MESH) {

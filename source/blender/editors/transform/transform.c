@@ -6390,367 +6390,6 @@ static void applyBoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Original Data Store */
-
-/** \name Orig-Data Store Utility Functions
- * \{ */
-
-static void slide_origdata_init_flag(TransInfo *t, TransDataContainer *tc, SlideOrigData *sod)
-{
-  BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-  BMesh *bm = em->bm;
-  const bool has_layer_math = CustomData_has_math(&bm->ldata);
-  const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
-
-  if ((t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) &&
-      /* don't do this at all for non-basis shape keys, too easy to
-       * accidentally break uv maps or vertex colors then */
-      (bm->shapenr <= 1) && (has_layer_math || (cd_loop_mdisp_offset != -1))) {
-    sod->use_origfaces = true;
-    sod->cd_loop_mdisp_offset = cd_loop_mdisp_offset;
-  }
-  else {
-    sod->use_origfaces = false;
-    sod->cd_loop_mdisp_offset = -1;
-  }
-}
-
-static void slide_origdata_init_data(TransDataContainer *tc, SlideOrigData *sod)
-{
-  if (sod->use_origfaces) {
-    BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-    BMesh *bm = em->bm;
-
-    sod->origfaces = BLI_ghash_ptr_new(__func__);
-    sod->bm_origfaces = BM_mesh_create(&bm_mesh_allocsize_default,
-                                       &((struct BMeshCreateParams){
-                                           .use_toolflags = false,
-                                       }));
-    /* we need to have matching customdata */
-    BM_mesh_copy_init_customdata(sod->bm_origfaces, bm, NULL);
-  }
-}
-
-static void slide_origdata_create_data_vert(BMesh *bm,
-                                            SlideOrigData *sod,
-                                            TransDataGenericSlideVert *sv)
-{
-  BMIter liter;
-  int j, l_num;
-  float *loop_weights;
-
-  /* copy face data */
-  // BM_ITER_ELEM (l, &liter, sv->v, BM_LOOPS_OF_VERT) {
-  BM_iter_init(&liter, bm, BM_LOOPS_OF_VERT, sv->v);
-  l_num = liter.count;
-  loop_weights = BLI_array_alloca(loop_weights, l_num);
-  for (j = 0; j < l_num; j++) {
-    BMLoop *l = BM_iter_step(&liter);
-    BMLoop *l_prev, *l_next;
-    void **val_p;
-    if (!BLI_ghash_ensure_p(sod->origfaces, l->f, &val_p)) {
-      BMFace *f_copy = BM_face_copy(sod->bm_origfaces, bm, l->f, true, true);
-      *val_p = f_copy;
-    }
-
-    if ((l_prev = BM_loop_find_prev_nodouble(l, l->next, FLT_EPSILON)) &&
-        (l_next = BM_loop_find_next_nodouble(l, l_prev, FLT_EPSILON))) {
-      loop_weights[j] = angle_v3v3v3(l_prev->v->co, l->v->co, l_next->v->co);
-    }
-    else {
-      loop_weights[j] = 0.0f;
-    }
-  }
-
-  /* store cd_loop_groups */
-  if (sod->layer_math_map_num && (l_num != 0)) {
-    sv->cd_loop_groups = BLI_memarena_alloc(sod->arena, sod->layer_math_map_num * sizeof(void *));
-    for (j = 0; j < sod->layer_math_map_num; j++) {
-      const int layer_nr = sod->layer_math_map[j];
-      sv->cd_loop_groups[j] = BM_vert_loop_groups_data_layer_create(
-          bm, sv->v, layer_nr, loop_weights, sod->arena);
-    }
-  }
-  else {
-    sv->cd_loop_groups = NULL;
-  }
-
-  BLI_ghash_insert(sod->origverts, sv->v, sv);
-}
-
-static void slide_origdata_create_data(TransDataContainer *tc,
-                                       SlideOrigData *sod,
-                                       TransDataGenericSlideVert *sv_array,
-                                       unsigned int v_stride,
-                                       unsigned int v_num)
-{
-  if (sod->use_origfaces) {
-    BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-    BMesh *bm = em->bm;
-    unsigned int i;
-    TransDataGenericSlideVert *sv;
-
-    int layer_index_dst;
-    int j;
-
-    layer_index_dst = 0;
-
-    /* TODO: We don't need `sod->layer_math_map` when there are no loops linked
-     * to one of the sliding vertices. */
-    if (CustomData_has_math(&bm->ldata)) {
-      /* over alloc, only 'math' layers are indexed */
-      sod->layer_math_map = MEM_mallocN(bm->ldata.totlayer * sizeof(int), __func__);
-      for (j = 0; j < bm->ldata.totlayer; j++) {
-        if (CustomData_layer_has_math(&bm->ldata, j)) {
-          sod->layer_math_map[layer_index_dst++] = j;
-        }
-      }
-      BLI_assert(layer_index_dst != 0);
-    }
-
-    sod->layer_math_map_num = layer_index_dst;
-
-    sod->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
-
-    sod->origverts = BLI_ghash_ptr_new_ex(__func__, v_num);
-
-    for (i = 0, sv = sv_array; i < v_num; i++, sv = POINTER_OFFSET(sv, v_stride)) {
-      slide_origdata_create_data_vert(bm, sod, sv);
-    }
-
-    if (tc->mirror.axis_flag) {
-      TransData *td = tc->data;
-      TransDataGenericSlideVert *sv_mirror;
-
-      sod->sv_mirror = MEM_callocN(sizeof(*sv_mirror) * tc->data_len, __func__);
-      sod->totsv_mirror = tc->data_len;
-
-      sv_mirror = sod->sv_mirror;
-
-      for (i = 0; i < tc->data_len; i++, td++) {
-        BMVert *eve = td->extra;
-        /* Check the vertex has been used since both sides
-         * of the mirror may be selected & sliding. */
-        if (eve && !BLI_ghash_haskey(sod->origverts, eve)) {
-          sv_mirror->v = eve;
-          copy_v3_v3(sv_mirror->co_orig_3d, eve->co);
-
-          slide_origdata_create_data_vert(bm, sod, sv_mirror);
-          sv_mirror++;
-        }
-        else {
-          sod->totsv_mirror--;
-        }
-      }
-
-      if (sod->totsv_mirror == 0) {
-        MEM_freeN(sod->sv_mirror);
-        sod->sv_mirror = NULL;
-      }
-    }
-  }
-}
-
-/**
- * If we're sliding the vert, return its original location, if not, the current location is good.
- */
-static const float *slide_origdata_orig_vert_co(SlideOrigData *sod, BMVert *v)
-{
-  TransDataGenericSlideVert *sv = BLI_ghash_lookup(sod->origverts, v);
-  return sv ? sv->co_orig_3d : v->co;
-}
-
-static void slide_origdata_interp_data_vert(SlideOrigData *sod,
-                                            BMesh *bm,
-                                            bool is_final,
-                                            TransDataGenericSlideVert *sv)
-{
-  BMIter liter;
-  int j, l_num;
-  float *loop_weights;
-  const bool is_moved = (len_squared_v3v3(sv->v->co, sv->co_orig_3d) > FLT_EPSILON);
-  const bool do_loop_weight = sod->layer_math_map_num && is_moved;
-  const bool do_loop_mdisps = is_final && is_moved && (sod->cd_loop_mdisp_offset != -1);
-  const float *v_proj_axis = sv->v->no;
-  /* original (l->prev, l, l->next) projections for each loop ('l' remains unchanged) */
-  float v_proj[3][3];
-
-  if (do_loop_weight || do_loop_mdisps) {
-    project_plane_normalized_v3_v3v3(v_proj[1], sv->co_orig_3d, v_proj_axis);
-  }
-
-  // BM_ITER_ELEM (l, &liter, sv->v, BM_LOOPS_OF_VERT)
-  BM_iter_init(&liter, bm, BM_LOOPS_OF_VERT, sv->v);
-  l_num = liter.count;
-  loop_weights = do_loop_weight ? BLI_array_alloca(loop_weights, l_num) : NULL;
-  for (j = 0; j < l_num; j++) {
-    BMFace *f_copy; /* the copy of 'f' */
-    BMLoop *l = BM_iter_step(&liter);
-
-    f_copy = BLI_ghash_lookup(sod->origfaces, l->f);
-
-    /* only loop data, no vertex data since that contains shape keys,
-     * and we do not want to mess up other shape keys */
-    BM_loop_interp_from_face(bm, l, f_copy, false, false);
-
-    /* make sure face-attributes are correct (e.g. #MLoopUV, #MLoopCol) */
-    BM_elem_attrs_copy_ex(sod->bm_origfaces, bm, f_copy, l->f, 0x0, CD_MASK_NORMAL);
-
-    /* weight the loop */
-    if (do_loop_weight) {
-      const float eps = 1.0e-8f;
-      const BMLoop *l_prev = l->prev;
-      const BMLoop *l_next = l->next;
-      const float *co_prev = slide_origdata_orig_vert_co(sod, l_prev->v);
-      const float *co_next = slide_origdata_orig_vert_co(sod, l_next->v);
-      bool co_prev_ok;
-      bool co_next_ok;
-
-      /* In the unlikely case that we're next to a zero length edge -
-       * walk around the to the next.
-       *
-       * Since we only need to check if the vertex is in this corner,
-       * its not important _which_ loop - as long as its not overlapping
-       * 'sv->co_orig_3d', see: T45096. */
-      project_plane_normalized_v3_v3v3(v_proj[0], co_prev, v_proj_axis);
-      while (UNLIKELY(((co_prev_ok = (len_squared_v3v3(v_proj[1], v_proj[0]) > eps)) == false) &&
-                      ((l_prev = l_prev->prev) != l->next))) {
-        co_prev = slide_origdata_orig_vert_co(sod, l_prev->v);
-        project_plane_normalized_v3_v3v3(v_proj[0], co_prev, v_proj_axis);
-      }
-      project_plane_normalized_v3_v3v3(v_proj[2], co_next, v_proj_axis);
-      while (UNLIKELY(((co_next_ok = (len_squared_v3v3(v_proj[1], v_proj[2]) > eps)) == false) &&
-                      ((l_next = l_next->next) != l->prev))) {
-        co_next = slide_origdata_orig_vert_co(sod, l_next->v);
-        project_plane_normalized_v3_v3v3(v_proj[2], co_next, v_proj_axis);
-      }
-
-      if (co_prev_ok && co_next_ok) {
-        const float dist = dist_signed_squared_to_corner_v3v3v3(
-            sv->v->co, UNPACK3(v_proj), v_proj_axis);
-
-        loop_weights[j] = (dist >= 0.0f) ? 1.0f : ((dist <= -eps) ? 0.0f : (1.0f + (dist / eps)));
-        if (UNLIKELY(!isfinite(loop_weights[j]))) {
-          loop_weights[j] = 0.0f;
-        }
-      }
-      else {
-        loop_weights[j] = 0.0f;
-      }
-    }
-  }
-
-  if (sod->layer_math_map_num && sv->cd_loop_groups) {
-    if (do_loop_weight) {
-      for (j = 0; j < sod->layer_math_map_num; j++) {
-        BM_vert_loop_groups_data_layer_merge_weights(
-            bm, sv->cd_loop_groups[j], sod->layer_math_map[j], loop_weights);
-      }
-    }
-    else {
-      for (j = 0; j < sod->layer_math_map_num; j++) {
-        BM_vert_loop_groups_data_layer_merge(bm, sv->cd_loop_groups[j], sod->layer_math_map[j]);
-      }
-    }
-  }
-
-  /* Special handling for multires
-   *
-   * Interpolate from every other loop (not ideal)
-   * However values will only be taken from loops which overlap other mdisps.
-   * */
-  if (do_loop_mdisps) {
-    float(*faces_center)[3] = BLI_array_alloca(faces_center, l_num);
-    BMLoop *l;
-
-    BM_ITER_ELEM_INDEX (l, &liter, sv->v, BM_LOOPS_OF_VERT, j) {
-      BM_face_calc_center_median(l->f, faces_center[j]);
-    }
-
-    BM_ITER_ELEM_INDEX (l, &liter, sv->v, BM_LOOPS_OF_VERT, j) {
-      BMFace *f_copy = BLI_ghash_lookup(sod->origfaces, l->f);
-      float f_copy_center[3];
-      BMIter liter_other;
-      BMLoop *l_other;
-      int j_other;
-
-      BM_face_calc_center_median(f_copy, f_copy_center);
-
-      BM_ITER_ELEM_INDEX (l_other, &liter_other, sv->v, BM_LOOPS_OF_VERT, j_other) {
-        BM_face_interp_multires_ex(bm,
-                                   l_other->f,
-                                   f_copy,
-                                   faces_center[j_other],
-                                   f_copy_center,
-                                   sod->cd_loop_mdisp_offset);
-      }
-    }
-  }
-}
-
-static void slide_origdata_interp_data(Object *obedit,
-                                       SlideOrigData *sod,
-                                       TransDataGenericSlideVert *sv,
-                                       unsigned int v_stride,
-                                       unsigned int v_num,
-                                       bool is_final)
-{
-  if (sod->use_origfaces) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = em->bm;
-    unsigned int i;
-    const bool has_mdisps = (sod->cd_loop_mdisp_offset != -1);
-
-    for (i = 0; i < v_num; i++, sv = POINTER_OFFSET(sv, v_stride)) {
-
-      if (sv->cd_loop_groups || has_mdisps) {
-        slide_origdata_interp_data_vert(sod, bm, is_final, sv);
-      }
-    }
-
-    if (sod->sv_mirror) {
-      sv = sod->sv_mirror;
-      for (i = 0; i < v_num; i++, sv++) {
-        if (sv->cd_loop_groups || has_mdisps) {
-          slide_origdata_interp_data_vert(sod, bm, is_final, sv);
-        }
-      }
-    }
-  }
-}
-
-static void slide_origdata_free_date(SlideOrigData *sod)
-{
-  if (sod->use_origfaces) {
-    if (sod->bm_origfaces) {
-      BM_mesh_free(sod->bm_origfaces);
-      sod->bm_origfaces = NULL;
-    }
-
-    if (sod->origfaces) {
-      BLI_ghash_free(sod->origfaces, NULL, NULL);
-      sod->origfaces = NULL;
-    }
-
-    if (sod->origverts) {
-      BLI_ghash_free(sod->origverts, NULL, NULL);
-      sod->origverts = NULL;
-    }
-
-    if (sod->arena) {
-      BLI_memarena_free(sod->arena);
-      sod->arena = NULL;
-    }
-
-    MEM_SAFE_FREE(sod->layer_math_map);
-
-    MEM_SAFE_FREE(sod->sv_mirror);
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /* Transform (Edge Slide) */
 
 /** \name Transform Edge Slide
@@ -7201,8 +6840,6 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, TransDataContainer *t
   View3D *v3d = NULL;
   RegionView3D *rv3d = NULL;
 
-  slide_origdata_init_flag(t, tc, &sld->orig_data);
-
   sld->curr_sv_index = 0;
 
   /*ensure valid selection*/
@@ -7533,17 +7170,9 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, TransDataContainer *t
 
   calcEdgeSlide_mval_range(t, tc, sld, sv_table, loop_nr, mval, use_occlude_geometry, true);
 
-  /* create copies of faces for customdata projection */
-  bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
-  slide_origdata_init_data(tc, &sld->orig_data);
-  slide_origdata_create_data(
-      tc, &sld->orig_data, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv);
-
   if (rv3d) {
     calcEdgeSlide_even(t, tc, sld, mval);
   }
-
-  sld->em = em;
 
   tc->custom.mode.data = sld;
 
@@ -7577,8 +7206,6 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, TransDataContainer *t
     v3d = t->sa ? t->sa->spacedata.first : NULL;
     rv3d = t->ar ? t->ar->regiondata : NULL;
   }
-
-  slide_origdata_init_flag(t, tc, &sld->orig_data);
 
   sld->curr_sv_index = 0;
   /* ensure valid selection */
@@ -7728,17 +7355,9 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, TransDataContainer *t
 
   calcEdgeSlide_mval_range(t, tc, sld, sv_table, loop_nr, mval, use_occlude_geometry, false);
 
-  /* create copies of faces for customdata projection */
-  bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
-  slide_origdata_init_data(tc, &sld->orig_data);
-  slide_origdata_create_data(
-      tc, &sld->orig_data, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv);
-
   if (rv3d) {
     calcEdgeSlide_even(t, tc, sld, mval);
   }
-
-  sld->em = em;
 
   tc->custom.mode.data = sld;
 
@@ -7756,23 +7375,8 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
       continue;
     }
 
-    SlideOrigData *sod = &sld->orig_data;
-    if (sod->use_origfaces == false) {
-      continue;
-    }
-
-    slide_origdata_interp_data(tc->obedit,
-                               sod,
-                               (TransDataGenericSlideVert *)sld->sv,
-                               sizeof(*sld->sv),
-                               sld->totsv,
-                               is_final);
+    trans_mesh_customdata_correction_apply(tc, is_final);
   }
-}
-
-void freeEdgeSlideTempFaces(EdgeSlideData *sld)
-{
-  slide_origdata_free_date(&sld->orig_data);
 }
 
 void freeEdgeSlideVerts(TransInfo *UNUSED(t),
@@ -7784,10 +7388,6 @@ void freeEdgeSlideVerts(TransInfo *UNUSED(t),
   if (sld == NULL) {
     return;
   }
-
-  freeEdgeSlideTempFaces(sld);
-
-  bmesh_edit_end(sld->em->bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
 
   MEM_freeN(sld->sv);
   MEM_freeN(sld);
@@ -7846,6 +7446,8 @@ static void initEdgeSlide_ex(
     }
     tc->custom.mode.free_cb = freeEdgeSlideVerts;
   }
+
+  trans_mesh_customdata_correction_init(t);
 
   /* set custom point first if you want value to be initialized by init */
   calcEdgeSlideCustomPoints(t);
@@ -8322,8 +7924,6 @@ static bool createVertSlideVerts(TransInfo *t, TransDataContainer *tc)
   VertSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
   int j;
 
-  slide_origdata_init_flag(t, tc, &sld->orig_data);
-
   sld->curr_sv_index = 0;
 
   j = 0;
@@ -8387,13 +7987,6 @@ static bool createVertSlideVerts(TransInfo *t, TransDataContainer *tc)
   sld->sv = sv_array;
   sld->totsv = j;
 
-  bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
-  slide_origdata_init_data(tc, &sld->orig_data);
-  slide_origdata_create_data(
-      tc, &sld->orig_data, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv);
-
-  sld->em = em;
-
   tc->custom.mode.data = sld;
 
   /* most likely will be set below */
@@ -8423,21 +8016,8 @@ void projectVertSlideData(TransInfo *t, bool is_final)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     VertSlideData *sld = tc->custom.mode.data;
-    SlideOrigData *sod = &sld->orig_data;
-    if (sod->use_origfaces == true) {
-      slide_origdata_interp_data(tc->obedit,
-                                 sod,
-                                 (TransDataGenericSlideVert *)sld->sv,
-                                 sizeof(*sld->sv),
-                                 sld->totsv,
-                                 is_final);
-    }
+    trans_mesh_customdata_correction_apply(tc, is_final);
   }
-}
-
-void freeVertSlideTempFaces(VertSlideData *sld)
-{
-  slide_origdata_free_date(&sld->orig_data);
 }
 
 void freeVertSlideVerts(TransInfo *UNUSED(t),
@@ -8449,10 +8029,6 @@ void freeVertSlideVerts(TransInfo *UNUSED(t),
   if (!sld) {
     return;
   }
-
-  freeVertSlideTempFaces(sld);
-
-  bmesh_edit_end(sld->em->bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
 
   if (sld->totsv > 0) {
     TransDataVertSlideVert *sv = sld->sv;
@@ -8502,6 +8078,8 @@ static void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use
     t->state = TRANS_CANCEL;
     return;
   }
+
+  trans_mesh_customdata_correction_init(t);
 
   /* set custom point first if you want value to be initialized by init */
   calcVertSlideCustomPoints(t);

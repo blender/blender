@@ -294,38 +294,11 @@ typedef struct TransDataEdgeSlideVert {
   int loop_nr;
 } TransDataEdgeSlideVert;
 
-/* store original data so we can correct UV's and similar when sliding */
-typedef struct SlideOrigData {
-  /** Set when #origfaces is initialized. */
-  bool use_origfaces;
-  int cd_loop_mdisp_offset;
-
-  /** map {BMVert: TransDataGenericSlideVert} */
-  struct GHash *origverts;
-  struct GHash *origfaces;
-  struct BMesh *bm_origfaces;
-
-  struct MemArena *arena;
-  /** Number of math BMLoop layers. */
-  int layer_math_map_num;
-  /** Array size of 'layer_math_map_num'
-   * maps TransDataVertSlideVert.cd_group index to absolute CustomData layer index */
-  int *layer_math_map;
-
-  /** Array of slide vert data especially for mirror verts. */
-  TransDataGenericSlideVert *sv_mirror;
-  int totsv_mirror;
-} SlideOrigData;
-
 typedef struct EdgeSlideData {
   TransDataEdgeSlideVert *sv;
   int totsv;
 
   int mval_start[2], mval_end[2];
-  struct BMEditMesh *em;
-
-  SlideOrigData orig_data;
-
   int curr_sv_index;
 
   /** when un-clamped - use this index: #TransDataEdgeSlideVert.dir_side */
@@ -354,11 +327,6 @@ typedef struct TransDataVertSlideVert {
 typedef struct VertSlideData {
   TransDataVertSlideVert *sv;
   int totsv;
-
-  struct BMEditMesh *em;
-
-  SlideOrigData orig_data;
-
   int curr_sv_index;
 
   /* result of ED_view3d_ob_project_mat_get */
@@ -448,6 +416,18 @@ typedef struct TransData {
   /** If set, copy of Object or PoseChannel protection. */
   short protectflag;
 } TransData;
+
+typedef struct TransDataMirror {
+  /** location of mirrored reference data. */
+  const float *loc_src;
+  /** Location of the data to transform. */
+  float *loc_dst;
+  void *extra;
+  /* `sign` can be -2, -1, 0 or 1. */
+  int sign_x : 2;
+  int sign_y : 2;
+  int sign_z : 2;
+} TransDataMirror;
 
 typedef struct MouseInput {
   void (*apply)(struct TransInfo *t, struct MouseInput *mi, const double mval[2], float output[3]);
@@ -549,10 +529,18 @@ typedef struct TransDataContainer {
    * Mirror option
    */
   struct {
-    /* Currently for mesh X mirror only. */
-    int axis_flag;
-    /** Set to -1.0f or 1.0 when use_mirror is set. */
-    float sign;
+    union {
+      struct {
+        uint axis_x : 1;
+        uint axis_y : 1;
+        uint axis_z : 1;
+      };
+      /* For easy checking. */
+      char use_mirror_any;
+    };
+    /** Mirror data array. */
+    TransDataMirror *data;
+    int data_len;
   } mirror;
 
   TransCustomDataContainer custom;
@@ -860,16 +848,18 @@ enum {
   /** For Graph Editor - curves that can only have int-values
    * need their keyframes tagged with this. */
   TD_INTVALUES = 1 << 15,
-  /** For editmode mirror, clamp to x = 0 */
-  TD_MIRROR_EDGE = 1 << 16,
+  /** For editmode mirror, clamp axis to 0 */
+  TD_MIRROR_EDGE_X = 1 << 16,
+  TD_MIRROR_EDGE_Y = 1 << 17,
+  TD_MIRROR_EDGE_Z = 1 << 18,
   /** For fcurve handles, move them along with their keyframes */
-  TD_MOVEHANDLE1 = 1 << 17,
-  TD_MOVEHANDLE2 = 1 << 18,
+  TD_MOVEHANDLE1 = 1 << 19,
+  TD_MOVEHANDLE2 = 1 << 20,
   /** Exceptional case with pose bone rotating when a parent bone has 'Local Location'
    * option enabled and rotating also transforms it. */
-  TD_PBONE_LOCAL_MTX_P = 1 << 19,
+  TD_PBONE_LOCAL_MTX_P = 1 << 21,
   /** Same as above but for a child bone. */
-  TD_PBONE_LOCAL_MTX_C = 1 << 20,
+  TD_PBONE_LOCAL_MTX_C = 1 << 22,
 };
 
 /** #TransSnap.status */
@@ -1091,11 +1081,9 @@ int getTransformOrientation(const struct bContext *C, float normal[3], float pla
 
 void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
 
-void freeEdgeSlideTempFaces(EdgeSlideData *sld);
 void freeEdgeSlideVerts(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
 void projectEdgeSlideData(TransInfo *t, bool is_final);
 
-void freeVertSlideTempFaces(VertSlideData *sld);
 void freeVertSlideVerts(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
 void projectVertSlideData(TransInfo *t, bool is_final);
 
