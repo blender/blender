@@ -3521,6 +3521,10 @@ static void do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   float pose_initial_co[3];
   float transform_rot[4][4], transform_trans[4][4], transform_trans_inv[4][4];
 
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    return;
+  }
+
   copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
 
   copy_v3_v3(pose_origin, ss->cache->pose_origin);
@@ -5072,7 +5076,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 
     if (brush->sculpt_tool == SCULPT_TOOL_POSE && ss->cache->first_time &&
         ss->cache->mirror_symmetry_pass == 0) {
-      sculpt_pose_brush_init(sd, ob, ss, brush);
+      if (BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
+        sculpt_pose_brush_init(sd, ob, ss, brush);
+      }
     }
 
     /* Apply one type of brush action */
@@ -8136,6 +8142,10 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ob->sculpt->pbvh;
 
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    return OPERATOR_CANCELLED;
+  }
+
   int deform_axis = RNA_enum_get(op->ptr, "deform_axis");
   if (deform_axis == 0) {
     return OPERATOR_CANCELLED;
@@ -8339,6 +8349,10 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   int totnode;
   int filter_type = RNA_enum_get(op->ptr, "filter_type");
 
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    return OPERATOR_CANCELLED;
+  }
+
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true);
 
   sculpt_vertex_random_access_init(ss);
@@ -8500,6 +8514,10 @@ static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
   PBVHNode **nodes;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   int totnode;
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    return OPERATOR_CANCELLED;
+  }
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true);
 
@@ -8812,6 +8830,10 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   float mouse[2];
   mouse[0] = event->mval[0];
   mouse[1] = event->mval[1];
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    return OPERATOR_CANCELLED;
+  }
 
   sculpt_vertex_random_access_init(ss);
 
@@ -9345,6 +9367,10 @@ static int sculpt_set_pivot_position_invoke(bContext *C, wmOperator *op, const w
   ARegion *ar = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    return OPERATOR_CANCELLED;
+  }
 
   int mode = RNA_enum_get(op->ptr, "mode");
 
