@@ -3057,19 +3057,21 @@ bool isect_line_line_strict_v3(const float v1[3],
  *
  * \note Neither directions need to be normalized.
  */
-bool isect_ray_ray_v3(const float ray_origin_a[3],
-                      const float ray_direction_a[3],
-                      const float ray_origin_b[3],
-                      const float ray_direction_b[3],
-                      float *r_lambda_a,
-                      float *r_lambda_b)
+bool isect_ray_ray_epsilon_v3(const float ray_origin_a[3],
+                              const float ray_direction_a[3],
+                              const float ray_origin_b[3],
+                              const float ray_direction_b[3],
+                              const float epsilon,
+                              float *r_lambda_a,
+                              float *r_lambda_b)
 {
   BLI_assert(r_lambda_a || r_lambda_b);
   float n[3];
   cross_v3_v3v3(n, ray_direction_b, ray_direction_a);
   const float nlen = len_squared_v3(n);
 
-  if (UNLIKELY(nlen == 0.0f)) {
+  /* `nlen` is the the square of the area formed by the two vectors. */
+  if (UNLIKELY(nlen < epsilon)) {
     /* The lines are parallel. */
     return false;
   }
@@ -3089,6 +3091,22 @@ bool isect_ray_ray_v3(const float ray_origin_a[3],
   }
 
   return true;
+}
+
+bool isect_ray_ray_v3(const float ray_origin_a[3],
+                      const float ray_direction_a[3],
+                      const float ray_origin_b[3],
+                      const float ray_direction_b[3],
+                      float *r_lambda_a,
+                      float *r_lambda_b)
+{
+  return isect_ray_ray_epsilon_v3(ray_origin_a,
+                                  ray_direction_a,
+                                  ray_origin_b,
+                                  ray_direction_b,
+                                  FLT_MIN,
+                                  r_lambda_a,
+                                  r_lambda_b);
 }
 
 bool isect_aabb_aabb_v3(const float min1[3],

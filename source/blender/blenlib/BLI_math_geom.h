@@ -311,7 +311,13 @@ bool isect_line_line_strict_v3(const float v1[3],
                                const float v4[3],
                                float vi[3],
                                float *r_lambda);
-
+bool isect_ray_ray_epsilon_v3(const float ray_origin_a[3],
+                              const float ray_direction_a[3],
+                              const float ray_origin_b[3],
+                              const float ray_direction_b[3],
+                              const float epsilon,
+                              float *r_lambda_a,
+                              float *r_lambda_b);
 bool isect_ray_ray_v3(const float ray_origin_a[3],
                       const float ray_direction_a[3],
                       const float ray_origin_b[3],
