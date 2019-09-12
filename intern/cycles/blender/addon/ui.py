@@ -22,6 +22,8 @@ from bl_ui.utils import PresetPanel
 
 from bpy.types import Panel
 
+from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
+
 
 class CYCLES_PT_sampling_presets(PresetPanel, Panel):
     bl_label = "Sampling Presets"
@@ -2108,6 +2110,11 @@ class CYCLES_VIEW3D_PT_shading_lighting(Panel):
             col.prop(shading, "studiolight_intensity")
             col.prop(shading, "studiolight_background_alpha")
 
+class CYCLES_VIEW3D_PT_simplify_greasepencil(CyclesButtonsPanel, Panel, GreasePencilSimplifyPanel):
+    bl_label = "Grease Pencil"
+    bl_parent_id = "CYCLES_RENDER_PT_simplify"
+    COMPAT_ENGINES = {'CYCLES'}
+    bl_options = {'DEFAULT_CLOSED'}
 
 def draw_device(self, context):
     scene = context.scene
@@ -2190,6 +2197,7 @@ classes = (
     CYCLES_RENDER_PT_simplify_viewport,
     CYCLES_RENDER_PT_simplify_render,
     CYCLES_RENDER_PT_simplify_culling,
+    CYCLES_VIEW3D_PT_simplify_greasepencil,
     CYCLES_VIEW3D_PT_shading_lighting,
     CYCLES_VIEW3D_PT_shading_render_pass,
     CYCLES_RENDER_PT_motion_blur,
