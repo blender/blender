@@ -24,7 +24,7 @@
 
 namespace BLI {
 
-static Vector<Array<uint, RawAllocator>, 0, RawAllocator> arrays;
+static Vector<Array<uint, RawAllocator>, 1, RawAllocator> arrays;
 static uint current_array_size = 0;
 static uint *current_array = nullptr;
 static std::mutex current_array_mutex;
