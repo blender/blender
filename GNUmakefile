@@ -62,8 +62,7 @@ Testing Targets
    Not associated with building Blender.
 
    * test:
-     Run ctest, currently tests import/export,
-     operator execution and that python modules load
+     Run automated tests with ctest.
    * test_cmake:
      Runs our own cmake file checker
      which detects errors in the cmake file list definitions

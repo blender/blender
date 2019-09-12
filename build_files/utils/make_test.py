@@ -18,6 +18,7 @@ def parse_arguments():
     parser.add_argument("--cmake-command", default="cmake")
     parser.add_argument("--svn-command", default="svn")
     parser.add_argument("--git-command", default="git")
+    parser.add_argument("--config", default="")
     parser.add_argument("build_directory")
     return parser.parse_args()
 
@@ -26,10 +27,15 @@ git_command = args.git_command
 svn_command = args.svn_command
 ctest_command = args.ctest_command
 cmake_command = args.cmake_command
+config = args.config
 build_dir = args.build_directory
 
 if shutil.which(ctest_command) is None:
     sys.stderr.write("ctest not found, can't run tests\n")
+    sys.exit(1)
+
+if shutil.which(git_command) is None:
+    sys.stderr.write("git not found, can't run tests\n")
     sys.exit(1)
 
 # Test if we are building a specific release version.
@@ -43,6 +49,10 @@ if not os.path.exists(lib_tests_dirpath):
         sys.stderr.write("svn not found, can't checkout test files\n")
         sys.exit(1)
 
+    if shutil.which(cmake_command) is None:
+        sys.stderr.write("cmake not found, can't checkout test files\n")
+        sys.exit(1)
+
     svn_url = make_utils.svn_libraries_base_url(release_version) + "/tests"
     call([svn_command, "checkout", svn_url, lib_tests_dirpath])
 
@@ -52,4 +62,7 @@ if not os.path.exists(lib_tests_dirpath):
 
 # Run tests
 os.chdir(build_dir)
-call([ctest_command, ".", "--output-on-failure"])
+command = [ctest_command, ".", "--output-on-failure"]
+if len(config):
+    command += ["-C", config]
+call(command)

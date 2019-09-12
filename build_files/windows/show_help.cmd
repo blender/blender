@@ -13,6 +13,7 @@ echo - update ^(Update both SVN and GIT^)
 echo - code_update ^(Update only GIT^)
 echo - nobuild ^(only generate project files^)
 echo - showhash ^(Show git hashes of source tree^)
+echo - test ^(Run automated tests with ctest^)
 echo - format [path] ^(Format the source using clang-format, path is optional, requires python 3.x to be available^)
 echo.
 echo Configuration options
