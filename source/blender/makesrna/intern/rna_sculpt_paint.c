@@ -1041,6 +1041,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
                            0,
                            0);
   RNA_def_property_range(prop, 512, 16384);
+  RNA_def_property_subtype(prop, PROP_PIXEL);
 
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
