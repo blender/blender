@@ -3690,9 +3690,11 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
   if (draw_ctx->object_mode == OB_MODE_OBJECT) {
     if (scene->toolsettings->transform_flag & SCE_XFORM_DATA_ORIGIN) {
       if (ob->base_flag & BASE_SELECTED) {
-        const float color[4] = {0.75, 0.75, 0.75, 0.5};
-        float axes_size = 1.0f;
-        DRW_buffer_add_entry(sgl->origin_xform, color, &axes_size, ob->obmat);
+        if (!DRW_state_is_select()) {
+          const float color[4] = {0.75, 0.75, 0.75, 0.5};
+          float axes_size = 1.0f;
+          DRW_buffer_add_entry(sgl->origin_xform, color, &axes_size, ob->obmat);
+        }
       }
     }
   }
