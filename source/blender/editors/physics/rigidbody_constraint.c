@@ -81,14 +81,7 @@ static bool ED_operator_rigidbody_con_add_poll(bContext *C)
        ID_IS_LINKED(&scene->rigidbody_world->constraints->id))) {
     return false;
   }
-
-  if (ED_operator_object_active_editable(C)) {
-    Object *ob = ED_object_active_context(C);
-    return (ob && ob->type == OB_MESH);
-  }
-  else {
-    return false;
-  }
+  return ED_operator_object_active_editable(C);
 }
 
 bool ED_rigidbody_constraint_add(
