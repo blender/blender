@@ -162,6 +162,27 @@ ccl_device_inline float3 primitive_attribute_float3(KernelGlobals *kg,
   }
 }
 
+ccl_device_inline float4 primitive_attribute_float4(KernelGlobals *kg,
+                                                    const ShaderData *sd,
+                                                    const AttributeDescriptor desc,
+                                                    float4 *dx,
+                                                    float4 *dy)
+{
+  if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
+    if (subd_triangle_patch(kg, sd) == ~0)
+      return triangle_attribute_float4(kg, sd, desc, dx, dy);
+    else
+      return subd_triangle_attribute_float4(kg, sd, desc, dx, dy);
+  }
+  else {
+    if (dx)
+      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    if (dy)
+      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  }
+}
+
 ccl_device_inline float2 primitive_surface_attribute_float2(KernelGlobals *kg,
                                                             const ShaderData *sd,
                                                             const AttributeDescriptor desc,

@@ -48,7 +48,8 @@ void Attribute::set(ustring name_, TypeDesc type_, AttributeElement element_)
   /* string and matrix not supported! */
   assert(type == TypeDesc::TypeFloat || type == TypeDesc::TypeColor ||
          type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
-         type == TypeDesc::TypeNormal || type == TypeDesc::TypeMatrix || type == TypeFloat2);
+         type == TypeDesc::TypeNormal || type == TypeDesc::TypeMatrix || type == TypeFloat2 ||
+         type == TypeRGBA);
 }
 
 void Attribute::resize(Mesh *mesh, AttributePrimitive prim, bool reserve_only)

@@ -223,6 +223,7 @@ set(SRC_SVM_HEADERS
   svm/svm_voxel.h
   svm/svm_wave.h
   svm/svm_white_noise.h
+  svm/svm_vertex_color.h
 )
 
 set(SRC_GEOM_HEADERS

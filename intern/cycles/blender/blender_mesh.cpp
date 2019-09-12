@@ -335,7 +335,7 @@ static void attr_create_vertex_color(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh,
         continue;
 
       Attribute *attr = mesh->subd_attributes.add(
-          ustring(l->name().c_str()), TypeDesc::TypeColor, ATTR_ELEMENT_CORNER_BYTE);
+          ustring(l->name().c_str()), TypeRGBA, ATTR_ELEMENT_CORNER_BYTE);
 
       BL::Mesh::polygons_iterator p;
       uchar4 *cdata = attr->data_uchar4();
@@ -343,9 +343,9 @@ static void attr_create_vertex_color(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh,
       for (b_mesh.polygons.begin(p); p != b_mesh.polygons.end(); ++p) {
         int n = p->loop_total();
         for (int i = 0; i < n; i++) {
-          float3 color = get_float3(l->data[p->loop_start() + i].color());
+          float4 color = get_float4(l->data[p->loop_start() + i].color());
           /* Compress/encode vertex color using the sRGB curve. */
-          *(cdata++) = color_float_to_byte(color_srgb_to_linear_v3(color));
+          *(cdata++) = color_float4_to_uchar4(color_srgb_to_linear_v4(color));
         }
       }
     }
@@ -357,21 +357,21 @@ static void attr_create_vertex_color(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh,
         continue;
 
       Attribute *attr = mesh->attributes.add(
-          ustring(l->name().c_str()), TypeDesc::TypeColor, ATTR_ELEMENT_CORNER_BYTE);
+          ustring(l->name().c_str()), TypeRGBA, ATTR_ELEMENT_CORNER_BYTE);
 
       BL::Mesh::loop_triangles_iterator t;
       uchar4 *cdata = attr->data_uchar4();
 
       for (b_mesh.loop_triangles.begin(t); t != b_mesh.loop_triangles.end(); ++t) {
         int3 li = get_int3(t->loops());
-        float3 c1 = get_float3(l->data[li[0]].color());
-        float3 c2 = get_float3(l->data[li[1]].color());
-        float3 c3 = get_float3(l->data[li[2]].color());
+        float4 c1 = get_float4(l->data[li[0]].color());
+        float4 c2 = get_float4(l->data[li[1]].color());
+        float4 c3 = get_float4(l->data[li[2]].color());
 
         /* Compress/encode vertex color using the sRGB curve. */
-        cdata[0] = color_float_to_byte(color_srgb_to_linear_v3(c1));
-        cdata[1] = color_float_to_byte(color_srgb_to_linear_v3(c2));
-        cdata[2] = color_float_to_byte(color_srgb_to_linear_v3(c3));
+        cdata[0] = color_float4_to_uchar4(color_srgb_to_linear_v4(c1));
+        cdata[1] = color_float4_to_uchar4(color_srgb_to_linear_v4(c2));
+        cdata[2] = color_float4_to_uchar4(color_srgb_to_linear_v4(c3));
         cdata += 3;
       }
     }

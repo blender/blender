@@ -380,15 +380,15 @@ ccl_device float3 patch_eval_float3(KernelGlobals *kg,
   return val;
 }
 
-ccl_device float3 patch_eval_uchar4(KernelGlobals *kg,
+ccl_device float4 patch_eval_uchar4(KernelGlobals *kg,
                                     const ShaderData *sd,
                                     int offset,
                                     int patch,
                                     float u,
                                     float v,
                                     int channel,
-                                    float3 *du,
-                                    float3 *dv)
+                                    float4 *du,
+                                    float4 *dv)
 {
   int indices[PATCH_MAX_CONTROL_VERTS];
   float weights[PATCH_MAX_CONTROL_VERTS];
@@ -398,14 +398,14 @@ ccl_device float3 patch_eval_uchar4(KernelGlobals *kg,
   int num_control = patch_eval_control_verts(
       kg, sd->object, patch, u, v, channel, indices, weights, weights_du, weights_dv);
 
-  float3 val = make_float3(0.0f, 0.0f, 0.0f);
+  float4 val = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   if (du)
-    *du = make_float3(0.0f, 0.0f, 0.0f);
+    *du = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   if (dv)
-    *dv = make_float3(0.0f, 0.0f, 0.0f);
+    *dv = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
   for (int i = 0; i < num_control; i++) {
-    float3 v = color_byte_to_float(kernel_tex_fetch(__attributes_uchar4, offset + indices[i]));
+    float4 v = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, offset + indices[i]));
 
     val += v * weights[i];
     if (du)

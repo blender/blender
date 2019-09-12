@@ -483,6 +483,65 @@ static bool set_attribute_float3(float3 f, TypeDesc type, bool derivatives, void
   return set_attribute_float3(fv, type, derivatives, val);
 }
 
+/* Attributes with the TypeRGBA type descriptor should be retrived and stored
+ * in a float array of size 4 (e.g. node_vertex_color.osl), this array have
+ * a type descriptor TypeFloatArray4. If the storage is not a TypeFloatArray4,
+ * we either store the first three components in a vector, store the average of
+ * the components in a float, or fail the retrival and do nothing. We allow
+ * this for the correct operation of the Attribute node.
+ */
+
+static bool set_attribute_float4(float4 f[3], TypeDesc type, bool derivatives, void *val)
+{
+  float *fval = (float *)val;
+  if (type == TypeFloatArray4) {
+    fval[0] = f[0].x;
+    fval[1] = f[0].y;
+    fval[2] = f[0].z;
+    fval[3] = f[0].w;
+
+    if (derivatives) {
+      fval[4] = f[1].x;
+      fval[5] = f[1].y;
+      fval[6] = f[1].z;
+      fval[7] = f[1].w;
+
+      fval[8] = f[2].x;
+      fval[9] = f[2].y;
+      fval[10] = f[2].z;
+      fval[11] = f[2].w;
+    }
+    return true;
+  }
+  else if (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
+           type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor) {
+    fval[0] = f[0].x;
+    fval[1] = f[0].y;
+    fval[2] = f[0].z;
+
+    if (derivatives) {
+      fval[3] = f[1].x;
+      fval[4] = f[1].y;
+      fval[5] = f[1].z;
+
+      fval[6] = f[2].x;
+      fval[7] = f[2].y;
+      fval[8] = f[2].z;
+    }
+    return true;
+  }
+  else if (type == TypeDesc::TypeFloat) {
+    fval[0] = average(float4_to_float3(f[0]));
+
+    if (derivatives) {
+      fval[1] = average(float4_to_float3(f[1]));
+      fval[2] = average(float4_to_float3(f[2]));
+    }
+    return true;
+  }
+  return false;
+}
+
 static bool set_attribute_float(float f[3], TypeDesc type, bool derivatives, void *val)
 {
   if (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
@@ -628,6 +687,12 @@ static bool get_primitive_attribute(KernelGlobals *kg,
     fval[0] = primitive_attribute_float(
         kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
     return set_attribute_float(fval, type, derivatives, val);
+  }
+  else if (attr.type == TypeRGBA) {
+    float4 fval[3];
+    fval[0] = primitive_attribute_float4(
+        kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    return set_attribute_float4(fval, type, derivatives, val);
   }
   else {
     return false;

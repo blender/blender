@@ -1223,6 +1223,8 @@ void MeshManager::update_osl_attributes(Device *device,
           osl_attr.type = TypeDesc::TypeMatrix;
         else if (req.triangle_type == TypeFloat2)
           osl_attr.type = TypeFloat2;
+        else if (req.triangle_type == TypeRGBA)
+          osl_attr.type = TypeRGBA;
         else
           osl_attr.type = TypeDesc::TypeColor;
 
@@ -1246,6 +1248,8 @@ void MeshManager::update_osl_attributes(Device *device,
           osl_attr.type = TypeDesc::TypeMatrix;
         else if (req.curve_type == TypeFloat2)
           osl_attr.type = TypeFloat2;
+        else if (req.curve_type == TypeRGBA)
+          osl_attr.type = TypeRGBA;
         else
           osl_attr.type = TypeDesc::TypeColor;
 
@@ -1269,6 +1273,8 @@ void MeshManager::update_osl_attributes(Device *device,
           osl_attr.type = TypeDesc::TypeMatrix;
         else if (req.subd_type == TypeFloat2)
           osl_attr.type = TypeFloat2;
+        else if (req.subd_type == TypeRGBA)
+          osl_attr.type = TypeRGBA;
         else
           osl_attr.type = TypeDesc::TypeColor;
 
@@ -1341,6 +1347,8 @@ void MeshManager::update_svm_attributes(Device *,
           attr_map[index].w = NODE_ATTR_MATRIX;
         else if (req.triangle_type == TypeFloat2)
           attr_map[index].w = NODE_ATTR_FLOAT2;
+        else if (req.triangle_type == TypeRGBA)
+          attr_map[index].w = NODE_ATTR_RGBA;
         else
           attr_map[index].w = NODE_ATTR_FLOAT3;
 
@@ -1379,6 +1387,8 @@ void MeshManager::update_svm_attributes(Device *,
           attr_map[index].w = NODE_ATTR_MATRIX;
         else if (req.subd_type == TypeFloat2)
           attr_map[index].w = NODE_ATTR_FLOAT2;
+        else if (req.triangle_type == TypeRGBA)
+          attr_map[index].w = NODE_ATTR_RGBA;
         else
           attr_map[index].w = NODE_ATTR_FLOAT3;
 

@@ -4867,6 +4867,19 @@ static void def_sh_uvmap(StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "bNode", NULL);
 }
 
+static void def_sh_vertex_color(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeShaderVertexColor", "storage");
+
+  prop = RNA_def_property(srna, "layer_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Vertex Color", "Vertex Color");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  RNA_def_struct_sdna_from(srna, "bNode", NULL);
+}
+
 static void def_sh_uvalongstroke(StructRNA *srna)
 {
   PropertyRNA *prop;

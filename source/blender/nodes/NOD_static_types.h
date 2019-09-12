@@ -121,6 +121,7 @@ DefNode(ShaderNode,     SH_NODE_VECT_TRANSFORM,     def_sh_vect_transform,  "VEC
 DefNode(ShaderNode,     SH_NODE_SEPHSV,             0,                      "SEPHSV",             SeparateHSV,      "Separate HSV",      ""       )
 DefNode(ShaderNode,     SH_NODE_COMBHSV,            0,                      "COMBHSV",            CombineHSV,       "Combine HSV",       ""       )
 DefNode(ShaderNode,     SH_NODE_UVMAP,              def_sh_uvmap,           "UVMAP",              UVMap,            "UV Map",            ""       )
+DefNode(ShaderNode,     SH_NODE_VERTEX_COLOR,       def_sh_vertex_color,    "VERTEX_COLOR",       VertexColor,      "Vertex Color",      ""       )
 DefNode(ShaderNode,     SH_NODE_UVALONGSTROKE,      def_sh_uvalongstroke,   "UVALONGSTROKE",      UVAlongStroke,    "UV Along Stroke",   ""       )
 DefNode(ShaderNode,     SH_NODE_SEPXYZ,             0,                      "SEPXYZ",             SeparateXYZ,      "Separate XYZ",      ""       )
 DefNode(ShaderNode,     SH_NODE_COMBXYZ,            0,                      "COMBXYZ",            CombineXYZ,       "Combine XYZ",       ""       )

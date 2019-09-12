@@ -998,6 +998,18 @@ static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *pt
   }
 }
 
+static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
+  if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
+    PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
+    uiItemPointerR(layout, ptr, "layer_name", &dataptr, "vertex_colors", "", ICON_GROUP_VCOL);
+  }
+  else {
+    uiItemL(layout, "No mesh in active object.", ICON_ERROR);
+  }
+}
+
 static void node_shader_buts_uvalongstroke(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "use_tips", 0, NULL, 0);
@@ -1298,6 +1310,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
       break;
     case SH_NODE_UVMAP:
       ntype->draw_buttons = node_shader_buts_uvmap;
+      break;
+    case SH_NODE_VERTEX_COLOR:
+      ntype->draw_buttons = node_shader_buts_vertex_color;
       break;
     case SH_NODE_UVALONGSTROKE:
       ntype->draw_buttons = node_shader_buts_uvalongstroke;

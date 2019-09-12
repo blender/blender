@@ -590,6 +590,12 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_a(&RNA_ShaderNodeVolumeInfo)) {
     node = new VolumeInfoNode();
   }
+  else if (b_node.is_a(&RNA_ShaderNodeVertexColor)) {
+    BL::ShaderNodeVertexColor b_vertex_color_node(b_node);
+    VertexColorNode *vertex_color_node = new VertexColorNode();
+    vertex_color_node->layer_name = b_vertex_color_node.layer_name();
+    node = vertex_color_node;
+  }
   else if (b_node.is_a(&RNA_ShaderNodeBump)) {
     BL::ShaderNodeBump b_bump_node(b_node);
     BumpNode *bump = new BumpNode();

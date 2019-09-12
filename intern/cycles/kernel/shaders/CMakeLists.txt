@@ -80,6 +80,7 @@ set(SRC_OSL
   node_vector_math.osl
   node_vector_transform.osl
   node_velvet_bsdf.osl
+  node_vertex_color.osl
   node_voronoi_texture.osl
   node_voxel_texture.osl
   node_wavelength.osl

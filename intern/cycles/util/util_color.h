@@ -43,9 +43,27 @@ ccl_device uchar4 color_float_to_byte(float3 c)
   return make_uchar4(r, g, b, 0);
 }
 
+ccl_device uchar4 color_float4_to_uchar4(float4 c)
+{
+  uchar r, g, b, a;
+
+  r = float_to_byte(c.x);
+  g = float_to_byte(c.y);
+  b = float_to_byte(c.z);
+  a = float_to_byte(c.w);
+
+  return make_uchar4(r, g, b, a);
+}
+
 ccl_device_inline float3 color_byte_to_float(uchar4 c)
 {
   return make_float3(c.x * (1.0f / 255.0f), c.y * (1.0f / 255.0f), c.z * (1.0f / 255.0f));
+}
+
+ccl_device_inline float4 color_uchar4_to_float4(uchar4 c)
+{
+  return make_float4(
+      c.x * (1.0f / 255.0f), c.y * (1.0f / 255.0f), c.z * (1.0f / 255.0f), c.w * (1.0f / 255.0f));
 }
 
 ccl_device float color_srgb_to_linear(float c)

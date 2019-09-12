@@ -1080,6 +1080,15 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
                     "\treturn mix(c1, c2, step(vec3(0.04045), c));\n"
                     "}\n\n");
 
+  BLI_dynstr_append(ds,
+                    "vec4 srgba_to_linear_attr(vec4 c) {\n"
+                    "\tc = max(c, vec4(0.0));\n"
+                    "\tvec4 c1 = c * (1.0 / 12.92);\n"
+                    "\tvec4 c2 = pow((c + 0.055) * (1.0 / 1.055), vec4(2.4));\n"
+                    "\tvec4 final = mix(c1, c2, step(vec4(0.04045), c));"
+                    "\treturn vec4(final.xyz, c.a);\n"
+                    "}\n\n");
+
   /* Prototype because defined later. */
   BLI_dynstr_append(ds,
                     "vec2 hair_get_customdata_vec2(const samplerBuffer);\n"
@@ -1184,7 +1193,7 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
         }
         else if (input->attr_type == CD_MCOL) {
           BLI_dynstr_appendf(ds,
-                             "\tvar%d%s = srgb_to_linear_attr(att%d);\n",
+                             "\tvar%d%s = srgba_to_linear_attr(att%d);\n",
                              input->attr_id,
                              use_geom ? "g" : "",
                              input->attr_id);

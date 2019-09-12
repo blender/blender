@@ -205,6 +205,7 @@ CCL_NAMESPACE_END
 #include "kernel/svm/svm_map_range.h"
 #include "kernel/svm/svm_clamp.h"
 #include "kernel/svm/svm_white_noise.h"
+#include "kernel/svm/svm_vertex_color.h"
 
 #ifdef __SHADER_RAYTRACE__
 #  include "kernel/svm/svm_ao.h"
@@ -289,6 +290,9 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg,
       case NODE_ATTR:
         svm_node_attr(kg, sd, stack, node);
         break;
+      case NODE_VERTEX_COLOR:
+        svm_node_vertex_color(kg, sd, stack, node.y, node.z, node.w);
+        break;
 #  if NODES_FEATURE(NODE_FEATURE_BUMP)
       case NODE_GEOMETRY_BUMP_DX:
         svm_node_geometry_bump_dx(kg, sd, stack, node.y, node.z);
@@ -327,6 +331,12 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg,
         break;
       case NODE_ATTR_BUMP_DY:
         svm_node_attr_bump_dy(kg, sd, stack, node);
+        break;
+      case NODE_VERTEX_COLOR_BUMP_DX:
+        svm_node_vertex_color_bump_dx(kg, sd, stack, node.y, node.z, node.w);
+        break;
+      case NODE_VERTEX_COLOR_BUMP_DY:
+        svm_node_vertex_color_bump_dy(kg, sd, stack, node.y, node.z, node.w);
         break;
       case NODE_TEX_COORD_BUMP_DX:
         svm_node_tex_coord_bump_dx(kg, sd, path_flag, stack, node, &offset);

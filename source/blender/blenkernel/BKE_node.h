@@ -978,6 +978,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree,
 #define SH_NODE_CLAMP 703
 #define SH_NODE_TEX_WHITE_NOISE 704
 #define SH_NODE_VOLUME_INFO 705
+#define SH_NODE_VERTEX_COLOR 706
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF 1

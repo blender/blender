@@ -86,6 +86,7 @@ void register_node_type_sh_script(void);
 void register_node_type_sh_normal_map(void);
 void register_node_type_sh_tangent(void);
 void register_node_type_sh_vect_transform(void);
+void register_node_type_sh_vertex_color(void);
 
 void register_node_type_sh_ambient_occlusion(void);
 void register_node_type_sh_background(void);

@@ -114,6 +114,7 @@ extern char datatoc_gpu_shader_material_vector_curves_glsl[];
 extern char datatoc_gpu_shader_material_vector_displacement_glsl[];
 extern char datatoc_gpu_shader_material_vector_math_glsl[];
 extern char datatoc_gpu_shader_material_velvet_glsl[];
+extern char datatoc_gpu_shader_material_vertex_color_glsl[];
 extern char datatoc_gpu_shader_material_volume_absorption_glsl[];
 extern char datatoc_gpu_shader_material_volume_info_glsl[];
 extern char datatoc_gpu_shader_material_volume_principled_glsl[];
@@ -527,6 +528,11 @@ static GPUMaterialLibrary gpu_shader_material_velvet_library = {
     .dependencies = {&gpu_shader_material_diffuse_library, NULL},
 };
 
+static GPUMaterialLibrary gpu_shader_material_vertex_color_library = {
+    .code = datatoc_gpu_shader_material_vertex_color_glsl,
+    .dependencies = {NULL},
+};
+
 static GPUMaterialLibrary gpu_shader_material_volume_absorption_library = {
     .code = datatoc_gpu_shader_material_volume_absorption_glsl,
     .dependencies = {NULL},
@@ -638,6 +644,7 @@ static GPUMaterialLibrary *gpu_material_libraries[] = {
     &gpu_shader_material_vector_displacement_library,
     &gpu_shader_material_vector_math_library,
     &gpu_shader_material_velvet_library,
+    &gpu_shader_material_vertex_color_library,
     &gpu_shader_material_volume_absorption_library,
     &gpu_shader_material_volume_info_library,
     &gpu_shader_material_volume_principled_library,

@@ -979,6 +979,22 @@ class VolumeInfoNode : public ShaderNode {
   void expand(ShaderGraph *graph);
 };
 
+class VertexColorNode : public ShaderNode {
+ public:
+  SHADER_NODE_CLASS(VertexColorNode)
+  void attributes(Shader *shader, AttributeRequestSet *attributes);
+  bool has_attribute_dependency()
+  {
+    return true;
+  }
+  bool has_spatial_varying()
+  {
+    return true;
+  }
+
+  ustring layer_name;
+};
+
 class ValueNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(ValueNode)

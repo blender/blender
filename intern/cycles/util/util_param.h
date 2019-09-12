@@ -29,6 +29,11 @@ CCL_NAMESPACE_BEGIN
 OIIO_NAMESPACE_USING
 
 static constexpr TypeDesc TypeFloat2(TypeDesc::FLOAT, TypeDesc::VEC2);
+static constexpr TypeDesc TypeRGBA(TypeDesc::FLOAT, TypeDesc::VEC4, TypeDesc::COLOR);
+static constexpr TypeDesc TypeFloatArray4(TypeDesc::FLOAT,
+                                          TypeDesc::SCALAR,
+                                          TypeDesc::NOSEMANTICS,
+                                          4);
 
 CCL_NAMESPACE_END
 

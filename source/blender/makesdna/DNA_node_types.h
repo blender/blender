@@ -997,6 +997,10 @@ typedef struct NodeShaderUVMap {
   char uv_map[64];
 } NodeShaderUVMap;
 
+typedef struct NodeShaderVertexColor {
+  char layer_name[64];
+} NodeShaderVertexColor;
+
 typedef struct NodeShaderTexIES {
   int mode;
 
