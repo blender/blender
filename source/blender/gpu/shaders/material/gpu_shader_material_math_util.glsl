@@ -57,9 +57,35 @@ float floorfrac(float x, out int i)
 
 /* Vector Math */
 
+vec2 safe_divide(vec2 a, vec2 b)
+{
+  return vec2(safe_divide(a.x, b.x), safe_divide(a.y, b.y));
+}
+
 vec3 safe_divide(vec3 a, vec3 b)
 {
   return vec3(safe_divide(a.x, b.x), safe_divide(a.y, b.y), safe_divide(a.z, b.z));
+}
+
+vec4 safe_divide(vec4 a, vec4 b)
+{
+  return vec4(
+      safe_divide(a.x, b.x), safe_divide(a.y, b.y), safe_divide(a.z, b.z), safe_divide(a.w, b.w));
+}
+
+vec2 safe_divide(vec2 a, float b)
+{
+  return (b != 0.0) ? a / b : vec2(0.0);
+}
+
+vec3 safe_divide(vec3 a, float b)
+{
+  return (b != 0.0) ? a / b : vec3(0.0);
+}
+
+vec4 safe_divide(vec4 a, float b)
+{
+  return (b != 0.0) ? a / b : vec4(0.0);
 }
 
 vec3 c_mod(vec3 a, vec3 b)

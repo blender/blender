@@ -590,28 +590,4 @@ ccl_device_inline float noise_4d(float4 p)
   return 0.5f * snoise_4d(p) + 0.5f;
 }
 
-/* cell noise */
-ccl_device float cellnoise(float3 p)
-{
-  int3 ip = quick_floor_to_int3(p);
-  return hash_uint3_to_float(ip.x, ip.y, ip.z);
-}
-
-ccl_device float3 cellnoise3(float3 p)
-{
-  int3 ip = quick_floor_to_int3(p);
-#ifndef __KERNEL_SSE__
-  float r = hash_uint3_to_float(ip.x, ip.y, ip.z);
-  float g = hash_uint3_to_float(ip.y, ip.x, ip.z);
-  float b = hash_uint3_to_float(ip.y, ip.z, ip.x);
-  return make_float3(r, g, b);
-#else
-  ssei ip_yxz = shuffle<1, 0, 2, 3>(ssei(ip.m128));
-  ssei ip_xyy = shuffle<0, 1, 1, 3>(ssei(ip.m128));
-  ssei ip_zzx = shuffle<2, 2, 0, 3>(ssei(ip.m128));
-  ssei bits = hash_ssei3(ip_xyy, ip_yxz, ip_zzx);
-  return float3(uint32_to_float(bits) * ssef(1.0f / (float)0xFFFFFFFF));
-#endif
-}
-
 CCL_NAMESPACE_END

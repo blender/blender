@@ -220,10 +220,10 @@ class VoronoiTextureNode : public TextureNode {
     return NODE_GROUP_LEVEL_2;
   }
 
-  NodeVoronoiColoring coloring;
+  int dimensions;
   NodeVoronoiDistanceMetric metric;
   NodeVoronoiFeature feature;
-  float scale, exponent;
+  float w, scale, exponent, smoothness, randomness;
   float3 vector;
 };
 

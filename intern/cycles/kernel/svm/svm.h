@@ -429,7 +429,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg,
         svm_node_tex_gradient(sd, stack, node);
         break;
       case NODE_TEX_VORONOI:
-        svm_node_tex_voronoi(kg, sd, stack, node, &offset);
+        svm_node_tex_voronoi(kg, sd, stack, node.y, node.z, node.w, &offset);
         break;
       case NODE_TEX_MUSGRAVE:
         svm_node_tex_musgrave(kg, sd, stack, node.y, node.z, node.w, &offset);

@@ -35,7 +35,9 @@ ccl_device_inline float3 operator*(const float f, const float3 &a);
 ccl_device_inline float3 operator/(const float f, const float3 &a);
 ccl_device_inline float3 operator/(const float3 &a, const float f);
 ccl_device_inline float3 operator/(const float3 &a, const float3 &b);
+ccl_device_inline float3 operator+(const float3 &a, const float f);
 ccl_device_inline float3 operator+(const float3 &a, const float3 &b);
+ccl_device_inline float3 operator-(const float3 &a, const float f);
 ccl_device_inline float3 operator-(const float3 &a, const float3 &b);
 ccl_device_inline float3 operator+=(float3 &a, const float3 &b);
 ccl_device_inline float3 operator-=(float3 &a, const float3 &b);
@@ -150,6 +152,11 @@ ccl_device_inline float3 operator/(const float3 &a, const float3 &b)
 #  endif
 }
 
+ccl_device_inline float3 operator+(const float3 &a, const float f)
+{
+  return a + make_float3(f, f, f);
+}
+
 ccl_device_inline float3 operator+(const float3 &a, const float3 &b)
 {
 #  ifdef __KERNEL_SSE__
@@ -157,6 +164,11 @@ ccl_device_inline float3 operator+(const float3 &a, const float3 &b)
 #  else
   return make_float3(a.x + b.x, a.y + b.y, a.z + b.z);
 #  endif
+}
+
+ccl_device_inline float3 operator-(const float3 &a, const float f)
+{
+  return a - make_float3(f, f, f);
 }
 
 ccl_device_inline float3 operator-(const float3 &a, const float3 &b)

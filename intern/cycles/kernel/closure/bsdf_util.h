@@ -134,20 +134,6 @@ ccl_device float schlick_fresnel(float u)
   return m2 * m2 * m;  // pow(m, 5)
 }
 
-ccl_device float smooth_step(float edge0, float edge1, float x)
-{
-  float result;
-  if (x < edge0)
-    result = 0.0f;
-  else if (x >= edge1)
-    result = 1.0f;
-  else {
-    float t = (x - edge0) / (edge1 - edge0);
-    result = (3.0f - 2.0f * t) * (t * t);
-  }
-  return result;
-}
-
 /* Calculate the fresnel color which is a blend between white and the F0 color (cspec0) */
 ccl_device_forceinline float3
 interpolate_fresnel_color(float3 L, float3 H, float ior, float F0, float3 cspec0)

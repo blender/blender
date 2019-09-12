@@ -35,7 +35,9 @@ ccl_device_inline float2 operator*(float f, const float2 &a);
 ccl_device_inline float2 operator/(float f, const float2 &a);
 ccl_device_inline float2 operator/(const float2 &a, float f);
 ccl_device_inline float2 operator/(const float2 &a, const float2 &b);
+ccl_device_inline float2 operator+(const float2 &a, const float f);
 ccl_device_inline float2 operator+(const float2 &a, const float2 &b);
+ccl_device_inline float2 operator-(const float2 &a, const float f);
 ccl_device_inline float2 operator-(const float2 &a, const float2 &b);
 ccl_device_inline float2 operator+=(float2 &a, const float2 &b);
 ccl_device_inline float2 operator*=(float2 &a, const float2 &b);
@@ -48,6 +50,7 @@ ccl_device_inline bool operator!=(const float2 &a, const float2 &b);
 
 ccl_device_inline bool is_zero(const float2 &a);
 ccl_device_inline float average(const float2 &a);
+ccl_device_inline float distance(const float2 &a, const float2 &b);
 ccl_device_inline float dot(const float2 &a, const float2 &b);
 ccl_device_inline float cross(const float2 &a, const float2 &b);
 ccl_device_inline float len(const float2 &a);
@@ -60,7 +63,10 @@ ccl_device_inline float2 clamp(const float2 &a, const float2 &mn, const float2 &
 ccl_device_inline float2 fabs(const float2 &a);
 ccl_device_inline float2 as_float2(const float4 &a);
 ccl_device_inline float2 interp(const float2 &a, const float2 &b, float t);
+ccl_device_inline float2 floor(const float2 &a);
 #endif /* !__KERNEL_OPENCL__ */
+
+ccl_device_inline float2 safe_divide_float2_float(const float2 a, const float b);
 
 /*******************************************************************************
  * Definition.
@@ -103,9 +109,19 @@ ccl_device_inline float2 operator/(const float2 &a, const float2 &b)
   return make_float2(a.x / b.x, a.y / b.y);
 }
 
+ccl_device_inline float2 operator+(const float2 &a, const float f)
+{
+  return a + make_float2(f, f);
+}
+
 ccl_device_inline float2 operator+(const float2 &a, const float2 &b)
 {
   return make_float2(a.x + b.x, a.y + b.y);
+}
+
+ccl_device_inline float2 operator-(const float2 &a, const float f)
+{
+  return a - make_float2(f, f);
 }
 
 ccl_device_inline float2 operator-(const float2 &a, const float2 &b)
@@ -157,6 +173,11 @@ ccl_device_inline bool is_zero(const float2 &a)
 ccl_device_inline float average(const float2 &a)
 {
   return (a.x + a.y) * (1.0f / 2.0f);
+}
+
+ccl_device_inline float distance(const float2 &a, const float2 &b)
+{
+  return len(a - b);
 }
 
 ccl_device_inline float dot(const float2 &a, const float2 &b)
@@ -226,7 +247,17 @@ ccl_device_inline float2 mix(const float2 &a, const float2 &b, float t)
   return a + t * (b - a);
 }
 
+ccl_device_inline float2 floor(const float2 &a)
+{
+  return make_float2(floorf(a.x), floorf(a.y));
+}
+
 #endif /* !__KERNEL_OPENCL__ */
+
+ccl_device_inline float2 safe_divide_float2_float(const float2 a, const float b)
+{
+  return (b != 0.0f) ? a / b : make_float2(0.0f, 0.0f);
+}
 
 CCL_NAMESPACE_END
 

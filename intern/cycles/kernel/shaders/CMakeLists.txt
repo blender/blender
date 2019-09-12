@@ -97,6 +97,7 @@ set(SRC_OSL
 set(SRC_OSL_HEADERS
   node_color.h
   node_fresnel.h
+  node_hash.h
   node_noise.h
   node_ramp_util.h
   stdosl.h

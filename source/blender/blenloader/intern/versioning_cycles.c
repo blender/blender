@@ -946,6 +946,238 @@ static void update_musgrave_node_color_output(bNodeTree *ntree)
   }
 }
 
+/* The Voronoi node now have a dimension property. This property should be
+ * initialized to 3 by default.
+ */
+static void update_voronoi_node_dimensions(bNodeTree *ntree)
+{
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_TEX_VORONOI) {
+      NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
+      tex->dimensions = 3;
+    }
+  }
+}
+
+/* The F3 and F4 features of the Voronoi node have been removed.
+ * To correct this, we set the feature type to be F2 if it is F3
+ * or F4. The SHD_VORONOI_F3 and SHD_VORONOI_F4 enum values were
+ * 2 and 3 respectively.
+ */
+static void update_voronoi_node_f3_and_f4(bNodeTree *ntree)
+{
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_TEX_VORONOI) {
+      NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
+      if (ELEM(tex->feature, 2, 3)) {
+        tex->feature = SHD_VORONOI_F2;
+      }
+    }
+  }
+}
+
+/* The Fac output of the Voronoi node has been removed. Previously, this
+ * output was the voronoi distance in the Intensity mode and the Cell ID
+ * in the Cell mode. To correct this, we update the identifier and name
+ * of the Fac socket such that it gets mapped to the Distance socket.
+ * This is supposed to work with update_voronoi_node_coloring.
+ */
+static void update_voronoi_node_fac_output(bNodeTree *ntree)
+{
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_TEX_VORONOI) {
+      bNodeSocket *facOutput = BLI_findlink(&node->outputs, 1);
+      strcpy(facOutput->identifier, "Distance");
+      strcpy(facOutput->name, "Distance");
+    }
+  }
+}
+
+/* The Crackle feature of the Voronoi node has been removed. Previously,
+ * this feature returned the F2 distance minus the F1 distance. The
+ * crackle feature had an enum value of 4. To fix this we do the
+ * following:
+ *
+ * 1. The node feature is set to F1.
+ * 2. A new Voronoi node is added and its feature is set to F2.
+ * 3. The properties, input values, and connections are copied
+ *    from the node to the new Voronoi node so that they match
+ *    exactly.
+ * 4. A Subtract node is added.
+ * 5. The outputs of the F1 and F2 voronoi are connected to
+ *    the inputs of the subtract node.
+ * 6. The output of the subtract node is connected to the
+ *    appropriate sockets.
+ *
+ */
+static void update_voronoi_node_crackle(bNodeTree *ntree)
+{
+  bool need_update = false;
+
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_TEX_VORONOI) {
+      NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
+      bNodeSocket *sockDistance = nodeFindSocket(node, SOCK_OUT, "Distance");
+      bNodeSocket *sockColor = nodeFindSocket(node, SOCK_OUT, "Color");
+      if (tex->feature == 4 && (socket_is_used(sockDistance) || socket_is_used(sockColor))) {
+        tex->feature = SHD_VORONOI_F1;
+
+        bNode *voronoiNode = nodeAddStaticNode(NULL, ntree, SH_NODE_TEX_VORONOI);
+        NodeTexVoronoi *texVoronoi = (NodeTexVoronoi *)voronoiNode->storage;
+        texVoronoi->feature = SHD_VORONOI_F2;
+        texVoronoi->distance = tex->distance;
+        texVoronoi->dimensions = 3;
+        voronoiNode->locx = node->locx + node->width + 20.0f;
+        voronoiNode->locy = node->locy;
+
+        bNodeSocket *sockVector = nodeFindSocket(node, SOCK_IN, "Vector");
+        bNodeSocket *sockScale = nodeFindSocket(node, SOCK_IN, "Scale");
+        bNodeSocket *sockExponent = nodeFindSocket(node, SOCK_IN, "Exponent");
+        bNodeSocket *sockVoronoiVector = nodeFindSocket(voronoiNode, SOCK_IN, "Vector");
+        bNodeSocket *sockVoronoiScale = nodeFindSocket(voronoiNode, SOCK_IN, "Scale");
+        bNodeSocket *sockVoronoiExponent = nodeFindSocket(voronoiNode, SOCK_IN, "Exponent");
+        if (sockVector->link) {
+          nodeAddLink(ntree,
+                      sockVector->link->fromnode,
+                      sockVector->link->fromsock,
+                      voronoiNode,
+                      sockVoronoiVector);
+        }
+        *cycles_node_socket_float_value(sockVoronoiScale) = *cycles_node_socket_float_value(
+            sockScale);
+        if (sockScale->link) {
+          nodeAddLink(ntree,
+                      sockScale->link->fromnode,
+                      sockScale->link->fromsock,
+                      voronoiNode,
+                      sockVoronoiScale);
+        }
+        *cycles_node_socket_float_value(sockVoronoiExponent) = *cycles_node_socket_float_value(
+            sockExponent);
+        if (sockExponent->link) {
+          nodeAddLink(ntree,
+                      sockExponent->link->fromnode,
+                      sockExponent->link->fromsock,
+                      voronoiNode,
+                      sockVoronoiExponent);
+        }
+
+        bNode *subtractNode = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+        subtractNode->custom1 = NODE_MATH_SUBTRACT;
+        subtractNode->locx = voronoiNode->locx + voronoiNode->width + 20.0f;
+        subtractNode->locy = voronoiNode->locy;
+        bNodeSocket *sockSubtractOutValue = nodeFindSocket(subtractNode, SOCK_OUT, "Value");
+
+        LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
+          if (link->fromnode == node) {
+            nodeAddLink(ntree, subtractNode, sockSubtractOutValue, link->tonode, link->tosock);
+            nodeRemLink(ntree, link);
+          }
+        }
+
+        bNodeSocket *sockDistanceF1 = nodeFindSocket(node, SOCK_OUT, "Distance");
+        bNodeSocket *sockDistanceF2 = nodeFindSocket(voronoiNode, SOCK_OUT, "Distance");
+        bNodeSocket *sockSubtractA = BLI_findlink(&subtractNode->inputs, 0);
+        bNodeSocket *sockSubtractB = BLI_findlink(&subtractNode->inputs, 1);
+
+        nodeAddLink(ntree, node, sockDistanceF1, subtractNode, sockSubtractB);
+        nodeAddLink(ntree, voronoiNode, sockDistanceF2, subtractNode, sockSubtractA);
+
+        need_update = true;
+      }
+    }
+  }
+
+  if (need_update) {
+    ntreeUpdateTree(NULL, ntree);
+  }
+}
+
+/* The coloring property of the Voronoi node was removed. Previously,
+ * if the coloring enum was set to Intensity (0), the voronoi distance
+ * was returned in all outputs, otherwise, the Cell ID was returned.
+ * Since we remapped the Fac output in update_voronoi_node_fac_output,
+ * then to fix this, we relink the Color output to the Distance
+ * output if coloring was set to 0, and the otherway around otherwise.
+ */
+static void update_voronoi_node_coloring(bNodeTree *ntree)
+{
+  bool need_update = false;
+
+  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
+    bNode *node = link->fromnode;
+    if (node && node->type == SH_NODE_TEX_VORONOI) {
+      NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
+      if (tex->coloring == 0) {
+        bNodeSocket *sockColor = nodeFindSocket(node, SOCK_OUT, "Color");
+        if (link->fromsock == sockColor) {
+          bNodeSocket *sockDistance = nodeFindSocket(node, SOCK_OUT, "Distance");
+          nodeAddLink(ntree, node, sockDistance, link->tonode, link->tosock);
+          nodeRemLink(ntree, link);
+          need_update = true;
+        }
+      }
+      else {
+        bNodeSocket *sockDistance = nodeFindSocket(node, SOCK_OUT, "Distance");
+        if (link->fromsock == sockDistance) {
+          bNodeSocket *sockColor = nodeFindSocket(node, SOCK_OUT, "Color");
+          nodeAddLink(ntree, node, sockColor, link->tonode, link->tosock);
+          nodeRemLink(ntree, link);
+          need_update = true;
+        }
+      }
+    }
+  }
+
+  if (need_update) {
+    ntreeUpdateTree(NULL, ntree);
+  }
+}
+
+/* Previously, the output euclidean distance was actually the squared
+ * euclidean distance. To fix this, we square the the output distance
+ * socket if the distance metric is set to SHD_VORONOI_EUCLIDEAN.
+ */
+static void update_voronoi_node_square_distance(bNodeTree *ntree)
+{
+  bool need_update = false;
+
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_TEX_VORONOI) {
+      NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
+      bNodeSocket *sockDistance = nodeFindSocket(node, SOCK_OUT, "Distance");
+      if (tex->distance == SHD_VORONOI_EUCLIDEAN &&
+          (tex->feature == SHD_VORONOI_F1 || tex->feature == SHD_VORONOI_F2) &&
+          socket_is_used(sockDistance)) {
+        bNode *multiplyNode = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+        multiplyNode->custom1 = NODE_MATH_MULTIPLY;
+        multiplyNode->locx = node->locx + node->width + 20.0f;
+        multiplyNode->locy = node->locy;
+
+        bNodeSocket *sockValue = nodeFindSocket(multiplyNode, SOCK_OUT, "Value");
+        LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
+          if (link->fromsock == sockDistance) {
+            nodeAddLink(ntree, multiplyNode, sockValue, link->tonode, link->tosock);
+            nodeRemLink(ntree, link);
+          }
+        }
+
+        bNodeSocket *sockMultiplyA = BLI_findlink(&multiplyNode->inputs, 0);
+        bNodeSocket *sockMultiplyB = BLI_findlink(&multiplyNode->inputs, 1);
+
+        nodeAddLink(ntree, node, sockDistance, multiplyNode, sockMultiplyA);
+        nodeAddLink(ntree, node, sockDistance, multiplyNode, sockMultiplyB);
+
+        need_update = true;
+      }
+    }
+  }
+
+  if (need_update) {
+    ntreeUpdateTree(NULL, ntree);
+  }
+}
+
 void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bmain)
 {
   /* Particle shape shared with Eevee. */
@@ -992,6 +1224,16 @@ void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bm
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_SHADER) {
         update_musgrave_node_color_output(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 281, 11)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        update_voronoi_node_f3_and_f4(ntree);
+        update_voronoi_node_fac_output(ntree);
       }
     }
     FOREACH_NODETREE_END;
@@ -1150,6 +1392,18 @@ void do_versions_after_linking_cycles(Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_SHADER) {
         update_musgrave_node_dimensions(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 281, 11)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        update_voronoi_node_dimensions(ntree);
+        update_voronoi_node_crackle(ntree);
+        update_voronoi_node_coloring(ntree);
+        update_voronoi_node_square_distance(ntree);
       }
     }
     FOREACH_NODETREE_END;

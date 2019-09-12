@@ -357,24 +357,19 @@ typedef enum NodeGradientType {
   NODE_BLEND_SPHERICAL
 } NodeGradientType;
 
-typedef enum NodeVoronoiColoring {
-  NODE_VORONOI_INTENSITY,
-  NODE_VORONOI_CELLS
-} NodeVoronoiColoring;
-
 typedef enum NodeVoronoiDistanceMetric {
-  NODE_VORONOI_DISTANCE,
+  NODE_VORONOI_EUCLIDEAN,
   NODE_VORONOI_MANHATTAN,
   NODE_VORONOI_CHEBYCHEV,
-  NODE_VORONOI_MINKOWSKI
+  NODE_VORONOI_MINKOWSKI,
 } NodeVoronoiDistanceMetric;
 
 typedef enum NodeVoronoiFeature {
   NODE_VORONOI_F1,
   NODE_VORONOI_F2,
-  NODE_VORONOI_F3,
-  NODE_VORONOI_F4,
-  NODE_VORONOI_F2F1
+  NODE_VORONOI_SMOOTH_F1,
+  NODE_VORONOI_DISTANCE_TO_EDGE,
+  NODE_VORONOI_N_SPHERE_RADIUS,
 } NodeVoronoiFeature;
 
 typedef enum NodeBlendWeightType {
