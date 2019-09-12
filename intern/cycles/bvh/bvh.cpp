@@ -26,6 +26,9 @@
 #include "bvh/bvh_build.h"
 #include "bvh/bvh_node.h"
 
+#ifdef WITH_OPTIX
+#  include "bvh/bvh_optix.h"
+#endif
 #ifdef WITH_EMBREE
 #  include "bvh/bvh_embree.h"
 #endif
@@ -51,6 +54,8 @@ const char *bvh_layout_name(BVHLayout layout)
       return "NONE";
     case BVH_LAYOUT_EMBREE:
       return "EMBREE";
+    case BVH_LAYOUT_OPTIX:
+      return "OPTIX";
     case BVH_LAYOUT_ALL:
       return "ALL";
   }
@@ -113,6 +118,12 @@ BVH *BVH::create(const BVHParams &params,
     case BVH_LAYOUT_EMBREE:
 #ifdef WITH_EMBREE
       return new BVHEmbree(params, meshes, objects);
+#else
+      break;
+#endif
+    case BVH_LAYOUT_OPTIX:
+#ifdef WITH_OPTIX
+      return new BVHOptiX(params, meshes, objects);
 #else
       break;
 #endif

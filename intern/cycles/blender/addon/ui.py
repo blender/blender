@@ -88,10 +88,16 @@ def use_cuda(context):
     return (get_device_type(context) == 'CUDA' and cscene.device == 'GPU')
 
 
+def use_optix(context):
+    cscene = context.scene.cycles
+
+    return (get_device_type(context) == 'OPTIX' and cscene.device == 'GPU')
+
+
 def use_branched_path(context):
     cscene = context.scene.cycles
 
-    return (cscene.progressive == 'BRANCHED_PATH')
+    return (cscene.progressive == 'BRANCHED_PATH' and not use_optix(context))
 
 
 def use_sample_all_lights(context):
@@ -168,7 +174,8 @@ class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        layout.prop(cscene, "progressive")
+        if not use_optix(context):
+            layout.prop(cscene, "progressive")
 
         if cscene.progressive == 'PATH' or use_branched_path(context) is False:
             col = layout.column(align=True)
@@ -1763,6 +1770,10 @@ class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'CYCLES'}
 
+    @classmethod
+    def poll(cls, context):
+        return not use_optix(context)
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -1947,7 +1958,13 @@ class CYCLES_RENDER_PT_debug(CyclesButtonsPanel, Panel):
         col.separator()
 
         col = layout.column()
-        col.label(text='OpenCL Flags:')
+        col.label(text="OptiX Flags:")
+        col.prop(cscene, "debug_optix_cuda_streams")
+
+        col.separator()
+
+        col = layout.column()
+        col.label(text="OpenCL Flags:")
         col.prop(cscene, "debug_opencl_device_type", text="Device")
         col.prop(cscene, "debug_use_opencl_debug", text="Debug")
         col.prop(cscene, "debug_opencl_mem_limit")

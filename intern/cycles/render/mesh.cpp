@@ -1139,9 +1139,9 @@ int Mesh::motion_step(float time) const
   return -1;
 }
 
-bool Mesh::need_build_bvh(BVHLayout) const
+bool Mesh::need_build_bvh(BVHLayout layout) const
 {
-  return !transform_applied || has_surface_bssrdf;
+  return !transform_applied || has_surface_bssrdf || layout == BVH_LAYOUT_OPTIX;
 }
 
 bool Mesh::is_instanced() const

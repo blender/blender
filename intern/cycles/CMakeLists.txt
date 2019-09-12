@@ -219,6 +219,24 @@ if(WITH_CYCLES_OSL)
   )
 endif()
 
+if(WITH_CYCLES_DEVICE_OPTIX)
+  find_package(OptiX)
+
+  if(OPTIX_FOUND)
+    add_definitions(-DWITH_OPTIX)
+    include_directories(
+      SYSTEM
+      ${OPTIX_INCLUDE_DIR}
+      )
+
+    # Need pre-compiled CUDA binaries in the OptiX device
+    set(WITH_CYCLES_CUDA_BINARIES ON)
+  else()
+    message(STATUS "Optix not found, disabling it from Cycles")
+    set(WITH_CYCLES_DEVICE_OPTIX OFF)
+  endif()
+endif()
+
 if(WITH_CYCLES_EMBREE)
   add_definitions(-DWITH_EMBREE)
   add_definitions(-DEMBREE_STATIC_LIB)

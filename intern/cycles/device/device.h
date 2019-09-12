@@ -34,6 +34,7 @@
 
 CCL_NAMESPACE_BEGIN
 
+class BVH;
 class Progress;
 class RenderTile;
 
@@ -45,13 +46,15 @@ enum DeviceType {
   DEVICE_OPENCL,
   DEVICE_CUDA,
   DEVICE_NETWORK,
-  DEVICE_MULTI
+  DEVICE_MULTI,
+  DEVICE_OPTIX,
 };
 
 enum DeviceTypeMask {
   DEVICE_MASK_CPU = (1 << DEVICE_CPU),
   DEVICE_MASK_OPENCL = (1 << DEVICE_OPENCL),
   DEVICE_MASK_CUDA = (1 << DEVICE_CUDA),
+  DEVICE_MASK_OPTIX = (1 << DEVICE_OPTIX),
   DEVICE_MASK_NETWORK = (1 << DEVICE_NETWORK),
   DEVICE_MASK_ALL = ~0
 };
@@ -380,7 +383,11 @@ class Device {
   }
 
   /* tasks */
-  virtual int get_split_task_count(DeviceTask &task) = 0;
+  virtual int get_split_task_count(DeviceTask &)
+  {
+    return 1;
+  }
+
   virtual void task_add(DeviceTask &task) = 0;
   virtual void task_wait() = 0;
   virtual void task_cancel() = 0;
@@ -398,6 +405,12 @@ class Device {
                            int dh,
                            bool transparent,
                            const DeviceDrawParams &draw_params);
+
+  /* acceleration structure building */
+  virtual bool build_optix_bvh(BVH *, device_memory &)
+  {
+    return false;
+  }
 
 #ifdef WITH_NETWORK
   /* networking */
@@ -456,6 +469,7 @@ class Device {
   static bool need_types_update, need_devices_update;
   static thread_mutex device_mutex;
   static vector<DeviceInfo> cuda_devices;
+  static vector<DeviceInfo> optix_devices;
   static vector<DeviceInfo> opencl_devices;
   static vector<DeviceInfo> cpu_devices;
   static vector<DeviceInfo> network_devices;

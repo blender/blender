@@ -2263,11 +2263,6 @@ class CUDADevice : public Device {
     }
   };
 
-  int get_split_task_count(DeviceTask & /*task*/)
-  {
-    return 1;
-  }
-
   void task_add(DeviceTask &task)
   {
     CUDAContextScope scope(this);

@@ -61,7 +61,8 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scen
       COMPUTE_DEVICE_CPU = 0,
       COMPUTE_DEVICE_CUDA = 1,
       COMPUTE_DEVICE_OPENCL = 2,
-      COMPUTE_DEVICE_NUM = 3,
+      COMPUTE_DEVICE_OPTIX = 3,
+      COMPUTE_DEVICE_NUM = 4,
     };
 
     ComputeDevice compute_device = (ComputeDevice)get_enum(
@@ -72,6 +73,10 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scen
       uint mask = DEVICE_MASK_CPU;
       if (compute_device == COMPUTE_DEVICE_CUDA) {
         mask |= DEVICE_MASK_CUDA;
+      }
+      else if (compute_device == COMPUTE_DEVICE_OPTIX) {
+        /* Cannot use CPU and OptiX device at the same time right now, so replace mask. */
+        mask = DEVICE_MASK_OPTIX;
       }
       else if (compute_device == COMPUTE_DEVICE_OPENCL) {
         mask |= DEVICE_MASK_OPENCL;

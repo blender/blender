@@ -29,6 +29,7 @@ set(SRC
   device_memory.cpp
   device_multi.cpp
   device_opencl.cpp
+  device_optix.cpp
   device_split_kernel.cpp
   device_task.cpp
 )
@@ -84,6 +85,9 @@ if(WITH_CYCLES_DEVICE_OPENCL)
 endif()
 if(WITH_CYCLES_DEVICE_CUDA)
   add_definitions(-DWITH_CUDA)
+endif()
+if(WITH_CYCLES_DEVICE_OPTIX)
+  add_definitions(-DWITH_OPTIX)
 endif()
 if(WITH_CYCLES_DEVICE_MULTI)
   add_definitions(-DWITH_MULTI)

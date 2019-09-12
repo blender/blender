@@ -86,6 +86,16 @@ void DebugFlags::CUDA::reset()
   split_kernel = false;
 }
 
+DebugFlags::OptiX::OptiX()
+{
+  reset();
+}
+
+void DebugFlags::OptiX::reset()
+{
+  cuda_streams = 1;
+}
+
 DebugFlags::OpenCL::OpenCL() : device_type(DebugFlags::OpenCL::DEVICE_ALL), debug(false)
 {
   reset();
@@ -130,6 +140,7 @@ void DebugFlags::reset()
   viewport_static_bvh = false;
   cpu.reset();
   cuda.reset();
+  optix.reset();
   opencl.reset();
 }
 
@@ -145,7 +156,10 @@ std::ostream &operator<<(std::ostream &os, DebugFlagsConstRef debug_flags)
      << "  Split      : " << string_from_bool(debug_flags.cpu.split_kernel) << "\n";
 
   os << "CUDA flags:\n"
-     << " Adaptive Compile: " << string_from_bool(debug_flags.cuda.adaptive_compile) << "\n";
+     << "  Adaptive Compile : " << string_from_bool(debug_flags.cuda.adaptive_compile) << "\n";
+
+  os << "OptiX flags:\n"
+     << "  CUDA streams : " << debug_flags.optix.cuda_streams << "\n";
 
   const char *opencl_device_type;
   switch (debug_flags.opencl.device_type) {

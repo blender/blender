@@ -34,6 +34,9 @@ def get_cmake_options(builder):
     elif builder.platform == 'linux':
         config_file = "build_files/buildbot/config/blender_linux.cmake"
 
+    optix_sdk_dir = os.path.join(builder.blender_dir, '..', '..', 'NVIDIA-Optix-SDK')
+    options.append('-DOPTIX_ROOT_DIR:PATH=' + optix_sdk_dir)
+
     options.append("-C" + os.path.join(builder.blender_dir, config_file))
     options.append("-DCMAKE_INSTALL_PREFIX=%s" % (builder.install_dir))
 

@@ -99,6 +99,17 @@ class DebugFlags {
     bool split_kernel;
   };
 
+  /* Descriptor of OptiX feature-set to be used. */
+  struct OptiX {
+    OptiX();
+
+    /* Reset flags to their defaults. */
+    void reset();
+
+    /* Number of CUDA streams to launch kernels concurrently from. */
+    int cuda_streams;
+  };
+
   /* Descriptor of OpenCL feature-set to be used. */
   struct OpenCL {
     OpenCL();
@@ -164,6 +175,9 @@ class DebugFlags {
 
   /* Requested CUDA flags. */
   CUDA cuda;
+
+  /* Requested OptiX flags. */
+  OptiX optix;
 
   /* Requested OpenCL flags. */
   OpenCL opencl;
