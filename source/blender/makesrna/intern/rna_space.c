@@ -2963,7 +2963,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
   /* Libraries filter. */
   prop = RNA_def_property(srna, "use_filter_id_type", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "filter", SO_FILTER_ID_TYPE);
-  RNA_def_property_ui_text(prop, "Filter By Type", "Show only data-blocks of one type");
+  RNA_def_property_ui_text(prop, "Filter by Type", "Show only data-blocks of one type");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
   prop = RNA_def_property(srna, "filter_id_type", PROP_ENUM, PROP_NONE);

@@ -1987,7 +1987,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
   RNA_def_property_enum_items(prop, brush_spacing_unit_items);
   RNA_def_property_ui_text(
-      prop, "Spacing distance", "Calculate the brush spacing using view or scene distance");
+      prop, "Spacing Distance", "Calculate the brush spacing using view or scene distance");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_grab_active_vertex", PROP_BOOLEAN, PROP_NONE);

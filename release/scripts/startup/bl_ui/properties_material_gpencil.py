@@ -220,7 +220,7 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
             col.template_ID(gpcolor, "fill_image", open="image.open")
 
             if gpcolor.fill_style == 'TEXTURE':
-                col.prop(gpcolor, "use_fill_pattern", text="Use As Stencil Mask")
+                col.prop(gpcolor, "use_fill_pattern", text="Use as Stencil Mask")
                 if gpcolor.use_fill_pattern is True:
                     col.prop(gpcolor, "fill_color", text="Color")
 
@@ -231,7 +231,7 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
             col.prop(gpcolor, "texture_clamp", text="Clip Image")
 
             if gpcolor.use_fill_pattern is False:
-                col.prop(gpcolor, "use_fill_texture_mix", text="Mix With Color")
+                col.prop(gpcolor, "use_fill_texture_mix", text="Mix with Color")
 
                 if gpcolor.use_fill_texture_mix is True:
                     col.prop(gpcolor, "fill_color", text="Mix Color")
