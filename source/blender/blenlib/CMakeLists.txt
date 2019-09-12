@@ -225,6 +225,7 @@ set(SRC
   BLI_strict_flags.h
   BLI_string.h
   BLI_string_cursor_utf8.h
+  BLI_string_ref.h
   BLI_string_utf8.h
   BLI_string_utils.h
   BLI_sys_types.h
