@@ -671,6 +671,8 @@ void createTransEditVerts(TransInfo *t)
      * Optional, allocate if needed. */
     int *dists_index = NULL;
 
+    BLI_bitmap *mirror_bitmap = NULL;
+
     /**
      * Quick check if we can transform.
      *
@@ -687,7 +689,6 @@ void createTransEditVerts(TransInfo *t)
       cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
     }
 
-    BLI_bitmap *mirror_bitmap = NULL;
     if (tc->mirror.use_mirror_any) {
       bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
       bool use_select = (t->flag & T_PROP_EDIT) == 0;
