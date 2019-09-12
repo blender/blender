@@ -2445,8 +2445,8 @@ void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, cons
     /* silent is for internal use */
     if (DefRNA.silent == 0) {
       if (dp->dnatype && *dp->dnatype && IS_DNATYPE_FLOAT_COMPAT(dp->dnatype) == 0) {
-        if (prop->subtype !=
-            PROP_COLOR_GAMMA) { /* colors are an exception. these get translated */
+        /* Colors are an exception. these get translated. */
+        if (prop->subtype != PROP_COLOR_GAMMA) {
           CLOG_ERROR(&LOG,
                      "%s.%s is a '%s' but wrapped as type '%s'.",
                      srna->identifier,

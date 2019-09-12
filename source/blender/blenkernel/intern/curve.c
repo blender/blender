@@ -2145,8 +2145,8 @@ static void tilt_bezpart(BezTriple *prevbezt,
 
   for (a = 0; a < resolu; a++, fac += dfac) {
     if (tilt_array) {
-      if (nu->tilt_interp ==
-          KEY_CU_EASE) { /* May as well support for tilt also 2.47 ease interp */
+      if (nu->tilt_interp == KEY_CU_EASE) {
+        /* May as well support for tilt also 2.47 ease interp. */
         *tilt_array = prevbezt->tilt +
                       (bezt->tilt - prevbezt->tilt) * (3.0f * fac * fac - 2.0f * fac * fac * fac);
       }

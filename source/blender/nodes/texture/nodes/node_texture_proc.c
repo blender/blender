@@ -165,83 +165,84 @@ static void voronoi_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short th
   tex->ns_outscale = tex_input_value(in[I + 4], p, thread);
   tex->noisesize = tex_input_value(in[I + 5], p, thread);
 }
-ProcDef(voronoi)
+ProcDef(voronoi);
 
-    /* --- BLEND -- */
-    static bNodeSocketTemplate blend_inputs[] = {COMMON_INPUTS, {-1, 0, ""}};
-ProcNoInputs(blend) ProcDef(blend)
+/* --- BLEND -- */
+static bNodeSocketTemplate blend_inputs[] = {COMMON_INPUTS, {-1, 0, ""}};
+ProcNoInputs(blend);
+ProcDef(blend);
 
-    /* -- MAGIC -- */
-    static bNodeSocketTemplate magic_inputs[] = {
-        COMMON_INPUTS,
-        {SOCK_FLOAT, 1, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
-        {-1, 0, ""}};
+/* -- MAGIC -- */
+static bNodeSocketTemplate magic_inputs[] = {
+    COMMON_INPUTS,
+    {SOCK_FLOAT, 1, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
+    {-1, 0, ""}};
 static void magic_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->turbul = tex_input_value(in[I + 0], p, thread);
 }
-ProcDef(magic)
+ProcDef(magic);
 
-    /* --- MARBLE --- */
-    static bNodeSocketTemplate marble_inputs[] = {
-        COMMON_INPUTS,
-        {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
-        {SOCK_FLOAT, 1, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
-        {-1, 0, ""}};
+/* --- MARBLE --- */
+static bNodeSocketTemplate marble_inputs[] = {
+    COMMON_INPUTS,
+    {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, 1, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
+    {-1, 0, ""}};
 static void marble_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->noisesize = tex_input_value(in[I + 0], p, thread);
   tex->turbul = tex_input_value(in[I + 1], p, thread);
 }
-ProcDef(marble)
+ProcDef(marble);
 
-    /* --- CLOUDS --- */
-    static bNodeSocketTemplate clouds_inputs[] = {
-        COMMON_INPUTS,
-        {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
-        {-1, 0, ""}};
+/* --- CLOUDS --- */
+static bNodeSocketTemplate clouds_inputs[] = {
+    COMMON_INPUTS,
+    {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
+    {-1, 0, ""}};
 static void clouds_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->noisesize = tex_input_value(in[I + 0], p, thread);
 }
-ProcDef(clouds)
+ProcDef(clouds);
 
-    /* --- DISTORTED NOISE --- */
-    static bNodeSocketTemplate distnoise_inputs[] = {
-        COMMON_INPUTS,
-        {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
-        {SOCK_FLOAT, 1, N_("Distortion"), 1.00f, 0.0f, 0.0f, 0.0f, 0.0000f, 10.0f, PROP_UNSIGNED},
-        {-1, 0, ""}};
+/* --- DISTORTED NOISE --- */
+static bNodeSocketTemplate distnoise_inputs[] = {
+    COMMON_INPUTS,
+    {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, 1, N_("Distortion"), 1.00f, 0.0f, 0.0f, 0.0f, 0.0000f, 10.0f, PROP_UNSIGNED},
+    {-1, 0, ""}};
 static void distnoise_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->noisesize = tex_input_value(in[I + 0], p, thread);
   tex->dist_amount = tex_input_value(in[I + 1], p, thread);
 }
-ProcDef(distnoise)
+ProcDef(distnoise);
 
-    /* --- WOOD --- */
-    static bNodeSocketTemplate wood_inputs[] = {
-        COMMON_INPUTS,
-        {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
-        {SOCK_FLOAT, 1, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
-        {-1, 0, ""}};
+/* --- WOOD --- */
+static bNodeSocketTemplate wood_inputs[] = {
+    COMMON_INPUTS,
+    {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, 1, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
+    {-1, 0, ""}};
 static void wood_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->noisesize = tex_input_value(in[I + 0], p, thread);
   tex->turbul = tex_input_value(in[I + 1], p, thread);
 }
-ProcDef(wood)
+ProcDef(wood);
 
-    /* --- MUSGRAVE --- */
-    static bNodeSocketTemplate musgrave_inputs[] = {
-        COMMON_INPUTS,
-        {SOCK_FLOAT, 1, N_("H"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
-        {SOCK_FLOAT, 1, N_("Lacunarity"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 6.0f, PROP_UNSIGNED},
-        {SOCK_FLOAT, 1, N_("Octaves"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f, PROP_UNSIGNED},
+/* --- MUSGRAVE --- */
+static bNodeSocketTemplate musgrave_inputs[] = {
+    COMMON_INPUTS,
+    {SOCK_FLOAT, 1, N_("H"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, 1, N_("Lacunarity"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 6.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, 1, N_("Octaves"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f, PROP_UNSIGNED},
 
-        {SOCK_FLOAT, 1, N_("iScale"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 10.0f, PROP_UNSIGNED},
-        {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
-        {-1, 0, ""}};
+    {SOCK_FLOAT, 1, N_("iScale"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 10.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
+    {-1, 0, ""}};
 static void musgrave_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->mg_H = tex_input_value(in[I + 0], p, thread);
@@ -250,28 +251,29 @@ static void musgrave_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short t
   tex->ns_outscale = tex_input_value(in[I + 3], p, thread);
   tex->noisesize = tex_input_value(in[I + 4], p, thread);
 }
-ProcDef(musgrave)
+ProcDef(musgrave);
 
-    /* --- NOISE --- */
-    static bNodeSocketTemplate noise_inputs[] = {COMMON_INPUTS, {-1, 0, ""}};
-ProcNoInputs(noise) ProcDef(noise)
+/* --- NOISE --- */
+static bNodeSocketTemplate noise_inputs[] = {COMMON_INPUTS, {-1, 0, ""}};
+ProcNoInputs(noise);
+ProcDef(noise);
 
-    /* --- STUCCI --- */
-    static bNodeSocketTemplate stucci_inputs[] = {
-        COMMON_INPUTS,
-        {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
-        {SOCK_FLOAT, 1, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
-        {-1, 0, ""}};
+/* --- STUCCI --- */
+static bNodeSocketTemplate stucci_inputs[] = {
+    COMMON_INPUTS,
+    {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, 1, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
+    {-1, 0, ""}};
 static void stucci_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->noisesize = tex_input_value(in[I + 0], p, thread);
   tex->turbul = tex_input_value(in[I + 1], p, thread);
 }
-ProcDef(stucci)
+ProcDef(stucci);
 
-    /* --- */
+/* --- */
 
-    static void init(bNodeTree *UNUSED(ntree), bNode *node)
+static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   Tex *tex = MEM_callocN(sizeof(Tex), "Tex");
   node->storage = tex;
@@ -303,9 +305,9 @@ ProcDef(stucci)
 #define C outputs_color_only
 #define CV outputs_both
 
-TexDef(TEX_VORONOI, CV, voronoi, "Voronoi") TexDef(TEX_BLEND, C, blend, "Blend")
-    TexDef(TEX_MAGIC, C, magic, "Magic") TexDef(TEX_MARBLE, CV, marble, "Marble")
-        TexDef(TEX_CLOUDS, CV, clouds, "Clouds") TexDef(TEX_WOOD, CV, wood, "Wood")
-            TexDef(TEX_MUSGRAVE, CV, musgrave, "Musgrave") TexDef(TEX_NOISE, C, noise, "Noise")
-                TexDef(TEX_STUCCI, CV, stucci, "Stucci")
-                    TexDef(TEX_DISTNOISE, CV, distnoise, "Distorted Noise")
+TexDef(TEX_VORONOI, CV, voronoi, "Voronoi") TexDef(TEX_BLEND, C, blend, "Blend");
+TexDef(TEX_MAGIC, C, magic, "Magic") TexDef(TEX_MARBLE, CV, marble, "Marble");
+TexDef(TEX_CLOUDS, CV, clouds, "Clouds") TexDef(TEX_WOOD, CV, wood, "Wood");
+TexDef(TEX_MUSGRAVE, CV, musgrave, "Musgrave") TexDef(TEX_NOISE, C, noise, "Noise");
+TexDef(TEX_STUCCI, CV, stucci, "Stucci");
+TexDef(TEX_DISTNOISE, CV, distnoise, "Distorted Noise");

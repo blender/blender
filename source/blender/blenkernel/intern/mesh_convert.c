@@ -265,9 +265,11 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
   const float *data;
   int a, b, ofs, vertcount, startvert, totvert = 0, totedge = 0, totloop = 0, totpoly = 0;
   int p1, p2, p3, p4, *index;
-  const bool conv_polys = ((CU_DO_2DFILL(cu) ==
-                            false) || /* 2d polys are filled with DL_INDEX3 displists */
-                           (ob->type == OB_SURF)); /* surf polys are never filled */
+  const bool conv_polys = (
+      /* 2d polys are filled with DL_INDEX3 displists */
+      (CU_DO_2DFILL(cu) == false) ||
+      /* surf polys are never filled */
+      (ob->type == OB_SURF));
 
   /* count */
   dl = dispbase->first;

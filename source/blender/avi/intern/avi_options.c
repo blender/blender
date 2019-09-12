@@ -42,8 +42,8 @@ AviError AVI_set_compress_option(
 
   (void)stream; /* unused */
 
-  if (movie->header->TotalFrames !=
-      0) { /* Can't change params after we have already started writing frames */
+  if (movie->header->TotalFrames != 0) {
+    /* Can't change params after we have already started writing frames. */
     return AVI_ERROR_OPTION;
   }
 

@@ -5339,8 +5339,8 @@ static void lib_link_object(FileData *fd, Main *main)
                                                                            eModifierType_Smoke);
 
         if (smd && (smd->type == MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
-          smd->domain->flags |=
-              MOD_SMOKE_FILE_LOAD; /* flag for refreshing the simulation after loading */
+          /* Flag for refreshing the simulation after loading. */
+          smd->domain->flags |= MOD_SMOKE_FILE_LOAD;
         }
       }
 

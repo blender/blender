@@ -629,8 +629,8 @@ static char *rna_def_property_get_func(
 
       if (prop->type == PROP_FLOAT) {
         if (IS_DNATYPE_FLOAT_COMPAT(dp->dnatype) == 0) {
-          if (prop->subtype !=
-              PROP_COLOR_GAMMA) { /* colors are an exception. these get translated */
+          /* Colors are an exception. these get translated. */
+          if (prop->subtype != PROP_COLOR_GAMMA) {
             CLOG_ERROR(&LOG,
                        "%s.%s is a '%s' but wrapped as type '%s'.",
                        srna->identifier,

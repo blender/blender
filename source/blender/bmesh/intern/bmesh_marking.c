@@ -1026,8 +1026,8 @@ bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
   ese->next = ese->prev = NULL;
 
   if (ese_last) {
-    if (ese_last->htype ==
-        BM_FACE) { /* if there is an active face, use it over the last selected face */
+    /* If there is an active face, use it over the last selected face. */
+    if (ese_last->htype == BM_FACE) {
       if (efa) {
         ese->ele = (BMElem *)efa;
       }

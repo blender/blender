@@ -239,8 +239,8 @@ void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
     g_context = NULL;
     g_program = NULL;
 
-    if (clewInit() !=
-        CLEW_SUCCESS) { /* this will check for errors and skip if already initialized */
+    /* This will check for errors and skip if already initialized. */
+    if (clewInit() != CLEW_SUCCESS) {
       return;
     }
 

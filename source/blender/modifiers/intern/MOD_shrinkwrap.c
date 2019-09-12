@@ -65,8 +65,8 @@ static void requiredDataMask(Object *UNUSED(ob),
 
   if ((smd->shrinkType == MOD_SHRINKWRAP_PROJECT) &&
       (smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)) {
-    r_cddata_masks->vmask |=
-        CD_MASK_MVERT; /* XXX Really? These should always be present, always... */
+    /* XXX Really? These should always be present, always... */
+    r_cddata_masks->vmask |= CD_MASK_MVERT;
   }
 }
 
