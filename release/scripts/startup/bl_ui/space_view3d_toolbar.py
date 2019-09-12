@@ -152,7 +152,7 @@ class VIEW3D_PT_tools_object_options_transform(View3DPanel, Panel):
         layout.label(text="Affect Only")
         layout.prop(tool_settings, "use_transform_data_origin", text="Origins")
         layout.prop(tool_settings, "use_transform_pivot_point_align", text="Locations")
-        layout.prop(tool_settings, "use_transform_skip_children", text="Parents (Skip Children)")
+        layout.prop(tool_settings, "use_transform_skip_children", text="Parents")
 
 
 # ********** default tools for editmode_mesh ****************
