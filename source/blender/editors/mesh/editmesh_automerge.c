@@ -120,32 +120,35 @@ struct EDBMSplitEdgeData {
 };
 
 static bool edbm_vert_pair_share_best_splittable_face_cb(BMFace *f,
-                                                         BMLoop *UNUSED(l_a),
-                                                         BMLoop *UNUSED(l_b),
+                                                         BMLoop *l_a,
+                                                         BMLoop *l_b,
                                                          void *userdata)
 {
   struct EDBMSplitBestFaceData *data = userdata;
-  float no[3], min = FLT_MAX, max = -FLT_MAX;
+  float no[3];
   copy_v3_v3(no, f->no);
 
-  BMVert *verts[2] = {NULL};
+  float min = dot_v3v3(l_a->v->co, no);
+  float max = dot_v3v3(l_b->v->co, no);
+  if (min > max) {
+    SWAP(float, min, max);
+  }
+
+  BMVert *v_test = l_b->v;
   BMEdge **e_iter = &data->edgenet[0];
-  for (int i = data->edgenet_len; i--; e_iter++) {
-    BMIter iter;
-    BMVert *v;
-    BM_ITER_ELEM (v, &iter, *e_iter, BM_VERTS_OF_EDGE) {
-      if (!ELEM(v, verts[0], verts[1])) {
-        float dot = dot_v3v3(v->co, no);
-        if (dot < min) {
-          min = dot;
-        }
-        if (dot > max) {
-          max = dot;
-        }
-      }
+  int verts_len = data->edgenet_len - 1;
+  for (int i = verts_len; i--; e_iter++) {
+    v_test = BM_edge_other_vert(*e_iter, v_test);
+    if (!BM_face_point_inside_test(f, v_test->co)) {
+      return false;
     }
-    verts[0] = (*e_iter)->v1;
-    verts[1] = (*e_iter)->v2;
+    float dot = dot_v3v3(v_test->co, no);
+    if (dot < min) {
+      min = dot;
+    }
+    if (dot > max) {
+      max = dot;
+    }
   }
 
   const float test_face_range_on_normal_axis = max - min;
@@ -179,10 +182,8 @@ static bool edbm_vert_pair_share_splittable_face_cb(BMFace *UNUSED(f),
   return false;
 }
 
-static void edbm_automerge_weld_linked_wire_edges_into_linked_faces(BMesh *bm,
-                                                                    BMVert *v,
-                                                                    BMEdge **r_edgenet[],
-                                                                    int *r_edgenet_alloc_len)
+static void edbm_automerge_weld_linked_wire_edges_into_linked_faces(
+    BMesh *bm, BMVert *v, const float epsilon, BMEdge **r_edgenet[], int *r_edgenet_alloc_len)
 {
   BMEdge **edgenet = *r_edgenet;
   int edgenet_alloc_len = *r_edgenet_alloc_len;
@@ -206,15 +207,26 @@ static void edbm_automerge_weld_linked_wire_edges_into_linked_faces(BMesh *bm,
 
       BMEdge *e_next = BM_DISK_EDGE_NEXT(e, v_other);
       if (e_next == e) {
-        /* Vert is wire_endpoint */
+        /* Vert is wire_endpoint. */
         edgenet_len = 0;
         break;
       }
+
+      BMEdge *e_test = e_next;
+      while ((e_test = BM_DISK_EDGE_NEXT(e_test, v_other)) != e) {
+        if (e_test->l) {
+          /* Vert is linked to a face. */
+          goto l_break;
+        }
+      }
+
       e = e_next;
     }
 
     BMLoop *dummy;
     BMFace *best_face;
+
+  l_break:
     if (edgenet_len == 0) {
       /* Nothing to do. */
       continue;
@@ -236,6 +248,25 @@ static void edbm_automerge_weld_linked_wire_edges_into_linked_faces(BMesh *bm,
       BM_vert_pair_shared_face_cb(
           v_other, v, true, edbm_vert_pair_share_best_splittable_face_cb, &data, &dummy, &dummy);
 
+      if (data.r_best_face) {
+        float no[3], min = FLT_MAX, max = -FLT_MAX;
+        copy_v3_v3(no, data.r_best_face->no);
+        BMVert *v_test;
+        BMIter f_iter;
+        BM_ITER_ELEM (v_test, &f_iter, data.r_best_face, BM_VERTS_OF_FACE) {
+          float dot = dot_v3v3(v_test->co, no);
+          if (dot < min) {
+            min = dot;
+          }
+          if (dot > max) {
+            max = dot;
+          }
+        }
+        float range = max - min + 2 * epsilon;
+        if (range < data.best_face_range_on_normal_axis) {
+          data.r_best_face = NULL;
+        }
+      }
       best_face = data.r_best_face;
     }
 
@@ -498,7 +529,8 @@ void EDBM_automerge_and_split(Object *obedit,
     GHASH_ITER (gh_iter, ghash_targetmap) {
       v = BLI_ghashIterator_getValue(&gh_iter);
       BLI_assert(BM_elem_flag_test(v, hflag) || hflag == BM_ELEM_TAG);
-      edbm_automerge_weld_linked_wire_edges_into_linked_faces(bm, v, &edgenet, &edgenet_alloc_len);
+      edbm_automerge_weld_linked_wire_edges_into_linked_faces(
+          bm, v, dist, &edgenet, &edgenet_alloc_len);
     }
   }
 
