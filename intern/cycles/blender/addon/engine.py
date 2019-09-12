@@ -139,7 +139,7 @@ def create(engine, data, region=None, v3d=None, rv3d=None, preview_osl=False):
 
     data = data.as_pointer()
     prefs = bpy.context.preferences.as_pointer()
-    screen = None
+    screen = 0
     if region:
         screen = region.id_data.as_pointer()
         region = region.as_pointer()
