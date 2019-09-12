@@ -44,6 +44,7 @@ set(SRC
   intern/BLI_ghash_utils.c
   intern/BLI_heap.c
   intern/BLI_heap_simple.c
+  intern/BLI_index_range.cc
   intern/BLI_kdopbvh.c
   intern/BLI_linklist.c
   intern/BLI_linklist_lockfree.c
@@ -51,6 +52,7 @@ set(SRC
   intern/BLI_memblock.c
   intern/BLI_memiter.c
   intern/BLI_mempool.c
+  intern/BLI_temporary_allocator.cc
   intern/BLI_timer.c
   intern/DLRB_tree.c
   intern/array_store.c
@@ -131,9 +133,14 @@ set(SRC
   intern/kdtree_impl.h
   intern/list_sort_impl.h
 
+
+
   BLI_alloca.h
+  BLI_allocator.h
   BLI_args.h
   BLI_array.h
+  BLI_array_cxx.h
+  BLI_array_ref.h
   BLI_array_store.h
   BLI_array_store_utils.h
   BLI_array_utils.h
@@ -170,6 +177,7 @@ set(SRC
   BLI_hash_mm3.h
   BLI_heap.h
   BLI_heap_simple.h
+  BLI_index_range.h
   BLI_iterator.h
   BLI_jitter_2d.h
   BLI_kdopbvh.h
@@ -181,6 +189,7 @@ set(SRC
   BLI_linklist_lockfree.h
   BLI_linklist_stack.h
   BLI_listbase.h
+  BLI_listbase_wrapper.h
   BLI_math.h
   BLI_math_base.h
   BLI_math_bits.h
@@ -198,6 +207,7 @@ set(SRC
   BLI_memblock.h
   BLI_memiter.h
   BLI_memory_utils.h
+  BLI_memory_utils_cxx.h
   BLI_mempool.h
   BLI_noise.h
   BLI_path_util.h
@@ -211,6 +221,7 @@ set(SRC
   BLI_sort.h
   BLI_sort_utils.h
   BLI_stack.h
+  BLI_stack_cxx.h
   BLI_strict_flags.h
   BLI_string.h
   BLI_string_cursor_utf8.h
@@ -219,6 +230,8 @@ set(SRC
   BLI_sys_types.h
   BLI_system.h
   BLI_task.h
+  BLI_temporary_allocator.h
+  BLI_temporary_allocator_cxx.h
   BLI_threads.h
   BLI_timecode.h
   BLI_timer.h
@@ -227,6 +240,7 @@ set(SRC
   BLI_utildefines_stack.h
   BLI_utildefines_variadic.h
   BLI_uvproject.h
+  BLI_vector.h
   BLI_vfontdata.h
   BLI_voronoi_2d.h
   BLI_voxel.h
