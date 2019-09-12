@@ -77,15 +77,10 @@ static void clear_user_data(TimedFunction *timed_func)
 bool BLI_timer_unregister(uintptr_t uuid)
 {
   LISTBASE_FOREACH (TimedFunction *, timed_func, &GlobalTimer.funcs) {
-    if (timed_func->uuid == uuid) {
-      if (timed_func->tag_removal) {
-        return false;
-      }
-      else {
-        timed_func->tag_removal = true;
-        clear_user_data(timed_func);
-        return true;
-      }
+    if (timed_func->uuid == uuid && !timed_func->tag_removal) {
+      timed_func->tag_removal = true;
+      clear_user_data(timed_func);
+      return true;
     }
   }
   return false;
