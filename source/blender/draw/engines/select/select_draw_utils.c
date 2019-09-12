@@ -62,18 +62,18 @@ void select_id_object_min_max(Object *obj, float r_min[3], float r_max[3])
 short select_id_get_object_select_mode(Scene *scene, Object *ob)
 {
   short r_select_mode = 0;
-  if (ob->mode & (OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT)) {
+  if (ob->mode & (OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT)) {
+    /* In order to sample flat colors for vertex weights / texturepaint / vertexpaint
+     * we need to be in SCE_SELECT_FACE mode so select_cache_init() correctly sets up
+     * a shgroup with select_id_flat.
+     * Note this is not working correctly for vertexpaint (yet), but has been discussed
+     * in T66645 and there is a solution by @mano-wii in P1032.
+     * So OB_MODE_VERTEX_PAINT is already included here [required for P1032 I guess]. */
     Mesh *me_orig = DEG_get_original_object(ob)->data;
-    if (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL) {
-      r_select_mode = SCE_SELECT_FACE;
-    }
-    else if (me_orig->editflag & ME_EDIT_PAINT_VERT_SEL) {
+    if (me_orig->editflag & ME_EDIT_PAINT_VERT_SEL) {
       r_select_mode = SCE_SELECT_VERTEX;
     }
-  }
-  else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
-    Mesh *me_orig = DEG_get_original_object(ob)->data;
-    if (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL) {
+    else {
       r_select_mode = SCE_SELECT_FACE;
     }
   }

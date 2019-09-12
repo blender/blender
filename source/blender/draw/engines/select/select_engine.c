@@ -163,13 +163,6 @@ static void select_cache_init(void *vedata)
   if (e_data.context.select_mode == -1) {
     e_data.context.select_mode = select_id_get_object_select_mode(draw_ctx->scene,
                                                                   draw_ctx->obact);
-    if (e_data.context.select_mode == 0) {
-      /* Need for sampling weights. */
-      if (draw_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
-        e_data.context.select_mode = SCE_SELECT_FACE;
-      }
-    }
-
     BLI_assert(e_data.context.select_mode != 0);
   }
 
