@@ -1228,7 +1228,7 @@ void recalcData(TransInfo *t)
     /* set recalc triangle cache flag */
     recalcData_gpencil_strokes(t);
   }
-  if (t->options & CTX_SCULPT) {
+  else if (t->options & CTX_SCULPT) {
     recalcData_sculpt(t);
   }
   else if (t->spacetype == SPACE_IMAGE) {
