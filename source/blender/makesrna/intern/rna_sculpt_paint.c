@@ -1036,7 +1036,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
                            NULL,
                            0,
                            0,
-                           "screen_grab_size",
+                           "Screen Grab Size",
                            "Size to capture the image for re-projecting",
                            0,
                            0);
