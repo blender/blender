@@ -285,6 +285,12 @@ extern char datatoc_gp_brush_marker_png[];
 extern int datatoc_gp_brush_fill_png_size;
 extern char datatoc_gp_brush_fill_png[];
 
+extern int datatoc_gp_brush_airbrush_png_size;
+extern char datatoc_gp_brush_airbrush_png[];
+
+extern int datatoc_gp_brush_chisel_png_size;
+extern char datatoc_gp_brush_chisel_png[];
+
 extern int datatoc_gp_brush_erase_soft_png_size;
 extern char datatoc_gp_brush_erase_soft_png[];
 

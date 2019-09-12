@@ -554,6 +554,8 @@ static void init_brush_icons(void)
   INIT_BRUSH_ICON(ICON_GPBRUSH_BLOCK, gp_brush_block);
   INIT_BRUSH_ICON(ICON_GPBRUSH_MARKER, gp_brush_marker);
   INIT_BRUSH_ICON(ICON_GPBRUSH_FILL, gp_brush_fill);
+  INIT_BRUSH_ICON(ICON_GPBRUSH_AIRBRUSH, gp_brush_airbrush);
+  INIT_BRUSH_ICON(ICON_GPBRUSH_CHISEL, gp_brush_chisel);
   INIT_BRUSH_ICON(ICON_GPBRUSH_ERASE_SOFT, gp_brush_erase_soft);
   INIT_BRUSH_ICON(ICON_GPBRUSH_ERASE_HARD, gp_brush_erase_hard);
   INIT_BRUSH_ICON(ICON_GPBRUSH_ERASE_STROKE, gp_brush_erase_stroke);
@@ -2059,6 +2061,12 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
           break;
         case GP_BRUSH_ICON_FILL:
           br->id.icon_id = ICON_GPBRUSH_FILL;
+          break;
+        case GP_BRUSH_ICON_AIRBRUSH:
+          br->id.icon_id = ICON_GPBRUSH_AIRBRUSH;
+          break;
+        case GP_BRUSH_ICON_CHISEL:
+          br->id.icon_id = ICON_GPBRUSH_CHISEL;
           break;
         case GP_BRUSH_ICON_ERASE_SOFT:
           br->id.icon_id = ICON_GPBRUSH_ERASE_SOFT;
