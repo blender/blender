@@ -322,7 +322,7 @@ typedef struct Brush {
   char _pad1[4];
 
   int elastic_deform_type;
-  float elastic_deform_compressibility;
+  float elastic_deform_volume_preservation;
 
   /* overlay */
   int texture_overlay_alpha;

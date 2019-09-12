@@ -3345,7 +3345,7 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
   radius_scaled[2] = radius_scaled[1] * radius_e[2];
 
   float shear_modulus = 1.0f;
-  float poisson_ratio = brush->elastic_deform_compressibility;
+  float poisson_ratio = brush->elastic_deform_volume_preservation;
 
   float a = 1.0f / (4.0f * (float)M_PI * shear_modulus);
   float b = a / (4.0f * (1.0f - poisson_ratio));

@@ -1837,12 +1837,14 @@ static void rna_def_brush(BlenderRNA *brna)
       prop, "Normal Weight", "How much grab will pull vertexes out of surface during a grab");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "elastic_deform_compressibility", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "elastic_deform_compressibility");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.01f, 3);
-  RNA_def_property_ui_text(
-      prop, "Compressibility", "Material compressibility when simulating the elasticity");
+  prop = RNA_def_property(srna, "elastic_deform_volume_preservation", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "elastic_deform_volume_preservation");
+  RNA_def_property_range(prop, 0.0f, 0.9f);
+  RNA_def_property_ui_range(prop, 0.0f, 0.9f, 0.01f, 3);
+  RNA_def_property_ui_text(prop,
+                           "Volume Preservation",
+                           "Poisson ratio for elastic deformation. Higher values preserve volume "
+                           "more, but also lead to more bulging");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "rake_factor", PROP_FLOAT, PROP_FACTOR);

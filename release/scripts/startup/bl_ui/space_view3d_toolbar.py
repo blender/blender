@@ -422,7 +422,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 row = col.row()
                 row.prop(brush, "elastic_deform_type")
                 row = col.row()
-                row.prop(brush, "elastic_deform_compressibility", slider=True)
+                row.prop(brush, "elastic_deform_volume_preservation", slider=True)
 
             col.separator()
             row = col.row()
