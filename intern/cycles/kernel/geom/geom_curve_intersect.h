@@ -38,12 +38,14 @@ ccl_device_forceinline bool cardinal_curve_intersect(KernelGlobals *kg,
 {
   const bool is_curve_primitive = (type & PRIMITIVE_CURVE);
 
+#  ifndef __KERNEL_OPTIX__ /* see OptiX motion flag OPTIX_MOTION_FLAG_[START|END]_VANISH */
   if (!is_curve_primitive && kernel_data.bvh.use_bvh_steps) {
     const float2 prim_time = kernel_tex_fetch(__prim_time, curveAddr);
     if (time < prim_time.x || time > prim_time.y) {
       return false;
     }
   }
+#  endif
 
   int segment = PRIMITIVE_UNPACK_SEGMENT(type);
   float epsilon = 0.0f;
@@ -505,12 +507,14 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
 
   const bool is_curve_primitive = (type & PRIMITIVE_CURVE);
 
+#  ifndef __KERNEL_OPTIX__ /* see OptiX motion flag OPTIX_MOTION_FLAG_[START|END]_VANISH */
   if (!is_curve_primitive && kernel_data.bvh.use_bvh_steps) {
     const float2 prim_time = kernel_tex_fetch(__prim_time, curveAddr);
     if (time < prim_time.x || time > prim_time.y) {
       return false;
     }
   }
+#  endif
 
   int segment = PRIMITIVE_UNPACK_SEGMENT(type);
   /* curve Intersection check */

@@ -353,13 +353,19 @@ ccl_device void subsurface_random_walk_coefficients(const ShaderClosure *sc,
   *weight = safe_divide_color(bssrdf->weight, A);
 }
 
-ccl_device_noinline bool subsurface_random_walk(KernelGlobals *kg,
-                                                LocalIntersection *ss_isect,
-                                                ShaderData *sd,
-                                                ccl_addr_space PathState *state,
-                                                const ShaderClosure *sc,
-                                                const float bssrdf_u,
-                                                const float bssrdf_v)
+#ifdef __KERNEL_OPTIX__
+ccl_device_inline /* inline trace calls */
+#else
+ccl_device_noinline
+#endif
+    bool
+    subsurface_random_walk(KernelGlobals *kg,
+                           LocalIntersection *ss_isect,
+                           ShaderData *sd,
+                           ccl_addr_space PathState *state,
+                           const ShaderClosure *sc,
+                           const float bssrdf_u,
+                           const float bssrdf_v)
 {
   /* Sample diffuse surface scatter into the object. */
   float3 D;

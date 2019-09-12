@@ -33,136 +33,140 @@ CCL_NAMESPACE_BEGIN
 
 #include "kernel/bvh/bvh_types.h"
 
+#ifndef __KERNEL_OPTIX__
+
 /* Common QBVH functions. */
-#ifdef __QBVH__
-#  include "kernel/bvh/qbvh_nodes.h"
-#  ifdef __KERNEL_AVX2__
-#    include "kernel/bvh/obvh_nodes.h"
+#  ifdef __QBVH__
+#    include "kernel/bvh/qbvh_nodes.h"
+#    ifdef __KERNEL_AVX2__
+#      include "kernel/bvh/obvh_nodes.h"
+#    endif
 #  endif
-#endif
 
 /* Regular BVH traversal */
 
-#include "kernel/bvh/bvh_nodes.h"
+#  include "kernel/bvh/bvh_nodes.h"
 
-#define BVH_FUNCTION_NAME bvh_intersect
-#define BVH_FUNCTION_FEATURES 0
-#include "kernel/bvh/bvh_traversal.h"
-
-#if defined(__INSTANCING__)
-#  define BVH_FUNCTION_NAME bvh_intersect_instancing
-#  define BVH_FUNCTION_FEATURES BVH_INSTANCING
-#  include "kernel/bvh/bvh_traversal.h"
-#endif
-
-#if defined(__HAIR__)
-#  define BVH_FUNCTION_NAME bvh_intersect_hair
-#  define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_HAIR
-#  include "kernel/bvh/bvh_traversal.h"
-#endif
-
-#if defined(__OBJECT_MOTION__)
-#  define BVH_FUNCTION_NAME bvh_intersect_motion
-#  define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_MOTION
-#  include "kernel/bvh/bvh_traversal.h"
-#endif
-
-#if defined(__HAIR__) && defined(__OBJECT_MOTION__)
-#  define BVH_FUNCTION_NAME bvh_intersect_hair_motion
-#  define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_HAIR | BVH_MOTION
-#  include "kernel/bvh/bvh_traversal.h"
-#endif
-
-/* Subsurface scattering BVH traversal */
-
-#if defined(__BVH_LOCAL__)
-#  define BVH_FUNCTION_NAME bvh_intersect_local
-#  define BVH_FUNCTION_FEATURES BVH_HAIR
-#  include "kernel/bvh/bvh_local.h"
-
-#  if defined(__OBJECT_MOTION__)
-#    define BVH_FUNCTION_NAME bvh_intersect_local_motion
-#    define BVH_FUNCTION_FEATURES BVH_MOTION | BVH_HAIR
-#    include "kernel/bvh/bvh_local.h"
-#  endif
-#endif /* __BVH_LOCAL__ */
-
-/* Volume BVH traversal */
-
-#if defined(__VOLUME__)
-#  define BVH_FUNCTION_NAME bvh_intersect_volume
-#  define BVH_FUNCTION_FEATURES BVH_HAIR
-#  include "kernel/bvh/bvh_volume.h"
-
-#  if defined(__INSTANCING__)
-#    define BVH_FUNCTION_NAME bvh_intersect_volume_instancing
-#    define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_HAIR
-#    include "kernel/bvh/bvh_volume.h"
-#  endif
-
-#  if defined(__OBJECT_MOTION__)
-#    define BVH_FUNCTION_NAME bvh_intersect_volume_motion
-#    define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_MOTION | BVH_HAIR
-#    include "kernel/bvh/bvh_volume.h"
-#  endif
-#endif /* __VOLUME__ */
-
-/* Record all intersections - Shadow BVH traversal */
-
-#if defined(__SHADOW_RECORD_ALL__)
-#  define BVH_FUNCTION_NAME bvh_intersect_shadow_all
+#  define BVH_FUNCTION_NAME bvh_intersect
 #  define BVH_FUNCTION_FEATURES 0
-#  include "kernel/bvh/bvh_shadow_all.h"
+#  include "kernel/bvh/bvh_traversal.h"
 
 #  if defined(__INSTANCING__)
-#    define BVH_FUNCTION_NAME bvh_intersect_shadow_all_instancing
+#    define BVH_FUNCTION_NAME bvh_intersect_instancing
 #    define BVH_FUNCTION_FEATURES BVH_INSTANCING
-#    include "kernel/bvh/bvh_shadow_all.h"
+#    include "kernel/bvh/bvh_traversal.h"
 #  endif
 
 #  if defined(__HAIR__)
-#    define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair
+#    define BVH_FUNCTION_NAME bvh_intersect_hair
 #    define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_HAIR
-#    include "kernel/bvh/bvh_shadow_all.h"
+#    include "kernel/bvh/bvh_traversal.h"
 #  endif
 
 #  if defined(__OBJECT_MOTION__)
-#    define BVH_FUNCTION_NAME bvh_intersect_shadow_all_motion
+#    define BVH_FUNCTION_NAME bvh_intersect_motion
 #    define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_MOTION
-#    include "kernel/bvh/bvh_shadow_all.h"
+#    include "kernel/bvh/bvh_traversal.h"
 #  endif
 
 #  if defined(__HAIR__) && defined(__OBJECT_MOTION__)
-#    define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair_motion
+#    define BVH_FUNCTION_NAME bvh_intersect_hair_motion
 #    define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_HAIR | BVH_MOTION
-#    include "kernel/bvh/bvh_shadow_all.h"
+#    include "kernel/bvh/bvh_traversal.h"
 #  endif
-#endif /* __SHADOW_RECORD_ALL__ */
+
+/* Subsurface scattering BVH traversal */
+
+#  if defined(__BVH_LOCAL__)
+#    define BVH_FUNCTION_NAME bvh_intersect_local
+#    define BVH_FUNCTION_FEATURES BVH_HAIR
+#    include "kernel/bvh/bvh_local.h"
+
+#    if defined(__OBJECT_MOTION__)
+#      define BVH_FUNCTION_NAME bvh_intersect_local_motion
+#      define BVH_FUNCTION_FEATURES BVH_MOTION | BVH_HAIR
+#      include "kernel/bvh/bvh_local.h"
+#    endif
+#  endif /* __BVH_LOCAL__ */
+
+/* Volume BVH traversal */
+
+#  if defined(__VOLUME__)
+#    define BVH_FUNCTION_NAME bvh_intersect_volume
+#    define BVH_FUNCTION_FEATURES BVH_HAIR
+#    include "kernel/bvh/bvh_volume.h"
+
+#    if defined(__INSTANCING__)
+#      define BVH_FUNCTION_NAME bvh_intersect_volume_instancing
+#      define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_HAIR
+#      include "kernel/bvh/bvh_volume.h"
+#    endif
+
+#    if defined(__OBJECT_MOTION__)
+#      define BVH_FUNCTION_NAME bvh_intersect_volume_motion
+#      define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_MOTION | BVH_HAIR
+#      include "kernel/bvh/bvh_volume.h"
+#    endif
+#  endif /* __VOLUME__ */
+
+/* Record all intersections - Shadow BVH traversal */
+
+#  if defined(__SHADOW_RECORD_ALL__)
+#    define BVH_FUNCTION_NAME bvh_intersect_shadow_all
+#    define BVH_FUNCTION_FEATURES 0
+#    include "kernel/bvh/bvh_shadow_all.h"
+
+#    if defined(__INSTANCING__)
+#      define BVH_FUNCTION_NAME bvh_intersect_shadow_all_instancing
+#      define BVH_FUNCTION_FEATURES BVH_INSTANCING
+#      include "kernel/bvh/bvh_shadow_all.h"
+#    endif
+
+#    if defined(__HAIR__)
+#      define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair
+#      define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_HAIR
+#      include "kernel/bvh/bvh_shadow_all.h"
+#    endif
+
+#    if defined(__OBJECT_MOTION__)
+#      define BVH_FUNCTION_NAME bvh_intersect_shadow_all_motion
+#      define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_MOTION
+#      include "kernel/bvh/bvh_shadow_all.h"
+#    endif
+
+#    if defined(__HAIR__) && defined(__OBJECT_MOTION__)
+#      define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair_motion
+#      define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_HAIR | BVH_MOTION
+#      include "kernel/bvh/bvh_shadow_all.h"
+#    endif
+#  endif /* __SHADOW_RECORD_ALL__ */
 
 /* Record all intersections - Volume BVH traversal  */
 
-#if defined(__VOLUME_RECORD_ALL__)
-#  define BVH_FUNCTION_NAME bvh_intersect_volume_all
-#  define BVH_FUNCTION_FEATURES BVH_HAIR
-#  include "kernel/bvh/bvh_volume_all.h"
-
-#  if defined(__INSTANCING__)
-#    define BVH_FUNCTION_NAME bvh_intersect_volume_all_instancing
-#    define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_HAIR
+#  if defined(__VOLUME_RECORD_ALL__)
+#    define BVH_FUNCTION_NAME bvh_intersect_volume_all
+#    define BVH_FUNCTION_FEATURES BVH_HAIR
 #    include "kernel/bvh/bvh_volume_all.h"
-#  endif
 
-#  if defined(__OBJECT_MOTION__)
-#    define BVH_FUNCTION_NAME bvh_intersect_volume_all_motion
-#    define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_MOTION | BVH_HAIR
-#    include "kernel/bvh/bvh_volume_all.h"
-#  endif
-#endif /* __VOLUME_RECORD_ALL__ */
+#    if defined(__INSTANCING__)
+#      define BVH_FUNCTION_NAME bvh_intersect_volume_all_instancing
+#      define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_HAIR
+#      include "kernel/bvh/bvh_volume_all.h"
+#    endif
 
-#undef BVH_FEATURE
-#undef BVH_NAME_JOIN
-#undef BVH_NAME_EVAL
-#undef BVH_FUNCTION_FULL_NAME
+#    if defined(__OBJECT_MOTION__)
+#      define BVH_FUNCTION_NAME bvh_intersect_volume_all_motion
+#      define BVH_FUNCTION_FEATURES BVH_INSTANCING | BVH_MOTION | BVH_HAIR
+#      include "kernel/bvh/bvh_volume_all.h"
+#    endif
+#  endif /* __VOLUME_RECORD_ALL__ */
+
+#  undef BVH_FEATURE
+#  undef BVH_NAME_JOIN
+#  undef BVH_NAME_EVAL
+#  undef BVH_FUNCTION_FULL_NAME
+
+#endif /* __KERNEL_OPTIX__ */
 
 ccl_device_inline bool scene_intersect_valid(const Ray *ray)
 {
@@ -173,8 +177,10 @@ ccl_device_inline bool scene_intersect_valid(const Ray *ray)
    * such cases.
    * From production scenes so far it seems it's enough to test first element
    * only.
+   * Scene intersection may also called with empty rays for conditional trace
+   * calls that evaluate to false, so filter those out.
    */
-  return isfinite_safe(ray->P.x) && isfinite_safe(ray->D.x);
+  return isfinite_safe(ray->P.x) && isfinite_safe(ray->D.x) && len_squared(ray->D) != 0.0f;
 }
 
 ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
@@ -184,10 +190,46 @@ ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
 {
   PROFILING_INIT(kg, PROFILING_INTERSECT);
 
+#ifdef __KERNEL_OPTIX__
+  uint p0 = 0;
+  uint p1 = 0;
+  uint p2 = 0;
+  uint p3 = 0;
+  uint p4 = visibility;
+  uint p5 = PRIMITIVE_NONE;
+
+  optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
+             ray->P,
+             ray->D,
+             0.0f,
+             ray->t,
+             ray->time,
+             0xFF,
+             OPTIX_RAY_FLAG_NONE,
+             0,
+             0,
+             0,  // SBT offset for PG_HITD
+             p0,
+             p1,
+             p2,
+             p3,
+             p4,
+             p5);
+
+  isect->t = __uint_as_float(p0);
+  isect->u = __uint_as_float(p1);
+  isect->v = __uint_as_float(p2);
+  isect->prim = p3;
+  isect->object = p4;
+  isect->type = p5;
+
+  return p5 != PRIMITIVE_NONE;
+#else /* __KERNEL_OPTIX__ */
   if (!scene_intersect_valid(ray)) {
     return false;
   }
-#ifdef __EMBREE__
+
+#  ifdef __EMBREE__
   if (kernel_data.bvh.scene) {
     isect->t = ray->t;
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_REGULAR);
@@ -202,42 +244,41 @@ ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
     }
     return false;
   }
-#endif /* __EMBREE__ */
-#ifdef __OBJECT_MOTION__
+#  endif /* __EMBREE__ */
+
+#  ifdef __OBJECT_MOTION__
   if (kernel_data.bvh.have_motion) {
-#  ifdef __HAIR__
+#    ifdef __HAIR__
     if (kernel_data.bvh.have_curves) {
       return bvh_intersect_hair_motion(kg, ray, isect, visibility);
     }
-#  endif /* __HAIR__ */
+#    endif /* __HAIR__ */
 
     return bvh_intersect_motion(kg, ray, isect, visibility);
   }
-#endif /* __OBJECT_MOTION__ */
+#  endif   /* __OBJECT_MOTION__ */
 
-#ifdef __HAIR__
+#  ifdef __HAIR__
   if (kernel_data.bvh.have_curves) {
     return bvh_intersect_hair(kg, ray, isect, visibility);
   }
-#endif /* __HAIR__ */
+#  endif /* __HAIR__ */
 
-#ifdef __KERNEL_CPU__
-
-#  ifdef __INSTANCING__
+#  ifdef __KERNEL_CPU__
+#    ifdef __INSTANCING__
   if (kernel_data.bvh.have_instancing) {
     return bvh_intersect_instancing(kg, ray, isect, visibility);
   }
-#  endif /* __INSTANCING__ */
+#    endif /* __INSTANCING__ */
   return bvh_intersect(kg, ray, isect, visibility);
-#else /* __KERNEL_CPU__ */
-
-#  ifdef __INSTANCING__
+#  else    /* __KERNEL_CPU__ */
+#    ifdef __INSTANCING__
   return bvh_intersect_instancing(kg, ray, isect, visibility);
-#  else
+#    else
   return bvh_intersect(kg, ray, isect, visibility);
-#  endif /* __INSTANCING__ */
-
-#endif /* __KERNEL_CPU__ */
+#    endif /* __INSTANCING__ */
+#  endif   /* __KERNEL_CPU__ */
+#endif     /* __KERNEL_OPTIX__ */
 }
 
 #ifdef __BVH_LOCAL__
@@ -250,11 +291,43 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
 {
   PROFILING_INIT(kg, PROFILING_INTERSECT_LOCAL);
 
+#  ifdef __KERNEL_OPTIX__
+  uint p0 = ((uint64_t)lcg_state) & 0xFFFFFFFF;
+  uint p1 = (((uint64_t)lcg_state) >> 32) & 0xFFFFFFFF;
+  uint p2 = ((uint64_t)local_isect) & 0xFFFFFFFF;
+  uint p3 = (((uint64_t)local_isect) >> 32) & 0xFFFFFFFF;
+  uint p4 = local_object;
+  // Is set to zero on miss or if ray is aborted, so can be used as return value
+  uint p5 = max_hits;
+
+  local_isect->num_hits = 0;  // Initialize hit count to zero
+  optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
+             ray->P,
+             ray->D,
+             0.0f,
+             ray->t,
+             ray->time,
+             // Need to always call into __anyhit__kernel_optix_local_hit
+             0xFF,
+             OPTIX_RAY_FLAG_ENFORCE_ANYHIT,
+             1,
+             0,
+             0,  // SBT offset for PG_HITL
+             p0,
+             p1,
+             p2,
+             p3,
+             p4,
+             p5);
+
+  return p5;
+#  else /* __KERNEL_OPTIX__ */
   if (!scene_intersect_valid(ray)) {
     local_isect->num_hits = 0;
     return false;
   }
-#  ifdef __EMBREE__
+
+#    ifdef __EMBREE__
   if (kernel_data.bvh.scene) {
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_SSS);
     ctx.lcg_state = lcg_state;
@@ -296,13 +369,15 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
 
     return local_isect->num_hits > 0;
   }
-#  endif /* __EMBREE__ */
-#  ifdef __OBJECT_MOTION__
+#    endif /* __EMBREE__ */
+
+#    ifdef __OBJECT_MOTION__
   if (kernel_data.bvh.have_motion) {
     return bvh_intersect_local_motion(kg, ray, local_isect, local_object, lcg_state, max_hits);
   }
-#  endif /* __OBJECT_MOTION__ */
+#    endif /* __OBJECT_MOTION__ */
   return bvh_intersect_local(kg, ray, local_isect, local_object, lcg_state, max_hits);
+#  endif   /* __KERNEL_OPTIX__ */
 }
 #endif
 
@@ -316,11 +391,41 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals *kg,
 {
   PROFILING_INIT(kg, PROFILING_INTERSECT_SHADOW_ALL);
 
+#  ifdef __KERNEL_OPTIX__
+  uint p0 = ((uint64_t)isect) & 0xFFFFFFFF;
+  uint p1 = (((uint64_t)isect) >> 32) & 0xFFFFFFFF;
+  uint p3 = max_hits;
+  uint p4 = visibility;
+  uint p5 = false;
+
+  *num_hits = 0;  // Initialize hit count to zero
+  optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
+             ray->P,
+             ray->D,
+             0.0f,
+             ray->t,
+             ray->time,
+             // Need to always call into __anyhit__kernel_optix_shadow_all_hit
+             0xFF,
+             OPTIX_RAY_FLAG_ENFORCE_ANYHIT,
+             2,
+             0,
+             0,  // SBT offset for PG_HITS
+             p0,
+             p1,
+             *num_hits,
+             p3,
+             p4,
+             p5);
+
+  return p5;
+#  else /* __KERNEL_OPTIX__ */
   if (!scene_intersect_valid(ray)) {
     *num_hits = 0;
     return false;
   }
-#  ifdef __EMBREE__
+
+#    ifdef __EMBREE__
   if (kernel_data.bvh.scene) {
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_SHADOW_ALL);
     ctx.isect_s = isect;
@@ -337,32 +442,41 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals *kg,
     *num_hits = ctx.num_hits;
     return rtc_ray.tfar == -INFINITY;
   }
-#  endif
-#  ifdef __OBJECT_MOTION__
+#    endif /* __EMBREE__ */
+
+#    ifdef __OBJECT_MOTION__
   if (kernel_data.bvh.have_motion) {
-#    ifdef __HAIR__
+#      ifdef __HAIR__
     if (kernel_data.bvh.have_curves) {
       return bvh_intersect_shadow_all_hair_motion(kg, ray, isect, visibility, max_hits, num_hits);
     }
-#    endif /* __HAIR__ */
+#      endif /* __HAIR__ */
 
     return bvh_intersect_shadow_all_motion(kg, ray, isect, visibility, max_hits, num_hits);
   }
-#  endif /* __OBJECT_MOTION__ */
+#    endif   /* __OBJECT_MOTION__ */
 
-#  ifdef __HAIR__
+#    ifdef __HAIR__
   if (kernel_data.bvh.have_curves) {
     return bvh_intersect_shadow_all_hair(kg, ray, isect, visibility, max_hits, num_hits);
   }
-#  endif /* __HAIR__ */
+#    endif /* __HAIR__ */
 
-#  ifdef __INSTANCING__
+#    ifdef __KERNEL_CPU__
+#      ifdef __INSTANCING__
   if (kernel_data.bvh.have_instancing) {
     return bvh_intersect_shadow_all_instancing(kg, ray, isect, visibility, max_hits, num_hits);
   }
-#  endif /* __INSTANCING__ */
-
+#      endif /* __INSTANCING__ */
   return bvh_intersect_shadow_all(kg, ray, isect, visibility, max_hits, num_hits);
+#    else
+#      ifdef __INSTANCING__
+  return bvh_intersect_shadow_all_instancing(kg, ray, isect, visibility, max_hits, num_hits);
+#      else
+  return bvh_intersect_shadow_all(kg, ray, isect, visibility, max_hits, num_hits);
+#      endif /* __INSTANCING__ */
+#    endif   /* __KERNEL_CPU__ */
+#  endif     /* __KERNEL_OPTIX__ */
 }
 #endif /* __SHADOW_RECORD_ALL__ */
 
@@ -374,30 +488,67 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals *kg,
 {
   PROFILING_INIT(kg, PROFILING_INTERSECT_VOLUME);
 
+#  ifdef __KERNEL_OPTIX__
+  uint p0 = 0;
+  uint p1 = 0;
+  uint p2 = 0;
+  uint p3 = 0;
+  uint p4 = visibility;
+  uint p5 = PRIMITIVE_NONE;
+
+  optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
+             ray->P,
+             ray->D,
+             0.0f,
+             ray->t,
+             ray->time,
+             // Visibility mask set to only intersect objects with volumes
+             0x02,
+             OPTIX_RAY_FLAG_NONE,
+             0,
+             0,
+             0,  // SBT offset for PG_HITD
+             p0,
+             p1,
+             p2,
+             p3,
+             p4,
+             p5);
+
+  isect->t = __uint_as_float(p0);
+  isect->u = __uint_as_float(p1);
+  isect->v = __uint_as_float(p2);
+  isect->prim = p3;
+  isect->object = p4;
+  isect->type = p5;
+
+  return p5 != PRIMITIVE_NONE;
+#  else /* __KERNEL_OPTIX__ */
   if (!scene_intersect_valid(ray)) {
     return false;
   }
 
-#  ifdef __OBJECT_MOTION__
+#    ifdef __OBJECT_MOTION__
   if (kernel_data.bvh.have_motion) {
     return bvh_intersect_volume_motion(kg, ray, isect, visibility);
   }
-#  endif /* __OBJECT_MOTION__ */
+#    endif /* __OBJECT_MOTION__ */
 
-#  ifdef __KERNEL_CPU__
-#    ifdef __INSTANCING__
+#    ifdef __KERNEL_CPU__
+#      ifdef __INSTANCING__
   if (kernel_data.bvh.have_instancing) {
     return bvh_intersect_volume_instancing(kg, ray, isect, visibility);
   }
-#    endif /* __INSTANCING__ */
+#      endif /* __INSTANCING__ */
   return bvh_intersect_volume(kg, ray, isect, visibility);
-#  else /* __KERNEL_CPU__ */
-#    ifdef __INSTANCING__
+#    else    /* __KERNEL_CPU__ */
+#      ifdef __INSTANCING__
   return bvh_intersect_volume_instancing(kg, ray, isect, visibility);
-#    else
+#      else
   return bvh_intersect_volume(kg, ray, isect, visibility);
-#    endif /* __INSTANCING__ */
-#  endif   /* __KERNEL_CPU__ */
+#      endif /* __INSTANCING__ */
+#    endif   /* __KERNEL_CPU__ */
+#  endif     /* __KERNEL_OPTIX__ */
 }
 #endif /* __VOLUME__ */
 
@@ -413,6 +564,7 @@ ccl_device_intersect uint scene_intersect_volume_all(KernelGlobals *kg,
   if (!scene_intersect_valid(ray)) {
     return false;
   }
+
 #  ifdef __EMBREE__
   if (kernel_data.bvh.scene) {
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_VOLUME_ALL);

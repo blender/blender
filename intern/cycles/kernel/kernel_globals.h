@@ -90,12 +90,43 @@ typedef struct KernelGlobals {
 
 #endif /* __KERNEL_CPU__ */
 
+#ifdef __KERNEL_OPTIX__
+
+typedef struct ShaderParams {
+  uint4 *input;
+  float4 *output;
+  int type;
+  int filter;
+  int sx;
+  int offset;
+  int sample;
+} ShaderParams;
+
+typedef struct KernelParams {
+  WorkTile tile;
+  KernelData data;
+  ShaderParams shader;
+#  define KERNEL_TEX(type, name) const type *name;
+#  include "kernel/kernel_textures.h"
+} KernelParams;
+
+typedef struct KernelGlobals {
+#  ifdef __VOLUME__
+  VolumeState volume_state;
+#  endif
+  Intersection hits_stack[64];
+} KernelGlobals;
+
+extern "C" __constant__ KernelParams __params;
+
+#else /* __KERNEL_OPTIX__ */
+
 /* For CUDA, constant memory textures must be globals, so we can't put them
  * into a struct. As a result we don't actually use this struct and use actual
  * globals and simply pass along a NULL pointer everywhere, which we hope gets
  * optimized out. */
 
-#ifdef __KERNEL_CUDA__
+#  ifdef __KERNEL_CUDA__
 
 __constant__ KernelData __data;
 typedef struct KernelGlobals {
@@ -103,10 +134,12 @@ typedef struct KernelGlobals {
   Intersection hits_stack[64];
 } KernelGlobals;
 
-#  define KERNEL_TEX(type, name) const __constant__ __device__ type *name;
-#  include "kernel/kernel_textures.h"
+#    define KERNEL_TEX(type, name) const __constant__ __device__ type *name;
+#    include "kernel/kernel_textures.h"
 
-#endif /* __KERNEL_CUDA__ */
+#  endif /* __KERNEL_CUDA__ */
+
+#endif /* __KERNEL_OPTIX__ */
 
 /* OpenCL */
 

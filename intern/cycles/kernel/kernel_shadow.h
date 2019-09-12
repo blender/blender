@@ -17,13 +17,6 @@
 CCL_NAMESPACE_BEGIN
 
 #ifdef __VOLUME__
-typedef struct VolumeState {
-#  ifdef __SPLIT_KERNEL__
-#  else
-  PathState ps;
-#  endif
-} VolumeState;
-
 /* Get PathState ready for use for volume stack evaluation. */
 #  ifdef __SPLIT_KERNEL__
 ccl_addr_space
@@ -55,16 +48,15 @@ ccl_addr_space
 /* Attenuate throughput accordingly to the given intersection event.
  * Returns true if the throughput is zero and traversal can be aborted.
  */
-ccl_device_forceinline bool shadow_handle_transparent_isect(
-    KernelGlobals *kg,
-    ShaderData *shadow_sd,
-    ccl_addr_space PathState *state,
+ccl_device_forceinline bool shadow_handle_transparent_isect(KernelGlobals *kg,
+                                                            ShaderData *shadow_sd,
+                                                            ccl_addr_space PathState *state,
 #ifdef __VOLUME__
-    ccl_addr_space struct PathState *volume_state,
+                                                            ccl_addr_space PathState *volume_state,
 #endif
-    Intersection *isect,
-    Ray *ray,
-    float3 *throughput)
+                                                            Intersection *isect,
+                                                            Ray *ray,
+                                                            float3 *throughput)
 {
 #ifdef __VOLUME__
   /* Attenuation between last surface and next surface. */
@@ -163,7 +155,11 @@ ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
   uint num_hits;
   const bool blocked = scene_intersect_shadow_all(kg, ray, hits, visibility, max_hits, &num_hits);
 #    ifdef __VOLUME__
+#      ifdef __KERNEL_OPTIX__
+  VolumeState &volume_state = kg->volume_state;
+#      else
   VolumeState volume_state;
+#      endif
 #    endif
   /* If no opaque surface found but we did find transparent hits,
    * shade them.
@@ -302,7 +298,11 @@ ccl_device bool shadow_blocked_transparent_stepped_loop(KernelGlobals *kg,
                                                         float3 *shadow)
 {
 #    ifdef __VOLUME__
+#      ifdef __KERNEL_OPTIX__
+  VolumeState &volume_state = kg->volume_state;
+#      else
   VolumeState volume_state;
+#      endif
 #    endif
   if (blocked && is_transparent_isect) {
     float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
@@ -387,32 +387,38 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
                                       ShaderData *sd,
                                       ShaderData *shadow_sd,
                                       ccl_addr_space PathState *state,
-                                      Ray *ray_input,
+                                      Ray *ray,
                                       float3 *shadow)
 {
-  Ray *ray = ray_input;
-  Intersection isect;
-  /* Some common early checks. */
   *shadow = make_float3(1.0f, 1.0f, 1.0f);
+#if !defined(__KERNEL_OPTIX__)
+  /* Some common early checks.
+   * Avoid conditional trace call in OptiX though, since those hurt performance there.
+   */
   if (ray->t == 0.0f) {
     return false;
   }
+#endif
 #ifdef __SHADOW_TRICKS__
   const uint visibility = (state->flag & PATH_RAY_SHADOW_CATCHER) ? PATH_RAY_SHADOW_NON_CATCHER :
                                                                     PATH_RAY_SHADOW;
 #else
   const uint visibility = PATH_RAY_SHADOW;
 #endif
-  /* Do actual shadow shading. */
-  /* First of all, we check if integrator requires transparent shadows.
+  /* Do actual shadow shading.
+   * First of all, we check if integrator requires transparent shadows.
    * if not, we use simplest and fastest ever way to calculate occlusion.
+   * Do not do this in OptiX to avoid the additional trace call.
    */
-#ifdef __TRANSPARENT_SHADOWS__
+#if !defined(__KERNEL_OPTIX__) || !defined(__TRANSPARENT_SHADOWS__)
+  Intersection isect;
+#  ifdef __TRANSPARENT_SHADOWS__
   if (!kernel_data.integrator.transparent_shadows)
-#endif
+#  endif
   {
     return shadow_blocked_opaque(kg, shadow_sd, state, visibility, ray, &isect, shadow);
   }
+#endif
 #ifdef __TRANSPARENT_SHADOWS__
 #  ifdef __SHADOW_RECORD_ALL__
   /* For the transparent shadows we try to use record-all logic on the
@@ -426,7 +432,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
     return true;
   }
   const uint max_hits = transparent_max_bounce - state->transparent_bounce - 1;
-#    ifdef __KERNEL_GPU__
+#    if defined(__KERNEL_GPU__) && !defined(__KERNEL_OPTIX__)
   /* On GPU we do tricky with tracing opaque ray first, this avoids speed
    * regressions in some files.
    *
