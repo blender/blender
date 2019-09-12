@@ -242,7 +242,7 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
   /* We never handle usercount here for own data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
   /* We always need allocation of our private ID data. */
-  const int flag_private_id_data = flag_subdata & ~LIB_ID_CREATE_NO_ALLOCATE;
+  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
 
   sce_dst->ed = NULL;
   sce_dst->depsgraph_hash = NULL;

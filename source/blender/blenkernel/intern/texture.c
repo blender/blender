@@ -317,10 +317,8 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
  */
 void BKE_texture_copy_data(Main *bmain, Tex *tex_dst, const Tex *tex_src, const int flag)
 {
-  /* We never handle usercount here for own data. */
-  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
   /* We always need allocation of our private ID data. */
-  const int flag_private_id_data = flag_subdata & ~LIB_ID_CREATE_NO_ALLOCATE;
+  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
 
   if (!BKE_texture_is_image_user(tex_src)) {
     tex_dst->ima = NULL;

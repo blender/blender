@@ -78,10 +78,8 @@ Light *BKE_light_add(Main *bmain, const char *name)
  */
 void BKE_light_copy_data(Main *bmain, Light *la_dst, const Light *la_src, const int flag)
 {
-  /* We never handle usercount here for own data. */
-  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
   /* We always need allocation of our private ID data. */
-  const int flag_private_id_data = flag_subdata & ~LIB_ID_CREATE_NO_ALLOCATE;
+  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
 
   la_dst->curfalloff = BKE_curvemapping_copy(la_src->curfalloff);
 

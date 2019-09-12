@@ -98,10 +98,8 @@ World *BKE_world_add(Main *bmain, const char *name)
  */
 void BKE_world_copy_data(Main *bmain, World *wrld_dst, const World *wrld_src, const int flag)
 {
-  /* We never handle usercount here for own data. */
-  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
   /* We always need allocation of our private ID data. */
-  const int flag_private_id_data = flag_subdata & ~LIB_ID_CREATE_NO_ALLOCATE;
+  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
 
   if (wrld_src->nodetree) {
     BKE_id_copy_ex(
