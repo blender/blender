@@ -946,8 +946,8 @@ struct TransCustomDataLayer {
   int data_len;
 };
 
-static void trans_mesh_customdata_free_cb(struct TransInfo *t,
-                                          struct TransDataContainer *tc,
+static void trans_mesh_customdata_free_cb(struct TransInfo *UNUSED(t),
+                                          struct TransDataContainer *UNUSED(tc),
                                           struct TransCustomData *custom_data)
 {
   struct TransCustomDataLayer *tcld = custom_data->data;
