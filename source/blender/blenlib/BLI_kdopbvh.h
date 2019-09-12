@@ -89,6 +89,12 @@ typedef struct BVHTreeRayHit {
 
 enum {
   /* Use a priority queue to process nodes in the optimal order (for slow callbacks) */
+  BVH_OVERLAP_USE_THREADING = (1 << 0),
+  BVH_OVERLAP_RETURN_PAIRS = (1 << 1),
+  BVH_OVERLAP_BREAK_ON_FIRST = (1 << 2),
+};
+enum {
+  /* Use a priority queue to process nodes in the optimal order (for slow callbacks) */
   BVH_NEAREST_OPTIMAL_ORDER = (1 << 0),
 };
 enum {
@@ -152,6 +158,14 @@ int BLI_bvhtree_overlap_thread_num(const BVHTree *tree);
 
 /* collision/overlap: check two trees if they overlap,
  * alloc's *overlap with length of the int return value */
+BVHTreeOverlap *BLI_bvhtree_overlap_ex(
+    const BVHTree *tree1,
+    const BVHTree *tree2,
+    uint *r_overlap_tot,
+    /* optional callback to test the overlap before adding (must be thread-safe!) */
+    BVHTree_OverlapCallback callback,
+    void *userdata,
+    int flag);
 BVHTreeOverlap *BLI_bvhtree_overlap(const BVHTree *tree1,
                                     const BVHTree *tree2,
                                     unsigned int *r_overlap_tot,
