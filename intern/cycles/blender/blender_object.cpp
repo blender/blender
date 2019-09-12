@@ -555,7 +555,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
 
     /* test if object needs to be hidden */
     const bool show_self = b_instance.show_self();
-    const bool show_local_view = !has_local_view || b_ob.local_view_get(b_v3d, b_view_layer);
+    const bool show_local_view = !has_local_view || b_ob.local_view_get(b_v3d);
     const bool show_particles = b_instance.show_particles();
 
     if (show_local_view && (show_self || show_particles)) {

@@ -250,18 +250,14 @@ static Base *rna_Object_local_view_property_helper(bScreen *sc,
   return base;
 }
 
-static bool rna_Object_local_view_get(Object *ob,
-                                      ReportList *reports,
-                                      PointerRNA *v3d_ptr,
-                                      ViewLayer *view_layer)
+static bool rna_Object_local_view_get(Object *ob, ReportList *reports, View3D *v3d)
 {
-  bScreen *sc = (bScreen *)v3d_ptr->owner_id;
-  View3D *v3d = v3d_ptr->data;
-  Base *base = rna_Object_local_view_property_helper(sc, v3d, view_layer, ob, reports, NULL);
-  if (base == NULL) {
-    return false; /* Error reported. */
+  if (v3d->localvd == NULL) {
+    BKE_report(reports, RPT_ERROR, "Viewport not in local view");
+    return false;
   }
-  return (base->local_view_bits & v3d->local_view_uuid) != 0;
+
+  return ((ob->base_local_view_bits & v3d->local_view_uuid) != 0);
 }
 
 static void rna_Object_local_view_set(Object *ob,
@@ -817,12 +813,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_ui_description(func, "Get the local view state for this object");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "viewport", "SpaceView3D", "", "Viewport in local view");
-  RNA_def_parameter_flags(parm, 0, PARM_RNAPTR | PARM_REQUIRED);
-  parm = RNA_def_pointer(func,
-                         "view_layer",
-                         "ViewLayer",
-                         "",
-                         "Optional ViewLayer. Preferably passed for additional performance");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_boolean(func, "result", 0, "", "Object local view state");
   RNA_def_function_return(func, parm);
 
