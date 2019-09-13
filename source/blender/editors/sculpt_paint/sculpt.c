@@ -3610,13 +3610,26 @@ static bool sculpt_pose_brush_is_vertex_inside_brush_radius(float vertex[3],
   return false;
 }
 
-static void sculpt_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Brush *br)
+/* Calculate the pose origin and (Optionaly the pose factor) that is used when using the pose brush
+ *
+ * r_pose_origin must be a valid pointer. the r_pose_factor is optional. When set to NULL it won't
+ * be calculated. */
+void sculpt_pose_calc_pose_data(Sculpt *sd,
+                                Object *ob,
+                                SculptSession *ss,
+                                float initial_location[3],
+                                float radius,
+                                float *r_pose_origin,
+                                float *r_pose_factor)
 {
+  const bool calc_pose_factor = (r_pose_factor != NULL);
+
   sculpt_vertex_random_access_init(ss);
 
-  ss->cache->pose_factor = MEM_callocN(sculpt_vertex_count_get(ss) * sizeof(float), "Pose factor");
+  float pose_origin[3];
+  float pose_initial_co[3];
 
-  copy_v3_v3(ss->cache->pose_initial_co, ss->cache->location);
+  copy_v3_v3(pose_initial_co, initial_location);
 
   char *visited_vertices = MEM_callocN(sculpt_vertex_count_get(ss) * sizeof(char),
                                        "Visited vertices");
@@ -3624,13 +3637,14 @@ static void sculpt_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Br
                                                   "not visited vertices stack");
 
   float tot_co = 0;
-  zero_v3(ss->cache->pose_origin);
+  zero_v3(pose_origin);
 
   VertexTopologyIterator mevit;
 
   /* Add active vertex and symmetric vertices to the stack. */
   const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
   for (char i = 0; i <= symm; ++i) {
+    mevit.v = -1;
     if (is_symmetry_iteration_valid(i, symm)) {
       float location[3];
       flip_v3_v3(location, sculpt_vertex_co_get(ss, sculpt_active_vertex_get(ss)), (char)i);
@@ -3638,8 +3652,9 @@ static void sculpt_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Br
         mevit.v = sculpt_active_vertex_get(ss);
       }
       else {
-        mevit.v = sculpt_nearest_vertex_get(
-            sd, ob, location, ss->cache->radius * ss->cache->radius, false);
+        if (calc_pose_factor) {
+          mevit.v = sculpt_nearest_vertex_get(sd, ob, location, radius * radius, false);
+        }
       }
       if (mevit.v != -1) {
         mevit.it = 1;
@@ -3660,19 +3675,19 @@ static void sculpt_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Br
         VertexTopologyIterator new_entry;
         new_entry.v = ni.index;
         new_entry.it = c_mevit.it + 1;
-        ss->cache->pose_factor[new_entry.v] = 1.0f;
+        if (calc_pose_factor) {
+          r_pose_factor[new_entry.v] = 1.0f;
+        }
         visited_vertices[(int)ni.index] = 1;
-        if (sculpt_pose_brush_is_vertex_inside_brush_radius(sculpt_vertex_co_get(ss, new_entry.v),
-                                                            ss->cache->pose_initial_co,
-                                                            ss->cache->radius,
-                                                            symm)) {
+        if (sculpt_pose_brush_is_vertex_inside_brush_radius(
+                sculpt_vertex_co_get(ss, new_entry.v), pose_initial_co, radius, symm)) {
           BLI_stack_push(not_visited_vertices, &new_entry);
         }
         else {
           if (check_vertex_pivot_symmetry(
-                  sculpt_vertex_co_get(ss, new_entry.v), ss->cache->pose_initial_co, symm)) {
+                  sculpt_vertex_co_get(ss, new_entry.v), pose_initial_co, symm)) {
             tot_co++;
-            add_v3_v3(ss->cache->pose_origin, sculpt_vertex_co_get(ss, new_entry.v));
+            add_v3_v3(pose_origin, sculpt_vertex_co_get(ss, new_entry.v));
           }
         }
       }
@@ -3681,15 +3696,26 @@ static void sculpt_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Br
   }
 
   BLI_stack_free(not_visited_vertices);
-
   MEM_freeN(visited_vertices);
 
   if (tot_co > 0) {
-    mul_v3_fl(ss->cache->pose_origin, 1.0f / (float)tot_co);
+    mul_v3_fl(pose_origin, 1.0f / (float)tot_co);
   }
+  copy_v3_v3(r_pose_origin, pose_origin);
+}
+
+static void sculpt_pose_brush_init(
+    Sculpt *sd, Object *ob, SculptSession *ss, Brush *br, float initial_location[3], float radius)
+{
+  float *pose_factor = MEM_callocN(sculpt_vertex_count_get(ss) * sizeof(float), "Pose factor");
+
+  sculpt_pose_calc_pose_data(
+      sd, ob, ss, initial_location, radius, ss->cache->pose_origin, pose_factor);
+
+  copy_v3_v3(ss->cache->pose_initial_co, initial_location);
+  ss->cache->pose_factor = pose_factor;
 
   /* Smooth the pose brush factor for cleaner deformation */
-
   PBVHNode **nodes;
   PBVH *pbvh = ob->sculpt->pbvh;
   int totnode;
@@ -5078,7 +5104,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     if (brush->sculpt_tool == SCULPT_TOOL_POSE && ss->cache->first_time &&
         ss->cache->mirror_symmetry_pass == 0) {
       if (BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
-        sculpt_pose_brush_init(sd, ob, ss, brush);
+        sculpt_pose_brush_init(sd, ob, ss, brush, ss->cache->location, ss->cache->radius);
       }
     }
 
@@ -5675,6 +5701,9 @@ void sculpt_cache_free(StrokeCache *cache)
 {
   if (cache->dial) {
     MEM_freeN(cache->dial);
+  }
+  if (cache->pose_factor) {
+    MEM_freeN(cache->pose_factor);
   }
   MEM_freeN(cache);
 }

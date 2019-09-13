@@ -270,6 +270,7 @@ typedef struct SculptSession {
   /* Dynamic mesh preview */
   int *preview_vert_index_list;
   int preview_vert_index_count;
+  float pose_origin[3];
 
   /* Transform operator */
   float pivot_pos[3];
