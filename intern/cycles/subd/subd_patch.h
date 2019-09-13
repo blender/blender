@@ -24,6 +24,10 @@ CCL_NAMESPACE_BEGIN
 
 class Patch {
  public:
+  Patch() : patch_index(0), shader(0), from_ngon(false)
+  {
+  }
+
   virtual ~Patch() = default;
 
   virtual void eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, float u, float v) = 0;

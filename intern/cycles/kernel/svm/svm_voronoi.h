@@ -49,7 +49,8 @@ ccl_device void voronoi_f1_1d(float w,
   float localPosition = w - cellPosition;
 
   float minDistance = 8.0f;
-  float targetOffset, targetPosition;
+  float targetOffset = 0.0f;
+  float targetPosition = 0.0f;
   for (int i = -1; i <= 1; i++) {
     float cellOffset = i;
     float pointPosition = cellOffset + hash_float_to_float(cellPosition + cellOffset) * randomness;
@@ -113,7 +114,8 @@ ccl_device void voronoi_f2_1d(float w,
   float distanceF2 = 8.0f;
   float offsetF1 = 0.0f;
   float positionF1 = 0.0f;
-  float offsetF2, positionF2;
+  float offsetF2 = 0.0f;
+  float positionF2 = 0.0f;
   for (int i = -1; i <= 1; i++) {
     float cellOffset = i;
     float pointPosition = cellOffset + hash_float_to_float(cellPosition + cellOffset) * randomness;
@@ -157,8 +159,8 @@ ccl_device void voronoi_n_sphere_radius_1d(float w, float randomness, float *out
   float cellPosition = floorf(w);
   float localPosition = w - cellPosition;
 
-  float closestPoint;
-  float closestPointOffset;
+  float closestPoint = 0.0f;
+  float closestPointOffset = 0.0f;
   float minDistance = 8.0f;
   for (int i = -1; i <= 1; i++) {
     float cellOffset = i;
@@ -172,7 +174,7 @@ ccl_device void voronoi_n_sphere_radius_1d(float w, float randomness, float *out
   }
 
   minDistance = 8.0f;
-  float closestPointToClosestPoint;
+  float closestPointToClosestPoint = 0.0f;
   for (int i = -1; i <= 1; i++) {
     if (i == 0) {
       continue;
@@ -225,7 +227,8 @@ ccl_device void voronoi_f1_2d(float2 coord,
   float2 localPosition = coord - cellPosition;
 
   float minDistance = 8.0f;
-  float2 targetOffset, targetPosition;
+  float2 targetOffset = make_float2(0.0f, 0.0f);
+  float2 targetPosition = make_float2(0.0f, 0.0f);
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
       float2 cellOffset = make_float2(i, j);
@@ -295,7 +298,8 @@ ccl_device void voronoi_f2_2d(float2 coord,
   float distanceF2 = 8.0f;
   float2 offsetF1 = make_float2(0.0f, 0.0f);
   float2 positionF1 = make_float2(0.0f, 0.0f);
-  float2 offsetF2, positionF2;
+  float2 offsetF2 = make_float2(0.0f, 0.0f);
+  float2 positionF2 = make_float2(0.0f, 0.0f);
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
       float2 cellOffset = make_float2(i, j);
@@ -327,7 +331,7 @@ ccl_device void voronoi_distance_to_edge_2d(float2 coord, float randomness, floa
   float2 cellPosition = floor(coord);
   float2 localPosition = coord - cellPosition;
 
-  float2 vectorToClosest;
+  float2 vectorToClosest = make_float2(0.0f, 0.0f);
   float minDistance = 8.0f;
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
@@ -366,8 +370,8 @@ ccl_device void voronoi_n_sphere_radius_2d(float2 coord, float randomness, float
   float2 cellPosition = floor(coord);
   float2 localPosition = coord - cellPosition;
 
-  float2 closestPoint;
-  float2 closestPointOffset;
+  float2 closestPoint = make_float2(0.0f, 0.0f);
+  float2 closestPointOffset = make_float2(0.0f, 0.0f);
   float minDistance = 8.0f;
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
@@ -384,7 +388,7 @@ ccl_device void voronoi_n_sphere_radius_2d(float2 coord, float randomness, float
   }
 
   minDistance = 8.0f;
-  float2 closestPointToClosestPoint;
+  float2 closestPointToClosestPoint = make_float2(0.0f, 0.0f);
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
       if (i == 0 && j == 0) {
@@ -441,7 +445,8 @@ ccl_device void voronoi_f1_3d(float3 coord,
   float3 localPosition = coord - cellPosition;
 
   float minDistance = 8.0f;
-  float3 targetOffset, targetPosition;
+  float3 targetOffset = make_float3(0.0f, 0.0f, 0.0f);
+  float3 targetPosition = make_float3(0.0f, 0.0f, 0.0f);
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
       for (int i = -1; i <= 1; i++) {
@@ -517,7 +522,8 @@ ccl_device void voronoi_f2_3d(float3 coord,
   float distanceF2 = 8.0f;
   float3 offsetF1 = make_float3(0.0f, 0.0f, 0.0f);
   float3 positionF1 = make_float3(0.0f, 0.0f, 0.0f);
-  float3 offsetF2, positionF2;
+  float3 offsetF2 = make_float3(0.0f, 0.0f, 0.0f);
+  float3 positionF2 = make_float3(0.0f, 0.0f, 0.0f);
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
       for (int i = -1; i <= 1; i++) {
@@ -552,7 +558,7 @@ ccl_device void voronoi_distance_to_edge_3d(float3 coord, float randomness, floa
   float3 cellPosition = floor(coord);
   float3 localPosition = coord - cellPosition;
 
-  float3 vectorToClosest;
+  float3 vectorToClosest = make_float3(0.0f, 0.0f, 0.0f);
   float minDistance = 8.0f;
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
@@ -595,8 +601,8 @@ ccl_device void voronoi_n_sphere_radius_3d(float3 coord, float randomness, float
   float3 cellPosition = floor(coord);
   float3 localPosition = coord - cellPosition;
 
-  float3 closestPoint;
-  float3 closestPointOffset;
+  float3 closestPoint = make_float3(0.0f, 0.0f, 0.0f);
+  float3 closestPointOffset = make_float3(0.0f, 0.0f, 0.0f);
   float minDistance = 8.0f;
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
@@ -615,7 +621,7 @@ ccl_device void voronoi_n_sphere_radius_3d(float3 coord, float randomness, float
   }
 
   minDistance = 8.0f;
-  float3 closestPointToClosestPoint;
+  float3 closestPointToClosestPoint = make_float3(0.0f, 0.0f, 0.0f);
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
       for (int i = -1; i <= 1; i++) {
@@ -674,7 +680,8 @@ ccl_device void voronoi_f1_4d(float4 coord,
   float4 localPosition = coord - cellPosition;
 
   float minDistance = 8.0f;
-  float4 targetOffset, targetPosition;
+  float4 targetOffset = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float4 targetPosition = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
       for (int j = -1; j <= 1; j++) {
@@ -754,7 +761,8 @@ ccl_device void voronoi_f2_4d(float4 coord,
   float distanceF2 = 8.0f;
   float4 offsetF1 = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   float4 positionF1 = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-  float4 offsetF2, positionF2;
+  float4 offsetF2 = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float4 positionF2 = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
       for (int j = -1; j <= 1; j++) {
@@ -791,7 +799,7 @@ ccl_device void voronoi_distance_to_edge_4d(float4 coord, float randomness, floa
   float4 cellPosition = floor(coord);
   float4 localPosition = coord - cellPosition;
 
-  float4 vectorToClosest;
+  float4 vectorToClosest = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   float minDistance = 8.0f;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
@@ -838,8 +846,8 @@ ccl_device void voronoi_n_sphere_radius_4d(float4 coord, float randomness, float
   float4 cellPosition = floor(coord);
   float4 localPosition = coord - cellPosition;
 
-  float4 closestPoint;
-  float4 closestPointOffset;
+  float4 closestPoint = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float4 closestPointOffset = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   float minDistance = 8.0f;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
@@ -860,7 +868,7 @@ ccl_device void voronoi_n_sphere_radius_4d(float4 coord, float randomness, float
   }
 
   minDistance = 8.0f;
-  float4 closestPointToClosestPoint;
+  float4 closestPointToClosestPoint = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
       for (int j = -1; j <= 1; j++) {
@@ -922,8 +930,9 @@ ccl_device void svm_node_tex_voronoi(KernelGlobals *kg,
   NodeVoronoiFeature voronoi_feature = (NodeVoronoiFeature)feature;
   NodeVoronoiDistanceMetric voronoi_metric = (NodeVoronoiDistanceMetric)metric;
 
-  float distance_out, w_out, radius_out;
-  float3 color_out, position_out;
+  float distance_out = 0.0f, w_out = 0.0f, radius_out = 0.0f;
+  float3 color_out = make_float3(0.0f, 0.0f, 0.0f);
+  float3 position_out = make_float3(0.0f, 0.0f, 0.0f);
 
   randomness = clamp(randomness, 0.0f, 1.0f);
   smoothness = clamp(smoothness / 2.0f, 0.0f, 0.5f);

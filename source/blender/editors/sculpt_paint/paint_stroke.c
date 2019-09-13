@@ -775,17 +775,19 @@ static int paint_space_stroke(bContext *C,
   Brush *brush = BKE_paint_brush(paint);
   int cnt = 0;
 
-  float pressure, dpressure;
-  float mouse[2], dmouse[2];
-  float world_space_position[3], d_world_space_position[3], final_world_space_position[3];
-  float length;
-  float no_pressure_spacing = paint_space_stroke_spacing(C, scene, stroke, 1.0f, 1.0f);
-  pressure = stroke->last_pressure;
-  dpressure = final_pressure - stroke->last_pressure;
-  sub_v2_v2v2(dmouse, final_mouse, stroke->last_mouse_position);
-  length = normalize_v2(dmouse);
+  const bool use_scene_spacing = paint_stroke_use_scene_spacing(brush, mode);
+  float d_world_space_position[3] = {0.0f};
 
-  if (paint_stroke_use_scene_spacing(brush, mode)) {
+  float no_pressure_spacing = paint_space_stroke_spacing(C, scene, stroke, 1.0f, 1.0f);
+  float pressure = stroke->last_pressure;
+  float dpressure = final_pressure - stroke->last_pressure;
+
+  float dmouse[2];
+  sub_v2_v2v2(dmouse, final_mouse, stroke->last_mouse_position);
+  float length = normalize_v2(dmouse);
+
+  if (use_scene_spacing) {
+    float world_space_position[3];
     bool hit = sculpt_stroke_get_location(C, world_space_position, final_mouse);
     mul_m4_v3(stroke->vc.obact->obmat, world_space_position);
     if (hit && stroke->stroke_over_mesh) {
@@ -795,6 +797,7 @@ static int paint_space_stroke(bContext *C,
     }
     else {
       length = 0.0f;
+      zero_v3(d_world_space_position);
       stroke->stroke_over_mesh = hit;
       if (stroke->stroke_over_mesh) {
         copy_v3_v3(stroke->last_world_space_position, world_space_position);
@@ -805,9 +808,11 @@ static int paint_space_stroke(bContext *C,
   while (length > 0.0f) {
     float spacing = paint_space_stroke_spacing_variable(
         C, scene, stroke, pressure, dpressure, length);
+    float mouse[2];
 
     if (length >= spacing) {
-      if (paint_stroke_use_scene_spacing(brush, mode)) {
+      if (use_scene_spacing) {
+        float final_world_space_position[3];
         normalize_v3(d_world_space_position);
         mul_v3_v3fl(final_world_space_position, d_world_space_position, spacing);
         add_v3_v3v3(final_world_space_position,

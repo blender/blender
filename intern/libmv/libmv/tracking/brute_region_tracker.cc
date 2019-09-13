@@ -110,6 +110,8 @@ inline static __m128i SumOfAbsoluteDifferencesContiguousSSE(
       case 13: mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, X, X, X, 0, 0, 0); break;
       case 14: mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0, 0); break;
       case 15: mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0); break;
+      // To silence compiler warning.
+      default: mask = _mm_setzero_si128(); break;
 #undef X
     }
     sad = _mm_add_epi32(sad, _mm_sad_epu8(_mm_and_si128(mask, a_trail),

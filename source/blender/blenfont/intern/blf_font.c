@@ -312,6 +312,9 @@ static void blf_font_ensure_ascii_kerning(FontBLF *font, const FT_UInt kern_mode
       _g = blf_glyph_add(_font, FT_Get_Char_Index((_font)->face, _c), _c); \
     } \
   } \
+  else { \
+    _g = NULL; \
+  } \
   (void)0
 
 #define BLF_KERNING_VARS(_font, _has_kerning, _kern_mode) \
@@ -677,7 +680,7 @@ static bool blf_font_width_to_strlen_glyph_process(FontBLF *font,
 size_t blf_font_width_to_strlen(
     FontBLF *font, const char *str, size_t len, float width, float *r_width)
 {
-  unsigned int c, c_prev;
+  unsigned int c, c_prev = BLI_UTF8_ERR;
   GlyphBLF *g, *g_prev;
   int pen_x, width_new;
   size_t i, i_prev;
@@ -711,7 +714,7 @@ size_t blf_font_width_to_strlen(
 size_t blf_font_width_to_rstrlen(
     FontBLF *font, const char *str, size_t len, float width, float *r_width)
 {
-  unsigned int c, c_prev;
+  unsigned int c, c_prev = BLI_UTF8_ERR;
   GlyphBLF *g, *g_prev;
   int pen_x, width_new;
   size_t i, i_prev, i_tmp;

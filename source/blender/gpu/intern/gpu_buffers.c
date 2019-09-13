@@ -452,7 +452,10 @@ static void gpu_pbvh_grid_fill_index_buffers(
           }
           grid_visible = true;
         }
-        GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
+
+        if (grid_visible) {
+          GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
+        }
       }
 
       if (grid_visible) {
@@ -504,7 +507,10 @@ static void gpu_pbvh_grid_fill_index_buffers(
           }
           grid_visible = true;
         }
-        GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
+
+        if (grid_visible) {
+          GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
+        }
       }
 
       if (grid_visible) {
@@ -803,7 +809,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   const bool show_vcol = (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
   int tottri, totvert, maxvert = 0;
   bool empty_mask = true;
-  BMFace *f;
+  BMFace *f = NULL;
 
   /* Count visible triangles */
   tottri = gpu_bmesh_face_visible_count(bm_faces);
@@ -972,7 +978,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   }
 
   /* Get material index from the last face we iterated on. */
-  buffers->material_index = f->mat_nr;
+  buffers->material_index = (f) ? f->mat_nr : 0;
 
   buffers->show_mask = !empty_mask;
 

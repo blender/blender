@@ -180,6 +180,7 @@ void QuadDice::set_side(Subpatch &sub, int edge)
         v = 1.0f - f;
         break;
       case 3:
+      default:
         u = 1.0f - f;
         v = 0;
         break;
