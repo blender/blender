@@ -272,7 +272,6 @@ static bool vertex_color_smooth(Object *ob)
 {
   Mesh *me;
   const MPoly *mp;
-
   int i, j;
 
   bool *mlooptag;
@@ -282,6 +281,7 @@ static bool vertex_color_smooth(Object *ob)
   }
 
   const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+  const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
   mlooptag = MEM_callocN(sizeof(bool) * me->totloop, "VPaintData mlooptag");
 
@@ -289,15 +289,19 @@ static bool vertex_color_smooth(Object *ob)
   mp = me->mpoly;
   for (i = 0; i < me->totpoly; i++, mp++) {
     const MLoop *ml = me->mloop + mp->loopstart;
-    int ml_index = mp->loopstart;
 
     if (use_face_sel && !(mp->flag & ME_FACE_SEL)) {
       continue;
     }
 
-    for (j = 0; j < mp->totloop; j++, ml_index++, ml++) {
-      mlooptag[ml_index] = true;
-    }
+    j = 0;
+    do {
+      if (!(use_vert_sel && !(me->mvert[ml->v].flag & SELECT))) {
+        mlooptag[mp->loopstart + j] = true;
+      }
+      ml++;
+      j++;
+    } while (j < mp->totloop);
   }
 
   /* remove stale me->mcol, will be added later */
