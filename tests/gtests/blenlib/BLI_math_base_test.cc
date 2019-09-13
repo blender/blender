@@ -83,3 +83,33 @@ TEST(math_base, CompareFFRelativeZero)
   EXPECT_FALSE(compare_ff_relative(fn0, f1, -1.0f, 1024));
   EXPECT_FALSE(compare_ff_relative(f1, fn0, -1.0f, 1024));
 }
+
+TEST(math_base, Log2FloorU)
+{
+  EXPECT_EQ(log2_floor_u(0), 0);
+  EXPECT_EQ(log2_floor_u(1), 0);
+  EXPECT_EQ(log2_floor_u(2), 1);
+  EXPECT_EQ(log2_floor_u(3), 1);
+  EXPECT_EQ(log2_floor_u(4), 2);
+  EXPECT_EQ(log2_floor_u(5), 2);
+  EXPECT_EQ(log2_floor_u(6), 2);
+  EXPECT_EQ(log2_floor_u(7), 2);
+  EXPECT_EQ(log2_floor_u(8), 3);
+  EXPECT_EQ(log2_floor_u(9), 3);
+  EXPECT_EQ(log2_floor_u(123456), 16);
+}
+
+TEST(math_base, Log2CeilU)
+{
+  EXPECT_EQ(log2_ceil_u(0), 0);
+  EXPECT_EQ(log2_ceil_u(1), 0);
+  EXPECT_EQ(log2_ceil_u(2), 1);
+  EXPECT_EQ(log2_ceil_u(3), 2);
+  EXPECT_EQ(log2_ceil_u(4), 2);
+  EXPECT_EQ(log2_ceil_u(5), 3);
+  EXPECT_EQ(log2_ceil_u(6), 3);
+  EXPECT_EQ(log2_ceil_u(7), 3);
+  EXPECT_EQ(log2_ceil_u(8), 3);
+  EXPECT_EQ(log2_ceil_u(9), 4);
+  EXPECT_EQ(log2_ceil_u(123456), 17);
+}

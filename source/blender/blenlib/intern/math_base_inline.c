@@ -230,6 +230,21 @@ MINLINE unsigned power_of_2_min_u(unsigned x)
   return x - (x >> 1);
 }
 
+MINLINE unsigned int log2_floor_u(unsigned int x)
+{
+  return x <= 1 ? 0 : 1 + log2_floor_u(x >> 1);
+}
+
+MINLINE unsigned int log2_ceil_u(unsigned int x)
+{
+  if (is_power_of_2_i((int)x)) {
+    return log2_floor_u(x);
+  }
+  else {
+    return log2_floor_u(x) + 1;
+  }
+}
+
 /* rounding and clamping */
 
 #define _round_clamp_fl_impl(arg, ty, min, max) \
