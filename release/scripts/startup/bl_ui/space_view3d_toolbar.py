@@ -219,9 +219,10 @@ class VIEW3D_PT_tools_meshedit_options_automerge(View3DPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        layout.active = tool_settings.use_mesh_automerge
-        layout.prop(tool_settings, "use_mesh_automerge_and_split", toggle=False)
-        layout.prop(tool_settings, "double_threshold", text="Threshold")
+        col = layout.column(align=True)
+        col.active = tool_settings.use_mesh_automerge
+        col.prop(tool_settings, "use_mesh_automerge_and_split", toggle=False)
+        col.prop(tool_settings, "double_threshold", text="Threshold")
 
 # ********** default tools for editmode_curve ****************
 
