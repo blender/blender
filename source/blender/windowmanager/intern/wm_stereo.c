@@ -43,7 +43,6 @@
 #include "ED_screen.h"
 
 #include "GPU_immediate.h"
-#include "GPU_framebuffer.h"
 #include "GPU_texture.h"
 
 #include "WM_api.h"

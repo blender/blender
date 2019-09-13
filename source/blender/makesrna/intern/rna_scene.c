@@ -47,8 +47,6 @@
 #include "ED_object.h"
 #include "ED_gpencil.h"
 
-#include "GPU_extensions.h"
-
 #include "DRW_engine.h"
 
 #include "RNA_define.h"

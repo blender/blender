@@ -44,7 +44,6 @@
 
 #include "RNA_access.h"
 
-#include "GPU_draw.h"
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 

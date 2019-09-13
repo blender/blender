@@ -120,7 +120,6 @@
 
 #include "GPU_material.h"
 #include "GPU_draw.h"
-#include "GPU_immediate.h"
 #include "GPU_init_exit.h"
 
 #include "BKE_sound.h"

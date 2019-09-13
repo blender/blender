@@ -71,10 +71,6 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_state.h"
-
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 

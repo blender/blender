@@ -26,7 +26,6 @@
 #include "BLI_utildefines.h"
 
 #include "GPU_shader.h"
-#include "GPU_shader_interface.h"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"

@@ -50,7 +50,6 @@
 
 #include "UI_interface.h"
 
-#include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_batch.h"
 

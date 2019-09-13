@@ -60,7 +60,6 @@
 
 #include "GPU_batch.h"
 #include "GPU_extensions.h"
-#include "GPU_material.h"
 
 #include "DRW_render.h"
 

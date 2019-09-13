@@ -31,7 +31,6 @@
 #include "GPU_batch.h"
 #include "GPU_glew.h"
 #include "GPU_immediate.h"
-#include "GPU_state.h"
 
 #include "MEM_guardedalloc.h"
 

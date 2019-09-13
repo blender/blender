@@ -45,7 +45,6 @@
 
 #include "BIF_glutil.h"
 
-#include "GPU_draw.h"
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
 #include "GPU_immediate.h"

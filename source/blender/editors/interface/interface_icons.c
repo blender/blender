@@ -27,7 +27,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_draw.h"
 #include "GPU_matrix.h"
 #include "GPU_batch.h"
 #include "GPU_immediate.h"

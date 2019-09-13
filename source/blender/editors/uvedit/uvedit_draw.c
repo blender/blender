@@ -54,10 +54,8 @@
 #include "GPU_batch.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
-#include "GPU_draw.h"
 
 #include "ED_image.h"
 #include "ED_mesh.h"

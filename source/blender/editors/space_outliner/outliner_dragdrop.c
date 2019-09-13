@@ -56,8 +56,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "GPU_state.h"
-
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"

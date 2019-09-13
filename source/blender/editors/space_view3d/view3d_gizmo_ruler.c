@@ -61,7 +61,6 @@
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
-#include "GPU_select.h"
 #include "GPU_state.h"
 
 #include "BLF_api.h"

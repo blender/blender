@@ -67,7 +67,6 @@
 #include "GPU_uniformbuffer.h"
 #include "GPU_viewport.h"
 #include "GPU_matrix.h"
-#include "GPU_select.h"
 
 #include "IMB_colormanagement.h"
 
@@ -99,10 +98,6 @@
 #include "DEG_depsgraph_query.h"
 
 #include "DRW_select_buffer.h"
-
-#ifdef USE_GPU_SELECT
-#  include "GPU_select.h"
-#endif
 
 /** Render State: No persistent data between draw calls. */
 DRWManager DST = {NULL};

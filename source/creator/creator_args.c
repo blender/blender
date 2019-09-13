@@ -72,8 +72,6 @@
 
 #  include "WM_api.h"
 
-#  include "GPU_draw.h"
-
 #  ifdef WITH_LIBMV
 #    include "libmv-capi.h"
 #  endif

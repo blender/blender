@@ -27,9 +27,6 @@
 
 #include "BLT_translation.h"
 
-#include "GPU_immediate.h"
-#include "GPU_state.h"
-
 #include "RNA_access.h"
 
 #include "UI_interface.h"

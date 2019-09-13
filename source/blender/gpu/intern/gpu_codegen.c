@@ -44,7 +44,6 @@
 #include "GPU_glew.h"
 #include "GPU_material.h"
 #include "GPU_shader.h"
-#include "GPU_texture.h"
 #include "GPU_uniformbuffer.h"
 #include "GPU_vertex_format.h"
 

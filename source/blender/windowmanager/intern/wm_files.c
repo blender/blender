@@ -115,8 +115,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "GPU_draw.h"
-
 /* only to report a missing engine */
 #include "RE_engine.h"
 

@@ -36,7 +36,6 @@
 #include "BKE_paint.h"
 
 #include "GPU_buffers.h"
-#include "GPU_immediate.h"
 
 #include "bmesh.h"
 

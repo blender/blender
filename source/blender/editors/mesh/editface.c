@@ -46,8 +46,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "GPU_draw.h"
-
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 

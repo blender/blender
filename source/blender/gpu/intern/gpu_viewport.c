@@ -39,7 +39,6 @@
 #include "GPU_immediate.h"
 #include "GPU_texture.h"
 #include "GPU_viewport.h"
-#include "GPU_draw.h"
 
 #include "DRW_engine.h"
 

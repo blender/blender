@@ -54,9 +54,6 @@
 #include "ED_screen.h"
 #include "ED_transform.h"
 
-#include "GPU_framebuffer.h"
-#include "GPU_material.h"
-#include "GPU_viewport.h"
 #include "GPU_matrix.h"
 
 #include "DRW_engine.h"

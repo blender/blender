@@ -43,8 +43,6 @@
 #include "BKE_pbvh.h"
 
 #include "GPU_buffers.h"
-#include "GPU_draw.h"
-#include "GPU_immediate.h"
 #include "GPU_batch.h"
 
 #include "bmesh.h"

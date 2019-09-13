@@ -23,8 +23,6 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "GPU_extensions.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_view3d_types.h"
 

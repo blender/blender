@@ -26,7 +26,6 @@
 #include "GPU_init_exit.h" /* interface */
 #include "GPU_immediate.h"
 #include "GPU_batch.h"
-#include "GPU_texture.h"
 #include "BKE_global.h"
 
 #include "intern/gpu_codegen.h"

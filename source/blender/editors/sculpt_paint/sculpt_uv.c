@@ -48,10 +48,6 @@
 #include "ED_image.h"
 #include "ED_mesh.h"
 
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_state.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 
