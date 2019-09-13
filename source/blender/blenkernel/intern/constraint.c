@@ -2410,9 +2410,9 @@ static void armdef_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
 }
 
 static void armdef_accumulate_matrix(float obmat[4][4],
-                                     float iobmat[4][4],
-                                     float basemat[4][4],
-                                     float bonemat[4][4],
+                                     const float iobmat[4][4],
+                                     const float basemat[4][4],
+                                     const float bonemat[4][4],
                                      float weight,
                                      float r_sum_mat[4][4],
                                      DualQuat *r_sum_dq)

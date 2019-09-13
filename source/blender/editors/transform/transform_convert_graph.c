@@ -63,8 +63,8 @@ static void bezt_to_transdata(TransData *td,
                               bool selected,
                               bool ishandle,
                               bool intvals,
-                              float mtx[3][3],
-                              float smtx[3][3],
+                              const float mtx[3][3],
+                              const float smtx[3][3],
                               float unit_scale,
                               float offset)
 {

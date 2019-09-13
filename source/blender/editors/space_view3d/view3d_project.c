@@ -116,7 +116,7 @@ eV3DProjStatus ED_view3d_project_base(const struct ARegion *ar, struct Base *bas
  * - 'rv3d->persmatob', is_local == true
  */
 static eV3DProjStatus ed_view3d_project__internal(const ARegion *ar,
-                                                  float perspmat[4][4],
+                                                  const float perspmat[4][4],
                                                   const bool is_local, /* normally hidden */
                                                   const float co[3],
                                                   float r_co[2],

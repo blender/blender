@@ -62,8 +62,8 @@ static void MaskHandleToTransData(MaskSplinePoint *point,
                                   TransData2D *td2d,
                                   TransDataMasking *tdm,
                                   const float asp[2],
-                                  /*const*/ float parent_matrix[3][3],
-                                  /*const*/ float parent_inverse_matrix[3][3])
+                                  /*const*/ const float parent_matrix[3][3],
+                                  /*const*/ const float parent_inverse_matrix[3][3])
 {
   BezTriple *bezt = &point->bezt;
   const bool is_sel_any = MASKPOINT_ISSEL_ANY(point);

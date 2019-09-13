@@ -131,7 +131,7 @@ static void GPENCIL_render_cache(void *vedata,
 
 /* TODO: Reuse Eevee code in shared module instead to duplicate here */
 static void GPENCIL_render_update_viewvecs(float invproj[4][4],
-                                           float winmat[4][4],
+                                           const float winmat[4][4],
                                            float (*r_viewvecs)[4])
 {
   /* view vectors for the corners of the view frustum.

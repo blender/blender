@@ -479,7 +479,7 @@ static int gizmo_axis_test_select(bContext *UNUSED(C), wmGizmo *gz, const int mv
   float i_best_len_sq = FLT_MAX;
   for (int i = 0; i < 3; i++) {
     for (int is_pos = 0; is_pos < 2; is_pos++) {
-      float co[2] = {
+      const float co[2] = {
           gz->matrix_offset[i][0] * (is_pos ? 1 : -1),
           gz->matrix_offset[i][1] * (is_pos ? 1 : -1),
       };

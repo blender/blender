@@ -76,7 +76,7 @@ static void markerToTransDataInit(TransData *td,
                                   MovieTrackingMarker *marker,
                                   int area,
                                   float loc[2],
-                                  float rel[2],
+                                  const float rel[2],
                                   const float off[2],
                                   const float aspect[2])
 {

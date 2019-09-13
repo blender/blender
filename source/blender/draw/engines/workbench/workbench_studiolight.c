@@ -284,7 +284,7 @@ bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd,
   }
 
   /* Test projected near rectangle sides */
-  float pts[4][2] = {
+  const float pts[4][2] = {
       {oed->shadow_min[0], oed->shadow_min[1]},
       {oed->shadow_min[0], oed->shadow_max[1]},
       {oed->shadow_max[0], oed->shadow_min[1]},

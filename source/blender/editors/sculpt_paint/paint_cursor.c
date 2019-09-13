@@ -869,15 +869,19 @@ static bool paint_draw_alpha_overlay(UnifiedPaintSettings *ups,
   return alpha_overlay_active;
 }
 
-BLI_INLINE void draw_tri_point(
-    unsigned int pos, float sel_col[4], float pivot_col[4], float *co, float width, bool selected)
+BLI_INLINE void draw_tri_point(unsigned int pos,
+                               const float sel_col[4],
+                               float pivot_col[4],
+                               float *co,
+                               float width,
+                               bool selected)
 {
   immUniformColor4fv(selected ? sel_col : pivot_col);
 
   GPU_line_width(3.0f);
 
   float w = width / 2.0f;
-  float tri[3][2] = {
+  const float tri[3][2] = {
       {co[0], co[1] + w},
       {co[0] - w, co[1] - w},
       {co[0] + w, co[1] - w},
@@ -899,8 +903,12 @@ BLI_INLINE void draw_tri_point(
   immEnd();
 }
 
-BLI_INLINE void draw_rect_point(
-    unsigned int pos, float sel_col[4], float handle_col[4], float *co, float width, bool selected)
+BLI_INLINE void draw_rect_point(unsigned int pos,
+                                const float sel_col[4],
+                                float handle_col[4],
+                                float *co,
+                                float width,
+                                bool selected)
 {
   immUniformColor4fv(selected ? sel_col : handle_col);
 
@@ -1087,8 +1095,8 @@ static bool ommit_cursor_drawing(Paint *paint, ePaintMode mode, Brush *brush)
 
 static void cursor_draw_point_screen_space(const uint gpuattr,
                                            const ARegion *ar,
-                                           float true_location[3],
-                                           float obmat[4][4])
+                                           const float true_location[3],
+                                           const float obmat[4][4])
 {
   float translation_vertex_cursor[3], location[3];
   copy_v3_v3(location, true_location);
@@ -1100,7 +1108,7 @@ static void cursor_draw_point_screen_space(const uint gpuattr,
 
 static void cursor_draw_tiling_preview(const uint gpuattr,
                                        const ARegion *ar,
-                                       float true_location[3],
+                                       const float true_location[3],
                                        Sculpt *sd,
                                        Object *ob,
                                        float radius)

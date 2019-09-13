@@ -1131,7 +1131,7 @@ static void proxy_freejob(void *pjv)
 static int proxy_bitflag_to_array(int size_flag, int build_sizes[4], int undistort)
 {
   int build_count = 0;
-  int size_flags[2][4] = {
+  const int size_flags[2][4] = {
       {MCLIP_PROXY_SIZE_25, MCLIP_PROXY_SIZE_50, MCLIP_PROXY_SIZE_75, MCLIP_PROXY_SIZE_100},
       {MCLIP_PROXY_UNDISTORTED_SIZE_25,
        MCLIP_PROXY_UNDISTORTED_SIZE_50,

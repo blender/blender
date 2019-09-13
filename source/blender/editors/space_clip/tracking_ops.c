@@ -448,8 +448,8 @@ static float mouse_to_slide_zone_distance_squared(const float co[2],
                                                   int width,
                                                   int height)
 {
-  float pixel_co[2] = {co[0] * width, co[1] * height},
-        pixel_slide_zone[2] = {slide_zone[0] * width, slide_zone[1] * height};
+  const float pixel_co[2] = {co[0] * width, co[1] * height},
+              pixel_slide_zone[2] = {slide_zone[0] * width, slide_zone[1] * height};
   return SQUARE(pixel_co[0] - pixel_slide_zone[0]) + SQUARE(pixel_co[1] - pixel_slide_zone[1]);
 }
 

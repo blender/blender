@@ -273,7 +273,7 @@ static void dial_ghostarc_draw(const float angle_ofs,
 static void dial_ghostarc_get_angles(const wmGizmo *gz,
                                      const wmEvent *event,
                                      const ARegion *ar,
-                                     float mat[4][4],
+                                     const float mat[4][4],
                                      const float co_outer[3],
                                      float *r_start,
                                      float *r_delta)

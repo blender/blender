@@ -954,7 +954,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
           BM_face_as_array_vert_tri(f, v);
 
-          uint idx[3] = {
+          const uint idx[3] = {
               BM_elem_index_get(v[0]), BM_elem_index_get(v[1]), BM_elem_index_get(v[2])};
           GPU_indexbuf_add_tri_verts(&elb, idx[0], idx[1], idx[2]);
 

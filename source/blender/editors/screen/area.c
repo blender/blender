@@ -812,7 +812,7 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
     return;
   }
 
-  float coords[4][4] = {
+  const float coords[4][4] = {
       /* Bottom-left. */
       {sa->totrct.xmin - U.pixelsize,
        sa->totrct.ymin - U.pixelsize,
@@ -2434,7 +2434,7 @@ void ED_region_panels_layout_ex(const bContext *C,
      * instead they calculate offsets for the next panel to start drawing. */
     Panel *panel = ar->panels.last;
     if (panel != NULL) {
-      int size_dyn[2] = {
+      const int size_dyn[2] = {
           UI_UNIT_X * ((panel->flag & PNL_CLOSED) ? 8 : 14) / UI_DPI_FAC,
           UI_panel_size_y(panel) / UI_DPI_FAC,
       };

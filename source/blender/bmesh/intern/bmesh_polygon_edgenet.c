@@ -94,7 +94,7 @@ static BMLoop *bm_edge_flagged_radial_first(BMEdge *e)
 }
 
 static void normalize_v2_m3_v3v3(float out[2],
-                                 float axis_mat[3][3],
+                                 const float axis_mat[3][3],
                                  const float v1[3],
                                  const float v2[3])
 {
@@ -110,7 +110,7 @@ static void normalize_v2_m3_v3v3(float out[2],
  */
 static bool bm_face_split_edgenet_find_loop_pair(BMVert *v_init,
                                                  const float face_normal[3],
-                                                 float face_normal_matrix[3][3],
+                                                 const float face_normal_matrix[3][3],
                                                  BMEdge *e_pair[2])
 {
   /* Always find one boundary edge (to determine winding)
@@ -420,7 +420,7 @@ finally:
 
 static bool bm_face_split_edgenet_find_loop(BMVert *v_init,
                                             const float face_normal[3],
-                                            float face_normal_matrix[3][3],
+                                            const float face_normal_matrix[3][3],
                                             /* cache to avoid realloc every time */
                                             struct VertOrder *edge_order,
                                             const uint edge_order_len,

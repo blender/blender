@@ -777,7 +777,7 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
           const int blurred_alpha_offset = by * (ICON_GRID_W + 2 * ICON_MONO_BORDER_OUTSET) + bx;
           const int offset_write = (sy + by) * buf->x + (sx + bx);
           const float blurred_alpha = blurred_alpha_buffer[blurred_alpha_offset];
-          float border_srgb[4] = {
+          const float border_srgb[4] = {
               0, 0, 0, MIN2(1.0, blurred_alpha * border_sharpness) * border_intensity};
 
           const unsigned int color_read = buf->rect[offset_write];

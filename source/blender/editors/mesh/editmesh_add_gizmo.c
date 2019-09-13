@@ -78,7 +78,7 @@ static void calc_initial_placement_point_from_view(bContext *C,
   float orient_matrix[3][3];
   BKE_scene_cursor_to_mat4(&scene->cursor, cursor_matrix);
 
-  float dots[3] = {
+  const float dots[3] = {
       dot_v3v3(rv3d->viewinv[2], cursor_matrix[0]),
       dot_v3v3(rv3d->viewinv[2], cursor_matrix[1]),
       dot_v3v3(rv3d->viewinv[2], cursor_matrix[2]),

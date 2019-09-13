@@ -444,7 +444,7 @@ static bool is_symmetry_iteration_valid(char i, char symm)
 
 /* Checks if a vertex is inside the brush radius from any of its mirrored axis */
 static bool sculpt_is_vertex_inside_brush_radius_symm(float vertex[3],
-                                                      float br_co[3],
+                                                      const float br_co[3],
                                                       float radius,
                                                       char symm)
 {
@@ -3594,7 +3594,7 @@ static void pose_brush_init_task_cb_ex(void *__restrict userdata,
 }
 
 static bool sculpt_pose_brush_is_vertex_inside_brush_radius(float vertex[3],
-                                                            float br_co[3],
+                                                            const float br_co[3],
                                                             float radius,
                                                             char symm)
 {

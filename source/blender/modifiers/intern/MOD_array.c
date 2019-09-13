@@ -268,7 +268,7 @@ static void dm_mvert_map_doubles(int *doubles_map,
 
 static void mesh_merge_transform(Mesh *result,
                                  Mesh *cap_mesh,
-                                 float cap_offset[4][4],
+                                 const float cap_offset[4][4],
                                  unsigned int cap_verts_index,
                                  unsigned int cap_edges_index,
                                  int cap_loops_index,

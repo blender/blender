@@ -213,7 +213,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
   {
     wmGizmo *gz = navgroup->gz_array[GZ_INDEX_ROTATE];
     gz->scale_basis = GIZMO_SIZE / 2;
-    char mapping[6] = {
+    const char mapping[6] = {
         RV3D_VIEW_LEFT,
         RV3D_VIEW_RIGHT,
         RV3D_VIEW_FRONT,

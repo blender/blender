@@ -3021,7 +3021,7 @@ static void gpencil_flip_stroke(bGPDstroke *gps)
 static void gpencil_stroke_copy_point(bGPDstroke *gps,
                                       bGPDspoint *point,
                                       int idx,
-                                      float delta[3],
+                                      const float delta[3],
                                       float pressure,
                                       float strength,
                                       float deltatime)

@@ -344,7 +344,7 @@ static float eval_integral(float x0, float x1, short falloff_type, float sharpne
 #undef INTEGRAL_RESOLUTION
 
 static void compute_sss_kernel(
-    GPUSssKernelData *kd, float radii[3], int sample_len, int falloff_type, float sharpness)
+    GPUSssKernelData *kd, const float radii[3], int sample_len, int falloff_type, float sharpness)
 {
   float rad[3];
   /* Minimum radius */

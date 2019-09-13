@@ -39,7 +39,7 @@ static bNodeSocketTemplate sh_node_hue_sat_out[] = {
 
 /* note: it would be possible to use CMP version for both nodes */
 static void do_hue_sat_fac(
-    bNode *UNUSED(node), float *out, float hue, float sat, float val, float in[4], float fac)
+    bNode *UNUSED(node), float *out, float hue, float sat, float val, const float in[4], float fac)
 {
   if (fac != 0.0f && (hue != 0.5f || sat != 1.0f || val != 1.0f)) {
     float col[3], hsv[3], mfac = 1.0f - fac;

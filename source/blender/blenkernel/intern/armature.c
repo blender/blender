@@ -1005,9 +1005,9 @@ void BKE_pchan_bbone_handles_compute(const BBoneSplineParameters *param,
 }
 
 static void make_bbone_spline_matrix(BBoneSplineParameters *param,
-                                     float scalemats[2][4][4],
-                                     float pos[3],
-                                     float axis[3],
+                                     const float scalemats[2][4][4],
+                                     const float pos[3],
+                                     const float axis[3],
                                      float roll,
                                      float scalex,
                                      float scaley,

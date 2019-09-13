@@ -95,7 +95,7 @@ static void annotation_draw_stroke_buffer(const tGPspoint *points,
                                           short thickness,
                                           short dflag,
                                           short sflag,
-                                          float ink[4])
+                                          const float ink[4])
 {
   int draw_points = 0;
 

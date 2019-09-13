@@ -5212,8 +5212,10 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool),
             float line_len_sq_inv, line_len;
             float f;
             float color_f[4];
-            float p[2] = {projPixel->projCoSS[0] - lastpos[0],
-                          projPixel->projCoSS[1] - lastpos[1]};
+            const float p[2] = {
+                projPixel->projCoSS[0] - lastpos[0],
+                projPixel->projCoSS[1] - lastpos[1],
+            };
 
             sub_v2_v2v2(tangent, pos, lastpos);
             line_len = len_squared_v2(tangent);

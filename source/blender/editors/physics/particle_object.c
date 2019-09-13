@@ -704,8 +704,8 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
                                Object *target_ob,
                                ParticleSystem *target_psys,
                                PTCacheEdit *target_edit,
-                               float from_mat[4][4],
-                               float to_mat[4][4],
+                               const float from_mat[4][4],
+                               const float to_mat[4][4],
                                bool from_global,
                                bool to_global)
 {

@@ -68,8 +68,11 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static Mesh *doBiscetOnMirrorPlane(
-    MirrorModifierData *mmd, const Mesh *mesh, int axis, float plane_co[3], float plane_no[3])
+static Mesh *doBiscetOnMirrorPlane(MirrorModifierData *mmd,
+                                   const Mesh *mesh,
+                                   int axis,
+                                   const float plane_co[3],
+                                   float plane_no[3])
 {
   bool do_bisect_flip_axis = ((axis == 0 && mmd->flag & MOD_MIR_BISECT_FLIP_AXIS_X) ||
                               (axis == 1 && mmd->flag & MOD_MIR_BISECT_FLIP_AXIS_Y) ||

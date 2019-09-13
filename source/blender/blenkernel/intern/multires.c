@@ -2348,7 +2348,7 @@ static void multires_apply_uniform_scale(Object *object, const float scale)
 static void multires_apply_smat(struct Depsgraph *UNUSED(depsgraph),
                                 Scene *scene,
                                 Object *object,
-                                float smat[3][3])
+                                const float smat[3][3])
 {
   const MultiresModifierData *mmd = get_multires_modifier(scene, object, true);
   if (mmd == NULL || mmd->totlvl == 0) {

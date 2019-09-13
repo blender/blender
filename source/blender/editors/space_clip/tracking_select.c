@@ -57,7 +57,7 @@ static float dist_to_crns(float co[2], float pos[2], float crns[4][2]);
 /********************** mouse select operator *********************/
 
 static int mouse_on_side(
-    float co[2], float x1, float y1, float x2, float y2, float epsx, float epsy)
+    const float co[2], float x1, float y1, float x2, float y2, float epsx, float epsy)
 {
   if (x1 > x2) {
     SWAP(float, x1, x2);
@@ -71,7 +71,7 @@ static int mouse_on_side(
 }
 
 static int mouse_on_rect(
-    float co[2], float pos[2], float min[2], float max[2], float epsx, float epsy)
+    const float co[2], float pos[2], float min[2], float max[2], float epsx, float epsy)
 {
   return mouse_on_side(
              co, pos[0] + min[0], pos[1] + min[1], pos[0] + max[0], pos[1] + min[1], epsx, epsy) ||

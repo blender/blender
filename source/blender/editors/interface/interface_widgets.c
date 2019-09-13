@@ -1311,7 +1311,7 @@ static struct {
 
 void UI_widgetbase_draw_cache_flush(void)
 {
-  float checker_params[3] = {
+  const float checker_params[3] = {
       UI_ALPHA_CHECKER_DARK / 255.0f, UI_ALPHA_CHECKER_LIGHT / 255.0f, 8.0f};
 
   if (g_widget_base_batch.count == 0) {
@@ -1394,7 +1394,7 @@ static void draw_widgetbase_batch(GPUBatch *batch, uiWidgetBase *wtb)
     }
   }
   else {
-    float checker_params[3] = {
+    const float checker_params[3] = {
         UI_ALPHA_CHECKER_DARK / 255.0f, UI_ALPHA_CHECKER_LIGHT / 255.0f, 8.0f};
     /* draw single */
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
@@ -3337,7 +3337,7 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
 {
   int y = rect->ymin + BLI_rcti_size_y(rect) / 2 - 1;
-  uchar col[4] = {
+  const uchar col[4] = {
       wcol->text[0],
       wcol->text[1],
       wcol->text[2],

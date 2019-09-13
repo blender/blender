@@ -840,7 +840,7 @@ static bool gp_stroke_do_circle_sel(bGPDlayer *gpl,
                                     const int radius,
                                     const bool select,
                                     rcti *rect,
-                                    float diff_mat[4][4],
+                                    const float diff_mat[4][4],
                                     const int selectmode,
                                     const float scale)
 {

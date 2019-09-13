@@ -657,7 +657,7 @@ float do_clump(ParticleKey *state,
 }
 
 static void do_rough(const float loc[3],
-                     float mat[4][4],
+                     const float mat[4][4],
                      float t,
                      float fac,
                      float size,
@@ -701,7 +701,7 @@ static void do_rough_end(
 }
 
 static void do_rough_curve(const float loc[3],
-                           float mat[4][4],
+                           const float mat[4][4],
                            float time,
                            float fac,
                            float size,

@@ -581,7 +581,7 @@ static void voronoi_clampEdges(ListBase *edges, int width, int height, ListBase 
 }
 
 static int voronoi_getNextSideCoord(
-    ListBase *edges, float coord[2], int dim, int dir, float next_coord[2])
+    ListBase *edges, const float coord[2], int dim, int dir, float next_coord[2])
 {
   VoronoiEdge *edge = edges->first;
   float distance = FLT_MAX;

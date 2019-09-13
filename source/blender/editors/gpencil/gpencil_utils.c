@@ -1952,7 +1952,7 @@ void ED_gpencil_setup_modes(bContext *C, bGPdata *gpd, int newmode)
 /* helper to convert 2d to 3d for simple drawing buffer */
 static void gpencil_stroke_convertcoords(ARegion *ar,
                                          const tGPspoint *point2D,
-                                         float origin[3],
+                                         const float origin[3],
                                          float out[3])
 {
   float mval_f[2] = {(float)point2D->x, (float)point2D->y};
@@ -2084,8 +2084,8 @@ static bool gpencil_check_collision(bGPDstroke *gps,
                                     bGPDstroke **gps_array,
                                     GHash *all_2d,
                                     int totstrokes,
-                                    float p2d_a1[2],
-                                    float p2d_a2[2],
+                                    const float p2d_a1[2],
+                                    const float p2d_a2[2],
                                     float r_hit[2])
 {
   bool hit = false;
@@ -2164,7 +2164,7 @@ static void gp_copy_points(bGPDstroke *gps, bGPDspoint *pt, bGPDspoint *pt_final
 }
 
 static void gp_insert_point(
-    bGPDstroke *gps, bGPDspoint *a_pt, bGPDspoint *b_pt, float co_a[3], float co_b[3])
+    bGPDstroke *gps, bGPDspoint *a_pt, bGPDspoint *b_pt, const float co_a[3], float co_b[3])
 {
   bGPDspoint *temp_points;
   int totnewpoints, oldtotpoints;

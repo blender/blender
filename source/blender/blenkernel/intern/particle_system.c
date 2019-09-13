@@ -1695,7 +1695,7 @@ typedef struct SPHRangeData {
 
 static void sph_evaluate_func(BVHTree *tree,
                               ParticleSystem **psys,
-                              float co[3],
+                              const float co[3],
                               SPHRangeData *pfr,
                               float interaction_radius,
                               BVHTree_RangeQuery callback)
@@ -2497,7 +2497,7 @@ static float collision_point_distance_with_normal(
   return 0;
 }
 static void collision_point_on_surface(
-    float p[3], ParticleCollisionElement *pce, float fac, ParticleCollision *col, float *co)
+    const float p[3], ParticleCollisionElement *pce, float fac, ParticleCollision *col, float *co)
 {
   collision_interpolate_element(pce, 0.f, fac, col);
 

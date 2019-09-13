@@ -4458,7 +4458,7 @@ static int uv_select_overlap(bContext *C, const bool extend)
         overlap_data[data_index].face_index = face_index;
 
         /* BVH needs 3D, overlap data uses 2D. */
-        float tri[3][3] = {
+        const float tri[3][3] = {
             {UNPACK2(uv_verts[indices[t][0]]), 0.0f},
             {UNPACK2(uv_verts[indices[t][1]]), 0.0f},
             {UNPACK2(uv_verts[indices[t][2]]), 0.0f},

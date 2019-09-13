@@ -330,9 +330,9 @@ static bool quad_co(const float v1[3],
 }
 
 static void mdisp_axis_from_quad(float v1[3],
-                                 float v2[3],
+                                 const float v2[3],
                                  float UNUSED(v3[3]),
-                                 float v4[3],
+                                 const float v4[3],
                                  float r_axis_x[3],
                                  float r_axis_y[3])
 {

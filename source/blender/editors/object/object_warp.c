@@ -43,7 +43,7 @@
 static void object_warp_calc_view_matrix(float r_mat_view[4][4],
                                          float r_center_view[3],
                                          Object *obedit,
-                                         float viewmat[4][4],
+                                         const float viewmat[4][4],
                                          const float center[3],
                                          const float offset_angle)
 {
@@ -62,7 +62,7 @@ static void object_warp_calc_view_matrix(float r_mat_view[4][4],
 }
 
 static void object_warp_transverts_minmax_x(TransVertStore *tvs,
-                                            float mat_view[4][4],
+                                            const float mat_view[4][4],
                                             const float center_view[3],
                                             float *r_min,
                                             float *r_max)
@@ -90,7 +90,7 @@ static void object_warp_transverts_minmax_x(TransVertStore *tvs,
 }
 
 static void object_warp_transverts(TransVertStore *tvs,
-                                   float mat_view[4][4],
+                                   const float mat_view[4][4],
                                    const float center_view[3],
                                    const float angle_,
                                    const float min,

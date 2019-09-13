@@ -98,7 +98,7 @@ static int uvedit_center(
 }
 
 static void uvedit_translate(
-    Scene *scene, Object **objects, uint objects_len, Image *ima, float delta[2])
+    Scene *scene, Object **objects, uint objects_len, Image *ima, const float delta[2])
 {
   BMFace *f;
   BMLoop *l;

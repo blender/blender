@@ -772,7 +772,7 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
           GPU_indexbuf_add_line_verts(elbp_lines, vbo_len_used + 1, vbo_len_used + 2);
         }
         if (vbo_data) {
-          char vflag[3] = {
+          const char vflag[3] = {
               beztriple_vflag_get(rdata, bezt->f1, bezt->h1, a, nu_id),
               beztriple_vflag_get(rdata, bezt->f2, bezt->h1, a, nu_id),
               beztriple_vflag_get(rdata, bezt->f3, bezt->h2, a, nu_id),

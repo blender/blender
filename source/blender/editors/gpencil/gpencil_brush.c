@@ -565,7 +565,7 @@ static void gp_brush_grab_calc_dvec(tGP_BrushEditData *gso)
 /* Apply grab transform to all relevant points of the affected strokes */
 static void gp_brush_grab_apply_cached(tGP_BrushEditData *gso,
                                        bGPDstroke *gps,
-                                       float diff_mat[4][4])
+                                       const float diff_mat[4][4])
 {
   tGPSB_Grab_StrokeData *data = BLI_ghash_lookup(gso->stroke_customdata, gps);
   int i;
@@ -1555,7 +1555,7 @@ static float gpsculpt_rotation_eval_get(GP_SpaceConversion *gsc,
 /* Apply brush operation to points in this stroke */
 static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso,
                                      bGPDstroke *gps,
-                                     float diff_mat[4][4],
+                                     const float diff_mat[4][4],
                                      GP_BrushApplyCb apply)
 {
   GP_SpaceConversion *gsc = &gso->gsc;
@@ -1680,8 +1680,11 @@ static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso,
 }
 
 /* Apply sculpt brushes to strokes in the given frame */
-static bool gpsculpt_brush_do_frame(
-    bContext *C, tGP_BrushEditData *gso, bGPDlayer *gpl, bGPDframe *gpf, float diff_mat[4][4])
+static bool gpsculpt_brush_do_frame(bContext *C,
+                                    tGP_BrushEditData *gso,
+                                    bGPDlayer *gpl,
+                                    bGPDframe *gpf,
+                                    const float diff_mat[4][4])
 {
   bool changed = false;
   Object *ob = CTX_data_active_object(C);

@@ -887,7 +887,7 @@ static float get_shortest_pattern_side(MovieTrackingMarker *marker)
 }
 
 static void draw_marker_slide_square(
-    float x, float y, float dx, float dy, int outline, float px[2], unsigned int pos)
+    float x, float y, float dx, float dy, int outline, const float px[2], unsigned int pos)
 {
   float tdx, tdy;
 
@@ -903,7 +903,7 @@ static void draw_marker_slide_square(
 }
 
 static void draw_marker_slide_triangle(
-    float x, float y, float dx, float dy, int outline, float px[2], unsigned int pos)
+    float x, float y, float dx, float dy, int outline, const float px[2], unsigned int pos)
 {
   float tdx, tdy;
 

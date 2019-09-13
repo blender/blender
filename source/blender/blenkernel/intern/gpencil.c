@@ -2645,7 +2645,7 @@ static int gpencil_check_same_material_color(Object *ob_gp, float color[4], Mate
 /* Helper: Add gpencil material using curve material as base. */
 static Material *gpencil_add_from_curve_material(Main *bmain,
                                                  Object *ob_gp,
-                                                 float cu_color[4],
+                                                 const float cu_color[4],
                                                  const bool gpencil_lines,
                                                  const bool fill,
                                                  int *r_idx)
@@ -2686,7 +2686,7 @@ static void gpencil_add_new_points(bGPDstroke *gps,
                                    float pressure,
                                    int init,
                                    int totpoints,
-                                   float init_co[3],
+                                   const float init_co[3],
                                    bool last)
 {
   for (int i = 0; i < totpoints; i++) {

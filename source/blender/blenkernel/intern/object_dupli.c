@@ -93,8 +93,11 @@ typedef struct DupliGenerator {
 static const DupliGenerator *get_dupli_generator(const DupliContext *ctx);
 
 /* create initial context for root object */
-static void init_context(
-    DupliContext *r_ctx, Depsgraph *depsgraph, Scene *scene, Object *ob, float space_mat[4][4])
+static void init_context(DupliContext *r_ctx,
+                         Depsgraph *depsgraph,
+                         Scene *scene,
+                         Object *ob,
+                         const float space_mat[4][4])
 {
   r_ctx->depsgraph = depsgraph;
   r_ctx->scene = scene;
@@ -118,7 +121,7 @@ static void init_context(
 
 /* create sub-context for recursive duplis */
 static void copy_dupli_context(
-    DupliContext *r_ctx, const DupliContext *ctx, Object *ob, float mat[4][4], int index)
+    DupliContext *r_ctx, const DupliContext *ctx, Object *ob, const float mat[4][4], int index)
 {
   *r_ctx = *ctx;
 
@@ -204,7 +207,7 @@ static DupliObject *make_dupli(const DupliContext *ctx, Object *ob, float mat[4]
  */
 static void make_recursive_duplis(const DupliContext *ctx,
                                   Object *ob,
-                                  float space_mat[4][4],
+                                  const float space_mat[4][4],
                                   int index)
 {
   /* simple preventing of too deep nested collections with MAX_DUPLI_RECUR */

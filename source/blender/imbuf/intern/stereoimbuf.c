@@ -68,7 +68,7 @@ static void imb_stereo3d_write_anaglyph(Stereo3DData *s3d, enum eStereo3dAnaglyp
   const int stride_from = width;
   const int stride_to = width;
 
-  int anaglyph_encoding[3][3] = {
+  const int anaglyph_encoding[3][3] = {
       {0, 1, 1},
       {1, 0, 1},
       {0, 0, 1},
@@ -810,7 +810,7 @@ static void imb_stereo3d_read_anaglyph(Stereo3DData *s3d, enum eStereo3dAnaglyph
   const int stride_from = width;
   const int stride_to = width;
 
-  int anaglyph_encoding[3][3] = {
+  const int anaglyph_encoding[3][3] = {
       {0, 1, 1},
       {1, 0, 1},
       {0, 0, 1},

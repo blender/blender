@@ -592,7 +592,7 @@ GPUBatch *DRW_cache_circle_get(void)
 GPUBatch *DRW_cache_square_get(void)
 {
   if (!SHC.drw_square) {
-    float p[4][3] = {
+    const float p[4][3] = {
         {1.0f, 0.0f, 1.0f}, {1.0f, 0.0f, -1.0f}, {-1.0f, 0.0f, -1.0f}, {-1.0f, 0.0f, 1.0f}};
 
     /* Position Only 3D format */
@@ -1801,7 +1801,7 @@ GPUBatch *DRW_cache_light_spot_volume_get(void)
 GPUBatch *DRW_cache_light_spot_square_get(void)
 {
   if (!SHC.drw_light_spot_square) {
-    float p[5][3] = {
+    const float p[5][3] = {
         {0.0f, 0.0f, 0.0f},
         {1.0f, 1.0f, -1.0f},
         {1.0f, -1.0f, -1.0f},
@@ -1840,7 +1840,7 @@ GPUBatch *DRW_cache_light_spot_square_get(void)
 GPUBatch *DRW_cache_light_spot_square_volume_get(void)
 {
   if (!SHC.drw_light_spot_square_volume) {
-    float p[5][3] = {
+    const float p[5][3] = {
         {0.0f, 0.0f, 0.0f},
         {1.0f, 1.0f, -1.0f},
         {1.0f, -1.0f, -1.0f},
@@ -1952,7 +1952,7 @@ GPUBatch *DRW_cache_lightprobe_cube_get(void)
     int v_idx = 0;
     const float sin_pi_3 = 0.86602540378f;
     const float cos_pi_3 = 0.5f;
-    float v[7][3] = {
+    const float v[7][3] = {
         {0.0f, 1.0f, 0.0f},
         {sin_pi_3, cos_pi_3, 0.0f},
         {sin_pi_3, -cos_pi_3, 0.0f},
@@ -2057,7 +2057,7 @@ GPUBatch *DRW_cache_lightprobe_planar_get(void)
   if (!SHC.drw_lightprobe_planar) {
     int v_idx = 0;
     const float sin_pi_3 = 0.86602540378f;
-    float v[4][3] = {
+    const float v[4][3] = {
         {0.0f, 0.5f, 0.0f},
         {sin_pi_3, 0.0f, 0.0f},
         {0.0f, -0.5f, 0.0f},

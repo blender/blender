@@ -1679,7 +1679,7 @@ static void object_apply_location(Object *ob, const float loc[3])
 }
 
 static void object_orient_to_location(Object *ob,
-                                      float rot_orig[3][3],
+                                      const float rot_orig[3][3],
                                       const float axis[3],
                                       const float location[3])
 {

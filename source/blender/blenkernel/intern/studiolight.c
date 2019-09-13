@@ -946,7 +946,7 @@ BLI_INLINE void studiolight_spherical_harmonics_eval(StudioLight *sl,
 /* This modify the radiance into irradiance. */
 static void studiolight_spherical_harmonics_apply_band_factors(StudioLight *sl, float (*sh)[3])
 {
-  static float sl_sh_band_factors[5] = {
+  static const float sl_sh_band_factors[5] = {
       1.0f,
       2.0f / 3.0f,
       1.0f / 4.0f,
@@ -1074,7 +1074,7 @@ static float wrapped_lighting(float NL, float w)
 static float blinn_specular(const float L[3],
                             const float I[3],
                             const float N[3],
-                            float R[3],
+                            const float R[3],
                             float NL,
                             float roughness,
                             float wrap)

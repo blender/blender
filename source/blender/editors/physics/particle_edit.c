@@ -649,8 +649,8 @@ typedef void (*ForHitPointFunc)(PEData *data, int point_index, float mouse_dista
 typedef void (*ForKeyFunc)(PEData *data, int point_index, int key_index, bool is_inside);
 
 typedef void (*ForKeyMatFunc)(PEData *data,
-                              float mat[4][4],
-                              float imat[4][4],
+                              const float mat[4][4],
+                              const float imat[4][4],
                               int point_index,
                               int key_index,
                               PTCacheEditKey *key);

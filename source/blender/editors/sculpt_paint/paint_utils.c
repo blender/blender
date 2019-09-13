@@ -251,7 +251,7 @@ static void imapaint_project(float matrix[4][4], const float co[3], float pco[4]
 }
 
 static void imapaint_tri_weights(float matrix[4][4],
-                                 GLint view[4],
+                                 const GLint view[4],
                                  const float v1[3],
                                  const float v2[3],
                                  const float v3[3],

@@ -1082,7 +1082,7 @@ typedef struct SetConsoleCursor {
 
 // TODO, cursor placement without selection
 static void console_cursor_set_to_pos(
-    SpaceConsole *sc, ARegion *ar, SetConsoleCursor *scu, int mval[2], int UNUSED(sel))
+    SpaceConsole *sc, ARegion *ar, SetConsoleCursor *scu, const int mval[2], int UNUSED(sel))
 {
   int pos;
   pos = console_char_pick(sc, ar, mval);
