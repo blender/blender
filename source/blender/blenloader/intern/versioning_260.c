@@ -65,7 +65,10 @@
 #include "BKE_text.h"  // for txt_extended_ascii_as_utf8
 #include "BKE_texture.h"
 #include "BKE_tracking.h"
-#include "BKE_writeffmpeg.h"
+
+#ifdef WITH_FFMPEG
+#  include "BKE_writeffmpeg.h"
+#endif
 
 #include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
 

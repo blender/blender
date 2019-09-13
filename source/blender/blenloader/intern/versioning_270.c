@@ -53,10 +53,8 @@
 #include "DNA_genfile.h"
 
 #include "BKE_animsys.h"
-#include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_fcurve.h"
-#include "BKE_gpencil.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
 #include "BKE_modifier.h"

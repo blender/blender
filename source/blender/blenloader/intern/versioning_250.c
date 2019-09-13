@@ -67,7 +67,6 @@
 #include "BKE_global.h"  // for G
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"  // for ME_ defines (patching)
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_particle.h"

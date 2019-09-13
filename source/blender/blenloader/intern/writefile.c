@@ -157,7 +157,6 @@
 #include "BKE_layer.h"
 #include "BKE_library_override.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
