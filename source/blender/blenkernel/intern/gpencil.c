@@ -1730,7 +1730,6 @@ bool BKE_gpencil_sample_stroke(bGPDstroke *gps, const float dist, const bool sel
   }
 
   gps->points = new_pt;
-  gps->totpoints = i;
   MEM_freeN(pt); /* original */
 
   if (new_dv) {
@@ -1740,6 +1739,8 @@ bool BKE_gpencil_sample_stroke(bGPDstroke *gps, const float dist, const bool sel
     }
     gps->dvert = new_dv;
   }
+
+  gps->totpoints = i;
 
   gps->flag |= GP_STROKE_RECALC_GEOMETRY;
   gps->tot_triangles = 0;
