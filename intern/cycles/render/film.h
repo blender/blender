@@ -91,7 +91,7 @@ class Film : public Node {
   void device_free(Device *device, DeviceScene *dscene, Scene *scene);
 
   bool modified(const Film &film);
-  void tag_passes_update(Scene *scene, const vector<Pass> &passes_, bool update_passes=true);
+  void tag_passes_update(Scene *scene, const vector<Pass> &passes_, bool update_passes = true);
   void tag_update(Scene *scene);
 };
 

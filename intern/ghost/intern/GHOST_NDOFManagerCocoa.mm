@@ -121,7 +121,8 @@ static bool load_driver_functions()
     return true;
   }
 
-  module = dlopen("/Library/Frameworks/3DconnexionClient.framework/3DconnexionClient", RTLD_LAZY | RTLD_LOCAL);
+  module = dlopen("/Library/Frameworks/3DconnexionClient.framework/3DconnexionClient",
+                  RTLD_LAZY | RTLD_LOCAL);
 
   if (module) {
     LOAD_FUNC(SetConnexionHandlers);
