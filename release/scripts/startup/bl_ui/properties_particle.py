@@ -960,10 +960,10 @@ class PARTICLE_PT_physics_relations(ParticleButtonsPanel, Panel):
                 #col.alert = key.valid
                 col.prop(key, "object")
                 col.prop(key, "system", text="System")
-
-                col.active = psys.use_keyed_timing
-                col.prop(key, "time")
-                col.prop(key, "duration")
+                sub = col.column(align=True)
+                sub.active = psys.use_keyed_timing
+                sub.prop(key, "time")
+                sub.prop(key, "duration")
             elif part.physics_type == 'BOIDS':
                 sub = layout.column()
                 # doesn't work yet
