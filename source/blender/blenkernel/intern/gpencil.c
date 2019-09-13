@@ -807,7 +807,7 @@ bGPDframe *BKE_gpencil_layer_find_frame(bGPDlayer *gpl, int cframe)
 bGPDframe *BKE_gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_Mode addnew)
 {
   bGPDframe *gpf = NULL;
-  short found = 0;
+  bool found = false;
 
   /* error checking */
   if (gpl == NULL) {
@@ -833,11 +833,11 @@ bGPDframe *BKE_gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_M
     if (gpf->framenum < cframe) {
       for (; gpf; gpf = gpf->next) {
         if (gpf->framenum == cframe) {
-          found = 1;
+          found = true;
           break;
         }
         else if ((gpf->next) && (gpf->next->framenum > cframe)) {
-          found = 1;
+          found = true;
           break;
         }
       }
@@ -864,7 +864,7 @@ bGPDframe *BKE_gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_M
     else {
       for (; gpf; gpf = gpf->prev) {
         if (gpf->framenum <= cframe) {
-          found = 1;
+          found = true;
           break;
         }
       }
@@ -898,7 +898,7 @@ bGPDframe *BKE_gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_M
       /* find gp-frame which is less than or equal to cframe */
       for (gpf = gpl->frames.last; gpf; gpf = gpf->prev) {
         if (gpf->framenum <= cframe) {
-          found = 1;
+          found = true;
           break;
         }
       }
@@ -907,7 +907,7 @@ bGPDframe *BKE_gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_M
       /* find gp-frame which is less than or equal to cframe */
       for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
         if (gpf->framenum <= cframe) {
-          found = 1;
+          found = true;
           break;
         }
       }
@@ -1455,11 +1455,11 @@ static void stroke_defvert_create_nr_list(MDeformVert *dv_list,
 
     /* find def_nr in list, if not exist, then create one */
     for (j = 0; j < dv->totweight; j++) {
-      int found = 0;
+      bool found = false;
       dw = &dv->dw[j];
       for (ld = result->first; ld; ld = ld->next) {
         if (ld->data == POINTER_FROM_INT(dw->def_nr)) {
-          found = 1;
+          found = true;
           break;
         }
       }
