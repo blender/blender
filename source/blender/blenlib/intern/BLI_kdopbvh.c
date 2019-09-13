@@ -1284,12 +1284,12 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(
     void *userdata,
     int flag)
 {
-  bool use_threading = flag & BVH_OVERLAP_USE_THREADING;
-  bool overlap_pairs = flag & BVH_OVERLAP_RETURN_PAIRS;
-  bool break_on_first = flag & BVH_OVERLAP_BREAK_ON_FIRST;
+  bool use_threading = (flag & BVH_OVERLAP_USE_THREADING) != 0;
+  bool overlap_pairs = (flag & BVH_OVERLAP_RETURN_PAIRS) != 0;
+  bool break_on_first = (flag & BVH_OVERLAP_BREAK_ON_FIRST) != 0;
 
-  /* Skip `RETURN_PAIRS` was not implemented without `BREAK_ON_FIRST`. */
-  BLI_assert(!((flag & BVH_OVERLAP_RETURN_PAIRS) && (flag & ~BVH_OVERLAP_BREAK_ON_FIRST)));
+  /* `RETURN_PAIRS` was not implemented without `BREAK_ON_FIRST`. */
+  BLI_assert(overlap_pairs || break_on_first);
 
   const int thread_num = BLI_bvhtree_overlap_thread_num(tree1);
   int j;
