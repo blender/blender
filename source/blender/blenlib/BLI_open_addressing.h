@@ -14,6 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#ifndef __BLI_OPEN_ADDRESSING_H__
+#define __BLI_OPEN_ADDRESSING_H__
+
 /** \file
  * \ingroup bli
  *
@@ -27,8 +30,6 @@
  * optimizations. The data that is actually stored in the table is still fully defined by the
  * actual hash table implementation.
  */
-
-#pragma once
 
 #include <cmath>
 
@@ -300,3 +301,5 @@ class OpenAddressingArray {
 };
 
 }  // namespace BLI
+
+#endif /* __BLI_OPEN_ADDRESSING_H__ */

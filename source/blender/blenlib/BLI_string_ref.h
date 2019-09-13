@@ -14,6 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#ifndef __BLI_STRING_REF_H__
+#define __BLI_STRING_REF_H__
+
 /** \file
  * \ingroup bli
  *
@@ -24,8 +27,6 @@
  * There are two types of string references: One that guarantees null termination and one that does
  * not.
  */
-
-#pragma once
 
 #include <cstring>
 #include <string>
@@ -242,3 +243,5 @@ inline bool StringRefBase::endswith(StringRef suffix) const
 }
 
 }  // namespace BLI
+
+#endif /* __BLI_STRING_REF_H__ */

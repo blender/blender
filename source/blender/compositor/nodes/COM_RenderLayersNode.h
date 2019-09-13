@@ -16,6 +16,9 @@
  * Copyright 2011, Blender Foundation.
  */
 
+#ifndef __COM_RENDERLAYERSNODE_H__
+#define __COM_RENDERLAYERSNODE_H__
+
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 #include "COM_RenderLayersProg.h"
@@ -46,3 +49,5 @@ class RenderLayersNode : public Node {
   void missingSocketLink(NodeConverter &converter, NodeOutput *output) const;
   void missingRenderLink(NodeConverter &converter) const;
 };
+
+#endif /* __COM_RENDERLAYERSNODE_H__ */

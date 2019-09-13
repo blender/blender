@@ -14,6 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#ifndef __BLI_MAP_H__
+#define __BLI_MAP_H__
+
 /** \file
  * \ingroup bli
  *
@@ -22,8 +25,6 @@
  * The key and value objects are stored directly in the hash table to avoid indirect memory
  * lookups. Keys and values are stored in groups of four to avoid wasting memory due to padding.
  */
-
-#pragma once
 
 #include "BLI_hash_cxx.h"
 #include "BLI_array_ref.h"
@@ -619,3 +620,5 @@ template<typename KeyT, typename ValueT, typename Allocator = GuardedAllocator> 
 #undef ITER_SLOTS_END
 
 }  // namespace BLI
+
+#endif /* __BLI_MAP_H__ */

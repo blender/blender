@@ -14,6 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#ifndef __BLI_SET_VECTOR_H__
+#define __BLI_SET_VECTOR_H__
+
 /** \file
  * \ingroup bli
  *
@@ -21,8 +24,6 @@
  * array, but every element exists at most once. The insertion order is maintained, as long as
  * there are no deletes. The expected time to check if a value is in the SetVector is O(1).
  */
-
-#pragma once
 
 #include "BLI_hash_cxx.h"
 #include "BLI_open_addressing.h"
@@ -374,3 +375,5 @@ template<typename T, typename Allocator = GuardedAllocator> class SetVector {
 #undef ITER_SLOTS_END
 
 }  // namespace BLI
+
+#endif /* __BLI_SET_VECTOR_H__ */

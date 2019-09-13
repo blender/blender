@@ -14,14 +14,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#ifndef __BLI_HASH_CXX_H__
+#define __BLI_HASH_CXX_H__
+
 /** \file
  * \ingroup bli
  *
  * This file provides default hash functions for some primitive types. The hash functions can be
  * used by containers such as Map and Set.
  */
-
-#pragma once
 
 #include <functional>
 #include <string>
@@ -98,3 +99,5 @@ template<typename T1, typename T2> struct DefaultHash<std::pair<T1, T2>> {
 };
 
 }  // namespace BLI
+
+#endif /* __BLI_HASH_CXX_H__ */

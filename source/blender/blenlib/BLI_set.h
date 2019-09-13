@@ -14,13 +14,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#ifndef __BLI_SET_H__
+#define __BLI_SET_H__
+
 /** \file
  * \ingroup bli
  *
  * This file provides a set implementation that uses open addressing with probing.
  */
-
-#pragma once
 
 #include "BLI_hash_cxx.h"
 #include "BLI_open_addressing.h"
@@ -468,3 +469,5 @@ template<typename T, typename Allocator = GuardedAllocator> class Set {
 #undef ITER_SLOTS_END
 
 }  // namespace BLI
+
+#endif /* __BLI_SET_H__ */

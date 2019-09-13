@@ -14,6 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#ifndef __BLI_ARRAY_REF_H__
+#define __BLI_ARRAY_REF_H__
+
 /** \file
  * \ingroup bli
  *
@@ -31,8 +34,6 @@
  * The instances of ArrayRef and MutableArrayRef are very small and should be passed by value.
  * Since array references do not own any memory, it is generally not save to store them.
  */
-
-#pragma once
 
 #include <vector>
 #include <array>
@@ -421,3 +422,5 @@ template<typename T> ArrayRef<T> ref_c_array(const T *array, uint size)
 }
 
 } /* namespace BLI */
+
+#endif /* __BLI_ARRAY_REF_H__ */

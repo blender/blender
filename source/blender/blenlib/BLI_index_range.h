@@ -14,6 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#ifndef __BLI_INDEX_RANGE_H__
+#define __BLI_INDEX_RANGE_H__
+
 /** \file
  * \ingroup bli
  *
@@ -21,8 +24,6 @@
  * separate values. A range always has a step of one. If other step sizes are required in some
  * cases, a separate data structure should be used.
  */
-
-#pragma once
 
 #include <cmath>
 #include <algorithm>
@@ -191,3 +192,5 @@ class IndexRange {
 };
 
 }  // namespace BLI
+
+#endif /* __BLI_INDEX_RANGE_H__ */

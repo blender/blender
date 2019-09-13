@@ -16,6 +16,9 @@
  * Copyright 2012, Blender Foundation.
  */
 
+#ifndef __COM_TRACKPOSITIONNODE_H__
+#define __COM_TRACKPOSITIONNODE_H__
+
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 
@@ -28,3 +31,5 @@ class TrackPositionNode : public Node {
   TrackPositionNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
+
+#endif /* __COM_TRACKPOSITIONNODE_H__ */

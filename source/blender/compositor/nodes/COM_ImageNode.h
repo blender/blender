@@ -16,6 +16,9 @@
  * Copyright 2011, Blender Foundation.
  */
 
+#ifndef __COM_IMAGENODE_H__
+#define __COM_IMAGENODE_H__
+
 #include "COM_defines.h"
 #include "COM_Node.h"
 #include "DNA_node_types.h"
@@ -44,3 +47,5 @@ class ImageNode : public Node {
   ImageNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
+
+#endif /* __COM_IMAGENODE_H__ */

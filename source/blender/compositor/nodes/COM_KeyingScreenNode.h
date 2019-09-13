@@ -16,6 +16,9 @@
  * Copyright 2012, Blender Foundation.
  */
 
+#ifndef __COM_KEYINGSCREENNODE_H__
+#define __COM_KEYINGSCREENNODE_H__
+
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 
@@ -28,3 +31,5 @@ class KeyingScreenNode : public Node {
   KeyingScreenNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
+
+#endif /* __COM_KEYINGSCREENNODE_H__ */

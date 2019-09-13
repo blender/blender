@@ -13,6 +13,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+#ifndef __BLI_ALLOCATOR_H__
+#define __BLI_ALLOCATOR_H__
 
 /** \file
  * \ingroup bli
@@ -26,8 +28,6 @@
  * file are fairly simple still, more complexity can be added when necessary. For now they do their
  * job good enough.
  */
-
-#pragma once
 
 #include <stdlib.h>
 
@@ -125,3 +125,5 @@ class TemporaryAllocator {
 };
 
 }  // namespace BLI
+
+#endif /* __BLI_ALLOCATOR_H__ */

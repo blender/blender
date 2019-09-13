@@ -16,8 +16,9 @@
  * The Original Code is Copyright (C) 2019 by Blender Foundation
  * All rights reserved.
  */
-#ifndef __BKE_REMESH_H__
-#define __BKE_REMESH_H__
+
+#ifndef __BKE_MESH_REMESH_VOXEL_H__
+#define __BKE_MESH_REMESH_VOXEL_H__
 
 /** \file
  * \ingroup bke
@@ -51,4 +52,4 @@ struct Mesh *BKE_mesh_remesh_quadriflow_to_mesh_nomain(struct Mesh *mesh,
 /* Data reprojection functions */
 void BKE_remesh_reproject_paint_mask(struct Mesh *target, struct Mesh *source);
 
-#endif /* __BKE_REMESH_H__ */
+#endif /* __BKE_MESH_REMESH_VOXEL_H__ */

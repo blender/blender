@@ -13,6 +13,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+#ifndef __BLI_ARRAY_CXX_H__
+#define __BLI_ARRAY_CXX_H__
 
 /** \file
  * \ingroup bli
@@ -20,8 +22,6 @@
  * This is a container that contains a fixed size array. Note however, the size of the array is not
  * a template argument. Instead it can be specified at the construction time.
  */
-
-#pragma once
 
 #include "BLI_utildefines.h"
 #include "BLI_allocator.h"
@@ -193,3 +193,5 @@ template<typename T, typename Allocator = GuardedAllocator> class Array {
 template<typename T> using TemporaryArray = Array<T, TemporaryAllocator>;
 
 }  // namespace BLI
+
+#endif /* __BLI_ARRAY_CXX_H__ */

@@ -14,11 +14,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#ifndef __BLI_MEMORY_UTILS_CXX_H__
+#define __BLI_MEMORY_UTILS_CXX_H__
+
 /** \file
  * \ingroup bli
  */
-
-#pragma once
 
 #include <memory>
 #include <algorithm>
@@ -79,3 +80,5 @@ template<typename T> void relocate_n(T *src, uint n, T *dst)
 }
 
 }  // namespace BLI
+
+#endif /* __BLI_MEMORY_UTILS_CXX_H__ */

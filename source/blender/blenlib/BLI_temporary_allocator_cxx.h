@@ -14,11 +14,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#ifndef __BLI_TEMPORARY_ALLOCATOR_CXX_H__
+#define __BLI_TEMPORARY_ALLOCATOR_CXX_H__
+
 /** \file
  * \ingroup bli
  */
-
-#pragma once
 
 #include "BLI_temporary_allocator.h"
 
@@ -33,3 +34,5 @@ template<typename T> MutableArrayRef<T> temporary_allocate_array(uint size)
 }
 
 };  // namespace BLI
+
+#endif /* __BLI_TEMPORARY_ALLOCATOR_CXX_H__ */

@@ -14,6 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#ifndef __BLI_STRING_MAP_H__
+#define __BLI_STRING_MAP_H__
+
 /** \file
  * \ingroup bli
  *
@@ -23,8 +26,6 @@
  * For now this still uses std::string, but having this abstraction in place will make it easier to
  * make it more efficient later on. Also, even if we will never implement this optimization, having
  * a special map with string keys can be quite handy. */
-
-#pragma once
 
 #include "BLI_map.h"
 #include "BLI_string_ref.h"
@@ -418,3 +419,5 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
 #undef ITER_SLOTS_END
 
 }  // namespace BLI
+
+#endif /* __BLI_STRING_MAP_H__ */

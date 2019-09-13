@@ -14,6 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#ifndef __BLI_VECTOR_H__
+#define __BLI_VECTOR_H__
+
 /** \file
  * \ingroup bli
  *
@@ -21,8 +24,6 @@
  * optimization. That means, when the vector only contains a few elements, no memory allocation is
  * performed. Instead, those elements are stored directly in the vector.
  */
-
-#pragma once
 
 #include <algorithm>
 #include <cstdlib>
@@ -599,3 +600,5 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
 template<typename T, uint N = 4> using TemporaryVector = Vector<T, N, TemporaryAllocator>;
 
 } /* namespace BLI */
+
+#endif /* __BLI_VECTOR_H__ */

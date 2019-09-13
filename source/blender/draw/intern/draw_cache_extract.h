@@ -20,8 +20,8 @@
  * \ingroup draw
  */
 
-#ifndef __DRAW_CACHE_EXTRACT_MESH_H__
-#define __DRAW_CACHE_EXTRACT_MESH_H__
+#ifndef __DRAW_CACHE_EXTRACT_H__
+#define __DRAW_CACHE_EXTRACT_H__
 
 /* Vertex Group Selection and display options */
 typedef struct DRW_MeshWeightState {
@@ -253,4 +253,4 @@ void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
                                         const ToolSettings *ts,
                                         const bool use_hide);
 
-#endif /* __DRAW_CACHE_EXTRACT_MESH_H__ */
+#endif /* __DRAW_CACHE_EXTRACT_H__ */
