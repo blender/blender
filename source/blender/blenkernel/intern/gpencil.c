@@ -2817,23 +2817,27 @@ static void gpencil_convert_spline(Main *bmain,
     /* If object has more than 1 material, use second material for stroke color. */
     if ((!only_stroke) && (ob_cu->totcol > 1) && (give_current_material(ob_cu, 2))) {
       mat_curve = give_current_material(ob_cu, 2);
-      linearrgb_to_srgb_v3_v3(mat_gp->gp_style->stroke_rgba, &mat_curve->r);
-      mat_gp->gp_style->stroke_rgba[3] = mat_curve->a;
+      if (mat_curve) {
+        linearrgb_to_srgb_v3_v3(mat_gp->gp_style->stroke_rgba, &mat_curve->r);
+        mat_gp->gp_style->stroke_rgba[3] = mat_curve->a;
+      }
     }
     else if ((only_stroke) || (do_stroke)) {
       /* Also use the first color if the fill is none for stroke color. */
       if (ob_cu->totcol > 0) {
         mat_curve = give_current_material(ob_cu, 1);
-        linearrgb_to_srgb_v3_v3(mat_gp->gp_style->stroke_rgba, &mat_curve->r);
-        mat_gp->gp_style->stroke_rgba[3] = mat_curve->a;
-        /* Set fill and stroke depending of curve type (3D or 2D). */
-        if ((cu->flag & CU_3D) || ((cu->flag & (CU_FRONT | CU_BACK)) == 0)) {
-          mat_gp->gp_style->flag |= GP_STYLE_STROKE_SHOW;
-          mat_gp->gp_style->flag &= ~GP_STYLE_FILL_SHOW;
-        }
-        else {
-          mat_gp->gp_style->flag &= ~GP_STYLE_STROKE_SHOW;
-          mat_gp->gp_style->flag |= GP_STYLE_FILL_SHOW;
+        if (mat_curve) {
+          linearrgb_to_srgb_v3_v3(mat_gp->gp_style->stroke_rgba, &mat_curve->r);
+          mat_gp->gp_style->stroke_rgba[3] = mat_curve->a;
+          /* Set fill and stroke depending of curve type (3D or 2D). */
+          if ((cu->flag & CU_3D) || ((cu->flag & (CU_FRONT | CU_BACK)) == 0)) {
+            mat_gp->gp_style->flag |= GP_STYLE_STROKE_SHOW;
+            mat_gp->gp_style->flag &= ~GP_STYLE_FILL_SHOW;
+          }
+          else {
+            mat_gp->gp_style->flag &= ~GP_STYLE_STROKE_SHOW;
+            mat_gp->gp_style->flag |= GP_STYLE_FILL_SHOW;
+          }
         }
       }
     }
