@@ -281,8 +281,13 @@ typedef struct WORKBENCH_EffectInfo {
 } WORKBENCH_EffectInfo;
 
 typedef struct WORKBENCH_MaterialData {
-  float base_color[3], metallic;
-  float roughness, alpha;
+  float base_color[3];
+  float diffuse_color[3];
+  float specular_color[3];
+  float alpha;
+  float metallic;
+  float roughness;
+  int object_id;
   int color_type;
   int interp;
   Image *ima;
@@ -303,6 +308,8 @@ typedef struct WORKBENCH_ObjectData {
   float shadow_min[3], shadow_max[3];
   BoundBox shadow_bbox;
   bool shadow_bbox_dirty;
+
+  int object_id;
 } WORKBENCH_ObjectData;
 
 /* inline helper functions */
@@ -493,6 +500,7 @@ void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd,
                                         DRWShadingGroup *grp,
                                         WORKBENCH_MaterialData *material,
                                         Object *ob,
+                                        const bool use_metallic,
                                         const bool deferred,
                                         const int interp);
 void workbench_material_copy(WORKBENCH_MaterialData *dest_material,

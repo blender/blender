@@ -55,12 +55,6 @@
 #include <string.h>
 #include <stdarg.h>
 
-extern char datatoc_gpu_shader_material_glsl[];
-extern char datatoc_gpu_shader_geometry_glsl[];
-
-extern char datatoc_gpu_shader_common_obinfos_lib_glsl[];
-extern char datatoc_common_view_lib_glsl[];
-
 /* -------------------- GPUPass Cache ------------------ */
 /**
  * Internal shader cache: This prevent the shader recompilation / stall when
@@ -784,12 +778,6 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
         else if (input->builtin == GPU_OBJECT_MATRIX) {
           BLI_dynstr_append(ds, "objmat");
         }
-        else if (input->builtin == GPU_OBJECT_INFO) {
-          BLI_dynstr_append(ds, "ObjectInfo");
-        }
-        else if (input->builtin == GPU_OBJECT_COLOR) {
-          BLI_dynstr_append(ds, "ObjectColor");
-        }
         else if (input->builtin == GPU_INVERSE_OBJECT_MATRIX) {
           BLI_dynstr_append(ds, "objinv");
         }
@@ -851,10 +839,6 @@ static char *code_generate_fragment(GPUMaterial *material,
 
   codegen_set_unique_ids(nodes);
   *rbuiltins = builtins = codegen_process_uniforms_functions(material, ds, nodes);
-
-  if (builtins & (GPU_OBJECT_INFO | GPU_OBJECT_COLOR)) {
-    BLI_dynstr_append(ds, datatoc_gpu_shader_common_obinfos_lib_glsl);
-  }
 
   if (builtins & GPU_BARYCENTRIC_TEXCO) {
     BLI_dynstr_append(ds, "in vec2 barycentricTexCo;\n");
@@ -1004,7 +988,7 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
         /* NOTE : Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.c */
         if (input->attr_type == CD_ORCO) {
           /* OPTI : orco is computed from local positions, but only if no modifier is present. */
-          BLI_dynstr_append(ds, datatoc_gpu_shader_common_obinfos_lib_glsl);
+          BLI_dynstr_append(ds, "uniform vec3 OrcoTexCoFactors[2];\n");
           BLI_dynstr_append(ds, "DEFINE_ATTR(vec4, orco);\n");
         }
         else if (input->attr_name[0] == '\0') {
@@ -1086,8 +1070,6 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 
   BLI_dynstr_append(ds, "\n");
 
-  BLI_dynstr_append(ds, use_geom ? "RESOURCE_ID_VARYING_GEOM\n" : "RESOURCE_ID_VARYING\n");
-
   BLI_dynstr_append(ds,
                     "#define USE_ATTR\n"
                     "vec3 srgb_to_linear_attr(vec3 c) {\n"
@@ -1117,8 +1099,6 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 
   BLI_dynstr_append(ds, "void pass_attr(in vec3 position) {\n");
 
-  BLI_dynstr_append(ds, use_geom ? "\tPASS_RESOURCE_ID_GEOM\n" : "\tPASS_RESOURCE_ID\n");
-
   BLI_dynstr_append(ds, "#ifdef HAIR_SHADER\n");
 
   if (builtins & GPU_BARYCENTRIC_TEXCO) {
@@ -1145,8 +1125,8 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
         }
         else if (input->attr_type == CD_ORCO) {
           BLI_dynstr_appendf(ds,
-                             "\tvar%d%s = OrcoTexCoFactors[0].xyz + (ModelMatrixInverse * "
-                             "vec4(hair_get_strand_pos(), 1.0)).xyz * OrcoTexCoFactors[1].xyz;\n",
+                             "\tvar%d%s = OrcoTexCoFactors[0] + (ModelMatrixInverse * "
+                             "vec4(hair_get_strand_pos(), 1.0)).xyz * OrcoTexCoFactors[1];\n",
                              input->attr_id,
                              use_geom ? "g" : "");
           /* TODO: fix ORCO with modifiers. */
@@ -1201,8 +1181,7 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
         }
         else if (input->attr_type == CD_ORCO) {
           BLI_dynstr_appendf(ds,
-                             "\tvar%d%s = OrcoTexCoFactors[0].xyz + position *"
-                             " OrcoTexCoFactors[1].xyz;\n",
+                             "\tvar%d%s = OrcoTexCoFactors[0] + position * OrcoTexCoFactors[1];\n",
                              input->attr_id,
                              use_geom ? "g" : "");
           /* See mesh_create_loop_orco() for explanation. */
@@ -1317,8 +1296,6 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code, cons
       BLI_dynstr_append(ds, "out vec3 worldNormal;\n");
       BLI_dynstr_append(ds, "out vec3 viewNormal;\n");
 
-      BLI_dynstr_append(ds, datatoc_common_view_lib_glsl);
-
       BLI_dynstr_append(ds, "void main(){\n");
 
       if (builtins & GPU_BARYCENTRIC_DIST) {
@@ -1363,12 +1340,8 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code, cons
     BLI_dynstr_append(ds, "}\n");
   }
 
-  BLI_dynstr_append(ds, "RESOURCE_ID_VARYING\n");
-
   /* Generate varying assignments. */
   BLI_dynstr_append(ds, "void pass_attr(in int vert) {\n");
-
-  BLI_dynstr_append(ds, "\tPASS_RESOURCE_ID(vert)\n");
 
   /* XXX HACK: Eevee specific. */
   if (geom_code == NULL) {

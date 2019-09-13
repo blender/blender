@@ -1095,7 +1095,7 @@ struct GPUShader *volume_velocity_shader_get(bool use_needle)
           NULL,
           datatoc_gpu_shader_flat_color_frag_glsl,
           datatoc_common_view_lib_glsl,
-          "#define USE_NEEDLE\n");
+          "#define USE_NEEDLE");
     }
     return sh_data->volume_velocity_needle_sh;
   }

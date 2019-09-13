@@ -1,5 +1,4 @@
 #define COMMON_VIEW_LIB
-#define DRW_RESOURCE_CHUNK_LEN 512
 
 /* keep in sync with DRWManager.view_data */
 layout(std140) uniform viewBlock
@@ -24,74 +23,8 @@ layout(std140) uniform viewBlock
     _world_clip_planes_calc_clip_distance(p, clipPlanes)
 #endif
 
-uniform int resourceChunk;
-
-#ifdef GPU_VERTEX_SHADER
-#  ifdef GL_ARB_shader_draw_parameters
-#    define baseInstance gl_BaseInstanceARB
-#  else /* no ARB_shader_draw_parameters */
-uniform int baseInstance;
-#  endif
-
-#  ifdef IN_PLACE_INSTANCES
-/* When drawing instances of an object at the same position. */
-#    define instanceId 0
-#  elif defined(GPU_CRAPPY_AMD_DRIVER)
-/* NOTE: This does contain the baseInstance ofset */
-in int _instanceId;
-#    define instanceId (_instanceId - baseInstance)
-#  else
-#    define instanceId gl_InstanceID
-#  endif
-
-#  define resource_id (baseInstance + instanceId)
-
-/* Use this to declare and pass the value if
- * the fragment shader uses the resource_id. */
-#  define RESOURCE_ID_VARYING flat out int resourceIDFrag;
-#  define RESOURCE_ID_VARYING_GEOM flat out int resourceIDGeom;
-#  define PASS_RESOURCE_ID resourceIDFrag = resource_id;
-#  define PASS_RESOURCE_ID_GEOM resourceIDGeom = resource_id;
-#endif
-
-/* If used in a fragment / geometry shader, we pass
- * resource_id as varying. */
-#ifdef GPU_GEOMETRY_SHADER
-#  define RESOURCE_ID_VARYING \
-    flat out int resourceIDFrag; \
-    flat in int resourceIDGeom[];
-
-#  define resource_id resourceIDGeom
-#  define PASS_RESOURCE_ID(i) resourceIDFrag = resource_id[i];
-#endif
-
-#ifdef GPU_FRAGMENT_SHADER
-flat in int resourceIDFrag;
-#  define resource_id resourceIDFrag
-#endif
-
-#ifndef GPU_INTEL
-struct ObjectMatrices {
-  mat4 drw_modelMatrix;
-  mat4 drw_modelMatrixInverse;
-};
-
-layout(std140) uniform modelBlock
-{
-  ObjectMatrices drw_matrices[DRW_RESOURCE_CHUNK_LEN];
-};
-
-#  define ModelMatrix (drw_matrices[resource_id].drw_modelMatrix)
-#  define ModelMatrixInverse (drw_matrices[resource_id].drw_modelMatrixInverse)
-
-#else /* GPU_INTEL */
-/* Intel GPU seems to suffer performance impact when the model matrix is in UBO storage.
- * So for now we just force using the legacy path. */
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
-#endif
-
-#define resource_handle (resourceChunk * DRW_RESOURCE_CHUNK_LEN + resource_id)
 
 /** Transform shortcuts. */
 /* Rule of thumb: Try to reuse world positions and normals because converting though viewspace

@@ -390,7 +390,6 @@ struct DRWShadingGroup *gpencil_shgroup_stroke_create(struct GPENCIL_Data *vedat
                                                       struct DRWPass *pass,
                                                       struct GPUShader *shader,
                                                       struct Object *ob,
-                                                      float (*obmat)[4],
                                                       struct bGPdata *gpd,
                                                       struct bGPDlayer *gpl,
                                                       struct bGPDstroke *gps,

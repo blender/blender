@@ -48,9 +48,6 @@ static struct {
   char *frag_shader_lib;
   char *vert_shader_str;
   char *vert_shadow_shader_str;
-  char *vert_background_shader_str;
-  char *vert_volume_shader_str;
-  char *geom_volume_shader_str;
   char *volume_shader_lib;
 
   struct GPUShader *default_prepass_sh;
@@ -568,15 +565,6 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
     e_data.vert_shadow_shader_str = BLI_string_joinN(
         datatoc_common_view_lib_glsl, datatoc_common_hair_lib_glsl, datatoc_shadow_vert_glsl);
 
-    e_data.vert_background_shader_str = BLI_string_joinN(datatoc_common_view_lib_glsl,
-                                                         datatoc_background_vert_glsl);
-
-    e_data.vert_volume_shader_str = BLI_string_joinN(datatoc_common_view_lib_glsl,
-                                                     datatoc_volumetric_vert_glsl);
-
-    e_data.geom_volume_shader_str = BLI_string_joinN(datatoc_common_view_lib_glsl,
-                                                     datatoc_volumetric_geom_glsl);
-
     e_data.default_background = DRW_shader_create_with_lib(datatoc_background_vert_glsl,
                                                            NULL,
                                                            datatoc_default_world_frag_glsl,
@@ -649,7 +637,7 @@ struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, Wor
                                       wo,
                                       engine,
                                       options,
-                                      e_data.vert_background_shader_str,
+                                      datatoc_background_vert_glsl,
                                       NULL,
                                       e_data.frag_shader_lib,
                                       SHADER_DEFINES "#define PROBE_CAPTURE\n",
@@ -669,7 +657,7 @@ struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, Wor
                                       wo,
                                       engine,
                                       options,
-                                      e_data.vert_background_shader_str,
+                                      datatoc_background_vert_glsl,
                                       NULL,
                                       e_data.frag_shader_lib,
                                       SHADER_DEFINES "#define WORLD_BACKGROUND\n",
@@ -692,8 +680,8 @@ struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, World *
                                      wo,
                                      engine,
                                      options,
-                                     e_data.vert_volume_shader_str,
-                                     e_data.geom_volume_shader_str,
+                                     datatoc_volumetric_vert_glsl,
+                                     datatoc_volumetric_geom_glsl,
                                      e_data.volume_shader_lib,
                                      defines,
                                      true);
@@ -753,8 +741,8 @@ struct GPUMaterial *EEVEE_material_mesh_volume_get(struct Scene *scene, Material
                                         ma,
                                         engine,
                                         options,
-                                        e_data.vert_volume_shader_str,
-                                        e_data.geom_volume_shader_str,
+                                        datatoc_volumetric_vert_glsl,
+                                        datatoc_volumetric_geom_glsl,
                                         e_data.volume_shader_lib,
                                         defines,
                                         true);
@@ -1350,24 +1338,6 @@ static void material_transparent(Material *ma,
   const float *spec_p = &ma->spec;
   const float *rough_p = &ma->roughness;
 
-  const bool use_prepass = ((ma->blend_flag & MA_BL_HIDE_BACKFACE) != 0);
-
-  DRWState cur_state;
-  DRWState all_state = (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_CULL_BACK |
-                        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_DEPTH_EQUAL |
-                        DRW_STATE_BLEND_CUSTOM);
-
-  /* Depth prepass */
-  if (use_prepass) {
-    *shgrp_depth = DRW_shgroup_create(e_data.default_prepass_clip_sh, psl->transparent_pass);
-
-    cur_state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
-    cur_state |= (do_cull) ? DRW_STATE_CULL_BACK : 0;
-
-    DRW_shgroup_state_disable(*shgrp_depth, all_state);
-    DRW_shgroup_state_enable(*shgrp_depth, cur_state);
-  }
-
   if (ma->use_nodes && ma->nodetree) {
     static float error_col[3] = {1.0f, 0.0f, 1.0f};
     static float compile_col[3] = {0.5f, 0.5f, 0.5f};
@@ -1424,13 +1394,30 @@ static void material_transparent(Material *ma,
     DRW_shgroup_uniform_float(*shgrp, "roughness", rough_p, 1);
   }
 
-  cur_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM;
+  const bool use_prepass = ((ma->blend_flag & MA_BL_HIDE_BACKFACE) != 0);
+
+  DRWState all_state = (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_CULL_BACK |
+                        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_DEPTH_EQUAL |
+                        DRW_STATE_BLEND_CUSTOM);
+
+  DRWState cur_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM;
   cur_state |= (use_prepass) ? DRW_STATE_DEPTH_EQUAL : DRW_STATE_DEPTH_LESS_EQUAL;
   cur_state |= (do_cull) ? DRW_STATE_CULL_BACK : 0;
 
   /* Disable other blend modes and use the one we want. */
   DRW_shgroup_state_disable(*shgrp, all_state);
   DRW_shgroup_state_enable(*shgrp, cur_state);
+
+  /* Depth prepass */
+  if (use_prepass) {
+    *shgrp_depth = DRW_shgroup_create(e_data.default_prepass_clip_sh, psl->transparent_pass);
+
+    cur_state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
+    cur_state |= (do_cull) ? DRW_STATE_CULL_BACK : 0;
+
+    DRW_shgroup_state_disable(*shgrp_depth, all_state);
+    DRW_shgroup_state_enable(*shgrp_depth, cur_state);
+  }
 }
 
 /* Return correct material or &defmaterial if slot is empty. */
@@ -1747,9 +1734,6 @@ void EEVEE_materials_free(void)
   MEM_SAFE_FREE(e_data.frag_shader_lib);
   MEM_SAFE_FREE(e_data.vert_shader_str);
   MEM_SAFE_FREE(e_data.vert_shadow_shader_str);
-  MEM_SAFE_FREE(e_data.vert_background_shader_str);
-  MEM_SAFE_FREE(e_data.vert_volume_shader_str);
-  MEM_SAFE_FREE(e_data.geom_volume_shader_str);
   MEM_SAFE_FREE(e_data.volume_shader_lib);
   DRW_SHADER_FREE_SAFE(e_data.default_hair_prepass_sh);
   DRW_SHADER_FREE_SAFE(e_data.default_hair_prepass_clip_sh);

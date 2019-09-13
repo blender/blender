@@ -286,10 +286,15 @@ typedef struct OBJECT_PrivateData {
   DRWShadingGroup *outlines_transform;
 
   /* Lightprobes */
-  DRWShadingGroup *probe_outlines_transform;
-  DRWShadingGroup *probe_outlines_select;
-  DRWShadingGroup *probe_outlines_select_dupli;
-  DRWShadingGroup *probe_outlines_active;
+  DRWCallBuffer *lightprobes_cube_select;
+  DRWCallBuffer *lightprobes_cube_select_dupli;
+  DRWCallBuffer *lightprobes_cube_active;
+  DRWCallBuffer *lightprobes_cube_transform;
+
+  DRWCallBuffer *lightprobes_planar_select;
+  DRWCallBuffer *lightprobes_planar_select_dupli;
+  DRWCallBuffer *lightprobes_planar_active;
+  DRWCallBuffer *lightprobes_planar_transform;
 
   /* Objects Centers */
   DRWCallBuffer *center_active;
@@ -297,6 +302,17 @@ typedef struct OBJECT_PrivateData {
   DRWCallBuffer *center_deselected;
   DRWCallBuffer *center_selected_lib;
   DRWCallBuffer *center_deselected_lib;
+
+  /* Outlines id offset (accessed as an array) */
+  int id_ofs_active;
+  int id_ofs_select;
+  int id_ofs_select_dupli;
+  int id_ofs_transform;
+
+  int id_ofs_prb_active;
+  int id_ofs_prb_select;
+  int id_ofs_prb_select_dupli;
+  int id_ofs_prb_transform;
 
   bool xray_enabled;
   bool xray_enabled_and_not_wire;
@@ -401,10 +417,7 @@ static void OBJECT_engine_init(void *vedata)
   if (!sh_data->outline_resolve) {
     /* Outline */
     sh_data->outline_prepass = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg_data->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_object_outline_prepass_vert_glsl,
-                                 NULL},
+        .vert = (const char *[]){sh_cfg_data->lib, datatoc_gpu_shader_3D_vert_glsl, NULL},
         .frag = (const char *[]){datatoc_object_outline_prepass_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, NULL},
     });
@@ -418,7 +431,7 @@ static void OBJECT_engine_init(void *vedata)
                                  datatoc_object_outline_prepass_geom_glsl,
                                  NULL},
         .frag = (const char *[]){datatoc_object_outline_prepass_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg_data->def, "#define USE_GEOM\n", NULL},
+        .defs = (const char *[]){sh_cfg_data->def, NULL},
     });
 
     sh_data->outline_resolve = DRW_shader_create_fullscreen(
@@ -526,11 +539,10 @@ static void OBJECT_engine_init(void *vedata)
     /* Lightprobes */
     sh_data->lightprobe_grid = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg_data->lib,
-                                 datatoc_common_view_lib_glsl,
                                  datatoc_common_globals_lib_glsl,
                                  datatoc_object_lightprobe_grid_vert_glsl,
                                  NULL},
-        .frag = (const char *[]){datatoc_object_outline_prepass_frag_glsl, NULL},
+        .frag = (const char *[]){datatoc_gpu_shader_flat_id_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, NULL},
     });
 
@@ -685,12 +697,12 @@ static void OBJECT_engine_free(void)
 }
 
 static DRWShadingGroup *shgroup_outline(DRWPass *pass,
-                                        int outline_id,
+                                        const int *ofs,
                                         GPUShader *sh,
                                         eGPUShaderConfig sh_cfg)
 {
   DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
-  DRW_shgroup_uniform_int_copy(grp, "outlineId", outline_id);
+  DRW_shgroup_uniform_int(grp, "baseId", ofs, 1);
 
   if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
     DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
@@ -729,10 +741,107 @@ static DRWShadingGroup *shgroup_points(DRWPass *pass,
   return grp;
 }
 
+static int *shgroup_theme_id_to_probe_outline_counter(OBJECT_StorageList *stl,
+                                                      int theme_id,
+                                                      const int base_flag)
+{
+  if (UNLIKELY(base_flag & BASE_FROM_DUPLI)) {
+    switch (theme_id) {
+      case TH_ACTIVE:
+      case TH_SELECT:
+        return &stl->g_data->id_ofs_prb_select_dupli;
+      case TH_TRANSFORM:
+      default:
+        return &stl->g_data->id_ofs_prb_transform;
+    }
+  }
+
+  switch (theme_id) {
+    case TH_ACTIVE:
+      return &stl->g_data->id_ofs_prb_active;
+    case TH_SELECT:
+      return &stl->g_data->id_ofs_prb_select;
+    case TH_TRANSFORM:
+    default:
+      return &stl->g_data->id_ofs_prb_transform;
+  }
+}
+
+static int *shgroup_theme_id_to_outline_counter(OBJECT_StorageList *stl,
+                                                int theme_id,
+                                                const int base_flag)
+{
+  if (UNLIKELY(base_flag & BASE_FROM_DUPLI)) {
+    switch (theme_id) {
+      case TH_ACTIVE:
+      case TH_SELECT:
+        return &stl->g_data->id_ofs_select_dupli;
+      case TH_TRANSFORM:
+      default:
+        return &stl->g_data->id_ofs_transform;
+    }
+  }
+
+  switch (theme_id) {
+    case TH_ACTIVE:
+      return &stl->g_data->id_ofs_active;
+    case TH_SELECT:
+      return &stl->g_data->id_ofs_select;
+    case TH_TRANSFORM:
+    default:
+      return &stl->g_data->id_ofs_transform;
+  }
+}
+
+static DRWCallBuffer *buffer_theme_id_to_probe_planar_outline_shgrp(OBJECT_StorageList *stl,
+                                                                    int theme_id)
+{
+  /* does not increment counter */
+  switch (theme_id) {
+    case TH_ACTIVE:
+      return stl->g_data->lightprobes_planar_active;
+    case TH_SELECT:
+      return stl->g_data->lightprobes_planar_select;
+    case TH_TRANSFORM:
+    default:
+      return stl->g_data->lightprobes_planar_transform;
+  }
+}
+
+static DRWCallBuffer *buffer_theme_id_to_probe_cube_outline_shgrp(OBJECT_StorageList *stl,
+                                                                  int theme_id,
+                                                                  const int base_flag)
+{
+  /* does not increment counter */
+  if (UNLIKELY(base_flag & BASE_FROM_DUPLI)) {
+    switch (theme_id) {
+      case TH_ACTIVE:
+      case TH_SELECT:
+        return stl->g_data->lightprobes_cube_select_dupli;
+      case TH_TRANSFORM:
+      default:
+        return stl->g_data->lightprobes_cube_transform;
+    }
+  }
+
+  switch (theme_id) {
+    case TH_ACTIVE:
+      return stl->g_data->lightprobes_cube_active;
+    case TH_SELECT:
+      return stl->g_data->lightprobes_cube_select;
+    case TH_TRANSFORM:
+    default:
+      return stl->g_data->lightprobes_cube_transform;
+  }
+}
+
 static DRWShadingGroup *shgroup_theme_id_to_outline_or_null(OBJECT_StorageList *stl,
                                                             int theme_id,
                                                             const int base_flag)
 {
+  int *counter = shgroup_theme_id_to_outline_counter(stl, theme_id, base_flag);
+  *counter += 1;
+
   if (UNLIKELY(base_flag & BASE_FROM_DUPLI)) {
     switch (theme_id) {
       case TH_ACTIVE:
@@ -754,64 +863,6 @@ static DRWShadingGroup *shgroup_theme_id_to_outline_or_null(OBJECT_StorageList *
       return stl->g_data->outlines_transform;
     default:
       return NULL;
-  }
-}
-
-static DRWShadingGroup *shgroup_theme_id_to_probe_outline_or_null(OBJECT_StorageList *stl,
-                                                                  int theme_id,
-                                                                  const int base_flag)
-{
-  if (UNLIKELY(DRW_state_is_select())) {
-    return stl->g_data->probe_outlines_select;
-  }
-
-  if (UNLIKELY(base_flag & BASE_FROM_DUPLI)) {
-    switch (theme_id) {
-      case TH_ACTIVE:
-      case TH_SELECT:
-        return stl->g_data->probe_outlines_select_dupli;
-      case TH_TRANSFORM:
-        return stl->g_data->probe_outlines_transform;
-      default:
-        return NULL;
-    }
-  }
-
-  switch (theme_id) {
-    case TH_ACTIVE:
-      return stl->g_data->probe_outlines_active;
-    case TH_SELECT:
-      return stl->g_data->probe_outlines_select;
-    case TH_TRANSFORM:
-      return stl->g_data->probe_outlines_transform;
-    default:
-      return NULL;
-  }
-}
-
-static int shgroup_theme_id_to_outline_id(int theme_id, const int base_flag)
-{
-  if (UNLIKELY(base_flag & BASE_FROM_DUPLI)) {
-    switch (theme_id) {
-      case TH_ACTIVE:
-      case TH_SELECT:
-        return 2;
-      case TH_TRANSFORM:
-        return 0;
-      default:
-        return -1;
-    }
-  }
-
-  switch (theme_id) {
-    case TH_ACTIVE:
-      return 3;
-    case TH_SELECT:
-      return 1;
-    case TH_TRANSFORM:
-      return 0;
-    default:
-      return -1;
   }
 }
 
@@ -1295,8 +1346,7 @@ static void OBJECT_cache_init(void *vedata)
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   OBJECT_PrivateData *g_data;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  eGPUShaderConfig cfg = draw_ctx->sh_cfg;
-  OBJECT_Shaders *sh_data = &e_data.sh_data[cfg];
+  OBJECT_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 
   const float outline_width = UI_GetThemeValuef(TH_OUTLINE_WIDTH);
   const bool do_outline_expand = (U.pixelsize > 1.0) || (outline_width > 2.0f);
@@ -1317,25 +1367,59 @@ static void OBJECT_cache_init(void *vedata)
 
   {
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
-    psl->lightprobes = DRW_pass_create("Outlines Probe Pass", state);
+    psl->outlines = DRW_pass_create("Outlines Depth Pass", state);
 
     GPUShader *sh = sh_data->outline_prepass;
-
-    g_data->probe_outlines_transform = shgroup_outline(psl->lightprobes, 0, sh, cfg);
-    g_data->probe_outlines_select = shgroup_outline(psl->lightprobes, 1, sh, cfg);
-    g_data->probe_outlines_select_dupli = shgroup_outline(psl->lightprobes, 2, sh, cfg);
-    g_data->probe_outlines_active = shgroup_outline(psl->lightprobes, 3, sh, cfg);
-
-    psl->outlines = DRW_pass_create("Outlines Depth Pass", state);
 
     if (g_data->xray_enabled_and_not_wire) {
       sh = sh_data->outline_prepass_wire;
     }
 
-    g_data->outlines_transform = shgroup_outline(psl->outlines, 0, sh, cfg);
-    g_data->outlines_select = shgroup_outline(psl->outlines, 1, sh, cfg);
-    g_data->outlines_select_dupli = shgroup_outline(psl->outlines, 2, sh, cfg);
-    g_data->outlines_active = shgroup_outline(psl->outlines, 3, sh, cfg);
+    g_data->outlines_select = shgroup_outline(
+        psl->outlines, &g_data->id_ofs_select, sh, draw_ctx->sh_cfg);
+    g_data->outlines_select_dupli = shgroup_outline(
+        psl->outlines, &g_data->id_ofs_select_dupli, sh, draw_ctx->sh_cfg);
+    g_data->outlines_transform = shgroup_outline(
+        psl->outlines, &g_data->id_ofs_transform, sh, draw_ctx->sh_cfg);
+    g_data->outlines_active = shgroup_outline(
+        psl->outlines, &g_data->id_ofs_active, sh, draw_ctx->sh_cfg);
+
+    g_data->id_ofs_select = 0;
+    g_data->id_ofs_select_dupli = 0;
+    g_data->id_ofs_active = 0;
+    g_data->id_ofs_transform = 0;
+  }
+
+  {
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
+    DRWPass *pass = psl->lightprobes = DRW_pass_create("Object Probe Pass", state);
+    struct GPUBatch *sphere = DRW_cache_sphere_get();
+    struct GPUBatch *quad = DRW_cache_quad_get();
+
+    /* Cubemap */
+    g_data->lightprobes_cube_select = buffer_instance_outline(
+        pass, sphere, &g_data->id_ofs_prb_select, draw_ctx->sh_cfg);
+    g_data->lightprobes_cube_select_dupli = buffer_instance_outline(
+        pass, sphere, &g_data->id_ofs_prb_select_dupli, draw_ctx->sh_cfg);
+    g_data->lightprobes_cube_active = buffer_instance_outline(
+        pass, sphere, &g_data->id_ofs_prb_active, draw_ctx->sh_cfg);
+    g_data->lightprobes_cube_transform = buffer_instance_outline(
+        pass, sphere, &g_data->id_ofs_prb_transform, draw_ctx->sh_cfg);
+
+    /* Planar */
+    g_data->lightprobes_planar_select = buffer_instance_outline(
+        pass, quad, &g_data->id_ofs_prb_select, draw_ctx->sh_cfg);
+    g_data->lightprobes_planar_select_dupli = buffer_instance_outline(
+        pass, quad, &g_data->id_ofs_prb_select_dupli, draw_ctx->sh_cfg);
+    g_data->lightprobes_planar_active = buffer_instance_outline(
+        pass, quad, &g_data->id_ofs_prb_active, draw_ctx->sh_cfg);
+    g_data->lightprobes_planar_transform = buffer_instance_outline(
+        pass, quad, &g_data->id_ofs_prb_transform, draw_ctx->sh_cfg);
+
+    g_data->id_ofs_prb_select = 0;
+    g_data->id_ofs_prb_select_dupli = 0;
+    g_data->id_ofs_prb_active = 0;
+    g_data->id_ofs_prb_transform = 0;
   }
 
   {
@@ -1354,6 +1438,7 @@ static void OBJECT_cache_init(void *vedata)
     DRW_shgroup_uniform_texture_ref(grp, "sceneDepth", &dtxl->depth);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_uniform_float_copy(grp, "alphaOcclu", alphaOcclu);
+    DRW_shgroup_uniform_int(grp, "idOffsets", &stl->g_data->id_ofs_active, 4);
     DRW_shgroup_call(grp, quad, NULL);
 
     /* This is the bleed pass if do_outline_expand is false. */
@@ -2681,6 +2766,15 @@ static void DRW_shgroup_speaker(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLa
   DRW_buffer_add_entry(sgl->speaker, color, &one, ob->obmat);
 }
 
+typedef struct OBJECT_LightProbeEngineData {
+  DrawData dd;
+
+  float increment_x[3];
+  float increment_y[3];
+  float increment_z[3];
+  float corner[3];
+} OBJECT_LightProbeEngineData;
+
 static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
                                    OBJECT_StorageList *stl,
                                    OBJECT_PassList *psl,
@@ -2697,10 +2791,13 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
   OBJECT_ShadingGroupList *sgl = (ob->dtx & OB_DRAWXRAY) ? &stl->g_data->sgl_ghost :
                                                            &stl->g_data->sgl;
 
+  OBJECT_LightProbeEngineData *prb_data = (OBJECT_LightProbeEngineData *)DRW_drawdata_ensure(
+      &ob->id, &draw_engine_object_type, sizeof(OBJECT_LightProbeEngineData), NULL, NULL);
+
   if (DRW_state_is_select() || do_outlines) {
+    int *call_id = shgroup_theme_id_to_probe_outline_counter(stl, theme_id, ob->base_flag);
+
     if (prb->type == LIGHTPROBE_TYPE_GRID) {
-      float corner[3];
-      float increment[3][3];
       /* Update transforms */
       float cell_dim[3], half_cell_dim[3];
       cell_dim[0] = 2.0f / (float)(prb->grid_resolution_x);
@@ -2710,40 +2807,65 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
       mul_v3_v3fl(half_cell_dim, cell_dim, 0.5f);
 
       /* First cell. */
-      copy_v3_fl(corner, -1.0f);
-      add_v3_v3(corner, half_cell_dim);
-      mul_m4_v3(ob->obmat, corner);
+      copy_v3_fl(prb_data->corner, -1.0f);
+      add_v3_v3(prb_data->corner, half_cell_dim);
+      mul_m4_v3(ob->obmat, prb_data->corner);
 
       /* Opposite neighbor cell. */
-      copy_v3_fl3(increment[0], cell_dim[0], 0.0f, 0.0f);
-      copy_v3_fl3(increment[1], 0.0f, cell_dim[1], 0.0f);
-      copy_v3_fl3(increment[2], 0.0f, 0.0f, cell_dim[2]);
+      copy_v3_fl3(prb_data->increment_x, cell_dim[0], 0.0f, 0.0f);
+      add_v3_v3(prb_data->increment_x, half_cell_dim);
+      add_v3_fl(prb_data->increment_x, -1.0f);
+      mul_m4_v3(ob->obmat, prb_data->increment_x);
+      sub_v3_v3(prb_data->increment_x, prb_data->corner);
 
-      for (int i = 0; i < 3; i++) {
-        add_v3_v3(increment[i], half_cell_dim);
-        add_v3_fl(increment[i], -1.0f);
-        mul_m4_v3(ob->obmat, increment[i]);
-        sub_v3_v3(increment[i], corner);
-      }
+      copy_v3_fl3(prb_data->increment_y, 0.0f, cell_dim[1], 0.0f);
+      add_v3_v3(prb_data->increment_y, half_cell_dim);
+      add_v3_fl(prb_data->increment_y, -1.0f);
+      mul_m4_v3(ob->obmat, prb_data->increment_y);
+      sub_v3_v3(prb_data->increment_y, prb_data->corner);
 
-      int outline_id = shgroup_theme_id_to_outline_id(theme_id, ob->base_flag);
+      copy_v3_fl3(prb_data->increment_z, 0.0f, 0.0f, cell_dim[2]);
+      add_v3_v3(prb_data->increment_z, half_cell_dim);
+      add_v3_fl(prb_data->increment_z, -1.0f);
+      mul_m4_v3(ob->obmat, prb_data->increment_z);
+      sub_v3_v3(prb_data->increment_z, prb_data->corner);
+
       uint cell_count = prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z;
       DRWShadingGroup *grp = DRW_shgroup_create(sh_data->lightprobe_grid, psl->lightprobes);
-      DRW_shgroup_uniform_int_copy(grp, "outlineId", outline_id);
-      DRW_shgroup_uniform_vec3_copy(grp, "corner", corner);
-      DRW_shgroup_uniform_vec3_copy(grp, "increment_x", increment[0]);
-      DRW_shgroup_uniform_vec3_copy(grp, "increment_y", increment[1]);
-      DRW_shgroup_uniform_vec3_copy(grp, "increment_z", increment[2]);
-      DRW_shgroup_uniform_ivec3_copy(grp, "grid_resolution", &prb->grid_resolution_x);
+      DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+      DRW_shgroup_uniform_int_copy(grp, "call_id", *call_id);
+      DRW_shgroup_uniform_int(grp, "baseId", call_id, 1); /* that's correct */
+      DRW_shgroup_uniform_vec3(grp, "corner", prb_data->corner, 1);
+      DRW_shgroup_uniform_vec3(grp, "increment_x", prb_data->increment_x, 1);
+      DRW_shgroup_uniform_vec3(grp, "increment_y", prb_data->increment_y, 1);
+      DRW_shgroup_uniform_vec3(grp, "increment_z", prb_data->increment_z, 1);
+      DRW_shgroup_uniform_ivec3(grp, "grid_resolution", &prb->grid_resolution_x, 1);
       if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
         DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
       }
       DRW_shgroup_call_procedural_points(grp, NULL, cell_count);
+      *call_id += 1;
     }
-    else if (prb->type == LIGHTPROBE_TYPE_PLANAR && (prb->flag & LIGHTPROBE_FLAG_SHOW_DATA)) {
-      DRWShadingGroup *grp = shgroup_theme_id_to_probe_outline_or_null(
+    else if (prb->type == LIGHTPROBE_TYPE_CUBE) {
+      float draw_size = 1.0f;
+      float probe_cube_mat[4][4];
+      // prb_data->draw_size = prb->data_draw_size * 0.1f;
+      // unit_m4(prb_data->probe_cube_mat);
+      // copy_v3_v3(prb_data->probe_cube_mat[3], ob->obmat[3]);
+
+      DRWCallBuffer *buf = buffer_theme_id_to_probe_cube_outline_shgrp(
           stl, theme_id, ob->base_flag);
-      DRW_shgroup_call_no_cull(grp, DRW_cache_quad_get(), ob);
+      /* TODO remove or change the drawing of the cube probes. This line draws nothing on purpose
+       * to keep the call ids correct. */
+      zero_m4(probe_cube_mat);
+      DRW_buffer_add_entry(buf, call_id, &draw_size, probe_cube_mat);
+      *call_id += 1;
+    }
+    else if (prb->flag & LIGHTPROBE_FLAG_SHOW_DATA) {
+      float draw_size = 1.0f;
+      DRWCallBuffer *buf = buffer_theme_id_to_probe_planar_outline_shgrp(stl, theme_id);
+      DRW_buffer_add_entry(buf, call_id, &draw_size, ob->obmat);
+      *call_id += 1;
     }
   }
 
@@ -3660,7 +3782,19 @@ static void OBJECT_draw_scene(void *vedata)
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-  int do_outlines = !DRW_pass_is_empty(psl->outlines) || !DRW_pass_is_empty(psl->lightprobes);
+  int id_len_select = g_data->id_ofs_select;
+  int id_len_select_dupli = g_data->id_ofs_select_dupli;
+  int id_len_active = g_data->id_ofs_active;
+  int id_len_transform = g_data->id_ofs_transform;
+
+  int id_len_prb_select = g_data->id_ofs_prb_select;
+  int id_len_prb_select_dupli = g_data->id_ofs_prb_select_dupli;
+  int id_len_prb_active = g_data->id_ofs_prb_active;
+  int id_len_prb_transform = g_data->id_ofs_prb_transform;
+
+  int outline_calls = id_len_select + id_len_select_dupli + id_len_active + id_len_transform;
+  outline_calls += id_len_prb_select + id_len_prb_select_dupli + id_len_prb_active +
+                   id_len_prb_transform;
 
   float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
@@ -3668,23 +3802,34 @@ static void OBJECT_draw_scene(void *vedata)
 
   /* Don't draw Transparent passes in MSAA buffer. */
   //  DRW_draw_pass(psl->bone_envelope);  /* Never drawn in Object mode currently. */
-  DRW_draw_pass(g_data->sgl.transp_shapes);
+  DRW_draw_pass(stl->g_data->sgl.transp_shapes);
 
   MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
 
-  DRW_draw_pass(g_data->sgl.bone_solid);
-  DRW_draw_pass(g_data->sgl.bone_wire);
-  DRW_draw_pass(g_data->sgl.bone_outline);
-  DRW_draw_pass(g_data->sgl.non_meshes);
+  DRW_draw_pass(stl->g_data->sgl.bone_solid);
+  DRW_draw_pass(stl->g_data->sgl.bone_wire);
+  DRW_draw_pass(stl->g_data->sgl.bone_outline);
+  DRW_draw_pass(stl->g_data->sgl.non_meshes);
   DRW_draw_pass(psl->particle);
-  DRW_draw_pass(g_data->sgl.bone_axes);
+  DRW_draw_pass(stl->g_data->sgl.bone_axes);
 
   MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl);
 
-  DRW_draw_pass(g_data->sgl.image_empties);
+  DRW_draw_pass(stl->g_data->sgl.image_empties);
 
-  if (DRW_state_is_fbo() && do_outlines) {
+  if (DRW_state_is_fbo() && outline_calls > 0) {
     DRW_stats_group_start("Outlines");
+
+    g_data->id_ofs_active = 1;
+    g_data->id_ofs_select = g_data->id_ofs_active + id_len_active + id_len_prb_active + 1;
+    g_data->id_ofs_select_dupli = g_data->id_ofs_select + id_len_select + id_len_prb_select + 1;
+    g_data->id_ofs_transform = g_data->id_ofs_select_dupli + id_len_select_dupli +
+                               id_len_prb_select_dupli + 1;
+
+    g_data->id_ofs_prb_active = g_data->id_ofs_active + id_len_active;
+    g_data->id_ofs_prb_select = g_data->id_ofs_select + id_len_select;
+    g_data->id_ofs_prb_select_dupli = g_data->id_ofs_select_dupli + id_len_select_dupli;
+    g_data->id_ofs_prb_transform = g_data->id_ofs_transform + id_len_transform;
 
     /* Render filled polygon on a separate framebuffer */
     GPU_framebuffer_bind(fbl->outlines_fb);
@@ -3720,7 +3865,7 @@ static void OBJECT_draw_scene(void *vedata)
     }
 
     /* Combine with scene buffer last */
-    if (do_outlines) {
+    if (outline_calls > 0) {
       DRW_draw_pass(psl->outlines_resolve);
     }
   }

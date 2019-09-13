@@ -126,7 +126,7 @@ static void EDIT_CURVE_engine_init(void *UNUSED(vedata))
                                  datatoc_edit_curve_overlay_normals_vert_glsl,
                                  NULL},
         .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg_data->def, "#define IN_PLACE_INSTANCES\n", NULL},
+        .defs = (const char *[]){sh_cfg_data->def, NULL},
     });
   }
 

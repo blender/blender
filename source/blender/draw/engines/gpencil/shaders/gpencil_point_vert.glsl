@@ -6,7 +6,6 @@ uniform float pixfactor;
 uniform int viewport_xray;
 uniform int shading_type[2];
 uniform vec4 wire_color;
-uniform mat4 gpModelMatrix;
 
 in vec3 pos;
 in vec4 color;
@@ -31,8 +30,8 @@ float defaultpixsize = pixsize * (1000.0 / pixfactor);
 
 void main()
 {
-  gl_Position = point_world_to_ndc((gpModelMatrix * vec4(pos, 1.0)).xyz);
-  finalprev_pos = point_world_to_ndc((gpModelMatrix * vec4(prev_pos, 1.0)).xyz);
+  gl_Position = point_object_to_ndc(pos);
+  finalprev_pos = point_object_to_ndc(prev_pos);
   finalColor = color;
 
   if (keep_size == TRUE) {

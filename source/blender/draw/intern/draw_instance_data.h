@@ -40,7 +40,7 @@ DRWInstanceData *DRW_instance_data_request(DRWInstanceDataList *idatalist, uint 
 
 GPUVertBuf *DRW_temp_buffer_request(DRWInstanceDataList *idatalist,
                                     GPUVertFormat *format,
-                                    int *vert_len);
+                                    uint *vert_len);
 GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
                                           GPUVertBuf *buf,
                                           GPUBatch *geom);
