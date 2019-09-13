@@ -248,6 +248,11 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
     ITER_SLOTS_END(offset);
   }
 
+  T &lookup(StringRef key)
+  {
+    return const_cast<T &>(const_cast<const StringMap *>(this)->lookup(key));
+  }
+
   /**
    * Get a pointer to the value corresponding to the key. Return nullptr, if the key does not
    * exist.
@@ -264,6 +269,11 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
       }
     }
     ITER_SLOTS_END(offset);
+  }
+
+  T *lookup_ptr(StringRef key)
+  {
+    return const_cast<T *>(const_cast<const StringMap *>(this)->lookup_ptr(key));
   }
 
   /**
