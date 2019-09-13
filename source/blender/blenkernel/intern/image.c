@@ -297,9 +297,9 @@ static void image_init(Image *ima, short source, short type)
 {
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ima, id));
 
-  ima->ok = IMA_OK;
-
   MEMCPY_STRUCT_AFTER(ima, DNA_struct_default_get(Image), id);
+
+  ima->ok = IMA_OK;
 
   ima->source = source;
   ima->type = type;
