@@ -93,7 +93,7 @@
 #include "DNA_world_defaults.h"
 
 #define SDNA_DEFAULT_DECL_STRUCT(struct_name) \
-  const struct_name DNA_DEFAULT_##struct_name = _DNA_DEFAULT_##struct_name
+  static const struct_name DNA_DEFAULT_##struct_name = _DNA_DEFAULT_##struct_name
 
 /* DNA_brush_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Brush);
@@ -103,8 +103,6 @@ SDNA_DEFAULT_DECL_STRUCT(CacheFile);
 
 /* DNA_camera_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Camera);
-SDNA_DEFAULT_DECL_STRUCT(CameraDOFSettings);
-SDNA_DEFAULT_DECL_STRUCT(CameraStereoSettings);
 
 /* DNA_curve_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Curve);

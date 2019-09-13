@@ -332,7 +332,8 @@ static void sculpt_vertex_neighbors_get(SculptSession *ss,
   } \
   if (neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
     MEM_freeN(neighbor_iterator.neighbors); \
-  }
+  } \
+  ((void)0)
 
 /* Utils */
 static void sculpt_vertex_mask_clamp(SculptSession *ss, int index, float min, float max)
@@ -1211,7 +1212,7 @@ static float *sculpt_topology_automasking_init(Sculpt *sd, Object *ob, float *au
         }
       }
     }
-    sculpt_vertex_neighbors_iter_end(ni)
+    sculpt_vertex_neighbors_iter_end(ni);
   }
 
   BLI_stack_free(not_visited_vertices);
@@ -3676,7 +3677,7 @@ static void sculpt_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Br
         }
       }
     }
-    sculpt_vertex_neighbors_iter_end(ni)
+    sculpt_vertex_neighbors_iter_end(ni);
   }
 
   BLI_stack_free(not_visited_vertices);
@@ -8217,7 +8218,7 @@ typedef enum eSculptMaskFilterTypes {
   MASK_FILTER_CONTRAST_DECREASE = 6,
 } eSculptMaskFilterTypes;
 
-EnumPropertyItem prop_mask_filter_types[] = {
+static EnumPropertyItem prop_mask_filter_types[] = {
     {MASK_FILTER_SMOOTH, "SMOOTH", 0, "Smooth Mask", "Smooth mask"},
     {MASK_FILTER_SHARPEN, "SHARPEN", 0, "Sharpen Mask", "Sharpen mask"},
     {MASK_FILTER_GROW, "GROW", 0, "Grow Mask", "Grow mask"},
@@ -8945,7 +8946,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
         BLI_gsqueue_push(queue, &new_entry);
       }
     }
-    sculpt_vertex_neighbors_iter_end(ni)
+    sculpt_vertex_neighbors_iter_end(ni);
   }
 
   if (use_normals) {
@@ -9096,7 +9097,7 @@ void sculpt_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
         }
       }
     }
-    sculpt_vertex_neighbors_iter_end(ni)
+    sculpt_vertex_neighbors_iter_end(ni);
   }
 
   BLI_stack_free(not_visited_vertices);
@@ -9327,7 +9328,7 @@ typedef enum eSculptPivotPositionModes {
   SCULPT_PIVOT_POSITION_CURSOR_SURFACE = 4,
 } eSculptPivotPositionModes;
 
-EnumPropertyItem prop_sculpt_pivot_position_types[] = {
+static EnumPropertyItem prop_sculpt_pivot_position_types[] = {
     {SCULPT_PIVOT_POSITION_ORIGIN,
      "ORIGIN",
      0,

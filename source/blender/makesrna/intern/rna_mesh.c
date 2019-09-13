@@ -55,7 +55,7 @@ const EnumPropertyItem rna_enum_mesh_delimit_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-const EnumPropertyItem rna_enum_mesh_remesh_mode_items[] = {
+static const EnumPropertyItem rna_enum_mesh_remesh_mode_items[] = {
     {REMESH_VOXEL, "VOXEL", 0, "Voxel", "Use the voxel remesher"},
     {REMESH_QUAD, "QUAD", 0, "Quad", "Use the quad remesher"},
     {0, NULL, 0, NULL, NULL},
