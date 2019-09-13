@@ -153,6 +153,13 @@ typedef enum uiHandleButtonState {
   BUTTON_STATE_EXIT,
 } uiHandleButtonState;
 
+typedef enum uiMenuScrollType {
+  MENU_SCROLL_UP,
+  MENU_SCROLL_DOWN,
+  MENU_SCROLL_TOP,
+  MENU_SCROLL_BOTTOM,
+} uiMenuScrollType;
+
 #ifdef USE_ALLSELECT
 
 /* Unfortunately there's no good way handle more generally:
@@ -9122,6 +9129,10 @@ static int ui_handle_menu_event(bContext *C,
         }
         case UPARROWKEY:
         case DOWNARROWKEY:
+        case PAGEUPKEY:
+        case PAGEDOWNKEY:
+        case HOMEKEY:
+        case ENDKEY:
         case MOUSEPAN:
           /* arrowkeys: only handle for block_loop blocks */
           if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
@@ -9137,8 +9148,22 @@ static int ui_handle_menu_event(bContext *C,
             }
 
             if (val == KM_PRESS) {
-              const bool is_next = (ELEM(type, DOWNARROWKEY, WHEELDOWNMOUSE) ==
-                                    ((block->flag & UI_BLOCK_IS_FLIP) != 0));
+              /* Determine scroll operation. */
+              uiMenuScrollType scrolltype;
+              bool ui_block_flipped = (block->flag & UI_BLOCK_IS_FLIP) != 0;
+
+              if (ELEM(type, PAGEUPKEY, HOMEKEY)) {
+                scrolltype = ui_block_flipped ? MENU_SCROLL_TOP : MENU_SCROLL_BOTTOM;
+              }
+              else if (ELEM(type, PAGEDOWNKEY, ENDKEY)) {
+                scrolltype = ui_block_flipped ? MENU_SCROLL_BOTTOM : MENU_SCROLL_TOP;
+              }
+              else if (ELEM(type, UPARROWKEY, WHEELUPMOUSE)) {
+                scrolltype = ui_block_flipped ? MENU_SCROLL_UP : MENU_SCROLL_DOWN;
+              }
+              else {
+                scrolltype = ui_block_flipped ? MENU_SCROLL_DOWN : MENU_SCROLL_UP;
+              }
 
               if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval)) {
                 break;
@@ -9150,16 +9175,24 @@ static int ui_handle_menu_event(bContext *C,
 
               but = ui_region_find_active_but(ar);
               if (but) {
-                /* next button */
-                but = is_next ? ui_but_next(but) : ui_but_prev(but);
-              }
-
-              if (!but) {
-                /* wrap button */
-                uiBut *but_wrap;
-                but_wrap = is_next ? ui_but_first(block) : ui_but_last(block);
-                if (but_wrap) {
-                  but = but_wrap;
+                /* Apply scroll operation. */
+                if (scrolltype == MENU_SCROLL_DOWN) {
+                  but = ui_but_next(but);
+                  if (but == NULL) {
+                    but = ui_but_first(block);
+                  }
+                }
+                else if (scrolltype == MENU_SCROLL_UP) {
+                  but = ui_but_prev(but);
+                  if (but == NULL) {
+                    but = ui_but_last(block);
+                  }
+                }
+                else if (scrolltype == MENU_SCROLL_TOP) {
+                  but = ui_but_first(block);
+                }
+                else if (scrolltype == MENU_SCROLL_BOTTOM) {
+                  but = ui_but_last(block);
                 }
               }
 
