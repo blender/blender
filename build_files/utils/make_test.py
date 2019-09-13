@@ -61,8 +61,15 @@ if not os.path.exists(lib_tests_dirpath):
     call([cmake_command, "."])
 
 # Run tests
+tests_dir = os.path.join(build_dir, "tests")
+os.makedirs(tests_dir, exist_ok=True)
+
 os.chdir(build_dir)
 command = [ctest_command, ".", "--output-on-failure"]
 if len(config):
     command += ["-C", config]
+    tests_log = "log_" + config + ".txt"
+else:
+    tests_log = "log.txt"
+command += ["-O", os.path.join(tests_dir, tests_log)]
 call(command)
