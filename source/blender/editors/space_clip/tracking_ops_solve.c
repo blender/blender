@@ -50,6 +50,7 @@
 /********************** solve camera operator *********************/
 
 typedef struct {
+  struct wmWindowManager *wm;
   Scene *scene;
   MovieClip *clip;
   MovieClipUser user;
@@ -78,6 +79,7 @@ static bool solve_camera_initjob(
   /* Could fail if footage uses images with different sizes. */
   BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
+  scj->wm = CTX_wm_manager(C);
   scj->clip = clip;
   scj->scene = scene;
   scj->reports = op->reports;
@@ -87,6 +89,8 @@ static bool solve_camera_initjob(
       clip, object, object->keyframe1, object->keyframe2, width, height);
 
   tracking->stats = MEM_callocN(sizeof(MovieTrackingStats), "solve camera stats");
+
+  WM_set_locked_interface(scj->wm, true);
 
   return true;
 }
@@ -113,6 +117,8 @@ static void solve_camera_freejob(void *scv)
   Scene *scene = scj->scene;
   MovieClip *clip = scj->clip;
   int solved;
+
+  WM_set_locked_interface(scj->wm, false);
 
   if (!scj->context) {
     /* job weren't fully initialized due to some error */

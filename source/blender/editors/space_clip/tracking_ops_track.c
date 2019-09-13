@@ -59,6 +59,7 @@ typedef struct TrackMarkersJob {
   float delay;                      /* Delay in milliseconds to allow
                                      * tracking at fixed FPS */
 
+  struct wmWindowManager *wm;
   struct Main *main;
   struct Scene *scene;
   struct bScreen *screen;
@@ -202,7 +203,15 @@ static bool track_markers_initjob(bContext *C, TrackMarkersJob *tmj, bool backwa
   tmj->main = CTX_data_main(C);
   tmj->screen = CTX_wm_screen(C);
 
-  return track_markers_check_direction(backwards, tmj->sfra, tmj->efra);
+  tmj->wm = CTX_wm_manager(C);
+
+  if (!track_markers_check_direction(backwards, tmj->sfra, tmj->efra)) {
+    return false;
+  }
+
+  WM_set_locked_interface(tmj->wm, true);
+
+  return true;
 }
 
 static void track_markers_startjob(void *tmv, short *stop, short *do_update, float *progress)
@@ -281,6 +290,7 @@ static void track_markers_freejob(void *tmv)
 {
   TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
   tmj->clip->tracking_context = NULL;
+  WM_set_locked_interface(tmj->wm, false);
   BKE_autotrack_context_free(tmj->context);
   MEM_freeN(tmj);
 }
