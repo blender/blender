@@ -44,12 +44,7 @@ namespace libmv {
 void *aligned_malloc(int size, int alignment) {
 #ifdef _WIN32
   return _aligned_malloc(size, alignment);
-#elif defined(__APPLE__)
-  // On Mac OS X, both the heap and the stack are guaranteed 16-byte aligned so
-  // they work natively with SSE types with no further work.
-  CHECK_EQ(alignment, 16);
-  return malloc(size);
-#elif defined(__FreeBSD__) || defined(__NetBSD__)
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__)
   void *result;
 
   if (posix_memalign(&result, alignment, size)) {
