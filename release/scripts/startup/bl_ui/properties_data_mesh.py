@@ -468,6 +468,7 @@ class DATA_PT_remesh(MeshButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
         row = layout.row()
 
         mesh = context.mesh
@@ -489,6 +490,7 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         obj = context.object
         me = context.mesh
