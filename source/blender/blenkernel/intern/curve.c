@@ -2370,7 +2370,7 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
   nr = bl->nr;
   while (nr--) {
 
-    if (nr + 4 > bl->nr) { /* first time and second time, otherwise first point adjusts last */
+    if (nr + 3 > bl->nr) { /* first time and second time, otherwise first point adjusts last */
       vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
     }
     else {
