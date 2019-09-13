@@ -132,6 +132,16 @@ template<typename T, typename Allocator = GuardedAllocator> class SetVector {
   }
 
   /**
+   * Allocate memory such that at least min_usable_slots can be added without having to grow again.
+   */
+  void reserve(uint min_usable_slots)
+  {
+    if (m_array.slots_usable() < min_usable_slots) {
+      this->grow(min_usable_slots);
+    }
+  }
+
+  /**
    * Add a new element. The method assumes that the value did not exist before.
    */
   void add_new(const T &value)

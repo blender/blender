@@ -241,3 +241,20 @@ TEST(map, MoveAssignment)
   EXPECT_EQ(map1.size(), 0);
   EXPECT_EQ(map1.lookup_ptr(4), nullptr);
 }
+
+TEST(map, Clear)
+{
+  IntFloatMap map;
+  map.add(1, 1.0f);
+  map.add(2, 5.0f);
+
+  EXPECT_EQ(map.size(), 2);
+  EXPECT_TRUE(map.contains(1));
+  EXPECT_TRUE(map.contains(2));
+
+  map.clear();
+
+  EXPECT_EQ(map.size(), 0);
+  EXPECT_FALSE(map.contains(1));
+  EXPECT_FALSE(map.contains(2));
+}

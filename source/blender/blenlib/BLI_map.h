@@ -44,7 +44,7 @@ namespace BLI {
     do {
 
 #define ITER_SLOTS_END(R_OFFSET) \
-      R_OFFSET = (R_OFFSET + 1) & OFFSET_MASK; \
+      R_OFFSET = (R_OFFSET + 1u) & OFFSET_MASK; \
     } while (R_OFFSET != initial_offset); \
     perturb >>= 5; \
     hash = hash * 5 + 1 + perturb; \
@@ -126,6 +126,11 @@ template<typename KeyT, typename ValueT, typename Allocator = GuardedAllocator> 
       return m_status[offset] == IS_EMPTY;
     }
 
+    bool is_dummy(uint offset) const
+    {
+      return m_status[offset] == IS_DUMMY;
+    }
+
     KeyT *key(uint offset) const
     {
       return (KeyT *)(m_keys + offset * sizeof(KeyT));
@@ -166,6 +171,26 @@ template<typename KeyT, typename ValueT, typename Allocator = GuardedAllocator> 
 
  public:
   Map() = default;
+
+  /**
+   * Allocate memory such that at least min_usable_slots can be added before the map has to grow
+   * again.
+   */
+  void reserve(uint min_usable_slots)
+  {
+    if (m_array.slots_usable() < min_usable_slots) {
+      this->grow(min_usable_slots);
+    }
+  }
+
+  /**
+   * Remove all elements from the map.
+   */
+  void clear()
+  {
+    this->~Map();
+    new (this) Map();
+  }
 
   /**
    * Insert a new key-value-pair in the map.
@@ -397,7 +422,7 @@ template<typename KeyT, typename ValueT, typename Allocator = GuardedAllocator> 
         else if (item.is_set(offset)) {
           const KeyT &key = *item.key(offset);
           const ValueT &value = *item.value(offset);
-          uint32_t collisions = this->count_collisions(value);
+          uint32_t collisions = this->count_collisions(key);
           std::cout << "    " << key << " -> " << value << "  \t Collisions: " << collisions
                     << '\n';
         }
