@@ -7896,7 +7896,12 @@ static void sculpt_filter_cache_init(Object *ob, Sculpt *sd)
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_normals_update(nodes[i]);
   }
-  BKE_pbvh_update_normals(ss->pbvh, NULL);
+
+  /* mesh->runtime.subdiv_ccg is not available. Updating of the normals is done during drawing.
+   * Filters can't use normals in multires. */
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
+    BKE_pbvh_update_normals(ss->pbvh, NULL);
+  }
 
   SculptThreadedTaskData data = {
       .sd = sd,
