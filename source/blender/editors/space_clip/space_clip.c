@@ -452,6 +452,7 @@ static void clip_operatortypes(void)
   WM_operatortype_append(CLIP_OT_prefetch);
   WM_operatortype_append(CLIP_OT_set_scene_frames);
   WM_operatortype_append(CLIP_OT_cursor_set);
+  WM_operatortype_append(CLIP_OT_lock_selection_toggle);
 
   /* ** tracking_ops.c ** */
 

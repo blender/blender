@@ -108,6 +108,8 @@ void CLIP_OT_set_scene_frames(wmOperatorType *ot);
 
 void CLIP_OT_cursor_set(struct wmOperatorType *ot);
 
+void CLIP_OT_lock_selection_toggle(struct wmOperatorType *ot);
+
 /* clip_toolbar.c */
 struct ARegion *ED_clip_has_properties_region(struct ScrArea *sa);
 

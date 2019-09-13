@@ -1748,6 +1748,31 @@ void CLIP_OT_cursor_set(wmOperatorType *ot)
                        10.0f);
 }
 
+/********************** Toggle lock to selection operator *********************/
+
+static int lock_selection_togglee_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+  space_clip->flag ^= SC_LOCK_SELECTION;
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CLIP, NULL);
+  return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_lock_selection_toggle(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Toggle Lock Selection";
+  ot->description = "Toggle Lock Selection option of the current clip editor";
+  ot->idname = "CLIP_OT_lock_selection_toggle";
+
+  /* api callbacks */
+  ot->poll = ED_space_clip_poll;
+  ot->exec = lock_selection_togglee_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_LOCK_BYPASS;
+}
+
 /********************** macros *********************/
 
 void ED_operatormacros_clip(void)
