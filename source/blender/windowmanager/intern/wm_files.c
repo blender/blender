@@ -73,7 +73,6 @@
 #include "BKE_autoexec.h"
 #include "BKE_blender.h"
 #include "BKE_blendfile.h"
-#include "BKE_blender_undo.h"
 #include "BKE_callbacks.h"
 #include "BKE_context.h"
 #include "BKE_global.h"

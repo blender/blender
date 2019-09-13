@@ -50,7 +50,6 @@
 #include "BKE_customdata.h"
 #include "BKE_idprop.h"
 #include "BKE_global.h"
-#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"

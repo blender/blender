@@ -34,7 +34,6 @@
 #include "BLI_buffer.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"

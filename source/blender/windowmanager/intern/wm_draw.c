@@ -46,7 +46,6 @@
 #include "BKE_main.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
-#include "BKE_workspace.h"
 
 #include "GHOST_C-api.h"
 

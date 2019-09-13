@@ -44,7 +44,6 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
