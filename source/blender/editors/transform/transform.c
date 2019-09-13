@@ -3869,7 +3869,7 @@ static void ElementResize(TransInfo *t, TransDataContainer *tc, TransData *td, f
   if (td->ext && td->ext->size) {
     float fsize[3];
 
-    if (t->flag & (T_OBJECT | T_TEXTURE | T_POSE)) {
+    if ((t->options & CTX_SCULPT) || t->flag & (T_OBJECT | T_TEXTURE | T_POSE)) {
       float obsizemat[3][3];
       /* Reorient the size mat to fit the oriented object. */
       mul_m3_m3m3(obsizemat, tmat, td->axismtx);

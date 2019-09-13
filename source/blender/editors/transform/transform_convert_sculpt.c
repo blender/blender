@@ -58,17 +58,14 @@ void createTransSculpt(TransInfo *t)
     TransDataContainer *tc = t->data_container;
     tc->data_len = 1;
     tc->is_active = 1;
-    td = tc->data = MEM_callocN(sizeof(TransData), "TransTexspace");
-    td->ext = tc->data_ext = MEM_callocN(sizeof(TransDataExtension), "TransTexspace");
+    td = tc->data = MEM_callocN(sizeof(TransData), "TransSculpt");
+    td->ext = tc->data_ext = MEM_callocN(sizeof(TransDataExtension), "TransSculpt");
   }
 
   td->flag = TD_SELECTED;
   copy_v3_v3(td->center, ss->pivot_pos);
-  td->ob = NULL;
-
-  float tquat[4];
-  normalize_qt_qt(tquat, ss->pivot_rot);
-  quat_to_mat3(td->axismtx, tquat);
+  mul_m4_v3(ob->obmat, td->center);
+  td->ob = ob;
 
   td->loc = ss->pivot_pos;
   copy_v3_v3(td->iloc, ss->pivot_pos);
@@ -77,10 +74,18 @@ void createTransSculpt(TransInfo *t)
     ss->pivot_rot[3] = 1.0f;
   }
 
+  float obmat_inv[3][3];
+  copy_m3_m4(obmat_inv, ob->obmat);
+  invert_m3(obmat_inv);
+
   td->ext->rot = NULL;
   td->ext->rotAxis = NULL;
   td->ext->rotAngle = NULL;
   td->ext->quat = ss->pivot_rot;
+  copy_m4_m4(td->ext->obmat, ob->obmat);
+  copy_m3_m3(td->ext->l_smtx, obmat_inv);
+  copy_m3_m4(td->ext->r_mtx, ob->obmat);
+  copy_m3_m3(td->ext->r_smtx, obmat_inv);
 
   copy_qt_qt(td->ext->iquat, ss->pivot_rot);
   td->ext->rotOrder = ROT_MODE_QUAT;
@@ -89,13 +94,12 @@ void createTransSculpt(TransInfo *t)
   ss->pivot_scale[1] = 1.0f;
   ss->pivot_scale[2] = 1.0f;
   td->ext->size = ss->pivot_scale;
-  copy_v3_v3(td->ext->isize, ss->pivot_scale);
+  copy_v3_v3(ss->init_pivot_scale, ss->pivot_scale);
+  copy_v3_v3(td->ext->isize, ss->init_pivot_scale);
 
-  float obmat_inv[3][3];
-  copy_m3_m4(obmat_inv, ob->obmat);
-  invert_m3(obmat_inv);
   copy_m3_m3(td->smtx, obmat_inv);
   copy_m3_m4(td->mtx, ob->obmat);
+  copy_m3_m4(td->axismtx, ob->obmat);
 }
 
 /** \} */

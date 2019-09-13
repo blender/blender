@@ -9110,14 +9110,6 @@ void ED_sculpt_init_transform(struct bContext *C)
   copy_v3_v3(ss->init_pivot_pos, ss->pivot_pos);
   copy_v4_v4(ss->init_pivot_rot, ss->pivot_rot);
 
-  ss->init_pivot_scale[0] = 1.0f;
-  ss->init_pivot_scale[1] = 1.0f;
-  ss->init_pivot_scale[2] = 1.0f;
-
-  ss->pivot_scale[0] = 1.0f;
-  ss->pivot_scale[1] = 1.0f;
-  ss->pivot_scale[2] = 1.0f;
-
   sculpt_undo_push_begin("Transform");
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false);
 
