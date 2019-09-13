@@ -127,7 +127,7 @@ static bool track_markers_check_direction(int backwards, int curfra, int efra)
   return true;
 }
 
-static int track_markers_initjob(bContext *C, TrackMarkersJob *tmj, bool backwards, bool sequence)
+static bool track_markers_initjob(bContext *C, TrackMarkersJob *tmj, bool backwards, bool sequence)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
