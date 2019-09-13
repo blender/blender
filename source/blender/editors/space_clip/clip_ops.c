@@ -510,7 +510,7 @@ void CLIP_OT_view_pan(wmOperatorType *ot)
   ot->poll = ED_space_clip_view_clip_poll;
 
   /* flags */
-  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;
+  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY | OPTYPE_LOCK_BYPASS;
 
   /* properties */
   RNA_def_float_vector(ot->srna,
@@ -712,7 +712,7 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
   ot->poll = ED_space_clip_view_clip_poll;
 
   /* flags */
-  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;
+  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY | OPTYPE_LOCK_BYPASS;
 
   /* properties */
   prop = RNA_def_float(ot->srna,
@@ -771,6 +771,9 @@ void CLIP_OT_view_zoom_in(wmOperatorType *ot)
   ot->invoke = view_zoom_in_invoke;
   ot->poll = ED_space_clip_view_clip_poll;
 
+  /* flags */
+  ot->flag |= OPTYPE_LOCK_BYPASS;
+
   /* properties */
   prop = RNA_def_float_vector(ot->srna,
                               "location",
@@ -825,6 +828,9 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
   ot->invoke = view_zoom_out_invoke;
   ot->poll = ED_space_clip_view_clip_poll;
 
+  /* flags */
+  ot->flag |= OPTYPE_LOCK_BYPASS;
+
   /* properties */
   prop = RNA_def_float_vector(ot->srna,
                               "location",
@@ -866,6 +872,9 @@ void CLIP_OT_view_zoom_ratio(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = view_zoom_ratio_exec;
   ot->poll = ED_space_clip_view_clip_poll;
+
+  /* flags */
+  ot->flag |= OPTYPE_LOCK_BYPASS;
 
   /* properties */
   RNA_def_float(ot->srna,
@@ -945,6 +954,9 @@ void CLIP_OT_view_all(wmOperatorType *ot)
   ot->exec = view_all_exec;
   ot->poll = ED_space_clip_view_clip_poll;
 
+  /* flags */
+  ot->flag = OPTYPE_LOCK_BYPASS;
+
   /* properties */
   prop = RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -976,6 +988,9 @@ void CLIP_OT_view_selected(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = view_selected_exec;
   ot->poll = ED_space_clip_view_clip_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_LOCK_BYPASS;
 }
 
 /********************** change frame operator *********************/
@@ -1589,6 +1604,9 @@ void CLIP_OT_view_ndof(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = clip_view_ndof_invoke;
   ot->poll = ED_space_clip_view_clip_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_LOCK_BYPASS;
 }
 #endif /* WITH_INPUT_NDOF */
 
