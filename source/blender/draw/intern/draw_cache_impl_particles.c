@@ -1335,15 +1335,6 @@ static void particle_batch_cache_ensure_pos(Object *object,
   sim.psmd = psys_get_modifier(object, psys);
   sim.psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
-  if (psys->part->phystype == PART_PHYS_KEYED) {
-    if (psys->flag & PSYS_KEYED) {
-      psys_count_keyed_targets(&sim);
-      if (psys->totkeyed == 0) {
-        return;
-      }
-    }
-  }
-
   GPU_VERTBUF_DISCARD_SAFE(point_cache->pos);
 
   if (format.attr_len == 0) {
