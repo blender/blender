@@ -397,7 +397,9 @@ ccl_device_inline void kernel_write_result(KernelGlobals *kg,
   float alpha;
   float3 L_sum = path_radiance_clamp_and_sum(kg, L, &alpha);
 
-  kernel_write_pass_float4(buffer, make_float4(L_sum.x, L_sum.y, L_sum.z, alpha));
+  if (kernel_data.film.pass_flag & PASSMASK(COMBINED)) {
+    kernel_write_pass_float4(buffer, make_float4(L_sum.x, L_sum.y, L_sum.z, alpha));
+  }
 
   kernel_write_light_passes(kg, buffer, L);
 

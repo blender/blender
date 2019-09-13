@@ -72,23 +72,13 @@ PassType BlenderViewportParameters::get_viewport_display_render_pass(BL::SpaceVi
   return display_pass;
 }
 
-PassType update_viewport_display_passes(BL::SpaceView3D &b_v3d,
-                                        vector<Pass> &passes,
-                                        bool reset_passes)
+PassType update_viewport_display_passes(BL::SpaceView3D &b_v3d, vector<Pass> &passes)
 {
   if (b_v3d) {
     PassType display_pass = BlenderViewportParameters::get_viewport_display_render_pass(b_v3d);
 
-    if (reset_passes) {
-      passes.clear();
-      /* We always need a combined pass for now. It would be a good optimization
-       * to support rendering without combined pass. */
-      Pass::add(PASS_COMBINED, passes);
-    }
-
-    if (display_pass != PASS_COMBINED) {
-      Pass::add(display_pass, passes);
-    }
+    passes.clear();
+    Pass::add(display_pass, passes);
 
     return display_pass;
   }

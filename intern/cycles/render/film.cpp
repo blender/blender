@@ -293,8 +293,6 @@ NODE_DEFINE(Film)
 
 Film::Film() : Node(node_type)
 {
-  Pass::add(PASS_COMBINED, passes);
-
   use_light_visibility = false;
   filter_table_offset = TABLE_OFFSET_INVALID;
   cryptomatte_passes = CRYPT_NONE;

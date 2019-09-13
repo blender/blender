@@ -43,8 +43,6 @@ BufferParams::BufferParams()
   denoising_data_pass = false;
   denoising_clean_pass = false;
   denoising_prefiltered_pass = false;
-
-  Pass::add(PASS_COMBINED, passes);
 }
 
 void BufferParams::get_offset_stride(int &offset, int &stride)
