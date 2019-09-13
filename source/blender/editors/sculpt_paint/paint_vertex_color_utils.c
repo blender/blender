@@ -54,29 +54,37 @@ bool ED_vpaint_color_transform(struct Object *ob,
 {
   Mesh *me;
   const MPoly *mp;
+  int i, j;
 
   if (((me = BKE_mesh_from_object(ob)) == NULL) || (ED_mesh_color_ensure(me, NULL) == false)) {
     return false;
   }
 
   const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-  mp = me->mpoly;
+  const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
-  for (int i = 0; i < me->totpoly; i++, mp++) {
-    MLoopCol *lcol = &me->mloopcol[mp->loopstart];
+  mp = me->mpoly;
+  for (i = 0; i < me->totpoly; i++, mp++) {
+    MLoopCol *lcol = me->mloopcol + mp->loopstart;
 
     if (use_face_sel && !(mp->flag & ME_FACE_SEL)) {
       continue;
     }
 
-    for (int j = 0; j < mp->totloop; j++, lcol++) {
-      float col_mix[3];
-      rgb_uchar_to_float(col_mix, &lcol->r);
+    j = 0;
+    do {
+      uint vidx = me->mloop[mp->loopstart + j].v;
+      if (!(use_vert_sel && !(me->mvert[vidx].flag & SELECT))) {
+        float col_mix[3];
+        rgb_uchar_to_float(col_mix, &lcol->r);
 
-      vpaint_tx_fn(col_mix, user_data, col_mix);
+        vpaint_tx_fn(col_mix, user_data, col_mix);
 
-      rgb_float_to_uchar(&lcol->r, col_mix);
-    }
+        rgb_float_to_uchar(&lcol->r, col_mix);
+      }
+      lcol++;
+      j++;
+    } while (j < mp->totloop);
   }
 
   /* remove stale me->mcol, will be added later */
