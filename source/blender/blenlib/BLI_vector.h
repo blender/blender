@@ -52,7 +52,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
 #ifdef DEBUG
   /* Storing size in debug builds, because it makes debugging much easier sometimes. */
   uint m_debug_size;
-#  define UPDATE_VECTOR_SIZE(ptr) (ptr)->m_debug_size = (ptr)->m_end - (ptr)->m_begin
+#  define UPDATE_VECTOR_SIZE(ptr) (ptr)->m_debug_size = (uint)((ptr)->m_end - (ptr)->m_begin)
 #else
 #  define UPDATE_VECTOR_SIZE(ptr) ((void)0)
 #endif
@@ -387,8 +387,8 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
    */
   uint size() const
   {
-    BLI_assert(m_debug_size == m_end - m_begin);
-    return m_end - m_begin;
+    BLI_assert(m_debug_size == (uint)(m_end - m_begin));
+    return (uint)(m_end - m_begin);
   }
 
   /**
@@ -539,7 +539,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
 
   uint capacity() const
   {
-    return m_capacity_end - m_begin;
+    return (uint)(m_capacity_end - m_begin);
   }
 
   BLI_NOINLINE void grow(uint min_capacity)
@@ -554,7 +554,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
     uint size = this->size();
 
     T *new_array = (T *)m_allocator.allocate_aligned(
-        min_capacity * sizeof(T), std::alignment_of<T>::value, __func__);
+        min_capacity * (uint)sizeof(T), std::alignment_of<T>::value, __func__);
     uninitialized_relocate_n(m_begin, size, new_array);
 
     if (!this->is_small()) {

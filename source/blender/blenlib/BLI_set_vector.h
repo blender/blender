@@ -88,7 +88,7 @@ template<typename T, typename Allocator = GuardedAllocator> class SetVector {
     uint index() const
     {
       BLI_assert(this->is_set());
-      return m_value;
+      return (uint)m_value;
     }
 
     int32_t &index_ref()
@@ -99,7 +99,7 @@ template<typename T, typename Allocator = GuardedAllocator> class SetVector {
     void set_index(uint index)
     {
       BLI_assert(!this->is_set());
-      m_value = index;
+      m_value = (int32_t)index;
     }
 
     void set_dummy()

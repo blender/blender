@@ -42,7 +42,7 @@ namespace BLI {
 template<typename Item, uint32_t ItemsInSmallStorage = 1, typename Allocator = GuardedAllocator>
 class OpenAddressingArray {
  private:
-  static constexpr auto slots_per_item = Item::slots_per_item;
+  static constexpr uint32_t slots_per_item = Item::slots_per_item;
   static constexpr float max_load_factor = 0.5f;
 
   /* Invariants:
@@ -74,10 +74,10 @@ class OpenAddressingArray {
  public:
   explicit OpenAddressingArray(uint8_t item_exponent = 0)
   {
-    m_slots_total = (1 << item_exponent) * slots_per_item;
+    m_slots_total = ((uint32_t)1 << item_exponent) * slots_per_item;
     m_slots_set_or_dummy = 0;
     m_slots_dummy = 0;
-    m_slots_usable = m_slots_total * max_load_factor;
+    m_slots_usable = (uint32_t)((float)m_slots_total * max_load_factor);
     m_slot_mask = m_slots_total - 1;
     m_item_amount = m_slots_total / slots_per_item;
     m_item_exponent = item_exponent;
@@ -87,7 +87,7 @@ class OpenAddressingArray {
     }
     else {
       m_items = (Item *)m_allocator.allocate_aligned(
-          sizeof(Item) * m_item_amount, std::alignment_of<Item>::value, __func__);
+          (uint32_t)sizeof(Item) * m_item_amount, std::alignment_of<Item>::value, __func__);
     }
 
     for (uint32_t i = 0; i < m_item_amount; i++) {
@@ -176,7 +176,7 @@ class OpenAddressingArray {
   {
     float min_total_slots = (float)min_usable_slots / max_load_factor;
     uint32_t min_total_items = (uint32_t)std::ceil(min_total_slots / (float)slots_per_item);
-    uint8_t item_exponent = log2_ceil_u(min_total_items);
+    uint8_t item_exponent = (uint8_t)log2_ceil_u(min_total_items);
     OpenAddressingArray grown(item_exponent);
     grown.m_slots_set_or_dummy = this->slots_set();
     return grown;
