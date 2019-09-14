@@ -139,13 +139,9 @@ class SequencerDeinterlaceSelectedMovies(Operator):
 
 
 class SequencerFadesClear(Operator):
-    """Removes fade animation from selected sequences.
-    Removes opacity or volume animation on selected sequences and resets the
-    property to a value of 1.0. Works on all types of sequences.
-    """
+    """Removes fade animation from selected sequences"""
     bl_idname = "sequencer.fades_clear"
     bl_label = "Clear Fades"
-    bl_description = "Removes fade animation from selected sequences."
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -168,17 +164,9 @@ class SequencerFadesClear(Operator):
 
 
 class SequencerFadesAdd(Operator):
-    """Adds or updates a fade animation for either visual or audio strips.
-    Fade options:
-    - In, Out, In and Out create a fade animation of the given duration from
-    the start of the sequence, to the end of the sequence, or on boths sides
-    - From playhead: the fade animation goes from the start of sequences under the playhead to the playhead
-    - To playhead: the fade animation goes from the playhead to the end of sequences under the playhead
-    By default, the duration of the fade is 1 second.
-    """
+    """Adds or updates a fade animation for either visual or audio strips"""
     bl_idname = "sequencer.fades_add"
     bl_label = "Add Fades"
-    bl_description = "Adds or updates a fade animation for either visual or audio strips."
     bl_options = {'REGISTER', 'UNDO'}
 
     duration_seconds: bpy.props.FloatProperty(
@@ -195,7 +183,7 @@ class SequencerFadesAdd(Operator):
             ('CURSOR_TO', 'To Playhead', 'Fade from the start of sequences under the time cursor to the current frame'),
         ),
         name="Fade type",
-        description="Fade in, out, both in and out, to, or from the playhead. Default is both in and out.",
+        description="Fade in, out, both in and out, to, or from the playhead. Default is both in and out",
         default='IN_OUT')
 
     @classmethod
