@@ -502,6 +502,10 @@ class SEQUENCER_MT_add(Menu):
         col.menu("SEQUENCER_MT_add_transitions", icon='ARROW_LEFTRIGHT')
         col.enabled = selected_sequences_len(context) >= 2
 
+        col = layout.column()
+        col.operator_menu_enum("sequencer.fades_add", "type", text="Fade", icon="IPO_EASE_IN_OUT")
+        col.enabled = selected_sequences_len(context) >= 1
+
 
 class SEQUENCER_MT_add_empty(Menu):
     bl_label = "Empty"
@@ -749,25 +753,33 @@ class SEQUENCER_MT_context_menu(Menu):
         layout.operator("sequencer.gap_remove").all = False
         layout.operator("sequencer.gap_insert")
 
+        layout.separator()
+
         strip = act_strip(context)
 
         if strip:
             strip_type = strip.type
+            selected_sequences_count = selected_sequences_len(context)
 
-            if strip_type != 'SOUND':
-
+            if strip_type != "SOUND":
                 layout.separator()
                 layout.operator_menu_enum("sequencer.strip_modifier_add", "type", text="Add Modifier")
                 layout.operator("sequencer.strip_modifier_copy", text="Copy Modifiers to Selection")
 
-                if selected_sequences_len(context) >= 2:
+                if selected_sequences_count >= 2:
                     layout.separator()
                     col = layout.column()
                     col.menu("SEQUENCER_MT_add_transitions", text="Add Transition")
 
-            elif selected_sequences_len(context) >= 2:
+            elif selected_sequences_count >= 2:
                 layout.separator()
                 layout.operator("sequencer.crossfade_sounds", text="Crossfade Sounds")
+
+            if selected_sequences_count >= 1:
+                col = layout.column()
+                col.operator_menu_enum("sequencer.fades_add", "type", text="Fade")
+                col.enabled = selected_sequences_len(context) >= 1
+                layout.operator("sequencer.fades_clear", text="Clear Fade")
 
             if strip_type in {
                     'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
