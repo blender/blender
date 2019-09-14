@@ -115,19 +115,22 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
   Vector<T, 4, Allocator> m_elements;
 
  public:
-  VectorSet() = default;
+  VectorSet()
+  {
+    BLI_assert(m_array.slots_usable() <= m_elements.capacity());
+  }
 
-  VectorSet(ArrayRef<T> values)
+  VectorSet(ArrayRef<T> values) : VectorSet()
   {
     this->add_multiple(values);
   }
 
-  VectorSet(const std::initializer_list<T> &values)
+  VectorSet(const std::initializer_list<T> &values) : VectorSet()
   {
     this->add_multiple(values);
   }
 
-  VectorSet(const Vector<T> &values)
+  VectorSet(const Vector<T> &values) : VectorSet()
   {
     this->add_multiple(values);
   }
@@ -316,7 +319,7 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
   {
     uint index = m_elements.size();
     slot.set_index(index);
-    m_elements.append(std::forward<ForwardT>(value));
+    m_elements.append_unchecked(std::forward<ForwardT>(value));
     m_array.update__empty_to_set();
   }
 
@@ -336,6 +339,7 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
     }
 
     m_array = std::move(new_array);
+    m_elements.reserve(m_array.slots_usable());
   }
 
   void add_after_grow(uint index, ArrayType &new_array)
