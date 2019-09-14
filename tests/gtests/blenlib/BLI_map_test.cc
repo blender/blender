@@ -180,11 +180,17 @@ TEST(map, LookupOrAdd_Lambdas)
   EXPECT_EQ(map.lookup_or_add(1, lambda1), 20.0f);
 }
 
-TEST(map, InsertOrModify)
+TEST(map, AddOrModify)
 {
   IntFloatMap map;
-  auto create_func = []() { return 10.0f; };
-  auto modify_func = [](float &value) { value += 5; };
+  auto create_func = [](float *value) {
+    *value = 10.0f;
+    return true;
+  };
+  auto modify_func = [](float *value) {
+    *value += 5;
+    return false;
+  };
   EXPECT_TRUE(map.add_or_modify(1, create_func, modify_func));
   EXPECT_EQ(map.lookup(1), 10.0f);
   EXPECT_FALSE(map.add_or_modify(1, create_func, modify_func));

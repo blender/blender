@@ -151,6 +151,13 @@ template<typename KeyT, typename ValueT, typename Allocator = GuardedAllocator> 
       new (this->value(offset)) ValueT(std::forward<ForwardValueT>(value));
     }
 
+    template<typename ForwardKeyT> void store_without_value(uint offset, ForwardKeyT &&key)
+    {
+      BLI_assert(m_status[offset] != IS_SET);
+      m_status[offset] = IS_SET;
+      new (this->key(offset)) KeyT(std::forward<ForwardKeyT>(key));
+    }
+
     void set_dummy(uint offset)
     {
       BLI_assert(m_status[offset] == IS_SET);
@@ -280,22 +287,28 @@ template<typename KeyT, typename ValueT, typename Allocator = GuardedAllocator> 
   }
 
   /**
-   * Check if the key exists in the map.
-   * If it does exist, call the modify function with a reference to the corresponding value.
-   * If it does not exist, call the create function and insert a new key-value-pair.
-   * Returns true when a new pair was inserted, otherwise false.
+   * First, checks if the key exists in the map.
+   * If it does exist, call the modify function with a pointer to the corresponding value.
+   * If it does not exist, call the create function with a pointer to where the value should be
+   * created.
+   *
+   * Returns whatever is returned from one of the callback functions. Both callbacks have to return
+   * the same type.
+   *
+   * CreateValueF: Takes a pointer to where the value should be created.
+   * ModifyValueF: Takes a pointer to the value that should be modified.
    */
   template<typename CreateValueF, typename ModifyValueF>
-  bool add_or_modify(const KeyT &key,
+  auto add_or_modify(const KeyT &key,
                      const CreateValueF &create_value,
-                     const ModifyValueF &modify_value)
+                     const ModifyValueF &modify_value) -> decltype(create_value(nullptr))
   {
     return this->add_or_modify__impl(key, create_value, modify_value);
   }
   template<typename CreateValueF, typename ModifyValueF>
-  bool add_or_modify(KeyT &&key,
+  auto add_or_modify(KeyT &&key,
                      const CreateValueF &create_value,
-                     const ModifyValueF &modify_value)
+                     const ModifyValueF &modify_value) -> decltype(create_value(nullptr))
   {
     return this->add_or_modify__impl(std::move(key), create_value, modify_value);
   }
@@ -611,10 +624,15 @@ template<typename KeyT, typename ValueT, typename Allocator = GuardedAllocator> 
   template<typename ForwardKeyT, typename ForwardValueT>
   bool add_override__impl(ForwardKeyT &&key, ForwardValueT &&value)
   {
-    return this->add_or_modify(
-        std::forward<ForwardKeyT>(key),
-        [&]() { return std::forward<ForwardValueT>(value); },
-        [&](ValueT &old_value) { old_value = std::forward<ForwardValueT>(value); });
+    return this->add_or_modify(std::forward<ForwardKeyT>(key),
+                               [&](ValueT *dst) {
+                                 new (dst) ValueT(std::forward<ForwardValueT>(value));
+                                 return true;
+                               },
+                               [&](ValueT *old_value) {
+                                 *old_value = std::forward<ForwardValueT>(value);
+                                 return false;
+                               });
   }
 
   template<typename ForwardKeyT, typename ForwardValueT>
@@ -652,21 +670,27 @@ template<typename KeyT, typename ValueT, typename Allocator = GuardedAllocator> 
   }
 
   template<typename ForwardKeyT, typename CreateValueF, typename ModifyValueF>
-  bool add_or_modify__impl(ForwardKeyT &&key,
+  auto add_or_modify__impl(ForwardKeyT &&key,
                            const CreateValueF &create_value,
-                           const ModifyValueF &modify_value)
+                           const ModifyValueF &modify_value) -> decltype(create_value(nullptr))
   {
+    using CreateReturnT = decltype(create_value(nullptr));
+    using ModifyReturnT = decltype(modify_value(nullptr));
+    BLI_STATIC_ASSERT((std::is_same<CreateReturnT, ModifyReturnT>::value),
+                      "Both callbacks should return the same type.");
+
     this->ensure_can_add();
 
     ITER_SLOTS_BEGIN (key, m_array, , item, offset) {
       if (item.is_empty(offset)) {
-        item.store(offset, std::forward<ForwardKeyT>(key), create_value());
         m_array.update__empty_to_set();
-        return true;
+        item.store_without_value(offset, std::forward<ForwardKeyT>(key));
+        ValueT *value_ptr = item.value(offset);
+        return create_value(value_ptr);
       }
       else if (item.has_key(offset, key)) {
-        modify_value(*item.value(offset));
-        return false;
+        ValueT *value_ptr = item.value(offset);
+        return modify_value(value_ptr);
       }
     }
     ITER_SLOTS_END(offset);
