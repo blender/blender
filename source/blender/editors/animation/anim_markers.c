@@ -486,7 +486,7 @@ static void draw_marker(
   float name_y = UI_DPI_FAC * 18;
   /* Give an offset to the marker name when selected,
    * or when near the current frame (5 frames range, starting from the current one). */
-  if ((marker->flag & SELECT) || (IN_RANGE_INCL(marker->frame, cfra - 4, cfra))) {
+  if ((marker->flag & SELECT) || (cfra - 4 <= marker->frame && marker->frame <= cfra)) {
     name_y += UI_DPI_FAC * 10;
   }
   draw_marker_name(fstyle, marker, xpos, name_y);
