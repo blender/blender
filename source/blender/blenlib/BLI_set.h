@@ -117,20 +117,12 @@ template<typename T, typename Allocator = GuardedAllocator> class Set {
       return (T *)(m_values + offset * sizeof(T));
     }
 
-    void copy_in(uint offset, const T &value)
+    template<typename ForwardT> void store(uint offset, ForwardT &&value)
     {
       BLI_assert(m_status[offset] != IS_SET);
       m_status[offset] = IS_SET;
       T *dst = this->value(offset);
-      new (dst) T(value);
-    }
-
-    void move_in(uint offset, T &value)
-    {
-      BLI_assert(m_status[offset] != IS_SET);
-      m_status[offset] = IS_SET;
-      T *dst = this->value(offset);
-      new (dst) T(std::move(value));
+      new (dst) T(std::forward<ForwardT>(value));
     }
 
     void set_dummy(uint offset)
@@ -201,17 +193,11 @@ template<typename T, typename Allocator = GuardedAllocator> class Set {
    */
   void add_new(const T &value)
   {
-    BLI_assert(!this->contains(value));
-    this->ensure_can_add();
-
-    ITER_SLOTS_BEGIN (value, m_array, , item, offset) {
-      if (item.is_empty(offset)) {
-        item.copy_in(offset, value);
-        m_array.update__empty_to_set();
-        return;
-      }
-    }
-    ITER_SLOTS_END(offset);
+    this->add_new__impl(value);
+  }
+  void add_new(T &&value)
+  {
+    this->add_new__impl(std::move(value));
   }
 
   /**
@@ -219,19 +205,11 @@ template<typename T, typename Allocator = GuardedAllocator> class Set {
    */
   bool add(const T &value)
   {
-    this->ensure_can_add();
-
-    ITER_SLOTS_BEGIN (value, m_array, , item, offset) {
-      if (item.is_empty(offset)) {
-        item.copy_in(offset, value);
-        m_array.update__empty_to_set();
-        return true;
-      }
-      else if (item.has_value(offset, value)) {
-        return false;
-      }
-    }
-    ITER_SLOTS_END(offset);
+    return this->add__impl(value);
+  }
+  bool add(T &&value)
+  {
+    return this->add__impl(std::move(value));
   }
 
   /**
@@ -445,7 +423,7 @@ template<typename T, typename Allocator = GuardedAllocator> class Set {
   {
     ITER_SLOTS_BEGIN (old_value, new_array, , item, offset) {
       if (item.is_empty(offset)) {
-        item.move_in(offset, old_value);
+        item.store(offset, std::move(old_value));
         return;
       }
     }
@@ -460,6 +438,38 @@ template<typename T, typename Allocator = GuardedAllocator> class Set {
         return collisions;
       }
       collisions++;
+    }
+    ITER_SLOTS_END(offset);
+  }
+
+  template<typename ForwardT> void add_new__impl(ForwardT &&value)
+  {
+    BLI_assert(!this->contains(value));
+    this->ensure_can_add();
+
+    ITER_SLOTS_BEGIN (value, m_array, , item, offset) {
+      if (item.is_empty(offset)) {
+        item.store(offset, std::forward<ForwardT>(value));
+        m_array.update__empty_to_set();
+        return;
+      }
+    }
+    ITER_SLOTS_END(offset);
+  }
+
+  template<typename ForwardT> bool add__impl(ForwardT &&value)
+  {
+    this->ensure_can_add();
+
+    ITER_SLOTS_BEGIN (value, m_array, , item, offset) {
+      if (item.is_empty(offset)) {
+        item.store(offset, std::forward<ForwardT>(value));
+        m_array.update__empty_to_set();
+        return true;
+      }
+      else if (item.has_value(offset, value)) {
+        return false;
+      }
     }
     ITER_SLOTS_END(offset);
   }

@@ -147,15 +147,11 @@ template<typename T, typename Allocator = GuardedAllocator> class SetVector {
    */
   void add_new(const T &value)
   {
-    BLI_assert(!this->contains(value));
-    this->ensure_can_add();
-    ITER_SLOTS_BEGIN (value, m_array, , slot) {
-      if (slot.is_empty()) {
-        this->add_new_in_slot(slot, value);
-        return;
-      }
-    }
-    ITER_SLOTS_END;
+    this->add_new__impl(value);
+  }
+  void add_new(T &&value)
+  {
+    this->add_new__impl(std::move(value));
   }
 
   /**
@@ -163,17 +159,11 @@ template<typename T, typename Allocator = GuardedAllocator> class SetVector {
    */
   bool add(const T &value)
   {
-    this->ensure_can_add();
-    ITER_SLOTS_BEGIN (value, m_array, , slot) {
-      if (slot.is_empty()) {
-        this->add_new_in_slot(slot, value);
-        return true;
-      }
-      else if (slot.has_value(value, m_elements)) {
-        return false;
-      }
-    }
-    ITER_SLOTS_END;
+    return this->add__impl(value);
+  }
+  bool add(T &&value)
+  {
+    return this->add__impl(std::move(value));
   }
 
   /**
@@ -332,11 +322,11 @@ template<typename T, typename Allocator = GuardedAllocator> class SetVector {
     ITER_SLOTS_END;
   }
 
-  void add_new_in_slot(Slot &slot, const T &value)
+  template<typename ForwardT> void add_new_in_slot(Slot &slot, ForwardT &&value)
   {
     uint index = m_elements.size();
     slot.set_index(index);
-    m_elements.append(value);
+    m_elements.append(std::forward<ForwardT>(value));
     m_array.update__empty_to_set();
   }
 
@@ -365,6 +355,34 @@ template<typename T, typename Allocator = GuardedAllocator> class SetVector {
       if (slot.is_empty()) {
         slot.set_index(index);
         return;
+      }
+    }
+    ITER_SLOTS_END;
+  }
+
+  template<typename ForwardT> void add_new__impl(ForwardT &&value)
+  {
+    BLI_assert(!this->contains(value));
+    this->ensure_can_add();
+    ITER_SLOTS_BEGIN (value, m_array, , slot) {
+      if (slot.is_empty()) {
+        this->add_new_in_slot(slot, std::forward<ForwardT>(value));
+        return;
+      }
+    }
+    ITER_SLOTS_END;
+  }
+
+  template<typename ForwardT> bool add__impl(ForwardT &&value)
+  {
+    this->ensure_can_add();
+    ITER_SLOTS_BEGIN (value, m_array, , slot) {
+      if (slot.is_empty()) {
+        this->add_new_in_slot(slot, std::forward<ForwardT>(value));
+        return true;
+      }
+      else if (slot.has_value(value, m_elements)) {
+        return false;
       }
     }
     ITER_SLOTS_END;

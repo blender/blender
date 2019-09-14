@@ -1,7 +1,10 @@
 #include "testing/testing.h"
 #include "BLI_set.h"
+#include "BLI_vector.h"
 
-using IntSet = BLI::Set<int>;
+using BLI::Set;
+using BLI::Vector;
+using IntSet = Set<int>;
 
 TEST(set, Defaultconstructor)
 {
@@ -186,4 +189,15 @@ TEST(set, OftenAddRemove)
     set.remove(42);
     EXPECT_EQ(set.size(), 0);
   }
+}
+
+TEST(set, UniquePtrValues)
+{
+  Set<std::unique_ptr<int>> set;
+  set.add_new(std::unique_ptr<int>(new int()));
+  auto value1 = std::unique_ptr<int>(new int());
+  set.add_new(std::move(value1));
+  set.add(std::unique_ptr<int>(new int()));
+
+  EXPECT_EQ(set.size(), 3);
 }

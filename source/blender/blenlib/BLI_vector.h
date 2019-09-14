@@ -419,7 +419,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
   {
     BLI_assert(!this->empty());
     m_end--;
-    T value = *m_end;
+    T value = std::move(*m_end);
     destruct(m_end);
     UPDATE_VECTOR_SIZE(this);
     return value;
@@ -435,7 +435,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
     T *element_to_remove = m_begin + index;
     m_end--;
     if (element_to_remove < m_end) {
-      *element_to_remove = *m_end;
+      *element_to_remove = std::move(*m_end);
     }
     destruct(m_end);
     UPDATE_VECTOR_SIZE(this);

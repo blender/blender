@@ -1,7 +1,8 @@
 #include "testing/testing.h"
 #include "BLI_set_vector.h"
 
-using IntSetVector = BLI::SetVector<int>;
+using BLI::SetVector;
+using IntSetVector = SetVector<int>;
 
 TEST(set_vector, DefaultConstructor)
 {
@@ -99,4 +100,14 @@ TEST(set_vector, Remove)
   EXPECT_EQ(set[0], 7);
   set.remove(7);
   EXPECT_EQ(set.size(), 0);
+}
+
+TEST(set_vector, UniquePtrValue)
+{
+  SetVector<std::unique_ptr<int>> set;
+  set.add_new(std::unique_ptr<int>(new int()));
+  set.add(std::unique_ptr<int>(new int()));
+  set.index_try(std::unique_ptr<int>(new int()));
+  std::unique_ptr<int> value = set.pop();
+  UNUSED_VARS(value);
 }

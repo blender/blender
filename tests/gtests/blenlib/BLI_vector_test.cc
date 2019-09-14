@@ -398,3 +398,17 @@ TEST(vector, AppendNTimes)
   EXPECT_EQ(a[3], 2);
   EXPECT_EQ(a[4], 2);
 }
+
+TEST(vector, UniquePtrValue)
+{
+  Vector<std::unique_ptr<int>> vec;
+  vec.append(std::unique_ptr<int>(new int()));
+  vec.append(std::unique_ptr<int>(new int()));
+  vec.append(std::unique_ptr<int>(new int()));
+
+  std::unique_ptr<int> &a = vec.last();
+  std::unique_ptr<int> b = vec.pop_last();
+  vec.remove_and_reorder(0);
+
+  UNUSED_VARS(a, b);
+}

@@ -2,7 +2,8 @@
 #include "BLI_map.h"
 #include "BLI_set.h"
 
-using IntFloatMap = BLI::Map<int, float>;
+using BLI::Map;
+using IntFloatMap = Map<int, float>;
 
 TEST(map, DefaultConstructor)
 {
@@ -257,4 +258,25 @@ TEST(map, Clear)
   EXPECT_EQ(map.size(), 0);
   EXPECT_FALSE(map.contains(1));
   EXPECT_FALSE(map.contains(2));
+}
+
+TEST(map, UniquePtrValue)
+{
+  auto value1 = std::unique_ptr<int>(new int());
+  auto value2 = std::unique_ptr<int>(new int());
+  auto value3 = std::unique_ptr<int>(new int());
+
+  int *value1_ptr = value1.get();
+
+  Map<int, std::unique_ptr<int>> map;
+  map.add_new(1, std::move(value1));
+  map.add(2, std::move(value2));
+  map.add_override(3, std::move(value3));
+  map.lookup_or_add(4, []() { return std::unique_ptr<int>(new int()); });
+  map.add_new(5, std::unique_ptr<int>(new int()));
+  map.add(6, std::unique_ptr<int>(new int()));
+  map.add_override(7, std::unique_ptr<int>(new int()));
+
+  EXPECT_EQ(map.lookup(1).get(), value1_ptr);
+  EXPECT_EQ(map.lookup_ptr(100), nullptr);
 }

@@ -89,6 +89,13 @@ template<typename T> struct DefaultHash<T *> {
   }
 };
 
+template<typename T> struct DefaultHash<std::unique_ptr<T>> {
+  uint32_t operator()(const std::unique_ptr<T> &value) const
+  {
+    return DefaultHash<T *>{}(value.get());
+  }
+};
+
 template<typename T1, typename T2> struct DefaultHash<std::pair<T1, T2>> {
   uint32_t operator()(const std::pair<T1, T2> &value) const
   {

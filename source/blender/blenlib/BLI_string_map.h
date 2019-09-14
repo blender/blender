@@ -152,20 +152,13 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
       return StringRefNull(start, length);
     }
 
-    void move_in(uint offset, uint32_t hash, uint32_t index, T &value)
+    template<typename ForwardT>
+    void store(uint offset, uint32_t hash, uint32_t index, ForwardT &&value)
     {
       BLI_assert(!this->is_set(offset));
       m_hashes[offset] = hash;
       m_indices[offset] = index;
-      new (this->value(offset)) T(std::move(value));
-    }
-
-    void copy_in(uint offset, uint32_t hash, uint32_t index, const T &value)
-    {
-      BLI_assert(!this->is_set(offset));
-      m_hashes[offset] = hash;
-      m_indices[offset] = index;
-      new (this->value(offset)) T(value);
+      new (this->value(offset)) T(std::forward<ForwardT>(value));
     }
   };
 
@@ -189,18 +182,11 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
    */
   void add_new(StringRef key, const T &value)
   {
-    BLI_assert(!this->contains(key));
-    this->ensure_can_add();
-    uint32_t hash = this->compute_string_hash(key);
-    ITER_SLOTS_BEGIN (hash, m_array, , item, offset) {
-      if (item.is_empty(offset)) {
-        uint32_t index = this->save_key_in_array(key);
-        item.copy_in(offset, hash, index, value);
-        m_array.update__empty_to_set();
-        return;
-      }
-    }
-    ITER_SLOTS_END(offset);
+    this->add_new__impl(key, value);
+  }
+  void add_new(StringRef key, T &&value)
+  {
+    this->add_new__impl(key, std::move(value));
   }
 
   /**
@@ -407,7 +393,23 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
   {
     ITER_SLOTS_BEGIN (hash, new_array, , item, offset) {
       if (item.is_empty(offset)) {
-        item.move_in(offset, hash, index, value);
+        item.store(offset, hash, index, std::move(value));
+        return;
+      }
+    }
+    ITER_SLOTS_END(offset);
+  }
+
+  template<typename ForwardT> void add_new__impl(StringRef key, ForwardT &&value)
+  {
+    BLI_assert(!this->contains(key));
+    this->ensure_can_add();
+    uint32_t hash = this->compute_string_hash(key);
+    ITER_SLOTS_BEGIN (hash, m_array, , item, offset) {
+      if (item.is_empty(offset)) {
+        uint32_t index = this->save_key_in_array(key);
+        item.store(offset, hash, index, std::forward<ForwardT>(value));
+        m_array.update__empty_to_set();
         return;
       }
     }

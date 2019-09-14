@@ -73,7 +73,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class St
 
   void push(T &&value)
   {
-    m_elements.append(std::forward<T>(value));
+    m_elements.append(std::move(value));
   }
 
   /**

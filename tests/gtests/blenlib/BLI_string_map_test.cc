@@ -199,3 +199,12 @@ TEST(string_map, WithVectors)
   EXPECT_EQ(map.lookup("A").size(), 3);
   EXPECT_EQ(map.lookup("B").size(), 7);
 }
+
+TEST(string_map, UniquePtrValues)
+{
+  StringMap<std::unique_ptr<int>> map;
+  map.add_new("A", std::unique_ptr<int>(new int()));
+  std::unique_ptr<int> &a = map.lookup("A");
+  std::unique_ptr<int> *b = map.lookup_ptr("A");
+  EXPECT_EQ(a.get(), b->get());
+}
