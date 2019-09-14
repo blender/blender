@@ -319,7 +319,7 @@ static void seq_cache_recycle_linked(Scene *scene, SeqCacheKey *base)
   }
 }
 
-SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
+static SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
 {
   SeqCache *cache = seq_cache_get_from_scene(scene);
   SeqCacheKey *finalkey = NULL;
