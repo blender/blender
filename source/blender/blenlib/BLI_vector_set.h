@@ -302,6 +302,15 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
     return m_elements;
   }
 
+  void print_stats() const
+  {
+    std::cout << "VectorSet at " << (void *)this << ":\n";
+    std::cout << "  Size: " << this->size() << "\n";
+    std::cout << "  Usable Slots: " << m_array.slots_usable() << "\n";
+    std::cout << "  Total Slots: " << m_array.slots_total() << "\n";
+    std::cout << "  Average Collisions: " << this->compute_average_collisions() << "\n";
+  }
+
  private:
   void update_slot_index(T &value, uint old_index, uint new_index)
   {
@@ -350,6 +359,31 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
         slot.set_index(index);
         return;
       }
+    }
+    ITER_SLOTS_END;
+  }
+
+  float compute_average_collisions() const
+  {
+    if (m_elements.size() == 0) {
+      return 0.0f;
+    }
+
+    uint collisions_sum = 0;
+    for (const T &value : m_elements) {
+      collisions_sum += this->count_collisions(value);
+    }
+    return (float)collisions_sum / (float)m_elements.size();
+  }
+
+  uint count_collisions(const T &value) const
+  {
+    uint collisions = 0;
+    ITER_SLOTS_BEGIN (value, m_array, const, slot) {
+      if (slot.is_empty() || slot.has_value(value, m_elements)) {
+        return collisions;
+      }
+      collisions++;
     }
     ITER_SLOTS_END;
   }
