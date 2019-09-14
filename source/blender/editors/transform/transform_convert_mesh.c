@@ -1044,7 +1044,6 @@ void trans_mesh_customdata_correction_init(TransInfo *t)
            * accidentally break uv maps or vertex colors then */
           (bm->shapenr <= 1) && (has_layer_math || (cd_loop_mdisp_offset != -1))) {
         use_origfaces = true;
-        cd_loop_mdisp_offset = cd_loop_mdisp_offset;
       }
       else {
         use_origfaces = false;
