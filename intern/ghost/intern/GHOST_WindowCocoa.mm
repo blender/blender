@@ -315,8 +315,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
 
   m_window = [[CocoaWindow alloc]
       initWithContentRect:rect
-                styleMask:NSTitledWindowMask | NSClosableWindowMask | NSResizableWindowMask |
-                          NSMiniaturizableWindowMask
+                styleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
+                          NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable
                   backing:NSBackingStoreBuffered
                     defer:NO];
 
@@ -388,7 +388,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
   [m_window setAcceptsMouseMovedEvents:YES];
 
   NSView *contentview = [m_window contentView];
-  [contentview setAcceptsTouchEvents:YES];
+  [contentview setAllowedTouchTypes:(NSTouchTypeMaskDirect | NSTouchTypeMaskIndirect)];
 
   [m_window registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
                                                               NSStringPboardType,
@@ -550,8 +550,8 @@ void GHOST_WindowCocoa::getClientBounds(GHOST_Rect &bounds) const
   // Max window contents as screen size (excluding title bar...)
   NSRect contentRect = [CocoaWindow
       contentRectForFrameRect:screenSize
-                    styleMask:(NSTitledWindowMask | NSClosableWindowMask |
-                               NSMiniaturizableWindowMask | NSResizableWindowMask)];
+                    styleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
+                               NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable)];
 
   rect = [m_window contentRectForFrameRect:[m_window frame]];
 
@@ -619,7 +619,7 @@ GHOST_TWindowState GHOST_WindowCocoa::getState() const
 
   NSUInteger masks = [m_window styleMask];
 
-  if (masks & NSFullScreenWindowMask) {
+  if (masks & NSWindowStyleMaskFullScreen) {
     // Lion style fullscreen
     if (!m_immediateDraw) {
       state = GHOST_kWindowStateFullScreen;
@@ -748,7 +748,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
     case GHOST_kWindowStateFullScreen: {
       NSUInteger masks = [m_window styleMask];
 
-      if (!(masks & NSFullScreenWindowMask)) {
+      if (!(masks & NSWindowStyleMaskFullScreen)) {
         [m_window toggleFullScreen:nil];
       }
       break;
@@ -758,7 +758,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
       NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
       NSUInteger masks = [m_window styleMask];
 
-      if (masks & NSFullScreenWindowMask) {
+      if (masks & NSWindowStyleMaskFullScreen) {
         // Lion style fullscreen
         [m_window toggleFullScreen:nil];
       }
@@ -851,7 +851,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
 
     [[NSImage imageNamed:@"NSApplicationIcon"] drawAtPoint:NSZeroPoint
                                                   fromRect:NSZeroRect
-                                                 operation:NSCompositeSourceOver
+                                                 operation:NSCompositingOperationSourceOver
                                                   fraction:1.0];
 
     // Track & Outline
@@ -904,7 +904,7 @@ GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
   [dockIcon lockFocus];
   [[NSImage imageNamed:@"NSApplicationIcon"] drawAtPoint:NSZeroPoint
                                                 fromRect:NSZeroRect
-                                               operation:NSCompositeSourceOver
+                                               operation:NSCompositingOperationSourceOver
                                                 fraction:1.0];
   [dockIcon unlockFocus];
   [NSApp setApplicationIconImage:dockIcon];
