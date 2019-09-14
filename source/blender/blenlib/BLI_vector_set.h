@@ -274,16 +274,6 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
     return m_array.slots_set();
   }
 
-  T *begin()
-  {
-    return m_elements.begin();
-  }
-
-  T *end()
-  {
-    return m_elements.end();
-  }
-
   const T *begin() const
   {
     return m_elements.begin();
