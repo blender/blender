@@ -490,7 +490,7 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def poly_build():
-        def draw_settings(context, layout, tool):
+        def draw_settings(_context, layout, tool):
             props = tool.operator_properties("mesh.polybuild_face_at_cursor_move")
             props_macro = props.MESH_OT_polybuild_face_at_cursor
             layout.prop(props_macro, "create_quads")
@@ -987,7 +987,7 @@ class _defs_sculpt:
 
     @ToolDef.from_fn
     def mesh_filter():
-        def draw_settings(context, layout, tool):
+        def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.mesh_filter")
             layout.prop(props, "type", expand=False)
             layout.prop(props, "strength")

@@ -34,7 +34,7 @@ class INFO_MT_editor_menus(Menu):
     bl_idname = "INFO_MT_editor_menus"
     bl_label = ""
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.menu("INFO_MT_view")
         layout.menu("INFO_MT_info")
@@ -43,7 +43,7 @@ class INFO_MT_editor_menus(Menu):
 class INFO_MT_view(Menu):
     bl_label = "View"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.menu("INFO_MT_area")
@@ -52,7 +52,7 @@ class INFO_MT_view(Menu):
 class INFO_MT_info(Menu):
     bl_label = "Info"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("info.select_all", text="Select All").action = 'SELECT'
@@ -107,7 +107,7 @@ class INFO_MT_area(Menu):
 class INFO_MT_context_menu(Menu):
     bl_label = "Info Context Menu"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("info.report_copy", text="Copy")
