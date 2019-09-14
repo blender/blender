@@ -221,7 +221,6 @@ set(SRC
   BLI_rect.h
   BLI_scanfill.h
   BLI_set.h
-  BLI_set_vector.h
   BLI_smallhash.h
   BLI_sort.h
   BLI_sort_utils.h
@@ -248,6 +247,7 @@ set(SRC
   BLI_utildefines_variadic.h
   BLI_uvproject.h
   BLI_vector.h
+  BLI_vector_set.h
   BLI_vfontdata.h
   BLI_voronoi_2d.h
   BLI_voxel.h

@@ -14,15 +14,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_SET_VECTOR_H__
-#define __BLI_SET_VECTOR_H__
+#ifndef __BLI_VECTOR_SET_H__
+#define __BLI_VECTOR_SET_H__
 
 /** \file
  * \ingroup bli
  *
- * A SetVector is a combination of a set and a vector. The elements are stored in a continuous
- * array, but every element exists at most once. The insertion order is maintained, as long as
- * there are no deletes. The expected time to check if a value is in the SetVector is O(1).
+ * A VectorSet is a set built on top of a vector. The elements are stored in a continuous array,
+ * but every element exists at most once. The insertion order is maintained, as long as there are
+ * no deletes. The expected time to check if a value is in the VectorSet is O(1).
  */
 
 #include "BLI_hash_cxx.h"
@@ -49,7 +49,7 @@ namespace BLI {
 
 // clang-format on
 
-template<typename T, typename Allocator = GuardedAllocator> class SetVector {
+template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
  private:
   static constexpr int32_t IS_EMPTY = -1;
   static constexpr int32_t IS_DUMMY = -2;
@@ -115,19 +115,19 @@ template<typename T, typename Allocator = GuardedAllocator> class SetVector {
   Vector<T, 4, Allocator> m_elements;
 
  public:
-  SetVector() = default;
+  VectorSet() = default;
 
-  SetVector(ArrayRef<T> values)
+  VectorSet(ArrayRef<T> values)
   {
     this->add_multiple(values);
   }
 
-  SetVector(const std::initializer_list<T> &values)
+  VectorSet(const std::initializer_list<T> &values)
   {
     this->add_multiple(values);
   }
 
-  SetVector(const Vector<T> &values)
+  VectorSet(const Vector<T> &values)
   {
     this->add_multiple(values);
   }
@@ -394,4 +394,4 @@ template<typename T, typename Allocator = GuardedAllocator> class SetVector {
 
 }  // namespace BLI
 
-#endif /* __BLI_SET_VECTOR_H__ */
+#endif /* __BLI_VECTOR_SET_H__ */
