@@ -4,15 +4,15 @@ from bpy.props import (
     EnumProperty,
 )
 
-dirname, filename = os.path.split(__file__)
-idname = os.path.splitext(filename)[0]
+DIRNAME, FILENAME = os.path.split(__file__)
+IDNAME = os.path.splitext(FILENAME)[0]
 
 def update_fn(_self, _context):
     load()
 
 
 class Prefs(bpy.types.KeyConfigPreferences):
-    bl_idname = idname
+    bl_idname = IDNAME
 
     select_mouse: EnumProperty(
         name="Select Mouse",
@@ -39,7 +39,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
         split.column()
 
 
-blender_default = bpy.utils.execfile(os.path.join(dirname, "keymap_data", "blender_default.py"))
+blender_default = bpy.utils.execfile(os.path.join(DIRNAME, "keymap_data", "blender_default.py"))
 
 def load():
     from sys import platform
@@ -47,7 +47,7 @@ def load():
     from bl_keymap_utils.io import keyconfig_init_from_data
 
     prefs = context.preferences
-    kc = context.window_manager.keyconfigs.new(idname)
+    kc = context.window_manager.keyconfigs.new(IDNAME)
     kc_prefs = kc.preferences
 
     keyconfig_data = blender_default.generate_keymaps(
