@@ -20,8 +20,6 @@
 
 import bpy
 from bpy.types import Operator
-from mathutils import Vector
-from math import floor
 
 from bpy.props import IntProperty
 
@@ -192,6 +190,8 @@ class SequencerFadesAdd(Operator):
         return context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip
 
     def execute(self, context):
+        from math import floor
+
         # We must create a scene action first if there's none
         scene = context.scene
         if not scene.animation_data:
@@ -305,16 +305,18 @@ class SequencerFadesAdd(Operator):
 
 
 class Fade:
-    """
-    Data structure to represent fades
-    """
-    type = ''
-    animated_property = ''
-    duration = -1
-    max_value = 1.0
-    start, end = Vector((0, 0)), Vector((0, 0))
+    # Data structure to represent fades.
+    __slots__ = (
+        "type",
+        "animated_property",
+        "duration",
+        "max_value",
+        "start",
+        "end",
+    )
 
     def __init__(self, sequence, fade_fcurve, type, animated_property, duration):
+        from mathutils import Vector
         self.type = type
         self.animated_property = animated_property
         self.duration = duration
