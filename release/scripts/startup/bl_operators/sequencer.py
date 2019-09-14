@@ -187,11 +187,13 @@ class SequencerFadesAdd(Operator):
         default=1.0,
         min=0.01)
     type: bpy.props.EnumProperty(
-        items=[('IN_OUT', 'Fade In And Out', 'Fade selected strips in and out'),
-               ('IN', 'Fade In', 'Fade in selected strips'),
-               ('OUT', 'Fade Out', 'Fade out selected strips'),
-               ('CURSOR_FROM', 'From Playhead', 'Fade from the time cursor to the end of overlapping sequences'),
-               ('CURSOR_TO', 'To Playhead', 'Fade from the start of sequences under the time cursor to the current frame')],
+        items=(
+            ('IN_OUT', 'Fade In And Out', 'Fade selected strips in and out'),
+            ('IN', 'Fade In', 'Fade in selected strips'),
+            ('OUT', 'Fade Out', 'Fade out selected strips'),
+            ('CURSOR_FROM', 'From Playhead', 'Fade from the time cursor to the end of overlapping sequences'),
+            ('CURSOR_TO', 'To Playhead', 'Fade from the start of sequences under the time cursor to the current frame'),
+        ),
         name="Fade type",
         description="Fade in, out, both in and out, to, or from the playhead. Default is both in and out.",
         default='IN_OUT')
@@ -211,9 +213,11 @@ class SequencerFadesAdd(Operator):
             scene.animation_data.action = action
 
         sequences = context.selected_sequences
-        if self.type in ['CURSOR_TO', 'CURSOR_FROM']:
-            sequences = [s for s in sequences
-                         if s.frame_final_start < context.scene.frame_current < s.frame_final_end]
+        if self.type in {'CURSOR_TO', 'CURSOR_FROM'}:
+            sequences = [
+                s for s in sequences
+                if s.frame_final_start < context.scene.frame_current < s.frame_final_end
+            ]
 
         max_duration = min(sequences, key=lambda s: s.frame_final_duration).frame_final_duration
         max_duration = floor(max_duration / 2.0) if self.type == 'IN_OUT' else max_duration
@@ -228,7 +232,7 @@ class SequencerFadesAdd(Operator):
             animated_property = 'volume' if hasattr(sequence, 'volume') else 'blend_alpha'
             fade_fcurve = self.fade_find_or_create_fcurve(context, sequence, animated_property)
             fades = self.calculate_fades(sequence, fade_fcurve, animated_property, duration)
-            self.fade_animation_clear(context, fade_fcurve, fades)
+            self.fade_animation_clear(fade_fcurve, fades)
             self.fade_animation_create(fade_fcurve, fades)
             faded_sequences.append(sequence)
 
@@ -248,9 +252,7 @@ class SequencerFadesAdd(Operator):
         return max(1, duration)
 
     def is_long_enough(self, sequence, duration=0.0):
-        minimum_duration = (duration * 2
-                            if self.type == 'IN_OUT' else
-                            duration)
+        minimum_duration = duration * 2 if self.type == 'IN_OUT' else duration
         return sequence.frame_final_duration >= minimum_duration
 
     def calculate_fades(self, sequence, fade_fcurve, animated_property, duration):
@@ -258,10 +260,10 @@ class SequencerFadesAdd(Operator):
         Returns a list of Fade objects
         """
         fades = []
-        if self.type in ['IN', 'IN_OUT', 'CURSOR_TO']:
+        if self.type in {'IN', 'IN_OUT', 'CURSOR_TO'}:
             fade = Fade(sequence, fade_fcurve, 'IN', animated_property, duration)
             fades.append(fade)
-        if self.type in ['OUT', 'IN_OUT', 'CURSOR_FROM']:
+        if self.type in {'OUT', 'IN_OUT', 'CURSOR_FROM'}:
             fade = Fade(sequence, fade_fcurve, 'OUT', animated_property, duration)
             fades.append(fade)
         return fades
@@ -283,7 +285,7 @@ class SequencerFadesAdd(Operator):
             fade_fcurve = fcurves.new(data_path=searched_data_path)
         return fade_fcurve
 
-    def fade_animation_clear(self, context, fade_fcurve, fades):
+    def fade_animation_clear(self, fade_fcurve, fades):
         """
         Removes existing keyframes in the fades' time range, in fast mode, without
         updating the fcurve
@@ -295,7 +297,7 @@ class SequencerFadesAdd(Operator):
                 # operator re-runs Leading to trying to remove nonexistent keyframes
                 try:
                     if fade.start.x < keyframe.co[0] <= fade.end.x:
-                            keyframe_points.remove(keyframe, fast=True)
+                        keyframe_points.remove(keyframe, fast=True)
                 except Exception:
                     pass
             fade_fcurve.update()
