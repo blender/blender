@@ -27,6 +27,7 @@
 #include <functional>
 #include <string>
 #include <utility>
+#include <memory>
 
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
