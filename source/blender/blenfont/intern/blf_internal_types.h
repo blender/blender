@@ -249,7 +249,9 @@ typedef struct FontBLF {
   /* list of glyph cache for this font. */
   ListBase cache;
 
-  /* current glyph cache, size and dpi. */
+  /* current glyph cache, size and dpi.
+   * Use blf_glyph_cache_acquire(font) and blf_glyph_cache_release(font) to access cache!
+   */
   GlyphCacheBLF *glyph_cache;
 
   /* list of kerning cache for this font. */
@@ -272,6 +274,9 @@ typedef struct FontBLF {
 
   /* data for buffer usage (drawing into a texture buffer) */
   FontBufInfoBLF buf_info;
+
+  /* Mutex lock for glyph cache. */
+  SpinLock *glyph_cache_mutex;
 } FontBLF;
 
 typedef struct DirBLF {

@@ -93,6 +93,10 @@ void blf_font_width_and_height(struct FontBLF *font,
 float blf_font_width(struct FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info);
 float blf_font_height(struct FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info);
 float blf_font_fixed_width(struct FontBLF *font);
+int blf_font_height_max(struct FontBLF *font);
+int blf_font_width_max(struct FontBLF *font);
+float blf_font_descender(struct FontBLF *font);
+float blf_font_ascender(struct FontBLF *font);
 
 int blf_font_count_missing_chars(struct FontBLF *font,
                                  const char *str,
@@ -102,21 +106,27 @@ int blf_font_count_missing_chars(struct FontBLF *font,
 void blf_font_free(struct FontBLF *font);
 
 struct KerningCacheBLF *blf_kerning_cache_find(struct FontBLF *font);
-struct KerningCacheBLF *blf_kerning_cache_new(struct FontBLF *font);
+struct KerningCacheBLF *blf_kerning_cache_new(struct FontBLF *font, struct GlyphCacheBLF *gc);
 void blf_kerning_cache_clear(struct FontBLF *font);
 
 struct GlyphCacheBLF *blf_glyph_cache_find(struct FontBLF *font,
                                            unsigned int size,
                                            unsigned int dpi);
 struct GlyphCacheBLF *blf_glyph_cache_new(struct FontBLF *font);
+struct GlyphCacheBLF *blf_glyph_cache_acquire(struct FontBLF *font);
+void blf_glyph_cache_release(struct FontBLF *font);
 void blf_glyph_cache_clear(struct FontBLF *font);
 void blf_glyph_cache_free(struct GlyphCacheBLF *gc);
 
 struct GlyphBLF *blf_glyph_search(struct GlyphCacheBLF *gc, unsigned int c);
-struct GlyphBLF *blf_glyph_add(struct FontBLF *font, unsigned int index, unsigned int c);
+struct GlyphBLF *blf_glyph_add(struct FontBLF *font,
+                               struct GlyphCacheBLF *gc,
+                               unsigned int index,
+                               unsigned int c);
 
 void blf_glyph_free(struct GlyphBLF *g);
-void blf_glyph_render(struct FontBLF *font, struct GlyphBLF *g, float x, float y);
+void blf_glyph_render(
+    struct FontBLF *font, struct GlyphCacheBLF *gc, struct GlyphBLF *g, float x, float y);
 
 #ifdef WIN32
 /* blf_font_win32_compat.c */
