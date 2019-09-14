@@ -44,17 +44,6 @@
  * Sequencer Cache Design Notes
  * ============================
  *
- * Cache key members:
- * is_temp_cache - this cache entry will be freed before rendering next frame
- * creator_id - ID of thread that created entry
- * cost - In short: render time divided by playback frame rate
- * link_prev/next - link to another entry created during rendering of the frame
- *
- * Linking: We use links to reduce number of iterations needed to manage cache.
- * Entries are linked in order as they are put into cache.
- * Only permanent (is_temp_cache = 0) cache entries are linked.
- * Putting #SEQ_CACHE_STORE_FINAL_OUT will reset linking
- *
  * Function:
  * All images created during rendering are added to cache, even if the cache is already full.
  * This is because:
@@ -63,6 +52,11 @@
  *  - we can decide if we keep frame only when it's completely rendered. Otherwise we risk having
  *    "holes" in the cache, which can be annoying
  * If the cache is full all entries for pending frame will have is_temp_cache set.
+ *
+ * Linking: We use links to reduce number of iterations over entries needed to manage cache.
+ * Entries are linked in order as they are put into cache.
+ * Only permanent (is_temp_cache = 0) cache entries are linked.
+ * Putting #SEQ_CACHE_STORE_FINAL_OUT will reset linking
  *
  * Only entire frame can be freed to release resources for new entries (recycling).
  * Once again, this is to reduce number of iterations, but also more controllable than removing
@@ -93,9 +87,10 @@ typedef struct SeqCacheKey {
   struct Sequence *seq;
   SeqRenderData context;
   float nfra;
-  float cost;
-  bool is_temp_cache;
-  short creator_id;
+  float cost;         /* In short: render time(s) divided by playback frame duration(s) */
+  bool is_temp_cache; /* this cache entry will be freed before rendering next frame */
+  /* ID of task for asigning temp cache entries to particular task(thread, etc.) */
+  eSeqTaskId task_id;
   int type;
 } SeqCacheKey;
 
@@ -172,6 +167,11 @@ static void seq_cache_unlock(Scene *scene)
   }
 }
 
+static size_t seq_cache_get_mem_total(void)
+{
+  return ((size_t)U.memcachelimit) * 1024 * 1024;
+}
+
 static void seq_cache_keyfree(void *val)
 {
   SeqCacheKey *key = val;
@@ -228,9 +228,42 @@ static void seq_cache_relink_keys(SeqCacheKey *link_next, SeqCacheKey *link_prev
   }
 }
 
+/* Choose a key out of 2 candidates(leftmost and rightmost items)
+ * to recycle based on currently used strategy */
 static SeqCacheKey *seq_cache_choose_key(Scene *scene, SeqCacheKey *lkey, SeqCacheKey *rkey)
 {
   SeqCacheKey *finalkey = NULL;
+
+  /* Ideally, cache would not need to check the state of prefetching task
+   * that is tricky to do however, because prefetch would need to know,
+   * if a key, that is about to be created would be removed by itself.
+   *
+   * This can happen because only FINAL_OUT item insertion will trigger recycling
+   * but that is also the point, where prefetch can be suspended.
+   *
+   * We could use temp cache as a shield and later untemp entry,
+   * but it is not worth of increasing system complexity.
+   */
+  if (scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) {
+    int pfjob_start, pfjob_end;
+    BKE_sequencer_prefetch_get_time_range(scene, &pfjob_start, &pfjob_end);
+
+    if (lkey) {
+      int lkey_cfra = lkey->seq->start + lkey->nfra;
+      if (lkey_cfra < pfjob_start || lkey_cfra > pfjob_end) {
+        return lkey;
+      }
+    }
+
+    if (rkey) {
+      int rkey_cfra = rkey->seq->start + rkey->nfra;
+      if (rkey_cfra < pfjob_start || rkey_cfra > pfjob_end) {
+        return rkey;
+      }
+    }
+
+    return NULL;
+  }
 
   if (rkey && lkey) {
     int lkey_cfra = lkey->seq->start + lkey->nfra;
@@ -286,7 +319,7 @@ static void seq_cache_recycle_linked(Scene *scene, SeqCacheKey *base)
   }
 }
 
-static SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
+SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
 {
   SeqCache *cache = seq_cache_get_from_scene(scene);
   SeqCacheKey *finalkey = NULL;
@@ -342,15 +375,16 @@ static SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
   }
 
   finalkey = seq_cache_choose_key(scene, lkey, rkey);
+
   return finalkey;
 }
 
 /* Find only "base" keys
  * Sources(other types) for a frame must be freed all at once
  */
-static bool seq_cache_recycle_item(Scene *scene)
+bool BKE_sequencer_cache_recycle_item(Scene *scene)
 {
-  size_t memory_total = ((size_t)U.memcachelimit) * 1024 * 1024;
+  size_t memory_total = seq_cache_get_mem_total();
   SeqCache *cache = seq_cache_get_from_scene(scene);
   if (!cache) {
     return false;
@@ -429,7 +463,7 @@ void BKE_sequencer_cache_free_temp_cache(Scene *scene, short id, int cfra)
     SeqCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
     BLI_ghashIterator_step(&gh_iter);
 
-    if (key->is_temp_cache && key->creator_id == id && key->seq->start + key->nfra != cfra) {
+    if (key->is_temp_cache && key->task_id == id && key->seq->start + key->nfra != cfra) {
       BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
     }
   }
@@ -459,6 +493,8 @@ void BKE_sequencer_cache_cleanup_all(Main *bmain)
 }
 void BKE_sequencer_cache_cleanup(Scene *scene)
 {
+  BKE_sequencer_prefetch_stop(scene);
+
   SeqCache *cache = seq_cache_get_from_scene(scene);
   if (!cache) {
     return;
@@ -542,6 +578,12 @@ struct ImBuf *BKE_sequencer_cache_get(const SeqRenderData *context,
 {
   Scene *scene = context->scene;
 
+  if (context->is_prefetch_render) {
+    context = BKE_sequencer_prefetch_get_original_context(context);
+    scene = context->scene;
+    seq = BKE_sequencer_prefetch_get_original_sequence(seq, scene);
+  }
+
   if (!scene->ed->cache) {
     BKE_sequencer_cache_create(scene);
     return NULL;
@@ -571,7 +613,13 @@ bool BKE_sequencer_cache_put_if_possible(
 {
   Scene *scene = context->scene;
 
-  if (seq_cache_recycle_item(scene)) {
+  if (context->is_prefetch_render) {
+    context = BKE_sequencer_prefetch_get_original_context(context);
+    scene = context->scene;
+    seq = BKE_sequencer_prefetch_get_original_sequence(seq, scene);
+  }
+
+  if (BKE_sequencer_cache_recycle_item(scene)) {
     BKE_sequencer_cache_put(context, seq, cfra, type, ibuf, cost);
     return true;
   }
@@ -586,7 +634,12 @@ void BKE_sequencer_cache_put(
     const SeqRenderData *context, Sequence *seq, float cfra, int type, ImBuf *i, float cost)
 {
   Scene *scene = context->scene;
-  short creator_id = 0;
+
+  if (context->is_prefetch_render) {
+    context = BKE_sequencer_prefetch_get_original_context(context);
+    scene = context->scene;
+    seq = BKE_sequencer_prefetch_get_original_sequence(seq, scene);
+  }
 
   if (i == NULL || context->skip_cache || context->is_proxy_render || !seq) {
     return;
@@ -632,7 +685,7 @@ void BKE_sequencer_cache_put(
   key->link_prev = NULL;
   key->link_next = NULL;
   key->is_temp_cache = true;
-  key->creator_id = creator_id;
+  key->task_id = context->task_id;
 
   /* Item stored for later use */
   if (flag & type) {
@@ -687,4 +740,15 @@ void BKE_sequencer_cache_iterate(
 
   cache->last_key = NULL;
   seq_cache_unlock(scene);
+}
+
+bool BKE_sequencer_cache_is_full(Scene *scene)
+{
+  size_t memory_total = seq_cache_get_mem_total();
+  SeqCache *cache = seq_cache_get_from_scene(scene);
+  if (!cache) {
+    return false;
+  }
+
+  return memory_total < cache->memory_used;
 }

@@ -188,6 +188,7 @@ set(SRC
   intern/scene.c
   intern/screen.c
   intern/seqcache.c
+  intern/seqprefetch.c
   intern/seqeffects.c
   intern/seqmodifier.c
   intern/sequencer.c

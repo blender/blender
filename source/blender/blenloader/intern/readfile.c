@@ -6758,6 +6758,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 
     ed->act_seq = newdataadr(fd, ed->act_seq);
     ed->cache = NULL;
+    ed->prefetch_job = NULL;
 
     /* recursive link sequences, lb will be correctly initialized */
     link_recurs_seq(fd, &ed->seqbase);

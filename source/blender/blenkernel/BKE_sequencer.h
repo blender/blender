@@ -82,6 +82,11 @@ void BKE_sequence_iterator_end(SeqIterator *iter);
   } \
   ((void)0)
 
+typedef enum eSeqTaskId {
+  SEQ_TASK_MAIN_RENDER,
+  SEQ_TASK_PREFETCH_RENDER,
+} eSeqTaskId;
+
 typedef struct SeqRenderData {
   struct Main *bmain;
   struct Depsgraph *depsgraph;
@@ -94,7 +99,10 @@ typedef struct SeqRenderData {
   float motion_blur_shutter;
   bool skip_cache;
   bool is_proxy_render;
+  bool is_prefetch_render;
   int view_id;
+  /* ID of task for asigning temp cache entries to particular task(thread, etc.) */
+  eSeqTaskId task_id;
 
   /* special case for OpenGL render */
   struct GPUOffScreen *gpu_offscreen;
@@ -290,7 +298,7 @@ void BKE_sequencer_proxy_rebuild_context(struct Main *bmain,
 void BKE_sequencer_proxy_rebuild(struct SeqIndexBuildContext *context,
                                  short *stop,
                                  short *do_update,
-                                 float *progress);
+                                 float *num_frames_prefetched);
 void BKE_sequencer_proxy_rebuild_finish(struct SeqIndexBuildContext *context, bool stop);
 
 void BKE_sequencer_proxy_set(struct Sequence *seq, bool value);
@@ -318,6 +326,7 @@ bool BKE_sequencer_cache_put_if_possible(const SeqRenderData *context,
                                          int type,
                                          struct ImBuf *nval,
                                          float cost);
+bool BKE_sequencer_cache_recycle_item(struct Scene *scene);
 void BKE_sequencer_cache_free_temp_cache(struct Scene *scene, short id, int cfra);
 void BKE_sequencer_cache_destruct(struct Scene *scene);
 void BKE_sequencer_cache_cleanup_all(struct Main *bmain);
@@ -330,6 +339,22 @@ void BKE_sequencer_cache_iterate(
     struct Scene *scene,
     void *userdata,
     bool callback(void *userdata, struct Sequence *seq, int cfra, int cache_type, float cost));
+bool BKE_sequencer_cache_is_full(struct Scene *scene);
+
+/* **********************************************************************
+ * seqprefetch.c
+ *
+ * Sequencer frame prefetching
+ * ********************************************************************** */
+
+void BKE_sequencer_prefetch_start(const SeqRenderData *context, float cfra, float cost);
+void BKE_sequencer_prefetch_stop(struct Scene *scene);
+void BKE_sequencer_prefetch_free(struct Scene *scene);
+bool BKE_sequencer_prefetch_need_redraw(struct Main *bmain, struct Scene *scene);
+void BKE_sequencer_prefetch_get_time_range(struct Scene *scene, int *start, int *end);
+SeqRenderData *BKE_sequencer_prefetch_get_original_context(const SeqRenderData *context);
+struct Sequence *BKE_sequencer_prefetch_get_original_sequence(struct Sequence *seq,
+                                                              struct Scene *scene);
 
 /* **********************************************************************
  * seqeffects.c

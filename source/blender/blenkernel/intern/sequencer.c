@@ -112,6 +112,8 @@ static ImBuf *seq_render_mask(const SeqRenderData *context, Mask *mask, float nr
 static int seq_num_files(Scene *scene, char views_format, const bool is_multiview);
 static void seq_anim_add_suffix(Scene *scene, struct anim *anim, const int view_id);
 
+static ThreadMutex seq_render_mutex = BLI_MUTEX_INITIALIZER;
+
 /* **** XXX ******** */
 #define SELECT 1
 ListBase seqbase_clipboard;
@@ -483,6 +485,7 @@ void BKE_sequencer_editing_free(Scene *scene, const bool do_id_user)
     return;
   }
 
+  BKE_sequencer_prefetch_free(scene);
   BKE_sequencer_cache_destruct(scene);
 
   SEQ_BEGIN (ed, seq) {
@@ -492,7 +495,6 @@ void BKE_sequencer_editing_free(Scene *scene, const bool do_id_user)
   SEQ_END;
 
   BLI_freelistN(&ed->metastack);
-
   MEM_freeN(ed);
 
   scene->ed = NULL;
@@ -635,6 +637,8 @@ void BKE_sequencer_new_render_data(Main *bmain,
   r_context->is_proxy_render = false;
   r_context->view_id = 0;
   r_context->gpu_offscreen = NULL;
+  r_context->task_id = SEQ_TASK_MAIN_RENDER;
+  r_context->is_prefetch_render = false;
 }
 
 /* ************************* iterator ************************** */
@@ -4092,17 +4096,28 @@ ImBuf *BKE_sequencer_give_ibuf(const SeqRenderData *context, float cfra, int cha
     out = BKE_sequencer_cache_get(context, seq_arr[count - 1], cfra, SEQ_CACHE_STORE_FINAL_OUT);
   }
 
-  BKE_sequencer_cache_free_temp_cache(context->scene, 0, cfra);
+  BKE_sequencer_cache_free_temp_cache(context->scene, context->task_id, cfra);
 
   clock_t begin = seq_estimate_render_cost_begin();
   float cost = 0;
 
   if (count && !out) {
+    BLI_mutex_lock(&seq_render_mutex);
     out = seq_render_strip_stack(context, &state, seqbasep, cfra, chanshown);
     cost = seq_estimate_render_cost_end(context->scene, begin);
-    BKE_sequencer_cache_put_if_possible(
-        context, seq_arr[count - 1], cfra, SEQ_CACHE_STORE_FINAL_OUT, out, cost);
+
+    if (context->is_prefetch_render) {
+      BKE_sequencer_cache_put(
+          context, seq_arr[count - 1], cfra, SEQ_CACHE_STORE_FINAL_OUT, out, cost);
+    }
+    else {
+      BKE_sequencer_cache_put_if_possible(
+          context, seq_arr[count - 1], cfra, SEQ_CACHE_STORE_FINAL_OUT, out, cost);
+    }
+    BLI_mutex_unlock(&seq_render_mutex);
   }
+
+  BKE_sequencer_prefetch_start(context, cfra, cost);
 
   return out;
 }
@@ -4334,6 +4349,7 @@ static void sequence_invalidate_cache(Scene *scene,
   }
 
   sequence_do_invalidate_dependent(scene, seq, &ed->seqbase);
+  BKE_sequencer_prefetch_stop(scene);
 }
 
 void BKE_sequence_invalidate_cache_raw(Scene *scene, Sequence *seq)
@@ -4419,6 +4435,7 @@ void BKE_sequencer_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
   Sequence *seq;
 
   BKE_sequencer_cache_cleanup(scene);
+  BKE_sequencer_prefetch_stop(scene);
 
   for (seq = seqbase->first; seq; seq = seq->next) {
     if (for_render && CFRA >= seq->startdisp && CFRA <= seq->enddisp) {
