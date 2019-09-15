@@ -90,7 +90,7 @@ def ui_draw_filter_register(
                         ret = real_func(*args, **kw)
                     else:
                         if ui_test is None:
-                            UILayout.__getattribute__(self, "label")("")
+                            UILayout.__getattribute__(self, "label")(text="")
                         else:
                             assert(ui_test is True)
                         # may need to be set
@@ -111,7 +111,7 @@ def ui_draw_filter_register(
                         ret = real_func(*args, **kw)
                     else:
                         if ui_test is None:
-                            UILayout.__getattribute__(self, "label")("")
+                            UILayout.__getattribute__(self, "label")(text="")
                         else:
                             assert(ui_test is True)
                         ret = None
@@ -131,7 +131,7 @@ def ui_draw_filter_register(
                         ret = real_func(*args, **kw)
                     else:
                         if ui_test is None:
-                            UILayout.__getattribute__(self, "label")("")
+                            UILayout.__getattribute__(self, "label")(text="")
                         else:
                             assert(ui_test is True)
                         ret = None
@@ -151,7 +151,7 @@ def ui_draw_filter_register(
                         ret = real_func(*args, **kw)
                     else:
                         if ui_test is None:
-                            real_func("")
+                            real_func(text="")
                         else:
                             assert(ui_test is True)
                         ret = None
