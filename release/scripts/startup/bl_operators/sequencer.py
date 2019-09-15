@@ -364,6 +364,8 @@ classes = (
     SequencerCrossfadeSounds,
     SequencerCutMulticam,
     SequencerDeinterlaceSelectedMovies,
-    SequencerFadesClear,
-    SequencerFadesAdd,
+
+    # Disable until D5166#133312 is resolved.
+    # SequencerFadesClear,
+    # SequencerFadesAdd,
 )
