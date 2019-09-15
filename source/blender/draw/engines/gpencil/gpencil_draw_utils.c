@@ -1185,7 +1185,8 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
       }
     }
 
-    if ((gpl->actframe->framenum == gpf->framenum) || (!is_multiedit) || (overlay_multiedit)) {
+    if ((gpl->actframe) && (gpl->actframe->framenum == gpf->framenum) || (!is_multiedit) ||
+        (overlay_multiedit)) {
       /* hide any blend layer */
       if ((!stl->storage->simplify_blend) || (gpl->blend_mode == eGplBlendMode_Regular)) {
         /* fill */
