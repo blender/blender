@@ -161,7 +161,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
   /* cache background */
   ED_region_cache_draw_background(ar);
 
-  /* cached segments -- could be usefu lto debug caching strategies */
+  /* cached segments -- could be useful to debug caching strategies */
   BKE_movieclip_get_cache_segments(clip, &sc->user, &totseg, &points);
   ED_region_cache_draw_cached_segments(ar, totseg, points, sfra, efra);
 
