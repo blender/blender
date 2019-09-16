@@ -227,12 +227,46 @@ static int py_imbuf_ppm_set(Py_ImBuf *self, PyObject *value, void *UNUSED(closur
   return 0;
 }
 
+PyDoc_STRVAR(py_imbuf_filepath_doc, "filepath associated with this image.\n\n:type: string");
+static PyObject *py_imbuf_filepath_get(Py_ImBuf *self, void *UNUSED(closure))
+{
+  PY_IMBUF_CHECK_OBJ(self);
+  ImBuf *ibuf = self->ibuf;
+  return PyC_UnicodeFromByte(ibuf->name);
+}
+
+static int py_imbuf_filepath_set(Py_ImBuf *self, PyObject *value, void *UNUSED(closure))
+{
+  PY_IMBUF_CHECK_INT(self);
+
+  if (!PyUnicode_Check(value)) {
+    PyErr_SetString(PyExc_TypeError, "expected a string!");
+    return -1;
+  }
+
+  ImBuf *ibuf = self->ibuf;
+  Py_ssize_t value_str_len_max = sizeof(ibuf->name);
+  Py_ssize_t value_str_len;
+  const char *value_str = _PyUnicode_AsStringAndSize(value, &value_str_len);
+  if (value_str_len >= value_str_len_max) {
+    PyErr_Format(PyExc_TypeError, "filepath length over %zd", value_str_len_max - 1);
+    return -1;
+  }
+  memcpy(ibuf->name, value_str, value_str_len + 1);
+  return 0;
+}
+
 static PyGetSetDef Py_ImBuf_getseters[] = {
     {(char *)"size", (getter)py_imbuf_size_get, (setter)NULL, (char *)py_imbuf_size_doc, NULL},
     {(char *)"ppm",
      (getter)py_imbuf_ppm_get,
      (setter)py_imbuf_ppm_set,
      (char *)py_imbuf_ppm_doc,
+     NULL},
+    {(char *)"filepath",
+     (getter)py_imbuf_filepath_get,
+     (setter)py_imbuf_filepath_set,
+     (char *)py_imbuf_filepath_doc,
      NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
