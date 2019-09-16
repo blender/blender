@@ -67,7 +67,7 @@ static void deformStroke(GpencilModifierData *md,
 
   /* It makes sense when adding points to a straight line */
   /* e.g. for creating thickness variation in later modifiers. */
-  int minimum_vert = (mmd->flag | GP_SUBDIV_SIMPLE) ? 2 : 3;
+  const int minimum_vert = (mmd->flag | GP_SUBDIV_SIMPLE) ? 2 : 3;
 
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,

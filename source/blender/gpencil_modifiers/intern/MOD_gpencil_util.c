@@ -78,15 +78,15 @@ void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[])
 bool is_stroke_affected_by_modifier(Object *ob,
                                     char *mlayername,
                                     char *mmaterialname,
-                                    int mpassindex,
-                                    int gpl_passindex,
-                                    int minpoints,
+                                    const int mpassindex,
+                                    const int gpl_passindex,
+                                    const int minpoints,
                                     bGPDlayer *gpl,
                                     bGPDstroke *gps,
-                                    bool inv1,
-                                    bool inv2,
-                                    bool inv3,
-                                    bool inv4)
+                                    const bool inv1,
+                                    const bool inv2,
+                                    const bool inv3,
+                                    const bool inv4)
 {
   Material *ma = BKE_material_gpencil_get(ob, gps->mat_nr + 1);
   MaterialGPencilStyle *gp_style = ma->gp_style;
