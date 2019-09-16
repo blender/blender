@@ -268,7 +268,7 @@ static void generate_ocean_geometry_uvs(void *__restrict userdata,
   }
 }
 
-static Mesh *generate_ocean_geometry(OceanModifierData *omd)
+static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig)
 {
   Mesh *result;
 
@@ -296,6 +296,7 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd)
   gogd.sy /= gogd.ry;
 
   result = BKE_mesh_new_nomain(num_verts, 0, 0, num_polys * 4, num_polys);
+  BKE_mesh_copy_settings(result, mesh_orig);
 
   gogd.mverts = result->mvert;
   gogd.mpolys = result->mpoly;
@@ -377,7 +378,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   }
 
   if (omd->geometry_mode == MOD_OCEAN_GEOM_GENERATE) {
-    result = generate_ocean_geometry(omd);
+    result = generate_ocean_geometry(omd, mesh);
     BKE_mesh_ensure_normals(result);
   }
   else if (omd->geometry_mode == MOD_OCEAN_GEOM_DISPLACE) {
