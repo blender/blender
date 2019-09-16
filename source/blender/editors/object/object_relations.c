@@ -1817,6 +1817,10 @@ static void single_object_users(
   if (v3d) {
     ID_NEW_REMAP(v3d->camera);
   }
+  /* Camera pointers of markers. */
+  for (TimeMarker *marker = scene->markers.first; marker; marker = marker->next) {
+    ID_NEW_REMAP(marker->camera);
+  }
 
   /* Making single user may affect other scenes if they share
    * with current one some collections in their ViewLayer. */
