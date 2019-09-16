@@ -477,6 +477,10 @@ enum {
   /* The datablock structure is a sub-object of a different one.
    * Direct persistent references are not allowed. */
   LIB_PRIVATE_DATA = 1 << 10,
+  /* Datablock is from a library and linked indirectly, with LIB_TAG_INDIRECT
+   * tag set. But the current .blend file also has a weak pointer to it that
+   * we want to restore if possible, and silently drop if it's missing. */
+  LIB_INDIRECT_WEAK_LINK = 1 << 11,
 };
 
 /**

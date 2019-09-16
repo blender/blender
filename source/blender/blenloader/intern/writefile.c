@@ -3636,7 +3636,9 @@ static void write_libraries(WriteData *wd, Main *main)
       found_one = false;
       while (!found_one && tot--) {
         for (id = lbarray[tot]->first; id; id = id->next) {
-          if (id->us > 0 && (id->tag & LIB_TAG_EXTERN)) {
+          if (id->us > 0 &&
+              ((id->tag & LIB_TAG_EXTERN) ||
+               ((id->tag & LIB_TAG_INDIRECT) && (id->flag & LIB_INDIRECT_WEAK_LINK)))) {
             found_one = true;
             break;
           }
@@ -3666,7 +3668,9 @@ static void write_libraries(WriteData *wd, Main *main)
       /* Write link placeholders for all direct linked IDs. */
       while (a--) {
         for (id = lbarray[a]->first; id; id = id->next) {
-          if (id->us > 0 && (id->tag & LIB_TAG_EXTERN)) {
+          if (id->us > 0 &&
+              ((id->tag & LIB_TAG_EXTERN) ||
+               ((id->tag & LIB_TAG_INDIRECT) && (id->flag & LIB_INDIRECT_WEAK_LINK)))) {
             if (!BKE_idcode_is_linkable(GS(id->name))) {
               printf(
                   "ERROR: write file: data-block '%s' from lib '%s' is not linkable "

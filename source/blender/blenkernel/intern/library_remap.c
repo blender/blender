@@ -497,6 +497,7 @@ static void libblock_remap_data(
   if (new_id && (new_id->tag & LIB_TAG_INDIRECT) &&
       (r_id_remap_data->status & ID_REMAP_IS_LINKED_DIRECT)) {
     new_id->tag &= ~LIB_TAG_INDIRECT;
+    new_id->flag &= ~LIB_INDIRECT_WEAK_LINK;
     new_id->tag |= LIB_TAG_EXTERN;
   }
 

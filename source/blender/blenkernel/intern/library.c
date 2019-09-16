@@ -165,8 +165,19 @@ void id_lib_extern(ID *id)
     BLI_assert(BKE_idcode_is_linkable(GS(id->name)));
     if (id->tag & LIB_TAG_INDIRECT) {
       id->tag &= ~LIB_TAG_INDIRECT;
+      id->flag &= ~LIB_INDIRECT_WEAK_LINK;
       id->tag |= LIB_TAG_EXTERN;
       id->lib->parent = NULL;
+    }
+  }
+}
+
+void id_lib_indirect_weak_link(ID *id)
+{
+  if (id && ID_IS_LINKED(id)) {
+    BLI_assert(BKE_idcode_is_linkable(GS(id->name)));
+    if (id->tag & LIB_TAG_INDIRECT) {
+      id->flag |= LIB_INDIRECT_WEAK_LINK;
     }
   }
 }
@@ -1768,6 +1779,7 @@ void id_clear_lib_data_ex(Main *bmain, ID *id, const bool id_in_mainlist)
 
   id->lib = NULL;
   id->tag &= ~(LIB_TAG_INDIRECT | LIB_TAG_EXTERN);
+  id->flag &= ~LIB_INDIRECT_WEAK_LINK;
   if (id_in_mainlist) {
     if (BKE_id_new_name_validate(which_libbase(bmain, GS(id->name)), id, NULL)) {
       bmain->is_memfile_undo_written = false;
@@ -1981,6 +1993,7 @@ void BKE_library_make_local(Main *bmain,
 
       if (id->lib == NULL) {
         id->tag &= ~(LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW);
+        id->flag &= ~LIB_INDIRECT_WEAK_LINK;
       }
       /* The check on the fourth line (LIB_TAG_PRE_EXISTING) is done so it's possible to tag data
        * you don't want to be made local, used for appending data,
