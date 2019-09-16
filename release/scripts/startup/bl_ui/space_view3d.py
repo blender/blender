@@ -3440,9 +3440,11 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
 
             col.operator("mesh.loopcut_slide")
             col.operator("mesh.offset_edge_loops_slide")
+
+            col.separator()
+
             col.operator("mesh.knife_tool")
             col.operator("mesh.bisect")
-            col.operator("mesh.bridge_edge_loops", text="Bridge Edge Loops")
 
             col.separator()
 
