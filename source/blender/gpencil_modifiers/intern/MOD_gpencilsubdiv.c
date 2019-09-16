@@ -65,12 +65,16 @@ static void deformStroke(GpencilModifierData *md,
 {
   SubdivGpencilModifierData *mmd = (SubdivGpencilModifierData *)md;
 
+  /* It makes sense when adding points to a straight line */
+  /* e.g. for creating thickness variation in later modifiers. */
+  int minimum_vert = (mmd->flag | GP_SUBDIV_SIMPLE) ? 2 : 3;
+
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,
                                       mmd->materialname,
                                       mmd->pass_index,
                                       mmd->layer_pass,
-                                      3,
+                                      minimum_vert,
                                       gpl,
                                       gps,
                                       mmd->flag & GP_SUBDIV_INVERT_LAYER,
