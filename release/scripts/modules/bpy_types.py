@@ -60,12 +60,14 @@ class Library(bpy_types.ID):
 
         # See: readblenentry.c, IDTYPE_FLAGS_ISLINKABLE,
         # we could make this an attribute in rna.
-        attr_links = ("actions", "armatures", "brushes", "cameras",
-                      "curves", "grease_pencils", "collections", "images",
-                      "lights", "lattices", "materials", "metaballs",
-                      "meshes", "node_groups", "objects", "scenes",
-                      "sounds", "speakers", "textures", "texts",
-                      "fonts", "worlds")
+        attr_links = (
+            "actions", "armatures", "brushes", "cameras",
+            "curves", "grease_pencils", "collections", "images",
+            "lights", "lattices", "materials", "metaballs",
+            "meshes", "node_groups", "objects", "scenes",
+            "sounds", "speakers", "textures", "texts",
+            "fonts", "worlds",
+        )
 
         return tuple(id_block
                      for attr in attr_links
@@ -90,11 +92,13 @@ class Texture(bpy_types.ID):
     def users_object_modifier(self):
         """Object modifiers that use this texture"""
         import bpy
-        return tuple(obj for obj in bpy.data.objects if
-                     self in [mod.texture
-                              for mod in obj.modifiers
-                              if mod.type == 'DISPLACE']
-                     )
+        return tuple(
+            obj for obj in bpy.data.objects if
+            self in [
+                mod.texture
+                for mod in obj.modifiers
+                if mod.type == 'DISPLACE']
+        )
 
 
 class Collection(bpy_types.ID):
@@ -122,10 +126,15 @@ class Object(bpy_types.ID):
     def users_collection(self):
         """The collections this object is in. Warning: takes O(len(bpy.data.collections) + len(bpy.data.scenes)) time."""
         import bpy
-        return tuple(collection for collection in bpy.data.collections
-                     if self in collection.objects[:]) + \
-               tuple(scene.collection for scene in bpy.data.scenes
-                     if self in scene.collection.objects[:])
+        return (
+            tuple(
+                collection for collection in bpy.data.collections
+                if self in collection.objects[:]
+            ) + tuple(
+                scene.collection for scene in bpy.data.scenes
+                if self in scene.collection.objects[:]
+            )
+        )
 
     @property
     def users_scene(self):
@@ -471,18 +480,20 @@ class MeshLoopTriangle(StructRNA):
         """The midpoint of the face."""
         face_verts = self.vertices[:]
         mesh_verts = self.id_data.vertices
-        return (mesh_verts[face_verts[0]].co +
-                mesh_verts[face_verts[1]].co +
-                mesh_verts[face_verts[2]].co
-                ) / 3.0
+        return (
+            mesh_verts[face_verts[0]].co +
+            mesh_verts[face_verts[1]].co +
+            mesh_verts[face_verts[2]].co
+        ) / 3.0
 
     @property
     def edge_keys(self):
         verts = self.vertices[:]
-        return (ord_ind(verts[0], verts[1]),
-                ord_ind(verts[1], verts[2]),
-                ord_ind(verts[2], verts[0]),
-                )
+        return (
+            ord_ind(verts[0], verts[1]),
+            ord_ind(verts[1], verts[2]),
+            ord_ind(verts[2], verts[0]),
+        )
 
 
 class MeshPolygon(StructRNA):
@@ -860,15 +871,15 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         # collect paths
         files = []
         for directory in searchpaths:
-            files.extend(
-                [(f, os.path.join(directory, f))
+            files.extend([
+                (f, os.path.join(directory, f))
                  for f in os.listdir(directory)
                  if (not f.startswith("."))
                  if ((filter_ext is None) or
                      (filter_ext(os.path.splitext(f)[1])))
                  if ((filter_path is None) or
                      (filter_path(f)))
-                 ])
+            ])
 
         files.sort()
 
@@ -926,11 +937,13 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         ext_valid = getattr(self, "preset_extensions", {".py", ".xml"})
         props_default = getattr(self, "preset_operator_defaults", None)
         add_operator = getattr(self, "preset_add_operator", None)
-        self.path_menu(bpy.utils.preset_paths(self.preset_subdir),
-                       self.preset_operator,
-                       props_default=props_default,
-                       filter_ext=lambda ext: ext.lower() in ext_valid,
-                       add_operator=add_operator)
+        self.path_menu(
+            bpy.utils.preset_paths(self.preset_subdir),
+            self.preset_operator,
+            props_default=props_default,
+            filter_ext=lambda ext: ext.lower() in ext_valid,
+            add_operator=add_operator,
+        )
 
     @classmethod
     def draw_collapsible(cls, context, layout):
@@ -965,9 +978,10 @@ class NodeSocket(StructRNA, metaclass=RNAMetaPropGroup):
     @property
     def links(self):
         """List of node links from or to this socket. Warning: takes O(len(nodetree.links)) time."""
-        return tuple(link for link in self.id_data.links
-                     if (link.from_socket == self or
-                         link.to_socket == self))
+        return tuple(
+            link for link in self.id_data.links
+            if (link.from_socket == self or
+                link.to_socket == self))
 
 
 class NodeSocketInterface(StructRNA, metaclass=RNAMetaPropGroup):

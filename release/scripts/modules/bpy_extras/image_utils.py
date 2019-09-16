@@ -24,17 +24,18 @@ __all__ = (
 
 
 # limited replacement for BPyImage.comprehensiveImageLoad
-def load_image(imagepath,
-               dirname="",
-               place_holder=False,
-               recursive=False,
-               ncase_cmp=True,
-               convert_callback=None,
-               verbose=False,
-               relpath=None,
-               check_existing=False,
-               force_reload=False,
-               ):
+def load_image(
+        imagepath,
+        dirname="",
+        place_holder=False,
+        recursive=False,
+        ncase_cmp=True,
+        convert_callback=None,
+        verbose=False,
+        relpath=None,
+        check_existing=False,
+        force_reload=False,
+):
     """
     Return an image from the file path with options to search multiple paths
     and return a placeholder if its not found.
@@ -161,15 +162,17 @@ def load_image(imagepath,
     variants = [imagepath]
 
     if dirname:
-        variants += [os.path.join(dirname, imagepath),
-                     os.path.join(dirname, bpy.path.basename(imagepath)),
-                     ]
+        variants += [
+            os.path.join(dirname, imagepath),
+            os.path.join(dirname, bpy.path.basename(imagepath)),
+        ]
 
     for filepath_test in variants:
         if ncase_cmp:
-            ncase_variants = (filepath_test,
-                              bpy.path.resolve_ncase(filepath_test),
-                              )
+            ncase_variants = (
+                filepath_test,
+                bpy.path.resolve_ncase(filepath_test),
+            )
         else:
             ncase_variants = (filepath_test, )
 
