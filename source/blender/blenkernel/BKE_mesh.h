@@ -78,12 +78,18 @@ struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me,
                                 const bool add_key_index,
                                 const struct BMeshCreateParams *params);
 
-struct Mesh *BKE_mesh_from_bmesh_nomain(struct BMesh *bm, const struct BMeshToMeshParams *params);
+struct Mesh *BKE_mesh_from_bmesh_nomain(struct BMesh *bm,
+                                        const struct BMeshToMeshParams *params,
+                                        const struct Mesh *me_settings);
 struct Mesh *BKE_mesh_from_bmesh_for_eval_nomain(struct BMesh *bm,
-                                                 const struct CustomData_MeshMasks *cd_mask_extra);
+                                                 const struct CustomData_MeshMasks *cd_mask_extra,
+                                                 const struct Mesh *me_settings);
 
 struct Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(
-    struct BMEditMesh *em, const struct CustomData_MeshMasks *data_mask, float (*vertexCos)[3]);
+    struct BMEditMesh *em,
+    const struct CustomData_MeshMasks *data_mask,
+    float (*vertexCos)[3],
+    const struct Mesh *me_settings);
 
 int poly_find_loop_from_vert(const struct MPoly *poly,
                              const struct MLoop *loopstart,
@@ -107,6 +113,7 @@ void BKE_mesh_copy_data(struct Main *bmain,
                         const struct Mesh *me_src,
                         const int flag);
 struct Mesh *BKE_mesh_copy(struct Main *bmain, const struct Mesh *me);
+void BKE_mesh_copy_settings(struct Mesh *me_dst, const struct Mesh *me_src);
 void BKE_mesh_update_customdata_pointers(struct Mesh *me, const bool do_ensure_tess_cd);
 void BKE_mesh_ensure_skin_customdata(struct Mesh *me);
 

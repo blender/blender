@@ -168,7 +168,7 @@ static void deformVerts(ModifierData *md,
 
       if (em) {
         /* In edit mode get directly from the edit mesh. */
-        psmd->mesh_original = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL);
+        psmd->mesh_original = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL, mesh);
       }
       else {
         /* Otherwise get regular mesh. */

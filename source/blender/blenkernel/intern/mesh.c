@@ -657,6 +657,30 @@ Mesh *BKE_mesh_new_nomain(
   return mesh;
 }
 
+/* Copy user editable settings that we want to preserve through the modifier stack
+ * or operations where a mesh with new topology is created based on another mesh. */
+void BKE_mesh_copy_settings(Mesh *me_dst, const Mesh *me_src)
+{
+  /* Copy general settings. */
+  me_dst->editflag = me_src->editflag;
+  me_dst->flag = me_src->flag;
+  me_dst->smoothresh = me_src->smoothresh;
+  me_dst->remesh_voxel_size = me_src->remesh_voxel_size;
+  me_dst->remesh_mode = me_src->remesh_mode;
+
+  /* Copy texture space. */
+  me_dst->texflag = me_src->texflag;
+  copy_v3_v3(me_dst->loc, me_src->loc);
+  copy_v3_v3(me_dst->size, me_src->size);
+
+  /* Copy materials. */
+  if (me_dst->mat != NULL) {
+    MEM_freeN(me_dst->mat);
+  }
+  me_dst->mat = MEM_dupallocN(me_src->mat);
+  me_dst->totcol = me_src->totcol;
+}
+
 Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
                                            int verts_len,
                                            int edges_len,
@@ -670,7 +694,6 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   Mesh *me_dst = BKE_id_new_nomain(ID_ME, NULL);
 
-  me_dst->mat = MEM_dupallocN(me_src->mat);
   me_dst->mselect = MEM_dupallocN(me_dst->mselect);
 
   me_dst->totvert = verts_len;
@@ -680,8 +703,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   me_dst->totpoly = polys_len;
 
   me_dst->cd_flag = me_src->cd_flag;
-  me_dst->editflag = me_src->editflag;
-  me_dst->texflag = me_src->texflag;
+  BKE_mesh_copy_settings(me_dst, me_src);
 
   CustomData_copy(&me_src->vdata, &me_dst->vdata, mask.vmask, CD_CALLOC, verts_len);
   CustomData_copy(&me_src->edata, &me_dst->edata, mask.emask, CD_CALLOC, edges_len);
@@ -770,18 +792,24 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me,
                               });
 }
 
-Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm, const struct BMeshToMeshParams *params)
+Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm,
+                                 const struct BMeshToMeshParams *params,
+                                 const Mesh *me_settings)
 {
   BLI_assert(params->calc_object_remap == false);
   Mesh *mesh = BKE_id_new_nomain(ID_ME, NULL);
   BM_mesh_bm_to_me(NULL, bm, mesh, params);
+  BKE_mesh_copy_settings(mesh, me_settings);
   return mesh;
 }
 
-Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm, const CustomData_MeshMasks *cd_mask_extra)
+Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm,
+                                          const CustomData_MeshMasks *cd_mask_extra,
+                                          const Mesh *me_settings)
 {
   Mesh *mesh = BKE_id_new_nomain(ID_ME, NULL);
   BM_mesh_bm_to_me_for_eval(bm, mesh, cd_mask_extra);
+  BKE_mesh_copy_settings(mesh, me_settings);
   return mesh;
 }
 
@@ -790,9 +818,10 @@ Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm, const CustomData_MeshMasks 
  */
 Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(BMEditMesh *em,
                                                    const CustomData_MeshMasks *data_mask,
-                                                   float (*vertexCos)[3])
+                                                   float (*vertexCos)[3],
+                                                   const Mesh *me_settings)
 {
-  Mesh *me = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, data_mask);
+  Mesh *me = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, data_mask, me_settings);
   /* Use editmesh directly where possible. */
   me->runtime.is_original = true;
   if (vertexCos) {
@@ -1916,9 +1945,6 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)
 {
   DEG_debug_print_eval(depsgraph, __func__, mesh->id.name, mesh);
   BKE_mesh_texspace_calc(mesh);
-  /* Clear autospace flag in evaluated mesh, so that texspace does not get recomputed when bbox is
-   * (e.g. after modifiers, etc.) */
-  mesh->texflag &= ~ME_AUTOSPACE;
   /* We are here because something did change in the mesh. This means we can not trust the existing
    * evaluated mesh, and we don't know what parts of the mesh did change. So we simply delete the
    * evaluated mesh and let objects to re-create it with updated settings. */

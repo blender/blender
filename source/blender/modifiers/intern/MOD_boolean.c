@@ -316,7 +316,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
         MEM_freeN(looptris);
       }
 
-      result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
+      result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
 
       BM_mesh_free(bm);
 

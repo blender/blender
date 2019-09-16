@@ -513,6 +513,12 @@ static Mesh *fluidsim_read_cache(
     return NULL;
   }
 
+  BKE_mesh_copy_settings(newmesh, orgmesh);
+
+  /* Fluid simulation has a texture space that based on the bounds of the fluid mesh.
+   * This does not seem particularly useful, but it's backwards compatible. */
+  BKE_mesh_texspace_calc(newmesh);
+
   /* load vertex velocities, if they exist...
    * TODO? use generate flag as loading flag as well?
    * warning, needs original .bobj.gz mesh loading filename */

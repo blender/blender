@@ -179,7 +179,8 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   new_mesh = BKE_mesh_from_bmesh_nomain(bm,
                                         (&(struct BMeshToMeshParams){
                                             .calc_object_remap = false,
-                                        }));
+                                        }),
+                                        mesh);
 
   BM_mesh_free(bm);
 
