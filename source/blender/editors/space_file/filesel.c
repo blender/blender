@@ -167,6 +167,9 @@ short ED_fileselect_set_params(SpaceFile *sfile)
       params->flag &= ~FILE_DIRSEL_ONLY;
     }
 
+    if ((prop = RNA_struct_find_property(op->ptr, "check_existing"))) {
+      params->flag |= RNA_property_boolean_get(op->ptr, prop) ? FILE_CHECK_EXISTING : 0;
+    }
     if ((prop = RNA_struct_find_property(op->ptr, "hide_props_region"))) {
       params->flag |= RNA_property_boolean_get(op->ptr, prop) ? FILE_HIDE_TOOL_PROPS : 0;
     }
@@ -272,10 +275,6 @@ short ED_fileselect_set_params(SpaceFile *sfile)
     }
     else {
       params->sort = FILE_SORT_ALPHA;
-    }
-
-    if ((prop = RNA_struct_find_property(op->ptr, "action_type"))) {
-      params->action_type = RNA_property_enum_get(op->ptr, prop);
     }
 
     if (params->display == FILE_DEFAULTDISPLAY) {

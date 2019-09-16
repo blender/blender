@@ -1506,14 +1506,11 @@ void file_draw_check_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 bool file_draw_check_exists(SpaceFile *sfile)
 {
   if (sfile->op) { /* fails on reload */
-    PropertyRNA *prop;
-    if ((prop = RNA_struct_find_property(sfile->op->ptr, "check_existing"))) {
-      if (RNA_property_boolean_get(sfile->op->ptr, prop)) {
-        char filepath[FILE_MAX];
-        BLI_join_dirfile(filepath, sizeof(filepath), sfile->params->dir, sfile->params->file);
-        if (BLI_is_file(filepath)) {
-          return true;
-        }
+    if (sfile->params && (sfile->params->flag & FILE_CHECK_EXISTING)) {
+      char filepath[FILE_MAX];
+      BLI_join_dirfile(filepath, sizeof(filepath), sfile->params->dir, sfile->params->file);
+      if (BLI_is_file(filepath)) {
+        return true;
       }
     }
   }
@@ -2398,7 +2395,7 @@ static bool file_filenum_poll(bContext *C)
     return false;
   }
 
-  return sfile->params && (sfile->params->action_type == FILE_SAVE);
+  return sfile->params && (sfile->params->flag & FILE_CHECK_EXISTING);
 }
 
 /**

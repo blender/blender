@@ -176,7 +176,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *pa)
    * immediate ui_apply_but_func but only after button deactivates */
   UI_but_funcN_set(but, file_filename_enter_handle, NULL, but);
 
-  if (params->action_type == FILE_SAVE) {
+  if (params->flag & FILE_CHECK_EXISTING) {
     but_extra_rna_ptr = UI_but_extra_operator_icon_add(
         but, "FILE_OT_filenum", WM_OP_EXEC_REGION_WIN, ICON_ADD);
     RNA_int_set(but_extra_rna_ptr, "increment", 1);

@@ -679,8 +679,7 @@ typedef struct FileSelectParams {
   short display_previous;
   /** Details toggles (file size, creation date, etc.) */
   char details_flags;
-  /* The type of file action (opening or saving) */
-  char action_type; /* eFileSel_Action */
+  char _pad2;
   /** Filter when (flags & FILE_FILTER) is true. */
   int filter;
 
@@ -797,7 +796,8 @@ typedef enum eFileSel_Params_Flag {
   FILE_PARAMS_FLAG_UNUSED_9 = (1 << 9), /* cleared */
   FILE_GROUP_INSTANCE = (1 << 10),
   FILE_SORT_INVERT = (1 << 11),
-  FILE_HIDE_TOOL_PROPS = (1 << 12)
+  FILE_HIDE_TOOL_PROPS = (1 << 12),
+  FILE_CHECK_EXISTING = (1 << 13),
 } eFileSel_Params_Flag;
 
 /* sfile->params->rename_flag */

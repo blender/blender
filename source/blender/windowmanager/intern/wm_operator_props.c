@@ -78,15 +78,6 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
       {FILE_IMGDISPLAY, "THUMBNAIL", ICON_IMGDISPLAY, "Thumbnails", "Display files as thumbnails"},
       {0, NULL, 0, NULL, NULL},
   };
-  static const EnumPropertyItem file_action_types[] = {
-      {FILE_OPENFILE,
-       "OPENFILE",
-       0,
-       "Open",
-       "Use the file browser for opening files or a directory"},
-      {FILE_SAVE, "SAVE", 0, "Save", "Use the file browser for saving a file"},
-      {0, NULL, 0, NULL, NULL},
-  };
 
   if (flag & WM_FILESEL_FILEPATH) {
     RNA_def_string_file_path(ot->srna, "filepath", NULL, FILE_MAX, "File Path", "Path to file");
@@ -206,9 +197,6 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
 
   prop = RNA_def_enum(
       ot->srna, "sort_method", rna_enum_file_sort_items, sort, "File sorting mode", "");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-
-  prop = RNA_def_enum(ot->srna, "action_type", file_action_types, action, "Action Type", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
