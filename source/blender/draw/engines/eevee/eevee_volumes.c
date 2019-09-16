@@ -255,7 +255,7 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   if (DRW_view_is_persp_get(NULL)) {
     float sample_distribution = scene_eval->eevee.volumetric_sample_distribution;
-    sample_distribution = 4.0f * (1.00001f - sample_distribution);
+    sample_distribution = 4.0f * (max_ff(1.0f - sample_distribution, 1e-2f));
 
     const float clip_start = common_data->view_vecs[0][2];
     /* Negate */
