@@ -1407,9 +1407,10 @@ void *BKE_id_new_nomain(const short type, const char *name)
   return id;
 }
 
-void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, int flag)
+void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int orig_flag)
 {
   ID *new_id = *r_newid;
+  int flag = orig_flag;
 
   const bool is_private_id_data = (id->flag & LIB_PRIVATE_DATA) != 0;
 
@@ -1430,7 +1431,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, int flag)
   }
 
   /* The id->flag bits to copy over. */
-  const int copy_flag_mask = LIB_PRIVATE_DATA;
+  const int copy_idflag_mask = LIB_PRIVATE_DATA;
 
   if ((flag & LIB_ID_CREATE_NO_ALLOCATE) != 0) {
     /* r_newid already contains pointer to allocated memory. */
@@ -1454,7 +1455,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, int flag)
     memcpy(cpn + id_offset, cp + id_offset, id_len - id_offset);
   }
 
-  new_id->flag = (new_id->flag & ~copy_flag_mask) | (id->flag & copy_flag_mask);
+  new_id->flag = (new_id->flag & ~copy_idflag_mask) | (id->flag & copy_idflag_mask);
 
   if (id->properties) {
     new_id->properties = IDP_CopyProperty_ex(id->properties, flag);
@@ -1474,9 +1475,12 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, int flag)
 
     /* the duplicate should get a copy of the animdata */
     if ((flag & LIB_ID_COPY_NO_ANIMDATA) == 0) {
-      BLI_assert((flag & LIB_ID_COPY_ACTIONS) == 0 || (flag & LIB_ID_CREATE_NO_MAIN) == 0 ||
-                 is_private_id_data);
-      iat->adt = BKE_animdata_copy(bmain, iat->adt, flag);
+      /* Note that even though horrors like root nodetrees are not in bmain, the actions they use
+       * in their anim data *are* in bmain... super-mega-hurra. */
+      int animdata_flag = orig_flag;
+      BLI_assert((animdata_flag & LIB_ID_COPY_ACTIONS) == 0 ||
+                 (animdata_flag & LIB_ID_CREATE_NO_MAIN) == 0);
+      iat->adt = BKE_animdata_copy(bmain, iat->adt, animdata_flag);
     }
     else {
       iat->adt = NULL;
