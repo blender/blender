@@ -544,6 +544,16 @@ class RNAMetaPropGroup(StructMetaPropGroup, RNAMeta):
     pass
 
 
+class RNAMetaOperator(RNAMeta):
+    @property
+    def modal_keymap(cls):
+        return _bpy.ops.modal_keymap_get(cls.bl_idname)
+
+    @modal_keymap.setter
+    def modal_keymap(cls, keymap):
+        _bpy.ops.modal_keymap_set(cls.bl_idname, keymap)
+
+
 # Same as 'Operator'
 # only without 'as_keywords'
 class Gizmo(StructRNA):
@@ -653,7 +663,7 @@ class GizmoGroup(StructRNA):
 
 # Only defined so operators members can be used by accessing self.order
 # with doc generation 'self.properties.bl_rna.properties' can fail
-class Operator(StructRNA, metaclass=RNAMeta):
+class Operator(StructRNA, metaclass=RNAMetaOperator):
     __slots__ = ()
 
     def __getattribute__(self, attr):
