@@ -296,10 +296,8 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
     if (poly_get_adj_loops_from_vert(p, ss->mloop, (int)index, f_adj_v) != -1) {
       int j;
       for (j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
-        if (vert_map->count != 2 || ss->pmap[f_adj_v[j]].count <= 2) {
-          if (f_adj_v[j] != (int)index) {
-            sculpt_vertex_neighbor_add(iter, f_adj_v[j]);
-          }
+        if (f_adj_v[j] != (int)index) {
+          sculpt_vertex_neighbor_add(iter, f_adj_v[j]);
         }
       }
     }
