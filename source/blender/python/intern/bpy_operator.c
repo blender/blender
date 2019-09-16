@@ -50,10 +50,8 @@
 
 #include "BLI_ghash.h"
 
-#include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_report.h"
+#include "BKE_context.h"
 
 /* so operators called can spawn threads which acquire the GIL */
 #define BPY_RELEASE_GIL
@@ -431,51 +429,6 @@ static PyObject *pyop_getrna_type(PyObject *UNUSED(self), PyObject *value)
   return (PyObject *)pyrna;
 }
 
-static PyObject *pyop_type_modal_keymap_get(PyObject *UNUSED(self), PyObject *value)
-{
-  wmOperatorType *ot;
-  if (!(ot = ot_lookup_from_py_string(value, "modal_keymap_get"))) {
-    return NULL;
-  }
-  if (ot->modalkeymap == NULL) {
-    Py_RETURN_NONE;
-  }
-  else {
-    PointerRNA ptr;
-    RNA_pointer_create(G.main->wm.first, &RNA_KeyMap, ot->modalkeymap, &ptr);
-    return pyrna_struct_CreatePyObject(&ptr);
-  }
-}
-
-static PyObject *pyop_type_modal_keymap_set(PyObject *UNUSED(self), PyObject *args)
-{
-  PyObject *ot_idname, *py_keymap;
-  wmOperatorType *ot;
-  if (!PyArg_ParseTuple(args, "OO", &ot_idname, &py_keymap) ||
-      !(ot = ot_lookup_from_py_string(ot_idname, "modal_keymap_set"))) {
-    return NULL;
-  }
-
-  if (py_keymap == Py_None) {
-    ot->modalkeymap = NULL;
-  }
-  else if (BPy_StructRNA_Check(py_keymap) &&
-           RNA_struct_is_a(((BPy_StructRNA *)py_keymap)->ptr.type, &RNA_KeyMap)) {
-    BPy_StructRNA *py_keymap_rna = (BPy_StructRNA *)py_keymap;
-    wmKeyMap *km = py_keymap_rna->ptr.data;
-    if ((km->flag & KEYMAP_MODAL) == 0) {
-      PyErr_SetString(PyExc_ValueError, "Expected a keymap a modal keymap");
-      return NULL;
-    }
-    ot->modalkeymap = km;
-  }
-  else {
-    PyErr_SetString(PyExc_TypeError, "Expected a keymap object or None");
-    return NULL;
-  }
-  Py_RETURN_NONE;
-}
-
 static struct PyMethodDef bpy_ops_methods[] = {
     {"poll", (PyCFunction)pyop_poll, METH_VARARGS, NULL},
     {"call", (PyCFunction)pyop_call, METH_VARARGS, NULL},
@@ -483,10 +436,6 @@ static struct PyMethodDef bpy_ops_methods[] = {
     {"dir", (PyCFunction)pyop_dir, METH_NOARGS, NULL},
     {"get_rna_type", (PyCFunction)pyop_getrna_type, METH_O, NULL},
     {"macro_define", (PyCFunction)PYOP_wrap_macro_define, METH_VARARGS, NULL},
-
-    /* Operator type functions (use to implement 'OperatorType.modal_keymap' property). */
-    {"modal_keymap_get", (PyCFunction)pyop_type_modal_keymap_get, METH_O, NULL},
-    {"modal_keymap_set", (PyCFunction)pyop_type_modal_keymap_set, METH_VARARGS, NULL},
     {NULL, NULL, 0, NULL},
 };
 
