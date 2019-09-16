@@ -404,177 +404,149 @@ static void draw_stabilization_border(
   }
 }
 
+enum {
+  PATH_POINT_FLAG_KEYFRAME = (1 << 0),
+};
+
+typedef struct TrachPathPoint {
+  float co[2];
+  uchar flag;
+} TrackPathPoint;
+
+static void marker_to_path_point(SpaceClip *sc,
+                                 const MovieTrackingTrack *track,
+                                 const MovieTrackingMarker *marker,
+                                 TrackPathPoint *point)
+{
+  add_v2_v2v2(point->co, marker->pos, track->offset);
+  ED_clip_point_undistorted_pos(sc, point->co, point->co);
+  point->flag = 0;
+  if ((marker->flag & MARKER_TRACKED) == 0) {
+    point->flag |= PATH_POINT_FLAG_KEYFRAME;
+  }
+}
+
+static int track_to_path_segment(SpaceClip *sc,
+                                 MovieTrackingTrack *track,
+                                 int direction,
+                                 TrackPathPoint *path)
+{
+  const int count = sc->path_length;
+  int current_frame = ED_space_clip_get_clip_frame_number(sc);
+  const MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, current_frame);
+  /* Check whether there is marker at exact current frame.
+   * If not, we don't have anything to be put to path. */
+  if (marker == NULL) {
+    return 0;
+  }
+  /* Index inside of path array where we write data to. */
+  int point_index = count;
+  int path_length = 0;
+  for (int i = 0; i < count; ++i) {
+    marker_to_path_point(sc, track, marker, &path[point_index]);
+    /* Move to the next marker along the path segment. */
+    path_length++;
+    point_index += direction;
+    current_frame += direction;
+    marker = BKE_tracking_marker_get_exact(track, current_frame);
+    if (marker == NULL) {
+      /* Reached end of tracked segment. */
+      break;
+    }
+  }
+  return path_length;
+}
+
+static void draw_track_path_points(const TrackPathPoint *path,
+                                   uint position_attribute,
+                                   const int start_point,
+                                   const int num_points)
+{
+  immBegin(GPU_PRIM_POINTS, num_points);
+  for (int i = 0; i < num_points; i++) {
+    const TrackPathPoint *point = &path[i + start_point];
+    immVertex2fv(position_attribute, point->co);
+  }
+  immEnd();
+}
+
+static void draw_track_path_lines(const TrackPathPoint *path,
+                                  uint position_attribute,
+                                  const int start_point,
+                                  const int num_points)
+{
+  if (num_points < 2) {
+    return;
+  }
+  immBegin(GPU_PRIM_LINE_STRIP, num_points);
+  for (int i = 0; i < num_points; i++) {
+    const TrackPathPoint *point = &path[i + start_point];
+    immVertex2fv(position_attribute, point->co);
+  }
+  immEnd();
+}
+
 static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackingTrack *track)
 {
 #define MAX_STATIC_PATH 64
-  int count = sc->path_length;
-  int i, a, b, curindex = -1;
-  float path_static[(MAX_STATIC_PATH + 1) * 2][2];
-  float(*path)[2];
-  int tiny = sc->flag & SC_SHOW_TINY_MARKER, framenr, start_frame;
-  MovieTrackingMarker *marker;
+
+  const int count = sc->path_length;
+  TrackPathPoint path_static[(MAX_STATIC_PATH + 1) * 2];
+  TrackPathPoint *path;
+  const bool tiny = (sc->flag & SC_SHOW_TINY_MARKER) != 0;
 
   if (count == 0) {
+    /* Early output, nothing to bother about here. */
     return;
   }
 
-  start_frame = framenr = ED_space_clip_get_clip_frame_number(sc);
+  /* Try to use stack allocated memory when possibly, only use heap allocation
+   * for really long paths. */
+  path = (count < MAX_STATIC_PATH) ? path_static :
+                                     MEM_mallocN(sizeof(*path) * (count + 1) * 2, "path");
+  /* Collect path information. */
+  const int num_points_before = track_to_path_segment(sc, track, -1, path);
+  const int num_points_after = track_to_path_segment(sc, track, 1, path);
+  const int num_all_points = num_points_before + num_points_after - 1;
+  const int path_start_index = count - num_points_before + 1;
+  const int path_center_index = count;
 
-  marker = BKE_tracking_marker_get(track, framenr);
-  if (marker->framenr != framenr || marker->flag & MARKER_DISABLED) {
-    return;
-  }
-
-  if (count < MAX_STATIC_PATH) {
-    path = path_static;
-  }
-  else {
-    path = MEM_mallocN(sizeof(*path) * (count + 1) * 2, "path");
-  }
-
-  a = count;
-  i = framenr - 1;
-  while (i >= framenr - count) {
-    marker = BKE_tracking_marker_get(track, i);
-
-    if (!marker || marker->flag & MARKER_DISABLED) {
-      break;
-    }
-
-    if (marker->framenr == i) {
-      add_v2_v2v2(path[--a], marker->pos, track->offset);
-      ED_clip_point_undistorted_pos(sc, path[a], path[a]);
-
-      if (marker->framenr == start_frame) {
-        curindex = a;
-      }
-    }
-    else {
-      break;
-    }
-
-    i--;
-  }
-
-  b = count;
-  i = framenr;
-  while (i <= framenr + count) {
-    marker = BKE_tracking_marker_get(track, i);
-
-    if (!marker || marker->flag & MARKER_DISABLED) {
-      break;
-    }
-
-    if (marker->framenr == i) {
-      if (marker->framenr == start_frame) {
-        curindex = b;
-      }
-
-      add_v2_v2v2(path[b++], marker->pos, track->offset);
-      ED_clip_point_undistorted_pos(sc, path[b - 1], path[b - 1]);
-    }
-    else {
-      break;
-    }
-
-    i++;
-  }
-
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
+  const uint position_attribute = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
+  /* Draw path outline. */
   if (!tiny) {
     immUniformThemeColor(TH_MARKER_OUTLINE);
-
     if (TRACK_VIEW_SELECTED(sc, track)) {
-      if ((b - a - 1) >= 1) {
-        GPU_point_size(5.0f);
-
-        immBegin(GPU_PRIM_POINTS, b - a - 1);
-
-        for (i = a; i < b; i++) {
-          if (i != curindex) {
-            immVertex2f(pos, path[i][0], path[i][1]);
-          }
-        }
-
-        immEnd();
-      }
+      glPointSize(5.0f);
+      draw_track_path_points(path, position_attribute, path_start_index, num_all_points);
     }
-
-    if ((b - a) >= 2) {
-      GPU_line_width(3.0f);
-
-      immBegin(GPU_PRIM_LINE_STRIP, b - a);
-
-      for (i = a; i < b; i++) {
-        immVertex2f(pos, path[i][0], path[i][1]);
-      }
-
-      immEnd();
-    }
+    /* Draw darker outline for actual path, all line segments at once. */
+    glLineWidth(3.0f);
+    draw_track_path_lines(path, position_attribute, path_start_index, num_all_points);
   }
 
-  if (TRACK_VIEW_SELECTED(sc, track)) {
-    GPU_point_size(3.0f);
+  /* Draw all points. */
+  glPointSize(3.0f);
+  immUniformThemeColor(TH_PATH_BEFORE);
+  draw_track_path_points(path, position_attribute, path_start_index, num_points_before);
+  immUniformThemeColor(TH_PATH_AFTER);
+  draw_track_path_points(path, position_attribute, path_center_index, num_points_after);
 
-    if ((curindex - a) >= 1) {
-      immUniformThemeColor(TH_PATH_BEFORE);
-
-      immBegin(GPU_PRIM_POINTS, curindex - a);
-
-      for (i = a; i < curindex; i++) {
-        immVertex2f(pos, path[i][0], path[i][1]);
-      }
-
-      immEnd();
-    }
-
-    if ((b - curindex - 1) >= 1) {
-      immUniformThemeColor(TH_PATH_AFTER);
-
-      immBegin(GPU_PRIM_POINTS, b - curindex - 1);
-
-      for (i = curindex + 1; i < b; i++) {
-        immVertex2f(pos, path[i][0], path[i][1]);
-      }
-
-      immEnd();
-    }
-  }
-
-  GPU_line_width(1);
-
-  if ((curindex - a + 1) >= 2) {
-    immUniformThemeColor(TH_PATH_BEFORE);
-
-    immBegin(GPU_PRIM_LINE_STRIP, curindex - a + 1);
-
-    for (i = a; i <= curindex; i++) {
-      immVertex2f(pos, path[i][0], path[i][1]);
-    }
-
-    immEnd();
-  }
-
-  if ((b - curindex) >= 2) {
-    immUniformThemeColor(TH_PATH_AFTER);
-
-    immBegin(GPU_PRIM_LINE_STRIP, b - curindex);
-
-    for (i = curindex; i < b; i++) {
-      immVertex2f(pos, path[i][0], path[i][1]);
-    }
-
-    immEnd();
-  }
-
-  immUnbindProgram();
+  /* Connect points with color coded segments. */
+  glLineWidth(1);
+  immUniformThemeColor(TH_PATH_BEFORE);
+  draw_track_path_lines(path, position_attribute, path_start_index, num_points_before);
+  immUniformThemeColor(TH_PATH_AFTER);
+  draw_track_path_lines(path, position_attribute, path_center_index, num_points_after);
 
   if (path != path_static) {
     MEM_freeN(path);
   }
+
+  immUnbindProgram();
+
 #undef MAX_STATIC_PATH
 }
 
