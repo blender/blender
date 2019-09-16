@@ -914,6 +914,8 @@ const bTheme U_theme_default = {
     .lock_marker = RGBA(0x7f7f7fff),
     .path_before = RGBA(0xff0000ff),
     .path_after = RGBA(0x0000ffff),
+    .path_keyframe_before = RGBA(0xffc4c4ff),
+    .path_keyframe_after = RGBA(0xc4c4ffff),
     .gp_vertex_size = 1,
     .metadatatext = RGBA(0xffffffff),
   },

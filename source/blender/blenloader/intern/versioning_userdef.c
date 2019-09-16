@@ -151,6 +151,8 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
   {
     FROM_DEFAULT_V4_UCHAR(space_file.execution_buts);
     FROM_DEFAULT_V4_UCHAR(tui.icon_folder);
+    FROM_DEFAULT_V4_UCHAR(space_clip.path_keyframe_before);
+    FROM_DEFAULT_V4_UCHAR(space_clip.path_keyframe_after);
   }
 
 #undef FROM_DEFAULT_V4_UCHAR

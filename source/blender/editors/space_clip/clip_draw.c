@@ -473,6 +473,21 @@ static void draw_track_path_points(const TrackPathPoint *path,
   immEnd();
 }
 
+static void draw_track_path_keyframe_points(const TrackPathPoint *path,
+                                            uint position_attribute,
+                                            const int start_point,
+                                            const int num_points)
+{
+  immBeginAtMost(GPU_PRIM_POINTS, num_points);
+  for (int i = 0; i < num_points; i++) {
+    const TrackPathPoint *point = &path[i + start_point];
+    if (point->flag & PATH_POINT_FLAG_KEYFRAME) {
+      immVertex2fv(position_attribute, point->co);
+    }
+  }
+  immEnd();
+}
+
 static void draw_track_path_lines(const TrackPathPoint *path,
                                   uint position_attribute,
                                   const int start_point,
@@ -533,6 +548,8 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
     if (TRACK_VIEW_SELECTED(sc, track)) {
       GPU_point_size(5.0f);
       draw_track_path_points(path, position_attribute, path_start_index, num_all_points);
+      GPU_point_size(7.0f);
+      draw_track_path_keyframe_points(path, position_attribute, path_start_index, num_all_points);
     }
     /* Draw darker outline for actual path, all line segments at once. */
     GPU_line_width(3.0f);
@@ -552,6 +569,13 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
   draw_track_path_lines(path, position_attribute, path_start_index, num_points_before);
   immUniformThemeColor(TH_PATH_AFTER);
   draw_track_path_lines(path, position_attribute, path_center_index, num_points_after);
+
+  /* Draw all bigger points corresponding to keyframes. */
+  GPU_point_size(5.0f);
+  immUniformThemeColor(TH_PATH_KEYFRAME_BEFORE);
+  draw_track_path_keyframe_points(path, position_attribute, path_start_index, num_points_before);
+  immUniformThemeColor(TH_PATH_KEYFRAME_AFTER);
+  draw_track_path_keyframe_points(path, position_attribute, path_center_index, num_points_after);
 
   if (path != path_static) {
     MEM_freeN(path);

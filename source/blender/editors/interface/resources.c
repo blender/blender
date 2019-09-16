@@ -779,6 +779,12 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_PATH_AFTER:
           cp = ts->path_after;
           break;
+        case TH_PATH_KEYFRAME_BEFORE:
+          cp = ts->path_keyframe_before;
+          break;
+        case TH_PATH_KEYFRAME_AFTER:
+          cp = ts->path_keyframe_after;
+          break;
         case TH_CAMERA_PATH:
           cp = ts->camera_path;
           break;

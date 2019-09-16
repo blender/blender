@@ -345,6 +345,7 @@ typedef struct ThemeSpace {
       lock_marker[4];
   unsigned char bundle_solid[4];
   unsigned char path_before[4], path_after[4];
+  unsigned char path_keyframe_before[4], path_keyframe_after[4];
   unsigned char camera_path[4];
   unsigned char _pad1[2];
 
