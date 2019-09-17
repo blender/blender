@@ -519,23 +519,23 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
   if (!tiny) {
     immUniformThemeColor(TH_MARKER_OUTLINE);
     if (TRACK_VIEW_SELECTED(sc, track)) {
-      glPointSize(5.0f);
+      GPU_point_size(5.0f);
       draw_track_path_points(path, position_attribute, path_start_index, num_all_points);
     }
     /* Draw darker outline for actual path, all line segments at once. */
-    glLineWidth(3.0f);
+    GPU_line_width(3.0f);
     draw_track_path_lines(path, position_attribute, path_start_index, num_all_points);
   }
 
   /* Draw all points. */
-  glPointSize(3.0f);
+  GPU_point_size(3.0f);
   immUniformThemeColor(TH_PATH_BEFORE);
   draw_track_path_points(path, position_attribute, path_start_index, num_points_before);
   immUniformThemeColor(TH_PATH_AFTER);
   draw_track_path_points(path, position_attribute, path_center_index, num_points_after);
 
   /* Connect points with color coded segments. */
-  glLineWidth(1);
+  GPU_line_width(1);
   immUniformThemeColor(TH_PATH_BEFORE);
   draw_track_path_lines(path, position_attribute, path_start_index, num_points_before);
   immUniformThemeColor(TH_PATH_AFTER);
