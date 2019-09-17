@@ -345,6 +345,10 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
     v3dn->shading.type = OB_SOLID;
   }
 
+  if (v3dn->shading.prop) {
+    v3dn->shading.prop = IDP_CopyProperty(v3do->shading.prop);
+  }
+
   /* copy or clear inside new stuff */
 
   v3dn->runtime.properties_storage = NULL;

@@ -318,6 +318,10 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
                                                             flag_subdata);
   }
 
+  if (sce_src->display.shading.prop) {
+    sce_dst->display.shading.prop = IDP_CopyProperty(sce_src->display.shading.prop);
+  }
+
   BKE_sound_reset_scene_runtime(sce_dst);
 
   /* Copy sequencer, this is local data! */

@@ -3856,13 +3856,36 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   {
     /* Versioning code until next subversion bump goes here. */
-
     if (!DNA_struct_elem_find(
             fd->filesdna, "LayerCollection", "short", "local_collections_bits")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
           LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
             do_versions_local_collection_bits_set(layer_collection);
+          }
+        }
+      }
+    }
+
+    /* Fix wrong 3D viewport copying causing corrupt pointers (T69974). */
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+        for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+          if (sl->spacetype == SPACE_VIEW3D) {
+            View3D *v3d = (View3D *)sl;
+
+            for (ScrArea *sa_other = screen->areabase.first; sa_other; sa_other = sa_other->next) {
+              for (SpaceLink *sl_other = sa_other->spacedata.first; sl_other;
+                   sl_other = sl_other->next) {
+                if (sl != sl_other && sl_other->spacetype == SPACE_VIEW3D) {
+                  View3D *v3d_other = (View3D *)sl_other;
+
+                  if (v3d->shading.prop == v3d_other->shading.prop) {
+                    v3d_other->shading.prop = NULL;
+                  }
+                }
+              }
+            }
           }
         }
       }
