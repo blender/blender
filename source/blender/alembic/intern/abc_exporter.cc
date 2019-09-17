@@ -263,7 +263,7 @@ void AbcExporter::getFrameSet(unsigned int nr_of_samples, std::set<double> &fram
   }
 }
 
-void AbcExporter::operator()(float *progress, bool *was_canceled)
+void AbcExporter::operator()(short *do_update, float *progress, bool *was_canceled)
 {
   std::string scene_name;
 
@@ -333,6 +333,7 @@ void AbcExporter::operator()(float *progress, bool *was_canceled)
 
   for (; begin != end; ++begin) {
     *progress = (++i / size);
+    *do_update = 1;
 
     if (G.is_break) {
       *was_canceled = true;
