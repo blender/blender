@@ -1191,7 +1191,13 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
 static void sculpt_geometry_preview_lines_draw(const uint gpuattr, SculptSession *ss)
 {
   immUniformColor4f(1.0f, 1.0f, 1.0f, 0.6f);
-  GPU_depth_test(true);
+
+  /* Cursor normally draws on top, but for this part we need depth tests. */
+  const bool depth_test = GPU_depth_test_enabled();
+  if (!depth_test) {
+    GPU_depth_test(true);
+  }
+
   GPU_line_width(1.0f);
   if (ss->preview_vert_index_count > 0) {
     immBegin(GPU_PRIM_LINES, ss->preview_vert_index_count);
@@ -1199,6 +1205,11 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr, SculptSession
       immVertex3fv(gpuattr, sculpt_vertex_co_get(ss, ss->preview_vert_index_list[i]));
     }
     immEnd();
+  }
+
+  /* Restore depth test value. */
+  if (!depth_test) {
+    GPU_depth_test(false);
   }
 }
 
