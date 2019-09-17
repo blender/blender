@@ -252,7 +252,11 @@ static void select_cache_populate(void *vedata, Object *ob)
       DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_faces, ob->obmat);
     }
     else if (ob->dt >= OB_SOLID) {
+#ifdef USE_CAGE_OCCLUSION
+      struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
+#else
       struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_surface(me);
+#endif
       DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_faces, ob->obmat);
     }
 

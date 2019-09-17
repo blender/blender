@@ -129,7 +129,11 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
   }
   else {
     if (ob->dt >= OB_SOLID) {
+#ifdef USE_CAGE_OCCLUSION
+      struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
+#else
       struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_surface(me);
+#endif
       DRWShadingGroup *face_shgrp = stl->g_data->shgrp_face_unif;
       DRW_shgroup_call_no_cull(face_shgrp, geom_faces, ob);
     }

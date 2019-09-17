@@ -23,6 +23,8 @@
 #ifndef __SELECT_PRIVATE_H__
 #define __SELECT_PRIVATE_H__
 
+#define USE_CAGE_OCCLUSION
+
 #include "DRW_render.h"
 
 /* GPUViewport.storage
