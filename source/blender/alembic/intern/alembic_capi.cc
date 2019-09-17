@@ -261,7 +261,7 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
     const int orig_frame = CFRA;
 
     data->was_canceled = false;
-    exporter(*data->progress, data->was_canceled);
+    exporter(progress, &data->was_canceled);
 
     if (CFRA != orig_frame) {
       CFRA = orig_frame;

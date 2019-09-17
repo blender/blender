@@ -104,7 +104,7 @@ class AbcExporter {
   AbcExporter(Main *bmain, const char *filename, ExportSettings &settings);
   ~AbcExporter();
 
-  void operator()(float &progress, bool &was_canceled);
+  void operator()(float *progress, bool *was_canceled);
 
  protected:
   void getShutterSamples(unsigned int nr_of_samples,
