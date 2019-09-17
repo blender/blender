@@ -436,7 +436,7 @@ static int track_to_path_segment(SpaceClip *sc,
   const MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, current_frame);
   /* Check whether there is marker at exact current frame.
    * If not, we don't have anything to be put to path. */
-  if (marker == NULL) {
+  if (marker == NULL || (marker->flag & MARKER_DISABLED)) {
     return 0;
   }
   /* Index inside of path array where we write data to. */
@@ -449,7 +449,7 @@ static int track_to_path_segment(SpaceClip *sc,
     point_index += direction;
     current_frame += direction;
     marker = BKE_tracking_marker_get_exact(track, current_frame);
-    if (marker == NULL) {
+    if (marker == NULL || (marker->flag & MARKER_DISABLED)) {
       /* Reached end of tracked segment. */
       break;
     }
