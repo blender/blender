@@ -73,6 +73,10 @@ static bool object_remesh_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
+  if (ob == NULL) {
+    return false;
+  }
+
   if (BKE_object_is_in_editmode(ob)) {
     CTX_wm_operator_poll_msg_set(C, "The voxel remesher cannot run from edit mode.");
     return false;
