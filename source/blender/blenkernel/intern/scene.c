@@ -1674,6 +1674,8 @@ double BKE_scene_unit_scale(const UnitSettings *unit, const int unit_type, doubl
 
   switch (unit_type) {
     case B_UNIT_LENGTH:
+    case B_UNIT_VELOCITY:
+    case B_UNIT_ACCELERATION:
       return value * (double)unit->scale_length;
     case B_UNIT_AREA:
     case B_UNIT_POWER:
