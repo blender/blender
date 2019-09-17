@@ -462,6 +462,9 @@ static void draw_track_path_points(const TrackPathPoint *path,
                                    const int start_point,
                                    const int num_points)
 {
+  if (num_points == 0) {
+    return;
+  }
   immBegin(GPU_PRIM_POINTS, num_points);
   for (int i = 0; i < num_points; i++) {
     const TrackPathPoint *point = &path[i + start_point];
