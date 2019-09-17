@@ -6969,8 +6969,19 @@ void sculpt_pbvh_clear(Object *ob)
   /* Clear out any existing DM and PBVH */
   if (ss->pbvh) {
     BKE_pbvh_free(ss->pbvh);
+    ss->pbvh = NULL;
   }
-  ss->pbvh = NULL;
+
+  if (ss->pmap) {
+    MEM_freeN(ss->pmap);
+    ss->pmap = NULL;
+  }
+
+  if (ss->pmap_mem) {
+    MEM_freeN(ss->pmap_mem);
+    ss->pmap_mem = NULL;
+  }
+
   BKE_object_free_derived_caches(ob);
 
   /* Tag to rebuild PBVH in depsgraph. */

@@ -992,9 +992,23 @@ static void sculptsession_free_pbvh(Object *object)
 {
   SculptSession *ss = object->sculpt;
 
-  if (ss && ss->pbvh) {
+  if (!ss) {
+    return;
+  }
+
+  if (ss->pbvh) {
     BKE_pbvh_free(ss->pbvh);
     ss->pbvh = NULL;
+  }
+
+  if (ss->pmap) {
+    MEM_freeN(ss->pmap);
+    ss->pmap = NULL;
+  }
+
+  if (ss->pmap_mem) {
+    MEM_freeN(ss->pmap_mem);
+    ss->pmap_mem = NULL;
   }
 }
 
@@ -1210,9 +1224,7 @@ static void sculpt_update_object(
   BLI_assert(pbvh == ss->pbvh);
   UNUSED_VARS_NDEBUG(pbvh);
 
-  MEM_SAFE_FREE(ss->pmap);
-  MEM_SAFE_FREE(ss->pmap_mem);
-  if (need_pmap && ob->type == OB_MESH) {
+  if (need_pmap && ob->type == OB_MESH && !ss->pmap) {
     BKE_mesh_vert_poly_map_create(
         &ss->pmap, &ss->pmap_mem, me->mpoly, me->mloop, me->totvert, me->totpoly, me->totloop);
   }

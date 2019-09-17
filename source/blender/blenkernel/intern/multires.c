@@ -422,9 +422,22 @@ void multires_force_sculpt_rebuild(Object *ob)
 {
   multires_flush_sculpt_updates(ob);
 
-  if (ob && ob->sculpt && ob->sculpt->pbvh != NULL) {
-    BKE_pbvh_free(ob->sculpt->pbvh);
-    ob->sculpt->pbvh = NULL;
+  if (ob && ob->sculpt) {
+    SculptSession *ss = ob->sculpt;
+    if (ss->pbvh) {
+      BKE_pbvh_free(ss->pbvh);
+      ob->sculpt->pbvh = NULL;
+    }
+
+    if (ss->pmap) {
+      MEM_freeN(ss->pmap);
+      ss->pmap = NULL;
+    }
+
+    if (ss->pmap_mem) {
+      MEM_freeN(ss->pmap_mem);
+      ss->pmap_mem = NULL;
+    }
   }
 }
 
