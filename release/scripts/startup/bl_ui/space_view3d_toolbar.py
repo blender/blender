@@ -649,6 +649,7 @@ class VIEW3D_PT_tools_brush_options(Panel, View3DPaintPanel):
             if capabilities.has_sculpt_plane:
                 col.prop(brush, "sculpt_plane")
                 col.prop(brush, "use_original_normal")
+                col.prop(brush, "use_original_plane")
 
             col.prop(brush, "use_frontface", text="Front Faces Only")
             col.prop(brush, "use_projected")

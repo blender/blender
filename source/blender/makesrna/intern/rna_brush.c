@@ -1978,6 +1978,14 @@ static void rna_def_brush(BlenderRNA *brna)
                            "When locked keep using normal of surface where stroke was initiated");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "use_original_plane", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ORIGINAL_PLANE);
+  RNA_def_property_ui_text(
+      prop,
+      "Original Plane",
+      "When locked keep using the plane origin of surface where stroke was initiated");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "use_automasking_topology", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_TOPOLOGY);
   RNA_def_property_ui_text(prop,
