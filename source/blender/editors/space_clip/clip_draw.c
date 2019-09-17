@@ -507,7 +507,16 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
   /* Collect path information. */
   const int num_points_before = track_to_path_segment(sc, track, -1, path);
   const int num_points_after = track_to_path_segment(sc, track, 1, path);
-  const int num_all_points = num_points_before + num_points_after - 1;
+  if (num_points_before == 0 && num_points_after == 0) {
+    return;
+  }
+
+  int num_all_points = num_points_before + num_points_after;
+  /* If both leading and trailing parts of the path are there the center point is counted twice. */
+  if (num_points_before != 0 && num_points_after != 0) {
+    num_all_points -= 1;
+  }
+
   const int path_start_index = count - num_points_before + 1;
   const int path_center_index = count;
 
