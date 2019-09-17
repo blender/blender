@@ -5916,12 +5916,21 @@ static void sculpt_update_cache_invariants(
 
   /* Make copies of the mesh vertex locations and normals for some tools */
   if (brush->flag & BRUSH_ANCHORED) {
-    cache->original = 1;
+    cache->original = true;
+  }
+
+  /* Draw sharp does not need the original coordinates to produce the accumulate effect, so it
+   * should work the opposite way. */
+  if (brush->sculpt_tool == SCULPT_TOOL_DRAW_SHARP) {
+    cache->original = true;
   }
 
   if (SCULPT_TOOL_HAS_ACCUMULATE(brush->sculpt_tool)) {
     if (!(brush->flag & BRUSH_ACCUMULATE)) {
-      cache->original = 1;
+      cache->original = true;
+      if (brush->sculpt_tool == SCULPT_TOOL_DRAW_SHARP) {
+        cache->original = false;
+      }
     }
   }
 
@@ -6452,7 +6461,7 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 
   ss = ob->sculpt;
   cache = ss->cache;
-  original = (cache) ? cache->original : 0;
+  original = (cache) ? cache->original : false;
 
   const Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 
