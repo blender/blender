@@ -1482,7 +1482,7 @@ static void rna_Node_draw_label(bNodeTree *ntree, bNode *node, char *label, int 
   node->typeinfo->ext.call(NULL, &ptr, func, &list);
 
   RNA_parameter_get_lookup(&list, "label", &ret);
-  rlabel = *(char **)ret;
+  rlabel = (char *)ret;
   BLI_strncpy(label, rlabel != NULL ? rlabel : "", maxlen);
 
   RNA_parameter_list_free(&list);
