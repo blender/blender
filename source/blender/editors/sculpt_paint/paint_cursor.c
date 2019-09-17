@@ -1263,7 +1263,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
   /* TODO: as sculpt and other paint modes are unified, this
    * special mode of drawing will go away */
-  if ((mode == PAINT_MODE_SCULPT) && vc.obact->sculpt) {
+  Object *obact = vc.obact;
+  if ((mode == PAINT_MODE_SCULPT) && obact && obact->sculpt) {
     float location[3];
     int pixel_radius;
 
@@ -1318,7 +1319,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
   /* Only sculpt mode cursor for now */
 
   /* Disable for PBVH_GRIDS */
-  SculptSession *ss = vc.obact->sculpt;
+  SculptSession *ss = obact ? obact->sculpt : NULL;
   bool is_multires = ss && ss->pbvh && BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS;
 
   if ((mode == PAINT_MODE_SCULPT) && ss && !is_multires &&
