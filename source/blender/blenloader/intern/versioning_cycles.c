@@ -813,10 +813,10 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
       copy_v3_v3(cycles_node_socket_vector_value(sockScale), mapping->size);
 
       bNode *maximumNode = NULL;
-      if (mapping->flag & TEXMAP_CLIP_MAX) {
+      if (mapping->flag & TEXMAP_CLIP_MIN) {
         maximumNode = nodeAddStaticNode(NULL, ntree, SH_NODE_VECTOR_MATH);
         maximumNode->custom1 = NODE_VECTOR_MATH_MAXIMUM;
-        if (mapping->flag & TEXMAP_CLIP_MIN) {
+        if (mapping->flag & TEXMAP_CLIP_MAX) {
           maximumNode->locx = node->locx + (node->width + 20.0f) * 2.0f;
         }
         else {
@@ -824,7 +824,7 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
         }
         maximumNode->locy = node->locy;
         bNodeSocket *sockMaximumB = BLI_findlink(&maximumNode->inputs, 1);
-        copy_v3_v3(cycles_node_socket_vector_value(sockMaximumB), mapping->max);
+        copy_v3_v3(cycles_node_socket_vector_value(sockMaximumB), mapping->min);
         bNodeSocket *sockMappingResult = nodeFindSocket(node, SOCK_OUT, "Vector");
 
         LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
@@ -834,7 +834,7 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
             nodeRemLink(ntree, link);
           }
         }
-        if (!(mapping->flag & TEXMAP_CLIP_MIN)) {
+        if (!(mapping->flag & TEXMAP_CLIP_MAX)) {
           bNodeSocket *sockMaximumA = BLI_findlink(&maximumNode->inputs, 0);
           nodeAddLink(ntree, node, sockMappingResult, maximumNode, sockMaximumA);
         }
@@ -843,13 +843,13 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
       }
 
       bNode *minimumNode = NULL;
-      if (mapping->flag & TEXMAP_CLIP_MIN) {
+      if (mapping->flag & TEXMAP_CLIP_MAX) {
         minimumNode = nodeAddStaticNode(NULL, ntree, SH_NODE_VECTOR_MATH);
         minimumNode->custom1 = NODE_VECTOR_MATH_MINIMUM;
         minimumNode->locx = node->locx + node->width + 20.0f;
         minimumNode->locy = node->locy;
         bNodeSocket *sockMinimumB = BLI_findlink(&minimumNode->inputs, 1);
-        copy_v3_v3(cycles_node_socket_vector_value(sockMinimumB), mapping->min);
+        copy_v3_v3(cycles_node_socket_vector_value(sockMinimumB), mapping->max);
 
         bNodeSocket *sockMinimumResult = nodeFindSocket(minimumNode, SOCK_OUT, "Vector");
         bNodeSocket *sockMappingResult = nodeFindSocket(node, SOCK_OUT, "Vector");
@@ -878,7 +878,6 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
       AnimData *animData = BKE_animdata_from_id(&ntree->id);
       if (animData && animData->action) {
         char *nodePath = BLI_sprintfN("nodes[\"%s\"]", node->name);
-
         for (FCurve *fcu = animData->action->curves.first; fcu; fcu = fcu->next) {
           if (STRPREFIX(fcu->rna_path, nodePath) &&
               !BLI_str_endswith(fcu->rna_path, "default_value")) {
@@ -893,11 +892,11 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
             else if (BLI_str_endswith(old_fcu_rna_path, "scale")) {
               fcu->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[3].default_value");
             }
-            else if (minimumNode && BLI_str_endswith(old_fcu_rna_path, "min")) {
+            else if (minimumNode && BLI_str_endswith(old_fcu_rna_path, "max")) {
               fcu->rna_path = BLI_sprintfN(
                   "nodes[\"%s\"].%s", minimumNode->name, "inputs[1].default_value");
             }
-            else if (maximumNode && BLI_str_endswith(old_fcu_rna_path, "max")) {
+            else if (maximumNode && BLI_str_endswith(old_fcu_rna_path, "min")) {
               fcu->rna_path = BLI_sprintfN(
                   "nodes[\"%s\"].%s", maximumNode->name, "inputs[1].default_value");
             }
