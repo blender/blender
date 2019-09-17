@@ -1080,11 +1080,11 @@ void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *me)
 {
   Mesh *old = NULL;
 
-  multires_force_update(ob);
-
   if (ob == NULL) {
     return;
   }
+
+  multires_force_sculpt_rebuild(ob);
 
   if (ob->type == OB_MESH) {
     old = ob->data;

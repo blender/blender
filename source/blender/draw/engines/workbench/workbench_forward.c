@@ -560,7 +560,8 @@ static void workbench_forward_cache_populate_texture_paint_mode(WORKBENCH_Data *
   const DRWContextState *draw_ctx = DRW_context_state_get();
 
   Scene *scene = draw_ctx->scene;
-  const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d);
+  const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
+                               !DRW_state_is_image_render();
   WORKBENCH_MaterialData *material;
 
   /* Force workbench to render active object textured when in texture paint mode */
@@ -635,7 +636,8 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 
   WORKBENCH_MaterialData *material;
   if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
-    const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d);
+    const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
+                                 !DRW_state_is_image_render();
     const int materials_len = MAX2(1, ob->totcol);
     const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
     const bool use_texture_paint_drawing = !(DRW_state_is_image_render() &&

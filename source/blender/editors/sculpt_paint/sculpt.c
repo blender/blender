@@ -1099,7 +1099,7 @@ static bool sculpt_brush_test_cyl(SculptBrushTest *test,
 static bool sculpt_automasking_enabled(SculptSession *ss, const Brush *br)
 {
   // REMOVE WITH PBVH_GRIDS
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+  if (ss->pbvh && BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
     return false;
   }
 
@@ -7529,13 +7529,11 @@ void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scen
   const int mode_flag = OB_MODE_SCULPT;
   Mesh *me = BKE_mesh_from_object(ob);
 
-  MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
-  if (mmd) {
-    multires_force_update(ob);
-  }
+  multires_flush_sculpt_updates(ob);
 
   /* Not needed for now. */
 #if 0
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
   const int flush_recalc = ed_object_sculptmode_flush_recalc_flag(scene, ob, mmd);
 #endif
 

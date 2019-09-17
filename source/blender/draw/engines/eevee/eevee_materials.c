@@ -1454,7 +1454,8 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
   Scene *scene = draw_ctx->scene;
   GHash *material_hash = stl->g_data->material_hash;
 
-  bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d);
+  bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
+                         !DRW_state_is_image_render();
 
   /* First get materials for this mesh. */
   if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {

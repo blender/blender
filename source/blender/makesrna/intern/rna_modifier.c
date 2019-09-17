@@ -915,7 +915,7 @@ static void rna_MultiresModifier_type_set(PointerRNA *ptr, int value)
   Object *ob = (Object *)ptr->owner_id;
   MultiresModifierData *mmd = (MultiresModifierData *)ptr->data;
 
-  multires_force_update(ob);
+  multires_force_sculpt_rebuild(ob);
   mmd->simple = value;
 }
 

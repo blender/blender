@@ -406,24 +406,24 @@ void multires_mark_as_modified(Depsgraph *depsgraph, Object *object, MultiresMod
   multires_ccg_mark_as_modified(subdiv_ccg, flags);
 }
 
-void multires_force_update(Object *ob)
+void multires_flush_sculpt_updates(Object *ob)
 {
-  if (ob == NULL) {
-    return;
-  }
-  SculptSession *sculpt_session = ob->sculpt;
-  if (sculpt_session != NULL && sculpt_session->pbvh != NULL) {
-    PBVH *pbvh = sculpt_session->pbvh;
-    if (BKE_pbvh_type(pbvh) == PBVH_GRIDS) {
+  if (ob && ob->sculpt && ob->sculpt->pbvh != NULL) {
+    SculptSession *sculpt_session = ob->sculpt;
+    if (BKE_pbvh_type(sculpt_session->pbvh) == PBVH_GRIDS) {
       Mesh *mesh = ob->data;
       multiresModifier_reshapeFromCCG(
           sculpt_session->multires->totlvl, mesh, sculpt_session->subdiv_ccg);
     }
-    else {
-      /* NOTE: Disabled for until OpenSubdiv is enabled by default. */
-      // BLI_assert(!"multires_force_update is used on non-grids PBVH");
-    }
-    BKE_pbvh_free(pbvh);
+  }
+}
+
+void multires_force_sculpt_rebuild(Object *ob)
+{
+  multires_flush_sculpt_updates(ob);
+
+  if (ob && ob->sculpt && ob->sculpt->pbvh != NULL) {
+    BKE_pbvh_free(ob->sculpt->pbvh);
     ob->sculpt->pbvh = NULL;
   }
 }
@@ -433,14 +433,7 @@ void multires_force_external_reload(Object *ob)
   Mesh *me = BKE_mesh_from_object(ob);
 
   CustomData_external_reload(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
-  multires_force_update(ob);
-}
-
-void multires_force_render_update(Object *ob)
-{
-  if (ob && (ob->mode & OB_MODE_SCULPT) && modifiers_findByType(ob, eModifierType_Multires)) {
-    multires_force_update(ob);
-  }
+  multires_force_sculpt_rebuild(ob);
 }
 
 /* reset the multires levels to match the number of mdisps */
@@ -624,7 +617,7 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
   mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
   gpm = CustomData_get_layer(&me->ldata, CD_GRID_PAINT_MASK);
 
-  multires_force_update(ob);
+  multires_force_sculpt_rebuild(ob);
 
   if (mdisps && levels > 0) {
     if (lvl > 0) {
@@ -689,7 +682,7 @@ void multiresModifier_del_levels(MultiresModifierData *mmd,
   CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
   mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
 
-  multires_force_update(ob);
+  multires_force_sculpt_rebuild(ob);
 
   if (mdisps && levels > 0 && direction == 1) {
     multires_del_higher(mmd, ob, lvl);
@@ -781,7 +774,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Scene *scene, Object
   float(*origco)[3];
   int i, j, k, offset, totlvl;
 
-  multires_force_update(ob);
+  multires_force_sculpt_rebuild(ob);
 
   me = BKE_mesh_from_object(ob);
   totlvl = mmd->totlvl;
@@ -928,7 +921,7 @@ static void multires_subdivide(
 
   BLI_assert(totlvl > lvl);
 
-  multires_force_update(ob);
+  multires_force_sculpt_rebuild(ob);
 
   mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
   if (!mdisps) {

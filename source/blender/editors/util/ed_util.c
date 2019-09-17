@@ -245,7 +245,7 @@ bool ED_editors_flush_edits(Main *bmain, bool for_render)
        * may cause a flush on saving: T53986. */
       if ((ob->sculpt && ob->sculpt->cache) == 0) {
         /* flush multires changes (for sculpt) */
-        multires_force_update(ob);
+        multires_flush_sculpt_updates(ob);
         has_edited = true;
 
         if (for_render) {

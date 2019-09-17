@@ -162,7 +162,8 @@ static void basic_cache_populate(void *vedata, Object *ob)
     }
   }
 
-  const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d);
+  const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
+                               !DRW_state_is_image_render();
   const bool do_cull = (draw_ctx->v3d &&
                         (draw_ctx->v3d->shading.flag & V3D_SHADING_BACKFACE_CULLING));
   DRWShadingGroup *shgrp = (do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp;

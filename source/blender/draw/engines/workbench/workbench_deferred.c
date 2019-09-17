@@ -945,7 +945,8 @@ static void workbench_cache_populate_texture_paint_mode(WORKBENCH_Data *vedata, 
   const DRWContextState *draw_ctx = DRW_context_state_get();
 
   Scene *scene = draw_ctx->scene;
-  const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d);
+  const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
+                               !DRW_state_is_image_render();
   WORKBENCH_MaterialData *material;
 
   /* Force workbench to render active object textured when in texture paint mode */

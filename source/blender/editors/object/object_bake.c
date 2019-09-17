@@ -371,7 +371,7 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 
     ob = base->object;
 
-    multires_force_update(ob);
+    multires_flush_sculpt_updates(ob);
 
     /* copy data stored in job descriptor */
     bkr.scene = scene;
@@ -435,7 +435,7 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 
     ob = base->object;
 
-    multires_force_update(ob);
+    multires_flush_sculpt_updates(ob);
 
     data = MEM_callocN(sizeof(MultiresBakerJobData), "multiresBaker derivedMesh_data");
 

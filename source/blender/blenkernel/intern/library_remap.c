@@ -389,7 +389,7 @@ static void libblock_remap_data_postprocess_obdata_relink(Main *bmain, Object *o
   if (ob->data == new_id) {
     switch (GS(new_id->name)) {
       case ID_ME:
-        multires_force_update(ob);
+        multires_force_sculpt_rebuild(ob);
         break;
       case ID_CU:
         BKE_curve_type_test(ob);
