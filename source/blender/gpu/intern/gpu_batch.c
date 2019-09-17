@@ -676,9 +676,12 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
   }
 
   /* Verify there is enough data do draw. */
-  BLI_assert(i_first + i_count <= (batch->inst ? batch->inst->vertex_len : INT_MAX));
-  BLI_assert(v_first + v_count <=
-             (batch->elem ? batch->elem->index_len : batch->verts[0]->vertex_len));
+  /* TODO(fclem) Nice to have but this is invalid when using procedural drawcalls.
+   * The right assert would be to check if there is an enabled attrib from each VBO
+   * and check their length. */
+  // BLI_assert(i_first + i_count <= (batch->inst ? batch->inst->vertex_len : INT_MAX));
+  // BLI_assert(v_first + v_count <=
+  //            (batch->elem ? batch->elem->index_len : batch->verts[0]->vertex_len));
 
   if (!GPU_arb_base_instance_is_supported()) {
     if (i_first > 0) {
