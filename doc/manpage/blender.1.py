@@ -34,7 +34,6 @@ import subprocess
 import sys
 
 import time
-import datetime
 
 
 def man_format(data):
@@ -52,11 +51,14 @@ outfilename = sys.argv[2]
 
 cmd = [blender_bin, "--help"]
 print("  executing:", " ".join(cmd))
-blender_help = subprocess.check_output(cmd).decode(encoding="utf-8")
-blender_version = subprocess.check_output([blender_bin, "--version"]).decode(encoding="utf-8").strip()
-blender_version = blender_version.split("build")[0].rstrip()
-blender_version = blender_version.partition(" ")[2]  # remove 'Blender' prefix.
-date_string = datetime.date.fromtimestamp(time.time()).strftime("%B %d, %Y")
+blender_help = subprocess.run(
+    cmd, env={"ASAN_OPTIONS": "exitcode=0"}, check=True, capture_output=True).stdout.decode(encoding="utf-8")
+blender_version = subprocess.run(
+    [blender_bin, "--version"], env={"ASAN_OPTIONS": "exitcode=0"}, check=True, capture_output=True).stdout.decode(encoding="utf-8").strip()
+blender_version, blender_date = blender_version.split("build")[0:2]
+blender_version = blender_version.rstrip().partition(" ")[2]  # remove 'Blender' prefix.
+blender_date = blender_date.strip().partition(" ")[2] # remove 'date:' prefix
+date_string = time.strftime("%B %d, %Y", time.strptime(blender_date, "%Y-%m-%d"))
 
 outfile = open(outfilename, "w")
 fw = outfile.write
