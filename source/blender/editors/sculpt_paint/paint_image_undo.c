@@ -272,26 +272,19 @@ void *image_undo_push_tile(ListBase *undo_tiles,
 void image_undo_remove_masks(void)
 {
   ListBase *undo_tiles = ED_image_undo_get_tiles();
-  UndoImageTile *tile;
-
-  for (tile = undo_tiles->first; tile; tile = tile->next) {
-    if (tile->mask) {
-      MEM_freeN(tile->mask);
-      tile->mask = NULL;
-    }
+  for (UndoImageTile *tile = undo_tiles->first; tile; tile = tile->next) {
+    MEM_SAFE_FREE(tile->mask);
   }
 }
 
 static void image_undo_restore_runtime(ListBase *lb)
 {
-  ImBuf *ibuf, *tmpibuf;
-  UndoImageTile *tile;
+  ImBuf *tmpibuf = IMB_allocImBuf(
+      IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat | IB_rect);
 
-  tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat | IB_rect);
-
-  for (tile = lb->first; tile; tile = tile->next) {
+  for (UndoImageTile *tile = lb->first; tile; tile = tile->next) {
     Image *ima = tile->image_ref.ptr;
-    ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 
     undo_copy_tile(tile, tmpibuf, ibuf, RESTORE);
 
@@ -316,7 +309,6 @@ static void image_undo_restore_list(ListBase *lb)
       IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat | IB_rect);
 
   for (UndoImageTile *tile = lb->first; tile; tile = tile->next) {
-
     Image *ima = tile->image_ref.ptr;
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 
@@ -369,21 +361,24 @@ static void image_undo_restore_list(ListBase *lb)
   IMB_freeImBuf(tmpibuf);
 }
 
+static void image_undo_free_tile(UndoImageTile *tile)
+{
+  MEM_freeN(tile->rect.pt);
+  MEM_freeN(tile);
+}
+
 static void image_undo_free_list(ListBase *lb)
 {
   for (UndoImageTile *tile = lb->first, *tile_next; tile; tile = tile_next) {
     tile_next = tile->next;
-    MEM_freeN(tile->rect.pt);
-    MEM_freeN(tile);
+    image_undo_free_tile(tile);
   }
 }
 
 static void image_undo_invalidate(void)
 {
-  UndoImageTile *tile;
   ListBase *lb = ED_image_undo_get_tiles();
-
-  for (tile = lb->first; tile; tile = tile->next) {
+  for (UndoImageTile *tile = lb->first; tile; tile = tile->next) {
     tile->valid = false;
   }
 }
@@ -444,10 +439,10 @@ static bool image_undosys_step_encode(struct bContext *C,
     /* first dispose of invalid tiles (may happen due to drag dot for instance) */
     for (UndoImageTile *tile = us->tiles.first; tile;) {
       if (!tile->valid) {
-        UndoImageTile *tmp_tile = tile->next;
-        MEM_freeN(tile->rect.pt);
-        BLI_freelinkN(&us->tiles, tile);
-        tile = tmp_tile;
+        UndoImageTile *tile_next = tile->next;
+        BLI_remlink(&us->tiles, tile);
+        image_undo_free_tile(tile);
+        tile = tile_next;
       }
       else {
         us->step.data_size += allocsize * (tile->use_float ? sizeof(float) : sizeof(char));
