@@ -2642,8 +2642,9 @@ bool EDBM_mesh_deselect_all_multi_ex(struct Base **bases, const uint bases_len)
 
 bool EDBM_mesh_deselect_all_multi(struct bContext *C)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc.view_layer, vc.v3d, &bases_len);
@@ -4219,7 +4220,8 @@ void MESH_OT_select_nth(wmOperatorType *ot)
 
 void em_setup_viewcontext(bContext *C, ViewContext *vc)
 {
-  ED_view3d_viewcontext_init(C, vc);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ED_view3d_viewcontext_init(C, vc, depsgraph);
 
   if (vc->obedit) {
     vc->em = BKE_editmesh_from_object(vc->obedit);

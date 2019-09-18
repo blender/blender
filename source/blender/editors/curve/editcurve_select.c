@@ -278,8 +278,9 @@ bool ED_curve_deselect_all_multi_ex(Base **bases, int bases_len)
 
 bool ED_curve_deselect_all_multi(struct bContext *C)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc.view_layer, vc.v3d, &bases_len);
@@ -684,6 +685,7 @@ void CURVE_OT_select_linked(wmOperatorType *ot)
 
 static int select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   Nurb *nu;
   BezTriple *bezt;
@@ -693,7 +695,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent 
   Base *basact = NULL;
 
   view3d_operator_needs_opengl(C);
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   copy_v2_v2_int(vc.mval, event->mval);
 
   if (!ED_curve_pick_vert(&vc, 1, &nu, &bezt, &bp, NULL, &basact)) {
@@ -1960,6 +1962,7 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
 
 static int edcu_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   Nurb *nu_dst;
   BezTriple *bezt_dst;
@@ -1969,7 +1972,7 @@ static int edcu_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
   Base *basact = NULL;
 
   view3d_operator_needs_opengl(C);
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   copy_v2_v2_int(vc.mval, event->mval);
 
   if (!ED_curve_pick_vert(&vc, 1, &nu_dst, &bezt_dst, &bp_dst, NULL, &basact)) {

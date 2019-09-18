@@ -6310,6 +6310,7 @@ bool sculpt_cursor_geometry_info_update(bContext *C,
                                         const float mouse[2],
                                         bool use_sampled_normal)
 {
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   Sculpt *sd = scene->toolsettings->sculpt;
   Object *ob;
@@ -6322,7 +6323,7 @@ bool sculpt_cursor_geometry_info_update(bContext *C,
   int totnode;
   bool original = false, hit = false;
 
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   ob = vc.obact;
   ss = ob->sculpt;
@@ -6422,6 +6423,7 @@ bool sculpt_cursor_geometry_info_update(bContext *C,
  */
 bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 {
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob;
   SculptSession *ss;
   StrokeCache *cache;
@@ -6429,7 +6431,7 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
   bool original;
   ViewContext vc;
 
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   ob = vc.obact;
 
@@ -7741,8 +7743,9 @@ static void sample_detail(bContext *C, int mx, int my)
   CTX_wm_area_set(C, sa);
   CTX_wm_region_set(C, ar);
 
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   /* Pick sample detail. */
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;

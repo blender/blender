@@ -693,13 +693,14 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
  * stiffness circle) */
 bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   static MetaElem *startelem = NULL;
   ViewContext vc;
   int a, hits;
   unsigned int buffer[MAXPICKBUF];
   rcti rect;
 
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   BLI_rcti_init_pt_radius(&rect, mval, 12);
 
@@ -835,8 +836,9 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 
 bool ED_mball_deselect_all_multi(bContext *C)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc.view_layer, vc.v3d, &bases_len);

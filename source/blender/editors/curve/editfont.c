@@ -2201,6 +2201,7 @@ void FONT_OT_unlink(wmOperatorType *ot)
 bool ED_curve_editfont_select_pick(
     bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obedit = CTX_data_edit_object(C);
   Curve *cu = obedit->data;
   ViewContext vc;
@@ -2212,7 +2213,7 @@ bool ED_curve_editfont_select_pick(
   const float dist = ED_view3d_select_dist_px();
   float dist_sq_best = dist * dist;
 
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 

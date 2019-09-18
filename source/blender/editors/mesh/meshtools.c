@@ -1110,7 +1110,8 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px,
     return false;
   }
 
-  ED_view3d_viewcontext_init(C, &vc);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   ED_view3d_select_id_validate(&vc);
 
   if (dist_px) {
@@ -1291,7 +1292,8 @@ bool ED_mesh_pick_vert(
     return false;
   }
 
-  ED_view3d_viewcontext_init(C, &vc);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   ED_view3d_select_id_validate(&vc);
 
   if (use_zbuf) {

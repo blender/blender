@@ -120,13 +120,13 @@ float ED_view3d_select_dist_px(void)
 }
 
 /* TODO: should return whether there is valid context to continue */
-void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc)
+void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc, Depsgraph *depsgraph)
 {
   memset(vc, 0, sizeof(ViewContext));
   vc->C = C;
   vc->ar = CTX_wm_region(C);
   vc->bmain = CTX_data_main(C);
-  vc->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  vc->depsgraph = depsgraph;
   vc->scene = CTX_data_scene(C);
   vc->view_layer = CTX_data_view_layer(C);
   vc->v3d = CTX_wm_view3d(C);
@@ -1344,11 +1344,12 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
   const int(*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
   if (mcords) {
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     view3d_operator_needs_opengl(C);
     BKE_object_update_select_id(CTX_data_main(C));
 
     /* setup view context for argument to callbacks */
-    ED_view3d_viewcontext_init(C, &vc);
+    ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
     eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
     bool changed_multi = view3d_lasso_select(C, &vc, mcords, mcords_tot, sel_op);
@@ -1889,6 +1890,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
 /* mval comes from event->mval, only use within region handlers */
 Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   Base *basact = NULL;
   uint buffer[MAXPICKBUF];
@@ -1897,7 +1899,7 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
   view3d_operator_needs_opengl(C);
   BKE_object_update_select_id(CTX_data_main(C));
 
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   const bool do_nearest = !XRAY_ACTIVE(vc.v3d);
   const int hits = mixed_bones_object_selectbuffer(
@@ -1955,9 +1957,10 @@ static bool ed_object_select_pick(bContext *C,
                                   bool enumerate,
                                   bool object)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   /* setup view context for argument to callbacks */
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   ARegion *ar = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
@@ -3203,6 +3206,7 @@ static bool do_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, const e
 
 static int view3d_box_select_exec(bContext *C, wmOperator *op)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   rcti rect;
   bool changed_multi = false;
@@ -3214,7 +3218,7 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
   BKE_object_update_select_id(CTX_data_main(C));
 
   /* setup view context for argument to callbacks */
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
   WM_operator_properties_border_to_rcti(op, &rect);
@@ -4004,6 +4008,7 @@ static bool object_circle_select(ViewContext *vc,
 /* not a real operator, only for circle test */
 static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   const int radius = RNA_int_get(op->ptr, "radius");
   const int mval[2] = {RNA_int_get(op->ptr, "x"), RNA_int_get(op->ptr, "y")};
@@ -4016,7 +4021,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = ED_select_op_modal(RNA_enum_get(op->ptr, "mode"),
                                               WM_gesture_is_modal_first(gesture));
 
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   Object *obact = vc.obact;
   Object *obedit = vc.obedit;

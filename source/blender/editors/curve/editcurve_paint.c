@@ -575,9 +575,10 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
   BLI_assert(op->customdata == NULL);
 
   struct CurveDrawData *cdd = MEM_callocN(sizeof(*cdd), __func__);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   if (is_invoke) {
-    ED_view3d_viewcontext_init(C, &cdd->vc);
+    ED_view3d_viewcontext_init(C, &cdd->vc, depsgraph);
     if (ELEM(NULL, cdd->vc.ar, cdd->vc.rv3d, cdd->vc.v3d, cdd->vc.win, cdd->vc.scene)) {
       MEM_freeN(cdd);
       BKE_report(op->reports, RPT_ERROR, "Unable to access 3D viewport");
@@ -586,7 +587,7 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
   }
   else {
     cdd->vc.bmain = CTX_data_main(C);
-    cdd->vc.depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    cdd->vc.depsgraph = depsgraph;
     cdd->vc.scene = CTX_data_scene(C);
     cdd->vc.view_layer = CTX_data_view_layer(C);
     cdd->vc.obedit = CTX_data_edit_object(C);

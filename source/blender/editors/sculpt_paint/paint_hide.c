@@ -299,13 +299,16 @@ static void rect_from_props(rcti *rect, PointerRNA *ptr)
   rect->ymax = RNA_int_get(ptr, "ymax");
 }
 
-static void clip_planes_from_rect(bContext *C, float clip_planes[4][4], const rcti *rect)
+static void clip_planes_from_rect(bContext *C,
+                                  Depsgraph *depsgraph,
+                                  float clip_planes[4][4],
+                                  const rcti *rect)
 {
   ViewContext vc;
   BoundBox bb;
 
   view3d_operator_needs_opengl(C);
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   ED_view3d_clipping_calc(&bb, clip_planes, vc.ar, vc.obact, rect);
   negate_m4(clip_planes);
 }
@@ -355,7 +358,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   area = RNA_enum_get(op->ptr, "area");
   rect_from_props(&rect, op->ptr);
 
-  clip_planes_from_rect(C, clip_planes, &rect);
+  clip_planes_from_rect(C, depsgraph, clip_planes, &rect);
 
   pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
   BLI_assert(ob->sculpt->pbvh == pbvh);

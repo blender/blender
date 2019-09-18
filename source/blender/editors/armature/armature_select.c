@@ -251,12 +251,13 @@ void *get_bone_from_selectbuffer(Base **bases,
 /* x and y are mouse coords (area space) */
 void *get_nearest_bone(bContext *C, const int xy[2], bool findunsel, Base **r_base)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   rcti rect;
   unsigned int buffer[MAXPICKBUF];
   short hits;
 
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   // rect.xmin = ... mouseco!
   rect.xmin = rect.xmax = xy[0];
@@ -648,8 +649,9 @@ bool ED_armature_edit_deselect_all_visible_multi_ex(struct Base **bases, uint ba
 
 bool ED_armature_edit_deselect_all_visible_multi(bContext *C)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc.view_layer, vc.v3d, &bases_len);
@@ -674,12 +676,13 @@ static int ebone_select_flag(EditBone *ebone)
 bool ED_armature_edit_select_pick(
     bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   EditBone *nearBone = NULL;
   int selmask;
   Base *basact = NULL;
 
-  ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
   vc.mval[0] = mval[0];
   vc.mval[1] = mval[1];
 

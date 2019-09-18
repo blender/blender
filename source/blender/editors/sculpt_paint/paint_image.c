@@ -467,12 +467,13 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 
 static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const float mouse[2])
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   ToolSettings *settings = scene->toolsettings;
   PaintOperation *pop = MEM_callocN(sizeof(PaintOperation), "PaintOperation"); /* caller frees */
   Brush *brush = BKE_paint_brush(&settings->imapaint.paint);
   int mode = RNA_enum_get(op->ptr, "mode");
-  ED_view3d_viewcontext_init(C, &pop->vc);
+  ED_view3d_viewcontext_init(C, &pop->vc, depsgraph);
 
   copy_v2_v2(pop->prevmouse, mouse);
   copy_v2_v2(pop->startmouse, mouse);
