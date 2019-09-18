@@ -2299,7 +2299,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     }
   }
 
-  if (t->options & CTX_SCULPT) {
+  if ((t->options & CTX_SCULPT) && !(t->options & CTX_PAINT_CURVE)) {
     ED_sculpt_end_transform(C);
   }
 
