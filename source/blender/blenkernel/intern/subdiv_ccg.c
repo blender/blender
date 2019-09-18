@@ -169,11 +169,11 @@ typedef struct CCGEvalGridsData {
   SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator;
 } CCGEvalGridsData;
 
-static void subdiv_ccg_eval_grid_element(CCGEvalGridsData *data,
-                                         const int ptex_face_index,
-                                         const float u,
-                                         const float v,
-                                         unsigned char *element)
+static void subdiv_ccg_eval_grid_element_limit(CCGEvalGridsData *data,
+                                               const int ptex_face_index,
+                                               const float u,
+                                               const float v,
+                                               unsigned char *element)
 {
   Subdiv *subdiv = data->subdiv;
   SubdivCCG *subdiv_ccg = data->subdiv_ccg;
@@ -191,16 +191,35 @@ static void subdiv_ccg_eval_grid_element(CCGEvalGridsData *data,
   else {
     BKE_subdiv_eval_limit_point(subdiv, ptex_face_index, u, v, (float *)element);
   }
-  if (subdiv_ccg->has_mask) {
-    float *mask_value_ptr = (float *)(element + subdiv_ccg->mask_offset);
-    if (data->mask_evaluator != NULL) {
-      *mask_value_ptr = data->mask_evaluator->eval_mask(
-          data->mask_evaluator, ptex_face_index, u, v);
-    }
-    else {
-      *mask_value_ptr = 0.0f;
-    }
+}
+
+static void subdiv_ccg_eval_grid_element_mask(CCGEvalGridsData *data,
+                                              const int ptex_face_index,
+                                              const float u,
+                                              const float v,
+                                              unsigned char *element)
+{
+  SubdivCCG *subdiv_ccg = data->subdiv_ccg;
+  if (!subdiv_ccg->has_mask) {
+    return;
   }
+  float *mask_value_ptr = (float *)(element + subdiv_ccg->mask_offset);
+  if (data->mask_evaluator != NULL) {
+    *mask_value_ptr = data->mask_evaluator->eval_mask(data->mask_evaluator, ptex_face_index, u, v);
+  }
+  else {
+    *mask_value_ptr = 0.0f;
+  }
+}
+
+static void subdiv_ccg_eval_grid_element(CCGEvalGridsData *data,
+                                         const int ptex_face_index,
+                                         const float u,
+                                         const float v,
+                                         unsigned char *element)
+{
+  subdiv_ccg_eval_grid_element_limit(data, ptex_face_index, u, v, element);
+  subdiv_ccg_eval_grid_element_mask(data, ptex_face_index, u, v, element);
 }
 
 static void subdiv_ccg_eval_regular_grid(CCGEvalGridsData *data, const int face_index)
