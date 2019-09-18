@@ -178,6 +178,12 @@ static void GPENCIL_create_framebuffers(void *vedata)
 
 static void GPENCIL_create_shaders(void)
 {
+  /* blank texture used if no texture defined for fill shader */
+  if (!e_data.gpencil_blank_texture) {
+    float rect[1][1][4] = {{{0.0f}}};
+    e_data.gpencil_blank_texture = DRW_texture_create_2d(
+        1, 1, GPU_RGBA8, DRW_TEX_FILTER, (float *)rect);
+  }
   /* normal fill shader */
   if (!e_data.gpencil_fill_sh) {
     e_data.gpencil_fill_sh = GPU_shader_create_from_arrays({
@@ -293,6 +299,8 @@ static void GPENCIL_engine_free(void)
   DRW_SHADER_FREE_SAFE(e_data.gpencil_background_sh);
   DRW_SHADER_FREE_SAFE(e_data.gpencil_paper_sh);
 
+  DRW_TEXTURE_FREE_SAFE(e_data.gpencil_blank_texture);
+
   /* effects */
   GPENCIL_delete_fx_shaders(&e_data);
 }
@@ -338,16 +346,10 @@ void GPENCIL_cache_init(void *vedata)
   stl->g_data->shgrps_edit_point = NULL;
 
   /* reset textures */
-  stl->g_data->gpencil_blank_texture = NULL;
   stl->g_data->batch_buffer_stroke = NULL;
   stl->g_data->batch_buffer_fill = NULL;
   stl->g_data->batch_buffer_ctrlpoint = NULL;
   stl->g_data->batch_grid = NULL;
-
-  /* blank texture used if no texture defined for fill shader */
-  float rect[1][1][4] = {{{0.0f}}};
-  stl->g_data->gpencil_blank_texture = DRW_texture_create_2d(
-      1, 1, GPU_RGBA8, DRW_TEX_FILTER, (float *)rect);
 
   if (!stl->shgroups) {
     /* Alloc maximum size because count strokes is very slow and can be very complex due onion
@@ -789,8 +791,6 @@ void DRW_gpencil_free_runtime_data(void *ved)
   GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 
   /* free gpu data */
-  DRW_TEXTURE_FREE_SAFE(stl->g_data->gpencil_blank_texture);
-
   GPU_BATCH_DISCARD_SAFE(stl->g_data->batch_buffer_stroke);
   MEM_SAFE_FREE(stl->g_data->batch_buffer_stroke);
 

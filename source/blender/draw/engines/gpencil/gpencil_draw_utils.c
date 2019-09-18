@@ -414,7 +414,8 @@ static void set_wireframe_color(Object *ob,
 }
 
 /* create shading group for filling */
-static DRWShadingGroup *gpencil_shgroup_fill_create(GPENCIL_Data *vedata,
+static DRWShadingGroup *gpencil_shgroup_fill_create(GPENCIL_e_data *e_data,
+                                                    GPENCIL_Data *vedata,
                                                     DRWPass *pass,
                                                     GPUShader *shader,
                                                     Object *ob,
@@ -543,7 +544,7 @@ static DRWShadingGroup *gpencil_shgroup_fill_create(GPENCIL_Data *vedata,
   }
   else {
     /* if no texture defined, need a blank texture to avoid errors in draw manager */
-    DRW_shgroup_uniform_texture(grp, "myTexture", stl->g_data->gpencil_blank_texture);
+    DRW_shgroup_uniform_texture(grp, "myTexture", e_data->gpencil_blank_texture);
     stl->shgroups[id].texture_clamp = 0;
     DRW_shgroup_uniform_int(grp, "texture_clamp", &stl->shgroups[id].texture_clamp, 1);
   }
@@ -563,7 +564,8 @@ bool gpencil_onion_active(bGPdata *gpd)
 }
 
 /* create shading group for strokes */
-DRWShadingGroup *gpencil_shgroup_stroke_create(GPENCIL_Data *vedata,
+DRWShadingGroup *gpencil_shgroup_stroke_create(GPENCIL_e_data *e_data,
+                                               GPENCIL_Data *vedata,
                                                DRWPass *pass,
                                                GPUShader *shader,
                                                Object *ob,
@@ -722,14 +724,15 @@ DRWShadingGroup *gpencil_shgroup_stroke_create(GPENCIL_Data *vedata,
   }
   else {
     /* if no texture defined, need a blank texture to avoid errors in draw manager */
-    DRW_shgroup_uniform_texture(grp, "myTexture", stl->g_data->gpencil_blank_texture);
+    DRW_shgroup_uniform_texture(grp, "myTexture", e_data->gpencil_blank_texture);
   }
 
   return grp;
 }
 
 /* create shading group for points */
-static DRWShadingGroup *gpencil_shgroup_point_create(GPENCIL_Data *vedata,
+static DRWShadingGroup *gpencil_shgroup_point_create(GPENCIL_e_data *e_data,
+                                                     GPENCIL_Data *vedata,
                                                      DRWPass *pass,
                                                      GPUShader *shader,
                                                      Object *ob,
@@ -894,7 +897,7 @@ static DRWShadingGroup *gpencil_shgroup_point_create(GPENCIL_Data *vedata,
   }
   else {
     /* if no texture defined, need a blank texture to avoid errors in draw manager */
-    DRW_shgroup_uniform_texture(grp, "myTexture", stl->g_data->gpencil_blank_texture);
+    DRW_shgroup_uniform_texture(grp, "myTexture", e_data->gpencil_blank_texture);
   }
 
   return grp;
@@ -1588,6 +1591,7 @@ void gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
       if (gpd->runtime.sbuffer_used > 1) {
         if ((gp_style) && (gp_style->mode == GP_STYLE_MODE_LINE)) {
           stl->g_data->shgrps_drawing_stroke = gpencil_shgroup_stroke_create(
+              e_data,
               vedata,
               psl->drawing_pass,
               e_data->gpencil_stroke_sh,
@@ -1613,6 +1617,7 @@ void gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
         }
         else {
           stl->g_data->shgrps_drawing_stroke = gpencil_shgroup_point_create(
+              e_data,
               vedata,
               psl->drawing_pass,
               e_data->gpencil_point_sh,
@@ -1800,7 +1805,8 @@ static void gpencil_shgroups_create(GPENCIL_e_data *e_data,
       case eGpencilBatchGroupType_Stroke: {
         const int len = elm->vertex_idx - start_stroke;
 
-        shgrp = gpencil_shgroup_stroke_create(vedata,
+        shgrp = gpencil_shgroup_stroke_create(e_data,
+                                              vedata,
                                               stroke_pass,
                                               e_data->gpencil_stroke_sh,
                                               ob,
@@ -1838,7 +1844,8 @@ static void gpencil_shgroups_create(GPENCIL_e_data *e_data,
       case eGpencilBatchGroupType_Point: {
         const int len = elm->vertex_idx - start_point;
 
-        shgrp = gpencil_shgroup_point_create(vedata,
+        shgrp = gpencil_shgroup_point_create(e_data,
+                                             vedata,
                                              stroke_pass,
                                              e_data->gpencil_point_sh,
                                              ob,
@@ -1865,7 +1872,8 @@ static void gpencil_shgroups_create(GPENCIL_e_data *e_data,
       case eGpencilBatchGroupType_Fill: {
         const int len = elm->vertex_idx - start_fill;
 
-        shgrp = gpencil_shgroup_fill_create(vedata,
+        shgrp = gpencil_shgroup_fill_create(e_data,
+                                            vedata,
                                             stroke_pass,
                                             e_data->gpencil_fill_sh,
                                             ob,

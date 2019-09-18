@@ -265,9 +265,6 @@ typedef struct g_data {
   /* grid geometry */
   GPUBatch *batch_grid;
 
-  /* textures */
-  struct GPUTexture *gpencil_blank_texture;
-
   /* runtime pointers texture */
   struct GPUTexture *input_depth_tx;
   struct GPUTexture *input_color_tx;
@@ -297,6 +294,9 @@ typedef enum eGPsession_Flag {
 } eGPsession_Flag;
 
 typedef struct GPENCIL_e_data {
+  /* textures */
+  struct GPUTexture *gpencil_blank_texture;
+
   /* general drawing shaders */
   struct GPUShader *gpencil_fill_sh;
   struct GPUShader *gpencil_stroke_sh;
@@ -386,7 +386,8 @@ typedef struct GpencilBatchCache {
 } GpencilBatchCache;
 
 /* general drawing functions */
-struct DRWShadingGroup *gpencil_shgroup_stroke_create(struct GPENCIL_Data *vedata,
+struct DRWShadingGroup *gpencil_shgroup_stroke_create(struct GPENCIL_e_data *e_data,
+                                                      struct GPENCIL_Data *vedata,
                                                       struct DRWPass *pass,
                                                       struct GPUShader *shader,
                                                       struct Object *ob,
