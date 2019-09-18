@@ -24,15 +24,12 @@
 #include "zlib.h"
 
 #include <limits.h>
-#include <stdio.h>   // for printf fopen fwrite fclose sprintf FILE
-#include <stdlib.h>  // for getenv atoi
-#include <stddef.h>  // for offsetof
-#include <fcntl.h>   // for open
-#include <string.h>  // for strrchr strncmp strstr
-#include <math.h>    // for fabs
-#include <stdarg.h>  /* for va_start/end */
-#include <time.h>    /* for gmtime */
-#include <ctype.h>   /* for isdigit */
+#include <stdlib.h> /* for atoi. */
+#include <stddef.h> /* for offsetof. */
+#include <fcntl.h>  /* for open flags (O_BINARY, O_RDONLY). */
+#include <stdarg.h> /* for va_start/end. */
+#include <time.h>   /* for gmtime. */
+#include <ctype.h>  /* for isdigit. */
 
 #include "BLI_utildefines.h"
 #ifndef WIN32
@@ -94,8 +91,6 @@
 #include "DNA_world_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
-
-#include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -179,7 +174,7 @@
  *     - read associated 'direct data'
  *     - link direct data (internal and to LibBlock)
  * - read #FileGlobal
- * - read #USER data, only when indicated (file is ``~/X.XX/startup.blend``)
+ * - read #USER data, only when indicated (file is `~/.config/blender/X.XX/config/userpref.blend`)
  * - free file
  * - per Library (per #Main)
  *   - read file
