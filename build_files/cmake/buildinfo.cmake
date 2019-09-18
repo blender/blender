@@ -145,22 +145,13 @@ if(EXISTS ${SOURCE_DIR}/.git)
   unset(_git_changed_files)
 endif()
 
-# BUILD_PLATFORM and BUILD_PLATFORM are taken from CMake
+# BUILD_PLATFORM is taken from CMake
 # but BUILD_DATE and BUILD_TIME are platform dependent
-if(UNIX)
-  if(NOT BUILD_DATE)
-    execute_process(COMMAND date "+%Y-%m-%d" OUTPUT_VARIABLE BUILD_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
-  endif()
-  if(NOT BUILD_TIME)
-    execute_process(COMMAND date "+%H:%M:%S" OUTPUT_VARIABLE BUILD_TIME OUTPUT_STRIP_TRAILING_WHITESPACE)
-  endif()
-elseif(WIN32)
-  if(NOT BUILD_DATE)
-    execute_process(COMMAND cmd /c date /t OUTPUT_VARIABLE BUILD_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
-  endif()
-  if(NOT BUILD_TIME)
-    execute_process(COMMAND cmd /c time /t OUTPUT_VARIABLE BUILD_TIME OUTPUT_STRIP_TRAILING_WHITESPACE)
-  endif()
+if(NOT BUILD_DATE)
+  STRING(TIMESTAMP BUILD_DATE "%Y-%m-%d" UTC)
+endif()
+if(NOT BUILD_TIME)
+  STRING(TIMESTAMP BUILD_TIME "%H:%M:%S" UTC)
 endif()
 
 # Write a file with the BUILD_HASH define
