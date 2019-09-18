@@ -36,10 +36,6 @@ uniform int baseInstance;
 #  ifdef IN_PLACE_INSTANCES
 /* When drawing instances of an object at the same position. */
 #    define instanceId 0
-#  elif defined(GPU_CRAPPY_AMD_DRIVER)
-/* NOTE: This does contain the baseInstance ofset */
-in int _instanceId;
-#    define instanceId (_instanceId - baseInstance)
 #  else
 #    define instanceId gl_InstanceID
 #  endif

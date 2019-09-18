@@ -447,34 +447,6 @@ static void create_bindings(GPUVertBuf *verts,
   }
 }
 
-static void instance_id_workaround(GPUBatch *batch)
-{
-  /**
-   * A driver bug make it so that when using an attribute with GL_INT_2_10_10_10_REV as format,
-   * the gl_InstanceID is incremented by the 2 bit component of the attrib. To workaround this,
-   * we create a new vertex attrib containing the expected value of gl_InstanceID.
-   **/
-  const GPUShaderInput *input = GPU_shaderinterface_attr(batch->interface, "_instanceId");
-  if (input) {
-#define DRW_RESOURCE_CHUNK_LEN 512 /* Keep in sync. */
-    static GLint vbo_id = 0;
-    if (vbo_id == 0) {
-      short data[DRW_RESOURCE_CHUNK_LEN];
-      for (int i = 0; i < DRW_RESOURCE_CHUNK_LEN; i++) {
-        data[i] = i;
-      }
-      /* GPU_context takes care of deleting `vbo_id` at the end. */
-      vbo_id = GPU_buf_alloc();
-      glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
-    }
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-    glEnableVertexAttribArray(input->location);
-    glVertexAttribIPointer(input->location, 1, GL_SHORT, 0, NULL);
-    glVertexAttribDivisor(input->location, 1);
-  }
-}
-
 static void batch_update_program_bindings(GPUBatch *batch, uint i_first)
 {
   /* Reverse order so first vbos have more prevalence (in term of attrib override). */
@@ -488,9 +460,6 @@ static void batch_update_program_bindings(GPUBatch *batch, uint i_first)
   }
   if (batch->elem) {
     GPU_indexbuf_use(batch->elem);
-  }
-  if (GPU_crappy_amd_driver()) {
-    instance_id_workaround(batch);
   }
 }
 
