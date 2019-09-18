@@ -78,12 +78,13 @@ static bool object_remesh_poll(bContext *C)
   }
 
   if (BKE_object_is_in_editmode(ob)) {
-    CTX_wm_operator_poll_msg_set(C, "The voxel remesher cannot run from edit mode.");
+    CTX_wm_operator_poll_msg_set(C, "The remesher cannot run from edit mode.");
     return false;
   }
 
   if (ob->mode == OB_MODE_SCULPT && ob->sculpt->bm) {
-    CTX_wm_operator_poll_msg_set(C, "The voxel remesher cannot run with dyntopo activated.");
+    CTX_wm_operator_poll_msg_set(C, "The remesher cannot run with dyntopo activated.");
+    return false;
   }
 
   return ED_operator_object_active_editable_mesh(C);
