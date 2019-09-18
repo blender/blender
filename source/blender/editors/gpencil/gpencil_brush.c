@@ -1463,7 +1463,7 @@ static bool gpsculpt_brush_poll(bContext *C)
 
 /* Init Sculpt Stroke ---------------------------------- */
 
-static void gpsculpt_brush_init_stroke(tGP_BrushEditData *gso)
+static void gpsculpt_brush_init_stroke(bContext *C, tGP_BrushEditData *gso)
 {
   bGPdata *gpd = gso->gpd;
 
@@ -1487,9 +1487,11 @@ static void gpsculpt_brush_init_stroke(tGP_BrushEditData *gso)
        * - This is useful when animating as it saves that "uh-oh" moment when you realize you've
        *   spent too much time editing the wrong frame.
        */
-      // XXX: should this be allowed when framelock is enabled?
       if (gpf->framenum != cfra) {
         BKE_gpencil_frame_addcopy(gpl, cfra);
+        /* Need tag to recalculate evaluated data to avoid crashes. */
+        DEG_id_tag_update(&gso->gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+        WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
       }
     }
   }
@@ -2079,7 +2081,7 @@ static int gpsculpt_brush_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     ARegion *ar = CTX_wm_region(C);
 
     /* ensure that we'll have a new frame to draw on */
-    gpsculpt_brush_init_stroke(gso);
+    gpsculpt_brush_init_stroke(C, gso);
 
     /* apply first dab... */
     gso->is_painting = true;
@@ -2194,7 +2196,7 @@ static int gpsculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent *even
         gso->is_painting = true;
         gso->first = true;
 
-        gpsculpt_brush_init_stroke(gso);
+        gpsculpt_brush_init_stroke(C, gso);
         gpsculpt_brush_apply_event(C, op, event);
         break;
 
