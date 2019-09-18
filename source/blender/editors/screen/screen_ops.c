@@ -4833,7 +4833,9 @@ static int userpref_show_invoke(bContext *C, wmOperator *op, const wmEvent *even
   int sizey = 520 * UI_DPI_FAC;
 
   /* changes context! */
-  if (WM_window_open_temp(C, event->x, event->y, sizex, sizey, WM_WINDOW_USERPREFS) != NULL) {
+  if (WM_window_open_temp(
+          C, IFACE_("Blender Preferences"), event->x, event->y, sizex, sizey, SPACE_USERPREF) !=
+      NULL) {
     /* The header only contains the editor switcher and looks empty.
      * So hiding in the temp window makes sense. */
     ScrArea *area = CTX_wm_area(C);
@@ -4882,7 +4884,11 @@ static int drivers_editor_show_invoke(bContext *C, wmOperator *op, const wmEvent
   but = UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   /* changes context! */
-  if (WM_window_open_temp(C, event->x, event->y, sizex, sizey, WM_WINDOW_DRIVERS) != NULL) {
+  if (WM_window_open_temp(
+          C, IFACE_("Blender Drivers Editor"), event->x, event->y, sizex, sizey, SPACE_GRAPH) !=
+      NULL) {
+    ED_drivers_editor_init(C, CTX_wm_area(C));
+
     /* activate driver F-Curve for the property under the cursor */
     if (but) {
       FCurve *fcu;
@@ -4938,7 +4944,9 @@ static int info_log_show_invoke(bContext *C, wmOperator *op, const wmEvent *even
   int shift_y = 480;
 
   /* changes context! */
-  if (WM_window_open_temp(C, event->x, event->y + shift_y, sizex, sizey, WM_WINDOW_INFO) != NULL) {
+  if (WM_window_open_temp(
+          C, IFACE_("Blender Info Log"), event->x, event->y + shift_y, sizex, sizey, SPACE_INFO) !=
+      NULL) {
     return OPERATOR_FINISHED;
   }
   else {

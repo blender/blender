@@ -4044,6 +4044,20 @@ static void rna_def_userdef_view(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem temp_space_display_types[] = {
+      {USER_TEMP_SPACE_DISPLAY_FULLSCREEN,
+       "SCREEN", /* Could be FULLSCREEN, but keeping it consistent with render_display_types */
+       0,
+       "Full Screen",
+       "Open the temporary editor in a maximized screen"},
+      {USER_TEMP_SPACE_DISPLAY_WINDOW,
+       "WINDOW",
+       0,
+       "New Window",
+       "Open the temporary editor in a new window"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   PropertyRNA *prop;
   StructRNA *srna;
 

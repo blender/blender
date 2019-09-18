@@ -238,6 +238,14 @@ struct ScrArea *ED_screen_state_toggle(struct bContext *C,
                                        struct wmWindow *win,
                                        struct ScrArea *sa,
                                        const short state);
+ScrArea *ED_screen_temp_space_open(struct bContext *C,
+                                   const char *title,
+                                   int x,
+                                   int y,
+                                   int sizex,
+                                   int sizey,
+                                   eSpace_Type space_type,
+                                   int display_type);
 void ED_screens_header_tools_menu_create(struct bContext *C, struct uiLayout *layout, void *arg);
 void ED_screens_footer_tools_menu_create(struct bContext *C, struct uiLayout *layout, void *arg);
 void ED_screens_navigation_bar_tools_menu_create(struct bContext *C,

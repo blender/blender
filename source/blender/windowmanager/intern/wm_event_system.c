@@ -58,6 +58,8 @@
 
 #include "BKE_sound.h"
 
+#include "BLT_translation.h"
+
 #include "ED_fileselect.h"
 #include "ED_info.h"
 #include "ED_screen.h"
@@ -2346,11 +2348,12 @@ static int wm_handler_fileselect_do(bContext *C,
       const int sizey = 600 * UI_DPI_FAC;
 
       if (WM_window_open_temp(C,
+                              IFACE_("Blender File View"),
                               WM_window_pixels_x(win) / 2,
                               WM_window_pixels_y(win) / 2,
                               sizex,
                               sizey,
-                              WM_WINDOW_FILESEL) != NULL) {
+                              SPACE_FILE) != NULL) {
         ScrArea *area = CTX_wm_area(C);
         ARegion *region_header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 

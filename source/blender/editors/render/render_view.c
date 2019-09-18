@@ -36,6 +36,8 @@
 #include "BKE_screen.h"
 #include "BKE_report.h"
 
+#include "BLT_translation.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -154,7 +156,8 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
     }
 
     /* changes context! */
-    if (WM_window_open_temp(C, mx, my, sizex, sizey, WM_WINDOW_RENDER) == NULL) {
+    if (WM_window_open_temp(C, IFACE_("Blender Render"), mx, my, sizex, sizey, SPACE_IMAGE) ==
+        NULL) {
       BKE_report(reports, RPT_ERROR, "Failed to open window!");
       return NULL;
     }

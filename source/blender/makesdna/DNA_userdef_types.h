@@ -1202,6 +1202,11 @@ typedef enum eUserpref_FactorDisplay {
   USER_FACTOR_AS_PERCENTAGE = 1,
 } eUserpref_FactorDisplay;
 
+typedef enum eUserpref_TempSpaceDisplayType {
+  USER_TEMP_SPACE_DISPLAY_FULLSCREEN,
+  USER_TEMP_SPACE_DISPLAY_WINDOW,
+} eUserpref_TempSpaceDisplayType;
+
 #ifdef __cplusplus
 }
 #endif
