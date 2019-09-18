@@ -615,13 +615,16 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
     BKE_addon_remove_safe(&userdef->addons, "io_scene_x3d");
   }
 
+  if (!USER_VERSION_ATLEAST(281, 12)) {
+    userdef->render_display_type = USER_RENDER_DISPLAY_WINDOW;
+    userdef->filebrowser_display_type = USER_TEMP_SPACE_DISPLAY_WINDOW;
+  }
+
   /**
    * Include next version bump.
    */
   {
     /* pass */
-    userdef->render_display_type = USER_RENDER_DISPLAY_WINDOW;
-    userdef->filebrowser_display_type = USER_TEMP_SPACE_DISPLAY_WINDOW;
   }
 
   if (userdef->pixelsize == 0.0f) {
