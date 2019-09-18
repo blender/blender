@@ -82,7 +82,7 @@ is a full-featured 3D application. It supports the entirety of the 3D pipeline -
 
 Use Blender to create 3D images and animations, films and commercials, content for games, architectural and industrial visualizatons, and scientific visualizations.
 
-http://www.blender.org''')
+https://www.blender.org''')
 
 fw('''
 .SH OPTIONS''')
