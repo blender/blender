@@ -4044,6 +4044,29 @@ static void rna_def_userdef_view(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem render_display_types[] = {
+      {USER_RENDER_DISPLAY_NONE,
+       "NONE",
+       0,
+       "Keep User Interface",
+       "Images are rendered without changing the user interface"},
+      {USER_RENDER_DISPLAY_SCREEN,
+       "SCREEN",
+       0,
+       "Full Screen",
+       "Images are rendered in a maximized Image Editor"},
+      {USER_RENDER_DISPLAY_AREA,
+       "AREA",
+       0,
+       "Image Editor",
+       "Images are rendered in an Image Editor"},
+      {USER_RENDER_DISPLAY_WINDOW,
+       "WINDOW",
+       0,
+       "New Window",
+       "Images are rendered in a new window"},
+      {0, NULL, 0, NULL, NULL},
+  };
   static const EnumPropertyItem temp_space_display_types[] = {
       {USER_TEMP_SPACE_DISPLAY_FULLSCREEN,
        "SCREEN", /* Could be FULLSCREEN, but keeping it consistent with render_display_types */
@@ -4281,6 +4304,11 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "uiflag");
   RNA_def_property_ui_text(prop, "Header Position", "Default header position for new space-types");
   RNA_def_property_update(prop, 0, "rna_userdef_screen_update_header_default");
+
+  prop = RNA_def_property(srna, "render_display_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, render_display_types);
+  RNA_def_property_ui_text(
+      prop, "Render Display Type", "Default location where rendered images will be displayed in");
 
   static const EnumPropertyItem text_hinting_items[] = {
       {0, "AUTO", 0, "Auto", ""},

@@ -465,7 +465,6 @@ class TOPBAR_MT_render(Menu):
 
         layout.operator("render.view_show", text="View Render")
         layout.operator("render.play_rendered_anim", text="View Animation")
-        layout.prop_menu_enum(rd, "display_mode", text="Display Mode")
 
         layout.separator()
 

@@ -814,7 +814,8 @@ typedef struct UserDef {
 
   char viewport_aa;
 
-  char _pad5[6];
+  char render_display_type;      /* eUserpref_RenderDisplayType */
+  char _pad5[5];
 
   struct WalkNavigation walk_navigation;
 
@@ -1201,6 +1202,13 @@ typedef enum eUserpref_FactorDisplay {
   USER_FACTOR_AS_FACTOR = 0,
   USER_FACTOR_AS_PERCENTAGE = 1,
 } eUserpref_FactorDisplay;
+
+typedef enum eUserpref_RenderDisplayType {
+  USER_RENDER_DISPLAY_NONE = 0,
+  USER_RENDER_DISPLAY_SCREEN = 1,
+  USER_RENDER_DISPLAY_AREA = 2,
+  USER_RENDER_DISPLAY_WINDOW = 3
+} eUserpref_RenderDisplayType;
 
 typedef enum eUserpref_TempSpaceDisplayType {
   USER_TEMP_SPACE_DISPLAY_FULLSCREEN,

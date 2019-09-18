@@ -265,6 +265,25 @@ class USERPREF_PT_interface_editors(PreferencePanel, Panel):
         flow.prop(view, "factor_display_type")
 
 
+class USERPREF_PT_interface_temporary_windows(PreferencePanel, Panel):
+    bl_label = "Temporary Windows"
+    bl_parent_id = "USERPREF_PT_interface_editors"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        prefs = context.preferences
+        return (prefs.active_section == 'INTERFACE')
+
+    def draw_props(self, context, layout):
+        prefs = context.preferences
+        view = prefs.view
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+
+        flow.prop(view, "render_display_type", text="Render in")
+
+
 class USERPREF_PT_interface_menus(Panel):
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -2119,6 +2138,7 @@ classes = (
 
     USERPREF_PT_interface_display,
     USERPREF_PT_interface_editors,
+    USERPREF_PT_interface_temporary_windows,
     USERPREF_PT_interface_translation,
     USERPREF_PT_interface_text,
     USERPREF_PT_interface_menus,

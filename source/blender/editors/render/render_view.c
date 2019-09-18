@@ -139,11 +139,11 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
   SpaceImage *sima;
   bool area_was_image = false;
 
-  if (scene->r.displaymode == R_OUTPUT_NONE) {
+  if (U.render_display_type == USER_RENDER_DISPLAY_NONE) {
     return NULL;
   }
 
-  if (scene->r.displaymode == R_OUTPUT_WINDOW) {
+  if (U.render_display_type == USER_RENDER_DISPLAY_WINDOW) {
     int sizex = 30 * UI_DPI_FAC + (scene->r.xsch * scene->r.size) / 100;
     int sizey = 60 * UI_DPI_FAC + (scene->r.ysch * scene->r.size) / 100;
 
@@ -164,7 +164,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 
     sa = CTX_wm_area(C);
   }
-  else if (scene->r.displaymode == R_OUTPUT_SCREEN) {
+  else if (U.render_display_type == USER_RENDER_DISPLAY_SCREEN) {
     sa = CTX_wm_area(C);
 
     /* if the active screen is already in fullscreen mode, skip this and
