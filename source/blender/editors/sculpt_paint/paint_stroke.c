@@ -807,7 +807,7 @@ static int paint_space_stroke(bContext *C,
   while (length > 0.0f) {
     float spacing = paint_space_stroke_spacing_variable(
         C, scene, stroke, pressure, dpressure, length);
-    float mouse[2];
+    float mouse[3];
 
     if (length >= spacing) {
       if (use_scene_spacing) {
