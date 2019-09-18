@@ -2399,7 +2399,7 @@ void createTransData(bContext *C, TransInfo *t)
     }
     countAndCleanTransDataContainer(t);
   }
-  else if (t->options & CTX_SCULPT) {
+  else if ((t->options & CTX_SCULPT) && !(t->options & CTX_PAINT_CURVE)) {
     createTransSculpt(t);
     countAndCleanTransDataContainer(t);
   }
