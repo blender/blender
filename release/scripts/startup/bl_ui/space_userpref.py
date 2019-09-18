@@ -282,6 +282,7 @@ class USERPREF_PT_interface_temporary_windows(PreferencePanel, Panel):
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
         flow.prop(view, "render_display_type", text="Render in")
+        flow.prop(view, "filebrowser_display_type", text="File Browser")
 
 
 class USERPREF_PT_interface_menus(Panel):

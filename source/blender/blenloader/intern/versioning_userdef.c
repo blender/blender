@@ -621,6 +621,7 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
   {
     /* pass */
     userdef->render_display_type = USER_RENDER_DISPLAY_WINDOW;
+    userdef->filebrowser_display_type = USER_TEMP_SPACE_DISPLAY_WINDOW;
   }
 
   if (userdef->pixelsize == 0.0f) {

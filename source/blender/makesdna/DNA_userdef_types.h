@@ -815,7 +815,8 @@ typedef struct UserDef {
   char viewport_aa;
 
   char render_display_type;      /* eUserpref_RenderDisplayType */
-  char _pad5[5];
+  char filebrowser_display_type; /* eUserpref_TempSpaceDisplayType */
+  char _pad5[4];
 
   struct WalkNavigation walk_navigation;
 

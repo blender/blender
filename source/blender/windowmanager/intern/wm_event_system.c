@@ -2346,15 +2346,16 @@ static int wm_handler_fileselect_do(bContext *C,
       wmWindow *win = CTX_wm_window(C);
       const int sizex = 1020 * UI_DPI_FAC;
       const int sizey = 600 * UI_DPI_FAC;
+      ScrArea *area;
 
-      if (WM_window_open_temp(C,
-                              IFACE_("Blender File View"),
-                              WM_window_pixels_x(win) / 2,
-                              WM_window_pixels_y(win) / 2,
-                              sizex,
-                              sizey,
-                              SPACE_FILE) != NULL) {
-        ScrArea *area = CTX_wm_area(C);
+      if ((area = ED_screen_temp_space_open(C,
+                                            IFACE_("Blender File View"),
+                                            WM_window_pixels_x(win) / 2,
+                                            WM_window_pixels_y(win) / 2,
+                                            sizex,
+                                            sizey,
+                                            SPACE_FILE,
+                                            U.filebrowser_display_type))) {
         ARegion *region_header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 
         BLI_assert(area->spacetype == SPACE_FILE);
@@ -2393,17 +2394,18 @@ static int wm_handler_fileselect_do(bContext *C,
         }
       }
       else {
-        for (wmWindow *win = wm->windows.first; win; win = win->next) {
-          if (WM_window_is_temp_screen(win)) {
-            bScreen *screen = WM_window_get_active_screen(win);
-            ScrArea *file_sa = screen->areabase.first;
+        wmWindow *temp_win;
+        ScrArea *ctx_sa = CTX_wm_area(C);
 
-            BLI_assert(file_sa->spacetype == SPACE_FILE);
+        for (temp_win = wm->windows.first; temp_win; temp_win = temp_win->next) {
+          bScreen *screen = WM_window_get_active_screen(temp_win);
+          ScrArea *file_sa = screen->areabase.first;
 
+          if (screen->temp && (file_sa->spacetype == SPACE_FILE)) {
             if (BLI_listbase_is_single(&file_sa->spacedata)) {
-              BLI_assert(ctx_win != win);
+              BLI_assert(ctx_win != temp_win);
 
-              wm_window_close(C, wm, win);
+              wm_window_close(C, wm, temp_win);
 
               CTX_wm_window_set(C, ctx_win);  // wm_window_close() NULLs.
               /* Some operators expect a drawable context (for EVT_FILESELECT_EXEC) */
@@ -2412,7 +2414,7 @@ static int wm_handler_fileselect_do(bContext *C,
                * opening (UI_BLOCK_MOVEMOUSE_QUIT) */
               wm_get_cursor_position(ctx_win, &ctx_win->eventstate->x, &ctx_win->eventstate->y);
               wm->winactive = ctx_win; /* Reports use this... */
-              if (handler->context.win == win) {
+              if (handler->context.win == temp_win) {
                 handler->context.win = NULL;
               }
             }
@@ -2425,6 +2427,10 @@ static int wm_handler_fileselect_do(bContext *C,
 
             break;
           }
+        }
+
+        if (!temp_win && ctx_sa->full) {
+          ED_screen_full_prevspace(C, ctx_sa);
         }
       }
 
@@ -3539,14 +3545,49 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
+  const bool is_temp_screen = WM_window_is_temp_screen(win);
   /* Don't add the file handler to the temporary window, or else it owns the handlers for itself,
    * causing dangling pointers once it's destructed through a handler. It has a parent which should
    * hold the handlers itself. */
-  ListBase *modalhandlers = WM_window_is_temp_screen(win) ? &win->parent->modalhandlers :
-                                                            &win->modalhandlers;
+  ListBase *modalhandlers = is_temp_screen ? &win->parent->modalhandlers : &win->modalhandlers;
 
   /* Close any popups, like when opening a file browser from the splash. */
   UI_popup_handlers_remove_all(C, modalhandlers);
+
+  if (!is_temp_screen) {
+    /* only allow 1 file selector open per window */
+    LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, modalhandlers) {
+      if (handler_base->type == WM_HANDLER_TYPE_OP) {
+        wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
+        if (handler->is_fileselect == false) {
+          continue;
+        }
+        bScreen *screen = CTX_wm_screen(C);
+        bool cancel_handler = true;
+
+        /* find the area with the file selector for this handler */
+        ED_screen_areas_iter(win, screen, sa)
+        {
+          if (sa->spacetype == SPACE_FILE) {
+            SpaceFile *sfile = sa->spacedata.first;
+
+            if (sfile->op == handler->op) {
+              CTX_wm_area_set(C, sa);
+              wm_handler_fileselect_do(C, &win->modalhandlers, handler, EVT_FILESELECT_CANCEL);
+              cancel_handler = false;
+              break;
+            }
+          }
+        }
+
+        /* if not found we stop the handler without changing the screen */
+        if (cancel_handler) {
+          wm_handler_fileselect_do(
+              C, &win->modalhandlers, handler, EVT_FILESELECT_EXTERNAL_CANCEL);
+        }
+      }
+    }
+  }
 
   wmEventHandler_Op *handler = MEM_callocN(sizeof(*handler), __func__);
   handler->head.type = WM_HANDLER_TYPE_OP;
