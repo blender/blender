@@ -246,7 +246,7 @@ void BKE_cachefile_eval(Main *bmain, Depsgraph *depsgraph, CacheFile *cache_file
   BLI_freelistN(&cache_file->object_paths);
 
 #ifdef WITH_ALEMBIC
-  cache_file->handle = ABC_create_handle(filepath, &cache_file->object_paths);
+  cache_file->handle = ABC_create_handle(bmain, filepath, &cache_file->object_paths);
   BLI_strncpy(cache_file->handle_filepath, filepath, FILE_MAX);
 #endif
 

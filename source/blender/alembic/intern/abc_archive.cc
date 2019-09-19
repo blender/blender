@@ -24,6 +24,10 @@
 #include "abc_archive.h"
 extern "C" {
 #include "BKE_blender_version.h"
+#include "BKE_main.h"
+
+#include "BLI_path_util.h"
+#include "BLI_string.h"
 }
 
 #ifdef WIN32
@@ -95,20 +99,24 @@ static IArchive open_archive(const std::string &filename,
   return IArchive();
 }
 
-ArchiveReader::ArchiveReader(const char *filename)
+ArchiveReader::ArchiveReader(struct Main *bmain, const char *filename)
 {
+  char abs_filename[FILE_MAX];
+  BLI_strncpy(abs_filename, filename, FILE_MAX);
+  BLI_path_abs(abs_filename, BKE_main_blendfile_path(bmain));
+
 #ifdef WIN32
-  UTF16_ENCODE(filename);
+  UTF16_ENCODE(abs_filename);
   std::wstring wstr(filename_16);
   m_infile.open(wstr.c_str(), std::ios::in | std::ios::binary);
-  UTF16_UN_ENCODE(filename);
+  UTF16_UN_ENCODE(abs_filename);
 #else
-  m_infile.open(filename, std::ios::in | std::ios::binary);
+  m_infile.open(abs_filename, std::ios::in | std::ios::binary);
 #endif
 
   m_streams.push_back(&m_infile);
 
-  m_archive = open_archive(filename, m_streams, m_is_hdf5);
+  m_archive = open_archive(abs_filename, m_streams, m_is_hdf5);
 
   /* We can't open an HDF5 file from a stream, so close it. */
   if (m_is_hdf5) {

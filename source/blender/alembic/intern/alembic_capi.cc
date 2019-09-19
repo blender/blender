@@ -173,9 +173,11 @@ static bool gather_objects_paths(const IObject &object, ListBase *object_paths)
   return parent_is_part_of_this_object;
 }
 
-AbcArchiveHandle *ABC_create_handle(const char *filename, ListBase *object_paths)
+AbcArchiveHandle *ABC_create_handle(struct Main *bmain,
+                                    const char *filename,
+                                    ListBase *object_paths)
 {
-  ArchiveReader *archive = new ArchiveReader(filename);
+  ArchiveReader *archive = new ArchiveReader(bmain, filename);
 
   if (!archive->valid()) {
     delete archive;
@@ -650,7 +652,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 
   WM_set_locked_interface(data->wm, true);
 
-  ArchiveReader *archive = new ArchiveReader(data->filename);
+  ArchiveReader *archive = new ArchiveReader(data->bmain, data->filename);
 
   if (!archive->valid()) {
 #ifndef WITH_ALEMBIC_HDF5
