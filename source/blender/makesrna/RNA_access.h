@@ -392,6 +392,7 @@ extern StructRNA RNA_Mesh;
 extern StructRNA RNA_MeshCacheModifier;
 extern StructRNA RNA_MeshColor;
 extern StructRNA RNA_MeshColorLayer;
+extern StructRNA RNA_MeshLoopColor;
 extern StructRNA RNA_MeshDeformModifier;
 extern StructRNA RNA_MeshEdge;
 extern StructRNA RNA_MeshFloatProperty;
