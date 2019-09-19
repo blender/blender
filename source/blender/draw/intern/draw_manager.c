@@ -2442,8 +2442,38 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
 /**
  * object mode select-loop, see: ED_view3d_draw_depth_loop (legacy drawing).
  */
-static void drw_draw_depth_loop_imp(void)
+static void drw_draw_depth_loop_imp(struct Depsgraph *depsgraph,
+                                    ARegion *ar,
+                                    View3D *v3d,
+                                    GPUViewport *viewport,
+                                    const bool use_opengl_context)
 {
+  Scene *scene = DEG_get_evaluated_scene(depsgraph);
+  RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
+  ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
+  RegionView3D *rv3d = ar->regiondata;
+
+  if (use_opengl_context) {
+    DRW_opengl_context_enable();
+  }
+
+  DST.viewport = viewport;
+  DST.options.is_depth = true;
+
+  /* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
+  DST.draw_ctx = (DRWContextState){
+      .ar = ar,
+      .rv3d = rv3d,
+      .v3d = v3d,
+      .scene = scene,
+      .view_layer = view_layer,
+      .obact = OBACT(view_layer),
+      .engine_type = engine_type,
+      .depsgraph = depsgraph,
+  };
+
+  drw_engines_data_validate();
+
   /* Setup framebuffer */
   DefaultFramebufferList *fbl = (DefaultFramebufferList *)GPU_viewport_framebuffer_list_get(
       DST.viewport);
@@ -2501,54 +2531,6 @@ static void drw_draw_depth_loop_imp(void)
   /* TODO: Reading depth for operators should be done here. */
 
   GPU_framebuffer_restore();
-}
-
-/**
- * object mode select-loop, see: ED_view3d_draw_depth_loop (legacy drawing).
- */
-void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
-                         ARegion *ar,
-                         View3D *v3d,
-                         GPUViewport *viewport,
-                         bool use_opengl_context)
-{
-  Scene *scene = DEG_get_evaluated_scene(depsgraph);
-  RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
-  ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-  RegionView3D *rv3d = ar->regiondata;
-
-  if (use_opengl_context) {
-    DRW_opengl_context_enable();
-  }
-
-  /* Reset before using it. */
-  drw_state_prepare_clean_for_draw(&DST);
-
-  DST.viewport = viewport;
-  DST.options.is_depth = true;
-
-  /* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
-  DST.draw_ctx = (DRWContextState){
-      .ar = ar,
-      .rv3d = rv3d,
-      .v3d = v3d,
-      .scene = scene,
-      .view_layer = view_layer,
-      .obact = OBACT(view_layer),
-      .engine_type = engine_type,
-      .depsgraph = depsgraph,
-  };
-
-  /* Get list of enabled engines */
-  {
-    drw_engines_enable_basic();
-    if (DRW_state_draw_support()) {
-      drw_engines_enable_from_object_mode();
-    }
-    drw_engines_data_validate();
-  }
-
-  drw_draw_depth_loop_imp();
 
   drw_engines_disable();
 
@@ -2564,6 +2546,29 @@ void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
 }
 
 /**
+ * object mode select-loop, see: ED_view3d_draw_depth_loop (legacy drawing).
+ */
+void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
+                         ARegion *ar,
+                         View3D *v3d,
+                         GPUViewport *viewport,
+                         bool use_opengl_context)
+{
+  /* Reset before using it. */
+  drw_state_prepare_clean_for_draw(&DST);
+
+  /* Get list of enabled engines */
+  {
+    drw_engines_enable_basic();
+    if (DRW_state_draw_support()) {
+      drw_engines_enable_from_object_mode();
+    }
+  }
+
+  drw_draw_depth_loop_imp(depsgraph, ar, v3d, viewport, use_opengl_context);
+}
+
+/**
  * Converted from ED_view3d_draw_depth_gpencil (legacy drawing).
  */
 void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
@@ -2571,43 +2576,12 @@ void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
                                  View3D *v3d,
                                  GPUViewport *viewport)
 {
-  Scene *scene = DEG_get_evaluated_scene(depsgraph);
-  ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-  RegionView3D *rv3d = ar->regiondata;
-
-  DRW_opengl_context_enable();
-
   /* Reset before using it. */
   drw_state_prepare_clean_for_draw(&DST);
 
-  DST.viewport = viewport;
-  DST.options.is_depth = true;
-
-  /* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
-  DST.draw_ctx = (DRWContextState){
-      .ar = ar,
-      .rv3d = rv3d,
-      .v3d = v3d,
-      .scene = scene,
-      .view_layer = view_layer,
-      .obact = OBACT(view_layer),
-      .depsgraph = depsgraph,
-  };
-
   use_drw_engine(&draw_engine_gpencil_type);
-  drw_engines_data_validate();
 
-  drw_draw_depth_loop_imp();
-
-  drw_engines_disable();
-
-#ifdef DEBUG
-  /* Avoid accidental reuse. */
-  drw_state_ensure_not_reused(&DST);
-#endif
-
-  /* Changin context */
-  DRW_opengl_context_disable();
+  drw_draw_depth_loop_imp(depsgraph, ar, v3d, viewport, true);
 }
 
 void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, const rcti *rect)
