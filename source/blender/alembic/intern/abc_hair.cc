@@ -79,10 +79,14 @@ void AbcHairWriter::do_write()
 
   if (m_psys->pathcache) {
     ParticleSettings *part = m_psys->part;
+    bool export_children = m_settings.export_child_hairs && m_psys->childcache &&
+                           part->childtype != 0;
 
-    write_hair_sample(mesh, part, verts, norm_values, uv_values, hvertices);
+    if (!export_children || part->draw & PART_DRAW_PARENT) {
+      write_hair_sample(mesh, part, verts, norm_values, uv_values, hvertices);
+    }
 
-    if (m_settings.export_child_hairs && m_psys->childcache) {
+    if (export_children) {
       write_hair_child_sample(mesh, part, verts, norm_values, uv_values, hvertices);
     }
   }
