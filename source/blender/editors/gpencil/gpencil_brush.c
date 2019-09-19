@@ -532,7 +532,7 @@ static void gp_brush_grab_calc_dvec(tGP_BrushEditData *gso)
   // XXX: screen-space strokes in 3D space will suffer!
   if (gso->sa->spacetype == SPACE_VIEW3D) {
     RegionView3D *rv3d = gso->ar->regiondata;
-    float *rvec = gso->scene->cursor.location;
+    float *rvec = gso->object->loc;
     float zfac = ED_view3d_calc_zfac(rv3d, rvec, NULL);
 
     float mval_f[2];
@@ -657,7 +657,7 @@ static void gp_brush_calc_midpoint(tGP_BrushEditData *gso)
      * See: gpencil_paint.c :: gp_stroke_convertcoords()
      */
     RegionView3D *rv3d = gso->ar->regiondata;
-    const float *rvec = gso->scene->cursor.location;
+    const float *rvec = gso->object->loc;
     float zfac = ED_view3d_calc_zfac(rv3d, rvec, NULL);
 
     float mval_f[2];
