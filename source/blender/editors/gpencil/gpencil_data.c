@@ -505,12 +505,6 @@ static int gp_layer_duplicate_object_exec(bContext *C, wmOperator *op)
 
   /* Create new layer. */
   bGPDlayer *gpl_dst = BKE_gpencil_layer_addnew(gpd_dst, gpl_src->info, true);
-  BLI_uniquename(&gpd_dst->layers,
-                 gpl_dst,
-                 DATA_("GP_Layer"),
-                 '.',
-                 offsetof(bGPDlayer, info),
-                 sizeof(gpl_dst->info));
   /* Need to copy some variables (not all). */
   gpl_dst->onion_flag = gpl_src->onion_flag;
   gpl_dst->thickness = gpl_src->thickness;
