@@ -86,6 +86,15 @@ class FPSDetectionTest(AbstractFFmpegSequencerTest):
             1.0,
             places=2)
 
+    def test_T68091(self):
+        self.assertAlmostEqual(
+            self.get_movie_file_fps('T68091-invalid-nb_frames-at-10fps.mp4'),
+            10.0,
+            places=2)
+        self.assertEqual(
+            self.get_movie_file_duration('T68091-invalid-nb_frames-at-10fps.mp4'),
+            10)
+
     def test_T54834(self):
         self.assertEqual(
             self.get_movie_file_duration('T54834.ogg'),
