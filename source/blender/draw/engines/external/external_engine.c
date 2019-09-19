@@ -28,6 +28,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_object.h"
+
 #include "ED_screen.h"
 
 #include "GPU_matrix.h"
@@ -156,7 +158,8 @@ static void external_cache_populate(void *vedata, Object *ob)
 {
   EXTERNAL_StorageList *stl = ((EXTERNAL_Data *)vedata)->stl;
 
-  if (!DRW_object_is_renderable(ob)) {
+  if (!(DRW_object_is_renderable(ob) &&
+        DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
     return;
   }
 
