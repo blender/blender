@@ -412,6 +412,7 @@ extern StructRNA RNA_MeshTextureFace;
 extern StructRNA RNA_MeshTextureFaceLayer;
 extern StructRNA RNA_MeshTexturePoly;
 extern StructRNA RNA_MeshTexturePolyLayer;
+extern StructRNA RNA_MeshUVLoop;
 extern StructRNA RNA_MeshVertex;
 extern StructRNA RNA_MessageSensor;
 extern StructRNA RNA_MetaBall;
