@@ -130,8 +130,8 @@ typedef struct uiItem {
 } uiItem;
 
 enum {
-  UI_ITEM_FIXED = 1 << 0,
-  UI_ITEM_MIN = 1 << 1,
+  UI_ITEM_AUTO_FIXED_SIZE = 1 << 0,
+  UI_ITEM_FIXED_SIZE = 1 << 1,
 
   UI_ITEM_BOX_ITEM = 1 << 2, /* The item is "inside" a box item */
   UI_ITEM_PROP_SEP = 1 << 3,
@@ -307,7 +307,7 @@ static int ui_text_icon_width(uiLayout *layout, const char *name, int icon, bool
       return unit_x; /* No icon or name. */
     }
     if (layout->alignment != UI_LAYOUT_ALIGN_EXPAND) {
-      layout->item.flag |= UI_ITEM_MIN;
+      layout->item.flag |= UI_ITEM_FIXED_SIZE;
     }
     const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
     float margin = compact ? 1.25 : 1.50;
@@ -3269,7 +3269,7 @@ static void ui_litem_estimate_row(uiLayout *litem)
   for (item = litem->items.first; item; item = item->next) {
     ui_item_size(item, &itemw, &itemh);
 
-    min_size_flag = min_size_flag && (item->flag & UI_ITEM_MIN);
+    min_size_flag = min_size_flag && (item->flag & UI_ITEM_FIXED_SIZE);
 
     litem->w += itemw;
     litem->h = MAX2(itemh, litem->h);
@@ -3280,7 +3280,7 @@ static void ui_litem_estimate_row(uiLayout *litem)
   }
 
   if (min_size_flag) {
-    litem->item.flag |= UI_ITEM_MIN;
+    litem->item.flag |= UI_ITEM_FIXED_SIZE;
   }
 }
 
@@ -3326,7 +3326,7 @@ static void ui_litem_layout_row(uiLayout *litem)
     extra_pixel = 0.0f;
 
     for (item = litem->items.first; item; item = item->next) {
-      if (item->flag & UI_ITEM_FIXED) {
+      if (item->flag & UI_ITEM_AUTO_FIXED_SIZE) {
         continue;
       }
 
@@ -3342,18 +3342,19 @@ static void ui_litem_layout_row(uiLayout *litem)
 
       x += neww;
 
-      bool min_flag = item->flag & UI_ITEM_MIN;
+      bool min_flag = item->flag & UI_ITEM_FIXED_SIZE;
       /* ignore min flag for rows with right or center alignment */
       if (item->type != ITEM_BUTTON &&
           ELEM(((uiLayout *)item)->alignment, UI_LAYOUT_ALIGN_RIGHT, UI_LAYOUT_ALIGN_CENTER) &&
-          litem->alignment == UI_LAYOUT_ALIGN_EXPAND && ((uiItem *)litem)->flag & UI_ITEM_MIN) {
+          litem->alignment == UI_LAYOUT_ALIGN_EXPAND &&
+          ((uiItem *)litem)->flag & UI_ITEM_FIXED_SIZE) {
         min_flag = false;
       }
 
       if ((neww < minw || min_flag) && w != 0) {
         /* fixed size */
-        item->flag |= UI_ITEM_FIXED;
-        if (item->type != ITEM_BUTTON && item->flag & UI_ITEM_MIN) {
+        item->flag |= UI_ITEM_AUTO_FIXED_SIZE;
+        if (item->type != ITEM_BUTTON && item->flag & UI_ITEM_FIXED_SIZE) {
           minw = itemw;
         }
         fixedw += minw;
@@ -3362,7 +3363,7 @@ static void ui_litem_layout_row(uiLayout *litem)
       }
       else {
         /* keep free size */
-        item->flag &= ~UI_ITEM_FIXED;
+        item->flag &= ~UI_ITEM_AUTO_FIXED_SIZE;
         freew += itemw;
       }
     }
@@ -3380,9 +3381,9 @@ static void ui_litem_layout_row(uiLayout *litem)
     ui_item_size(item, &itemw, &itemh);
     minw = ui_litem_min_width(itemw);
 
-    if (item->flag & UI_ITEM_FIXED) {
+    if (item->flag & UI_ITEM_AUTO_FIXED_SIZE) {
       /* fixed minimum size items */
-      if (item->type != ITEM_BUTTON && item->flag & UI_ITEM_MIN) {
+      if (item->type != ITEM_BUTTON && item->flag & UI_ITEM_FIXED_SIZE) {
         minw = itemw;
       }
       itemw = ui_item_fit(
@@ -3423,7 +3424,7 @@ static void ui_litem_layout_row(uiLayout *litem)
   uiItem *last_item = litem->items.last;
   extra_pixel = litem->w - (x - litem->x);
   if (extra_pixel > 0 && litem->alignment == UI_LAYOUT_ALIGN_EXPAND && last_free_item &&
-      last_item && last_item->flag & UI_ITEM_FIXED) {
+      last_item && last_item->flag & UI_ITEM_AUTO_FIXED_SIZE) {
     ui_item_move(last_free_item, 0, extra_pixel);
     for (item = last_free_item->next; item; item = item->next) {
       ui_item_move(item, extra_pixel, extra_pixel);
@@ -3449,7 +3450,7 @@ static void ui_litem_estimate_column(uiLayout *litem, bool is_box)
   for (item = litem->items.first; item; item = item->next) {
     ui_item_size(item, &itemw, &itemh);
 
-    min_size_flag = min_size_flag && (item->flag & UI_ITEM_MIN);
+    min_size_flag = min_size_flag && (item->flag & UI_ITEM_FIXED_SIZE);
 
     litem->w = MAX2(litem->w, itemw);
     litem->h += itemh;
@@ -3460,7 +3461,7 @@ static void ui_litem_estimate_column(uiLayout *litem, bool is_box)
   }
 
   if (min_size_flag) {
-    litem->item.flag |= UI_ITEM_MIN;
+    litem->item.flag |= UI_ITEM_FIXED_SIZE;
   }
 }
 
@@ -4279,7 +4280,7 @@ static void ui_litem_layout_absolute(uiLayout *litem)
 static void ui_litem_estimate_split(uiLayout *litem)
 {
   ui_litem_estimate_row(litem);
-  litem->item.flag &= ~UI_ITEM_MIN;
+  litem->item.flag &= ~UI_ITEM_FIXED_SIZE;
 }
 
 static void ui_litem_layout_split(uiLayout *litem)
@@ -5099,7 +5100,7 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
   /* XXX uiBut hasn't scaled yet
    * we can flag the button as not expandable, depending on its size */
   if (w <= 2 * UI_UNIT_X && (!but->str || but->str[0] == '\0')) {
-    bitem->item.flag |= UI_ITEM_MIN;
+    bitem->item.flag |= UI_ITEM_FIXED_SIZE;
   }
 
   if (layout->child_items_layout) {
@@ -5117,6 +5118,21 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
   if (layout->emboss != UI_EMBOSS_UNDEFINED) {
     but->dt = layout->emboss;
   }
+}
+
+void uiLayoutSetFixedSize(uiLayout *layout, bool fixed_size)
+{
+  if (fixed_size) {
+    layout->item.flag |= UI_ITEM_FIXED_SIZE;
+  }
+  else {
+    layout->item.flag &= ~UI_ITEM_FIXED_SIZE;
+  }
+}
+
+bool uiLayoutGetFixedSize(uiLayout *layout)
+{
+  return (layout->item.flag & UI_ITEM_FIXED_SIZE) != 0;
 }
 
 void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext)

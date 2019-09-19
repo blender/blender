@@ -110,18 +110,22 @@ void file_tool_props_region_panels_register(ARegionType *art)
   BLI_addtail(&art->paneltypes, pt);
 }
 
-static void file_panel_execution_cancel_button(uiBlock *block)
+static void file_panel_execution_cancel_button(uiLayout *layout)
 {
-  uiDefButO(block,
-            UI_BTYPE_BUT,
-            "FILE_OT_cancel",
-            WM_OP_EXEC_REGION_WIN,
-            IFACE_("Cancel"),
-            0,
-            0,
-            UI_UNIT_X,
-            UI_UNIT_Y,
-            "");
+  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayoutSetScaleX(row, 0.8f);
+  uiLayoutSetFixedSize(row, true);
+  uiItemO(row, IFACE_("Cancel"), ICON_NONE, "FILE_OT_cancel");
+}
+
+static void file_panel_execution_execute_button(uiLayout *layout, const char *title)
+{
+  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayoutSetScaleX(row, 0.8f);
+  uiLayoutSetFixedSize(row, true);
+  /* Just a display hint. */
+  uiLayoutSetActiveDefault(row, true);
+  uiItemO(row, title, ICON_NONE, "FILE_OT_execute");
 }
 
 static void file_panel_execution_buttons_draw(const bContext *C, Panel *pa)
@@ -145,7 +149,6 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *pa)
   RNA_pointer_create(&screen->id, &RNA_FileSelectParams, params, &params_rna_ptr);
 
   row = uiLayoutRow(pa->layout, false);
-  uiLayoutSetScaleX(row, 1.3f);
   uiLayoutSetScaleY(row, 1.3f);
 
   /* callbacks for operator check functions */
@@ -192,23 +195,16 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *pa)
   UI_block_func_set(block, NULL, NULL, NULL);
 
   {
-    if (windows_layout == false) {
-      file_panel_execution_cancel_button(block);
-    }
-    but = uiDefButO(block,
-                    UI_BTYPE_BUT,
-                    "FILE_OT_execute",
-                    WM_OP_EXEC_REGION_WIN,
-                    params->title,
-                    0,
-                    0,
-                    UI_UNIT_X,
-                    UI_UNIT_Y,
-                    "");
-    /* Just a display hint. */
-    UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
+    uiLayout *sub = uiLayoutRow(row, false);
+    uiLayoutSetOperatorContext(sub, WM_OP_EXEC_REGION_WIN);
+
     if (windows_layout) {
-      file_panel_execution_cancel_button(block);
+      file_panel_execution_execute_button(sub, params->title);
+      file_panel_execution_cancel_button(sub);
+    }
+    else {
+      file_panel_execution_cancel_button(sub);
+      file_panel_execution_execute_button(sub, params->title);
     }
   }
 }
