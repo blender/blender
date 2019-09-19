@@ -89,7 +89,7 @@ struct anim {
   int ib_flags;
   int curtype;
   int curposition; /* index  0 = 1e,  1 = 2e, enz. */
-  int duration;
+  int duration_in_frames;
   int frs_sec;
   double frs_sec_base;
   int x, y;
