@@ -383,6 +383,14 @@ void ED_view3d_datamask(const bContext *C,
     r_cddata_masks->lmask |= CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
     r_cddata_masks->vmask |= CD_MASK_ORCO;
   }
+  else if (v3d->shading.type == OB_SOLID) {
+    if (v3d->shading.color_type == V3D_SHADING_TEXTURE_COLOR) {
+      r_cddata_masks->lmask |= CD_MASK_MLOOPUV;
+    }
+    if (v3d->shading.color_type == V3D_SHADING_VERTEX_COLOR) {
+      r_cddata_masks->lmask |= CD_MASK_MLOOPCOL;
+    }
+  }
 
   if ((CTX_data_mode_enum(C) == CTX_MODE_EDIT_MESH) &&
       (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT)) {
