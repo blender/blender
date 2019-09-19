@@ -2534,6 +2534,8 @@ static void drw_draw_depth_loop_imp(struct Depsgraph *depsgraph,
 
   drw_engines_disable();
 
+  drw_viewport_cache_resize();
+
 #ifdef DEBUG
   /* Avoid accidental reuse. */
   drw_state_ensure_not_reused(&DST);
