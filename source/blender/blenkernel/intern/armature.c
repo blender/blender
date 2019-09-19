@@ -1257,9 +1257,9 @@ void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan,
   float pre_blend = pos * (float)segments;
 
   int index = (int)floorf(pre_blend);
-  float blend = pre_blend - index;
+  CLAMP(index, 0, segments - 1);
 
-  CLAMP(index, 0, segments);
+  float blend = pre_blend - index;
   CLAMP(blend, 0.0f, 1.0f);
 
   *r_index = index;
