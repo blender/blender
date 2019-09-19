@@ -401,12 +401,8 @@ static void make_child_duplis_verts(const DupliContext *ctx, void *userdata, Obj
   mul_m4_m4m4(vdd->child_imat, child->imat, ctx->object->obmat);
 
   const MVert *mvert = me_eval->mvert;
-  const int *origindex = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
-
-  for (int i = 0, j = 0; i < me_eval->totvert; i++) {
-    if (origindex == NULL || origindex[i] != ORIGINDEX_NONE) {
-      vertex_dupli(vdd, j++, mvert[i].co, mvert[i].no);
-    }
+  for (int i = 0; i < me_eval->totvert; i++) {
+    vertex_dupli(vdd, i, mvert[i].co, mvert[i].no);
   }
 }
 
