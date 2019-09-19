@@ -832,7 +832,7 @@ void RE_point_density_cache(struct Depsgraph *depsgraph, PointDensity *pd)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
 
-  /* Same matricies/resolution as dupli_render_particle_set(). */
+  /* Same matrices/resolution as dupli_render_particle_set(). */
   BLI_mutex_lock(&sample_mutex);
   cache_pointdensity(depsgraph, scene, pd);
   BLI_mutex_unlock(&sample_mutex);
