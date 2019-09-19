@@ -85,14 +85,14 @@ static void smoothModifier_do(
   MEdge *medges = NULL;
 
   int i, j, numDMEdges, defgrp_index;
-  unsigned char *uctmp;
+  uchar *uctmp;
   float *ftmp, fac, facm;
 
   ftmp = (float *)MEM_calloc_arrayN(numVerts, 3 * sizeof(float), "smoothmodifier_f");
   if (!ftmp) {
     return;
   }
-  uctmp = (unsigned char *)MEM_calloc_arrayN(numVerts, sizeof(unsigned char), "smoothmodifier_uc");
+  uctmp = (uchar *)MEM_calloc_arrayN(numVerts, sizeof(uchar), "smoothmodifier_uc");
   if (!uctmp) {
     if (ftmp) {
       MEM_freeN(ftmp);
@@ -120,7 +120,7 @@ static void smoothModifier_do(
     for (i = 0; i < numDMEdges; i++) {
       float fvec[3];
       float *v1, *v2;
-      unsigned int idx1, idx2;
+      uint idx1, idx2;
 
       idx1 = medges[i].v1;
       idx2 = medges[i].v2;
@@ -204,7 +204,7 @@ static void smoothModifier_do(
     }
 
     memset(ftmp, 0, 3 * sizeof(float) * numVerts);
-    memset(uctmp, 0, sizeof(unsigned char) * numVerts);
+    memset(uctmp, 0, sizeof(uchar) * numVerts);
   }
 
   MEM_freeN(ftmp);

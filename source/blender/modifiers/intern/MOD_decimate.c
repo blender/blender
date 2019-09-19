@@ -140,8 +140,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       MOD_get_vgroup(ctx->object, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
 
       if (dvert) {
-        const unsigned int vert_tot = mesh->totvert;
-        unsigned int i;
+        const uint vert_tot = mesh->totvert;
+        uint i;
 
         vweights = MEM_malloc_arrayN(vert_tot, sizeof(float), __func__);
 

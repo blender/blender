@@ -103,7 +103,7 @@ typedef struct Frame {
     int corner;
     /* checked to avoid chaining.
      * (merging when we're already been referenced), see T39775 */
-    unsigned int is_target : 1;
+    uint is_target : 1;
   } merge[4];
 
   /* For hull frames, whether each vertex is detached or not */

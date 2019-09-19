@@ -125,7 +125,7 @@ static void deformVerts(ModifierData *md,
   }
 
   if (surmd->mesh) {
-    unsigned int numverts = 0, i = 0;
+    uint numverts = 0, i = 0;
     int init = 0;
     float *vec;
     MVert *x, *v;

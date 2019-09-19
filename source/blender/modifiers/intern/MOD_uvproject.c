@@ -225,19 +225,19 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   for (i = 0, mp = mpoly; i < numPolys; i++, mp++) {
     if (num_projectors == 1) {
       if (projectors[0].uci) {
-        unsigned int fidx = mp->totloop - 1;
+        uint fidx = mp->totloop - 1;
         do {
-          unsigned int lidx = mp->loopstart + fidx;
-          unsigned int vidx = mloop[lidx].v;
+          uint lidx = mp->loopstart + fidx;
+          uint vidx = mloop[lidx].v;
           BLI_uvproject_from_camera(mloop_uv[lidx].uv, coords[vidx], projectors[0].uci);
         } while (fidx--);
       }
       else {
         /* apply transformed coords as UVs */
-        unsigned int fidx = mp->totloop - 1;
+        uint fidx = mp->totloop - 1;
         do {
-          unsigned int lidx = mp->loopstart + fidx;
-          unsigned int vidx = mloop[lidx].v;
+          uint lidx = mp->loopstart + fidx;
+          uint vidx = mloop[lidx].v;
           copy_v2_v2(mloop_uv[lidx].uv, coords[vidx]);
         } while (fidx--);
       }
@@ -268,18 +268,18 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       }
 
       if (best_projector->uci) {
-        unsigned int fidx = mp->totloop - 1;
+        uint fidx = mp->totloop - 1;
         do {
-          unsigned int lidx = mp->loopstart + fidx;
-          unsigned int vidx = mloop[lidx].v;
+          uint lidx = mp->loopstart + fidx;
+          uint vidx = mloop[lidx].v;
           BLI_uvproject_from_camera(mloop_uv[lidx].uv, coords[vidx], best_projector->uci);
         } while (fidx--);
       }
       else {
-        unsigned int fidx = mp->totloop - 1;
+        uint fidx = mp->totloop - 1;
         do {
-          unsigned int lidx = mp->loopstart + fidx;
-          unsigned int vidx = mloop[lidx].v;
+          uint lidx = mp->loopstart + fidx;
+          uint vidx = mloop[lidx].v;
           mul_v2_project_m4_v3(mloop_uv[lidx].uv, best_projector->projmat, coords[vidx]);
         } while (fidx--);
       }

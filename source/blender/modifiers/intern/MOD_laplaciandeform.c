@@ -66,7 +66,7 @@ typedef struct LaplacianSystem {
   float (*co)[3];           /* Original vertex coordinates */
   float (*no)[3];           /* Original vertex normal */
   float (*delta)[3];        /* Differential Coordinates */
-  unsigned int (*tris)[3];  /* Copy of MLoopTri (tessellation triangle) v1-v3 */
+  uint (*tris)[3];          /* Copy of MLoopTri (tessellation triangle) v1-v3 */
   int *index_anchors;       /* Static vertex index list */
   int *unit_verts;          /* Unit vectors of projected edges onto the plane orthogonal to n */
   int *ringf_indices;       /* Indices of faces per vertex */
@@ -153,7 +153,7 @@ static void createFaceRingMap(const int mvert_tot,
   for (i = 0, mlt = mlooptri; i < mtri_tot; i++, mlt++) {
 
     for (j = 0; j < 3; j++) {
-      const unsigned int v_index = mloop[mlt->tri[j]].v;
+      const uint v_index = mloop[mlt->tri[j]].v;
       map[v_index].count++;
       totalr++;
     }
@@ -167,7 +167,7 @@ static void createFaceRingMap(const int mvert_tot,
   }
   for (i = 0, mlt = mlooptri; i < mtri_tot; i++, mlt++) {
     for (j = 0; j < 3; j++) {
-      const unsigned int v_index = mloop[mlt->tri[j]].v;
+      const uint v_index = mloop[mlt->tri[j]].v;
       map[v_index].indices[map[v_index].count] = i;
       map[v_index].count++;
     }
@@ -253,7 +253,7 @@ static void initLaplacianMatrix(LaplacianSystem *sys)
   int idv[3];
 
   for (ti = 0; ti < sys->total_tris; ti++) {
-    const unsigned int *vidt = sys->tris[ti];
+    const uint *vidt = sys->tris[ti];
     const float *co[3];
 
     co[0] = sys->co[vidt[0]];
@@ -352,7 +352,7 @@ static void rotateDifferentialCoordinates(LaplacianSystem *sys)
     zero_v3(ni);
     num_fni = sys->ringf_map[i].count;
     for (fi = 0; fi < num_fni; fi++) {
-      const unsigned int *vin;
+      const uint *vin;
       fidn = sys->ringf_map[i].indices;
       vin = sys->tris[fidn[fi]];
       for (j = 0; j < 3; j++) {

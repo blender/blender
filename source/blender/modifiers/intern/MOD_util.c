@@ -109,11 +109,11 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
 
       /* verts are given the UV from the first face that uses them */
       for (i = 0, mp = mpoly; i < numPolys; i++, mp++) {
-        unsigned int fidx = mp->totloop - 1;
+        uint fidx = mp->totloop - 1;
 
         do {
-          unsigned int lidx = mp->loopstart + fidx;
-          unsigned int vidx = mloop[lidx].v;
+          uint lidx = mp->loopstart + fidx;
+          uint vidx = mloop[lidx].v;
 
           if (!BLI_BITMAP_TEST(done, vidx)) {
             /* remap UVs from [0, 1] to [-1, 1] */

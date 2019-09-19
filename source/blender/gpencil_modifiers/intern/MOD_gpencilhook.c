@@ -63,8 +63,8 @@ struct GPHookData_cb {
   float falloff_sq;
   float fac_orig;
 
-  unsigned int use_falloff : 1;
-  unsigned int use_uniform : 1;
+  uint use_falloff : 1;
+  uint use_uniform : 1;
 
   float cent[3];
 

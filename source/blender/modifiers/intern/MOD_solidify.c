@@ -198,11 +198,11 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   MEdge *ed, *medge, *orig_medge;
   MLoop *ml, *mloop, *orig_mloop;
   MPoly *mp, *mpoly, *orig_mpoly;
-  const unsigned int numVerts = (unsigned int)mesh->totvert;
-  const unsigned int numEdges = (unsigned int)mesh->totedge;
-  const unsigned int numPolys = (unsigned int)mesh->totpoly;
-  const unsigned int numLoops = (unsigned int)mesh->totloop;
-  unsigned int newLoops = 0, newPolys = 0, newEdges = 0, newVerts = 0, rimVerts = 0;
+  const uint numVerts = (uint)mesh->totvert;
+  const uint numEdges = (uint)mesh->totedge;
+  const uint numPolys = (uint)mesh->totpoly;
+  const uint numLoops = (uint)mesh->totloop;
+  uint newLoops = 0, newPolys = 0, newEdges = 0, newVerts = 0, rimVerts = 0;
 
   /* only use material offsets if we have 2 or more materials  */
   const short mat_nr_max = ctx->object->totcol > 1 ? ctx->object->totcol - 1 : 0;
@@ -211,16 +211,16 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
   /* use for edges */
   /* over-alloc new_vert_arr, old_vert_arr */
-  unsigned int *new_vert_arr = NULL;
+  uint *new_vert_arr = NULL;
   STACK_DECLARE(new_vert_arr);
 
-  unsigned int *new_edge_arr = NULL;
+  uint *new_edge_arr = NULL;
   STACK_DECLARE(new_edge_arr);
 
-  unsigned int *old_vert_arr = MEM_calloc_arrayN(
+  uint *old_vert_arr = MEM_calloc_arrayN(
       numVerts, sizeof(*old_vert_arr), "old_vert_arr in solidify");
 
-  unsigned int *edge_users = NULL;
+  uint *edge_users = NULL;
   char *edge_order = NULL;
 
   float(*vert_nors)[3] = NULL;
@@ -244,7 +244,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   int defgrp_index;
 
   /* array size is doubled in case of using a shell */
-  const unsigned int stride = do_shell ? 2 : 1;
+  const uint stride = do_shell ? 2 : 1;
 
   MOD_get_vgroup(ctx->object, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
@@ -272,11 +272,11 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
   if (smd->flag & MOD_SOLIDIFY_RIM) {
     BLI_bitmap *orig_mvert_tag = BLI_BITMAP_NEW(numVerts, __func__);
-    unsigned int eidx;
-    unsigned int i;
+    uint eidx;
+    uint i;
 
-#define INVALID_UNUSED ((unsigned int)-1)
-#define INVALID_PAIR ((unsigned int)-2)
+#define INVALID_UNUSED ((uint)-1)
+#define INVALID_PAIR ((uint)-2)
 
     new_vert_arr = MEM_malloc_arrayN(numVerts, 2 * sizeof(*new_vert_arr), __func__);
     new_edge_arr = MEM_malloc_arrayN(((numEdges * 2) + numVerts), sizeof(*new_edge_arr), __func__);
@@ -442,13 +442,13 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   /* flip normals */
 
   if (do_shell) {
-    unsigned int i;
+    uint i;
 
     mp = mpoly + numPolys;
     for (i = 0; i < mesh->totpoly; i++, mp++) {
       const int loop_end = mp->totloop - 1;
       MLoop *ml2;
-      unsigned int e;
+      uint e;
       int j;
 
       /* reverses the loop direction (MLoop.v as well as custom-data)
@@ -512,7 +512,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     const float offset_sq = offset * offset;
 
     if (do_clamp) {
-      unsigned int i;
+      uint i;
 
       vert_lens = MEM_malloc_arrayN(numVerts, sizeof(float), "vert_lens");
       copy_vn_fl(vert_lens, (int)numVerts, FLT_MAX);
@@ -524,7 +524,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     }
 
     if (ofs_new != 0.0f) {
-      unsigned int i_orig, i_end;
+      uint i_orig, i_end;
       bool do_shell_align;
 
       scalar_short = scalar_short_vgroup = ofs_new / 32767.0f;
@@ -532,7 +532,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       INIT_VERT_ARRAY_OFFSETS(false);
 
       for (i_orig = 0; i_orig < i_end; i_orig++, mv++) {
-        const unsigned int i = do_shell_align ? i_orig : new_vert_arr[i_orig];
+        const uint i = do_shell_align ? i_orig : new_vert_arr[i_orig];
         if (dvert) {
           MDeformVert *dv = &dvert[i];
           if (defgrp_invert) {
@@ -559,7 +559,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     }
 
     if (ofs_orig != 0.0f) {
-      unsigned int i_orig, i_end;
+      uint i_orig, i_end;
       bool do_shell_align;
 
       scalar_short = scalar_short_vgroup = ofs_orig / 32767.0f;
@@ -568,7 +568,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       INIT_VERT_ARRAY_OFFSETS(true);
 
       for (i_orig = 0; i_orig < i_end; i_orig++, mv++) {
-        const unsigned int i = do_shell_align ? i_orig : new_vert_arr[i_orig];
+        const uint i = do_shell_align ? i_orig : new_vert_arr[i_orig];
         if (dvert) {
           MDeformVert *dv = &dvert[i];
           if (defgrp_invert) {
@@ -606,8 +606,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     float *vert_angles = MEM_calloc_arrayN(
         numVerts, 2 * sizeof(float), "mod_solid_pair"); /* 2 in 1 */
     float *vert_accum = vert_angles + numVerts;
-    unsigned int vidx;
-    unsigned int i;
+    uint vidx;
+    uint i;
 
     if (vert_nors == NULL) {
       vert_nors = MEM_malloc_arrayN(numVerts, 3 * sizeof(float), "mod_solid_vno");
@@ -707,13 +707,13 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     }
 
     if (ofs_new != 0.0f) {
-      unsigned int i_orig, i_end;
+      uint i_orig, i_end;
       bool do_shell_align;
 
       INIT_VERT_ARRAY_OFFSETS(false);
 
       for (i_orig = 0; i_orig < i_end; i_orig++, mv++) {
-        const unsigned int i_other = do_shell_align ? i_orig : new_vert_arr[i_orig];
+        const uint i_other = do_shell_align ? i_orig : new_vert_arr[i_orig];
         if (vert_accum[i_other]) { /* zero if unselected */
           madd_v3_v3fl(
               mv->co, vert_nors[i_other], ofs_new * (vert_angles[i_other] / vert_accum[i_other]));
@@ -722,14 +722,14 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     }
 
     if (ofs_orig != 0.0f) {
-      unsigned int i_orig, i_end;
+      uint i_orig, i_end;
       bool do_shell_align;
 
       /* same as above but swapped, intentional use of 'ofs_new' */
       INIT_VERT_ARRAY_OFFSETS(true);
 
       for (i_orig = 0; i_orig < i_end; i_orig++, mv++) {
-        const unsigned int i_other = do_shell_align ? i_orig : new_vert_arr[i_orig];
+        const uint i_other = do_shell_align ? i_orig : new_vert_arr[i_orig];
         if (vert_accum[i_other]) { /* zero if unselected */
           madd_v3_v3fl(
               mv->co, vert_nors[i_other], ofs_orig * (vert_angles[i_other] / vert_accum[i_other]));
@@ -749,7 +749,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
   }
   else if (do_shell) {
-    unsigned int i;
+    uint i;
     /* flip vertex normals for copied verts */
     mv = mvert + numVerts;
     for (i = 0; i < numVerts; i++, mv++) {
@@ -758,7 +758,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   }
 
   if (smd->flag & MOD_SOLIDIFY_RIM) {
-    unsigned int i;
+    uint i;
 
     /* bugger, need to re-calculate the normals for the new edge faces.
      * This could be done in many ways, but probably the quickest way
@@ -781,13 +781,13 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
                                    NULL;
     float nor[3];
 #endif
-    const unsigned char crease_rim = smd->crease_rim * 255.0f;
-    const unsigned char crease_outer = smd->crease_outer * 255.0f;
-    const unsigned char crease_inner = smd->crease_inner * 255.0f;
+    const uchar crease_rim = smd->crease_rim * 255.0f;
+    const uchar crease_outer = smd->crease_outer * 255.0f;
+    const uchar crease_inner = smd->crease_inner * 255.0f;
 
     int *origindex_edge;
     int *orig_ed;
-    unsigned int j;
+    uint j;
 
     if (crease_rim || crease_outer || crease_inner) {
       result->cd_flag |= ME_CDFLAG_EDGE_CREASE;
@@ -817,8 +817,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     ml = mloop + (numLoops * stride);
     j = 0;
     for (i = 0; i < newPolys; i++, mp++) {
-      unsigned int eidx = new_edge_arr[i];
-      unsigned int pidx = edge_users[eidx];
+      uint eidx = new_edge_arr[i];
+      uint pidx = edge_users[eidx];
       int k1, k2;
       bool flip;
 

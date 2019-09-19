@@ -118,7 +118,7 @@ static void deformVerts(ModifierData *md,
 
   if (mesh_src) {
     float current_time = 0;
-    unsigned int mvert_num = 0;
+    uint mvert_num = 0;
 
     BKE_mesh_vert_coords_apply(mesh_src, vertexCos);
     BKE_mesh_calc_normals(mesh_src);

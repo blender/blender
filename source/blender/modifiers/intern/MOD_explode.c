@@ -201,7 +201,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   BLI_rng_free(rng);
 }
 
-static int edgecut_get(EdgeHash *edgehash, unsigned int v1, unsigned int v2)
+static int edgecut_get(EdgeHash *edgehash, uint v1, uint v2)
 {
   return POINTER_AS_INT(BLI_edgehash_lookup(edgehash, v1, v2));
 }
@@ -649,7 +649,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   int i, v1, v2, v3, v4, esplit, v[4] = {0, 0, 0, 0}, /* To quite gcc barking... */
       uv[4] = {0, 0, 0, 0};                           /* To quite gcc barking... */
   int numlayer;
-  unsigned int ed_v1, ed_v2;
+  uint ed_v1, ed_v2;
 
   edgehash = BLI_edgehash_new(__func__);
 
@@ -906,7 +906,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   const int *facepa = emd->facepa;
   int totdup = 0, totvert = 0, totface = 0, totpart = 0, delface = 0;
   int i, v, u;
-  unsigned int ed_v1, ed_v2, mindex = 0;
+  uint ed_v1, ed_v2, mindex = 0;
   MTFace *mtface = NULL, *mtf;
 
   totface = mesh->totface;

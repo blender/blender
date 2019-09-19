@@ -199,7 +199,7 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
   float w1, w2, w3;
   float areaf;
   int i;
-  unsigned int idv1, idv2;
+  uint idv1, idv2;
 
   for (i = 0; i < sys->numEdges; i++) {
     idv1 = sys->medges[i].v1;
@@ -233,7 +233,7 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
       const float *v_prev = sys->vertexCos[l_prev->v];
       const float *v_curr = sys->vertexCos[l_curr->v];
       const float *v_next = sys->vertexCos[l_next->v];
-      const unsigned int l_curr_index = l_curr - sys->mloop;
+      const uint l_curr_index = l_curr - sys->mloop;
 
       sys->numNeFa[l_curr->v] += 1;
 
@@ -274,7 +274,7 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
 static void fill_laplacian_matrix(LaplacianSystem *sys)
 {
   int i;
-  unsigned int idv1, idv2;
+  uint idv1, idv2;
 
   for (i = 0; i < sys->numPolys; i++) {
     const MPoly *mp = &sys->mpoly[i];
@@ -284,7 +284,7 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
     const MLoop *l_curr = l_term - 1;
 
     for (; l_next != l_term; l_prev = l_curr, l_curr = l_next, l_next++) {
-      const unsigned int l_curr_index = l_curr - sys->mloop;
+      const uint l_curr_index = l_curr - sys->mloop;
 
       /* Is ring if number of faces == number of edges around vertice*/
       if (sys->numNeEd[l_curr->v] == sys->numNeFa[l_curr->v] && sys->zerola[l_curr->v] == 0) {

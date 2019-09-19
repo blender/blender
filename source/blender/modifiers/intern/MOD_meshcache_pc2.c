@@ -153,7 +153,7 @@ bool MOD_meshcache_read_pc2_index(FILE *fp,
 
   if (factor >= 1.0f) {
     float *vco = *vertexCos;
-    unsigned int i;
+    uint i;
     for (i = pc2_head.verts_tot; i != 0; i--, vco += 3) {
       fread(vco, sizeof(float) * 3, 1, fp);
 
@@ -167,7 +167,7 @@ bool MOD_meshcache_read_pc2_index(FILE *fp,
   else {
     const float ifactor = 1.0f - factor;
     float *vco = *vertexCos;
-    unsigned int i;
+    uint i;
     for (i = pc2_head.verts_tot; i != 0; i--, vco += 3) {
       float tvec[3];
       fread(tvec, sizeof(float) * 3, 1, fp);
