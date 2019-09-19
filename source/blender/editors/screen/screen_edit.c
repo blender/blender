@@ -1371,9 +1371,23 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
         sa = CTX_wm_area(C);
       }
       break;
-    case USER_TEMP_SPACE_DISPLAY_FULLSCREEN:
-      sa = ED_screen_full_newspace(C, CTX_wm_area(C), (int)space_type);
+    case USER_TEMP_SPACE_DISPLAY_FULLSCREEN: {
+      ScrArea *ctx_sa = CTX_wm_area(C);
+
+      if (ctx_sa->full) {
+        sa = ctx_sa;
+        ED_area_newspace(C, ctx_sa, space_type, true);
+        /* we already had a fullscreen here -> mark new space as a stacked fullscreen */
+        sa->flag |= (AREA_FLAG_STACKED_FULLSCREEN | AREA_FLAG_TEMP_TYPE);
+      }
+      else if (ctx_sa->spacetype == space_type) {
+        sa = ED_screen_state_toggle(C, CTX_wm_window(C), ctx_sa, SCREENMAXIMIZED);
+      }
+      else {
+        sa = ED_screen_full_newspace(C, ctx_sa, (int)space_type);
+      }
       break;
+    }
   }
 
   return sa;
