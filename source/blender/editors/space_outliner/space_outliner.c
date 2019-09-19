@@ -229,6 +229,11 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
         ED_region_tag_redraw(ar);
       }
       break;
+    case NC_TEXT:
+      if (ELEM(wmn->action, NA_ADDED, NA_REMOVED)) {
+        ED_region_tag_redraw(ar);
+      }
+      break;
   }
 }
 
