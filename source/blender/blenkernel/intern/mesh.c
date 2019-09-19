@@ -672,7 +672,7 @@ void BKE_mesh_copy_settings(Mesh *me_dst, const Mesh *me_src)
 
   /* Copy texture space. */
   me_dst->texflag = me_src->texflag;
-  if (me_dst->bb) {
+  if (me_dst->bb != NULL && me_dst->bb != me_src->bb) {
     MEM_freeN(me_dst->bb);
   }
   me_dst->bb = MEM_dupallocN(me_src->bb);
@@ -681,7 +681,7 @@ void BKE_mesh_copy_settings(Mesh *me_dst, const Mesh *me_src)
   copy_v3_v3(me_dst->size, me_src->size);
 
   /* Copy materials. */
-  if (me_dst->mat != NULL) {
+  if (me_dst->mat != NULL && me_dst->mat != me_src->mat) {
     MEM_freeN(me_dst->mat);
   }
   me_dst->mat = MEM_dupallocN(me_src->mat);
