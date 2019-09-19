@@ -67,7 +67,14 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
   }
   else {
     GPUNodeLink *cd_attr = GPU_attribute(CD_AUTO_FROM_NAME, attr->name);
-    return GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);
+    GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);
+
+    /* for each output. */
+    for (int i = 0; sh_node_attribute_out[i].type != -1; i++) {
+      node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);
+    }
+
+    return 1;
   }
 }
 
