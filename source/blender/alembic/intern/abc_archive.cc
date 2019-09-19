@@ -107,7 +107,7 @@ ArchiveReader::ArchiveReader(struct Main *bmain, const char *filename)
 
 #ifdef WIN32
   UTF16_ENCODE(abs_filename);
-  std::wstring wstr(filename_16);
+  std::wstring wstr(abs_filename_16);
   m_infile.open(wstr.c_str(), std::ios::in | std::ios::binary);
   UTF16_UN_ENCODE(abs_filename);
 #else
