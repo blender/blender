@@ -140,13 +140,13 @@ void WM_operator_bl_idname(char *to, const char *from)
   if (from) {
     const char *sep = strchr(from, '.');
 
-    if (sep) {
-      int ofs = (sep - from);
-
+    int from_len;
+    if (sep && (from_len = strlen(from)) < OP_MAX_TYPENAME - 3) {
+      const int ofs = (sep - from);
       memcpy(to, from, sizeof(char) * ofs);
       BLI_str_toupper_ascii(to, ofs);
-      strcpy(to + ofs, "_OT_");
-      strcpy(to + (ofs + 4), sep + 1);
+      memcpy(to + ofs, "_OT_", 4);
+      memcpy(to + (ofs + 4), sep + 1, (from_len - ofs));
     }
     else {
       /* should not happen but support just in case */
