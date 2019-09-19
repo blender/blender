@@ -36,6 +36,11 @@ uniform int baseInstance;
 #  ifdef IN_PLACE_INSTANCES
 /* When drawing instances of an object at the same position. */
 #    define instanceId 0
+#  elif defined(GPU_DEPRECATED_AMD_DRIVER)
+/* A driver bug make it so that when using an attribute with GL_INT_2_10_10_10_REV as format,
+ * the gl_InstanceID is incremented by the 2 bit component of the attrib.
+ * Ignore gl_InstanceID then. */
+#    define instanceId 0
 #  else
 #    define instanceId gl_InstanceID
 #  endif
@@ -66,7 +71,7 @@ flat in int resourceIDFrag;
 #  define resource_id resourceIDFrag
 #endif
 
-#ifndef GPU_INTEL
+#if !defined(GPU_INTEL) && !defined(GPU_DEPRECATED_AMD_DRIVER)
 struct ObjectMatrices {
   mat4 drw_modelMatrix;
   mat4 drw_modelMatrixInverse;
