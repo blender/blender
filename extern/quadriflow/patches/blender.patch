@@ -1,0 +1,102 @@
+diff --git a/extern/quadriflow/3rd/lemon-1.3.1/lemon/arg_parser.cc b/extern/quadriflow/3rd/lemon-1.3.1/lemon/arg_parser.cc
+index 35a73d9..0eeba8a 100644
+--- a/extern/quadriflow/3rd/lemon-1.3.1/lemon/arg_parser.cc
++++ b/extern/quadriflow/3rd/lemon-1.3.1/lemon/arg_parser.cc
+@@ -221,9 +221,8 @@ namespace lemon {
+                                 const std::string &opt)
+   {
+     Opts::iterator o = _opts.find(opt);
+-    Opts::iterator s = _opts.find(syn);
+     LEMON_ASSERT(o!=_opts.end(), "Unknown option: '"+opt+"'");
+-    LEMON_ASSERT(s==_opts.end(), "Option already used: '"+syn+"'");
++    LEMON_ASSERT(_opts.find(syn)==_opts.end(), "Option already used: '"+syn+"'");
+     ParData p;
+     p.help=opt;
+     p.mandatory=false;
+diff --git a/extern/quadriflow/3rd/lemon-1.3.1/lemon/network_simplex.h b/extern/quadriflow/3rd/lemon-1.3.1/lemon/network_simplex.h
+index 6ccad33..388e990 100644
+--- a/extern/quadriflow/3rd/lemon-1.3.1/lemon/network_simplex.h
++++ b/extern/quadriflow/3rd/lemon-1.3.1/lemon/network_simplex.h
+@@ -234,7 +234,7 @@ namespace lemon {
+     int in_arc, join, u_in, v_in, u_out, v_out;
+     Value delta;
+ 
+-    const Value MAX;
++    const Value MAX_VALUE;
+ 
+   public:
+ 
+@@ -649,9 +649,9 @@ namespace lemon {
+     NetworkSimplex(const GR& graph, bool arc_mixing = true) :
+       _graph(graph), _node_id(graph), _arc_id(graph),
+       _arc_mixing(arc_mixing),
+-      MAX(std::numeric_limits<Value>::max()),
++      MAX_VALUE(std::numeric_limits<Value>::max()),
+       INF(std::numeric_limits<Value>::has_infinity ?
+-          std::numeric_limits<Value>::infinity() : MAX)
++          std::numeric_limits<Value>::infinity() : MAX_VALUE)
+     {
+       // Check the number types
+       LEMON_ASSERT(std::numeric_limits<Value>::is_signed,
+@@ -1076,9 +1076,9 @@ namespace lemon {
+         for (int i = 0; i != _arc_num; ++i) {
+           Value c = _lower[i];
+           if (c >= 0) {
+-            _cap[i] = _upper[i] < MAX ? _upper[i] - c : INF;
++            _cap[i] = _upper[i] < MAX_VALUE ? _upper[i] - c : INF;
+           } else {
+-            _cap[i] = _upper[i] < MAX + c ? _upper[i] - c : INF;
++            _cap[i] = _upper[i] < MAX_VALUE + c ? _upper[i] - c : INF;
+           }
+           _supply[_source[i]] -= c;
+           _supply[_target[i]] += c;
+@@ -1282,7 +1282,7 @@ namespace lemon {
+         d = _flow[e];
+         if (_pred_dir[u] == DIR_DOWN) {
+           c = _cap[e];
+-          d = c >= MAX ? INF : c - d;
++          d = c >= MAX_VALUE ? INF : c - d;
+         }
+         if (d < delta) {
+           delta = d;
+@@ -1297,7 +1297,7 @@ namespace lemon {
+         d = _flow[e];
+         if (_pred_dir[u] == DIR_UP) {
+           c = _cap[e];
+-          d = c >= MAX ? INF : c - d;
++          d = c >= MAX_VALUE ? INF : c - d;
+         }
+         if (d <= delta) {
+           delta = d;
+@@ -1559,7 +1559,7 @@ namespace lemon {
+             _pi[_target[in_arc]]) >= 0) continue;
+         findJoinNode();
+         bool change = findLeavingArc();
+-        if (delta >= MAX) return false;
++        if (delta >= MAX_VALUE) return false;
+         changeFlow(change);
+         if (change) {
+           updateTreeStructure();
+@@ -1598,7 +1598,7 @@ namespace lemon {
+       while (pivot.findEnteringArc()) {
+         findJoinNode();
+         bool change = findLeavingArc();
+-        if (delta >= MAX) return UNBOUNDED;
++        if (delta >= MAX_VALUE) return UNBOUNDED;
+         changeFlow(change);
+         if (change) {
+           updateTreeStructure();
+diff --git a/extern/quadriflow/src/hierarchy.cpp b/extern/quadriflow/src/hierarchy.cpp
+index c333256..8cc41da 100644
+--- a/extern/quadriflow/src/hierarchy.cpp
++++ b/extern/quadriflow/src/hierarchy.cpp
+@@ -1133,7 +1133,8 @@ void Hierarchy::propagateConstraints() {
+         auto& COw = mCOw[l];
+         auto& COw_next = mCOw[l + 1];
+         auto& toUpper = mToUpper[l];
+-        MatrixXd& S = mS[l];
++        // FIXME
++        // MatrixXd& S = mS[l];
+ 
+         for (uint32_t i = 0; i != mV[l + 1].cols(); ++i) {
+             Vector2i upper = toUpper.col(i);

@@ -234,7 +234,7 @@ namespace lemon {
     int in_arc, join, u_in, v_in, u_out, v_out;
     Value delta;
 
-    const Value MAX;
+    const Value MAX_VALUE;
 
   public:
 
@@ -649,9 +649,9 @@ namespace lemon {
     NetworkSimplex(const GR& graph, bool arc_mixing = true) :
       _graph(graph), _node_id(graph), _arc_id(graph),
       _arc_mixing(arc_mixing),
-      MAX(std::numeric_limits<Value>::max()),
+      MAX_VALUE(std::numeric_limits<Value>::max()),
       INF(std::numeric_limits<Value>::has_infinity ?
-          std::numeric_limits<Value>::infinity() : MAX)
+          std::numeric_limits<Value>::infinity() : MAX_VALUE)
     {
       // Check the number types
       LEMON_ASSERT(std::numeric_limits<Value>::is_signed,
@@ -1076,9 +1076,9 @@ namespace lemon {
         for (int i = 0; i != _arc_num; ++i) {
           Value c = _lower[i];
           if (c >= 0) {
-            _cap[i] = _upper[i] < MAX ? _upper[i] - c : INF;
+            _cap[i] = _upper[i] < MAX_VALUE ? _upper[i] - c : INF;
           } else {
-            _cap[i] = _upper[i] < MAX + c ? _upper[i] - c : INF;
+            _cap[i] = _upper[i] < MAX_VALUE + c ? _upper[i] - c : INF;
           }
           _supply[_source[i]] -= c;
           _supply[_target[i]] += c;
@@ -1282,7 +1282,7 @@ namespace lemon {
         d = _flow[e];
         if (_pred_dir[u] == DIR_DOWN) {
           c = _cap[e];
-          d = c >= MAX ? INF : c - d;
+          d = c >= MAX_VALUE ? INF : c - d;
         }
         if (d < delta) {
           delta = d;
@@ -1297,7 +1297,7 @@ namespace lemon {
         d = _flow[e];
         if (_pred_dir[u] == DIR_UP) {
           c = _cap[e];
-          d = c >= MAX ? INF : c - d;
+          d = c >= MAX_VALUE ? INF : c - d;
         }
         if (d <= delta) {
           delta = d;
@@ -1559,7 +1559,7 @@ namespace lemon {
             _pi[_target[in_arc]]) >= 0) continue;
         findJoinNode();
         bool change = findLeavingArc();
-        if (delta >= MAX) return false;
+        if (delta >= MAX_VALUE) return false;
         changeFlow(change);
         if (change) {
           updateTreeStructure();
@@ -1598,7 +1598,7 @@ namespace lemon {
       while (pivot.findEnteringArc()) {
         findJoinNode();
         bool change = findLeavingArc();
-        if (delta >= MAX) return UNBOUNDED;
+        if (delta >= MAX_VALUE) return UNBOUNDED;
         changeFlow(change);
         if (change) {
           updateTreeStructure();

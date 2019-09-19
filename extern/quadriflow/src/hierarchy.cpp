@@ -1133,7 +1133,8 @@ void Hierarchy::propagateConstraints() {
         auto& COw = mCOw[l];
         auto& COw_next = mCOw[l + 1];
         auto& toUpper = mToUpper[l];
-        MatrixXd& S = mS[l];
+        // FIXME
+        // MatrixXd& S = mS[l];
 
         for (uint32_t i = 0; i != mV[l + 1].cols(); ++i) {
             Vector2i upper = toUpper.col(i);
