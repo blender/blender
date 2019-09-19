@@ -1366,6 +1366,7 @@ BGL_Wrap(GenVertexArrays, void, (GLsizei, GLuintP));
 BGL_Wrap(GetStringi, GLstring, (GLenum, GLuint));
 BGL_Wrap(IsVertexArray, GLboolean, (GLuint));
 BGL_Wrap(RenderbufferStorage, void, (GLenum, GLenum, GLsizei, GLsizei));
+BGL_Wrap(VertexAttribIPointer, void, (GLuint, GLint, GLenum, GLsizei, GLvoidP));
 
 /* GL_VERSION_3_1 */
 BGL_Wrap(BindBufferBase, void, (GLenum, GLuint, GLuint));
@@ -1709,6 +1710,7 @@ PyObject *BPyInit_bgl(void)
     PY_MOD_ADD_METHOD(GetStringi);
     PY_MOD_ADD_METHOD(IsVertexArray);
     PY_MOD_ADD_METHOD(RenderbufferStorage);
+    PY_MOD_ADD_METHOD(VertexAttribIPointer);
   }
 
   /* GL_VERSION_3_1 */
