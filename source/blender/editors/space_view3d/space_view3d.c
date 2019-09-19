@@ -581,7 +581,7 @@ static void view3d_lightcache_update(bContext *C)
 
   Scene *scene = CTX_data_scene(C);
 
-  if (strcmp(scene->r.engine, RE_engine_id_BLENDER_EEVEE) != 0) {
+  if (!BKE_scene_uses_blender_eevee(scene)) {
     /* Only do auto bake if eevee is the active engine */
     return;
   }

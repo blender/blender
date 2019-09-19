@@ -196,8 +196,8 @@ void ED_view3d_smooth_view_ex(
     sms.to_camera = true; /* restore view3d values in end */
   }
 
-  /* skip smooth viewing for render engine draw */
-  if (smooth_viewtx && v3d->shading.type != OB_RENDER) {
+  /* skip smooth viewing for external render engine draw */
+  if (smooth_viewtx && !(v3d->shading.type == OB_RENDER && rv3d->render_engine)) {
     bool changed = false; /* zero means no difference */
 
     if (sview->camera_old != sview->camera) {
