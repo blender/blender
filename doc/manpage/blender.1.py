@@ -30,6 +30,7 @@ and <output-filename> is where to write the generated man page.
 
 # <pep8 compliant>
 
+import os
 import subprocess
 import sys
 
@@ -52,13 +53,17 @@ outfilename = sys.argv[2]
 cmd = [blender_bin, "--help"]
 print("  executing:", " ".join(cmd))
 blender_help = subprocess.run(
-    cmd, env={"ASAN_OPTIONS": "exitcode=0"}, check=True, capture_output=True).stdout.decode(encoding="utf-8")
+    cmd, env={"ASAN_OPTIONS": "exitcode=0"}, check=True, stdout=subprocess.PIPE).stdout.decode(encoding="utf-8")
 blender_version = subprocess.run(
-    [blender_bin, "--version"], env={"ASAN_OPTIONS": "exitcode=0"}, check=True, capture_output=True).stdout.decode(encoding="utf-8").strip()
-blender_version, blender_date = blender_version.split("build")[0:2]
+    [blender_bin, "--version"], env={"ASAN_OPTIONS": "exitcode=0"}, check=True, stdout=subprocess.PIPE).stdout.decode(encoding="utf-8").strip()
+blender_version, blender_date = (blender_version.split("build") + [None, None])[0:2]
 blender_version = blender_version.rstrip().partition(" ")[2]  # remove 'Blender' prefix.
-blender_date = blender_date.strip().partition(" ")[2] # remove 'date:' prefix
-date_string = time.strftime("%B %d, %Y", time.strptime(blender_date, "%Y-%m-%d"))
+if blender_date is None:
+    # Happens when built without WITH_BUILD_INFO e.g.
+    date_string = time.strftime("%B %d, %Y", time.gmtime(int(os.environ.get('SOURCE_DATE_EPOCH', time.time()))))
+else:
+    blender_date = blender_date.strip().partition(" ")[2] # remove 'date:' prefix
+    date_string = time.strftime("%B %d, %Y", time.strptime(blender_date, "%Y-%m-%d"))
 
 outfile = open(outfilename, "w")
 fw = outfile.write
