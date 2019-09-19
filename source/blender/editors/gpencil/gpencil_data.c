@@ -492,51 +492,50 @@ static int gp_layer_duplicate_object_exec(bContext *C, wmOperator *op)
   bGPdata *gpd_src = (bGPdata *)ob_src->data;
   bGPDlayer *gpl_src = BKE_gpencil_layer_getactive(gpd_src);
 
-  /* sanity checks */
+  /* Sanity checks. */
   if (ELEM(NULL, gpd_src, gpl_src, ob_dst)) {
     return OPERATOR_CANCELLED;
   }
-  /* cannot copy itself and check destination type */
+  /* Cannot copy itself and check destination type. */
   if ((ob_src == ob_dst) || (ob_dst->type != OB_GPENCIL)) {
     return OPERATOR_CANCELLED;
   }
 
   bGPdata *gpd_dst = (bGPdata *)ob_dst->data;
 
-  /* make copy of layer */
-  bGPDlayer *gpl_dst = MEM_dupallocN(gpl_src);
-  gpl_dst->prev = gpl_dst->next = NULL;
-  BLI_addtail(&gpd_dst->layers, gpl_dst);
+  /* Create new layer. */
+  bGPDlayer *gpl_dst = BKE_gpencil_layer_addnew(gpd_dst, gpl_src->info, true);
   BLI_uniquename(&gpd_dst->layers,
                  gpl_dst,
                  DATA_("GP_Layer"),
                  '.',
                  offsetof(bGPDlayer, info),
                  sizeof(gpl_dst->info));
+  /* Need to copy some variables (not all). */
+  gpl_dst->onion_flag = gpl_src->onion_flag;
+  gpl_dst->thickness = gpl_src->thickness;
+  gpl_dst->line_change = gpl_src->line_change;
+  copy_v4_v4(gpl_dst->tintcolor, gpl_src->tintcolor);
+  gpl_dst->opacity = gpl_src->opacity;
 
-  /* copy frames */
-  BLI_listbase_clear(&gpl_dst->frames);
+  /* Create all frames. */
   for (bGPDframe *gpf_src = gpl_src->frames.first; gpf_src; gpf_src = gpf_src->next) {
 
     if ((mode == GP_LAYER_COPY_OBJECT_ACT_FRAME) && (gpf_src != gpl_src->actframe)) {
       continue;
     }
 
-    /* make a copy of source frame */
-    bGPDframe *gpf_dst = MEM_dupallocN(gpf_src);
-    gpf_dst->prev = gpf_dst->next = NULL;
-    BLI_addtail(&gpl_dst->frames, gpf_dst);
+    /* Create new frame. */
+    bGPDframe *gpf_dst = BKE_gpencil_frame_addnew(gpl_dst, gpf_src->framenum);
 
-    /* copy strokes */
-    BLI_listbase_clear(&gpf_dst->strokes);
+    /* Copy strokes. */
     for (bGPDstroke *gps_src = gpf_src->strokes.first; gps_src; gps_src = gps_src->next) {
 
-      /* make copy of source stroke */
+      /* Make copy of source stroke. */
       bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(gps_src);
 
-      /* check if material is in destination object,
-       * otherwise add the slot with the material
-       */
+      /* Check if material is in destination object,
+       * otherwise add the slot with the material. */
       Material *ma_src = give_current_material(ob_src, gps_src->mat_nr + 1);
       if (ma_src != NULL) {
         int idx = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma_src);
@@ -545,7 +544,7 @@ static int gp_layer_duplicate_object_exec(bContext *C, wmOperator *op)
         gps_dst->mat_nr = idx;
       }
 
-      /* add new stroke to frame */
+      /* Add new stroke to frame. */
       BLI_addtail(&gpf_dst->strokes, gps_dst);
     }
   }
