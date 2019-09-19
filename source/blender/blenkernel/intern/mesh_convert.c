@@ -1080,6 +1080,7 @@ static Mesh *mesh_new_from_mball_object(Object *object)
 
   Mesh *mesh_result = BKE_id_new_nomain(ID_ME, ((ID *)object->data)->name + 2);
   BKE_mesh_from_metaball(&object->runtime.curve_cache->disp, mesh_result);
+  BKE_mesh_texspace_copy_from_object(mesh_result, object);
 
   /* Copy materials. */
   mesh_result->totcol = mball->totcol;
