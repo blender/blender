@@ -1568,6 +1568,9 @@ void gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
     gp_style = BKE_material_gpencil_settings_get(ob, ob->actcol);
   }
 
+  static float unit_mat[4][4] = {
+      {1.0, 0.0, 0.0, 0.0}, {0.0, 1.0, 0.0, 0.0}, {0.0, 0.0, 1.0, 0.0}, {0.0, 0.0, 0.0, 1.0}};
+
   /* drawing strokes */
   /* Check if may need to draw the active stroke cache, only if this layer is the active layer
    * that is being edited. (Stroke buffer is currently stored in gp-data)
@@ -1583,9 +1586,6 @@ void gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
       stl->storage->gradient_f = brush->gpencil_settings->gradient_f;
       copy_v2_v2(stl->storage->gradient_s, brush->gpencil_settings->gradient_s);
       stl->storage->alignment_mode = (gp_style) ? gp_style->alignment_mode : GP_STYLE_FOLLOW_PATH;
-
-      static float unit_mat[4][4] = {
-          {1.0, 0.0, 0.0, 0.0}, {0.0, 1.0, 0.0, 0.0}, {0.0, 0.0, 1.0, 0.0}, {0.0, 0.0, 0.0, 1.0}};
 
       /* if only one point, don't need to draw buffer because the user has no time to see it */
       if (gpd->runtime.sbuffer_used > 1) {
@@ -1682,6 +1682,8 @@ void gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
     DRWShadingGroup *shgrp = DRW_shgroup_create(e_data->gpencil_edit_point_sh, psl->drawing_pass);
     const float *viewport_size = DRW_viewport_size_get();
     DRW_shgroup_uniform_vec2(shgrp, "Viewport", viewport_size, 1);
+    DRW_shgroup_uniform_mat4(shgrp, "gpModelMatrix", unit_mat);
+
     /* Disable stencil for this type */
     DRW_shgroup_state_disable(shgrp, DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_NEQUAL);
     stl->g_data->batch_buffer_ctrlpoint = gpencil_get_buffer_ctrlpoint_geom(gpd);
