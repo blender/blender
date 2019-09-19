@@ -569,7 +569,7 @@ static int startffmpeg(struct anim *anim)
     return -1;
   }
 
-  frame_rate = av_get_r_frame_rate_compat(pFormatCtx, video_stream);
+  frame_rate = av_guess_frame_rate(pFormatCtx, video_stream, NULL);
   if (video_stream->nb_frames != 0) {
     anim->duration = video_stream->nb_frames;
   }
@@ -1040,7 +1040,7 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
 
   v_st = anim->pFormatCtx->streams[anim->videoStream];
 
-  frame_rate = av_q2d(av_get_r_frame_rate_compat(anim->pFormatCtx, v_st));
+  frame_rate = av_q2d(av_guess_frame_rate(anim->pFormatCtx, v_st, NULL));
 
   st_time = anim->pFormatCtx->start_time;
   pts_time_base = av_q2d(v_st->time_base);

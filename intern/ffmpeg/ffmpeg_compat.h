@@ -528,35 +528,21 @@ bool av_check_encoded_with_ffmpeg(AVFormatContext *ctx)
   return false;
 }
 
-FFMPEG_INLINE
-AVRational av_get_r_frame_rate_compat(AVFormatContext *ctx, const AVStream *stream)
+/* Libav doesn't have av_guess_frame_rate().
+ * It was introduced in FFmpeg's lavf 55.1.100. */
+#ifdef AV_USING_LIBAV
+AVRational av_guess_frame_rate(AVFormatContext *ctx, AVStream *stream, AVFrame *frame)
 {
-  /* If the video is encoded with FFmpeg and we are decoding with FFmpeg
-   * as well it seems to be more reliable to use r_frame_rate (tbr).
-   *
-   * For other cases we fall back to avg_frame_rate (fps) when possible.
-   */
-#ifdef AV_USING_FFMPEG
-  if (av_check_encoded_with_ffmpeg(ctx)) {
-    return stream->r_frame_rate;
-  }
-#endif
-
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54, 23, 1)
-  /* For until r_frame_rate was deprecated use it. */
+  (void)ctx;
+  (void)frame;
+#  if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54, 23, 1)
+  /* For until r_frame_rate was deprecated (in Libav) use it. */
   return stream->r_frame_rate;
-#else
-#  ifdef AV_USING_FFMPEG
-  /* Some of the videos might have average frame rate set to, while the
-   * r_frame_rate will show a correct value. This happens, for example, for
-   * OGG video files saved with Blender. */
-  if (stream->avg_frame_rate.den == 0) {
-    return stream->r_frame_rate;
-  }
-#  endif
+#  else
   return stream->avg_frame_rate;
-#endif
+#  endif
 }
+#endif
 
 #if LIBAVUTIL_VERSION_INT < AV_VERSION_INT(51, 32, 0)
 #  define AV_OPT_SEARCH_FAKE_OBJ 0
