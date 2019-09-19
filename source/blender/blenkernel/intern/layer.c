@@ -1132,7 +1132,9 @@ static void layer_collection_local_sync(ViewLayer *view_layer,
   }
 
   LISTBASE_FOREACH (LayerCollection *, child, &layer_collection->layer_collections) {
-    layer_collection_local_sync(view_layer, child, local_collections_uuid, visible);
+    if ((child->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
+      layer_collection_local_sync(view_layer, child, local_collections_uuid, visible);
+    }
   }
 }
 
