@@ -621,10 +621,10 @@ void flushTransGraphData(TransInfo *t)
 
     float inv_unit_scale = 1.0f / tdg->unit_scale;
 
-    /* handle snapping for time values
-     * - we should still be in NLA-mapping timespace
-     * - only apply to keyframes (but never to handles)
-     * - don't do this when canceling, or else these changes won't go away
+    /* Handle snapping for time values:
+     * - We should still be in NLA-mapping time-space.
+     * - Only apply to keyframes (but never to handles).
+     * - Don't do this when canceling, or else these changes won't go away.
      */
     if ((t->state != TRANS_CANCEL) && (td->flag & TD_NOTIMESNAP) == 0) {
       switch (sipo->autosnap) {

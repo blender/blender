@@ -21,17 +21,17 @@
  * \ingroup bli
  *
  * These classes offer a convenient way to work with continuous chunks of memory of a certain type.
- * We differentiate ArrayRef and MutableArrayRef. The elements in the former are const while the
+ * We differentiate #ArrayRef and #MutableArrayRef. The elements in the former are const while the
  * elements in the other are not.
  *
  * Passing array references as parameters has multiple benefits:
  *   - Less templates are used because the function does not have to work with different
  *     container types.
- *   - It encourages an Struct-of-Arrays data layout which is often benefitial when
+ *   - It encourages an Struct-of-Arrays data layout which is often beneficial when
  *     writing high performance code. Also it makes it easier to reuse code.
  *   - Array references offer convenient ways of slicing and other operations.
  *
- * The instances of ArrayRef and MutableArrayRef are very small and should be passed by value.
+ * The instances of #ArrayRef and #MutableArrayRef are very small and should be passed by value.
  * Since array references do not own any memory, it is generally not save to store them.
  */
 
@@ -202,7 +202,7 @@ template<typename T> class ArrayRef {
 
   /**
    * Does a linear search to count how often the value is in the array.
-   * Returns the number of occurences.
+   * Returns the number of occurrences.
    */
   uint count(const T &value) const
   {
@@ -226,7 +226,7 @@ template<typename T> class ArrayRef {
   }
 
   /**
-   * Return a reference to the last elemeent in the array.
+   * Return a reference to the last element in the array.
    * Asserts that the array is not empty.
    */
   const T &last() const
@@ -363,7 +363,7 @@ template<typename T> class MutableArrayRef {
 
   /**
    * Return a continuous part of the array.
-   * Aserts that the slice stays in the array bounds.
+   * Asserts that the slice stays in the array bounds.
    */
   MutableArrayRef slice(uint start, uint length) const
   {

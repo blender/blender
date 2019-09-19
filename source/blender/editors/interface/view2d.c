@@ -1263,7 +1263,7 @@ void UI_view2d_view_restore(const bContext *C)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Gridline Drawing
+/** \name Grid-Line Drawing
  * \{ */
 
 /* Draw a constant grid in given 2d-region */

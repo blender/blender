@@ -8430,9 +8430,9 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   int iterations = RNA_int_get(op->ptr, "iterations");
 
   /* Auto iteration count calculates the number of iteration based on the vertices of the mesh to
-   * avoid adding an unnecesary ammount of undo steps when using the operator from a shortcut. One
-   * iteration per 50000 vertices in the mesh should be fine in most cases. Maybe we want this to
-   * be configurable */
+   * avoid adding an unnecessary amount of undo steps when using the operator from a shortcut.
+   * One iteration per 50000 vertices in the mesh should be fine in most cases.
+   * Maybe we want this to be configurable. */
   if (RNA_boolean_get(op->ptr, "auto_iteration_count")) {
     iterations = (int)(num_verts / 50000.0f) + 1;
   }

@@ -874,7 +874,7 @@ static int arg_handle_log_set(int argc, const char **argv, void *UNUSED(data))
       }
 
       if (str_step_end) {
-        /* typically only be one, but don't fail on multiple.*/
+        /* Typically only be one, but don't fail on multiple. */
         while (*str_step_end == ',') {
           str_step_end++;
         }

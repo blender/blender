@@ -632,7 +632,7 @@ void EEVEE_volumes_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
       int tex_transmit = GPU_texture_opengl_bindcode(txl->volume_transmit_history);
       /* TODO(fclem) Encapsulate these GL calls into DRWManager. */
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-      /* Subtility here! we need to tell the GL that the texture is layered (GL_TRUE)
+      /* Subtlety here! we need to tell the GL that the texture is layered (GL_TRUE)
        * in order to bind the full 3D texture and not just a 2D slice. */
       glBindImageTexture(0, tex_scatter, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
       glBindImageTexture(1, tex_transmit, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);

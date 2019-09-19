@@ -120,8 +120,8 @@ typedef struct DRWCullingState {
  * 9 bits for resource id inside the chunk. (can go up to 511)
  * |-|----------------------|---------|
  *
- * Use manual bitsift and mask instead of bitfields to avoid
- * compiler dependant behavior that would mess the ordering of
+ * Use manual bit-shift and mask instead of bit-fields to avoid
+ * compiler dependent behavior that would mess the ordering of
  * the members thus changing the sorting order.
  */
 typedef uint32_t DRWResourceHandle;

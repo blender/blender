@@ -163,7 +163,7 @@ void EEVEE_shadows_caster_material_add(EEVEE_ViewLayerData *sldata,
     return;
   }
 
-  /* Grrr needed for correctness but not 99% of the time not needed.
+  /* Unfortunately needed for correctness but not 99% of the time not needed.
    * TODO detect when needed? */
   DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
   DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);

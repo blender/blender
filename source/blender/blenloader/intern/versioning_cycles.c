@@ -1092,12 +1092,13 @@ static void update_voronoi_node_crackle(bNodeTree *ntree)
   }
 }
 
-/* The coloring property of the Voronoi node was removed. Previously,
+/**
+ * The coloring property of the Voronoi node was removed. Previously,
  * if the coloring enum was set to Intensity (0), the voronoi distance
  * was returned in all outputs, otherwise, the Cell ID was returned.
  * Since we remapped the Fac output in update_voronoi_node_fac_output,
  * then to fix this, we relink the Color output to the Distance
- * output if coloring was set to 0, and the otherway around otherwise.
+ * output if coloring was set to 0, and the other way around otherwise.
  */
 static void update_voronoi_node_coloring(bNodeTree *ntree)
 {

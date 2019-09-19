@@ -770,7 +770,7 @@ int BLI_delete(const char *file, bool dir, bool recursive)
 }
 
 /**
- * Do the two paths denote the same filesystem object?
+ * Do the two paths denote the same file-system object?
  */
 static bool check_the_same(const char *path_a, const char *path_b)
 {

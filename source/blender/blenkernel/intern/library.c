@@ -1476,7 +1476,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
     /* the duplicate should get a copy of the animdata */
     if ((flag & LIB_ID_COPY_NO_ANIMDATA) == 0) {
       /* Note that even though horrors like root nodetrees are not in bmain, the actions they use
-       * in their anim data *are* in bmain... super-mega-hurra. */
+       * in their anim data *are* in bmain... super-mega-hooray. */
       int animdata_flag = orig_flag;
       BLI_assert((animdata_flag & LIB_ID_COPY_ACTIONS) == 0 ||
                  (animdata_flag & LIB_ID_CREATE_NO_MAIN) == 0);

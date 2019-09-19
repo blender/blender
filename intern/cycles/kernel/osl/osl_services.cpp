@@ -483,11 +483,11 @@ static bool set_attribute_float3(float3 f, TypeDesc type, bool derivatives, void
   return set_attribute_float3(fv, type, derivatives, val);
 }
 
-/* Attributes with the TypeRGBA type descriptor should be retrived and stored
+/* Attributes with the TypeRGBA type descriptor should be retrieved and stored
  * in a float array of size 4 (e.g. node_vertex_color.osl), this array have
  * a type descriptor TypeFloatArray4. If the storage is not a TypeFloatArray4,
  * we either store the first three components in a vector, store the average of
- * the components in a float, or fail the retrival and do nothing. We allow
+ * the components in a float, or fail the retrieval and do nothing. We allow
  * this for the correct operation of the Attribute node.
  */
 

@@ -55,9 +55,9 @@
 static void draw_call_sort(DRWCommand *array, DRWCommand *array_tmp, int array_len)
 {
   /* Count unique batches. Tt's not really important if
-   * there is colisions. If there is a lot of different batches,
-   * the sorting benefit will be negligeable. So at least
-   * sort fast! */
+   * there is collisions. If there is a lot of different batches,
+   * the sorting benefit will be negligible.
+   * So at least sort fast! */
   uchar idx[128] = {0};
   /* Shift by 6 positions knowing each GPUBatch is > 64 bytes */
 #define KEY(a) ((((size_t)((a).draw.batch)) >> 6) % ARRAY_SIZE(idx))
