@@ -493,12 +493,13 @@ BLI_INLINE bool need_aligned_ffmpeg_buffer(struct anim *anim)
 
 static int startffmpeg(struct anim *anim)
 {
-  int i, videoStream;
+  int i, video_stream_index;
 
   AVCodec *pCodec;
   AVFormatContext *pFormatCtx = NULL;
   AVCodecContext *pCodecCtx;
   AVRational frame_rate;
+  AVStream *video_stream;
   int frs_num;
   double frs_den;
   int streamcount;
@@ -528,7 +529,7 @@ static int startffmpeg(struct anim *anim)
   av_dump_format(pFormatCtx, 0, anim->name, 0);
 
   /* Find the video stream */
-  videoStream = -1;
+  video_stream_index = -1;
 
   for (i = 0; i < pFormatCtx->nb_streams; i++) {
     if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
@@ -536,17 +537,18 @@ static int startffmpeg(struct anim *anim)
         streamcount--;
         continue;
       }
-      videoStream = i;
+      video_stream_index = i;
       break;
     }
   }
 
-  if (videoStream == -1) {
+  if (video_stream_index == -1) {
     avformat_close_input(&pFormatCtx);
     return -1;
   }
 
-  pCodecCtx = pFormatCtx->streams[videoStream]->codec;
+  video_stream = pFormatCtx->streams[video_stream_index];
+  pCodecCtx = video_stream->codec;
 
   /* Find the decoder for the video stream */
   pCodec = avcodec_find_decoder(pCodecCtx->codec_id);
@@ -567,9 +569,9 @@ static int startffmpeg(struct anim *anim)
     return -1;
   }
 
-  frame_rate = av_get_r_frame_rate_compat(pFormatCtx, pFormatCtx->streams[videoStream]);
-  if (pFormatCtx->streams[videoStream]->nb_frames != 0) {
-    anim->duration = pFormatCtx->streams[videoStream]->nb_frames;
+  frame_rate = av_get_r_frame_rate_compat(pFormatCtx, video_stream);
+  if (video_stream->nb_frames != 0) {
+    anim->duration = video_stream->nb_frames;
   }
   else {
     anim->duration = (int)(pFormatCtx->duration * av_q2d(frame_rate) / AV_TIME_BASE + 0.5f);
@@ -596,7 +598,7 @@ static int startffmpeg(struct anim *anim)
   anim->pFormatCtx = pFormatCtx;
   anim->pCodecCtx = pCodecCtx;
   anim->pCodec = pCodec;
-  anim->videoStream = videoStream;
+  anim->videoStream = video_stream_index;
 
   anim->interlacing = 0;
   anim->orientation = 0;
