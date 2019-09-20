@@ -328,36 +328,6 @@ class FILEBROWSER_PT_advanced_filter(Panel):
                 col.prop(params, "filter_id")
 
 
-class FILEBROWSER_PT_options_toggle(Panel):
-    bl_space_type = 'FILE_BROWSER'
-    bl_region_type = 'TOOLS'
-    bl_label = "Options Toggle"
-    bl_options = {'HIDE_HEADER'}
-
-    @classmethod
-    def poll(cls, context):
-        sfile = context.space_data
-        return context.region.alignment == 'BOTTOM' and sfile.active_operator
-
-    def is_option_region_visible(self, context):
-        for region in context.area.regions:
-            if region.type == 'TOOL_PROPS' and region.width <= 1:
-                return False
-
-        return True
-
-    def draw(self, context):
-        layout = self.layout
-        label = "Hide Options" if self.is_option_region_visible(
-            context) else "Options"
-
-        layout.scale_x = 1.3
-        layout.scale_y = 1.3
-
-        layout.operator("screen.region_toggle",
-                        text=label).region_type = 'TOOL_PROPS'
-
-
 class FILEBROWSER_PT_directory_path(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'UI'
@@ -368,6 +338,16 @@ class FILEBROWSER_PT_directory_path(Panel):
     def is_header_visible(self, context):
         for region in context.area.regions:
             if region.type == 'HEADER' and region.height <= 1:
+                return False
+
+        return True
+
+    def is_option_region_visible(self, context, space):
+        if not space.active_operator:
+            return False
+
+        for region in context.area.regions:
+            if region.type == 'TOOL_PROPS' and region.width <= 1:
                 return False
 
         return True
@@ -413,6 +393,14 @@ class FILEBROWSER_PT_directory_path(Panel):
             icon='FILTER',
             icon_only=True,
         )
+
+        if space.active_operator:
+            row.operator(
+                "screen.region_toggle",
+                text="",
+                icon='PREFERENCES',
+                depress=self.is_option_region_visible(context, space)
+            ).region_type = 'TOOL_PROPS'
 
 
 class FILEBROWSER_MT_view(Menu):
@@ -500,7 +488,6 @@ classes = (
     FILEBROWSER_PT_bookmarks_recents,
     FILEBROWSER_PT_advanced_filter,
     FILEBROWSER_PT_directory_path,
-    FILEBROWSER_PT_options_toggle,
     FILEBROWSER_MT_view,
     FILEBROWSER_MT_select,
     FILEBROWSER_MT_context_menu,

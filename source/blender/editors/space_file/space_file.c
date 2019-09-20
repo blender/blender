@@ -55,25 +55,6 @@
 #include "filelist.h"
 #include "GPU_framebuffer.h"
 
-static ARegion *file_tools_options_toggle_region_ensure(ScrArea *sa, ARegion *ar_prev)
-{
-  ARegion *ar;
-
-  if ((ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS)) != NULL && (ar->next != NULL) &&
-      (ar->next->regiontype == RGN_TYPE_TOOLS)) {
-    BLI_assert(ar->alignment == (RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV));
-    return ar;
-  }
-
-  ar = MEM_callocN(sizeof(ARegion), "options toggle region for file");
-  BLI_insertlinkafter(&sa->regionbase, ar_prev, ar);
-  ar->regiontype = RGN_TYPE_TOOLS;
-  ar->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-  ar->flag |= RGN_FLAG_DYNAMIC_SIZE;
-
-  return ar;
-}
-
 static ARegion *file_execute_region_ensure(ScrArea *sa, ARegion *ar_prev)
 {
   ARegion *ar;
@@ -138,7 +119,7 @@ static SpaceLink *file_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
   ar->regiontype = RGN_TYPE_TOOLS;
   ar->alignment = RGN_ALIGN_LEFT;
 
-  /* Options toggle, tool props and execute region are added as needed, see file_refresh(). */
+  /* Tool props and execute region are added as needed, see file_refresh(). */
 
   /* main region */
   ar = MEM_callocN(sizeof(ARegion), "main region for file");
@@ -258,16 +239,14 @@ static void file_ensure_valid_region_state(bContext *C,
                                            SpaceFile *sfile,
                                            FileSelectParams *params)
 {
-  ARegion *ar_tools_upper = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
+  ARegion *ar_tools = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
   ARegion *ar_props = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS);
   ARegion *ar_execute = BKE_area_find_region_type(sa, RGN_TYPE_EXECUTE);
-  ARegion *ar_tools_lower;
   bool needs_init = false; /* To avoid multiple ED_area_initialize() calls. */
 
   /* If there's an file-operation, ensure we have the option and execute region */
   if (sfile->op && (ar_props == NULL)) {
-    ar_tools_lower = file_tools_options_toggle_region_ensure(sa, ar_tools_upper);
-    ar_execute = file_execute_region_ensure(sa, ar_tools_lower);
+    ar_execute = file_execute_region_ensure(sa, ar_tools);
     ar_props = file_tool_props_region_ensure(sa, ar_execute);
 
     if (params->flag & FILE_HIDE_TOOL_PROPS) {
@@ -281,15 +260,10 @@ static void file_ensure_valid_region_state(bContext *C,
   }
   /* If there's _no_ file-operation, ensure we _don't_ have the option and execute region */
   else if ((sfile->op == NULL) && (ar_props != NULL)) {
-    ar_tools_lower = ar_tools_upper->next;
-
     BLI_assert(ar_execute != NULL);
-    BLI_assert(ar_tools_lower != NULL);
-    BLI_assert(ar_tools_lower->regiontype == RGN_TYPE_TOOLS);
 
     ED_region_remove(C, sa, ar_props);
     ED_region_remove(C, sa, ar_execute);
-    ED_region_remove(C, sa, ar_tools_lower);
     needs_init = true;
   }
 
