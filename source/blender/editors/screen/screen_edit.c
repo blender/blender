@@ -44,6 +44,7 @@
 #include "BKE_node.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
+#include "BKE_sound.h"
 #include "BKE_workspace.h"
 
 #include "WM_api.h"
@@ -583,6 +584,11 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 
   if (screen->animtimer) {
     WM_event_remove_timer(wm, window, screen->animtimer);
+
+    Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+    Scene *scene = WM_window_get_active_scene(prevwin);
+    Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
+    BKE_sound_stop_scene(scene_eval);
   }
   screen->animtimer = NULL;
   screen->scrubbing = false;
