@@ -52,27 +52,43 @@
 #include "RNA_access.h"
 
 /* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
+
+static const char *screen_menu_context_string(const bContext *C, const SpaceLink *sl)
+{
+  if (sl->spacetype == SPACE_NODE) {
+    const SpaceNode *snode = (const SpaceNode *)sl;
+    return snode->tree_idname;
+  }
+  return CTX_data_mode_string(C);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Menu Type
  * \{ */
 
 bUserMenu **ED_screen_user_menus_find(const bContext *C, uint *r_len)
 {
   SpaceLink *sl = CTX_wm_space_data(C);
-  const char *context = CTX_data_mode_string(C);
 
   if (sl == NULL) {
     *r_len = 0;
     return NULL;
   }
 
+  const char *context_mode = CTX_data_mode_string(C);
+  const char *context = screen_menu_context_string(C, sl);
   uint array_len = 3;
   bUserMenu **um_array = MEM_calloc_arrayN(array_len, sizeof(*um_array), __func__);
   um_array[0] = BKE_blender_user_menu_find(&U.user_menus, sl->spacetype, context);
   um_array[1] = (sl->spacetype != SPACE_TOPBAR) ?
-                    BKE_blender_user_menu_find(&U.user_menus, SPACE_TOPBAR, context) :
+                    BKE_blender_user_menu_find(&U.user_menus, SPACE_TOPBAR, context_mode) :
                     NULL;
   um_array[2] = (sl->spacetype == SPACE_VIEW3D) ?
-                    BKE_blender_user_menu_find(&U.user_menus, SPACE_PROPERTIES, context) :
+                    BKE_blender_user_menu_find(&U.user_menus, SPACE_PROPERTIES, context_mode) :
                     NULL;
 
   *r_len = array_len;
@@ -82,7 +98,7 @@ bUserMenu **ED_screen_user_menus_find(const bContext *C, uint *r_len)
 bUserMenu *ED_screen_user_menu_ensure(bContext *C)
 {
   SpaceLink *sl = CTX_wm_space_data(C);
-  const char *context = CTX_data_mode_string(C);
+  const char *context = screen_menu_context_string(C, sl);
   return BKE_blender_user_menu_ensure(&U.user_menus, sl->spacetype, context);
 }
 
