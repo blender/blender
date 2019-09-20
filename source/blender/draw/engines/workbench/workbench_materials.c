@@ -261,8 +261,8 @@ int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd,
   int color_type = wpd->shading.color_type;
   const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
 
-  if ((color_type == V3D_SHADING_TEXTURE_COLOR && (ima == NULL || use_sculpt_pbvh)) ||
-      (ob->dt < OB_TEXTURE)) {
+  if ((color_type == V3D_SHADING_TEXTURE_COLOR) &&
+      (ima == NULL || use_sculpt_pbvh || (ob->dt < OB_TEXTURE))) {
     color_type = V3D_SHADING_MATERIAL_COLOR;
   }
   if (color_type == V3D_SHADING_VERTEX_COLOR && (me == NULL || me->mloopcol == NULL)) {
