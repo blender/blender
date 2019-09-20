@@ -2315,58 +2315,10 @@ void FILE_OT_hidedot(struct wmOperatorType *ot)
   ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 }
 
-ARegion *file_tools_region(ScrArea *sa)
-{
-  ARegion *ar, *arnew;
-
-  if ((ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS)) != NULL) {
-    return ar;
-  }
-
-  /* add subdiv level; after header */
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
-
-  /* is error! */
-  if (ar == NULL) {
-    return NULL;
-  }
-
-  arnew = MEM_callocN(sizeof(ARegion), "tools for file");
-  BLI_insertlinkafter(&sa->regionbase, ar, arnew);
-  arnew->regiontype = RGN_TYPE_TOOLS;
-  arnew->alignment = RGN_ALIGN_LEFT;
-
-  return arnew;
-}
-
-ARegion *file_tool_props_region(ScrArea *sa)
-{
-  ARegion *ar, *arnew;
-
-  if ((ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS)) != NULL) {
-    return ar;
-  }
-
-  /* add subdiv level; after execute region */
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_EXECUTE);
-
-  /* is error! */
-  if (ar == NULL) {
-    return NULL;
-  }
-
-  arnew = MEM_callocN(sizeof(ARegion), "tool props for file");
-  BLI_insertlinkafter(&sa->regionbase, ar, arnew);
-  arnew->regiontype = RGN_TYPE_TOOL_PROPS;
-  arnew->alignment = RGN_ALIGN_RIGHT;
-
-  return arnew;
-}
-
 static int file_bookmark_toggle_exec(bContext *C, wmOperator *UNUSED(unused))
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = file_tools_region(sa);
+  ARegion *ar = file_tools_region_ensure(sa, BKE_area_find_region_type(sa, RGN_TYPE_UI));
 
   if (ar) {
     ED_region_toggle_hidden(C, ar);

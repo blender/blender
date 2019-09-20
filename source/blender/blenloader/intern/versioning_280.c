@@ -3877,19 +3877,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
               }
             }
           }
-          else if (sl->spacetype == SPACE_FILE) {
-            ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
-            ARegion *ar_execute = do_versions_find_region_or_null(regionbase, RGN_TYPE_EXECUTE);
-
-            if (!ar_execute) {
-              ARegion *ar_main = do_versions_find_region(regionbase, RGN_TYPE_WINDOW);
-              ar_execute = MEM_callocN(sizeof(ARegion), "versioning execute region for file");
-              BLI_insertlinkbefore(regionbase, ar_main, ar_execute);
-              ar_execute->regiontype = RGN_TYPE_EXECUTE;
-              ar_execute->alignment = RGN_ALIGN_BOTTOM;
-              ar_execute->flag |= RGN_FLAG_DYNAMIC_SIZE;
-            }
-          }
         }
       }
     }

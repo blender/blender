@@ -55,6 +55,80 @@
 #include "filelist.h"
 #include "GPU_framebuffer.h"
 
+static ARegion *file_tools_region_create(ListBase *regionbase, ARegion *ar_prev)
+{
+  ARegion *ar = MEM_callocN(sizeof(ARegion), "tools region for file");
+  BLI_insertlinkafter(regionbase, ar_prev, ar);
+  ar->regiontype = RGN_TYPE_TOOLS;
+  ar->alignment = RGN_ALIGN_LEFT;
+
+  return ar;
+}
+
+ARegion *file_tools_region_ensure(ScrArea *sa, ARegion *ar_prev)
+{
+  ARegion *ar;
+
+  if ((ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS)) != NULL) {
+    return ar;
+  }
+
+  return file_tools_region_create(&sa->regionbase, ar_prev);
+}
+
+static ARegion *file_tools_options_toggle_region_ensure(ScrArea *sa, ARegion *ar_prev)
+{
+  ARegion *ar;
+
+  if ((ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS)) != NULL && (ar->next != NULL) &&
+      (ar->next->regiontype == RGN_TYPE_TOOLS)) {
+    BLI_assert(ar->alignment == (RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV));
+    return ar;
+  }
+
+  ar = MEM_callocN(sizeof(ARegion), "options toggle region for file");
+  BLI_insertlinkafter(&sa->regionbase, ar_prev, ar);
+  ar->regiontype = RGN_TYPE_TOOLS;
+  ar->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
+  ar->flag |= RGN_FLAG_DYNAMIC_SIZE;
+
+  return ar;
+}
+
+static ARegion *file_execute_region_ensure(ScrArea *sa, ARegion *ar_prev)
+{
+  ARegion *ar;
+
+  if ((ar = BKE_area_find_region_type(sa, RGN_TYPE_EXECUTE)) != NULL) {
+    return ar;
+  }
+
+  ar = MEM_callocN(sizeof(ARegion), "execute region for file");
+  BLI_insertlinkafter(&sa->regionbase, ar_prev, ar);
+  ar->regiontype = RGN_TYPE_EXECUTE;
+  ar->alignment = RGN_ALIGN_BOTTOM;
+  ar->flag = RGN_FLAG_DYNAMIC_SIZE;
+
+  return ar;
+}
+
+static ARegion *file_tool_props_region_ensure(ScrArea *sa, ARegion *ar_prev)
+{
+  ARegion *ar;
+
+  if ((ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS)) != NULL) {
+    return ar;
+  }
+
+  /* add subdiv level; after execute region */
+  ar = MEM_callocN(sizeof(ARegion), "tool props for file");
+  BLI_insertlinkafter(&sa->regionbase, ar_prev, ar);
+  ar->regiontype = RGN_TYPE_TOOL_PROPS;
+  ar->alignment = RGN_ALIGN_RIGHT;
+
+  return ar;
+}
+
 /* ******************** default callbacks for file space ***************** */
 
 static SpaceLink *file_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
@@ -80,32 +154,9 @@ static SpaceLink *file_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
   ar->flag |= RGN_FLAG_DYNAMIC_SIZE;
 
   /* Tools region */
-  ar = MEM_callocN(sizeof(ARegion), "tools region for file");
-  BLI_addtail(&sfile->regionbase, ar);
-  ar->regiontype = RGN_TYPE_TOOLS;
-  ar->alignment = RGN_ALIGN_LEFT;
-  /* Tools region (lower split region) */
-  ar = MEM_callocN(sizeof(ARegion), "lower tools region for file");
-  BLI_addtail(&sfile->regionbase, ar);
-  ar->regiontype = RGN_TYPE_TOOLS;
-  ar->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-  ar->flag |= RGN_FLAG_DYNAMIC_SIZE;
+  file_tools_region_create(&sfile->regionbase, ar);
 
-  /* Execute region */
-  ar = MEM_callocN(sizeof(ARegion), "execute region for file");
-  BLI_addtail(&sfile->regionbase, ar);
-  ar->regiontype = RGN_TYPE_EXECUTE;
-  ar->alignment = RGN_ALIGN_BOTTOM;
-  ar->flag |= RGN_FLAG_DYNAMIC_SIZE;
-
-  /* Tool props region is added as needed. */
-#if 0
-  /* Tool props (aka operator) region */
-  ar = MEM_callocN(sizeof(ARegion), "tool props region for file");
-  BLI_addtail(&sfile->regionbase, ar);
-  ar->regiontype = RGN_TYPE_TOOL_PROPS;
-  ar->alignment = RGN_ALIGN_RIGHT;
-#endif
+  /* Options toggle, tool props and execute region are added as needed, see file_refresh(). */
 
   /* main region */
   ar = MEM_callocN(sizeof(ARegion), "main region for file");
@@ -218,6 +269,59 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
   return (SpaceLink *)sfilen;
 }
 
+static void file_ensure_valid_region_state(bContext *C,
+                                           wmWindowManager *wm,
+                                           wmWindow *win,
+                                           ScrArea *sa,
+                                           SpaceFile *sfile,
+                                           FileSelectParams *params)
+{
+  ARegion *ar_ui = BKE_area_find_region_type(sa, RGN_TYPE_UI);
+  ARegion *ar_tools_upper = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
+  ARegion *ar_props = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS);
+  ARegion *ar_execute = BKE_area_find_region_type(sa, RGN_TYPE_EXECUTE);
+  ARegion *ar_tools_lower;
+  bool needs_init = false; /* To avoid multiple ED_area_initialize() calls. */
+
+  if (ar_tools_upper == NULL) {
+    ar_tools_upper = file_tools_region_ensure(sa, ar_ui);
+    needs_init = true;
+  }
+
+  /* If there's an file-operation, ensure we have the option and execute region */
+  if (sfile->op && (ar_props == NULL)) {
+    ar_tools_lower = file_tools_options_toggle_region_ensure(sa, ar_tools_upper);
+    ar_execute = file_execute_region_ensure(sa, ar_tools_lower);
+    ar_props = file_tool_props_region_ensure(sa, ar_execute);
+
+    if (params->flag & FILE_HIDE_TOOL_PROPS) {
+      ar_props->flag |= RGN_FLAG_HIDDEN;
+    }
+    else {
+      ar_props->flag &= ~RGN_FLAG_HIDDEN;
+    }
+
+    needs_init = true;
+  }
+  /* If there's _no_ file-operation, ensure we _don't_ have the option and execute region */
+  else if ((sfile->op == NULL) && (ar_props != NULL)) {
+    ar_tools_lower = ar_tools_upper->next;
+
+    BLI_assert(ar_execute != NULL);
+    BLI_assert(ar_tools_lower != NULL);
+    BLI_assert(ar_tools_lower->regiontype == RGN_TYPE_TOOLS);
+
+    ED_region_remove(C, sa, ar_props);
+    ED_region_remove(C, sa, ar_execute);
+    ED_region_remove(C, sa, ar_tools_lower);
+    needs_init = true;
+  }
+
+  if (needs_init) {
+    ED_area_initialize(wm, win, sa);
+  }
+}
+
 static void file_refresh(const bContext *C, ScrArea *sa)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -225,7 +329,6 @@ static void file_refresh(const bContext *C, ScrArea *sa)
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_params(sfile);
   struct FSMenu *fsmenu = ED_fsmenu_get();
-  ARegion *region_tool_props = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS);
 
   if (!sfile->folders_prev) {
     sfile->folders_prev = folderlist_new();
@@ -288,26 +391,8 @@ static void file_refresh(const bContext *C, ScrArea *sa)
   }
 
   /* Might be called with NULL sa, see file_main_region_draw() below. */
-  if (sa && BKE_area_find_region_type(sa, RGN_TYPE_TOOLS) == NULL) {
-    /* Create TOOLS region. */
-    file_tools_region(sa);
-
-    ED_area_initialize(wm, win, sa);
-  }
-
-  /* If there's an file-operation, ensure we have the option region */
-  if (sa && sfile->op && (region_tool_props == NULL)) {
-    ARegion *region_props = file_tool_props_region(sa);
-
-    if (params->flag & FILE_HIDE_TOOL_PROPS) {
-      region_props->flag |= RGN_FLAG_HIDDEN;
-    }
-
-    ED_area_initialize(wm, win, sa);
-  }
-  /* If there's _no_ file-operation, ensure we _don't_ have the option region */
-  else if (sa && (sfile->op == NULL) && (region_tool_props != NULL)) {
-    ED_region_remove((bContext *)C, sa, region_tool_props);
+  if (sa) {
+    file_ensure_valid_region_state((bContext *)C, wm, win, sa, sfile, params);
   }
 
   ED_area_tag_redraw(sa);
