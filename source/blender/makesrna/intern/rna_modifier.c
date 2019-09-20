@@ -3082,7 +3082,7 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_transform", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_USE_OB_TRANSFORM);
   RNA_def_property_ui_text(
-      prop, "Use transform", "Use object transform to control projection shape");
+      prop, "Use Transform", "Use object transform to control projection shape");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_FACTOR);
@@ -5904,7 +5904,7 @@ static void rna_def_modifier_surfacedeform(BlenderRNA *brna)
   prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 2.0f, 16.0f);
   RNA_def_property_ui_text(
-      prop, "Interpolation falloff", "Controls how much nearby polygons influence deformation");
+      prop, "Interpolation Falloff", "Controls how much nearby polygons influence deformation");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "is_bound", PROP_BOOLEAN, PROP_NONE);
@@ -6055,7 +6055,7 @@ void RNA_def_modifier(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_ApplyOnSpline);
   RNA_def_property_ui_text(
       prop,
-      "Apply on spline",
+      "Apply on Spline",
       "Apply this and all preceding deformation modifiers on splines' points rather than "
       "on filled curve/surface");
   RNA_def_property_ui_icon(prop, ICON_SURFACE_DATA, 0);

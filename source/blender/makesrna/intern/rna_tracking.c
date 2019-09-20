@@ -1037,7 +1037,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_enum_items(prop, tracker_motion_model);
-  RNA_def_property_ui_text(prop, "Motion model", "Default motion model to use for tracking");
+  RNA_def_property_ui_text(prop, "Motion Model", "Default motion model to use for tracking");
 
   /* default_use_brute */
   prop = RNA_def_property(srna, "use_default_brute", PROP_BOOLEAN, PROP_NONE);
@@ -1470,7 +1470,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_enum_items(prop, tracker_motion_model);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Motion model", "Default motion model to use for tracking");
+  RNA_def_property_ui_text(prop, "Motion Model", "Default motion model to use for tracking");
 
   /* minimum correlation */
   prop = RNA_def_property(srna, "correlation_min", PROP_FLOAT, PROP_NONE);
@@ -1849,7 +1849,7 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_2d_stabilization", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_2D_STABILIZATION);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Use 2D stabilization", "Use 2D stabilization for footage");
+  RNA_def_property_ui_text(prop, "Use 2D Stabilization", "Use 2D stabilization for footage");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_tracking_flushUpdate");
 
   /* use_stabilize_rotation */

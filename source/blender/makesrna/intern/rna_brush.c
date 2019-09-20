@@ -1630,7 +1630,7 @@ static void rna_def_brush(BlenderRNA *brna)
   /* enums */
   prop = RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_blend_items);
-  RNA_def_property_ui_text(prop, "Blending mode", "Brush blending mode");
+  RNA_def_property_ui_text(prop, "Blending Mode", "Brush blending mode");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   /**

@@ -221,7 +221,7 @@ static int copy_as_driver_button_exec(bContext *C, wmOperator *op)
 static void UI_OT_copy_as_driver_button(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Copy As New Driver";
+  ot->name = "Copy as New Driver";
   ot->idname = "UI_OT_copy_as_driver_button";
   ot->description =
       "Create a new driver with this property as input, and copy it to the "
@@ -453,7 +453,7 @@ static int unset_property_button_exec(bContext *C, wmOperator *UNUSED(op))
 static void UI_OT_unset_property_button(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Unset property";
+  ot->name = "Unset Property";
   ot->idname = "UI_OT_unset_property_button";
   ot->description = "Clear the property and use default or generated value in operators";
 
@@ -944,7 +944,7 @@ static int copy_to_selected_button_exec(bContext *C, wmOperator *op)
 static void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Copy To Selected";
+  ot->name = "Copy to Selected";
   ot->idname = "UI_OT_copy_to_selected_button";
   ot->description = "Copy property from this object to selected objects or bones";
 
@@ -1092,7 +1092,7 @@ static int jump_to_target_button_exec(bContext *C, wmOperator *UNUSED(op))
 static void UI_OT_jump_to_target_button(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Jump To Target";
+  ot->name = "Jump to Target";
   ot->idname = "UI_OT_jump_to_target_button";
   ot->description = "Switch to the target object or bone";
 

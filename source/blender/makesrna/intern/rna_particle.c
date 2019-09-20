@@ -1891,7 +1891,7 @@ static void rna_def_fluid_settings(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "viscosity_beta");
   RNA_def_property_range(prop, 0.0f, 100.0f);
   RNA_def_property_ui_range(prop, 0.0f, 2.0f, 1, 3);
-  RNA_def_property_ui_text(prop, "Stiff viscosity", "Creates viscosity for expanding fluid");
+  RNA_def_property_ui_text(prop, "Stiff Viscosity", "Creates viscosity for expanding fluid");
   RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
   /* Double density relaxation */
@@ -2398,7 +2398,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_DIE_ON_COL);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
-      prop, "Die on hit", "Particles die when they collide with a deflector object");
+      prop, "Die on Hit", "Particles die when they collide with a deflector object");
   RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
   prop = RNA_def_property(srna, "use_size_deflect", PROP_BOOLEAN, PROP_NONE);
@@ -3297,7 +3297,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "keyed_loops");
   RNA_def_property_range(prop, 1.0f, 10000.0f);
   RNA_def_property_ui_range(prop, 1.0f, 100.0f, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Loop count", "Number of times the keys are looped");
+  RNA_def_property_ui_text(prop, "Loop Count", "Number of times the keys are looped");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   /* modified dm support */
@@ -3594,7 +3594,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_keyed_timing", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", PSYS_KEYED_TIMING);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Keyed timing", "Use key times");
+  RNA_def_property_ui_text(prop, "Keyed Timing", "Use key times");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   prop = RNA_def_property(srna, "targets", PROP_COLLECTION, PROP_NONE);

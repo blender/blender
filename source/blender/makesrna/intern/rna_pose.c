@@ -1457,7 +1457,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
   prop = RNA_def_property(srna, "step_count", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "numstep");
   RNA_def_property_range(prop, 1.f, 50.f);
-  RNA_def_property_ui_text(prop, "Num steps", "Divide the frame interval into this many steps");
+  RNA_def_property_ui_text(prop, "Num Steps", "Divide the frame interval into this many steps");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
 
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
@@ -1478,7 +1478,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_auto_step", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ITASC_AUTO_STEP);
   RNA_def_property_ui_text(prop,
-                           "Auto step",
+                           "Auto Step",
                            "Automatically determine the optimal number of steps for best "
                            "performance/accuracy trade off");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
@@ -1487,14 +1487,14 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "minstep");
   RNA_def_property_range(prop, 0.0f, 0.1f);
   RNA_def_property_ui_text(
-      prop, "Min step", "Lower bound for timestep in second in case of automatic substeps");
+      prop, "Min Step", "Lower bound for timestep in second in case of automatic substeps");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
 
   prop = RNA_def_property(srna, "step_max", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "maxstep");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(
-      prop, "Max step", "Higher bound for timestep in second in case of automatic substeps");
+      prop, "Max Step", "Higher bound for timestep in second in case of automatic substeps");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
 
   prop = RNA_def_property(srna, "feedback", PROP_FLOAT, PROP_NONE);

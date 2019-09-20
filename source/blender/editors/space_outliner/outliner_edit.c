@@ -674,7 +674,7 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Outliner ID data Remap";
+  ot->name = "Outliner ID Data Remap";
   ot->idname = "OUTLINER_OT_id_remap";
 
   /* callbacks */

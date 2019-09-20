@@ -588,7 +588,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_high_resolution", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_HIGHRES);
-  RNA_def_property_ui_text(prop, "High res", "Enable high resolution (using amplification)");
+  RNA_def_property_ui_text(prop, "High Res", "Enable high resolution (using amplification)");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 
@@ -668,7 +668,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_dissolve_smoke_log", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_DISSOLVE_LOG);
-  RNA_def_property_ui_text(prop, "Logarithmic dissolve", "Using 1/x ");
+  RNA_def_property_ui_text(prop, "Logarithmic Dissolve", "Using 1/x ");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
   prop = RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);
@@ -1204,7 +1204,7 @@ static void rna_def_smoke_coll_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "collision_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "type");
   RNA_def_property_enum_items(prop, smoke_coll_type_items);
-  RNA_def_property_ui_text(prop, "Collision type", "Collision type");
+  RNA_def_property_ui_text(prop, "Collision Type", "Collision type");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 }
 

@@ -186,7 +186,7 @@ void COLLECTION_OT_objects_add_active(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Add Selected To Active Collection";
+  ot->name = "Add Selected to Active Collection";
   ot->description = "Add the object to an object collection that contains the active object";
   ot->idname = "COLLECTION_OT_objects_add_active";
 
@@ -259,7 +259,7 @@ void COLLECTION_OT_objects_remove_active(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Remove Selected From Active Collection";
+  ot->name = "Remove Selected from Active Collection";
   ot->description = "Remove the object from an object collection that contains the active object";
   ot->idname = "COLLECTION_OT_objects_remove_active";
 
@@ -302,7 +302,7 @@ static int collection_objects_remove_all_exec(bContext *C, wmOperator *UNUSED(op
 void COLLECTION_OT_objects_remove_all(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Remove From All Unlinked Collections";
+  ot->name = "Remove from All Unlinked Collections";
   ot->description = "Remove selected objects from all collections not used in a scene";
   ot->idname = "COLLECTION_OT_objects_remove_all";
 
@@ -361,7 +361,7 @@ void COLLECTION_OT_objects_remove(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Remove From Collection";
+  ot->name = "Remove from Collection";
   ot->description = "Remove selected objects from a collection";
   ot->idname = "COLLECTION_OT_objects_remove";
 

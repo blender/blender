@@ -239,9 +239,9 @@ class FILEBROWSER_MT_bookmarks_context_menu(Menu):
 
         layout.separator()
         layout.operator("file.bookmark_move", icon='TRIA_UP_BAR',
-                        text="Move To Top").direction = 'TOP'
+                        text="Move to Top").direction = 'TOP'
         layout.operator("file.bookmark_move", icon='TRIA_DOWN_BAR',
-                        text="Move To Bottom").direction = 'BOTTOM'
+                        text="Move to Bottom").direction = 'BOTTOM'
 
 
 class FILEBROWSER_PT_bookmarks_favorites(Panel):

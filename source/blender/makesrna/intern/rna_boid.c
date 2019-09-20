@@ -355,7 +355,7 @@ static void rna_def_boidrule_avoid(BlenderRNA *brna)
   prop = RNA_def_property(srna, "fear_factor", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0f, 100.0f);
   RNA_def_property_ui_text(
-      prop, "Fear factor", "Avoid object if danger from it is above this threshold");
+      prop, "Fear Factor", "Avoid object if danger from it is above this threshold");
   RNA_def_property_update(prop, 0, "rna_Boids_reset");
 }
 
@@ -379,7 +379,7 @@ static void rna_def_boidrule_avoid_collision(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "look_ahead", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0f, 100.0f);
-  RNA_def_property_ui_text(prop, "Look ahead", "Time to look ahead in seconds");
+  RNA_def_property_ui_text(prop, "Look Ahead", "Time to look ahead in seconds");
   RNA_def_property_update(prop, 0, "rna_Boids_reset");
 }
 

@@ -2090,7 +2090,7 @@ static int keyframe_insert_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_keyframe_insert(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Insert keyframe";
+  ot->name = "Insert Keyframe";
   ot->description = "Insert a keyframe to selected tracks at current frame";
   ot->idname = "CLIP_OT_keyframe_insert";
 
@@ -2113,7 +2113,7 @@ static int keyframe_delete_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_keyframe_delete(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Delete keyframe";
+  ot->name = "Delete Keyframe";
   ot->description = "Delete a keyframe from selected tracks at current frame";
   ot->idname = "CLIP_OT_keyframe_delete";
 

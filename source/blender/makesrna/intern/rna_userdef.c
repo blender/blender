@@ -4209,7 +4209,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_MENUOPENAUTO);
   RNA_def_property_ui_text(
       prop,
-      "Open On Mouse Over",
+      "Open on Mouse Over",
       "Open menu buttons and pulldowns automatically when the mouse is hovering");
 
   prop = RNA_def_property(srna, "open_toplevel_delay", PROP_INT, PROP_NONE);
@@ -4408,7 +4408,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, zoom_frame_modes);
   RNA_def_property_enum_sdna(prop, NULL, "view_frame_type");
   RNA_def_property_ui_text(
-      prop, "Zoom To Frame Type", "How zooming to frame focuses around current frame");
+      prop, "Zoom to Frame Type", "How zooming to frame focuses around current frame");
 
   prop = RNA_def_property(srna, "view_frame_keyframes", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 1, 500);
@@ -5252,7 +5252,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_zoom_to_mouse", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ZOOM_TO_MOUSEPOS);
   RNA_def_property_ui_text(prop,
-                           "Zoom To Mouse Position",
+                           "Zoom to Mouse Position",
                            "Zoom in towards the mouse pointer's position in the 3D view, "
                            "rather than the 2D window center");
 

@@ -472,7 +472,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_antialiasing", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_ANTIALIAS);
-  RNA_def_property_ui_text(prop, "Anti-aliasing", "Use 5x multisampling to smooth paint edges");
+  RNA_def_property_ui_text(prop, "Anti-Aliasing", "Use 5x multisampling to smooth paint edges");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaintSurface_reset");
 
   prop = RNA_def_property(srna, "brush_influence_scale", PROP_FLOAT, PROP_FACTOR);
@@ -610,7 +610,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_MULALPHA);
   RNA_def_property_ui_text(
-      prop, "Premultiply alpha", "Multiply color by alpha (recommended for Blender input)");
+      prop, "Premultiply Alpha", "Multiply color by alpha (recommended for Blender input)");
 
   prop = RNA_def_property(srna, "image_output_path", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, NULL, "image_output_path");

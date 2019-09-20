@@ -1071,7 +1071,7 @@ void OBJECT_OT_drop_named_image(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Add Empty Image/Drop Image To Empty";
+  ot->name = "Add Empty Image/Drop Image to Empty";
   ot->description = "Add an empty image type to scene with data";
   ot->idname = "OBJECT_OT_drop_named_image";
 

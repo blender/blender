@@ -2179,7 +2179,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
   prop = RNA_def_property(srna, "texture_spacing", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "texstep");
   RNA_def_property_range(prop, 0.01f, 100.0f);
-  RNA_def_property_ui_text(prop, "Texture spacing", "Spacing for textures along stroke length");
+  RNA_def_property_ui_text(prop, "Texture Spacing", "Spacing for textures along stroke length");
   RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
 
   /* anim */

@@ -957,7 +957,7 @@ class CyclesLightSettings(bpy.types.PropertyGroup):
 class CyclesWorldSettings(bpy.types.PropertyGroup):
 
     sampling_method: EnumProperty(
-        name="Sampling method",
+        name="Sampling Method",
         description="How to sample the background light",
         items=enum_world_mis,
         default='AUTOMATIC',
@@ -1331,12 +1331,12 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         subtype="PIXEL",
     )
     denoising_relative_pca: BoolProperty(
-        name="Relative filter",
+        name="Relative Filter",
         description="When removing pixels that don't carry information, use a relative threshold instead of an absolute one (can help to reduce artifacts, but might cause detail loss around edges)",
         default=False,
     )
     denoising_store_passes: BoolProperty(
-        name="Store denoising passes",
+        name="Store Denoising Passes",
         description="Store the denoising feature passes and the noisy image",
         default=False,
         update=update_render_passes,

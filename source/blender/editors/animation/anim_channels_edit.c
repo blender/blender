@@ -3339,7 +3339,7 @@ static void ANIM_OT_channel_select_keys(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Select Channel keyframes";
+  ot->name = "Select Channel Keyframes";
   ot->idname = "ANIM_OT_channel_select_keys";
   ot->description = "Select all keyframes of channel under mouse";
 

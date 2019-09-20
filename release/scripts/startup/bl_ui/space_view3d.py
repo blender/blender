@@ -2223,7 +2223,7 @@ class VIEW3D_MT_object_rigid_body(Menu):
         layout.operator("rigidbody.mass_calculate", text="Calculate Mass")
         layout.operator("rigidbody.object_settings_copy", text="Copy from Active")
         layout.operator("object.visual_transform_apply", text="Apply Transformation")
-        layout.operator("rigidbody.bake_to_keyframes", text="Bake To Keyframes")
+        layout.operator("rigidbody.bake_to_keyframes", text="Bake to Keyframes")
 
         layout.separator()
 

@@ -2427,7 +2427,7 @@ static void rna_def_uv_layers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_pointer_funcs(
       prop, "rna_Mesh_uv_layer_active_get", "rna_Mesh_uv_layer_active_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
-  RNA_def_property_ui_text(prop, "Active UV loop layer", "Active UV loop layer");
+  RNA_def_property_ui_text(prop, "Active UV Loop Layer", "Active UV loop layer");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
@@ -2435,7 +2435,7 @@ static void rna_def_uv_layers(BlenderRNA *brna, PropertyRNA *cprop)
                              "rna_Mesh_uv_layer_active_index_get",
                              "rna_Mesh_uv_layer_active_index_set",
                              "rna_Mesh_uv_layer_index_range");
-  RNA_def_property_ui_text(prop, "Active UV loop layer Index", "Active UV loop layer index");
+  RNA_def_property_ui_text(prop, "Active UV Loop Layer Index", "Active UV loop layer index");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 }
 
@@ -2815,28 +2815,28 @@ static void rna_def_mesh(BlenderRNA *brna)
       prop, "rna_Mesh_uv_layer_clone_get", "rna_Mesh_uv_layer_clone_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
-      prop, "Clone UV loop layer", "UV loop layer to be used as cloning source");
+      prop, "Clone UV Loop Layer", "UV loop layer to be used as cloning source");
 
   prop = RNA_def_property(srna, "uv_layer_clone_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_funcs(prop,
                              "rna_Mesh_uv_layer_clone_index_get",
                              "rna_Mesh_uv_layer_clone_index_set",
                              "rna_Mesh_uv_layer_index_range");
-  RNA_def_property_ui_text(prop, "Clone UV loop layer Index", "Clone UV loop layer index");
+  RNA_def_property_ui_text(prop, "Clone UV Loop Layer Index", "Clone UV loop layer index");
 
   prop = RNA_def_property(srna, "uv_layer_stencil", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "MeshUVLoopLayer");
   RNA_def_property_pointer_funcs(
       prop, "rna_Mesh_uv_layer_stencil_get", "rna_Mesh_uv_layer_stencil_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Mask UV loop layer", "UV loop layer to mask the painted area");
+  RNA_def_property_ui_text(prop, "Mask UV Loop Layer", "UV loop layer to mask the painted area");
 
   prop = RNA_def_property(srna, "uv_layer_stencil_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_funcs(prop,
                              "rna_Mesh_uv_layer_stencil_index_get",
                              "rna_Mesh_uv_layer_stencil_index_set",
                              "rna_Mesh_uv_layer_index_range");
-  RNA_def_property_ui_text(prop, "Mask UV loop layer Index", "Mask UV loop layer index");
+  RNA_def_property_ui_text(prop, "Mask UV Loop Layer Index", "Mask UV loop layer index");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
   /* Vertex colors */

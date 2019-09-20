@@ -1373,7 +1373,7 @@ static void rna_def_modifier_gpencilinstance(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_ARRAY_KEEP_ONTOP);
   RNA_def_property_ui_text(
       prop,
-      "Keep On Top",
+      "Keep on Top",
       "Keep the original stroke in front of new instances (only affect by layer)");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 }
@@ -1749,7 +1749,7 @@ static void rna_def_modifier_gpencilhook(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "invert_vertex", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_HOOK_INVERT_VGROUP);
-  RNA_def_property_ui_text(prop, "Inverse VertexGroup", "Inverse filter");
+  RNA_def_property_ui_text(prop, "Inverse Vertex Group", "Inverse filter");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "layer_pass", PROP_INT, PROP_NONE);
@@ -1785,7 +1785,7 @@ static void rna_def_modifier_gpencilhook(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "curfalloff");
-  RNA_def_property_ui_text(prop, "Falloff Curve", "Custom Light Falloff Curve");
+  RNA_def_property_ui_text(prop, "Falloff Curve", "Custom light falloff curve");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "center", PROP_FLOAT, PROP_NONE);

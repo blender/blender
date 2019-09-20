@@ -1740,7 +1740,7 @@ static void rna_def_sequence(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
   RNA_def_property_float_sdna(prop, NULL, "effect_fader");
-  RNA_def_property_ui_text(prop, "Effect fader position", "Custom fade value");
+  RNA_def_property_ui_text(prop, "Effect Fader Position", "Custom fade value");
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
@@ -1758,7 +1758,7 @@ static void rna_def_sequence(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "speed_fader");
   RNA_def_property_ui_text(
       prop,
-      "Speed factor",
+      "Speed Factor",
       "Multiply the current speed of the sequence with this number or remap current frame "
       "to this frame");
   RNA_def_property_update(
@@ -1944,7 +1944,7 @@ static void rna_def_editor(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0f, SEQ_CACHE_COST_MAX, 0.1f, 1);
   RNA_def_property_float_sdna(prop, NULL, "recycle_max_cost");
   RNA_def_property_ui_text(
-      prop, "Recycle Up To Cost", "Only frames with cost lower than this value will be recycled");
+      prop, "Recycle Up to Cost", "Only frames with cost lower than this value will be recycled");
 }
 
 static void rna_def_filter_video(StructRNA *srna)
@@ -2661,14 +2661,14 @@ static void rna_def_speed_control(StructRNA *srna)
   prop = RNA_def_property(srna, "use_as_speed", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_INTEGRATE);
   RNA_def_property_ui_text(
-      prop, "Use as speed", "Interpret the value as speed instead of a frame number");
+      prop, "Use as Speed", "Interpret the value as speed instead of a frame number");
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
   prop = RNA_def_property(srna, "use_scale_to_length", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_COMPRESS_IPO_Y);
   RNA_def_property_ui_text(
-      prop, "Scale to length", "Scale values from 0.0 to 1.0 to target sequence length");
+      prop, "Scale to Length", "Scale values from 0.0 to 1.0 to target sequence length");
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 }
@@ -3015,7 +3015,7 @@ static void rna_def_whitebalance_modifier(BlenderRNA *brna)
   prop = RNA_def_property(srna, "white_value", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_float_sdna(prop, NULL, "white_value");
-  RNA_def_property_ui_text(prop, "White value", "This color defines white in the strip");
+  RNA_def_property_ui_text(prop, "White Value", "This color defines white in the strip");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
 }
 

@@ -72,8 +72,8 @@ class MESH_MT_shape_key_context_menu(Menu):
         layout.separator()
         layout.operator("object.shape_key_remove", icon='X', text="Delete All Shape Keys").all = True
         layout.separator()
-        layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move To Top").type = 'TOP'
-        layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move To Bottom").type = 'BOTTOM'
+        layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move to Top").type = 'TOP'
+        layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move to Bottom").type = 'BOTTOM'
 
 
 class MESH_UL_vgroups(UIList):

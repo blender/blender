@@ -89,7 +89,7 @@ class CopyRigidbodySettings(Operator):
 class BakeToKeyframes(Operator):
     '''Bake rigid body transformations of selected objects to keyframes'''
     bl_idname = "rigidbody.bake_to_keyframes"
-    bl_label = "Bake To Keyframes"
+    bl_label = "Bake to Keyframes"
     bl_options = {'REGISTER', 'UNDO'}
 
     frame_start: IntProperty(

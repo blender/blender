@@ -4282,7 +4282,7 @@ static void rna_def_space_image(BlenderRNA *brna)
   prop = RNA_def_property(srna, "sample_histogram", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "sample_line_hist");
   RNA_def_property_struct_type(prop, "Histogram");
-  RNA_def_property_ui_text(prop, "Line sample", "Sampled colors along line");
+  RNA_def_property_ui_text(prop, "Line Sample", "Sampled colors along line");
 
   prop = RNA_def_property(srna, "zoom", PROP_FLOAT, PROP_NONE);
   RNA_def_property_array(prop, 2);
@@ -4719,7 +4719,7 @@ static void rna_def_space_text(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_match_case", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", ST_MATCH_CASE);
   RNA_def_property_ui_text(
-      prop, "Match case", "Search string is sensitive to uppercase and lowercase letters");
+      prop, "Match Case", "Search string is sensitive to uppercase and lowercase letters");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, NULL);
 
   prop = RNA_def_property(srna, "find_text", PROP_STRING, PROP_NONE);
@@ -5414,7 +5414,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_filter_backup", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "filter", FILE_TYPE_BLENDER_BACKUP);
   RNA_def_property_ui_text(
-      prop, "Filter BlenderBackup files", "Show .blend1, .blend2, etc. files");
+      prop, "Filter Blender Backup Files", "Show .blend1, .blend2, etc. files");
   RNA_def_property_ui_icon(prop, ICON_FILE_BACKUP, 0);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
@@ -5466,7 +5466,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, file_filter_idtypes_items);
   RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_ui_text(
-      prop, "Filter ID types", "Which ID types to show/hide, when browsing a library");
+      prop, "Filter ID Types", "Which ID types to show/hide, when browsing a library");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
   prop = RNA_def_property(srna, "filter_id_category", PROP_ENUM, PROP_NONE);
@@ -5474,7 +5474,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, file_filter_idcategories_items);
   RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_ui_text(
-      prop, "Filter ID categories", "Which ID categories to show/hide, when browsing a library");
+      prop, "Filter ID Categories", "Which ID categories to show/hide, when browsing a library");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
   prop = RNA_def_property(srna, "filter_glob", PROP_STRING, PROP_NONE);

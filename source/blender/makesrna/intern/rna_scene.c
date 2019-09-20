@@ -5397,7 +5397,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, 500);
   RNA_def_property_int_default(prop, 25);
   RNA_def_property_ui_text(prop,
-                           "Keyframe interval",
+                           "Keyframe Interval",
                            "Distance between key frames, also known as GOP size; "
                            "influences file size and seekability");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
@@ -5408,14 +5408,14 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, 16);
   RNA_def_property_ui_text(
       prop,
-      "Max B-frames",
+      "Max B-Frames",
       "Maximum number of B-frames between non-B-frames; influences file size and seekability");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "use_max_b_frames", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", FFMPEG_USE_MAX_B_FRAMES);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Use max B-frames", "Set a maximum number of B-frames");
+  RNA_def_property_ui_text(prop, "Use Max B-Frames", "Set a maximum number of B-frames");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "buffersize", PROP_INT, PROP_NONE);
@@ -5439,7 +5439,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
   RNA_def_property_enum_default(prop, FFM_CRF_MEDIUM);
   RNA_def_property_ui_text(
       prop,
-      "Output quality",
+      "Output Quality",
       "Constant Rate Factor (CRF); tradeoff between video quality and file size");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
@@ -5449,7 +5449,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, ffmpeg_preset_items);
   RNA_def_property_enum_default(prop, FFM_PRESET_GOOD);
   RNA_def_property_ui_text(
-      prop, "Encoding speed", "Tradeoff between encoding speed and compression ratio");
+      prop, "Encoding Speed", "Tradeoff between encoding speed and compression ratio");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "use_autosplit", PROP_BOOLEAN, PROP_NONE);
@@ -5986,7 +5986,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_bake_user_scale", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_USERSCALE);
-  RNA_def_property_ui_text(prop, "User scale", "Use a user scale for the derivative map");
+  RNA_def_property_ui_text(prop, "User Scale", "Use a user scale for the derivative map");
 
   prop = RNA_def_property(srna, "bake_user_scale", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "bake_user_scale");

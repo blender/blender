@@ -302,11 +302,11 @@ static void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
   WM_operatortype_props_advanced_begin(ot);
 
   RNA_def_boolean(
-      ot->srna, "use", false, "Use after creation", "Select orientation after its creation");
+      ot->srna, "use", false, "Use After Creation", "Select orientation after its creation");
   RNA_def_boolean(ot->srna,
                   "overwrite",
                   false,
-                  "Overwrite previous",
+                  "Overwrite Previous",
                   "Overwrite previously created orientation with same name");
 }
 
