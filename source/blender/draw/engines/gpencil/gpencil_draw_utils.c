@@ -1693,7 +1693,7 @@ void gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
 }
 
 /* create all missing batches */
-static void gpencil_create_batches(GpencilBatchCache *cache)
+static void gpencil_batches_ensure(GpencilBatchCache *cache)
 {
   if ((cache->b_point.vbo) && (cache->b_point.batch == NULL)) {
     cache->b_point.batch = GPU_batch_create_ex(
@@ -1996,7 +1996,7 @@ void gpencil_populate_multiedit(GPENCIL_e_data *e_data,
   }
 
   /* create batchs and shading groups */
-  gpencil_create_batches(cache);
+  gpencil_batches_ensure(cache);
   gpencil_shgroups_create(e_data, vedata, ob, cache, cache_ob);
 
   cache->is_dirty = false;
@@ -2119,7 +2119,7 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
   }
 
   /* create batchs and shading groups */
-  gpencil_create_batches(cache);
+  gpencil_batches_ensure(cache);
   gpencil_shgroups_create(e_data, vedata, ob, cache, cache_ob);
 
   cache->is_dirty = false;
