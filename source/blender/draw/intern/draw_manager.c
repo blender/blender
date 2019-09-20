@@ -2495,7 +2495,6 @@ static void drw_draw_depth_loop_imp(struct Depsgraph *depsgraph,
     drw_engines_cache_init();
     drw_engines_world_update(DST.draw_ctx.scene);
 
-    View3D *v3d = DST.draw_ctx.v3d;
     const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
     DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (DST.draw_ctx.depsgraph, ob) {
       if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
