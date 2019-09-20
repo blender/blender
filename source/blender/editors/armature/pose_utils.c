@@ -327,7 +327,8 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
     if (ob->id.tag & LIB_TAG_DOIT) {
       if (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) {
         // ED_pose_clear_paths(C, ob); // XXX for now, don't need to clear
-        ED_pose_recalculate_paths(C, scene, ob, false);
+        /* TODO(sergey): Should ensure we can use more narrow update range here. */
+        ED_pose_recalculate_paths(C, scene, ob, POSE_PATH_CALC_RANGE_FULL);
       }
     }
   }

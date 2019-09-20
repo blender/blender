@@ -220,8 +220,8 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               Main *bmain,
                               Scene *scene,
                               ListBase *targets,
-                              bool restore,
-                              bool current_frame_only)
+                              eAnimvizCalcRange range,
+                              bool restore)
 {
   /* sanity check */
   if (ELEM(NULL, targets, targets->first)) {
@@ -248,7 +248,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
   /* Limit frame range if we are updating just the current frame. */
   /* set frame values */
   int cfra = CFRA;
-  if (current_frame_only) {
+  if (range == ANIMVIZ_CALC_RANGE_CURRENT_FRAME) {
     if (cfra < sfra || cfra > efra) {
       return;
     }
@@ -308,7 +308,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
             efra,
             efra - sfra + 1);
   for (CFRA = sfra; CFRA <= efra; CFRA++) {
-    if (current_frame_only) {
+    if (range == ANIMVIZ_CALC_RANGE_CURRENT_FRAME) {
       /* For current frame, only update tagged. */
       BKE_scene_graph_update_tagged(depsgraph, bmain);
     }
@@ -326,7 +326,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
    * may be a temporary one that works on a subset of the data.
    * We always have to restore the current frame though. */
   CFRA = cfra;
-  if (!current_frame_only && restore) {
+  if (range != ANIMVIZ_CALC_RANGE_CURRENT_FRAME && restore) {
     motionpaths_calc_update_scene(bmain, depsgraph);
   }
 

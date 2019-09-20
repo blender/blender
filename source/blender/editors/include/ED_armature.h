@@ -284,10 +284,18 @@ bool ED_pose_deselect_all_multi(struct bContext *C, int select_mode, const bool 
 bool ED_pose_deselect_all(struct Object *ob, int select_mode, const bool ignore_visibility);
 void ED_pose_bone_select_tag_update(struct Object *ob);
 void ED_pose_bone_select(struct Object *ob, struct bPoseChannel *pchan, bool select);
+
+/* Corresponds to eAnimvizCalcRange. */
+typedef enum ePosePathCalcRange {
+  POSE_PATH_CALC_RANGE_CURRENT_FRAME,
+  POSE_PATH_CALC_RANGE_CHANGED,
+  POSE_PATH_CALC_RANGE_FULL,
+} ePosePathCalcRange;
 void ED_pose_recalculate_paths(struct bContext *C,
                                struct Scene *scene,
                                struct Object *ob,
-                               bool current_frame_only);
+                               ePosePathCalcRange range);
+
 struct Object *ED_pose_object_from_context(struct bContext *C);
 
 /* meshlaplacian.c */

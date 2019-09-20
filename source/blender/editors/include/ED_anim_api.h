@@ -834,12 +834,23 @@ void ED_drivers_editor_init(struct bContext *C, struct ScrArea *sa);
 
 /* ************************************************ */
 
+typedef enum eAnimvizCalcRange {
+  /* Update motion paths at the current frame only. */
+  ANIMVIZ_CALC_RANGE_CURRENT_FRAME,
+
+  /* Try to limit updates to a close neighborhood of the current frame. */
+  ANIMVIZ_CALC_RANGE_CHANGED,
+
+  /* Update an entire range of the motion paths. */
+  ANIMVIZ_CALC_RANGE_FULL,
+} eAnimvizCalcRange;
+
 void animviz_calc_motionpaths(struct Depsgraph *depsgraph,
                               struct Main *bmain,
                               struct Scene *scene,
                               ListBase *targets,
-                              bool restore,
-                              bool current_frame_only);
+                              eAnimvizCalcRange range,
+                              bool restore);
 
 void animviz_get_object_motionpaths(struct Object *ob, ListBase *targets);
 

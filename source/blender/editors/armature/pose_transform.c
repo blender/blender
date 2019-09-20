@@ -831,7 +831,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 
   /* Recalculate paths if any of the bones have paths... */
   if ((ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)) {
-    ED_pose_recalculate_paths(C, scene, ob, false);
+    ED_pose_recalculate_paths(C, scene, ob, POSE_PATH_CALC_RANGE_FULL);
   }
 
   /* Notifiers for updates, */
@@ -1112,7 +1112,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
 
         /* now recalculate paths */
         if ((ob_iter->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)) {
-          ED_pose_recalculate_paths(C, scene, ob_iter, false);
+          ED_pose_recalculate_paths(C, scene, ob_iter, POSE_PATH_CALC_RANGE_FULL);
         }
 
         BLI_freelistN(&dsources);

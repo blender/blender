@@ -238,9 +238,17 @@ void ED_object_single_user(struct Main *bmain, struct Scene *scene, struct Objec
 
 /* object motion paths */
 void ED_objects_clear_paths(struct bContext *C, bool only_selected);
+
+/* Corresponds to eAnimvizCalcRange. */
+typedef enum eObjectPathCalcRange {
+  OBJECT_PATH_CALC_RANGE_CURRENT_FRAME,
+  OBJECT_PATH_CALC_RANGE_CHANGED,
+  OBJECT_PATH_CALC_RANGE_FULL,
+} eObjectPathCalcRange;
+
 void ED_objects_recalculate_paths(struct bContext *C,
                                   struct Scene *scene,
-                                  bool current_frame_only);
+                                  eObjectPathCalcRange range);
 
 /* constraints */
 struct ListBase *get_active_constraints(struct Object *ob);

@@ -182,12 +182,25 @@ static bool pose_has_protected_selected(Object *ob, short warn)
 /* ********************************************** */
 /* Motion Paths */
 
+static eAnimvizCalcRange pose_path_convert_range(ePosePathCalcRange range)
+{
+  switch (range) {
+    case POSE_PATH_CALC_RANGE_CURRENT_FRAME:
+      return ANIMVIZ_CALC_RANGE_CURRENT_FRAME;
+    case POSE_PATH_CALC_RANGE_CHANGED:
+      return ANIMVIZ_CALC_RANGE_CHANGED;
+    case POSE_PATH_CALC_RANGE_FULL:
+      return ANIMVIZ_CALC_RANGE_FULL;
+  }
+  return ANIMVIZ_CALC_RANGE_FULL;
+}
+
 /* For the object with pose/action: update paths for those that have got them
  * This should selectively update paths that exist...
  *
  * To be called from various tools that do incremental updates
  */
-void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, bool current_frame_only)
+void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, ePosePathCalcRange range)
 {
   /* Transform doesn't always have context available to do update. */
   if (C == NULL) {
@@ -210,7 +223,8 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, bool curre
   TIMEIT_START(pose_path_calc);
 #endif
 
-  animviz_calc_motionpaths(depsgraph, bmain, scene, &targets, !free_depsgraph, current_frame_only);
+  animviz_calc_motionpaths(
+      depsgraph, bmain, scene, &targets, pose_path_convert_range(range), !free_depsgraph);
 
 #ifdef DEBUG_TIME
   TIMEIT_END(pose_path_calc);
@@ -218,7 +232,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, bool curre
 
   BLI_freelistN(&targets);
 
-  if (!current_frame_only) {
+  if (range != POSE_PATH_CALC_RANGE_CURRENT_FRAME) {
     /* Tag armature object for copy on write - so paths will draw/redraw.
      * For currently frame only we update evaluated object directly. */
     DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
@@ -293,7 +307,7 @@ static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
 
   /* calculate the bones that now have motionpaths... */
   /* TODO: only make for the selected bones? */
-  ED_pose_recalculate_paths(C, scene, ob, false);
+  ED_pose_recalculate_paths(C, scene, ob, POSE_PATH_CALC_RANGE_FULL);
 
 #ifdef DEBUG_TIME
   TIMEIT_END(recalc_pose_paths);
@@ -371,7 +385,7 @@ static int pose_update_paths_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* calculate the bones that now have motionpaths... */
   /* TODO: only make for the selected bones? */
-  ED_pose_recalculate_paths(C, scene, ob, false);
+  ED_pose_recalculate_paths(C, scene, ob, POSE_PATH_CALC_RANGE_FULL);
 
   /* notifiers for updates */
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);

@@ -1088,7 +1088,7 @@ static void recalcData_objects(TransInfo *t)
     GSetIterator gs_iter;
     GSET_ITER (gs_iter, motionpath_updates) {
       Object *ob = BLI_gsetIterator_getKey(&gs_iter);
-      ED_pose_recalculate_paths(t->context, t->scene, ob, true);
+      ED_pose_recalculate_paths(t->context, t->scene, ob, POSE_PATH_CALC_RANGE_CURRENT_FRAME);
     }
     BLI_gset_free(motionpath_updates, NULL);
   }
@@ -1146,7 +1146,7 @@ static void recalcData_objects(TransInfo *t)
 
     if (motionpath_update) {
       /* Update motion paths once for all transformed objects. */
-      ED_objects_recalculate_paths(t->context, t->scene, true);
+      ED_objects_recalculate_paths(t->context, t->scene, OBJECT_PATH_CALC_RANGE_CHANGED);
     }
 
     if (t->options & CTX_OBMODE_XFORM_SKIP_CHILDREN) {
