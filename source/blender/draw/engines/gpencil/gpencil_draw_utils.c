@@ -1180,6 +1180,12 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
       continue;
     }
 
+    /* Copy color to temp fields. */
+    if ((is_multiedit) && (gp_style)) {
+      copy_v4_v4(gps->runtime.tmp_stroke_rgba, gp_style->stroke_rgba);
+      copy_v4_v4(gps->runtime.tmp_fill_rgba, gp_style->fill_rgba);
+    }
+
     /* be sure recalc all cache in source stroke to avoid recalculation when frame change
      * and improve fps */
     gpencil_recalc_geometry_caches(
