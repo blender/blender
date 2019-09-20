@@ -74,6 +74,13 @@ void DEG_graph_build_for_compositor_preview(struct Depsgraph *graph,
                                             struct ViewLayer *view_layer,
                                             struct bNodeTree *nodetree);
 
+void DEG_graph_build_from_ids(struct Depsgraph *graph,
+                              struct Main *bmain,
+                              struct Scene *scene,
+                              struct ViewLayer *view_layer,
+                              struct ID **ids,
+                              const int num_ids);
+
 /* Tag relations from the given graph for update. */
 void DEG_graph_tag_relations_update(struct Depsgraph *graph);
 

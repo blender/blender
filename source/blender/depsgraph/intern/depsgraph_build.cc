@@ -324,6 +324,147 @@ void DEG_graph_build_for_compositor_preview(
   }
 }
 
+/* Optimized builders for dependency graph built from a given set of IDs.
+ *
+ * General notes:
+ *
+ * - We pull in all bases if their objects are in the set of IDs. This allows to have proper
+ *   visibility and other flags assigned to the objects.
+ *   All other bases (the ones which points to object which is outside of the set of IDs) are
+ *   completely ignored.
+ *
+ * - Proxy groups pointing to objects which are outside of the IDs set are also ignored.
+ *   This way we avoid high-poly character body pulled into the dependency graph when it's coming
+ *   from a library into an animation file and the dependency graph constructed for a proxy rig. */
+
+namespace DEG {
+namespace {
+
+class DepsgraphFromIDsFilter {
+ public:
+  DepsgraphFromIDsFilter(ID **ids, const int num_ids)
+  {
+    for (int i = 0; i < num_ids; ++i) {
+      ids_.insert(ids[0]);
+    }
+  }
+
+  bool contains(ID *id)
+  {
+    return ids_.find(id) != ids_.end();
+  }
+
+ protected:
+  set<ID *> ids_;
+};
+
+class DepsgraphFromIDsNodeBuilder : public DepsgraphNodeBuilder {
+ public:
+  DepsgraphFromIDsNodeBuilder(
+      Main *bmain, Depsgraph *graph, DepsgraphBuilderCache *cache, ID **ids, const int num_ids)
+      : DepsgraphNodeBuilder(bmain, graph, cache), filter_(ids, num_ids)
+  {
+  }
+
+  virtual bool need_pull_base_into_graph(Base *base) override
+  {
+    if (!filter_.contains(&base->object->id)) {
+      return false;
+    }
+    return DepsgraphNodeBuilder::need_pull_base_into_graph(base);
+  }
+
+  virtual void build_object_proxy_group(Object *object, bool is_visible) override
+  {
+    if (object->proxy_group == NULL) {
+      return;
+    }
+    if (!filter_.contains(&object->proxy_group->id)) {
+      return;
+    }
+    DepsgraphNodeBuilder::build_object_proxy_group(object, is_visible);
+  }
+
+ protected:
+  DepsgraphFromIDsFilter filter_;
+};
+
+class DepsgraphFromIDsRelationBuilder : public DepsgraphRelationBuilder {
+ public:
+  DepsgraphFromIDsRelationBuilder(
+      Main *bmain, Depsgraph *graph, DepsgraphBuilderCache *cache, ID **ids, const int num_ids)
+      : DepsgraphRelationBuilder(bmain, graph, cache), filter_(ids, num_ids)
+  {
+  }
+
+  virtual bool need_pull_base_into_graph(Base *base) override
+  {
+    if (!filter_.contains(&base->object->id)) {
+      return false;
+    }
+    return DepsgraphRelationBuilder::need_pull_base_into_graph(base);
+  }
+
+  virtual void build_object_proxy_group(Object *object) override
+  {
+    if (object->proxy_group == NULL) {
+      return;
+    }
+    if (!filter_.contains(&object->proxy_group->id)) {
+      return;
+    }
+    DepsgraphRelationBuilder::build_object_proxy_group(object);
+  }
+
+ protected:
+  DepsgraphFromIDsFilter filter_;
+};
+
+}  // namespace
+}  // namespace DEG
+
+void DEG_graph_build_from_ids(Depsgraph *graph,
+                              Main *bmain,
+                              Scene *scene,
+                              ViewLayer *view_layer,
+                              ID **ids,
+                              const int num_ids)
+{
+  double start_time = 0.0;
+  if (G.debug & (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_TIME)) {
+    start_time = PIL_check_seconds_timer();
+  }
+  DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
+  /* Perform sanity checks. */
+  BLI_assert(BLI_findindex(&scene->view_layers, view_layer) != -1);
+  BLI_assert(deg_graph->scene == scene);
+  BLI_assert(deg_graph->view_layer == view_layer);
+  DEG::DepsgraphBuilderCache builder_cache;
+  /* Generate all the nodes in the graph first */
+  DEG::DepsgraphFromIDsNodeBuilder node_builder(bmain, deg_graph, &builder_cache, ids, num_ids);
+  node_builder.begin_build();
+  node_builder.build_view_layer(scene, view_layer, DEG::DEG_ID_LINKED_DIRECTLY);
+  for (int i = 0; i < num_ids; ++i) {
+    node_builder.build_id(ids[i]);
+  }
+  node_builder.end_build();
+  /* Hook up relationships between operations - to determine evaluation order. */
+  DEG::DepsgraphFromIDsRelationBuilder relation_builder(
+      bmain, deg_graph, &builder_cache, ids, num_ids);
+  relation_builder.begin_build();
+  relation_builder.build_view_layer(scene, view_layer, DEG::DEG_ID_LINKED_DIRECTLY);
+  for (int i = 0; i < num_ids; ++i) {
+    relation_builder.build_id(ids[i]);
+  }
+  relation_builder.build_copy_on_write_relations();
+  /* Finalize building. */
+  graph_build_finalize_common(deg_graph, bmain);
+  /* Finish statistics. */
+  if (G.debug & (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_TIME)) {
+    printf("Depsgraph built in %f seconds.\n", PIL_check_seconds_timer() - start_time);
+  }
+}
+
 /* Tag graph relations for update. */
 void DEG_graph_tag_relations_update(Depsgraph *graph)
 {
