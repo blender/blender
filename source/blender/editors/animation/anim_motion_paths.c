@@ -201,6 +201,15 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
   }
 }
 
+/* Get pointer to animviz settings for the given target. */
+static bAnimVizSettings *animviz_target_settings_get(MPathTarget *mpt)
+{
+  if (mpt->pchan != NULL) {
+    return &mpt->ob->pose->avs;
+  }
+  return &mpt->ob->avs;
+}
+
 /* Perform baking of the given object's and/or its bones' transforms to motion paths
  * - scene: current scene
  * - ob: object whose flagged motionpaths should get calculated
@@ -272,15 +281,8 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     BLI_dlrbTree_init(&mpt->keys);
 
     if (adt) {
-      bAnimVizSettings *avs;
-
       /* get pointer to animviz settings for each target */
-      if (mpt->pchan) {
-        avs = &mpt->ob->pose->avs;
-      }
-      else {
-        avs = &mpt->ob->avs;
-      }
+      bAnimVizSettings *avs = animviz_target_settings_get(mpt);
 
       /* it is assumed that keyframes for bones are all grouped in a single group
        * unless an option is set to always use the whole action
@@ -334,16 +336,10 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
 
   /* clear recalc flags from targets */
   for (MPathTarget *mpt = targets->first; mpt; mpt = mpt->next) {
-    bAnimVizSettings *avs;
     bMotionPath *mpath = mpt->mpath;
 
     /* get pointer to animviz settings for each target */
-    if (mpt->pchan) {
-      avs = &mpt->ob->pose->avs;
-    }
-    else {
-      avs = &mpt->ob->avs;
-    }
+    bAnimVizSettings *avs = animviz_target_settings_get(mpt);
 
     /* clear the flag requesting recalculation of targets */
     avs->recalc &= ~ANIMVIZ_RECALC_PATHS;
