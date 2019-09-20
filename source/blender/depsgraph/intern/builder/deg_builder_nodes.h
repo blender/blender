@@ -93,8 +93,8 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
     return (T *)cow->id.orig_id;
   }
 
-  void begin_build();
-  void end_build();
+  virtual void begin_build();
+  virtual void end_build();
 
   IDNode *add_id_node(ID *id);
   IDNode *find_id_node(ID *id);
@@ -145,73 +145,75 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   OperationNode *find_operation_node(
       ID *id, NodeType comp_type, OperationCode opcode, const char *name = "", int name_tag = -1);
 
-  void build_id(ID *id);
+  virtual void build_id(ID *id);
 
-  void build_scene_render(Scene *scene, ViewLayer *view_layer);
-  void build_scene_parameters(Scene *scene);
-  void build_scene_compositor(Scene *scene);
+  virtual void build_scene_render(Scene *scene, ViewLayer *view_layer);
+  virtual void build_scene_parameters(Scene *scene);
+  virtual void build_scene_compositor(Scene *scene);
 
-  void build_layer_collections(ListBase *lb);
-  void build_view_layer(Scene *scene,
-                        ViewLayer *view_layer,
-                        eDepsNode_LinkedState_Type linked_state);
-  void build_collection(LayerCollection *from_layer_collection, Collection *collection);
-  void build_object(int base_index,
-                    Object *object,
-                    eDepsNode_LinkedState_Type linked_state,
-                    bool is_visible);
-  void build_object_proxy_from(Object *object, bool is_object_visible);
-  void build_object_proxy_group(Object *object, bool is_object_visible);
-  void build_object_flags(int base_index, Object *object, eDepsNode_LinkedState_Type linked_state);
-  void build_object_data(Object *object, bool is_object_visible);
-  void build_object_data_camera(Object *object);
-  void build_object_data_geometry(Object *object, bool is_object_visible);
-  void build_object_data_geometry_datablock(ID *obdata, bool is_object_visible);
-  void build_object_data_light(Object *object);
-  void build_object_data_lightprobe(Object *object);
-  void build_object_data_speaker(Object *object);
-  void build_object_transform(Object *object);
-  void build_object_constraints(Object *object);
-  void build_object_pointcache(Object *object);
-  void build_pose_constraints(Object *object,
-                              bPoseChannel *pchan,
-                              int pchan_index,
-                              bool is_object_visible);
-  void build_rigidbody(Scene *scene);
-  void build_particle_systems(Object *object, bool is_object_visible);
-  void build_particle_settings(ParticleSettings *part);
-  void build_animdata(ID *id);
-  void build_animdata_nlastrip_targets(ListBase *strips);
-  void build_animation_images(ID *id);
-  void build_action(bAction *action);
-  void build_driver(ID *id, FCurve *fcurve, int driver_index);
-  void build_driver_variables(ID *id, FCurve *fcurve);
-  void build_driver_id_property(ID *id, const char *rna_path);
-  void build_parameters(ID *id);
-  void build_ik_pose(Object *object, bPoseChannel *pchan, bConstraint *con);
-  void build_splineik_pose(Object *object, bPoseChannel *pchan, bConstraint *con);
-  void build_rig(Object *object, bool is_object_visible);
-  void build_proxy_rig(Object *object);
-  void build_armature(bArmature *armature);
-  void build_shapekeys(Key *key);
-  void build_camera(Camera *camera);
-  void build_light(Light *lamp);
-  void build_nodetree(bNodeTree *ntree);
-  void build_material(Material *ma);
-  void build_materials(Material **materials, int num_materials);
-  void build_texture(Tex *tex);
-  void build_image(Image *image);
-  void build_world(World *world);
-  void build_gpencil(bGPdata *gpd);
-  void build_cachefile(CacheFile *cache_file);
-  void build_mask(Mask *mask);
-  void build_movieclip(MovieClip *clip);
-  void build_lightprobe(LightProbe *probe);
-  void build_speaker(Speaker *speaker);
-  void build_sound(bSound *sound);
-  void build_scene_sequencer(Scene *scene);
-  void build_scene_audio(Scene *scene);
-  void build_scene_speakers(Scene *scene, ViewLayer *view_layer);
+  virtual void build_layer_collections(ListBase *lb);
+  virtual void build_view_layer(Scene *scene,
+                                ViewLayer *view_layer,
+                                eDepsNode_LinkedState_Type linked_state);
+  virtual void build_collection(LayerCollection *from_layer_collection, Collection *collection);
+  virtual void build_object(int base_index,
+                            Object *object,
+                            eDepsNode_LinkedState_Type linked_state,
+                            bool is_visible);
+  virtual void build_object_proxy_from(Object *object, bool is_object_visible);
+  virtual void build_object_proxy_group(Object *object, bool is_object_visible);
+  virtual void build_object_flags(int base_index,
+                                  Object *object,
+                                  eDepsNode_LinkedState_Type linked_state);
+  virtual void build_object_data(Object *object, bool is_object_visible);
+  virtual void build_object_data_camera(Object *object);
+  virtual void build_object_data_geometry(Object *object, bool is_object_visible);
+  virtual void build_object_data_geometry_datablock(ID *obdata, bool is_object_visible);
+  virtual void build_object_data_light(Object *object);
+  virtual void build_object_data_lightprobe(Object *object);
+  virtual void build_object_data_speaker(Object *object);
+  virtual void build_object_transform(Object *object);
+  virtual void build_object_constraints(Object *object);
+  virtual void build_object_pointcache(Object *object);
+  virtual void build_pose_constraints(Object *object,
+                                      bPoseChannel *pchan,
+                                      int pchan_index,
+                                      bool is_object_visible);
+  virtual void build_rigidbody(Scene *scene);
+  virtual void build_particle_systems(Object *object, bool is_object_visible);
+  virtual void build_particle_settings(ParticleSettings *part);
+  virtual void build_animdata(ID *id);
+  virtual void build_animdata_nlastrip_targets(ListBase *strips);
+  virtual void build_animation_images(ID *id);
+  virtual void build_action(bAction *action);
+  virtual void build_driver(ID *id, FCurve *fcurve, int driver_index);
+  virtual void build_driver_variables(ID *id, FCurve *fcurve);
+  virtual void build_driver_id_property(ID *id, const char *rna_path);
+  virtual void build_parameters(ID *id);
+  virtual void build_ik_pose(Object *object, bPoseChannel *pchan, bConstraint *con);
+  virtual void build_splineik_pose(Object *object, bPoseChannel *pchan, bConstraint *con);
+  virtual void build_rig(Object *object, bool is_object_visible);
+  virtual void build_proxy_rig(Object *object);
+  virtual void build_armature(bArmature *armature);
+  virtual void build_shapekeys(Key *key);
+  virtual void build_camera(Camera *camera);
+  virtual void build_light(Light *lamp);
+  virtual void build_nodetree(bNodeTree *ntree);
+  virtual void build_material(Material *ma);
+  virtual void build_materials(Material **materials, int num_materials);
+  virtual void build_texture(Tex *tex);
+  virtual void build_image(Image *image);
+  virtual void build_world(World *world);
+  virtual void build_gpencil(bGPdata *gpd);
+  virtual void build_cachefile(CacheFile *cache_file);
+  virtual void build_mask(Mask *mask);
+  virtual void build_movieclip(MovieClip *clip);
+  virtual void build_lightprobe(LightProbe *probe);
+  virtual void build_speaker(Speaker *speaker);
+  virtual void build_sound(bSound *sound);
+  virtual void build_scene_sequencer(Scene *scene);
+  virtual void build_scene_audio(Scene *scene);
+  virtual void build_scene_speakers(Scene *scene, ViewLayer *view_layer);
 
   /* Per-ID information about what was already in the dependency graph.
    * Allows to re-use certain values, to speed up following evaluation. */

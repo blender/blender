@@ -191,95 +191,95 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   void add_customdata_mask(Object *object, const DEGCustomDataMeshMasks &customdata_masks);
   void add_special_eval_flag(ID *object, uint32_t flag);
 
-  void build_id(ID *id);
+  virtual void build_id(ID *id);
 
-  void build_scene_render(Scene *scene, ViewLayer *view_layer);
-  void build_scene_parameters(Scene *scene);
-  void build_scene_compositor(Scene *scene);
+  virtual void build_scene_render(Scene *scene, ViewLayer *view_layer);
+  virtual void build_scene_parameters(Scene *scene);
+  virtual void build_scene_compositor(Scene *scene);
 
-  void build_layer_collections(ListBase *lb);
-  void build_view_layer(Scene *scene,
-                        ViewLayer *view_layer,
-                        eDepsNode_LinkedState_Type linked_state);
-  void build_collection(LayerCollection *from_layer_collection,
-                        Object *object,
-                        Collection *collection);
-  void build_object(Base *base, Object *object);
-  void build_object_proxy_from(Object *object);
-  void build_object_proxy_group(Object *object);
-  void build_object_flags(Base *base, Object *object);
-  void build_object_data(Object *object);
-  void build_object_data_camera(Object *object);
-  void build_object_data_geometry(Object *object);
-  void build_object_data_geometry_datablock(ID *obdata);
-  void build_object_data_light(Object *object);
-  void build_object_data_lightprobe(Object *object);
-  void build_object_data_speaker(Object *object);
-  void build_object_parent(Object *object);
-  void build_object_pointcache(Object *object);
-  void build_constraints(ID *id,
-                         NodeType component_type,
-                         const char *component_subdata,
-                         ListBase *constraints,
-                         RootPChanMap *root_map);
-  void build_animdata(ID *id);
-  void build_animdata_curves(ID *id);
-  void build_animdata_curves_targets(ID *id,
-                                     ComponentKey &adt_key,
-                                     OperationNode *operation_from,
-                                     ListBase *curves);
-  void build_animdata_nlastrip_targets(ID *id,
-                                       ComponentKey &adt_key,
-                                       OperationNode *operation_from,
-                                       ListBase *strips);
-  void build_animdata_drivers(ID *id);
-  void build_animation_images(ID *id);
-  void build_action(bAction *action);
-  void build_driver(ID *id, FCurve *fcurve);
-  void build_driver_data(ID *id, FCurve *fcurve);
-  void build_driver_variables(ID *id, FCurve *fcurve);
-  void build_driver_id_property(ID *id, const char *rna_path);
-  void build_parameters(ID *id);
-  void build_world(World *world);
-  void build_rigidbody(Scene *scene);
-  void build_particle_systems(Object *object);
-  void build_particle_settings(ParticleSettings *part);
-  void build_particle_system_visualization_object(Object *object,
-                                                  ParticleSystem *psys,
-                                                  Object *draw_object);
-  void build_ik_pose(Object *object,
-                     bPoseChannel *pchan,
-                     bConstraint *con,
-                     RootPChanMap *root_map);
-  void build_splineik_pose(Object *object,
-                           bPoseChannel *pchan,
-                           bConstraint *con,
-                           RootPChanMap *root_map);
-  void build_rig(Object *object);
-  void build_proxy_rig(Object *object);
-  void build_shapekeys(Key *key);
-  void build_armature(bArmature *armature);
-  void build_camera(Camera *camera);
-  void build_light(Light *lamp);
-  void build_nodetree(bNodeTree *ntree);
-  void build_material(Material *ma);
-  void build_materials(Material **materials, int num_materials);
-  void build_texture(Tex *tex);
-  void build_image(Image *image);
-  void build_gpencil(bGPdata *gpd);
-  void build_cachefile(CacheFile *cache_file);
-  void build_mask(Mask *mask);
-  void build_movieclip(MovieClip *clip);
-  void build_lightprobe(LightProbe *probe);
-  void build_speaker(Speaker *speaker);
-  void build_sound(bSound *sound);
-  void build_scene_sequencer(Scene *scene);
-  void build_scene_audio(Scene *scene);
-  void build_scene_speakers(Scene *scene, ViewLayer *view_layer);
+  virtual void build_layer_collections(ListBase *lb);
+  virtual void build_view_layer(Scene *scene,
+                                ViewLayer *view_layer,
+                                eDepsNode_LinkedState_Type linked_state);
+  virtual void build_collection(LayerCollection *from_layer_collection,
+                                Object *object,
+                                Collection *collection);
+  virtual void build_object(Base *base, Object *object);
+  virtual void build_object_proxy_from(Object *object);
+  virtual void build_object_proxy_group(Object *object);
+  virtual void build_object_flags(Base *base, Object *object);
+  virtual void build_object_data(Object *object);
+  virtual void build_object_data_camera(Object *object);
+  virtual void build_object_data_geometry(Object *object);
+  virtual void build_object_data_geometry_datablock(ID *obdata);
+  virtual void build_object_data_light(Object *object);
+  virtual void build_object_data_lightprobe(Object *object);
+  virtual void build_object_data_speaker(Object *object);
+  virtual void build_object_parent(Object *object);
+  virtual void build_object_pointcache(Object *object);
+  virtual void build_constraints(ID *id,
+                                 NodeType component_type,
+                                 const char *component_subdata,
+                                 ListBase *constraints,
+                                 RootPChanMap *root_map);
+  virtual void build_animdata(ID *id);
+  virtual void build_animdata_curves(ID *id);
+  virtual void build_animdata_curves_targets(ID *id,
+                                             ComponentKey &adt_key,
+                                             OperationNode *operation_from,
+                                             ListBase *curves);
+  virtual void build_animdata_nlastrip_targets(ID *id,
+                                               ComponentKey &adt_key,
+                                               OperationNode *operation_from,
+                                               ListBase *strips);
+  virtual void build_animdata_drivers(ID *id);
+  virtual void build_animation_images(ID *id);
+  virtual void build_action(bAction *action);
+  virtual void build_driver(ID *id, FCurve *fcurve);
+  virtual void build_driver_data(ID *id, FCurve *fcurve);
+  virtual void build_driver_variables(ID *id, FCurve *fcurve);
+  virtual void build_driver_id_property(ID *id, const char *rna_path);
+  virtual void build_parameters(ID *id);
+  virtual void build_world(World *world);
+  virtual void build_rigidbody(Scene *scene);
+  virtual void build_particle_systems(Object *object);
+  virtual void build_particle_settings(ParticleSettings *part);
+  virtual void build_particle_system_visualization_object(Object *object,
+                                                          ParticleSystem *psys,
+                                                          Object *draw_object);
+  virtual void build_ik_pose(Object *object,
+                             bPoseChannel *pchan,
+                             bConstraint *con,
+                             RootPChanMap *root_map);
+  virtual void build_splineik_pose(Object *object,
+                                   bPoseChannel *pchan,
+                                   bConstraint *con,
+                                   RootPChanMap *root_map);
+  virtual void build_rig(Object *object);
+  virtual void build_proxy_rig(Object *object);
+  virtual void build_shapekeys(Key *key);
+  virtual void build_armature(bArmature *armature);
+  virtual void build_camera(Camera *camera);
+  virtual void build_light(Light *lamp);
+  virtual void build_nodetree(bNodeTree *ntree);
+  virtual void build_material(Material *ma);
+  virtual void build_materials(Material **materials, int num_materials);
+  virtual void build_texture(Tex *tex);
+  virtual void build_image(Image *image);
+  virtual void build_gpencil(bGPdata *gpd);
+  virtual void build_cachefile(CacheFile *cache_file);
+  virtual void build_mask(Mask *mask);
+  virtual void build_movieclip(MovieClip *clip);
+  virtual void build_lightprobe(LightProbe *probe);
+  virtual void build_speaker(Speaker *speaker);
+  virtual void build_sound(bSound *sound);
+  virtual void build_scene_sequencer(Scene *scene);
+  virtual void build_scene_audio(Scene *scene);
+  virtual void build_scene_speakers(Scene *scene, ViewLayer *view_layer);
 
-  void build_nested_datablock(ID *owner, ID *id);
-  void build_nested_nodetree(ID *owner, bNodeTree *ntree);
-  void build_nested_shapekey(ID *owner, Key *key);
+  virtual void build_nested_datablock(ID *owner, ID *id);
+  virtual void build_nested_nodetree(ID *owner, bNodeTree *ntree);
+  virtual void build_nested_shapekey(ID *owner, Key *key);
 
   void add_particle_collision_relations(const OperationKey &key,
                                         Object *object,
@@ -292,8 +292,8 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
                                          bool add_absorption,
                                          const char *name);
 
-  void build_copy_on_write_relations();
-  void build_copy_on_write_relations(IDNode *id_node);
+  virtual void build_copy_on_write_relations();
+  virtual void build_copy_on_write_relations(IDNode *id_node);
 
   template<typename KeyType> OperationNode *find_operation_node(const KeyType &key);
 

@@ -35,11 +35,13 @@ class DepsgraphBuilderCache;
 
 class DepsgraphBuilder {
  public:
-  bool need_pull_base_into_graph(Base *base);
+  virtual ~DepsgraphBuilder();
 
-  bool check_pchan_has_bbone(Object *object, const bPoseChannel *pchan);
-  bool check_pchan_has_bbone_segments(Object *object, const bPoseChannel *pchan);
-  bool check_pchan_has_bbone_segments(Object *object, const char *bone_name);
+  virtual bool need_pull_base_into_graph(Base *base);
+
+  virtual bool check_pchan_has_bbone(Object *object, const bPoseChannel *pchan);
+  virtual bool check_pchan_has_bbone_segments(Object *object, const bPoseChannel *pchan);
+  virtual bool check_pchan_has_bbone_segments(Object *object, const char *bone_name);
 
  protected:
   /* NOTE: The builder does NOT take ownership over any of those resources. */

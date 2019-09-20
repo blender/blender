@@ -74,6 +74,10 @@ DepsgraphBuilder::DepsgraphBuilder(Main *bmain, Depsgraph *graph, DepsgraphBuild
 {
 }
 
+DepsgraphBuilder::~DepsgraphBuilder()
+{
+}
+
 bool DepsgraphBuilder::need_pull_base_into_graph(Base *base)
 {
   /* Simple check: enabled bases are always part of dependency graph. */
