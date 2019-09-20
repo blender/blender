@@ -400,7 +400,7 @@ static void bridge_loop_pair(BMesh *bm,
       f_example = l_a ? l_a->f : (l_b ? l_b->f : NULL);
 
       if (v_b != v_b_next) {
-        BMVert *v_arr[4] = {v_a, v_b, v_b_next, v_a_next};
+        BMVert *v_arr[4] = {v_b, v_b_next, v_a_next, v_a};
         f = BM_face_exists(v_arr, 4);
         if (f == NULL) {
           /* copy if loop data if its is missing on one ring */
@@ -425,7 +425,7 @@ static void bridge_loop_pair(BMesh *bm,
         }
       }
       else {
-        BMVert *v_arr[3] = {v_a, v_b, v_a_next};
+        BMVert *v_arr[3] = {v_b, v_a_next, v_a};
         f = BM_face_exists(v_arr, 3);
         if (f == NULL) {
           /* fan-fill a triangle */
