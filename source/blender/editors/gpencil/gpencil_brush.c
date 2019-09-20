@@ -1507,21 +1507,21 @@ static void gpsculpt_brush_init_stroke(bContext *C, tGP_BrushEditData *gso)
  * valid reference point.
  */
 static float gpsculpt_rotation_eval_get(GP_SpaceConversion *gsc,
-                                        bGPDstroke *gps_orig,
-                                        bGPDspoint *pt_orig,
                                         bGPDstroke *gps_eval,
                                         bGPDspoint *pt_eval,
-                                        int idx)
+                                        int idx_eval)
 {
 
+  bGPDstroke *gps_orig = gps_eval->runtime.gps_orig;
+  bGPDspoint *pt_orig = &gps_orig->points[pt_eval->runtime.idx_orig];
   bGPDspoint *pt_prev_eval = NULL;
   bGPDspoint *pt_orig_prev = NULL;
-  if (idx != 0) {
-    pt_prev_eval = &gps_eval->points[idx - 1];
+  if (idx_eval != 0) {
+    pt_prev_eval = &gps_eval->points[idx_eval - 1];
   }
   else {
     if (gps_eval->totpoints > 1) {
-      pt_prev_eval = &gps_eval->points[idx + 1];
+      pt_prev_eval = &gps_eval->points[idx_eval + 1];
     }
     else {
       return 0.0f;
@@ -1594,7 +1594,7 @@ static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso,
       if (len_v2v2_int(mval_i, pc1) <= radius) {
         /* apply operation to this point */
         if (pt_active != NULL) {
-          rot_eval = gpsculpt_rotation_eval_get(&gso->gsc, gps_active, pt_active, gps, pt, 0);
+          rot_eval = (!is_multiedit) ? gpsculpt_rotation_eval_get(&gso->gsc, gps, pt, 0) : 0.0f;
           changed = apply(gso, gps_active, rot_eval, 0, radius, pc1);
         }
       }
@@ -1641,7 +1641,7 @@ static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso,
           pt_active = (!is_multiedit) ? pt->runtime.pt_orig : pt;
           int index = (!is_multiedit) ? pt->runtime.idx_orig : i;
           if (pt_active != NULL) {
-            rot_eval = gpsculpt_rotation_eval_get(&gso->gsc, gps_active, pt_active, gps, pt, i);
+            rot_eval = (!is_multiedit) ? gpsculpt_rotation_eval_get(&gso->gsc, gps, pt, i) : 0.0f;
             ok = apply(gso, gps_active, rot_eval, index, radius, pc1);
           }
 
@@ -1658,8 +1658,8 @@ static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso,
             pt_active = (!is_multiedit) ? pt->runtime.pt_orig : pt;
             index = (!is_multiedit) ? pt->runtime.idx_orig : i;
             if (pt->runtime.pt_orig != NULL) {
-              rot_eval = gpsculpt_rotation_eval_get(
-                  &gso->gsc, gps_active, pt_active, gps, pt, i + 1);
+              rot_eval = (!is_multiedit) ? gpsculpt_rotation_eval_get(
+                  &gso->gsc, gps, pt, i + 1) : 0.0f;
               ok |= apply(gso, gps_active, rot_eval, index, radius, pc2);
               include_last = false;
             }
@@ -1680,7 +1680,7 @@ static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso,
           pt_active = (!is_multiedit) ? pt->runtime.pt_orig : pt;
           index = (!is_multiedit) ? pt->runtime.idx_orig : i;
           if (pt->runtime.pt_orig != NULL) {
-            rot_eval = gpsculpt_rotation_eval_get(&gso->gsc, gps_active, pt_active, gps, pt, i);
+            rot_eval = (!is_multiedit) ? gpsculpt_rotation_eval_get(&gso->gsc, gps, pt, i) : 0.0f;
             changed |= apply(gso, gps_active, rot_eval, index, radius, pc1);
             include_last = false;
           }
