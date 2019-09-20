@@ -443,6 +443,8 @@ static int text_reload_exec(bContext *C, wmOperator *op)
   text_drawcache_tag_update(CTX_wm_space_text(C), 1);
   WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
+  text->flags &= ~TXT_ISDIRTY;
+
   /* return to scroll position */
   st->top = orig_top;
   txt_screen_clamp(st, ar);
