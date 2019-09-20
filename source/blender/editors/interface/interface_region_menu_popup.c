@@ -474,7 +474,7 @@ void UI_popup_menu_end(bContext *C, uiPopupMenu *pup)
 
 bool UI_popup_menu_end_or_cancel(bContext *C, uiPopupMenu *pup)
 {
-  if (!UI_block_is_empty(pup->block)) {
+  if (!UI_block_is_empty_ex(pup->block, true)) {
     UI_popup_menu_end(C, pup);
     return true;
   }
