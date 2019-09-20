@@ -54,6 +54,7 @@
 #include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
+#include "BKE_object_facemap.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
@@ -267,6 +268,22 @@ static void join_mesh_single(Depsgraph *depsgraph,
       mpoly->loopstart += *loopofs;
       mpoly->mat_nr = matmap ? matmap[mpoly->mat_nr] : 0;
     }
+
+    /* Face maps. */
+    int *fmap = CustomData_get(pdata, *polyofs, CD_FACEMAP);
+    int *fmap_src = CustomData_get(&me->pdata, 0, CD_FACEMAP);
+
+    /* Remap to correct new face-map indices, if needed. */
+    if (fmap_src) {
+      BLI_assert(fmap != NULL);
+      int *fmap_index_map;
+      int fmap_index_map_len;
+      fmap_index_map = BKE_object_facemap_index_map_create(ob_src, ob_dst, &fmap_index_map_len);
+      BKE_object_facemap_index_map_apply(fmap, me->totpoly, fmap_index_map, fmap_index_map_len);
+      if (fmap_index_map != NULL) {
+        MEM_freeN(fmap_index_map);
+      }
+    }
   }
 
   /* these are used for relinking (cannot be set earlier, or else reattaching goes wrong) */
@@ -403,7 +420,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
     key->type = KEY_RELATIVE;
   }
 
-  /* first pass over objects - copying materials and vertexgroups across */
+  /* First pass over objects: Copying materials, vertex-groups & face-maps across. */
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
     /* only act if a mesh, and not the one we're joining to */
     if ((ob != ob_iter) && (ob_iter->type == OB_MESH)) {
@@ -420,6 +437,19 @@ int join_mesh_exec(bContext *C, wmOperator *op)
       }
       if (ob->defbase.first && ob->actdef == 0) {
         ob->actdef = 1;
+      }
+
+      /* Join this object's face maps to the base one's. */
+      for (bFaceMap *fmap = ob_iter->fmaps.first; fmap; fmap = fmap->next) {
+        /* See if this group exists in the object (if it doesn't, add it to the end) */
+        if (BKE_object_facemap_find_name(ob, fmap->name) == NULL) {
+          bFaceMap *fmap_new = MEM_callocN(sizeof(bFaceMap), "join faceMap");
+          memcpy(fmap_new, fmap, sizeof(bFaceMap));
+          BLI_addtail(&ob->fmaps, fmap_new);
+        }
+      }
+      if (ob->fmaps.first && ob->actfmap == 0) {
+        ob->actfmap = 1;
       }
 
       if (me->totvert) {
