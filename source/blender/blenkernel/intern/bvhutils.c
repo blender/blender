@@ -1395,7 +1395,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
       else {
         /* Setup BVHTreeFromMesh */
         bvhtree_from_mesh_edges_setup_data(
-            data, tree, false, mesh->mvert, false, mesh->medge, false);
+            data, tree, true, mesh->mvert, false, mesh->medge, false);
       }
       break;
 
