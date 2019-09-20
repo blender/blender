@@ -210,6 +210,126 @@ static bAnimVizSettings *animviz_target_settings_get(MPathTarget *mpt)
   return &mpt->ob->avs;
 }
 
+static void motionpath_get_global_framerange(ListBase *targets, int *r_sfra, int *r_efra)
+{
+  *r_sfra = INT_MAX;
+  *r_efra = INT_MIN;
+  for (MPathTarget *mpt = targets->first; mpt; mpt = mpt->next) {
+    *r_sfra = min_ii(*r_sfra, mpt->mpath->start_frame);
+    *r_efra = max_ii(*r_efra, mpt->mpath->end_frame);
+  }
+}
+
+static int motionpath_get_prev_keyframe(MPathTarget *mpt, DLRBT_Tree *fcu_keys, int current_frame)
+{
+  /* If the current frame is outside of the configured motion path range we ignore update of this
+   * motion path by using invalid frame range where start frame is above the end frame. */
+  if (current_frame <= mpt->mpath->start_frame) {
+    return INT_MAX;
+  }
+
+  float current_frame_float = current_frame;
+  DLRBT_Node *node = BLI_dlrbTree_search_prev(fcu_keys, compare_ak_cfraPtr, &current_frame_float);
+  if (node == NULL) {
+    return mpt->mpath->start_frame;
+  }
+
+  ActKeyColumn *key_data = (ActKeyColumn *)node;
+  return key_data->cfra;
+}
+
+static int motionpath_get_prev_prev_keyframe(MPathTarget *mpt,
+                                             DLRBT_Tree *fcu_keys,
+                                             int current_frame)
+{
+  int frame = motionpath_get_prev_keyframe(mpt, fcu_keys, current_frame);
+  return motionpath_get_prev_keyframe(mpt, fcu_keys, frame);
+}
+
+static int motionpath_get_next_keyframe(MPathTarget *mpt, DLRBT_Tree *fcu_keys, int current_frame)
+{
+  /* If the current frame is outside of the configured motion path range we ignore update of this
+   * motion path by using invalid frame range where start frame is above the end frame. */
+  if (current_frame >= mpt->mpath->end_frame) {
+    return INT_MIN;
+  }
+
+  float current_frame_float = current_frame;
+  DLRBT_Node *node = BLI_dlrbTree_search_next(fcu_keys, compare_ak_cfraPtr, &current_frame_float);
+  if (node == NULL) {
+    return mpt->mpath->end_frame;
+  }
+
+  ActKeyColumn *key_data = (ActKeyColumn *)node;
+  return key_data->cfra;
+}
+
+static int motionpath_get_next_next_keyframe(MPathTarget *mpt,
+                                             DLRBT_Tree *fcu_keys,
+                                             int current_frame)
+{
+  int frame = motionpath_get_next_keyframe(mpt, fcu_keys, current_frame);
+  return motionpath_get_next_keyframe(mpt, fcu_keys, frame);
+}
+
+static bool motionpath_check_can_use_keyframe_range(MPathTarget *UNUSED(mpt),
+                                                    AnimData *adt,
+                                                    ListBase *fcurve_list)
+{
+  if (adt == NULL || fcurve_list == NULL) {
+    return false;
+  }
+  /* NOTE: We might needed to do a full frame range update if there is a specific setup of NLA
+   * or drivers or modifiers on the f-curves. */
+  return true;
+}
+
+static void motionpath_calculate_update_range(MPathTarget *mpt,
+                                              AnimData *adt,
+                                              ListBase *fcurve_list,
+                                              int current_frame,
+                                              int *r_sfra,
+                                              int *r_efra)
+{
+  /* Similar to the case when there is only a single keyframe: need to update en entire range to
+   * a constant value. */
+  if (!motionpath_check_can_use_keyframe_range(mpt, adt, fcurve_list)) {
+    *r_sfra = mpt->mpath->start_frame;
+    *r_efra = mpt->mpath->end_frame;
+    return;
+  }
+
+  *r_sfra = INT_MAX;
+  *r_efra = INT_MIN;
+
+  /* NOTE: Iterate over individual f-curves, and check their keyframes individually and pick a
+   * widest range from them. This is because it's possible to have more narrow keyframe on a
+   * channel which wasn't edited.
+   * Could be optimized further by storing some flags about which channels has been modified so
+   * we ignore all others (which can potentially make an update range unnecessary wide). */
+  for (FCurve *fcu = fcurve_list->first; fcu != NULL; fcu = fcu->next) {
+    DLRBT_Tree fcu_keys;
+    BLI_dlrbTree_init(&fcu_keys);
+    fcurve_to_keylist(adt, fcu, &fcu_keys, 0);
+
+    int fcu_sfra = motionpath_get_prev_prev_keyframe(mpt, &fcu_keys, current_frame);
+    int fcu_efra = motionpath_get_next_next_keyframe(mpt, &fcu_keys, current_frame);
+
+    /* Extend range furher, since accelleration compensation propagates even further away. */
+    if (fcu->auto_smoothing != FCURVE_SMOOTH_NONE) {
+      fcu_sfra = motionpath_get_prev_prev_keyframe(mpt, &fcu_keys, fcu_sfra);
+      fcu_efra = motionpath_get_next_next_keyframe(mpt, &fcu_keys, fcu_efra);
+    }
+
+    if (fcu_sfra <= fcu_efra) {
+      *r_sfra = min_ii(*r_sfra, fcu_sfra);
+      *r_efra = max_ii(*r_efra, fcu_efra);
+    }
+
+    BLI_dlrbTree_free(&fcu_keys);
+  }
+}
+
 /* Perform baking of the given object's and/or its bones' transforms to motion paths
  * - scene: current scene
  * - ob: object whose flagged motionpaths should get calculated
@@ -223,36 +343,33 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               eAnimvizCalcRange range,
                               bool restore)
 {
-  /* sanity check */
+  /* Sanity check. */
   if (ELEM(NULL, targets, targets->first)) {
     return;
   }
 
-  /* Compute frame range to bake within.
-   * TODO: this method could be improved...
-   * 1) max range for standard baking
-   * 2) minimum range for recalc baking (i.e. between keyframes, but how?) */
-  int sfra = INT_MAX;
-  int efra = INT_MIN;
-
-  for (MPathTarget *mpt = targets->first; mpt; mpt = mpt->next) {
-    /* try to increase area to do (only as much as needed) */
-    sfra = MIN2(sfra, mpt->mpath->start_frame);
-    efra = MAX2(efra, mpt->mpath->end_frame);
-  }
-
-  if (efra <= sfra) {
-    return;
-  }
-
-  /* Limit frame range if we are updating just the current frame. */
-  /* set frame values */
-  int cfra = CFRA;
-  if (range == ANIMVIZ_CALC_RANGE_CURRENT_FRAME) {
-    if (cfra < sfra || cfra > efra) {
-      return;
-    }
-    sfra = efra = cfra;
+  const int cfra = CFRA;
+  int sfra = INT_MAX, efra = INT_MIN;
+  switch (range) {
+    case ANIMVIZ_CALC_RANGE_CURRENT_FRAME:
+      motionpath_get_global_framerange(targets, &sfra, &efra);
+      if (sfra > efra) {
+        return;
+      }
+      if (cfra < sfra || cfra > efra) {
+        return;
+      }
+      sfra = efra = cfra;
+      break;
+    case ANIMVIZ_CALC_RANGE_CHANGED:
+      /* Nothing to do here, will be handled later when iterating through the targets. */
+      break;
+    case ANIMVIZ_CALC_RANGE_FULL:
+      motionpath_get_global_framerange(targets, &sfra, &efra);
+      if (sfra > efra) {
+        return;
+      }
+      break;
   }
 
   /* get copies of objects/bones to get the calculated results from
@@ -280,6 +397,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     /* build list of all keyframes in active action for object or pchan */
     BLI_dlrbTree_init(&mpt->keys);
 
+    ListBase *fcurve_list = NULL;
     if (adt) {
       /* get pointer to animviz settings for each target */
       bAnimVizSettings *avs = animviz_target_settings_get(mpt);
@@ -291,13 +409,28 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
         bActionGroup *agrp = BKE_action_group_find_name(adt->action, mpt->pchan->name);
 
         if (agrp) {
+          fcurve_list = &agrp->channels;
           agroup_to_keylist(adt, agrp, &mpt->keys, 0);
         }
       }
       else {
+        fcurve_list = &adt->action->curves;
         action_to_keylist(adt, adt->action, &mpt->keys, 0);
       }
     }
+
+    if (range == ANIMVIZ_CALC_RANGE_CHANGED) {
+      int mpt_sfra, mpt_efra;
+      motionpath_calculate_update_range(mpt, adt, fcurve_list, cfra, &mpt_sfra, &mpt_efra);
+      if (mpt_sfra <= mpt_efra) {
+        sfra = min_ii(sfra, mpt_sfra);
+        efra = max_ii(efra, mpt_efra);
+      }
+    }
+  }
+
+  if (sfra > efra) {
+    return;
   }
 
   /* calculate path over requested range */
