@@ -2149,6 +2149,10 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
   SpaceFile *sfile = CTX_wm_space_file(C);
 
   if (sfile->params) {
+    char old_dir[sizeof(sfile->params->dir)];
+
+    BLI_strncpy(old_dir, sfile->params->dir, sizeof(old_dir));
+
     file_expand_directory(C);
 
     /* special case, user may have pasted a filepath into the directory */
@@ -2182,8 +2186,10 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
     BLI_cleanup_dir(BKE_main_blendfile_path(bmain), sfile->params->dir);
 
     if (filelist_is_dir(sfile->files, sfile->params->dir)) {
-      /* if directory exists, enter it immediately */
-      ED_file_change_dir(C);
+      if (!STREQ(sfile->params->dir, old_dir)) { /* Avoids flickering when nothing's changed. */
+        /* if directory exists, enter it immediately */
+        ED_file_change_dir(C);
+      }
 
       /* don't do for now because it selects entire text instead of
        * placing cursor at the end */
