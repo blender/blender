@@ -66,6 +66,7 @@ void ED_region_do_listen(struct wmWindow *win,
 void ED_region_do_layout(struct bContext *C, struct ARegion *ar);
 void ED_region_do_draw(struct bContext *C, struct ARegion *ar);
 void ED_region_exit(struct bContext *C, struct ARegion *ar);
+void ED_region_remove(struct bContext *C, struct ScrArea *sa, struct ARegion *ar);
 void ED_region_pixelspace(struct ARegion *ar);
 void ED_region_update_rect(struct ARegion *ar);
 void ED_region_init(struct ARegion *ar);

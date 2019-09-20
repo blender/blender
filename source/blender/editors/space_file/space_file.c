@@ -307,11 +307,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
   }
   /* If there's _no_ file-operation, ensure we _don't_ have the option region */
   else if (sa && (sfile->op == NULL) && (region_tool_props != NULL)) {
-    /* Remove TOOL_PROPS region. */
-    ED_region_exit((bContext *)C, region_tool_props);
-    BKE_area_region_free(sa->type, region_tool_props);
-    BLI_remlink(&sa->regionbase, region_tool_props);
-    MEM_freeN(region_tool_props);
+    ED_region_remove(C, sa, region_tool_props);
   }
 
   ED_area_tag_redraw(sa);

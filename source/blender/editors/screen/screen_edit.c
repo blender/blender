@@ -519,6 +519,17 @@ void ED_screen_ensure_updated(wmWindowManager *wm, wmWindow *win, bScreen *scree
   }
 }
 
+/**
+ * Utility to exit and free an area-region. Screen level regions (menus/popups) need to be treated
+ * slightly differently, see #ui_region_temp_remove().
+ */
+void ED_region_remove(bContext *C, ScrArea *sa, ARegion *ar)
+{
+  ED_region_exit(C, ar);
+  BKE_area_region_free(sa->type, ar);
+  BLI_freelinkN(&sa->regionbase, ar);
+}
+
 /* *********** exit calls are for closing running stuff ******** */
 
 void ED_region_exit(bContext *C, ARegion *ar)

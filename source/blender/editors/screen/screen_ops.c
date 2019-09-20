@@ -3848,10 +3848,7 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
     for (ar = sa->regionbase.first; ar; ar = arn) {
       arn = ar->next;
       if (ar->alignment == RGN_ALIGN_QSPLIT) {
-        ED_region_exit(C, ar);
-        BKE_area_region_free(sa->type, ar);
-        BLI_remlink(&sa->regionbase, ar);
-        MEM_freeN(ar);
+        ED_region_remove(C, sa, ar);
       }
     }
     ED_area_tag_redraw(sa);
