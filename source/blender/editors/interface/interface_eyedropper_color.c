@@ -39,7 +39,7 @@
 
 #include "RNA_access.h"
 
-#include "BIF_gl.h"
+#include "GPU_glew.h"
 
 #include "UI_interface.h"
 

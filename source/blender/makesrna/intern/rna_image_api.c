@@ -31,8 +31,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 
-#include "BIF_gl.h"
-
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -51,6 +49,8 @@
 
 #  include "DNA_image_types.h"
 #  include "DNA_scene_types.h"
+
+#  include "GPU_glew.h"
 
 #  include "MEM_guardedalloc.h"
 

@@ -34,14 +34,15 @@
 
 #include "BLI_blenlib.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "BKE_context.h"
 #include "BKE_idcode.h"
 
+#include "GPU_glew.h"
 #include "GPU_shader.h"
 #include "GPU_state.h"
+#include "GPU_viewport.h"
 
 #include "IMB_imbuf_types.h"
 

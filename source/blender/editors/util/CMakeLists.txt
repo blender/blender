@@ -44,7 +44,6 @@ set(SRC
   select_utils.c
 
   # general includes
-  ../include/BIF_gl.h
   ../include/BIF_glutil.h
   ../include/ED_anim_api.h
   ../include/ED_armature.h

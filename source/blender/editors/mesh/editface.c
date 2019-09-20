@@ -36,8 +36,6 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 
-#include "BIF_gl.h"
-
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"

@@ -23,8 +23,6 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "BIF_gl.h"
-
 #include "BKE_node.h"
 
 #include "BLI_string_utils.h"

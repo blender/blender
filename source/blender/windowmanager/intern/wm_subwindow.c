@@ -29,9 +29,9 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BIF_gl.h"
-
+#include "GPU_glew.h"
 #include "GPU_matrix.h"
+#include "GPU_viewport.h"
 
 #include "WM_api.h"
 

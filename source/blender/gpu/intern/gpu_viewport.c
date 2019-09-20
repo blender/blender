@@ -29,8 +29,6 @@
 #include "BLI_rect.h"
 #include "BLI_memblock.h"
 
-#include "BIF_gl.h"
-
 #include "DNA_vec_types.h"
 #include "DNA_userdef_types.h"
 

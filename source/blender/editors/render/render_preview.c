@@ -80,10 +80,10 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "GPU_shader.h"
+#include "GPU_glew.h"
 
 #include "RE_pipeline.h"
 #include "RE_engine.h"
