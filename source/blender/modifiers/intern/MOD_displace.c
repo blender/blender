@@ -294,6 +294,11 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   mvert = mesh->mvert;
   MOD_get_vgroup(ob, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
 
+  if (defgrp_index >= 0 && dvert == NULL) {
+    /* There is a vertex group, but it has no vertices. */
+    return;
+  }
+
   Tex *tex_target = dmd->texture;
   if (tex_target != NULL) {
     tex_co = MEM_calloc_arrayN((size_t)numVerts, sizeof(*tex_co), "displaceModifier_do tex_co");
