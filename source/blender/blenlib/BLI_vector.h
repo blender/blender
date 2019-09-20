@@ -50,7 +50,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
   Allocator m_allocator;
   char m_small_buffer[sizeof(T) * N];
 
-#ifdef DEBUG
+#ifndef NDEBUG
   /* Storing size in debug builds, because it makes debugging much easier sometimes. */
   uint m_debug_size;
 #  define UPDATE_VECTOR_SIZE(ptr) (ptr)->m_debug_size = (uint)((ptr)->m_end - (ptr)->m_begin)
