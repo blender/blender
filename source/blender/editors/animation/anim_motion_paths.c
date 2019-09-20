@@ -36,6 +36,7 @@
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
 #include "GPU_batch.h"
@@ -66,6 +67,37 @@ typedef struct MPathTarget {
 } MPathTarget;
 
 /* ........ */
+
+/* update scene for current frame */
+static void motionpaths_calc_update_scene(Main *bmain, struct Depsgraph *depsgraph)
+{
+  BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+}
+
+Depsgraph *animviz_depsgraph_build(Main *bmain,
+                                   Scene *scene,
+                                   ViewLayer *view_layer,
+                                   ListBase *targets)
+{
+  /* Allocate dependency graph. */
+  Depsgraph *depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_VIEWPORT);
+
+  /* Make a flat array of IDs for the DEG API. */
+  const int num_ids = BLI_listbase_count(targets);
+  ID **ids = MEM_malloc_arrayN(sizeof(ID *), num_ids, "animviz IDS");
+  int current_id_index = 0;
+  for (MPathTarget *mpt = targets->first; mpt != NULL; mpt = mpt->next) {
+    ids[current_id_index++] = &mpt->ob->id;
+  }
+
+  /* Build graph from all requested IDs. */
+  DEG_graph_build_from_ids(depsgraph, bmain, scene, view_layer, ids, num_ids);
+  MEM_freeN(ids);
+
+  /* Update once so we can access pointers of evaluated animation data. */
+  motionpaths_calc_update_scene(bmain, depsgraph);
+  return depsgraph;
+}
 
 /* get list of motion paths to be baked for the given object
  * - assumes the given list is ready to be used
@@ -102,24 +134,6 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
       }
     }
   }
-}
-
-/* ........ */
-
-/* update scene for current frame */
-static void motionpaths_calc_update_scene(Main *bmain, struct Depsgraph *depsgraph)
-{
-  /* Do all updates
-   *  - if this is too slow, resort to using a more efficient way
-   *    that doesn't force complete update, but for now, this is the
-   *    most accurate way!
-   *
-   * TODO(segey): Bring back partial updates, which became impossible
-   * with the new depsgraph due to unsorted nature of bases.
-   *
-   * TODO(sergey): Use evaluation context dedicated to motion paths.
-   */
-  BKE_scene_graph_update_for_newframe(depsgraph, bmain);
 }
 
 /* ........ */

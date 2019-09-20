@@ -936,11 +936,9 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene, eObjectPathCalcRang
   }
 
   Main *bmain = CTX_data_main(C);
-  /* NOTE: Dependency graph will be evaluated at all the frames, but we first need to access some
-   * nested pointers, like animation data. */
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ListBase targets = {NULL, NULL};
+  ViewLayer *view_layer = CTX_data_view_layer(C);
 
+  ListBase targets = {NULL, NULL};
   /* loop over objects in scene */
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
     /* set flag to force recalc, then grab path(s) from object */
@@ -948,6 +946,21 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene, eObjectPathCalcRang
     animviz_get_object_motionpaths(ob, &targets);
   }
   CTX_DATA_END;
+
+  Depsgraph *depsgraph;
+  bool free_depsgraph = false;
+  /* For a single frame update it's faster to re-use existing dependency graph and avoid overhead
+   * of building all the relations and so on for a temporary one.  */
+  if (range == OBJECT_PATH_CALC_RANGE_CURRENT_FRAME) {
+    /* NOTE: Dependency graph will be evaluated at all the frames, but we first need to access some
+     * nested pointers, like animation data. */
+    depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    free_depsgraph = false;
+  }
+  else {
+    depsgraph = animviz_depsgraph_build(bmain, scene, view_layer, &targets);
+    free_depsgraph = true;
+  }
 
   /* recalculate paths, then free */
   animviz_calc_motionpaths(
@@ -963,6 +976,11 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene, eObjectPathCalcRang
       }
     }
     CTX_DATA_END;
+  }
+
+  /* Free temporary depsgraph. */
+  if (free_depsgraph) {
+    DEG_graph_free(depsgraph);
   }
 }
 

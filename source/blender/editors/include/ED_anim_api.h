@@ -845,6 +845,11 @@ typedef enum eAnimvizCalcRange {
   ANIMVIZ_CALC_RANGE_FULL,
 } eAnimvizCalcRange;
 
+struct Depsgraph *animviz_depsgraph_build(struct Main *bmain,
+                                          struct Scene *scene,
+                                          struct ViewLayer *view_layer,
+                                          struct ListBase *targets);
+
 void animviz_calc_motionpaths(struct Depsgraph *depsgraph,
                               struct Main *bmain,
                               struct Scene *scene,

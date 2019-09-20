@@ -208,12 +208,12 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, ePosePathC
   }
 
   Main *bmain = CTX_data_main(C);
-  /* NOTE: Dependency graph will be evaluated at all the frames, but we first need to access some
-   * nested pointers, like animation data. */
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ListBase targets = {NULL, NULL};
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  Depsgraph *depsgraph;
   bool free_depsgraph = false;
 
+  ListBase targets = {NULL, NULL};
   /* set flag to force recalc, then grab the relevant bones to target */
   ob->pose->avs.recalc |= ANIMVIZ_RECALC_PATHS;
   animviz_get_object_motionpaths(ob, &targets);
@@ -222,6 +222,19 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, ePosePathC
 #ifdef DEBUG_TIME
   TIMEIT_START(pose_path_calc);
 #endif
+
+  /* For a single frame update it's faster to re-use existing dependency graph and avoid overhead
+   * of building all the relations and so on for a temporary one.  */
+  if (range == POSE_PATH_CALC_RANGE_CURRENT_FRAME) {
+    /* NOTE: Dependency graph will be evaluated at all the frames, but we first need to access some
+     * nested pointers, like animation data. */
+    depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    free_depsgraph = false;
+  }
+  else {
+    depsgraph = animviz_depsgraph_build(bmain, scene, view_layer, &targets);
+    free_depsgraph = true;
+  }
 
   animviz_calc_motionpaths(
       depsgraph, bmain, scene, &targets, pose_path_convert_range(range), !free_depsgraph);
@@ -238,7 +251,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, ePosePathC
     DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
   }
 
-  /* Free temporary depsgraph instance */
+  /* Free temporary depsgraph. */
   if (free_depsgraph) {
     DEG_graph_free(depsgraph);
   }
