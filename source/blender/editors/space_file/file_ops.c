@@ -2315,30 +2315,6 @@ void FILE_OT_hidedot(struct wmOperatorType *ot)
   ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 }
 
-static int file_bookmark_toggle_exec(bContext *C, wmOperator *UNUSED(unused))
-{
-  ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
-
-  if (ar) {
-    ED_region_toggle_hidden(C, ar);
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-void FILE_OT_bookmark_toggle(struct wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Toggle Bookmarks";
-  ot->description = "Toggle bookmarks display";
-  ot->idname = "FILE_OT_bookmark_toggle";
-
-  /* api callbacks */
-  ot->exec = file_bookmark_toggle_exec;
-  ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
-}
-
 static bool file_filenum_poll(bContext *C)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
