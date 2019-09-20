@@ -670,7 +670,9 @@ struct GP_EditableStrokes_Iter {
             ED_gpencil_parent_location(depsgraph_, obact_, gpd_, gpl, gpstroke_iter.diff_mat); \
             invert_m4_m4(gpstroke_iter.inverse_diff_mat, gpstroke_iter.diff_mat); \
             /* get evaluated frame with modifiers applied */ \
-            bGPDframe *gpf_eval_ = &obeval_->runtime.gpencil_evaluated_frames[idx_eval]; \
+            bGPDframe *gpf_eval_ = (!is_multiedit_) ? \
+                                       &obeval_->runtime.gpencil_evaluated_frames[idx_eval] : \
+                                       gpf_; \
             /* loop over strokes */ \
             for (bGPDstroke *gps = gpf_eval_->strokes.first; gps; gps = gps->next) { \
               /* skip strokes that are invalid for current view */ \
