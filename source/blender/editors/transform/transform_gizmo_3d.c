@@ -1297,7 +1297,7 @@ static void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   PointerRNA toolsettings_ptr;
   RNA_pointer_create(&scene->id, &RNA_ToolSettings, scene->toolsettings, &toolsettings_ptr);
 
-  if (type_fn == VIEW3D_GGT_xform_gizmo) {
+  if (ELEM(type_fn, VIEW3D_GGT_xform_gizmo, VIEW3D_GGT_xform_shear)) {
     extern PropertyRNA rna_ToolSettings_transform_pivot_point;
     const PropertyRNA *props[] = {
         &rna_ToolSettings_transform_pivot_point,
