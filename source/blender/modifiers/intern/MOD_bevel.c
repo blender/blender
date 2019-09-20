@@ -212,7 +212,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
                 spread,
                 mesh->smoothresh);
 
-  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
 
   /* Make sure we never alloc'd these. */
   BLI_assert(bm->vtoolflagpool == NULL && bm->etoolflagpool == NULL && bm->ftoolflagpool == NULL);

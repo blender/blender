@@ -91,7 +91,7 @@ static Mesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, Mesh *
                     MAX2(ob->totcol - 1, 0),
                     false);
 
-  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
   BM_mesh_free(bm);
 
   result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;

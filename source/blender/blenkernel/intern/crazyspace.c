@@ -261,8 +261,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
                                                        float (**deformcos)[3])
 {
   ModifierData *md;
-  Mesh *me_input = ob->data;
-  Mesh *me = NULL;
+  Mesh *me;
   int i, a, numleft = 0, numVerts = 0;
   int cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
   float(*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
@@ -271,6 +270,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
 
   modifiers_clearErrors(ob);
 
+  me = NULL;
   md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
   /* compute the deformation matrices and coordinates for the first
@@ -292,7 +292,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
         data_mask = datamasks->mask;
         BLI_linklist_free((LinkNode *)datamasks, NULL);
 
-        me = BKE_mesh_from_editmesh_with_coords_thin_wrap(em, &data_mask, NULL, me_input);
+        me = BKE_mesh_from_editmesh_with_coords_thin_wrap(em, &data_mask, NULL);
         deformedVerts = editbmesh_vert_coords_alloc(em, &numVerts);
         defmats = MEM_mallocN(sizeof(*defmats) * numVerts, "defmats");
 

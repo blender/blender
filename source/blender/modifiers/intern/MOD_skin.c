@@ -1871,7 +1871,7 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd)
     return NULL;
   }
 
-  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, origmesh);
+  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
   BM_mesh_free(bm);
 
   result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;

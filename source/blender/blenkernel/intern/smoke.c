@@ -3352,16 +3352,14 @@ struct Mesh *smokeModifier_do(
   if (smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain &&
       smd->domain->flags & MOD_SMOKE_ADAPTIVE_DOMAIN && smd->domain->base_res[0]) {
     result = createDomainGeometry(smd->domain, ob);
-    BKE_mesh_copy_settings(result, me);
   }
   else {
     result = BKE_mesh_copy_for_eval(me, false);
   }
-
-  /* Smoke simulation needs a texture space relative to the adaptive domain bounds, not the
-   * original mesh. So recompute it at this point in the modifier stack. See T58492. */
-  BKE_mesh_texspace_calc(result);
-
+  /* XXX This is really not a nice hack, but until root of the problem is understood,
+   * this should be an acceptable workaround I think.
+   * See T58492 for details on the issue. */
+  result->texflag |= ME_AUTOSPACE;
   return result;
 }
 

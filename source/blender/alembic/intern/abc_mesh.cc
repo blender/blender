@@ -561,7 +561,7 @@ Mesh *AbcGenericMeshWriter::getFinalMesh(bool &r_needsfree)
 
     BM_mesh_triangulate(bm, quad_method, ngon_method, 4, tag_only, NULL, NULL, NULL);
 
-    Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+    Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
     BM_mesh_free(bm);
 
     if (r_needsfree) {
@@ -1192,6 +1192,8 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
         existing_mesh, positions->size(), 0, 0, face_indices->size(), face_counts->size());
 
     settings.read_flag |= MOD_MESHSEQ_READ_ALL;
+    /* XXX fixme after 2.80; mesh->flag isn't copied by BKE_mesh_new_nomain_from_template() */
+    new_mesh->flag |= (existing_mesh->flag & ME_AUTOSMOOTH);
   }
   else {
     /* If the face count changed (e.g. by triangulation), only read points.

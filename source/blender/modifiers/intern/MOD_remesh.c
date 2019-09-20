@@ -185,7 +185,6 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *UNUSED(c
     }
   }
 
-  BKE_mesh_copy_settings(result, mesh);
   BKE_mesh_calc_edges(result, true, false);
   result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
   return result;

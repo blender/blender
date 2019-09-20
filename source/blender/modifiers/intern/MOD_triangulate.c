@@ -65,7 +65,7 @@ static Mesh *triangulate_mesh(Mesh *mesh,
 
   BM_mesh_triangulate(bm, quad_method, ngon_method, min_vertices, false, NULL, NULL, NULL);
 
-  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, &cddata_masks, mesh);
+  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, &cddata_masks);
   BM_mesh_free(bm);
 
   if (keep_clnors) {
