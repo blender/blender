@@ -55,27 +55,6 @@
 #include "filelist.h"
 #include "GPU_framebuffer.h"
 
-static ARegion *file_tools_region_create(ListBase *regionbase, ARegion *ar_prev)
-{
-  ARegion *ar = MEM_callocN(sizeof(ARegion), "tools region for file");
-  BLI_insertlinkafter(regionbase, ar_prev, ar);
-  ar->regiontype = RGN_TYPE_TOOLS;
-  ar->alignment = RGN_ALIGN_LEFT;
-
-  return ar;
-}
-
-ARegion *file_tools_region_ensure(ScrArea *sa, ARegion *ar_prev)
-{
-  ARegion *ar;
-
-  if ((ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS)) != NULL) {
-    return ar;
-  }
-
-  return file_tools_region_create(&sa->regionbase, ar_prev);
-}
-
 static ARegion *file_tools_options_toggle_region_ensure(ScrArea *sa, ARegion *ar_prev)
 {
   ARegion *ar;
@@ -154,7 +133,10 @@ static SpaceLink *file_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
   ar->flag |= RGN_FLAG_DYNAMIC_SIZE;
 
   /* Tools region */
-  file_tools_region_create(&sfile->regionbase, ar);
+  ar = MEM_callocN(sizeof(ARegion), "tools region for file");
+  BLI_addtail(&sfile->regionbase, ar);
+  ar->regiontype = RGN_TYPE_TOOLS;
+  ar->alignment = RGN_ALIGN_LEFT;
 
   /* Options toggle, tool props and execute region are added as needed, see file_refresh(). */
 
@@ -276,17 +258,11 @@ static void file_ensure_valid_region_state(bContext *C,
                                            SpaceFile *sfile,
                                            FileSelectParams *params)
 {
-  ARegion *ar_ui = BKE_area_find_region_type(sa, RGN_TYPE_UI);
   ARegion *ar_tools_upper = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
   ARegion *ar_props = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS);
   ARegion *ar_execute = BKE_area_find_region_type(sa, RGN_TYPE_EXECUTE);
   ARegion *ar_tools_lower;
   bool needs_init = false; /* To avoid multiple ED_area_initialize() calls. */
-
-  if (ar_tools_upper == NULL) {
-    ar_tools_upper = file_tools_region_ensure(sa, ar_ui);
-    needs_init = true;
-  }
 
   /* If there's an file-operation, ensure we have the option and execute region */
   if (sfile->op && (ar_props == NULL)) {

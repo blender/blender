@@ -109,8 +109,6 @@ void file_sfile_to_operator_ex(bContext *C,
                                char *filepath);
 void file_sfile_to_operator(bContext *C, struct wmOperator *op, struct SpaceFile *sfile);
 
-struct ARegion *file_tools_region_ensure(struct ScrArea *sa, struct ARegion *ar_prev);
-
 void file_operator_to_sfile(bContext *C, struct SpaceFile *sfile, struct wmOperator *op);
 
 /* filesel.c */

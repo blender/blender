@@ -2318,7 +2318,7 @@ void FILE_OT_hidedot(struct wmOperatorType *ot)
 static int file_bookmark_toggle_exec(bContext *C, wmOperator *UNUSED(unused))
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = file_tools_region_ensure(sa, BKE_area_find_region_type(sa, RGN_TYPE_UI));
+  ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
 
   if (ar) {
     ED_region_toggle_hidden(C, ar);
