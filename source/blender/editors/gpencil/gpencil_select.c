@@ -1192,7 +1192,7 @@ static int gpencil_generic_select_exec(bContext *C,
           if ((!is_multiedit) && (pt->runtime.pt_orig == NULL)) {
             continue;
           }
-          bGPDspoint *pt_active = (is_multiedit) ? pt->runtime.pt_orig : pt;
+          bGPDspoint *pt_active = (!is_multiedit) ? pt->runtime.pt_orig : pt;
 
           if (sel_op_result) {
             pt_active->flag |= GP_SPOINT_SELECT;
