@@ -1880,9 +1880,10 @@ static void DRW_shgroup_light(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLaye
       }
 
       if (la->mode & LA_SHOW_CONE) {
-
-        DRW_buffer_add_entry(sgl->light_spot_volume_rect, cone_inside, &one, shapemat);
-        DRW_buffer_add_entry(sgl->light_spot_volume_rect_outside, cone_outside, &one, shapemat);
+        if (!DRW_state_is_select()) {
+          DRW_buffer_add_entry(sgl->light_spot_volume_rect, cone_inside, &one, shapemat);
+          DRW_buffer_add_entry(sgl->light_spot_volume_rect_outside, cone_outside, &one, shapemat);
+        }
       }
     }
     else {
@@ -1896,8 +1897,10 @@ static void DRW_shgroup_light(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLaye
       }
 
       if (la->mode & LA_SHOW_CONE) {
-        DRW_buffer_add_entry(sgl->light_spot_volume, cone_inside, &one, shapemat);
-        DRW_buffer_add_entry(sgl->light_spot_volume_outside, cone_outside, &one, shapemat);
+        if (!DRW_state_is_select()) {
+          DRW_buffer_add_entry(sgl->light_spot_volume, cone_inside, &one, shapemat);
+          DRW_buffer_add_entry(sgl->light_spot_volume_outside, cone_outside, &one, shapemat);
+        }
       }
     }
 
