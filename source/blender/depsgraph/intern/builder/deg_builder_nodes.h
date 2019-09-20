@@ -160,6 +160,8 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
                     Object *object,
                     eDepsNode_LinkedState_Type linked_state,
                     bool is_visible);
+  void build_object_proxy_from(Object *object, bool is_object_visible);
+  void build_object_proxy_group(Object *object, bool is_object_visible);
   void build_object_flags(int base_index, Object *object, eDepsNode_LinkedState_Type linked_state);
   void build_object_data(Object *object, bool is_object_visible);
   void build_object_data_camera(Object *object);

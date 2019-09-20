@@ -609,12 +609,8 @@ void DepsgraphNodeBuilder::build_object(int base_index,
     build_particle_systems(object, is_visible);
   }
   /* Proxy object to copy from. */
-  if (object->proxy_from != NULL) {
-    build_object(-1, object->proxy_from, DEG_ID_LINKED_INDIRECTLY, is_visible);
-  }
-  if (object->proxy_group != NULL) {
-    build_object(-1, object->proxy_group, DEG_ID_LINKED_INDIRECTLY, is_visible);
-  }
+  build_object_proxy_from(object, is_visible);
+  build_object_proxy_group(object, is_visible);
   /* Object dupligroup. */
   if (object->instance_collection != NULL) {
     const bool is_current_parent_collection_visible = is_parent_collection_visible_;
@@ -651,6 +647,22 @@ void DepsgraphNodeBuilder::build_object_flags(int base_index,
                                    object_cow,
                                    base_index,
                                    is_from_set));
+}
+
+void DepsgraphNodeBuilder::build_object_proxy_from(Object *object, bool is_visible)
+{
+  if (object->proxy_from == NULL) {
+    return;
+  }
+  build_object(-1, object->proxy_from, DEG_ID_LINKED_INDIRECTLY, is_visible);
+}
+
+void DepsgraphNodeBuilder::build_object_proxy_group(Object *object, bool is_visible)
+{
+  if (object->proxy_group == NULL) {
+    return;
+  }
+  build_object(-1, object->proxy_group, DEG_ID_LINKED_INDIRECTLY, is_visible);
 }
 
 void DepsgraphNodeBuilder::build_object_data(Object *object, bool is_object_visible)

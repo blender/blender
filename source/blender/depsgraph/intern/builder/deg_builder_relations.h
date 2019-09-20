@@ -205,6 +205,8 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
                         Object *object,
                         Collection *collection);
   void build_object(Base *base, Object *object);
+  void build_object_proxy_from(Object *object);
+  void build_object_proxy_group(Object *object);
   void build_object_flags(Base *base, Object *object);
   void build_object_data(Object *object);
   void build_object_data_camera(Object *object);

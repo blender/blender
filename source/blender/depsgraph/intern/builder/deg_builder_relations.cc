@@ -657,20 +657,8 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
     build_particle_systems(object);
   }
   /* Proxy object to copy from. */
-  if (object->proxy_from != NULL) {
-    /* Object is linked here (comes from the library). */
-    build_object(NULL, object->proxy_from);
-    ComponentKey ob_transform_key(&object->proxy_from->id, NodeType::TRANSFORM);
-    ComponentKey proxy_transform_key(&object->id, NodeType::TRANSFORM);
-    add_relation(ob_transform_key, proxy_transform_key, "Proxy Transform");
-  }
-  if (object->proxy_group != NULL && object->proxy_group != object->proxy) {
-    /* Object is local here (local in .blend file, users interacts with it). */
-    build_object(NULL, object->proxy_group);
-    OperationKey proxy_group_eval_key(
-        &object->proxy_group->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_EVAL);
-    add_relation(proxy_group_eval_key, transform_eval_key, "Proxy Group Transform");
-  }
+  build_object_proxy_from(object);
+  build_object_proxy_group(object);
   /* Object dupligroup. */
   if (object->instance_collection != NULL) {
     build_collection(NULL, object, object->instance_collection);
@@ -683,6 +671,31 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
   add_relation(final_transform_key, synchronize_key, "Synchronize to Original");
   /* Parameters. */
   build_parameters(&object->id);
+}
+
+void DepsgraphRelationBuilder::build_object_proxy_from(Object *object)
+{
+  if (object->proxy_from == NULL) {
+    return;
+  }
+  /* Object is linked here (comes from the library). */
+  build_object(NULL, object->proxy_from);
+  ComponentKey ob_transform_key(&object->proxy_from->id, NodeType::TRANSFORM);
+  ComponentKey proxy_transform_key(&object->id, NodeType::TRANSFORM);
+  add_relation(ob_transform_key, proxy_transform_key, "Proxy Transform");
+}
+
+void DepsgraphRelationBuilder::build_object_proxy_group(Object *object)
+{
+  if (object->proxy_group == NULL || object->proxy_group == object->proxy) {
+    return;
+  }
+  /* Object is local here (local in .blend file, users interacts with it). */
+  build_object(NULL, object->proxy_group);
+  OperationKey proxy_group_eval_key(
+      &object->proxy_group->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_EVAL);
+  OperationKey transform_eval_key(&object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_EVAL);
+  add_relation(proxy_group_eval_key, transform_eval_key, "Proxy Group Transform");
 }
 
 void DepsgraphRelationBuilder::build_object_flags(Base *base, Object *object)
