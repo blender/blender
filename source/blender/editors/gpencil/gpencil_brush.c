@@ -1566,7 +1566,7 @@ static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso,
   const int radius = (gp_brush->flag & GP_SCULPT_FLAG_PRESSURE_RADIUS) ?
                          gso->gp_brush->size * gso->pressure :
                          gso->gp_brush->size;
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gsc->gpd);
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gso->gpd);
   bGPDstroke *gps_active = (!is_multiedit) ? gps->runtime.gps_orig : gps;
   bGPDspoint *pt_active = NULL;
 
@@ -1701,6 +1701,7 @@ static bool gpsculpt_brush_do_frame(bContext *C,
 {
   bool changed = false;
   Object *ob = CTX_data_active_object(C);
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gso->gpd);
 
   for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
     /* skip strokes that are invalid for current view */
@@ -1733,18 +1734,19 @@ static bool gpsculpt_brush_do_frame(bContext *C,
 
       case GP_SCULPT_TYPE_GRAB: /* Grab points */
       {
-        if (gps->runtime.gps_orig != NULL) {
+        bGPDstroke *gps_active = (!is_multiedit) ? gps->runtime.gps_orig : gps;
+        if (gps_active != NULL) {
           if (gso->first) {
             /* First time this brush stroke is being applied:
              * 1) Prepare data buffers (init/clear) for this stroke
              * 2) Use the points now under the cursor
              */
-            gp_brush_grab_stroke_init(gso, gps->runtime.gps_orig);
+            gp_brush_grab_stroke_init(gso, gps_active);
             changed |= gpsculpt_brush_do_stroke(gso, gps, diff_mat, gp_brush_grab_store_points);
           }
           else {
             /* Apply effect to the stored points */
-            gp_brush_grab_apply_cached(gso, gps->runtime.gps_orig, diff_mat);
+            gp_brush_grab_apply_cached(gso, gps_active, diff_mat);
             changed |= true;
           }
         }
@@ -1875,8 +1877,7 @@ static bool gpsculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *gso)
           }
 
           /* affect strokes in this frame */
-          changed |= gpsculpt_brush_do_frame(
-              C, gso, gpl, (gpf == gpl->actframe) ? gpf_eval : gpf, diff_mat);
+          changed |= gpsculpt_brush_do_frame(C, gso, gpl, gpf, diff_mat);
         }
       }
     }
