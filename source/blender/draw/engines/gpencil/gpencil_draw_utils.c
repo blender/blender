@@ -1156,7 +1156,8 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
   const bool playing = stl->storage->is_playing;
   const bool is_render = (bool)stl->storage->is_render;
   const bool is_mat_preview = (bool)stl->storage->is_mat_preview;
-  const bool overlay_multiedit = v3d != NULL ? (v3d->gp_flag & V3D_GP_SHOW_MULTIEDIT_LINES) : true;
+  const bool overlay_multiedit = v3d != NULL ? !(v3d->gp_flag & V3D_GP_SHOW_MULTIEDIT_LINES) :
+                                               true;
 
   /* Get evaluation context */
   /* NOTE: We must check if C is valid, otherwise we get crashes when trying to save files
