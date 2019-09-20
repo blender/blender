@@ -307,7 +307,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
   }
   /* If there's _no_ file-operation, ensure we _don't_ have the option region */
   else if (sa && (sfile->op == NULL) && (region_tool_props != NULL)) {
-    ED_region_remove(C, sa, region_tool_props);
+    ED_region_remove((bContext *)C, sa, region_tool_props);
   }
 
   ED_area_tag_redraw(sa);
