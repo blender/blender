@@ -113,7 +113,7 @@ static void GPENCIL_create_framebuffers(void *vedata)
     const float *viewport_size = DRW_viewport_size_get();
     const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
-    /* create multiframe framebuffer for AA */
+    /* create multisample framebuffer for AA */
     if ((stl->storage->framebuffer_flag & GP_FRAMEBUFFER_MULTISAMPLE) &&
         (stl->storage->multisamples > 0)) {
       gpencil_multisample_ensure(vedata, size[0], size[1]);
