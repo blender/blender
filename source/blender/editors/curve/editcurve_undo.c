@@ -40,9 +40,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_object.h"
 #include "ED_undo.h"
-#include "ED_util.h"
 #include "ED_curve.h"
 
 #include "WM_types.h"

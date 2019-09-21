@@ -34,7 +34,6 @@
 #include "BLI_array_utils.h"
 #include "BLI_task.h"
 
-#include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
@@ -42,7 +41,6 @@
 #include "DNA_object_types.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"

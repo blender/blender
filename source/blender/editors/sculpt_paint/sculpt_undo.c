@@ -39,8 +39,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BKE_ccg.h"
 #include "BKE_context.h"
@@ -49,7 +47,6 @@
 #include "BKE_paint.h"
 #include "BKE_key.h"
 #include "BKE_mesh.h"
-#include "BKE_mesh_runtime.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 #include "BKE_subdiv_ccg.h"
@@ -62,13 +59,11 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_paint.h"
 #include "ED_object.h"
 #include "ED_sculpt.h"
 #include "ED_undo.h"
 
 #include "bmesh.h"
-#include "paint_intern.h"
 #include "sculpt_intern.h"
 
 typedef struct UndoSculpt {

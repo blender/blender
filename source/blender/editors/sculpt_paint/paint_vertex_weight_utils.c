@@ -20,16 +20,12 @@
  * Intended for use by `paint_vertex.c` & `paint_vertex_weight_ops.c`.
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string_utils.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_brush_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_action.h"

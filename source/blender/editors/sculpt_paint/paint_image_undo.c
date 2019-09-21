@@ -29,7 +29,6 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_workspace_types.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

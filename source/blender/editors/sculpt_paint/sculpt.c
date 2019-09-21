@@ -69,7 +69,6 @@
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

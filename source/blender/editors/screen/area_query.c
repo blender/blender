@@ -28,8 +28,6 @@
 
 #include "RNA_types.h"
 
-#include "WM_api.h"
-
 #include "ED_screen.h"
 
 #include "UI_interface.h"

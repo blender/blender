@@ -28,7 +28,6 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
-#include "WM_api.h"
 #include "WM_message.h"
 
 #include "ED_screen.h"

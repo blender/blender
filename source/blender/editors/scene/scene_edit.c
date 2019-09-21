@@ -29,20 +29,15 @@
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
-#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "BLT_translation.h"
-
-#include "DNA_object_types.h"
-#include "DNA_workspace_types.h"
 
 #include "ED_object.h"
 #include "ED_render.h"

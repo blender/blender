@@ -32,9 +32,7 @@
 #include "BLI_rect.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "screen_intern.h"

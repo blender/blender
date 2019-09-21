@@ -31,7 +31,6 @@
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
 #include "BKE_report.h"
-#include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"
 

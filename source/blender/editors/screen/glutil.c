@@ -24,8 +24,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_userdef_types.h"
 #include "DNA_vec_types.h"
 

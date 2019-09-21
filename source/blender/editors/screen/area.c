@@ -60,7 +60,6 @@
 
 #include "BLF_api.h"
 
-#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 

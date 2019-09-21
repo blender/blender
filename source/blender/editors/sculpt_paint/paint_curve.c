@@ -35,8 +35,6 @@
 #include "BKE_main.h"
 #include "BKE_paint.h"
 
-#include "DEG_depsgraph.h"
-
 #include "ED_view3d.h"
 #include "ED_paint.h"
 

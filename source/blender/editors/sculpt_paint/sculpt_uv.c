@@ -38,7 +38,6 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
-#include "BKE_main.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_paint.h"
 

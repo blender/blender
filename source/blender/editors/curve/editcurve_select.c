@@ -37,7 +37,6 @@
 #include "BKE_fcurve.h"
 #include "BKE_layer.h"
 #include "BKE_report.h"
-#include "BKE_object.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

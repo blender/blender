@@ -77,15 +77,11 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_texture.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "UI_interface.h"
-
 #include "ED_object.h"
-#include "ED_mesh.h"
 #include "ED_node.h"
 #include "ED_paint.h"
 #include "ED_screen.h"
@@ -105,7 +101,6 @@
 
 #include "IMB_colormanagement.h"
 
-#include "bmesh.h"
 //#include "bmesh_tools.h"
 
 #include "paint_intern.h"

@@ -29,32 +29,22 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
-#include "DNA_gpencil_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_paint.h"
-#include "BKE_report.h"
-
-#include "DEG_depsgraph.h"
 
 #include "ED_paint.h"
 #include "ED_screen.h"
-#include "ED_select_utils.h"
 #include "ED_image.h"
-#include "ED_gpencil.h"
-#include "UI_resources.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
-#include "WM_toolsystem.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "paint_intern.h"
 #include "sculpt_intern.h"

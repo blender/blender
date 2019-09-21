@@ -29,7 +29,6 @@
 
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_context.h"
 #include "BKE_font.h"
@@ -39,7 +38,6 @@
 
 #include "ED_object.h"
 #include "ED_curve.h"
-#include "ED_util.h"
 
 #include "WM_types.h"
 #include "WM_api.h"

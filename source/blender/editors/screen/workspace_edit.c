@@ -29,18 +29,13 @@
 #include "BKE_appdir.h"
 #include "BKE_blendfile.h"
 #include "BKE_context.h"
-#include "BKE_idcode.h"
-#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_report.h"
-#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
 #include "BLO_readfile.h"
 
-#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
@@ -49,12 +44,8 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "RNA_access.h"
 #include "RNA_define.h"
-
-#include "DEG_depsgraph.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -63,7 +54,6 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-#include "WM_toolsystem.h"
 
 #include "screen_intern.h"
 

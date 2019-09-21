@@ -41,7 +41,6 @@
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
 #include "BKE_sound.h"
@@ -50,12 +49,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 #include "ED_clip.h"
 #include "ED_node.h"
-#include "ED_render.h"
 
 #include "UI_interface.h"
 

@@ -35,7 +35,6 @@
 #include "ED_undo.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 #include "paint_intern.h"
 
