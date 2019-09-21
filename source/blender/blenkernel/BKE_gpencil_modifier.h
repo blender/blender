@@ -297,6 +297,7 @@ void BKE_gpencil_modifiers_foreachTexLink(struct Object *ob,
 
 bool BKE_gpencil_has_geometry_modifiers(struct Object *ob);
 bool BKE_gpencil_has_time_modifiers(struct Object *ob);
+bool BKE_gpencil_has_transform_modifiers(struct Object *ob);
 
 void BKE_gpencil_stroke_modifiers(struct Depsgraph *depsgraph,
                                   struct Object *ob,
