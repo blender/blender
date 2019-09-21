@@ -132,9 +132,11 @@ static void gpu_print_framebuffer_error(GLenum status, char err_out[256])
   const char *err = "unknown";
 
 #define FORMAT_STATUS(X) \
-  case GL_FRAMEBUFFER_##X: \
+  case GL_FRAMEBUFFER_##X: { \
     err = "GL_FRAMEBUFFER_" #X; \
-    break;
+    break; \
+  } \
+    ((void)0)
 
   switch (status) {
     /* success */

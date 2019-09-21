@@ -47,7 +47,8 @@ CCL_NAMESPACE_BEGIN
     c -= b; \
     c ^= rot(b, 4); \
     b += a; \
-  }
+  } \
+  ((void)0)
 
 #define final(a, b, c) \
   { \
@@ -65,7 +66,8 @@ CCL_NAMESPACE_BEGIN
     b -= rot(a, 14); \
     c ^= b; \
     c -= rot(b, 24); \
-  }
+  } \
+  ((void)0)
 
 ccl_device_inline uint hash_uint(uint kx)
 {

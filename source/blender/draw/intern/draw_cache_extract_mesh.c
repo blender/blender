@@ -949,10 +949,8 @@ BLI_INLINE void lines_adjacency_triangle(
   GPUIndexBufBuilder *elb = &data->elb;
   /* Iter around the triangle's edges. */
   for (int e = 0; e < 3; e++) {
-    uint tmp = v1;
-    v1 = v2, v2 = v3, v3 = tmp;
-    tmp = l1;
-    l1 = l2, l2 = l3, l3 = tmp;
+    SHIFT3(uint, v3, v2, v1);
+    SHIFT3(uint, l3, l2, l1);
 
     bool inv_indices = (v2 > v3);
     void **pval;
@@ -4329,7 +4327,8 @@ void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
   if (mbc.buf.name) { \
     extract_task_create( \
         task_pool, mr, &extract_##name, mbc.buf.name, &task_counters[counter_used++]); \
-  }
+  } \
+  ((void)0)
 
   EXTRACT(vbo, pos_nor);
   EXTRACT(vbo, lnor);
