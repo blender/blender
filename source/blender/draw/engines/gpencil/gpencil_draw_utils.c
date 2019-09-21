@@ -135,7 +135,7 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
                                 GpencilBatchCache *cache,
                                 bGPdata *gpd)
 {
-  if (!cache->is_dirty) {
+  if ((!cache->is_dirty) || (gpd == NULL)) {
     return;
   }
 
@@ -153,6 +153,11 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
 
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
+  /* Onion skining. */
+  const int step = gpd->gstep;
+  const int mode = gpd->onion_mode;
+  const short onion_keytype = gpd->onion_keytype;
+
   cache_ob->tot_vertex = 0;
   cache_ob->tot_triangles = 0;
   int idx_eval = 0;
@@ -165,7 +170,7 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
       continue;
     }
 
-    /* if multiedit or onion skin need to count all frames of the layer */
+    /* If multiedit or onion skin need to count all frames of the layer. */
     if ((is_multiedit) || (is_onion)) {
       init_gpf = gpl->frames.first;
     }
@@ -179,9 +184,35 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-        cache_ob->tot_vertex += gps->totpoints + 3;
-        cache_ob->tot_triangles += gps->totpoints - 1;
+        if (!is_onion) {
+          if ((!is_multiedit) ||
+              ((is_multiedit) && ((gpf == gpl->actframe) || (gpf->flag & GP_FRAME_SELECT)))) {
+            cache_ob->tot_vertex += gps->totpoints + 3;
+            cache_ob->tot_triangles += gps->totpoints - 1;
+          }
+        }
+        else {
+          /* Only selected frames. */
+          if ((mode == GP_ONION_MODE_SELECTED) && ((gpf->flag & GP_FRAME_SELECT) == 0)) {
+            continue;
+          }
+          /* Verify keyframe type. */
+          if ((onion_keytype > -1) && (gpf->key_type != onion_keytype)) {
+            continue;
+          }
+          /* Absolute range. */
+          if (mode == GP_ONION_MODE_ABSOLUTE) {
+            if ((gpl->actframe) && (abs(gpl->actframe->framenum - gpf->framenum) > step)) {
+              continue;
+            }
+          }
+          /* For relative range it takes too much time compute, so use all frames. */
+          cache_ob->tot_vertex += gps->totpoints + 3;
+          cache_ob->tot_triangles += gps->totpoints - 1;
+        }
       }
+
+      /* If not multiframe nor Onion skin, don't need follow counting. */
       if ((!is_multiedit) && (!is_onion)) {
         break;
       }
