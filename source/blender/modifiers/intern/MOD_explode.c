@@ -1058,7 +1058,8 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
     orig_v4 = source.v4;
 
-    if (pa != NULL && cfra < pa->time) {
+    /* Same as above in the first loop over mesh's faces. */
+    if (pa == NULL || cfra < pa->time) {
       mindex = totvert + totpart;
     }
     else {
