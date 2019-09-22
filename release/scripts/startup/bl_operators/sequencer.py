@@ -150,15 +150,19 @@ class SequencerFadesClear(Operator):
         fcurves = context.scene.animation_data.action.fcurves
 
         for sequence in context.selected_sequences:
-            animated_property = 'volume' if hasattr(sequence, 'volume') else 'blend_alpha'
-            for curve in fcurves:
-                if not curve.data_path.endswith(animated_property):
-                    continue
-                # Ensure the fcurve corresponds to the selected sequence
-                if sequence == eval("bpy.context.scene." + curve.data_path.replace('.' + animated_property, '')):
-                    fcurves.remove(curve)
+            animated_property = "volume" if hasattr(sequence, "volume") else "blend_alpha"
+            data_path = sequence.path_from_id() + "." + animated_property
+            fcurve_map = {
+                curve.data_path: curve
+                for curve in fcurves
+                if curve.data_path.startswith("sequence_editor.sequences_all")
+            }
+            curve = fcurve_map.get(data_path)
+            if curve:
+                fcurves.remove(curve)
             setattr(sequence, animated_property, 1.0)
-        return {'FINISHED'}
+
+        return {"FINISHED"}
 
 
 class SequencerFadesAdd(Operator):
@@ -364,8 +368,6 @@ classes = (
     SequencerCrossfadeSounds,
     SequencerCutMulticam,
     SequencerDeinterlaceSelectedMovies,
-
-    # Disable until D5166#133312 is resolved.
-    # SequencerFadesClear,
-    # SequencerFadesAdd,
+    SequencerFadesClear,
+    SequencerFadesAdd,
 )
