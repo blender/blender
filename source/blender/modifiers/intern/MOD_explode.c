@@ -938,10 +938,13 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
         continue;
       }
     }
+    else {
+      pa = NULL;
+    }
 
     /* do mindex + totvert to ensure the vertex index to be the first
      * with BLI_edgehashIterator_getKey */
-    if (facepa[i] == totpart || cfra < (pars + facepa[i])->time) {
+    if (pa == NULL || cfra < pa->time) {
       mindex = totvert + totpart;
     }
     else {
@@ -1022,6 +1025,9 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
       mul_m4_v3(imat, vertco);
     }
+    else {
+      pa = NULL;
+    }
   }
   BLI_edgehashIterator_free(ehi);
 
@@ -1043,13 +1049,16 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
         continue;
       }
     }
+    else {
+      pa = NULL;
+    }
 
     source = mesh->mface[i];
     mf = &explode->mface[u];
 
     orig_v4 = source.v4;
 
-    if (facepa[i] != totpart && cfra < pa->time) {
+    if (pa != NULL && cfra < pa->time) {
       mindex = totvert + totpart;
     }
     else {
@@ -1069,7 +1078,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
     /* override uv channel for particle age */
     if (mtface) {
-      float age = (facepa[i] != totpart) ? (cfra - pa->time) / pa->lifetime : 0.0f;
+      float age = (pa != NULL) ? (cfra - pa->time) / pa->lifetime : 0.0f;
       /* Clamp to this range to avoid flipping to the other side of the coordinates. */
       CLAMP(age, 0.001f, 0.999f);
 
