@@ -334,7 +334,7 @@ static void drawseqwave(View2D *v2d,
         value2 = (1.0f - f) * value2 + f * waveform->data[p * 3 + 4];
       }
 
-      if (fcu) {
+      if (fcu && !BKE_fcurve_is_empty(fcu)) {
         float evaltime = x1_offset + (i * stepsize);
         volume = evaluate_fcurve(fcu, evaltime);
       }
