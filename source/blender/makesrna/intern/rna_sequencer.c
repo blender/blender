@@ -2639,8 +2639,7 @@ static void rna_def_solid_color(StructRNA *srna)
   prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, NULL, "col");
   RNA_def_property_ui_text(prop, "Color", "Effect Strip color");
-  RNA_def_property_update(
-      prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 }
 
 static void rna_def_speed_control(StructRNA *srna)
