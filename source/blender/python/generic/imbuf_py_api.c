@@ -256,6 +256,22 @@ static int py_imbuf_filepath_set(Py_ImBuf *self, PyObject *value, void *UNUSED(c
   return 0;
 }
 
+PyDoc_STRVAR(py_imbuf_planes_doc, "Number of bits associated with this image.\n\n:type: int");
+static PyObject *py_imbuf_planes_get(Py_ImBuf *self, void *UNUSED(closure))
+{
+  PY_IMBUF_CHECK_OBJ(self);
+  ImBuf *imbuf = self->ibuf;
+  return PyLong_FromLong(imbuf->planes);
+}
+
+PyDoc_STRVAR(py_imbuf_channels_doc, "Number of bit-planes.\n\n:type: int");
+static PyObject *py_imbuf_channels_get(Py_ImBuf *self, void *UNUSED(closure))
+{
+  PY_IMBUF_CHECK_OBJ(self);
+  ImBuf *imbuf = self->ibuf;
+  return PyLong_FromLong(imbuf->channels);
+}
+
 static PyGetSetDef Py_ImBuf_getseters[] = {
     {(char *)"size", (getter)py_imbuf_size_get, (setter)NULL, (char *)py_imbuf_size_doc, NULL},
     {(char *)"ppm",
@@ -268,6 +284,8 @@ static PyGetSetDef Py_ImBuf_getseters[] = {
      (setter)py_imbuf_filepath_set,
      (char *)py_imbuf_filepath_doc,
      NULL},
+    {(char *)"planes", (getter)py_imbuf_planes_get, NULL, (char *)py_imbuf_planes_doc, NULL},
+    {(char *)"channels", (getter)py_imbuf_channels_get, NULL, (char *)py_imbuf_channels_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
