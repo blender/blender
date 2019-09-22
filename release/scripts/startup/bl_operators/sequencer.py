@@ -148,15 +148,14 @@ class SequencerFadesClear(Operator):
 
     def execute(self, context):
         fcurves = context.scene.animation_data.action.fcurves
-
+        fcurve_map = {
+            curve.data_path: curve
+            for curve in fcurves
+            if curve.data_path.startswith("sequence_editor.sequences_all")
+        }
         for sequence in context.selected_sequences:
             animated_property = "volume" if hasattr(sequence, "volume") else "blend_alpha"
             data_path = sequence.path_from_id() + "." + animated_property
-            fcurve_map = {
-                curve.data_path: curve
-                for curve in fcurves
-                if curve.data_path.startswith("sequence_editor.sequences_all")
-            }
             curve = fcurve_map.get(data_path)
             if curve:
                 fcurves.remove(curve)
