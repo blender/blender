@@ -1069,7 +1069,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
     /* override uv channel for particle age */
     if (mtface) {
-      float age = (cfra - pa->time) / pa->lifetime;
+      float age = (facepa[i] != totpart) ? (cfra - pa->time) / pa->lifetime : 0.0f;
       /* Clamp to this range to avoid flipping to the other side of the coordinates. */
       CLAMP(age, 0.001f, 0.999f);
 
