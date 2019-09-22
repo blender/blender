@@ -176,6 +176,50 @@ static PyObject *Quaternion_to_axis_angle(QuaternionObject *self)
   return ret;
 }
 
+PyDoc_STRVAR(Quaternion_to_swing_twist_doc,
+             ".. method:: to_swing_twist(axis)\n"
+             "\n"
+             "   Split the rotation into a swing quaternion with the specified\n"
+             "axis fixed at zero, and the remaining twist rotation angle.\n"
+             "\n"
+             "   :arg axis: twist axis as a string in ['X', 'Y', 'Z']\n"
+             "   :return: swing, twist angle.\n"
+             "   :rtype: (:class:`Quaternion`, float) pair\n");
+static PyObject *Quaternion_to_swing_twist(QuaternionObject *self, PyObject *axis_arg)
+{
+  PyObject *ret;
+
+  const char *axis_str = NULL;
+  float swing[4], twist;
+  int axis;
+
+  if (axis_arg && PyUnicode_Check(axis_arg)) {
+    axis_str = _PyUnicode_AsString(axis_arg);
+  }
+
+  if (axis_str && axis_str[0] >= 'X' && axis_str[0] <= 'Z' && axis_str[1] == 0) {
+    axis = axis_str[0] - 'X';
+  }
+  else {
+    PyErr_SetString(PyExc_ValueError,
+                    "Quaternion.to_swing_twist(): "
+                    "the axis agrument must be "
+                    "a string in 'X', 'Y', 'Z'");
+    return NULL;
+  }
+
+  if (BaseMath_ReadCallback(self) == -1) {
+    return NULL;
+  }
+
+  twist = quat_split_swing_and_twist(self->quat, axis, swing, NULL);
+
+  ret = PyTuple_New(2);
+  PyTuple_SET_ITEMS(
+      ret, Quaternion_CreatePyObject(swing, Py_TYPE(self)), PyFloat_FromDouble(twist));
+  return ret;
+}
+
 PyDoc_STRVAR(
     Quaternion_to_exponential_map_doc,
     ".. method:: to_exponential_map()\n"
@@ -1368,6 +1412,10 @@ static struct PyMethodDef Quaternion_methods[] = {
      (PyCFunction)Quaternion_to_axis_angle,
      METH_NOARGS,
      Quaternion_to_axis_angle_doc},
+    {"to_swing_twist",
+     (PyCFunction)Quaternion_to_swing_twist,
+     METH_O,
+     Quaternion_to_swing_twist_doc},
     {"to_exponential_map",
      (PyCFunction)Quaternion_to_exponential_map,
      METH_NOARGS,
