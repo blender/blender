@@ -161,7 +161,7 @@ class SequencerFadesClear(Operator):
                 fcurves.remove(curve)
             setattr(sequence, animated_property, 1.0)
 
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 
 class SequencerFadesAdd(Operator):
@@ -228,8 +228,8 @@ class SequencerFadesAdd(Operator):
             faded_sequences.append(sequence)
 
         sequence_string = "sequence" if len(faded_sequences) == 1 else "sequences"
-        self.report({"INFO"}, "Added fade animation to {} {}.".format(len(faded_sequences), sequence_string))
-        return {"FINISHED"}
+        self.report({'INFO'}, "Added fade animation to {} {}.".format(len(faded_sequences), sequence_string))
+        return {'FINISHED'}
 
     def calculate_fade_duration(self, context, sequence):
         frame_current = context.scene.frame_current
