@@ -836,8 +836,9 @@ void GPU_draw_list_submit(GPUDrawList *list)
 {
   GPUBatch *batch = list->batch;
 
-  if (list->cmd_len == 0)
+  if (list->cmd_len == 0) {
     return;
+  }
 
   BLI_assert(list->commands);
   BLI_assert(batch->program_in_use);

@@ -65,8 +65,9 @@ static void draw_call_sort(DRWCommand *array, DRWCommand *array_tmp, int array_l
 
   for (int i = 0; i < array_len; i++) {
     /* Early out if nothing to sort. */
-    if (++idx[KEY(array[i])] == array_len)
+    if (++idx[KEY(array[i])] == array_len) {
       return;
+    }
   }
   /* Cumulate batch indices */
   for (int i = 1; i < ARRAY_SIZE(idx); i++) {
