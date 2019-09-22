@@ -4349,6 +4349,7 @@ static void sequence_invalidate_cache(Scene *scene,
   }
 
   sequence_do_invalidate_dependent(scene, seq, &ed->seqbase);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   BKE_sequencer_prefetch_stop(scene);
 }
 
