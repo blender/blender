@@ -28,8 +28,9 @@
 #include "BKE_customdata.h"
 #include "bmesh.h"
 
-struct BMLoop;
 struct BMesh;
+struct BMLoop;
+struct BoundBox;
 struct Depsgraph;
 struct EditMeshData;
 struct Mesh;
@@ -58,6 +59,9 @@ typedef struct BMEditMesh {
   int tottri;
 
   struct Mesh *mesh_eval_final, *mesh_eval_cage;
+
+  /** Cached cage bounding box for selection. */
+  struct BoundBox *bb_cage;
 
   /*derivedmesh stuff*/
   CustomData_MeshMasks lastDataMask;
@@ -90,6 +94,7 @@ void BKE_editmesh_color_ensure(BMEditMesh *em, const char htype);
 float (*BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em, int *r_vert_len))[3];
 void BKE_editmesh_lnorspace_update(BMEditMesh *em);
 void BKE_editmesh_ensure_autosmooth(BMEditMesh *em);
+struct BoundBox *BKE_editmesh_cage_boundbox_get(BMEditMesh *em);
 
 /* editderivedmesh.c */
 /* should really be defined in editmesh.c, but they use 'EditDerivedBMesh' */

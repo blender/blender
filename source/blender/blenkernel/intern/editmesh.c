@@ -32,6 +32,8 @@
 #include "BKE_editmesh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_library.h"
+#include "BKE_mesh.h"
+#include "BKE_object.h"
 
 BMEditMesh *BKE_editmesh_create(BMesh *bm, const bool do_tessellate)
 {
@@ -51,6 +53,7 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
   *em_copy = *em;
 
   em_copy->mesh_eval_cage = em_copy->mesh_eval_final = NULL;
+  em_copy->bb_cage = NULL;
 
   em_copy->derivedVertColor = NULL;
   em_copy->derivedVertColorLen = 0;
@@ -151,6 +154,8 @@ void BKE_editmesh_free_derivedmesh(BMEditMesh *em)
     BKE_id_free(NULL, em->mesh_eval_final);
   }
   em->mesh_eval_cage = em->mesh_eval_final = NULL;
+
+  MEM_SAFE_FREE(em->bb_cage);
 }
 
 /*does not free the BMEditMesh struct itself*/
@@ -256,4 +261,20 @@ void BKE_editmesh_ensure_autosmooth(BMEditMesh *em)
     me->flag |= ME_AUTOSMOOTH;
     BKE_editmesh_lnorspace_update(em);
   }
+}
+
+BoundBox *BKE_editmesh_cage_boundbox_get(BMEditMesh *em)
+{
+  if (em->bb_cage == NULL) {
+    float min[3], max[3];
+    INIT_MINMAX(min, max);
+    if (em->mesh_eval_cage) {
+      BKE_mesh_minmax(em->mesh_eval_cage, min, max);
+    }
+
+    em->bb_cage = MEM_callocN(sizeof(BoundBox), "BMEditMesh.bb_cage");
+    BKE_boundbox_init_from_minmax(em->bb_cage, min, max);
+  }
+
+  return em->bb_cage;
 }
