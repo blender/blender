@@ -7136,7 +7136,6 @@ static int match_texture_space_exec(bContext *C, wmOperator *UNUSED(op))
 
   copy_v3_v3(curve->loc, loc);
   copy_v3_v3(curve->size, size);
-  zero_v3(curve->rot);
 
   curve->texflag &= ~CU_AUTOSPACE;
 

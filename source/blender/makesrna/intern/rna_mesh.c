@@ -543,7 +543,7 @@ static void rna_MeshVertex_undeformed_co_get(PointerRNA *ptr, float values[3])
     /* orco is normalized to 0..1, we do inverse to match mvert->co */
     float loc[3], size[3];
 
-    BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, loc, NULL, size);
+    BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, loc, size);
     madd_v3_v3v3v3(values, loc, orco[(mvert - me->mvert)], size);
   }
   else {
@@ -2207,15 +2207,6 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
   RNA_def_property_editable_func(prop, texspace_editable);
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
-  /* not supported yet */
-#  if 0
-  prop = RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
-  RNA_def_property_float(prop, NULL, "rot");
-  RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
-  RNA_def_property_editable_func(prop, texspace_editable);
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-#  endif
-
   /* materials */
   prop = RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
@@ -3077,15 +3068,6 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_editable_func(prop, "rna_Mesh_texspace_editable");
   RNA_def_property_float_funcs(
       prop, "rna_Mesh_texspace_loc_get", "rna_Mesh_texspace_loc_set", NULL);
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
-#  endif
-
-  /* not supported yet */
-#  if 0
-  prop = RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
-  RNA_def_property_float(prop, NULL, "rot");
-  RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
-  RNA_def_property_editable_func(prop, texspace_editable);
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 #  endif
 

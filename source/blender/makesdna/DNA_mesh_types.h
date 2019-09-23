@@ -175,7 +175,6 @@ typedef struct Mesh {
   /* texture space, copied as one block in editobject.c */
   float loc[3];
   float size[3];
-  float rot[3];
 
   short texflag, flag;
   float smoothresh;
@@ -192,7 +191,7 @@ typedef struct Mesh {
 
   float remesh_voxel_size;
   char remesh_mode;
-  char _pad1[3];
+  char _pad1[7];
   /** Deprecated multiresolution modeling data, only keep for loading old files. */
   struct Multires *mr DNA_DEPRECATED;
 

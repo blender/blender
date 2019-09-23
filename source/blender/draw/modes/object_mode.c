@@ -3019,7 +3019,7 @@ static void DRW_shgroup_texture_space(OBJECT_ShadingGroupList *sgl, Object *ob, 
 
   switch (GS(ob_data->name)) {
     case ID_ME:
-      BKE_mesh_texspace_get_reference((Mesh *)ob_data, NULL, &texcoloc, NULL, &texcosize);
+      BKE_mesh_texspace_get_reference((Mesh *)ob_data, NULL, &texcoloc, &texcosize);
       break;
     case ID_CU: {
       Curve *cu = (Curve *)ob_data;

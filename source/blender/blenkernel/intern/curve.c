@@ -340,7 +340,6 @@ void BKE_curve_texspace_calc(Curve *cu)
 
     copy_v3_v3(cu->loc, loc);
     copy_v3_v3(cu->size, size);
-    zero_v3(cu->rot);
 
     cu->texflag |= CU_AUTOSPACE_EVALUATED;
   }
@@ -353,15 +352,12 @@ void BKE_curve_texspace_ensure(Curve *cu)
   }
 }
 
-void BKE_curve_texspace_get(Curve *cu, float r_loc[3], float r_rot[3], float r_size[3])
+void BKE_curve_texspace_get(Curve *cu, float r_loc[3], float r_size[3])
 {
   BKE_curve_texspace_ensure(cu);
 
   if (r_loc) {
     copy_v3_v3(r_loc, cu->loc);
-  }
-  if (r_rot) {
-    copy_v3_v3(r_rot, cu->rot);
   }
   if (r_size) {
     copy_v3_v3(r_size, cu->size);
@@ -5481,7 +5477,6 @@ void BKE_curve_eval_geometry(Depsgraph *depsgraph, Curve *curve)
       curve_orig->texflag |= CU_AUTOSPACE_EVALUATED;
       copy_v3_v3(curve_orig->loc, curve->loc);
       copy_v3_v3(curve_orig->size, curve->size);
-      copy_v3_v3(curve_orig->rot, curve->rot);
     }
   }
 }

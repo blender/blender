@@ -193,9 +193,11 @@ struct BoundBox *BKE_mesh_boundbox_get(struct Object *ob);
 
 void BKE_mesh_texspace_calc(struct Mesh *me);
 void BKE_mesh_texspace_ensure(struct Mesh *me);
-void BKE_mesh_texspace_get(struct Mesh *me, float r_loc[3], float r_rot[3], float r_size[3]);
-void BKE_mesh_texspace_get_reference(
-    struct Mesh *me, short **r_texflag, float **r_loc, float **r_rot, float **r_size);
+void BKE_mesh_texspace_get(struct Mesh *me, float r_loc[3], float r_size[3]);
+void BKE_mesh_texspace_get_reference(struct Mesh *me,
+                                     short **r_texflag,
+                                     float **r_loc,
+                                     float **r_size);
 void BKE_mesh_texspace_copy_from_object(struct Mesh *me, struct Object *ob);
 
 void BKE_mesh_split_faces(struct Mesh *mesh, bool free_loop_normals);

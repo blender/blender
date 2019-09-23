@@ -930,10 +930,12 @@ void createTransTexspace(TransInfo *t)
   normalize_m3(td->axismtx);
   pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 
-  if (BKE_object_obdata_texspace_get(ob, &texflag, &td->loc, &td->ext->size, &td->ext->rot)) {
+  if (BKE_object_obdata_texspace_get(ob, &texflag, &td->loc, &td->ext->size)) {
     ob->dtx |= OB_TEXSPACE;
     *texflag &= ~ME_AUTOSPACE;
   }
+
+  zero_v3(td->ext->rot);
 
   copy_v3_v3(td->iloc, td->loc);
   copy_v3_v3(td->ext->irot, td->ext->rot);

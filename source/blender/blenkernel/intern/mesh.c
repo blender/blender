@@ -865,7 +865,6 @@ void BKE_mesh_texspace_calc(Mesh *me)
 
     copy_v3_v3(me->loc, loc);
     copy_v3_v3(me->size, size);
-    zero_v3(me->rot);
 
     me->texflag |= ME_AUTOSPACE_EVALUATED;
   }
@@ -878,23 +877,19 @@ void BKE_mesh_texspace_ensure(Mesh *me)
   }
 }
 
-void BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_rot[3], float r_size[3])
+void BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_size[3])
 {
   BKE_mesh_texspace_ensure(me);
 
   if (r_loc) {
     copy_v3_v3(r_loc, me->loc);
   }
-  if (r_rot) {
-    copy_v3_v3(r_rot, me->rot);
-  }
   if (r_size) {
     copy_v3_v3(r_size, me->size);
   }
 }
 
-void BKE_mesh_texspace_get_reference(
-    Mesh *me, short **r_texflag, float **r_loc, float **r_rot, float **r_size)
+void BKE_mesh_texspace_get_reference(Mesh *me, short **r_texflag, float **r_loc, float **r_size)
 {
   BKE_mesh_texspace_ensure(me);
 
@@ -904,9 +899,6 @@ void BKE_mesh_texspace_get_reference(
   if (r_loc != NULL) {
     *r_loc = me->loc;
   }
-  if (r_rot != NULL) {
-    *r_rot = me->rot;
-  }
   if (r_size != NULL) {
     *r_size = me->size;
   }
@@ -914,14 +906,13 @@ void BKE_mesh_texspace_get_reference(
 
 void BKE_mesh_texspace_copy_from_object(Mesh *me, Object *ob)
 {
-  float *texloc, *texrot, *texsize;
+  float *texloc, *texsize;
   short *texflag;
 
-  if (BKE_object_obdata_texspace_get(ob, &texflag, &texloc, &texsize, &texrot)) {
+  if (BKE_object_obdata_texspace_get(ob, &texflag, &texloc, &texsize)) {
     me->texflag = *texflag;
     copy_v3_v3(me->loc, texloc);
     copy_v3_v3(me->size, texsize);
-    copy_v3_v3(me->rot, texrot);
   }
 }
 
@@ -950,7 +941,7 @@ void BKE_mesh_orco_verts_transform(Mesh *me, float (*orco)[3], int totvert, int 
   float loc[3], size[3];
   int a;
 
-  BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, loc, NULL, size);
+  BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, loc, size);
 
   if (invert) {
     for (a = 0; a < totvert; a++) {
@@ -1942,7 +1933,6 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)
       mesh_orig->texflag |= ME_AUTOSPACE_EVALUATED;
       copy_v3_v3(mesh_orig->loc, mesh->loc);
       copy_v3_v3(mesh_orig->size, mesh->size);
-      copy_v3_v3(mesh_orig->rot, mesh->rot);
     }
   }
 }

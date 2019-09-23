@@ -667,7 +667,6 @@ void BKE_mesh_from_nurbs_displist(Main *bmain,
   me->texflag = cu->texflag & ~CU_AUTOSPACE;
   copy_v3_v3(me->loc, cu->loc);
   copy_v3_v3(me->size, cu->size);
-  copy_v3_v3(me->rot, cu->rot);
   BKE_mesh_texspace_calc(me);
 
   cu->mat = NULL;
