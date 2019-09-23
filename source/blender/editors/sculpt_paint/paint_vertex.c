@@ -193,17 +193,12 @@ static bool vertex_paint_use_fast_update_check(Object *ob)
   return false;
 }
 
-static void paint_last_stroke_update(Scene *scene, ARegion *ar, const float mval[2])
+static void paint_last_stroke_update(Scene *scene, const float location[3])
 {
-  const int mval_i[2] = {mval[0], mval[1]};
-  float world[3];
-
-  if (ED_view3d_autodist_simple(ar, mval_i, world, 0, NULL)) {
-    UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-    ups->average_stroke_counter++;
-    add_v3_v3(ups->average_stroke_accum, world);
-    ups->last_stroke_valid = true;
-  }
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  ups->average_stroke_counter++;
+  add_v3_v3(ups->average_stroke_accum, location);
+  ups->last_stroke_valid = true;
 }
 
 /* polling - retrieve whether cursor should be set or operator should be done */
@@ -2349,7 +2344,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
   /* calculate pivot for rotation around seletion if needed */
   /* also needed for "View Selected" on last stroke */
-  paint_last_stroke_update(scene, vc->ar, ss->cache->mouse);
+  paint_last_stroke_update(scene, ss->cache->location);
 
   BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 
@@ -3329,7 +3324,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
   /* calculate pivot for rotation around seletion if needed */
   /* also needed for "View Selected" on last stroke */
-  paint_last_stroke_update(scene, vc->ar, ss->cache->mouse);
+  paint_last_stroke_update(scene, ss->cache->location);
 
   ED_region_tag_redraw(vc->ar);
 
