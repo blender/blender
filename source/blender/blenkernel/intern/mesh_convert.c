@@ -1576,11 +1576,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
   /* Clear selection history */
   MEM_SAFE_FREE(tmp.mselect);
   tmp.totselect = 0;
-  BLI_assert(ELEM(tmp.bb, NULL, mesh_dst->bb));
-  if (mesh_dst->bb) {
-    MEM_freeN(mesh_dst->bb);
-    tmp.bb = NULL;
-  }
+  tmp.texflag &= ~ME_AUTOSPACE_EVALUATED;
 
   /* skip the listbase */
   MEMCPY_STRUCT_AFTER(mesh_dst, &tmp, id.prev);

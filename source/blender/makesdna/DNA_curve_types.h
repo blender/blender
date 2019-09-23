@@ -212,8 +212,6 @@ typedef struct Curve {
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
 
-  struct BoundBox *bb;
-
   /** Actual data, called splines in rna. */
   ListBase nurb;
 
@@ -308,6 +306,7 @@ typedef struct Curve {
 /* Curve.texflag */
 enum {
   CU_AUTOSPACE = 1,
+  CU_AUTOSPACE_EVALUATED = 2,
 };
 
 #if 0 /* Moved to overlay options in 2.8 */

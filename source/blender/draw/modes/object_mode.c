@@ -3023,9 +3023,7 @@ static void DRW_shgroup_texture_space(OBJECT_ShadingGroupList *sgl, Object *ob, 
       break;
     case ID_CU: {
       Curve *cu = (Curve *)ob_data;
-      if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_DIRTY)) {
-        BKE_curve_texspace_calc(cu);
-      }
+      BKE_curve_texspace_ensure(cu);
       texcoloc = cu->loc;
       texcosize = cu->size;
       break;

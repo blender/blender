@@ -142,7 +142,6 @@ void BKE_curve_free(Curve *cu)
   MEM_SAFE_FREE(cu->mat);
   MEM_SAFE_FREE(cu->str);
   MEM_SAFE_FREE(cu->strinfo);
-  MEM_SAFE_FREE(cu->bb);
   MEM_SAFE_FREE(cu->tb);
 }
 
@@ -153,8 +152,6 @@ void BKE_curve_init(Curve *cu, const short curve_type)
   MEMCPY_STRUCT_AFTER(cu, DNA_struct_default_get(Curve), id);
 
   cu->type = curve_type;
-
-  cu->bb = BKE_boundbox_alloc_unit();
 
   if (cu->type == OB_FONT) {
     cu->flag |= CU_FRONT | CU_BACK;
@@ -204,7 +201,6 @@ void BKE_curve_copy_data(Main *bmain, Curve *cu_dst, const Curve *cu_src, const 
   cu_dst->str = MEM_dupallocN(cu_src->str);
   cu_dst->strinfo = MEM_dupallocN(cu_src->strinfo);
   cu_dst->tb = MEM_dupallocN(cu_src->tb);
-  cu_dst->bb = MEM_dupallocN(cu_src->bb);
   cu_dst->batch_cache = NULL;
 
   if (cu_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
@@ -291,41 +287,6 @@ void BKE_curve_type_test(Object *ob)
   }
 }
 
-void BKE_curve_boundbox_calc(Curve *cu, float r_loc[3], float r_size[3])
-{
-  BoundBox *bb;
-  float min[3], max[3];
-  float mloc[3], msize[3];
-
-  if (cu->bb == NULL) {
-    cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
-  }
-  bb = cu->bb;
-
-  if (!r_loc) {
-    r_loc = mloc;
-  }
-  if (!r_size) {
-    r_size = msize;
-  }
-
-  INIT_MINMAX(min, max);
-  if (!BKE_curve_minmax(cu, true, min, max)) {
-    min[0] = min[1] = min[2] = -1.0f;
-    max[0] = max[1] = max[2] = 1.0f;
-  }
-
-  mid_v3_v3v3(r_loc, min, max);
-
-  r_size[0] = (max[0] - min[0]) / 2.0f;
-  r_size[1] = (max[1] - min[1]) / 2.0f;
-  r_size[2] = (max[2] - min[2]) / 2.0f;
-
-  BKE_boundbox_init_from_minmax(bb, min, max);
-
-  bb->flag &= ~BOUNDBOX_DIRTY;
-}
-
 BoundBox *BKE_curve_boundbox_get(Object *ob)
 {
   /* This is Object-level data access,
@@ -349,13 +310,23 @@ BoundBox *BKE_curve_boundbox_get(Object *ob)
 
 void BKE_curve_texspace_calc(Curve *cu)
 {
-  float loc[3], size[3];
-  int a;
-
-  BKE_curve_boundbox_calc(cu, loc, size);
-
   if (cu->texflag & CU_AUTOSPACE) {
-    for (a = 0; a < 3; a++) {
+    float min[3], max[3];
+
+    INIT_MINMAX(min, max);
+    if (!BKE_curve_minmax(cu, true, min, max)) {
+      min[0] = min[1] = min[2] = -1.0f;
+      max[0] = max[1] = max[2] = 1.0f;
+    }
+
+    float loc[3], size[3];
+    mid_v3_v3v3(loc, min, max);
+
+    size[0] = (max[0] - min[0]) / 2.0f;
+    size[1] = (max[1] - min[1]) / 2.0f;
+    size[2] = (max[2] - min[2]) / 2.0f;
+
+    for (int a = 0; a < 3; a++) {
       if (size[a] == 0.0f) {
         size[a] = 1.0f;
       }
@@ -370,14 +341,21 @@ void BKE_curve_texspace_calc(Curve *cu)
     copy_v3_v3(cu->loc, loc);
     copy_v3_v3(cu->size, size);
     zero_v3(cu->rot);
+
+    cu->texflag |= CU_AUTOSPACE_EVALUATED;
   }
 }
 
-BoundBox *BKE_curve_texspace_get(Curve *cu, float r_loc[3], float r_rot[3], float r_size[3])
+void BKE_curve_texspace_ensure(Curve *cu)
 {
-  if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_DIRTY)) {
+  if ((cu->texflag & CU_AUTOSPACE) && !(cu->texflag & CU_AUTOSPACE_EVALUATED)) {
     BKE_curve_texspace_calc(cu);
   }
+}
+
+void BKE_curve_texspace_get(Curve *cu, float r_loc[3], float r_rot[3], float r_size[3])
+{
+  BKE_curve_texspace_ensure(cu);
 
   if (r_loc) {
     copy_v3_v3(r_loc, cu->loc);
@@ -388,8 +366,6 @@ BoundBox *BKE_curve_texspace_get(Curve *cu, float r_loc[3], float r_rot[3], floa
   if (r_size) {
     copy_v3_v3(r_size, cu->size);
   }
-
-  return cu->bb;
 }
 
 bool BKE_nurbList_index_get_co(ListBase *nurb, const int index, float r_co[3])
@@ -5501,12 +5477,8 @@ void BKE_curve_eval_geometry(Depsgraph *depsgraph, Curve *curve)
   BKE_curve_texspace_calc(curve);
   if (DEG_is_active(depsgraph)) {
     Curve *curve_orig = (Curve *)DEG_get_original_id(&curve->id);
-    BoundBox *bb = curve->bb;
-    if (bb != NULL) {
-      if (curve_orig->bb == NULL) {
-        curve_orig->bb = MEM_mallocN(sizeof(*curve_orig->bb), __func__);
-      }
-      *curve_orig->bb = *bb;
+    if (curve->texflag & CU_AUTOSPACE_EVALUATED) {
+      curve_orig->texflag |= CU_AUTOSPACE_EVALUATED;
       copy_v3_v3(curve_orig->loc, curve->loc);
       copy_v3_v3(curve_orig->size, curve->size);
       copy_v3_v3(curve_orig->rot, curve->rot);

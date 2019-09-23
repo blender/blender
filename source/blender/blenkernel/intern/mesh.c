@@ -496,7 +496,6 @@ void BKE_mesh_clear_geometry(Mesh *mesh)
   CustomData_free(&mesh->ldata, mesh->totloop);
   CustomData_free(&mesh->pdata, mesh->totpoly);
 
-  MEM_SAFE_FREE(mesh->bb);
   MEM_SAFE_FREE(mesh->mselect);
   MEM_SAFE_FREE(mesh->edit_mesh);
 
@@ -605,7 +604,6 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
   me_dst->edit_mesh = NULL;
 
   me_dst->mselect = MEM_dupallocN(me_dst->mselect);
-  me_dst->bb = MEM_dupallocN(me_dst->bb);
 
   /* TODO Do we want to add flag to prevent this? */
   if (me_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
@@ -811,67 +809,6 @@ void BKE_mesh_make_local(Main *bmain, Mesh *me, const bool lib_local)
   BKE_id_make_local_generic(bmain, &me->id, true, lib_local);
 }
 
-void BKE_mesh_boundbox_calc(Mesh *me, float r_loc[3], float r_size[3])
-{
-  BoundBox *bb;
-  float min[3], max[3];
-  float mloc[3], msize[3];
-
-  if (me->bb == NULL) {
-    me->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
-  }
-  bb = me->bb;
-
-  if (!r_loc) {
-    r_loc = mloc;
-  }
-  if (!r_size) {
-    r_size = msize;
-  }
-
-  INIT_MINMAX(min, max);
-  if (!BKE_mesh_minmax(me, min, max)) {
-    min[0] = min[1] = min[2] = -1.0f;
-    max[0] = max[1] = max[2] = 1.0f;
-  }
-
-  mid_v3_v3v3(r_loc, min, max);
-
-  r_size[0] = (max[0] - min[0]) / 2.0f;
-  r_size[1] = (max[1] - min[1]) / 2.0f;
-  r_size[2] = (max[2] - min[2]) / 2.0f;
-
-  BKE_boundbox_init_from_minmax(bb, min, max);
-
-  bb->flag &= ~BOUNDBOX_DIRTY;
-}
-
-void BKE_mesh_texspace_calc(Mesh *me)
-{
-  float loc[3], size[3];
-  int a;
-
-  BKE_mesh_boundbox_calc(me, loc, size);
-
-  if (me->texflag & ME_AUTOSPACE) {
-    for (a = 0; a < 3; a++) {
-      if (size[a] == 0.0f) {
-        size[a] = 1.0f;
-      }
-      else if (size[a] > 0.0f && size[a] < 0.00001f) {
-        size[a] = 0.00001f;
-      }
-      else if (size[a] < 0.0f && size[a] > -0.00001f) {
-        size[a] = -0.00001f;
-      }
-    }
-
-    copy_v3_v3(me->loc, loc);
-    copy_v3_v3(me->size, size);
-    zero_v3(me->rot);
-  }
-}
-
 BoundBox *BKE_mesh_boundbox_get(Object *ob)
 {
   /* This is Object-level data access,
@@ -896,11 +833,54 @@ BoundBox *BKE_mesh_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
-BoundBox *BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_rot[3], float r_size[3])
+void BKE_mesh_texspace_calc(Mesh *me)
 {
-  if (me->bb == NULL || (me->bb->flag & BOUNDBOX_DIRTY)) {
+  if (me->texflag & ME_AUTOSPACE) {
+    float min[3], max[3];
+
+    INIT_MINMAX(min, max);
+    if (!BKE_mesh_minmax(me, min, max)) {
+      min[0] = min[1] = min[2] = -1.0f;
+      max[0] = max[1] = max[2] = 1.0f;
+    }
+
+    float loc[3], size[3];
+    mid_v3_v3v3(loc, min, max);
+
+    size[0] = (max[0] - min[0]) / 2.0f;
+    size[1] = (max[1] - min[1]) / 2.0f;
+    size[2] = (max[2] - min[2]) / 2.0f;
+
+    for (int a = 0; a < 3; a++) {
+      if (size[a] == 0.0f) {
+        size[a] = 1.0f;
+      }
+      else if (size[a] > 0.0f && size[a] < 0.00001f) {
+        size[a] = 0.00001f;
+      }
+      else if (size[a] < 0.0f && size[a] > -0.00001f) {
+        size[a] = -0.00001f;
+      }
+    }
+
+    copy_v3_v3(me->loc, loc);
+    copy_v3_v3(me->size, size);
+    zero_v3(me->rot);
+
+    me->texflag |= ME_AUTOSPACE_EVALUATED;
+  }
+}
+
+void BKE_mesh_texspace_ensure(Mesh *me)
+{
+  if ((me->texflag & ME_AUTOSPACE) && !(me->texflag & ME_AUTOSPACE_EVALUATED)) {
     BKE_mesh_texspace_calc(me);
   }
+}
+
+void BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_rot[3], float r_size[3])
+{
+  BKE_mesh_texspace_ensure(me);
 
   if (r_loc) {
     copy_v3_v3(r_loc, me->loc);
@@ -911,16 +891,12 @@ BoundBox *BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_rot[3], float 
   if (r_size) {
     copy_v3_v3(r_size, me->size);
   }
-
-  return me->bb;
 }
 
 void BKE_mesh_texspace_get_reference(
     Mesh *me, short **r_texflag, float **r_loc, float **r_rot, float **r_size)
 {
-  if (me->bb == NULL || (me->bb->flag & BOUNDBOX_DIRTY)) {
-    BKE_mesh_texspace_calc(me);
-  }
+  BKE_mesh_texspace_ensure(me);
 
   if (r_texflag != NULL) {
     *r_texflag = &me->texflag;
@@ -1962,12 +1938,8 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)
   }
   if (DEG_is_active(depsgraph)) {
     Mesh *mesh_orig = (Mesh *)DEG_get_original_id(&mesh->id);
-    BoundBox *bb = mesh->bb;
-    if (bb != NULL) {
-      if (mesh_orig->bb == NULL) {
-        mesh_orig->bb = MEM_mallocN(sizeof(*mesh_orig->bb), __func__);
-      }
-      *mesh_orig->bb = *bb;
+    if (mesh->texflag & ME_AUTOSPACE_EVALUATED) {
+      mesh_orig->texflag |= ME_AUTOSPACE_EVALUATED;
       copy_v3_v3(mesh_orig->loc, mesh->loc);
       copy_v3_v3(mesh_orig->size, mesh->size);
       copy_v3_v3(mesh_orig->rot, mesh->rot);

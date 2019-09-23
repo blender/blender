@@ -3284,9 +3284,7 @@ int BKE_object_obdata_texspace_get(
     }
     case ID_CU: {
       Curve *cu = ob->data;
-      if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_DIRTY)) {
-        BKE_curve_texspace_calc(cu);
-      }
+      BKE_curve_texspace_ensure(cu);
       if (r_texflag) {
         *r_texflag = &cu->texflag;
       }

@@ -116,8 +116,6 @@ typedef struct Mesh {
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
 
-  struct BoundBox *bb;
-
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
   struct Key *key;
@@ -218,6 +216,7 @@ typedef struct TFace {
 /* texflag */
 enum {
   ME_AUTOSPACE = 1,
+  ME_AUTOSPACE_EVALUATED = 2,
 };
 
 /* me->editflag */

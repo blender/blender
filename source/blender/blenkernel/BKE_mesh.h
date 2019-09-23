@@ -141,8 +141,6 @@ bool BKE_mesh_ensure_facemap_customdata(struct Mesh *me);
 bool BKE_mesh_clear_facemap_customdata(struct Mesh *me);
 
 void BKE_mesh_make_local(struct Main *bmain, struct Mesh *me, const bool lib_local);
-void BKE_mesh_boundbox_calc(struct Mesh *me, float r_loc[3], float r_size[3]);
-void BKE_mesh_texspace_calc(struct Mesh *me);
 float (*BKE_mesh_orco_verts_get(struct Object *ob))[3];
 void BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, int invert);
 int test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
@@ -192,10 +190,10 @@ void BKE_mesh_smooth_flag_set(struct Mesh *me, const bool use_smooth);
 const char *BKE_mesh_cmp(struct Mesh *me1, struct Mesh *me2, float thresh);
 
 struct BoundBox *BKE_mesh_boundbox_get(struct Object *ob);
-struct BoundBox *BKE_mesh_texspace_get(struct Mesh *me,
-                                       float r_loc[3],
-                                       float r_rot[3],
-                                       float r_size[3]);
+
+void BKE_mesh_texspace_calc(struct Mesh *me);
+void BKE_mesh_texspace_ensure(struct Mesh *me);
+void BKE_mesh_texspace_get(struct Mesh *me, float r_loc[3], float r_rot[3], float r_size[3]);
 void BKE_mesh_texspace_get_reference(
     struct Mesh *me, short **r_texflag, float **r_loc, float **r_rot, float **r_size);
 void BKE_mesh_texspace_copy_from_object(struct Mesh *me, struct Object *ob);

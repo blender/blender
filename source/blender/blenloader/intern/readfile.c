@@ -4373,7 +4373,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
       switch_endian_knots(nu);
     }
   }
-  cu->bb = NULL;
+  cu->texflag &= ~CU_AUTOSPACE_EVALUATED;
 }
 
 /** \} */
@@ -5040,7 +5040,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
   direct_link_customdata(fd, &mesh->ldata, mesh->totloop);
   direct_link_customdata(fd, &mesh->pdata, mesh->totpoly);
 
-  mesh->bb = NULL;
+  mesh->texflag &= ~ME_AUTOSPACE_EVALUATED;
   mesh->edit_mesh = NULL;
   BKE_mesh_runtime_reset(mesh);
 

@@ -4068,9 +4068,7 @@ void psys_get_texture(
                                    0,
                                    texvec);
 
-          if (me->bb == NULL || (me->bb->flag & BOUNDBOX_DIRTY)) {
-            BKE_mesh_texspace_calc(me);
-          }
+          BKE_mesh_texspace_ensure(me);
           sub_v3_v3(texvec, me->loc);
           if (me->size[0] != 0.0f) {
             texvec[0] /= me->size[0];
