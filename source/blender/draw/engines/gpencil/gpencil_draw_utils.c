@@ -1114,7 +1114,7 @@ static void gpencil_add_editpoints_vertexdata(GpencilBatchCache *cache,
      */
     const bool show_points = (show_sculpt_points) || (is_weight_paint) ||
                              (GPENCIL_EDIT_MODE(gpd) &&
-                              ((ts->gpencil_selectmode_edit & GP_SELECTMODE_STROKE) == 0));
+                              (ts->gpencil_selectmode_edit != GP_SELECTMODE_STROKE));
 
     if (cache->is_dirty) {
       if ((obact == ob) && ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) &&

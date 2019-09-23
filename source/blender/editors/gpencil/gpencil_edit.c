@@ -249,7 +249,7 @@ static int gpencil_selectmode_toggle_exec(bContext *C, wmOperator *op)
   ts->gpencil_selectmode_edit = mode;
 
   /* If the mode is Stroke, extend selection. */
-  if ((ob) && (ts->gpencil_selectmode_edit & GP_SELECTMODE_STROKE)) {
+  if ((ob) && (ts->gpencil_selectmode_edit == GP_SELECTMODE_STROKE)) {
     bGPdata *gpd = (bGPdata *)ob->data;
     /* Extend selection to all points in all selected strokes. */
     CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
