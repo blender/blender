@@ -368,7 +368,9 @@ class FILEBROWSER_PT_directory_path(Panel):
         subrow.operator("file.parent", text="", icon='FILE_PARENT')
         subrow.operator("file.refresh", text="", icon='FILE_REFRESH')
 
-        row.operator("file.directory_new", icon='NEWFOLDER', text="")
+        subrow = row.row()
+        subrow.operator_context = 'EXEC_DEFAULT'
+        subrow.operator("file.directory_new", icon='NEWFOLDER', text="")
 
         subrow = row.row()
         subrow.template_file_select_path(params)
@@ -464,7 +466,9 @@ class FILEBROWSER_MT_context_menu(Menu):
 
         layout.operator("file.rename", text="Rename")
         # layout.operator("file.delete")
-        layout.operator("file.directory_new", text="New Folder")
+        sub = layout.row()
+        sub.operator_context = 'EXEC_DEFAULT'
+        sub.operator("file.directory_new", text="New Folder")
         layout.operator("file.bookmark_add", text="Add Bookmark")
 
         layout.separator()
