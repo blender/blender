@@ -1349,6 +1349,17 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
     /* Only sculpt mode cursor for now */
     /* Disable for PBVH_GRIDS */
     bool is_multires = ss && ss->pbvh && BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS;
+
+    SculptCursorGeometryInfo gi;
+    float mouse[2] = {x - ar->winrct.xmin, y - ar->winrct.ymin};
+    bool is_cursor_over_mesh = false;
+
+    /* Update the active vertex */
+    if ((mode == PAINT_MODE_SCULPT) && !ups->stroke_active) {
+      is_cursor_over_mesh = sculpt_cursor_geometry_info_update(
+          C, &gi, mouse, !(brush->falloff_shape & BRUSH_AIRBRUSH));
+    }
+
     if ((mode == PAINT_MODE_SCULPT) && ss && !is_multires &&
         !(brush->falloff_shape & BRUSH_AIRBRUSH)) {
       Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -1363,11 +1374,9 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
       }
 
       if (!ups->stroke_active) {
-        SculptCursorGeometryInfo gi;
-        float mouse[2] = {x - ar->winrct.xmin, y - ar->winrct.ymin};
         int prev_active_vertex_index = ss->active_vertex_index;
         bool update_previews = false;
-        if (sculpt_cursor_geometry_info_update(C, &gi, mouse, true) && !alpha_overlay_active) {
+        if (is_cursor_over_mesh && !alpha_overlay_active) {
 
           if (prev_active_vertex_index != ss->active_vertex_index) {
             update_previews = true;

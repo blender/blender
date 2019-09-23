@@ -1131,6 +1131,11 @@ static void sculpt_automasking_end(Object *ob)
 
 static bool sculpt_automasking_is_constrained_by_radius(Brush *br)
 {
+  /* 2D falloff is not constrained by radius */
+  if (br->falloff_shape & BRUSH_AIRBRUSH) {
+    return false;
+  }
+
   if (ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB)) {
     return true;
   }
