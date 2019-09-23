@@ -9116,9 +9116,11 @@ void sculpt_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
   char *visited_vertices = MEM_callocN(sculpt_vertex_count_get(ss) * sizeof(char),
                                        "visited vertices");
 
+  /* Assuming an average of 6 edges per vertex in a triangulated mesh */
+  const int max_preview_vertices = sculpt_vertex_count_get(ss) * 3 * 2;
+
   if (ss->preview_vert_index_list == NULL) {
-    ss->preview_vert_index_list = MEM_callocN(4 * sizeof(int) * sculpt_vertex_count_get(ss),
-                                              "preview lines");
+    ss->preview_vert_index_list = MEM_callocN(max_preview_vertices * sizeof(int), "preview lines");
   }
 
   BLI_Stack *not_visited_vertices = BLI_stack_new(sizeof(VertexTopologyIterator),
@@ -9133,17 +9135,20 @@ void sculpt_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
     SculptVertexNeighborIter ni;
     sculpt_vertex_neighbors_iter_begin(ss, c_mevit.v, ni)
     {
-      VertexTopologyIterator new_entry;
-      new_entry.v = ni.index;
-      new_entry.it = c_mevit.it + 1;
-      ss->preview_vert_index_list[totpoints] = c_mevit.v;
-      totpoints++;
-      ss->preview_vert_index_list[totpoints] = new_entry.v;
-      totpoints++;
-      if (visited_vertices[(int)ni.index] == 0) {
-        visited_vertices[(int)ni.index] = 1;
-        if (len_squared_v3v3(brush_co, sculpt_vertex_co_get(ss, new_entry.v)) < radius * radius) {
-          BLI_stack_push(not_visited_vertices, &new_entry);
+      if (totpoints + (ni.size * 2) < max_preview_vertices) {
+        VertexTopologyIterator new_entry;
+        new_entry.v = ni.index;
+        new_entry.it = c_mevit.it + 1;
+        ss->preview_vert_index_list[totpoints] = c_mevit.v;
+        totpoints++;
+        ss->preview_vert_index_list[totpoints] = new_entry.v;
+        totpoints++;
+        if (visited_vertices[(int)ni.index] == 0) {
+          visited_vertices[(int)ni.index] = 1;
+          if (len_squared_v3v3(brush_co, sculpt_vertex_co_get(ss, new_entry.v)) <
+              radius * radius) {
+            BLI_stack_push(not_visited_vertices, &new_entry);
+          }
         }
       }
     }
