@@ -691,7 +691,8 @@ PyDoc_STRVAR(Vector_to_track_quat_doc,
 static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 {
   float vec[3], quat[4];
-  const char *strack, *sup;
+  const char *strack = NULL;
+  const char *sup = NULL;
   short track = 2, up = 1;
 
   if (!PyArg_ParseTuple(args, "|ss:to_track_quat", &strack, &sup)) {
