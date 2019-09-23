@@ -32,6 +32,7 @@
 #include "DNA_linestyle_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -212,115 +213,6 @@ void register_node_tree_type_sh(void)
 
 /* GPU material from shader nodes */
 
-static void ntree_shader_link_builtin_normal(bNodeTree *ntree,
-                                             bNode *node_from,
-                                             bNodeSocket *socket_from,
-                                             bNode *displacement_node,
-                                             bNodeSocket *displacement_socket);
-
-static bNodeSocket *ntree_shader_node_find_input(bNode *node, const char *identifier);
-
-static bNode *ntree_group_output_node(bNodeTree *ntree);
-
-static bNode *ntree_shader_relink_output_from_group(bNodeTree *ntree,
-                                                    bNode *group_node,
-                                                    bNode *sh_output_node,
-                                                    int target)
-{
-  int i;
-  bNodeTree *group_ntree = (bNodeTree *)group_node->id;
-
-  int sock_len = BLI_listbase_count(&sh_output_node->inputs);
-  bNodeSocket **group_surface_sockets = BLI_array_alloca(group_surface_sockets, sock_len);
-
-  /* Create output sockets to plug output connection to. */
-  i = 0;
-  for (bNodeSocket *sock = sh_output_node->inputs.first; sock; sock = sock->next, i++) {
-    group_surface_sockets[i] = ntreeAddSocketInterface(
-        group_ntree, SOCK_OUT, sock->typeinfo->idname, sock->name);
-  }
-
-  bNode *group_output_node = ntree_group_output_node(group_ntree);
-
-  /* If no group output node is present, we need to create one. */
-  if (group_output_node == NULL) {
-    group_output_node = nodeAddStaticNode(NULL, group_ntree, NODE_GROUP_OUTPUT);
-  }
-
-  /* Need to update tree so all node instances nodes gets proper sockets. */
-  node_group_update(ntree, group_node);
-  node_group_output_update(group_ntree, group_output_node);
-  ntreeUpdateTree(G.main, group_ntree);
-
-  /* Remove other shader output nodes so that only the new one can be selected as active. */
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
-    if (ELEM(node->type, SH_NODE_OUTPUT_MATERIAL, SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LIGHT)) {
-      ntreeFreeLocalNode(ntree, node);
-    }
-  }
-
-  /* Create new shader output node outside the group. */
-  bNode *new_output_node = nodeAddStaticNode(NULL, ntree, sh_output_node->type);
-  new_output_node->custom1 = target;
-
-  i = 0;
-  for (bNodeSocket *sock = sh_output_node->inputs.first; sock; sock = sock->next, i++) {
-    if (sock->link != NULL) {
-      /* Link the shader output node incoming link to the group output sockets */
-      bNodeSocket *group_output_node_surface_input_sock = nodeFindSocket(
-          group_output_node, SOCK_IN, group_surface_sockets[i]->identifier);
-      nodeAddLink(group_ntree,
-                  sock->link->fromnode,
-                  sock->link->fromsock,
-                  group_output_node,
-                  group_output_node_surface_input_sock);
-
-      /* Link the group output sockets to the new shader output node. */
-      bNodeSocket *group_node_surface_output = nodeFindSocket(
-          group_node, SOCK_OUT, group_surface_sockets[i]->identifier);
-      bNodeSocket *output_node_surface_input = ntree_shader_node_find_input(new_output_node,
-                                                                            sock->name);
-
-      nodeAddLink(ntree,
-                  group_node,
-                  group_node_surface_output,
-                  new_output_node,
-                  output_node_surface_input);
-    }
-  }
-
-  ntreeUpdateTree(G.main, group_ntree);
-  ntreeUpdateTree(G.main, ntree);
-
-  return new_output_node;
-}
-
-static bNode *ntree_shader_output_node_from_group(bNodeTree *ntree, int target)
-{
-  bNode *output_node = NULL;
-
-  /* Search if node groups do not contain valid output nodes (recursively). */
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
-    if (!ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
-      continue;
-    }
-    if (node->id != NULL) {
-      output_node = ntree_shader_output_node_from_group((bNodeTree *)node->id, target);
-
-      if (output_node == NULL) {
-        output_node = ntreeShaderOutputNode((bNodeTree *)node->id, target);
-      }
-
-      if (output_node != NULL) {
-        /* Output is inside this group node. Create relink to make the output outside the group. */
-        output_node = ntree_shader_relink_output_from_group(ntree, node, output_node, target);
-        break;
-      }
-    }
-  }
-  return output_node;
-}
-
 /* Find an output node of the shader tree.
  *
  * NOTE: it will only return output which is NOT in the group, which isn't how
@@ -362,28 +254,6 @@ bNode *ntreeShaderOutputNode(bNodeTree *ntree, int target)
       else if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
         output_node = node;
       }
-    }
-  }
-
-  return output_node;
-}
-
-/* Find the active output node of a group nodetree.
- *
- * Does not return the shading output node but the group output node.
- */
-static bNode *ntree_group_output_node(bNodeTree *ntree)
-{
-  /* Make sure we only have single node tagged as output. */
-  ntreeSetOutput(ntree);
-
-  /* Find output node that matches type and target. If there are
-   * multiple, we prefer exact target match and active nodes. */
-  bNode *output_node = NULL;
-
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
-    if ((node->type == NODE_GROUP_OUTPUT) && (node->flag & NODE_DO_OUTPUT)) {
-      output_node = node;
     }
   }
 
@@ -520,6 +390,106 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
   }
 }
 
+static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
+{
+  bNodeLink *link, *linkn, *tlink;
+  bNode *node, *nextnode;
+  bNodeTree *ngroup;
+  LinkNode *group_interface_nodes = NULL;
+
+  ngroup = (bNodeTree *)gnode->id;
+
+  /* Add the nodes into the ntree */
+  for (node = ngroup->nodes.first; node; node = nextnode) {
+    nextnode = node->next;
+    /* Remove interface nodes.
+     * This also removes remaining links to and from interface nodes.
+     * We must delay removal since sockets will reference this node. see: T52092 */
+    if (ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
+      BLI_linklist_prepend(&group_interface_nodes, node);
+    }
+    /* migrate node */
+    BLI_remlink(&ngroup->nodes, node);
+    BLI_addtail(&ntree->nodes, node);
+    /* ensure unique node name in the node tree */
+    nodeUniqueName(ntree, node);
+  }
+
+  /* Save first and last link to iterate over flattened group links. */
+  bNodeLink *glinks_first = ntree->links.last;
+
+  /* Add internal links to the ntree */
+  for (link = ngroup->links.first; link; link = linkn) {
+    linkn = link->next;
+    BLI_remlink(&ngroup->links, link);
+    BLI_addtail(&ntree->links, link);
+  }
+
+  bNodeLink *glinks_last = ntree->links.last;
+
+  /* restore external links to and from the gnode */
+  if (glinks_first != NULL) {
+    /* input links */
+    for (link = glinks_first->next; link != glinks_last->next; link = link->next) {
+      if (link->fromnode->type == NODE_GROUP_INPUT) {
+        const char *identifier = link->fromsock->identifier;
+        /* find external links to this input */
+        for (tlink = ntree->links.first; tlink != glinks_first->next; tlink = tlink->next) {
+          if (tlink->tonode == gnode && STREQ(tlink->tosock->identifier, identifier)) {
+            nodeAddLink(ntree, tlink->fromnode, tlink->fromsock, link->tonode, link->tosock);
+          }
+        }
+      }
+    }
+    /* output links */
+    for (tlink = ntree->links.first; tlink != glinks_first->next; tlink = tlink->next) {
+      if (tlink->fromnode == gnode) {
+        const char *identifier = tlink->fromsock->identifier;
+        /* find internal links to this output */
+        for (link = glinks_first->next; link != glinks_last->next; link = link->next) {
+          /* only use active output node */
+          if (link->tonode->type == NODE_GROUP_OUTPUT && (link->tonode->flag & NODE_DO_OUTPUT)) {
+            if (STREQ(link->tosock->identifier, identifier)) {
+              nodeAddLink(ntree, link->fromnode, link->fromsock, tlink->tonode, tlink->tosock);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  while (group_interface_nodes) {
+    node = BLI_linklist_pop(&group_interface_nodes);
+    ntreeFreeLocalNode(ntree, node);
+  }
+
+  ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
+}
+
+/* Flatten group to only have a simple single tree */
+static void ntree_shader_groups_flatten(bNodeTree *localtree)
+{
+  /* This is effectively recusive as the flattened groups will add
+   * nodes at the end of the list, which will also get evaluated. */
+  for (bNode *node = localtree->nodes.first, *node_next; node; node = node_next) {
+    if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id != NULL) {
+      flatten_group_do(localtree, node);
+      /* Continue even on new flattened nodes. */
+      node_next = node->next;
+      /* delete the group instance and its localtree. */
+      bNodeTree *ngroup = (bNodeTree *)node->id;
+      ntreeFreeLocalNode(localtree, node);
+      ntreeFreeTree(ngroup);
+      MEM_freeN(ngroup);
+    }
+    else {
+      node_next = node->next;
+    }
+  }
+
+  ntreeUpdateTree(G.main, localtree);
+}
+
 /* Check whether shader has a displacement.
  *
  * Will also return a node and it's socket which is connected to a displacement
@@ -576,53 +546,10 @@ static void ntree_shader_relink_node_normal(bNodeTree *ntree,
   }
 }
 
-static void ntree_shader_link_builtin_group_normal(bNodeTree *ntree,
-                                                   bNode *group_node,
-                                                   bNode *node_from,
-                                                   bNodeSocket *socket_from,
-                                                   bNode *displacement_node,
-                                                   bNodeSocket *displacement_socket)
-{
-  bNodeTree *group_ntree = (bNodeTree *)group_node->id;
-  /* Create input socket to plug displacement connection to. */
-  bNodeSocket *group_normal_socket = ntreeAddSocketInterface(
-      group_ntree, SOCK_IN, "NodeSocketVector", "Normal");
-  /* Need to update tree so all node instances nodes gets proper sockets. */
-  bNode *group_input_node = ntreeFindType(group_ntree, NODE_GROUP_INPUT);
-  node_group_update(ntree, group_node);
-  if (group_input_node) {
-    node_group_input_update(group_ntree, group_input_node);
-  }
-  ntreeUpdateTree(G.main, group_ntree);
-  /* Assumes sockets are always added at the end. */
-  bNodeSocket *group_node_normal_socket = group_node->inputs.last;
-  if (displacement_node == group_node) {
-    /* This should never happen as all displacement nodes are duplicated and tagged. */
-    BLI_assert(0);
-  }
-  else if (group_input_node) {
-    /* Connect group node normal input. */
-    nodeAddLink(ntree, node_from, socket_from, group_node, group_node_normal_socket);
-    BLI_assert(group_input_node != NULL);
-    bNodeSocket *group_input_node_normal_socket = nodeFindSocket(
-        group_input_node, SOCK_OUT, group_normal_socket->identifier);
-    BLI_assert(group_input_node_normal_socket != NULL);
-    /* Relink normals inside of the instanced tree. */
-    ntree_shader_link_builtin_normal(group_ntree,
-                                     group_input_node,
-                                     group_input_node_normal_socket,
-                                     displacement_node,
-                                     displacement_socket);
-    ntreeUpdateTree(G.main, group_ntree);
-  }
-}
-
 /* Use specified node and socket as an input for unconnected normal sockets. */
 static void ntree_shader_link_builtin_normal(bNodeTree *ntree,
                                              bNode *node_from,
-                                             bNodeSocket *socket_from,
-                                             bNode *displacement_node,
-                                             bNodeSocket *displacement_socket)
+                                             bNodeSocket *socket_from)
 {
   for (bNode *node = ntree->nodes.first; node != NULL; node = node->next) {
     if (node == node_from) {
@@ -631,16 +558,6 @@ static void ntree_shader_link_builtin_normal(bNodeTree *ntree,
     }
     if (node->tmp_flag == -2) {
       /* This node is used inside the displacement tree. Skip to avoid cycles. */
-      continue;
-    }
-    if ((ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) && node->id) {
-      /* Special re-linking for group nodes. */
-      ntree_shader_link_builtin_group_normal(
-          ntree, node, node_from, socket_from, displacement_node, displacement_socket);
-      continue;
-    }
-    if (ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
-      /* Group inputs and outputs needs nothing special. */
       continue;
     }
     ntree_shader_relink_node_normal(ntree, node, node_from, socket_from);
@@ -670,27 +587,11 @@ static void ntree_shader_bypass_bump_link(bNodeTree *ntree, bNode *bump_node, bN
 static void ntree_shader_bypass_tagged_bump_nodes(bNodeTree *ntree)
 {
   /* Bypass bump links inside copied nodes */
-  bNodeLink *link, *link_next;
-  for (link = ntree->links.first; link; link = link_next) {
-    /* link might be freed by ntree_shader_bypass_bump_link. */
-    link_next = link->next;
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
     bNode *node = link->fromnode;
     /* If node is a copy. */
     if (node->tmp_flag == -2 && node->type == SH_NODE_BUMP) {
       ntree_shader_bypass_bump_link(ntree, node, link);
-    }
-  }
-  /* Do the same inside nodegroups. */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    /* If node is a copy. */
-    if (node->tmp_flag == -2 && ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
-      bNodeTree *group_ntree = (bNodeTree *)node->id;
-      /* Tag all nodes inside this group as copies. */
-      LISTBASE_FOREACH (bNode *, group_node, &group_ntree->nodes) {
-        group_node->tmp_flag = -2;
-      }
-      /* Recursive. */
-      ntree_shader_bypass_tagged_bump_nodes(group_ntree);
     }
   }
   ntreeUpdateTree(G.main, ntree);
@@ -736,9 +637,6 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
       int id = node->tmp_flag;
       nodes_copy[id] = BKE_node_copy_ex(ntree, node, LIB_ID_CREATE_NO_USER_REFCOUNT);
       nodes_copy[id]->tmp_flag = -2; /* Copy */
-      if (ELEM(nodes_copy[id]->type, NODE_GROUP, NODE_CUSTOM_GROUP) && nodes_copy[id]->id) {
-        nodes_copy[id]->id = (ID *)ntreeLocalize((bNodeTree *)nodes_copy[id]->id);
-      }
       /* Make sure to clear all sockets links as they are invalid. */
       LISTBASE_FOREACH (bNodeSocket *, sock, &nodes_copy[id]->inputs) {
         sock->link = NULL;
@@ -850,8 +748,7 @@ static void ntree_shader_relink_displacement(bNodeTree *ntree, bNode *output_nod
   ntreeUpdateTree(G.main, ntree);
 
   /* Connect all free-standing Normal inputs and relink geometry/coordinate nodes. */
-  ntree_shader_link_builtin_normal(
-      ntree, bump_node, bump_output_socket, displacement_node, displacement_socket);
+  ntree_shader_link_builtin_normal(ntree, bump_node, bump_output_socket);
   /* We modified the tree, it needs to be updated now. */
   ntreeUpdateTree(G.main, ntree);
 }
@@ -909,15 +806,6 @@ static bool ntree_tag_bsdf_cb(bNode *fromnode,
   fromnode->tmp_flag = 1;
 
   switch (fromnode->type) {
-    case NODE_GROUP:
-    case NODE_CUSTOM_GROUP:
-      /* Recursive */
-      if (fromnode->id != NULL) {
-        bNodeTree *ntree = (bNodeTree *)fromnode->id;
-        bNode *group_output = ntree_group_output_node(ntree);
-        ntree_shader_tag_nodes(ntree, group_output, (nTreeTags *)userdata);
-      }
-      break;
     case SH_NODE_BSDF_ANISOTROPIC:
     case SH_NODE_EEVEE_SPECULAR:
     case SH_NODE_BSDF_GLOSSY:
@@ -972,12 +860,16 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree,
 {
   bNodeTreeExec *exec;
 
-  /* Extract output nodes from inside nodegroups. */
-  ntree_shader_output_node_from_group(localtree, SHD_OUTPUT_EEVEE);
-
   bNode *output = ntreeShaderOutputNode(localtree, SHD_OUTPUT_EEVEE);
 
   ntree_shader_groups_expand_inputs(localtree);
+
+  ntree_shader_groups_flatten(localtree);
+
+  if (output == NULL) {
+    /* Search again, now including flattened nodes. */
+    output = ntreeShaderOutputNode(localtree, SHD_OUTPUT_EEVEE);
+  }
 
   /* Perform all needed modifications on the tree in order to support
    * displacement/bump mapping.
