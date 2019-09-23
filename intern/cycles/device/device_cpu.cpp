@@ -114,6 +114,12 @@ template<typename F> class KernelFunctions {
       architecture_name = "SSE2";
       kernel = kernel_sse2;
     }
+#else
+    {
+      /* Dummy to prevent the architecture if below become
+       * conditional when WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
+       * is not defined. */
+    }
 #endif
 
     if (strcmp(architecture_name, logged_architecture) != 0) {

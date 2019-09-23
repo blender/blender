@@ -255,13 +255,7 @@ ccl_device float3 svm_mix_linear(float t, float3 col1, float3 col2)
 
 ccl_device float3 svm_mix_clamp(float3 col)
 {
-  float3 outcol = col;
-
-  outcol.x = saturate(col.x);
-  outcol.y = saturate(col.y);
-  outcol.z = saturate(col.z);
-
-  return outcol;
+  return saturate3(col);
 }
 
 ccl_device_noinline_cpu float3 svm_mix(NodeMix type, float fac, float3 c1, float3 c2)

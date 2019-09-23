@@ -1016,6 +1016,26 @@ void DRW_mesh_batch_cache_create_requested(
     }
   }
 
+  /* HACK: if MBC_SURF_PER_MAT is requested and ibo.tris is already available, it won't have it's
+   * index ranges initialized. So discard ibo.tris in order to recreate it.
+   * This needs to happen before saved_elem_ranges is populated. */
+  if ((batch_requested & MBC_SURF_PER_MAT) != 0 && (cache->batch_ready & MBC_SURF_PER_MAT) == 0) {
+    FOREACH_MESH_BUFFER_CACHE(cache, mbuffercache)
+    {
+      GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.tris);
+    }
+    /* Clear all batches that reference ibo.tris. */
+    GPU_BATCH_CLEAR_SAFE(cache->batch.surface);
+    GPU_BATCH_CLEAR_SAFE(cache->batch.surface_weights);
+    GPU_BATCH_CLEAR_SAFE(cache->batch.edit_mesh_analysis);
+    GPU_BATCH_CLEAR_SAFE(cache->batch.edit_triangles);
+    GPU_BATCH_CLEAR_SAFE(cache->batch.edit_lnor);
+    GPU_BATCH_CLEAR_SAFE(cache->batch.edit_selection_faces);
+
+    cache->batch_ready &= ~(MBC_SURFACE | MBC_SURFACE_WEIGHTS | MBC_EDIT_MESH_ANALYSIS |
+                            MBC_EDIT_TRIANGLES | MBC_EDIT_LNOR | MBC_EDIT_SELECTION_FACES);
+  }
+
   if (batch_requested &
       (MBC_SURFACE | MBC_SURF_PER_MAT | MBC_WIRE_LOOPS_UVS | MBC_EDITUV_FACES_STRETCH_AREA |
        MBC_EDITUV_FACES_STRETCH_ANGLE | MBC_EDITUV_FACES | MBC_EDITUV_EDGES | MBC_EDITUV_VERTS)) {

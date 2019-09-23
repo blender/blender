@@ -7863,6 +7863,45 @@ static void lib_link_clipboard_restore(struct IDNameLib_Map *id_map)
   BKE_sequencer_base_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, id_map);
 }
 
+static int lib_link_main_data_restore_cb(void *user_data,
+                                         ID *UNUSED(id_self),
+                                         ID **id_pointer,
+                                         int cb_flag)
+{
+  if (cb_flag & IDWALK_CB_PRIVATE || *id_pointer == NULL) {
+    return IDWALK_RET_NOP;
+  }
+
+  /* Special ugly case here, thanks again for those non-IDs IDs... */
+  /* We probably need to add more cases here (hint: nodetrees),
+   * but will wait for changes from D5559 to get in first. */
+  if (GS((*id_pointer)->name) == ID_GR) {
+    Collection *collection = (Collection *)*id_pointer;
+    if (collection->flag & COLLECTION_IS_MASTER) {
+      return IDWALK_RET_NOP;
+    }
+  }
+
+  struct IDNameLib_Map *id_map = user_data;
+
+  /* Note: Handling of usercount here is really bad, defining its own system...
+   * Will have to be refactored at some point, but that is not top priority task for now.
+   * And all usercounts are properly recomputed at the end of the undo management code anyway. */
+  *id_pointer = restore_pointer_by_name(
+      id_map, *id_pointer, (cb_flag & IDWALK_CB_USER_ONE) ? USER_REAL : USER_IGNORE);
+
+  return IDWALK_RET_NOP;
+}
+
+static void lib_link_main_data_restore(struct IDNameLib_Map *id_map, Main *newmain)
+{
+  ID *id;
+  FOREACH_MAIN_ID_BEGIN (newmain, id) {
+    BKE_library_foreach_ID_link(newmain, id, lib_link_main_data_restore_cb, id_map, IDWALK_NOP);
+  }
+  FOREACH_MAIN_ID_END;
+}
+
 static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene, ViewLayer *view_layer)
 {
   bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
@@ -8182,10 +8221,23 @@ void blo_lib_link_restore(Main *oldmain,
     /* keep cursor location through undo */
     memcpy(&win->scene->cursor, &oldscene->cursor, sizeof(win->scene->cursor));
 
+    /* Note: even though that function seems to redo part of what is done by
+     * `lib_link_workspace_layout_restore()` above, it seems to have a slightly different scope:
+     * while the former updates the whole UI pointers from Main db (going over all layouts of
+     * all workspaces), that one only focuses one current active screen, takes care of
+     * potential local view, and needs window's scene pointer to be final... */
     lib_link_window_scene_data_restore(win, win->scene, cur_view_layer);
 
     BLI_assert(win->screen == NULL);
   }
+
+  /* Restore all ID pointers in Main database itself
+   * (especially IDProperties might point to some worspace of other 'weirdly unchanged' ID
+   * pointers, see T69146).
+   * Note that this will re;ap again a few pointers in workspaces or so,
+   * but since we are remapping final ones already set above,
+   * that is just some minor harmless double-processing. */
+  lib_link_main_data_restore(id_map, newmain);
 
   /* update IDs stored in all possible clipboards */
   lib_link_clipboard_restore(id_map);
