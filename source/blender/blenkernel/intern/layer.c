@@ -654,7 +654,8 @@ static short layer_collection_sync(ViewLayer *view_layer,
                                    ListBase *new_object_bases,
                                    short parent_exclude,
                                    short parent_restrict,
-                                   short parent_layer_restrict)
+                                   short parent_layer_restrict,
+                                   unsigned short parent_local_collections_bits)
 {
   /* TODO: support recovery after removal of intermediate collections, reordering, ..
    * For local edits we can make editing operating do the appropriate thing, but for
@@ -700,6 +701,9 @@ static short layer_collection_sync(ViewLayer *view_layer,
       lc->flag = parent_exclude;
     }
 
+    unsigned short local_collections_bits = parent_local_collections_bits &
+                                            lc->local_collections_bits;
+
     /* Tag linked collection as a weak reference so we keep the layer
      * collection pointer on file load and remember exclude state. */
     id_lib_indirect_weak_link(&collection->id);
@@ -719,7 +723,8 @@ static short layer_collection_sync(ViewLayer *view_layer,
                                                      new_object_bases,
                                                      lc->flag,
                                                      child_restrict,
-                                                     child_layer_restrict);
+                                                     child_layer_restrict,
+                                                     local_collections_bits);
 
     /* Layer collection exclude is not inherited. */
     if (lc->flag & LAYER_COLLECTION_EXCLUDE) {
@@ -760,6 +765,7 @@ static short layer_collection_sync(ViewLayer *view_layer,
       else {
         /* Create new base. */
         base = object_base_new(cob->ob);
+        base->local_collections_bits = local_collections_bits;
         *base_p = base;
         BLI_addtail(new_object_bases, base);
       }
@@ -837,7 +843,8 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
                         &new_object_bases,
                         parent_exclude,
                         parent_restrict,
-                        parent_layer_restrict);
+                        parent_layer_restrict,
+                        ~(0));
 
   /* Any remaining object bases are to be removed. */
   for (Base *base = view_layer->object_bases.first; base; base = base->next) {
