@@ -395,6 +395,11 @@ void gpu_extensions_init(void)
       GG.glew_arb_base_instance_is_supported = false;
       GG.context_local_shaders_workaround = true;
     }
+
+    if (strstr(version, "Build 20.19.15.4285")) {
+      /* Somehow fixes armature display issues (see T69743). */
+      GG.context_local_shaders_workaround = true;
+    }
   }
 
   GPU_invalid_tex_init();
