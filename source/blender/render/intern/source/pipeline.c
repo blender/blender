@@ -2506,6 +2506,10 @@ void RE_RenderAnim(Render *re,
                    int efra,
                    int tfra)
 {
+  /* Call hooks before taking a copy of scene->r, so user can alter the render settings prior to
+   * copying (e.g. alter the output path). */
+  render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_INIT);
+
   const RenderData rd = scene->r;
   bMovieHandle *mh = NULL;
   const int cfrao = rd.cfra;
@@ -2514,8 +2518,6 @@ void RE_RenderAnim(Render *re,
   const bool is_movie = BKE_imtype_is_movie(rd.im_format.imtype);
   const bool is_multiview_name = ((rd.scemode & R_MULTIVIEW) != 0 &&
                                   (rd.im_format.views_format == R_IMF_VIEWS_INDIVIDUAL));
-
-  render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_INIT);
 
   /* do not fully call for each frame, it initializes & pops output window */
   if (!render_initialize_from_main(re, &rd, bmain, scene, single_layer, camera_override, 0, 1)) {
