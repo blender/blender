@@ -289,10 +289,9 @@ static void MPATH_cache_populate(void *vedata, Object *ob)
       }
     }
   }
-  else {
-    if (ob->mpath) {
-      MPATH_cache_motion_path(psl, ob, NULL, &ob->avs, ob->mpath);
-    }
+
+  if (ob->mpath) {
+    MPATH_cache_motion_path(psl, ob, NULL, &ob->avs, ob->mpath);
   }
 }
 
