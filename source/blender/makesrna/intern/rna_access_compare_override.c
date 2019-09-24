@@ -76,8 +76,8 @@ bool RNA_property_overridable_get(PointerRNA *ptr, PropertyRNA *prop)
   }
   else {
     /* If this is a real 'pure' IDProp (aka custom property), we want to use the IDProp flag. */
-    return !(prop->flag_override & PROPOVERRIDE_NO_COMPARISON) &&
-           (((IDProperty *)prop)->flag & IDP_FLAG_OVERRIDABLE_LIBRARY);
+    IDProperty *idprop = (IDProperty *)prop;
+    return (idprop->flag & IDP_FLAG_OVERRIDABLE_LIBRARY) != 0;
   }
 }
 

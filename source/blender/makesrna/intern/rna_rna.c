@@ -613,7 +613,10 @@ static bool rna_Property_overridable_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
 
-  return (prop->flag_override & PROPOVERRIDE_OVERRIDABLE_LIBRARY) != 0;
+  IDProperty *idprop = rna_idproperty_check(&prop, ptr);
+
+  return idprop != NULL ? (idprop->flag & IDP_FLAG_OVERRIDABLE_LIBRARY) != 0 :
+                          (prop->flag_override & PROPOVERRIDE_OVERRIDABLE_LIBRARY) != 0;
 }
 
 static bool rna_Property_use_output_get(PointerRNA *ptr)

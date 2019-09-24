@@ -2081,15 +2081,15 @@ bool RNA_property_editable_info(PointerRNA *ptr, PropertyRNA *prop, const char *
   ID *id = ptr->owner_id;
   int flag;
 
-  prop = rna_ensure_property(prop);
+  PropertyRNA *prop_type = rna_ensure_property(prop);
   *r_info = "";
 
   /* get flag */
-  if (prop->editable) {
-    flag = prop->editable(ptr, r_info);
+  if (prop_type->editable) {
+    flag = prop_type->editable(ptr, r_info);
   }
   else {
-    flag = prop->flag;
+    flag = prop_type->flag;
     if ((flag & PROP_EDITABLE) == 0 || (flag & PROP_REGISTER)) {
       *r_info = N_("This property is for internal use only and can't be edited");
     }
@@ -2097,17 +2097,21 @@ bool RNA_property_editable_info(PointerRNA *ptr, PropertyRNA *prop, const char *
 
   /* property from linked data-block */
   if (id) {
-    if (ID_IS_LINKED(id) && (prop->flag & PROP_LIB_EXCEPTION) == 0) {
+    if (ID_IS_LINKED(id) && (prop_type->flag & PROP_LIB_EXCEPTION) == 0) {
       if (!(*r_info)[0]) {
         *r_info = N_("Can't edit this property from a linked data-block");
       }
       return false;
     }
-    if (id->override_library != NULL && !RNA_property_overridable_get(ptr, prop)) {
-      if (!(*r_info)[0]) {
-        *r_info = N_("Can't edit this property from an override data-block");
+    if (id->override_library != NULL) {
+      /* We need the real data property in case of IDProperty here... */
+      PropertyRNA *real_prop = rna_ensure_property_realdata(&prop, ptr);
+      if (real_prop == NULL || !RNA_property_overridable_get(ptr, real_prop)) {
+        if (!(*r_info)[0]) {
+          *r_info = N_("Can't edit this property from an override data-block");
+        }
+        return false;
       }
-      return false;
     }
   }
 
