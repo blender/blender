@@ -347,6 +347,7 @@ GPUBatch *DRW_cache_fullscreen_quad_get(void)
       attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       attr_id.uvs = GPU_vertformat_attr_add(&format, "uvs", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       GPU_vertformat_alias_add(&format, "texCoord");
+      GPU_vertformat_alias_add(&format, "orco"); /* Fix driver bug (see T70004) */
     }
 
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
