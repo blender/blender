@@ -3710,9 +3710,9 @@ static PyObject *pyrna_struct_is_property_readonly(BPy_StructRNA *self, PyObject
 PyDoc_STRVAR(pyrna_struct_is_property_overridable_library_doc,
              ".. method:: is_property_overridable_library(property)\n"
              "\n"
-             "   Check if a property is statically overridable.\n"
+             "   Check if a property is overridable.\n"
              "\n"
-             "   :return: True when the property is statically overridable.\n"
+             "   :return: True when the property is overridable.\n"
              "   :rtype: boolean\n");
 static PyObject *pyrna_struct_is_property_overridable_library(BPy_StructRNA *self, PyObject *args)
 {
@@ -3736,14 +3736,13 @@ static PyObject *pyrna_struct_is_property_overridable_library(BPy_StructRNA *sel
   return PyBool_FromLong((long)RNA_property_overridable_get(&self->ptr, prop));
 }
 
-PyDoc_STRVAR(
-    pyrna_struct_property_overridable_library_set_doc,
-    ".. method:: property_overridable_library_set(property)\n"
-    "\n"
-    "   Define a property as statically overridable or not (only for custom properties!).\n"
-    "\n"
-    "   :return: True when the overridable status of the property was successfully set.\n"
-    "   :rtype: boolean\n");
+PyDoc_STRVAR(pyrna_struct_property_overridable_library_set_doc,
+             ".. method:: property_overridable_library_set(property, overridable)\n"
+             "\n"
+             "   Define a property as overridable or not (only for custom properties!).\n"
+             "\n"
+             "   :return: True when the overridable status of the property was successfully set.\n"
+             "   :rtype: boolean\n");
 static PyObject *pyrna_struct_property_overridable_library_set(BPy_StructRNA *self, PyObject *args)
 {
   PropertyRNA *prop;
