@@ -61,8 +61,6 @@ static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat,
     GPU_link(mat, "world_normals_get", &in[5].link);
   }
 
-  GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_SSS);
-
   if (node->sss_id > 0) {
     bNodeSocket *socket = BLI_findlink(&node->original->inputs, 2);
     bNodeSocketValueRGBA *socket_data = socket->default_value;
@@ -71,6 +69,10 @@ static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat,
     /* For some reason it seems that the socket value is in ARGB format. */
     GPU_material_sss_profile_create(
         mat, &socket_data->value[1], &node->original->custom1, &socket_data_sharp->value);
+
+    /* sss_id is 0 only the node is not connected to any output.
+     * In this case flagging the material would trigger a bug (see T68736). */
+    GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_SSS);
   }
 
   return GPU_stack_link(
