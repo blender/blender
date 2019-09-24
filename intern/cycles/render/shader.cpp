@@ -703,7 +703,8 @@ void ShaderManager::get_requested_features(Scene *scene,
       requested_features->nodes_features |= NODE_FEATURE_BUMP;
       if (shader->displacement_method == DISPLACE_BOTH) {
         requested_features->nodes_features |= NODE_FEATURE_BUMP_STATE;
-        requested_features->max_nodes_group = max(requested_features->max_nodes_group,  NODE_GROUP_LEVEL_1);
+        requested_features->max_nodes_group = max(requested_features->max_nodes_group,
+                                                  NODE_GROUP_LEVEL_1);
       }
     }
     /* On top of volume nodes, also check if we need volume sampling because
