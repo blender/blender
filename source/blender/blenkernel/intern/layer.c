@@ -92,6 +92,7 @@ static Base *object_base_new(Object *ob)
 {
   Base *base = MEM_callocN(sizeof(Base), "Object Base");
   base->object = ob;
+  base->local_view_bits = ~(0);
   if (ob->base_flag & BASE_SELECTED) {
     base->flag |= BASE_SELECTED;
   }
