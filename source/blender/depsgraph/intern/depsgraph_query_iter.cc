@@ -146,6 +146,8 @@ bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
     *temp_dupli_object = *dob->ob;
     temp_dupli_object->base_flag = dupli_parent->base_flag | BASE_FROM_DUPLI;
     temp_dupli_object->base_local_view_bits = dupli_parent->base_local_view_bits;
+    temp_dupli_object->runtime.local_collections_bits =
+        dupli_parent->runtime.local_collections_bits;
     temp_dupli_object->dt = MIN2(temp_dupli_object->dt, dupli_parent->dt);
     copy_v4_v4(temp_dupli_object->color, dupli_parent->color);
 
