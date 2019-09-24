@@ -925,7 +925,8 @@ enum ShaderDataObjectFlag {
                      SD_OBJECT_HAS_VOLUME_ATTRIBUTES)
 };
 
-typedef ccl_addr_space struct ShaderData {
+typedef ccl_addr_space struct ccl_align(16) ShaderData
+{
   /* position */
   float3 P;
   /* smooth normal for shading */
@@ -1010,11 +1011,16 @@ typedef ccl_addr_space struct ShaderData {
 
   /* At the end so we can adjust size in ShaderDataTinyStorage. */
   struct ShaderClosure closure[MAX_CLOSURE];
-} ShaderData;
+}
+ShaderData;
 
-typedef ccl_addr_space struct ShaderDataTinyStorage {
+/* ShaderDataTinyStorage needs the same alignment as ShaderData, or else
+ * the pointer cast in AS_SHADER_DATA invokes undefined behavior. */
+typedef ccl_addr_space struct ccl_align(16) ShaderDataTinyStorage
+{
   char pad[sizeof(ShaderData) - sizeof(ShaderClosure) * MAX_CLOSURE];
-} ShaderDataTinyStorage;
+}
+ShaderDataTinyStorage;
 #define AS_SHADER_DATA(shader_data_tiny_storage) ((ShaderData *)shader_data_tiny_storage)
 
 /* Path State */
