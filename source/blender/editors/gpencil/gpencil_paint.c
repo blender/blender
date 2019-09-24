@@ -3211,7 +3211,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
   if (paintmode != GP_PAINTMODE_ERASER) {
     bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
     if ((gpl) && ((gpl->flag & GP_LAYER_LOCKED) || (gpl->flag & GP_LAYER_HIDE))) {
-      BKE_report(op->reports, RPT_ERROR, "Active layer is locked or hide");
+      BKE_report(op->reports, RPT_ERROR, "Active layer is locked or hidden");
       return OPERATOR_CANCELLED;
     }
   }
