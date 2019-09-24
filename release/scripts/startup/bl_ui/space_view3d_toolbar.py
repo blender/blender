@@ -1860,7 +1860,7 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
         brush = gpencil_paint.brush
 
         sub = col.column(align=True)
-        sub.operator("gpencil.brush_presets_create", icon='HELP', text="")
+        sub.operator("gpencil.brush_presets_create", icon='PRESET_NEW', text="")
 
         if brush is not None:
             gp_settings = brush.gpencil_settings
