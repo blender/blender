@@ -148,9 +148,10 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
     BLI_snprintf(offset_str, NUM_STR_REP_LEN, "%.1f%%", RNA_float_get(op->ptr, "offset_pct"));
   }
   else {
+    double offset_val = (double)RNA_float_get(op->ptr, "offset");
     bUnit_AsString2(offset_str,
                     NUM_STR_REP_LEN,
-                    (double)RNA_float_get(op->ptr, "offset"),
+                    offset_val * sce->unit.scale_length,
                     3,
                     B_UNIT_LENGTH,
                     &sce->unit,
