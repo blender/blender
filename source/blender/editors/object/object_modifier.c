@@ -2022,7 +2022,7 @@ static int correctivesmooth_bind_exec(bContext *C, wmOperator *op)
   is_bind = (csmd->bind_coords != NULL);
 
   MEM_SAFE_FREE(csmd->bind_coords);
-  MEM_SAFE_FREE(csmd->delta_cache);
+  MEM_SAFE_FREE(csmd->delta_cache.deltas);
 
   if (is_bind) {
     /* toggle off */

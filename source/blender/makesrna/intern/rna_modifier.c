@@ -1387,7 +1387,7 @@ static void rna_CorrectiveSmoothModifier_update(Main *bmain, Scene *scene, Point
 {
   CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)ptr->data;
 
-  MEM_SAFE_FREE(csmd->delta_cache);
+  MEM_SAFE_FREE(csmd->delta_cache.deltas);
 
   rna_Modifier_update(bmain, scene, ptr);
 }

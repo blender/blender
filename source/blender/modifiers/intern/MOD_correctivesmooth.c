@@ -70,7 +70,7 @@ static void initData(ModifierData *md)
 
   csmd->defgrp_name[0] = '\0';
 
-  csmd->delta_cache = NULL;
+  csmd->delta_cache.deltas = NULL;
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -84,14 +84,14 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
     tcsmd->bind_coords = MEM_dupallocN(csmd->bind_coords);
   }
 
-  tcsmd->delta_cache = NULL;
-  tcsmd->delta_cache_num = 0;
+  tcsmd->delta_cache.deltas = NULL;
+  tcsmd->delta_cache.totverts = 0;
 }
 
 static void freeBind(CorrectiveSmoothModifierData *csmd)
 {
   MEM_SAFE_FREE(csmd->bind_coords);
-  MEM_SAFE_FREE(csmd->delta_cache);
+  MEM_SAFE_FREE(csmd->delta_cache.deltas);
 
   csmd->bind_coords_num = 0;
 }
@@ -502,6 +502,23 @@ static void calc_tangent_spaces(Mesh *mesh, float (*vertexCos)[3], float (*r_tan
 #endif
 }
 
+static void store_cache_settings(CorrectiveSmoothModifierData *csmd)
+{
+  csmd->delta_cache.lambda = csmd->lambda;
+  csmd->delta_cache.repeat = csmd->repeat;
+  csmd->delta_cache.flag = csmd->flag;
+  csmd->delta_cache.smooth_type = csmd->smooth_type;
+  csmd->delta_cache.rest_source = csmd->rest_source;
+}
+
+static bool cache_settings_equal(CorrectiveSmoothModifierData *csmd)
+{
+  return (csmd->delta_cache.lambda == csmd->lambda && csmd->delta_cache.repeat == csmd->repeat &&
+          csmd->delta_cache.flag == csmd->flag &&
+          csmd->delta_cache.smooth_type == csmd->smooth_type &&
+          csmd->delta_cache.rest_source == csmd->rest_source);
+}
+
 /**
  * This calculates #CorrectiveSmoothModifierData.delta_cache
  * It's not run on every update (during animation for example).
@@ -519,14 +536,14 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
 
   tangent_spaces = MEM_calloc_arrayN(numVerts, sizeof(float[3][3]), __func__);
 
-  if (csmd->delta_cache_num != numVerts) {
-    MEM_SAFE_FREE(csmd->delta_cache);
+  if (csmd->delta_cache.totverts != numVerts) {
+    MEM_SAFE_FREE(csmd->delta_cache.deltas);
   }
 
   /* allocate deltas if they have not yet been allocated, otherwise we will just write over them */
-  if (!csmd->delta_cache) {
-    csmd->delta_cache_num = numVerts;
-    csmd->delta_cache = MEM_malloc_arrayN(numVerts, sizeof(float[3]), __func__);
+  if (!csmd->delta_cache.deltas) {
+    csmd->delta_cache.totverts = numVerts;
+    csmd->delta_cache.deltas = MEM_malloc_arrayN(numVerts, sizeof(float[3]), __func__);
   }
 
   smooth_verts(csmd, mesh, dvert, defgrp_index, smooth_vertex_coords, numVerts);
@@ -544,7 +561,7 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
     if (UNLIKELY(!invert_m3_m3(imat, tangent_spaces[i]))) {
       transpose_m3_m3(imat, tangent_spaces[i]);
     }
-    mul_v3_m3v3(csmd->delta_cache[i], imat, delta);
+    mul_v3_m3v3(csmd->delta_cache.deltas[i], imat, delta);
   }
 
   MEM_freeN(tangent_spaces);
@@ -563,6 +580,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
 
   const bool force_delta_cache_update =
       /* XXX, take care! if mesh data its self changes we need to forcefully recalculate deltas */
+      !cache_settings_equal(csmd) ||
       ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_ORCO) &&
        (((ID *)ob->data)->recalc & ID_RECALC_ALL));
 
@@ -627,9 +645,12 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   }
 
   /* check to see if our deltas are still valid */
-  if (!csmd->delta_cache || (csmd->delta_cache_num != numVerts) || force_delta_cache_update) {
+  if (!csmd->delta_cache.deltas || (csmd->delta_cache.totverts != numVerts) ||
+      force_delta_cache_update) {
     const float(*rest_coords)[3];
     bool is_rest_coords_alloc = false;
+
+    store_cache_settings(csmd);
 
     if (csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) {
       /* caller needs to do sanity check here */
@@ -661,7 +682,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
 
   if (csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) {
     /* this could be a check, but at this point it _must_ be valid */
-    BLI_assert(csmd->bind_coords_num == numVerts && csmd->delta_cache);
+    BLI_assert(csmd->bind_coords_num == numVerts && csmd->delta_cache.deltas);
   }
 
 #ifdef DEBUG_TIME
@@ -688,7 +709,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       calc_tangent_ortho(tangent_spaces[i]);
 #endif
 
-      mul_v3_m3v3(delta, tangent_spaces[i], csmd->delta_cache[i]);
+      mul_v3_m3v3(delta, tangent_spaces[i], csmd->delta_cache.deltas[i]);
       add_v3_v3(vertexCos[i], delta);
     }
 
@@ -703,8 +724,8 @@ static void correctivesmooth_modifier_do(ModifierData *md,
 
   /* when the modifier fails to execute */
 error:
-  MEM_SAFE_FREE(csmd->delta_cache);
-  csmd->delta_cache_num = 0;
+  MEM_SAFE_FREE(csmd->delta_cache.deltas);
+  csmd->delta_cache.totverts = 0;
 }
 
 static void deformVerts(ModifierData *md,

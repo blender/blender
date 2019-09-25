@@ -1594,6 +1594,19 @@ enum {
   MOD_LAPLACIANSMOOTH_NORMALIZED = (1 << 5),
 };
 
+typedef struct CorrectiveSmoothDeltaCache {
+  /* delta's between the original positions and the smoothed positions */
+  float (*deltas)[3];
+  unsigned int totverts;
+
+  /* Value of settings when creating the cache.
+   * These are used to check if the cache should be recomputed. */
+  float lambda;
+  short repeat, flag;
+  char smooth_type, rest_source;
+  char _pad[2];
+} CorrectiveSmoothDeltaCache;
+
 typedef struct CorrectiveSmoothModifierData {
   ModifierData modifier;
 
@@ -1612,11 +1625,8 @@ typedef struct CorrectiveSmoothModifierData {
   /** MAX_VGROUP_NAME. */
   char defgrp_name[64];
 
-  /* runtime-only cache (delta's between),
-   * delta's between the original positions and the smoothed positions */
-  float (*delta_cache)[3];
-  unsigned int delta_cache_num;
-  char _pad2[4];
+  /* runtime-only cache */
+  CorrectiveSmoothDeltaCache delta_cache;
 } CorrectiveSmoothModifierData;
 
 enum {

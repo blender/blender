@@ -5744,8 +5744,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
       }
 
       /* runtime only */
-      csmd->delta_cache = NULL;
-      csmd->delta_cache_num = 0;
+      csmd->delta_cache.deltas = NULL;
+      csmd->delta_cache.totverts = 0;
     }
     else if (md->type == eModifierType_MeshSequenceCache) {
       MeshSeqCacheModifierData *msmcd = (MeshSeqCacheModifierData *)md;
