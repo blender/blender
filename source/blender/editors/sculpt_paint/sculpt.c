@@ -6371,7 +6371,13 @@ bool sculpt_cursor_geometry_info_update(bContext *C,
   /* Update the active vertex of the SculptSession */
   ss->active_vertex_index = srd.active_vertex_index;
 
-  copy_v3_v3(out->active_vertex_co, sculpt_vertex_co_get(ss, srd.active_vertex_index));
+  if (!ss->multires) {
+    copy_v3_v3(out->active_vertex_co, sculpt_vertex_co_get(ss, srd.active_vertex_index));
+  }
+  else {
+    zero_v3(out->active_vertex_co);
+  }
+
   copy_v3_v3(out->location, ray_normal);
   mul_v3_fl(out->location, srd.depth);
   add_v3_v3(out->location, ray_start);
