@@ -598,6 +598,7 @@ static void gp_smooth_buffer(tGPsdata *p, float inf, int idx)
   float sco[2] = {0.0f};
   float a[2], b[2], c[2], d[2];
   float pressure = 0.0f;
+  float strength = 0.0f;
   const float average_fac = 1.0f / steps;
 
   /* Compute smoothed coordinate by taking the ones nearby */
@@ -605,21 +606,25 @@ static void gp_smooth_buffer(tGPsdata *p, float inf, int idx)
     copy_v2_v2(a, &pta->x);
     madd_v2_v2fl(sco, a, average_fac);
     pressure += pta->pressure * average_fac;
+    strength += pta->strength * average_fac;
   }
   if (ptb) {
     copy_v2_v2(b, &ptb->x);
     madd_v2_v2fl(sco, b, average_fac);
     pressure += ptb->pressure * average_fac;
+    strength += ptb->strength * average_fac;
   }
   if (ptc) {
     copy_v2_v2(c, &ptc->x);
     madd_v2_v2fl(sco, c, average_fac);
     pressure += ptc->pressure * average_fac;
+    strength += ptc->strength * average_fac;
   }
   if (ptd) {
     copy_v2_v2(d, &ptd->x);
     madd_v2_v2fl(sco, d, average_fac);
     pressure += ptd->pressure * average_fac;
+    strength += ptd->strength * average_fac;
   }
 
   /* Based on influence factor, blend between original and optimal smoothed coordinate. */
@@ -627,6 +632,47 @@ static void gp_smooth_buffer(tGPsdata *p, float inf, int idx)
   copy_v2_v2(&ptc->x, c);
   /* Interpolate pressure. */
   ptc->pressure = interpf(ptc->pressure, pressure, inf);
+  /* Interpolate strength. */
+  ptc->strength = interpf(ptc->strength, strength, inf);
+}
+
+/* Smooth the section added with fake events when pen moves very fast. */
+static void gp_smooth_fake_events(tGPsdata *p, int size_before, int size_after)
+{
+  bGPdata *gpd = p->gpd;
+  const short totpoints = size_after - size_before - 1;
+  /* Do nothing if not enough data to smooth out. */
+  if (totpoints < 1) {
+    return;
+  }
+
+  /* Back two points to get smoother effect. */
+  size_before -= 2;
+  CLAMP_MIN(size_before, 1);
+
+  tGPspoint *points = (tGPspoint *)gpd->runtime.sbuffer;
+  /* Extreme points. */
+  const tGPspoint *pta = &points[size_before - 1];
+  const tGPspoint *ptb = &points[size_after - 1];
+  tGPspoint *pt1, *pt2;
+  int i;
+
+  /* Get total length of the segment to smooth. */
+  float totlen = 0.0f;
+  for (i = size_before; i < size_after; i++) {
+    pt1 = &points[i - 1];
+    pt2 = &points[i];
+    totlen += len_v2v2(&pt1->x, &pt2->x);
+  }
+  /* Smooth interpolating the position of the points. */
+  float pointlen = 0.0f;
+  for (i = size_before; i < size_after - 1; i++) {
+    pt1 = &points[i - 1];
+    pt2 = &points[i];
+    pointlen += len_v2v2(&pt1->x, &pt2->x);
+    pt2->pressure = interpf(ptb->pressure, pta->pressure, pointlen / totlen);
+    pt2->strength = interpf(ptb->strength, pta->strength, pointlen / totlen);
+  }
 }
 
 /* add current stroke-point to buffer (returns whether point was successfully added) */
@@ -937,6 +983,22 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
                          (!is_depth);
   int i, totelem;
 
+  /* For very low pressure at the end, truncate stroke. */
+  if (p->paintmode == GP_PAINTMODE_DRAW) {
+    int last_i = gpd->runtime.sbuffer_used - 1;
+    while (last_i > 0) {
+      ptc = (tGPspoint *)gpd->runtime.sbuffer + last_i;
+      if (ptc->pressure > 0.001f) {
+        break;
+      }
+      else {
+        gpd->runtime.sbuffer_used = last_i - 1;
+        CLAMP_MIN(gpd->runtime.sbuffer_used, 1);
+      }
+
+      last_i--;
+    }
+  }
   /* Since strokes are so fine,
    * when using their depth we need a margin otherwise they might get missed. */
   int depth_margin = (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 4 : 0;
@@ -3390,7 +3452,7 @@ static void gpencil_move_last_stroke_to_back(bContext *C)
 }
 
 /* add events for missing mouse movements when the artist draw very fast */
-static void gpencil_add_missing_events(bContext *C,
+static bool gpencil_add_missing_events(bContext *C,
                                        wmOperator *op,
                                        const wmEvent *event,
                                        tGPsdata *p)
@@ -3399,14 +3461,14 @@ static void gpencil_add_missing_events(bContext *C,
   GP_Sculpt_Guide *guide = &p->scene->toolsettings->gp_sculpt.guide;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   int input_samples = brush->gpencil_settings->input_samples;
-
+  bool added_events = false;
   /* ensure sampling when using circular guide */
   if (guide->use_guide && (guide->type == GP_GUIDE_CIRCULAR)) {
     input_samples = GP_MAX_INPUT_SAMPLES;
   }
 
   if (input_samples == 0) {
-    return;
+    return added_events;
   }
 
   RegionView3D *rv3d = p->ar->regiondata;
@@ -3457,6 +3519,7 @@ static void gpencil_add_missing_events(bContext *C,
     sub_v2_v2v2(pt, b, pt);
     /* create fake event */
     gpencil_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1]);
+    added_events = true;
   }
   else if (dist >= factor) {
     int slices = 2 + (int)((dist - 1.0) / factor);
@@ -3466,8 +3529,10 @@ static void gpencil_add_missing_events(bContext *C,
       sub_v2_v2v2(pt, b, pt);
       /* create fake event */
       gpencil_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1]);
+      added_events = true;
     }
   }
+  return added_events;
 }
 
 /* events handling during interactive drawing part of operator */
@@ -3772,11 +3837,19 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
       /* handle drawing event */
       /* printf("\t\tGP - add point\n"); */
 
+      int size_before = p->gpd->runtime.sbuffer_used;
+      bool added_events = false;
       if (((p->flags & GP_PAINTFLAG_FIRSTRUN) == 0) && (p->paintmode != GP_PAINTMODE_ERASER)) {
-        gpencil_add_missing_events(C, op, event, p);
+        added_events = gpencil_add_missing_events(C, op, event, p);
       }
 
       gpencil_draw_apply_event(C, op, event, CTX_data_depsgraph_pointer(C), 0.0f, 0.0f);
+      int size_after = p->gpd->runtime.sbuffer_used;
+
+      /* Smooth the fake events to get smoother strokes, specially at ends. */
+      if (added_events) {
+        gp_smooth_fake_events(p, size_before, size_after);
+      }
 
       /* finish painting operation if anything went wrong just now */
       if (p->status == GP_STATUS_ERROR) {
