@@ -159,6 +159,7 @@ set(SRC
   intern/mesh_runtime.c
   intern/mesh_tangent.c
   intern/mesh_validate.c
+  intern/mirror.c
   intern/modifier.c
   intern/movieclip.c
   intern/multires.c
@@ -312,6 +313,7 @@ set(SRC
   BKE_mesh_remesh_voxel.h
   BKE_mesh_runtime.h
   BKE_mesh_tangent.h
+  BKE_mirror.h
   BKE_modifier.h
   BKE_movieclip.h
   BKE_multires.h

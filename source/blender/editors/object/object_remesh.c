@@ -40,10 +40,12 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
-#include "BKE_library.h"
+#include "BKE_mirror.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
@@ -170,14 +172,26 @@ enum {
 
 /****************** quadriflow remesh operator *********************/
 
+#define QUADRIFLOW_MIRROR_BISECT_TOLERANCE 0.005f
+
+typedef enum eSymmetryAxes {
+  SYMMETRY_AXES_X = (1 << 0),
+  SYMMETRY_AXES_Y = (1 << 1),
+  SYMMETRY_AXES_Z = (1 << 2),
+} eSymmetryAxes;
+
 typedef struct QuadriFlowJob {
   /* from wmJob */
   struct Object *owner;
+  struct Main *bmain;
   short *stop, *do_update;
   float *progress;
 
   int target_faces;
   int seed;
+  bool use_paint_symmetry;
+  eSymmetryAxes symmetry_axes;
+
   bool use_preserve_sharp;
   bool use_preserve_boundary;
   bool use_mesh_curvature;
@@ -228,6 +242,66 @@ static void quadriflow_update_job(void *customdata, float progress, int *cancel)
   *(qj->progress) = progress;
 }
 
+static Mesh *remesh_symmetry_bisect(Main *bmain, Mesh *mesh, eSymmetryAxes symmetry_axes)
+{
+  MirrorModifierData mmd = {0};
+  mmd.tolerance = QUADRIFLOW_MIRROR_BISECT_TOLERANCE;
+
+  Mesh *mesh_bisect, *mesh_bisect_temp;
+  mesh_bisect = BKE_mesh_copy(bmain, mesh);
+
+  int axis;
+  float plane_co[3], plane_no[3];
+  zero_v3(plane_co);
+
+  for (char i = 0; i < 3; i++) {
+    eSymmetryAxes symm_it = (eSymmetryAxes)(1 << i);
+    if (symmetry_axes & symm_it) {
+      axis = i;
+      mmd.flag = 0;
+      mmd.flag &= MOD_MIR_BISECT_AXIS_X << i;
+      zero_v3(plane_no);
+      plane_no[axis] = -1.0f;
+      mesh_bisect_temp = mesh_bisect;
+      mesh_bisect = BKE_mirror_bisect_on_mirror_plane(&mmd, mesh_bisect, axis, plane_co, plane_no);
+      if (mesh_bisect_temp != mesh_bisect) {
+        BKE_id_free(bmain, mesh_bisect_temp);
+      }
+    }
+  }
+
+  BKE_id_free(bmain, mesh);
+
+  return mesh_bisect;
+}
+
+static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmetry_axes)
+{
+  MirrorModifierData mmd = {0};
+  mmd.tolerance = QUADRIFLOW_MIRROR_BISECT_TOLERANCE;
+  Mesh *mesh_mirror, *mesh_mirror_temp;
+
+  mesh_mirror = mesh;
+
+  int axis;
+
+  for (char i = 0; i < 3; i++) {
+    eSymmetryAxes symm_it = (eSymmetryAxes)(1 << i);
+    if (symmetry_axes & symm_it) {
+      axis = i;
+      mmd.flag = 0;
+      mmd.flag &= MOD_MIR_AXIS_X << i;
+      mesh_mirror_temp = mesh_mirror;
+      mesh_mirror = BKE_mirror_apply_mirror_on_axis(&mmd, NULL, ob, mesh_mirror, axis);
+      if (mesh_mirror_temp != mesh_mirror) {
+        BKE_id_free(NULL, mesh_mirror_temp);
+      }
+    }
+  }
+
+  return mesh_mirror;
+}
+
 static void quadriflow_start_job(void *customdata, short *stop, short *do_update, float *progress)
 {
   QuadriFlowJob *qj = customdata;
@@ -242,15 +316,26 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   Object *ob = qj->owner;
   Mesh *mesh = ob->data;
   Mesh *new_mesh;
+  Mesh *bisect_mesh;
 
-  new_mesh = BKE_mesh_remesh_quadriflow_to_mesh_nomain(mesh,
+  /* Run Quadriflow bisect operations on a copy of the mesh to keep the code readable without
+   * freeing the original ID */
+  bisect_mesh = BKE_mesh_copy(qj->bmain, mesh);
+
+  /* Bisect the input mesh using the paint symmetry settings */
+  bisect_mesh = remesh_symmetry_bisect(qj->bmain, bisect_mesh, qj->symmetry_axes);
+
+  new_mesh = BKE_mesh_remesh_quadriflow_to_mesh_nomain(bisect_mesh,
                                                        qj->target_faces,
                                                        qj->seed,
                                                        qj->use_preserve_sharp,
-                                                       qj->use_preserve_boundary,
+                                                       qj->use_preserve_boundary ||
+                                                           qj->use_paint_symmetry,
                                                        qj->use_mesh_curvature,
                                                        quadriflow_update_job,
                                                        (void *)qj);
+
+  BKE_id_free(qj->bmain, bisect_mesh);
 
   if (!new_mesh) {
     *do_update = true;
@@ -260,6 +345,11 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
       qj->success = 0;
     }
     return;
+  }
+
+  /* Mirror the Quadriflow result to build the final mesh */
+  if (new_mesh) {
+    new_mesh = remesh_symmetry_mirror(qj->owner, new_mesh, qj->symmetry_axes);
   }
 
   if (ob->mode == OB_MODE_SCULPT) {
@@ -314,9 +404,12 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
   QuadriFlowJob *job = MEM_mallocN(sizeof(QuadriFlowJob), "QuadriFlowJob");
 
   job->owner = CTX_data_active_object(C);
+  job->bmain = CTX_data_main(C);
 
   job->target_faces = RNA_int_get(op->ptr, "target_faces");
   job->seed = RNA_int_get(op->ptr, "seed");
+
+  job->use_paint_symmetry = RNA_boolean_get(op->ptr, "use_paint_symmetry");
 
   job->use_preserve_sharp = RNA_boolean_get(op->ptr, "use_preserve_sharp");
   job->use_preserve_boundary = RNA_boolean_get(op->ptr, "use_preserve_boundary");
@@ -325,6 +418,22 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
 
   job->preserve_paint_mask = RNA_boolean_get(op->ptr, "preserve_paint_mask");
   job->smooth_normals = RNA_boolean_get(op->ptr, "smooth_normals");
+
+  /* Update the target face count if symmetry is enabled */
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  if (sd && job->use_paint_symmetry) {
+    job->symmetry_axes = (eSymmetryAxes)(sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL);
+    for (char i = 0; i < 3; i++) {
+      eSymmetryAxes symm_it = (eSymmetryAxes)(1 << i);
+      if (job->symmetry_axes & symm_it) {
+        job->target_faces = job->target_faces / 2;
+      }
+    }
+  }
+  else {
+    job->use_paint_symmetry = false;
+    job->symmetry_axes = 0;
+  }
 
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                               CTX_wm_window(C),
@@ -449,6 +558,12 @@ void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* properties */
+  RNA_def_boolean(ot->srna,
+                  "use_paint_symmetry",
+                  true,
+                  "Use Paint Symmetry",
+                  "Generates a symmetrycal mesh using the paint symmetry configuration");
+
   RNA_def_boolean(ot->srna,
                   "use_preserve_sharp",
                   false,
