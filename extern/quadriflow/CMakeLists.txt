@@ -39,9 +39,10 @@ set(LEMON_SOURCE_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${LEMON_3RD_PATH})
 set(LEMON_SRC ${LEMON_SOURCE_ROOT_DIR}/lemon)
 set(LEMON_INCLUDE_DIRS ${LEMON_SOURCE_ROOT_DIR})
 
+set(LEMON_GEN_DIR ${CMAKE_BINARY_DIR}/extern/quadriflow/${LEMON_3RD_PATH})
 configure_file(
   ${LEMON_SRC}/config.h.in
-  ${LEMON_SRC}/config.h
+  ${LEMON_GEN_DIR}/lemon/config.h
   )
 set(LEMON_SOURCES
   ${LEMON_SRC}/arg_parser.cc
@@ -58,6 +59,7 @@ set(INC
   3rd/pcg32
   3rd/pss
   ${LEMON_INCLUDE_DIRS}
+  ${LEMON_GEN_DIR}
 )
 
 set(INC_SYS
