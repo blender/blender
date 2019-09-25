@@ -277,7 +277,7 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr,
 
 char pyrna_struct_keyframe_insert_doc[] =
     ".. method:: keyframe_insert(data_path, index=-1, frame=bpy.context.scene.frame_current, "
-    "group=\"\")\n"
+    "group=\"\", options=set())\n"
     "\n"
     "   Insert a keyframe on the property given, adding fcurves and animation data when "
     "necessary.\n"
@@ -294,7 +294,7 @@ char pyrna_struct_keyframe_insert_doc[] =
     "   :arg group: The name of the group the F-Curve should be added to if it doesn't exist "
     "yet.\n"
     "   :type group: str\n"
-    "   :arg options: Optional flags:\n"
+    "   :arg options: Optional set of flags:\n"
     "\n"
     "      - ``INSERTKEY_NEEDED`` Only insert keyframes where they're needed in the relevant "
     "F-Curves.\n"
