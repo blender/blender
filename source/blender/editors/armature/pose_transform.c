@@ -543,16 +543,14 @@ static void set_pose_keys(Object *ob)
  * \param chan: Bone that pose to paste comes from
  * \param selOnly: Only paste on selected bones
  * \param flip: Flip on x-axis
- * \return Whether the bone that we pasted to if we succeeded
+ * \return The channel of the bone that was pasted to, or NULL if no paste was performed.
  */
 static bPoseChannel *pose_bone_do_paste(Object *ob,
                                         bPoseChannel *chan,
                                         const bool selOnly,
                                         const bool flip)
 {
-  bPoseChannel *pchan;
   char name[MAXBONENAME];
-  short paste_ok;
 
   /* get the name - if flipping, we must flip this first */
   if (flip) {
@@ -567,131 +565,126 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
    *  2) if selection-masking is on, channel is selected -
    *     only selected bones get pasted on, allowing making both sides symmetrical.
    */
-  pchan = BKE_pose_channel_find_name(ob->pose, name);
-
-  if (selOnly) {
-    paste_ok = ((pchan) && (pchan->bone->flag & BONE_SELECTED));
+  bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, name);
+  if (pchan == NULL) {
+    return NULL;
   }
-  else {
-    paste_ok = (pchan != NULL);
+  if (selOnly && (pchan->bone->flag & BONE_SELECTED) == 0) {
+    return NULL;
   }
 
-  /* continue? */
-  if (paste_ok) {
-    /* only loc rot size
-     * - only copies transform info for the pose
-     */
-    copy_v3_v3(pchan->loc, chan->loc);
-    copy_v3_v3(pchan->size, chan->size);
-    pchan->flag = chan->flag;
+  /* only loc rot size
+    * - only copies transform info for the pose
+    */
+  copy_v3_v3(pchan->loc, chan->loc);
+  copy_v3_v3(pchan->size, chan->size);
+  pchan->flag = chan->flag;
 
-    /* check if rotation modes are compatible (i.e. do they need any conversions) */
-    if (pchan->rotmode == chan->rotmode) {
-      /* copy the type of rotation in use */
-      if (pchan->rotmode > 0) {
-        copy_v3_v3(pchan->eul, chan->eul);
-      }
-      else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-        copy_v3_v3(pchan->rotAxis, chan->rotAxis);
-        pchan->rotAngle = chan->rotAngle;
-      }
-      else {
-        copy_qt_qt(pchan->quat, chan->quat);
-      }
-    }
-    else if (pchan->rotmode > 0) {
-      /* quat/axis-angle to euler */
-      if (chan->rotmode == ROT_MODE_AXISANGLE) {
-        axis_angle_to_eulO(pchan->eul, pchan->rotmode, chan->rotAxis, chan->rotAngle);
-      }
-      else {
-        quat_to_eulO(pchan->eul, pchan->rotmode, chan->quat);
-      }
+  /* check if rotation modes are compatible (i.e. do they need any conversions) */
+  if (pchan->rotmode == chan->rotmode) {
+    /* copy the type of rotation in use */
+    if (pchan->rotmode > 0) {
+      copy_v3_v3(pchan->eul, chan->eul);
     }
     else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-      /* quat/euler to axis angle */
-      if (chan->rotmode > 0) {
-        eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->eul, chan->rotmode);
-      }
-      else {
-        quat_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->quat);
-      }
+      copy_v3_v3(pchan->rotAxis, chan->rotAxis);
+      pchan->rotAngle = chan->rotAngle;
     }
     else {
-      /* euler/axis-angle to quat */
-      if (chan->rotmode > 0) {
-        eulO_to_quat(pchan->quat, chan->eul, chan->rotmode);
-      }
-      else {
-        axis_angle_to_quat(pchan->quat, chan->rotAxis, pchan->rotAngle);
-      }
+      copy_qt_qt(pchan->quat, chan->quat);
     }
-
-    /* B-Bone posing options should also be included... */
-    pchan->curve_in_x = chan->curve_in_x;
-    pchan->curve_in_y = chan->curve_in_y;
-    pchan->curve_out_x = chan->curve_out_x;
-    pchan->curve_out_y = chan->curve_out_y;
-
-    pchan->roll1 = chan->roll1;
-    pchan->roll2 = chan->roll2;
-    pchan->ease1 = chan->ease1;
-    pchan->ease2 = chan->ease2;
-    pchan->scale_in_x = chan->scale_in_x;
-    pchan->scale_in_y = chan->scale_in_y;
-    pchan->scale_out_x = chan->scale_out_x;
-    pchan->scale_out_y = chan->scale_out_y;
-
-    /* paste flipped pose? */
-    if (flip) {
-      pchan->loc[0] *= -1;
-
-      pchan->curve_in_x *= -1;
-      pchan->curve_out_x *= -1;
-      pchan->roll1 *= -1;  // XXX?
-      pchan->roll2 *= -1;  // XXX?
-
-      /* has to be done as eulers... */
-      if (pchan->rotmode > 0) {
-        pchan->eul[1] *= -1;
-        pchan->eul[2] *= -1;
-      }
-      else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-        float eul[3];
-
-        axis_angle_to_eulO(eul, EULER_ORDER_DEFAULT, pchan->rotAxis, pchan->rotAngle);
-        eul[1] *= -1;
-        eul[2] *= -1;
-        eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
-      }
-      else {
-        float eul[3];
-
-        normalize_qt(pchan->quat);
-        quat_to_eul(eul, pchan->quat);
-        eul[1] *= -1;
-        eul[2] *= -1;
-        eul_to_quat(pchan->quat, eul);
-      }
+  }
+  else if (pchan->rotmode > 0) {
+    /* quat/axis-angle to euler */
+    if (chan->rotmode == ROT_MODE_AXISANGLE) {
+      axis_angle_to_eulO(pchan->eul, pchan->rotmode, chan->rotAxis, chan->rotAngle);
     }
-
-    /* ID properties */
-    if (chan->prop) {
-      if (pchan->prop) {
-        /* if we have existing properties on a bone, just copy over the values of
-         * matching properties (i.e. ones which will have some impact) on to the
-         * target instead of just blinding replacing all [
-         */
-        IDP_SyncGroupValues(pchan->prop, chan->prop);
-      }
-      else {
-        /* no existing properties, so assume that we want copies too? */
-        pchan->prop = IDP_CopyProperty(chan->prop);
-      }
+    else {
+      quat_to_eulO(pchan->eul, pchan->rotmode, chan->quat);
+    }
+  }
+  else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+    /* quat/euler to axis angle */
+    if (chan->rotmode > 0) {
+      eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->eul, chan->rotmode);
+    }
+    else {
+      quat_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->quat);
+    }
+  }
+  else {
+    /* euler/axis-angle to quat */
+    if (chan->rotmode > 0) {
+      eulO_to_quat(pchan->quat, chan->eul, chan->rotmode);
+    }
+    else {
+      axis_angle_to_quat(pchan->quat, chan->rotAxis, pchan->rotAngle);
     }
   }
 
-  /* return whether paste went ahead */
+  /* B-Bone posing options should also be included... */
+  pchan->curve_in_x = chan->curve_in_x;
+  pchan->curve_in_y = chan->curve_in_y;
+  pchan->curve_out_x = chan->curve_out_x;
+  pchan->curve_out_y = chan->curve_out_y;
+
+  pchan->roll1 = chan->roll1;
+  pchan->roll2 = chan->roll2;
+  pchan->ease1 = chan->ease1;
+  pchan->ease2 = chan->ease2;
+  pchan->scale_in_x = chan->scale_in_x;
+  pchan->scale_in_y = chan->scale_in_y;
+  pchan->scale_out_x = chan->scale_out_x;
+  pchan->scale_out_y = chan->scale_out_y;
+
+  /* paste flipped pose? */
+  if (flip) {
+    pchan->loc[0] *= -1;
+
+    pchan->curve_in_x *= -1;
+    pchan->curve_out_x *= -1;
+    pchan->roll1 *= -1;  // XXX?
+    pchan->roll2 *= -1;  // XXX?
+
+    /* has to be done as eulers... */
+    if (pchan->rotmode > 0) {
+      pchan->eul[1] *= -1;
+      pchan->eul[2] *= -1;
+    }
+    else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+      float eul[3];
+
+      axis_angle_to_eulO(eul, EULER_ORDER_DEFAULT, pchan->rotAxis, pchan->rotAngle);
+      eul[1] *= -1;
+      eul[2] *= -1;
+      eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
+    }
+    else {
+      float eul[3];
+
+      normalize_qt(pchan->quat);
+      quat_to_eul(eul, pchan->quat);
+      eul[1] *= -1;
+      eul[2] *= -1;
+      eul_to_quat(pchan->quat, eul);
+    }
+  }
+
+  /* ID properties */
+  if (chan->prop) {
+    if (pchan->prop) {
+      /* if we have existing properties on a bone, just copy over the values of
+        * matching properties (i.e. ones which will have some impact) on to the
+        * target instead of just blinding replacing all [
+        */
+      IDP_SyncGroupValues(pchan->prop, chan->prop);
+    }
+    else {
+      /* no existing properties, so assume that we want copies too? */
+      pchan->prop = IDP_CopyProperty(chan->prop);
+    }
+  }
+
   return pchan;
 }
 
