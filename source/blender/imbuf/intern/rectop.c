@@ -39,8 +39,8 @@
 #include "MEM_guardedalloc.h"
 
 void IMB_blend_color_byte(unsigned char dst[4],
-                          unsigned char src1[4],
-                          unsigned char src2[4],
+                          const unsigned char src1[4],
+                          const unsigned char src2[4],
                           IMB_BlendMode mode)
 {
   switch (mode) {
@@ -126,7 +126,10 @@ void IMB_blend_color_byte(unsigned char dst[4],
   }
 }
 
-void IMB_blend_color_float(float dst[4], float src1[4], float src2[4], IMB_BlendMode mode)
+void IMB_blend_color_float(float dst[4],
+                           const float src1[4],
+                           const float src2[4],
+                           IMB_BlendMode mode)
 {
   switch (mode) {
     case IMB_BLEND_MIX:
@@ -279,7 +282,7 @@ void IMB_rect_crop(ImBuf *ibuf, const rcti *crop)
 /* clipping */
 
 void IMB_rectclip(ImBuf *dbuf,
-                  ImBuf *sbuf,
+                  const ImBuf *sbuf,
                   int *destx,
                   int *desty,
                   int *srcx,
@@ -341,8 +344,8 @@ void IMB_rectclip(ImBuf *dbuf,
 }
 
 static void imb_rectclip3(ImBuf *dbuf,
-                          ImBuf *obuf,
-                          ImBuf *sbuf,
+                          const ImBuf *obuf,
+                          const ImBuf *sbuf,
                           int *destx,
                           int *desty,
                           int *origx,
@@ -435,8 +438,14 @@ static void imb_rectclip3(ImBuf *dbuf,
 
 /* copy and blend */
 
-void IMB_rectcpy(
-    ImBuf *dbuf, ImBuf *sbuf, int destx, int desty, int srcx, int srcy, int width, int height)
+void IMB_rectcpy(ImBuf *dbuf,
+                 const ImBuf *sbuf,
+                 int destx,
+                 int desty,
+                 int srcx,
+                 int srcy,
+                 int width,
+                 int height)
 {
   IMB_rectblend(dbuf,
                 dbuf,
@@ -463,11 +472,11 @@ typedef void (*IMB_blend_func)(unsigned char *dst,
 typedef void (*IMB_blend_func_float)(float *dst, const float *src1, const float *src2);
 
 void IMB_rectblend(ImBuf *dbuf,
-                   ImBuf *obuf,
-                   ImBuf *sbuf,
+                   const ImBuf *obuf,
+                   const ImBuf *sbuf,
                    unsigned short *dmask,
-                   unsigned short *curvemask,
-                   unsigned short *texmask,
+                   const unsigned short *curvemask,
+                   const unsigned short *texmask,
                    float mask_max,
                    int destx,
                    int desty,
@@ -482,9 +491,9 @@ void IMB_rectblend(ImBuf *dbuf,
 {
   unsigned int *drect = NULL, *orect = NULL, *srect = NULL, *dr, * or, *sr;
   float *drectf = NULL, *orectf = NULL, *srectf = NULL, *drf, *orf, *srf;
-  unsigned short *cmaskrect = curvemask, *cmr;
+  const unsigned short *cmaskrect = curvemask, *cmr;
   unsigned short *dmaskrect = dmask, *dmr;
-  unsigned short *texmaskrect = texmask, *tmr;
+  const unsigned short *texmaskrect = texmask, *tmr;
   int do_float, do_char, srcskip, destskip, origskip, x;
   IMB_blend_func func = NULL;
   IMB_blend_func_float func_float = NULL;
@@ -924,8 +933,10 @@ void IMB_rectblend(ImBuf *dbuf,
 }
 
 typedef struct RectBlendThreadData {
-  ImBuf *dbuf, *obuf, *sbuf;
-  unsigned short *dmask, *curvemask, *texmask;
+  ImBuf *dbuf;
+  const ImBuf *obuf, *sbuf;
+  unsigned short *dmask;
+  const unsigned short *curvemask, *texmask;
   float mask_max;
   int destx, desty, origx, origy;
   int srcx, srcy, width;
@@ -956,11 +967,11 @@ static void rectblend_thread_do(void *data_v, int start_scanline, int num_scanli
 }
 
 void IMB_rectblend_threaded(ImBuf *dbuf,
-                            ImBuf *obuf,
-                            ImBuf *sbuf,
+                            const ImBuf *obuf,
+                            const ImBuf *sbuf,
                             unsigned short *dmask,
-                            unsigned short *curvemask,
-                            unsigned short *texmask,
+                            const unsigned short *curvemask,
+                            const unsigned short *texmask,
                             float mask_max,
                             int destx,
                             int desty,

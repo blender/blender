@@ -389,7 +389,7 @@ bool IMB_isanim(const char *filename)
   return (type && type != ANIM_SEQUENCE);
 }
 
-bool IMB_isfloat(ImBuf *ibuf)
+bool IMB_isfloat(const ImBuf *ibuf)
 {
   const ImFileType *type;
 

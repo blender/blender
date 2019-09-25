@@ -40,11 +40,11 @@
 #  include "dds/dds_api.h"
 #endif
 
-static int imb_ftype_default(const ImFileType *type, ImBuf *ibuf)
+static int imb_ftype_default(const ImFileType *type, const ImBuf *ibuf)
 {
   return (ibuf->ftype == type->filetype);
 }
-static int imb_ftype_iris(const ImFileType *type, ImBuf *ibuf)
+static int imb_ftype_iris(const ImFileType *type, const ImBuf *ibuf)
 {
   (void)type;
   return (ibuf->ftype == IMB_FTYPE_IMAGIC);
