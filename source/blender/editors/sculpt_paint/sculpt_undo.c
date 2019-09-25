@@ -192,24 +192,21 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
       if (unode->orig_co) {
         if (ss->modifiers_active) {
           for (int i = 0; i < unode->totvert; i++) {
-            if (sculpt_undo_restore_deformed(ss, unode, i, index[i], mvert[index[i]].co)) {
-              mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
-            }
+            sculpt_undo_restore_deformed(ss, unode, i, index[i], mvert[index[i]].co);
+            mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
           }
         }
         else {
           for (int i = 0; i < unode->totvert; i++) {
-            if (test_swap_v3_v3(mvert[index[i]].co, unode->orig_co[i])) {
-              mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
-            }
+            swap_v3_v3(mvert[index[i]].co, unode->orig_co[i]);
+            mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
           }
         }
       }
       else {
         for (int i = 0; i < unode->totvert; i++) {
-          if (test_swap_v3_v3(mvert[index[i]].co, unode->co[i])) {
-            mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
-          }
+          swap_v3_v3(mvert[index[i]].co, unode->co[i]);
+          mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
         }
       }
     }
