@@ -289,7 +289,7 @@ void BKE_animsys_eval_animdata(struct Depsgraph *depsgraph, struct ID *id);
 void BKE_animsys_eval_driver(struct Depsgraph *depsgraph,
                              struct ID *id,
                              int driver_index,
-                             struct ChannelDriver *driver_orig);
+                             struct FCurve *fcu_orig);
 
 void BKE_animsys_update_driver_array(struct ID *id);
 

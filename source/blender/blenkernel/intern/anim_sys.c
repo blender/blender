@@ -4082,11 +4082,10 @@ void BKE_animsys_update_driver_array(ID *id)
   }
 }
 
-void BKE_animsys_eval_driver(Depsgraph *depsgraph,
-                             ID *id,
-                             int driver_index,
-                             ChannelDriver *driver_orig)
+void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCurve *fcu_orig)
 {
+  BLI_assert(fcu_orig != NULL);
+
   /* TODO(sergey): De-duplicate with BKE animsys. */
   PointerRNA id_ptr;
   bool ok = false;
@@ -4111,6 +4110,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph,
   if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) == 0) {
     /* check if driver itself is tagged for recalculation */
     /* XXX driver recalc flag is not set yet by depsgraph! */
+    ChannelDriver *driver_orig = fcu_orig->driver;
     if ((driver_orig) && !(driver_orig->flag & DRIVER_FLAG_INVALID)) {
       /* evaluate this using values set already in other places
        * NOTE: for 'layering' option later on, we should check if we should remove old value before
@@ -4121,7 +4121,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph,
       if (animsys_store_rna_setting(&id_ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
         /* Evaluate driver, and write results to COW-domain destination */
         const float ctime = DEG_get_ctime(depsgraph);
-        const float curval = evaluate_fcurve_driver(&anim_rna, fcu, driver_orig, ctime);
+        const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
         ok = animsys_write_rna_setting(&anim_rna, curval);
 
         /* Flush results & status codes to original data for UI (T59984) */
@@ -4129,6 +4129,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph,
           animsys_write_orig_anim_rna(&id_ptr, fcu->rna_path, fcu->array_index, curval);
 
           /* curval is displayed in the UI, and flag contains error-status codes */
+          fcu_orig->curval = fcu->curval;
           driver_orig->curval = fcu->driver->curval;
           driver_orig->flag = fcu->driver->flag;
 
