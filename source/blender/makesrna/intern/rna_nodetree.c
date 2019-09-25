@@ -4431,7 +4431,7 @@ static void def_sh_tex_voronoi(StructRNA *srna)
        "DISTANCE_TO_EDGE",
        0,
        "Distance To Edge",
-       "Computes the distance to the edge of the vornoi cell"},
+       "Computes the distance to the edge of the voronoi cell"},
       {SHD_VORONOI_N_SPHERE_RADIUS,
        "N_SPHERE_RADIUS",
        0,
