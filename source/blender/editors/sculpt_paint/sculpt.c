@@ -106,9 +106,11 @@ float *sculpt_vertex_co_get(SculptSession *ss, int index)
       return ss->mvert[index].co;
     case PBVH_BMESH:
       return BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index)->co;
-    default:
-      return NULL;
+    case PBVH_GRIDS:
+      BLI_assert(!"This fuction is not supposed to be used for PBVH_GRIDS");
+      break;
   }
+  return NULL;
 }
 
 static void sculpt_vertex_random_access_init(SculptSession *ss)
@@ -120,14 +122,17 @@ static void sculpt_vertex_random_access_init(SculptSession *ss)
 
 static int sculpt_active_vertex_get(SculptSession *ss)
 {
+  BLI_assert(BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS);
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
       return ss->active_vertex_index;
     case PBVH_BMESH:
       return ss->active_vertex_index;
-    default:
-      return 0;
+    case PBVH_GRIDS:
+      BLI_assert(!"This fuction is not supposed to be used for PBVH_GRIDS");
+      break;
   }
+  return 0;
 }
 
 static int sculpt_vertex_count_get(SculptSession *ss)
