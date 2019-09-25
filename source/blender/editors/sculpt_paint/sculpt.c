@@ -6338,9 +6338,9 @@ bool sculpt_cursor_geometry_info_update(bContext *C,
   ss = ob->sculpt;
 
   if (!ss->pbvh) {
-    copy_v3_fl(out->location, 0.0f);
-    copy_v3_fl(out->normal, 0.0f);
-    copy_v3_fl(out->active_vertex_co, 0.0f);
+    zero_v3(out->location);
+    zero_v3(out->normal);
+    zero_v3(out->active_vertex_co);
     return false;
   }
 
@@ -6362,9 +6362,9 @@ bool sculpt_cursor_geometry_info_update(bContext *C,
 
   /* Cursor is not over the mesh, return default values */
   if (!srd.hit) {
-    copy_v3_fl(out->location, 0.0f);
-    copy_v3_fl(out->normal, 0.0f);
-    copy_v3_fl(out->active_vertex_co, 0.0f);
+    zero_v3(out->location);
+    zero_v3(out->normal);
+    zero_v3(out->active_vertex_co);
     return false;
   }
 
