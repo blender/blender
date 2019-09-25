@@ -27,7 +27,7 @@ BEGIN
       VALUE "ProductVersion", BLEN_VER_RC_STR
       VALUE "CompanyName", "Blender Foundation"
       VALUE "FileDescription", "Blender"
-      VALUE "LegalCopyright", "GPLv2 (Blender Foundation)"
+      VALUE "LegalCopyright", "GPLv3 (Blender Foundation)"
       VALUE "OriginalFilename", "blender.exe"
       VALUE "ProductName", "Blender"
     END
