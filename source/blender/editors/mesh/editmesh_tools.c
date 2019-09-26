@@ -3871,15 +3871,8 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
   RNA_def_enum(ot->srna, "type", knife_items, KNIFE_EXACT, "Type", "");
 
   /* internal */
-  RNA_def_int(ot->srna,
-              "cursor",
-              WM_CURSOR_KNIFE,
-              0,
-              WM_CURSOR_NUM,
-              "Cursor",
-              "",
-              0,
-              WM_CURSOR_NUM);
+  RNA_def_int(
+      ot->srna, "cursor", WM_CURSOR_KNIFE, 0, WM_CURSOR_NUM, "Cursor", "", 0, WM_CURSOR_NUM);
 }
 
 /** \} */

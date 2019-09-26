@@ -574,8 +574,8 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
   }
 
   /* only loc rot size
-    * - only copies transform info for the pose
-    */
+   * - only copies transform info for the pose
+   */
   copy_v3_v3(pchan->loc, chan->loc);
   copy_v3_v3(pchan->size, chan->size);
   pchan->flag = chan->flag;
@@ -674,9 +674,9 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
   if (chan->prop) {
     if (pchan->prop) {
       /* if we have existing properties on a bone, just copy over the values of
-        * matching properties (i.e. ones which will have some impact) on to the
-        * target instead of just blinding replacing all [
-        */
+       * matching properties (i.e. ones which will have some impact) on to the
+       * target instead of just blinding replacing all [
+       */
       IDP_SyncGroupValues(pchan->prop, chan->prop);
     }
     else {
