@@ -159,12 +159,6 @@ typedef struct EDIT_MESH_PrivateData {
   EDIT_MESH_ComponentShadingGroupList edit_shgrps;
   EDIT_MESH_ComponentShadingGroupList edit_in_front_shgrps;
 
-  DRWShadingGroup *vert_shgrp_in_front;
-  DRWShadingGroup *edge_shgrp_in_front;
-  DRWShadingGroup *face_shgrp_in_front;
-  DRWShadingGroup *face_cage_shgrp_in_front;
-  DRWShadingGroup *facedot_shgrp_in_front;
-
   DRWShadingGroup *facefill_occluded_shgrp;
   DRWShadingGroup *facefill_occluded_cage_shgrp;
   DRWShadingGroup *mesh_analysis_shgrp;
