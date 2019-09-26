@@ -103,8 +103,6 @@ typedef struct EDIT_MESH_Data {
   EDIT_MESH_StorageList *stl;
 } EDIT_MESH_Data;
 
-#define MAX_SHADERS 16
-
 /** Can only contain shaders (freed as array). */
 typedef struct EDIT_MESH_Shaders {
   /* weight */
