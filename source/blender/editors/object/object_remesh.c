@@ -364,6 +364,9 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
 
   if (qj->smooth_normals) {
+    if (qj->use_paint_symmetry) {
+      BKE_mesh_calc_normals(ob->data);
+    }
     BKE_mesh_smooth_flag_set(ob->data, true);
   }
 
