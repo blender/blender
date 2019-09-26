@@ -501,8 +501,12 @@ static void set_trans_object_base_deps_flag_cb(ID *id,
 static void flush_trans_object_base_deps_flag(Depsgraph *depsgraph, Object *object)
 {
   object->id.tag |= LIB_TAG_DOIT;
-  DEG_foreach_dependent_ID_component(
-      depsgraph, &object->id, DEG_OB_COMP_TRANSFORM, set_trans_object_base_deps_flag_cb, NULL);
+  DEG_foreach_dependent_ID_component(depsgraph,
+                                     &object->id,
+                                     DEG_OB_COMP_TRANSFORM,
+                                     DEG_FOREACH_COMPONENT_IGNORE_TRANSFORM_SOLVERS,
+                                     set_trans_object_base_deps_flag_cb,
+                                     NULL);
 }
 
 static void trans_object_base_deps_flag_finish(const TransInfo *t, ViewLayer *view_layer)
