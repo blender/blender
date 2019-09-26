@@ -807,6 +807,10 @@ void GPU_draw_list_command_add(
 {
   BLI_assert(list->commands);
 
+  if (v_count == 0 || i_count == 0) {
+    return;
+  }
+
   if (list->base_index != UINT_MAX) {
     GPUDrawCommandIndexed *cmd = list->commands_indexed + list->cmd_len;
     cmd->v_first = v_first;
