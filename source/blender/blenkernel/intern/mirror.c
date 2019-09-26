@@ -30,6 +30,7 @@
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
+#include "BKE_mirror.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
 
@@ -39,7 +40,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "MOD_modifiertypes.h"
-
 
 Mesh *BKE_mirror_bisect_on_mirror_plane(MirrorModifierData *mmd,
                                         const Mesh *mesh,
