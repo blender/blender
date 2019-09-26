@@ -368,37 +368,45 @@ static bool check_vertex_pivot_symmetry(const float vco[3], const float pco[3], 
   return is_in_symmetry_area;
 }
 
+typedef struct NearestVertexTLSData {
+  int nearest_vertex_index;
+  float nearest_vertex_distance_squared;
+} NearestVertexTLSData;
+
 static void do_nearest_vertex_get_task_cb(void *__restrict userdata,
                                           const int n,
-                                          const TaskParallelTLS *__restrict UNUSED(tls))
+                                          const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
+  NearestVertexTLSData *nvtd = tls->userdata_chunk;
   PBVHVertexIter vd;
-  int node_nearest_vertex_index = -1;
-  float node_nearest_vertex_distance_squared = FLT_MAX;
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     float distance_squared = len_squared_v3v3(vd.co, data->nearest_vertex_search_co);
-    if (distance_squared < node_nearest_vertex_distance_squared &&
+    if (distance_squared < nvtd->nearest_vertex_distance_squared &&
         distance_squared < data->max_distance_squared) {
-      node_nearest_vertex_index = vd.index;
-      node_nearest_vertex_distance_squared = distance_squared;
+      nvtd->nearest_vertex_index = vd.index;
+      nvtd->nearest_vertex_distance_squared = distance_squared;
     }
   }
   BKE_pbvh_vertex_iter_end;
+}
 
-  BLI_mutex_lock(&data->mutex);
+static void nearest_vertex_get_finalize(void *__restrict userdata, void *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  NearestVertexTLSData *nvtd = tls;
   if (data->nearest_vertex_index == -1) {
-    data->nearest_vertex_index = node_nearest_vertex_index;
+    data->nearest_vertex_index = nvtd->nearest_vertex_index;
   }
-  else if (node_nearest_vertex_distance_squared <
+  else if (nvtd->nearest_vertex_distance_squared <
            len_squared_v3v3(data->nearest_vertex_search_co,
                             sculpt_vertex_co_get(ss, data->nearest_vertex_index))) {
-    data->nearest_vertex_index = node_nearest_vertex_index;
+    data->nearest_vertex_index = nvtd->nearest_vertex_index;
   }
-  BLI_mutex_unlock(&data->mutex);
 }
 
 static int sculpt_nearest_vertex_get(
@@ -428,13 +436,17 @@ static int sculpt_nearest_vertex_get(
   };
 
   copy_v3_v3(task_data.nearest_vertex_search_co, co);
+  NearestVertexTLSData nvtd;
+  nvtd.nearest_vertex_index = -1;
+  nvtd.nearest_vertex_distance_squared = FLT_MAX;
 
-  BLI_mutex_init(&task_data.mutex);
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
+  settings.func_finalize = nearest_vertex_get_finalize;
+  settings.userdata_chunk = &nvtd;
+  settings.userdata_chunk_size = sizeof(NearestVertexTLSData);
   settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT);
   BLI_task_parallel_range(0, totnode, &task_data, do_nearest_vertex_get_task_cb, &settings);
-  BLI_mutex_end(&task_data.mutex);
 
   return task_data.nearest_vertex_index;
 }
@@ -1331,21 +1343,25 @@ static float calc_symmetry_feather(Sculpt *sd, StrokeCache *cache)
  * \note These are all _very_ similar, when changing one, check others.
  * \{ */
 
+typedef struct AreaNormalCenterTLSData {
+  float private_co[2][3];
+  float private_no[2][3];
+  int private_count[2];
+} AreaNormalCenterTLSData;
+
 static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
                                                 const int n,
-                                                const TaskParallelTLS *__restrict UNUSED(tls))
+                                                const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
+  AreaNormalCenterTLSData *anctd = tls->userdata_chunk;
   float(*area_nos)[3] = data->area_nos;
   float(*area_cos)[3] = data->area_cos;
 
   PBVHVertexIter vd;
   SculptUndoNode *unode = NULL;
 
-  float private_co[2][3] = {{0.0f}};
-  float private_no[2][3] = {{0.0f}};
-  int private_count[2] = {0};
   bool use_original = false;
 
   if (ss->cache && ss->cache->original) {
@@ -1392,12 +1408,12 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
 
         flip_index = (dot_v3v3(ss->cache->view_normal, no) <= 0.0f);
         if (area_cos) {
-          add_v3_v3(private_co[flip_index], co);
+          add_v3_v3(anctd->private_co[flip_index], co);
         }
         if (area_nos) {
-          add_v3_v3(private_no[flip_index], no);
+          add_v3_v3(anctd->private_no[flip_index], no);
         }
-        private_count[flip_index] += 1;
+        anctd->private_count[flip_index] += 1;
       }
     }
   }
@@ -1444,36 +1460,39 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
         flip_index = (dot_v3v3(ss->cache ? ss->cache->view_normal : ss->cursor_view_normal, no) <=
                       0.0f);
         if (area_cos) {
-          add_v3_v3(private_co[flip_index], co);
+          add_v3_v3(anctd->private_co[flip_index], co);
         }
         if (area_nos) {
-          add_v3_v3(private_no[flip_index], no);
+          add_v3_v3(anctd->private_no[flip_index], no);
         }
-        private_count[flip_index] += 1;
+        anctd->private_count[flip_index] += 1;
       }
     }
     BKE_pbvh_vertex_iter_end;
   }
+}
 
-  BLI_mutex_lock(&data->mutex);
-
+static void calc_area_normal_and_center_finalize(void *__restrict userdata, void *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  AreaNormalCenterTLSData *anctd = tls;
+  float(*area_nos)[3] = data->area_nos;
+  float(*area_cos)[3] = data->area_cos;
   /* for flatten center */
   if (area_cos) {
-    add_v3_v3(area_cos[0], private_co[0]);
-    add_v3_v3(area_cos[1], private_co[1]);
+    add_v3_v3(area_cos[0], anctd->private_co[0]);
+    add_v3_v3(area_cos[1], anctd->private_co[1]);
   }
 
   /* for area normal */
   if (area_nos) {
-    add_v3_v3(area_nos[0], private_no[0]);
-    add_v3_v3(area_nos[1], private_no[1]);
+    add_v3_v3(area_nos[0], anctd->private_no[0]);
+    add_v3_v3(area_nos[1], anctd->private_no[1]);
   }
 
   /* weights */
-  data->count[0] += private_count[0];
-  data->count[1] += private_count[1];
-
-  BLI_mutex_unlock(&data->mutex);
+  data->count[0] += anctd->private_count[0];
+  data->count[1] += anctd->private_count[1];
 }
 
 static void calc_area_center(
@@ -1501,14 +1520,16 @@ static void calc_area_center(
       .area_nos = NULL,
       .count = count,
   };
-  BLI_mutex_init(&data.mutex);
+
+  AreaNormalCenterTLSData anctd = {0};
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
+  settings.func_finalize = calc_area_normal_and_center_finalize;
+  settings.userdata_chunk = &anctd;
+  settings.userdata_chunk_size = sizeof(AreaNormalCenterTLSData);
   settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT);
   BLI_task_parallel_range(0, totnode, &data, calc_area_normal_and_center_task_cb, &settings);
-
-  BLI_mutex_end(&data.mutex);
 
   /* for flatten center */
   for (n = 0; n < ARRAY_SIZE(area_cos); n++) {
@@ -1559,14 +1580,16 @@ bool sculpt_pbvh_calc_area_normal(const Brush *brush,
       .count = count,
       .any_vertex_sampled = false,
   };
-  BLI_mutex_init(&data.mutex);
+
+  AreaNormalCenterTLSData anctd = {0};
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
+  settings.func_finalize = calc_area_normal_and_center_finalize;
+  settings.userdata_chunk = &anctd;
+  settings.userdata_chunk_size = sizeof(AreaNormalCenterTLSData);
   settings.use_threading = use_threading;
   BLI_task_parallel_range(0, totnode, &data, calc_area_normal_and_center_task_cb, &settings);
-
-  BLI_mutex_end(&data.mutex);
 
   /* for area normal */
   for (int i = 0; i < ARRAY_SIZE(area_nos); i++) {
@@ -1606,14 +1629,16 @@ static void calc_area_normal_and_center(
       .area_nos = area_nos,
       .count = count,
   };
-  BLI_mutex_init(&data.mutex);
+
+  AreaNormalCenterTLSData anctd = {0};
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
+  settings.func_finalize = calc_area_normal_and_center_finalize;
+  settings.userdata_chunk = &anctd;
+  settings.userdata_chunk_size = sizeof(AreaNormalCenterTLSData);
   settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT);
   BLI_task_parallel_range(0, totnode, &data, calc_area_normal_and_center_task_cb, &settings);
-
-  BLI_mutex_end(&data.mutex);
 
   /* for flatten center */
   for (n = 0; n < ARRAY_SIZE(area_cos); n++) {
