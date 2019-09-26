@@ -2296,7 +2296,7 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, const
     }
 
     if (pset->selectmode == SCE_SELECT_POINT) {
-      LOOP_KEYS
+      LOOP_VISIBLE_KEYS
       {
         copy_v3_v3(co, key->co);
         mul_m4_v3(mat, co);
