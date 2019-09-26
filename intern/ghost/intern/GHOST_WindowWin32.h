@@ -386,6 +386,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * \param visible       Flag for cursor visibility.
    * \param cursorShape   The cursor shape.
    */
+  HCURSOR getStandardCursor(GHOST_TStandardCursor shape) const;
   void loadCursor(bool visible, GHOST_TStandardCursor cursorShape) const;
 
   const GHOST_TabletData *GetTabletData()
@@ -456,6 +457,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * native window system calls.
    */
   GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape);
+  GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor shape);
 
   /**
    * Sets the cursor shape on the window using

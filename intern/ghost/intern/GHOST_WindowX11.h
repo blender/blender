@@ -213,6 +213,7 @@ class GHOST_WindowX11 : public GHOST_Window {
    * native window system calls.
    */
   GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape);
+  GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor shape);
 
   /**
    * Sets the cursor shape on the window using
@@ -233,7 +234,7 @@ class GHOST_WindowX11 : public GHOST_Window {
 
   GHOST_WindowX11(const GHOST_WindowX11 &);
 
-  Cursor getStandardCursor(GHOST_TStandardCursor g_cursor);
+  GHOST_TSuccess getStandardCursor(GHOST_TStandardCursor g_cursor, Cursor &xcursor);
 
   Cursor getEmptyCursor();
 

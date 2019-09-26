@@ -264,6 +264,14 @@ GHOST_TSuccess GHOST_SetCursorShape(GHOST_WindowHandle windowhandle,
   return window->setCursorShape(cursorshape);
 }
 
+GHOST_TSuccess GHOST_HasCursorShape(GHOST_WindowHandle windowhandle,
+                                    GHOST_TStandardCursor cursorshape)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+
+  return window->hasCursorShape(cursorshape);
+}
+
 GHOST_TSuccess GHOST_SetCustomCursorShape(GHOST_WindowHandle windowhandle,
                                           GHOST_TUns8 *bitmap,
                                           GHOST_TUns8 *mask,

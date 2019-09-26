@@ -280,6 +280,12 @@ class GHOST_IWindow {
   virtual GHOST_TSuccess setCursorShape(GHOST_TStandardCursor cursorShape) = 0;
 
   /**
+   * Test if the standard cursor shape is supported by current platform.
+   * \return Indication of success.
+   */
+  virtual GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor cursorShape) = 0;
+
+  /**
    * Set the shape of the cursor to a custom cursor.
    * \param   bitmap  The bitmap data for the cursor.
    * \param   mask    The mask data for the cursor.

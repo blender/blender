@@ -215,6 +215,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
    */
   GHOST_TSuccess setOrder(GHOST_TWindowOrder order);
 
+  NSCursor *getStandardCursor(GHOST_TStandardCursor cursor) const;
   void loadCursor(bool visible, GHOST_TStandardCursor cursor) const;
 
   const GHOST_TabletData *GetTabletData()
@@ -296,6 +297,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * native window system calls.
    */
   GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape);
+  GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor shape);
 
   /**
    * Sets the cursor shape on the window using

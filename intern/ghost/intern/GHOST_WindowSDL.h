@@ -100,6 +100,7 @@ class GHOST_WindowSDL : public GHOST_Window {
   GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode);
 
   GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape);
+  GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor shape);
 
   GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 *bitmap,
                                             GHOST_TUns8 *mask,

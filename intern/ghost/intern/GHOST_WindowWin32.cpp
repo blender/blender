@@ -766,7 +766,78 @@ void GHOST_WindowWin32::registerMouseClickEvent(int press)
   }
 }
 
-void GHOST_WindowWin32::loadCursor(bool visible, GHOST_TStandardCursor cursor) const
+HCURSOR GHOST_WindowWin32::getStandardCursor(GHOST_TStandardCursor shape) const
+{
+  // Convert GHOST cursor to Windows OEM cursor
+  switch (shape) {
+    case GHOST_kStandardCursorCustom:
+      if (m_customCursor) {
+        return m_customCursor;
+      }
+      else {
+        return NULL;
+      }
+    case GHOST_kStandardCursorDefault:
+      return ::LoadCursor(0, IDC_ARROW);
+    case GHOST_kStandardCursorRightArrow:
+      return ::LoadCursor(0, IDC_ARROW);
+    case GHOST_kStandardCursorLeftArrow:
+      return ::LoadCursor(0, IDC_ARROW);
+    case GHOST_kStandardCursorInfo:
+      // Four-pointed arrow pointing north, south, east, and west
+      return ::LoadCursor(0, IDC_SIZEALL);
+    case GHOST_kStandardCursorDestroy:
+      // Slashed circle
+      return ::LoadCursor(0, IDC_NO);
+    case GHOST_kStandardCursorHelp:
+      // Arrow and question mark
+      return ::LoadCursor(0, IDC_HELP);
+    case GHOST_kStandardCursorCycle:
+      // Slashed circle
+      return ::LoadCursor(0, IDC_NO);
+    case GHOST_kStandardCursorSpray:
+      // Four-pointed arrow pointing north, south, east, and west
+      return ::LoadCursor(0, IDC_SIZEALL);
+    case GHOST_kStandardCursorWait:
+      // Hourglass
+      return ::LoadCursor(0, IDC_WAIT);
+    case GHOST_kStandardCursorText:
+      // I-beam
+      return ::LoadCursor(0, IDC_IBEAM);
+    case GHOST_kStandardCursorCrosshair:
+      // Crosshair
+      return ::LoadCursor(0, IDC_CROSS);
+    case GHOST_kStandardCursorUpDown:
+      // Double-pointed arrow pointing north and south
+      return ::LoadCursor(0, IDC_SIZENS);
+    case GHOST_kStandardCursorLeftRight:
+      // Double-pointed arrow pointing west and east
+      return ::LoadCursor(0, IDC_SIZEWE);
+    case GHOST_kStandardCursorTopSide:
+      // Vertical arrow
+      return ::LoadCursor(0, IDC_UPARROW);
+    case GHOST_kStandardCursorBottomSide:
+      return ::LoadCursor(0, IDC_SIZENS);
+    case GHOST_kStandardCursorLeftSide:
+      return ::LoadCursor(0, IDC_SIZEWE);
+    case GHOST_kStandardCursorTopLeftCorner:
+      return ::LoadCursor(0, IDC_SIZENWSE);
+    case GHOST_kStandardCursorTopRightCorner:
+      return ::LoadCursor(0, IDC_SIZENESW);
+    case GHOST_kStandardCursorBottomRightCorner:
+      return ::LoadCursor(0, IDC_SIZENWSE);
+    case GHOST_kStandardCursorBottomLeftCorner:
+      return ::LoadCursor(0, IDC_SIZENESW);
+    case GHOST_kStandardCursorPencil:
+      return ::LoadCursor(0, IDC_ARROW);
+    case GHOST_kStandardCursorCopy:
+      return ::LoadCursor(0, IDC_ARROW);
+    default:
+      return NULL;
+  }
+}
+
+void GHOST_WindowWin32::loadCursor(bool visible, GHOST_TStandardCursor shape) const
 {
   if (!visible) {
     while (::ShowCursor(FALSE) >= 0)
@@ -777,88 +848,11 @@ void GHOST_WindowWin32::loadCursor(bool visible, GHOST_TStandardCursor cursor) c
       ;
   }
 
-  if (cursor == GHOST_kStandardCursorCustom && m_customCursor) {
-    ::SetCursor(m_customCursor);
+  HCURSOR cursor = getStandardCursor(shape);
+  if (cursor == NULL) {
+    cursor = getStandardCursor(GHOST_kStandardCursorDefault);
   }
-  else {
-    // Convert GHOST cursor to Windows OEM cursor
-    bool success = true;
-    LPCSTR id;
-    switch (cursor) {
-      case GHOST_kStandardCursorDefault:
-        id = IDC_ARROW;
-        break;
-      case GHOST_kStandardCursorRightArrow:
-        id = IDC_ARROW;
-        break;
-      case GHOST_kStandardCursorLeftArrow:
-        id = IDC_ARROW;
-        break;
-      case GHOST_kStandardCursorInfo:
-        id = IDC_SIZEALL;
-        break;  // Four-pointed arrow pointing north, south, east, and west
-      case GHOST_kStandardCursorDestroy:
-        id = IDC_NO;
-        break;  // Slashed circle
-      case GHOST_kStandardCursorHelp:
-        id = IDC_HELP;
-        break;  // Arrow and question mark
-      case GHOST_kStandardCursorCycle:
-        id = IDC_NO;
-        break;  // Slashed circle
-      case GHOST_kStandardCursorSpray:
-        id = IDC_SIZEALL;
-        break;  // Four-pointed arrow pointing north, south, east, and west
-      case GHOST_kStandardCursorWait:
-        id = IDC_WAIT;
-        break;  // Hourglass
-      case GHOST_kStandardCursorText:
-        id = IDC_IBEAM;
-        break;  // I-beam
-      case GHOST_kStandardCursorCrosshair:
-        id = IDC_CROSS;
-        break;  // Crosshair
-      case GHOST_kStandardCursorUpDown:
-        id = IDC_SIZENS;
-        break;  // Double-pointed arrow pointing north and south
-      case GHOST_kStandardCursorLeftRight:
-        id = IDC_SIZEWE;
-        break;  // Double-pointed arrow pointing west and east
-      case GHOST_kStandardCursorTopSide:
-        id = IDC_UPARROW;
-        break;  // Vertical arrow
-      case GHOST_kStandardCursorBottomSide:
-        id = IDC_SIZENS;
-        break;
-      case GHOST_kStandardCursorLeftSide:
-        id = IDC_SIZEWE;
-        break;
-      case GHOST_kStandardCursorTopLeftCorner:
-        id = IDC_SIZENWSE;
-        break;
-      case GHOST_kStandardCursorTopRightCorner:
-        id = IDC_SIZENESW;
-        break;
-      case GHOST_kStandardCursorBottomRightCorner:
-        id = IDC_SIZENWSE;
-        break;
-      case GHOST_kStandardCursorBottomLeftCorner:
-        id = IDC_SIZENESW;
-        break;
-      case GHOST_kStandardCursorPencil:
-        id = IDC_ARROW;
-        break;
-      case GHOST_kStandardCursorCopy:
-        id = IDC_ARROW;
-        break;
-      default:
-        success = false;
-    }
-
-    if (success) {
-      ::SetCursor(::LoadCursor(0, id));
-    }
-  }
+  ::SetCursor(cursor);
 }
 
 GHOST_TSuccess GHOST_WindowWin32::setWindowCursorVisibility(bool visible)
@@ -908,16 +902,16 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 
 GHOST_TSuccess GHOST_WindowWin32::setWindowCursorShape(GHOST_TStandardCursor cursorShape)
 {
-  if (m_customCursor) {
-    DestroyCursor(m_customCursor);
-    m_customCursor = NULL;
-  }
-
   if (::GetForegroundWindow() == m_hWnd) {
     loadCursor(getCursorVisibility(), cursorShape);
   }
 
   return GHOST_kSuccess;
+}
+
+GHOST_TSuccess GHOST_WindowWin32::hasCursorShape(GHOST_TStandardCursor cursorShape)
+{
+  return (getStandardCursor(cursorShape)) ? GHOST_kSuccess : GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_WindowWin32::getPointerInfo(GHOST_PointerInfoWin32 *pointerInfo,

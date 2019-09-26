@@ -1284,77 +1284,94 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
   return NULL;
 }
 
-Cursor GHOST_WindowX11::getStandardCursor(GHOST_TStandardCursor g_cursor)
+GHOST_TSuccess GHOST_WindowX11::getStandardCursor(GHOST_TStandardCursor g_cursor, Cursor &xcursor)
 {
   unsigned int xcursor_id;
 
-#define GtoX(gcurs, xcurs) \
-  case gcurs: \
-    xcursor_id = xcurs
   switch (g_cursor) {
-    GtoX(GHOST_kStandardCursorRightArrow, XC_arrow);
-    break;
-    GtoX(GHOST_kStandardCursorLeftArrow, XC_top_left_arrow);
-    break;
-    GtoX(GHOST_kStandardCursorInfo, XC_hand1);
-    break;
-    GtoX(GHOST_kStandardCursorDestroy, XC_pirate);
-    break;
-    GtoX(GHOST_kStandardCursorHelp, XC_question_arrow);
-    break;
-    GtoX(GHOST_kStandardCursorCycle, XC_exchange);
-    break;
-    GtoX(GHOST_kStandardCursorSpray, XC_spraycan);
-    break;
-    GtoX(GHOST_kStandardCursorWait, XC_watch);
-    break;
-    GtoX(GHOST_kStandardCursorText, XC_xterm);
-    break;
-    GtoX(GHOST_kStandardCursorCrosshair, XC_crosshair);
-    break;
-    GtoX(GHOST_kStandardCursorUpDown, XC_sb_v_double_arrow);
-    break;
-    GtoX(GHOST_kStandardCursorLeftRight, XC_sb_h_double_arrow);
-    break;
-    GtoX(GHOST_kStandardCursorTopSide, XC_top_side);
-    break;
-    GtoX(GHOST_kStandardCursorBottomSide, XC_bottom_side);
-    break;
-    GtoX(GHOST_kStandardCursorLeftSide, XC_left_side);
-    break;
-    GtoX(GHOST_kStandardCursorRightSide, XC_right_side);
-    break;
-    GtoX(GHOST_kStandardCursorTopLeftCorner, XC_top_left_corner);
-    break;
-    GtoX(GHOST_kStandardCursorTopRightCorner, XC_top_right_corner);
-    break;
-    GtoX(GHOST_kStandardCursorBottomRightCorner, XC_bottom_right_corner);
-    break;
-    GtoX(GHOST_kStandardCursorBottomLeftCorner, XC_bottom_left_corner);
-    break;
-    GtoX(GHOST_kStandardCursorPencil, XC_pencil);
-    break;
-    GtoX(GHOST_kStandardCursorCopy, XC_arrow);
-    break;
+    case GHOST_kStandardCursorRightArrow:
+      xcursor_id = XC_arrow;
+      break;
+    case GHOST_kStandardCursorLeftArrow:
+      xcursor_id = XC_top_left_arrow;
+      break;
+    case GHOST_kStandardCursorInfo:
+      xcursor_id = XC_hand1;
+      break;
+    case GHOST_kStandardCursorDestroy:
+      xcursor_id = XC_pirate;
+      break;
+    case GHOST_kStandardCursorHelp:
+      xcursor_id = XC_question_arrow;
+      break;
+    case GHOST_kStandardCursorCycle:
+      xcursor_id = XC_exchange;
+      break;
+    case GHOST_kStandardCursorSpray:
+      xcursor_id = XC_spraycan;
+      break;
+    case GHOST_kStandardCursorWait:
+      xcursor_id = XC_watch;
+      break;
+    case GHOST_kStandardCursorText:
+      xcursor_id = XC_xterm;
+      break;
+    case GHOST_kStandardCursorCrosshair:
+      xcursor_id = XC_crosshair;
+      break;
+    case GHOST_kStandardCursorUpDown:
+      xcursor_id = XC_sb_v_double_arrow;
+      break;
+    case GHOST_kStandardCursorLeftRight:
+      xcursor_id = XC_sb_h_double_arrow;
+      break;
+    case GHOST_kStandardCursorTopSide:
+      xcursor_id = XC_top_side;
+      break;
+    case GHOST_kStandardCursorBottomSide:
+      xcursor_id = XC_bottom_side;
+      break;
+    case GHOST_kStandardCursorLeftSide:
+      xcursor_id = XC_left_side;
+      break;
+    case GHOST_kStandardCursorRightSide:
+      xcursor_id = XC_right_side;
+      break;
+    case GHOST_kStandardCursorTopLeftCorner:
+      xcursor_id = XC_top_left_corner;
+      break;
+    case GHOST_kStandardCursorTopRightCorner:
+      xcursor_id = XC_top_right_corner;
+      break;
+    case GHOST_kStandardCursorBottomRightCorner:
+      xcursor_id = XC_bottom_right_corner;
+      break;
+    case GHOST_kStandardCursorBottomLeftCorner:
+      xcursor_id = XC_bottom_left_corner;
+      break;
+    case GHOST_kStandardCursorPencil:
+      xcursor_id = XC_pencil;
+      break;
+    case GHOST_kStandardCursorCopy:
+      xcursor_id = XC_arrow;
+      break;
+    case GHOST_kStandardCursorDefault:
+      xcursor = None;
+      return GHOST_kSuccess;
     default:
-      xcursor_id = 0;
+      xcursor = None;
+      return GHOST_kFailure;
   }
-#undef GtoX
 
-  if (xcursor_id) {
-    Cursor xcursor = m_standard_cursors[xcursor_id];
+  xcursor = m_standard_cursors[xcursor_id];
 
-    if (!xcursor) {
-      xcursor = XCreateFontCursor(m_display, xcursor_id);
+  if (!xcursor) {
+    xcursor = XCreateFontCursor(m_display, xcursor_id);
 
-      m_standard_cursors[xcursor_id] = xcursor;
-    }
-
-    return xcursor;
+    m_standard_cursors[xcursor_id] = xcursor;
   }
-  else {
-    return None;
-  }
+
+  return GHOST_kSuccess;
 }
 
 Cursor GHOST_WindowX11::getEmptyCursor()
@@ -1380,10 +1397,12 @@ GHOST_TSuccess GHOST_WindowX11::setWindowCursorVisibility(bool visible)
   Cursor xcursor;
 
   if (visible) {
-    if (m_visible_cursor)
+    if (m_visible_cursor) {
       xcursor = m_visible_cursor;
-    else
-      xcursor = getStandardCursor(getCursorShape());
+    }
+    else if (getStandardCursor(getCursorShape(), xcursor) == GHOST_kFailure) {
+      getStandardCursor(getCursorShape(), xcursor);
+    }
   }
   else {
     xcursor = getEmptyCursor();
@@ -1463,7 +1482,10 @@ GHOST_TSuccess GHOST_WindowX11::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
 
 GHOST_TSuccess GHOST_WindowX11::setWindowCursorShape(GHOST_TStandardCursor shape)
 {
-  Cursor xcursor = getStandardCursor(shape);
+  Cursor xcursor;
+  if (getStandardCursor(shape, xcursor) == GHOST_kFailure) {
+    getStandardCursor(GHOST_kStandardCursorDefault, xcursor);
+  }
 
   m_visible_cursor = xcursor;
 
@@ -1471,6 +1493,12 @@ GHOST_TSuccess GHOST_WindowX11::setWindowCursorShape(GHOST_TStandardCursor shape
   XFlush(m_display);
 
   return GHOST_kSuccess;
+}
+
+GHOST_TSuccess GHOST_WindowX11::hasCursorShape(GHOST_TStandardCursor shape)
+{
+  Cursor xcursor;
+  return getStandardCursor(shape, xcursor);
 }
 
 GHOST_TSuccess GHOST_WindowX11::setWindowCustomCursorShape(GHOST_TUns8 *bitmap,
