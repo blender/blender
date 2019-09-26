@@ -1041,7 +1041,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
           if (BKE_screen_find_area_xy(sc, SPACE_TYPE_ANY, event->x, event->y) == sad->sa1) {
             /* Same area, so possible split. */
             WM_cursor_set(
-                win, (ELEM(sad->gesture_dir, 'n', 's')) ? WM_CURSOR_V_SPLIT : WM_CURSOR_H_SPLIT);
+                win, (ELEM(sad->gesture_dir, 'n', 's')) ? WM_CURSOR_H_SPLIT : WM_CURSOR_V_SPLIT);
             is_gesture = (delta_max > split_threshold);
           }
           else {
@@ -2119,7 +2119,7 @@ static void area_split_preview_update_cursor(bContext *C, wmOperator *op)
 {
   wmWindow *win = CTX_wm_window(C);
   int dir = RNA_enum_get(op->ptr, "direction");
-  WM_cursor_set(win, (dir == 'n' || dir == 's') ? WM_CURSOR_V_SPLIT : WM_CURSOR_H_SPLIT);
+  WM_cursor_set(win, (dir == 'n' || dir == 's') ? WM_CURSOR_H_SPLIT : WM_CURSOR_V_SPLIT);
 }
 
 /* UI callback, adds new handler */
