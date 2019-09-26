@@ -61,7 +61,9 @@ bool BKE_subdiv_eval_begin(Subdiv *subdiv)
   return true;
 }
 
-static void set_coarse_positions(Subdiv *subdiv, const Mesh *mesh)
+static void set_coarse_positions(Subdiv *subdiv,
+                                 const Mesh *mesh,
+                                 const float (*coarse_vertex_cos)[3])
 {
   const MVert *mvert = mesh->mvert;
   const MLoop *mloop = mesh->mloop;
@@ -83,8 +85,15 @@ static void set_coarse_positions(Subdiv *subdiv, const Mesh *mesh)
     if (!BLI_BITMAP_TEST_BOOL(vertex_used_map, vertex_index)) {
       continue;
     }
-    const MVert *vertex = &mvert[vertex_index];
-    subdiv->evaluator->setCoarsePositions(subdiv->evaluator, vertex->co, manifold_veretx_index, 1);
+    const float *vertex_co;
+    if (coarse_vertex_cos != NULL) {
+      vertex_co = coarse_vertex_cos[vertex_index];
+    }
+    else {
+      const MVert *vertex = &mvert[vertex_index];
+      vertex_co = vertex->co;
+    }
+    subdiv->evaluator->setCoarsePositions(subdiv->evaluator, vertex_co, manifold_veretx_index, 1);
     manifold_veretx_index++;
   }
   MEM_freeN(vertex_used_map);
@@ -112,7 +121,9 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
   }
 }
 
-bool BKE_subdiv_eval_update_from_mesh(Subdiv *subdiv, const Mesh *mesh)
+bool BKE_subdiv_eval_update_from_mesh(Subdiv *subdiv,
+                                      const Mesh *mesh,
+                                      const float (*coarse_vertex_cos)[3])
 {
   if (!BKE_subdiv_eval_begin(subdiv)) {
     return false;
@@ -123,7 +134,7 @@ bool BKE_subdiv_eval_update_from_mesh(Subdiv *subdiv, const Mesh *mesh)
     return false;
   }
   /* Set coordinates of base mesh vertices. */
-  set_coarse_positions(subdiv, mesh);
+  set_coarse_positions(subdiv, mesh, coarse_vertex_cos);
   /* Set face-varyign data to UV maps. */
   const int num_uv_layers = CustomData_number_of_layers(&mesh->ldata, CD_MLOOPUV);
   for (int layer_index = 0; layer_index < num_uv_layers; layer_index++) {

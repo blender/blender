@@ -1166,7 +1166,7 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   /* Make sure evaluator is up to date with possible new topology, and that
    * is is refined for the new positions of coarse vertices.
    */
-  if (!BKE_subdiv_eval_update_from_mesh(subdiv, coarse_mesh)) {
+  if (!BKE_subdiv_eval_update_from_mesh(subdiv, coarse_mesh, NULL)) {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
      * - Something totally bad happened, and OpenSubdiv rejected our

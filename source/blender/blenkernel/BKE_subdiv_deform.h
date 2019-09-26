@@ -29,7 +29,9 @@
 struct Mesh;
 struct Subdiv;
 
-/* Special version of subdivision surface which calculates final positions for coarse vertices. */
+/* Special version of subdivision surface which calculates final positions for coarse vertices.
+ *
+ * vertex_cos are supposed to hold coordinates of the coarse mesh. */
 void BKE_subdiv_deform_coarse_vertices(struct Subdiv *subdiv,
                                        const struct Mesh *coarse_mesh,
                                        float (*vertex_cos)[3],

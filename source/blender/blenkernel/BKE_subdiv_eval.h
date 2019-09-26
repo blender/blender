@@ -31,7 +31,12 @@ struct Subdiv;
 
 /* Returns true if evaluator is ready for use. */
 bool BKE_subdiv_eval_begin(struct Subdiv *subdiv);
-bool BKE_subdiv_eval_update_from_mesh(struct Subdiv *subdiv, const struct Mesh *mesh);
+
+/* coarse_vertex_cos is an optional argument which allows to override coordinates of the coarse
+ * mesh. */
+bool BKE_subdiv_eval_update_from_mesh(struct Subdiv *subdiv,
+                                      const struct Mesh *mesh,
+                                      const float (*coarse_vertex_cos)[3]);
 
 /* Makes sure displacement evaluator is initialized.
  *

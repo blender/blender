@@ -195,7 +195,7 @@ void BKE_subdiv_deform_coarse_vertices(struct Subdiv *subdiv,
   /* Make sure evaluator is up to date with possible new topology, and that
    * is is refined for the new positions of coarse vertices.
    */
-  if (!BKE_subdiv_eval_update_from_mesh(subdiv, coarse_mesh)) {
+  if (!BKE_subdiv_eval_update_from_mesh(subdiv, coarse_mesh, vertex_cos)) {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
      * - Something totally bad happened, and OpenSubdiv rejected our

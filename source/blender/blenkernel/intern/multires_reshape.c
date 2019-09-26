@@ -795,7 +795,7 @@ static Subdiv *multires_create_subdiv_for_reshape(struct Depsgraph *depsgraph,
   SubdivSettings subdiv_settings;
   BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
   Subdiv *subdiv = BKE_subdiv_new_from_mesh(&subdiv_settings, deformed_mesh);
-  if (!BKE_subdiv_eval_update_from_mesh(subdiv, deformed_mesh)) {
+  if (!BKE_subdiv_eval_update_from_mesh(subdiv, deformed_mesh, NULL)) {
     BKE_subdiv_free(subdiv);
     return NULL;
   }
