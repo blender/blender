@@ -90,7 +90,9 @@ float BKE_brush_sample_masktex(const struct Scene *scene,
 unsigned int *BKE_brush_gen_texture_cache(struct Brush *br, int half_side, bool use_secondary);
 
 /* radial control */
-struct ImBuf *BKE_brush_gen_radial_control_imbuf(struct Brush *br, bool secondary);
+struct ImBuf *BKE_brush_gen_radial_control_imbuf(struct Brush *br,
+                                                 bool secondary,
+                                                 bool display_gradient);
 
 /* unified strength size and color */
 

@@ -1261,7 +1261,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
   /* set various defaults */
   const float *outline_col = brush->add_col;
-  const float outline_alpha = 0.5f;
+  const float outline_alpha = 0.7f;
   float translation[2] = {x, y};
   float final_radius = (BKE_brush_size_get(scene, brush) * zoomx);
 
@@ -1434,7 +1434,11 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
           GPU_matrix_mul(cursor_trans);
           GPU_matrix_mul(cursor_rot);
           immUniformColor3fvAlpha(outline_col, outline_alpha);
-          imm_draw_circle_wire_3d(pos, 0, 0, rds, 40);
+          GPU_line_width(2.0f);
+          imm_draw_circle_wire_3d(pos, 0, 0, rds, 80);
+          GPU_line_width(1.0f);
+          immUniformColor3fvAlpha(outline_col, outline_alpha * 0.5f);
+          imm_draw_circle_wire_3d(pos, 0, 0, rds * clamp_f(brush->alpha, 0.0f, 1.0f), 80);
           GPU_matrix_pop();
 
           /* Update and draw dynamic mesh preview lines */
@@ -1467,7 +1471,15 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
           /* Draw default cursor when the mouse is not over the mesh or there are no supported
            * overlays active */
           GPU_line_width(1.0f);
-          imm_draw_circle_wire_3d(pos, translation[0], translation[1], final_radius, 40);
+          /* Reduce alpha to increase the contrast when the cursor is over the mesh */
+          immUniformColor3fvAlpha(outline_col, outline_alpha * 0.8);
+          imm_draw_circle_wire_3d(pos, translation[0], translation[1], final_radius, 80);
+          immUniformColor3fvAlpha(outline_col, outline_alpha * 0.35f);
+          imm_draw_circle_wire_3d(pos,
+                                  translation[0],
+                                  translation[1],
+                                  final_radius * clamp_f(brush->alpha, 0.0f, 1.0f),
+                                  80);
         }
       }
       else {

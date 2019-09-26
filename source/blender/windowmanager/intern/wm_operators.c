@@ -41,6 +41,7 @@
 #include "CLG_log.h"
 
 #include "DNA_ID.h"
+#include "DNA_brush_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
@@ -58,6 +59,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -1862,6 +1864,7 @@ typedef struct {
   StructRNA *image_id_srna;
   float initial_value, current_value, min_value, max_value;
   int initial_mouse[2];
+  int initial_co[2];
   int slow_mouse[2];
   bool slow_mode;
   Dial *dial;
@@ -1924,6 +1927,9 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
   rc->initial_mouse[0] = event->x;
   rc->initial_mouse[1] = event->y;
 
+  rc->initial_co[0] = event->x;
+  rc->initial_co[1] = event->y;
+
   switch (rc->subtype) {
     case PROP_NONE:
     case PROP_DISTANCE:
@@ -1935,7 +1941,7 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
              WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
       break;
     case PROP_FACTOR:
-      d[0] = (1 - rc->initial_value) * WM_RADIAL_CONTROL_DISPLAY_WIDTH +
+      d[0] = rc->initial_value * WM_RADIAL_CONTROL_DISPLAY_WIDTH +
              WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
       break;
     case PROP_ANGLE:
@@ -1962,8 +1968,10 @@ static void radial_control_set_tex(RadialControl *rc)
 
   switch (RNA_type_to_ID_code(rc->image_id_ptr.type)) {
     case ID_BR:
-      if ((ibuf = BKE_brush_gen_radial_control_imbuf(rc->image_id_ptr.data,
-                                                     rc->use_secondary_tex))) {
+      if ((ibuf = BKE_brush_gen_radial_control_imbuf(
+               rc->image_id_ptr.data,
+               rc->use_secondary_tex,
+               !ELEM(rc->subtype, PROP_NONE, PROP_PIXEL, PROP_DISTANCE)))) {
         glGenTextures(1, &rc->gltex);
         glBindTexture(GL_TEXTURE_2D, rc->gltex);
         glTexImage2D(
@@ -2061,6 +2069,22 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
   immUnbindProgram();
 }
 
+static void radial_control_paint_curve(uint pos, Brush *br, float radius, int line_segments)
+{
+  GPU_line_width(2.0f);
+  immUniformColor4f(0.8f, 0.8f, 0.8f, 0.85f);
+  float step = (radius * 2.0f) / (float)line_segments;
+  BKE_curvemapping_initialize(br->curve);
+  immBegin(GPU_PRIM_LINES, line_segments * 2);
+  for (int i = 0; i < line_segments; i++) {
+    float h1 = BKE_brush_curve_strength_clamped(br, fabsf((i * step) - radius), radius);
+    immVertex2f(pos, -radius + (i * step), h1 * radius);
+    float h2 = BKE_brush_curve_strength_clamped(br, fabsf(((i + 1) * step) - radius), radius);
+    immVertex2f(pos, -radius + ((i + 1) * step), h2 * radius);
+  }
+  immEnd();
+}
+
 static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void *customdata)
 {
   RadialControl *rc = customdata;
@@ -2094,7 +2118,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
       alpha = 0.75;
       break;
     case PROP_FACTOR:
-      r1 = (1 - rc->current_value) * WM_RADIAL_CONTROL_DISPLAY_WIDTH +
+      r1 = rc->current_value * WM_RADIAL_CONTROL_DISPLAY_WIDTH +
            WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
       r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
       rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
@@ -2115,9 +2139,17 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
       break;
   }
 
-  /* Keep cursor in the original place */
-  x = rc->initial_mouse[0];
-  y = rc->initial_mouse[1];
+  if (rc->subtype == PROP_ANGLE) {
+    /* Use the initial mouse position to draw the rotation preview. This avoids starting the
+     * rotation in a random direction */
+    x = rc->initial_mouse[0];
+    y = rc->initial_mouse[1];
+  }
+  else {
+    /* Keep cursor in the original place */
+    x = rc->initial_co[0];
+    y = rc->initial_co[1];
+  }
   GPU_matrix_translate_2f((float)x, (float)y);
 
   GPU_blend(true);
@@ -2141,7 +2173,6 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-  immUniformColor3fvAlpha(col, 0.5f);
 
   if (rc->subtype == PROP_ANGLE) {
     GPU_matrix_push();
@@ -2164,24 +2195,39 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
   }
 
   /* draw circles on top */
-  imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, r1, 40);
-  imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, r2, 40);
+  GPU_line_width(2.0f);
+  immUniformColor3fvAlpha(col, 0.8f);
+  imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, r1, 80);
+
+  GPU_line_width(1.0f);
+  immUniformColor3fvAlpha(col, 0.5f);
+  imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, r2, 80);
   if (rmin > 0.0f) {
-    imm_draw_circle_wire_2d(pos, 0.0, 0.0f, rmin, 40);
+    /* Inner fill circle to increase the contrast of the value */
+    float black[3] = {0.0f};
+    immUniformColor3fvAlpha(black, 0.2f);
+    imm_draw_circle_fill_2d(pos, 0.0, 0.0f, rmin, 80);
+
+    immUniformColor3fvAlpha(col, 0.5f);
+    imm_draw_circle_wire_2d(pos, 0.0, 0.0f, rmin, 80);
   }
+
+  /* draw curve falloff preview */
+  if (RNA_type_to_ID_code(rc->image_id_ptr.type) == ID_BR && rc->subtype == PROP_FACTOR) {
+    Brush *br = rc->image_id_ptr.data;
+    if (br) {
+      radial_control_paint_curve(pos, br, r2, 120);
+    }
+  }
+
   immUnbindProgram();
 
-  BLF_size(fontid, 1.5 * fstyle_points * U.pixelsize, U.dpi);
-  BLF_enable(fontid, BLF_SHADOW);
-  BLF_shadow(fontid, 3, (const float[4]){0.0f, 0.0f, 0.0f, 0.5f});
-  BLF_shadow_offset(fontid, 1, -1);
+  BLF_size(fontid, 1.75f * fstyle_points * U.pixelsize, U.dpi);
 
   /* draw value */
   BLF_width_and_height(fontid, str, strdrawlen, &strwidth, &strheight);
   BLF_position(fontid, -0.5f * strwidth, -0.5f * strheight, 0.0f);
   BLF_draw(fontid, str, strdrawlen);
-
-  BLF_disable(fontid, BLF_SHADOW);
 
   GPU_blend(false);
   GPU_line_smooth(false);
@@ -2633,6 +2679,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
               if (snap) {
                 new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
               }
+              /* Invert new value to increase the factor moving the mouse to the right */
+              new_value = 1 - new_value;
               break;
             case PROP_ANGLE:
               new_value = atan2f(delta[1], delta[0]) + (float)M_PI + angle_precision;
