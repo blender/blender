@@ -458,7 +458,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     /* Use the same tool icon color in the brush cursor */
-    for (Brush *brush = bmain->brushes.first; brush; brush = brush->id.next) {
+    for (brush = bmain->brushes.first; brush; brush = brush->id.next) {
       if (brush->sculpt_tool) {
         BKE_brush_sculpt_reset(brush);
       }

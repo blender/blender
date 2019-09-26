@@ -819,6 +819,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag |= BRUSH_DIR_IN;
       br->curve_preset = BRUSH_CURVE_POW4;
       br->spacing = 5;
+      break;
     case SCULPT_TOOL_CLAY:
       br->flag |= BRUSH_FRONTFACE;
       break;
