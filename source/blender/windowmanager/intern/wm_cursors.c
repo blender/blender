@@ -54,6 +54,7 @@ static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
     case WM_CURSOR_WAIT:
       return GHOST_kStandardCursorWait;
     case WM_CURSOR_EDIT:
+    case WM_CURSOR_CROSS:
       return GHOST_kStandardCursorCrosshair;
     case WM_CURSOR_X_MOVE:
       return GHOST_kStandardCursorLeftRight;
@@ -61,6 +62,48 @@ static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
       return GHOST_kStandardCursorUpDown;
     case WM_CURSOR_COPY:
       return GHOST_kStandardCursorCopy;
+    case WM_CURSOR_HAND:
+      return GHOST_kStandardCursorMove;
+    case WM_CURSOR_H_SPLIT:
+      return GHOST_kStandardCursorHorizontalSplit;
+    case WM_CURSOR_V_SPLIT:
+      return GHOST_kStandardCursorVerticalSplit;
+    case WM_CURSOR_STOP:
+      return GHOST_kStandardCursorStop;
+    case WM_CURSOR_KNIFE:
+      return GHOST_kStandardCursorKnife;
+    case WM_CURSOR_NSEW_SCROLL:
+      return GHOST_kStandardCursorNSEWScroll;
+    case WM_CURSOR_NS_SCROLL:
+      return GHOST_kStandardCursorNSScroll;
+    case WM_CURSOR_EW_SCROLL:
+      return GHOST_kStandardCursorEWScroll;
+    case WM_CURSOR_EYEDROPPER:
+      return GHOST_kStandardCursorEyedropper;
+    case WM_CURSOR_N_ARROW:
+      return GHOST_kStandardCursorUpArrow;
+    case WM_CURSOR_S_ARROW:
+      return GHOST_kStandardCursorDownArrow;
+    case WM_CURSOR_CROSSA:
+      return GHOST_kStandardCursorCrosshairA;
+    case WM_CURSOR_CROSSB:
+      return GHOST_kStandardCursorCrosshairB;
+    case WM_CURSOR_CROSSC:
+      return GHOST_kStandardCursorCrosshairC;
+    case WM_CURSOR_ERASER:
+      return GHOST_kStandardCursorEraser;
+    case WM_CURSOR_ZOOM_IN:
+      return GHOST_kStandardCursorZoomIn;
+    case WM_CURSOR_ZOOM_OUT:
+      return GHOST_kStandardCursorZoomOut;
+    case WM_CURSOR_TEXT_EDIT:
+      return GHOST_kStandardCursorText;
+    case WM_CURSOR_PAINT_BRUSH:
+      return GHOST_kStandardCursorPencil;
+    case WM_CURSOR_E_ARROW:
+      return GHOST_kStandardCursorRightArrow;
+    case WM_CURSOR_W_ARROW:
+      return GHOST_kStandardCursorLeftArrow;
     default:
       return GHOST_kStandardCursorCustom;
   }
@@ -113,20 +156,6 @@ void WM_cursor_set(wmWindow *win, int curs)
     GHOST_SetCursorVisibility(win->ghostwin, 0);
     return;
   }
-
-#ifdef _WIN32
-  /* the default win32 cross cursor is barely visible,
-   * only 1 pixel thick, use another one instead */
-  if (curs == WM_CURSOR_EDIT) {
-    curs = WM_CURSOR_CROSS;
-  }
-#else
-  /* in case of large cursor, also use custom cursor because
-   * large cursors don't work for system cursors */
-  if (U.curssize && curs == WM_CURSOR_EDIT) {
-    curs = WM_CURSOR_CROSS;
-  }
-#endif
 
   GHOST_SetCursorVisibility(win->ghostwin, 1);
 
