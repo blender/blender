@@ -1297,9 +1297,9 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
     if (ups->stroke_active && BKE_brush_use_size_pressure(scene, brush)) {
       imm_draw_circle_wire_2d(
           pos, translation[0], translation[1], final_radius * ups->size_pressure_value, 40);
+      /* outer at half alpha */
+      immUniformColor3fvAlpha(outline_col, outline_alpha * 0.5f);
     }
-    /* outer at half alpha */
-    immUniformColor3fvAlpha(outline_col, outline_alpha * 0.5f);
 
     GPU_line_width(1.0f);
     imm_draw_circle_wire_2d(pos, translation[0], translation[1], final_radius, 40);
