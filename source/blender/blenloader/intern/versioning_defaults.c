@@ -41,6 +41,7 @@
 #include "DNA_light_types.h"
 
 #include "BKE_appdir.h"
+#include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
@@ -285,6 +286,10 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
                        CURVEMAP_SLOPE_POSITIVE);
   }
 
+  if (ts->sculpt) {
+    ts->sculpt->paint.symmetry_flags |= PAINT_SYMMETRY_FEATHER;
+  }
+
   /* Correct default startup UV's. */
   Mesh *me = BLI_findstring(&bmain->meshes, "Cube", offsetof(ID, name) + 2);
   if (me && (me->totloop == 24) && (me->mloopuv != NULL)) {
@@ -422,6 +427,41 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     Brush *brush = BLI_findstring(&bmain->brushes, "Smear", offsetof(ID, name) + 2);
     if (brush) {
       brush->spacing = 3.0;
+    }
+
+    brush = BLI_findstring(&bmain->brushes, "Draw Sharp", offsetof(ID, name) + 2);
+    if (!brush) {
+      brush = BKE_brush_add(bmain, "Draw Sharp", OB_MODE_SCULPT);
+      id_us_min(&brush->id);
+      brush->sculpt_tool = SCULPT_TOOL_DRAW_SHARP;
+    }
+
+    brush = BLI_findstring(&bmain->brushes, "Elastic Deform", offsetof(ID, name) + 2);
+    if (!brush) {
+      brush = BKE_brush_add(bmain, "Elastic Defrom", OB_MODE_SCULPT);
+      id_us_min(&brush->id);
+      brush->sculpt_tool = SCULPT_TOOL_ELASTIC_DEFORM;
+    }
+
+    brush = BLI_findstring(&bmain->brushes, "Pose", offsetof(ID, name) + 2);
+    if (!brush) {
+      brush = BKE_brush_add(bmain, "Pose", OB_MODE_SCULPT);
+      id_us_min(&brush->id);
+      brush->sculpt_tool = SCULPT_TOOL_POSE;
+    }
+
+    brush = BLI_findstring(&bmain->brushes, "Simplify", offsetof(ID, name) + 2);
+    if (!brush) {
+      brush = BKE_brush_add(bmain, "Simplify", OB_MODE_SCULPT);
+      id_us_min(&brush->id);
+      brush->sculpt_tool = SCULPT_TOOL_SIMPLIFY;
+    }
+
+    /* Use the same tool icon color in the brush cursor */
+    for (Brush *brush = bmain->brushes.first; brush; brush = brush->id.next) {
+      if (brush->sculpt_tool) {
+        BKE_brush_sculpt_reset(brush);
+      }
     }
   }
 }

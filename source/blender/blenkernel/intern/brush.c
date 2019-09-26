@@ -812,11 +812,13 @@ void BKE_brush_sculpt_reset(Brush *br)
 
   /* Use the curve presets by default */
   br->curve_preset = BRUSH_CURVE_SMOOTH;
-  if (br->sculpt_tool == SCULPT_TOOL_DRAW_SHARP) {
-    br->curve_preset = BRUSH_CURVE_POW4;
-  }
 
+  /* Brush settings */
   switch (br->sculpt_tool) {
+    case SCULPT_TOOL_DRAW_SHARP:
+      br->flag |= BRUSH_DIR_IN;
+      br->curve_preset = BRUSH_CURVE_POW4;
+      br->spacing = 5;
     case SCULPT_TOOL_CLAY:
       br->flag |= BRUSH_FRONTFACE;
       break;
@@ -824,41 +826,9 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag |= BRUSH_DIR_IN;
       br->alpha = 0.25;
       break;
-    case SCULPT_TOOL_FILL:
-      br->add_col[1] = 1;
-      br->sub_col[0] = 0.25;
-      br->sub_col[1] = 1;
-      break;
-    case SCULPT_TOOL_FLATTEN:
-      br->add_col[1] = 1;
-      br->sub_col[0] = 0.25;
-      br->sub_col[1] = 1;
-      break;
-    case SCULPT_TOOL_INFLATE:
-      br->add_col[0] = 0.750000;
-      br->add_col[1] = 0.750000;
-      br->add_col[2] = 0.750000;
-      br->sub_col[0] = 0.250000;
-      br->sub_col[1] = 0.250000;
-      br->sub_col[2] = 0.250000;
-      break;
-    case SCULPT_TOOL_NUDGE:
-      br->add_col[0] = 0.250000;
-      br->add_col[1] = 1.000000;
-      br->add_col[2] = 0.250000;
-      break;
-    case SCULPT_TOOL_PINCH:
-      br->add_col[0] = 0.750000;
-      br->add_col[1] = 0.750000;
-      br->add_col[2] = 0.750000;
-      br->sub_col[0] = 0.250000;
-      br->sub_col[1] = 0.250000;
-      br->sub_col[2] = 0.250000;
-      break;
     case SCULPT_TOOL_SCRAPE:
-      br->add_col[1] = 1.000000;
-      br->sub_col[0] = 0.250000;
-      br->sub_col[1] = 1.000000;
+      br->alpha = 1.0f;
+      br->spacing = 7;
       break;
     case SCULPT_TOOL_ROTATE:
       br->alpha = 1.0;
@@ -866,22 +836,92 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_SMOOTH:
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->spacing = 5;
-      br->add_col[0] = 0.750000;
-      br->add_col[1] = 0.750000;
-      br->add_col[2] = 0.750000;
+      br->alpha = 0.7f;
       break;
-    case SCULPT_TOOL_GRAB:
-    case SCULPT_TOOL_ELASTIC_DEFORM:
-    case SCULPT_TOOL_POSE:
     case SCULPT_TOOL_SNAKE_HOOK:
     case SCULPT_TOOL_THUMB:
       br->size = 75;
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
-      br->add_col[0] = 0.250000;
-      br->add_col[1] = 1.000000;
-      br->add_col[2] = 0.250000;
+      break;
+    case SCULPT_TOOL_ELASTIC_DEFORM:
+      br->elastic_deform_volume_preservation = 0.4f;
+      br->elastic_deform_type = BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE;
+      br->flag &= ~BRUSH_ALPHA_PRESSURE;
+      br->flag &= ~BRUSH_SPACE;
+      br->flag &= ~BRUSH_SPACE_ATTEN;
+      break;
+    case SCULPT_TOOL_POSE:
+      br->flag &= ~BRUSH_ALPHA_PRESSURE;
+      br->flag &= ~BRUSH_SPACE;
+      br->flag &= ~BRUSH_SPACE_ATTEN;
+      break;
+    case SCULPT_TOOL_GRAB:
+      br->alpha = 0.4f;
+      br->size = 75;
+      br->flag &= ~BRUSH_ALPHA_PRESSURE;
+      br->flag &= ~BRUSH_SPACE;
+      br->flag &= ~BRUSH_SPACE_ATTEN;
+      break;
+    default:
+      break;
+  }
+
+  /* Cursor colors */
+  switch (br->sculpt_tool) {
+    case SCULPT_TOOL_DRAW:
+    case SCULPT_TOOL_DRAW_SHARP:
+    case SCULPT_TOOL_CLAY:
+    case SCULPT_TOOL_CLAY_STRIPS:
+    case SCULPT_TOOL_LAYER:
+    case SCULPT_TOOL_INFLATE:
+    case SCULPT_TOOL_BLOB:
+    case SCULPT_TOOL_CREASE:
+      br->add_col[0] = 0.65f;
+      br->add_col[1] = 0.85f;
+      br->add_col[2] = 0.9f;
+      br->sub_col[0] = 0.65f;
+      br->sub_col[1] = 0.85f;
+      br->sub_col[2] = 0.9f;
+      break;
+
+    case SCULPT_TOOL_SMOOTH:
+    case SCULPT_TOOL_FLATTEN:
+    case SCULPT_TOOL_FILL:
+    case SCULPT_TOOL_SCRAPE:
+      br->add_col[0] = 1.0f;
+      br->add_col[1] = 0.39f;
+      br->add_col[2] = 0.39f;
+      br->sub_col[0] = 1.0f;
+      br->sub_col[1] = 0.39f;
+      br->sub_col[2] = 0.39f;
+      break;
+
+    case SCULPT_TOOL_PINCH:
+    case SCULPT_TOOL_GRAB:
+    case SCULPT_TOOL_SNAKE_HOOK:
+    case SCULPT_TOOL_THUMB:
+    case SCULPT_TOOL_NUDGE:
+    case SCULPT_TOOL_ROTATE:
+    case SCULPT_TOOL_ELASTIC_DEFORM:
+    case SCULPT_TOOL_POSE:
+      br->add_col[0] = 1.0f;
+      br->add_col[1] = 1.0f;
+      br->add_col[2] = 0.39f;
+      br->sub_col[0] = 1.0f;
+      br->sub_col[1] = 1.0f;
+      br->sub_col[2] = 0.39f;
+      break;
+
+    case SCULPT_TOOL_SIMPLIFY:
+    case SCULPT_TOOL_MASK:
+      br->add_col[0] = 0.750000;
+      br->add_col[1] = 0.750000;
+      br->add_col[2] = 0.750000;
+      br->sub_col[0] = 0.750000;
+      br->sub_col[1] = 0.750000;
+      br->sub_col[2] = 0.750000;
       break;
     default:
       break;
