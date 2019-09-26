@@ -1272,6 +1272,9 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
     paint_calculate_rake_rotation(ups, brush, translation);
   }
 
+  /* draw overlay */
+  bool alpha_overlay_active = paint_draw_alpha_overlay(ups, brush, &vc, x, y, zoomx, mode);
+
   if (ups->draw_anchored) {
     final_radius = ups->anchored_size;
     copy_v2_fl2(translation,
@@ -1304,9 +1307,6 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
   else { /* 3d painting */
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-    /* draw overlay */
-    bool alpha_overlay_active = paint_draw_alpha_overlay(ups, brush, &vc, x, y, zoomx, mode);
 
     /* TODO: as sculpt and other paint modes are unified, this
      * special mode of drawing will go away */
