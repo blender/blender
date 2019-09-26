@@ -151,8 +151,7 @@ void PE_free_ptcache_edit(PTCacheEdit *edit)
   }
 
   if (edit->points) {
-    LOOP_POINTS
-    {
+    LOOP_POINTS {
       if (point->keys) {
         MEM_freeN(point->keys);
       }
@@ -382,10 +381,8 @@ void PE_hide_keys_time(Scene *scene, PTCacheEdit *edit, float cfra)
   KEY_K;
 
   if (pset->flag & PE_FADE_TIME && pset->selectmode == SCE_SELECT_POINT) {
-    LOOP_POINTS
-    {
-      LOOP_KEYS
-      {
+    LOOP_POINTS {
+      LOOP_KEYS {
         if (fabsf(cfra - *key->time) < pset->fade_frames) {
           key->flag &= ~PEK_HIDE;
         }
@@ -397,10 +394,8 @@ void PE_hide_keys_time(Scene *scene, PTCacheEdit *edit, float cfra)
     }
   }
   else {
-    LOOP_POINTS
-    {
-      LOOP_KEYS
-      {
+    LOOP_POINTS {
+      LOOP_KEYS {
         key->flag &= ~PEK_HIDE;
       }
     }
@@ -636,8 +631,7 @@ static bool point_is_selected(PTCacheEditPoint *point)
     return 0;
   }
 
-  LOOP_SELECTED_KEYS
-  {
+  LOOP_SELECTED_KEYS {
     return 1;
   }
 
@@ -687,8 +681,7 @@ static void for_mouse_hit_keys(PEData *data, ForKeyFunc func, const enum ePartic
   nearest_point = -1;
   nearest_key = -1;
 
-  LOOP_VISIBLE_POINTS
-  {
+  LOOP_VISIBLE_POINTS {
     if (pset->selectmode == SCE_SELECT_END) {
       if (point->totkey) {
         /* only do end keys */
@@ -710,8 +703,7 @@ static void for_mouse_hit_keys(PEData *data, ForKeyFunc func, const enum ePartic
     }
     else {
       /* do all keys */
-      LOOP_VISIBLE_KEYS
-      {
+      LOOP_VISIBLE_KEYS {
         if (flag & PSEL_NEAREST) {
           if (key_inside_circle(data, dist, KEY_WCO, &dist)) {
             nearest_point = p;
@@ -748,8 +740,7 @@ static void foreach_mouse_hit_point(PEData *data, ForHitPointFunc func, int sele
     selected = 0;
   }
 
-  LOOP_VISIBLE_POINTS
-  {
+  LOOP_VISIBLE_POINTS {
     if (pset->selectmode == SCE_SELECT_END) {
       if (point->totkey) {
         /* only do end keys */
@@ -765,8 +756,7 @@ static void foreach_mouse_hit_point(PEData *data, ForHitPointFunc func, int sele
     }
     else {
       /* do all keys */
-      LOOP_VISIBLE_KEYS
-      {
+      LOOP_VISIBLE_KEYS {
         if (selected == 0 || key->flag & PEK_SELECT) {
           float mouse_distance;
           if (key_inside_circle(data, data->rad, KEY_WCO, &mouse_distance)) {
@@ -826,8 +816,7 @@ static void foreach_mouse_hit_key_iter(void *__restrict iter_data_v,
     /* do all keys */
     PTCacheEditKey *key;
     int k;
-    LOOP_VISIBLE_KEYS
-    {
+    LOOP_VISIBLE_KEYS {
       if (selected == 0 || key->flag & PEK_SELECT) {
         float mouse_distance;
         if (key_inside_circle(data, data->rad, KEY_WCO, &mouse_distance)) {
@@ -869,8 +858,7 @@ static void foreach_selected_point(PEData *data, ForPointFunc func)
   PTCacheEdit *edit = data->edit;
   POINT_P;
 
-  LOOP_SELECTED_POINTS
-  {
+  LOOP_SELECTED_POINTS {
     func(data, p);
   }
 }
@@ -881,10 +869,8 @@ static void foreach_selected_key(PEData *data, ForKeyFunc func)
   POINT_P;
   KEY_K;
 
-  LOOP_VISIBLE_POINTS
-  {
-    LOOP_SELECTED_KEYS
-    {
+  LOOP_VISIBLE_POINTS {
+    LOOP_SELECTED_KEYS {
       func(data, p, k, true);
     }
   }
@@ -895,8 +881,7 @@ static void foreach_point(PEData *data, ForPointFunc func)
   PTCacheEdit *edit = data->edit;
   POINT_P;
 
-  LOOP_POINTS
-  {
+  LOOP_POINTS {
     func(data, p);
   }
 }
@@ -908,11 +893,9 @@ static int count_selected_keys(Scene *scene, PTCacheEdit *edit)
   KEY_K;
   int sel = 0;
 
-  LOOP_VISIBLE_POINTS
-  {
+  LOOP_VISIBLE_POINTS {
     if (pset->selectmode == SCE_SELECT_POINT) {
-      LOOP_SELECTED_KEYS
-      {
+      LOOP_SELECTED_KEYS {
         sel++;
       }
     }
@@ -1120,8 +1103,7 @@ static void PE_apply_mirror(Object *ob, ParticleSystem *psys)
 
   /* we delay settings the PARS_EDIT_RECALC for mirrored particles
    * to avoid doing mirror twice */
-  LOOP_POINTS
-  {
+  LOOP_POINTS {
     if (point->flag & PEP_EDIT_RECALC) {
       PE_mirror_particle(ob, psmd_eval->mesh_final, psys, psys->particles + p, NULL);
 
@@ -1131,8 +1113,7 @@ static void PE_apply_mirror(Object *ob, ParticleSystem *psys)
     }
   }
 
-  LOOP_POINTS
-  {
+  LOOP_POINTS {
     if (point->flag & PEP_EDIT_RECALC) {
       if (edit->mirror_cache[p] != -1) {
         edit->points[edit->mirror_cache[p]].flag |= PEP_EDIT_RECALC;
@@ -1176,13 +1157,11 @@ static void deflect_emitter_iter(void *__restrict iter_data_v,
   psys_mat_hair_to_object(
       object, psmd_eval->mesh_final, psys->part->from, psys->particles + iter, hairmat);
 
-  LOOP_KEYS
-  {
+  LOOP_KEYS {
     mul_m4_v3(hairmat, key->co);
   }
 
-  LOOP_KEYS
-  {
+  LOOP_KEYS {
     if (k == 0) {
       dist_1st = len_v3v3((key + 1)->co, key->co);
       dist_1st *= dist * emitterdist;
@@ -1218,8 +1197,7 @@ static void deflect_emitter_iter(void *__restrict iter_data_v,
 
   invert_m4_m4(hairimat, hairmat);
 
-  LOOP_KEYS
-  {
+  LOOP_KEYS {
     mul_m4_v3(hairimat, key->co);
   }
 }
@@ -1271,8 +1249,7 @@ static void apply_lengths_iter(void *__restrict iter_data_v,
   }
   PTCacheEditKey *key;
   int k;
-  LOOP_KEYS
-  {
+  LOOP_KEYS {
     if (k) {
       float dv1[3];
       sub_v3_v3v3(dv1, key->co, (key - 1)->co);
@@ -1390,8 +1367,7 @@ void recalc_lengths(PTCacheEdit *edit)
     return;
   }
 
-  LOOP_EDITED_POINTS
-  {
+  LOOP_EDITED_POINTS {
     key = point->keys;
     for (k = 0; k < point->totkey - 1; k++, key++) {
       key->length = len_v3v3(key->co, (key + 1)->co);
@@ -1471,8 +1447,7 @@ static void PE_update_selection(Depsgraph *depsgraph, Scene *scene, Object *ob, 
 
   /* flag all particles to be updated if not using flag */
   if (!useflag) {
-    LOOP_POINTS
-    {
+    LOOP_POINTS {
       point->flag |= PEP_EDIT_RECALC;
     }
   }
@@ -1480,11 +1455,9 @@ static void PE_update_selection(Depsgraph *depsgraph, Scene *scene, Object *ob, 
   /* flush edit key flag to hair key flag to preserve selection
    * on save */
   if (edit->psys) {
-    LOOP_POINTS
-    {
+    LOOP_POINTS {
       hkey = edit->psys->particles[p].hair;
-      LOOP_KEYS
-      {
+      LOOP_KEYS {
         hkey->editflag = key->flag;
         hkey++;
       }
@@ -1494,8 +1467,7 @@ static void PE_update_selection(Depsgraph *depsgraph, Scene *scene, Object *ob, 
   psys_cache_edit_paths(depsgraph, scene, ob, edit, CFRA, G.is_rendering);
 
   /* disable update flag */
-  LOOP_POINTS
-  {
+  LOOP_POINTS {
     point->flag &= ~PEP_EDIT_RECALC;
   }
 
@@ -1514,15 +1486,13 @@ void update_world_cos(Object *ob, PTCacheEdit *edit)
     return;
   }
 
-  LOOP_POINTS
-  {
+  LOOP_POINTS {
     if (!(psys->flag & PSYS_GLOBAL_HAIR)) {
       psys_mat_hair_to_global(
           ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, hairmat);
     }
 
-    LOOP_KEYS
-    {
+    LOOP_KEYS {
       copy_v3_v3(key->world_co, key->co);
       if (!(psys->flag & PSYS_GLOBAL_HAIR)) {
         mul_m4_v3(hairmat, key->world_co);
@@ -1544,10 +1514,8 @@ static void update_velocities(PTCacheEdit *edit)
 
   frs_sec = edit->pid.flag & PTCACHE_VEL_PER_SEC ? 25.0f : 1.0f;
 
-  LOOP_EDITED_POINTS
-  {
-    LOOP_KEYS
-    {
+  LOOP_EDITED_POINTS {
+    LOOP_KEYS {
       if (k == 0) {
         dfra = *(key + 1)->time - *key->time;
 
@@ -1608,8 +1576,7 @@ void PE_update_object(Depsgraph *depsgraph, Scene *scene, Object *ob, int usefla
 
   /* flag all particles to be updated if not using flag */
   if (!useflag) {
-    LOOP_POINTS
-    {
+    LOOP_POINTS {
       point->flag |= PEP_EDIT_RECALC;
     }
   }
@@ -1639,8 +1606,7 @@ void PE_update_object(Depsgraph *depsgraph, Scene *scene, Object *ob, int usefla
   psys_cache_edit_paths(depsgraph, scene, ob, edit, CFRA, G.is_rendering);
 
   /* disable update flag */
-  LOOP_POINTS
-  {
+  LOOP_POINTS {
     point->flag &= ~PEP_EDIT_RECALC;
   }
 
@@ -1695,8 +1661,7 @@ static void select_keys(PEData *data,
   PTCacheEditPoint *point = edit->points + point_index;
   KEY_K;
 
-  LOOP_KEYS
-  {
+  LOOP_KEYS {
     if (data->select) {
       key->flag |= PEK_SELECT;
     }
@@ -1796,10 +1761,8 @@ static int pe_select_all_exec(bContext *C, wmOperator *op)
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
-    LOOP_VISIBLE_POINTS
-    {
-      LOOP_SELECTED_KEYS
-      {
+    LOOP_VISIBLE_POINTS {
+      LOOP_SELECTED_KEYS {
         action = SEL_DESELECT;
         break;
       }
@@ -1811,10 +1774,8 @@ static int pe_select_all_exec(bContext *C, wmOperator *op)
   }
 
   bool changed = false;
-  LOOP_VISIBLE_POINTS
-  {
-    LOOP_VISIBLE_KEYS
-    {
+  LOOP_VISIBLE_POINTS {
+    LOOP_VISIBLE_KEYS {
       changed |= select_action_apply(point, key, action);
     }
   }
@@ -1859,10 +1820,8 @@ bool PE_mouse_particles(bContext *C, const int mval[2], bool extend, bool desele
   }
 
   if (!extend && !deselect && !toggle) {
-    LOOP_VISIBLE_POINTS
-    {
-      LOOP_SELECTED_KEYS
-      {
+    LOOP_VISIBLE_POINTS {
+      LOOP_SELECTED_KEYS {
         key->flag &= ~PEK_SELECT;
         point->flag |= PEP_EDIT_RECALC;
       }
@@ -2064,20 +2023,16 @@ static int select_random_exec(bContext *C, wmOperator *op)
 
   switch (type) {
     case RAN_HAIR:
-      LOOP_VISIBLE_POINTS
-      {
+      LOOP_VISIBLE_POINTS {
         int flag = ((BLI_rng_get_float(rng) < randfac) == select) ? SEL_SELECT : SEL_DESELECT;
-        LOOP_KEYS
-        {
+        LOOP_KEYS {
           data.is_changed |= select_action_apply(point, key, flag);
         }
       }
       break;
     case RAN_POINTS:
-      LOOP_VISIBLE_POINTS
-      {
-        LOOP_VISIBLE_KEYS
-        {
+      LOOP_VISIBLE_POINTS {
+        LOOP_VISIBLE_KEYS {
           int flag = ((BLI_rng_get_float(rng) < randfac) == select) ? SEL_SELECT : SEL_DESELECT;
           data.is_changed |= select_action_apply(point, key, flag);
         }
@@ -2176,10 +2131,8 @@ bool PE_deselect_all_visible_ex(PTCacheEdit *edit)
   POINT_P;
   KEY_K;
 
-  LOOP_VISIBLE_POINTS
-  {
-    LOOP_SELECTED_KEYS
-    {
+  LOOP_VISIBLE_POINTS {
+    LOOP_SELECTED_KEYS {
       if ((key->flag & PEK_SELECT) != 0) {
         key->flag &= ~PEK_SELECT;
         point->flag |= PEP_EDIT_RECALC;
@@ -2301,16 +2254,14 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, const
     data.is_changed |= PE_deselect_all_visible_ex(edit);
   }
 
-  LOOP_VISIBLE_POINTS
-  {
+  LOOP_VISIBLE_POINTS {
     if (edit->psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
       psys_mat_hair_to_global(
           ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
     }
 
     if (pset->selectmode == SCE_SELECT_POINT) {
-      LOOP_VISIBLE_KEYS
-      {
+      LOOP_VISIBLE_KEYS {
         copy_v3_v3(co, key->co);
         mul_m4_v3(mat, co);
         const bool is_select = key->flag & PEK_SELECT;
@@ -2369,25 +2320,21 @@ static int hide_exec(bContext *C, wmOperator *op)
   KEY_K;
 
   if (RNA_boolean_get(op->ptr, "unselected")) {
-    LOOP_UNSELECTED_POINTS
-    {
+    LOOP_UNSELECTED_POINTS {
       point->flag |= PEP_HIDE;
       point->flag |= PEP_EDIT_RECALC;
 
-      LOOP_KEYS
-      {
+      LOOP_KEYS {
         key->flag &= ~PEK_SELECT;
       }
     }
   }
   else {
-    LOOP_SELECTED_POINTS
-    {
+    LOOP_SELECTED_POINTS {
       point->flag |= PEP_HIDE;
       point->flag |= PEP_EDIT_RECALC;
 
-      LOOP_KEYS
-      {
+      LOOP_KEYS {
         key->flag &= ~PEK_SELECT;
       }
     }
@@ -2429,14 +2376,12 @@ static int reveal_exec(bContext *C, wmOperator *op)
   POINT_P;
   KEY_K;
 
-  LOOP_POINTS
-  {
+  LOOP_POINTS {
     if (point->flag & PEP_HIDE) {
       point->flag &= ~PEP_HIDE;
       point->flag |= PEP_EDIT_RECALC;
 
-      LOOP_KEYS
-      {
+      LOOP_KEYS {
         SET_FLAG_FROM_TEST(key->flag, select, PEK_SELECT);
       }
     }
@@ -2474,8 +2419,7 @@ static void select_less_keys(PEData *data, int point_index)
   PTCacheEditPoint *point = edit->points + point_index;
   KEY_K;
 
-  LOOP_SELECTED_KEYS
-  {
+  LOOP_SELECTED_KEYS {
     if (k == 0) {
       if (((key + 1)->flag & PEK_SELECT) == 0) {
         key->flag |= PEK_TAG;
@@ -2493,8 +2437,7 @@ static void select_less_keys(PEData *data, int point_index)
     }
   }
 
-  LOOP_KEYS
-  {
+  LOOP_KEYS {
     if ((key->flag & PEK_TAG) && (key->flag & PEK_SELECT)) {
       key->flag &= ~(PEK_TAG | PEK_SELECT);
       point->flag |= PEP_EDIT_RECALC; /* redraw selection only */
@@ -2539,8 +2482,7 @@ static void select_more_keys(PEData *data, int point_index)
   PTCacheEditPoint *point = edit->points + point_index;
   KEY_K;
 
-  LOOP_KEYS
-  {
+  LOOP_KEYS {
     if (key->flag & PEK_SELECT) {
       continue;
     }
@@ -2562,8 +2504,7 @@ static void select_more_keys(PEData *data, int point_index)
     }
   }
 
-  LOOP_KEYS
-  {
+  LOOP_KEYS {
     if ((key->flag & PEK_TAG) && (key->flag & PEK_SELECT) == 0) {
       key->flag &= ~PEK_TAG;
       key->flag |= PEK_SELECT;
@@ -2773,14 +2714,12 @@ static int remove_tagged_particles(Object *ob, ParticleSystem *psys, int mirror)
     /* mirror tags */
     psmd_eval = edit->psmd_eval;
 
-    LOOP_TAGGED_POINTS
-    {
+    LOOP_TAGGED_POINTS {
       PE_mirror_particle(ob, psmd_eval->mesh_final, psys, psys->particles + p, NULL);
     }
   }
 
-  LOOP_TAGGED_POINTS
-  {
+  LOOP_TAGGED_POINTS {
     new_totpart--;
     removed++;
   }
@@ -2865,21 +2804,17 @@ static void remove_tagged_keys(Depsgraph *depsgraph, Object *ob, ParticleSystem 
     ParticleSystemModifierData *psmd_eval = (ParticleSystemModifierData *)modifier_get_evaluated(
         depsgraph, ob, &psmd->modifier);
 
-    LOOP_POINTS
-    {
-      LOOP_TAGGED_KEYS
-      {
+    LOOP_POINTS {
+      LOOP_TAGGED_KEYS {
         PE_mirror_particle(ob, psmd_eval->mesh_final, psys, psys->particles + p, NULL);
         break;
       }
     }
   }
 
-  LOOP_POINTS
-  {
+  LOOP_POINTS {
     new_totkey = point->totkey;
-    LOOP_TAGGED_KEYS
-    {
+    LOOP_TAGGED_KEYS {
       new_totkey--;
     }
     /* we can't have elements with less than two keys*/
@@ -2889,13 +2824,11 @@ static void remove_tagged_keys(Depsgraph *depsgraph, Object *ob, ParticleSystem 
   }
   remove_tagged_particles(ob, psys, pe_x_mirror(ob));
 
-  LOOP_POINTS
-  {
+  LOOP_POINTS {
     pa = psys->particles + p;
     new_totkey = pa->totkey;
 
-    LOOP_TAGGED_KEYS
-    {
+    LOOP_TAGGED_KEYS {
       new_totkey--;
     }
 
@@ -2904,8 +2837,7 @@ static void remove_tagged_keys(Depsgraph *depsgraph, Object *ob, ParticleSystem 
       nkey = new_keys = MEM_callocN(new_totkey * sizeof(PTCacheEditKey), "particle edit keys");
 
       hkey = pa->hair;
-      LOOP_KEYS
-      {
+      LOOP_KEYS {
         while (key->flag & PEK_TAG && hkey < pa->hair + pa->totkey) {
           key++;
           hkey++;
@@ -3103,8 +3035,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
     tree = BLI_kdtree_3d_new(psys->totpart);
 
     /* insert particles into kd tree */
-    LOOP_SELECTED_POINTS
-    {
+    LOOP_SELECTED_POINTS {
       psys_mat_hair_to_object(
           ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
       copy_v3_v3(co, point->keys->co);
@@ -3115,8 +3046,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
     BLI_kdtree_3d_balance(tree);
 
     /* tag particles to be removed */
-    LOOP_SELECTED_POINTS
-    {
+    LOOP_SELECTED_POINTS {
       psys_mat_hair_to_object(
           ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
       copy_v3_v3(co, point->keys->co);
@@ -3198,12 +3128,10 @@ static int weight_set_exec(bContext *C, wmOperator *op)
   weight = brush->strength;
   edit = psys->edit;
 
-  LOOP_SELECTED_POINTS
-  {
+  LOOP_SELECTED_POINTS {
     ParticleData *pa = psys->particles + p;
 
-    LOOP_SELECTED_KEYS
-    {
+    LOOP_SELECTED_KEYS {
       hkey = pa->hair + k;
       hkey->weight = interpf(weight, hkey->weight, factor);
     }
@@ -3404,8 +3332,7 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
 
   totpart = psys->totpart;
   newtotpart = psys->totpart;
-  LOOP_VISIBLE_POINTS
-  {
+  LOOP_VISIBLE_POINTS {
     pa = psys->particles + p;
 
     if (!tagged) {
@@ -3521,8 +3448,7 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
     }
   }
 
-  LOOP_POINTS
-  {
+  LOOP_POINTS {
     point->flag &= ~PEP_TAG;
   }
 
@@ -3703,8 +3629,7 @@ static void brush_length(PEData *data, int point_index, float UNUSED(mouse_dista
   KEY_K;
   float dvec[3], pvec[3] = {0.0f, 0.0f, 0.0f};
 
-  LOOP_KEYS
-  {
+  LOOP_KEYS {
     if (k == 0) {
       copy_v3_v3(pvec, key->co);
     }
@@ -3753,8 +3678,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
     unit_m4(imat);
   }
 
-  LOOP_KEYS
-  {
+  LOOP_KEYS {
     float kco[3];
 
     if (k == 0) {
@@ -5121,15 +5045,13 @@ int PE_minmax(
     unit_m4(mat);
   }
 
-  LOOP_VISIBLE_POINTS
-  {
+  LOOP_VISIBLE_POINTS {
     if (psys) {
       psys_mat_hair_to_global(
           ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
     }
 
-    LOOP_SELECTED_KEYS
-    {
+    LOOP_SELECTED_KEYS {
       copy_v3_v3(co, key->co);
       mul_m4_v3(mat, co);
       DO_MINMAX(co, min, max);
@@ -5206,15 +5128,13 @@ void PE_create_particle_edit(
       BLI_listbase_clear(&edit->pathcachebufs);
 
       pa = psys->particles;
-      LOOP_POINTS
-      {
+      LOOP_POINTS {
         point->totkey = pa->totkey;
         point->keys = MEM_callocN(point->totkey * sizeof(PTCacheEditKey), "ParticleEditKeys");
         point->flag |= PEP_EDIT_RECALC;
 
         hkey = pa->hair;
-        LOOP_KEYS
-        {
+        LOOP_KEYS {
           key->co = hkey->co;
           key->time = &hkey->time;
           key->flag = hkey->editflag;
@@ -5242,8 +5162,7 @@ void PE_create_particle_edit(
       }
 
       for (pm = cache->mem_cache.first; pm; pm = pm->next) {
-        LOOP_POINTS
-        {
+        LOOP_POINTS {
           if (BKE_ptcache_mem_pointers_seek(p, pm) == 0) {
             continue;
           }
@@ -5446,8 +5365,7 @@ static float calculate_point_length(PTCacheEditPoint *point)
 {
   float length = 0.0f;
   KEY_K;
-  LOOP_KEYS
-  {
+  LOOP_KEYS {
     if (k > 0) {
       length += len_v3v3((key - 1)->co, key->co);
     }
@@ -5460,8 +5378,7 @@ static float calculate_average_length(PTCacheEdit *edit)
   int num_selected = 0;
   float total_length = 0;
   POINT_P;
-  LOOP_SELECTED_POINTS
-  {
+  LOOP_SELECTED_POINTS {
     total_length += calculate_point_length(point);
     num_selected++;
   }
@@ -5475,8 +5392,7 @@ static void scale_point_factor(PTCacheEditPoint *point, float factor)
 {
   float orig_prev_co[3], prev_co[3];
   KEY_K;
-  LOOP_KEYS
-  {
+  LOOP_KEYS {
     if (k == 0) {
       copy_v3_v3(orig_prev_co, key->co);
       copy_v3_v3(prev_co, key->co);
@@ -5509,8 +5425,7 @@ static void scale_point_to_length(PTCacheEditPoint *point, float length)
 static void scale_points_to_length(PTCacheEdit *edit, float length)
 {
   POINT_P;
-  LOOP_SELECTED_POINTS
-  {
+  LOOP_SELECTED_POINTS {
     scale_point_to_length(point, length);
   }
   recalc_lengths(edit);

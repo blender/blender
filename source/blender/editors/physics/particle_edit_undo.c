@@ -109,8 +109,7 @@ static void undoptcache_to_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
   POINT_P;
   KEY_K;
 
-  LOOP_POINTS
-  {
+  LOOP_POINTS {
     if (psys && psys->particles[p].hair) {
       MEM_freeN(psys->particles[p].hair);
     }
@@ -133,8 +132,7 @@ static void undoptcache_to_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
   edit->points = MEM_dupallocN(undo->points);
   edit->totpoint = undo->totpoint;
 
-  LOOP_POINTS
-  {
+  LOOP_POINTS {
     point->keys = MEM_dupallocN(point->keys);
   }
 
@@ -143,13 +141,11 @@ static void undoptcache_to_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
 
     psys->totpart = undo->totpoint;
 
-    LOOP_POINTS
-    {
+    LOOP_POINTS {
       pa = psys->particles + p;
       hkey = pa->hair = MEM_dupallocN(pa->hair);
 
-      LOOP_KEYS
-      {
+      LOOP_KEYS {
         key->co = hkey->co;
         key->time = &hkey->time;
         hkey++;
@@ -174,10 +170,8 @@ static void undoptcache_to_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
       }
       BKE_ptcache_mem_pointers_init(pm);
 
-      LOOP_POINTS
-      {
-        LOOP_KEYS
-        {
+      LOOP_POINTS {
+        LOOP_KEYS {
           if ((int)key->ftime == (int)pm->frame) {
             key->co = pm->cur[BPHYS_DATA_LOCATION];
             key->vel = pm->cur[BPHYS_DATA_VELOCITY];

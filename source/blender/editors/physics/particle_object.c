@@ -1017,13 +1017,11 @@ static void copy_particle_edit(Depsgraph *depsgraph,
 
   edit->points = MEM_dupallocN(edit_from->points);
   pa = psys->particles;
-  LOOP_POINTS
-  {
+  LOOP_POINTS {
     HairKey *hkey = pa->hair;
 
     point->keys = MEM_dupallocN(point->keys);
-    LOOP_KEYS
-    {
+    LOOP_KEYS {
       key->co = hkey->co;
       key->time = &hkey->time;
       key->flag = hkey->editflag;
