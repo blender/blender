@@ -89,7 +89,6 @@ typedef struct EDIT_MESH_PassList {
 
 typedef struct EDIT_MESH_FramebufferList {
   struct GPUFrameBuffer *occlude_wire_fb;
-  struct GPUFrameBuffer *ghost_wire_fb;
 } EDIT_MESH_FramebufferList;
 
 typedef struct EDIT_MESH_StorageList {
