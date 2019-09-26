@@ -942,8 +942,10 @@ NSCursor *GHOST_WindowCocoa::getStandardCursor(GHOST_TStandardCursor shape) cons
     case GHOST_kStandardCursorCrosshair:
       return [NSCursor crosshairCursor];
     case GHOST_kStandardCursorUpDown:
+    case GHOST_kStandardCursorHorizontalSplit:
       return [NSCursor resizeUpDownCursor];
     case GHOST_kStandardCursorLeftRight:
+    case GHOST_kStandardCursorVerticalSplit:
       return [NSCursor resizeLeftRightCursor];
     case GHOST_kStandardCursorTopSide:
       return [NSCursor resizeUpCursor];
@@ -953,18 +955,12 @@ NSCursor *GHOST_WindowCocoa::getStandardCursor(GHOST_TStandardCursor shape) cons
       return [NSCursor resizeLeftCursor];
     case GHOST_kStandardCursorRightSide:
       return [NSCursor resizeRightCursor];
-    case GHOST_kStandardCursorRightArrow:
-    case GHOST_kStandardCursorInfo:
-    case GHOST_kStandardCursorLeftArrow:
-    case GHOST_kStandardCursorHelp:
-    case GHOST_kStandardCursorCycle:
-    case GHOST_kStandardCursorSpray:
-    case GHOST_kStandardCursorWait:
-    case GHOST_kStandardCursorTopLeftCorner:
-    case GHOST_kStandardCursorTopRightCorner:
-    case GHOST_kStandardCursorBottomRightCorner:
-    case GHOST_kStandardCursorBottomLeftCorner:
     case GHOST_kStandardCursorCopy:
+      return [NSCursor dragCopyCursor];
+    case GHOST_kStandardCursorStop:
+      return [NSCursor operationNotAllowedCursor];
+    case GHOST_kStandardCursorMove:
+      return [NSCursor pointingHandCursor];
     case GHOST_kStandardCursorDefault:
       return [NSCursor arrowCursor];
     default:

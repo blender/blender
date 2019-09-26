@@ -769,6 +769,11 @@ void GHOST_WindowWin32::registerMouseClickEvent(int press)
 HCURSOR GHOST_WindowWin32::getStandardCursor(GHOST_TStandardCursor shape) const
 {
   // Convert GHOST cursor to Windows OEM cursor
+  HANDLE cursor = NULL;
+  HMODULE module = ::GetModuleHandle(0);
+  GHOST_TUns32 flags = LR_SHARED | LR_DEFAULTSIZE;
+  int cx = 0, cy = 0;
+
   switch (shape) {
     case GHOST_kStandardCursorCustom:
       if (m_customCursor) {
@@ -777,64 +782,114 @@ HCURSOR GHOST_WindowWin32::getStandardCursor(GHOST_TStandardCursor shape) const
       else {
         return NULL;
       }
-    case GHOST_kStandardCursorDefault:
-      return ::LoadCursor(0, IDC_ARROW);
     case GHOST_kStandardCursorRightArrow:
-      return ::LoadCursor(0, IDC_ARROW);
+      cursor = ::LoadImage(module, "arrowright_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
     case GHOST_kStandardCursorLeftArrow:
-      return ::LoadCursor(0, IDC_ARROW);
-    case GHOST_kStandardCursorInfo:
-      // Four-pointed arrow pointing north, south, east, and west
-      return ::LoadCursor(0, IDC_SIZEALL);
-    case GHOST_kStandardCursorDestroy:
-      // Slashed circle
-      return ::LoadCursor(0, IDC_NO);
+      cursor = ::LoadImage(module, "arrowleft_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
+    case GHOST_kStandardCursorUpArrow:
+      cursor = ::LoadImage(module, "arrowup_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
+    case GHOST_kStandardCursorDownArrow:
+      cursor = ::LoadImage(module, "arrowdown_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
+    case GHOST_kStandardCursorVerticalSplit:
+      cursor = ::LoadImage(module, "splitv_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
+    case GHOST_kStandardCursorHorizontalSplit:
+      cursor = ::LoadImage(module, "splith_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
+    case GHOST_kStandardCursorKnife:
+      cursor = ::LoadImage(module, "knife_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
+    case GHOST_kStandardCursorEyedropper:
+      cursor = ::LoadImage(module, "eyedropper_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
+    case GHOST_kStandardCursorZoomIn:
+      cursor = ::LoadImage(module, "zoomin_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
+    case GHOST_kStandardCursorZoomOut:
+      cursor = ::LoadImage(module, "zoomout_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
+    case GHOST_kStandardCursorMove:
+      cursor = ::LoadImage(module, "handopen_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
+    case GHOST_kStandardCursorNSEWScroll:
+      cursor = ::LoadImage(module, "scrollnsew_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
+    case GHOST_kStandardCursorNSScroll:
+      cursor = ::LoadImage(module, "scrollns_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
+    case GHOST_kStandardCursorEWScroll:
+      cursor = ::LoadImage(module, "scrollew_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
     case GHOST_kStandardCursorHelp:
-      // Arrow and question mark
-      return ::LoadCursor(0, IDC_HELP);
-    case GHOST_kStandardCursorCycle:
-      // Slashed circle
-      return ::LoadCursor(0, IDC_NO);
-    case GHOST_kStandardCursorSpray:
-      // Four-pointed arrow pointing north, south, east, and west
-      return ::LoadCursor(0, IDC_SIZEALL);
+      cursor = ::LoadImage(NULL, IDC_HELP, IMAGE_CURSOR, cx, cy, flags);
+      break;  // Arrow and question mark
     case GHOST_kStandardCursorWait:
-      // Hourglass
-      return ::LoadCursor(0, IDC_WAIT);
+      cursor = ::LoadImage(NULL, IDC_WAIT, IMAGE_CURSOR, cx, cy, flags);
+      break;  // Hourglass
     case GHOST_kStandardCursorText:
-      // I-beam
-      return ::LoadCursor(0, IDC_IBEAM);
+      cursor = ::LoadImage(NULL, IDC_IBEAM, IMAGE_CURSOR, cx, cy, flags);
+      break;  // I-beam
     case GHOST_kStandardCursorCrosshair:
-      // Crosshair
-      return ::LoadCursor(0, IDC_CROSS);
-    case GHOST_kStandardCursorUpDown:
-      // Double-pointed arrow pointing north and south
-      return ::LoadCursor(0, IDC_SIZENS);
-    case GHOST_kStandardCursorLeftRight:
-      // Double-pointed arrow pointing west and east
-      return ::LoadCursor(0, IDC_SIZEWE);
-    case GHOST_kStandardCursorTopSide:
-      // Vertical arrow
-      return ::LoadCursor(0, IDC_UPARROW);
+      cursor = ::LoadImage(module, "cross_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;  // Standard Cross
+    case GHOST_kStandardCursorCrosshairA:
+      cursor = ::LoadImage(module, "crossA_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;  // Crosshair A
+    case GHOST_kStandardCursorCrosshairB:
+      cursor = ::LoadImage(module, "crossB_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;  // Diagonal Crosshair B
+    case GHOST_kStandardCursorCrosshairC:
+      cursor = ::LoadImage(module, "crossC_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;  // Minimal Crosshair C
     case GHOST_kStandardCursorBottomSide:
-      return ::LoadCursor(0, IDC_SIZENS);
+    case GHOST_kStandardCursorUpDown:
+      cursor = ::LoadImage(module, "movens_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;  // Double-pointed arrow pointing north and south
     case GHOST_kStandardCursorLeftSide:
-      return ::LoadCursor(0, IDC_SIZEWE);
+    case GHOST_kStandardCursorLeftRight:
+      cursor = ::LoadImage(module, "moveew_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;  // Double-pointed arrow pointing west and east
+    case GHOST_kStandardCursorTopSide:
+      cursor = ::LoadImage(NULL, IDC_UPARROW, IMAGE_CURSOR, cx, cy, flags);
+      break;  // Vertical arrow
     case GHOST_kStandardCursorTopLeftCorner:
-      return ::LoadCursor(0, IDC_SIZENWSE);
+      cursor = ::LoadImage(NULL, IDC_SIZENWSE, IMAGE_CURSOR, cx, cy, flags);
+      break;
     case GHOST_kStandardCursorTopRightCorner:
-      return ::LoadCursor(0, IDC_SIZENESW);
+      cursor = ::LoadImage(NULL, IDC_SIZENESW, IMAGE_CURSOR, cx, cy, flags);
+      break;
     case GHOST_kStandardCursorBottomRightCorner:
-      return ::LoadCursor(0, IDC_SIZENWSE);
+      cursor = ::LoadImage(NULL, IDC_SIZENWSE, IMAGE_CURSOR, cx, cy, flags);
+      break;
     case GHOST_kStandardCursorBottomLeftCorner:
-      return ::LoadCursor(0, IDC_SIZENESW);
+      cursor = ::LoadImage(NULL, IDC_SIZENESW, IMAGE_CURSOR, cx, cy, flags);
+      break;
     case GHOST_kStandardCursorPencil:
-      return ::LoadCursor(0, IDC_ARROW);
-    case GHOST_kStandardCursorCopy:
-      return ::LoadCursor(0, IDC_ARROW);
+      cursor = ::LoadImage(module, "pencil_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
+    case GHOST_kStandardCursorEraser:
+      cursor = ::LoadImage(module, "eraser_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;
+    case GHOST_kStandardCursorDestroy:
+    case GHOST_kStandardCursorStop:
+      cursor = ::LoadImage(module, "forbidden_cursor", IMAGE_CURSOR, cx, cy, flags);
+      break;  // Slashed circle
+    case GHOST_kStandardCursorDefault:
+      cursor = NULL;
+      break;
     default:
       return NULL;
   }
+
+  if (cursor == NULL) {
+    cursor = ::LoadImage(NULL, IDC_ARROW, IMAGE_CURSOR, cx, cy, flags);
+  }
+
+  return (HCURSOR)cursor;
 }
 
 void GHOST_WindowWin32::loadCursor(bool visible, GHOST_TStandardCursor shape) const

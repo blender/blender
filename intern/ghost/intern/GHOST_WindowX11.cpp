@@ -1289,26 +1289,8 @@ GHOST_TSuccess GHOST_WindowX11::getStandardCursor(GHOST_TStandardCursor g_cursor
   unsigned int xcursor_id;
 
   switch (g_cursor) {
-    case GHOST_kStandardCursorRightArrow:
-      xcursor_id = XC_arrow;
-      break;
-    case GHOST_kStandardCursorLeftArrow:
-      xcursor_id = XC_top_left_arrow;
-      break;
-    case GHOST_kStandardCursorInfo:
-      xcursor_id = XC_hand1;
-      break;
-    case GHOST_kStandardCursorDestroy:
-      xcursor_id = XC_pirate;
-      break;
     case GHOST_kStandardCursorHelp:
       xcursor_id = XC_question_arrow;
-      break;
-    case GHOST_kStandardCursorCycle:
-      xcursor_id = XC_exchange;
-      break;
-    case GHOST_kStandardCursorSpray:
-      xcursor_id = XC_spraycan;
       break;
     case GHOST_kStandardCursorWait:
       xcursor_id = XC_watch;
@@ -1348,12 +1330,6 @@ GHOST_TSuccess GHOST_WindowX11::getStandardCursor(GHOST_TStandardCursor g_cursor
       break;
     case GHOST_kStandardCursorBottomLeftCorner:
       xcursor_id = XC_bottom_left_corner;
-      break;
-    case GHOST_kStandardCursorPencil:
-      xcursor_id = XC_pencil;
-      break;
-    case GHOST_kStandardCursorCopy:
-      xcursor_id = XC_arrow;
       break;
     case GHOST_kStandardCursorDefault:
       xcursor = None;
