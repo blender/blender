@@ -115,6 +115,11 @@ void BKE_shrinkwrap_mesh_nearest_surface_deform(struct bContext *C,
                                                 struct Object *ob_source,
                                                 struct Object *ob_target);
 
+/* Used in object_remesh.c to preserve the details and volume in the voxel remesher */
+void BKE_shrinkwrap_remesh_target_project(struct Mesh *src_me,
+                                          struct Mesh *target_me,
+                                          struct Object *ob_target);
+
 /*
  * This function casts a ray in the given BVHTree.
  * but it takes into consideration the space_transform, that is:

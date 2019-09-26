@@ -1506,3 +1506,37 @@ void BKE_shrinkwrap_mesh_nearest_surface_deform(struct bContext *C,
 
   MEM_freeN(vertexCos);
 }
+
+void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object *ob_target)
+{
+  ShrinkwrapModifierData ssmd = {0};
+  int totvert;
+
+  ssmd.target = ob_target;
+  ssmd.shrinkType = MOD_SHRINKWRAP_TARGET_PROJECT;
+  ssmd.shrinkMode = MOD_SHRINKWRAP_ON_SURFACE;
+  ssmd.keepDist = 0.0f;
+
+  float(*vertexCos)[3] = BKE_mesh_vert_coords_alloc(src_me, &totvert);
+
+  ShrinkwrapCalcData calc = NULL_ShrinkwrapCalcData;
+
+  calc.smd = &ssmd;
+  calc.numVerts = src_me->totvert;
+  calc.vertexCos = vertexCos;
+  calc.vgroup = -1;
+  calc.target = target_me;
+  calc.keepDist = ssmd.keepDist;
+  BLI_SPACE_TRANSFORM_SETUP(&calc.local2target, ob_target, ob_target);
+
+  ShrinkwrapTreeData tree;
+  if (BKE_shrinkwrap_init_tree(&tree, calc.target, ssmd.shrinkType, ssmd.shrinkMode, false)) {
+    calc.tree = &tree;
+    TIMEIT_BENCH(shrinkwrap_calc_nearest_surface_point(&calc), deform_surface);
+    BKE_shrinkwrap_free_tree(&tree);
+  }
+
+  BKE_mesh_vert_coords_apply(src_me, vertexCos);
+
+  MEM_freeN(vertexCos);
+}

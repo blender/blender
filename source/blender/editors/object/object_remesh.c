@@ -42,10 +42,13 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
+#include "BKE_library.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_shrinkwrap.h"
 #include "BKE_customdata.h"
 #include "BKE_mesh_remesh_voxel.h"
 
@@ -112,22 +115,21 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Mesh *obj_mesh_copy = NULL;
+  if (mesh->flag & ME_REMESH_FIX_POLES) {
+    new_mesh = BKE_mesh_remesh_voxel_fix_poles(new_mesh);
+  }
+
+  if (mesh->flag & ME_REMESH_REPROJECT_VOLUME) {
+    BKE_mesh_runtime_clear_geometry(mesh);
+    BKE_shrinkwrap_remesh_target_project(new_mesh, mesh, ob);
+  }
+
   if (mesh->flag & ME_REMESH_REPROJECT_PAINT_MASK) {
-    obj_mesh_copy = BKE_mesh_new_nomain_from_template(mesh, mesh->totvert, 0, 0, 0, 0);
-    CustomData_copy(
-        &mesh->vdata, &obj_mesh_copy->vdata, CD_MASK_MESH.vmask, CD_DUPLICATE, mesh->totvert);
-    for (int i = 0; i < mesh->totvert; i++) {
-      copy_v3_v3(obj_mesh_copy->mvert[i].co, mesh->mvert[i].co);
-    }
+    BKE_mesh_runtime_clear_geometry(mesh);
+    BKE_remesh_reproject_paint_mask(new_mesh, mesh);
   }
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
-
-  if (mesh->flag & ME_REMESH_REPROJECT_PAINT_MASK) {
-    BKE_remesh_reproject_paint_mask(mesh, obj_mesh_copy);
-    BKE_mesh_free(obj_mesh_copy);
-  }
 
   if (mesh->flag & ME_REMESH_SMOOTH_NORMALS) {
     BKE_mesh_smooth_flag_set(ob->data, true);
@@ -264,22 +266,12 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
     ED_sculpt_undo_geometry_begin(ob);
   }
 
-  Mesh *obj_mesh_copy = NULL;
   if (qj->preserve_paint_mask) {
-    obj_mesh_copy = BKE_mesh_new_nomain_from_template(mesh, mesh->totvert, 0, 0, 0, 0);
-    CustomData_copy(
-        &mesh->vdata, &obj_mesh_copy->vdata, CD_MASK_MESH.vmask, CD_DUPLICATE, mesh->totvert);
-    for (int i = 0; i < mesh->totvert; i++) {
-      copy_v3_v3(obj_mesh_copy->mvert[i].co, mesh->mvert[i].co);
-    }
+    BKE_mesh_runtime_clear_geometry(mesh);
+    BKE_remesh_reproject_paint_mask(new_mesh, mesh);
   }
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
-
-  if (qj->preserve_paint_mask) {
-    BKE_remesh_reproject_paint_mask(mesh, obj_mesh_copy);
-    BKE_mesh_free(obj_mesh_copy);
-  }
 
   if (qj->smooth_normals) {
     BKE_mesh_smooth_flag_set(ob->data, true);

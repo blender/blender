@@ -34,6 +34,7 @@
     .smoothresh = DEG2RADF(30), \
     .texflag = ME_AUTOSPACE, \
     .remesh_voxel_size = 0.1f, \
+    .flag = ME_REMESH_FIX_POLES | ME_REMESH_REPROJECT_VOLUME, \
   }
 
 /** \} */

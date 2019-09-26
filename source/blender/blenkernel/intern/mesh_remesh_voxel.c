@@ -38,12 +38,15 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_library.h"
 #include "BKE_customdata.h"
 #include "BKE_bvhutils.h"
 #include "BKE_mesh_remesh_voxel.h" /* own include */
+
+#include "bmesh_tools.h"
 
 #ifdef WITH_OPENVDB
 #  include "openvdb_capi.h"
@@ -347,4 +350,107 @@ void BKE_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
     }
   }
   free_bvhtree_from_mesh(&bvhtree);
+}
+
+struct Mesh *BKE_mesh_remesh_voxel_fix_poles(struct Mesh *mesh)
+{
+  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
+  BMesh *bm;
+  bm = BM_mesh_create(&allocsize,
+                      &((struct BMeshCreateParams){
+                          .use_toolflags = true,
+                      }));
+
+  BM_mesh_bm_from_me(bm,
+                     mesh,
+                     (&(struct BMeshFromMeshParams){
+                         .calc_face_normal = true,
+                     }));
+
+  BMVert *v;
+  BMEdge *ed, *ed_next;
+  BMFace *f, *f_next;
+  BMIter iter_a, iter_b;
+
+  /* Merge 3 edge poles vertices that exist in the same face */
+  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+  BM_ITER_MESH_MUTABLE (f, f_next, &iter_a, bm, BM_FACES_OF_MESH) {
+    BMVert *v1, *v2;
+    v1 = NULL;
+    v2 = NULL;
+    BM_ITER_ELEM (v, &iter_b, f, BM_VERTS_OF_FACE) {
+      if (BM_vert_edge_count(v) == 3) {
+        if (v1) {
+          v2 = v;
+        }
+        else {
+          v1 = v;
+        }
+      }
+    }
+    if (v1 && v2 && (v1 != v2) && !BM_edge_exists(v1, v2)) {
+      BM_face_kill(bm, f);
+      BMEdge *e = BM_edge_create(bm, v1, v2, NULL, BM_CREATE_NOP);
+      BM_elem_flag_set(e, BM_ELEM_TAG, true);
+    }
+  }
+
+  BM_ITER_MESH_MUTABLE (ed, ed_next, &iter_a, bm, BM_EDGES_OF_MESH) {
+    if (BM_elem_flag_test(ed, BM_ELEM_TAG)) {
+      float co[3];
+      mid_v3_v3v3(co, ed->v1->co, ed->v2->co);
+      BMVert *vc = BM_edge_collapse(bm, ed, ed->v1, true, true);
+      copy_v3_v3(vc->co, co);
+    }
+  }
+
+  /* Delete faces with a 3 edge pole in all their vertices */
+  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+  BM_ITER_MESH (f, &iter_a, bm, BM_FACES_OF_MESH) {
+    bool dissolve = true;
+    BM_ITER_ELEM (v, &iter_b, f, BM_VERTS_OF_FACE) {
+      if (BM_vert_edge_count(v) != 3) {
+        dissolve = false;
+      }
+    }
+    if (dissolve) {
+      BM_ITER_ELEM (v, &iter_b, f, BM_VERTS_OF_FACE) {
+        BM_elem_flag_set(v, BM_ELEM_TAG, true);
+      }
+    }
+  }
+  BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_VERTS);
+
+  BM_ITER_MESH (ed, &iter_a, bm, BM_EDGES_OF_MESH) {
+    if (BM_edge_face_count(ed) != 2) {
+      BM_elem_flag_set(ed, BM_ELEM_TAG, true);
+    }
+  }
+  BM_mesh_edgenet(bm, false, true);
+
+  /* Smooth the result */
+  for (int i = 0; i < 4; i++) {
+    BM_ITER_MESH (v, &iter_a, bm, BM_VERTS_OF_MESH) {
+      float co[3];
+      zero_v3(co);
+      BM_ITER_ELEM (ed, &iter_b, v, BM_EDGES_OF_VERT) {
+        BMVert *vert = BM_edge_other_vert(ed, v);
+        add_v3_v3(co, vert->co);
+      }
+      mul_v3_fl(co, 1.0f / (float)BM_vert_edge_count(v));
+      mid_v3_v3v3(v->co, v->co, co);
+    }
+  }
+
+  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+
+  Mesh *result = BKE_mesh_from_bmesh_nomain(bm,
+                                            (&(struct BMeshToMeshParams){
+                                                .calc_object_remap = false,
+                                            }),
+                                            mesh);
+
+  BKE_id_free(NULL, mesh);
+  BM_mesh_free(bm);
+  return result;
 }
