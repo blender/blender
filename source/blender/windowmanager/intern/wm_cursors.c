@@ -45,6 +45,29 @@
 #include "wm_cursors.h"
 #include "wm_window.h"
 
+/* Blender custom cursor. */
+typedef struct BCursor {
+  char *small_bm;
+  char *small_mask;
+
+  char small_sizex;
+  char small_sizey;
+  char small_hotx;
+  char small_hoty;
+
+  char *big_bm;
+  char *big_mask;
+
+  char big_sizex;
+  char big_sizey;
+  char big_hotx;
+  char big_hoty;
+
+  bool can_invert_color;
+} BCursor;
+
+static BCursor *BlenderCursor[WM_CURSOR_NUM] = {0};
+
 /* Blender cursor to GHOST standard cursor conversion. */
 static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
 {
@@ -142,9 +165,6 @@ static void window_set_custom_cursor_ex(wmWindow *win, BCursor *cursor)
                                cursor->can_invert_color);
   }
 }
-
-/* Cursor Globals */
-static BCursor *BlenderCursor[WM_CURSOR_NUM] = {0};
 
 void WM_cursor_set(wmWindow *win, int curs)
 {
