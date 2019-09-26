@@ -54,6 +54,7 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
     {WM_CURSOR_KNIFE, "KNIFE", 0, "Knife", ""},
     {WM_CURSOR_TEXT_EDIT, "TEXT", 0, "Text", ""},
     {WM_CURSOR_PAINT_BRUSH, "PAINT_BRUSH", 0, "Paint Brush", ""},
+    {WM_CURSOR_ERASER, "ERASER", 0, "Eraser", ""},
     {WM_CURSOR_HAND, "HAND", 0, "Hand", ""},
     {WM_CURSOR_EW_SCROLL, "SCROLL_X", 0, "Scroll-X", ""},
     {WM_CURSOR_NS_SCROLL, "SCROLL_Y", 0, "Scroll-Y", ""},
