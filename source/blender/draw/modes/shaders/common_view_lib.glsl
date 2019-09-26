@@ -71,7 +71,7 @@ flat in int resourceIDFrag;
 #  define resource_id resourceIDFrag
 #endif
 
-#if !defined(GPU_INTEL) && !defined(GPU_DEPRECATED_AMD_DRIVER)
+#if !defined(GPU_INTEL) && !defined(GPU_DEPRECATED_AMD_DRIVER) && !defined(OS_MAC)
 struct ObjectMatrices {
   mat4 drw_modelMatrix;
   mat4 drw_modelMatrixInverse;
@@ -88,6 +88,8 @@ layout(std140) uniform modelBlock
 #else /* GPU_INTEL */
 /* Intel GPU seems to suffer performance impact when the model matrix is in UBO storage.
  * So for now we just force using the legacy path. */
+/* Note that this is also a workaround of a problem on osx (amd or nvidia)
+ * and older amd driver on windows. */
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
 #endif
