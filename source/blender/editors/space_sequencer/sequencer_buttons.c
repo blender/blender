@@ -117,5 +117,6 @@ void sequencer_buttons_register(ARegionType *art)
   pt->poll = metadata_panel_context_poll;
   pt->draw = metadata_panel_context_draw;
   pt->flag |= PNL_DEFAULT_CLOSED;
+  pt->order = 10;
   BLI_addtail(&art->paneltypes, pt);
 }
