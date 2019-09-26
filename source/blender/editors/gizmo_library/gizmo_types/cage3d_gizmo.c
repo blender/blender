@@ -424,10 +424,10 @@ static void gizmo_cage3d_draw(const bContext *C, wmGizmo *gz)
 static int gizmo_cage3d_get_cursor(wmGizmo *gz)
 {
   if (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
-    return BC_NSEW_SCROLLCURSOR;
+    return WM_CURSOR_NSEW_SCROLL;
   }
 
-  return CURSOR_STD;
+  return WM_CURSOR_DEFAULT;
 }
 
 typedef struct RectTransformInteraction {

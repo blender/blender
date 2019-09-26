@@ -1042,10 +1042,10 @@ static void view3d_main_region_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
   if (obedit) {
-    WM_cursor_set(win, CURSOR_EDIT);
+    WM_cursor_set(win, WM_CURSOR_EDIT);
   }
   else {
-    WM_cursor_set(win, CURSOR_STD);
+    WM_cursor_set(win, WM_CURSOR_DEFAULT);
   }
 }
 

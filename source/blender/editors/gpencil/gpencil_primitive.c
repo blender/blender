@@ -1214,7 +1214,7 @@ static int gpencil_primitive_invoke(bContext *C, wmOperator *op, const wmEvent *
   op->flag |= OP_IS_MODAL_CURSOR_REGION;
 
   /* set cursor to indicate modal */
-  WM_cursor_modal_set(win, BC_CROSSCURSOR);
+  WM_cursor_modal_set(win, WM_CURSOR_CROSS);
 
   /* update sindicator in header */
   gpencil_primitive_status_indicators(C, tgpi);
@@ -1319,18 +1319,18 @@ static void gpencil_primitive_edit_event_handling(
   if (tgpi->flag == IN_CURVE_EDIT) {
     if ((a < BIG_SIZE_CTL && tgpi->tot_stored_edges == 0) || b < BIG_SIZE_CTL) {
       move = MOVE_ENDS;
-      WM_cursor_modal_set(win, BC_NSEW_SCROLLCURSOR);
+      WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
     }
     else if (tgpi->curve) {
       move = MOVE_CP;
-      WM_cursor_modal_set(win, BC_HANDCURSOR);
+      WM_cursor_modal_set(win, WM_CURSOR_HAND);
     }
     else {
-      WM_cursor_modal_set(win, BC_CROSSCURSOR);
+      WM_cursor_modal_set(win, WM_CURSOR_CROSS);
     }
   }
   else if (tgpi->flag == IN_PROGRESS) {
-    WM_cursor_modal_set(win, BC_NSEW_SCROLLCURSOR);
+    WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
   }
 
   switch (event->type) {
@@ -1402,7 +1402,7 @@ static void gpencil_primitive_edit_event_handling(
     case EKEY: {
       if (tgpi->flag == IN_CURVE_EDIT && !ELEM(tgpi->type, GP_STROKE_BOX, GP_STROKE_CIRCLE)) {
         tgpi->flag = IN_PROGRESS;
-        WM_cursor_modal_set(win, BC_NSEW_SCROLLCURSOR);
+        WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
         gpencil_primitive_add_segment(tgpi);
         copy_v2_v2(tgpi->start, tgpi->end);
         copy_v2_v2(tgpi->origin, tgpi->start);
@@ -1665,7 +1665,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     {
       if ((event->val == KM_PRESS)) {
         tgpi->flag = IN_MOVE;
-        WM_cursor_modal_set(win, BC_NSEW_SCROLLCURSOR);
+        WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
       }
       break;
     }
@@ -1678,7 +1678,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
         else {
           tgpi->flag = IN_BRUSH_SIZE;
         }
-        WM_cursor_modal_set(win, BC_NS_SCROLLCURSOR);
+        WM_cursor_modal_set(win, WM_CURSOR_NS_SCROLL);
       }
       break;
     }
@@ -1704,7 +1704,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     case TABKEY: {
       if (tgpi->flag == IN_CURVE_EDIT) {
         tgpi->flag = IN_PROGRESS;
-        WM_cursor_modal_set(win, BC_NSEW_SCROLLCURSOR);
+        WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
         gp_primitive_update_cps(tgpi);
         gpencil_primitive_update(C, op, tgpi);
       }

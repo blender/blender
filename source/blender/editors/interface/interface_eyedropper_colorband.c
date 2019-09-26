@@ -304,7 +304,7 @@ static int eyedropper_colorband_invoke(bContext *C, wmOperator *op, const wmEven
 {
   /* init */
   if (eyedropper_colorband_init(C, op)) {
-    WM_cursor_modal_set(CTX_wm_window(C), BC_EYEDROPPER_CURSOR);
+    WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EYEDROPPER);
 
     /* add temp handler */
     WM_event_add_modal_handler(C, op);

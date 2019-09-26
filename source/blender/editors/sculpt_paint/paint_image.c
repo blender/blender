@@ -1023,7 +1023,7 @@ static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *event
                                   !RNA_boolean_get(op->ptr, "merged");
 
   paint_sample_color(C, ar, event->mval[0], event->mval[1], use_sample_texture, false);
-  WM_cursor_modal_set(win, BC_EYEDROPPER_CURSOR);
+  WM_cursor_modal_set(win, WM_CURSOR_EYEDROPPER);
 
   WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
 

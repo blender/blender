@@ -1367,10 +1367,10 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
       /* Update WM mouse cursor, disable when the 3D brush cursor is enabled */
       if (sd->paint.brush->overlay_flags & BRUSH_OVERLAY_CURSOR) {
-        WM_cursor_set(win, CURSOR_STD);
+        WM_cursor_set(win, WM_CURSOR_DEFAULT);
       }
       else {
-        WM_cursor_set(win, CURSOR_EDIT);
+        WM_cursor_set(win, WM_CURSOR_EDIT);
       }
 
       if (!ups->stroke_active) {

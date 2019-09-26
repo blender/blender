@@ -45,35 +45,24 @@
 #include "wm_cursors.h"
 #include "wm_window.h"
 
-/* XXX this still is mess from old code */
-
-/* Some simple ghost <-> blender conversions */
-static GHOST_TStandardCursor convert_cursor(int curs)
+/* Blender cursor to GHOST standard cursor conversion. */
+static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
 {
   switch (curs) {
-    default:
-    case CURSOR_STD:
+    case WM_CURSOR_DEFAULT:
       return GHOST_kStandardCursorDefault;
-    case CURSOR_FACESEL:
-      return GHOST_kStandardCursorRightArrow;
-    case CURSOR_WAIT:
+    case WM_CURSOR_WAIT:
       return GHOST_kStandardCursorWait;
-    case CURSOR_EDIT:
+    case WM_CURSOR_EDIT:
       return GHOST_kStandardCursorCrosshair;
-    case CURSOR_HELP:
-#ifdef __APPLE__
+    case WM_CURSOR_X_MOVE:
       return GHOST_kStandardCursorLeftRight;
-#else
-      return GHOST_kStandardCursorHelp;
-#endif
-    case CURSOR_X_MOVE:
-      return GHOST_kStandardCursorLeftRight;
-    case CURSOR_Y_MOVE:
+    case WM_CURSOR_Y_MOVE:
       return GHOST_kStandardCursorUpDown;
-    case CURSOR_PENCIL:
-      return GHOST_kStandardCursorPencil;
-    case CURSOR_COPY:
+    case WM_CURSOR_COPY:
       return GHOST_kStandardCursorCopy;
+    default:
+      return GHOST_kStandardCursorCustom;
   }
 }
 
@@ -87,9 +76,9 @@ static void window_set_custom_cursor(wmWindow *win,
       win->ghostwin, (GHOST_TUns8 *)bitmap, (GHOST_TUns8 *)mask, 16, 16, hotx, hoty, true);
 }
 
-static void window_set_custom_cursor_ex(wmWindow *win, BCursor *cursor, int useBig)
+static void window_set_custom_cursor_ex(wmWindow *win, BCursor *cursor)
 {
-  if (useBig) {
+  if (U.curssize && cursor->big_bm) {
     GHOST_SetCustomCursorShape(win->ghostwin,
                                (GHOST_TUns8 *)cursor->big_bm,
                                (GHOST_TUns8 *)cursor->big_mask,
@@ -112,16 +101,15 @@ static void window_set_custom_cursor_ex(wmWindow *win, BCursor *cursor, int useB
 }
 
 /* Cursor Globals */
-static BCursor *BlenderCursor[BC_NUMCURSORS]; /*Points to static BCursor Structs */
+static BCursor *BlenderCursor[WM_CURSOR_NUM] = {0};
 
 void WM_cursor_set(wmWindow *win, int curs)
 {
-
   if (win == NULL || G.background) {
     return; /* Can't set custom cursor before Window init */
   }
 
-  if (curs == CURSOR_NONE) {
+  if (curs == WM_CURSOR_NONE) {
     GHOST_SetCursorVisibility(win->ghostwin, 0);
     return;
   }
@@ -129,42 +117,46 @@ void WM_cursor_set(wmWindow *win, int curs)
 #ifdef _WIN32
   /* the default win32 cross cursor is barely visible,
    * only 1 pixel thick, use another one instead */
-  if (curs == CURSOR_EDIT) {
-    curs = BC_CROSSCURSOR;
+  if (curs == WM_CURSOR_EDIT) {
+    curs = WM_CURSOR_CROSS;
   }
 #else
   /* in case of large cursor, also use custom cursor because
    * large cursors don't work for system cursors */
-  if (U.curssize && curs == CURSOR_EDIT) {
-    curs = BC_CROSSCURSOR;
+  if (U.curssize && curs == WM_CURSOR_EDIT) {
+    curs = WM_CURSOR_CROSS;
   }
 #endif
 
   GHOST_SetCursorVisibility(win->ghostwin, 1);
 
-  if (curs == CURSOR_STD && win->modalcursor) {
+  if (curs == WM_CURSOR_DEFAULT && win->modalcursor) {
     curs = win->modalcursor;
   }
 
   win->cursor = curs;
 
-  /* detect if we use system cursor or Blender cursor */
-  if (curs >= BC_GHOST_CURSORS) {
-    GHOST_SetCursorShape(win->ghostwin, convert_cursor(curs));
+  if (curs < 0 || curs >= WM_CURSOR_NUM) {
+    BLI_assert(!"Invalid cursor number");
+    return;
+  }
+
+  GHOST_TStandardCursor ghost_cursor = convert_to_ghost_standard_cursor(curs);
+
+  if (ghost_cursor != GHOST_kStandardCursorCustom &&
+      GHOST_HasCursorShape(win->ghostwin, ghost_cursor)) {
+    /* Use native GHOST cursor when available. */
+    GHOST_SetCursorShape(win->ghostwin, ghost_cursor);
   }
   else {
-    if ((curs < SYSCURSOR) || (curs >= BC_NUMCURSORS)) {
-      return;
-    }
-
-    if (curs == SYSCURSOR) { /* System default Cursor */
-      GHOST_SetCursorShape(win->ghostwin, convert_cursor(CURSOR_STD));
-    }
-    else if ((U.curssize == 0) || (BlenderCursor[curs]->big_bm == NULL)) {
-      window_set_custom_cursor_ex(win, BlenderCursor[curs], 0);
+    BCursor *bcursor = BlenderCursor[curs];
+    if (bcursor) {
+      /* Use custom bitmap cursor. */
+      window_set_custom_cursor_ex(win, bcursor);
     }
     else {
-      window_set_custom_cursor_ex(win, BlenderCursor[curs], 1);
+      /* Fallback to default cursor if no bitmap found. */
+      GHOST_SetCursorShape(win->ghostwin, GHOST_kStandardCursorDefault);
     }
   }
 }
@@ -176,7 +168,7 @@ bool WM_cursor_set_from_tool(struct wmWindow *win, const ScrArea *sa, const AReg
   }
 
   bToolRef_Runtime *tref_rt = (sa && sa->runtime.tool) ? sa->runtime.tool->runtime : NULL;
-  if (tref_rt && tref_rt->cursor != CURSOR_STD) {
+  if (tref_rt && tref_rt->cursor != WM_CURSOR_DEFAULT) {
     if (win->modalcursor == 0) {
       WM_cursor_set(win, tref_rt->cursor);
       win->cursor = tref_rt->cursor;
@@ -213,7 +205,7 @@ void WM_cursor_wait(bool val)
 
     for (; win; win = win->next) {
       if (val) {
-        WM_cursor_modal_set(win, BC_WAITCURSOR);
+        WM_cursor_modal_set(win, WM_CURSOR_WAIT);
       }
       else {
         WM_cursor_modal_restore(win);
@@ -440,7 +432,9 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_NW_ARROWCURSOR] = &NWArrowCursor;
+  BlenderCursor[WM_CURSOR_DEFAULT] = &NWArrowCursor;
+  BlenderCursor[WM_CURSOR_COPY] = &NWArrowCursor;
+  BlenderCursor[WM_CURSOR_NW_ARROW] = &NWArrowCursor;
   END_CURSOR_BLOCK;
 
   ///********************** NS_ARROW Cursor *************************/
@@ -476,7 +470,8 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_NS_ARROWCURSOR] = &NSArrowCursor;
+  BlenderCursor[WM_CURSOR_Y_MOVE] = &NSArrowCursor;
+  BlenderCursor[WM_CURSOR_NS_ARROW] = &NSArrowCursor;
 
   END_CURSOR_BLOCK;
   /********************** EW_ARROW Cursor *************************/
@@ -512,7 +507,8 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_EW_ARROWCURSOR] = &EWArrowCursor;
+  BlenderCursor[WM_CURSOR_X_MOVE] = &EWArrowCursor;
+  BlenderCursor[WM_CURSOR_EW_ARROW] = &EWArrowCursor;
   END_CURSOR_BLOCK;
 
   /********************** Wait Cursor *****************************/
@@ -572,7 +568,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_WAITCURSOR] = &WaitCursor;
+  BlenderCursor[WM_CURSOR_WAIT] = &WaitCursor;
   END_CURSOR_BLOCK;
 
   /********************** Cross Cursor ***************************/
@@ -631,7 +627,8 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_CROSSCURSOR] = &CrossCursor;
+  BlenderCursor[WM_CURSOR_EDIT] = &CrossCursor;
+  BlenderCursor[WM_CURSOR_CROSS] = &CrossCursor;
   END_CURSOR_BLOCK;
 
   /********************** EditCross Cursor ***********************/
@@ -667,7 +664,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_EDITCROSSCURSOR] = &EditCrossCursor;
+  BlenderCursor[WM_CURSOR_EDITCROSS] = &EditCrossCursor;
   END_CURSOR_BLOCK;
 
   /********************** Box Select *************************/
@@ -703,7 +700,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_BOXSELCURSOR] = &BoxSelCursor;
+  BlenderCursor[WM_CURSOR_BOXSEL] = &BoxSelCursor;
 
   END_CURSOR_BLOCK;
   /********************** Knife Cursor ***********************/
@@ -763,7 +760,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_KNIFECURSOR] = &KnifeCursor;
+  BlenderCursor[WM_CURSOR_KNIFE] = &KnifeCursor;
 
   END_CURSOR_BLOCK;
 
@@ -825,7 +822,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_VLOOPCURSOR] = &VLoopCursor;
+  BlenderCursor[WM_CURSOR_VERTEX_LOOP] = &VLoopCursor;
 
   END_CURSOR_BLOCK;
 
@@ -862,7 +859,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_TEXTEDITCURSOR] = &TextEditCursor;
+  BlenderCursor[WM_CURSOR_TEXT_EDIT] = &TextEditCursor;
   END_CURSOR_BLOCK;
 
   /********************** Paintbrush Cursor ***********************/
@@ -899,7 +896,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_PAINTBRUSHCURSOR] = &PaintBrushCursor;
+  BlenderCursor[WM_CURSOR_PAINT_BRUSH] = &PaintBrushCursor;
   END_CURSOR_BLOCK;
 
   /********************** Hand Cursor ***********************/
@@ -936,7 +933,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_HANDCURSOR] = &HandCursor;
+  BlenderCursor[WM_CURSOR_HAND] = &HandCursor;
 
   END_CURSOR_BLOCK;
 
@@ -974,7 +971,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_NSEW_SCROLLCURSOR] = &NSEWScrollCursor;
+  BlenderCursor[WM_CURSOR_NSEW_SCROLL] = &NSEWScrollCursor;
 
   END_CURSOR_BLOCK;
 
@@ -1012,7 +1009,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_NS_SCROLLCURSOR] = &NSScrollCursor;
+  BlenderCursor[WM_CURSOR_NS_SCROLL] = &NSScrollCursor;
 
   END_CURSOR_BLOCK;
 
@@ -1050,7 +1047,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_EW_SCROLLCURSOR] = &EWScrollCursor;
+  BlenderCursor[WM_CURSOR_EW_SCROLL] = &EWScrollCursor;
 
   END_CURSOR_BLOCK;
 
@@ -1088,7 +1085,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_EYEDROPPER_CURSOR] = &EyedropperCursor;
+  BlenderCursor[WM_CURSOR_EYEDROPPER] = &EyedropperCursor;
 
   END_CURSOR_BLOCK;
 
@@ -1125,7 +1122,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_SWAPAREA_CURSOR] = &SwapCursor;
+  BlenderCursor[WM_CURSOR_SWAP_AREA] = &SwapCursor;
 
   END_CURSOR_BLOCK;
 
@@ -1185,7 +1182,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_H_SPLITCURSOR] = &HSplitCursor;
+  BlenderCursor[WM_CURSOR_H_SPLIT] = &HSplitCursor;
 
   END_CURSOR_BLOCK;
 
@@ -1245,7 +1242,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_V_SPLITCURSOR] = &VSplitCursor;
+  BlenderCursor[WM_CURSOR_V_SPLIT] = &VSplitCursor;
 
   END_CURSOR_BLOCK;
 
@@ -1305,7 +1302,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_N_ARROWCURSOR] = &NArrowCursor;
+  BlenderCursor[WM_CURSOR_N_ARROW] = &NArrowCursor;
 
   END_CURSOR_BLOCK;
 
@@ -1365,7 +1362,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_S_ARROWCURSOR] = &SArrowCursor;
+  BlenderCursor[WM_CURSOR_S_ARROW] = &SArrowCursor;
 
   END_CURSOR_BLOCK;
 
@@ -1425,7 +1422,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_E_ARROWCURSOR] = &EArrowCursor;
+  BlenderCursor[WM_CURSOR_E_ARROW] = &EArrowCursor;
 
   END_CURSOR_BLOCK;
 
@@ -1485,7 +1482,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_W_ARROWCURSOR] = &WArrowCursor;
+  BlenderCursor[WM_CURSOR_W_ARROW] = &WArrowCursor;
 
   END_CURSOR_BLOCK;
 
@@ -1545,7 +1542,7 @@ void wm_init_cursor_data(void)
       true,
   };
 
-  BlenderCursor[BC_STOPCURSOR] = &StopCursor;
+  BlenderCursor[WM_CURSOR_STOP] = &StopCursor;
 
   END_CURSOR_BLOCK;
 

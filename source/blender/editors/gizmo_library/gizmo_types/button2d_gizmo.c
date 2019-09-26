@@ -258,9 +258,9 @@ static int gizmo_button2d_test_select(bContext *C, wmGizmo *gz, const int mval[2
 static int gizmo_button2d_cursor_get(wmGizmo *gz)
 {
   if (RNA_boolean_get(gz->ptr, "show_drag")) {
-    return BC_NSEW_SCROLLCURSOR;
+    return WM_CURSOR_NSEW_SCROLL;
   }
-  return CURSOR_STD;
+  return WM_CURSOR_DEFAULT;
 }
 
 static void gizmo_button2d_free(wmGizmo *gz)

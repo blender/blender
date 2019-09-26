@@ -412,7 +412,7 @@ static void gizmo_move_property_update(wmGizmo *gz, wmGizmoProperty *gz_prop)
 
 static int gizmo_move_cursor_get(wmGizmo *UNUSED(gz))
 {
-  return BC_NSEW_SCROLLCURSOR;
+  return WM_CURSOR_NSEW_SCROLL;
 }
 
 /* -------------------------------------------------------------------- */

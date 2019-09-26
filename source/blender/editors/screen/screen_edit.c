@@ -644,14 +644,14 @@ static void screen_cursor_set(wmWindow *win, const int xy[2])
 
   if (sa) {
     if (az->type == AZONE_AREA) {
-      WM_cursor_set(win, CURSOR_EDIT);
+      WM_cursor_set(win, WM_CURSOR_EDIT);
     }
     else if (az->type == AZONE_REGION) {
       if (az->edge == AE_LEFT_TO_TOPRIGHT || az->edge == AE_RIGHT_TO_TOPLEFT) {
-        WM_cursor_set(win, CURSOR_X_MOVE);
+        WM_cursor_set(win, WM_CURSOR_X_MOVE);
       }
       else {
-        WM_cursor_set(win, CURSOR_Y_MOVE);
+        WM_cursor_set(win, WM_CURSOR_Y_MOVE);
       }
     }
   }
@@ -660,14 +660,14 @@ static void screen_cursor_set(wmWindow *win, const int xy[2])
 
     if (actedge) {
       if (screen_geom_edge_is_horizontal(actedge)) {
-        WM_cursor_set(win, CURSOR_Y_MOVE);
+        WM_cursor_set(win, WM_CURSOR_Y_MOVE);
       }
       else {
-        WM_cursor_set(win, CURSOR_X_MOVE);
+        WM_cursor_set(win, WM_CURSOR_X_MOVE);
       }
     }
     else {
-      WM_cursor_set(win, CURSOR_STD);
+      WM_cursor_set(win, WM_CURSOR_DEFAULT);
     }
   }
 }

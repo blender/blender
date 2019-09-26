@@ -752,30 +752,30 @@ static int gizmo_cage2d_get_cursor(wmGizmo *gz)
   int highlight_part = gz->highlight_part;
 
   if (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
-    return BC_NSEW_SCROLLCURSOR;
+    return WM_CURSOR_NSEW_SCROLL;
   }
 
   switch (highlight_part) {
     case ED_GIZMO_CAGE2D_PART_TRANSLATE:
-      return BC_NSEW_SCROLLCURSOR;
+      return WM_CURSOR_NSEW_SCROLL;
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X:
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X:
-      return CURSOR_X_MOVE;
+      return WM_CURSOR_X_MOVE;
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y:
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y:
-      return CURSOR_Y_MOVE;
+      return WM_CURSOR_Y_MOVE;
 
       /* TODO diagonal cursor */
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y:
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y:
-      return BC_NSEW_SCROLLCURSOR;
+      return WM_CURSOR_NSEW_SCROLL;
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y:
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y:
-      return BC_NSEW_SCROLLCURSOR;
+      return WM_CURSOR_NSEW_SCROLL;
     case ED_GIZMO_CAGE2D_PART_ROTATE:
-      return BC_CROSSCURSOR;
+      return WM_CURSOR_CROSS;
     default:
-      return CURSOR_STD;
+      return WM_CURSOR_DEFAULT;
   }
 }
 

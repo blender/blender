@@ -300,7 +300,7 @@ static void image_view_pan_init(bContext *C, wmOperator *op, const wmEvent *even
   /* Grab will be set when running from gizmo. */
   vpd->own_cursor = (win->grabcursor == 0);
   if (vpd->own_cursor) {
-    WM_cursor_modal_set(win, BC_NSEW_SCROLLCURSOR);
+    WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
   }
 
   vpd->x = event->x;
@@ -453,7 +453,7 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *eve
   /* Grab will be set when running from gizmo. */
   vpd->own_cursor = (win->grabcursor == 0);
   if (vpd->own_cursor) {
-    WM_cursor_modal_set(win, BC_NSEW_SCROLLCURSOR);
+    WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
   }
 
   vpd->origx = event->x;
@@ -3421,7 +3421,7 @@ void IMAGE_OT_sample_line(wmOperatorType *ot)
   /* flags */
   ot->flag = 0; /* no undo/register since this operates on the space */
 
-  WM_operator_properties_gesture_straightline(ot, CURSOR_EDIT);
+  WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
 }
 
 /******************** set curve point operator ********************/

@@ -43,22 +43,22 @@
 
 /* confusingm 2 enums mixed up here */
 const EnumPropertyItem rna_enum_window_cursor_items[] = {
-    {CURSOR_STD, "DEFAULT", 0, "Default", ""},
-    {CURSOR_NONE, "NONE", 0, "None", ""},
-    {CURSOR_WAIT, "WAIT", 0, "Wait", ""},
-    {CURSOR_EDIT, "CROSSHAIR", 0, "Crosshair", ""},
-    {CURSOR_X_MOVE, "MOVE_X", 0, "Move-X", ""},
-    {CURSOR_Y_MOVE, "MOVE_Y", 0, "Move-Y", ""},
+    {WM_CURSOR_DEFAULT, "DEFAULT", 0, "Default", ""},
+    {WM_CURSOR_NONE, "NONE", 0, "None", ""},
+    {WM_CURSOR_WAIT, "WAIT", 0, "Wait", ""},
+    {WM_CURSOR_EDIT, "CROSSHAIR", 0, "Crosshair", ""},
+    {WM_CURSOR_X_MOVE, "MOVE_X", 0, "Move-X", ""},
+    {WM_CURSOR_Y_MOVE, "MOVE_Y", 0, "Move-Y", ""},
 
     /* new */
-    {BC_KNIFECURSOR, "KNIFE", 0, "Knife", ""},
-    {BC_TEXTEDITCURSOR, "TEXT", 0, "Text", ""},
-    {BC_PAINTBRUSHCURSOR, "PAINT_BRUSH", 0, "Paint Brush", ""},
-    {BC_HANDCURSOR, "HAND", 0, "Hand", ""},
-    {BC_EW_SCROLLCURSOR, "SCROLL_X", 0, "Scroll-X", ""},
-    {BC_NS_SCROLLCURSOR, "SCROLL_Y", 0, "Scroll-Y", ""},
-    {BC_NSEW_SCROLLCURSOR, "SCROLL_XY", 0, "Scroll-XY", ""},
-    {BC_EYEDROPPER_CURSOR, "EYEDROPPER", 0, "Eyedropper", ""},
+    {WM_CURSOR_KNIFE, "KNIFE", 0, "Knife", ""},
+    {WM_CURSOR_TEXT_EDIT, "TEXT", 0, "Text", ""},
+    {WM_CURSOR_PAINT_BRUSH, "PAINT_BRUSH", 0, "Paint Brush", ""},
+    {WM_CURSOR_HAND, "HAND", 0, "Hand", ""},
+    {WM_CURSOR_EW_SCROLL, "SCROLL_X", 0, "Scroll-X", ""},
+    {WM_CURSOR_NS_SCROLL, "SCROLL_Y", 0, "Scroll-Y", ""},
+    {WM_CURSOR_NSEW_SCROLL, "SCROLL_XY", 0, "Scroll-XY", ""},
+    {WM_CURSOR_EYEDROPPER, "EYEDROPPER", 0, "Eyedropper", ""},
     {0, NULL, 0, NULL, NULL},
 };
 

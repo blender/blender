@@ -577,7 +577,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
                  walk->ar->winrct.ymin + walk->center_mval[1]);
 
   /* remove the mouse cursor temporarily */
-  WM_cursor_modal_set(win, CURSOR_NONE);
+  WM_cursor_modal_set(win, WM_CURSOR_NONE);
 
   return 1;
 }

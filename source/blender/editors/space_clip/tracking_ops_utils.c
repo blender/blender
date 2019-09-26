@@ -57,11 +57,11 @@ void clip_tracking_clear_invisible_track_selection(SpaceClip *sc, MovieClip *cli
 void clip_tracking_hide_cursor(bContext *C)
 {
   wmWindow *win = CTX_wm_window(C);
-  WM_cursor_set(win, CURSOR_NONE);
+  WM_cursor_set(win, WM_CURSOR_NONE);
 }
 
 void clip_tracking_show_cursor(bContext *C)
 {
   wmWindow *win = CTX_wm_window(C);
-  WM_cursor_set(win, CURSOR_STD);
+  WM_cursor_set(win, WM_CURSOR_DEFAULT);
 }

@@ -560,7 +560,7 @@ static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent
       tgpi->ar->type, gpencil_interpolate_draw_3d, tgpi, REGION_DRAW_POST_VIEW);
 
   /* set cursor to indicate modal */
-  WM_cursor_modal_set(win, BC_EW_SCROLLCURSOR);
+  WM_cursor_modal_set(win, WM_CURSOR_EW_SCROLL);
 
   /* update shift indicator in header */
   gpencil_interpolate_status_indicators(C, tgpi);

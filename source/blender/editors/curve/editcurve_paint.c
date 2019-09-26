@@ -1064,7 +1064,7 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   cdd->draw_handle_view = ED_region_draw_cb_activate(
       cdd->vc.ar->type, curve_draw_stroke_3d, op, REGION_DRAW_POST_VIEW);
-  WM_cursor_modal_set(cdd->vc.win, BC_PAINTBRUSHCURSOR);
+  WM_cursor_modal_set(cdd->vc.win, WM_CURSOR_PAINT_BRUSH);
 
   {
     View3D *v3d = cdd->vc.v3d;

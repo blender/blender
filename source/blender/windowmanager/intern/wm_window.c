@@ -706,7 +706,7 @@ void wm_window_ghostwindows_ensure(wmWindowManager *wm)
 
       /* without this, cursor restore may fail, T45456 */
       if (win->cursor == 0) {
-        win->cursor = CURSOR_STD;
+        win->cursor = WM_CURSOR_DEFAULT;
       }
 
       wm_window_ghostwindow_add(wm, "Blender", win);

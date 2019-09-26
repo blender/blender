@@ -1560,10 +1560,10 @@ static int gpencil_draw_init(bContext *C, wmOperator *op, const wmEvent *event)
 static void gpencil_draw_cursor_set(tGPsdata *p)
 {
   if (p->paintmode == GP_PAINTMODE_ERASER) {
-    WM_cursor_modal_set(p->win, BC_CROSSCURSOR); /* XXX need a better cursor */
+    WM_cursor_modal_set(p->win, WM_CURSOR_CROSS); /* XXX need a better cursor */
   }
   else {
-    WM_cursor_modal_set(p->win, BC_PAINTBRUSHCURSOR);
+    WM_cursor_modal_set(p->win, WM_CURSOR_PAINT_BRUSH);
   }
 }
 

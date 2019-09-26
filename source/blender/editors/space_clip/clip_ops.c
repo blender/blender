@@ -376,7 +376,7 @@ static void view_pan_init(bContext *C, wmOperator *op, const wmEvent *event)
   /* Grab will be set when running from gizmo. */
   vpd->own_cursor = (win->grabcursor == 0);
   if (vpd->own_cursor) {
-    WM_cursor_modal_set(win, BC_NSEW_SCROLLCURSOR);
+    WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
   }
 
   vpd->x = event->x;
@@ -549,7 +549,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
   /* Grab will be set when running from gizmo. */
   vpd->own_cursor = (win->grabcursor == 0);
   if (vpd->own_cursor) {
-    WM_cursor_modal_set(win, BC_NSEW_SCROLLCURSOR);
+    WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
   }
 
   if (U.viewzoom == USER_ZOOM_CONT) {

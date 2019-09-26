@@ -1013,9 +1013,9 @@ static void gizmo_ruler_exit(bContext *C, wmGizmo *gz, const bool cancel)
 static int gizmo_ruler_cursor_get(wmGizmo *gz)
 {
   if (gz->highlight_part == PART_LINE) {
-    return BC_CROSSCURSOR;
+    return WM_CURSOR_CROSS;
   }
-  return BC_NSEW_SCROLLCURSOR;
+  return WM_CURSOR_NSEW_SCROLL;
 }
 
 void VIEW3D_GT_ruler_item(wmGizmoType *gzt)

@@ -765,7 +765,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
     UI_but_tooltip_timer_remove(C, activebut);
   }
   /* standard cursor by default */
-  WM_cursor_set(window, CURSOR_STD);
+  WM_cursor_set(window, WM_CURSOR_DEFAULT);
 
   /* create handle */
   handle = MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");

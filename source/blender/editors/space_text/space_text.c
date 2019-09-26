@@ -311,11 +311,11 @@ static void text_main_region_draw(const bContext *C, ARegion *ar)
 static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 {
   SpaceText *st = sa->spacedata.first;
-  int wmcursor = BC_TEXTEDITCURSOR;
+  int wmcursor = WM_CURSOR_TEXT_EDIT;
 
   if (st->text &&
       BLI_rcti_isect_pt(&st->txtbar, win->eventstate->x - ar->winrct.xmin, st->txtbar.ymin)) {
-    wmcursor = CURSOR_STD;
+    wmcursor = WM_CURSOR_DEFAULT;
   }
 
   WM_cursor_set(win, wmcursor);

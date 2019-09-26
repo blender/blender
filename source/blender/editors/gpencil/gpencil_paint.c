@@ -2551,10 +2551,10 @@ static void gpencil_draw_cursor_set(tGPsdata *p)
 #if 0
   Brush *brush = p->brush;
   if ((p->paintmode == GP_PAINTMODE_ERASER) || (brush->gpencil_tool == GPAINT_TOOL_ERASE)) {
-    WM_cursor_modal_set(p->win, BC_CROSSCURSOR); /* XXX need a better cursor */
+    WM_cursor_modal_set(p->win, WM_CURSOR_CROSS); /* XXX need a better cursor */
   }
   else {
-    WM_cursor_modal_set(p->win, CURSOR_NONE);
+    WM_cursor_modal_set(p->win, WM_CURSOR_NONE);
   }
 #endif
 }
@@ -3565,7 +3565,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* special mode for editing control points */
   if (p->paintmode == GP_PAINTMODE_SET_CP) {
     wmWindow *win = p->win;
-    WM_cursor_modal_set(win, BC_NSEW_SCROLLCURSOR);
+    WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
     bool drawmode = false;
 
     switch (event->type) {

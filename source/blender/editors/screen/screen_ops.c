@@ -1041,28 +1041,28 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
           if (BKE_screen_find_area_xy(sc, SPACE_TYPE_ANY, event->x, event->y) == sad->sa1) {
             /* Same area, so possible split. */
             WM_cursor_set(
-                win, (ELEM(sad->gesture_dir, 'n', 's')) ? BC_V_SPLITCURSOR : BC_H_SPLITCURSOR);
+                win, (ELEM(sad->gesture_dir, 'n', 's')) ? WM_CURSOR_V_SPLIT : WM_CURSOR_H_SPLIT);
             is_gesture = (delta_max > split_threshold);
           }
           else {
             /* Different area, so possible join. */
             if (sad->gesture_dir == 'n') {
-              WM_cursor_set(win, BC_N_ARROWCURSOR);
+              WM_cursor_set(win, WM_CURSOR_N_ARROW);
             }
             else if (sad->gesture_dir == 's') {
-              WM_cursor_set(win, BC_S_ARROWCURSOR);
+              WM_cursor_set(win, WM_CURSOR_S_ARROW);
             }
             else if (sad->gesture_dir == 'e') {
-              WM_cursor_set(win, BC_E_ARROWCURSOR);
+              WM_cursor_set(win, WM_CURSOR_E_ARROW);
             }
             else {
-              WM_cursor_set(win, BC_W_ARROWCURSOR);
+              WM_cursor_set(win, WM_CURSOR_W_ARROW);
             }
             is_gesture = (delta_max > join_threshold);
           }
         }
         else {
-          WM_cursor_set(CTX_wm_window(C), BC_CROSSCURSOR);
+          WM_cursor_set(CTX_wm_window(C), WM_CURSOR_CROSS);
           is_gesture = false;
         }
       }
@@ -1227,7 +1227,7 @@ static int area_swap_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   /* add modal handler */
-  WM_cursor_modal_set(CTX_wm_window(C), BC_SWAPAREA_CURSOR);
+  WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_SWAP_AREA);
   WM_event_add_modal_handler(C, op);
 
   return OPERATOR_RUNNING_MODAL;
@@ -2119,7 +2119,7 @@ static void area_split_preview_update_cursor(bContext *C, wmOperator *op)
 {
   wmWindow *win = CTX_wm_window(C);
   int dir = RNA_enum_get(op->ptr, "direction");
-  WM_cursor_set(win, (dir == 'n' || dir == 's') ? BC_V_SPLITCURSOR : BC_H_SPLITCURSOR);
+  WM_cursor_set(win, (dir == 'n' || dir == 's') ? WM_CURSOR_V_SPLIT : WM_CURSOR_H_SPLIT);
 }
 
 /* UI callback, adds new handler */
@@ -3418,19 +3418,19 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
 
       if (dir == 1) {
-        WM_cursor_set(win, BC_N_ARROWCURSOR);
+        WM_cursor_set(win, WM_CURSOR_N_ARROW);
       }
       else if (dir == 3) {
-        WM_cursor_set(win, BC_S_ARROWCURSOR);
+        WM_cursor_set(win, WM_CURSOR_S_ARROW);
       }
       else if (dir == 2) {
-        WM_cursor_set(win, BC_E_ARROWCURSOR);
+        WM_cursor_set(win, WM_CURSOR_E_ARROW);
       }
       else if (dir == 0) {
-        WM_cursor_set(win, BC_W_ARROWCURSOR);
+        WM_cursor_set(win, WM_CURSOR_W_ARROW);
       }
       else {
-        WM_cursor_set(win, BC_STOPCURSOR);
+        WM_cursor_set(win, WM_CURSOR_STOP);
       }
 
       break;

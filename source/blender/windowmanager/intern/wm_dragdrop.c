@@ -265,7 +265,7 @@ static void wm_drop_operator_options(bContext *C, wmDrag *drag, const wmEvent *e
 
     if (opname) {
       BLI_strncpy(drag->opname, opname, sizeof(drag->opname));
-      // WM_cursor_modal_set(win, CURSOR_COPY);
+      // WM_cursor_modal_set(win, WM_CURSOR_COPY);
     }
     // else
     //  WM_cursor_modal_restore(win);

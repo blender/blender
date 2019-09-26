@@ -1456,16 +1456,16 @@ static void node_draw_hidden(const bContext *C,
 int node_get_resize_cursor(int directions)
 {
   if (directions == 0) {
-    return CURSOR_STD;
+    return WM_CURSOR_DEFAULT;
   }
   else if ((directions & ~(NODE_RESIZE_TOP | NODE_RESIZE_BOTTOM)) == 0) {
-    return CURSOR_Y_MOVE;
+    return WM_CURSOR_Y_MOVE;
   }
   else if ((directions & ~(NODE_RESIZE_RIGHT | NODE_RESIZE_LEFT)) == 0) {
-    return CURSOR_X_MOVE;
+    return WM_CURSOR_X_MOVE;
   }
   else {
-    return CURSOR_EDIT;
+    return WM_CURSOR_EDIT;
   }
 }
 
@@ -1474,7 +1474,7 @@ void node_set_cursor(wmWindow *win, SpaceNode *snode, float cursor[2])
   bNodeTree *ntree = snode->edittree;
   bNode *node;
   bNodeSocket *sock;
-  int wmcursor = CURSOR_STD;
+  int wmcursor = WM_CURSOR_DEFAULT;
 
   if (ntree) {
     if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_IN | SOCK_OUT)) {

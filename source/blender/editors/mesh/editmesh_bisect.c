@@ -455,7 +455,7 @@ void MESH_OT_bisect(struct wmOperatorType *ot)
                 0.00001,
                 0.1);
 
-  WM_operator_properties_gesture_straightline(ot, CURSOR_EDIT);
+  WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
 
 #ifdef USE_GIZMO
   WM_gizmogrouptype_append(MESH_GGT_bisect);
