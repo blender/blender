@@ -912,6 +912,7 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_SCRAPE:
       br->alpha = 1.0f;
       br->spacing = 7;
+      br->flag |= BRUSH_ACCUMULATE;
       break;
     case SCULPT_TOOL_ROTATE:
       br->alpha = 1.0;
