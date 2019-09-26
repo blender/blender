@@ -51,7 +51,7 @@ void createTransParticleVerts(bContext *C, TransInfo *t)
     TransDataExtension *tx;
     Object *ob = CTX_data_active_object(C);
     ParticleEditSettings *pset = PE_settings(t->scene);
-    PTCacheEdit *edit = PE_get_current(t->scene, ob);
+    PTCacheEdit *edit = PE_get_current(t->depsgraph, t->scene, ob);
     ParticleSystem *psys = NULL;
     PTCacheEditPoint *point;
     PTCacheEditKey *key;
@@ -200,7 +200,7 @@ void flushTransParticles(TransInfo *t)
     Scene *scene = t->scene;
     ViewLayer *view_layer = t->view_layer;
     Object *ob = OBACT(view_layer);
-    PTCacheEdit *edit = PE_get_current(scene, ob);
+    PTCacheEdit *edit = PE_get_current(t->depsgraph, scene, ob);
     ParticleSystem *psys = edit->psys;
     PTCacheEditPoint *point;
     PTCacheEditKey *key;

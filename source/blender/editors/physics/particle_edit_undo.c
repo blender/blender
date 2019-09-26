@@ -228,10 +228,11 @@ typedef struct ParticleUndoStep {
 
 static bool particle_undosys_poll(struct bContext *C)
 {
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
-  PTCacheEdit *edit = PE_get_current(scene, ob);
+  PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
 
   return (edit != NULL);
 }
@@ -240,11 +241,12 @@ static bool particle_undosys_step_encode(struct bContext *C,
                                          struct Main *UNUSED(bmain),
                                          UndoStep *us_p)
 {
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ParticleUndoStep *us = (ParticleUndoStep *)us_p;
   ViewLayer *view_layer = CTX_data_view_layer(C);
   us->scene_ref.ptr = CTX_data_scene(C);
   us->object_ref.ptr = OBACT(view_layer);
-  PTCacheEdit *edit = PE_get_current(us->scene_ref.ptr, us->object_ref.ptr);
+  PTCacheEdit *edit = PE_get_current(depsgraph, us->scene_ref.ptr, us->object_ref.ptr);
   undoptcache_from_editcache(&us->data, edit);
   return true;
 }
@@ -255,6 +257,7 @@ static void particle_undosys_step_decode(struct bContext *C,
                                          int UNUSED(dir),
                                          bool UNUSED(is_final))
 {
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   /* TODO(campbell): undo_system: use low-level API to set mode. */
   ED_object_mode_set(C, OB_MODE_PARTICLE_EDIT);
   BLI_assert(particle_undosys_poll(C));
@@ -262,7 +265,7 @@ static void particle_undosys_step_decode(struct bContext *C,
   ParticleUndoStep *us = (ParticleUndoStep *)us_p;
   Scene *scene = us->scene_ref.ptr;
   Object *ob = us->object_ref.ptr;
-  PTCacheEdit *edit = PE_get_current(scene, ob);
+  PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   if (edit) {
     undoptcache_to_editcache(&us->data, edit);
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

@@ -40,12 +40,18 @@ int PE_start_edit(struct PTCacheEdit *edit);
 
 /* access */
 struct PTCacheEdit *PE_get_current_from_psys(struct ParticleSystem *psys);
-struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob);
+struct PTCacheEdit *PE_get_current(struct Depsgraph *depsgraph,
+                                   struct Scene *scene,
+                                   struct Object *ob);
 struct PTCacheEdit *PE_create_current(struct Depsgraph *depsgraph,
                                       struct Scene *scene,
                                       struct Object *ob);
 void PE_current_changed(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
-int PE_minmax(struct Scene *scene, struct ViewLayer *view_layer, float min[3], float max[3]);
+int PE_minmax(struct Depsgraph *depsgraph,
+              struct Scene *scene,
+              struct ViewLayer *view_layer,
+              float min[3],
+              float max[3]);
 struct ParticleEditSettings *PE_settings(struct Scene *scene);
 
 /* update calls */

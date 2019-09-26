@@ -2997,7 +2997,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     ok = paintface_minmax(ob_eval, min, max);
   }
   else if (ob_eval && (ob_eval->mode & OB_MODE_PARTICLE_EDIT)) {
-    ok = PE_minmax(scene, CTX_data_view_layer(C), min, max);
+    ok = PE_minmax(depsgraph, scene, CTX_data_view_layer(C), min, max);
   }
   else if (ob_eval && (ob_eval->mode & (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT |
                                         OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))) {

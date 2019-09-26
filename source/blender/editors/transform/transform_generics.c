@@ -1093,7 +1093,7 @@ static void recalcData_objects(TransInfo *t)
     BLI_gset_free(motionpath_updates, NULL);
   }
   else if (base && (base->object->mode & OB_MODE_PARTICLE_EDIT) &&
-           PE_get_current(t->scene, base->object)) {
+           PE_get_current(t->depsgraph, t->scene, base->object)) {
     if (t->state != TRANS_CANCEL) {
       applyProject(t);
     }

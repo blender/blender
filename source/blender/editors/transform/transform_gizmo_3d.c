@@ -1063,7 +1063,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     }
   }
   else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
-    PTCacheEdit *edit = PE_get_current(scene, ob);
+    PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
     PTCacheEditPoint *point;
     PTCacheEditKey *ek;
     int k;

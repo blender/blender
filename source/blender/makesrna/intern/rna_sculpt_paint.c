@@ -204,10 +204,11 @@ static PointerRNA rna_ParticleBrush_curve_get(PointerRNA *ptr)
 
 static void rna_ParticleEdit_redo(bContext *C, PointerRNA *UNUSED(ptr))
 {
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
-  PTCacheEdit *edit = PE_get_current(scene, ob);
+  PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
 
   if (!edit) {
     return;
@@ -259,8 +260,9 @@ static const EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
 #  if 0
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
-  PTCacheEdit *edit = PE_get_current(scene, ob);
+  PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   ParticleSystem *psys = edit ? edit->psys : NULL;
 #  else
   /* use this rather than PE_get_current() - because the editing cache is
@@ -285,14 +287,14 @@ static bool rna_ParticleEdit_editable_get(PointerRNA *ptr)
 {
   ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 
-  return (pset->object && pset->scene && PE_get_current(pset->scene, pset->object));
+  return (pset->object && pset->scene && PE_get_current(NULL, pset->scene, pset->object));
 }
 static bool rna_ParticleEdit_hair_get(PointerRNA *ptr)
 {
   ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 
   if (pset->scene) {
-    PTCacheEdit *edit = PE_get_current(pset->scene, pset->object);
+    PTCacheEdit *edit = PE_get_current(NULL, pset->scene, pset->object);
 
     return (edit && edit->psys);
   }
