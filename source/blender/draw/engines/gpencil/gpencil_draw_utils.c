@@ -1355,19 +1355,19 @@ static void gpencil_draw_onionskins(GpencilBatchCache *cache,
   int idx;
   float fac = 1.0f;
   int step = 0;
-  int mode = 0;
   bool colflag = false;
-  bGPDframe *gpf_loop = NULL;
+  const int mode = gpd->onion_mode;
+  bGPDframe *gpf_loop = ((gpd->onion_flag & GP_ONION_LOOP) && (mode != GP_ONION_MODE_SELECTED)) ?
+                            gpl->frames.first :
+                            NULL;
   int last = gpf->framenum;
 
   colflag = (bool)gpd->onion_flag & GP_ONION_GHOST_PREVCOL;
   const short onion_keytype = gpd->onion_keytype;
-
   /* -------------------------------
    * 1) Draw Previous Frames First
    * ------------------------------- */
   step = gpd->gstep;
-  mode = gpd->onion_mode;
 
   if (gpd->onion_flag & GP_ONION_GHOST_PREVCOL) {
     copy_v3_v3(color, gpd->gcolor_prev);
@@ -1416,7 +1416,7 @@ static void gpencil_draw_onionskins(GpencilBatchCache *cache,
     }
 
     /* if loop option, save the frame to use later */
-    if ((mode != GP_ONION_MODE_ABSOLUTE) && (gpd->onion_flag & GP_ONION_LOOP)) {
+    if ((mode == GP_ONION_MODE_SELECTED) && (gpd->onion_flag & GP_ONION_LOOP)) {
       gpf_loop = gf;
     }
 
@@ -1427,7 +1427,6 @@ static void gpencil_draw_onionskins(GpencilBatchCache *cache,
    * 2) Now draw next frames
    * ------------------------------- */
   step = gpd->gstep_next;
-  mode = gpd->onion_mode;
 
   if (gpd->onion_flag & GP_ONION_GHOST_NEXTCOL) {
     copy_v3_v3(color, gpd->gcolor_next);
