@@ -2732,6 +2732,7 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
       int outline_id = shgroup_theme_id_to_outline_id(theme_id, ob->base_flag);
       uint cell_count = prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z;
       DRWShadingGroup *grp = DRW_shgroup_create(sh_data->lightprobe_grid, psl->lightprobes);
+      DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_int_copy(grp, "outlineId", outline_id);
       DRW_shgroup_uniform_vec3_copy(grp, "corner", corner);
       DRW_shgroup_uniform_vec3_copy(grp, "increment_x", increment[0]);
