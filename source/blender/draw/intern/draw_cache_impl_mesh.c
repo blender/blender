@@ -1031,6 +1031,9 @@ void DRW_mesh_batch_cache_create_requested(
     GPU_BATCH_CLEAR_SAFE(cache->batch.edit_triangles);
     GPU_BATCH_CLEAR_SAFE(cache->batch.edit_lnor);
     GPU_BATCH_CLEAR_SAFE(cache->batch.edit_selection_faces);
+    for (int i = 0; i < cache->mat_len; i++) {
+      GPU_BATCH_CLEAR_SAFE(cache->surface_per_mat[i]);
+    }
 
     cache->batch_ready &= ~(MBC_SURFACE | MBC_SURFACE_WEIGHTS | MBC_EDIT_MESH_ANALYSIS |
                             MBC_EDIT_TRIANGLES | MBC_EDIT_LNOR | MBC_EDIT_SELECTION_FACES);
