@@ -45,14 +45,17 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat,
   GPUNodeLink *inv_obmat = (ob != NULL) ? GPU_uniform(&ob->imat[0][0]) :
                                           GPU_builtin(GPU_INVERSE_OBJECT_MATRIX);
 
-  /* TODO only request orco if needed. */
-  GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
+  /* Opti: don't request orco if not needed. */
+  GPUNodeLink *orco = (!out[0].hasoutput) ? GPU_constant((float[4]){0.0f, 0.0f, 0.0f, 0.0f}) :
+                                            GPU_attribute(CD_ORCO, "");
   GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, "");
   GPUNodeLink *viewpos = GPU_builtin(GPU_VIEW_POSITION);
   GPUNodeLink *worldnor = GPU_builtin(GPU_WORLD_NORMAL);
   GPUNodeLink *texcofacs = GPU_builtin(GPU_CAMERA_TEXCO_FACTORS);
 
-  GPU_link(mat, "generated_from_orco", orco, &orco);
+  if (out[0].hasoutput) {
+    GPU_link(mat, "generated_from_orco", orco, &orco);
+  }
 
   GPU_stack_link(
       mat, node, "node_tex_coord", in, out, viewpos, worldnor, inv_obmat, texcofacs, orco, mtface);

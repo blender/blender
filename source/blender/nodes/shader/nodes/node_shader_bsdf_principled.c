@@ -120,6 +120,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
     GPU_link(mat, "world_normals_get", &in[20].link);
   }
 
+#if 0 /* Not used at the moment. */
   /* Tangents */
   if (!in[21].link) {
     GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
@@ -131,6 +132,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
              GPU_builtin(GPU_OBJECT_MATRIX),
              &in[21].link);
   }
+#endif
 
   bool use_diffuse = socket_not_one(4) && socket_not_one(15);
   bool use_subsurf = socket_not_zero(1) && use_diffuse && node->sss_id > 0;
