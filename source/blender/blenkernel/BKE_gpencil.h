@@ -32,6 +32,7 @@ struct ListBase;
 struct Main;
 struct Material;
 struct Object;
+struct Scene;
 struct ToolSettings;
 struct bDeformGroup;
 struct bGPDframe;
