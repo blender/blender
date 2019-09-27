@@ -925,6 +925,27 @@ GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 
 #pragma mark Cursor handling
 
+static NSCursor *getImageCursor(GHOST_TStandardCursor shape, NSString *name, NSPoint hotspot)
+{
+  static NSCursor *cursors[(int)GHOST_kStandardCursorNumCursors] = {0};
+  static bool loaded[(int)GHOST_kStandardCursorNumCursors] = {false};
+
+  const int index = (int)shape;
+  if (!loaded[index]) {
+    /* Load image from file in application Resources folder. */
+    @autoreleasepool {
+      NSImage *image = [NSImage imageNamed:name];
+      if (image != NULL) {
+        cursors[index] = [[NSCursor alloc] initWithImage:image hotSpot:hotspot];
+      }
+    }
+
+    loaded[index] = true;
+  }
+
+  return cursors[index];
+}
+
 NSCursor *GHOST_WindowCocoa::getStandardCursor(GHOST_TStandardCursor shape) const
 {
   switch (shape) {
@@ -942,10 +963,8 @@ NSCursor *GHOST_WindowCocoa::getStandardCursor(GHOST_TStandardCursor shape) cons
     case GHOST_kStandardCursorCrosshair:
       return [NSCursor crosshairCursor];
     case GHOST_kStandardCursorUpDown:
-    case GHOST_kStandardCursorHorizontalSplit:
       return [NSCursor resizeUpDownCursor];
     case GHOST_kStandardCursorLeftRight:
-    case GHOST_kStandardCursorVerticalSplit:
       return [NSCursor resizeLeftRightCursor];
     case GHOST_kStandardCursorTopSide:
       return [NSCursor resizeUpCursor];
@@ -963,6 +982,42 @@ NSCursor *GHOST_WindowCocoa::getStandardCursor(GHOST_TStandardCursor shape) cons
       return [NSCursor pointingHandCursor];
     case GHOST_kStandardCursorDefault:
       return [NSCursor arrowCursor];
+    case GHOST_kStandardCursorKnife:
+      return getImageCursor(shape, @"knife.pdf", NSMakePoint(6, 24));
+    case GHOST_kStandardCursorEraser:
+      return getImageCursor(shape, @"eraser.pdf", NSMakePoint(6, 24));
+    case GHOST_kStandardCursorPencil:
+      return getImageCursor(shape, @"pen.pdf", NSMakePoint(6, 24));
+    case GHOST_kStandardCursorEyedropper:
+      return getImageCursor(shape, @"eyedropper.pdf", NSMakePoint(6, 24));
+    case GHOST_kStandardCursorZoomIn:
+      return getImageCursor(shape, @"zoomin.pdf", NSMakePoint(8, 7));
+    case GHOST_kStandardCursorZoomOut:
+      return getImageCursor(shape, @"zoomout.pdf", NSMakePoint(8, 7));
+    case GHOST_kStandardCursorNSEWScroll:
+      return getImageCursor(shape, @"scrollnsew.pdf", NSMakePoint(16, 16));
+    case GHOST_kStandardCursorNSScroll:
+      return getImageCursor(shape, @"scrollns.pdf", NSMakePoint(16, 16));
+    case GHOST_kStandardCursorEWScroll:
+      return getImageCursor(shape, @"scrollew.pdf", NSMakePoint(16, 16));
+    case GHOST_kStandardCursorUpArrow:
+      return getImageCursor(shape, @"arrowup.pdf", NSMakePoint(16, 16));
+    case GHOST_kStandardCursorDownArrow:
+      return getImageCursor(shape, @"arrowdown.pdf", NSMakePoint(16, 16));
+    case GHOST_kStandardCursorLeftArrow:
+      return getImageCursor(shape, @"arrowleft.pdf", NSMakePoint(16, 16));
+    case GHOST_kStandardCursorRightArrow:
+      return getImageCursor(shape, @"arrowright.pdf", NSMakePoint(16, 16));
+    case GHOST_kStandardCursorVerticalSplit:
+      return getImageCursor(shape, @"splitv.pdf", NSMakePoint(16, 16));
+    case GHOST_kStandardCursorHorizontalSplit:
+      return getImageCursor(shape, @"splith.pdf", NSMakePoint(16, 16));
+    case GHOST_kStandardCursorCrosshairA:
+      return getImageCursor(shape, @"crossa.pdf", NSMakePoint(16, 16));
+    case GHOST_kStandardCursorCrosshairB:
+      return getImageCursor(shape, @"crossb.pdf", NSMakePoint(16, 16));
+    case GHOST_kStandardCursorCrosshairC:
+      return getImageCursor(shape, @"crossc.pdf", NSMakePoint(16, 16));
     default:
       return NULL;
   }
