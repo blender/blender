@@ -321,10 +321,11 @@ typedef struct Brush {
   int curve_preset;
   int automasking_flags;
 
-  char _pad1[4];
-
   int elastic_deform_type;
   float elastic_deform_volume_preservation;
+
+  /* pose */
+  float pose_offset;
 
   /* overlay */
   int texture_overlay_alpha;

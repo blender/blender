@@ -1352,10 +1352,12 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
     SculptCursorGeometryInfo gi;
     float mouse[2] = {x - ar->winrct.xmin, y - ar->winrct.ymin};
+    int prev_active_vertex_index = -1;
     bool is_cursor_over_mesh = false;
 
     /* Update the active vertex */
-    if ((mode == PAINT_MODE_SCULPT) && !ups->stroke_active) {
+    if ((mode == PAINT_MODE_SCULPT) && ss && !ups->stroke_active) {
+      prev_active_vertex_index = ss->active_vertex_index;
       is_cursor_over_mesh = sculpt_cursor_geometry_info_update(
           C, &gi, mouse, !(brush->falloff_shape & BRUSH_AIRBRUSH));
     }
@@ -1374,7 +1376,6 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
       }
 
       if (!ups->stroke_active) {
-        int prev_active_vertex_index = ss->active_vertex_index;
         bool update_previews = false;
         if (is_cursor_over_mesh && !alpha_overlay_active) {
 
@@ -1404,7 +1405,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
             if (update_previews) {
               BKE_sculpt_update_object_for_edit(depsgraph, vc.obact, true, false);
               sculpt_pose_calc_pose_data(
-                  sd, vc.obact, ss, gi.location, rds, ss->pose_origin, NULL);
+                  sd, vc.obact, ss, gi.location, rds, brush->pose_offset, ss->pose_origin, NULL);
             }
             cursor_draw_point_screen_space(pos, ar, ss->pose_origin, vc.obact->obmat, 5);
           }

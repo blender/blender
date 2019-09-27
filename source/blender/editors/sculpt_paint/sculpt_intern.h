@@ -63,6 +63,7 @@ void sculpt_pose_calc_pose_data(struct Sculpt *sd,
                                 struct SculptSession *ss,
                                 float initial_location[3],
                                 float radius,
+                                float pose_offset,
                                 float *r_pose_origin,
                                 float *r_pose_factor);
 
@@ -198,7 +199,11 @@ typedef struct SculptThreadedTaskData {
 
   float *pose_origin;
   float *pose_initial_co;
+  float *pose_factor;
   float (*transform_rot)[4], (*transform_trans)[4], (*transform_trans_inv)[4];
+
+  float tot_pos_avg[3];
+  int tot_pos_count;
 
   float max_distance_squared;
   float nearest_vertex_search_co[3];
