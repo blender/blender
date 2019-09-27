@@ -139,14 +139,10 @@ struct FCurve *alloc_driver_fcurve(const char rna_path[],
        * - These are configured to 0,0 and 1,1 to give a 1-1 mapping
        *   which can be easily tweaked from there.
        */
-      insert_vert_fcurve(fcu, 0.0f, 0.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
-      insert_vert_fcurve(fcu, 1.0f, 1.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
-
-      /* configure this curve to extrapolate */
-      for (i = 0, bezt = fcu->bezt; (i < fcu->totvert) && bezt; i++, bezt++) {
-        bezt->h1 = bezt->h2 = HD_VECT;
-      }
-
+      insert_vert_fcurve(
+          fcu, 0.0f, 0.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST | INSERTKEY_NO_USERPREF);
+      insert_vert_fcurve(
+          fcu, 1.0f, 1.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST | INSERTKEY_NO_USERPREF);
       fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
       calchandles_fcurve(fcu);
     }
