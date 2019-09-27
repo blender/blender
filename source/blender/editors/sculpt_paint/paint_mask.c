@@ -314,8 +314,10 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
         flip_plane(clip_planes_final[j], clip_planes[j], symmpass);
       }
 
-      BKE_pbvh_search_gather(
-          pbvh, BKE_pbvh_node_planes_contain_AABB, clip_planes_final, &nodes, &totnode);
+      PBVHFrustumPlanes frustum = {.planes = clip_planes_final, .num_planes = 4};
+      BKE_pbvh_search_gather(pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum, &nodes, &totnode);
+
+      negate_m4(clip_planes_final);
 
       MaskTaskData data = {
           .ob = ob,
@@ -482,7 +484,6 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
                                   &data);
 
     ED_view3d_clipping_calc(&bb, clip_planes, vc.ar, vc.obact, &data.rect);
-    negate_m4(clip_planes);
 
     BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true);
     pbvh = ob->sculpt->pbvh;
@@ -504,8 +505,11 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 
         /* gather nodes inside lasso's enclosing rectangle
          * (should greatly help with bigger meshes) */
+        PBVHFrustumPlanes frustum = {.planes = clip_planes_final, .num_planes = 4};
         BKE_pbvh_search_gather(
-            pbvh, BKE_pbvh_node_planes_contain_AABB, clip_planes_final, &nodes, &totnode);
+            pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum, &nodes, &totnode);
+
+        negate_m4(clip_planes_final);
 
         data.task_data.ob = ob;
         data.task_data.pbvh = pbvh;

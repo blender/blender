@@ -63,6 +63,11 @@ typedef enum {
   PBVH_UpdateTopology = 256,
 } PBVHNodeFlags;
 
+typedef struct PBVHFrustumPlanes {
+  float (*planes)[4];
+  int num_planes;
+} PBVHFrustumPlanes;
+
 /* Callbacks */
 
 /* returns 1 if the search should continue from this node, 0 otherwise */
@@ -167,7 +172,7 @@ bool BKE_pbvh_node_find_nearest_to_ray(PBVH *bvh,
 /* Drawing */
 
 void BKE_pbvh_draw_cb(PBVH *bvh,
-                      float (*planes)[4],
+                      PBVHFrustumPlanes *frustum,
                       void (*draw_fn)(void *user_data, struct GPU_PBVH_Buffers *buffers),
                       void *user_data);
 
@@ -245,10 +250,10 @@ void BKE_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max
 
 float BKE_pbvh_node_get_tmin(PBVHNode *node);
 
-/* test if AABB is at least partially inside the planes' volume */
-bool BKE_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data);
-/* test if AABB is at least partially outside the planes' volume */
-bool BKE_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data);
+/* test if AABB is at least partially inside the PBVHFrustumPlanes volume */
+bool BKE_pbvh_node_frustum_contain_AABB(PBVHNode *node, void *frustum);
+/* test if AABB is at least partially outside the PBVHFrustumPlanes volume */
+bool BKE_pbvh_node_frustum_exclude_AABB(PBVHNode *node, void *frustum);
 
 struct GSet *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node);
 struct GSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node);
