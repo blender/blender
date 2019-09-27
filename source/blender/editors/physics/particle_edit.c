@@ -5324,6 +5324,7 @@ static int clear_edited_exec(bContext *C, wmOperator *UNUSED(op))
 
       psys_reset(psys, PSYS_RESET_DEPSGRAPH);
       WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);
+      BKE_particle_batch_cache_dirty_tag(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
   }
