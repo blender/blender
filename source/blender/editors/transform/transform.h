@@ -267,7 +267,6 @@ typedef struct TransDataNla {
   int handle;
 } TransDataNla;
 
-struct GHash;
 struct LinkNode;
 
 /* header of TransDataEdgeSlideVert, TransDataEdgeSlideEdge */

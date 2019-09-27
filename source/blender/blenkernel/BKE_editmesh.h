@@ -28,8 +28,8 @@
 #include "BKE_customdata.h"
 #include "bmesh.h"
 
-struct BMesh;
 struct BMLoop;
+struct BMesh;
 struct BoundBox;
 struct Depsgraph;
 struct EditMeshData;

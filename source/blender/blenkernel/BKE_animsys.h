@@ -25,7 +25,6 @@
  */
 
 struct AnimData;
-struct ChannelDriver;
 struct Depsgraph;
 struct FCurve;
 struct ID;

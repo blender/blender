@@ -32,7 +32,6 @@
 #define MAXTEXTBOX 256 /* used in readfile.c and editfont.c */
 
 struct AnimData;
-struct BoundBox;
 struct EditFont;
 struct GHash;
 struct Ipo;

@@ -75,12 +75,12 @@ struct RenderEngineType;
 struct bContext;
 struct rcti;
 
+typedef struct DRWCallBuffer DRWCallBuffer;
 typedef struct DRWInterface DRWInterface;
 typedef struct DRWPass DRWPass;
 typedef struct DRWShadingGroup DRWShadingGroup;
 typedef struct DRWUniform DRWUniform;
 typedef struct DRWView DRWView;
-typedef struct DRWCallBuffer DRWCallBuffer;
 
 /* TODO Put it somewhere else? */
 typedef struct BoundSphere {

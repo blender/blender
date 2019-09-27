@@ -206,9 +206,9 @@ set(SRC
   shader/nodes/node_shader_valToRgb.c
   shader/nodes/node_shader_value.c
   shader/nodes/node_shader_vectTransform.c
-  shader/nodes/node_shader_vertex_color.c
   shader/nodes/node_shader_vector_displacement.c
   shader/nodes/node_shader_vector_math.c
+  shader/nodes/node_shader_vertex_color.c
   shader/nodes/node_shader_volume_absorption.c
   shader/nodes/node_shader_volume_info.c
   shader/nodes/node_shader_volume_principled.c
