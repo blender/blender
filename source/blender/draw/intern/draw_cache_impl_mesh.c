@@ -882,18 +882,18 @@ GPUBatch *DRW_mesh_batch_cache_get_verts_with_select_id(Mesh *me)
  * The `cache->tot_area` and cache->tot_uv_area` update are calculation are
  * only valid after calling `DRW_mesh_batch_cache_create_requested`. */
 GPUBatch *DRW_mesh_batch_cache_get_edituv_faces_stretch_area(Mesh *me,
-                                                             float *tot_area,
-                                                             float *tot_uv_area)
+                                                             float **tot_area,
+                                                             float **tot_uv_area)
 {
   MeshBatchCache *cache = mesh_batch_cache_get(me);
   texpaint_request_active_uv(cache, me);
   mesh_batch_cache_add_request(cache, MBC_EDITUV_FACES_STRETCH_AREA);
 
   if (tot_area != NULL) {
-    *tot_area = cache->tot_area;
+    *tot_area = &cache->tot_area;
   }
   if (tot_uv_area != NULL) {
-    *tot_uv_area = cache->tot_uv_area;
+    *tot_uv_area = &cache->tot_uv_area;
   }
   return DRW_batch_request(&cache->batch.edituv_faces_stretch_area);
 }

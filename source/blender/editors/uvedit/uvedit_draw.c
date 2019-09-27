@@ -177,6 +177,7 @@ static void uvedit_get_batches(Object *ob,
                                float *tot_area,
                                float *tot_area_uv)
 {
+  float *tmp_tot_area, *tmp_tot_area_uv;
   int drawfaces = draw_uvs_face_check(scene->toolsettings);
   const bool draw_stretch = (sima->flag & SI_DRAW_STRETCH) != 0;
   const bool draw_faces = (sima->flag & SI_NO_DRAWFACES) == 0;
@@ -193,7 +194,8 @@ static void uvedit_get_batches(Object *ob,
   }
 
   if (draw_stretch && (sima->dt_uvstretch == SI_UVDT_STRETCH_AREA)) {
-    batches->faces = DRW_mesh_batch_cache_get_edituv_faces_stretch_area(ob->data, NULL, NULL);
+    batches->faces = DRW_mesh_batch_cache_get_edituv_faces_stretch_area(
+        ob->data, &tmp_tot_area, &tmp_tot_area_uv);
   }
   else if (draw_stretch) {
     batches->faces = DRW_mesh_batch_cache_get_edituv_faces_stretch_angle(ob->data);
@@ -207,11 +209,11 @@ static void uvedit_get_batches(Object *ob,
 
   DRW_mesh_batch_cache_create_requested(ob, ob->data, scene, false, false);
 
-  /* after create_requested we can load the actual areas */
-  float tmp_tot_area, tmp_tot_area_uv;
-  DRW_mesh_batch_cache_get_edituv_faces_stretch_area(ob->data, &tmp_tot_area, &tmp_tot_area_uv);
-  *tot_area += tmp_tot_area;
-  *tot_area_uv += tmp_tot_area_uv;
+  if (draw_stretch && (sima->dt_uvstretch == SI_UVDT_STRETCH_AREA)) {
+    /* after create_requested we can load the actual areas */
+    *tot_area += *tmp_tot_area;
+    *tot_area_uv += *tmp_tot_area_uv;
+  }
 }
 
 static void draw_uvs_shadow(SpaceImage *UNUSED(sima),
