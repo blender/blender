@@ -26,6 +26,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_defaults.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
@@ -36,6 +37,7 @@
 #include "BKE_library_query.h"
 #include "BKE_library_remap.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_icons.h"
@@ -239,306 +241,383 @@ static void brush_gpencil_curvemap_reset(CurveMap *cuma, int tot, int preset)
   }
 }
 
-/* create a set of grease pencil presets */
-void BKE_brush_gpencil_presets(bContext *C)
+/* create a set of grease pencil presets. */
+void BKE_brush_gpencil_presets(Main *bmain, ToolSettings *ts)
 {
 #define SMOOTH_STROKE_RADIUS 40
 #define SMOOTH_STROKE_FACTOR 0.9f
 
-  ToolSettings *ts = CTX_data_tool_settings(C);
   Paint *paint = &ts->gp_paint->paint;
-  Main *bmain = CTX_data_main(C);
 
   Brush *brush, *deft;
   CurveMapping *custom_curve;
 
-  /* Pencil brush */
-  brush = BKE_brush_add_gpencil(bmain, ts, "Draw Pencil");
-  brush->size = 25.0f;
-  brush->gpencil_settings->flag |= (GP_BRUSH_USE_PRESSURE | GP_BRUSH_ENABLE_CURSOR);
-  brush->gpencil_settings->draw_sensitivity = 1.0f;
+  /* Airbrush brush. */
+  brush = BLI_findstring(&bmain->brushes, "Airbrush", offsetof(ID, name) + 2);
+  if (brush == NULL) {
+    brush = BKE_brush_add_gpencil(bmain, ts, "Airbrush");
+  }
 
-  brush->gpencil_settings->draw_strength = 0.6f;
+  brush->size = 300.0f;
+  brush->gpencil_settings->flag |= (GP_BRUSH_USE_PRESSURE | GP_BRUSH_ENABLE_CURSOR);
+
+  brush->gpencil_settings->draw_strength = 0.4f;
   brush->gpencil_settings->flag |= GP_BRUSH_USE_STENGTH_PRESSURE;
 
-  brush->gpencil_settings->draw_random_press = 0.0f;
-
-  brush->gpencil_settings->draw_jitter = 0.0f;
-  brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
-
+  brush->gpencil_settings->input_samples = 10;
+  brush->gpencil_settings->active_smooth = 0.98f;
   brush->gpencil_settings->draw_angle = 0.0f;
   brush->gpencil_settings->draw_angle_factor = 0.0f;
+  brush->gpencil_settings->gradient_f = 0.211f;
+  brush->gpencil_settings->gradient_s[0] = 1.0f;
+  brush->gpencil_settings->gradient_s[1] = 1.0f;
 
-  brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
-  brush->gpencil_settings->draw_smoothfac = 0.1f;
-  brush->gpencil_settings->draw_smoothlvl = 1;
-  brush->gpencil_settings->thick_smoothfac = 1.0f;
-  brush->gpencil_settings->thick_smoothlvl = 3;
-  brush->gpencil_settings->draw_subdivide = 1;
-  brush->gpencil_settings->draw_random_sub = 0.0f;
-  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PENCIL;
+  brush->gpencil_settings->draw_sensitivity = 1.0f;
+
   brush->gpencil_tool = GPAINT_TOOL_DRAW;
+  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_AIRBRUSH;
 
   brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
   brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
 
-  brush->gpencil_settings->gradient_f = 1.0f;
-  brush->gpencil_settings->gradient_s[0] = 1.0f;
-  brush->gpencil_settings->gradient_s[1] = 1.0f;
+  /* Create and link Black Dots material to brush.
+   * This material is required because the brush uses the material to define how the stroke is
+   * drawn. */
+  Material *ma = BLI_findstring(&bmain->materials, "Black Dots", offsetof(ID, name) + 2);
+  if (ma == NULL) {
+    ma = BKE_material_add_gpencil(bmain, "Black Dots");
+  }
+  brush->gpencil_settings->material = ma;
+  /* Pin the matterial to the brush. */
+  brush->gpencil_settings->flag |= GP_BRUSH_MATERIAL_PINNED;
 
-  /* Pen brush */
-  brush = BKE_brush_add_gpencil(bmain, ts, "Draw Pen");
-  deft = brush; /* save default brush */
-  brush->size = 30.0f;
-  brush->gpencil_settings->flag |= (GP_BRUSH_USE_PRESSURE | GP_BRUSH_ENABLE_CURSOR);
-  brush->gpencil_settings->draw_sensitivity = 1.0f;
-
-  brush->gpencil_settings->draw_strength = 1.0f;
-  brush->gpencil_settings->flag |= GP_BRUSH_USE_STENGTH_PRESSURE;
-
-  brush->gpencil_settings->draw_random_press = 0.0f;
-  brush->gpencil_settings->draw_random_strength = 0.0f;
-
-  brush->gpencil_settings->draw_jitter = 0.0f;
-  brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
-
-  brush->gpencil_settings->draw_angle = 0.0f;
-  brush->gpencil_settings->draw_angle_factor = 0.0f;
-
-  brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
-  brush->gpencil_settings->draw_smoothfac = 0.1f;
-  brush->gpencil_settings->draw_smoothlvl = 1;
-  brush->gpencil_settings->draw_subdivide = 1;
-  brush->gpencil_settings->thick_smoothfac = 1.0f;
-  brush->gpencil_settings->thick_smoothlvl = 3;
-  brush->gpencil_settings->draw_random_sub = 0.0f;
-  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PEN;
-  brush->gpencil_tool = GPAINT_TOOL_DRAW;
-
-  brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
-  brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
-
-  brush->gpencil_settings->gradient_f = 1.0f;
-  brush->gpencil_settings->gradient_s[0] = 1.0f;
-  brush->gpencil_settings->gradient_s[1] = 1.0f;
-
-  /* Ink brush */
-  brush = BKE_brush_add_gpencil(bmain, ts, "Draw Ink");
+  /* Ink Pen brush. */
+  brush = BLI_findstring(&bmain->brushes, "Ink Pen", offsetof(ID, name) + 2);
+  if (brush == NULL) {
+    brush = BKE_brush_add_gpencil(bmain, ts, "Ink Pen");
+  }
   brush->size = 60.0f;
   brush->gpencil_settings->flag |= (GP_BRUSH_USE_PRESSURE | GP_BRUSH_ENABLE_CURSOR);
-  brush->gpencil_settings->draw_sensitivity = 1.6f;
 
   brush->gpencil_settings->draw_strength = 1.0f;
 
-  brush->gpencil_settings->draw_random_press = 0.0f;
-
-  brush->gpencil_settings->draw_jitter = 0.0f;
-  brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
-
+  brush->gpencil_settings->input_samples = 10;
+  brush->gpencil_settings->active_smooth = 0.7f;
   brush->gpencil_settings->draw_angle = 0.0f;
   brush->gpencil_settings->draw_angle_factor = 0.0f;
+  brush->gpencil_settings->gradient_f = 1.0f;
+  brush->gpencil_settings->gradient_s[0] = 1.0f;
+  brush->gpencil_settings->gradient_s[1] = 1.0f;
 
   brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
   brush->gpencil_settings->draw_smoothfac = 0.1f;
   brush->gpencil_settings->draw_smoothlvl = 1;
   brush->gpencil_settings->thick_smoothfac = 1.0f;
   brush->gpencil_settings->thick_smoothlvl = 3;
-  brush->gpencil_settings->draw_subdivide = 1;
+  brush->gpencil_settings->draw_subdivide = 0;
   brush->gpencil_settings->draw_random_sub = 0.0f;
+  brush->gpencil_settings->simplify_f = 0.002f;
+
+  brush->gpencil_settings->draw_random_press = 0.0f;
+  brush->gpencil_settings->draw_jitter = 0.0f;
+  brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
+  brush->gpencil_settings->draw_sensitivity = 1.0f;
+
+  /* Curve. */
+  custom_curve = brush->gpencil_settings->curve_sensitivity;
+  BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f);
+  BKE_curvemapping_initialize(custom_curve);
+  brush_gpencil_curvemap_reset(custom_curve->cm, 3, GPCURVE_PRESET_INK);
+
   brush->gpencil_settings->icon_id = GP_BRUSH_ICON_INK;
   brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
   brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
   brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
 
+  /* Ink Pen Rough brush. */
+  brush = BLI_findstring(&bmain->brushes, "Ink Pen Rough", offsetof(ID, name) + 2);
+  if (brush == NULL) {
+    brush = BKE_brush_add_gpencil(bmain, ts, "Ink Pen Rough");
+  }
+
+  brush->size = 60.0f;
+  brush->gpencil_settings->flag |= (GP_BRUSH_USE_PRESSURE | GP_BRUSH_ENABLE_CURSOR);
+
+  brush->gpencil_settings->draw_strength = 1.0f;
+
+  brush->gpencil_settings->input_samples = 10;
+  brush->gpencil_settings->active_smooth = 0.5f;
+  brush->gpencil_settings->draw_angle = 0.0f;
+  brush->gpencil_settings->draw_angle_factor = 0.0f;
   brush->gpencil_settings->gradient_f = 1.0f;
   brush->gpencil_settings->gradient_s[0] = 1.0f;
   brush->gpencil_settings->gradient_s[1] = 1.0f;
 
-  /* Curve */
+  brush->gpencil_settings->flag &= ~GP_BRUSH_GROUP_SETTINGS;
+  brush->gpencil_settings->draw_smoothfac = 0.0f;
+  brush->gpencil_settings->draw_smoothlvl = 2;
+  brush->gpencil_settings->thick_smoothfac = 0.0f;
+  brush->gpencil_settings->thick_smoothlvl = 2;
+  brush->gpencil_settings->draw_subdivide = 0;
+  brush->gpencil_settings->draw_random_sub = 0.0f;
+  brush->gpencil_settings->simplify_f = 0.000f;
+
+  brush->gpencil_settings->flag |= GP_BRUSH_GROUP_RANDOM;
+  brush->gpencil_settings->draw_random_press = 1.0f;
+  brush->gpencil_settings->draw_random_strength = 0.0f;
+  brush->gpencil_settings->draw_jitter = 0.0f;
+  brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
+  brush->gpencil_settings->draw_sensitivity = 1.0f;
+
+  /* Curve. */
   custom_curve = brush->gpencil_settings->curve_sensitivity;
   BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f);
   BKE_curvemapping_initialize(custom_curve);
-  brush_gpencil_curvemap_reset(custom_curve->cm, 3, GPCURVE_PRESET_INK);
+  brush_gpencil_curvemap_reset(custom_curve->cm, 3, GPCURVE_PRESET_INKNOISE);
 
-  /* Ink Noise brush */
-  brush = BKE_brush_add_gpencil(bmain, ts, "Draw Noise");
-  brush->size = 60.0f;
-  brush->gpencil_settings->flag |= (GP_BRUSH_USE_PRESSURE | GP_BRUSH_ENABLE_CURSOR);
-  brush->gpencil_settings->draw_sensitivity = 1.0f;
-
-  brush->gpencil_settings->draw_strength = 1.0f;
-
-  brush->gpencil_settings->flag |= GP_BRUSH_GROUP_RANDOM;
-  brush->gpencil_settings->draw_random_press = 0.7f;
-  brush->gpencil_settings->draw_random_strength = 0.0f;
-
-  brush->gpencil_settings->draw_jitter = 0.0f;
-  brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
-
-  brush->gpencil_settings->draw_angle = 0.0f;
-  brush->gpencil_settings->draw_angle_factor = 0.0f;
-
-  brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
-  brush->gpencil_settings->draw_smoothfac = 0.1f;
-  brush->gpencil_settings->draw_smoothlvl = 2;
-  brush->gpencil_settings->thick_smoothfac = 0.5f;
-  brush->gpencil_settings->thick_smoothlvl = 2;
-  brush->gpencil_settings->draw_subdivide = 1;
-  brush->gpencil_settings->draw_random_sub = 0.0f;
   brush->gpencil_settings->icon_id = GP_BRUSH_ICON_INKNOISE;
   brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
   brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
   brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
 
-  /* Curve */
-  custom_curve = brush->gpencil_settings->curve_sensitivity;
-  BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f);
-  BKE_curvemapping_initialize(custom_curve);
-  brush_gpencil_curvemap_reset(custom_curve->cm, 3, GPCURVE_PRESET_INKNOISE);
-
-  brush->gpencil_settings->gradient_f = 1.0f;
-  brush->gpencil_settings->gradient_s[0] = 1.0f;
-  brush->gpencil_settings->gradient_s[1] = 1.0f;
-
-  /* Block Basic brush */
-  brush = BKE_brush_add_gpencil(bmain, ts, "Draw Block");
+  /* Marker Bold brush. */
+  brush = BLI_findstring(&bmain->brushes, "Marker Bold", offsetof(ID, name) + 2);
+  if (brush == NULL) {
+    brush = BKE_brush_add_gpencil(bmain, ts, "Marker Bold");
+  }
   brush->size = 150.0f;
-  brush->gpencil_settings->flag |= (GP_BRUSH_USE_PRESSURE | GP_BRUSH_ENABLE_CURSOR);
-  brush->gpencil_settings->draw_sensitivity = 1.0f;
+  brush->gpencil_settings->flag &= ~GP_BRUSH_USE_PRESSURE;
 
-  brush->gpencil_settings->draw_strength = 1.0f;
+  brush->gpencil_settings->draw_strength = 0.3f;
 
-  brush->gpencil_settings->draw_random_press = 0.0f;
-
-  brush->gpencil_settings->draw_jitter = 0.0f;
-  brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
-
+  brush->gpencil_settings->input_samples = 10;
+  brush->gpencil_settings->active_smooth = 0.6f;
   brush->gpencil_settings->draw_angle = 0.0f;
   brush->gpencil_settings->draw_angle_factor = 0.0f;
-
-  brush->gpencil_settings->draw_smoothfac = 0.1f;
-  brush->gpencil_settings->draw_smoothlvl = 1;
-  brush->gpencil_settings->thick_smoothfac = 1.0f;
-  brush->gpencil_settings->thick_smoothlvl = 3;
-  brush->gpencil_settings->draw_subdivide = 0;
-  brush->gpencil_settings->draw_random_sub = 0;
-  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_BLOCK;
-  brush->gpencil_tool = GPAINT_TOOL_DRAW;
-
-  brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
-  brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
-
   brush->gpencil_settings->gradient_f = 1.0f;
   brush->gpencil_settings->gradient_s[0] = 1.0f;
   brush->gpencil_settings->gradient_s[1] = 1.0f;
-
-  /* Marker brush */
-  brush = BKE_brush_add_gpencil(bmain, ts, "Draw Marker");
-  brush->size = 80.0f;
-  brush->gpencil_settings->flag |= (GP_BRUSH_USE_PRESSURE | GP_BRUSH_ENABLE_CURSOR);
-  brush->gpencil_settings->draw_sensitivity = 1.0f;
-
-  brush->gpencil_settings->draw_strength = 1.0f;
-
-  brush->gpencil_settings->flag |= GP_BRUSH_GROUP_RANDOM;
-  brush->gpencil_settings->draw_random_press = 0.374f;
-  brush->gpencil_settings->draw_random_strength = 0.0f;
-
-  brush->gpencil_settings->draw_jitter = 0.0f;
-  brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
-
-  brush->gpencil_settings->draw_angle = DEG2RAD(20.0f);
-  brush->gpencil_settings->draw_angle_factor = 1.0f;
 
   brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
   brush->gpencil_settings->draw_smoothfac = 0.1f;
   brush->gpencil_settings->draw_smoothlvl = 1;
   brush->gpencil_settings->thick_smoothfac = 1.0f;
   brush->gpencil_settings->thick_smoothlvl = 3;
-  brush->gpencil_settings->draw_subdivide = 1;
+  brush->gpencil_settings->draw_subdivide = 0;
   brush->gpencil_settings->draw_random_sub = 0.0f;
-  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_MARKER;
-  brush->gpencil_tool = GPAINT_TOOL_DRAW;
+  brush->gpencil_settings->simplify_f = 0.002f;
 
-  brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
-  brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
-  /* Curve */
+  brush->gpencil_settings->flag &= ~GP_BRUSH_GROUP_RANDOM;
+  brush->gpencil_settings->draw_random_press = 0.0f;
+  brush->gpencil_settings->draw_random_strength = 0.0f;
+  brush->gpencil_settings->draw_jitter = 0.0f;
+  brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
+  brush->gpencil_settings->draw_sensitivity = 1.0f;
+
+  /* Curve. */
   custom_curve = brush->gpencil_settings->curve_sensitivity;
   BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f);
   BKE_curvemapping_initialize(custom_curve);
   brush_gpencil_curvemap_reset(custom_curve->cm, 4, GPCURVE_PRESET_MARKER);
 
-  brush->gpencil_settings->gradient_f = 1.0f;
-  brush->gpencil_settings->gradient_s[0] = 1.0f;
-  brush->gpencil_settings->gradient_s[1] = 1.0f;
-
-  /* Soft brush */
-  brush = BKE_brush_add_gpencil(bmain, ts, "Draw Soft");
-  deft = brush; /* save default brush */
-  brush->size = 300.0f;
-  brush->gpencil_settings->flag |= (GP_BRUSH_USE_PRESSURE | GP_BRUSH_ENABLE_CURSOR);
-  brush->gpencil_settings->draw_sensitivity = 1.0f;
-
-  brush->gpencil_settings->draw_strength = 0.4f;
-  brush->gpencil_settings->flag |= GP_BRUSH_USE_STENGTH_PRESSURE;
-
-  brush->gpencil_settings->draw_random_press = 0.0f;
-  brush->gpencil_settings->draw_random_strength = 0.0f;
-
-  brush->gpencil_settings->draw_jitter = 0.0f;
-  brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
-
-  brush->gpencil_settings->draw_angle = 0.0f;
-  brush->gpencil_settings->draw_angle_factor = 0.0f;
-
-  brush->gpencil_settings->input_samples = 10;
-  brush->gpencil_settings->active_smooth = 0.98f;
-  brush->gpencil_settings->draw_smoothfac = 0.1f;
-  brush->gpencil_settings->draw_smoothlvl = 1;
-  brush->gpencil_settings->draw_subdivide = 1;
-  brush->gpencil_settings->thick_smoothfac = 1.0f;
-  brush->gpencil_settings->thick_smoothlvl = 3;
-  brush->gpencil_settings->draw_random_sub = 0.0f;
   brush->gpencil_settings->icon_id = GP_BRUSH_ICON_MARKER;
   brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
   brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
   brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
 
-  brush->gpencil_settings->gradient_f = 0.211f;
-  brush->gpencil_settings->gradient_s[0] = 1.0f;
-  brush->gpencil_settings->gradient_s[1] = 0.91f;
+  /* Marker Chisel brush. */
+  brush = BLI_findstring(&bmain->brushes, "Marker Chisel", offsetof(ID, name) + 2);
+  if (brush == NULL) {
+    brush = BKE_brush_add_gpencil(bmain, ts, "Marker Chisel");
+  }
+  brush->size = 80.0f;
+  brush->gpencil_settings->flag |= (GP_BRUSH_USE_PRESSURE | GP_BRUSH_ENABLE_CURSOR);
 
-  /* Fill brush */
+  brush->gpencil_settings->draw_strength = 1.0f;
+
+  brush->gpencil_settings->input_samples = 10;
+  brush->gpencil_settings->active_smooth = 0.5f;
+  brush->gpencil_settings->draw_angle = DEG2RAD(20.0f);
+  brush->gpencil_settings->draw_angle_factor = 1.0f;
+  brush->gpencil_settings->gradient_f = 1.0f;
+  brush->gpencil_settings->gradient_s[0] = 1.0f;
+  brush->gpencil_settings->gradient_s[1] = 1.0f;
+
+  brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
+  brush->gpencil_settings->draw_smoothfac = 0.0f;
+  brush->gpencil_settings->draw_smoothlvl = 1;
+  brush->gpencil_settings->thick_smoothfac = 1.0f;
+  brush->gpencil_settings->thick_smoothlvl = 3;
+  brush->gpencil_settings->draw_subdivide = 0;
+  brush->gpencil_settings->draw_random_sub = 0;
+  brush->gpencil_settings->simplify_f = 0.002f;
+
+  brush->gpencil_settings->flag &= ~GP_BRUSH_GROUP_RANDOM;
+  brush->gpencil_settings->draw_random_press = 0.0f;
+  brush->gpencil_settings->draw_jitter = 0.0f;
+  brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
+  brush->gpencil_settings->draw_sensitivity = 1.0f;
+
+  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_CHISEL;
+  brush->gpencil_tool = GPAINT_TOOL_DRAW;
+
+  brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
+  brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
+
+  /* Pen brush. */
+  brush = BLI_findstring(&bmain->brushes, "Pen", offsetof(ID, name) + 2);
+  if (brush == NULL) {
+    brush = BKE_brush_add_gpencil(bmain, ts, "Pen");
+  }
+  brush->size = 30.0f;
+  brush->gpencil_settings->flag |= (GP_BRUSH_USE_PRESSURE | GP_BRUSH_ENABLE_CURSOR);
+
+  brush->gpencil_settings->draw_strength = 1.0f;
+  brush->gpencil_settings->flag |= GP_BRUSH_USE_STENGTH_PRESSURE;
+
+  brush->gpencil_settings->input_samples = 10;
+  brush->gpencil_settings->active_smooth = 0.3f;
+  brush->gpencil_settings->draw_angle = 0.0f;
+  brush->gpencil_settings->draw_angle_factor = 0.0f;
+  brush->gpencil_settings->gradient_f = 1.0f;
+  brush->gpencil_settings->gradient_s[0] = 1.0f;
+  brush->gpencil_settings->gradient_s[1] = 1.0f;
+
+  brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
+  brush->gpencil_settings->draw_smoothfac = 0.0f;
+  brush->gpencil_settings->draw_smoothlvl = 1;
+  brush->gpencil_settings->thick_smoothfac = 1.0f;
+  brush->gpencil_settings->thick_smoothlvl = 1;
+  brush->gpencil_settings->draw_subdivide = 1;
+  brush->gpencil_settings->draw_random_sub = 0.0f;
+  brush->gpencil_settings->simplify_f = 0.002f;
+
+  brush->gpencil_settings->draw_random_press = 0.0f;
+  brush->gpencil_settings->draw_random_strength = 0.0f;
+  brush->gpencil_settings->draw_jitter = 0.0f;
+  brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
+  brush->gpencil_settings->draw_sensitivity = 1.0f;
+
+  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PEN;
+  brush->gpencil_tool = GPAINT_TOOL_DRAW;
+
+  brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
+  brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
+
+  /* Pencil Soft brush. */
+  brush = BLI_findstring(&bmain->brushes, "Pencil Soft", offsetof(ID, name) + 2);
+  if (brush == NULL) {
+    brush = BKE_brush_add_gpencil(bmain, ts, "Pencil Soft");
+  }
+
+  brush->size = 80.0f;
+  brush->gpencil_settings->flag |= (GP_BRUSH_USE_PRESSURE | GP_BRUSH_ENABLE_CURSOR);
+
+  brush->gpencil_settings->draw_strength = 0.4f;
+  brush->gpencil_settings->flag |= GP_BRUSH_USE_STENGTH_PRESSURE;
+
+  brush->gpencil_settings->input_samples = 10;
+  brush->gpencil_settings->active_smooth = 0.64f;
+  brush->gpencil_settings->draw_angle = 0.0f;
+  brush->gpencil_settings->draw_angle_factor = 0.0f;
+  brush->gpencil_settings->gradient_f = 0.8f;
+  brush->gpencil_settings->gradient_s[0] = 1.0f;
+  brush->gpencil_settings->gradient_s[1] = 1.0f;
+
+  brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
+  brush->gpencil_settings->draw_smoothfac = 0.0f;
+  brush->gpencil_settings->draw_smoothlvl = 1;
+  brush->gpencil_settings->thick_smoothfac = 1.0f;
+  brush->gpencil_settings->thick_smoothlvl = 3;
+  brush->gpencil_settings->draw_subdivide = 0;
+  brush->gpencil_settings->draw_random_sub = 0.0f;
+  brush->gpencil_settings->simplify_f = 0.000f;
+
+  brush->gpencil_settings->draw_random_press = 0.0f;
+  brush->gpencil_settings->draw_random_strength = 0.0f;
+  brush->gpencil_settings->draw_jitter = 0.0f;
+  brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
+  brush->gpencil_settings->draw_sensitivity = 1.0f;
+
+  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PENCIL;
+  brush->gpencil_tool = GPAINT_TOOL_DRAW;
+
+  brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
+  brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
+
+  /* Pencil brush. */
+  brush = BLI_findstring(&bmain->brushes, "Pencil", offsetof(ID, name) + 2);
+  if (brush == NULL) {
+    brush = BKE_brush_add_gpencil(bmain, ts, "Pencil");
+  }
+  deft = brush; /* save default brush. */
+
+  brush->size = 25.0f;
+  brush->gpencil_settings->flag |= (GP_BRUSH_USE_PRESSURE | GP_BRUSH_ENABLE_CURSOR);
+
+  brush->gpencil_settings->draw_strength = 0.6f;
+  brush->gpencil_settings->flag |= GP_BRUSH_USE_STENGTH_PRESSURE;
+
+  brush->gpencil_settings->input_samples = 10;
+  brush->gpencil_settings->active_smooth = 0.55f;
+  brush->gpencil_settings->draw_angle = 0.0f;
+  brush->gpencil_settings->draw_angle_factor = 0.0f;
+  brush->gpencil_settings->gradient_f = 1.0f;
+  brush->gpencil_settings->gradient_s[0] = 1.0f;
+  brush->gpencil_settings->gradient_s[1] = 1.0f;
+
+  brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
+  brush->gpencil_settings->draw_smoothfac = 0.0f;
+  brush->gpencil_settings->draw_smoothlvl = 1;
+  brush->gpencil_settings->thick_smoothfac = 1.0f;
+  brush->gpencil_settings->thick_smoothlvl = 3;
+  brush->gpencil_settings->draw_subdivide = 0;
+  brush->gpencil_settings->draw_random_sub = 0.0f;
+  brush->gpencil_settings->simplify_f = 0.002f;
+
+  brush->gpencil_settings->draw_random_press = 0.0f;
+  brush->gpencil_settings->draw_jitter = 0.0f;
+  brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
+  brush->gpencil_settings->draw_sensitivity = 1.0f;
+
+  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PENCIL;
+  brush->gpencil_tool = GPAINT_TOOL_DRAW;
+
+  brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
+  brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
+
+  /* Fill brush. */
   brush = BKE_brush_add_gpencil(bmain, ts, "Fill Area");
   brush->size = 20.0f;
   brush->gpencil_settings->flag |= GP_BRUSH_ENABLE_CURSOR;
-  brush->gpencil_settings->draw_sensitivity = 1.0f;
+
   brush->gpencil_settings->fill_leak = 3;
   brush->gpencil_settings->fill_threshold = 0.1f;
   brush->gpencil_settings->fill_simplylvl = 1;
   brush->gpencil_settings->fill_factor = 1;
-  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_FILL;
-  brush->gpencil_tool = GPAINT_TOOL_FILL;
 
+  brush->gpencil_settings->draw_strength = 1.0f;
+  brush->gpencil_settings->gradient_f = 1.0f;
+  brush->gpencil_settings->gradient_s[0] = 1.0f;
+  brush->gpencil_settings->gradient_s[1] = 1.0f;
   brush->gpencil_settings->draw_smoothfac = 0.1f;
   brush->gpencil_settings->draw_smoothlvl = 1;
   brush->gpencil_settings->thick_smoothfac = 1.0f;
   brush->gpencil_settings->thick_smoothlvl = 3;
   brush->gpencil_settings->draw_subdivide = 1;
 
+  brush->gpencil_settings->draw_sensitivity = 1.0f;
+
+  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_FILL;
+  brush->gpencil_tool = GPAINT_TOOL_FILL;
+
   brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
   brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
 
-  brush->gpencil_settings->draw_strength = 1.0f;
-
-  brush->gpencil_settings->gradient_f = 1.0f;
-  brush->gpencil_settings->gradient_s[0] = 1.0f;
-  brush->gpencil_settings->gradient_s[1] = 1.0f;
-
-  /* Soft Eraser brush */
+  /* Soft Eraser brush. */
   brush = BKE_brush_add_gpencil(bmain, ts, "Eraser Soft");
   brush->size = 30.0f;
   brush->gpencil_settings->draw_strength = 0.5f;
@@ -551,34 +630,37 @@ void BKE_brush_gpencil_presets(bContext *C)
   brush->gpencil_settings->era_strength_f = 100.0f;
   brush->gpencil_settings->era_thickness_f = 10.0f;
 
-  /* Hard Eraser brush */
+  /* Hard Eraser brush. */
   brush = BKE_brush_add_gpencil(bmain, ts, "Eraser Hard");
   brush->size = 30.0f;
   brush->gpencil_settings->draw_strength = 1.0f;
   brush->gpencil_settings->flag |= (GP_BRUSH_ENABLE_CURSOR | GP_BRUSH_DEFAULT_ERASER);
-  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_HARD;
-  brush->gpencil_tool = GPAINT_TOOL_ERASE;
   brush->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_SOFT;
   brush->gpencil_settings->era_strength_f = 100.0f;
   brush->gpencil_settings->era_thickness_f = 50.0f;
 
-  /* Point Eraser brush */
+  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_HARD;
+  brush->gpencil_tool = GPAINT_TOOL_ERASE;
+
+  /* Point Eraser brush. */
   brush = BKE_brush_add_gpencil(bmain, ts, "Eraser Point");
   brush->size = 30.0f;
   brush->gpencil_settings->flag |= GP_BRUSH_ENABLE_CURSOR;
-  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_HARD;
-  brush->gpencil_tool = GPAINT_TOOL_ERASE;
   brush->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_HARD;
 
-  /* Stroke Eraser brush */
+  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_HARD;
+  brush->gpencil_tool = GPAINT_TOOL_ERASE;
+
+  /* Stroke Eraser brush. */
   brush = BKE_brush_add_gpencil(bmain, ts, "Eraser Stroke");
   brush->size = 30.0f;
   brush->gpencil_settings->flag |= GP_BRUSH_ENABLE_CURSOR;
-  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_STROKE;
-  brush->gpencil_tool = GPAINT_TOOL_ERASE;
   brush->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_STROKE;
 
-  /* set default brush */
+  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_STROKE;
+  brush->gpencil_tool = GPAINT_TOOL_ERASE;
+
+  /* set default brush. */
   BKE_paint_brush_set(paint, deft);
 }
 

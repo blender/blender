@@ -35,6 +35,7 @@
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
 
 #include "WM_api.h"
@@ -97,6 +98,7 @@ static void gpencil_insert_points_to_stroke(bGPDstroke *gps,
 
 static bGPDstroke *gpencil_prepare_stroke(bContext *C, wmOperator *op, int totpoints)
 {
+  Main *bmain = CTX_data_main(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   Object *ob = CTX_data_active_object(C);
   bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
@@ -111,7 +113,7 @@ static bGPDstroke *gpencil_prepare_stroke(bContext *C, wmOperator *op, int totpo
   /* if not exist, create a new one */
   if ((paint->brush == NULL) || (paint->brush->gpencil_settings == NULL)) {
     /* create new brushes */
-    BKE_brush_gpencil_presets(C);
+    BKE_brush_gpencil_presets(bmain, ts);
   }
   Brush *brush = paint->brush;
 

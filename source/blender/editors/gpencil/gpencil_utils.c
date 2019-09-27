@@ -1391,7 +1391,7 @@ void ED_gpencil_add_defaults(bContext *C, Object *ob)
   /* if not exist, create a new one */
   if ((paint->brush == NULL) || (paint->brush->gpencil_settings == NULL)) {
     /* create new brushes */
-    BKE_brush_gpencil_presets(C);
+    BKE_brush_gpencil_presets(bmain, ts);
   }
 
   /* ensure a color exists and is assigned to object */

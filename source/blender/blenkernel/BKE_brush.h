@@ -56,7 +56,7 @@ void BKE_brush_make_local(struct Main *bmain, struct Brush *brush, const bool li
 void BKE_brush_free(struct Brush *brush);
 
 void BKE_brush_sculpt_reset(struct Brush *brush);
-void BKE_brush_gpencil_presets(struct bContext *C);
+void BKE_brush_gpencil_presets(struct Main *bmain, struct ToolSettings *ts);
 
 /* image icon function */
 struct ImBuf *get_brush_icon(struct Brush *brush);

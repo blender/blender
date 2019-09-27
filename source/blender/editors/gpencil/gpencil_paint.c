@@ -2012,6 +2012,7 @@ static void gp_set_default_eraser(Main *bmain, Brush *brush_dft)
 /* initialize a drawing brush */
 static void gp_init_drawing_brush(bContext *C, tGPsdata *p)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
@@ -2020,7 +2021,7 @@ static void gp_init_drawing_brush(bContext *C, tGPsdata *p)
   /* if not exist, create a new one */
   if ((paint->brush == NULL) || (paint->brush->gpencil_settings == NULL)) {
     /* create new brushes */
-    BKE_brush_gpencil_presets(C);
+    BKE_brush_gpencil_presets(bmain, ts);
     changed = true;
   }
   /* be sure curves are initializated */

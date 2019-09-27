@@ -47,6 +47,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_paint.h"
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
@@ -357,6 +358,12 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       scene->audio.flag &= ~AUDIO_SYNC;
       scene->flag &= ~SCE_FRAME_DROP;
     }
+
+    /* Change default selection mode for Grease Pencil. */
+    if (app_template && STREQ(app_template, "2D_Animation")) {
+      ToolSettings *ts = scene->toolsettings;
+      ts->gpencil_selectmode_edit = GP_SELECTMODE_STROKE;
+    }
   }
 
   /* Objects */
@@ -463,5 +470,70 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
         BKE_brush_sculpt_reset(brush);
       }
     }
+  }
+
+  if (app_template && STREQ(app_template, "2D_Animation")) {
+    /* Update Grease Pencil brushes. */
+    Brush *brush;
+
+    /* Pencil brush. */
+    brush = BLI_findstring(&bmain->brushes, "Draw Pencil", offsetof(ID, name) + 2);
+    if (brush) {
+      /* Change brush name. */
+      rename_id_for_versioning(bmain, ID_BR, "Draw Pencil", "Pencil");
+    }
+
+    /* Pen brush. */
+    brush = BLI_findstring(&bmain->brushes, "Draw Pen", offsetof(ID, name) + 2);
+    if (brush) {
+      /* Change brush name. */
+      rename_id_for_versioning(bmain, ID_BR, "Draw Pen", "Pen");
+    }
+
+    /* Pen Soft brush. */
+    brush = BLI_findstring(&bmain->brushes, "Draw Soft", offsetof(ID, name) + 2);
+    if (brush) {
+      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PEN;
+      /* Change brush name. */
+      rename_id_for_versioning(bmain, ID_BR, "Draw Soft", "Pencil Soft");
+    }
+
+    /* Ink Pen brush. */
+    brush = BLI_findstring(&bmain->brushes, "Draw Ink", offsetof(ID, name) + 2);
+    if (brush) {
+      /* Change brush name. */
+      rename_id_for_versioning(bmain, ID_BR, "Draw Ink", "Ink Pen");
+    }
+
+    /* Ink Pen Rough brush. */
+    brush = BLI_findstring(&bmain->brushes, "Draw Noise", offsetof(ID, name) + 2);
+    if (brush) {
+      /* Change brush name. */
+      rename_id_for_versioning(bmain, ID_BR, "Draw Noise", "Ink Pen Rough");
+    }
+
+    /* Marker Bold brush. */
+    brush = BLI_findstring(&bmain->brushes, "Draw Marker", offsetof(ID, name) + 2);
+    if (brush) {
+      /* Change brush name. */
+      rename_id_for_versioning(bmain, ID_BR, "Draw Marker", "Marker Bold");
+    }
+
+    /* Marker Chisel brush. */
+    brush = BLI_findstring(&bmain->brushes, "Draw Block", offsetof(ID, name) + 2);
+    if (brush) {
+      /* Change brush name. */
+      rename_id_for_versioning(bmain, ID_BR, "Draw Block", "Marker Chisel");
+    }
+
+    /* Remove useless Fill Area.001 brush. */
+    brush = BLI_findstring(&bmain->brushes, "Fill Area.001", offsetof(ID, name) + 2);
+    if (brush) {
+      BKE_id_delete(bmain, brush);
+    }
+
+    /* Reset all grease pencil brushes. */
+    Scene *scene = bmain->scenes.first;
+    BKE_brush_gpencil_presets(bmain, scene->toolsettings);
   }
 }
