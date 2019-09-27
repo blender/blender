@@ -252,6 +252,8 @@ static int isffmpeg(const char *filename)
   if (BLI_path_extension_check_n(filename,
                                  ".swf",
                                  ".jpg",
+                                 ".jp2",
+                                 ".j2c",
                                  ".png",
                                  ".dds",
                                  ".tga",

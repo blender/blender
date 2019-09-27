@@ -83,7 +83,7 @@ static OPJ_CODEC_FORMAT format_from_header(const unsigned char mem[JP2_FILEHEADE
 
 int imb_is_a_jp2(const unsigned char *buf)
 {
-  return check_jp2(buf);
+  return (check_jp2(buf) || check_j2k(buf));
 }
 
 /**
