@@ -666,6 +666,7 @@ void BKE_mesh_copy_settings(Mesh *me_dst, const Mesh *me_src)
   me_dst->flag = me_src->flag;
   me_dst->smoothresh = me_src->smoothresh;
   me_dst->remesh_voxel_size = me_src->remesh_voxel_size;
+  me_dst->remesh_voxel_adaptivity = me_src->remesh_voxel_adaptivity;
   me_dst->remesh_mode = me_src->remesh_mode;
 
   /* Copy texture space. */

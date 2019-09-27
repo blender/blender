@@ -295,7 +295,7 @@ Mesh *BKE_mesh_remesh_quadriflow_to_mesh_nomain(Mesh *mesh,
   return new_mesh;
 }
 
-Mesh *BKE_mesh_remesh_voxel_to_mesh_nomain(Mesh *mesh, float voxel_size)
+Mesh *BKE_mesh_remesh_voxel_to_mesh_nomain(Mesh *mesh, float voxel_size, float adaptivity)
 {
   Mesh *new_mesh = NULL;
 #ifdef WITH_OPENVDB
@@ -303,7 +303,8 @@ Mesh *BKE_mesh_remesh_voxel_to_mesh_nomain(Mesh *mesh, float voxel_size)
   struct OpenVDBTransform *xform = OpenVDBTransform_create();
   OpenVDBTransform_create_linear_transform(xform, (double)voxel_size);
   level_set = BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(mesh, xform);
-  new_mesh = BKE_mesh_remesh_voxel_ovdb_volume_to_mesh_nomain(level_set, 0.0, 0.0, false);
+  new_mesh = BKE_mesh_remesh_voxel_ovdb_volume_to_mesh_nomain(
+      level_set, 0.0, (float)adaptivity, false);
   OpenVDBLevelSet_free(level_set);
   OpenVDBTransform_free(xform);
 #else

@@ -111,13 +111,14 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     ED_sculpt_undo_geometry_begin(ob);
   }
 
-  new_mesh = BKE_mesh_remesh_voxel_to_mesh_nomain(mesh, mesh->remesh_voxel_size);
+  new_mesh = BKE_mesh_remesh_voxel_to_mesh_nomain(
+      mesh, mesh->remesh_voxel_size, mesh->remesh_voxel_adaptivity);
 
   if (!new_mesh) {
     return OPERATOR_CANCELLED;
   }
 
-  if (mesh->flag & ME_REMESH_FIX_POLES) {
+  if (mesh->flag & ME_REMESH_FIX_POLES && mesh->remesh_voxel_adaptivity <= 0.0f) {
     new_mesh = BKE_mesh_remesh_voxel_fix_poles(new_mesh);
     BKE_mesh_calc_normals(new_mesh);
   }
