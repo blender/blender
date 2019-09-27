@@ -62,11 +62,13 @@ void GPU_init(void)
     immInit();
   }
 
-  GPU_pbvh_fix_linking();
+  gpu_pbvh_init();
 }
 
 void GPU_exit(void)
 {
+  gpu_pbvh_exit();
+
   if (!G.background) {
     immDestroy();
   }

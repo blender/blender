@@ -834,13 +834,13 @@ static float sculpt_debug_colors[9][4] = {
 
 static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers)
 {
-  GPUBatch *geom = GPU_pbvh_buffers_batch_get(buffers, scd->fast_mode, scd->use_wire);
-  short index = 0;
-
   /* Meh... use_mask is a bit misleading here. */
   if (scd->use_mask && !GPU_pbvh_buffers_has_mask(buffers)) {
     return;
   }
+
+  GPUBatch *geom = GPU_pbvh_buffers_batch_get(buffers, scd->fast_mode, scd->use_wire);
+  short index = 0;
 
   if (scd->use_mats) {
     index = GPU_pbvh_buffers_material_index_get(buffers);
@@ -906,25 +906,28 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd, bool use_vcol)
     return;
   }
 
+  const DRWContextState *drwctx = DRW_context_state_get();
+  RegionView3D *rv3d = drwctx->rv3d;
+
+  /* Frustum planes to show only visible PBVH nodes. */
   float planes[6][4];
   drw_sculpt_get_frustum_planes(scd->ob, planes);
   PBVHFrustumPlanes frustum = {.planes = planes, .num_planes = 6};
 
+  /* Fast mode to show low poly multires while navigating. */
   scd->fast_mode = false;
-
-  const DRWContextState *drwctx = DRW_context_state_get();
   if (drwctx->evil_C != NULL) {
     Paint *p = BKE_paint_get_active_from_context(drwctx->evil_C);
     if (p && (p->flags & PAINT_FAST_NAVIGATE)) {
-      scd->fast_mode = (drwctx->rv3d->rflag & RV3D_NAVIGATING) != 0;
+      scd->fast_mode = rv3d && (rv3d->rflag & RV3D_NAVIGATING);
     }
   }
 
   Mesh *mesh = scd->ob->data;
   BKE_pbvh_update_normals(pbvh, mesh->runtime.subdiv_ccg);
-  BKE_pbvh_update_draw_buffers(pbvh, use_vcol);
 
-  BKE_pbvh_draw_cb(pbvh, &frustum, (void (*)(void *, GPU_PBVH_Buffers *))sculpt_draw_cb, scd);
+  BKE_pbvh_draw_cb(
+      pbvh, use_vcol, &frustum, (void (*)(void *, GPU_PBVH_Buffers *))sculpt_draw_cb, scd);
 
   if (SCULPT_DEBUG_BUFFERS) {
     int debug_node_nr = 0;

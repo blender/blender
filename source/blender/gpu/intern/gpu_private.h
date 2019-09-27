@@ -33,4 +33,8 @@ void gpu_debug_exit(void);
 void gpu_framebuffer_module_init(void);
 void gpu_framebuffer_module_exit(void);
 
+/* gpu_pbvh.c */
+void gpu_pbvh_init(void);
+void gpu_pbvh_exit(void);
+
 #endif /* __GPU_PRIVATE_H__ */
