@@ -569,12 +569,6 @@ void ED_image_undosys_type(UndoType *ut)
 /** \name Utilities
  * \{ */
 
-ListBase *ED_image_undosys_step_get_tiles(UndoStep *us_p)
-{
-  ImageUndoStep *us = (ImageUndoStep *)us_p;
-  return &us->tiles;
-}
-
 ListBase *ED_image_undo_get_tiles(void)
 {
   UndoStack *ustack = ED_undo_stack_get();
@@ -588,13 +582,13 @@ ListBase *ED_image_undo_get_tiles(void)
     /* Fallback value until we can be sure this never happens. */
     us->paint_mode = PAINT_MODE_TEXTURE_2D;
   }
-  return ED_image_undosys_step_get_tiles(us_p);
+  return &us->tiles;
 }
 
 /* restore painting image to previous state. Used for anchored and drag-dot style brushes*/
 void ED_image_undo_restore(UndoStep *us)
 {
-  ListBase *lb = ED_image_undosys_step_get_tiles(us);
+  ListBase *lb = &((ImageUndoStep *)us)->tiles;
   image_undo_restore_runtime(lb);
   image_undo_invalidate();
 }

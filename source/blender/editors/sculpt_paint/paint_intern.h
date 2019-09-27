@@ -274,7 +274,6 @@ void image_undo_remove_masks(void);
 void image_undo_init_locks(void);
 void image_undo_end_locks(void);
 
-struct ListBase *ED_image_undosys_step_get_tiles(struct UndoStep *us_p);
 struct ListBase *ED_image_undo_get_tiles(void);
 
 /* sculpt_uv.c */
