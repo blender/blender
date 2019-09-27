@@ -1044,7 +1044,9 @@ void DRW_mesh_batch_cache_create_requested(
        MBC_EDITUV_FACES_STRETCH_ANGLE | MBC_EDITUV_FACES | MBC_EDITUV_EDGES | MBC_EDITUV_VERTS)) {
     /* Modifiers will only generate an orco layer if the mesh is deformed. */
     if (cache->cd_needed.orco != 0) {
-      if (CustomData_get_layer(&me->vdata, CD_ORCO) == NULL) {
+      /* Orco is always extracted from final mesh. */
+      Mesh *me_final = (me->edit_mesh) ? me->edit_mesh->mesh_eval_final : me;
+      if (CustomData_get_layer(&me_final->vdata, CD_ORCO) == NULL) {
         /* Skip orco calculation */
         cache->cd_needed.orco = 0;
       }
