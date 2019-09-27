@@ -6517,10 +6517,6 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
     }
   }
 
-  if (cache && hit) {
-    copy_v3_v3(cache->true_location, out);
-  }
-
   return hit;
 }
 

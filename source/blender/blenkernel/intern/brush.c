@@ -923,6 +923,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->alpha = 0.7f;
       break;
     case SCULPT_TOOL_SNAKE_HOOK:
+      br->alpha = 1.0f;
+      break;
     case SCULPT_TOOL_THUMB:
       br->size = 75;
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
