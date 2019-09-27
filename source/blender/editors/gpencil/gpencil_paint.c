@@ -636,6 +636,111 @@ static void gp_smooth_buffer(tGPsdata *p, float inf, int idx)
   ptc->strength = interpf(ptc->strength, strength, inf);
 }
 
+/* Helper: Apply smooth to segment from Index to Index */
+static void gp_smooth_segment(bGPdata *gpd, const float inf, int from_idx, int to_idx)
+{
+  const short num_points = to_idx - from_idx;
+  /* Do nothing if not enough points to smooth out */
+  if ((num_points < 3) || (inf == 0.0f)) {
+    return;
+  }
+
+  if (from_idx <= 2) {
+    return;
+  }
+
+  tGPspoint *points = (tGPspoint *)gpd->runtime.sbuffer;
+  const float steps = (num_points < 4) ? 3.0f : 4.0f;
+
+  for (int i = from_idx; i < to_idx + 1; i++) {
+
+    tGPspoint *pta = i >= 3 ? &points[i - 3] : NULL;
+    tGPspoint *ptb = i >= 2 ? &points[i - 2] : NULL;
+    tGPspoint *ptc = i >= 1 ? &points[i - 1] : &points[i];
+    tGPspoint *ptd = &points[i];
+
+    float sco[2] = {0.0f};
+    const float average_fac = 1.0f / steps;
+
+    /* Compute smoothed coordinate by taking the ones nearby */
+    if (pta) {
+      madd_v2_v2fl(sco, &pta->x, average_fac);
+    }
+    else {
+      madd_v2_v2fl(sco, &ptc->x, average_fac);
+    }
+
+    if (ptb) {
+      madd_v2_v2fl(sco, &ptb->x, average_fac);
+    }
+    else {
+      madd_v2_v2fl(sco, &ptc->x, average_fac);
+    }
+
+    madd_v2_v2fl(sco, &ptc->x, average_fac);
+
+    madd_v2_v2fl(sco, &ptd->x, average_fac);
+
+    /* Based on influence factor, blend between original and optimal smoothed coordinate. */
+    interp_v2_v2v2(&ptc->x, &ptc->x, sco, inf);
+  }
+}
+
+/* Smooth all the sections created with fake events to avoid abrupt transitions.
+ *
+ * As the fake events add points between two real events, this produces a straight line, but if
+ * there is 3 or more real points that used fakes, the stroke is not smooth and produces abrupt
+ * angles.
+ * This function reads these segments and finds the real points and smooth with the surrounding
+ * points. */
+static void gp_smooth_fake_segments(tGPsdata *p)
+{
+  bGPdata *gpd = p->gpd;
+  Brush *brush = p->brush;
+
+  if (brush->gpencil_settings->input_samples < 2) {
+    return;
+  }
+
+  tGPspoint *points = (tGPspoint *)gpd->runtime.sbuffer;
+  tGPspoint *pt = NULL;
+  /* Index where segment starts. */
+  int from_idx = 0;
+  /* Index where segment ends. */
+  int to_idx = 0;
+
+  bool doit = false;
+  /* Loop all points except the extremes. */
+  for (int i = 1; i < gpd->runtime.sbuffer_used - 1; i++) {
+    pt = &points[i];
+    bool is_fake = (bool)(pt->tflag & GP_TPOINT_FAKE);
+    to_idx = i;
+
+    /* Detect fake points in the stroke. */
+    if ((!doit) && (is_fake)) {
+      from_idx = i;
+      doit = true;
+    }
+    /* If detect control point after fake points, select a segment with same length in both sides,
+     * except if it is more than stroke length. */
+    if ((doit) && (!is_fake)) {
+      if (i + (i - from_idx) < gpd->runtime.sbuffer_used - 1) {
+        to_idx = i + (i - from_idx);
+        /* Smooth this segments (need loop to get cumulative smooth). */
+        for (int r = 0; r < 5; r++) {
+          gp_smooth_segment(gpd, 0.1f, from_idx, to_idx);
+        }
+      }
+      else {
+        break;
+      }
+      /* Reset to new segments. */
+      from_idx = i;
+      doit = false;
+    }
+  }
+}
+
 /* Smooth the section added with fake events when pen moves very fast. */
 static void gp_smooth_fake_events(tGPsdata *p, int size_before, int size_after)
 {
@@ -676,7 +781,8 @@ static void gp_smooth_fake_events(tGPsdata *p, int size_before, int size_after)
 }
 
 /* add current stroke-point to buffer (returns whether point was successfully added) */
-static short gp_stroke_addpoint(tGPsdata *p, const float mval[2], float pressure, double curtime)
+static short gp_stroke_addpoint(
+    tGPsdata *p, const float mval[2], float pressure, double curtime, bool is_fake)
 {
   bGPdata *gpd = p->gpd;
   Brush *brush = p->brush;
@@ -734,6 +840,14 @@ static short gp_stroke_addpoint(tGPsdata *p, const float mval[2], float pressure
 
     /* get pointer to destination point */
     pt = ((tGPspoint *)(gpd->runtime.sbuffer) + gpd->runtime.sbuffer_used);
+
+    /* Set if point was created by fake events. */
+    if (is_fake) {
+      pt->tflag |= GP_TPOINT_FAKE;
+    }
+    else {
+      pt->tflag &= ~GP_TPOINT_FAKE;
+    }
 
     /* store settings */
     /* pressure */
@@ -892,7 +1006,7 @@ static short gp_stroke_addpoint(tGPsdata *p, const float mval[2], float pressure
       bGPDspoint *pts;
       MDeformVert *dvert = NULL;
 
-      /* first time point is adding to temporary buffer -- need to allocate new point in stroke */
+      /* First time point is adding to temporary buffer (need to allocate new point in stroke) */
       if (gpd->runtime.sbuffer_used == 0) {
         gps->points = MEM_reallocN(gps->points, sizeof(bGPDspoint) * (gps->totpoints + 1));
         if (gps->dvert != NULL) {
@@ -1248,6 +1362,9 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
         }
       }
     }
+
+    /* Smooth any point created with fake events when the mouse/pen move very fast. */
+    gp_smooth_fake_segments(p);
 
     pt = gps->points;
     dvert = gps->dvert;
@@ -2631,7 +2748,8 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
 /* ------------------------------- */
 
 /* create a new stroke point at the point indicated by the painting context */
-static void gpencil_draw_apply(bContext *C, wmOperator *op, tGPsdata *p, Depsgraph *depsgraph)
+static void gpencil_draw_apply(
+    bContext *C, wmOperator *op, tGPsdata *p, Depsgraph *depsgraph, bool is_fake)
 {
   bGPdata *gpd = p->gpd;
   tGPspoint *pt = NULL;
@@ -2660,7 +2778,7 @@ static void gpencil_draw_apply(bContext *C, wmOperator *op, tGPsdata *p, Depsgra
     }
 
     /* try to add point */
-    short ok = gp_stroke_addpoint(p, p->mval, p->pressure, p->curtime);
+    short ok = gp_stroke_addpoint(p, p->mval, p->pressure, p->curtime, is_fake);
 
     /* handle errors while adding point */
     if ((ok == GP_STROKEADD_FULL) || (ok == GP_STROKEADD_OVERFLOW)) {
@@ -2674,12 +2792,12 @@ static void gpencil_draw_apply(bContext *C, wmOperator *op, tGPsdata *p, Depsgra
       /* XXX We only need to reuse previous point if overflow! */
       if (ok == GP_STROKEADD_OVERFLOW) {
         p->inittime = p->ocurtime;
-        gp_stroke_addpoint(p, p->mvalo, p->opressure, p->ocurtime);
+        gp_stroke_addpoint(p, p->mvalo, p->opressure, p->ocurtime, is_fake);
       }
       else {
         p->inittime = p->curtime;
       }
-      gp_stroke_addpoint(p, p->mval, p->pressure, p->curtime);
+      gp_stroke_addpoint(p, p->mval, p->pressure, p->curtime, is_fake);
     }
     else if (ok == GP_STROKEADD_INVALID) {
       /* the painting operation cannot continue... */
@@ -2885,8 +3003,13 @@ static void gpencil_speed_guide(tGPsdata *p, GP_Sculpt_Guide *guide)
 }
 
 /* handle draw event */
-static void gpencil_draw_apply_event(
-    bContext *C, wmOperator *op, const wmEvent *event, Depsgraph *depsgraph, float x, float y)
+static void gpencil_draw_apply_event(bContext *C,
+                                     wmOperator *op,
+                                     const wmEvent *event,
+                                     Depsgraph *depsgraph,
+                                     float x,
+                                     float y,
+                                     const bool is_fake)
 {
   tGPsdata *p = op->customdata;
   GP_Sculpt_Guide *guide = &p->scene->toolsettings->gp_sculpt.guide;
@@ -3039,10 +3162,10 @@ static void gpencil_draw_apply_event(
     /* create fake events */
     float tmp[2];
     copy_v2_v2(tmp, p->mval);
-    gpencil_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1]);
+    gpencil_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1], false);
     if (len_v2v2(p->mval, p->mvalo)) {
       sub_v2_v2v2(pt, p->mval, p->mvalo);
-      gpencil_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1]);
+      gpencil_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1], false);
     }
     copy_v2_v2(p->mval, tmp);
   }
@@ -3073,7 +3196,7 @@ static void gpencil_draw_apply_event(
   RNA_float_set(&itemptr, "time", p->curtime - p->inittime);
 
   /* apply the current latest drawing point */
-  gpencil_draw_apply(C, op, p, depsgraph);
+  gpencil_draw_apply(C, op, p, depsgraph, is_fake);
 
   /* force refresh */
   /* just active area for now, since doing whole screen is too slow */
@@ -3139,7 +3262,7 @@ static int gpencil_draw_exec(bContext *C, wmOperator *op)
     }
 
     /* apply this data as necessary now (as per usual) */
-    gpencil_draw_apply(C, op, p, depsgraph);
+    gpencil_draw_apply(C, op, p, depsgraph, false);
   }
   RNA_END;
 
@@ -3312,8 +3435,6 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
   /* TODO: set any additional settings that we can take from the events?
    * TODO? if tablet is erasing, force eraser to be on? */
 
-  /* TODO: move cursor setting stuff to stroke-start so that paintmode can be changed midway... */
-
   /* if eraser is on, draw radial aid */
   if (p->paintmode == GP_PAINTMODE_ERASER) {
     gpencil_draw_toggle_eraser_cursor(C, p, true);
@@ -3334,7 +3455,8 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
     p->status = GP_STATUS_PAINTING;
 
     /* handle the initial drawing - i.e. for just doing a simple dot */
-    gpencil_draw_apply_event(C, op, event, CTX_data_ensure_evaluated_depsgraph(C), 0.0f, 0.0f);
+    gpencil_draw_apply_event(
+        C, op, event, CTX_data_ensure_evaluated_depsgraph(C), 0.0f, 0.0f, false);
     op->flag |= OP_IS_MODAL_CURSOR_REGION;
   }
   else {
@@ -3451,11 +3573,8 @@ static void gpencil_move_last_stroke_to_back(bContext *C)
   BLI_insertlinkbefore(&gpf->strokes, gpf->strokes.first, gps);
 }
 
-/* add events for missing mouse movements when the artist draw very fast */
-static bool gpencil_add_missing_events(bContext *C,
-                                       wmOperator *op,
-                                       const wmEvent *event,
-                                       tGPsdata *p)
+/* Add fake events for missing mouse movements when the artist draw very fast */
+static bool gpencil_add_fake_events(bContext *C, wmOperator *op, const wmEvent *event, tGPsdata *p)
 {
   Brush *brush = p->brush;
   GP_Sculpt_Guide *guide = &p->scene->toolsettings->gp_sculpt.guide;
@@ -3518,7 +3637,7 @@ static bool gpencil_add_missing_events(bContext *C,
     interp_v2_v2v2(pt, a, b, 0.5f);
     sub_v2_v2v2(pt, b, pt);
     /* create fake event */
-    gpencil_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1]);
+    gpencil_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1], true);
     added_events = true;
   }
   else if (dist >= factor) {
@@ -3528,7 +3647,7 @@ static bool gpencil_add_missing_events(bContext *C,
       interp_v2_v2v2(pt, a, b, n * i);
       sub_v2_v2v2(pt, b, pt);
       /* create fake event */
-      gpencil_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1]);
+      gpencil_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1], true);
       added_events = true;
     }
   }
@@ -3541,6 +3660,8 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   tGPsdata *p = op->customdata;
   ToolSettings *ts = CTX_data_tool_settings(C);
   GP_Sculpt_Guide *guide = &p->scene->toolsettings->gp_sculpt.guide;
+  tGPspoint *points = (tGPspoint *)p->gpd->runtime.sbuffer;
+
   /* default exit state - pass through to support MMB view nav, etc. */
   int estate = OPERATOR_PASS_THROUGH;
 
@@ -3663,7 +3784,8 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   /* toggle painting mode upon mouse-button movement
-   * - LEFTMOUSE  = standard drawing (all) / straight line drawing (all) / polyline (toolbox only)
+   * - LEFTMOUSE  = standard drawing (all) / straight line drawing (all) / polyline (toolbox
+   * only)
    * - RIGHTMOUSE = polyline (hotkey) / eraser (all)
    *   (Disabling RIGHTMOUSE case here results in bugs like [#32647])
    * also making sure we have a valid event value, to not exit too early
@@ -3840,11 +3962,15 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
       int size_before = p->gpd->runtime.sbuffer_used;
       bool added_events = false;
       if (((p->flags & GP_PAINTFLAG_FIRSTRUN) == 0) && (p->paintmode != GP_PAINTMODE_ERASER)) {
-        added_events = gpencil_add_missing_events(C, op, event, p);
+        added_events = gpencil_add_fake_events(C, op, event, p);
       }
 
-      gpencil_draw_apply_event(C, op, event, CTX_data_depsgraph_pointer(C), 0.0f, 0.0f);
+      gpencil_draw_apply_event(C, op, event, CTX_data_depsgraph_pointer(C), 0.0f, 0.0f, false);
       int size_after = p->gpd->runtime.sbuffer_used;
+
+      /* Last point of the event is always real (not fake). */
+      tGPspoint *pt = &points[size_after - 1];
+      pt->tflag &= ~GP_TPOINT_FAKE;
 
       /* Smooth the fake events to get smoother strokes, specially at ends. */
       if (added_events) {

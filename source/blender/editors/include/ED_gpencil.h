@@ -71,7 +71,14 @@ typedef struct tGPspoint {
   float uv_rot;   /* uv rotation for dor mode */
   float rnd[3];   /* rnd value */
   bool rnd_dirty; /* rnd flag */
+  short tflag;    /* Internal flag */
 } tGPspoint;
+
+/* tGPspoint->flag */
+typedef enum etGPspoint_tFlag {
+  /* Created by Fake event (used when mouse/pen move very fast while drawing). */
+  GP_TPOINT_FAKE = (1 << 0),
+} etGPspoint_tFlag;
 
 /* used to sort by zdepth gpencil objects in viewport */
 /* TODO: this could be a system parameter in userprefs screen */
