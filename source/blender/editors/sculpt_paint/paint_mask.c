@@ -297,7 +297,6 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
 
   /* transform the clip planes in object space */
   ED_view3d_clipping_calc(&bb, clip_planes, vc->ar, vc->obact, rect);
-  negate_m4(clip_planes);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true);
   pbvh = ob->sculpt->pbvh;

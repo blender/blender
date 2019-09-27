@@ -2171,12 +2171,13 @@ static PlaneAABBIsect test_planes_aabb(const float bb_min[3],
                                        const float bb_max[3],
                                        const float (*planes)[4])
 {
-  float vmin[3], vmax[3];
   PlaneAABBIsect ret = ISECT_INSIDE;
 
   for (int i = 0; i < 4; i++) {
+    float vmin[3], vmax[3];
+
     for (int axis = 0; axis < 3; axis++) {
-      if (planes[i][axis] > 0) {
+      if (planes[i][axis] < 0) {
         vmin[axis] = bb_min[axis];
         vmax[axis] = bb_max[axis];
       }
@@ -2186,10 +2187,10 @@ static PlaneAABBIsect test_planes_aabb(const float bb_min[3],
       }
     }
 
-    if (dot_v3v3(planes[i], vmin) + planes[i][3] > 0) {
+    if (dot_v3v3(planes[i], vmin) + planes[i][3] < 0) {
       return ISECT_OUTSIDE;
     }
-    else if (dot_v3v3(planes[i], vmax) + planes[i][3] >= 0) {
+    else if (dot_v3v3(planes[i], vmax) + planes[i][3] <= 0) {
       ret = ISECT_INTERSECT;
     }
   }
