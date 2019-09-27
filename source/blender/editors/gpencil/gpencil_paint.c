@@ -650,7 +650,7 @@ static void gp_smooth_segment(bGPdata *gpd, const float inf, int from_idx, int t
   }
 
   tGPspoint *points = (tGPspoint *)gpd->runtime.sbuffer;
-  const float steps = (num_points < 4) ? 3.0f : 4.0f;
+  const float average_fac = 0.25f;
 
   for (int i = from_idx; i < to_idx + 1; i++) {
 
@@ -660,7 +660,6 @@ static void gp_smooth_segment(bGPdata *gpd, const float inf, int from_idx, int t
     tGPspoint *ptd = &points[i];
 
     float sco[2] = {0.0f};
-    const float average_fac = 1.0f / steps;
 
     /* Compute smoothed coordinate by taking the ones nearby */
     if (pta) {
