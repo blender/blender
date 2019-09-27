@@ -310,15 +310,24 @@ extern EnumPropertyItem prop_driver_create_mapping_types[];
 
 /* -------- */
 
+typedef enum eDriverFCurveCreationMode {
+  DRIVER_FCURVE_LOOKUP_ONLY = 0, /* Don't add anything if not found. */
+  DRIVER_FCURVE_KEYFRAMES = 1,   /* Add with keyframes, for visual tweaking. */
+  DRIVER_FCURVE_GENERATOR = 2,   /* Add with generator, for script backwards compatibility. */
+  DRIVER_FCURVE_EMPTY = 3        /* Add without data, for pasting. */
+} eDriverFCurveCreationMode;
+
 /* Low-level call to add a new driver F-Curve. This shouldn't be used directly for most tools,
  * although there are special cases where this approach is preferable.
  */
 struct FCurve *verify_driver_fcurve(struct ID *id,
                                     const char rna_path[],
                                     const int array_index,
-                                    short add);
+                                    eDriverFCurveCreationMode creation_mode);
 
-struct FCurve *alloc_driver_fcurve(const char rna_path[], const int array_index, short add);
+struct FCurve *alloc_driver_fcurve(const char rna_path[],
+                                   const int array_index,
+                                   eDriverFCurveCreationMode creation_mode);
 
 /* -------- */
 

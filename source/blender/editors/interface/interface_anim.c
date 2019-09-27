@@ -243,7 +243,7 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
   }
 
   /* create driver */
-  fcu = verify_driver_fcurve(id, path, but->rnaindex, 1);
+  fcu = verify_driver_fcurve(id, path, but->rnaindex, DRIVER_FCURVE_KEYFRAMES);
   if (fcu) {
     ChannelDriver *driver = fcu->driver;
 

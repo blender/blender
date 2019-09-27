@@ -668,8 +668,7 @@ static FCurve *rna_Driver_new(
     return NULL;
   }
 
-  short add_mode = 1;
-  FCurve *fcu = verify_driver_fcurve(id, rna_path, array_index, add_mode);
+  FCurve *fcu = verify_driver_fcurve(id, rna_path, array_index, DRIVER_FCURVE_KEYFRAMES);
   BLI_assert(fcu != NULL);
 
   DEG_relations_tag_update(bmain);
