@@ -427,9 +427,9 @@ bGPdata *BKE_gpencil_data_addnew(Main *bmain, const char name[])
   gpd->pixfactor = GP_DEFAULT_PIX_FACTOR;
 
   /* grid settings */
-  ARRAY_SET_ITEMS(gpd->grid.color, 0.5f, 0.5f, 0.5f);  // Color
-  ARRAY_SET_ITEMS(gpd->grid.scale, 1.0f, 1.0f);        // Scale
-  gpd->grid.lines = GP_DEFAULT_GRID_LINES;             // Number of lines
+  ARRAY_SET_ITEMS(gpd->grid.color, 0.5f, 0.5f, 0.5f); /* Color */
+  ARRAY_SET_ITEMS(gpd->grid.scale, 1.0f, 1.0f);       /* Scale */
+  gpd->grid.lines = GP_DEFAULT_GRID_LINES;            /* Number of lines */
 
   /* onion-skinning settings (datablock level) */
   gpd->onion_flag |= (GP_ONION_GHOST_PREVCOL | GP_ONION_GHOST_NEXTCOL);
@@ -664,7 +664,7 @@ bGPdata *BKE_gpencil_copy(Main *bmain, const bGPdata *gpd)
 }
 
 /* make a copy of a given gpencil datablock */
-// XXX: Should this be deprecated?
+/* XXX: Should this be deprecated? */
 bGPdata *BKE_gpencil_data_duplicate(Main *bmain, const bGPdata *gpd_src, bool internal_copy)
 {
   bGPdata *gpd_dst;
@@ -1760,7 +1760,6 @@ bool BKE_gpencil_sample_stroke(bGPDstroke *gps, const float dist, const bool sel
 bool BKE_gpencil_smooth_stroke(bGPDstroke *gps, int i, float inf)
 {
   bGPDspoint *pt = &gps->points[i];
-  // float pressure = 0.0f;
   float sco[3] = {0.0f};
 
   /* Do nothing if not enough points to smooth out */
