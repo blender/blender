@@ -119,6 +119,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 
   if (mesh->flag & ME_REMESH_FIX_POLES) {
     new_mesh = BKE_mesh_remesh_voxel_fix_poles(new_mesh);
+    BKE_mesh_calc_normals(new_mesh);
   }
 
   if (mesh->flag & ME_REMESH_REPROJECT_VOLUME) {
