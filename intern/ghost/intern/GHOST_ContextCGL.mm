@@ -34,8 +34,7 @@
 
 static void ghost_fatal_error_dialog(const char *msg)
 {
-  @autoreleasepool
-  {
+  @autoreleasepool {
     NSString *message = [NSString stringWithFormat:@"Error opening window:\n%s", msg];
 
     NSAlert *alert = [[NSAlert alloc] init];
@@ -338,8 +337,7 @@ static const OSType METAL_CORE_VIDEO_PIXEL_FORMAT = kCVPixelFormatType_32BGRA;
 
 void GHOST_ContextCGL::metalInit()
 {
-  @autoreleasepool
-  {
+  @autoreleasepool {
     id<MTLDevice> device = m_metalLayer.device;
 
     // Create a command queue for blit/present operation
@@ -534,8 +532,7 @@ void GHOST_ContextCGL::metalUpdateFramebuffer()
 
 void GHOST_ContextCGL::metalSwapBuffers()
 {
-  @autoreleasepool
-  {
+  @autoreleasepool {
     updateDrawingContext();
     glFlush();
 

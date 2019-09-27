@@ -624,15 +624,16 @@ template<typename KeyT, typename ValueT, typename Allocator = GuardedAllocator> 
   template<typename ForwardKeyT, typename ForwardValueT>
   bool add_override__impl(ForwardKeyT &&key, ForwardValueT &&value)
   {
-    return this->add_or_modify(std::forward<ForwardKeyT>(key),
-                               [&](ValueT *dst) {
-                                 new (dst) ValueT(std::forward<ForwardValueT>(value));
-                                 return true;
-                               },
-                               [&](ValueT *old_value) {
-                                 *old_value = std::forward<ForwardValueT>(value);
-                                 return false;
-                               });
+    return this->add_or_modify(
+        std::forward<ForwardKeyT>(key),
+        [&](ValueT *dst) {
+          new (dst) ValueT(std::forward<ForwardValueT>(value));
+          return true;
+        },
+        [&](ValueT *old_value) {
+          *old_value = std::forward<ForwardValueT>(value);
+          return false;
+        });
   }
 
   template<typename ForwardKeyT, typename ForwardValueT>
