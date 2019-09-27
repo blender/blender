@@ -2630,7 +2630,13 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, const rc
 
     drw_engines_cache_finish();
 
+#if 0 /* This is a workaround to a nasty bug that seems to be a nasty driver bug. (See T69377) */
     DRW_render_instance_buffer_finish();
+#else
+    DST.buffer_finish_called = true;
+    // DRW_instance_buffer_finish(DST.idatalist);
+    drw_resource_buffer_finish(DST.vmempool);
+#endif
   }
 
   /* Start Drawing */
