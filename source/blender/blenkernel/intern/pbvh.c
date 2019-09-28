@@ -2260,19 +2260,21 @@ void BKE_pbvh_update_normals(PBVH *bvh, struct SubdivCCG *subdiv_ccg)
   BKE_pbvh_search_gather(
       bvh, update_search_cb, POINTER_FROM_INT(PBVH_UpdateNormals), &nodes, &totnode);
 
-  if (bvh->type == PBVH_BMESH) {
-    pbvh_bmesh_normals_update(nodes, totnode);
-  }
-  else if (bvh->type == PBVH_FACES) {
-    pbvh_faces_update_normals(bvh, nodes, totnode);
-  }
-  else if (bvh->type == PBVH_GRIDS) {
-    struct CCGFace **faces;
-    int num_faces;
-    BKE_pbvh_get_grid_updates(bvh, true, (void ***)&faces, &num_faces);
-    if (num_faces > 0) {
-      BKE_subdiv_ccg_update_normals(subdiv_ccg, faces, num_faces);
-      MEM_freeN(faces);
+  if (totnode > 0) {
+    if (bvh->type == PBVH_BMESH) {
+      pbvh_bmesh_normals_update(nodes, totnode);
+    }
+    else if (bvh->type == PBVH_FACES) {
+      pbvh_faces_update_normals(bvh, nodes, totnode);
+    }
+    else if (bvh->type == PBVH_GRIDS) {
+      struct CCGFace **faces;
+      int num_faces;
+      BKE_pbvh_get_grid_updates(bvh, true, (void ***)&faces, &num_faces);
+      if (num_faces > 0) {
+        BKE_subdiv_ccg_update_normals(subdiv_ccg, faces, num_faces);
+        MEM_freeN(faces);
+      }
     }
   }
 

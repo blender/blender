@@ -194,8 +194,8 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const int (*face_vert_indices)[3],
                                   const int update_flags)
 {
-  const bool show_mask = (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
-  const bool show_vcol = (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
+  const bool show_mask = vmask && (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
+  const bool show_vcol = vcol && (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
   bool empty_mask = true;
 
   {
@@ -203,30 +203,38 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
     /* Build VBO */
     if (gpu_pbvh_vert_buf_data_set(buffers, totelem)) {
+      GPUVertBufRaw pos_step = {0};
+      GPUVertBufRaw nor_step = {0};
+      GPUVertBufRaw msk_step = {0};
+      GPUVertBufRaw col_step = {0};
+
+      GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.pos, &pos_step);
+      GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.nor, &nor_step);
+      if (show_mask) {
+        GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.msk, &msk_step);
+      }
+      if (show_vcol) {
+        GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.col, &col_step);
+      }
+
       /* Vertex data is shared if smooth-shaded, but separate
        * copies are made for flat shading because normals
        * shouldn't be shared. */
       if (buffers->smooth) {
         for (uint i = 0; i < totvert; i++) {
-          const MVert *v = &mvert[vert_indices[i]];
-          GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, i, v->co);
-          GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, i, v->no);
-        }
+          const int vidx = vert_indices[i];
+          const MVert *v = &mvert[vidx];
+          copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), v->co);
+          copy_v3_v3_short(GPU_vertbuf_raw_step(&nor_step), v->no);
 
-        if (vmask && show_mask) {
-          for (uint i = 0; i < buffers->face_indices_len; i++) {
-            const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
-            for (uint j = 0; j < 3; j++) {
-              int vidx = face_vert_indices[i][j];
-              int v_index = buffers->mloop[lt->tri[j]].v;
-              float fmask = vmask[v_index];
-              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vidx, &fmask);
-              empty_mask = empty_mask && (fmask == 0.0f);
-            }
+          if (show_mask) {
+            float mask = vmask[vidx];
+            *(float *)GPU_vertbuf_raw_step(&msk_step) = mask;
+            empty_mask = empty_mask && (mask == 0.0f);
           }
         }
 
-        if (vcol && show_vcol) {
+        if (show_vcol) {
           for (uint i = 0; i < buffers->face_indices_len; i++) {
             const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
             for (int j = 0; j < 3; j++) {
@@ -266,27 +274,28 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
           }
 
           float fmask = 0.0f;
-          if (vmask && show_mask) {
+          if (show_mask) {
             fmask = (vmask[vtri[0]] + vmask[vtri[1]] + vmask[vtri[2]]) / 3.0f;
           }
 
           for (uint j = 0; j < 3; j++) {
             const MVert *v = &mvert[vtri[j]];
 
-            GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index, v->co);
-            GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index, no);
-            GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index, &fmask);
+            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), v->co);
+            copy_v3_v3_short(GPU_vertbuf_raw_step(&nor_step), v->no);
+            if (show_mask) {
+              *(float *)GPU_vertbuf_raw_step(&msk_step) = fmask;
+              empty_mask = empty_mask && (fmask == 0.0f);
+            }
 
-            if (vcol && show_vcol) {
+            if (show_vcol) {
               const uint loop_index = lt->tri[j];
               const uchar *elem = &vcol[loop_index].r;
-              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index, elem);
+              memcpy(GPU_vertbuf_raw_step(&col_step), elem, sizeof(uchar) * 4);
             }
 
             vbo_index++;
           }
-
-          empty_mask = empty_mask && (fmask == 0.0f);
         }
       }
 
