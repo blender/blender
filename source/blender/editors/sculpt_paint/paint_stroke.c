@@ -862,6 +862,7 @@ PaintStroke *paint_stroke_new(bContext *C,
   UnifiedPaintSettings *ups = &toolsettings->unified_paint_settings;
   Paint *p = BKE_paint_get_active_from_context(C);
   Brush *br = stroke->brush = BKE_paint_brush(p);
+  RegionView3D *rv3d = CTX_wm_region_view3d(C);
   float zoomx, zoomy;
 
   ED_view3d_viewcontext_init(C, &stroke->vc, depsgraph);
@@ -887,6 +888,10 @@ PaintStroke *paint_stroke_new(bContext *C,
   ups->overlap_factor = 1.0;
   ups->stroke_active = true;
 
+  if (rv3d) {
+    rv3d->rflag |= RV3D_PAINTING;
+  }
+
   zero_v3(ups->average_stroke_accum);
   ups->average_stroke_counter = 0;
 
@@ -903,11 +908,16 @@ PaintStroke *paint_stroke_new(bContext *C,
 
 void paint_stroke_free(bContext *C, wmOperator *op)
 {
+  RegionView3D *rv3d = CTX_wm_region_view3d(C);
   PaintStroke *stroke = op->customdata;
   UnifiedPaintSettings *ups = stroke->ups;
 
   ups->draw_anchored = false;
   ups->stroke_active = false;
+
+  if (rv3d) {
+    rv3d->rflag &= ~RV3D_PAINTING;
+  }
 
   if (stroke->timer) {
     WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);

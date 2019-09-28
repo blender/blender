@@ -75,7 +75,8 @@
         V3D_SHADING_VERTEX_COLOR))
 
 #define IS_NAVIGATING(wpd) \
-  ((DRW_context_state_get()->rv3d) && (DRW_context_state_get()->rv3d->rflag & RV3D_NAVIGATING))
+  ((DRW_context_state_get()->rv3d) && \
+   (DRW_context_state_get()->rv3d->rflag & (RV3D_NAVIGATING | RV3D_PAINTING)))
 
 #define OBJECT_OUTLINE_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE)
 #define OBJECT_ID_PASS_ENABLED(wpd) (OBJECT_OUTLINE_ENABLED(wpd) || CURVATURE_ENABLED(wpd))

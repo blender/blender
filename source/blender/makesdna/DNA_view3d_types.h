@@ -351,6 +351,7 @@ typedef struct View3D {
 #define RV3D_CLIPPING (1 << 2)
 #define RV3D_NAVIGATING (1 << 3)
 #define RV3D_GPULIGHT_UPDATE (1 << 4)
+#define RV3D_PAINTING (1 << 5)
 /*#define RV3D_IS_GAME_ENGINE       (1 << 5) */ /* UNUSED */
 /**
  * Disable zbuffer offset, skip calls to #ED_view3d_polygon_offset.

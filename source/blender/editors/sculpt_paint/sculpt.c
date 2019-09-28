@@ -6741,6 +6741,12 @@ static void sculpt_flush_update_step(bContext *C)
   ARegion *ar = CTX_wm_region(C);
   MultiresModifierData *mmd = ss->multires;
   View3D *v3d = CTX_wm_view3d(C);
+  RegionView3D *rv3d = CTX_wm_region_view3d(C);
+
+  if (rv3d) {
+    /* Mark for faster 3D viewport redraws. */
+    rv3d->rflag |= RV3D_PAINTING;
+  }
 
   if (mmd != NULL) {
     multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
@@ -6791,9 +6797,14 @@ static void sculpt_flush_update_done(const bContext *C, Object *ob)
    * expensive depsgraph tag to update geometry. */
   wmWindowManager *wm = CTX_wm_manager(C);
   View3D *current_v3d = CTX_wm_view3d(C);
+  RegionView3D *rv3d = CTX_wm_region_view3d(C);
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = ob->data;
   bool need_tag = (mesh->id.us > 1); /* Always needed for linked duplicates. */
+
+  if (rv3d) {
+    rv3d->rflag &= ~RV3D_PAINTING;
+  }
 
   for (wmWindow *win = wm->windows.first; win; win = win->next) {
     bScreen *screen = WM_window_get_active_screen(win);
@@ -6803,6 +6814,15 @@ static void sculpt_flush_update_done(const bContext *C, Object *ob)
         View3D *v3d = (View3D *)sl;
         if (v3d != current_v3d) {
           need_tag |= !BKE_sculptsession_use_pbvh_draw(ob, v3d);
+        }
+
+        /* Tag all 3D viewports for redraw now that we are done. Others
+         * viewports did not get a full redraw, and anti-aliasing for the
+         * current viewport was deactivated. */
+        for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+          if (ar->regiontype == RGN_TYPE_WINDOW) {
+            ED_region_tag_redraw(ar);
+          }
         }
       }
     }

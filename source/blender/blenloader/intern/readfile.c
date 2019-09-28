@@ -7152,6 +7152,8 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
         rv3d->render_engine = NULL;
         rv3d->sms = NULL;
         rv3d->smooth_timer = NULL;
+
+        rv3d->rflag &= ~(RV3D_NAVIGATING | RV3D_PAINTING);
       }
     }
   }

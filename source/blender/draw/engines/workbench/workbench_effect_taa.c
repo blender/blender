@@ -139,7 +139,7 @@ void workbench_taa_engine_init(WORKBENCH_Data *vedata)
 
   /* reset complete drawing when navigating. */
   if (effect_info->jitter_index != 0) {
-    if (rv3d && rv3d->rflag & RV3D_NAVIGATING) {
+    if (rv3d && rv3d->rflag & (RV3D_NAVIGATING | RV3D_PAINTING)) {
       effect_info->jitter_index = 0;
     }
   }
