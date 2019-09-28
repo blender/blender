@@ -1059,11 +1059,12 @@ static void pbvh_update_normals_store_task_cb(void *__restrict userdata,
       const int v = verts[i];
       MVert *mvert = &bvh->verts[v];
 
-      /* mvert is shared between nodes, hence between threads. */
-      if (atomic_fetch_and_and_char(&mvert->flag, (char)~ME_VERT_PBVH_UPDATE) &
-          ME_VERT_PBVH_UPDATE) {
+      /* No atomics necessary because we are iterating over uniq_verts only,
+       * so we know only this thread will handle this vertex. */
+      if (mvert->flag & ME_VERT_PBVH_UPDATE) {
         normalize_v3(vnors[v]);
         normal_float_to_short_v3(mvert->no, vnors[v]);
+        mvert->flag &= ~ME_VERT_PBVH_UPDATE;
       }
     }
 
