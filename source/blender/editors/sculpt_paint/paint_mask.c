@@ -109,6 +109,7 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
 
   const PaintMaskFloodMode mode = data->mode;
   const float value = data->value;
+  bool redraw = false;
 
   PBVHVertexIter vi;
 
@@ -116,13 +117,19 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
 
   BKE_pbvh_vertex_iter_begin(data->pbvh, node, vi, PBVH_ITER_UNIQUE)
   {
+    float prevmask = *vi.mask;
     mask_flood_fill_set_elem(vi.mask, mode, value);
+    if (prevmask != *vi.mask) {
+      redraw = true;
+    }
   }
   BKE_pbvh_vertex_iter_end;
 
-  BKE_pbvh_node_mark_redraw(node);
-  if (data->multires) {
-    BKE_pbvh_node_mark_normals_update(node);
+  if (redraw) {
+    BKE_pbvh_node_mark_redraw(node);
+    if (data->multires) {
+      BKE_pbvh_node_mark_normals_update(node);
+    }
   }
 }
 
@@ -252,24 +259,32 @@ static void mask_box_select_task_cb(void *__restrict userdata,
 
   PBVHVertexIter vi;
   bool any_masked = false;
+  bool redraw = false;
 
   BKE_pbvh_vertex_iter_begin(data->pbvh, node, vi, PBVH_ITER_UNIQUE)
   {
     if (is_effected(clip_planes_final, vi.co)) {
+      float prevmask = *vi.mask;
       if (!any_masked) {
         any_masked = true;
 
         sculpt_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
 
-        BKE_pbvh_node_mark_redraw(node);
         if (data->multires) {
           BKE_pbvh_node_mark_normals_update(node);
         }
       }
       mask_flood_fill_set_elem(vi.mask, mode, value);
+      if (prevmask != *vi.mask) {
+        redraw = true;
+      }
     }
   }
   BKE_pbvh_vertex_iter_end;
+
+  if (redraw) {
+    BKE_pbvh_node_mark_redraw(node);
+  }
 }
 
 bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *rect, bool select)
