@@ -355,6 +355,15 @@ void gpu_extensions_init(void)
   GG.glew_arb_base_instance_is_supported = GLEW_ARB_base_instance;
   gpu_detect_mip_render_workaround();
 
+  /* XXX TODO a nasty nvidia driver bug on GTX & RTX 10X0 / 20X0 is breaking instancing when using
+   * indirect drawcall. (see T70011) */
+  if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+    if (strstr(renderer, "RTX 10") || strstr(renderer, "RTX 20") || strstr(renderer, "GTX 10") ||
+        strstr(renderer, "GTX 20")) {
+      GG.glew_arb_base_instance_is_supported = false;
+    }
+  }
+
   if (G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS) {
     printf("\n");
     printf("GPU: Bypassing workaround detection.\n");
