@@ -425,6 +425,4 @@ void sculpt_update_object_bounding_box(struct Object *ob);
 
 bool sculpt_get_redraw_rect(struct ARegion *ar, struct RegionView3D *rv3d, Object *ob, rcti *rect);
 
-#define SCULPT_THREADED_LIMIT 4
-
 #endif

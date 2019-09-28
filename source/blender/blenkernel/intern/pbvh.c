@@ -51,8 +51,6 @@
 
 #define STACK_FIXED_DEPTH 100
 
-#define PBVH_THREADED_LIMIT 4
-
 typedef struct PBVHStack {
   PBVHNode *node;
   bool revisiting;
@@ -1095,8 +1093,7 @@ static void pbvh_faces_update_normals(PBVH *bvh, PBVHNode **nodes, int totnode)
   };
 
   TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = (totnode > PBVH_THREADED_LIMIT);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
 
   BLI_task_parallel_range(0, totnode, &data, pbvh_update_normals_accum_task_cb, &settings);
 
@@ -1139,8 +1136,7 @@ void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag)
   };
 
   TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = (totnode > PBVH_THREADED_LIMIT);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, pbvh_update_BB_redraw_task_cb, &settings);
 }
 
@@ -2548,4 +2544,13 @@ bool pbvh_has_mask(PBVH *bvh)
 void pbvh_show_mask_set(PBVH *bvh, bool show_mask)
 {
   bvh->show_mask = show_mask;
+}
+
+void BKE_pbvh_parallel_range_settings(TaskParallelSettings *settings,
+                                      bool use_threading,
+                                      int totnode)
+{
+  const int threaded_limit = 4;
+  BLI_parallel_range_settings_defaults(settings);
+  settings->use_threading = use_threading && (totnode > threaded_limit);
 }

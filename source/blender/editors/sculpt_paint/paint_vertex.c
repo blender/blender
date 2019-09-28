@@ -2073,9 +2073,7 @@ static void calculate_average_weight(SculptThreadedTaskData *data,
   data->custom_data = accum;
 
   TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = ((data->sd->flags & SCULPT_USE_OPENMP) &&
-                            totnode > SCULPT_THREADED_LIMIT);
+  BKE_pbvh_parallel_range_settings(&settings, (data->sd->flags & SCULPT_USE_OPENMP), totnode);
   BLI_task_parallel_range(0, totnode, data, do_wpaint_brush_calc_average_weight_cb_ex, &settings);
 
   uint accum_len = 0;
@@ -2121,10 +2119,9 @@ static void wpaint_paint_leaves(bContext *C,
   /* Use this so average can modify its weight without touching the brush. */
   data.strength = BKE_brush_weight_get(scene, brush);
 
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
   /* NOTE: current mirroring code cannot be run in parallel */
-  settings.use_threading = !(me->editflag & ME_EDIT_MIRROR_X);
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, !(me->editflag & ME_EDIT_MIRROR_X), totnode);
 
   switch ((eBrushWeightPaintTool)brush->weightpaint_tool) {
     case WPAINT_TOOL_AVERAGE:
@@ -3135,7 +3132,7 @@ static void calculate_average_color(SculptThreadedTaskData *data,
   data->custom_data = accum;
 
   TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, data, do_vpaint_brush_calc_average_color_cb_ex, &settings);
 
   uint accum_len = 0;
@@ -3181,7 +3178,7 @@ static void vpaint_paint_leaves(bContext *C,
       .me = me,
   };
   TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   switch ((eBrushVertexPaintTool)brush->vertexpaint_tool) {
     case VPAINT_TOOL_AVERAGE:
       calculate_average_color(&data, nodes, totnode);

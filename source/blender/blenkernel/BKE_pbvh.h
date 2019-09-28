@@ -40,6 +40,7 @@ struct MVert;
 struct PBVH;
 struct PBVHNode;
 struct SubdivCCG;
+struct TaskParallelSettings;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
@@ -412,6 +413,10 @@ void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
                                     float (**r_orco_coords)[3]);
 
 bool BKE_pbvh_node_vert_update_check_any(PBVH *bvh, PBVHNode *node);
+
+void BKE_pbvh_parallel_range_settings(struct TaskParallelSettings *settings,
+                                      bool use_threading,
+                                      int totnode);
 
 // void BKE_pbvh_node_BB_reset(PBVHNode *node);
 // void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
