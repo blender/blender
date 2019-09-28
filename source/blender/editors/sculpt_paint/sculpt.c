@@ -1521,7 +1521,7 @@ static void calc_area_center(
       .count = count,
   };
 
-  AreaNormalCenterTLSData anctd = {0};
+  AreaNormalCenterTLSData anctd = {{{0}}};
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
@@ -1581,7 +1581,7 @@ bool sculpt_pbvh_calc_area_normal(const Brush *brush,
       .any_vertex_sampled = false,
   };
 
-  AreaNormalCenterTLSData anctd = {0};
+  AreaNormalCenterTLSData anctd = {{{0}}};
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
@@ -1630,7 +1630,7 @@ static void calc_area_normal_and_center(
       .count = count,
   };
 
-  AreaNormalCenterTLSData anctd = {0};
+  AreaNormalCenterTLSData anctd = {{{0}}};
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
