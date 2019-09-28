@@ -2550,7 +2550,9 @@ void BKE_pbvh_parallel_range_settings(TaskParallelSettings *settings,
                                       bool use_threading,
                                       int totnode)
 {
-  const int threaded_limit = 4;
+  const int threaded_limit = 1;
   BLI_parallel_range_settings_defaults(settings);
   settings->use_threading = use_threading && (totnode > threaded_limit);
+  settings->min_iter_per_thread = 1;
+  settings->scheduling_mode = TASK_SCHEDULING_DYNAMIC;
 }
