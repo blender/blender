@@ -30,6 +30,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_rand.h"
 #include "BLI_utildefines.h"
 #include "BLI_linklist_stack.h"
 
@@ -547,7 +548,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-    immUniformColor4f(drand48(), drand48(), drand48(), 0.1f);
+    immUniformColor4f(BLI_thread_frand(0), BLI_thread_frand(0), BLI_thread_frand(0), 0.1f);
     immRectf(pos,
              ar->drawrct.xmin - ar->winrct.xmin,
              ar->drawrct.ymin - ar->winrct.ymin,
