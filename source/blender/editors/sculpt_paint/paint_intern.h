@@ -70,7 +70,7 @@ struct PaintStroke *paint_stroke_new(struct bContext *C,
                                      StrokeRedraw redraw,
                                      StrokeDone done,
                                      int event_type);
-void paint_stroke_data_free(struct wmOperator *op);
+void paint_stroke_free(struct bContext *C, struct wmOperator *op);
 
 bool paint_space_stroke_enabled(struct Brush *br, enum ePaintMode mode);
 bool paint_supports_dynamic_size(struct Brush *br, enum ePaintMode mode);

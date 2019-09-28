@@ -901,19 +901,36 @@ PaintStroke *paint_stroke_new(bContext *C,
   return stroke;
 }
 
-void paint_stroke_data_free(struct wmOperator *op)
+void paint_stroke_free(bContext *C, wmOperator *op)
 {
-  BKE_paint_set_overlay_override(0);
-  MEM_SAFE_FREE(op->customdata);
-}
-
-static void stroke_done(struct bContext *C, struct wmOperator *op)
-{
-  struct PaintStroke *stroke = op->customdata;
+  PaintStroke *stroke = op->customdata;
   UnifiedPaintSettings *ups = stroke->ups;
 
   ups->draw_anchored = false;
   ups->stroke_active = false;
+
+  if (stroke->timer) {
+    WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);
+  }
+
+  if (stroke->rng) {
+    BLI_rng_free(stroke->rng);
+  }
+
+  if (stroke->stroke_cursor) {
+    WM_paint_cursor_end(CTX_wm_manager(C), stroke->stroke_cursor);
+  }
+
+  BLI_freelistN(&stroke->line);
+
+  BKE_paint_set_overlay_override(0);
+  MEM_SAFE_FREE(op->customdata);
+}
+
+static void stroke_done(bContext *C, wmOperator *op)
+{
+  PaintStroke *stroke = op->customdata;
+  UnifiedPaintSettings *ups = stroke->ups;
 
   /* reset rotation here to avoid doing so in cursor display */
   if (!(stroke->brush->mtex.brush_angle_mode & MTEX_ANGLE_RAKE)) {
@@ -934,21 +951,7 @@ static void stroke_done(struct bContext *C, struct wmOperator *op)
     }
   }
 
-  if (stroke->timer) {
-    WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);
-  }
-
-  if (stroke->rng) {
-    BLI_rng_free(stroke->rng);
-  }
-
-  if (stroke->stroke_cursor) {
-    WM_paint_cursor_end(CTX_wm_manager(C), stroke->stroke_cursor);
-  }
-
-  BLI_freelistN(&stroke->line);
-
-  paint_stroke_data_free(op);
+  paint_stroke_free(C, op);
 }
 
 /* Returns zero if the stroke dots should not be spaced, non-zero otherwise */

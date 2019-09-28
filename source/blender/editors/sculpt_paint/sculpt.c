@@ -7004,12 +7004,12 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   ignore_background_click = RNA_boolean_get(op->ptr, "ignore_background_click");
 
   if (ignore_background_click && !over_mesh(C, op, event->x, event->y)) {
-    paint_stroke_data_free(op);
+    paint_stroke_free(C, op);
     return OPERATOR_PASS_THROUGH;
   }
 
   if ((retval = op->type->modal(C, op, event)) == OPERATOR_FINISHED) {
-    paint_stroke_data_free(op);
+    paint_stroke_free(C, op);
     return OPERATOR_FINISHED;
   }
   /* add modal handler */
