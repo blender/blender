@@ -2735,7 +2735,7 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "parentinv");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_ui_text(
-      prop, "Matrix", "Inverse of object's parent matrix at time of parenting");
+      prop, "Parent Inverse Matrix", "Inverse of object's parent matrix at time of parenting");
   RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
 
   /* modifiers */
