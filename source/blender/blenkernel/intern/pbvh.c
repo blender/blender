@@ -1302,9 +1302,7 @@ void BKE_pbvh_update_bounds(PBVH *bvh, int flag)
     pbvh_flush_bb(bvh, bvh->nodes, flag);
   }
 
-  if (nodes) {
-    MEM_freeN(nodes);
-  }
+  MEM_SAFE_FREE(nodes);
 }
 
 void BKE_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3])
@@ -2278,9 +2276,7 @@ void BKE_pbvh_update_normals(PBVH *bvh, struct SubdivCCG *subdiv_ccg)
     }
   }
 
-  if (nodes) {
-    MEM_freeN(nodes);
-  }
+  MEM_SAFE_FREE(nodes);
 }
 
 /**
@@ -2323,9 +2319,7 @@ void BKE_pbvh_draw_cb(PBVH *bvh,
       pbvh_update_draw_buffers(bvh, nodes, totnode, show_vcol, update_flag);
     }
 
-    if (nodes) {
-      MEM_freeN(nodes);
-    }
+    MEM_SAFE_FREE(nodes);
   }
 
   /* Gather visible nodes. */
@@ -2353,9 +2347,7 @@ void BKE_pbvh_draw_cb(PBVH *bvh,
     }
   }
 
-  if (nodes) {
-    MEM_freeN(nodes);
-  }
+  MEM_SAFE_FREE(nodes);
 }
 
 void BKE_pbvh_draw_debug_cb(

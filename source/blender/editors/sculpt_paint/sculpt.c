@@ -447,6 +447,8 @@ static int sculpt_nearest_vertex_get(
   settings.userdata_chunk_size = sizeof(NearestVertexTLSData);
   BLI_task_parallel_range(0, totnode, &task_data, do_nearest_vertex_get_task_cb, &settings);
 
+  MEM_SAFE_FREE(nodes);
+
   return task_data.nearest_vertex_index;
 }
 
@@ -831,9 +833,7 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP) && !ss->bm, totnode);
   BLI_task_parallel_range(0, totnode, &data, paint_mesh_restore_co_task_cb, &settings);
 
-  if (nodes) {
-    MEM_freeN(nodes);
-  }
+  MEM_SAFE_FREE(nodes);
 }
 
 /*** BVH Tree ***/
@@ -3681,6 +3681,8 @@ static void sculpt_pose_grow_pose_factor(
     }
   }
   MEM_freeN(data.prev_mask);
+
+  MEM_SAFE_FREE(nodes);
 }
 
 static bool sculpt_pose_brush_is_vertex_inside_brush_radius(float vertex[3],
@@ -3861,6 +3863,8 @@ static void sculpt_pose_brush_init(
     BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
     BLI_task_parallel_range(0, totnode, &data, pose_brush_init_task_cb_ex, &settings);
   }
+
+  MEM_SAFE_FREE(nodes);
 }
 
 static void do_nudge_brush_task_cb_ex(void *__restrict userdata,
@@ -5150,7 +5154,7 @@ static void sculpt_topology_update(Sculpt *sd,
                                      (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE));
     }
 
-    MEM_freeN(nodes);
+    MEM_SAFE_FREE(nodes);
 
     /* update average stroke position */
     copy_v3_v3(location, ss->cache->true_location);
@@ -5328,7 +5332,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       do_gravity(sd, ob, nodes, totnode, sd->gravity_factor);
     }
 
-    MEM_freeN(nodes);
+    MEM_SAFE_FREE(nodes);
 
     /* update average stroke position */
     copy_v3_v3(location, ss->cache->true_location);
@@ -5444,9 +5448,7 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
     BLI_task_parallel_range(0, totnode, &data, sculpt_combine_proxies_task_cb, &settings);
   }
 
-  if (nodes) {
-    MEM_freeN(nodes);
-  }
+  MEM_SAFE_FREE(nodes);
 }
 
 /* copy the modified vertices from bvh to the active key */
@@ -5540,7 +5542,7 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob, bool is_proxy_use
       MEM_freeN(vertCos);
     }
 
-    MEM_freeN(nodes);
+    MEM_SAFE_FREE(nodes);
 
     /* Modifiers could depend on mesh normals, so we should update them/
      * Note, then if sculpting happens on locked key, normals should be re-calculated
@@ -6538,7 +6540,7 @@ bool sculpt_cursor_geometry_info_update(bContext *C,
 
   /* In case there are no nodes under the cursor, return the face normal */
   if (!totnode) {
-    MEM_freeN(nodes);
+    MEM_SAFE_FREE(nodes);
     copy_v3_v3(out->normal, srd.face_normal);
     return true;
   }
@@ -6551,7 +6553,7 @@ bool sculpt_cursor_geometry_info_update(bContext *C,
     /* Use face normal when there are no vertices to sample inside the cursor radius */
     copy_v3_v3(out->normal, srd.face_normal);
   }
-  MEM_freeN(nodes);
+  MEM_SAFE_FREE(nodes);
   return true;
 }
 
@@ -7856,7 +7858,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  MEM_freeN(nodes);
+  MEM_SAFE_FREE(nodes);
   sculpt_undo_push_end();
 
   /* force rebuild of pbvh for better BB placement */
@@ -8143,12 +8145,8 @@ static void sculpt_filter_cache_init(Object *ob, Sculpt *sd)
   ss->filter_cache->nodes = active_nodes;
   ss->filter_cache->totnode = tot_active_nodes;
 
-  if (nodes) {
-    MEM_freeN(nodes);
-  }
-  if (node_mask) {
-    MEM_freeN(node_mask);
-  }
+  MEM_SAFE_FREE(nodes);
+  MEM_SAFE_FREE(node_mask);
 }
 
 static void sculpt_filter_cache_free(SculptSession *ss)
@@ -8615,9 +8613,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (nodes) {
-    MEM_freeN(nodes);
-  }
+  MEM_SAFE_FREE(nodes);
 
   sculpt_undo_push_end();
 
@@ -8793,9 +8789,7 @@ static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
   }
   MEM_freeN(prev_mask);
 
-  if (nodes) {
-    MEM_freeN(nodes);
-  }
+  MEM_SAFE_FREE(nodes);
 
   sculpt_undo_push_end();
 
