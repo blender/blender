@@ -20,6 +20,8 @@
  * Operator Registry.
  */
 
+#include <string.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "CLG_log.h"
@@ -126,6 +128,9 @@ static void wm_operatortype_append__end(wmOperatorType *ot)
   RNA_def_struct_ui_text(
       ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
   RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
+
+  /* A hack for efficiently detecting buttons with this specific operator. */
+  ot->is_tool_button = STREQ(ot->idname, "WM_OT_tool_set_by_id");
 
   BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
 }

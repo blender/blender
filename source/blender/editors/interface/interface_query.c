@@ -139,17 +139,7 @@ bool ui_but_has_array_value(const uiBut *but)
 
 bool UI_but_is_tool(const uiBut *but)
 {
-  /* very evil! */
-  if (but->optype != NULL) {
-    static wmOperatorType *ot = NULL;
-    if (ot == NULL) {
-      ot = WM_operatortype_find("WM_OT_tool_set_by_id", false);
-    }
-    if (but->optype == ot) {
-      return true;
-    }
-  }
-  return false;
+  return but->optype && but->optype->is_tool_button;
 }
 
 bool UI_but_has_tooltip_label(const uiBut *but)
