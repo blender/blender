@@ -301,6 +301,12 @@ void main_signal_setup(void)
 #  endif
   }
 
+#  ifdef WIN32
+  /* Prevent any error mode dialogs from hanging the application. */
+  SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOALIGNMENTFAULTEXCEPT | SEM_NOGPFAULTERRORBOX |
+               SEM_NOOPENFILEERRORBOX);
+#  endif
+
   if (app_state.signal.use_abort_handler) {
     signal(SIGABRT, sig_handle_abort);
   }

@@ -230,13 +230,7 @@ int BLI_exists(const char *name)
     tmp_16[3] = L'\0';
   }
 
-  /* change error mode so user does not get a "no disk in drive" popup
-   * when looking for a file on an empty CD/DVD drive */
-  old_error_mode = SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
-
   res = BLI_wstat(tmp_16, &st);
-
-  SetErrorMode(old_error_mode);
 
   free(tmp_16);
   if (res == -1) {
