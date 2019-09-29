@@ -3894,7 +3894,7 @@ void SEQUENCER_OT_change_effect_type(struct wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna,
                           "type",
                           sequencer_prop_effect_types,
-                          SEQ_TYPE_ALPHAOVER,
+                          SEQ_TYPE_CROSS,
                           "Type",
                           "Sequencer effect type");
 }

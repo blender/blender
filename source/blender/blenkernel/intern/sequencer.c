@@ -5544,7 +5544,7 @@ Sequence *BKE_sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoad
   Strip *strip;
 
   seq = BKE_sequence_alloc(seqbasep, seq_load->start_frame, seq_load->channel, SEQ_TYPE_IMAGE);
-  seq->blend_mode = SEQ_TYPE_ALPHAOVER;
+  seq->blend_mode = SEQ_TYPE_CROSS; /* so alpha adjustment fade to the strip below */
 
   /* basic defaults */
   seq->len = seq_load->len ? seq_load->len : 1;
@@ -5703,7 +5703,9 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
     seq->views_format = seq_load->views_format;
   }
   seq->flag |= seq_load->flag & SEQ_USE_VIEWS;
-  seq->blend_mode = SEQ_TYPE_ALPHAOVER;
+
+  seq->type = SEQ_TYPE_MOVIE;
+  seq->blend_mode = SEQ_TYPE_CROSS; /* so alpha adjustment fade to the strip below */
 
   for (i = 0; i < totfiles; i++) {
     if (anim_arr[i]) {
