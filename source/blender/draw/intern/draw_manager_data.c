@@ -923,11 +923,19 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd, bool use_vcol)
     }
   }
 
+  /* Update draw buffers only for visible nodes while painting.
+   * But do update them otherwise so navigating stays smooth. */
+  const bool update_only_visible = rv3d && (rv3d->rflag & RV3D_PAINTING);
+
   Mesh *mesh = scd->ob->data;
   BKE_pbvh_update_normals(pbvh, mesh->runtime.subdiv_ccg);
 
-  BKE_pbvh_draw_cb(
-      pbvh, use_vcol, &frustum, (void (*)(void *, GPU_PBVH_Buffers *))sculpt_draw_cb, scd);
+  BKE_pbvh_draw_cb(pbvh,
+                   use_vcol,
+                   update_only_visible,
+                   &frustum,
+                   (void (*)(void *, GPU_PBVH_Buffers *))sculpt_draw_cb,
+                   scd);
 
   if (SCULPT_DEBUG_BUFFERS) {
     int debug_node_nr = 0;

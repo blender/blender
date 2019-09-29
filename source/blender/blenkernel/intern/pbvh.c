@@ -2287,6 +2287,7 @@ void BKE_pbvh_update_normals(PBVH *bvh, struct SubdivCCG *subdiv_ccg)
  */
 typedef struct PBVHDrawSearchData {
   PBVHFrustumPlanes *frustum;
+  int accum_update_flag;
 } PBVHDrawSearchData;
 
 static bool pbvh_draw_search_cb(PBVHNode *node, void *data_v)
@@ -2296,11 +2297,13 @@ static bool pbvh_draw_search_cb(PBVHNode *node, void *data_v)
     return false;
   }
 
+  data->accum_update_flag |= node->flag;
   return true;
 }
 
 void BKE_pbvh_draw_cb(PBVH *bvh,
                       bool show_vcol,
+                      bool update_only_visible,
                       PBVHFrustumPlanes *frustum,
                       void (*draw_fn)(void *user_data, GPU_PBVH_Buffers *buffers),
                       void *user_data)
@@ -2308,21 +2311,29 @@ void BKE_pbvh_draw_cb(PBVH *bvh,
   PBVHNode **nodes;
   int totnode;
 
-  /* Update all draw buffers. */
   const int update_flag = PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers;
-  BKE_pbvh_search_gather(bvh, update_search_cb, POINTER_FROM_INT(update_flag), &nodes, &totnode);
 
-  if (totnode) {
-    pbvh_update_draw_buffers(bvh, nodes, totnode, show_vcol, update_flag);
-  }
+  if (!update_only_visible) {
+    /* Update all draw buffers, also those outside the view. */
+    BKE_pbvh_search_gather(bvh, update_search_cb, POINTER_FROM_INT(update_flag), &nodes, &totnode);
 
-  if (nodes) {
-    MEM_freeN(nodes);
+    if (totnode) {
+      pbvh_update_draw_buffers(bvh, nodes, totnode, show_vcol, update_flag);
+    }
+
+    if (nodes) {
+      MEM_freeN(nodes);
+    }
   }
 
   /* Gather visible nodes. */
-  PBVHDrawSearchData data = {.frustum = frustum};
+  PBVHDrawSearchData data = {.frustum = frustum, .accum_update_flag = 0};
   BKE_pbvh_search_gather(bvh, pbvh_draw_search_cb, &data, &nodes, &totnode);
+
+  if (update_only_visible && (data.accum_update_flag & update_flag)) {
+    /* Update draw buffers in visible nodes. */
+    pbvh_update_draw_buffers(bvh, nodes, totnode, show_vcol, data.accum_update_flag);
+  }
 
   /* Draw. */
   for (int a = 0; a < totnode; a++) {

@@ -174,6 +174,7 @@ bool BKE_pbvh_node_find_nearest_to_ray(PBVH *bvh,
 
 void BKE_pbvh_draw_cb(PBVH *bvh,
                       bool show_vcol,
+                      bool update_only_visible,
                       PBVHFrustumPlanes *frustum,
                       void (*draw_fn)(void *user_data, struct GPU_PBVH_Buffers *buffers),
                       void *user_data);
