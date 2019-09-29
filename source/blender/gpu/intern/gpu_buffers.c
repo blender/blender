@@ -250,7 +250,6 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
         /* calculate normal for each polygon only once */
         uint mpoly_prev = UINT_MAX;
         short no[3];
-        int vbo_index = 0;
 
         for (uint i = 0; i < buffers->face_indices_len; i++) {
           const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
@@ -282,7 +281,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
             const MVert *v = &mvert[vtri[j]];
 
             copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), v->co);
-            copy_v3_v3_short(GPU_vertbuf_raw_step(&nor_step), v->no);
+            copy_v3_v3_short(GPU_vertbuf_raw_step(&nor_step), no);
             if (show_mask) {
               *(float *)GPU_vertbuf_raw_step(&msk_step) = fmask;
               empty_mask = empty_mask && (fmask == 0.0f);
@@ -293,8 +292,6 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
               const uchar *elem = &vcol[loop_index].r;
               memcpy(GPU_vertbuf_raw_step(&col_step), elem, sizeof(uchar) * 4);
             }
-
-            vbo_index++;
           }
         }
       }
