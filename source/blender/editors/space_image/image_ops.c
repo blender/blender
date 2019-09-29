@@ -103,7 +103,9 @@
 
 #include "image_intern.h"
 
-/******************** view navigation utilities *********************/
+/* -------------------------------------------------------------------- */
+/** \name View Navigation Utilities
+ * \{ */
 
 static void sima_zoom_set(
     SpaceImage *sima, ARegion *ar, float zoom, const float location[2], const bool zoom_to_pos)
@@ -280,7 +282,12 @@ static bool image_sample_poll(bContext *C)
 
   return true;
 }
-/********************** view pan operator *********************/
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Pan Operator
+ * \{ */
 
 typedef struct ViewPanData {
   float x, y;
@@ -423,7 +430,11 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
                        FLT_MAX);
 }
 
-/********************** view zoom operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Zoom Operator
+ * \{ */
 
 typedef struct ViewZoomData {
   float origx, origy;
@@ -671,7 +682,12 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 }
 
 #ifdef WITH_INPUT_NDOF
-/********************** NDOF operator *********************/
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name NDOF Operator
+ * \{ */
 
 /* Combined pan/zoom from a 3D mouse device.
  * Z zooms, XY pans
@@ -721,9 +737,14 @@ void IMAGE_OT_view_ndof(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_LOCK_BYPASS;
 }
+
+/** \} */
+
 #endif /* WITH_INPUT_NDOF */
 
-/********************** view all operator *********************/
+/* -------------------------------------------------------------------- */
+/** \name View All Operator
+ * \{ */
 
 /* Updates the fields of the View2D member of the SpaceImage struct.
  * Default behavior is to reset the position of the image and set the zoom to 1
@@ -800,7 +821,11 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/********************** view selected operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Selected Operator
+ * \{ */
 
 static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -866,7 +891,11 @@ void IMAGE_OT_view_selected(wmOperatorType *ot)
   ot->poll = image_view_selected_poll;
 }
 
-/********************** view zoom in/out operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Zoom In/Out Operator
+ * \{ */
 
 static int image_view_zoom_in_exec(bContext *C, wmOperator *op)
 {
@@ -984,7 +1013,11 @@ void IMAGE_OT_view_zoom_out(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-/********************** view zoom ratio operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Zoom Ratio Operator
+ * \{ */
 
 static int image_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 {
@@ -1028,7 +1061,11 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
                 FLT_MAX);
 }
 
-/********************** view border-zoom operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Border-Zoom Operator
+ * \{ */
 
 static int image_view_zoom_border_exec(bContext *C, wmOperator *op)
 {
@@ -1084,14 +1121,18 @@ void IMAGE_OT_view_zoom_border(wmOperatorType *ot)
   WM_operator_properties_gesture_box_zoom(ot);
 }
 
-/**************** load/replace/save callbacks ******************/
+/* load/replace/save callbacks */
 static void image_filesel(bContext *C, wmOperator *op, const char *path)
 {
   RNA_string_set(op->ptr, "filepath", path);
   WM_event_add_fileselect(C, op);
 }
 
-/******************** open image operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Open Image Operator
+ * \{ */
 
 typedef struct ImageOpenData {
   PropertyPointerRNA pprop;
@@ -1525,7 +1566,12 @@ void IMAGE_OT_open(wmOperatorType *ot)
       "Automatically detect animated sequences in selected images (based on file names)");
 }
 
-/******************** Match movie length operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Match Movie Length Operator
+ * \{ */
+
 static int image_match_len_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
@@ -1571,7 +1617,11 @@ void IMAGE_OT_match_movie_length(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_INTERNAL /* | OPTYPE_UNDO */;
 }
 
-/******************** replace image operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Replace Image Operator
+ * \{ */
 
 static int image_replace_exec(bContext *C, wmOperator *op)
 {
@@ -1656,7 +1706,11 @@ void IMAGE_OT_replace(wmOperatorType *ot)
                                  FILE_SORT_ALPHA);
 }
 
-/******************** save image as operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Save Image As Operator
+ * \{ */
 
 static char imtype_best_depth(ImBuf *ibuf, const char imtype)
 {
@@ -2026,7 +2080,11 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
                                  FILE_SORT_ALPHA);
 }
 
-/******************** save image operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Save Image Operator
+ * \{ */
 
 static bool image_file_path_saveable(bContext *C, Image *ima, ImageUser *iuser)
 {
@@ -2147,7 +2205,11 @@ void IMAGE_OT_save(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/******************* save sequence operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Save Sequence Operator
+ * \{ */
 
 static int image_save_sequence_exec(bContext *C, wmOperator *op)
 {
@@ -2239,7 +2301,11 @@ void IMAGE_OT_save_sequence(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** save all operator **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Save All Operator
+ * \{ */
 
 static bool image_should_be_saved_when_modified(Image *ima)
 {
@@ -2389,7 +2455,11 @@ void IMAGE_OT_save_all_modified(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/******************** reload image operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reload Image Operator
+ * \{ */
 
 static int image_reload_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2426,7 +2496,12 @@ void IMAGE_OT_reload(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER; /* no undo, image buffer is not handled by undo */
 }
 
-/********************** new image operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New Image Operator
+ * \{ */
+
 #define IMA_DEF_NAME N_("Untitled")
 
 enum {
@@ -2642,7 +2717,11 @@ void IMAGE_OT_new(wmOperatorType *ot)
 
 #undef IMA_DEF_NAME
 
-/********************* invert operators *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Invert Operators
+ * \{ */
 
 static bool image_invert_poll(bContext *C)
 {
@@ -2774,7 +2853,11 @@ void IMAGE_OT_invert(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************* pack operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pack Operator
+ * \{ */
 
 static bool image_pack_test(bContext *C, wmOperator *op)
 {
@@ -2827,7 +2910,11 @@ void IMAGE_OT_pack(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************* unpack operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Unpack Operator
+ * \{ */
 
 static int image_unpack_exec(bContext *C, wmOperator *op)
 {
@@ -2926,7 +3013,11 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
       ot->srna, "id", NULL, MAX_ID_NAME - 2, "Image Name", "Image data-block name to unpack");
 }
 
-/******************** sample image operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sample Image Operator
+ * \{ */
 
 typedef struct ImageSampleInfo {
   ARegionType *art;
@@ -3339,7 +3430,12 @@ void IMAGE_OT_sample(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/******************** sample line operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sample Line Operator
+ * \{ */
+
 static int image_sample_line_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -3424,7 +3520,11 @@ void IMAGE_OT_sample_line(wmOperatorType *ot)
   WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
 }
 
-/******************** set curve point operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Curve Point Operator
+ * \{ */
 
 void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 {
@@ -3458,7 +3558,11 @@ void IMAGE_OT_curves_point_set(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/********************* cycle render slot operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cycle Render Slot Operator
+ * \{ */
 
 static bool image_cycle_render_slot_poll(bContext *C)
 {
@@ -3504,7 +3608,11 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "reverse", 0, "Cycle in Reverse", "");
 }
 
-/********************* clear render slot operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clear Render Slot Operator
+ * \{ */
 
 static int image_clear_render_slot_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -3535,7 +3643,11 @@ void IMAGE_OT_clear_render_slot(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER;
 }
 
-/********************* add render slot operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Render Slot Operator
+ * \{ */
 
 static int image_add_render_slot_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -3564,7 +3676,11 @@ void IMAGE_OT_add_render_slot(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER;
 }
 
-/********************* remove render slot operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remove Render Slot Operator
+ * \{ */
 
 static int image_remove_render_slot_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -3595,7 +3711,11 @@ void IMAGE_OT_remove_render_slot(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER;
 }
 
-/********************** change frame operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Change Frame Operator
+ * \{ */
 
 static bool change_frame_poll(bContext *C)
 {
@@ -3746,7 +3866,11 @@ void IMAGE_OT_read_viewlayers(wmOperatorType *ot)
   ot->flag = 0;
 }
 
-/* ********************* Render border operator ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Render Border Operator
+ * \{ */
 
 static int render_border_exec(bContext *C, wmOperator *op)
 {
@@ -3815,7 +3939,11 @@ void IMAGE_OT_render_border(wmOperatorType *ot)
   WM_operator_properties_border(ot);
 }
 
-/* ********************* Clear render border operator ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clear Render Border Operator
+ * \{ */
 
 static int clear_render_border_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -3840,3 +3968,5 @@ void IMAGE_OT_clear_render_border(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
