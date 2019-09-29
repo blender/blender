@@ -1571,10 +1571,13 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
 
         col.prop(strip, "volume", text="Volume")
         col.prop(strip, "pitch")
+
+        col = layout.column()
         col.prop(strip, "pan")
+        col.enabled = sound is not None and sound.use_mono
 
         if sound is not None:
-
+            col = layout.column()
             if st.waveform_display_type == 'DEFAULT_WAVEFORMS':
                 col.prop(strip, "show_waveform")
             col.prop(sound, "use_mono")
