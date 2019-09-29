@@ -47,6 +47,7 @@
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
+#include "GPU_extensions.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
@@ -3889,7 +3890,9 @@ static void nodelink_batch_draw(SpaceNode *snode)
 
 void nodelink_batch_start(SpaceNode *UNUSED(snode))
 {
-  g_batch_link.enabled = true;
+  /* TODO: partial workaround for NVIDIA driver bug on recent GTX/RTX cards,
+   * that breaks instancing when using indirect drawcal (see T70011). */
+  g_batch_link.enabled = !GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY);
 }
 
 void nodelink_batch_end(SpaceNode *snode)
