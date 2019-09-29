@@ -239,11 +239,6 @@ static void overlay_cache_init(void *vedata)
       geometry_shader_uniforms(g_data->face_wires_shgrp);
       geometry_shader_uniforms(g_data->face_wires_xray_shgrp);
     }
-    if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_state_enable(g_data->face_wires_shgrp, DRW_STATE_CLIP_PLANES);
-      DRW_shgroup_state_enable(g_data->face_wires_xray_shgrp, DRW_STATE_CLIP_PLANES);
-    }
-
     g_data->wire_step_param = stl->g_data->overlay.wireframe_threshold - 254.0f / 255.0f;
   }
 }
@@ -412,6 +407,10 @@ static void overlay_cache_populate(void *vedata, Object *ob)
         }
         else {
           shgrp = DRW_shgroup_create_sub(pd->face_wires_shgrp);
+        }
+
+        if (draw_ctx->rv3d->rflag & RV3D_CLIPPING) {
+          DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
         }
 
         float wire_step_param = 10.0f;
