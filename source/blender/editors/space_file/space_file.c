@@ -106,18 +106,18 @@ static SpaceLink *file_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
   /* Ignore user preference "USER_HEADER_BOTTOM" here (always show top for new types). */
   ar->alignment = RGN_ALIGN_TOP;
 
+  /* Tools region */
+  ar = MEM_callocN(sizeof(ARegion), "tools region for file");
+  BLI_addtail(&sfile->regionbase, ar);
+  ar->regiontype = RGN_TYPE_TOOLS;
+  ar->alignment = RGN_ALIGN_LEFT;
+
   /* ui list region */
   ar = MEM_callocN(sizeof(ARegion), "ui region for file");
   BLI_addtail(&sfile->regionbase, ar);
   ar->regiontype = RGN_TYPE_UI;
   ar->alignment = RGN_ALIGN_TOP;
   ar->flag |= RGN_FLAG_DYNAMIC_SIZE;
-
-  /* Tools region */
-  ar = MEM_callocN(sizeof(ARegion), "tools region for file");
-  BLI_addtail(&sfile->regionbase, ar);
-  ar->regiontype = RGN_TYPE_TOOLS;
-  ar->alignment = RGN_ALIGN_LEFT;
 
   /* Tool props and execute region are added as needed, see file_refresh(). */
 
@@ -239,14 +239,14 @@ static void file_ensure_valid_region_state(bContext *C,
                                            SpaceFile *sfile,
                                            FileSelectParams *params)
 {
-  ARegion *ar_tools = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
+  ARegion *ar_ui = BKE_area_find_region_type(sa, RGN_TYPE_UI);
   ARegion *ar_props = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS);
   ARegion *ar_execute = BKE_area_find_region_type(sa, RGN_TYPE_EXECUTE);
   bool needs_init = false; /* To avoid multiple ED_area_initialize() calls. */
 
   /* If there's an file-operation, ensure we have the option and execute region */
   if (sfile->op && (ar_props == NULL)) {
-    ar_execute = file_execute_region_ensure(sa, ar_tools);
+    ar_execute = file_execute_region_ensure(sa, ar_ui);
     ar_props = file_tool_props_region_ensure(sa, ar_execute);
 
     if (params->flag & FILE_HIDE_TOOL_PROPS) {
