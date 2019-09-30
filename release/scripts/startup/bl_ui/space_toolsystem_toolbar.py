@@ -48,6 +48,7 @@ def generate_from_enum_ex(
         icon_prefix,
         type,
         attr,
+        cursor='DEFAULT',
         tooldef_keywords={},
 ):
     tool_defs = []
@@ -60,6 +61,7 @@ def generate_from_enum_ex(
                     idname=idname_prefix + name,
                     label=name,
                     icon=icon_prefix + idname.lower(),
+                    cursor=cursor,
                     data_block=idname,
                     **tooldef_keywords,
                 )
@@ -1318,6 +1320,7 @@ class _defs_gpencil_paint:
             icon_prefix="brush.gpencil_draw.",
             type=bpy.types.Brush,
             attr="gpencil_tool",
+            cursor='PAINT_CROSS',
             tooldef_keywords=dict(
                 operator="gpencil.draw",
             ),

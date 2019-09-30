@@ -1361,19 +1361,13 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
       is_cursor_over_mesh = sculpt_cursor_geometry_info_update(
           C, &gi, mouse, !(brush->falloff_shape & BRUSH_AIRBRUSH));
     }
+    /* Use special paint crosshair cursor in all paint modes*/
+    wmWindow *win = CTX_wm_window(C);
+    WM_cursor_set(win, WM_CURSOR_CROSSA);
 
     if ((mode == PAINT_MODE_SCULPT) && ss && !is_multires &&
         !(brush->falloff_shape & BRUSH_AIRBRUSH)) {
       Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-      wmWindow *win = CTX_wm_window(C);
-
-      /* Update WM mouse cursor, disable when the 3D brush cursor is enabled */
-      if (sd->paint.brush->overlay_flags & BRUSH_OVERLAY_CURSOR) {
-        WM_cursor_set(win, WM_CURSOR_DEFAULT);
-      }
-      else {
-        WM_cursor_set(win, WM_CURSOR_EDIT);
-      }
 
       if (!ups->stroke_active) {
         bool update_previews = false;
