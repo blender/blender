@@ -106,6 +106,7 @@ static bool script_test_modal_operators(bContext *C)
 
 static int script_reload_exec(bContext *C, wmOperator *op)
 {
+
 #ifdef WITH_PYTHON
 
   /* clear running operators */
@@ -113,6 +114,8 @@ static int script_reload_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "Can't reload with running modal operators");
     return OPERATOR_CANCELLED;
   }
+
+  WM_script_tag_reload();
 
   /* TODO, this crashes on netrender and keying sets, need to look into why
    * disable for now unless running in debug mode */

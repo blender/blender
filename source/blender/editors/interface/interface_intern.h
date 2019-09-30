@@ -993,4 +993,7 @@ void ui_rna_collection_search_cb(const struct bContext *C,
 /* interface_ops.c */
 bool ui_jump_to_target_button_poll(struct bContext *C);
 
+/* interface_queries.c */
+void ui_interface_tag_script_reload_queries(void);
+
 #endif /* __INTERFACE_INTERN_H__ */

@@ -2454,6 +2454,8 @@ void UI_widgetbase_draw_cache_end(void);
 void UI_theme_init_default(void);
 void UI_style_init_default(void);
 
+void UI_interface_tag_script_reload(void);
+
 /* Special drawing for toolbar, mainly workarounds for inflexible icon sizing. */
 #define USE_UI_TOOLBAR_HACK
 

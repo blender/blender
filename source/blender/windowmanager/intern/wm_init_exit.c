@@ -681,3 +681,12 @@ void WM_exit(bContext *C)
 
   exit(G.is_break == true);
 }
+
+/**
+ * Needed for cases when operators are re-registered
+ * (when operator type pointers are stored).
+ */
+void WM_script_tag_reload(void)
+{
+  UI_interface_tag_script_reload();
+}

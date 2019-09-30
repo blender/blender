@@ -6689,3 +6689,8 @@ void UI_exit(void)
   ui_resources_free();
   ui_but_clipboard_free();
 }
+
+void UI_interface_tag_script_reload(void)
+{
+  ui_interface_tag_script_reload_queries();
+}
