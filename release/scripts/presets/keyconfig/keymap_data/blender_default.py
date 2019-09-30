@@ -5895,6 +5895,16 @@ def km_3d_view_tool_edit_gpencil_select_lasso(params):
     )
 
 
+def km_3d_view_tool_edit_gpencil_extrude(params):
+    return (
+        "3D View Tool: Edit Gpencil, Extrude",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("gpencil.extrude_move", {"type": params.tool_tweak, "value": 'ANY'}, None),
+        ]},
+    )
+
+
 def km_3d_view_tool_edit_gpencil_radius(params):
     return (
         "3D View Tool: Edit Gpencil, Radius",
@@ -6191,6 +6201,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_edit_gpencil_select_box(params),
         km_3d_view_tool_edit_gpencil_select_circle(params),
         km_3d_view_tool_edit_gpencil_select_lasso(params),
+        km_3d_view_tool_edit_gpencil_extrude(params), 
         km_3d_view_tool_edit_gpencil_radius(params),
         km_3d_view_tool_edit_gpencil_bend(params),
         km_3d_view_tool_edit_gpencil_shear(params),
