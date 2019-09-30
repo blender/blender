@@ -1013,9 +1013,9 @@ NSCursor *GHOST_WindowCocoa::getStandardCursor(GHOST_TStandardCursor shape) cons
     case GHOST_kStandardCursorHorizontalSplit:
       return getImageCursor(shape, @"splith.pdf", NSMakePoint(16, 16));
     case GHOST_kStandardCursorCrosshairA:
-      return getImageCursor(shape, @"crossa.pdf", NSMakePoint(16, 16));
+      return getImageCursor(shape, @"paint_cursor_cross.pdf", NSMakePoint(16, 15));
     case GHOST_kStandardCursorCrosshairB:
-      return getImageCursor(shape, @"crossb.pdf", NSMakePoint(16, 16));
+      return getImageCursor(shape, @"paint_cursor_dot.pdf", NSMakePoint(16, 15));
     case GHOST_kStandardCursorCrosshairC:
       return getImageCursor(shape, @"crossc.pdf", NSMakePoint(16, 16));
     default:
