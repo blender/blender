@@ -480,7 +480,7 @@ void BLI_mutex_free(ThreadMutex *mutex)
 void BLI_spin_init(SpinLock *spin)
 {
 #if defined(__APPLE__)
-  *spin = OS_UNFAIR_LOCK_INIT;
+  *spin = OS_SPINLOCK_INIT;
 #elif defined(_MSC_VER)
   *spin = 0;
 #else
@@ -491,7 +491,7 @@ void BLI_spin_init(SpinLock *spin)
 void BLI_spin_lock(SpinLock *spin)
 {
 #if defined(__APPLE__)
-  os_unfair_lock_lock(spin);
+  OSSpinLockLock(spin);
 #elif defined(_MSC_VER)
   while (InterlockedExchangeAcquire(spin, 1)) {
     while (*spin) {
@@ -507,7 +507,7 @@ void BLI_spin_lock(SpinLock *spin)
 void BLI_spin_unlock(SpinLock *spin)
 {
 #if defined(__APPLE__)
-  os_unfair_lock_unlock(spin);
+  OSSpinLockUnlock(spin);
 #elif defined(_MSC_VER)
   _ReadWriteBarrier();
   *spin = 0;

@@ -30,7 +30,7 @@ extern "C" {
 #include <pthread.h>
 
 #ifdef __APPLE__
-#  include <os/lock.h>
+#  include <libkern/OSAtomic.h>
 #endif
 
 /* for tables, button in UI, etc */
@@ -103,7 +103,7 @@ void BLI_mutex_unlock(ThreadMutex *mutex);
 /* Spin Lock */
 
 #if defined(__APPLE__)
-typedef os_unfair_lock SpinLock;
+typedef OSSpinLock SpinLock;
 #elif defined(_MSC_VER)
 typedef volatile int SpinLock;
 #else
