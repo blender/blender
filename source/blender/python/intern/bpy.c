@@ -147,39 +147,28 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 // PyDoc_STRVAR(bpy_user_resource_doc[] = // now in bpy/utils.py
 static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-  const char *type;
+  const struct PyC_StringEnumItems type_items[] = {
+      {BLENDER_USER_DATAFILES, "DATAFILES"},
+      {BLENDER_USER_CONFIG, "CONFIG"},
+      {BLENDER_USER_SCRIPTS, "SCRIPTS"},
+      {BLENDER_USER_AUTOSAVE, "AUTOSAVE"},
+      {0, NULL},
+  };
+  struct PyC_StringEnum type = {type_items};
+
   const char *subdir = NULL;
-  int folder_id;
 
   const char *path;
 
   static const char *_keywords[] = {"type", "subdir", NULL};
-  static _PyArg_Parser _parser = {"s|s:user_resource", _keywords, 0};
-  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &type, &subdir)) {
-    return NULL;
-  }
-
-  /* stupid string compare */
-  if (STREQ(type, "DATAFILES")) {
-    folder_id = BLENDER_USER_DATAFILES;
-  }
-  else if (STREQ(type, "CONFIG")) {
-    folder_id = BLENDER_USER_CONFIG;
-  }
-  else if (STREQ(type, "SCRIPTS")) {
-    folder_id = BLENDER_USER_SCRIPTS;
-  }
-  else if (STREQ(type, "AUTOSAVE")) {
-    folder_id = BLENDER_USER_AUTOSAVE;
-  }
-  else {
-    PyErr_SetString(PyExc_ValueError, "invalid resource argument");
+  static _PyArg_Parser _parser = {"O&|s:user_resource", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, PyC_ParseStringEnum, &type, &subdir)) {
     return NULL;
   }
 
   /* same logic as BKE_appdir_folder_id_create(),
    * but best leave it up to the script author to create */
-  path = BKE_appdir_folder_id_user_notest(folder_id, subdir);
+  path = BKE_appdir_folder_id_user_notest(type.value_found, subdir);
 
   return PyC_UnicodeFromByte(path ? path : "");
 }
@@ -195,34 +184,25 @@ PyDoc_STRVAR(bpy_system_resource_doc,
              "   :type path: string\n");
 static PyObject *bpy_system_resource(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-  const char *type;
+  const struct PyC_StringEnumItems type_items[] = {
+      {BLENDER_SYSTEM_DATAFILES, "DATAFILES"},
+      {BLENDER_SYSTEM_SCRIPTS, "SCRIPTS"},
+      {BLENDER_SYSTEM_PYTHON, "PYTHON"},
+      {0, NULL},
+  };
+  struct PyC_StringEnum type = {type_items};
+
   const char *subdir = NULL;
-  int folder_id;
 
   const char *path;
 
   static const char *_keywords[] = {"type", "path", NULL};
-  static _PyArg_Parser _parser = {"s|s:system_resource", _keywords, 0};
-  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &type, &subdir)) {
+  static _PyArg_Parser _parser = {"O&|s:system_resource", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, PyC_ParseStringEnum, &type, &subdir)) {
     return NULL;
   }
 
-  /* stupid string compare */
-  if (STREQ(type, "DATAFILES")) {
-    folder_id = BLENDER_SYSTEM_DATAFILES;
-  }
-  else if (STREQ(type, "SCRIPTS")) {
-    folder_id = BLENDER_SYSTEM_SCRIPTS;
-  }
-  else if (STREQ(type, "PYTHON")) {
-    folder_id = BLENDER_SYSTEM_PYTHON;
-  }
-  else {
-    PyErr_SetString(PyExc_ValueError, "invalid resource argument");
-    return NULL;
-  }
-
-  path = BKE_appdir_folder_id(folder_id, subdir);
+  path = BKE_appdir_folder_id(type.value_found, subdir);
 
   return PyC_UnicodeFromByte(path ? path : "");
 }
@@ -243,33 +223,25 @@ PyDoc_STRVAR(
     "   :rtype: string\n");
 static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-  const char *type;
+  const struct PyC_StringEnumItems type_items[] = {
+      {BLENDER_RESOURCE_PATH_USER, "USER"},
+      {BLENDER_RESOURCE_PATH_LOCAL, "LOCAL"},
+      {BLENDER_RESOURCE_PATH_SYSTEM, "SYSTEM"},
+      {0, NULL},
+  };
+  struct PyC_StringEnum type = {type_items};
+
   int major = BLENDER_VERSION / 100, minor = BLENDER_VERSION % 100;
-  int folder_id;
   const char *path;
 
   static const char *_keywords[] = {"type", "major", "minor", NULL};
-  static _PyArg_Parser _parser = {"s|ii:resource_path", _keywords, 0};
-  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &type, &major, &minor)) {
+  static _PyArg_Parser _parser = {"O&|ii:resource_path", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kw, &_parser, PyC_ParseStringEnum, &type, &major, &minor)) {
     return NULL;
   }
 
-  /* stupid string compare */
-  if (STREQ(type, "USER")) {
-    folder_id = BLENDER_RESOURCE_PATH_USER;
-  }
-  else if (STREQ(type, "LOCAL")) {
-    folder_id = BLENDER_RESOURCE_PATH_LOCAL;
-  }
-  else if (STREQ(type, "SYSTEM")) {
-    folder_id = BLENDER_RESOURCE_PATH_SYSTEM;
-  }
-  else {
-    PyErr_SetString(PyExc_ValueError, "invalid resource argument");
-    return NULL;
-  }
-
-  path = BKE_appdir_folder_id_version(folder_id, (major * 100) + minor, false);
+  path = BKE_appdir_folder_id_version(type.value_found, (major * 100) + minor, false);
 
   return PyC_UnicodeFromByte(path ? path : "");
 }
