@@ -5185,13 +5185,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 
   /* These brushes need to update all nodes as they are not constrained by the brush radius */
   if (brush->sculpt_tool == SCULPT_TOOL_ELASTIC_DEFORM) {
-    SculptSearchSphereData data = {
-        .ss = ss,
-        .sd = sd,
-        .radius_squared = FLT_MAX,
-        .original = true,
-    };
-    BKE_pbvh_search_gather(ss->pbvh, NULL, &data, &nodes, &totnode);
+    BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
   }
   else if (brush->sculpt_tool == SCULPT_TOOL_POSE) {
     float final_radius = ss->cache->radius * (1 + brush->pose_offset);
@@ -5201,7 +5195,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         .radius_squared = final_radius * final_radius,
         .original = true,
     };
-    BKE_pbvh_search_gather(ss->pbvh, NULL, &data, &nodes, &totnode);
+    BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
   }
   else {
     const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
