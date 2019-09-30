@@ -773,8 +773,6 @@ typedef struct wmOperatorType {
   /** Flag last for padding */
   short flag;
 
-  /** Is the operator used by tool buttons, hack for fast checking. */
-  bool is_tool_button;
 } wmOperatorType;
 
 /**
