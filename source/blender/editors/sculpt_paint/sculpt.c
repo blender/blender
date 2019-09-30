@@ -172,7 +172,7 @@ static void sculpt_active_vertex_normal_get(SculptSession *ss, float normal[3])
   sculpt_vertex_normal_get(ss, sculpt_active_vertex_get(ss), normal);
 }
 
-static void sculpt_vertex_mask_set(SculptSession *ss, int index, float mask)
+static void UNUSED_FUNCTION(sculpt_vertex_mask_set)(SculptSession *ss, int index, float mask)
 {
   BMVert *v;
   float *mask_p;
@@ -8831,14 +8831,21 @@ static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
   }
 
   bool dirty_only = RNA_boolean_get(op->ptr, "dirty_only");
-  for (int i = 0; i < num_verts; i++) {
-    float mask = sculpt_vertex_mask_get(ss, i);
-    mask = mask + (1 - ((prev_mask[i] - min) * range));
-    if (dirty_only) {
-      mask = fminf(mask, 0.5f) * 2.0f;
+
+  for (int n = 0; n < totnode; n++) {
+    PBVHVertexIter vd;
+    BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+    {
+      float mask = *vd.mask;
+      mask = mask + (1 - ((prev_mask[vd.index] - min) * range));
+      if (dirty_only) {
+        mask = fminf(mask, 0.5f) * 2.0f;
+      }
+      *vd.mask = CLAMPIS(mask, 0.0f, 1.0f);
     }
-    sculpt_vertex_mask_set(ss, i, CLAMPIS(mask, 0.0f, 1.0f));
+    BKE_pbvh_vertex_iter_end;
   }
+
   MEM_freeN(prev_mask);
 
   MEM_SAFE_FREE(nodes);
@@ -8879,13 +8886,16 @@ static void sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
 
   MEM_freeN(op->customdata);
 
-  int vert_count = sculpt_vertex_count_get(ss);
-  for (int i = 0; i < vert_count; i++) {
-    sculpt_vertex_mask_set(ss, i, ss->filter_cache->prev_mask[i]);
-  }
+  for (int n = 0; n < ss->filter_cache->totnode; n++) {
+    PBVHNode *node = ss->filter_cache->nodes[n];
+    PBVHVertexIter vd;
+    BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+    {
+      *vd.mask = ss->filter_cache->prev_mask[vd.index];
+    }
+    BKE_pbvh_vertex_iter_end;
 
-  for (int i = 0; i < ss->filter_cache->totnode; i++) {
-    BKE_pbvh_node_mark_redraw(ss->filter_cache->nodes[i]);
+    BKE_pbvh_node_mark_redraw(node);
   }
 
   sculpt_flush_update_step(C, SCULPT_UPDATE_MASK);
@@ -9004,21 +9014,27 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
     /* Pivot position */
     if (RNA_boolean_get(op->ptr, "update_pivot")) {
       const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+      const float threshold = 0.2f;
       float avg[3];
       int total = 0;
-      float threshold = 0.2f;
       zero_v3(avg);
-      int vertex_count = sculpt_vertex_count_get(ss);
-      for (int i = 0; i < vertex_count; i++) {
-        const float mask = sculpt_vertex_mask_get(ss, i);
-        if (mask < (0.5f + threshold) && mask > (0.5f - threshold)) {
-          const float *co = sculpt_vertex_co_get(ss, i);
-          if (check_vertex_pivot_symmetry(co, ss->filter_cache->mask_expand_initial_co, symm)) {
-            total++;
-            add_v3_v3(avg, co);
+
+      for (int n = 0; n < ss->filter_cache->totnode; n++) {
+        PBVHVertexIter vd;
+        BKE_pbvh_vertex_iter_begin(ss->pbvh, ss->filter_cache->nodes[n], vd, PBVH_ITER_UNIQUE)
+        {
+          const float mask = (vd.mask) ? *vd.mask : 0.0f;
+          if (mask < (0.5f + threshold) && mask > (0.5f - threshold)) {
+            if (check_vertex_pivot_symmetry(
+                    vd.co, ss->filter_cache->mask_expand_initial_co, symm)) {
+              add_v3_v3(avg, vd.co);
+              total++;
+            }
           }
         }
+        BKE_pbvh_vertex_iter_end;
       }
+
       if (total > 0) {
         mul_v3_fl(avg, 1.0f / total);
         copy_v3_v3(ss->pivot_pos, avg);
@@ -9607,71 +9623,20 @@ static int sculpt_set_pivot_position_invoke(bContext *C, wmOperator *op, const w
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-    return OPERATOR_CANCELLED;
-  }
-
   int mode = RNA_enum_get(op->ptr, "mode");
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true);
-
-  int vert_count = sculpt_vertex_count_get(ss);
 
   /* Pivot to center */
   if (mode == SCULPT_PIVOT_POSITION_ORIGIN) {
     zero_v3(ss->pivot_pos);
   }
-
-  /* Pivot to unmasked */
-  if (mode == SCULPT_PIVOT_POSITION_UNMASKED) {
-    float avg[3];
-    int total = 0;
-    zero_v3(avg);
-    for (int i = 0; i < vert_count; i++) {
-      const float mask = sculpt_vertex_mask_get(ss, i);
-      if (mask < 1.0f) {
-        const float *co = sculpt_vertex_co_get(ss, i);
-        if (check_vertex_pivot_symmetry(co, ss->pivot_pos, symm)) {
-          total++;
-          add_v3_v3(avg, co);
-        }
-      }
-    }
-    if (total > 0) {
-      mul_v3_fl(avg, 1.0f / total);
-      copy_v3_v3(ss->pivot_pos, avg);
-    }
-  }
-
-  /* Pivot to mask border */
-  if (mode == SCULPT_PIVOT_POSITION_MASK_BORDER) {
-    float avg[3];
-    int total = 0;
-    float threshold = 0.2f;
-    zero_v3(avg);
-    for (int i = 0; i < vert_count; i++) {
-      const float mask = sculpt_vertex_mask_get(ss, i);
-      if (mask < (0.5f + threshold) && mask > (0.5f - threshold)) {
-        const float *co = sculpt_vertex_co_get(ss, i);
-        if (check_vertex_pivot_symmetry(co, ss->pivot_pos, symm)) {
-          total++;
-          add_v3_v3(avg, co);
-        }
-      }
-    }
-    if (total > 0) {
-      mul_v3_fl(avg, 1.0f / total);
-      copy_v3_v3(ss->pivot_pos, avg);
-    }
-  }
-
   /* Pivot to active vertex */
-  if (mode == SCULPT_PIVOT_POSITION_ACTIVE_VERTEX) {
+  else if (mode == SCULPT_PIVOT_POSITION_ACTIVE_VERTEX) {
     copy_v3_v3(ss->pivot_pos, sculpt_active_vertex_co_get(ss));
   }
-
   /* Pivot to raycast surface */
-  if (mode == SCULPT_PIVOT_POSITION_CURSOR_SURFACE) {
+  else if (mode == SCULPT_PIVOT_POSITION_CURSOR_SURFACE) {
     float stroke_location[3];
     float mouse[2];
     mouse[0] = event->mval[0];
@@ -9679,6 +9644,59 @@ static int sculpt_set_pivot_position_invoke(bContext *C, wmOperator *op, const w
     if (sculpt_stroke_get_location(C, stroke_location, mouse)) {
       copy_v3_v3(ss->pivot_pos, stroke_location);
     }
+  }
+  else {
+    PBVHNode **nodes;
+    int totnode;
+    BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+
+    float avg[3];
+    int total = 0;
+    zero_v3(avg);
+
+    /* Pivot to unmasked */
+    if (mode == SCULPT_PIVOT_POSITION_UNMASKED) {
+      for (int n = 0; n < totnode; n++) {
+        PBVHVertexIter vd;
+        BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+        {
+          const float mask = (vd.mask) ? *vd.mask : 0.0f;
+          if (mask < 1.0f) {
+            if (check_vertex_pivot_symmetry(vd.co, ss->pivot_pos, symm)) {
+              add_v3_v3(avg, vd.co);
+              total++;
+            }
+          }
+        }
+        BKE_pbvh_vertex_iter_end;
+      }
+    }
+    /* Pivot to mask border */
+    else if (mode == SCULPT_PIVOT_POSITION_MASK_BORDER) {
+      const float threshold = 0.2f;
+
+      for (int n = 0; n < totnode; n++) {
+        PBVHVertexIter vd;
+        BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+        {
+          const float mask = (vd.mask) ? *vd.mask : 0.0f;
+          if (mask < (0.5f + threshold) && mask > (0.5f - threshold)) {
+            if (check_vertex_pivot_symmetry(vd.co, ss->pivot_pos, symm)) {
+              add_v3_v3(avg, vd.co);
+              total++;
+            }
+          }
+        }
+        BKE_pbvh_vertex_iter_end;
+      }
+    }
+
+    if (total > 0) {
+      mul_v3_fl(avg, 1.0f / total);
+      copy_v3_v3(ss->pivot_pos, avg);
+    }
+
+    MEM_SAFE_FREE(nodes);
   }
 
   ED_region_tag_redraw(ar);
