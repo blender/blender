@@ -224,6 +224,10 @@ typedef struct SculptThreadedTaskData {
 
   float transform_mats[8][4][4];
 
+  float dirty_mask_min;
+  float dirty_mask_max;
+  bool dirty_mask_dirty_only;
+
   ThreadMutex mutex;
 
 } SculptThreadedTaskData;

@@ -8696,19 +8696,68 @@ static float neighbor_dirty_mask(SculptSession *ss, PBVHVertexIter *vd)
   return 0;
 }
 
-static void dirty_mask_task_cb(void *__restrict userdata,
-                               const int i,
-                               const TaskParallelTLS *__restrict UNUSED(tls))
+typedef struct DirtyMaskRangeData {
+  float min, max;
+} DirtyMaskRangeData;
+
+static void dirty_mask_compute_range_task_cb(void *__restrict userdata,
+                                             const int i,
+                                             const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  PBVHNode *node = data->nodes[i];
+  DirtyMaskRangeData *range = tls->userdata_chunk;
+  PBVHVertexIter vd;
+
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+  {
+    float dirty_mask = neighbor_dirty_mask(ss, &vd);
+    range->min = min_ff(dirty_mask, range->min);
+    range->max = max_ff(dirty_mask, range->max);
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static void dirty_mask_compute_range_finalize(void *__restrict userdata, void *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  DirtyMaskRangeData *range = tls;
+
+  data->dirty_mask_min = min_ff(range->min, data->dirty_mask_min);
+  data->dirty_mask_max = max_ff(range->max, data->dirty_mask_max);
+}
+
+static void dirty_mask_apply_task_cb(void *__restrict userdata,
+                                     const int i,
+                                     const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
   PBVHNode *node = data->nodes[i];
   PBVHVertexIter vd;
+
+  const bool dirty_only = data->dirty_mask_dirty_only;
+  const float min = data->dirty_mask_min;
+  const float max = data->dirty_mask_max;
+
+  float range = max - min;
+  if (range < 0.0001f) {
+    range = 0;
+  }
+  else {
+    range = 1.0f / range;
+  }
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
   {
-    float val;
-    val = neighbor_dirty_mask(ss, &vd);
-    data->prev_mask[vd.index] = val;
+    float dirty_mask = neighbor_dirty_mask(ss, &vd);
+    float mask = *vd.mask + (1 - ((dirty_mask - min) * range));
+    if (dirty_only) {
+      mask = fminf(mask, 0.5f) * 2.0f;
+    }
+    *vd.mask = CLAMPIS(mask, 0.0f, 1.0f);
+
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
@@ -8740,8 +8789,6 @@ static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  int num_verts = sculpt_vertex_count_get(ss);
-
   BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
   sculpt_undo_push_begin("Dirty Mask");
 
@@ -8749,61 +8796,28 @@ static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
     sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
   }
 
-  float *prev_mask = NULL;
-
-  prev_mask = MEM_mallocN((unsigned long)num_verts * sizeof(float), "prevmask");
-  for (int j = 0; j < num_verts; j++) {
-    prev_mask[j] = sculpt_vertex_mask_get(ss, j);
-  }
-
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
       .nodes = nodes,
-      .prev_mask = prev_mask,
+      .dirty_mask_min = FLT_MAX,
+      .dirty_mask_max = -FLT_MAX,
+      .dirty_mask_dirty_only = RNA_boolean_get(op->ptr, "dirty_only"),
+  };
+  DirtyMaskRangeData range = {
+      .min = FLT_MAX,
+      .max = -FLT_MAX,
   };
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-  BLI_task_parallel_range(0, totnode, &data, dirty_mask_task_cb, &settings);
 
-  float min = FLT_MAX;
-  float max = FLT_MIN;
-  for (int i = 0; i < num_verts; i++) {
-    float val = prev_mask[i];
-    if (val < min) {
-      min = val;
-    }
-    if (val > max) {
-      max = val;
-    }
-  }
+  settings.func_finalize = dirty_mask_compute_range_finalize;
+  settings.userdata_chunk = &range;
+  settings.userdata_chunk_size = sizeof(DirtyMaskRangeData);
 
-  float range = max - min;
-  if (range < 0.0001f) {
-    range = 0;
-  }
-  else {
-    range = 1.0f / range;
-  }
-
-  bool dirty_only = RNA_boolean_get(op->ptr, "dirty_only");
-
-  for (int n = 0; n < totnode; n++) {
-    PBVHVertexIter vd;
-    BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
-    {
-      float mask = *vd.mask;
-      mask = mask + (1 - ((prev_mask[vd.index] - min) * range));
-      if (dirty_only) {
-        mask = fminf(mask, 0.5f) * 2.0f;
-      }
-      *vd.mask = CLAMPIS(mask, 0.0f, 1.0f);
-    }
-    BKE_pbvh_vertex_iter_end;
-  }
-
-  MEM_freeN(prev_mask);
+  BLI_task_parallel_range(0, totnode, &data, dirty_mask_compute_range_task_cb, &settings);
+  BLI_task_parallel_range(0, totnode, &data, dirty_mask_apply_task_cb, &settings);
 
   MEM_SAFE_FREE(nodes);
 
