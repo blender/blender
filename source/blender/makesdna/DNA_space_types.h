@@ -676,10 +676,9 @@ typedef struct FileSelectParams {
   short sort;
   /** Display mode flag. */
   short display;
-  short display_previous;
   /** Details toggles (file size, creation date, etc.) */
   char details_flags;
-  char _pad2;
+  char _pad2[3];
   /** Filter when (flags & FILE_FILTER) is true. */
   int filter;
 

@@ -98,6 +98,8 @@ struct rcti;
 struct FileSelectParams *ED_fileselect_get_params(struct SpaceFile *sfile);
 
 short ED_fileselect_set_params(struct SpaceFile *sfile);
+void ED_fileselect_set_params_from_userdef(struct SpaceFile *sfile);
+void ED_fileselect_params_to_userdef(struct SpaceFile *sfile, int temp_win_size[]);
 
 void ED_fileselect_reset_params(struct SpaceFile *sfile);
 

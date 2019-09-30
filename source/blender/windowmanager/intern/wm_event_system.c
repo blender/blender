@@ -2338,22 +2338,19 @@ static int wm_handler_fileselect_do(bContext *C,
                                     int val)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  SpaceFile *sfile;
   int action = WM_HANDLER_CONTINUE;
 
   switch (val) {
     case EVT_FILESELECT_FULL_OPEN: {
       wmWindow *win = CTX_wm_window(C);
-      const int sizex = 1020 * UI_DPI_FAC;
-      const int sizey = 600 * UI_DPI_FAC;
       ScrArea *area;
 
       if ((area = ED_screen_temp_space_open(C,
                                             IFACE_("Blender File View"),
                                             WM_window_pixels_x(win) / 2,
                                             WM_window_pixels_y(win) / 2,
-                                            sizex,
-                                            sizey,
+                                            U.file_space_data.temp_win_sizex * UI_DPI_FAC,
+                                            U.file_space_data.temp_win_sizey * UI_DPI_FAC,
                                             SPACE_FILE,
                                             U.filebrowser_display_type))) {
         ARegion *region_header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
@@ -2365,10 +2362,10 @@ static int wm_handler_fileselect_do(bContext *C,
         region_header->alignment = RGN_ALIGN_BOTTOM;
 
         /* settings for filebrowser, sfile is not operator owner but sends events */
-        sfile = (SpaceFile *)area->spacedata.first;
+        SpaceFile *sfile = (SpaceFile *)area->spacedata.first;
         sfile->op = handler->op;
 
-        ED_fileselect_set_params(sfile);
+        ED_fileselect_set_params_from_userdef(sfile);
       }
       else {
         BKE_report(&wm->reports, RPT_ERROR, "Failed to open window!");
@@ -2402,6 +2399,15 @@ static int wm_handler_fileselect_do(bContext *C,
           ScrArea *file_sa = screen->areabase.first;
 
           if (screen->temp && (file_sa->spacetype == SPACE_FILE)) {
+            int win_size[2];
+
+            /* Get DPI/pixelsize independent size to be stored in preferences. */
+            WM_window_set_dpi(temp_win); /* Ensure the DPI is taken from the right window. */
+            win_size[0] = WM_window_pixels_x(temp_win) / UI_DPI_FAC;
+            win_size[1] = WM_window_pixels_y(temp_win) / UI_DPI_FAC;
+
+            ED_fileselect_params_to_userdef(file_sa->spacedata.first, win_size);
+
             if (BLI_listbase_is_single(&file_sa->spacedata)) {
               BLI_assert(ctx_win != temp_win);
 
@@ -2430,6 +2436,7 @@ static int wm_handler_fileselect_do(bContext *C,
         }
 
         if (!temp_win && ctx_sa->full) {
+          ED_fileselect_params_to_userdef(ctx_sa->spacedata.first, NULL);
           ED_screen_full_prevspace(C, ctx_sa);
         }
       }

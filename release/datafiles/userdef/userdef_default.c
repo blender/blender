@@ -21,6 +21,7 @@
 
 #include "DNA_userdef_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_math_rotation.h"
 
@@ -201,6 +202,18 @@ const UserDef U_default = {
     .space_data =
         {
             .section_active = USER_SECTION_INTERFACE,
+        },
+
+    .file_space_data =
+        {
+            .display_type = FILE_VERTICALDISPLAY,
+            .thumbnail_size = 128,
+            .sort_type = FILE_SORT_ALPHA,
+            .details_flags = FILE_DETAILS_SIZE | FILE_DETAILS_DATETIME,
+            .flag = FILE_HIDE_DOT,
+
+            .temp_win_sizex = 1020,
+            .temp_win_sizey = 600,
         },
 
     .runtime =

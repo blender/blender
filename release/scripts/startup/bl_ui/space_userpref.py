@@ -1405,7 +1405,6 @@ class USERPREF_PT_saveload_file_browser(PreferencePanel, Panel):
         flow.prop(paths, "show_hidden_files_datablocks")
         flow.prop(paths, "hide_recent_locations")
         flow.prop(paths, "hide_system_bookmarks")
-        flow.prop(paths, "show_thumbnails")
 
 
 class USERPREF_MT_ndof_settings(Menu):
