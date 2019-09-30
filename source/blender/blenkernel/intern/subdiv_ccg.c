@@ -1268,9 +1268,13 @@ bool BKE_subdiv_ccg_check_coord_valid(const SubdivCCG *subdiv_ccg, const SubdivC
   return true;
 }
 
-BLI_INLINE void subdiv_ccg_neighbors_init(SubdivCCGNeighbors *neighbors, int size)
+BLI_INLINE void subdiv_ccg_neighbors_init(SubdivCCGNeighbors *neighbors,
+                                          const int num_unique,
+                                          const int num_duplicates)
 {
+  const int size = num_unique + num_duplicates;
   neighbors->size = size;
+  neighbors->num_duplicates = num_duplicates;
   if (size < ARRAY_SIZE(neighbors->coords_fixed)) {
     neighbors->coords = neighbors->coords_fixed;
   }
@@ -1397,18 +1401,27 @@ BLI_INLINE int prev_grid_index_from_coord(const SubdivCCG *subdiv_ccg, const Sub
  * can only iterate over grid of a single face, without looking into adjacency. */
 static void neighbor_coords_corner_center_get(const SubdivCCG *subdiv_ccg,
                                               const SubdivCCGCoord *coord,
+                                              const bool include_duplicates,
                                               SubdivCCGNeighbors *r_neighbors)
 {
   SubdivCCGFace *face = subdiv_ccg->grid_faces[coord->grid_index];
+  const int num_adjacent_grids = face->num_grids;
 
-  subdiv_ccg_neighbors_init(r_neighbors, face->num_grids);
+  subdiv_ccg_neighbors_init(
+      r_neighbors, num_adjacent_grids, (include_duplicates) ? num_adjacent_grids - 1 : 0);
 
-  for (int face_grid_index = 0; face_grid_index < face->num_grids; ++face_grid_index) {
+  int duplicate_face_grid_index = num_adjacent_grids;
+  for (int face_grid_index = 0; face_grid_index < num_adjacent_grids; ++face_grid_index) {
     SubdivCCGCoord neighbor_coord;
     neighbor_coord.grid_index = face->start_grid_index + face_grid_index;
     neighbor_coord.x = 1;
     neighbor_coord.y = 0;
     r_neighbors->coords[face_grid_index] = neighbor_coord;
+
+    if (include_duplicates && neighbor_coord.grid_index != coord->grid_index) {
+      neighbor_coord.x = 0;
+      r_neighbors->coords[duplicate_face_grid_index++] = neighbor_coord;
+    }
   }
 }
 
@@ -1439,6 +1452,7 @@ static int adjacent_vertex_index_from_coord(const SubdivCCG *subdiv_ccg,
 /* The corner is adjacent to a coarse vertex. */
 static void neighbor_coords_corner_vertex_get(const SubdivCCG *subdiv_ccg,
                                               const SubdivCCGCoord *coord,
+                                              const bool include_duplicates,
                                               SubdivCCGNeighbors *r_neighbors)
 {
   Subdiv *subdiv = subdiv_ccg->subdiv;
@@ -1450,7 +1464,11 @@ static void neighbor_coords_corner_vertex_get(const SubdivCCG *subdiv_ccg,
   const int num_vertex_edges = topology_refiner->getNumVertexEdges(topology_refiner,
                                                                    adjacent_vertex_index);
 
-  subdiv_ccg_neighbors_init(r_neighbors, num_vertex_edges);
+  SubdivCCGAdjacentVertex *adjacent_vertex = &subdiv_ccg->adjacent_vertices[adjacent_vertex_index];
+  const int num_adjacent_faces = adjacent_vertex->num_adjacent_faces;
+
+  subdiv_ccg_neighbors_init(
+      r_neighbors, num_vertex_edges, (include_duplicates) ? num_adjacent_faces - 1 : 0);
 
   StaticOrHeapIntStorage vertex_edges_storage;
   static_or_heap_storage_init(&vertex_edges_storage);
@@ -1467,19 +1485,31 @@ static void neighbor_coords_corner_vertex_get(const SubdivCCG *subdiv_ccg,
     /* Depending edge orientation we use first (zero-based) or previous-to-last point. */
     int edge_vertices_indices[2];
     topology_refiner->getEdgeVertices(topology_refiner, edge_index, edge_vertices_indices);
-    int edge_point_index;
+    int edge_point_index, duplicate_edge_point_index;
     if (edge_vertices_indices[0] == adjacent_vertex_index) {
-      edge_point_index = 1;
+      duplicate_edge_point_index = 0;
+      edge_point_index = duplicate_edge_point_index + 1;
     }
     else {
       /* Edge "consists" of 2 grids, which makes it 2 * grid_size elements per edge.
        * The index of last edge element is 2 * grid_size - 1 (due to zero-based indices),
        * and we are interested in previous to last element. */
-      edge_point_index = subdiv_ccg->grid_size * 2 - 2;
+      duplicate_edge_point_index = subdiv_ccg->grid_size * 2 - 1;
+      edge_point_index = duplicate_edge_point_index - 1;
     }
 
     SubdivCCGAdjacentEdge *adjacent_edge = &subdiv_ccg->adjacent_edges[edge_index];
     r_neighbors->coords[i] = adjacent_edge->boundary_coords[edge_face_index][edge_point_index];
+  }
+
+  if (include_duplicates) {
+    /* Add duplicates of the current grid vertex in adjacent faces if requested. */
+    for (int i = 0, duplicate_i = num_vertex_edges; i < num_adjacent_faces; i++) {
+      SubdivCCGCoord neighbor_coord = adjacent_vertex->corner_coords[i];
+      if (neighbor_coord.grid_index != coord->grid_index) {
+        r_neighbors->coords[duplicate_i++] = neighbor_coord;
+      }
+    }
   }
 
   static_or_heap_storage_free(&vertex_edges_storage);
@@ -1577,6 +1607,7 @@ static int prev_adjacent_edge_point_index(const SubdivCCG *subdiv_ccg, const int
  * coarse faces, but is not at the coarse vertex. */
 static void neighbor_coords_edge_get(const SubdivCCG *subdiv_ccg,
                                      const SubdivCCGCoord *coord,
+                                     const bool include_duplicates,
                                      SubdivCCGNeighbors *r_neighbors)
 
 {
@@ -1586,46 +1617,59 @@ static void neighbor_coords_edge_get(const SubdivCCG *subdiv_ccg,
   const SubdivCCGAdjacentEdge *adjacent_edge = &subdiv_ccg->adjacent_edges[adjacent_edge_index];
 
   /* 2 neighbor points along the edge, plus one inner point per every adjacent grid. */
-  const int num_neighbor_coord = adjacent_edge->num_adjacent_faces + 2;
-  subdiv_ccg_neighbors_init(r_neighbors, num_neighbor_coord);
+  const int num_adjacent_faces = adjacent_edge->num_adjacent_faces;
+  subdiv_ccg_neighbors_init(
+      r_neighbors, num_adjacent_faces + 2, (include_duplicates) ? num_adjacent_faces - 1 : 0);
 
   const int point_index = adjacent_edge_point_index_from_coord(
       subdiv_ccg, coord, adjacent_edge_index);
   const int next_point_index = next_adjacent_edge_point_index(subdiv_ccg, point_index);
   const int prev_point_index = prev_adjacent_edge_point_index(subdiv_ccg, point_index);
 
-  r_neighbors->coords[0] = adjacent_edge->boundary_coords[0][prev_point_index];
-  r_neighbors->coords[1] = adjacent_edge->boundary_coords[0][next_point_index];
-
-  for (int i = 0; i < adjacent_edge->num_adjacent_faces; ++i) {
-    SubdivCCGCoord grid_coord = adjacent_edge->boundary_coords[i][point_index];
+  for (int i = 0, duplicate_i = num_adjacent_faces; i < num_adjacent_faces; ++i) {
+    SubdivCCGCoord *boundary_coords = adjacent_edge->boundary_coords[i];
+    /* One step into the grid from the edge for each adjacent face. */
+    SubdivCCGCoord grid_coord = boundary_coords[point_index];
     r_neighbors->coords[i + 2] = coord_step_inside_from_boundary(subdiv_ccg, &grid_coord);
+
+    if (grid_coord.grid_index == coord->grid_index) {
+      /* Prev and next along the edge for the current grid. */
+      r_neighbors->coords[0] = boundary_coords[prev_point_index];
+      r_neighbors->coords[1] = boundary_coords[next_point_index];
+    }
+    else if (include_duplicates) {
+      /* Same coordinate on neighboring grids if requested. */
+      r_neighbors->coords[duplicate_i + 2] = grid_coord;
+      duplicate_i++;
+    }
   }
 }
 
 /* The corner is at the middle of edge between faces. */
 static void neighbor_coords_corner_edge_get(const SubdivCCG *subdiv_ccg,
                                             const SubdivCCGCoord *coord,
+                                            const bool include_duplicates,
                                             SubdivCCGNeighbors *r_neighbors)
 {
-  neighbor_coords_edge_get(subdiv_ccg, coord, r_neighbors);
+  neighbor_coords_edge_get(subdiv_ccg, coord, include_duplicates, r_neighbors);
 }
 
 /* Input coordinate is at one of 4 corners of its grid corners. */
 static void neighbor_coords_corner_get(const SubdivCCG *subdiv_ccg,
                                        const SubdivCCGCoord *coord,
+                                       const bool include_duplicates,
                                        SubdivCCGNeighbors *r_neighbors)
 {
   if (coord->x == 0 && coord->y == 0) {
-    neighbor_coords_corner_center_get(subdiv_ccg, coord, r_neighbors);
+    neighbor_coords_corner_center_get(subdiv_ccg, coord, include_duplicates, r_neighbors);
   }
   else {
     const int grid_size_1 = subdiv_ccg->grid_size - 1;
     if (coord->x == grid_size_1 && coord->y == grid_size_1) {
-      neighbor_coords_corner_vertex_get(subdiv_ccg, coord, r_neighbors);
+      neighbor_coords_corner_vertex_get(subdiv_ccg, coord, include_duplicates, r_neighbors);
     }
     else {
-      neighbor_coords_corner_edge_get(subdiv_ccg, coord, r_neighbors);
+      neighbor_coords_corner_edge_get(subdiv_ccg, coord, include_duplicates, r_neighbors);
     }
   }
 }
@@ -1635,9 +1679,10 @@ static void neighbor_coords_corner_get(const SubdivCCG *subdiv_ccg,
  * other faces. */
 static void neighbor_coords_boundary_inner_get(const SubdivCCG *subdiv_ccg,
                                                const SubdivCCGCoord *coord,
+                                               const bool include_duplicates,
                                                SubdivCCGNeighbors *r_neighbors)
 {
-  subdiv_ccg_neighbors_init(r_neighbors, 4);
+  subdiv_ccg_neighbors_init(r_neighbors, 4, (include_duplicates) ? 1 : 0);
 
   if (coord->x == 0) {
     r_neighbors->coords[0] = coord_at_prev_row(subdiv_ccg, coord);
@@ -1647,6 +1692,11 @@ static void neighbor_coords_boundary_inner_get(const SubdivCCG *subdiv_ccg,
     r_neighbors->coords[3].grid_index = prev_grid_index_from_coord(subdiv_ccg, coord);
     r_neighbors->coords[3].x = coord->y;
     r_neighbors->coords[3].y = 1;
+
+    if (include_duplicates) {
+      r_neighbors->coords[4] = r_neighbors->coords[3];
+      r_neighbors->coords[4].y = 0;
+    }
   }
   else if (coord->y == 0) {
     r_neighbors->coords[0] = coord_at_prev_col(subdiv_ccg, coord);
@@ -1656,15 +1706,21 @@ static void neighbor_coords_boundary_inner_get(const SubdivCCG *subdiv_ccg,
     r_neighbors->coords[3].grid_index = next_grid_index_from_coord(subdiv_ccg, coord);
     r_neighbors->coords[3].x = 1;
     r_neighbors->coords[3].y = coord->x;
+
+    if (include_duplicates) {
+      r_neighbors->coords[4] = r_neighbors->coords[3];
+      r_neighbors->coords[4].x = 0;
+    }
   }
 }
 
 /* Input coordinate is on an edge between two faces. Need to check adjacency. */
 static void neighbor_coords_boundary_outer_get(const SubdivCCG *subdiv_ccg,
                                                const SubdivCCGCoord *coord,
+                                               const bool include_duplicates,
                                                SubdivCCGNeighbors *r_neighbors)
 {
-  neighbor_coords_edge_get(subdiv_ccg, coord, r_neighbors);
+  neighbor_coords_edge_get(subdiv_ccg, coord, include_duplicates, r_neighbors);
 }
 
 /* Input coordinate is at one of 4 boundaries of its grid.
@@ -1672,13 +1728,14 @@ static void neighbor_coords_boundary_outer_get(const SubdivCCG *subdiv_ccg,
  * a part of coarse face edge. */
 static void neighbor_coords_boundary_get(const SubdivCCG *subdiv_ccg,
                                          const SubdivCCGCoord *coord,
+                                         const bool include_duplicates,
                                          SubdivCCGNeighbors *r_neighbors)
 {
   if (is_inner_edge_grid_coordinate(subdiv_ccg, coord)) {
-    neighbor_coords_boundary_inner_get(subdiv_ccg, coord, r_neighbors);
+    neighbor_coords_boundary_inner_get(subdiv_ccg, coord, include_duplicates, r_neighbors);
   }
   else {
-    neighbor_coords_boundary_outer_get(subdiv_ccg, coord, r_neighbors);
+    neighbor_coords_boundary_outer_get(subdiv_ccg, coord, include_duplicates, r_neighbors);
   }
 }
 
@@ -1687,7 +1744,7 @@ static void neighbor_coords_inner_get(const SubdivCCG *subdiv_ccg,
                                       const SubdivCCGCoord *coord,
                                       SubdivCCGNeighbors *r_neighbors)
 {
-  subdiv_ccg_neighbors_init(r_neighbors, 4);
+  subdiv_ccg_neighbors_init(r_neighbors, 4, 0);
 
   r_neighbors->coords[0] = coord_at_prev_row(subdiv_ccg, coord);
   r_neighbors->coords[1] = coord_at_next_row(subdiv_ccg, coord);
@@ -1697,6 +1754,7 @@ static void neighbor_coords_inner_get(const SubdivCCG *subdiv_ccg,
 
 void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG *subdiv_ccg,
                                         const SubdivCCGCoord *coord,
+                                        const bool include_duplicates,
                                         SubdivCCGNeighbors *r_neighbors)
 {
   BLI_assert(coord->grid_index >= 0);
@@ -1707,10 +1765,10 @@ void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG *subdiv_ccg,
   BLI_assert(coord->y < subdiv_ccg->grid_size);
 
   if (is_corner_grid_coord(subdiv_ccg, coord)) {
-    neighbor_coords_corner_get(subdiv_ccg, coord, r_neighbors);
+    neighbor_coords_corner_get(subdiv_ccg, coord, include_duplicates, r_neighbors);
   }
   else if (is_boundary_grid_coord(subdiv_ccg, coord)) {
-    neighbor_coords_boundary_get(subdiv_ccg, coord, r_neighbors);
+    neighbor_coords_boundary_get(subdiv_ccg, coord, include_duplicates, r_neighbors);
   }
   else {
     neighbor_coords_inner_get(subdiv_ccg, coord, r_neighbors);

@@ -265,6 +265,7 @@ void BKE_subdiv_ccg_topology_counters(const SubdivCCG *subdiv_ccg,
 typedef struct SubdivCCGNeighbors {
   SubdivCCGCoord *coords;
   int size;
+  int num_duplicates;
 
   SubdivCCGCoord coords_fixed[256];
 } SubdivCCGNeighbors;
@@ -288,9 +289,13 @@ bool BKE_subdiv_ccg_check_coord_valid(const SubdivCCG *subdiv_ccg, const SubdivC
 /* Get actual neighbors of the given coordinate.
  *
  * SubdivCCGNeighbors.neighbors must be freed if it is not equal to
- * SubdivCCGNeighbors.fixed_neighbors. */
+ * SubdivCCGNeighbors.fixed_neighbors.
+ *
+ * If include_duplicates is true, vertices in other grids that match
+ * the current vertex are added at the end of the coords array. */
 void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG *subdiv_ccg,
                                         const SubdivCCGCoord *coord,
+                                        const bool include_duplicates,
                                         SubdivCCGNeighbors *r_neighbors);
 
 #endif /* __BKE_SUBDIV_CCG_H__ */

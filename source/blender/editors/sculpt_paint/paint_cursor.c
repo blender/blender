@@ -1393,7 +1393,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
           }
 
           /* Draw pose brush origin */
-          if (brush->sculpt_tool == SCULPT_TOOL_POSE && !is_multires) {
+          if (brush->sculpt_tool == SCULPT_TOOL_POSE) {
             immUniformColor4f(1.0f, 1.0f, 1.0f, 0.8f);
             if (update_previews) {
               BKE_sculpt_update_object_for_edit(depsgraph, vc.obact, true, false);
@@ -1446,7 +1446,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
           }
 
           /* Draw pose brush line preview */
-          if (brush->sculpt_tool == SCULPT_TOOL_POSE && !is_multires) {
+          if (brush->sculpt_tool == SCULPT_TOOL_POSE) {
             immUniformColor4f(1.0f, 1.0f, 1.0f, 0.8f);
             GPU_line_width(2.0f);
             immBegin(GPU_PRIM_LINES, 2);
