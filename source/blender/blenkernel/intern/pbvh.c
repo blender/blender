@@ -1484,11 +1484,16 @@ const CCGKey *BKE_pbvh_get_grid_key(const PBVH *bvh)
   return &bvh->gridkey;
 }
 
-struct CCGElem **BKE_pbvh_get_grids(const PBVH *bvh, int *num_grids)
+struct CCGElem **BKE_pbvh_get_grids(const PBVH *bvh)
 {
   BLI_assert(bvh->type == PBVH_GRIDS);
-  *num_grids = bvh->totgrid;
   return bvh->grids;
+}
+
+int BKE_pbvh_get_grid_num_vertices(const PBVH *bvh)
+{
+  BLI_assert(bvh->type == PBVH_GRIDS);
+  return bvh->totgrid * bvh->gridkey.grid_area;
 }
 
 BMesh *BKE_pbvh_get_bmesh(PBVH *bvh)

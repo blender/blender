@@ -98,7 +98,8 @@
  * This is read-only, for writing use PBVH vertex iterators. There vd.index matches
  * the indices used here.
  *
- * Do not use these functions while working with PBVH_GRIDS data in SculptSession. */
+ * For multires, the same vertex in multiple grids is counted multiple times, with
+ * different index for each grid. */
 
 static void sculpt_vertex_random_access_init(SculptSession *ss)
 {
@@ -114,9 +115,11 @@ static int sculpt_vertex_count_get(SculptSession *ss)
       return ss->totvert;
     case PBVH_BMESH:
       return BM_mesh_elem_count(BKE_pbvh_get_bmesh(ss->pbvh), BM_VERT);
-    default:
-      return 0;
+    case PBVH_GRIDS:
+      return BKE_pbvh_get_grid_num_vertices(ss->pbvh);
   }
+
+  return 0;
 }
 
 const float *sculpt_vertex_co_get(SculptSession *ss, int index)
@@ -126,9 +129,13 @@ const float *sculpt_vertex_co_get(SculptSession *ss, int index)
       return ss->mvert[index].co;
     case PBVH_BMESH:
       return BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index)->co;
-    case PBVH_GRIDS:
-      BLI_assert(!"This fuction is not supposed to be used for PBVH_GRIDS");
-      break;
+    case PBVH_GRIDS: {
+      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+      const int grid_index = index / key->grid_area;
+      const int vertex_index = index - grid_index * key->grid_area;
+      CCGElem *elem = BKE_pbvh_get_grids(ss->pbvh)[grid_index];
+      return CCG_elem_co(key, CCG_elem_offset(key, elem, vertex_index));
+    }
   }
   return NULL;
 }
@@ -142,11 +149,17 @@ static void sculpt_vertex_normal_get(SculptSession *ss, int index, float no[3])
     case PBVH_BMESH:
       copy_v3_v3(no, BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index)->no);
       break;
-    default:
-      zero_v3(no);
-      return;
+    case PBVH_GRIDS: {
+      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+      const int grid_index = index / key->grid_area;
+      const int vertex_index = index - grid_index * key->grid_area;
+      CCGElem *elem = BKE_pbvh_get_grids(ss->pbvh)[grid_index];
+      copy_v3_v3(no, CCG_elem_no(key, CCG_elem_offset(key, elem, vertex_index)));
+      break;
+    }
   }
 }
+
 static float sculpt_vertex_mask_get(SculptSession *ss, int index)
 {
   BMVert *v;
@@ -158,9 +171,16 @@ static float sculpt_vertex_mask_get(SculptSession *ss, int index)
       v = BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index);
       mask = BM_ELEM_CD_GET_VOID_P(v, CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK));
       return *mask;
-    default:
-      return 0;
+    case PBVH_GRIDS: {
+      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+      const int grid_index = index / key->grid_area;
+      const int vertex_index = index - grid_index * key->grid_area;
+      CCGElem *elem = BKE_pbvh_get_grids(ss->pbvh)[grid_index];
+      return *CCG_elem_mask(key, CCG_elem_offset(key, elem, vertex_index));
+    }
   }
+
+  return 0.0f;
 }
 
 static int sculpt_active_vertex_get(SculptSession *ss)
@@ -172,9 +192,9 @@ static int sculpt_active_vertex_get(SculptSession *ss)
     case PBVH_BMESH:
       return ss->active_vertex_index;
     case PBVH_GRIDS:
-      BLI_assert(!"This fuction is not supposed to be used for PBVH_GRIDS");
-      break;
+      return ss->active_vertex_index;
   }
+
   return 0;
 }
 
@@ -273,6 +293,18 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
   }
 }
 
+static void sculpt_vertex_neighbors_get_grids(SculptSession *UNUSED(ss),
+                                              int UNUSED(index),
+                                              SculptVertexNeighborIter *iter)
+{
+  /* TODO: implement this for multires. It might also be worth changing this
+   * iterator to provide a coordinate and mask pointer directly for effiency,
+   * rather than converting back and forth between CCGElem and global index. */
+  iter->size = 0;
+  iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
+  iter->neighbors = iter->neighbors_fixed;
+}
+
 static void sculpt_vertex_neighbors_get(SculptSession *ss,
                                         int index,
                                         SculptVertexNeighborIter *iter)
@@ -284,8 +316,9 @@ static void sculpt_vertex_neighbors_get(SculptSession *ss,
     case PBVH_BMESH:
       sculpt_vertex_neighbors_get_bmesh(ss, index, iter);
       return;
-    default:
-      break;
+    case PBVH_GRIDS:
+      sculpt_vertex_neighbors_get_grids(ss, index, iter);
+      return;
   }
 }
 
@@ -493,6 +526,8 @@ static void sculpt_floodfill_execute(SculptSession *ss,
                                                   void *userdata),
                                      void *userdata)
 {
+  /* TODO: multires support, taking into account duplicate vertices and
+   * correctly handling them in the pose, automask and mask expand callbacks. */
   while (!BLI_gsqueue_is_empty(flood->queue)) {
     SculptFloodFillIterator from;
     BLI_gsqueue_pop(flood->queue, &from);
@@ -2353,6 +2388,48 @@ static float bmesh_neighbor_average_mask(BMVert *v, const int cd_vert_mask_offse
   else {
     const float *vmask = BM_ELEM_CD_GET_VOID_P(v, cd_vert_mask_offset);
     return (*vmask);
+  }
+}
+
+static void grids_neighbor_average(SculptSession *ss, float result[3], int index)
+{
+  float avg[3] = {0.0f, 0.0f, 0.0f};
+  int total = 0;
+
+  SculptVertexNeighborIter ni;
+  sculpt_vertex_neighbors_iter_begin(ss, index, ni)
+  {
+    add_v3_v3(avg, sculpt_vertex_co_get(ss, ni.index));
+    total++;
+  }
+  sculpt_vertex_neighbors_iter_end(ni);
+
+  if (total > 0) {
+    mul_v3_v3fl(result, avg, 1.0f / (float)total);
+  }
+  else {
+    copy_v3_v3(result, sculpt_vertex_co_get(ss, index));
+  }
+}
+
+static float grids_neighbor_average_mask(SculptSession *ss, int index)
+{
+  float avg = 0.0f;
+  int total = 0;
+
+  SculptVertexNeighborIter ni;
+  sculpt_vertex_neighbors_iter_begin(ss, index, ni)
+  {
+    avg += sculpt_vertex_mask_get(ss, ni.index);
+    total++;
+  }
+  sculpt_vertex_neighbors_iter_end(ni);
+
+  if (total > 0) {
+    return avg / (float)total;
+  }
+  else {
+    return sculpt_vertex_mask_get(ss, index);
   }
 }
 
@@ -8266,11 +8343,16 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     switch (filter_type) {
       case MESH_FILTER_SMOOTH:
         CLAMP(fade, -1.0f, 1.0f);
-        if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
-          neighbor_average(ss, avg, vd.index);
-        }
-        else if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-          bmesh_neighbor_average(avg, vd.bm_vert);
+        switch (BKE_pbvh_type(ss->pbvh)) {
+          case PBVH_FACES:
+            neighbor_average(ss, avg, vd.index);
+            break;
+          case PBVH_BMESH:
+            bmesh_neighbor_average(avg, vd.bm_vert);
+            break;
+          case PBVH_GRIDS:
+            grids_neighbor_average(ss, avg, vd.index);
+            break;
         }
         sub_v3_v3v3(val, avg, orig_co);
         madd_v3_v3v3fl(val, orig_co, val, fade);
@@ -8309,11 +8391,16 @@ static void mesh_filter_task_cb(void *__restrict userdata,
 
         mid_v3_v3v3(disp, disp, disp2);
         break;
-      case MESH_FILTER_RANDOM:
+      case MESH_FILTER_RANDOM: {
         normal_short_to_float_v3(normal, orig_data.no);
-        mul_v3_fl(normal, BLI_hash_int_01(vd.index ^ ss->filter_cache->random_seed) - 0.5f);
+        /* Index is not unique for multires, so hash by vertex coordinates. */
+        const uint *hash_co = (const uint *)orig_co;
+        const uint hash = BLI_hash_int_2d(hash_co[0], hash_co[1]) ^
+                          BLI_hash_int_2d(hash_co[2], ss->filter_cache->random_seed);
+        mul_v3_fl(normal, hash * (1.0f / (float)0xFFFFFFFF) - 0.5f);
         mul_v3_v3fl(disp, normal, fade);
         break;
+      }
     }
 
     for (int it = 0; it < 3; it++) {
@@ -8505,35 +8592,42 @@ static void mask_filter_task_cb(void *__restrict userdata,
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
   {
-    float val;
     float delta, gain, offset, max, min;
     float prev_val = *vd.mask;
     SculptVertexNeighborIter ni;
     switch (mode) {
       case MASK_FILTER_SMOOTH:
-        if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
-          val = neighbor_average_mask(ss, vd.index) - *vd.mask;
+      case MASK_FILTER_SHARPEN: {
+        float val = 0.0f;
+
+        switch (BKE_pbvh_type(ss->pbvh)) {
+          case PBVH_FACES:
+            val = neighbor_average_mask(ss, vd.index);
+            break;
+          case PBVH_BMESH:
+            val = bmesh_neighbor_average_mask(vd.bm_vert, vd.cd_vert_mask_offset);
+            break;
+          case PBVH_GRIDS:
+            val = grids_neighbor_average_mask(ss, vd.index);
+            break;
         }
-        else {
-          val = bmesh_neighbor_average_mask(vd.bm_vert, vd.cd_vert_mask_offset) - *vd.mask;
+
+        val -= *vd.mask;
+
+        if (mode == MASK_FILTER_SMOOTH) {
+          *vd.mask += val;
         }
-        *vd.mask += val;
+        else if (mode == MASK_FILTER_SHARPEN) {
+          if (*vd.mask > 0.5f) {
+            *vd.mask += 0.05f;
+          }
+          else {
+            *vd.mask -= 0.05f;
+          }
+          *vd.mask += val / 2;
+        }
         break;
-      case MASK_FILTER_SHARPEN:
-        if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
-          val = neighbor_average_mask(ss, vd.index) - *vd.mask;
-        }
-        else {
-          val = bmesh_neighbor_average_mask(vd.bm_vert, vd.cd_vert_mask_offset) - *vd.mask;
-        }
-        if (*vd.mask > 0.5f) {
-          *vd.mask += 0.05f;
-        }
-        else {
-          *vd.mask -= 0.05f;
-        }
-        *vd.mask += val / 2;
-        break;
+      }
       case MASK_FILTER_GROW:
         max = 0.0f;
         sculpt_vertex_neighbors_iter_begin(ss, vd.index, ni)
@@ -8634,7 +8728,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   for (int i = 0; i < iterations; i++) {
     if (ELEM(filter_type, MASK_FILTER_GROW, MASK_FILTER_SHRINK)) {
-      prev_mask = MEM_mallocN((unsigned long)num_verts * sizeof(float), "prevmask");
+      prev_mask = MEM_mallocN(num_verts * sizeof(float), "prevmask");
       for (int j = 0; j < num_verts; j++) {
         prev_mask[j] = sculpt_vertex_mask_get(ss, j);
       }

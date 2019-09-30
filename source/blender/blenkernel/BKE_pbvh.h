@@ -214,7 +214,8 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
 /* multires level, only valid for type == PBVH_GRIDS */
 const struct CCGKey *BKE_pbvh_get_grid_key(const PBVH *pbvh);
 
-struct CCGElem **BKE_pbvh_get_grids(const PBVH *pbvh, int *num_grids);
+struct CCGElem **BKE_pbvh_get_grids(const PBVH *pbvh);
+int BKE_pbvh_get_grid_num_vertices(const PBVH *pbvh);
 
 /* Only valid for type == PBVH_BMESH */
 struct BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh);
@@ -362,6 +363,7 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node, PBVHVertexIter *vi, int mo
     if (vi.grids) { \
       vi.width = vi.gridsize; \
       vi.height = vi.gridsize; \
+      vi.index = vi.grid_indices[vi.g] * vi.key.grid_area - 1; \
       vi.grid = vi.grids[vi.grid_indices[vi.g]]; \
       if (mode == PBVH_ITER_UNIQUE) \
         vi.gh = vi.grid_hidden[vi.grid_indices[vi.g]]; \
@@ -378,6 +380,7 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node, PBVHVertexIter *vi, int mo
           vi.fno = CCG_elem_no(&vi.key, vi.grid); \
           vi.mask = vi.key.has_mask ? CCG_elem_mask(&vi.key, vi.grid) : NULL; \
           vi.grid = CCG_elem_next(&vi.key, vi.grid); \
+          vi.index++; \
           if (vi.gh) { \
             if (BLI_BITMAP_TEST(vi.gh, vi.gy * vi.gridsize + vi.gx)) \
               continue; \
