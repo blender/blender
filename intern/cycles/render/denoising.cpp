@@ -866,8 +866,10 @@ Denoiser::Denoiser(DeviceInfo &device_info)
   TaskScheduler::init();
 
   /* Initialize device. */
-  DeviceRequestedFeatures req;
   device = Device::create(device_info, stats, profiler, true);
+
+  DeviceRequestedFeatures req;
+  req.use_denoising = true;
   device->load_kernels(req);
 }
 
