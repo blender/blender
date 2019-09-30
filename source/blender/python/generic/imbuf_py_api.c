@@ -88,21 +88,37 @@ PyDoc_STRVAR(py_imbuf_resize_doc,
              "\n"
              "   :arg size: New size.\n"
              "   :type size: pair of ints\n"
-             "   :arg method: Method of resizing (TODO)\n"
+             "   :arg method: Method of resizing ('FAST', 'BILINEAR')\n"
              "   :type method: str\n");
 static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
 {
   PY_IMBUF_CHECK_OBJ(self);
 
   uint size[2];
-  char *method = NULL;
+
+  enum { FAST, BILINEAR };
+  const struct PyC_StringEnumItems method_items[] = {
+      {FAST, "FAST"},
+      {BILINEAR, "BILINEAR"},
+      {0, NULL},
+  };
+  struct PyC_StringEnum method = {method_items, FAST};
 
   static const char *_keywords[] = {"size", "method", NULL};
-  static _PyArg_Parser _parser = {"(II)|s:resize", _keywords, 0};
-  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &size[0], &size[1], &method)) {
+  static _PyArg_Parser _parser = {"(II)|O&:resize", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kw, &_parser, &size[0], &size[1], PyC_ParseStringEnum, &method)) {
     return NULL;
   }
-  IMB_scaleImBuf(self->ibuf, UNPACK2(size));
+  if (method.value_found == FAST) {
+    IMB_scalefastImBuf(self->ibuf, UNPACK2(size));
+  }
+  else if (method.value_found == BILINEAR) {
+    IMB_scaleImBuf(self->ibuf, UNPACK2(size));
+  }
+  else {
+    BLI_assert(0);
+  }
   Py_RETURN_NONE;
 }
 
