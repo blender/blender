@@ -126,6 +126,17 @@ bool PyC_RunString_AsString(const char **imports,
 
 int PyC_ParseBool(PyObject *o, void *p);
 
+struct PyC_StringEnumItems {
+  int value;
+  const char *id;
+};
+struct PyC_StringEnum {
+  const struct PyC_StringEnumItems *items;
+  int value_found;
+};
+
+int PyC_ParseStringEnum(PyObject *o, void *p);
+
 int PyC_CheckArgs_DeepCopy(PyObject *args);
 
 /* Integer parsing (with overflow checks), -1 on error. */
