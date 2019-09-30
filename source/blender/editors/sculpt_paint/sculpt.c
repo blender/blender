@@ -1934,9 +1934,7 @@ static void sculpt_clip(Sculpt *sd, SculptSession *ss, float co[3], const float 
 
 static PBVHNode **sculpt_pbvh_gather_cursor_update(Object *ob,
                                                    Sculpt *sd,
-                                                   const Brush *brush,
                                                    bool use_original,
-                                                   float radius_scale,
                                                    int *r_totnode)
 {
   SculptSession *ss = ob->sculpt;
@@ -6549,7 +6547,6 @@ bool sculpt_cursor_geometry_info_update(bContext *C,
   }
 
   /* Sampled normal calculation */
-  const float radius_scale = 1.0f;
   float radius;
 
   /* Update cursor data in SculptSession */
@@ -6571,8 +6568,7 @@ bool sculpt_cursor_geometry_info_update(bContext *C,
   }
   ss->cursor_radius = radius;
 
-  PBVHNode **nodes = sculpt_pbvh_gather_cursor_update(
-      ob, sd, brush, original, radius_scale, &totnode);
+  PBVHNode **nodes = sculpt_pbvh_gather_cursor_update(ob, sd, original, &totnode);
 
   /* In case there are no nodes under the cursor, return the face normal */
   if (!totnode) {
