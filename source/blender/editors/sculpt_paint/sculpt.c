@@ -9104,16 +9104,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   ss->filter_cache = MEM_callocN(sizeof(FilterCache), "filter cache");
 
-  SculptSearchSphereData searchdata = {
-      .ss = ss,
-      .sd = sd,
-      .radius_squared = FLT_MAX,
-  };
-  BKE_pbvh_search_gather(pbvh,
-                         sculpt_search_sphere_cb,
-                         &searchdata,
-                         &ss->filter_cache->nodes,
-                         &ss->filter_cache->totnode);
+  BKE_pbvh_search_gather(pbvh, NULL, NULL, &ss->filter_cache->nodes, &ss->filter_cache->totnode);
 
   sculpt_undo_push_begin("Mask Expand");
 
