@@ -215,6 +215,7 @@ typedef struct SculptThreadedTaskData {
   float max_distance_squared;
   float nearest_vertex_search_co[3];
   int nearest_vertex_index;
+  float nearest_vertex_distance_squared;
 
   int mask_expand_update_it;
   bool mask_expand_invert_mask;
