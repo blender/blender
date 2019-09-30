@@ -92,6 +92,21 @@ void BKE_editlattice_load(Object *obedit)
   lt = obedit->data;
   editlt = lt->editlatt->latt;
 
+  MEM_freeN(lt->def);
+
+  lt->def = MEM_dupallocN(editlt->def);
+
+  lt->flag = editlt->flag;
+
+  lt->pntsu = editlt->pntsu;
+  lt->pntsv = editlt->pntsv;
+  lt->pntsw = editlt->pntsw;
+
+  lt->typeu = editlt->typeu;
+  lt->typev = editlt->typev;
+  lt->typew = editlt->typew;
+  lt->actbp = editlt->actbp;
+
   if (lt->editlatt->shapenr) {
     actkey = BLI_findlink(&lt->key->block, lt->editlatt->shapenr - 1);
 
@@ -111,22 +126,6 @@ void BKE_editlattice_load(Object *obedit)
       fp += 3;
       bp++;
     }
-  }
-  else {
-    MEM_freeN(lt->def);
-
-    lt->def = MEM_dupallocN(editlt->def);
-
-    lt->flag = editlt->flag;
-
-    lt->pntsu = editlt->pntsu;
-    lt->pntsv = editlt->pntsv;
-    lt->pntsw = editlt->pntsw;
-
-    lt->typeu = editlt->typeu;
-    lt->typev = editlt->typev;
-    lt->typew = editlt->typew;
-    lt->actbp = editlt->actbp;
   }
 
   if (lt->dvert) {
