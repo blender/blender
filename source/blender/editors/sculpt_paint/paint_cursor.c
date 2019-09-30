@@ -1363,7 +1363,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
     }
     /* Use special paint crosshair cursor in all paint modes*/
     wmWindow *win = CTX_wm_window(C);
-    WM_cursor_set(win, WM_CURSOR_CROSSA);
+    WM_cursor_set(win, WM_CURSOR_PAINT);
 
     if ((mode == PAINT_MODE_SCULPT) && ss && !is_multires &&
         !(brush->falloff_shape & BRUSH_AIRBRUSH)) {

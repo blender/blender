@@ -41,7 +41,7 @@
 
 #include "rna_internal.h" /* own include */
 
-/* confusingm 2 enums mixed up here */
+/* confusing 2 enums mixed up here */
 const EnumPropertyItem rna_enum_window_cursor_items[] = {
     {WM_CURSOR_DEFAULT, "DEFAULT", 0, "Default", ""},
     {WM_CURSOR_NONE, "NONE", 0, "None", ""},
@@ -54,7 +54,8 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
     {WM_CURSOR_KNIFE, "KNIFE", 0, "Knife", ""},
     {WM_CURSOR_TEXT_EDIT, "TEXT", 0, "Text", ""},
     {WM_CURSOR_PAINT_BRUSH, "PAINT_BRUSH", 0, "Paint Brush", ""},
-    {WM_CURSOR_CROSSA, "PAINT_CROSS", 0, "Paint Cross", ""},
+    {WM_CURSOR_PAINT, "PAINT_CROSS", 0, "Paint Cross", ""},
+    {WM_CURSOR_DOT, "DOT", 0, "Dot Cursor", ""},
     {WM_CURSOR_ERASER, "ERASER", 0, "Eraser", ""},
     {WM_CURSOR_HAND, "HAND", 0, "Hand", ""},
     {WM_CURSOR_EW_SCROLL, "SCROLL_X", 0, "Scroll-X", ""},
