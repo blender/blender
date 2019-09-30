@@ -591,6 +591,10 @@ void nodeChainIter(const bNodeTree *ntree,
                    bool (*callback)(bNode *, bNode *, void *, const bool),
                    void *userdata,
                    const bool reversed);
+void nodeChainIterBackwards(const bNodeTree *ntree,
+                            const bNode *node_start,
+                            bool (*callback)(bNode *, bNode *, void *),
+                            void *userdata);
 void nodeParentsIter(bNode *node, bool (*callback)(bNode *, void *), void *userdata);
 
 struct bNodeLink *nodeFindLink(struct bNodeTree *ntree,

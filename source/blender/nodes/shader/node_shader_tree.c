@@ -597,10 +597,7 @@ static void ntree_shader_bypass_tagged_bump_nodes(bNodeTree *ntree)
   ntreeUpdateTree(G.main, ntree);
 }
 
-static bool ntree_branch_count_and_tag_nodes(bNode *fromnode,
-                                             bNode *tonode,
-                                             void *userdata,
-                                             const bool UNUSED(reversed))
+static bool ntree_branch_count_and_tag_nodes(bNode *fromnode, bNode *tonode, void *userdata)
 {
   int *node_count = (int *)userdata;
   if (fromnode->tmp_flag == -1) {
@@ -629,7 +626,7 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
   /* Count and tag all nodes inside the displacement branch of the tree. */
   start_node->tmp_flag = 0;
   int node_count = 1;
-  nodeChainIter(ntree, start_node, ntree_branch_count_and_tag_nodes, &node_count, true);
+  nodeChainIterBackwards(ntree, start_node, ntree_branch_count_and_tag_nodes, &node_count);
   /* Make a full copy of the branch */
   bNode **nodes_copy = MEM_mallocN(sizeof(bNode *) * node_count, __func__);
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -763,10 +760,7 @@ static void node_tag_branch_as_derivative(bNode *node, int dx)
   }
 }
 
-static bool ntree_shader_bump_branches(bNode *UNUSED(fromnode),
-                                       bNode *tonode,
-                                       void *userdata,
-                                       const bool UNUSED(reversed))
+static bool ntree_shader_bump_branches(bNode *UNUSED(fromnode), bNode *tonode, void *userdata)
 {
   bNodeTree *ntree = (bNodeTree *)userdata;
 
@@ -794,17 +788,8 @@ static bool ntree_shader_bump_branches(bNode *UNUSED(fromnode),
   return true;
 }
 
-static bool ntree_tag_bsdf_cb(bNode *fromnode,
-                              bNode *UNUSED(tonode),
-                              void *userdata,
-                              const bool UNUSED(reversed))
+static bool ntree_tag_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *userdata)
 {
-  /* Don't evaluate nodes more than once. */
-  if (fromnode->tmp_flag) {
-    return true;
-  }
-  fromnode->tmp_flag = 1;
-
   switch (fromnode->type) {
     case SH_NODE_BSDF_ANISOTROPIC:
     case SH_NODE_EEVEE_SPECULAR:
@@ -844,12 +829,7 @@ void ntree_shader_tag_nodes(bNodeTree *ntree, bNode *output_node, nTreeTags *tag
   /* Make sure sockets links pointers are correct. */
   ntreeUpdateTree(G.main, ntree);
 
-  /* Reset visit flag. */
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
-    node->tmp_flag = 0;
-  }
-
-  nodeChainIter(ntree, output_node, ntree_tag_bsdf_cb, tags, true);
+  nodeChainIterBackwards(ntree, output_node, ntree_tag_bsdf_cb, tags);
 }
 
 /* This one needs to work on a local tree. */
@@ -878,7 +858,7 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree,
 
   /* Duplicate bump height branches for manual derivatives.
    */
-  nodeChainIter(localtree, output, ntree_shader_bump_branches, localtree, true);
+  nodeChainIterBackwards(localtree, output, ntree_shader_bump_branches, localtree);
 
   /* TODO(fclem): consider moving this to the gpu shader tree evaluation. */
   nTreeTags tags = {

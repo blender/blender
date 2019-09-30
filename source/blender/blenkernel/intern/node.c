@@ -947,6 +947,57 @@ void nodeChainIter(const bNodeTree *ntree,
   }
 }
 
+static void iter_backwards_ex(const bNodeTree *ntree,
+                              const bNode *node_start,
+                              bool (*callback)(bNode *, bNode *, void *),
+                              void *userdata)
+{
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node_start->inputs) {
+    bNodeLink *link = sock->link;
+    if (link == NULL) {
+      continue;
+    }
+    if ((link->flag & NODE_LINK_VALID) == 0) {
+      /* Skip links marked as cyclic. */
+      continue;
+    }
+    if (link->fromnode->iter_flag) {
+      /* Only iter on nodes once. */
+      continue;
+    }
+    else {
+      link->fromnode->iter_flag = 1;
+    }
+
+    if (!callback(link->fromnode, link->tonode, userdata)) {
+      return;
+    }
+    iter_backwards_ex(ntree, link->fromnode, callback, userdata);
+  }
+}
+
+/**
+ * Iterate over a chain of nodes, starting with \a node_start, executing
+ * \a callback for each node (which can return false to end iterator).
+ *
+ * Faster than nodeChainIter. Iter only once per node.
+ *
+ * \note Needs updated socket links (ntreeUpdateTree).
+ * \note Recursive
+ */
+void nodeChainIterBackwards(const bNodeTree *ntree,
+                            const bNode *node_start,
+                            bool (*callback)(bNode *, bNode *, void *),
+                            void *userdata)
+{
+  /* Reset flag. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    node->iter_flag = 0;
+  }
+
+  iter_backwards_ex(ntree, node_start, callback, userdata);
+}
+
 /**
  * Iterate over all parents of \a node, executing \a callback for each parent
  * (which can return false to end iterator)
