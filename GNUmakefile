@@ -192,6 +192,16 @@ ifndef PYTHON
 	PYTHON:=python3
 endif
 
+# For macOS python3 is not installed by default, so fallback to python binary
+# in libraries, or python 2 for running make update to get it.
+ifeq ($(OS_NCASE),darwin)
+	ifeq (, $(shell command -v $(PYTHON)))
+		PYTHON:=../lib/darwin/python/bin/python3.7m
+		ifeq (, $(shell command -v $(PYTHON)))
+			PYTHON:=python
+		endif
+	endif
+endif
 
 # -----------------------------------------------------------------------------
 # additional targets for the build configuration
@@ -374,7 +384,7 @@ package_archive: .FORCE
 # Tests
 #
 test: .FORCE
-	python3 ./build_files/utils/make_test.py "$(BUILD_DIR)"
+	$(PYTHON) ./build_files/utils/make_test.py "$(BUILD_DIR)"
 
 # run pep8 check check on scripts we distribute.
 test_pep8: .FORCE
@@ -530,11 +540,11 @@ icons_geom: .FORCE
 	    "$(BLENDER_DIR)/release/datafiles/blender_icons_geom_update.py"
 
 update: .FORCE
-	python3 ./build_files/utils/make_update.py
+	$(PYTHON) ./build_files/utils/make_update.py
 
 format: .FORCE
 	PATH="../lib/${OS_NCASE}/llvm/bin/:$(PATH)" \
-		python3 source/tools/utils_maintenance/clang_format_paths.py $(PATHS)
+		$(PYTHON) source/tools/utils_maintenance/clang_format_paths.py $(PATHS)
 
 
 # -----------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 # Utility functions for make update and make tests.
 
 import re
+import shutil
 import subprocess
 import sys
 
@@ -54,3 +55,10 @@ def svn_libraries_base_url(release_version):
     else:
         svn_branch = "trunk"
     return "https://svn.blender.org/svnroot/bf-blender/" + svn_branch + "/lib/"
+
+def command_missing(command):
+    # Support running with Python 2 for macOS
+    if sys.version_info >= (3, 0):
+        return shutil.which(command) is None
+    else:
+        return False

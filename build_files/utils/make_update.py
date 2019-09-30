@@ -30,7 +30,6 @@ def parse_arguments():
     parser.add_argument("--git-command", default="git")
     return parser.parse_args()
 
-
 # Setup for precompiled libraries and tests from svn.
 def svn_update(args, release_version):
     svn_non_interactive = [args.svn_command, '--non-interactive']
@@ -56,7 +55,7 @@ def svn_update(args, release_version):
         if not os.path.exists(lib_platform_dirpath):
             print_stage("Checking out Precompiled Libraries")
 
-            if shutil.which(args.svn_command) is None:
+            if make_utils.command_missing(args.svn_command):
                 sys.stderr.write("svn not found, can't checkout libraries\n")
                 sys.exit(1)
 
@@ -70,7 +69,7 @@ def svn_update(args, release_version):
         if not os.path.exists(lib_tests_dirpath):
             print_stage("Checking out Tests")
 
-            if shutil.which(args.svn_command) is None:
+            if make_utils.command_missing(args.svn_command):
                 sys.stderr.write("svn not found, can't checkout tests\n")
                 sys.exit(1)
 
@@ -91,7 +90,7 @@ def svn_update(args, release_version):
 
         if os.path.isdir(dirpath) and \
            (os.path.exists(svn_dirpath) or os.path.exists(svn_root_dirpath)):
-            if shutil.which(args.svn_command) is None:
+            if make_utils.command_missing(args.svn_command):
                 sys.stderr.write("svn not found, can't update libraries\n")
                 sys.exit(1)
 
@@ -102,7 +101,7 @@ def svn_update(args, release_version):
 
 # Update blender repository.
 def blender_update_skip(args):
-    if shutil.which(args.git_command) is None:
+    if make_utils.command_missing(args.git_command):
         sys.stderr.write("git not found, can't update code\n")
         sys.exit(1)
 
@@ -136,7 +135,7 @@ def blender_update(args):
 # Update submodules.
 def submodules_update(args, release_version):
     print_stage("Updating Submodules")
-    if shutil.which(args.git_command) is None:
+    if make_utils.command_missing(args.git_command):
         sys.stderr.write("git not found, can't update code\n")
         sys.exit(1)
 

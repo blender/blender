@@ -30,11 +30,11 @@ cmake_command = args.cmake_command
 config = args.config
 build_dir = args.build_directory
 
-if shutil.which(ctest_command) is None:
+if make_utils.command_missing(ctest_command):
     sys.stderr.write("ctest not found, can't run tests\n")
     sys.exit(1)
 
-if shutil.which(git_command) is None:
+if make_utils.command_missing(git_command):
     sys.stderr.write("git not found, can't run tests\n")
     sys.exit(1)
 
@@ -45,11 +45,11 @@ lib_tests_dirpath = os.path.join('..', 'lib', "tests")
 if not os.path.exists(lib_tests_dirpath):
     print("Tests files not found, downloading...")
 
-    if shutil.which(svn_command) is None:
+    if make_utils.command_missing(svn_command):
         sys.stderr.write("svn not found, can't checkout test files\n")
         sys.exit(1)
 
-    if shutil.which(cmake_command) is None:
+    if make_utils.command_missing(cmake_command):
         sys.stderr.write("cmake not found, can't checkout test files\n")
         sys.exit(1)
 
