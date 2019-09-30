@@ -249,7 +249,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
       else {
         /* calculate normal for each polygon only once */
         uint mpoly_prev = UINT_MAX;
-        short no[3];
+        short no[3] = {0, 0, 0};
 
         for (uint i = 0; i < buffers->face_indices_len; i++) {
           const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
