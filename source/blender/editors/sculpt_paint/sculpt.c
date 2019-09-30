@@ -3609,13 +3609,14 @@ static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
       }
     }
     sculpt_vertex_neighbors_iter_end(ni);
-    if (max != data->pose_factor[vd.index]) {
-      if (check_vertex_pivot_symmetry(vd.co, ss->cache->pose_initial_co, symm)) {
+    if (max != data->prev_mask[vd.index]) {
+      data->pose_factor[vd.index] = max;
+      if (check_vertex_pivot_symmetry(
+              vd.co, sculpt_vertex_co_get(ss, sculpt_active_vertex_get(ss)), symm)) {
         add_v3_v3(gftd->pos_avg, vd.co);
         gftd->tot_pos_avg++;
       }
     }
-    data->pose_factor[vd.index] = max;
   }
 
   BKE_pbvh_vertex_iter_end;
