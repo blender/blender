@@ -1103,6 +1103,56 @@ static void pbvh_faces_update_normals(PBVH *bvh, PBVHNode **nodes, int totnode)
   MEM_freeN(vnors);
 }
 
+static void pbvh_update_mask_redraw_task_cb(void *__restrict userdata,
+                                            const int n,
+                                            const TaskParallelTLS *__restrict UNUSED(tls))
+{
+
+  PBVHUpdateData *data = userdata;
+  PBVH *bvh = data->bvh;
+  PBVHNode *node = data->nodes[n];
+  if (node->flag & PBVH_UpdateMask) {
+
+    bool has_unmasked = false;
+    bool has_masked = true;
+    if (node->flag & PBVH_Leaf) {
+      PBVHVertexIter vd;
+
+      BKE_pbvh_vertex_iter_begin(bvh, node, vd, PBVH_ITER_UNIQUE)
+      {
+        if (vd.mask && *vd.mask < 1.0f) {
+          has_unmasked = true;
+        }
+        if (vd.mask && *vd.mask > 0.0f) {
+          has_masked = false;
+        }
+      }
+      BKE_pbvh_vertex_iter_end;
+    }
+    else {
+      has_unmasked = true;
+      has_masked = true;
+    }
+    BKE_pbvh_node_fully_masked_set(node, !has_unmasked);
+    BKE_pbvh_node_fully_unmasked_set(node, has_masked);
+
+    node->flag &= ~PBVH_UpdateMask;
+  }
+}
+
+static void pbvh_update_mask_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag)
+{
+  PBVHUpdateData data = {
+      .bvh = bvh,
+      .nodes = nodes,
+      .flag = flag,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, pbvh_update_mask_redraw_task_cb, &settings);
+}
+
 static void pbvh_update_BB_redraw_task_cb(void *__restrict userdata,
                                           const int n,
                                           const TaskParallelTLS *__restrict UNUSED(tls))
@@ -1305,6 +1355,26 @@ void BKE_pbvh_update_bounds(PBVH *bvh, int flag)
   MEM_SAFE_FREE(nodes);
 }
 
+void BKE_pbvh_update_vertex_data(PBVH *bvh, int flag)
+{
+  if (!bvh->nodes) {
+    return;
+  }
+
+  PBVHNode **nodes;
+  int totnode;
+
+  BKE_pbvh_search_gather(bvh, update_search_cb, POINTER_FROM_INT(flag), &nodes, &totnode);
+
+  if (flag & (PBVH_UpdateMask)) {
+    pbvh_update_mask_redraw(bvh, nodes, totnode, flag);
+  }
+
+  if (nodes) {
+    MEM_freeN(nodes);
+  }
+}
+
 void BKE_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3])
 {
   PBVHIter iter;
@@ -1435,6 +1505,11 @@ void BKE_pbvh_node_mark_update(PBVHNode *node)
                 PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
+void BKE_pbvh_node_mark_update_mask(PBVHNode *node)
+{
+  node->flag |= PBVH_UpdateMask | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+}
+
 void BKE_pbvh_node_mark_rebuild_draw(PBVHNode *node)
 {
   node->flag |= PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
@@ -1460,6 +1535,40 @@ void BKE_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden)
   else {
     node->flag &= ~PBVH_FullyHidden;
   }
+}
+
+void BKE_pbvh_node_fully_masked_set(PBVHNode *node, int fully_masked)
+{
+  BLI_assert(node->flag & PBVH_Leaf);
+
+  if (fully_masked) {
+    node->flag |= PBVH_FullyMasked;
+  }
+  else {
+    node->flag &= ~PBVH_FullyMasked;
+  }
+}
+
+bool BKE_pbvh_node_fully_masked_get(PBVHNode *node)
+{
+  return (node->flag & PBVH_Leaf) && (node->flag & PBVH_FullyMasked);
+}
+
+void BKE_pbvh_node_fully_unmasked_set(PBVHNode *node, int fully_masked)
+{
+  BLI_assert(node->flag & PBVH_Leaf);
+
+  if (fully_masked) {
+    node->flag |= PBVH_FullyUnmasked;
+  }
+  else {
+    node->flag &= ~PBVH_FullyUnmasked;
+  }
+}
+
+bool BKE_pbvh_node_fully_unmasked_get(PBVHNode *node)
+{
+  return (node->flag & PBVH_Leaf) && (node->flag & PBVH_FullyUnmasked);
 }
 
 void BKE_pbvh_node_get_verts(PBVH *bvh,

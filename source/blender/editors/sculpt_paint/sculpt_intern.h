@@ -44,6 +44,13 @@ bool sculpt_mode_poll_view3d(struct bContext *C);
 bool sculpt_poll(struct bContext *C);
 bool sculpt_poll_view3d(struct bContext *C);
 
+/* Updates */
+
+typedef enum SculptUpdateType {
+  SCULPT_UPDATE_COORDS = 1 << 0,
+  SCULPT_UPDATE_MASK = 1 << 1,
+} SculptUpdateType;
+
 /* Stroke */
 
 typedef struct SculptCursorGeometryInfo {
@@ -245,6 +252,7 @@ typedef struct {
   float radius_squared;
   float *center;
   bool original;
+  bool ignore_fully_masked;
 } SculptSearchSphereData;
 
 typedef struct {
@@ -252,6 +260,7 @@ typedef struct {
   struct SculptSession *ss;
   float radius_squared;
   bool original;
+  bool ignore_fully_masked;
   struct DistRayAABB_Precalc *dist_ray_to_aabb_precalc;
 } SculptSearchCircleData;
 

@@ -1857,6 +1857,12 @@ bool sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
   float t[3], bb_min[3], bb_max[3];
   int i;
 
+  if (data->ignore_fully_masked) {
+    if (BKE_pbvh_node_fully_masked_get(node)) {
+      return false;
+    }
+  }
+
   if (data->original) {
     BKE_pbvh_node_get_original_BB(node, bb_min, bb_max);
   }
@@ -1886,6 +1892,12 @@ bool sculpt_search_circle_cb(PBVHNode *node, void *data_v)
 {
   SculptSearchCircleData *data = data_v;
   float bb_min[3], bb_max[3];
+
+  if (data->ignore_fully_masked) {
+    if (BKE_pbvh_node_fully_masked_get(node)) {
+      return false;
+    }
+  }
 
   if (data->original) {
     BKE_pbvh_node_get_original_BB(node, bb_min, bb_max);
@@ -1920,6 +1932,27 @@ static void sculpt_clip(Sculpt *sd, SculptSession *ss, float co[3], const float 
   }
 }
 
+static PBVHNode **sculpt_pbvh_gather_cursor_update(Object *ob,
+                                                   Sculpt *sd,
+                                                   const Brush *brush,
+                                                   bool use_original,
+                                                   float radius_scale,
+                                                   int *r_totnode)
+{
+  SculptSession *ss = ob->sculpt;
+  PBVHNode **nodes = NULL;
+  SculptSearchSphereData data = {
+      .ss = ss,
+      .sd = sd,
+      .radius_squared = ss->cursor_radius,
+      .original = use_original,
+      .ignore_fully_masked = false,
+      .center = NULL,
+  };
+  BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, r_totnode);
+  return nodes;
+}
+
 static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
                                              Sculpt *sd,
                                              const Brush *brush,
@@ -1936,8 +1969,9 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
     SculptSearchSphereData data = {
         .ss = ss,
         .sd = sd,
-        .radius_squared = ss->cache ? SQUARE(ss->cache->radius * radius_scale) : ss->cursor_radius,
+        .radius_squared = SQUARE(ss->cache->radius * radius_scale),
         .original = use_original,
+        .ignore_fully_masked = brush->sculpt_tool != SCULPT_TOOL_MASK,
         .center = NULL,
     };
     BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, r_totnode);
@@ -1952,6 +1986,7 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
         .radius_squared = ss->cache ? SQUARE(ss->cache->radius * radius_scale) : ss->cursor_radius,
         .original = use_original,
         .dist_ray_to_aabb_precalc = &dist_ray_to_aabb_precalc,
+        .ignore_fully_masked = brush->sculpt_tool != SCULPT_TOOL_MASK,
     };
     BKE_pbvh_search_gather(ss->pbvh, sculpt_search_circle_cb, &data, &nodes, r_totnode);
   }
@@ -5173,7 +5208,12 @@ static void do_brush_action_task_cb(void *__restrict userdata,
                         data->nodes[n],
                         data->brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
                                                                        SCULPT_UNDO_COORDS);
-  BKE_pbvh_node_mark_update(data->nodes[n]);
+  if (data->brush->sculpt_tool == SCULPT_TOOL_MASK) {
+    BKE_pbvh_node_mark_update_mask(data->nodes[n]);
+  }
+  else {
+    BKE_pbvh_node_mark_update(data->nodes[n]);
+  }
 }
 
 static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups)
@@ -6531,7 +6571,8 @@ bool sculpt_cursor_geometry_info_update(bContext *C,
   }
   ss->cursor_radius = radius;
 
-  PBVHNode **nodes = sculpt_pbvh_gather_generic(ob, sd, brush, original, radius_scale, &totnode);
+  PBVHNode **nodes = sculpt_pbvh_gather_cursor_update(
+      ob, sd, brush, original, radius_scale, &totnode);
 
   /* In case there are no nodes under the cursor, return the face normal */
   if (!totnode) {
@@ -6697,7 +6738,7 @@ void sculpt_update_object_bounding_box(Object *ob)
   }
 }
 
-static void sculpt_flush_update_step(bContext *C)
+static void sculpt_flush_update_step(bContext *C, SculptUpdateType update_flags)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
@@ -6731,11 +6772,13 @@ static void sculpt_flush_update_step(bContext *C)
      * only the part of the 3D viewport where changes happened. */
     rcti r;
 
-    BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB);
-    /* Update the object's bounding box too so that the object
-     * doesn't get incorrectly clipped during drawing in
-     * draw_mesh_object(). [#33790] */
-    sculpt_update_object_bounding_box(ob);
+    if (update_flags & SCULPT_UPDATE_COORDS) {
+      BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB);
+      /* Update the object's bounding box too so that the object
+       * doesn't get incorrectly clipped during drawing in
+       * draw_mesh_object(). [#33790] */
+      sculpt_update_object_bounding_box(ob);
+    }
 
     if (sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r)) {
       if (ss->cache) {
@@ -6755,7 +6798,7 @@ static void sculpt_flush_update_step(bContext *C)
   }
 }
 
-static void sculpt_flush_update_done(const bContext *C, Object *ob)
+static void sculpt_flush_update_done(const bContext *C, Object *ob, SculptUpdateType update_flags)
 {
   /* After we are done drawing the stroke, check if we need to do a more
    * expensive depsgraph tag to update geometry. */
@@ -6792,7 +6835,13 @@ static void sculpt_flush_update_done(const bContext *C, Object *ob)
     }
   }
 
-  BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateOriginalBB);
+  if (update_flags & SCULPT_UPDATE_COORDS) {
+    BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateOriginalBB);
+  }
+
+  if (update_flags & SCULPT_UPDATE_MASK) {
+    BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
+  }
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     BKE_pbvh_bmesh_after_stroke(ss->pbvh);
@@ -6904,7 +6953,12 @@ static void sculpt_stroke_update_step(bContext *C,
   ss->cache->first_time = false;
 
   /* Cleanup */
-  sculpt_flush_update_step(C);
+  if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
+    sculpt_flush_update_step(C, SCULPT_UPDATE_MASK);
+  }
+  else {
+    sculpt_flush_update_step(C, SCULPT_UPDATE_COORDS);
+  }
 }
 
 static void sculpt_brush_exit_tex(Sculpt *sd)
@@ -6957,7 +7011,12 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
     sculpt_undo_push_end();
 
-    sculpt_flush_update_done(C, ob);
+    if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
+      sculpt_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+    }
+    else {
+      sculpt_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
+    }
 
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
   }
@@ -8297,7 +8356,7 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
     sculpt_filter_cache_free(ss);
     sculpt_undo_push_end();
-    sculpt_flush_update_done(C, ob);
+    sculpt_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
     return OPERATOR_FINISHED;
   }
 
@@ -8330,7 +8389,7 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
     sculpt_flush_stroke_deform(sd, ob, true);
   }
 
-  sculpt_flush_update_step(C);
+  sculpt_flush_update_step(C, SCULPT_UPDATE_COORDS);
 
   return OPERATOR_RUNNING_MODAL;
 }
@@ -8535,7 +8594,7 @@ static void mask_filter_task_cb(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 
   if (update) {
-    BKE_pbvh_node_mark_redraw(node);
+    BKE_pbvh_node_mark_update_mask(node);
   }
 }
 
@@ -8700,7 +8759,7 @@ static void dirty_mask_task_cb(void *__restrict userdata,
     }
   }
   BKE_pbvh_vertex_iter_end;
-  BKE_pbvh_node_mark_redraw(node);
+  BKE_pbvh_node_mark_update_mask(node);
 }
 
 static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
@@ -8786,6 +8845,8 @@ static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
 
   MEM_SAFE_FREE(nodes);
 
+  BKE_pbvh_update_vertex_data(pbvh, SCULPT_UPDATE_MASK);
+
   sculpt_undo_push_end();
 
   ED_region_tag_redraw(ar);
@@ -8829,10 +8890,10 @@ static void sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
     BKE_pbvh_node_mark_redraw(ss->filter_cache->nodes[i]);
   }
 
-  sculpt_flush_update_step(C);
+  sculpt_flush_update_step(C, SCULPT_UPDATE_MASK);
   sculpt_filter_cache_free(ss);
   sculpt_undo_push_end();
-  sculpt_flush_update_done(C, ob);
+  sculpt_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
   ED_workspace_status_text(C, NULL);
 }
 
@@ -8882,7 +8943,7 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
         vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
       }
       *vd.mask = final_mask;
-      BKE_pbvh_node_mark_redraw(node);
+      BKE_pbvh_node_mark_update_mask(node);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -8975,7 +9036,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
     sculpt_filter_cache_free(ss);
 
     sculpt_undo_push_end();
-    sculpt_flush_update_done(C, ob);
+    sculpt_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
     ED_workspace_status_text(C, NULL);
     return OPERATOR_FINISHED;
   }
@@ -9005,7 +9066,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
     ss->filter_cache->mask_update_current_it = mask_expand_update_it;
   }
 
-  sculpt_flush_update_step(C);
+  sculpt_flush_update_step(C, SCULPT_UPDATE_MASK);
 
   return OPERATOR_RUNNING_MODAL;
 }
@@ -9177,7 +9238,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
       "cancel");
   ED_workspace_status_text(C, status_str);
 
-  sculpt_flush_update_step(C);
+  sculpt_flush_update_step(C, SCULPT_UPDATE_MASK);
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
 }
@@ -9498,7 +9559,7 @@ void ED_sculpt_update_modal_transform(struct bContext *C)
     sculpt_flush_stroke_deform(sd, ob, true);
   }
 
-  sculpt_flush_update_step(C);
+  sculpt_flush_update_step(C, SCULPT_UPDATE_COORDS);
 }
 
 void ED_sculpt_end_transform(struct bContext *C)
@@ -9509,7 +9570,7 @@ void ED_sculpt_end_transform(struct bContext *C)
     sculpt_filter_cache_free(ss);
   }
   sculpt_undo_push_end();
-  sculpt_flush_update_done(C, ob);
+  sculpt_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
 }
 
 typedef enum eSculptPivotPositionModes {

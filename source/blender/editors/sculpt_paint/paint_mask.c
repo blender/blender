@@ -126,7 +126,7 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 
   if (redraw) {
-    BKE_pbvh_node_mark_redraw(node);
+    BKE_pbvh_node_mark_update_mask(node);
     if (data->multires) {
       BKE_pbvh_node_mark_normals_update(node);
     }
@@ -173,6 +173,8 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   if (multires) {
     multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
   }
+
+  BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
   sculpt_undo_push_end();
 
@@ -283,7 +285,7 @@ static void mask_box_select_task_cb(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 
   if (redraw) {
-    BKE_pbvh_node_mark_redraw(node);
+    BKE_pbvh_node_mark_update_mask(node);
   }
 }
 
@@ -354,6 +356,8 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
   if (multires) {
     multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
   }
+
+  BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
   sculpt_undo_push_end();
 
@@ -541,6 +545,8 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
     if (multires) {
       multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
     }
+
+    BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
     sculpt_undo_push_end();
 
