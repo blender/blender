@@ -365,7 +365,7 @@ void gpu_extensions_init(void)
     GG.mip_render_workaround = true;
     GG.depth_blitting_workaround = true;
     GG.unused_fb_slot_workaround = true;
-    GG.context_local_shaders_workaround = true;
+    GG.context_local_shaders_workaround = GLEW_ARB_get_program_binary;
   }
 
   /* df/dy calculation factors, those are dependent on driver */
