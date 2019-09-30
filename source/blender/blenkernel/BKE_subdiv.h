@@ -140,7 +140,7 @@ typedef struct SubdivDisplacement {
 
 /* This structure contains everything needed to construct subdivided surface.
  * It does not specify storage, memory layout or anything else.
- * It is possible to create different storages (like, grid based CPU side
+ * It is possible to create different storage's (like, grid based CPU side
  * buffers, GPU subdivision mesh, CPU side fully qualified mesh) from the same
  * Subdiv structure. */
 typedef struct Subdiv {

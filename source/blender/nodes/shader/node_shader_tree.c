@@ -469,7 +469,7 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
 /* Flatten group to only have a simple single tree */
 static void ntree_shader_groups_flatten(bNodeTree *localtree)
 {
-  /* This is effectively recusive as the flattened groups will add
+  /* This is effectively recursive as the flattened groups will add
    * nodes at the end of the list, which will also get evaluated. */
   for (bNode *node = localtree->nodes.first, *node_next; node; node = node_next) {
     if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id != NULL) {

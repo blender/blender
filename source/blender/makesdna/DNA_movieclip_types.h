@@ -97,7 +97,7 @@ typedef struct MovieClip {
   struct MovieTracking tracking;
   /**
    * Context of tracking job used to synchronize data
-   * like framenumber in SpaceClip clip user.
+   * like frame-number in SpaceClip clip user.
    */
   void *tracking_context;
 

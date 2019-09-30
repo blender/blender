@@ -90,7 +90,7 @@ BLI_INLINE char *med3(char *a, char *b, char *c, BLI_sort_cmp_t cmp, void *thunk
 }
 
 /**
- * Quick sort reentrant.
+ * Quick sort re-entrant.
  */
 void BLI_qsort_r(void *a, size_t n, size_t es, BLI_sort_cmp_t cmp, void *thunk)
 {

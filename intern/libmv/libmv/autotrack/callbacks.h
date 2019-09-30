@@ -27,7 +27,7 @@ namespace mv {
 
 struct OperationListener {
   // All hooks return true to continue or false to indicate the operation
-  // should abort. Hooks should be thread safe (reentrant).
+  // should abort. Hooks should be thread safe (re-entrant).
   virtual bool Log(const string& message) = 0;
   virtual bool Progress(double fraction) = 0;
   virtual bool Cancelled() = 0;

@@ -897,7 +897,7 @@ static PyObject *BPy_IDGroup_pop(BPy_IDProperty *self, PyObject *args)
 
   pyform = BPy_IDGroup_MapDataToPy(idprop);
   if (pyform == NULL) {
-    /* ok something bad happened with the pyobject,
+    /* ok something bad happened with the #PyObject,
      * so don't remove the prop from the group.  if pyform is
      * NULL, then it already should have raised an exception.*/
     return NULL;

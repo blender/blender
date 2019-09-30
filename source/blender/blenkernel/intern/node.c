@@ -3348,7 +3348,7 @@ void ntreeUpdateTree(Main *bmain, bNodeTree *ntree)
     return;
   }
 
-  /* avoid reentrant updates, can be caused by RNA update callbacks */
+  /* Avoid re-entrant updates, can be caused by RNA update callbacks. */
   if (ntree->is_updating) {
     return;
   }
@@ -3409,7 +3409,7 @@ void ntreeUpdateTree(Main *bmain, bNodeTree *ntree)
 
 void nodeUpdate(bNodeTree *ntree, bNode *node)
 {
-  /* avoid reentrant updates, can be caused by RNA update callbacks */
+  /* Avoid re-entrant updates, can be caused by RNA update callbacks. */
   if (ntree->is_updating) {
     return;
   }
@@ -3436,7 +3436,7 @@ bool nodeUpdateID(bNodeTree *ntree, ID *id)
     return changed;
   }
 
-  /* avoid reentrant updates, can be caused by RNA update callbacks */
+  /* Avoid re-entrant updates, can be caused by RNA update callbacks. */
   if (ntree->is_updating) {
     return changed;
   }

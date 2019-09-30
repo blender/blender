@@ -889,8 +889,8 @@ static void drw_sculpt_get_frustum_planes(Object *ob, float planes[6][4])
   DRW_view_frustum_planes_get(DRW_view_default_get(), planes);
 
   /* Transform clipping planes to object space. Transforming a plane with a
-   * 4x4 matrix is done by multiplying with the tranpose inverse. The inverse
-   * cancels out here since we transform by inverse(obmat). */
+   * 4x4 matrix is done by multiplying with the transpose inverse.
+   * The inverse cancels out here since we transform by inverse(obmat). */
   float tmat[4][4];
   transpose_m4_m4(tmat, ob->obmat);
   for (int i = 0; i < 6; i++) {

@@ -2351,26 +2351,26 @@ static PyObject *Vector_length_squared_get(VectorObject *self, void *UNUSED(clos
  *
  * axis_dict = {}
  * axis_pos = {'x': 0, 'y': 1, 'z': 2, 'w': 3}
- * axises = 'xyzw'
- * while len(axises) >= 2:
- *     for axis_0 in axises:
+ * axis_chars = 'xyzw'
+ * while len(axis_chars) >= 2:
+ *     for axis_0 in axis_chars:
  *         axis_0_pos = axis_pos[axis_0]
- *         for axis_1 in axises:
+ *         for axis_1 in axis_chars:
  *             axis_1_pos = axis_pos[axis_1]
  *             axis_dict[axis_0 + axis_1] = (
  *                 '((%s | SWIZZLE_VALID_AXIS) | '
  *                 '((%s | SWIZZLE_VALID_AXIS) << SWIZZLE_BITS_PER_AXIS))' %
  *                 (axis_0_pos, axis_1_pos))
- *             if len(axises) > 2:
- *                 for axis_2 in axises:
+ *             if len(axis_chars) > 2:
+ *                 for axis_2 in axis_chars:
  *                     axis_2_pos = axis_pos[axis_2]
  *                     axis_dict[axis_0 + axis_1 + axis_2] = (
  *                         '((%s | SWIZZLE_VALID_AXIS) | '
  *                         '((%s | SWIZZLE_VALID_AXIS) << SWIZZLE_BITS_PER_AXIS) | '
  *                         '((%s | SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 2)))' %
  *                         (axis_0_pos, axis_1_pos, axis_2_pos))
- *                     if len(axises) > 3:
- *                         for axis_3 in axises:
+ *                     if len(axis_chars) > 3:
+ *                         for axis_3 in axis_chars:
  *                             axis_3_pos = axis_pos[axis_3]
  *                             axis_dict[axis_0 + axis_1 + axis_2 + axis_3] = (
  *                                 '((%s | SWIZZLE_VALID_AXIS) | '
@@ -2380,7 +2380,7 @@ static PyObject *Vector_length_squared_get(VectorObject *self, void *UNUSED(clos
  *                                 %
  *                                 (axis_0_pos, axis_1_pos, axis_2_pos, axis_3_pos))
  *
- *     axises = axises[:-1]
+ *     axis_chars = axis_chars[:-1]
  * items = list(axis_dict.items())
  * items.sort(
  *     key=lambda a: a[0].replace('x', '0').replace('y', '1').replace('z', '2').replace('w', '3')

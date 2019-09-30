@@ -433,7 +433,7 @@ typedef struct bNodeTree {
   int flag;
   /** Update flags. */
   int update;
-  /** Flag to prevent reentrant update calls. */
+  /** Flag to prevent re-entrant update calls. */
   short is_updating;
   /** Generic temporary flag for recursion check (DFS/BFS). */
   short done;

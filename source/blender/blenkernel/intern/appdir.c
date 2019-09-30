@@ -110,7 +110,7 @@ const char *BKE_appdir_folder_default(void)
 
 // #define PATH_DEBUG
 
-/* returns a formatted representation of the specified version number. Non-reentrant! */
+/* returns a formatted representation of the specified version number. Non-re-entrant! */
 static char *blender_version_decimal(const int ver)
 {
   static char version_str[5];

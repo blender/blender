@@ -31,7 +31,7 @@ struct ModifierUpdateDepsgraphContext;
 struct Object;
 struct Scene;
 /* NOTE: bakeModifier() called from UI:
- * needs to create new databloc-ks, hence the need for this. */
+ * needs to create new data-blocks, hence the need for this. */
 struct bGPDframe;
 struct bGPDlayer;
 struct bGPDstroke;

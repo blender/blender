@@ -239,7 +239,7 @@ void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
 enum {
   /* Ignore transform solvers which depends on multiple inputs and affects final transform.
    * Is used for cases like snapping objects which are part of a rigid body simulation:
-   * without this there will be "false-positive" dependnecies between transform components of
+   * without this there will be "false-positive" dependencies between transform components of
    * objects:
    *
    *     object 1 transform before solver ---> solver ------> object 1 final transform

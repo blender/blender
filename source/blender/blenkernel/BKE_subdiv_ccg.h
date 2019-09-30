@@ -150,7 +150,7 @@ typedef struct SubdivCCG {
   struct CCGElem **edges;
   int num_edges;
   /* Loose vertices. Every element corresponds to a loose vertex from a coarse
-   * mesh, every coarse loose vertex corresponds to a single sundivided
+   * mesh, every coarse loose vertex corresponds to a single subdivided
    * element. */
   struct CCGElem *vertices;
   int num_vertices;

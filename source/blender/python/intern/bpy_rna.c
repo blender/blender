@@ -1928,7 +1928,7 @@ static int pyrna_py_to_prop(
          * layout.prop(self.properties, "filepath")
          *
          * we need to do this trick.
-         * if the prop is not an operator type and the pyobject is an operator,
+         * if the prop is not an operator type and the PyObject is an operator,
          * use its properties in place of itself.
          *
          * This is so bad that it is almost a good reason to do away with fake
@@ -3985,7 +3985,7 @@ static PyObject *pyrna_struct_type_recast(BPy_StructRNA *self)
 }
 
 /**
- * \note Return value is borrowed, caller must incref.
+ * \note Return value is borrowed, caller must #Py_INCREF.
  */
 static PyObject *pyrna_struct_bl_rna_find_subclass_recursive(PyObject *cls, const char *id)
 {
@@ -7192,7 +7192,7 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
 #endif
 
     /* Newclass will now have 2 ref's, ???,
-     * probably 1 is internal since decrefing here segfaults. */
+     * probably 1 is internal since #Py_DECREF here segfaults. */
 
     /* PyC_ObSpit("new class ref", newclass); */
 
