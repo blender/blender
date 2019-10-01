@@ -881,20 +881,23 @@ class OptiXDevice : public Device {
 
         // Get AABBs for each motion step
         for (size_t step = 0; step < num_motion_steps; ++step) {
-          const float3 *keys = mesh->curve_keys.data();
-
-          size_t center_step = (num_motion_steps - 1) / 2;
           // The center step for motion vertices is not stored in the attribute
+          const float3 *keys = mesh->curve_keys.data();
+          size_t center_step = (num_motion_steps - 1) / 2;
           if (step != center_step) {
-            keys = motion_keys->data_float3() +
-                   (step > center_step ? step - 1 : step) * num_segments;
+            size_t attr_offset = (step > center_step) ? step - 1 : step;
+            // Technically this is a float4 array, but sizeof(float3) is the same as sizeof(float4)
+            keys = motion_keys->data_float3() + attr_offset * mesh->curve_keys.size();
           }
 
-          for (size_t i = step * num_segments, j = 0; j < num_curves; ++j) {
+          size_t i = step * num_segments;
+          for (size_t j = 0; j < num_curves; ++j) {
             const Mesh::Curve c = mesh->get_curve(j);
+
             for (size_t k = 0; k < c.num_segments(); ++i, ++k) {
               BoundBox bounds = BoundBox::empty;
               c.bounds_grow(k, keys, mesh->curve_radius.data(), bounds);
+
               aabb_data[i].minX = bounds.min.x;
               aabb_data[i].minY = bounds.min.y;
               aabb_data[i].minZ = bounds.min.z;
@@ -917,7 +920,6 @@ class OptiXDevice : public Device {
         // Disable visibility test anyhit program, since it is already checked during intersection
         // Those trace calls that require anyhit can force it with OPTIX_RAY_FLAG_ENFORCE_ANYHIT
         unsigned int build_flags = OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT;
-
         OptixBuildInput build_input = {};
         build_input.type = OPTIX_BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES;
         build_input.aabbArray.aabbBuffers = (CUdeviceptr *)aabb_ptrs.data();
@@ -975,7 +977,6 @@ class OptiXDevice : public Device {
 
         // No special build flags for triangle primitives
         unsigned int build_flags = OPTIX_GEOMETRY_FLAG_NONE;
-
         OptixBuildInput build_input = {};
         build_input.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
         build_input.triangleArray.vertexBuffers = (CUdeviceptr *)vertex_ptrs.data();
