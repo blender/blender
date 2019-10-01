@@ -1696,7 +1696,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
       /* will have no effect */
       if (brush->alpha == 0) {
-        brush->alpha = 0.5f;
+        brush->alpha = 1.0f;
       }
 
       /* bad radius */

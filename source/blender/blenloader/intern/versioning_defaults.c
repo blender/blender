@@ -428,6 +428,13 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
   for (Brush *brush = bmain->brushes.first; brush; brush = brush->id.next) {
     brush->blur_kernel_radius = 2;
+
+    /* Use full strength for all non-sculpt brushes,
+     * when painting we want to use full color/weight always.
+     *
+     * Note that sculpt is an exception,
+     * it's values are overwritten by #BKE_brush_sculpt_reset below. */
+    brush->alpha = 1.0;
   }
 
   {
@@ -475,7 +482,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
     /* Use the same tool icon color in the brush cursor */
     for (brush = bmain->brushes.first; brush; brush = brush->id.next) {
-      if (brush->sculpt_tool) {
+      if (brush->ob_mode & OB_MODE_SCULPT) {
+        BLI_assert(brush->sculpt_tool != 0);
         BKE_brush_sculpt_reset(brush);
       }
     }

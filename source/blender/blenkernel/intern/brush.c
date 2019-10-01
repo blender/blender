@@ -895,6 +895,10 @@ void BKE_brush_sculpt_reset(Brush *br)
   /* Use the curve presets by default */
   br->curve_preset = BRUSH_CURVE_SMOOTH;
 
+  /* Note that sculpt defaults where set when 0.5 was the default (now it's 1.0)
+   * assign this so logic below can remain the same. */
+  br->alpha = 0.5f;
+
   /* Brush settings */
   switch (br->sculpt_tool) {
     case SCULPT_TOOL_DRAW_SHARP:
