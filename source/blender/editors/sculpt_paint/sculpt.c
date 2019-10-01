@@ -3725,6 +3725,7 @@ static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
   PoseGrowFactorTLSData *gftd = tls->userdata_chunk;
   SculptSession *ss = data->ob->sculpt;
   const char symm = data->sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  const float *active_co = sculpt_active_vertex_co_get(ss);
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
@@ -3740,8 +3741,7 @@ static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
     sculpt_vertex_neighbors_iter_end(ni);
     if (max != data->prev_mask[vd.index]) {
       data->pose_factor[vd.index] = max;
-      if (check_vertex_pivot_symmetry(
-              vd.co, sculpt_vertex_co_get(ss, sculpt_active_vertex_get(ss)), symm)) {
+      if (check_vertex_pivot_symmetry(vd.co, active_co, symm)) {
         add_v3_v3(gftd->pos_avg, vd.co);
         gftd->tot_pos_avg++;
       }
