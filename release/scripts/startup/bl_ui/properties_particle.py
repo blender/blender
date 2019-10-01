@@ -1091,14 +1091,13 @@ class PARTICLE_PT_physics_integration(ParticleButtonsPanel, Panel):
 
         col.prop(part, "integrator")
         col.prop(part, "timestep")
-        sub = col.row()
-        sub.prop(part, "subframes")
-        supports_courant = part.physics_type == 'FLUID'
-        subsub = sub.row()
-        subsub.enabled = supports_courant
-        subsub.prop(part, "use_adaptive_subframes", text="")
-        if supports_courant and part.use_adaptive_subframes:
-            col.prop(part, "courant_target", text="Threshold")
+        col.prop(part, "subframes")
+
+        if part.physics_type == 'FLUID':
+            col.prop(part, "use_adaptive_subframes", text="Adaptive")
+            sub = col.row()
+            sub.enabled = part.use_adaptive_subframes
+            sub.prop(part, "courant_target", text="Threshold")
 
 
 class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
@@ -1122,33 +1121,28 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         boids = particle_get_settings(context).boids
 
         layout.enabled = particle_panel_enabled(context, context.particle_system)
 
         # Currently boids can only use the first state so these are commented out for now.
-        #row = layout.row()
+        # row = layout.row()
         # row.template_list("UI_UL_list", "particle_boids", boids, "states",
-        #                  boids, "active_boid_state_index", compact="True")
-        #col = row.row()
-        #sub = col.row(align=True)
-        #sub.operator("boid.state_add", icon='ADD', text="")
-        #sub.operator("boid.state_del", icon='REMOVE', text="")
-        #sub = row.row(align=True)
-        #sub.operator("boid.state_move_up", icon='TRIA_UP', text="")
-        #sub.operator("boid.state_move_down", icon='TRIA_DOWN', text="")
+        #                   boids, "active_boid_state_index", compact="True")
+        # col = row.row()
+        # sub = col.row(align=True)
+        # sub.operator("boid.state_add", icon='ADD', text="")
+        # sub.operator("boid.state_del", icon='REMOVE', text="")
+        # sub = row.row(align=True)
+        # sub.operator("boid.state_move_up", icon='TRIA_UP', text="")
+        # sub.operator("boid.state_move_down", icon='TRIA_DOWN', text="")
 
         state = boids.active_boid_state
 
-        #layout.prop(state, "name", text="State name")
-
-        row = layout.row()
-        row.prop(state, "ruleset_type")
-        if state.ruleset_type == 'FUZZY':
-            row.prop(state, "rule_fuzzy", slider=True)
-        else:
-            row.label(text="")
+        # layout.prop(state, "name", text="State name")
 
         row = layout.row()
         row.template_list("UI_UL_list", "particle_boids_rules", state,
@@ -1164,47 +1158,46 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
         subsub.operator("boid.rule_move_up", icon='TRIA_UP', text="")
         subsub.operator("boid.rule_move_down", icon='TRIA_DOWN', text="")
 
+        layout.prop(state, "ruleset_type")
+        if state.ruleset_type == 'FUZZY':
+            layout.prop(state, "rule_fuzzy", slider=True)
+
         rule = state.active_boid_rule
 
         if rule:
-            row = layout.row()
-            row.prop(rule, "name", text="")
-            # somebody make nice icons for boids here please! -jahka
-            row.prop(rule, "use_in_air", icon='TRIA_UP', text="")
-            row.prop(rule, "use_on_land", icon='TRIA_DOWN', text="")
+            col = layout.column(align=True)
+            col.prop(rule, "use_in_air")
+            col.prop(rule, "use_on_land")
 
-            row = layout.row()
+            col = layout.column()
 
             if rule.type == 'GOAL':
-                row.prop(rule, "object")
-                row = layout.row()
-                row.prop(rule, "use_predict")
+                col.prop(rule, "object")
+                col.prop(rule, "use_predict")
             elif rule.type == 'AVOID':
-                row.prop(rule, "object")
-                row = layout.row()
-                row.prop(rule, "use_predict")
-                row.prop(rule, "fear_factor")
+                col.prop(rule, "object")
+                col.prop(rule, "use_predict")
+                col.prop(rule, "fear_factor")
             elif rule.type == 'FOLLOW_PATH':
-                row.label(text="Not yet functional")
+                col.label(text="Not yet functional")
             elif rule.type == 'AVOID_COLLISION':
-                row.prop(rule, "use_avoid")
-                row.prop(rule, "use_avoid_collision")
-                row.prop(rule, "look_ahead")
+                col.prop(rule, "use_avoid")
+                col.prop(rule, "use_avoid_collision")
+                col.prop(rule, "look_ahead")
             elif rule.type == 'FOLLOW_LEADER':
-                row.prop(rule, "object", text="")
-                row.prop(rule, "distance")
-                row = layout.row()
-                row.prop(rule, "use_line")
-                sub = row.row()
+                col.prop(rule, "object")
+                col.prop(rule, "distance")
+                col.prop(rule, "use_line")
+                sub = col.row()
                 sub.active = rule.use_line
                 sub.prop(rule, "queue_count")
             elif rule.type == 'AVERAGE_SPEED':
-                row.prop(rule, "speed", slider=True)
-                row.prop(rule, "wander", slider=True)
-                row.prop(rule, "level", slider=True)
+                col.prop(rule, "speed", slider=True)
+                col.prop(rule, "wander", slider=True)
+                col.prop(rule, "level", slider=True)
             elif rule.type == 'FIGHT':
-                row.prop(rule, "distance")
-                row.prop(rule, "flee_distance")
+                col.prop(rule, "distance")
+                col.prop(rule, "flee_distance")
 
 
 class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
