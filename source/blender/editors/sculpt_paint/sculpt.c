@@ -387,6 +387,7 @@ static void nearest_vertex_get_finalize(void *__restrict userdata, void *__restr
   NearestVertexTLSData *nvtd = tls;
   if (data->nearest_vertex_index == -1) {
     data->nearest_vertex_index = nvtd->nearest_vertex_index;
+    data->nearest_vertex_distance_squared = nvtd->nearest_vertex_distance_squared;
   }
   else if (nvtd->nearest_vertex_distance_squared < data->nearest_vertex_distance_squared) {
     data->nearest_vertex_index = nvtd->nearest_vertex_index;
