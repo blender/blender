@@ -968,12 +968,12 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_INFLATE:
     case SCULPT_TOOL_BLOB:
     case SCULPT_TOOL_CREASE:
-      br->add_col[0] = 0.65f;
-      br->add_col[1] = 0.85f;
-      br->add_col[2] = 0.9f;
-      br->sub_col[0] = 0.65f;
-      br->sub_col[1] = 0.85f;
-      br->sub_col[2] = 0.9f;
+      br->add_col[0] = 0.5f;
+      br->add_col[1] = 0.7f;
+      br->add_col[2] = 0.875f;
+      br->sub_col[0] = 0.5f;
+      br->sub_col[1] = 0.7f;
+      br->sub_col[2] = 0.875f;
       break;
 
     case SCULPT_TOOL_SMOOTH:
