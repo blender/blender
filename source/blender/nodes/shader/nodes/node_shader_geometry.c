@@ -47,7 +47,7 @@ static int node_shader_gpu_geometry(GPUMaterial *mat,
   /* Opti: don't request orco if not needed. */
   GPUNodeLink *orco_link = (!out[2].hasoutput) ? GPU_constant(val) : GPU_attribute(CD_ORCO, "");
 
-  return GPU_stack_link(mat,
+  const bool success = GPU_stack_link(mat,
                         node,
                         "node_geometry",
                         in,
@@ -58,6 +58,13 @@ static int node_shader_gpu_geometry(GPUMaterial *mat,
                         GPU_builtin(GPU_OBJECT_MATRIX),
                         GPU_builtin(GPU_INVERSE_VIEW_MATRIX),
                         bary_link);
+
+  /* for each output */
+  for (int i = 0; sh_node_geometry_out[i].type != -1; i++) {
+    node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);
+  }
+
+  return success;
 }
 
 /* node type definition */
