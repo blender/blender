@@ -2274,92 +2274,51 @@ static void bmesh_neighbor_average(float avg[3], BMVert *v)
   copy_v3_v3(avg, v->co);
 }
 
-/* For bmesh: average only the four most aligned (parallel and perpendicular) edges
- * relative to a direction. Naturally converges to a quad-like tessellation. */
+/* For bmesh: Average surrounding verts based on an orthogonality measure.
+ * Naturally converges to a quad-like structure. */
 static void bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert *v)
 {
-  /* Logic for 3 or more is identical. */
-  const int vfcount = BM_vert_face_count_at_most(v, 3);
 
-  /* Don't modify corner vertices. */
-  if (vfcount < 2) {
-    copy_v3_v3(avg, v->co);
-    return;
-  }
+  float avg_co[3] = {0, 0, 0};
+  float tot_co = 0;
 
-  /* Project the direction to the vertex normal and create an additional
-   * parallel vector. */
-  float dir_a[3], dir_b[3];
-  cross_v3_v3v3(dir_a, direction, v->no);
-  cross_v3_v3v3(dir_b, dir_a, v->no);
+  BMIter eiter;
+  BMEdge *e;
 
-  /* The four vectors which will be used for smoothing.
-   * Occasionally less than 4 verts match the requirements in that case
-   * use 'v' as fallback. */
-  BMVert *pos_a = v;
-  BMVert *neg_a = v;
-  BMVert *pos_b = v;
-  BMVert *neg_b = v;
-
-  float pos_score_a = 0.0f;
-  float neg_score_a = 0.0f;
-  float pos_score_b = 0.0f;
-  float neg_score_b = 0.0f;
-
-  BMIter liter;
-  BMLoop *l;
-
-  BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-    BMVert *adj_v[2] = {l->prev->v, l->next->v};
-
-    for (int i = 0; i < ARRAY_SIZE(adj_v); i++) {
-      BMVert *v_other = adj_v[i];
-
-      if (vfcount != 2 || BM_vert_face_count_at_most(v_other, 2) <= 2) {
-        float vec[3];
-        sub_v3_v3v3(vec, v_other->co, v->co);
-        normalize_v3(vec);
-
-        /* The score is a measure of how orthogonal the edge is. */
-        float score = dot_v3v3(vec, dir_a);
-
-        if (score >= pos_score_a) {
-          pos_a = v_other;
-          pos_score_a = score;
-        }
-        else if (score < neg_score_a) {
-          neg_a = v_other;
-          neg_score_a = score;
-        }
-        /* The same scoring but for the perpendicular direction. */
-        score = dot_v3v3(vec, dir_b);
-
-        if (score >= pos_score_b) {
-          pos_b = v_other;
-          pos_score_b = score;
-        }
-        else if (score < neg_score_b) {
-          neg_b = v_other;
-          neg_score_b = score;
-        }
-      }
+  BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+    if (BM_edge_is_boundary(e)) {
+      copy_v3_v3(avg, v->co);
+      return;
     }
+    BMVert *v_other = (e->v1 == v) ? e->v2 : e->v1;
+    float vec[3];
+    sub_v3_v3v3(vec, v_other->co, v->co);
+    madd_v3_v3fl(vec, v->no, -dot_v3v3(vec, v->no));
+    normalize_v3(vec);
+
+    /* fac is a measure of how orthogonal or parallel the edge is
+     * relative to the direction */
+    float fac = dot_v3v3(vec, direction);
+    fac = fac * fac - 0.5f;
+    fac *= fac;
+    madd_v3_v3fl(avg_co, v_other->co, fac);
+    tot_co += fac;
   }
 
-  /* Average everything together. */
-  zero_v3(avg);
-  add_v3_v3(avg, pos_a->co);
-  add_v3_v3(avg, neg_a->co);
-  add_v3_v3(avg, pos_b->co);
-  add_v3_v3(avg, neg_b->co);
-  mul_v3_fl(avg, 0.25f);
+  /* In case vert has no Edge s */
+  if (tot_co > 0) {
+    mul_v3_v3fl(avg, avg_co, 1.0f / tot_co);
 
-  /* Preserve volume. */
-  float vec[3];
-  sub_v3_v3(avg, v->co);
-  mul_v3_v3fl(vec, v->no, dot_v3v3(avg, v->no));
-  sub_v3_v3(avg, vec);
-  add_v3_v3(avg, v->co);
+    /* Preserve volume. */
+    float vec[3];
+    sub_v3_v3(avg, v->co);
+    mul_v3_v3fl(vec, v->no, dot_v3v3(avg, v->no));
+    sub_v3_v3(avg, vec);
+    add_v3_v3(avg, v->co);
+  }
+  else {
+    zero_v3(avg);
+  }
 }
 
 /* Same logic as neighbor_average_mask(), but for bmesh rather than mesh */
@@ -2598,6 +2557,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   mul_v3_v3fl(
       tmp, ss->cache->sculpt_normal_symm, dot_v3v3(ss->cache->sculpt_normal_symm, direction));
   sub_v3_v3(direction, tmp);
+  normalize_v3(direction);
 
   /* Cancel if there's no grab data. */
   if (is_zero_v3(direction)) {
