@@ -207,6 +207,7 @@ static void image_operatortypes(void)
   WM_operatortype_append(IMAGE_OT_view_all);
   WM_operatortype_append(IMAGE_OT_view_pan);
   WM_operatortype_append(IMAGE_OT_view_selected);
+  WM_operatortype_append(IMAGE_OT_view_center_cursor);
   WM_operatortype_append(IMAGE_OT_view_zoom);
   WM_operatortype_append(IMAGE_OT_view_zoom_in);
   WM_operatortype_append(IMAGE_OT_view_zoom_out);

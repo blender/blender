@@ -301,6 +301,18 @@ void ED_image_mouse_pos(SpaceImage *sima, ARegion *ar, const int mval[2], float 
   co[1] = ((mval[1] - sy) / zoomy) / height;
 }
 
+void ED_image_view_center_to_point(SpaceImage *sima, float x, float y)
+{
+  int width, height;
+  float aspx, aspy;
+
+  ED_space_image_get_size(sima, &width, &height);
+  ED_space_image_get_aspect(sima, &aspx, &aspy);
+
+  sima->xof = (x - 0.5f) * width * aspx;
+  sima->yof = (y - 0.5f) * height * aspy;
+}
+
 void ED_image_point_pos(SpaceImage *sima, ARegion *ar, float x, float y, float *xr, float *yr)
 {
   int sx, sy, width, height;
@@ -475,4 +487,10 @@ bool ED_space_image_maskedit_mask_poll(bContext *C)
   }
 
   return false;
+}
+
+bool ED_space_image_cursor_poll(bContext *C)
+{
+  return ED_operator_uvedit_space_image(C) || ED_space_image_maskedit_poll(C) ||
+         ED_space_image_paint_curve(C);
 }

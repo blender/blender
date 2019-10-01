@@ -113,6 +113,8 @@ class IMAGE_MT_view(Menu):
         layout.operator("image.view_all", text="Frame All")
         layout.operator("image.view_all", text="Frame All Fit").fit_view = True
 
+        layout.operator("image.view_center_cursor", text="Center View to Cursor")
+
         layout.separator()
 
         if show_render:

@@ -824,6 +824,36 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Center View To Cursor Operator
+ * \{ */
+
+static int view_center_cursor_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  SpaceImage *sima = CTX_wm_space_image(C);
+  ARegion *ar = CTX_wm_region(C);
+
+  ED_image_view_center_to_point(sima, sima->cursor[0], sima->cursor[1]);
+
+  ED_region_tag_redraw(ar);
+
+  return OPERATOR_FINISHED;
+}
+
+void IMAGE_OT_view_center_cursor(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Center View to Cursor";
+  ot->description = "Center the view so that the cursor is in the middle of the view";
+  ot->idname = "IMAGE_OT_view_center_cursor";
+
+  /* api callbacks */
+  ot->exec = view_center_cursor_exec;
+  ot->poll = ED_space_image_cursor_poll;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name View Selected Operator
  * \{ */
 

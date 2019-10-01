@@ -993,6 +993,36 @@ void CLIP_OT_view_all(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Center View To Cursor Operator
+ * \{ */
+
+static int view_center_cursor_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  SpaceClip *sc = CTX_wm_space_clip(C);
+  ARegion *ar = CTX_wm_region(C);
+
+  clip_view_center_to_point(sc, sc->cursor[0], sc->cursor[1]);
+
+  ED_region_tag_redraw(ar);
+
+  return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_view_center_cursor(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Center View to Cursor";
+  ot->description = "Center the view so that the cursor is in the middle of the view";
+  ot->idname = "CLIP_OT_view_center_cursor";
+
+  /* api callbacks */
+  ot->exec = view_center_cursor_exec;
+  ot->poll = ED_space_clip_maskedit_poll;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name View Selected Operator
  * \{ */
 

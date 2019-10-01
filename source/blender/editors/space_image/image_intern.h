@@ -44,10 +44,12 @@ void draw_image_sample_line(struct SpaceImage *sima);
 
 /* image_ops.c */
 bool space_image_main_region_poll(struct bContext *C);
+bool space_image_view_center_cursor_poll(struct bContext *C);
 
 void IMAGE_OT_view_all(struct wmOperatorType *ot);
 void IMAGE_OT_view_pan(struct wmOperatorType *ot);
 void IMAGE_OT_view_selected(struct wmOperatorType *ot);
+void IMAGE_OT_view_center_cursor(struct wmOperatorType *ot);
 void IMAGE_OT_view_zoom(struct wmOperatorType *ot);
 void IMAGE_OT_view_zoom_in(struct wmOperatorType *ot);
 void IMAGE_OT_view_zoom_out(struct wmOperatorType *ot);
