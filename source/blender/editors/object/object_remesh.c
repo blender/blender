@@ -92,6 +92,12 @@ static bool object_remesh_poll(bContext *C)
     return false;
   }
 
+  if (modifiers_usesMultires(ob)) {
+    CTX_wm_operator_poll_msg_set(
+        C, "The remesher cannot run with a Multires modifier in the modifier stack.");
+    return false;
+  }
+
   return ED_operator_object_active_editable_mesh(C);
 }
 

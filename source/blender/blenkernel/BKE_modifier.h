@@ -380,6 +380,7 @@ struct Object *modifiers_isDeformedByArmature(struct Object *ob);
 struct Object *modifiers_isDeformedByMeshDeform(struct Object *ob);
 struct Object *modifiers_isDeformedByLattice(struct Object *ob);
 struct Object *modifiers_isDeformedByCurve(struct Object *ob);
+bool modifiers_usesMultires(struct Object *ob);
 bool modifiers_usesArmature(struct Object *ob, struct bArmature *arm);
 bool modifiers_usesSubsurfFacedots(struct Scene *scene, struct Object *ob);
 bool modifiers_isCorrectableDeformed(struct Scene *scene, struct Object *ob);

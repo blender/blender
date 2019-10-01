@@ -761,6 +761,23 @@ Object *modifiers_isDeformedByCurve(Object *ob)
   return NULL;
 }
 
+bool modifiers_usesMultires(Object *ob)
+{
+  VirtualModifierData virtualModifierData;
+  ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
+  MultiresModifierData *mmd = NULL;
+
+  for (; md; md = md->next) {
+    if (md->type == eModifierType_Multires) {
+      mmd = (MultiresModifierData *)md;
+      if (mmd->totlvl != 0) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 bool modifiers_usesArmature(Object *ob, bArmature *arm)
 {
   VirtualModifierData virtualModifierData;
