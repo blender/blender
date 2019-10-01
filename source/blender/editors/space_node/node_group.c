@@ -717,7 +717,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
   ListBase anim_basepaths = {NULL, NULL};
   float min[2], max[2], center[2];
   int totselect;
-  bool expose_all = false;
+  bool expose_visible = false;
   bNode *input_node, *output_node;
 
   /* XXX rough guess, not nice but we don't have access to UI constants here ... */
@@ -735,7 +735,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
 
   /* auto-add interface for "solo" nodes */
   if (totselect == 1) {
-    expose_all = true;
+    expose_visible = true;
   }
 
   /* move nodes over */
@@ -879,8 +879,8 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
     }
   }
 
-  /* expose all unlinked sockets too */
-  if (expose_all) {
+  /* expose all unlinked sockets too but only the visible ones*/
+  if (expose_visible) {
     for (node = ngroup->nodes.first; node; node = node->next) {
       if (node_group_make_use_node(node, gnode)) {
         for (sock = node->inputs.first; sock; sock = sock->next) {
@@ -891,6 +891,9 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
               skip = true;
               break;
             }
+          }
+          if (sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) {
+              skip = true;
           }
           if (skip) {
             continue;
@@ -912,6 +915,9 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
             if (link->fromsock == sock) {
               skip = true;
             }
+          }
+          if (sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) {
+              skip = true;
           }
           if (skip) {
             continue;
