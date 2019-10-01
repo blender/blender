@@ -650,6 +650,8 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
   BMEdge *e;
   int i;
 
+  BM_mesh_elem_table_ensure(bm, BM_VERT | BM_EDGE);
+
   /* Store all intersections in this array. */
   struct EDBMSplitElem(*pair_iter)[2], (*pair_array)[2] = NULL;
   BLI_Stack *pair_stack = BLI_stack_new(sizeof(*pair_array), __func__);
