@@ -2050,6 +2050,13 @@ void ED_object_single_users(Main *bmain,
     single_obdata_users(bmain, scene, NULL, NULL, 0);
     single_object_action_users(bmain, scene, NULL, NULL, 0);
     single_mat_users_expand(bmain);
+    /* Duplicating obdata and other IDs may require another update of the collections and objects
+     * pointers, especially reguarding drivers and custom props, see T66641.
+     * Note that this whole scene duplication code and 'make single user' functions have te be
+     * rewritten at some point to make use of proper modern ID management code,
+     * but that is no small task.
+     * For now we are doomed to that kind of band-aid to try to cover most of remapping cases. */
+    libblock_relink_collection(scene->master_collection);
   }
 
   /* Relink nodetrees' pointers that have been duplicated. */
