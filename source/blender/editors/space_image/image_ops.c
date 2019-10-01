@@ -213,6 +213,13 @@ static ImageUser *image_user_from_context(const bContext *C)
   }
 }
 
+static bool image_buffer_exists_from_context_no_image_user(bContext *C)
+{
+  Image *ima = image_from_context(C);
+
+  return BKE_image_has_ibuf(ima, NULL);
+}
+
 static bool image_buffer_exists_from_context(bContext *C)
 {
   Image *ima = image_from_context(C);
@@ -2753,13 +2760,6 @@ void IMAGE_OT_new(wmOperatorType *ot)
 /** \name Invert Operators
  * \{ */
 
-static bool image_invert_poll(bContext *C)
-{
-  Image *ima = image_from_context(C);
-
-  return BKE_image_has_ibuf(ima, NULL);
-}
-
 static int image_invert_exec(bContext *C, wmOperator *op)
 {
   Image *ima = image_from_context(C);
@@ -2862,7 +2862,7 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = image_invert_exec;
-  ot->poll = image_invert_poll;
+  ot->poll = image_buffer_exists_from_context_no_image_user;
 
   /* properties */
   prop = RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert Red Channel");
@@ -2873,6 +2873,88 @@ void IMAGE_OT_invert(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "invert_a", 0, "Alpha", "Invert Alpha Channel");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scale Operator
+ * \{ */
+
+static int image_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  Image *ima = image_from_context(C);
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "size");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+    const int size[2] = {ibuf->x, ibuf->y};
+    RNA_property_int_set_array(op->ptr, prop, size);
+    BKE_image_release_ibuf(ima, ibuf, NULL);
+  }
+  return WM_operator_props_dialog_popup(C, op, 200, 200);
+}
+
+static int image_scale_exec(bContext *C, wmOperator *op)
+{
+  Image *ima = image_from_context(C);
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+  SpaceImage *sima = CTX_wm_space_image(C);
+  const bool is_paint = ((sima != NULL) && (sima->mode == SI_MODE_PAINT));
+
+  if (ibuf == NULL) {
+    /* TODO: this should actually never happen, but does for render-results -> cleanup */
+    return OPERATOR_CANCELLED;
+  }
+
+  if (is_paint) {
+    ED_imapaint_clear_partial_redraw();
+  }
+
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "size");
+  int size[2];
+  if (RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_int_get_array(op->ptr, prop, size);
+  }
+  else {
+    size[0] = ibuf->x;
+    size[1] = ibuf->y;
+    RNA_property_int_set_array(op->ptr, prop, size);
+  }
+
+  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf);
+
+  ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+  IMB_scaleImBuf(ibuf, size[0], size[1]);
+  BKE_image_release_ibuf(ima, ibuf, NULL);
+
+  ED_image_undo_push_end();
+
+  /* force GPU reupload, all image is invalid */
+  GPU_free_image(ima);
+
+  DEG_id_tag_update(&ima->id, 0);
+  WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
+
+  return OPERATOR_FINISHED;
+}
+
+void IMAGE_OT_resize(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Resize Image";
+  ot->idname = "IMAGE_OT_resize";
+  ot->description = "Resize the image";
+
+  /* api callbacks */
+  ot->invoke = image_scale_invoke;
+  ot->exec = image_scale_exec;
+  ot->poll = image_buffer_exists_from_context_no_image_user;
+
+  /* properties */
+  RNA_def_int_vector(ot->srna, "size", 2, NULL, 1, INT_MAX, "Size", "", 1, SHRT_MAX);
 
   /* flags */
   ot->flag = OPTYPE_REGISTER;

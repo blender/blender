@@ -230,6 +230,7 @@ static void image_operatortypes(void)
   WM_operatortype_append(IMAGE_OT_unpack);
 
   WM_operatortype_append(IMAGE_OT_invert);
+  WM_operatortype_append(IMAGE_OT_resize);
 
   WM_operatortype_append(IMAGE_OT_cycle_render_slot);
   WM_operatortype_append(IMAGE_OT_clear_render_slot);

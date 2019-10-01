@@ -240,6 +240,7 @@ class IMAGE_MT_image(Menu):
             layout.separator()
 
             layout.menu("IMAGE_MT_image_invert")
+            layout.operator("image.resize", text="Resize")
 
         if ima and not show_render:
             if ima.packed_file:
