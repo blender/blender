@@ -3484,7 +3484,7 @@ static int text_find_and_replace(bContext *C, wmOperator *op, short mode)
   }
   else {
     if (!found) {
-      BKE_reportf(op->reports, RPT_ERROR, "Text not found: %s", st->findstr);
+      BKE_reportf(op->reports, RPT_WARNING, "Text not found: %s", st->findstr);
     }
   }
 
