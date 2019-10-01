@@ -43,13 +43,10 @@ class DATA_PT_context_lattice(DataButtonsPanel, Panel):
         lat = context.lattice
         space = context.space_data
 
-        split = layout.split(factor=0.65)
         if ob:
-            split.template_ID(ob, "data")
-            split.separator()
+            layout.template_ID(ob, "data")
         elif lat:
-            split.template_ID(space, "pin_id")
-            split.separator()
+            layout.template_ID(space, "pin_id")
 
 
 class DATA_PT_lattice(DataButtonsPanel, Panel):
