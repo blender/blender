@@ -1478,10 +1478,10 @@ BLI_bitmap **BKE_pbvh_grid_hidden(const PBVH *bvh)
   return bvh->grid_hidden;
 }
 
-void BKE_pbvh_get_grid_key(const PBVH *bvh, CCGKey *key)
+const CCGKey *BKE_pbvh_get_grid_key(const PBVH *bvh)
 {
   BLI_assert(bvh->type == PBVH_GRIDS);
-  *key = bvh->gridkey;
+  return &bvh->gridkey;
 }
 
 struct CCGElem **BKE_pbvh_get_grids(const PBVH *bvh, int *num_grids)
@@ -2654,7 +2654,7 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node, PBVHVertexIter *vi, int mo
   BKE_pbvh_node_get_grids(bvh, node, &grid_indices, &totgrid, NULL, &gridsize, &grids);
   BKE_pbvh_node_num_verts(bvh, node, &uniq_verts, &totvert);
   BKE_pbvh_node_get_verts(bvh, node, &vert_indices, &verts);
-  vi->key = &bvh->gridkey;
+  vi->key = bvh->gridkey;
 
   vi->grids = grids;
   vi->grid_indices = grid_indices;

@@ -134,7 +134,6 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
                                     float planes[4][4])
 {
   CCGElem **grids;
-  CCGKey key;
   BLI_bitmap **grid_hidden;
   int *grid_indices, totgrid, i;
   bool any_changed = false, any_visible = false;
@@ -142,7 +141,7 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
   /* get PBVH data */
   BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, NULL, NULL, &grids);
   grid_hidden = BKE_pbvh_grid_hidden(pbvh);
-  BKE_pbvh_get_grid_key(pbvh, &key);
+  CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
 
   sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 

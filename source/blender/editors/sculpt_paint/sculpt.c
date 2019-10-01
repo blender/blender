@@ -2581,7 +2581,6 @@ static void do_smooth_brush_multires_task_cb_ex(void *__restrict userdata,
   float bstrength = data->strength;
 
   CCGElem **griddata, *gddata;
-  CCGKey key;
 
   float(*tmpgrid_co)[3] = NULL;
   float tmprow_co[2][3];
@@ -2600,7 +2599,7 @@ static void do_smooth_brush_multires_task_cb_ex(void *__restrict userdata,
 
   BKE_pbvh_node_get_grids(
       ss->pbvh, data->nodes[n], &grid_indices, &totgrid, NULL, &gridsize, &griddata);
-  BKE_pbvh_get_grid_key(ss->pbvh, &key);
+  CCGKey key = *BKE_pbvh_get_grid_key(ss->pbvh);
 
   grid_hidden = BKE_pbvh_grid_hidden(ss->pbvh);
 
