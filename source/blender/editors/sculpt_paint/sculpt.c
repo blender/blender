@@ -95,11 +95,33 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Sculpt PBVH abstraction API */
+/* Sculpt PBVH abstraction API
+ *
+ * This is read-only, for writing use PBVH vertex iterators. There vd.index matches
+ * the indices used here.
+ *
+ * Do not use these functions while working with PBVH_GRIDS data in SculptSession. */
 
-/* Do not use these functions while working with PBVH_GRIDS data in SculptSession */
+static void sculpt_vertex_random_access_init(SculptSession *ss)
+{
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
+  }
+}
 
-float *sculpt_vertex_co_get(SculptSession *ss, int index)
+static int sculpt_vertex_count_get(SculptSession *ss)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      return ss->totvert;
+    case PBVH_BMESH:
+      return BM_mesh_elem_count(BKE_pbvh_get_bmesh(ss->pbvh), BM_VERT);
+    default:
+      return 0;
+  }
+}
+
+const float *sculpt_vertex_co_get(SculptSession *ss, int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
@@ -113,10 +135,33 @@ float *sculpt_vertex_co_get(SculptSession *ss, int index)
   return NULL;
 }
 
-static void sculpt_vertex_random_access_init(SculptSession *ss)
+static void sculpt_vertex_normal_get(SculptSession *ss, int index, float no[3])
 {
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      normal_short_to_float_v3(no, ss->mvert[index].no);
+      return;
+    case PBVH_BMESH:
+      copy_v3_v3(no, BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index)->no);
+      break;
+    default:
+      zero_v3(no);
+      return;
+  }
+}
+static float sculpt_vertex_mask_get(SculptSession *ss, int index)
+{
+  BMVert *v;
+  float *mask;
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      return ss->vmask[index];
+    case PBVH_BMESH:
+      v = BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index);
+      mask = BM_ELEM_CD_GET_VOID_P(v, CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK));
+      return *mask;
+    default:
+      return 0;
   }
 }
 
@@ -135,102 +180,14 @@ static int sculpt_active_vertex_get(SculptSession *ss)
   return 0;
 }
 
-static float *sculpt_active_vertex_co_get(SculptSession *ss)
+static const float *sculpt_active_vertex_co_get(SculptSession *ss)
 {
   return sculpt_vertex_co_get(ss, sculpt_active_vertex_get(ss));
-}
-
-static int sculpt_vertex_count_get(SculptSession *ss)
-{
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      return ss->totvert;
-    case PBVH_BMESH:
-      return BM_mesh_elem_count(BKE_pbvh_get_bmesh(ss->pbvh), BM_VERT);
-    default:
-      return 0;
-  }
-}
-
-static void sculpt_vertex_normal_get(SculptSession *ss, int index, float no[3])
-{
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      normal_short_to_float_v3(no, ss->mvert[index].no);
-      return;
-    case PBVH_BMESH:
-      copy_v3_v3(no, BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index)->no);
-      break;
-    default:
-      zero_v3(no);
-      return;
-  }
 }
 
 static void sculpt_active_vertex_normal_get(SculptSession *ss, float normal[3])
 {
   sculpt_vertex_normal_get(ss, sculpt_active_vertex_get(ss), normal);
-}
-
-static void UNUSED_FUNCTION(sculpt_vertex_mask_set)(SculptSession *ss, int index, float mask)
-{
-  BMVert *v;
-  float *mask_p;
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      ss->vmask[index] = mask;
-      return;
-    case PBVH_BMESH:
-      v = BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index);
-      mask_p = BM_ELEM_CD_GET_VOID_P(v, CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK));
-      *(mask_p) = mask;
-      return;
-    default:
-      return;
-  }
-}
-
-static float sculpt_vertex_mask_get(SculptSession *ss, int index)
-{
-  BMVert *v;
-  float *mask;
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      return ss->vmask[index];
-    case PBVH_BMESH:
-      v = BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index);
-      mask = BM_ELEM_CD_GET_VOID_P(v, CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK));
-      return *mask;
-    default:
-      return 0;
-  }
-}
-
-static void UNUSED_FUNCTION(sculpt_vertex_co_set)(SculptSession *ss, int index, float co[3])
-{
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      copy_v3_v3(ss->mvert[index].co, co);
-      return;
-    case PBVH_BMESH:
-      copy_v3_v3(BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index)->co, co);
-      return;
-    default:
-      return;
-  }
-}
-
-static void UNUSED_FUNCTION(sculpt_vertex_tag_update)(SculptSession *ss, int index)
-{
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      ss->mvert[index].flag |= ME_VERT_PBVH_UPDATE;
-      return;
-    case PBVH_BMESH:
-      return;
-    default:
-      return;
-  }
 }
 
 #define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 256

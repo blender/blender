@@ -75,7 +75,7 @@ void sculpt_pose_calc_pose_data(struct Sculpt *sd,
                                 float *r_pose_factor);
 
 /* Sculpt PBVH abstraction API */
-float *sculpt_vertex_co_get(struct SculptSession *ss, int index);
+const float *sculpt_vertex_co_get(struct SculptSession *ss, int index);
 
 /* Dynamic topology */
 void sculpt_pbvh_clear(Object *ob);
