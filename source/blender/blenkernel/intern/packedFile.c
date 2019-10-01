@@ -141,7 +141,9 @@ int BKE_packedfile_count_all(Main *bmain)
 void BKE_packedfile_free(PackedFile *pf)
 {
   if (pf) {
-    MEM_freeN(pf->data);
+    BLI_assert(pf->data != NULL);
+
+    MEM_SAFE_FREE(pf->data);
     MEM_freeN(pf);
   }
   else {
@@ -151,6 +153,9 @@ void BKE_packedfile_free(PackedFile *pf)
 
 PackedFile *BKE_packedfile_duplicate(const PackedFile *pf_src)
 {
+  BLI_assert(pf_src != NULL);
+  BLI_assert(pf_src->data != NULL);
+
   PackedFile *pf_dst;
 
   pf_dst = MEM_dupallocN(pf_src);
@@ -161,6 +166,8 @@ PackedFile *BKE_packedfile_duplicate(const PackedFile *pf_src)
 
 PackedFile *BKE_packedfile_new_from_memory(void *mem, int memlen)
 {
+  BLI_assert(mem != NULL);
+
   PackedFile *pf = MEM_callocN(sizeof(*pf), "PackedFile");
   pf->data = mem;
   pf->size = memlen;
@@ -178,7 +185,7 @@ PackedFile *BKE_packedfile_new(ReportList *reports, const char *filename, const 
   /* render result has no filename and can be ignored
    * any other files with no name can be ignored too */
   if (filename[0] == '\0') {
-    return NULL;
+    return pf;
   }
 
   // XXX waitcursor(1);
