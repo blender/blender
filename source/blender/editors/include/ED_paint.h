@@ -42,6 +42,10 @@ void ED_imapaint_bucket_fill(struct bContext *C, float color[3], struct wmOperat
 
 /* paint_image_undo.c */
 void ED_image_undo_push_begin(const char *name, int paint_mode);
+void ED_image_undo_push_begin_with_image(const char *name,
+                                         struct Image *image,
+                                         struct ImBuf *ibuf);
+
 void ED_image_undo_push_end(void);
 void ED_image_undo_restore(struct UndoStep *us);
 

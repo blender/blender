@@ -15,7 +15,22 @@
 
 /** \file
  * \ingroup edsculpt
+ *
+ * Overview
+ * ========
+ *
+ * - Each undo step is a #ImageUndoStep
+ * - Each #ImageUndoStep stores a list of #UndoImageHandle
+ *   - Each #UndoImageHandle stores a list of #UndoImageBuf
+ *     (this is the undo systems equivalent of an #ImBuf).
+ *     - Each #UndoImageBuf stores an array of #UndoImageTile
+ *       The tiles are shared between #UndoImageBuf's to avoid duplication.
+ *
+ * When the undo system manages an image, there will always be a full copy (as a #UndoImageBuf)
+ * each new undo step only stores modified tiles.
  */
+
+#include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -51,335 +66,575 @@
 
 #include "paint_intern.h"
 
+static CLG_LogRef LOG = {"ed.image.undo"};
+
 /* -------------------------------------------------------------------- */
-/** \name Undo Conversion
+/** \name Thread Locking
  * \{ */
-
-typedef struct UndoImageTile {
-  struct UndoImageTile *next, *prev;
-
-  char ibufname[IMB_FILENAME_SIZE];
-
-  union {
-    float *fp;
-    unsigned int *uint;
-    void *pt;
-  } rect;
-
-  unsigned short *mask;
-
-  int x, y;
-
-  /* TODO(campbell): avoid storing the ID per tile,
-   * adds unnecessary overhead restoring undo steps when most tiles share the same image. */
-  UndoRefID_Image image_ref;
-
-  short source;
-  bool use_float;
-  char gen_type;
-  bool valid;
-
-  size_t undo_size;
-} UndoImageTile;
 
 /* this is a static resource for non-globality,
  * Maybe it should be exposed as part of the
  * paint operation, but for now just give a public interface */
-static SpinLock undolock;
+static SpinLock paint_tiles_lock;
 
 void image_undo_init_locks(void)
 {
-  BLI_spin_init(&undolock);
+  BLI_spin_init(&paint_tiles_lock);
 }
 
 void image_undo_end_locks(void)
 {
-  BLI_spin_end(&undolock);
+  BLI_spin_end(&paint_tiles_lock);
 }
 
-/* UNDO */
-typedef enum {
-  COPY = 0,
-  RESTORE = 1,
-  RESTORE_COPY = 2,
-} CopyMode;
+/** \} */
 
-static void undo_copy_tile(UndoImageTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, CopyMode mode)
+/* -------------------------------------------------------------------- */
+/** \name Paint Tiles
+ *
+ * Created on demand while painting,
+ * use to access the previous state for some paint operations.
+ *
+ * These buffers are also used for undo when available.
+ *
+ * \{ */
+
+static ImBuf *imbuf_alloc_temp_tile(void)
 {
-  if (mode == COPY) {
-    /* copy or swap contents of tile->rect and region in ibuf->rect */
-    IMB_rectcpy(tmpibuf,
-                ibuf,
-                0,
-                0,
-                tile->x * IMAPAINT_TILE_SIZE,
-                tile->y * IMAPAINT_TILE_SIZE,
-                IMAPAINT_TILE_SIZE,
-                IMAPAINT_TILE_SIZE);
+  return IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat | IB_rect);
+}
 
-    if (ibuf->rect_float) {
-      SWAP(float *, tmpibuf->rect_float, tile->rect.fp);
-    }
-    else {
-      SWAP(unsigned int *, tmpibuf->rect, tile->rect.uint);
-    }
+typedef struct PaintTile {
+  struct PaintTile *next, *prev;
+  Image *image;
+  ImBuf *ibuf;
+  union {
+    float *fp;
+    uint *uint;
+    void *pt;
+  } rect;
+  ushort *mask;
+  bool valid;
+  bool use_float;
+  int x, y;
+} PaintTile;
+
+static void ptile_free(PaintTile *ptile)
+{
+  if (ptile->rect.pt) {
+    MEM_freeN(ptile->rect.pt);
   }
-  else {
-    if (mode == RESTORE_COPY) {
-      IMB_rectcpy(tmpibuf,
-                  ibuf,
-                  0,
-                  0,
-                  tile->x * IMAPAINT_TILE_SIZE,
-                  tile->y * IMAPAINT_TILE_SIZE,
-                  IMAPAINT_TILE_SIZE,
-                  IMAPAINT_TILE_SIZE);
-    }
-    /* swap to the tmpbuf for easy copying */
-    if (ibuf->rect_float) {
-      SWAP(float *, tmpibuf->rect_float, tile->rect.fp);
-    }
-    else {
-      SWAP(unsigned int *, tmpibuf->rect, tile->rect.uint);
-    }
+  MEM_freeN(ptile);
+}
 
-    IMB_rectcpy(ibuf,
-                tmpibuf,
-                tile->x * IMAPAINT_TILE_SIZE,
-                tile->y * IMAPAINT_TILE_SIZE,
-                0,
-                0,
-                IMAPAINT_TILE_SIZE,
-                IMAPAINT_TILE_SIZE);
+static void ptile_free_list(ListBase *paint_tiles)
+{
+  for (PaintTile *ptile = paint_tiles->first, *ptile_next; ptile; ptile = ptile_next) {
+    ptile_next = ptile->next;
+    ptile_free(ptile);
+  }
+  BLI_listbase_clear(paint_tiles);
+}
 
-    if (mode == RESTORE) {
-      if (ibuf->rect_float) {
-        SWAP(float *, tmpibuf->rect_float, tile->rect.fp);
-      }
-      else {
-        SWAP(unsigned int *, tmpibuf->rect, tile->rect.uint);
-      }
-    }
+static void ptile_invalidate_list(ListBase *paint_tiles)
+{
+  for (PaintTile *ptile = paint_tiles->first; ptile; ptile = ptile->next) {
+    ptile->valid = false;
   }
 }
 
-void *image_undo_find_tile(ListBase *undo_tiles,
-                           Image *ima,
+void *image_undo_find_tile(ListBase *paint_tiles,
+                           Image *image,
                            ImBuf *ibuf,
                            int x_tile,
                            int y_tile,
-                           unsigned short **mask,
+                           ushort **r_mask,
                            bool validate)
 {
-  UndoImageTile *tile;
-  const bool use_float = (ibuf->rect_float != NULL);
-
-  for (tile = undo_tiles->first; tile; tile = tile->next) {
-    if (tile->x == x_tile && tile->y == y_tile && ima->gen_type == tile->gen_type &&
-        ima->source == tile->source) {
-      if (tile->use_float == use_float) {
-        if (STREQ(tile->ibufname, ibuf->name)) {
-          if (mask) {
-            /* allocate mask if requested */
-            if (!tile->mask) {
-              tile->mask = MEM_callocN(sizeof(unsigned short) * IMAPAINT_TILE_SIZE *
-                                           IMAPAINT_TILE_SIZE,
-                                       "UndoImageTile.mask");
-            }
-
-            *mask = tile->mask;
+  for (PaintTile *ptile = paint_tiles->first; ptile; ptile = ptile->next) {
+    if (ptile->x == x_tile && ptile->y == y_tile) {
+      if (ptile->image == image && ptile->ibuf == ibuf) {
+        if (r_mask) {
+          /* allocate mask if requested. */
+          if (!ptile->mask) {
+            ptile->mask = MEM_callocN(sizeof(ushort) * SQUARE(IMAPAINT_TILE_SIZE),
+                                      "UndoImageTile.mask");
           }
-          if (validate) {
-            tile->valid = true;
-          }
-          return tile->rect.pt;
+          *r_mask = ptile->mask;
         }
+        if (validate) {
+          ptile->valid = true;
+        }
+        return ptile->rect.pt;
       }
     }
   }
-
   return NULL;
 }
 
-void *image_undo_push_tile(ListBase *undo_tiles,
-                           Image *ima,
+void image_undo_remove_masks(void)
+{
+  ListBase *paint_tiles = ED_image_undo_get_tiles();
+  for (PaintTile *ptile = paint_tiles->first; ptile; ptile = ptile->next) {
+    MEM_SAFE_FREE(ptile->mask);
+  }
+}
+
+void *image_undo_push_tile(ListBase *paint_tiles,
+                           Image *image,
                            ImBuf *ibuf,
                            ImBuf **tmpibuf,
                            int x_tile,
                            int y_tile,
-                           unsigned short **mask,
+                           ushort **r_mask,
                            bool **valid,
                            bool proj,
                            bool find_prev)
 {
-  UndoImageTile *tile;
-  int allocsize;
-  const bool use_float = (ibuf->rect_float != NULL);
-  void *data;
+  const bool has_float = (ibuf->rect_float != NULL);
 
   /* check if tile is already pushed */
 
   /* in projective painting we keep accounting of tiles, so if we need one pushed, just push! */
   if (find_prev) {
-    data = image_undo_find_tile(undo_tiles, ima, ibuf, x_tile, y_tile, mask, true);
+    void *data = image_undo_find_tile(paint_tiles, image, ibuf, x_tile, y_tile, r_mask, true);
     if (data) {
       return data;
     }
   }
 
   if (*tmpibuf == NULL) {
-    *tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat | IB_rect);
+    *tmpibuf = imbuf_alloc_temp_tile();
   }
 
-  tile = MEM_callocN(sizeof(UndoImageTile), "UndoImageTile");
-  tile->x = x_tile;
-  tile->y = y_tile;
+  PaintTile *ptile = MEM_callocN(sizeof(PaintTile), "PaintTile");
+
+  ptile->image = image;
+  ptile->ibuf = ibuf;
+
+  ptile->x = x_tile;
+  ptile->y = y_tile;
 
   /* add mask explicitly here */
-  if (mask) {
-    *mask = tile->mask = MEM_callocN(
-        sizeof(unsigned short) * IMAPAINT_TILE_SIZE * IMAPAINT_TILE_SIZE, "UndoImageTile.mask");
+  if (r_mask) {
+    *r_mask = ptile->mask = MEM_callocN(sizeof(ushort) * SQUARE(IMAPAINT_TILE_SIZE),
+                                        "PaintTile.mask");
   }
-  allocsize = IMAPAINT_TILE_SIZE * IMAPAINT_TILE_SIZE * 4;
-  allocsize *= (ibuf->rect_float) ? sizeof(float) : sizeof(char);
-  tile->rect.pt = MEM_mapallocN(allocsize, "UndeImageTile.rect");
 
-  BLI_strncpy(tile->ibufname, ibuf->name, sizeof(tile->ibufname));
+  ptile->rect.pt = MEM_mapallocN((ibuf->rect_float ? sizeof(float[4]) : sizeof(char[4])) *
+                                     SQUARE(IMAPAINT_TILE_SIZE),
+                                 "PaintTile.rect");
 
-  tile->gen_type = ima->gen_type;
-  tile->source = ima->source;
-  tile->use_float = use_float;
-  tile->valid = true;
-  tile->image_ref.ptr = ima;
+  ptile->use_float = has_float;
+  ptile->valid = true;
 
   if (valid) {
-    *valid = &tile->valid;
+    *valid = &ptile->valid;
   }
-  undo_copy_tile(tile, *tmpibuf, ibuf, COPY);
+
+  IMB_rectcpy(*tmpibuf,
+              ibuf,
+              0,
+              0,
+              x_tile * IMAPAINT_TILE_SIZE,
+              y_tile * IMAPAINT_TILE_SIZE,
+              IMAPAINT_TILE_SIZE,
+              IMAPAINT_TILE_SIZE);
+
+  if (has_float) {
+    SWAP(float *, ptile->rect.fp, (*tmpibuf)->rect_float);
+  }
+  else {
+    SWAP(uint *, ptile->rect.uint, (*tmpibuf)->rect);
+  }
 
   if (proj) {
-    BLI_spin_lock(&undolock);
+    BLI_spin_lock(&paint_tiles_lock);
   }
-  BLI_addtail(undo_tiles, tile);
+  BLI_addtail(paint_tiles, ptile);
 
   if (proj) {
-    BLI_spin_unlock(&undolock);
+    BLI_spin_unlock(&paint_tiles_lock);
   }
-  return tile->rect.pt;
+  return ptile->rect.pt;
 }
 
-void image_undo_remove_masks(void)
+static void ptile_restore_runtime_list(ListBase *paint_tiles)
 {
-  ListBase *undo_tiles = ED_image_undo_get_tiles();
-  for (UndoImageTile *tile = undo_tiles->first; tile; tile = tile->next) {
-    MEM_SAFE_FREE(tile->mask);
-  }
-}
+  ImBuf *tmpibuf = imbuf_alloc_temp_tile();
 
-static void image_undo_restore_runtime(ListBase *lb)
-{
-  ImBuf *tmpibuf = IMB_allocImBuf(
-      IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat | IB_rect);
+  for (PaintTile *ptile = paint_tiles->first; ptile; ptile = ptile->next) {
+    Image *image = ptile->image;
+    ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
+    const bool has_float = (ibuf->rect_float != NULL);
 
-  for (UndoImageTile *tile = lb->first; tile; tile = tile->next) {
-    Image *ima = tile->image_ref.ptr;
-    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+    if (has_float) {
+      SWAP(float *, ptile->rect.fp, tmpibuf->rect_float);
+    }
+    else {
+      SWAP(uint *, ptile->rect.uint, tmpibuf->rect);
+    }
 
-    undo_copy_tile(tile, tmpibuf, ibuf, RESTORE);
+    IMB_rectcpy(ibuf, tmpibuf, ptile->x, ptile->y, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
 
-    GPU_free_image(ima); /* force OpenGL reload (maybe partial update will operate better?) */
+    if (has_float) {
+      SWAP(float *, ptile->rect.fp, tmpibuf->rect_float);
+    }
+    else {
+      SWAP(uint *, ptile->rect.uint, tmpibuf->rect);
+    }
+
+    GPU_free_image(image); /* force OpenGL reload (maybe partial update will operate better?) */
     if (ibuf->rect_float) {
       ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
     }
     if (ibuf->mipmap[0]) {
-      ibuf->userflags |= IB_MIPMAP_INVALID; /* force mipmap recreatiom */
+      ibuf->userflags |= IB_MIPMAP_INVALID; /* force mip-map recreation. */
     }
     ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 
-    BKE_image_release_ibuf(ima, ibuf, NULL);
+    BKE_image_release_ibuf(image, ibuf, NULL);
   }
 
   IMB_freeImBuf(tmpibuf);
 }
 
-static void image_undo_restore_list(ListBase *lb)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Image Undo Tile
+ * \{ */
+
+static uint index_from_xy(uint tile_x, uint tile_y, const uint tiles_dims[2])
 {
-  ImBuf *tmpibuf = IMB_allocImBuf(
-      IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat | IB_rect);
+  BLI_assert(tile_x < tiles_dims[0] && tile_y < tiles_dims[1]);
+  return (tile_y * tiles_dims[0]) + tile_x;
+}
 
-  for (UndoImageTile *tile = lb->first; tile; tile = tile->next) {
-    Image *ima = tile->image_ref.ptr;
-    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+typedef struct UndoImageTile {
+  union {
+    float *fp;
+    uint *uint;
+    void *pt;
+  } rect;
+  int users;
+} UndoImageTile;
 
-    if (ima && ibuf && !STREQ(tile->ibufname, ibuf->name)) {
-      /* current ImBuf filename was changed, probably current frame
-       * was changed when painting on image sequence, rather than storing
-       * full image user (which isn't so obvious, btw) try to find ImBuf with
-       * matched file name in list of already loaded images */
+static UndoImageTile *utile_alloc(bool has_float)
+{
+  UndoImageTile *utile = MEM_callocN(sizeof(*utile), "ImageUndoTile");
+  if (has_float) {
+    utile->rect.fp = MEM_mallocN(sizeof(float[4]) * SQUARE(IMAPAINT_TILE_SIZE), __func__);
+  }
+  else {
+    utile->rect.uint = MEM_mallocN(sizeof(uint) * SQUARE(IMAPAINT_TILE_SIZE), __func__);
+  }
+  return utile;
+}
 
-      BKE_image_release_ibuf(ima, ibuf, NULL);
+static void utile_init_from_imbuf(
+    UndoImageTile *utile, const uint x, const uint y, const ImBuf *ibuf, ImBuf *tmpibuf)
+{
+  const bool has_float = ibuf->rect_float;
 
-      ibuf = BKE_image_get_ibuf_with_name(ima, tile->ibufname);
+  if (has_float) {
+    SWAP(float *, utile->rect.fp, tmpibuf->rect_float);
+  }
+  else {
+    SWAP(uint *, utile->rect.uint, tmpibuf->rect);
+  }
+
+  IMB_rectcpy(tmpibuf, ibuf, 0, 0, x, y, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
+
+  if (has_float) {
+    SWAP(float *, utile->rect.fp, tmpibuf->rect_float);
+  }
+  else {
+    SWAP(uint *, utile->rect.uint, tmpibuf->rect);
+  }
+}
+
+static void utile_restore(
+    const UndoImageTile *utile, const uint x, const uint y, ImBuf *ibuf, ImBuf *tmpibuf)
+{
+  const bool has_float = ibuf->rect_float;
+  float *prev_rect_float = tmpibuf->rect_float;
+  uint *prev_rect = tmpibuf->rect;
+
+  if (has_float) {
+    tmpibuf->rect_float = utile->rect.fp;
+  }
+  else {
+    tmpibuf->rect = utile->rect.uint;
+  }
+
+  IMB_rectcpy(ibuf, tmpibuf, x, y, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
+
+  tmpibuf->rect_float = prev_rect_float;
+  tmpibuf->rect = prev_rect;
+}
+
+static void utile_decref(UndoImageTile *utile)
+{
+  utile->users -= 1;
+  BLI_assert(utile->users >= 0);
+  if (utile->users == 0) {
+    MEM_freeN(utile->rect.pt);
+    MEM_freeN(utile);
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Image Undo Buffer
+ * \{ */
+
+typedef struct UndoImageBuf {
+  struct UndoImageBuf *next, *prev;
+
+  /**
+   * The buffer after the undo step has executed.
+   */
+  struct UndoImageBuf *post;
+
+  char ibuf_name[IMB_FILENAME_SIZE];
+
+  UndoImageTile **tiles;
+
+  /** Can calculate these from dims, just for convenience. */
+  uint tiles_len;
+  uint tiles_dims[2];
+
+  uint image_dims[2];
+
+  /** Store variables from the image. */
+  struct {
+    short source;
+    bool use_float;
+    char gen_type;
+  } image_state;
+
+} UndoImageBuf;
+
+static UndoImageBuf *ubuf_from_image_no_tiles(Image *image, const ImBuf *ibuf)
+{
+  UndoImageBuf *ubuf = MEM_callocN(sizeof(*ubuf), __func__);
+
+  ubuf->image_dims[0] = ibuf->x;
+  ubuf->image_dims[1] = ibuf->y;
+
+  ubuf->tiles_dims[0] = IMAPAINT_TILE_NUMBER(ubuf->image_dims[0]);
+  ubuf->tiles_dims[1] = IMAPAINT_TILE_NUMBER(ubuf->image_dims[1]);
+
+  ubuf->tiles_len = ubuf->tiles_dims[0] * ubuf->tiles_dims[1];
+  ubuf->tiles = MEM_callocN(sizeof(*ubuf->tiles) * ubuf->tiles_len, __func__);
+
+  BLI_strncpy(ubuf->ibuf_name, ibuf->name, sizeof(ubuf->ibuf_name));
+  ubuf->image_state.gen_type = image->gen_type;
+  ubuf->image_state.source = image->source;
+  ubuf->image_state.use_float = ibuf->rect_float != NULL;
+
+  return ubuf;
+}
+
+static void ubuf_from_image_all_tiles(UndoImageBuf *ubuf, const ImBuf *ibuf)
+{
+  ImBuf *tmpibuf = imbuf_alloc_temp_tile();
+
+  const bool has_float = ibuf->rect_float;
+  int i = 0;
+  for (uint y_tile = 0; y_tile < ubuf->tiles_dims[1]; y_tile += 1) {
+    uint y = y_tile << IMAPAINT_TILE_BITS;
+    for (uint x_tile = 0; x_tile < ubuf->tiles_dims[0]; x_tile += 1) {
+      uint x = x_tile << IMAPAINT_TILE_BITS;
+
+      BLI_assert(ubuf->tiles[i] == NULL);
+      UndoImageTile *utile = utile_alloc(has_float);
+      utile->users = 1;
+      utile_init_from_imbuf(utile, x, y, ibuf, tmpibuf);
+      ubuf->tiles[i] = utile;
+
+      i += 1;
     }
-
-    if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float)) {
-      BKE_image_release_ibuf(ima, ibuf, NULL);
-      continue;
-    }
-
-    if (ima->gen_type != tile->gen_type || ima->source != tile->source) {
-      BKE_image_release_ibuf(ima, ibuf, NULL);
-      continue;
-    }
-
-    const bool use_float = (ibuf->rect_float != NULL);
-
-    if (use_float != tile->use_float) {
-      BKE_image_release_ibuf(ima, ibuf, NULL);
-      continue;
-    }
-
-    undo_copy_tile(tile, tmpibuf, ibuf, RESTORE_COPY);
-
-    BKE_image_mark_dirty(ima, ibuf);
-    GPU_free_image(ima); /* force OpenGL reload */
-
-    if (ibuf->rect_float) {
-      ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
-    }
-    if (ibuf->mipmap[0]) {
-      ibuf->userflags |= IB_MIPMAP_INVALID; /* force mipmap recreatiom */
-    }
-    ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-
-    DEG_id_tag_update(&ima->id, 0);
-
-    BKE_image_release_ibuf(ima, ibuf, NULL);
   }
 
   IMB_freeImBuf(tmpibuf);
 }
 
-static void image_undo_free_tile(UndoImageTile *tile)
+static void ubuf_free(UndoImageBuf *ubuf)
 {
-  MEM_freeN(tile->rect.pt);
-  MEM_freeN(tile);
-}
-
-static void image_undo_free_list(ListBase *lb)
-{
-  for (UndoImageTile *tile = lb->first, *tile_next; tile; tile = tile_next) {
-    tile_next = tile->next;
-    image_undo_free_tile(tile);
+  UndoImageBuf *ubuf_post = ubuf->post;
+  for (uint i = 0; i < ubuf->tiles_len; i++) {
+    UndoImageTile *utile = ubuf->tiles[i];
+    utile_decref(utile);
+  }
+  MEM_freeN(ubuf->tiles);
+  MEM_freeN(ubuf);
+  if (ubuf_post) {
+    ubuf_free(ubuf_post);
   }
 }
 
-static void image_undo_invalidate(void)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Image Undo Handle
+ * \{ */
+
+typedef struct UndoImageHandle {
+  struct UndoImageHandle *next, *prev;
+
+  /** Each undo handle refers to a single image which may have multiple buffers. */
+  UndoRefID_Image image_ref;
+
+  /**
+   * List of #UndoImageBuf's to support multiple buffers per image.
+   *
+   * \note To properly support multiple buffers per image
+   * we would need to store an #ImageUser for each #UndoImageBuf.
+   * since when restoring the image we use:
+   * `BKE_image_acquire_ibuf(image, NULL, NULL)`.
+   */
+  ListBase buffers;
+
+} UndoImageHandle;
+
+static void uhandle_restore_list(ListBase *undo_handles, bool use_init)
 {
-  ListBase *lb = ED_image_undo_get_tiles();
-  for (UndoImageTile *tile = lb->first; tile; tile = tile->next) {
-    tile->valid = false;
+  ImBuf *tmpibuf = imbuf_alloc_temp_tile();
+
+  for (UndoImageHandle *uh = undo_handles->first; uh; uh = uh->next) {
+    /* Tiles only added to second set of tiles. */
+    Image *image = uh->image_ref.ptr;
+    ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
+    if (UNLIKELY(ibuf == NULL)) {
+      CLOG_ERROR(&LOG, "Unable to get buffer for image '%s'", image->id.name + 2);
+      continue;
+    }
+    bool changed = false;
+    for (UndoImageBuf *ubuf_iter = uh->buffers.first; ubuf_iter; ubuf_iter = ubuf_iter->next) {
+      UndoImageBuf *ubuf = use_init ? ubuf_iter : ubuf_iter->post;
+      IMB_rect_size_set(ibuf, ubuf->image_dims);
+      int i = 0;
+      for (uint y_tile = 0; y_tile < ubuf->tiles_dims[1]; y_tile += 1) {
+        uint y = y_tile << IMAPAINT_TILE_BITS;
+        for (uint x_tile = 0; x_tile < ubuf->tiles_dims[0]; x_tile += 1) {
+          uint x = x_tile << IMAPAINT_TILE_BITS;
+          utile_restore(ubuf->tiles[i], x, y, ibuf, tmpibuf);
+          changed = true;
+          i += 1;
+        }
+      }
+    }
+
+    if (changed) {
+      BKE_image_mark_dirty(image, ibuf);
+      GPU_free_image(image); /* force OpenGL reload */
+
+      if (ibuf->rect_float) {
+        ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
+      }
+      if (ibuf->mipmap[0]) {
+        ibuf->userflags |= IB_MIPMAP_INVALID; /* force mip-map recreation. */
+      }
+      ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+
+      DEG_id_tag_update(&image->id, 0);
+    }
+    BKE_image_release_ibuf(image, ibuf, NULL);
   }
+
+  IMB_freeImBuf(tmpibuf);
+}
+
+static void uhandle_free_list(ListBase *undo_handles)
+{
+  LISTBASE_FOREACH_MUTABLE (UndoImageHandle *, uh, undo_handles) {
+    LISTBASE_FOREACH_MUTABLE (UndoImageBuf *, ubuf, &uh->buffers) {
+      ubuf_free(ubuf);
+    }
+    MEM_freeN(uh);
+  }
+  BLI_listbase_clear(undo_handles);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Image Undo Internal Utilities
+ * \{ */
+
+/** #UndoImageHandle utilities */
+
+static UndoImageBuf *uhandle_lookup_ubuf(UndoImageHandle *uh,
+                                         const Image *UNUSED(image),
+                                         const char *ibuf_name)
+{
+  for (UndoImageBuf *ubuf = uh->buffers.first; ubuf; ubuf = ubuf->next) {
+    if (STREQ(ubuf->ibuf_name, ibuf_name)) {
+      return ubuf;
+    }
+  }
+  return NULL;
+}
+
+static UndoImageBuf *uhandle_add_ubuf(UndoImageHandle *uh, Image *image, ImBuf *ibuf)
+{
+  BLI_assert(uhandle_lookup_ubuf(uh, image, ibuf->name) == NULL);
+  UndoImageBuf *ubuf = ubuf_from_image_no_tiles(image, ibuf);
+  BLI_addtail(&uh->buffers, ubuf);
+
+  ubuf->post = NULL;
+
+  return ubuf;
+}
+
+static UndoImageBuf *uhandle_ensure_ubuf(UndoImageHandle *uh, Image *image, ImBuf *ibuf)
+{
+  UndoImageBuf *ubuf = uhandle_lookup_ubuf(uh, image, ibuf->name);
+  if (ubuf == NULL) {
+    ubuf = uhandle_add_ubuf(uh, image, ibuf);
+  }
+  return ubuf;
+}
+
+static UndoImageHandle *uhandle_lookup_by_name(ListBase *undo_handles, const Image *image)
+{
+  for (UndoImageHandle *uh = undo_handles->first; uh; uh = uh->next) {
+    if (STREQ(image->id.name + 2, uh->image_ref.name + 2)) {
+      return uh;
+    }
+  }
+  return NULL;
+}
+
+static UndoImageHandle *uhandle_lookup(ListBase *undo_handles, const Image *image)
+{
+  for (UndoImageHandle *uh = undo_handles->first; uh; uh = uh->next) {
+    if (image == uh->image_ref.ptr) {
+      return uh;
+    }
+  }
+  return NULL;
+}
+
+static UndoImageHandle *uhandle_add(ListBase *undo_handles, Image *image)
+{
+  BLI_assert(uhandle_lookup(undo_handles, image) == NULL);
+  UndoImageHandle *uh = MEM_callocN(sizeof(*uh), __func__);
+  uh->image_ref.ptr = image;
+  BLI_addtail(undo_handles, uh);
+  return uh;
+}
+
+static UndoImageHandle *uhandle_ensure(ListBase *undo_handles, Image *image)
+{
+  UndoImageHandle *uh = uhandle_lookup(undo_handles, image);
+  if (uh == NULL) {
+    uh = uhandle_add(undo_handles, image);
+  }
+  return uh;
 }
 
 /** \} */
@@ -390,10 +645,43 @@ static void image_undo_invalidate(void)
 
 typedef struct ImageUndoStep {
   UndoStep step;
-  ListBase tiles;
+
+  /** #UndoImageHandle */
+  ListBase handles;
+
+  /**
+   * #PaintTile
+   * Run-time only data (active during a paint stroke).
+   */
+  ListBase paint_tiles;
+
   bool is_encode_init;
   ePaintMode paint_mode;
+
 } ImageUndoStep;
+
+/**
+ * Find the previous undo buffer from this one.
+ * \note We could look into undo steps even further back.
+ */
+static UndoImageBuf *ubuf_lookup_from_reference(ImageUndoStep *us_prev,
+                                                const Image *image,
+                                                const UndoImageBuf *ubuf)
+{
+  /* Use name lookup because because the pointer is cleared for previous steps. */
+  UndoImageHandle *uh_prev = uhandle_lookup_by_name(&us_prev->handles, image);
+  if (uh_prev != NULL) {
+    UndoImageBuf *ubuf_reference = uhandle_lookup_ubuf(uh_prev, image, ubuf->ibuf_name);
+    if (ubuf_reference) {
+      ubuf_reference = ubuf_reference->post;
+      if ((ubuf_reference->image_dims[0] == ubuf->image_dims[0]) &&
+          (ubuf_reference->image_dims[1] == ubuf->image_dims[1])) {
+        return ubuf_reference;
+      }
+    }
+  }
+  return NULL;
+}
 
 static bool image_undosys_poll(bContext *C)
 {
@@ -419,34 +707,132 @@ static void image_undosys_step_encode_init(struct bContext *UNUSED(C), UndoStep 
   ImageUndoStep *us = (ImageUndoStep *)us_p;
   /* dummy, memory is cleared anyway. */
   us->is_encode_init = true;
-  BLI_listbase_clear(&us->tiles);
+  BLI_listbase_clear(&us->handles);
+  BLI_listbase_clear(&us->paint_tiles);
 }
 
 static bool image_undosys_step_encode(struct bContext *C,
                                       struct Main *UNUSED(bmain),
                                       UndoStep *us_p)
 {
-  /* dummy, encoding is done along the way by adding tiles
-   * to the current 'ImageUndoStep' added by encode_init. */
+  /* Encoding is done along the way by adding tiles
+   * to the current 'ImageUndoStep' added by encode_init.
+   *
+   * This function ensures there are previous and current states of the image in the undo buffer.
+   */
   ImageUndoStep *us = (ImageUndoStep *)us_p;
 
   BLI_assert(us->step.data_size == 0);
 
-  int allocsize = IMAPAINT_TILE_SIZE * IMAPAINT_TILE_SIZE * 4;
-
   if (us->is_encode_init) {
-    /* first dispose of invalid tiles (may happen due to drag dot for instance) */
-    for (UndoImageTile *tile = us->tiles.first; tile;) {
-      if (!tile->valid) {
-        UndoImageTile *tile_next = tile->next;
-        BLI_remlink(&us->tiles, tile);
-        image_undo_free_tile(tile);
-        tile = tile_next;
+
+    ImBuf *tmpibuf = imbuf_alloc_temp_tile();
+
+    ImageUndoStep *us_reference = (ImageUndoStep *)ED_undo_stack_get()->step_active;
+    while (us_reference && us_reference->step.type != BKE_UNDOSYS_TYPE_IMAGE) {
+      us_reference = (ImageUndoStep *)us_reference->step.prev;
+    }
+
+    /* Initialize undo tiles from ptiles (if they exist). */
+    for (PaintTile *ptile = us->paint_tiles.first, *ptile_next; ptile; ptile = ptile_next) {
+      if (ptile->valid) {
+        UndoImageHandle *uh = uhandle_ensure(&us->handles, ptile->image);
+        UndoImageBuf *ubuf_pre = uhandle_ensure_ubuf(uh, ptile->image, ptile->ibuf);
+
+        UndoImageTile *utile = MEM_callocN(sizeof(*utile), "UndoImageTile");
+        utile->users = 1;
+        utile->rect.pt = ptile->rect.pt;
+        ptile->rect.pt = NULL;
+        const uint tile_index = index_from_xy(ptile->x, ptile->y, ubuf_pre->tiles_dims);
+
+        BLI_assert(ubuf_pre->tiles[tile_index] == NULL);
+        ubuf_pre->tiles[tile_index] = utile;
       }
-      else {
-        us->step.data_size += allocsize * (tile->use_float ? sizeof(float) : sizeof(char));
-        tile = tile->next;
+      ptile_next = ptile->next;
+      ptile_free(ptile);
+    }
+    BLI_listbase_clear(&us->paint_tiles);
+
+    for (UndoImageHandle *uh = us->handles.first; uh; uh = uh->next) {
+      for (UndoImageBuf *ubuf_pre = uh->buffers.first; ubuf_pre; ubuf_pre = ubuf_pre->next) {
+
+        ImBuf *ibuf = BKE_image_acquire_ibuf(uh->image_ref.ptr, NULL, NULL);
+
+        const bool has_float = ibuf->rect_float;
+
+        BLI_assert(ubuf_pre->post == NULL);
+        ubuf_pre->post = ubuf_from_image_no_tiles(uh->image_ref.ptr, ibuf);
+        UndoImageBuf *ubuf_post = ubuf_pre->post;
+
+        if (ubuf_pre->image_dims[0] != ubuf_post->image_dims[0] ||
+            ubuf_pre->image_dims[1] != ubuf_post->image_dims[1]) {
+          ubuf_from_image_all_tiles(ubuf_post, ibuf);
+        }
+        else {
+          /* Search for the previous buffer. */
+          UndoImageBuf *ubuf_reference = (us_reference ?
+                                              ubuf_lookup_from_reference(
+                                                  us_reference, uh->image_ref.ptr, ubuf_post) :
+                                              NULL);
+
+          int i = 0;
+          for (uint y_tile = 0; y_tile < ubuf_pre->tiles_dims[1]; y_tile += 1) {
+            uint y = y_tile << IMAPAINT_TILE_BITS;
+            for (uint x_tile = 0; x_tile < ubuf_pre->tiles_dims[0]; x_tile += 1) {
+              uint x = x_tile << IMAPAINT_TILE_BITS;
+
+              if ((ubuf_reference != NULL) && ((ubuf_pre->tiles[i] == NULL) ||
+                                               /* In this case the paint stroke as has added a tile
+                                                * which we have a duplicate reference available. */
+                                               (ubuf_pre->tiles[i]->users == 1))) {
+                if (ubuf_pre->tiles[i] != NULL) {
+                  /* If we have a reference, re-use this single use tile for the post state. */
+                  BLI_assert(ubuf_pre->tiles[i]->users == 1);
+                  ubuf_post->tiles[i] = ubuf_pre->tiles[i];
+                  ubuf_pre->tiles[i] = NULL;
+                  utile_init_from_imbuf(ubuf_post->tiles[i], x, y, ibuf, tmpibuf);
+                }
+                else {
+                  BLI_assert(ubuf_post->tiles[i] == NULL);
+                  ubuf_post->tiles[i] = ubuf_reference->tiles[i];
+                  ubuf_post->tiles[i]->users += 1;
+                }
+                BLI_assert(ubuf_pre->tiles[i] == NULL);
+                ubuf_pre->tiles[i] = ubuf_reference->tiles[i];
+                ubuf_pre->tiles[i]->users += 1;
+
+                BLI_assert(ubuf_pre->tiles[i] != NULL);
+                BLI_assert(ubuf_post->tiles[i] != NULL);
+              }
+              else {
+                UndoImageTile *utile = utile_alloc(has_float);
+                utile_init_from_imbuf(utile, x, y, ibuf, tmpibuf);
+
+                if (ubuf_pre->tiles[i] != NULL) {
+                  ubuf_post->tiles[i] = utile;
+                  utile->users = 1;
+                }
+                else {
+                  ubuf_pre->tiles[i] = utile;
+                  ubuf_post->tiles[i] = utile;
+                  utile->users = 2;
+                }
+              }
+              BLI_assert(ubuf_pre->tiles[i] != NULL);
+              BLI_assert(ubuf_post->tiles[i] != NULL);
+              i += 1;
+            }
+          }
+        }
+        BKE_image_release_ibuf(uh->image_ref.ptr, ibuf, NULL);
       }
+    }
+
+    IMB_freeImBuf(tmpibuf);
+
+    /* Useful to debug tiles are stored correctly. */
+    if (false) {
+      uhandle_restore_list(&us->handles, false);
     }
   }
   else {
@@ -461,17 +847,17 @@ static bool image_undosys_step_encode(struct bContext *C,
   return true;
 }
 
-static void image_undosys_step_decode_undo_impl(ImageUndoStep *us)
+static void image_undosys_step_decode_undo_impl(ImageUndoStep *us, bool is_final)
 {
   BLI_assert(us->step.is_applied == true);
-  image_undo_restore_list(&us->tiles);
+  uhandle_restore_list(&us->handles, !is_final);
   us->step.is_applied = false;
 }
 
 static void image_undosys_step_decode_redo_impl(ImageUndoStep *us)
 {
   BLI_assert(us->step.is_applied == false);
-  image_undo_restore_list(&us->tiles);
+  uhandle_restore_list(&us->handles, false);
   us->step.is_applied = true;
 }
 
@@ -485,7 +871,8 @@ static void image_undosys_step_decode_undo(ImageUndoStep *us, bool is_final)
     us_iter = (ImageUndoStep *)us_iter->step.next;
   }
   while (us_iter != us || (!is_final && us_iter == us)) {
-    image_undosys_step_decode_undo_impl(us_iter);
+
+    image_undosys_step_decode_undo_impl(us_iter, is_final);
     if (us_iter == us) {
       break;
     }
@@ -533,7 +920,10 @@ static void image_undosys_step_decode(
 static void image_undosys_step_free(UndoStep *us_p)
 {
   ImageUndoStep *us = (ImageUndoStep *)us_p;
-  image_undo_free_list(&us->tiles);
+  uhandle_free_list(&us->handles);
+
+  /* Typically this list will have been cleared. */
+  ptile_free_list(&us->paint_tiles);
 }
 
 static void image_undosys_foreach_ID_ref(UndoStep *us_p,
@@ -541,8 +931,8 @@ static void image_undosys_foreach_ID_ref(UndoStep *us_p,
                                          void *user_data)
 {
   ImageUndoStep *us = (ImageUndoStep *)us_p;
-  for (UndoImageTile *tile = us->tiles.first; tile; tile = tile->next) {
-    foreach_ID_ref_fn(user_data, ((UndoRefID *)&tile->image_ref));
+  for (UndoImageHandle *uh = us->handles.first; uh; uh = uh->next) {
+    foreach_ID_ref_fn(user_data, ((UndoRefID *)&uh->image_ref));
   }
 }
 
@@ -582,18 +972,18 @@ ListBase *ED_image_undo_get_tiles(void)
     /* Fallback value until we can be sure this never happens. */
     us->paint_mode = PAINT_MODE_TEXTURE_2D;
   }
-  return &us->tiles;
+  return &us->paint_tiles;
 }
 
 /* restore painting image to previous state. Used for anchored and drag-dot style brushes*/
 void ED_image_undo_restore(UndoStep *us)
 {
-  ListBase *lb = &((ImageUndoStep *)us)->tiles;
-  image_undo_restore_runtime(lb);
-  image_undo_invalidate();
+  ListBase *paint_tiles = &((ImageUndoStep *)us)->paint_tiles;
+  ptile_restore_runtime_list(paint_tiles);
+  ptile_invalidate_list(paint_tiles);
 }
 
-void ED_image_undo_push_begin(const char *name, int paint_mode)
+static ImageUndoStep *image_undo_push_begin(const char *name, int paint_mode)
 {
   UndoStack *ustack = ED_undo_stack_get();
   bContext *C = NULL; /* special case, we never read from this. */
@@ -601,6 +991,40 @@ void ED_image_undo_push_begin(const char *name, int paint_mode)
   ImageUndoStep *us = (ImageUndoStep *)us_p;
   BLI_assert(ELEM(paint_mode, PAINT_MODE_TEXTURE_2D, PAINT_MODE_TEXTURE_3D));
   us->paint_mode = paint_mode;
+  return us;
+}
+
+void ED_image_undo_push_begin(const char *name, int paint_mode)
+{
+  image_undo_push_begin(name, paint_mode);
+}
+
+void ED_image_undo_push_begin_with_image(const char *name, Image *image, ImBuf *ibuf)
+{
+  ImageUndoStep *us = image_undo_push_begin(name, PAINT_MODE_TEXTURE_2D);
+
+  UndoImageHandle *uh = uhandle_ensure(&us->handles, image);
+  UndoImageBuf *ubuf_pre = uhandle_ensure_ubuf(uh, image, ibuf);
+  BLI_assert(ubuf_pre->post == NULL);
+
+  ImageUndoStep *us_reference = (ImageUndoStep *)ED_undo_stack_get()->step_active;
+  while (us_reference && us_reference->step.type != BKE_UNDOSYS_TYPE_IMAGE) {
+    us_reference = (ImageUndoStep *)us_reference->step.prev;
+  }
+  UndoImageBuf *ubuf_reference = (us_reference ?
+                                      ubuf_lookup_from_reference(us_reference, image, ubuf_pre) :
+                                      NULL);
+
+  if (ubuf_reference) {
+    memcpy(ubuf_pre->tiles, ubuf_reference->tiles, sizeof(*ubuf_pre->tiles) * ubuf_pre->tiles_len);
+    for (uint i = 0; i < ubuf_pre->tiles_len; i++) {
+      UndoImageTile *utile = ubuf_pre->tiles[i];
+      utile->users += 1;
+    }
+  }
+  else {
+    ubuf_from_image_all_tiles(ubuf_pre, ibuf);
+  }
 }
 
 void ED_image_undo_push_end(void)

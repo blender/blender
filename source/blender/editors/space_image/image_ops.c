@@ -2765,8 +2765,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
   Image *ima = image_from_context(C);
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
   SpaceImage *sima = CTX_wm_space_image(C);
-  /* undo is supported only on image paint mode currently */
-  bool support_undo = ((sima != NULL) && (sima->mode == SI_MODE_PAINT));
+  const bool is_paint = ((sima != NULL) && (sima->mode == SI_MODE_PAINT));
 
   /* flags indicate if this channel should be inverted */
   const bool r = RNA_boolean_get(op->ptr, "invert_r");
@@ -2781,14 +2780,12 @@ static int image_invert_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (support_undo) {
-    ED_image_undo_push_begin(op->type->name, PAINT_MODE_TEXTURE_2D);
-    /* not strictly needed, because we only imapaint_dirty_region to invalidate all tiles
-     * but better do this right in case someone copies this for a tool that uses partial
-     * redraw better */
+  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf);
+
+  if (is_paint) {
     ED_imapaint_clear_partial_redraw();
-    ED_imapaint_dirty_region(ima, ibuf, 0, 0, ibuf->x, ibuf->y, false);
   }
+
   /* TODO: make this into an IMB_invert_channels(ibuf,r,g,b,a) method!? */
   if (ibuf->rect_float) {
 
@@ -2842,9 +2839,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
     ibuf->userflags |= IB_MIPMAP_INVALID;
   }
 
-  if (support_undo) {
-    ED_image_undo_push_end();
-  }
+  ED_image_undo_push_end();
 
   /* force GPU reupload, all image is invalid */
   GPU_free_image(ima);
@@ -2880,7 +2875,7 @@ void IMAGE_OT_invert(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER;
 }
 
 /** \} */

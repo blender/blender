@@ -228,6 +228,8 @@ void IMB_blend_color_float(float dst[4],
 
 void IMB_rect_crop(struct ImBuf *ibuf, const struct rcti *crop);
 
+void IMB_rect_size_set(struct ImBuf *ibuf, const uint size[2]);
+
 void IMB_rectclip(struct ImBuf *dbuf,
                   const struct ImBuf *sbuf,
                   int *destx,
