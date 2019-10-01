@@ -14,7 +14,7 @@
  */
 
 /** \file
- * \ingroup edsculpt
+ * \ingroup spimage
  *
  * Overview
  * ========
@@ -63,8 +63,6 @@
 #include "GPU_draw.h"
 
 #include "WM_api.h"
-
-#include "paint_intern.h"
 
 static CLG_LogRef LOG = {"ed.image.undo"};
 

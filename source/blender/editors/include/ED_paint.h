@@ -40,7 +40,7 @@ void ED_imapaint_dirty_region(
     struct Image *ima, struct ImBuf *ibuf, int x, int y, int w, int h, bool find_old);
 void ED_imapaint_bucket_fill(struct bContext *C, float color[3], struct wmOperator *op);
 
-/* paint_image_undo.c */
+/* image_undo.c */
 void ED_image_undo_push_begin(const char *name, int paint_mode);
 void ED_image_undo_push_begin_with_image(const char *name,
                                          struct Image *image,
@@ -50,6 +50,33 @@ void ED_image_undo_push_end(void);
 void ED_image_undo_restore(struct UndoStep *us);
 
 void ED_image_undosys_type(struct UndoType *ut);
+
+void *image_undo_find_tile(struct ListBase *undo_tiles,
+                           struct Image *ima,
+                           struct ImBuf *ibuf,
+                           int x_tile,
+                           int y_tile,
+                           unsigned short **mask,
+                           bool validate);
+void *image_undo_push_tile(struct ListBase *undo_tiles,
+                           struct Image *ima,
+                           struct ImBuf *ibuf,
+                           struct ImBuf **tmpibuf,
+                           int x_tile,
+                           int y_tile,
+                           unsigned short **,
+                           bool **valid,
+                           bool proj,
+                           bool find_prev);
+void image_undo_remove_masks(void);
+void image_undo_init_locks(void);
+void image_undo_end_locks(void);
+
+struct ListBase *ED_image_undo_get_tiles(void);
+
+#define IMAPAINT_TILE_BITS 6
+#define IMAPAINT_TILE_SIZE (1 << IMAPAINT_TILE_BITS)
+#define IMAPAINT_TILE_NUMBER(size) (((size) + IMAPAINT_TILE_SIZE - 1) >> IMAPAINT_TILE_BITS)
 
 /* paint_curve_undo.c */
 void ED_paintcurve_undo_push_begin(const char *name);

@@ -29,6 +29,7 @@ set(INC
   ../../makesrna
   ../../render/extern/include
   ../../windowmanager
+  ../../../../intern/clog
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
 )
@@ -42,6 +43,7 @@ set(SRC
   image_draw.c
   image_edit.c
   image_ops.c
+  image_undo.c
   space_image.c
 
   image_intern.h
