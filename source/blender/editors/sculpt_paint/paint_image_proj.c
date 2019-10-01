@@ -4536,8 +4536,6 @@ static void project_paint_end(ProjPaintState *ps)
 {
   int a;
 
-  ED_image_paint_tile_remove_masks_all();
-
   /* dereference used image buffers */
   if (ps->is_shared_user == false) {
     ProjPaintImage *projIma;

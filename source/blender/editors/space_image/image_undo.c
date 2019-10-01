@@ -123,6 +123,9 @@ static void ptile_free(PaintTile *ptile)
   if (ptile->rect.pt) {
     MEM_freeN(ptile->rect.pt);
   }
+  if (ptile->mask) {
+    MEM_freeN(ptile->mask);
+  }
   MEM_freeN(ptile);
 }
 
@@ -169,14 +172,6 @@ void *ED_image_paint_tile_find(ListBase *paint_tiles,
     }
   }
   return NULL;
-}
-
-void ED_image_paint_tile_remove_masks_all(void)
-{
-  ListBase *paint_tiles = ED_image_paint_tile_list_get();
-  for (PaintTile *ptile = paint_tiles->first; ptile; ptile = ptile->next) {
-    MEM_SAFE_FREE(ptile->mask);
-  }
 }
 
 void *ED_image_paint_tile_push(ListBase *paint_tiles,

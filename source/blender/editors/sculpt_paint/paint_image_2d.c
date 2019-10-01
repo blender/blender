@@ -1455,8 +1455,6 @@ static void paint_2d_canvas_free(ImagePaintState *s)
     paint_delete_blur_kernel(s->blurkernel);
     MEM_freeN(s->blurkernel);
   }
-
-  ED_image_paint_tile_remove_masks_all();
 }
 
 void paint_2d_stroke(void *ps,

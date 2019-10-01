@@ -68,7 +68,6 @@ void *ED_image_paint_tile_push(struct ListBase *undo_tiles,
                                bool **r_valid,
                                bool use_thread_lock,
                                bool find_prev);
-void ED_image_paint_tile_remove_masks_all(void);
 void ED_image_paint_tile_lock_init(void);
 void ED_image_paint_tile_lock_end(void);
 
