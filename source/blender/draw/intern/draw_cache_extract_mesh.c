@@ -1183,8 +1183,7 @@ static void extract_edituv_lines_loop_mesh(const MeshRenderData *mr,
 {
   int loopend = mpoly->totloop + mpoly->loopstart - 1;
   int loop_next_idx = (loop_idx == loopend) ? mpoly->loopstart : (loop_idx + 1);
-  const bool real_edge = (mr->extract_type == MR_EXTRACT_MAPPED &&
-                          mr->e_origindex[mloop->e] != ORIGINDEX_NONE);
+  const bool real_edge = (mr->e_origindex == NULL || mr->e_origindex[mloop->e] != ORIGINDEX_NONE);
   edituv_edge_add(data,
                   (mpoly->flag & ME_HIDE) != 0 || !real_edge,
                   (mpoly->flag & ME_FACE_SEL) != 0,
