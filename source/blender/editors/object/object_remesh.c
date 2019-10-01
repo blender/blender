@@ -602,7 +602,7 @@ void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "mode",
                mode_type_items,
-               0,
+               QUADRIFLOW_REMESH_FACES,
                "Mode",
                "How to specify the amount of detail for the new mesh");
 
@@ -628,7 +628,7 @@ void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
 
   prop = RNA_def_int(ot->srna,
                      "target_faces",
-                     1,
+                     4000,
                      1,
                      INT_MAX,
                      "Number of Faces",
