@@ -648,7 +648,7 @@ static void rna_def_paint(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "input_samples", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "num_input_samples");
-  RNA_def_property_ui_range(prop, 1, PAINT_MAX_INPUT_SAMPLES, 0, -1);
+  RNA_def_property_ui_range(prop, 1, PAINT_MAX_INPUT_SAMPLES, 1, -1);
   RNA_def_property_ui_text(
       prop, "Input Samples", "Average multiple input samples together to smooth the brush stroke");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
@@ -1023,7 +1023,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
   /* integers */
 
   prop = RNA_def_property(srna, "seam_bleed", PROP_INT, PROP_PIXEL);
-  RNA_def_property_ui_range(prop, 0, 8, 0, -1);
+  RNA_def_property_ui_range(prop, 0, 8, 1, -1);
   RNA_def_property_ui_text(
       prop, "Bleed", "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)");
 
