@@ -2663,7 +2663,7 @@ def km_clip_editor(params):
         ("clip.hide_tracks", {"type": 'H', "value": 'PRESS', "shift": True},
          {"properties": [("unselected", True)]}),
         ("clip.hide_tracks_clear", {"type": 'H', "value": 'PRESS', "alt": True}, None),
-        ("clip.slide_plane_marker", {"type": params.action_mouse, "value": 'PRESS'}, None),
+        ("clip.slide_plane_marker", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("clip.keyframe_insert", {"type": 'I', "value": 'PRESS'}, None),
         ("clip.keyframe_delete", {"type": 'I', "value": 'PRESS', "alt": True}, None),
         ("clip.join_tracks", {"type": 'J', "value": 'PRESS', "ctrl": True}, None),
