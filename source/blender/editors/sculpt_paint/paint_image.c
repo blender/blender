@@ -113,10 +113,10 @@ void imapaint_region_tiles(
 
   IMB_rectclip(ibuf, NULL, &x, &y, &srcx, &srcy, &w, &h);
 
-  *tw = ((x + w - 1) >> IMAPAINT_TILE_BITS);
-  *th = ((y + h - 1) >> IMAPAINT_TILE_BITS);
-  *tx = (x >> IMAPAINT_TILE_BITS);
-  *ty = (y >> IMAPAINT_TILE_BITS);
+  *tw = ((x + w - 1) >> ED_IMAGE_UNDO_TILE_BITS);
+  *th = ((y + h - 1) >> ED_IMAGE_UNDO_TILE_BITS);
+  *tx = (x >> ED_IMAGE_UNDO_TILE_BITS);
+  *ty = (y >> ED_IMAGE_UNDO_TILE_BITS);
 }
 
 void ED_imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int h, bool find_old)
@@ -147,11 +147,12 @@ void ED_imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int 
 
   imapaint_region_tiles(ibuf, x, y, w, h, &tilex, &tiley, &tilew, &tileh);
 
-  ListBase *undo_tiles = ED_image_undo_get_tiles();
+  ListBase *undo_tiles = ED_image_paint_tile_list_get();
 
   for (ty = tiley; ty <= tileh; ty++) {
     for (tx = tilex; tx <= tilew; tx++) {
-      image_undo_push_tile(undo_tiles, ima, ibuf, &tmpibuf, tx, ty, NULL, NULL, false, find_old);
+      ED_image_paint_tile_push(
+          undo_tiles, ima, ibuf, &tmpibuf, tx, ty, NULL, NULL, false, find_old);
     }
   }
 

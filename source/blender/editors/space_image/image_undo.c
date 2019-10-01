@@ -75,12 +75,12 @@ static CLG_LogRef LOG = {"ed.image.undo"};
  * paint operation, but for now just give a public interface */
 static SpinLock paint_tiles_lock;
 
-void image_undo_init_locks(void)
+void ED_image_paint_tile_lock_init(void)
 {
   BLI_spin_init(&paint_tiles_lock);
 }
 
-void image_undo_end_locks(void)
+void ED_image_paint_tile_lock_end(void)
 {
   BLI_spin_end(&paint_tiles_lock);
 }
@@ -99,7 +99,8 @@ void image_undo_end_locks(void)
 
 static ImBuf *imbuf_alloc_temp_tile(void)
 {
-  return IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat | IB_rect);
+  return IMB_allocImBuf(
+      ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, 32, IB_rectfloat | IB_rect);
 }
 
 typedef struct PaintTile {
@@ -141,13 +142,13 @@ static void ptile_invalidate_list(ListBase *paint_tiles)
   }
 }
 
-void *image_undo_find_tile(ListBase *paint_tiles,
-                           Image *image,
-                           ImBuf *ibuf,
-                           int x_tile,
-                           int y_tile,
-                           ushort **r_mask,
-                           bool validate)
+void *ED_image_paint_tile_find(ListBase *paint_tiles,
+                               Image *image,
+                               ImBuf *ibuf,
+                               int x_tile,
+                               int y_tile,
+                               ushort **r_mask,
+                               bool validate)
 {
   for (PaintTile *ptile = paint_tiles->first; ptile; ptile = ptile->next) {
     if (ptile->x == x_tile && ptile->y == y_tile) {
@@ -155,7 +156,7 @@ void *image_undo_find_tile(ListBase *paint_tiles,
         if (r_mask) {
           /* allocate mask if requested. */
           if (!ptile->mask) {
-            ptile->mask = MEM_callocN(sizeof(ushort) * SQUARE(IMAPAINT_TILE_SIZE),
+            ptile->mask = MEM_callocN(sizeof(ushort) * SQUARE(ED_IMAGE_UNDO_TILE_SIZE),
                                       "UndoImageTile.mask");
           }
           *r_mask = ptile->mask;
@@ -170,24 +171,24 @@ void *image_undo_find_tile(ListBase *paint_tiles,
   return NULL;
 }
 
-void image_undo_remove_masks(void)
+void ED_image_paint_tile_remove_masks_all(void)
 {
-  ListBase *paint_tiles = ED_image_undo_get_tiles();
+  ListBase *paint_tiles = ED_image_paint_tile_list_get();
   for (PaintTile *ptile = paint_tiles->first; ptile; ptile = ptile->next) {
     MEM_SAFE_FREE(ptile->mask);
   }
 }
 
-void *image_undo_push_tile(ListBase *paint_tiles,
-                           Image *image,
-                           ImBuf *ibuf,
-                           ImBuf **tmpibuf,
-                           int x_tile,
-                           int y_tile,
-                           ushort **r_mask,
-                           bool **valid,
-                           bool proj,
-                           bool find_prev)
+void *ED_image_paint_tile_push(ListBase *paint_tiles,
+                               Image *image,
+                               ImBuf *ibuf,
+                               ImBuf **tmpibuf,
+                               int x_tile,
+                               int y_tile,
+                               ushort **r_mask,
+                               bool **r_valid,
+                               bool use_thread_lock,
+                               bool find_prev)
 {
   const bool has_float = (ibuf->rect_float != NULL);
 
@@ -195,7 +196,7 @@ void *image_undo_push_tile(ListBase *paint_tiles,
 
   /* in projective painting we keep accounting of tiles, so if we need one pushed, just push! */
   if (find_prev) {
-    void *data = image_undo_find_tile(paint_tiles, image, ibuf, x_tile, y_tile, r_mask, true);
+    void *data = ED_image_paint_tile_find(paint_tiles, image, ibuf, x_tile, y_tile, r_mask, true);
     if (data) {
       return data;
     }
@@ -215,29 +216,29 @@ void *image_undo_push_tile(ListBase *paint_tiles,
 
   /* add mask explicitly here */
   if (r_mask) {
-    *r_mask = ptile->mask = MEM_callocN(sizeof(ushort) * SQUARE(IMAPAINT_TILE_SIZE),
+    *r_mask = ptile->mask = MEM_callocN(sizeof(ushort) * SQUARE(ED_IMAGE_UNDO_TILE_SIZE),
                                         "PaintTile.mask");
   }
 
   ptile->rect.pt = MEM_mapallocN((ibuf->rect_float ? sizeof(float[4]) : sizeof(char[4])) *
-                                     SQUARE(IMAPAINT_TILE_SIZE),
+                                     SQUARE(ED_IMAGE_UNDO_TILE_SIZE),
                                  "PaintTile.rect");
 
   ptile->use_float = has_float;
   ptile->valid = true;
 
-  if (valid) {
-    *valid = &ptile->valid;
+  if (r_valid) {
+    *r_valid = &ptile->valid;
   }
 
   IMB_rectcpy(*tmpibuf,
               ibuf,
               0,
               0,
-              x_tile * IMAPAINT_TILE_SIZE,
-              y_tile * IMAPAINT_TILE_SIZE,
-              IMAPAINT_TILE_SIZE,
-              IMAPAINT_TILE_SIZE);
+              x_tile * ED_IMAGE_UNDO_TILE_SIZE,
+              y_tile * ED_IMAGE_UNDO_TILE_SIZE,
+              ED_IMAGE_UNDO_TILE_SIZE,
+              ED_IMAGE_UNDO_TILE_SIZE);
 
   if (has_float) {
     SWAP(float *, ptile->rect.fp, (*tmpibuf)->rect_float);
@@ -246,12 +247,12 @@ void *image_undo_push_tile(ListBase *paint_tiles,
     SWAP(uint *, ptile->rect.uint, (*tmpibuf)->rect);
   }
 
-  if (proj) {
+  if (use_thread_lock) {
     BLI_spin_lock(&paint_tiles_lock);
   }
   BLI_addtail(paint_tiles, ptile);
 
-  if (proj) {
+  if (use_thread_lock) {
     BLI_spin_unlock(&paint_tiles_lock);
   }
   return ptile->rect.pt;
@@ -273,7 +274,8 @@ static void ptile_restore_runtime_list(ListBase *paint_tiles)
       SWAP(uint *, ptile->rect.uint, tmpibuf->rect);
     }
 
-    IMB_rectcpy(ibuf, tmpibuf, ptile->x, ptile->y, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
+    IMB_rectcpy(
+        ibuf, tmpibuf, ptile->x, ptile->y, 0, 0, ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE);
 
     if (has_float) {
       SWAP(float *, ptile->rect.fp, tmpibuf->rect_float);
@@ -322,10 +324,10 @@ static UndoImageTile *utile_alloc(bool has_float)
 {
   UndoImageTile *utile = MEM_callocN(sizeof(*utile), "ImageUndoTile");
   if (has_float) {
-    utile->rect.fp = MEM_mallocN(sizeof(float[4]) * SQUARE(IMAPAINT_TILE_SIZE), __func__);
+    utile->rect.fp = MEM_mallocN(sizeof(float[4]) * SQUARE(ED_IMAGE_UNDO_TILE_SIZE), __func__);
   }
   else {
-    utile->rect.uint = MEM_mallocN(sizeof(uint) * SQUARE(IMAPAINT_TILE_SIZE), __func__);
+    utile->rect.uint = MEM_mallocN(sizeof(uint) * SQUARE(ED_IMAGE_UNDO_TILE_SIZE), __func__);
   }
   return utile;
 }
@@ -342,7 +344,7 @@ static void utile_init_from_imbuf(
     SWAP(uint *, utile->rect.uint, tmpibuf->rect);
   }
 
-  IMB_rectcpy(tmpibuf, ibuf, 0, 0, x, y, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
+  IMB_rectcpy(tmpibuf, ibuf, 0, 0, x, y, ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE);
 
   if (has_float) {
     SWAP(float *, utile->rect.fp, tmpibuf->rect_float);
@@ -366,7 +368,7 @@ static void utile_restore(
     tmpibuf->rect = utile->rect.uint;
   }
 
-  IMB_rectcpy(ibuf, tmpibuf, x, y, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
+  IMB_rectcpy(ibuf, tmpibuf, x, y, 0, 0, ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE);
 
   tmpibuf->rect_float = prev_rect_float;
   tmpibuf->rect = prev_rect;
@@ -422,8 +424,8 @@ static UndoImageBuf *ubuf_from_image_no_tiles(Image *image, const ImBuf *ibuf)
   ubuf->image_dims[0] = ibuf->x;
   ubuf->image_dims[1] = ibuf->y;
 
-  ubuf->tiles_dims[0] = IMAPAINT_TILE_NUMBER(ubuf->image_dims[0]);
-  ubuf->tiles_dims[1] = IMAPAINT_TILE_NUMBER(ubuf->image_dims[1]);
+  ubuf->tiles_dims[0] = ED_IMAGE_UNDO_TILE_NUMBER(ubuf->image_dims[0]);
+  ubuf->tiles_dims[1] = ED_IMAGE_UNDO_TILE_NUMBER(ubuf->image_dims[1]);
 
   ubuf->tiles_len = ubuf->tiles_dims[0] * ubuf->tiles_dims[1];
   ubuf->tiles = MEM_callocN(sizeof(*ubuf->tiles) * ubuf->tiles_len, __func__);
@@ -443,9 +445,9 @@ static void ubuf_from_image_all_tiles(UndoImageBuf *ubuf, const ImBuf *ibuf)
   const bool has_float = ibuf->rect_float;
   int i = 0;
   for (uint y_tile = 0; y_tile < ubuf->tiles_dims[1]; y_tile += 1) {
-    uint y = y_tile << IMAPAINT_TILE_BITS;
+    uint y = y_tile << ED_IMAGE_UNDO_TILE_BITS;
     for (uint x_tile = 0; x_tile < ubuf->tiles_dims[0]; x_tile += 1) {
-      uint x = x_tile << IMAPAINT_TILE_BITS;
+      uint x = x_tile << ED_IMAGE_UNDO_TILE_BITS;
 
       BLI_assert(ubuf->tiles[i] == NULL);
       UndoImageTile *utile = utile_alloc(has_float);
@@ -516,9 +518,9 @@ static void uhandle_restore_list(ListBase *undo_handles, bool use_init)
       IMB_rect_size_set(ibuf, ubuf->image_dims);
       int i = 0;
       for (uint y_tile = 0; y_tile < ubuf->tiles_dims[1]; y_tile += 1) {
-        uint y = y_tile << IMAPAINT_TILE_BITS;
+        uint y = y_tile << ED_IMAGE_UNDO_TILE_BITS;
         for (uint x_tile = 0; x_tile < ubuf->tiles_dims[0]; x_tile += 1) {
-          uint x = x_tile << IMAPAINT_TILE_BITS;
+          uint x = x_tile << ED_IMAGE_UNDO_TILE_BITS;
           utile_restore(ubuf->tiles[i], x, y, ibuf, tmpibuf);
           changed = true;
           i += 1;
@@ -775,9 +777,9 @@ static bool image_undosys_step_encode(struct bContext *C,
 
           int i = 0;
           for (uint y_tile = 0; y_tile < ubuf_pre->tiles_dims[1]; y_tile += 1) {
-            uint y = y_tile << IMAPAINT_TILE_BITS;
+            uint y = y_tile << ED_IMAGE_UNDO_TILE_BITS;
             for (uint x_tile = 0; x_tile < ubuf_pre->tiles_dims[0]; x_tile += 1) {
-              uint x = x_tile << IMAPAINT_TILE_BITS;
+              uint x = x_tile << ED_IMAGE_UNDO_TILE_BITS;
 
               if ((ubuf_reference != NULL) && ((ubuf_pre->tiles[i] == NULL) ||
                                                /* In this case the paint stroke as has added a tile
@@ -957,7 +959,7 @@ void ED_image_undosys_type(UndoType *ut)
 /** \name Utilities
  * \{ */
 
-ListBase *ED_image_undo_get_tiles(void)
+ListBase *ED_image_paint_tile_list_get(void)
 {
   UndoStack *ustack = ED_undo_stack_get();
   UndoStep *us_prev = ustack->step_init;

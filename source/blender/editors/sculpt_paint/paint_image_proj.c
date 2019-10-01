@@ -1807,31 +1807,31 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
   }
 
   if (generate_tile) {
-    ListBase *undo_tiles = ED_image_undo_get_tiles();
+    ListBase *undo_tiles = ED_image_paint_tile_list_get();
     volatile void *undorect;
     if (tinf->masked) {
-      undorect = image_undo_push_tile(undo_tiles,
-                                      pjIma->ima,
-                                      pjIma->ibuf,
-                                      tinf->tmpibuf,
-                                      tx,
-                                      ty,
-                                      &pjIma->maskRect[tile_index],
-                                      &pjIma->valid[tile_index],
-                                      true,
-                                      false);
+      undorect = ED_image_paint_tile_push(undo_tiles,
+                                          pjIma->ima,
+                                          pjIma->ibuf,
+                                          tinf->tmpibuf,
+                                          tx,
+                                          ty,
+                                          &pjIma->maskRect[tile_index],
+                                          &pjIma->valid[tile_index],
+                                          true,
+                                          false);
     }
     else {
-      undorect = image_undo_push_tile(undo_tiles,
-                                      pjIma->ima,
-                                      pjIma->ibuf,
-                                      tinf->tmpibuf,
-                                      tx,
-                                      ty,
-                                      NULL,
-                                      &pjIma->valid[tile_index],
-                                      true,
-                                      false);
+      undorect = ED_image_paint_tile_push(undo_tiles,
+                                          pjIma->ima,
+                                          pjIma->ibuf,
+                                          tinf->tmpibuf,
+                                          tx,
+                                          ty,
+                                          NULL,
+                                          &pjIma->valid[tile_index],
+                                          true,
+                                          false);
     }
 
     BKE_image_mark_dirty(pjIma->ima, pjIma->ibuf);
@@ -1880,14 +1880,14 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
 
   /* calculate the undo tile offset of the pixel, used to store the original
    * pixel color and accumulated mask if any */
-  x_tile = x_px >> IMAPAINT_TILE_BITS;
-  y_tile = y_px >> IMAPAINT_TILE_BITS;
+  x_tile = x_px >> ED_IMAGE_UNDO_TILE_BITS;
+  y_tile = y_px >> ED_IMAGE_UNDO_TILE_BITS;
 
-  x_round = x_tile * IMAPAINT_TILE_SIZE;
-  y_round = y_tile * IMAPAINT_TILE_SIZE;
+  x_round = x_tile * ED_IMAGE_UNDO_TILE_SIZE;
+  y_round = y_tile * ED_IMAGE_UNDO_TILE_SIZE;
   // memset(projPixel, 0, size);
 
-  tile_offset = (x_px - x_round) + (y_px - y_round) * IMAPAINT_TILE_SIZE;
+  tile_offset = (x_px - x_round) + (y_px - y_round) * ED_IMAGE_UNDO_TILE_SIZE;
   tile_index = project_paint_undo_subtiles(tinf, x_tile, y_tile);
 
   /* other thread may be initializing the tile so wait here */
@@ -1895,8 +1895,9 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
     /* pass */
   }
 
-  BLI_assert(tile_index < (IMAPAINT_TILE_NUMBER(ibuf->x) * IMAPAINT_TILE_NUMBER(ibuf->y)));
-  BLI_assert(tile_offset < (IMAPAINT_TILE_SIZE * IMAPAINT_TILE_SIZE));
+  BLI_assert(tile_index <
+             (ED_IMAGE_UNDO_TILE_NUMBER(ibuf->x) * ED_IMAGE_UNDO_TILE_NUMBER(ibuf->y)));
+  BLI_assert(tile_offset < (ED_IMAGE_UNDO_TILE_SIZE * ED_IMAGE_UNDO_TILE_SIZE));
 
   projPixel->valid = projima->valid[tile_index];
 
@@ -2974,7 +2975,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
   TileInfo tinf = {
       ps->tile_lock,
       ps->do_masking,
-      IMAPAINT_TILE_NUMBER(ibuf->x),
+      ED_IMAGE_UNDO_TILE_NUMBER(ibuf->x),
       tmpibuf,
       ps->projImages + image_index,
   };
@@ -3926,7 +3927,7 @@ static void proj_paint_state_thread_init(ProjPaintState *ps, const bool reset_th
       BLI_spin_init(ps->tile_lock);
     }
 
-    image_undo_init_locks();
+    ED_image_paint_tile_lock_init();
   }
 
   for (a = 0; a < ps->thread_tot; a++) {
@@ -4244,8 +4245,8 @@ static void project_paint_build_proj_ima(ProjPaintState *ps,
     projIma->ima = node->link;
     projIma->touch = 0;
     projIma->ibuf = BKE_image_acquire_ibuf(projIma->ima, NULL, NULL);
-    size = sizeof(void **) * IMAPAINT_TILE_NUMBER(projIma->ibuf->x) *
-           IMAPAINT_TILE_NUMBER(projIma->ibuf->y);
+    size = sizeof(void **) * ED_IMAGE_UNDO_TILE_NUMBER(projIma->ibuf->x) *
+           ED_IMAGE_UNDO_TILE_NUMBER(projIma->ibuf->y);
     projIma->partRedrawRect = BLI_memarena_alloc(
         arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
     partial_redraw_array_init(projIma->partRedrawRect);
@@ -4535,7 +4536,7 @@ static void project_paint_end(ProjPaintState *ps)
 {
   int a;
 
-  image_undo_remove_masks();
+  ED_image_paint_tile_remove_masks_all();
 
   /* dereference used image buffers */
   if (ps->is_shared_user == false) {
@@ -4578,7 +4579,7 @@ static void project_paint_end(ProjPaintState *ps)
       MEM_freeN((void *)ps->tile_lock);
     }
 
-    image_undo_end_locks();
+    ED_image_paint_tile_lock_end();
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
     if (ps->seam_bleed_px > 0.0f) {

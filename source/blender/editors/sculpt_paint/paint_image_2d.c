@@ -1197,23 +1197,24 @@ static void paint_2d_do_making_brush(ImagePaintState *s,
                                      int tileh)
 {
   ImBuf tmpbuf;
-  IMB_initImBuf(&tmpbuf, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, 0);
+  IMB_initImBuf(&tmpbuf, ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, 32, 0);
 
-  ListBase *undo_tiles = ED_image_undo_get_tiles();
+  ListBase *undo_tiles = ED_image_paint_tile_list_get();
 
   for (int ty = tiley; ty <= tileh; ty++) {
     for (int tx = tilex; tx <= tilew; tx++) {
       /* retrieve original pixels + mask from undo buffer */
       unsigned short *mask;
-      int origx = region->destx - tx * IMAPAINT_TILE_SIZE;
-      int origy = region->desty - ty * IMAPAINT_TILE_SIZE;
+      int origx = region->destx - tx * ED_IMAGE_UNDO_TILE_SIZE;
+      int origy = region->desty - ty * ED_IMAGE_UNDO_TILE_SIZE;
 
       if (s->canvas->rect_float) {
-        tmpbuf.rect_float = image_undo_find_tile(
+        tmpbuf.rect_float = ED_image_paint_tile_find(
             undo_tiles, s->image, s->canvas, tx, ty, &mask, false);
       }
       else {
-        tmpbuf.rect = image_undo_find_tile(undo_tiles, s->image, s->canvas, tx, ty, &mask, false);
+        tmpbuf.rect = ED_image_paint_tile_find(
+            undo_tiles, s->image, s->canvas, tx, ty, &mask, false);
       }
 
       IMB_rectblend(s->canvas,
@@ -1455,7 +1456,7 @@ static void paint_2d_canvas_free(ImagePaintState *s)
     MEM_freeN(s->blurkernel);
   }
 
-  image_undo_remove_masks();
+  ED_image_paint_tile_remove_masks_all();
 }
 
 void paint_2d_stroke(void *ps,
