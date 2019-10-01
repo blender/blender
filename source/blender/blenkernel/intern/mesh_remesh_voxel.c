@@ -308,7 +308,7 @@ Mesh *BKE_mesh_remesh_voxel_to_mesh_nomain(Mesh *mesh, float voxel_size, float a
   OpenVDBLevelSet_free(level_set);
   OpenVDBTransform_free(xform);
 #else
-  UNUSED_VARS(mesh, voxel_size);
+  UNUSED_VARS(mesh, voxel_size, adaptivity);
 #endif
   return new_mesh;
 }
