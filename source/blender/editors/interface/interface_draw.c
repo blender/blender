@@ -1849,9 +1849,17 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
     cumap = (CurveMapping *)but->poin;
   }
 
+  float clip_size_x = BLI_rctf_size_x(&cumap->curr);
+  float clip_size_y = BLI_rctf_size_y(&cumap->curr);
+
+  /* zero-sized curve */
+  if (clip_size_x == 0.0f || clip_size_y == 0.0f) {
+    return;
+  }
+
   /* calculate offset and zoom */
-  float zoomx = (BLI_rcti_size_x(rect) - 2.0f) / BLI_rctf_size_x(&cumap->curr);
-  float zoomy = (BLI_rcti_size_y(rect) - 2.0f) / BLI_rctf_size_y(&cumap->curr);
+  float zoomx = (BLI_rcti_size_x(rect) - 2.0f) / clip_size_x;
+  float zoomy = (BLI_rcti_size_y(rect) - 2.0f) / clip_size_y;
   float offsx = cumap->curr.xmin - (1.0f / zoomx);
   float offsy = cumap->curr.ymin - (1.0f / zoomy);
 
