@@ -575,7 +575,7 @@ ccl_device_intersect uint scene_intersect_volume_all(KernelGlobals *kg,
     RTCRay rtc_ray;
     kernel_embree_setup_ray(*ray, rtc_ray, visibility);
     rtcOccluded1(kernel_data.bvh.scene, &rtc_ctx.context, &rtc_ray);
-    return rtc_ray.tfar == -INFINITY;
+    return ctx.num_hits;
   }
 #  endif /* __EMBREE__ */
 
