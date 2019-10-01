@@ -4521,7 +4521,7 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
   }
 
   /* align with open menu */
-  if (but->active && (but->type != UI_BTYPE_POPOVER)) {
+  if (but->active && (but->type != UI_BTYPE_POPOVER) && !ui_but_menu_draw_as_popover(but)) {
     int direction = ui_but_menu_direction(but);
 
     if (direction == UI_DIR_UP) {
