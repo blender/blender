@@ -1610,15 +1610,19 @@ if(WITH_PYTHON)
   endif()
 endif()
 
-if(
+if(MSVC)
+  # MSVC needs to be tested first, since clang on windows will
+  # match the compiler test below but clang-cl does not accept -std=c++11
+  # since it is on by default and cannot be turned off.
+  #
+  # Nothing special is needed, C++11 features are available by default.
+elseif(
   CMAKE_COMPILER_IS_GNUCC OR
   CMAKE_C_COMPILER_ID MATCHES "Clang" OR
   CMAKE_C_COMPILER_ID MATCHES "Intel"
 )
   # TODO(sergey): Do we want c++11 or gnu-c++11 here?
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(MSVC)
-  # Nothing special is needed, C++11 features are available by default.
 else()
   message(FATAL_ERROR "Unknown compiler ${CMAKE_C_COMPILER_ID}, can't enable C++11 build")
 endif()
