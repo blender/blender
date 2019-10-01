@@ -34,14 +34,6 @@
 /* ensure we get at least this many elems per chunk */
 #define CHUNK_ELEM_MIN 32
 
-/* Gets the first or last element in the queue */
-#define CHUNK_FIRST_ELEM(_queue) \
-  ((void)0, \
-   (((char *)(_queue)->chunk_first->data) + ((_queue)->elem_size * (_queue)->chunk_first_index)))
-#define CHUNK_LAST_ELEM(_queue) \
-  ((void)0, \
-   (((char *)(_queue)->chunk_last->data) + ((_queue)->elem_size * (_queue)->chunk_last_index)))
-
 struct QueueChunk {
   struct QueueChunk *next;
   char data[0];
@@ -57,6 +49,16 @@ struct _GSQueue {
   size_t elem_size;               /* memory size of elements */
   size_t totelem;                 /* total number of elements */
 };
+
+static void *queue_get_first_elem(GSQueue *queue)
+{
+  return ((char *)(queue)->chunk_first->data) + ((queue)->elem_size * (queue)->chunk_first_index);
+}
+
+static void *queue_get_last_elem(GSQueue *queue)
+{
+  return ((char *)(queue)->chunk_last->data) + ((queue)->elem_size * (queue)->chunk_last_index);
+}
 
 /**
  * \return number of elements per chunk, optimized for slop-space.
@@ -148,8 +150,7 @@ void BLI_gsqueue_push(GSQueue *queue, const void *src)
   BLI_assert(queue->chunk_last_index < queue->chunk_elem_max);
 
   /* Return last of queue */
-  void *dst = CHUNK_LAST_ELEM(queue);
-  memcpy(dst, src, queue->elem_size);
+  memcpy(queue_get_last_elem(queue), src, queue->elem_size);
 }
 
 /**
@@ -162,7 +163,7 @@ void BLI_gsqueue_pop(GSQueue *queue, void *dst)
 {
   BLI_assert(BLI_gsqueue_is_empty(queue) == false);
 
-  memcpy(dst, CHUNK_FIRST_ELEM(queue), queue->elem_size);
+  memcpy(dst, queue_get_first_elem(queue), queue->elem_size);
   queue->chunk_first_index++;
   queue->totelem--;
 

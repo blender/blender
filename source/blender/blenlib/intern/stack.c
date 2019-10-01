@@ -36,10 +36,6 @@
 /* ensure we get at least this many elems per chunk */
 #define CHUNK_ELEM_MIN 32
 
-/* Gets the last element in the stack */
-#define CHUNK_LAST_ELEM(_stack) \
-  ((void)0, (((char *)(_stack)->chunk_curr->data) + ((_stack)->elem_size * (_stack)->chunk_index)))
-
 struct StackChunk {
   struct StackChunk *next;
   char data[0];
@@ -55,6 +51,11 @@ struct BLI_Stack {
   size_t totelem;
 #endif
 };
+
+static void *stack_get_last_elem(BLI_Stack *stack)
+{
+  return ((char *)(stack)->chunk_curr->data) + ((stack)->elem_size * (stack)->chunk_index);
+}
 
 /**
  * \return number of elements per chunk, optimized for slop-space.
@@ -148,7 +149,7 @@ void *BLI_stack_push_r(BLI_Stack *stack)
 #endif
 
   /* Return end of stack */
-  return CHUNK_LAST_ELEM(stack);
+  return stack_get_last_elem(stack);
 }
 
 /**
@@ -175,7 +176,7 @@ void BLI_stack_pop(BLI_Stack *stack, void *dst)
 {
   BLI_assert(BLI_stack_is_empty(stack) == false);
 
-  memcpy(dst, CHUNK_LAST_ELEM(stack), stack->elem_size);
+  memcpy(dst, stack_get_last_elem(stack), stack->elem_size);
 
   BLI_stack_discard(stack);
 }
@@ -220,7 +221,7 @@ void *BLI_stack_peek(BLI_Stack *stack)
 {
   BLI_assert(BLI_stack_is_empty(stack) == false);
 
-  return CHUNK_LAST_ELEM(stack);
+  return stack_get_last_elem(stack);
 }
 
 /**
