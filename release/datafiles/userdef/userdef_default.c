@@ -22,6 +22,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_space_types.h"
+#include "DNA_anim_types.h"
 
 #include "BLI_math_rotation.h"
 
@@ -138,6 +139,7 @@ const UserDef U_default = {
     .glreslimit = 0,
     .curssize = 0,
     .color_picker_type = USER_CP_CIRCLE_HSV,
+    .auto_smoothing_new = FCURVE_SMOOTH_CONT_ACCEL,
     .ipo_new = BEZT_IPO_BEZ,
     .keyhandles_new = HD_AUTO_ANIM,
     .view_frame_type = ZOOM_FRAME_MODE_KEEP_RANGE,

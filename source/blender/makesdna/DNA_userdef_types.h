@@ -728,11 +728,13 @@ typedef struct UserDef {
   short curssize;
   /** #eColorPicker_Types. */
   short color_picker_type;
+  /** Curve smoothing type for newly added F-Curves. */
+  char auto_smoothing_new;
   /** Interpolation mode for newly added F-Curves. */
   char ipo_new;
   /** Handle types for newly added keyframes. */
   char keyhandles_new;
-  char _pad11[3];
+  char _pad11[2];
   /** #eZoomFrame_Mode. */
   char view_frame_type;
 

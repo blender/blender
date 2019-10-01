@@ -383,7 +383,7 @@ void BCAnimationCurve::adjust_range(const int frame_index)
 void BCAnimationCurve::add_value(const float val, const int frame_index)
 {
   FCurve *fcu = get_edit_fcurve();
-  fcu->auto_smoothing = FCURVE_SMOOTH_CONT_ACCEL;
+  fcu->auto_smoothing = U.auto_smoothing_new;
   insert_vert_fcurve(fcu, frame_index, val, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NOFLAGS);
 
   if (fcu->totvert == 1) {

@@ -111,7 +111,7 @@ struct FCurve *alloc_driver_fcurve(const char rna_path[],
   FCurve *fcu = MEM_callocN(sizeof(FCurve), "FCurve");
 
   fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
-  fcu->auto_smoothing = FCURVE_SMOOTH_CONT_ACCEL;
+  fcu->auto_smoothing = U.auto_smoothing_new;
 
   /* store path - make copy, and store that */
   if (rna_path) {

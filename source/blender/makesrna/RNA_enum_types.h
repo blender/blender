@@ -90,6 +90,7 @@ extern const EnumPropertyItem rna_enum_color_sets_items[];
 extern const EnumPropertyItem rna_enum_beztriple_keyframe_type_items[];
 extern const EnumPropertyItem rna_enum_beztriple_interpolation_mode_items[];
 extern const EnumPropertyItem rna_enum_beztriple_interpolation_easing_items[];
+extern const EnumPropertyItem rna_enum_fcurve_auto_smoothing_items[];
 extern const EnumPropertyItem rna_enum_keyframe_handle_type_items[];
 extern const EnumPropertyItem rna_enum_driver_target_rotation_mode_items[];
 

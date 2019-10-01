@@ -104,7 +104,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 
         fcu->flag = (FCURVE_VISIBLE | FCURVE_AUTO_HANDLES | FCURVE_SELECTED);
         fcu->array_index = 0;
-        fcu->auto_smoothing = FCURVE_SMOOTH_CONT_ACCEL;
+        fcu->auto_smoothing = U.auto_smoothing_new;
 
         for (unsigned int j = 0; j < curve->getKeyCount(); j++) {
           BezTriple bez;

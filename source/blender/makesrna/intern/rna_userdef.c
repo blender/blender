@@ -4657,6 +4657,13 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
       "Color for newly added transformation F-Curves (Location, Rotation, Scale) "
       "and also Color is based on the transform axis");
 
+  prop = RNA_def_property(srna, "fcurve_new_auto_smoothing", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_fcurve_auto_smoothing_items);
+  RNA_def_property_enum_sdna(prop, NULL, "auto_smoothing_new");
+  RNA_def_property_ui_text(prop,
+                           "New Curve Smoothing Mode",
+                           "Auto Handle Smoothing mode used for newly added F-Curves");
+
   prop = RNA_def_property(srna, "keyframe_new_interpolation_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_beztriple_interpolation_mode_items);
   RNA_def_property_enum_sdna(prop, NULL, "ipo_new");

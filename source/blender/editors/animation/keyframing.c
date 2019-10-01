@@ -202,7 +202,7 @@ FCurve *verify_fcurve(Main *bmain,
     fcu = MEM_callocN(sizeof(FCurve), "FCurve");
 
     fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
-    fcu->auto_smoothing = FCURVE_SMOOTH_CONT_ACCEL;
+    fcu->auto_smoothing = U.auto_smoothing_new;
     if (BLI_listbase_is_empty(&act->curves)) {
       fcu->flag |= FCURVE_ACTIVE; /* first one added active */
     }

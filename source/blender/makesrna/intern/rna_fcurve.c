@@ -76,6 +76,22 @@ const EnumPropertyItem rna_enum_fmodifier_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_fcurve_auto_smoothing_items[] = {
+    {FCURVE_SMOOTH_NONE,
+     "NONE",
+     0,
+     "None",
+     "Automatic handles only take immediately adjacent keys into account"},
+    {FCURVE_SMOOTH_CONT_ACCEL,
+     "CONT_ACCEL",
+     0,
+     "Continuous Acceleration",
+     "Automatic handles are adjusted to avoid jumps in acceleration, resulting "
+     "in smoother curves. However, key changes may affect interpolation over a "
+     "larger stretch of the curve"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 const EnumPropertyItem rna_enum_beztriple_keyframe_type_items[] = {
     {BEZT_KEYTYPE_KEYFRAME,
      "KEYFRAME",
@@ -2258,19 +2274,6 @@ static void rna_def_fcurve(BlenderRNA *brna)
        "Use custom hand-picked color for F-Curve"},
       {0, NULL, 0, NULL, NULL},
   };
-  static EnumPropertyItem prop_mode_smoothing_items[] = {
-      {FCURVE_SMOOTH_NONE,
-       "NONE",
-       0,
-       "None",
-       "Auto handles only take adjacent keys into account (legacy mode)"},
-      {FCURVE_SMOOTH_CONT_ACCEL,
-       "CONT_ACCEL",
-       0,
-       "Continuous Acceleration",
-       "Auto handles are placed to avoid jumps in acceleration"},
-      {0, NULL, 0, NULL, NULL},
-  };
 
   srna = RNA_def_struct(brna, "FCurve", NULL);
   RNA_def_struct_ui_text(srna, "F-Curve", "F-Curve defining values of a period of time");
@@ -2350,7 +2353,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
   prop = RNA_def_property(srna, "auto_smoothing", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, prop_mode_smoothing_items);
+  RNA_def_property_enum_items(prop, rna_enum_fcurve_auto_smoothing_items);
   RNA_def_property_ui_text(
       prop, "Auto Handle Smoothing", "Algorithm used to compute automatic handles");
   RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_FCurve_update_data");
