@@ -463,7 +463,7 @@ static PyObject *M_imbuf_load(PyObject *UNUSED(self), PyObject *args, PyObject *
 
   const int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (file == -1) {
-    PyErr_Format(PyExc_IOError, "load: %s, failed to open file '%s'", strerror(errno));
+    PyErr_Format(PyExc_IOError, "load: %s, failed to open file '%s'", strerror(errno), filepath);
     return NULL;
   }
 
