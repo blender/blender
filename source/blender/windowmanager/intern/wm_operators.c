@@ -2621,38 +2621,34 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
             }
             else {
               delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
-              delta[1] = rc->initial_mouse[1] - rc->slow_mouse[1];
+              delta[1] = 0.0f;
 
               if (rc->zoom_prop) {
                 RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
                 delta[0] /= zoom[0];
-                delta[1] /= zoom[1];
               }
 
               dist = len_v2(delta);
 
               delta[0] = event->x - rc->slow_mouse[0];
-              delta[1] = event->y - rc->slow_mouse[1];
 
               if (rc->zoom_prop) {
                 delta[0] /= zoom[0];
-                delta[1] /= zoom[1];
               }
 
-              dist = dist + 0.1f * (delta[0] + delta[1]);
+              dist = dist + 0.1f * (delta[0]);
             }
           }
           else {
             delta[0] = rc->initial_mouse[0] - event->x;
-            delta[1] = rc->initial_mouse[1] - event->y;
+            delta[1] = 0.0f;
 
             if (rc->zoom_prop) {
               RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
               delta[0] /= zoom[0];
-              delta[1] /= zoom[1];
             }
 
-            dist = len_v2(delta);
+            dist = clamp_f(-delta[0], 0.0f, FLT_MAX);
           }
 
           /* calculate new value and apply snapping  */
