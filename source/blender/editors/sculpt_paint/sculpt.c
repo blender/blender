@@ -1429,7 +1429,10 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
   /* Update the test radius to sample the normal using the normal radius of the brush */
   if (data->brush->ob_mode == OB_MODE_SCULPT) {
     float test_radius = sqrtf(test.radius_squared);
-    test_radius *= data->brush->normal_radius_factor;
+    /* Layer brush produces artifacts with normal radius */
+    if (!(ss->cache && data->brush->sculpt_tool == SCULPT_TOOL_LAYER)) {
+      test_radius *= data->brush->normal_radius_factor;
+    }
     test.radius_squared = test_radius * test_radius;
   }
 
