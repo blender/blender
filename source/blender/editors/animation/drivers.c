@@ -120,9 +120,6 @@ struct FCurve *alloc_driver_fcurve(const char rna_path[],
   fcu->array_index = array_index;
 
   if (!ELEM(creation_mode, DRIVER_FCURVE_LOOKUP_ONLY, DRIVER_FCURVE_EMPTY)) {
-    BezTriple *bezt;
-    size_t i;
-
     /* add some new driver data */
     fcu->driver = MEM_callocN(sizeof(ChannelDriver), "ChannelDriver");
 
