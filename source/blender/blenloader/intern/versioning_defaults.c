@@ -419,7 +419,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   {
     /* Enable for UV sculpt (other brush types will be created as needed),
      * without this the grab brush will be active but not selectable from the list. */
-    Brush *brush = BLI_findstring(&bmain->brushes, "Grab", offsetof(ID, name) + 2);
+    const char *brush_name = "Grab";
+    Brush *brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
     if (brush) {
       brush->ob_mode |= OB_MODE_EDIT;
     }
@@ -431,35 +432,43 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
   {
     /* Change the spacing of the Smear brush to 3.0% */
-    Brush *brush = BLI_findstring(&bmain->brushes, "Smear", offsetof(ID, name) + 2);
+    const char *brush_name;
+    Brush *brush;
+
+    brush_name = "Smear";
+    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
     if (brush) {
       brush->spacing = 3.0;
     }
 
-    brush = BLI_findstring(&bmain->brushes, "Draw Sharp", offsetof(ID, name) + 2);
+    brush_name = "Draw Sharp";
+    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
     if (!brush) {
-      brush = BKE_brush_add(bmain, "Draw Sharp", OB_MODE_SCULPT);
+      brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
       brush->sculpt_tool = SCULPT_TOOL_DRAW_SHARP;
     }
 
-    brush = BLI_findstring(&bmain->brushes, "Elastic Deform", offsetof(ID, name) + 2);
+    brush_name = "Elastic Deform";
+    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
     if (!brush) {
-      brush = BKE_brush_add(bmain, "Elastic Defrom", OB_MODE_SCULPT);
+      brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
       brush->sculpt_tool = SCULPT_TOOL_ELASTIC_DEFORM;
     }
 
-    brush = BLI_findstring(&bmain->brushes, "Pose", offsetof(ID, name) + 2);
+    brush_name = "Pose";
+    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
     if (!brush) {
-      brush = BKE_brush_add(bmain, "Pose", OB_MODE_SCULPT);
+      brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
       brush->sculpt_tool = SCULPT_TOOL_POSE;
     }
 
-    brush = BLI_findstring(&bmain->brushes, "Simplify", offsetof(ID, name) + 2);
+    brush_name = "Simplify";
+    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
     if (!brush) {
-      brush = BKE_brush_add(bmain, "Simplify", OB_MODE_SCULPT);
+      brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
       id_us_min(&brush->id);
       brush->sculpt_tool = SCULPT_TOOL_SIMPLIFY;
     }
