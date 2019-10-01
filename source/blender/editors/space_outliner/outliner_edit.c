@@ -770,7 +770,11 @@ static int outliner_id_copy_exec(bContext *C, wmOperator *op)
   BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");
   BKE_copybuffer_save(bmain, str, op->reports);
 
-  BKE_reportf(op->reports, RPT_INFO, "Copied %d selected data-blocks", num_ids);
+  BKE_reportf(op->reports,
+              RPT_INFO,
+              num_ids == 1 ? "Copied %d selected data-block" :
+                             "Copied %d selected data-blocks",
+              num_ids);
 
   return OPERATOR_FINISHED;
 }
@@ -804,7 +808,11 @@ static int outliner_id_paste_exec(bContext *C, wmOperator *op)
 
   WM_event_add_notifier(C, NC_WINDOW, NULL);
 
-  BKE_reportf(op->reports, RPT_INFO, "%d data-blocks pasted", num_pasted);
+  BKE_reportf(op->reports,
+              RPT_INFO,
+              num_pasted == 1 ? "%d data-block pasted" :
+                                "%d data-blocks pasted",
+              num_pasted);
   return OPERATOR_FINISHED;
 }
 
@@ -2257,7 +2265,11 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
 
   BKE_id_multi_tagged_delete(bmain);
 
-  BKE_reportf(op->reports, RPT_INFO, "Deleted %d data-blocks", num_tagged[INDEX_ID_NULL]);
+  BKE_reportf(op->reports,
+              RPT_INFO,
+              num_tagged[INDEX_ID_NULL] == 1 ? "Deleted %d data-block" :
+                                               "Deleted %d data-blocks",
+              num_tagged[INDEX_ID_NULL]);
 
   /* XXX: tree management normally happens from draw_outliner(), but when
    *      you're clicking to fast on Delete object from context menu in
