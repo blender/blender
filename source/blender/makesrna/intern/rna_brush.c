@@ -1610,15 +1610,11 @@ static void rna_def_brush(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem brush_elastic_deform_type_items[] = {
-      {BRUSH_ELASTIC_DEFORM_GRAB, "ELASTIC_DEFORM_GRAB", 0, "Grab", ""},
-      {BRUSH_ELASTIC_DEFORM_GRAB_BISCALE, "ELASTIC_DEFORM_GRAB_BISCALE", 0, "Bi-scale Grab", ""},
-      {BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE,
-       "ELASTIC_DEFORM_GRAB_TRISCALE",
-       0,
-       "Tri-scale Grab",
-       ""},
-      {BRUSH_ELASTIC_DEFORM_SCALE, "ELASTIC_DEFORM_SCALE", 0, "Scale", ""},
-      {BRUSH_ELASTIC_DEFORM_TWIST, "ELASTIC_DEFORM_TWIST", 0, "Twist", ""},
+      {BRUSH_ELASTIC_DEFORM_GRAB, "GRAB", 0, "Grab", ""},
+      {BRUSH_ELASTIC_DEFORM_GRAB_BISCALE, "GRAB_BISCALE", 0, "Bi-scale Grab", ""},
+      {BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE, "GRAB_TRISCALE", 0, "Tri-scale Grab", ""},
+      {BRUSH_ELASTIC_DEFORM_SCALE, "SCALE", 0, "Scale", ""},
+      {BRUSH_ELASTIC_DEFORM_TWIST, "TWIST", 0, "Twist", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
