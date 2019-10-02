@@ -441,6 +441,8 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
         }
       }
     }
+    /* Also iterate over the new links to cover passthrough links. */
+    glinks_last = ntree->links.last;
     /* output links */
     for (tlink = ntree->links.first; tlink != glinks_first->next; tlink = tlink->next) {
       if (tlink->fromnode == gnode) {
