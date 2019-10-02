@@ -105,12 +105,14 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
 
   float mask_threshold = RNA_float_get(op->ptr, "mask_threshold");
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    bool delete_face = false;
+    bool keep_face = true;
     BM_ITER_ELEM (v, &face_iter, f, BM_VERTS_OF_FACE) {
       float mask = BM_elem_float_data_get(&bm->vdata, v, CD_PAINT_MASK);
-      delete_face = mask < mask_threshold;
+      if (mask < mask_threshold) {
+        keep_face = false;
+      }
     }
-    BM_elem_flag_set(f, BM_ELEM_TAG, delete_face);
+    BM_elem_flag_set(f, BM_ELEM_TAG, !keep_face);
   }
 
   BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_FACES);
