@@ -169,6 +169,7 @@ class OptiXDevice : public Device {
   OptixModule optix_module = NULL;
   OptixPipeline pipelines[NUM_PIPELINES] = {};
 
+  bool motion_blur = false;
   bool need_texture_info = false;
   device_vector<SbtRecord> sbt_data;
   device_vector<TextureInfo> texture_info;
@@ -337,7 +338,12 @@ class OptiXDevice : public Device {
 #  endif
     pipeline_options.pipelineLaunchParamsVariableName = "__params";  // See kernel_globals.h
 
-    if (requested_features.use_object_motion) {
+    // Keep track of whether motion blur is enabled, so to enable/disable motion in BVH builds
+    // This is necessary since objects may be reported to have motion if the Vector pass is
+    // active, but may still need to be rendered without motion blur if that isn't active as well
+    motion_blur = requested_features.use_object_motion;
+
+    if (motion_blur) {
       pipeline_options.usesMotionBlur = true;
       // Motion blur can insert motion transforms into the traversal graph
       // It is no longer a two-level graph then, so need to set flags to allow any configuration
@@ -872,7 +878,7 @@ class OptiXDevice : public Device {
 
         size_t num_motion_steps = 1;
         Attribute *motion_keys = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-        if (mesh->use_motion_blur && motion_keys) {
+        if (motion_blur && mesh->use_motion_blur && motion_keys) {
           num_motion_steps = mesh->motion_steps;
         }
 
@@ -942,7 +948,7 @@ class OptiXDevice : public Device {
 
         size_t num_motion_steps = 1;
         Attribute *motion_keys = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-        if (mesh->use_motion_blur && motion_keys) {
+        if (motion_blur && mesh->use_motion_blur && motion_keys) {
           num_motion_steps = mesh->motion_steps;
         }
 
@@ -1041,7 +1047,7 @@ class OptiXDevice : public Device {
         instance.visibilityMask = (ob->mesh->has_volume ? 3 : 1);
 
         // Insert motion traversable if object has motion
-        if (ob->use_motion()) {
+        if (motion_blur && ob->use_motion()) {
           blas.emplace_back(this, "motion_transform");
           device_only_memory<uint8_t> &motion_transform_gpu = blas.back();
           motion_transform_gpu.alloc_to_device(sizeof(OptixSRTMotionTransform) +
