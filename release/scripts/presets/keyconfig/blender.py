@@ -169,7 +169,10 @@ def load():
     keyconfig_data = blender_default.generate_keymaps(
         blender_default.Params(
             select_mouse=kc_prefs.select_mouse,
-            use_mouse_emulate_3_button=prefs.inputs.use_mouse_emulate_3_button,
+            use_mouse_emulate_3_button=(
+                prefs.inputs.use_mouse_emulate_3_button and
+                prefs.inputs.mouse_emulate_3_button_modifier == 'ALT'
+            ),
             spacebar_action=kc_prefs.spacebar_action,
             v3d_tilde_action=kc_prefs.v3d_tilde_action,
             use_select_all_toggle=kc_prefs.use_select_all_toggle,

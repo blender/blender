@@ -4210,19 +4210,31 @@ static void wm_eventemulation(wmEvent *event, bool test_only)
   if (U.flag & USER_TWOBUTTONMOUSE) {
 
     if (event->type == LEFTMOUSE) {
-      if (event->val == KM_PRESS && event->alt) {
-        event->type = MIDDLEMOUSE;
-        event->alt = 0;
+      short *mod = (
+#if !defined(WIN32)
+          (U.mouse_emulate_3_button_modifier == USER_EMU_MMB_MOD_OSKEY) ? &event->oskey :
+                                                                          &event->alt
+#else
+          /* Disable for WIN32 for now because it accesses the start menu. */
+          &event->alt
+#endif
+      );
 
-        if (!test_only) {
-          emulating_event = MIDDLEMOUSE;
+      if (event->val == KM_PRESS) {
+        if (*mod) {
+          *mod = 0;
+          event->type = MIDDLEMOUSE;
+
+          if (!test_only) {
+            emulating_event = MIDDLEMOUSE;
+          }
         }
       }
       else if (event->val == KM_RELEASE) {
         /* only send middle-mouse release if emulated */
         if (emulating_event == MIDDLEMOUSE) {
           event->type = MIDDLEMOUSE;
-          event->alt = 0;
+          *mod = 0;
         }
 
         if (!test_only) {

@@ -1479,12 +1479,17 @@ class USERPREF_PT_input_mouse(PreferencePanel, Panel):
         return (prefs.active_section == 'INPUT')
 
     def draw_props(self, context, layout):
+        import sys
         prefs = context.preferences
         inputs = prefs.inputs
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
         flow.prop(inputs, "use_mouse_emulate_3_button")
+        if sys.platform[:3] != "win":
+            rowsub = flow.row()
+            rowsub.active = inputs.use_mouse_emulate_3_button
+            rowsub.prop(inputs, "mouse_emulate_3_button_modifier")
         flow.prop(inputs, "use_mouse_continuous")
         flow.prop(inputs, "use_drag_immediately")
         flow.prop(inputs, "mouse_double_click_time", text="Double Click Speed")

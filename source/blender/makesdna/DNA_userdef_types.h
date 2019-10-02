@@ -606,7 +606,8 @@ typedef struct UserDef {
   /** #eUserPref_PrefFlag preferences for the preferences. */
   char pref_flag;
   char savetime;
-  char _pad4[4];
+  char mouse_emulate_3_button_modifier;
+  char _pad4[3];
   /** FILE_MAXDIR length. */
   char tempdir[768];
   char fontdir[768];
@@ -1239,6 +1240,11 @@ typedef enum eUserpref_TempSpaceDisplayType {
   USER_TEMP_SPACE_DISPLAY_FULLSCREEN,
   USER_TEMP_SPACE_DISPLAY_WINDOW,
 } eUserpref_TempSpaceDisplayType;
+
+typedef enum eUserpref_EmulateMMBMod {
+  USER_EMU_MMB_MOD_ALT = 0,
+  USER_EMU_MMB_MOD_OSKEY = 1,
+} eUserpref_EmulateMMBMod;
 
 #ifdef __cplusplus
 }
