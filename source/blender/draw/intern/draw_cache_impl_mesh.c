@@ -1108,9 +1108,6 @@ void DRW_mesh_batch_cache_create_requested(
         FOREACH_MESH_BUFFER_CACHE(cache, mbuffercache)
         {
           GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.edituv_data);
-          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.stretch_angle);
-          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.stretch_area);
-          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.uv);
           GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.fdots_uv);
           GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_tris);
           GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_lines);
