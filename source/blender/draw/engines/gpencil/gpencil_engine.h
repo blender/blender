@@ -153,6 +153,7 @@ typedef struct GPENCIL_Storage {
   int do_select_outline;
   float select_color[4];
   short multisamples;
+  float grid_matrix[4][4];
 
   short framebuffer_flag; /* flag what framebuffer need to create */
 

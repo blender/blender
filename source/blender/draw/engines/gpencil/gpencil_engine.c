@@ -315,6 +315,7 @@ void GPENCIL_cache_init(void *vedata)
   ToolSettings *ts = scene->toolsettings;
   View3D *v3d = draw_ctx->v3d;
   Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
+  const View3DCursor *cursor = &scene->cursor;
 
   /* Special handling for when active object is GP object (e.g. for draw mode) */
   Object *obact = draw_ctx->obact;
@@ -540,11 +541,42 @@ void GPENCIL_cache_init(void *vedata)
     }
 
     /* grid pass */
-    if (v3d) {
+    if ((v3d) && (obact) && (obact->type == OB_GPENCIL)) {
       psl->grid_pass = DRW_pass_create("GPencil Grid Pass",
                                        DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
                                            DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
       stl->g_data->shgrps_grid = DRW_shgroup_create(e_data.gpencil_line_sh, psl->grid_pass);
+
+      /* define grid orientation */
+      switch (ts->gp_sculpt.lock_axis) {
+        case GP_LOCKAXIS_VIEW: {
+          /* align always to view */
+          invert_m4_m4(stl->storage->grid_matrix, draw_ctx->rv3d->viewmat);
+          /* copy ob location */
+          copy_v3_v3(stl->storage->grid_matrix[3], obact->obmat[3]);
+          break;
+        }
+        case GP_LOCKAXIS_CURSOR: {
+          float scale[3] = {1.0f, 1.0f, 1.0f};
+          loc_eul_size_to_mat4(
+              stl->storage->grid_matrix, cursor->location, cursor->rotation_euler, scale);
+          break;
+        }
+        default: {
+          copy_m4_m4(stl->storage->grid_matrix, obact->obmat);
+          break;
+        }
+      }
+
+      /* Move the origin to Object or Cursor */
+      if (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) {
+        copy_v3_v3(stl->storage->grid_matrix[3], cursor->location);
+      }
+      else {
+        copy_v3_v3(stl->storage->grid_matrix[3], obact->obmat[3]);
+      }
+      DRW_shgroup_uniform_mat4(
+          stl->g_data->shgrps_grid, "gpModelMatrix", stl->storage->grid_matrix);
     }
 
     /* blend layers pass */
@@ -615,8 +647,6 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
   Scene *scene = draw_ctx->scene;
   ToolSettings *ts = scene->toolsettings;
   View3D *v3d = draw_ctx->v3d;
-  const View3DCursor *cursor = &scene->cursor;
-  float grid_matrix[4][4];
 
   if (ob->type == OB_GPENCIL && ob->data) {
     bGPdata *gpd = (bGPdata *)ob->data;
@@ -677,36 +707,7 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
         ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) == 0)) {
 
       stl->g_data->batch_grid = gpencil_get_grid(ob);
-
-      /* define grid orientation */
-      switch (ts->gp_sculpt.lock_axis) {
-        case GP_LOCKAXIS_VIEW: {
-          /* align always to view */
-          invert_m4_m4(grid_matrix, draw_ctx->rv3d->viewmat);
-          /* copy ob location */
-          copy_v3_v3(grid_matrix[3], ob->obmat[3]);
-          break;
-        }
-        case GP_LOCKAXIS_CURSOR: {
-          float scale[3] = {1.0f, 1.0f, 1.0f};
-          loc_eul_size_to_mat4(grid_matrix, cursor->location, cursor->rotation_euler, scale);
-          break;
-        }
-        default: {
-          copy_m4_m4(grid_matrix, ob->obmat);
-          break;
-        }
-      }
-
-      /* Move the origin to Object or Cursor */
-      if (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) {
-        copy_v3_v3(grid_matrix[3], cursor->location);
-      }
-      else {
-        copy_v3_v3(grid_matrix[3], ob->obmat[3]);
-      }
-
-      DRW_shgroup_call_obmat(stl->g_data->shgrps_grid, stl->g_data->batch_grid, grid_matrix);
+      DRW_shgroup_call(stl->g_data->shgrps_grid, stl->g_data->batch_grid, NULL);
     }
   }
 }
