@@ -386,7 +386,6 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
   bool ok = true;
   if (is_interactive == false) {
     if (exec_data.base_index >= bases_len) {
-      return OPERATOR_CANCELLED;
       ok = false;
     }
     else {
