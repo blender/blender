@@ -387,16 +387,11 @@ static void subdiv_ccg_allocate_adjacent_edges(SubdivCCG *subdiv_ccg, const int 
 
 /* Returns storage where boundary elements are to be stored. */
 static CCGElem **subdiv_ccg_adjacent_edge_add_face(SubdivCCG *subdiv_ccg,
-                                                   SubdivCCGAdjacentEdge *adjacent_edge,
-                                                   SubdivCCGFace *face)
+                                                   SubdivCCGAdjacentEdge *adjacent_edge)
 {
   const int grid_size = subdiv_ccg->grid_size * 2;
   const int adjacent_face_index = adjacent_edge->num_adjacent_faces;
   ++adjacent_edge->num_adjacent_faces;
-  /* Store new adjacent face. */
-  adjacent_edge->faces = MEM_reallocN(
-      adjacent_edge->faces, adjacent_edge->num_adjacent_faces * sizeof(*adjacent_edge->faces));
-  adjacent_edge->faces[adjacent_face_index] = face;
   /* Allocate memory for the boundary elements. */
   adjacent_edge->boundary_elements = MEM_reallocN(adjacent_edge->boundary_elements,
                                                   adjacent_edge->num_adjacent_faces *
@@ -453,8 +448,7 @@ static void subdiv_ccg_init_faces_edge_neighborhood(SubdivCCG *subdiv_ccg)
       CCGElem *next_grid = subdiv_ccg->grids[next_grid_index];
       /* Add new face to the adjacent edge. */
       SubdivCCGAdjacentEdge *adjacent_edge = &subdiv_ccg->adjacent_edges[edge_index];
-      CCGElem **boundary_elements = subdiv_ccg_adjacent_edge_add_face(
-          subdiv_ccg, adjacent_edge, face);
+      CCGElem **boundary_elements = subdiv_ccg_adjacent_edge_add_face(subdiv_ccg, adjacent_edge);
       /* Fill CCG elements along the edge. */
       int boundary_element_index = 0;
       if (is_edge_flipped) {
@@ -494,16 +488,10 @@ static void subdiv_ccg_allocate_adjacent_vertices(SubdivCCG *subdiv_ccg, const i
 
 /* Returns storage where corner elements are to be stored. This is a pointer
  * to the actual storage. */
-static CCGElem **subdiv_ccg_adjacent_vertex_add_face(SubdivCCGAdjacentVertex *adjacent_vertex,
-                                                     SubdivCCGFace *face)
+static CCGElem **subdiv_ccg_adjacent_vertex_add_face(SubdivCCGAdjacentVertex *adjacent_vertex)
 {
   const int adjacent_face_index = adjacent_vertex->num_adjacent_faces;
   ++adjacent_vertex->num_adjacent_faces;
-  /* Store new adjacent face. */
-  adjacent_vertex->faces = MEM_reallocN(adjacent_vertex->faces,
-                                        adjacent_vertex->num_adjacent_faces *
-                                            sizeof(*adjacent_vertex->faces));
-  adjacent_vertex->faces[adjacent_face_index] = face;
   /* Allocate memory for the boundary elements. */
   adjacent_vertex->corner_elements = MEM_reallocN(adjacent_vertex->corner_elements,
                                                   adjacent_vertex->num_adjacent_faces *
@@ -544,7 +532,7 @@ static void subdiv_ccg_init_faces_vertex_neighborhood(SubdivCCG *subdiv_ccg)
       CCGElem *grid = subdiv_ccg->grids[grid_index];
       /* Add new face to the adjacent edge. */
       SubdivCCGAdjacentVertex *adjacent_vertex = &subdiv_ccg->adjacent_vertices[vertex_index];
-      CCGElem **corner_element = subdiv_ccg_adjacent_vertex_add_face(adjacent_vertex, face);
+      CCGElem **corner_element = subdiv_ccg_adjacent_vertex_add_face(adjacent_vertex);
       *corner_element = CCG_grid_elem(&key, grid, grid_size - 1, grid_size - 1);
     }
   }
@@ -640,14 +628,12 @@ void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg)
     for (int face_index = 0; face_index < adjacent_edge->num_adjacent_faces; face_index++) {
       MEM_SAFE_FREE(adjacent_edge->boundary_elements[face_index]);
     }
-    MEM_SAFE_FREE(adjacent_edge->faces);
     MEM_SAFE_FREE(adjacent_edge->boundary_elements);
   }
   MEM_SAFE_FREE(subdiv_ccg->adjacent_edges);
   /* Free map of adjacent vertices. */
   for (int i = 0; i < subdiv_ccg->num_adjacent_vertices; i++) {
     SubdivCCGAdjacentVertex *adjacent_vertex = &subdiv_ccg->adjacent_vertices[i];
-    MEM_SAFE_FREE(adjacent_vertex->faces);
     MEM_SAFE_FREE(adjacent_vertex->corner_elements);
   }
   MEM_SAFE_FREE(subdiv_ccg->adjacent_vertices);

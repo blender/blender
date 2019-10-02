@@ -106,8 +106,6 @@ typedef struct SubdivCCGFace {
 /* Definition of an edge which is adjacent to at least one of the faces. */
 typedef struct SubdivCCGAdjacentEdge {
   int num_adjacent_faces;
-  /* Indexed by adjacent face index. */
-  SubdivCCGFace **faces;
   /* Indexed by adjacent face index, then by point index on the edge.
    * points to a grid element. */
   struct CCGElem ***boundary_elements;
@@ -116,8 +114,6 @@ typedef struct SubdivCCGAdjacentEdge {
 /* Definition of a vertex which is adjacent to at least one of the faces. */
 typedef struct SubdivCCGAdjacentVertex {
   int num_adjacent_faces;
-  /* Indexed by adjacent face index. */
-  SubdivCCGFace **faces;
   /* Indexed by adjacent face index, points to a grid element. */
   struct CCGElem **corner_elements;
 } SubdivCCGAdjacentVertex;
