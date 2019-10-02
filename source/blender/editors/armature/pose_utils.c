@@ -32,6 +32,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
@@ -223,6 +224,11 @@ void poseAnim_mapping_refresh(bContext *C, Scene *UNUSED(scene), Object *ob)
 {
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+
+  AnimData *adt = BKE_animdata_from_id(&ob->id);
+  if (adt && adt->action) {
+    DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
+  }
 }
 
 /* reset changes made to current pose */
