@@ -3411,7 +3411,7 @@ static void acf_nlatrack_color(bAnimContext *UNUSED(ac), bAnimListElem *ale, flo
   }
 
   /* set color for nla track */
-  UI_GetThemeColorShade3fv(TH_HEADER, ((nonSolo == false) ? 20 : -20), r_color);
+  UI_GetThemeColorShade3fv(TH_NLA_TRACK, ((nonSolo == false) ? 20 : -20), r_color);
 }
 
 /* name for nla track entries */

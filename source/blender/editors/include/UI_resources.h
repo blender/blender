@@ -283,6 +283,7 @@ typedef enum ThemeColorID {
   TH_NLA_TWEAK,       /* 'tweaking' track in NLA */
   TH_NLA_TWEAK_DUPLI, /* error/warning flag for other strips referencing dupli strip */
 
+  TH_NLA_TRACK,
   TH_NLA_TRANSITION,
   TH_NLA_TRANSITION_SEL,
   TH_NLA_META,
