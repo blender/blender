@@ -388,7 +388,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
   [m_window setAcceptsMouseMovedEvents:YES];
 
   NSView *contentview = [m_window contentView];
-  [contentview setAllowedTouchTypes:(NSTouchTypeMaskDirect | NSTouchTypeMaskIndirect)];
+  [contentview setAcceptsTouchEvents:YES];
 
   [m_window registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
                                                               NSStringPboardType,
