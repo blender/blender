@@ -41,7 +41,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
     {0, "", ICON_NONE, NULL, NULL},
     {MA_RAMP_LIGHT, "LIGHTEN", 0, "Lighten", ""},
     {MA_RAMP_SCREEN, "SCREEN", 0, "Screen", ""},
-    {MA_RAMP_DODGE, "DODGE", 0, "Dodge", ""},
+    {MA_RAMP_DODGE, "DODGE", 0, "Color Dodge", ""},
     {MA_RAMP_ADD, "ADD", 0, "Add", ""},
     {0, "", ICON_NONE, NULL, NULL},
     {MA_RAMP_OVERLAY, "OVERLAY", 0, "Overlay", ""},

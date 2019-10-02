@@ -3986,7 +3986,7 @@ static void def_mix_rgb(StructRNA *srna)
   prop = RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
   RNA_def_property_enum_items(prop, rna_enum_ramp_blend_items);
-  RNA_def_property_ui_text(prop, "Blend Type", "");
+  RNA_def_property_ui_text(prop, "Blending Mode", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
