@@ -3890,9 +3890,7 @@ static void nodelink_batch_draw(SpaceNode *snode)
 
 void nodelink_batch_start(SpaceNode *UNUSED(snode))
 {
-  /* TODO: partial workaround for NVIDIA driver bug on recent GTX/RTX cards,
-   * that breaks instancing when using indirect draw-call (see T70011). */
-  g_batch_link.enabled = !GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY);
+  g_batch_link.enabled = true;
 }
 
 void nodelink_batch_end(SpaceNode *snode)

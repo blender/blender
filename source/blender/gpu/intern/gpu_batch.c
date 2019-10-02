@@ -718,8 +718,11 @@ void GPU_draw_primitive(GPUPrimType prim_type, int v_count)
 #if 0
 #  define USE_MULTI_DRAW_INDIRECT 0
 #else
+/* TODO: partial workaround for NVIDIA driver bug on recent GTX/RTX cards,
+ * that breaks instancing when using indirect draw-call (see T70011). */
 #  define USE_MULTI_DRAW_INDIRECT \
-    (GL_ARB_multi_draw_indirect && GPU_arb_base_instance_is_supported())
+    (GL_ARB_multi_draw_indirect && GPU_arb_base_instance_is_supported() && \
+     !GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL))
 #endif
 
 typedef struct GPUDrawCommand {
