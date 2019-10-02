@@ -1105,7 +1105,7 @@ static const EnumPropertyItem *rna_View3DShading_color_type_itemf(bContext *UNUS
   }
   else {
     /* Solid mode, or lookdev mode for workbench engine. */
-    r_free = false;
+    *r_free = false;
     return rna_enum_shading_color_type_items;
   }
 }
