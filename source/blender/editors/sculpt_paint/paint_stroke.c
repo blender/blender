@@ -909,15 +909,20 @@ PaintStroke *paint_stroke_new(bContext *C,
 void paint_stroke_free(bContext *C, wmOperator *op)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  PaintStroke *stroke = op->customdata;
-  UnifiedPaintSettings *ups = stroke->ups;
-
-  ups->draw_anchored = false;
-  ups->stroke_active = false;
-
   if (rv3d) {
     rv3d->rflag &= ~RV3D_PAINTING;
   }
+
+  BKE_paint_set_overlay_override(0);
+
+  PaintStroke *stroke = op->customdata;
+  if (stroke == NULL) {
+    return;
+  }
+
+  UnifiedPaintSettings *ups = stroke->ups;
+  ups->draw_anchored = false;
+  ups->stroke_active = false;
 
   if (stroke->timer) {
     WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);
@@ -933,7 +938,6 @@ void paint_stroke_free(bContext *C, wmOperator *op)
 
   BLI_freelistN(&stroke->line);
 
-  BKE_paint_set_overlay_override(0);
   MEM_SAFE_FREE(op->customdata);
 }
 
