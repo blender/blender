@@ -8150,43 +8150,36 @@ static void filter_cache_init_task_cb(void *__restrict userdata,
                                       const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
-  SculptSession *ss = data->ob->sculpt;
   PBVHNode *node = data->nodes[i];
 
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
-    if (!vd.mask || (vd.mask && *vd.mask < 1.0f)) {
-      data->node_mask[i] = 1;
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-
-  if (data->node_mask[i] == 1) {
-    sculpt_undo_push_node(data->ob, node, SCULPT_UNDO_COORDS);
-  }
+  sculpt_undo_push_node(data->ob, node, SCULPT_UNDO_COORDS);
 }
 
 static void sculpt_filter_cache_init(Object *ob, Sculpt *sd)
 {
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ob->sculpt->pbvh;
-  PBVHNode **nodes;
-  int totnode;
 
   ss->filter_cache = MEM_callocN(sizeof(FilterCache), "filter cache");
 
   ss->filter_cache->random_seed = rand();
 
+  float center[3] = {0.0f};
   SculptSearchSphereData search_data = {
       .original = true,
+      .center = center,
+      .radius_squared = FLT_MAX,
+      .ignore_fully_masked = true,
+
   };
-  BKE_pbvh_search_gather(pbvh, NULL, &search_data, &nodes, &totnode);
+  BKE_pbvh_search_gather(pbvh,
+                         sculpt_search_sphere_cb,
+                         &search_data,
+                         &ss->filter_cache->nodes,
+                         &ss->filter_cache->totnode);
 
-  int *node_mask = MEM_callocN((unsigned int)totnode * sizeof(int), "node mask");
-
-  for (int i = 0; i < totnode; i++) {
-    BKE_pbvh_node_mark_normals_update(nodes[i]);
+  for (int i = 0; i < ss->filter_cache->totnode; i++) {
+    BKE_pbvh_node_mark_normals_update(ss->filter_cache->nodes[i]);
   }
 
   /* mesh->runtime.subdiv_ccg is not available. Updating of the normals is done during drawing.
@@ -8198,40 +8191,14 @@ static void sculpt_filter_cache_init(Object *ob, Sculpt *sd)
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
-      .nodes = nodes,
-      .node_mask = node_mask,
+      .nodes = ss->filter_cache->nodes,
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-  BLI_task_parallel_range(0, totnode, &data, filter_cache_init_task_cb, &settings);
-
-  int tot_active_nodes = 0;
-  int active_node_index = 0;
-  PBVHNode **active_nodes;
-
-  /* Count number of PBVH nodes that are not fully masked */
-  for (int i = 0; i < totnode; i++) {
-    if (node_mask[i] == 1) {
-      tot_active_nodes++;
-    }
-  }
-
-  /* Create the final list of nodes that is going to be processed in the filter */
-  active_nodes = MEM_callocN(tot_active_nodes * sizeof(PBVHNode *), "active nodes");
-
-  for (int i = 0; i < totnode; i++) {
-    if (node_mask[i] == 1) {
-      active_nodes[active_node_index] = nodes[i];
-      active_node_index++;
-    }
-  }
-
-  ss->filter_cache->nodes = active_nodes;
-  ss->filter_cache->totnode = tot_active_nodes;
-
-  MEM_SAFE_FREE(nodes);
-  MEM_SAFE_FREE(node_mask);
+  BKE_pbvh_parallel_range_settings(
+      &settings, (sd->flags & SCULPT_USE_OPENMP), ss->filter_cache->totnode);
+  BLI_task_parallel_range(
+      0, ss->filter_cache->totnode, &data, filter_cache_init_task_cb, &settings);
 }
 
 static void sculpt_filter_cache_free(SculptSession *ss)

@@ -194,7 +194,6 @@ typedef struct SculptThreadedTaskData {
 
   int filter_type;
   float filter_strength;
-  int *node_mask;
 
   /* 0=towards view, 1=flipped */
   float (*area_cos)[3];
