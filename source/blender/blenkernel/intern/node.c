@@ -990,6 +990,10 @@ void nodeChainIterBackwards(const bNodeTree *ntree,
                             bool (*callback)(bNode *, bNode *, void *),
                             void *userdata)
 {
+  if (!node_start) {
+    return;
+  }
+
   /* Reset flag. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     node->iter_flag = 0;
