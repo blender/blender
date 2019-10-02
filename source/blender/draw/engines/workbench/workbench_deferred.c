@@ -78,7 +78,6 @@ static struct {
   struct GPUTexture *object_id_tx;        /* ref only, not alloced */
   struct GPUTexture *color_buffer_tx;     /* ref only, not alloced */
   struct GPUTexture *cavity_buffer_tx;    /* ref only, not alloced */
-  struct GPUTexture *metallic_buffer_tx;  /* ref only, not alloced */
   struct GPUTexture *normal_buffer_tx;    /* ref only, not alloced */
   struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
 

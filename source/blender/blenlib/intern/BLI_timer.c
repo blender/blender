@@ -42,7 +42,6 @@ typedef struct TimedFunction {
 
 typedef struct TimerContainer {
   ListBase funcs;
-  bool file_load_cb_registered;
 } TimerContainer;
 
 static TimerContainer GlobalTimer = {{0}};

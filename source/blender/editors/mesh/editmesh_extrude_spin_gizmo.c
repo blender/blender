@@ -522,7 +522,6 @@ typedef struct GizmoGroupData_SpinRedo {
     PropertyRNA *prop_axis_no;
     PropertyRNA *prop_angle;
 
-    float rotate_axis[3];
 #ifdef USE_ANGLE_Z_ORIENT
     /* Apply 'orient_mat' for the final value. */
     float orient_axis_relative[3];

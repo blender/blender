@@ -277,7 +277,6 @@ static struct {
   struct GPUVertFormat *instance_scaled;
   struct GPUVertFormat *instance_sized;
   struct GPUVertFormat *instance_outline;
-  struct GPUVertFormat *instance;
   struct GPUVertFormat *instance_camera;
   struct GPUVertFormat *instance_distance_lines;
   struct GPUVertFormat *instance_spot;

@@ -40,7 +40,6 @@ static struct {
   struct GPUShader *gtao_sh;
   struct GPUShader *gtao_layer_sh;
   struct GPUShader *gtao_debug_sh;
-  struct GPUTexture *src_depth;
 
   struct GPUTexture *dummy_horizon_tx;
 } e_data = {NULL}; /* Engine data */

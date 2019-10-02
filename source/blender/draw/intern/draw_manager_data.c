@@ -1846,11 +1846,6 @@ void DRW_pass_foreach_shgroup(DRWPass *pass,
   }
 }
 
-typedef struct ZSortData {
-  const float *axis;
-  const float *origin;
-} ZSortData;
-
 static int pass_shgroup_dist_sort(const void *a, const void *b)
 {
   const DRWShadingGroup *shgrp_a = (const DRWShadingGroup *)a;

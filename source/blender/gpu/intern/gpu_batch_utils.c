@@ -164,7 +164,6 @@ GPUBatch *GPU_batch_wire_from_poly_2d_encoded(const uchar *polys_flat,
       BLI_assert(polys_step_len >= 2);
       for (uint i_prev = polys_step_len - 1, i = 0; i < polys_step_len; i_prev = i++) {
         union {
-          uint8_t as_u8[4];
           uint16_t as_u16[2];
           uint32_t as_u32;
         } data;

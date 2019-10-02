@@ -60,7 +60,6 @@ static struct {
   Object *ob;
   /* Reset when changing current_armature */
   DRWCallBuffer *bone_octahedral_solid;
-  DRWCallBuffer *bone_octahedral_wire;
   DRWCallBuffer *bone_octahedral_outline;
   DRWCallBuffer *bone_box_solid;
   DRWCallBuffer *bone_box_wire;

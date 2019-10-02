@@ -54,7 +54,6 @@ static struct {
   struct GPUShader *volumetric_integration_sh;
   struct GPUShader *volumetric_resolve_sh;
 
-  GPUTexture *color_src;
   GPUTexture *depth_src;
 
   GPUTexture *dummy_density;

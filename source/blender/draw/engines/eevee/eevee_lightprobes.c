@@ -51,7 +51,6 @@ static struct {
   struct GPUTexture *planar_pool_placeholder;
   struct GPUTexture *depth_placeholder;
   struct GPUTexture *depth_array_placeholder;
-  struct GPUTexture *cube_face_minmaxz;
 
   struct GPUVertFormat *format_probe_display_cube;
   struct GPUVertFormat *format_probe_display_planar;

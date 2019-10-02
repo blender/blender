@@ -401,11 +401,6 @@ typedef struct ScanlineGlobalData {
   int total_scanlines;
 } ScanlineGlobalData;
 
-typedef struct ScanlineTask {
-  int start_scanline;
-  int num_scanlines;
-} ScanlineTask;
-
 static void processor_apply_scanline_func(TaskPool *__restrict pool,
                                           void *taskdata,
                                           int UNUSED(threadid))

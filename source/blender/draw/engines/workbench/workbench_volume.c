@@ -46,8 +46,6 @@ enum {
 static struct {
   struct GPUShader *volume_sh[VOLUME_SH_MAX];
   struct GPUShader *volume_coba_sh;
-  struct GPUShader *volume_slice_sh;
-  struct GPUShader *volume_slice_coba_sh;
   struct GPUTexture *dummy_tex;
   struct GPUTexture *dummy_coba_tex;
 } e_data = {{NULL}};

@@ -53,7 +53,6 @@ static struct DRWShapeCache {
   GPUBatch *drw_cursor;
   GPUBatch *drw_cursor_only_circle;
   GPUBatch *drw_fullscreen_quad;
-  GPUBatch *drw_fullscreen_quad_texcoord;
   GPUBatch *drw_quad;
   GPUBatch *drw_quad_wires;
   GPUBatch *drw_grid;
@@ -72,8 +71,6 @@ static struct DRWShapeCache {
   GPUBatch *drw_empty_capsule_body;
   GPUBatch *drw_empty_capsule_cap;
   GPUBatch *drw_empty_cone;
-  GPUBatch *drw_arrows;
-  GPUBatch *drw_axis_names;
   GPUBatch *drw_image_plane;
   GPUBatch *drw_image_plane_wire;
   GPUBatch *drw_field_wind;
@@ -99,7 +96,6 @@ static struct DRWShapeCache {
   GPUBatch *drw_bone_octahedral_wire;
   GPUBatch *drw_bone_box;
   GPUBatch *drw_bone_box_wire;
-  GPUBatch *drw_bone_wire_wire;
   GPUBatch *drw_bone_envelope;
   GPUBatch *drw_bone_envelope_outline;
   GPUBatch *drw_bone_point;
@@ -111,7 +107,6 @@ static struct DRWShapeCache {
   GPUBatch *drw_camera;
   GPUBatch *drw_camera_frame;
   GPUBatch *drw_camera_tria;
-  GPUBatch *drw_camera_focus;
   GPUBatch *drw_particle_cross;
   GPUBatch *drw_particle_circle;
   GPUBatch *drw_particle_axis;

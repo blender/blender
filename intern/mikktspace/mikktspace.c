@@ -460,11 +460,6 @@ tbool genTangSpace(const SMikkTSpaceContext *pContext, const float fAngularThres
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct {
-  float vert[3];
-  int index;
-} STmpVert;
-
 static void GenerateSharedVerticesIndexListSlow(int piTriList_in_and_out[],
                                                 const SMikkTSpaceContext *pContext,
                                                 const int iNrTrianglesIn);

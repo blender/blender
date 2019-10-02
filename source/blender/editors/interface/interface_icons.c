@@ -1583,7 +1583,6 @@ static struct {
   IconTextureDrawCall normal;
   IconTextureDrawCall border;
   bool enabled;
-  float mat[4][4];
 } g_icon_draw_cache = {{{{{0}}}}};
 
 void UI_icon_draw_cache_begin(void)

@@ -409,8 +409,8 @@ typedef struct MovieClipCache {
 
     /* cache for undistorted shot */
     float principal[2];
-    float polynomial_k1, polynomial_k2, polynomial_k3;
-    float division_k1, division_k2;
+    float polynomial_k1;
+    float division_k1;
     short distortion_model;
     bool undistortion_used;
 

@@ -72,7 +72,6 @@ static struct {
 typedef struct BASIC_PrivateData {
   DRWShadingGroup *depth_shgrp;
   DRWShadingGroup *depth_shgrp_cull;
-  DRWShadingGroup *depth_shgrp_hair;
 } BASIC_PrivateData; /* Transient data */
 
 /* Functions */

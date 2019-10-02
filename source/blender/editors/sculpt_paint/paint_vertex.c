@@ -2587,11 +2587,6 @@ void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
  * - revise whether op->customdata should be added in object, in set_vpaint
  */
 
-typedef struct PolyFaceMap {
-  struct PolyFaceMap *next, *prev;
-  int facenr;
-} PolyFaceMap;
-
 struct VPaintData {
   ViewContext vc;
   struct NormalAnglePrecalc normal_angle_precalc;
