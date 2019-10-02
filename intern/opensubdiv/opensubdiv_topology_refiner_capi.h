@@ -58,11 +58,13 @@ typedef struct OpenSubdiv_TopologyRefiner {
   int (*getNumVertices)(const struct OpenSubdiv_TopologyRefiner *topology_refiner);
   int (*getNumEdges)(const struct OpenSubdiv_TopologyRefiner *topology_refiner);
   int (*getNumFaces)(const struct OpenSubdiv_TopologyRefiner *topology_refiner);
+
   int (*getNumFaceVertices)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
                             const int face_index);
   void (*getFaceVertices)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
                           const int face_index,
                           int *face_vertices_indices);
+
   int (*getNumFaceEdges)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
                          const int face_index);
   void (*getFaceEdges)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
@@ -71,6 +73,12 @@ typedef struct OpenSubdiv_TopologyRefiner {
   void (*getEdgeVertices)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
                           const int edge_index,
                           int edge_vertices_indices[2]);
+
+  int (*getNumVertexEdges)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
+                           const int vertex_index);
+  void (*getVertexEdges)(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
+                         const int vertex_index,
+                         int *vertex_edges_indices);
 
   //////////////////////////////////////////////////////////////////////////////
   // PTex face geometry queries.
