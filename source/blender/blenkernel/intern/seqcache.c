@@ -244,7 +244,8 @@ static SeqCacheKey *seq_cache_choose_key(Scene *scene, SeqCacheKey *lkey, SeqCac
    * We could use temp cache as a shield and later make it a non-temporary entry,
    * but it is not worth of increasing system complexity.
    */
-  if (scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) {
+  if (scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE &&
+      BKE_sequencer_prefetch_job_is_running(scene)) {
     int pfjob_start, pfjob_end;
     BKE_sequencer_prefetch_get_time_range(scene, &pfjob_start, &pfjob_end);
 

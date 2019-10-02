@@ -31,6 +31,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_anim_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
@@ -55,6 +56,7 @@ typedef struct PrefetchJob {
   struct PrefetchJob *next, *prev;
 
   struct Main *bmain;
+  struct Main *bmain_eval;
   struct Scene *scene;
   struct Scene *scene_eval;
   struct Depsgraph *depsgraph;
@@ -109,7 +111,7 @@ static PrefetchJob *seq_prefetch_job_get(Scene *scene)
   return NULL;
 }
 
-static bool seq_prefetch_job_is_running(Scene *scene)
+bool BKE_sequencer_prefetch_job_is_running(Scene *scene)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(scene);
 
@@ -185,12 +187,12 @@ static void seq_prefetch_free_depsgraph(PrefetchJob *pfjob)
 static void seq_prefetch_update_depsgraph(PrefetchJob *pfjob)
 {
   DEG_evaluate_on_framechange(
-      pfjob->bmain, pfjob->depsgraph, pfjob->cfra + pfjob->num_frames_prefetched);
+      pfjob->bmain_eval, pfjob->depsgraph, pfjob->cfra + pfjob->num_frames_prefetched);
 }
 
 static void seq_prefetch_init_depsgraph(PrefetchJob *pfjob)
 {
-  Main *bmain = pfjob->bmain;
+  Main *bmain = pfjob->bmain_eval;
   Scene *scene = pfjob->scene;
   ViewLayer *view_layer = BKE_view_layer_default_render(scene);
 
@@ -198,7 +200,7 @@ static void seq_prefetch_init_depsgraph(PrefetchJob *pfjob)
   DEG_debug_name_set(pfjob->depsgraph, "SEQUENCER PREFETCH");
 
   /* Make sure there is a correct evaluated scene pointer. */
-  DEG_graph_build_for_render_pipeline(pfjob->depsgraph, pfjob->bmain, scene, view_layer);
+  DEG_graph_build_for_render_pipeline(pfjob->depsgraph, bmain, scene, view_layer);
 
   /* Update immediately so we have proper evaluated scene. */
   seq_prefetch_update_depsgraph(pfjob);
@@ -229,7 +231,9 @@ static void seq_prefetch_update_area(PrefetchJob *pfjob)
   }
 }
 
-/* Use also to update scene and context changes */
+/* Use also to update scene and context changes
+ * This function should almost always be called by cache invalidation, not directly.
+ */
 void BKE_sequencer_prefetch_stop(Scene *scene)
 {
   PrefetchJob *pfjob;
@@ -251,7 +255,7 @@ static void seq_prefetch_update_context(const SeqRenderData *context)
   PrefetchJob *pfjob;
   pfjob = seq_prefetch_job_get(context->scene);
 
-  BKE_sequencer_new_render_data(pfjob->bmain,
+  BKE_sequencer_new_render_data(pfjob->bmain_eval,
                                 pfjob->depsgraph,
                                 pfjob->scene_eval,
                                 context->rectx,
@@ -314,6 +318,7 @@ void BKE_sequencer_prefetch_free(Scene *scene)
   BLI_mutex_end(&pfjob->prefetch_suspend_mutex);
   BLI_condition_end(&pfjob->prefetch_suspend_cond);
   seq_prefetch_free_depsgraph(pfjob);
+  BKE_main_free(pfjob->bmain_eval);
   MEM_freeN(pfjob);
   scene->ed->prefetch_job = NULL;
 }
@@ -322,15 +327,25 @@ static void *seq_prefetch_frames(void *job)
 {
   PrefetchJob *pfjob = (PrefetchJob *)job;
 
-  /* set to NULL before return! */
-  pfjob->scene_eval->ed->prefetch_job = pfjob;
+  while (pfjob->cfra + pfjob->num_frames_prefetched <= pfjob->scene->r.efra) {
+    pfjob->scene_eval->ed->prefetch_job = NULL;
 
-  while (pfjob->cfra + pfjob->num_frames_prefetched < pfjob->scene->r.efra) {
-    BKE_animsys_evaluate_all_animation(pfjob->context_cpy.bmain,
-                                       pfjob->context_cpy.depsgraph,
-                                       pfjob->context_cpy.scene,
-                                       pfjob->cfra + pfjob->num_frames_prefetched);
+    AnimData *adt = BKE_animdata_from_id(&pfjob->context_cpy.scene->id);
+    BKE_animsys_evaluate_animdata(pfjob->context_cpy.scene,
+                                  &pfjob->context_cpy.scene->id,
+                                  adt,
+                                  pfjob->cfra + pfjob->num_frames_prefetched,
+                                  ADT_RECALC_ALL,
+                                  false);
     seq_prefetch_update_depsgraph(pfjob);
+
+    /* This is quite hacky solution:
+     * We need cross-reference original scene with copy for cache.
+     * However depsgraph must not have this data, because it will try to kill this job.
+     * Scene copy don't reference original scene. Perhaps, this could be done by depsgraph.
+     * Set to NULL before return!
+     */
+    pfjob->scene_eval->ed->prefetch_job = pfjob;
 
     ImBuf *ibuf = BKE_sequencer_give_ibuf(
         &pfjob->context_cpy, pfjob->cfra + pfjob->num_frames_prefetched, 0);
@@ -373,8 +388,7 @@ static void *seq_prefetch_frames(void *job)
 
 static PrefetchJob *seq_prefetch_start(const SeqRenderData *context, float cfra)
 {
-  PrefetchJob *pfjob;
-  pfjob = seq_prefetch_job_get(context->scene);
+  PrefetchJob *pfjob = seq_prefetch_job_get(context->scene);
 
   if (!pfjob) {
     if (context->scene->ed) {
@@ -386,6 +400,7 @@ static PrefetchJob *seq_prefetch_start(const SeqRenderData *context, float cfra)
       BLI_condition_init(&pfjob->prefetch_suspend_cond);
 
       pfjob->bmain = context->bmain;
+      pfjob->bmain_eval = BKE_main_new();
 
       pfjob->scene = context->scene;
       seq_prefetch_init_depsgraph(pfjob);
@@ -419,7 +434,7 @@ void BKE_sequencer_prefetch_start(const SeqRenderData *context, float cfra, floa
   if (!context->is_prefetch_render && !context->is_proxy_render) {
     bool playing = seq_prefetch_is_playing(context->bmain);
     bool scrubbing = seq_prefetch_is_scrubbing(context->bmain);
-    bool running = seq_prefetch_job_is_running(scene);
+    bool running = BKE_sequencer_prefetch_job_is_running(scene);
     seq_prefetch_resume(scene);
     /* conditions to start:
      * prefetch enabled, prefetch not running, not scrubbing,
@@ -437,7 +452,7 @@ bool BKE_sequencer_prefetch_need_redraw(Main *bmain, Scene *scene)
 {
   bool playing = seq_prefetch_is_playing(bmain);
   bool scrubbing = seq_prefetch_is_scrubbing(bmain);
-  bool running = seq_prefetch_job_is_running(scene);
+  bool running = BKE_sequencer_prefetch_job_is_running(scene);
   bool suspended = seq_prefetch_job_is_waiting(scene);
 
   /* force redraw, when prefetching and using cache view. */
