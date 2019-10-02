@@ -4638,9 +4638,6 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 
       case UI_BTYPE_SEARCH_MENU:
         wt = widget_type(UI_WTYPE_NAME);
-        if (but->block->theme_style == UI_BLOCK_THEME_STYLE_POPUP) {
-          wt->wcol_theme = &btheme->tui.wcol_menu_back;
-        }
         break;
 
       case UI_BTYPE_TAB:
