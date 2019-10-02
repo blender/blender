@@ -1581,11 +1581,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  BKE_reportf(op->reports,
-              RPT_INFO,
-              changed_count == 1 ? "Deleted %u object" :
-                                   "Deleted %u objects",
-              changed_count);
+  BKE_reportf(op->reports, RPT_INFO, "Deleted %u object(s)", changed_count);
 
   if (changed_count == 0) {
     return OPERATOR_CANCELLED;

@@ -2044,11 +2044,7 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
   }
 
   if (tot_failed_all != 0) {
-    BKE_reportf(op->reports,
-                RPT_WARNING,
-                tot_failed_all == 1 ? "Unable to rotate %d edge" :
-                                      "Unable to rotate %d edges",
-                tot_failed_all);
+    BKE_reportf(op->reports, RPT_WARNING, "Unable to rotate %d edge(s)", tot_failed_all);
   }
 
   return OPERATOR_FINISHED;
@@ -3165,11 +3161,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
   }
   MEM_freeN(objects);
 
-  BKE_reportf(op->reports,
-              RPT_INFO,
-              count_multi == 1 ? "Removed %d vertex" :
-                                 "Removed %d vertices",
-              count_multi);
+  BKE_reportf(op->reports, RPT_INFO, "Removed %d vertice(s)", count_multi);
 
   return OPERATOR_FINISHED;
 }

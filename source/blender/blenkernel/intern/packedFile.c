@@ -267,11 +267,7 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
   }
 
   if (tot > 0) {
-    BKE_reportf(reports,
-                RPT_INFO,
-                tot == 1 ? "Packed %d file" :
-                           "Packed %d files",
-                tot);
+    BKE_reportf(reports, RPT_INFO, "Packed %d file(s)", tot);
   }
   else if (verbose) {
     BKE_report(reports, RPT_INFO, "No new files have been packed");

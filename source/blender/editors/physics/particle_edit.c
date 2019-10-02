@@ -3076,11 +3076,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_reportf(op->reports,
-              RPT_INFO,
-              totremoved == 1 ? "Removed %d double particle" :
-                                "Removed %d double particles",
-              totremoved);
+  BKE_reportf(op->reports, RPT_INFO, "Removed %d double particle(s)", totremoved);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);

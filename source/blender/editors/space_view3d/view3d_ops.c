@@ -79,11 +79,7 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
   BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");
   BKE_copybuffer_save(bmain, str, op->reports);
 
-  BKE_reportf(op->reports,
-              RPT_INFO,
-              num_copied == 1 ? "Copied %d selected object" :
-                                "Copied %d selected objects",
-              num_copied);
+  BKE_reportf(op->reports, RPT_INFO, "Copied %d selected object(s)", num_copied);
 
   return OPERATOR_FINISHED;
 }
@@ -122,11 +118,7 @@ static int view3d_pastebuffer_exec(bContext *C, wmOperator *op)
 
   WM_event_add_notifier(C, NC_WINDOW, NULL);
 
-  BKE_reportf(op->reports,
-              RPT_INFO,
-              num_pasted == 1 ? "%d object pasted" :
-                                "%d objects pasted",
-              num_pasted);
+  BKE_reportf(op->reports, RPT_INFO, "%d object(s) pasted", num_pasted);
 
   return OPERATOR_FINISHED;
 }
