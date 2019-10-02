@@ -72,8 +72,8 @@ struct BMFace *BKE_bmbvh_ray_cast_filter(BMBVHTree *tree,
                                          float *r_dist,
                                          float r_hitout[3],
                                          float r_cagehit[3],
-                                         BMBVHTree_FaceFilter filter,
-                                         void *filter_cb);
+                                         BMBVHTree_FaceFilter filter_cb,
+                                         void *filter_userdata);
 
 /* find a vert closest to co in a sphere of radius dist_max */
 struct BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *tree,

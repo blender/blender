@@ -1673,15 +1673,13 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
-      if (scene) {
-        Sequence *seq;
-        SEQ_BEGIN (scene->ed, seq) {
-          if (seq->sat == 0.0f) {
-            seq->sat = 1.0f;
-          }
+      Sequence *seq;
+      SEQ_BEGIN (scene->ed, seq) {
+        if (seq->sat == 0.0f) {
+          seq->sat = 1.0f;
         }
-        SEQ_END;
       }
+      SEQ_END;
     }
 
     /* GSOC 2010 Sculpt - New settings for Brush */

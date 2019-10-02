@@ -1030,7 +1030,7 @@ static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, const wmEv
     return OPERATOR_CANCELLED;
   }
   /* handled below */
-  id_us_min((ID *)ima);
+  id_us_min(&ima->id);
 
   Object *ob = NULL;
   Object *ob_cursor = ED_view3d_give_object_under_cursor(C, event->mval);

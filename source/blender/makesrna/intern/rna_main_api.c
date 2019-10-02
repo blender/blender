@@ -461,8 +461,6 @@ static VFont *rna_Main_fonts_load(Main *bmain,
                 "Cannot read '%s': %s",
                 filepath,
                 errno ? strerror(errno) : TIP_("unsupported font format"));
-
-    id_us_min((ID *)font);
   }
   return font;
 }

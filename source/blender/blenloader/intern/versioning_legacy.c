@@ -1705,19 +1705,17 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     /* add default radius values to old curve points */
     for (cu = bmain->curves.first; cu; cu = cu->id.next) {
       for (nu = cu->nurb.first; nu; nu = nu->next) {
-        if (nu) {
-          if (nu->bezt) {
-            for (bezt = nu->bezt, a = 0; a < nu->pntsu; a++, bezt++) {
-              if (!bezt->radius) {
-                bezt->radius = 1.0;
-              }
+        if (nu->bezt) {
+          for (bezt = nu->bezt, a = 0; a < nu->pntsu; a++, bezt++) {
+            if (!bezt->radius) {
+              bezt->radius = 1.0;
             }
           }
-          else if (nu->bp) {
-            for (bp = nu->bp, a = 0; a < nu->pntsu * nu->pntsv; a++, bp++) {
-              if (!bp->radius) {
-                bp->radius = 1.0;
-              }
+        }
+        else if (nu->bp) {
+          for (bp = nu->bp, a = 0; a < nu->pntsu * nu->pntsv; a++, bp++) {
+            if (!bp->radius) {
+              bp->radius = 1.0;
             }
           }
         }
@@ -2515,17 +2513,15 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     for (cu = bmain->curves.first; cu; cu = cu->id.next) {
       for (nu = cu->nurb.first; nu; nu = nu->next) {
-        if (nu) {
-          nu->radius_interp = 3;
+        nu->radius_interp = 3;
 
-          /* resolu and resolv are now used differently for surfaces
-           * rather than using the resolution to define the entire number of divisions,
-           * use it for the number of divisions per segment
-           */
-          if (nu->pntsv > 1) {
-            nu->resolu = MAX2(1, (int)(((float)nu->resolu / (float)nu->pntsu) + 0.5f));
-            nu->resolv = MAX2(1, (int)(((float)nu->resolv / (float)nu->pntsv) + 0.5f));
-          }
+        /* resolu and resolv are now used differently for surfaces
+         * rather than using the resolution to define the entire number of divisions,
+         * use it for the number of divisions per segment
+         */
+        if (nu->pntsv > 1) {
+          nu->resolu = MAX2(1, (int)(((float)nu->resolu / (float)nu->pntsu) + 0.5f));
+          nu->resolv = MAX2(1, (int)(((float)nu->resolv / (float)nu->pntsv) + 0.5f));
         }
       }
     }

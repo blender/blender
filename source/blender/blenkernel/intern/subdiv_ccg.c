@@ -593,7 +593,7 @@ Mesh *BKE_subdiv_to_ccg_mesh(Subdiv *subdiv,
   BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
   if (!BKE_subdiv_eval_update_from_mesh(subdiv, coarse_mesh, NULL)) {
     if (coarse_mesh->totpoly) {
-      return false;
+      return NULL;
     }
   }
   BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);

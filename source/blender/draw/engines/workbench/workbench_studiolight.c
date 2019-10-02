@@ -131,7 +131,7 @@ void studiolight_update_world(WORKBENCH_PrivateData *wpd,
 static void compute_parallel_lines_nor_and_dist(const float v1[2],
                                                 const float v2[2],
                                                 const float v3[2],
-                                                float r_line[2])
+                                                float r_line[4])
 {
   sub_v2_v2v2(r_line, v2, v1);
   /* Find orthogonal vector. */

@@ -2419,7 +2419,6 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         case OB_GPENCIL:
           data.icon = ICON_OUTLINER_OB_GREASEPENCIL;
           break;
-          break;
       }
     }
     else {

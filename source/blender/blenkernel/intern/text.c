@@ -352,7 +352,7 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 
   buffer = BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len);
   if (buffer == NULL) {
-    return false;
+    return NULL;
   }
 
   ta = BKE_libblock_alloc(bmain, ID_TXT, BLI_path_basename(filepath_abs), 0);

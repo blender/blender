@@ -309,11 +309,11 @@ void BKE_image_get_aspect(struct Image *image, float *aspx, float *aspy);
 /* image_gen.c */
 void BKE_image_buf_fill_color(
     unsigned char *rect, float *rect_float, int width, int height, const float color[4]);
-void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int height, int width);
+void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int width, int height);
 void BKE_image_buf_fill_checker_color(unsigned char *rect,
                                       float *rect_float,
-                                      int height,
-                                      int width);
+                                      int width,
+                                      int height);
 
 /* Cycles hookup */
 unsigned char *BKE_image_get_pixels_for_frame(struct Image *image, int frame);

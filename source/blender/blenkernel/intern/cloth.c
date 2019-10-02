@@ -772,7 +772,7 @@ static int cloth_from_object(
     clmd->clothObject->old_solver_type = 255;
     clmd->clothObject->edgeset = NULL;
   }
-  else if (!clmd->clothObject) {
+  else {
     modifier_setError(&(clmd->modifier), "Out of memory on allocating clmd->clothObject");
     return 0;
   }

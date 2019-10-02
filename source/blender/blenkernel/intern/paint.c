@@ -224,7 +224,6 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode)
       return rna_enum_brush_image_tool_items;
     case PAINT_MODE_SCULPT_UV:
       return rna_enum_brush_uv_sculpt_tool_items;
-      return NULL;
     case PAINT_MODE_GPENCIL:
       return rna_enum_brush_gpencil_types_items;
     case PAINT_MODE_INVALID:

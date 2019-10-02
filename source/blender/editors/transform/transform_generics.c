@@ -1832,7 +1832,7 @@ static void freeTransCustomData(TransInfo *t, TransDataContainer *tc, TransCusto
     custom_data->data = NULL;
   }
   /* In case modes are switched in the same transform session. */
-  custom_data->free_cb = false;
+  custom_data->free_cb = NULL;
   custom_data->use_free = false;
 }
 
