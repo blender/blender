@@ -389,7 +389,7 @@ bool compareCyclicBackward(const CyclicArray &array_a,
 // vertices.
 bool checkVerticesOfFacesMatch(const CyclicArray &indices_a, const CyclicArray &indices_b)
 {
-  if (indices_a.size() != indices_a.size()) {
+  if (indices_a.size() != indices_b.size()) {
     return false;
   }
   // "Align" the arrays so we know first matched element.
