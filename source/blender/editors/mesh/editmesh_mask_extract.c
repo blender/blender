@@ -175,7 +175,6 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   }
 
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
-  BKE_editmesh_free_derivedmesh(em);
 
   BKE_mesh_free(new_mesh);
   new_mesh = BKE_mesh_from_bmesh_nomain(bm,
@@ -184,7 +183,8 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
                                         }),
                                         mesh);
 
-  BM_mesh_free(bm);
+  BKE_editmesh_free(em);
+  MEM_freeN(em);
 
   if (new_mesh->totvert == 0) {
     BKE_mesh_free(new_mesh);
@@ -197,8 +197,6 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   }
   Object *new_ob = ED_object_add_type(C, OB_MESH, NULL, ob->loc, ob->rot, false, local_view_bits);
   BKE_mesh_nomain_to_mesh(new_mesh, new_ob->data, new_ob, &CD_MASK_EVERYTHING, true);
-
-  BKE_mesh_free(new_mesh);
 
   if (RNA_boolean_get(op->ptr, "apply_shrinkwrap")) {
     BKE_shrinkwrap_mesh_nearest_surface_deform(C, new_ob, ob);
