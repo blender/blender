@@ -3822,7 +3822,7 @@ void BKE_sequencer_text_font_load(TextVars *data, const bool do_id_user)
     char path[FILE_MAX];
     STRNCPY(path, data->text_font->name);
     BLI_assert(BLI_thread_is_main());
-    BLI_path_abs(path, BKE_main_blendfile_path_from_global());
+    BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&data->text_font->id));
 
     data->text_blf_id = BLF_load(path);
   }

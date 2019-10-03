@@ -312,7 +312,7 @@ bool BKE_text_reload(Text *text)
   }
 
   BLI_strncpy(filepath_abs, text->name, FILE_MAX);
-  BLI_path_abs(filepath_abs, BKE_main_blendfile_path_from_global());
+  BLI_path_abs(filepath_abs, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
 
   buffer = BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len);
   if (buffer == NULL) {
@@ -477,7 +477,7 @@ int BKE_text_file_modified_check(Text *text)
   }
 
   BLI_strncpy(file, text->name, FILE_MAX);
-  BLI_path_abs(file, BKE_main_blendfile_path_from_global());
+  BLI_path_abs(file, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
 
   if (!BLI_exists(file)) {
     return 2;
@@ -511,7 +511,7 @@ void BKE_text_file_modified_ignore(Text *text)
   }
 
   BLI_strncpy(file, text->name, FILE_MAX);
-  BLI_path_abs(file, BKE_main_blendfile_path_from_global());
+  BLI_path_abs(file, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
 
   if (!BLI_exists(file)) {
     return;

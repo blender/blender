@@ -115,7 +115,7 @@ ImBuf *get_brush_icon(Brush *brush)
         // first use the path directly to try and load the file
 
         BLI_strncpy(path, brush->icon_filepath, sizeof(brush->icon_filepath));
-        BLI_path_abs(path, BKE_main_blendfile_path_from_global());
+        BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
 
         /* use default colorspaces for brushes */
         brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);

@@ -569,7 +569,7 @@ Image *BKE_image_load_exists_ex(Main *bmain, const char *filepath, bool *r_exist
   char str[FILE_MAX], strtest[FILE_MAX];
 
   STRNCPY(str, filepath);
-  BLI_path_abs(str, BKE_main_blendfile_path_from_global());
+  BLI_path_abs(str, bmain->name);
 
   /* first search an identical filepath */
   for (ima = bmain->images.first; ima; ima = ima->id.next) {
@@ -5310,7 +5310,7 @@ static void image_update_views_format(Image *ima, ImageUser *iuser)
       char str[FILE_MAX];
 
       STRNCPY(str, iv->filepath);
-      BLI_path_abs(str, BKE_main_blendfile_path_from_global());
+      BLI_path_abs(str, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
 
       /* exists? */
       file = BLI_open(str, O_BINARY | O_RDONLY, 0);
