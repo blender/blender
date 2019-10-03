@@ -1218,6 +1218,58 @@ void txt_sel_line(Text *text)
   text->selc = text->sell->len;
 }
 
+void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
+{
+  TextLine *froml, *tol;
+  int fromllen, tollen;
+
+  /* Support negative indices. */
+  if (startl < 0 || endl < 0) {
+    int end = BLI_listbase_count(&text->lines) - 1;
+    if (startl < 0) {
+      startl = end + startl + 1;
+    }
+    if (endl < 0) {
+      endl = end + endl + 1;
+    }
+  }
+  CLAMP_MIN(startl, 0);
+  CLAMP_MIN(endl, 0);
+
+  froml = BLI_findlink(&text->lines, startl);
+  if (froml == NULL) {
+    froml = text->lines.last;
+  }
+  if (startl == endl) {
+    tol = froml;
+  }
+  else {
+    tol = BLI_findlink(&text->lines, endl);
+    if (tol == NULL) {
+      tol = text->lines.last;
+    }
+  }
+
+  fromllen = BLI_strlen_utf8(froml->line);
+  tollen = BLI_strlen_utf8(tol->line);
+
+  /* Support negative indices. */
+  if (startc < 0) {
+    startc = fromllen + startc + 1;
+  }
+  if (endc < 0) {
+    endc = tollen + endc + 1;
+  }
+
+  CLAMP(startc, 0, fromllen);
+  CLAMP(endc, 0, tollen);
+
+  text->curl = froml;
+  text->curc = BLI_str_utf8_offset_from_index(froml->line, startc);
+  text->sell = tol;
+  text->selc = BLI_str_utf8_offset_from_index(tol->line, endc);
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Buffer Conversion for Undo/Redo
  *
