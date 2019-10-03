@@ -373,6 +373,12 @@ class NODE_PT_material_slots(Panel):
             col.operator("object.material_slot_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
+        if ob.mode == 'EDIT':
+            row = layout.row(align=True)
+            row.operator("object.material_slot_assign", text="Assign")
+            row.operator("object.material_slot_select", text="Select")
+            row.operator("object.material_slot_deselect", text="Deselect")
+
 
 class NODE_PT_node_color_presets(PresetPanel, Panel):
     """Predefined node color"""
