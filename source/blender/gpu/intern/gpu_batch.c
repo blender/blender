@@ -878,6 +878,8 @@ void GPU_draw_list_submit(GPUDrawList *list)
     if (batch->elem) {
       GPUDrawCommandIndexed *cmd = list->commands_indexed;
       for (int i = 0; i < cmd_len; i++, cmd++) {
+        /* Index start was added by Draw manager. Avoid counting it twice. */
+        cmd->v_first -= batch->elem->index_start;
         GPU_batch_draw_advanced(batch, cmd->v_first, cmd->v_count, cmd->i_first, cmd->i_count);
       }
     }
