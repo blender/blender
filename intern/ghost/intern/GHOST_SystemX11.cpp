@@ -2303,26 +2303,30 @@ void GHOST_SystemX11::refreshXInputDevices()
           /* Find how many pressure levels tablet has */
           XAnyClassPtr ici = device_info[i].inputclassinfo;
 
-          for (int j = 0; j < xtablet.Device->num_classes; ++j) {
-            if (ici->c_class == ValuatorClass) {
-              XValuatorInfo *xvi = (XValuatorInfo *)ici;
-              xtablet.PressureLevels = xvi->axes[2].max_value;
+          if (ici != NULL) {
+            for (int j = 0; j < xtablet.Device->num_classes; ++j) {
+              if (ici->c_class == ValuatorClass) {
+                XValuatorInfo *xvi = (XValuatorInfo *)ici;
+                if (xvi->axes != NULL) {
+                  xtablet.PressureLevels = xvi->axes[2].max_value;
 
-              if (xvi->num_axes > 3) {
-                /* this is assuming that the tablet has the same tilt resolution in both
-                 * positive and negative directions. It would be rather weird if it didn't.. */
-                xtablet.XtiltLevels = xvi->axes[3].max_value;
-                xtablet.YtiltLevels = xvi->axes[4].max_value;
-              }
-              else {
-                xtablet.XtiltLevels = 0;
-                xtablet.YtiltLevels = 0;
+                  if (xvi->num_axes > 3) {
+                    /* this is assuming that the tablet has the same tilt resolution in both
+                     * positive and negative directions. It would be rather weird if it didn't.. */
+                    xtablet.XtiltLevels = xvi->axes[3].max_value;
+                    xtablet.YtiltLevels = xvi->axes[4].max_value;
+                  }
+                  else {
+                    xtablet.XtiltLevels = 0;
+                    xtablet.YtiltLevels = 0;
+                  }
+
+                  break;
+                }
               }
 
-              break;
+              ici = (XAnyClassPtr)(((char *)ici) + ici->length);
             }
-
-            ici = (XAnyClassPtr)(((char *)ici) + ici->length);
           }
 
           m_xtablets.push_back(xtablet);
