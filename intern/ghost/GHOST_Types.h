@@ -58,6 +58,11 @@ typedef enum {
   GHOST_glAlphaBackground = (1 << 2),
 } GHOST_GLFlags;
 
+typedef enum GHOST_DialogOptions {
+  GHOST_DialogWarning = (1 << 0),
+  GHOST_DialogError = (1 << 1),
+} GHOST_DialogOptions;
+
 #ifdef _MSC_VER
 typedef __int64 GHOST_TInt64;
 typedef unsigned __int64 GHOST_TUns64;

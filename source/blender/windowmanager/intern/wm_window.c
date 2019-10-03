@@ -61,7 +61,9 @@
 #include "wm.h"
 #include "wm_draw.h"
 #include "wm_files.h"
+#include "wm_platform_support.h"
 #include "wm_window.h"
+#include "wm_window_private.h"
 #include "wm_event_system.h"
 
 #include "ED_anim_api.h"
@@ -78,7 +80,7 @@
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
 #include "GPU_draw.h"
-#include "GPU_extensions.h"
+#include "GPU_platform.h"
 #include "GPU_framebuffer.h"
 #include "GPU_init_exit.h"
 #include "GPU_immediate.h"
@@ -2431,4 +2433,12 @@ void WM_opengl_context_release(void *context)
   GHOST_ReleaseOpenGLContext((GHOST_ContextHandle)context);
 }
 
+void WM_ghost_show_message_box(const char *title,
+                               const char *message,
+                               const char *link,
+                               GHOST_DialogOptions dialog_options)
+{
+  BLI_assert(g_system);
+  GHOST_ShowMessageBox(g_system, title, message, link, dialog_options);
+}
 /** \} */

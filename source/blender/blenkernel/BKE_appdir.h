@@ -91,5 +91,6 @@ enum {
 #define BLENDER_QUIT_FILE "quit.blend"
 #define BLENDER_BOOKMARK_FILE "bookmarks.txt"
 #define BLENDER_HISTORY_FILE "recent-files.txt"
+#define BLENDER_PLATFORM_SUPPORT_FILE "platform_support.txt"
 
 #endif /* __BKE_APPDIR_H__ */

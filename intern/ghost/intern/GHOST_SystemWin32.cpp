@@ -31,6 +31,7 @@
 #include <shlobj.h>
 #include <tlhelp32.h>
 #include <psapi.h>
+#include <shellapi.h>
 #include <windowsx.h>
 
 #include "utfconv.h"
@@ -358,14 +359,8 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext()
     goto finished;
   }
   else {
-    MessageBox(NULL,
-               "A graphics card and driver with support for OpenGL 3.3 or higher is required.\n"
-               "Installing the latest driver for your graphics card may resolve the issue.\n\n"
-               "The program will now close.",
-               "Blender - Unsupported Graphics Card or Driver",
-               MB_OK | MB_ICONERROR);
     delete context;
-    exit();
+    return NULL;
   }
 
 #elif defined(WITH_GL_PROFILE_COMPAT)
@@ -1775,6 +1770,47 @@ void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, bool selection) const
     return;
   }
 }
+
+/** \name Message Box
+ * \{ */
+static const char *MESSAGE_BOX_HELP_LINK_PTR = NULL;
+VOID CALLBACK showMessageBoxCallBack(LPHELPINFO lpHelpInfo)
+{
+  if (MESSAGE_BOX_HELP_LINK_PTR) {
+    ShellExecute(NULL, "open", MESSAGE_BOX_HELP_LINK_PTR, NULL, NULL, SW_SHOWNORMAL);
+  }
+}
+
+GHOST_TSuccess GHOST_SystemWin32::showMessageBox(const char *title,
+                                                 const char *message,
+                                                 const char *link,
+                                                 GHOST_DialogOptions dialog_options) const
+{
+  uint style = MB_OK |
+               (dialog_options & GHOST_DialogError ?
+                    MB_ICONERROR :
+                    dialog_options & GHOST_DialogWarning ? MB_ICONWARNING : MB_ICONINFORMATION);
+  bool show_help = link && strlen(link);
+  if (show_help) {
+    GHOST_ASSERT(MESSAGE_BOX_HELP_LINK_PTR == NULL,
+                 "showMessageBox: MESSAGE_BOX_HELP_LINK_PTR is in use");
+    style |= MB_HELP;
+    MESSAGE_BOX_HELP_LINK_PTR = link;
+  }
+
+  MSGBOXPARAMSA message_box_params = {0};
+  message_box_params.cbSize = sizeof(MSGBOXCALLBACK);
+  message_box_params.lpszText = message;
+  message_box_params.lpszCaption = title;
+  message_box_params.dwStyle = style;
+  message_box_params.lpszText = message;
+  message_box_params.lpfnMsgBoxCallback = showMessageBoxCallBack;
+
+  MessageBoxIndirectA(&message_box_params);
+  MESSAGE_BOX_HELP_LINK_PTR = NULL;
+  return GHOST_kSuccess;
+}
+/* \} */
 
 static DWORD GetParentProcessID(void)
 {

@@ -309,6 +309,21 @@ class GHOST_System : public GHOST_ISystem {
    */
   virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const = 0;
 
+  /**
+   * Show a system message box
+   * \param title                   The title of the message box
+   * \param message                 The message to display
+   * \param link                    An optional hyperlink
+   * \param dialog_options Options  how to display the message
+   */
+  virtual GHOST_TSuccess showMessageBox(const char * /*title*/,
+                                        const char * /*message*/,
+                                        const char * /*link*/,
+                                        GHOST_DialogOptions /*dialog_options*/) const
+  {
+    return GHOST_kFailure;
+  };
+
  protected:
   /**
    * Initialize the system.

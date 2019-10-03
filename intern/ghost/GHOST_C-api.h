@@ -66,6 +66,21 @@ extern GHOST_SystemHandle GHOST_CreateSystem(void);
 extern GHOST_TSuccess GHOST_DisposeSystem(GHOST_SystemHandle systemhandle);
 
 /**
+ * Show a system message box to the user
+ * \param systemhandle    The handle to the system
+ * \param title           Title of the message box
+ * \param message         Message of the message box
+ * \param link            Optional (hyper)link to a webpage to show when pressing help
+ * \param dialog_options  Options to configure the message box.
+ * \return void.
+ */
+extern void GHOST_ShowMessageBox(GHOST_SystemHandle systemhandle,
+                                 const char *title,
+                                 const char *message,
+                                 const char *link,
+                                 GHOST_DialogOptions dialog_options);
+
+/**
  * Creates an event consumer object
  * \param eventCallback The event callback routine.
  * \param userdata Pointer to user data returned to the callback routine.
@@ -191,6 +206,7 @@ extern GHOST_WindowHandle GHOST_CreateDialogWindow(GHOST_SystemHandle systemhand
  * Create a new offscreen context.
  * Never explicitly delete the context, use disposeContext() instead.
  * \param systemhandle The handle to the system
+ * \param platform_support_callback An optional callback to check platform support
  * \return A handle to the new context ( == NULL if creation failed).
  */
 extern GHOST_ContextHandle GHOST_CreateOpenGLContext(GHOST_SystemHandle systemhandle);

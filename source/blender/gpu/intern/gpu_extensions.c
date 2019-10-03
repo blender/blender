@@ -35,6 +35,7 @@
 #include "GPU_framebuffer.h"
 #include "GPU_glew.h"
 #include "GPU_texture.h"
+#include "GPU_platform.h"
 
 #include "intern/gpu_private.h"
 
@@ -68,9 +69,6 @@ static struct GPUGlobal {
   GLint maxubosize;
   GLint maxubobinds;
   int samples_color_texture_max;
-  eGPUDeviceType device;
-  eGPUOSType os;
-  eGPUDriverType driver;
   float line_width_range[2];
   /* workaround for different calculation of dfdy factors on GPUs. Some GPUs/drivers
    * calculate dfdy in shader differently when drawing to an offscreen buffer. First
@@ -124,13 +122,6 @@ static void gpu_detect_mip_render_workaround(void)
 
   MEM_freeN(data);
   GPU_texture_free(tex);
-}
-
-/* GPU Types */
-
-bool GPU_type_matches(eGPUDeviceType device, eGPUOSType os, eGPUDriverType driver)
-{
-  return (GG.device & device) && (GG.os & os) && (GG.driver & driver);
 }
 
 /* GPU Extensions */
@@ -266,11 +257,7 @@ void gpu_extensions_init(void)
   const char *renderer = (const char *)glGetString(GL_RENDERER);
   const char *version = (const char *)glGetString(GL_VERSION);
 
-  if (strstr(vendor, "ATI") || strstr(vendor, "AMD")) {
-    GG.device = GPU_DEVICE_ATI;
-    GG.driver = GPU_DRIVER_OFFICIAL;
-
-#ifdef _WIN32
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
     if (strstr(version, "4.5.13399") || strstr(version, "4.5.13417") ||
         strstr(version, "4.5.13422")) {
       /* The renderers include:
@@ -282,75 +269,14 @@ void gpu_extensions_init(void)
 
       GG.unused_fb_slot_workaround = true;
     }
-#endif
+  }
 
-#if defined(__APPLE__)
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_MAC, GPU_DRIVER_OFFICIAL)) {
     if (strstr(renderer, "AMD Radeon Pro") || strstr(renderer, "AMD Radeon R9") ||
         strstr(renderer, "AMD Radeon RX")) {
       GG.depth_blitting_workaround = true;
     }
-#endif
   }
-  else if (strstr(vendor, "NVIDIA")) {
-    GG.device = GPU_DEVICE_NVIDIA;
-    GG.driver = GPU_DRIVER_OFFICIAL;
-  }
-  else if (strstr(vendor, "Intel") ||
-           /* src/mesa/drivers/dri/intel/intel_context.c */
-           strstr(renderer, "Mesa DRI Intel") || strstr(renderer, "Mesa DRI Mobile Intel")) {
-    GG.device = GPU_DEVICE_INTEL;
-    GG.driver = GPU_DRIVER_OFFICIAL;
-
-    if (strstr(renderer, "UHD Graphics") ||
-        /* Not UHD but affected by the same bugs. */
-        strstr(renderer, "HD Graphics 530") || strstr(renderer, "Kaby Lake GT2")) {
-      GG.device |= GPU_DEVICE_INTEL_UHD;
-    }
-  }
-  else if ((strstr(renderer, "Mesa DRI R")) ||
-           (strstr(renderer, "Radeon") && strstr(vendor, "X.Org")) ||
-           (strstr(renderer, "AMD") && strstr(vendor, "X.Org")) ||
-           (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI ")) ||
-           (strstr(renderer, "Gallium ") && strstr(renderer, " on AMD "))) {
-    GG.device = GPU_DEVICE_ATI;
-    GG.driver = GPU_DRIVER_OPENSOURCE;
-  }
-  else if (strstr(renderer, "Nouveau") || strstr(vendor, "nouveau")) {
-    GG.device = GPU_DEVICE_NVIDIA;
-    GG.driver = GPU_DRIVER_OPENSOURCE;
-  }
-  else if (strstr(vendor, "Mesa")) {
-    GG.device = GPU_DEVICE_SOFTWARE;
-    GG.driver = GPU_DRIVER_SOFTWARE;
-  }
-  else if (strstr(vendor, "Microsoft")) {
-    GG.device = GPU_DEVICE_SOFTWARE;
-    GG.driver = GPU_DRIVER_SOFTWARE;
-  }
-  else if (strstr(renderer, "Apple Software Renderer")) {
-    GG.device = GPU_DEVICE_SOFTWARE;
-    GG.driver = GPU_DRIVER_SOFTWARE;
-  }
-  else if (strstr(renderer, "llvmpipe")) {
-    GG.device = GPU_DEVICE_SOFTWARE;
-    GG.driver = GPU_DRIVER_SOFTWARE;
-  }
-  else {
-    printf("Warning: Could not find a matching GPU name. Things may not behave as expected.\n");
-    printf("Detected OpenGL configuration:\n");
-    printf("Vendor: %s\n", vendor);
-    printf("Renderer: %s\n", renderer);
-    GG.device = GPU_DEVICE_ANY;
-    GG.driver = GPU_DRIVER_ANY;
-  }
-
-#ifdef _WIN32
-  GG.os = GPU_OS_WIN;
-#elif defined(__APPLE__)
-  GG.os = GPU_OS_MAC;
-#else
-  GG.os = GPU_OS_UNIX;
-#endif
 
   GG.glew_arb_base_instance_is_supported = GLEW_ARB_base_instance;
   gpu_detect_mip_render_workaround();
@@ -372,11 +298,12 @@ void gpu_extensions_init(void)
   GG.dfdyfactors[0] = 1.0;
   GG.dfdyfactors[1] = 1.0;
 
-  if ((strstr(vendor, "ATI") && strstr(version, "3.3.10750"))) {
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY) &&
+      strstr(version, "3.3.10750")) {
     GG.dfdyfactors[0] = 1.0;
     GG.dfdyfactors[1] = -1.0;
   }
-  else if ((GG.device == GPU_DEVICE_INTEL) && (GG.os == GPU_OS_WIN)) {
+  else if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_ANY)) {
     if (strstr(version, "4.0.0 - Build 10.18.10.3308") ||
         strstr(version, "4.0.0 - Build 9.18.10.3186") ||
         strstr(version, "4.0.0 - Build 9.18.10.3165") ||
@@ -401,8 +328,7 @@ void gpu_extensions_init(void)
       GG.context_local_shaders_workaround = true;
     }
   }
-  else if ((GG.device == GPU_DEVICE_ATI) && (GG.os == GPU_OS_UNIX) &&
-           (GG.driver == GPU_DRIVER_OPENSOURCE)) {
+  else if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
     /* See T70187: merging vertices fail. This has been tested from 18.2.2 till 19.3.0~dev of the
      * Mesa driver */
     GG.unused_fb_slot_workaround = true;

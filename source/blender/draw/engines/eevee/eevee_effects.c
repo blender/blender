@@ -29,6 +29,7 @@
 #include "eevee_private.h"
 #include "GPU_texture.h"
 #include "GPU_extensions.h"
+#include "GPU_platform.h"
 #include "GPU_state.h"
 
 static struct {

@@ -38,6 +38,7 @@
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
 #include "GPU_framebuffer.h"
+#include "GPU_platform.h"
 #include "GPU_texture.h"
 
 #include "gpu_context_private.h"

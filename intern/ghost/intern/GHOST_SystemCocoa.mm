@@ -1383,7 +1383,8 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 
   // Check open windows if some changes are not saved
   if (m_windowManager->getAnyModifiedState()) {
-    @autoreleasepool {
+    @autoreleasepool
+    {
       NSAlert *alert = [[NSAlert alloc] init];
       NSString *title = [NSString stringWithFormat:@"Opening %@", [filepath lastPathComponent]];
       NSString *text = @"Current document has not been saved.\nDo you really want to proceed?";

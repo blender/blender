@@ -29,6 +29,7 @@
 #include "BKE_global.h"
 
 #include "GPU_extensions.h"
+#include "GPU_platform.h"
 #include "intern/gpu_shader_private.h"
 #include "intern/gpu_primitive_private.h"
 
