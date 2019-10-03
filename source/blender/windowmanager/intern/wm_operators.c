@@ -2641,14 +2641,18 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
           }
           else {
             delta[0] = rc->initial_mouse[0] - event->x;
-            delta[1] = 0.0f;
-
+            delta[1] = rc->initial_mouse[1] - event->y;
             if (rc->zoom_prop) {
               RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
               delta[0] /= zoom[0];
+              delta[1] /= zoom[1];
             }
-
-            dist = clamp_f(-delta[0], 0.0f, FLT_MAX);
+            if (rc->subtype == PROP_ANGLE) {
+              dist = len_v2(delta);
+            }
+            else {
+              dist = clamp_f(-delta[0], 0.0f, FLT_MAX);
+            }
           }
 
           /* calculate new value and apply snapping  */
