@@ -98,7 +98,7 @@ void RNA_api_text(StructRNA *srna)
   RNA_def_function_ui_description(func, "Set cursor by line and (optionally) character index");
   parm = RNA_def_int(func, "line", 0, 0, INT_MAX, "Line", "", 0, INT_MAX);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  parm = RNA_def_int(func, "char", 0, 0, INT_MAX, "Character", "", 0, INT_MAX);
+  parm = RNA_def_int(func, "character", 0, 0, INT_MAX, "Character", "", 0, INT_MAX);
   RNA_def_boolean(func, "select", false, "", "Select when moving the cursor");
 }
 
