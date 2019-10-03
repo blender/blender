@@ -400,9 +400,39 @@ static bool rna_property_override_operation_store(Main *bmain,
     return changed;
   }
 
-  BLI_assert(prop_local->override_store == prop_reference->override_store &&
-             (!ptr_storage || prop_local->override_store == prop_storage->override_store) &&
-             prop_local->override_store != NULL);
+  RNAPropOverrideStore override_store = NULL;
+  /* Special case for IDProps, we use default callback then. */
+  if (prop_local->magic != RNA_MAGIC) {
+    override_store = rna_property_override_store_default;
+    if (prop_reference->magic == RNA_MAGIC && prop_reference->override_store != override_store) {
+      override_store = NULL;
+    }
+  }
+  else if (prop_reference->magic != RNA_MAGIC) {
+    override_store = rna_property_override_store_default;
+    if (prop_local->override_store != override_store) {
+      override_store = NULL;
+    }
+  }
+  else if (prop_local->override_store == prop_reference->override_store) {
+    override_store = prop_local->override_store;
+  }
+
+  if (ptr_storage != NULL && prop_storage->magic == RNA_MAGIC &&
+      prop_storage->override_store != override_store) {
+    override_store = NULL;
+  }
+
+  if (override_store == NULL) {
+#ifndef NDEBUG
+    printf("'%s' gives unmatching or NULL RNA store callbacks, should not happen (%d vs. %d).\n",
+           op->rna_path,
+           prop_local->magic == RNA_MAGIC,
+           prop_reference->magic == RNA_MAGIC);
+#endif
+    BLI_assert(0);
+    return changed;
+  }
 
   for (IDOverrideLibraryPropertyOperation *opop = op->operations.first; opop; opop = opop->next) {
     /* Only needed for diff operations. */
@@ -413,17 +443,17 @@ static bool rna_property_override_operation_store(Main *bmain,
       continue;
     }
 
-    if (prop_local->override_store(bmain,
-                                   ptr_local,
-                                   ptr_reference,
-                                   ptr_storage,
-                                   prop_local,
-                                   prop_reference,
-                                   prop_storage,
-                                   len_local,
-                                   len_reference,
-                                   len_storage,
-                                   opop)) {
+    if (override_store(bmain,
+                       ptr_local,
+                       ptr_reference,
+                       ptr_storage,
+                       prop_local,
+                       prop_reference,
+                       prop_storage,
+                       len_local,
+                       len_reference,
+                       len_storage,
+                       opop)) {
       changed = true;
     }
   }
