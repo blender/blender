@@ -625,6 +625,21 @@ bool RNA_struct_override_matches(Main *bmain,
     prop_local = rna_ensure_property_realdata(&prop_local, ptr_local);
     prop_reference = rna_ensure_property_realdata(&prop_reference, ptr_reference);
 
+    /* IDProps (custom properties) are even more of a PITA here, we cannot use
+     * `rna_ensure_property_realdata()` to deal with them, we have to use the path generated from
+     * `prop_local` (which is valid) to access to the actual reference counterpart... */
+    if (prop_local != NULL && prop_local->magic != RNA_MAGIC && prop_local == prop_reference) {
+      /* We could also use (lower in this code, after rna_path has been computed):
+       *    RNA_path_resolve_property(ptr_reference, rna_path, &some_rna_ptr, &prop_reference);
+       * But that would be much more costly, and would also fail when ptr_reference
+       * is not an ID pointer itself, so we'd need to rebuild it from its owner_id, then check that
+       * generated some_rna_ptr and ptr_reference do point to the same data, etc.
+       * For now, let's try that simple access, it won't cover all cases but should handle fine
+       * most basic custom properties situations. */
+      prop_reference = (PropertyRNA *)rna_idproperty_find(ptr_reference,
+                                                          ((IDProperty *)prop_local)->name);
+    }
+
     if (ELEM(NULL, prop_local, prop_reference)) {
       continue;
     }

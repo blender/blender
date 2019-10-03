@@ -30,5 +30,6 @@ struct IDProperty;
 PropertyRNA *rna_ensure_property(PropertyRNA *prop);
 
 void rna_idproperty_touch(struct IDProperty *idprop);
+struct IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name);
 
 #endif /* __ACCESS_RNA_INTERNAL_H__ */

@@ -393,7 +393,7 @@ bool RNA_struct_idprops_check(StructRNA *srna)
   return (srna && srna->idproperties);
 }
 
-static IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name)
+IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name)
 {
   IDProperty *group = RNA_struct_idprops(ptr, 0);
 
