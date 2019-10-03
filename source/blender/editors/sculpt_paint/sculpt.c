@@ -2087,10 +2087,12 @@ static void update_sculpt_normal(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 {
   const Brush *brush = BKE_paint_brush(&sd->paint);
   StrokeCache *cache = ob->sculpt->cache;
+  /* Grab brush does not update the sculpt normal during a stroke */
+  const bool update_normal = !(brush->flag & BRUSH_ORIGINAL_NORMAL) &&
+                             !(brush->sculpt_tool == SCULPT_TOOL_GRAB);
 
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0 &&
-      (cache->first_time || !(brush->flag & BRUSH_ORIGINAL_NORMAL)) &&
-      (cache->first_time || !(brush->sculpt_tool & SCULPT_TOOL_GRAB))) {
+      (cache->first_time || update_normal)) {
     calc_sculpt_normal(sd, ob, nodes, totnode, cache->sculpt_normal);
     if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
       project_plane_v3_v3v3(cache->sculpt_normal, cache->sculpt_normal, cache->view_normal);
