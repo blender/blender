@@ -5300,7 +5300,12 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
   else {
     const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
                                                                                ss->cache->original;
-    const float radius_scale = 1.0f;
+    float radius_scale = 1.0f;
+    /* With these options enabled not all required nodes are inside the original brush radius, so
+     * the brush can produce artifacts in some situations */
+    if (brush->sculpt_tool == SCULPT_TOOL_DRAW && brush->flag & BRUSH_ORIGINAL_NORMAL) {
+      radius_scale = 2.0f;
+    }
     nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
   }
 
