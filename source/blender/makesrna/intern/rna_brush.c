@@ -1885,8 +1885,8 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "normal_radius_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "normal_radius_factor");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
+  RNA_def_property_range(prop, 0.0f, 2.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 2.0f, 0.001, 3);
   RNA_def_property_ui_text(prop,
                            "Normal Radius",
                            "Ratio between the brush radius and the radius that is going to be "

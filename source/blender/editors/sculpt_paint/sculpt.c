@@ -1098,9 +1098,8 @@ bool sculpt_brush_test_cube(SculptBrushTest *test, const float co[3], float loca
   local_co[1] = fabsf(local_co[1]);
   local_co[2] = fabsf(local_co[2]);
 
+  const float p = 8.0f;
   if (local_co[0] <= side && local_co[1] <= side && local_co[2] <= side) {
-    float p = 4.0f;
-
     test->dist = ((powf(local_co[0], p) + powf(local_co[1], p) + powf(local_co[2], p)) /
                   powf(side, p));
 
@@ -1740,11 +1739,13 @@ static float brush_strength(const Sculpt *sd,
 
   switch (brush->sculpt_tool) {
     case SCULPT_TOOL_CLAY:
-    case SCULPT_TOOL_CLAY_STRIPS:
     case SCULPT_TOOL_DRAW:
     case SCULPT_TOOL_DRAW_SHARP:
     case SCULPT_TOOL_LAYER:
       return alpha * flip * pressure * overlap * feather;
+    case SCULPT_TOOL_CLAY_STRIPS:
+      /* Clay Strips needs extra strength to compensate for its default normal radius */
+      return alpha * flip * pressure * overlap * feather * 1.3f;
 
     case SCULPT_TOOL_MASK:
       overlap = (1 + overlap) / 2;
