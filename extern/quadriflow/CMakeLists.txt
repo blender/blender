@@ -23,6 +23,9 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_c_flag(
     "-Wno-unused-result"
   )
+  remove_cc_flag(
+    "-Wmissing-declarations"
+  )
 endif()
 
 set(CMAKE_CXX_STANDARD 14)
