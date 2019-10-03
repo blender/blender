@@ -241,6 +241,8 @@ class GHOST_IWindow {
    */
   virtual void setUserData(const GHOST_TUserDataPtr userData) = 0;
 
+  virtual bool isDialog() const = 0;
+
   /**
    * Returns the tablet data (pressure etc).
    * \return The tablet data (pressure etc).

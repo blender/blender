@@ -23,6 +23,7 @@
 
 #define _USE_MATH_DEFINES
 
+#include "GHOST_WindowManager.h"
 #include "GHOST_WindowWin32.h"
 #include "GHOST_SystemWin32.h"
 #include "GHOST_DropTargetWin32.h"
@@ -66,8 +67,9 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
                                      GHOST_TDrawingContextType type,
                                      bool wantStereoVisual,
                                      bool alphaBackground,
-                                     GHOST_TEmbedderWindowID parentwindowhwnd,
-                                     bool is_debug)
+                                     GHOST_WindowWin32 *parentwindow,
+                                     bool is_debug,
+                                     bool dialog)
     : GHOST_Window(width, height, state, wantStereoVisual, false),
       m_inLiveResize(false),
       m_system(system),
@@ -82,7 +84,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_fpGetPointerInfo(NULL),
       m_fpGetPointerPenInfo(NULL),
       m_fpGetPointerTouchInfo(NULL),
-      m_parentWindowHwnd(parentwindowhwnd),
+      m_parentWindowHwnd(parentwindow ? parentwindow->m_hWnd : NULL),
       m_debug_context(is_debug)
 {
   // Initialize tablet variables
@@ -146,9 +148,9 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       top = monitor.rcWork.top;
 
     int wintype = WS_OVERLAPPEDWINDOW;
-    if (m_parentWindowHwnd != 0) {
+    if ((m_parentWindowHwnd != 0) && !dialog) {
       wintype = WS_CHILD;
-      GetWindowRect((HWND)m_parentWindowHwnd, &rect);
+      GetWindowRect(m_parentWindowHwnd, &rect);
       left = 0;
       top = 0;
       width = rect.right - rect.left;
@@ -156,14 +158,14 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
     }
 
     wchar_t *title_16 = alloc_utf16_from_8((char *)(const char *)title, 0);
-    m_hWnd = ::CreateWindowW(s_windowClassName,         // pointer to registered class name
-                             title_16,                  // pointer to window name
-                             wintype,                   // window style
-                             left,                      // horizontal position of window
-                             top,                       // vertical position of window
-                             width,                     // window width
-                             height,                    // window height
-                             (HWND)m_parentWindowHwnd,  // handle to parent or owner window
+    m_hWnd = ::CreateWindowW(s_windowClassName,                // pointer to registered class name
+                             title_16,                         // pointer to window name
+                             wintype,                          // window style
+                             left,                             // horizontal position of window
+                             top,                              // vertical position of window
+                             width,                            // window width
+                             height,                           // window height
+                             dialog ? 0 : m_parentWindowHwnd,  // handle to parent or owner window
                              0,                     // handle to menu or child-window identifier
                              ::GetModuleHandle(0),  // handle to application instance
                              0);                    // pointer to window-creation data
@@ -267,7 +269,16 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
     }
   }
 
-  if (parentwindowhwnd != 0) {
+  if (dialog && parentwindow) {
+    ::SetWindowLongPtr(m_hWnd,
+                       GWL_STYLE,
+                       WS_VISIBLE | WS_CHILD | WS_POPUPWINDOW | WS_CAPTION | WS_MAXIMIZEBOX |
+                           WS_SIZEBOX);
+    ::SetWindowLongPtr(m_hWnd, GWLP_HWNDPARENT, (LONG_PTR)m_parentWindowHwnd);
+    ::SetWindowPos(
+        m_hWnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+  }
+  else if (parentwindow) {
     RAWINPUTDEVICE device = {0};
     device.usUsagePage = 0x01; /* usUsagePage & usUsage for keyboard*/
     device.usUsage = 0x06;     /* http://msdn.microsoft.com/en-us/windows/hardware/gg487473.aspx */
@@ -386,6 +397,16 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
   }
 
   if (m_hWnd) {
+    /* If this window is referenced by others as parent, clear that relation or windows will free
+     * the handle while we still reference it. */
+    for (GHOST_IWindow *iter_win : m_system->getWindowManager()->getWindows()) {
+      GHOST_WindowWin32 *iter_winwin = (GHOST_WindowWin32 *)iter_win;
+      if (iter_winwin->m_parentWindowHwnd == m_hWnd) {
+        ::SetWindowLongPtr(iter_winwin->m_hWnd, GWLP_HWNDPARENT, NULL);
+        iter_winwin->m_parentWindowHwnd = 0;
+      }
+    }
+
     if (m_dropTarget) {
       // Disable DragDrop
       RevokeDragDrop(m_hWnd);
@@ -528,7 +549,7 @@ GHOST_TWindowState GHOST_WindowWin32::getState() const
   // we need to find a way to combine parented windows + resizing if we simply set the
   // state as GHOST_kWindowStateEmbedded we will need to check for them somewhere else.
   // It's also strange that in Windows is the only platform we need to make this separation.
-  if (m_parentWindowHwnd != 0) {
+  if ((m_parentWindowHwnd != 0) && !isDialog()) {
     state = GHOST_kWindowStateEmbedded;
     return state;
   }
@@ -574,6 +595,7 @@ void GHOST_WindowWin32::clientToScreen(GHOST_TInt32 inX,
 GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 {
   GHOST_TWindowState curstate = getState();
+  LONG_PTR newstyle = -1;
   WINDOWPLACEMENT wp;
   wp.length = sizeof(WINDOWPLACEMENT);
   ::GetWindowPlacement(m_hWnd, &wp);
@@ -587,7 +609,7 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
       break;
     case GHOST_kWindowStateMaximized:
       wp.showCmd = SW_SHOWMAXIMIZED;
-      ::SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+      newstyle = WS_OVERLAPPEDWINDOW;
       break;
     case GHOST_kWindowStateFullScreen:
       if (curstate != state && curstate != GHOST_kWindowStateMinimized)
@@ -595,17 +617,21 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
       wp.showCmd = SW_SHOWMAXIMIZED;
       wp.ptMaxPosition.x = 0;
       wp.ptMaxPosition.y = 0;
-      ::SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_MAXIMIZE);
+      newstyle = WS_MAXIMIZE;
       break;
     case GHOST_kWindowStateEmbedded:
-      ::SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_CHILD);
+      newstyle = WS_CHILD;
       break;
     case GHOST_kWindowStateNormal:
     default:
       wp.showCmd = SW_SHOWNORMAL;
-      ::SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+      newstyle = WS_OVERLAPPEDWINDOW;
       break;
   }
+  if ((newstyle >= 0) && !isDialog()) {
+    ::SetWindowLongPtr(m_hWnd, GWL_STYLE, newstyle);
+  }
+
   /* Clears window cache for SetWindowLongPtr */
   ::SetWindowPos(m_hWnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 
@@ -735,6 +761,14 @@ void GHOST_WindowWin32::lostMouseCapture()
     m_nPressedButtons = 0;
     m_hasMouseCaptured = false;
   }
+}
+
+bool GHOST_WindowWin32::isDialog() const
+{
+  HWND parent = (HWND)::GetWindowLongPtr(m_hWnd, GWLP_HWNDPARENT);
+  long int style = (long int)::GetWindowLongPtr(m_hWnd, GWL_STYLE);
+
+  return (parent != 0) && (style & WS_POPUPWINDOW);
 }
 
 void GHOST_WindowWin32::registerMouseClickEvent(int press)

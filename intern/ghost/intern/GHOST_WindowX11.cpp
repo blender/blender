@@ -72,7 +72,18 @@ typedef struct {
   long input_mode;
 } MotifWmHints;
 
-#define MWM_HINTS_DECORATIONS (1L << 1)
+enum {
+  MWM_HINTS_FUNCTIONS = (1L << 0),
+  MWM_HINTS_DECORATIONS = (1L << 1),
+};
+enum {
+  MWM_FUNCTION_ALL = (1L << 0),
+  MWM_FUNCTION_RESIZE = (1L << 1),
+  MWM_FUNCTION_MOVE = (1L << 2),
+  MWM_FUNCTION_MINIMIZE = (1L << 3),
+  MWM_FUNCTION_MAXIMIZE = (1L << 4),
+  MWM_FUNCTION_CLOSE = (1L << 5),
+};
 
 #ifndef HOST_NAME_MAX
 #  define HOST_NAME_MAX 64
@@ -191,8 +202,9 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
                                  GHOST_TUns32 width,
                                  GHOST_TUns32 height,
                                  GHOST_TWindowState state,
-                                 const GHOST_TEmbedderWindowID parentWindow,
+                                 GHOST_WindowX11 *parentWindow,
                                  GHOST_TDrawingContextType type,
+                                 const bool is_dialog,
                                  const bool stereoVisual,
                                  const bool exclusive,
                                  const bool alphaBackground,
@@ -259,7 +271,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
       m_display, RootWindow(m_display, m_visualInfo->screen), m_visualInfo->visual, AllocNone);
 
   /* create the window! */
-  if (parentWindow == 0) {
+  if ((parentWindow == 0) || is_dialog) {
     m_window = XCreateWindow(m_display,
                              RootWindow(m_display, m_visualInfo->screen),
                              left,
@@ -279,7 +291,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
     unsigned int w_return, h_return, border_w_return, depth_return;
 
     XGetGeometry(m_display,
-                 parentWindow,
+                 parentWindow->m_window,
                  &root_return,
                  &x_return,
                  &y_return,
@@ -294,7 +306,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
     height = h_return;
 
     m_window = XCreateWindow(m_display,
-                             parentWindow, /* reparent against embedder */
+                             parentWindow->m_window, /* reparent against embedder */
                              left,
                              top,
                              width,
@@ -306,7 +318,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
                              xattributes_valuemask,
                              &xattributes);
 
-    XSelectInput(m_display, parentWindow, SubstructureNotifyMask);
+    XSelectInput(m_display, parentWindow->m_window, SubstructureNotifyMask);
   }
 
 #ifdef WITH_XDND
@@ -354,6 +366,10 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
   else {
     m_post_init = False;
     m_post_state = GHOST_kWindowStateNormal;
+  }
+
+  if (is_dialog && parentWindow) {
+    setDialogHints(parentWindow);
   }
 
   /* Create some hints for the window manager on how
@@ -699,6 +715,42 @@ void GHOST_WindowX11::clientToScreen(GHOST_TInt32 inX,
       m_display, m_window, RootWindow(m_display, m_visualInfo->screen), inX, inY, &ax, &ay, &temp);
   outX = ax;
   outY = ay;
+}
+
+GHOST_TSuccess GHOST_WindowX11::setDialogHints(GHOST_WindowX11 *parentWindow)
+{
+
+  Atom atom_window_type = XInternAtom(m_display, "_NET_WM_WINDOW_TYPE", False);
+  Atom atom_dialog = XInternAtom(m_display, "_NET_WM_WINDOW_TYPE_DIALOG", False);
+  MotifWmHints hints = {0};
+
+  XChangeProperty(m_display,
+                  m_window,
+                  atom_window_type,
+                  XA_ATOM,
+                  32,
+                  PropModeReplace,
+                  (unsigned char *)&atom_dialog,
+                  1);
+  XSetTransientForHint(m_display, m_window, parentWindow->m_window);
+
+  /* Disable minimizing of the window for now.
+   * Actually, most window managers disable minimizing and maximizing for dialogs, ignoring this.
+   * Leaving it here anyway in the hope it brings back maximizing on some window managers at least,
+   * we'd preferably have it even for dialog windows (e.g. file browser). */
+  hints.flags = MWM_HINTS_FUNCTIONS;
+  hints.functions = MWM_FUNCTION_RESIZE | MWM_FUNCTION_MOVE | MWM_FUNCTION_MAXIMIZE |
+                    MWM_FUNCTION_CLOSE;
+  XChangeProperty(m_display,
+                  m_window,
+                  m_system->m_atom._MOTIF_WM_HINTS,
+                  m_system->m_atom._MOTIF_WM_HINTS,
+                  32,
+                  PropModeReplace,
+                  (unsigned char *)&hints,
+                  4);
+
+  return GHOST_kSuccess;
 }
 
 void GHOST_WindowX11::icccmSetState(int state)
@@ -1110,6 +1162,44 @@ GHOST_TSuccess GHOST_WindowX11::setOrder(GHOST_TWindowOrder order)
   }
 
   return GHOST_kSuccess;
+}
+
+bool GHOST_WindowX11::isDialog() const
+{
+  Atom atom_window_type = XInternAtom(m_display, "_NET_WM_WINDOW_TYPE", False);
+  Atom atom_dialog = XInternAtom(m_display, "_NET_WM_WINDOW_TYPE_DIALOG", False);
+
+  Atom *prop_ret;
+  unsigned long bytes_after, num_ret;
+  Atom type_ret;
+  bool st;
+  int format_ret, ret;
+
+  prop_ret = NULL;
+  st = False;
+  ret = XGetWindowProperty(m_display,
+                           m_window,
+                           atom_window_type,
+                           0,
+                           INT_MAX,
+                           False,
+                           XA_ATOM,
+                           &type_ret,
+                           &format_ret,
+                           &num_ret,
+                           &bytes_after,
+                           (unsigned char **)&prop_ret);
+  if ((ret == Success) && (prop_ret) && (format_ret == 32)) {
+    if (prop_ret[0] == atom_dialog) {
+      st = True;
+    }
+  }
+
+  if (prop_ret) {
+    XFree(prop_ret);
+  }
+
+  return st;
 }
 
 GHOST_TSuccess GHOST_WindowX11::invalidate()

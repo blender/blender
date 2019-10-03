@@ -89,6 +89,7 @@ class GHOST_SystemSDL : public GHOST_System {
                               GHOST_TDrawingContextType type,
                               GHOST_GLSettings glSettings,
                               const bool exclusive = false,
+                              const bool is_dialog = false,
                               const GHOST_TEmbedderWindowID parentWindow = 0);
 
   /* SDL specific */

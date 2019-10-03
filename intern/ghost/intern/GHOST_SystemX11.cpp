@@ -324,7 +324,7 @@ void GHOST_SystemX11::getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 
  * \param   type    The type of drawing context installed in this window.
  * \param glSettings: Misc OpenGL settings.
  * \param exclusive: Use to show the window ontop and ignore others (used fullscreen).
- * \param   parentWindow    Parent (embedder) window
+ * \param   parentWindow    Parent window
  * \return  The new window (or 0 if creation failed).
  */
 GHOST_IWindow *GHOST_SystemX11::createWindow(const STR_String &title,
@@ -336,7 +336,8 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const STR_String &title,
                                              GHOST_TDrawingContextType type,
                                              GHOST_GLSettings glSettings,
                                              const bool exclusive,
-                                             const GHOST_TEmbedderWindowID parentWindow)
+                                             const bool is_dialog,
+                                             const GHOST_IWindow *parentWindow)
 {
   GHOST_WindowX11 *window = NULL;
 
@@ -351,8 +352,9 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const STR_String &title,
                                width,
                                height,
                                state,
-                               parentWindow,
+                               (GHOST_WindowX11 *)parentWindow,
                                type,
+                               is_dialog,
                                ((glSettings.flags & GHOST_glStereoVisual) != 0),
                                exclusive,
                                ((glSettings.flags & GHOST_glAlphaBackground) != 0),

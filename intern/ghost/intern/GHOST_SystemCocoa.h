@@ -109,7 +109,8 @@ class GHOST_SystemCocoa : public GHOST_System {
                               GHOST_TDrawingContextType type,
                               GHOST_GLSettings glSettings,
                               const bool exclusive = false,
-                              const GHOST_TEmbedderWindowID parentWindow = 0);
+                              const bool is_dialog = false,
+                              const GHOST_IWindow *parentWindow = NULL);
 
   /**
    * Create a new offscreen context.
@@ -230,6 +231,11 @@ class GHOST_SystemCocoa : public GHOST_System {
    * \return Indication whether the event was handled.
    */
   GHOST_TSuccess handleApplicationBecomeActiveEvent();
+
+  /**
+   * \return True if any dialog window is open.
+   */
+  bool hasDialogWindow();
 
   /**
    * External objects should call this when they send an event outside processEvents.

@@ -2352,7 +2352,8 @@ static int wm_handler_fileselect_do(bContext *C,
                                             U.file_space_data.temp_win_sizex * UI_DPI_FAC,
                                             U.file_space_data.temp_win_sizey * UI_DPI_FAC,
                                             SPACE_FILE,
-                                            U.filebrowser_display_type))) {
+                                            U.filebrowser_display_type,
+                                            true))) {
         ARegion *region_header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 
         BLI_assert(area->spacetype == SPACE_FILE);

@@ -75,8 +75,9 @@ class GHOST_WindowX11 : public GHOST_Window {
                   GHOST_TUns32 width,
                   GHOST_TUns32 height,
                   GHOST_TWindowState state,
-                  const GHOST_TEmbedderWindowID parentWindow,
+                  GHOST_WindowX11 *parentWindow,
                   GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
+                  const bool is_dialog = false,
                   const bool stereoVisual = false,
                   const bool exclusive = false,
                   const bool alphaBackground = false,
@@ -91,6 +92,8 @@ class GHOST_WindowX11 : public GHOST_Window {
   void getWindowBounds(GHOST_Rect &bounds) const;
 
   void getClientBounds(GHOST_Rect &bounds) const;
+
+  bool isDialog() const;
 
   GHOST_TSuccess setClientWidth(GHOST_TUns32 width);
 
@@ -184,6 +187,8 @@ class GHOST_WindowX11 : public GHOST_Window {
   GHOST_TSuccess beginFullScreen() const;
 
   GHOST_TSuccess endFullScreen() const;
+
+  GHOST_TSuccess setDialogHints(GHOST_WindowX11 *parentWindow);
 
   GHOST_TUns16 getDPIHint();
 

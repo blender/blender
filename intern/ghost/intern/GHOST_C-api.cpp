@@ -140,7 +140,33 @@ GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
   return (GHOST_WindowHandle)system->createWindow(
-      title, left, top, width, height, state, type, glSettings, false);
+      title, left, top, width, height, state, type, glSettings, false, false);
+}
+
+GHOST_WindowHandle GHOST_CreateDialogWindow(GHOST_SystemHandle systemhandle,
+                                            GHOST_WindowHandle parent_windowhandle,
+                                            const char *title,
+                                            GHOST_TInt32 left,
+                                            GHOST_TInt32 top,
+                                            GHOST_TUns32 width,
+                                            GHOST_TUns32 height,
+                                            GHOST_TWindowState state,
+                                            GHOST_TDrawingContextType type,
+                                            GHOST_GLSettings glSettings)
+{
+  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
+
+  return (GHOST_WindowHandle)system->createWindow(title,
+                                                  left,
+                                                  top,
+                                                  width,
+                                                  height,
+                                                  state,
+                                                  type,
+                                                  glSettings,
+                                                  false,
+                                                  true,
+                                                  (GHOST_IWindow *)parent_windowhandle);
 }
 
 GHOST_TUserDataPtr GHOST_GetWindowUserData(GHOST_WindowHandle windowhandle)
@@ -154,6 +180,13 @@ void GHOST_SetWindowUserData(GHOST_WindowHandle windowhandle, GHOST_TUserDataPtr
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
   window->setUserData(userdata);
+}
+
+int GHOST_IsDialogWindow(GHOST_WindowHandle windowhandle)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+
+  return (int)window->isDialog();
 }
 
 GHOST_TSuccess GHOST_DisposeWindow(GHOST_SystemHandle systemhandle,

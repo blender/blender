@@ -235,8 +235,9 @@ class GHOST_WindowWin32 : public GHOST_Window {
                     GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
                     bool wantStereoVisual = false,
                     bool alphaBackground = false,
-                    GHOST_TEmbedderWindowID parentWindowHwnd = 0,
-                    bool is_debug = false);
+                    GHOST_WindowWin32 *parentWindow = 0,
+                    bool is_debug = false,
+                    bool dialog = false);
 
   /**
    * Destructor.
@@ -380,6 +381,8 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * called in response to native window system messages.
    */
   void lostMouseCapture();
+
+  bool isDialog() const;
 
   /**
    * Loads the windows equivalent of a standard GHOST cursor.
@@ -528,8 +531,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
   GHOST_WIN32_GetPointerPenInfo m_fpGetPointerPenInfo;
   GHOST_WIN32_GetPointerTouchInfo m_fpGetPointerTouchInfo;
 
-  /** Hwnd to parent window */
-  GHOST_TEmbedderWindowID m_parentWindowHwnd;
+  HWND m_parentWindowHwnd;
 
 #ifdef WITH_INPUT_IME
   /** Handle input method editors event */

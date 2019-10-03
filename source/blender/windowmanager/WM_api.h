@@ -156,8 +156,14 @@ void WM_opengl_context_activate(void *context);
 void WM_opengl_context_release(void *context);
 
 struct wmWindow *WM_window_open(struct bContext *C, const struct rcti *rect);
-struct wmWindow *WM_window_open_temp(
-    struct bContext *C, const char *title, int x, int y, int sizex, int sizey, int space_type);
+struct wmWindow *WM_window_open_temp(struct bContext *C,
+                                     const char *title,
+                                     int x,
+                                     int y,
+                                     int sizex,
+                                     int sizey,
+                                     int space_type,
+                                     bool dialog);
 void WM_window_set_dpi(wmWindow *win);
 
 bool WM_stereo3d_enabled(struct wmWindow *win, bool only_fullscreen_test);

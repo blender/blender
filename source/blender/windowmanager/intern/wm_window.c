@@ -409,8 +409,10 @@ void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
 /* this is event from ghost, or exit-blender op */
 void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
-  /* First check if there is another main window remaining. */
   wmWindow *win_other;
+  const bool is_dialog = GHOST_IsDialogWindow(win->ghostwin);
+
+  /* First check if there is another main window remaining. */
   for (win_other = wm->windows.first; win_other; win_other = win_other->next) {
     if (win_other != win && win_other->parent == NULL && !WM_window_is_temp_screen(win_other)) {
       break;
@@ -422,10 +424,15 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
     return;
   }
 
-  /* close child windows */
-  for (wmWindow *win_child = wm->windows.first; win_child; win_child = win_child->next) {
-    if (win_child->parent == win) {
-      wm_window_close(C, wm, win_child);
+  /* Close child windows and bring windows back to front that dialogs have pushed behind the main
+   * window. */
+  for (wmWindow *iter_win = wm->windows.first; iter_win; iter_win = iter_win->next) {
+    if (iter_win->parent == win) {
+      wm_window_close(C, wm, iter_win);
+    }
+    else if (is_dialog && iter_win != win && iter_win->parent &&
+             (GHOST_GetWindowState(iter_win->ghostwin) != GHOST_kWindowStateMinimized)) {
+      wm_window_raise(iter_win);
     }
   }
 
@@ -547,7 +554,10 @@ static void wm_window_ensure_eventstate(wmWindow *win)
 }
 
 /* belongs to below */
-static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wmWindow *win)
+static void wm_window_ghostwindow_add(wmWindowManager *wm,
+                                      const char *title,
+                                      wmWindow *win,
+                                      bool is_dialog)
 {
   GHOST_WindowHandle ghostwin;
   GHOST_GLSettings glSettings = {0};
@@ -569,15 +579,29 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
   wmWindow *prev_windrawable = wm->windrawable;
   wm_window_clear_drawable(wm);
 
-  ghostwin = GHOST_CreateWindow(g_system,
-                                title,
-                                win->posx,
-                                posy,
-                                win->sizex,
-                                win->sizey,
-                                (GHOST_TWindowState)win->windowstate,
-                                GHOST_kDrawingContextTypeOpenGL,
-                                glSettings);
+  if (is_dialog && win->parent) {
+    ghostwin = GHOST_CreateDialogWindow(g_system,
+                                        win->parent->ghostwin,
+                                        title,
+                                        win->posx,
+                                        posy,
+                                        win->sizex,
+                                        win->sizey,
+                                        (GHOST_TWindowState)win->windowstate,
+                                        GHOST_kDrawingContextTypeOpenGL,
+                                        glSettings);
+  }
+  else {
+    ghostwin = GHOST_CreateWindow(g_system,
+                                  title,
+                                  win->posx,
+                                  posy,
+                                  win->sizex,
+                                  win->sizey,
+                                  (GHOST_TWindowState)win->windowstate,
+                                  GHOST_kDrawingContextTypeOpenGL,
+                                  glSettings);
+  }
 
   if (ghostwin) {
     GHOST_RectangleHandle bounds;
@@ -635,6 +659,68 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
   }
 }
 
+static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, bool is_dialog)
+{
+  wmKeyMap *keymap;
+
+  if (win->ghostwin == NULL) {
+    if ((win->sizex == 0) || (wm_init_state.override_flag & WIN_OVERRIDE_GEOM)) {
+      win->posx = wm_init_state.start_x;
+      win->posy = wm_init_state.start_y;
+      win->sizex = wm_init_state.size_x;
+      win->sizey = wm_init_state.size_y;
+
+      if (wm_init_state.override_flag & WIN_OVERRIDE_GEOM) {
+        win->windowstate = GHOST_kWindowStateNormal;
+        wm_init_state.override_flag &= ~WIN_OVERRIDE_GEOM;
+      }
+      else {
+        win->windowstate = GHOST_WINDOW_STATE_DEFAULT;
+      }
+    }
+
+    if (wm_init_state.override_flag & WIN_OVERRIDE_WINSTATE) {
+      win->windowstate = wm_init_state.windowstate;
+      wm_init_state.override_flag &= ~WIN_OVERRIDE_WINSTATE;
+    }
+
+    /* without this, cursor restore may fail, T45456 */
+    if (win->cursor == 0) {
+      win->cursor = WM_CURSOR_DEFAULT;
+    }
+
+    wm_window_ghostwindow_add(wm, "Blender", win, is_dialog);
+  }
+
+  if (win->ghostwin != NULL) {
+    /* If we have no ghostwin this is a buggy window that should be removed.
+     * However we still need to initialize it correctly so the screen doesn't hang. */
+
+    /* happens after fileread */
+    wm_window_ensure_eventstate(win);
+  }
+
+  /* add keymap handlers (1 handler for all keys in map!) */
+  keymap = WM_keymap_ensure(wm->defaultconf, "Window", 0, 0);
+  WM_event_add_keymap_handler(&win->handlers, keymap);
+
+  keymap = WM_keymap_ensure(wm->defaultconf, "Screen", 0, 0);
+  WM_event_add_keymap_handler(&win->handlers, keymap);
+
+  keymap = WM_keymap_ensure(wm->defaultconf, "Screen Editing", 0, 0);
+  WM_event_add_keymap_handler(&win->modalhandlers, keymap);
+
+  /* add drop boxes */
+  {
+    ListBase *lb = WM_dropboxmap_find("Window", 0, 0);
+    WM_event_add_dropbox_handler(&win->handlers, lb);
+  }
+  wm_window_title(wm, win);
+
+  /* add topbar */
+  ED_screen_global_areas_refresh(win);
+}
+
 /**
  * Initialize #wmWindow without ghostwin, open these and clear.
  *
@@ -650,9 +736,6 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
  */
 void wm_window_ghostwindows_ensure(wmWindowManager *wm)
 {
-  wmKeyMap *keymap;
-  wmWindow *win;
-
   BLI_assert(G.background == false);
 
   /* No command-line prefsize? then we set this.
@@ -682,63 +765,8 @@ void wm_window_ghostwindows_ensure(wmWindowManager *wm)
 #endif
   }
 
-  for (win = wm->windows.first; win; win = win->next) {
-    if (win->ghostwin == NULL) {
-      if ((win->sizex == 0) || (wm_init_state.override_flag & WIN_OVERRIDE_GEOM)) {
-        win->posx = wm_init_state.start_x;
-        win->posy = wm_init_state.start_y;
-        win->sizex = wm_init_state.size_x;
-        win->sizey = wm_init_state.size_y;
-
-        if (wm_init_state.override_flag & WIN_OVERRIDE_GEOM) {
-          win->windowstate = GHOST_kWindowStateNormal;
-          wm_init_state.override_flag &= ~WIN_OVERRIDE_GEOM;
-        }
-        else {
-          win->windowstate = GHOST_WINDOW_STATE_DEFAULT;
-        }
-      }
-
-      if (wm_init_state.override_flag & WIN_OVERRIDE_WINSTATE) {
-        win->windowstate = wm_init_state.windowstate;
-        wm_init_state.override_flag &= ~WIN_OVERRIDE_WINSTATE;
-      }
-
-      /* without this, cursor restore may fail, T45456 */
-      if (win->cursor == 0) {
-        win->cursor = WM_CURSOR_DEFAULT;
-      }
-
-      wm_window_ghostwindow_add(wm, "Blender", win);
-    }
-
-    if (win->ghostwin != NULL) {
-      /* If we have no ghostwin this is a buggy window that should be removed.
-       * However we still need to initialize it correctly so the screen doesn't hang. */
-
-      /* happens after fileread */
-      wm_window_ensure_eventstate(win);
-    }
-
-    /* add keymap handlers (1 handler for all keys in map!) */
-    keymap = WM_keymap_ensure(wm->defaultconf, "Window", 0, 0);
-    WM_event_add_keymap_handler(&win->handlers, keymap);
-
-    keymap = WM_keymap_ensure(wm->defaultconf, "Screen", 0, 0);
-    WM_event_add_keymap_handler(&win->handlers, keymap);
-
-    keymap = WM_keymap_ensure(wm->defaultconf, "Screen Editing", 0, 0);
-    WM_event_add_keymap_handler(&win->modalhandlers, keymap);
-
-    /* add drop boxes */
-    {
-      ListBase *lb = WM_dropboxmap_find("Window", 0, 0);
-      WM_event_add_dropbox_handler(&win->handlers, lb);
-    }
-    wm_window_title(wm, win);
-
-    /* add topbar */
-    ED_screen_global_areas_refresh(win);
+  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+    wm_window_ghostwindow_ensure(wm, win, false);
   }
 }
 
@@ -795,10 +823,17 @@ wmWindow *WM_window_open(bContext *C, const rcti *rect)
  * \param space_type: SPACE_VIEW3D, SPACE_INFO, ... (eSpace_Type)
  * \return the window or NULL in case of failure.
  */
-wmWindow *WM_window_open_temp(
-    bContext *C, const char *title, int x, int y, int sizex, int sizey, int space_type)
+wmWindow *WM_window_open_temp(bContext *C,
+                              const char *title,
+                              int x,
+                              int y,
+                              int sizex,
+                              int sizey,
+                              int space_type,
+                              bool dialog)
 {
   Main *bmain = CTX_data_main(C);
+  wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win_prev = CTX_wm_window(C);
   wmWindow *win;
   bScreen *screen;
@@ -823,9 +858,10 @@ wmWindow *WM_window_open_temp(
   /* changes rect to fit within desktop */
   wm_window_check_position(&rect);
 
-  /* test if we have a temp screen already */
-  for (win = CTX_wm_manager(C)->windows.first; win; win = win->next) {
-    if (WM_window_is_temp_screen(win)) {
+  /* Reuse temporary or dialog window if one is open (but don't use a dialog for a regular
+   * temporary window, or vice versa). */
+  for (win = wm->windows.first; win; win = win->next) {
+    if (WM_window_is_temp_screen(win) && (dialog == GHOST_IsDialogWindow(win->ghostwin))) {
       break;
     }
   }
@@ -842,11 +878,6 @@ wmWindow *WM_window_open_temp(
 
   win->sizex = BLI_rcti_size_x(&rect);
   win->sizey = BLI_rcti_size_y(&rect);
-
-  if (win->ghostwin) {
-    wm_window_set_size(win, win->sizex, win->sizey);
-    wm_window_raise(win);
-  }
 
   if (WM_window_get_active_workspace(win) == NULL) {
     WorkSpace *workspace = WM_window_get_active_workspace(win_prev);
@@ -872,6 +903,9 @@ wmWindow *WM_window_open_temp(
 
   /* make window active, and validate/resize */
   CTX_wm_window_set(C, win);
+  if (!win->ghostwin) {
+    wm_window_ghostwindow_ensure(wm, win, dialog);
+  }
   WM_check(C);
 
   /* It's possible `win->ghostwin == NULL`.
@@ -887,15 +921,18 @@ wmWindow *WM_window_open_temp(
   ED_area_newspace(C, sa, space_type, false);
 
   ED_screen_change(C, screen);
-  ED_screen_refresh(CTX_wm_manager(C), win); /* test scale */
+  ED_screen_refresh(wm, win); /* test scale */
 
   if (win->ghostwin) {
+    wm_window_set_size(win, win->sizex, win->sizey);
+    wm_window_raise(win);
+
     GHOST_SetTitle(win->ghostwin, title);
     return win;
   }
   else {
     /* very unlikely! but opening a new window can fail */
-    wm_window_close(C, CTX_wm_manager(C), win);
+    wm_window_close(C, wm, win);
     CTX_wm_window_set(C, win_prev);
 
     return NULL;

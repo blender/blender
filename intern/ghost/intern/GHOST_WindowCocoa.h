@@ -66,7 +66,9 @@ class GHOST_WindowCocoa : public GHOST_Window {
                     GHOST_TWindowState state,
                     GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
                     const bool stereoVisual = false,
-                    bool is_debug = false);
+                    bool is_debug = false,
+                    bool dialog = false,
+                    GHOST_WindowCocoa *parentWindow = 0);
 
   /**
    * Destructor.
@@ -218,6 +220,8 @@ class GHOST_WindowCocoa : public GHOST_Window {
   NSCursor *getStandardCursor(GHOST_TStandardCursor cursor) const;
   void loadCursor(bool visible, GHOST_TStandardCursor cursor) const;
 
+  bool isDialog() const;
+
   const GHOST_TabletData *GetTabletData()
   {
     return &m_tablet;
@@ -328,6 +332,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
 
   bool m_immediateDraw;
   bool m_debug_context;  // for debug messages during context setup
+  bool m_is_dialog;
 };
 
 #endif  // __GHOST_WINDOWCOCOA_H__

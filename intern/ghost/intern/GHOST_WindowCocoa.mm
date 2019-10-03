@@ -166,7 +166,8 @@
 
 - (BOOL)canBecomeKeyWindow
 {
-  return YES;
+  /* Don't make other windows active when a dialog window is open. */
+  return (associatedWindow->isDialog() || !systemCocoa->hasDialogWindow());
 }
 
 //The drag'n'drop dragging destination methods
@@ -290,7 +291,9 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
                                      GHOST_TWindowState state,
                                      GHOST_TDrawingContextType type,
                                      const bool stereoVisual,
-                                     bool is_debug)
+                                     bool is_debug,
+                                     bool is_dialog,
+                                     GHOST_WindowCocoa *parentWindow)
     : GHOST_Window(width, height, state, stereoVisual, false),
       m_openGLView(nil),
       m_metalView(nil),
@@ -298,7 +301,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
       m_systemCocoa(systemCocoa),
       m_customCursor(0),
       m_immediateDraw(false),
-      m_debug_context(is_debug)
+      m_debug_context(is_debug),
+      m_is_dialog(is_dialog)
 {
   m_fullScreen = false;
 
@@ -313,12 +317,16 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
   rect.size.width = width;
   rect.size.height = height;
 
-  m_window = [[CocoaWindow alloc]
-      initWithContentRect:rect
-                styleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
-                          NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable
-                  backing:NSBackingStoreBuffered
-                    defer:NO];
+  NSWindowStyleMask styleMask = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
+                                NSWindowStyleMaskResizable;
+  if (!is_dialog) {
+    styleMask |= NSWindowStyleMaskMiniaturizable;
+  }
+
+  m_window = [[CocoaWindow alloc] initWithContentRect:rect
+                                            styleMask:styleMask
+                                              backing:NSBackingStoreBuffered
+                                                defer:NO];
 
   if (m_window == nil) {
     [pool drain];
@@ -401,6 +409,10 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
 
   if (state == GHOST_kWindowStateFullScreen)
     setState(GHOST_kWindowStateFullScreen);
+
+  if (is_dialog && parentWindow) {
+    [parentWindow->getCocoaWindow() addChildWindow:m_window ordered:NSWindowAbove];
+  }
 
   setNativePixelSize();
 
@@ -548,10 +560,8 @@ void GHOST_WindowCocoa::getClientBounds(GHOST_Rect &bounds) const
   NSRect screenSize = [[m_window screen] visibleFrame];
 
   // Max window contents as screen size (excluding title bar...)
-  NSRect contentRect = [CocoaWindow
-      contentRectForFrameRect:screenSize
-                    styleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
-                               NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable)];
+  NSRect contentRect = [CocoaWindow contentRectForFrameRect:screenSize
+                                                  styleMask:[m_window styleMask]];
 
   rect = [m_window contentRectForFrameRect:[m_window frame]];
 
@@ -1043,6 +1053,11 @@ void GHOST_WindowCocoa::loadCursor(bool visible, GHOST_TStandardCursor shape) co
   }
 
   [cursor set];
+}
+
+bool GHOST_WindowCocoa::isDialog() const
+{
+  return m_is_dialog;
 }
 
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorVisibility(bool visible)

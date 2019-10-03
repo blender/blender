@@ -1375,13 +1375,14 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
                                    int sizex,
                                    int sizey,
                                    eSpace_Type space_type,
-                                   int display_type)
+                                   int display_type,
+                                   bool dialog)
 {
   ScrArea *sa = NULL;
 
   switch (display_type) {
     case USER_TEMP_SPACE_DISPLAY_WINDOW:
-      if (WM_window_open_temp(C, title, x, y, sizex, sizey, (int)space_type)) {
+      if (WM_window_open_temp(C, title, x, y, sizex, sizey, (int)space_type, dialog)) {
         sa = CTX_wm_area(C);
       }
       break;

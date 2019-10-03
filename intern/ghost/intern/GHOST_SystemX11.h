@@ -146,7 +146,8 @@ class GHOST_SystemX11 : public GHOST_System {
                               GHOST_TDrawingContextType type,
                               GHOST_GLSettings glSettings,
                               const bool exclusive = false,
-                              const GHOST_TEmbedderWindowID parentWindow = 0);
+                              const bool is_dialog = false,
+                              const GHOST_IWindow *parentWindow = 0);
 
   /**
    * Create a new offscreen context.

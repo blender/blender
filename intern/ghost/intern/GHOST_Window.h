@@ -109,6 +109,11 @@ class GHOST_Window : public GHOST_IWindow {
    */
   inline GHOST_TStandardCursor getCursorShape() const;
 
+  inline bool isDialog() const
+  {
+    return false;
+  }
+
   /**
    * Set the shape of the cursor.
    * \param   cursorShape: The new cursor shape type id.

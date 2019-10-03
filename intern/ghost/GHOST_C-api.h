@@ -176,6 +176,17 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              GHOST_TDrawingContextType type,
                                              GHOST_GLSettings glSettings);
 
+extern GHOST_WindowHandle GHOST_CreateDialogWindow(GHOST_SystemHandle systemhandle,
+                                                   GHOST_WindowHandle parent_windowhandle,
+                                                   const char *title,
+                                                   GHOST_TInt32 left,
+                                                   GHOST_TInt32 top,
+                                                   GHOST_TUns32 width,
+                                                   GHOST_TUns32 height,
+                                                   GHOST_TWindowState state,
+                                                   GHOST_TDrawingContextType type,
+                                                   GHOST_GLSettings glSettings);
+
 /**
  * Create a new offscreen context.
  * Never explicitly delete the context, use disposeContext() instead.
@@ -206,6 +217,8 @@ extern GHOST_TUserDataPtr GHOST_GetWindowUserData(GHOST_WindowHandle windowhandl
  * \param userdata The window user data.
  */
 extern void GHOST_SetWindowUserData(GHOST_WindowHandle windowhandle, GHOST_TUserDataPtr userdata);
+
+extern int GHOST_IsDialogWindow(GHOST_WindowHandle windowhandle);
 
 /**
  * Dispose a window.

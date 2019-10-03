@@ -707,7 +707,8 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const STR_String &title,
                                                GHOST_TDrawingContextType type,
                                                GHOST_GLSettings glSettings,
                                                const bool exclusive,
-                                               const GHOST_TEmbedderWindowID parentWindow)
+                                               const bool is_dialog,
+                                               const GHOST_IWindow *parentWindow)
 {
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   GHOST_IWindow *window = NULL;
@@ -735,7 +736,9 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const STR_String &title,
                                  state,
                                  type,
                                  glSettings.flags & GHOST_glStereoVisual,
-                                 glSettings.flags & GHOST_glDebugContext);
+                                 glSettings.flags & GHOST_glDebugContext,
+                                 is_dialog,
+                                 (GHOST_WindowCocoa *)parentWindow);
 
   if (window->getValid()) {
     // Store the pointer to the window
@@ -972,6 +975,13 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 // Note: called from NSApplication delegate
 GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 {
+  for (GHOST_IWindow *iwindow : m_windowManager->getWindows()) {
+    GHOST_WindowCocoa *window = (GHOST_WindowCocoa *)iwindow;
+    if (window->isDialog()) {
+      [window->getCocoaWindow() makeKeyAndOrderFront:nil];
+    }
+  }
+
   // Update the modifiers key mask, as its status may have changed when the application
   // was not active (that is when update events are sent to another application).
   unsigned int modifiers;
@@ -1019,6 +1029,17 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 
   m_outsideLoopEventProcessed = true;
   return GHOST_kSuccess;
+}
+
+bool GHOST_SystemCocoa::hasDialogWindow()
+{
+  for (GHOST_IWindow *iwindow : m_windowManager->getWindows()) {
+    GHOST_WindowCocoa *window = (GHOST_WindowCocoa *)iwindow;
+    if (window->isDialog()) {
+      return true;
+    }
+  }
+  return false;
 }
 
 void GHOST_SystemCocoa::notifyExternalEventProcessed()

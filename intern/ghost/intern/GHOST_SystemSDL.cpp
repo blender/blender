@@ -58,6 +58,7 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const STR_String &title,
                                              GHOST_TDrawingContextType type,
                                              GHOST_GLSettings glSettings,
                                              const bool exclusive,
+                                             const bool /* is_dialog */,
                                              const GHOST_TEmbedderWindowID parentWindow)
 {
   GHOST_WindowSDL *window = NULL;

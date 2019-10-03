@@ -105,14 +105,6 @@ class GHOST_System : public GHOST_ISystem {
    ***************************************************************************************/
 
   /**
-   * Inherited from GHOST_ISystem but left pure virtual
-   *
-   * virtual  GHOST_TUns8 getNumDisplays() const = 0;
-   * virtual void getMainDisplayDimensions(...) const = 0;
-   * virtual GHOST_IWindow* createWindow(..)
-   */
-
-  /**
    * Dispose a window.
    * \param   window Pointer to the window to be disposed.
    * \return  Indication of success.

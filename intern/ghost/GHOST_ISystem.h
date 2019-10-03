@@ -236,6 +236,7 @@ class GHOST_ISystem {
    * \param type: The type of drawing context installed in this window.
    * \param glSettings: Misc OpenGL settings.
    * \param exclusive: Use to show the window on top and ignore others (used fullscreen).
+   * \param is_dialog: Stay on top of parent window, no icon in taskbar, not minimizable.
    * \param parentWindow: Parent (embedder) window
    * \return The new window (or 0 if creation failed).
    */
@@ -248,7 +249,8 @@ class GHOST_ISystem {
                                       GHOST_TDrawingContextType type,
                                       GHOST_GLSettings glSettings,
                                       const bool exclusive = false,
-                                      const GHOST_TEmbedderWindowID parentWindow = 0) = 0;
+                                      const bool is_dialog = false,
+                                      const GHOST_IWindow *parentWindow = NULL) = 0;
 
   /**
    * Dispose a window.

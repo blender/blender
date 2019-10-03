@@ -266,7 +266,8 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const STR_String &title,
                                                GHOST_TDrawingContextType type,
                                                GHOST_GLSettings glSettings,
                                                const bool exclusive,
-                                               const GHOST_TEmbedderWindowID parentWindow)
+                                               const bool is_dialog,
+                                               const GHOST_IWindow *parentWindow)
 {
   GHOST_WindowWin32 *window = new GHOST_WindowWin32(
       this,
@@ -279,8 +280,9 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const STR_String &title,
       type,
       ((glSettings.flags & GHOST_glStereoVisual) != 0),
       ((glSettings.flags & GHOST_glAlphaBackground) != 0),
-      parentWindow,
-      ((glSettings.flags & GHOST_glDebugContext) != 0));
+      (GHOST_WindowWin32 *)parentWindow,
+      ((glSettings.flags & GHOST_glDebugContext) != 0),
+      is_dialog);
 
   if (window->getValid()) {
     // Store the pointer to the window
