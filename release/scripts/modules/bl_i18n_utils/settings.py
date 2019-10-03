@@ -94,6 +94,7 @@ LANGUAGES = (
     (44, "Kazakh (қазақша)", "kk_KZ"),
     (45, "Abkhaz (Аԥсуа бызшәа)", "ab"),
     (46, "Thai (ภาษาไทย)", "th_TH"),
+    (47, "Slovak (Slovenčina)", "sk_SK"),
 )
 
 # Default context, in py!
