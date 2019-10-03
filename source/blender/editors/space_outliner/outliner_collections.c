@@ -965,7 +965,7 @@ static int collection_isolate_exec(bContext *C, wmOperator *op)
     LayerCollection *layer_collection = BLI_gsetIterator_getKey(&collections_to_edit_iter);
 
     if (extend) {
-      BKE_layer_collection_isolate(scene, view_layer, layer_collection, true);
+      BKE_layer_collection_isolate_global(scene, view_layer, layer_collection, true);
     }
     else {
       PointerRNA ptr;

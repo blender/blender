@@ -21,6 +21,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_layer.h"
 #include "BKE_object.h"
 
 #include "DNA_object_types.h"

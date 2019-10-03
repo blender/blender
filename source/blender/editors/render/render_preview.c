@@ -474,7 +474,7 @@ static Scene *preview_prepare_scene(
             }
           }
           else if (base->object->type == OB_LAMP) {
-            base->flag |= BASE_VISIBLE;
+            base->flag |= BASE_VISIBLE_DEPSGRAPH;
           }
         }
       }

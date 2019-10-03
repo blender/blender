@@ -47,6 +47,7 @@
 #include "BKE_object.h"
 #include "BKE_anim.h" /* for duplis */
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_tracking.h"
 #include "BKE_context.h"

@@ -24,6 +24,7 @@
 
 #include "BKE_camera.h"
 #include "BKE_context.h"
+#include "BKE_layer.h"
 
 #include "DNA_object_types.h"
 #include "DNA_camera_types.h"

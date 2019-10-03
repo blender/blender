@@ -1365,7 +1365,7 @@ static void outliner_add_layer_collection_objects(
     TreeElement *te_object = outliner_add_element(soops, tree, base->object, ten, 0, 0);
     te_object->directdata = base;
 
-    if (!(base->flag & BASE_VISIBLE)) {
+    if (!(base->flag & BASE_VISIBLE_DEPSGRAPH)) {
       te_object->flag |= TE_DISABLED;
     }
   }
@@ -1398,7 +1398,7 @@ static void outliner_add_layer_collections_recursive(SpaceOutliner *soops,
         tselem->flag &= ~TSE_CLOSED;
       }
 
-      if (exclude || (lc->runtime_flag & LAYER_COLLECTION_VISIBLE) == 0) {
+      if (exclude || (lc->runtime_flag & LAYER_COLLECTION_VISIBLE_VIEW_LAYER) == 0) {
         ten->flag |= TE_DISABLED;
       }
     }
@@ -2085,12 +2085,12 @@ static bool outliner_element_visible_get(ViewLayer *view_layer,
       }
 
       if (exclude_filter & SO_FILTER_OB_STATE_VISIBLE) {
-        if ((base->flag & BASE_VISIBLE) == 0) {
+        if ((base->flag & BASE_VISIBLE_DEPSGRAPH) == 0) {
           return false;
         }
       }
       else if (exclude_filter & SO_FILTER_OB_STATE_HIDDEN) {
-        if ((base->flag & BASE_VISIBLE) != 0) {
+        if ((base->flag & BASE_VISIBLE_DEPSGRAPH) != 0) {
           return false;
         }
       }

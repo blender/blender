@@ -44,6 +44,7 @@
 #include "BKE_curve.h"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_workspace.h"

@@ -164,7 +164,7 @@ struct DRWTextStore *DRW_text_cache_ensure(void)
 
 bool DRW_object_is_renderable(const Object *ob)
 {
-  BLI_assert((ob->base_flag & BASE_VISIBLE) != 0);
+  BLI_assert((ob->base_flag & BASE_VISIBLE_DEPSGRAPH) != 0);
 
   if (ob->type == OB_MESH) {
     if ((ob == DST.draw_ctx.object_edit) || BKE_object_is_in_editmode(ob)) {
@@ -1584,6 +1584,11 @@ static bool is_object_visible_in_viewport(View3D *v3d, Object *ob)
   if ((v3d->flag & V3D_LOCAL_COLLECTIONS) &&
       ((v3d->local_collections_uuid & ob->runtime.local_collections_bits) == 0)) {
     return false;
+  }
+
+  /* If not using local view or local collection the object may still be in a hidden collection. */
+  if (((v3d->localvd) == NULL) && ((v3d->flag & V3D_LOCAL_COLLECTIONS) == 0)) {
+    return (ob->base_flag & BASE_VISIBLE_VIEWLAYER) != 0;
   }
 
   return true;

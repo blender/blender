@@ -53,6 +53,7 @@ extern "C" {
 #include "BKE_anim.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"

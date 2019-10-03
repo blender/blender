@@ -879,7 +879,7 @@ static int bake(Render *re,
       else {
         ob_cage_eval = DEG_get_evaluated_object(depsgraph, ob_cage);
         ob_cage_eval->restrictflag |= OB_RESTRICT_RENDER;
-        ob_cage_eval->base_flag &= ~(BASE_VISIBLE | BASE_ENABLED_RENDER);
+        ob_cage_eval->base_flag &= ~(BASE_VISIBLE_DEPSGRAPH | BASE_ENABLED_RENDER);
       }
     }
   }
@@ -976,7 +976,7 @@ static int bake(Render *re,
       highpoly[i].ob = ob_iter;
       highpoly[i].ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
       highpoly[i].ob_eval->restrictflag &= ~OB_RESTRICT_RENDER;
-      highpoly[i].ob_eval->base_flag |= (BASE_VISIBLE | BASE_ENABLED_RENDER);
+      highpoly[i].ob_eval->base_flag |= (BASE_VISIBLE_DEPSGRAPH | BASE_ENABLED_RENDER);
       highpoly[i].me = BKE_mesh_new_from_object(NULL, highpoly[i].ob_eval, false);
 
       /* lowpoly to highpoly transformation matrix */
@@ -992,10 +992,10 @@ static int bake(Render *re,
 
     if (ob_cage != NULL) {
       ob_cage_eval->restrictflag |= OB_RESTRICT_RENDER;
-      ob_cage_eval->base_flag &= ~(BASE_VISIBLE | BASE_ENABLED_RENDER);
+      ob_cage_eval->base_flag &= ~(BASE_VISIBLE_DEPSGRAPH | BASE_ENABLED_RENDER);
     }
     ob_low_eval->restrictflag |= OB_RESTRICT_RENDER;
-    ob_low_eval->base_flag &= ~(BASE_VISIBLE | BASE_ENABLED_RENDER);
+    ob_low_eval->base_flag &= ~(BASE_VISIBLE_DEPSGRAPH | BASE_ENABLED_RENDER);
 
     /* populate the pixel arrays with the corresponding face data for each high poly object */
     if (!RE_bake_pixels_populate_from_objects(me_low,

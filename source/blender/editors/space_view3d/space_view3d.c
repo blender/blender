@@ -341,6 +341,9 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
     v3dn->runtime.properties_storage = NULL;
   }
 
+  v3dn->local_collections_uuid = 0;
+  v3dn->flag &= ~V3D_LOCAL_COLLECTIONS;
+
   if (v3dn->shading.type == OB_RENDER) {
     v3dn->shading.type = OB_SOLID;
   }
@@ -1460,7 +1463,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
     if (view_layer->basact) {
       Object *ob = view_layer->basact->object;
       /* if hidden but in edit mode, we still display, can happen with animation */
-      if ((view_layer->basact->flag & BASE_VISIBLE) != 0 || (ob->mode & OB_MODE_EDIT)) {
+      if ((view_layer->basact->flag & BASE_VISIBLE_DEPSGRAPH) != 0 || (ob->mode & OB_MODE_EDIT)) {
         CTX_data_pointer_set(result, &scene->id, &RNA_ObjectBase, view_layer->basact);
       }
     }
@@ -1472,7 +1475,8 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
     if (view_layer->basact) {
       Object *ob = view_layer->basact->object;
       /* if hidden but in edit mode, we still display, can happen with animation */
-      if ((view_layer->basact->flag & BASE_VISIBLE) != 0 || (ob->mode & OB_MODE_EDIT) != 0) {
+      if ((view_layer->basact->flag & BASE_VISIBLE_DEPSGRAPH) != 0 ||
+          (ob->mode & OB_MODE_EDIT) != 0) {
         CTX_data_id_pointer_set(result, &ob->id);
       }
     }

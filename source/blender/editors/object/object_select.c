@@ -214,7 +214,7 @@ bool ED_object_base_deselect_all(ViewLayer *view_layer, View3D *v3d, int action)
 
 static int get_base_select_priority(Base *base)
 {
-  if (base->flag & BASE_VISIBLE) {
+  if (base->flag & BASE_VISIBLE_DEPSGRAPH) {
     if (base->flag & BASE_SELECTABLE) {
       return 3;
     }
@@ -288,7 +288,7 @@ bool ED_object_jump_to_object(bContext *C, Object *ob, const bool UNUSED(reveal_
     if (!(base->flag & BASE_SELECTED)) {
       ED_object_base_deselect_all(view_layer, v3d, SEL_DESELECT);
 
-      if (base->flag & BASE_VISIBLE) {
+      if (BASE_VISIBLE(v3d, base)) {
         ED_object_base_select(base, BA_SELECT);
       }
 

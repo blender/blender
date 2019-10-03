@@ -5078,9 +5078,6 @@ class VIEW3D_PT_collections(Panel):
             if not use_local_collections:
                 subrow.active = collection.is_visible  # Parent collection runtime visibility
                 subrow.prop(child, "hide_viewport", text="", emboss=False)
-            elif not child.is_visible:
-                subrow.active = False
-                subrow.label(text="", icon='REMOVE')
             else:
                 subrow.active = collection.visible_get() # Parent collection runtime visibility
                 icon = 'HIDE_OFF' if child.visible_get() else 'HIDE_ON'
