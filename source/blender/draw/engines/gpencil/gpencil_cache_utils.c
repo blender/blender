@@ -50,10 +50,6 @@ static bool gpencil_has_noninstanced_object(Object *ob_instance)
     if (ob->type != OB_GPENCIL) {
       continue;
     }
-    /* object must be visible (invisible objects don't create VBO data) */
-    if (!(DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
-      continue;
-    }
     /* is not duplicated and the name is equals */
     if ((ob->base_flag & BASE_FROM_DUPLI) == 0) {
       if (STREQ(ob->id.name, ob_instance->id.name)) {
