@@ -131,6 +131,9 @@ typedef struct SubdivCCG {
   /* Resolution of grid. All grids have matching resolution, and resolution
    * is same as ptex created for non-quad polygons. */
   int grid_size;
+  /* Size of a single element of a grid (including coordinate and all the other layers).
+   * Measured in bytes. */
+  int grid_element_size;
   /* Grids represent limit surface, with displacement applied. Grids are
    * corresponding to face-corners of coarse mesh, each grid has
    * grid_size^2 elements.
@@ -250,5 +253,44 @@ void BKE_subdiv_ccg_topology_counters(const SubdivCCG *subdiv_ccg,
                                       int *r_num_edges,
                                       int *r_num_faces,
                                       int *r_num_loops);
+
+typedef struct SubdivCCGCoord {
+  /* Index of the grid within SubdivCCG::grids array. */
+  int grid_index;
+
+  /* Coordinate within the grid. */
+  int x, y;
+} SubdivCCGCoord;
+
+typedef struct SubdivCCGNeighbors {
+  SubdivCCGCoord *coords;
+  int size;
+
+  SubdivCCGCoord coords_fixed[256];
+} SubdivCCGNeighbors;
+
+void BKE_subdiv_ccg_print_coord(const char *message, const SubdivCCGCoord *coord);
+bool BKE_subdiv_ccg_check_coord_valid(const SubdivCCG *subdiv_ccg, const SubdivCCGCoord *coord);
+
+/* CCG element neighbors.
+ *
+ * Neighbors are considered:
+ *
+ * - For an inner elements of a grid other elements which are sharing same row or column (4
+ *   neighbor elements in total).
+ *
+ * - For the corner element a single neighboring element on every adjacent edge, single from
+ *   every gird.
+ *
+ * - For the boundary element two neighbor elements on the boundary (from same grid) and one
+ *   element inside of every neighboring grid. */
+
+/* Get actual neighbors of the given coordinate.
+ *
+ * SubdivCCGNeighbors.neighbors must be freed if it is not equal to
+ * SubdivCCGNeighbors.fixed_neighbors. */
+void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG *subdiv_ccg,
+                                        const SubdivCCGCoord *coord,
+                                        SubdivCCGNeighbors *r_neighbors);
 
 #endif /* __BKE_SUBDIV_CCG_H__ */

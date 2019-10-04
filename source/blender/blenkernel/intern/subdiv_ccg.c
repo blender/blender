@@ -129,6 +129,7 @@ static void subdiv_ccg_alloc_elements(SubdivCCG *subdiv_ccg, Subdiv *subdiv)
   const int num_grids = topology_refiner_count_face_corners(topology_refiner);
   const int grid_size = BKE_subdiv_grid_size_from_level(subdiv_ccg->level);
   const int grid_area = grid_size * grid_size;
+  subdiv_ccg->grid_element_size = element_size;
   subdiv_ccg->num_grids = num_grids;
   subdiv_ccg->grids = MEM_calloc_arrayN(num_grids, sizeof(CCGElem *), "subdiv ccg grids");
   subdiv_ccg->grids_storage = MEM_calloc_arrayN(
@@ -1228,4 +1229,509 @@ void BKE_subdiv_ccg_topology_counters(const SubdivCCG *subdiv_ccg,
   *r_num_edges = num_grids * num_edges_per_grid;
   *r_num_faces = num_grids * (grid_size - 1) * (grid_size - 1);
   *r_num_loops = *r_num_faces * 4;
+}
+
+/* =============================================================================
+ * Neighbors.
+ */
+
+void BKE_subdiv_ccg_print_coord(const char *message, const SubdivCCGCoord *coord)
+{
+  printf("%s: grid index: %d, coord: (%d, %d)\n", message, coord->grid_index, coord->x, coord->y);
+}
+
+bool BKE_subdiv_ccg_check_coord_valid(const SubdivCCG *subdiv_ccg, const SubdivCCGCoord *coord)
+{
+  if (coord->grid_index < 0 || coord->grid_index >= subdiv_ccg->num_grids) {
+    return false;
+  }
+  const int grid_size = subdiv_ccg->grid_size;
+  if (coord->x < 0 || coord->x >= grid_size) {
+    return false;
+  }
+  if (coord->y < 0 || coord->y >= grid_size) {
+    return false;
+  }
+  return true;
+}
+
+BLI_INLINE void subdiv_ccg_neighbors_init(SubdivCCGNeighbors *neighbors, int size)
+{
+  neighbors->size = size;
+  if (size < ARRAY_SIZE(neighbors->coords_fixed)) {
+    neighbors->coords = neighbors->coords_fixed;
+  }
+  else {
+    neighbors->coords = MEM_mallocN(sizeof(*neighbors->coords) * size,
+                                    "SubdivCCGNeighbors.coords");
+  }
+}
+
+/* Check whether given coordinate belongs to a grid corner. */
+BLI_INLINE bool is_corner_grid_coord(const SubdivCCG *subdiv_ccg, const SubdivCCGCoord *coord)
+{
+  const int grid_size_1 = subdiv_ccg->grid_size - 1;
+  return (coord->x == 0 && coord->y == 0) || (coord->x == 0 && coord->y == grid_size_1) ||
+         (coord->x == grid_size_1 && coord->y == grid_size_1) ||
+         (coord->x == grid_size_1 && coord->y == 0);
+}
+
+/* Check whether given coordinate belongs to a grid boundary. */
+BLI_INLINE bool is_boundary_grid_coord(const SubdivCCG *subdiv_ccg, const SubdivCCGCoord *coord)
+{
+  const int grid_size_1 = subdiv_ccg->grid_size - 1;
+  return coord->x == 0 || coord->y == 0 || coord->x == grid_size_1 || coord->y == grid_size_1;
+}
+
+/* Check whether coordinate is at the boundary between two grids of the same face. */
+BLI_INLINE bool is_inner_edge_grid_coordinate(const SubdivCCG *subdiv_ccg,
+                                              const SubdivCCGCoord *coord)
+{
+  const int grid_size_1 = subdiv_ccg->grid_size - 1;
+  if (coord->x == 0) {
+    return coord->y > 0 && coord->y < grid_size_1;
+  }
+  if (coord->y == 0) {
+    return coord->x > 0 && coord->x < grid_size_1;
+  }
+  return false;
+}
+
+BLI_INLINE SubdivCCGCoord coord_at_prev_row(const SubdivCCG *UNUSED(subdiv_ccg),
+                                            const SubdivCCGCoord *coord)
+{
+  BLI_assert(coord->y > 0);
+  SubdivCCGCoord result = *coord;
+  result.y -= 1;
+  return result;
+}
+BLI_INLINE SubdivCCGCoord coord_at_next_row(const SubdivCCG *subdiv_ccg,
+                                            const SubdivCCGCoord *coord)
+{
+  UNUSED_VARS_NDEBUG(subdiv_ccg);
+  BLI_assert(coord->y < subdiv_ccg->grid_size - 1);
+  SubdivCCGCoord result = *coord;
+  result.y += 1;
+  return result;
+}
+
+BLI_INLINE SubdivCCGCoord coord_at_prev_col(const SubdivCCG *UNUSED(subdiv_ccg),
+                                            const SubdivCCGCoord *coord)
+{
+  BLI_assert(coord->x > 0);
+  SubdivCCGCoord result = *coord;
+  result.x -= 1;
+  return result;
+}
+BLI_INLINE SubdivCCGCoord coord_at_next_col(const SubdivCCG *subdiv_ccg,
+                                            const SubdivCCGCoord *coord)
+{
+  UNUSED_VARS_NDEBUG(subdiv_ccg);
+  BLI_assert(coord->x < subdiv_ccg->grid_size - 1);
+  SubdivCCGCoord result = *coord;
+  result.x += 1;
+  return result;
+}
+
+BLI_INLINE SubdivCCGCoord coord_from_ccg_element(const SubdivCCG *subdiv_ccg, CCGElem *element)
+{
+  const size_t element_data_offset = (unsigned char *)element - subdiv_ccg->grids_storage;
+  const size_t element_global_index = element_data_offset / subdiv_ccg->grid_element_size;
+  const int grid_area = subdiv_ccg->grid_size * subdiv_ccg->grid_size;
+  const int grid_index = element_global_index / grid_area;
+  const size_t grid_start_element_index = grid_index * grid_area;
+  const int element_grid_index = element_global_index - grid_start_element_index;
+
+  const int y = element_grid_index / subdiv_ccg->grid_size;
+  const int x = element_grid_index - y * subdiv_ccg->grid_size;
+
+  SubdivCCGCoord result;
+  result.grid_index = grid_index;
+  result.x = x;
+  result.y = y;
+
+  return result;
+}
+
+/* For the input coordinate which is at the boundary of the grid do one step inside.  */
+static SubdivCCGCoord coord_step_inside_from_boundary(const SubdivCCG *subdiv_ccg,
+                                                      const SubdivCCGCoord *coord)
+
+{
+  SubdivCCGCoord result = *coord;
+  const int grid_size_1 = subdiv_ccg->grid_size - 1;
+  if (result.x == grid_size_1) {
+    --result.x;
+  }
+  else if (result.y == grid_size_1) {
+    --result.y;
+  }
+  else if (result.x == 0) {
+    ++result.x;
+  }
+  else if (result.y == 0) {
+    ++result.y;
+  }
+  else {
+    BLI_assert(!"non-boundary element given");
+  }
+  return result;
+}
+
+BLI_INLINE
+int next_grid_index_from_coord(const SubdivCCG *subdiv_ccg, const SubdivCCGCoord *coord)
+{
+  SubdivCCGFace *face = subdiv_ccg->grid_faces[coord->grid_index];
+  const int face_grid_index = coord->grid_index;
+  int next_face_grid_index = face_grid_index + 1 - face->start_grid_index;
+  if (next_face_grid_index == face->num_grids) {
+    next_face_grid_index = 0;
+  }
+  return face->start_grid_index + next_face_grid_index;
+}
+BLI_INLINE int prev_grid_index_from_coord(const SubdivCCG *subdiv_ccg, const SubdivCCGCoord *coord)
+{
+  SubdivCCGFace *face = subdiv_ccg->grid_faces[coord->grid_index];
+  const int face_grid_index = coord->grid_index;
+  int prev_face_grid_index = face_grid_index - 1 - face->start_grid_index;
+  if (prev_face_grid_index < 0) {
+    prev_face_grid_index = face->num_grids - 1;
+  }
+  return face->start_grid_index + prev_face_grid_index;
+}
+
+/* Simple case of getting neighbors of a corner coordinate: the corner is a face center, so
+ * can only iterate over grid of a single face, without looking into adjacency. */
+static void neighbor_coords_corner_center_get(const SubdivCCG *subdiv_ccg,
+                                              const SubdivCCGCoord *coord,
+                                              SubdivCCGNeighbors *r_neighbors)
+{
+  SubdivCCGFace *face = subdiv_ccg->grid_faces[coord->grid_index];
+
+  subdiv_ccg_neighbors_init(r_neighbors, face->num_grids);
+
+  for (int face_grid_index = 0; face_grid_index < face->num_grids; ++face_grid_index) {
+    SubdivCCGCoord neighbor_coord;
+    neighbor_coord.grid_index = face->start_grid_index + face_grid_index;
+    neighbor_coord.x = 1;
+    neighbor_coord.y = 0;
+    r_neighbors->coords[face_grid_index] = neighbor_coord;
+  }
+}
+
+/* Get index within adjacent_vertices array for the given CCG coordinate. */
+static int adjacent_vertex_index_from_coord(const SubdivCCG *subdiv_ccg,
+                                            const SubdivCCGCoord *coord)
+{
+  Subdiv *subdiv = subdiv_ccg->subdiv;
+  OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+
+  const SubdivCCGFace *face = subdiv_ccg->grid_faces[coord->grid_index];
+  const int face_index = face - subdiv_ccg->faces;
+  const int face_grid_index = coord->grid_index - face->start_grid_index;
+  const int num_face_grids = face->num_grids;
+  const int num_face_vertices = num_face_grids;
+
+  StaticOrHeapIntStorage face_vertices_storage;
+  static_or_heap_storage_init(&face_vertices_storage);
+
+  int *face_vertices = static_or_heap_storage_get(&face_vertices_storage, num_face_vertices);
+  topology_refiner->getFaceVertices(topology_refiner, face_index, face_vertices);
+
+  const int adjacent_vertex_index = face_vertices[face_grid_index];
+  static_or_heap_storage_free(&face_vertices_storage);
+  return adjacent_vertex_index;
+}
+
+/* The corner is adjacent to a coarse vertex. */
+static void neighbor_coords_corner_vertex_get(const SubdivCCG *subdiv_ccg,
+                                              const SubdivCCGCoord *coord,
+                                              SubdivCCGNeighbors *r_neighbors)
+{
+  Subdiv *subdiv = subdiv_ccg->subdiv;
+  OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+
+  const int adjacent_vertex_index = adjacent_vertex_index_from_coord(subdiv_ccg, coord);
+  BLI_assert(adjacent_vertex_index >= 0);
+  BLI_assert(adjacent_vertex_index < subdiv_ccg->num_adjacent_vertices);
+  const int num_vertex_edges = topology_refiner->getNumVertexEdges(topology_refiner,
+                                                                   adjacent_vertex_index);
+
+  subdiv_ccg_neighbors_init(r_neighbors, num_vertex_edges);
+
+  StaticOrHeapIntStorage vertex_edges_storage;
+  static_or_heap_storage_init(&vertex_edges_storage);
+
+  int *vertex_edges = static_or_heap_storage_get(&vertex_edges_storage, num_vertex_edges);
+  topology_refiner->getVertexEdges(topology_refiner, adjacent_vertex_index, vertex_edges);
+
+  for (int i = 0; i < num_vertex_edges; ++i) {
+    const int edge_index = vertex_edges[i];
+
+    /* Use very first grid of every edge. */
+    const int edge_face_index = 0;
+
+    /* Depending edge orientation we use first (zero-based) or previous-to-last point. */
+    int edge_vertices_indices[2];
+    topology_refiner->getEdgeVertices(topology_refiner, edge_index, edge_vertices_indices);
+    int edge_point_index;
+    if (edge_vertices_indices[0] == adjacent_vertex_index) {
+      edge_point_index = 1;
+    }
+    else {
+      /* Edge "consists" of 2 grids, which makes it 2 * grid_size elements per edge.
+       * The index of last edge element is 2 * grid_size - 1 (due to zero-based indices),
+       * and we are interested in previous to last element. */
+      edge_point_index = subdiv_ccg->grid_size * 2 - 2;
+    }
+
+    SubdivCCGAdjacentEdge *adjacent_edge = &subdiv_ccg->adjacent_edges[edge_index];
+    CCGElem *boundary_element =
+        adjacent_edge->boundary_elements[edge_face_index][edge_point_index];
+
+    r_neighbors->coords[i] = coord_from_ccg_element(subdiv_ccg, boundary_element);
+  }
+
+  static_or_heap_storage_free(&vertex_edges_storage);
+}
+
+static int adjacent_edge_index_from_coord(const SubdivCCG *subdiv_ccg, const SubdivCCGCoord *coord)
+{
+  Subdiv *subdiv = subdiv_ccg->subdiv;
+  OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+  SubdivCCGFace *face = subdiv_ccg->grid_faces[coord->grid_index];
+
+  const int face_grid_index = coord->grid_index - face->start_grid_index;
+  const int face_index = face - subdiv_ccg->faces;
+  const int num_face_edges = topology_refiner->getNumFaceEdges(topology_refiner, face_index);
+
+  StaticOrHeapIntStorage face_edges_storage;
+  static_or_heap_storage_init(&face_edges_storage);
+  int *face_edges_indices = static_or_heap_storage_get(&face_edges_storage, num_face_edges);
+  topology_refiner->getFaceEdges(topology_refiner, face_index, face_edges_indices);
+
+  const int grid_size_1 = subdiv_ccg->grid_size - 1;
+  int adjacent_edge_index = -1;
+  if (coord->x == grid_size_1) {
+    adjacent_edge_index = face_edges_indices[face_grid_index];
+  }
+  else {
+    BLI_assert(coord->y == grid_size_1);
+    adjacent_edge_index =
+        face_edges_indices[face_grid_index == 0 ? face->num_grids - 1 : face_grid_index - 1];
+  }
+
+  static_or_heap_storage_free(&face_edges_storage);
+
+  return adjacent_edge_index;
+}
+
+static int adjacent_edge_point_index_from_coord(const SubdivCCG *subdiv_ccg,
+                                                const SubdivCCGCoord *coord,
+                                                const int adjacent_edge_index)
+{
+  Subdiv *subdiv = subdiv_ccg->subdiv;
+  OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+
+  const int adjacent_vertex_index = adjacent_vertex_index_from_coord(subdiv_ccg, coord);
+  int edge_vertices_indices[2];
+  topology_refiner->getEdgeVertices(topology_refiner, adjacent_edge_index, edge_vertices_indices);
+
+  /* Vertex index of an edge which is used to see whether edge points in the right direction.
+   * Tricky part here is that depending whether input coordinate is ar macimum X or Y coordinate
+   * of the grid we need to use dirrerent edge direction.
+   * Basically, the edge adjacent to a previous loop needs to point opposite direction. */
+  int directional_edge_vertex_index = -1;
+
+  const int grid_size_1 = subdiv_ccg->grid_size - 1;
+  int adjacent_edge_point_index = -1;
+  if (coord->x == grid_size_1) {
+    adjacent_edge_point_index = subdiv_ccg->grid_size - coord->y - 1;
+    directional_edge_vertex_index = edge_vertices_indices[0];
+  }
+  else {
+    BLI_assert(coord->y == grid_size_1);
+    adjacent_edge_point_index = subdiv_ccg->grid_size + coord->x;
+    directional_edge_vertex_index = edge_vertices_indices[1];
+  }
+
+  /* Flip the index if the edde points opposite direction. */
+  if (adjacent_vertex_index != directional_edge_vertex_index) {
+    const int num_edge_points = subdiv_ccg->grid_size * 2;
+    adjacent_edge_point_index = num_edge_points - adjacent_edge_point_index - 1;
+  }
+
+  return adjacent_edge_point_index;
+}
+
+/* Adjacent edge has two points in the middle which corresponds to grid  corners, but which are
+ * the same point in the final geometry.
+ * So need to use extra step when calculating next/previous points, so we don't go from a corner
+ * of one grid to a corner of adjacent grid. */
+static int next_adjacent_edge_point_index(const SubdivCCG *subdiv_ccg, const int point_index)
+{
+  if (point_index == subdiv_ccg->grid_size - 1) {
+    return point_index + 2;
+  }
+  return point_index + 1;
+}
+static int prev_adjacent_edge_point_index(const SubdivCCG *subdiv_ccg, const int point_index)
+{
+  if (point_index == subdiv_ccg->grid_size) {
+    return point_index - 2;
+  }
+  return point_index - 1;
+}
+
+/* Common implementation of neighbor calculation when input coordinate is at the edge between two
+ * coarse faces, but is not at the coarse vertex. */
+static void neighbor_coords_edge_get(const SubdivCCG *subdiv_ccg,
+                                     const SubdivCCGCoord *coord,
+                                     SubdivCCGNeighbors *r_neighbors)
+
+{
+  const int adjacent_edge_index = adjacent_edge_index_from_coord(subdiv_ccg, coord);
+  BLI_assert(adjacent_edge_index >= 0);
+  BLI_assert(adjacent_edge_index < subdiv_ccg->num_adjacent_edges);
+  const SubdivCCGAdjacentEdge *adjacent_edge = &subdiv_ccg->adjacent_edges[adjacent_edge_index];
+
+  /* 2 neighbor points along the edge, plus one inner point per every adjacent grid. */
+  const int num_neighbor_coord = adjacent_edge->num_adjacent_faces + 2;
+  subdiv_ccg_neighbors_init(r_neighbors, num_neighbor_coord);
+
+  const int point_index = adjacent_edge_point_index_from_coord(
+      subdiv_ccg, coord, adjacent_edge_index);
+  const int next_point_index = next_adjacent_edge_point_index(subdiv_ccg, point_index);
+  const int prev_point_index = prev_adjacent_edge_point_index(subdiv_ccg, point_index);
+
+  r_neighbors->coords[0] = coord_from_ccg_element(
+      subdiv_ccg, adjacent_edge->boundary_elements[0][prev_point_index]);
+  r_neighbors->coords[1] = coord_from_ccg_element(
+      subdiv_ccg, adjacent_edge->boundary_elements[0][next_point_index]);
+
+  for (int i = 0; i < adjacent_edge->num_adjacent_faces; ++i) {
+    SubdivCCGCoord grid_coord = coord_from_ccg_element(
+        subdiv_ccg, adjacent_edge->boundary_elements[i][point_index]);
+    r_neighbors->coords[i + 2] = coord_step_inside_from_boundary(subdiv_ccg, &grid_coord);
+  }
+}
+
+/* The corner is at the middle of edge between faces. */
+static void neighbor_coords_corner_edge_get(const SubdivCCG *subdiv_ccg,
+                                            const SubdivCCGCoord *coord,
+                                            SubdivCCGNeighbors *r_neighbors)
+{
+  neighbor_coords_edge_get(subdiv_ccg, coord, r_neighbors);
+}
+
+/* Input coordinate is at one of 4 corners of its grid corners. */
+static void neighbor_coords_corner_get(const SubdivCCG *subdiv_ccg,
+                                       const SubdivCCGCoord *coord,
+                                       SubdivCCGNeighbors *r_neighbors)
+{
+  if (coord->x == 0 && coord->y == 0) {
+    neighbor_coords_corner_center_get(subdiv_ccg, coord, r_neighbors);
+  }
+  else {
+    const int grid_size_1 = subdiv_ccg->grid_size - 1;
+    if (coord->x == grid_size_1 && coord->y == grid_size_1) {
+      neighbor_coords_corner_vertex_get(subdiv_ccg, coord, r_neighbors);
+    }
+    else {
+      neighbor_coords_corner_edge_get(subdiv_ccg, coord, r_neighbors);
+    }
+  }
+}
+
+/* Simple case of getting neighbors of a boundary coordinate: the input coordinate is at the
+ * boundary between two grids of the same face and there is no need to check adjacency with
+ * other faces. */
+static void neighbor_coords_boundary_inner_get(const SubdivCCG *subdiv_ccg,
+                                               const SubdivCCGCoord *coord,
+                                               SubdivCCGNeighbors *r_neighbors)
+{
+  subdiv_ccg_neighbors_init(r_neighbors, 4);
+
+  if (coord->x == 0) {
+    r_neighbors->coords[0] = coord_at_prev_row(subdiv_ccg, coord);
+    r_neighbors->coords[1] = coord_at_next_row(subdiv_ccg, coord);
+    r_neighbors->coords[2] = coord_at_next_col(subdiv_ccg, coord);
+
+    r_neighbors->coords[3].grid_index = prev_grid_index_from_coord(subdiv_ccg, coord);
+    r_neighbors->coords[3].x = coord->y;
+    r_neighbors->coords[3].y = 1;
+  }
+  else if (coord->y == 0) {
+    r_neighbors->coords[0] = coord_at_prev_col(subdiv_ccg, coord);
+    r_neighbors->coords[1] = coord_at_next_col(subdiv_ccg, coord);
+    r_neighbors->coords[2] = coord_at_next_row(subdiv_ccg, coord);
+
+    r_neighbors->coords[3].grid_index = next_grid_index_from_coord(subdiv_ccg, coord);
+    r_neighbors->coords[3].x = 1;
+    r_neighbors->coords[3].y = coord->x;
+  }
+}
+
+/* Input coordinate is on an edge between two faces. Need to check adjacency. */
+static void neighbor_coords_boundary_outer_get(const SubdivCCG *subdiv_ccg,
+                                               const SubdivCCGCoord *coord,
+                                               SubdivCCGNeighbors *r_neighbors)
+{
+  neighbor_coords_edge_get(subdiv_ccg, coord, r_neighbors);
+}
+
+/* Input coordinate is at one of 4 boundaries of its grid.
+ * It could either be an inner boundary (which connects face center to the face edge) or could be
+ * a part of coarse face edge. */
+static void neighbor_coords_boundary_get(const SubdivCCG *subdiv_ccg,
+                                         const SubdivCCGCoord *coord,
+                                         SubdivCCGNeighbors *r_neighbors)
+{
+  if (is_inner_edge_grid_coordinate(subdiv_ccg, coord)) {
+    neighbor_coords_boundary_inner_get(subdiv_ccg, coord, r_neighbors);
+  }
+  else {
+    neighbor_coords_boundary_outer_get(subdiv_ccg, coord, r_neighbors);
+  }
+}
+
+/* Input coordinate is inside of its grid, all the neighbors belong to the same grid. */
+static void neighbor_coords_inner_get(const SubdivCCG *subdiv_ccg,
+                                      const SubdivCCGCoord *coord,
+                                      SubdivCCGNeighbors *r_neighbors)
+{
+  subdiv_ccg_neighbors_init(r_neighbors, 4);
+
+  r_neighbors->coords[0] = coord_at_prev_row(subdiv_ccg, coord);
+  r_neighbors->coords[1] = coord_at_next_row(subdiv_ccg, coord);
+  r_neighbors->coords[2] = coord_at_prev_col(subdiv_ccg, coord);
+  r_neighbors->coords[3] = coord_at_next_col(subdiv_ccg, coord);
+}
+
+void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG *subdiv_ccg,
+                                        const SubdivCCGCoord *coord,
+                                        SubdivCCGNeighbors *r_neighbors)
+{
+  BLI_assert(coord->grid_index >= 0);
+  BLI_assert(coord->grid_index < subdiv_ccg->num_grids);
+  BLI_assert(coord->x >= 0);
+  BLI_assert(coord->x < subdiv_ccg->grid_size);
+  BLI_assert(coord->y >= 0);
+  BLI_assert(coord->y < subdiv_ccg->grid_size);
+
+  if (is_corner_grid_coord(subdiv_ccg, coord)) {
+    neighbor_coords_corner_get(subdiv_ccg, coord, r_neighbors);
+  }
+  else if (is_boundary_grid_coord(subdiv_ccg, coord)) {
+    neighbor_coords_boundary_get(subdiv_ccg, coord, r_neighbors);
+  }
+  else {
+    neighbor_coords_inner_get(subdiv_ccg, coord, r_neighbors);
+  }
+
+#ifndef NDEBUG
+  for (int i = 0; i < r_neighbors->size; i++) {
+    BLI_assert(BKE_subdiv_ccg_check_coord_valid(subdiv_ccg, &r_neighbors->coords[i]));
+  }
+#endif
 }

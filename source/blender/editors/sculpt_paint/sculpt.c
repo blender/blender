@@ -64,6 +64,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"
@@ -293,16 +294,37 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
   }
 }
 
-static void sculpt_vertex_neighbors_get_grids(SculptSession *UNUSED(ss),
-                                              int UNUSED(index),
+static void sculpt_vertex_neighbors_get_grids(SculptSession *ss,
+                                              int index,
                                               SculptVertexNeighborIter *iter)
 {
-  /* TODO: implement this for multires. It might also be worth changing this
-   * iterator to provide a coordinate and mask pointer directly for effiency,
-   * rather than converting back and forth between CCGElem and global index. */
+  /* TODO: optimize this. We could fill SculptVertexNeighborIter directly,
+   * maybe provide coordinate and mask pointers directly rather than converting
+   * back and forth between CCGElem and global index. */
+  const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+  const int grid_index = index / key->grid_area;
+  const int vertex_index = index - grid_index * key->grid_area;
+
+  SubdivCCGCoord coord = {.grid_index = grid_index,
+                          .x = vertex_index % key->grid_size,
+                          .y = vertex_index / key->grid_size};
+
+  SubdivCCGNeighbors neighbors;
+  BKE_subdiv_ccg_neighbor_coords_get(ss->subdiv_ccg, &coord, &neighbors);
+
   iter->size = 0;
   iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
   iter->neighbors = iter->neighbors_fixed;
+
+  for (int i = 0; i < neighbors.size; i++) {
+    sculpt_vertex_neighbor_add(iter,
+                               neighbors.coords[i].grid_index * key->grid_area +
+                                   neighbors.coords[i].y * key->grid_size + neighbors.coords[i].x);
+  }
+
+  if (neighbors.coords != neighbors.coords_fixed) {
+    MEM_freeN(neighbors.coords);
+  }
 }
 
 static void sculpt_vertex_neighbors_get(SculptSession *ss,
