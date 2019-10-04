@@ -114,8 +114,9 @@ class GHOST_SystemNULL : public GHOST_System {
                               GHOST_TWindowState state,
                               GHOST_TDrawingContextType type,
                               GHOST_GLSettings glSettings,
-                              bool exclusive,
-                              const GHOST_TEmbedderWindowID parentWindow)
+                              const bool exclusive,
+                              const bool is_dialog,
+                              const GHOST_IWindow *parentWindow)
   {
     return new GHOST_WindowNULL(this,
                                 title,
