@@ -3616,11 +3616,10 @@ install_RPM() {
       install_packages_RPM $VPX_DEV
       VPX_USE=true
     fi
+
     PRINT ""
     install_packages_RPM libspnav-devel
-  fi
 
-  if [ "$WITH_ALL" = true ]; then
     PRINT ""
     OPUS_DEV="libopus-devel"
     check_package_version_ge_RPM $OPUS_DEV $OPUS_VERSION_MIN
@@ -3628,8 +3627,6 @@ install_RPM() {
       install_packages_RPM $OPUS_DEV
       OPUS_USE=true
     fi
-    PRINT ""
-    install_packages_RPM libspnav-devel
   fi
 
   PRINT ""
