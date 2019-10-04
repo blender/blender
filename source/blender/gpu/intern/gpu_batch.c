@@ -856,16 +856,19 @@ void GPU_draw_list_submit(GPUDrawList *list)
   uintptr_t offset = list->cmd_offset;
   uint cmd_len = list->cmd_len;
   size_t bytes_used = cmd_len * sizeof(GPUDrawCommandIndexed);
-  list->cmd_offset += bytes_used;
   list->cmd_len = 0; /* Avoid reuse. */
 
-  if (USE_MULTI_DRAW_INDIRECT) {
+  /* Only do multidraw indirect if doing more than 2 drawcall.
+   * This avoids the overhead of buffer mapping if scene is
+   * not very instance friendly. */
+  if (USE_MULTI_DRAW_INDIRECT && cmd_len > 2) {
     GLenum prim = batch->gl_prim_type;
 
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, list->buffer_id);
     glFlushMappedBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, bytes_used);
     glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
     list->commands = NULL; /* Unmapped */
+    list->cmd_offset += bytes_used;
 
     if (batch->elem) {
       glMultiDrawElementsIndirect(prim, INDEX_TYPE(batch->elem), (void *)offset, cmd_len, 0);
