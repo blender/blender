@@ -49,6 +49,8 @@ ExternalProject_Add(external_vpx
       --disable-avx2
       --disable-unit-tests
       --disable-examples
+      --enable-vp8
+      --enable-vp9
       ${VPX_EXTRA_FLAGS}
   BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/vpx/src/external_vpx/ && make -j${MAKE_THREADS}
   INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/vpx/src/external_vpx/ && make install
