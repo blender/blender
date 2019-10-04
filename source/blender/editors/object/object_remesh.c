@@ -210,6 +210,62 @@ typedef struct QuadriFlowJob {
   int success;
 } QuadriFlowJob;
 
+static bool mesh_is_manifold_consistent(Mesh *mesh)
+{
+  /* In this check we count boundary edges as manifold. Additionally, we also
+   * check that the direction of the faces are consistent and doesn't suddenly
+   * flip
+   */
+
+  bool is_manifold_consistent = true;
+  const MLoop *mloop = mesh->mloop;
+  const MPoly *mpoly = mesh->mpoly;
+  char *edge_faces = (char *)MEM_callocN(mesh->totedge * sizeof(char), "remesh_manifold_check");
+  int *edge_vert = (int *)MEM_malloc_arrayN(
+      mesh->totedge, sizeof(unsigned int), "remesh_consistent_check");
+
+  for (unsigned int i = 0; i < mesh->totedge; i++) {
+    edge_vert[i] = -1;
+  }
+
+  for (unsigned int poly_index = 0; poly_index < mesh->totpoly && is_manifold_consistent;
+       poly_index++) {
+    const MPoly *poly = &mpoly[poly_index];
+    for (unsigned int corner = 0; corner < poly->totloop; corner++) {
+      const MLoop *loop = &mloop[poly->loopstart + corner];
+      edge_faces[loop->e] += 1;
+      if (edge_faces[loop->e] > 2) {
+        is_manifold_consistent = false;
+        break;
+      }
+
+      if (edge_vert[loop->e] == -1) {
+        edge_vert[loop->e] = loop->v;
+      }
+      else if (edge_vert[loop->e] == loop->v) {
+        /* Mesh has flips in the surface so it is non consistent */
+        is_manifold_consistent = false;
+        break;
+      }
+    }
+  }
+
+  if (is_manifold_consistent) {
+    /* check for wire edges */
+    for (unsigned int i = 0; i < mesh->totedge; i++) {
+      if (edge_faces[i] == 0) {
+        is_manifold_consistent = false;
+        break;
+      }
+    }
+  }
+
+  MEM_freeN(edge_faces);
+  MEM_freeN(edge_vert);
+
+  return is_manifold_consistent;
+}
+
 static void quadriflow_free_job(void *customdata)
 {
   QuadriFlowJob *qj = customdata;
@@ -326,6 +382,12 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   Mesh *new_mesh;
   Mesh *bisect_mesh;
 
+  /* Check if the mesh is manifold. Quadriflow requires manifold meshes */
+  if (!mesh_is_manifold_consistent(mesh)) {
+    qj->success = -2;
+    return;
+  }
+
   /* Run Quadriflow bisect operations on a copy of the mesh to keep the code readable without
    * freeing the original ID */
   bisect_mesh = BKE_mesh_copy(qj->bmain, mesh);
@@ -396,17 +458,22 @@ static void quadriflow_end_job(void *customdata)
 
   WM_set_locked_interface(G_MAIN->wm.first, false);
 
-  if (qj->success > 0) {
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    WM_reportf(RPT_INFO, "QuadriFlow: Completed remeshing!");
-  }
-  else {
-    if (qj->success == 0) {
+  switch (qj->success) {
+    case 1:
+      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+      WM_reportf(RPT_INFO, "QuadriFlow: Completed remeshing!");
+      break;
+    case 0:
       WM_reportf(RPT_ERROR, "QuadriFlow: remeshing failed!");
-    }
-    else {
+      break;
+    case -1:
       WM_report(RPT_WARNING, "QuadriFlow: remeshing canceled!");
-    }
+      break;
+    case -2:
+      WM_report(RPT_WARNING,
+                "QuadriFlow: The mesh needs to be manifold and have face normals that point in a "
+                "consistent direction.");
+      break;
   }
 }
 
