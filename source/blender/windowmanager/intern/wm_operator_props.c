@@ -396,6 +396,16 @@ void WM_operator_properties_select_operation_simple(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+void WM_operator_properties_generic_select(wmOperatorType *ot)
+{
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna, "wait_to_deselect_others", true, "Wait to Deselect Others", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+  RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
+  RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
+}
+
 void WM_operator_properties_gesture_box_zoom(wmOperatorType *ot)
 {
   WM_operator_properties_border(ot);

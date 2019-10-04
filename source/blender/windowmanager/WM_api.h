@@ -335,6 +335,12 @@ void WM_event_timer_sleep(struct wmWindowManager *wm,
 
 /* operator api, default callbacks */
 /* invoke callback, uses enum property named "type" */
+int WM_generic_select_modal(struct bContext *C,
+                            struct wmOperator *op,
+                            const struct wmEvent *event);
+int WM_generic_select_invoke(struct bContext *C,
+                             struct wmOperator *op,
+                             const struct wmEvent *event);
 void WM_operator_view3d_unit_defaults(struct bContext *C, struct wmOperator *op);
 int WM_operator_smooth_viewtx_get(const struct wmOperator *op);
 int WM_menu_invoke_ex(struct bContext *C, struct wmOperator *op, int opcontext);
@@ -474,6 +480,7 @@ void WM_operator_properties_select_random(struct wmOperatorType *ot);
 int WM_operator_properties_select_random_seed_increment_get(wmOperator *op);
 void WM_operator_properties_select_operation(struct wmOperatorType *ot);
 void WM_operator_properties_select_operation_simple(struct wmOperatorType *ot);
+void WM_operator_properties_generic_select(struct wmOperatorType *ot);
 struct CheckerIntervalParams {
   int nth; /* bypass when set to zero */
   int skip;
