@@ -1148,33 +1148,48 @@ static void deselect_markers(ListBase *markers)
 }
 
 /* select/deselect TimeMarker at current frame */
-static void select_timeline_marker_frame(ListBase *markers, int frame, bool extend)
+static int select_timeline_marker_frame(ListBase *markers,
+                                        int frame,
+                                        bool extend,
+                                        bool wait_to_deselect_others)
 {
-  TimeMarker *marker, *marker_first = NULL;
+  TimeMarker *marker, *marker_selected = NULL;
+  int ret_val = OPERATOR_FINISHED;
+
+  if (extend) {
+    wait_to_deselect_others = false;
+  }
 
   /* support for selection cycling */
   for (marker = markers->first; marker; marker = marker->next) {
     if (marker->frame == frame) {
       if (marker->flag & SELECT) {
-        marker_first = marker->next;
+        marker_selected = marker->next;
         break;
       }
     }
   }
 
+  if (wait_to_deselect_others && marker_selected) {
+    ret_val = OPERATOR_RUNNING_MODAL;
+  }
   /* if extend is not set, then deselect markers */
-  if (extend == false) {
-    deselect_markers(markers);
+  else {
+    if (extend == false) {
+      deselect_markers(markers);
+    }
+
+    LISTBASE_CIRCULAR_FORWARD_BEGIN (markers, marker, marker_selected) {
+      /* this way a not-extend select will always give 1 selected marker */
+      if ((marker->frame == frame)) {
+        marker->flag ^= SELECT;
+        break;
+      }
+    }
+    LISTBASE_CIRCULAR_FORWARD_END(markers, marker, marker_selected);
   }
 
-  LISTBASE_CIRCULAR_FORWARD_BEGIN (markers, marker, marker_first) {
-    /* this way a not-extend select will always give 1 selected marker */
-    if (marker->frame == frame) {
-      marker->flag ^= SELECT;
-      break;
-    }
-  }
-  LISTBASE_CIRCULAR_FORWARD_END(markers, marker, marker_first);
+  return ret_val;
 }
 
 static void select_marker_camera_switch(
@@ -1221,17 +1236,17 @@ static void select_marker_camera_switch(
 #endif
 }
 
-static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool camera)
+static int ed_marker_select(
+    bContext *C, const int mval[2], bool extend, bool camera, bool wait_to_deselect_others)
 {
   ListBase *markers = ED_context_get_markers(C);
-  ARegion *ar = CTX_wm_region(C);
   View2D *v2d = UI_view2d_fromcontext(C);
+  int ret_val = OPERATOR_FINISHED;
 
-  float mouse_region_x = event->x - ar->winrct.xmin;
-  if (region_position_is_over_marker(v2d, markers, mouse_region_x)) {
-    float frame_at_mouse_position = UI_view2d_region_to_view_x(v2d, mouse_region_x);
+  if (region_position_is_over_marker(v2d, markers, mval[0])) {
+    float frame_at_mouse_position = UI_view2d_region_to_view_x(v2d, mval[0]);
     int cfra = ED_markers_find_nearest_marker_time(markers, frame_at_mouse_position);
-    select_timeline_marker_frame(markers, cfra, extend);
+    ret_val = select_timeline_marker_frame(markers, cfra, extend, wait_to_deselect_others);
 
     select_marker_camera_switch(C, camera, extend, markers, cfra);
   }
@@ -1243,17 +1258,22 @@ static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool
   WM_event_add_notifier(C, NC_ANIMATION | ND_MARKERS, NULL);
 
   /* allowing tweaks, but needs OPERATOR_FINISHED, otherwise renaming fails... [#25987] */
-  return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+  return ret_val | OPERATOR_PASS_THROUGH;
 }
 
-static int ed_marker_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int ed_marker_select_exec(bContext *C, wmOperator *op)
 {
   const bool extend = RNA_boolean_get(op->ptr, "extend");
+  const bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
   bool camera = false;
 #ifdef DURIAN_CAMERA_SWITCH
   camera = RNA_boolean_get(op->ptr, "camera");
 #endif
-  return ed_marker_select(C, event, extend, camera);
+  int mval[2];
+  mval[0] = RNA_int_get(op->ptr, "mouse_x");
+  mval[1] = RNA_int_get(op->ptr, "mouse_y");
+
+  return ed_marker_select(C, mval, extend, camera, wait_to_deselect_others);
 }
 
 static void MARKER_OT_select(wmOperatorType *ot)
@@ -1266,12 +1286,15 @@ static void MARKER_OT_select(wmOperatorType *ot)
   ot->idname = "MARKER_OT_select";
 
   /* api callbacks */
-  ot->invoke = ed_marker_select_invoke;
   ot->poll = ed_markers_poll_markers_exist;
+  ot->exec = ed_marker_select_exec;
+  ot->invoke = WM_generic_select_invoke;
+  ot->modal = WM_generic_select_modal;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+  WM_operator_properties_generic_select(ot);
   prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 #ifdef DURIAN_CAMERA_SWITCH
