@@ -550,5 +550,4 @@ GpencilModifierTypeInfo modifierType_Gpencil_Build = {
     /* foreachObjectLink */ NULL,
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
-    /* getDuplicationFactor */ NULL,
 };

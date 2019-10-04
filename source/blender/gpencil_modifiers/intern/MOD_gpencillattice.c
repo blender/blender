@@ -219,5 +219,4 @@ GpencilModifierTypeInfo modifierType_Gpencil_Lattice = {
     /* foreachObjectLink */ foreachObjectLink,
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
-    /* getDuplicationFactor */ NULL,
 };

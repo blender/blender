@@ -182,5 +182,4 @@ GpencilModifierTypeInfo modifierType_Gpencil_Time = {
     /* foreachObjectLink */ NULL,
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
-    /* getDuplicationFactor */ NULL,
 };

@@ -37,7 +37,6 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_material_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_gpencil_modifier_types.h"
 
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
@@ -225,23 +224,6 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
   cache->b_point.tot_vertex = cache_ob->tot_vertex;
   cache->b_edit.tot_vertex = cache_ob->tot_vertex;
   cache->b_edlin.tot_vertex = cache_ob->tot_vertex;
-
-  /* some modifiers can change the number of points */
-  int factor = 0;
-  GpencilModifierData *md;
-  for (md = ob->greasepencil_modifiers.first; md; md = md->next) {
-    const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
-    /* only modifiers that change size */
-    if (mti && mti->getDuplicationFactor) {
-      factor = mti->getDuplicationFactor(md);
-
-      cache->b_fill.tot_vertex *= factor;
-      cache->b_stroke.tot_vertex *= factor;
-      cache->b_point.tot_vertex *= factor;
-      cache->b_edit.tot_vertex *= factor;
-      cache->b_edlin.tot_vertex *= factor;
-    }
-  }
 }
 
 /* Helper for doing all the checks on whether a stroke can be drawn */

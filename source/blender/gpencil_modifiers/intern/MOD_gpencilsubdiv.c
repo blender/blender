@@ -103,14 +103,6 @@ static void bakeModifier(struct Main *UNUSED(bmain),
   }
 }
 
-static int getDuplicationFactor(GpencilModifierData *md)
-{
-  SubdivGpencilModifierData *mmd = (SubdivGpencilModifierData *)md;
-  int t = (mmd->level + 1) * (mmd->level + 1);
-  CLAMP_MIN(t, 2);
-  return t;
-}
-
 GpencilModifierTypeInfo modifierType_Gpencil_Subdiv = {
     /* name */ "Subdivision",
     /* structName */ "SubdivGpencilModifierData",
@@ -133,5 +125,4 @@ GpencilModifierTypeInfo modifierType_Gpencil_Subdiv = {
     /* foreachObjectLink */ NULL,
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
-    /* getDuplicationFactor */ getDuplicationFactor,
 };

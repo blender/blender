@@ -261,12 +261,6 @@ typedef struct GpencilModifierTypeInfo {
                          struct Object *ob,
                          GreasePencilTexWalkFunc walk,
                          void *userData);
-
-  /**
-   * Get the number of times the strokes are duplicated in this modifier.
-   * This is used to calculate the size of the GPU VBOs
-   */
-  int (*getDuplicationFactor)(struct GpencilModifierData *md);
 } GpencilModifierTypeInfo;
 
 /* Initialize modifier's global data (type info and some common global storages). */
