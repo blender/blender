@@ -153,7 +153,8 @@ static void actkeys_find_key_in_list_element(bAnimContext *ac,
                                              float region_x,
                                              float *r_selx,
                                              float *r_frame,
-                                             bool *r_found)
+                                             bool *r_found,
+                                             bool *r_is_selected)
 {
   *r_found = false;
 
@@ -182,6 +183,7 @@ static void actkeys_find_key_in_list_element(bAnimContext *ac,
       *r_selx = BKE_nla_tweakedit_remap(adt, ak->cfra, NLATIME_CONVERT_UNMAP);
       *r_frame = ak->cfra;
       *r_found = true;
+      *r_is_selected = (ak->sel & SELECT) != 0;
       break;
     }
   }
@@ -197,14 +199,16 @@ static void actkeys_find_key_at_position(bAnimContext *ac,
                                          bAnimListElem **r_ale,
                                          float *r_selx,
                                          float *r_frame,
-                                         bool *r_found)
+                                         bool *r_found,
+                                         bool *r_is_selected)
 
 {
   *r_found = false;
   *r_ale = actkeys_find_list_element_at_position(ac, filter, region_x, region_y);
 
   if (*r_ale != NULL) {
-    actkeys_find_key_in_list_element(ac, *r_ale, region_x, r_selx, r_frame, r_found);
+    actkeys_find_key_in_list_element(
+        ac, *r_ale, region_x, r_selx, r_frame, r_found, r_is_selected);
   }
 }
 
@@ -213,9 +217,11 @@ static bool actkeys_is_key_at_position(bAnimContext *ac, float region_x, float r
   bAnimListElem *ale;
   float selx, frame;
   bool found;
+  bool is_selected;
 
   int filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS;
-  actkeys_find_key_at_position(ac, filter, region_x, region_y, &ale, &selx, &frame, &found);
+  actkeys_find_key_at_position(
+      ac, filter, region_x, region_y, &ale, &selx, &frame, &found, &is_selected);
 
   if (ale != NULL) {
     MEM_freeN(ale);
@@ -1681,20 +1687,29 @@ static void actkeys_mselect_channel_only(bAnimContext *ac, bAnimListElem *ale, s
 
 /* ------------------- */
 
-static void mouse_action_keys(bAnimContext *ac,
-                              const int mval[2],
-                              short select_mode,
-                              const bool deselect_all,
-                              const bool column,
-                              const bool same_channel)
+static int mouse_action_keys(bAnimContext *ac,
+                             const int mval[2],
+                             short select_mode,
+                             const bool deselect_all,
+                             const bool column,
+                             const bool same_channel,
+                             bool wait_to_deselect_others)
 {
   int filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS;
 
   bAnimListElem *ale = NULL;
   bool found = false;
+  bool is_selected = false;
   float frame = 0.0f; /* frame of keyframe under mouse - NLA corrections not applied/included */
   float selx = 0.0f;  /* frame of keyframe under mouse */
-  actkeys_find_key_at_position(ac, filter, mval[0], mval[1], &ale, &selx, &frame, &found);
+  int ret_value = OPERATOR_FINISHED;
+
+  actkeys_find_key_at_position(
+      ac, filter, mval[0], mval[1], &ale, &selx, &frame, &found, &is_selected);
+
+  if (select_mode != SELECT_REPLACE) {
+    wait_to_deselect_others = false;
+  }
 
   /* For replacing selection, if we have something to select, we have to clear existing selection.
    * The same goes if we found nothing to select, and deselect_all is true
@@ -1703,56 +1718,61 @@ static void mouse_action_keys(bAnimContext *ac,
     /* reset selection mode for next steps */
     select_mode = SELECT_ADD;
 
-    /* deselect all keyframes */
-    deselect_action_keys(ac, 0, SELECT_SUBTRACT);
+    if (wait_to_deselect_others && is_selected) {
+      ret_value = OPERATOR_RUNNING_MODAL;
+    }
+    else {
+      /* deselect all keyframes */
+      deselect_action_keys(ac, 0, SELECT_SUBTRACT);
 
-    /* highlight channel clicked on */
-    if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE)) {
-      /* deselect all other channels first */
-      ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+      /* highlight channel clicked on */
+      if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE)) {
+        /* deselect all other channels first */
+        ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 
-      /* Highlight Action-Group or F-Curve? */
-      if (ale != NULL && ale->data) {
-        if (ale->type == ANIMTYPE_GROUP) {
-          bActionGroup *agrp = ale->data;
+        /* Highlight Action-Group or F-Curve? */
+        if (ale != NULL && ale->data) {
+          if (ale->type == ANIMTYPE_GROUP) {
+            bActionGroup *agrp = ale->data;
 
-          agrp->flag |= AGRP_SELECTED;
-          ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
-        }
-        else if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
-          FCurve *fcu = ale->data;
+            agrp->flag |= AGRP_SELECTED;
+            ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
+          }
+          else if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
+            FCurve *fcu = ale->data;
 
-          fcu->flag |= FCURVE_SELECTED;
-          ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ale->type);
+            fcu->flag |= FCURVE_SELECTED;
+            ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ale->type);
+          }
         }
       }
-    }
-    else if (ac->datatype == ANIMCONT_GPENCIL) {
-      /* deselect all other channels first */
-      ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+      else if (ac->datatype == ANIMCONT_GPENCIL) {
+        /* deselect all other channels first */
+        ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 
-      /* Highlight GPencil Layer */
-      if (ale != NULL && ale->data != NULL && ale->type == ANIMTYPE_GPLAYER) {
-        bGPdata *gpd = (bGPdata *)ale->id;
-        bGPDlayer *gpl = ale->data;
+        /* Highlight GPencil Layer */
+        if (ale != NULL && ale->data != NULL && ale->type == ANIMTYPE_GPLAYER) {
+          bGPdata *gpd = (bGPdata *)ale->id;
+          bGPDlayer *gpl = ale->data;
 
-        gpl->flag |= GP_LAYER_SELECT;
-        /* Update other layer status. */
-        if (BKE_gpencil_layer_getactive(gpd) != gpl) {
-          BKE_gpencil_layer_setactive(gpd, gpl);
-          BKE_gpencil_layer_autolock_set(gpd, false);
-          WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+          gpl->flag |= GP_LAYER_SELECT;
+          /* Update other layer status. */
+          if (BKE_gpencil_layer_getactive(gpd) != gpl) {
+            BKE_gpencil_layer_setactive(gpd, gpl);
+            BKE_gpencil_layer_autolock_set(gpd, false);
+            WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+          }
         }
       }
-    }
-    else if (ac->datatype == ANIMCONT_MASK) {
-      /* deselect all other channels first */
-      ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+      else if (ac->datatype == ANIMCONT_MASK) {
+        /* deselect all other channels first */
+        ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 
-      if (ale != NULL && ale->data != NULL && ale->type == ANIMTYPE_MASKLAYER) {
-        MaskLayer *masklay = ale->data;
+        if (ale != NULL && ale->data != NULL && ale->type == ANIMTYPE_MASKLAYER) {
+          MaskLayer *masklay = ale->data;
 
-        masklay->flag |= MASK_LAYERFLAG_SELECT;
+          masklay->flag |= MASK_LAYERFLAG_SELECT;
+        }
       }
     }
   }
@@ -1787,12 +1807,15 @@ static void mouse_action_keys(bAnimContext *ac,
     /* free this channel */
     MEM_freeN(ale);
   }
+
+  return ret_value;
 }
 
 /* handle clicking */
-static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int actkeys_clickselect_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
+  int ret_value;
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -1805,20 +1828,26 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, const wmEvent
   /* select mode is either replace (deselect all, then add) or add/extend */
   const short selectmode = RNA_boolean_get(op->ptr, "extend") ? SELECT_INVERT : SELECT_REPLACE;
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
+  const bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
+  int mval[2];
 
   /* column selection */
   const bool column = RNA_boolean_get(op->ptr, "column");
   const bool channel = RNA_boolean_get(op->ptr, "channel");
 
+  mval[0] = RNA_int_get(op->ptr, "mouse_x");
+  mval[1] = RNA_int_get(op->ptr, "mouse_y");
+
   /* select keyframe(s) based upon mouse position*/
-  mouse_action_keys(&ac, event->mval, selectmode, deselect_all, column, channel);
+  ret_value = mouse_action_keys(
+      &ac, mval, selectmode, deselect_all, column, channel, wait_to_deselect_others);
 
   /* set notifier that keyframe selection (and channels too) have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
 
   /* for tweak grab to work */
-  return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+  return ret_value | OPERATOR_PASS_THROUGH;
 }
 
 void ACTION_OT_clickselect(wmOperatorType *ot)
@@ -1831,13 +1860,16 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
   ot->description = "Select keyframes by clicking on them";
 
   /* callbacks */
-  ot->invoke = actkeys_clickselect_invoke;
   ot->poll = ED_operator_action_active;
+  ot->exec = actkeys_clickselect_exec;
+  ot->invoke = WM_generic_select_invoke;
+  ot->modal = WM_generic_select_modal;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
 
   /* properties */
+  WM_operator_properties_generic_select(ot);
   prop = RNA_def_boolean(
       ot->srna,
       "extend",
