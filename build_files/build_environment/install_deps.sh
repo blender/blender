@@ -431,6 +431,9 @@ X264_VERSION_MIN=0.118
 VPX_USE=false
 VPX_VERSION_MIN=0.9.7
 VPX_DEV=""
+OPUS_USE=false
+OPUS_VERSION_MIN=1.1.1
+OPUS_DEV=""
 MP3LAME_USE=false
 MP3LAME_DEV=""
 OPENJPEG_USE=false
@@ -2754,6 +2757,10 @@ compile_FFmpeg() {
       extra="$extra --enable-libvpx"
     fi
 
+    if [ "$OPUS_USE" = true ]; then
+      extra="$extra --enable-libopus"
+    fi
+
     if [ "$MP3LAME_USE" = true ]; then
       extra="$extra --enable-libmp3lame"
     fi
@@ -2990,6 +2997,14 @@ install_DEB() {
     if [ $? -eq 0 ]; then
       install_packages_DEB $VPX_DEV
       VPX_USE=true
+    fi
+
+    PRINT ""
+    OPUS_DEV="libopus-dev"
+    check_package_version_ge_DEB $OPUS_DEV $OPUS_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_DEB $OPUS_DEV
+      OPUS_USE=true
     fi
   fi
 
@@ -3605,6 +3620,18 @@ install_RPM() {
     install_packages_RPM libspnav-devel
   fi
 
+  if [ "$WITH_ALL" = true ]; then
+    PRINT ""
+    OPUS_DEV="libopus-devel"
+    check_package_version_ge_RPM $OPUS_DEV $OPUS_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM $OPUS_DEV
+      OPUS_USE=true
+    fi
+    PRINT ""
+    install_packages_RPM libspnav-devel
+  fi
+
   PRINT ""
   CLANG_FORMAT="clang"  # Yeah, on fedora/suse clang-format is part of main clang package...
   check_package_version_ge_RPM $CLANG_FORMAT $CLANG_FORMAT_VERSION_MIN
@@ -4076,6 +4103,14 @@ install_ARCH() {
     if [ $? -eq 0 ]; then
       install_packages_ARCH $VPX_DEV
       VPX_USE=true
+    fi
+
+    PRINT ""
+    OPUS_DEV="opus"
+    check_package_version_ge_ARCH $OPUS_DEV $OPUS_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH $OPUS_DEV
+      OPUS_USE=true
     fi
   fi
 
@@ -4631,6 +4666,10 @@ print_info_ffmpeglink() {
 
   if [ "$VPX_USE" = true ]; then
     _packages="$_packages $VPX_DEV"
+  fi
+
+  if [ "$OPUS_USE" = true ]; then
+    _packages="$_packages $OPUS_DEV"
   fi
 
   if [ "$MP3LAME_USE" = true ]; then
