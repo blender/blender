@@ -1547,7 +1547,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
   }
 
   int collection_index = RNA_property_int_get(op->ptr, prop);
-  collection = BKE_collection_from_index(CTX_data_scene(C), collection_index);
+  collection = BKE_collection_from_index(scene, collection_index);
   if (collection == NULL) {
     BKE_report(op->reports, RPT_ERROR, "Unexpected error, collection not found");
     return OPERATOR_CANCELLED;
