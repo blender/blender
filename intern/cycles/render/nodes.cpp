@@ -5567,11 +5567,21 @@ void MapRangeNode::expand(ShaderGraph *graph)
     ShaderOutput *result_out = output("Result");
     if (!result_out->links.empty()) {
       ClampNode *clamp_node = new ClampNode();
-      clamp_node->min = to_min;
-      clamp_node->max = to_max;
       graph->add(clamp_node);
       graph->relink(result_out, clamp_node->output("Result"));
       graph->connect(result_out, clamp_node->input("Value"));
+      if (input("To Min")->link) {
+        graph->connect(input("To Min")->link, clamp_node->input("Min"));
+      }
+      else {
+        clamp_node->min = to_min;
+      }
+      if (input("To Max")->link) {
+        graph->connect(input("To Max")->link, clamp_node->input("Max"));
+      }
+      else {
+        clamp_node->max = to_max;
+      }
     }
   }
 }
