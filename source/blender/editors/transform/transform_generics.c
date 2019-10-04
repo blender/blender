@@ -1707,7 +1707,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
   else {
-    if (ISMOUSE(t->launch_event) && (U.flag & USER_RELEASECONFIRM)) {
+    /* Release confirms preference should not affect node editor (T69288, T70504). */
+    if (ISMOUSE(t->launch_event) && ((U.flag & USER_RELEASECONFIRM) || (t->spacetype == SPACE_NODE))) {
       /* Global "release confirm" on mouse bindings */
       t->flag |= T_RELEASE_CONFIRM;
     }
