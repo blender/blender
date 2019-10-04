@@ -1221,7 +1221,7 @@ def km_file_browser_main(params):
         ("file.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "ctrl": True},
          {"properties": [("extend", True)]}),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True,},
-         {"properties": [("extend", True), ("fill", True)]}),
+         {"properties": [("extend", True), ("fill", True), ("open", False)]}),
         ("file.select", {"type": 'RIGHTMOUSE', "value": 'CLICK', "shift": True},
          {"properties": [("extend", True), ("open", False)]}),
         ("file.select", {"type": 'RIGHTMOUSE', "value": 'CLICK', "alt": True},
