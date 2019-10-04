@@ -58,7 +58,7 @@ static int txtfmt_py_find_builtinfunc(const char *string)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      (STR_LITERAL_STARTSWITH(string, "assert",    len)) { i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "assert",   len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "async",    len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "await",    len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "and",      len)) { i = len;
@@ -114,7 +114,7 @@ static int txtfmt_py_find_specialvar(const char *string)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      (STR_LITERAL_STARTSWITH(string, "def", len)) {   i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "def", len)) {   i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "class", len)) { i = len;
   } else {                                                   i = 0;
 }
@@ -155,7 +155,7 @@ static int txtfmt_py_find_bool(const char *string)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      (STR_LITERAL_STARTSWITH(string, "None",  len)) {  i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "None",  len)) {  i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "True",  len)) {  i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "False", len)) {  i = len;
   } else {                                                    i = 0;

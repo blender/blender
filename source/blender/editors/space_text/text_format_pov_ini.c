@@ -49,7 +49,7 @@ static int txtfmt_ini_find_keyword(const char *string)
   /* clang-format off */
 
   /* Language Directives */
-  if      (STR_LITERAL_STARTSWITH(string, "deprecated", len)) { i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "deprecated", len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "statistics", len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "declare",    len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "default",    len)) { i = len;
@@ -111,7 +111,7 @@ static int txtfmt_ini_find_reserved(const char *string)
    * list is from...
    * http://www.povray.org/documentation/view/3.7.0/212/
    */
-  if      (STR_LITERAL_STARTSWITH(string, "RenderCompleteSoundEnabled",   len)) { i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "RenderCompleteSoundEnabled",   len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "Create_Continue_Trace_Log",    len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "ParseErrorSoundEnabled",       len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "RenderErrorSoundEnabled",      len)) { i = len;
@@ -321,7 +321,7 @@ static int txtfmt_ini_find_bool(const char *string)
   /* clang-format off */
 
   /* Built-in Constants */
-  if      (STR_LITERAL_STARTSWITH(string, "false",   len)) { i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "false",   len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "no",      len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "off",     len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "true",    len)) { i = len;

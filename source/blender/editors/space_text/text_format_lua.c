@@ -48,7 +48,7 @@ static int txtfmt_lua_find_keyword(const char *string)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      (STR_LITERAL_STARTSWITH(string, "and",      len)) { i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "and",      len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "break",    len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "do",       len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "else",     len)) { i = len;
@@ -66,8 +66,7 @@ static int txtfmt_lua_find_keyword(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "then",     len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "until",    len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "while",    len)) { i = len;
-  } else {                                                      i = 0;
-}
+  } else {                                                      i = 0; }
 
   /* clang-format on */
 
@@ -96,7 +95,7 @@ static int txtfmt_lua_find_specialvar(const char *string)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      (STR_LITERAL_STARTSWITH(string, "assert",           len)) {   i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "assert",           len)) {   i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "collectgarbage",   len)) {   i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "dofile",           len)) {   i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "error",            len)) {   i = len;
@@ -124,8 +123,7 @@ static int txtfmt_lua_find_specialvar(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "unpack",           len)) {   i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "_VERSION",         len)) {   i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "xpcall",           len)) {   i = len;
-  } else {                                                i = 0;
-}
+  } else {                                                                i = 0; }
 
   /* clang-format on */
 
@@ -140,18 +138,13 @@ static int txtfmt_lua_find_bool(const char *string)
 {
   int i, len;
 
-  if (STR_LITERAL_STARTSWITH(string, "nil", len)) {
-    i = len;
-  }
-  else if (STR_LITERAL_STARTSWITH(string, "true", len)) {
-    i = len;
-  }
-  else if (STR_LITERAL_STARTSWITH(string, "false", len)) {
-    i = len;
-  }
-  else {
-    i = 0;
-  }
+  /* Keep aligned args for readability. */
+  /* clang-format off */
+
+  if        (STR_LITERAL_STARTSWITH(string, "nil",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "true",   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "false",  len)) { i = len;
+  } else {                                                    i = 0; }
 
   /* clang-format on */
 
@@ -169,10 +162,9 @@ static char txtfmt_lua_format_identifier(const char *str)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      ((txtfmt_lua_find_specialvar(str))  != -1) { fmt = FMT_TYPE_SPECIAL;
+  if        ((txtfmt_lua_find_specialvar(str))  != -1) { fmt = FMT_TYPE_SPECIAL;
   } else if ((txtfmt_lua_find_keyword(str))     != -1) { fmt = FMT_TYPE_KEYWORD;
-  } else {                                               fmt = FMT_TYPE_DEFAULT;
-}
+  } else {                                               fmt = FMT_TYPE_DEFAULT; }
 
   /* clang-format on */
 

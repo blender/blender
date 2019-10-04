@@ -48,7 +48,7 @@ static int txtfmt_pov_find_keyword(const char *string)
 
   int i, len;
   /* Language Directives */
-  if      (STR_LITERAL_STARTSWITH(string, "deprecated",  len)) { i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "deprecated",  len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "persistent",  len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "statistics",  len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "version",     len)) { i = len;
@@ -101,7 +101,7 @@ static int txtfmt_pov_find_reserved_keywords(const char *string)
   /* clang-format off */
 
   /* Float Functions */
-  if      (STR_LITERAL_STARTSWITH(string, "conserve_energy",    len)) { i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "conserve_energy",    len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "max_intersections",  len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "dimension_size",     len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "bitwise_and",        len)) { i = len;
@@ -261,7 +261,7 @@ static int txtfmt_pov_find_reserved_builtins(const char *string)
   /* clang-format off */
 
   /* Language Keywords */
-  if      (STR_LITERAL_STARTSWITH(string, "reflection_exponent", len)) { i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "reflection_exponent", len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "area_illumination",   len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "all_intersections",   len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "cutaway_textures",    len)) { i = len;
@@ -500,7 +500,7 @@ static int txtfmt_pov_find_specialvar(const char *string)
 {
   int i, len;
   /* Modifiers */
-  if      (STR_LITERAL_STARTSWITH(string, "dispersion_samples", len)) { i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "dispersion_samples", len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "projected_through",  len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "double_illuminate",  len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "expand_thresholds",  len)) { i = len;
@@ -710,7 +710,7 @@ static int txtfmt_pov_find_bool(const char *string)
   /* clang-format off */
 
   /* Built-in Constants */
-  if      (STR_LITERAL_STARTSWITH(string, "unofficial",          len)) { i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "unofficial",          len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "false",               len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "no",                  len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "off",                 len)) { i = len;
