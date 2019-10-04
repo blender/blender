@@ -186,7 +186,6 @@ static float sculpt_vertex_mask_get(SculptSession *ss, int index)
 
 static int sculpt_active_vertex_get(SculptSession *ss)
 {
-  BLI_assert(BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS);
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
       return ss->active_vertex_index;
@@ -8296,6 +8295,11 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1 - fade;
     fade *= data->filter_strength;
+
+    if (fade == 0.0f) {
+      continue;
+    }
+
     copy_v3_v3(orig_co, orig_data.co);
     switch (filter_type) {
       case MESH_FILTER_SMOOTH:
@@ -8436,10 +8440,6 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   int filter_type = RNA_enum_get(op->ptr, "type");
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ob->sculpt->pbvh;
-
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-    return OPERATOR_CANCELLED;
-  }
 
   int deform_axis = RNA_enum_get(op->ptr, "deform_axis");
   if (deform_axis == 0) {
@@ -8650,10 +8650,6 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   int totnode;
   int filter_type = RNA_enum_get(op->ptr, "filter_type");
-
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-    return OPERATOR_CANCELLED;
-  }
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true);
 
@@ -8867,10 +8863,6 @@ static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
   PBVHNode **nodes;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   int totnode;
-
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-    return OPERATOR_CANCELLED;
-  }
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true);
 
