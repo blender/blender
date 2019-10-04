@@ -136,8 +136,8 @@ static void node_shader_update_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *nod
                             tex->musgrave_type != SHD_MUSGRAVE_MULTIFRACTAL &&
                                 tex->musgrave_type != SHD_MUSGRAVE_FBM);
   nodeSetSocketAvailability(inGainSock,
-                            tex->musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL &&
-                                tex->musgrave_type != SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
+                            tex->musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL ||
+                                tex->musgrave_type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
 }
 
 void register_node_type_sh_tex_musgrave(void)
