@@ -158,7 +158,7 @@ if(WITH_CODEC_FFMPEG)
     mp3lame swscale x264 xvidcore
     theora theoradec theoraenc
     vorbis vorbisenc vorbisfile ogg
-    opus vpx swresample)
+    vpx swresample)
   set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 endif()
 
