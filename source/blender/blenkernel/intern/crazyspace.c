@@ -355,11 +355,17 @@ static void crazyspace_init_verts_and_matrices(const Mesh *mesh,
   BLI_assert(num_verts == mesh->totvert);
 }
 
-static bool crazyspace_modifier_supports_deform(ModifierData *md)
+static bool crazyspace_modifier_supports_deform_matrices(ModifierData *md)
 {
   if (ELEM(md->type, eModifierType_Subsurf, eModifierType_Multires)) {
     return true;
   }
+  const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+  return (mti->type == eModifierTypeType_OnlyDeform);
+}
+
+static bool crazyspace_modifier_supports_deform(ModifierData *md)
+{
   const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
   return (mti->type == eModifierTypeType_OnlyDeform);
 }
@@ -391,13 +397,12 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
   md = modifiers_getVirtualModifierList(&object_eval, &virtualModifierData);
 
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-
     if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
       continue;
     }
 
-    if (mti->type == eModifierTypeType_OnlyDeform) {
+    if (crazyspace_modifier_supports_deform_matrices(md)) {
+      const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
       if (defmats == NULL) {
         /* NOTE: Evaluated object si re-set to its original undeformed
          * state. */

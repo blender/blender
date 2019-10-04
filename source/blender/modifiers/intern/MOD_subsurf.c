@@ -241,16 +241,21 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   return result;
 }
 
-static void deformVerts(ModifierData *md,
-                        const ModifierEvalContext *UNUSED(ctx),
-                        Mesh *mesh,
-                        float (*vertex_cos)[3],
-                        int num_verts)
+static void deformMatrices(ModifierData *md,
+                           const ModifierEvalContext *UNUSED(ctx),
+                           Mesh *mesh,
+                           float (*vertex_cos)[3],
+                           float (*deform_matrices)[3][3],
+                           int num_verts)
 {
 #if !defined(WITH_OPENSUBDIV)
   modifier_setError(md, "Disabled, built without OpenSubdiv");
   return;
 #endif
+
+  /* Subsurf does not require extra space mapping, keep matrices as is. */
+  (void)deform_matrices;
+
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
   SubdivSettings subdiv_settings;
   subdiv_settings_init(&subdiv_settings, smd);
@@ -281,8 +286,8 @@ ModifierTypeInfo modifierType_Subsurf = {
 
     /* copyData */ copyData,
 
-    /* deformVerts */ deformVerts,
-    /* deformMatrices */ NULL,
+    /* deformVerts */ NULL,
+    /* deformMatrices */ deformMatrices,
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
     /* applyModifier */ applyModifier,
