@@ -2738,7 +2738,10 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
         /* Clear the tool-tip whenever a key binding is handled, without this tool-tips
          * are kept when a modal operators starts (annoying but otherwise harmless). */
         if (action & WM_HANDLER_BREAK) {
-          WM_tooltip_clear(C, CTX_wm_window(C));
+          /* Window may be gone after file read. */
+          if (CTX_wm_window(C) != NULL) {
+            WM_tooltip_clear(C, CTX_wm_window(C));
+          }
         }
       }
       else if (handler_base->type == WM_HANDLER_TYPE_UI) {
