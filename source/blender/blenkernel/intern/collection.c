@@ -773,7 +773,7 @@ static bool scene_collections_object_remove(
   bool removed = false;
 
   if (collection_skip == NULL) {
-    BKE_scene_remove_rigidbody_object(bmain, scene, ob);
+    BKE_scene_remove_rigidbody_object(bmain, scene, ob, free_us);
   }
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {

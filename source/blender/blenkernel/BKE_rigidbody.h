@@ -103,8 +103,14 @@ bool BKE_rigidbody_add_object(struct Main *bmain,
                               int type,
                               struct ReportList *reports);
 void BKE_rigidbody_ensure_local_object(struct Main *bmain, struct Object *ob);
-void BKE_rigidbody_remove_object(struct Main *bmain, struct Scene *scene, struct Object *ob);
-void BKE_rigidbody_remove_constraint(struct Scene *scene, struct Object *ob);
+void BKE_rigidbody_remove_object(struct Main *bmain,
+                                 struct Scene *scene,
+                                 struct Object *ob,
+                                 const bool free_us);
+void BKE_rigidbody_remove_constraint(struct Main *bmain,
+                                     struct Scene *scene,
+                                     struct Object *ob,
+                                     const bool free_us);
 
 /* -------------- */
 /* Utility Macros */
