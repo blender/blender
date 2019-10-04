@@ -368,30 +368,14 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, flo
   switch (pso->mode) {
     case POSESLIDE_PUSH: /* make the current pose more pronounced */
     {
-      /* perform a weighted average here, favoring the middle pose
-       * - numerator should be larger than denominator to 'expand' the result
-       * - perform this weighting a number of times given by the percentage...
-       */
-      /* TODO: maybe a sensitivity ctrl on top of this is needed */
-      int iters = (int)ceil(10.0f * pso->percentage);
-
-      while (iters-- > 0) {
-        (*val) = (-((sVal * w2) + (eVal * w1)) + ((*val) * 6.0f)) / 5.0f;
-      }
+      /* Slide the pose away from the breakdown pose in the timeline */
+      (*val) -= ((sVal * w2) + (eVal * w1) - (*val)) * pso->percentage;
       break;
     }
     case POSESLIDE_RELAX: /* make the current pose more like its surrounding ones */
     {
-      /* perform a weighted average here, favoring the middle pose
-       * - numerator should be smaller than denominator to 'relax' the result
-       * - perform this weighting a number of times given by the percentage...
-       */
-      /* TODO: maybe a sensitivity ctrl on top of this is needed */
-      int iters = (int)ceil(10.0f * pso->percentage);
-
-      while (iters-- > 0) {
-        (*val) = (((sVal * w2) + (eVal * w1)) + ((*val) * 5.0f)) / 6.0f;
-      }
+      /* Slide the pose towards the breakdown pose in the timeline */
+      (*val) += ((sVal * w2) + (eVal * w1) - (*val)) * pso->percentage;
       break;
     }
     case POSESLIDE_BREAKDOWN: /* make the current pose slide around between the endpoints */
