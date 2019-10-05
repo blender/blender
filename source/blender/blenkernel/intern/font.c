@@ -397,6 +397,9 @@ static void build_underline(Curve *cu,
   copy_v4_fl4(bp[2].vec, rect->xmax, (rect->ymin + yofs), 0.0f, 1.0f);
   copy_v4_fl4(bp[3].vec, rect->xmin, (rect->ymin + yofs), 0.0f, 1.0f);
 
+  /* Used by curve extrusion. */
+  bp[0].radius = bp[1].radius = bp[2].radius = bp[3].radius = 1.0f;
+
   nu2->bp = bp;
   BLI_addtail(nubase, nu2);
 
