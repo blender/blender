@@ -86,6 +86,7 @@ static void update_cb(PBVHNode *node, void *rebuild)
 struct PartialUpdateData {
   PBVH *pbvh;
   bool rebuild;
+  char *modified_grids;
 };
 
 /**
@@ -94,8 +95,24 @@ struct PartialUpdateData {
 static void update_cb_partial(PBVHNode *node, void *userdata)
 {
   struct PartialUpdateData *data = userdata;
-  if (BKE_pbvh_node_vert_update_check_any(data->pbvh, node)) {
-    update_cb(node, &(data->rebuild));
+  if (BKE_pbvh_type(data->pbvh) == PBVH_GRIDS) {
+    int *node_grid_indices;
+    int totgrid;
+    bool update = false;
+    BKE_pbvh_node_get_grids(data->pbvh, node, &node_grid_indices, &totgrid, NULL, NULL, NULL);
+    for (int i = 0; i < totgrid; i++) {
+      if (data->modified_grids[node_grid_indices[i]] == 1) {
+        update = true;
+      }
+    }
+    if (update) {
+      update_cb(node, &(data->rebuild));
+    }
+  }
+  else {
+    if (BKE_pbvh_node_vert_update_check_any(data->pbvh, node)) {
+      update_cb(node, &(data->rebuild));
+    }
   }
 }
 
@@ -482,7 +499,6 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   SculptUndoNode *unode;
   bool update = false, rebuild = false;
   bool need_mask = false;
-  bool partial_update = true;
 
   for (unode = lb->first; unode; unode = unode->next) {
     /* restore pivot */
@@ -524,6 +540,9 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     return;
   }
 
+  char *undo_modified_grids = NULL;
+  bool use_multires_undo = false;
+
   for (unode = lb->first; unode; unode = unode->next) {
 
     if (!STREQ(unode->idname, ob->id.name)) {
@@ -543,8 +562,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
         continue;
       }
 
-      /* multi-res can't do partial updates since it doesn't flag edited vertices */
-      partial_update = false;
+      use_multires_undo = true;
     }
 
     switch (unode->type) {
@@ -574,21 +592,29 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     }
   }
 
+  if (use_multires_undo) {
+    int max_grid;
+    unode = lb->first;
+    max_grid = unode->maxgrid;
+    undo_modified_grids = MEM_callocN(sizeof(char) * max_grid, "undo_grids");
+    for (unode = lb->first; unode; unode = unode->next) {
+      for (int i = 0; i < unode->totgrid; i++) {
+        undo_modified_grids[unode->grids[i]] = 1;
+      }
+    }
+  }
+
   if (update || rebuild) {
     bool tag_update = false;
     /* we update all nodes still, should be more clever, but also
      * needs to work correct when exiting/entering sculpt mode and
      * the nodes get recreated, though in that case it could do all */
-    if (partial_update) {
-      struct PartialUpdateData data = {
-          .rebuild = rebuild,
-          .pbvh = ss->pbvh,
-      };
-      BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb_partial, &data);
-    }
-    else {
-      BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb, &rebuild);
-    }
+    struct PartialUpdateData data = {
+        .rebuild = rebuild,
+        .pbvh = ss->pbvh,
+        .modified_grids = undo_modified_grids,
+    };
+    BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb_partial, &data);
     BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
 
     if (BKE_sculpt_multires_active(scene, ob)) {
@@ -617,6 +643,8 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       sculpt_update_object_bounding_box(ob);
     }
   }
+
+  MEM_SAFE_FREE(undo_modified_grids);
 }
 
 static void sculpt_undo_free_list(ListBase *lb)
