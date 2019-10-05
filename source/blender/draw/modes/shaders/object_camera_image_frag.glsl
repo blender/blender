@@ -19,5 +19,7 @@ void main()
 #endif
 
   color.a *= alpha;
+  color.rgb *= color.a;
+
   fragColor = color;
 }

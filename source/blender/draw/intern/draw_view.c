@@ -41,11 +41,9 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 
-#include "DRW_render.h"
-
 #include "view3d_intern.h"
 
-#include "draw_view.h"
+#include "draw_manager.h"
 
 /* ******************** region info ***************** */
 
@@ -60,18 +58,17 @@ void DRW_draw_region_info(void)
 }
 
 /* ************************* Background ************************** */
+void DRW_clear_background()
+{
+  GPU_clear_color(0.0, 0.0, 0.0, 0.0);
+  GPU_clear(GPU_COLOR_BIT | GPU_DEPTH_BIT | GPU_STENCIL_BIT);
+}
 
 void DRW_draw_background(bool do_alpha_checker)
 {
-  /* Just to make sure */
-  glDepthMask(GL_TRUE);
-  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-  glStencilMask(0xFF);
-
+  drw_state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_UNDER_PREMUL);
   if (do_alpha_checker) {
     /* Transparent render, do alpha checker. */
-    GPU_depth_test(false);
-
     GPU_matrix_push();
     GPU_matrix_identity_set();
     GPU_matrix_identity_projection_set();
@@ -79,17 +76,10 @@ void DRW_draw_background(bool do_alpha_checker)
     imm_draw_box_checker_2d(-1.0f, -1.0f, 1.0f, 1.0f);
 
     GPU_matrix_pop();
-
-    GPU_clear(GPU_DEPTH_BIT | GPU_STENCIL_BIT);
-
-    GPU_depth_test(true);
   }
-  else if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
+  else {
     float m[4][4];
     unit_m4(m);
-
-    /* Gradient background Color */
-    GPU_depth_test(false);
 
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -103,8 +93,8 @@ void DRW_draw_background(bool do_alpha_checker)
 
     immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR_DITHER);
 
-    UI_GetThemeColor3ubv(TH_BACK_GRAD, col_lo);
     UI_GetThemeColor3ubv(TH_BACK, col_hi);
+    UI_GetThemeColor3ubv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_BACK_GRAD : TH_BACK, col_lo);
 
     immBegin(GPU_PRIM_TRI_FAN, 4);
     immAttr3ubv(color, col_lo);
@@ -119,16 +109,6 @@ void DRW_draw_background(bool do_alpha_checker)
     immUnbindProgram();
 
     GPU_matrix_pop();
-
-    GPU_clear(GPU_DEPTH_BIT | GPU_STENCIL_BIT);
-
-    GPU_depth_test(true);
-  }
-  else {
-    /* Solid background Color */
-    UI_ThemeClearColorAlpha(TH_BACK, 1.0f);
-
-    GPU_clear(GPU_COLOR_BIT | GPU_DEPTH_BIT | GPU_STENCIL_BIT);
   }
 }
 

@@ -1171,7 +1171,7 @@ static void drw_engines_cache_finish(void)
   MEM_freeN(DST.vedata_array);
 }
 
-static void drw_engines_draw_background(void)
+static bool drw_engines_draw_background(void)
 {
   for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
     DrawEngineType *engine = link->data;
@@ -1185,10 +1185,20 @@ static void drw_engines_draw_background(void)
       DRW_stats_group_end();
 
       PROFILE_END_UPDATE(data->background_time, stime);
-      return;
+      return true;
     }
   }
 
+  /* No draw engines draw the background. We clear the background.
+   * We draw the background after drawing of the scene so the camera background
+   * images can be drawn using ALPHA Under. Otherwise the background always
+   * interferred with the alpha blending */
+  DRW_clear_background();
+  return false;
+}
+
+static void drw_draw_background_alpha_under(void)
+{
   /* No draw_background found, doing default background */
   const bool do_alpha_checker = !DRW_state_draw_background();
   DRW_draw_background(do_alpha_checker);
@@ -1685,7 +1695,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
 
   DRW_hair_update();
 
-  drw_engines_draw_background();
+  const bool background_drawn = drw_engines_draw_background();
 
   GPU_framebuffer_bind(DST.default_framebuffer);
 
@@ -1695,6 +1705,10 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   }
 
   drw_engines_draw_scene();
+
+  if (!background_drawn) {
+    drw_draw_background_alpha_under();
+  }
 
   /* Fix 3D view being "laggy" on macos and win+nvidia. (See T56996, T61474) */
   GPU_flush();

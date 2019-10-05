@@ -122,8 +122,9 @@ typedef struct OBJECT_PassList {
   struct DRWPass *bone_axes[2];
   struct DRWPass *particle;
   struct DRWPass *lightprobes;
-  struct DRWPass *camera_images_back;
-  struct DRWPass *camera_images_front;
+  struct DRWPass *camera_images_back_alpha_under;
+  struct DRWPass *camera_images_back_alpha_over;
+  struct DRWPass *camera_images_front_alpha_over;
 } OBJECT_PassList;
 
 typedef struct OBJECT_FramebufferList {
@@ -991,13 +992,19 @@ static void DRW_shgroup_empty_image(OBJECT_Shaders *sh_data,
   }
 }
 
-/* Draw Camera Background Images */
+/* -------------------------------------------------------------------- */
+/** \name Camera Background Images
+ * \{ */
 typedef struct CameraEngineData {
   DrawData dd;
   ListBase bg_data;
 } CameraEngineData;
+
 typedef struct CameraEngineBGData {
+  CameraBGImage *camera_image;
+  GPUTexture *texture;
   float transform_mat[4][4];
+  bool premultiplied;
 } CameraEngineBGData;
 
 static void camera_engine_data_free(DrawData *dd)
@@ -1031,6 +1038,26 @@ static void camera_background_images_stereo_setup(Scene *scene,
   else {
     iuser->flag &= ~IMA_SHOW_STEREO;
   }
+}
+static void camera_background_images_add_shgroup(DRWPass *pass,
+                                                 CameraEngineBGData *bg_data,
+                                                 GPUShader *shader,
+                                                 GPUBatch *batch)
+{
+  CameraBGImage *camera_image = bg_data->camera_image;
+  DRWShadingGroup *grp = DRW_shgroup_create(shader, pass);
+
+  DRW_shgroup_uniform_float_copy(
+      grp, "depth", camera_image->flag & CAM_BGIMG_FLAG_FOREGROUND ? 0.000001f : 0.999999f);
+  DRW_shgroup_uniform_float_copy(grp, "alpha", camera_image->alpha);
+  DRW_shgroup_uniform_texture(grp, "image", bg_data->texture);
+  DRW_shgroup_uniform_bool_copy(grp, "imagePremultiplied", bg_data->premultiplied);
+  DRW_shgroup_uniform_float_copy(
+      grp, "flipX", (camera_image->flag & CAM_BGIMG_FLAG_FLIP_X) ? -1.0 : 1.0);
+  DRW_shgroup_uniform_float_copy(
+      grp, "flipY", (camera_image->flag & CAM_BGIMG_FLAG_FLIP_Y) ? -1.0 : 1.0);
+  DRW_shgroup_uniform_mat4(grp, "TransformMat", bg_data->transform_mat);
+  DRW_shgroup_call(grp, batch, NULL);
 }
 
 static void DRW_shgroup_camera_background_images(OBJECT_Shaders *sh_data,
@@ -1255,25 +1282,46 @@ static void DRW_shgroup_camera_background_images(OBJECT_Shaders *sh_data,
                     scale_m4,
                     uv2img_space);
 
-      DRWPass *pass = (bgpic->flag & CAM_BGIMG_FLAG_FOREGROUND) ? psl->camera_images_front :
-                                                                  psl->camera_images_back;
-      GPUShader *shader = DRW_state_do_color_management() ? sh_data->object_camera_image_cm :
-                                                            sh_data->object_camera_image;
-      DRWShadingGroup *grp = DRW_shgroup_create(shader, pass);
+      /* Keep the references so we can reverse the loop */
+      bg_data->camera_image = bgpic;
+      bg_data->texture = tex;
+      bg_data->premultiplied = premultiplied;
+    }
 
-      DRW_shgroup_uniform_float_copy(
-          grp, "depth", (bgpic->flag & CAM_BGIMG_FLAG_FOREGROUND) ? 0.000001 : 0.999999);
-      DRW_shgroup_uniform_float_copy(grp, "alpha", bgpic->alpha);
-      DRW_shgroup_uniform_texture(grp, "image", tex);
-      DRW_shgroup_uniform_bool_copy(grp, "imagePremultiplied", premultiplied);
+    /* Mark the rest bg_data's to be reused in the next drawing call */
+    LinkData *last_node = list_node ? list_node->prev : camera_engine_data->bg_data.last;
+    while (list_node != NULL) {
+      CameraEngineBGData *bg_data = (CameraEngineBGData *)list_node->data;
+      bg_data->texture = NULL;
+      bg_data->camera_image = NULL;
+      list_node = list_node->next;
+    }
 
-      DRW_shgroup_uniform_float_copy(
-          grp, "flipX", (bgpic->flag & CAM_BGIMG_FLAG_FLIP_X) ? -1.0 : 1.0);
-      DRW_shgroup_uniform_float_copy(
-          grp, "flipY", (bgpic->flag & CAM_BGIMG_FLAG_FLIP_Y) ? -1.0 : 1.0);
-      DRW_shgroup_uniform_mat4(grp, "TransformMat", bg_data->transform_mat);
+    GPUShader *shader = DRW_state_do_color_management() ? sh_data->object_camera_image_cm :
+                                                          sh_data->object_camera_image;
+    /* loop 1: camera images alpha under */
+    for (list_node = last_node; list_node; list_node = list_node->prev) {
+      CameraEngineBGData *bg_data = (CameraEngineBGData *)list_node->data;
+      CameraBGImage *camera_image = bg_data->camera_image;
+      if ((camera_image->flag & CAM_BGIMG_FLAG_FOREGROUND) == 0) {
+        camera_background_images_add_shgroup(
+            psl->camera_images_back_alpha_under, bg_data, shader, batch);
+      }
+    }
 
-      DRW_shgroup_call(grp, batch, NULL);
+    /* loop 2: camera images alpha over */
+    for (list_node = camera_engine_data->bg_data.first; list_node; list_node = list_node->next) {
+      CameraEngineBGData *bg_data = (CameraEngineBGData *)list_node->data;
+      CameraBGImage *camera_image = bg_data->camera_image;
+      if (camera_image == NULL) {
+        break;
+      }
+      camera_background_images_add_shgroup((camera_image->flag & CAM_BGIMG_FLAG_FOREGROUND) ?
+                                               psl->camera_images_front_alpha_over :
+                                               psl->camera_images_back_alpha_over,
+                                           bg_data,
+                                           shader,
+                                           batch);
     }
   }
 }
@@ -1286,6 +1334,7 @@ static void camera_background_images_free_textures(void)
   }
   BLI_freelistN(&e_data.movie_clips);
 }
+/* \} */
 
 static void OBJECT_cache_init(void *vedata)
 {
@@ -1427,9 +1476,15 @@ static void OBJECT_cache_init(void *vedata)
 
   /* Camera background images */
   {
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA;
-    psl->camera_images_back = DRW_pass_create("Camera Images Back", state);
-    psl->camera_images_front = DRW_pass_create("Camera Images Front", state);
+    psl->camera_images_back_alpha_over = DRW_pass_create(
+        "Camera Images Back Over",
+        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA_PREMUL);
+    psl->camera_images_back_alpha_under = DRW_pass_create(
+        "Camera Images Back Under",
+        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_GREATER | DRW_STATE_BLEND_ALPHA_UNDER_PREMUL);
+    psl->camera_images_front_alpha_over = DRW_pass_create(
+        "Camera Images Front Over",
+        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA_PREMUL);
   }
 
   for (int i = 0; i < 2; i++) {
@@ -3666,7 +3721,8 @@ static void OBJECT_draw_scene(void *vedata)
 
   float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-  DRW_draw_pass(psl->camera_images_back);
+  DRW_draw_pass(psl->camera_images_back_alpha_under);
+  DRW_draw_pass(psl->camera_images_back_alpha_over);
 
   /* Don't draw Transparent passes in MSAA buffer. */
   //  DRW_draw_pass(psl->bone_envelope);  /* Never drawn in Object mode currently. */
@@ -3774,7 +3830,7 @@ static void OBJECT_draw_scene(void *vedata)
 
   batch_camera_path_free(&stl->g_data->sgl_ghost.camera_path);
 
-  DRW_draw_pass(psl->camera_images_front);
+  DRW_draw_pass(psl->camera_images_front_alpha_over);
   camera_background_images_free_textures();
 
   DRW_draw_pass(psl->ob_center);
