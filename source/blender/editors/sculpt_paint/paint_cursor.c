@@ -410,7 +410,7 @@ static void load_tex_cursor_task_cb(void *__restrict userdata,
     if (len <= 1.0f) {
       float avg = BKE_brush_curve_strength_clamped(br, len, 1.0f); /* Falloff curve */
 
-      buffer[index] = 255 - (GLubyte)(255 * avg);
+      buffer[index] = (GLubyte)(255 * avg);
     }
     else {
       buffer[index] = 0;
