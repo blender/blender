@@ -56,12 +56,6 @@ typedef struct GPUPlatformSupportTest {
 
 // clang-format off
 static GPUPlatformSupportTest GPU_PLATFORM_SUPPORT_TESTS[] = {
-    /* AMD has confirmed that drivers with this specific OpenGL backend
-     * has issues. The issue is that clearing multiple color buffers at once is
-     * not working, but is part of the OpenGL specification. Their
-     * advice is to tell our users to not use this driver. (T69972) */
-    {GPU_SUPPORT_LEVEL_UNSUPPORTED, GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_ANY, "", "", "4.5.13571"},
-
     /* This terminator record must be the last item */
     {-1, GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, "", "", ""}};
 // clang-format on
