@@ -17,10 +17,16 @@
 # ***** END GPL LICENSE BLOCK *****
 
 if(UNIX)
+  if(APPLE)
+    set(_libtoolize_name glibtoolize)
+  else()
+    set(_libtoolize_name libtoolize)
+  endif()
+
   set(_required_software
     autoconf
     automake
-    libtoolize
+    ${_libtoolize_name}
     nasm
     yasm
     tclsh
