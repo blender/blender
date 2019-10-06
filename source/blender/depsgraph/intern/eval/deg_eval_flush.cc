@@ -351,15 +351,15 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
   BLI_assert(bmain != NULL);
   BLI_assert(graph != NULL);
   /* Nothing to update, early out. */
-  if (BLI_gset_len(graph->entry_tags) == 0 && !graph->need_update_time) {
-    return;
-  }
   if (graph->need_update_time) {
     const Scene *scene_orig = graph->scene;
     const float ctime = BKE_scene_frame_get(scene_orig);
     DEG::TimeSourceNode *time_source = graph->find_time_source();
     graph->ctime = ctime;
     time_source->tag_update(graph, DEG::DEG_UPDATE_SOURCE_TIME);
+  }
+  if (BLI_gset_len(graph->entry_tags) == 0) {
+    return;
   }
   /* Reset all flags, get ready for the flush. */
   flush_prepare(graph);
