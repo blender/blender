@@ -73,7 +73,7 @@ void DEG_evaluate_on_framechange(Main *bmain, Depsgraph *graph, float ctime)
   /* Update time on primary timesource. */
   DEG::TimeSourceNode *tsrc = deg_graph->find_time_source();
   tsrc->cfra = ctime;
-  tsrc->tag_update(deg_graph, DEG::DEG_UPDATE_SOURCE_TIME);
+  deg_graph->need_update_time = true;
   DEG::deg_graph_flush_updates(bmain, deg_graph);
   /* Update time in scene. */
   if (deg_graph->scene_cow) {
