@@ -35,6 +35,22 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   else()
     message("Unable to detect the Visual Studio redist directory, copying of the runtime dlls will not work, try running from the visual studio developer prompt.")
   endif()
+  # 1) CMake has issues detecting openmp support in clang-cl so we have to provide
+  #    the right switches here.
+  # 2) While the /openmp switch *should* work, it currently doesn't as for clang 9.0.0
+  if(WITH_OPENMP)
+    set(OPENMP_CUSTOM ON)
+    set(OPENMP_FOUND ON)
+    set(OpenMP_C_FLAGS "/clang:-fopenmp")
+    set(OpenMP_CXX_FLAGS "/clang:-fopenmp")
+    GET_FILENAME_COMPONENT(LLVMROOT "[HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\LLVM\\LLVM;]" ABSOLUTE CACHE)
+    set(CLANG_OPENMP_DLL "${LLVMROOT}/bin/libomp.dll")
+    set(CLANG_OPENMP_LIB "${LLVMROOT}/lib/libomp.lib")
+    if(NOT EXISTS "${CLANG_OPENMP_DLL}")
+      message(FATAL_ERROR "Clang OpenMP library (${CLANG_OPENMP_DLL}) not found.")
+    endif()
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} \"${CLANG_OPENMP_LIB}\"")
+  endif()
 endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ${WINDOWS_USE_VISUAL_STUDIO_PROJECT_FOLDERS})
