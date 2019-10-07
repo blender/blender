@@ -1412,7 +1412,7 @@ void BKE_gpencil_vgroup_remove(Object *ob, bDeformGroup *defgroup)
                 defvert_remove_group(dvert, dw);
               }
               else {
-                /* Reorganize weights in other strokes. */
+                /* Reorganize weights for other groups after deleted one. */
                 for (int g = 0; g < totgrp; g++) {
                   dw = defvert_find_index(dvert, g);
                   if ((dw != NULL) && (dw->def_nr > def_nr)) {
