@@ -2346,9 +2346,11 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
 
-  Object *ob = CTX_data_active_object(C);
-  if (ob && ob->mode == OB_MODE_SCULPT && ob->sculpt) {
-    options |= CTX_SCULPT;
+  if (CTX_wm_view3d(C) != NULL) {
+    Object *ob = CTX_data_active_object(C);
+    if (ob && ob->mode == OB_MODE_SCULPT && ob->sculpt) {
+      options |= CTX_SCULPT;
+    }
   }
 
   t->options = options;
