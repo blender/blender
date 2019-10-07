@@ -1588,7 +1588,9 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
 
           /* Shadow Pass */
           struct GPUMaterial *gpumat;
-          switch (ma_array[i]->blend_shadow) {
+          const bool use_gpumat = (ma_array[i]->use_nodes && ma_array[i]->nodetree);
+          char blend_shadow = use_gpumat ? ma_array[i]->blend_shadow : MA_BS_SOLID;
+          switch (blend_shadow) {
             case MA_BS_SOLID:
               EEVEE_shadows_caster_add(sldata, stl, mat_geom[i], ob);
               *cast_shadow = true;
