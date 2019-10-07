@@ -459,7 +459,9 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
           throughput /= probability;
         }
 
+#    ifdef __DENOISING_FEATURES__
         kernel_update_denoising_features(kg, sd, state, L);
+#    endif
 
 #    ifdef __AO__
         /* ambient occlusion */
