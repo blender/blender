@@ -597,13 +597,19 @@ void NLA_OT_select_leftright(wmOperatorType *ot)
 /* ******************** Mouse-Click Select Operator *********************** */
 
 /* select strip directly under mouse */
-static void mouse_nla_strips(
-    bContext *C, bAnimContext *ac, const int mval[2], short select_mode, const bool deselect_all)
+static int mouse_nla_strips(bContext *C,
+                            bAnimContext *ac,
+                            const int mval[2],
+                            short select_mode,
+                            const bool deselect_all,
+                            bool wait_to_deselect_others)
 {
   Scene *scene = ac->scene;
 
   bAnimListElem *ale = NULL;
   NlaStrip *strip = NULL;
+  int ret_value = OPERATOR_FINISHED;
+
   nlaedit_strip_at_region_position(ac, mval[0], mval[1], &ale, &strip);
 
   /* if currently in tweakmode, exit tweakmode before changing selection states
@@ -613,6 +619,10 @@ static void mouse_nla_strips(
     WM_operator_name_call(C, "NLA_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL);
   }
 
+  if (select_mode != SELECT_REPLACE) {
+    wait_to_deselect_others = false;
+  }
+
   /* For replacing selection, if we have something to select, we have to clear existing selection.
    * The same goes if we found nothing to select, and deselect_all is true
    * (deselect on nothing behavior). */
@@ -620,11 +630,16 @@ static void mouse_nla_strips(
     /* reset selection mode for next steps */
     select_mode = SELECT_ADD;
 
-    /* deselect all strips */
-    deselect_nla_strips(ac, 0, SELECT_SUBTRACT);
+    if (strip && wait_to_deselect_others && (strip->flag & DESELECT_STRIPS_CLEARACTIVE)) {
+      ret_value = OPERATOR_RUNNING_MODAL;
+    }
+    else {
+      /* deselect all strips */
+      deselect_nla_strips(ac, 0, SELECT_SUBTRACT);
 
-    /* deselect all other channels first */
-    ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+      /* deselect all other channels first */
+      ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+    }
   }
 
   /* only select strip if we clicked on a valid channel and hit something */
@@ -658,14 +673,17 @@ static void mouse_nla_strips(
     /* free this channel */
     MEM_freeN(ale);
   }
+
+  return ret_value;
 }
 
 /* ------------------- */
 
 /* handle clicking */
-static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int nlaedit_clickselect_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
+  int ret_value;
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -675,15 +693,19 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, const wmEvent
   /* select mode is either replace (deselect all, then add) or add/extend */
   const short selectmode = RNA_boolean_get(op->ptr, "extend") ? SELECT_INVERT : SELECT_REPLACE;
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
+  const bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
+  int mval[2];
+  mval[0] = RNA_int_get(op->ptr, "mouse_x");
+  mval[1] = RNA_int_get(op->ptr, "mouse_y");
 
   /* select strips based upon mouse position */
-  mouse_nla_strips(C, &ac, event->mval, selectmode, deselect_all);
+  ret_value = mouse_nla_strips(C, &ac, mval, selectmode, deselect_all, wait_to_deselect_others);
 
   /* set notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_SELECTED, NULL);
 
   /* for tweak grab to work */
-  return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+  return ret_value | OPERATOR_PASS_THROUGH;
 }
 
 void NLA_OT_click_select(wmOperatorType *ot)
@@ -695,14 +717,17 @@ void NLA_OT_click_select(wmOperatorType *ot)
   ot->idname = "NLA_OT_click_select";
   ot->description = "Handle clicks to select NLA Strips";
 
-  /* api callbacks - absolutely no exec() this yet... */
-  ot->invoke = nlaedit_clickselect_invoke;
+  /* callbacks */
   ot->poll = ED_operator_nla_active;
+  ot->exec = nlaedit_clickselect_exec;
+  ot->invoke = WM_generic_select_invoke;
+  ot->modal = WM_generic_select_modal;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
 
   /* properties */
+  WM_operator_properties_generic_select(ot);
   prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");  // SHIFTKEY
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
