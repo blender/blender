@@ -669,7 +669,7 @@ static float paint_space_stroke_spacing(bContext *C,
     return max_ff(0.001f, size_clamp * spacing / 50.f);
   }
   else {
-    return max_ff(1.0, size_clamp * spacing / 50.0f);
+    return max_ff(stroke->zoom_2d, size_clamp * spacing / 50.0f);
   }
 }
 

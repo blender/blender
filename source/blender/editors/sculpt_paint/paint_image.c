@@ -540,7 +540,7 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
   RNA_float_get_array(itemptr, "mouse", mouse);
   pressure = RNA_float_get(itemptr, "pressure");
   eraser = RNA_boolean_get(itemptr, "pen_flip");
-  size = max_ff(1.0f, RNA_float_get(itemptr, "size"));
+  size = RNA_float_get(itemptr, "size");
 
   /* stroking with fill tool only acts on stroke end */
   if (brush->imagepaint_tool == PAINT_TOOL_FILL) {
