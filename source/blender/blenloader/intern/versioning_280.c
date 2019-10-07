@@ -3844,6 +3844,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 281, 15)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->toolsettings->snap_node_mode == SCE_SNAP_MODE_NODE_X) {
+        scene->toolsettings->snap_node_mode = SCE_SNAP_MODE_GRID;
+      }
+    }
+  }
+
   {
     /* Versioning code until next subversion bump goes here. */
     if (!DNA_struct_elem_find(
