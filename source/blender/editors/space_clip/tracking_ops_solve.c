@@ -118,7 +118,11 @@ static void solve_camera_freejob(void *scv)
   MovieClip *clip = scj->clip;
   int solved;
 
-  WM_set_locked_interface(scj->wm, false);
+  /* WindowManager is missing in the job when initialization is incomplete.
+   * In this case the interface is not locked either. */
+  if (scj->wm != NULL) {
+    WM_set_locked_interface(scj->wm, false);
+  }
 
   if (!scj->context) {
     /* job weren't fully initialized due to some error */
