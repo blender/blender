@@ -295,7 +295,10 @@ Mesh *BKE_mesh_remesh_quadriflow_to_mesh_nomain(Mesh *mesh,
   return new_mesh;
 }
 
-Mesh *BKE_mesh_remesh_voxel_to_mesh_nomain(Mesh *mesh, float voxel_size, float adaptivity)
+Mesh *BKE_mesh_remesh_voxel_to_mesh_nomain(Mesh *mesh,
+                                           float voxel_size,
+                                           float adaptivity,
+                                           float isovalue)
 {
   Mesh *new_mesh = NULL;
 #ifdef WITH_OPENVDB
@@ -304,7 +307,7 @@ Mesh *BKE_mesh_remesh_voxel_to_mesh_nomain(Mesh *mesh, float voxel_size, float a
   OpenVDBTransform_create_linear_transform(xform, (double)voxel_size);
   level_set = BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(mesh, xform);
   new_mesh = BKE_mesh_remesh_voxel_ovdb_volume_to_mesh_nomain(
-      level_set, 0.0, (float)adaptivity, false);
+      level_set, (double)isovalue, (double)adaptivity, false);
   OpenVDBLevelSet_free(level_set);
   OpenVDBTransform_free(xform);
 #else
@@ -444,6 +447,12 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(struct Mesh *mesh)
   }
 
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+  BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+  BMO_op_callf(bm,
+               (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+               "recalc_face_normals faces=%hf",
+               BM_ELEM_TAG);
+  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
   Mesh *result = BKE_mesh_from_bmesh_nomain(bm,
                                             (&(struct BMeshToMeshParams){

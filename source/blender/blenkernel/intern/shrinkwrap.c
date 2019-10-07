@@ -1516,6 +1516,7 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
   ssmd.shrinkType = MOD_SHRINKWRAP_TARGET_PROJECT;
   ssmd.shrinkMode = MOD_SHRINKWRAP_ON_SURFACE;
   ssmd.keepDist = 0.0f;
+  ssmd.projLimit = target_me->remesh_voxel_size;
 
   float(*vertexCos)[3] = BKE_mesh_vert_coords_alloc(src_me, &totvert);
 

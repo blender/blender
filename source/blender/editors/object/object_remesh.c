@@ -117,8 +117,13 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     ED_sculpt_undo_geometry_begin(ob);
   }
 
+  float isovalue = 0.0f;
+  if (mesh->flag & ME_REMESH_REPROJECT_VOLUME) {
+    isovalue = mesh->remesh_voxel_size * 0.3f;
+  }
+
   new_mesh = BKE_mesh_remesh_voxel_to_mesh_nomain(
-      mesh, mesh->remesh_voxel_size, mesh->remesh_voxel_adaptivity);
+      mesh, mesh->remesh_voxel_size, mesh->remesh_voxel_adaptivity, isovalue);
 
   if (!new_mesh) {
     return OPERATOR_CANCELLED;
