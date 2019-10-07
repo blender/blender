@@ -31,7 +31,6 @@ struct Main;
 struct Scene;
 struct ToolSettings;
 struct UnifiedPaintSettings;
-struct bContext;
 
 // enum eCurveMappingPreset;
 

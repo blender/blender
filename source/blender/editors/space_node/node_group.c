@@ -891,7 +891,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
             }
           }
           if (sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) {
-              skip = true;
+            skip = true;
           }
           if (skip) {
             continue;
@@ -915,7 +915,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
             }
           }
           if (sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) {
-              skip = true;
+            skip = true;
           }
           if (skip) {
             continue;

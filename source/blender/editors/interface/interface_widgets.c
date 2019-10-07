@@ -4911,9 +4911,10 @@ static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
 {
   /* tsk, this isn't nice. */
   const float unit_half = unit_size / 2;
-  const float cent_x = mval_origin ?
-                       CLAMPIS(mval_origin[0], rect->xmin + unit_size, rect->xmax - unit_size) :
-                       BLI_rcti_cent_x(rect);
+  const float cent_x = mval_origin ? CLAMPIS(mval_origin[0],
+                                             rect->xmin + unit_size,
+                                             rect->xmax - unit_size) :
+                                     BLI_rcti_cent_x(rect);
   rect->ymax -= unit_half;
   rect->ymin += unit_half;
 
