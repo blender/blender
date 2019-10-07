@@ -171,11 +171,11 @@ void icon_draw_rect_input(float x,
 
   const bool simple_text = false;
 
-  if ((event_type >= AKEY) && (ZKEY <= event_type)) {
+  if ((event_type >= AKEY) && (event_type <= ZKEY)) {
     char str[2] = {'A' + (event_type - AKEY), '\0'};
     icon_draw_rect_input_default_text(&rect, color, margin, str);
   }
-  else if ((event_type >= F1KEY) && (F12KEY <= event_type)) {
+  else if ((event_type >= F1KEY) && (event_type <= F12KEY)) {
     char str[4];
     SNPRINTF(str, "F%d", 1 + (event_type - F1KEY));
     icon_draw_rect_input_default_text(&rect, color, margin, str);
