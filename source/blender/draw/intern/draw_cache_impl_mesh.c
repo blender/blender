@@ -513,6 +513,12 @@ static void mesh_batch_cache_discard_uvedit(MeshBatchCache *cache)
   cache->tot_uv_area = 0.0f;
 
   cache->batch_ready &= ~MBC_EDITUV;
+
+  /* TODO(fclem): this is overkill and
+   * we should just reset the cache->cd_used layer concerning uvs. */
+  mesh_batch_cache_discard_shaded_tri(cache);
+  GPU_BATCH_DISCARD_SAFE(cache->batch.surface);
+  cache->batch_ready &= ~(MBC_SURF_PER_MAT | MBC_SURFACE);
 }
 
 void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
