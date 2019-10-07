@@ -859,6 +859,23 @@ int cuewNvrtcVersion(void) {
   return 0;
 }
 
+static size_t safe_strnlen(const char *s, size_t maxlen) {
+  size_t length;
+  for (length = 0; length < maxlen; s++, length++) {
+    if (*s == '\0') {
+      break;
+    }
+  }
+  return length;
+}
+
+static char *safe_strncpy(char *dest, const char *src, size_t n) {
+  const size_t src_len = safe_strnlen(src, n - 1);
+  memcpy(dest, src, src_len);
+  dest[src_len] = '\0';
+  return dest;
+}
+
 int cuewCompilerVersion(void) {
   const char *path = cuewCompilerPath();
   const char *marker = "Cuda compilation tools, release ";
@@ -874,7 +891,7 @@ int cuewCompilerVersion(void) {
   }
 
   /* get --version output */
-  strncpy(command, path, sizeof(command));
+  safe_strncpy(command, path, sizeof(command));
   strncat(command, " --version", sizeof(command) - strlen(path));
   pipe = popen(command, "r");
   if (!pipe) {
