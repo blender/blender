@@ -1157,20 +1157,21 @@ static bool rna_property_override_diff_propptr_validate_diffing(PointerRNA *prop
   *r_is_id = *r_is_null = *r_is_type_diff = false;
 
   /* Beware, PointerRNA_NULL has no type and is considered a 'blank page'! */
-  if (propptr_a->type == NULL) {
-    if (propptr_b == NULL || propptr_b->type == NULL) {
+  if (ELEM(NULL, propptr_a->type, propptr_a->data)) {
+    if (ELEM(NULL, propptr_b, propptr_b->type, propptr_b->data)) {
       *r_is_null = true;
     }
     else {
       *r_is_id = RNA_struct_is_ID(propptr_b->type);
       *r_is_null = true;
-      *r_is_type_diff = true;
+      *r_is_type_diff = propptr_a->type != propptr_b->type;
     }
     is_valid_for_diffing = false;
   }
   else {
     *r_is_id = RNA_struct_is_ID(propptr_a->type);
-    *r_is_null = *r_is_type_diff = (ELEM(NULL, propptr_b, propptr_b->type));
+    *r_is_null = (ELEM(NULL, propptr_b, propptr_b->type, propptr_b->data));
+    *r_is_type_diff = (propptr_b == NULL || propptr_b->type != propptr_a->type);
     is_valid_for_diffing = !(*r_is_id || *r_is_null);
   }
 
