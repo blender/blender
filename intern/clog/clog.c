@@ -174,6 +174,7 @@ static void clg_str_append(CLogStringBuf *cstr, const char *str)
   clg_str_append_with_len(cstr, str, strlen(str));
 }
 
+ATTR_PRINTF_FORMAT(2, 0)
 static void clg_str_vappendf(CLogStringBuf *cstr, const char *fmt, va_list args)
 {
   /* Use limit because windows may use '-1' for a formatting error. */
