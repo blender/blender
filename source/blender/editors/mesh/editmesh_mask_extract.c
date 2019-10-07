@@ -215,6 +215,8 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
     }
   }
 
+  BKE_mesh_calc_normals(new_ob->data);
+
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, new_ob);
   BKE_mesh_batch_cache_dirty_tag(new_ob->data, BKE_MESH_BATCH_DIRTY_ALL);
   DEG_relations_tag_update(bmain);
