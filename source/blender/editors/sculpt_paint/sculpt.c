@@ -2107,7 +2107,10 @@ static void update_sculpt_normal(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
   StrokeCache *cache = ob->sculpt->cache;
   /* Grab brush does not update the sculpt normal during a stroke */
   const bool update_normal = !(brush->flag & BRUSH_ORIGINAL_NORMAL) &&
-                             !(brush->sculpt_tool == SCULPT_TOOL_GRAB);
+                             !(brush->sculpt_tool == SCULPT_TOOL_GRAB) &&
+                             !(brush->sculpt_tool == SCULPT_TOOL_ELASTIC_DEFORM) &&
+                             !(brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK &&
+                               cache->normal_weight > 0.0f);
 
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0 &&
       (cache->first_time || update_normal)) {
@@ -3590,6 +3593,10 @@ static void do_elastic_deform_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   float grab_delta[3];
 
   copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
+
+  if (ss->cache->normal_weight > 0.0f) {
+    sculpt_project_v3_normal_align(ss, ss->cache->normal_weight, grab_delta);
+  }
 
   SculptThreadedTaskData data = {
       .sd = sd,

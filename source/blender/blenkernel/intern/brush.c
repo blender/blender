@@ -935,6 +935,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       break;
     case SCULPT_TOOL_SNAKE_HOOK:
       br->alpha = 1.0f;
+      br->rake_factor = 1.0f;
       break;
     case SCULPT_TOOL_THUMB:
       br->size = 75;
