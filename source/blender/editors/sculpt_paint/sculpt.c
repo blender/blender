@@ -5459,7 +5459,7 @@ static void sculpt_flush_pbvhvert_deform(Object *ob, PBVHVertexIter *vd)
   copy_v3_v3(ss->deform_cos[index], vd->co);
   copy_v3_v3(ss->orig_cos[index], newco);
 
-  if (!ss->kb) {
+  if (!ss->shapekey_active) {
     copy_v3_v3(me->mvert[index].co, newco);
   }
 }
@@ -5515,7 +5515,7 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
 
     sculpt_clip(sd, ss, vd.co, val);
 
-    if (ss->modifiers_active) {
+    if (ss->deform_modifiers_active) {
       sculpt_flush_pbvhvert_deform(ob, &vd);
     }
   }
@@ -5566,7 +5566,7 @@ static void sculpt_update_keyblock(Object *ob)
   }
 
   if (vertCos) {
-    sculpt_vertcos_to_key(ob, ss->kb, vertCos);
+    sculpt_vertcos_to_key(ob, ss->shapekey_active, vertCos);
 
     if (vertCos != ss->orig_cos) {
       MEM_freeN(vertCos);
@@ -5612,7 +5612,7 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob, bool is_proxy_use
     PBVHNode **nodes;
     float(*vertCos)[3] = NULL;
 
-    if (ss->kb) {
+    if (ss->shapekey_active) {
       vertCos = MEM_mallocN(sizeof(*vertCos) * me->totvert, "flushStrokeDeofrm keyVerts");
 
       /* mesh could have isolated verts which wouldn't be in BVH,
@@ -5637,7 +5637,7 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob, bool is_proxy_use
     BLI_task_parallel_range(0, totnode, &data, sculpt_flush_stroke_deform_task_cb, &settings);
 
     if (vertCos) {
-      sculpt_vertcos_to_key(ob, ss->kb, vertCos);
+      sculpt_vertcos_to_key(ob, ss->shapekey_active, vertCos);
       MEM_freeN(vertCos);
     }
 
@@ -5648,7 +5648,7 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob, bool is_proxy_use
      * after applying coords from keyblock on base mesh */
     BKE_mesh_calc_normals(me);
   }
-  else if (ss->kb) {
+  else if (ss->shapekey_active) {
     sculpt_update_keyblock(ob);
   }
 }
@@ -6412,7 +6412,8 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob, const B
   View3D *v3d = CTX_wm_view3d(C);
 
   bool need_pmap = sculpt_needs_conectivity_info(brush, ss, 0);
-  if (ss->kb || ss->modifiers_active || (!BKE_sculptsession_use_pbvh_draw(ob, v3d) && need_pmap)) {
+  if (ss->shapekey_active || ss->deform_modifiers_active ||
+      (!BKE_sculptsession_use_pbvh_draw(ob, v3d) && need_pmap)) {
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
     BKE_sculpt_update_object_for_edit(depsgraph, ob, need_pmap, false);
   }
@@ -6911,7 +6912,7 @@ static void sculpt_flush_update_done(const bContext *C, Object *ob, SculptUpdate
   /* optimization: if there is locked key and active modifiers present in */
   /* the stack, keyblock is updating at each step. otherwise we could update */
   /* keyblock only when stroke is finished */
-  if (ss->kb && !ss->modifiers_active) {
+  if (ss->shapekey_active && !ss->deform_modifiers_active) {
     sculpt_update_keyblock(ob);
   }
 
@@ -7004,10 +7005,10 @@ static void sculpt_stroke_update_step(bContext *C,
    * Same applies to the DEG_id_tag_update() invoked from
    * sculpt_flush_update_step().
    */
-  if (ss->modifiers_active) {
+  if (ss->deform_modifiers_active) {
     sculpt_flush_stroke_deform(sd, ob, sculpt_tool_is_proxy_used(brush->sculpt_tool));
   }
-  else if (ss->kb) {
+  else if (ss->shapekey_active) {
     sculpt_update_keyblock(ob);
   }
 
@@ -8428,7 +8429,7 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
       &settings, (sd->flags & SCULPT_USE_OPENMP), ss->filter_cache->totnode);
   BLI_task_parallel_range(0, ss->filter_cache->totnode, &data, mesh_filter_task_cb, &settings);
 
-  if (ss->modifiers_active || ss->kb) {
+  if (ss->deform_modifiers_active || ss->shapekey_active) {
     sculpt_flush_stroke_deform(sd, ob, true);
   }
 
@@ -9594,7 +9595,7 @@ void ED_sculpt_update_modal_transform(struct bContext *C)
   BLI_task_parallel_range(
       0, ss->filter_cache->totnode, &data, sculpt_transform_task_cb, &settings);
 
-  if (ss->modifiers_active || ss->kb) {
+  if (ss->deform_modifiers_active || ss->shapekey_active) {
     sculpt_flush_stroke_deform(sd, ob, true);
   }
 

@@ -1184,7 +1184,7 @@ static void sculpt_update_object(
   Mesh *me = BKE_object_get_original_mesh(ob);
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 
-  ss->modifiers_active = sculpt_modifiers_active(scene, sd, ob);
+  ss->deform_modifiers_active = sculpt_modifiers_active(scene, sd, ob);
   ss->show_mask = (sd->flags & SCULPT_HIDE_MASK) == 0;
 
   ss->building_vp_handle = false;
@@ -1205,7 +1205,7 @@ static void sculpt_update_object(
   /* tessfaces aren't used and will become invalid */
   BKE_mesh_tessface_clear(me);
 
-  ss->kb = (mmd == NULL) ? BKE_keyblock_from_object(ob) : NULL;
+  ss->shapekey_active = (mmd == NULL) ? BKE_keyblock_from_object(ob) : NULL;
 
   /* NOTE: Weight pPaint require mesh info for loop lookup, but it never uses multires code path,
    * so no extra checks is needed here. */
@@ -1240,14 +1240,15 @@ static void sculpt_update_object(
 
   pbvh_show_mask_set(ss->pbvh, ss->show_mask);
 
-  if (ss->modifiers_active) {
+  if (ss->deform_modifiers_active) {
     if (!ss->orig_cos) {
       int a;
 
       BKE_sculptsession_free_deformMats(ss);
 
-      ss->orig_cos = (ss->kb) ? BKE_keyblock_convert_to_vertcos(ob, ss->kb) :
-                                BKE_mesh_vert_coords_alloc(me, NULL);
+      ss->orig_cos = (ss->shapekey_active) ?
+                         BKE_keyblock_convert_to_vertcos(ob, ss->shapekey_active) :
+                         BKE_mesh_vert_coords_alloc(me, NULL);
 
       BKE_crazyspace_build_sculpt(depsgraph, scene, ob, &ss->deform_imats, &ss->deform_cos);
       BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos, me->totvert);
@@ -1261,15 +1262,15 @@ static void sculpt_update_object(
     BKE_sculptsession_free_deformMats(ss);
   }
 
-  if (ss->kb != NULL && ss->deform_cos == NULL) {
-    ss->deform_cos = BKE_keyblock_convert_to_vertcos(ob, ss->kb);
+  if (ss->shapekey_active != NULL && ss->deform_cos == NULL) {
+    ss->deform_cos = BKE_keyblock_convert_to_vertcos(ob, ss->shapekey_active);
   }
 
   /* if pbvh is deformed, key block is already applied to it */
-  if (ss->kb) {
+  if (ss->shapekey_active) {
     bool pbvh_deformed = BKE_pbvh_is_deformed(ss->pbvh);
     if (!pbvh_deformed || ss->deform_cos == NULL) {
-      float(*vertCos)[3] = BKE_keyblock_convert_to_vertcos(ob, ss->kb);
+      float(*vertCos)[3] = BKE_keyblock_convert_to_vertcos(ob, ss->shapekey_active);
 
       if (vertCos) {
         if (!pbvh_deformed) {
@@ -1448,17 +1449,17 @@ static bool check_sculpt_object_deformed(Object *object, const bool for_construc
    * on birth of PBVH and sculpt "layer" levels, so use PBVH only for internal brush
    * stuff and show final evaluated mesh so user would see actual object shape.
    */
-  deformed |= object->sculpt->modifiers_active;
+  deformed |= object->sculpt->deform_modifiers_active;
 
   if (for_construction) {
-    deformed |= object->sculpt->kb != NULL;
+    deformed |= object->sculpt->shapekey_active != NULL;
   }
   else {
     /* As in case with modifiers, we can't synchronize deformation made against
      * PBVH and non-locked keyblock, so also use PBVH only for brushes and
      * final DM to give final result to user.
      */
-    deformed |= object->sculpt->kb && (object->shapeflag & OB_SHAPE_LOCK) == 0;
+    deformed |= object->sculpt->shapekey_active && (object->shapeflag & OB_SHAPE_LOCK) == 0;
   }
 
   return deformed;
@@ -1587,7 +1588,7 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D *v3d)
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
     /* Regular mesh only draws from PBVH without modifiers and shape keys. */
     const bool full_shading = (v3d && (v3d->shading.type > OB_SOLID));
-    return !(ss->kb || ss->modifiers_active || full_shading);
+    return !(ss->shapekey_active || ss->deform_modifiers_active || full_shading);
   }
   else {
     /* Multires and dyntopo always draw directly from the PBVH. */

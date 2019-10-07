@@ -152,7 +152,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
   if (unode->maxvert) {
     /* regular mesh restore */
 
-    if (ss->kb && !STREQ(ss->kb->name, unode->shapeName)) {
+    if (ss->shapekey_active && !STREQ(ss->shapekey_active->name, unode->shapeName)) {
       /* shape key has been changed before calling undo operator */
 
       Key *key = BKE_key_from_object(ob);
@@ -174,12 +174,12 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
     index = unode->index;
     mvert = ss->mvert;
 
-    if (ss->kb) {
+    if (ss->shapekey_active) {
       float(*vertCos)[3];
-      vertCos = BKE_keyblock_convert_to_vertcos(ob, ss->kb);
+      vertCos = BKE_keyblock_convert_to_vertcos(ob, ss->shapekey_active);
 
       if (unode->orig_co) {
-        if (ss->modifiers_active) {
+        if (ss->deform_modifiers_active) {
           for (int i = 0; i < unode->totvert; i++) {
             sculpt_undo_restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
           }
@@ -197,17 +197,17 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
       }
 
       /* propagate new coords to keyblock */
-      sculpt_vertcos_to_key(ob, ss->kb, vertCos);
+      sculpt_vertcos_to_key(ob, ss->shapekey_active, vertCos);
 
       /* pbvh uses it's own mvert array, so coords should be */
       /* propagated to pbvh here */
-      BKE_pbvh_vert_coords_apply(ss->pbvh, vertCos, ss->kb->totelem);
+      BKE_pbvh_vert_coords_apply(ss->pbvh, vertCos, ss->shapekey_active->totelem);
 
       MEM_freeN(vertCos);
     }
     else {
       if (unode->orig_co) {
-        if (ss->modifiers_active) {
+        if (ss->deform_modifiers_active) {
           for (int i = 0; i < unode->totvert; i++) {
             sculpt_undo_restore_deformed(ss, unode, i, index[i], mvert[index[i]].co);
             mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
@@ -628,7 +628,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
     tag_update |= ((Mesh *)ob->data)->id.us > 1 || !BKE_sculptsession_use_pbvh_draw(ob, v3d);
 
-    if (ss->kb || ss->modifiers_active) {
+    if (ss->shapekey_active || ss->deform_modifiers_active) {
       Mesh *mesh = ob->data;
       BKE_mesh_calc_normals(mesh);
 
@@ -831,7 +831,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     unode->index = MEM_mapallocN(sizeof(int) * allvert, "SculptUndoNode.index");
   }
 
-  if (ss->modifiers_active) {
+  if (ss->deform_modifiers_active) {
     unode->orig_co = MEM_callocN(allvert * sizeof(*unode->orig_co), "undoSculpt orig_cos");
   }
 
@@ -853,7 +853,7 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
       normal_float_to_short_v3(unode->no[vd.i], vd.fno);
     }
 
-    if (ss->modifiers_active) {
+    if (ss->deform_modifiers_active) {
       copy_v3_v3(unode->orig_co[vd.i], ss->orig_cos[unode->index[vd.i]]);
     }
   }
@@ -1082,8 +1082,8 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
   copy_v3_v3(unode->pivot_rot, ss->pivot_rot);
 
   /* store active shape key */
-  if (ss->kb) {
-    BLI_strncpy(unode->shapeName, ss->kb->name, sizeof(ss->kb->name));
+  if (ss->shapekey_active) {
+    BLI_strncpy(unode->shapeName, ss->shapekey_active->name, sizeof(ss->shapekey_active->name));
   }
   else {
     unode->shapeName[0] = '\0';
