@@ -114,7 +114,8 @@ class PREFERENCES_OT_copy_prev(Operator):
 
         shutil.copytree(self._old_path(), self._new_path(), symlinks=True)
 
-        # reload recent-files.txt
+        # reload preferences and recent-files.txt
+        bpy.ops.wm.read_userpref()
         bpy.ops.wm.read_history()
 
         # don't loose users work if they open the splash later.
