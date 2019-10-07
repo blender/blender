@@ -54,22 +54,6 @@ typedef struct GPUPlatformSupportTest {
   const char *version;
 } GPUPlatformSupportTest;
 
-// clang-format off
-static GPUPlatformSupportTest GPU_PLATFORM_SUPPORT_TESTS[] = {
-    /* This terminator record must be the last item */
-    {-1, GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, "", "", ""}};
-// clang-format on
-
-static bool gpu_platform_support_match(const GPUPlatformSupportTest *test_record,
-                                       const char *vendor,
-                                       const char *renderer,
-                                       const char *version)
-{
-  return GPU_type_matches(test_record->device, test_record->os, test_record->driver) &&
-         (strstr(vendor, test_record->vendor) && strstr(renderer, test_record->renderer) &&
-          strstr(version, test_record->version));
-}
-
 eGPUSupportLevel GPU_platform_support_level(void)
 {
   return GPG.support_level;
@@ -220,11 +204,16 @@ void gpu_platform_init(void)
     GPG.support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
   }
   else {
-    for (int index = 0; GPU_PLATFORM_SUPPORT_TESTS[index].support_level != -1; index++) {
-      GPUPlatformSupportTest *test = &GPU_PLATFORM_SUPPORT_TESTS[index];
-      if (gpu_platform_support_match(test, vendor, renderer, version)) {
-        GPG.support_level = test->support_level;
-        break;
+    if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+      /* Old Intel drivers with known bugs that cause material properties to crash.
+       * Version Build 10.18.14.5067 is the latest available and appears to be working
+       * ok with our workarounds, so excluded from this list. */
+      if (strstr(version, "Build 7.14") || strstr(version, "Build 7.15") ||
+          strstr(version, "Build 8.15") || strstr(version, "Build 9.17") ||
+          strstr(version, "Build 9.18") || strstr(version, "Build 10.18.10.3") ||
+          strstr(version, "Build 10.18.10.4") || strstr(version, "Build 10.18.10.5") ||
+          strstr(version, "Build 10.18.14.4")) {
+        GPG.support_level = GPU_SUPPORT_LEVEL_LIMITED;
       }
     }
   }
