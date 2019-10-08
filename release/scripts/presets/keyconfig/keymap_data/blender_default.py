@@ -2539,7 +2539,7 @@ def km_console(params):
          {"properties": [("text", '\t')]}),
         ("console.indent", {"type": 'TAB', "value": 'PRESS'}, None),
         ("console.unindent", {"type": 'TAB', "value": 'PRESS', "shift": True}, None),
-        op_menu("CONSOLE_MT_context_menu", params.context_menu_event),
+        op_menu("CONSOLE_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         ("console.insert", {"type": 'TEXTINPUT', "value": 'ANY', "any": True}, None),
     ])
 
