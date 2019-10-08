@@ -417,6 +417,7 @@ typedef struct FilterCache {
   int mask_update_last_it;
   int *mask_update_it;
   float *normal_factor;
+  float *edge_factor;
   float *prev_mask;
   float mask_expand_initial_co[3];
 } FilterCache;

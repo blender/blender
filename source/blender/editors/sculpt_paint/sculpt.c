@@ -492,28 +492,18 @@ typedef struct SculptFloodFill {
   char *visited_vertices;
 } SculptFloodFill;
 
-typedef struct SculptFloodFillIterator {
-  int v;
-  int it;
-  float edge_factor;
-} SculptFloodFillIterator;
-
 static void sculpt_floodfill_init(SculptSession *ss, SculptFloodFill *flood)
 {
   int vertex_count = sculpt_vertex_count_get(ss);
   sculpt_vertex_random_access_init(ss);
 
-  flood->queue = BLI_gsqueue_new(sizeof(SculptFloodFillIterator));
+  flood->queue = BLI_gsqueue_new(sizeof(int));
   flood->visited_vertices = MEM_callocN(vertex_count * sizeof(char), "visited vertices");
 }
 
 static void sculpt_floodfill_add_initial(SculptFloodFill *flood, int index)
 {
-  SculptFloodFillIterator mevit;
-  mevit.v = index;
-  mevit.it = 0;
-  mevit.edge_factor = 1.0f;
-  BLI_gsqueue_push(flood->queue, &mevit);
+  BLI_gsqueue_push(flood->queue, &index);
 }
 
 static void sculpt_floodfill_add_active(
@@ -540,32 +530,26 @@ static void sculpt_floodfill_add_active(
   }
 }
 
-static void sculpt_floodfill_execute(SculptSession *ss,
-                                     SculptFloodFill *flood,
-                                     bool (*func)(SculptSession *ss,
-                                                  const SculptFloodFillIterator *from,
-                                                  SculptFloodFillIterator *to,
-                                                  void *userdata),
-                                     void *userdata)
+static void sculpt_floodfill_execute(
+    SculptSession *ss,
+    SculptFloodFill *flood,
+    bool (*func)(SculptSession *ss, int from_v, int to_v, void *userdata),
+    void *userdata)
 {
   /* TODO: multires support, taking into account duplicate vertices and
    * correctly handling them in the pose, automask and mask expand callbacks. */
   while (!BLI_gsqueue_is_empty(flood->queue)) {
-    SculptFloodFillIterator from;
-    BLI_gsqueue_pop(flood->queue, &from);
+    int from_v;
+    BLI_gsqueue_pop(flood->queue, &from_v);
     SculptVertexNeighborIter ni;
-    sculpt_vertex_neighbors_iter_begin(ss, from.v, ni)
+    sculpt_vertex_neighbors_iter_begin(ss, from_v, ni)
     {
-      if (flood->visited_vertices[ni.index] == 0) {
-        flood->visited_vertices[ni.index] = 1;
+      const int to_v = ni.index;
+      if (flood->visited_vertices[to_v] == 0) {
+        flood->visited_vertices[to_v] = 1;
 
-        SculptFloodFillIterator to;
-        to.v = ni.index;
-        to.it = from.it + 1;
-        to.edge_factor = 0.0f;
-
-        if (func(ss, &from, &to, userdata)) {
-          BLI_gsqueue_push(flood->queue, &to);
+        if (func(ss, from_v, to_v, userdata)) {
+          BLI_gsqueue_push(flood->queue, &to_v);
         }
       }
     }
@@ -1268,17 +1252,14 @@ typedef struct AutomaskFloodFillData {
   char symm;
 } AutomaskFloodFillData;
 
-static bool automask_floodfill_cb(SculptSession *ss,
-                                  const SculptFloodFillIterator *UNUSED(from),
-                                  SculptFloodFillIterator *to,
-                                  void *userdata)
+static bool automask_floodfill_cb(SculptSession *ss, int UNUSED(from_v), int to_v, void *userdata)
 {
   AutomaskFloodFillData *data = userdata;
 
-  data->automask_factor[to->v] = 1.0f;
+  data->automask_factor[to_v] = 1.0f;
   return (!data->use_radius ||
           sculpt_is_vertex_inside_brush_radius_symm(
-              sculpt_vertex_co_get(ss, to->v), data->location, data->radius, data->symm));
+              sculpt_vertex_co_get(ss, to_v), data->location, data->radius, data->symm));
 }
 
 static float *sculpt_topology_automasking_init(Sculpt *sd, Object *ob, float *automask_factor)
@@ -3835,18 +3816,15 @@ typedef struct PoseFloodFillData {
   int tot_co;
 } PoseFloodFillData;
 
-static bool pose_floodfill_cb(SculptSession *ss,
-                              const SculptFloodFillIterator *UNUSED(from),
-                              SculptFloodFillIterator *to,
-                              void *userdata)
+static bool pose_floodfill_cb(SculptSession *ss, int UNUSED(from_v), int to_v, void *userdata)
 {
   PoseFloodFillData *data = userdata;
 
   if (data->pose_factor) {
-    data->pose_factor[to->v] = 1.0f;
+    data->pose_factor[to_v] = 1.0f;
   }
 
-  const float *co = sculpt_vertex_co_get(ss, to->v);
+  const float *co = sculpt_vertex_co_get(ss, to_v);
   if (sculpt_pose_brush_is_vertex_inside_brush_radius(
           co, data->pose_initial_co, data->radius, data->symm)) {
     return true;
@@ -9152,26 +9130,25 @@ typedef struct MaskExpandFloodFillData {
   bool use_normals;
 } MaskExpandFloodFillData;
 
-static bool mask_expand_floodfill_cb(SculptSession *ss,
-                                     const SculptFloodFillIterator *from,
-                                     SculptFloodFillIterator *to,
-                                     void *userdata)
+static bool mask_expand_floodfill_cb(SculptSession *ss, int from_v, int to_v, void *userdata)
 {
   MaskExpandFloodFillData *data = userdata;
+  int to_it = ss->filter_cache->mask_update_it[from_v] + 1;
 
-  ss->filter_cache->mask_update_it[to->v] = to->it;
-  if (to->it > ss->filter_cache->mask_update_last_it) {
-    ss->filter_cache->mask_update_last_it = to->it;
+  ss->filter_cache->mask_update_it[to_v] = to_it;
+  if (to_it > ss->filter_cache->mask_update_last_it) {
+    ss->filter_cache->mask_update_last_it = to_it;
   }
 
   if (data->use_normals) {
     float current_normal[3], prev_normal[3];
-    sculpt_vertex_normal_get(ss, to->v, current_normal);
-    sculpt_vertex_normal_get(ss, from->v, prev_normal);
-    to->edge_factor = dot_v3v3(current_normal, prev_normal) * from->edge_factor;
-    ss->filter_cache->normal_factor[to->v] = dot_v3v3(data->original_normal, current_normal) *
-                                             powf(from->edge_factor, data->edge_sensitivity);
-    CLAMP(ss->filter_cache->normal_factor[to->v], 0.0f, 1.0f);
+    sculpt_vertex_normal_get(ss, to_v, current_normal);
+    sculpt_vertex_normal_get(ss, from_v, prev_normal);
+    const float from_edge_factor = ss->filter_cache->edge_factor[from_v];
+    ss->filter_cache->edge_factor[to_v] = dot_v3v3(current_normal, prev_normal) * from_edge_factor;
+    ss->filter_cache->normal_factor[to_v] = dot_v3v3(data->original_normal, current_normal) *
+                                            powf(from_edge_factor, data->edge_sensitivity);
+    CLAMP(ss->filter_cache->normal_factor[to_v], 0.0f, 1.0f);
   }
 
   return true;
@@ -9223,6 +9200,11 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   if (use_normals) {
     ss->filter_cache->normal_factor = MEM_callocN(sizeof(float) * vertex_count,
                                                   "mask update normal factor");
+    ss->filter_cache->edge_factor = MEM_callocN(sizeof(float) * vertex_count,
+                                                "mask update normal factor");
+    for (int i = 0; i < vertex_count; i++) {
+      ss->filter_cache->edge_factor[i] = 1.0f;
+    }
   }
 
   ss->filter_cache->prev_mask = MEM_callocN(sizeof(float) * vertex_count, "prev mask");
@@ -9261,6 +9243,8 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
         ss->filter_cache->normal_factor[i] = avg / ni.size;
       }
     }
+
+    MEM_SAFE_FREE(ss->filter_cache->edge_factor);
   }
 
   SculptThreadedTaskData data = {
