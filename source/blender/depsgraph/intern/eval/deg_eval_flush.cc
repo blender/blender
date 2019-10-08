@@ -87,15 +87,6 @@ typedef std::deque<OperationNode *> FlushQueue;
 
 namespace {
 
-void flush_init_operation_node_func(void *__restrict data_v,
-                                    const int i,
-                                    const TaskParallelTLS *__restrict /*tls*/)
-{
-  Depsgraph *graph = (Depsgraph *)data_v;
-  OperationNode *node = graph->operations[i];
-  node->scheduled = false;
-}
-
 void flush_init_id_node_func(void *__restrict data_v,
                              const int i,
                              const TaskParallelTLS *__restrict /*tls*/)
@@ -110,13 +101,10 @@ void flush_init_id_node_func(void *__restrict data_v,
 
 BLI_INLINE void flush_prepare(Depsgraph *graph)
 {
-  {
-    const int num_operations = graph->operations.size();
-    TaskParallelSettings settings;
-    BLI_parallel_range_settings_defaults(&settings);
-    settings.min_iter_per_thread = 1024;
-    BLI_task_parallel_range(0, num_operations, graph, flush_init_operation_node_func, &settings);
+  for (OperationNode *node : graph->operations) {
+    node->scheduled = false;
   }
+
   {
     const int num_id_nodes = graph->id_nodes.size();
     TaskParallelSettings settings;
@@ -395,27 +383,13 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
   invalidate_tagged_evaluated_data(graph);
 }
 
-static void graph_clear_operation_func(void *__restrict data_v,
-                                       const int i,
-                                       const TaskParallelTLS *__restrict /*tls*/)
-{
-  Depsgraph *graph = (Depsgraph *)data_v;
-  OperationNode *node = graph->operations[i];
-  /* Clear node's "pending update" settings. */
-  node->flag &= ~(DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE |
-                  DEPSOP_FLAG_USER_MODIFIED);
-}
-
 /* Clear tags from all operation nodes. */
 void deg_graph_clear_tags(Depsgraph *graph)
 {
   /* Go over all operation nodes, clearing tags. */
-  {
-    const int num_operations = graph->operations.size();
-    TaskParallelSettings settings;
-    BLI_parallel_range_settings_defaults(&settings);
-    settings.min_iter_per_thread = 1024;
-    BLI_task_parallel_range(0, num_operations, graph, graph_clear_operation_func, &settings);
+  for (OperationNode *node : graph->operations) {
+    node->flag &= ~(DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE |
+                    DEPSOP_FLAG_USER_MODIFIED);
   }
   /* Clear any entry tags which haven't been flushed. */
   BLI_gset_clear(graph->entry_tags, NULL);

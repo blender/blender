@@ -91,10 +91,6 @@ static void deg_task_run_func(TaskPool *pool, void *taskdata, int thread_id)
   BLI_task_pool_delayed_push_end(pool, thread_id);
 }
 
-struct CalculatePendingData {
-  Depsgraph *graph;
-};
-
 static bool check_operation_node_visible(OperationNode *op_node)
 {
   const ComponentNode *comp_node = op_node->owner;
@@ -106,13 +102,8 @@ static bool check_operation_node_visible(OperationNode *op_node)
   return comp_node->affects_directly_visible;
 }
 
-static void calculate_pending_func(void *__restrict data_v,
-                                   const int i,
-                                   const TaskParallelTLS *__restrict /*tls*/)
+static void calculate_pending_parents_for_node(OperationNode *node)
 {
-  CalculatePendingData *data = (CalculatePendingData *)data_v;
-  Depsgraph *graph = data->graph;
-  OperationNode *node = graph->operations[i];
   /* Update counters, applies for both visible and invisible IDs. */
   node->num_links_pending = 0;
   node->scheduled = false;
@@ -145,13 +136,9 @@ static void calculate_pending_func(void *__restrict data_v,
 
 static void calculate_pending_parents(Depsgraph *graph)
 {
-  const int num_operations = graph->operations.size();
-  CalculatePendingData data;
-  data.graph = graph;
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-  settings.min_iter_per_thread = 1024;
-  BLI_task_parallel_range(0, num_operations, &data, calculate_pending_func, &settings);
+  for (OperationNode *node : graph->operations) {
+    calculate_pending_parents_for_node(node);
+  }
 }
 
 static void initialize_execution(DepsgraphEvalState *state, Depsgraph *graph)

@@ -809,24 +809,6 @@ static void deg_graph_clear_id_recalc_flags(ID *id)
   }
 }
 
-static void deg_graph_clear_id_node_func(void *__restrict data_v,
-                                         const int i,
-                                         const TaskParallelTLS *__restrict /*tls*/)
-{
-  /* TODO: we clear original ID recalc flags here, but this may not work
-   * correctly when there are multiple depsgraph with others still using
-   * the recalc flag. */
-  DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(data_v);
-  DEG::IDNode *id_node = deg_graph->id_nodes[i];
-
-  id_node->is_user_modified = false;
-
-  deg_graph_clear_id_recalc_flags(id_node->id_cow);
-  if (deg_graph->is_active) {
-    deg_graph_clear_id_recalc_flags(id_node->id_orig);
-  }
-}
-
 void DEG_ids_clear_recalc(Main *UNUSED(bmain), Depsgraph *depsgraph)
 {
   DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
@@ -836,10 +818,14 @@ void DEG_ids_clear_recalc(Main *UNUSED(bmain), Depsgraph *depsgraph)
     return;
   }
   /* Go over all ID nodes nodes, clearing tags. */
-  const int num_id_nodes = deg_graph->id_nodes.size();
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-  settings.min_iter_per_thread = 1024;
-  BLI_task_parallel_range(0, num_id_nodes, deg_graph, deg_graph_clear_id_node_func, &settings);
-  memset(deg_graph->id_type_updated, 0, sizeof(deg_graph->id_type_updated));
+  for (DEG::IDNode *id_node : deg_graph->id_nodes) {
+    /* TODO: we clear original ID recalc flags here, but this may not work
+     * correctly when there are multiple depsgraph with others still using
+     * the recalc flag. */
+    id_node->is_user_modified = false;
+    deg_graph_clear_id_recalc_flags(id_node->id_cow);
+    if (deg_graph->is_active) {
+      deg_graph_clear_id_recalc_flags(id_node->id_orig);
+    }
+  }
 }
