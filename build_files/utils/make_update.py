@@ -106,9 +106,9 @@ def blender_update_skip(args):
         sys.exit(1)
 
     # Abort if a rebase is still progress.
-    rebase_merge = check_output([args.git_command, 'rev-parse', '--git-path', 'rebase-merge'])
-    rebase_apply = check_output([args.git_command, 'rev-parse', '--git-path', 'rebase-apply'])
-    merge_head = check_output([args.git_command, 'rev-parse', '--git-path', 'MERGE_HEAD'])
+    rebase_merge = check_output([args.git_command, 'rev-parse', '--git-path', 'rebase-merge'], exit_on_error=False)
+    rebase_apply = check_output([args.git_command, 'rev-parse', '--git-path', 'rebase-apply'], exit_on_error=False)
+    merge_head = check_output([args.git_command, 'rev-parse', '--git-path', 'MERGE_HEAD'], exit_on_error=False)
     if os.path.exists(rebase_merge) or \
        os.path.exists(rebase_apply) or \
        os.path.exists(merge_head):
