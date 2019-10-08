@@ -124,7 +124,8 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
                                                    struct GPUMaterial **gpumat_array,
                                                    int gpumat_array_len)
 {
-  const CustomData *cd_ldata = (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
+  const Mesh *me_final = (me->edit_mesh) ? me->edit_mesh->mesh_eval_final : me;
+  const CustomData *cd_ldata = &me_final->ldata;
 
   /* See: DM_vertex_attributes_from_gpu for similar logic */
   DRW_MeshCDMask cd_used;
@@ -227,7 +228,8 @@ static void mesh_cd_extract_auto_layers_names_and_srgb(Mesh *me,
                                                        int **r_auto_layers_srgb,
                                                        int *r_auto_layers_len)
 {
-  const CustomData *cd_ldata = (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
+  const Mesh *me_final = (me->edit_mesh) ? me->edit_mesh->mesh_eval_final : me;
+  const CustomData *cd_ldata = &me_final->ldata;
 
   int uv_len_used = count_bits_i(cd_used.uv);
   int vcol_len_used = count_bits_i(cd_used.vcol);
