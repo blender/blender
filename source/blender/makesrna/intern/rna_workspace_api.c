@@ -110,7 +110,7 @@ void RNA_api_workspace(StructRNA *srna)
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  func = RNA_def_function(srna, "status_text_set", "ED_workspace_status_text");
+  func = RNA_def_function(srna, "status_text_set_internal", "ED_workspace_status_text");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
   RNA_def_function_ui_description(
       func, "Set the status bar text, typically key shortcuts for modal operators");
