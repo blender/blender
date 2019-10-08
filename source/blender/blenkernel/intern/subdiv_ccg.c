@@ -386,20 +386,33 @@ static void subdiv_ccg_allocate_adjacent_edges(SubdivCCG *subdiv_ccg, const int 
       subdiv_ccg->num_adjacent_edges, sizeof(*subdiv_ccg->adjacent_edges), "ccg adjacent edges");
 }
 
+static SubdivCCGCoord subdiv_ccg_coord(int grid_index, int x, int y)
+{
+  SubdivCCGCoord coord = {.grid_index = grid_index, .x = x, .y = y};
+  return coord;
+}
+
+static CCGElem *subdiv_ccg_coord_to_elem(const CCGKey *key,
+                                         const SubdivCCG *subdiv_ccg,
+                                         const SubdivCCGCoord *coord)
+{
+  return CCG_grid_elem(key, subdiv_ccg->grids[coord->grid_index], coord->x, coord->y);
+}
+
 /* Returns storage where boundary elements are to be stored. */
-static CCGElem **subdiv_ccg_adjacent_edge_add_face(SubdivCCG *subdiv_ccg,
-                                                   SubdivCCGAdjacentEdge *adjacent_edge)
+static SubdivCCGCoord *subdiv_ccg_adjacent_edge_add_face(SubdivCCG *subdiv_ccg,
+                                                         SubdivCCGAdjacentEdge *adjacent_edge)
 {
   const int grid_size = subdiv_ccg->grid_size * 2;
   const int adjacent_face_index = adjacent_edge->num_adjacent_faces;
   ++adjacent_edge->num_adjacent_faces;
   /* Allocate memory for the boundary elements. */
-  adjacent_edge->boundary_elements = MEM_reallocN(adjacent_edge->boundary_elements,
-                                                  adjacent_edge->num_adjacent_faces *
-                                                      sizeof(*adjacent_edge->boundary_elements));
-  adjacent_edge->boundary_elements[adjacent_face_index] = MEM_malloc_arrayN(
-      grid_size * 2, sizeof(CCGElem *), "ccg adjacent boundary");
-  return adjacent_edge->boundary_elements[adjacent_face_index];
+  adjacent_edge->boundary_coords = MEM_reallocN(adjacent_edge->boundary_coords,
+                                                adjacent_edge->num_adjacent_faces *
+                                                    sizeof(*adjacent_edge->boundary_coords));
+  adjacent_edge->boundary_coords[adjacent_face_index] = MEM_malloc_arrayN(
+      grid_size * 2, sizeof(SubdivCCGCoord), "ccg adjacent boundary");
+  return adjacent_edge->boundary_coords[adjacent_face_index];
 }
 
 static void subdiv_ccg_init_faces_edge_neighborhood(SubdivCCG *subdiv_ccg)
@@ -419,9 +432,6 @@ static void subdiv_ccg_init_faces_edge_neighborhood(SubdivCCG *subdiv_ccg)
   StaticOrHeapIntStorage face_edges_storage;
   static_or_heap_storage_init(&face_vertices_storage);
   static_or_heap_storage_init(&face_edges_storage);
-  /* Key to access elements. */
-  CCGKey key;
-  BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
   /* Store adjacency for all faces. */
   const int num_faces = subdiv_ccg->num_faces;
   for (int face_index = 0; face_index < num_faces; face_index++) {
@@ -443,33 +453,32 @@ static void subdiv_ccg_init_faces_edge_neighborhood(SubdivCCG *subdiv_ccg)
       const bool is_edge_flipped = (edge_vertices[0] != vertex_index);
       /* Grid which is adjacent to the current corner. */
       const int current_grid_index = face->start_grid_index + corner;
-      CCGElem *current_grid = subdiv_ccg->grids[current_grid_index];
       /* Grid which is adjacent to the next corner. */
       const int next_grid_index = face->start_grid_index + (corner + 1) % num_face_grids;
-      CCGElem *next_grid = subdiv_ccg->grids[next_grid_index];
       /* Add new face to the adjacent edge. */
       SubdivCCGAdjacentEdge *adjacent_edge = &subdiv_ccg->adjacent_edges[edge_index];
-      CCGElem **boundary_elements = subdiv_ccg_adjacent_edge_add_face(subdiv_ccg, adjacent_edge);
+      SubdivCCGCoord *boundary_coords = subdiv_ccg_adjacent_edge_add_face(subdiv_ccg,
+                                                                          adjacent_edge);
       /* Fill CCG elements along the edge. */
       int boundary_element_index = 0;
       if (is_edge_flipped) {
         for (int i = 0; i < grid_size; i++) {
-          boundary_elements[boundary_element_index++] = CCG_grid_elem(
-              &key, next_grid, grid_size - i - 1, grid_size - 1);
+          boundary_coords[boundary_element_index++] = subdiv_ccg_coord(
+              next_grid_index, grid_size - i - 1, grid_size - 1);
         }
         for (int i = 0; i < grid_size; i++) {
-          boundary_elements[boundary_element_index++] = CCG_grid_elem(
-              &key, current_grid, grid_size - 1, i);
+          boundary_coords[boundary_element_index++] = subdiv_ccg_coord(
+              current_grid_index, grid_size - 1, i);
         }
       }
       else {
         for (int i = 0; i < grid_size; i++) {
-          boundary_elements[boundary_element_index++] = CCG_grid_elem(
-              &key, current_grid, grid_size - 1, grid_size - i - 1);
+          boundary_coords[boundary_element_index++] = subdiv_ccg_coord(
+              current_grid_index, grid_size - 1, grid_size - i - 1);
         }
         for (int i = 0; i < grid_size; i++) {
-          boundary_elements[boundary_element_index++] = CCG_grid_elem(
-              &key, next_grid, i, grid_size - 1);
+          boundary_coords[boundary_element_index++] = subdiv_ccg_coord(
+              next_grid_index, i, grid_size - 1);
         }
       }
     }
@@ -489,15 +498,16 @@ static void subdiv_ccg_allocate_adjacent_vertices(SubdivCCG *subdiv_ccg, const i
 
 /* Returns storage where corner elements are to be stored. This is a pointer
  * to the actual storage. */
-static CCGElem **subdiv_ccg_adjacent_vertex_add_face(SubdivCCGAdjacentVertex *adjacent_vertex)
+static SubdivCCGCoord *subdiv_ccg_adjacent_vertex_add_face(
+    SubdivCCGAdjacentVertex *adjacent_vertex)
 {
   const int adjacent_face_index = adjacent_vertex->num_adjacent_faces;
   ++adjacent_vertex->num_adjacent_faces;
   /* Allocate memory for the boundary elements. */
-  adjacent_vertex->corner_elements = MEM_reallocN(adjacent_vertex->corner_elements,
-                                                  adjacent_vertex->num_adjacent_faces *
-                                                      sizeof(*adjacent_vertex->corner_elements));
-  return &adjacent_vertex->corner_elements[adjacent_face_index];
+  adjacent_vertex->corner_coords = MEM_reallocN(adjacent_vertex->corner_coords,
+                                                adjacent_vertex->num_adjacent_faces *
+                                                    sizeof(*adjacent_vertex->corner_coords));
+  return &adjacent_vertex->corner_coords[adjacent_face_index];
 }
 
 static void subdiv_ccg_init_faces_vertex_neighborhood(SubdivCCG *subdiv_ccg)
@@ -530,11 +540,10 @@ static void subdiv_ccg_init_faces_vertex_neighborhood(SubdivCCG *subdiv_ccg)
       const int vertex_index = face_vertices[corner];
       /* Grid which is adjacent to the current corner. */
       const int grid_index = face->start_grid_index + corner;
-      CCGElem *grid = subdiv_ccg->grids[grid_index];
       /* Add new face to the adjacent edge. */
       SubdivCCGAdjacentVertex *adjacent_vertex = &subdiv_ccg->adjacent_vertices[vertex_index];
-      CCGElem **corner_element = subdiv_ccg_adjacent_vertex_add_face(adjacent_vertex);
-      *corner_element = CCG_grid_elem(&key, grid, grid_size - 1, grid_size - 1);
+      SubdivCCGCoord *corner_coord = subdiv_ccg_adjacent_vertex_add_face(adjacent_vertex);
+      *corner_coord = subdiv_ccg_coord(grid_index, grid_size - 1, grid_size - 1);
     }
   }
   /* Free possibly heap-allocated storage. */
@@ -627,15 +636,15 @@ void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg)
   for (int i = 0; i < subdiv_ccg->num_adjacent_edges; i++) {
     SubdivCCGAdjacentEdge *adjacent_edge = &subdiv_ccg->adjacent_edges[i];
     for (int face_index = 0; face_index < adjacent_edge->num_adjacent_faces; face_index++) {
-      MEM_SAFE_FREE(adjacent_edge->boundary_elements[face_index]);
+      MEM_SAFE_FREE(adjacent_edge->boundary_coords[face_index]);
     }
-    MEM_SAFE_FREE(adjacent_edge->boundary_elements);
+    MEM_SAFE_FREE(adjacent_edge->boundary_coords);
   }
   MEM_SAFE_FREE(subdiv_ccg->adjacent_edges);
   /* Free map of adjacent vertices. */
   for (int i = 0; i < subdiv_ccg->num_adjacent_vertices; i++) {
     SubdivCCGAdjacentVertex *adjacent_vertex = &subdiv_ccg->adjacent_vertices[i];
-    MEM_SAFE_FREE(adjacent_vertex->corner_elements);
+    MEM_SAFE_FREE(adjacent_vertex->corner_coords);
   }
   MEM_SAFE_FREE(subdiv_ccg->adjacent_vertices);
   MEM_freeN(subdiv_ccg);
@@ -1038,7 +1047,8 @@ static void subdiv_ccg_average_grids_boundary(SubdivCCG *subdiv_ccg,
   }
   for (int face_index = 0; face_index < num_adjacent_faces; face_index++) {
     for (int i = 1; i < grid_size2 - 1; i++) {
-      CCGElem *grid_element = adjacent_edge->boundary_elements[face_index][i];
+      CCGElem *grid_element = subdiv_ccg_coord_to_elem(
+          key, subdiv_ccg, &adjacent_edge->boundary_coords[face_index][i]);
       element_accumulator_add(&tls->accumulators[i], subdiv_ccg, key, grid_element);
     }
   }
@@ -1048,7 +1058,8 @@ static void subdiv_ccg_average_grids_boundary(SubdivCCG *subdiv_ccg,
   /* Copy averaged value to all the other faces. */
   for (int face_index = 0; face_index < num_adjacent_faces; face_index++) {
     for (int i = 1; i < grid_size2 - 1; i++) {
-      CCGElem *grid_element = adjacent_edge->boundary_elements[face_index][i];
+      CCGElem *grid_element = subdiv_ccg_coord_to_elem(
+          key, subdiv_ccg, &adjacent_edge->boundary_coords[face_index][i]);
       element_accumulator_copy(subdiv_ccg, key, grid_element, &tls->accumulators[i]);
     }
   }
@@ -1090,13 +1101,15 @@ static void subdiv_ccg_average_grids_corners(SubdivCCG *subdiv_ccg,
   GridElementAccumulator accumulator;
   element_accumulator_init(&accumulator);
   for (int face_index = 0; face_index < num_adjacent_faces; face_index++) {
-    CCGElem *grid_element = adjacent_vertex->corner_elements[face_index];
+    CCGElem *grid_element = subdiv_ccg_coord_to_elem(
+        key, subdiv_ccg, &adjacent_vertex->corner_coords[face_index]);
     element_accumulator_add(&accumulator, subdiv_ccg, key, grid_element);
   }
   element_accumulator_mul_fl(&accumulator, 1.0f / (float)num_adjacent_faces);
   /* Copy averaged value to all the other faces. */
   for (int face_index = 0; face_index < num_adjacent_faces; face_index++) {
-    CCGElem *grid_element = adjacent_vertex->corner_elements[face_index];
+    CCGElem *grid_element = subdiv_ccg_coord_to_elem(
+        key, subdiv_ccg, &adjacent_vertex->corner_coords[face_index]);
     element_accumulator_copy(subdiv_ccg, key, grid_element, &accumulator);
   }
 }
@@ -1333,26 +1346,6 @@ BLI_INLINE SubdivCCGCoord coord_at_next_col(const SubdivCCG *subdiv_ccg,
   return result;
 }
 
-BLI_INLINE SubdivCCGCoord coord_from_ccg_element(const SubdivCCG *subdiv_ccg, CCGElem *element)
-{
-  const size_t element_data_offset = (unsigned char *)element - subdiv_ccg->grids_storage;
-  const size_t element_global_index = element_data_offset / subdiv_ccg->grid_element_size;
-  const int grid_area = subdiv_ccg->grid_size * subdiv_ccg->grid_size;
-  const int grid_index = element_global_index / grid_area;
-  const size_t grid_start_element_index = grid_index * grid_area;
-  const int element_grid_index = element_global_index - grid_start_element_index;
-
-  const int y = element_grid_index / subdiv_ccg->grid_size;
-  const int x = element_grid_index - y * subdiv_ccg->grid_size;
-
-  SubdivCCGCoord result;
-  result.grid_index = grid_index;
-  result.x = x;
-  result.y = y;
-
-  return result;
-}
-
 /* For the input coordinate which is at the boundary of the grid do one step inside.  */
 static SubdivCCGCoord coord_step_inside_from_boundary(const SubdivCCG *subdiv_ccg,
                                                       const SubdivCCGCoord *coord)
@@ -1486,10 +1479,7 @@ static void neighbor_coords_corner_vertex_get(const SubdivCCG *subdiv_ccg,
     }
 
     SubdivCCGAdjacentEdge *adjacent_edge = &subdiv_ccg->adjacent_edges[edge_index];
-    CCGElem *boundary_element =
-        adjacent_edge->boundary_elements[edge_face_index][edge_point_index];
-
-    r_neighbors->coords[i] = coord_from_ccg_element(subdiv_ccg, boundary_element);
+    r_neighbors->coords[i] = adjacent_edge->boundary_coords[edge_face_index][edge_point_index];
   }
 
   static_or_heap_storage_free(&vertex_edges_storage);
@@ -1604,14 +1594,11 @@ static void neighbor_coords_edge_get(const SubdivCCG *subdiv_ccg,
   const int next_point_index = next_adjacent_edge_point_index(subdiv_ccg, point_index);
   const int prev_point_index = prev_adjacent_edge_point_index(subdiv_ccg, point_index);
 
-  r_neighbors->coords[0] = coord_from_ccg_element(
-      subdiv_ccg, adjacent_edge->boundary_elements[0][prev_point_index]);
-  r_neighbors->coords[1] = coord_from_ccg_element(
-      subdiv_ccg, adjacent_edge->boundary_elements[0][next_point_index]);
+  r_neighbors->coords[0] = adjacent_edge->boundary_coords[0][prev_point_index];
+  r_neighbors->coords[1] = adjacent_edge->boundary_coords[0][next_point_index];
 
   for (int i = 0; i < adjacent_edge->num_adjacent_faces; ++i) {
-    SubdivCCGCoord grid_coord = coord_from_ccg_element(
-        subdiv_ccg, adjacent_edge->boundary_elements[i][point_index]);
+    SubdivCCGCoord grid_coord = adjacent_edge->boundary_coords[i][point_index];
     r_neighbors->coords[i + 2] = coord_step_inside_from_boundary(subdiv_ccg, &grid_coord);
   }
 }
