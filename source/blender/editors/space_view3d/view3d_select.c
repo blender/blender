@@ -1020,10 +1020,12 @@ static void do_lasso_select_armature__doSelectBone(void *userData,
       is_ignore_flag |= BONESEL_TIP;
     }
 
-    if (is_inside_flag == (BONE_ROOTSEL | BONE_TIPSEL) ||
-        BLI_lasso_is_edge_inside(
-            data->mcords, data->moves, UNPACK2(screen_co_a), UNPACK2(screen_co_b), INT_MAX)) {
-      is_inside_flag |= BONESEL_BONE;
+    if (is_ignore_flag == 0) {
+      if (is_inside_flag == (BONE_ROOTSEL | BONE_TIPSEL) ||
+          BLI_lasso_is_edge_inside(
+              data->mcords, data->moves, UNPACK2(screen_co_a), UNPACK2(screen_co_b), INT_MAX)) {
+        is_inside_flag |= BONESEL_BONE;
+      }
     }
 
     ebone->temp.i = is_inside_flag | (is_ignore_flag >> 16);
