@@ -1731,6 +1731,9 @@ static float brush_strength(const Sculpt *sd,
    * normalized diameter */
 
   float flip = dir * invert * pen_flip;
+  if (brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
+    flip = 1.0f;
+  }
 
   /* Pressure final value after being tweaked depending on the brush */
   float final_pressure;
@@ -5945,6 +5948,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       sculpt_pose_brush_init(sd, ob, ss, brush, ss->cache->location, ss->cache->radius);
     }
 
+    bool invert = ss->cache->pen_flip || ss->cache->invert || brush->flag & BRUSH_DIR_IN;
+
     /* Apply one type of brush action */
     switch (brush->sculpt_tool) {
       case SCULPT_TOOL_DRAW:
@@ -5996,10 +6001,20 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         do_multiplane_scrape_brush(sd, ob, nodes, totnode);
         break;
       case SCULPT_TOOL_FILL:
-        do_fill_brush(sd, ob, nodes, totnode);
+        if (invert && brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
+          do_scrape_brush(sd, ob, nodes, totnode);
+        }
+        else {
+          do_fill_brush(sd, ob, nodes, totnode);
+        }
         break;
       case SCULPT_TOOL_SCRAPE:
-        do_scrape_brush(sd, ob, nodes, totnode);
+        if (invert && brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
+          do_fill_brush(sd, ob, nodes, totnode);
+        }
+        else {
+          do_scrape_brush(sd, ob, nodes, totnode);
+        }
         break;
       case SCULPT_TOOL_MASK:
         do_mask_brush(sd, ob, nodes, totnode);

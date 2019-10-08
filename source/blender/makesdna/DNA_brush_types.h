@@ -416,7 +416,7 @@ typedef enum eBrushGradientSourceFill {
 /* Brush.flag */
 typedef enum eBrushFlags {
   BRUSH_AIRBRUSH = (1 << 0),
-  BRUSH_FLAG_UNUSED_1 = (1 << 1), /* cleared */
+  BRUSH_INVERT_TO_SCRAPE_FILL = (1 << 1),
   BRUSH_ALPHA_PRESSURE = (1 << 2),
   BRUSH_SIZE_PRESSURE = (1 << 3),
   BRUSH_JITTER_PRESSURE = (1 << 4),

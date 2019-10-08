@@ -428,6 +428,12 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 row.prop(brush, "pose_offset")
                 row = col.row()
                 row.prop(brush, "pose_smooth_iterations")
+            elif brush.sculpt_tool == 'SCRAPE':
+                row = col.row()
+                row.prop(brush, "invert_to_scrape_fill", text = "Invert to Fill")
+            elif brush.sculpt_tool == 'FILL':
+                row = col.row()
+                row.prop(brush, "invert_to_scrape_fill", text = "Invert to Scrape")
             elif brush.sculpt_tool == 'GRAB':
                 col.separator()
                 row = col.row()

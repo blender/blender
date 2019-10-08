@@ -2060,6 +2060,14 @@ static void rna_def_brush(BlenderRNA *brna)
       prop, "Show Cursor Preview", "Preview the scrape planes in the cursor during the stroke");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "invert_to_scrape_fill", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_INVERT_TO_SCRAPE_FILL);
+  RNA_def_property_ui_text(prop,
+                           "Invert to Scrape or Fill",
+                           "Use Scrape or Fill tool when inverting this brush instead of "
+                           "inverting its displacement direction");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "use_pressure_strength", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ALPHA_PRESSURE);
   RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
