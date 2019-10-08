@@ -321,6 +321,12 @@ Mesh *BKE_mirror_apply_mirror_on_axis(MirrorModifierData *mmd,
     MLoopNorSpaceArray lnors_spacearr = {NULL};
     float(*poly_normals)[3] = MEM_mallocN(sizeof(*poly_normals) * totpoly, __func__);
 
+    /* The transform matrix of a normal must be
+     * the transpose of inverse of transform matrix of the geometry... */
+    float mtx_nor[4][4];
+    invert_m4_m4(mtx_nor, mtx);
+    transpose_m4(mtx_nor);
+
     /* calculate custom normals into loop_normals, then mirror first half into second half */
 
     BKE_mesh_calc_normals_poly(result->mvert,
@@ -361,7 +367,7 @@ Mesh *BKE_mirror_apply_mirror_on_axis(MirrorModifierData *mmd,
           mirrorj += mpmirror->totloop - (j - mp->loopstart);
         }
         copy_v3_v3(loop_normals[mirrorj], loop_normals[j]);
-        loop_normals[mirrorj][axis] = -loop_normals[j][axis];
+        mul_m4_v3(mtx_nor, loop_normals[mirrorj]);
         BKE_lnor_space_custom_normal_to_data(
             lnors_spacearr.lspacearr[mirrorj], loop_normals[mirrorj], clnors[mirrorj]);
       }
