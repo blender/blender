@@ -3946,7 +3946,7 @@ static int region_toggle_exec(bContext *C, wmOperator *op)
     region = CTX_wm_region(C);
   }
 
-  if (region) {
+  if (region && (region->alignment != RGN_ALIGN_NONE)) {
     ED_region_toggle_hidden(C, region);
   }
   ED_region_tag_redraw(region);
