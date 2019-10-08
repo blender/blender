@@ -204,6 +204,8 @@ typedef struct WalkInfo {
    * (this would need to un-key all previous frames).
    */
   bool anim_playing;
+  bool need_rotation_keyframe;
+  bool need_translation_keyframe;
 
   /** Previous 2D mouse values. */
   int prev_mval[2];
@@ -538,6 +540,8 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 #endif
 
   walk->anim_playing = ED_screen_animation_playing(wm);
+  walk->need_rotation_keyframe = false;
+  walk->need_translation_keyframe = false;
 
   walk->time_lastdraw = PIL_check_seconds_timer();
 
@@ -930,9 +934,12 @@ static void walkMoveCamera(bContext *C,
   /* we only consider autokeying on playback or if user confirmed walk on the same frame
    * otherwise we get a keyframe even if the user cancels. */
   const bool use_autokey = is_confirm || walk->anim_playing;
-
   ED_view3d_cameracontrol_update(
       walk->v3d_camera_control, use_autokey, C, do_rotate, do_translate);
+  if (use_autokey) {
+    walk->need_rotation_keyframe = false;
+    walk->need_translation_keyframe = false;
+  }
 }
 
 static float getFreeFallDistance(const float gravity, const float time)
@@ -1280,9 +1287,10 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
       add_v3_v3(rv3d->ofs, dvec_tmp);
 
       if (rv3d->persp == RV3D_CAMOB) {
-        const bool do_rotate = (moffset[0] || moffset[1]);
-        const bool do_translate = (walk->speed != 0.0f);
-        walkMoveCamera(C, walk, do_rotate, do_translate, is_confirm);
+        walk->need_rotation_keyframe |= (moffset[0] || moffset[1]);
+        walk->need_translation_keyframe |= (len_squared_v3(dvec_tmp) > FLT_EPSILON);
+        walkMoveCamera(
+            C, walk, walk->need_rotation_keyframe, walk->need_translation_keyframe, is_confirm);
       }
     }
     else {
@@ -1322,7 +1330,10 @@ static void walkApply_ndof(bContext *C, WalkInfo *walk, bool is_confirm)
     walk->redraw = true;
 
     if (walk->rv3d->persp == RV3D_CAMOB) {
-      walkMoveCamera(C, walk, has_rotate, has_translate, is_confirm);
+      walk->need_rotation_keyframe |= has_rotate;
+      walk->need_translation_keyframe |= has_translate;
+      walkMoveCamera(
+          C, walk, walk->need_rotation_keyframe, walk->need_translation_keyframe, is_confirm);
     }
   }
 }
