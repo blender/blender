@@ -1516,10 +1516,8 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
                              float *r_face_normal)
 {
   bool hit = false;
-
-  float min_depth = FLT_MAX;
   float nearest_vertex_co[3] = {0.0f};
-  float location[3] = {0.0f};
+
   if (use_original && node->bm_tot_ortri) {
     for (int i = 0; i < node->bm_tot_ortri; i++) {
       const int *t = node->bm_ortri[i];
@@ -1542,18 +1540,24 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
         BMVert *v_tri[3];
 
         BM_face_as_array_vert_tri(f, v_tri);
-        hit |= ray_face_intersection_tri(
-            ray_start, isect_precalc, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, depth);
 
-        if (hit && *depth < min_depth) {
-          min_depth = *depth;
-          normal_tri_v3(r_face_normal, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co);
-          madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
-          for (int j = 0; j < 3; j++) {
-            if (len_squared_v3v3(location, v_tri[j]->co) <
-                len_squared_v3v3(location, nearest_vertex_co)) {
-              copy_v3_v3(nearest_vertex_co, v_tri[j]->co);
-              *r_active_vertex_index = BM_elem_index_get(v_tri[j]);
+        if (ray_face_intersection_tri(
+                ray_start, isect_precalc, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, depth)) {
+          hit = true;
+
+          if (r_face_normal) {
+            normal_tri_v3(r_face_normal, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co);
+          }
+
+          if (r_active_vertex_index) {
+            float location[3] = {0.0f};
+            madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
+            for (int j = 0; j < 3; j++) {
+              if (len_squared_v3v3(location, v_tri[j]->co) <
+                  len_squared_v3v3(location, nearest_vertex_co)) {
+                copy_v3_v3(nearest_vertex_co, v_tri[j]->co);
+                *r_active_vertex_index = BM_elem_index_get(v_tri[j]);
+              }
             }
           }
         }

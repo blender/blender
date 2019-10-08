@@ -1905,14 +1905,11 @@ static bool pbvh_faces_node_raycast(PBVH *bvh,
   const MVert *vert = bvh->verts;
   const MLoop *mloop = bvh->mloop;
   const int *faces = node->prim_indices;
-  int i, totface = node->totprim;
+  int totface = node->totprim;
   bool hit = false;
-  float min_depth = FLT_MAX;
-  float location[3] = {0.0f};
-  float nearest_vertex_co[3];
-  copy_v3_fl(nearest_vertex_co, 0.0f);
+  float nearest_vertex_co[3] = {0.0f};
 
-  for (i = 0; i < totface; i++) {
+  for (int i = 0; i < totface; i++) {
     const MLoopTri *lt = &bvh->looptri[faces[i]];
     const int *face_verts = node->face_vert_indices[i];
 
@@ -1920,35 +1917,33 @@ static bool pbvh_faces_node_raycast(PBVH *bvh,
       continue;
     }
 
+    const float *co[3];
     if (origco) {
       /* intersect with backuped original coordinates */
-      hit |= ray_face_intersection_tri(ray_start,
-                                       isect_precalc,
-                                       origco[face_verts[0]],
-                                       origco[face_verts[1]],
-                                       origco[face_verts[2]],
-                                       depth);
+      co[0] = origco[face_verts[0]];
+      co[1] = origco[face_verts[1]];
+      co[2] = origco[face_verts[2]];
     }
     else {
       /* intersect with current coordinates */
-      hit |= ray_face_intersection_tri(ray_start,
-                                       isect_precalc,
-                                       vert[mloop[lt->tri[0]].v].co,
-                                       vert[mloop[lt->tri[1]].v].co,
-                                       vert[mloop[lt->tri[2]].v].co,
-                                       depth);
+      co[0] = vert[mloop[lt->tri[0]].v].co;
+      co[1] = vert[mloop[lt->tri[1]].v].co;
+      co[2] = vert[mloop[lt->tri[2]].v].co;
+    }
 
-      if (hit && *depth < min_depth) {
-        min_depth = *depth;
-        normal_tri_v3(r_face_normal,
-                      vert[mloop[lt->tri[0]].v].co,
-                      vert[mloop[lt->tri[1]].v].co,
-                      vert[mloop[lt->tri[2]].v].co);
+    if (ray_face_intersection_tri(ray_start, isect_precalc, co[0], co[1], co[2], depth)) {
+      hit = true;
+
+      if (r_face_normal) {
+        normal_tri_v3(r_face_normal, co[0], co[1], co[2]);
+      }
+
+      if (r_active_vertex_index) {
+        float location[3] = {0.0f};
         madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
         for (int j = 0; j < 3; j++) {
-          if (len_squared_v3v3(location, vert[mloop[lt->tri[j]].v].co) <
-              len_squared_v3v3(location, nearest_vertex_co)) {
-            copy_v3_v3(nearest_vertex_co, vert[mloop[lt->tri[j]].v].co);
+          if (len_squared_v3v3(location, co[j]) < len_squared_v3v3(location, nearest_vertex_co)) {
+            copy_v3_v3(nearest_vertex_co, co[j]);
             *r_active_vertex_index = mloop[lt->tri[j]].v;
           }
         }
@@ -1963,22 +1958,28 @@ static bool pbvh_grids_node_raycast(PBVH *bvh,
                                     PBVHNode *node,
                                     float (*origco)[3],
                                     const float ray_start[3],
+                                    const float ray_normal[3],
                                     struct IsectRayPrecalc *isect_precalc,
-                                    float *depth)
+                                    float *depth,
+                                    int *r_active_vertex_index,
+                                    float *r_face_normal)
 {
   const int totgrid = node->totprim;
   const int gridsize = bvh->gridkey.grid_size;
   bool hit = false;
+  float nearest_vertex_co[3] = {0.0};
+  const CCGKey *gridkey = &bvh->gridkey;
 
   for (int i = 0; i < totgrid; i++) {
-    CCGElem *grid = bvh->grids[node->prim_indices[i]];
+    const int grid_index = node->prim_indices[i];
+    CCGElem *grid = bvh->grids[grid_index];
     BLI_bitmap *gh;
 
     if (!grid) {
       continue;
     }
 
-    gh = bvh->grid_hidden[node->prim_indices[i]];
+    gh = bvh->grid_hidden[grid_index];
 
     for (int y = 0; y < gridsize - 1; y++) {
       for (int x = 0; x < gridsize - 1; x++) {
@@ -1989,23 +1990,40 @@ static bool pbvh_grids_node_raycast(PBVH *bvh,
           }
         }
 
+        const float *co[4];
         if (origco) {
-          hit |= ray_face_intersection_quad(ray_start,
-                                            isect_precalc,
-                                            origco[y * gridsize + x],
-                                            origco[y * gridsize + x + 1],
-                                            origco[(y + 1) * gridsize + x + 1],
-                                            origco[(y + 1) * gridsize + x],
-                                            depth);
+          co[0] = origco[y * gridsize + x];
+          co[1] = origco[y * gridsize + x + 1];
+          co[2] = origco[(y + 1) * gridsize + x + 1];
+          co[3] = origco[(y + 1) * gridsize + x];
         }
         else {
-          hit |= ray_face_intersection_quad(ray_start,
-                                            isect_precalc,
-                                            CCG_grid_elem_co(&bvh->gridkey, grid, x, y),
-                                            CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y),
-                                            CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y + 1),
-                                            CCG_grid_elem_co(&bvh->gridkey, grid, x, y + 1),
-                                            depth);
+          co[0] = CCG_grid_elem_co(gridkey, grid, x, y);
+          co[1] = CCG_grid_elem_co(gridkey, grid, x + 1, y);
+          co[2] = CCG_grid_elem_co(gridkey, grid, x + 1, y + 1);
+          co[3] = CCG_grid_elem_co(gridkey, grid, x, y + 1);
+        }
+
+        if (ray_face_intersection_quad(
+                ray_start, isect_precalc, co[0], co[1], co[2], co[3], depth)) {
+          hit = true;
+
+          if (r_face_normal) {
+            normal_quad_v3(r_face_normal, co[0], co[1], co[2], co[3]);
+          }
+
+          if (r_active_vertex_index) {
+            float location[3] = {0.0};
+            madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
+            for (int j = 0; j < 4; j++) {
+              if (len_squared_v3v3(location, co[j]) <
+                  len_squared_v3v3(location, nearest_vertex_co)) {
+                copy_v3_v3(nearest_vertex_co, co[j]);
+                *r_active_vertex_index = gridkey->grid_area * grid_index + y * gridkey->grid_size +
+                                         x;
+              }
+            }
+          }
         }
       }
     }
@@ -2048,7 +2066,15 @@ bool BKE_pbvh_node_raycast(PBVH *bvh,
                                      face_normal);
       break;
     case PBVH_GRIDS:
-      hit |= pbvh_grids_node_raycast(bvh, node, origco, ray_start, isect_precalc, depth);
+      hit |= pbvh_grids_node_raycast(bvh,
+                                     node,
+                                     origco,
+                                     ray_start,
+                                     ray_normal,
+                                     isect_precalc,
+                                     depth,
+                                     active_vertex_index,
+                                     face_normal);
       break;
     case PBVH_BMESH:
       BM_mesh_elem_index_ensure(bvh->bm, BM_VERT);
