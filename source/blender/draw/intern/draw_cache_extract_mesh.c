@@ -1601,6 +1601,14 @@ static void *extract_uv_init(const MeshRenderData *mr, void *buf)
   CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
   uint32_t uv_layers = mr->cache->cd_used.uv;
 
+  /* HACK to fix T68857 */
+  if (mr->extract_type == MR_EXTRACT_BMESH && mr->cache->cd_used.edit_uv == 1) {
+    int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+    if (layer != -1) {
+      uv_layers |= (1 << layer);
+    }
+  }
+
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (uv_layers & (1 << i)) {
       char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTRIB_NAME];
