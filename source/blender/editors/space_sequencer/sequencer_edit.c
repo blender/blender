@@ -1600,6 +1600,7 @@ static int sequencer_slip_exec(bContext *C, wmOperator *op)
 
   if (success) {
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+    DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
     return OPERATOR_FINISHED;
   }
   else {
@@ -1693,6 +1694,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
       if (sa) {
         ED_area_status_text(sa, NULL);
       }
+      DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
       WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
       return OPERATOR_FINISHED;
     }
