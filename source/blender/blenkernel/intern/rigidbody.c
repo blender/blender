@@ -51,6 +51,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_effect.h"
+#include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
