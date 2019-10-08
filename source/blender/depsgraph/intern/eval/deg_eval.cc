@@ -134,7 +134,7 @@ static void calculate_pending_func(void *__restrict data_v,
       if (!check_operation_node_visible(from)) {
         continue;
       }
-      /* No need to vait for operation which is up to date. */
+      /* No need to wait for operation which is up to date. */
       if ((from->flag & DEPSOP_FLAG_NEEDS_UPDATE) == 0) {
         continue;
       }
