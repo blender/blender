@@ -504,7 +504,9 @@ static bool parse_add_func(ExprParseState *state, eOpCode code, int args, void *
       if (jmp_gap >= 1 && prev_ops[-1].opcode == OPCODE_CONST) {
         UnaryOpFunc func = funcptr;
 
-        double result = func(prev_ops[-1].arg.dval);
+        /* volatile because some compilers overly agressive optimize this call out.
+         * see D6012 for details. */
+        volatile double result = func(prev_ops[-1].arg.dval);
 
         if (fetestexcept(FE_DIVBYZERO | FE_INVALID) == 0) {
           prev_ops[-1].arg.dval = result;
@@ -520,7 +522,9 @@ static bool parse_add_func(ExprParseState *state, eOpCode code, int args, void *
           prev_ops[-1].opcode == OPCODE_CONST) {
         BinaryOpFunc func = funcptr;
 
-        double result = func(prev_ops[-2].arg.dval, prev_ops[-1].arg.dval);
+        /* volatile because some compilers overly agressive optimize this call out.
+         * see D6012 for details. */
+        volatile double result = func(prev_ops[-2].arg.dval, prev_ops[-1].arg.dval);
 
         if (fetestexcept(FE_DIVBYZERO | FE_INVALID) == 0) {
           prev_ops[-2].arg.dval = result;
