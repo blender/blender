@@ -87,10 +87,14 @@ def svn_update(args, release_version):
 
     if os.path.isdir(lib_dirpath):
       for dirname in os.listdir(lib_dirpath):
+        dirpath = os.path.join(lib_dirpath, dirname)
+
         if dirname == ".svn":
+            # Cleanup must be run from svn root directory if it exists.
+            if not make_utils.command_missing(args.svn_command):
+                call(svn_non_interactive + ["cleanup", lib_dirpath])
             continue
 
-        dirpath = os.path.join(lib_dirpath, dirname)
         svn_dirpath = os.path.join(dirpath, ".svn")
         svn_root_dirpath = os.path.join(lib_dirpath, ".svn")
 
@@ -100,12 +104,15 @@ def svn_update(args, release_version):
                 sys.stderr.write("svn not found, can't update libraries\n")
                 sys.exit(1)
 
-            call(svn_non_interactive + ["cleanup", dirpath])
+            # Cleanup to continue with interrupted downloads.
+            if os.path.exists(svn_dirpath):
+                call(svn_non_interactive + ["cleanup", dirpath])
+            # Switch to appropriate branch and update.
             call(svn_non_interactive + ["switch", svn_url + dirname, dirpath])
             call(svn_non_interactive + ["update", dirpath])
 
 # Test if git repo can be updated.
-def git_update_skip(args):
+def git_update_skip(args, check_remote_exists=True):
     if make_utils.command_missing(args.git_command):
         sys.stderr.write("git not found, can't update code\n")
         sys.exit(1)
@@ -125,10 +132,11 @@ def git_update_skip(args):
         return "you have unstaged changes"
 
     # Test if there is an upstream branch configured
-    branch = check_output([args.git_command, "rev-parse", "--abbrev-ref", "HEAD"])
-    remote = check_output([args.git_command, "config", "branch." + branch + ".remote"], exit_on_error=False)
-    if len(remote) == 0:
-        return "no remote branch to pull from"
+    if check_remote_exists:
+      branch = check_output([args.git_command, "rev-parse", "--abbrev-ref", "HEAD"])
+      remote = check_output([args.git_command, "config", "branch." + branch + ".remote"], exit_on_error=False)
+      if len(remote) == 0:
+          return "no remote branch to pull from"
 
     return ""
 
@@ -168,7 +176,7 @@ def submodules_update(args, release_version, branch):
         cwd = os.getcwd()
         try:
             os.chdir(submodule_path)
-            msg = git_update_skip(args)
+            msg = git_update_skip(args, check_remote_exists=False)
             if msg:
                 skip_msg += submodule_path + " skipped: "  + msg + "\n"
             else:
