@@ -950,7 +950,8 @@ void nodeChainIter(const bNodeTree *ntree,
 static void iter_backwards_ex(const bNodeTree *ntree,
                               const bNode *node_start,
                               bool (*callback)(bNode *, bNode *, void *),
-                              void *userdata)
+                              void *userdata,
+                              char recursion_mask)
 {
   LISTBASE_FOREACH (bNodeSocket *, sock, &node_start->inputs) {
     bNodeLink *link = sock->link;
@@ -961,18 +962,17 @@ static void iter_backwards_ex(const bNodeTree *ntree,
       /* Skip links marked as cyclic. */
       continue;
     }
-    if (link->fromnode->iter_flag) {
-      /* Only iter on nodes once. */
+    if (link->fromnode->iter_flag & recursion_mask) {
       continue;
     }
     else {
-      link->fromnode->iter_flag = 1;
+      link->fromnode->iter_flag |= recursion_mask;
     }
 
     if (!callback(link->fromnode, link->tonode, userdata)) {
       return;
     }
-    iter_backwards_ex(ntree, link->fromnode, callback, userdata);
+    iter_backwards_ex(ntree, link->fromnode, callback, userdata, recursion_mask);
   }
 }
 
@@ -981,6 +981,8 @@ static void iter_backwards_ex(const bNodeTree *ntree,
  * \a callback for each node (which can return false to end iterator).
  *
  * Faster than nodeChainIter. Iter only once per node.
+ * Can be called recursively (using another nodeChainIterBackwards) by
+ * setting the recursion_lvl accordingly.
  *
  * \note Needs updated socket links (ntreeUpdateTree).
  * \note Recursive
@@ -988,18 +990,23 @@ static void iter_backwards_ex(const bNodeTree *ntree,
 void nodeChainIterBackwards(const bNodeTree *ntree,
                             const bNode *node_start,
                             bool (*callback)(bNode *, bNode *, void *),
-                            void *userdata)
+                            void *userdata,
+                            int recursion_lvl)
 {
   if (!node_start) {
     return;
   }
 
+  /* Limited by iter_flag type. */
+  BLI_assert(recursion_lvl < 8);
+  char recursion_mask = (1 << recursion_lvl);
+
   /* Reset flag. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    node->iter_flag = 0;
+    node->iter_flag &= ~recursion_mask;
   }
 
-  iter_backwards_ex(ntree, node_start, callback, userdata);
+  iter_backwards_ex(ntree, node_start, callback, userdata, recursion_mask);
 }
 
 /**

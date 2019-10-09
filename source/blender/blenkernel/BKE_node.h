@@ -594,7 +594,8 @@ void nodeChainIter(const bNodeTree *ntree,
 void nodeChainIterBackwards(const bNodeTree *ntree,
                             const bNode *node_start,
                             bool (*callback)(bNode *, bNode *, void *),
-                            void *userdata);
+                            void *userdata,
+                            int recursion_lvl);
 void nodeParentsIter(bNode *node, bool (*callback)(bNode *, void *), void *userdata);
 
 struct bNodeLink *nodeFindLink(struct bNodeTree *ntree,
