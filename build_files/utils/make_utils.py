@@ -35,7 +35,7 @@ def check_output(cmd, exit_on_error=True):
 
     return output.strip()
 
-def git_branch_release_version(git_command):
+def git_branch(git_command):
     # Test if we are building a specific release version.
     try:
         branch = subprocess.check_output([git_command, "rev-parse", "--abbrev-ref", "HEAD"])
@@ -43,7 +43,9 @@ def git_branch_release_version(git_command):
         sys.stderr.write("Failed to get Blender git branch\n")
         sys.exit(1)
 
-    branch = branch.strip().decode('utf8')
+    return branch.strip().decode('utf8')
+
+def git_branch_release_version(branch):
     release_version = re.search("^blender-v(.*)-release$", branch)
     if release_version:
         release_version = release_version.group(1)

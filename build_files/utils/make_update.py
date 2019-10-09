@@ -104,9 +104,8 @@ def svn_update(args, release_version):
             call(svn_non_interactive + ["switch", svn_url + dirname, dirpath])
             call(svn_non_interactive + ["update", dirpath])
 
-
-# Update blender repository.
-def blender_update_skip(args):
+# Test if git repo can be updated.
+def git_update_skip(args):
     if make_utils.command_missing(args.git_command):
         sys.stderr.write("git not found, can't update code\n")
         sys.exit(1)
@@ -131,44 +130,85 @@ def blender_update_skip(args):
     if len(remote) == 0:
         return "no remote branch to pull from"
 
-    return None
+    return ""
 
+# Update blender repository.
 def blender_update(args):
     print_stage("Updating Blender Git Repository")
     call([args.git_command, "pull", "--rebase"])
 
 
 # Update submodules.
-def submodules_update(args, release_version):
+def submodules_update(args, release_version, branch):
     print_stage("Updating Submodules")
     if make_utils.command_missing(args.git_command):
         sys.stderr.write("git not found, can't update code\n")
         sys.exit(1)
 
-    call([args.git_command, "submodule", "update", "--init", "--recursive"])
+    # Update submodules to latest master or appropriate release branch.
     if not release_version:
-        # Update submodules to latest master if not building a specific release.
-        # In that case submodules are set to a specific revision, which is checked
-        # out by running "git submodule update".
-        call([args.git_command, "submodule", "foreach", "git", "checkout", "master"])
-        call([args.git_command, "submodule", "foreach", "git", "pull", "--rebase", "origin", "master"])
+        branch = "master"
+
+    submodules = [
+        ("release/scripts/addons", branch),
+        ("release/scripts/addons_contrib", branch),
+        ("release/datafiles/locale", branch),
+        ("source/tools", "master"),
+    ]
+
+    # Initialize submodules only if needed.
+    for submodule_path, submodule_branch in submodules:
+        if not os.path.exists(os.path.join(submodule_path, ".git")):
+            call([args.git_command, "submodule", "update", "--init", "--recursive"])
+            break
+
+    # Checkout appropriate branch and pull changes.
+    skip_msg = ""
+    for submodule_path, submodule_branch in submodules:
+        cwd = os.getcwd()
+        try:
+            os.chdir(submodule_path)
+            msg = git_update_skip(args)
+            if msg:
+                skip_msg += submodule_path + " skipped: "  + msg + "\n"
+            else:
+                if make_utils.git_branch(args.git_command) != branch:
+                    call([args.git_command, "checkout", branch])
+                call([args.git_command, "pull", "--rebase", "origin", branch])
+        finally:
+            os.chdir(cwd)
+
+    return skip_msg
 
 
 if __name__ == "__main__":
     args = parse_arguments()
-    blender_skipped = None
+    blender_skip_msg = ""
+    submodules_skip_msg = ""
 
     # Test if we are building a specific release version.
-    release_version = make_utils.git_branch_release_version(args.git_command)
+    branch = make_utils.git_branch(args.git_command)
+    release_version = make_utils.git_branch_release_version(branch)
 
     if not args.no_libraries:
         svn_update(args, release_version)
     if not args.no_blender:
-        blender_skipped = blender_update_skip(args)
-        if not blender_skipped:
+        blender_skip_msg = git_update_skip(args)
+        if blender_skip_msg:
+            blender_skip_msg = "Blender repository skipped: " + blender_skip_msg + "\n"
+        else:
             blender_update(args)
     if not args.no_submodules:
-        submodules_update(args, release_version)
+        submodules_skip_msg = submodules_update(args, release_version, branch)
 
-    if blender_skipped:
-        print_stage("Blender repository skipped: " + blender_skipped)
+    # Report any skipped repositories at the end, so it's not as easy to miss.
+    skip_msg = blender_skip_msg + submodules_skip_msg
+    if skip_msg:
+        print_stage(skip_msg.strip())
+
+    # For failed submodule update we throw an error, since not having correct
+    # submodules can make Blender throw errors.
+    # For Blender itself we don't and consider "make update" to be a command
+    # you can use while working on uncommitted code.
+    if submodules_skip_msg:
+        sys.exit(1)
