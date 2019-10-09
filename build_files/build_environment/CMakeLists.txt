@@ -158,4 +158,9 @@ if(UNIX)
   include(cmake/sqlite.cmake)
 endif()
 
+if(UNIX AND NOT APPLE)
+  include(cmake/libglu.cmake)
+  include(cmake/mesa.cmake)
+endif()
+
 include(cmake/harvest.cmake)

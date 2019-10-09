@@ -200,4 +200,9 @@ harvest(xvidcore/lib ffmpeg/lib "*.a")
 harvest(embree/include embree/include "*.h")
 harvest(embree/lib embree/lib "*.a")
 
+if(UNIX AND NOT APPLE)
+  harvest(libglu/lib mesa/lib "*.so*")
+  harvest(mesa/lib mesa/lib "*.so*")
+endif()
+
 endif()

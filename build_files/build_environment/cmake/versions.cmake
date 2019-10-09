@@ -310,3 +310,11 @@ set(EMBREE_HASH 3d4a1147002ff43939d45140aa9d6fb8)
 set(OIDN_VERSION 1.0.0)
 set(OIDN_URI https://github.com/OpenImageDenoise/oidn/releases/download/v${OIDN_VERSION}/oidn-${OIDN_VERSION}.src.zip)
 set(OIDN_HASH 19fe67b0164e8f020ac8a4f520defe60)
+
+set(LIBGLU_VERSION 9.0.1)
+set(LIBGLU_URI ftp://ftp.freedesktop.org/pub/mesa/glu/glu-${LIBGLU_VERSION}.tar.xz)
+set(LIBGLU_HASH 151aef599b8259efe9acd599c96ea2a3)
+
+set(MESA_VERSION 18.3.1)
+set(MESA_URI ftp://ftp.freedesktop.org/pub/mesa//mesa-${MESA_VERSION}.tar.xz)
+set(MESA_HASH d60828056d77bfdbae0970f9b15fb1be)
