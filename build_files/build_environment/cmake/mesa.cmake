@@ -32,7 +32,7 @@ set(MESA_EXTRA_FLAGS
   --disable-gles1
   --disable-gles2
   --disable-llvm-shared-libs
-  --with-llvm-prefix=${LIBDIR}/llvm/lib
+  --with-llvm-prefix=${LIBDIR}/llvm
 )
 
 ExternalProject_Add(external_mesa
