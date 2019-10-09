@@ -1059,6 +1059,33 @@ bool BKE_base_is_visible(const View3D *v3d, const Base *base)
   return base->flag & BASE_VISIBLE_VIEWLAYER;
 }
 
+bool BKE_object_is_visible_in_viewport(const struct View3D *v3d, const struct Object *ob)
+{
+  if (ob->restrictflag & OB_RESTRICT_VIEWPORT) {
+    return false;
+  }
+
+  if ((v3d->object_type_exclude_viewport & (1 << ob->type)) != 0) {
+    return false;
+  }
+
+  if (v3d->localvd && ((v3d->local_view_uuid & ob->base_local_view_bits) == 0)) {
+    return false;
+  }
+
+  if ((v3d->flag & V3D_LOCAL_COLLECTIONS) &&
+      ((v3d->local_collections_uuid & ob->runtime.local_collections_bits) == 0)) {
+    return false;
+  }
+
+  /* If not using local view or local collection the object may still be in a hidden collection. */
+  if (((v3d->localvd) == NULL) && ((v3d->flag & V3D_LOCAL_COLLECTIONS) == 0)) {
+    return (ob->base_flag & BASE_VISIBLE_VIEWLAYER) != 0;
+  }
+
+  return true;
+}
+
 static void layer_collection_flag_set_recursive(LayerCollection *lc, const int flag)
 {
   lc->flag |= flag;
