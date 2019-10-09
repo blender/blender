@@ -513,6 +513,16 @@ if(UNIX AND NOT APPLE)
       DESTINATION "."
     )
 
+    if(EXISTS ${LIBDIR}/mesa)
+      install(DIRECTORY ${LIBDIR}/mesa/lib DESTINATION ".")
+
+      install(
+        PROGRAMS
+        ${CMAKE_SOURCE_DIR}/release/bin/blender-softwaregl
+        DESTINATION "."
+      )
+    endif()
+
     set(BLENDER_TEXT_FILES_DESTINATION ".")
   else()
     # main blender binary
