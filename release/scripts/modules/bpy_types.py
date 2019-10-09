@@ -439,6 +439,13 @@ class Mesh(bpy_types.ID):
            int pairs, each pair contains two indices to the
            *vertices* argument. eg: [(1, 2), ...]
 
+           When an empty iterable is passed in, the edsges are inferred from the polygons.
+
+           When non-emtpy, either:
+
+           - Edges must be provided for all polygons.
+           - Edges must be calculated afterwards using :class:`Mesh.update` with ``calc_edges=True``.
+
         :type edges: iterable object
         :arg faces:
 
