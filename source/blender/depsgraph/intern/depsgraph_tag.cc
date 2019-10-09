@@ -828,4 +828,5 @@ void DEG_ids_clear_recalc(Main *UNUSED(bmain), Depsgraph *depsgraph)
       deg_graph_clear_id_recalc_flags(id_node->id_orig);
     }
   }
+  memset(deg_graph->id_type_updated, 0, sizeof(deg_graph->id_type_updated));
 }
