@@ -1212,6 +1212,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
   PyObject *tri_list; /*return this list of tri's */
   PyObject *polyLine, *polyVec;
   int i, len_polylines, len_polypoints, ls_error = 0;
+  bool is_2d = true;
 
   /* Display #ListBase. */
   ListBase dispbase = {NULL, NULL};
@@ -1269,6 +1270,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
           fp[1] = ((VectorObject *)polyVec)->vec[1];
           if (((VectorObject *)polyVec)->size > 2) {
             fp[2] = ((VectorObject *)polyVec)->vec[2];
+            is_2d = false;
           }
           else {
             /* if its a 2d vector then set the z to be zero */
@@ -1295,8 +1297,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
   }
   else if (totpoints) {
     /* now make the list to return */
-    /* TODO, add normal arg */
-    BKE_displist_fill(&dispbase, &dispbase, NULL, false);
+    BKE_displist_fill(&dispbase, &dispbase, is_2d ? ((const float[3]){0, 0, -1}) : NULL, false);
 
     /* The faces are stored in a new DisplayList
      * that's added to the head of the #ListBase. */
