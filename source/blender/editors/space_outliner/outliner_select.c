@@ -263,7 +263,8 @@ static void do_outliner_object_select_recursive(ViewLayer *view_layer,
 
   for (base = FIRSTBASE(view_layer); base; base = base->next) {
     Object *ob = base->object;
-    if ((((base->flag & BASE_VISIBLE_DEPSGRAPH) != 0) && BKE_object_is_child_recursive(ob_parent, ob))) {
+    if ((((base->flag & BASE_VISIBLE_DEPSGRAPH) != 0) &&
+         BKE_object_is_child_recursive(ob_parent, ob))) {
       ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
     }
   }

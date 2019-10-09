@@ -206,8 +206,8 @@ bool WM_platform_support_perform_checks()
     printf("%s\n\n%s\n%s\n", title, message, link);
   }
   if (G.background) {
-    /* don't show the messagebox when running in background mode. Printing to
-     * console is enough. */
+    /* Don't show the message-box when running in background mode.
+     * Printing to console is enough. */
     result = true;
   }
   else if (show_message) {

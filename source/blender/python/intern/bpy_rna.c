@@ -932,8 +932,8 @@ static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
     ID *real_id = NULL;
     path = RNA_path_from_real_ID_to_struct(G_MAIN, &self->ptr, &real_id);
     if (path != NULL) {
-      /* real_id may be NULL in some cases, although the only valid one is evaluated data,
-       * which should have been catched already above.
+      /* 'real_id' may be NULL in some cases, although the only valid one is evaluated data,
+       * which should have already been caught above.
        * So assert, but handle it without crashing for release builds. */
       BLI_assert(real_id != NULL);
 

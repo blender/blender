@@ -70,7 +70,7 @@ static CLG_LogRef LOG = {"ed.image.undo"};
 /** \name Thread Locking
  * \{ */
 
-/* this is a static resource for non-globality,
+/* This is a non-global static resource,
  * Maybe it should be exposed as part of the
  * paint operation, but for now just give a public interface */
 static SpinLock paint_tiles_lock;

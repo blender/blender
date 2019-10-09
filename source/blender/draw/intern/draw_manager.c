@@ -1192,7 +1192,7 @@ static bool drw_engines_draw_background(void)
   /* No draw engines draw the background. We clear the background.
    * We draw the background after drawing of the scene so the camera background
    * images can be drawn using ALPHA Under. Otherwise the background always
-   * interferred with the alpha blending */
+   * interfered with the alpha blending. */
   DRW_clear_background();
   return false;
 }

@@ -362,10 +362,10 @@ void ED_fileselect_set_params_from_userdef(SpaceFile *sfile)
 
 /**
  * Update the user-preference data for the file space. In fact, this also contains some
- * non-FileSelectParams data, but it's neglectable.
+ * non-FileSelectParams data, but we can safely ignore this.
  *
- * \param temp_win_size: If the browser was opened in a temporary window, pass its size here so we
- *                       can store that in the preferences. Otherwise NULL.
+ * \param temp_win_size: If the browser was opened in a temporary window,
+ * pass its size here so we can store that in the preferences. Otherwise NULL.
  */
 void ED_fileselect_params_to_userdef(SpaceFile *sfile, int temp_win_size[2])
 {

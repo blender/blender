@@ -858,7 +858,7 @@ void GPU_draw_list_submit(GPUDrawList *list)
   size_t bytes_used = cmd_len * sizeof(GPUDrawCommandIndexed);
   list->cmd_len = 0; /* Avoid reuse. */
 
-  /* Only do multidraw indirect if doing more than 2 drawcall.
+  /* Only do multi-draw indirect if doing more than 2 drawcall.
    * This avoids the overhead of buffer mapping if scene is
    * not very instance friendly. */
   if (USE_MULTI_DRAW_INDIRECT && cmd_len > 2) {

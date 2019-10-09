@@ -672,12 +672,12 @@ TEST(delaunay, TriInTri)
   CDT_input in;
   CDT_result *out;
   float p[][2] = {
-    {-5.65685f, 0.0f},
-    {1.41421f, -5.83095f},
-    {0.0f, 0.0f},
-    {-2.47487f, -1.45774f},
-    {-0.707107f, -2.91548f},
-    {-1.06066f ,-1.45774f},
+      {-5.65685f, 0.0f},
+      {1.41421f, -5.83095f},
+      {0.0f, 0.0f},
+      {-2.47487f, -1.45774f},
+      {-0.707107f, -2.91548f},
+      {-1.06066f, -1.45774f},
   };
   int f[] = {0, 1, 2, 3, 4, 5};
   int fstart[] = {0, 3};
@@ -765,12 +765,12 @@ static void rand_delaunay_test(int test_kind,
       times[lg_size] += PIL_check_seconds_timer() - tstart;
     }
   }
-#ifdef DO_TIMING
+#  ifdef DO_TIMING
   fprintf(stderr, "size,time\n");
   for (lg_size = 0; lg_size <= max_lg_size; lg_size++) {
     fprintf(stderr, "%d,%f\n", 1 << lg_size, times[lg_size] / reps_per_size);
   }
-#endif
+#  endif
   MEM_freeN(p);
   if (e)
     MEM_freeN(e);

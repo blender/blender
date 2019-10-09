@@ -156,15 +156,17 @@ class Interface1D {
 
   /*! Returns an iterator over the Interface1D points, pointing to the first point. The difference
    * with verticesBegin() is that here we can iterate over points of the 1D element at a any given
-   * sampling. Indeed, for each iteration, a virtual point is created. \param t: The sampling with
-   * which we want to iterate over points of this 1D element.
+   * sampling. Indeed, for each iteration, a virtual point is created.
+   *
+   * \param t: The sampling with which we want to iterate over points of this 1D element.
    */
   virtual Interface0DIterator pointsBegin(float t = 0.0f);
 
   /*! Returns an iterator over the Interface1D points, pointing after the last point. The
    * difference with verticesEnd() is that here we can iterate over points of the 1D element at a
-   * any given sampling. Indeed, for each iteration, a virtual point is created. \param t: The
-   * sampling with which we want to iterate over points of this 1D element.
+   * any given sampling. Indeed, for each iteration, a virtual point is created.
+   *
+   * \param t: The sampling with which we want to iterate over points of this 1D element.
    */
   virtual Interface0DIterator pointsEnd(float t = 0.0f);
 

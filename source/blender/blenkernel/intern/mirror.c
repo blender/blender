@@ -169,13 +169,13 @@ Mesh *BKE_mirror_apply_mirror_on_axis(MirrorModifierData *mmd,
   result = BKE_mesh_new_nomain_from_template(
       mesh, maxVerts * 2, maxEdges * 2, 0, maxLoops * 2, maxPolys * 2);
 
-  /*copy customdata to original geometry*/
+  /* Copy custom-data to original geometry. */
   CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, maxVerts);
   CustomData_copy_data(&mesh->edata, &result->edata, 0, 0, maxEdges);
   CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, maxLoops);
   CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, maxPolys);
 
-  /* Subsurf for eg won't have mesh data in the custom data arrays.
+  /* Subsurf for eg won't have mesh data in the custom-data arrays.
    * now add mvert/medge/mpoly layers. */
   if (!CustomData_has_layer(&mesh->vdata, CD_MVERT)) {
     memcpy(result->mvert, mesh->mvert, sizeof(*result->mvert) * mesh->totvert);
@@ -188,8 +188,8 @@ Mesh *BKE_mirror_apply_mirror_on_axis(MirrorModifierData *mmd,
     memcpy(result->mpoly, mesh->mpoly, sizeof(*result->mpoly) * mesh->totpoly);
   }
 
-  /* copy customdata to new geometry,
-   * copy from its self because this data may have been created in the checks above */
+  /* Copy custom-data to new geometry,
+   * copy from its self because this data may have been created in the checks above. */
   CustomData_copy_data(&result->vdata, &result->vdata, 0, maxVerts, maxVerts);
   CustomData_copy_data(&result->edata, &result->edata, 0, maxEdges, maxEdges);
   /* loops are copied later */

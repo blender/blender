@@ -2562,8 +2562,13 @@ static void update_flowsfluids(
           else { /* MOD_SMOKE_FLOW_SOURCE_MESH */
             /* update flow object frame */
             BLI_mutex_lock(&object_update_lock);
-            BKE_object_modifier_update_subframe(
-                depsgraph, scene, collob, true, 5, BKE_scene_frame_get(scene), eModifierType_Smoke);
+            BKE_object_modifier_update_subframe(depsgraph,
+                                                scene,
+                                                collob,
+                                                true,
+                                                5,
+                                                BKE_scene_frame_get(scene),
+                                                eModifierType_Smoke);
             BLI_mutex_unlock(&object_update_lock);
 
             /* apply flow */

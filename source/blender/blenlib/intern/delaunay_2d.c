@@ -2004,9 +2004,10 @@ static void remove_non_constraint_edges_leave_valid_bmesh(CDT_state *cdt)
       if (fleft != cdt->outer_face && fright != cdt->outer_face &&
           (fleft->input_ids != NULL || fright->input_ids != NULL)) {
         /* Is there another symedge with same left and right faces?
-          * Or is there a vertex not part of e touching the same left and right faces? */
+         * Or is there a vertex not part of e touching the same left and right faces? */
         for (se2 = se->next; dissolve && se2 != se; se2 = se2->next) {
-          if (sym(se2)->face == fright || (se2->vert != se->next->vert && vert_touches_face(se2->vert, fright))) {
+          if (sym(se2)->face == fright ||
+              (se2->vert != se->next->vert && vert_touches_face(se2->vert, fright))) {
             dissolve = false;
           }
         }
@@ -2150,7 +2151,7 @@ static void prepare_cdt_for_output(CDT_state *cdt, const CDT_output_type output_
   UNUSED_VARS(f);
 #endif
 
-  if (output_type == CDT_CONSTRAINTS)  {
+  if (output_type == CDT_CONSTRAINTS) {
     remove_non_constraint_edges(cdt);
   }
   else if (output_type == CDT_CONSTRAINTS_VALID_BMESH) {
