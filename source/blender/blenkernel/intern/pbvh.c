@@ -27,6 +27,7 @@
 #include "BLI_ghash.h"
 #include "BLI_task.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_pbvh.h"
@@ -533,6 +534,7 @@ static void pbvh_build(PBVH *bvh, BB *cb, BBC *prim_bbc, int totprim)
  * (which means it may rewrite it if needed, see #BKE_pbvh_vert_coords_apply().
  */
 void BKE_pbvh_build_mesh(PBVH *bvh,
+                         const Mesh *mesh,
                          const MPoly *mpoly,
                          const MLoop *mloop,
                          MVert *verts,
@@ -545,6 +547,7 @@ void BKE_pbvh_build_mesh(PBVH *bvh,
   BBC *prim_bbc = NULL;
   BB cb;
 
+  bvh->mesh = mesh;
   bvh->type = PBVH_FACES;
   bvh->mpoly = mpoly;
   bvh->mloop = mloop;
@@ -1222,7 +1225,8 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                                          bvh->looptri,
                                                          bvh->verts,
                                                          node->prim_indices,
-                                                         node->totprim);
+                                                         node->totprim,
+                                                         bvh->mesh);
         break;
       case PBVH_BMESH:
         node->draw_buffers = GPU_pbvh_bmesh_buffers_build(bvh->flags &

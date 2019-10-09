@@ -127,6 +127,7 @@ struct PBVH {
   int leaf_limit;
 
   /* Mesh data */
+  const struct Mesh *mesh;
   MVert *verts;
   const MPoly *mpoly;
   const MLoop *mloop;

@@ -36,6 +36,7 @@ struct CustomData;
 struct DMFlagMat;
 struct GPU_PBVH_Buffers;
 struct IsectRayPrecalc;
+struct Mesh;
 struct MLoop;
 struct MLoopTri;
 struct MPoly;
@@ -89,6 +90,7 @@ typedef void (*BKE_pbvh_SearchNearestCallback)(PBVHNode *node, void *data, float
 
 PBVH *BKE_pbvh_new(void);
 void BKE_pbvh_build_mesh(PBVH *bvh,
+                         const struct Mesh *mesh,
                          const struct MPoly *mpoly,
                          const struct MLoop *mloop,
                          struct MVert *verts,

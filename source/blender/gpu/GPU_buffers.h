@@ -31,6 +31,7 @@ struct CCGElem;
 struct CCGKey;
 struct DMFlagMat;
 struct GSet;
+struct Mesh;
 struct MLoop;
 struct MLoopCol;
 struct MLoopTri;
@@ -49,7 +50,8 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const int (*face_vert_indices)[3],
                                               const struct MLoopTri *looptri,
                                               const struct MVert *verts,
                                               const int *face_indices,
-                                              const int face_indices_len);
+                                              const int face_indices_len,
+                                              const struct Mesh *mesh);
 
 GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, unsigned int **grid_hidden);
 

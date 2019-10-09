@@ -1489,6 +1489,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
   BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
 
   BKE_pbvh_build_mesh(pbvh,
+                      me,
                       me->mpoly,
                       me->mloop,
                       me->mvert,
