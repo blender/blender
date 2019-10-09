@@ -468,6 +468,16 @@ static void mesh_batch_cache_check_vertex_group(MeshBatchCache *cache,
   }
 }
 
+static void mesh_batch_cache_discard_shaded_batches(MeshBatchCache *cache)
+{
+  if (cache->surface_per_mat) {
+    for (int i = 0; i < cache->mat_len; i++) {
+      GPU_BATCH_DISCARD_SAFE(cache->surface_per_mat[i]);
+    }
+  }
+  cache->batch_ready &= ~MBC_SURF_PER_MAT;
+}
+
 static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
 {
   FOREACH_MESH_BUFFER_CACHE(cache, mbufcache)
@@ -478,20 +488,12 @@ static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.vcol);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.orco);
   }
+  mesh_batch_cache_discard_shaded_batches(cache);
+  mesh_cd_layers_type_clear(&cache->cd_used);
 
-  if (cache->surface_per_mat) {
-    for (int i = 0; i < cache->mat_len; i++) {
-      GPU_BATCH_DISCARD_SAFE(cache->surface_per_mat[i]);
-    }
-  }
   MEM_SAFE_FREE(cache->surface_per_mat);
-
-  cache->batch_ready &= ~MBC_SURF_PER_MAT;
-
   MEM_SAFE_FREE(cache->auto_layer_names);
   MEM_SAFE_FREE(cache->auto_layer_is_srgb);
-
-  mesh_cd_layers_type_clear(&cache->cd_used);
 
   cache->mat_len = 0;
 }
@@ -524,11 +526,36 @@ static void mesh_batch_cache_discard_uvedit(MeshBatchCache *cache)
 
   cache->batch_ready &= ~MBC_EDITUV;
 
-  /* TODO(fclem): this is overkill and
-   * we should just reset the cache->cd_used layer concerning uvs. */
-  mesh_batch_cache_discard_shaded_tri(cache);
+  /* We discarded the vbo.uv so we need to reset the cd_used flag. */
+  cache->cd_used.uv = 0;
+  cache->cd_used.edit_uv = 0;
+
+  /* Discard other batches that uses vbo.uv */
+  mesh_batch_cache_discard_shaded_batches(cache);
+
   GPU_BATCH_DISCARD_SAFE(cache->batch.surface);
-  cache->batch_ready &= ~(MBC_SURF_PER_MAT | MBC_SURFACE);
+  cache->batch_ready &= ~MBC_SURFACE;
+}
+
+static void mesh_batch_cache_discard_uvedit_select(MeshBatchCache *cache)
+{
+  FOREACH_MESH_BUFFER_CACHE(cache, mbufcache)
+  {
+    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.edituv_data);
+    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_edituv_data);
+    GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.edituv_tris);
+    GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.edituv_lines);
+    GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.edituv_points);
+    GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.edituv_fdots);
+  }
+  GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_faces_stretch_area);
+  GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_faces_stretch_angle);
+  GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_faces);
+  GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_edges);
+  GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_verts);
+  GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_fdots);
+  GPU_BATCH_DISCARD_SAFE(cache->batch.wire_loops_uvs);
+  cache->batch_ready &= ~MBC_EDITUV;
 }
 
 void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
@@ -557,8 +584,8 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
                               MBC_EDIT_FACEDOTS | MBC_EDIT_SELECTION_FACEDOTS |
                               MBC_EDIT_SELECTION_FACES | MBC_EDIT_SELECTION_EDGES |
                               MBC_EDIT_SELECTION_VERTS | MBC_EDIT_MESH_ANALYSIS);
-      /* Because visible UVs depends on edit mode selection, discard everything. */
-      mesh_batch_cache_discard_uvedit(cache);
+      /* Because visible UVs depends on edit mode selection, discard topology. */
+      mesh_batch_cache_discard_uvedit_select(cache);
       break;
     case BKE_MESH_BATCH_DIRTY_SELECT_PAINT:
       /* Paint mode selection flag is packed inside the nor attrib.
