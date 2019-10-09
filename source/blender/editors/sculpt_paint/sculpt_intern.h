@@ -195,10 +195,8 @@ typedef struct SculptThreadedTaskData {
   int filter_type;
   float filter_strength;
 
-  /* 0=towards view, 1=flipped */
-  float (*area_cos)[3];
-  float (*area_nos)[3];
-  int *count;
+  bool use_area_cos;
+  bool use_area_nos;
   bool any_vertex_sampled;
 
   float *prev_mask;
@@ -208,13 +206,8 @@ typedef struct SculptThreadedTaskData {
   float *pose_factor;
   float (*transform_rot)[4], (*transform_trans)[4], (*transform_trans_inv)[4];
 
-  float tot_pos_avg[3];
-  int tot_pos_count;
-
   float max_distance_squared;
   float nearest_vertex_search_co[3];
-  int nearest_vertex_index;
-  float nearest_vertex_distance_squared;
 
   int mask_expand_update_it;
   bool mask_expand_invert_mask;

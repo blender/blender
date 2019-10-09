@@ -183,6 +183,7 @@ set(SRC
   intern/particle_system.c
   intern/pbvh.c
   intern/pbvh_bmesh.c
+  intern/pbvh_parallel.cc
   intern/pointcache.c
   intern/report.c
   intern/rigidbody.c
@@ -635,6 +636,14 @@ if(WITH_QUADRIFLOW)
      bf_intern_quadriflow
   )
   add_definitions(-DWITH_QUADRIFLOW)
+endif()
+
+if(WITH_TBB)
+  add_definitions(-DWITH_TBB)
+
+  list(APPEND INC_SYS
+    ${TBB_INCLUDE_DIRS}
+  )
 endif()
 
 ## Warnings as errors, this is too strict!

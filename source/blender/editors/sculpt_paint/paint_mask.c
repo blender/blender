@@ -166,9 +166,9 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
       .value = value,
   };
 
-  TaskParallelSettings settings;
+  PBVHParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-  BLI_task_parallel_range(0, totnode, &data, mask_flood_fill_task_cb, &settings);
+  BKE_pbvh_parallel_range(0, totnode, &data, mask_flood_fill_task_cb, &settings);
 
   if (multires) {
     multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
@@ -343,9 +343,9 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
           .clip_planes_final = clip_planes_final,
       };
 
-      TaskParallelSettings settings;
+      PBVHParallelSettings settings;
       BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-      BLI_task_parallel_range(0, totnode, &data, mask_box_select_task_cb, &settings);
+      BKE_pbvh_parallel_range(0, totnode, &data, mask_box_select_task_cb, &settings);
 
       if (nodes) {
         MEM_freeN(nodes);
@@ -532,9 +532,9 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
         data.task_data.mode = mode;
         data.task_data.value = value;
 
-        TaskParallelSettings settings;
+        PBVHParallelSettings settings;
         BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-        BLI_task_parallel_range(0, totnode, &data, mask_gesture_lasso_task_cb, &settings);
+        BKE_pbvh_parallel_range(0, totnode, &data, mask_gesture_lasso_task_cb, &settings);
 
         if (nodes) {
           MEM_freeN(nodes);
