@@ -265,7 +265,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
         return []
 
     def mlen(co):
-        # manhatten length of a vector, faster then length
+        # Manhatten length of a vector, faster then length.
         return abs(co[0]) + abs(co[1]) + abs(co[2])
 
     def vert_treplet(v, i):
@@ -278,9 +278,8 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
             return v1[1], v2[1]
 
     if not fix_loops:
-        """
-        Normal single concave loop filling
-        """
+        # Normal single concave loop filling.
+
         if type(from_data) in {tuple, list}:
             verts = [Vector(from_data[i]) for ii, i in enumerate(indices)]
         else:
@@ -294,17 +293,19 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
         fill = tessellate_polygon([verts])
 
     else:
-        """
-        Separate this loop into multiple loops be finding edges that are
-        used twice. This is used by lightwave LWO files a lot
-        """
+        # Separate this loop into multiple loops be finding edges that are
+        # used twice. This is used by Light-Wave LWO files a lot.
 
         if type(from_data) in {tuple, list}:
-            verts = [vert_treplet(Vector(from_data[i]), ii)
-                     for ii, i in enumerate(indices)]
+            verts = [
+                vert_treplet(Vector(from_data[i]), ii)
+                for ii, i in enumerate(indices)
+            ]
         else:
-            verts = [vert_treplet(from_data.vertices[i].co, ii)
-                     for ii, i in enumerate(indices)]
+            verts = [
+                vert_treplet(from_data.vertices[i].co, ii)
+                for ii, i in enumerate(indices)
+            ]
 
         edges = [(i, i - 1) for i in range(len(verts))]
         if edges:
@@ -354,7 +355,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
             else:
                 return False
 
-            # If were stuill here s1 and s2 are 2 segments in the same polyline
+            # If were still here s1 and s2 are 2 segments in the same poly-line.
             s1.pop()  # remove the last vert from s1
             s1.extend(s2)  # add segment 2 to segment 1
 
@@ -409,7 +410,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
             print('Warning Cannot scanfill, fallback on a triangle fan.')
         fill = [[0, i - 1, i] for i in range(2, len(indices))]
     else:
-        # Use real scanfill.
+        # Use real scan-fill.
         # See if its flipped the wrong way.
         flip = None
         for fi in fill:

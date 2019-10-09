@@ -439,7 +439,7 @@ class Mesh(bpy_types.ID):
            int pairs, each pair contains two indices to the
            *vertices* argument. eg: [(1, 2), ...]
 
-           When an empty iterable is passed in, the edsges are inferred from the polygons.
+           When an empty iterable is passed in, the edges are inferred from the polygons.
 
            When non-emtpy, either:
 
