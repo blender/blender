@@ -27,7 +27,7 @@ set(WITH_PYTHON_INSTALL_REQUESTS ON CACHE BOOL "" FORCE)
 
 # ######## Release environment specific settings ########
 
-set(LIBDIR "${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_NAME}" CACHE STRING "" FORCE)
+set(LIBDIR "${CMAKE_CURRENT_LIST_DIR}/../../../lib/${LIBDIR_NAME}" CACHE STRING "" FORCE)
 
 # Platform specific configuration, to ensure static linking against everything.
 
