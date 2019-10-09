@@ -907,7 +907,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
       return 0;
     }
 
-    axis_dominant_v3_to_m3(mat_2d, n);
+    axis_dominant_v3_to_m3_negate(mat_2d, n);
   }
 
   /* STEP 1: COUNT POLYS */
