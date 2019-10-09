@@ -771,7 +771,7 @@ class ShaderImageTextureWrapper():
 
     def scale_get(self):
         if self.node_mapping is None:
-            return Vector((0.0, 0.0, 0.0))
+            return Vector((1.0, 1.0, 1.0))
         return self.node_mapping.inputs['Scale'].default_value
 
     @_set_check
