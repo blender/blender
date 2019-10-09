@@ -2042,7 +2042,7 @@ class WM_OT_batch_rename(Operator):
                     if action.use_replace_regex_dst:
                         replace_dst = action.replace_dst
                     else:
-                        replace_dst = re.escape(action.replace_dst)
+                        replace_dst = action.replace_dst.replace("\\", "\\\\")
                 else:
                     replace_src = re.escape(action.replace_src)
                     replace_dst = re.escape(action.replace_dst)
