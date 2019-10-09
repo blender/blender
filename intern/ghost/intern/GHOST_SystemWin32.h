@@ -29,9 +29,6 @@
 #  error WIN32 only!
 #endif  // WIN32
 
-/* require Windows XP or newer */
-#undef _WIN32_WINNT
-#define _WIN32_WINNT 0x501
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -208,11 +205,15 @@ class GHOST_SystemWin32 : public GHOST_System {
    * Show a system message box
    * \param title                   The title of the message box
    * \param message                 The message to display
+   * \param help_label              Help button label
+   * \param continue_label          Continue button label
    * \param link                    An optional hyperlink
    * \param dialog_options Options  how to display the message
    */
   GHOST_TSuccess showMessageBox(const char *title,
                                 const char *message,
+                                const char *help_label,
+                                const char *continue_label,
                                 const char *link,
                                 GHOST_DialogOptions dialog_options) const;
 

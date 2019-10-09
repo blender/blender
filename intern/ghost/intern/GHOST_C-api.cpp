@@ -50,11 +50,13 @@ GHOST_TSuccess GHOST_DisposeSystem(GHOST_SystemHandle systemhandle)
 void GHOST_ShowMessageBox(GHOST_SystemHandle systemhandle,
                           const char *title,
                           const char *message,
+                          const char *help_label,
+                          const char *continue_label,
                           const char *link,
                           GHOST_DialogOptions dialog_options)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
-  system->showMessageBox(title, message, link, dialog_options);
+  system->showMessageBox(title, message, help_label, continue_label, link, dialog_options);
 }
 
 GHOST_EventConsumerHandle GHOST_CreateEventConsumer(GHOST_EventCallbackProcPtr eventCallback,

@@ -112,7 +112,7 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
 set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
 
 list(APPEND PLATFORM_LINKLIBS
-  ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32
+  ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 Comctl32
   advapi32 shfolder shell32 ole32 oleaut32 uuid psapi Dbghelp
 )
 

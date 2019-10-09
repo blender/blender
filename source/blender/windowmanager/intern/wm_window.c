@@ -2435,10 +2435,12 @@ void WM_opengl_context_release(void *context)
 
 void WM_ghost_show_message_box(const char *title,
                                const char *message,
+                               const char *help_label,
+                               const char *continue_label,
                                const char *link,
                                GHOST_DialogOptions dialog_options)
 {
   BLI_assert(g_system);
-  GHOST_ShowMessageBox(g_system, title, message, link, dialog_options);
+  GHOST_ShowMessageBox(g_system, title, message, help_label, continue_label, link, dialog_options);
 }
 /** \} */

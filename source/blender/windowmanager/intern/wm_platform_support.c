@@ -152,10 +152,11 @@ bool WM_platform_support_perform_checks()
       /* TODO: Extra space is needed for the split function in GHOST_SystemX11. We should change
        * the behavior in GHOST_SystemX11. */
       STR_CONCAT(message, slen, "\n \n");
-      STR_CONCAT(message,
-                 slen,
-                 CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER,
-                            "Press help to see if the support can be improved."));
+      STR_CONCAT(
+          message,
+          slen,
+          CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER,
+                     "Newer graphics drivers may be available to improve Blender support."));
       STR_CONCAT(message, slen, "\n \n");
       STR_CONCAT(message, slen, CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Graphics card:\n"));
       STR_CONCAT(message, slen, GPU_platform_gpu_name());
@@ -176,10 +177,11 @@ bool WM_platform_support_perform_checks()
                             "Your graphics card or driver is not supported."));
 
       STR_CONCAT(message, slen, "\n \n");
-      STR_CONCAT(message,
-                 slen,
-                 CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER,
-                            "Press help to see if the support can be improved."));
+      STR_CONCAT(
+          message,
+          slen,
+          CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER,
+                     "Newer graphics drivers may be available to improve Blender support."));
 
       STR_CONCAT(message, slen, "\n \n");
       STR_CONCAT(message, slen, CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Graphics card:\n"));
@@ -209,7 +211,8 @@ bool WM_platform_support_perform_checks()
     result = true;
   }
   else if (show_message) {
-    WM_ghost_show_message_box(title, message, link, dialog_options);
+    WM_ghost_show_message_box(
+        title, message, "Find Latest Drivers", "Continue Anyway", link, dialog_options);
   }
 
   return result;

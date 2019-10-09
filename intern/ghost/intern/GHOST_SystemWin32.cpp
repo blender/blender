@@ -28,6 +28,13 @@
 #  define _WIN32_IE 0x0501 /* shipped before XP, so doesn't impose additional requirements */
 #endif
 
+/* clang-format off */
+#pragma comment(linker,"\"/manifestdependency:type='win32' \
+name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
+processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+/* clang-format on */
+
+#include <commctrl.h>
 #include <shlobj.h>
 #include <tlhelp32.h>
 #include <psapi.h>
@@ -35,6 +42,7 @@
 #include <windowsx.h>
 
 #include "utfconv.h"
+#include "utf_winfunc.h"
 
 #include "GHOST_DisplayManagerWin32.h"
 #include "GHOST_EventButton.h"
@@ -511,6 +519,7 @@ GHOST_TSuccess GHOST_SystemWin32::getButtons(GHOST_Buttons &buttons) const
 GHOST_TSuccess GHOST_SystemWin32::init()
 {
   GHOST_TSuccess success = GHOST_System::init();
+  InitCommonControls();
 
   /* Disable scaling on high DPI displays on Vista */
   HMODULE
@@ -1773,41 +1782,51 @@ void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 
 /** \name Message Box
  * \{ */
-static const char *MESSAGE_BOX_HELP_LINK_PTR = NULL;
-VOID CALLBACK showMessageBoxCallBack(LPHELPINFO lpHelpInfo)
-{
-  if (MESSAGE_BOX_HELP_LINK_PTR) {
-    ShellExecute(NULL, "open", MESSAGE_BOX_HELP_LINK_PTR, NULL, NULL, SW_SHOWNORMAL);
-  }
-}
-
 GHOST_TSuccess GHOST_SystemWin32::showMessageBox(const char *title,
                                                  const char *message,
+                                                 const char *help_label,
+                                                 const char *continue_label,
                                                  const char *link,
                                                  GHOST_DialogOptions dialog_options) const
 {
-  uint style = MB_OK |
-               (dialog_options & GHOST_DialogError ?
-                    MB_ICONERROR :
-                    dialog_options & GHOST_DialogWarning ? MB_ICONWARNING : MB_ICONINFORMATION);
-  bool show_help = link && strlen(link);
-  if (show_help) {
-    GHOST_ASSERT(MESSAGE_BOX_HELP_LINK_PTR == NULL,
-                 "showMessageBox: MESSAGE_BOX_HELP_LINK_PTR is in use");
-    style |= MB_HELP;
-    MESSAGE_BOX_HELP_LINK_PTR = link;
+  const wchar_t *title_16 = alloc_utf16_from_8(title, 0);
+  const wchar_t *message_16 = alloc_utf16_from_8(message, 0);
+  const wchar_t *help_label_16 = alloc_utf16_from_8(help_label, 0);
+  const wchar_t *continue_label_16 = alloc_utf16_from_8(continue_label, 0);
+
+  int nButtonPressed = 0;
+  TASKDIALOGCONFIG config = {0};
+  const TASKDIALOG_BUTTON buttons[] = {{IDOK, help_label_16}, {IDCONTINUE, continue_label_16}};
+
+  config.cbSize = sizeof(config);
+  config.hInstance = 0;
+  config.dwCommonButtons = 0;
+  config.pszMainIcon = (dialog_options & GHOST_DialogError ?
+                            TD_ERROR_ICON :
+                            dialog_options & GHOST_DialogWarning ? TD_WARNING_ICON :
+                                                                   TD_INFORMATION_ICON);
+  config.pszWindowTitle = L"Blender";
+  config.pszMainInstruction = title_16;
+  config.pszContent = message_16;
+  config.pButtons = (link) ? buttons : buttons + 1;
+  config.cButtons = (link) ? 2 : 1;
+
+  TaskDialogIndirect(&config, &nButtonPressed, NULL, NULL);
+  switch (nButtonPressed) {
+    case IDOK:
+      ShellExecute(NULL, "open", link, NULL, NULL, SW_SHOWNORMAL);
+      break;
+    case IDCONTINUE:
+      break;
+    default:
+      break;  // should never happen
   }
 
-  MSGBOXPARAMSA message_box_params = {0};
-  message_box_params.cbSize = sizeof(MSGBOXCALLBACK);
-  message_box_params.lpszText = message;
-  message_box_params.lpszCaption = title;
-  message_box_params.dwStyle = style;
-  message_box_params.lpszText = message;
-  message_box_params.lpfnMsgBoxCallback = showMessageBoxCallBack;
+  free((void *)title_16);
+  free((void *)message_16);
+  free((void *)help_label_16);
+  free((void *)continue_label_16);
 
-  MessageBoxIndirectA(&message_box_params);
-  MESSAGE_BOX_HELP_LINK_PTR = NULL;
   return GHOST_kSuccess;
 }
 /* \} */
