@@ -54,6 +54,9 @@
 #include "ED_object.h"
 #include "ED_gpencil.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 #include "gpencil_intern.h"
 
 /* Free all of a gp-colors */
@@ -111,6 +114,7 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
     ob = BKE_object_add_for_data(
         bmain, view_layer, OB_GPENCIL, "GP_Scene", &scene->gpd->id, false);
     zero_v3(ob->loc);
+    DEG_relations_tag_update(bmain); /* added object */
 
     /* convert grease pencil palettes (version >= 2.78)  to materials and weights */
     for (const bGPDpalette *palette = gpd->palettes.first; palette; palette = palette->next) {
