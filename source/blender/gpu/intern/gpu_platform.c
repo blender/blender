@@ -186,7 +186,7 @@ void gpu_platform_init(void)
     GPG.device = GPU_DEVICE_SOFTWARE;
     GPG.driver = GPU_DRIVER_SOFTWARE;
   }
-  else if (strstr(renderer, "llvmpipe")) {
+  else if (strstr(renderer, "llvmpipe") || strstr(renderer, "softpipe")) {
     GPG.device = GPU_DEVICE_SOFTWARE;
     GPG.driver = GPU_DRIVER_SOFTWARE;
   }
