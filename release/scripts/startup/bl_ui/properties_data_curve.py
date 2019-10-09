@@ -332,7 +332,8 @@ class DATA_PT_font(CurveButtonsPanelText, Panel):
         layout = self.layout
 
         text = context.curve
-        char = context.curve.edit_format
+        char = text.edit_format
+        mode = context.mode
 
         row = layout.split(factor=0.25)
         row.label(text="Regular")
@@ -347,13 +348,15 @@ class DATA_PT_font(CurveButtonsPanelText, Panel):
         row.label(text="Bold & Italic")
         row.template_ID(text, "font_bold_italic", open="font.open", unlink="font.unlink")
 
-        layout.separator()
 
-        row = layout.row(align=True)
-        row.prop(char, "use_bold", toggle=True)
-        row.prop(char, "use_italic", toggle=True)
-        row.prop(char, "use_underline", toggle=True)
-        row.prop(char, "use_small_caps", toggle=True)
+        if mode == 'EDIT_TEXT':
+            layout.separator()
+
+            row = layout.row(align=True)
+            row.prop(char, "use_bold", toggle=True)
+            row.prop(char, "use_italic", toggle=True)
+            row.prop(char, "use_underline", toggle=True)
+            row.prop(char, "use_small_caps", toggle=True)
 
 
 class DATA_PT_font_transform(CurveButtonsPanelText, Panel):
