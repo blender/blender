@@ -325,6 +325,18 @@ static bool exists_edge(const CDTVert *a, const CDTVert *b)
   return false;
 }
 
+/** Is the vertex v incident on face f? */
+static bool vert_touches_face(const CDTVert *v, const CDTFace *f)
+{
+  SymEdge *se = v->symedge;
+  do {
+    if (se->face == f) {
+      return true;
+    }
+  } while ((se = se->rot) != v->symedge);
+  return false;
+}
+
 /**
  * Assume s1 and s2 are both SymEdges in a face with > 3 sides,
  * and one is not the next of the other.
@@ -1901,35 +1913,107 @@ static void dissolve_symedge(CDT_state *cdt, SymEdge *se)
   delete_edge(cdt, se);
 }
 
-static void remove_non_constraint_edges(CDT_state *cdt, const bool valid_bmesh)
+/* Remove all non-constraint edges. */
+static void remove_non_constraint_edges(CDT_state *cdt)
+{
+  LinkNode *ln;
+  CDTEdge *e;
+  SymEdge *se;
+
+  for (ln = cdt->edges; ln; ln = ln->next) {
+    e = (CDTEdge *)ln->link;
+    se = &e->symedges[0];
+    if (!is_deleted_edge(e) && !is_constrained_edge(e)) {
+      dissolve_symedge(cdt, se);
+    }
+  }
+}
+
+/*
+ * Remove the non-constraint edges, but leave enough of them so that all of the
+ * faces that would be bmesh faces (that is, the faces that have some input representative)
+ * are valid: they can't have holes, they can't have repeated vertices, and they can't have
+ * repeated edges.
+ *
+ * Not essential, but to make the result look more aesthetically nice,
+ * remove the edges in order of decreasing length, so that it is more likely that the
+ * final remaining support edges are short, and therefore likely to make a fairly
+ * direct path from an outer face to an inner hole face.
+ */
+
+/* For sorting edges by decreasing length (squared). */
+struct EdgeToSort {
+  double len_squared;
+  CDTEdge *e;
+};
+
+static int edge_to_sort_cmp(const void *a, const void *b)
+{
+  const struct EdgeToSort *e1 = a;
+  const struct EdgeToSort *e2 = b;
+
+  if (e1->len_squared > e2->len_squared) {
+    return -1;
+  }
+  else if (e1->len_squared < e2->len_squared) {
+    return 1;
+  }
+  return 0;
+}
+
+static void remove_non_constraint_edges_leave_valid_bmesh(CDT_state *cdt)
 {
   LinkNode *ln;
   CDTEdge *e;
   SymEdge *se, *se2;
   CDTFace *fleft, *fright;
   bool dissolve;
+  size_t nedges;
+  int i, ndissolvable;
+  const double *co1, *co2;
+  struct EdgeToSort *sorted_edges;
 
+  nedges = 0;
+  for (ln = cdt->edges; ln; ln = ln->next) {
+    nedges++;
+  }
+  if (nedges == 0) {
+    return;
+  }
+  sorted_edges = BLI_memarena_alloc(cdt->arena, nedges * sizeof(*sorted_edges));
+  i = 0;
   for (ln = cdt->edges; ln; ln = ln->next) {
     e = (CDTEdge *)ln->link;
-    dissolve = !is_deleted_edge(e) && !is_constrained_edge(e);
-    if (dissolve) {
-      se = &e->symedges[0];
-      if (valid_bmesh && !edge_touches_frame(e)) {
-        fleft = se->face;
-        fright = sym(se)->face;
-        if (fleft != cdt->outer_face && fright != cdt->outer_face &&
-            (fleft->input_ids != NULL || fright->input_ids != NULL)) {
-          /* Is there another symedge with same left and right faces? */
-          for (se2 = se->next; dissolve && se2 != se; se2 = se2->next) {
-            if (sym(se2)->face == fright) {
-              dissolve = false;
-            }
+    if (!is_deleted_edge(e) && !is_constrained_edge(e)) {
+      sorted_edges[i].e = e;
+      co1 = e->symedges[0].vert->co;
+      co2 = e->symedges[1].vert->co;
+      sorted_edges[i].len_squared = len_squared_v2v2_db(co1, co2);
+      i++;
+    }
+  }
+  ndissolvable = i;
+  qsort(sorted_edges, ndissolvable, sizeof(*sorted_edges), edge_to_sort_cmp);
+  for (i = 0; i < ndissolvable; i++) {
+    e = sorted_edges[i].e;
+    se = &e->symedges[0];
+    dissolve = true;
+    if (!edge_touches_frame(e)) {
+      fleft = se->face;
+      fright = sym(se)->face;
+      if (fleft != cdt->outer_face && fright != cdt->outer_face &&
+          (fleft->input_ids != NULL || fright->input_ids != NULL)) {
+        /* Is there another symedge with same left and right faces?
+          * Or is there a vertex not part of e touching the same left and right faces? */
+        for (se2 = se->next; dissolve && se2 != se; se2 = se2->next) {
+          if (sym(se2)->face == fright || (se2->vert != se->next->vert && vert_touches_face(se2->vert, fright))) {
+            dissolve = false;
           }
         }
       }
-      if (dissolve) {
-        dissolve_symedge(cdt, se);
-      }
+    }
+    if (dissolve) {
+      dissolve_symedge(cdt, se);
     }
   }
 }
@@ -2066,8 +2150,11 @@ static void prepare_cdt_for_output(CDT_state *cdt, const CDT_output_type output_
   UNUSED_VARS(f);
 #endif
 
-  if (output_type == CDT_CONSTRAINTS || output_type == CDT_CONSTRAINTS_VALID_BMESH) {
-    remove_non_constraint_edges(cdt, output_type == CDT_CONSTRAINTS_VALID_BMESH);
+  if (output_type == CDT_CONSTRAINTS)  {
+    remove_non_constraint_edges(cdt);
+  }
+  else if (output_type == CDT_CONSTRAINTS_VALID_BMESH) {
+    remove_non_constraint_edges_leave_valid_bmesh(cdt);
   }
   else if (output_type == CDT_FULL || output_type == CDT_INSIDE) {
     remove_outer_edges(cdt, output_type == CDT_INSIDE);

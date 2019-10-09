@@ -667,6 +667,32 @@ TEST(delaunay, TriCutoff)
   BLI_delaunay_2d_cdt_free(out);
 }
 
+TEST(delaunay, TriInTri)
+{
+  CDT_input in;
+  CDT_result *out;
+  float p[][2] = {
+    {-5.65685f, 0.0f},
+    {1.41421f, -5.83095f},
+    {0.0f, 0.0f},
+    {-2.47487f, -1.45774f},
+    {-0.707107f, -2.91548f},
+    {-1.06066f ,-1.45774f},
+  };
+  int f[] = {0, 1, 2, 3, 4, 5};
+  int fstart[] = {0, 3};
+  int flen[] = {3, 3};
+
+  fill_input_verts(&in, p, 6);
+  add_input_faces(&in, f, fstart, flen, 2);
+  out = BLI_delaunay_2d_cdt_calc(&in, CDT_CONSTRAINTS_VALID_BMESH);
+  EXPECT_EQ(out->verts_len, 6);
+  EXPECT_EQ(out->edges_len, 8);
+  EXPECT_EQ(out->faces_len, 3);
+  BLI_delaunay_2d_cdt_free(out);
+}
+
+#if 0
 enum {
   RANDOM_PTS,
   RANDOM_SEGS,
@@ -781,6 +807,7 @@ TEST(delaunay, randompoly_validbmesh)
 {
   rand_delaunay_test(RANDOM_POLY, 7, 1, CDT_CONSTRAINTS_VALID_BMESH);
 }
+#endif
 
 #if 0
 /* For debugging or timing large examples.
