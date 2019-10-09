@@ -28,13 +28,17 @@ def parse_arguments():
     parser.add_argument("--use-tests", action="store_true")
     parser.add_argument("--svn-command", default="svn")
     parser.add_argument("--git-command", default="git")
+    parser.add_argument("--use-centos-libraries", action="store_true")
     return parser.parse_args()
+
+def get_blender_git_root():
+    return check_output([args.git_command, "rev-parse", "--show-toplevel"])
 
 # Setup for precompiled libraries and tests from svn.
 def svn_update(args, release_version):
     svn_non_interactive = [args.svn_command, '--non-interactive']
 
-    lib_dirpath = os.path.join('..', 'lib')
+    lib_dirpath = os.path.join(get_blender_git_root(), '..', 'lib')
     svn_url = make_utils.svn_libraries_base_url(release_version)
 
     # Checkout precompiled libraries
@@ -45,6 +49,8 @@ def svn_update(args, release_version):
         # this script is bundled as part of the precompiled libraries. However it
         # is used by the buildbot.
         lib_platform = "win64_vc14"
+    elif args.use_centos_libraries:
+        lib_platform = "linux_centos7_x86_64"
     else:
         # No precompiled libraries for Linux.
         lib_platform = None
