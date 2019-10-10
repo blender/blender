@@ -36,32 +36,42 @@ struct PBVHTask {
   void *userdata_chunk;
   bool userdata_chunk_free;
 
-  PBVHTask()
+  /* Root constructor. */
+  PBVHTask(PBVHParallelRangeFunc func, void *userdata, const PBVHParallelSettings *settings)
+      : func(func), userdata(userdata), settings(settings)
   {
+    init_chunk(settings->userdata_chunk);
   }
 
+  /* Copy constructor. */
   PBVHTask(const PBVHTask &other)
-      : func(other.func),
-        userdata(other.userdata),
-        settings(other.settings),
-        userdata_chunk(0),
-        userdata_chunk_free(false)
+      : func(other.func), userdata(other.userdata), settings(other.settings)
   {
-    if (other.userdata_chunk) {
-      userdata_chunk = MEM_mallocN(settings->userdata_chunk_size, "PBVHTask");
-      memcpy(userdata_chunk, other.userdata_chunk, settings->userdata_chunk_size);
-      userdata_chunk_free = true;
-    }
+    init_chunk(other.userdata_chunk);
   }
 
-  PBVHTask(PBVHTask &other, tbb::split) : PBVHTask(other)
+  /* Splitting constructor for parallel reduce. */
+  PBVHTask(PBVHTask &other, tbb::split)
+      : func(other.func), userdata(other.userdata), settings(other.settings)
   {
+    init_chunk(settings->userdata_chunk);
   }
 
   ~PBVHTask()
   {
-    if (userdata_chunk_free) {
-      MEM_freeN(userdata_chunk);
+    MEM_SAFE_FREE(userdata_chunk);
+  }
+
+  void init_chunk(void *from_chunk)
+  {
+    if (from_chunk) {
+      userdata_chunk = MEM_mallocN(settings->userdata_chunk_size, "PBVHTask");
+      memcpy(userdata_chunk, from_chunk, settings->userdata_chunk_size);
+      userdata_chunk_free = true;
+    }
+    else {
+      userdata_chunk = NULL;
+      userdata_chunk_free = false;
     }
   }
 
@@ -111,15 +121,13 @@ void BKE_pbvh_parallel_range(const int start,
 #ifdef WITH_TBB
   /* Multithreading. */
   if (settings->use_threading) {
-    PBVHTask task;
-    task.func = func;
-    task.userdata = userdata;
-    task.settings = settings;
-    task.userdata_chunk = settings->userdata_chunk;
-    task.userdata_chunk_free = false;
+    PBVHTask task(func, userdata, settings);
 
     if (settings->func_reduce) {
       parallel_reduce(tbb::blocked_range<int>(start, stop), task);
+      if (settings->userdata_chunk) {
+        memcpy(settings->userdata_chunk, task.userdata_chunk, settings->userdata_chunk_size);
+      }
     }
     else {
       parallel_for(tbb::blocked_range<int>(start, stop), task);
