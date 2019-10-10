@@ -516,9 +516,15 @@ static void protectflag_to_drawflags(short protectflag, short *drawflags)
 }
 
 /* for pose mode */
-static void protectflag_to_drawflags_pchan(RegionView3D *rv3d, const bPoseChannel *pchan)
+static void protectflag_to_drawflags_pchan(RegionView3D *rv3d,
+                                           const bPoseChannel *pchan,
+                                           short orientation_type)
 {
-  protectflag_to_drawflags(pchan->protectflag, &rv3d->twdrawflag);
+  /* Protect-flags apply to local space in pose mode, so only let them influence axis
+   * visibility if we show the global orientation, otherwise it's confusing. */
+  if (orientation_type == V3D_ORIENT_LOCAL) {
+    protectflag_to_drawflags(pchan->protectflag, &rv3d->twdrawflag);
+  }
 }
 
 /* for editmode*/
@@ -742,7 +748,14 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   bGPdata *gpd = CTX_data_gpencil_data(C);
   const bool is_gp_edit = GPENCIL_ANY_MODE(gpd);
   int a, totsel = 0;
+
   const int pivot_point = scene->toolsettings->transform_pivot_point;
+  const short orientation_type = params->orientation_type ?
+                                     (params->orientation_type - 1) :
+                                     scene->orientation_slots[SCE_ORIENT_DEFAULT].type;
+  const short orientation_index_custom =
+      params->orientation_type ? params->orientation_index_custom :
+                                 scene->orientation_slots[SCE_ORIENT_DEFAULT].index_custom;
 
   /* transform widget matrix */
   unit_m4(rv3d->twmat);
@@ -756,12 +769,6 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   /* global, local or normal orientation?
    * if we could check 'totsel' now, this should be skipped with no selection. */
   if (ob) {
-    const short orientation_type = params->orientation_type ?
-                                       (params->orientation_type - 1) :
-                                       scene->orientation_slots[SCE_ORIENT_DEFAULT].type;
-    const short orientation_index_custom =
-        params->orientation_type ? params->orientation_index_custom :
-                                   scene->orientation_slots[SCE_ORIENT_DEFAULT].index_custom;
     float mat[3][3];
     ED_transform_calc_orientation_from_type_ex(
         C, mat, scene, rv3d, ob, obedit, orientation_type, orientation_index_custom, pivot_point);
@@ -1038,7 +1045,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
           Bone *bone = pchan->bone;
           if (bone && (bone->flag & BONE_TRANSFORM)) {
             calc_tw_center_with_matrix(tbounds, pchan->pose_head, use_mat_local, mat_local);
-            protectflag_to_drawflags_pchan(rv3d, pchan);
+            protectflag_to_drawflags_pchan(rv3d, pchan, orientation_type);
           }
         }
         totsel += totsel_iter;
@@ -1122,7 +1129,12 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
           calc_tw_center(tbounds, co);
         }
       }
-      protectflag_to_drawflags(base->object->protectflag, &rv3d->twdrawflag);
+
+      /* Protect-flags apply to world space in object mode, so only let them influence axis
+       * visibility if we show the global orientation, otherwise it's confusing. */
+      if (orientation_type == V3D_ORIENT_GLOBAL) {
+        protectflag_to_drawflags(base->object->protectflag, &rv3d->twdrawflag);
+      }
       totsel++;
     }
 
