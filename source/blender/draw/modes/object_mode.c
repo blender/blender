@@ -3541,6 +3541,10 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
         if (hide_object_extra) {
           break;
         }
+        if ((ob->base_flag & BASE_FROM_DUPLI) && (ob->transflag & OB_DUPLICOLLECTION) &&
+            ob->instance_collection) {
+          break;
+        }
         DRW_shgroup_empty(sh_data, sgl, ob, view_layer, rv3d, draw_ctx->sh_cfg);
         break;
       case OB_SPEAKER:
