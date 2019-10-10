@@ -1575,25 +1575,6 @@ void DRW_draw_view(const bContext *C)
   DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, viewport, C);
 }
 
-static bool is_object_visible_in_viewport(View3D *v3d, Object *ob)
-{
-  if (v3d->localvd && ((v3d->local_view_uuid & ob->base_local_view_bits) == 0)) {
-    return false;
-  }
-
-  if ((v3d->flag & V3D_LOCAL_COLLECTIONS) &&
-      ((v3d->local_collections_uuid & ob->runtime.local_collections_bits) == 0)) {
-    return false;
-  }
-
-  /* If not using local view or local collection the object may still be in a hidden collection. */
-  if (((v3d->localvd) == NULL) && ((v3d->flag & V3D_LOCAL_COLLECTIONS) == 0)) {
-    return (ob->base_flag & BASE_VISIBLE_VIEWLAYER) != 0;
-  }
-
-  return true;
-}
-
 /**
  * Used for both regular and off-screen drawing.
  * Need to reset DST before calling this function
@@ -1669,7 +1650,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
         if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
           continue;
         }
-        if (!is_object_visible_in_viewport(v3d, ob)) {
+        if (!BKE_object_is_visible_in_viewport(v3d, ob)) {
           continue;
         }
         DST.dupli_parent = data_.dupli_parent;
@@ -2369,7 +2350,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
                                               v3d->object_type_exclude_select);
       bool filter_exclude = false;
       DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (depsgraph, ob) {
-        if (!is_object_visible_in_viewport(v3d, ob)) {
+        if (!BKE_object_is_visible_in_viewport(v3d, ob)) {
           continue;
         }
         if ((ob->base_flag & BASE_SELECTABLE) &&
@@ -2519,7 +2500,7 @@ static void drw_draw_depth_loop_imp(struct Depsgraph *depsgraph,
       if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
         continue;
       }
-      if (!is_object_visible_in_viewport(v3d, ob)) {
+      if (!BKE_object_is_visible_in_viewport(v3d, ob)) {
         continue;
       }
       DST.dupli_parent = data_.dupli_parent;
