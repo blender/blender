@@ -888,7 +888,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
               calc_tw_center_with_matrix(tbounds, ebo->head, use_mat_local, mat_local);
               totsel++;
             }
-            if (ebo->flag & BONE_SELECTED) {
+            if (ebo->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) {
               protectflag_to_drawflags_ebone(rv3d, ebo);
             }
           }
