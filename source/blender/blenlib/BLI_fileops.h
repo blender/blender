@@ -50,6 +50,7 @@ int BLI_exists(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int BLI_copy(const char *path, const char *to) ATTR_NONNULL();
 int BLI_rename(const char *from, const char *to) ATTR_NONNULL();
 int BLI_delete(const char *path, bool dir, bool recursive) ATTR_NONNULL();
+int BLI_delete_soft(const char *path, const char **error_message) ATTR_NONNULL();
 #if 0 /* Unused */
 int BLI_move(const char *path, const char *to) ATTR_NONNULL();
 int BLI_create_symlink(const char *path, const char *to) ATTR_NONNULL();

@@ -469,7 +469,12 @@ class FILEBROWSER_MT_context_menu(Menu):
         layout.separator()
 
         layout.operator("file.rename", text="Rename")
-        # layout.operator("file.delete")
+        sub = layout.row()
+        sub.operator_context = 'EXEC_DEFAULT'
+        sub.operator("file.delete", text="Delete")
+
+        layout.separator()
+
         sub = layout.row()
         sub.operator_context = 'EXEC_DEFAULT'
         sub.operator("file.directory_new", text="New Folder")
@@ -503,5 +508,6 @@ classes = (
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class
+
     for cls in classes:
         register_class(cls)

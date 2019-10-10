@@ -2504,23 +2504,29 @@ int file_delete_exec(bContext *C, wmOperator *op)
   int numfiles = filelist_files_ensure(sfile->files);
   int i;
 
+  const char *error_message = NULL;
   bool report_error = false;
   errno = 0;
   for (i = 0; i < numfiles; i++) {
     if (filelist_entry_select_index_get(sfile->files, i, CHECK_FILES)) {
       file = filelist_file(sfile->files, i);
       BLI_make_file_string(BKE_main_blendfile_path(bmain), str, sfile->params->dir, file->relpath);
-      if (BLI_delete(str, false, false) != 0 || BLI_exists(str)) {
+      if (BLI_delete_soft(str, &error_message) != 0 || BLI_exists(str)) {
         report_error = true;
       }
     }
   }
 
   if (report_error) {
-    BKE_reportf(op->reports,
-                RPT_ERROR,
-                "Could not delete file: %s",
-                errno ? strerror(errno) : "unknown error");
+    if (error_message != NULL) {
+      BKE_reportf(op->reports, RPT_ERROR, "Could not delete file or directory: %s", error_message);
+    }
+    else {
+      BKE_reportf(op->reports,
+                  RPT_ERROR,
+                  "Could not delete file or directory: %s",
+                  errno ? strerror(errno) : "unknown error");
+    }
   }
 
   ED_fileselect_clear(wm, sa, sfile);
@@ -2533,7 +2539,7 @@ void FILE_OT_delete(struct wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Delete Selected Files";
-  ot->description = "Delete selected files";
+  ot->description = "Move selected files to the trash or recycle bin";
   ot->idname = "FILE_OT_delete";
 
   /* api callbacks */
