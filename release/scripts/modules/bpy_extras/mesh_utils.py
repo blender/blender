@@ -403,7 +403,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
         # draw_loops(loop_list)
         #raise Exception("done loop")
         # map to original indices
-        fill = [[vert_map[i] for i in reversed(f)] for f in fill]
+        fill = [[vert_map[i] for i in f] for f in fill]
 
     if not fill:
         if debug_print:
