@@ -585,13 +585,18 @@ static void do_versions_fix_annotations(bGPdata *gpd)
   }
 }
 
-static void do_versions_remove_region(ListBase *regionbase, int regiontype)
+static void do_versions_remove_region(ListBase *regionbase, ARegion *ar)
+{
+  BLI_freelinkN(regionbase, ar);
+}
+
+static void do_versions_remove_regions_by_type(ListBase *regionbase, int regiontype)
 {
   ARegion *ar, *ar_next;
   for (ar = regionbase->first; ar; ar = ar_next) {
     ar_next = ar->next;
     if (ar->regiontype == regiontype) {
-      BLI_freelinkN(regionbase, ar);
+      do_versions_remove_region(regionbase, ar);
     }
   }
 }
@@ -3340,7 +3345,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
 
             /* Remove multiple footers that were added by mistake. */
-            do_versions_remove_region(regionbase, RGN_TYPE_FOOTER);
+            do_versions_remove_regions_by_type(regionbase, RGN_TYPE_FOOTER);
 
             /* Add footer. */
             ARegion *ar = do_versions_add_region(RGN_TYPE_FOOTER, "footer for text");
@@ -3895,7 +3900,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
               /* We temporarily had two tools regions, get rid of the second one. */
               if (ar_next && ar_next->regiontype == RGN_TYPE_TOOLS) {
-                do_versions_remove_region(regionbase, RGN_TYPE_TOOLS);
+                do_versions_remove_region(regionbase, ar_next);
               }
 
               BLI_remlink(regionbase, ar_tools);
