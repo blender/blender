@@ -487,6 +487,35 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     alpha_texture = property(alpha_texture_get)
 
 
+    # --------------------------------------------------------------------
+    # Emission color.
+
+    def emission_color_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return Color((0.0, 0.0, 0.0))
+        return rgba_to_rgb(self.node_principled_bsdf.inputs["Emission"].default_value)
+
+    @_set_check
+    def emission_color_set(self, color):
+        if self.use_nodes and self.node_principled_bsdf is not None:
+            color = values_clamp(color, 0.0, 1.0)
+            color = rgb_to_rgba(color)
+            self.node_principled_bsdf.inputs["Emission"].default_value = color
+
+    emission_color = property(emission_color_get, emission_color_set)
+
+
+    def emission_color_texture_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return None
+        return ShaderImageTextureWrapper(
+            self, self.node_principled_bsdf,
+            self.node_principled_bsdf.inputs["Emission"],
+            grid_row_diff=1,
+        )
+
+    emission_color_texture = property(emission_color_texture_get)
+
 
     # --------------------------------------------------------------------
     # Normal map.
