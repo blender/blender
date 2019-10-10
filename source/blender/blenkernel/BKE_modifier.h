@@ -48,7 +48,9 @@ typedef enum {
    */
   eModifierTypeType_OnlyDeform,
 
+  /* Modifier adds geometry. */
   eModifierTypeType_Constructive,
+  /* Modifier can add and remove geometry. */
   eModifierTypeType_Nonconstructive,
 
   /* both deformVerts & applyModifier are valid calls
