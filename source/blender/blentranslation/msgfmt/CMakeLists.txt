@@ -32,6 +32,10 @@ set(SRC
 
 add_cc_flags_custom_test(msgfmt)
 
+if(APPLE)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
+endif()
+
 add_executable(msgfmt ${SRC})
 
 target_link_libraries(msgfmt bf_blenlib)
