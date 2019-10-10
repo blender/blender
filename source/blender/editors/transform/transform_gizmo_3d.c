@@ -1338,6 +1338,7 @@ static void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   }
 
   WM_msg_subscribe_rna_anon_prop(mbus, Window, view_layer, &msg_sub_value_gz_tag_refresh);
+  WM_msg_subscribe_rna_anon_prop(mbus, EditBone, lock, &msg_sub_value_gz_tag_refresh);
 }
 
 void drawDial3d(const TransInfo *t)
