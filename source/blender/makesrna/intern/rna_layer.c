@@ -187,15 +187,24 @@ static void rna_LayerObjects_selected_begin(CollectionPropertyIterator *iter, Po
       iter, &view_layer->object_bases, rna_ViewLayer_objects_selected_skip);
 }
 
-static void rna_ViewLayer_update_tagged(ID *id_ptr, ViewLayer *view_layer, Main *bmain)
+static void rna_ViewLayer_update_tagged(ID *id_ptr,
+                                        ViewLayer *view_layer,
+                                        Main *bmain,
+                                        ReportList *reports)
 {
+  Scene *scene = (Scene *)id_ptr;
+  Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
+
+  if (DEG_is_evaluating(depsgraph)) {
+    BKE_report(reports, RPT_ERROR, "Dependency graph update requested during evaluation");
+    return;
+  }
+
 #  ifdef WITH_PYTHON
   /* Allow drivers to be evaluated */
   BPy_BEGIN_ALLOW_THREADS;
 #  endif
 
-  Scene *scene = (Scene *)id_ptr;
-  Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
   /* NOTE: This is similar to CTX_data_depsgraph_pointer(). Ideally such access would be
    * de-duplicated across all possible cases, but for now this is safest and easiest way to go.
    *
@@ -568,7 +577,7 @@ void RNA_def_view_layer(BlenderRNA *brna)
 
   /* debug update routine */
   func = RNA_def_function(srna, "update", "rna_ViewLayer_update_tagged");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
   RNA_def_function_ui_description(
       func, "Update data tagged to be updated from previous access to data or operators");
 

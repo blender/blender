@@ -622,6 +622,12 @@ void graph_id_tag_update(
     Main *bmain, Depsgraph *graph, ID *id, int flag, eUpdateSource update_source)
 {
   const int debug_flags = (graph != NULL) ? DEG_debug_flags_get((::Depsgraph *)graph) : G.debug;
+  if (graph != NULL && graph->is_evaluating) {
+    if (debug_flags & G_DEBUG_DEPSGRAPH) {
+      printf("ID tagged for update during dependency graph evaluation.");
+    }
+    return;
+  }
   if (debug_flags & G_DEBUG_DEPSGRAPH_TAG) {
     printf("%s: id=%s flags=%s source=%s\n",
            __func__,

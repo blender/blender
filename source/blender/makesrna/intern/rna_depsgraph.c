@@ -261,8 +261,13 @@ static void rna_Depsgraph_debug_stats(Depsgraph *depsgraph, char *result)
                outer);
 }
 
-static void rna_Depsgraph_update(Depsgraph *depsgraph, Main *bmain)
+static void rna_Depsgraph_update(Depsgraph *depsgraph, Main *bmain, ReportList *reports)
 {
+  if (DEG_is_evaluating(depsgraph)) {
+    BKE_report(reports, RPT_ERROR, "Dependency graph update requested during evaluation");
+    return;
+  }
+
 #  ifdef WITH_PYTHON
   /* Allow drivers to be evaluated */
   BPy_BEGIN_ALLOW_THREADS;
@@ -654,7 +659,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
       func,
       "Re-evaluate any modified data-blocks, for example for animation or modifiers. "
       "This invalidates all references to evaluated data-blocks from this dependency graph.");
-  RNA_def_function_flag(func, FUNC_USE_MAIN);
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
 
   /* Queries for original datablockls (the ones depsgraph is built for). */
 
