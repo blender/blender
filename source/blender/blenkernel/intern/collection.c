@@ -1305,6 +1305,9 @@ bool BKE_collection_move(Main *bmain,
 
   BLI_ghash_free(view_layer_hash, NULL, NULL);
 
+  /* We need to sync it again to pass the correct flags to the collections objects. */
+  BKE_main_collection_sync(bmain);
+
   return true;
 }
 
