@@ -527,6 +527,9 @@ void DepsgraphNodeBuilder::build_object(int base_index,
                                         eDepsNode_LinkedState_Type linked_state,
                                         bool is_visible)
 {
+  if (object->proxy != NULL) {
+    object->proxy->proxy_from = object;
+  }
   const bool has_object = built_map_.checkIsBuiltAndTag(object);
   /* Skip rest of components if the ID node was already there. */
   if (has_object) {

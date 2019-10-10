@@ -511,6 +511,14 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph, const bool do_ti
    * to evaluation though) with `do_time=true`. This means early output checks should be aware of
    * this. */
   for (DEG::IDNode *id_node : graph->id_nodes) {
+    const ID_Type id_type = GS(id_node->id_orig->name);
+    if (id_type == ID_OB) {
+      Object *object_orig = reinterpret_cast<Object *>(id_node->id_orig);
+      if (object_orig->proxy != NULL) {
+        object_orig->proxy->proxy_from = object_orig;
+      }
+    }
+
     if (!id_node->visible_components_mask) {
       /* ID has no components which affects anything visible.
        * No need bother with it to tag or anything. */
@@ -537,7 +545,6 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph, const bool do_ti
      * other type of cache).
      *
      * TODO(sergey): Need to generalize this somehow. */
-    const ID_Type id_type = GS(id_node->id_orig->name);
     if (id_type == ID_OB) {
       flag |= ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY;
     }

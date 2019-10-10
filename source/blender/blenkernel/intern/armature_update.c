@@ -643,6 +643,10 @@ void BKE_pose_eval_init(struct Depsgraph *depsgraph, Scene *UNUSED(scene), Objec
   }
 
   BLI_assert(pose->chan_array != NULL || BLI_listbase_is_empty(&pose->chanbase));
+
+  if (object->proxy != NULL) {
+    object->proxy->proxy_from = object;
+  }
 }
 
 void BKE_pose_eval_init_ik(struct Depsgraph *depsgraph, Scene *scene, Object *object)
