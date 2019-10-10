@@ -30,6 +30,7 @@
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
+#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
@@ -179,7 +180,7 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
 
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
 
-  BKE_mesh_free(new_mesh);
+  BKE_id_free(bmain, new_mesh);
   new_mesh = BKE_mesh_from_bmesh_nomain(bm,
                                         (&(struct BMeshToMeshParams){
                                             .calc_object_remap = false,
@@ -190,7 +191,7 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   MEM_freeN(em);
 
   if (new_mesh->totvert == 0) {
-    BKE_mesh_free(new_mesh);
+    BKE_id_free(bmain, new_mesh);
     return OPERATOR_FINISHED;
   }
 
