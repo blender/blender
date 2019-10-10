@@ -208,7 +208,7 @@ static void schedule_node(
 static void schedule_graph(TaskPool *pool, Depsgraph *graph)
 {
   for (OperationNode *node : graph->operations) {
-    schedule_node(pool, graph, node, false, 0);
+    schedule_node(pool, graph, node, false, -1);
   }
 }
 
