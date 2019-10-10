@@ -63,6 +63,14 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat,
   /* for each output. */
   for (int i = 0; sh_node_tex_coord_out[i].type != -1; i++) {
     node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);
+    /* Normalize some vectors after dFdx/dFdy offsets.
+     * This is the case for interpolated, non linear functions.
+     * The resulting vector can still be a bit wrong but not as much.
+     * (see T70644) */
+    if (node->branch_tag != 0 && ELEM(i, 1, 6)) {
+      GPU_link(
+          mat, "vector_math_normalize", out[i].link, out[i].link, out[i].link, &out[i].link, NULL);
+    }
   }
 
   return 1;
