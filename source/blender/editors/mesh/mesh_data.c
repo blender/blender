@@ -880,12 +880,12 @@ void MESH_OT_customdata_custom_splitnormals_clear(wmOperatorType *ot)
 
 void ED_mesh_update(Mesh *mesh, bContext *C, bool calc_edges, bool calc_edges_loose)
 {
-  if (calc_edges_loose && mesh->totedge) {
-    BKE_mesh_calc_edges_loose(mesh);
-  }
-
   if (calc_edges || ((mesh->totpoly || mesh->totface) && mesh->totedge == 0)) {
     BKE_mesh_calc_edges(mesh, calc_edges, true);
+  }
+
+  if (calc_edges_loose && mesh->totedge) {
+    BKE_mesh_calc_edges_loose(mesh);
   }
 
   /* Default state is not to have tessface's so make sure this is the case. */

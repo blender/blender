@@ -1619,6 +1619,12 @@ void BKE_mesh_calc_edges_loose(Mesh *mesh)
   for (int i = 0; i < mesh->totloop; i++, ml++) {
     mesh->medge[ml->e].flag &= ~ME_LOOSEEDGE;
   }
+  med = mesh->medge;
+  for (int i = 0; i < mesh->totedge; i++, med++) {
+    if (med->flag & ME_LOOSEEDGE) {
+      med->flag |= ME_EDGEDRAW;
+    }
+  }
 }
 
 /**
