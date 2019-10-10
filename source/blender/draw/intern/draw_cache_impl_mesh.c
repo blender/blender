@@ -925,7 +925,7 @@ static void edituv_request_active_uv(MeshBatchCache *cache, Mesh *me)
   mesh_cd_layers_type_clear(&cd_needed);
   mesh_cd_calc_edit_uv_layer(me, &cd_needed);
 
-  BLI_assert(cd_needed.uv != 0 &&
+  BLI_assert(cd_needed.edit_uv != 0 &&
              "No uv layer available in edituv, but batches requested anyway!");
 
   mesh_cd_calc_active_mask_uv_layer(me, &cd_needed);
