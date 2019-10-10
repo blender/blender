@@ -34,7 +34,6 @@ struct PBVHTask {
   const PBVHParallelSettings *settings;
 
   void *userdata_chunk;
-  bool userdata_chunk_free;
 
   /* Root constructor. */
   PBVHTask(PBVHParallelRangeFunc func, void *userdata, const PBVHParallelSettings *settings)
@@ -67,11 +66,9 @@ struct PBVHTask {
     if (from_chunk) {
       userdata_chunk = MEM_mallocN(settings->userdata_chunk_size, "PBVHTask");
       memcpy(userdata_chunk, from_chunk, settings->userdata_chunk_size);
-      userdata_chunk_free = true;
     }
     else {
       userdata_chunk = NULL;
-      userdata_chunk_free = false;
     }
   }
 
