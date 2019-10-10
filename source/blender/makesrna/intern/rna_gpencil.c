@@ -1457,6 +1457,12 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
       prop, "Solo Mode", "In Paint mode display only layers with keyframe in current frame");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
+  /* Layer is used as Ruler. */
+  prop = RNA_def_property(srna, "is_ruler", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_IS_RULER);
+  RNA_def_property_ui_text(prop, "Ruler", "This is a special ruler layer");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
   /* exposed as layers.active */
 #  if 0
   prop = RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);

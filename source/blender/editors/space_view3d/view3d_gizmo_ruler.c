@@ -407,6 +407,17 @@ static bool view3d_ruler_item_mousemove(RulerInfo *ruler_info,
 /** \name Ruler/Grease Pencil Conversion
  * \{ */
 
+/* Helper: Find the layer created as ruler. */
+static bGPDlayer *view3d_ruler_layer_get(bGPdata *gpd)
+{
+  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    if (gpl->flag & GP_LAYER_IS_RULER) {
+      return gpl;
+    }
+  }
+  return NULL;
+}
+
 #define RULER_ID "RulerData3D"
 static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
 {
@@ -427,12 +438,12 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
   }
   gpd = scene->gpd;
 
-  gpl = BLI_findstring(&gpd->layers, ruler_name, offsetof(bGPDlayer, info));
+  gpl = view3d_ruler_layer_get(gpd);
   if (gpl == NULL) {
     gpl = BKE_gpencil_layer_addnew(gpd, ruler_name, false);
     copy_v4_v4(gpl->color, U.gpencil_new_layer_col);
     gpl->thickness = 1;
-    gpl->flag |= GP_LAYER_HIDE;
+    gpl->flag |= GP_LAYER_HIDE | GP_LAYER_IS_RULER;
   }
 
   gpf = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_NEW);
@@ -485,8 +496,7 @@ static bool view3d_ruler_from_gpencil(const bContext *C, wmGizmoGroup *gzgroup)
 
   if (scene->gpd) {
     bGPDlayer *gpl;
-    const char *ruler_name = RULER_ID;
-    gpl = BLI_findstring(&scene->gpd->layers, ruler_name, offsetof(bGPDlayer, info));
+    gpl = view3d_ruler_layer_get(scene->gpd);
     if (gpl) {
       bGPDframe *gpf;
       gpf = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_USE_PREV);

@@ -1272,6 +1272,22 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
         ma->blend_method = MA_BM_BLEND;
       }
     }
+
+    {
+      /* Update all ruler layers to set new flag. */
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        bGPdata *gpd = scene->gpd;
+        if (gpd == NULL) {
+          continue;
+        }
+        for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+          if (STREQ(gpl->info, "RulerData3D")) {
+            gpl->flag |= GP_LAYER_IS_RULER;
+            break;
+          }
+        }
+      }
+    }
   }
 }
 
