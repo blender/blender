@@ -1320,7 +1320,7 @@ class _defs_gpencil_paint:
             icon_prefix="brush.gpencil_draw.",
             type=bpy.types.Brush,
             attr="gpencil_tool",
-            cursor='PAINT_CROSS',
+            cursor='DOT',
             tooldef_keywords=dict(
                 operator="gpencil.draw",
             ),
