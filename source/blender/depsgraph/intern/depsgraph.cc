@@ -76,7 +76,7 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
       ctime(BKE_scene_frame_get(scene)),
       scene_cow(NULL),
       is_active(false),
-      debug_is_evaluating(false),
+      is_evaluating(false),
       is_render_pipeline_depsgraph(false)
 {
   BLI_spin_init(&lock);
@@ -332,6 +332,12 @@ void DEG_graph_free(Depsgraph *graph)
   DEG::Depsgraph *deg_depsgraph = reinterpret_cast<DEG::Depsgraph *>(graph);
   DEG::unregister_graph(deg_depsgraph);
   OBJECT_GUARDED_DELETE(deg_depsgraph, Depsgraph);
+}
+
+bool DEG_is_evaluating(struct Depsgraph *depsgraph)
+{
+  DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+  return deg_graph->is_evaluating;
 }
 
 bool DEG_is_active(const struct Depsgraph *depsgraph)

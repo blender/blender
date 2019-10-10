@@ -246,12 +246,6 @@ void DEG_stats_simple(const Depsgraph *graph,
   }
 }
 
-bool DEG_debug_is_evaluating(struct Depsgraph *depsgraph)
-{
-  DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
-  return deg_graph->debug_is_evaluating;
-}
-
 static DEG::string depsgraph_name_for_logging(struct Depsgraph *depsgraph)
 {
   const char *name = DEG_debug_name_get(depsgraph);

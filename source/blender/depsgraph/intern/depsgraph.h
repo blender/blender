@@ -198,7 +198,7 @@ struct Depsgraph {
   int debug_flags;
   string debug_name;
 
-  bool debug_is_evaluating;
+  bool is_evaluating;
 
   /* Is set to truth for dependency graph which are used for post-processing (compositor and
    * sequencer).
