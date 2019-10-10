@@ -108,6 +108,7 @@ static int ui_do_but_EXIT(bContext *C,
                           const wmEvent *event);
 static bool ui_but_find_select_in_enum__cmp(const uiBut *but_a, const uiBut *but_b);
 static void ui_textedit_string_set(uiBut *but, struct uiHandleButtonData *data, const char *str);
+static void button_tooltip_timer_reset(bContext *C, uiBut *but);
 
 #ifdef USE_KEYNAV_LIMIT
 static void ui_mouse_motion_keynav_init(struct uiKeyNavLock *keynav, const wmEvent *event);
@@ -3967,8 +3968,11 @@ static bool ui_do_but_extra_operator_icon(bContext *C,
   uiButExtraOpIcon *op_icon = ui_but_extra_operator_icon_mouse_over_get(but, data, event);
 
   if (op_icon) {
+    ED_region_tag_redraw(data->region);
+    button_tooltip_timer_reset(C, but);
+
     ui_but_extra_operator_icon_apply(C, but, op_icon);
-    button_activate_exit(C, but, data, false, false);
+    /* Note: 'but', 'data' may now be freed, don't access. */
     return true;
   }
 
