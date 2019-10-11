@@ -58,6 +58,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+#include "interface_intern.h"
 #include "interface_eyedropper_intern.h"
 
 typedef struct EyedropperGPencil {
@@ -67,7 +68,7 @@ typedef struct EyedropperGPencil {
 } EyedropperGPencil;
 
 /* Helper: Draw status message while the user is running the operator */
-static void eyedropper_gpencil_status_indicators(bContext *C, EyedropperGPencil *eye)
+static void eyedropper_gpencil_status_indicators(bContext *C, EyedropperGPencil *UNUSED(eye))
 {
   char msg_str[UI_MAX_DRAW_STR];
   BLI_strncpy(
