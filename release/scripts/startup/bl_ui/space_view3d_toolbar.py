@@ -1873,7 +1873,8 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
                 from bl_ui.properties_paint_common import (
                     brush_basic_gpencil_paint_settings,
                 )
-                brush_basic_gpencil_paint_settings(layout, context, brush, compact=True)
+                tool = context.workspace.tools.from_space_view3d_mode(context.mode, create=False)
+                brush_basic_gpencil_paint_settings(layout, context, brush, tool, compact=True, is_toolbar=False)
 
 
 # Grease Pencil drawing brushes options
