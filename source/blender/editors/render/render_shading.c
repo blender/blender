@@ -103,15 +103,17 @@ static Object **object_array_for_shading(bContext *C, uint *r_objects_len)
   ScrArea *sa = CTX_wm_area(C);
   SpaceProperties *sbuts = NULL;
   View3D *v3d = NULL;
-  if (sa->spacetype == SPACE_PROPERTIES) {
-    sbuts = sa->spacedata.first;
-  }
-  else if (sa->spacetype == SPACE_VIEW3D) {
-    v3d = sa->spacedata.first;
+  if (sa != NULL) {
+    if (sa->spacetype == SPACE_PROPERTIES) {
+      sbuts = sa->spacedata.first;
+    }
+    else if (sa->spacetype == SPACE_VIEW3D) {
+      v3d = sa->spacedata.first;
+    }
   }
 
   Object **objects;
-  if (sbuts && sbuts->pinid && GS(sbuts->pinid->name) == ID_OB) {
+  if (sbuts != NULL && sbuts->pinid && GS(sbuts->pinid->name) == ID_OB) {
     objects = MEM_mallocN(sizeof(*objects), __func__);
     objects[0] = (Object *)sbuts->pinid;
     *r_objects_len = 1;
