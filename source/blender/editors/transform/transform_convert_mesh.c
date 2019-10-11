@@ -1451,7 +1451,7 @@ void createTransUVs(bContext *C, TransInfo *t)
       const bool use_facesel = (ts->uv_flag & UV_SYNC_SELECTION) == 0;
       elementmap = BM_uv_element_map_create(em->bm, use_facesel, false, true);
       if (elementmap == NULL) {
-        return;
+        continue;
       }
 
       if (is_prop_connected) {
