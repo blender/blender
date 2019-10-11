@@ -334,7 +334,8 @@ int UI_popover_panel_invoke(bContext *C, const char *idname, bool keep_open, Rep
   }
 
   if (block) {
-    UI_block_active_only_flagged_buttons(C, CTX_wm_region(C), block);
+    uiPopupBlockHandle *handle = block->handle;
+    UI_block_active_only_flagged_buttons(C, handle->region, block);
   }
   return OPERATOR_INTERFACE;
 }

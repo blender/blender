@@ -7497,6 +7497,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
   data = MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData");
   data->wm = CTX_wm_manager(C);
   data->window = CTX_wm_window(C);
+  BLI_assert(ar != NULL);
   data->region = ar;
 
 #ifdef USE_CONT_MOUSE_CORRECT
@@ -8009,6 +8010,7 @@ void ui_but_execute_begin(struct bContext *UNUSED(C),
   *active_back = but->active;
   data = MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData_Fake");
   but->active = data;
+  BLI_assert(ar != NULL);
   data->region = ar;
 }
 
