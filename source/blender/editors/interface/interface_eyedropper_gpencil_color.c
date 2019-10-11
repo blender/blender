@@ -68,7 +68,7 @@ typedef struct EyedropperGPencil {
 } EyedropperGPencil;
 
 /* Helper: Draw status message while the user is running the operator */
-static void eyedropper_gpencil_status_indicators(bContext *C, EyedropperGPencil *UNUSED(eye))
+static void eyedropper_gpencil_status_indicators(bContext *C)
 {
   char msg_str[UI_MAX_DRAW_STR];
   BLI_strncpy(
@@ -268,8 +268,7 @@ static int eyedropper_gpencil_invoke(bContext *C, wmOperator *op, const wmEvent 
     /* Add modal temp handler. */
     WM_event_add_modal_handler(C, op);
     /* Status message. */
-    EyedropperGPencil *eye = (EyedropperGPencil *)op->customdata;
-    eyedropper_gpencil_status_indicators(C, eye);
+    eyedropper_gpencil_status_indicators(C);
 
     return OPERATOR_RUNNING_MODAL;
   }
