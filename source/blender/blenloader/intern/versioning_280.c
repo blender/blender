@@ -3871,10 +3871,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         scene->toolsettings->snap_node_mode = SCE_SNAP_MODE_GRID;
       }
     }
-  }
 
-  {
-    /* Versioning code until next subversion bump goes here. */
     if (!DNA_struct_elem_find(
             fd->filesdna, "LayerCollection", "short", "local_collections_bits")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
@@ -3931,5 +3928,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+  }
+
+  {
+    /* Versioning code until next subversion bump goes here. */
   }
 }
