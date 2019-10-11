@@ -2145,6 +2145,7 @@ static int convert_exec(bContext *C, wmOperator *op)
   const short target = RNA_enum_get(op->ptr, "target");
   bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
   int a, mballConverted = 0;
+  bool gpencilConverted = false;
 
   /* don't forget multiple users! */
 
@@ -2398,6 +2399,7 @@ static int convert_exec(bContext *C, wmOperator *op)
           copy_v3_v3(gpencil_ob->rot, ob->rot);
           copy_v3_v3(gpencil_ob->scale, ob->scale);
           BKE_gpencil_convert_curve(bmain, scene, gpencil_ob, ob, false, false, true);
+          gpencilConverted = true;
         }
       }
     }
@@ -2492,6 +2494,17 @@ static int convert_exec(bContext *C, wmOperator *op)
             if (BKE_mball_is_basis(ob_mball)) {
               ED_object_base_free_and_unlink(bmain, scene, ob_mball);
             }
+          }
+        }
+      }
+      FOREACH_SCENE_OBJECT_END;
+    }
+    /* Remove curves converted to Grease Pencil object. */
+    if (gpencilConverted) {
+      FOREACH_SCENE_OBJECT_BEGIN (scene, ob_curve) {
+        if (ob_curve->type == OB_CURVE) {
+          if (ob_curve->flag & OB_DONE) {
+            ED_object_base_free_and_unlink(bmain, scene, ob_curve);
           }
         }
       }
