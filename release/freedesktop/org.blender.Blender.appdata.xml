@@ -40,6 +40,27 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="2.81" date="2019-11-14">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Many sculpt tools and poly build tool for retopology</li>
+                    <li>Voxel remesh and quad remesh</li>
+                    <li>Transform origins, new snapping, mirroring and auto merge options</li>
+                    <li>Revamped shaders for texturing</li>
+                    <li>Cycles denoising with OpenImageDenoise and NVIDIA RTX support</li>
+                    <li>Library overrides to make local overrides to linked characters and other data</li>
+                    <li>
+                </ul>
+                <ul>
+                <p>Enhancements:</p>
+                    <li>Eevee shadows, transparency and bump mapping redesigned</li>
+                    <li>Viewport options for look development with Cycles and Eevee</li>
+                    <li>Finer control over rotations and scale in bones, constraints and drivers</li>
+                    <li>Outliner improvements, new file browser and batch rename</li>
+                </ul>
+            </description>
+        </release>
         <release version="2.80" date="2019-07-30">
             <description>
                 <p>New features:</p>
