@@ -20,6 +20,7 @@
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 
@@ -27,6 +28,7 @@ class Builder:
     def __init__(self, name, branch):
         self.name = name
         self.branch = branch
+        self.is_release_branch = re.match("^blender-v(.*)-release$", branch) is not None
 
         # Buildbot runs from build/ directory
         self.blender_dir = os.path.abspath(os.path.join('..', 'blender.git'))
