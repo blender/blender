@@ -32,8 +32,9 @@ def get_package_name(builder, platform=None):
     package_name = 'blender-' + info.full_version
     if platform:
       package_name += '-' + platform
-    if builder.branch != 'master' and info.is_development_build:
-        package_name = builder.branch + "-" + package_name
+    if not (builder.branch == 'master' or builder.is_release_branch):
+        if info.is_development_build:
+            package_name = builder.branch + "-" + package_name
 
     return package_name
 
@@ -47,6 +48,7 @@ def create_buildbot_upload_zip(builder, package_files):
     try:
         z = zipfile.ZipFile(buildbot_upload_zip, "w", compression=zipfile.ZIP_STORED)
         for filepath, filename in package_files:
+            print("Packaged", filename)
             z.write(filepath, arcname=filename)
         z.close()
     except Exception as ex:
