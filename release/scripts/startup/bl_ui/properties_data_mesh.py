@@ -485,6 +485,7 @@ class DATA_PT_remesh(MeshButtonsPanel, Panel):
         else:
             col.operator("object.quadriflow_remesh", text="QuadriFlow Remesh")
 
+
 class DATA_PT_customdata(MeshButtonsPanel, Panel):
     bl_label = "Geometry Data"
     bl_options = {'DEFAULT_CLOSED'}

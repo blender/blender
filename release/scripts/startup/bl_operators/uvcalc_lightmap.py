@@ -565,7 +565,12 @@ def unwrap(operator, context, **kwargs):
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
     # define list of meshes
-    meshes = list({me for obj in context.selected_objects if obj.type == 'MESH' for me in (obj.data,) if me.polygons and me.library is None})
+    meshes = list({
+        me for obj in context.selected_objects
+        if obj.type == 'MESH'
+        for me in (obj.data,)
+        if me.polygons and me.library is None
+    })
 
     if not meshes:
         operator.report({'ERROR'}, "No mesh object")

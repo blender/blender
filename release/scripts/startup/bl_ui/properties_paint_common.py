@@ -419,7 +419,7 @@ def brush_basic_gpencil_paint_settings(layout, _context, brush, tool, *, compact
         row = layout.row(align=True)
         row.prop(gp_settings, "pen_strength", slider=True)
         row.prop(gp_settings, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
-    
+
     if tool.idname in {"builtin.arc", "builtin.curve", "builtin.line", "builtin.box", "builtin.circle"}:
         settings = _context.tool_settings.gpencil_sculpt
         if is_toolbar:

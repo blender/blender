@@ -1392,7 +1392,6 @@ class _defs_gpencil_paint:
             keymap=(),
         )
 
-
     @ToolDef.from_fn
     def eyedropper():
         return dict(
@@ -1403,6 +1402,7 @@ class _defs_gpencil_paint:
             widget=None,
             keymap=(),
         )
+
 
 class _defs_gpencil_edit:
     @ToolDef.from_fn
