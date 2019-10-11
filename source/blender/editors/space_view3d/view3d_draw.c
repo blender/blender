@@ -1422,18 +1422,24 @@ static void draw_grid_unit_name(
 {
   if (!rv3d->is_persp && RV3D_VIEW_IS_AXIS(rv3d->view)) {
     const char *grid_unit = NULL;
+    int font_id = BLF_default();
     ED_view3d_grid_view_scale(scene, v3d, rv3d, &grid_unit);
 
     if (grid_unit) {
       char numstr[32] = "";
-      UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
+      UI_FontThemeColor(font_id, TH_TEXT_HI);
       if (v3d->grid != 1.0f) {
         BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
       }
 
       *yoffset -= U.widget_unit;
+      BLF_enable(font_id, BLF_SHADOW);
+      BLF_shadow(font_id, 5, (const float[4]){0.0f, 0.0f, 0.0f, 1.0f});
+      BLF_shadow_offset(font_id, 1, -1);
       BLF_draw_default_ascii(
           xoffset, *yoffset, 0.0f, numstr[0] ? numstr : grid_unit, sizeof(numstr));
+
+      BLF_disable(font_id, BLF_SHADOW);
     }
   }
 }

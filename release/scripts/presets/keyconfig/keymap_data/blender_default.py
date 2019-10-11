@@ -5869,6 +5869,18 @@ def km_3d_view_tool_paint_gpencil_cutter(params):
     )
 
 
+def km_3d_view_tool_paint_gpencil_eyedropper(params):
+    return (
+        "3D View Tool: Paint Gpencil, Eyedropper",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("ui.eyedropper_gpencil_color", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            ("ui.eyedropper_gpencil_color", {"type": params.tool_mouse, "value": 'PRESS', "shift": True}, None),
+            ("ui.eyedropper_gpencil_color", {"type": params.tool_mouse, "value": 'PRESS', "shift": True, "ctrl": True}, None),
+        ]},
+    )
+
+
 def km_3d_view_tool_edit_gpencil_select(params):
     return (
         "3D View Tool: Edit Gpencil, Tweak",
@@ -6206,6 +6218,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_paint_gpencil_arc(params),
         km_3d_view_tool_paint_gpencil_curve(params),
         km_3d_view_tool_paint_gpencil_cutter(params),
+        km_3d_view_tool_paint_gpencil_eyedropper(params),
         km_3d_view_tool_edit_gpencil_select(params),
         km_3d_view_tool_edit_gpencil_select_box(params),
         km_3d_view_tool_edit_gpencil_select_circle(params),

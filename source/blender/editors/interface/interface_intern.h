@@ -971,6 +971,9 @@ void UI_OT_eyedropper_depth(struct wmOperatorType *ot);
 /* interface_eyedropper_driver.c */
 void UI_OT_eyedropper_driver(struct wmOperatorType *ot);
 
+/* interface_eyedropper_gpencil_color.c */
+void UI_OT_eyedropper_gpencil_color(struct wmOperatorType *ot);
+
 /* interface_util.c */
 
 /**

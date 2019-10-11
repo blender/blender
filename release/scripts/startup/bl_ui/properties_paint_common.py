@@ -367,7 +367,7 @@ def brush_basic_sculpt_settings(layout, context, brush, *, compact=False):
         layout.row().prop(brush, "direction", expand=True, **({"text": ""} if compact else {}))
 
 
-def brush_basic_gpencil_paint_settings(layout, _context, brush, *, compact=True):
+def brush_basic_gpencil_paint_settings(layout, _context, brush, tool, *, compact=True, is_toolbar=False):
     gp_settings = brush.gpencil_settings
 
     # Brush details
@@ -395,6 +395,23 @@ def brush_basic_gpencil_paint_settings(layout, _context, brush, *, compact=True)
         row = layout.row(align=True)
         row.prop(gp_settings, "fill_draw_mode", text="Boundary")
         row.prop(gp_settings, "show_fill_boundary", text="", icon='GRID')
+        # Fill options
+        if is_toolbar:
+            settings = _context.tool_settings.gpencil_sculpt
+            row = layout.row(align=True)
+            sub = row.row(align=True)
+            sub.popover(
+                panel="TOPBAR_PT_gpencil_fill",
+                text="Fill Options",
+            )
+        else:
+            row = layout.row(align=True)
+            row.prop(gp_settings, "fill_factor", text="Resolution")
+            if gp_settings.fill_draw_mode != 'STROKE':
+                row = layout.row(align=True)
+                row.prop(gp_settings, "show_fill", text="Ignore Transparent Strokes")
+                row = layout.row(align=True)
+                row.prop(gp_settings, "fill_threshold", text="Threshold")
     else:  # brush.gpencil_tool == 'DRAW':
         row = layout.row(align=True)
         row.prop(brush, "size", text="Radius")
@@ -402,6 +419,25 @@ def brush_basic_gpencil_paint_settings(layout, _context, brush, *, compact=True)
         row = layout.row(align=True)
         row.prop(gp_settings, "pen_strength", slider=True)
         row.prop(gp_settings, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
+    
+    if tool.idname in {"builtin.arc", "builtin.curve", "builtin.line", "builtin.box", "builtin.circle"}:
+        settings = _context.tool_settings.gpencil_sculpt
+        if is_toolbar:
+            row = layout.row(align=True)
+            row.prop(settings, "use_thickness_curve", text="", icon='CURVE_DATA')
+            sub = row.row(align=True)
+            sub.active = settings.use_thickness_curve
+            sub.popover(
+                panel="TOPBAR_PT_gpencil_primitive",
+                text="Thickness Profile",
+            )
+        else:
+            row = layout.row(align=True)
+            row.prop(settings, "use_thickness_curve", text="Use Thickness Profile")
+            sub = row.row(align=True)
+            if settings.use_thickness_curve:
+                # Curve
+                layout.template_curve_mapping(settings, "thickness_primitive_curve", brush=True)
 
 
 def brush_basic_gpencil_sculpt_settings(layout, context, brush, *, compact=False):
