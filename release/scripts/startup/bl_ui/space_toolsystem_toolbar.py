@@ -1393,17 +1393,6 @@ class _defs_gpencil_paint:
         )
 
 
-    @ToolDef.from_fn
-    def eyedropper():
-        return dict(
-            idname="builtin.eyedropper",
-            label="Eyedropper",
-            icon="ops.paint.weight_sample",
-            cursor='EYEDROPPER',
-            widget=None,
-            keymap=(),
-        )
-
 class _defs_gpencil_edit:
     @ToolDef.from_fn
     def bend():
@@ -2054,8 +2043,6 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_gpencil_paint.generate_from_brushes,
             _defs_gpencil_paint.cutter,
-            None,
-            _defs_gpencil_paint.eyedropper,
             None,
             _defs_gpencil_paint.line,
             _defs_gpencil_paint.arc,

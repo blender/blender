@@ -351,7 +351,28 @@ class _draw_tool_settings_context_mode:
         from bl_ui.properties_paint_common import (
             brush_basic_gpencil_paint_settings,
         )
-        brush_basic_gpencil_paint_settings(layout, context, brush, tool, compact=True, is_toolbar=True)
+        brush_basic_gpencil_paint_settings(layout, context, brush, compact=True)
+
+        # FIXME: tools must use their own UI drawing!
+        if tool.idname in {"builtin.arc", "builtin.curve", "builtin.line", "builtin.box", "builtin.circle"}:
+            settings = context.tool_settings.gpencil_sculpt
+            row = layout.row(align=True)
+            row.prop(settings, "use_thickness_curve", text="", icon='CURVE_DATA')
+            sub = row.row(align=True)
+            sub.active = settings.use_thickness_curve
+            sub.popover(
+                panel="TOPBAR_PT_gpencil_primitive",
+                text="Thickness Profile",
+            )
+
+        if brush.gpencil_tool == 'FILL':
+            settings = context.tool_settings.gpencil_sculpt
+            row = layout.row(align=True)
+            sub = row.row(align=True)
+            sub.popover(
+                panel="TOPBAR_PT_gpencil_fill",
+                text="Fill Options",
+            )
 
     @staticmethod
     def SCULPT_GPENCIL(context, layout, tool):

@@ -50,7 +50,6 @@ set(SRC
   interface_eyedropper_datablock.c
   interface_eyedropper_depth.c
   interface_eyedropper_driver.c
-  interface_eyedropper_gpencil_color.c
   interface_handlers.c
   interface_icons.c
   interface_icons_event.c
