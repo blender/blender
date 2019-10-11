@@ -1181,7 +1181,7 @@ static int select_timeline_marker_frame(ListBase *markers,
 
     LISTBASE_CIRCULAR_FORWARD_BEGIN (markers, marker, marker_selected) {
       /* this way a not-extend select will always give 1 selected marker */
-      if ((marker->frame == frame)) {
+      if (marker->frame == frame) {
         marker->flag ^= SELECT;
         break;
       }

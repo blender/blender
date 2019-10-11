@@ -73,7 +73,7 @@ struct ThreadLocalBuffers {
   }
 };
 
-thread_local ThreadLocalBuffers local_storage;
+static thread_local ThreadLocalBuffers local_storage;
 
 void *BLI_temporary_allocate(uint size)
 {
