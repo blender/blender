@@ -180,9 +180,9 @@ def submodules_update(args, release_version, branch):
             if msg:
                 skip_msg += submodule_path + " skipped: "  + msg + "\n"
             else:
-                if make_utils.git_branch(args.git_command) != branch:
-                    call([args.git_command, "checkout", branch])
-                call([args.git_command, "pull", "--rebase", "origin", branch])
+                if make_utils.git_branch(args.git_command) != submodule_branch:
+                    call([args.git_command, "checkout", submodule_branch])
+                call([args.git_command, "pull", "--rebase", "origin", submodule_branch])
         finally:
             os.chdir(cwd)
 
