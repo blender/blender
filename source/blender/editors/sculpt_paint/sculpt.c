@@ -1248,7 +1248,7 @@ static void sculpt_automasking_end(Object *ob)
 static bool sculpt_automasking_is_constrained_by_radius(Brush *br)
 {
   /* 2D falloff is not constrained by radius */
-  if (br->falloff_shape & BRUSH_AIRBRUSH) {
+  if (br->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
     return false;
   }
 

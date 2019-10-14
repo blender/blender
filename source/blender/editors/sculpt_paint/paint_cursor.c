@@ -1359,13 +1359,14 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
     if ((mode == PAINT_MODE_SCULPT) && ss && !ups->stroke_active) {
       prev_active_vertex_index = ss->active_vertex_index;
       is_cursor_over_mesh = sculpt_cursor_geometry_info_update(
-          C, &gi, mouse, !(brush->falloff_shape & BRUSH_AIRBRUSH));
+          C, &gi, mouse, (brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
     }
     /* Use special paint crosshair cursor in all paint modes*/
     wmWindow *win = CTX_wm_window(C);
     WM_cursor_set(win, WM_CURSOR_PAINT);
 
-    if ((mode == PAINT_MODE_SCULPT) && ss && !(brush->falloff_shape & BRUSH_AIRBRUSH)) {
+    if ((mode == PAINT_MODE_SCULPT) && ss &&
+        (brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE)) {
       Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
       if (!ups->stroke_active) {
