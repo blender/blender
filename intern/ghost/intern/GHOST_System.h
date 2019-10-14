@@ -328,6 +328,20 @@ class GHOST_System : public GHOST_ISystem {
     return GHOST_kFailure;
   };
 
+  /***************************************************************************************
+   * Debugging
+   ***************************************************************************************/
+
+  /**
+   * Specify whether debug messages are to be shown.
+   */
+  virtual void initDebug(bool is_debug_enabled);
+
+  /**
+   * Check whether debug messages are to be shown.
+   */
+  virtual bool isDebugEnabled();
+
  protected:
   /**
    * Initialize the system.
@@ -378,6 +392,8 @@ class GHOST_System : public GHOST_ISystem {
 
   /** Which tablet API to use. */
   GHOST_TTabletAPI m_tabletAPI;
+
+  bool m_is_debug_enabled;
 };
 
 inline GHOST_TimerManager *GHOST_System::getTimerManager() const

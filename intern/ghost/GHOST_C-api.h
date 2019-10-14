@@ -59,6 +59,11 @@ typedef int (*GHOST_EventCallbackProcPtr)(GHOST_EventHandle event, GHOST_TUserDa
 extern GHOST_SystemHandle GHOST_CreateSystem(void);
 
 /**
+ * Specifies whether debug messages are to be enabled for the specific system handle.
+ */
+extern void GHOST_SystemInitDebug(GHOST_SystemHandle systemhandle, int is_debug_enabled);
+
+/**
  * Disposes the one and only system.
  * \param systemhandle The handle to the system
  * \return An indication of success.

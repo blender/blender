@@ -46,7 +46,8 @@ GHOST_System::GHOST_System()
 #ifdef WITH_INPUT_NDOF
       m_ndofManager(0),
 #endif
-      m_tabletAPI(GHOST_kTabletAutomatic)
+      m_tabletAPI(GHOST_kTabletAutomatic),
+      m_is_debug_enabled(false)
 {
 }
 
@@ -387,4 +388,14 @@ bool GHOST_System::useNativePixel(void)
 void GHOST_System::useWindowFocus(const bool use_focus)
 {
   m_windowFocus = use_focus;
+}
+
+void GHOST_System::initDebug(bool is_debug_enabled)
+{
+  m_is_debug_enabled = is_debug_enabled;
+}
+
+bool GHOST_System::isDebugEnabled()
+{
+  return m_is_debug_enabled;
 }

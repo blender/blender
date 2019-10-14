@@ -458,6 +458,20 @@ class GHOST_ISystem {
                                         const char * /*link*/,
                                         GHOST_DialogOptions /*dialog_options*/) const = 0;
 
+  /***************************************************************************************
+   * Debugging
+   ***************************************************************************************/
+
+  /**
+   * Specify whether debug messages are to be shown.
+   */
+  virtual void initDebug(bool is_debug_enabled) = 0;
+
+  /**
+   * Check whether debug messages are to be shown.
+   */
+  virtual bool isDebugEnabled() = 0;
+
  protected:
   /**
    * Initialize the system.

@@ -2383,6 +2383,11 @@ GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType,
  */
 int GHOST_X11_ApplicationErrorHandler(Display *display, XErrorEvent *event)
 {
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  if (!system->isDebugEnabled()) {
+    return 0;
+  }
+
   char error_code_str[512];
 
   XGetErrorText(display, event->error_code, error_code_str, sizeof(error_code_str));
@@ -2404,6 +2409,11 @@ int GHOST_X11_ApplicationErrorHandler(Display *display, XErrorEvent *event)
 
 int GHOST_X11_ApplicationIOErrorHandler(Display * /*display*/)
 {
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  if (!system->isDebugEnabled()) {
+    return 0;
+  }
+
   fprintf(stderr, "Ignoring Xlib error: error IO\n");
 
   /* No exit! - but keep lint happy */
