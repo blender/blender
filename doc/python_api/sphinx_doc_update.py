@@ -118,11 +118,13 @@ def main():
             "import sys, bpy\n"
             "with open(sys.argv[-1], 'w') as f:\n"
             "    is_release = bpy.app.version_cycle in {'rc', 'release'}\n"
+            "    is_beta = bpy.app.version_cycle in {'beta'}\n"
             "    branch = bpy.app.build_branch.split()[0].decode()\n"
             "    f.write('%d\\n' % is_release)\n"
+            "    f.write('%d\\n' % is_beta)\n"
             "    f.write('%s\\n' % branch)\n"
             "    f.write('%d.%d%s\\n' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
-            "            if is_release else '%s\\n' % branch)\n"
+            "            if (is_release or is_beta) else '%s\\n' % branch)\n"
             "    f.write('%d_%d%s_release' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
             "            if is_release else '%d_%d_%d' % bpy.app.version)\n"
         )
@@ -130,8 +132,9 @@ def main():
                        "--python-expr", getver_script, "--", getver_file)
         subprocess.run(get_ver_cmd)
         with open(getver_file) as f:
-            is_release, branch, blenver, blenver_zip = f.read().split("\n")
+            is_release, is_beta, branch, blenver, blenver_zip = f.read().split("\n")
             is_release = bool(int(is_release))
+            is_beta = bool(int(is_beta))
         os.remove(getver_file)
 
         # IV) Build doc.
@@ -146,7 +149,10 @@ def main():
         api_name = blenver
         api_dir = os.path.join(args.mirror_dir, api_name)
         if os.path.exists(api_dir):
-            shutil.rmtree(api_dir)
+            if os.path.islink(api_dir):
+                os.remove(api_dir)
+            else:
+                shutil.rmtree(api_dir)
         os.rename(os.path.join(tmp_dir, "sphinx-out"), api_dir)
 
     # VI) Create zip archive.
@@ -168,6 +174,9 @@ def main():
         with open(os.path.join(args.mirror_dir, "250PythonDoc/index.html"), 'w') as f:
             f.write("<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\""
                     "content=\"0;url=../%s/\"></head><body>Redirecting...</body></html>" % api_name)
+    elif is_beta:
+        # We do not have any particular symlink for that stage.
+        pass
     elif branch == "master":
         with open(os.path.join(args.mirror_dir, "blender_python_api/index.html"), 'w') as f:
             f.write("<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\""
