@@ -81,7 +81,7 @@ BLI_INLINE int mesh_render_mat_len_get(Mesh *me)
 
 typedef struct MeshBufferCache {
   /* Every VBO below contains at least enough
-   * data for every loops in the mesh (except fdots).
+   * data for every loops in the mesh (except fdots and skin roots).
    * For some VBOs, it extends to (in this exact order) :
    * loops + loose_edges*2 + loose_verts */
   struct {
@@ -104,6 +104,7 @@ typedef struct MeshBufferCache {
     GPUVertBuf *fdots_uv;
     // GPUVertBuf *fdots_edit_data; /* inside fdots_nor for now. */
     GPUVertBuf *fdots_edituv_data;
+    GPUVertBuf *skin_roots;
     /* Selection */
     GPUVertBuf *vert_idx; /* extend */
     GPUVertBuf *edge_idx; /* extend */
@@ -157,6 +158,7 @@ typedef enum DRWBatchFlag {
   MBC_WIRE_LOOPS = (1 << 24),
   MBC_WIRE_LOOPS_UVS = (1 << 25),
   MBC_SURF_PER_MAT = (1 << 26),
+  MBC_SKIN_ROOTS = (1 << 27),
 } DRWBatchFlag;
 
 #define MBC_EDITUV \
@@ -185,6 +187,7 @@ typedef struct MeshBatchCache {
     GPUBatch *edit_lnor;
     GPUBatch *edit_fdots;
     GPUBatch *edit_mesh_analysis;
+    GPUBatch *edit_skin_roots;
     /* Edit UVs */
     GPUBatch *edituv_faces_stretch_area;
     GPUBatch *edituv_faces_stretch_angle;
