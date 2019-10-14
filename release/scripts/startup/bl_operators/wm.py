@@ -1107,7 +1107,7 @@ class WM_OT_doc_view(Operator):
     bl_label = "View Documentation"
 
     doc_id: doc_id
-    if bpy.app.version_cycle in {"release", "rc"}:
+    if bpy.app.version_cycle in {"release", "rc", "beta"}:
         _prefix = ("https://docs.blender.org/api/%d.%d%s" %
                    (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char))
     else:
