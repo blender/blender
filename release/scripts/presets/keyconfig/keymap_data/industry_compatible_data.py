@@ -1183,6 +1183,7 @@ def km_file_browser(params):
          {"properties": [("data_path", 'space_data.params.show_hidden')]}),
         ("file.directory_new", {"type": 'I', "value": 'PRESS'},
          {"properties": [("confirm", False)]}),
+        ("file.rename", {"type": 'F2', "value": 'PRESS'}, None),
         ("file.delete", {"type": 'DEL', "value": 'PRESS'}, None),
         ("file.smoothscroll", {"type": 'TIMER1', "value": 'ANY', "any": True}, None),
         ("wm.context_toggle", {"type": 'T', "value": 'PRESS'},
