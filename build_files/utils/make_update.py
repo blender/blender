@@ -161,7 +161,7 @@ def submodules_update(args, release_version, branch):
         ("release/scripts/addons", branch),
         ("release/scripts/addons_contrib", branch),
         ("release/datafiles/locale", branch),
-        ("source/tools", "master"),
+        ("source/tools", branch),
     ]
 
     # Initialize submodules only if needed.

@@ -1468,8 +1468,12 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
 
   new_id->flag = (new_id->flag & ~copy_idflag_mask) | (id->flag & copy_idflag_mask);
 
+  /* We do not want any handling of usercount in code duplicating the data here, we do that all
+   * at once in id_copy_libmanagement_cb() at the end. */
+  const int copy_data_flag = orig_flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+
   if (id->properties) {
-    new_id->properties = IDP_CopyProperty_ex(id->properties, flag);
+    new_id->properties = IDP_CopyProperty_ex(id->properties, copy_data_flag);
   }
 
   /* XXX Again... We need a way to control what we copy in a much more refined way.
@@ -1488,10 +1492,9 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
     if ((flag & LIB_ID_COPY_NO_ANIMDATA) == 0) {
       /* Note that even though horrors like root nodetrees are not in bmain, the actions they use
        * in their anim data *are* in bmain... super-mega-hooray. */
-      int animdata_flag = orig_flag;
-      BLI_assert((animdata_flag & LIB_ID_COPY_ACTIONS) == 0 ||
-                 (animdata_flag & LIB_ID_CREATE_NO_MAIN) == 0);
-      iat->adt = BKE_animdata_copy(bmain, iat->adt, animdata_flag);
+      BLI_assert((copy_data_flag & LIB_ID_COPY_ACTIONS) == 0 ||
+                 (copy_data_flag & LIB_ID_CREATE_NO_MAIN) == 0);
+      iat->adt = BKE_animdata_copy(bmain, iat->adt, copy_data_flag);
     }
     else {
       iat->adt = NULL;
