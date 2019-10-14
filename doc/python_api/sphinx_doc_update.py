@@ -94,10 +94,10 @@ def main():
 
     rsync_base = "rsync://%s@%s:%s" % (args.user, args.rsync_server, args.rsync_root)
 
-    blenver = blenver_zip = ""
+    blenver = api_blenver = api_blenver_zip = ""
     api_name = ""
     branch = ""
-    is_release = False
+    is_release = is_beta = False
 
     # I) Update local mirror using rsync.
     rsync_mirror_cmd = ("rsync", "--delete-after", "-avzz", rsync_base, args.mirror_dir)
@@ -123,6 +123,7 @@ def main():
             "    f.write('%d\\n' % is_release)\n"
             "    f.write('%d\\n' % is_beta)\n"
             "    f.write('%s\\n' % branch)\n"
+            "    f.write('%d.%d%s\\n' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char))\n"
             "    f.write('%d.%d%s\\n' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
             "            if (is_release or is_beta) else '%s\\n' % branch)\n"
             "    f.write('%d_%d%s_release' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
@@ -132,7 +133,7 @@ def main():
                        "--python-expr", getver_script, "--", getver_file)
         subprocess.run(get_ver_cmd)
         with open(getver_file) as f:
-            is_release, is_beta, branch, blenver, blenver_zip = f.read().split("\n")
+            is_release, is_beta, branch, blenver, api_blenver, api_blenver_zip = f.read().split("\n")
             is_release = bool(int(is_release))
             is_beta = bool(int(is_beta))
         os.remove(getver_file)
@@ -146,7 +147,7 @@ def main():
         os.chdir(curr_dir)
 
         # V) Cleanup existing matching dir in server mirror (if any), and copy new doc.
-        api_name = blenver
+        api_name = api_blenver
         api_dir = os.path.join(args.mirror_dir, api_name)
         if os.path.exists(api_dir):
             if os.path.islink(api_dir):
@@ -156,7 +157,7 @@ def main():
         os.rename(os.path.join(tmp_dir, "sphinx-out"), api_dir)
 
     # VI) Create zip archive.
-    zip_name = "blender_python_reference_%s" % blenver_zip  # We can't use 'release' postfix here...
+    zip_name = "blender_python_reference_%s" % api_blenver_zip  # We can't use 'release' postfix here...
     zip_path = os.path.join(args.mirror_dir, zip_name)
     with zipfile.ZipFile(zip_path, 'w') as zf:
         for dirname, _, filenames in os.walk(api_dir):
@@ -169,7 +170,11 @@ def main():
     # VII) Create symlinks and html redirects.
     if is_release:
         symlink = os.path.join(args.mirror_dir, "current")
-        os.remove(symlink)
+        if os.path.exists(symlink):
+            if os.path.islink(symlink):
+                os.remove(symlink)
+            else:
+                shutil.rmtree(symlink)
         os.symlink("./%s" % api_name, symlink)
         with open(os.path.join(args.mirror_dir, "250PythonDoc/index.html"), 'w') as f:
             f.write("<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\""
@@ -178,6 +183,14 @@ def main():
         # We do not have any particular symlink for that stage.
         pass
     elif branch == "master":
+        # Also create a symlink from version number to actual master api doc.
+        symlink = os.path.join(args.mirror_dir, blenver)
+        if os.path.exists(symlink):
+            if os.path.islink(symlink):
+                os.remove(symlink)
+            else:
+                shutil.rmtree(symlink)
+        os.symlink("./%s" % api_name, symlink)
         with open(os.path.join(args.mirror_dir, "blender_python_api/index.html"), 'w') as f:
             f.write("<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\""
                     "content=\"0;url=../%s/\"></head><body>Redirecting...</body></html>" % api_name)
