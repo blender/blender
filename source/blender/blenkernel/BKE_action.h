@@ -212,8 +212,8 @@ void what_does_obaction(struct Object *ob,
                         float cframe);
 
 /* for proxy */
-void BKE_pose_copyesult_pchan_result(struct bPoseChannel *pchanto,
-                                     const struct bPoseChannel *pchanfrom);
+void BKE_pose_copy_pchan_result(struct bPoseChannel *pchanto,
+                                const struct bPoseChannel *pchanfrom);
 bool BKE_pose_copy_result(struct bPose *to, struct bPose *from);
 /* clear all transforms */
 void BKE_pose_rest(struct bPose *pose);

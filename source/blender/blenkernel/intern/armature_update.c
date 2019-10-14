@@ -909,7 +909,7 @@ void BKE_pose_eval_proxy_copy_bone(struct Depsgraph *depsgraph, Object *object, 
         pchan->name);
     return;
   }
-  BKE_pose_copyesult_pchan_result(pchan, pchan_from);
+  BKE_pose_copy_pchan_result(pchan, pchan_from);
   copy_dq_dq(&pchan->runtime.deform_dual_quat, &pchan_from->runtime.deform_dual_quat);
   BKE_pchan_bbone_segments_cache_copy(pchan, pchan_from);
 }
