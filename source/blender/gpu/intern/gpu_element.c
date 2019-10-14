@@ -243,7 +243,7 @@ GPUIndexBuf *GPU_indexbuf_create_subrange(GPUIndexBuf *elem_src, uint start, uin
 {
   GPUIndexBuf *elem = MEM_callocN(sizeof(GPUIndexBuf), "GPUIndexBuf");
   BLI_assert(elem_src && !elem_src->is_subrange);
-  BLI_assert(start + length <= elem_src->index_len);
+  BLI_assert((length == 0) || (start + length <= elem_src->index_len));
 #if GPU_TRACK_INDEX_RANGE
   elem->index_type = elem_src->index_type;
   elem->gl_index_type = elem_src->gl_index_type;
