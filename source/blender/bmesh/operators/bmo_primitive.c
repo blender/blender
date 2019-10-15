@@ -1507,7 +1507,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
     BMO_op_callf(bm, op->flag, "dissolve_faces faces=%ff", FACE_NEW);
   }
 
-  BMO_op_callf(bm, op->flag, "remove_doubles verts=%fv dist=%f", VERT_MARK, 0.000001);
+  BMO_op_callf(bm, op->flag, "remove_doubles verts=%fv dist=%f", VERT_MARK, 0.0000005 * depth);
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
 }
 
