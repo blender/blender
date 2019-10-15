@@ -1061,6 +1061,8 @@ bool BKE_base_is_visible(const View3D *v3d, const Base *base)
 
 bool BKE_object_is_visible_in_viewport(const struct View3D *v3d, const struct Object *ob)
 {
+  BLI_assert(v3d != NULL);
+
   if (ob->restrictflag & OB_RESTRICT_VIEWPORT) {
     return false;
   }
