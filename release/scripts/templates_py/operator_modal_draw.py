@@ -4,6 +4,7 @@ import blf
 import gpu
 from gpu_extras.batch import batch_for_shader
 
+
 def draw_callback_px(self, context):
     print("mouse points", len(self.mouse_path))
 
