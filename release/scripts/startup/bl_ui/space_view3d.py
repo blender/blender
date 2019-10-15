@@ -686,10 +686,18 @@ class VIEW3D_HT_header(Header):
         row = layout.row()
         row.active = (object_mode == 'EDIT') or (shading.type in {'WIREFRAME', 'SOLID'})
 
-        if shading.type == 'WIREFRAME':
-            row.prop(shading, "show_xray_wireframe", text="", icon='XRAY')
-        else:
-            row.prop(shading, "show_xray", text="", icon='XRAY')
+        # While exposing 'shading.show_xray(_wireframe)' is correct.
+        # this hides the key shortcut from users: T70433.
+        row.operator(
+            "view3d.toggle_xray",
+            text="",
+            icon='XRAY',
+            depress=getattr(
+                shading,
+                "show_xray_wireframe" if shading.type == 'WIREFRAME' else
+                "show_xray"
+            ),
+        )
 
         row = layout.row(align=True)
         row.prop(shading, "type", text="", expand=True)
