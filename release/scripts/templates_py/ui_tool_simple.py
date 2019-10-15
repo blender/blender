@@ -3,9 +3,10 @@
 import bpy
 from bpy.types import WorkSpaceTool
 
+
 class MyTool(WorkSpaceTool):
-    bl_space_type='VIEW_3D'
-    bl_context_mode='OBJECT'
+    bl_space_type = 'VIEW_3D'
+    bl_context_mode = 'OBJECT'
 
     # The prefix of the idname should be your add-on name.
     bl_idname = "my_template.my_circle_select"
@@ -30,8 +31,8 @@ class MyTool(WorkSpaceTool):
 
 
 class MyOtherTool(WorkSpaceTool):
-    bl_space_type='VIEW_3D'
-    bl_context_mode='OBJECT'
+    bl_space_type = 'VIEW_3D'
+    bl_context_mode = 'OBJECT'
 
     bl_idname = "my_template.my_other_select"
     bl_label = "My Lasso Tool Select"
@@ -56,9 +57,11 @@ def register():
     bpy.utils.register_tool(MyTool, after={"builtin.scale_cage"}, separator=True, group=True)
     bpy.utils.register_tool(MyOtherTool, after={MyTool.bl_idname})
 
+
 def unregister():
     bpy.utils.unregister_tool(MyTool)
     bpy.utils.unregister_tool(MyOtherTool)
+
 
 if __name__ == "__main__":
     register()
