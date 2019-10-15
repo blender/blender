@@ -209,7 +209,6 @@ int BLI_exists(const char *name)
   BLI_stat_t st;
   wchar_t *tmp_16 = alloc_utf16_from_8(name, 1);
   int len, res;
-  unsigned int old_error_mode;
 
   len = wcslen(tmp_16);
   /* in Windows #stat doesn't recognize dir ending on a slash

@@ -115,6 +115,7 @@ void BKE_base_set_visible(struct Scene *scene,
                           struct Base *base,
                           bool extend);
 bool BKE_base_is_visible(const struct View3D *v3d, const struct Base *base);
+bool BKE_object_is_visible_in_viewport(const struct View3D *v3d, const struct Object *ob);
 void BKE_layer_collection_isolate_global(struct Scene *scene,
                                          struct ViewLayer *view_layer,
                                          struct LayerCollection *lc,

@@ -831,7 +831,7 @@ void filelist_setfilter_options(FileList *filelist,
   }
   if ((filelist->filter_data.filter != filter) || (filelist->filter_data.filter_id != filter_id)) {
     filelist->filter_data.filter = filter;
-    filelist->filter_data.filter_id = filter_id;
+    filelist->filter_data.filter_id = (filter & FILE_TYPE_BLENDERLIB) ? filter_id : FILTER_ID_ALL;
     update = true;
   }
   if (!STREQ(filelist->filter_data.filter_glob, filter_glob)) {

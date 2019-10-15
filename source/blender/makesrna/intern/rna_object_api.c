@@ -70,6 +70,7 @@ static const EnumPropertyItem space_items[] = {
 #  include "BKE_customdata.h"
 #  include "BKE_font.h"
 #  include "BKE_global.h"
+#  include "BKE_layer.h"
 #  include "BKE_main.h"
 #  include "BKE_mesh.h"
 #  include "BKE_mball.h"
@@ -281,6 +282,11 @@ static void rna_Object_local_view_set(Object *ob,
       ED_area_tag_redraw(sa);
     }
   }
+}
+
+static bool rna_Object_visible_in_viewport_get(Object *ob, View3D *v3d)
+{
+  return BKE_object_is_visible_in_viewport(v3d, ob);
 }
 
 /* Convert a given matrix from a space to another (using the object and/or a bone as
@@ -824,6 +830,15 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_parameter_flags(parm, 0, PARM_RNAPTR | PARM_REQUIRED);
   parm = RNA_def_boolean(func, "state", 0, "", "Local view state to define");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+  /* Viewport */
+  func = RNA_def_function(srna, "visible_in_viewport_get", "rna_Object_visible_in_viewport_get");
+  RNA_def_function_ui_description(
+      func, "Check for local view and local collections for this viewport and object");
+  parm = RNA_def_pointer(func, "viewport", "SpaceView3D", "", "Viewport in local collections");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_boolean(func, "result", 0, "", "Object viewport visibility");
+  RNA_def_function_return(func, parm);
 
   /* Matrix space conversion */
   func = RNA_def_function(srna, "convert_space", "rna_Object_mat_convert_space");
