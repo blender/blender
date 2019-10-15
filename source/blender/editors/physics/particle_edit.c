@@ -470,8 +470,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 {
   PE_set_data(C, data);
 
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ED_view3d_viewcontext_init(C, &data->vc, depsgraph);
+  ED_view3d_viewcontext_init(C, &data->vc, data->depsgraph);
 
   if (!XRAY_ENABLED(data->vc.v3d)) {
     if (data->vc.v3d->flag & V3D_INVALID_BACKBUF) {
@@ -1811,9 +1810,12 @@ bool PE_mouse_particles(bContext *C, const int mval[2], bool extend, bool desele
   PEData data;
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
-  PTCacheEdit *edit = PE_get_current(data.depsgraph, scene, ob);
   POINT_P;
   KEY_K;
+
+  PE_set_view3d_data(C, &data);
+
+  PTCacheEdit *edit = PE_get_current(data.depsgraph, scene, ob);
 
   if (!PE_start_edit(edit)) {
     return false;
@@ -1828,7 +1830,6 @@ bool PE_mouse_particles(bContext *C, const int mval[2], bool extend, bool desele
     }
   }
 
-  PE_set_view3d_data(C, &data);
   data.mval = mval;
   data.rad = ED_view3d_select_dist_px();
 
@@ -1997,7 +1998,6 @@ static const EnumPropertyItem select_random_type_items[] = {
 
 static int select_random_exec(bContext *C, wmOperator *op)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   PEData data;
   int type;
 
@@ -2017,7 +2017,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
 
   PE_set_data(C, &data);
   data.select_action = SEL_SELECT;
-  edit = PE_get_current(depsgraph, data.scene, data.ob);
+  edit = PE_get_current(data.depsgraph, data.scene, data.ob);
 
   rng = BLI_rng_new_srandom(seed);
 
@@ -4940,7 +4940,7 @@ static void shape_cut(PEData *data, int pa_index)
 
 static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   ParticleEditSettings *pset = PE_settings(scene);
