@@ -367,7 +367,7 @@ static void graph_id_tag_update_single_flag(Main *bmain,
                                             eUpdateSource update_source)
 {
   if (tag == ID_RECALC_EDITORS) {
-    if (graph != NULL) {
+    if (graph != NULL && graph->is_active) {
       depsgraph_update_editors_tag(bmain, graph, id);
     }
     return;
@@ -462,8 +462,8 @@ const char *update_source_as_string(eUpdateSource source)
 
 int deg_recalc_flags_for_legacy_zero()
 {
-  return ID_RECALC_ALL &
-         ~(ID_RECALC_PSYS_ALL | ID_RECALC_ANIMATION | ID_RECALC_SOURCE | ID_RECALC_TIME);
+  return ID_RECALC_ALL & ~(ID_RECALC_PSYS_ALL | ID_RECALC_ANIMATION | ID_RECALC_SOURCE |
+                           ID_RECALC_TIME | ID_RECALC_EDITORS);
 }
 
 int deg_recalc_flags_effective(Depsgraph *graph, int flags)
