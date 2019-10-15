@@ -589,7 +589,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       (do_aspect_correct && width > height) ? (float)height / (float)width : 1.0f,
       (do_aspect_correct && width < height) ? (float)width / (float)height : 1.0f};
 
-  const float zvec[3] = {0.0f, 0.0f, 1.0f};
+  const float zvec[3] = {0.0f, 0.0f, -1.0f};
   MaskLayer *masklay;
   unsigned int masklay_index;
   MemArena *sf_arena;
