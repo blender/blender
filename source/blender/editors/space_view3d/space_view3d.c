@@ -1099,6 +1099,9 @@ static void view3d_header_region_listener(wmWindow *UNUSED(win),
       if (wmn->data & ND_GPENCIL_EDITMODE) {
         ED_region_tag_redraw(ar);
       }
+      else if (wmn->action == NA_EDITED) {
+        ED_region_tag_redraw(ar);
+      }
       break;
     case NC_BRUSH:
       ED_region_tag_redraw(ar);
