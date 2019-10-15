@@ -92,12 +92,12 @@ ccl_device float3 svm_mix_diff(float t, float3 col1, float3 col2)
 
 ccl_device float3 svm_mix_dark(float t, float3 col1, float3 col2)
 {
-  return min(col1, col2) * t + col1 * (1.0f - t);
+  return interp(col1, min(col1, col2), t);
 }
 
 ccl_device float3 svm_mix_light(float t, float3 col1, float3 col2)
 {
-  return max(col1, col2 * t);
+  return interp(col1, max(col1, col2), t);
 }
 
 ccl_device float3 svm_mix_dodge(float t, float3 col1, float3 col2)
