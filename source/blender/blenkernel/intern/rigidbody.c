@@ -1680,9 +1680,12 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
   float ctime = DEG_get_ctime(depsgraph);
 
   /* update world */
-  if (rebuild) {
-    BKE_rigidbody_validate_sim_world(scene, rbw, true);
+  /* Note physics_world can get NULL when undoing the deletion of the last object in it (see
+   * T70667). */
+  if (rebuild || rbw->shared->physics_world == NULL) {
+    BKE_rigidbody_validate_sim_world(scene, rbw, rebuild);
   }
+
   rigidbody_update_sim_world(scene, rbw);
 
   /* XXX TODO For rebuild: remove all constraints first.
