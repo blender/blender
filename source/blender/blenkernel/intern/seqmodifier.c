@@ -34,6 +34,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_mask_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 
@@ -1044,7 +1045,7 @@ ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context,
         frame_offset = seq->start;
       }
       else /*if (smd->mask_time == SEQUENCE_MASK_TIME_ABSOLUTE)*/ {
-        frame_offset = 0;
+        frame_offset = ((Mask *)smd->mask_id)->sfra;
       }
 
       ImBuf *mask = modifier_mask_get(smd, context, cfra, frame_offset, ibuf->rect_float != NULL);
