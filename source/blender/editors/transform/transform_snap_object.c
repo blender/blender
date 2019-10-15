@@ -2368,6 +2368,7 @@ static short snapEditMesh(SnapObjectContext *sctx,
 
   if (treedata_vert && (snapdata->snap_to_flag & SCE_SNAP_MODE_VERTEX)) {
     BM_mesh_elem_table_ensure(em->bm, BM_VERT);
+    BM_mesh_elem_index_ensure(em->bm, BM_VERT);
     BLI_bvhtree_find_nearest_projected(treedata_vert->tree,
                                        lpmat,
                                        snapdata->win_size,
@@ -2383,6 +2384,7 @@ static short snapEditMesh(SnapObjectContext *sctx,
     int last_index = nearest.index;
     nearest.index = -1;
     BM_mesh_elem_table_ensure(em->bm, BM_EDGE | BM_VERT);
+    BM_mesh_elem_index_ensure(em->bm, BM_EDGE | BM_VERT);
     BLI_bvhtree_find_nearest_projected(treedata_edge->tree,
                                        lpmat,
                                        snapdata->win_size,
