@@ -92,14 +92,14 @@ void mix_diff(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 void mix_dark(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
   fac = clamp(fac, 0.0, 1.0);
-  outcol.rgb = min(col1.rgb, col2.rgb * fac);
+  outcol.rgb = mix(col1.rgb, min(col1.rgb, col2.rgb), fac);
   outcol.a = col1.a;
 }
 
 void mix_light(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
   fac = clamp(fac, 0.0, 1.0);
-  outcol.rgb = max(col1.rgb, col2.rgb * fac);
+  outcol.rgb = mix(col1.rgb, max(col1.rgb, col2.rgb), fac);
   outcol.a = col1.a;
 }
 
