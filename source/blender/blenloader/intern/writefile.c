@@ -26,35 +26,36 @@
  * FILE FORMAT
  * ===========
  *
- * IFF-style structure  (but not IFF compatible!)
+ * IFF-style structure (but not IFF compatible!)
  *
- * start file:
+ * Start file:
  * <pre>
- *     BLENDER_V100    12 bytes  (version 1.00)
- *                     V = big endian, v = little endian
- *                     _ = 4 byte pointer, - = 8 byte pointer
+ * `BLENDER_V100`  `12` bytes  (version 1.00 is just an example).
+ *                 `V` = big endian, `v` = little endian.
+ *                 `_` = 4 byte pointer, `-` = 8 byte pointer.
  * </pre>
  *
  * data-blocks: (also see struct #BHead).
  * <pre>
- *     <bh.code>           4 chars
- *     <bh.len>            int,  len data after BHead
- *     <bh.old>            void,  old pointer
- *     <bh.SDNAnr>         int
- *     <bh.nr>             int, in case of array: number of structs
- *     data
- *     ...
- *     ...
+ * `bh.code`       `char[4]` see `BLO_blend_defs.h` for a list of known types.
+ * `bh.len`        `int32` length data after #BHead in bytes.
+ * `bh.old`        `void *` old pointer (the address at the time of writing the file).
+ * `bh.SDNAnr`     `int32` struct index of structs stored in #DNA1 data.
+ * `bh.nr`         `int32` in case of array: number of structs.
+ * data
+ * ...
+ * ...
  * </pre>
  *
  * Almost all data in Blender are structures. Each struct saved
  * gets a BHead header.  With BHead the struct can be linked again
- * and compared with StructDNA .
+ * and compared with #StructDNA.
+
  * WRITE
  * =====
  *
  * Preferred writing order: (not really a must, but why would you do it random?)
- * Any case: direct data is ALWAYS after the lib block
+ * Any case: direct data is ALWAYS after the lib block.
  *
  * (Local file data)
  * - for each LibBlock
