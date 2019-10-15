@@ -457,6 +457,31 @@ static void ubuf_from_image_all_tiles(UndoImageBuf *ubuf, const ImBuf *ibuf)
   IMB_freeImBuf(tmpibuf);
 }
 
+/** Ensure we can copy the ubuf into the ibuf. */
+static void ubuf_ensure_compat_ibuf(const UndoImageBuf *ubuf, ImBuf *ibuf)
+{
+  /* We could have both float and rect buffers,
+   * in this case free the float buffer if it's unused. */
+  if ((ibuf->rect_float != NULL) && (ubuf->image_state.use_float == false)) {
+    imb_freerectfloatImBuf(ibuf);
+  }
+
+  if (ibuf->x == ubuf->image_dims[0] && ibuf->y == ubuf->image_dims[1] &&
+      (ubuf->image_state.use_float ? (void *)ibuf->rect_float : (void *)ibuf->rect)) {
+    return;
+  }
+
+  imb_freerectImbuf_all(ibuf);
+  IMB_rect_size_set(ibuf, ubuf->image_dims);
+
+  if (ubuf->image_state.use_float) {
+    imb_addrectfloatImBuf(ibuf);
+  }
+  else {
+    imb_addrectImBuf(ibuf);
+  }
+}
+
 static void ubuf_free(UndoImageBuf *ubuf)
 {
   UndoImageBuf *ubuf_post = ubuf->post;
@@ -510,7 +535,8 @@ static void uhandle_restore_list(ListBase *undo_handles, bool use_init)
     bool changed = false;
     for (UndoImageBuf *ubuf_iter = uh->buffers.first; ubuf_iter; ubuf_iter = ubuf_iter->next) {
       UndoImageBuf *ubuf = use_init ? ubuf_iter : ubuf_iter->post;
-      IMB_rect_size_set(ibuf, ubuf->image_dims);
+      ubuf_ensure_compat_ibuf(ubuf, ibuf);
+
       int i = 0;
       for (uint y_tile = 0; y_tile < ubuf->tiles_dims[1]; y_tile += 1) {
         uint y = y_tile << ED_IMAGE_UNDO_TILE_BITS;
