@@ -5683,7 +5683,8 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "frs_sec_base");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 1e-5f, 1e6f);
-  RNA_def_property_ui_range(prop, 0.1f, 120.0f, 2, -1);
+  /* Important to show at least 3 decimal points because multiple presets set this to 1.001. */
+  RNA_def_property_ui_range(prop, 0.1f, 120.0f, 2, 3);
   RNA_def_property_ui_text(prop, "FPS Base", "Framerate base");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_fps_update");
 
