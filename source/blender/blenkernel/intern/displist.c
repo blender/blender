@@ -624,7 +624,7 @@ void BKE_displist_fill(ListBase *dispbase,
 
 static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 {
-  const float z_up[3] = {0.0f, 0.0f, 1.0f};
+  const float z_up[3] = {0.0f, 0.0f, -1.0f};
   ListBase front, back;
   DispList *dl, *dlnew;
   float *fp, *fp1;
@@ -703,7 +703,7 @@ static void curve_to_filledpoly(Curve *cu, ListBase *UNUSED(nurb), ListBase *dis
     bevels_to_filledpoly(cu, dispbase);
   }
   else {
-    const float z_up[3] = {0.0f, 0.0f, 1.0f};
+    const float z_up[3] = {0.0f, 0.0f, -1.0f};
     BKE_displist_fill(dispbase, dispbase, z_up, false);
   }
 }
@@ -1730,11 +1730,11 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
                 if (cu->bevobj && (cu->flag & CU_FILL_CAPS) && !(nu->flagu & CU_NURB_CYCLIC)) {
                   if (a == 1) {
                     fillBevelCap(nu, dlb, cur_data - 3 * dlb->nr, &bottom_capbase);
-                    negate_v3_v3(bottom_no, bevp->dir);
+                    copy_v3_v3(bottom_no, bevp->dir);
                   }
                   if (a == steps - 1) {
                     fillBevelCap(nu, dlb, cur_data, &top_capbase);
-                    copy_v3_v3(top_no, bevp->dir);
+                    negate_v3_v3(top_no, bevp->dir);
                   }
                 }
               }
