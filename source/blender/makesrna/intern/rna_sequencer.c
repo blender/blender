@@ -2225,7 +2225,7 @@ static void rna_def_scene(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "Sequence");
 
   prop = RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
   RNA_def_property_ui_text(prop, "Scene", "Scene that this sequence uses");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
