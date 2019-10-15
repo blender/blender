@@ -700,6 +700,8 @@ void imb_freemipmapImBuf(struct ImBuf *ibuf);
 bool imb_addtilesImBuf(struct ImBuf *ibuf);
 void imb_freetilesImBuf(struct ImBuf *ibuf);
 
+void imb_freerectImbuf_all(struct ImBuf *ibuf);
+
 /* threaded processors */
 void IMB_processor_apply_threaded(
     int buffer_lines,

@@ -197,6 +197,17 @@ void IMB_freezbuffloatImBuf(ImBuf *ibuf)
   ibuf->mall &= ~IB_zbuffloat;
 }
 
+/** Free all pixel data (assosiated with image size). */
+void imb_freerectImbuf_all(ImBuf *ibuf)
+{
+  imb_freerectImBuf(ibuf);
+  imb_freerectfloatImBuf(ibuf);
+  imb_freetilesImBuf(ibuf);
+  IMB_freezbufImBuf(ibuf);
+  IMB_freezbuffloatImBuf(ibuf);
+  freeencodedbufferImBuf(ibuf);
+}
+
 void IMB_freeImBuf(ImBuf *ibuf)
 {
   if (ibuf) {
@@ -212,12 +223,7 @@ void IMB_freeImBuf(ImBuf *ibuf)
     BLI_spin_unlock(&refcounter_spin);
 
     if (needs_free) {
-      imb_freerectImBuf(ibuf);
-      imb_freerectfloatImBuf(ibuf);
-      imb_freetilesImBuf(ibuf);
-      IMB_freezbufImBuf(ibuf);
-      IMB_freezbuffloatImBuf(ibuf);
-      freeencodedbufferImBuf(ibuf);
+      imb_freerectImbuf_all(ibuf);
       IMB_metadata_free(ibuf->metadata);
       colormanage_cache_free(ibuf);
 
