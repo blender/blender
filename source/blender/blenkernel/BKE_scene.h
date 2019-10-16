@@ -125,7 +125,7 @@ struct Scene *BKE_scene_find_from_collection(const struct Main *bmain,
 #ifdef DURIAN_CAMERA_SWITCH
 struct Object *BKE_scene_camera_switch_find(struct Scene *scene);  // DURIAN_CAMERA_SWITCH
 #endif
-int BKE_scene_camera_switch_update(struct Scene *scene);
+bool BKE_scene_camera_switch_update(struct Scene *scene);
 
 char *BKE_scene_find_marker_name(struct Scene *scene, int frame);
 char *BKE_scene_find_last_marker_name(struct Scene *scene, int frame);
