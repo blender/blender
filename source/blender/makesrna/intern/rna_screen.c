@@ -272,7 +272,7 @@ static void rna_Area_ui_type_update(bContext *C, PointerRNA *ptr)
   sa->butspacetype_subtype = 0;
 }
 
-static void rna_View2D_region_to_view(struct View2D *v2d, int x, int y, float result[2])
+static void rna_View2D_region_to_view(struct View2D *v2d, float x, float y, float result[2])
 {
   UI_view2d_region_to_view(v2d, x, y, &result[0], &result[1]);
 }
@@ -406,9 +406,9 @@ static void rna_def_view2d_api(StructRNA *srna)
 
   func = RNA_def_function(srna, "region_to_view", "rna_View2D_region_to_view");
   RNA_def_function_ui_description(func, "Transform region coordinates to 2D view");
-  parm = RNA_def_int(func, "x", 0, INT_MIN, INT_MAX, "x", "Region x coordinate", -10000, 10000);
+  parm = RNA_def_float(func, "x", 0, -FLT_MAX, FLT_MAX, "x", "Region x coordinate", -10000, 10000);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  parm = RNA_def_int(func, "y", 0, INT_MIN, INT_MAX, "y", "Region y coordinate", -10000, 10000);
+  parm = RNA_def_float(func, "y", 0, -FLT_MAX, FLT_MAX, "y", "Region y coordinate", -10000, 10000);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_float_array(func,
                              "result",
