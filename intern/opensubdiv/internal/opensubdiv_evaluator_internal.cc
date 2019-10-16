@@ -357,10 +357,8 @@ class VolatileEvalOutput {
 
   void evalPatchCoord(const PatchCoord &patch_coord, float P[3])
   {
-    StackAllocatedBuffer<6, 1> vertex_data;
-    // TODO(sergey): Varying data is interleaved in vertex array, so need to
-    // adjust stride if there is a varying data.
-    // BufferDescriptor vertex_desc(0, 3, 6);
+    StackAllocatedBuffer<3, 1> vertex_data;
+    // TODO(sergey): Support interleaved vertex-varying data.
     BufferDescriptor vertex_desc(0, 3, 3);
     SinglePatchCoordBuffer patch_coord_buffer(patch_coord);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
@@ -383,12 +381,13 @@ class VolatileEvalOutput {
                                   float dPdu[3],
                                   float dPdv[3])
   {
-    StackAllocatedBuffer<6, 1> vertex_data, derivatives;
-    // TODO(sergey): Varying data is interleaved in vertex array, so need to
-    // adjust stride if there is a varying data.
-    // BufferDescriptor vertex_desc(0, 3, 6);
+    assert(dPdu);
+    assert(dPdv);
+    StackAllocatedBuffer<3, 1> vertex_data;
+    StackAllocatedBuffer<3, 1> dPdu_data, dPdv_data;
+    // TODO(sergey): Support interleaved vertex-varying data.
     BufferDescriptor vertex_desc(0, 3, 3);
-    BufferDescriptor du_desc(0, 3, 6), dv_desc(3, 3, 6);
+    BufferDescriptor du_desc(0, 3, 3), dv_desc(0, 3, 3);
     SinglePatchCoordBuffer patch_coord_buffer(patch_coord);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
         evaluator_cache_, src_desc_, vertex_desc, du_desc, dv_desc, device_context_);
@@ -396,9 +395,9 @@ class VolatileEvalOutput {
                            src_desc_,
                            &vertex_data,
                            vertex_desc,
-                           &derivatives,
+                           &dPdu_data,
                            du_desc,
-                           &derivatives,
+                           &dPdv_data,
                            dv_desc,
                            patch_coord_buffer.GetNumVertices(),
                            &patch_coord_buffer,
@@ -407,14 +406,13 @@ class VolatileEvalOutput {
                            device_context_);
     const float *refined_vertices = vertex_data.BindCpuBuffer();
     memcpy(P, refined_vertices, sizeof(float) * 3);
-    if (dPdu != NULL || dPdv != NULL) {
-      const float *refined_derivatives = derivatives.BindCpuBuffer();
-      if (dPdu != NULL) {
-        memcpy(dPdu, refined_derivatives, sizeof(float) * 3);
-      }
-      if (dPdv != NULL) {
-        memcpy(dPdv, refined_derivatives + 3, sizeof(float) * 3);
-      }
+    if (dPdu != NULL) {
+      const float *refined_dPdu = dPdu_data.BindCpuBuffer();
+      memcpy(dPdu, refined_dPdu, sizeof(float) * 3);
+    }
+    if (dPdv != NULL) {
+      const float *refined_dPdv = dPdv_data.BindCpuBuffer();
+      memcpy(dPdv, refined_dPdv, sizeof(float) * 3);
     }
   }
 
