@@ -54,13 +54,6 @@ using OpenSubdiv::Osd::CpuPatchTable;
 using OpenSubdiv::Osd::CpuVertexBuffer;
 using OpenSubdiv::Osd::PatchCoord;
 
-// TODO(sergey): Remove after official requirement bump for OSD version.
-#if OPENSUBDIV_VERSION_NUMBER >= 30200
-#  define OPENSUBDIV_HAS_FVAR_EVALUATION
-#else
-#  undef OPENSUBDIV_HAS_FVAR_EVALUATION
-#endif
-
 namespace opensubdiv_capi {
 
 namespace {
@@ -693,7 +686,6 @@ OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
   }
   // Face warying stencil.
   vector<const StencilTable *> all_face_varying_stencils;
-#ifdef OPENSUBDIV_HAS_FVAR_EVALUATION
   all_face_varying_stencils.reserve(num_face_varying_channels);
   for (int face_varying_channel = 0; face_varying_channel < num_face_varying_channels;
        ++face_varying_channel) {
@@ -705,7 +697,6 @@ OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
     all_face_varying_stencils.push_back(
         StencilTableFactory::Create(*refiner, face_varying_stencil_options));
   }
-#endif
   // Generate bi-cubic patch table for the limit surface.
   // TODO(sergey): Ideally we would want to expose end-cap settings via
   // C-API to make it more generic. Currently it matches old Blender's
@@ -736,7 +727,6 @@ OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
       varying_stencils = table;
     }
   }
-#ifdef OPENSUBDIV_HAS_FVAR_EVALUATION
   for (int face_varying_channel = 0; face_varying_channel < num_face_varying_channels;
        ++face_varying_channel) {
     const StencilTable *table = StencilTableFactory::AppendLocalPointStencilTableFaceVarying(
@@ -749,7 +739,6 @@ OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
       all_face_varying_stencils[face_varying_channel] = table;
     }
   }
-#endif
   // Create OpenSubdiv's CPU side evaluator.
   // TODO(sergey): Make it possible to use different evaluators.
   opensubdiv_capi::CpuEvalOutput *eval_output = new opensubdiv_capi::CpuEvalOutput(
