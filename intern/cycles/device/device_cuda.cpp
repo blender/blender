@@ -454,6 +454,12 @@ class CUDADevice : public Device {
         VLOG(1) << "Using precompiled kernel.";
         return cubin;
       }
+      const string ptx = path_get(string_printf("lib/%s_compute_%d%d.ptx", name, major, minor));
+      VLOG(1) << "Testing for pre-compiled kernel " << ptx << ".";
+      if (path_exists(ptx)) {
+        VLOG(1) << "Using precompiled kernel.";
+        return ptx;
+      }
     }
 
     const string common_cflags = compile_kernel_get_common_cflags(
