@@ -879,6 +879,13 @@ GPUBatch *DRW_mesh_batch_cache_get_edit_facedots(Mesh *me)
   return DRW_batch_request(&cache->batch.edit_fdots);
 }
 
+GPUBatch *DRW_mesh_batch_cache_get_edit_skin_roots(Mesh *me)
+{
+  MeshBatchCache *cache = mesh_batch_cache_get(me);
+  mesh_batch_cache_add_request(cache, MBC_SKIN_ROOTS);
+  return DRW_batch_request(&cache->batch.edit_skin_roots);
+}
+
 /** \} */
 
 /* ---------------------------------------------------------------------- */
@@ -1318,6 +1325,18 @@ void DRW_mesh_batch_cache_create_requested(
     DRW_ibo_request(cache->batch.edit_fdots, &mbufcache->ibo.fdots);
     DRW_vbo_request(cache->batch.edit_fdots, &mbufcache->vbo.fdots_pos);
     DRW_vbo_request(cache->batch.edit_fdots, &mbufcache->vbo.fdots_nor);
+  }
+  if (DRW_batch_requested(cache->batch.edit_skin_roots, GPU_PRIM_LINES)) {
+    DRW_vbo_request(cache->batch.edit_skin_roots, &mbufcache->vbo.skin_roots);
+    /* HACK(fclem): This is a workaround the deferred batch init
+     * that prevent drawing using DRW_shgroup_call_instances_with_attribs.
+     * So we instead create the whole instancing batch here.
+     * Note that we use GPU_PRIM_LINES instead of expected GPU_PRIM_LINE_STRIP
+     * in order to mimic the old stipple pattern. */
+    cache->batch.edit_skin_roots->inst = cache->batch.edit_skin_roots->verts[0];
+    cache->batch.edit_skin_roots->verts[0] = NULL;
+    GPUBatch *circle = DRW_cache_screenspace_circle_get();
+    GPU_batch_vertbuf_add(cache->batch.edit_skin_roots, circle->verts[0]);
   }
 
   /* Selection */

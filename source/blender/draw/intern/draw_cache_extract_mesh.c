@@ -3860,6 +3860,69 @@ static const MeshExtract extract_fdots_edituv_data = {
 /** \} */
 
 /* ---------------------------------------------------------------------- */
+/** \name Extract Skin Modifier Roots
+ * \{ */
+
+typedef struct SkinRootData {
+  float size;
+  float local_pos[3];
+} SkinRootData;
+
+static void *extract_skin_roots_init(const MeshRenderData *mr, void *buf)
+{
+  /* Exclusively for edit mode. */
+  BLI_assert(mr->bm);
+
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "local_pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  }
+  GPUVertBuf *vbo = buf;
+  GPU_vertbuf_init_with_format(vbo, &format);
+  GPU_vertbuf_data_alloc(vbo, mr->bm->totvert);
+
+  SkinRootData *vbo_data = (SkinRootData *)vbo->data;
+
+  int root_len = 0;
+  int cd_ofs = CustomData_get_offset(&mr->bm->vdata, CD_MVERT_SKIN);
+
+  BMIter iter;
+  BMVert *eve;
+  BM_ITER_MESH (eve, &iter, mr->bm, BM_VERTS_OF_MESH) {
+    const MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, cd_ofs);
+    if (vs->flag & MVERT_SKIN_ROOT) {
+      vbo_data->size = (vs->radius[0] + vs->radius[1]) * 0.5f;
+      copy_v3_v3(vbo_data->local_pos, eve->co);
+      vbo_data++;
+      root_len++;
+    }
+  }
+
+  /* It's really unlikely that all verts will be roots. Resize to avoid loosing VRAM. */
+  GPU_vertbuf_data_len_set(vbo, root_len);
+
+  return NULL;
+}
+
+static const MeshExtract extract_skin_roots = {
+    extract_skin_roots_init,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    0,
+    false,
+};
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
 /** \name Extract Selection Index
  * \{ */
 
@@ -4358,6 +4421,7 @@ void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
   EXTRACT(vbo, edge_idx);
   EXTRACT(vbo, vert_idx);
   EXTRACT(vbo, fdot_idx);
+  EXTRACT(vbo, skin_roots);
 
   EXTRACT(ibo, tris);
   EXTRACT(ibo, lines);

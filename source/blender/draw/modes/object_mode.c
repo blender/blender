@@ -3111,7 +3111,8 @@ static void DRW_shgroup_texture_space(OBJECT_ShadingGroupList *sgl, Object *ob, 
   DRW_buffer_add_entry(sgl->texspace, color, &one, tmp);
 }
 
-static void DRW_shgroup_bounds(OBJECT_ShadingGroupList *sgl, Object *ob, int theme_id)
+static void DRW_shgroup_bounds(
+    OBJECT_ShadingGroupList *sgl, Object *ob, int theme_id, char boundtype, bool around_origin)
 {
   float color[4], center[3], size[3], tmp[4][4], final_mat[4][4], one = 1.0f;
   BoundBox bb_local;
@@ -3137,10 +3138,16 @@ static void DRW_shgroup_bounds(OBJECT_ShadingGroupList *sgl, Object *ob, int the
   }
 
   UI_GetThemeColor4fv(theme_id, color);
-  BKE_boundbox_calc_center_aabb(bb, center);
   BKE_boundbox_calc_size_aabb(bb, size);
 
-  switch (ob->boundtype) {
+  if (around_origin) {
+    zero_v3(center);
+  }
+  else {
+    BKE_boundbox_calc_center_aabb(bb, center);
+  }
+
+  switch (boundtype) {
     case OB_BOUND_BOX:
       size_to_mat4(tmp, size);
       copy_v3_v3(tmp[3], center);
@@ -3189,6 +3196,27 @@ static void DRW_shgroup_bounds(OBJECT_ShadingGroupList *sgl, Object *ob, int the
       tmp[2][2] = max_ff(0.0f, size[2] * 2.0f - size[0] * 2.0f);
       mul_m4_m4m4(final_mat, ob->obmat, tmp);
       DRW_buffer_add_entry(sgl->empties.capsule_body, color, &one, final_mat);
+      break;
+  }
+}
+
+static void DRW_shgroup_collision(OBJECT_ShadingGroupList *sgl, Object *ob, int theme_id)
+{
+  switch (ob->rigidbody_object->shape) {
+    case RB_SHAPE_BOX:
+      DRW_shgroup_bounds(sgl, ob, theme_id, OB_BOUND_BOX, true);
+      break;
+    case RB_SHAPE_SPHERE:
+      DRW_shgroup_bounds(sgl, ob, theme_id, OB_BOUND_SPHERE, true);
+      break;
+    case RB_SHAPE_CONE:
+      DRW_shgroup_bounds(sgl, ob, theme_id, OB_BOUND_CONE, true);
+      break;
+    case RB_SHAPE_CYLINDER:
+      DRW_shgroup_bounds(sgl, ob, theme_id, OB_BOUND_CYLINDER, true);
+      break;
+    case RB_SHAPE_CAPSULE:
+      DRW_shgroup_bounds(sgl, ob, theme_id, OB_BOUND_CAPSULE, true);
       break;
   }
 }
@@ -3622,7 +3650,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
     if (theme_id == TH_UNDEFINED) {
       theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
     }
-    DRW_shgroup_bounds(sgl, ob, theme_id);
+    DRW_shgroup_bounds(sgl, ob, theme_id, ob->boundtype, false);
   }
 
   /* Helpers for when we're transforming origins. */
@@ -3681,7 +3709,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
     /* Don't draw bounding box again if draw type is bound box. */
     if ((ob->dtx & OB_DRAWBOUNDOX) && (ob->dt != OB_BOUNDBOX) &&
         !ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_EMPTY, OB_SPEAKER, OB_LIGHTPROBE)) {
-      DRW_shgroup_bounds(sgl, ob, theme_id);
+      DRW_shgroup_bounds(sgl, ob, theme_id, ob->boundtype, false);
     }
 
     if (ob->dtx & OB_AXIS) {
@@ -3689,6 +3717,10 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
       DRW_object_wire_theme_get(ob, view_layer, &color);
 
       DRW_buffer_add_entry(sgl->empties.empty_axes, color, &axes_size, ob->obmat);
+    }
+
+    if (ob->rigidbody_object) {
+      DRW_shgroup_collision(sgl, ob, theme_id);
     }
 
     if ((md = modifiers_findByType(ob, eModifierType_Smoke)) &&

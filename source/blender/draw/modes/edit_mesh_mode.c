@@ -55,6 +55,7 @@ extern char datatoc_edit_mesh_overlay_mesh_analysis_frag_glsl[];
 extern char datatoc_edit_mesh_overlay_mesh_analysis_vert_glsl[];
 extern char datatoc_edit_normals_vert_glsl[];
 extern char datatoc_edit_normals_geom_glsl[];
+extern char datatoc_edit_mesh_skin_root_vert_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
 extern char datatoc_common_view_lib_glsl[];
 
@@ -114,6 +115,7 @@ typedef struct EDIT_MESH_Shaders {
   GPUShader *overlay_edge_flat;
   GPUShader *overlay_face;
   GPUShader *overlay_facedot;
+  GPUShader *overlay_skin_root;
 
   GPUShader *overlay_mix;
   GPUShader *overlay_facefill;
@@ -141,6 +143,7 @@ typedef struct EDIT_MESH_ComponentShadingGroupList {
   DRWShadingGroup *faces;
   DRWShadingGroup *faces_cage;
   DRWShadingGroup *facedots;
+  DRWShadingGroup *skin_roots;
 } EDIT_MESH_ComponentShadingGroupList;
 
 typedef struct EDIT_MESH_PrivateData {
@@ -266,6 +269,12 @@ static void EDIT_MESH_engine_init(void *vedata)
         .frag = (const char *[]){lib, datatoc_edit_mesh_overlay_facefill_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, NULL},
     });
+    sh_data->overlay_skin_root = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){lib, datatoc_edit_mesh_skin_root_vert_glsl, NULL},
+        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg_data->def, NULL},
+    });
+
     MEM_freeN(lib);
 
     sh_data->overlay_mix = DRW_shader_create_fullscreen(datatoc_edit_mesh_overlay_mix_frag_glsl,
@@ -341,6 +350,7 @@ static void edit_mesh_create_overlay_passes(float face_alpha,
   GPUShader *edge_sh = (select_vert) ? sh_data->overlay_edge : sh_data->overlay_edge_flat;
   GPUShader *face_sh = sh_data->overlay_face;
   GPUShader *facedot_sh = sh_data->overlay_facedot;
+  GPUShader *skin_root_sh = sh_data->overlay_skin_root;
 
   /* Faces */
   passes->faces = DRW_pass_create("Edit Mesh Faces", DRW_STATE_WRITE_COLOR | statemod);
@@ -388,6 +398,10 @@ static void edit_mesh_create_overlay_passes(float face_alpha,
     if (rv3d->rflag & RV3D_CLIPPING) {
       DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
     }
+
+    grp = shgrps->skin_roots = DRW_shgroup_create(skin_root_sh, passes->verts);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+    DRW_shgroup_uniform_vec3(grp, "screen_vecs[0]", DRW_viewport_screenvecs_get(), 2);
   }
   if (select_face) {
     grp = shgrps->facedots = DRW_shgroup_create(facedot_sh, passes->verts);
@@ -632,21 +646,24 @@ static void EDIT_MESH_cache_init(void *vedata)
 
 static void edit_mesh_add_ob_to_pass(Scene *scene,
                                      Object *ob,
+                                     DRWShadingGroup *skin_roots_shgrp,
                                      DRWShadingGroup *vert_shgrp,
                                      DRWShadingGroup *edge_shgrp,
                                      DRWShadingGroup *face_shgrp,
                                      DRWShadingGroup *face_cage_shgrp,
                                      DRWShadingGroup *facedot_shgrp)
 {
-  struct GPUBatch *geom_tris, *geom_verts, *geom_edges, *geom_fcenter;
+  struct GPUBatch *geom_tris, *geom_verts, *geom_edges, *geom_fcenter, *skin_roots;
   ToolSettings *tsettings = scene->toolsettings;
 
   bool has_edit_mesh_cage = false;
+  bool has_skin_roots = false;
   /* TODO: Should be its own function. */
   Mesh *me = (Mesh *)ob->data;
   BMEditMesh *embm = me->edit_mesh;
   if (embm) {
     has_edit_mesh_cage = embm->mesh_eval_cage && (embm->mesh_eval_cage != embm->mesh_eval_final);
+    has_skin_roots = CustomData_get_offset(&embm->bm->vdata, CD_MVERT_SKIN) != -1;
   }
 
   face_shgrp = (has_edit_mesh_cage) ? face_cage_shgrp : face_shgrp;
@@ -659,6 +676,21 @@ static void edit_mesh_add_ob_to_pass(Scene *scene,
   if ((tsettings->selectmode & SCE_SELECT_VERTEX) != 0) {
     geom_verts = DRW_mesh_batch_cache_get_edit_vertices(ob->data);
     DRW_shgroup_call_no_cull(vert_shgrp, geom_verts, ob);
+
+    if (has_skin_roots) {
+      DRWShadingGroup *grp = DRW_shgroup_create_sub(skin_roots_shgrp);
+      /* We need to upload the matrix. But the ob can be temporary allocated so we cannot
+       * use direct reference to ob->obmat. */
+      DRW_shgroup_uniform_vec4_copy(grp, "editModelMat[0]", ob->obmat[0]);
+      DRW_shgroup_uniform_vec4_copy(grp, "editModelMat[1]", ob->obmat[1]);
+      DRW_shgroup_uniform_vec4_copy(grp, "editModelMat[2]", ob->obmat[2]);
+      DRW_shgroup_uniform_vec4_copy(grp, "editModelMat[3]", ob->obmat[3]);
+
+      skin_roots = DRW_mesh_batch_cache_get_edit_skin_roots(ob->data);
+      /* NOTE(fclem) We cannot use ob here since it would offset the instance attribs with
+       * baseinstance offset. */
+      DRW_shgroup_call(grp, skin_roots, NULL);
+    }
   }
 
   if (facedot_shgrp && (tsettings->selectmode & SCE_SELECT_FACE) != 0) {
@@ -721,6 +753,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
       if (g_data->do_zbufclip) {
         edit_mesh_add_ob_to_pass(scene,
                                  ob,
+                                 g_data->edit_shgrps.skin_roots,
                                  g_data->edit_shgrps.verts,
                                  g_data->edit_shgrps.edges,
                                  g_data->facefill_occluded_shgrp,
@@ -730,6 +763,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
       else if (do_in_front) {
         edit_mesh_add_ob_to_pass(scene,
                                  ob,
+                                 g_data->edit_in_front_shgrps.skin_roots,
                                  g_data->edit_in_front_shgrps.verts,
                                  g_data->edit_in_front_shgrps.edges,
                                  g_data->edit_in_front_shgrps.faces,
@@ -739,6 +773,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
       else {
         edit_mesh_add_ob_to_pass(scene,
                                  ob,
+                                 g_data->edit_shgrps.skin_roots,
                                  g_data->edit_shgrps.verts,
                                  g_data->edit_shgrps.edges,
                                  g_data->edit_shgrps.faces,

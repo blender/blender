@@ -73,6 +73,7 @@ typedef struct GlobalsUboStorage {
   float colorVNormal[4];
   float colorLNormal[4];
   float colorFaceDot[4];
+  float colorSkinRoot[4];
 
   float colorDeselect[4];
   float colorOutline[4];
