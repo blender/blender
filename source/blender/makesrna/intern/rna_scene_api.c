@@ -88,7 +88,11 @@ static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subf
   BPy_END_ALLOW_THREADS;
 #  endif
 
-  BKE_scene_camera_switch_update(scene);
+  if (BKE_scene_camera_switch_update(scene)) {
+    for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
+      BKE_screen_view3d_scene_sync(sc, scene);
+    }
+  }
 
   /* don't do notifier when we're rendering, avoid some viewport crashes
    * redrawing while the data is being modified for render */
