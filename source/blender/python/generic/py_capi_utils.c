@@ -28,6 +28,12 @@
 #include <Python.h>
 #include <frameobject.h>
 
+/* Needed for 'PyInterpreterState', we should remove this dependency. */
+#if PY_VERSION_HEX >= 0x03080000
+#  define Py_BUILD_CORE
+#  include <internal/pycore_pystate.h>
+#endif
+
 #include "BLI_utildefines.h" /* for bool */
 
 #include "py_capi_utils.h"
