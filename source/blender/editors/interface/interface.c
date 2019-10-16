@@ -3391,7 +3391,7 @@ static void ui_but_build_drawstr_float(uiBut *but, double value)
   if (value == (double)FLT_MAX) {
     STR_CONCAT(but->drawstr, slen, "inf");
   }
-  else if (value == (double)-FLT_MIN) {
+  else if (value == (double)-FLT_MAX) {
     STR_CONCAT(but->drawstr, slen, "-inf");
   }
   else if (subtype == PROP_PERCENTAGE) {
