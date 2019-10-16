@@ -3055,7 +3055,7 @@ PyTypeObject vector_Type = {
     /* Methods to implement standard operations */
 
     (destructor)BaseMathObject_dealloc, /* destructor tp_dealloc; */
-    NULL,                               /* printfunc tp_print; */
+    (printfunc)NULL,                    /* printfunc tp_print; */
     NULL,                               /* getattrfunc tp_getattr; */
     NULL,                               /* setattrfunc tp_setattr; */
     NULL,                               /* cmpfunc tp_compare; */

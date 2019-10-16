@@ -750,7 +750,7 @@ PyTypeObject euler_Type = {
     sizeof(EulerObject),                    /* tp_basicsize */
     0,                                      /* tp_itemsize */
     (destructor)BaseMathObject_dealloc,     /* tp_dealloc */
-    NULL,                                   /* tp_print */
+    (printfunc)NULL,                        /* tp_print */
     NULL,                                   /* tp_getattr */
     NULL,                                   /* tp_setattr */
     NULL,                                   /* tp_compare */
