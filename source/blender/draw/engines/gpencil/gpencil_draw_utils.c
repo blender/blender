@@ -164,6 +164,34 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
       continue;
     }
 
+    /* Relative onion mode needs to find the frame range before. */
+    int frame_from = -9999;
+    int frame_to = 9999;
+    if ((is_onion) && (mode == GP_ONION_MODE_RELATIVE)) {
+      /* 1) Found first Frame. */
+      int step = gpd->gstep;
+      int idx = 0;
+      if (gpl->actframe) {
+        for (bGPDframe *gf = gpl->actframe->prev; gf; gf = gf->prev) {
+          idx++;
+          frame_from = gf->framenum;
+          if (idx >= step) {
+            break;
+          }
+        }
+        /* 2) Found last Frame. */
+        step = gpd->gstep_next;
+        idx = 0;
+        for (bGPDframe *gf = gpl->actframe->next; gf; gf = gf->next) {
+          idx++;
+          frame_to = gf->framenum;
+          if (idx >= step) {
+            break;
+          }
+        }
+      }
+    }
+
     /* If multiedit or onion skin need to count all frames of the layer. */
     if ((is_multiedit) || (is_onion)) {
       init_gpf = gpl->frames.first;
@@ -186,21 +214,32 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
           }
         }
         else {
-          /* Only selected frames. */
-          if ((mode == GP_ONION_MODE_SELECTED) && ((gpf->flag & GP_FRAME_SELECT) == 0)) {
-            continue;
-          }
-          /* Verify keyframe type. */
-          if ((onion_keytype > -1) && (gpf->key_type != onion_keytype)) {
-            continue;
-          }
-          /* Absolute range. */
-          if (mode == GP_ONION_MODE_ABSOLUTE) {
-            if ((gpl->actframe) && (abs(gpl->actframe->framenum - gpf->framenum) > step)) {
+          bool select = ((is_multiedit) &&
+                         ((gpf == gpl->actframe) || (gpf->flag & GP_FRAME_SELECT)));
+
+          if (!select) {
+            /* Only selected frames. */
+            if ((mode == GP_ONION_MODE_SELECTED) && ((gpf->flag & GP_FRAME_SELECT) == 0)) {
               continue;
             }
+            /* Verify keyframe type. */
+            if ((onion_keytype > -1) && (gpf->key_type != onion_keytype)) {
+              continue;
+            }
+            /* Absolute range. */
+            if (mode == GP_ONION_MODE_ABSOLUTE) {
+              if ((gpl->actframe) && (abs(gpl->actframe->framenum - gpf->framenum) > step)) {
+                continue;
+              }
+            }
+            /* Relative range. */
+            if (mode == GP_ONION_MODE_RELATIVE) {
+              if ((gpf->framenum < frame_from) || (gpf->framenum > frame_to)) {
+                continue;
+              }
+            }
           }
-          /* For relative range it takes too much time compute, so use all frames. */
+
           cache_ob->tot_vertex += gps->totpoints + 3;
           cache_ob->tot_triangles += gps->totpoints - 1;
         }
