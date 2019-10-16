@@ -159,11 +159,12 @@ class FaceVaryingVolatileEval {
                             device_context_);
   }
 
-  void evalPatch(const PatchCoord &patch_coord, float face_varying[2])
+  // NOTE: face_varying must point to a memory of at least float[2]*num_patch_coords.
+  void evalPatches(const PatchCoord *patch_coord, const int num_patch_coords, float *face_varying)
   {
     RawDataWrapperBuffer<float> face_varying_data(face_varying);
     BufferDescriptor face_varying_desc(0, 2, 2);
-    ConstPatchCoordWrapperBuffer patch_coord_buffer(&patch_coord, 1);
+    ConstPatchCoordWrapperBuffer patch_coord_buffer(patch_coord, num_patch_coords);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
         evaluator_cache_, src_face_varying_desc_, face_varying_desc, device_context_);
     EVALUATOR::EvalPatchesFaceVarying(src_face_varying_data_,
@@ -337,12 +338,13 @@ class VolatileEvalOutput {
     }
   }
 
-  void evalPatchCoord(const PatchCoord &patch_coord, float P[3])
+  // NOTE: P must point to a memory of at least float[3]*num_patch_coords.
+  void evalPatches(const PatchCoord *patch_coord, const int num_patch_coords, float *P)
   {
     RawDataWrapperBuffer<float> P_data(P);
     // TODO(sergey): Support interleaved vertex-varying data.
     BufferDescriptor P_desc(0, 3, 3);
-    ConstPatchCoordWrapperBuffer patch_coord_buffer(&patch_coord, 1);
+    ConstPatchCoordWrapperBuffer patch_coord_buffer(patch_coord, num_patch_coords);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
         evaluator_cache_, src_desc_, P_desc, device_context_);
     EVALUATOR::EvalPatches(src_data_,
@@ -356,10 +358,12 @@ class VolatileEvalOutput {
                            device_context_);
   }
 
-  void evalPatchesWithDerivatives(const PatchCoord &patch_coord,
-                                  float P[3],
-                                  float dPdu[3],
-                                  float dPdv[3])
+  // NOTE: P, dPdu, dPdv must point to a memory of at least float[3]*num_patch_coords.
+  void evalPatchesWithDerivatives(const PatchCoord *patch_coord,
+                                  const int num_patch_coords,
+                                  float *P,
+                                  float *dPdu,
+                                  float *dPdv)
   {
     assert(dPdu);
     assert(dPdv);
@@ -368,7 +372,7 @@ class VolatileEvalOutput {
     // TODO(sergey): Support interleaved vertex-varying data.
     BufferDescriptor P_desc(0, 3, 3);
     BufferDescriptor dpDu_desc(0, 3, 3), pPdv_desc(0, 3, 3);
-    ConstPatchCoordWrapperBuffer patch_coord_buffer(&patch_coord, 1);
+    ConstPatchCoordWrapperBuffer patch_coord_buffer(patch_coord, num_patch_coords);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
         evaluator_cache_, src_desc_, P_desc, dpDu_desc, pPdv_desc, device_context_);
     EVALUATOR::EvalPatches(src_data_,
@@ -386,11 +390,14 @@ class VolatileEvalOutput {
                            device_context_);
   }
 
-  void evalPatchVarying(const PatchCoord &patch_coord, float varying[3])
+  // NOTE: varying must point to a memory of at least float[3]*num_patch_coords.
+  void evalPatchesVarying(const PatchCoord *patch_coord,
+                          const int num_patch_coords,
+                          float *varying)
   {
     RawDataWrapperBuffer<float> varying_data(varying);
     BufferDescriptor varying_desc(3, 3, 6);
-    ConstPatchCoordWrapperBuffer patch_coord_buffer(&patch_coord, 1);
+    ConstPatchCoordWrapperBuffer patch_coord_buffer(patch_coord, num_patch_coords);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
         evaluator_cache_, src_varying_desc_, varying_desc, device_context_);
     EVALUATOR::EvalPatchesVarying(src_varying_data_,
@@ -404,13 +411,15 @@ class VolatileEvalOutput {
                                   device_context_);
   }
 
-  void evalPatchFaceVarying(const int face_varying_channel,
-                            const PatchCoord &patch_coord,
-                            float face_varying[2])
+  void evalPatchesFaceVarying(const int face_varying_channel,
+                              const PatchCoord *patch_coord,
+                              const int num_patch_coords,
+                              float face_varying[2])
   {
     assert(face_varying_channel >= 0);
     assert(face_varying_channel < face_varying_evaluators.size());
-    face_varying_evaluators[face_varying_channel]->evalPatch(patch_coord, face_varying);
+    face_varying_evaluators[face_varying_channel]->evalPatches(
+        patch_coord, num_patch_coords, face_varying);
   }
 
  private:
@@ -575,10 +584,10 @@ void CpuEvalOutputAPI::evaluateLimit(const int ptex_face_index,
   const PatchTable::PatchHandle *handle = patch_map_->FindPatch(ptex_face_index, face_u, face_v);
   PatchCoord patch_coord(*handle, face_u, face_v);
   if (dPdu != NULL || dPdv != NULL) {
-    implementation_->evalPatchesWithDerivatives(patch_coord, P, dPdu, dPdv);
+    implementation_->evalPatchesWithDerivatives(&patch_coord, 1, P, dPdu, dPdv);
   }
   else {
-    implementation_->evalPatchCoord(patch_coord, P);
+    implementation_->evalPatches(&patch_coord, 1, P);
   }
 }
 
@@ -593,7 +602,7 @@ void CpuEvalOutputAPI::evaluateVarying(const int ptex_face_index,
   assert(face_v <= 1.0f);
   const PatchTable::PatchHandle *handle = patch_map_->FindPatch(ptex_face_index, face_u, face_v);
   PatchCoord patch_coord(*handle, face_u, face_v);
-  implementation_->evalPatchVarying(patch_coord, varying);
+  implementation_->evalPatchesVarying(&patch_coord, 1, varying);
 }
 
 void CpuEvalOutputAPI::evaluateFaceVarying(const int face_varying_channel,
@@ -608,7 +617,7 @@ void CpuEvalOutputAPI::evaluateFaceVarying(const int face_varying_channel,
   assert(face_v <= 1.0f);
   const PatchTable::PatchHandle *handle = patch_map_->FindPatch(ptex_face_index, face_u, face_v);
   PatchCoord patch_coord(*handle, face_u, face_v);
-  implementation_->evalPatchFaceVarying(face_varying_channel, patch_coord, face_varying);
+  implementation_->evalPatchesFaceVarying(face_varying_channel, &patch_coord, 1, face_varying);
 }
 
 }  // namespace opensubdiv_capi
