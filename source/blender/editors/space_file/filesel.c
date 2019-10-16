@@ -103,10 +103,9 @@ short ED_fileselect_set_params(SpaceFile *sfile)
                       sizeof(sfile->params->dir),
                       sizeof(sfile->params->file));
     sfile->params->filter_glob[0] = '\0';
-    /* set the default thumbnails size */
     sfile->params->thumbnail_size = U_default.file_space_data.thumbnail_size;
-    /* Show size column by default. */
     sfile->params->details_flags = U_default.file_space_data.details_flags;
+    sfile->params->filter_id = U_default.file_space_data.filter_id;
   }
 
   params = sfile->params;
@@ -246,9 +245,6 @@ short ED_fileselect_set_params(SpaceFile *sfile)
       }
     }
 
-    /* For now, always init filterid to 'all true' */
-    params->filter_id = FILTER_ID_ALL;
-
     if (U.uiflag & USER_HIDE_DOT) {
       params->flag |= FILE_HIDE_DOT;
     }
@@ -348,6 +344,7 @@ void ED_fileselect_set_params_from_userdef(SpaceFile *sfile)
   }
   sfile->params->thumbnail_size = sfile_udata->thumbnail_size;
   sfile->params->details_flags = sfile_udata->details_flags;
+  sfile->params->filter_id = sfile_udata->filter_id;
 
   /* Combine flags we take from params with the flags we take from userdef. */
   sfile->params->flag = (sfile->params->flag & ~PARAMS_FLAGS_REMEMBERED) |
@@ -371,6 +368,7 @@ void ED_fileselect_params_to_userdef(SpaceFile *sfile, int temp_win_size[2])
   sfile_udata_new->sort_type = sfile->params->sort;
   sfile_udata_new->details_flags = sfile->params->details_flags;
   sfile_udata_new->flag = sfile->params->flag & PARAMS_FLAGS_REMEMBERED;
+  sfile_udata_new->filter_id = sfile->params->filter_id;
 
   if (temp_win_size) {
     sfile_udata_new->temp_win_sizex = temp_win_size[0];

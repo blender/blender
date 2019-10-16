@@ -213,6 +213,7 @@ const UserDef U_default = {
             .sort_type = FILE_SORT_ALPHA,
             .details_flags = FILE_DETAILS_SIZE | FILE_DETAILS_DATETIME,
             .flag = FILE_HIDE_DOT,
+            .filter_id = FILTER_ID_ALL,
 
             .temp_win_sizex = 1020,
             .temp_win_sizey = 600,

@@ -637,6 +637,10 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
     }
   }
 
+  if (!USER_VERSION_ATLEAST(282, 1)) {
+    userdef->file_space_data.filter_id = U_default.file_space_data.filter_id;
+  }
+
   /**
    * Include next version bump.
    */
