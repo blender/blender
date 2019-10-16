@@ -70,6 +70,18 @@ float light_translucent_power_with_falloff(LightData ld, vec3 N, vec4 l_vector)
 #define scube(x) shadows_cube_data[x]
 #define scascade(x) shadows_cascade_data[x]
 
+float shadow_cube_radial_depth(vec3 cubevec, float tex_id, int shadow_id)
+{
+  float depth = sample_cube(sssShadowCubes, cubevec, tex_id).r;
+  /* To reverting the constant bias from shadow rendering. (Tweaked for 16bit shadowmaps) */
+  const float depth_bias = 3.1e-5;
+  depth = saturate(depth - depth_bias);
+
+  depth = linear_depth(true, depth, sd(shadow_id).sh_far, sd(shadow_id).sh_near);
+  depth *= length(cubevec / max_v3(abs(cubevec)));
+  return depth;
+}
+
 vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, vec2 rand, float sss_scale)
 {
   int shadow_id = int(ld.l_shadowid);
@@ -79,12 +91,12 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, vec2 rand, f
   /* We use the full l_vector.xyz so that the spread is minimize
    * if the shading point is further away from the light source */
   /* TODO(fclem) do something better than this. */
-  // vec3 T, B;
-  // make_orthonormal_basis(L.xyz / L.w, T, B);
-  // rand.xy *= data.sh_blur;
-  // W = W + T * rand.x + B * rand.y;
+  vec3 T, B;
+  make_orthonormal_basis(L.xyz / L.w, T, B);
 
-  float s, dist;
+  vec3 n;
+  vec4 depths;
+  float d, dist;
   int data_id = int(sd(shadow_id).sh_data_index);
   if (ld.l_type == SUN) {
     vec4 view_z = vec4(dot(W - cameraPos, cameraForward));
@@ -105,20 +117,62 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, vec2 rand, f
       return vec3(0.0);
     }
 
-    float tex_id = scascade(data_id).sh_tex_index;
-    s = sample_cascade(sssShadowCascades, shpos.xy, tex_id + id).r;
-    s *= range;
+    float tex_id = scascade(data_id).sh_tex_index + id;
+
+    /* Assume cascades have same height and width. */
+    vec2 ofs = vec2(1.0, 0.0) / float(textureSize(sssShadowCascades, 0).x);
+    d = sample_cascade(sssShadowCascades, shpos.xy, tex_id).r;
+    depths.x = sample_cascade(sssShadowCascades, shpos.xy + ofs.xy, tex_id).r;
+    depths.y = sample_cascade(sssShadowCascades, shpos.xy + ofs.yx, tex_id).r;
+    depths.z = sample_cascade(sssShadowCascades, shpos.xy - ofs.xy, tex_id).r;
+    depths.w = sample_cascade(sssShadowCascades, shpos.xy - ofs.yx, tex_id).r;
+
+    /* To reverting the constant bias from shadow rendering. (Tweaked for 16bit shadowmaps) */
+    float depth_bias = 3.1e-5;
+    depths = saturate(depths - depth_bias);
+    d = saturate(d - depth_bias);
+
+    /* Size of a texel in world space.
+     * FIXME This is only correct if l_right is the same right vector used for shadowmap creation.
+     * This won't work if the shadow matrix is rotated (soft shadows).
+     * TODO precompute */
+    float unit_world_in_uv_space = length(mat3(scascade(data_id).shadowmat[int(id)]) * ld.l_right);
+    float dx_scale = 2.0 * ofs.x / unit_world_in_uv_space;
+
+    d *= range;
+    depths *= range;
+
+    /* This is the normal of the occluder in world space. */
+    // vec3 T = ld.l_forward * dx + ld.l_right * dx_scale;
+    // vec3 B = ld.l_forward * dy + ld.l_up * dx_scale;
+    // n = normalize(cross(T, B));
   }
   else {
+    float ofs = 1.0 / float(textureSize(sssShadowCubes, 0).x);
+
     vec3 cubevec = transform_point(scube(data_id).shadowmat, W);
     dist = length(cubevec);
     cubevec /= dist;
     /* tex_id == data_id for cube shadowmap */
     float tex_id = float(data_id);
-    s = sample_cube(sssShadowCubes, cubevec, tex_id).r;
-    s = length(cubevec / max_v3(abs(cubevec))) *
-        linear_depth(true, s, sd(shadow_id).sh_far, sd(shadow_id).sh_near);
+    d = shadow_cube_radial_depth(cubevec, tex_id, shadow_id);
+    /* NOTE: The offset is irregular in respect to cubeface uvs. But it has
+     * a much more uniform behavior than biasing based on face derivatives. */
+    depths.x = shadow_cube_radial_depth(cubevec + T * ofs, tex_id, shadow_id);
+    depths.y = shadow_cube_radial_depth(cubevec + B * ofs, tex_id, shadow_id);
+    depths.z = shadow_cube_radial_depth(cubevec - T * ofs, tex_id, shadow_id);
+    depths.w = shadow_cube_radial_depth(cubevec - B * ofs, tex_id, shadow_id);
   }
+
+  float dx = depths.x - depths.z;
+  float dy = depths.y - depths.w;
+
+  float s = min(d, min_v4(depths));
+
+  /* To avoid light leak from depth discontinuity and shadowmap aliasing. */
+  float slope_bias = (abs(dx) + abs(dy)) * 0.5;
+  s -= slope_bias;
+
   float delta = dist - s;
 
   float power = light_translucent_power_with_falloff(ld, N, l_vector);

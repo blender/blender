@@ -140,6 +140,10 @@ float min_v3(vec3 v)
 {
   return min(v.x, min(v.y, v.z));
 }
+float min_v4(vec4 v)
+{
+  return min(min(v.x, v.y), min(v.z, v.w));
+}
 float max_v2(vec2 v)
 {
   return max(v.x, v.y);
@@ -147,6 +151,10 @@ float max_v2(vec2 v)
 float max_v3(vec3 v)
 {
   return max(v.x, max(v.y, v.z));
+}
+float max_v4(vec4 v)
+{
+  return max(max(v.x, v.y), max(v.z, v.w));
 }
 
 float sum(vec2 v)

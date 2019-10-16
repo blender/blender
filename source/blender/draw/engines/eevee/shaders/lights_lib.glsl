@@ -70,7 +70,6 @@ vec2 cubeFaceCoordEEVEE(vec3 P, float face, sampler2DArrayShadow tex)
 vec4 sample_cube(sampler2DArray tex, vec3 cubevec, float cube)
 {
   /* Manual Shadow Cube Layer indexing. */
-  /* TODO Shadow Cube Array. */
   float face = cubeFaceIndexEEVEE(cubevec);
   vec2 uv = cubeFaceCoordEEVEE(cubevec, face, tex);
 
