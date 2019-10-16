@@ -20,6 +20,9 @@
  * This file defines the 'bgl' module, used for drawing text in OpenGL.
  */
 
+/* Future-proof, See https://docs.python.org/3/c-api/arg.html#strings-and-buffers */
+#define PY_SSIZE_T_CLEAN
+
 #include <Python.h>
 #include "blf_py_api.h"
 
@@ -176,7 +179,7 @@ PyDoc_STRVAR(py_blf_draw_doc,
 static PyObject *py_blf_draw(PyObject *UNUSED(self), PyObject *args)
 {
   const char *text;
-  int text_length;
+  Py_ssize_t text_length;
   int fontid;
 
   if (!PyArg_ParseTuple(args, "is#:blf.draw", &fontid, &text, &text_length)) {

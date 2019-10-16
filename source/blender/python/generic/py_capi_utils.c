@@ -25,6 +25,9 @@
  * BLI_string_utf8() for unicode conversion.
  */
 
+/* Future-proof, See https://docs.python.org/3/c-api/arg.html#strings-and-buffers */
+#define PY_SSIZE_T_CLEAN
+
 #include <Python.h>
 #include <frameobject.h>
 
@@ -873,7 +876,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 
     va_list vargs;
 
-    int *sizes = PyMem_MALLOC(sizeof(int) * (n / 2));
+    Py_ssize_t *sizes = PyMem_MALLOC(sizeof(*sizes) * (n / 2));
     int i;
 
     PyObject *py_dict = PyC_DefaultNameSpace(filepath);
