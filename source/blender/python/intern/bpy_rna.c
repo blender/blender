@@ -6237,10 +6237,10 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
 
     0, /* tp_itemsize */
     /* methods */
-    NULL, /* tp_dealloc */
-    NULL, /* printfunc tp_print; */
-    NULL, /* getattrfunc tp_getattr; */
-    NULL, /* setattrfunc tp_setattr; */
+    NULL,            /* tp_dealloc */
+    (printfunc)NULL, /* printfunc tp_print; */
+    NULL,            /* getattrfunc tp_getattr; */
+    NULL,            /* setattrfunc tp_setattr; */
     NULL,
     /* tp_compare */ /* deprecated in Python 3.0! */
     NULL,            /* tp_repr */
@@ -6319,7 +6319,7 @@ PyTypeObject pyrna_struct_Type = {
     0,                                           /* tp_itemsize */
     /* methods */
     (destructor)pyrna_struct_dealloc, /* tp_dealloc */
-    NULL,                             /* printfunc tp_print; */
+    (printfunc)NULL,                  /* printfunc tp_print; */
     NULL,                             /* getattrfunc tp_getattr; */
     NULL,                             /* setattrfunc tp_setattr; */
     NULL,
@@ -6408,7 +6408,7 @@ PyTypeObject pyrna_prop_Type = {
     0,                                         /* tp_itemsize */
     /* methods */
     (destructor)pyrna_prop_dealloc, /* tp_dealloc */
-    NULL,                           /* printfunc tp_print; */
+    (printfunc)NULL,                /* printfunc tp_print; */
     NULL,                           /* getattrfunc tp_getattr; */
     NULL,                           /* setattrfunc tp_setattr; */
     NULL,
@@ -6492,7 +6492,7 @@ PyTypeObject pyrna_prop_array_Type = {
     0,                                               /* tp_itemsize */
     /* methods */
     (destructor)pyrna_prop_array_dealloc, /* tp_dealloc */
-    NULL,                                 /* printfunc tp_print; */
+    (printfunc)NULL,                      /* printfunc tp_print; */
     NULL,                                 /* getattrfunc tp_getattr; */
     NULL,                                 /* setattrfunc tp_setattr; */
     NULL,
@@ -6575,7 +6575,7 @@ PyTypeObject pyrna_prop_collection_Type = {
     0,                                                    /* tp_itemsize */
     /* methods */
     (destructor)pyrna_prop_dealloc, /* tp_dealloc */
-    NULL,                           /* printfunc tp_print; */
+    (printfunc)NULL,                /* printfunc tp_print; */
     NULL,                           /* getattrfunc tp_getattr; */
     NULL,                           /* setattrfunc tp_setattr; */
     NULL,
@@ -6661,7 +6661,7 @@ static PyTypeObject pyrna_prop_collection_idprop_Type = {
     0,                                                           /* tp_itemsize */
     /* methods */
     (destructor)pyrna_prop_dealloc, /* tp_dealloc */
-    NULL,                           /* printfunc tp_print; */
+    (printfunc)NULL,                /* printfunc tp_print; */
     NULL,                           /* getattrfunc tp_getattr; */
     NULL,                           /* setattrfunc tp_setattr; */
     NULL,
@@ -6746,10 +6746,10 @@ PyTypeObject pyrna_func_Type = {
     sizeof(BPy_FunctionRNA),                   /* tp_basicsize */
     0,                                         /* tp_itemsize */
     /* methods */
-    NULL, /* tp_dealloc */
-    NULL, /* printfunc tp_print; */
-    NULL, /* getattrfunc tp_getattr; */
-    NULL, /* setattrfunc tp_setattr; */
+    NULL,            /* tp_dealloc */
+    (printfunc)NULL, /* printfunc tp_print; */
+    NULL,            /* getattrfunc tp_getattr; */
+    NULL,            /* setattrfunc tp_setattr; */
     NULL,
     /* tp_compare */           /* DEPRECATED in Python 3.0! */
     (reprfunc)pyrna_func_repr, /* tp_repr */
@@ -6843,7 +6843,7 @@ static PyTypeObject pyrna_prop_collection_iter_Type = {
     0,                                                         /* tp_itemsize */
     /* methods */
     (destructor)pyrna_prop_collection_iter_dealloc, /* tp_dealloc */
-    NULL,                                           /* printfunc tp_print; */
+    (printfunc)NULL,                                /* printfunc tp_print; */
     NULL,                                           /* getattrfunc tp_getattr; */
     NULL,                                           /* setattrfunc tp_setattr; */
     NULL,
