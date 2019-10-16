@@ -5288,7 +5288,11 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
       {FILTER_ID_TXT, "TEXT", ICON_TEXT, "Texts", "Show/hide Text data-blocks"},
       {FILTER_ID_VF, "FONT", ICON_FONT_DATA, "Fonts", "Show/hide Font data-blocks"},
       {FILTER_ID_WO, "WORLD", ICON_WORLD_DATA, "Worlds", "Show/hide World data-blocks"},
-      {FILTER_ID_WS, "WORK_SPACE", ICON_NONE, "Workspaces", "Show/hide workspace data-blocks"},
+      {FILTER_ID_WS,
+       "WORK_SPACE",
+       ICON_WORKSPACE,
+       "Workspaces",
+       "Show/hide workspace data-blocks"},
       {0, NULL, 0, NULL, NULL},
   };
 
