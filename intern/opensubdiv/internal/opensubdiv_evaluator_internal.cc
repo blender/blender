@@ -70,13 +70,6 @@ namespace {
 // supported.
 class PatchCoordBuffer : public vector<PatchCoord> {
  public:
-  static PatchCoordBuffer *Create(int size)
-  {
-    PatchCoordBuffer *buffer = new PatchCoordBuffer();
-    buffer->resize(size);
-    return buffer;
-  }
-
   PatchCoord *BindCpuBuffer()
   {
     return reinterpret_cast<PatchCoord *>(&(*this)[0]);
@@ -99,11 +92,6 @@ class PatchCoordBuffer : public vector<PatchCoord> {
 // coordinates to the CPU evaluator. Other evaluators are not supported.
 class SinglePatchCoordBuffer {
  public:
-  static SinglePatchCoordBuffer *Create()
-  {
-    return new SinglePatchCoordBuffer();
-  }
-
   SinglePatchCoordBuffer()
   {
   }
@@ -137,13 +125,6 @@ class SinglePatchCoordBuffer {
 // TODO(sergey): Check if bare arrays could be used by CPU evaluator.
 template<int element_size, int num_vertices> class StackAllocatedBuffer {
  public:
-  static PatchCoordBuffer *Create(int /*size*/)
-  {
-    // TODO(sergey): Validate that requested size is smaller than static
-    // stack memory size.
-    return new StackAllocatedBuffer<element_size, num_vertices>();
-  }
-
   float *BindCpuBuffer()
   {
     return &data_[0];
