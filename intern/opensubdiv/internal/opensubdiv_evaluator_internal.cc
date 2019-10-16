@@ -65,29 +65,6 @@ namespace opensubdiv_capi {
 
 namespace {
 
-// Helper class to wrap numerous of patch coordinates into a buffer.
-// Used to pass coordinates to the CPU evaluator. Other evaluators are not
-// supported.
-class PatchCoordBuffer : public vector<PatchCoord> {
- public:
-  PatchCoord *BindCpuBuffer()
-  {
-    return reinterpret_cast<PatchCoord *>(&(*this)[0]);
-  }
-
-  int GetNumVertices()
-  {
-    return size();
-  }
-
-  void UpdateData(const PatchCoord *patch_coords, int num_patch_coords)
-  {
-    memcpy(&(*this)[0],
-           reinterpret_cast<const void *>(patch_coords),
-           sizeof(PatchCoord) * num_patch_coords);
-  }
-};
-
 // Helper class to wrap single of patch coord into a buffer. Used to pass
 // coordinates to the CPU evaluator. Other evaluators are not supported.
 class SinglePatchCoordBuffer {
