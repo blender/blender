@@ -117,6 +117,25 @@ template<int element_size, int num_vertices> class StackAllocatedBuffer {
   float data_[element_size * num_vertices];
 };
 
+// Buffer which implements API required by OpenSubdiv and uses an existing memory as an underlying
+// storage.
+template<typename T> class RawDataWrapperBuffer {
+ public:
+  RawDataWrapperBuffer(T *data) : data_(data)
+  {
+  }
+
+  T *BindCpuBuffer()
+  {
+    return data_;
+  }
+
+  // TODO(sergey): Support UpdateData().
+
+ protected:
+  T *data_;
+};
+
 template<typename EVAL_VERTEX_BUFFER,
          typename STENCIL_TABLE,
          typename PATCH_TABLE,
@@ -177,7 +196,7 @@ class FaceVaryingVolatileEval {
 
   void evalPatch(const PatchCoord &patch_coord, float face_varying[2])
   {
-    StackAllocatedBuffer<2, 1> face_varying_data;
+    RawDataWrapperBuffer<float> face_varying_data(face_varying);
     BufferDescriptor face_varying_desc(0, 2, 2);
     SinglePatchCoordBuffer patch_coord_buffer(patch_coord);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
@@ -192,8 +211,6 @@ class FaceVaryingVolatileEval {
                                       face_varying_channel_,
                                       eval_instance,
                                       device_context_);
-    const float *refined_face_varying = face_varying_data.BindCpuBuffer();
-    memcpy(face_varying, refined_face_varying, sizeof(float) * 2);
   }
 
  protected:
@@ -357,23 +374,21 @@ class VolatileEvalOutput {
 
   void evalPatchCoord(const PatchCoord &patch_coord, float P[3])
   {
-    StackAllocatedBuffer<3, 1> vertex_data;
+    RawDataWrapperBuffer<float> P_data(P);
     // TODO(sergey): Support interleaved vertex-varying data.
-    BufferDescriptor vertex_desc(0, 3, 3);
+    BufferDescriptor P_desc(0, 3, 3);
     SinglePatchCoordBuffer patch_coord_buffer(patch_coord);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
-        evaluator_cache_, src_desc_, vertex_desc, device_context_);
+        evaluator_cache_, src_desc_, P_desc, device_context_);
     EVALUATOR::EvalPatches(src_data_,
                            src_desc_,
-                           &vertex_data,
-                           vertex_desc,
+                           &P_data,
+                           P_desc,
                            patch_coord_buffer.GetNumVertices(),
                            &patch_coord_buffer,
                            patch_table_,
                            eval_instance,
                            device_context_);
-    const float *refined_vertices = vertex_data.BindCpuBuffer();
-    memcpy(P, refined_vertices, sizeof(float) * 3);
   }
 
   void evalPatchesWithDerivatives(const PatchCoord &patch_coord,
@@ -383,42 +398,32 @@ class VolatileEvalOutput {
   {
     assert(dPdu);
     assert(dPdv);
-    StackAllocatedBuffer<3, 1> vertex_data;
-    StackAllocatedBuffer<3, 1> dPdu_data, dPdv_data;
+    RawDataWrapperBuffer<float> P_data(P);
+    RawDataWrapperBuffer<float> dPdu_data(dPdu), dPdv_data(dPdv);
     // TODO(sergey): Support interleaved vertex-varying data.
-    BufferDescriptor vertex_desc(0, 3, 3);
-    BufferDescriptor du_desc(0, 3, 3), dv_desc(0, 3, 3);
+    BufferDescriptor P_desc(0, 3, 3);
+    BufferDescriptor dpDu_desc(0, 3, 3), pPdv_desc(0, 3, 3);
     SinglePatchCoordBuffer patch_coord_buffer(patch_coord);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
-        evaluator_cache_, src_desc_, vertex_desc, du_desc, dv_desc, device_context_);
+        evaluator_cache_, src_desc_, P_desc, dpDu_desc, pPdv_desc, device_context_);
     EVALUATOR::EvalPatches(src_data_,
                            src_desc_,
-                           &vertex_data,
-                           vertex_desc,
+                           &P_data,
+                           P_desc,
                            &dPdu_data,
-                           du_desc,
+                           dpDu_desc,
                            &dPdv_data,
-                           dv_desc,
+                           pPdv_desc,
                            patch_coord_buffer.GetNumVertices(),
                            &patch_coord_buffer,
                            patch_table_,
                            eval_instance,
                            device_context_);
-    const float *refined_vertices = vertex_data.BindCpuBuffer();
-    memcpy(P, refined_vertices, sizeof(float) * 3);
-    if (dPdu != NULL) {
-      const float *refined_dPdu = dPdu_data.BindCpuBuffer();
-      memcpy(dPdu, refined_dPdu, sizeof(float) * 3);
-    }
-    if (dPdv != NULL) {
-      const float *refined_dPdv = dPdv_data.BindCpuBuffer();
-      memcpy(dPdv, refined_dPdv, sizeof(float) * 3);
-    }
   }
 
   void evalPatchVarying(const PatchCoord &patch_coord, float varying[3])
   {
-    StackAllocatedBuffer<6, 1> varying_data;
+    RawDataWrapperBuffer<float> varying_data(varying);
     BufferDescriptor varying_desc(3, 3, 6);
     SinglePatchCoordBuffer patch_coord_buffer(patch_coord);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
@@ -432,8 +437,6 @@ class VolatileEvalOutput {
                                   patch_table_,
                                   eval_instance,
                                   device_context_);
-    const float *refined_varying = varying_data.BindCpuBuffer();
-    memcpy(varying, refined_varying, sizeof(float) * 3);
   }
 
   void evalPatchFaceVarying(const int face_varying_channel,
