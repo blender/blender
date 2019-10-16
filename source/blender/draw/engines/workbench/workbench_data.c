@@ -111,6 +111,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
     zero_v3(wd->background_color_low);
     zero_v3(wd->background_color_high);
   }
+  wd->background_dither_factor = workbench_background_dither_factor(wpd);
 
   studiolight_update_world(wpd, wpd->studio_light, wd);
 

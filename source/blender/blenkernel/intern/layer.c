@@ -1638,7 +1638,7 @@ void BKE_view_layer_bases_in_mode_iterator_begin(BLI_Iterator *iter, void *data_
     data->object_type = base->object->type;
   }
 
-  if (!base_is_in_mode(data, base)) {
+  if (!(base_is_in_mode(data, base) && BKE_base_is_visible(data->v3d, base))) {
     BKE_view_layer_bases_in_mode_iterator_next(iter);
   }
 }
@@ -1651,7 +1651,7 @@ void BKE_view_layer_bases_in_mode_iterator_next(BLI_Iterator *iter)
   if (base == data->base_active) {
     /* first step */
     base = data->view_layer->object_bases.first;
-    if (base == data->base_active) {
+    if ((base == data->base_active) && BKE_base_is_visible(data->v3d, base)) {
       base = base->next;
     }
   }
@@ -1660,7 +1660,8 @@ void BKE_view_layer_bases_in_mode_iterator_next(BLI_Iterator *iter)
   }
 
   while (base) {
-    if ((base != data->base_active) && base_is_in_mode(data, base)) {
+    if ((base != data->base_active) && base_is_in_mode(data, base) &&
+        BKE_base_is_visible(data->v3d, base)) {
       iter->current = base;
       return;
     }

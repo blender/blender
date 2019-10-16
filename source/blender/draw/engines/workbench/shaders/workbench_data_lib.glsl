@@ -16,5 +16,6 @@ struct WorldData {
   float background_alpha;
   float curvature_ridge;
   float curvature_valley;
-  int pad[3];
+  float background_dither_factor;
+  int pad[2];
 };

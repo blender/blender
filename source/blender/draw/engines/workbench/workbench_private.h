@@ -194,7 +194,8 @@ typedef struct WORKBENCH_UBO_World {
   float background_alpha;
   float curvature_ridge;
   float curvature_valley;
-  int pad[3];
+  float background_dither_factor;
+  int pad[2];
 } WORKBENCH_UBO_World;
 BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)
 
@@ -404,6 +405,12 @@ BLI_INLINE eGPUTextureFormat workbench_color_texture_format(const WORKBENCH_Priv
     result = GPU_RGBA8;
   }
   return result;
+}
+
+BLI_INLINE bool workbench_background_dither_factor(const WORKBENCH_PrivateData *wpd) {
+  /* Only apply dithering when rendering on a RGBA8 texture.
+   * The dithering will remove banding when using a gradient as background */
+  return workbench_color_texture_format(wpd) == GPU_RGBA8;
 }
 
 /* workbench_deferred.c */
