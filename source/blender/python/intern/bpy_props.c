@@ -22,6 +22,9 @@
  * existing blender types.
  */
 
+/* Future-proof, See https://docs.python.org/3/c-api/arg.html#strings-and-buffers */
+#define PY_SSIZE_T_CLEAN
+
 #include <Python.h>
 
 #include "RNA_types.h"
@@ -2101,7 +2104,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 
   if (srna) {
     const char *id = NULL, *name = NULL, *description = "";
-    int id_len;
+    Py_ssize_t id_len;
     bool def = false;
     PropertyRNA *prop;
     PyObject *pyopts = NULL;
@@ -2204,7 +2207,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 
   if (srna) {
     const char *id = NULL, *name = NULL, *description = "";
-    int id_len;
+    Py_ssize_t id_len;
     bool def[PYRNA_STACK_ARRAY] = {0};
     int size = 3;
     PropertyRNA *prop;
@@ -2336,7 +2339,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 
   if (srna) {
     const char *id = NULL, *name = NULL, *description = "";
-    int id_len;
+    Py_ssize_t id_len;
     int min = INT_MIN, max = INT_MAX, soft_min = INT_MIN, soft_max = INT_MAX, step = 1, def = 0;
     PropertyRNA *prop;
     PyObject *pyopts = NULL;
@@ -2456,7 +2459,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 
   if (srna) {
     const char *id = NULL, *name = NULL, *description = "";
-    int id_len;
+    Py_ssize_t id_len;
     int min = INT_MIN, max = INT_MAX, soft_min = INT_MIN, soft_max = INT_MAX, step = 1;
     int def[PYRNA_STACK_ARRAY] = {0};
     int size = 3;
@@ -2599,7 +2602,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 
   if (srna) {
     const char *id = NULL, *name = NULL, *description = "";
-    int id_len;
+    Py_ssize_t id_len;
     float min = -FLT_MAX, max = FLT_MAX, soft_min = -FLT_MAX, soft_max = FLT_MAX, step = 3,
           def = 0.0f;
     int precision = 2;
@@ -2735,7 +2738,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 
   if (srna) {
     const char *id = NULL, *name = NULL, *description = "";
-    int id_len;
+    Py_ssize_t id_len;
     float min = -FLT_MAX, max = FLT_MAX, soft_min = -FLT_MAX, soft_max = FLT_MAX, step = 3;
     float def[PYRNA_STACK_ARRAY] = {0.0f};
     int precision = 2, size = 3;
@@ -2869,7 +2872,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 
   if (srna) {
     const char *id = NULL, *name = NULL, *description = "", *def = "";
-    int id_len;
+    Py_ssize_t id_len;
     int maxlen = 0;
     PropertyRNA *prop;
     PyObject *pyopts = NULL;
@@ -3015,7 +3018,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
   if (srna) {
     const char *id = NULL, *name = NULL, *description = "";
     PyObject *def = NULL;
-    int id_len;
+    Py_ssize_t id_len;
     int defvalue = 0;
     PyObject *items, *items_fast;
     const EnumPropertyItem *eitems;
@@ -3191,7 +3194,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 
   if (srna) {
     const char *id = NULL, *name = NULL, *description = "";
-    int id_len;
+    Py_ssize_t id_len;
     PropertyRNA *prop;
     StructRNA *ptype;
     PyObject *type = Py_None;
@@ -3286,7 +3289,7 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
   BPY_PROPDEF_HEAD(CollectionProperty);
 
   if (srna) {
-    int id_len;
+    Py_ssize_t id_len;
     const char *id = NULL, *name = NULL, *description = "";
     PropertyRNA *prop;
     StructRNA *ptype;
