@@ -102,6 +102,17 @@ void evaluateLimit(OpenSubdiv_Evaluator *evaluator,
   evaluator->internal->eval_output->evaluateLimit(ptex_face_index, face_u, face_v, P, dPdu, dPdv);
 }
 
+void evaluatePatchesLimit(OpenSubdiv_Evaluator *evaluator,
+                          const OpenSubdiv_PatchCoord *patch_coords,
+                          const int num_patch_coords,
+                          float *P,
+                          float *dPdu,
+                          float *dPdv)
+{
+  evaluator->internal->eval_output->evaluatePatchesLimit(
+      patch_coords, num_patch_coords, P, dPdu, dPdv);
+}
+
 void evaluateVarying(OpenSubdiv_Evaluator *evaluator,
                      const int ptex_face_index,
                      float face_u,
@@ -137,6 +148,8 @@ void assignFunctionPointers(OpenSubdiv_Evaluator *evaluator)
   evaluator->evaluateLimit = evaluateLimit;
   evaluator->evaluateVarying = evaluateVarying;
   evaluator->evaluateFaceVarying = evaluateFaceVarying;
+
+  evaluator->evaluatePatchesLimit = evaluatePatchesLimit;
 }
 
 }  // namespace

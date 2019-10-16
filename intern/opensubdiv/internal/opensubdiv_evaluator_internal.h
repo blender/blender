@@ -26,6 +26,7 @@
 #include <opensubdiv/far/patchMap.h>
 #include <opensubdiv/far/patchTable.h>
 
+struct OpenSubdiv_PatchCoord;
 struct OpenSubdiv_TopologyRefiner;
 
 namespace opensubdiv_capi {
@@ -113,6 +114,18 @@ class CpuEvalOutputAPI {
                            float face_u,
                            float face_v,
                            float face_varying[2]);
+
+  // Batched evaluation of multiple input coordinates.
+
+  // Evaluate given ptex face at given bilinear coordinate.
+  // If derivatives are NULL, they will not be evaluated.
+  //
+  // NOTE: Output arrays must point to a memory of size float[3]*num_patch_coords.
+  void evaluatePatchesLimit(const OpenSubdiv_PatchCoord *patch_coords,
+                            const int num_patch_coords,
+                            float *P,
+                            float *dPdu,
+                            float *dPdv);
 
  protected:
   CpuEvalOutput *implementation_;

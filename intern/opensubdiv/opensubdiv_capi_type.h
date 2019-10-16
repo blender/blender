@@ -58,6 +58,13 @@ typedef enum OpenSubdiv_FVarLinearInterpolation {
   OSD_FVAR_LINEAR_INTERPOLATION_ALL,
 } OpenSubdiv_FVarLinearInterpolation;
 
+typedef struct OpenSubdiv_PatchCoord {
+  int ptex_face;
+
+  // Parametric location on patch.
+  float u, v;
+} OpenSubdiv_PatchCoord;
+
 #ifdef __cplusplus
 }
 #endif

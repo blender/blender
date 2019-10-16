@@ -58,6 +58,88 @@ namespace opensubdiv_capi {
 
 namespace {
 
+// Array implementation which stores small data on stack (or, rather, in the class itself).
+template<typename T, int kNumMaxElementsOnStack> class StackOrHeapArray {
+ public:
+  StackOrHeapArray()
+      : num_elements_(0), heap_elements_(NULL), num_heap_elements_(0), effective_elements_(NULL)
+  {
+  }
+
+  explicit StackOrHeapArray(int size) : StackOrHeapArray()
+  {
+    resize(size);
+  }
+
+  ~StackOrHeapArray()
+  {
+    delete[] heap_elements_;
+  }
+
+  int size() const
+  {
+    return num_elements_;
+  };
+
+  T *data()
+  {
+    return effective_elements_;
+  }
+
+  void resize(int num_elements)
+  {
+    const int old_num_elements = num_elements_;
+    num_elements_ = num_elements;
+    // Early output if allcoation size did not change, or allocation size is smaller.
+    // We never re-allocate, sacrificing some memory over performance.
+    if (old_num_elements >= num_elements) {
+      return;
+    }
+    // Simple case: no previously allocated buffer, can simply do one allocation.
+    if (effective_elements_ == NULL) {
+      effective_elements_ = allocate(num_elements);
+      return;
+    }
+    // Make new allocation, and copy elements if needed.
+    T *old_buffer = effective_elements_;
+    effective_elements_ = allocate(num_elements);
+    if (old_buffer != effective_elements_) {
+      memcpy(effective_elements_, old_buffer, sizeof(T) * min(old_num_elements, num_elements));
+    }
+    if (old_buffer != stack_elements_) {
+      delete[] old_buffer;
+    }
+  }
+
+ protected:
+  T *allocate(int num_elements)
+  {
+    if (num_elements < kNumMaxElementsOnStack) {
+      return stack_elements_;
+    }
+    heap_elements_ = new T[num_elements];
+    return heap_elements_;
+  }
+
+  // Number of elements in the buffer.
+  int num_elements_;
+
+  // Elements which are allocated on a stack (or, rather, in the same allocation as the buffer
+  // itself).
+  // Is used as long as buffer is smaller than kNumMaxElementsOnStack.
+  T stack_elements_[kNumMaxElementsOnStack];
+
+  // Heap storage for buffer larger than kNumMaxElementsOnStack.
+  T *heap_elements_;
+  int num_heap_elements_;
+
+  // Depending on the current buffer size points to rither stack_elements_ or heap_elements_.
+  T *effective_elements_;
+};
+
+// 32 is a number of inner vertices along the patch size at subdivision level 6.
+typedef StackOrHeapArray<PatchCoord, 32 * 32> StackOrHeapPatchCoordArray;
+
 // Buffer which implements API required by OpenSubdiv and uses an existing memory as an underlying
 // storage.
 template<typename T> class RawDataWrapperBuffer {
@@ -441,6 +523,19 @@ class VolatileEvalOutput {
   DEVICE_CONTEXT *device_context_;
 };
 
+void convertPatchCoordsToArray(const OpenSubdiv_PatchCoord *patch_coords,
+                               const int num_patch_coords,
+                               const OpenSubdiv::Far::PatchMap *patch_map,
+                               StackOrHeapPatchCoordArray *array)
+{
+  array->resize(num_patch_coords);
+  for (int i = 0; i < num_patch_coords; ++i) {
+    const PatchTable::PatchHandle *handle = patch_map->FindPatch(
+        patch_coords[i].ptex_face, patch_coords[i].u, patch_coords[i].v);
+    (array->data())[i] = PatchCoord(*handle, patch_coords[i].u, patch_coords[i].v);
+  }
+}
+
 }  // namespace
 
 // Note: Define as a class instead of typedcef to make it possible
@@ -618,6 +713,23 @@ void CpuEvalOutputAPI::evaluateFaceVarying(const int face_varying_channel,
   const PatchTable::PatchHandle *handle = patch_map_->FindPatch(ptex_face_index, face_u, face_v);
   PatchCoord patch_coord(*handle, face_u, face_v);
   implementation_->evalPatchesFaceVarying(face_varying_channel, &patch_coord, 1, face_varying);
+}
+
+void CpuEvalOutputAPI::evaluatePatchesLimit(const OpenSubdiv_PatchCoord *patch_coords,
+                                            const int num_patch_coords,
+                                            float *P,
+                                            float *dPdu,
+                                            float *dPdv)
+{
+  StackOrHeapPatchCoordArray patch_coords_array;
+  convertPatchCoordsToArray(patch_coords, num_patch_coords, patch_map_, &patch_coords_array);
+  if (dPdu != NULL || dPdv != NULL) {
+    implementation_->evalPatchesWithDerivatives(
+        patch_coords_array.data(), num_patch_coords, P, dPdu, dPdv);
+  }
+  else {
+    implementation_->evalPatches(patch_coords_array.data(), num_patch_coords, P);
+  }
 }
 
 }  // namespace opensubdiv_capi
