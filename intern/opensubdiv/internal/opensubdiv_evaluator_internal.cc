@@ -58,37 +58,6 @@ namespace opensubdiv_capi {
 
 namespace {
 
-// Helper class to wrap single of patch coord into a buffer. Used to pass
-// coordinates to the CPU evaluator. Other evaluators are not supported.
-class SinglePatchCoordBuffer {
- public:
-  SinglePatchCoordBuffer()
-  {
-  }
-
-  explicit SinglePatchCoordBuffer(const PatchCoord &patch_coord) : patch_coord_(patch_coord)
-  {
-  }
-
-  PatchCoord *BindCpuBuffer()
-  {
-    return &patch_coord_;
-  }
-
-  int GetNumVertices()
-  {
-    return 1;
-  }
-
-  void UpdateData(const PatchCoord &patch_coord)
-  {
-    patch_coord_ = patch_coord;
-  }
-
- protected:
-  PatchCoord patch_coord_;
-};
-
 // Buffer which implements API required by OpenSubdiv and uses an existing memory as an underlying
 // storage.
 template<typename T> class RawDataWrapperBuffer {
@@ -106,6 +75,30 @@ template<typename T> class RawDataWrapperBuffer {
 
  protected:
   T *data_;
+};
+
+template<typename T> class RawDataWrapperVertexBuffer : public RawDataWrapperBuffer<T> {
+ public:
+  RawDataWrapperVertexBuffer(T *data, int num_vertices)
+      : RawDataWrapperBuffer<T>(data), num_vertices_(num_vertices)
+  {
+  }
+
+  int GetNumVertices()
+  {
+    return num_vertices_;
+  }
+
+ protected:
+  int num_vertices_;
+};
+
+class ConstPatchCoordWrapperBuffer : public RawDataWrapperVertexBuffer<const PatchCoord> {
+ public:
+  ConstPatchCoordWrapperBuffer(const PatchCoord *data, int num_vertices)
+      : RawDataWrapperVertexBuffer(data, num_vertices)
+  {
+  }
 };
 
 template<typename EVAL_VERTEX_BUFFER,
@@ -170,7 +163,7 @@ class FaceVaryingVolatileEval {
   {
     RawDataWrapperBuffer<float> face_varying_data(face_varying);
     BufferDescriptor face_varying_desc(0, 2, 2);
-    SinglePatchCoordBuffer patch_coord_buffer(patch_coord);
+    ConstPatchCoordWrapperBuffer patch_coord_buffer(&patch_coord, 1);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
         evaluator_cache_, src_face_varying_desc_, face_varying_desc, device_context_);
     EVALUATOR::EvalPatchesFaceVarying(src_face_varying_data_,
@@ -349,7 +342,7 @@ class VolatileEvalOutput {
     RawDataWrapperBuffer<float> P_data(P);
     // TODO(sergey): Support interleaved vertex-varying data.
     BufferDescriptor P_desc(0, 3, 3);
-    SinglePatchCoordBuffer patch_coord_buffer(patch_coord);
+    ConstPatchCoordWrapperBuffer patch_coord_buffer(&patch_coord, 1);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
         evaluator_cache_, src_desc_, P_desc, device_context_);
     EVALUATOR::EvalPatches(src_data_,
@@ -375,7 +368,7 @@ class VolatileEvalOutput {
     // TODO(sergey): Support interleaved vertex-varying data.
     BufferDescriptor P_desc(0, 3, 3);
     BufferDescriptor dpDu_desc(0, 3, 3), pPdv_desc(0, 3, 3);
-    SinglePatchCoordBuffer patch_coord_buffer(patch_coord);
+    ConstPatchCoordWrapperBuffer patch_coord_buffer(&patch_coord, 1);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
         evaluator_cache_, src_desc_, P_desc, dpDu_desc, pPdv_desc, device_context_);
     EVALUATOR::EvalPatches(src_data_,
@@ -397,7 +390,7 @@ class VolatileEvalOutput {
   {
     RawDataWrapperBuffer<float> varying_data(varying);
     BufferDescriptor varying_desc(3, 3, 6);
-    SinglePatchCoordBuffer patch_coord_buffer(patch_coord);
+    ConstPatchCoordWrapperBuffer patch_coord_buffer(&patch_coord, 1);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
         evaluator_cache_, src_varying_desc_, varying_desc, device_context_);
     EVALUATOR::EvalPatchesVarying(src_varying_data_,
