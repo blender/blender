@@ -96,27 +96,6 @@ class SinglePatchCoordBuffer {
   PatchCoord patch_coord_;
 };
 
-// Helper class which is aimed to be used in cases when buffer is small enough
-// and better to be allocated in stack rather than in heap.
-//
-// TODO(sergey): Check if bare arrays could be used by CPU evaluator.
-template<int element_size, int num_vertices> class StackAllocatedBuffer {
- public:
-  float *BindCpuBuffer()
-  {
-    return &data_[0];
-  }
-
-  int GetNumVertices()
-  {
-    return num_vertices;
-  }
-
-  // TODO(sergey): Support UpdateData().
- protected:
-  float data_[element_size * num_vertices];
-};
-
 // Buffer which implements API required by OpenSubdiv and uses an existing memory as an underlying
 // storage.
 template<typename T> class RawDataWrapperBuffer {
