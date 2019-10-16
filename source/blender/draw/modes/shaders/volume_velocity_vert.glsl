@@ -6,6 +6,13 @@ uniform float displaySize = 1.0;
 uniform float slicePosition;
 uniform int sliceAxis; /* -1 is no slice, 0 is X, 1 is Y, 2 is Z. */
 
+/* SmokeDomainSettings.cell_size */
+uniform vec3 cellSize;
+/* SmokeDomainSettings.p0 */
+uniform vec3 domainOriginOffset;
+/* SmokeDomainSettings.res_min */
+uniform ivec3 adaptiveCellOffset;
+
 flat out vec4 finalColor;
 
 const vec3 corners[4] = vec3[4](vec3(0.0, 0.2, -0.5),
@@ -66,7 +73,6 @@ void main()
 #endif
 
   ivec3 volume_size = textureSize(velocityX, 0);
-  float voxel_size = 1.0 / float(max(max(volume_size.x, volume_size.y), volume_size.z));
 
   ivec3 cell_ofs = ivec3(0);
   ivec3 cell_div = volume_size;
@@ -89,8 +95,7 @@ void main()
   cell_co.z = cell / (cell_div.x * cell_div.y);
   cell_co += cell_ofs;
 
-  vec3 pos = (vec3(cell_co) + 0.5) / vec3(volume_size);
-  pos = pos * 2.0 - 1.0;
+  vec3 pos = domainOriginOffset + cellSize * (vec3(cell_co + adaptiveCellOffset) + 0.5);
 
   vec3 velocity;
   velocity.x = texelFetch(velocityX, cell_co, 0).r;
@@ -102,9 +107,9 @@ void main()
 #ifdef USE_NEEDLE
   mat3 rot_mat = rotation_from_vector(velocity);
   vec3 rotated_pos = rot_mat * corners[indices[gl_VertexID % 12]];
-  pos += rotated_pos * length(velocity) * displaySize * voxel_size;
+  pos += rotated_pos * length(velocity) * displaySize * cellSize;
 #else
-  pos += (((gl_VertexID % 2) == 1) ? velocity : vec3(0.0)) * displaySize * voxel_size;
+  pos += ((gl_VertexID % 2) == 1) ? velocity * displaySize * cellSize : vec3(0.0);
 #endif
 
   vec3 world_pos = point_object_to_world(pos);

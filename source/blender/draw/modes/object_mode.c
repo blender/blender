@@ -2668,12 +2668,21 @@ static void DRW_shgroup_volume_extra(OBJECT_ShadingGroupList *sgl,
   DRW_object_wire_theme_get(ob, view_layer, &color);
 
   /* Small cube showing voxel size. */
+  float min[3];
+  madd_v3fl_v3fl_v3fl_v3i(min, sds->p0, sds->cell_size, sds->res_min);
   float voxel_cubemat[4][4] = {{0.0f}};
-  voxel_cubemat[0][0] = 1.0f / (float)sds->res[0];
-  voxel_cubemat[1][1] = 1.0f / (float)sds->res[1];
-  voxel_cubemat[2][2] = 1.0f / (float)sds->res[2];
+  /* scale small cube to voxel size */
+  voxel_cubemat[0][0] = 1.0f / (float)sds->base_res[0];
+  voxel_cubemat[1][1] = 1.0f / (float)sds->base_res[1];
+  voxel_cubemat[2][2] = 1.0f / (float)sds->base_res[2];
   voxel_cubemat[3][0] = voxel_cubemat[3][1] = voxel_cubemat[3][2] = -1.0f;
   voxel_cubemat[3][3] = 1.0f;
+  /* translate small cube to corner */
+  voxel_cubemat[3][0] = min[0];
+  voxel_cubemat[3][1] = min[1];
+  voxel_cubemat[3][2] = min[2];
+  voxel_cubemat[3][3] = 1.0f;
+  /* move small cube into the domain (otherwise its centered on vertex of domain object) */
   translate_m4(voxel_cubemat, 1.0f, 1.0f, 1.0f);
   mul_m4_m4m4(voxel_cubemat, ob->obmat, voxel_cubemat);
 
@@ -2709,6 +2718,9 @@ static void DRW_shgroup_volume_extra(OBJECT_ShadingGroupList *sgl,
   DRW_shgroup_uniform_texture(grp, "velocityZ", sds->tex_velocity_z);
   DRW_shgroup_uniform_float_copy(grp, "displaySize", sds->vector_scale);
   DRW_shgroup_uniform_float_copy(grp, "slicePosition", sds->slice_depth);
+  DRW_shgroup_uniform_vec3_copy(grp, "cellSize", sds->cell_size);
+  DRW_shgroup_uniform_vec3_copy(grp, "domainOriginOffset", sds->p0);
+  DRW_shgroup_uniform_ivec3_copy(grp, "adaptiveCellOffset", sds->res_min);
   DRW_shgroup_uniform_int_copy(grp, "sliceAxis", slice_axis);
   DRW_shgroup_call_procedural_lines(grp, ob, line_count);
 
