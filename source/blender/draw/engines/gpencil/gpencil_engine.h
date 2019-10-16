@@ -143,6 +143,8 @@ typedef struct GPENCIL_Storage {
   bool is_playing;
   bool is_render;
   bool is_mat_preview;
+  bool is_main_overlay;
+  bool is_main_onion;
   bool background_ready;
   int is_xray;
   bool is_ontop;

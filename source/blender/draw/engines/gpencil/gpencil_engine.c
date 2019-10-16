@@ -24,11 +24,13 @@
 
 #include "BKE_gpencil.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_shader_fx.h"
 
 #include "DNA_gpencil_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
 #include "draw_mode_engines.h"
@@ -305,6 +307,43 @@ static void GPENCIL_engine_free(void)
   GPENCIL_delete_fx_shaders(&e_data);
 }
 
+/* Helper: Check if the main overlay and onion switches are enabled in any screen.
+ *
+ * This is required to generate the onion skin and limit the times the cache is updated because the
+ * cache is generated only in the first screen and if the first screen has the onion disabled the
+ * cache for onion skin is not generated. The loop adds time, but always is faster than regenerate
+ * the cache all the times.
+ */
+static void gpencil_check_screen_switches(const DRWContextState *draw_ctx,
+                                          GPENCIL_StorageList *stl)
+{
+  stl->storage->is_main_overlay = false;
+  stl->storage->is_main_onion = false;
+  /* Check if main onion switch is enabled in any screen. */
+  Main *bmain = CTX_data_main(draw_ctx->evil_C);
+
+  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    for (const ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+      if (sa && sa->spacetype == SPACE_VIEW3D) {
+        View3D *v3d = sa->spacedata.first;
+        if (v3d == NULL) {
+          continue;
+        }
+        if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
+          stl->storage->is_main_overlay = true;
+        }
+        if (v3d->gp_flag & V3D_GP_SHOW_ONION_SKIN) {
+          stl->storage->is_main_onion = true;
+        }
+      }
+      /* If found, don't need loop more. */
+      if ((stl->storage->is_main_overlay) && (stl->storage->is_main_onion)) {
+        return;
+      }
+    }
+  }
+}
+
 void GPENCIL_cache_init(void *vedata)
 {
   GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
@@ -391,10 +430,15 @@ void GPENCIL_cache_init(void *vedata)
         stl->storage->reset_cache = true;
       }
       stl->storage->is_playing = playing;
+
+      /* Found if main overlay and onion switches are enabled in any screen. */
+      gpencil_check_screen_switches(draw_ctx, stl);
     }
     else {
       stl->storage->is_playing = false;
       stl->storage->reset_cache = false;
+      stl->storage->is_main_overlay = false;
+      stl->storage->is_main_onion = false;
     }
     /* save render state */
     stl->storage->is_render = DRW_state_is_image_render();
