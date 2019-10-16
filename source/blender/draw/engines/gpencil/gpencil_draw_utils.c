@@ -139,7 +139,6 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
   }
 
   Object *ob = cache_ob->ob;
-  const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool main_onion = stl->storage->is_main_onion;
   const bool playing = stl->storage->is_playing;
   const bool overlay = stl->storage->is_main_overlay;
