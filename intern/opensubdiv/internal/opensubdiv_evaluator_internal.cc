@@ -278,7 +278,6 @@ class VolatileEvalOutput {
     src_data_ = SRC_VERTEX_BUFFER::Create(3, num_total_vertices, device_context_);
     src_varying_data_ = SRC_VERTEX_BUFFER::Create(3, num_total_vertices, device_context_);
     patch_table_ = PATCH_TABLE::Create(patch_table, device_context_);
-    patch_coords_ = NULL;
     vertex_stencils_ = convertToCompatibleStencilTable<STENCIL_TABLE>(vertex_stencils,
                                                                       device_context_);
     varying_stencils_ = convertToCompatibleStencilTable<STENCIL_TABLE>(varying_stencils,
@@ -474,7 +473,6 @@ class VolatileEvalOutput {
  private:
   SRC_VERTEX_BUFFER *src_data_;
   SRC_VERTEX_BUFFER *src_varying_data_;
-  PatchCoordBuffer *patch_coords_;
   PATCH_TABLE *patch_table_;
   BufferDescriptor src_desc_;
   BufferDescriptor src_varying_desc_;
