@@ -4354,6 +4354,7 @@ void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
   TEST_ASSIGN(VBO, vbo, edge_idx);
   TEST_ASSIGN(VBO, vbo, vert_idx);
   TEST_ASSIGN(VBO, vbo, fdot_idx);
+  TEST_ASSIGN(VBO, vbo, skin_roots);
 
   TEST_ASSIGN(IBO, ibo, tris);
   TEST_ASSIGN(IBO, ibo, lines);

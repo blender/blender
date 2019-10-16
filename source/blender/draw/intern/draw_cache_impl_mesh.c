@@ -1328,7 +1328,7 @@ void DRW_mesh_batch_cache_create_requested(
   }
   if (DRW_batch_requested(cache->batch.edit_skin_roots, GPU_PRIM_LINES)) {
     DRW_vbo_request(cache->batch.edit_skin_roots, &mbufcache->vbo.skin_roots);
-    /* HACK(fclem): This is a workaround the deferred batch init
+    /* HACK(fclem): This is to workaround the deferred batch init
      * that prevent drawing using DRW_shgroup_call_instances_with_attribs.
      * So we instead create the whole instancing batch here.
      * Note that we use GPU_PRIM_LINES instead of expected GPU_PRIM_LINE_STRIP
