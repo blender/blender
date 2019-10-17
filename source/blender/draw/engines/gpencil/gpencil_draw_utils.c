@@ -1281,12 +1281,14 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
         if (!stl->g_data->shgrps_edit_line) {
           stl->g_data->shgrps_edit_line = DRW_shgroup_create(e_data->gpencil_line_sh,
                                                              psl->edit_pass);
+          DRW_shgroup_uniform_mat4(stl->g_data->shgrps_edit_line, "gpModelMatrix", ob->obmat);
         }
         if (!stl->g_data->shgrps_edit_point) {
           stl->g_data->shgrps_edit_point = DRW_shgroup_create(e_data->gpencil_edit_point_sh,
                                                               psl->edit_pass);
           const float *viewport_size = DRW_viewport_size_get();
           DRW_shgroup_uniform_vec2(stl->g_data->shgrps_edit_point, "Viewport", viewport_size, 1);
+          DRW_shgroup_uniform_mat4(stl->g_data->shgrps_edit_point, "gpModelMatrix", ob->obmat);
         }
 
         gpencil_add_editpoints_vertexdata(cache, ob, gpd, gpl, gpf, gps);
