@@ -740,7 +740,12 @@ static void pose_channel_flush_to_orig_if_needed(struct Depsgraph *depsgraph,
     return;
   }
   bPoseChannel *pchan_orig = pchan->orig_pchan;
-  BKE_pose_copy_pchan_result(pchan_orig, pchan);
+  /* TODO(sergey): Using BKE_pose_copy_pchan_result() introduces T70901, but why? */
+  copy_m4_m4(pchan_orig->pose_mat, pchan->pose_mat);
+  copy_m4_m4(pchan_orig->chan_mat, pchan->chan_mat);
+  copy_v3_v3(pchan_orig->pose_head, pchan->pose_mat[3]);
+  copy_m4_m4(pchan_orig->constinv, pchan->constinv);
+  copy_v3_v3(pchan_orig->pose_tail, pchan->pose_tail);
 }
 
 void BKE_pose_bone_done(struct Depsgraph *depsgraph, struct Object *object, int pchan_index)
