@@ -746,7 +746,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 
   /* Deferred Mix Pass */
   {
-    workbench_private_data_get_light_direction(wpd, e_data.display.light_direction);
+    workbench_private_data_get_light_direction(e_data.display.light_direction);
     studiolight_update_light(wpd, e_data.display.light_direction);
 
     if (SHADOW_ENABLED(wpd)) {

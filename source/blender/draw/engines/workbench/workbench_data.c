@@ -30,6 +30,77 @@
 
 #include "GPU_batch.h"
 
+/* -------------------------------------------------------------------- */
+/** \name World Data
+ * \{ */
+
+static void workbench_world_data_free(DrawData *dd)
+{
+  WORKBENCH_WorldData *data = (WORKBENCH_WorldData *)dd;
+  DRW_UBO_FREE_SAFE(data->world_ubo);
+}
+
+/* Ensure the availability of the world_ubo in the given WORKBENCH_PrivateData
+ *
+ * See T70167: Some platforms create threads to upload ubo's.
+ *
+ * Reuses the last previous created `world_ubo`. Due to limitations of
+ * DrawData it will only be reused when there is a world attached to the Scene.
+ * Future development: The best location would be to store it in the View3D.
+ *
+ * We don't cache the data itself as there was no indication that that lead to
+ * an improvement.
+ *
+ * This functions also sets the `WORKBENCH_PrivateData.is_world_ubo_owner` that must
+ * be respected.
+ */
+static void workbench_world_data_ubo_ensure(const Scene *scene, WORKBENCH_PrivateData *wpd)
+{
+  World *world = scene->world;
+  if (world) {
+    WORKBENCH_WorldData *engine_world_data = (WORKBENCH_WorldData *)DRW_drawdata_ensure(
+        &world->id,
+        &draw_engine_workbench_solid,
+        sizeof(WORKBENCH_WorldData),
+        NULL,
+        &workbench_world_data_free);
+
+    if (engine_world_data->world_ubo == NULL) {
+      engine_world_data->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World),
+                                                              &wpd->world_data);
+    }
+    else {
+      DRW_uniformbuffer_update(engine_world_data->world_ubo, &wpd->world_data);
+    }
+
+    /* Borrow world data ubo */
+    wpd->is_world_ubo_owner = false;
+    wpd->world_ubo = engine_world_data->world_ubo;
+  }
+  else {
+    /* there is no world so we cannot cache the UBO. */
+    BLI_assert(!wpd->world_ubo || wpd->is_world_ubo_owner);
+    if (!wpd->world_ubo) {
+      wpd->is_world_ubo_owner = true;
+      wpd->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World), &wpd->world_data);
+    }
+  }
+}
+
+static void workbench_world_data_update_shadow_direction_vs(WORKBENCH_PrivateData *wpd)
+{
+  WORKBENCH_UBO_World *wd = &wpd->world_data;
+  float light_direction[3];
+  float view_matrix[4][4];
+  DRW_view_viewmat_get(NULL, view_matrix, false);
+
+  workbench_private_data_get_light_direction(light_direction);
+
+  /* Shadow direction. */
+  mul_v3_mat3_m4v3(wd->shadow_direction_vs, view_matrix, light_direction);
+}
+/* \} */
+
 void workbench_effect_info_init(WORKBENCH_EffectInfo *effect_info)
 {
   effect_info->jitter_index = 0;
@@ -139,7 +210,8 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
     }
   }
 
-  wpd->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World), &wpd->world_data);
+  workbench_world_data_update_shadow_direction_vs(wpd);
+  workbench_world_data_ubo_ensure(scene, wpd);
 
   /* Cavity settings */
   {
@@ -203,31 +275,29 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
   BLI_listbase_clear(&wpd->smoke_domains);
 }
 
-void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd,
-                                                float r_light_direction[3])
+void workbench_private_data_get_light_direction(float r_light_direction[3])
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Scene *scene = draw_ctx->scene;
-  WORKBENCH_UBO_World *wd = &wpd->world_data;
-  float view_matrix[4][4];
-  DRW_view_viewmat_get(NULL, view_matrix, false);
 
   copy_v3_v3(r_light_direction, scene->display.light_direction);
   SWAP(float, r_light_direction[2], r_light_direction[1]);
   r_light_direction[2] = -r_light_direction[2];
   r_light_direction[0] = -r_light_direction[0];
-
-  /* Shadow direction. */
-  mul_v3_mat3_m4v3(wd->shadow_direction_vs, view_matrix, r_light_direction);
-
-  DRW_uniformbuffer_update(wpd->world_ubo, wd);
 }
 
 void workbench_private_data_free(WORKBENCH_PrivateData *wpd)
 {
   BLI_ghash_free(wpd->material_hash, NULL, MEM_freeN);
   BLI_ghash_free(wpd->material_transp_hash, NULL, MEM_freeN);
-  DRW_UBO_FREE_SAFE(wpd->world_ubo);
+
+  if (wpd->is_world_ubo_owner) {
+    DRW_UBO_FREE_SAFE(wpd->world_ubo);
+  }
+  else {
+    wpd->world_ubo = NULL;
+  }
+
   DRW_UBO_FREE_SAFE(wpd->dof_ubo);
   GPU_BATCH_DISCARD_SAFE(wpd->world_clip_planes_batch);
 }

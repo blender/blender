@@ -217,6 +217,11 @@ typedef struct WORKBENCH_PrivateData {
   View3DShading shading;
   StudioLight *studio_light;
   const UserDef *preferences;
+  /* Does this instance owns the `world_ubo` field.
+   * Normally the field is borrowed from `WORKBENCH_WorldData`. In case that
+   * there is no World attached to the scene the UBO cannot be cached and should
+   * be freed after using. */
+  bool is_world_ubo_owner;
   struct GPUUniformBuffer *world_ubo;
   struct DRWShadingGroup *shadow_shgrp;
   struct DRWShadingGroup *depth_shgrp;
@@ -306,6 +311,12 @@ typedef struct WORKBENCH_ObjectData {
   BoundBox shadow_bbox;
   bool shadow_bbox_dirty;
 } WORKBENCH_ObjectData;
+
+typedef struct WORKBENCH_WorldData {
+  DrawData dd;
+  /* The cached `GPUUniformBuffer`, that is reused between draw calls. */
+  struct GPUUniformBuffer *world_ubo;
+} WORKBENCH_WorldData;
 
 /* inline helper functions */
 BLI_INLINE bool workbench_is_specular_highlight_enabled(WORKBENCH_PrivateData *wpd)
@@ -526,8 +537,7 @@ bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd,
 void workbench_effect_info_init(WORKBENCH_EffectInfo *effect_info);
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd);
 void workbench_private_data_free(WORKBENCH_PrivateData *wpd);
-void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd,
-                                                float r_light_direction[3]);
+void workbench_private_data_get_light_direction(float r_light_direction[3]);
 
 /* workbench_volume.c */
 void workbench_volume_engine_init(void);
