@@ -885,7 +885,8 @@ static void process_normals(CDStreamConfig &config, const AbcMeshData &mesh_data
 
   if (!mesh_data.loop_normals) {
     BKE_mesh_calc_normals(config.mesh);
-    config.mesh->flag &= ~ME_AUTOSMOOTH;
+    /* Don't touch the ME_AUTOSMOOTH flag in this case. It can be used by artists to toggle between
+     * flat/smooth shaded when the Alembic mesh doesn't contain loop normals. */
     return;
   }
 
@@ -1018,7 +1019,10 @@ static void read_mesh_sample(const std::string &iobject_full_name,
   abc_mesh_data.face_counts = sample.getFaceCounts();
   abc_mesh_data.face_indices = sample.getFaceIndices();
   abc_mesh_data.positions = sample.getPositions();
-  abc_mesh_data.poly_flag_smooth = false;
+
+  /* The auto-smoothing flag can be used by artists when the Alembic file does not contain custom
+   * loop normals. Auto-smoothing only works when polys are marked as smooth. */
+  abc_mesh_data.poly_flag_smooth = (config.mesh->flag & ME_AUTOSMOOTH);
 
   read_normals_params(abc_mesh_data, schema.getNormalsParam(), selector);
 
