@@ -1381,7 +1381,7 @@ static void gpencil_draw_onionskins(GpencilBatchCache *cache,
                             NULL;
   int last = gpf->framenum;
 
-  colflag = (bool)gpd->onion_flag & GP_ONION_GHOST_PREVCOL;
+  colflag = (gpd->onion_flag & GP_ONION_GHOST_PREVCOL) != 0;
   const short onion_keytype = gpd->onion_keytype;
   /* -------------------------------
    * 1) Draw Previous Frames First
