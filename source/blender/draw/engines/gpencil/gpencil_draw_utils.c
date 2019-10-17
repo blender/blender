@@ -147,7 +147,7 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
 
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
-  /* Onion skining. */
+  /* Onion skinning. */
   const int step = gpd->gstep;
   const int mode = gpd->onion_mode;
   const short onion_keytype = gpd->onion_keytype;
@@ -169,7 +169,6 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
     int frame_to = 9999;
     if ((is_onion) && (mode == GP_ONION_MODE_RELATIVE)) {
       /* 1) Found first Frame. */
-      int step = gpd->gstep;
       int idx = 0;
       if (gpl->actframe) {
         for (bGPDframe *gf = gpl->actframe->prev; gf; gf = gf->prev) {
@@ -180,12 +179,11 @@ static void gpencil_calc_vertex(GPENCIL_StorageList *stl,
           }
         }
         /* 2) Found last Frame. */
-        step = gpd->gstep_next;
         idx = 0;
         for (bGPDframe *gf = gpl->actframe->next; gf; gf = gf->next) {
           idx++;
           frame_to = gf->framenum;
-          if (idx >= step) {
+          if (idx >= gpd->gstep_next) {
             break;
           }
         }
