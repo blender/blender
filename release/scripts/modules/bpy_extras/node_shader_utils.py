@@ -336,6 +336,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             self, self.node_principled_bsdf,
             self.node_principled_bsdf.inputs["Specular"],
             grid_row_diff=0,
+            colorspace_name='Non-Color',
         )
 
     specular_texture = property(specular_texture_get)
@@ -367,6 +368,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             self, self.node_principled_bsdf,
             self.node_principled_bsdf.inputs["Roughness"],
             grid_row_diff=0,
+            colorspace_name='Non-Color',
         )
 
     roughness_texture = property(roughness_texture_get)
@@ -398,6 +400,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             self, self.node_principled_bsdf,
             self.node_principled_bsdf.inputs["Metallic"],
             grid_row_diff=0,
+            colorspace_name='Non-Color',
         )
 
     metallic_texture = property(metallic_texture_get)
@@ -428,6 +431,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             self, self.node_principled_bsdf,
             self.node_principled_bsdf.inputs["IOR"],
             grid_row_diff=-1,
+            colorspace_name='Non-Color',
         )
 
     ior_texture = property(ior_texture_get)
@@ -455,6 +459,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             self, self.node_principled_bsdf,
             self.node_principled_bsdf.inputs["Transmission"],
             grid_row_diff=-1,
+            colorspace_name='Non-Color',
         )
 
     transmission_texture = property(transmission_texture_get)
@@ -482,6 +487,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             self, self.node_principled_bsdf,
             self.node_principled_bsdf.inputs["Alpha"],
             grid_row_diff=-1,
+            colorspace_name='Non-Color',
         )
 
     alpha_texture = property(alpha_texture_get)
@@ -568,6 +574,7 @@ class ShaderImageTextureWrapper():
         "grid_row_diff",
         "use_alpha",
         "colorspace_is_data",
+        "colorspace_name",
         *NODES_LIST,
     )
 
@@ -580,7 +587,7 @@ class ShaderImageTextureWrapper():
         return instance
 
     def __init__(self, owner_shader: ShaderWrapper, node_dst, socket_dst, grid_row_diff=0,
-                 use_alpha=False, colorspace_is_data=...):
+                 use_alpha=False, colorspace_is_data=..., colorspace_name=...):
         self.owner_shader = owner_shader
         self.is_readonly = owner_shader.is_readonly
         self.node_dst = node_dst
@@ -588,6 +595,7 @@ class ShaderImageTextureWrapper():
         self.grid_row_diff = grid_row_diff
         self.use_alpha = use_alpha
         self.colorspace_is_data = colorspace_is_data
+        self.colorspace_name = colorspace_name
 
         self._node_image = ...
         self._node_mapping = ...
@@ -685,7 +693,13 @@ class ShaderImageTextureWrapper():
     @_set_check
     def image_set(self, image):
         if self.colorspace_is_data is not ...:
+            if image.colorspace_settings.is_data != self.colorspace_is_data and image.users >= 1:
+                image = image.copy()
             image.colorspace_settings.is_data = self.colorspace_is_data
+        if self.colorspace_name is not ...:
+            if image.colorspace_settings.is_data != self.colorspace_is_data and image.users >= 1:
+                image = image.copy()
+            image.colorspace_settings.name = self.colorspace_name
         self.node_image.image = image
 
     image = property(image_get, image_set)
