@@ -213,14 +213,14 @@ void main()
   vec3 vs_ray_dir = (is_persp) ? (vs_ray_end - vs_ray_ori) : vec3(0.0, 0.0, -1.0);
   vs_ray_dir /= abs(vs_ray_dir.z);
 
-  /* TODO(fclem) Precompute the matrix/ */
-  vec3 ls_ray_dir = mat3(ViewMatrixInverse) * vs_ray_dir * OrcoTexCoFactors[1].xyz * 2.0;
-  ls_ray_dir = mat3(ModelMatrixInverse) * ls_ray_dir;
+  vec3 ls_ray_dir = point_view_to_object(vs_ray_ori + vs_ray_dir);
   vec3 ls_ray_ori = point_view_to_object(vs_ray_ori);
   vec3 ls_ray_end = point_view_to_object(vs_ray_end);
 
+  ls_ray_dir = (OrcoTexCoFactors[0].xyz + ls_ray_dir * OrcoTexCoFactors[1].xyz) * 2.0 - 1.0;
   ls_ray_ori = (OrcoTexCoFactors[0].xyz + ls_ray_ori * OrcoTexCoFactors[1].xyz) * 2.0 - 1.0;
   ls_ray_end = (OrcoTexCoFactors[0].xyz + ls_ray_end * OrcoTexCoFactors[1].xyz) * 2.0 - 1.0;
+  ls_ray_dir -= ls_ray_ori;
 
   /* TODO: Align rays to volume center so that it mimics old behaviour of slicing the volume. */
 
