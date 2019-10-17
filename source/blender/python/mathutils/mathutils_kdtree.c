@@ -436,7 +436,7 @@ PyTypeObject PyKDTree_Type = {
     (destructor)NULL,                       /* tp_del */
 };
 
-PyDoc_STRVAR(py_kdtree_doc, "Generic 3-dimentional kd-tree to perform spatial searches.");
+PyDoc_STRVAR(py_kdtree_doc, "Generic 3-dimensional kd-tree to perform spatial searches.");
 static struct PyModuleDef kdtree_moduledef = {
     PyModuleDef_HEAD_INIT,
     "mathutils.kdtree", /* m_name */

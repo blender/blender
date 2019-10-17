@@ -76,9 +76,9 @@ ccl_device void kernel_filter_construct_transform(const ccl_global float *ccl_re
   filter_calculate_scale(feature_scale, use_time);
 
   /* === Generate the feature transformation. ===
-   * This transformation maps the num_features-dimentional feature space to a reduced feature
-   * (r-feature) space which generally has fewer dimensions. This mainly helps to prevent
-   * overfitting. */
+   * This transformation maps the num_features-dimensional feature space to a reduced feature
+   * (r-feature) space which generally has fewer dimensions.
+   * This mainly helps to prevent overfitting. */
   float feature_matrix[DENOISE_FEATURES * DENOISE_FEATURES];
   math_matrix_zero(feature_matrix, num_features);
   FOR_PIXEL_WINDOW

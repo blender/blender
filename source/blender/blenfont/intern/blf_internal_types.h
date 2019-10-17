@@ -80,9 +80,8 @@ typedef struct GlyphCacheBLF {
   /* and the last texture, aka. the current texture. */
   unsigned int texture_current;
 
-  /* like bftgl, we draw every glyph in a big texture, so this is the
-   * current position inside the texture.
-   */
+  /* We draw every glyph in a big texture, so this is the
+   * current position inside the texture. */
   int offset_x;
   int offset_y;
 

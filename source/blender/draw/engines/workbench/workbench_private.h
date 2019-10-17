@@ -407,7 +407,8 @@ BLI_INLINE eGPUTextureFormat workbench_color_texture_format(const WORKBENCH_Priv
   return result;
 }
 
-BLI_INLINE bool workbench_background_dither_factor(const WORKBENCH_PrivateData *wpd) {
+BLI_INLINE bool workbench_background_dither_factor(const WORKBENCH_PrivateData *wpd)
+{
   /* Only apply dithering when rendering on a RGBA8 texture.
    * The dithering will remove banding when using a gradient as background */
   return workbench_color_texture_format(wpd) == GPU_RGBA8;

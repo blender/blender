@@ -688,7 +688,7 @@ static void edit_mesh_add_ob_to_pass(Scene *scene,
 
       skin_roots = DRW_mesh_batch_cache_get_edit_skin_roots(ob->data);
       /* NOTE(fclem) We cannot use ob here since it would offset the instance attribs with
-       * baseinstance offset. */
+       * base instance offset. */
       DRW_shgroup_call(grp, skin_roots, NULL);
     }
   }
