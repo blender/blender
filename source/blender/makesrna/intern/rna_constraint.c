@@ -1045,6 +1045,7 @@ static void rna_def_constraint_armature_deform(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, NULL, "targets", NULL);
   RNA_def_property_struct_type(prop, "ConstraintTargetBone");
   RNA_def_property_ui_text(prop, "Targets", "Target Bones");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   rna_def_constraint_armature_deform_targets(brna, prop);
 
   prop = RNA_def_property(srna, "use_deform_preserve_volume", PROP_BOOLEAN, PROP_NONE);
