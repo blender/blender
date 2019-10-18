@@ -429,21 +429,11 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
     } \
     (void)0
 
-#  define CTX_TEST_PTR_DATA_TYPE(C, member, rna_type, rna_ptr, dataptr_cmp) \
+#  define TEST_PTR_DATA_TYPE(member, rna_type, rna_ptr, dataptr_cmp) \
     { \
       const char *ctx_member = member; \
-      if (RNA_struct_is_a((ptr)->type, &(rna_type)) && (ptr)->data == (dataptr_cmp)) { \
+      if (RNA_struct_is_a((rna_ptr)->type, &(rna_type)) && (rna_ptr)->data == (dataptr_cmp)) { \
         member_id = ctx_member; \
-        break; \
-      } \
-    } \
-    (void)0
-
-#  define CTX_TEST_SPACE_TYPE(space_data_type, member_full, dataptr_cmp) \
-    { \
-      const char *ctx_member_full = member_full; \
-      if (space_data->spacetype == space_data_type && ptr->data == dataptr_cmp) { \
-        member_id = ctx_member_full; \
         break; \
       } \
     } \
@@ -484,19 +474,52 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 
         SpaceLink *space_data = CTX_wm_space_data(C);
 
-        CTX_TEST_PTR_DATA_TYPE(C, "space_data", RNA_Space, ptr, space_data);
-        CTX_TEST_PTR_DATA_TYPE(C, "space_data", RNA_View3DOverlay, ptr, space_data);
-        CTX_TEST_PTR_DATA_TYPE(C, "space_data", RNA_View3DShading, ptr, space_data);
-        CTX_TEST_PTR_DATA_TYPE(C, "area", RNA_Area, ptr, CTX_wm_area(C));
-        CTX_TEST_PTR_DATA_TYPE(C, "region", RNA_Region, ptr, CTX_wm_region(C));
+        TEST_PTR_DATA_TYPE("space_data", RNA_Space, ptr, space_data);
+        TEST_PTR_DATA_TYPE("area", RNA_Area, ptr, CTX_wm_area(C));
+        TEST_PTR_DATA_TYPE("region", RNA_Region, ptr, CTX_wm_region(C));
 
-        CTX_TEST_SPACE_TYPE(SPACE_IMAGE, "space_data.uv_editor", space_data);
-        CTX_TEST_SPACE_TYPE(
-            SPACE_VIEW3D, "space_data.fx_settings", &(CTX_wm_view3d(C)->fx_settings));
-        CTX_TEST_SPACE_TYPE(SPACE_NLA, "space_data.dopesheet", CTX_wm_space_nla(C)->ads);
-        CTX_TEST_SPACE_TYPE(SPACE_GRAPH, "space_data.dopesheet", CTX_wm_space_graph(C)->ads);
-        CTX_TEST_SPACE_TYPE(SPACE_ACTION, "space_data.dopesheet", &(CTX_wm_space_action(C)->ads));
-        CTX_TEST_SPACE_TYPE(SPACE_FILE, "space_data.params", CTX_wm_space_file(C)->params);
+        switch (space_data->spacetype) {
+          case SPACE_VIEW3D: {
+            const View3D *v3d = (View3D *)space_data;
+            const View3DShading *shading = &v3d->shading;
+            const GPUFXSettings *fx_settings = &v3d->fx_settings;
+
+            TEST_PTR_DATA_TYPE("space_data", RNA_View3DOverlay, ptr, v3d);
+            TEST_PTR_DATA_TYPE("space_data", RNA_View3DShading, ptr, shading);
+            TEST_PTR_DATA_TYPE("space_data", RNA_GPUFXSettings, ptr, fx_settings);
+            break;
+          }
+          case SPACE_GRAPH: {
+            const SpaceGraph *sipo = (SpaceGraph *)space_data;
+            const bDopeSheet *ads = sipo->ads;
+            TEST_PTR_DATA_TYPE("space_data", RNA_DopeSheet, ptr, ads);
+            break;
+          }
+          case SPACE_FILE: {
+            const SpaceFile *sfile = (SpaceFile *)space_data;
+            const FileSelectParams *params = sfile->params;
+            TEST_PTR_DATA_TYPE("space_data", RNA_FileSelectParams, ptr, params);
+            break;
+          }
+          case SPACE_IMAGE: {
+            const SpaceImage *sima = (SpaceImage *)space_data;
+            TEST_PTR_DATA_TYPE("space_data", RNA_SpaceUVEditor, ptr, sima);
+            break;
+          }
+          case SPACE_NLA: {
+            const SpaceNla *snla = (SpaceNla *)space_data;
+            const bDopeSheet *ads = snla->ads;
+            TEST_PTR_DATA_TYPE("space_data", RNA_DopeSheet, ptr, ads);
+            break;
+          }
+          case SPACE_ACTION: {
+            const SpaceAction *sact = (SpaceAction *)space_data;
+            const bDopeSheet *ads = &sact->ads;
+            TEST_PTR_DATA_TYPE("space_data", RNA_DopeSheet, ptr, ads);
+            break;
+          }
+        }
+
         break;
       }
       default:
@@ -504,7 +527,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
     }
 #  undef CTX_TEST_PTR_ID
 #  undef CTX_TEST_PTR_ID_CAST
-#  undef CTX_TEST_SPACE_TYPE
+#  undef TEST_PTR_DATA_TYPE
   }
 
   return member_id;

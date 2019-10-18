@@ -1279,6 +1279,11 @@ static char *rna_View3DOverlay_path(PointerRNA *UNUSED(ptr))
 
 /* Space Image Editor */
 
+static char *rna_SpaceUVEditor_path(PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("uv_editor");
+}
+
 static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
 {
   return rna_pointer_inherit_refine(ptr, &RNA_SpaceUVEditor, ptr->data);
@@ -2187,6 +2192,11 @@ static void rna_SpaceClipEditor_view_type_update(Main *UNUSED(bmain),
 
 /* File browser. */
 
+static char *rna_FileSelectParams_path(PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("params");
+}
+
 int rna_FileSelectParams_filename_editable(struct PointerRNA *ptr, const char **r_info)
 {
   FileSelectParams *params = ptr->data;
@@ -2701,6 +2711,7 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "SpaceUVEditor", NULL);
   RNA_def_struct_sdna(srna, "SpaceImage");
   RNA_def_struct_nested(brna, srna, "SpaceImageEditor");
+  RNA_def_struct_path_func(srna, "rna_SpaceUVEditor_path");
   RNA_def_struct_ui_text(srna, "Space UV Editor", "UV editor data for the image editor space");
 
   /* selection */
@@ -5334,6 +5345,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
   };
 
   srna = RNA_def_struct(brna, "FileSelectParams", NULL);
+  RNA_def_struct_path_func(srna, "rna_FileSelectParams_path");
   RNA_def_struct_ui_text(srna, "File Select Parameters", "File Select Parameters");
 
   prop = RNA_def_property(srna, "title", PROP_STRING, PROP_NONE);
