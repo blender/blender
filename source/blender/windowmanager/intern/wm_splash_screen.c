@@ -209,7 +209,7 @@ static ImBuf *wm_block_splash_image(int r_unit_size[2])
       ibuf = IMB_loadiffname(splash_filepath, IB_rect, NULL);
 
       /* We could skip this check, see comment about 'x_expect' above. */
-      if (ibuf->x != x_expect) {
+      if (ibuf && ibuf->x != x_expect) {
         CLOG_ERROR(WM_LOG_OPERATORS,
                    "Splash expected %d width found %d, ignoring: %s\n",
                    x_expect,
