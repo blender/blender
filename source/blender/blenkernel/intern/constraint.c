@@ -255,7 +255,7 @@ void BKE_constraints_clear_evalob(bConstraintOb *cob)
  * For now, this is only implemented for Objects and PoseChannels.
  */
 void BKE_constraint_mat_convertspace(
-    Object *ob, bPoseChannel *pchan, float mat[4][4], short from, short to, const bool keep_scale)
+    Object *ob, bPoseChannel *pchan, float mat[4][4], short from, short to)
 {
   float diff_mat[4][4];
   float imat[4][4];
@@ -282,7 +282,7 @@ void BKE_constraint_mat_convertspace(
         /* use pose-space as stepping stone for other spaces... */
         if (ELEM(to, CONSTRAINT_SPACE_LOCAL, CONSTRAINT_SPACE_PARLOCAL)) {
           /* call self with slightly different values */
-          BKE_constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to, keep_scale);
+          BKE_constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
         }
         break;
       }
@@ -318,7 +318,7 @@ void BKE_constraint_mat_convertspace(
         /* use pose-space as stepping stone for other spaces */
         if (ELEM(to, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_PARLOCAL)) {
           /* call self with slightly different values */
-          BKE_constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to, keep_scale);
+          BKE_constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
         }
         break;
       }
@@ -332,7 +332,7 @@ void BKE_constraint_mat_convertspace(
         /* use pose-space as stepping stone for other spaces */
         if (ELEM(to, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL)) {
           /* call self with slightly different values */
-          BKE_constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to, keep_scale);
+          BKE_constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
         }
         break;
       }
@@ -348,46 +348,12 @@ void BKE_constraint_mat_convertspace(
         invert_m4_m4_safe(imat, diff_mat);
         mul_m4_m4m4(mat, imat, mat);
       }
-      else {
-        /* Local space in this case will have to be defined as local to the owner's
-         * transform-property-rotated axes. So subtract this rotation component.
-         */
-        /* XXX This is actually an ugly hack, local space of a parent-less object *is* the same as
-         *     global space!
-         *     Think what we want actually here is some kind of 'Final Space', i.e
-         *     . once transformations are applied - users are often confused about this too,
-         *     this is not consistent with bones
-         *     local space either... Meh :|
-         *     --mont29
-         */
-        BKE_object_to_mat4(ob, diff_mat);
-        if (!keep_scale) {
-          normalize_m4(diff_mat);
-        }
-        zero_v3(diff_mat[3]);
-
-        invert_m4_m4_safe(imat, diff_mat);
-        mul_m4_m4m4(mat, imat, mat);
-      }
     }
     else if (from == CONSTRAINT_SPACE_LOCAL && to == CONSTRAINT_SPACE_WORLD) {
       /* check that object has a parent - otherwise this won't work */
       if (ob->parent) {
         /* 'add' parent's effect back to owner */
         mul_m4_m4m4(diff_mat, ob->parent->obmat, ob->parentinv);
-        mul_m4_m4m4(mat, diff_mat, mat);
-      }
-      else {
-        /* Local space in this case will have to be defined as local to the owner's
-         * transform-property-rotated axes. So add back this rotation component.
-         */
-        /* XXX See comment above for world->local case... */
-        BKE_object_to_mat4(ob, diff_mat);
-        if (!keep_scale) {
-          normalize_m4(diff_mat);
-        }
-        zero_v3(diff_mat[3]);
-
         mul_m4_m4m4(mat, diff_mat, mat);
       }
     }
@@ -575,7 +541,7 @@ static void constraint_target_to_mat4(Object *ob,
   /* Case OBJECT */
   if (substring[0] == '\0') {
     copy_m4_m4(mat, ob->obmat);
-    BKE_constraint_mat_convertspace(ob, NULL, mat, from, to, false);
+    BKE_constraint_mat_convertspace(ob, NULL, mat, from, to);
   }
   /*  Case VERTEXGROUP */
   /* Current method just takes the average location of all the points in the
@@ -588,11 +554,11 @@ static void constraint_target_to_mat4(Object *ob,
    */
   else if (ob->type == OB_MESH) {
     contarget_get_mesh_mat(ob, substring, mat);
-    BKE_constraint_mat_convertspace(ob, NULL, mat, from, to, false);
+    BKE_constraint_mat_convertspace(ob, NULL, mat, from, to);
   }
   else if (ob->type == OB_LATTICE) {
     contarget_get_lattice_mat(ob, substring, mat);
-    BKE_constraint_mat_convertspace(ob, NULL, mat, from, to, false);
+    BKE_constraint_mat_convertspace(ob, NULL, mat, from, to);
   }
   /* Case BONE */
   else {
@@ -656,7 +622,7 @@ static void constraint_target_to_mat4(Object *ob,
     }
 
     /* convert matrix space as required */
-    BKE_constraint_mat_convertspace(ob, pchan, mat, from, to, false);
+    BKE_constraint_mat_convertspace(ob, pchan, mat, from, to);
   }
 }
 
@@ -4095,12 +4061,9 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
           }
 
           /* Transform normal into requested space */
-          /* Note that in this specific case, we need to keep scaling in non-parented 'local2world'
-           * object case, because SpaceTransform also takes it into account when handling normals.
-           * See T42447. */
           unit_m4(mat);
           BKE_constraint_mat_convertspace(
-              cob->ob, cob->pchan, mat, CONSTRAINT_SPACE_LOCAL, scon->projAxisSpace, true);
+              cob->ob, cob->pchan, mat, CONSTRAINT_SPACE_LOCAL, scon->projAxisSpace);
           invert_m4(mat);
           mul_mat3_m4_v3(mat, no);
 
@@ -5834,7 +5797,7 @@ void BKE_constraints_solve(struct Depsgraph *depsgraph,
 
     /* move owner matrix into right space */
     BKE_constraint_mat_convertspace(
-        cob->ob, cob->pchan, cob->matrix, CONSTRAINT_SPACE_WORLD, con->ownspace, false);
+        cob->ob, cob->pchan, cob->matrix, CONSTRAINT_SPACE_WORLD, con->ownspace);
 
     /* prepare targets for constraint solving */
     BKE_constraint_targets_for_solving_get(depsgraph, con, cob, &targets, ctime);
@@ -5853,7 +5816,7 @@ void BKE_constraints_solve(struct Depsgraph *depsgraph,
     /* move owner back into worldspace for next constraint/other business */
     if ((con->flag & CONSTRAINT_SPACEONCE) == 0) {
       BKE_constraint_mat_convertspace(
-          cob->ob, cob->pchan, cob->matrix, con->ownspace, CONSTRAINT_SPACE_WORLD, false);
+          cob->ob, cob->pchan, cob->matrix, con->ownspace, CONSTRAINT_SPACE_WORLD);
     }
 
     /* Interpolate the enforcement, to blend result of constraint into final owner transform
