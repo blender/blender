@@ -9511,8 +9511,7 @@ static void sculpt_transform_task_cb(void *__restrict userdata,
   }
   BKE_pbvh_vertex_iter_end;
 
-  BKE_pbvh_node_mark_redraw(node);
-  BKE_pbvh_node_mark_normals_update(node);
+  BKE_pbvh_node_mark_update(node);
 }
 
 void ED_sculpt_update_modal_transform(struct bContext *C)
