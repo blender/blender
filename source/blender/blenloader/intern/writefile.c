@@ -2853,12 +2853,6 @@ static void write_area_regions(WriteData *wd, ScrArea *area)
         writestruct(wd, DATA, View3D, 1, v3d->localvd);
       }
 
-      if (v3d->fx_settings.ssao) {
-        writestruct(wd, DATA, GPUSSAOSettings, 1, v3d->fx_settings.ssao);
-      }
-      if (v3d->fx_settings.dof) {
-        writestruct(wd, DATA, GPUDOFSettings, 1, v3d->fx_settings.dof);
-      }
       write_view3dshading(wd, &v3d->shading);
     }
     else if (sl->spacetype == SPACE_GRAPH) {

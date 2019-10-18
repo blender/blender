@@ -482,11 +482,9 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
           case SPACE_VIEW3D: {
             const View3D *v3d = (View3D *)space_data;
             const View3DShading *shading = &v3d->shading;
-            const GPUFXSettings *fx_settings = &v3d->fx_settings;
 
             TEST_PTR_DATA_TYPE("space_data", RNA_View3DOverlay, ptr, v3d);
             TEST_PTR_DATA_TYPE("space_data", RNA_View3DShading, ptr, shading);
-            TEST_PTR_DATA_TYPE("space_data", RNA_GPUFXSettings, ptr, fx_settings);
             break;
           }
           case SPACE_GRAPH: {

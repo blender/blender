@@ -311,13 +311,6 @@ static void view3d_free(SpaceLink *sl)
     MEM_freeN(vd->runtime.properties_storage);
   }
 
-  if (vd->fx_settings.ssao) {
-    MEM_freeN(vd->fx_settings.ssao);
-  }
-  if (vd->fx_settings.dof) {
-    MEM_freeN(vd->fx_settings.dof);
-  }
-
   if (vd->shading.prop) {
     IDP_FreeProperty(vd->shading.prop);
     vd->shading.prop = NULL;
@@ -355,12 +348,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
   /* copy or clear inside new stuff */
 
   v3dn->runtime.properties_storage = NULL;
-  if (v3dn->fx_settings.dof) {
-    v3dn->fx_settings.dof = MEM_dupallocN(v3do->fx_settings.dof);
-  }
-  if (v3dn->fx_settings.ssao) {
-    v3dn->fx_settings.ssao = MEM_dupallocN(v3do->fx_settings.ssao);
-  }
 
   return (SpaceLink *)v3dn;
 }

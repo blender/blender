@@ -38,7 +38,6 @@ struct wmTimer;
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
 #include "DNA_movieclip_types.h"
-#include "DNA_gpu_types.h"
 
 typedef struct RegionView3D {
 
@@ -300,10 +299,6 @@ typedef struct View3D {
 
   /** Actually only used to define the opacity of the grease pencil vertex in edit mode. */
   float vertex_opacity;
-
-  /* note, 'fx_settings.dof' is currently _not_ allocated,
-   * instead set (temporarily) from camera */
-  struct GPUFXSettings fx_settings;
 
   /* XXX deprecated? */
   /** Grease-Pencil Data (annotation layers). */

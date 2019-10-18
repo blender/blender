@@ -7258,13 +7258,6 @@ static void direct_link_area(FileData *fd, ScrArea *area)
       }
       v3d->shading.prev_type = OB_SOLID;
 
-      if (v3d->fx_settings.dof) {
-        v3d->fx_settings.dof = newdataadr(fd, v3d->fx_settings.dof);
-      }
-      if (v3d->fx_settings.ssao) {
-        v3d->fx_settings.ssao = newdataadr(fd, v3d->fx_settings.ssao);
-      }
-
       direct_link_view3dshading(fd, &v3d->shading);
 
       blo_do_versions_view3d_split_250(v3d, &sl->regionbase);
