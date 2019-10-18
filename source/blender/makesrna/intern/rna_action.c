@@ -306,6 +306,11 @@ bool rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
   return 0;
 }
 
+static char *rna_DopeSheet_path(PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("dopesheet");
+}
+
 #else
 
 static void rna_def_dopesheet(BlenderRNA *brna)
@@ -315,6 +320,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "DopeSheet", NULL);
   RNA_def_struct_sdna(srna, "bDopeSheet");
+  RNA_def_struct_path_func(srna, "rna_DopeSheet_path");
   RNA_def_struct_ui_text(
       srna, "Dope Sheet", "Settings for filtering the channels shown in animation editors");
 

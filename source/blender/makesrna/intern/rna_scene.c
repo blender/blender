@@ -2492,6 +2492,11 @@ static char *rna_UnitSettings_path(PointerRNA *UNUSED(ptr))
   return BLI_strdup("unit_settings");
 }
 
+static char *rna_GPUFXSettings_path(PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("fx_settings");
+}
+
 #else
 
 /* Grease Pencil Interpolation tool settings */
@@ -4848,6 +4853,7 @@ static void rna_def_gpu_fx(BlenderRNA *brna)
   rna_def_gpu_ssao_fx(brna);
 
   srna = RNA_def_struct(brna, "GPUFXSettings", NULL);
+  RNA_def_struct_path_func(srna, "rna_GPUFXSettings_path");
   RNA_def_struct_ui_text(srna, "GPU FX Settings", "Settings for GPU based compositing");
 
   prop = RNA_def_property(srna, "ssao", PROP_POINTER, PROP_NONE);
