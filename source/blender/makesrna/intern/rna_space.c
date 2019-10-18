@@ -3971,10 +3971,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
       prop, "Show 3D Marker Names", "Show names for reconstructed tracks objects");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "fx_settings", PROP_POINTER, PROP_NONE);
-  RNA_def_property_ui_text(prop, "FX Options", "Options used for real time compositing");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
   prop = RNA_def_property(srna, "use_local_collections", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_LOCAL_COLLECTIONS);
   RNA_def_property_ui_text(

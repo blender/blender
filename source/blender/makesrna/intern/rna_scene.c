@@ -2492,11 +2492,6 @@ static char *rna_UnitSettings_path(PointerRNA *UNUSED(ptr))
   return BLI_strdup("unit_settings");
 }
 
-static char *rna_GPUFXSettings_path(PointerRNA *UNUSED(ptr))
-{
-  return BLI_strdup("fx_settings");
-}
-
 #else
 
 /* Grease Pencil Interpolation tool settings */
@@ -4805,67 +4800,6 @@ static void rna_def_bake_data(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_ui_text(prop, "Pass Filter", "Passes to include in the active baking pass");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-}
-
-static void rna_def_gpu_ssao_fx(BlenderRNA *brna)
-{
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  srna = RNA_def_struct(brna, "GPUSSAOSettings", NULL);
-  RNA_def_struct_ui_text(
-      srna, "GPU SSAO", "Settings for GPU based screen space ambient occlusion");
-
-  prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Strength", "Strength of the SSAO effect");
-  RNA_def_property_range(prop, 0.0f, 250.0f);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-  prop = RNA_def_property(srna, "distance_max", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_ui_text(
-      prop, "Distance", "Distance of object that contribute to the SSAO effect");
-  RNA_def_property_range(prop, 0.0f, 100000.0f);
-  RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-  prop = RNA_def_property(srna, "attenuation", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Attenuation", "Attenuation constant");
-  RNA_def_property_range(prop, 1.0f, 100000.0f);
-  RNA_def_property_ui_range(prop, 1.0f, 100.0f, 1, 3);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-  prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Samples", "Number of samples");
-  RNA_def_property_range(prop, 1, 500);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-  prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_ui_text(prop, "Color", "Color for screen space ambient occlusion effect");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-}
-
-static void rna_def_gpu_fx(BlenderRNA *brna)
-{
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  rna_def_gpu_ssao_fx(brna);
-
-  srna = RNA_def_struct(brna, "GPUFXSettings", NULL);
-  RNA_def_struct_path_func(srna, "rna_GPUFXSettings_path");
-  RNA_def_struct_ui_text(srna, "GPU FX Settings", "Settings for GPU based compositing");
-
-  prop = RNA_def_property(srna, "ssao", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_NEVER_NULL);
-  RNA_def_property_struct_type(prop, "GPUSSAOSettings");
-  RNA_def_property_ui_text(prop, "Screen Space Ambient Occlusion settings", "");
-
-  prop = RNA_def_property(srna, "use_ssao", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "fx_flag", GPU_FX_FLAG_SSAO);
-  RNA_def_property_ui_text(
-      prop, "SSAO", "Use screen space ambient occlusion of field on viewport");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 }
 
 static void rna_def_view_layers(BlenderRNA *brna, PropertyRNA *cprop)
@@ -7553,7 +7487,6 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_define_animate_sdna(true);
   /* *** Animated *** */
   rna_def_scene_render_data(brna);
-  rna_def_gpu_fx(brna);
   rna_def_scene_render_view(brna);
 
   /* Scene API */
