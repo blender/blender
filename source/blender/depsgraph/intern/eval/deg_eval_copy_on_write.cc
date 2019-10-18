@@ -755,6 +755,25 @@ void update_animation_data_after_copy(const ID *id_orig, ID *id_cow)
   update_nla_tracks_orig_pointers(&anim_data_orig->nla_tracks, &anim_data_cow->nla_tracks);
 }
 
+/* Some builders (like motion path one) will ignore proxies from being built. This code makes it so
+ * proxy and proxy_group pointers never point to an original objects, preventing evaluation code
+ * from assign evaluated pointer to an original proxy->proxy_from. */
+void update_proxy_pointers_after_copy(const Depsgraph * /*depsgraph*/,
+                                      const Object * /*object_orig*/,
+                                      Object *object_cow)
+{
+  if (object_cow->proxy != NULL) {
+    if ((object_cow->proxy->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0) {
+      object_cow->proxy = NULL;
+    }
+  }
+  if (object_cow->proxy_group != NULL) {
+    if ((object_cow->proxy_group->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0) {
+      object_cow->proxy_group = NULL;
+    }
+  }
+}
+
 /* Do some special treatment of data transfer from original ID to it's
  * CoW complementary part.
  *
@@ -788,6 +807,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
       }
       update_particles_after_copy(depsgraph, object_orig, object_cow);
       update_modifiers_orig_pointers(object_orig, object_cow);
+      update_proxy_pointers_after_copy(depsgraph, object_orig, object_cow);
       break;
     }
     case ID_SCE: {
