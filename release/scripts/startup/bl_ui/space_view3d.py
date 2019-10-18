@@ -298,7 +298,7 @@ class _draw_tool_settings_context_mode:
 
         # is_paint = True
         # FIXME: tools must use their own UI drawing!
-        if tool.idname in {"builtin.line", "builtin.box", "builtin.circle", "builtin.arc", "builtin.curve"}:
+        if tool.idname in {"builtin.line", "builtin.box", "builtin.circle", "builtin.arc", "builtin.curve","builtin.polyline"}:
             # is_paint = False
             pass
         elif tool.idname == "Cutter":

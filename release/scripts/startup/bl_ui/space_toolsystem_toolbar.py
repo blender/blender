@@ -1349,6 +1349,17 @@ class _defs_gpencil_paint:
         )
 
     @ToolDef.from_fn
+    def polyline():
+        return dict(
+            idname="builtin.polyline",
+            label="Polyline",
+            icon="ops.gpencil.primitive_polyline",
+            cursor='CROSSHAIR',
+            widget=None,
+            keymap=(),
+        )        
+
+    @ToolDef.from_fn
     def box():
         return dict(
             idname="builtin.box",
@@ -1390,7 +1401,7 @@ class _defs_gpencil_paint:
             cursor='CROSSHAIR',
             widget=None,
             keymap=(),
-        )
+        )    
 
     @ToolDef.from_fn
     def eyedropper():
@@ -2058,6 +2069,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_gpencil_paint.eyedropper,
             None,
             _defs_gpencil_paint.line,
+            _defs_gpencil_paint.polyline,
             _defs_gpencil_paint.arc,
             _defs_gpencil_paint.curve,
             _defs_gpencil_paint.box,

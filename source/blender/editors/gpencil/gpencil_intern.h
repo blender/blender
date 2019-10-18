@@ -214,6 +214,8 @@ typedef struct tGPDprimitive {
   int sel_cp;
   /** flag to determine operations in progress */
   int flag;
+  /** flag to determine operations previous mode */
+  int prev_flag;
   /** recorded mouse-position */
   float mval[2];
   /** previous recorded mouse-position */
@@ -465,6 +467,7 @@ enum {
   GP_STROKE_CIRCLE = 2,
   GP_STROKE_ARC = 3,
   GP_STROKE_CURVE = 4,
+  GP_STROKE_POLYLINE = 5,
 };
 
 enum {
