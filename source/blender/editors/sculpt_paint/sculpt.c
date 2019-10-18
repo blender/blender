@@ -6369,9 +6369,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
 /* Returns true if any of the smoothing modes are active (currently
  * one of smooth brush, autosmooth, mask smooth, or shift-key
  * smooth) */
-static bool sculpt_needs_conectivity_info(const Brush *brush, SculptSession *ss, int stroke_mode)
+static bool sculpt_needs_connectivity_info(const Brush *brush, SculptSession *ss, int stroke_mode)
 {
-  if (ss && sculpt_automasking_enabled(ss, brush)) {
+  if (ss && ss->pbvh && sculpt_automasking_enabled(ss, brush)) {
     return true;
   }
   return ((stroke_mode == BRUSH_STROKE_SMOOTH) || (ss && ss->cache && ss->cache->alt_smooth) ||
@@ -6385,7 +6385,7 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob, const B
   SculptSession *ss = ob->sculpt;
   View3D *v3d = CTX_wm_view3d(C);
 
-  bool need_pmap = sculpt_needs_conectivity_info(brush, ss, 0);
+  bool need_pmap = sculpt_needs_connectivity_info(brush, ss, 0);
   if (ss->shapekey_active || ss->deform_modifiers_active ||
       (!BKE_sculptsession_use_pbvh_draw(ob, v3d) && need_pmap)) {
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -6738,7 +6738,7 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
   view3d_operator_needs_opengl(C);
   sculpt_brush_init_tex(scene, sd, ss);
 
-  is_smooth = sculpt_needs_conectivity_info(brush, ss, mode);
+  is_smooth = sculpt_needs_connectivity_info(brush, ss, mode);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, is_smooth, need_mask);
 }
 
