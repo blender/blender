@@ -165,6 +165,7 @@ void BKE_bone_offset_matrix_get(const struct Bone *bone, float offs_bone[4][4]);
 typedef struct BoneParentTransform {
   float rotscale_mat[4][4]; /* parent effect on rotation & scale pose channels */
   float loc_mat[4][4];      /* parent effect on location pose channel */
+  float post_scale[3];      /* additional scale to apply with post-multiply */
 } BoneParentTransform;
 
 /* Matrix-like algebra operations on the transform */

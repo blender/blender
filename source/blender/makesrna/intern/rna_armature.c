@@ -832,6 +832,12 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
        0,
        "Fix Shear",
        "Inherit scaling, but remove shearing of the child in the rest orientation"},
+      {BONE_INHERIT_SCALE_ALIGNED,
+       "ALIGNED",
+       0,
+       "Aligned",
+       "Rotate non-uniform parent scaling to align with the child, applying parent X "
+       "scale to child X axis, and so forth"},
       {BONE_INHERIT_SCALE_AVERAGE,
        "AVERAGE",
        0,

@@ -267,6 +267,8 @@ typedef enum eBone_InheritScaleMode {
   BONE_INHERIT_SCALE_NONE,
   /* Inherit effects of shear on parent (same as old disabled Inherit Scale). */
   BONE_INHERIT_SCALE_NONE_LEGACY,
+  /* Inherit parent X scale as child X scale etc. */
+  BONE_INHERIT_SCALE_ALIGNED,
 } eBone_InheritScaleMode;
 
 /* bone->bbone_prev_type, bbone_next_type */
