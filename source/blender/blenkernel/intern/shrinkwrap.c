@@ -866,9 +866,9 @@ static bool target_project_solve_point_tri(const float *vtri_co[3],
 {
   float x[3], tmp[3];
   float dist = sqrtf(hit_dist_sq);
-  float epsilon = dist * 1.0e-5f;
-
-  CLAMP_MIN(epsilon, 1.0e-5f);
+  float magnitude_estimate = dist + len_manhattan_v3(vtri_co[0]) + len_manhattan_v3(vtri_co[1]) +
+                             len_manhattan_v3(vtri_co[2]);
+  float epsilon = magnitude_estimate * 1.0e-6f;
 
   /* Initial solution vector: barycentric weights plus distance along normal. */
   interp_weights_tri_v3(x, UNPACK3(vtri_co), hit_co);
@@ -929,7 +929,7 @@ static bool update_hit(BVHTreeNearest *nearest,
   if (dist_sq < nearest->dist_sq) {
 #ifdef TRACE_TARGET_PROJECT
     printf(
-        "===> %d (%.3f,%.3f,%.3f) %g < %g\n", index, UNPACK3(hit_co), dist_sq, nearest->dist_sq);
+        "#=#=#> %d (%.3f,%.3f,%.3f) %g < %g\n", index, UNPACK3(hit_co), dist_sq, nearest->dist_sq);
 #endif
     nearest->index = index;
     nearest->dist_sq = dist_sq;
@@ -1088,14 +1088,14 @@ void BKE_shrinkwrap_find_nearest_surface(struct ShrinkwrapTreeData *tree,
 
   if (type == MOD_SHRINKWRAP_TARGET_PROJECT) {
 #ifdef TRACE_TARGET_PROJECT
-    printf("====== TARGET PROJECT START ======\n");
+    printf("\n====== TARGET PROJECT START ======\n");
 #endif
 
     BLI_bvhtree_find_nearest_ex(
         tree->bvh, co, nearest, mesh_looptri_target_project, tree, BVH_NEAREST_OPTIMAL_ORDER);
 
 #ifdef TRACE_TARGET_PROJECT
-    printf("====== TARGET PROJECT END: %d %g ======\n", nearest->index, nearest->dist_sq);
+    printf("====== TARGET PROJECT END: %d %g ======\n\n", nearest->index, nearest->dist_sq);
 #endif
 
     if (nearest->index < 0) {
@@ -1260,7 +1260,10 @@ static void shrinkwrap_snap_with_side(float r_point_co[3],
                                       float forcesign,
                                       bool forcesnap)
 {
-  float dist = len_v3v3(point_co, hit_co);
+  float delta[3];
+  sub_v3_v3v3(delta, point_co, hit_co);
+
+  float dist = len_v3(delta);
 
   /* If exactly on the surface, push out along normal */
   if (dist < FLT_EPSILON) {
@@ -1273,13 +1276,28 @@ static void shrinkwrap_snap_with_side(float r_point_co[3],
   }
   /* Move to the correct side if needed */
   else {
-    float delta[3];
-    sub_v3_v3v3(delta, point_co, hit_co);
-    float dsign = signf(dot_v3v3(delta, hit_no) * forcesign);
+    float dsign = signf(dot_v3v3(delta, hit_no));
+
+    if (forcesign == 0.0f) {
+      forcesign = dsign;
+    }
 
     /* If on the wrong side or too close, move to correct */
-    if (forcesnap || dsign * dist < goal_dist) {
-      interp_v3_v3v3(r_point_co, point_co, hit_co, (dist - goal_dist * dsign) / dist);
+    if (forcesnap || dsign * dist * forcesign < goal_dist) {
+      mul_v3_fl(delta, dsign / dist);
+
+      /* At very small distance, blend in the hit normal to stabilize math. */
+      float dist_epsilon = (fabsf(goal_dist) + len_manhattan_v3(hit_co)) * 1e-4f;
+
+      if (dist < dist_epsilon) {
+#ifdef TRACE_TARGET_PROJECT
+        printf("zero_factor %g = %g / %g\n", dist / dist_epsilon, dist, dist_epsilon);
+#endif
+
+        interp_v3_v3v3(delta, hit_no, delta, dist / dist_epsilon);
+      }
+
+      madd_v3_v3v3fl(r_point_co, hit_co, delta, goal_dist * forcesign);
     }
     else {
       copy_v3_v3(r_point_co, point_co);
@@ -1304,13 +1322,13 @@ void BKE_shrinkwrap_snap_point_to_surface(const struct ShrinkwrapTreeData *tree,
                                           const float point_co[3],
                                           float r_point_co[3])
 {
-  float dist, tmp[3];
+  float tmp[3];
 
   switch (mode) {
     /* Offsets along the line between point_co and hit_co. */
     case MOD_SHRINKWRAP_ON_SURFACE:
-      if (goal_dist != 0 && (dist = len_v3v3(point_co, hit_co)) > FLT_EPSILON) {
-        interp_v3_v3v3(r_point_co, point_co, hit_co, (dist - goal_dist) / dist);
+      if (goal_dist != 0) {
+        shrinkwrap_snap_with_side(r_point_co, point_co, hit_co, hit_no, goal_dist, 0, true);
       }
       else {
         copy_v3_v3(r_point_co, hit_co);
