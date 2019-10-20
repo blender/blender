@@ -156,7 +156,7 @@ TEST(map, ItemIterator)
   EXPECT_TRUE(values.contains(0.0f));
 }
 
-float return_42()
+static float return_42()
 {
   return 42.0f;
 }

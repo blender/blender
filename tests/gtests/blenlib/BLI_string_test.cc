@@ -453,7 +453,7 @@ struct WordInfo {
   }
   int start, end;
 };
-std::ostream &operator<<(std::ostream &os, const WordInfo &word_info)
+static std::ostream &operator<<(std::ostream &os, const WordInfo &word_info)
 {
   os << "start: " << word_info.start << ", end: " << word_info.end;
   return os;

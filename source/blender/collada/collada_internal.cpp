@@ -314,7 +314,7 @@ std::string get_joint_sid(Bone *bone)
 {
   return translate_id(bone->name);
 }
-std::string get_joint_sid(EditBone *bone)
+static std::string get_joint_sid(EditBone *bone)
 {
   return translate_id(bone->name);
 }

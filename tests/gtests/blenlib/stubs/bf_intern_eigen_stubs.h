@@ -2,6 +2,13 @@
 
 extern "C" {
 
+void EIG_svd_square_matrix(
+    const int size, const float *matrix, float *r_U, float *r_S, float *r_V);
+bool EIG_self_adjoint_eigen_solve(const int size,
+                                  const float *matrix,
+                                  float *r_eigen_values,
+                                  float *r_eigen_vectors);
+
 bool EIG_self_adjoint_eigen_solve(const int size,
                                   const float *matrix,
                                   float *r_eigen_values,
