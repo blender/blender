@@ -1023,54 +1023,18 @@ static void mesh_add_polys(Mesh *mesh, int len)
   mesh->totpoly = totpoly;
 }
 
-static void mesh_remove_verts(Mesh *mesh, int len)
-{
-  int totvert;
+/* -------------------------------------------------------------------- */
+/** \name Add Geometry
+ * \{ */
 
-  if (len == 0) {
-    return;
-  }
-
-  totvert = mesh->totvert - len;
-  CustomData_free_elem(&mesh->vdata, totvert, len);
-
-  /* set final vertex list size */
-  mesh->totvert = totvert;
-}
-
-static void mesh_remove_edges(Mesh *mesh, int len)
-{
-  int totedge;
-
-  if (len == 0) {
-    return;
-  }
-
-  totedge = mesh->totedge - len;
-  CustomData_free_elem(&mesh->edata, totedge, len);
-
-  mesh->totedge = totedge;
-}
-
-#if 0
-void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges, int faces)
+void ED_mesh_verts_add(Mesh *mesh, ReportList *reports, int count)
 {
   if (mesh->edit_mesh) {
-    BKE_report(reports, RPT_ERROR, "Cannot add geometry in edit mode");
+    BKE_report(reports, RPT_ERROR, "Cannot add vertices in edit mode");
     return;
   }
-
-  if (verts) {
-    mesh_add_verts(mesh, verts);
-  }
-  if (edges) {
-    mesh_add_edges(mesh, edges);
-  }
-  if (faces) {
-    mesh_add_faces(mesh, faces);
-  }
+  mesh_add_verts(mesh, count);
 }
-#endif
 
 void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count)
 {
@@ -1078,18 +1042,85 @@ void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count)
     BKE_report(reports, RPT_ERROR, "Cannot add edges in edit mode");
     return;
   }
-
   mesh_add_edges(mesh, count);
 }
 
-void ED_mesh_vertices_add(Mesh *mesh, ReportList *reports, int count)
+void ED_mesh_loops_add(Mesh *mesh, ReportList *reports, int count)
 {
   if (mesh->edit_mesh) {
-    BKE_report(reports, RPT_ERROR, "Cannot add vertices in edit mode");
+    BKE_report(reports, RPT_ERROR, "Cannot add loops in edit mode");
+    return;
+  }
+  mesh_add_loops(mesh, count);
+}
+
+void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
+{
+  if (mesh->edit_mesh) {
+    BKE_report(reports, RPT_ERROR, "Cannot add polygons in edit mode");
+    return;
+  }
+  mesh_add_polys(mesh, count);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remove Geometry
+ * \{ */
+
+static void mesh_remove_verts(Mesh *mesh, int len)
+{
+  if (len == 0) {
+    return;
+  }
+  const int totvert = mesh->totvert - len;
+  CustomData_free_elem(&mesh->vdata, totvert, len);
+  mesh->totvert = totvert;
+}
+
+static void mesh_remove_edges(Mesh *mesh, int len)
+{
+  if (len == 0) {
+    return;
+  }
+  const int totedge = mesh->totedge - len;
+  CustomData_free_elem(&mesh->edata, totedge, len);
+  mesh->totedge = totedge;
+}
+
+static void mesh_remove_loops(Mesh *mesh, int len)
+{
+  if (len == 0) {
+    return;
+  }
+  const int totloop = mesh->totloop - len;
+  CustomData_free_elem(&mesh->ldata, totloop, len);
+  mesh->totloop = totloop;
+}
+
+static void mesh_remove_polys(Mesh *mesh, int len)
+{
+  if (len == 0) {
+    return;
+  }
+  const int totpoly = mesh->totpoly - len;
+  CustomData_free_elem(&mesh->pdata, totpoly, len);
+  mesh->totpoly = totpoly;
+}
+
+void ED_mesh_verts_remove(Mesh *mesh, ReportList *reports, int count)
+{
+  if (mesh->edit_mesh) {
+    BKE_report(reports, RPT_ERROR, "Cannot remove vertices in edit mode");
+    return;
+  }
+  else if (count > mesh->totvert) {
+    BKE_report(reports, RPT_ERROR, "Cannot remove more vertices than the mesh contains");
     return;
   }
 
-  mesh_add_verts(mesh, count);
+  mesh_remove_verts(mesh, count);
 }
 
 void ED_mesh_edges_remove(Mesh *mesh, ReportList *reports, int count)
@@ -1106,39 +1137,43 @@ void ED_mesh_edges_remove(Mesh *mesh, ReportList *reports, int count)
   mesh_remove_edges(mesh, count);
 }
 
-void ED_mesh_vertices_remove(Mesh *mesh, ReportList *reports, int count)
+void ED_mesh_loops_remove(Mesh *mesh, ReportList *reports, int count)
 {
   if (mesh->edit_mesh) {
-    BKE_report(reports, RPT_ERROR, "Cannot remove vertices in edit mode");
+    BKE_report(reports, RPT_ERROR, "Cannot remove loops in edit mode");
     return;
   }
-  else if (count > mesh->totvert) {
-    BKE_report(reports, RPT_ERROR, "Cannot remove more vertices than the mesh contains");
+  else if (count > mesh->totloop) {
+    BKE_report(reports, RPT_ERROR, "Cannot remove more loops than the mesh contains");
     return;
   }
 
-  mesh_remove_verts(mesh, count);
+  mesh_remove_loops(mesh, count);
 }
 
-void ED_mesh_loops_add(Mesh *mesh, ReportList *reports, int count)
+void ED_mesh_polys_remove(Mesh *mesh, ReportList *reports, int count)
 {
   if (mesh->edit_mesh) {
-    BKE_report(reports, RPT_ERROR, "Cannot add loops in edit mode");
+    BKE_report(reports, RPT_ERROR, "Cannot remove polys in edit mode");
+    return;
+  }
+  else if (count > mesh->totpoly) {
+    BKE_report(reports, RPT_ERROR, "Cannot remove more polys than the mesh contains");
     return;
   }
 
-  mesh_add_loops(mesh, count);
+  mesh_remove_polys(mesh, count);
 }
 
-void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
+void ED_mesh_geometry_clear(Mesh *mesh)
 {
-  if (mesh->edit_mesh) {
-    BKE_report(reports, RPT_ERROR, "Cannot add polygons in edit mode");
-    return;
-  }
-
-  mesh_add_polys(mesh, count);
+  mesh_remove_verts(mesh, mesh->totvert);
+  mesh_remove_edges(mesh, mesh->totedge);
+  mesh_remove_loops(mesh, mesh->totloop);
+  mesh_remove_polys(mesh, mesh->totpoly);
 }
+
+/** \} */
 
 void ED_mesh_report_mirror_ex(wmOperator *op, int totmirr, int totfail, char selectmode)
 {

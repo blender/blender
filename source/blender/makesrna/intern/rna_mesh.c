@@ -2232,13 +2232,13 @@ static void rna_def_mesh_vertices(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_struct_sdna(srna, "Mesh");
   RNA_def_struct_ui_text(srna, "Mesh Vertices", "Collection of mesh vertices");
 
-  func = RNA_def_function(srna, "add", "ED_mesh_vertices_add");
+  func = RNA_def_function(srna, "add", "ED_mesh_verts_add");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_int(
       func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 #  if 0 /* BMESH_TODO Remove until BMesh merge */
-  func = RNA_def_function(srna, "remove", "ED_mesh_vertices_remove");
+  func = RNA_def_function(srna, "remove", "ED_mesh_verts_remove");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to remove", 0, INT_MAX);
 #  endif
