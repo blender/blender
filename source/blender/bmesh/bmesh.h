@@ -216,6 +216,7 @@ extern "C" {
 #include "intern/bmesh_marking.h"
 #include "intern/bmesh_mesh.h"
 #include "intern/bmesh_mesh_conv.h"
+#include "intern/bmesh_mesh_duplicate.h"
 #include "intern/bmesh_mesh_validate.h"
 #include "intern/bmesh_mods.h"
 #include "intern/bmesh_operators.h"

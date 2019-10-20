@@ -2808,6 +2808,91 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
   return group_curr;
 }
 
+int BM_mesh_calc_edge_groups_as_arrays(
+    BMesh *bm, BMVert **verts, BMEdge **edges, BMFace **faces, int (**r_groups)[3])
+{
+  int(*groups)[3] = MEM_mallocN(sizeof(*groups) * bm->totvert, __func__);
+  STACK_DECLARE(groups);
+  STACK_INIT(groups, bm->totvert);
+
+  /* Clear all selected vertices */
+  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+
+  BMVert **stack = MEM_mallocN(sizeof(*stack) * bm->totvert, __func__);
+  STACK_DECLARE(stack);
+  STACK_INIT(stack, bm->totvert);
+
+  STACK_DECLARE(verts);
+  STACK_INIT(verts, bm->totvert);
+
+  STACK_DECLARE(edges);
+  STACK_INIT(edges, bm->totedge);
+
+  STACK_DECLARE(faces);
+  STACK_INIT(faces, bm->totface);
+
+  BMIter iter;
+  BMVert *v_stack_init;
+  BM_ITER_MESH (v_stack_init, &iter, bm, BM_VERTS_OF_MESH) {
+    if (BM_elem_flag_test(v_stack_init, BM_ELEM_TAG)) {
+      continue;
+    }
+
+    const uint verts_init = STACK_SIZE(verts);
+    const uint edges_init = STACK_SIZE(edges);
+    const uint faces_init = STACK_SIZE(faces);
+
+    /* Initialize stack. */
+    BM_elem_flag_enable(v_stack_init, BM_ELEM_TAG);
+    STACK_PUSH(verts, v_stack_init);
+
+    if (v_stack_init->e != NULL) {
+      BMVert *v_iter = v_stack_init;
+      do {
+        BMEdge *e_iter, *e_first;
+        e_iter = e_first = v_iter->e;
+        do {
+          if (!BM_elem_flag_test(e_iter, BM_ELEM_TAG)) {
+            BM_elem_flag_enable(e_iter, BM_ELEM_TAG);
+            STACK_PUSH(edges, e_iter);
+
+            if (e_iter->l != NULL) {
+              BMLoop *l_iter, *l_first;
+              l_iter = l_first = e_iter->l;
+              do {
+                if (!BM_elem_flag_test(l_iter->f, BM_ELEM_TAG)) {
+                  BM_elem_flag_enable(l_iter->f, BM_ELEM_TAG);
+                  STACK_PUSH(faces, l_iter->f);
+                }
+              } while ((l_iter = l_iter->radial_next) != l_first);
+            }
+
+            BMVert *v_other = BM_edge_other_vert(e_iter, v_iter);
+            if (!BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
+              BM_elem_flag_enable(v_other, BM_ELEM_TAG);
+              STACK_PUSH(verts, v_other);
+
+              STACK_PUSH(stack, v_other);
+            }
+          }
+        } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v_iter)) != e_first);
+      } while ((v_iter = STACK_POP(stack)));
+    }
+
+    int *g = STACK_PUSH_RET(groups);
+    g[0] = STACK_SIZE(verts) - verts_init;
+    g[1] = STACK_SIZE(edges) - edges_init;
+    g[2] = STACK_SIZE(faces) - faces_init;
+  }
+
+  MEM_freeN(stack);
+
+  /* Reduce alloc to required size. */
+  groups = MEM_reallocN(groups, sizeof(*groups) * STACK_SIZE(groups));
+  *r_groups = groups;
+  return STACK_SIZE(groups);
+}
+
 float bmesh_subd_falloff_calc(const int falloff, float val)
 {
   switch (falloff) {
