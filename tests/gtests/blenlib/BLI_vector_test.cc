@@ -261,7 +261,7 @@ TEST(vector, BecomeLarge)
   }
 }
 
-IntVector return_by_value_helper()
+static IntVector return_by_value_helper()
 {
   return IntVector({3, 5, 1});
 }

@@ -50,7 +50,7 @@ TEST(kdopbvh, Single)
   BLI_bvhtree_free(tree);
 }
 
-void optimal_check_callback(void *userdata, int index, const float co[3], BVHTreeNearest *nearest)
+static void optimal_check_callback(void *userdata, int index, const float co[3], BVHTreeNearest *nearest)
 {
   float(*points)[3] = (float(*)[3])userdata;
 

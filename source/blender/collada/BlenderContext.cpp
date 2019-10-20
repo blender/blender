@@ -21,6 +21,8 @@
 #include <vector>
 
 #include "BlenderContext.h"
+#include "ExportSettings.h"
+
 #include "BKE_scene.h"
 
 bool bc_is_base_node(LinkNode *export_set, Object *ob, ViewLayer *view_layer)

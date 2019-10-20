@@ -1149,7 +1149,7 @@ void bc_copy_m4d_v44(double (&r)[4][4], std::vector<std::vector<double>> &a)
 /**
  * Returns name of Active UV Layer or empty String if no active UV Layer defined
  */
-std::string bc_get_active_uvlayer_name(Mesh *me)
+static std::string bc_get_active_uvlayer_name(Mesh *me)
 {
   int num_layers = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
   if (num_layers) {
@@ -1165,7 +1165,7 @@ std::string bc_get_active_uvlayer_name(Mesh *me)
  * Returns name of Active UV Layer or empty String if no active UV Layer defined.
  * Assuming the Object is of type MESH
  */
-std::string bc_get_active_uvlayer_name(Object *ob)
+static std::string bc_get_active_uvlayer_name(Object *ob)
 {
   Mesh *me = (Mesh *)ob->data;
   return bc_get_active_uvlayer_name(me);
@@ -1174,7 +1174,7 @@ std::string bc_get_active_uvlayer_name(Object *ob)
 /**
  * Returns UV Layer name or empty string if layer index is out of range
  */
-std::string bc_get_uvlayer_name(Mesh *me, int layer)
+static std::string bc_get_uvlayer_name(Mesh *me, int layer)
 {
   int num_layers = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
   if (num_layers && layer < num_layers) {
@@ -1206,7 +1206,7 @@ static bNodeTree *prepare_material_nodetree(Material *ma)
   return ma->nodetree;
 }
 
-bNode *bc_add_node(
+static bNode *bc_add_node(
     bContext *C, bNodeTree *ntree, int node_type, int locx, int locy, std::string label)
 {
   bNode *node = nodeAddStaticNode(C, ntree, node_type);
@@ -1221,7 +1221,7 @@ bNode *bc_add_node(
   return node;
 }
 
-bNode *bc_add_node(bContext *C, bNodeTree *ntree, int node_type, int locx, int locy)
+static bNode *bc_add_node(bContext *C, bNodeTree *ntree, int node_type, int locx, int locy)
 {
   return bc_add_node(C, ntree, node_type, locx, locy, "");
 }
