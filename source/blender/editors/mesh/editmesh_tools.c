@@ -3946,6 +3946,61 @@ static Base *mesh_separate_tagged(
   return base_new;
 }
 
+static Base *mesh_separate_arrays(Main *bmain,
+                                  Scene *scene,
+                                  ViewLayer *view_layer,
+                                  Base *base_old,
+                                  BMesh *bm_old,
+                                  BMVert **verts,
+                                  uint verts_len,
+                                  BMEdge **edges,
+                                  uint edges_len,
+                                  BMFace **faces,
+                                  uint faces_len)
+{
+  Base *base_new;
+  Object *obedit = base_old->object;
+  BMesh *bm_new;
+
+  bm_new = BM_mesh_create(&bm_mesh_allocsize_default,
+                          &((struct BMeshCreateParams){
+                              .use_toolflags = true,
+                          }));
+
+  CustomData_copy(&bm_old->vdata, &bm_new->vdata, CD_MASK_BMESH.vmask, CD_CALLOC, 0);
+  CustomData_copy(&bm_old->edata, &bm_new->edata, CD_MASK_BMESH.emask, CD_CALLOC, 0);
+  CustomData_copy(&bm_old->ldata, &bm_new->ldata, CD_MASK_BMESH.lmask, CD_CALLOC, 0);
+  CustomData_copy(&bm_old->pdata, &bm_new->pdata, CD_MASK_BMESH.pmask, CD_CALLOC, 0);
+
+  CustomData_bmesh_init_pool(&bm_new->vdata, verts_len, BM_VERT);
+  CustomData_bmesh_init_pool(&bm_new->edata, edges_len, BM_EDGE);
+  CustomData_bmesh_init_pool(&bm_new->ldata, faces_len * 3, BM_LOOP);
+  CustomData_bmesh_init_pool(&bm_new->pdata, faces_len, BM_FACE);
+
+  base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, USER_DUP_MESH);
+
+  /* normally would call directly after but in this case delay recalc */
+  /* DAG_relations_tag_update(bmain); */
+
+  /* new in 2.5 */
+  assign_matarar(bmain, base_new->object, give_matarar(obedit), *give_totcolp(obedit));
+
+  ED_object_base_select(base_new, BA_SELECT);
+
+  BM_mesh_copy_arrays(bm_old, bm_new, verts, verts_len, edges, edges_len, faces, faces_len);
+
+  for (uint i = 0; i < verts_len; i++) {
+    BM_vert_kill(bm_old, verts[i]);
+  }
+
+  BM_mesh_bm_to_me(bmain, bm_new, base_new->object->data, (&(struct BMeshToMeshParams){0}));
+
+  BM_mesh_free(bm_new);
+  ((Mesh *)base_new->object->data)->edit_mesh = NULL;
+
+  return base_new;
+}
+
 static bool mesh_separate_selected(
     Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base_old, BMesh *bm_old)
 {
@@ -3957,41 +4012,6 @@ static bool mesh_separate_selected(
       bm_old, BM_FACE | BM_EDGE | BM_VERT, BM_ELEM_TAG, true, false, BM_ELEM_SELECT);
 
   return (mesh_separate_tagged(bmain, scene, view_layer, base_old, bm_old) != NULL);
-}
-
-/* flush a hflag to from verts to edges/faces */
-static void bm_mesh_hflag_flush_vert(BMesh *bm, const char hflag)
-{
-  BMEdge *e;
-  BMLoop *l_iter;
-  BMLoop *l_first;
-  BMFace *f;
-
-  BMIter eiter;
-  BMIter fiter;
-
-  bool ok;
-
-  BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
-    if (BM_elem_flag_test(e->v1, hflag) && BM_elem_flag_test(e->v2, hflag)) {
-      BM_elem_flag_enable(e, hflag);
-    }
-    else {
-      BM_elem_flag_disable(e, hflag);
-    }
-  }
-  BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-    ok = true;
-    l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-    do {
-      if (!BM_elem_flag_test(l_iter->v, hflag)) {
-        ok = false;
-        break;
-      }
-    } while ((l_iter = l_iter->next) != l_first);
-
-    BM_elem_flag_set(f, hflag, ok);
-  }
 }
 
 /**
@@ -4109,72 +4129,64 @@ static bool mesh_separate_material(
 static bool mesh_separate_loose(
     Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base_old, BMesh *bm_old)
 {
-  int i;
-  BMEdge *e;
-  BMVert *v_seed;
-  BMWalker walker;
+  /* Without this, we duplicate the object mode mesh for each loose part.
+   * This can get very slow especially for large meshes with many parts
+   * which would duplicate the mesh on entering edit-mode. */
+  const bool clear_object_data = true;
+
   bool result = false;
-  int max_iter = bm_old->totvert;
 
-  /* Clear all selected vertices */
-  BM_mesh_elem_hflag_disable_all(bm_old, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+  BMVert **vert_groups = MEM_mallocN(sizeof(*vert_groups) * bm_old->totvert, __func__);
+  BMEdge **edge_groups = MEM_mallocN(sizeof(*edge_groups) * bm_old->totedge, __func__);
+  BMFace **face_groups = MEM_mallocN(sizeof(*face_groups) * bm_old->totface, __func__);
 
-  /* A "while (true)" loop should work here as each iteration should
-   * select and remove at least one vertex and when all vertices
-   * are selected the loop will break out. But guard against bad
-   * behavior by limiting iterations to the number of vertices in the
-   * original mesh.*/
-  for (i = 0; i < max_iter; i++) {
-    int tot = 0;
-    /* Get a seed vertex to start the walk */
-    v_seed = BM_iter_at_index(bm_old, BM_VERTS_OF_MESH, NULL, 0);
-
-    /* No vertices available, can't do anything */
-    if (v_seed == NULL) {
-      break;
-    }
-
-    /* Select the seed explicitly, in case it has no edges */
-    if (!BM_elem_flag_test(v_seed, BM_ELEM_TAG)) {
-      BM_elem_flag_enable(v_seed, BM_ELEM_TAG);
-      tot++;
-    }
-
-    /* Walk from the single vertex, selecting everything connected
-     * to it */
-    BMW_init(&walker,
-             bm_old,
-             BMW_VERT_SHELL,
-             BMW_MASK_NOP,
-             BMW_MASK_NOP,
-             BMW_MASK_NOP,
-             BMW_FLAG_NOP,
-             BMW_NIL_LAY);
-
-    for (e = BMW_begin(&walker, v_seed); e; e = BMW_step(&walker)) {
-      if (!BM_elem_flag_test(e->v1, BM_ELEM_TAG)) {
-        BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
-        tot++;
-      }
-      if (!BM_elem_flag_test(e->v2, BM_ELEM_TAG)) {
-        BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
-        tot++;
-      }
-    }
-    BMW_end(&walker);
-
-    if (bm_old->totvert == tot) {
-      /* Every vertex selected, nothing to separate, work is done */
-      break;
-    }
-
-    /* Flush the selection to get edge/face selections matching
-     * the vertex selection */
-    bm_mesh_hflag_flush_vert(bm_old, BM_ELEM_TAG);
-
-    /* Move selection into a separate object */
-    result |= (mesh_separate_tagged(bmain, scene, view_layer, base_old, bm_old) != NULL);
+  int(*groups)[3] = NULL;
+  int groups_len = BM_mesh_calc_edge_groups_as_arrays(
+      bm_old, vert_groups, edge_groups, face_groups, &groups);
+  if (groups_len <= 1) {
+    goto finally;
   }
+
+  if (clear_object_data) {
+    ED_mesh_geometry_clear(base_old->object->data);
+  }
+
+  /* Separate out all groups except the first. */
+  uint group_ofs[3] = {UNPACK3(groups[0])};
+  for (int i = 1; i < groups_len; i++) {
+    Base *base_new = mesh_separate_arrays(bmain,
+                                          scene,
+                                          view_layer,
+                                          base_old,
+                                          bm_old,
+                                          vert_groups + group_ofs[0],
+                                          groups[i][0],
+                                          edge_groups + group_ofs[1],
+                                          groups[i][1],
+                                          face_groups + group_ofs[2],
+                                          groups[i][2]);
+    result |= (base_new != NULL);
+
+    group_ofs[0] += groups[i][0];
+    group_ofs[1] += groups[i][1];
+    group_ofs[2] += groups[i][2];
+  }
+
+  Mesh *me_old = base_old->object->data;
+  BMEditMesh *em_old = me_old->edit_mesh;
+
+  BM_mesh_elem_hflag_disable_all(em_old->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+
+  if (clear_object_data) {
+    BM_mesh_bm_to_me(NULL, em_old->bm, me_old, (&(struct BMeshToMeshParams){0}));
+  }
+
+finally:
+  MEM_freeN(vert_groups);
+  MEM_freeN(edge_groups);
+  MEM_freeN(face_groups);
+
+  MEM_freeN(groups);
 
   return result;
 }

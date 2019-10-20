@@ -99,6 +99,8 @@ set(SRC
   intern/bmesh_mesh.h
   intern/bmesh_mesh_conv.c
   intern/bmesh_mesh_conv.h
+  intern/bmesh_mesh_duplicate.c
+  intern/bmesh_mesh_duplicate.h
   intern/bmesh_mesh_validate.c
   intern/bmesh_mesh_validate.h
   intern/bmesh_mods.c
