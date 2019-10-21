@@ -1196,14 +1196,16 @@ class OptiXDevice : public Device {
   void mem_alloc(device_memory &mem) override
   {
     if (mem.type == MEM_PIXELS && !background) {
-      assert(!"mem_alloc not supported for pixels.");
+      // Always fall back to no interop for now
+      // TODO(pmours): Support OpenGL interop when moving CUDA memory management to common code
+      background = true;
     }
     else if (mem.type == MEM_TEXTURE) {
       assert(!"mem_alloc not supported for textures.");
+      return;
     }
-    else {
-      generic_alloc(mem);
-    }
+
+    generic_alloc(mem);
   }
 
   CUDAMem *generic_alloc(device_memory &mem, size_t pitch_padding = 0)
