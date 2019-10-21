@@ -38,7 +38,7 @@ set(LIB
   extern_quadriflow
 )
 
-if (WIN32)
+if(WIN32)
     add_definitions(-D_USE_MATH_DEFINES)
 endif()
 
