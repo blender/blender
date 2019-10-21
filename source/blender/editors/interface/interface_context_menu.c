@@ -63,7 +63,14 @@
 static IDProperty *shortcut_property_from_rna(bContext *C, uiBut *but)
 {
   /* Compute data path from context to property. */
+
+  /* If this returns null, we won't be able to bind shortcuts to these RNA properties.
+   * Support can be added at #wm_context_member_from_ptr. */
   const char *member_id = WM_context_member_from_ptr(C, &but->rnapoin);
+  if (member_id == NULL) {
+    return NULL;
+  }
+
   const char *data_path = RNA_path_from_ID_to_struct(&but->rnapoin);
   const char *member_id_data_path = member_id;
 
@@ -90,27 +97,35 @@ static IDProperty *shortcut_property_from_rna(bContext *C, uiBut *but)
   return prop;
 }
 
-static const char *shortcut_get_operator_property(bContext *C, uiBut *but, IDProperty **prop)
+static const char *shortcut_get_operator_property(bContext *C, uiBut *but, IDProperty **r_prop)
 {
   if (but->optype) {
     /* Operator */
-    *prop = (but->opptr && but->opptr->data) ? IDP_CopyProperty(but->opptr->data) : NULL;
+    *r_prop = (but->opptr && but->opptr->data) ? IDP_CopyProperty(but->opptr->data) : NULL;
     return but->optype->idname;
   }
   else if (but->rnaprop) {
-    if (RNA_property_type(but->rnaprop) == PROP_BOOLEAN) {
+    const PropertyType rnaprop_type = RNA_property_type(but->rnaprop);
+
+    if (rnaprop_type == PROP_BOOLEAN) {
       /* Boolean */
-      *prop = shortcut_property_from_rna(C, but);
+      *r_prop = shortcut_property_from_rna(C, but);
+      if (*r_prop == NULL) {
+        return NULL;
+      }
       return "WM_OT_context_toggle";
     }
-    else if (RNA_property_type(but->rnaprop) == PROP_ENUM) {
+    else if (rnaprop_type == PROP_ENUM) {
       /* Enum */
-      *prop = shortcut_property_from_rna(C, but);
+      *r_prop = shortcut_property_from_rna(C, but);
+      if (*r_prop == NULL) {
+        return NULL;
+      }
       return "WM_OT_context_menu_enum";
     }
   }
 
-  *prop = NULL;
+  *r_prop = NULL;
   return NULL;
 }
 
