@@ -637,7 +637,9 @@ static bool gp_brush_push_apply(tGP_BrushEditData *gso,
   mul_v3_v3fl(delta, gso->dvec, inf);
 
   /* apply */
-  mul_mat3_m4_v3(gso->object->obmat, delta); /* only rotation component */
+  float inv_mat[4][4];
+  invert_m4_m4(inv_mat, gso->object->obmat);
+  mul_mat3_m4_v3(inv_mat, delta); /* only rotation component */
   add_v3_v3(&pt->x, delta);
 
   /* compute lock axis */
