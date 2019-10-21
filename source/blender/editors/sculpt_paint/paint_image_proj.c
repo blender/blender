@@ -89,6 +89,7 @@
 #include "ED_view3d.h"
 
 #include "GPU_extensions.h"
+#include "GPU_init_exit.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -6135,6 +6136,9 @@ static bool texture_paint_image_from_view_poll(bContext *C)
 {
   if (BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0) == NULL) {
     CTX_wm_operator_poll_msg_set(C, "No 3D viewport found to create image from");
+    return false;
+  }
+  if (!GPU_is_initialized()) {
     return false;
   }
   return true;
