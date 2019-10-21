@@ -854,7 +854,7 @@ elseif(WIN32)
     )
   endif()
 elseif(APPLE)
-  if (NOT WITH_PYTHON_MODULE)
+  if(NOT WITH_PYTHON_MODULE)
     # Uppercase name for app bundle
     set_target_properties(blender PROPERTIES OUTPUT_NAME Blender)
   endif()
@@ -1042,7 +1042,7 @@ setup_liblinks(blender)
 # vcpkg substitutes our libs with theirs, which will cause issues when you
 # you run these builds on other systems due to missing dlls. So we opt out
 # the use of vcpkg
-if (WIN32)
+if(WIN32)
   set_target_properties(blender PROPERTIES VS_GLOBAL_VcpkgEnabled "false")
 endif()
 

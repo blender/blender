@@ -16,7 +16,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-if (UNIX)
+if(UNIX)
   set(THEORA_CONFIGURE_ENV ${CONFIGURE_ENV} && export HAVE_PDFLATEX=no)
 else()
   set(THEORA_CONFIGURE_ENV ${CONFIGURE_ENV})
