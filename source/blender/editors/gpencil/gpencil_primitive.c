@@ -206,7 +206,7 @@ static void gpencil_primitive_constrain(tGPDprimitive *tgpi, bool line_mode)
   else {
     gpencil_primitive_to_square(tgpi, x, y);
   }
- }
+}
 
 /* Helper to rotate point around origin */
 static void gp_rotate_v2_v2v2fl(float v[2],
@@ -458,7 +458,12 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
                 UI_MAX_DRAW_STR);
   }
 
-  if (ELEM(tgpi->type, GP_STROKE_CIRCLE, GP_STROKE_ARC, GP_STROKE_LINE, GP_STROKE_BOX, GP_STROKE_POLYLINE)) {
+  if (ELEM(tgpi->type,
+           GP_STROKE_CIRCLE,
+           GP_STROKE_ARC,
+           GP_STROKE_LINE,
+           GP_STROKE_BOX,
+           GP_STROKE_POLYLINE)) {
     if (hasNumInput(&tgpi->num)) {
       char str_offs[NUM_STR_REP_LEN];
 
@@ -1386,7 +1391,7 @@ static void gpencil_primitive_edit_event_handling(
           copy_v2_v2(tgpi->start, tgpi->end);
           copy_v2_v2(tgpi->origin, tgpi->start);
           gp_primitive_update_cps(tgpi);
-          
+
           tgpi->flag = IN_POLYLINE;
           WM_cursor_modal_set(win, WM_CURSOR_CROSS);
         }
@@ -1395,7 +1400,7 @@ static void gpencil_primitive_edit_event_handling(
           gp_primitive_update_cps(tgpi);
           gpencil_primitive_update(C, op, tgpi);
         }
-      }      
+      }
       else if ((event->val == KM_PRESS) && !ELEM(tgpi->type, GP_STROKE_POLYLINE)) {
         /* find nearest cp based on stroke end points */
         if (move == MOVE_ENDS) {
@@ -1580,9 +1585,9 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     return OPERATOR_RUNNING_MODAL;
   }
   else if (tgpi->flag == IN_POLYLINE) {
-    
+
     switch (event->type) {
-      
+
       case ESCKEY: {
         /* return to normal cursor and header status */
         ED_workspace_status_text(C, NULL);
@@ -1598,7 +1603,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
         if (event->val == KM_PRESS) {
           WM_cursor_modal_set(win, WM_CURSOR_CROSS);
           gpencil_primitive_add_segment(tgpi);
-          
+
           gpencil_primitive_update(C, op, tgpi);
           copy_v2_v2(tgpi->start, tgpi->end);
           copy_v2_v2(tgpi->origin, tgpi->end);
@@ -1607,7 +1612,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
       }
       case SPACEKEY: /* confirm */
       case MIDDLEMOUSE:
-      case RETKEY: 
+      case RETKEY:
       case RIGHTMOUSE: {
         if (event->val == KM_PRESS) {
           tgpi->flag = IDLE;
@@ -1665,7 +1670,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
         break;
       }
     }
-    
+
     copy_v2_v2(tgpi->mvalo, tgpi->mval);
     return OPERATOR_RUNNING_MODAL;
   }

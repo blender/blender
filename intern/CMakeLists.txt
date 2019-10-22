@@ -80,4 +80,3 @@ endif()
 if(WITH_QUADRIFLOW)
   add_subdirectory(quadriflow)
 endif()
-
