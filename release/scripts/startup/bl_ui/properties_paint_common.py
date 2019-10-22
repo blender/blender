@@ -109,8 +109,6 @@ class VIEW3D_MT_tools_projectpaint_clone(Menu):
 
 
 def brush_texpaint_common(panel, context, layout, brush, _settings, projpaint=False):
-    capabilities = brush.image_paint_capabilities
-
     col = layout.column()
 
     if brush.image_tool == 'FILL' and not projpaint:

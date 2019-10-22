@@ -266,7 +266,6 @@ extern StructRNA RNA_FreestyleLineStyle;
 extern StructRNA RNA_FreestyleModuleSettings;
 extern StructRNA RNA_FreestyleSettings;
 extern StructRNA RNA_Function;
-extern StructRNA RNA_GPUFXSettings;
 extern StructRNA RNA_GPencilFrame;
 extern StructRNA RNA_GPencilInterpolateSettings;
 extern StructRNA RNA_GPencilLayer;

@@ -193,10 +193,8 @@ class TEXT_PT_find(Panel):
 class TEXT_MT_view_navigation(Menu):
     bl_label = "Navigation"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
-
-        st = context.space_data
 
         layout.operator("text.move", text="Top").type = 'FILE_TOP'
         layout.operator("text.move", text="Bottom").type = 'FILE_BOTTOM'
@@ -384,9 +382,8 @@ class TEXT_MT_edit(Menu):
     def poll(cls, context):
         return context.space_data.text is not None
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
-        st = context.space_data
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
