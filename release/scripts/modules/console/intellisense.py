@@ -35,20 +35,20 @@ import re
 # regular expressions to find out which completer we need
 
 # line which starts with an import statement
-RE_MODULE = re.compile('^import(\s|$)|from.+')
+RE_MODULE = re.compile(r'''^import(\s|$)|from.+''')
 
 # The following regular expression means an 'unquoted' word
 RE_UNQUOTED_WORD = re.compile(
     # don't start with a quote
-    '''(?:^|[^"'a-zA-Z0-9_])'''
+    r'''(?:^|[^"'a-zA-Z0-9_])'''
     # start with a \w = [a-zA-Z0-9_]
-    '''((?:\w+'''
+    r'''((?:\w+'''
     # allow also dots and closed bracket pairs []
-    '''(?:\w|[.]|\[.+?\])*'''
+    r'''(?:\w|[.]|\[.+?\])*'''
     # allow empty string
-    '''|)'''
+    r'''|)'''
     # allow an unfinished index at the end (including quotes)
-    '''(?:\[[^\]]*$)?)$''',
+    r'''(?:\[[^\]]*$)?)$''',
     # allow unicode as theoretically this is possible
     re.UNICODE)
 
