@@ -37,9 +37,11 @@
 
 #include "python_utildefines.h"
 
-#include "BLI_string.h"
-
 #ifndef MATH_STANDALONE
+#  include "MEM_guardedalloc.h"
+
+#  include "BLI_string.h"
+
 /* Only for BLI_strncpy_wchar_from_utf8,
  * should replace with py funcs but too late in release now. */
 #  include "BLI_string_utf8.h"
@@ -1044,23 +1046,15 @@ void *PyC_RNA_AsPointer(PyObject *value, const char *type_name)
   }
 }
 
-/* PyC_FlagSet_* functions - so flags/sets can be interchanged in a generic way */
-#  include "BLI_dynstr.h"
-#  include "MEM_guardedalloc.h"
-
-char *PyC_FlagSet_AsString(PyC_FlagSet *item)
+PyObject *PyC_FlagSet_AsString(PyC_FlagSet *item)
 {
-  DynStr *dynstr = BLI_dynstr_new();
-  PyC_FlagSet *e;
-  char *cstring;
-
-  for (e = item; item->identifier; item++) {
-    BLI_dynstr_appendf(dynstr, (e == item) ? "'%s'" : ", '%s'", item->identifier);
+  PyObject *py_items = PyList_New(0);
+  for (; item->identifier; item++) {
+    PyList_APPEND(py_items, PyUnicode_FromString(item->identifier));
   }
-
-  cstring = BLI_dynstr_get_cstring(dynstr);
-  BLI_dynstr_free(dynstr);
-  return cstring;
+  PyObject *py_string = PyObject_Repr(py_items);
+  Py_DECREF(py_items);
+  return py_string;
 }
 
 int PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *r_value)
@@ -1081,10 +1075,10 @@ int PyC_FlagSet_ValueFromID(PyC_FlagSet *item,
                             const char *error_prefix)
 {
   if (PyC_FlagSet_ValueFromID_int(item, identifier, r_value) == 0) {
-    const char *enum_str = PyC_FlagSet_AsString(item);
+    PyObject *enum_str = PyC_FlagSet_AsString(item);
     PyErr_Format(
-        PyExc_ValueError, "%s: '%.200s' not found in (%s)", error_prefix, identifier, enum_str);
-    MEM_freeN((void *)enum_str);
+        PyExc_ValueError, "%s: '%.200s' not found in (%U)", error_prefix, identifier, enum_str);
+    Py_DECREF(enum_str);
     return -1;
   }
 
