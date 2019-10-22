@@ -99,7 +99,7 @@ typedef struct PyC_FlagSet {
   const char *identifier;
 } PyC_FlagSet;
 
-char *PyC_FlagSet_AsString(PyC_FlagSet *item);
+PyObject *PyC_FlagSet_AsString(PyC_FlagSet *item);
 int PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *r_value);
 int PyC_FlagSet_ValueFromID(PyC_FlagSet *item,
                             const char *identifier,
