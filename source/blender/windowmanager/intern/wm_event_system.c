@@ -3725,7 +3725,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap 
   return handler;
 }
 
-/** Follow #wmEventHandler_KeymapDynamicFn signiture. */
+/** Follow #wmEventHandler_KeymapDynamicFn signature. */
 wmKeyMap *WM_event_get_keymap_from_toolsystem(wmWindowManager *wm, wmEventHandler_Keymap *handler)
 {
   ScrArea *sa = handler->dynamic.user_data;

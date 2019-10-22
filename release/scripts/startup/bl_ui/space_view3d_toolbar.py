@@ -43,7 +43,6 @@ class VIEW3D_MT_brush_context_menu(Menu):
     def draw(self, context):
         layout = self.layout
 
-        tool_settings = context.tool_settings
         settings = UnifiedPaintPanel.paint_settings(context)
         brush = getattr(settings, "brush", None)
 

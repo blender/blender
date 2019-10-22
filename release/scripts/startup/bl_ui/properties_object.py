@@ -105,7 +105,6 @@ class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=True, align=False)
 
         ob = context.object
 
