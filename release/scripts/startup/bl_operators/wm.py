@@ -1923,7 +1923,7 @@ class WM_OT_batch_rename(Operator):
                     data = (
                         [pchan.bone for pchan in context.selected_pose_bones]
                         if only_selected else
-                        [pchan.bone for ob in context.objects_in_mode_unique_data for pbone in ob.pose.bones],
+                        [pbone.bone for ob in context.objects_in_mode_unique_data for pbone in ob.pose.bones],
                         "name",
                         "Bone(s)",
                     )
