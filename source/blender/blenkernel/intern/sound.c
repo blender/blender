@@ -677,6 +677,9 @@ void BKE_sound_set_cfra(int cfra)
 void BKE_sound_set_scene_volume(Scene *scene, float volume)
 {
   sound_verify_evaluated_id(&scene->id);
+  if (scene->sound_scene == NULL) {
+    return;
+  }
   AUD_Sequence_setAnimationData(scene->sound_scene,
                                 AUD_AP_VOLUME,
                                 CFRA,
