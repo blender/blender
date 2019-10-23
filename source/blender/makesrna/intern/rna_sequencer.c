@@ -157,6 +157,13 @@ static void rna_Sequence_invalidate_composite_update(Main *UNUSED(bmain),
   }
 }
 
+static void rna_Sequence_scene_switch_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  rna_Sequence_invalidate_raw_update(bmain, scene, ptr);
+  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
+  DEG_relations_tag_update(bmain);
+}
+
 static void rna_Sequence_use_sequence(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   /* General update callback. */
@@ -2227,7 +2234,7 @@ static void rna_def_scene(BlenderRNA *brna)
   prop = RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
   RNA_def_property_ui_text(prop, "Scene", "Scene that this sequence uses");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_scene_switch_update");
 
   prop = RNA_def_property(srna, "scene_camera", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
