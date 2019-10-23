@@ -3929,7 +3929,9 @@ static Base *mesh_separate_tagged(
   CustomData_bmesh_init_pool(&bm_new->ldata, bm_mesh_allocsize_default.totloop, BM_LOOP);
   CustomData_bmesh_init_pool(&bm_new->pdata, bm_mesh_allocsize_default.totface, BM_FACE);
 
-  base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, USER_DUP_MESH);
+  /* Take into account user preferences for duplicating actions. */
+  short dupflag = USER_DUP_MESH | (U.dupflag & USER_DUP_ACT);
+  base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, dupflag);
 
   /* normally would call directly after but in this case delay recalc */
   /* DAG_relations_tag_update(bmain); */
@@ -3999,7 +4001,9 @@ static Base *mesh_separate_arrays(Main *bmain,
   CustomData_bmesh_init_pool(&bm_new->ldata, faces_len * 3, BM_LOOP);
   CustomData_bmesh_init_pool(&bm_new->pdata, faces_len, BM_FACE);
 
-  base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, USER_DUP_MESH);
+  /* Take into account user preferences for duplicating actions. */
+  short dupflag = USER_DUP_MESH | (U.dupflag & USER_DUP_ACT);
+  base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, dupflag);
 
   /* normally would call directly after but in this case delay recalc */
   /* DAG_relations_tag_update(bmain); */
