@@ -383,7 +383,7 @@ class USERPREF_PT_edit_objects_duplicate_data(PreferencePanel, Panel):
         col.prop(edit, "use_duplicate_action", text="Action")
         col.prop(edit, "use_duplicate_armature", text="Armature")
         col.prop(edit, "use_duplicate_curve", text="Curve")
-        # col.prop(edit, "use_duplicate_fcurve", text="F-Curve")
+        # col.prop(edit, "use_duplicate_fcurve", text="F-Curve")  # Not implemented.
         col.prop(edit, "use_duplicate_light", text="Light")
         col.prop(edit, "use_duplicate_lightprobe", text="Light Probe")
         col = flow.column()
@@ -394,7 +394,7 @@ class USERPREF_PT_edit_objects_duplicate_data(PreferencePanel, Panel):
         col = flow.column()
         col.prop(edit, "use_duplicate_surface", text="Surface")
         col.prop(edit, "use_duplicate_text", text="Text")
-        col.prop(edit, "use_duplicate_texture", text="Texture")
+        # col.prop(edit, "use_duplicate_texture", text="Texture")  # Not implemented.
         col.prop(edit, "use_duplicate_grease_pencil", text="Grease Pencil")
 
 
