@@ -43,14 +43,13 @@
 static void rna_WorkSpaceTool_setup(ID *id,
                                     bToolRef *tref,
                                     bContext *C,
-                                    const char *name,
+                                    const char *tool_idname,
                                     /* Args for: 'bToolRef_Runtime'. */
                                     int cursor,
                                     const char *keymap,
                                     const char *gizmo_group,
                                     const char *data_block,
-                                    const char *
-                                    operator,
+                                    const char *op_idname,
                                     int index)
 {
   bToolRef_Runtime tref_rt = {0};
@@ -59,10 +58,10 @@ static void rna_WorkSpaceTool_setup(ID *id,
   STRNCPY(tref_rt.keymap, keymap);
   STRNCPY(tref_rt.gizmo_group, gizmo_group);
   STRNCPY(tref_rt.data_block, data_block);
-  STRNCPY(tref_rt.op, operator);
+  STRNCPY(tref_rt.op, op_idname);
   tref_rt.index = index;
 
-  WM_toolsystem_ref_set_from_runtime(C, (WorkSpace *)id, tref, &tref_rt, name);
+  WM_toolsystem_ref_set_from_runtime(C, (WorkSpace *)id, tref, &tref_rt, tool_idname);
 }
 
 static void rna_WorkSpaceTool_refresh_from_context(ID *id, bToolRef *tref, Main *bmain)

@@ -3887,6 +3887,7 @@ enum {
   MESH_SEPARATE_LOOSE = 2,
 };
 
+/** TODO: Use #mesh_separate_arrays since it's more efficient. */
 static Base *mesh_separate_tagged(
     Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base_old, BMesh *bm_old)
 {
