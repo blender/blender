@@ -372,12 +372,8 @@ bool ED_pose_deselect_all_multi(bContext *C, int select_mode, const bool ignore_
   ViewContext vc;
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
   uint bases_len = 0;
-  Base **bases = BKE_view_layer_array_from_bases_in_mode(vc.view_layer,
-                                                         vc.v3d,
-                                                         &bases_len,
-                                                         {
-                                                             .object_mode = OB_MODE_POSE,
-                                                         });
+
+  Base **bases = BKE_object_pose_base_array_get_unique(vc.view_layer, vc.v3d, &bases_len);
   bool changed_multi = ED_pose_deselect_all_multi_ex(
       bases, bases_len, select_mode, ignore_visibility);
   MEM_freeN(bases);
@@ -775,8 +771,8 @@ static bool pose_select_same_group(bContext *C, bool extend)
   uint ob_index;
 
   uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len, OB_MODE_POSE);
+  Object **objects = BKE_object_pose_array_get_unique(view_layer, CTX_wm_view3d(C), &objects_len);
+
   for (ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = BKE_object_pose_armature_get(objects[ob_index]);
     bArmature *arm = (ob) ? ob->data : NULL;
@@ -876,8 +872,8 @@ static bool pose_select_same_layer(bContext *C, bool extend)
   bool changed = false;
 
   uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len, OB_MODE_POSE);
+  Object **objects = BKE_object_pose_array_get_unique(view_layer, CTX_wm_view3d(C), &objects_len);
+
   for (ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
     ob->id.tag &= ~LIB_TAG_DOIT;
@@ -990,8 +986,8 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool ex
   }
 
   uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len, OB_MODE_POSE);
+  Object **objects = BKE_object_pose_array_get_unique(view_layer, CTX_wm_view3d(C), &objects_len);
+
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = BKE_object_pose_armature_get(objects[ob_index]);
     bArmature *arm = (ob) ? ob->data : NULL;
@@ -1132,8 +1128,8 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
   const bool extend = RNA_boolean_get(op->ptr, "extend");
 
   uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len, OB_MODE_POSE);
+  Object **objects = BKE_object_pose_array_get_unique(view_layer, CTX_wm_view3d(C), &objects_len);
+
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
     bArmature *arm = ob->data;

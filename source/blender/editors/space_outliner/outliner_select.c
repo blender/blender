@@ -610,8 +610,8 @@ static eOLDrawState tree_element_active_posechannel(bContext *C,
       if (set != OL_SETSEL_EXTEND) {
         /* Single select forces all other bones to get unselected. */
         uint objects_len = 0;
-        Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-            view_layer, NULL, &objects_len, OB_MODE_POSE);
+        Object **objects = BKE_object_pose_array_get_unique(view_layer, NULL, &objects_len);
+
         for (uint object_index = 0; object_index < objects_len; object_index++) {
           Object *ob_iter = BKE_object_pose_armature_get(objects[object_index]);
 
