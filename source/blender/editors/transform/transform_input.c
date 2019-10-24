@@ -115,7 +115,8 @@ static void InputVerticalRatio(TransInfo *t, MouseInput *mi, const double mval[2
 {
   const int winy = t->ar ? t->ar->winy : 1;
 
-  output[0] = ((mval[1] - mi->imval[1]) / winy) * 2.0f;
+  /* Flip so dragging up increases (matching viewport zoom). */
+  output[0] = ((mval[1] - mi->imval[1]) / winy) * -2.0f;
 }
 
 static void InputVerticalAbsolute(TransInfo *t,
@@ -128,7 +129,8 @@ static void InputVerticalAbsolute(TransInfo *t,
   InputVector(t, mi, mval, vec);
   project_v3_v3v3(vec, vec, t->viewinv[1]);
 
-  output[0] = dot_v3v3(t->viewinv[1], vec) * 2.0f;
+  /* Flip so dragging up increases (matching viewport zoom). */
+  output[0] = dot_v3v3(t->viewinv[1], vec) * -2.0f;
 }
 
 void setCustomPoints(TransInfo *UNUSED(t),
