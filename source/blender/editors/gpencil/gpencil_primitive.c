@@ -1608,6 +1608,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     }
     case SPACEKEY: /* confirm */
     case MIDDLEMOUSE:
+    case PADENTER:
     case RETKEY: {
       tgpi->flag = IDLE;
       gpencil_primitive_interaction_end(C, op, win, tgpi);
