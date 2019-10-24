@@ -1020,9 +1020,10 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   }
   else if (ob && (ob->mode & OB_MODE_POSE)) {
     invert_m4_m4(ob->imat, ob->obmat);
+
     uint objects_len = 0;
-    Object **objects = BKE_view_layer_array_from_objects_in_mode(
-        view_layer, v3d, &objects_len, {.object_mode = OB_MODE_POSE});
+    Object **objects = BKE_object_pose_array_get(view_layer, v3d, &objects_len);
+
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *ob_iter = objects[ob_index];
       const bool use_mat_local = (ob_iter != ob);
