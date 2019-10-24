@@ -1090,9 +1090,9 @@ typedef enum eDupli_ID_Flags {
   USER_DUP_FONT = (1 << 3),
   USER_DUP_MBALL = (1 << 4),
   USER_DUP_LAMP = (1 << 5),
-  USER_DUP_IPO = (1 << 6),
+  /* USER_DUP_FCURVE = (1 << 6), */ /* UNUSED, keep because we may implement. */
   USER_DUP_MAT = (1 << 7),
-  USER_DUP_TEX = (1 << 8),
+  /* USER_DUP_TEX = (1 << 8), */ /* UNUSED, keep because we may implement. */
   USER_DUP_ARM = (1 << 9),
   USER_DUP_ACT = (1 << 10),
   USER_DUP_PSYS = (1 << 11),
