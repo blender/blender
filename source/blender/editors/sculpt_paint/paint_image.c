@@ -759,17 +759,14 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
   paint_stroke_operator_properties(ot);
 }
 
-int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
+bool get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
 {
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
-
-  if (!rv3d) {
-    SpaceImage *sima = CTX_wm_space_image(C);
-
+  ScrArea *sa = CTX_wm_area(C);
+  if (sa && sa->spacetype == SPACE_IMAGE) {
+    SpaceImage *sima = sa->spacedata.first;
     if (sima->mode == SI_MODE_PAINT) {
       ARegion *ar = CTX_wm_region(C);
       ED_space_image_get_zoom(sima, ar, zoomx, zoomy);
-
       return 1;
     }
   }

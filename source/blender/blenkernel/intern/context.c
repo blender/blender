@@ -758,7 +758,7 @@ RegionView3D *CTX_wm_region_view3d(const bContext *C)
   ARegion *ar = CTX_wm_region(C);
 
   if (sa && sa->spacetype == SPACE_VIEW3D) {
-    if (ar) {
+    if (ar && ar->regiontype == RGN_TYPE_WINDOW) {
       return ar->regiondata;
     }
   }

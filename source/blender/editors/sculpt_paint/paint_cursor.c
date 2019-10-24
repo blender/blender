@@ -1224,9 +1224,13 @@ static bool paint_use_2d_cursor(ePaintMode mode)
 
 static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 {
+  ARegion *ar = CTX_wm_region(C);
+  if (ar && ar->regiontype != RGN_TYPE_WINDOW) {
+    return;
+  }
+
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
-  ARegion *ar = CTX_wm_region(C);
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
