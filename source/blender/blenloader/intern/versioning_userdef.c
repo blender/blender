@@ -35,6 +35,7 @@
 #include "BKE_addon.h"
 #include "BKE_colorband.h"
 #include "BKE_main.h"
+#include "BKE_idprop.h"
 #include "BKE_keyconfig.h"
 
 #include "BLO_readfile.h" /* Own include. */
@@ -196,6 +197,18 @@ static void do_version_select_mouse(UserDef *userdef, wmKeyMapItem *kmi)
     default:
       break;
   }
+}
+
+static bool keymap_item_has_invalid_wm_context_data_path(wmKeyMapItem *kmi,
+                                                         void *UNUSED(user_data))
+{
+  if (STRPREFIX(kmi->idname, "WM_OT_context_") && kmi->properties) {
+    IDProperty *idprop = IDP_GetPropertyFromGroup(kmi->properties, "data_path");
+    if (idprop && (idprop->type == IDP_STRING) && STRPREFIX(idprop->data.pointer, "(null)")) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /* patching UserDef struct and Themes */
@@ -635,6 +648,16 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
       memcpy(
           &userdef->file_space_data, &U_default.file_space_data, sizeof(userdef->file_space_data));
     }
+  }
+
+  if (!USER_VERSION_ATLEAST(281, 16)) {
+    BKE_keyconfig_pref_filter_items(userdef,
+                                    &((struct wmKeyConfigFilterItemParams){
+                                        .check_item = true,
+                                        .check_diff_item_add = true,
+                                    }),
+                                    keymap_item_has_invalid_wm_context_data_path,
+                                    NULL);
   }
 
   if (!USER_VERSION_ATLEAST(282, 1)) {
