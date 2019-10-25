@@ -114,6 +114,12 @@ void BKE_keyconfig_pref_type_free(void)
   global_keyconfigpreftype_hash = NULL;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Key-Config Versioning
+ * \{ */
+
 /* Set select mouse, for versioning code. */
 void BKE_keyconfig_pref_set_select_mouse(UserDef *userdef, int value, bool override)
 {
@@ -127,6 +133,84 @@ void BKE_keyconfig_pref_set_select_mouse(UserDef *userdef, int value, bool overr
   }
   else if (override) {
     IDP_Int(idprop) = value;
+  }
+}
+
+static void keymap_item_free(wmKeyMapItem *kmi)
+{
+  IDP_FreeProperty(kmi->properties);
+  if (kmi->ptr) {
+    MEM_freeN(kmi->ptr);
+  }
+  MEM_freeN(kmi);
+}
+
+static void keymap_diff_item_free(wmKeyMapDiffItem *kmdi)
+{
+  if (kmdi->add_item) {
+    keymap_item_free(kmdi->add_item);
+  }
+  if (kmdi->remove_item) {
+    keymap_item_free(kmdi->remove_item);
+  }
+  MEM_freeN(kmdi);
+}
+
+void BKE_keyconfig_keymap_filter_item(wmKeyMap *keymap,
+                                      const struct wmKeyConfigFilterItemParams *params,
+                                      bool (*filter_fn)(wmKeyMapItem *kmi, void *user_data),
+                                      void *user_data)
+{
+  if (params->check_diff_item_add || params->check_diff_item_remove) {
+    for (wmKeyMapDiffItem *kmdi = keymap->diff_items.first, *kmdi_next; kmdi; kmdi = kmdi_next) {
+      kmdi_next = kmdi->next;
+      bool remove = false;
+
+      if (params->check_diff_item_add) {
+        if (kmdi->add_item) {
+          if (filter_fn(kmdi->add_item, user_data)) {
+            remove = true;
+          }
+        }
+      }
+
+      if (!remove && params->check_diff_item_remove) {
+        if (kmdi->remove_item) {
+          if (filter_fn(kmdi->remove_item, user_data)) {
+            remove = true;
+          }
+        }
+      }
+
+      if (remove) {
+        BLI_remlink(&keymap->diff_items, kmdi);
+        keymap_diff_item_free(kmdi);
+      }
+    }
+  }
+
+  if (params->check_item) {
+    for (wmKeyMapItem *kmi = keymap->items.first, *kmi_next; kmi; kmi = kmi_next) {
+      kmi_next = kmi->next;
+      if (filter_fn(kmi, user_data)) {
+        BLI_remlink(&keymap->items, kmi);
+        keymap_item_free(kmi);
+      }
+    }
+  }
+}
+
+/**
+ * Filter & optionally remove key-map items,
+ * intended for versioning, but may be used in other situatuons too.
+ */
+void BKE_keyconfig_pref_filter_items(struct UserDef *userdef,
+                                     const struct wmKeyConfigFilterItemParams *params,
+                                     bool (*filter_fn)(wmKeyMapItem *kmi, void *user_data),
+                                     void *user_data)
+{
+  for (wmKeyMap *keymap = userdef->user_keymaps.first; keymap; keymap = keymap->next) {
+    BKE_keyconfig_keymap_filter_item(keymap, params, filter_fn, user_data);
   }
 }
 
