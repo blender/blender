@@ -1901,8 +1901,7 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
           temp_spring.rest_length = (fluid->flag & SPH_CURRENT_REST_LENGTH) ? rij : rest_length;
           temp_spring.delete_flag = 0;
 
-          /* sph_spring_add is not thread-safe. - z0r */
-          sph_spring_add(psys[0], &temp_spring);
+          BLI_buffer_append(&sphdata->new_springs, ParticleSpring, temp_spring);
         }
       }
       else { /* PART_SPRING_HOOKES - Hooke's spring force */
@@ -2124,6 +2123,8 @@ void psys_sph_init(ParticleSimulationData *sim, SPHData *sphdata)
   ParticleTarget *pt;
   int i;
 
+  BLI_buffer_field_init(&sphdata->new_springs, ParticleSpring);
+
   // Add other coupled particle systems.
   sphdata->psys[0] = sim->psys;
   for (i = 1, pt = sim->psys->targets.first; i < 10; i++, pt = (pt ? pt->next : NULL)) {
@@ -2156,13 +2157,26 @@ void psys_sph_init(ParticleSimulationData *sim, SPHData *sphdata)
   }
 }
 
+static void psys_sph_flush_springs(SPHData *sphdata)
+{
+  for (int i = 0; i < sphdata->new_springs.count; i++) {
+    /* sph_spring_add is not thread-safe. - z0r */
+    sph_spring_add(sphdata->psys[0], &BLI_buffer_at(&sphdata->new_springs, ParticleSpring, i));
+  }
+
+  BLI_buffer_field_free(&sphdata->new_springs);
+}
+
 void psys_sph_finalise(SPHData *sphdata)
 {
+  psys_sph_flush_springs(sphdata);
+
   if (sphdata->eh) {
     BLI_edgehash_free(sphdata->eh, NULL);
     sphdata->eh = NULL;
   }
 }
+
 /* Sample the density field at a point in space. */
 void psys_sph_density(BVHTree *tree, SPHData *sphdata, float co[3], float vars[2])
 {
@@ -3683,6 +3697,14 @@ typedef struct DynamicStepSolverTaskData {
   SpinLock spin;
 } DynamicStepSolverTaskData;
 
+static void dynamics_step_finalize_sphdata(void *__restrict UNUSED(userdata),
+                                           void *__restrict tls_userdata_chunk)
+{
+  SPHData *sphdata = tls_userdata_chunk;
+
+  psys_sph_flush_springs(sphdata);
+}
+
 static void dynamics_step_sph_ddr_task_cb_ex(void *__restrict userdata,
                                              const int p,
                                              const TaskParallelTLS *__restrict tls)
@@ -3969,6 +3991,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
         settings.use_threading = (psys->totpart > 100);
         settings.userdata_chunk = &sphdata;
         settings.userdata_chunk_size = sizeof(sphdata);
+        settings.func_finalize = dynamics_step_finalize_sphdata;
         BLI_task_parallel_range(
             0, psys->totpart, &task_data, dynamics_step_sph_ddr_task_cb_ex, &settings);
 
@@ -4000,6 +4023,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
           settings.use_threading = (psys->totpart > 100);
           settings.userdata_chunk = &sphdata;
           settings.userdata_chunk_size = sizeof(sphdata);
+          settings.func_finalize = dynamics_step_finalize_sphdata;
           BLI_task_parallel_range(0,
                                   psys->totpart,
                                   &task_data,
@@ -4014,6 +4038,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
           settings.use_threading = (psys->totpart > 100);
           settings.userdata_chunk = &sphdata;
           settings.userdata_chunk_size = sizeof(sphdata);
+          settings.func_finalize = dynamics_step_finalize_sphdata;
           BLI_task_parallel_range(0,
                                   psys->totpart,
                                   &task_data,

@@ -83,4 +83,14 @@ void _bli_buffer_free(BLI_Buffer *buffer);
   } \
   (void)0
 
+/* A buffer embedded in a struct. Using memcpy is allowed until first resize. */
+#define BLI_buffer_field_init(name_, type_) \
+  { \
+    memset(name_, 0, sizeof(*name_)); \
+    *(size_t *)&((name_)->elem_size) = sizeof(type_); \
+  } \
+  (void)0
+
+#define BLI_buffer_field_free(name_) _bli_buffer_free(name_)
+
 #endif /* __BLI_BUFFER_H__ */

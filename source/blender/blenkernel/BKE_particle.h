@@ -28,6 +28,7 @@
  */
 
 #include "BLI_utildefines.h"
+#include "BLI_buffer.h"
 
 #include "DNA_particle_types.h"
 #include "DNA_object_types.h"
@@ -107,6 +108,9 @@ typedef struct SPHData {
   int pass;
   float element_size;
   float flow[3];
+
+  /* Temporary thread-local buffer for springs created during this step. */
+  BLI_Buffer new_springs;
 
   /* Integrator callbacks. This allows different SPH implementations. */
   void (*force_cb)(void *sphdata_v, ParticleKey *state, float *force, float *impulse);
