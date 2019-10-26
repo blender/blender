@@ -3240,29 +3240,22 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
   /* only evaluate if there is a target */
   if (VALID_CONS_TARGET(ct)) {
     float size[3], scale[3], vec[3], xx[3], zz[3], orth[3];
-    float totmat[3][3];
     float dist, bulge;
 
     /* store scaling before destroying obmat */
-    mat4_to_size(size, cob->matrix);
+    normalize_m4_ex(cob->matrix, size);
 
     /* store X orientation before destroying obmat */
-    normalize_v3_v3(xx, cob->matrix[0]);
+    copy_v3_v3(xx, cob->matrix[0]);
 
     /* store Z orientation before destroying obmat */
-    normalize_v3_v3(zz, cob->matrix[2]);
+    copy_v3_v3(zz, cob->matrix[2]);
 
-    /* XXX That makes the constraint buggy with asymmetrically scaled objects, see #29940. */
-#if 0
-    sub_v3_v3v3(vec, cob->matrix[3], ct->matrix[3]);
-    vec[0] /= size[0];
-    vec[1] /= size[1];
-    vec[2] /= size[2];
+    /* Compute distance and direction to target. */
+    sub_v3_v3v3(vec, ct->matrix[3], cob->matrix[3]);
 
     dist = normalize_v3(vec);
-#endif
 
-    dist = len_v3v3(cob->matrix[3], ct->matrix[3]);
     /* Only Y constrained object axis scale should be used, to keep same length when scaling it. */
     dist /= size[1];
 
@@ -3332,52 +3325,45 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         return;
     } /* switch (data->volmode) */
 
-    /* Clear the object's rotation and scale */
-    cob->matrix[0][0] = size[0] * scale[0];
-    cob->matrix[0][1] = 0;
-    cob->matrix[0][2] = 0;
-    cob->matrix[1][0] = 0;
-    cob->matrix[1][1] = size[1] * scale[1];
-    cob->matrix[1][2] = 0;
-    cob->matrix[2][0] = 0;
-    cob->matrix[2][1] = 0;
-    cob->matrix[2][2] = size[2] * scale[2];
+    /* Compute final scale. */
+    mul_v3_v3(size, scale);
 
-    sub_v3_v3v3(vec, cob->matrix[3], ct->matrix[3]);
-    normalize_v3(vec);
-
-    /* new Y aligns  object target connection*/
-    negate_v3_v3(totmat[1], vec);
     switch (data->plane) {
       case PLANE_X:
+        /* new Y aligns  object target connection*/
+        copy_v3_v3(cob->matrix[1], vec);
+
         /* build new Z vector */
         /* othogonal to "new Y" "old X! plane */
-        cross_v3_v3v3(orth, vec, xx);
+        cross_v3_v3v3(orth, xx, vec);
         normalize_v3(orth);
 
         /* new Z*/
-        copy_v3_v3(totmat[2], orth);
+        copy_v3_v3(cob->matrix[2], orth);
 
         /* we decided to keep X plane*/
-        cross_v3_v3v3(xx, orth, vec);
-        normalize_v3_v3(totmat[0], xx);
+        cross_v3_v3v3(xx, vec, orth);
+        normalize_v3_v3(cob->matrix[0], xx);
         break;
       case PLANE_Z:
+        /* new Y aligns  object target connection*/
+        copy_v3_v3(cob->matrix[1], vec);
+
         /* build new X vector */
         /* othogonal to "new Y" "old Z! plane */
-        cross_v3_v3v3(orth, vec, zz);
+        cross_v3_v3v3(orth, zz, vec);
         normalize_v3(orth);
 
         /* new X */
-        negate_v3_v3(totmat[0], orth);
+        negate_v3_v3(cob->matrix[0], orth);
 
         /* we decided to keep Z */
-        cross_v3_v3v3(zz, orth, vec);
-        normalize_v3_v3(totmat[2], zz);
+        cross_v3_v3v3(zz, vec, orth);
+        normalize_v3_v3(cob->matrix[2], zz);
         break;
     } /* switch (data->plane) */
 
-    mul_m4_m3m4(cob->matrix, totmat, cob->matrix);
+    rescale_m4(cob->matrix, size);
   }
 }
 
