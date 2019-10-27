@@ -6657,6 +6657,42 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Event Icon Template
+ *
+ * \{ */
+
+bool uiTemplateEventFromKeymapItem(struct uiLayout *layout,
+                                   const char *text,
+                                   const struct wmKeyMapItem *kmi,
+                                   bool text_fallback)
+{
+  bool ok = false;
+
+  int icon_mod[4];
+#ifdef WITH_HEADLESS
+  int icon = 0;
+#else
+  int icon = UI_icon_from_keymap_item(kmi, icon_mod);
+#endif
+  if (icon != 0) {
+    for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
+      uiItemL(layout, "", icon_mod[j]);
+    }
+    uiItemL(layout, text, icon);
+    ok = true;
+  }
+  else if (text_fallback) {
+    const char *event_text = WM_key_event_string(kmi->type, true);
+    uiItemL(layout, event_text, ICON_NONE);
+    uiItemL(layout, text, ICON_NONE);
+    ok = true;
+  }
+  return ok;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Color Management Template
  * \{ */
 

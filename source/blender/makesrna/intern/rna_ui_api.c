@@ -479,6 +479,14 @@ static void rna_uiTemplatePathBuilder(uiLayout *layout,
   uiTemplatePathBuilder(layout, ptr, propname, root_ptr, name);
 }
 
+static void rna_uiTemplateEventFromKeymapItem(
+    uiLayout *layout, wmKeyMapItem *kmi, const char *name, const char *text_ctxt, bool translate)
+{
+  /* Get translated name (label). */
+  name = rna_translate_ui_text(name, text_ctxt, NULL, NULL, translate);
+  uiTemplateEventFromKeymapItem(layout, name, kmi, true);
+}
+
 static int rna_ui_get_rnaptr_icon(bContext *C, PointerRNA *ptr_icon)
 {
   return UI_rnaptr_icon_get(C, ptr_icon, RNA_struct_ui_icon(ptr_icon->type), false);
@@ -1526,6 +1534,15 @@ void RNA_api_ui_layout(StructRNA *srna)
   parm = RNA_def_pointer(func, "params", "FileSelectParams", "", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
+  func = RNA_def_function(
+      srna, "template_event_from_keymap_item", "rna_uiTemplateEventFromKeymapItem");
+  RNA_def_function_ui_description(func, "Display keymap item as icons/text");
+  parm = RNA_def_property(func, "item", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(parm, "KeyMapItem");
+  RNA_def_property_ui_text(parm, "Item", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  api_ui_item_common_text(func);
 }
 
 #endif
