@@ -5002,6 +5002,19 @@ wmKeyMap *WM_event_get_keymap_from_handler(wmWindowManager *wm, wmEventHandler_K
   return keymap;
 }
 
+wmKeyMapItem *WM_event_match_keymap_item(bContext *C, wmKeyMap *keymap, const wmEvent *event)
+{
+  for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+    if (wm_eventmatch(event, kmi)) {
+      wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
+      if (WM_operator_poll_context(C, ot, WM_OP_INVOKE_DEFAULT)) {
+        return kmi;
+      }
+    }
+  }
+  return NULL;
+}
+
 static wmKeyMapItem *wm_kmi_from_event(bContext *C,
                                        wmWindowManager *wm,
                                        ListBase *handlers,
@@ -5017,13 +5030,9 @@ static wmKeyMapItem *wm_kmi_from_event(bContext *C,
         wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
         wmKeyMap *keymap = WM_event_get_keymap_from_handler(wm, handler);
         if (keymap && WM_keymap_poll(C, keymap)) {
-          for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
-            if (wm_eventmatch(event, kmi)) {
-              wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
-              if (WM_operator_poll_context(C, ot, WM_OP_INVOKE_DEFAULT)) {
-                return kmi;
-              }
-            }
+          wmKeyMapItem *kmi = WM_event_match_keymap_item(C, keymap, event);
+          if (kmi != NULL) {
+            return kmi;
           }
         }
       }
