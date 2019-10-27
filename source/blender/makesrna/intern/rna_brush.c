@@ -1661,7 +1661,7 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "gpencil_tool", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "gpencil_tool");
   RNA_def_property_enum_items(prop, rna_enum_brush_gpencil_types_items);
-  RNA_def_property_ui_text(prop, "Type", "Category of the brush");
+  RNA_def_property_ui_text(prop, "Grease Pencil Draw Tool", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   /** End per mode tool properties. */
 
