@@ -783,79 +783,63 @@ static void vgroup_operator_subset_select_props(wmOperatorType *ot, bool use_act
 static void ED_vgroup_nr_vert_add(
     Object *ob, const int def_nr, const int vertnum, const float weight, const int assignmode)
 {
-  /* add the vert to the deform group with the
-   * specified number
-   */
+  /* Add the vert to the deform group with the specified number. */
   MDeformVert *dvert = NULL;
   int tot;
 
-  /* get the vert */
+  /* Get the vert. */
   BKE_object_defgroup_array_get(ob->data, &dvert, &tot);
 
   if (dvert == NULL) {
     return;
   }
 
-  /* check that vertnum is valid before trying to get the relevant dvert */
+  /* Check that vertnum is valid before trying to get the relevant dvert. */
   if ((vertnum < 0) || (vertnum >= tot)) {
     return;
   }
 
-  if (dvert) {
-    MDeformVert *dv = &dvert[vertnum];
-    MDeformWeight *dw;
+  MDeformVert *dv = &dvert[vertnum];
+  MDeformWeight *dw;
 
-    /* Lets first check to see if this vert is
-     * already in the weight group -- if so
-     * lets update it
-     */
+  /* Lets first check to see if this vert is already in the weight group - if so lets update it. */
+  dw = defvert_find_index(dv, def_nr);
 
-    dw = defvert_find_index(dv, def_nr);
-
-    if (dw) {
-      switch (assignmode) {
-        case WEIGHT_REPLACE:
-          dw->weight = weight;
-          break;
-        case WEIGHT_ADD:
-          dw->weight += weight;
-          if (dw->weight >= 1.0f) {
-            dw->weight = 1.0f;
-          }
-          break;
-        case WEIGHT_SUBTRACT:
-          dw->weight -= weight;
-          /* if the weight is zero or less than
-           * remove the vert from the deform group
-           */
-          if (dw->weight <= 0.0f) {
-            defvert_remove_group(dv, dw);
-          }
-          break;
-      }
+  if (dw) {
+    switch (assignmode) {
+      case WEIGHT_REPLACE:
+        dw->weight = weight;
+        break;
+      case WEIGHT_ADD:
+        dw->weight += weight;
+        if (dw->weight >= 1.0f) {
+          dw->weight = 1.0f;
+        }
+        break;
+      case WEIGHT_SUBTRACT:
+        dw->weight -= weight;
+        /* If the weight is zero or less than remove the vert from the deform group. */
+        if (dw->weight <= 0.0f) {
+          defvert_remove_group(dv, dw);
+        }
+        break;
     }
-    else {
-      /* if the vert wasn't in the deform group then
-       * we must take a different form of action ...
-       */
+  }
+  else {
+    /* If the vert wasn't in the deform group then we must take a different form of action. */
 
-      switch (assignmode) {
-        case WEIGHT_SUBTRACT:
-          /* if we are subtracting then we don't
-           * need to do anything
-           */
-          return;
+    switch (assignmode) {
+      case WEIGHT_SUBTRACT:
+        /* If we are subtracting then we don't need to do anything. */
+        return;
 
-        case WEIGHT_REPLACE:
-        case WEIGHT_ADD:
-          /* if we are doing an additive assignment, then
-           * we need to create the deform weight
-           */
+      case WEIGHT_REPLACE:
+      case WEIGHT_ADD:
+        /* If we are doing an additive assignment, then we need to create the deform weight. */
 
-          /* we checked if the vertex was added before so no need to test again, simply add */
-          defvert_add_index_notest(dv, def_nr, weight);
-          break;
-      }
+        /* We checked if the vertex was added before so no need to test again, simply add. */
+        defvert_add_index_notest(dv, def_nr, weight);
+        break;
     }
   }
 }

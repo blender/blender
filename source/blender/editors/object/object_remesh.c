@@ -407,7 +407,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
 
   BKE_id_free(qj->bmain, bisect_mesh);
 
-  if (!new_mesh) {
+  if (new_mesh == NULL) {
     *do_update = true;
     *stop = 0;
     if (qj->success == 1) {
@@ -418,9 +418,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   }
 
   /* Mirror the Quadriflow result to build the final mesh */
-  if (new_mesh) {
-    new_mesh = remesh_symmetry_mirror(qj->owner, new_mesh, qj->symmetry_axes);
-  }
+  new_mesh = remesh_symmetry_mirror(qj->owner, new_mesh, qj->symmetry_axes);
 
   if (ob->mode == OB_MODE_SCULPT) {
     ED_sculpt_undo_geometry_begin(ob);
