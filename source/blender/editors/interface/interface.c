@@ -2624,10 +2624,10 @@ void ui_but_string_get_ex(uiBut *but,
       BLI_assert(0);
     }
 
-    if (!buf) {
+    if (buf == NULL) {
       str[0] = '\0';
     }
-    else if (buf && buf != str) {
+    else if (buf != str) {
       BLI_assert(maxlen <= buf_len + 1);
       /* string was too long, we have to truncate */
       if (UI_but_is_utf8(but)) {

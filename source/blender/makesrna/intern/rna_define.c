@@ -3694,15 +3694,13 @@ PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_,
   ContainerRNA *cont = cont_;
   PropertyRNA *prop;
 
-  if (!items) {
+  if (items == NULL) {
     CLOG_ERROR(&LOG, "items not allowed to be NULL.");
     return NULL;
   }
 
   prop = RNA_def_property(cont, identifier, PROP_ENUM, PROP_NONE);
-  if (items) {
-    RNA_def_property_enum_items(prop, items);
-  }
+  RNA_def_property_enum_items(prop, items);
   RNA_def_property_enum_default(prop, default_value);
   RNA_def_property_ui_text(prop, ui_name, ui_description);
 
@@ -3720,16 +3718,14 @@ PropertyRNA *RNA_def_enum_flag(StructOrFunctionRNA *cont_,
   ContainerRNA *cont = cont_;
   PropertyRNA *prop;
 
-  if (!items) {
+  if (items == NULL) {
     CLOG_ERROR(&LOG, "items not allowed to be NULL.");
     return NULL;
   }
 
   prop = RNA_def_property(cont, identifier, PROP_ENUM, PROP_NONE);
   RNA_def_property_flag(prop, PROP_ENUM_FLAG); /* important to run before default set */
-  if (items) {
-    RNA_def_property_enum_items(prop, items);
-  }
+  RNA_def_property_enum_items(prop, items);
   RNA_def_property_enum_default(prop, default_value);
   RNA_def_property_ui_text(prop, ui_name, ui_description);
 
