@@ -76,7 +76,9 @@
 
 /* use half of flt-max so we can scale up without an exception */
 
-/********************* PROTOTYPES ***********************/
+/* -------------------------------------------------------------------- */
+/** \name Prototypes
+ * \{ */
 
 static void setSnappingCallback(TransInfo *t);
 
@@ -96,7 +98,11 @@ static float RotationBetween(TransInfo *t, const float p1[3], const float p2[3])
 static float TranslationBetween(TransInfo *t, const float p1[3], const float p2[3]);
 static float ResizeBetween(TransInfo *t, const float p1[3], const float p2[3]);
 
-/****************** IMPLEMENTATIONS *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Implementations
+ * \{ */
 
 static bool snapNodeTest(View2D *v2d, bNode *node, eSnapSelect snap_select);
 static NodeBorder snapNodeBorder(int snap_node_mode);
@@ -900,7 +906,11 @@ void getSnapPoint(const TransInfo *t, float vec[3])
   }
 }
 
-/********************** APPLY **************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Apply Snap
+ * \{ */
 
 static void ApplySnapTranslation(TransInfo *t, float vec[3])
 {
@@ -950,7 +960,11 @@ static void ApplySnapResize(TransInfo *t, float vec[3])
   }
 }
 
-/********************** DISTANCE **************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Distance
+ * \{ */
 
 static float TranslationBetween(TransInfo *UNUSED(t), const float p1[3], const float p2[3])
 {
@@ -1031,7 +1045,11 @@ static float ResizeBetween(TransInfo *t, const float p1[3], const float p2[3])
   return len_d1 != 0.0f ? len_v3(d2) / len_d1 : TRANSFORM_DIST_INVALID;
 }
 
-/********************** CALC **************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Calc Snap (Generic)
+ * \{ */
 
 static void UNUSED_FUNCTION(CalcSnapGrid)(TransInfo *t, float *UNUSED(vec))
 {
@@ -1122,7 +1140,11 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
   }
 }
 
-/********************** TARGET **************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Target
+ * \{ */
 
 static void TargetSnapOffset(TransInfo *t, TransData *td)
 {
@@ -1324,6 +1346,12 @@ static void TargetSnapClosest(TransInfo *t)
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Snap Objects
+ * \{ */
+
 short snapObjectsTransform(
     TransInfo *t, const float mval[2], float *dist_px, float r_loc[3], float r_no[3])
 {
@@ -1345,7 +1373,11 @@ short snapObjectsTransform(
       NULL);
 }
 
-/******************** PEELING *********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Peeling
+ * \{ */
 
 bool peelObjectsSnapContext(SnapObjectContext *sctx,
                             const float mval[2],
@@ -1433,7 +1465,11 @@ bool peelObjectsTransform(TransInfo *t,
                                 r_thickness);
 }
 
-/******************** NODES ***********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Nodes
+ * \{ */
 
 static bool snapNodeTest(View2D *v2d, bNode *node, eSnapSelect snap_select)
 {
@@ -1714,3 +1750,5 @@ static void applyGridIncrement(
     }
   }
 }
+
+/** \} */
