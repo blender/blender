@@ -71,6 +71,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "transform.h"
+#include "transform_snap.h"
 
 /* this should be passed as an arg for use in snap functions */
 #undef BASACT
@@ -1625,6 +1626,9 @@ void snapFrameTransform(TransInfo *t,
       if (is_frame_value) {
         val *= secf;
       }
+      break;
+    }
+    case SACTSNAP_OFF: {
       break;
     }
   }

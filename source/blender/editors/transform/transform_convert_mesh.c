@@ -52,6 +52,8 @@
 
 #include "transform.h"
 #include "transform_convert.h"
+#include "transform_snap.h"
+
 #include "bmesh.h"
 
 /* Used for both mirror epsilon and TD_MIRROR_EDGE_ */

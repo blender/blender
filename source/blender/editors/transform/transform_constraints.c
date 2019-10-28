@@ -53,6 +53,7 @@
 #include "UI_resources.h"
 
 #include "transform.h"
+#include "transform_snap.h"
 
 static void drawObjectConstraint(TransInfo *t);
 

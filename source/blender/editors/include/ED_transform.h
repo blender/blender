@@ -173,45 +173,7 @@ void ED_widgetgroup_gizmo2d_setup(const struct bContext *C, struct wmGizmoGroup 
 void ED_widgetgroup_gizmo2d_refresh(const struct bContext *C, struct wmGizmoGroup *gzgroup);
 void ED_widgetgroup_gizmo2d_draw_prepare(const struct bContext *C, struct wmGizmoGroup *gzgroup);
 
-/* Snapping */
-
-#define SNAP_MIN_DISTANCE 30
 #define SNAP_INCREMENTAL_ANGLE DEG2RAD(5.0)
-
-bool peelObjectsTransform(struct TransInfo *t,
-                          const float mval[2],
-                          const bool use_peel_object,
-                          /* return args */
-                          float r_loc[3],
-                          float r_no[3],
-                          float *r_thickness);
-bool peelObjectsSnapContext(struct SnapObjectContext *sctx,
-                            const float mval[2],
-                            const struct SnapObjectParams *params,
-                            const bool use_peel_object,
-                            /* return args */
-                            float r_loc[3],
-                            float r_no[3],
-                            float *r_thickness);
-
-short snapObjectsTransform(struct TransInfo *t,
-                           const float mval[2],
-                           float *dist_px,
-                           /* return args */
-                           float r_loc[3],
-                           float r_no[3]);
-bool snapNodesTransform(struct TransInfo *t,
-                        const int mval[2],
-                        /* return args */
-                        float r_loc[2],
-                        float *r_dist_px,
-                        char *r_node_border);
-void snapFrameTransform(struct TransInfo *t,
-                        const short autosnap,
-                        const bool is_frame_value,
-                        const float delta,
-                        /* return args */
-                        float *r_val);
 
 void ED_transform_calc_orientation_from_type(const struct bContext *C, float r_mat[3][3]);
 void ED_transform_calc_orientation_from_type_ex(const struct bContext *C,

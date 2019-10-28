@@ -95,6 +95,7 @@
 
 #include "transform.h"
 #include "transform_convert.h"
+#include "transform_snap.h"
 
 /* Disabling, since when you type you know what you are doing,
  * and being able to set it to zero is handy. */
@@ -8959,9 +8960,7 @@ static void headerTimeTranslate(TransInfo *t, char str[UI_MAX_DRAW_STR])
     outputNumInput(&(t->num), tvec, &t->scene->unit);
   }
   else {
-    const Scene *scene = t->scene;
     const short autosnap = getAnimEdit_SnapMode(t);
-    const double secf = FPS;
     float val = t->values_final[0];
 
     float snap_val;
