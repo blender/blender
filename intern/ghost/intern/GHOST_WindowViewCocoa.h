@@ -58,6 +58,11 @@
   return YES;
 }
 
+- (BOOL)acceptsFirstMouse:(NSEvent *)event
+{
+  return YES;
+}
+
 // The trick to prevent Cocoa from complaining (beeping)
 - (void)keyDown:(NSEvent *)event
 {
