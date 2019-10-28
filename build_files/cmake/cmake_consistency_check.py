@@ -28,6 +28,7 @@ if not sys.version.startswith("3"):
 
 from cmake_consistency_check_config import (
     IGNORE_SOURCE,
+    IGNORE_SOURCE_MISSING,
     IGNORE_CMAKE,
     UTF8_CHECK,
     SOURCE_DIR,
@@ -41,6 +42,11 @@ from os.path import join, dirname, normpath, splitext
 global_h = set()
 global_c = set()
 global_refs = {}
+
+# Ignore cmake file, path pairs.
+global_ignore_source_missing = {}
+for k, v in IGNORE_SOURCE_MISSING:
+    global_ignore_source_missing.setdefault(k, []).append(v)
 
 
 def replace_line(f, i, text, keep_indent=True):
@@ -137,6 +143,13 @@ def cmake_get_src(f):
             cmake_base = dirname(f)
             cmake_base_bin = os.path.join(BUILD_DIR, os.path.relpath(cmake_base, SOURCE_DIR))
 
+            # Find known missing sources list (if we have one).
+            f_rel = os.path.relpath(f, SOURCE_DIR)
+            f_rel_key = f_rel
+            if os.sep != "/":
+                f_rel_key = f_rel_key.replace(os.sep, "/")
+            local_ignore_source_missing = global_ignore_source_missing.get(f_rel_key, [])
+
             while it is not None:
                 i += 1
                 try:
@@ -214,7 +227,10 @@ def cmake_get_src(f):
                                     # replace_line(f, i - 1, new_path_rel)
 
                             else:
-                                raise Exception("non existent include %s:%d -> %s" % (f, i, new_file))
+                                if l in local_ignore_source_missing:
+                                    local_ignore_source_missing.remove(l)
+                                else:
+                                    raise Exception("non existent include %s:%d -> %s" % (f, i, new_file))
 
                         # print(new_file)
 
@@ -343,6 +359,12 @@ def main():
     for index, ig in enumerate(IGNORE_SOURCE):
         if not ignore_used_source[index]:
             print("unused ignore: %r" % ig)
+
+    # Check ignores aren't stale
+    print("\nCheck for unused 'IGNORE_SOURCE_MISSING' paths...")
+    for k, v in sorted(global_ignore_source_missing.items()):
+        for ig in v:
+            print("unused ignore: %r -> %r" % (ig, k))
 
     # Check ignores aren't stale
     print("\nCheck for unused 'IGNORE_CMAKE' paths...")
