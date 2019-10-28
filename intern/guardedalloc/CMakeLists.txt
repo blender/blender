@@ -38,6 +38,10 @@ set(SRC
 
   # only so the header is known by cmake
   ../atomic/atomic_ops.h
+  ../atomic/intern/atomic_ops_ext.h
+  ../atomic/intern/atomic_ops_msvc.h
+  ../atomic/intern/atomic_ops_unix.h
+  ../atomic/intern/atomic_ops_utils.h
 )
 
 set(LIB

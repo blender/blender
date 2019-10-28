@@ -90,6 +90,7 @@ set(SRC
   ../include/ED_transverts.h
   ../include/ED_types.h
   ../include/ED_undo.h
+  ../include/ED_userpref.h
   ../include/ED_util.h
   ../include/ED_uvedit.h
   ../include/ED_view3d.h

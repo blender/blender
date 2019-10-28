@@ -61,7 +61,7 @@ set(ILMBASE_URI https://github.com/openexr/openexr/releases/download/v${ILMBASE_
 set(ILMBASE_HASH 354bf86de3b930ab87ac63619d60c860)
 
 set(OPENEXR_VERSION 2.3.0)
-if(WIN32) #release 2.3.0 tarball has broken cmake support
+if(WIN32) # release 2.3.0 tarball has broken cmake support
   set(OPENEXR_URI https://github.com/openexr/openexr/archive/0ac2ea34c8f3134148a5df4052e40f155b76f6fb.tar.gz)
   set(OPENEXR_HASH ed159435d508240712fbaaa21d94bafb)
 else()
@@ -90,17 +90,17 @@ set(ALEMBIC_VERSION 1.7.8)
 set(ALEMBIC_URI https://github.com/alembic/alembic/archive/${ALEMBIC_VERSION}.tar.gz)
 set(ALEMBIC_MD5 d095c2feb5e183b824904db7b63c1d30)
 
-## hash is for 3.1.2
+# hash is for 3.1.2
 set(GLFW_GIT_UID 30306e54705c3adae9fe082c816a3be71963485c)
 set(GLFW_URI https://github.com/glfw/glfw/archive/${GLFW_GIT_UID}.zip)
 set(GLFW_HASH 20cacb1613da7eeb092f3ac4f6b2b3d0)
 
-#latest uid in git as of 2016-04-01
+# latest uid in git as of 2016-04-01
 set(CLEW_GIT_UID 277db43f6cafe8b27c6f1055f69dc67da4aeb299)
 set(CLEW_URI https://github.com/OpenCLWrangler/clew/archive/${CLEW_GIT_UID}.zip)
 set(CLEW_HASH 2c699d10ed78362e71f56fae2a4c5f98)
 
-#latest uid in git as of 2016-04-01
+# latest uid in git as of 2016-04-01
 set(CUEW_GIT_UID 1744972026de9cf27c8a7dc39cf39cd83d5f922f)
 set(CUEW_URI https://github.com/CudaWrangler/cuew/archive/${CUEW_GIT_UID}.zip)
 set(CUEW_HASH 86760d62978ebfd96cd93f5aa1abaf4a)
@@ -203,7 +203,7 @@ set(XVIDCORE_VERSION 1.3.5)
 set(XVIDCORE_URI http://downloads.xvid.org/downloads/xvidcore-${XVIDCORE_VERSION}.tar.gz)
 set(XVIDCORE_HASH 165ba6a2a447a8375f7b06db5a3c91810181f2898166e7c8137401d7fc894cf0)
 
-#this has to be in sync with the version in blenders /extern folder
+# This has to be in sync with the version in blenders /extern folder.
 set(OPENJPEG_VERSION 2.3.0)
 set(OPENJPEG_SHORT_VERSION 2.3)
 # Use slightly newer commit after release which includes a cmake fix
@@ -234,9 +234,9 @@ set(SNDFILE_VERSION 1.0.28)
 set(SNDFILE_URI http://www.mega-nerd.com/libsndfile/files/libsndfile-${SNDFILE_VERSION}.tar.gz)
 set(SNDFILE_HASH 646b5f98ce89ac60cdb060fcd398247c)
 
-#set(HIDAPI_VERSION 0.8.0-rc1)
-#set(HIDAPI_URI https://github.com/signal11/hidapi/archive/hidapi-${HIDAPI_VERSION}.tar.gz)
-#set(HIDAPI_HASH 069f9dd746edc37b6b6d0e3656f47199)
+# set(HIDAPI_VERSION 0.8.0-rc1)
+# set(HIDAPI_URI https://github.com/signal11/hidapi/archive/hidapi-${HIDAPI_VERSION}.tar.gz)
+# set(HIDAPI_HASH 069f9dd746edc37b6b6d0e3656f47199)
 
 set(HIDAPI_UID 89a6c75dc6f45ecabd4ddfbd2bf5ba6ad8ba38b5)
 set(HIDAPI_URI https://github.com/TheOnlyJoey/hidapi/archive/${HIDAPI_UID}.zip)

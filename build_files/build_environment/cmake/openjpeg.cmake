@@ -38,7 +38,7 @@ ExternalProject_Add(external_openjpeg
   INSTALL_DIR ${LIBDIR}/openjpeg
 )
 
-#on windows ffmpeg wants a mingw build, while oiio needs a msvc build
+# On windows ffmpeg wants a mingw build, while oiio needs a msvc build.
 if(MSVC)
   set(OPENJPEG_EXTRA_ARGS ${DEFAULT_CMAKE_FLAGS})
   ExternalProject_Add(external_openjpeg_msvc

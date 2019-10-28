@@ -100,8 +100,8 @@ if(WITH_PYTHON)
     set(PYTHON_INCLUDE_DIR "${_py_framework}/include/python${PYTHON_VERSION}m")
     set(PYTHON_EXECUTABLE "${_py_framework}/bin/python${PYTHON_VERSION}m")
     set(PYTHON_LIBPATH "${_py_framework}/lib/python${PYTHON_VERSION}/config-${PYTHON_VERSION}m")
-    #set(PYTHON_LIBRARY python${PYTHON_VERSION})
-    #set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework Python")  # won't  build with this enabled
+    # set(PYTHON_LIBRARY python${PYTHON_VERSION})
+    # set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework Python")  # won't  build with this enabled
 
     unset(_py_framework)
   endif()
@@ -218,12 +218,12 @@ if(WITH_OPENCOLLADA)
     ${OPENCOLLADA_LIBPATH}/libxml2.a
   )
   # PCRE is bundled with openCollada
-  #set(PCRE ${LIBDIR}/pcre)
-  #set(PCRE_LIBPATH ${PCRE}/lib)
+  # set(PCRE ${LIBDIR}/pcre)
+  # set(PCRE_LIBPATH ${PCRE}/lib)
   set(PCRE_LIBRARIES pcre)
   # libxml2 is used
-  #set(EXPAT ${LIBDIR}/expat)
-  #set(EXPAT_LIBPATH ${EXPAT}/lib)
+  # set(EXPAT ${LIBDIR}/expat)
+  # set(EXPAT_LIBPATH ${EXPAT}/lib)
   set(EXPAT_LIB)
 endif()
 

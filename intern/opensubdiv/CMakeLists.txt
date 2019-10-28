@@ -103,12 +103,12 @@ if(WITH_OPENSUBDIV)
   endif()
 
   # TODO(sergey): Put CUEW back when CUDA is officially supported by OSD.
-  #if(OPENSUBDIV_HAS_CUDA)
+  # if(OPENSUBDIV_HAS_CUDA)
   #   list(APPEND INC
-  #       ../../extern/cuew/include
+  #     ../../extern/cuew/include
   #   )
   #   add_definitions(-DOPENSUBDIV_HAS_CUEW)
-  #endif()
+  # endif()
 
   if(OPENSUBDIV_HAS_OPENCL)
     list(APPEND INC

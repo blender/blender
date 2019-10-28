@@ -38,14 +38,14 @@ SET(_icu_SEARCH_DIRS
 )
 
 # We don't need includes, only libs to link against...
-#FIND_PATH(ICU_INCLUDE_DIR
-#  NAMES
-#    utf.h
-#  HINTS
-#    ${_icu_SEARCH_DIRS}
-#  PATH_SUFFIXES
-#    include/unicode
-#)
+# FIND_PATH(ICU_INCLUDE_DIR
+#   NAMES
+#     utf.h
+#   HINTS
+#     ${_icu_SEARCH_DIRS}
+#   PATH_SUFFIXES
+#     include/unicode
+# )
 
 FIND_LIBRARY(ICU_LIBRARY_DATA
   NAMES

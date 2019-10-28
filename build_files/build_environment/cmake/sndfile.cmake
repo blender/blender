@@ -21,7 +21,7 @@ set(SNDFILE_ENV PKG_CONFIG_PATH=${mingw_LIBDIR}/ogg/lib/pkgconfig:${mingw_LIBDIR
 
 if(WIN32)
   set(SNDFILE_ENV set ${SNDFILE_ENV} &&)
-  #shared for windows because static libs will drag in a libgcc dependency.
+  # Shared for windows because static libs will drag in a libgcc dependency.
   set(SNDFILE_OPTIONS --disable-static --enable-shared )
 else()
   set(SNDFILE_OPTIONS --enable-static --disable-shared )

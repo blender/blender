@@ -174,7 +174,7 @@ set(INC
   ../../../../intern/clog
 
   # Needed for defaults forward declarations.
-  ../../../blender/blenloader
+  ../../blenloader
 
   ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern
 )
