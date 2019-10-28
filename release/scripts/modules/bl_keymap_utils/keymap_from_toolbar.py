@@ -25,7 +25,7 @@ __all__ = (
     "generate",
 )
 
-def generate(context, space_type):
+def generate(context, space_type, use_fallback_keys=True, use_reset=True):
     """
     Keymap for popup toolbar, currently generated each time.
     """
@@ -66,7 +66,7 @@ def generate(context, space_type):
     # to 'drop' currently active tools (it's basically a 'none' tool).
     # so this allows us to quickly go back to a state that allows
     # a shortcut based workflow (before the tool system was added).
-    use_tap_reset = True
+    use_tap_reset = use_reset
     # TODO: support other tools for modes which don't use this tool.
     tap_reset_tool = "builtin.cursor"
     # Check the tool is available in the current context.
@@ -76,11 +76,11 @@ def generate(context, space_type):
     from bl_operators.wm import use_toolbar_release_hack
 
     # Pie-menu style release to activate.
-    use_release_confirm = True
+    use_release_confirm = use_reset
 
     # Generate items when no keys are mapped.
     use_auto_keymap_alpha = False  # Map manually in the default key-map.
-    use_auto_keymap_num = True
+    use_auto_keymap_num = use_fallback_keys
 
     # Temporary, only create so we can pass 'properties' to find_item_from_operator.
     use_hack_properties = True

@@ -1744,25 +1744,139 @@ class WM_OT_toolbar(Operator):
             WM_OT_toolbar._key_held = event.type
             return self.execute(context)
 
-    def execute(self, context):
+    @staticmethod
+    def keymap_from_toolbar(context, space_type, use_fallback_keys=True, use_reset=True):
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         from bl_keymap_utils import keymap_from_toolbar
 
-        space_type = context.space_data.type
         cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
         if cls is None:
-            return {'CANCELLED'}
+            return None, None
 
-        wm = context.window_manager
-        keymap = keymap_from_toolbar.generate(context, space_type)
+        return cls, keymap_from_toolbar.generate(
+            context,
+            space_type,
+            use_fallback_keys=use_fallback_keys,
+            use_reset=use_reset,
+        )
+
+    def execute(self, context):
+        space_type = context.space_data.type
+        cls, keymap = self.keymap_from_toolbar(context, space_type)
+        if keymap is None:
+            return {'CANCELLED'}
 
         def draw_menu(popover, context):
             layout = popover.layout
             layout.operator_context = 'INVOKE_REGION_WIN'
             cls.draw_cls(layout, context, detect_layout=False, scale_y=1.0)
 
+        wm = context.window_manager
         wm.popover(draw_menu, ui_units_x=8, keymap=keymap)
         return {'FINISHED'}
+
+
+class WM_OT_toolbar_prompt(Operator):
+    """Leader key like functionality for accessing tools"""
+    bl_idname = "wm.toolbar_prompt"
+    bl_label = "Toolbar Prompt"
+
+    def modal(self, context, event):
+        event_type = event.type
+        event_value = event.value
+
+        keymap = self._keymap
+
+        if event_type in {'LEFTMOUSE', 'RIGHTMOUSE', 'MIDDLEMOUSE', 'ESC'}:
+            context.workspace.status_text_set(None)
+            return {'CANCELLED', 'PASS_THROUGH'}
+
+        item = keymap.keymap_items.match_event(event)
+        if item is not None:
+            idname = item.idname
+            properties = item.properties
+            if idname == "wm.tool_set_by_id":
+                tool_idname = properties["name"]
+                bpy.ops.wm.tool_set_by_id(name=tool_idname)
+
+            context.workspace.status_text_set(None)
+            return {'FINISHED'}
+
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        space_type = context.space_data.type
+        cls, keymap = WM_OT_toolbar.keymap_from_toolbar(
+            context,
+            space_type,
+            use_fallback_keys=False,
+            use_reset=False,
+        )
+        if keymap is None:
+            return {'CANCELLED'}
+
+        self._init_event_type = event.type
+
+        # Strip Left/Right, since "Left Alt" isn't especially useful.
+        init_event_type_as_text = self._init_event_type.title().split("_")
+        if init_event_type_as_text[0] in {"Left", "Right"}:
+            del init_event_type_as_text[0]
+        init_event_type_as_text = " ".join(init_event_type_as_text)
+
+        def status_text_fn(self, context):
+            from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+
+            # The keymap doesn't have the same order the tools are declared in,
+            # while we could support this, it's simpler to apply order here.
+            tool_map_id_to_order = {}
+            # Map the
+            tool_map_id_to_label = {}
+            for item in ToolSelectPanelHelper._tools_flatten(cls.tools_from_context(context)):
+                if item is not None:
+                    tool_map_id_to_label[item.idname] = item.label
+                    tool_map_id_to_order[item.idname] = len(tool_map_id_to_order)
+
+            layout = self.layout
+            if True:
+                box = layout.row(align=True).box()
+                box.scale_x = 0.8
+                box.label(text=init_event_type_as_text)
+
+            status_items = []
+
+            for item in keymap.keymap_items:
+                name = item.name
+                key_str = item.to_string()
+                # These are duplicated from regular numbers.
+                if key_str.startswith("Numpad "):
+                    continue
+                properties = item.properties
+                idname = item.idname
+                if idname == "wm.tool_set_by_id":
+                    tool_idname = properties["name"]
+                    name = tool_map_id_to_label[tool_idname]
+                    name = name.replace("Annotate ", "")
+                else:
+                    continue
+
+                status_items.append((tool_idname, name, item))
+
+            status_items.sort(
+                key=lambda a: tool_map_id_to_order[a[0]]
+            )
+
+            flow = layout.grid_flow(columns=len(status_items), align=True, row_major=True)
+
+            for _, name, item in status_items:
+                row = flow.row(align=True)
+                row.template_event_from_keymap_item(item, text=name)
+
+        self._keymap = keymap
+
+        context.workspace.status_text_set(status_text_fn)
+
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
 
 
 class BatchRenameAction(bpy.types.PropertyGroup):
@@ -2430,6 +2544,7 @@ classes = (
     WM_OT_tool_set_by_id,
     WM_OT_tool_set_by_index,
     WM_OT_toolbar,
+    WM_OT_toolbar_prompt,
     BatchRenameAction,
     WM_OT_batch_rename,
     WM_MT_splash,
