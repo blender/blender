@@ -107,6 +107,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
     sfile->params->thumbnail_size = U_default.file_space_data.thumbnail_size;
     /* Show size column by default. */
     sfile->params->details_flags = U_default.file_space_data.details_flags;
+    sfile->params->filter_id = FILTER_ID_ALL;
   }
 
   params = sfile->params;
@@ -245,9 +246,6 @@ short ED_fileselect_set_params(SpaceFile *sfile)
         params->flag &= ~FILE_FILTER;
       }
     }
-
-    /* For now, always init filterid to 'all true' */
-    params->filter_id = FILTER_ID_ALL;
 
     if (U.uiflag & USER_HIDE_DOT) {
       params->flag |= FILE_HIDE_DOT;
