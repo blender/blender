@@ -206,6 +206,12 @@ bool snapNodesTransform(struct TransInfo *t,
                         float r_loc[2],
                         float *r_dist_px,
                         char *r_node_border);
+void snapFrameTransform(struct TransInfo *t,
+                        const short autosnap,
+                        const bool is_frame_value,
+                        const float delta,
+                        /* return args */
+                        float *r_val);
 
 void ED_transform_calc_orientation_from_type(const struct bContext *C, float r_mat[3][3]);
 void ED_transform_calc_orientation_from_type_ex(const struct bContext *C,

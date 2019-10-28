@@ -57,6 +57,7 @@
 #include "WM_types.h"
 
 #include "ED_image.h"
+#include "ED_markers.h"
 #include "ED_node.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
@@ -1468,7 +1469,7 @@ bool peelObjectsTransform(TransInfo *t,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Nodes
+/** \name snap Nodes
  * \{ */
 
 static bool snapNodeTest(View2D *v2d, bNode *node, eSnapSelect snap_select)
@@ -1587,6 +1588,47 @@ bool snapNodesTransform(
                    r_loc,
                    r_dist_px,
                    r_node_border);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name snap Frames
+ * \{ */
+
+/* This function is used by Animation Editor specific transform functions to do
+ * the Snap Keyframe to Nearest Frame/Marker
+ */
+void snapFrameTransform(TransInfo *t,
+                        const eAnimEdit_AutoSnap autosnap,
+                        const bool is_frame_value,
+                        const float delta,
+                        float *r_val)
+{
+  double val = delta;
+  switch (autosnap) {
+    case SACTSNAP_STEP:
+    case SACTSNAP_FRAME:
+      val = floor(val + 0.5);
+      break;
+    case SACTSNAP_MARKER:
+      /* snap to nearest marker */
+      // TODO: need some more careful checks for where data comes from
+      val = ED_markers_find_nearest_marker_time(&t->scene->markers, (float)val);
+      break;
+    case SACTSNAP_SECOND:
+    case SACTSNAP_TSTEP: {
+      /* second step */
+      const Scene *scene = t->scene;
+      const double secf = FPS;
+      val = floor((val / secf) + 0.5);
+      if (is_frame_value) {
+        val *= secf;
+      }
+      break;
+    }
+  }
+  *r_val = (float)val;
 }
 
 /*================================================================*/
