@@ -84,6 +84,7 @@
 /* local module include */
 #include "transform.h"
 #include "transform_convert.h"
+#include "transform_snap.h"
 
 #include "MEM_guardedalloc.h"
 

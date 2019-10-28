@@ -71,6 +71,7 @@ set(SRC
 
   transform.h
   transform_convert.h
+  transform_snap.h
 )
 
 set(LIB
