@@ -440,13 +440,13 @@ if(WITH_BULLET)
   add_definitions(-DWITH_BULLET)
 endif()
 
-#if(WITH_MOD_CLOTH_ELTOPO)
+# if(WITH_MOD_CLOTH_ELTOPO)
 #   list(APPEND INC
-#       ../../../extern/eltopo
-#       ../../../extern/eltopo/eltopo3d
+#     ../../../extern/eltopo
+#     ../../../extern/eltopo/eltopo3d
 #   )
 #   add_definitions(-DWITH_ELTOPO)
-#endif()
+# endif()
 
 if(WITH_IMAGE_OPENEXR)
   add_definitions(-DWITH_OPENEXR)
@@ -646,10 +646,10 @@ if(WITH_TBB)
   )
 endif()
 
-## Warnings as errors, this is too strict!
-#if(MSVC)
-#   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
-#endif()
+# # Warnings as errors, this is too strict!
+# if(MSVC)
+#    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
+# endif()
 
 blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 

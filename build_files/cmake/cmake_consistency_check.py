@@ -149,6 +149,9 @@ def cmake_get_src(f):
 
                 if not l.startswith("#"):
 
+                    # Remove in-line comments.
+                    l = l.split(" # ")[0].rstrip()
+
                     if ")" in l:
                         if l.strip() != ")":
                             raise Exception("strict formatting not kept '*)' %s:%d" % (f, i))

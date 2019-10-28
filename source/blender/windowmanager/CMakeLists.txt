@@ -100,6 +100,8 @@ set(SRC
   wm_event_types.h
   wm_files.h
   wm_window.h
+  intern/wm_platform_support.h
+  intern/wm_window_private.h
   gizmo/WM_gizmo_api.h
   gizmo/WM_gizmo_types.h
   gizmo/wm_gizmo_fn.h

@@ -114,7 +114,7 @@ if(WIN32)
   include(cmake/tinyxml.cmake)
   include(cmake/yamlcpp.cmake)
   # LCMS is an OCIO dep, but only if you build the apps, leaving it here for convenience
-  #include(cmake/lcms.cmake)
+  # include(cmake/lcms.cmake)
 
 endif()
 

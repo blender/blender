@@ -28,9 +28,9 @@ set(TEST_OUT_DIR ${CMAKE_BINARY_DIR}/tests)
 file(MAKE_DIRECTORY ${TEST_OUT_DIR})
 file(MAKE_DIRECTORY ${TEST_OUT_DIR}/io_tests)
 
-#~  if(NOT IS_DIRECTORY ${TEST_SRC_DIR})
-#~      message(FATAL_ERROR "CMake test directory not found!")
-#~  endif()
+# if(NOT IS_DIRECTORY ${TEST_SRC_DIR})
+#   message(FATAL_ERROR "CMake test directory not found!")
+# endif()
 
 # Run Blender command with parameters.
 function(add_blender_test testname)

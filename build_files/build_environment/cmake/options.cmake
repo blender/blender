@@ -190,7 +190,7 @@ set(DEFAULT_CMAKE_FLAGS
 )
 
 if(WIN32)
-  #we need both flavors to build the thumbnail dlls
+  # We need both flavors to build the thumbnail dlls
   if(MSVC12)
     set(GENERATOR_32 "Visual Studio 12 2013")
     set(GENERATOR_64 "Visual Studio 12 2013 Win64")

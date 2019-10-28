@@ -32,6 +32,7 @@ set(SRC
   blender_viewport.cpp
 
   CCL_api.h
+  blender_device.h
   blender_object_cull.h
   blender_sync.h
   blender_session.h

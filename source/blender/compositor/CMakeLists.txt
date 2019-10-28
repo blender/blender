@@ -486,7 +486,7 @@ set(SRC
   operations/COM_WrapOperation.cpp
   operations/COM_WrapOperation.h
 
-  #Filter operations
+  # Filter operations
   operations/COM_ConvolutionEdgeFilterOperation.cpp
   operations/COM_ConvolutionEdgeFilterOperation.h
   operations/COM_ConvolutionFilterOperation.cpp
@@ -515,7 +515,7 @@ set(SRC
   operations/COM_SetSamplerOperation.h
 
 
-  #Convert operations
+  # Convert operations
   operations/COM_ConvertOperation.cpp
   operations/COM_ConvertOperation.h
   operations/COM_IDMaskOperation.cpp

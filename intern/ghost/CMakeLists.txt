@@ -152,6 +152,7 @@ elseif(APPLE AND NOT WITH_X11)
     intern/GHOST_DisplayManagerCocoa.h
     intern/GHOST_SystemCocoa.h
     intern/GHOST_WindowCocoa.h
+    intern/GHOST_WindowViewCocoa.h
   )
 
   if(NOT WITH_GL_EGL)
@@ -182,6 +183,7 @@ elseif(WITH_X11)
     intern/GHOST_WindowX11.cpp
 
     intern/GHOST_DisplayManagerX11.h
+    intern/GHOST_IconX11.h
     intern/GHOST_SystemX11.h
     intern/GHOST_TaskbarX11.h
     intern/GHOST_WindowX11.h
@@ -260,10 +262,10 @@ elseif(WITH_X11)
   add_definitions(-DWITH_X11)
 
 elseif(WIN32)
-  ## Warnings as errors, this is too strict!
-  #if(MSVC)
+  # # Warnings as errors, this is too strict!
+  # if(MSVC)
   #   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
-  #endif()
+  # endif()
 
   list(APPEND INC_SYS
     ${WINTAB_INC}

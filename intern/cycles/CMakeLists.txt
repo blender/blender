@@ -209,9 +209,9 @@ endif()
 
 if(WITH_CYCLES_OSL)
   add_definitions(-DWITH_OSL)
-  #osl 1.9.x
+  # osl 1.9.x
   add_definitions(-DOSL_STATIC_BUILD)
-  #pre 1.9
+  # pre 1.9
   add_definitions(-DOSL_STATIC_LIBRARY)
   include_directories(
     SYSTEM

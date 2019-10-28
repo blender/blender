@@ -847,7 +847,7 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
 endif()
 
 #-----------------------------------------------------------------------------
-#Platform specifics
+# Platform specifics
 
 if(WITH_X11)
   find_package(X11 REQUIRED)
@@ -1579,7 +1579,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
 
   if(MSVC_VERSION GREATER_EQUAL 1911)
     # see https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c5038?view=vs-2017
-    set(_WARNINGS "${_WARNINGS} /w35038") #order of initialisation in c++ constructors
+    set(_WARNINGS "${_WARNINGS} /w35038") # order of initialization in c++ constructors
   endif()
 
   string(REPLACE ";" " " _WARNINGS "${_WARNINGS}")
