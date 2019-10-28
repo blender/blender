@@ -17,8 +17,6 @@ IGNORE_SOURCE = (
     "extern/bullet2/src/BulletDynamics/Character/btKinematicCharacterController.cpp",
     "extern/bullet2/src/BulletDynamics/ConstraintSolver/btHinge2Constraint.cpp",
     "extern/bullet2/src/BulletDynamics/ConstraintSolver/btUniversalConstraint.cpp",
-    "intern/audaspace/SRC/AUD_SRCResampleFactory.cpp",
-    "intern/audaspace/SRC/AUD_SRCResampleReader.cpp",
 
     "doc/doxygen/doxygen.extern.h",
     "doc/doxygen/doxygen.intern.h",
@@ -32,8 +30,12 @@ IGNORE_SOURCE = (
     "extern/bullet2/src/BulletDynamics/Character/btKinematicCharacterController.h",
     "extern/bullet2/src/BulletDynamics/ConstraintSolver/btHinge2Constraint.h",
     "extern/bullet2/src/BulletDynamics/ConstraintSolver/btUniversalConstraint.h",
-    "intern/audaspace/SRC/AUD_SRCResampleFactory.h",
-    "intern/audaspace/SRC/AUD_SRCResampleReader.h",
+)
+
+# Ignore cmake file, path pairs.
+IGNORE_SOURCE_MISSING = (
+    # Use for cycles stand-alone.
+    ("intern/cycles/util/CMakeLists.txt", "../../third_party/numaapi/include"),
 )
 
 IGNORE_CMAKE = (
