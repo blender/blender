@@ -72,7 +72,6 @@
 #include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
-#include "ED_markers.h"
 #include "ED_view3d.h"
 #include "ED_mesh.h"
 #include "ED_clip.h"
@@ -8881,38 +8880,7 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 static void doAnimEdit_SnapFrame(
     TransInfo *t, TransData *td, TransData2D *td2d, AnimData *adt, short autosnap)
 {
-  /* snap key to nearest frame or second? */
-  if (ELEM(autosnap, SACTSNAP_FRAME, SACTSNAP_SECOND)) {
-    const Scene *scene = t->scene;
-    const double secf = FPS;
-    double val;
-
-    /* convert frame to nla-action time (if needed) */
-    if (adt) {
-      val = BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_MAP);
-    }
-    else {
-      val = *(td->val);
-    }
-
-    /* do the snapping to nearest frame/second */
-    if (autosnap == SACTSNAP_FRAME) {
-      val = floorf(val + 0.5);
-    }
-    else if (autosnap == SACTSNAP_SECOND) {
-      val = (float)(floor((val / secf) + 0.5) * secf);
-    }
-
-    /* convert frame out of nla-action time */
-    if (adt) {
-      *(td->val) = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
-    }
-    else {
-      *(td->val) = val;
-    }
-  }
-  /* snap key to nearest marker? */
-  else if (autosnap == SACTSNAP_MARKER) {
+  if (ELEM(autosnap, SACTSNAP_FRAME, SACTSNAP_SECOND, SACTSNAP_MARKER)) {
     float val;
 
     /* convert frame to nla-action time (if needed) */
@@ -8923,9 +8891,7 @@ static void doAnimEdit_SnapFrame(
       val = *(td->val);
     }
 
-    /* snap to nearest marker */
-    // TODO: need some more careful checks for where data comes from
-    val = (float)ED_markers_find_nearest_marker_time(&t->scene->markers, val);
+    snapFrameTransform(t, autosnap, true, val, &val);
 
     /* convert frame out of nla-action time */
     if (adt) {
@@ -8998,31 +8964,20 @@ static void headerTimeTranslate(TransInfo *t, char str[UI_MAX_DRAW_STR])
     const double secf = FPS;
     float val = t->values_final[0];
 
-    /* apply snapping + frame->seconds conversions */
-    if (autosnap == SACTSNAP_STEP) {
-      /* frame step */
-      val = floorf(val + 0.5f);
-    }
-    else if (autosnap == SACTSNAP_TSTEP) {
-      /* second step */
-      val = floorf((double)val / secf + 0.5);
-    }
-    else if (autosnap == SACTSNAP_SECOND) {
-      /* nearest second */
-      val = (float)((double)val / secf);
-    }
+    float snap_val;
+    snapFrameTransform(t, autosnap, false, val, &snap_val);
 
     if (autosnap == SACTSNAP_FRAME) {
-      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%d.00 (%.4f)", (int)val, val);
+      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.2f (%.4f)", snap_val, val);
     }
     else if (autosnap == SACTSNAP_SECOND) {
-      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%d.00 sec (%.4f)", (int)val, val);
+      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.2f sec (%.4f)", snap_val, val);
     }
     else if (autosnap == SACTSNAP_TSTEP) {
-      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f sec", val);
+      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f sec", snap_val);
     }
     else {
-      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", val);
+      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", snap_val);
     }
   }
 
