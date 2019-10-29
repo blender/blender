@@ -211,6 +211,7 @@ static const EnumPropertyItem unpack_all_method_items[] = {
      "Write files to original location (overwrite existing files)",
      ""},
     {PF_KEEP, "KEEP", 0, "Disable Auto-pack, keep all packed files", ""},
+    {PF_REMOVE, "REMOVE", 0, "Remove Pack", ""},
     /* {PF_ASK, "ASK", 0, "Ask for each file", ""}, */
     {0, NULL, 0, NULL, NULL},
 };
