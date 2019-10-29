@@ -3886,7 +3886,12 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
   if (ar->regiontype == RGN_TYPE_WINDOW) {
     SpaceImage *sima = CTX_wm_space_image(C);
-    if (event->mval[1] > 16 || !ED_space_image_show_cache(sima)) {
+
+    /* Local coordinate visible rect inside region, to accommodate overlapping ui. */
+    const rcti *rect_visible = ED_region_visible_rect(ar);
+    const int region_bottom = rect_visible->ymin;
+
+    if (event->mval[1] > (region_bottom + 16 * UI_DPI_FAC) || !ED_space_image_show_cache(sima)) {
       return OPERATOR_PASS_THROUGH;
     }
   }

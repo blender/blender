@@ -901,6 +901,10 @@ void draw_image_cache(const bContext *C, ARegion *ar)
     mask = ED_space_image_get_mask(sima);
   }
 
+  /* Local coordinate visible rect inside region, to accommodate overlapping ui. */
+  const rcti *rect_visible = ED_region_visible_rect(ar);
+  const int region_bottom = rect_visible->ymin;
+
   GPU_blend(true);
   GPU_blend_set_func_separate(
       GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
@@ -928,10 +932,10 @@ void draw_image_cache(const bContext *C, ARegion *ar)
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   immUniformThemeColor(TH_CFRAME);
-  immRecti(pos, x, 0, x + ceilf(framelen), 8 * UI_DPI_FAC);
+  immRecti(pos, x, region_bottom, x + ceilf(framelen), region_bottom + 8 * UI_DPI_FAC);
   immUnbindProgram();
 
-  ED_region_cache_draw_curfra_label(cfra, x, 8.0f * UI_DPI_FAC);
+  ED_region_cache_draw_curfra_label(cfra, x, region_bottom + 8.0f * UI_DPI_FAC);
 
   if (mask != NULL) {
     ED_mask_draw_frames(mask, ar, cfra, sfra, efra);

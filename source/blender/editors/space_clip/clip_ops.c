@@ -1118,7 +1118,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
   ARegion *ar = CTX_wm_region(C);
 
   if (ar->regiontype == RGN_TYPE_WINDOW) {
-    if (event->mval[1] > 16) {
+    if (event->mval[1] > 16 * UI_DPI_FAC) {
       return OPERATOR_PASS_THROUGH;
     }
   }

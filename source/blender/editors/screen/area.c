@@ -3337,13 +3337,17 @@ const rcti *ED_region_visible_rect(ARegion *ar)
 
 /* Cache display helpers */
 
-void ED_region_cache_draw_background(const ARegion *ar)
+void ED_region_cache_draw_background(ARegion *ar)
 {
+  /* Local coordinate visible rect inside region, to accommodate overlapping ui. */
+  const rcti *rect_visible = ED_region_visible_rect(ar);
+  const int region_bottom = rect_visible->ymin;
+
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   immUniformColor4ub(128, 128, 255, 64);
-  immRecti(pos, 0, 0, ar->winx, 8 * UI_DPI_FAC);
+  immRecti(pos, 0, region_bottom, ar->winx, region_bottom + 8 * UI_DPI_FAC);
   immUnbindProgram();
 }
 
@@ -3373,9 +3377,13 @@ void ED_region_cache_draw_curfra_label(const int framenr, const float x, const f
 }
 
 void ED_region_cache_draw_cached_segments(
-    const ARegion *ar, const int num_segments, const int *points, const int sfra, const int efra)
+    ARegion *ar, const int num_segments, const int *points, const int sfra, const int efra)
 {
   if (num_segments) {
+    /* Local coordinate visible rect inside region, to accommodate overlapping ui. */
+    const rcti *rect_visible = ED_region_visible_rect(ar);
+    const int region_bottom = rect_visible->ymin;
+
     uint pos = GPU_vertformat_attr_add(
         immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -3385,7 +3393,7 @@ void ED_region_cache_draw_cached_segments(
       float x1 = (float)(points[a * 2] - sfra) / (efra - sfra + 1) * ar->winx;
       float x2 = (float)(points[a * 2 + 1] - sfra + 1) / (efra - sfra + 1) * ar->winx;
 
-      immRecti(pos, x1, 0, x2, 8 * UI_DPI_FAC);
+      immRecti(pos, x1, region_bottom, x2, region_bottom + 8 * UI_DPI_FAC);
       /* TODO(merwin): use primitive restart to draw multiple rects more efficiently */
     }
 
