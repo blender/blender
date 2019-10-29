@@ -57,7 +57,7 @@ class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
 
         layout.prop(rd, "line_thickness_mode", expand=True)
 
-        if (rd.line_thickness_mode == 'ABSOLUTE'):
+        if rd.line_thickness_mode == 'ABSOLUTE':
             layout.prop(rd, "line_thickness")
 
 

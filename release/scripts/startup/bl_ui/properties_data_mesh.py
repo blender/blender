@@ -46,7 +46,11 @@ class MESH_MT_vertex_group_context_menu(Menu):
         layout.operator("object.vertex_group_mirror", icon='ARROW_LEFTRIGHT').use_topology = False
         layout.operator("object.vertex_group_mirror", text="Mirror Vertex Group (Topology)").use_topology = True
         layout.separator()
-        layout.operator("object.vertex_group_remove_from", icon='X', text="Remove from All Groups").use_all_groups = True
+        layout.operator(
+            "object.vertex_group_remove_from",
+            icon='X',
+            text="Remove from All Groups",
+        ).use_all_groups = True
         layout.operator("object.vertex_group_remove_from", text="Clear Active Group").use_all_verts = True
         layout.operator("object.vertex_group_remove", text="Delete All Unlocked Groups").all_unlocked = True
         layout.operator("object.vertex_group_remove", text="Delete All Groups").all = True
@@ -474,7 +478,7 @@ class DATA_PT_remesh(MeshButtonsPanel, Panel):
         mesh = context.mesh
         row.prop(mesh, "remesh_mode", text="Mode", expand=True)
         col = layout.column()
-        if (mesh.remesh_mode == 'VOXEL'):
+        if mesh.remesh_mode == 'VOXEL':
             col.prop(mesh, "remesh_voxel_size")
             col.prop(mesh, "remesh_voxel_adaptivity")
             col.prop(mesh, "use_remesh_fix_poles")
