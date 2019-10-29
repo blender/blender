@@ -264,6 +264,7 @@ class SEQUENCER_MT_view(Menu):
             layout.separator()
             layout.operator_context = 'INVOKE_DEFAULT'
 
+            layout.prop(st, "show_seconds")
             layout.prop(st, "show_strip_offset")
             layout.prop(st, "show_marker_lines")
 
