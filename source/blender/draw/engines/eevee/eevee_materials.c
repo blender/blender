@@ -68,8 +68,6 @@ static struct {
 
   uint sss_count;
 
-  float alpha_hash_offset;
-  float alpha_hash_scale;
   float noise_offsets[3];
 } e_data = {NULL}; /* Engine data */
 
@@ -609,14 +607,14 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
   }
 
   if (!DRW_state_is_image_render() && ((stl->effects->enabled_effects & EFFECT_TAA) == 0)) {
-    e_data.alpha_hash_offset = 0.0f;
-    e_data.alpha_hash_scale = 1.0f;
+    sldata->common_data.alpha_hash_offset = 0.0f;
+    sldata->common_data.alpha_hash_scale = 1.0f;
   }
   else {
     double r;
     BLI_halton_1d(5, 0.0, stl->effects->taa_current_sample - 1, &r);
-    e_data.alpha_hash_offset = (float)r;
-    e_data.alpha_hash_scale = 0.01f;
+    sldata->common_data.alpha_hash_offset = (float)r;
+    sldata->common_data.alpha_hash_scale = 0.01f;
   }
 
   {
@@ -1217,14 +1215,6 @@ static void material_opaque(Material *ma,
         if (ma->blend_method == MA_BM_CLIP) {
           DRW_shgroup_uniform_float(*shgrp_depth, "alphaThreshold", &ma->alpha_threshold, 1);
           DRW_shgroup_uniform_float(*shgrp_depth_clip, "alphaThreshold", &ma->alpha_threshold, 1);
-        }
-        else if (ma->blend_method == MA_BM_HASHED) {
-          DRW_shgroup_uniform_float(*shgrp_depth, "hashAlphaOffset", &e_data.alpha_hash_offset, 1);
-          DRW_shgroup_uniform_float(
-              *shgrp_depth_clip, "hashAlphaOffset", &e_data.alpha_hash_offset, 1);
-          DRW_shgroup_uniform_float_copy(*shgrp_depth, "hashAlphaScale", e_data.alpha_hash_scale);
-          DRW_shgroup_uniform_float_copy(
-              *shgrp_depth_clip, "hashAlphaScale", e_data.alpha_hash_scale);
         }
       }
     }

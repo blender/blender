@@ -365,7 +365,7 @@ void EEVEE_shadows_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, DRWView
 
   /* Precompute all shadow/view test before rendering and trashing the culling cache. */
   BLI_bitmap *cube_visible = BLI_BITMAP_NEW_ALLOCA(MAX_SHADOW_CUBE);
-  bool any_visible = false;
+  bool any_visible = linfo->cascade_len > 0;
   for (int cube = 0; cube < linfo->cube_len; cube++) {
     if (DRW_culling_sphere_test(view, linfo->shadow_bounds + cube)) {
       BLI_BITMAP_ENABLE(cube_visible, cube);
@@ -373,7 +373,7 @@ void EEVEE_shadows_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, DRWView
     }
   }
 
-  if (!any_visible && linfo->cascade_len == 0) {
+  if (any_visible) {
     sldata->common_data.ray_type = EEVEE_RAY_SHADOW;
     DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
   }
@@ -400,7 +400,7 @@ void EEVEE_shadows_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, DRWView
 
   DRW_uniformbuffer_update(sldata->shadow_ubo, &linfo->shadow_data); /* Update all data at once */
 
-  if (!any_visible && linfo->cascade_len == 0) {
+  if (any_visible) {
     sldata->common_data.ray_type = saved_ray_type;
     DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
   }
