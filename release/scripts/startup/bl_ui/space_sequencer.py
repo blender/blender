@@ -1006,10 +1006,8 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             flow.prop(strip, "clamp", slider=True)
             flow.prop(strip, "boost_factor")
             flow.prop(strip, "blur_radius")
-
-            row = layout.row()
-            row.prop(strip, "quality", slider=True)
-            row.prop(strip, "use_only_boost")
+            flow.prop(strip, "quality", slider=True)
+            flow.prop(strip, "use_only_boost")
 
         elif strip_type == 'SPEED':
             layout.prop(strip, "use_default_fade", text="Stretch to input strip length")
