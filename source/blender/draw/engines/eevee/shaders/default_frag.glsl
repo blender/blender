@@ -41,5 +41,10 @@ Closure nodetree_exec(void)
   gl_FragDepth = 0.0;
 #endif
 
+#ifdef HOLDOUT
+  cl = CLOSURE_DEFAULT;
+  cl.holdout = 1.0;
+#endif
+
   return cl;
 }

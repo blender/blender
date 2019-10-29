@@ -309,6 +309,9 @@ static char *eevee_get_defines(int options)
   if ((options & VAR_MAT_LOOKDEV) != 0) {
     BLI_dynstr_append(ds, "#define LOOKDEV\n");
   }
+  if ((options & VAR_MAT_HOLDOUT) != 0) {
+    BLI_dynstr_append(ds, "#define HOLDOUT\n");
+  }
 
   str = BLI_dynstr_get_cstring(ds);
   BLI_dynstr_free(ds);
@@ -863,6 +866,7 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(EEVEE_ViewLayerDa
                                                                ParticleSystem *psys,
                                                                ModifierData *md,
                                                                bool is_hair,
+                                                               bool holdout,
                                                                bool use_ssr)
 {
   static int ssr_id;
@@ -874,6 +878,7 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(EEVEE_ViewLayerDa
   BLI_assert(!is_hair || (ob && psys && md));
 
   SET_FLAG_FROM_TEST(options, is_hair, VAR_MAT_HAIR);
+  SET_FLAG_FROM_TEST(options, holdout, VAR_MAT_HOLDOUT);
 
   if (e_data.default_lit[options] == NULL) {
     create_default_shader(options);
@@ -1114,7 +1119,8 @@ static void material_opaque(Material *ma,
                             struct GPUMaterial **gpumat_depth,
                             struct DRWShadingGroup **shgrp,
                             struct DRWShadingGroup **shgrp_depth,
-                            struct DRWShadingGroup **shgrp_depth_clip)
+                            struct DRWShadingGroup **shgrp_depth_clip,
+                            bool holdout)
 {
   EEVEE_EffectsInfo *effects = vedata->stl->effects;
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -1129,7 +1135,7 @@ static void material_opaque(Material *ma,
   float *rough_p = &ma->roughness;
 
   const bool do_cull = (ma->blend_flag & MA_BL_CULL_BACKFACE) != 0;
-  const bool use_gpumat = (ma->use_nodes && ma->nodetree);
+  const bool use_gpumat = (ma->use_nodes && ma->nodetree && !holdout);
   const bool use_ssrefract = ((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) &&
                              ((effects->enabled_effects & EFFECT_REFRACT) != 0);
   const bool use_translucency = ((ma->blend_flag & MA_BL_TRANSLUCENCY) != 0);
@@ -1291,7 +1297,8 @@ static void material_opaque(Material *ma,
   /* Fallback to default shader */
   if (*shgrp == NULL) {
     bool use_ssr = ((effects->enabled_effects & EFFECT_SSR) != 0);
-    *shgrp = EEVEE_default_shading_group_get(sldata, vedata, NULL, NULL, NULL, false, use_ssr);
+    *shgrp = EEVEE_default_shading_group_get(
+        sldata, vedata, NULL, NULL, NULL, false, holdout, use_ssr);
     DRW_shgroup_uniform_vec3(*shgrp, "basecol", color_p, 1);
     DRW_shgroup_uniform_float(*shgrp, "metallic", metal_p, 1);
     DRW_shgroup_uniform_float(*shgrp, "specular", spec_p, 1);
@@ -1443,6 +1450,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Scene *scene = draw_ctx->scene;
   GHash *material_hash = stl->g_data->material_hash;
+  const bool holdout = (ob->base_flag & BASE_HOLDOUT) != 0;
 
   bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
                          !DRW_state_is_image_render();
@@ -1469,6 +1477,20 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
       shgrp_depth_array[i] = NULL;
       shgrp_depth_clip_array[i] = NULL;
 
+      if (holdout) {
+        material_opaque(ma_array[i],
+                        material_hash,
+                        sldata,
+                        vedata,
+                        &gpumat_array[i],
+                        &gpumat_depth_array[i],
+                        &shgrp_array[i],
+                        &shgrp_depth_array[i],
+                        &shgrp_depth_clip_array[i],
+                        true);
+        continue;
+      }
+
       switch (ma_array[i]->blend_method) {
         case MA_BM_SOLID:
         case MA_BM_CLIP:
@@ -1481,7 +1503,8 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
                           &gpumat_depth_array[i],
                           &shgrp_array[i],
                           &shgrp_depth_array[i],
-                          &shgrp_depth_clip_array[i]);
+                          &shgrp_depth_clip_array[i],
+                          false);
           break;
         case MA_BM_BLEND:
           material_transparent(ma_array[i],
@@ -1622,6 +1645,7 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata,
   Scene *scene = draw_ctx->scene;
 
   bool use_ssr = ((stl->effects->enabled_effects & EFFECT_SSR) != 0);
+  const bool holdout = (ob->base_flag & BASE_HOLDOUT) != 0;
 
   if (ob->type == OB_MESH) {
     if (ob != draw_ctx->object_edit) {
@@ -1654,7 +1678,8 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata,
             ob, psys, md, psl->depth_pass_clip, e_data.default_hair_prepass_clip_sh);
 
         shgrp = NULL;
-        if (ma->use_nodes && ma->nodetree) {
+
+        if (ma->use_nodes && ma->nodetree && !holdout) {
           static int ssr_id;
           ssr_id = (use_ssr) ? 1 : -1;
           static float half = 0.5f;
@@ -1705,7 +1730,8 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata,
 
         /* Fallback to default shader */
         if (shgrp == NULL) {
-          shgrp = EEVEE_default_shading_group_get(sldata, vedata, ob, psys, md, true, use_ssr);
+          shgrp = EEVEE_default_shading_group_get(
+              sldata, vedata, ob, psys, md, true, holdout, use_ssr);
           DRW_shgroup_uniform_vec3(shgrp, "basecol", color_p, 1);
           DRW_shgroup_uniform_float(shgrp, "metallic", metal_p, 1);
           DRW_shgroup_uniform_float(shgrp, "specular", spec_p, 1);
