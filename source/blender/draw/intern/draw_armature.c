@@ -1350,7 +1350,8 @@ static void draw_points(const EditBone *eBone,
   bone_hint_color_shade(col_hint_tail, (g_theme.const_color) ? col_solid_tail : col_wire_tail);
 
   /* Draw root point if we are not connected to our parent */
-  if ((BONE_FLAG(eBone, pchan) & BONE_CONNECTED) == 0) {
+  if (!(eBone ? (eBone->parent && (eBone->flag & BONE_CONNECTED)) :
+                (pchan->bone->parent && (pchan->bone->flag & BONE_CONNECTED)))) {
     if (select_id != -1) {
       DRW_select_load_id(select_id | BONESEL_ROOT);
     }
@@ -1518,29 +1519,32 @@ static void draw_bone_line(EditBone *eBone,
   const float *col_head = no_display;
   const float *col_tail = col_bone;
 
-  if (eBone) {
-    if (eBone->flag & BONE_TIPSEL) {
-      col_tail = g_theme.vertex_select_color;
-    }
-    if (boneflag & BONE_SELECTED) {
-      col_bone = g_theme.edge_select_color;
-    }
-    col_wire = g_theme.wire_color;
-  }
-
-  /* Draw root point if we are not connected to our parent */
-  if ((BONE_FLAG(eBone, pchan) & BONE_CONNECTED) == 0) {
-    if (eBone) {
-      col_head = (eBone->flag & BONE_ROOTSEL) ? g_theme.vertex_select_color : col_bone;
-    }
-    else if (pchan) {
-      col_head = col_bone;
-    }
-  }
-
   if (g_theme.const_color != NULL) {
     col_wire = no_display; /* actually shrink the display. */
     col_bone = col_head = col_tail = g_theme.const_color;
+  }
+  else {
+    if (eBone) {
+      if (eBone->flag & BONE_TIPSEL) {
+        col_tail = g_theme.vertex_select_color;
+      }
+      if (boneflag & BONE_SELECTED) {
+        col_bone = g_theme.edge_select_color;
+      }
+      col_wire = g_theme.wire_color;
+    }
+
+    /* Draw root point if we are not connected to our parent. */
+    if (!(eBone ? (eBone->parent && (eBone->flag & BONE_CONNECTED)) :
+                  (pchan->bone->parent && (pchan->bone->flag & BONE_CONNECTED)))) {
+
+      if (eBone) {
+        col_head = (eBone->flag & BONE_ROOTSEL) ? g_theme.vertex_select_color : col_bone;
+      }
+      else {
+        col_head = col_bone;
+      }
+    }
   }
 
   if (select_id == -1) {
