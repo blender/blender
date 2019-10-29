@@ -1183,6 +1183,10 @@ static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent
       else {
         ruler_item_remove(C, gzgroup, ruler_item);
       }
+
+      /* Update the annotation layer. */
+      view3d_ruler_to_gpencil(C, gzgroup);
+
       ED_region_tag_redraw(ar);
       return OPERATOR_FINISHED;
     }
