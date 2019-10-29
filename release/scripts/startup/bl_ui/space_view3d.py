@@ -5087,7 +5087,7 @@ class VIEW3D_PT_collections(Panel):
                 subrow.active = collection.is_visible  # Parent collection runtime visibility
                 subrow.prop(child, "hide_viewport", text="", emboss=False)
             else:
-                subrow.active = collection.visible_get() # Parent collection runtime visibility
+                subrow.active = collection.visible_get()  # Parent collection runtime visibility
                 icon = 'HIDE_OFF' if child.visible_get() else 'HIDE_ON'
                 props = subrow.operator("object.hide_collection", text="", icon=icon, emboss=False)
                 props.collection_index = index

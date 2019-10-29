@@ -453,7 +453,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             # crease_pinch_factor
             if capabilities.has_pinch_factor:
                 row = col.row(align=True)
-                if (brush.sculpt_tool in ('BLOB', 'SNAKE_HOOK')):
+                if brush.sculpt_tool in {'BLOB', 'SNAKE_HOOK'}:
                     row.prop(brush, "crease_pinch_factor", slider=True, text="Magnify")
                 else:
                     row.prop(brush, "crease_pinch_factor", slider=True, text="Pinch")

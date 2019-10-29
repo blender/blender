@@ -348,7 +348,6 @@ class DATA_PT_font(CurveButtonsPanelText, Panel):
         row.label(text="Bold & Italic")
         row.template_ID(text, "font_bold_italic", open="font.open", unlink="font.unlink")
 
-
         if mode == 'EDIT_TEXT':
             layout.separator()
 

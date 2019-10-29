@@ -717,7 +717,7 @@ def _activate_by_item(context, space_type, item, index):
 
     handle_map = _activate_by_item._cursor_draw_handle
     handle = handle_map.pop(space_type, None)
-    if (handle is not None):
+    if handle is not None:
         WindowManager.draw_cursor_remove(handle)
     if item.draw_cursor is not None:
         def handle_fn(context, item, tool, xy):

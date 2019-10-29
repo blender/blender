@@ -950,6 +950,7 @@ class GPENCIL_UL_layer(UIList):
                 icon_value=icon,
             )
 
+
 class GreasePencilSimplifyPanel:
 
     def draw_header(self, context):
@@ -976,6 +977,7 @@ class GreasePencilSimplifyPanel:
         sub = col.column()
         sub.active = rd.simplify_gpencil_view_fill
         sub.prop(rd, "simplify_gpencil_remove_lines", text="Lines")
+
 
 classes = (
     GPENCIL_MT_pie_tool_palette,
