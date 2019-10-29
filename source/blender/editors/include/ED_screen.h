@@ -404,13 +404,10 @@ void ED_screen_user_menu_register(void);
 
 /* Cache display helpers */
 
-void ED_region_cache_draw_background(const struct ARegion *ar);
+void ED_region_cache_draw_background(struct ARegion *ar);
 void ED_region_cache_draw_curfra_label(const int framenr, const float x, const float y);
-void ED_region_cache_draw_cached_segments(const struct ARegion *ar,
-                                          const int num_segments,
-                                          const int *points,
-                                          const int sfra,
-                                          const int efra);
+void ED_region_cache_draw_cached_segments(
+    struct ARegion *ar, const int num_segments, const int *points, const int sfra, const int efra);
 
 /* area_utils.c */
 void ED_region_generic_tools_region_message_subscribe(const struct bContext *C,
