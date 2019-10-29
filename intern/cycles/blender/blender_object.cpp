@@ -269,6 +269,9 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d, bool use_portal)
         light->use_mis = sample_as_light;
         light->max_bounces = get_int(cworld, "max_bounces");
 
+        /* force enable light again when world is resynced */
+        light->is_enabled = true;
+
         int samples = get_int(cworld, "samples");
         if (get_boolean(cscene, "use_square_samples"))
           light->samples = samples * samples;

@@ -221,13 +221,11 @@ void LightManager::disable_ineffective_light(Scene *scene)
      */
     Shader *shader = (scene->background->shader) ? scene->background->shader :
                                                    scene->default_background;
-    bool disable_mis = !(has_portal || shader->has_surface_spatial_varying);
-    if (disable_mis) {
-      VLOG(1) << "Background MIS has been disabled.\n";
-      foreach (Light *light, scene->lights) {
-        if (light->type == LIGHT_BACKGROUND) {
-          light->is_enabled = false;
-        }
+    const bool disable_mis = !(has_portal || shader->has_surface_spatial_varying);
+    VLOG_IF(1, disable_mis) << "Background MIS has been disabled.\n";
+    foreach (Light *light, scene->lights) {
+      if (light->type == LIGHT_BACKGROUND) {
+        light->is_enabled = !disable_mis;
       }
     }
   }
