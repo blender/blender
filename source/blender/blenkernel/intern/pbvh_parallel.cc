@@ -25,6 +25,9 @@
 
 #ifdef WITH_TBB
 
+/* Quiet top level deprecation message, unrelated to API usage here. */
+#  define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
+
 #  include <tbb/tbb.h>
 
 /* Functor for running TBB parallel_for and parallel_reduce. */
