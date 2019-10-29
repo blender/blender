@@ -477,10 +477,10 @@ class DATA_PT_remesh(MeshButtonsPanel, Panel):
         if (mesh.remesh_mode == 'VOXEL'):
             col.prop(mesh, "remesh_voxel_size")
             col.prop(mesh, "remesh_voxel_adaptivity")
-            col.prop(mesh, "remesh_fix_poles")
-            col.prop(mesh, "remesh_smooth_normals")
-            col.prop(mesh, "remesh_preserve_volume")
-            col.prop(mesh, "remesh_preserve_paint_mask")
+            col.prop(mesh, "use_remesh_fix_poles")
+            col.prop(mesh, "use_remesh_smooth_normals")
+            col.prop(mesh, "use_remesh_preserve_volume")
+            col.prop(mesh, "use_remesh_preserve_paint_mask")
             col.operator("object.voxel_remesh", text="Voxel Remesh")
         else:
             col.operator("object.quadriflow_remesh", text="QuadriFlow Remesh")
