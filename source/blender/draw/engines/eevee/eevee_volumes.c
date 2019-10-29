@@ -41,6 +41,7 @@
 
 #include "eevee_private.h"
 #include "GPU_draw.h"
+#include "GPU_extensions.h"
 #include "GPU_texture.h"
 #include "GPU_material.h"
 
