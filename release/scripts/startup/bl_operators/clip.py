@@ -387,9 +387,12 @@ class CLIP_OT_delete_proxy(Operator):
             self._rmproxy(d + "_undistorted")
             self._rmproxy(os.path.join(absproxy, "proxy_%d.avi" % x))
 
-        tc = ("free_run.blen_tc",
-              "interp_free_run.blen_tc",
-              "record_run.blen_tc")
+        tc = (
+            "free_run.blen_tc",
+            "interp_free_run.blen_tc",
+            "record_run.blen_tc",
+            "record_run_no_gaps.blen_tc",
+        )
 
         for x in tc:
             self._rmproxy(os.path.join(absproxy, x))
