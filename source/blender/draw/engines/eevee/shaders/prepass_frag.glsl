@@ -12,14 +12,11 @@ float hash3d(vec3 a)
   return hash(vec2(hash(a.xy), a.z));
 }
 
-uniform float hashAlphaOffset;
-uniform float hashAlphaScale = 1.0; /* Roughly in pixel */
-
 float hashed_alpha_threshold(vec3 co)
 {
   /* Find the discretized derivatives of our coordinates. */
   float max_deriv = max(length(dFdx(co)), length(dFdy(co)));
-  float pix_scale = 1.0 / (hashAlphaScale * max_deriv);
+  float pix_scale = 1.0 / (alphaHashScale * max_deriv);
 
   /* Find two nearest log-discretized noise scales. */
   float pix_scale_log = log2(pix_scale);
@@ -52,7 +49,7 @@ float hashed_alpha_threshold(vec3 co)
   threshold = clamp(threshold, 1.0e-6, 1.0);
 
   /* Jitter the threshold for TAA accumulation. */
-  return fract(threshold + hashAlphaOffset);
+  return fract(threshold + alphaHashOffset);
 }
 
 #endif

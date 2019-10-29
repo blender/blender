@@ -81,7 +81,9 @@ extern char datatoc_volumetric_integration_frag_glsl[];
 extern char datatoc_volumetric_lib_glsl[];
 extern char datatoc_common_fullscreen_vert_glsl[];
 
-#define USE_VOLUME_OPTI (GLEW_ARB_shader_image_load_store && GLEW_ARB_shading_language_420pack)
+#define USE_VOLUME_OPTI \
+  (GLEW_ARB_shader_image_load_store && GLEW_ARB_shading_language_420pack && \
+   !GPU_crappy_amd_driver())
 
 static void eevee_create_shader_volumes(void)
 {

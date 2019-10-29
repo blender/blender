@@ -43,6 +43,10 @@ layout(std140) uniform common_block
   int hizMipOffset;
   int rayType;
   float rayDepth;
+  float alphaHashOffset;
+  float alphaHashScale;
+  float pad7;
+  float pad8;
 };
 
 /* rayType (keep in sync with ray_type) */

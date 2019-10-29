@@ -665,9 +665,13 @@ typedef struct EEVEE_CommonUniformBuffer {
   float prb_lod_cube_max;      /* float */
   float prb_lod_planar_max;    /* float */
   /* Misc */
-  int hiz_mip_offset; /* int */
-  int ray_type;       /* int */
-  float ray_depth;    /* float */
+  int hiz_mip_offset;      /* int */
+  int ray_type;            /* int */
+  float ray_depth;         /* float */
+  float alpha_hash_offset; /* float */
+  float alpha_hash_scale;  /* float */
+  float pad7;              /* float */
+  float pad8;              /* float */
 } EEVEE_CommonUniformBuffer;
 
 BLI_STATIC_ASSERT_ALIGN(EEVEE_CommonUniformBuffer, 16)
