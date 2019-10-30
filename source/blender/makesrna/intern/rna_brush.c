@@ -2007,6 +2007,11 @@ static void rna_def_brush(BlenderRNA *brna)
       "Apply the maximum grab strength to the active vertex instead of the cursor location");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "use_paint_antialiasing", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "sampling_flag", BRUSH_PAINT_ANTIALIASING);
+  RNA_def_property_ui_text(prop, "Antialasing", "Smooths the edges of the strokes");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "use_pressure_strength", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ALPHA_PRESSURE);
   RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
