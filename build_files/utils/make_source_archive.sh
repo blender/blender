@@ -51,19 +51,26 @@ echo "OK"
 
 
 # Create the tarball
+#
+# Without owner/group args, extracting the files as root will
+# use ownership from the tar archive.
 cd "$blender_srcdir"
 echo -n "Creating archive:            \"$BASE_DIR/$TARBALL\" ..."
-tar --transform "s,^,blender-$VERSION/,g" \
+tar \
+  --transform "s,^,blender-$VERSION/,g" \
   --use-compress-program="xz -9" \
   --create \
   --file="$BASE_DIR/$TARBALL" \
-  --files-from="$BASE_DIR/$MANIFEST"
+  --files-from="$BASE_DIR/$MANIFEST" \
+  --owner=0 \
+  --group=0
+
 echo "OK"
 
 
 # Create checksum file
 cd "$BASE_DIR"
-echo -n "Creating checksum:          \"$BASE_DIR/$TARBALL.md5sum\" ..."
+echo -n "Creating checksum:           \"$BASE_DIR/$TARBALL.md5sum\" ..."
 md5sum "$TARBALL" > "$TARBALL.md5sum"
 echo "OK"
 
