@@ -118,7 +118,7 @@ Utilities
      Example
         make icons_geom BLENDER_BIN=/path/to/blender
 
-   * tgz:
+   * source_archive:
      Create a compressed archive of the source code.
 
    * update:
@@ -525,8 +525,8 @@ check_descriptions: .FORCE
 # Utilities
 #
 
-tgz: .FORCE
-	./build_files/utils/build_tgz.sh
+source_archive: .FORCE
+	./build_files/utils/make_source_archive.sh
 
 INKSCAPE_BIN?="inkscape"
 icons: .FORCE

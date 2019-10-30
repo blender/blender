@@ -20,7 +20,7 @@ else
 fi
 
 MANIFEST="blender-$VERSION-manifest.txt"
-TARBALL="blender-$VERSION.tar.gz"
+TARBALL="blender-$VERSION.tar.xz"
 
 cd "$blender_srcdir"
 
@@ -54,7 +54,7 @@ echo "OK"
 cd "$blender_srcdir"
 echo -n "Creating archive:            \"$BASE_DIR/$TARBALL\" ..."
 tar --transform "s,^,blender-$VERSION/,g" \
-  --use-compress-program="gzip --best" \
+  --use-compress-program="xz -9" \
   --create \
   --file="$BASE_DIR/$TARBALL" \
   --files-from="$BASE_DIR/$MANIFEST"
