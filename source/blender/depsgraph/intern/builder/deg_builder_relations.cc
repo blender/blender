@@ -120,10 +120,12 @@ namespace DEG {
 /* ***************** */
 /* Relations Builder */
 
+namespace {
+
 /* TODO(sergey): This is somewhat weak, but we don't want neither false-positive
  * time dependencies nor special exceptions in the depsgraph evaluation.
  */
-static bool python_driver_depends_on_time(ChannelDriver *driver)
+bool python_driver_depends_on_time(ChannelDriver *driver)
 {
   if (driver->expression[0] == '\0') {
     /* Empty expression depends on nothing. */
@@ -144,7 +146,7 @@ static bool python_driver_depends_on_time(ChannelDriver *driver)
   return false;
 }
 
-static bool particle_system_depends_on_time(ParticleSystem *psys)
+bool particle_system_depends_on_time(ParticleSystem *psys)
 {
   ParticleSettings *part = psys->part;
   /* Non-hair particles we always consider dependent on time. */
@@ -159,7 +161,7 @@ static bool particle_system_depends_on_time(ParticleSystem *psys)
   return false;
 }
 
-static bool object_particles_depends_on_time(Object *object)
+bool object_particles_depends_on_time(Object *object)
 {
   if (object->type != OB_MESH) {
     return false;
@@ -172,7 +174,7 @@ static bool object_particles_depends_on_time(Object *object)
   return false;
 }
 
-static bool check_id_has_anim_component(ID *id)
+bool check_id_has_anim_component(ID *id)
 {
   AnimData *adt = BKE_animdata_from_id(id);
   if (adt == NULL) {
@@ -181,11 +183,11 @@ static bool check_id_has_anim_component(ID *id)
   return (adt->action != NULL) || (!BLI_listbase_is_empty(&adt->nla_tracks));
 }
 
-static OperationCode bone_target_opcode(ID *target,
-                                        const char *subtarget,
-                                        ID *id,
-                                        const char *component_subdata,
-                                        RootPChanMap *root_map)
+OperationCode bone_target_opcode(ID *target,
+                                 const char *subtarget,
+                                 ID *id,
+                                 const char *component_subdata,
+                                 RootPChanMap *root_map)
 {
   /* Same armature.  */
   if (target == id) {
@@ -200,10 +202,12 @@ static OperationCode bone_target_opcode(ID *target,
   return OperationCode::BONE_DONE;
 }
 
-static bool object_have_geometry_component(const Object *object)
+bool object_have_geometry_component(const Object *object)
 {
   return ELEM(object->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_MBALL, OB_LATTICE, OB_GPENCIL);
 }
+
+}  // namespace
 
 /* **** General purpose functions ****  */
 
