@@ -198,11 +198,45 @@ void BLI_task_parallel_range(const int start,
                              TaskParallelRangeFunc func,
                              const TaskParallelSettings *settings);
 
-typedef void (*TaskParallelListbaseFunc)(void *userdata, struct Link *iter, int index);
+/* This data is shared between all tasks, its access needs thread lock or similar protection. */
+typedef struct TaskParallelIteratorStateShared {
+  /* Maximum amount of items to acquire at once. */
+  int chunk_size;
+  /* Next item to be acquired. */
+  void *next_item;
+  /* Index of the next item to be acquired. */
+  int next_index;
+  /* Indicates that end of iteration has been reached. */
+  bool is_finished;
+  /* Helper lock to protect access to this data in iterator getter callback,
+   * can be ignored (if the callback implements its own protection system, using atomics e.g.).
+   * Will be NULL when iterator is actually processed in a single thread. */
+  SpinLock *spin_lock;
+} TaskParallelIteratorStateShared;
+
+typedef void (*TaskParallelIteratorIterFunc)(void *__restrict userdata,
+                                             const TaskParallelTLS *__restrict tls,
+                                             void **r_next_item,
+                                             int *r_next_index,
+                                             bool *r_do_abort);
+
+typedef void (*TaskParallelIteratorFunc)(void *__restrict userdata,
+                                         void *item,
+                                         int index,
+                                         const TaskParallelTLS *__restrict tls);
+
+void BLI_task_parallel_iterator(void *userdata,
+                                TaskParallelIteratorIterFunc iter_func,
+                                void *init_item,
+                                const int init_index,
+                                const int tot_items,
+                                TaskParallelIteratorFunc func,
+                                const TaskParallelSettings *settings);
+
 void BLI_task_parallel_listbase(struct ListBase *listbase,
                                 void *userdata,
-                                TaskParallelListbaseFunc func,
-                                const bool use_threading);
+                                TaskParallelIteratorFunc func,
+                                const TaskParallelSettings *settings);
 
 typedef struct MempoolIterData MempoolIterData;
 typedef void (*TaskParallelMempoolFunc)(void *userdata, MempoolIterData *iter);

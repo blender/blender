@@ -88,7 +88,10 @@ TEST(task, MempoolIter)
 
 /* *** Parallel iterations over double-linked list items. *** */
 
-static void task_listbase_iter_func(void *userdata, Link *item, int index)
+static void task_listbase_iter_func(void *userdata,
+                                    void *item,
+                                    int index,
+                                    const TaskParallelTLS *__restrict UNUSED(tls))
 {
   LinkData *data = (LinkData *)item;
   int *count = (int *)userdata;
@@ -112,7 +115,10 @@ TEST(task, ListBaseIter)
     num_items++;
   }
 
-  BLI_task_parallel_listbase(&list, &num_items, task_listbase_iter_func, true);
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+
+  BLI_task_parallel_listbase(&list, &num_items, task_listbase_iter_func, &settings);
 
   /* Those checks should ensure us all items of the listbase were processed once, and only once -
    * as expected. */

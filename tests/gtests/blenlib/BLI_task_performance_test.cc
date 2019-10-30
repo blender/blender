@@ -38,14 +38,22 @@ static uint gen_pseudo_random_number(uint num)
   return ((num & 255) << 6) + 1;
 }
 
-static void task_listbase_light_iter_func(void *UNUSED(userdata), Link *item, int index)
+static void task_listbase_light_iter_func(void *UNUSED(userdata),
+                                          void *item,
+                                          int index,
+                                          const TaskParallelTLS *__restrict UNUSED(tls))
+
 {
   LinkData *data = (LinkData *)item;
 
   data->data = POINTER_FROM_INT(POINTER_AS_INT(data->data) + index);
 }
 
-static void task_listbase_light_membarrier_iter_func(void *userdata, Link *item, int index)
+static void task_listbase_light_membarrier_iter_func(void *userdata,
+                                                     void *item,
+                                                     int index,
+                                                     const TaskParallelTLS *__restrict UNUSED(tls))
+
 {
   LinkData *data = (LinkData *)item;
   int *count = (int *)userdata;
@@ -54,7 +62,11 @@ static void task_listbase_light_membarrier_iter_func(void *userdata, Link *item,
   atomic_sub_and_fetch_uint32((uint32_t *)count, 1);
 }
 
-static void task_listbase_heavy_iter_func(void *UNUSED(userdata), Link *item, int index)
+static void task_listbase_heavy_iter_func(void *UNUSED(userdata),
+                                          void *item,
+                                          int index,
+                                          const TaskParallelTLS *__restrict UNUSED(tls))
+
 {
   LinkData *data = (LinkData *)item;
 
@@ -66,7 +78,11 @@ static void task_listbase_heavy_iter_func(void *UNUSED(userdata), Link *item, in
   }
 }
 
-static void task_listbase_heavy_membarrier_iter_func(void *userdata, Link *item, int index)
+static void task_listbase_heavy_membarrier_iter_func(void *userdata,
+                                                     void *item,
+                                                     int index,
+                                                     const TaskParallelTLS *__restrict UNUSED(tls))
+
 {
   LinkData *data = (LinkData *)item;
   int *count = (int *)userdata;
@@ -84,14 +100,18 @@ static void task_listbase_test_do(ListBase *list,
                                   const int num_items,
                                   int *num_items_tmp,
                                   const char *id,
-                                  TaskParallelListbaseFunc func,
+                                  TaskParallelIteratorFunc func,
                                   const bool use_threads,
                                   const bool check_num_items_tmp)
 {
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.use_threading = use_threads;
+
   double averaged_timing = 0.0;
   for (int i = 0; i < NUM_RUN_AVERAGED; i++) {
     const double init_time = PIL_check_seconds_timer();
-    BLI_task_parallel_listbase(list, num_items_tmp, func, use_threads);
+    BLI_task_parallel_listbase(list, num_items_tmp, func, &settings);
     averaged_timing += PIL_check_seconds_timer() - init_time;
 
     /* Those checks should ensure us all items of the listbase were processed once, and only once -
