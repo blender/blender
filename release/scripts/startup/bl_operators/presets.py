@@ -29,6 +29,8 @@ from bpy.props import (
     StringProperty,
 )
 
+from bpy.utils import is_path_builtin
+
 # For preset popover menu
 WindowManager.preset_name = StringProperty(
     name="Preset Name",
@@ -188,6 +190,11 @@ class AddPresetBase:
                                                  ext=ext)
 
             if not filepath:
+                return {'CANCELLED'}
+
+            # Do not remove bundled presets
+            if is_path_builtin(filepath):
+                self.report({'WARNING'}, "You can't remove the default presets")
                 return {'CANCELLED'}
 
             try:
