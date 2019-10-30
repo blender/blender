@@ -184,6 +184,18 @@ static void color_ensure_contrast_v3(uchar cp[3], const uchar cp_other[3], int c
   }
 }
 
+static void color_mul_hsl_v3(uchar ch[3], float h_factor, float s_factor, float l_factor)
+{
+  float rgb[3], hsl[3];
+  rgb_uchar_to_float(rgb, ch);
+  rgb_to_hsl_v(rgb, hsl);
+  hsl[0] *= h_factor;
+  hsl[1] *= s_factor;
+  hsl[2] *= l_factor;
+  hsl_to_rgb_v(hsl, rgb);
+  rgb_float_to_uchar(ch, rgb);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2573,11 +2585,12 @@ static void ui_widget_color_disabled(uiWidgetType *wt)
   wt->wcol_theme = &wcol_theme_s;
 }
 
-static void widget_active_color(uchar cp[3])
+static void widget_active_color(uiWidgetColors *wcol)
 {
-  cp[0] = cp[0] >= 240 ? 255 : cp[0] + 15;
-  cp[1] = cp[1] >= 240 ? 255 : cp[1] + 15;
-  cp[2] = cp[2] >= 240 ? 255 : cp[2] + 15;
+  bool dark = (rgb_to_grayscale_byte(wcol->text) > rgb_to_grayscale_byte(wcol->inner));
+  color_mul_hsl_v3(wcol->inner, 1.0f, 1.15f, dark ? 1.2f : 1.1f);
+  color_mul_hsl_v3(wcol->outline, 1.0f, 1.15f, 1.15f);
+  color_mul_hsl_v3(wcol->text, 1.0f, 1.15f, dark ? 1.25f : 0.8f);
 }
 
 static const uchar *widget_color_blend_from_flags(const uiWidgetStateColors *wcol_state,
@@ -2641,10 +2654,10 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
     if (color_blend != NULL) {
       color_blend_v3_v3(wt->wcol.inner, color_blend, wcol_state->blend);
     }
+  }
 
-    if (state & UI_ACTIVE) { /* mouse over? */
-      widget_active_color(wt->wcol.inner);
-    }
+  if (state & UI_ACTIVE) {
+    widget_active_color(&wt->wcol);
   }
 
   if (state & UI_BUT_REDALERT) {
@@ -3403,7 +3416,7 @@ static void widget_numbut_draw(
     wcol_zone = *wcol;
     copy_v3_v3_uchar(wcol_zone.item, wcol->text);
     if (state & UI_STATE_ACTIVE_LEFT) {
-      widget_active_color(wcol_zone.inner);
+      widget_active_color(&wcol_zone);
     }
 
     rect_zone = *rect;
@@ -3423,7 +3436,7 @@ static void widget_numbut_draw(
     wcol_zone = *wcol;
     copy_v3_v3_uchar(wcol_zone.item, wcol->text);
     if (state & UI_STATE_ACTIVE_RIGHT) {
-      widget_active_color(wcol_zone.inner);
+      widget_active_color(&wcol_zone);
     }
 
     rect_zone = *rect;
@@ -3442,7 +3455,7 @@ static void widget_numbut_draw(
     wcol_zone = *wcol;
     copy_v3_v3_uchar(wcol_zone.item, wcol->text);
     if (!(state & (UI_STATE_ACTIVE_LEFT | UI_STATE_ACTIVE_RIGHT))) {
-      widget_active_color(wcol_zone.inner);
+      widget_active_color(&wcol_zone);
     }
 
     rect_zone = *rect;
