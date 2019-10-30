@@ -77,6 +77,7 @@ static UndoSculpt *sculpt_undo_get_nodes(void);
 static void update_cb(PBVHNode *node, void *rebuild)
 {
   BKE_pbvh_node_mark_update(node);
+  BKE_pbvh_node_mark_update_mask(node);
   if (*((bool *)rebuild)) {
     BKE_pbvh_node_mark_rebuild_draw(node);
   }
@@ -497,7 +498,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
   SculptUndoNode *unode;
-  bool update = false, rebuild = false;
+  bool update = false, rebuild = false, update_mask = false;
   bool need_mask = false;
 
   for (unode = lb->first; unode; unode = unode->next) {
@@ -579,6 +580,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       case SCULPT_UNDO_MASK:
         if (sculpt_undo_restore_mask(C, unode)) {
           update = true;
+          update_mask = true;
         }
         break;
 
@@ -616,6 +618,9 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     };
     BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb_partial, &data);
     BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
+    if (update_mask) {
+      BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
+    }
 
     if (BKE_sculpt_multires_active(scene, ob)) {
       if (rebuild) {
