@@ -2522,8 +2522,15 @@ class VIEW3D_MT_object_parent(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        operator_context_default = layout.operator_context
 
         layout.operator_enum("object.parent_set", "type")
+
+        layout.separator()
+
+        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator("object.parent_no_inverse_set")
+        layout.operator_context = operator_context_default
 
         layout.separator()
 
