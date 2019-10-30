@@ -123,26 +123,65 @@ namespace DEG {
 namespace {
 
 /* TODO(sergey): This is somewhat weak, but we don't want neither false-positive
- * time dependencies nor special exceptions in the depsgraph evaluation.
- */
-bool python_driver_depends_on_time(ChannelDriver *driver)
+ * time dependencies nor special exceptions in the depsgraph evaluation. */
+
+bool python_driver_exression_depends_on_time(const char *expression)
 {
-  if (driver->expression[0] == '\0') {
+  if (expression[0] == '\0') {
     /* Empty expression depends on nothing. */
     return false;
   }
-  if (strchr(driver->expression, '(') != NULL) {
+  if (strchr(expression, '(') != NULL) {
     /* Function calls are considered dependent on a time. */
     return true;
   }
-  if (strstr(driver->expression, "frame") != NULL) {
+  if (strstr(expression, "frame") != NULL) {
     /* Variable `frame` depends on time. */
-    /* TODO(sergey): This is a bit weak, but not sure about better way of
-     * handling this. */
+    /* TODO(sergey): This is a bit weak, but not sure about better way of handling this. */
     return true;
   }
-  /* Possible indirect time relation s should be handled via variable
-   * targets. */
+  /* Possible indirect time relation s should be handled via variable targets. */
+  return false;
+}
+
+bool driver_target_depends_on_time(const DriverTarget *target)
+{
+  if (target->idtype == ID_SCE && STREQ(target->rna_path, "frame_current")) {
+    return true;
+  }
+  return false;
+}
+
+bool driver_variable_depends_on_time(const DriverVar *variable)
+{
+  for (int i = 0; i < variable->num_targets; ++i) {
+    if (driver_target_depends_on_time(&variable->targets[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool driver_variables_depends_on_time(const ListBase *variables)
+{
+  LISTBASE_FOREACH (const DriverVar *, variable, variables) {
+    if (driver_variable_depends_on_time(variable)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool driver_depends_on_time(ChannelDriver *driver)
+{
+  if (driver->type == DRIVER_TYPE_PYTHON) {
+    if (python_driver_exression_depends_on_time(driver->expression)) {
+      return true;
+    }
+  }
+  if (driver_variables_depends_on_time(&driver->variables)) {
+    return true;
+  }
   return false;
 }
 
@@ -1384,7 +1423,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
   /* It's quite tricky to detect if the driver actually depends on time or
    * not, so for now we'll be quite conservative here about optimization and
    * consider all python drivers to be depending on time. */
-  if ((driver->type == DRIVER_TYPE_PYTHON) && python_driver_depends_on_time(driver)) {
+  if (driver_depends_on_time(driver)) {
     TimeSourceKey time_src_key;
     add_relation(time_src_key, driver_key, "TimeSrc -> Driver");
   }
