@@ -1600,7 +1600,11 @@ static void tree_element_show_hierarchy(Scene *scene, SpaceOutliner *soops, List
   for (te = lb->first; te; te = te->next) {
     tselem = TREESTORE(te);
 
-    if (tselem->type == 0) {
+    if (ELEM(tselem->type,
+             0,
+             TSE_SCENE_OBJECTS_BASE,
+             TSE_VIEW_COLLECTION_BASE,
+             TSE_LAYER_COLLECTION)) {
       if (te->idcode == ID_SCE) {
         if (tselem->id != (ID *)scene) {
           tselem->flag |= TSE_CLOSED;
