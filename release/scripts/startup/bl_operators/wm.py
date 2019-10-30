@@ -1781,6 +1781,44 @@ class WM_OT_toolbar_prompt(Operator):
     bl_idname = "wm.toolbar_prompt"
     bl_label = "Toolbar Prompt"
 
+    @staticmethod
+    def _status_items_generate(cls, keymap, context):
+        from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+
+        # The keymap doesn't have the same order the tools are declared in,
+        # while we could support this, it's simpler to apply order here.
+        tool_map_id_to_order = {}
+        # Map the
+        tool_map_id_to_label = {}
+        for item in ToolSelectPanelHelper._tools_flatten(cls.tools_from_context(context)):
+            if item is not None:
+                tool_map_id_to_label[item.idname] = item.label
+                tool_map_id_to_order[item.idname] = len(tool_map_id_to_order)
+
+        status_items = []
+
+        for item in keymap.keymap_items:
+            name = item.name
+            key_str = item.to_string()
+            # These are duplicated from regular numbers.
+            if key_str.startswith("Numpad "):
+                continue
+            properties = item.properties
+            idname = item.idname
+            if idname == "wm.tool_set_by_id":
+                tool_idname = properties["name"]
+                name = tool_map_id_to_label[tool_idname]
+                name = name.replace("Annotate ", "")
+            else:
+                continue
+
+            status_items.append((tool_idname, name, item))
+
+        status_items.sort(
+            key=lambda a: tool_map_id_to_order[a[0]]
+        )
+        return status_items
+
     def modal(self, context, event):
         event_type = event.type
         event_value = event.value
@@ -1805,14 +1843,18 @@ class WM_OT_toolbar_prompt(Operator):
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
-        space_type = context.space_data.type
+        space_data = context.space_data
+        if space_data is None:
+            return {'CANCELLED'}
+
+        space_type = space_data.type
         cls, keymap = WM_OT_toolbar.keymap_from_toolbar(
             context,
             space_type,
             use_fallback_keys=False,
             use_reset=False,
         )
-        if keymap is None:
+        if (keymap is None) or (not keymap.keymap_items):
             return {'CANCELLED'}
 
         self._init_event_type = event.type
@@ -1823,18 +1865,9 @@ class WM_OT_toolbar_prompt(Operator):
             del init_event_type_as_text[0]
         init_event_type_as_text = " ".join(init_event_type_as_text)
 
-        def status_text_fn(self, context):
-            from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+        status_items = self._status_items_generate(cls, keymap, context)
 
-            # The keymap doesn't have the same order the tools are declared in,
-            # while we could support this, it's simpler to apply order here.
-            tool_map_id_to_order = {}
-            # Map the
-            tool_map_id_to_label = {}
-            for item in ToolSelectPanelHelper._tools_flatten(cls.tools_from_context(context)):
-                if item is not None:
-                    tool_map_id_to_label[item.idname] = item.label
-                    tool_map_id_to_order[item.idname] = len(tool_map_id_to_order)
+        def status_text_fn(self, context):
 
             layout = self.layout
             if True:
@@ -1842,31 +1875,7 @@ class WM_OT_toolbar_prompt(Operator):
                 box.scale_x = 0.8
                 box.label(text=init_event_type_as_text)
 
-            status_items = []
-
-            for item in keymap.keymap_items:
-                name = item.name
-                key_str = item.to_string()
-                # These are duplicated from regular numbers.
-                if key_str.startswith("Numpad "):
-                    continue
-                properties = item.properties
-                idname = item.idname
-                if idname == "wm.tool_set_by_id":
-                    tool_idname = properties["name"]
-                    name = tool_map_id_to_label[tool_idname]
-                    name = name.replace("Annotate ", "")
-                else:
-                    continue
-
-                status_items.append((tool_idname, name, item))
-
-            status_items.sort(
-                key=lambda a: tool_map_id_to_order[a[0]]
-            )
-
             flow = layout.grid_flow(columns=len(status_items), align=True, row_major=True)
-
             for _, name, item in status_items:
                 row = flow.row(align=True)
                 row.template_event_from_keymap_item(item, text=name)
