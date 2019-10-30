@@ -1106,9 +1106,9 @@ class IMAGE_PT_paint_color(Panel, ImagePaintPanel):
         layout.prop(brush, "color_type", expand=True)
 
         if brush.color_type == 'COLOR':
-            brush_texpaint_common_color(self, context, layout, brush, settings, True)
+            brush_texpaint_common_color(self, context, layout, brush, settings)
         elif brush.color_type == 'GRADIENT':
-            brush_texpaint_common_gradient(self, context, layout, brush, settings, True)
+            brush_texpaint_common_gradient(self, context, layout, brush, settings)
 
 
 class IMAGE_PT_paint_swatches(Panel, ImagePaintPanel):
@@ -1160,7 +1160,7 @@ class IMAGE_PT_paint_clone(Panel, ImagePaintPanel):
 
         layout.active = settings.use_clone_layer
 
-        brush_texpaint_common_clone(self, context, layout, brush, settings, True)
+        brush_texpaint_common_clone(self, context, layout, brush, settings)
 
 
 class IMAGE_PT_paint_options(Panel, ImagePaintPanel):
@@ -1186,7 +1186,7 @@ class IMAGE_PT_paint_options(Panel, ImagePaintPanel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        brush_texpaint_common_options(self, context, layout, brush, settings, True)
+        brush_texpaint_common_options(self, context, layout, brush, settings)
 
 
 class IMAGE_PT_tools_brush_display(BrushButtonsPanel, Panel):
