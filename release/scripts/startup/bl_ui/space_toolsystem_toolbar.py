@@ -1405,7 +1405,7 @@ class _defs_gpencil_paint:
         return dict(
             idname="builtin.eyedropper",
             label="Eyedropper",
-            icon="ops.paint.weight_sample",
+            icon="ops.paint.eyedropper_add",
             cursor='EYEDROPPER',
             widget=None,
             keymap=(),
