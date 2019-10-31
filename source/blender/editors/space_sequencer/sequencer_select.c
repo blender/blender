@@ -115,14 +115,14 @@ static void select_active_side(ListBase *seqbase, int sel_side, int channel, int
 static void select_active_side_range(ListBase *seqbase,
                                      const int sel_side,
                                      const int frame_ranges[MAXSEQ],
-                                     const int frame_init)
+                                     const int frame_ignore)
 {
   Sequence *seq;
 
   for (seq = seqbase->first; seq; seq = seq->next) {
     if (seq->machine < MAXSEQ) {
       const int frame = frame_ranges[seq->machine];
-      if (frame == frame_init) {
+      if (frame == frame_ignore) {
         continue;
       }
       switch (sel_side) {
@@ -956,7 +956,7 @@ static int sequencer_select_side_exec(bContext *C, wmOperator *op)
   Editing *ed = BKE_sequencer_editing_get(scene, false);
 
   const int sel_side = RNA_enum_get(op->ptr, "side");
-  const int frame_init = sel_side == SEQ_SIDE_LEFT ? -INT_MIN : INT_MAX;
+  const int frame_init = sel_side == SEQ_SIDE_LEFT ? INT_MIN : INT_MAX;
   int frame_ranges[MAXSEQ];
   bool selected = false;
 
