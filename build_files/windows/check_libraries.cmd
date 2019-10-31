@@ -10,7 +10,6 @@ if NOT "%verbose%" == "" (
 )
 if NOT EXIST %BUILD_VS_LIBDIR% (
 	rem libs not found, but svn is on the system
-	echo 
 	if not "%SVN%"=="" (
 		echo.
 		echo The required external libraries in %BUILD_VS_LIBDIR% are missing
@@ -55,5 +54,8 @@ if NOT EXIST %BUILD_VS_LIBDIR% (
 	echo Error: Required libraries not found at "%BUILD_VS_LIBDIR%"
 	echo This is needed for building, aborting!
 	echo.
+	if "%SVN%"=="" (
+		echo This is most likely caused by svn.exe not being available.
+	)
 	exit /b 1
 )
