@@ -2035,6 +2035,7 @@ enum {
 #define SCE_SNAP_PROJECT (1 << 3)
 #define SCE_SNAP_NO_SELF (1 << 4)
 #define SCE_SNAP_ABS_GRID (1 << 5)
+#define SCE_SNAP_BACKFACE_CULLING (1 << 6)
 
 /* ToolSettings.snap_target */
 #define SCE_SNAP_TARGET_CLOSEST 0

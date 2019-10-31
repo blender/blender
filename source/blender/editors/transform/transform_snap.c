@@ -379,6 +379,8 @@ void applyProject(TransInfo *t)
                       .snap_select = t->tsnap.modeSelect,
                       .use_object_edit_cage = (t->flag & T_EDIT) != 0,
                       .use_occlusion_test = false,
+                      .use_backface_culling = (t->scene->toolsettings->snap_flag &
+                                               SCE_SNAP_BACKFACE_CULLING) != 0,
                   },
                   mval_fl,
                   NULL,
@@ -1364,6 +1366,8 @@ short snapObjectsTransform(
           .snap_select = t->tsnap.modeSelect,
           .use_object_edit_cage = (t->flag & T_EDIT) != 0,
           .use_occlusion_test = t->scene->toolsettings->snap_mode != SCE_SNAP_MODE_FACE,
+          .use_backface_culling = (t->scene->toolsettings->snap_flag &
+                                   SCE_SNAP_BACKFACE_CULLING) != 0,
       },
       mval,
       t->tsnap.snapTarget,

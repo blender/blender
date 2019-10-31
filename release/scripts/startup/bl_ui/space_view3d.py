@@ -6082,6 +6082,8 @@ class VIEW3D_PT_snapping(Panel):
             row = col.row(align=True)
             row.prop(tool_settings, "snap_target", expand=True)
 
+            col.prop(tool_settings, "use_snap_backface_culling")
+
             if obj:
                 if object_mode == 'EDIT':
                     col.prop(tool_settings, "use_snap_self")

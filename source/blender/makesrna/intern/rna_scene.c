@@ -3035,6 +3035,11 @@ static void rna_def_tool_settings(BlenderRNA *brna)
                            "Project individual elements on the surface of other objects");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
+  prop = RNA_def_property(srna, "use_snap_backface_culling", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_BACKFACE_CULLING);
+  RNA_def_property_ui_text(prop, "Backface Culling", "Exclude back facing geometry from snapping");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
+
   prop = RNA_def_property(srna, "use_snap_self", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "snap_flag", SCE_SNAP_NO_SELF);
   RNA_def_property_ui_text(prop, "Project onto Self", "Snap onto itself (Edit Mode Only)");
