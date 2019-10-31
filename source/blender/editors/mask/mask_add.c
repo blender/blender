@@ -591,12 +591,79 @@ static bool add_vertex_new(const bContext *C, Mask *mask, MaskLayer *mask_layer,
   return true;
 }
 
+/* Convert coordinate from normalized space to pixel one.
+ * TODO(sergey): Make the function more generally available. */
+static void mask_point_make_pixel_space(bContext *C,
+                                        float point_normalized[2],
+                                        float point_pixel[2])
+{
+  ScrArea *sa = CTX_wm_area(C);
+  ARegion *ar = CTX_wm_region(C);
+
+  float scalex, scaley;
+  ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
+
+  point_pixel[0] = point_normalized[0] * scalex;
+  point_pixel[1] = point_normalized[1] * scaley;
+}
+
+static int add_vertex_handle_cyclic_at_point(bContext *C,
+                                             Mask *mask,
+                                             MaskSpline *spline,
+                                             MaskSplinePoint *active_point,
+                                             MaskSplinePoint *other_point,
+                                             float co[2])
+{
+  const float tolerance_in_pixels_squared = 4 * 4;
+
+  if (spline->flag & MASK_SPLINE_CYCLIC) {
+    /* No cycling toggle needed, we've got nothing meaningful to do in this operator. */
+    return OPERATOR_CANCELLED;
+  }
+
+  float co_pixel[2];
+  mask_point_make_pixel_space(C, co, co_pixel);
+
+  float point_pixel[2];
+  mask_point_make_pixel_space(C, other_point->bezt.vec[1], point_pixel);
+
+  const float dist_squared = len_squared_v2v2(co_pixel, point_pixel);
+  if (dist_squared > tolerance_in_pixels_squared) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
+  spline->flag |= MASK_SPLINE_CYCLIC;
+
+  /* TODO, update keyframes in time. */
+  BKE_mask_calc_handle_point_auto(spline, active_point, false);
+  BKE_mask_calc_handle_point_auto(spline, other_point, false);
+
+  DEG_id_tag_update(&mask->id, ID_RECALC_GEOMETRY);
+
+  WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
+
+  return OPERATOR_FINISHED;
+}
+
+static int add_vertex_handle_cyclic(
+    bContext *C, Mask *mask, MaskSpline *spline, MaskSplinePoint *active_point, float co[2])
+{
+  MaskSplinePoint *first_point = &spline->points[0];
+  MaskSplinePoint *last_point = &spline->points[spline->tot_point - 1];
+  const bool is_first_point_active = (active_point == first_point);
+  const bool is_last_point_active = (active_point == last_point);
+  if (is_last_point_active) {
+    return add_vertex_handle_cyclic_at_point(C, mask, spline, active_point, first_point, co);
+  }
+  else if (is_first_point_active) {
+    return add_vertex_handle_cyclic_at_point(C, mask, spline, active_point, last_point, co);
+  }
+  return OPERATOR_PASS_THROUGH;
+}
+
 static int add_vertex_exec(bContext *C, wmOperator *op)
 {
   Mask *mask = CTX_data_edit_mask(C);
-
-  float co[2];
-
   if (mask == NULL) {
     /* if there's no active mask, create one */
     mask = ED_mask_new(C, NULL);
@@ -608,40 +675,17 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
     mask_layer = NULL;
   }
 
+  float co[2];
   RNA_float_get_array(op->ptr, "location", co);
 
   /* TODO, having an active point but no active spline is possible, why? */
   if (mask_layer && mask_layer->act_spline && mask_layer->act_point &&
       MASKPOINT_ISSEL_ANY(mask_layer->act_point)) {
-
-    /* cheap trick - double click for cyclic */
     MaskSpline *spline = mask_layer->act_spline;
-    MaskSplinePoint *point = mask_layer->act_point;
-
-    const bool is_sta = (point == spline->points);
-    const bool is_end = (point == &spline->points[spline->tot_point - 1]);
-
-    /* then check are we overlapping the mouse */
-    if ((is_sta || is_end) && equals_v2v2(co, point->bezt.vec[1])) {
-      if (spline->flag & MASK_SPLINE_CYCLIC) {
-        /* nothing to do */
-        return OPERATOR_CANCELLED;
-      }
-      else {
-        /* recalc the connecting point as well to make a nice even curve */
-        MaskSplinePoint *point_other = is_end ? spline->points :
-                                                &spline->points[spline->tot_point - 1];
-        spline->flag |= MASK_SPLINE_CYCLIC;
-
-        /* TODO, update keyframes in time */
-        BKE_mask_calc_handle_point_auto(spline, point, false);
-        BKE_mask_calc_handle_point_auto(spline, point_other, false);
-
-        DEG_id_tag_update(&mask->id, ID_RECALC_GEOMETRY);
-
-        WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
-        return OPERATOR_FINISHED;
-      }
+    MaskSplinePoint *active_point = mask_layer->act_point;
+    const int cyclic_result = add_vertex_handle_cyclic(C, mask, spline, active_point, co);
+    if (cyclic_result != OPERATOR_PASS_THROUGH) {
+      return cyclic_result;
     }
 
     if (!add_vertex_subdivide(C, mask, co)) {
