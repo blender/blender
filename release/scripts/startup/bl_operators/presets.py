@@ -29,8 +29,6 @@ from bpy.props import (
     StringProperty,
 )
 
-from bpy.utils import is_path_builtin
-
 # For preset popover menu
 WindowManager.preset_name = StringProperty(
     name="Preset Name",
@@ -86,6 +84,7 @@ class AddPresetBase:
 
     def execute(self, context):
         import os
+        from bpy.utils import is_path_builtin
 
         if hasattr(self, "pre_cb"):
             self.pre_cb(context)
