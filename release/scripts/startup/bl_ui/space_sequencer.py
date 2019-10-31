@@ -316,8 +316,10 @@ class SEQUENCER_MT_select_channel(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("sequencer.select_active_side", text="Left").side = 'LEFT'
-        layout.operator("sequencer.select_active_side", text="Right").side = 'RIGHT'
+        layout.operator("sequencer.select_side", text="Left").side = 'LEFT'
+        layout.operator("sequencer.select_side", text="Right").side = 'RIGHT'
+        layout.separator()
+        layout.operator("sequencer.select_side", text="Both Sides").side = 'BOTH'
 
 
 class SEQUENCER_MT_select_linked(Menu):

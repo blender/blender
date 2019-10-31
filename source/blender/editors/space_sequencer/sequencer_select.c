@@ -27,6 +27,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "DNA_scene_types.h"
 
@@ -81,7 +82,7 @@ static void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRIN
   }
 }
 
-/* used for mouse selection and for SEQUENCER_OT_select_active_side() */
+/* Used for mouse selection in SEQUENCER_OT_select. */
 static void select_active_side(ListBase *seqbase, int sel_side, int channel, int frame)
 {
   Sequence *seq;
@@ -110,7 +111,43 @@ static void select_active_side(ListBase *seqbase, int sel_side, int channel, int
   }
 }
 
-/* used for mouse selection and for SEQUENCER_OT_select_active_side() */
+/* Used for mouse selection in SEQUENCER_OT_select_side. */
+static void select_active_side_range(ListBase *seqbase,
+                                     const int sel_side,
+                                     const int frame_ranges[MAXSEQ],
+                                     const int frame_init)
+{
+  Sequence *seq;
+
+  for (seq = seqbase->first; seq; seq = seq->next) {
+    if (seq->machine < MAXSEQ) {
+      const int frame = frame_ranges[seq->machine];
+      if (frame == frame_init) {
+        continue;
+      }
+      switch (sel_side) {
+        case SEQ_SIDE_LEFT:
+          if (frame > (seq->startdisp)) {
+            seq->flag &= ~(SEQ_RIGHTSEL | SEQ_LEFTSEL);
+            seq->flag |= SELECT;
+          }
+          break;
+        case SEQ_SIDE_RIGHT:
+          if (frame < (seq->startdisp)) {
+            seq->flag &= ~(SEQ_RIGHTSEL | SEQ_LEFTSEL);
+            seq->flag |= SELECT;
+          }
+          break;
+        case SEQ_SIDE_BOTH:
+          seq->flag &= ~(SEQ_RIGHTSEL | SEQ_LEFTSEL);
+          seq->flag |= SELECT;
+          break;
+      }
+    }
+  }
+}
+
+/* used for mouse selection in SEQUENCER_OT_select */
 static void select_linked_time(ListBase *seqbase, Sequence *seq_link)
 {
   Sequence *seq;
@@ -913,20 +950,39 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
 }
 
 /* select side operator */
-static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
+static int sequencer_select_side_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = BKE_sequencer_editing_get(scene, false);
-  Sequence *seq_act = BKE_sequencer_active_get(scene);
 
-  if (ed == NULL || seq_act == NULL) {
+  const int sel_side = RNA_enum_get(op->ptr, "side");
+  const int frame_init = sel_side == SEQ_SIDE_LEFT ? -INT_MIN : INT_MAX;
+  int frame_ranges[MAXSEQ];
+  bool selected = false;
+
+  copy_vn_i(frame_ranges, ARRAY_SIZE(frame_ranges), frame_init);
+
+  for (Sequence *seq = ed->seqbasep->first; seq; seq = seq->next) {
+    if (UNLIKELY(seq->machine >= MAXSEQ)) {
+      continue;
+    }
+    int *frame_limit_p = &frame_ranges[seq->machine];
+    if (seq->flag & SELECT) {
+      selected = true;
+      if (sel_side == SEQ_SIDE_LEFT) {
+        *frame_limit_p = max_ii(*frame_limit_p, seq->startdisp);
+      }
+      else {
+        *frame_limit_p = min_ii(*frame_limit_p, seq->startdisp);
+      }
+    }
+  }
+
+  if (selected == false) {
     return OPERATOR_CANCELLED;
   }
 
-  seq_act->flag |= SELECT;
-
-  select_active_side(
-      ed->seqbasep, RNA_enum_get(op->ptr, "side"), seq_act->machine, seq_act->startdisp);
+  select_active_side_range(ed->seqbasep, sel_side, frame_ranges, frame_init);
 
   ED_outliner_select_sync_from_sequence_tag(C);
 
@@ -935,15 +991,15 @@ static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_select_active_side(wmOperatorType *ot)
+void SEQUENCER_OT_select_side(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Select Active Side";
-  ot->idname = "SEQUENCER_OT_select_active_side";
-  ot->description = "Select strips on the nominated side of the active strip";
+  ot->name = "Select Side";
+  ot->idname = "SEQUENCER_OT_select_side";
+  ot->description = "Select strips on the nominated side of the selected strips";
 
   /* api callbacks */
-  ot->exec = sequencer_select_active_side_exec;
+  ot->exec = sequencer_select_side_exec;
   ot->poll = sequencer_edit_poll;
 
   /* flags */
@@ -955,7 +1011,7 @@ void SEQUENCER_OT_select_active_side(wmOperatorType *ot)
                prop_side_types,
                SEQ_SIDE_BOTH,
                "Side",
-               "The side of the handle that is selected");
+               "The side to which the selection is applied");
 }
 
 /* box_select operator */
