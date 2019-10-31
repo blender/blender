@@ -31,11 +31,6 @@ class GHOST_SystemNULL;
 
 class GHOST_WindowNULL : public GHOST_Window {
  public:
-  const GHOST_TabletData *GetTabletData()
-  {
-    return NULL;
-  }
-
   GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor)
   {
     return GHOST_kSuccess;

@@ -145,14 +145,9 @@ class GHOST_WindowX11 : public GHOST_Window {
    */
   Window getXWindow();
 #ifdef WITH_X11_XINPUT
-  GHOST_TabletData *GetTabletData()
+  GHOST_TabletData &GetTabletData()
   {
-    return &m_tabletData;
-  }
-#else   // WITH_X11_XINPUT
-  const GHOST_TabletData *GetTabletData()
-  {
-    return NULL;
+    return m_tabletData;
   }
 #endif  // WITH_X11_XINPUT
 

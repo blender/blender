@@ -101,6 +101,12 @@ typedef struct GHOST_TabletData {
   float Ytilt; /* as above */
 } GHOST_TabletData;
 
+static const GHOST_TabletData GHOST_TABLET_DATA_DEFAULT = {
+    GHOST_kTabletModeNone, /* No tablet connected. */
+    1.0f,                  /* Pressure */
+    0.0f,                  /* Xtilt */
+    0.0f};                 /* Ytilt */
+
 typedef enum {
   GHOST_kNotVisible = 0,
   GHOST_kPartiallyVisible,
@@ -409,11 +415,15 @@ typedef struct {
   GHOST_TInt32 x;
   /** The y-coordinate of the cursor position. */
   GHOST_TInt32 y;
+  /** Associated tablet data. */
+  GHOST_TabletData tablet;
 } GHOST_TEventCursorData;
 
 typedef struct {
   /** The mask of the mouse button. */
   GHOST_TButtonMask button;
+  /** Associated tablet data. */
+  GHOST_TabletData tablet;
 } GHOST_TEventButtonData;
 
 typedef struct {

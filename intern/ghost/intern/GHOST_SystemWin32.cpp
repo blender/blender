@@ -894,6 +894,7 @@ GHOST_Event *GHOST_SystemWin32::processPointerEvent(GHOST_TEventType type,
 
   switch (type) {
     case GHOST_kEventButtonDown:
+      /* Update window tablet data to be included in event. */
       window->setTabletData(&pointerInfo.tabletData);
       eventHandled = true;
       return new GHOST_EventButton(
@@ -903,6 +904,7 @@ GHOST_Event *GHOST_SystemWin32::processPointerEvent(GHOST_TEventType type,
       return new GHOST_EventButton(
           system->getMilliSeconds(), GHOST_kEventButtonUp, window, pointerInfo.buttonMask);
     case GHOST_kEventCursorMove:
+      /* Update window tablet data to be included in event. */
       window->setTabletData(&pointerInfo.tabletData);
       eventHandled = true;
       return new GHOST_EventCursor(system->getMilliSeconds(),

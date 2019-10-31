@@ -1451,11 +1451,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
       break;
 
     case NSEventTypeTabletProximity:
-      ct.Pressure = 0;
-      ct.Xtilt = 0;
-      ct.Ytilt = 0;
+      /* Reset tablet data when device enters proximity or leaves. */
+      ct = GHOST_TABLET_DATA_DEFAULT;
       if ([event isEnteringProximity]) {
-        // pointer is entering tablet area proximity
+        /* Pointer is entering tablet area proximity. */
         switch ([event pointingDeviceType]) {
           case NSPointingDeviceTypePen:
             ct.Active = GHOST_kTabletModeStylus;
@@ -1466,13 +1465,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
           case NSPointingDeviceTypeCursor:
           case NSPointingDeviceTypeUnknown:
           default:
-            ct.Active = GHOST_kTabletModeNone;
             break;
         }
-      }
-      else {
-        // pointer is leaving - return to mouse
-        ct.Active = GHOST_kTabletModeNone;
       }
       break;
 
@@ -1524,46 +1518,45 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 
   switch ([event type]) {
     case NSEventTypeLeftMouseDown:
+      handleTabletEvent(event);  // Update window tablet state to be included in event.
       pushEvent(new GHOST_EventButton(
           [event timestamp] * 1000, GHOST_kEventButtonDown, window, GHOST_kButtonMaskLeft));
-      handleTabletEvent(event);  // Handle tablet events combined with mouse events
       break;
     case NSEventTypeRightMouseDown:
+      handleTabletEvent(event);  // Update window tablet state to be included in event.
       pushEvent(new GHOST_EventButton(
           [event timestamp] * 1000, GHOST_kEventButtonDown, window, GHOST_kButtonMaskRight));
-      handleTabletEvent(event);  // Handle tablet events combined with mouse events
       break;
     case NSEventTypeOtherMouseDown:
+      handleTabletEvent(event);  // Handle tablet events combined with mouse events
       pushEvent(new GHOST_EventButton([event timestamp] * 1000,
                                       GHOST_kEventButtonDown,
                                       window,
                                       convertButton([event buttonNumber])));
-      handleTabletEvent(event);  // Handle tablet events combined with mouse events
       break;
 
     case NSEventTypeLeftMouseUp:
+      handleTabletEvent(event);  // Update window tablet state to be included in event.
       pushEvent(new GHOST_EventButton(
           [event timestamp] * 1000, GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft));
-      handleTabletEvent(event);  // Handle tablet events combined with mouse events
       break;
     case NSEventTypeRightMouseUp:
+      handleTabletEvent(event);  // Update window tablet state to be included in event.
       pushEvent(new GHOST_EventButton(
           [event timestamp] * 1000, GHOST_kEventButtonUp, window, GHOST_kButtonMaskRight));
-      handleTabletEvent(event);  // Handle tablet events combined with mouse events
       break;
     case NSEventTypeOtherMouseUp:
+      handleTabletEvent(event);  // Update window tablet state to be included in event.
       pushEvent(new GHOST_EventButton([event timestamp] * 1000,
                                       GHOST_kEventButtonUp,
                                       window,
                                       convertButton([event buttonNumber])));
-      handleTabletEvent(event);  // Handle tablet events combined with mouse events
       break;
 
     case NSEventTypeLeftMouseDragged:
     case NSEventTypeRightMouseDragged:
     case NSEventTypeOtherMouseDragged:
-      // Handle tablet events combined with mouse events
-      handleTabletEvent(event);
+      handleTabletEvent(event);  // Update window tablet state to be included in event.
 
     case NSEventTypeMouseMoved: {
       GHOST_TGrabCursorMode grab_mode = window->getCursorGrabMode();

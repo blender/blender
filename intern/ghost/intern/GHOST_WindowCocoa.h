@@ -222,9 +222,9 @@ class GHOST_WindowCocoa : public GHOST_Window {
 
   bool isDialog() const;
 
-  const GHOST_TabletData *GetTabletData()
+  const GHOST_TabletData &GetTabletData()
   {
-    return &m_tablet;
+    return m_tablet;
   }
 
   GHOST_TabletData &GetCocoaTabletData()

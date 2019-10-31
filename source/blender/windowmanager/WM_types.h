@@ -560,7 +560,7 @@ typedef struct wmEvent {
   char check_click;
   char check_drag;
 
-  /** Tablet info, only use when the tablet is active. */
+  /** Tablet info, available for mouse move and button events. */
   wmTabletData tablet;
 
   /* custom data */

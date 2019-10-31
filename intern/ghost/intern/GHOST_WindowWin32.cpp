@@ -89,8 +89,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 {
   // Initialize tablet variables
   memset(&m_wintab, 0, sizeof(m_wintab));
-  memset(&m_tabletData, 0, sizeof(m_tabletData));
-  m_tabletData.Active = GHOST_kTabletModeNone;
+  m_tabletData = GHOST_TABLET_DATA_DEFAULT;
 
   // Create window
   if (state != GHOST_kWindowStateFullScreen) {
@@ -1085,10 +1084,7 @@ void GHOST_WindowWin32::setTabletData(GHOST_TabletData *pTabletData)
     m_tabletData = *pTabletData;
   }
   else {
-    m_tabletData.Active = GHOST_kTabletModeNone;
-    m_tabletData.Pressure = 1.0f;
-    m_tabletData.Xtilt = 0.0f;
-    m_tabletData.Ytilt = 0.0f;
+    m_tabletData = GHOST_TABLET_DATA_DEFAULT;
   }
 }
 
@@ -1150,8 +1146,6 @@ void GHOST_WindowWin32::processWin32TabletInitEvent()
         m_wintab.maxAzimuth = m_wintab.maxAltitude = 0;
       }
     }
-
-    m_tabletData.Active = GHOST_kTabletModeNone;
   }
 
   m_tabletData.Active = GHOST_kTabletModeNone;

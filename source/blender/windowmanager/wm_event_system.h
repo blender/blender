@@ -31,6 +31,7 @@
 #define WM_HANDLER_MODAL 4 /* MODAL|BREAK means unhandled */
 
 struct ARegion;
+struct GHOST_TabletData;
 struct ScrArea;
 
 /* wmKeyMap is in DNA_windowmanager.h, it's saveable */
@@ -150,6 +151,7 @@ void wm_event_do_notifiers(bContext *C);
 
 /* wm_event_query.c */
 float wm_pressure_curve(float raw_pressure);
+void wm_tablet_data_from_ghost(const struct GHOST_TabletData *tablet_data, wmTabletData *wmtab);
 
 /* wm_keymap.c */
 

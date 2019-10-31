@@ -823,7 +823,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
    * in the future we could have a ghost call window->CheckTabletProximity()
    * but for now enough parts of the code are checking 'Active'
    * - campbell */
-  if (window->GetTabletData()->Active != GHOST_kTabletModeNone) {
+  if (window->GetTabletData().Active != GHOST_kTabletModeNone) {
     bool any_proximity = false;
 
     for (GHOST_TabletX11 &xtablet : m_xtablets) {
@@ -834,7 +834,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
     if (!any_proximity) {
       // printf("proximity disable\n");
-      window->GetTabletData()->Active = GHOST_kTabletModeNone;
+      window->GetTabletData().Active = GHOST_kTabletModeNone;
     }
   }
 #endif /* WITH_X11_XINPUT */
@@ -855,7 +855,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       XMotionEvent &xme = xe->xmotion;
 
 #ifdef WITH_X11_XINPUT
-      bool is_tablet = window->GetTabletData()->Active != GHOST_kTabletModeNone;
+      bool is_tablet = window->GetTabletData().Active != GHOST_kTabletModeNone;
 #else
       bool is_tablet = false;
 #endif
@@ -1395,7 +1395,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
           /* stroke might begin without leading ProxyIn event,
            * this happens when window is opened when stylus is already hovering
            * around tablet surface */
-          window->GetTabletData()->Active = xtablet.mode;
+          window->GetTabletData().Active = xtablet.mode;
 
           /* Note: This event might be generated with incomplete dataset
            * (don't exactly know why, looks like in some cases, if the value does not change,
@@ -1408,7 +1408,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
      ((void)(val = data->axis_data[axis - axis_first]), true))
 
           if (AXIS_VALUE_GET(2, axis_value)) {
-            window->GetTabletData()->Pressure = axis_value / ((float)xtablet.PressureLevels);
+            window->GetTabletData().Pressure = axis_value / ((float)xtablet.PressureLevels);
           }
 
           /* the (short) cast and the & 0xffff is bizarre and unexplained anywhere,
@@ -1420,12 +1420,12 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
            * check this. --mont29
            */
           if (AXIS_VALUE_GET(3, axis_value)) {
-            window->GetTabletData()->Xtilt = (short)(axis_value & 0xffff) /
-                                             ((float)xtablet.XtiltLevels);
+            window->GetTabletData().Xtilt = (short)(axis_value & 0xffff) /
+                                            ((float)xtablet.XtiltLevels);
           }
           if (AXIS_VALUE_GET(4, axis_value)) {
-            window->GetTabletData()->Ytilt = (short)(axis_value & 0xffff) /
-                                             ((float)xtablet.YtiltLevels);
+            window->GetTabletData().Ytilt = (short)(axis_value & 0xffff) /
+                                            ((float)xtablet.YtiltLevels);
           }
 
 #  undef AXIS_VALUE_GET
@@ -1436,10 +1436,10 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
             continue;
           }
 
-          window->GetTabletData()->Active = xtablet.mode;
+          window->GetTabletData().Active = xtablet.mode;
         }
         else if (xe->type == xtablet.ProxOutEvent) {
-          window->GetTabletData()->Active = GHOST_kTabletModeNone;
+          window->GetTabletData().Active = GHOST_kTabletModeNone;
         }
       }
 #endif  // WITH_X11_XINPUT

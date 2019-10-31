@@ -46,6 +46,7 @@ class GHOST_EventButton : public GHOST_Event {
       : GHOST_Event(time, type, window)
   {
     m_buttonEventData.button = button;
+    m_buttonEventData.tablet = window->GetTabletData();
     m_data = &m_buttonEventData;
   }
 

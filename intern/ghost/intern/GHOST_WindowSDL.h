@@ -48,11 +48,6 @@ class GHOST_WindowSDL : public GHOST_Window {
   SDL_Cursor *m_sdl_custom_cursor;
 
  public:
-  const GHOST_TabletData *GetTabletData()
-  {
-    return NULL;
-  }
-
   GHOST_WindowSDL(GHOST_SystemSDL *system,
                   const STR_String &title,
                   GHOST_TInt32 left,

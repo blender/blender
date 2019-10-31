@@ -101,7 +101,6 @@
 #define USE_GIZMO_MOUSE_PRIORITY_HACK
 
 static void wm_notifier_clear(wmNotifier *note);
-static void update_tablet_data(wmWindow *win, wmEvent *event);
 
 static int wm_operator_call_internal(bContext *C,
                                      wmOperatorType *ot,
@@ -124,8 +123,6 @@ wmEvent *wm_event_add_ex(wmWindow *win,
   wmEvent *event = MEM_mallocN(sizeof(wmEvent), "wmEvent");
 
   *event = *event_to_add;
-
-  update_tablet_data(win, event);
 
   if (event_to_add_after == NULL) {
     BLI_addtail(&win->queue, event);
@@ -4087,20 +4084,15 @@ static void wm_eventemulation(wmEvent *event, bool test_only)
   }
 }
 
-/* adds customdata to event */
-static void update_tablet_data(wmWindow *win, wmEvent *event)
+void wm_tablet_data_from_ghost(const GHOST_TabletData *tablet_data, wmTabletData *wmtab)
 {
-  const GHOST_TabletData *td = GHOST_GetTabletData(win->ghostwin);
-  wmTabletData *wmtab = &event->tablet;
-
-  /* if there's tablet data from an active tablet device then add it */
-  if ((td != NULL) && td->Active != GHOST_kTabletModeNone) {
-    wmtab->active = (int)td->Active;
-    wmtab->pressure = wm_pressure_curve(td->Pressure);
-    wmtab->x_tilt = td->Xtilt;
-    wmtab->y_tilt = td->Ytilt;
+  if ((tablet_data != NULL) && tablet_data->Active != GHOST_kTabletModeNone) {
+    wmtab->active = (int)tablet_data->Active;
+    wmtab->pressure = wm_pressure_curve(tablet_data->Pressure);
+    wmtab->x_tilt = tablet_data->Xtilt;
+    wmtab->y_tilt = tablet_data->Ytilt;
     /* We could have a preference to support relative tablet motion (we can't detect that). */
-    wmtab->is_motion_absolute = ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE);
+    wmtab->is_motion_absolute = true;
     // printf("%s: using tablet %.5f\n", __func__, wmtab->pressure);
   }
   else {
@@ -4260,6 +4252,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 
       copy_v2_v2_int(&event.x, &cd->x);
       wm_stereo3d_mouse_offset_apply(win, &event.x);
+      wm_tablet_data_from_ghost(&cd->tablet, &event.tablet);
 
       event.prevtype = event.type;
       event.prevval = event.val;
@@ -4349,6 +4342,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         event.type = MIDDLEMOUSE;
       }
 
+      /* Get tablet data. */
+      wm_tablet_data_from_ghost(&bd->tablet, &event.tablet);
+
       wm_eventemulation(&event, false);
 
       /* copy previous state to prev event state (two old!) */
@@ -4379,6 +4375,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         oevent.y = event.y;
         oevent.type = event.type;
         oevent.val = event.val;
+        oevent.tablet = event.tablet;
 
         wm_event_add(owin, &oevent);
       }

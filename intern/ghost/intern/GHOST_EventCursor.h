@@ -48,6 +48,7 @@ class GHOST_EventCursor : public GHOST_Event {
   {
     m_cursorEventData.x = x;
     m_cursorEventData.y = y;
+    m_cursorEventData.tablet = window->GetTabletData();
     m_data = &m_cursorEventData;
   }
 
