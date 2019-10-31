@@ -24,6 +24,9 @@
 import bpy
 from bpy.types import Operator
 
+from bpy.props import (
+    EnumProperty,
+)
 
 STATUS_OK = (1 << 0)
 STATUS_ERR_ACTIVE_FACE = (1 << 1)
@@ -253,7 +256,7 @@ class FollowActiveQuads(Operator):
     bl_label = "Follow Active Quads"
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode: bpy.props.EnumProperty(
+    mode: EnumProperty(
         name="Edge Length Mode",
         description="Method to space UV edge loops",
         items=(

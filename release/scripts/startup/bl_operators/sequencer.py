@@ -21,7 +21,11 @@
 import bpy
 from bpy.types import Operator
 
-from bpy.props import IntProperty
+from bpy.props import (
+    EnumProperty,
+    FloatProperty,
+    IntProperty,
+)
 
 
 class SequencerCrossfadeSounds(Operator):
@@ -170,12 +174,12 @@ class SequencerFadesAdd(Operator):
     bl_label = "Add Fades"
     bl_options = {'REGISTER', 'UNDO'}
 
-    duration_seconds: bpy.props.FloatProperty(
+    duration_seconds: FloatProperty(
         name="Fade Duration",
         description="Duration of the fade in seconds",
         default=1.0,
         min=0.01)
-    type: bpy.props.EnumProperty(
+    type: EnumProperty(
         items=(
             ('IN_OUT', 'Fade In And Out', 'Fade selected strips in and out'),
             ('IN', 'Fade In', 'Fade in selected strips'),

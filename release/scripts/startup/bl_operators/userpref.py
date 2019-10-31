@@ -1032,7 +1032,7 @@ class PREFERENCES_OT_studiolight_uninstall(Operator):
     """Delete Studio Light"""
     bl_idname = "preferences.studiolight_uninstall"
     bl_label = "Uninstall Studio Light"
-    index: bpy.props.IntProperty()
+    index: IntProperty()
 
     def execute(self, context):
         import os
@@ -1055,7 +1055,7 @@ class PREFERENCES_OT_studiolight_copy_settings(Operator):
     """Copy Studio Light settings to the Studio light editor"""
     bl_idname = "preferences.studiolight_copy_settings"
     bl_label = "Copy Studio Light settings"
-    index: bpy.props.IntProperty()
+    index: IntProperty()
 
     def execute(self, context):
         prefs = context.preferences
