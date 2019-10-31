@@ -799,36 +799,38 @@ void ED_mask_draw_frames(Mask *mask, ARegion *ar, const int cfra, const int sfra
   const float framelen = ar->winx / (float)(efra - sfra + 1);
 
   MaskLayer *mask_layer = BKE_mask_layer_active(mask);
-
-  if (mask_layer) {
-    unsigned int num_lines = BLI_listbase_count(&mask_layer->splines_shapes);
-
-    if (num_lines > 0) {
-      /* Local coordinate visible rect inside region, to accommodate overlapping ui. */
-      const rcti *rect_visible = ED_region_visible_rect(ar);
-      const int region_bottom = rect_visible->ymin;
-
-      uint pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-      immUniformColor4ub(255, 175, 0, 255);
-
-      immBegin(GPU_PRIM_LINES, 2 * num_lines);
-
-      for (MaskLayerShape *mask_layer_shape = mask_layer->splines_shapes.first;
-           mask_layer_shape != NULL;
-           mask_layer_shape = mask_layer_shape->next) {
-        int frame = mask_layer_shape->frame;
-
-        /* draw_keyframe(i, CFRA, sfra, framelen, 1); */
-        int height = (frame == cfra) ? 22 : 10;
-        int x = (frame - sfra) * framelen;
-        immVertex2i(pos, x, region_bottom);
-        immVertex2i(pos, x, region_bottom + height * UI_DPI_FAC);
-      }
-      immEnd();
-      immUnbindProgram();
-    }
+  if (mask_layer == NULL) {
+    return;
   }
+
+  unsigned int num_lines = BLI_listbase_count(&mask_layer->splines_shapes);
+  if (num_lines == 0) {
+    return;
+  }
+
+  /* Local coordinate visible rect inside region, to accommodate overlapping ui. */
+  const rcti *rect_visible = ED_region_visible_rect(ar);
+  const int region_bottom = rect_visible->ymin;
+
+  uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immUniformColor4ub(255, 175, 0, 255);
+
+  immBegin(GPU_PRIM_LINES, 2 * num_lines);
+
+  for (MaskLayerShape *mask_layer_shape = mask_layer->splines_shapes.first;
+       mask_layer_shape != NULL;
+       mask_layer_shape = mask_layer_shape->next) {
+    int frame = mask_layer_shape->frame;
+
+    /* draw_keyframe(i, CFRA, sfra, framelen, 1); */
+    int height = (frame == cfra) ? 22 : 10;
+    int x = (frame - sfra) * framelen;
+    immVertex2i(pos, x, region_bottom);
+    immVertex2i(pos, x, region_bottom + height * UI_DPI_FAC);
+  }
+  immEnd();
+  immUnbindProgram();
 }
