@@ -4505,11 +4505,13 @@ class VIEW3D_MT_assign_material(Menu):
     def draw(self, context):
         layout = self.layout
         ob = context.active_object
+        mat_active = ob.active_material
 
         for slot in ob.material_slots:
             mat = slot.material
             if mat:
-                layout.operator("gpencil.stroke_change_color", text=mat.name).material = mat.name
+                layout.operator("gpencil.stroke_change_color", text=mat.name,
+                                icon='LAYER_ACTIVE' if mat == mat_active else 'BLANK1').material = mat.name
 
 
 class VIEW3D_MT_gpencil_copy_layer(Menu):
