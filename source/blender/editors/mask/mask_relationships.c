@@ -43,17 +43,17 @@
 static int mask_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *masklay;
+  MaskLayer *mask_layer;
 
-  for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     MaskSpline *spline;
     int i;
 
-    if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+    if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
     }
 
-    for (spline = masklay->splines.first; spline; spline = spline->next) {
+    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
       for (i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
@@ -89,7 +89,7 @@ void MASK_OT_parent_clear(wmOperatorType *ot)
 static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *masklay;
+  MaskLayer *mask_layer;
 
   /* parent info */
   SpaceClip *sc = CTX_wm_space_clip(C);
@@ -141,15 +141,15 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     MaskSpline *spline;
     int i;
 
-    if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+    if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
     }
 
-    for (spline = masklay->splines.first; spline; spline = spline->next) {
+    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
       for (i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
