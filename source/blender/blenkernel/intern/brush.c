@@ -84,6 +84,7 @@ static void brush_defaults(Brush *brush)
   FROM_DEFAULT(normal_weight);
   FROM_DEFAULT(fill_threshold);
   FROM_DEFAULT(flag);
+  FROM_DEFAULT(sampling_flag);
   FROM_DEFAULT_PTR(rgb);
   FROM_DEFAULT_PTR(secondary_rgb);
   FROM_DEFAULT(spacing);

@@ -34,6 +34,7 @@
   { \
     .blend = 0, \
     .flag = (BRUSH_ALPHA_PRESSURE | BRUSH_SPACE | BRUSH_SPACE_ATTEN), \
+    .sampling_flag = (BRUSH_PAINT_ANTIALIASING), \
  \
     .ob_mode = OB_MODE_ALL_PAINT, \
  \

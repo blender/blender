@@ -245,8 +245,9 @@ typedef struct Brush {
   float weight;
   /** Brush diameter. */
   int size;
-  /** General purpose flag. */
+  /** General purpose flags. */
   int flag;
+  int sampling_flag;
   /** Pressure influence for mask. */
   int mask_pressure;
   /** Jitter the position of the brush. */
@@ -283,7 +284,7 @@ typedef struct Brush {
   /** Source for fill tool color gradient application. */
   char gradient_fill_mode;
 
-  char _pad;
+  char _pad[5];
   /** Projection shape (sphere, circle). */
   char falloff_shape;
   float falloff_angle;
@@ -434,6 +435,11 @@ typedef enum eBrushFlags {
   BRUSH_ABSOLUTE_JITTER = (1 << 30),
   BRUSH_CURVE = (1u << 31),
 } eBrushFlags;
+
+/* Brush.sampling_flag */
+typedef enum eBrushSamplingFlags {
+  BRUSH_PAINT_ANTIALIASING = (1 << 0),
+} eBrushSamplingFlags;
 
 typedef enum {
   BRUSH_MASK_PRESSURE_RAMP = (1 << 1),

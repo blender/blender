@@ -199,6 +199,8 @@ def brush_texpaint_common_options(_panel, _context, layout, brush, _settings, *,
 
     if projpaint:
         col.prop(brush, "use_alpha")
+    else:
+        col.prop(brush, "use_paint_antialiasing")
 
 
 # Used in both the View3D toolbar and texture properties

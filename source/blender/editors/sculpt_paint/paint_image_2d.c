@@ -387,7 +387,12 @@ static unsigned short *brush_painter_curve_mask_new(BrushPainter *painter,
   m = mask;
 
   int aa_samples = 1.0f / (radius * 0.20f);
-  aa_samples = clamp_i(aa_samples, 3, 16);
+  if (brush->sampling_flag & BRUSH_PAINT_ANTIALIASING) {
+    aa_samples = clamp_i(aa_samples, 3, 16);
+  }
+  else {
+    aa_samples = 1;
+  }
 
   /* Temporal until we have the brush properties */
   const float hardness = 1.0f;

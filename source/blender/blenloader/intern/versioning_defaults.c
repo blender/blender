@@ -435,6 +435,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
      * Note that sculpt is an exception,
      * it's values are overwritten by #BKE_brush_sculpt_reset below. */
     brush->alpha = 1.0;
+
+    /* Enable antialiasing by default */
+    brush->sampling_flag |= BRUSH_PAINT_ANTIALIASING;
   }
 
   {
