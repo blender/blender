@@ -608,14 +608,13 @@ static void draw_mask_layers(const bContext *C,
 
   for (mask_layer = mask->masklayers.first, i = 0; mask_layer != NULL;
        mask_layer = mask_layer->next, i++) {
-    MaskSpline *spline;
     const bool is_active = (i == mask->masklay_act);
 
     if (mask_layer->restrictflag & MASK_RESTRICT_VIEW) {
       continue;
     }
 
-    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+    for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
 
       /* draw curve itself first... */
       draw_spline_curve(C, mask_layer, spline, draw_flag, draw_type, is_active, width, height);

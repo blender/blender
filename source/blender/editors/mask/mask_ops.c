@@ -555,7 +555,6 @@ static bool spline_under_mouse_get(const bContext *C,
   const float threshold = 19.0f;
   ScrArea *sa = CTX_wm_area(C);
   SpaceClip *sc = CTX_wm_space_clip(C);
-  MaskLayer *mask_layer;
   int width, height;
   float pixel_co[2];
   float closest_dist_squared = 0.0f;
@@ -570,13 +569,13 @@ static bool spline_under_mouse_get(const bContext *C,
   if (sc != NULL) {
     undistort = (sc->clip != NULL) && (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT) != 0;
   }
-  for (mask_layer = mask->masklayers.first; mask_layer != NULL; mask_layer = mask_layer->next) {
-    MaskSpline *spline;
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer != NULL;
+       mask_layer = mask_layer->next) {
     if (mask_layer->restrictflag & MASK_RESTRICT_SELECT) {
       continue;
     }
 
-    for (spline = mask_layer->splines.first; spline != NULL; spline = spline->next) {
+    for (MaskSpline *spline = mask_layer->splines.first; spline != NULL; spline = spline->next) {
       MaskSplinePoint *points_array;
       float min[2], max[2], center[2];
       float dist_squared;
@@ -1586,16 +1585,13 @@ void MASK_OT_slide_spline_curvature(wmOperatorType *ot)
 static int cyclic_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
-    MaskSpline *spline;
-
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
     }
 
-    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+    for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
       if (ED_mask_spline_select_check(spline)) {
         spline->flag ^= MASK_SPLINE_CYCLIC;
       }
@@ -1666,10 +1662,9 @@ static void delete_feather_points(MaskSplinePoint *point)
 static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
   bool changed = false;
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     MaskSpline *spline;
     int mask_layer_shape_ofs = 0;
 
@@ -1787,20 +1782,18 @@ static int mask_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
 
   bool changed = false;
 
   /* do actual selection */
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
-    MaskSpline *spline;
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     bool changed_layer = false;
 
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
     }
 
-    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+    for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
       if (ED_mask_spline_select_check(spline)) {
         BKE_mask_spline_direction_switch(mask_layer, spline);
         changed = true;
@@ -1847,22 +1840,19 @@ static int mask_normals_make_consistent_exec(bContext *C, wmOperator *UNUSED(op)
 {
   Scene *scene = CTX_data_scene(C);
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
-  int i;
 
   bool changed = false;
 
   /* do actual selection */
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
-    MaskSpline *spline;
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     bool changed_layer = false;
 
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
     }
 
-    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
-      for (i = 0; i < spline->tot_point; i++) {
+    for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
+      for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
         if (MASKPOINT_ISSEL_ANY(point)) {
@@ -1913,21 +1903,17 @@ void MASK_OT_normals_make_consistent(wmOperatorType *ot)
 static int set_handle_type_exec(bContext *C, wmOperator *op)
 {
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
   int handle_type = RNA_enum_get(op->ptr, "type");
 
   bool changed = false;
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
-    MaskSpline *spline;
-    int i;
-
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
     }
 
-    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
-      for (i = 0; i < spline->tot_point; i++) {
+    for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
+      for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
         if (MASKPOINT_ISSEL_ANY(point)) {
@@ -1999,11 +1985,10 @@ void MASK_OT_handle_type_set(wmOperatorType *ot)
 static int mask_hide_view_clear_exec(bContext *C, wmOperator *op)
 {
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
   bool changed = false;
   const bool select = RNA_boolean_get(op->ptr, "select");
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
 
     if (mask_layer->restrictflag & OB_RESTRICT_VIEWPORT) {
       ED_mask_layer_select_set(mask_layer, select);
@@ -2044,11 +2029,10 @@ void MASK_OT_hide_view_clear(wmOperatorType *ot)
 static int mask_hide_view_set_exec(bContext *C, wmOperator *op)
 {
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
   const bool unselected = RNA_boolean_get(op->ptr, "unselected");
   bool changed = false;
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
 
     if (mask_layer->restrictflag & MASK_RESTRICT_SELECT) {
       continue;
@@ -2108,19 +2092,15 @@ void MASK_OT_hide_view_set(wmOperatorType *ot)
 static int mask_feather_weight_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
   bool changed = false;
-  int i;
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
-    MaskSpline *spline;
-
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     if (mask_layer->restrictflag & (MASK_RESTRICT_SELECT | MASK_RESTRICT_VIEW)) {
       continue;
     }
 
-    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
-      for (i = 0; i < spline->tot_point; i++) {
+    for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
+      for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
         if (MASKPOINT_ISSEL_ANY(point)) {
@@ -2247,12 +2227,9 @@ void MASK_OT_layer_move(wmOperatorType *ot)
 static int mask_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
-    MaskSpline *spline;
-
-    for (spline = mask_layer->splines.last; spline; spline = spline->prev) {
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+    for (MaskSpline *spline = mask_layer->splines.last; spline; spline = spline->prev) {
       MaskSplinePoint *point = spline->points;
       int i = 0;
       while (i < spline->tot_point) {

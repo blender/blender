@@ -51,10 +51,9 @@ static int mask_shape_key_insert_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   const int frame = CFRA;
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
   bool changed = false;
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     MaskLayerShape *mask_layer_shape;
 
     if (!ED_mask_layer_select_check(mask_layer)) {
@@ -97,10 +96,9 @@ static int mask_shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   const int frame = CFRA;
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
   bool changed = false;
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     MaskLayerShape *mask_layer_shape;
 
     if (!ED_mask_layer_select_check(mask_layer)) {
@@ -146,10 +144,9 @@ static int mask_shape_key_feather_reset_exec(bContext *C, wmOperator *UNUSED(op)
   Scene *scene = CTX_data_scene(C);
   const int frame = CFRA;
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
   bool changed = false;
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
 
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
@@ -169,16 +166,14 @@ static int mask_shape_key_feather_reset_exec(bContext *C, wmOperator *UNUSED(op)
 
         if (mask_layer_shape_reset->tot_vert == mask_layer_shape->tot_vert) {
           int i_abs = 0;
-          int i;
-          MaskSpline *spline;
           MaskLayerShapeElem *shape_ele_src;
           MaskLayerShapeElem *shape_ele_dst;
 
           shape_ele_src = (MaskLayerShapeElem *)mask_layer_shape_reset->data;
           shape_ele_dst = (MaskLayerShapeElem *)mask_layer_shape->data;
 
-          for (spline = mask_layer->splines.first; spline; spline = spline->next) {
-            for (i = 0; i < spline->tot_point; i++) {
+          for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
+            for (int i = 0; i < spline->tot_point; i++) {
               MaskSplinePoint *point = &spline->points[i];
 
               if (MASKPOINT_ISSEL_ANY(point)) {
@@ -243,14 +238,12 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   const int frame = CFRA;
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
   bool changed = false;
 
   const bool do_feather = RNA_boolean_get(op->ptr, "feather");
   const bool do_location = RNA_boolean_get(op->ptr, "location");
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
-
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
     }
@@ -319,8 +312,6 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
                mask_layer_shape_tmp = mask_layer_shape_tmp_next) {
             /* restore */
             int i_abs = 0;
-            int i;
-            MaskSpline *spline;
             MaskLayerShapeElem *shape_ele_src;
             MaskLayerShapeElem *shape_ele_dst;
 
@@ -333,8 +324,8 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
             shape_ele_src = (MaskLayerShapeElem *)mask_layer_shape_tmp->data;
             shape_ele_dst = (MaskLayerShapeElem *)mask_layer_shape_tmp_rekey->data;
 
-            for (spline = mask_layer->splines.first; spline; spline = spline->next) {
-              for (i = 0; i < spline->tot_point; i++) {
+            for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
+              for (int i = 0; i < spline->tot_point; i++) {
                 MaskSplinePoint *point = &spline->points[i];
 
                 /* not especially efficient but makes this easier to follow */
@@ -411,10 +402,9 @@ void ED_mask_layer_shape_auto_key(MaskLayer *mask_layer, const int frame)
 
 bool ED_mask_layer_shape_auto_key_all(Mask *mask, const int frame)
 {
-  MaskLayer *mask_layer;
   bool changed = false;
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     ED_mask_layer_shape_auto_key(mask_layer, frame);
     changed = true;
   }
@@ -424,10 +414,9 @@ bool ED_mask_layer_shape_auto_key_all(Mask *mask, const int frame)
 
 bool ED_mask_layer_shape_auto_key_select(Mask *mask, const int frame)
 {
-  MaskLayer *mask_layer;
   bool changed = false;
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
 
     if (!ED_mask_layer_select_check(mask_layer)) {
       continue;

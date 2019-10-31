@@ -70,13 +70,11 @@ bool ED_mask_spline_select_check(MaskSpline *spline)
 
 bool ED_mask_layer_select_check(MaskLayer *mask_layer)
 {
-  MaskSpline *spline;
-
   if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
     return false;
   }
 
-  for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+  for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
     if (ED_mask_spline_select_check(spline)) {
       return true;
     }
@@ -87,9 +85,7 @@ bool ED_mask_layer_select_check(MaskLayer *mask_layer)
 
 bool ED_mask_select_check(Mask *mask)
 {
-  MaskLayer *mask_layer;
-
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     if (ED_mask_layer_select_check(mask_layer)) {
       return true;
     }
@@ -119,23 +115,19 @@ void ED_mask_spline_select_set(MaskSpline *spline, const bool do_select)
 
 void ED_mask_layer_select_set(MaskLayer *mask_layer, const bool do_select)
 {
-  MaskSpline *spline;
-
   if (mask_layer->restrictflag & MASK_RESTRICT_SELECT) {
     if (do_select == true) {
       return;
     }
   }
 
-  for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+  for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
     ED_mask_spline_select_set(spline, do_select);
   }
 }
 
 void ED_mask_select_toggle_all(Mask *mask, int action)
 {
-  MaskLayer *mask_layer;
-
   if (action == SEL_TOGGLE) {
     if (ED_mask_select_check(mask)) {
       action = SEL_DESELECT;
@@ -145,7 +137,7 @@ void ED_mask_select_toggle_all(Mask *mask, int action)
     }
   }
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
 
     if (mask_layer->restrictflag & MASK_RESTRICT_VIEW) {
       continue;
@@ -155,11 +147,10 @@ void ED_mask_select_toggle_all(Mask *mask, int action)
       /* we don't have generic functions for this, its restricted to this operator
        * if one day we need to re-use such functionality, they can be split out */
 
-      MaskSpline *spline;
       if (mask_layer->restrictflag & MASK_RESTRICT_SELECT) {
         continue;
       }
-      for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+      for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
         int i;
         for (i = 0; i < spline->tot_point; i++) {
           MaskSplinePoint *point = &spline->points[i];
@@ -175,14 +166,8 @@ void ED_mask_select_toggle_all(Mask *mask, int action)
 
 void ED_mask_select_flush_all(Mask *mask)
 {
-  MaskLayer *mask_layer;
-
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
-    MaskSpline *spline;
-
-    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
-      int i;
-
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+    for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
       spline->flag &= ~SELECT;
 
       /* intentionally _dont_ do this in the mask layer loop
@@ -191,7 +176,7 @@ void ED_mask_select_flush_all(Mask *mask)
         continue;
       }
 
-      for (i = 0; i < spline->tot_point; i++) {
+      for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *cur_point = &spline->points[i];
 
         if (MASKPOINT_ISSEL_ANY(cur_point)) {
@@ -454,8 +439,6 @@ static int box_select_exec(bContext *C, wmOperator *op)
   ARegion *ar = CTX_wm_region(C);
 
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
-  int i;
 
   rcti rect;
   rctf rectf;
@@ -475,17 +458,15 @@ static int box_select_exec(bContext *C, wmOperator *op)
   ED_mask_point_pos(sa, ar, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
   /* do actual selection */
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
-    MaskSpline *spline;
-
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
     }
 
-    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+    for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
       MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
-      for (i = 0; i < spline->tot_point; i++) {
+      for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
         MaskSplinePoint *point_deform = &points_array[i];
 
@@ -548,8 +529,6 @@ static bool do_lasso_select_mask(bContext *C,
   ARegion *ar = CTX_wm_region(C);
 
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
-  int i;
 
   rcti rect;
   bool changed = false;
@@ -564,17 +543,15 @@ static bool do_lasso_select_mask(bContext *C,
   BLI_lasso_boundbox(&rect, mcords, moves);
 
   /* do actual selection */
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
-    MaskSpline *spline;
-
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
     }
 
-    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+    for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
       MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
-      for (i = 0; i < spline->tot_point; i++) {
+      for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
         MaskSplinePoint *point_deform = &points_array[i];
 
@@ -678,7 +655,6 @@ static int circle_select_exec(bContext *C, wmOperator *op)
   ARegion *ar = CTX_wm_region(C);
 
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
   int i;
 
   float zoomx, zoomy, offset[2], ellipse[2];
@@ -709,14 +685,12 @@ static int circle_select_exec(bContext *C, wmOperator *op)
   }
 
   /* do actual selection */
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
-    MaskSpline *spline;
-
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
     }
 
-    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+    for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
       MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
       for (i = 0; i < spline->tot_point; i++) {
@@ -836,19 +810,16 @@ void MASK_OT_select_linked_pick(wmOperatorType *ot)
 static int mask_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
 
   bool changed = false;
 
   /* do actual selection */
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
-    MaskSpline *spline;
-
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
     }
 
-    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+    for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
       if (ED_mask_spline_select_check(spline)) {
         ED_mask_spline_select_set(spline, true);
         changed = true;
@@ -892,16 +863,13 @@ void MASK_OT_select_linked(wmOperatorType *ot)
 static int mask_select_more_less(bContext *C, bool more)
 {
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *mask_layer;
 
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
-    MaskSpline *spline;
-
+  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
     }
 
-    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+    for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
       const bool cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
       bool start_sel, end_sel, prev_sel, cur_sel;
       int i;
