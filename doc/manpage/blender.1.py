@@ -62,7 +62,7 @@ if blender_date is None:
     # Happens when built without WITH_BUILD_INFO e.g.
     date_string = time.strftime("%B %d, %Y", time.gmtime(int(os.environ.get('SOURCE_DATE_EPOCH', time.time()))))
 else:
-    blender_date = blender_date.strip().partition(" ")[2] # remove 'date:' prefix
+    blender_date = blender_date.strip().partition(" ")[2]  # remove 'date:' prefix
     date_string = time.strftime("%B %d, %Y", time.strptime(blender_date, "%Y-%m-%d"))
 
 outfile = open(outfilename, "w")
