@@ -118,7 +118,7 @@ static ScrArea *find_area_image_empty(bContext *C)
   for (sa = sc->areabase.first; sa; sa = sa->next) {
     if (sa->spacetype == SPACE_IMAGE) {
       sima = sa->spacedata.first;
-      if (!sima->image) {
+      if ((sima->mode == SI_MODE_VIEW) && !sima->image) {
         break;
       }
     }
