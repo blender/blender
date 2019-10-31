@@ -361,8 +361,19 @@ bool outliner_is_element_visible(const TreeElement *te)
   return true;
 }
 
+/* Find if x coordinate is over an icon or name */
+bool outliner_item_is_co_over_name_icons(const TreeElement *te, float view_co_x)
+{
+  /* Special case: count area left of Scene Collection as empty space */
+  bool outside_left = (TREESTORE(te)->type == TSE_VIEW_COLLECTION_BASE) ?
+                          (view_co_x > te->xs + UI_UNIT_X) :
+                          (view_co_x > te->xs);
+
+  return outside_left && (view_co_x < te->xend);
+}
+
 /* Find if x coordinate is over element disclosure toggle */
-bool outliner_item_is_co_within_close_toggle(TreeElement *te, float view_co_x)
+bool outliner_item_is_co_within_close_toggle(const TreeElement *te, float view_co_x)
 {
   return (view_co_x > te->xs) && (view_co_x < te->xs + UI_UNIT_X);
 }

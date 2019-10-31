@@ -1115,8 +1115,10 @@ static void do_outliner_item_activate_tree_element(bContext *C,
                                                    TreeElement *te,
                                                    TreeStoreElem *tselem,
                                                    const bool extend,
-                                                   const bool recursive)
+                                                   const bool recursive,
+                                                   const bool is_over_name_icons)
 {
+  bool do_activate_data = soops->flag & SO_SYNC_SELECT || is_over_name_icons;
   /* Always makes active object, except for some specific types. */
   if (ELEM(tselem->type,
            TSE_SEQUENCE,
@@ -1133,7 +1135,7 @@ static void do_outliner_item_activate_tree_element(bContext *C,
   else if (tselem->type == TSE_POSE_BASE) {
     /* Support pose mode toggle, keeping the active object as is. */
   }
-  else if (soops->flag & SO_SYNC_SELECT) {
+  else if (do_activate_data) {
     /* Only activate when synced selection is enabled */
     tree_element_set_active_object(C,
                                    scene,
@@ -1149,8 +1151,10 @@ static void do_outliner_item_activate_tree_element(bContext *C,
   outliner_element_activate(soops, tselem);
 
   if (tselem->type == 0) {  // the lib blocks
-    /* editmode? */
-    if (te->idcode == ID_SCE) {
+    if (do_activate_data == false) {
+      /* Only select in outliner. */
+    }
+    else if (te->idcode == ID_SCE) {
       if (scene != (Scene *)tselem->id) {
         WM_window_set_active_scene(CTX_data_main(C), C, CTX_wm_window(C), (Scene *)tselem->id);
       }
@@ -1212,7 +1216,7 @@ static void do_outliner_item_activate_tree_element(bContext *C,
       tree_element_active(C, scene, view_layer, soops, te, OL_SETSEL_NORMAL, false);
     }
   }
-  else if (soops->flag & SO_SYNC_SELECT) {
+  else if (do_activate_data) {
     tree_element_type_active(C,
                              scene,
                              view_layer,
@@ -1332,7 +1336,7 @@ void outliner_item_do_activate_from_tree_element(
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
 
   do_outliner_item_activate_tree_element(
-      C, scene, view_layer, soops, te, tselem, extend, recursive);
+      C, scene, view_layer, soops, te, tselem, extend, recursive, false);
 }
 
 /**
@@ -1390,9 +1394,18 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
       do_outliner_range_select(C, soops, activate_te, extend);
     }
     else {
+      const bool is_over_name_icons = outliner_item_is_co_over_name_icons(activate_te,
+                                                                          view_mval[0]);
       outliner_item_select(soops, activate_te, extend, extend);
-      do_outliner_item_activate_tree_element(
-          C, scene, view_layer, soops, activate_te, activate_tselem, extend, false);
+      do_outliner_item_activate_tree_element(C,
+                                             scene,
+                                             view_layer,
+                                             soops,
+                                             activate_te,
+                                             activate_tselem,
+                                             extend,
+                                             false,
+                                             is_over_name_icons);
     }
 
     changed = true;
@@ -1503,17 +1516,6 @@ static int outliner_box_select_exec(bContext *C, wmOperator *op)
   }
 
   return OPERATOR_FINISHED;
-}
-
-/* Find if x coordinate is over an icon or name */
-static bool outliner_item_is_co_over_name_icons(TreeElement *te, float view_co_x)
-{
-  /* Special case: count area left of Scene Collection as empty space */
-  bool outside_left = (TREESTORE(te)->type == TSE_VIEW_COLLECTION_BASE) ?
-                          (view_co_x > te->xs + UI_UNIT_X) :
-                          (view_co_x > te->xs);
-
-  return outside_left && (view_co_x < te->xend);
 }
 
 static int outliner_box_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
