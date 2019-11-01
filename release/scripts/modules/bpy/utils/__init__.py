@@ -469,7 +469,6 @@ def is_path_builtin(path):
     # it's intended to be used to check if it's OK to remove presets.
     #
     # If this is used in a draw-loop for example, we could cache some of the values.
-    search_path = _os.path.abspath(path)
     user_path = resource_path('USER')
 
     for res in ('SYSTEM', 'LOCAL'):
@@ -480,11 +479,15 @@ def is_path_builtin(path):
             # This can happen on portable installs.
             continue
 
-        if _os.path.samefile(
-                _os.path.commonpath([parent_path]),
-                _os.path.commonpath([parent_path, path])
-        ):
-            return True
+        try:
+            if _os.path.samefile(
+                    _os.path.commonpath([parent_path]),
+                    _os.path.commonpath([parent_path, path])
+            ):
+                return True
+        except FileNotFoundError:
+            #The path we tried to look up doesn't exist
+            pass
 
     return False
 
