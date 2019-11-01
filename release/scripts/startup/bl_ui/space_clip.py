@@ -766,6 +766,7 @@ class CLIP_PT_plane_track(CLIP_PT_tracking_panel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
 
         clip = context.space_data.clip
         active_track = clip.tracking.plane_tracks.active
@@ -777,7 +778,8 @@ class CLIP_PT_plane_track(CLIP_PT_tracking_panel, Panel):
 
         layout.prop(active_track, "name")
         layout.prop(active_track, "use_auto_keying")
-        layout.prop(active_track, "image")
+        layout.template_ID(
+            active_track, "image", new="image.new", open="image.open", text="Image")
 
         row = layout.row()
         row.active = active_track.image is not None
