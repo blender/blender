@@ -200,6 +200,25 @@ typedef enum {
 #define TSELEM_OPEN(telm, sv) \
   ((telm->flag & TSE_CLOSED) == 0 || (SEARCHING_OUTLINER(sv) && (telm->flag & TSE_CHILDSEARCH)))
 
+/**
+ * Container to avoid passing around these variables to many functions.
+ * Also so we can have one place to assing these variables.
+ */
+typedef struct TreeViewContext {
+  /* Scene level. */
+  struct Scene *scene;
+  struct ViewLayer *view_layer;
+
+  /* Object level. */
+  /** Avoid OBACT macro everywhere. */
+  Object *obact;
+  Object *ob_edit;
+  /**
+   * The pose object may not be the active object (when in weight paint mode).
+   * Checking this in draw loops isn't efficient, so set only once. */
+  Object *ob_pose;
+} TreeViewContext;
+
 /* outliner_tree.c ----------------------------------------------- */
 
 void outliner_free_tree(ListBase *tree);
@@ -237,16 +256,14 @@ int tree_element_id_type_to_index(TreeElement *te);
 
 /* outliner_select.c -------------------------------------------- */
 eOLDrawState tree_element_type_active(struct bContext *C,
-                                      struct Scene *scene,
-                                      struct ViewLayer *view_layer,
+                                      const TreeViewContext *tvc,
                                       struct SpaceOutliner *soops,
                                       TreeElement *te,
                                       TreeStoreElem *tselem,
                                       const eOLSetState set,
                                       bool recursive);
 eOLDrawState tree_element_active(struct bContext *C,
-                                 struct Scene *scene,
-                                 struct ViewLayer *view_layer,
+                                 const TreeViewContext *tvc,
                                  SpaceOutliner *soops,
                                  TreeElement *te,
                                  const eOLSetState set,
@@ -457,6 +474,8 @@ void OUTLINER_OT_hide(struct wmOperatorType *ot);
 void OUTLINER_OT_unhide_all(struct wmOperatorType *ot);
 
 /* outliner_utils.c ---------------------------------------------- */
+
+void outliner_viewcontext_init(const struct bContext *C, TreeViewContext *tvc);
 
 TreeElement *outliner_find_item_at_y(const SpaceOutliner *soops,
                                      const ListBase *tree,
