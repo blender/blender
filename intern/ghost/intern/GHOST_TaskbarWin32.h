@@ -24,10 +24,6 @@
 #  error WIN32 only!
 #endif  // WIN32
 
-/* require Windows XP or newer */
-#undef _WIN32_WINNT
-#define _WIN32_WINNT 0x501
-
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <shlobj.h>
