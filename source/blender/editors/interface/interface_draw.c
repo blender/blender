@@ -2019,7 +2019,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
   rctf line_range;
 
   /* First curve point. */
-  if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
+  if ((cumap->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
     line_range.xmin = rect->xmin;
     line_range.ymin = rect->ymin + zoomy * (cmp[0].y - offsy);
   }
@@ -2028,7 +2028,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
     line_range.ymin = rect->ymin + zoomy * (cmp[0].y - offsy + cuma->ext_in[1]);
   }
   /* Last curve point. */
-  if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
+  if ((cumap->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
     line_range.xmax = rect->xmax;
     line_range.ymax = rect->ymin + zoomy * (cmp[CM_TABLE].y - offsy);
   }

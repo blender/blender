@@ -159,7 +159,7 @@ static inline void curvemapping_to_array(BL::CurveMapping &cumap, array<float> &
   data.resize(size);
   for (int i = 0; i < size; i++) {
     float t = (float)i / (float)(size - 1);
-    data[i] = curve.evaluate(t);
+    data[i] = cumap.evaluate(curve, t);
   }
 }
 
@@ -197,15 +197,16 @@ static inline void curvemapping_color_to_array(BL::CurveMapping &cumap,
     BL::CurveMap mapI = cumap.curves[3];
     for (int i = 0; i < size; i++) {
       const float t = min_x + (float)i / (float)(size - 1) * range_x;
-      data[i] = make_float3(mapR.evaluate(mapI.evaluate(t)),
-                            mapG.evaluate(mapI.evaluate(t)),
-                            mapB.evaluate(mapI.evaluate(t)));
+      data[i] = make_float3(cumap.evaluate(mapR, cumap.evaluate(mapI, t)),
+                            cumap.evaluate(mapG, cumap.evaluate(mapI, t)),
+                            cumap.evaluate(mapB, cumap.evaluate(mapI, t)));
     }
   }
   else {
     for (int i = 0; i < size; i++) {
       float t = min_x + (float)i / (float)(size - 1) * range_x;
-      data[i] = make_float3(mapR.evaluate(t), mapG.evaluate(t), mapB.evaluate(t));
+      data[i] = make_float3(
+          cumap.evaluate(mapR, t), cumap.evaluate(mapG, t), cumap.evaluate(mapB, t));
     }
   }
 }

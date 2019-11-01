@@ -37,10 +37,14 @@
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curveprofile_types.h"
+#include "DNA_freestyle_types.h"
 #include "DNA_gpu_types.h"
+#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_light_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_lightprobe_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -50,12 +54,12 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_genfile.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_workspace_types.h"
 #include "DNA_key_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_text_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
 #include "BKE_animsys.h"
@@ -861,6 +865,232 @@ static void do_versions_local_collection_bits_set(LayerCollection *layer_collect
   }
 }
 
+static void do_version_curvemapping_flag_extend_extrapolate(CurveMapping *cumap)
+{
+#define CUMA_EXTEND_EXTRAPOLATE_OLD 1
+  for (int curve_map_index = 0; curve_map_index < 4; curve_map_index++) {
+    CurveMap *cuma = &cumap->cm[curve_map_index];
+    if (cuma->flag & CUMA_EXTEND_EXTRAPOLATE_OLD) {
+      cumap->flag |= CUMA_EXTEND_EXTRAPOLATE;
+      return;
+    }
+  }
+#undef CUMA_EXTEND_EXTRAPOLATE_OLD
+}
+
+/* Util version to walk over all CurveMappings in the given `bmain` */
+static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMapping *cumap))
+{
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    callback(&scene->r.mblur_shutter_curve);
+
+    if (scene->view_settings.curve_mapping) {
+      callback(scene->view_settings.curve_mapping);
+    }
+
+    if (scene->ed != NULL) {
+      LISTBASE_FOREACH (Sequence *, seq, &scene->ed->seqbase) {
+        LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
+          const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
+
+          if (smti) {
+            if (smd->type == seqModifierType_Curves) {
+              CurvesModifierData *cmd = (CurvesModifierData *)smd;
+              callback(&cmd->curve_mapping);
+            }
+            else if (smd->type == seqModifierType_HueCorrect) {
+              HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
+              callback(&hcmd->curve_mapping);
+            }
+          }
+        }
+      }
+    }
+
+    // toolsettings
+    ToolSettings *ts = scene->toolsettings;
+    if (ts->vpaint) {
+      callback(ts->vpaint->paint.cavity_curve);
+    }
+    if (ts->wpaint) {
+      callback(ts->wpaint->paint.cavity_curve);
+    }
+    if (ts->sculpt) {
+      callback(ts->sculpt->paint.cavity_curve);
+    }
+    if (ts->uvsculpt) {
+      callback(ts->uvsculpt->paint.cavity_curve);
+    }
+    if (ts->gp_paint) {
+      callback(ts->gp_paint->paint.cavity_curve);
+    }
+    if (ts->gp_interpolate.custom_ipo) {
+      callback(ts->gp_interpolate.custom_ipo);
+    }
+    if (ts->gp_sculpt.cur_falloff) {
+      callback(ts->gp_sculpt.cur_falloff);
+    }
+    if (ts->gp_sculpt.cur_primitive) {
+      callback(ts->gp_sculpt.cur_primitive);
+    }
+    callback(ts->imapaint.paint.cavity_curve);
+  }
+
+  FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+    LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+      if (ELEM(node->type,
+               SH_NODE_CURVE_VEC,
+               SH_NODE_CURVE_RGB,
+               CMP_NODE_CURVE_VEC,
+               CMP_NODE_CURVE_RGB,
+               CMP_NODE_TIME,
+               CMP_NODE_HUECORRECT,
+               TEX_NODE_CURVE_RGB,
+               TEX_NODE_CURVE_TIME)) {
+        callback((CurveMapping *)node->storage);
+      }
+    }
+  }
+  FOREACH_NODETREE_END;
+
+  LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+    if (light->curfalloff) {
+      callback(light->curfalloff);
+    }
+  }
+
+  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+    if (brush->curve) {
+      callback(brush->curve);
+    }
+    if (brush->gpencil_settings) {
+      if (brush->gpencil_settings->curve_sensitivity) {
+        callback(brush->gpencil_settings->curve_sensitivity);
+      }
+      if (brush->gpencil_settings->curve_strength) {
+        callback(brush->gpencil_settings->curve_strength);
+      }
+      if (brush->gpencil_settings->curve_jitter) {
+        callback(brush->gpencil_settings->curve_jitter);
+      }
+    }
+  }
+
+  LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
+    if (part->clumpcurve) {
+      callback(part->clumpcurve);
+    }
+    if (part->roughcurve) {
+      callback(part->roughcurve);
+    }
+    if (part->twistcurve) {
+      callback(part->twistcurve);
+    }
+  }
+
+  /* Object */
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    /* Object modifiers */
+    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+      if (md->type == eModifierType_Hook) {
+        HookModifierData *hmd = (HookModifierData *)md;
+
+        if (hmd->curfalloff) {
+          callback(hmd->curfalloff);
+        }
+      }
+      else if (md->type == eModifierType_Warp) {
+        WarpModifierData *tmd = (WarpModifierData *)md;
+        if (tmd->curfalloff) {
+          callback(tmd->curfalloff);
+        }
+      }
+      else if (md->type == eModifierType_WeightVGEdit) {
+        WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
+
+        if (wmd->cmap_curve) {
+          callback(wmd->cmap_curve);
+        }
+      }
+    }
+    /* Grease pencil modifiers */
+    LISTBASE_FOREACH (ModifierData *, md, &ob->greasepencil_modifiers) {
+      if (md->type == eGpencilModifierType_Thick) {
+        ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
+
+        if (gpmd->curve_thickness) {
+          callback(gpmd->curve_thickness);
+        }
+      }
+      else if (md->type == eGpencilModifierType_Hook) {
+        HookGpencilModifierData *gpmd = (HookGpencilModifierData *)md;
+
+        if (gpmd->curfalloff) {
+          callback(gpmd->curfalloff);
+        }
+      }
+    }
+  }
+
+  /* Free Style */
+  LISTBASE_FOREACH (struct FreestyleLineStyle *, linestyle, &bmain->linestyles) {
+    LISTBASE_FOREACH (LineStyleModifier *, m, &linestyle->thickness_modifiers) {
+      switch (m->type) {
+        case LS_MODIFIER_ALONG_STROKE:
+          callback(((LineStyleAlphaModifier_AlongStroke *)m)->curve);
+          break;
+        case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+          callback(((LineStyleAlphaModifier_DistanceFromCamera *)m)->curve);
+          break;
+        case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+          callback(((LineStyleAlphaModifier_DistanceFromObject *)m)->curve);
+          break;
+        case LS_MODIFIER_MATERIAL:
+          callback(((LineStyleAlphaModifier_Material *)m)->curve);
+          break;
+        case LS_MODIFIER_TANGENT:
+          callback(((LineStyleAlphaModifier_Tangent *)m)->curve);
+          break;
+        case LS_MODIFIER_NOISE:
+          callback(((LineStyleAlphaModifier_Noise *)m)->curve);
+          break;
+        case LS_MODIFIER_CREASE_ANGLE:
+          callback(((LineStyleAlphaModifier_CreaseAngle *)m)->curve);
+          break;
+        case LS_MODIFIER_CURVATURE_3D:
+          callback(((LineStyleAlphaModifier_Curvature_3D *)m)->curve);
+          break;
+      }
+    }
+
+    LISTBASE_FOREACH (LineStyleModifier *, m, &linestyle->thickness_modifiers) {
+      switch (m->type) {
+        case LS_MODIFIER_ALONG_STROKE:
+          callback(((LineStyleThicknessModifier_AlongStroke *)m)->curve);
+          break;
+        case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+          callback(((LineStyleThicknessModifier_DistanceFromCamera *)m)->curve);
+          break;
+        case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+          callback(((LineStyleThicknessModifier_DistanceFromObject *)m)->curve);
+          break;
+        case LS_MODIFIER_MATERIAL:
+          callback(((LineStyleThicknessModifier_Material *)m)->curve);
+          break;
+        case LS_MODIFIER_TANGENT:
+          callback(((LineStyleThicknessModifier_Tangent *)m)->curve);
+          break;
+        case LS_MODIFIER_CREASE_ANGLE:
+          callback(((LineStyleThicknessModifier_CreaseAngle *)m)->curve);
+          break;
+        case LS_MODIFIER_CURVATURE_3D:
+          callback(((LineStyleThicknessModifier_Curvature_3D *)m)->curve);
+          break;
+      }
+    }
+  }
+}
+
 void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
 {
   bool use_collection_compat_28 = true;
@@ -910,11 +1140,10 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
       }
     }
 
-    /* We need to assign lib pointer to generated hidden collections *after* all have been created,
-     * otherwise we'll end up with several data-blocks sharing same name/library,
-     * which is FORBIDDEN!
-     * Note: we need this to be recursive,
-     * since a child collection may be sorted before its parent in bmain. */
+    /* We need to assign lib pointer to generated hidden collections *after* all have been
+     * created, otherwise we'll end up with several data-blocks sharing same name/library,
+     * which is FORBIDDEN! Note: we need this to be recursive, since a child collection may be
+     * sorted before its parent in bmain. */
     for (Collection *collection = bmain->collections.first; collection != NULL;
          collection = collection->id.next) {
       do_version_collection_propagate_lib_to_children(collection);
@@ -1218,7 +1447,8 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 38)) {
-    /* Ensure we get valid rigidbody object/constraint data in relevant collections' objects. */
+    /* Ensure we get valid rigidbody object/constraint data in relevant collections' objects.
+     */
     for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
       RigidBodyWorld *rbw = scene->rigidbody_world;
 
@@ -1431,7 +1661,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     if (error & NTREE_DOVERSION_NEED_OUTPUT) {
       BKE_report(fd->reports, RPT_ERROR, "Eevee material conversion problem. Error in console");
       printf(
-          "You need to connect Principled and Eevee Specular shader nodes to new material output "
+          "You need to connect Principled and Eevee Specular shader nodes to new material "
+          "output "
           "nodes.\n");
     }
 
@@ -3931,8 +4162,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  {
-    /* Versioning code until next subversion bump goes here. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 282, 2)) {
+    do_version_curvemapping_walker(bmain, do_version_curvemapping_flag_extend_extrapolate);
+
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
         sa->flag &= ~AREA_FLAG_UNUSED_6;
@@ -3987,5 +4219,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+  }
+
+  {
+    /* Versioning code until next subversion bump goes here. */
   }
 }

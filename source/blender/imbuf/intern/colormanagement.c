@@ -1029,11 +1029,11 @@ void IMB_colormanagement_init_default_view_settings(
 static void curve_mapping_apply_pixel(CurveMapping *curve_mapping, float *pixel, int channels)
 {
   if (channels == 1) {
-    pixel[0] = BKE_curvemap_evaluateF(curve_mapping->cm, pixel[0]);
+    pixel[0] = BKE_curvemap_evaluateF(curve_mapping, curve_mapping->cm, pixel[0]);
   }
   else if (channels == 2) {
-    pixel[0] = BKE_curvemap_evaluateF(curve_mapping->cm, pixel[0]);
-    pixel[1] = BKE_curvemap_evaluateF(curve_mapping->cm, pixel[1]);
+    pixel[0] = BKE_curvemap_evaluateF(curve_mapping, curve_mapping->cm, pixel[0]);
+    pixel[1] = BKE_curvemap_evaluateF(curve_mapping, curve_mapping->cm, pixel[1]);
   }
   else {
     BKE_curvemapping_evaluate_premulRGBF(curve_mapping, pixel, pixel);
@@ -3904,10 +3904,11 @@ static void curve_mapping_to_ocio_settings(CurveMapping *curve_mapping,
   BKE_curvemapping_table_RGBA(
       curve_mapping, &curve_mapping_settings->lut, &curve_mapping_settings->lut_size);
 
+  curve_mapping_settings->use_extend_extrapolate = (curve_mapping->flag &
+                                                    CUMA_EXTEND_EXTRAPOLATE) != 0;
+
   for (i = 0; i < 4; i++) {
     CurveMap *cuma = curve_mapping->cm + i;
-    curve_mapping_settings->use_extend_extrapolate[i] = (cuma->flag & CUMA_EXTEND_EXTRAPOLATE) !=
-                                                        0;
     curve_mapping_settings->range[i] = cuma->range;
     curve_mapping_settings->mintable[i] = cuma->mintable;
     curve_mapping_settings->ext_in_x[i] = cuma->ext_in[0];

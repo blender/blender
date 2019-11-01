@@ -16,7 +16,7 @@ out vec4 fragColor;
  */
 uniform sampler1D curve_mapping_texture;
 uniform int curve_mapping_lut_size;
-uniform ivec4 use_curve_mapping_extend_extrapolate;
+uniform int use_curve_mapping_extend_extrapolate;
 uniform vec4 curve_mapping_mintable;
 uniform vec4 curve_mapping_range;
 uniform vec4 curve_mapping_ext_in_x;
@@ -42,8 +42,8 @@ float read_curve_mapping(int table, int index)
 float curvemap_calc_extend(int table, float x, vec2 first, vec2 last)
 {
   if (x <= first[0]) {
-    if (use_curve_mapping_extend_extrapolate[table] == 0) {
-      /* no extrapolate */
+    if (use_curve_mapping_extend_extrapolate == 0) {
+      /* horizontal extrapolation */
       return first[1];
     }
     else {
@@ -55,8 +55,8 @@ float curvemap_calc_extend(int table, float x, vec2 first, vec2 last)
     }
   }
   else if (x >= last[0]) {
-    if (use_curve_mapping_extend_extrapolate[table] == 0) {
-      /* no extrapolate */
+    if (use_curve_mapping_extend_extrapolate == 0) {
+      /* horizontal extrapolation */
       return last[1];
     }
     else {

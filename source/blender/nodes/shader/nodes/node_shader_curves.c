@@ -147,7 +147,7 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat,
     ext_rgba[a][2] = cm->maxtable;
     range_rgba[a] = 1.0f / max_ff(1e-8f, cm->maxtable - cm->mintable);
     /* Compute extrapolation gradients. */
-    if ((cm->flag & CUMA_EXTEND_EXTRAPOLATE) != 0) {
+    if ((cumap->flag & CUMA_EXTEND_EXTRAPOLATE) != 0) {
       ext_rgba[a][1] = (cm->ext_in[0] != 0.0f) ?
                            (cm->ext_in[1] / (cm->ext_in[0] * range_rgba[a])) :
                            1e8f;

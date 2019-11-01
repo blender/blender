@@ -54,7 +54,7 @@ void BKE_curvemapping_set_defaults(
   int a;
   float clipminx, clipminy, clipmaxx, clipmaxy;
 
-  cumap->flag = CUMA_DO_CLIP;
+  cumap->flag = CUMA_DO_CLIP | CUMA_EXTEND_EXTRAPOLATE;
   if (tot == 4) {
     cumap->cur = 3; /* rhms, hack for 'col' curve? */
   }
@@ -71,7 +71,6 @@ void BKE_curvemapping_set_defaults(
   cumap->bwmul[0] = cumap->bwmul[1] = cumap->bwmul[2] = 1.0f;
 
   for (a = 0; a < tot; a++) {
-    cumap->cm[a].flag = CUMA_EXTEND_EXTRAPOLATE;
     cumap->cm[a].totpoint = 2;
     cumap->cm[a].curve = MEM_callocN(2 * sizeof(CurveMapPoint), "curve points");
 
@@ -591,14 +590,15 @@ static void calchandle_curvemap(BezTriple *bezt, const BezTriple *prev, const Be
 
 /* in X, out Y.
  * X is presumed to be outside first or last */
-static float curvemap_calc_extend(const CurveMap *cuma,
+static float curvemap_calc_extend(const CurveMapping *cumap,
+                                  const CurveMap *cuma,
                                   float x,
                                   const float first[2],
                                   const float last[2])
 {
   if (x <= first[0]) {
-    if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
-      /* no extrapolate */
+    if ((cumap->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
+      /* extrapolate horizontally */
       return first[1];
     }
     else {
@@ -611,8 +611,8 @@ static float curvemap_calc_extend(const CurveMap *cuma,
     }
   }
   else if (x >= last[0]) {
-    if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
-      /* no extrapolate */
+    if ((cumap->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
+      /* extrapolate horizontally */
       return last[1];
     }
     else {
@@ -628,8 +628,9 @@ static float curvemap_calc_extend(const CurveMap *cuma,
 }
 
 /* only creates a table for a single channel in CurveMapping */
-static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
+static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
 {
+  const rctf *clipr = &cumap->clipr;
   CurveMapPoint *cmp = cuma->curve;
   BezTriple *bezt;
 
@@ -782,7 +783,7 @@ static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
       }
       else {
         /* Extrapolate values that lie outside the start and end point. */
-        cmp[a].y = curvemap_calc_extend(cuma, cur_x, firstpoint, lastpoint);
+        cmp[a].y = curvemap_calc_extend(cumap, cuma, cur_x, firstpoint, lastpoint);
       }
     }
     else {
@@ -829,7 +830,7 @@ void BKE_curvemapping_premultiply(CurveMapping *cumap, int restore)
       /* verify and copy */
       for (a = 0; a < 3; a++) {
         if (cumap->cm[a].table == NULL) {
-          curvemap_make_table(cumap->cm + a, &cumap->clipr);
+          curvemap_make_table(cumap, cumap->cm + a);
         }
         cumap->cm[a].premultable = cumap->cm[a].table;
         cumap->cm[a].table = MEM_mallocN((CM_TABLE + 1) * sizeof(CurveMapPoint), "premul table");
@@ -838,14 +839,15 @@ void BKE_curvemapping_premultiply(CurveMapping *cumap, int restore)
       }
 
       if (cumap->cm[3].table == NULL) {
-        curvemap_make_table(cumap->cm + 3, &cumap->clipr);
+        curvemap_make_table(cumap, cumap->cm + 3);
       }
 
       /* premul */
       for (a = 0; a < 3; a++) {
         int b;
         for (b = 0; b <= CM_TABLE; b++) {
-          cumap->cm[a].table[b].y = BKE_curvemap_evaluateF(cumap->cm + 3, cumap->cm[a].table[b].y);
+          cumap->cm[a].table[b].y = BKE_curvemap_evaluateF(
+              cumap, cumap->cm + 3, cumap->cm[a].table[b].y);
         }
 
         copy_v2_v2(cumap->cm[a].premul_ext_in, cumap->cm[a].ext_in);
@@ -949,7 +951,7 @@ void BKE_curvemapping_changed(CurveMapping *cumap, const bool rem_doubles)
       BKE_curvemap_remove(cuma, 2);
     }
   }
-  curvemap_make_table(cuma, clipr);
+  curvemap_make_table(cumap, cuma);
 }
 
 void BKE_curvemapping_changed_all(CurveMapping *cumap)
@@ -967,7 +969,7 @@ void BKE_curvemapping_changed_all(CurveMapping *cumap)
 }
 
 /* table should be verified */
-float BKE_curvemap_evaluateF(const CurveMap *cuma, float value)
+float BKE_curvemap_evaluateF(const CurveMapping *cumap, const CurveMap *cuma, float value)
 {
   float fi;
   int i;
@@ -978,7 +980,7 @@ float BKE_curvemap_evaluateF(const CurveMap *cuma, float value)
 
   /* fi is table float index and should check against table range i.e. [0.0 CM_TABLE] */
   if (fi < 0.0f || fi > CM_TABLE) {
-    return curvemap_calc_extend(cuma, value, &cuma->table[0].x, &cuma->table[CM_TABLE].x);
+    return curvemap_calc_extend(cumap, cuma, value, &cuma->table[0].x, &cuma->table[CM_TABLE].x);
   }
   else {
     if (i < 0) {
@@ -997,7 +999,7 @@ float BKE_curvemap_evaluateF(const CurveMap *cuma, float value)
 float BKE_curvemapping_evaluateF(const CurveMapping *cumap, int cur, float value)
 {
   const CurveMap *cuma = cumap->cm + cur;
-  float val = BKE_curvemap_evaluateF(cuma, value);
+  float val = BKE_curvemap_evaluateF(cumap, cuma, value);
 
   /* account for clipping */
   if (cumap->flag & CUMA_DO_CLIP) {
@@ -1015,9 +1017,9 @@ float BKE_curvemapping_evaluateF(const CurveMapping *cumap, int cur, float value
 /* vector case */
 void BKE_curvemapping_evaluate3F(const CurveMapping *cumap, float vecout[3], const float vecin[3])
 {
-  vecout[0] = BKE_curvemap_evaluateF(&cumap->cm[0], vecin[0]);
-  vecout[1] = BKE_curvemap_evaluateF(&cumap->cm[1], vecin[1]);
-  vecout[2] = BKE_curvemap_evaluateF(&cumap->cm[2], vecin[2]);
+  vecout[0] = BKE_curvemap_evaluateF(cumap, &cumap->cm[0], vecin[0]);
+  vecout[1] = BKE_curvemap_evaluateF(cumap, &cumap->cm[1], vecin[1]);
+  vecout[2] = BKE_curvemap_evaluateF(cumap, &cumap->cm[2], vecin[2]);
 }
 
 /* RGB case, no black/white points, no premult */
@@ -1025,12 +1027,12 @@ void BKE_curvemapping_evaluateRGBF(const CurveMapping *cumap,
                                    float vecout[3],
                                    const float vecin[3])
 {
-  vecout[0] = BKE_curvemap_evaluateF(&cumap->cm[0],
-                                     BKE_curvemap_evaluateF(&cumap->cm[3], vecin[0]));
-  vecout[1] = BKE_curvemap_evaluateF(&cumap->cm[1],
-                                     BKE_curvemap_evaluateF(&cumap->cm[3], vecin[1]));
-  vecout[2] = BKE_curvemap_evaluateF(&cumap->cm[2],
-                                     BKE_curvemap_evaluateF(&cumap->cm[3], vecin[2]));
+  vecout[0] = BKE_curvemap_evaluateF(
+      cumap, &cumap->cm[0], BKE_curvemap_evaluateF(cumap, &cumap->cm[3], vecin[0]));
+  vecout[1] = BKE_curvemap_evaluateF(
+      cumap, &cumap->cm[1], BKE_curvemap_evaluateF(cumap, &cumap->cm[3], vecin[1]));
+  vecout[2] = BKE_curvemap_evaluateF(
+      cumap, &cumap->cm[2], BKE_curvemap_evaluateF(cumap, &cumap->cm[3], vecin[2]));
 }
 
 static void curvemapping_evaluateRGBF_filmlike(const CurveMapping *cumap,
@@ -1042,8 +1044,8 @@ static void curvemapping_evaluateRGBF_filmlike(const CurveMapping *cumap,
   const float v1in = vecin[channel_offset[1]];
   const float v2in = vecin[channel_offset[2]];
 
-  const float v0 = BKE_curvemap_evaluateF(&cumap->cm[channel_offset[0]], v0in);
-  const float v2 = BKE_curvemap_evaluateF(&cumap->cm[channel_offset[2]], v2in);
+  const float v0 = BKE_curvemap_evaluateF(cumap, &cumap->cm[channel_offset[0]], v0in);
+  const float v2 = BKE_curvemap_evaluateF(cumap, &cumap->cm[channel_offset[2]], v2in);
   const float v1 = v2 + ((v0 - v2) * (v1in - v2in) / (v0in - v2in));
 
   vecout[channel_offset[0]] = v0;
@@ -1074,9 +1076,9 @@ void BKE_curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap,
   switch (cumap->tone) {
     default:
     case CURVE_TONE_STANDARD: {
-      vecout[0] = BKE_curvemap_evaluateF(&cumap->cm[0], r);
-      vecout[1] = BKE_curvemap_evaluateF(&cumap->cm[1], g);
-      vecout[2] = BKE_curvemap_evaluateF(&cumap->cm[2], b);
+      vecout[0] = BKE_curvemap_evaluateF(cumap, &cumap->cm[0], r);
+      vecout[1] = BKE_curvemap_evaluateF(cumap, &cumap->cm[1], g);
+      vecout[2] = BKE_curvemap_evaluateF(cumap, &cumap->cm[2], b);
       break;
     }
     case CURVE_TONE_FILMLIKE: {
@@ -1099,8 +1101,8 @@ void BKE_curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap,
         else {
           /* Case 4: r >= g == b */
           copy_v2_fl2(vecout,
-                      BKE_curvemap_evaluateF(&cumap->cm[0], r),
-                      BKE_curvemap_evaluateF(&cumap->cm[1], g));
+                      BKE_curvemap_evaluateF(cumap, &cumap->cm[0], r),
+                      BKE_curvemap_evaluateF(cumap, &cumap->cm[1], g));
           vecout[2] = vecout[1];
         }
       }
@@ -1208,7 +1210,7 @@ void BKE_curvemapping_initialize(CurveMapping *cumap)
 
   for (a = 0; a < CM_TOT; a++) {
     if (cumap->cm[a].table == NULL) {
-      curvemap_make_table(cumap->cm + a, &cumap->clipr);
+      curvemap_make_table(cumap, cumap->cm + a);
     }
   }
 }

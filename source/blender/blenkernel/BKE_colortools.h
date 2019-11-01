@@ -68,7 +68,9 @@ void BKE_curvemapping_initialize(struct CurveMapping *cumap);
 
 /* keep these (const CurveMap) - to help with thread safety */
 /* single curve, no table check */
-float BKE_curvemap_evaluateF(const struct CurveMap *cuma, float value);
+float BKE_curvemap_evaluateF(const struct CurveMapping *cumap,
+                             const struct CurveMap *cuma,
+                             float value);
 /* single curve, with table check */
 float BKE_curvemapping_evaluateF(const struct CurveMapping *cumap, int cur, float value);
 void BKE_curvemapping_evaluate3F(const struct CurveMapping *cumap,

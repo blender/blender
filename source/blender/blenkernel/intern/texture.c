@@ -558,7 +558,7 @@ void BKE_texture_pointdensity_init_data(PointDensity *pd)
   pd->falloff_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
 
   pd->falloff_curve->preset = CURVE_PRESET_LINE;
-  pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+  pd->falloff_curve->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
   BKE_curvemap_reset(pd->falloff_curve->cm,
                      &pd->falloff_curve->clipr,
                      pd->falloff_curve->preset,

@@ -499,8 +499,8 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r,
     if (use_curve_mapping) {
       immUniform1i("curve_mapping_texture", 2);
       immUniform1i("curve_mapping_lut_size", curve_mapping_settings->lut_size);
-      immUniform4iv("use_curve_mapping_extend_extrapolate",
-                    curve_mapping_settings->use_extend_extrapolate);
+      immUniform1i("use_curve_mapping_extend_extrapolate",
+                   curve_mapping_settings->use_extend_extrapolate);
       immUniform4fv("curve_mapping_mintable", curve_mapping_settings->mintable);
       immUniform4fv("curve_mapping_range", curve_mapping_settings->range);
       immUniform4fv("curve_mapping_ext_in_x", curve_mapping_settings->ext_in_x);

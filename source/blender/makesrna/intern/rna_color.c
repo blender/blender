@@ -123,6 +123,14 @@ static void rna_CurveMapping_tone_update(Main *UNUSED(bmain),
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
 }
 
+static void rna_CurveMapping_extend_update(Main *UNUSED(bmain),
+                                           Scene *UNUSED(scene),
+                                           PointerRNA *UNUSED(ptr))
+{
+  WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+}
+
 static void rna_CurveMapping_clipminx_range(
     PointerRNA *ptr, float *min, float *max, float *UNUSED(softmin), float *UNUSED(softmax))
 {
@@ -670,8 +678,17 @@ static void rna_ColorManagement_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 }
 
 /* this function only exists because #BKE_curvemap_evaluateF uses a 'const' qualifier */
-static float rna_CurveMap_evaluateF(struct CurveMap *cuma, ReportList *reports, float value)
+static float rna_CurveMapping_evaluateF(struct CurveMapping *cumap,
+                                        ReportList *reports,
+                                        struct CurveMap *cuma,
+                                        float value)
 {
+  if (&cumap->cm[0] != cuma && &cumap->cm[1] != cuma && &cumap->cm[2] != cuma &&
+      &cumap->cm[3] != cuma) {
+    BKE_report(reports, RPT_ERROR, "CurveMapping does not own CurveMap");
+    return 0.0f;
+  }
+
   if (!cuma->table) {
     BKE_report(
         reports,
@@ -679,7 +696,7 @@ static float rna_CurveMap_evaluateF(struct CurveMap *cuma, ReportList *reports, 
         "CurveMap table not initialized, call initialize() on CurveMapping owner of the CurveMap");
     return 0.0f;
   }
-  return BKE_curvemap_evaluateF(cuma, value);
+  return BKE_curvemap_evaluateF(cumap, cuma, value);
 }
 
 static void rna_CurveMap_initialize(struct CurveMapping *cumap)
@@ -758,63 +775,33 @@ static void rna_def_curvemap_points_api(BlenderRNA *brna, PropertyRNA *cprop)
 static void rna_def_curvemap(BlenderRNA *brna)
 {
   StructRNA *srna;
-  PropertyRNA *prop, *parm;
-  FunctionRNA *func;
-
-  static const EnumPropertyItem prop_extend_items[] = {
-      {0, "HORIZONTAL", 0, "Horizontal", ""},
-      {CUMA_EXTEND_EXTRAPOLATE, "EXTRAPOLATED", 0, "Extrapolated", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
+  PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "CurveMap", NULL);
   RNA_def_struct_ui_text(srna, "CurveMap", "Curve in a curve mapping");
-
-  prop = RNA_def_property(srna, "extend", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-  RNA_def_property_enum_items(prop, prop_extend_items);
-  RNA_def_property_ui_text(prop, "Extend", "Extrapolate the curve or extend it horizontally");
 
   prop = RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "curve", "totpoint");
   RNA_def_property_struct_type(prop, "CurveMapPoint");
   RNA_def_property_ui_text(prop, "Points", "");
   rna_def_curvemap_points_api(brna, prop);
-
-  func = RNA_def_function(srna, "evaluate", "rna_CurveMap_evaluateF");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
-  RNA_def_function_ui_description(func, "Evaluate curve at given location");
-  parm = RNA_def_float(func,
-                       "position",
-                       0.0f,
-                       -FLT_MAX,
-                       FLT_MAX,
-                       "Position",
-                       "Position to evaluate curve at",
-                       -FLT_MAX,
-                       FLT_MAX);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  parm = RNA_def_float(func,
-                       "value",
-                       0.0f,
-                       -FLT_MAX,
-                       FLT_MAX,
-                       "Value",
-                       "Value of curve at given location",
-                       -FLT_MAX,
-                       FLT_MAX);
-  RNA_def_function_return(func, parm);
 }
 
 static void rna_def_curvemapping(BlenderRNA *brna)
 {
   StructRNA *srna;
-  PropertyRNA *prop;
+  PropertyRNA *prop, *parm;
   FunctionRNA *func;
 
   static const EnumPropertyItem tone_items[] = {
       {CURVE_TONE_STANDARD, "STANDARD", 0, "Standard", ""},
       {CURVE_TONE_FILMLIKE, "FILMLIKE", 0, "Film like", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem prop_extend_items[] = {
+      {0, "HORIZONTAL", 0, "Horizontal", ""},
+      {CUMA_EXTEND_EXTRAPOLATE, "EXTRAPOLATED", 0, "Extrapolated", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -860,6 +847,12 @@ static void rna_def_curvemapping(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Clip Max Y", "");
   RNA_def_property_float_funcs(prop, NULL, NULL, "rna_CurveMapping_clipmaxy_range");
 
+  prop = RNA_def_property(srna, "extend", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+  RNA_def_property_enum_items(prop, prop_extend_items);
+  RNA_def_property_ui_text(prop, "Extend", "Extrapolate the curve or extend it horizontally");
+  RNA_def_property_update(prop, 0, "rna_CurveMapping_extend_update");
+
   prop = RNA_def_property(srna, "curves", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_CurveMapping_curves_begin",
@@ -894,6 +887,32 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 
   func = RNA_def_function(srna, "initialize", "rna_CurveMap_initialize");
   RNA_def_function_ui_description(func, "Initialize curve");
+
+  func = RNA_def_function(srna, "evaluate", "rna_CurveMapping_evaluateF");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(func, "Evaluate curve at given location");
+  parm = RNA_def_pointer(func, "curve", "CurveMap", "curve", "Curve to evaluate");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_float(func,
+                       "position",
+                       0.0f,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Position",
+                       "Position to evaluate curve at",
+                       -FLT_MAX,
+                       FLT_MAX);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_float(func,
+                       "value",
+                       0.0f,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Value",
+                       "Value of curve at given location",
+                       -FLT_MAX,
+                       FLT_MAX);
+  RNA_def_function_return(func, parm);
 }
 
 static void rna_def_color_ramp_element(BlenderRNA *brna)

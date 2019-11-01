@@ -24,6 +24,7 @@
 #ifndef __DNA_COLOR_TYPES_H__
 #define __DNA_COLOR_TYPES_H__
 
+#include "DNA_defs.h"
 #include "DNA_vec_types.h"
 
 /* general defines for kernel functions */
@@ -47,7 +48,8 @@ enum {
 };
 
 typedef struct CurveMap {
-  short totpoint, flag;
+  short totpoint;
+  short flag DNA_DEPRECATED;
 
   /** Quick multiply value for reading table. */
   float range;
@@ -66,9 +68,6 @@ typedef struct CurveMap {
   float premul_ext_in[2];
   float premul_ext_out[2];
 } CurveMap;
-
-/* cuma->flag */
-#define CUMA_EXTEND_EXTRAPOLATE 1
 
 typedef struct CurveMapping {
   /** Cur; for buttons, to show active curve. */
@@ -93,11 +92,17 @@ typedef struct CurveMapping {
   char _pad[6];
 } CurveMapping;
 
-/* cumapping->flag */
-#define CUMA_DO_CLIP (1 << 0)
-#define CUMA_PREMULLED (1 << 1)
-#define CUMA_DRAW_CFRA (1 << 2)
-#define CUMA_DRAW_SAMPLE (1 << 3)
+/* CurveMapping.flag */
+typedef enum eCurveMappingFlags {
+  CUMA_DO_CLIP = (1 << 0),
+  CUMA_PREMULLED = (1 << 1),
+  CUMA_DRAW_CFRA = (1 << 2),
+  CUMA_DRAW_SAMPLE = (1 << 3),
+
+  /* The curve is extended by extrapolation. When not set the curve is extended
+   * Horizontally */
+  CUMA_EXTEND_EXTRAPOLATE = (1 << 4),
+} eCurveMappingFlags;
 
 /* cumapping->preset */
 typedef enum eCurveMappingPreset {

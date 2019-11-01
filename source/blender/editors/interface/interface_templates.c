@@ -3992,11 +3992,11 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
       BKE_curvemapping_changed(cumap, false);
       break;
     case UICURVE_FUNC_EXTEND_HOZ: /* extend horiz */
-      cuma->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+      cumap->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
       BKE_curvemapping_changed(cumap, false);
       break;
     case UICURVE_FUNC_EXTEND_EXP: /* extend extrapolate */
-      cuma->flag |= CUMA_EXTEND_EXTRAPOLATE;
+      cumap->flag |= CUMA_EXTEND_EXTRAPOLATE;
       BKE_curvemapping_changed(cumap, false);
       break;
   }

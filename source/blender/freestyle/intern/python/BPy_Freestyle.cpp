@@ -266,8 +266,8 @@ static PyObject *Freestyle_evaluateCurveMappingF(PyObject * /*self*/, PyObject *
   cumap = (CurveMapping *)py_srna->ptr.data;
   BKE_curvemapping_initialize(cumap);
   /* disable extrapolation if enabled */
-  if ((cumap->cm[cur].flag & CUMA_EXTEND_EXTRAPOLATE)) {
-    cumap->cm[cur].flag &= ~(CUMA_EXTEND_EXTRAPOLATE);
+  if ((cumap->flag & CUMA_EXTEND_EXTRAPOLATE)) {
+    cumap->flag &= ~(CUMA_EXTEND_EXTRAPOLATE);
     BKE_curvemapping_changed(cumap, 0);
   }
   return PyFloat_FromDouble(BKE_curvemapping_evaluateF(cumap, cur, value));

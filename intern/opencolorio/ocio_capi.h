@@ -73,10 +73,10 @@ typedef struct OCIO_CurveMappingSettings {
   int lut_size;
 
   /* Extend extrapolation flags for all the tables.
-   * if use_extend_extrapolate[T] != 0 means extrapolation for
-   * table T is needed.
+   * if use_extend_extrapolate != 0 means extrapolation for
+   * curve.
    */
-  int use_extend_extrapolate[4];
+  int use_extend_extrapolate;
 
   /* Minimal X value of the curve mapping tables. */
   float mintable[4];
