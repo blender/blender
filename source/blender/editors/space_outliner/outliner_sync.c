@@ -37,6 +37,7 @@
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BKE_object.h"
 #include "BKE_sequencer.h"
 
 #include "DEG_depsgraph.h"
@@ -129,14 +130,14 @@ static void outliner_sync_select_from_outliner_set_types(bContext *C,
                                                          SpaceOutliner *soops,
                                                          SyncSelectTypes *sync_types)
 {
-  Object *obact = CTX_data_active_object(C);
-  Object *obedit = CTX_data_edit_object(C);
+  TreeViewContext tvc;
+  outliner_viewcontext_init(C, &tvc);
 
   const bool sequence_view = soops->outlinevis == SO_SEQUENCE;
 
   sync_types->object = !sequence_view;
-  sync_types->edit_bone = !sequence_view && (obedit && obedit->type == OB_ARMATURE);
-  sync_types->pose_bone = !sequence_view && (obact && obact->mode == OB_MODE_POSE);
+  sync_types->edit_bone = !sequence_view && (tvc.ob_edit && tvc.ob_edit->type == OB_ARMATURE);
+  sync_types->pose_bone = !sequence_view && (tvc.ob_pose && tvc.ob_pose->mode == OB_MODE_POSE);
   sync_types->sequence = sequence_view;
 }
 
@@ -149,16 +150,16 @@ static bool outliner_sync_select_to_outliner_set_types(const bContext *C,
                                                        SpaceOutliner *soops,
                                                        SyncSelectTypes *sync_types)
 {
-  Object *obact = CTX_data_active_object(C);
-  Object *obedit = CTX_data_edit_object(C);
+  TreeViewContext tvc;
+  outliner_viewcontext_init(C, &tvc);
 
   const bool sequence_view = soops->outlinevis == SO_SEQUENCE;
 
   sync_types->object = !sequence_view &&
                        (soops->sync_select_dirty & WM_OUTLINER_SYNC_SELECT_FROM_OBJECT);
-  sync_types->edit_bone = !sequence_view && (obedit && obedit->type == OB_ARMATURE) &&
+  sync_types->edit_bone = !sequence_view && (tvc.ob_edit && tvc.ob_edit->type == OB_ARMATURE) &&
                           (soops->sync_select_dirty & WM_OUTLINER_SYNC_SELECT_FROM_EDIT_BONE);
-  sync_types->pose_bone = !sequence_view && (obact && obact->mode == OB_MODE_POSE) &&
+  sync_types->pose_bone = !sequence_view && (tvc.ob_pose && tvc.ob_pose->mode == OB_MODE_POSE) &&
                           (soops->sync_select_dirty & WM_OUTLINER_SYNC_SELECT_FROM_POSE_BONE);
   sync_types->sequence = sequence_view &&
                          (soops->sync_select_dirty & WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE);
