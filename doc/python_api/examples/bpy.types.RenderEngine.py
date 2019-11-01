@@ -101,7 +101,7 @@ class CustomRenderEngine(bpy.types.RenderEngine):
 
         # Bind shader that converts from scene linear to display space,
         bgl.glEnable(bgl.GL_BLEND)
-        bgl.glBlendFunc(bgl.GL_ONE, bgl.GL_ONE_MINUS_SRC_ALPHA);
+        bgl.glBlendFunc(bgl.GL_ONE, bgl.GL_ONE_MINUS_SRC_ALPHA)
         self.bind_display_space_shader(scene)
 
         if not self.draw_data or self.draw_data.dimensions != dimensions:
@@ -135,18 +135,18 @@ class CustomDrawData:
         # Bind shader that converts from scene linear to display space,
         # use the scene's color management settings.
         shader_program = bgl.Buffer(bgl.GL_INT, 1)
-        bgl.glGetIntegerv(bgl.GL_CURRENT_PROGRAM, shader_program);
+        bgl.glGetIntegerv(bgl.GL_CURRENT_PROGRAM, shader_program)
 
         # Generate vertex array
         self.vertex_array = bgl.Buffer(bgl.GL_INT, 1)
         bgl.glGenVertexArrays(1, self.vertex_array)
         bgl.glBindVertexArray(self.vertex_array[0])
 
-        texturecoord_location = bgl.glGetAttribLocation(shader_program[0], "texCoord");
-        position_location = bgl.glGetAttribLocation(shader_program[0], "pos");
+        texturecoord_location = bgl.glGetAttribLocation(shader_program[0], "texCoord")
+        position_location = bgl.glGetAttribLocation(shader_program[0], "pos")
 
-        bgl.glEnableVertexAttribArray(texturecoord_location);
-        bgl.glEnableVertexAttribArray(position_location);
+        bgl.glEnableVertexAttribArray(texturecoord_location)
+        bgl.glEnableVertexAttribArray(position_location)
 
         # Generate geometry buffers for drawing textured quad
         position = [0.0, 0.0, width, 0.0, width, height, 0.0, height]
@@ -178,7 +178,7 @@ class CustomDrawData:
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, self.texture[0])
         bgl.glBindVertexArray(self.vertex_array[0])
-        bgl.glDrawArrays(bgl.GL_TRIANGLE_FAN, 0, 4);
+        bgl.glDrawArrays(bgl.GL_TRIANGLE_FAN, 0, 4)
         bgl.glBindVertexArray(0)
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, 0)
 
@@ -201,12 +201,14 @@ def get_panels():
 
     return panels
 
+
 def register():
     # Register the RenderEngine
     bpy.utils.register_class(CustomRenderEngine)
 
     for panel in get_panels():
         panel.COMPAT_ENGINES.add('CUSTOM')
+
 
 def unregister():
     bpy.utils.unregister_class(CustomRenderEngine)

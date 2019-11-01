@@ -29,7 +29,7 @@ class OBJECT_OT_simple_exporter(bpy.types.Operator):
                 # Happens for non-geometry objects.
                 continue
             print(f"Exporting mesh with {len(mesh.vertices)} vertices "
-                   f"at {object_instance.matrix_world}")
+                  f"at {object_instance.matrix_world}")
             object_instace.to_mesh_clear()
 
         return {'FINISHED'}

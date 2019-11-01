@@ -1538,6 +1538,7 @@ void GPENCIL_OT_move_to_layer(wmOperatorType *ot)
 
   /* GPencil layer to use. */
   ot->prop = RNA_def_int(ot->srna, "layer", 0, 0, INT_MAX, "Grease Pencil Layer", "", 0, INT_MAX);
+  RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /* ********************* Add Blank Frame *************************** */
