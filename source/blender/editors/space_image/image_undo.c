@@ -269,8 +269,14 @@ static void ptile_restore_runtime_list(ListBase *paint_tiles)
       SWAP(uint *, ptile->rect.uint, tmpibuf->rect);
     }
 
-    IMB_rectcpy(
-        ibuf, tmpibuf, ptile->x, ptile->y, 0, 0, ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE);
+    IMB_rectcpy(ibuf,
+                tmpibuf,
+                ptile->x * ED_IMAGE_UNDO_TILE_SIZE,
+                ptile->y * ED_IMAGE_UNDO_TILE_SIZE,
+                0,
+                0,
+                ED_IMAGE_UNDO_TILE_SIZE,
+                ED_IMAGE_UNDO_TILE_SIZE);
 
     if (has_float) {
       SWAP(float *, ptile->rect.fp, tmpibuf->rect_float);
