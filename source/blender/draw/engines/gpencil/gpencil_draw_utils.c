@@ -1133,11 +1133,12 @@ static void gpencil_add_editpoints_vertexdata(GpencilBatchCache *cache,
      */
     const bool show_points = (show_sculpt_points) || (is_weight_paint) ||
                              (GPENCIL_EDIT_MODE(gpd) &&
-                              (ts->gpencil_selectmode_edit != GP_SELECTMODE_STROKE));
+                              ((ts->gpencil_selectmode_edit != GP_SELECTMODE_STROKE) ||
+                               (gps->totpoints == 1)));
 
     if (cache->is_dirty) {
       if ((obact == ob) && ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) &&
-          (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES)) {
+          (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES) && (gps->totpoints > 1)) {
 
         /* line of the original stroke */
         gpencil_get_edlin_geom(&cache->b_edlin, gps, edit_alpha, hide_select);
