@@ -115,7 +115,7 @@ typedef struct PaintTile {
   ushort *mask;
   bool valid;
   bool use_float;
-  int x, y;
+  int x_tile, y_tile;
 } PaintTile;
 
 static void ptile_free(PaintTile *ptile)
@@ -154,7 +154,7 @@ void *ED_image_paint_tile_find(ListBase *paint_tiles,
                                bool validate)
 {
   for (PaintTile *ptile = paint_tiles->first; ptile; ptile = ptile->next) {
-    if (ptile->x == x_tile && ptile->y == y_tile) {
+    if (ptile->x_tile == x_tile && ptile->y_tile == y_tile) {
       if (ptile->image == image && ptile->ibuf == ibuf) {
         if (r_mask) {
           /* allocate mask if requested. */
@@ -206,8 +206,8 @@ void *ED_image_paint_tile_push(ListBase *paint_tiles,
   ptile->image = image;
   ptile->ibuf = ibuf;
 
-  ptile->x = x_tile;
-  ptile->y = y_tile;
+  ptile->x_tile = x_tile;
+  ptile->y_tile = y_tile;
 
   /* add mask explicitly here */
   if (r_mask) {
@@ -271,8 +271,8 @@ static void ptile_restore_runtime_list(ListBase *paint_tiles)
 
     IMB_rectcpy(ibuf,
                 tmpibuf,
-                ptile->x * ED_IMAGE_UNDO_TILE_SIZE,
-                ptile->y * ED_IMAGE_UNDO_TILE_SIZE,
+                ptile->x_tile * ED_IMAGE_UNDO_TILE_SIZE,
+                ptile->y_tile * ED_IMAGE_UNDO_TILE_SIZE,
                 0,
                 0,
                 ED_IMAGE_UNDO_TILE_SIZE,
@@ -770,7 +770,7 @@ static bool image_undosys_step_encode(struct bContext *C,
         utile->users = 1;
         utile->rect.pt = ptile->rect.pt;
         ptile->rect.pt = NULL;
-        const uint tile_index = index_from_xy(ptile->x, ptile->y, ubuf_pre->tiles_dims);
+        const uint tile_index = index_from_xy(ptile->x_tile, ptile->y_tile, ubuf_pre->tiles_dims);
 
         BLI_assert(ubuf_pre->tiles[tile_index] == NULL);
         ubuf_pre->tiles[tile_index] = utile;
