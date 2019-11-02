@@ -447,17 +447,16 @@ typedef struct bGPdata_Runtime {
    * - buffer must be initialized before use, but freed after
    *   whole paint operation is over
    */
-  /** Number of elements currently used in cache. */
-  short sbuffer_used;
   /** Flags for stroke that cache represents. */
   short sbuffer_sflag;
+  /** Number of elements currently used in cache. */
+  int sbuffer_used;
   /** Number of total elements available in cache. */
-  short sbuffer_size;
-  char _pad[4];
+  int sbuffer_size;
 
   /** Number of control-points for stroke. */
   int tot_cp_points;
-  char _pad1_[4];
+  char _pad_[4];
   /** Array of control-points for stroke. */
   bGPDcontrolpoint *cp_points;
 } bGPdata_Runtime;

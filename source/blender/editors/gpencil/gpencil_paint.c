@@ -3660,7 +3660,6 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   tGPsdata *p = op->customdata;
   ToolSettings *ts = CTX_data_tool_settings(C);
   GP_Sculpt_Guide *guide = &p->scene->toolsettings->gp_sculpt.guide;
-  tGPspoint *points = (tGPspoint *)p->gpd->runtime.sbuffer;
 
   /* default exit state - pass through to support MMB view nav, etc. */
   int estate = OPERATOR_PASS_THROUGH;
@@ -3969,6 +3968,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
       int size_after = p->gpd->runtime.sbuffer_used;
 
       /* Last point of the event is always real (not fake). */
+      tGPspoint *points = (tGPspoint *)p->gpd->runtime.sbuffer;
       tGPspoint *pt = &points[size_after - 1];
       pt->tflag &= ~GP_TPOINT_FAKE;
 
