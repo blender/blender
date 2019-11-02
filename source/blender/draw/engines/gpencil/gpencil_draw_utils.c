@@ -1265,9 +1265,11 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
           gpencil_add_fill_vertexdata(
               cache, ob, gpl, gpf, gps, opacity, tintcolor, false, custonion);
         }
-        /* stroke */
-        /* No fill strokes, must show stroke always */
-        if (((gp_style->flag & GP_STYLE_STROKE_SHOW) || (gps->flag & GP_STROKE_NOFILL)) &&
+        /* stroke
+         * No fill strokes, must show stroke always or if the total points is lower than 3,
+         * because the stroke cannot be filled and it would be invisible. */
+        if (((gp_style->flag & GP_STYLE_STROKE_SHOW) || (gps->flag & GP_STROKE_NOFILL) ||
+             (gps->totpoints < 3)) &&
             ((gp_style->stroke_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
              (gpl->blend_mode == eGplBlendMode_Regular))) {
           /* recalc strokes uv (geometry can be changed by modifiers) */
