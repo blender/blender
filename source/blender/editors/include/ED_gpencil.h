@@ -292,8 +292,8 @@ void ED_gpencil_select_toggle_all(struct bContext *C, int action);
 
 /* Ensure stroke sbuffer size is enough */
 struct tGPspoint *ED_gpencil_sbuffer_ensure(struct tGPspoint *buffer_array,
-                                            short *buffer_size,
-                                            short *buffer_used,
+                                            int *buffer_size,
+                                            int *buffer_used,
                                             const bool clear);
 /* Tag all scene grease pencil object to update. */
 void ED_gpencil_tag_scene_gpencil(struct Scene *scene);
