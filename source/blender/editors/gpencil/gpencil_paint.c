@@ -837,6 +837,11 @@ static short gp_stroke_addpoint(
     gpd->runtime.sbuffer = ED_gpencil_sbuffer_ensure(
         gpd->runtime.sbuffer, &gpd->runtime.sbuffer_size, &gpd->runtime.sbuffer_used, false);
 
+    /* Check the buffer was created. */
+    if (gpd->runtime.sbuffer == NULL) {
+      return GP_STROKEADD_INVALID;
+    }
+
     /* get pointer to destination point */
     pt = ((tGPspoint *)(gpd->runtime.sbuffer) + gpd->runtime.sbuffer_used);
 

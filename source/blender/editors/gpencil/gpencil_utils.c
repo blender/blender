@@ -2548,6 +2548,11 @@ tGPspoint *ED_gpencil_sbuffer_ensure(tGPspoint *buffer_array,
       *buffer_size += GP_STROKE_BUFFER_CHUNK;
       p = MEM_recallocN(buffer_array, sizeof(struct tGPspoint) * *buffer_size);
     }
+
+    if (p == NULL) {
+      *buffer_size = *buffer_used = 0;
+    }
+
     buffer_array = p;
   }
 
