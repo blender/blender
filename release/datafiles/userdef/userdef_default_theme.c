@@ -634,6 +634,7 @@ const bTheme U_theme_default = {
     .text_strip = RGBA(0xa29700ff),
     .gp_vertex_size = 3,
     .gp_vertex_select = RGBA(0xff8500ff),
+    .anim_preview_range = RGBA(0xa14d0066),
     .metadatatext = RGBA(0xffffffff),
   },
   .space_image = {

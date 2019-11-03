@@ -1767,8 +1767,8 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 {
   const Editing *ed = BKE_sequencer_editing_get(scene, false);
-  const int frame_sta = PSFRA;
-  const int frame_end = PEFRA + 1;
+  const int frame_sta = scene->r.sfra;
+  const int frame_end = scene->r.efra + 1;
 
   GPU_blend(true);
 
