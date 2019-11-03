@@ -2093,7 +2093,7 @@ static int seq_proxy_context_count(Sequence *seq, Scene *scene)
   return num_views;
 }
 
-void BKE_sequencer_proxy_rebuild_context(Main *bmain,
+bool BKE_sequencer_proxy_rebuild_context(Main *bmain,
                                          Depsgraph *depsgraph,
                                          Scene *scene,
                                          Sequence *seq,
@@ -2138,9 +2138,6 @@ void BKE_sequencer_proxy_rebuild_context(Main *bmain,
 
     context->view_id = i; /* only for images */
 
-    link = BLI_genericNodeN(context);
-    BLI_addtail(queue, link);
-
     if (nseq->type == SEQ_TYPE_MOVIE) {
       StripAnim *sanim;
 
@@ -2155,8 +2152,16 @@ void BKE_sequencer_proxy_rebuild_context(Main *bmain,
                                                                 context->overwrite,
                                                                 file_list);
       }
+      if (!context->index_context) {
+        MEM_freeN(context);
+        return false;
+      }
     }
+
+    link = BLI_genericNodeN(context);
+    BLI_addtail(queue, link);
   }
+  return true;
 }
 
 void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context,
