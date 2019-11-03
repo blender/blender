@@ -2163,7 +2163,7 @@ class WM_OT_batch_rename(Operator):
                         replace_dst = action.replace_dst.replace("\\", "\\\\")
                 else:
                     replace_src = re.escape(action.replace_src)
-                    replace_dst = re.escape(action.replace_dst)
+                    replace_dst = action.replace_dst.replace("\\", "\\\\")
                 name = re.sub(
                     replace_src,
                     replace_dst,
