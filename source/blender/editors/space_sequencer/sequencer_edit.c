@@ -219,8 +219,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
       bool success = BKE_sequencer_proxy_rebuild_context(
           pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue);
       if (!success) {
-
-        BKE_reportf(reports, RPT_ERROR, "Could not build proxy for strip %s", &seq->name);
+        BKE_reportf(reports, RPT_ERROR, "Could not build proxy for strip %s", seq->name);
       }
     }
   }

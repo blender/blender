@@ -2107,11 +2107,11 @@ bool BKE_sequencer_proxy_rebuild_context(Main *bmain,
   int i;
 
   if (!seq->strip || !seq->strip->proxy) {
-    return;
+    return true;
   }
 
   if (!(seq->flag & SEQ_USE_PROXY)) {
-    return;
+    return true;
   }
 
   num_files = seq_proxy_context_count(seq, scene);
