@@ -289,7 +289,7 @@ bool BKE_sequencer_input_have_to_preprocess(const SeqRenderData *context,
                                             struct Sequence *seq,
                                             float cfra);
 
-void BKE_sequencer_proxy_rebuild_context(struct Main *bmain,
+bool BKE_sequencer_proxy_rebuild_context(struct Main *bmain,
                                          struct Depsgraph *depsgraph,
                                          struct Scene *scene,
                                          struct Sequence *seq,

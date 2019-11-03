@@ -177,7 +177,7 @@ static void proxy_endjob(void *pjv)
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, pj->scene);
 }
 
-static void seq_proxy_build_job(const bContext *C)
+static void seq_proxy_build_job(const bContext *C, ReportList *reports)
 {
   wmJob *wm_job;
   ProxyJob *pj;
@@ -216,8 +216,12 @@ static void seq_proxy_build_job(const bContext *C)
   file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
   SEQP_BEGIN (ed, seq) {
     if ((seq->flag & SELECT)) {
-      BKE_sequencer_proxy_rebuild_context(
+      bool success = BKE_sequencer_proxy_rebuild_context(
           pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue);
+      if (!success) {
+
+        BKE_reportf(reports, RPT_ERROR, "Could not build proxy for strip %s", &seq->name);
+      }
     }
   }
   SEQ_END;
@@ -3608,10 +3612,10 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
 /* rebuild_proxy operator */
 
 static int sequencer_rebuild_proxy_invoke(bContext *C,
-                                          wmOperator *UNUSED(op),
+                                          wmOperator *op,
                                           const wmEvent *UNUSED(event))
 {
-  seq_proxy_build_job(C);
+  seq_proxy_build_job(C, op->reports);
 
   return OPERATOR_FINISHED;
 }
