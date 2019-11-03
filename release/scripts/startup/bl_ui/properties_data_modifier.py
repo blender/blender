@@ -954,11 +954,23 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.label(text="Settings are inside the Physics tab")
 
     def SOLIDIFY(self, layout, ob, md):
+
+        layout.row().prop(md, "solidify_mode")
+
+        solidify_mode = md.solidify_mode
+
+        if solidify_mode == 'NON_MANIFOLD':
+            layout.prop(md, "nonmanifold_thickness_mode")
+            layout.prop(md, "nonmanifold_boundary_mode")
+
         split = layout.split()
 
         col = split.column()
         col.prop(md, "thickness")
         col.prop(md, "thickness_clamp")
+        row = col.row()
+        row.active = md.thickness_clamp > 0.0
+        row.prop(md, "use_thickness_angle_clamp")
 
         col.separator()
 
@@ -972,18 +984,22 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         sub.active = bool(md.vertex_group)
         sub.prop(md, "thickness_vertex_group", text="Factor")
 
-        col.label(text="Crease:")
-        col.prop(md, "edge_crease_inner", text="Inner")
-        col.prop(md, "edge_crease_outer", text="Outer")
-        col.prop(md, "edge_crease_rim", text="Rim")
+        if solidify_mode == 'EXTRUDE':
+            col.label(text="Crease:")
+            col.prop(md, "edge_crease_inner", text="Inner")
+            col.prop(md, "edge_crease_outer", text="Outer")
+            col.prop(md, "edge_crease_rim", text="Rim")
 
         col = split.column()
 
         col.prop(md, "offset")
+
         col.prop(md, "use_flip_normals")
 
-        col.prop(md, "use_even_offset")
-        col.prop(md, "use_quality_normals")
+        if solidify_mode == 'EXTRUDE':
+            col.prop(md, "use_even_offset")
+            col.prop(md, "use_quality_normals")
+
         col.prop(md, "use_rim")
         col_rim = col.column()
         col_rim.active = md.use_rim

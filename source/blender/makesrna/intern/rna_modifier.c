@@ -4059,15 +4059,70 @@ static void rna_def_modifier_surface(BlenderRNA *brna)
 
 static void rna_def_modifier_solidify(BlenderRNA *brna)
 {
+  static const EnumPropertyItem mode_items[] = {
+      {MOD_SOLIDIFY_MODE_EXTRUDE,
+       "EXTRUDE",
+       0,
+       "Simple",
+       "Output a solidified version of a mesh by simple extrusion"},
+      {MOD_SOLIDIFY_MODE_NONMANIFOLD,
+       "NON_MANIFOLD",
+       0,
+       "Complex",
+       "Output a manifold mesh even if the base mesh is non-manifold, "
+       "where edges have 3 or more connecting faces."
+       "This method is slower"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem nonmanifold_thickness_mode_items[] = {
+      {MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_FIXED,
+       "FIXED",
+       0,
+       "Fixed",
+       "Most basic thickness calculation"},
+      {MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_EVEN,
+       "EVEN",
+       0,
+       "Even",
+       "Even thickness calculation which takes the angle between faces into account"},
+      {MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_CONSTRAINTS,
+       "CONSTRAINTS",
+       0,
+       "Constraints",
+       "Thickness calculation using constraints, most advanced"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem nonmanifold_boundary_mode_items[] = {
+      {MOD_SOLIDIFY_NONMANIFOLD_BOUNDARY_MODE_NONE, "NONE", 0, "None", "No shape correction"},
+      {MOD_SOLIDIFY_NONMANIFOLD_BOUNDARY_MODE_ROUND,
+       "ROUND",
+       0,
+       "Round",
+       "Round open perimeter shape"},
+      {MOD_SOLIDIFY_NONMANIFOLD_BOUNDARY_MODE_FLAT,
+       "FLAT",
+       0,
+       "Flat",
+       "Flat open perimeter shape"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   StructRNA *srna;
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "SolidifyModifier", "Modifier");
-  RNA_def_struct_ui_text(srna,
-                         "Solidify Modifier",
-                         "Create a solid skin by extruding, compensating for sharp angles");
+  RNA_def_struct_ui_text(
+      srna, "Solidify Modifier", "Create a solid skin, compensating for sharp angles");
   RNA_def_struct_sdna(srna, "SolidifyModifierData");
   RNA_def_struct_ui_icon(srna, ICON_MOD_SOLIDIFY);
+
+  prop = RNA_def_property(srna, "solidify_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "mode");
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "Selects the used algorithm");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "thickness", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "offset");
@@ -4081,6 +4136,11 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, 100.0);
   RNA_def_property_ui_range(prop, 0, 2.0, 0.1, 4);
   RNA_def_property_ui_text(prop, "Clamp", "Offset clamp based on geometry scale");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_thickness_angle_clamp", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_OFFSET_ANGLE_CLAMP);
+  RNA_def_property_ui_text(prop, "Angle Clamp", "Clamp thickness based on angles");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "thickness_vertex_group", PROP_FLOAT, PROP_FACTOR);
@@ -4175,6 +4235,18 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_rim_only", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_NOSHELL);
   RNA_def_property_ui_text(prop, "Only Rim", "Only add the rim to the original data");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  /* Settings for #MOD_SOLIDIFY_MODE_NONMANIFOLD */
+  prop = RNA_def_property(srna, "nonmanifold_thickness_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "nonmanifold_offset_mode");
+  RNA_def_property_enum_items(prop, nonmanifold_thickness_mode_items);
+  RNA_def_property_ui_text(prop, "Thickness Mode", "Selects the used thickness algorithm");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "nonmanifold_boundary_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, nonmanifold_boundary_mode_items);
+  RNA_def_property_ui_text(prop, "Boundary Shape", "Selects the boundary adjustment algorithm");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 

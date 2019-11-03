@@ -1115,7 +1115,13 @@ typedef struct SolidifyModifierData {
   float offset_fac_vg;
   /** Clamp offset based on surrounding geometry. */
   float offset_clamp;
-  char _pad[4];
+  char mode;
+
+  /** Variables for #MOD_SOLIDIFY_MODE_NONMANIFOLD. */
+  char nonmanifold_offset_mode;
+  char nonmanifold_boundary_mode;
+
+  char _pad;
   float crease_inner;
   float crease_outer;
   float crease_rim;
@@ -1124,6 +1130,7 @@ typedef struct SolidifyModifierData {
   short mat_ofs_rim;
 } SolidifyModifierData;
 
+/** #SolidifyModifierData.flag */
 enum {
   MOD_SOLIDIFY_RIM = (1 << 0),
   MOD_SOLIDIFY_EVEN = (1 << 1),
@@ -1134,6 +1141,27 @@ enum {
 #endif
   MOD_SOLIDIFY_FLIP = (1 << 5),
   MOD_SOLIDIFY_NOSHELL = (1 << 6),
+  MOD_SOLIDIFY_OFFSET_ANGLE_CLAMP = (1 << 7),
+};
+
+/** #SolidifyModifierData.mode */
+enum {
+  MOD_SOLIDIFY_MODE_EXTRUDE = 0,
+  MOD_SOLIDIFY_MODE_NONMANIFOLD = 1,
+};
+
+/** #SolidifyModifierData.nonmanifold_offset_mode */
+enum {
+  MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_FIXED = 0,
+  MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_EVEN = 1,
+  MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_CONSTRAINTS = 2,
+};
+
+/** #SolidifyModifierData.nonmanifold_boundary_mode */
+enum {
+  MOD_SOLIDIFY_NONMANIFOLD_BOUNDARY_MODE_NONE = 0,
+  MOD_SOLIDIFY_NONMANIFOLD_BOUNDARY_MODE_ROUND = 1,
+  MOD_SOLIDIFY_NONMANIFOLD_BOUNDARY_MODE_FLAT = 2,
 };
 
 typedef struct ScrewModifierData {
