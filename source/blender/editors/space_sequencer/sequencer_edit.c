@@ -4185,3 +4185,67 @@ void SEQUENCER_OT_export_subtitles(struct wmOperatorType *ot)
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_ALPHA);
 }
+
+static int sequencer_set_range_to_strips_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Sequence *seq;
+
+  int sfra = MAXFRAME;
+  int efra = -MAXFRAME;
+  bool selected = false;
+  const bool preview = RNA_boolean_get(op->ptr, "preview");
+
+  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+    if (seq->flag & SELECT) {
+      selected = true;
+      sfra = min_ii(sfra, seq->startdisp);
+      efra = max_ii(efra, seq->enddisp - 1);
+    }
+  }
+
+  if (!selected) {
+    BKE_report(op->reports, RPT_WARNING, "Select one or more strips");
+    return OPERATOR_CANCELLED;
+  }
+  else if (efra < 0) {
+    BKE_report(op->reports, RPT_ERROR, "Can't set a negative range");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (preview) {
+    scene->r.flag |= SCER_PRV_RANGE;
+    scene->r.psfra = max_ii(0, sfra);
+    scene->r.pefra = efra;
+  }
+  else {
+    scene->r.flag &= ~SCER_PRV_RANGE;
+    scene->r.sfra = max_ii(0, sfra);
+    scene->r.efra = efra;
+  }
+
+  WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+
+  return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_set_range_to_strips(struct wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* identifiers */
+  ot->name = "Set Range to Strips";
+  ot->idname = "SEQUENCER_OT_set_range_to_strips";
+  ot->description = "Set the frame range to the selected strips start and end";
+
+  /* api callbacks */
+  ot->exec = sequencer_set_range_to_strips_exec;
+  ot->poll = sequencer_edit_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  prop = RNA_def_boolean(ot->srna, "preview", false, "Preview", "Set the preview range instead");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}

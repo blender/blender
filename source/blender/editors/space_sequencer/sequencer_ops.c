@@ -88,6 +88,8 @@ void sequencer_operatortypes(void)
   WM_operatortype_append(SEQUENCER_OT_change_effect_type);
   WM_operatortype_append(SEQUENCER_OT_change_path);
 
+  WM_operatortype_append(SEQUENCER_OT_set_range_to_strips);
+
   /* sequencer_select.c */
   WM_operatortype_append(SEQUENCER_OT_select_all);
   WM_operatortype_append(SEQUENCER_OT_select);

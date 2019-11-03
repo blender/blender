@@ -149,6 +149,8 @@ void SEQUENCER_OT_enable_proxies(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_export_subtitles(struct wmOperatorType *ot);
 
+void SEQUENCER_OT_set_range_to_strips(struct wmOperatorType *ot);
+
 /* preview specific operators */
 void SEQUENCER_OT_view_all_preview(struct wmOperatorType *ot);
 
