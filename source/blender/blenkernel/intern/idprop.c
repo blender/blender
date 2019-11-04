@@ -1085,6 +1085,12 @@ void IDP_FreePropertyContent(IDProperty *prop)
   IDP_FreePropertyContent_ex(prop, true);
 }
 
+void IDP_FreeProperty_ex(IDProperty *prop, const bool do_id_user)
+{
+  IDP_FreePropertyContent_ex(prop, do_id_user);
+  MEM_freeN(prop);
+}
+
 void IDP_FreeProperty(IDProperty *prop)
 {
   IDP_FreePropertyContent(prop);

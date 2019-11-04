@@ -136,6 +136,7 @@ struct IDProperty *IDP_New(const char type,
 
 void IDP_FreePropertyContent_ex(struct IDProperty *prop, const bool do_id_user);
 void IDP_FreePropertyContent(struct IDProperty *prop);
+void IDP_FreeProperty_ex(IDProperty *prop, const bool do_id_user);
 void IDP_FreeProperty(struct IDProperty *prop);
 
 void IDP_ClearProperty(IDProperty *prop);
