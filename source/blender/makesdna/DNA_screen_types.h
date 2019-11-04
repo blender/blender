@@ -461,9 +461,10 @@ enum {
   /** Update size of regions within the area. */
   AREA_FLAG_REGION_SIZE_UPDATE = (1 << 3),
   AREA_FLAG_ACTIVE_TOOL_UPDATE = (1 << 4),
+
   //  AREA_FLAG_UNUSED_5           = (1 << 5),
-  /** Used to check if we should switch back to prevspace (of a different type). */
-  AREA_FLAG_TEMP_TYPE = (1 << 6),
+  AREA_FLAG_UNUSED_6 = (1 << 6), /* cleared */
+
   /**
    * For temporary full-screens (file browser, image editor render)
    * that are opened above user set full-screens.

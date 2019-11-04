@@ -79,6 +79,22 @@ typedef struct SpaceLink {
   char _pad0[6];
 } SpaceLink;
 
+/* SpaceLink.link_flag */
+enum {
+  /**
+   * The space is not a regular one opened through the editor menu (for example) but spawned by an
+   * operator to fulfill some task and then disappear again. Can typically be cancelled using Esc,
+   * but that is handled on the editor level. */
+  SPACE_FLAG_TYPE_TEMPORARY = (1 << 0),
+  /**
+   * Used to mark a space as active but "overlapped" by temporary fullscreen spaces. Without this
+   * we wouldn't be able to restore the correct active space after closing temp fullscreens
+   * reliably if the same space type is opened twice in a fullscreen stack (see T19296). We don't
+   * actually open the same space twice, we have to pretend it is by managing area order carefully.
+   */
+  SPACE_FLAG_TYPE_WAS_ACTIVE = (1 << 1),
+};
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
