@@ -928,7 +928,7 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_CLAY_STRIPS:
       br->flag |= BRUSH_ACCUMULATE;
       br->alpha = 0.7f;
-      br->normal_radius_factor = 1.7f;
+      br->normal_radius_factor = 1.55f;
       br->curve_preset = BRUSH_CURVE_SPHERE;
       br->spacing = 6;
       break;
