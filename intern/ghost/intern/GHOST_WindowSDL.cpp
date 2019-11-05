@@ -33,10 +33,10 @@ GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
                                  GHOST_TUns32 width,
                                  GHOST_TUns32 height,
                                  GHOST_TWindowState state,
-                                 const GHOST_TEmbedderWindowID parentWindow,
                                  GHOST_TDrawingContextType type,
                                  const bool stereoVisual,
-                                 const bool exclusive)
+                                 const bool exclusive,
+                                 const GHOST_IWindow *parentWindow)
     : GHOST_Window(width, height, state, stereoVisual, exclusive),
       m_system(system),
       m_valid_setup(false),
@@ -557,7 +557,7 @@ static SDL_Cursor *sdl_ghost_CreateCursor(
 }
 
 /* TODO, this is currently never freed but it wont leak either. */
-static void getStandardCursorShape(GHOST_TStandardCursor shape)
+static SDL_Cursor *getStandardCursorShape(GHOST_TStandardCursor shape)
 {
   if (sdl_std_cursor_array[0] == NULL) {
 #define DEF_CURSOR(name, ind) \
