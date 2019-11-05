@@ -1495,7 +1495,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
      * This prevents crash from T49813.
      * TODO(kevin): perhaps find a better way to do this? */
     if (face_counts->size() != existing_mesh->totpoly ||
-        face_indices->size() != existing_mesh->totpoly) {
+        face_indices->size() != existing_mesh->totloop) {
       settings.read_flag = MOD_MESHSEQ_READ_VERT;
 
       if (err_str) {
