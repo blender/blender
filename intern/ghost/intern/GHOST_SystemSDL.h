@@ -90,7 +90,7 @@ class GHOST_SystemSDL : public GHOST_System {
                               GHOST_GLSettings glSettings,
                               const bool exclusive = false,
                               const bool is_dialog = false,
-                              const GHOST_TEmbedderWindowID parentWindow = 0);
+                              const GHOST_IWindow *parentWindow = NULL);
 
   /* SDL specific */
   GHOST_WindowSDL *findGhostWindow(SDL_Window *sdl_win);
