@@ -138,7 +138,7 @@ class OptiXDevice : public Device {
     bool free_map_host = false;
     CUarray array = NULL;
     CUtexObject texobject = 0;
-    void *map_host_pointer = nullptr;
+    bool use_mapped_host = false;
   };
 
   // Helper class to manage current CUDA context
@@ -1234,7 +1234,7 @@ class OptiXDevice : public Device {
     cuMemGetInfo(&free, &total);
 
     /* Move textures to host memory if needed. */
-    if (!move_texture_to_host && !is_image && (size + headroom) >= free) {
+    if (!move_texture_to_host && !is_image && (size + headroom) >= free && can_map_host) {
       move_textures_to_host(size + headroom - free, is_texture);
       cuMemGetInfo(&free, &total);
     }
@@ -1248,39 +1248,27 @@ class OptiXDevice : public Device {
     }
 
     /* Fall back to mapped host memory if needed and possible. */
-    void *map_host_pointer = 0;
-    bool free_map_host = false;
+    void *shared_pointer = 0;
 
-    if (mem_alloc_result != CUDA_SUCCESS && can_map_host &&
-        map_host_used + size < map_host_limit) {
+    if (mem_alloc_result != CUDA_SUCCESS && can_map_host) {
       if (mem.shared_pointer) {
         /* Another device already allocated host memory. */
         mem_alloc_result = CUDA_SUCCESS;
-        map_host_pointer = mem.shared_pointer;
+        shared_pointer = mem.shared_pointer;
       }
-      else {
+      else if (map_host_used + size < map_host_limit) {
         /* Allocate host memory ourselves. */
         mem_alloc_result = cuMemHostAlloc(
-            &map_host_pointer, size, CU_MEMHOSTALLOC_DEVICEMAP | CU_MEMHOSTALLOC_WRITECOMBINED);
-        mem.shared_pointer = map_host_pointer;
-        free_map_host = true;
+            &shared_pointer, size, CU_MEMHOSTALLOC_DEVICEMAP | CU_MEMHOSTALLOC_WRITECOMBINED);
+
+        assert((mem_alloc_result == CUDA_SUCCESS && shared_pointer != 0) ||
+               (mem_alloc_result != CUDA_SUCCESS && shared_pointer == 0));
       }
 
       if (mem_alloc_result == CUDA_SUCCESS) {
-        cuMemHostGetDevicePointer_v2(&device_pointer, mem.shared_pointer, 0);
+        cuMemHostGetDevicePointer_v2(&device_pointer, shared_pointer, 0);
         map_host_used += size;
         status = " in host memory";
-
-        /* Replace host pointer with our host allocation. Only works if
-         * CUDA memory layout is the same and has no pitch padding. Also
-         * does not work if we move textures to host during a render,
-         * since other devices might be using the memory. */
-        if (!move_texture_to_host && pitch_padding == 0 && mem.host_pointer &&
-            mem.host_pointer != mem.shared_pointer) {
-          memcpy(mem.shared_pointer, mem.host_pointer, size);
-          mem.host_free();
-          mem.host_pointer = mem.shared_pointer;
-        }
       }
       else {
         status = " failed, out of host memory";
@@ -1311,8 +1299,34 @@ class OptiXDevice : public Device {
 
     /* Insert into map of allocations. */
     CUDAMem *cmem = &cuda_mem_map[&mem];
-    cmem->map_host_pointer = map_host_pointer;
-    cmem->free_map_host = free_map_host;
+    if (shared_pointer != 0) {
+      /* Replace host pointer with our host allocation. Only works if
+       * CUDA memory layout is the same and has no pitch padding. Also
+       * does not work if we move textures to host during a render,
+       * since other devices might be using the memory. */
+
+      if (!move_texture_to_host && pitch_padding == 0 && mem.host_pointer &&
+          mem.host_pointer != shared_pointer) {
+        memcpy(shared_pointer, mem.host_pointer, size);
+
+        /* A call to device_memory::host_free() should be preceded by
+         * a call to device_memory::device_free() for host memory
+         * allocated by a device to be handled properly. Two exceptions
+         * are here and a call in CUDADevice::generic_alloc(), where
+         * the current host memory can be assumed to be allocated by
+         * device_memory::host_alloc(), not by a device */
+
+        mem.host_free();
+        mem.host_pointer = shared_pointer;
+      }
+      mem.shared_pointer = shared_pointer;
+      mem.shared_counter++;
+      cmem->use_mapped_host = true;
+    }
+    else {
+      cmem->use_mapped_host = false;
+    }
+
     return cmem;
   }
 
@@ -1560,7 +1574,12 @@ class OptiXDevice : public Device {
     if (mem.host_pointer && mem.device_pointer) {
       CUDAContextScope scope(cuda_context);
 
-      if (mem.host_pointer != mem.shared_pointer) {
+      /* If use_mapped_host of mem is false, the current device only
+       * uses device memory allocated by cuMemAlloc regardless of
+       * mem.host_pointer and mem.shared_pointer, and should copy
+       * data from mem.host_pointer. */
+
+      if (cuda_mem_map[&mem].use_mapped_host == false || mem.host_pointer != mem.shared_pointer) {
         check_result_cuda(
             cuMemcpyHtoD((CUdeviceptr)mem.device_pointer, mem.host_pointer, mem.memory_size()));
       }
@@ -1595,14 +1614,19 @@ class OptiXDevice : public Device {
   {
     if (mem.host_pointer)
       memset(mem.host_pointer, 0, mem.memory_size());
-    if (mem.host_pointer && mem.host_pointer == mem.shared_pointer)
-      return;  // This is shared host memory, so no device memory to update
 
     if (!mem.device_pointer)
       mem_alloc(mem);  // Need to allocate memory first if it does not exist yet
 
-    const CUDAContextScope scope(cuda_context);
-    check_result_cuda(cuMemsetD8((CUdeviceptr)mem.device_pointer, 0, mem.memory_size()));
+    /* If use_mapped_host of mem is false, mem.device_pointer currently
+     * refers to device memory regardless of mem.host_pointer and
+     * mem.shared_pointer. */
+
+    if (mem.device_pointer &&
+        (cuda_mem_map[&mem].use_mapped_host == false || mem.host_pointer != mem.shared_pointer)) {
+      const CUDAContextScope scope(cuda_context);
+      check_result_cuda(cuMemsetD8((CUdeviceptr)mem.device_pointer, 0, mem.memory_size()));
+    }
   }
 
   void mem_free(device_memory &mem) override
@@ -1624,16 +1648,21 @@ class OptiXDevice : public Device {
       CUDAContextScope scope(cuda_context);
       const CUDAMem &cmem = cuda_mem_map[&mem];
 
-      if (cmem.map_host_pointer) {
-        /* Free host memory. */
-        if (cmem.free_map_host) {
-          cuMemFreeHost(cmem.map_host_pointer);
-          if (mem.host_pointer == mem.shared_pointer) {
-            mem.host_pointer = 0;
-          }
-          mem.shared_pointer = 0;
-        }
+      /* If cmem.use_mapped_host is true, reference counting is used
+       * to safely free a mapped host memory. */
 
+      if (cmem.use_mapped_host) {
+        assert(mem.shared_pointer);
+        if (mem.shared_pointer) {
+          assert(mem.shared_counter > 0);
+          if (--mem.shared_counter == 0) {
+            if (mem.host_pointer == mem.shared_pointer) {
+              mem.host_pointer = 0;
+            }
+            cuMemFreeHost(mem.shared_pointer);
+            mem.shared_pointer = 0;
+          }
+        }
         map_host_used -= mem.device_size;
       }
       else {
@@ -1699,7 +1728,7 @@ class OptiXDevice : public Device {
         }
 
         /* Already in host memory. */
-        if (cmem->map_host_pointer) {
+        if (cmem->use_mapped_host) {
           continue;
         }
 
