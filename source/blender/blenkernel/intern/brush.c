@@ -1015,12 +1015,12 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_INFLATE:
     case SCULPT_TOOL_BLOB:
     case SCULPT_TOOL_CREASE:
-      br->add_col[0] = 0.5f;
-      br->add_col[1] = 0.7f;
-      br->add_col[2] = 0.875f;
-      br->sub_col[0] = 0.5f;
-      br->sub_col[1] = 0.7f;
-      br->sub_col[2] = 0.875f;
+      br->add_col[0] = 0.0f;
+      br->add_col[1] = 0.5f;
+      br->add_col[2] = 1.0f;
+      br->sub_col[0] = 0.0f;
+      br->sub_col[1] = 0.5f;
+      br->sub_col[2] = 1.0f;
       break;
 
     case SCULPT_TOOL_SMOOTH:
@@ -1029,11 +1029,11 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_SCRAPE:
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
       br->add_col[0] = 1.0f;
-      br->add_col[1] = 0.39f;
-      br->add_col[2] = 0.39f;
+      br->add_col[1] = 0.05f;
+      br->add_col[2] = 0.01f;
       br->sub_col[0] = 1.0f;
-      br->sub_col[1] = 0.39f;
-      br->sub_col[2] = 0.39f;
+      br->sub_col[1] = 0.05f;
+      br->sub_col[2] = 0.01f;
       break;
 
     case SCULPT_TOOL_PINCH:
@@ -1045,11 +1045,11 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_ELASTIC_DEFORM:
     case SCULPT_TOOL_POSE:
       br->add_col[0] = 1.0f;
-      br->add_col[1] = 1.0f;
-      br->add_col[2] = 0.39f;
+      br->add_col[1] = 0.95f;
+      br->add_col[2] = 0.005f;
       br->sub_col[0] = 1.0f;
-      br->sub_col[1] = 1.0f;
-      br->sub_col[2] = 0.39f;
+      br->sub_col[1] = 0.95f;
+      br->sub_col[2] = 0.005f;
       break;
 
     case SCULPT_TOOL_SIMPLIFY:
