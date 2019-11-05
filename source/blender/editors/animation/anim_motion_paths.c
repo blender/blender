@@ -236,10 +236,8 @@ static void motionpath_get_global_framerange(ListBase *targets, int *r_sfra, int
 
 static int motionpath_get_prev_keyframe(MPathTarget *mpt, DLRBT_Tree *fcu_keys, int current_frame)
 {
-  /* If the current frame is outside of the configured motion path range we ignore update of this
-   * motion path by using invalid frame range where start frame is above the end frame. */
   if (current_frame <= mpt->mpath->start_frame) {
-    return INT_MAX;
+    return mpt->mpath->start_frame;
   }
 
   float current_frame_float = current_frame;
@@ -262,10 +260,8 @@ static int motionpath_get_prev_prev_keyframe(MPathTarget *mpt,
 
 static int motionpath_get_next_keyframe(MPathTarget *mpt, DLRBT_Tree *fcu_keys, int current_frame)
 {
-  /* If the current frame is outside of the configured motion path range we ignore update of this
-   * motion path by using invalid frame range where start frame is above the end frame. */
   if (current_frame >= mpt->mpath->end_frame) {
-    return INT_MIN;
+    return mpt->mpath->end_frame;
   }
 
   float current_frame_float = current_frame;
@@ -305,6 +301,15 @@ static void motionpath_calculate_update_range(MPathTarget *mpt,
                                               int *r_sfra,
                                               int *r_efra)
 {
+  *r_sfra = INT_MAX;
+  *r_efra = INT_MIN;
+
+  /* If the current frame is outside of the configured motion path range we ignore update of this
+   * motion path by using invalid frame range where start frame is above the end frame. */
+  if (current_frame < mpt->mpath->start_frame || current_frame > mpt->mpath->end_frame) {
+    return;
+  }
+
   /* Similar to the case when there is only a single keyframe: need to update en entire range to
    * a constant value. */
   if (!motionpath_check_can_use_keyframe_range(mpt, adt, fcurve_list)) {
@@ -312,9 +317,6 @@ static void motionpath_calculate_update_range(MPathTarget *mpt,
     *r_efra = mpt->mpath->end_frame;
     return;
   }
-
-  *r_sfra = INT_MAX;
-  *r_efra = INT_MIN;
 
   /* NOTE: Iterate over individual f-curves, and check their keyframes individually and pick a
    * widest range from them. This is because it's possible to have more narrow keyframe on a
@@ -341,6 +343,13 @@ static void motionpath_calculate_update_range(MPathTarget *mpt,
     }
 
     BLI_dlrbTree_free(&fcu_keys);
+  }
+}
+
+static void motionpath_free_free_tree_data(ListBase *targets)
+{
+  for (MPathTarget *mpt = targets->first; mpt; mpt = mpt->next) {
+    BLI_dlrbTree_free(&mpt->keys);
   }
 }
 
@@ -444,6 +453,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
   }
 
   if (sfra > efra) {
+    motionpath_free_free_tree_data(targets);
     return;
   }
 
