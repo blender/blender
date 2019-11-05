@@ -53,6 +53,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
+#include "BKE_mirror.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_node.h"
@@ -7703,38 +7704,106 @@ static void SCULPT_OT_optimize(wmOperatorType *ot)
 
 /********************* Dynamic topology symmetrize ********************/
 
+static bool sculpt_no_multires_poll(bContext *C)
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  if (ss && ss->pbvh && sculpt_mode_poll(C)) {
+    return BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS;
+  }
+  return false;
+}
+
 static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = CTX_data_active_object(C);
   const Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
+  PBVH *pbvh = ss->pbvh;
 
-  /* To simplify undo for symmetrize, all BMesh elements are logged
-   * as deleted, then after symmetrize operation all BMesh elements
-   * are logged as added (as opposed to attempting to store just the
-   * parts that symmetrize modifies) */
-  sculpt_undo_push_begin("Dynamic topology symmetrize");
-  sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_SYMMETRIZE);
-  BM_log_before_all_removed(ss->bm, ss->bm_log);
+  if (!pbvh) {
+    return OPERATOR_CANCELLED;
+  }
 
-  BM_mesh_toolflags_set(ss->bm, true);
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_BMESH:
+      /* Dyntopo Symmetrize */
 
-  /* Symmetrize and re-triangulate */
-  BMO_op_callf(ss->bm,
-               (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
-               "symmetrize input=%avef direction=%i  dist=%f",
-               sd->symmetrize_direction,
-               0.00001f);
-  sculpt_dynamic_topology_triangulate(ss->bm);
+      /* To simplify undo for symmetrize, all BMesh elements are logged
+       * as deleted, then after symmetrize operation all BMesh elements
+       * are logged as added (as opposed to attempting to store just the
+       * parts that symmetrize modifies) */
+      sculpt_undo_push_begin("Dynamic topology symmetrize");
+      sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_SYMMETRIZE);
+      BM_log_before_all_removed(ss->bm, ss->bm_log);
 
-  /* bisect operator flags edges (keep tags clean for edge queue) */
-  BM_mesh_elem_hflag_disable_all(ss->bm, BM_EDGE, BM_ELEM_TAG, false);
+      BM_mesh_toolflags_set(ss->bm, true);
 
-  BM_mesh_toolflags_set(ss->bm, false);
+      /* Symmetrize and re-triangulate */
+      BMO_op_callf(ss->bm,
+                   (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+                   "symmetrize input=%avef direction=%i  dist=%f",
+                   sd->symmetrize_direction,
+                   0.00001f);
+      sculpt_dynamic_topology_triangulate(ss->bm);
 
-  /* Finish undo */
-  BM_log_all_added(ss->bm, ss->bm_log);
-  sculpt_undo_push_end();
+      /* bisect operator flags edges (keep tags clean for edge queue) */
+      BM_mesh_elem_hflag_disable_all(ss->bm, BM_EDGE, BM_ELEM_TAG, false);
+
+      BM_mesh_toolflags_set(ss->bm, false);
+
+      /* Finish undo */
+      BM_log_all_added(ss->bm, ss->bm_log);
+      sculpt_undo_push_end();
+
+      break;
+    case PBVH_FACES:
+      /* Mesh Symmetrize */
+      ED_sculpt_undo_geometry_begin(ob);
+      Mesh *mesh = ob->data;
+      Mesh *mesh_mirror;
+      MirrorModifierData mmd = {0};
+      int axis = 0;
+      mmd.flag = 0;
+      mmd.tolerance = 0.005f;
+      switch (sd->symmetrize_direction) {
+        case BMO_SYMMETRIZE_NEGATIVE_X:
+          axis = 0;
+          mmd.flag |= MOD_MIR_AXIS_X | MOD_MIR_BISECT_AXIS_X | MOD_MIR_BISECT_FLIP_AXIS_X;
+          break;
+        case BMO_SYMMETRIZE_NEGATIVE_Y:
+          axis = 1;
+          mmd.flag |= MOD_MIR_AXIS_Y | MOD_MIR_BISECT_AXIS_Y | MOD_MIR_BISECT_FLIP_AXIS_Y;
+          break;
+        case BMO_SYMMETRIZE_NEGATIVE_Z:
+          axis = 2;
+          mmd.flag |= MOD_MIR_AXIS_Z | MOD_MIR_BISECT_AXIS_Z | MOD_MIR_BISECT_FLIP_AXIS_Z;
+          break;
+        case BMO_SYMMETRIZE_POSITIVE_X:
+          axis = 0;
+          mmd.flag |= MOD_MIR_AXIS_X | MOD_MIR_BISECT_AXIS_X;
+          break;
+        case BMO_SYMMETRIZE_POSITIVE_Y:
+          axis = 1;
+          mmd.flag |= MOD_MIR_AXIS_Y | MOD_MIR_BISECT_AXIS_Y;
+          break;
+        case BMO_SYMMETRIZE_POSITIVE_Z:
+          axis = 2;
+          mmd.flag |= MOD_MIR_AXIS_Z | MOD_MIR_BISECT_AXIS_Z;
+          break;
+      }
+      mesh_mirror = BKE_mirror_apply_mirror_on_axis(&mmd, NULL, ob, mesh, axis);
+      if (mesh_mirror) {
+        BKE_mesh_nomain_to_mesh(mesh_mirror, mesh, ob, &CD_MASK_MESH, true);
+      }
+      ED_sculpt_undo_geometry_end(ob);
+      BKE_mesh_calc_normals(ob->data);
+      BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+
+      break;
+    case PBVH_GRIDS:
+      return OPERATOR_CANCELLED;
+  }
 
   /* Redraw */
   sculpt_pbvh_clear(ob);
@@ -7752,7 +7821,7 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = sculpt_symmetrize_exec;
-  ot->poll = sculpt_and_dynamic_topology_poll;
+  ot->poll = sculpt_no_multires_poll;
 }
 
 /**** Toggle operator for turning sculpt mode on or off ****/
