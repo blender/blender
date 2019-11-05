@@ -344,6 +344,13 @@ static void motionpath_calculate_update_range(MPathTarget *mpt,
   }
 }
 
+static void motionpath_free_free_tree_data(ListBase *targets)
+{
+  for (MPathTarget *mpt = targets->first; mpt; mpt = mpt->next) {
+    BLI_dlrbTree_free(&mpt->keys);
+  }
+}
+
 /* Perform baking of the given object's and/or its bones' transforms to motion paths
  * - scene: current scene
  * - ob: object whose flagged motionpaths should get calculated
@@ -444,6 +451,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
   }
 
   if (sfra > efra) {
+    motionpath_free_free_tree_data(targets);
     return;
   }
 
