@@ -124,6 +124,17 @@ static int CCW_test(const double a[2], const double b[2], const double c[2], con
 
   /* This is twice the signed area of triangle abc. */
   det = (b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1]);
+  if (eps == 0.0) {
+    if (det > 0) {
+      return 1;
+    }
+    else if (det < 0) {
+      return -1;
+    }
+    else {
+      return 0;
+    }
+  }
   ab = len_v2v2_db(a, b);
   if (ab <= eps) {
     return 0;
@@ -617,8 +628,9 @@ static bool locate_point_final(const double p[2],
   double lambda, close[2];
   bool done = false;
 #ifdef DEBUG_CDT
-  int dbglevel = 0;
-  if (dbglevel > 0) {
+  int dbg_level = 0;
+
+  if (dbg_level > 0) {
     fprintf(stderr, "locate_point_final %d\n", try_neighbors);
     dump_se(tri_se, "tri_se");
     fprintf(stderr, "\n");
@@ -628,7 +640,7 @@ static bool locate_point_final(const double p[2],
   i = 0;
   do {
 #ifdef DEBUG_CDT
-    if (dbglevel > 1) {
+    if (dbg_level > 1) {
       fprintf(stderr, "%d: ", i);
       dump_se(se, "search se");
     }
@@ -640,7 +652,7 @@ static bool locate_point_final(const double p[2],
     if (len_close_p < epsilon) {
       if (len_v2v2_db(p, a) < epsilon) {
 #ifdef DEBUG_CDT
-        if (dbglevel > 0) {
+        if (dbg_level > 0) {
           fprintf(stderr, "OnVert case a (%.2f,%.2f)\n", F2(a));
         }
 #endif
@@ -651,7 +663,7 @@ static bool locate_point_final(const double p[2],
       }
       else if (len_v2v2_db(p, b) < epsilon) {
 #ifdef DEBUG_CDT
-        if (dbglevel > 0) {
+        if (dbg_level > 0) {
           fprintf(stderr, "OnVert case b (%.2f,%.2f)\n", F2(b));
         }
 #endif
@@ -662,7 +674,7 @@ static bool locate_point_final(const double p[2],
       }
       else if (lambda > 0.0 && lambda < 1.0) {
 #ifdef DEBUG_CDT
-        if (dbglevel > 0) {
+        if (dbg_level > 0) {
           fprintf(stderr, "OnEdge case, lambda=%f\n", lambda);
           dump_se(se, "se");
         }
@@ -682,7 +694,7 @@ static bool locate_point_final(const double p[2],
   } while (se != tri_se && !done);
   if (!done) {
 #ifdef DEBUG_CDT
-    if (dbglevel > 1) {
+    if (dbg_level > 1) {
       fprintf(stderr,
               "not done, dist_inside=%f %f %f\n",
               dist_inside[0],
@@ -692,7 +704,7 @@ static bool locate_point_final(const double p[2],
 #endif
     if (dist_inside[0] >= 0.0 && dist_inside[1] >= 0.0 && dist_inside[2] >= 0.0) {
 #ifdef DEBUG_CDT
-      if (dbglevel > 0) {
+      if (dbg_level > 0) {
         fprintf(stderr, "InFace case\n");
         dump_se_cycle(tri_se, "tri", 10);
       }
@@ -740,14 +752,14 @@ static bool locate_point_final(const double p[2],
           r_lr->edge_lambda = lambda;
         }
 #ifdef DEBUG_CDT
-        if (dbglevel > 0) {
+        if (dbg_level > 0) {
           fprintf(
               stderr, "desperation case kind=%u lambda=%f\n", r_lr->loc_kind, r_lr->edge_lambda);
           dump_se(r_lr->se, "se");
           BLI_assert(0); /* While developing, catch these "should not happens" */
         }
 #endif
-        fprintf(stderr, "desperation!\n");  // TODO: remove
+        fprintf(stderr, "desperation! point=(%g,%g)\n", p[0], p[1]);  // TODO: remove
         return true;
       }
     }
@@ -769,9 +781,9 @@ static LocateResult locate_point(CDT_state *cdt, const double p[2])
   int visit = ++cdt->visit_count;
   int loop_count = 0;
 #ifdef DEBUG_CDT
-  int dbglevel = 0;
+  int dbg_level = 0;
 
-  if (dbglevel > 0) {
+  if (dbg_level > 0) {
     fprintf(stderr, "locate_point (%.2f,%.2f), visit_index=%d\n", F2(p), visit);
   }
 #endif
@@ -790,7 +802,7 @@ static LocateResult locate_point(CDT_state *cdt, const double p[2])
     v = cdt->vert_array[i];
     dist_squared = len_squared_v2v2_db(p, v->co);
 #ifdef DEBUG_CDT
-    if (dbglevel > 0) {
+    if (dbg_level > 0) {
       fprintf(stderr, "try start vert %d, dist_squared=%f\n", i, dist_squared);
       dump_v(v, "v");
     }
@@ -806,7 +818,7 @@ static LocateResult locate_point(CDT_state *cdt, const double p[2])
     BLI_assert(cur_se->face != cdt->outer_face);
   }
 #ifdef DEBUG_CDT
-  if (dbglevel > 0) {
+  if (dbg_level > 0) {
     dump_se(cur_se, "start vert edge");
   }
 #endif
@@ -815,7 +827,7 @@ static LocateResult locate_point(CDT_state *cdt, const double p[2])
     /* Find edge of cur_tri that separates p and t's centroid,
      * and where other tri over the edge is unvisited. */
 #ifdef DEBUG_CDT
-    if (dbglevel > 0) {
+    if (dbg_level > 0) {
       dump_se_cycle(cur_se, "cur search face", 5);
     }
 #endif
@@ -826,10 +838,10 @@ static LocateResult locate_point(CDT_state *cdt, const double p[2])
     a = cur_se->vert->co;
     b = cur_se->next->vert->co;
     c = cur_se->next->next->vert->co;
-    if (CCW_test(a, b, p, epsilon) >= 0 && CCW_test(b, c, p, epsilon) >= 0 &&
-        CCW_test(c, a, p, epsilon) >= 0) {
+    if (CCW_test(a, b, p, 0.0) >= 0 && CCW_test(b, c, p, 0.0) >= 0 &&
+        CCW_test(c, a, p, 0.0) >= 0) {
 #ifdef DEBUG_CDT
-      if (dbglevel > 1) {
+      if (dbg_level > 1) {
         fprintf(stderr, "p in current triangle\n");
       }
 #endif
@@ -844,28 +856,28 @@ static LocateResult locate_point(CDT_state *cdt, const double p[2])
       b = next_se->next->vert->co;
       c = next_se->next->next->vert->co;
 #ifdef DEBUG_CDT
-      if (dbglevel > 1) {
+      if (dbg_level > 1) {
         dump_se(next_se, "search edge");
-        fprintf(stderr, "tri centroid=(%.2f,%.2f)\n", F2(cur_tri->centroid));
+        fprintf(stderr, "tri centroid=(%.3f,%.3f)\n", F2(cur_tri->centroid));
         validate_face_centroid(next_se);
       }
 #endif
       next_se_sym = sym(next_se);
-      if (CCW_test(a, b, p, epsilon) <= 0 && next_se->face != cdt->outer_face) {
+      if (CCW_test(a, b, p, 0.0) <= 0 && next_se->face != cdt->outer_face) {
 #ifdef DEBUG_CDT
-        if (dbglevel > 1) {
+        if (dbg_level > 1) {
           fprintf(stderr, "CCW_test(a, b, p) <= 0\n");
         }
 #endif
 #ifdef DEBUG_CDT
-        if (dbglevel > 0) {
+        if (dbg_level > 0) {
           dump_se(next_se_sym, "next_se_sym");
           fprintf(stderr, "next_se_sym face visit=%d\n", next_se_sym->face->visit_index);
         }
 #endif
         if (next_se_sym->face->visit_index != visit) {
 #ifdef DEBUG_CDT
-          if (dbglevel > 0) {
+          if (dbg_level > 0) {
             fprintf(stderr, "found edge to cross\n");
           }
 #endif
@@ -890,32 +902,50 @@ static LocateResult locate_point(CDT_state *cdt, const double p[2])
   return lr;
 }
 
-/** return true if circumcircle(v1, v2, v3) does not contain p. */
+/** Return true if circumcircle(v1, v2, v3) does not contain p.
+ * To avoid possible infinite flip loops, we will say true even if p is inside the circle
+ * but less than epsilon from the boundary; or if v1, v2, v3, form a straight line.
+ */
 static bool delaunay_check(CDTVert *v1, CDTVert *v2, CDTVert *v3, CDTVert *p, const double epsilon)
 {
-  double a, b, c, d, z1, z2, z3;
-  const double *p1, *p2, *p3;
-  double cen[2], r, len_pc;
-  /* To do epislon test, need center and radius of circumcircle. */
-  p1 = v1->co;
-  p2 = v2->co;
-  p3 = v3->co;
-  z1 = dot_v2v2_db(p1, p1);
-  z2 = dot_v2v2_db(p2, p2);
-  z3 = dot_v2v2_db(p3, p3);
-  a = p1[0] * (p2[1] - p3[1]) - p1[1] * (p2[0] - p3[0]) + p2[0] * p3[1] - p3[0] * p2[1];
-  b = z1 * (p3[1] - p2[1]) + z2 * (p1[1] - p3[1]) + z3 * (p2[1] - p1[1]);
-  c = z1 * (p2[0] - p3[0]) + z2 * (p3[0] - p1[0]) + z3 * (p1[0] - p2[0]);
-  d = z1 * (p3[0] * p2[1] - p2[0] * p3[1]) + z2 * (p1[0] * p3[1] - p3[0] * p1[1]) +
-      z3 * (p2[0] * p1[1] - p1[0] * p2[1]);
-  if (a == 0.0) {
-    return true; /* Not really, but this shouldn't happen. */
+  double x1, y1, x2, y2, den, cenx, ceny, rad, pc, a, b, w, z, q, s;
+
+  /* Find center and radius of circumcircle of v1,v2,v3.
+   * Transform coords so v3 is at origin to help reduce floating point error
+   * when coordinates are far from (0,0) but close together.
+   */
+  x1 = v1->co[0] - v3->co[0];
+  y1 = v1->co[1] - v3->co[1];
+  x2 = v2->co[0] - v3->co[0];
+  y2 = v2->co[1] - v3->co[1];
+  den = 2.0 * (x1 * y2 - x2 * y1);
+  if (UNLIKELY(den == 0.0)) {
+    /* v1, v2, v3 are in a line. */
+    return true;
   }
-  cen[0] = -b / (2 * a);
-  cen[1] = -c / (2 * a);
-  r = sqrt((b * b + c * c - 4 * a * d) / (4 * a * a));
-  len_pc = len_v2v2_db(p->co, cen);
-  return (len_pc >= (r - epsilon));
+  /* cen[0] = det(x1**2 + y1**2, y1, x2**2 + y2**2, y2) / den
+   * cen[1] = det(x1, x1**2 + y1**2, x2, x2**2 + y2**2) / den
+   * den = 2 * det(x1, y1, x2, y2)
+   */
+  a = x1 * x1 + y1 * y1;
+  b = x2 * x2 + y2 * y2;
+  cenx = (a * y2 - b * y1) / den;
+  ceny = (x1 * b - x2 * a) / den;
+  w = x1 - cenx;
+  z = y1 - ceny;
+  rad = sqrt(w * w + z * z);
+  q = p->co[0] - v3->co[0] - cenx;
+  s = p->co[1] - v3->co[1] - ceny;
+  pc = sqrt(q * q + s * s);
+  return (pc >= rad - epsilon);
+}
+
+/* Return true if we can flip edge v1-v3 to edge v2-v4 inside quad v1v2v3v4 (in CCW order).
+ * We can do this if angles v4-v1-v2 and v2-v3-v4 are both CCW or straight.
+ */
+static inline bool can_flip(CDTVert *v1, CDTVert *v2, CDTVert *v3, CDTVert *v4)
+{
+  return CCW_test(v4->co, v1->co, v2->co, 0.0) >= 0 && CCW_test(v2->co, v3->co, v4->co, 0.0) >= 0;
 }
 
 /** Use LinkNode linked list as stack of SymEdges, allocating from cdt->listpool. */
@@ -955,12 +985,12 @@ static void flip(SymEdge *se, CDT_state *cdt)
   CDTFace *t1, *t2;
   CDTVert *v1, *v2;
 #ifdef DEBUG_CDT
-  const int dbglevel = 0;
+  const int dbg_level = 0;
 #endif
 
   sesym = sym(se);
 #ifdef DEBUG_CDT
-  if (dbglevel > 0) {
+  if (dbg_level > 0) {
     fprintf(stderr, "flip\n");
     dump_se(se, "se");
     dump_se(sesym, "sesym");
@@ -975,7 +1005,7 @@ static void flip(SymEdge *se, CDT_state *cdt)
   csym = sym(c);
   dsym = sym(d);
 #ifdef DEBUG_CDT
-  if (dbglevel > 1) {
+  if (dbg_level > 1) {
     dump_se(a, "a");
     dump_se(b, "b");
     dump_se(c, "c");
@@ -1020,7 +1050,7 @@ static void flip(SymEdge *se, CDT_state *cdt)
   calc_face_centroid(sesym);
 
 #ifdef DEBUG_CDT
-  if (dbglevel > 0) {
+  if (dbg_level > 0) {
     fprintf(stderr, "after flip\n");
     dump_se_cycle(a, "a cycle", 5);
     dump_se_cycle(sesym, "sesym cycle", 5);
@@ -1038,10 +1068,10 @@ static void flip_edges(CDTVert *v, Stack *stack, CDT_state *cdt)
   SymEdge *tri_without_p;
   bool is_delaunay;
   const double epsilon = cdt->epsilon;
-  int count = 0;
+  int count = 3;
 #ifdef DEBUG_CDT
-  const int dbglevel = 0;
-  if (dbglevel > 0) {
+  const int dbg_level = 0;
+  if (dbg_level > 0) {
     fprintf(stderr, "flip_edges, v=(%.2f,%.2f)\n", F2(v->co));
   }
 #endif
@@ -1052,17 +1082,17 @@ static void flip_edges(CDTVert *v, Stack *stack, CDT_state *cdt)
     }
     se = pop(stack, cdt);
 #ifdef DEBUG_CDT
-    if (dbglevel > 0) {
+    if (dbg_level > 0) {
       dump_se(se, "flip_edges popped");
     }
 #endif
     if (!is_constrained_edge(se->edge)) {
       /* Edge is not constrained; is it Delaunay? */
 #ifdef DEBUG_CDT
-      if (dbglevel > 1) {
+      if (dbg_level > 1) {
         dump_se_cycle(se, "unconstrained edge", 5);
       }
-      else if (dbglevel > 0) {
+      else if (dbg_level > 0) {
         fprintf(stderr, "unconstrained edge\n");
       }
 #endif
@@ -1072,16 +1102,16 @@ static void flip_edges(CDTVert *v, Stack *stack, CDT_state *cdt)
       sesym = sym(se);
       d = sesym->next->next->vert;
 #ifdef DEBUG_CDT
-      if (dbglevel > 1) {
-        fprintf(stderr, "a=(%.2f,%.2f) b=(%.2f,%.2f)\n", F2(a->co), F2(b->co));
-        fprintf(stderr, "c=(%.2f,%.2f) d=(%.2f,%.2f)\n", F2(c->co), F2(d->co));
+      if (dbg_level > 1) {
+        fprintf(stderr, "a=(%.3f,%.3f) b=(%.3f,%.3f)\n", F2(a->co), F2(b->co));
+        fprintf(stderr, "c=(%.3f,%.3f) d=(%.3f,%.3f)\n", F2(c->co), F2(d->co));
       }
 #endif
       if (v == c) {
         tri_without_p = sesym;
         is_delaunay = delaunay_check(a, b, c, d, epsilon);
 #ifdef DEBUG_CDT
-        if (dbglevel > 1) {
+        if (dbg_level > 1) {
           fprintf(stderr, "v==c, delaunay(a,b,c,d)=%d\n", is_delaunay);
         }
 #endif
@@ -1091,21 +1121,21 @@ static void flip_edges(CDTVert *v, Stack *stack, CDT_state *cdt)
         BLI_assert(d == v);
         is_delaunay = delaunay_check(b, a, d, c, epsilon);
 #ifdef DEBUG_CDT
-        if (dbglevel > 1) {
+        if (dbg_level > 1) {
           fprintf(stderr, "v!=c, delaunay(b,a,d,c)=%d\n", is_delaunay);
         }
 #endif
       }
-      if (!is_delaunay) {
+      if (!is_delaunay && can_flip(a, d, b, c)) {
         /* Push two edges of tri without p that aren't se. */
 #ifdef DEBUG_CDT
-        if (dbglevel > 0) {
+        if (dbg_level > 0) {
           fprintf(stderr, "maybe pushing more edges\n");
         }
 #endif
         if (!is_border_edge(tri_without_p->next->edge, cdt)) {
 #ifdef DEBUG_CDT
-          if (dbglevel > 0) {
+          if (dbg_level > 0) {
             dump_se(tri_without_p->next, "push1");
           }
 #endif
@@ -1113,13 +1143,20 @@ static void flip_edges(CDTVert *v, Stack *stack, CDT_state *cdt)
         }
         if (!is_border_edge(tri_without_p->next->next->edge, cdt)) {
 #ifdef DEBUG_CDT
-          if (dbglevel > 0) {
+          if (dbg_level > 0) {
             dump_se(tri_without_p->next->next, "\npush2");
           }
 #endif
           push(stack, tri_without_p->next->next, cdt);
         }
         flip(se, cdt);
+#ifdef DEBUG_CDT
+        if (dbg_level > 2) {
+          dump_cdt(cdt, "after flip");
+          cdt_draw(cdt, "afer flip");
+          validate_cdt(cdt, true);
+        }
+#endif
       }
     }
   }
@@ -1205,6 +1242,14 @@ static CDTVert *insert_point_in_face(CDT_state *cdt, SymEdge *e, const double p[
   CDTEdge *he, *ie, *je;
   CDTFace *t1, *t2, *t3;
   Stack stack;
+#ifdef DEBUG_CDT
+  int dbg_level = 0;
+
+  if (dbg_level > 0) {
+    fprintf(stderr, "insert point in face, p=(%.3f,%.3f)\n", F2(p));
+    dump_se_cycle(e, "insert face", 20);
+  }
+#endif
 
   f = e->next;
   g = f->next;
@@ -1256,6 +1301,20 @@ static CDTVert *insert_point_in_face(CDT_state *cdt, SymEdge *e, const double p[
   calc_face_centroid(e);
   calc_face_centroid(f);
   calc_face_centroid(g);
+
+#ifdef DEBUG_CDT
+  if (dbg_level > 1) {
+    fprintf(stderr, "after initial insert:\n");
+    dump_se_cycle(e, "e", 20);
+    dump_se_cycle(f, "f", 20);
+    dump_se_cycle(g, "g", 20);
+    if (dbg_level > 2) {
+      dump_cdt(cdt, "after initial insert, before flip");
+      cdt_draw(cdt, "after initial insert, before flip");
+      validate_cdt(cdt, true);
+    }
+  }
+#endif
 
   stack = NULL;
   if (!is_border_edge(e->edge, cdt)) {
@@ -2318,7 +2377,7 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
   CDTEdge *face_edge;
   SymEdge *face_symedge;
 #ifdef DEBUG_CDT
-  int dbg_level = 0;
+  int dbg_level = 1;
 #endif
 
   if ((nv > 0 && input->vert_coords == NULL) || (ne > 0 && input->edges == NULL) ||
@@ -2364,6 +2423,15 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
     vert_co[0] = (double)input->vert_coords[i][0];
     vert_co[1] = (double)input->vert_coords[i][1];
     verts[i] = add_point_constraint(cdt, vert_co, i);
+#ifdef DEBUG_CDT
+    if (dbg_level > 3) {
+      char namebuf[60];
+      sprintf(namebuf, "after point %d = (%f,%f)\n", i, vert_co[0], vert_co[1]);
+      cdt_draw(cdt, namebuf);
+      dump_cdt(cdt, namebuf);
+      validate_cdt(cdt, true);
+    }
+#endif
   }
   for (i = 0; i < ne; i++) {
     v1 = input->edges[i][0];
@@ -2436,7 +2504,7 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
     add_face_ids(cdt, face_symedge, f, fedge_start, fedge_end);
   }
 #ifdef DEBUG_CDT
-  if (dbg_level > 1) {
+  if (dbg_level > 0) {
     validate_cdt(cdt, true);
   }
   if (dbg_level > 1) {
@@ -2512,16 +2580,16 @@ static void dump_se(const SymEdge *se, const char *lab)
 {
   if (se->next) {
     fprintf(
-        stderr, "%s((%.2f,%.2f)->(%.2f,%.2f))\n", lab, F2(se->vert->co), F2(se->next->vert->co));
+        stderr, "%s((%.3f,%.3f)->(%.3f,%.3f))\n", lab, F2(se->vert->co), F2(se->next->vert->co));
   }
   else {
-    fprintf(stderr, "%s((%.2f,%.2f)->NULL)\n", lab, F2(se->vert->co));
+    fprintf(stderr, "%s((%.3f,%.3f)->NULL)\n", lab, F2(se->vert->co));
   }
 }
 
 static void dump_v(const CDTVert *v, const char *lab)
 {
-  fprintf(stderr, "%s(%.2f,%.2f)\n", lab, F2(v->co));
+  fprintf(stderr, "%s(%.3f,%.3f)\n", lab, F2(v->co));
 }
 
 static void dump_se_cycle(const SymEdge *se, const char *lab, const int limit)
@@ -2551,22 +2619,47 @@ static void dump_id_list(const LinkNode *id_list, const char *lab)
   }
 }
 
+static const char *vertname(CDTVert *v)
+{
+  static char vertnamebuf[20];
+
+  if (v->index < 4) {
+    sprintf(vertnamebuf, "[%c]", "ABCD"[v->index]);
+  }
+  else {
+    sprintf(vertnamebuf, "[%d]", v->index - 4);
+  }
+  return vertnamebuf;
+}
+
 #  define PL(p) (POINTER_AS_UINT(p) & 0xFFFF)
 static void dump_cdt(const CDT_state *cdt, const char *lab)
 {
   LinkNode *ln;
-  CDTVert *v;
+  CDTVert *v, *vother;
   CDTEdge *e;
   CDTFace *f;
   SymEdge *se;
-  int i;
+  int i, cnt;
 
   fprintf(stderr, "\nCDT %s\n", lab);
   fprintf(stderr, "\nVERTS\n");
   for (i = 0; i < cdt->vert_array_len; i++) {
     v = cdt->vert_array[i];
-    fprintf(stderr, "%x: (%f,%f) symedge=%x\n", PL(v), F2(v->co), PL(v->symedge));
+    fprintf(stderr, "%s %x: (%f,%f) symedge=%x\n", vertname(v), PL(v), F2(v->co), PL(v->symedge));
     dump_id_list(v->input_ids, "  ");
+    se = v->symedge;
+    cnt = 0;
+    if (se) {
+      fprintf(stderr, "  edges out:\n");
+      do {
+        vother = sym(se)->vert;
+        fprintf(stderr, "    %s (e=%x, se=%x)\n", vertname(vother), PL(se->edge), PL(se));
+        se = se->rot;
+        cnt++;
+      } while (se != v->symedge && cnt < 25);
+      fprintf(stderr, "\n");
+    }
   }
   fprintf(stderr, "\nEDGES\n");
   for (ln = cdt->edges; ln; ln = ln->next) {
@@ -2578,12 +2671,13 @@ static void dump_cdt(const CDT_state *cdt, const char *lab)
     for (i = 0; i < 2; i++) {
       se = &e->symedges[i];
       fprintf(stderr,
-              "  se[%d] @%x: next=%x, rot=%x, vert=%x (%.2f,%.2f), edge=%x, face=%x\n",
+              "  se[%d] @%x: next=%x, rot=%x, vert=%x [%s] (%.2f,%.2f), edge=%x, face=%x\n",
               i,
               PL(se),
               PL(se->next),
               PL(se->rot),
               PL(se->vert),
+              vertname(se->vert),
               F2(se->vert->co),
               PL(se->edge),
               PL(se->face));
@@ -2673,7 +2767,7 @@ static void cdt_draw(CDT_state *cdt, const char *lab)
     strokew = is_constrained_edge(e) ? 5 : 2;
     fprintf(f,
             "<line fill=\"none\" stroke=\"black\" stroke-width=\"%d\" "
-            "x1=\"%.1f\" y1=\"%.1f\" x2=\"%.1f\" y2=\"%.1f\">\n",
+            "x1=\"%.3f\" y1=\"%.3f\" x2=\"%.3f\" y2=\"%.3f\">\n",
             strokew,
             SX(u->co[0]),
             SY(u->co[1]),
@@ -2687,7 +2781,7 @@ static void cdt_draw(CDT_state *cdt, const char *lab)
   for (; i < cdt->vert_array_len; i++) {
     v = cdt->vert_array[i];
     fprintf(f,
-            "<circle fill=\"black\" cx=\"%.1f\" cy=\"%.1f\" r=\"5\">\n",
+            "<circle fill=\"black\" cx=\"%.3f\" cy=\"%.3f\" r=\"5\">\n",
             SX(v->co[0]),
             SY(v->co[1]));
     fprintf(f, "  <title>(%.3f,%.3f)</title>\n", v->co[0], v->co[1]);
@@ -2812,7 +2906,7 @@ static void validate_cdt(CDT_state *cdt, bool check_all_tris)
   int totedges, totfaces, totverts, totborderedges;
   CDTEdge *e;
   SymEdge *se, *sesym, *s;
-  CDTVert *v;
+  CDTVert *v, *v1, *v2, *v3;
   CDTFace *f;
   double *p;
   double margin;
@@ -2867,6 +2961,14 @@ static void validate_cdt(CDT_state *cdt, bool check_all_tris)
         limit = 10000;
       }
       BLI_assert(reachable(se->next, se, limit));
+      if (limit == 3) {
+        v1 = se->vert;
+        v2 = se->next->vert;
+        v3 = se->next->next->vert;
+        BLI_assert(CCW_test(v1->co, v2->co, v3->co, 0.0));
+        BLI_assert(CCW_test(v2->co, v3->co, v1->co, 0.0));
+        BLI_assert(CCW_test(v3->co, v1->co, v2->co, 0.0));
+      }
       UNUSED_VARS_NDEBUG(limit);
       BLI_assert(se->next->next != se);
       s = se;
