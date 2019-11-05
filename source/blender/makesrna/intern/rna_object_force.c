@@ -798,7 +798,7 @@ static void rna_CollisionSettings_update(Main *UNUSED(bmain),
 {
   Object *ob = (Object *)ptr->owner_id;
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+  DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
