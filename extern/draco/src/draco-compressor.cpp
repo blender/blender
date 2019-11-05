@@ -38,6 +38,7 @@
 #include "draco/point_cloud/point_cloud.h"
 #include "draco/core/vector_d.h"
 #include "draco/io/mesh_io.h"
+#include "draco/compression/encode.h"
 
 #if defined(_MSC_VER)
 #define DLL_EXPORT(retType) extern "C" __declspec(dllexport) retType __cdecl
@@ -158,16 +159,14 @@ DLL_EXPORT(bool) compress(
     printf("%s: Normal quantization bits:   %d\n", logTag, compressor->quantizationBitsNormal);
     printf("%s: Position quantization bits: %d\n", logTag, compressor->quantizationBitsTexCoord);
 
-    draco::ExpertEncoder encoder(compressor->mesh);
+    draco::Encoder encoder;
 
     encoder.SetSpeedOptions(10 - compressor->compressionLevel, 10 - compressor->compressionLevel);
     encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, compressor->quantizationBitsPosition);
     encoder.SetAttributeQuantization(draco::GeometryAttribute::NORMAL, compressor->quantizationBitsNormal);
     encoder.SetAttributeQuantization(draco::GeometryAttribute::TEX_COORD, compressor->quantizationBitsTexCoord);
 
-    encoder.SetEncodingMethod(draco::MESH_EDGEBREAKER_ENCODING);
-
-    draco::Status result = encoder.EncodeToBuffer(&compressor->encoderBuffer);
+    draco::Status result = encoder.EncodeMeshToBuffer(compressor->mesh, &compressor->encoderBuffer);
 
     if(!result.ok()) {
         printf("%s: Could not compress mesh: %s\n", logTag, result.error_msg());
