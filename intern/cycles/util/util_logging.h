@@ -48,6 +48,7 @@ class LogMessageVoidify {
 #  define LOG_SUPPRESS() (true) ? ((void)0) : LogMessageVoidify() & StubStream()
 #  define LOG(severity) LOG_SUPPRESS()
 #  define VLOG(severity) LOG_SUPPRESS()
+#  define VLOG_IF(severity, condition) LOG_SUPPRESS()
 #endif
 
 #define VLOG_ONCE(level, flag) \
