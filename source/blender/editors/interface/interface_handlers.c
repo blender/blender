@@ -101,6 +101,19 @@
 
 #define UI_MAX_PASSWORD_STR 128
 
+/**
+ * When #USER_CONTINUOUS_MOUSE is disabled or tablet input is used,
+ * Use this as a maximum soft range for mapping cursor motion to the value.
+ * Otherwise min/max of #FLT_MAX, #INT_MAX cause small adjustments to jump to large numbers.
+ *
+ * This is needed for values such as location & dimensions which don't have a meaningful min/max,
+ * Instead of mapping cursor motion to the min/max, map the motion to the click-step.
+ *
+ * This value is multiplied by the click step to calculate a range to clamp the soft-range by.
+ * See: T68130
+ */
+#define UI_DRAG_MAP_SOFT_RANGE_PIXEL_MAX 1000
+
 /* proto */
 static int ui_do_but_EXIT(bContext *C,
                           uiBut *but,
@@ -338,6 +351,10 @@ typedef struct uiHandleButtonData {
   int dragsel;
   float dragf, dragfstart;
   CBData *dragcbd;
+
+  /** Soft min/max with #UI_DRAG_MAP_SOFT_RANGE_PIXEL_MAX applied. */
+  float drag_map_soft_min;
+  float drag_map_soft_max;
 
 #ifdef USE_CONT_MOUSE_CORRECT
   /* when ungrabbing buttons which are #ui_but_is_cursor_warp(),
@@ -3746,8 +3763,59 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
     softmax = but->softmax;
     softrange = softmax - softmin;
 
+    if ((but->type == UI_BTYPE_NUM) && (ui_but_is_cursor_warp(but) == false)) {
+      /* Use a minimum so we have a predictable range,
+       * otherwise some float buttons get a large range. */
+      const float value_step_float_min = 0.1f;
+      const bool is_float = ui_but_is_float(but);
+      const double value_step = is_float ? (double)(but->a1 * UI_PRECISION_FLOAT_SCALE) :
+                                           (int)but->a1;
+      const float drag_map_softrange_max = UI_DRAG_MAP_SOFT_RANGE_PIXEL_MAX * UI_DPI_FAC;
+      const float softrange_max = min_ff(
+          softrange,
+          2 * (is_float ? min_ff(value_step, value_step_float_min) *
+                              (drag_map_softrange_max / value_step_float_min) :
+                          drag_map_softrange_max));
+
+      if (softrange > softrange_max) {
+        /* Center around the value, keeping in the real soft min/max range. */
+        softmin = data->origvalue - (softrange_max / 2);
+        softmax = data->origvalue + (softrange_max / 2);
+        if (!isfinite(softmin)) {
+          softmin = (data->origvalue > 0.0f ? FLT_MAX : -FLT_MAX);
+        }
+        if (!isfinite(softmax)) {
+          softmax = (data->origvalue > 0.0f ? FLT_MAX : -FLT_MAX);
+        }
+
+        if (softmin < but->softmin) {
+          softmin = but->softmin;
+          softmax = softmin + softrange_max;
+        }
+        else if (softmax > but->softmax) {
+          softmax = but->softmax;
+          softmin = softmax - softrange_max;
+        }
+
+        /* Can happen at extreme values. */
+        if (UNLIKELY(softmin == softmax)) {
+          if (data->origvalue > 0.0) {
+            softmin = nextafterf(softmin, -FLT_MAX);
+          }
+          else {
+            softmax = nextafterf(softmax, FLT_MAX);
+          }
+        }
+
+        softrange = softmax - softmin;
+      }
+    }
+
     data->dragfstart = (softrange == 0.0f) ? 0.0f : ((float)data->value - softmin) / softrange;
     data->dragf = data->dragfstart;
+
+    data->drag_map_soft_min = softmin;
+    data->drag_map_soft_max = softmax;
   }
 
   data->dragchange = false;
@@ -4382,17 +4450,14 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
 }
 
 /* var names match ui_numedit_but_NUM */
-static float ui_numedit_apply_snapf(uiBut *but,
-                                    float tempf,
-                                    float softmin,
-                                    float softmax,
-                                    float softrange,
-                                    const enum eSnapType snap)
+static float ui_numedit_apply_snapf(
+    uiBut *but, float tempf, float softmin, float softmax, const enum eSnapType snap)
 {
   if (tempf == softmin || tempf == softmax || snap == SNAP_OFF) {
     /* pass */
   }
   else {
+    float softrange = softmax - softmin;
     float fac = 1.0f;
 
     if (ui_but_is_unit(but)) {
@@ -4493,7 +4558,7 @@ static bool ui_numedit_but_NUM(uiBut *but,
                                const enum eSnapType snap,
                                float fac)
 {
-  float deler, tempf, softmin, softmax, softrange;
+  float deler, tempf;
   int lvalue, temp;
   bool changed = false;
   const bool is_float = ui_but_is_float(but);
@@ -4503,17 +4568,17 @@ static bool ui_numedit_but_NUM(uiBut *but,
     return changed;
   }
 
-  softmin = but->softmin;
-  softmax = but->softmax;
-  softrange = softmax - softmin;
-
   if (ui_but_is_cursor_warp(but)) {
+    const float softmin = but->softmin;
+    const float softmax = but->softmax;
+    const float softrange = softmax - softmin;
+
     /* Mouse location isn't screen clamped to the screen so use a linear mapping
      * 2px == 1-int, or 1px == 1-ClickStep */
     if (is_float) {
       fac *= 0.01f * but->a1;
       tempf = (float)data->startvalue + ((float)(mx - data->dragstartx) * fac);
-      tempf = ui_numedit_apply_snapf(but, tempf, softmin, softmax, softrange, snap);
+      tempf = ui_numedit_apply_snapf(but, tempf, softmin, softmax, snap);
 
 #if 1 /* fake moving the click start, nicer for dragging back after passing the limit */
       if (tempf < softmin) {
@@ -4571,6 +4636,11 @@ static bool ui_numedit_but_NUM(uiBut *but,
     data->draglastx = mx;
   }
   else {
+    /* Use 'but->softmin', 'but->softmax' when clamping values. */
+    const float softmin = data->drag_map_soft_min;
+    const float softmax = data->drag_map_soft_max;
+    const float softrange = softmax - softmin;
+
     float non_linear_range_limit;
     float non_linear_pixel_map;
     float non_linear_scale;
@@ -4616,16 +4686,22 @@ static bool ui_numedit_but_NUM(uiBut *but,
 
     data->dragf += (((float)(mx - data->draglastx)) / deler) * non_linear_scale;
 
-    CLAMP(data->dragf, 0.0f, 1.0f);
+    if (but->softmin == softmin) {
+      CLAMP_MIN(data->dragf, 0.0f);
+    }
+    if (but->softmax == softmax) {
+      CLAMP_MAX(data->dragf, 1.0f);
+    }
+
     data->draglastx = mx;
     tempf = (softmin + data->dragf * softrange);
 
     if (!is_float) {
       temp = round_fl_to_int(tempf);
 
-      temp = ui_numedit_apply_snap(temp, softmin, softmax, snap);
+      temp = ui_numedit_apply_snap(temp, but->softmin, but->softmax, snap);
 
-      CLAMP(temp, softmin, softmax);
+      CLAMP(temp, but->softmin, but->softmax);
       lvalue = (int)data->value;
 
       if (temp != lvalue) {
@@ -4636,9 +4712,9 @@ static bool ui_numedit_but_NUM(uiBut *but,
     }
     else {
       temp = 0;
-      tempf = ui_numedit_apply_snapf(but, tempf, softmin, softmax, softrange, snap);
+      tempf = ui_numedit_apply_snapf(but, tempf, but->softmin, but->softmax, snap);
 
-      CLAMP(tempf, softmin, softmax);
+      CLAMP(tempf, but->softmin, but->softmax);
 
       if (tempf != (float)data->value) {
         data->dragchange = true;
