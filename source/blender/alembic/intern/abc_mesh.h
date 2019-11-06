@@ -148,8 +148,8 @@ class AbcSubDReader : public AbcObjectReader {
 /* ************************************************************************** */
 
 void read_mverts(MVert *mverts,
-                 const Alembic::AbcGeom::P3fArraySamplePtr &positions,
-                 const Alembic::AbcGeom::N3fArraySamplePtr &normals);
+                 const Alembic::AbcGeom::P3fArraySamplePtr positions,
+                 const Alembic::AbcGeom::N3fArraySamplePtr normals);
 
 CDStreamConfig get_config(struct Mesh *mesh);
 
