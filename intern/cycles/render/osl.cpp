@@ -673,9 +673,6 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
       /* checks to untangle graphs */
       if (node_skip_input(node, input))
         continue;
-      /* already has default value assigned */
-      else if (input->flags() & SocketType::DEFAULT_LINK_MASK)
-        continue;
 
       string param_name = compatible_name(node, input);
       const SocketType &socket = input->socket_type;
