@@ -68,14 +68,19 @@ static int gpu_shader_math(GPUMaterial *mat,
       [NODE_MATH_ARCTAN2] = "math_arctan2",
   };
 
-  GPU_stack_link(mat, node, names[node->custom1], in, out);
+  if (node->custom1 < ARRAY_SIZE(names) && names[node->custom1]) {
+    int ret = GPU_stack_link(mat, node, names[node->custom1], in, out);
 
-  if (node->custom2 & SHD_MATH_CLAMP) {
-    float min[3] = {0.0f, 0.0f, 0.0f};
-    float max[3] = {1.0f, 1.0f, 1.0f};
-    GPU_link(mat, "clamp_value", out[0].link, GPU_constant(min), GPU_constant(max), &out[0].link);
+    if (ret && node->custom2 & SHD_MATH_CLAMP) {
+      float min[3] = {0.0f, 0.0f, 0.0f};
+      float max[3] = {1.0f, 1.0f, 1.0f};
+      GPU_link(mat, "clamp_value", out[0].link, GPU_constant(min), GPU_constant(max), &out[0].link);
+    }
+    return ret;
   }
-  return 1;
+  else {
+    return 0;
+  }
 }
 
 static void node_shader_update_math(bNodeTree *UNUSED(ntree), bNode *node)

@@ -50,7 +50,12 @@ static int gpu_shader_mapping(GPUMaterial *mat,
       [NODE_MAPPING_TYPE_NORMAL] = "mapping_normal",
   };
 
-  return GPU_stack_link(mat, node, names[node->custom1], in, out);
+  if (node->custom1 < ARRAY_SIZE(names) && names[node->custom1]) {
+    return GPU_stack_link(mat, node, names[node->custom1], in, out);
+  }
+  else {
+    return 0;
+  }
 }
 
 static void node_shader_update_mapping(bNodeTree *UNUSED(ntree), bNode *node)
