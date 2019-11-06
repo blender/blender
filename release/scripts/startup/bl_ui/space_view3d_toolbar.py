@@ -430,6 +430,13 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 col.separator()
                 row = col.row()
                 row.prop(brush, "use_grab_active_vertex")
+            elif brush.sculpt_tool == 'MULTIPLANE_SCRAPE':
+                row = col.row()
+                row.prop(brush, "multiplane_scrape_angle")
+                row = col.row()
+                row.prop(brush, "use_multiplane_scrape_dynamic")
+                row = col.row()
+                row.prop(brush, "show_multiplane_scrape_planes_preview")
 
             # topology_rake_factor
             if (

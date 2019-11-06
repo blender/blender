@@ -247,7 +247,9 @@ typedef struct Brush {
   int size;
   /** General purpose flags. */
   int flag;
+  int flag2;
   int sampling_flag;
+
   /** Pressure influence for mask. */
   int mask_pressure;
   /** Jitter the position of the brush. */
@@ -288,7 +290,8 @@ typedef struct Brush {
   /** Source for fill tool color gradient application. */
   char gradient_fill_mode;
 
-  char _pad[5];
+  char _pad0;
+
   /** Projection shape (sphere, circle). */
   char falloff_shape;
   float falloff_angle;
@@ -307,7 +310,7 @@ typedef struct Brush {
   char mask_tool;
   /** Active grease pencil tool. */
   char gpencil_tool;
-  char _pad0[1];
+  char _pad1[5];
 
   float autosmooth_factor;
 
@@ -331,6 +334,9 @@ typedef struct Brush {
 
   /* pose */
   float pose_offset;
+
+  /* multiplane scrape */
+  float multiplane_scrape_angle;
 
   /* overlay */
   int texture_overlay_alpha;
@@ -445,6 +451,12 @@ typedef enum eBrushSamplingFlags {
   BRUSH_PAINT_ANTIALIASING = (1 << 0),
 } eBrushSamplingFlags;
 
+/* Brush.flag2 */
+typedef enum eBrushFlags2 {
+  BRUSH_MULTIPLANE_SCRAPE_DYNAMIC = (1 << 0),
+  BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW = (1 << 1),
+} eBrushFlags2;
+
 typedef enum {
   BRUSH_MASK_PRESSURE_RAMP = (1 << 1),
   BRUSH_MASK_PRESSURE_CUTOFF = (1 << 2),
@@ -488,6 +500,7 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_DRAW_SHARP = 20,
   SCULPT_TOOL_ELASTIC_DEFORM = 21,
   SCULPT_TOOL_POSE = 22,
+  SCULPT_TOOL_MULTIPLANE_SCRAPE = 23,
 } eBrushSculptTool;
 
 /* Brush.uv_sculpt_tool */

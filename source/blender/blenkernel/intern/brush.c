@@ -938,6 +938,14 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->curve_preset = BRUSH_CURVE_SPHERE;
       br->spacing = 6;
       break;
+    case SCULPT_TOOL_MULTIPLANE_SCRAPE:
+      br->flag2 |= BRUSH_MULTIPLANE_SCRAPE_DYNAMIC | BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW;
+      br->alpha = 0.7f;
+      br->normal_radius_factor = 0.70f;
+      br->multiplane_scrape_angle = 60;
+      br->curve_preset = BRUSH_CURVE_SMOOTH;
+      br->spacing = 5;
+      break;
     case SCULPT_TOOL_CREASE:
       br->flag |= BRUSH_DIR_IN;
       br->alpha = 0.25;
@@ -1010,6 +1018,7 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_FLATTEN:
     case SCULPT_TOOL_FILL:
     case SCULPT_TOOL_SCRAPE:
+    case SCULPT_TOOL_MULTIPLANE_SCRAPE:
       br->add_col[0] = 1.0f;
       br->add_col[1] = 0.39f;
       br->add_col[2] = 0.39f;
