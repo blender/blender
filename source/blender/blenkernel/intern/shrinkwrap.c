@@ -1531,8 +1531,9 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
   int totvert;
 
   ssmd.target = ob_target;
-  ssmd.shrinkType = MOD_SHRINKWRAP_TARGET_PROJECT;
+  ssmd.shrinkType = MOD_SHRINKWRAP_PROJECT;
   ssmd.shrinkMode = MOD_SHRINKWRAP_ON_SURFACE;
+  ssmd.shrinkOpts = MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR | MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR;
   ssmd.keepDist = 0.0f;
   ssmd.projLimit = target_me->remesh_voxel_size;
 
@@ -1546,12 +1547,13 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
   calc.vgroup = -1;
   calc.target = target_me;
   calc.keepDist = ssmd.keepDist;
+  calc.vert = src_me->mvert;
   BLI_SPACE_TRANSFORM_SETUP(&calc.local2target, ob_target, ob_target);
 
   ShrinkwrapTreeData tree;
   if (BKE_shrinkwrap_init_tree(&tree, calc.target, ssmd.shrinkType, ssmd.shrinkMode, false)) {
     calc.tree = &tree;
-    TIMEIT_BENCH(shrinkwrap_calc_nearest_surface_point(&calc), deform_surface);
+    TIMEIT_BENCH(shrinkwrap_calc_normal_projection(&calc), deform_project);
     BKE_shrinkwrap_free_tree(&tree);
   }
 
