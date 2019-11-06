@@ -810,7 +810,8 @@ static PyObject *M_Geometry_intersect_point_line(PyObject *UNUSED(self), PyObjec
 PyDoc_STRVAR(M_Geometry_intersect_point_tri_doc,
              ".. function:: intersect_point_tri(pt, tri_p1, tri_p2, tri_p3)\n"
              "\n"
-             "   Takes 4 vectors: one is the point and the next 3 define the triangle.\n"
+             "   Takes 4 vectors: one is the point and the next 3 define the triangle. Projects "
+             "the point onto the triangle plane and checks if it is within the triangle.\n"
              "\n"
              "   :arg pt: Point\n"
              "   :type pt: :class:`mathutils.Vector`\n"
@@ -851,6 +852,49 @@ static PyObject *M_Geometry_intersect_point_tri(PyObject *UNUSED(self), PyObject
   else {
     Py_RETURN_NONE;
   }
+}
+
+PyDoc_STRVAR(M_Geometry_closest_point_on_tri_doc,
+             ".. function:: closest_point_on_tri(pt, tri_p1, tri_p2, tri_p3)\n"
+             "\n"
+             "   Takes 4 vectors: one is the point and the next 3 define the triangle.\n"
+             "\n"
+             "   :arg pt: Point\n"
+             "   :type pt: :class:`mathutils.Vector`\n"
+             "   :arg tri_p1: First point of the triangle\n"
+             "   :type tri_p1: :class:`mathutils.Vector`\n"
+             "   :arg tri_p2: Second point of the triangle\n"
+             "   :type tri_p2: :class:`mathutils.Vector`\n"
+             "   :arg tri_p3: Third point of the triangle\n"
+             "   :type tri_p3: :class:`mathutils.Vector`\n"
+             "   :return: The closest point of the triangle.\n"
+             "   :rtype: :class:`mathutils.Vector`\n");
+static PyObject *M_Geometry_closest_point_on_tri(PyObject *UNUSED(self), PyObject *args)
+{
+  const char *error_prefix = "closest_point_on_tri";
+  PyObject *py_pt, *py_tri[3];
+  float pt[3], tri[3][3];
+  float vi[3];
+  int i;
+
+  if (!PyArg_ParseTuple(args, "OOOO:closest_point_on_tri", &py_pt, UNPACK3_EX(&, py_tri, ))) {
+    return NULL;
+  }
+
+  if (mathutils_array_parse(pt, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_pt, error_prefix) ==
+      -1) {
+    return NULL;
+  }
+  for (i = 0; i < ARRAY_SIZE(tri); i++) {
+    if (mathutils_array_parse(
+            tri[i], 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_tri[i], error_prefix) == -1) {
+      return NULL;
+    }
+  }
+
+  closest_on_tri_to_point_v3(vi, pt, UNPACK3(tri));
+
+  return Vector_CreatePyObject(vi, 3, NULL);
 }
 
 PyDoc_STRVAR(
@@ -1683,6 +1727,10 @@ static PyMethodDef M_Geometry_methods[] = {
      (PyCFunction)M_Geometry_intersect_point_tri,
      METH_VARARGS,
      M_Geometry_intersect_point_tri_doc},
+    {"closest_point_on_tri",
+     (PyCFunction)M_Geometry_closest_point_on_tri,
+     METH_VARARGS,
+     M_Geometry_closest_point_on_tri_doc},
     {"intersect_point_tri_2d",
      (PyCFunction)M_Geometry_intersect_point_tri_2d,
      METH_VARARGS,
