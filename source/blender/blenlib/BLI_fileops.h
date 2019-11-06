@@ -67,6 +67,7 @@ typedef struct _stat BLI_stat_t;
 typedef struct stat BLI_stat_t;
 #endif
 
+int BLI_fstat(int fd, BLI_stat_t *buffer) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int BLI_stat(const char *path, BLI_stat_t *buffer) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 #ifdef WIN32
 int BLI_wstat(const wchar_t *path, BLI_stat_t *buffer);

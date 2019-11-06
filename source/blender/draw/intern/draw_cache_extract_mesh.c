@@ -484,7 +484,7 @@ static void *extract_tris_init(const MeshRenderData *mr, void *UNUSED(ibo))
   return data;
 }
 
-static void extract_tris_looptri_bmesh(const MeshRenderData *UNUSED(mr),
+static void extract_tris_looptri_bmesh(const MeshRenderData *mr,
                                        int UNUSED(t),
                                        BMLoop **elt,
                                        void *_data)
@@ -492,8 +492,9 @@ static void extract_tris_looptri_bmesh(const MeshRenderData *UNUSED(mr),
   if (!BM_elem_flag_test(elt[0]->f, BM_ELEM_HIDDEN)) {
     MeshExtract_Tri_Data *data = _data;
     int *mat_tri_ofs = data->tri_mat_end;
+    int mat = min_ii(elt[0]->f->mat_nr, mr->mat_len - 1);
     GPU_indexbuf_set_tri_verts(&data->elb,
-                               mat_tri_ofs[elt[0]->f->mat_nr]++,
+                               mat_tri_ofs[mat]++,
                                BM_elem_index_get(elt[0]),
                                BM_elem_index_get(elt[1]),
                                BM_elem_index_get(elt[2]));
