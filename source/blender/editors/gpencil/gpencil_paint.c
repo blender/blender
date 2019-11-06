@@ -3296,7 +3296,7 @@ static void gpencil_guide_event_handling(bContext *C,
 
   /* Enter or exit set center point mode */
   if ((event->type == OKEY) && (event->val == KM_RELEASE)) {
-    if (p->paintmode == GP_PAINTMODE_DRAW && guide->reference_point != GP_GUIDE_REF_OBJECT) {
+    if ((p->paintmode == GP_PAINTMODE_DRAW) && guide->use_guide && (guide->reference_point != GP_GUIDE_REF_OBJECT)) {
       add_notifier = true;
       p->paintmode = GP_PAINTMODE_SET_CP;
       ED_gpencil_toggle_brush_cursor(C, false, NULL);
@@ -3714,6 +3714,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
     if (drawmode) {
       p->status = GP_STATUS_IDLING;
       p->paintmode = GP_PAINTMODE_DRAW;
+      WM_cursor_modal_restore(p->win);
       ED_gpencil_toggle_brush_cursor(C, true, NULL);
       DEG_id_tag_update(&p->scene->id, ID_RECALC_COPY_ON_WRITE);
     }
