@@ -784,7 +784,7 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
 
-  return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+  return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
 }
 
 int WM_generic_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
