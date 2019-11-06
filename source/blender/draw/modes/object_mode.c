@@ -2099,7 +2099,8 @@ static void camera_view3d_stereoscopy_display_extra(OBJECT_ShadingGroupList *sgl
     if (cam->stereo.convergence_mode == CAM_S3D_OFFAXIS) {
       const float shift_x = ((BKE_camera_multiview_shift_x(&scene->r, ob, viewnames[eye]) -
                               cam->shiftx) *
-                             (drawsize * scale[0] * fac));
+                             (drawsize * scale[0] * fac)) *
+                            (cam->stereo.pivot == CAM_S3D_PIVOT_CENTER ? 1.0f : 2.0f);
 
       for (int i = 0; i < 4; i++) {
         cam->runtime.drw_corners[eye][i][0] += shift_x;
