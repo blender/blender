@@ -82,7 +82,10 @@ void *node_initexec_curves(bNodeExecContext *UNUSED(context),
 void node_blend_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
 {
   const char *name;
-  RNA_enum_name(rna_enum_ramp_blend_items, node->custom1, &name);
+  bool enum_label = RNA_enum_name(rna_enum_ramp_blend_items, node->custom1, &name);
+  if (!enum_label) {
+    name = "Unknown";
+  }
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
@@ -96,21 +99,30 @@ void node_image_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int ma
 void node_math_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
 {
   const char *name;
-  RNA_enum_name(rna_enum_node_math_items, node->custom1, &name);
+  bool enum_label = RNA_enum_name(rna_enum_node_math_items, node->custom1, &name);
+  if (!enum_label) {
+    name = "Unknown";
+  }
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
 void node_vector_math_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
 {
   const char *name;
-  RNA_enum_name(rna_enum_node_vec_math_items, node->custom1, &name);
+  bool enum_label = RNA_enum_name(rna_enum_node_vec_math_items, node->custom1, &name);
+  if (!enum_label) {
+    name = "Unknown";
+  }
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
 void node_filter_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
 {
   const char *name;
-  RNA_enum_name(rna_enum_node_filter_items, node->custom1, &name);
+  bool enum_label = RNA_enum_name(rna_enum_node_filter_items, node->custom1, &name);
+  if (!enum_label) {
+    name = "Unknown";
+  }
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 

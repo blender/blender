@@ -65,8 +65,12 @@ static int gpu_shader_vector_math(GPUMaterial *mat,
       [NODE_VECTOR_MATH_MAXIMUM] = "vector_math_maximum",
   };
 
-  GPU_stack_link(mat, node, names[node->custom1], in, out);
-  return true;
+  if (node->custom1 < ARRAY_SIZE(names) && names[node->custom1]) {
+    return GPU_stack_link(mat, node, names[node->custom1], in, out);
+  }
+  else {
+    return 0;
+  }
 }
 
 static void node_shader_update_vector_math(bNodeTree *UNUSED(ntree), bNode *node)
