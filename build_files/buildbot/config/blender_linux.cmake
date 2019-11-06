@@ -3,7 +3,9 @@
 include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/config/blender_release.cmake")
 
 message(STATUS "Building in CentOS 7 64bit environment")
+
 set(LIBDIR_NAME "linux_centos7_x86_64")
+set(WITH_CXX11_ABI           OFF CACHE BOOL "" FORCE)
 
 # Default to only build Blender
 set(WITH_BLENDER             ON  CACHE BOOL "" FORCE)
