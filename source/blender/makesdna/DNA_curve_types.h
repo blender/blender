@@ -193,6 +193,9 @@ typedef struct TextBox {
   float x, y, w, h;
 } TextBox;
 
+/* These two Lines with # tell makesdna this struct can be excluded. */
+#
+#
 typedef struct EditNurb {
   /* base of nurbs' list (old Curve->editnurb) */
   ListBase nurbs;
