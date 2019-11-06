@@ -1086,6 +1086,9 @@ static void ui_multibut_add(uiHandleButtonData *data, uiBut *but)
   mbut_state = MEM_callocN(sizeof(*mbut_state), __func__);
   mbut_state->but = but;
   mbut_state->origvalue = ui_but_value_get(but);
+#  ifdef USE_ALLSELECT
+  mbut_state->select_others.is_copy = data->select_others.is_copy;
+#  endif
 
   BLI_linklist_prepend(&data->multi_data.mbuts, mbut_state);
 
