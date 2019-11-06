@@ -1811,8 +1811,13 @@ static void rna_def_constraint_stretch_to(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem plane_items[] = {
-      {PLANE_X, "PLANE_X", 0, "X", "Keep X Axis"},
-      {PLANE_Z, "PLANE_Z", 0, "Z", "Keep Z Axis"},
+      {PLANE_X, "PLANE_X", 0, "XZ", "Rotate around local X, then Z"},
+      {PLANE_Z, "PLANE_Z", 0, "ZX", "Rotate around local Z, then X"},
+      {SWING_Y,
+       "SWING_Y",
+       0,
+       "Swing",
+       "Use the smallest single axis rotation, similar to Damped Track"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -1836,7 +1841,7 @@ static void rna_def_constraint_stretch_to(BlenderRNA *brna)
   prop = RNA_def_property(srna, "keep_axis", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "plane");
   RNA_def_property_enum_items(prop, plane_items);
-  RNA_def_property_ui_text(prop, "Keep Axis", "Axis to maintain during stretch");
+  RNA_def_property_ui_text(prop, "Keep Axis", "The rotation type and axis order to use");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   prop = RNA_def_property(srna, "rest_length", PROP_FLOAT, PROP_DISTANCE);

@@ -3242,6 +3242,12 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
     float size[3], scale[3], vec[3], xx[3], zz[3], orth[3];
     float dist, bulge;
 
+    /* Remove shear if using the Damped Track mode; the other modes
+     * do it as a side effect, which is relied on by rigs. */
+    if (data->plane == SWING_Y) {
+      orthogonalize_m4_stable(cob->matrix, 1, false);
+    }
+
     /* store scaling before destroying obmat */
     normalize_m4_ex(cob->matrix, size);
 
@@ -3329,6 +3335,10 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
     mul_v3_v3(size, scale);
 
     switch (data->plane) {
+      case SWING_Y:
+        /* Point the Y axis using Damped Track math. */
+        damptrack_do_transform(cob->matrix, vec, TRACK_Y);
+        break;
       case PLANE_X:
         /* new Y aligns  object target connection*/
         copy_v3_v3(cob->matrix[1], vec);

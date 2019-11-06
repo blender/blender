@@ -930,7 +930,7 @@ typedef enum eStretchTo_VolMode {
 /* Stretch To Constraint -> plane mode */
 typedef enum eStretchTo_PlaneMode {
   PLANE_X = 0,
-  PLANE_Y = 1,
+  SWING_Y = 1,
   PLANE_Z = 2,
 } eStretchTo_PlaneMode;
 
