@@ -221,7 +221,7 @@ static void square_roughness_node_insert(bNodeTree *ntree)
 static void mapping_node_order_flip(bNode *node)
 {
   /* Flip euler order of mapping shader node */
-  if (node->type == SH_NODE_MAPPING) {
+  if (node->type == SH_NODE_MAPPING && node->storage) {
     TexMapping *texmap = node->storage;
 
     float quat[4];
@@ -233,7 +233,7 @@ static void mapping_node_order_flip(bNode *node)
 static void vector_curve_node_remap(bNode *node)
 {
   /* Remap values of vector curve node from normalized to absolute values */
-  if (node->type == SH_NODE_CURVE_VEC) {
+  if (node->type == SH_NODE_CURVE_VEC && node->storage) {
     CurveMapping *mapping = node->storage;
     mapping->flag &= ~CUMA_DO_CLIP;
 
@@ -300,11 +300,11 @@ static void image_node_colorspace(bNode *node)
   }
 
   int color_space;
-  if (node->type == SH_NODE_TEX_IMAGE) {
+  if (node->type == SH_NODE_TEX_IMAGE && node->storage) {
     NodeTexImage *tex = node->storage;
     color_space = tex->color_space;
   }
-  else if (node->type == SH_NODE_TEX_ENVIRONMENT) {
+  else if (node->type == SH_NODE_TEX_ENVIRONMENT && node->storage) {
     NodeTexEnvironment *tex = node->storage;
     color_space = tex->color_space;
   }
@@ -766,7 +766,7 @@ static void update_vector_math_node_average_operator(bNodeTree *ntree)
 static void update_noise_node_dimensions(bNodeTree *ntree)
 {
   for (bNode *node = ntree->nodes.first; node; node = node->next) {
-    if (node->type == SH_NODE_TEX_NOISE) {
+    if (node->type == SH_NODE_TEX_NOISE && node->storage) {
       NodeTexNoise *tex = (NodeTexNoise *)node->storage;
       tex->dimensions = 3;
     }
@@ -923,7 +923,7 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
 static void update_musgrave_node_dimensions(bNodeTree *ntree)
 {
   for (bNode *node = ntree->nodes.first; node; node = node->next) {
-    if (node->type == SH_NODE_TEX_MUSGRAVE) {
+    if (node->type == SH_NODE_TEX_MUSGRAVE && node->storage) {
       NodeTexMusgrave *tex = (NodeTexMusgrave *)node->storage;
       tex->dimensions = 3;
     }
@@ -951,7 +951,7 @@ static void update_musgrave_node_color_output(bNodeTree *ntree)
 static void update_voronoi_node_dimensions(bNodeTree *ntree)
 {
   for (bNode *node = ntree->nodes.first; node; node = node->next) {
-    if (node->type == SH_NODE_TEX_VORONOI) {
+    if (node->type == SH_NODE_TEX_VORONOI && node->storage) {
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       tex->dimensions = 3;
     }
@@ -966,7 +966,7 @@ static void update_voronoi_node_dimensions(bNodeTree *ntree)
 static void update_voronoi_node_f3_and_f4(bNodeTree *ntree)
 {
   for (bNode *node = ntree->nodes.first; node; node = node->next) {
-    if (node->type == SH_NODE_TEX_VORONOI) {
+    if (node->type == SH_NODE_TEX_VORONOI && node->storage) {
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       if (ELEM(tex->feature, 2, 3)) {
         tex->feature = SHD_VORONOI_F2;
@@ -1014,7 +1014,7 @@ static void update_voronoi_node_crackle(bNodeTree *ntree)
   bool need_update = false;
 
   for (bNode *node = ntree->nodes.first; node; node = node->next) {
-    if (node->type == SH_NODE_TEX_VORONOI) {
+    if (node->type == SH_NODE_TEX_VORONOI && node->storage) {
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       bNodeSocket *sockDistance = nodeFindSocket(node, SOCK_OUT, "Distance");
       bNodeSocket *sockColor = nodeFindSocket(node, SOCK_OUT, "Color");
@@ -1106,7 +1106,7 @@ static void update_voronoi_node_coloring(bNodeTree *ntree)
 
   LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
     bNode *node = link->fromnode;
-    if (node && node->type == SH_NODE_TEX_VORONOI) {
+    if (node && node->type == SH_NODE_TEX_VORONOI && node->storage) {
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       if (tex->coloring == 0) {
         bNodeSocket *sockColor = nodeFindSocket(node, SOCK_OUT, "Color");
@@ -1143,7 +1143,7 @@ static void update_voronoi_node_square_distance(bNodeTree *ntree)
   bool need_update = false;
 
   for (bNode *node = ntree->nodes.first; node; node = node->next) {
-    if (node->type == SH_NODE_TEX_VORONOI) {
+    if (node->type == SH_NODE_TEX_VORONOI && node->storage) {
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       bNodeSocket *sockDistance = nodeFindSocket(node, SOCK_OUT, "Distance");
       if (tex->distance == SHD_VORONOI_EUCLIDEAN &&
