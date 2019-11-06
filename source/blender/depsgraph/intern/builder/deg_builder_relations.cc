@@ -146,7 +146,8 @@ bool python_driver_exression_depends_on_time(const char *expression)
 
 bool driver_target_depends_on_time(const DriverTarget *target)
 {
-  if (target->idtype == ID_SCE && STREQ(target->rna_path, "frame_current")) {
+  if (target->idtype == ID_SCE &&
+      (target->rna_path != NULL && STREQ(target->rna_path, "frame_current"))) {
     return true;
   }
   return false;
