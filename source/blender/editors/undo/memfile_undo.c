@@ -28,6 +28,7 @@
 #include "BKE_blender_undo.h"
 #include "BKE_context.h"
 #include "BKE_undo_system.h"
+#include "BKE_main.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -73,6 +74,10 @@ static bool memfile_undosys_step_encode(struct bContext *UNUSED(C),
 
   /* Important we only use 'main' from the context (see: BKE_undosys_stack_init_from_main). */
   UndoStack *ustack = ED_undo_stack_get();
+
+  if (bmain->is_memfile_undo_flush_needed) {
+    ED_editors_flush_edits_ex(bmain, false, true);
+  }
 
   /* can be NULL, use when set. */
   MemFileUndoStep *us_prev = (MemFileUndoStep *)BKE_undosys_step_find_by_type(

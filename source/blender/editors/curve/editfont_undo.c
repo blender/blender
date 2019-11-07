@@ -32,6 +32,7 @@
 
 #include "BKE_context.h"
 #include "BKE_font.h"
+#include "BKE_main.h"
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
@@ -341,23 +342,21 @@ static bool font_undosys_poll(bContext *C)
   return editfont_object_from_context(C) != NULL;
 }
 
-static bool font_undosys_step_encode(struct bContext *C,
-                                     struct Main *UNUSED(bmain),
-                                     UndoStep *us_p)
+static bool font_undosys_step_encode(struct bContext *C, struct Main *bmain, UndoStep *us_p)
 {
   FontUndoStep *us = (FontUndoStep *)us_p;
   us->obedit_ref.ptr = editfont_object_from_context(C);
   Curve *cu = us->obedit_ref.ptr->data;
   undofont_from_editfont(&us->data, cu);
   us->step.data_size = us->data.undo_size;
+  cu->editfont->needs_flush_to_id = 1;
+  bmain->is_memfile_undo_flush_needed = true;
+
   return true;
 }
 
-static void font_undosys_step_decode(struct bContext *C,
-                                     struct Main *UNUSED(bmain),
-                                     UndoStep *us_p,
-                                     int UNUSED(dir),
-                                     bool UNUSED(is_final))
+static void font_undosys_step_decode(
+    struct bContext *C, struct Main *bmain, UndoStep *us_p, int UNUSED(dir), bool UNUSED(is_final))
 {
   /* TODO(campbell): undo_system: use low-level API to set mode. */
   ED_object_mode_set(C, OB_MODE_EDIT);
@@ -368,6 +367,8 @@ static void font_undosys_step_decode(struct bContext *C,
   Curve *cu = obedit->data;
   undofont_to_editfont(&us->data, cu);
   DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
+  cu->editfont->needs_flush_to_id = 1;
+  bmain->is_memfile_undo_flush_needed = true;
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
 }
 

@@ -3862,6 +3862,8 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
   link_list(fd, &arm->bonebase);
   arm->bonehash = NULL;
   arm->edbo = NULL;
+  /* Must always be cleared (armatures don't have their own edit-data). */
+  arm->needs_flush_to_id = 0;
 
   arm->adt = newdataadr(fd, arm->adt);
   direct_link_animdata(fd, arm->adt);
@@ -4079,6 +4081,8 @@ static void direct_link_mball(FileData *fd, MetaBall *mb)
 
   BLI_listbase_clear(&mb->disp);
   mb->editelems = NULL;
+  /* Must always be cleared (meta's don't have their own edit-data). */
+  mb->needs_flush_to_id = 0;
   /*  mb->edit_elems.first= mb->edit_elems.last= NULL;*/
   mb->lastelem = NULL;
   mb->batch_cache = NULL;

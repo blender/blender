@@ -126,6 +126,10 @@ typedef struct bArmature {
   /** Active editbone (in editmode). */
   struct EditBone *act_edbone;
 
+  /** ID data is older than edit-mode data (TODO: move to edit-mode struct). */
+  char needs_flush_to_id;
+  char _pad0[7];
+
   int flag;
   int drawtype;
 

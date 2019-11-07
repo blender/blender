@@ -79,6 +79,13 @@ typedef struct BMEditMesh {
 
   /*temp variables for x-mirror editing*/
   int mirror_cdlayer; /* -1 is invalid */
+
+  /**
+   * ID data is older than edit-mode data.
+   * Set #Main.is_memfile_undo_flush_needed when enabling.
+   */
+  char needs_flush_to_id;
+
 } BMEditMesh;
 
 /* editmesh.c */

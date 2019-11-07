@@ -322,7 +322,7 @@ bool ED_undo_is_memfile_compatible(const bContext *C)
   if (view_layer != NULL) {
     Object *obact = OBACT(view_layer);
     if (obact != NULL) {
-      if (obact->mode & (OB_MODE_SCULPT | OB_MODE_EDIT)) {
+      if (obact->mode & OB_MODE_EDIT) {
         return false;
       }
     }

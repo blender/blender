@@ -99,6 +99,8 @@ bool BKE_object_is_mode_compat(const struct Object *ob, eObjectMode object_mode)
 
 bool BKE_object_data_is_in_editmode(const struct ID *id);
 
+char *BKE_object_data_editmode_flush_ptr_get(struct ID *id);
+
 void BKE_object_update_select_id(struct Main *bmain);
 
 typedef enum eObjectVisibilityResult {

@@ -39,6 +39,12 @@ typedef struct EditLatt {
   struct Lattice *latt;
 
   int shapenr;
+
+  /**
+   * ID data is older than edit-mode data.
+   * Set #Main.is_memfile_undo_flush_needed when enabling.
+   */
+  char needs_flush_to_id;
 } EditLatt;
 
 typedef struct Lattice {
