@@ -514,6 +514,11 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
     }
   }
 
+  char *needs_flush_ptr = BKE_object_data_editmode_flush_ptr_get(obedit->data);
+  if (needs_flush_ptr) {
+    *needs_flush_ptr = false;
+  }
+
   return true;
 }
 
@@ -616,9 +621,12 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_MESH, NULL);
   }
   else if (ob->type == OB_ARMATURE) {
+    bArmature *arm = ob->data;
     ok = 1;
-    ED_armature_to_edit(ob->data);
+    ED_armature_to_edit(arm);
     /* to ensure all goes in restposition and without striding */
+
+    arm->needs_flush_to_id = 0;
 
     /* XXX: should this be ID_RECALC_GEOMETRY? */
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
@@ -632,8 +640,12 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_TEXT, scene);
   }
   else if (ob->type == OB_MBALL) {
+    MetaBall *mb = ob->data;
+
     ok = 1;
     ED_mball_editmball_make(ob);
+
+    mb->needs_flush_to_id = 0;
 
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_MBALL, scene);
   }

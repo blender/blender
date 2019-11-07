@@ -306,6 +306,13 @@ typedef struct SculptSession {
 
   /* This flag prevents PBVH from being freed when creating the vp_handle for texture paint. */
   bool building_vp_handle;
+
+  /**
+   * ID data is older than sculpt-mode data.
+   * Set #Main.is_memfile_undo_flush_needed when enabling.
+   */
+  char needs_flush_to_id;
+
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);

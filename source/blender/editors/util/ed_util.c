@@ -230,7 +230,7 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
 
 /* flush any temp data from object editing to DNA before writing files,
  * rendering, copying, etc. */
-bool ED_editors_flush_edits(Main *bmain, bool for_render)
+bool ED_editors_flush_edits_ex(Main *bmain, bool for_render, bool check_needs_flush)
 {
   bool has_edited = false;
   Object *ob;
@@ -244,6 +244,15 @@ bool ED_editors_flush_edits(Main *bmain, bool for_render)
        * Auto-save prevents this from happening but scripts
        * may cause a flush on saving: T53986. */
       if ((ob->sculpt && ob->sculpt->cache) == 0) {
+
+        {
+          char *needs_flush_ptr = &ob->sculpt->needs_flush_to_id;
+          if (check_needs_flush && (*needs_flush_ptr == 0)) {
+            continue;
+          }
+          *needs_flush_ptr = 0;
+        }
+
         /* flush multires changes (for sculpt) */
         multires_flush_sculpt_updates(ob);
         has_edited = true;
@@ -260,13 +269,29 @@ bool ED_editors_flush_edits(Main *bmain, bool for_render)
       }
     }
     else if (ob->mode & OB_MODE_EDIT) {
+
+      char *needs_flush_ptr = BKE_object_data_editmode_flush_ptr_get(ob->data);
+      if (needs_flush_ptr != NULL) {
+        if (check_needs_flush && (*needs_flush_ptr == 0)) {
+          continue;
+        }
+        *needs_flush_ptr = 0;
+      }
+
       /* get editmode results */
       has_edited = true;
       ED_object_editmode_load(bmain, ob);
     }
   }
 
+  bmain->is_memfile_undo_flush_needed = false;
+
   return has_edited;
+}
+
+bool ED_editors_flush_edits(Main *bmain, bool for_render)
+{
+  return ED_editors_flush_edits_ex(bmain, for_render, false);
 }
 
 /* ***** XXX: functions are using old blender names, cleanup later ***** */

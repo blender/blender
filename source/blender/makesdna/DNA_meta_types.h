@@ -81,7 +81,13 @@ typedef struct MetaBall {
   short totcol;
   /** Used to store MB_AUTOSPACE. */
   short texflag;
-  char _pad[2];
+  char _pad[1];
+
+  /**
+   * ID data is older than edit-mode data (TODO: move to edit-mode struct).
+   * Set #Main.is_memfile_undo_flush_needed when enabling.
+   */
+  char needs_flush_to_id;
 
   /* texture space, copied as one block in editobject.c */
   float loc[3];

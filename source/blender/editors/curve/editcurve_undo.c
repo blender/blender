@@ -208,9 +208,7 @@ static bool curve_undosys_poll(bContext *C)
   return (obedit != NULL);
 }
 
-static bool curve_undosys_step_encode(struct bContext *C,
-                                      struct Main *UNUSED(bmain),
-                                      UndoStep *us_p)
+static bool curve_undosys_step_encode(struct bContext *C, struct Main *bmain, UndoStep *us_p)
 {
   CurveUndoStep *us = (CurveUndoStep *)us_p;
 
@@ -226,13 +224,18 @@ static bool curve_undosys_step_encode(struct bContext *C,
 
   for (uint i = 0; i < objects_len; i++) {
     Object *ob = objects[i];
+    Curve *cu = ob->data;
     CurveUndoStep_Elem *elem = &us->elems[i];
 
     elem->obedit_ref.ptr = ob;
     undocurve_from_editcurve(&elem->data, ob->data, ob->shapenr);
+    cu->editnurb->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
   }
   MEM_freeN(objects);
+
+  bmain->is_memfile_undo_flush_needed = true;
+
   return true;
 }
 
@@ -260,12 +263,15 @@ static void curve_undosys_step_decode(
       continue;
     }
     undocurve_to_editcurve(bmain, &elem->data, obedit->data, &obedit->shapenr);
+    cu->editnurb->needs_flush_to_id = 1;
     DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
   }
 
   /* The first element is always active */
   ED_undo_object_set_active_or_warn(
       CTX_data_view_layer(C), us->elems[0].obedit_ref.ptr, us_p->name, &LOG);
+
+  bmain->is_memfile_undo_flush_needed = true;
 
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
 }

@@ -80,6 +80,11 @@ typedef struct Main {
   char recovered;                  /* indicate the main->name (file) is the recovered one */
   /** All current ID's exist in the last memfile undo step. */
   char is_memfile_undo_written;
+  /**
+   * An ID needs it's data to be flushed back.
+   * use "needs_flush_to_id" in edit data to flag data which needs updating.
+   */
+  char is_memfile_undo_flush_needed;
 
   BlendThumbnail *blen_thumb;
 

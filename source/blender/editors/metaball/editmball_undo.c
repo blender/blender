@@ -35,6 +35,7 @@
 
 #include "BKE_context.h"
 #include "BKE_layer.h"
+#include "BKE_main.h"
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
@@ -153,9 +154,7 @@ static bool mball_undosys_poll(bContext *C)
   return editmball_object_from_context(C) != NULL;
 }
 
-static bool mball_undosys_step_encode(struct bContext *C,
-                                      struct Main *UNUSED(bmain),
-                                      UndoStep *us_p)
+static bool mball_undosys_step_encode(struct bContext *C, struct Main *bmain, UndoStep *us_p)
 {
   MBallUndoStep *us = (MBallUndoStep *)us_p;
 
@@ -176,17 +175,18 @@ static bool mball_undosys_step_encode(struct bContext *C,
     elem->obedit_ref.ptr = ob;
     MetaBall *mb = ob->data;
     editmball_from_undomball(&elem->data, mb);
+    mb->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
   }
   MEM_freeN(objects);
+
+  bmain->is_memfile_undo_flush_needed = true;
+
   return true;
 }
 
-static void mball_undosys_step_decode(struct bContext *C,
-                                      struct Main *UNUSED(bmain),
-                                      UndoStep *us_p,
-                                      int UNUSED(dir),
-                                      bool UNUSED(is_final))
+static void mball_undosys_step_decode(
+    struct bContext *C, struct Main *bmain, UndoStep *us_p, int UNUSED(dir), bool UNUSED(is_final))
 {
   MBallUndoStep *us = (MBallUndoStep *)us_p;
 
@@ -209,12 +209,15 @@ static void mball_undosys_step_decode(struct bContext *C,
       continue;
     }
     undomball_to_editmball(&elem->data, mb);
+    mb->needs_flush_to_id = 1;
     DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
   }
 
   /* The first element is always active */
   ED_undo_object_set_active_or_warn(
       CTX_data_view_layer(C), us->elems[0].obedit_ref.ptr, us_p->name, &LOG);
+
+  bmain->is_memfile_undo_flush_needed = true;
 
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
 }

@@ -39,6 +39,7 @@
 
 #include "BKE_context.h"
 #include "BKE_layer.h"
+#include "BKE_main.h"
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
@@ -154,9 +155,7 @@ static bool lattice_undosys_poll(bContext *C)
   return editlatt_object_from_context(C) != NULL;
 }
 
-static bool lattice_undosys_step_encode(struct bContext *C,
-                                        struct Main *UNUSED(bmain),
-                                        UndoStep *us_p)
+static bool lattice_undosys_step_encode(struct bContext *C, Main *bmain, UndoStep *us_p)
 {
   LatticeUndoStep *us = (LatticeUndoStep *)us_p;
 
@@ -177,17 +176,18 @@ static bool lattice_undosys_step_encode(struct bContext *C,
     elem->obedit_ref.ptr = ob;
     Lattice *lt = ob->data;
     undolatt_from_editlatt(&elem->data, lt->editlatt);
+    lt->editlatt->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
   }
   MEM_freeN(objects);
+
+  bmain->is_memfile_undo_flush_needed = true;
+
   return true;
 }
 
-static void lattice_undosys_step_decode(struct bContext *C,
-                                        struct Main *UNUSED(bmain),
-                                        UndoStep *us_p,
-                                        int UNUSED(dir),
-                                        bool UNUSED(is_final))
+static void lattice_undosys_step_decode(
+    struct bContext *C, struct Main *bmain, UndoStep *us_p, int UNUSED(dir), bool UNUSED(is_final))
 {
   LatticeUndoStep *us = (LatticeUndoStep *)us_p;
 
@@ -210,12 +210,15 @@ static void lattice_undosys_step_decode(struct bContext *C,
       continue;
     }
     undolatt_to_editlatt(&elem->data, lt->editlatt);
+    lt->editlatt->needs_flush_to_id = 1;
     DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
   }
 
   /* The first element is always active */
   ED_undo_object_set_active_or_warn(
       CTX_data_view_layer(C), us->elems[0].obedit_ref.ptr, us_p->name, &LOG);
+
+  bmain->is_memfile_undo_flush_needed = true;
 
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
 }

@@ -1027,6 +1027,8 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
   /* list is manipulated by multiple threads, so we lock */
   BLI_thread_lock(LOCK_CUSTOM1);
 
+  ss->needs_flush_to_id = 1;
+
   if (ss->bm || ELEM(type, SCULPT_UNDO_DYNTOPO_BEGIN, SCULPT_UNDO_DYNTOPO_END)) {
     /* Dynamic topology stores only one undo node per stroke,
      * regardless of the number of PBVH nodes modified */
@@ -1142,17 +1144,6 @@ typedef struct SculptUndoStep {
   UndoSculpt data;
 } SculptUndoStep;
 
-static bool sculpt_undosys_poll(bContext *C)
-{
-  Object *obact = CTX_data_active_object(C);
-  if (obact && obact->type == OB_MESH) {
-    if (obact && (obact->mode & OB_MODE_SCULPT)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 static void sculpt_undosys_step_encode_init(struct bContext *UNUSED(C), UndoStep *us_p)
 {
   SculptUndoStep *us = (SculptUndoStep *)us_p;
@@ -1161,7 +1152,7 @@ static void sculpt_undosys_step_encode_init(struct bContext *UNUSED(C), UndoStep
 }
 
 static bool sculpt_undosys_step_encode(struct bContext *UNUSED(C),
-                                       struct Main *UNUSED(bmain),
+                                       struct Main *bmain,
                                        UndoStep *us_p)
 {
   /* dummy, encoding is done along the way by adding tiles
@@ -1174,6 +1165,11 @@ static bool sculpt_undosys_step_encode(struct bContext *UNUSED(C),
     us->step.use_memfile_step = true;
   }
   us->step.is_applied = true;
+
+  if (!BLI_listbase_is_empty(&us->data.nodes)) {
+    bmain->is_memfile_undo_flush_needed = true;
+  }
+
   return true;
 }
 
@@ -1256,7 +1252,11 @@ static void sculpt_undosys_step_decode(
         me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
         ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, true, NULL);
       }
-      BLI_assert(sculpt_undosys_poll(C));
+
+      if (ob->sculpt) {
+        ob->sculpt->needs_flush_to_id = 1;
+      }
+      bmain->is_memfile_undo_flush_needed = true;
     }
     else {
       BLI_assert(0);
@@ -1295,7 +1295,6 @@ void ED_sculpt_undo_geometry_end(struct Object *ob)
 void ED_sculpt_undosys_type(UndoType *ut)
 {
   ut->name = "Sculpt";
-  ut->poll = sculpt_undosys_poll;
   ut->step_encode_init = sculpt_undosys_step_encode_init;
   ut->step_encode = sculpt_undosys_step_encode;
   ut->step_decode = sculpt_undosys_step_decode;
