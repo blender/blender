@@ -2528,6 +2528,9 @@ static void ui_but_copy(bContext *C, uiBut *but, const bool copy_array)
       break;
 
     case UI_BTYPE_BUT:
+      if (!but->optype) {
+        break;
+      }
       ui_but_copy_operator(C, but, buf, buf_max_len);
       is_buf_set = true;
       break;
