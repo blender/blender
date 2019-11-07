@@ -590,6 +590,10 @@ if(UNIX AND NOT APPLE)
   mark_as_advanced(WITH_CXX11_ABI)
 endif()
 
+# Installation process.
+option(POSTINSTALL_SCRIPT "Run given CMake script after installation process" OFF)
+mark_as_advanced(POSTINSTALL_SCRIPT)
+
 # avoid using again
 option_defaults_clear()
 

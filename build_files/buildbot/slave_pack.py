@@ -22,9 +22,12 @@
 # system and zipping it into buildbot_upload.zip. This is then uploaded
 # to the master in the next buildbot step.
 
-import buildbot_utils
 import os
 import sys
+
+from pathlib import Path
+
+import buildbot_utils
 
 def get_package_name(builder, platform=None):
     info = buildbot_utils.VersionInfo(builder)
@@ -37,6 +40,12 @@ def get_package_name(builder, platform=None):
             package_name = builder.branch + "-" + package_name
 
     return package_name
+
+def sign_file_or_directory(path):
+    from codesign.simple_code_signer import SimpleCodeSigner
+    code_signer = SimpleCodeSigner()
+    code_signer.sign_file_or_directory(Path(path))
+
 
 def create_buildbot_upload_zip(builder, package_files):
     import zipfile
@@ -129,6 +138,8 @@ def pack_win(builder):
 
         package_filename = package_name + '.msi'
         package_filepath = os.path.join(builder.build_dir, package_filename)
+        sign_file_or_directory(package_filepath)
+
         package_files += [(package_filepath, package_filename)]
 
     create_buildbot_upload_zip(builder, package_files)

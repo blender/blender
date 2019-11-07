@@ -1061,3 +1061,10 @@ if(WIN32 AND NOT WITH_PYTHON_MODULE)
       VS_USER_PROPS "blender.Cpp.user.props"
   )
 endif()
+
+# -----------------------------------------------------------------------------
+# Post-install script
+
+if(POSTINSTALL_SCRIPT)
+  install(SCRIPT ${POSTINSTALL_SCRIPT})
+endif()
