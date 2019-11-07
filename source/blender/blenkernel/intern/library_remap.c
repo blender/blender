@@ -677,7 +677,8 @@ void BKE_libblock_relink_ex(
    * Maybe we should do a per-ID callback for this instead?
    */
   switch (GS(id->name)) {
-    case ID_SCE: {
+    case ID_SCE:
+    case ID_GR: {
       if (old_id) {
         switch (GS(old_id->name)) {
           case ID_OB:
@@ -707,6 +708,8 @@ void BKE_libblock_relink_ex(
     default:
       break;
   }
+
+  DEG_relations_tag_update(bmain);
 }
 
 static int id_relink_to_newid_looper(void *UNUSED(user_data),
