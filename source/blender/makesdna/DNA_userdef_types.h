@@ -595,6 +595,16 @@ typedef struct UserDef_FileSpaceData {
   int temp_win_sizey;
 } UserDef_FileSpaceData;
 
+/**
+ * Store UI data here instead of the space
+ * since the space is typically a window which is freed.
+ */
+typedef struct UserDef_Experimental {
+  /** #eUserPref_Experimental_Flag options. */
+  int flag;
+  char _pad0[4];
+} UserDef_Experimental;
+
 typedef struct UserDef {
   /** UserDef has separate do-version handling, and can be read from other files. */
   int versionfile, subversionfile;
@@ -846,6 +856,8 @@ typedef struct UserDef {
   UserDef_SpaceData space_data;
   UserDef_FileSpaceData file_space_data;
 
+  UserDef_Experimental experimental;
+
   /** Runtime data (keep last). */
   UserDef_Runtime runtime;
 } UserDef;
@@ -878,6 +890,7 @@ typedef enum eUserPref_Section {
   USER_SECTION_ANIMATION = 13,
   USER_SECTION_NAVIGATION = 14,
   USER_SECTION_FILE_PATHS = 15,
+  USER_SECTION_EXPERIMENTAL = 16,
 } eUserPref_Section;
 
 /** #UserDef_SpaceData.flag (State of the user preferences UI). */
@@ -886,6 +899,11 @@ typedef enum eUserPref_SpaceData_Flag {
   USER_SPACEDATA_INPUT_HIDE_UI_KEYCONFIG = (1 << 0),
   USER_SPACEDATA_ADDONS_SHOW_ONLY_ENABLED = (1 << 1),
 } eUserPref_SpaceData_Flag;
+
+/** #UserDef_Experimental.flag. */
+typedef enum eUserPref_Experimental_Flag {
+  USER_EXPERIMENTAL_ALL = (1 << 0),
+} eUserPref_Experimental_Flag;
 
 /** #UserDef.flag */
 typedef enum eUserPref_Flag {

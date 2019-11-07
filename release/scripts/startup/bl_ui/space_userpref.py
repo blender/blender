@@ -2132,6 +2132,66 @@ class USERPREF_PT_studiolight_light_editor(Panel):
         layout.prop(system, "light_ambient")
 
 
+class ExperimentalPanel:
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
+
+    @classmethod
+    def poll(cls, context):
+        prefs = context.preferences
+        return (prefs.active_section == 'EXPERIMENTAL')
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        self.draw_props(context, layout)
+
+
+class USERPREF_PT_experimental_all(ExperimentalPanel, Panel):
+    bl_label = "All"
+    bl_options = {'HIDE_HEADER'}
+
+    def draw_props(self, context, layout):
+        prefs = context.preferences
+        experimental = prefs.experimental
+
+        col = layout.column()
+        col.prop(experimental, "use_experimental_all")
+
+        # For the other settings create new panels
+        # and make sure they are disabled if use_experimental_all is True
+
+
+"""
+Example panel, leave it here so we always have a template to follow even
+after the features are gone from the experimental panel.
+
+class USERPREF_PT_experimental_virtual_reality(ExperimentalPanel, Panel):
+    bl_label = "Virtual Reality"
+
+    def draw_props(self, context, _layout):
+        prefs = context.preferences
+        experimental = prefs.experimental
+        _layout.active = not experimental.use_experimental_all
+
+        row = _layout.row()
+        split = row.split().column()
+        split.prop(experimental, "use_virtual_reality_scene_inspection, text="Scene Inspection")
+        split.prop(experimental, "use_virtual_reality_immersive_drawing", text="Continuous Immersive Drawing")
+
+        split = row.split().column()
+        split.operator(
+                "wm.url_open", text="https://developer.blender.org/T71347", icon='URL',
+                ).url = "https://developer.blender.org/T71347"
+        split.operator(
+                "wm.url_open", text="https://developer.blender.org/T71348", icon='URL',
+                ).url = "https://developer.blender.org/T71348"
+"""
+
+
 # Order of registration defines order in UI,
 # so dynamically generated classes are 'injected' in the intended order.
 classes = (
@@ -2213,6 +2273,8 @@ classes = (
     USERPREF_PT_studiolight_light_editor,
     USERPREF_PT_studiolight_matcaps,
     USERPREF_PT_studiolight_world,
+
+    USERPREF_PT_experimental_all,
 
     # Add dynamically generated editor theme panels last,
     # so they show up last in the theme section.
