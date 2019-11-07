@@ -483,6 +483,7 @@ static void eevee_engine_free(void)
   EEVEE_screen_raytrace_free();
   EEVEE_subsurface_free();
   EEVEE_volumes_free();
+  EEVEE_renderpasses_free();
 }
 
 static const DrawEngineDataSize eevee_data_size = DRW_VIEWPORT_DATA_SIZE(EEVEE_Data);
