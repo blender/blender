@@ -1189,7 +1189,7 @@ class OptiXDevice : public Device {
     size_t bytes = 0;
     CUdeviceptr mem = 0;
     check_result_cuda(cuModuleGetGlobal(&mem, &bytes, cuda_module, name));
-    assert(mem != NULL && bytes == data_size);
+    assert(mem != 0 && bytes == data_size);
     check_result_cuda(cuMemcpyHtoD(mem, data, data_size));
   }
 
