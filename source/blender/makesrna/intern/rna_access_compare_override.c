@@ -890,8 +890,11 @@ static void rna_property_override_apply_ex(Main *bmain,
      * Note that here, src is the local saved ID, and dst is a copy of the linked ID (since we use
      * local ID as storage to apply local changes on top of a clean copy of the linked data). */
     PointerRNA private_ptr_item_dst, private_ptr_item_src, private_ptr_item_storage;
-    if (opop->subitem_local_name != NULL || opop->subitem_reference_name != NULL ||
-        opop->subitem_local_index != -1 || opop->subitem_reference_index != -1) {
+    if ((RNA_property_type(prop_dst) == PROP_COLLECTION &&
+         RNA_property_type(prop_src) == PROP_COLLECTION &&
+         (prop_storage == NULL || RNA_property_type(prop_storage) == PROP_COLLECTION)) &&
+        (opop->subitem_local_name != NULL || opop->subitem_reference_name != NULL ||
+         opop->subitem_local_index != -1 || opop->subitem_reference_index != -1)) {
       RNA_POINTER_INVALIDATE(&private_ptr_item_dst);
       RNA_POINTER_INVALIDATE(&private_ptr_item_src);
       RNA_POINTER_INVALIDATE(&private_ptr_item_storage);
