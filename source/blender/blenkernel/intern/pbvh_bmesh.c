@@ -413,7 +413,7 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index)
     /* so we can do direct lookups on 'bbc_array' */
     BM_elem_index_set(f, i); /* set_dirty! */
   }
-  /* likely this is already dirty */
+  /* Likely this is already dirty. */
   bvh->bm->elem_index_dirty |= BM_FACE;
 
   pbvh_bmesh_node_split(bvh, bbc_array, node_index);
@@ -1923,14 +1923,13 @@ void BKE_pbvh_build_bmesh(PBVH *bvh,
     nodeinfo[i] = f;
     BM_ELEM_CD_SET_INT(f, cd_face_node_offset, DYNTOPO_NODE_NONE);
   }
+  /* Likely this is already dirty. */
+  bm->elem_index_dirty |= BM_FACE;
 
   BMVert *v;
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, DYNTOPO_NODE_NONE);
   }
-
-  /* likely this is already dirty */
-  bm->elem_index_dirty |= BM_FACE;
 
   /* setup root node */
   struct FastNodeBuildInfo rootnode = {0};
@@ -2036,7 +2035,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *bvh,
  * (currently just raycast), store the node's triangles and vertices.
  *
  * Skips triangles that are hidden. */
-void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node)
+void BKE_pbvh_bmesh_node_save_orig(BMesh *bm, PBVHNode *node)
 {
   /* Skip if original coords/triangles are already saved */
   if (node->bm_orco) {
@@ -2065,6 +2064,8 @@ void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node)
     BM_elem_index_set(v, i); /* set_dirty! */
     i++;
   }
+  /* Likely this is already dirty. */
+  bm->elem_index_dirty |= BM_VERT;
 
   /* Copy the triangles */
   i = 0;

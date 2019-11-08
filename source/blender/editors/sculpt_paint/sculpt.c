@@ -5211,7 +5211,7 @@ static void sculpt_topology_update(Sculpt *sd,
 
       if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
         BKE_pbvh_node_mark_topology_update(nodes[n]);
-        BKE_pbvh_bmesh_node_save_orig(nodes[n]);
+        BKE_pbvh_bmesh_node_save_orig(ss->bm, nodes[n]);
       }
     }
 

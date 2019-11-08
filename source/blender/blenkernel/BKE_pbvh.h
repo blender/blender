@@ -280,7 +280,7 @@ bool BKE_pbvh_node_frustum_exclude_AABB(PBVHNode *node, void *frustum);
 struct GSet *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node);
 struct GSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node);
 struct GSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
-void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node);
+void BKE_pbvh_bmesh_node_save_orig(struct BMesh *bm, PBVHNode *node);
 void BKE_pbvh_bmesh_after_stroke(PBVH *bvh);
 
 /* Update Bounding Box/Redraw and clear flags */
