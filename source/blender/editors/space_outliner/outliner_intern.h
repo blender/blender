@@ -202,7 +202,7 @@ typedef enum {
 
 /**
  * Container to avoid passing around these variables to many functions.
- * Also so we can have one place to assing these variables.
+ * Also so we can have one place to assign these variables.
  */
 typedef struct TreeViewContext {
   /* Scene level. */

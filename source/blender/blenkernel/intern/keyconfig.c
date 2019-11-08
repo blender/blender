@@ -202,7 +202,7 @@ void BKE_keyconfig_keymap_filter_item(wmKeyMap *keymap,
 
 /**
  * Filter & optionally remove key-map items,
- * intended for versioning, but may be used in other situatuons too.
+ * intended for versioning, but may be used in other situations too.
  */
 void BKE_keyconfig_pref_filter_items(struct UserDef *userdef,
                                      const struct wmKeyConfigFilterItemParams *params,
