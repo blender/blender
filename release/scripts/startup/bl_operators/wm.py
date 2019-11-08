@@ -1823,12 +1823,15 @@ class WM_OT_toolbar_prompt(Operator):
         event_type = event.type
         event_value = event.value
 
-        keymap = self._keymap
-
-        if event_type in {'LEFTMOUSE', 'RIGHTMOUSE', 'MIDDLEMOUSE', 'ESC'}:
+        if event_type in {
+                'LEFTMOUSE', 'RIGHTMOUSE', 'MIDDLEMOUSE',
+                'WHEELDOWNMOUSE', 'WHEELUPMOUSE', 'WHEELINMOUSE', 'WHEELOUTMOUSE',
+                'ESC',
+        }:
             context.workspace.status_text_set(None)
             return {'CANCELLED', 'PASS_THROUGH'}
 
+        keymap = self._keymap
         item = keymap.keymap_items.match_event(event)
         if item is not None:
             idname = item.idname
