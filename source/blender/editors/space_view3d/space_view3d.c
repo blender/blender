@@ -795,6 +795,9 @@ static void view3d_main_region_listener(
           ATTR_FALLTHROUGH;
         }
         case ND_DATA:
+          ED_region_tag_redraw(ar);
+          WM_gizmomap_tag_refresh(gzmap);
+          break;
         case ND_VERTEX_GROUP:
           ED_region_tag_redraw(ar);
           break;
