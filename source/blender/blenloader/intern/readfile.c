@@ -2618,10 +2618,13 @@ static void lib_link_id(FileData *fd, Main *main)
     ID *id;
 
     for (id = lb->first; id; id = id->next) {
-      if (id->override_library) {
-        id->override_library->reference = newlibadr_us(
-            fd, id->lib, id->override_library->reference);
-        id->override_library->storage = newlibadr_us(fd, id->lib, id->override_library->storage);
+      if (id->tag & LIB_TAG_NEED_LINK) {
+        if (id->override_library) {
+          id->override_library->reference = newlibadr_us(
+              fd, id->lib, id->override_library->reference);
+          id->override_library->storage = newlibadr_us(fd, id->lib, id->override_library->storage);
+        }
+        /* DO NOT clear LIB_TAG_NEED_LINK here, it is used again by per-ID-type linkers. */
       }
     }
   }
