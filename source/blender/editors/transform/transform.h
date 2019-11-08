@@ -727,7 +727,7 @@ enum {
   T_EDIT = 1 << 1,
   T_POSE = 1 << 2,
   T_TEXTURE = 1 << 3,
-  /** Transforming the camera while in camera view. */
+  /** Transforming the 3d view. */
   T_CAMERA = 1 << 4,
   /** Transforming the 3D cursor. */
   T_CURSOR = 1 << 5,

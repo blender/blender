@@ -2727,6 +2727,9 @@ void createTransData(bContext *C, TransInfo *t)
           t->flag |= T_CAMERA;
         }
       }
+      else if (v3d->ob_centre && v3d->ob_centre->id.tag & LIB_TAG_DOIT) {
+        t->flag |= T_CAMERA;
+      }
     }
   }
 
