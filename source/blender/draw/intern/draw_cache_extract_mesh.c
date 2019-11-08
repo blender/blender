@@ -3709,6 +3709,7 @@ static const MeshExtract extract_fdots_nor = {
 typedef struct MeshExtract_FdotUV_Data {
   float (*vbo_data)[2];
   MLoopUV *uv_data;
+  int cd_ofs;
 } MeshExtract_FdotUV_Data;
 
 static void *extract_fdots_uv_init(const MeshRenderData *mr, void *buf)
@@ -3728,22 +3729,27 @@ static void *extract_fdots_uv_init(const MeshRenderData *mr, void *buf)
     memset(vbo->data, 0x0, mr->poly_len * vbo->format.stride);
   }
 
-  CustomData *cd_ldata = &mr->me->ldata;
-
   MeshExtract_FdotUV_Data *data = MEM_callocN(sizeof(*data), __func__);
   data->vbo_data = (float(*)[2])vbo->data;
-  data->uv_data = CustomData_get_layer(cd_ldata, CD_MLOOPUV);
+
+  if (mr->extract_type == MR_EXTRACT_BMESH) {
+    data->cd_ofs = CustomData_get_offset(&mr->bm->ldata, CD_MLOOPUV);
+  }
+  else {
+    data->uv_data = CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
+  }
   return data;
 }
 
 static void extract_fdots_uv_loop_bmesh(const MeshRenderData *UNUSED(mr),
-                                        int l,
+                                        int UNUSED(l),
                                         BMLoop *loop,
                                         void *_data)
 {
   MeshExtract_FdotUV_Data *data = (MeshExtract_FdotUV_Data *)_data;
   float w = 1.0f / (float)loop->f->len;
-  madd_v2_v2fl(data->vbo_data[BM_elem_index_get(loop->f)], data->uv_data[l].uv, w);
+  const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(loop, data->cd_ofs);
+  madd_v2_v2fl(data->vbo_data[BM_elem_index_get(loop->f)], luv->uv, w);
 }
 
 static void extract_fdots_uv_loop_mesh(
