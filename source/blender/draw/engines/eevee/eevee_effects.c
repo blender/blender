@@ -136,8 +136,6 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   EEVEE_TextureList *txl = vedata->txl;
   EEVEE_EffectsInfo *effects;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  ViewLayer *view_layer = draw_ctx->view_layer;
 
   const float *viewport_size = DRW_viewport_size_get();
   int size_fs[2] = {(int)viewport_size[0], (int)viewport_size[1]};
@@ -172,7 +170,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   EEVEE_subsurface_init(sldata, vedata);
 
   /* Force normal buffer creation. */
-  if (DRW_state_is_image_render() && !minimal && (view_layer->passflag & SCE_PASS_NORMAL) != 0) {
+  if (!minimal && (stl->g_data->render_passes & SCE_PASS_NORMAL) != 0) {
     effects->enabled_effects |= EFFECT_NORMAL_BUFFER;
   }
 

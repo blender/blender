@@ -1866,9 +1866,11 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
 
   if (drawtype == OB_MATERIAL) {
     v3d.shading.flag = V3D_SHADING_SCENE_WORLD | V3D_SHADING_SCENE_LIGHTS;
+    v3d.shading.render_pass = SCE_PASS_COMBINED;
   }
   else if (drawtype == OB_RENDER) {
     v3d.shading.flag = V3D_SHADING_SCENE_WORLD_RENDER | V3D_SHADING_SCENE_LIGHTS_RENDER;
+    v3d.shading.render_pass = SCE_PASS_COMBINED;
   }
 
   v3d.flag2 = V3D_HIDE_OVERLAYS;

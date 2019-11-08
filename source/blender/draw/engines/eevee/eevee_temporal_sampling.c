@@ -234,7 +234,9 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
       view_is_valid = view_is_valid && (ED_screen_animation_no_scrub(wm) == NULL);
     }
 
-    effects->taa_total_sample = scene_eval->eevee.taa_samples;
+    effects->taa_total_sample = EEVEE_renderpasses_only_first_sample_pass_active(vedata) ?
+                                    1 :
+                                    scene_eval->eevee.taa_samples;
     MAX2(effects->taa_total_sample, 0);
 
     DRW_view_persmat_get(NULL, persmat, false);

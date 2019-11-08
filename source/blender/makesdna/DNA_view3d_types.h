@@ -179,6 +179,10 @@ typedef struct View3DShading {
   float curvature_ridge_factor;
   float curvature_valley_factor;
 
+  /* Render pass displayed in the viewport. Is an `eScenePassType` where one bit is set */
+  int render_pass;
+  char _pad2[4];
+
   struct IDProperty *prop;
 } View3DShading;
 

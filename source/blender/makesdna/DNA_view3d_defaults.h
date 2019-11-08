@@ -46,6 +46,7 @@
     .single_color = {0.8f, 0.8f, 0.8f}, \
     .background_color = {0.05f, 0.05f, 0.05f}, \
     .studiolight_intensity = 1.0f, \
+    .render_pass = SCE_PASS_COMBINED, \
   }
 
 #define _DNA_DEFAULT_View3DOverlay \

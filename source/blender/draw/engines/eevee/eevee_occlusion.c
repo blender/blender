@@ -155,8 +155,10 @@ void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
                                   {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->ao_accum)});
 
     /* Clear texture. */
-    GPU_framebuffer_bind(fbl->ao_accum_fb);
-    GPU_framebuffer_clear_color(fbl->ao_accum_fb, clear);
+    if (DRW_state_is_image_render() || effects->taa_current_sample == 1) {
+      GPU_framebuffer_bind(fbl->ao_accum_fb);
+      GPU_framebuffer_clear_color(fbl->ao_accum_fb, clear);
+    }
 
     /* Accumulation pass */
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD;

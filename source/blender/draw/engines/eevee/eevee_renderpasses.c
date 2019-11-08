@@ -25,6 +25,8 @@
 
 #include "BLI_string_utils.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "eevee_private.h"
 
 extern char datatoc_common_view_lib_glsl[];
@@ -46,14 +48,31 @@ static struct {
 
 #define EEVEE_RENDERPASSES_ALL (EEVEE_RENDERPASSES_WITH_POST_PROCESSING | SCE_PASS_COMBINED)
 
+#define EEVEE_RENDERPASSES_POST_PROCESS_ON_FIRST_SAMPLE (SCE_PASS_Z | SCE_PASS_NORMAL)
+
+#define EEVEE_RENDERPASSES_COLOR_PASS (SCE_PASS_SUBSURFACE_COLOR | SCE_PASS_SUBSURFACE_DIRECT)
+
+bool EEVEE_renderpasses_only_first_sample_pass_active(EEVEE_Data *vedata)
+{
+  EEVEE_StorageList *stl = vedata->stl;
+  EEVEE_PrivateData *g_data = stl->g_data;
+  return (g_data->render_passes & ~EEVEE_RENDERPASSES_POST_PROCESS_ON_FIRST_SAMPLE) == 0;
+}
+
 void EEVEE_renderpasses_init(EEVEE_Data *vedata)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_PrivateData *g_data = stl->g_data;
   ViewLayer *view_layer = draw_ctx->view_layer;
+  View3D *v3d = draw_ctx->v3d;
 
-  g_data->render_passes = (view_layer->passflag & EEVEE_RENDERPASSES_ALL) | SCE_PASS_COMBINED;
+  if (v3d) {
+    g_data->render_passes = v3d->shading.render_pass;
+  }
+  else {
+    g_data->render_passes = (view_layer->passflag & EEVEE_RENDERPASSES_ALL) | SCE_PASS_COMBINED;
+  }
 }
 
 void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
@@ -143,17 +162,21 @@ void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *sldata,
     }
 
     case SCE_PASS_AO: {
+      DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
       DRW_shgroup_uniform_texture_ref(shgrp, "inputBuffer", &txl->ao_accum);
       DRW_shgroup_uniform_int_copy(shgrp, "currentSample", current_sample);
       break;
     }
 
     case SCE_PASS_NORMAL: {
+      DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
       DRW_shgroup_uniform_texture_ref(shgrp, "inputBuffer", &effects->ssr_normal_input);
+      DRW_shgroup_uniform_texture_ref(shgrp, "depthBuffer", &dtxl->depth);
       break;
     }
 
     case SCE_PASS_MIST: {
+      DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
       DRW_shgroup_uniform_texture_ref(shgrp, "inputBuffer", &txl->mist_accum);
       DRW_shgroup_uniform_int_copy(shgrp, "currentSample", current_sample);
       break;
@@ -182,6 +205,71 @@ void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *sldata,
    * and the pass still hold the previous shading groups.*/
   GPU_framebuffer_bind(fbl->renderpass_fb);
   DRW_draw_pass_subset(psl->renderpass_pass, shgrp, shgrp);
+}
+
+void EEVEE_renderpasses_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+{
+  EEVEE_StorageList *stl = vedata->stl;
+  EEVEE_EffectsInfo *effects = stl->effects;
+  eScenePassType render_pass = stl->g_data->render_passes;
+
+  if ((render_pass & SCE_PASS_MIST) != 0) {
+    EEVEE_mist_output_accumulate(sldata, vedata);
+  }
+  if ((effects->enabled_effects & EFFECT_SSS) &&
+      (render_pass & EEVEE_RENDERPASSES_SUBSURFACE) != 0) {
+    EEVEE_subsurface_output_accumulate(sldata, vedata);
+  }
+  if ((render_pass & SCE_PASS_AO) != 0) {
+    EEVEE_occlusion_output_accumulate(sldata, vedata);
+  }
+}
+
+void EEVEE_renderpasses_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+{
+  EEVEE_FramebufferList *fbl = vedata->fbl;
+  EEVEE_TextureList *txl = vedata->txl;
+  EEVEE_StorageList *stl = vedata->stl;
+  EEVEE_EffectsInfo *effects = stl->effects;
+  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  eScenePassType render_pass = stl->g_data->render_passes;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
+
+  bool is_valid = true;
+  bool needs_color_transfer = (render_pass & EEVEE_RENDERPASSES_COLOR_PASS) > 0 &&
+                              DRW_state_is_opengl_render();
+
+  /* When SSS isn't available, but the pass is requested, we mark it as invalid */
+  if ((render_pass & EEVEE_RENDERPASSES_SUBSURFACE) != 0 &&
+      (effects->enabled_effects & EFFECT_SSS) == 0) {
+    is_valid = false;
+  }
+
+  /* When SSS isn't available, but the pass is requested, we mark it as invalid */
+  if ((render_pass & SCE_PASS_AO) != 0 && (scene_eval->eevee.flag & SCE_EEVEE_GTAO_ENABLED) == 0) {
+    is_valid = false;
+  }
+
+  const int current_sample = stl->effects->taa_current_sample;
+  const int total_samples = stl->effects->taa_total_sample;
+  if ((render_pass & EEVEE_RENDERPASSES_POST_PROCESS_ON_FIRST_SAMPLE) &&
+      (current_sample > 1 && total_samples != 1)) {
+    return;
+  }
+
+  if (is_valid) {
+    EEVEE_renderpasses_postprocess(sldata, vedata, render_pass);
+    GPU_framebuffer_bind(dfbl->default_fb);
+    DRW_transform_to_display(txl->renderpass, needs_color_transfer, false);
+  }
+  else {
+    /* Draw state is not valid for this pass, clear the buffer */
+    static float clear_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    GPU_framebuffer_bind(dfbl->default_fb);
+    GPU_framebuffer_clear_color(dfbl->default_fb, clear_color);
+  }
+  GPU_framebuffer_bind(fbl->main_fb);
 }
 
 void EEVEE_renderpasses_free(void)

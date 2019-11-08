@@ -34,27 +34,28 @@ void main()
   }
 
   else if (renderpassType == SCE_PASS_NORMAL) {
+    float depth = texelFetch(depthBuffer, texel, 0).r;
     vec2 encoded_normal = texelFetch(inputBuffer, texel, 0).rg;
     /* decode the normals only when they are valid. otherwise the result buffer will be filled with
      * NaN's */
-    if (any(notEqual(encoded_normal, vec2(0.0)))) {
+    if (depth != 1.0 && any(notEqual(encoded_normal, vec2(0.0)))) {
       vec3 decoded_normal = normal_decode(texelFetch(inputBuffer, texel, 0).rg, vec3(0.0));
       vec3 world_normal = mat3(ViewMatrixInverse) * decoded_normal;
-      fragColor = vec4(world_normal, 0.0);
+      fragColor = vec4(world_normal, 1.0);
     }
     else {
-      fragColor = vec4(0.0);
+      fragColor = vec4(0.0, 0.0, 0.0, 1.0);
     }
   }
 
   else if ((renderpassType & ACCUMULATED_VALUE_PASSES) != 0) {
     float accumulated_value = texelFetch(inputBuffer, texel, 0).r;
-    fragColor.r = accumulated_value / currentSample;
+    fragColor = vec4(vec3(accumulated_value / currentSample), 1.0);
   }
 
   else if ((renderpassType & ACCUMULATED_COLOR_PASSES) != 0) {
     vec3 accumulated_color = texelFetch(inputBuffer, texel, 0).rgb;
-    fragColor.rgb = accumulated_color / currentSample;
+    fragColor = vec4(accumulated_color / currentSample, 1.0);
   }
 
   else {

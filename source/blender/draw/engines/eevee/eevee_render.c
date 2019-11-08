@@ -485,16 +485,12 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     DRW_draw_pass(psl->refract_depth_pass);
     DRW_draw_pass(psl->refract_depth_pass_cull);
     DRW_draw_pass(psl->refract_pass);
-    /* Subsurface output */
-    EEVEE_subsurface_output_accumulate(sldata, vedata);
-    /* Occlusion output */
-    EEVEE_occlusion_output_accumulate(sldata, vedata);
     /* Result NORMAL */
     eevee_render_result_normal(rl, viewname, rect, vedata, sldata);
     /* Volumetrics Resolve Opaque */
     EEVEE_volumes_resolve(sldata, vedata);
-    /* Mist output */
-    EEVEE_mist_output_accumulate(sldata, vedata);
+    /* Subsurface output, Occlusion output, Mist output */
+    EEVEE_renderpasses_output_accumulate(sldata, vedata);
     /* Transparent */
     GPU_framebuffer_texture_attach(fbl->main_color_fb, dtxl->depth, 0, 0);
     GPU_framebuffer_bind(fbl->main_color_fb);

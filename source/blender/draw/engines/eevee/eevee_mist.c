@@ -49,6 +49,7 @@ void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   EEVEE_TextureList *txl = vedata->txl;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_PassList *psl = vedata->psl;
+  EEVEE_EffectsInfo *effects = stl->effects;
   EEVEE_PrivateData *g_data = stl->g_data;
   Scene *scene = draw_ctx->scene;
 
@@ -74,8 +75,10 @@ void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
                                 {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->mist_accum)});
 
   /* Clear texture. */
-  GPU_framebuffer_bind(fbl->mist_accum_fb);
-  GPU_framebuffer_clear_color(fbl->mist_accum_fb, clear);
+  if (DRW_state_is_image_render() || effects->taa_current_sample == 1) {
+    GPU_framebuffer_bind(fbl->mist_accum_fb);
+    GPU_framebuffer_clear_color(fbl->mist_accum_fb, clear);
+  }
 
   /* Mist settings. */
   if (scene && scene->world) {

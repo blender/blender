@@ -4231,5 +4231,23 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       UnifiedPaintSettings *ups = &ts->unified_paint_settings;
       ups->flag &= ~(UNIFIED_PAINT_FLAG_UNUSED_0 | UNIFIED_PAINT_FLAG_UNUSED_1);
     }
+
+    /* Set the default render pass in the viewport to Combined. */
+    if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "int", "render_pass")) {
+      for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+        scene->display.shading.render_pass = SCE_PASS_COMBINED;
+      }
+
+      for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+        for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+          for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+            if (sl->spacetype == SPACE_VIEW3D) {
+              View3D *v3d = (View3D *)sl;
+              v3d->shading.render_pass = SCE_PASS_COMBINED;
+            }
+          }
+        }
+      }
+    }
   }
 }

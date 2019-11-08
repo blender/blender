@@ -5466,6 +5466,26 @@ class VIEW3D_PT_shading_options_ssao(Panel):
         col.prop(scene.display, "matcap_ssao_attenuation")
 
 
+class VIEW3D_PT_shading_render_pass(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Render Pass"
+    bl_parent_id = 'VIEW3D_PT_shading'
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.space_data.shading.type == 'MATERIAL'
+            or (context.engine in cls.COMPAT_ENGINES
+                and context.space_data.shading.type == 'RENDERED'))
+
+    def draw(self, context):
+        shading = context.space_data.shading
+
+        layout = self.layout
+        layout.prop(shading, "render_pass", text="")
+
+
 class VIEW3D_PT_gizmo_display(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -6909,6 +6929,7 @@ classes = (
     VIEW3D_PT_shading_options,
     VIEW3D_PT_shading_options_shadow,
     VIEW3D_PT_shading_options_ssao,
+    VIEW3D_PT_shading_render_pass,
     VIEW3D_PT_gizmo_display,
     VIEW3D_PT_overlay,
     VIEW3D_PT_overlay_guides,
