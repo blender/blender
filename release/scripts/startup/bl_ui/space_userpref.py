@@ -2166,29 +2166,30 @@ class USERPREF_PT_experimental_all(ExperimentalPanel, Panel):
 
 
 """
-Example panel, leave it here so we always have a template to follow even
-after the features are gone from the experimental panel.
+# Example panel, leave it here so we always have a template to follow even
+# after the features are gone from the experimental panel.
 
 class USERPREF_PT_experimental_virtual_reality(ExperimentalPanel, Panel):
     bl_label = "Virtual Reality"
 
-    def draw_props(self, context, _layout):
+    def draw_props(self, context, layout):
         prefs = context.preferences
         experimental = prefs.experimental
-        _layout.active = not experimental.use_experimental_all
+        layout.active = not experimental.use_experimental_all
 
-        row = _layout.row()
-        split = row.split().column()
-        split.prop(experimental, "use_virtual_reality_scene_inspection, text="Scene Inspection")
-        split.prop(experimental, "use_virtual_reality_immersive_drawing", text="Continuous Immersive Drawing")
+        task = "T71347"
+        split = layout.split(factor=0.66)
+        col = split.split()
+        col.prop(experimental, "use_virtual_reality_scene_inspection", text="Scene Inspection")
+        col = split.split()
+        col.operator("wm.url_open", text=task, icon='URL').url = "https://developer.blender.org/" + task
 
-        split = row.split().column()
-        split.operator(
-                "wm.url_open", text="https://developer.blender.org/T71347", icon='URL',
-                ).url = "https://developer.blender.org/T71347"
-        split.operator(
-                "wm.url_open", text="https://developer.blender.org/T71348", icon='URL',
-                ).url = "https://developer.blender.org/T71348"
+        task = "T71348"
+        split = layout.split(factor=0.66)
+        col = split.column()
+        col.prop(experimental, "use_virtual_reality_immersive_drawing", text="Continuous Immersive Drawing")
+        col = split.column()
+        col.operator("wm.url_open", text=task, icon='URL').url = "https://developer.blender.org/" + task
 """
 
 
