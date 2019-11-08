@@ -910,7 +910,7 @@ static bool delaunay_check(CDTVert *v1, CDTVert *v2, CDTVert *v3, CDTVert *p, co
 {
   double x1, y1, x2, y2, den, cenx, ceny, rad, pc, a, b, w, z, q, s;
 
-  /* Find center and radius of circumcircle of v1,v2,v3.
+  /* Find center and radius of circum-circle of v1,v2,v3.
    * Transform coords so v3 is at origin to help reduce floating point error
    * when coordinates are far from (0,0) but close together.
    */
