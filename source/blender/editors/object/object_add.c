@@ -1714,7 +1714,11 @@ static bool dupliobject_cmp(const void *a_, const void *b_)
     return true;
   }
 
-  if (ELEM(a->type, b->type, OB_DUPLICOLLECTION)) {
+  if (a->type != b->type) {
+    return true;
+  }
+
+  if (a->type == OB_DUPLICOLLECTION) {
     for (int i = 1; (i < MAX_DUPLI_RECUR); i++) {
       if (a->persistent_id[i] != b->persistent_id[i]) {
         return true;
