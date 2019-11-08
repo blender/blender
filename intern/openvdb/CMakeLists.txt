@@ -40,6 +40,12 @@ if(WITH_OPENVDB)
     ${OPENVDB_DEFINITIONS}
   )
 
+  if(WIN32)
+    add_definitions(
+      -DOPENVDB_STATICLIB
+    )
+  endif()
+
   if(WITH_OPENVDB_3_ABI_COMPATIBLE)
     add_definitions(
       -DOPENVDB_3_ABI_COMPATIBLE

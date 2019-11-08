@@ -1,5 +1,5 @@
-if EXIST %BLENDER_DIR%\..\lib\win64_vc14\llvm\bin\clang-format.exe (
-    set CF_PATH=..\lib\win64_vc14\llvm\bin
+if EXIST %BLENDER_DIR%\..\lib\win64_vc15\llvm\bin\clang-format.exe (
+    set CF_PATH=..\lib\win64_vc15\llvm\bin
     goto detect_done
 )
 
@@ -10,7 +10,7 @@ exit /b 1
 echo found clang-format in %CF_PATH%
 
 if EXIST %PYTHON% (
-    set PYTHON=%BLENDER_DIR%\..\lib\win64_vc14\python\37\bin\python.exe
+    set PYTHON=%BLENDER_DIR%\..\lib\win64_vc15\python\37\bin\python.exe
     goto detect_python_done
 )
 

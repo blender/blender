@@ -357,6 +357,13 @@ typedef struct BuiltinOpDef {
   void *funcptr;
 } BuiltinOpDef;
 
+#ifdef _MSC_VER
+/* Prevent MSVC from inlining calls to ceil/floor so the table below can get a function pointer to
+ * them. */
+#  pragma function(ceil)
+#  pragma function(floor)
+#endif
+
 static BuiltinOpDef builtin_ops[] = {
     {"radians", OPCODE_FUNC1, op_radians},
     {"degrees", OPCODE_FUNC1, op_degrees},

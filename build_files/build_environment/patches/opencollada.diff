@@ -43,3 +43,34 @@ index 1f9a3ee..d151e9a 100644
          return isnan( value );
  #else
          return std::isnan(value);
+diff --git a/DAEValidator/CMakeLists.txt b/DAEValidator/CMakeLists.txt
+index 03ad540f..f7d05cfb 100644
+--- a/DAEValidator/CMakeLists.txt
++++ b/DAEValidator/CMakeLists.txt
+@@ -98,7 +98,7 @@ if (WIN32)
+ # C4710: 'function' : function not inlined
+ # C4711: function 'function' selected for inline expansion
+ # C4820: 'bytes' bytes padding added after construct 'member_name'
+-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /WX /wd4505 /wd4514 /wd4592 /wd4710 /wd4711 /wd4820")
++	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4505 /wd4514 /wd4592 /wd4710 /wd4711 /wd4820")
+ else ()
+ 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror")
+ endif ()
+diff --git a/DAEValidator/library/src/ArgumentParser.cpp b/DAEValidator/library/src/ArgumentParser.cpp
+index 897e4dcf..98a69ff1 100644
+--- a/DAEValidator/library/src/ArgumentParser.cpp
++++ b/DAEValidator/library/src/ArgumentParser.cpp
+@@ -6,10 +6,10 @@
+ 
+ using namespace std;
+ 
+-#ifdef _MSC_VER
+-#define NOEXCEPT _NOEXCEPT
+-#else
++#ifndef _NOEXCEPT
+ #define NOEXCEPT noexcept
++#else
++#define NOEXCEPT _NOEXCEPT
+ #endif
+ 
+ namespace opencollada

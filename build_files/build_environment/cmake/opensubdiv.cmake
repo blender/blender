@@ -41,7 +41,6 @@ if(WIN32)
     -DCLEW_LIBRARY=${LIBDIR}/clew/lib/clew${LIBEXT}
     -DCUEW_INCLUDE_DIR=${LIBDIR}/cuew/include
     -DCUEW_LIBRARY=${LIBDIR}/cuew/lib/cuew${LIBEXT}
-    -DCMAKE_EXE_LINKER_FLAGS_RELEASE=libcmt.lib
   )
   if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
     set(OPENSUBDIV_EXTRA_ARGS

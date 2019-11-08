@@ -263,9 +263,9 @@ set(TINYXML_VERSION_DOTS 2.6.2)
 set(TINYXML_URI https://nchc.dl.sourceforge.net/project/tinyxml/tinyxml/${TINYXML_VERSION_DOTS}/tinyxml_${TINYXML_VERSION}.tar.gz)
 set(TINYXML_HASH c1b864c96804a10526540c664ade67f0)
 
-set(YAMLCPP_VERSION 0.6.2)
+set(YAMLCPP_VERSION 0.6.3)
 set(YAMLCPP_URI https://codeload.github.com/jbeder/yaml-cpp/tar.gz/yaml-cpp-${YAMLCPP_VERSION})
-set(YAMLCPP_HASH 5b943e9af0060d0811148b037449ef82)
+set(YAMLCPP_HASH b45bf1089a382e81f6b661062c10d0c2)
 
 set(LCMS_VERSION 2.9)
 set(LCMS_URI https://nchc.dl.sourceforge.net/project/lcms/lcms/${LCMS_VERSION}/lcms2-${LCMS_VERSION}.tar.gz)
