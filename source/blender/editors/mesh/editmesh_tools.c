@@ -930,7 +930,7 @@ static void edbm_add_edge_face_exec__tricky_finalize_sel(BMesh *bm, BMElem *ele_
 static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 {
   /* when this is used to dissolve we could avoid this, but checking isnt too slow */
-
+  bool changed_multi = false;
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
@@ -1005,8 +1005,13 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
     }
 
     EDBM_update_generic(em, true, true);
+    changed_multi = true;
   }
   MEM_freeN(objects);
+
+  if (!changed_multi) {
+    return OPERATOR_CANCELLED;
+  }
 
   return OPERATOR_FINISHED;
 }
