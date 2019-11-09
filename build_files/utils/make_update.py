@@ -48,7 +48,7 @@ def svn_update(args, release_version):
         # Windows checkout is usually handled by bat scripts since python3 to run
         # this script is bundled as part of the precompiled libraries. However it
         # is used by the buildbot.
-        lib_platform = "win64_vc14"
+        lib_platform = "win64_vc15"
     elif args.use_centos_libraries:
         lib_platform = "linux_centos7_x86_64"
     else:
