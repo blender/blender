@@ -1416,8 +1416,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 {
   Scene *sce = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  const eObjectMode object_mode = OBACT(view_layer) ? OBACT(view_layer)->mode : OB_MODE_OBJECT;
-  const short object_type = OBACT(view_layer) ? OBACT(view_layer)->type : -1;
+  Object *obact = OBACT(view_layer);
+  const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
   ToolSettings *ts = CTX_data_tool_settings(C);
   ARegion *ar = CTX_wm_region(C);
   ScrArea *sa = CTX_wm_area(C);
@@ -1437,9 +1437,13 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->flag = 0;
 
-  t->obedit_type = ((object_mode == OB_MODE_EDIT) || (object_mode == OB_MODE_EDIT_GPENCIL)) ?
-                       object_type :
-                       -1;
+  if (obact && !(t->options & (CTX_CURSOR | CTX_TEXTURE)) &&
+      ELEM(object_mode, OB_MODE_EDIT, OB_MODE_EDIT_GPENCIL)) {
+    t->obedit_type = obact->type;
+  }
+  else {
+    t->obedit_type = -1;
+  }
 
   /* Many kinds of transform only use a single handle. */
   if (t->data_container == NULL) {
@@ -1776,7 +1780,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
               }
             }
           }
-          else if ((t->obedit_type == -1) && ts->proportional_objects) {
+          else if (!(t->options & CTX_CURSOR) && ts->proportional_objects) {
             t->flag |= T_PROP_EDIT;
           }
         }

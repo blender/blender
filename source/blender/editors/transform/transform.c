@@ -2133,7 +2133,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
         else if (t->options & CTX_MASK) {
           ts->proportional_mask = proportional != 0;
         }
-        else {
+        else if ((t->options & CTX_CURSOR) == 0) {
           ts->proportional_objects = proportional != 0;
         }
       }
