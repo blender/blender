@@ -95,7 +95,7 @@ if(WIN32)
     ExternalProject_Add_Step(external_opencolorio after_install
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opencolorio/include ${HARVEST_TARGET}/opencolorio/include
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opencolorio/lib/static ${HARVEST_TARGET}/opencolorio/lib
-      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/yamlcpp/lib/libyaml-cppmt.lib ${HARVEST_TARGET}/opencolorio/lib/libyaml-cpp.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/yamlcpp/lib/libyaml-cppmd.lib ${HARVEST_TARGET}/opencolorio/lib/libyaml-cpp.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tinyxml/lib/tinyxml.lib ${HARVEST_TARGET}/opencolorio/lib/tinyxml.lib
       DEPENDEES install
     )
