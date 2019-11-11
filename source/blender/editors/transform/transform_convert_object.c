@@ -939,10 +939,7 @@ void createTransTexspace(TransInfo *t)
     *texflag &= ~ME_AUTOSPACE;
   }
 
-  zero_v3(td->ext->rot);
-
   copy_v3_v3(td->iloc, td->loc);
-  copy_v3_v3(td->ext->irot, td->ext->rot);
   copy_v3_v3(td->ext->isize, td->ext->size);
 }
 
