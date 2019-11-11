@@ -510,12 +510,13 @@ static void OBJECT_engine_init(void *vedata)
                                                     NULL,
                                                     datatoc_gpu_shader_flat_color_frag_glsl,
                                                     datatoc_common_view_lib_glsl,
-                                                    NULL);
+                                                    "#define IN_PLACE_INSTANCES\n");
 
     sh_data->part_axis = DRW_shader_create_with_lib(datatoc_object_particle_prim_vert_glsl,
                                                     NULL,
                                                     datatoc_gpu_shader_flat_color_frag_glsl,
                                                     datatoc_common_view_lib_glsl,
+                                                    "#define IN_PLACE_INSTANCES\n"
                                                     "#define USE_AXIS\n");
 
     sh_data->part_dot = DRW_shader_create_with_lib(datatoc_object_particle_dot_vert_glsl,
