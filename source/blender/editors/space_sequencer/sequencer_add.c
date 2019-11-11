@@ -759,7 +759,8 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
                                  FILE_TYPE_FOLDER | FILE_TYPE_MOVIE,
                                  FILE_SPECIAL,
                                  FILE_OPENFILE,
-                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_FILES,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_FILES |
+                                     WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_ALPHA);
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
@@ -818,7 +819,8 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
                                  FILE_TYPE_FOLDER | FILE_TYPE_SOUND,
                                  FILE_SPECIAL,
                                  FILE_OPENFILE,
-                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_FILES,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_FILES |
+                                     WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_ALPHA);
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
@@ -1021,7 +1023,8 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
                                  FILE_TYPE_FOLDER | FILE_TYPE_IMAGE,
                                  FILE_SPECIAL,
                                  FILE_OPENFILE,
-                                 WM_FILESEL_DIRECTORY | WM_FILESEL_RELPATH | WM_FILESEL_FILES,
+                                 WM_FILESEL_DIRECTORY | WM_FILESEL_RELPATH | WM_FILESEL_FILES |
+                                     WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_ALPHA);
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_ENDFRAME);
