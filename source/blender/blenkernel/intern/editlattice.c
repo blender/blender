@@ -107,6 +107,13 @@ void BKE_editlattice_load(Object *obedit)
   lt->typew = editlt->typew;
   lt->actbp = editlt->actbp;
 
+  lt->fu = editlt->fu;
+  lt->fv = editlt->fv;
+  lt->fw = editlt->fw;
+  lt->du = editlt->du;
+  lt->dv = editlt->dv;
+  lt->dw = editlt->dw;
+
   if (lt->editlatt->shapenr) {
     actkey = BLI_findlink(&lt->key->block, lt->editlatt->shapenr - 1);
 
