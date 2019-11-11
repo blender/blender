@@ -61,9 +61,13 @@ static CLG_LogRef LOG = {"ed.undo.lattice"};
 /** \name Undo Conversion
  * \{ */
 
+/* TODO(Campbell): this could contain an entire 'Lattice' struct. */
 typedef struct UndoLattice {
   BPoint *def;
   int pntsu, pntsv, pntsw, actbp;
+  char typeu, typev, typew;
+  float fu, fv, fw;
+  float du, dv, dw;
   size_t undo_size;
 } UndoLattice;
 
@@ -83,6 +87,17 @@ static void undolatt_to_editlatt(UndoLattice *ult, EditLatt *editlatt)
   editlatt->latt->pntsv = ult->pntsv;
   editlatt->latt->pntsw = ult->pntsw;
   editlatt->latt->actbp = ult->actbp;
+
+  editlatt->latt->typeu = ult->typeu;
+  editlatt->latt->typev = ult->typev;
+  editlatt->latt->typew = ult->typew;
+
+  editlatt->latt->fu = ult->fu;
+  editlatt->latt->fv = ult->fv;
+  editlatt->latt->fw = ult->fw;
+  editlatt->latt->du = ult->du;
+  editlatt->latt->dv = ult->dv;
+  editlatt->latt->dw = ult->dw;
 }
 
 static void *undolatt_from_editlatt(UndoLattice *ult, EditLatt *editlatt)
@@ -94,6 +109,17 @@ static void *undolatt_from_editlatt(UndoLattice *ult, EditLatt *editlatt)
   ult->pntsv = editlatt->latt->pntsv;
   ult->pntsw = editlatt->latt->pntsw;
   ult->actbp = editlatt->latt->actbp;
+
+  ult->typeu = editlatt->latt->typeu;
+  ult->typev = editlatt->latt->typev;
+  ult->typew = editlatt->latt->typew;
+
+  ult->fu = editlatt->latt->fu;
+  ult->fv = editlatt->latt->fv;
+  ult->fw = editlatt->latt->fw;
+  ult->du = editlatt->latt->du;
+  ult->dv = editlatt->latt->dv;
+  ult->dw = editlatt->latt->dw;
 
   ult->undo_size += sizeof(*ult->def) * ult->pntsu * ult->pntsv * ult->pntsw;
 
