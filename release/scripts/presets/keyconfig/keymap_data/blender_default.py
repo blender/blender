@@ -2859,17 +2859,6 @@ def km_animation(params):
         {"items": items},
     )
 
-    if not params.legacy:
-        items.extend([
-            ("anim.start_frame_set", {"type": 'HOME', "value": 'PRESS', "ctrl": True}, None),
-            ("anim.end_frame_set", {"type": 'END', "value": 'PRESS', "ctrl": True}, None),
-        ])
-    else:
-        items.extend([
-            ("anim.start_frame_set", {"type": 'S', "value": 'PRESS'}, None),
-            ("anim.end_frame_set", {"type": 'E', "value": 'PRESS'}, None),
-        ])
-
     items.extend([
         # Frame management.
         ("wm.context_toggle", {"type": 'T', "value": 'PRESS', "ctrl": True},
@@ -2877,6 +2866,8 @@ def km_animation(params):
         # Preview range.
         ("anim.previewrange_set", {"type": 'P', "value": 'PRESS'}, None),
         ("anim.previewrange_clear", {"type": 'P', "value": 'PRESS', "alt": True}, None),
+        ("anim.start_frame_set", {"type": 'HOME', "value": 'PRESS', "ctrl": True}, None),
+        ("anim.end_frame_set", {"type": 'END', "value": 'PRESS', "ctrl": True}, None),
     ])
 
     if params.select_mouse == 'LEFTMOUSE' and not params.legacy:
