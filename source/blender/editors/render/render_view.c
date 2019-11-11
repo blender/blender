@@ -243,6 +243,11 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
     }
   }
 
+  if ((sima->flag & SI_PREVSPACE) && sima->next) {
+    SpaceLink *old_sl = sima->next;
+    old_sl->link_flag |= SPACE_FLAG_TYPE_WAS_ACTIVE;
+  }
+
   return sa;
 }
 
