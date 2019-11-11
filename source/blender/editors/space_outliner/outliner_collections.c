@@ -676,6 +676,7 @@ static int collection_instance_exec(bContext *C, wmOperator *UNUSED(op))
     ob->instance_collection = collection;
     ob->transflag |= OB_DUPLICOLLECTION;
     id_lib_extern(&collection->id);
+    id_us_plus(&collection->id);
   }
 
   BLI_gset_free(data.collections_to_edit, NULL);
