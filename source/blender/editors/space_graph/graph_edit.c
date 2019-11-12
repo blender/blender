@@ -85,6 +85,7 @@ void get_graph_keyframe_extents(bAnimContext *ac,
                                 const bool include_handles)
 {
   Scene *scene = ac->scene;
+  SpaceGraph *sipo = (SpaceGraph *)ac->sl;
 
   ListBase anim_data = {NULL, NULL};
   bAnimListElem *ale;
@@ -92,6 +93,10 @@ void get_graph_keyframe_extents(bAnimContext *ac,
 
   /* get data to filter, from Dopesheet */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
+  if (sipo->flag & SIPO_SELCUVERTSONLY) {
+    filter |= ANIMFILTER_SEL;
+  }
+
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* set large values initial values that will be easy to override */
