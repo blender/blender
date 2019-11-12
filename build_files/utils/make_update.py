@@ -41,11 +41,6 @@ def svn_update(args, release_version):
     lib_dirpath = os.path.join(get_blender_git_root(), '..', 'lib')
     svn_url = make_utils.svn_libraries_base_url(release_version)
 
-    # List of directory names which corresponds to used SVN checkouts.
-    # Is used to ensure the checkout points to a valid branch/tag.
-    # Should consists only of directory name, such as "win64_vc14", for example.
-    used_lib_dir_names = []
-
     # Checkout precompiled libraries
     if sys.platform == 'darwin':
         lib_platform = "darwin"
@@ -63,8 +58,6 @@ def svn_update(args, release_version):
     if lib_platform:
         lib_platform_dirpath = os.path.join(lib_dirpath, lib_platform)
 
-        used_lib_dir_names.append(lib_platform)
-
         if not os.path.exists(lib_platform_dirpath):
             print_stage("Checking out Precompiled Libraries")
 
@@ -78,8 +71,6 @@ def svn_update(args, release_version):
     if args.use_tests:
         lib_tests = "tests"
         lib_tests_dirpath = os.path.join(lib_dirpath, lib_tests)
-
-        used_lib_dir_names.append(lib_tests)
 
         if not os.path.exists(lib_tests_dirpath):
             print_stage("Checking out Tests")
@@ -95,13 +86,20 @@ def svn_update(args, release_version):
     print_stage("Updating Precompiled Libraries and Tests")
 
     if os.path.isdir(lib_dirpath):
-      for dirname in used_lib_dir_names:
-        print_stage("Updating {}" . format(dirname))
+      for dirname in os.listdir(lib_dirpath):
         dirpath = os.path.join(lib_dirpath, dirname)
 
-        svn_dirpath = os.path.join(dirpath, ".svn")
+        if dirname == ".svn":
+            # Cleanup must be run from svn root directory if it exists.
+            if not make_utils.command_missing(args.svn_command):
+                call(svn_non_interactive + ["cleanup", lib_dirpath])
+            continue
 
-        if os.path.isdir(dirpath) and os.path.exists(svn_dirpath):
+        svn_dirpath = os.path.join(dirpath, ".svn")
+        svn_root_dirpath = os.path.join(lib_dirpath, ".svn")
+
+        if os.path.isdir(dirpath) and \
+           (os.path.exists(svn_dirpath) or os.path.exists(svn_root_dirpath)):
             if make_utils.command_missing(args.svn_command):
                 sys.stderr.write("svn not found, can't update libraries\n")
                 sys.exit(1)
@@ -110,7 +108,7 @@ def svn_update(args, release_version):
             if os.path.exists(svn_dirpath):
                 call(svn_non_interactive + ["cleanup", dirpath])
             # Switch to appropriate branch and update.
-            call(svn_non_interactive + ["switch", svn_url + dirname, dirpath])
+            call(svn_non_interactive + ["switch", svn_url + dirname, dirpath], exit_on_error=False)
             call(svn_non_interactive + ["update", dirpath])
 
 # Test if git repo can be updated.
