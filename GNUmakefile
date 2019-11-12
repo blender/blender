@@ -163,9 +163,8 @@ CPU:=$(shell uname -m)
 BLENDER_DIR:=$(shell pwd -P)
 BUILD_TYPE:=Release
 
-ifndef BUILD_CMAKE_ARGS
-	BUILD_CMAKE_ARGS:=
-endif
+# CMake arguments, assigned to local variable to make it mutable.
+CMAKE_CONFIG_ARGS := $(BUILD_CMAKE_ARGS)
 
 ifndef BUILD_DIR
 	BUILD_DIR:=$(shell dirname "$(BLENDER_DIR)")/build_$(OS_NCASE)
@@ -213,34 +212,34 @@ ifneq "$(findstring debug, $(MAKECMDGOALS))" ""
 endif
 ifneq "$(findstring full, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_full
-	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/blender_full.cmake"
+	CMAKE_CONFIG_ARGS:=-C"$(BLENDER_DIR)/build_files/cmake/config/blender_full.cmake" $(CMAKE_CONFIG_ARGS)
 endif
 ifneq "$(findstring lite, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_lite
-	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/blender_lite.cmake"
+	CMAKE_CONFIG_ARGS:=-C"$(BLENDER_DIR)/build_files/cmake/config/blender_lite.cmake" $(CMAKE_CONFIG_ARGS)
 endif
 ifneq "$(findstring cycles, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_cycles
-	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/cycles_standalone.cmake"
+	CMAKE_CONFIG_ARGS:=-C"$(BLENDER_DIR)/build_files/cmake/config/cycles_standalone.cmake" $(CMAKE_CONFIG_ARGS)
 endif
 ifneq "$(findstring headless, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_headless
-	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/blender_headless.cmake"
+	CMAKE_CONFIG_ARGS:=-C"$(BLENDER_DIR)/build_files/cmake/config/blender_headless.cmake" $(CMAKE_CONFIG_ARGS)
 endif
 ifneq "$(findstring bpy, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_bpy
-	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/bpy_module.cmake"
+	CMAKE_CONFIG_ARGS:=-C"$(BLENDER_DIR)/build_files/cmake/config/bpy_module.cmake" $(CMAKE_CONFIG_ARGS)
 endif
 
 ifneq "$(findstring developer, $(MAKECMDGOALS))" ""
-	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/blender_developer.cmake"
+	CMAKE_CONFIG_ARGS:=-C"$(BLENDER_DIR)/build_files/cmake/config/blender_developer.cmake" $(CMAKE_CONFIG_ARGS)
 endif
 
 # -----------------------------------------------------------------------------
 # build tool
 
 ifneq "$(findstring ninja, $(MAKECMDGOALS))" ""
-	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -G Ninja
+	CMAKE_CONFIG_ARGS:=$(CMAKE_CONFIG_ARGS) -G Ninja
 	BUILD_COMMAND:=ninja
 	DEPS_BUILD_COMMAND:=ninja
 else
@@ -288,7 +287,7 @@ endif
 # -----------------------------------------------------------------------------
 # Macro for configuring cmake
 
-CMAKE_CONFIG = cmake $(BUILD_CMAKE_ARGS) \
+CMAKE_CONFIG = cmake $(CMAKE_CONFIG_ARGS) \
                      -H"$(BLENDER_DIR)" \
                      -B"$(BUILD_DIR)" \
                      -DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE)
