@@ -60,6 +60,7 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
+#include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -1117,7 +1118,7 @@ MultiresModifierData *BKE_sculpt_multires_active(Scene *scene, Object *ob)
         continue;
       }
 
-      if (mmd->sculptlvl > 0) {
+      if (BKE_multires_sculpt_level_get(mmd) > 0) {
         return mmd;
       }
       else {
@@ -1360,7 +1361,7 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
    * isn't one already */
   if (mmd && !CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
     GridPaintMask *gmask;
-    int level = max_ii(1, mmd->sculptlvl);
+    int level = max_ii(1, BKE_multires_sculpt_level_get(mmd));
     int gridsize = BKE_ccg_gridsize(level);
     int gridarea = gridsize * gridsize;
     int i, j;

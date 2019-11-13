@@ -645,7 +645,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
         col = split.column()
         col.prop(md, "levels", text="Preview")
-        col.prop(md, "sculpt_levels", text="Sculpt")
+        # TODO(sergey): Expose it again after T58473 is solved.
+        # col.prop(md, "sculpt_levels", text="Sculpt")
         col.prop(md, "render_levels", text="Render")
         col.prop(md, "quality")
 
