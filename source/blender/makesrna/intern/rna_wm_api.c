@@ -639,7 +639,7 @@ static void rna_generic_op_invoke(FunctionRNA *func, int flag)
 
   if (flag & WM_GEN_INVOKE_RETURN) {
     parm = RNA_def_enum_flag(
-        func, "result", rna_enum_operator_return_items, OPERATOR_CANCELLED, "result", "");
+        func, "result", rna_enum_operator_return_items, OPERATOR_FINISHED, "result", "");
     RNA_def_function_return(func, parm);
   }
 }
@@ -914,7 +914,7 @@ void RNA_api_operator(StructRNA *srna)
 
   /* better name? */
   parm = RNA_def_enum_flag(
-      func, "result", rna_enum_operator_return_items, OPERATOR_CANCELLED, "result", "");
+      func, "result", rna_enum_operator_return_items, OPERATOR_FINISHED, "result", "");
   RNA_def_function_return(func, parm);
 
   /* check */
@@ -939,7 +939,7 @@ void RNA_api_operator(StructRNA *srna)
 
   /* better name? */
   parm = RNA_def_enum_flag(
-      func, "result", rna_enum_operator_return_items, OPERATOR_CANCELLED, "result", "");
+      func, "result", rna_enum_operator_return_items, OPERATOR_FINISHED, "result", "");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "modal", NULL); /* same as invoke */
@@ -952,7 +952,7 @@ void RNA_api_operator(StructRNA *srna)
 
   /* better name? */
   parm = RNA_def_enum_flag(
-      func, "result", rna_enum_operator_return_items, OPERATOR_CANCELLED, "result", "");
+      func, "result", rna_enum_operator_return_items, OPERATOR_FINISHED, "result", "");
   RNA_def_function_return(func, parm);
 
   /* draw */
