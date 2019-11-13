@@ -81,6 +81,12 @@ if(WITH_CODEC_FFMPEG)
   add_definitions(-DWITH_FFMPEG)
 endif()
 
+if(WITH_TBB)
+  blender_include_dirs(${TBB_INCLUDE_DIRS})
+  link_directories(${LIBDIR}/tbb/lib)
+endif()
+
+
 if(WITH_PYTHON)
   blender_include_dirs(../blender/python)
   add_definitions(-DWITH_PYTHON)
@@ -802,6 +808,15 @@ elseif(WIN32)
         ${LIBDIR}/ffmpeg/lib/avutil-56.dll
         ${LIBDIR}/ffmpeg/lib/swscale-5.dll
         ${LIBDIR}/ffmpeg/lib/swresample-3.dll
+      DESTINATION "."
+    )
+  endif()
+
+  if(WITH_TBB_MALLOC_PROXY)
+    install(
+      FILES
+        ${LIBDIR}/tbb/lib/tbbmalloc.dll
+        ${LIBDIR}/tbb/lib/tbbmalloc_proxy.dll
       DESTINATION "."
     )
   endif()

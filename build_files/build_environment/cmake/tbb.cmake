@@ -15,13 +15,21 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENSE BLOCK *****
-
-set(TBB_EXTRA_ARGS
-  -DTBB_BUILD_SHARED=Off
-  -DTBB_BUILD_TBBMALLOC=On
-  -DTBB_BUILD_TBBMALLOC_PROXY=Off
-  -DTBB_BUILD_STATIC=On
+if(WIN32)
+  set(TBB_EXTRA_ARGS
+    -DTBB_BUILD_SHARED=On
+    -DTBB_BUILD_TBBMALLOC=On
+    -DTBB_BUILD_TBBMALLOC_PROXY=On
+    -DTBB_BUILD_STATIC=On
 )
+else()
+  set(TBB_EXTRA_ARGS
+    -DTBB_BUILD_SHARED=Off
+    -DTBB_BUILD_TBBMALLOC=On
+    -DTBB_BUILD_TBBMALLOC_PROXY=Off
+    -DTBB_BUILD_STATIC=On
+  )
+endif()
 
 # CMake script for TBB from https://github.com/wjakob/tbb/blob/master/CMakeLists.txt
 ExternalProject_Add(external_tbb
@@ -39,6 +47,10 @@ if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_tbb after_install
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbb_static.lib ${HARVEST_TARGET}/tbb/lib/tbb.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbbmalloc.lib ${HARVEST_TARGET}/tbb/lib/tbbmalloc.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbbmalloc.dll ${HARVEST_TARGET}/tbb/lib/tbbmalloc.dll
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbbmalloc_proxy.lib ${HARVEST_TARGET}/tbb/lib/tbbmalloc_proxy.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbbmalloc_proxy.dll ${HARVEST_TARGET}/tbb/lib/tbbmalloc_proxy.dll
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/tbb/include/ ${HARVEST_TARGET}/tbb/include/
       DEPENDEES install
     )
@@ -46,6 +58,7 @@ if(WIN32)
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_tbb after_install
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbb_static.lib ${HARVEST_TARGET}/tbb/lib/tbb_debug.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbbmalloc_proxy.lib ${HARVEST_TARGET}/tbb/lib/tbbmalloc_proxy_debug.lib
       DEPENDEES install
     )
   endif()

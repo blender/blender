@@ -149,9 +149,9 @@ set(PYTHON_SHORT_VERSION_NO_DOTS 37)
 set(PYTHON_URI https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz)
 set(PYTHON_HASH d33e4aae66097051c2eca45ee3604803)
 
-set(TBB_VERSION 2018_U5)
+set(TBB_VERSION 2019_U9)
 set(TBB_URI https://github.com/01org/tbb/archive/${TBB_VERSION}.tar.gz)
-set(TBB_HASH ff3ae09f8c23892fbc3008c39f78288f)
+set(TBB_HASH 584edbec127c508f2cd5b6e79ad200fc)
 
 set(OPENVDB_VERSION 5.1.0)
 set(OPENVDB_URI https://github.com/dreamworksanimation/openvdb/archive/v${OPENVDB_VERSION}.tar.gz)

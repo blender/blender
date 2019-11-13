@@ -29,6 +29,11 @@
 #  include "utfconv.h"
 #endif
 
+#if defined(WITH_TBB_MALLOC) && defined(_MSC_VER)
+#  pragma comment(lib, "tbbmalloc_proxy.lib")
+#  pragma comment(linker, "/include:__TBB_malloc_proxy")
+#endif
+
 #include "MEM_guardedalloc.h"
 
 #include "CLG_log.h"
