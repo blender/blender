@@ -2654,7 +2654,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 {
   RadialControl *rc = op->customdata;
   float new_value, dist = 0.0f, zoom[2];
-  float delta[2], ret = OPERATOR_RUNNING_MODAL;
+  float delta[2];
+  int ret = OPERATOR_RUNNING_MODAL;
   bool snap;
   float angle_precision = 0.0f;
   const bool has_numInput = hasNumInput(&rc->num_input);
