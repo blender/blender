@@ -1015,6 +1015,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
   }
 
   /* Apply all remaining constructive and deforming modifiers. */
+  bool have_non_onlydeform_modifiers_appled = false;
   for (; md; md = md->next, md_datamask = md_datamask->next) {
     const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -1026,7 +1027,8 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       continue;
     }
 
-    if ((mti->flags & eModifierTypeFlag_RequiresOriginalData) && mesh_final) {
+    if ((mti->flags & eModifierTypeFlag_RequiresOriginalData) &&
+        have_non_onlydeform_modifiers_appled) {
       modifier_setError(md, "Modifier requires original data, bad stack position");
       continue;
     }
@@ -1101,15 +1103,17 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       /* if this is not the last modifier in the stack then recalculate the normals
        * to avoid giving bogus normals to the next modifier see: [#23673] */
       else if (isPrevDeform && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
-        /* XXX, this covers bug #23673, but we may need normal calc for other types */
-        if (mesh_final) {
-          BKE_mesh_vert_coords_apply(mesh_final, deformed_verts);
+        if (mesh_final == NULL) {
+          mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
+          ASSERT_IS_VALID_MESH(mesh_final);
         }
+        BKE_mesh_vert_coords_apply(mesh_final, deformed_verts);
       }
-
       modwrap_deformVerts(md, &mectx, mesh_final, deformed_verts, num_deformed_verts);
     }
     else {
+      have_non_onlydeform_modifiers_appled = true;
+
       /* determine which data layers are needed by following modifiers */
       CustomData_MeshMasks nextmask;
       if (md_datamask->next) {
