@@ -517,9 +517,17 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
   GPU_framebuffer_bind(fbl->main_fb);
   DRW_hair_update();
 
+  uint tot_sample = scene_eval->eevee.taa_render_samples;
+  uint render_samples = 0;
+
+  /* SSR needs one iteration to start properly. */
+  if (stl->effects->enabled_effects & EFFECT_SSR) {
+    tot_sample += 1;
+  }
+
   if ((view_layer->passflag & (SCE_PASS_SUBSURFACE_COLOR | SCE_PASS_SUBSURFACE_DIRECT |
                                SCE_PASS_SUBSURFACE_INDIRECT)) != 0) {
-    EEVEE_subsurface_output_init(sldata, vedata);
+    EEVEE_subsurface_output_init(sldata, vedata, tot_sample);
   }
 
   if ((view_layer->passflag & SCE_PASS_MIST) != 0) {
@@ -527,19 +535,11 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
   }
 
   if ((view_layer->passflag & SCE_PASS_AO) != 0) {
-    EEVEE_occlusion_output_init(sldata, vedata);
+    EEVEE_occlusion_output_init(sldata, vedata, tot_sample);
   }
-
-  uint tot_sample = scene_eval->eevee.taa_render_samples;
-  uint render_samples = 0;
 
   if (RE_engine_test_break(engine)) {
     return;
-  }
-
-  /* SSR needs one iteration to start properly. */
-  if (stl->effects->enabled_effects & EFFECT_SSR) {
-    tot_sample += 1;
   }
 
   while (render_samples < tot_sample && !RE_engine_test_break(engine)) {

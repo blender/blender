@@ -131,7 +131,7 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   return 0;
 }
 
-void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, uint tot_samples)
 {
   EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_TextureList *txl = vedata->txl;
@@ -143,11 +143,13 @@ void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
   if (scene_eval->eevee.flag & SCE_EEVEE_GTAO_ENABLED) {
+    const eGPUTextureFormat texture_format = (tot_samples > 128) ? GPU_R32F : GPU_R16F;
+
     DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
     float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
     /* Should be enough precision for many samples. */
-    DRW_texture_ensure_fullscreen_2d(&txl->ao_accum, GPU_R32F, 0);
+    DRW_texture_ensure_fullscreen_2d(&txl->ao_accum, texture_format, 0);
 
     GPU_framebuffer_ensure_config(&fbl->ao_accum_fb,
                                   {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->ao_accum)});

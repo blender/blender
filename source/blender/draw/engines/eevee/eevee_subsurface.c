@@ -156,7 +156,9 @@ static void set_shgrp_stencil(void *UNUSED(userData), DRWShadingGroup *shgrp)
   DRW_shgroup_stencil_mask(shgrp, 255);
 }
 
-void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata),
+                                  EEVEE_Data *vedata,
+                                  uint tot_samples)
 {
   EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_TextureList *txl = vedata->txl;
@@ -164,8 +166,10 @@ void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
   EEVEE_EffectsInfo *effects = stl->effects;
 
   if (effects->enabled_effects & EFFECT_SSS) {
-    DRW_texture_ensure_fullscreen_2d(&txl->sss_dir_accum, GPU_RGBA16F, 0);
-    DRW_texture_ensure_fullscreen_2d(&txl->sss_col_accum, GPU_RGBA16F, 0);
+    const eGPUTextureFormat texture_format_light = (tot_samples > 128) ? GPU_RGBA32F : GPU_RGBA16F;
+    const eGPUTextureFormat texture_format_color = (tot_samples > 512) ? GPU_RGBA32F : GPU_RGBA16F;
+    DRW_texture_ensure_fullscreen_2d(&txl->sss_dir_accum, texture_format_light, 0);
+    DRW_texture_ensure_fullscreen_2d(&txl->sss_col_accum, texture_format_color, 0);
 
     GPUTexture *stencil_tex = effects->sss_stencil;
 

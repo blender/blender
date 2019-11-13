@@ -988,7 +988,9 @@ void EEVEE_bloom_free(void);
 
 /* eevee_occlusion.c */
 int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
-void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata,
+                                 EEVEE_Data *vedata,
+                                 uint tot_samples);
 void EEVEE_occlusion_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_occlusion_compute(EEVEE_ViewLayerData *sldata,
@@ -1009,7 +1011,9 @@ void EEVEE_screen_raytrace_free(void);
 void EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_subsurface_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_subsurface_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
-void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *sldata,
+                                  EEVEE_Data *vedata,
+                                  uint tot_samples);
 void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,
                                EEVEE_Data *vedata,
                                uint sss_id,
