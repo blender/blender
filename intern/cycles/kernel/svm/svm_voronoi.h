@@ -986,6 +986,7 @@ ccl_device void svm_node_tex_voronoi(KernelGlobals *kg,
                         &color_out,
                         &position_out_2d);
           break;
+#if NODES_FEATURE(NODE_FEATURE_VORONOI_EXTRA)
         case NODE_VORONOI_SMOOTH_F1:
           voronoi_smooth_f1_2d(coord_2d,
                                smoothness,
@@ -996,6 +997,7 @@ ccl_device void svm_node_tex_voronoi(KernelGlobals *kg,
                                &color_out,
                                &position_out_2d);
           break;
+#endif
         case NODE_VORONOI_F2:
           voronoi_f2_2d(coord_2d,
                         exponent,
@@ -1029,6 +1031,7 @@ ccl_device void svm_node_tex_voronoi(KernelGlobals *kg,
                         &color_out,
                         &position_out);
           break;
+#if NODES_FEATURE(NODE_FEATURE_VORONOI_EXTRA)
         case NODE_VORONOI_SMOOTH_F1:
           voronoi_smooth_f1_3d(coord,
                                smoothness,
@@ -1039,6 +1042,7 @@ ccl_device void svm_node_tex_voronoi(KernelGlobals *kg,
                                &color_out,
                                &position_out);
           break;
+#endif
         case NODE_VORONOI_F2:
           voronoi_f2_3d(coord,
                         exponent,
@@ -1060,6 +1064,8 @@ ccl_device void svm_node_tex_voronoi(KernelGlobals *kg,
       position_out = safe_divide_float3_float(position_out, scale);
       break;
     }
+
+#if NODES_FEATURE(NODE_FEATURE_VORONOI_EXTRA)
     case 4: {
       float4 coord_4d = make_float4(coord.x, coord.y, coord.z, w);
       float4 position_out_4d;
@@ -1106,6 +1112,7 @@ ccl_device void svm_node_tex_voronoi(KernelGlobals *kg,
       w_out = position_out_4d.w;
       break;
     }
+#endif
     default:
       kernel_assert(0);
   }

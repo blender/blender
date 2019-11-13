@@ -2857,6 +2857,16 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
   ED_region_tag_redraw(CTX_wm_region(C));
   radial_control_update_header(op, C);
 
+  if (ret & OPERATOR_FINISHED) {
+    wmWindowManager *wm = CTX_wm_manager(C);
+    if (wm->op_undo_depth == 0) {
+      ID *id = rc->ptr.owner_id;
+      if (ED_undo_is_legacy_compatible_for_property(C, id)) {
+        ED_undo_push(C, op->type->name);
+      }
+    }
+  }
+
   if (ret != OPERATOR_RUNNING_MODAL) {
     radial_control_cancel(C, op);
   }
@@ -2874,7 +2884,7 @@ static void WM_OT_radial_control(wmOperatorType *ot)
   ot->modal = radial_control_modal;
   ot->cancel = radial_control_cancel;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_BLOCKING;
 
   /* all paths relative to the context */
   PropertyRNA *prop;
