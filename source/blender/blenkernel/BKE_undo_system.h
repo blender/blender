@@ -49,6 +49,7 @@ UNDO_REF_ID_TYPE(Object);
 UNDO_REF_ID_TYPE(Scene);
 UNDO_REF_ID_TYPE(Text);
 UNDO_REF_ID_TYPE(Image);
+UNDO_REF_ID_TYPE(PaintCurve);
 
 typedef struct UndoStack {
   ListBase steps;
