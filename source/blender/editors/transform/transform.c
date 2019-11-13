@@ -2415,7 +2415,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   createTransData(C, t);  // make TransData structs from selection
 
-  if (t->options & CTX_SCULPT) {
+  if ((t->options & CTX_SCULPT) && !(t->options & CTX_PAINT_CURVE)) {
     ED_sculpt_init_transform(C);
   }
 
