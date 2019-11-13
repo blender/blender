@@ -46,6 +46,7 @@
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
 #include "BKE_screen.h"
@@ -230,6 +231,25 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
     if (STREQ(workspace->id.name + 2, "Drawing")) {
       workspace->object_mode = OB_MODE_PAINT_GPENCIL;
     }
+
+    /* For Sculpting template. */
+    if (STREQ(workspace->id.name + 2, "Sculpting")) {
+      for (WorkSpaceLayout *layout = layouts->first; layout; layout = layout->next) {
+        bScreen *screen = layout->screen;
+        if (screen) {
+          for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+            for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+              if (sa->spacetype == SPACE_VIEW3D) {
+                View3D *v3d = sa->spacedata.first;
+                v3d->shading.flag &= ~V3D_SHADING_CAVITY;
+                copy_v3_fl(v3d->shading.single_color, 1.0f);
+                STRNCPY(v3d->shading.matcap, "basic_1");
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }
 
@@ -385,6 +405,13 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   for (Mesh *mesh = bmain->meshes.first; mesh; mesh = mesh->id.next) {
     /* Match default for new meshes. */
     mesh->smoothresh = DEG2RADF(30);
+
+    /* For Sculpting template. */
+    if (app_template && STREQ(app_template, "Sculpting")) {
+      mesh->remesh_voxel_size = 0.035f;
+      mesh->flag |= ME_REMESH_FIX_POLES | ME_REMESH_REPROJECT_VOLUME;
+      BKE_mesh_smooth_flag_set(mesh, false);
+    }
   }
 
   for (Camera *camera = bmain->cameras.first; camera; camera = camera->id.next) {
