@@ -918,7 +918,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
 
   /* Sculpt can skip certain modifiers. */
   MultiresModifierData *mmd = get_multires_modifier(scene, ob, 0);
-  const bool has_multires = (mmd && mmd->sculptlvl != 0);
+  const bool has_multires = (mmd && BKE_multires_sculpt_level_get(mmd) != 0);
   bool multires_applied = false;
   const bool sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt && !use_render;
   const bool sculpt_dyntopo = (sculpt_mode && ob->sculpt->bm) && !use_render;
@@ -1036,7 +1036,8 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
     if (sculpt_mode && (!has_multires || multires_applied || sculpt_dyntopo)) {
       bool unsupported = false;
 
-      if (md->type == eModifierType_Multires && ((MultiresModifierData *)md)->sculptlvl == 0) {
+      if (md->type == eModifierType_Multires &&
+          BKE_multires_sculpt_level_get((MultiresModifierData *)md) == 0) {
         /* If multires is on level 0 skip it silently without warning message. */
         if (!sculpt_dyntopo) {
           continue;
