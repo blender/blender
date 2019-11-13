@@ -77,7 +77,9 @@ static void undocurve_free_data(UndoCurve *uc)
 
 typedef struct PaintCurveUndoStep {
   UndoStep step;
-  PaintCurve *pc;
+
+  UndoRefID_PaintCurve pc_ref;
+
   UndoCurve data;
 } PaintCurveUndoStep;
 
@@ -112,7 +114,7 @@ static bool paintcurve_undosys_step_encode(struct bContext *C,
   PaintCurveUndoStep *us = (PaintCurveUndoStep *)us_p;
   BLI_assert(us->step.data_size == 0);
 
-  us->pc = pc;
+  us->pc_ref.ptr = pc;
   undocurve_from_paintcurve(&us->data, pc);
 
   return true;
@@ -125,13 +127,21 @@ static void paintcurve_undosys_step_decode(struct bContext *UNUSED(C),
                                            bool UNUSED(is_final))
 {
   PaintCurveUndoStep *us = (PaintCurveUndoStep *)us_p;
-  undocurve_to_paintcurve(&us->data, us->pc);
+  undocurve_to_paintcurve(&us->data, us->pc_ref.ptr);
 }
 
 static void paintcurve_undosys_step_free(UndoStep *us_p)
 {
   PaintCurveUndoStep *us = (PaintCurveUndoStep *)us_p;
   undocurve_free_data(&us->data);
+}
+
+static void paintcurve_undosys_foreach_ID_ref(UndoStep *us_p,
+                                              UndoTypeForEachIDRefFn foreach_ID_ref_fn,
+                                              void *user_data)
+{
+  PaintCurveUndoStep *us = (PaintCurveUndoStep *)us_p;
+  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->pc_ref));
 }
 
 /* Export for ED_undo_sys. */
@@ -144,6 +154,8 @@ void ED_paintcurve_undosys_type(UndoType *ut)
   ut->step_encode = paintcurve_undosys_step_encode;
   ut->step_decode = paintcurve_undosys_step_decode;
   ut->step_free = paintcurve_undosys_step_free;
+
+  ut->step_foreach_ID_ref = paintcurve_undosys_foreach_ID_ref;
 
   ut->use_context = false;
 
