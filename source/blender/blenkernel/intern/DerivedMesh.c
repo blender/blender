@@ -1015,6 +1015,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
   }
 
   /* Apply all remaining constructive and deforming modifiers. */
+  bool have_non_onlydeform_modifiers_appled = false;
   for (; md; md = md->next, md_datamask = md_datamask->next) {
     const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -1026,7 +1027,8 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       continue;
     }
 
-    if ((mti->flags & eModifierTypeFlag_RequiresOriginalData) && mesh_final) {
+    if ((mti->flags & eModifierTypeFlag_RequiresOriginalData) &&
+        have_non_onlydeform_modifiers_appled) {
       modifier_setError(md, "Modifier requires original data, bad stack position");
       continue;
     }
@@ -1110,6 +1112,8 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       modwrap_deformVerts(md, &mectx, mesh_final, deformed_verts, num_deformed_verts);
     }
     else {
+      have_non_onlydeform_modifiers_appled = true;
+
       /* determine which data layers are needed by following modifiers */
       CustomData_MeshMasks nextmask;
       if (md_datamask->next) {
