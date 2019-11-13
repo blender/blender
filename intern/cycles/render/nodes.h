@@ -220,6 +220,18 @@ class VoronoiTextureNode : public TextureNode {
     return NODE_GROUP_LEVEL_2;
   }
 
+  virtual int get_feature()
+  {
+    int result = ShaderNode::get_feature();
+    if (dimensions == 4) {
+      result |= NODE_FEATURE_VORONOI_EXTRA;
+    }
+    else if (dimensions >= 2 && feature == NODE_VORONOI_SMOOTH_F1) {
+      result |= NODE_FEATURE_VORONOI_EXTRA;
+    }
+    return result;
+  }
+
   int dimensions;
   NodeVoronoiDistanceMetric metric;
   NodeVoronoiFeature feature;

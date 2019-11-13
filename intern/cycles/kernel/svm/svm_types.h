@@ -48,12 +48,17 @@ CCL_NAMESPACE_BEGIN
 #define NODE_FEATURE_HAIR (1 << 1)
 #define NODE_FEATURE_BUMP (1 << 2)
 #define NODE_FEATURE_BUMP_STATE (1 << 3)
+#define NODE_FEATURE_VORONOI_EXTRA (1 << 4)
 /* TODO(sergey): Consider using something like ((uint)(-1)).
  * Need to check carefully operand types around usage of this
  * define first.
  */
 #define NODE_FEATURE_ALL \
-  (NODE_FEATURE_VOLUME | NODE_FEATURE_HAIR | NODE_FEATURE_BUMP | NODE_FEATURE_BUMP_STATE)
+  (NODE_FEATURE_VOLUME | NODE_FEATURE_HAIR | NODE_FEATURE_BUMP | NODE_FEATURE_BUMP_STATE | \
+   NODE_FEATURE_VORONOI_EXTRA)
+
+#define NODES_GROUP(group) ((group) <= __NODES_MAX_GROUP__)
+#define NODES_FEATURE(feature) ((__NODES_FEATURES__ & (feature)) != 0)
 
 typedef enum ShaderNodeType {
   NODE_END = 0,
