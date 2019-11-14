@@ -1343,7 +1343,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
     immUniformColor3fvAlpha(outline_col, outline_alpha);
 
-    if (ups->stroke_active && BKE_brush_use_size_pressure(scene, brush)) {
+    if (ups->stroke_active && BKE_brush_use_size_pressure(scene, brush) &&
+        mode != PAINT_MODE_SCULPT) {
       imm_draw_circle_wire_3d(
           pos, translation[0], translation[1], final_radius * ups->size_pressure_value, 40);
       /* outer at half alpha */

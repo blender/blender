@@ -1731,6 +1731,9 @@ static float brush_strength(const Sculpt *sd,
 
   float flip = dir * invert * pen_flip;
 
+  /* Pressure final value after being tweaked depending on the brush */
+  float final_pressure;
+
   switch (brush->sculpt_tool) {
     case SCULPT_TOOL_CLAY:
     case SCULPT_TOOL_DRAW:
@@ -1738,8 +1741,9 @@ static float brush_strength(const Sculpt *sd,
     case SCULPT_TOOL_LAYER:
       return alpha * flip * pressure * overlap * feather;
     case SCULPT_TOOL_CLAY_STRIPS:
-      /* Clay Strips needs extra strength to compensate for its default normal radius */
-      return alpha * flip * pressure * overlap * feather * 1.3f;
+      /* Clay Strips needs less strength to compensate the curve */
+      final_pressure = pressure * pressure * pressure;
+      return alpha * flip * final_pressure * overlap * feather * 0.3f;
 
     case SCULPT_TOOL_MASK:
       overlap = (1 + overlap) / 2;
@@ -6133,6 +6137,16 @@ static void sculpt_update_cache_invariants(
 #undef PIXEL_INPUT_THRESHHOLD
 }
 
+static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, float initial_size)
+{
+  switch (brush->sculpt_tool) {
+    case SCULPT_TOOL_CLAY_STRIPS:
+      return max_ff(initial_size * 0.35f, initial_size * cache->pressure * cache->pressure);
+    default:
+      return initial_size * cache->pressure;
+  }
+}
+
 static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Brush *brush)
 {
   SculptSession *ss = ob->sculpt;
@@ -6331,7 +6345,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
 
   if (BKE_brush_use_size_pressure(scene, brush) &&
       paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT)) {
-    cache->radius = cache->initial_radius * cache->pressure;
+    cache->radius = sculpt_brush_dynamic_size_get(brush, cache, cache->initial_radius);
   }
   else {
     cache->radius = cache->initial_radius;
