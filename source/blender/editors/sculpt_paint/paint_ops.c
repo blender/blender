@@ -184,7 +184,7 @@ static void BRUSH_OT_scale_size(wmOperatorType *ot)
   ot->exec = brush_scale_size_exec;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = 0;
 
   RNA_def_float(ot->srna, "scalar", 1, 0, 2, "Scalar", "Factor to scale brush size by", 0, 2);
 }
@@ -505,7 +505,7 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
   ot->exec = brush_select_exec;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = 0;
 
   /* props */
   /* All properties are hidden, so as not to show the redo panel. */
