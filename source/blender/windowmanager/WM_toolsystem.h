@@ -54,11 +54,13 @@ struct bToolRef *WM_toolsystem_ref_find(struct WorkSpace *workspace, const bTool
 bool WM_toolsystem_ref_ensure(struct WorkSpace *workspace,
                               const bToolKey *tkey,
                               struct bToolRef **r_tref);
-struct bToolRef *WM_toolsystem_ref_set_by_id(struct bContext *C,
-                                             struct WorkSpace *workspace,
-                                             const bToolKey *tkey,
-                                             const char *name,
-                                             bool cycle);
+
+struct bToolRef *WM_toolsystem_ref_set_by_id_ex(struct bContext *C,
+                                                struct WorkSpace *workspace,
+                                                const bToolKey *tkey,
+                                                const char *name,
+                                                bool cycle);
+struct bToolRef *WM_toolsystem_ref_set_by_id(struct bContext *C, const char *name);
 
 struct bToolRef_Runtime *WM_toolsystem_runtime_from_context(struct bContext *C);
 struct bToolRef_Runtime *WM_toolsystem_runtime_find(struct WorkSpace *workspace,
