@@ -24,6 +24,7 @@
 #include <string.h>
 #include <stddef.h>
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
@@ -163,6 +164,10 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
     }
 
     sa = CTX_wm_area(C);
+    if (BLI_listbase_is_single(&sa->spacedata) == false) {
+      sima = sa->spacedata.first;
+      sima->flag |= SI_PREVSPACE;
+    }
   }
   else if (U.render_display_type == USER_RENDER_DISPLAY_SCREEN) {
     sa = CTX_wm_area(C);
@@ -264,13 +269,8 @@ static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
     sima->flag &= ~SI_FULLWINDOW;
   }
 
-  /* test if we have a temp screen in front */
-  if (WM_window_is_temp_screen(win)) {
-    wm_window_lower(win);
-    return OPERATOR_FINISHED;
-  }
   /* determine if render already shows */
-  else if (sima->flag & SI_PREVSPACE) {
+  if (sima->flag & SI_PREVSPACE) {
     sima->flag &= ~SI_PREVSPACE;
 
     if (sima->flag & SI_FULLWINDOW) {
@@ -286,6 +286,10 @@ static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
   else if (sima->flag & SI_FULLWINDOW) {
     sima->flag &= ~SI_FULLWINDOW;
     ED_screen_state_toggle(C, win, sa, SCREENMAXIMIZED);
+    return OPERATOR_FINISHED;
+  }
+  else if (WM_window_is_temp_screen(win)) {
+    wm_window_close(C, CTX_wm_manager(C), win);
     return OPERATOR_FINISHED;
   }
 
