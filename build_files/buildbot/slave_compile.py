@@ -29,14 +29,14 @@ def get_cmake_options(builder):
 
     config_file = "build_files/cmake/config/blender_release.cmake"
     options = ['-DCMAKE_BUILD_TYPE:STRING=Release',
-               '-DWITH_GTESTS=ON',
-               '-DPOSTINSTALL_SCRIPT:PATH=' + post_install_script]
+               '-DWITH_GTESTS=ON']
 
     if builder.platform == 'mac':
         options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
         options.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=10.9')
     elif builder.platform == 'win':
         options.extend(['-G', 'Visual Studio 15 2017 Win64'])
+        options.extend(['-DPOSTINSTALL_SCRIPT:PATH=' + post_install_script])
     elif builder.platform == 'linux':
         config_file = "build_files/buildbot/config/blender_linux.cmake"
 
