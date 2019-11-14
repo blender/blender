@@ -764,6 +764,7 @@ static void ui_apply_but_undo(uiBut *but)
 
   if (but->flag & UI_BUT_UNDO) {
     const char *str = NULL;
+    bool skip_undo = false;
 
     /* define which string to use for undo */
     if (but->type == UI_BTYPE_MENU) {
@@ -792,9 +793,21 @@ static void ui_apply_but_undo(uiBut *but)
       else {
         ID *id = but->rnapoin.owner_id;
         if (!ED_undo_is_legacy_compatible_for_property(but->block->evil_C, id)) {
-          str = "";
+          skip_undo = true;
         }
       }
+    }
+
+    if (skip_undo == false) {
+      /* XXX: disable all undo pushes from UI changes from sculpt mode as they cause memfile undo
+       * steps to be written which cause lag: T71434. */
+      if (BKE_paintmode_get_active_from_context(but->block->evil_C) == PAINT_MODE_SCULPT) {
+        skip_undo = true;
+      }
+    }
+
+    if (skip_undo) {
+      str = "";
     }
 
     /* delayed, after all other funcs run, popups are closed, etc */
