@@ -46,6 +46,7 @@ typedef enum GpencilModifierType {
   eGpencilModifierType_Mirror = 14,
   eGpencilModifierType_Armature = 15,
   eGpencilModifierType_Time = 16,
+  eGpencilModifierType_Multiply = 17,
   NUM_GREASEPENCIL_MODIFIER_TYPES,
 } GpencilModifierType;
 
@@ -639,5 +640,41 @@ typedef struct ArmatureGpencilModifierData {
   char vgname[64];
 
 } ArmatureGpencilModifierData;
+
+typedef struct MultiplyGpencilModifierData {
+  GpencilModifierData modifier;
+  /** Layer name. */
+  char layername[64];
+  /** Material name. */
+  char materialname[64];
+  /** Custom index for passes. */
+  int pass_index;
+  /** Flags. */
+  int flag;
+  /** Custom index for passes. */
+  int layer_pass;
+  char _pad[4];
+
+  int flags;
+
+  int duplications;
+  float distance;
+  /* -1:inner 0:middle 1:outer */
+  float offset;
+
+  float fading_center;
+  float fading_thickness;
+  float fading_opacity;
+
+  /* in rad not deg */
+  float split_angle;
+
+  /* char _pad[4]; */
+} MultiplyGpencilModifierData;
+
+typedef enum eMultiplyGpencil_Flag {
+  GP_MULTIPLY_ENABLE_ANGLE_SPLITTING = (1 << 1),
+  GP_MULTIPLY_ENABLE_FADING = (1 << 2),
+} eMultiplyGpencil_Flag;
 
 #endif /* __DNA_GPENCIL_MODIFIER_TYPES_H__ */
