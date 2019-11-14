@@ -24,6 +24,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
@@ -42,6 +43,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_toolsystem.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -405,12 +407,13 @@ static Brush *brush_tool_toggle(Main *bmain, Paint *paint, Brush *brush_orig, co
   }
 }
 
-static int brush_generic_tool_set(Main *bmain,
-                                  Paint *paint,
-                                  const int tool,
-                                  const char *tool_name,
-                                  const bool create_missing,
-                                  const bool toggle)
+static bool brush_generic_tool_set(bContext *C,
+                                   Main *bmain,
+                                   Paint *paint,
+                                   const int tool,
+                                   const char *tool_name,
+                                   const bool create_missing,
+                                   const bool toggle)
 {
   Brush *brush, *brush_orig = BKE_paint_brush(paint);
 
@@ -433,10 +436,17 @@ static int brush_generic_tool_set(Main *bmain,
     BKE_paint_invalidate_overlay_all();
 
     WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);
-    return OPERATOR_FINISHED;
+
+    /* Tool System
+     * This is needed for when there is a non-sculpt tool active (transform for e.g.) */
+    char tool_id[MAX_NAME];
+    SNPRINTF(tool_id, "builtin_brush.%s", tool_name);
+    WM_toolsystem_ref_set_by_id(C, tool_id);
+
+    return true;
   }
   else {
-    return OPERATOR_CANCELLED;
+    return false;
   }
 }
 
@@ -475,7 +485,11 @@ static int brush_select_exec(bContext *C, wmOperator *op)
   Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
   const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
   RNA_enum_name_from_value(items, tool, &tool_name);
-  return brush_generic_tool_set(bmain, paint, tool, tool_name, create_missing, toggle);
+
+  if (brush_generic_tool_set(C, bmain, paint, tool, tool_name, create_missing, toggle)) {
+    return OPERATOR_FINISHED;
+  }
+  return OPERATOR_CANCELLED;
 }
 
 static void PAINT_OT_brush_select(wmOperatorType *ot)
