@@ -45,6 +45,7 @@ def keyconfig_data_oskey_from_ctrl_for_macos(keyconfig_data_src):
                 'SPACE',
                 'W',
                 'ACCENT_GRAVE',
+                'PERIOD',
         }) and (
             item_event.get("ctrl") and
             (not item_event.get("alt")) and
