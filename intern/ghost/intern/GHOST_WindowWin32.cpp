@@ -270,10 +270,8 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   }
 
   if (dialog && parentwindow) {
-    ::SetWindowLongPtr(m_hWnd,
-                       GWL_STYLE,
-                       WS_VISIBLE | WS_CHILD | WS_POPUPWINDOW | WS_CAPTION | WS_MAXIMIZEBOX |
-                           WS_SIZEBOX);
+    ::SetWindowLongPtr(
+        m_hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUPWINDOW | WS_CAPTION | WS_MAXIMIZEBOX | WS_SIZEBOX);
     ::SetWindowLongPtr(m_hWnd, GWLP_HWNDPARENT, (LONG_PTR)m_parentWindowHwnd);
     ::SetWindowPos(
         m_hWnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
