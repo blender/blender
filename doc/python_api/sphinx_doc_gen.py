@@ -88,6 +88,14 @@ PLATFORM = platform().split('-')[0].lower()  # 'linux', 'darwin', 'windows'
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
+# For now, ignore add-ons and internal subclasses of 'bpy.types.PropertyGroup'.
+#
+# Besides disabling this line, the main change will be to add a
+# 'toctree' to 'write_rst_contents' which contains the generated rst files.
+# This 'toctree' can be generated automatically.
+#
+# See: D6261 for reference.
+USE_ONLY_BUILTIN_RNA_TYPES = True
 
 def handle_args():
     '''
@@ -1197,8 +1205,34 @@ def pyrna2sphinx(basepath):
     # structs, funcs, ops, props = rna_info.BuildRNAInfo()
     structs, funcs, ops, props = rna_info_BuildRNAInfo_cache()
 
+    if USE_ONLY_BUILTIN_RNA_TYPES:
+        # Ignore properties that use non 'bpy.types' properties.
+        structs_blacklist = {
+            v.identifier for v in structs.values()
+            if v.module_name != "bpy.types"
+        }
+        for k, v in structs.items():
+            for p in v.properties:
+                for identifier in (
+                        getattr(p.srna, "identifier", None),
+                        getattr(p.fixed_type, "identifier", None),
+                ):
+                    if identifier is not None:
+                        if identifier in structs_blacklist:
+                            RNA_BLACKLIST.setdefault(k, set()).add(identifier)
+        del structs_blacklist
+
+        structs = {
+            k: v for k, v in structs.items()
+            if v.module_name == "bpy.types"
+        }
+
     if FILTER_BPY_TYPES is not None:
-        structs = {k: v for k, v in structs.items() if k[1] in FILTER_BPY_TYPES}
+        structs = {
+            k: v for k, v in structs.items()
+            if k[1] in FILTER_BPY_TYPES
+            if v.module_name == "bpy.types"
+        }
 
     if FILTER_BPY_OPS is not None:
         ops = {k: v for k, v in ops.items() if v.module_name in FILTER_BPY_OPS}
@@ -1245,7 +1279,10 @@ def pyrna2sphinx(basepath):
         # if not struct.identifier == "Object":
         #     return
 
-        filepath = os.path.join(basepath, "bpy.types.%s.rst" % struct.identifier)
+        struct_module_name = struct.module_name
+        if USE_ONLY_BUILTIN_RNA_TYPES:
+            assert(struct_module_name == "bpy.types")
+        filepath = os.path.join(basepath, "%s.%s.rst" % (struct_module_name, struct.identifier))
         file = open(filepath, "w", encoding="utf-8")
         fw = file.write
 
@@ -1263,10 +1300,10 @@ def pyrna2sphinx(basepath):
 
         fw(title_string(title, "="))
 
-        fw(".. module:: bpy.types\n\n")
+        fw(".. module:: %s\n\n" % struct_module_name)
 
         # docs first?, ok
-        write_example_ref("", fw, "bpy.types.%s" % struct_id)
+        write_example_ref("", fw, "%s.%s" % (struct_module_name, struct_id))
 
         base_ids = [base.identifier for base in struct.get_bases()]
 
@@ -1373,7 +1410,7 @@ def pyrna2sphinx(basepath):
                        (prop.identifier,
                         ", ".join((val for val in (descr, type_descr) if val))))
 
-            write_example_ref("      ", fw, "bpy.types." + struct_id + "." + func.identifier)
+            write_example_ref("      ", fw, struct_module_name + "." + struct_id + "." + func.identifier)
 
             fw("\n")
 
@@ -1488,14 +1525,14 @@ def pyrna2sphinx(basepath):
                 continue
             write_struct(struct)
 
-        def fake_bpy_type(class_value, class_name, descr_str, use_subclasses=True):
-            filepath = os.path.join(basepath, "bpy.types.%s.rst" % class_name)
+        def fake_bpy_type(class_module_name, class_value, class_name, descr_str, use_subclasses=True):
+            filepath = os.path.join(basepath, "%s.%s.rst" % (class_module_name, class_name))
             file = open(filepath, "w", encoding="utf-8")
             fw = file.write
 
             fw(title_string(class_name, "="))
 
-            fw(".. module:: bpy.types\n")
+            fw(".. module:: %s\n" % class_module_name)
             fw("\n")
 
             if use_subclasses:
@@ -1510,8 +1547,8 @@ def pyrna2sphinx(basepath):
             fw(".. class:: %s\n\n" % class_name)
             fw("   %s\n\n" % descr_str)
             fw("   .. note::\n\n")
-            fw("      Note that bpy.types.%s is not actually available from within Blender,\n"
-               "      it only exists for the purpose of documentation.\n\n" % class_name)
+            fw("      Note that %s.%s is not actually available from within Blender,\n"
+               "      it only exists for the purpose of documentation.\n\n" % (class_module_name, class_name))
 
             descr_items = [
                 (key, descr) for key, descr in sorted(class_value.__dict__.items())
@@ -1532,14 +1569,16 @@ def pyrna2sphinx(basepath):
         if _BPY_STRUCT_FAKE:
             class_value = bpy.types.Struct.__bases__[0]
             fake_bpy_type(
-                class_value, _BPY_STRUCT_FAKE,
-                "built-in base class for all classes in bpy.types.", use_subclasses=True)
+                "bpy.types", class_value, _BPY_STRUCT_FAKE,
+                "built-in base class for all classes in bpy.types.", use_subclasses=True,
+            )
 
         if _BPY_PROP_COLLECTION_FAKE:
             class_value = bpy.data.objects.__class__
             fake_bpy_type(
-                class_value, _BPY_PROP_COLLECTION_FAKE,
-                "built-in class used for all collections.", use_subclasses=False)
+                "bpy.types", class_value, _BPY_PROP_COLLECTION_FAKE,
+                "built-in class used for all collections.", use_subclasses=False,
+            )
 
     # operators
     def write_ops():
