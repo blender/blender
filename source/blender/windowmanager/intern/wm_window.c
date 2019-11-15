@@ -2191,6 +2191,11 @@ bool WM_window_is_fullscreen(wmWindow *win)
   return win->windowstate == GHOST_kWindowStateFullScreen;
 }
 
+bool WM_window_is_maximized(wmWindow *win)
+{
+  return win->windowstate == GHOST_kWindowStateMaximized;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

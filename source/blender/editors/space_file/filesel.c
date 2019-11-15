@@ -325,6 +325,17 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 /* The subset of FileSelectParams.flag items we store into preferences. */
 #define PARAMS_FLAGS_REMEMBERED (FILE_HIDE_DOT | FILE_SORT_INVERT)
 
+void ED_fileselect_window_params_get(const wmWindow *win, int win_size[2], bool *is_maximized)
+{
+  /* Get DPI/pixelsize independent size to be stored in preferences. */
+  WM_window_set_dpi(win); /* Ensure the DPI is taken from the right window. */
+
+  win_size[0] = WM_window_pixels_x(win) / UI_DPI_FAC;
+  win_size[1] = WM_window_pixels_y(win) / UI_DPI_FAC;
+
+  *is_maximized = WM_window_is_maximized(win);
+}
+
 void ED_fileselect_set_params_from_userdef(SpaceFile *sfile)
 {
   wmOperator *op = sfile->op;
@@ -358,7 +369,9 @@ void ED_fileselect_set_params_from_userdef(SpaceFile *sfile)
  * \param temp_win_size: If the browser was opened in a temporary window,
  * pass its size here so we can store that in the preferences. Otherwise NULL.
  */
-void ED_fileselect_params_to_userdef(SpaceFile *sfile, int temp_win_size[2])
+void ED_fileselect_params_to_userdef(SpaceFile *sfile,
+                                     int temp_win_size[2],
+                                     const bool is_maximized)
 {
   UserDef_FileSpaceData *sfile_udata_new = &U.file_space_data;
   UserDef_FileSpaceData sfile_udata_old = U.file_space_data;
@@ -370,7 +383,7 @@ void ED_fileselect_params_to_userdef(SpaceFile *sfile, int temp_win_size[2])
   sfile_udata_new->flag = sfile->params->flag & PARAMS_FLAGS_REMEMBERED;
   sfile_udata_new->filter_id = sfile->params->filter_id;
 
-  if (temp_win_size) {
+  if (temp_win_size && !is_maximized) {
     sfile_udata_new->temp_win_sizex = temp_win_size[0];
     sfile_udata_new->temp_win_sizey = temp_win_size[1];
   }
@@ -958,15 +971,16 @@ void ED_fileselect_exit(wmWindowManager *wm, ScrArea *sa, SpaceFile *sfile)
   }
   if (sfile->op) {
     wmWindow *temp_win = WM_window_is_temp_screen(wm->winactive) ? wm->winactive : NULL;
-    int win_size[2];
-
     if (temp_win) {
-      /* Get DPI/pixelsize independent size to be stored in preferences. */
-      WM_window_set_dpi(temp_win); /* Ensure the DPI is taken from the right window. */
-      win_size[0] = WM_window_pixels_x(temp_win) / UI_DPI_FAC;
-      win_size[1] = WM_window_pixels_y(temp_win) / UI_DPI_FAC;
+      int win_size[2];
+      bool is_maximized;
+
+      ED_fileselect_window_params_get(temp_win, win_size, &is_maximized);
+      ED_fileselect_params_to_userdef(sfile, win_size, is_maximized);
     }
-    ED_fileselect_params_to_userdef(sfile, temp_win ? win_size : NULL);
+    else {
+      ED_fileselect_params_to_userdef(sfile, NULL, false);
+    }
 
     WM_event_fileselect_event(wm, sfile->op, EVT_FILESELECT_EXTERNAL_CANCEL);
     sfile->op = NULL;
