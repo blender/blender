@@ -70,7 +70,11 @@ void RE_texture_rng_init(void)
 
 void RE_texture_rng_exit(void)
 {
+  if (random_tex_array == NULL) {
+    return;
+  }
   BLI_rng_threaded_free(random_tex_array);
+  random_tex_array = NULL;
 }
 
 /* ------------------------------------------------------------------------- */

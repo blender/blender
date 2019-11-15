@@ -58,7 +58,11 @@ void BKE_brush_system_init(void)
 
 void BKE_brush_system_exit(void)
 {
+  if (brush_rng == NULL) {
+    return;
+  }
   BLI_rng_free(brush_rng);
+  brush_rng = NULL;
 }
 
 static void brush_defaults(Brush *brush)
