@@ -1170,8 +1170,8 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 
       /* In weightpaint we select the associated vertex group too. */
       if (is_weight_paint) {
-        ED_vgroup_select_by_name(ob, pchan_mirror_act->name);
-        DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+        ED_vgroup_select_by_name(ob_active, pchan_mirror_act->name);
+        DEG_id_tag_update(&ob_active->id, ID_RECALC_GEOMETRY);
       }
     }
 
