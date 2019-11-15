@@ -31,6 +31,7 @@ struct SpaceFile;
 struct bContext;
 struct bScreen;
 struct uiBlock;
+struct wmWindow;
 struct wmWindowManager;
 
 #define FILE_LAYOUT_HOR 1
