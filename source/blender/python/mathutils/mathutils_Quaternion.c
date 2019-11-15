@@ -180,7 +180,7 @@ PyDoc_STRVAR(Quaternion_to_swing_twist_doc,
              ".. method:: to_swing_twist(axis)\n"
              "\n"
              "   Split the rotation into a swing quaternion with the specified\n"
-             "axis fixed at zero, and the remaining twist rotation angle.\n"
+             "   axis fixed at zero, and the remaining twist rotation angle.\n"
              "\n"
              "   :arg axis: twist axis as a string in ['X', 'Y', 'Z']\n"
              "   :return: swing, twist angle.\n"
@@ -203,7 +203,7 @@ static PyObject *Quaternion_to_swing_twist(QuaternionObject *self, PyObject *axi
   else {
     PyErr_SetString(PyExc_ValueError,
                     "Quaternion.to_swing_twist(): "
-                    "the axis agrument must be "
+                    "the axis argument must be "
                     "a string in 'X', 'Y', 'Z'");
     return NULL;
   }
@@ -226,7 +226,7 @@ PyDoc_STRVAR(
     "\n"
     "   Return the exponential map representation of the quaternion.\n"
     "\n"
-    "   This representation consist of the rotation axis multiplied by the rotation angle."
+    "   This representation consist of the rotation axis multiplied by the rotation angle.\n"
     "   Such a representation is useful for interpolation between multiple orientations.\n"
     "\n"
     "   :return: exponential map.\n"
