@@ -2066,7 +2066,7 @@ def refactor_sphinx_log(sphinx_logfile):
             refactored_logfile.write("%-12s %s\n             %s\n" % log)
 
 
-def monkey_patch():
+def setup_monkey_patch():
     filepath = os.path.join(SCRIPT_DIR, "sphinx_doc_gen_monkeypatch.py")
     global_namespace = {"__file__": filepath, "__name__": "__main__"}
     file = open(filepath, 'rb')
@@ -2074,10 +2074,24 @@ def monkey_patch():
     file.close()
 
 
+# Avoid adding too many changes here.
+def setup_blender():
+    import bpy
+
+    # Remove handlers since the functions get included
+    # in the doc-string and don't have meaningful names.
+    for ls in bpy.app.handlers:
+        if isinstance(ls, list):
+            ls.clear()
+
+
 def main():
 
-    # first monkey patch to load in fake members
-    monkey_patch()
+    # First monkey patch to load in fake members.
+    setup_monkey_patch()
+
+    # Perform changes to Blender it's self.
+    setup_blender()
 
     # eventually, create the dirs
     for dir_path in [ARGS.output_dir, SPHINX_IN]:
