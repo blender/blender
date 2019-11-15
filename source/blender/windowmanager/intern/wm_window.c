@@ -494,7 +494,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
   }
 }
 
-void WM_window_set_dpi(wmWindow *win)
+void WM_window_set_dpi(const wmWindow *win)
 {
   float auto_dpi = GHOST_GetDPIHint(win->ghostwin);
 
@@ -2186,12 +2186,12 @@ void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect)
   *r_rect = screen_rect;
 }
 
-bool WM_window_is_fullscreen(wmWindow *win)
+bool WM_window_is_fullscreen(const wmWindow *win)
 {
   return win->windowstate == GHOST_kWindowStateFullScreen;
 }
 
-bool WM_window_is_maximized(wmWindow *win)
+bool WM_window_is_maximized(const wmWindow *win)
 {
   return win->windowstate == GHOST_kWindowStateMaximized;
 }
