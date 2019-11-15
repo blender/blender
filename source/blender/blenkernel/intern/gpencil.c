@@ -1931,16 +1931,14 @@ bool BKE_gpencil_split_stroke(bGPDframe *gpf,
  */
 bool BKE_gpencil_shrink_stroke(bGPDstroke *gps, const float dist)
 {
-  bGPDspoint *pt = gps->points, *last_pt, *second_last, *next_pt;
+  bGPDspoint *pt = gps->points, *second_last;
   int i;
 
   if (gps->totpoints < 2 || dist < FLT_EPSILON) {
     return false;
   }
 
-  last_pt = &pt[gps->totpoints - 1];
   second_last = &pt[gps->totpoints - 2];
-  next_pt = &pt[1];
 
   float len1, this_len1, cut_len1;
   float len2, this_len2, cut_len2;
@@ -1950,7 +1948,6 @@ bool BKE_gpencil_shrink_stroke(bGPDstroke *gps, const float dist)
 
   i = 1;
   while (len1 < dist && gps->totpoints > i - 1) {
-    next_pt = &pt[i];
     this_len1 = len_v3v3(&pt[i].x, &pt[i + 1].x);
     len1 += this_len1;
     cut_len1 = len1 - dist;

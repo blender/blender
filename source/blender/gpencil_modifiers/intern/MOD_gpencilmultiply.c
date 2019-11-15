@@ -132,8 +132,7 @@ static void minter_v3_v3v3v3_ref(
   copy_v3_v3(result, minter);
 }
 
-static void duplicateStroke(bGPDframe *gpf,
-                            bGPDstroke *gps,
+static void duplicateStroke(bGPDstroke *gps,
                             int count,
                             float dist,
                             float offset,
@@ -226,7 +225,7 @@ static void duplicateStroke(bGPDframe *gpf,
 }
 
 static void bakeModifier(Main *UNUSED(bmain),
-                         Depsgraph *depsgraph,
+                         Depsgraph *UNUSED(depsgraph),
                          GpencilModifierData *md,
                          Object *ob)
 {
@@ -257,8 +256,7 @@ static void bakeModifier(Main *UNUSED(bmain),
           splitStroke(gpf, gps, mmd->split_angle);
         }
         if (mmd->duplications > 0) {
-          duplicateStroke(gpf,
-                          gps,
+          duplicateStroke(gps,
                           mmd->duplications,
                           mmd->distance,
                           mmd->offset,
@@ -281,8 +279,11 @@ static void bakeModifier(Main *UNUSED(bmain),
 /* -------------------------------- */
 
 /* Generic "generateStrokes" callback */
-static void generateStrokes(
-    GpencilModifierData *md, Depsgraph *depsgraph, Object *ob, bGPDlayer *gpl, bGPDframe *gpf)
+static void generateStrokes(GpencilModifierData *md,
+                            Depsgraph *UNUSED(depsgraph),
+                            Object *ob,
+                            bGPDlayer *gpl,
+                            bGPDframe *gpf)
 {
   MultiplyGpencilModifierData *mmd = (MultiplyGpencilModifierData *)md;
   bGPDstroke *gps;
@@ -306,8 +307,7 @@ static void generateStrokes(
       splitStroke(gpf, gps, mmd->split_angle);
     }
     if (mmd->duplications > 0) {
-      duplicateStroke(gpf,
-                      gps,
+      duplicateStroke(gps,
                       mmd->duplications,
                       mmd->distance,
                       mmd->offset,
