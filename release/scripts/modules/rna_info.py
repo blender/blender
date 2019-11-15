@@ -121,6 +121,8 @@ class InfoStructRNA:
         "children",
         "references",
         "properties",
+        "py_class",
+        "module_name",
     )
 
     global_lookup = {}
@@ -141,6 +143,15 @@ class InfoStructRNA:
         self.children = []
         self.references = []
         self.properties = []
+
+        self.py_class = get_py_class_from_rna(self.bl_rna)
+        self.module_name = (
+            self.py_class.__module__
+            if (self.py_class and not hasattr(bpy.types, self.identifier)) else
+            "bpy.types"
+        )
+        if self.module_name == "bpy_types":
+            self.module_name = "bpy.types"
 
     def build(self):
         rna_type = self.bl_rna
@@ -172,7 +183,7 @@ class InfoStructRNA:
 
     def _get_py_visible_attrs(self):
         attrs = []
-        py_class = get_py_class_from_rna(self.bl_rna)
+        py_class = self.py_class
 
         for attr_str in dir(py_class):
             if attr_str.startswith("_"):
@@ -571,34 +582,65 @@ def BuildRNAInfo():
         structs.append( (base_id(rna_struct), rna_struct.identifier, rna_struct) )
     '''
     structs = []
-    for rna_type_name in dir(bpy.types):
-        rna_type = getattr(bpy.types, rna_type_name)
 
-        rna_struct = getattr(rna_type, "bl_rna", None)
+    def _bpy_types_iterator():
+        names_unique = set()
+        rna_type_list = []
+        for rna_type_name in dir(bpy.types):
+            names_unique.add(rna_type_name)
+            rna_type = getattr(bpy.types, rna_type_name)
+            rna_struct = getattr(rna_type, "bl_rna", None)
+            if rna_struct is not None:
+                rna_type_list.append(rna_type)
+                yield (rna_type_name, rna_struct)
+            else:
+                print("Ignoring", rna_type_name)
 
-        if rna_struct:
-            # if not rna_type_name.startswith('__'):
+        # Now, there are some sub-classes in add-ons we also want to include.
+        # Cycles for e.g. these are referenced from the Scene, but not part of
+        # bpy.types module.
+        # Include all sub-classes we didn't already get from 'bpy.types'.
+        i = 0
+        while i < len(rna_type_list):
+            rna_type = rna_type_list[i]
+            for rna_sub_type in rna_type.__subclasses__():
+                rna_sub_struct = getattr(rna_sub_type, "bl_rna", None)
+                if rna_sub_struct is not None:
+                    rna_sub_type_name = rna_sub_struct.identifier
+                    if rna_sub_type_name not in names_unique:
+                        names_unique.add(rna_sub_type_name)
+                        rna_type_list.append(rna_sub_type)
+                        # The bl_idname may not match the class name in the file.
+                        # Always use the 'bl_idname' because using the Python
+                        # class name causes confusion - having two names for the same thing.
+                        # Since having two names for the same thing is trickier to support
+                        # without a significant benefit.
+                        yield (rna_sub_type_name, rna_sub_struct)
+            i += 1
 
-            identifier = rna_struct.identifier
+    for (rna_type_name, rna_struct) in _bpy_types_iterator():
+        # if not rna_type_name.startswith('__'):
 
-            if not rna_id_ignore(identifier):
-                structs.append((base_id(rna_struct), identifier, rna_struct))
+        identifier = rna_struct.identifier
 
-                # Simple lookup
-                rna_struct_dict[identifier] = rna_struct
+        if not rna_id_ignore(identifier):
+            structs.append((base_id(rna_struct), identifier, rna_struct))
 
-                # Store full rna path 'GameObjectSettings' -> 'Object.GameObjectSettings'
-                rna_full_path_dict[identifier] = full_rna_struct_path(rna_struct)
+            # Simple lookup
+            rna_struct_dict[identifier] = rna_struct
 
-                # Store a list of functions, remove inherited later
-                # NOT USED YET
-                ## rna_functions_dict[identifier] = get_direct_functions(rna_struct)
+            # Store full rna path 'GameObjectSettings' -> 'Object.GameObjectSettings'
+            rna_full_path_dict[identifier] = full_rna_struct_path(rna_struct)
 
-                # fill in these later
-                rna_children_dict[identifier] = []
-                rna_references_dict[identifier] = []
-        else:
-            print("Ignoring", rna_type_name)
+            # Store a list of functions, remove inherited later
+            # NOT USED YET
+            ## rna_functions_dict[identifier] = get_direct_functions(rna_struct)
+
+            # fill in these later
+            rna_children_dict[identifier] = []
+            rna_references_dict[identifier] = []
+
+    del _bpy_types_iterator
 
     structs.sort()  # not needed but speeds up sort below, setting items without an inheritance first
 
@@ -784,7 +826,7 @@ def main():
         sys.stderr.write("\n\nEOF\n")
     else:
         text = bpy.data.texts.new(name="api.py")
-        text.from_string(data)
+        text.from_string("\n".join(data))
 
 
 if __name__ == "__main__":
