@@ -5738,11 +5738,28 @@ static char *rna_idp_path(PointerRNA *ptr,
   return path;
 }
 
+/**
+ * Find the path from the structure referenced by the pointer to the IDProperty object.
+ *
+ * \param ptr Reference to the object owning the custom property storage.
+ * \param needle Custom property object to find.
+ * \return Relative path or NULL.
+ */
+char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, IDProperty *needle)
+{
+  IDProperty *haystack = RNA_struct_idprops(ptr, false);
+
+  if (haystack) { /* can fail when called on bones */
+    return rna_idp_path(ptr, haystack, needle, NULL);
+  }
+  else {
+    return NULL;
+  }
+}
+
 static char *rna_path_from_ID_to_idpgroup(PointerRNA *ptr)
 {
   PointerRNA id_ptr;
-  IDProperty *haystack;
-  IDProperty *needle;
 
   BLI_assert(ptr->owner_id != NULL);
 
@@ -5753,14 +5770,7 @@ static char *rna_path_from_ID_to_idpgroup(PointerRNA *ptr)
    */
   RNA_id_pointer_create(ptr->owner_id, &id_ptr);
 
-  haystack = RNA_struct_idprops(&id_ptr, false);
-  if (haystack) { /* can fail when called on bones */
-    needle = ptr->data;
-    return rna_idp_path(&id_ptr, haystack, needle, NULL);
-  }
-  else {
-    return NULL;
-  }
+  return RNA_path_from_struct_to_idproperty(&id_ptr, ptr->data);
 }
 
 /**

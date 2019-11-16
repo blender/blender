@@ -707,6 +707,25 @@ static void UI_OT_override_remove_button(wmOperatorType *ot)
 /** \name Copy To Selected Operator
  * \{ */
 
+#define NOT_NULL(assignment) ((assignment) != NULL)
+#define NOT_RNA_NULL(assignment) ((assignment).data != NULL)
+
+static void ui_context_selected_bones_via_pose(bContext *C, ListBase *r_lb)
+{
+  ListBase lb;
+  lb = CTX_data_collection_get(C, "selected_pose_bones");
+
+  if (!BLI_listbase_is_empty(&lb)) {
+    CollectionPointerLink *link;
+    for (link = lb.first; link; link = link->next) {
+      bPoseChannel *pchan = link->ptr.data;
+      RNA_pointer_create(link->ptr.owner_id, &RNA_Bone, pchan->bone, &link->ptr);
+    }
+  }
+
+  *r_lb = lb;
+}
+
 bool UI_context_copy_to_selected_list(bContext *C,
                                       PointerRNA *ptr,
                                       PropertyRNA *prop,
@@ -717,6 +736,52 @@ bool UI_context_copy_to_selected_list(bContext *C,
   *r_use_path_from_id = false;
   *r_path = NULL;
 
+  /* PropertyGroup objects don't have a reference to the struct that actually owns
+   * them, so it is normally necessary to do a brute force search to find it. This
+   * handles the search for non-ID owners by using the 'active' reference as a hint
+   * to preserve efficiency. Only properties defined through RNA are handled, as
+   * custom properties cannot be assumed to be valid for all instances.
+   *
+   * Properties owned by the ID are handled by the 'if (ptr->owner_id)' case below.
+   */
+  if (!RNA_property_is_idprop(prop) && RNA_struct_is_a(ptr->type, &RNA_PropertyGroup)) {
+    PointerRNA owner_ptr;
+    char *idpath = NULL;
+
+    /* First, check the active PoseBone and PoseBone->Bone. */
+    if (NOT_RNA_NULL(
+            owner_ptr = CTX_data_pointer_get_type(C, "active_pose_bone", &RNA_PoseBone))) {
+      if (NOT_NULL(idpath = RNA_path_from_struct_to_idproperty(&owner_ptr, ptr->data))) {
+        *r_lb = CTX_data_collection_get(C, "selected_pose_bones");
+      }
+      else {
+        bPoseChannel *pchan = owner_ptr.data;
+        RNA_pointer_create(owner_ptr.owner_id, &RNA_Bone, pchan->bone, &owner_ptr);
+
+        if (NOT_NULL(idpath = RNA_path_from_struct_to_idproperty(&owner_ptr, ptr->data))) {
+          ui_context_selected_bones_via_pose(C, r_lb);
+        }
+      }
+    }
+
+    if (idpath == NULL) {
+      /* Check the active EditBone if in edit mode. */
+      if (NOT_RNA_NULL(
+              owner_ptr = CTX_data_pointer_get_type_silent(C, "active_bone", &RNA_EditBone)) &&
+          NOT_NULL(idpath = RNA_path_from_struct_to_idproperty(&owner_ptr, ptr->data))) {
+        *r_lb = CTX_data_collection_get(C, "selected_editable_bones");
+      }
+
+      /* Add other simple cases here (Node, NodeSocket, Sequence, ViewLayer etc). */
+    }
+
+    if (idpath) {
+      *r_path = BLI_sprintfN("%s.%s", idpath, RNA_property_identifier(prop));
+      MEM_freeN(idpath);
+      return true;
+    }
+  }
+
   if (RNA_struct_is_a(ptr->type, &RNA_EditBone)) {
     *r_lb = CTX_data_collection_get(C, "selected_editable_bones");
   }
@@ -724,18 +789,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
     *r_lb = CTX_data_collection_get(C, "selected_pose_bones");
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_Bone)) {
-    ListBase lb;
-    lb = CTX_data_collection_get(C, "selected_pose_bones");
-
-    if (!BLI_listbase_is_empty(&lb)) {
-      CollectionPointerLink *link;
-      for (link = lb.first; link; link = link->next) {
-        bPoseChannel *pchan = link->ptr.data;
-        RNA_pointer_create(link->ptr.owner_id, &RNA_Bone, pchan->bone, &link->ptr);
-      }
-    }
-
-    *r_lb = lb;
+    ui_context_selected_bones_via_pose(C, r_lb);
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
     *r_lb = CTX_data_collection_get(C, "selected_editable_sequences");

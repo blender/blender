@@ -198,6 +198,9 @@ enum {
 
 PointerRNA CTX_data_pointer_get(const bContext *C, const char *member);
 PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, StructRNA *type);
+PointerRNA CTX_data_pointer_get_type_silent(const bContext *C,
+                                            const char *member,
+                                            StructRNA *type);
 ListBase CTX_data_collection_get(const bContext *C, const char *member);
 ListBase CTX_data_dir_get_ex(const bContext *C,
                              const bool use_store,

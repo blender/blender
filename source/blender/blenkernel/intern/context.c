@@ -466,6 +466,18 @@ PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, Stru
   return PointerRNA_NULL;
 }
 
+PointerRNA CTX_data_pointer_get_type_silent(const bContext *C, const char *member, StructRNA *type)
+{
+  PointerRNA ptr = CTX_data_pointer_get(C, member);
+
+  if (ptr.data && RNA_struct_is_a(ptr.type, type)) {
+    return ptr;
+  }
+  else {
+    return PointerRNA_NULL;
+  }
+}
+
 ListBase CTX_data_collection_get(const bContext *C, const char *member)
 {
   bContextDataResult result;
