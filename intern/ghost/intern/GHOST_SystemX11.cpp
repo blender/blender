@@ -700,7 +700,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
 
               for (int i = 0; i < (sizeof(modifiers) / sizeof(*modifiers)); i++) {
                 KeyCode kc = XKeysymToKeycode(m_display, modifiers[i]);
-                if (((xevent.xkeymap.key_vector[kc >> 3] >> (kc & 7)) & 1) != 0) {
+                if (kc != 0 && ((xevent.xkeymap.key_vector[kc >> 3] >> (kc & 7)) & 1) != 0) {
                   pushEvent(new GHOST_EventKey(getMilliSeconds(),
                                                GHOST_kEventKeyDown,
                                                window,
