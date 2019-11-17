@@ -818,6 +818,14 @@ elseif(WIN32)
         ${LIBDIR}/tbb/lib/tbbmalloc.dll
         ${LIBDIR}/tbb/lib/tbbmalloc_proxy.dll
       DESTINATION "."
+      CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+    )
+    install(
+      FILES
+        ${LIBDIR}/tbb/lib/debug/tbbmalloc.dll
+        ${LIBDIR}/tbb/lib/debug/tbbmalloc_proxy.dll
+      DESTINATION "."
+      CONFIGURATIONS Debug
     )
   endif()
 

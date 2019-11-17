@@ -59,6 +59,8 @@ if(WIN32)
     ExternalProject_Add_Step(external_tbb after_install
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbb_static.lib ${HARVEST_TARGET}/tbb/lib/tbb_debug.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbbmalloc_proxy.lib ${HARVEST_TARGET}/tbb/lib/tbbmalloc_proxy_debug.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbbmalloc.dll ${HARVEST_TARGET}/tbb/lib/debug/tbbmalloc.dll
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbbmalloc_proxy.dll ${HARVEST_TARGET}/tbb/lib/debug/tbbmalloc_proxy.dll
       DEPENDEES install
     )
   endif()
