@@ -1167,7 +1167,8 @@ OpenALDevice::OpenALDevice(DeviceSpecs specs, int buffersize, std::string name) 
 
 	if((!m_useMC && specs.channels > CHANNELS_STEREO) ||
 			specs.channels == CHANNELS_STEREO_LFE ||
-			specs.channels == CHANNELS_SURROUND5)
+			specs.channels == CHANNELS_SURROUND5 ||
+			specs.channels > CHANNELS_SURROUND71)
 		specs.channels = CHANNELS_STEREO;
 
 	alGetError();
