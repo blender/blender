@@ -3940,7 +3940,7 @@ static void sculpt_pose_brush_init(
   };
 
   /* Smooth the pose brush factor for cleaner deformation */
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < br->pose_smooth_iterations; i++) {
     PBVHParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
     BKE_pbvh_parallel_range(0, totnode, &data, pose_brush_init_task_cb_ex, &settings);
@@ -5705,7 +5705,12 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
   }
   else if (brush->sculpt_tool == SCULPT_TOOL_POSE) {
-    float final_radius = ss->cache->radius * (1 + brush->pose_offset);
+    /* After smoothing the pose factor an arbitrary number of times, the pose factor values can
+     * expand to nodes that are not inside the original radius of the brush. Using a slightly
+     * bigger radius should prevent those artifacts. */
+    /* We can optimize this further by removing the nodes that have all 0 values in the pose factor
+     * after calculating it. */
+    float final_radius = ss->cache->radius * 1.5f * (1.0f + brush->pose_offset);
     SculptSearchSphereData data = {
         .ss = ss,
         .sd = sd,

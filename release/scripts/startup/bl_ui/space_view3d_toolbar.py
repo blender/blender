@@ -426,6 +426,8 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             elif brush.sculpt_tool == 'POSE':
                 row = col.row()
                 row.prop(brush, "pose_offset")
+                row = col.row()
+                row.prop(brush, "pose_smooth_iterations")
             elif brush.sculpt_tool == 'GRAB':
                 col.separator()
                 row = col.row()

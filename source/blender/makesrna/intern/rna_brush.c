@@ -1887,6 +1887,15 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Plane Angle", "Angle between the planes of the crease");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "pose_smooth_iterations", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, NULL, "pose_smooth_iterations");
+  RNA_def_property_range(prop, 0, 100);
+  RNA_def_property_ui_text(
+      prop,
+      "Smooth Iterations",
+      "Smooth iterations applied after calculating the pose factor of each vertex");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "auto_smooth_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "autosmooth_factor");
   RNA_def_property_float_default(prop, 0);
