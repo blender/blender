@@ -18,6 +18,7 @@
 
 #include <cmath>
 #include <limits>
+#include <algorithm>
 
 AUD_NAMESPACE_BEGIN
 
