@@ -7868,6 +7868,19 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
     }
     ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, false, op->reports);
     BKE_paint_toolslots_brush_validate(bmain, &ts->sculpt->paint);
+
+    if (ob->mode & mode_flag) {
+      Mesh *me = ob->data;
+      /* Dyntopo add's it's own undo step. */
+      if ((me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) == 0) {
+        /* Without this the memfile undo step is used,
+         * while it works it causes lag when undoing the first undo step, see T71564. */
+        wmWindowManager *wm = CTX_wm_manager(C);
+        if (wm->op_undo_depth <= 1) {
+          sculpt_undo_push_begin(op->type->name);
+        }
+      }
+    }
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
@@ -7875,13 +7888,6 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
   WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
 
   WM_toolsystem_update_from_context_view3d(C);
-
-  /* Without this the memfile undo step is used,
-   * while it works it causes lag when undoing the first undo step, see T71564. */
-  wmWindowManager *wm = CTX_wm_manager(C);
-  if (wm->op_undo_depth <= 1) {
-    sculpt_undo_push_begin(op->type->name);
-  }
 
   return OPERATOR_FINISHED;
 }
