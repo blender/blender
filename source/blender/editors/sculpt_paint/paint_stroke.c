@@ -91,6 +91,7 @@ typedef struct PaintStroke {
   PaintSample samples[PAINT_MAX_INPUT_SAMPLES];
   int num_samples;
   int cur_sample;
+  int tot_samples;
 
   float last_mouse_position[2];
   float last_world_space_position[3];
@@ -482,6 +483,12 @@ static bool paint_brush_update(bContext *C,
   return location_success && (is_dry_run == false);
 }
 
+static bool paint_stroke_use_dash(Brush *brush)
+{
+  /* Only these stroke modes support dash lines */
+  return brush->flag & BRUSH_SPACE || brush->flag & BRUSH_LINE || brush->flag & BRUSH_CURVE;
+}
+
 static bool paint_stroke_use_jitter(ePaintMode mode, Brush *brush, bool invert)
 {
   bool use_jitter = (brush->flag & BRUSH_ABSOLUTE_JITTER) ? (brush->jitter_absolute != 0) :
@@ -582,19 +589,33 @@ static void paint_brush_stroke_add_step(bContext *C,
     return;
   }
 
+  /* Dash */
+  bool add_step = true;
+  if (paint_stroke_use_dash(brush)) {
+    int dash_samples = stroke->tot_samples % brush->dash_samples;
+    float dash = (float)dash_samples / (float)brush->dash_samples;
+    if (dash > brush->dash_ratio) {
+      add_step = false;
+    }
+  }
+
   /* Add to stroke */
-  RNA_collection_add(op->ptr, "stroke", &itemptr);
-  RNA_float_set(&itemptr, "size", ups->pixel_radius);
-  RNA_float_set_array(&itemptr, "location", location);
-  RNA_float_set_array(&itemptr, "mouse", mouse_out);
-  RNA_boolean_set(&itemptr, "pen_flip", stroke->pen_flip);
-  RNA_float_set(&itemptr, "pressure", pressure);
+  if (add_step) {
+    RNA_collection_add(op->ptr, "stroke", &itemptr);
+    RNA_float_set(&itemptr, "size", ups->pixel_radius);
+    RNA_float_set_array(&itemptr, "location", location);
+    RNA_float_set_array(&itemptr, "mouse", mouse_out);
+    RNA_boolean_set(&itemptr, "pen_flip", stroke->pen_flip);
+    RNA_float_set(&itemptr, "pressure", pressure);
 
-  stroke->update_step(C, stroke, &itemptr);
+    stroke->update_step(C, stroke, &itemptr);
 
-  /* don't record this for now, it takes up a lot of memory when doing long
-   * strokes with small brush size, and operators have register disabled */
-  RNA_collection_clear(op->ptr, "stroke");
+    /* don't record this for now, it takes up a lot of memory when doing long
+     * strokes with small brush size, and operators have register disabled */
+    RNA_collection_clear(op->ptr, "stroke");
+  }
+
+  stroke->tot_samples++;
 }
 
 /* Returns zero if no sculpt changes should be made, non-zero otherwise */

@@ -272,6 +272,10 @@ typedef struct Brush {
   /** Background color. */
   float secondary_rgb[3];
 
+  /** Rate */
+  float dash_ratio;
+  int dash_samples;
+
   /** The direction of movement for sculpt vertices. */
   int sculpt_plane;
 

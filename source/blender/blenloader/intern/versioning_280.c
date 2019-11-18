@@ -3964,5 +3964,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Dash Ratio and Dash Samples */
+    if (!DNA_struct_elem_find(fd->filesdna, "Brush", "float", "dash_ratio")) {
+      for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
+        br->dash_ratio = 1.0f;
+        br->dash_samples = 20;
+      }
+    }
   }
 }

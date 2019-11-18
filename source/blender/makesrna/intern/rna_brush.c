@@ -1788,6 +1788,22 @@ static void rna_def_brush(BlenderRNA *brna)
       prop, "Strength", "How powerful the effect of the brush is when applied");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "dash_ratio", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "dash_ratio");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
+  RNA_def_property_ui_text(
+      prop, "Dash Ratio", "Ratio of samples in a cycle that the brush is enabled");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "dash_samples", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, NULL, "dash_samples");
+  RNA_def_property_range(prop, 1, 10000);
+  RNA_def_property_ui_range(prop, 1, 10000, 5, -1);
+  RNA_def_property_ui_text(
+      prop, "Dash Length", "Length of a dash cycle measured in stroke samples");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "plane_offset", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "plane_offset");
   RNA_def_property_float_default(prop, 0);

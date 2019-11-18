@@ -972,10 +972,14 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
             row = col.row(align=True)
             row.prop(brush, "spacing", text="Spacing")
             row.prop(brush, "use_pressure_spacing", toggle=True, text="")
+            col.prop(brush, "dash_ratio")
+            col.prop(brush, "dash_samples")
 
         if brush.use_line or brush.use_curve:
             row = col.row(align=True)
             row.prop(brush, "spacing", text="Spacing")
+            col.prop(brush, "dash_ratio")
+            col.prop(brush, "dash_samples")
 
         if brush.use_curve:
             col.template_ID(brush, "paint_curve", new="paintcurve.new")

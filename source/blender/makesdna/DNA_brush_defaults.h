@@ -72,6 +72,10 @@
  \
     .jitter = 0.0f, \
  \
+    /* Dash */ \
+    .dash_ratio = 1.0f, \
+    .dash_samples = 20, \
+ \
     .texture_sample_bias = 0, /* value to added to texture samples */ \
     .texture_overlay_alpha = 33, \
     .mask_overlay_alpha = 33, \
