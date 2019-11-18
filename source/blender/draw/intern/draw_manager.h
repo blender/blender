@@ -409,7 +409,10 @@ typedef struct DRWCommandSmallChunk {
   DRWCommand commands[6];
 } DRWCommandSmallChunk;
 
+/* Only true for 64-bit platforms. */
+#ifdef __LP64__
 BLI_STATIC_ASSERT_ALIGN(DRWCommandChunk, 16);
+#endif
 
 /* ------------- DRAW DEBUG ------------ */
 
