@@ -255,7 +255,7 @@ static void rna_Depsgraph_debug_stats(Depsgraph *depsgraph, char *result)
   DEG_stats_simple(depsgraph, &outer, &ops, &rels);
   BLI_snprintf(result,
                STATS_MAX_SIZE,
-               "Approx %lu Operations, %lu Relations, %lu Outer Nodes",
+               "Approx %zu Operations, %zu Relations, %zu Outer Nodes",
                ops,
                rels,
                outer);
