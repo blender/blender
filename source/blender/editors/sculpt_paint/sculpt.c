@@ -7876,6 +7876,13 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 
   WM_toolsystem_update_from_context_view3d(C);
 
+  /* Without this the memfile undo step is used,
+   * while it works it causes lag when undoing the first undo step, see T71564. */
+  wmWindowManager *wm = CTX_wm_manager(C);
+  if (wm->op_undo_depth <= 1) {
+    sculpt_undo_push_begin(op->type->name);
+  }
+
   return OPERATOR_FINISHED;
 }
 
