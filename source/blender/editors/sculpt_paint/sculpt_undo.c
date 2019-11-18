@@ -1279,9 +1279,9 @@ static void sculpt_undosys_step_free(UndoStep *us_p)
   sculpt_undo_free_list(&us->data.nodes);
 }
 
-void ED_sculpt_undo_geometry_begin(struct Object *ob)
+void ED_sculpt_undo_geometry_begin(struct Object *ob, const char *name)
 {
-  sculpt_undo_push_begin("voxel remesh");
+  sculpt_undo_push_begin(name);
   sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
 }
 

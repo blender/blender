@@ -47,7 +47,7 @@ void ED_sculpt_end_transform(struct bContext *C);
 /* sculpt_undo.c */
 void ED_sculpt_undosys_type(struct UndoType *ut);
 
-void ED_sculpt_undo_geometry_begin(struct Object *ob);
+void ED_sculpt_undo_geometry_begin(struct Object *ob, const char *name);
 void ED_sculpt_undo_geometry_end(struct Object *ob);
 
 #endif /* __ED_SCULPT_H__ */

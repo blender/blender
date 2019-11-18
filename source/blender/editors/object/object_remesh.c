@@ -114,7 +114,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   if (ob->mode == OB_MODE_SCULPT) {
-    ED_sculpt_undo_geometry_begin(ob);
+    ED_sculpt_undo_geometry_begin(ob, op->type->name);
   }
 
   float isovalue = 0.0f;
@@ -421,7 +421,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   new_mesh = remesh_symmetry_mirror(qj->owner, new_mesh, qj->symmetry_axes);
 
   if (ob->mode == OB_MODE_SCULPT) {
-    ED_sculpt_undo_geometry_begin(ob);
+    ED_sculpt_undo_geometry_begin(ob, "QuadriFlow Remesh");
   }
 
   if (qj->preserve_paint_mask) {
