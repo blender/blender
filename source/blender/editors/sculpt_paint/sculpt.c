@@ -1736,6 +1736,8 @@ static float brush_strength(const Sculpt *sd,
 
   switch (brush->sculpt_tool) {
     case SCULPT_TOOL_CLAY:
+      overlap = (1.0f + overlap) / 2.0f;
+      return 0.25f * alpha * flip * pressure * overlap * feather;
     case SCULPT_TOOL_DRAW:
     case SCULPT_TOOL_DRAW_SHARP:
     case SCULPT_TOOL_LAYER:
@@ -4649,6 +4651,66 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
   BKE_pbvh_parallel_range(0, totnode, &data, do_flatten_brush_task_cb_ex, &settings);
 }
 
+/* -------------------------------------------------------------------- */
+
+/** \name Sculpt Clay Brush
+ * \{ */
+
+typedef struct ClaySampleData {
+  float plane_dist[2];
+} ClaySampleData;
+
+static void calc_clay_surface_task_cb(void *__restrict userdata,
+                                      const int n,
+                                      const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+  ClaySampleData *csd = tls->userdata_chunk;
+  const float *area_no = data->area_no;
+  const float *area_co = data->area_co;
+  float plane[4];
+
+  PBVHVertexIter vd;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = sculpt_brush_test_init_with_falloff_shape(
+      ss, &test, brush->falloff_shape);
+
+  /* Apply the brush normal radius to the test before sampling */
+  float test_radius = sqrtf(test.radius_squared);
+  test_radius *= brush->normal_radius_factor;
+  test.radius_squared = test_radius * test_radius;
+  plane_from_point_normal_v3(plane, area_co, area_no);
+
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+
+    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+      float plane_dist = dist_signed_to_plane_v3(vd.co, plane);
+      float plane_dist_abs = fabsf(plane_dist);
+      if (plane_dist > 0.0f) {
+        csd->plane_dist[0] = MIN2(csd->plane_dist[0], plane_dist_abs);
+      }
+      else {
+        csd->plane_dist[1] = MIN2(csd->plane_dist[1], plane_dist_abs);
+      }
+    }
+    BKE_pbvh_vertex_iter_end;
+  }
+}
+
+static void calc_clay_surface_reduce(const void *__restrict UNUSED(userdata),
+                                     void *__restrict chunk_join,
+                                     void *__restrict chunk)
+{
+  ClaySampleData *join = chunk_join;
+  ClaySampleData *csd = chunk;
+  join->plane_dist[0] = MIN2(csd->plane_dist[0], join->plane_dist[0]);
+  join->plane_dist[1] = MIN2(csd->plane_dist[1], join->plane_dist[1]);
+}
+
 static void do_clay_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
                                      const TaskParallelTLS *__restrict tls)
@@ -4658,11 +4720,11 @@ static void do_clay_brush_task_cb_ex(void *__restrict userdata,
   const Brush *brush = data->brush;
   const float *area_no = data->area_no;
   const float *area_co = data->area_co;
+  const float hardness = 0.65f;
 
   PBVHVertexIter vd;
   float(*proxy)[3];
-  const bool flip = (ss->cache->bstrength < 0);
-  const float bstrength = flip ? -ss->cache->bstrength : ss->cache->bstrength;
+  const float bstrength = fabsf(ss->cache->bstrength);
 
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
@@ -4675,33 +4737,32 @@ static void do_clay_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      if (plane_point_side_flip(vd.co, test.plane_tool, flip)) {
-        float intr[3];
-        float val[3];
+      float intr[3];
+      float val[3];
 
-        closest_to_plane_normalized_v3(intr, test.plane_tool, vd.co);
+      closest_to_plane_normalized_v3(intr, test.plane_tool, vd.co);
 
-        sub_v3_v3v3(val, intr, vd.co);
+      sub_v3_v3v3(val, intr, vd.co);
 
-        if (plane_trim(ss->cache, brush, val)) {
-          /* note, the normal from the vertices is ignored,
-           * causes glitch with planes, see: T44390 */
-          const float fade = bstrength * tex_strength(ss,
-                                                      brush,
-                                                      vd.co,
-                                                      sqrtf(test.dist),
-                                                      vd.no,
-                                                      vd.fno,
-                                                      vd.mask ? *vd.mask : 0.0f,
-                                                      vd.index,
-                                                      tls->thread_id);
+      float dist = sqrtf(test.dist);
+      float p = dist / ss->cache->radius;
+      p = (p - hardness) / (1.0f - hardness);
+      CLAMP(p, 0.0f, 1.0f);
+      dist *= p;
+      const float fade = bstrength * tex_strength(ss,
+                                                  brush,
+                                                  vd.co,
+                                                  dist,
+                                                  vd.no,
+                                                  vd.fno,
+                                                  vd.mask ? *vd.mask : 0.0f,
+                                                  vd.index,
+                                                  tls->thread_id);
 
-          mul_v3_v3fl(proxy[vd.i], val, fade);
+      mul_v3_v3fl(proxy[vd.i], val, fade);
 
-          if (vd.mvert) {
-            vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-          }
-        }
+      if (vd.mvert) {
+        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
       }
     }
   }
@@ -4713,8 +4774,8 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  const bool flip = (ss->cache->bstrength < 0);
-  const float radius = flip ? -ss->cache->radius : ss->cache->radius;
+  const float radius = fabsf(ss->cache->radius);
+  bool flip = ss->cache->bstrength < 0.0f;
 
   float offset = get_offset(sd, ss);
   float displace;
@@ -4725,13 +4786,47 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
   calc_sculpt_plane(sd, ob, nodes, totnode, area_no, area_co);
 
-  displace = radius * (0.25f + offset);
+  SculptThreadedTaskData sample_data = {
+      .sd = NULL,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+      .totnode = totnode,
+      .area_no = area_no,
+      .area_co = ss->cache->location,
+  };
+
+  ClaySampleData csd = {{{0}}};
+
+  PBVHParallelSettings sample_settings;
+  BKE_pbvh_parallel_range_settings(&sample_settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  sample_settings.func_reduce = calc_clay_surface_reduce;
+  sample_settings.userdata_chunk = &csd;
+  sample_settings.userdata_chunk_size = sizeof(ClaySampleData);
+
+  BKE_pbvh_parallel_range(0, totnode, &sample_data, calc_clay_surface_task_cb, &sample_settings);
+
+  float d_bstrength;
+  if (flip) {
+    d_bstrength = -csd.plane_dist[1];
+  }
+  else {
+    d_bstrength = csd.plane_dist[0];
+  }
+
+  float d_offset = (csd.plane_dist[0] + csd.plane_dist[1]);
+  d_offset = min_ff(radius, d_offset);
+  d_offset = d_offset / radius;
+  d_offset = 1.0f - d_offset;
+  displace = fabsf(radius * (0.25f + offset + (d_offset * 0.15f)));
+  if (flip) {
+    displace = -displace;
+  }
 
   mul_v3_v3v3(temp, area_no, ss->cache->scale);
   mul_v3_fl(temp, displace);
+  copy_v3_v3(area_co, ss->cache->location);
   add_v3_v3(area_co, temp);
-
-  /* add_v3_v3v3(p, ss->cache->location, area_no); */
 
   SculptThreadedTaskData data = {
       .sd = sd,
@@ -4746,6 +4841,8 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
   BKE_pbvh_parallel_range(0, totnode, &data, do_clay_brush_task_cb_ex, &settings);
 }
+
+/** \} */
 
 static void do_clay_strips_brush_task_cb_ex(void *__restrict userdata,
                                             const int n,
