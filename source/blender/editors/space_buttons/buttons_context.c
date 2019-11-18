@@ -1249,6 +1249,13 @@ ID *buttons_context_id_path(const bContext *C)
         }
       }
 
+      /* There is no valid image ID panel, Image Empty objects need this workaround.*/
+      if (sbuts->mainb == BCONTEXT_DATA && sbuts->flag & SB_PIN_CONTEXT) {
+        if (ptr->type == &RNA_Image && ptr->data) {
+          continue;
+        }
+      }
+
       if (ptr->owner_id) {
         return ptr->owner_id;
       }
