@@ -28,7 +28,7 @@ from bl_ui.properties_grease_pencil_common import (
 
 
 class GPENCIL_MT_color_context_menu(Menu):
-    bl_label = "Layer"
+    bl_label = "Material Specials"
 
     def draw(self, _context):
         layout = self.layout

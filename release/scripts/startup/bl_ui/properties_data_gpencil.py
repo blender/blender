@@ -77,7 +77,7 @@ class DATA_PT_context_gpencil(DataButtonsPanel, Panel):
 
 
 class GPENCIL_MT_layer_context_menu(Menu):
-    bl_label = "Layer"
+    bl_label = "Layer Specials"
 
     def draw(self, context):
         layout = self.layout
@@ -136,6 +136,8 @@ class DATA_PT_gpencil_layers(DataButtonsPanel, Panel):
         sub = col.column(align=True)
         sub.operator("gpencil.layer_add", icon='ADD', text="")
         sub.operator("gpencil.layer_remove", icon='REMOVE', text="")
+
+        sub.separator()
 
         if gpl:
             sub.menu("GPENCIL_MT_layer_context_menu", icon='DOWNARROW_HLT', text="")
