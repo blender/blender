@@ -1202,6 +1202,7 @@ if(WITH_SYSTEM_GLEW)
     message(FATAL_ERROR "GLEW is required to build Blender. Install it or disable WITH_SYSTEM_GLEW.")
   endif()
 
+  set(GLEW_INCLUDE_PATH "${GLEW_INCLUDE_DIR}")
   set(BLENDER_GLEW_LIBRARIES ${GLEW_LIBRARY})
 else()
   if(WITH_GLEW_ES)
