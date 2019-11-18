@@ -150,7 +150,7 @@ void NODE_OT_view_all(wmOperatorType *ot)
   ot->poll = ED_operator_node_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = 0;
 }
 
 static int node_view_selected_exec(bContext *C, wmOperator *op)
@@ -179,7 +179,7 @@ void NODE_OT_view_selected(wmOperatorType *ot)
   ot->poll = ED_operator_node_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = 0;
 }
 
 /* **************** Background Image Operators ************** */

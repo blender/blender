@@ -535,7 +535,7 @@ void NLA_OT_view_all(wmOperatorType *ot)
   ot->poll = ED_operator_nla_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = 0;
 }
 
 void NLA_OT_view_selected(wmOperatorType *ot)
@@ -550,7 +550,7 @@ void NLA_OT_view_selected(wmOperatorType *ot)
   ot->poll = ED_operator_nla_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = 0;
 }
 
 /* *********************************************** */
@@ -574,7 +574,7 @@ void NLA_OT_view_frame(wmOperatorType *ot)
   ot->poll = ED_operator_nla_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = 0;
 }
 
 /* *********************************************** */

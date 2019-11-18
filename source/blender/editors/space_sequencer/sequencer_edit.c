@@ -2862,7 +2862,7 @@ void SEQUENCER_OT_view_frame(wmOperatorType *ot)
   ot->poll = ED_operator_sequencer_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = 0;
 }
 
 /* view_all operator */
