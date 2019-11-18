@@ -276,7 +276,10 @@ ifndef NPROCS
 	ifeq ($(OS), Linux)
 		NPROCS:=$(shell nproc)
 	endif
-	ifneq (,$(filter $(OS),Darwin FreeBSD NetBSD))
+	ifeq ($(OS), NetBSD)
+		NPROCS:=$(shell getconf NPROCESSORS_ONLN)
+	endif
+	ifneq (,$(filter $(OS),Darwin FreeBSD))
 		NPROCS:=$(shell sysctl -n hw.ncpu)
 	endif
 endif
