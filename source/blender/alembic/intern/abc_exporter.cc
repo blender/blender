@@ -266,27 +266,19 @@ void AbcExporter::getFrameSet(unsigned int nr_of_samples, std::set<double> &fram
 
 void AbcExporter::operator()(short *do_update, float *progress, bool *was_canceled)
 {
-  std::string scene_name;
+  std::string abc_scene_name;
 
   if (m_bmain->name[0] != '\0') {
     char scene_file_name[FILE_MAX];
     BLI_strncpy(scene_file_name, m_bmain->name, FILE_MAX);
-    scene_name = scene_file_name;
+    abc_scene_name = scene_file_name;
   }
   else {
-    scene_name = "untitled";
+    abc_scene_name = "untitled";
   }
 
-  Scene *scene = m_settings.scene;
-  const double fps = FPS;
-  char buf[16];
-  snprintf(buf, 15, "%f", fps);
-  const std::string str_fps = buf;
-
-  Alembic::AbcCoreAbstract::MetaData md;
-  md.set("FramesPerTimeUnit", str_fps);
-
-  m_writer = new ArchiveWriter(m_filename, scene_name.c_str(), m_settings.export_ogawa, md);
+  m_writer = new ArchiveWriter(
+      m_filename, abc_scene_name, m_settings.scene, m_settings.export_ogawa);
 
   /* Create time samplings for transforms and shapes. */
 
