@@ -2631,152 +2631,48 @@ static void do_smooth_brush_multires_task_cb_ex(void *__restrict userdata,
                                                 const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
-  SculptDoBrushSmoothGridDataChunk *data_chunk = tls->userdata_chunk;
   SculptSession *ss = data->ob->sculpt;
   Sculpt *sd = data->sd;
   const Brush *brush = data->brush;
   const bool smooth_mask = data->smooth_mask;
   float bstrength = data->strength;
 
-  CCGElem **griddata, *gddata;
+  PBVHVertexIter vd;
 
-  float(*tmpgrid_co)[3] = NULL;
-  float tmprow_co[2][3];
-  float *tmpgrid_mask = NULL;
-  float tmprow_mask[2];
-
-  BLI_bitmap *const *grid_hidden;
-  int *grid_indices, totgrid, gridsize;
-  int i, x, y;
+  CLAMP(bstrength, 0.0f, 1.0f);
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = sculpt_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
 
-  CLAMP(bstrength, 0.0f, 1.0f);
-
-  BKE_pbvh_node_get_grids(
-      ss->pbvh, data->nodes[n], &grid_indices, &totgrid, NULL, &gridsize, &griddata);
-  CCGKey key = *BKE_pbvh_get_grid_key(ss->pbvh);
-
-  grid_hidden = BKE_pbvh_grid_hidden(ss->pbvh);
-
-  if (smooth_mask) {
-    tmpgrid_mask = (void *)(data_chunk + 1);
-  }
-  else {
-    tmpgrid_co = (void *)(data_chunk + 1);
-  }
-
-  for (i = 0; i < totgrid; i++) {
-    int gi = grid_indices[i];
-    const BLI_bitmap *gh = grid_hidden[gi];
-    gddata = griddata[gi];
-
-    if (smooth_mask) {
-      memset(tmpgrid_mask, 0, data_chunk->tmpgrid_size);
-    }
-    else {
-      memset(tmpgrid_co, 0, data_chunk->tmpgrid_size);
-    }
-
-    for (y = 0; y < gridsize - 1; y++) {
-      const int v = y * gridsize;
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+      const float fade = bstrength * tex_strength(ss,
+                                                  brush,
+                                                  vd.co,
+                                                  sqrtf(test.dist),
+                                                  vd.no,
+                                                  vd.fno,
+                                                  smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
+                                                  vd.index,
+                                                  tls->thread_id);
       if (smooth_mask) {
-        tmprow_mask[0] = (*CCG_elem_offset_mask(&key, gddata, v) +
-                          *CCG_elem_offset_mask(&key, gddata, v + gridsize));
+        float val = grids_neighbor_average_mask(ss, vd.index) - *vd.mask;
+        val *= fade * bstrength;
+        *vd.mask += val;
+        CLAMP(*vd.mask, 0.0f, 1.0f);
       }
       else {
-        add_v3_v3v3(tmprow_co[0],
-                    CCG_elem_offset_co(&key, gddata, v),
-                    CCG_elem_offset_co(&key, gddata, v + gridsize));
-      }
-
-      for (x = 0; x < gridsize - 1; x++) {
-        const int v1 = x + y * gridsize;
-        const int v2 = v1 + 1;
-        const int v3 = v1 + gridsize;
-        const int v4 = v3 + 1;
-
-        if (smooth_mask) {
-          float tmp;
-
-          tmprow_mask[(x + 1) % 2] = (*CCG_elem_offset_mask(&key, gddata, v2) +
-                                      *CCG_elem_offset_mask(&key, gddata, v4));
-          tmp = tmprow_mask[(x + 1) % 2] + tmprow_mask[x % 2];
-
-          tmpgrid_mask[v1] += tmp;
-          tmpgrid_mask[v2] += tmp;
-          tmpgrid_mask[v3] += tmp;
-          tmpgrid_mask[v4] += tmp;
-        }
-        else {
-          float tmp[3];
-
-          add_v3_v3v3(tmprow_co[(x + 1) % 2],
-                      CCG_elem_offset_co(&key, gddata, v2),
-                      CCG_elem_offset_co(&key, gddata, v4));
-          add_v3_v3v3(tmp, tmprow_co[(x + 1) % 2], tmprow_co[x % 2]);
-
-          add_v3_v3(tmpgrid_co[v1], tmp);
-          add_v3_v3(tmpgrid_co[v2], tmp);
-          add_v3_v3(tmpgrid_co[v3], tmp);
-          add_v3_v3(tmpgrid_co[v4], tmp);
-        }
-      }
-    }
-
-    /* blend with existing coordinates */
-    for (y = 0; y < gridsize; y++) {
-      for (x = 0; x < gridsize; x++) {
-        float *co;
-        const float *fno;
-        float *mask;
-        const int index = y * gridsize + x;
-
-        if (gh) {
-          if (BLI_BITMAP_TEST(gh, index)) {
-            continue;
-          }
-        }
-
-        co = CCG_elem_offset_co(&key, gddata, index);
-        fno = CCG_elem_offset_no(&key, gddata, index);
-        mask = CCG_elem_offset_mask(&key, gddata, index);
-
-        if (sculpt_brush_test_sq_fn(&test, co)) {
-          const float strength_mask = (smooth_mask ? 0.0f : *mask);
-          const float fade =
-              bstrength *
-              tex_strength(
-                  ss, brush, co, sqrtf(test.dist), NULL, fno, strength_mask, 0, tls->thread_id);
-          float f = 1.0f / 16.0f;
-
-          if (x == 0 || x == gridsize - 1) {
-            f *= 2.0f;
-          }
-
-          if (y == 0 || y == gridsize - 1) {
-            f *= 2.0f;
-          }
-
-          if (smooth_mask) {
-            *mask += ((tmpgrid_mask[index] * f) - *mask) * fade;
-          }
-          else {
-            float *avg = tmpgrid_co[index];
-            float val[3];
-
-            mul_v3_fl(avg, f);
-            sub_v3_v3v3(val, avg, co);
-            madd_v3_v3v3fl(val, co, val, fade);
-
-            sculpt_clip(sd, ss, co, val);
-          }
-        }
+        float avg[3], val[3];
+        grids_neighbor_average(ss, avg, vd.index);
+        sub_v3_v3v3(val, avg, vd.co);
+        madd_v3_v3v3fl(val, vd.co, val, fade);
+        sculpt_clip(sd, ss, vd.co, val);
       }
     }
   }
+  BKE_pbvh_vertex_iter_end;
 }
 
 static void smooth(Sculpt *sd,
@@ -2821,35 +2717,15 @@ static void smooth(Sculpt *sd,
     BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
 
     switch (type) {
-      case PBVH_GRIDS: {
-        int gridsize;
-        size_t size;
-        SculptDoBrushSmoothGridDataChunk *data_chunk;
-
-        BKE_pbvh_node_get_grids(ss->pbvh, NULL, NULL, NULL, NULL, &gridsize, NULL);
-        size = (size_t)gridsize;
-        size = sizeof(float) * size * size * (smooth_mask ? 1 : 3);
-        data_chunk = MEM_mallocN(sizeof(*data_chunk) + size, __func__);
-        data_chunk->tmpgrid_size = size;
-        size += sizeof(*data_chunk);
-
-        settings.userdata_chunk = data_chunk;
-        settings.userdata_chunk_size = size;
+      case PBVH_GRIDS:
         BKE_pbvh_parallel_range(0, totnode, &data, do_smooth_brush_multires_task_cb_ex, &settings);
-
-        MEM_freeN(data_chunk);
         break;
-      }
       case PBVH_FACES:
         BKE_pbvh_parallel_range(0, totnode, &data, do_smooth_brush_mesh_task_cb_ex, &settings);
         break;
       case PBVH_BMESH:
         BKE_pbvh_parallel_range(0, totnode, &data, do_smooth_brush_bmesh_task_cb_ex, &settings);
         break;
-    }
-
-    if (ss->multires) {
-      multires_stitch_grids(ob);
     }
   }
 }
