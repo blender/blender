@@ -1385,7 +1385,7 @@ static void gp_layer_to_curve(bContext *C,
 
   if (mode == GP_STROKECONVERT_POLY) {
     for (nu = cu->nurb.first; nu; nu = nu->next) {
-      BKE_nurb_type_convert(nu, CU_POLY, false);
+      BKE_nurb_type_convert(nu, CU_POLY, false, NULL);
     }
   }
 
