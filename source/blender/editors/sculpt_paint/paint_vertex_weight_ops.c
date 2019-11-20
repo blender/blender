@@ -665,13 +665,15 @@ static void gradientVertInit__mapFunc(void *userData,
    * the screen coords of the verts need to be cached because
    * updating the mesh may move them about (entering feedback loop) */
   if (BLI_BITMAP_TEST(grad_data->vert_visit, index)) {
-    copy_v2_fl(vs->sco, FLT_MAX);
+    /* Do not copy FLT_MAX here, for generative modifiers we are getting here
+     * multiple times with the same orig index. */
     return;
   }
 
   if (ED_view3d_project_float_object(
           grad_data->ar, co, vs->sco, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) !=
       V3D_PROJ_RET_OK) {
+    copy_v2_fl(vs->sco, FLT_MAX);
     return;
   }
 
