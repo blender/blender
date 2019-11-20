@@ -1467,7 +1467,7 @@ static void task_parallel_iterator_do(const TaskParallelSettings *settings,
  * \param init_item: The initial item, if necessary (may be NULL if unused).
  * \param init_index: The initial index.
  * \param tot_items: The total amount of items to iterate over
- *                   (if unkown, set it to a negative number).
+ *                   (if unknown, set it to a negative number).
  * \param func: Callback function.
  * \param settings: See public API doc of TaskParallelSettings for description of all settings.
  *

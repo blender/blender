@@ -262,16 +262,8 @@ void BPY_python_start(int argc, const char **argv)
    * blender is utf-8 too - campbell */
   Py_SetStandardStreamEncoding("utf-8", "surrogateescape");
 
-  /* Update, Py3.3 resolves attempting to parse non-existing header */
-#  if 0
-  /* Python 3.2 now looks for '2.xx/python/include/python3.2d/pyconfig.h' to
-   * parse from the 'sysconfig' module which is used by 'site',
-   * so for now disable site. alternatively we could copy the file. */
-  if (py_path_bundle) {
-    Py_NoSiteFlag = 1;
-  }
-#  endif
-
+  /* Suppress error messages when calculating the module search path.
+   * While harmless, it's noisy. */
   Py_FrozenFlag = 1;
 
   Py_Initialize();
