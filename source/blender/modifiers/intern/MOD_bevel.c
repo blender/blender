@@ -31,6 +31,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_curveprofile_types.h"
 
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
@@ -40,6 +41,7 @@
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
+#include "BKE_curveprofile.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -47,7 +49,7 @@ static void initData(ModifierData *md)
 {
   BevelModifierData *bmd = (BevelModifierData *)md;
 
-  bmd->value = 0.1f;
+  bmd->value = 1.0f;
   bmd->res = 1;
   bmd->flags = 0;
   bmd->val_flags = MOD_BEVEL_AMT_OFFSET;
@@ -62,11 +64,16 @@ static void initData(ModifierData *md)
   bmd->profile = 0.5f;
   bmd->bevel_angle = DEG2RADF(30.0f);
   bmd->defgrp_name[0] = '\0';
+  bmd->custom_profile = BKE_curveprofile_add(PROF_PRESET_LINE);
 }
 
 static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int flag)
 {
+  const BevelModifierData *bmd_src = (const BevelModifierData *)md_src;
+  BevelModifierData *bmd_dst = (BevelModifierData *)md_dst;
+
   modifier_copyData_generic(md_src, md_dst, flag);
+  bmd_dst->custom_profile = BKE_curveprofile_copy(bmd_src->custom_profile);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),
@@ -109,6 +116,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   const int miter_outer = bmd->miter_outer;
   const int miter_inner = bmd->miter_inner;
   const float spread = bmd->spread;
+  const bool use_custom_profile = (bmd->flags & MOD_BEVEL_CUSTOM_PROFILE);
+  const int vmesh_method = bmd->vmesh_method;
 
   bm = BKE_mesh_to_bmesh_ex(mesh,
                             &(struct BMeshCreateParams){0},
@@ -210,7 +219,10 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
                 miter_outer,
                 miter_inner,
                 spread,
-                mesh->smoothresh);
+                mesh->smoothresh,
+                use_custom_profile,
+                bmd->custom_profile,
+                vmesh_method);
 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
 
@@ -229,6 +241,18 @@ static bool dependsOnNormals(ModifierData *UNUSED(md))
   return true;
 }
 
+static void freeData(ModifierData *md)
+{
+  BevelModifierData *bmd = (BevelModifierData *)md;
+  BKE_curveprofile_free(bmd->custom_profile);
+}
+
+static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED(userRenderParams))
+{
+  BevelModifierData *bmd = (BevelModifierData *)md;
+  return (bmd->value == 0.0f);
+}
+
 ModifierTypeInfo modifierType_Bevel = {
     /* name */ "Bevel",
     /* structName */ "BevelModifierData",
@@ -236,19 +260,16 @@ ModifierTypeInfo modifierType_Bevel = {
     /* type */ eModifierTypeType_Constructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_AcceptsCVs,
-
     /* copyData */ copyData,
-
     /* deformVerts */ NULL,
     /* deformMatrices */ NULL,
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
     /* applyModifier */ applyModifier,
-
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,
-    /* freeData */ NULL,
-    /* isDisabled */ NULL,
+    /* freeData */ freeData,
+    /* isDisabled */ isDisabled,
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ dependsOnNormals,

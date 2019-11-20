@@ -133,43 +133,55 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.prop(md, "end_cap")
 
     def BEVEL(self, layout, ob, md):
-        split = layout.split()
-
-        col = split.column()
-        if md.offset_type == 'PERCENT':
-            col.prop(md, "width_pct")
+        offset_type = md.offset_type
+        if offset_type == 'PERCENT':
+            layout.prop(md, "width_pct")
         else:
-            col.prop(md, "width")
-        col.prop(md, "segments")
-        col.prop(md, "profile")
-        col.prop(md, "material")
+            offset_text = "Width"
+            if offset_type == 'DEPTH':
+                offset_text = "Depth"
+            elif offset_type == 'OFFSET':
+                offset_text = "Offset"
+            layout.prop(md, "width", text=offset_text)
+        layout.row().prop(md, "offset_type", expand=True)
 
+        split = layout.split()
         col = split.column()
         col.prop(md, "use_only_vertices")
         col.prop(md, "use_clamp_overlap")
         col.prop(md, "loop_slide")
+        col = split.column()
         col.prop(md, "mark_seam")
         col.prop(md, "mark_sharp")
         col.prop(md, "harden_normals")
+
+        layout.row().prop(md, "segments")
+        layout.row().prop(md, "profile")
+        layout.row().prop(md, "material")
+
+        layout.label(text="Miter Type:")
+        layout.row().prop(md, "miter_outer", text="Outer")
+        layout.row().prop(md, "miter_inner", text="Inner")
+        if md.miter_inner in {'MITER_PATCH', 'MITER_ARC'}:
+            layout.row().prop(md, "spread")
 
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)
         if md.limit_method == 'ANGLE':
             layout.prop(md, "angle_limit")
         elif md.limit_method == 'VGROUP':
-            layout.label(text="Vertex Group:")
             layout.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
-        layout.label(text="Width Method:")
-        layout.row().prop(md, "offset_type", expand=True)
-
-        layout.label(text="Set Face Strength Mode")
+        layout.label(text="Face Strength Mode:")
         layout.row().prop(md, "face_strength_mode", expand=True)
 
-        layout.label(text="Miter Patterns")
-        layout.row().prop(md, "miter_outer")
-        layout.row().prop(md, "miter_inner")
-        layout.row().prop(md, "spread")
+        layout.label(text="Intersection Type:")
+        layout.row().prop(md, "vmesh_method", expand=True)
+        layout.row().prop(md, "use_custom_profile")
+        row = layout.row()
+        row.enabled = md.use_custom_profile
+        if md.use_custom_profile:
+            layout.template_curveprofile(md, "custom_profile")
 
     def BOOLEAN(self, layout, _ob, md):
         split = layout.split()

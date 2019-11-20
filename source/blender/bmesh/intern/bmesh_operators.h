@@ -126,6 +126,12 @@ enum {
   BEVEL_MITER_ARC,
 };
 
+/* Bevel vertex mesh creation methods */
+enum {
+  BEVEL_VMESH_ADJ,
+  BEVEL_VMESH_CUTOFF,
+};
+
 /* Normal Face Strength values */
 enum {
   FACE_STRENGTH_WEAK = -16384,

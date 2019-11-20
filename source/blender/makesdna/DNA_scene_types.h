@@ -33,7 +33,8 @@
 extern "C" {
 #endif
 
-#include "DNA_color_types.h"      /* color management */
+#include "DNA_color_types.h" /* color management */
+#include "DNA_curveprofile_types.h"
 #include "DNA_customdata_types.h" /* Scene's runtime cddata masks. */
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
@@ -50,6 +51,7 @@ struct Brush;
 struct Collection;
 struct ColorSpace;
 struct CurveMapping;
+struct CurveProfile;
 struct CustomData_MeshMasks;
 struct Editing;
 struct Image;
@@ -1515,6 +1517,11 @@ typedef struct ToolSettings {
   /* Normal Editing */
   float normal_vector[3];
   char _pad6[4];
+
+  /* Custom Curve Profile for bevel tool:
+   * Temporary until there is a proper preset system that stores the profiles or maybe stores
+   * entire bevel configurations. */
+  struct CurveProfile *custom_bevel_profile_preset;
 } ToolSettings;
 
 /* *************************************************************** */

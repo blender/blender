@@ -377,10 +377,11 @@ typedef struct BevelModifierData {
   short mat;
   short edge_flags;
   short face_str_mode;
-  /* patterns to use for mitering non-reflex and reflex miter edges */
+  /** Patterns to use for mitering non-reflex and reflex miter edges */
   short miter_inner;
   short miter_outer;
-  char _pad0[2];
+  /** The method to use for creating >2-way intersections */
+  short vmesh_method;
   /** Controls profile shape (0->1, .5 is round). */
   float profile;
   /** if the MOD_BEVEL_ANGLE is set,
@@ -390,6 +391,10 @@ typedef struct BevelModifierData {
   /** if the MOD_BEVEL_VWEIGHT option is set,
    * this will be the name of the vert group, MAX_VGROUP_NAME */
   char defgrp_name[64];
+
+  /** Curve info for the custom profile */
+  struct CurveProfile *custom_profile;
+
 } BevelModifierData;
 
 /* BevelModifierData->flags and BevelModifierData->lim_flags */
@@ -399,8 +404,8 @@ enum {
   MOD_BEVEL_ANGLE = (1 << 3),
   MOD_BEVEL_WEIGHT = (1 << 4),
   MOD_BEVEL_VGROUP = (1 << 5),
-  /*  unused                  = (1 << 7), */
-  /*  unused                  = (1 << 8), */
+  MOD_BEVEL_CUSTOM_PROFILE = (1 << 7),
+  MOD_BEVEL_SAMPLE_STRAIGHT = (1 << 8),
   /*  unused                  = (1 << 9), */
   /*  unused                  = (1 << 10), */
   /*  unused                  = (1 << 11), */
@@ -437,6 +442,12 @@ enum {
   MOD_BEVEL_MITER_SHARP,
   MOD_BEVEL_MITER_PATCH,
   MOD_BEVEL_MITER_ARC,
+};
+
+/* BevelModifier->vmesh_method */
+enum {
+  MOD_BEVEL_VMESH_ADJ,
+  MOD_BEVEL_VMESH_CUTOFF,
 };
 
 typedef struct SmokeModifierData {

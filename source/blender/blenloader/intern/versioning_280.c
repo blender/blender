@@ -36,6 +36,7 @@
 #include "DNA_cloth_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_curveprofile_types.h"
 #include "DNA_gpu_types.h"
 #include "DNA_light_types.h"
 #include "DNA_layer_types.h"
@@ -74,6 +75,7 @@
 #include "BKE_node.h"
 #include "BKE_paint.h"
 #include "BKE_pointcache.h"
+#include "BKE_curveprofile.h"
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
 #include "BKE_screen.h"
@@ -3932,9 +3934,34 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   {
     /* Versioning code until next subversion bump goes here. */
+
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
         sa->flag &= ~AREA_FLAG_UNUSED_6;
+      }
+    }
+
+    /* Add custom curve profile to toolsettings for bevel tool */
+    if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "CurveProfile", "custom_profile")) {
+      for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+        ToolSettings *ts = scene->toolsettings;
+        if ((ts) && (ts->custom_bevel_profile_preset == NULL)) {
+          ts->custom_bevel_profile_preset = BKE_curveprofile_add(PROF_PRESET_LINE);
+        }
+      }
+    }
+
+    /* Add custom curve profile to bevel modifier */
+    if (!DNA_struct_elem_find(fd->filesdna, "BevelModifier", "CurveProfile", "custom_profile")) {
+      for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+        for (ModifierData *md = object->modifiers.first; md; md = md->next) {
+          if (md->type == eModifierType_Bevel) {
+            BevelModifierData *bmd = (BevelModifierData *)md;
+            if (!bmd->custom_profile) {
+              bmd->custom_profile = BKE_curveprofile_add(PROF_PRESET_LINE);
+            }
+          }
+        }
       }
     }
   }

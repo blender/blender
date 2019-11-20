@@ -37,6 +37,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_animsys.h"
+#include "BKE_curveprofile.h"
 #include "BKE_data_transfer.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_effect.h"
@@ -433,7 +434,6 @@ const EnumPropertyItem rna_enum_axis_flag_xyz_items[] = {
 };
 
 #ifdef RNA_RUNTIME
-
 #  include "DNA_particle_types.h"
 #  include "DNA_curve_types.h"
 #  include "DNA_smoke_types.h"
@@ -996,6 +996,18 @@ static PointerRNA rna_CollisionModifier_settings_get(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
   return rna_pointer_inherit_refine(ptr, &RNA_CollisionSettings, ob->pd);
+}
+
+/* Special update function for setting the number of segments of the modifier that also resamples
+ * the segments in the custom profile. */
+static void rna_BevelModifier_update_segments(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  BevelModifierData *bmd = (BevelModifierData *)ptr->data;
+  if (RNA_boolean_get(ptr, "use_custom_profile")) {
+    short segments = (short)RNA_int_get(ptr, "segments");
+    BKE_curveprofile_initialize(bmd->custom_profile, segments);
+  }
+  rna_Modifier_update(bmain, scene, ptr);
 }
 
 static void rna_UVProjectModifier_num_projectors_set(PointerRNA *ptr, int value)
@@ -3583,10 +3595,26 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  static EnumPropertyItem prop_miter_items[] = {
-      {MOD_BEVEL_MITER_SHARP, "MITER_SHARP", 0, "Sharp", "Default sharp miter"},
-      {MOD_BEVEL_MITER_PATCH, "MITER_PATCH", 0, "Patch", "Miter with extra corner"},
-      {MOD_BEVEL_MITER_ARC, "MITER_ARC", 0, "Arc", "Miter with curved arc"},
+  static const EnumPropertyItem prop_miter_outer_items[] = {
+      {MOD_BEVEL_MITER_SHARP, "MITER_SHARP", 0, "Sharp", "Outside of miter is sharp"},
+      {MOD_BEVEL_MITER_PATCH, "MITER_PATCH", 0, "Patch", "Outside of miter is squared-off patch"},
+      {MOD_BEVEL_MITER_ARC, "MITER_ARC", 0, "Arc", "Outside of miter is arc"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem prop_miter_inner_items[] = {
+      {MOD_BEVEL_MITER_SHARP, "MITER_SHARP", 0, "Sharp", "Inside of miter is sharp"},
+      {MOD_BEVEL_MITER_ARC, "MITER_ARC", 0, "Arc", "Inside of miter is arc"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static EnumPropertyItem prop_vmesh_method_items[] = {
+      {MOD_BEVEL_VMESH_ADJ, "ADJ", 0, "Grid Fill", "Default patterned fill"},
+      {MOD_BEVEL_VMESH_CUTOFF,
+       "CUTOFF",
+       0,
+       "Cutoff",
+       "A cut-off at the end of each profile before the intersection"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -3614,7 +3642,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "res");
   RNA_def_property_range(prop, 1, 100);
   RNA_def_property_ui_text(prop, "Segments", "Number of segments for round edges/verts");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+  RNA_def_property_update(prop, 0, "rna_BevelModifier_update_segments");
 
   prop = RNA_def_property(srna, "use_only_vertices", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_BEVEL_VERT);
@@ -3648,7 +3676,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
   prop = RNA_def_property(srna, "offset_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "val_flags");
   RNA_def_property_enum_items(prop, prop_val_type_items);
-  RNA_def_property_ui_text(prop, "Amount Type", "What distance Width measures");
+  RNA_def_property_ui_text(prop, "Width Type", "What distance Width measures");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "profile", PROP_FLOAT, PROP_FACTOR);
@@ -3693,13 +3721,13 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "miter_outer", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "miter_outer");
-  RNA_def_property_enum_items(prop, prop_miter_items);
+  RNA_def_property_enum_items(prop, prop_miter_outer_items);
   RNA_def_property_ui_text(prop, "Outer Miter", "Pattern to use for outside of miters");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "miter_inner", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "miter_inner");
-  RNA_def_property_enum_items(prop, prop_miter_items);
+  RNA_def_property_enum_items(prop, prop_miter_inner_items);
   RNA_def_property_ui_text(prop, "Inner Miter", "Pattern to use for inside of miters");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -3708,6 +3736,25 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0f, 100.0f, 0.1, 4);
   RNA_def_property_ui_text(prop, "Spread", "Spread distance for inner miter arcs");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_custom_profile", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_BEVEL_CUSTOM_PROFILE);
+  RNA_def_property_ui_text(
+      prop, "Custom Profile", "Whether to use a user inputed curve for the bevel's profile");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "custom_profile", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "CurveProfile");
+  RNA_def_property_pointer_sdna(prop, NULL, "custom_profile");
+  RNA_def_property_ui_text(prop, "Custom Profile Path", "The path for the custom profile");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "vmesh_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "vmesh_method");
+  RNA_def_property_enum_items(prop, prop_vmesh_method_items);
+  RNA_def_property_ui_text(
+      prop, "Vertex Mesh Method", "The method to use to create the mesh at intersections");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 

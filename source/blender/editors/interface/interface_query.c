@@ -422,7 +422,8 @@ bool ui_but_is_cursor_warp(const uiBut *but)
              UI_BTYPE_HSVCIRCLE,
              UI_BTYPE_TRACK_PREVIEW,
              UI_BTYPE_HSVCUBE,
-             UI_BTYPE_CURVE)) {
+             UI_BTYPE_CURVE,
+             UI_BTYPE_CURVEPROFILE)) {
       return true;
     }
   }

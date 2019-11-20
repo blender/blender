@@ -4774,6 +4774,10 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
         ui_draw_but_CURVE(ar, but, &tui->wcol_regular, rect);
         break;
 
+      case UI_BTYPE_CURVEPROFILE:
+        ui_draw_but_CURVEPROFILE(ar, but, &tui->wcol_regular, rect);
+        break;
+
       case UI_BTYPE_PROGRESS_BAR:
         wt = widget_type(UI_WTYPE_PROGRESSBAR);
         fstyle = &style->widgetlabel;

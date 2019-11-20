@@ -237,6 +237,7 @@ typedef enum eBMOpSlotSubType_Ptr {
   BMO_OP_SLOT_SUBTYPE_PTR_SCENE = 101,
   BMO_OP_SLOT_SUBTYPE_PTR_OBJECT = 102,
   BMO_OP_SLOT_SUBTYPE_PTR_MESH = 103,
+  BMO_OP_SLOT_SUBTYPE_PTR_STRUCT = 104,
 } eBMOpSlotSubType_Ptr;
 typedef enum eBMOpSlotSubType_Int {
   BMO_OP_SLOT_SUBTYPE_INT_ENUM = 200,
@@ -294,8 +295,8 @@ typedef struct BMOpSlot {
   BLI_assert(((slot >= (op)->slots_in) && (slot < &(op)->slots_in[BMO_OP_MAX_SLOTS])) || \
              ((slot >= (op)->slots_out) && (slot < &(op)->slots_out[BMO_OP_MAX_SLOTS])))
 
-/* way more than probably needed, compiler complains if limit hit */
-#define BMO_OP_MAX_SLOTS 20
+/* Limit hit, so expanded for bevel operator. Compiler complains if limit is hit. */
+#define BMO_OP_MAX_SLOTS 21
 
 /* BMOpDefine->type_flag */
 typedef enum {
