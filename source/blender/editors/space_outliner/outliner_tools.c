@@ -1539,7 +1539,7 @@ static bool outliner_id_operation_item_poll(bContext *C,
     case OUTLINER_IDOP_OVERRIDE_LIBRARY:
       return BKE_override_library_is_enabled();
     case OUTLINER_IDOP_SINGLE:
-      if (soops && ELEM(soops->outlinevis, SO_SCENES, SO_VIEW_LAYER)) {
+      if (!soops || ELEM(soops->outlinevis, SO_SCENES, SO_VIEW_LAYER)) {
         return true;
       }
       /* TODO (dalai): enable in the few cases where this can be supported
