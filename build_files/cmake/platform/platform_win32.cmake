@@ -623,10 +623,6 @@ if(WITH_CODEC_SNDFILE)
   set(LIBSNDFILE_LIBRARIES ${LIBSNDFILE_LIBPATH}/libsndfile-1.lib)
 endif()
 
-if(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
-  add_definitions(-D__SSE__ -D__MMX__)
-endif()
-
 if(WITH_CYCLES_OSL)
   set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
 
