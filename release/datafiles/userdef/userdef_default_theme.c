@@ -726,6 +726,7 @@ const bTheme U_theme_default = {
     .syntaxc = RGBA(0x939393ff),
     .syntaxd = RGBA(0xad80ffff),
     .syntaxr = RGBA(0xc4753bff),
+    .line_numbers = RGBA(0xd0d0d0ff),
   },
   .space_outliner = {
     .back = RGBA(0x28282800),

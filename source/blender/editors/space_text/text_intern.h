@@ -44,11 +44,25 @@ void text_scroll_to_cursor(struct SpaceText *st, struct ARegion *ar, const bool 
 void text_scroll_to_cursor__area(struct SpaceText *st, struct ScrArea *sa, const bool center);
 void text_update_cursor_moved(struct bContext *C);
 
-#define TXT_OFFSET ((int)(0.5f * U.widget_unit))
+/* Padding around line numbers in character widths. */
+#define TXT_NUMCOL_PAD 1.0f
+/* Total width of the optional line numbers column. */
+#define TXT_NUMCOL_WIDTH(st) (st->cwidth * (st->linenrs_tot + (2 * TXT_NUMCOL_PAD)))
+
+/* Padding on left of body text in character units. */
+#define TXT_BODY_LPAD 1.0f
+/* Left position of body text. */
+#define TXT_BODY_LEFT(st) (st->showlinenrs ? TXT_NUMCOL_WIDTH(st) : 0) + (TXT_BODY_LPAD * st->cwidth)
+
 #define TXT_SCROLL_WIDTH U.widget_unit
 #define TXT_SCROLL_SPACE ((int)(0.1f * U.widget_unit))
-#define TXT_LINE_SPACING ((int)(0.3f * st->lheight_dpi)) /* space between lines */
-#define TEXTXLOC (st->cwidth * st->linenrs_tot)
+
+/* Space between lines, in relation to letter height. */
+#define TXT_LINE_VPAD 0.3f
+/* Space between lines. */
+#define TXT_LINE_SPACING(st) ((int)(TXT_LINE_VPAD * st->lheight_dpi))
+/* Total height of each line. */
+#define TXT_LINE_HEIGHT(st) ((int)((1.0f + TXT_LINE_VPAD) * st->lheight_dpi))
 
 #define SUGG_LIST_SIZE 7
 #define SUGG_LIST_WIDTH 20

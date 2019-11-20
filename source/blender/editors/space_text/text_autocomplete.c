@@ -82,12 +82,7 @@ int text_do_suggest_select(SpaceText *st, ARegion *ar)
 
   text_update_character_width(st);
 
-  if (st->showlinenrs) {
-    x = st->cwidth * (st->text->curc - st->left) + TXT_OFFSET + TEXTXLOC - 4;
-  }
-  else {
-    x = st->cwidth * (st->text->curc - st->left) + TXT_OFFSET - 4;
-  }
+  x = TXT_BODY_LEFT(st) + (st->cwidth * (st->text->curc - st->left));
   y = ar->winy - st->lheight_dpi * l - 2;
 
   w = SUGG_LIST_WIDTH * st->cwidth + U.widget_unit;

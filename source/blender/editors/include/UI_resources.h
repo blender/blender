@@ -136,6 +136,7 @@ typedef enum ThemeColorID {
   TH_SYNTAX_D,
   TH_SYNTAX_N,
   TH_SYNTAX_S,
+  TH_LINENUMBERS,
 
   TH_BONE_SOLID,
   TH_BONE_POSE,

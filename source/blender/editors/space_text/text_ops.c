@@ -2544,7 +2544,7 @@ static void text_scroll_apply(bContext *C, wmOperator *op, const wmEvent *event)
    * line offset but taken together should still scroll */
   if (!tsc->scrollbar) {
     st->scroll_accum[0] += -tsc->delta[0] / (float)st->cwidth;
-    st->scroll_accum[1] += tsc->delta[1] / (float)(st->lheight_dpi + TXT_LINE_SPACING);
+    st->scroll_accum[1] += tsc->delta[1] / (float)(TXT_LINE_HEIGHT(st));
   }
   else {
     st->scroll_accum[1] += -tsc->delta[1] * st->pix_per_line;
@@ -2982,15 +2982,9 @@ static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, con
 {
   Text *text = st->text;
   text_update_character_width(st);
-  y = (ar->winy - 2 - y) / (st->lheight_dpi + TXT_LINE_SPACING);
+  y = (ar->winy - 2 - y) / TXT_LINE_HEIGHT(st);
 
-  if (st->showlinenrs) {
-    x -= TXT_OFFSET + TEXTXLOC;
-  }
-  else {
-    x -= TXT_OFFSET;
-  }
-
+  x -= TXT_BODY_LEFT(st);
   if (x < 0) {
     x = 0;
   }
@@ -3261,7 +3255,8 @@ static int text_line_number_invoke(bContext *C, wmOperator *UNUSED(op), const wm
     return OPERATOR_PASS_THROUGH;
   }
 
-  if (!(mval[0] > 2 && mval[0] < (TXT_OFFSET + TEXTXLOC) && mval[1] > 2 &&
+  if (!(mval[0] > 2 && mval[0] < (TXT_NUMCOL_WIDTH(st) + (TXT_BODY_LPAD * st->cwidth)) &&
+        mval[1] > 2 &&
         mval[1] < ar->winy - 2)) {
     return OPERATOR_PASS_THROUGH;
   }

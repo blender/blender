@@ -567,6 +567,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_SYNTAX_S:
           cp = ts->syntaxs;
           break;
+        case TH_LINENUMBERS:
+          cp = ts->line_numbers;
+          break;
 
         case TH_NODE:
           cp = ts->syntaxl;

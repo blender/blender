@@ -192,7 +192,7 @@ int wrap_width(const SpaceText *st, ARegion *ar)
   int winx = ar->winx - TXT_SCROLL_WIDTH;
   int x, max;
 
-  x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+  x = TXT_BODY_LEFT(st);
   max = st->cwidth ? (winx - x) / st->cwidth : 0;
   return max > 8 ? max : 8;
 }
@@ -472,7 +472,7 @@ static int text_draw_wrapped(const SpaceText *st,
         x += text_font_draw_character_utf8(tdc, x, y, str + ma);
         fpos++;
       }
-      y -= st->lheight_dpi + TXT_LINE_SPACING;
+      y -= TXT_LINE_HEIGHT(st);
       x = basex;
       lines++;
       fstart = fpos;
@@ -1052,19 +1052,14 @@ static void draw_documentation(const SpaceText *st, ARegion *ar)
     return;
   }
 
-  if (st->showlinenrs) {
-    x = st->cwidth * (st->text->curc - st->left) + TXT_OFFSET + TEXTXLOC - 4;
-  }
-  else {
-    x = st->cwidth * (st->text->curc - st->left) + TXT_OFFSET - 4;
-  }
+  x = TXT_BODY_LEFT(st) + (st->cwidth * (st->text->curc - st->left));
   if (texttool_suggest_first()) {
     x += SUGG_LIST_WIDTH * st->cwidth + 50;
   }
 
   /* top = */ /* UNUSED */ y = ar->winy - st->lheight_dpi * l - 2;
   boxw = DOC_WIDTH * st->cwidth + 20;
-  boxh = (DOC_HEIGHT + 1) * (st->lheight_dpi + TXT_LINE_SPACING);
+  boxh = (DOC_HEIGHT + 1) * TXT_LINE_HEIGHT(st);
 
   /* Draw panel */
   uint pos = GPU_vertformat_attr_add(
@@ -1142,7 +1137,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
   char str[SUGG_LIST_WIDTH * BLI_UTF8_MAX + 1];
   int offl, offc, vcurl, vcurc;
   int w, boxw = 0, boxh, i, x, y, *top;
-  const int lheight = st->lheight_dpi + TXT_LINE_SPACING;
+  const int lheight = TXT_LINE_HEIGHT(st);
   const int margin_x = 2;
 
   if (!st->text) {
@@ -1167,8 +1162,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
   vcurl = txt_get_span(st->text->lines.first, st->text->curl) - st->top + offl;
   vcurc = text_get_char_pos(st, st->text->curl->line, st->text->curc) - st->left + offc;
 
-  x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-  x += vcurc * st->cwidth - 4;
+  x = TXT_BODY_LEFT(st) + (vcurc * st->cwidth);
   y = ar->winy - (vcurl + 1) * lheight - 2;
 
   /* offset back so the start of the text lines up with the suggestions,
@@ -1239,7 +1233,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *ar)
   int vcurl, vcurc, vsell, vselc, hidden = 0;
   int x, y, w, i;
   int offl, offc;
-  const int lheight = st->lheight_dpi + TXT_LINE_SPACING;
+  const int lheight = TXT_LINE_HEIGHT(st);
 
   /* Convert to view space character coordinates to determine if cursor is hidden */
   wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
@@ -1273,17 +1267,17 @@ static void draw_text_decoration(SpaceText *st, ARegion *ar)
 
     immUniformThemeColor(TH_SHADE2);
 
-    x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+    x = TXT_BODY_LEFT(st);
     y = ar->winy;
 
     if (vcurl == vsell) {
       y -= vcurl * lheight;
 
       if (vcurc < vselc) {
-        immRecti(pos, x + vcurc * st->cwidth - 1, y, x + vselc * st->cwidth, y - lheight);
+        immRecti(pos, x + vcurc * st->cwidth, y, x + vselc * st->cwidth, y - lheight);
       }
       else {
-        immRecti(pos, x + vselc * st->cwidth - 1, y, x + vcurc * st->cwidth, y - lheight);
+        immRecti(pos, x + vselc * st->cwidth, y, x + vcurc * st->cwidth, y - lheight);
       }
     }
     else {
@@ -1304,15 +1298,17 @@ static void draw_text_decoration(SpaceText *st, ARegion *ar)
 
       y -= froml * lheight;
 
-      immRecti(pos, x + fromc * st->cwidth - 1, y, ar->winx, y - lheight);
+      immRecti(pos, x + fromc * st->cwidth - U.pixelsize, y, ar->winx, y - lheight);
       y -= lheight;
 
       for (i = froml + 1; i < tol; i++) {
-        immRecti(pos, x - 4, y, ar->winx, y - lheight);
+        immRecti(pos, x - U.pixelsize, y, ar->winx, y - lheight);
         y -= lheight;
       }
 
-      immRecti(pos, x - 4, y, x + toc * st->cwidth, y - lheight);
+      if (x + toc * st->cwidth > x) {
+        immRecti(pos, x - U.pixelsize, y, x + toc * st->cwidth, y - lheight);
+      }
       y -= lheight;
     }
   }
@@ -1334,22 +1330,22 @@ static void draw_text_decoration(SpaceText *st, ARegion *ar)
     }
 
     if (!(y1 < 0 || y2 > ar->winy)) { /* check we need to draw */
-      x1 = 0;                         // st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-      x2 = x1 + ar->winx;
-
-      immUniformColor4ub(255, 255, 255, 32);
-
+      float highlight_color[4];
+      UI_GetThemeColor4fv(TH_TEXT, highlight_color);
+      highlight_color[3] = 0.1f;
+      immUniformColor4fv(highlight_color);
       GPU_blend_set_func_separate(
           GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
       GPU_blend(true);
-      immRecti(pos, x1 - 4, y1, x2, y2);
+      immRecti(
+          pos, 0, y1, ar->winx, y2);
       GPU_blend(false);
     }
   }
 
   if (!hidden) {
     /* Draw the cursor itself (we draw the sel. cursor as this is the leading edge) */
-    x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+    x = TXT_BODY_LEFT(st);
     x += vselc * st->cwidth;
     y = ar->winy - vsell * lheight;
 
@@ -1358,16 +1354,20 @@ static void draw_text_decoration(SpaceText *st, ARegion *ar)
     if (st->overwrite) {
       char ch = text->sell->line[text->selc];
 
-      y += TXT_LINE_SPACING;
+      y += TXT_LINE_SPACING(st);
       w = st->cwidth;
       if (ch == '\t') {
         w *= st->tabnumber - (vselc + st->left) % st->tabnumber;
       }
 
-      immRecti(pos, x, y - lheight - 1, x + w, y - lheight + 1);
+      immRecti(pos,
+               x,
+               y - lheight - U.pixelsize,
+               x + w + U.pixelsize,
+               y - lheight - (3 * U.pixelsize));
     }
     else {
-      immRecti(pos, x - 1, y, x + 1, y - lheight);
+      immRecti(pos, x - U.pixelsize, y, x + U.pixelsize, y - lheight);
     }
   }
 
@@ -1500,7 +1500,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
   }
 
   UI_FontThemeColor(tdc->font_id, TH_HILITE);
-  x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+  x = TXT_BODY_LEFT(st);
   y = ar->winy - st->lheight_dpi;
 
   /* draw opening bracket */
@@ -1511,10 +1511,9 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
   if (viewc >= 0) {
     viewl = txt_get_span(text->lines.first, startl) - st->top + offl;
 
+    text_font_draw_character(tdc, x + viewc * st->cwidth, y - viewl * TXT_LINE_HEIGHT(st), ch);
     text_font_draw_character(
-        tdc, x + viewc * st->cwidth, y - viewl * (st->lheight_dpi + TXT_LINE_SPACING), ch);
-    text_font_draw_character(
-        tdc, x + viewc * st->cwidth + 1, y - viewl * (st->lheight_dpi + TXT_LINE_SPACING), ch);
+        tdc, x + viewc * st->cwidth + 1, y - viewl * TXT_LINE_HEIGHT(st), ch);
   }
 
   /* draw closing bracket */
@@ -1525,10 +1524,9 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
   if (viewc >= 0) {
     viewl = txt_get_span(text->lines.first, endl) - st->top + offl;
 
+    text_font_draw_character(tdc, x + viewc * st->cwidth, y - viewl * TXT_LINE_HEIGHT(st), ch);
     text_font_draw_character(
-        tdc, x + viewc * st->cwidth, y - viewl * (st->lheight_dpi + TXT_LINE_SPACING), ch);
-    text_font_draw_character(
-        tdc, x + viewc * st->cwidth + 1, y - viewl * (st->lheight_dpi + TXT_LINE_SPACING), ch);
+        tdc, x + viewc * st->cwidth + 1, y - viewl * TXT_LINE_HEIGHT(st), ch);
   }
 }
 
@@ -1557,9 +1555,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
   /* don't draw lines below this */
   const int clip_min_y = -(int)(st->lheight_dpi - 1);
 
-  st->viewlines = (st->lheight_dpi) ?
-                      (int)(ar->winy - clip_min_y) / (st->lheight_dpi + TXT_LINE_SPACING) :
-                      0;
+  st->viewlines = (st->lheight_dpi) ? (int)(ar->winy - clip_min_y) / TXT_LINE_HEIGHT(st) : 0;
 
   text_draw_context_init(st, &tdc);
 
@@ -1610,19 +1606,18 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
   /* draw line numbers background */
   if (st->showlinenrs) {
-    x = TXT_OFFSET + TEXTXLOC;
-
     uint pos = GPU_vertformat_attr_add(
         immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
     immUniformThemeColor(TH_GRID);
-    immRecti(pos, (TXT_OFFSET - 12), 0, (TXT_OFFSET - 5) + TEXTXLOC, ar->winy - 2);
+    immRecti(pos, 0, 0, TXT_NUMCOL_WIDTH(st), ar->winy);
     immUnbindProgram();
   }
   else {
     st->linenrs_tot = 0; /* not used */
-    x = TXT_OFFSET;
   }
+
+  x = TXT_BODY_LEFT(st);
   y = ar->winy - st->lheight_dpi;
   winx = ar->winx - TXT_SCROLL_WIDTH;
 
@@ -1643,12 +1638,12 @@ void draw_text_main(SpaceText *st, ARegion *ar)
         UI_FontThemeColor(tdc.font_id, TH_HILITE);
       }
       else {
-        UI_FontThemeColor(tdc.font_id, TH_TEXT);
+        UI_FontThemeColor(tdc.font_id, TH_LINENUMBERS);
       }
 
       BLI_snprintf(linenr, sizeof(linenr), "%*d", st->linenrs_tot, i + linecount + 1);
       /* itoa(i + linecount + 1, linenr, 10); */ /* not ansi-c :/ */
-      text_font_draw(&tdc, TXT_OFFSET - 7, y, linenr);
+      text_font_draw(&tdc, TXT_NUMCOL_PAD * st->cwidth, y, linenr);
 
       if (tmp == text->curl) {
         UI_FontThemeColor(tdc.font_id, TH_TEXT);
@@ -1658,12 +1653,12 @@ void draw_text_main(SpaceText *st, ARegion *ar)
     if (st->wordwrap) {
       /* draw word wrapped text */
       int lines = text_draw_wrapped(st, &tdc, tmp->line, x, y, winx - x, tmp->format, wrap_skip);
-      y -= lines * (st->lheight_dpi + TXT_LINE_SPACING);
+      y -= lines * TXT_LINE_HEIGHT(st);
     }
     else {
       /* draw unwrapped text */
       text_draw(st, &tdc, tmp->line, st->left, ar->winx / st->cwidth, x, y, tmp->format);
-      y -= st->lheight_dpi + TXT_LINE_SPACING;
+      y -= TXT_LINE_HEIGHT(st);
     }
 
     wrap_skip = 0;
@@ -1671,28 +1666,17 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
   if (st->flags & ST_SHOW_MARGIN) {
     margin_column_x = x + st->cwidth * (st->margin_column - st->left);
-
     if (margin_column_x >= x) {
-      const uint shdr_pos = GPU_vertformat_attr_add(
+      uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-
-      immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
-
-      GPU_line_width(2.0f);
-
-      float viewport_size[4];
-      GPU_viewport_size_get_f(viewport_size);
-      immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
-
-      immUniform1i("colors_len", 0);  /* "simple" mode */
-      immUniformThemeColor3(TH_GRID); /* same color as line number background */
-      immUniform1f("dash_width", 2.0f);
-      immUniform1f("dash_factor", 0.5f);
-
-      immBegin(GPU_PRIM_LINES, 2);
-      immVertex2i(shdr_pos, margin_column_x, 0);
-      immVertex2i(shdr_pos, margin_column_x, ar->winy - 2);
-      immEnd();
+      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      float margin_color[4];
+      UI_GetThemeColor4fv(TH_TEXT, margin_color);
+      margin_color[3] = 0.2f;
+      immUniformColor4fv(margin_color);
+      GPU_blend(true);
+      immRecti(pos, margin_column_x, 0, margin_column_x + U.pixelsize, ar->winy);
+      GPU_blend(false);
       immUnbindProgram();
     }
   }
@@ -1761,7 +1745,7 @@ void text_scroll_to_cursor(SpaceText *st, ARegion *ar, const bool center)
   }
   else {
     x = st->cwidth * (text_get_char_pos(st, text->sell->line, text->selc) - st->left);
-    winx -= TXT_OFFSET + (st->showlinenrs ? TEXTXLOC : 0) + TXT_SCROLL_WIDTH;
+    winx -= TXT_BODY_LEFT(st) + TXT_SCROLL_WIDTH;
 
     if (center) {
       if (x <= 0 || x > winx) {
@@ -1833,14 +1817,14 @@ bool ED_text_region_location_from_cursor(SpaceText *st,
   }
   else {
     int offl, offc;
-    int linenr_offset = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+    int linenr_offset = TXT_BODY_LEFT(st);
     /* handle tabs as well! */
     int char_pos = text_get_char_pos(st, line->line, cursor_co[1]);
 
     wrap_offset(st, ar, line, cursor_co[1], &offl, &offc);
     r_pixel_co[0] = (char_pos + offc - st->left) * st->cwidth + linenr_offset;
-    r_pixel_co[1] = (cursor_co[0] + offl - st->top) * (st->lheight_dpi + TXT_LINE_SPACING);
-    r_pixel_co[1] = (ar->winy - (r_pixel_co[1] + TXT_OFFSET)) - st->lheight_dpi;
+    r_pixel_co[1] = (cursor_co[0] + offl - st->top) * TXT_LINE_HEIGHT(st);
+    r_pixel_co[1] = (ar->winy - (r_pixel_co[1] + (TXT_BODY_LPAD * st->cwidth))) - st->lheight_dpi;
   }
   return true;
 

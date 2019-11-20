@@ -320,6 +320,9 @@ typedef struct ThemeSpace {
   unsigned char syntaxv[4], syntaxc[4];  // in nodespace used for converter group
   unsigned char syntaxd[4], syntaxr[4];  // in nodespace used for distort
 
+  unsigned char line_numbers[4];
+  char _pad6[4];
+
   unsigned char nodeclass_output[4], nodeclass_filter[4];
   unsigned char nodeclass_vector[4], nodeclass_texture[4];
   unsigned char nodeclass_shader[4], nodeclass_script[4];
