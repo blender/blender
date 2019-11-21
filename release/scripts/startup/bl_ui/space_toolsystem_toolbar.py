@@ -890,7 +890,7 @@ class _defs_edit_curve:
             idname="builtin.randomize",
             label="Randomize",
             icon="ops.curve.vertex_random",
-            widget="WM_GGT_value_operator_redo",
+            widget=None,
             keymap=(),
             draw_settings=draw_settings,
         )
