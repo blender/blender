@@ -31,12 +31,14 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_string_utils.h"
+#include "BLI_math.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
+#include "BKE_curve.h"
 #include "BKE_fcurve.h"
 #include "BKE_report.h"
 #include "BKE_main.h"
@@ -321,6 +323,54 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
         ale->key_data = NULL;
       }
     }
+  }
+}
+
+/* ---------------- */
+
+/**
+ * F-Curve 'decimate' function that removes a certain ratio of curve
+ * points that will affect the curves overall shape the least.
+ */
+void decimate_fcurve(bAnimListElem *ale, float remove_ratio)
+{
+  FCurve *fcu = (FCurve *)ale->key_data;
+
+  /* Check if the curve actually has any points  */
+  if (fcu == NULL || fcu->bezt == NULL || fcu->totvert == 0) {
+    return;
+  }
+
+  const int target_fcurve_verts = max_ii(2, fcu->totvert - fcu->totvert * remove_ratio);
+
+  BezTriple *old_bezts = fcu->bezt;
+
+  if (target_fcurve_verts != fcu->totvert) {
+    /* We don't want to limit the decimation to a certain error margin */
+    const float error_sq_max = FLT_MAX;
+    BKE_curve_decimate_bezt_array(fcu->bezt,
+                                  fcu->totvert,
+                                  12, /* 12 is the resolution of graph editor curves */
+                                  false,
+                                  SELECT,
+                                  BEZT_FLAG_TEMP_TAG,
+                                  error_sq_max,
+                                  target_fcurve_verts);
+  }
+
+  uint old_totvert = fcu->totvert;
+  fcu->bezt = NULL;
+  fcu->totvert = 0;
+
+  for (int i = 0; i < old_totvert; i++) {
+    BezTriple *bezt = (old_bezts + i);
+    if ((bezt->f2 & BEZT_FLAG_TEMP_TAG) == 0) {
+      insert_bezt_fcurve(fcu, bezt, 0);
+    }
+  }
+  /* now free the memory used by the old BezTriples */
+  if (old_bezts) {
+    MEM_freeN(old_bezts);
   }
 }
 
