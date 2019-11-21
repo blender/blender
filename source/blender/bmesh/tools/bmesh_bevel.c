@@ -1739,7 +1739,7 @@ static void calculate_profile(BevelParams *bp, BoundVert *bndv, bool reversed, b
   }
   if (bp->vmesh_method == BEVEL_VMESH_CUTOFF && map_ok) {
     /* Calculate the "height" of the profile by putting the (0,0) and (1,1) corners of the
-     * un-transformed profile throught the 2D->3D map and calculating the distance between them */
+     * un-transformed profile thought the 2D->3D map and calculating the distance between them. */
     zero_v3(p);
     mul_v3_m4v3(bottom_corner, map, p);
     p[0] = 1.0f;
@@ -3024,7 +3024,7 @@ static bool adjust_the_cycle_or_chain_fast(BoundVert *vstart, int np, bool iscyc
 /** Helper function to return the next Beveled EdgeHalf along a path.
  * \param toward_bv Whether the direction to travel points toward or away from the BevVert
  *        connected to the current EdgeHalf
- * \param r_bv The BevVert conencted to the EdgeHalf-- updated if we're travelling to the other
+ * \param r_bv The BevVert connected to the EdgeHalf-- updated if we're traveling to the other
  *        EdgeHalf of an original edge
  * \note This only returns the most parallel edge if it's the most parallel by
  * at least 10 degrees. This is a somewhat arbitrary choice, but it makes sure that consistent

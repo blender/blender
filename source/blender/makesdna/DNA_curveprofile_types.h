@@ -34,8 +34,9 @@
 #define PROF_N_TABLE(n_pts) min_ii(PROF_TABLE_MAX, (((n_pts - 1)) * PROF_RESOL) + 1)
 
 /** Each control point that makes up the profile.
- * \note The flags use the same enum as Bezier curves, but they aren't garanteed
- *       to have identical functionality, and all types aren't implemented. */
+ * \note The flags use the same enum as Bezier curves, but they aren't guaranteed
+ * to have identical functionality, and all types aren't implemented.
+ */
 typedef struct CurveProfilePoint {
   /** Location of the point, keep together. */
   float x, y;
@@ -50,7 +51,7 @@ enum {
   PROF_SELECT = (1 << 0),
 };
 
-/** Defines a profile */
+/** Defines a profile. */
 typedef struct CurveProfile {
   /** Number of user-added points that define the profile. */
   short path_len;
@@ -85,7 +86,7 @@ typedef enum eCurveProfilePresets {
   PROF_PRESET_SUPPORTS = 1, /* Support loops for a regular curved profile. */
   PROF_PRESET_CORNICE = 2,  /* Moulding type example. */
   PROF_PRESET_CROWN = 3,    /* Second moulding example. */
-  PROF_PRESET_STEPS = 4,    /* Dynamic number of steps defined by totsegments. */
+  PROF_PRESET_STEPS = 4,    /* Dynamic number of steps defined by segments_len. */
 } eCurveProfilePresets;
 
 #endif
