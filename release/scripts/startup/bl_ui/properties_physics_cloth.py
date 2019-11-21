@@ -92,7 +92,7 @@ class PHYSICS_PT_cloth_physical_properties(PhysicButtonsPanel, Panel):
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
 
         col = flow.column()
-        col.prop(cloth, "mass", text="Mass")
+        col.prop(cloth, "mass", text="Vertex Mass")
         col = flow.column()
         col.prop(cloth, "air_damping", text="Air Viscosity")
         col = flow.column()
