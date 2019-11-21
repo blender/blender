@@ -926,6 +926,10 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->curve_preset = BRUSH_CURVE_POW4;
       br->spacing = 5;
       break;
+    case SCULPT_TOOL_TOPOLOGY:
+      br->spacing = 10;
+      br->alpha = 1.0f;
+      break;
     case SCULPT_TOOL_CLAY:
       br->spacing = 6;
       br->normal_radius_factor = 0.75f;
