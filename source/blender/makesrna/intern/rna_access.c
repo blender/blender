@@ -3604,7 +3604,7 @@ char *RNA_property_string_get_default_alloc(PointerRNA *ptr,
 /* this is the length without \0 terminator */
 int RNA_property_string_default_length(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
-  StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
+  StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);
 
   BLI_assert(RNA_property_type(prop) == PROP_STRING);
 
