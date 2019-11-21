@@ -66,6 +66,7 @@ set(SRC
   intern/wm_menu_type.c
   intern/wm_operator_props.c
   intern/wm_operator_type.c
+  intern/wm_operator_utils.c
   intern/wm_operators.c
   intern/wm_panel_type.c
   intern/wm_platform_support.c

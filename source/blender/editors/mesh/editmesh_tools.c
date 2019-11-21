@@ -2366,6 +2366,9 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "xaxis", true, "X-Axis", "Smooth along the X axis");
   RNA_def_boolean(ot->srna, "yaxis", true, "Y-Axis", "Smooth along the Y axis");
   RNA_def_boolean(ot->srna, "zaxis", true, "Z-Axis", "Smooth along the Z axis");
+
+  /* Set generic modal callbacks. */
+  WM_operator_type_modal_from_exec_for_object_edit_coords(ot);
 }
 
 /** \} */

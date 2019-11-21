@@ -562,6 +562,9 @@ char *WM_operatortype_description(struct bContext *C,
                                   struct wmOperatorType *ot,
                                   struct PointerRNA *properties);
 
+/* wm_operator_utils.c */
+void WM_operator_type_modal_from_exec_for_object_edit_coords(struct wmOperatorType *ot);
+
 /* wm_uilist_type.c */
 void WM_uilisttype_init(void);
 struct uiListType *WM_uilisttype_find(const char *idname, bool quiet);

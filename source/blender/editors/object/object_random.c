@@ -180,4 +180,7 @@ void TRANSFORM_OT_vertex_random(struct wmOperatorType *ot)
                        1.0f);
   RNA_def_int(
       ot->srna, "seed", 0, 0, 10000, "Random Seed", "Seed for the random number generator", 0, 50);
+
+  /* Set generic modal callbacks. */
+  WM_operator_type_modal_from_exec_for_object_edit_coords(ot);
 }
