@@ -1314,7 +1314,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *ar)
   }
 
   if (st->line_hlight) {
-    int x1, x2, y1, y2;
+    int y1, y2;
 
     if (st->wordwrap) {
       int visible_lines = text_get_visible_lines(st, ar, text->sell->line);
@@ -1337,8 +1337,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *ar)
       GPU_blend_set_func_separate(
           GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
       GPU_blend(true);
-      immRecti(
-          pos, 0, y1, ar->winx, y2);
+      immRecti(pos, 0, y1, ar->winx, y2);
       GPU_blend(false);
     }
   }
@@ -1360,11 +1359,8 @@ static void draw_text_decoration(SpaceText *st, ARegion *ar)
         w *= st->tabnumber - (vselc + st->left) % st->tabnumber;
       }
 
-      immRecti(pos,
-               x,
-               y - lheight - U.pixelsize,
-               x + w + U.pixelsize,
-               y - lheight - (3 * U.pixelsize));
+      immRecti(
+          pos, x, y - lheight - U.pixelsize, x + w + U.pixelsize, y - lheight - (3 * U.pixelsize));
     }
     else {
       immRecti(pos, x - U.pixelsize, y, x + U.pixelsize, y - lheight);
@@ -1512,8 +1508,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
     viewl = txt_get_span(text->lines.first, startl) - st->top + offl;
 
     text_font_draw_character(tdc, x + viewc * st->cwidth, y - viewl * TXT_LINE_HEIGHT(st), ch);
-    text_font_draw_character(
-        tdc, x + viewc * st->cwidth + 1, y - viewl * TXT_LINE_HEIGHT(st), ch);
+    text_font_draw_character(tdc, x + viewc * st->cwidth + 1, y - viewl * TXT_LINE_HEIGHT(st), ch);
   }
 
   /* draw closing bracket */
@@ -1525,8 +1520,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
     viewl = txt_get_span(text->lines.first, endl) - st->top + offl;
 
     text_font_draw_character(tdc, x + viewc * st->cwidth, y - viewl * TXT_LINE_HEIGHT(st), ch);
-    text_font_draw_character(
-        tdc, x + viewc * st->cwidth + 1, y - viewl * TXT_LINE_HEIGHT(st), ch);
+    text_font_draw_character(tdc, x + viewc * st->cwidth + 1, y - viewl * TXT_LINE_HEIGHT(st), ch);
   }
 }
 

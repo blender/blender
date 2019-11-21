@@ -6935,8 +6935,10 @@ static bool ui_numedit_but_CURVEPROFILE(uiBlock *block,
        * but in practice this isnt really an issue */
       if (ui_but_is_cursor_warp(but)) {
         /* OK but can go outside bounds */
-        data->ungrab_mval[0] = but->rect.xmin + ((point_last->x - profile->view_rect.xmin) * zoomx);
-        data->ungrab_mval[1] = but->rect.ymin + ((point_last->y - profile->view_rect.ymin) * zoomy);
+        data->ungrab_mval[0] = but->rect.xmin +
+                               ((point_last->x - profile->view_rect.xmin) * zoomx);
+        data->ungrab_mval[1] = but->rect.ymin +
+                               ((point_last->y - profile->view_rect.ymin) * zoomy);
         BLI_rctf_clamp_pt_v(&but->rect, data->ungrab_mval);
       }
 #endif

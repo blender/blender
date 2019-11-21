@@ -224,9 +224,9 @@ void BKE_curveprofile_selected_handle_set(CurveProfile *profile, int type_1, int
         case HD_VECT:
           profile->path[i].h2 = HD_VECT;
           break;
-      default:
-        profile->path[i].h1 = HD_AUTO;
-        break;
+        default:
+          profile->path[i].h1 = HD_AUTO;
+          break;
       }
     }
   }

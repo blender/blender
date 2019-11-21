@@ -3256,8 +3256,7 @@ static int text_line_number_invoke(bContext *C, wmOperator *UNUSED(op), const wm
   }
 
   if (!(mval[0] > 2 && mval[0] < (TXT_NUMCOL_WIDTH(st) + (TXT_BODY_LPAD * st->cwidth)) &&
-        mval[1] > 2 &&
-        mval[1] < ar->winy - 2)) {
+        mval[1] > 2 && mval[1] < ar->winy - 2)) {
     return OPERATOR_PASS_THROUGH;
   }
 
