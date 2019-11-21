@@ -2904,6 +2904,15 @@ class VIEW3D_MT_mask(Menu):
 
         layout.separator()
 
+        props = layout.operator("mesh.paint_mask_slice", text="Mask Slice")
+        props.fill_holes = False
+        props.new_object = False
+        props = layout.operator("mesh.paint_mask_slice", text="Mask Slice and Fill Holes")
+        props.new_object = False
+        props = layout.operator("mesh.paint_mask_slice", text="Mask Slice to New Object")
+
+        layout.separator()
+
         props = layout.operator("sculpt.dirty_mask", text='Dirty Mask')
 
 

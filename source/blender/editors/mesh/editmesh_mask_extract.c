@@ -52,6 +52,8 @@
 #include "ED_sculpt.h"
 #include "ED_view3d.h"
 
+#include "bmesh_tools.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "mesh_intern.h" /* own include */
@@ -276,4 +278,181 @@ void MESH_OT_paint_mask_extract(wmOperatorType *ot)
                   true,
                   "Extract as Solid",
                   "Extract the mask as a solid object with a solidify modifier");
+}
+
+static void slice_paint_mask(BMesh *bm, bool invert, bool fill_holes, float mask_threshold)
+{
+  BMVert *v;
+  BMFace *f;
+  BMIter iter;
+  BMIter face_iter;
+
+  /* Delete all masked faces */
+  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+  BLI_assert(cd_vert_mask_offset != -1);
+  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    bool keep_face = true;
+    BM_ITER_ELEM (v, &face_iter, f, BM_VERTS_OF_FACE) {
+      const float mask = BM_ELEM_CD_GET_FLOAT(v, cd_vert_mask_offset);
+      if (mask < mask_threshold) {
+        keep_face = false;
+        break;
+      }
+    }
+    if (invert) {
+      keep_face = !keep_face;
+    }
+    BM_elem_flag_set(f, BM_ELEM_TAG, keep_face);
+  }
+
+  BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_FACES);
+  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+  BM_mesh_elem_hflag_enable_all(bm, BM_EDGE, BM_ELEM_TAG, false);
+
+  if (fill_holes) {
+    BM_mesh_edgenet(bm, false, true);
+    BM_mesh_normals_update(bm);
+    BMO_op_callf(bm,
+                 (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+                 "triangulate faces=%hf quad_method=%i ngon_method=%i",
+                 BM_ELEM_TAG,
+                 0,
+                 0);
+
+    BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+    BMO_op_callf(bm,
+                 (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+                 "recalc_face_normals faces=%hf",
+                 BM_ELEM_TAG);
+    BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+  }
+}
+
+static int paint_mask_slice_exec(bContext *C, wmOperator *op)
+{
+  struct Main *bmain = CTX_data_main(C);
+  Object *ob = CTX_data_active_object(C);
+  View3D *v3d = CTX_wm_view3d(C);
+
+  Mesh *mesh = ob->data;
+  Mesh *new_mesh = BKE_mesh_copy(bmain, mesh);
+
+  if (ob->mode == OB_MODE_SCULPT) {
+    ED_sculpt_undo_geometry_begin(ob, "mask slice");
+  }
+
+  BMesh *bm;
+  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(new_mesh);
+  bm = BM_mesh_create(&allocsize,
+                      &((struct BMeshCreateParams){
+                          .use_toolflags = true,
+                      }));
+
+  BM_mesh_bm_from_me(bm,
+                     new_mesh,
+                     (&(struct BMeshFromMeshParams){
+                         .calc_face_normal = true,
+                     }));
+
+  slice_paint_mask(
+      bm, false, RNA_boolean_get(op->ptr, "fill_holes"), RNA_float_get(op->ptr, "mask_threshold"));
+  BKE_id_free(bmain, new_mesh);
+  new_mesh = BKE_mesh_from_bmesh_nomain(bm,
+                                        (&(struct BMeshToMeshParams){
+                                            .calc_object_remap = false,
+                                        }),
+                                        mesh);
+  BM_mesh_free(bm);
+
+  if (RNA_boolean_get(op->ptr, "new_object")) {
+    ushort local_view_bits = 0;
+    if (v3d && v3d->localvd) {
+      local_view_bits = v3d->local_view_uuid;
+    }
+    Object *new_ob = ED_object_add_type(
+        C, OB_MESH, NULL, ob->loc, ob->rot, false, local_view_bits);
+    Mesh *new_ob_mesh = BKE_mesh_copy(bmain, mesh);
+
+    const BMAllocTemplate allocsize_new_ob = BMALLOC_TEMPLATE_FROM_ME(new_ob_mesh);
+    bm = BM_mesh_create(&allocsize_new_ob,
+                        &((struct BMeshCreateParams){
+                            .use_toolflags = true,
+                        }));
+
+    BM_mesh_bm_from_me(bm,
+                       new_ob_mesh,
+                       (&(struct BMeshFromMeshParams){
+                           .calc_face_normal = true,
+                       }));
+
+    slice_paint_mask(bm,
+                     true,
+                     RNA_boolean_get(op->ptr, "fill_holes"),
+                     RNA_float_get(op->ptr, "mask_threshold"));
+    BKE_id_free(bmain, new_ob_mesh);
+    new_ob_mesh = BKE_mesh_from_bmesh_nomain(bm,
+                                             (&(struct BMeshToMeshParams){
+                                                 .calc_object_remap = false,
+                                             }),
+                                             mesh);
+    BM_mesh_free(bm);
+
+    BKE_mesh_nomain_to_mesh(new_ob_mesh, new_ob->data, new_ob, &CD_MASK_MESH, true);
+    BKE_mesh_calc_normals(new_ob->data);
+    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, new_ob);
+    BKE_mesh_batch_cache_dirty_tag(new_ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+    DEG_relations_tag_update(bmain);
+    DEG_id_tag_update(&new_ob->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, new_ob->data);
+  }
+
+  BKE_mesh_nomain_to_mesh(new_mesh, ob->data, ob, &CD_MASK_MESH, true);
+  BKE_mesh_calc_normals(ob->data);
+
+  if (ob->mode == OB_MODE_SCULPT) {
+    ED_sculpt_undo_geometry_end(ob);
+  }
+
+  BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+
+  return OPERATOR_FINISHED;
+}
+
+void MESH_OT_paint_mask_slice(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+  /* identifiers */
+  ot->name = "Mask Slice";
+  ot->description = "Slices the paint mask from the mesh";
+  ot->idname = "MESH_OT_paint_mask_slice";
+
+  /* api callbacks */
+  ot->poll = paint_mask_extract_poll;
+  ot->exec = paint_mask_slice_exec;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  RNA_def_float(
+      ot->srna,
+      "mask_threshold",
+      0.5f,
+      0.0f,
+      1.0f,
+      "Threshold",
+      "Minimum mask value to consider the vertex valid to extract a face from the original mesh",
+      0.0f,
+      1.0f);
+  prop = RNA_def_boolean(
+      ot->srna, "fill_holes", true, "Fill Holes", "Fill holes after slicing the mask");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna,
+                         "new_object",
+                         true,
+                         "Slice to New Object",
+                         "Create a new object from the sliced mask");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
