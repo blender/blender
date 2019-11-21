@@ -1612,7 +1612,9 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   mul_m4_v3(kcd->ob->imat, v3);
   mul_m4_v3(kcd->ob->imat, v4);
 
-  /* numeric error, 'v1' -> 'v2', 'v2' -> 'v4' can end up being ~2000 units apart in otho mode
+  /* Numeric error, 'v1' -> 'v2', 'v2' -> 'v4'
+   * can end up being ~2000 units apart with an orthogonal perspective.
+   *
    * (from ED_view3d_win_to_segment_clipped() above)
    * this gives precision error; rather then solving properly
    * (which may involve using doubles everywhere!),

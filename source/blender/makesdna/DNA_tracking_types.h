@@ -147,7 +147,7 @@ typedef struct MovieTrackingTrack {
 
   /* ** control how tracking happens */
   /**
-   * Number of frames to be tarcked during single tracking session
+   * Number of frames to be tracked during single tracking session
    * (if TRACKING_FRAMES_LIMIT is set).
    */
   short frames_limit;

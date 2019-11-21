@@ -1739,7 +1739,8 @@ static void calculate_profile(BevelParams *bp, BoundVert *bndv, bool reversed, b
   }
   if (bp->vmesh_method == BEVEL_VMESH_CUTOFF && map_ok) {
     /* Calculate the "height" of the profile by putting the (0,0) and (1,1) corners of the
-     * un-transformed profile thought the 2D->3D map and calculating the distance between them. */
+     * un-transformed profile throughout the 2D->3D map and calculating the distance between them.
+     */
     zero_v3(p);
     mul_v3_m4v3(bottom_corner, map, p);
     p[0] = 1.0f;

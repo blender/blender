@@ -122,7 +122,7 @@ bool interp_v2_v2v2_slerp(float target[2], const float a[2], const float b[2], c
 void interp_v3_v3v3_slerp_safe(float target[3], const float a[3], const float b[3], const float t)
 {
   if (UNLIKELY(!interp_v3_v3v3_slerp(target, a, b, t))) {
-    /* axis are aligned so any otho vector is acceptable */
+    /* Axis are aligned so any orthogonal vector is acceptable. */
     float ab_ortho[3];
     ortho_v3_v3(ab_ortho, a);
     normalize_v3(ab_ortho);
@@ -143,7 +143,7 @@ void interp_v3_v3v3_slerp_safe(float target[3], const float a[3], const float b[
 void interp_v2_v2v2_slerp_safe(float target[2], const float a[2], const float b[2], const float t)
 {
   if (UNLIKELY(!interp_v2_v2v2_slerp(target, a, b, t))) {
-    /* axis are aligned so any otho vector is acceptable */
+    /* Axis are aligned so any orthogonal vector is acceptable. */
     float ab_ortho[2];
     ortho_v2_v2(ab_ortho, a);
     // normalize_v2(ab_ortho);
