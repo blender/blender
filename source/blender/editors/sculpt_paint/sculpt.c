@@ -3269,11 +3269,11 @@ static void do_topology_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
   if (ss->cache->alt_smooth) {
     for (int i = 0; i < 4; i++) {
-      BLI_task_parallel_range(0, totnode, &data, do_topology_relax_task_cb_ex, &settings);
+      BKE_pbvh_parallel_range(0, totnode, &data, do_topology_relax_task_cb_ex, &settings);
     }
   }
   else {
-    BLI_task_parallel_range(0, totnode, &data, do_topology_slide_task_cb_ex, &settings);
+    BKE_pbvh_parallel_range(0, totnode, &data, do_topology_slide_task_cb_ex, &settings);
   }
 }
 
