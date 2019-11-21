@@ -216,20 +216,7 @@ void BKE_editmesh_color_ensure(BMEditMesh *em, const char htype)
 
 float (*BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em, int *r_vert_len))[3]
 {
-  BMIter iter;
-  BMVert *eve;
-  float(*orco)[3];
-  int i;
-
-  orco = MEM_mallocN(em->bm->totvert * sizeof(*orco), __func__);
-
-  BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-    copy_v3_v3(orco[i], eve->co);
-  }
-
-  *r_vert_len = em->bm->totvert;
-
-  return orco;
+  return BM_mesh_vert_coords_alloc(em->bm, r_vert_len);
 }
 
 void BKE_editmesh_lnorspace_update(BMEditMesh *em)

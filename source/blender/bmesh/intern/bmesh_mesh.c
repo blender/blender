@@ -2708,3 +2708,49 @@ void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags)
 
   bm->use_toolflags = use_toolflags;
 }
+
+/* -------------------------------------------------------------------- */
+/** \name BMesh Coordinate Access
+ * \{ */
+
+void BM_mesh_vert_coords_get(BMesh *bm, float (*vert_coords)[3])
+{
+  BMIter iter;
+  BMVert *v;
+  int i;
+  BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+    copy_v3_v3(vert_coords[i], v->co);
+  }
+}
+
+float (*BM_mesh_vert_coords_alloc(BMesh *bm, int *r_vert_len))[3]
+{
+  float(*vert_coords)[3] = MEM_mallocN(bm->totvert * sizeof(*vert_coords), __func__);
+  BM_mesh_vert_coords_get(bm, vert_coords);
+  *r_vert_len = bm->totvert;
+  return vert_coords;
+}
+
+void BM_mesh_vert_coords_apply(BMesh *bm, const float (*vert_coords)[3])
+{
+  BMIter iter;
+  BMVert *v;
+  int i;
+  BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+    copy_v3_v3(v->co, vert_coords[i]);
+  }
+}
+
+void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
+                                         const float (*vert_coords)[3],
+                                         const float mat[4][4])
+{
+  BMIter iter;
+  BMVert *v;
+  int i;
+  BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+    mul_v3_m4v3(v->co, mat, vert_coords[i]);
+  }
+}
+
+/** \} */

@@ -159,4 +159,12 @@ extern const BMAllocTemplate bm_mesh_chunksize_default;
 #define BMALLOC_TEMPLATE_FROM_ME(...) \
   VA_NARGS_CALL_OVERLOAD(_VA_BMALLOC_TEMPLATE_FROM_ME_, __VA_ARGS__)
 
+/* Vertex coords access. */
+void BM_mesh_vert_coords_get(BMesh *bm, float (*orco)[3]);
+float (*BM_mesh_vert_coords_alloc(BMesh *bm, int *r_vert_len))[3];
+void BM_mesh_vert_coords_apply(BMesh *bm, const float (*orco)[3]);
+void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
+                                         const float (*vert_coords)[3],
+                                         const float mat[4][4]);
+
 #endif /* __BMESH_MESH_H__ */
