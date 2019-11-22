@@ -430,6 +430,11 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
     size_t step = 0;
     uint unicode = BLI_str_utf8_as_unicode_and_size(src_c, &step);
     if (unicode != BLI_UTF8_ERR) {
+      /* TODO: `wchar_t` type is an implementation-defined and may represent
+       * 16-bit or 32-bit depending on operating system.
+       * So the ideal would be to do the corresponding encoding.
+       * But for now just assert that it has no conflicting use. */
+      BLI_assert(step <= sizeof(wchar_t));
       *dst_w = (wchar_t)unicode;
       src_c += step;
     }
@@ -451,12 +456,12 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
 
 /* count columns that character/string occupies, based on wcwidth.c */
 
-int BLI_wcwidth(wchar_t ucs)
+int BLI_wcwidth(char32_t ucs)
 {
   return mk_wcwidth(ucs);
 }
 
-int BLI_wcswidth(const wchar_t *pwcs, size_t n)
+int BLI_wcswidth(const char32_t *pwcs, size_t n)
 {
   return mk_wcswidth(pwcs, n);
 }
@@ -468,7 +473,7 @@ int BLI_str_utf8_char_width(const char *p)
     return -1;
   }
 
-  return BLI_wcwidth((wchar_t)unicode);
+  return BLI_wcwidth((char32_t)unicode);
 }
 
 int BLI_str_utf8_char_width_safe(const char *p)
@@ -480,7 +485,7 @@ int BLI_str_utf8_char_width_safe(const char *p)
     return 1;
   }
 
-  columns = BLI_wcwidth((wchar_t)unicode);
+  columns = BLI_wcwidth((char32_t)unicode);
 
   return (columns < 0) ? 1 : columns;
 }
@@ -721,6 +726,88 @@ size_t BLI_str_utf8_from_unicode(uint c, char *outbuf)
       c >>= 6;
     }
     outbuf[0] = c | first;
+  }
+
+  return len;
+}
+
+size_t BLI_str_utf8_as_utf32(char32_t *__restrict dst_w,
+                             const char *__restrict src_c,
+                             const size_t maxncpy)
+{
+  const size_t maxlen = maxncpy - 1;
+  size_t len = 0;
+
+  BLI_assert(maxncpy != 0);
+
+#ifdef DEBUG_STRSIZE
+  memset(dst_w, 0xff, sizeof(*dst_w) * maxncpy);
+#endif
+
+  while (*src_c && len != maxlen) {
+    size_t step = 0;
+    uint unicode = BLI_str_utf8_as_unicode_and_size(src_c, &step);
+    if (unicode != BLI_UTF8_ERR) {
+      *dst_w = unicode;
+      src_c += step;
+    }
+    else {
+      *dst_w = '?';
+      src_c = BLI_str_find_next_char_utf8(src_c, NULL);
+    }
+    dst_w++;
+    len++;
+  }
+
+  *dst_w = 0;
+
+  return len;
+}
+
+size_t BLI_str_utf32_as_utf8(char *__restrict dst,
+                             const char32_t *__restrict src,
+                             const size_t maxncpy)
+{
+  const size_t maxlen = maxncpy - 1;
+  /* 6 is max utf8 length of an unicode char. */
+  const int64_t maxlen_secured = (int64_t)maxlen - 6;
+  size_t len = 0;
+
+  BLI_assert(maxncpy != 0);
+
+#ifdef DEBUG_STRSIZE
+  memset(dst, 0xff, sizeof(*dst) * maxncpy);
+#endif
+
+  while (*src && len <= maxlen_secured) {
+    len += BLI_str_utf8_from_unicode((uint)*src++, dst + len);
+  }
+
+  /* We have to be more careful for the last six bytes,
+   * to avoid buffer overflow in case utf8-encoded char would be too long for our dst buffer. */
+  while (*src) {
+    char t[6];
+    size_t l = BLI_str_utf8_from_unicode((uint)*src++, t);
+    BLI_assert(l <= 6);
+    if (len + l > maxlen) {
+      break;
+    }
+    memcpy(dst + len, t, l);
+    len += l;
+  }
+
+  dst[len] = '\0';
+
+  return len;
+}
+
+/* utf32 len in utf8 */
+size_t BLI_str_utf32_as_utf8_len(const char32_t *src)
+{
+  size_t len = 0;
+
+  while (*src) {
+    len += BLI_str_utf8_from_unicode((uint)*src++, NULL);
   }
 
   return len;

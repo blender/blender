@@ -468,7 +468,8 @@ static int kill_selection(Object *obedit, int ins) /* 1 == new character */
     if (ins == 0) {
       getfrom++;
     }
-    size = (ef->len * sizeof(wchar_t)) - (selstart * sizeof(wchar_t)) + (offset * sizeof(wchar_t));
+    size = (ef->len * sizeof(*ef->textbuf)) - (selstart * sizeof(*ef->textbuf)) +
+           (offset * sizeof(*ef->textbuf));
     memmove(ef->textbuf + selstart, ef->textbuf + getfrom, size);
     memmove(ef->textbufinfo + selstart,
             ef->textbufinfo + getfrom,
@@ -488,7 +489,7 @@ static int kill_selection(Object *obedit, int ins) /* 1 == new character */
 
 /* text_update_edited(C, scene, obedit, 1, FO_EDIT); */
 static bool font_paste_wchar(Object *obedit,
-                             const wchar_t *str,
+                             const char32_t *str,
                              const size_t str_len,
                              /* optional */
                              struct CharInfo *str_info)
@@ -507,9 +508,10 @@ static bool font_paste_wchar(Object *obedit,
     kill_selection(obedit, 0);
 
     if (str_len) {
-      int size = (ef->len * sizeof(wchar_t)) - (ef->pos * sizeof(wchar_t)) + sizeof(wchar_t);
+      int size = (ef->len * sizeof(*ef->textbuf)) - (ef->pos * sizeof(*ef->textbuf)) +
+                 sizeof(*ef->textbuf);
       memmove(ef->textbuf + ef->pos + str_len, ef->textbuf + ef->pos, size);
-      memcpy(ef->textbuf + ef->pos, str, str_len * sizeof(wchar_t));
+      memcpy(ef->textbuf + ef->pos, str, str_len * sizeof(*ef->textbuf));
 
       memmove(ef->textbufinfo + ef->pos + str_len,
               ef->textbufinfo + ef->pos,
@@ -538,9 +540,9 @@ static bool font_paste_utf8(bContext *C, const char *str, const size_t str_len)
 
   int tmplen;
 
-  wchar_t *mem = MEM_mallocN((sizeof(wchar_t) * (str_len + 1)), __func__);
+  char32_t *mem = MEM_mallocN((sizeof(*mem) * (str_len + 1)), __func__);
 
-  tmplen = BLI_strncpy_wchar_from_utf8(mem, str, str_len + 1);
+  tmplen = BLI_str_utf8_as_utf32(mem, str, str_len + 1);
 
   retval = font_paste_wchar(obedit, mem, tmplen, NULL);
 
@@ -919,7 +921,7 @@ static void copy_selection(Object *obedit)
     Curve *cu = obedit->data;
     EditFont *ef = cu->editfont;
     char *buf = NULL;
-    wchar_t *text_buf;
+    char32_t *text_buf;
     size_t len_utf8;
 
     /* internal clipboard (for style) */
@@ -930,7 +932,7 @@ static void copy_selection(Object *obedit)
     /* system clipboard */
     buf = MEM_mallocN(len_utf8 + 1, __func__);
     if (buf) {
-      BLI_strncpy_wchar_as_utf8(buf, text_buf, len_utf8 + 1);
+      BLI_str_utf32_as_utf8(buf, text_buf, len_utf8 + 1);
       WM_clipboard_text_set(buf, false);
       MEM_freeN(buf);
     }
@@ -1004,7 +1006,7 @@ void FONT_OT_text_cut(wmOperatorType *ot)
 
 static bool paste_selection(Object *obedit, ReportList *reports)
 {
-  wchar_t *text_buf;
+  char32_t *text_buf;
   CharInfo *info_buf;
   size_t len;
 
@@ -1024,7 +1026,7 @@ static int paste_text_exec(bContext *C, wmOperator *op)
   Object *obedit = CTX_data_edit_object(C);
   int retval;
   size_t len_utf8;
-  wchar_t *text_buf;
+  char32_t *text_buf;
 
   /* Store both clipboards as utf8 for comparison,
    * Give priority to the internal 'vfont' clipboard with its 'CharInfo' text styles
@@ -1050,7 +1052,7 @@ static int paste_text_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
 
-    BLI_strncpy_wchar_as_utf8(clipboard_vfont.buf, text_buf, len_utf8 + 1);
+    BLI_str_utf32_as_utf8(clipboard_vfont.buf, text_buf, len_utf8 + 1);
   }
 
   if (clipboard_vfont.buf && STREQ(clipboard_vfont.buf, clipboard_system.buf)) {
@@ -1164,7 +1166,7 @@ static int move_cursor(bContext *C, int type, const bool select)
 
     case PREV_WORD: {
       int pos = ef->pos;
-      BLI_str_cursor_step_wchar(
+      BLI_str_cursor_step_utf32(
           ef->textbuf, ef->len, &pos, STRCUR_DIR_PREV, STRCUR_JUMP_DELIM, true);
       ef->pos = pos;
       cursmove = FO_CURS;
@@ -1173,7 +1175,7 @@ static int move_cursor(bContext *C, int type, const bool select)
 
     case NEXT_WORD: {
       int pos = ef->pos;
-      BLI_str_cursor_step_wchar(
+      BLI_str_cursor_step_utf32(
           ef->textbuf, ef->len, &pos, STRCUR_DIR_NEXT, STRCUR_JUMP_DELIM, true);
       ef->pos = pos;
       cursmove = FO_CURS;
@@ -1528,7 +1530,7 @@ static int delete_exec(bContext *C, wmOperator *op)
       break;
     case DEL_NEXT_WORD: {
       int pos = ef->pos;
-      BLI_str_cursor_step_wchar(
+      BLI_str_cursor_step_utf32(
           ef->textbuf, ef->len, &pos, STRCUR_DIR_NEXT, STRCUR_JUMP_DELIM, true);
       range[0] = ef->pos;
       range[1] = pos;
@@ -1537,7 +1539,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 
     case DEL_PREV_WORD: {
       int pos = ef->pos;
-      BLI_str_cursor_step_wchar(
+      BLI_str_cursor_step_utf32(
           ef->textbuf, ef->len, &pos, STRCUR_DIR_PREV, STRCUR_JUMP_DELIM, true);
       range[0] = pos;
       range[1] = ef->pos;
@@ -1864,12 +1866,12 @@ void ED_curve_editfont_make(Object *obedit)
   if (ef == NULL) {
     ef = cu->editfont = MEM_callocN(sizeof(EditFont), "editfont");
 
-    ef->textbuf = MEM_callocN((MAXTEXT + 4) * sizeof(wchar_t), "texteditbuf");
+    ef->textbuf = MEM_callocN((MAXTEXT + 4) * sizeof(*ef->textbuf), "texteditbuf");
     ef->textbufinfo = MEM_callocN((MAXTEXT + 4) * sizeof(CharInfo), "texteditbufinfo");
   }
 
   /* Convert the original text to wchar_t */
-  len_wchar = BLI_strncpy_wchar_from_utf8(ef->textbuf, cu->str, MAXTEXT + 4);
+  len_wchar = BLI_str_utf8_as_utf32(ef->textbuf, cu->str, MAXTEXT + 4);
   BLI_assert(len_wchar == cu->len_wchar);
   ef->len = len_wchar;
   BLI_assert(ef->len >= 0);
@@ -1901,13 +1903,13 @@ void ED_curve_editfont_load(Object *obedit)
 
   /* Calculate the actual string length in UTF-8 variable characters */
   cu->len_wchar = ef->len;
-  cu->len = BLI_wstrlen_utf8(ef->textbuf);
+  cu->len = BLI_str_utf32_as_utf8_len(ef->textbuf);
 
   /* Alloc memory for UTF-8 variable char length string */
-  cu->str = MEM_mallocN(cu->len + sizeof(wchar_t), "str");
+  cu->str = MEM_mallocN(cu->len + sizeof(char32_t), "str");
 
   /* Copy the wchar to UTF-8 */
-  BLI_strncpy_wchar_as_utf8(cu->str, ef->textbuf, cu->len + 1);
+  BLI_str_utf32_as_utf8(cu->str, ef->textbuf, cu->len + 1);
 
   if (cu->strinfo) {
     MEM_freeN(cu->strinfo);
@@ -1943,7 +1945,7 @@ static int set_case(bContext *C, int ccase)
   Object *obedit = CTX_data_edit_object(C);
   Curve *cu = obedit->data;
   EditFont *ef = cu->editfont;
-  wchar_t *str;
+  char32_t *str;
   int len;
   int selstart, selend;
 
@@ -2010,18 +2012,16 @@ static int toggle_case_exec(bContext *C, wmOperator *UNUSED(op))
   Object *obedit = CTX_data_edit_object(C);
   Curve *cu = obedit->data;
   EditFont *ef = cu->editfont;
-  wchar_t *str;
-  int len, ccase = CASE_UPPER;
+  char32_t *str;
+  int ccase = CASE_UPPER;
 
-  len = wcslen(ef->textbuf);
   str = ef->textbuf;
-  while (len) {
+  while (*str) {
     if (*str >= 'a' && *str <= 'z') {
       ccase = CASE_LOWER;
       break;
     }
 
-    len--;
     str++;
   }
 

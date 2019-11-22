@@ -25,7 +25,6 @@
 #include <string.h> /* strstr */
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <wchar.h>
 #include <wctype.h>
 
 #include "MEM_guardedalloc.h"

@@ -72,6 +72,15 @@ typedef uint64_t u_int64_t;
 #include <stddef.h> /* size_t define */
 #include <stdbool.h>
 
+#ifndef __cplusplus
+#  if defined(__APPLE__)
+/* The <uchar.h> standard header is missing on macOS. */
+typedef unsigned int char32_t;
+#  else
+#    include <uchar.h>
+#  endif
+#endif
+
 typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef unsigned long ulong;

@@ -491,7 +491,7 @@ static void make_duplis_font(const DupliContext *ctx)
   float vec[3], obmat[4][4], pmat[4][4], fsize, xof, yof;
   int text_len, a;
   size_t family_len;
-  const wchar_t *text = NULL;
+  const char32_t *text = NULL;
   bool text_free = false;
 
   /* font dupliverts not supported inside collections */

@@ -504,7 +504,7 @@ int blf_font_draw_mono(FontBLF *font, const char *str, size_t len, int cwidth)
     /* do not return this loop if clipped, we want every character tested */
     blf_glyph_render(font, gc, g, (float)pen_x, (float)pen_y);
 
-    col = BLI_wcwidth((wchar_t)c);
+    col = BLI_wcwidth((char32_t)c);
     if (col < 0) {
       col = 1;
     }

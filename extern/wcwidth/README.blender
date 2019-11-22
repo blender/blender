@@ -2,4 +2,6 @@ Project: WC Width
 URL: http://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c
 License: ICS
 Upstream version: 2007-05-26
-Local modifications: None
+Local modifications:
+* Fix T33192
+  Bad encoding of utf-8 on windows systems.

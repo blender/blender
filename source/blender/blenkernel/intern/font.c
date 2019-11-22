@@ -25,7 +25,6 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
-#include <wchar.h>
 #include <wctype.h>
 
 #include "CLG_log.h"
@@ -691,7 +690,7 @@ static bool vfont_to_curve(Object *ob,
                            int mode,
                            VFontToCurveIter *iter_data,
                            ListBase *r_nubase,
-                           const wchar_t **r_text,
+                           const char32_t **r_text,
                            int *r_text_len,
                            bool *r_text_free,
                            struct CharTrans **r_chartransdata)
@@ -712,8 +711,8 @@ static bool vfont_to_curve(Object *ob,
   int curbox;
   int selstart, selend;
   int cnr = 0, lnr = 0, wsnr = 0;
-  const wchar_t *mem = NULL;
-  wchar_t ascii;
+  const char32_t *mem = NULL;
+  char32_t ascii;
   bool ok = false;
   const float font_size = cu->fsize * iter_data->scale_to_fit;
   const float xof_scale = cu->xof / font_size;
@@ -759,16 +758,16 @@ static bool vfont_to_curve(Object *ob,
     custrinfo = ef->textbufinfo;
   }
   else {
-    wchar_t *mem_tmp;
+    char32_t *mem_tmp;
     slen = cu->len_wchar;
 
     /* Create unicode string */
-    mem_tmp = MEM_malloc_arrayN((slen + 1), sizeof(wchar_t), "convertedmem");
+    mem_tmp = MEM_malloc_arrayN((slen + 1), sizeof(*mem_tmp), "convertedmem");
     if (!mem_tmp) {
       return ok;
     }
 
-    BLI_strncpy_wchar_from_utf8(mem_tmp, cu->str, slen + 1);
+    BLI_str_utf8_as_utf32(mem_tmp, cu->str, slen + 1);
 
     if (cu->strinfo == NULL) { /* old file */
       cu->strinfo = MEM_calloc_arrayN((slen + 4), sizeof(CharInfo), "strinfo compat");
@@ -1605,7 +1604,7 @@ bool BKE_vfont_to_curve_ex(Object *ob,
                            Curve *cu,
                            int mode,
                            ListBase *r_nubase,
-                           const wchar_t **r_text,
+                           const char32_t **r_text,
                            int *r_text_len,
                            bool *r_text_free,
                            struct CharTrans **r_chartransdata)
@@ -1649,9 +1648,9 @@ bool BKE_vfont_to_curve(Object *ob, int mode)
  * \{ */
 
 static struct {
-  wchar_t *text_buffer;
+  char32_t *text_buffer;
   CharInfo *info_buffer;
-  size_t len_wchar;
+  size_t len_utf32;
   size_t len_utf8;
 } g_vfont_clipboard = {NULL};
 
@@ -1659,19 +1658,19 @@ void BKE_vfont_clipboard_free(void)
 {
   MEM_SAFE_FREE(g_vfont_clipboard.text_buffer);
   MEM_SAFE_FREE(g_vfont_clipboard.info_buffer);
-  g_vfont_clipboard.len_wchar = 0;
+  g_vfont_clipboard.len_utf32 = 0;
   g_vfont_clipboard.len_utf8 = 0;
 }
 
-void BKE_vfont_clipboard_set(const wchar_t *text_buf, const CharInfo *info_buf, const size_t len)
+void BKE_vfont_clipboard_set(const char32_t *text_buf, const CharInfo *info_buf, const size_t len)
 {
-  wchar_t *text;
+  char32_t *text;
   CharInfo *info;
 
   /* clean previous buffers*/
   BKE_vfont_clipboard_free();
 
-  text = MEM_malloc_arrayN((len + 1), sizeof(wchar_t), __func__);
+  text = MEM_malloc_arrayN((len + 1), sizeof(*text), __func__);
   if (text == NULL) {
     return;
   }
@@ -1682,21 +1681,21 @@ void BKE_vfont_clipboard_set(const wchar_t *text_buf, const CharInfo *info_buf, 
     return;
   }
 
-  memcpy(text, text_buf, len * sizeof(wchar_t));
+  memcpy(text, text_buf, len * sizeof(*text));
   text[len] = '\0';
   memcpy(info, info_buf, len * sizeof(CharInfo));
 
   /* store new buffers */
   g_vfont_clipboard.text_buffer = text;
   g_vfont_clipboard.info_buffer = info;
-  g_vfont_clipboard.len_utf8 = BLI_wstrlen_utf8(text);
-  g_vfont_clipboard.len_wchar = len;
+  g_vfont_clipboard.len_utf8 = BLI_str_utf32_as_utf8_len(text);
+  g_vfont_clipboard.len_utf32 = len;
 }
 
-void BKE_vfont_clipboard_get(wchar_t **r_text_buf,
+void BKE_vfont_clipboard_get(char32_t **r_text_buf,
                              CharInfo **r_info_buf,
                              size_t *r_len_utf8,
-                             size_t *r_len_wchar)
+                             size_t *r_len_utf32)
 {
   if (r_text_buf) {
     *r_text_buf = g_vfont_clipboard.text_buffer;
@@ -1706,8 +1705,8 @@ void BKE_vfont_clipboard_get(wchar_t **r_text_buf,
     *r_info_buf = g_vfont_clipboard.info_buffer;
   }
 
-  if (r_len_wchar) {
-    *r_len_wchar = g_vfont_clipboard.len_wchar;
+  if (r_len_utf32) {
+    *r_len_utf32 = g_vfont_clipboard.len_utf32;
   }
 
   if (r_len_utf8) {

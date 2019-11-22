@@ -585,7 +585,7 @@ static void rna_Curve_body_set(PointerRNA *ptr, const char *value)
     MEM_freeN(cu->strinfo);
   }
 
-  cu->str = MEM_mallocN(len_bytes + sizeof(wchar_t), "str");
+  cu->str = MEM_mallocN(len_bytes + sizeof(char32_t), "str");
   cu->strinfo = MEM_callocN((len_chars + 4) * sizeof(CharInfo), "strinfo");
 
   BLI_strncpy(cu->str, value, len_bytes + 1);

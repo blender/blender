@@ -45,7 +45,7 @@ void BLI_str_cursor_step_utf8(const char *str,
                               eStrCursorJumpType jump,
                               bool use_init_step);
 
-void BLI_str_cursor_step_wchar(const wchar_t *str,
+void BLI_str_cursor_step_utf32(const char32_t *str,
                                size_t maxlen,
                                int *pos,
                                eStrCursorJumpDirection direction,

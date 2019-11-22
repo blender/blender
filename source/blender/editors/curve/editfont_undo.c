@@ -20,7 +20,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <wchar.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -58,7 +57,7 @@
  * \{ */
 
 typedef struct UndoFont {
-  wchar_t *textbuf;
+  char32_t *textbuf;
   struct CharInfo *textbufinfo;
 
   int len, pos, selstart, selend;
@@ -233,7 +232,7 @@ static void undofont_to_editfont(UndoFont *uf, Curve *cu)
   uf_arraystore_expand(uf);
 #endif
 
-  final_size = sizeof(wchar_t) * (uf->len + 1);
+  final_size = sizeof(*ef->textbuf) * (uf->len + 1);
   memcpy(ef->textbuf, uf->textbuf, final_size);
 
   final_size = sizeof(CharInfo) * (uf->len + 1);
@@ -259,7 +258,8 @@ static void *undofont_from_editfont(UndoFont *uf, Curve *cu)
 
   size_t final_size;
 
-  final_size = sizeof(wchar_t) * (ef->len + 1);
+  BLI_assert(sizeof(*uf->textbuf) == sizeof(*ef->textbuf));
+  final_size = sizeof(*uf->textbuf) * (ef->len + 1);
   uf->textbuf = MEM_mallocN(final_size, __func__);
   memcpy(uf->textbuf, ef->textbuf, final_size);
 

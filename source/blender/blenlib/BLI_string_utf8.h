@@ -26,6 +26,7 @@ extern "C" {
 #endif
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
 
 char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t maxncpy)
     ATTR_NONNULL();
@@ -48,6 +49,13 @@ unsigned int BLI_str_utf8_as_unicode_and_size_safe(const char *__restrict p,
 unsigned int BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__restrict index)
     ATTR_NONNULL();
 size_t BLI_str_utf8_from_unicode(unsigned int c, char *outbuf);
+size_t BLI_str_utf8_as_utf32(char32_t *__restrict dst_w,
+                             const char *__restrict src_c,
+                             const size_t maxncpy) ATTR_NONNULL();
+size_t BLI_str_utf32_as_utf8(char *__restrict dst,
+                             const char32_t *__restrict src,
+                             const size_t maxncpy) ATTR_NONNULL();
+size_t BLI_str_utf32_as_utf8_len(const char32_t *src) ATTR_NONNULL();
 
 char *BLI_str_find_prev_char_utf8(const char *str, const char *p) ATTR_NONNULL();
 char *BLI_str_find_next_char_utf8(const char *p, const char *end) ATTR_NONNULL(1);
@@ -68,8 +76,8 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst,
                                    const size_t maxcpy) ATTR_NONNULL();
 
 /* count columns that character/string occupies, based on wcwidth.c */
-int BLI_wcwidth(wchar_t ucs);
-int BLI_wcswidth(const wchar_t *pwcs, size_t n) ATTR_NONNULL();
+int BLI_wcwidth(char32_t ucs);
+int BLI_wcswidth(const char32_t *pwcs, size_t n) ATTR_NONNULL();
 /* warning, can return -1 on bad chars */
 int BLI_str_utf8_char_width(const char *p) ATTR_NONNULL();
 int BLI_str_utf8_char_width_safe(const char *p) ATTR_NONNULL();

@@ -27,8 +27,6 @@
 extern "C" {
 #endif
 
-#include <wchar.h>
-
 struct CharInfo;
 struct Curve;
 struct Main;
@@ -48,7 +46,7 @@ typedef struct EditFontSelBox {
 } EditFontSelBox;
 
 typedef struct EditFont {
-  wchar_t *textbuf;
+  char32_t *textbuf;
   struct CharInfo *textbufinfo;
 
   /* array of rectangles & rotation */
@@ -90,7 +88,7 @@ bool BKE_vfont_to_curve_ex(struct Object *ob,
                            struct Curve *cu,
                            int mode,
                            struct ListBase *r_nubase,
-                           const wchar_t **r_text,
+                           const char32_t **r_text,
                            int *r_text_len,
                            bool *r_text_free,
                            struct CharTrans **r_chartransdata);
@@ -101,13 +99,13 @@ int BKE_vfont_select_get(struct Object *ob, int *r_start, int *r_end);
 void BKE_vfont_select_clamp(struct Object *ob);
 
 void BKE_vfont_clipboard_free(void);
-void BKE_vfont_clipboard_set(const wchar_t *text_buf,
+void BKE_vfont_clipboard_set(const char32_t *text_buf,
                              const struct CharInfo *info_buf,
                              const size_t len);
-void BKE_vfont_clipboard_get(wchar_t **r_text_buf,
+void BKE_vfont_clipboard_get(char32_t **r_text_buf,
                              struct CharInfo **r_info_buf,
                              size_t *r_len_utf8,
-                             size_t *r_len_wchar);
+                             size_t *r_len_utf32);
 
 #ifdef __cplusplus
 }
