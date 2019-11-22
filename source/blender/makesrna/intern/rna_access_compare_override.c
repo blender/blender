@@ -27,6 +27,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 
+#define DEBUG_OVERRIDE_TIMEIT
+
 #ifdef DEBUG_OVERRIDE_TIMEIT
 #  include "PIL_time_utildefines.h"
 #endif

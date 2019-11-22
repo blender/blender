@@ -32,6 +32,7 @@ extern "C" {
 #endif
 
 struct FileData;
+struct GHash;
 struct GPUTexture;
 struct ID;
 struct Library;
@@ -206,6 +207,9 @@ typedef struct IDOverrideLibraryProperty {
   ListBase operations;
 } IDOverrideLibraryProperty;
 
+/* We do not need a full struct for that currently, just a GHash. */
+typedef struct GHash IDOverrideLibraryRuntime;
+
 /* Main container for all overriding data info of a data-block. */
 typedef struct IDOverrideLibrary {
   /** Reference linked ID which this one overrides. */
@@ -220,6 +224,8 @@ typedef struct IDOverrideLibrary {
   /* Temp ID storing extra override data (used for differential operations only currently).
    * Always NULL outside of read/write context. */
   struct ID *storage;
+
+  IDOverrideLibraryRuntime *runtime;
 } IDOverrideLibrary;
 
 enum eOverrideLibrary_Flag {

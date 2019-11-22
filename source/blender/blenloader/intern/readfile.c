@@ -2668,6 +2668,7 @@ static void direct_link_id(FileData *fd, ID *id)
   if (id->override_library) {
     id->override_library = newdataadr(fd, id->override_library);
     link_list_ex(fd, &id->override_library->properties, direct_link_id_override_property_cb);
+    id->override_library->runtime = NULL;
   }
 
   DrawDataList *drawdata = DRW_drawdatalist_from_id(id);

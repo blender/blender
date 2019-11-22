@@ -36,6 +36,7 @@
 #include "BKE_main.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
@@ -148,6 +149,10 @@ void BKE_override_library_clear(IDOverrideLibrary *override, const bool do_id_us
 {
   BLI_assert(override != NULL);
 
+  if (override->runtime != NULL) {
+    BLI_ghash_clear(override->runtime, NULL, NULL);
+  }
+
   for (IDOverrideLibraryProperty *op = override->properties.first; op; op = op->next) {
     bke_override_property_clear(op);
   }
@@ -163,6 +168,11 @@ void BKE_override_library_clear(IDOverrideLibrary *override, const bool do_id_us
 void BKE_override_library_free(struct IDOverrideLibrary **override, const bool do_id_user)
 {
   BLI_assert(*override != NULL);
+
+  if ((*override)->runtime != NULL) {
+    BLI_ghash_free((*override)->runtime, NULL, NULL);
+    (*override)->runtime = NULL;
+  }
 
   BKE_override_library_clear(*override, do_id_user);
   MEM_freeN(*override);
@@ -285,15 +295,28 @@ bool BKE_override_library_create_from_tag(Main *bmain)
   return ret;
 }
 
+/* We only build override GHash on request. */
+BLI_INLINE IDOverrideLibraryRuntime *override_library_rna_path_mapping_ensure(
+    IDOverrideLibrary *override)
+{
+  if (override->runtime == NULL) {
+    override->runtime = BLI_ghash_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, __func__);
+    for (IDOverrideLibraryProperty *op = override->properties.first; op != NULL; op = op->next) {
+      BLI_ghash_insert(override->runtime, op->rna_path, op);
+    }
+  }
+
+  return override->runtime;
+}
+
 /**
  * Find override property from given RNA path, if it exists.
  */
 IDOverrideLibraryProperty *BKE_override_library_property_find(IDOverrideLibrary *override,
                                                               const char *rna_path)
 {
-  /* XXX TODO we'll most likely want a runtime ghash to store that mapping at some point. */
-  return BLI_findstring_ptr(
-      &override->properties, rna_path, offsetof(IDOverrideLibraryProperty, rna_path));
+  IDOverrideLibraryRuntime *override_runtime = override_library_rna_path_mapping_ensure(override);
+  return BLI_ghash_lookup(override_runtime, rna_path);
 }
 
 /**
@@ -303,13 +326,16 @@ IDOverrideLibraryProperty *BKE_override_library_property_get(IDOverrideLibrary *
                                                              const char *rna_path,
                                                              bool *r_created)
 {
-  /* XXX TODO we'll most likely want a runtime ghash to store that mapping at some point. */
   IDOverrideLibraryProperty *op = BKE_override_library_property_find(override, rna_path);
 
   if (op == NULL) {
     op = MEM_callocN(sizeof(IDOverrideLibraryProperty), __func__);
     op->rna_path = BLI_strdup(rna_path);
     BLI_addtail(&override->properties, op);
+
+    IDOverrideLibraryRuntime *override_runtime = override_library_rna_path_mapping_ensure(
+        override);
+    BLI_ghash_insert(override_runtime, op->rna_path, op);
 
     if (r_created) {
       *r_created = true;
@@ -355,6 +381,9 @@ void BKE_override_library_property_delete(IDOverrideLibrary *override,
                                           IDOverrideLibraryProperty *override_property)
 {
   bke_override_property_clear(override_property);
+  if (override->runtime != NULL) {
+    BLI_ghash_remove(override->runtime, override_property->rna_path, NULL, NULL);
+  }
   BLI_freelinkN(&override->properties, override_property);
 }
 
