@@ -17,8 +17,8 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_MIRROR_H__
-#define __BKE_MIRROR_H__
+#ifndef __BKE_MESH_MIRROR_H__
+#define __BKE_MESH_MIRROR_H__
 
 /** \file
  * \ingroup bke
@@ -42,4 +42,4 @@ struct Mesh *BKE_mesh_mirror_apply_mirror_on_axis(struct MirrorModifierData *mmd
                                                   const struct Mesh *mesh,
                                                   int axis);
 
-#endif /* __BKE_MIRROR_H__ */
+#endif /* __BKE_MESH_MIRROR_H__ */
