@@ -292,8 +292,8 @@ int FFMPEGReader::read_packet(void* opaque, uint8_t* buf, int buf_size)
 {
 	FFMPEGReader* reader = reinterpret_cast<FFMPEGReader*>(opaque);
 
-	int64_t remaining_buffer_size = reader->m_membuffer->getSize() - reader->m_membufferpos;
-	int64_t size = std::min(static_cast<int64_t>(buf_size), remaining_buffer_size);
+	int size = std::min(buf_size, reader->m_membuffer->getSize() - reader->m_membufferpos);
+
 	if(size < 0)
 		return -1;
 
@@ -319,7 +319,14 @@ int64_t FFMPEGReader::seek_packet(void* opaque, int64_t offset, int whence)
 		return reader->m_membuffer->getSize();
 	}
 
-	return (reader->m_membufferpos += offset);
+	int64_t position = reader->m_membufferpos + offset;
+
+	if(position > reader->m_membuffer->getSize())
+		position = reader->m_membuffer->getSize();
+
+	reader->m_membufferpos = int(position);
+
+	return position;
 }
 
 bool FFMPEGReader::isSeekable() const

@@ -112,7 +112,7 @@ private:
 	/**
 	 * Reading position of the buffer.
 	 */
-	int64_t m_membufferpos;
+	int m_membufferpos;
 
 	/**
 	 * Whether the audio data has to be interleaved after reading.
