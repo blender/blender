@@ -473,6 +473,44 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Indent or Autocomplete Operator
+ * \{ */
+
+static int console_indent_or_autocomplete_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  ConsoleLine *ci = console_history_verify(C);
+  bool text_before_cursor = ci->cursor != 0 && !ELEM(ci->line[ci->cursor - 1], ' ', '\t');
+  if (text_before_cursor) {
+    WM_operator_name_call(C, "CONSOLE_OT_autocomplete", WM_OP_INVOKE_DEFAULT, NULL);
+  }
+  else {
+    WM_operator_name_call(C, "CONSOLE_OT_indent", WM_OP_EXEC_DEFAULT, NULL);
+  }
+  return OPERATOR_FINISHED;
+}
+
+void CONSOLE_OT_indent_or_autocomplete(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Indent or Autocomplete";
+  ot->idname = "CONSOLE_OT_indent_or_autocomplete";
+  ot->description = "Indent selected text or autocomplete";
+
+  /* api callbacks */
+  ot->exec = console_indent_or_autocomplete_exec;
+  ot->poll = ED_operator_console_active;
+
+  /* flags */
+  ot->flag = 0;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Indent Operator
+ * \{ */
+
 static int console_indent_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
@@ -517,6 +555,8 @@ void CONSOLE_OT_indent(wmOperatorType *ot)
   ot->exec = console_indent_exec;
   ot->poll = ED_operator_console_active;
 }
+
+/** \} */
 
 static int console_unindent_exec(bContext *C, wmOperator *UNUSED(op))
 {

@@ -137,6 +137,7 @@ void TEXT_OT_convert_whitespace(struct wmOperatorType *ot);
 void TEXT_OT_comment_toggle(struct wmOperatorType *ot);
 void TEXT_OT_unindent(struct wmOperatorType *ot);
 void TEXT_OT_indent(struct wmOperatorType *ot);
+void TEXT_OT_indent_or_autocomplete(struct wmOperatorType *ot);
 
 void TEXT_OT_line_break(struct wmOperatorType *ot);
 void TEXT_OT_insert(struct wmOperatorType *ot);

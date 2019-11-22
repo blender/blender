@@ -245,6 +245,7 @@ static void console_operatortypes(void)
   WM_operatortype_append(CONSOLE_OT_insert);
 
   WM_operatortype_append(CONSOLE_OT_indent);
+  WM_operatortype_append(CONSOLE_OT_indent_or_autocomplete);
   WM_operatortype_append(CONSOLE_OT_unindent);
 
   /* for use by python only */

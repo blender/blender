@@ -203,6 +203,7 @@ static void text_operatortypes(void)
   WM_operatortype_append(TEXT_OT_comment_toggle);
   WM_operatortype_append(TEXT_OT_unindent);
   WM_operatortype_append(TEXT_OT_indent);
+  WM_operatortype_append(TEXT_OT_indent_or_autocomplete);
 
   WM_operatortype_append(TEXT_OT_select_line);
   WM_operatortype_append(TEXT_OT_select_all);

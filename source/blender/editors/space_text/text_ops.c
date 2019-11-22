@@ -1069,6 +1069,41 @@ void TEXT_OT_cut(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Indent or Autocomplete Operator
+ * \{ */
+
+static int text_indent_or_autocomplete_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  Text *text = CTX_data_edit_text(C);
+  TextLine *line = text->curl;
+  bool text_before_cursor = text->curc != 0 && !ELEM(line->line[text->curc - 1], ' ', '\t');
+  if (text_before_cursor && (txt_has_sel(text) == false)) {
+    WM_operator_name_call(C, "TEXT_OT_autocomplete", WM_OP_INVOKE_DEFAULT, NULL);
+  }
+  else {
+    WM_operator_name_call(C, "TEXT_OT_indent", WM_OP_EXEC_DEFAULT, NULL);
+  }
+  return OPERATOR_FINISHED;
+}
+
+void TEXT_OT_indent_or_autocomplete(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Indent or Autocomplete";
+  ot->idname = "TEXT_OT_indent_or_autocomplete";
+  ot->description = "Indent selected text or autocomplete";
+
+  /* api callbacks */
+  ot->exec = text_indent_or_autocomplete_exec;
+  ot->poll = text_edit_poll;
+
+  /* flags */
+  ot->flag = 0;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Indent Operator
  * \{ */
 
