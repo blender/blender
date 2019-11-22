@@ -44,7 +44,7 @@ template<bool always = false> ccl_device_forceinline uint get_object_id()
 #endif
   // Choose between always returning object ID or only for instances
   if (always)
-    // Can just remove the high bit since instace always contains object ID
+    // Can just remove the high bit since instance always contains object ID
     return object & 0x7FFFFF;
   // Set to OBJECT_NONE if this is not an instanced object
   else if (object & 0x800000)
@@ -263,8 +263,12 @@ extern "C" __global__ void __intersection__curve()
   const uint type = kernel_tex_fetch(__prim_type, prim);
   const uint visibility = optixGetPayload_4();
 
-  const float3 P = optixGetObjectRayOrigin();
-  const float3 dir = optixGetObjectRayDirection();
+  float3 P = optixGetObjectRayOrigin();
+  float3 dir = optixGetObjectRayDirection();
+
+  // The direction is not normalized by default, but the curve intersection routine expects that
+  float len;
+  dir = normalize_len(dir, &len);
 
 #  ifdef __OBJECT_MOTION__
   const float time = optixGetRayTime();
@@ -274,11 +278,14 @@ extern "C" __global__ void __intersection__curve()
 
   Intersection isect;
   isect.t = optixGetRayTmax();
+  // Transform maximum distance into object space
+  if (isect.t != FLT_MAX)
+    isect.t *= len;
 
   if (!(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) ?
           curve_intersect(NULL, &isect, P, dir, visibility, object, prim, time, type) :
           cardinal_curve_intersect(NULL, &isect, P, dir, visibility, object, prim, time, type)) {
-    optixReportIntersection(isect.t,
+    optixReportIntersection(isect.t / len,
                             type & PRIMITIVE_ALL,
                             __float_as_int(isect.u),   // Attribute_0
                             __float_as_int(isect.v));  // Attribute_1
