@@ -796,6 +796,9 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
     ED_area_tag_redraw(sa);
   }
 
+  sipo->runtime.flag &= ~(SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT |
+                          SIPO_RUNTIME_FLAG_TWEAK_HANDLES_RIGHT);
+
   /* init/adjust F-Curve colors */
   graph_refresh_fcurve_colors(C);
 }

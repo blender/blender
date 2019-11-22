@@ -213,7 +213,8 @@ typedef struct TransData2D {
   float ih1[2], ih2[2];
 } TransData2D;
 
-/** Used to store 2 handles for each #TransData in case the other handle wasn't selected. */
+/** Used to store 2 handles for each #TransData in case the other handle wasn't selected. Also to
+ * unset temporary flags. */
 typedef struct TransDataCurveHandleFlags {
   char ih1, ih2;
   char *h1, *h2;
@@ -631,6 +632,9 @@ typedef struct TransInfo {
   /*************** NEW STUFF *********************/
   /** event type used to launch transform. */
   short launch_event;
+  /** Is the actual launch event a tweak event? (launch_event above is set to the corresponding
+   * mouse button then.) */
+  bool is_launch_event_tweak;
 
   struct {
     /** Orientation type when when we're not constrained.

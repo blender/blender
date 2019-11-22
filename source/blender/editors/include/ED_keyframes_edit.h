@@ -141,6 +141,12 @@ typedef enum eKeyframeIterFlags {
 
   /* Perform NLA time remapping (global -> strip) for the "f2" parameter */
   KED_F2_NLA_UNMAP = (1 << 2),
+
+  /* Set this when handles aren't visible by default and you want to perform additional checks to
+   * get the actual visibility state. E.g. in some cases handles are only drawn if either a handle
+   * or their control point is selected. The selection state will have to be checked in the
+   * iterator callbacks then. */
+  KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE = (1 << 3),
 } eKeyframeIterFlags;
 
 /* --- Generic Properties for Keyframe Edit Tools ----- */

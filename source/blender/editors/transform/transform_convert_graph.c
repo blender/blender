@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -156,21 +156,55 @@ static bool graph_edit_use_local_center(TransInfo *t)
   return ((t->around == V3D_AROUND_LOCAL_ORIGINS) && (graph_edit_is_translation_mode(t) == false));
 }
 
+/**
+ * Get the effective selection of a triple for transform, i.e. return if the left handle, right
+ * handle and/or the center point should be affected by transform.
+ */
+static void graph_bezt_get_transform_selection(const TransInfo *t,
+                                               const BezTriple *bezt,
+                                               const bool use_handle,
+                                               bool *r_left_handle,
+                                               bool *r_key,
+                                               bool *r_right_handle)
+{
+  SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
+  bool key = (bezt->f2 & SELECT) != 0;
+  bool left = use_handle ? ((bezt->f1 & SELECT) != 0) : key;
+  bool right = use_handle ? ((bezt->f3 & SELECT) != 0) : key;
+
+  if (use_handle && t->is_launch_event_tweak) {
+    if (sipo->runtime.flag & SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT) {
+      key = right = false;
+    }
+    else if (sipo->runtime.flag & SIPO_RUNTIME_FLAG_TWEAK_HANDLES_RIGHT) {
+      left = key = false;
+    }
+  }
+
+  /* Whenever we move the key, we also move both handles. */
+  if (key) {
+    left = right = true;
+  }
+
+  *r_key = key;
+  *r_left_handle = left;
+  *r_right_handle = right;
+}
+
 static void graph_key_shortest_dist(
     TransInfo *t, FCurve *fcu, TransData *td_start, TransData *td, int cfra, bool use_handle)
 {
   int j = 0;
   TransData *td_iter = td_start;
+  bool sel_key, sel_left, sel_right;
 
   td->dist = FLT_MAX;
   for (; j < fcu->totvert; j++) {
     BezTriple *bezt = fcu->bezt + j;
     if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
-      const bool sel2 = (bezt->f2 & SELECT) != 0;
-      const bool sel1 = use_handle ? (bezt->f1 & SELECT) != 0 : sel2;
-      const bool sel3 = use_handle ? (bezt->f3 & SELECT) != 0 : sel2;
+      graph_bezt_get_transform_selection(t, bezt, use_handle, &sel_left, &sel_key, &sel_right);
 
-      if (sel1 || sel2 || sel3) {
+      if (sel_left || sel_key || sel_right) {
         td->dist = td->rdist = min_ff(td->dist, fabs(td_iter->center[0] - td->center[0]));
       }
 
@@ -179,6 +213,15 @@ static void graph_key_shortest_dist(
   }
 }
 
+/**
+ * It is important to note that this doesn't always act on the selection (like it's usually done),
+ * it acts on a subset of it. E.g. the selection code may leave a hint that we just dragged on a
+ * left or right handle (SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT/RIGHT) and then we only transform the
+ * selected left or right handles accordingly.
+ * The points to be transformed are tagged with BEZT_FLAG_TEMP_TAG; some lower level curve
+ * functions may need to be made aware of this. It's ugly that these act based on selection state
+ * anyway.
+ */
 void createTransGraphEditData(bContext *C, TransInfo *t)
 {
   SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
@@ -198,11 +241,11 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
   BezTriple *bezt;
   int count = 0, i;
   float mtx[3][3], smtx[3][3];
-  const bool is_translation_mode = graph_edit_is_translation_mode(t);
   const bool use_handle = !(sipo->flag & SIPO_NOHANDLES);
   const bool use_local_center = graph_edit_use_local_center(t);
   const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
   short anim_map_flag = ANIM_UNITCONV_ONLYSEL | ANIM_UNITCONV_SELVERTS;
+  bool sel_key, sel_left, sel_right;
 
   /* determine what type of data we are operating on */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -253,33 +296,29 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
       cfra = (float)CFRA;
     }
 
-    /* Only include BezTriples whose 'keyframe'
-     * occurs on the same side of the current frame as mouse. */
     for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
+      /* Only include BezTriples whose 'keyframe'
+       * occurs on the same side of the current frame as mouse. */
       if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
-        const bool sel2 = (bezt->f2 & SELECT) != 0;
-        const bool sel1 = use_handle ? (bezt->f1 & SELECT) != 0 : sel2;
-        const bool sel3 = use_handle ? (bezt->f3 & SELECT) != 0 : sel2;
+        graph_bezt_get_transform_selection(t, bezt, use_handle, &sel_left, &sel_key, &sel_right);
 
         if (is_prop_edit) {
           curvecount += 3;
-          if (sel2 || sel1 || sel3) {
+          if (sel_key || sel_left || sel_right) {
             selected = true;
           }
         }
         else {
-          if (!is_translation_mode || !(sel2)) {
-            if (sel1) {
-              count++;
-            }
+          if (sel_left) {
+            count++;
+          }
 
-            if (sel3) {
-              count++;
-            }
+          if (sel_right) {
+            count++;
           }
 
           /* only include main vert if selected */
-          if (sel2 && !use_local_center) {
+          if (sel_key && !use_local_center) {
             count++;
           }
         }
@@ -366,19 +405,21 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
     unit_scale = ANIM_unit_mapping_get_factor(
         ac.scene, ale->id, ale->key_data, anim_map_flag, &offset);
 
-    /* only include BezTriples whose 'keyframe' occurs on the same side
-     * of the current frame as mouse (if applicable) */
     for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
-      if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
-        const bool sel2 = (bezt->f2 & SELECT) != 0;
-        const bool sel1 = use_handle ? (bezt->f1 & SELECT) != 0 : sel2;
-        const bool sel3 = use_handle ? (bezt->f3 & SELECT) != 0 : sel2;
+      /* Ensure temp flag is cleared for all triples, we use it. */
+      bezt->f1 &= ~BEZT_FLAG_TEMP_TAG;
+      bezt->f2 &= ~BEZT_FLAG_TEMP_TAG;
+      bezt->f3 &= ~BEZT_FLAG_TEMP_TAG;
 
+      /* only include BezTriples whose 'keyframe' occurs on the same side
+       * of the current frame as mouse (if applicable) */
+      if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
         TransDataCurveHandleFlags *hdata = NULL;
-        /* short h1=1, h2=1; */ /* UNUSED */
+
+        graph_bezt_get_transform_selection(t, bezt, use_handle, &sel_left, &sel_key, &sel_right);
 
         if (is_prop_edit) {
-          bool is_sel = (sel2 || sel1 || sel3);
+          bool is_sel = (sel_key || sel_left || sel_right);
           /* we always select all handles for proportional editing if central handle is selected */
           initTransDataCurveHandles(td, bezt);
           bezt_to_transdata(td++,
@@ -422,69 +463,69 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
                             smtx,
                             unit_scale,
                             offset);
+
+          if (is_sel) {
+            bezt->f1 |= BEZT_FLAG_TEMP_TAG;
+            bezt->f2 |= BEZT_FLAG_TEMP_TAG;
+            bezt->f3 |= BEZT_FLAG_TEMP_TAG;
+          }
         }
         else {
           /* only include handles if selected, irrespective of the interpolation modes.
            * also, only treat handles specially if the center point isn't selected.
            */
-          if (!is_translation_mode || !(sel2)) {
-            if (sel1) {
-              hdata = initTransDataCurveHandles(td, bezt);
-              bezt_to_transdata(td++,
-                                td2d++,
-                                tdg++,
-                                adt,
-                                bezt,
-                                0,
-                                sel1,
-                                true,
-                                intvals,
-                                mtx,
-                                smtx,
-                                unit_scale,
-                                offset);
-            }
-            else {
-              /* h1 = 0; */ /* UNUSED */
-            }
+          if (sel_left) {
+            hdata = initTransDataCurveHandles(td, bezt);
+            bezt_to_transdata(td++,
+                              td2d++,
+                              tdg++,
+                              adt,
+                              bezt,
+                              0,
+                              sel_left,
+                              true,
+                              intvals,
+                              mtx,
+                              smtx,
+                              unit_scale,
+                              offset);
+            bezt->f1 |= BEZT_FLAG_TEMP_TAG;
+          }
 
-            if (sel3) {
-              if (hdata == NULL) {
-                hdata = initTransDataCurveHandles(td, bezt);
-              }
-              bezt_to_transdata(td++,
-                                td2d++,
-                                tdg++,
-                                adt,
-                                bezt,
-                                2,
-                                sel3,
-                                true,
-                                intvals,
-                                mtx,
-                                smtx,
-                                unit_scale,
-                                offset);
+          if (sel_right) {
+            if (hdata == NULL) {
+              hdata = initTransDataCurveHandles(td, bezt);
             }
-            else {
-              /* h2 = 0; */ /* UNUSED */
-            }
+            bezt_to_transdata(td++,
+                              td2d++,
+                              tdg++,
+                              adt,
+                              bezt,
+                              2,
+                              sel_right,
+                              true,
+                              intvals,
+                              mtx,
+                              smtx,
+                              unit_scale,
+                              offset);
+            bezt->f3 |= BEZT_FLAG_TEMP_TAG;
           }
 
           /* only include main vert if selected */
-          if (sel2 && !use_local_center) {
+          if (sel_key && !use_local_center) {
             /* move handles relative to center */
-            if (is_translation_mode) {
-              if (sel1) {
+            if (graph_edit_is_translation_mode(t)) {
+              if (sel_left) {
                 td->flag |= TD_MOVEHANDLE1;
               }
-              if (sel3) {
+              if (sel_right) {
                 td->flag |= TD_MOVEHANDLE2;
               }
             }
 
             /* if handles were not selected, store their selection status */
-            if (!(sel1) || !(sel3)) {
+            if (!(sel_left) || !(sel_right)) {
               if (hdata == NULL) {
                 hdata = initTransDataCurveHandles(td, bezt);
               }
@@ -496,13 +537,14 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
                               adt,
                               bezt,
                               1,
-                              sel2,
+                              sel_key,
                               false,
                               intvals,
                               mtx,
                               smtx,
                               unit_scale,
                               offset);
+            bezt->f2 |= BEZT_FLAG_TEMP_TAG;
           }
           /* Special hack (must be done after #initTransDataCurveHandles(),
            * as that stores handle settings to restore...):
@@ -513,7 +555,7 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
            */
           if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) && ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) &&
               ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
-            if (hdata && (sel1) && (sel3)) {
+            if (hdata && (sel_left) && (sel_right)) {
               bezt->h1 = HD_ALIGN;
               bezt->h2 = HD_ALIGN;
             }
@@ -523,7 +565,7 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
     }
 
     /* Sets handles based on the selection */
-    testhandles_fcurve(fcu, use_handle);
+    testhandles_fcurve(fcu, BEZT_FLAG_TEMP_TAG, use_handle);
   }
 
   if (is_prop_edit) {
@@ -551,15 +593,13 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
         cfra = (float)CFRA;
       }
 
-      /* only include BezTriples whose 'keyframe' occurs on the
-       * same side of the current frame as mouse (if applicable) */
       for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
+        /* only include BezTriples whose 'keyframe' occurs on the
+         * same side of the current frame as mouse (if applicable) */
         if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
-          const bool sel2 = (bezt->f2 & SELECT) != 0;
-          const bool sel1 = use_handle ? (bezt->f1 & SELECT) != 0 : sel2;
-          const bool sel3 = use_handle ? (bezt->f3 & SELECT) != 0 : sel2;
+          graph_bezt_get_transform_selection(t, bezt, use_handle, &sel_left, &sel_key, &sel_right);
 
-          if (sel1 || sel2) {
+          if (sel_left || sel_key) {
             td->dist = td->rdist = 0.0f;
           }
           else {
@@ -567,7 +607,7 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
           }
           td++;
 
-          if (sel2) {
+          if (sel_key) {
             td->dist = td->rdist = 0.0f;
           }
           else {
@@ -575,7 +615,7 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
           }
           td++;
 
-          if (sel3 || sel2) {
+          if (sel_right || sel_key) {
             td->dist = td->rdist = 0.0f;
           }
           else {

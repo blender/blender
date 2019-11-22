@@ -1036,10 +1036,14 @@ static BezTriple *cycle_offset_triple(
   return out;
 }
 
-/* This function recalculates the handles of an F-Curve
- * If the BezTriples have been rearranged, sort them first before using this.
+/**
+ * Variant of #calchandles_fcurve() that allows calculating based on a different select flag.
+ *
+ * \param sel_flag: The flag (bezt.f1/2/3) value to use to determine selection. Usually `SELECT`,
+ *                  but may want to use a different one at times (if caller does not operate on
+ *                  selection).
  */
-void calchandles_fcurve(FCurve *fcu)
+void calchandles_fcurve_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
 {
   BezTriple *bezt, *prev, *next;
   int a = fcu->totvert;
@@ -1075,7 +1079,7 @@ void calchandles_fcurve(FCurve *fcu)
     }
 
     /* calculate auto-handles */
-    BKE_nurb_handle_calc(bezt, prev, next, true, fcu->auto_smoothing);
+    BKE_nurb_handle_calc_ex(bezt, prev, next, handle_sel_flag, true, fcu->auto_smoothing);
 
     /* for automatic ease in and out */
     if (BEZT_IS_AUTOH(bezt) && !cycle) {
@@ -1121,7 +1125,29 @@ void calchandles_fcurve(FCurve *fcu)
   }
 }
 
-void testhandles_fcurve(FCurve *fcu, const bool use_handle)
+/**
+ * This function recalculates the handles of an F-Curve. Acts based on selection with `SELECT`
+ * flag. To use a different flag, use #calchandles_fcurve_ex().
+ *
+ * If the BezTriples have been rearranged, sort them first before using this.
+ */
+void calchandles_fcurve(FCurve *fcu)
+{
+  calchandles_fcurve_ex(fcu, SELECT);
+}
+
+/**
+ * Update handles, making sure the handle-types are valid (e.g. correctly deduced from an "Auto"
+ * type), and recalculating their position vectors.
+ * Use when something has changed handle positions.
+ *
+ * \param sel_flag: The flag (bezt.f1/2/3) value to use to determine selection. Usually `SELECT`,
+ *                  but may want to use a different one at times (if caller does not operate on
+ *                  selection).
+ * \param use_handle: Check selection state of individual handles, otherwise always update both
+ *                    handles if the key is selected.
+ */
+void testhandles_fcurve(FCurve *fcu, eBezTriple_Flag sel_flag, const bool use_handle)
 {
   BezTriple *bezt;
   unsigned int a;
@@ -1133,11 +1159,11 @@ void testhandles_fcurve(FCurve *fcu, const bool use_handle)
 
   /* loop over beztriples */
   for (a = 0, bezt = fcu->bezt; a < fcu->totvert; a++, bezt++) {
-    BKE_nurb_bezt_handle_test(bezt, use_handle);
+    BKE_nurb_bezt_handle_test(bezt, sel_flag, use_handle);
   }
 
   /* recalculate handles */
-  calchandles_fcurve(fcu);
+  calchandles_fcurve_ex(fcu, sel_flag);
 }
 
 /* This function sorts BezTriples so that they are arranged in chronological order,

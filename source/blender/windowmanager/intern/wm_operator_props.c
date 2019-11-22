@@ -396,8 +396,38 @@ void WM_operator_properties_select_operation_simple(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+/**
+ * Selecting and tweaking items are overlapping operations. Getting both to work without conflicts
+ * requires special care. See
+ * https://wiki.blender.org/wiki/Human_Interface_Guidelines/Selection#Select-tweaking for the
+ * desired behavior.
+ *
+ * For default click selection (with no modifier keys held), the select operators can do the
+ * following:
+ * - On a mouse press on an unselected item, change selection and finish immidiately after.
+ *   This sends an undo push and allows transform to take over should a tweak event be caught now.
+ * - On a mouse press on a selected item, don't change selection state, but start modal execution
+ *   of the operator. Idea is that we wait with deselecting other items until we know that the
+ *   intention wasn't to tweak (mouse press+drag) all selected items.
+ * - If a tweak is recognized before the release event happens, cancel the operator, so that
+ *   transform can take over and no undo-push is sent.
+ * - If the release event occurs rather than a tweak one, deselect all items but the one under the
+ *   cursor, and finish the modal operator.
+ *
+ * This utility, together with #WM_generic_select_invoke() and #WM_generic_select_modal() should
+ * help getting the wanted behavior to work. Most generic logic should be handled in these, so that
+ * the select operators only have to care for the case dependent handling.
+ *
+ * Every select operator has slightly diferent requirements, e.g. VSE strip selection also needs to
+ * account for handle selection. This should be the baseline behavior though.
+ */
 void WM_operator_properties_generic_select(wmOperatorType *ot)
 {
+  /* On the initial mouse press, this is set by #WM_generic_select_modal() to let the select
+   * operator exec callback know that it should not __yet__ deselect other items when clicking on
+   * an already selected one. Instead should make sure the operator executes modal then (see
+   * #WM_generic_select_modal()), so that the exec callback can be called a second time on the
+   * mouse release event to do this part. */
   PropertyRNA *prop = RNA_def_boolean(
       ot->srna, "wait_to_deselect_others", false, "Wait to Deselect Others", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
