@@ -32,8 +32,8 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
-#include "BKE_suggestions.h"
 #include "BKE_text.h"
+#include "BKE_text_suggestions.h"
 #include "BKE_screen.h"
 
 #include "ED_text.h"

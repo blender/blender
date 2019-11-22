@@ -30,7 +30,7 @@
 #include "BLI_string.h"
 
 #include "DNA_text_types.h"
-#include "BKE_suggestions.h"
+#include "BKE_text_suggestions.h" /* Own include. */
 
 /**********************/
 /* Static definitions */

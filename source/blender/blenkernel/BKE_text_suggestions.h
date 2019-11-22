@@ -16,8 +16,8 @@
  * The Original Code is Copyright (C) 2008, Blender Foundation
  * All rights reserved.
  */
-#ifndef __BKE_SUGGESTIONS_H__
-#define __BKE_SUGGESTIONS_H__
+#ifndef __BKE_TEXT_SUGGESTIONS_H__
+#define __BKE_TEXT_SUGGESTIONS_H__
 
 /** \file
  * \ingroup bke
@@ -84,4 +84,4 @@ void texttool_docs_clear(void);
 }
 #endif
 
-#endif
+#endif /* __BKE_TEXT_SUGGESTIONS_H__ */

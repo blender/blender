@@ -32,7 +32,6 @@
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 
-// #include "BKE_suggestions.h"
 #include "BKE_report.h"
 
 #include "UI_resources.h"

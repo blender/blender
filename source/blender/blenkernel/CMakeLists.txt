@@ -217,8 +217,8 @@ set(SRC
   intern/subdiv_stats.c
   intern/subdiv_topology.c
   intern/subsurf_ccg.c
-  intern/suggestions.c
   intern/text.c
+  intern/text_suggestions.c
   intern/texture.c
   intern/tracking.c
   intern/tracking_auto.c
@@ -352,8 +352,8 @@ set(SRC
   BKE_subdiv_mesh.h
   BKE_subdiv_topology.h
   BKE_subsurf.h
-  BKE_suggestions.h
   BKE_text.h
+  BKE_text_suggestions.h
   BKE_texture.h
   BKE_tracking.h
   BKE_undo_system.h
