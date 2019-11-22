@@ -7331,6 +7331,15 @@ void BM_mesh_bevel(BMesh *bm,
   if (profile >= 0.950f) { /* r ~ 692, so PRO_SQUARE_R is 1e4 */
     bp.pro_super_r = PRO_SQUARE_R;
   }
+  else if (fabsf(bp.pro_super_r - PRO_CIRCLE_R) < 1e-4) {
+    bp.pro_super_r = PRO_CIRCLE_R;
+  }
+  else if (fabsf(bp.pro_super_r - PRO_LINE_R) < 1e-4) {
+    bp.pro_super_r = PRO_LINE_R;
+  }
+  else if (bp.pro_super_r < 1e-4) {
+    bp.pro_super_r = PRO_SQUARE_IN_R;
+  }
 
   if (bp.offset > 0) {
     /* primary alloc */
