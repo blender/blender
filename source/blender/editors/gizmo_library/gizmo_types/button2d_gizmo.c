@@ -83,7 +83,15 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz, const float color[4],
   immUniformColor4fv(color);
 
   /* TODO, other draw styles */
-  imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);
+  if (color[3] == 1.0 && select == false) {
+    GPU_polygon_smooth(0);
+    imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);
+    imm_draw_circle_wire_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);
+    GPU_polygon_smooth(1);
+  }
+  else {
+    imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);
+  }
 
   immUnbindProgram();
 
@@ -101,6 +109,7 @@ static void button2d_draw_intern(const bContext *C,
   if (button->is_init == false) {
     button->is_init = true;
     PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
+    button->icon = -1;
     if (RNA_property_is_set(gz->ptr, prop)) {
       button->icon = RNA_property_enum_get(gz->ptr, prop);
     }
@@ -163,6 +172,11 @@ static void button2d_draw_intern(const bContext *C,
   else {
 
     GPU_blend(true);
+
+    if (draw_options & ED_GIZMO_BUTTON_SHOW_BACKDROP) {
+      button2d_geom_draw_backdrop(gz, color, select);
+    }
+
     if (button->shape_batch[0] != NULL) {
       GPU_line_smooth(true);
       GPU_polygon_smooth(false);
@@ -170,7 +184,21 @@ static void button2d_draw_intern(const bContext *C,
       for (uint i = 0; i < ARRAY_SIZE(button->shape_batch) && button->shape_batch[i]; i++) {
         /* Invert line color for wire. */
         GPU_batch_program_set_builtin(button->shape_batch[i], GPU_SHADER_2D_UNIFORM_COLOR);
-        GPU_batch_uniform_4f(button->shape_batch[i], "color", UNPACK4(color));
+
+        if (draw_options & ED_GIZMO_BUTTON_SHOW_BACKDROP) {
+          /* If we have a backdrop already,
+           * draw a contrasting shape over it instead of drawing it the same color.
+           * Use a low value instead of 50% so some darker primary colors
+           * aren't considered being close to black. */
+          float color_contrast[4];
+          copy_v3_fl(color_contrast, rgb_to_grayscale(color) < 0.2f ? 1 : 0);
+          color_contrast[3] = color[3];
+          GPU_batch_uniform_4f(button->shape_batch[i], "color", UNPACK4(color_contrast));
+        }
+        else {
+          GPU_batch_uniform_4f(button->shape_batch[i], "color", UNPACK4(color));
+        }
+
         GPU_batch_draw(button->shape_batch[i]);
 
         if (draw_options & ED_GIZMO_BUTTON_SHOW_OUTLINE) {
@@ -182,11 +210,7 @@ static void button2d_draw_intern(const bContext *C,
       GPU_line_smooth(false);
       GPU_polygon_smooth(true);
     }
-    else if (button->icon != ICON_NONE) {
-      if (draw_options & ED_GIZMO_BUTTON_SHOW_BACKDROP) {
-        button2d_geom_draw_backdrop(gz, color, select);
-      }
-
+    else if (button->icon != -1) {
       float pos[2];
       if (is_3d) {
         const float fac = 2.0f;
