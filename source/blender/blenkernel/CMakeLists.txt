@@ -99,6 +99,7 @@ set(SRC
   intern/crazyspace.c
   intern/curve.c
   intern/curve_decimate.c
+  intern/curveprofile.c
   intern/customdata.c
   intern/customdata_file.c
   intern/data_transfer.c
@@ -154,12 +155,12 @@ set(SRC
   intern/mesh_iterators.c
   intern/mesh_mapping.c
   intern/mesh_merge.c
+  intern/mesh_mirror.c
   intern/mesh_remap.c
   intern/mesh_remesh_voxel.c
   intern/mesh_runtime.c
   intern/mesh_tangent.c
   intern/mesh_validate.c
-  intern/mirror.c
   intern/modifier.c
   intern/movieclip.c
   intern/multires.c
@@ -185,7 +186,6 @@ set(SRC
   intern/pbvh_bmesh.c
   intern/pbvh_parallel.cc
   intern/pointcache.c
-  intern/curveprofile.c
   intern/report.c
   intern/rigidbody.c
   intern/scene.c
@@ -266,6 +266,7 @@ set(SRC
   BKE_context.h
   BKE_crazyspace.h
   BKE_curve.h
+  BKE_curveprofile.h
   BKE_customdata.h
   BKE_customdata_file.h
   BKE_data_transfer.h
@@ -311,11 +312,11 @@ set(SRC
   BKE_mesh.h
   BKE_mesh_iterators.h
   BKE_mesh_mapping.h
+  BKE_mesh_mirror.h
   BKE_mesh_remap.h
   BKE_mesh_remesh_voxel.h
   BKE_mesh_runtime.h
   BKE_mesh_tangent.h
-  BKE_mirror.h
   BKE_modifier.h
   BKE_movieclip.h
   BKE_multires.h
@@ -331,7 +332,6 @@ set(SRC
   BKE_particle.h
   BKE_pbvh.h
   BKE_pointcache.h
-  BKE_curveprofile.h
   BKE_report.h
   BKE_rigidbody.h
   BKE_scene.h

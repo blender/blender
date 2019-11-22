@@ -53,7 +53,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
-#include "BKE_mirror.h"
+#include "BKE_mesh_mirror.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_node.h"
@@ -8342,7 +8342,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
           mmd.flag |= MOD_MIR_AXIS_Z | MOD_MIR_BISECT_AXIS_Z;
           break;
       }
-      mesh_mirror = BKE_mirror_apply_mirror_on_axis(&mmd, NULL, ob, mesh, axis);
+      mesh_mirror = BKE_mesh_mirror_apply_mirror_on_axis(&mmd, NULL, ob, mesh, axis);
       if (mesh_mirror) {
         BKE_mesh_nomain_to_mesh(mesh_mirror, mesh, ob, &CD_MASK_MESH, true);
       }

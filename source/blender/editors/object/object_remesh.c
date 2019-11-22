@@ -44,7 +44,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
-#include "BKE_mirror.h"
+#include "BKE_mesh_mirror.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -328,7 +328,8 @@ static Mesh *remesh_symmetry_bisect(Main *bmain, Mesh *mesh, eSymmetryAxes symme
       zero_v3(plane_no);
       plane_no[axis] = -1.0f;
       mesh_bisect_temp = mesh_bisect;
-      mesh_bisect = BKE_mirror_bisect_on_mirror_plane(&mmd, mesh_bisect, axis, plane_co, plane_no);
+      mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane(
+          &mmd, mesh_bisect, axis, plane_co, plane_no);
       if (mesh_bisect_temp != mesh_bisect) {
         BKE_id_free(bmain, mesh_bisect_temp);
       }
@@ -357,7 +358,7 @@ static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmet
       mmd.flag = 0;
       mmd.flag &= MOD_MIR_AXIS_X << i;
       mesh_mirror_temp = mesh_mirror;
-      mesh_mirror = BKE_mirror_apply_mirror_on_axis(&mmd, NULL, ob, mesh_mirror, axis);
+      mesh_mirror = BKE_mesh_mirror_apply_mirror_on_axis(&mmd, NULL, ob, mesh_mirror, axis);
       if (mesh_mirror_temp != mesh_mirror) {
         BKE_id_free(NULL, mesh_mirror_temp);
       }

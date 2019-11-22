@@ -30,7 +30,7 @@
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
-#include "BKE_mirror.h"
+#include "BKE_mesh_mirror.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
 
@@ -41,11 +41,11 @@
 
 #include "MOD_modifiertypes.h"
 
-Mesh *BKE_mirror_bisect_on_mirror_plane(MirrorModifierData *mmd,
-                                        const Mesh *mesh,
-                                        int axis,
-                                        const float plane_co[3],
-                                        float plane_no[3])
+Mesh *BKE_mesh_mirror_bisect_on_mirror_plane(MirrorModifierData *mmd,
+                                             const Mesh *mesh,
+                                             int axis,
+                                             const float plane_co[3],
+                                             float plane_no[3])
 {
   bool do_bisect_flip_axis = ((axis == 0 && mmd->flag & MOD_MIR_BISECT_FLIP_AXIS_X) ||
                               (axis == 1 && mmd->flag & MOD_MIR_BISECT_FLIP_AXIS_Y) ||
@@ -97,11 +97,11 @@ Mesh *BKE_mirror_bisect_on_mirror_plane(MirrorModifierData *mmd,
   return result;
 }
 
-Mesh *BKE_mirror_apply_mirror_on_axis(MirrorModifierData *mmd,
-                                      const ModifierEvalContext *UNUSED(ctx),
-                                      Object *ob,
-                                      const Mesh *mesh,
-                                      int axis)
+Mesh *BKE_mesh_mirror_apply_mirror_on_axis(MirrorModifierData *mmd,
+                                           const ModifierEvalContext *UNUSED(ctx),
+                                           Object *ob,
+                                           const Mesh *mesh,
+                                           int axis)
 {
   const float tolerance_sq = mmd->tolerance * mmd->tolerance;
   const bool do_vtargetmap = (mmd->flag & MOD_MIR_NO_MERGE) == 0;
@@ -157,7 +157,7 @@ Mesh *BKE_mirror_apply_mirror_on_axis(MirrorModifierData *mmd,
 
   Mesh *mesh_bisect = NULL;
   if (do_bisect) {
-    mesh_bisect = BKE_mirror_bisect_on_mirror_plane(mmd, mesh, axis, plane_co, plane_no);
+    mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane(mmd, mesh, axis, plane_co, plane_no);
     mesh = mesh_bisect;
   }
 

@@ -30,7 +30,7 @@
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
-#include "BKE_mirror.h"
+#include "BKE_mesh_mirror.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
 
@@ -78,11 +78,11 @@ static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 
   /* check which axes have been toggled and mirror accordingly */
   if (mmd->flag & MOD_MIR_AXIS_X) {
-    result = BKE_mirror_apply_mirror_on_axis(mmd, ctx, ob, result, 0);
+    result = BKE_mesh_mirror_apply_mirror_on_axis(mmd, ctx, ob, result, 0);
   }
   if (mmd->flag & MOD_MIR_AXIS_Y) {
     Mesh *tmp = result;
-    result = BKE_mirror_apply_mirror_on_axis(mmd, ctx, ob, result, 1);
+    result = BKE_mesh_mirror_apply_mirror_on_axis(mmd, ctx, ob, result, 1);
     if (tmp != mesh) {
       /* free intermediate results */
       BKE_id_free(NULL, tmp);
@@ -90,7 +90,7 @@ static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
   }
   if (mmd->flag & MOD_MIR_AXIS_Z) {
     Mesh *tmp = result;
-    result = BKE_mirror_apply_mirror_on_axis(mmd, ctx, ob, result, 2);
+    result = BKE_mesh_mirror_apply_mirror_on_axis(mmd, ctx, ob, result, 2);
     if (tmp != mesh) {
       /* free intermediate results */
       BKE_id_free(NULL, tmp);
