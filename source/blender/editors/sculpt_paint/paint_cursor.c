@@ -1216,7 +1216,7 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr, SculptSession
 
 static void sculpt_multiplane_scrape_preview_draw(const uint gpuattr,
                                                   SculptSession *ss,
-                                                  float *outline_col,
+                                                  const float outline_col[3],
                                                   float outline_alpha)
 {
   float local_mat_inv[4][4];
