@@ -1403,9 +1403,11 @@ void DepsgraphRelationBuilder::build_action(bAction *action)
   if (built_map_.checkIsBuiltAndTag(action)) {
     return;
   }
-  TimeSourceKey time_src_key;
-  ComponentKey animation_key(&action->id, NodeType::ANIMATION);
-  add_relation(time_src_key, animation_key, "TimeSrc -> Animation");
+  if (!BLI_listbase_is_empty(&action->curves)) {
+    TimeSourceKey time_src_key;
+    ComponentKey animation_key(&action->id, NodeType::ANIMATION);
+    add_relation(time_src_key, animation_key, "TimeSrc -> Animation");
+  }
 }
 
 void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
