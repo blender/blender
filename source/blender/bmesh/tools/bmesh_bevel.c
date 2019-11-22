@@ -5492,7 +5492,11 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
       }
       else { /* Get the last of the two BoundVerts. */
         weld2 = bndv;
-        move_weld_profile_planes(bv, weld1, weld2); /* Profile recalculated in next loop. */
+        move_weld_profile_planes(bv, weld1, weld2);
+        if (!bp->use_custom_profile) { /* Else profile recalculated in next loop. */
+          calculate_profile(bp, weld1, !weld1->is_profile_start, false);
+          calculate_profile(bp, weld2, !weld2->is_profile_start, false);
+        }
       }
     }
   } while ((bndv = bndv->next) != vm->boundstart);
