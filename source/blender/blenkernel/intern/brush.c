@@ -1576,6 +1576,9 @@ float BKE_brush_curve_strength(const Brush *br, float p, const float len)
     case BRUSH_CURVE_SMOOTH:
       strength = 3.0f * p * p - 2.0f * p * p * p;
       break;
+    case BRUSH_CURVE_SMOOTHER:
+      strength = pow3f(p) * (p * (p * 6.0f - 15.0f) + 10.0f);
+      break;
     case BRUSH_CURVE_ROOT:
       strength = sqrtf(p);
       break;

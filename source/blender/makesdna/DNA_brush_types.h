@@ -199,6 +199,7 @@ typedef enum eBrushCurvePreset {
   BRUSH_CURVE_POW4 = 6,
   BRUSH_CURVE_INVSQUARE = 7,
   BRUSH_CURVE_CONSTANT = 8,
+  BRUSH_CURVE_SMOOTHER = 9,
 } eBrushCurvePreset;
 
 typedef enum eBrushElasticDeformType {
