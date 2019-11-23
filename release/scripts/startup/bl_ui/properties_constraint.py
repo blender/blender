@@ -492,6 +492,8 @@ class ConstraintButtonsPanel:
         col.prop(con, "frame_start", text="Start")
         col.prop(con, "frame_end", text="End")
 
+        layout.prop(con, "mix_mode", text="Mix")
+
     def LOCKED_TRACK(self, _context, layout, con):
         self.target_template(layout, con)
 

@@ -1235,6 +1235,27 @@ bool invert_m4_m4(float inverse[4][4], const float mat[4][4])
 #endif
 }
 
+/**
+ * Combines transformations, handling scale separately in a manner equivalent
+ * to the Aligned Inherit Scale mode, in order to avoid creating shear.
+ * If A scale is uniform, the result is equivalent to ordinary multiplication.
+ */
+void mul_m4_m4m4_aligned_scale(float R[4][4], const float A[4][4], const float B[4][4])
+{
+  float loc_a[3], rot_a[3][3], size_a[3];
+  float loc_b[3], rot_b[3][3], size_b[3];
+  float loc_r[3], rot_r[3][3], size_r[3];
+
+  mat4_to_loc_rot_size(loc_a, rot_a, size_a, A);
+  mat4_to_loc_rot_size(loc_b, rot_b, size_b, B);
+
+  mul_v3_m4v3(loc_r, A, loc_b);
+  mul_m3_m3m3_uniq(rot_r, rot_a, rot_b);
+  mul_v3_v3v3(size_r, size_a, size_b);
+
+  loc_rot_size_to_mat4(R, loc_r, rot_r, size_r);
+}
+
 /****************************** Linear Algebra *******************************/
 
 void transpose_m3(float mat[3][3])

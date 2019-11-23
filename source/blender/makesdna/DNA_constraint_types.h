@@ -336,6 +336,8 @@ typedef struct bActionConstraint {
   float min;
   float max;
   int flag;
+  char mix_mode;
+  char _pad[7];
   struct bAction *act;
   /** MAX_ID_NAME-2. */
   char subtarget[64];
@@ -864,6 +866,16 @@ typedef enum eActionConstraint_Flags {
   /* Bones use "object" part of target action, instead of "same bone name" part */
   ACTCON_BONE_USE_OBJECT_ACTION = (1 << 0),
 } eActionConstraint_Flags;
+
+/* bActionConstraint.mix_mode */
+typedef enum eActionConstraint_MixMode {
+  /* Multiply the action transformation on the right. */
+  ACTCON_MIX_AFTER_FULL = 0,
+  /* Multiply the action transformation on the right, with anti-shear scale handling. */
+  ACTCON_MIX_AFTER,
+  /* Multiply the action transformation on the left, with anti-shear scale handling. */
+  ACTCON_MIX_BEFORE,
+} eActionConstraint_MixMode;
 
 /* Locked-Axis Values (Locked Track) */
 typedef enum eLockAxis_Modes {

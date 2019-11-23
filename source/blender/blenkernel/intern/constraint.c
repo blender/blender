@@ -2062,36 +2062,21 @@ static void translike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
   bConstraintTarget *ct = targets->first;
 
   if (VALID_CONS_TARGET(ct)) {
-    if (data->mix_mode == TRANSLIKE_MIX_REPLACE) {
-      /* just copy the entire transform matrix of the target */
-      copy_m4_m4(cob->matrix, ct->matrix);
-    }
-    else {
-      float old_loc[3], old_rot[3][3], old_size[3];
-      float new_loc[3], new_rot[3][3], new_size[3];
+    switch (data->mix_mode) {
+      case TRANSLIKE_MIX_REPLACE:
+        copy_m4_m4(cob->matrix, ct->matrix);
+        break;
 
-      /* Separate matrices so they can be combined in a way that avoids shear. */
-      mat4_to_loc_rot_size(old_loc, old_rot, old_size, cob->matrix);
-      mat4_to_loc_rot_size(new_loc, new_rot, new_size, ct->matrix);
+      case TRANSLIKE_MIX_BEFORE:
+        mul_m4_m4m4_aligned_scale(cob->matrix, ct->matrix, cob->matrix);
+        break;
 
-      switch (data->mix_mode) {
-        case TRANSLIKE_MIX_BEFORE:
-          mul_v3_m4v3(new_loc, ct->matrix, old_loc);
-          mul_m3_m3m3(new_rot, new_rot, old_rot);
-          mul_v3_v3(new_size, old_size);
-          break;
+      case TRANSLIKE_MIX_AFTER:
+        mul_m4_m4m4_aligned_scale(cob->matrix, cob->matrix, ct->matrix);
+        break;
 
-        case TRANSLIKE_MIX_AFTER:
-          mul_v3_m4v3(new_loc, cob->matrix, new_loc);
-          mul_m3_m3m3(new_rot, old_rot, new_rot);
-          mul_v3_v3(new_size, old_size);
-          break;
-
-        default:
-          BLI_assert(false);
-      }
-
-      loc_rot_size_to_mat4(cob->matrix, new_loc, new_rot, new_size);
+      default:
+        BLI_assert(!"Unknown Copy Transforms mix mode");
     }
   }
 }
@@ -2555,6 +2540,9 @@ static void actcon_new_data(void *cdata)
 
   /* set type to 20 (Loc X), as 0 is Rot X for backwards compatibility */
   data->type = 20;
+
+  /* Set the mix mode to After Original with anti-shear scale handling. */
+  data->mix_mode = ACTCON_MIX_AFTER;
 }
 
 static void actcon_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
@@ -2695,18 +2683,28 @@ static void actcon_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
   }
 }
 
-static void actcon_evaluate(bConstraint *UNUSED(con), bConstraintOb *cob, ListBase *targets)
+static void actcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
+  bActionConstraint *data = con->data;
   bConstraintTarget *ct = targets->first;
 
   if (VALID_CONS_TARGET(ct)) {
-    float temp[4][4];
+    switch (data->mix_mode) {
+      case ACTCON_MIX_BEFORE:
+        mul_m4_m4m4_aligned_scale(cob->matrix, ct->matrix, cob->matrix);
+        break;
 
-    /* Nice and simple... we just need to multiply the matrices, as the get_target_matrix
-     * function has already taken care of everything else.
-     */
-    copy_m4_m4(temp, cob->matrix);
-    mul_m4_m4m4(cob->matrix, temp, ct->matrix);
+      case ACTCON_MIX_AFTER:
+        mul_m4_m4m4_aligned_scale(cob->matrix, cob->matrix, ct->matrix);
+        break;
+
+      case ACTCON_MIX_AFTER_FULL:
+        mul_m4_m4m4(cob->matrix, cob->matrix, ct->matrix);
+        break;
+
+      default:
+        BLI_assert(!"Unknown Action mix mode");
+    }
   }
 }
 
