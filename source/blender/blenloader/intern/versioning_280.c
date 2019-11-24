@@ -3712,10 +3712,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 281, 3)) {
-    if (U.view_rotate_sensitivity_turntable == 0) {
-      U.view_rotate_sensitivity_turntable = DEG2RADF(0.4f);
-      U.view_rotate_sensitivity_trackball = 1.0f;
-    }
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
         for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {

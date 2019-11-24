@@ -670,6 +670,10 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
    * Include next version bump.
    */
   {
+    if (userdef->view_rotate_sensitivity_turntable == 0.0f) {
+      userdef->view_rotate_sensitivity_turntable = DEG2RADF(0.4f);
+      userdef->view_rotate_sensitivity_trackball = 1.0f;
+    }
     /* pass */
   }
 
