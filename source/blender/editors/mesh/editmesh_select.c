@@ -2917,7 +2917,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
               SWAP(int, i_a, i_b);
             }
 
-            /* Merge the the groups. */
+            /* Merge the groups. */
             LISTBASE_FOREACH (LinkData *, n, &fgroup_listbase[i_b]) {
               BMFace *f_iter = n->data;
               BM_elem_index_set(f_iter, i_a);

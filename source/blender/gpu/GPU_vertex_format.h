@@ -75,7 +75,7 @@ typedef struct GPUVertAttr {
 
 BLI_STATIC_ASSERT(GPU_VERT_ATTR_NAMES_BUF_LEN <= 256,
                   "We use uchar as index inside the name buffer "
-                  "so GPU_VERT_ATTR_NAMES_BUF_LEN needs to be be "
+                  "so GPU_VERT_ATTR_NAMES_BUF_LEN needs to be "
                   "smaller than GPUVertFormat->name_offset and "
                   "GPUVertAttr->names maximum value");
 

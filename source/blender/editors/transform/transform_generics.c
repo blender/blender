@@ -1677,7 +1677,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       ((prop = RNA_struct_find_property(op->ptr, "orient_matrix")) &&
        RNA_property_is_set(op->ptr, prop)) &&
       ((t->flag & T_MODAL) ||
-       /* When using redo, don't use the the custom constraint matrix
+       /* When using redo, don't use the custom constraint matrix
         * if the user selects a different orientation. */
        (RNA_enum_get(op->ptr, "orient_type") == RNA_enum_get(op->ptr, "orient_matrix_type")))) {
     RNA_property_float_get_array(op->ptr, prop, &t->spacemtx[0][0]);

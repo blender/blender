@@ -609,7 +609,7 @@ enum {
 #define BA_TEMP_TAG (1 << 5)
 
 /**
- * Even if this is is tagged for transform, this flag means it's being locked in place.
+ * Even if this is tagged for transform, this flag means it's being locked in place.
  * Use for #SCE_XFORM_SKIP_CHILDREN.
  */
 #define BA_TRANSFORM_LOCKED_IN_PLACE (1 << 7)

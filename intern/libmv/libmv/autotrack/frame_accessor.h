@@ -83,7 +83,7 @@ struct FrameAccessor {
   //
   // Result is supposed to be a single channel image.
   //
-  // If region is NULL, it it assumed to be full-frame.
+  // If region is NULL, it assumed to be full-frame.
   virtual Key GetMaskForTrack(int clip,
                               int frame,
                               int track,

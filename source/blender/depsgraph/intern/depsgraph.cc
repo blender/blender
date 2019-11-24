@@ -290,7 +290,7 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
      * already a copy-on-write version or have a corresponding copy-on-write
      * version.
      *
-     * We try to enforce that in debug builds, for for release we play a bit
+     * We try to enforce that in debug builds, for release we play a bit
      * safer game here. */
     if ((id_orig->tag & LIB_TAG_COPIED_ON_WRITE) == 0) {
       /* TODO(sergey): This is nice sanity check to have, but it fails

@@ -271,7 +271,7 @@ static void node_reroute_inherit_type_recursive(bNodeTree *ntree, bNode *node, i
   const char *type_idname = nodeStaticSocketType(type, PROP_NONE);
 
   /* XXX it would be a little bit more efficient to restrict actual updates
-   * to rerout nodes connected to an updated node, but there's no reliable flag
+   * to reroute nodes connected to an updated node, but there's no reliable flag
    * to indicate updated nodes (node->update is not set on linking).
    */
 

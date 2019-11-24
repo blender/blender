@@ -203,7 +203,7 @@ finally:
 static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 {
   /**
-   * Method for for finding pairs:
+   * Method for finding pairs:
    *
    * - first create (vert -> eloop) mapping.
    * - loop over all eloops.

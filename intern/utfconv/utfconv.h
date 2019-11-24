@@ -30,14 +30,14 @@ extern "C" {
 #endif
 
 /**
- * Counts how many bytes is requered for for future utf-8 string using utf-16
+ * Counts how many bytes is required for future utf-8 string using utf-16
  * \param string16: pointer to working utf-16 string
  * \return How many bytes must be allocated includeng NULL.
  */
 size_t count_utf_8_from_16(const wchar_t *string16);
 
 /**
- * Counts how many wchar_t (two byte) is requered for for future utf-16 string using utf-8
+ * Counts how many wchar_t (two byte) is required for future utf-16 string using utf-8
  * \param string8: pointer to working utf-8 string
  * \return How many bytes must be allocated includeng NULL.
  */

@@ -1135,7 +1135,7 @@ static void update_voronoi_node_coloring(bNodeTree *ntree)
 }
 
 /* Previously, the output euclidean distance was actually the squared
- * euclidean distance. To fix this, we square the the output distance
+ * euclidean distance. To fix this, we square the output distance
  * socket if the distance metric is set to SHD_VORONOI_EUCLIDEAN.
  */
 static void update_voronoi_node_square_distance(bNodeTree *ntree)

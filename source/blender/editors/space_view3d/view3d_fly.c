@@ -146,7 +146,7 @@ typedef struct FlyInfo {
   struct Depsgraph *depsgraph;
   Scene *scene;
 
-  /** Needed for for updating that isn't triggered by input. */
+  /** Needed for updating that isn't triggered by input. */
   wmTimer *timer;
 
   short state;

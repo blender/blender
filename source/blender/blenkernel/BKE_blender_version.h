@@ -37,7 +37,7 @@
 #define BLENDER_VERSION_CHAR
 /** alpha/beta/rc/release, docs use this. */
 #define BLENDER_VERSION_CYCLE alpha
-/** Optionally set to 1,2,... for example to to get alpha1 or rc2. */
+/** Optionally set to 1,2,... for example to get alpha1 or rc2. */
 #define BLENDER_VERSION_CYCLE_NUMBER
 
 /** Defined in from blender.c */

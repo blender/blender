@@ -73,7 +73,7 @@ ccl_device void enqueue_ray_index_local(
     int queue_number,  /* Queue in which to enqueue ray index. */
     char enqueue_flag, /* True for threads whose ray index has to be enqueued. */
     int queuesize,     /* queue size. */
-    ccl_local_param unsigned int *local_queue_atomics, /* To to local queue atomics. */
+    ccl_local_param unsigned int *local_queue_atomics, /* To do local queue atomics. */
     ccl_global int *Queue_data,                        /* Queues. */
     ccl_global int *Queue_index)                       /* To do global queue atomics. */
 {

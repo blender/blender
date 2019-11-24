@@ -37,7 +37,7 @@ class GHOST_EventButton : public GHOST_Event {
    * \param time      The time this event was generated.
    * \param type      The type of this event.
    * \param window: The window of this event.
-   * \param button: The state of the buttons were at at the time of the event.
+   * \param button: The state of the buttons were at the time of the event.
    */
   GHOST_EventButton(GHOST_TUns64 time,
                     GHOST_TEventType type,

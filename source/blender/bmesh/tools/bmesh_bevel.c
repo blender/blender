@@ -4290,7 +4290,7 @@ static VMesh *adj_vmesh(BevelParams *bp, BevVert *bv)
 
   /* To place the center vertex:
    * 'negative_fullest' is the reflection of the original vertex across the boundverts' center.
-   * 'fullness' is the fraction of the way from the boundvert's centroid to to the original vertex
+   * 'fullness' is the fraction of the way from the boundvert's centroid to the original vertex
    * (if positive) or to negative_fullest (if negative). */
   copy_v3_v3(original_vertex, bv->v->co);
   sub_v3_v3v3(negative_fullest, boundverts_center, original_vertex);
@@ -4795,9 +4795,9 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
     if (odd) {
       ang = 0.5f * angle_v3v3v3(bndv->nv.co, co1, bndv->next->nv.co);
       if (ang > BEVEL_SMALL_ANG) {
-        /* finalfrac is length along arms of isoceles triangle with top angle 2*ang
+        /* finalfrac is length along arms of isosceles triangle with top angle 2*ang
          * such that the base of the triangle is 1.
-         * This is used in interpolation along centerline in odd case.
+         * This is used in interpolation along center-line in odd case.
          * To avoid too big a drop from bv, cap finalfrac a 0.8 arbitrarily */
         finalfrac = 0.5f / sinf(ang);
         if (finalfrac > 0.8f) {
@@ -5506,7 +5506,7 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
   bndv = vm->boundstart;
   do {
     i = bndv->index;
-    /* bndv's last vert along the boundary arc is the the first of the next BoundVert's arc. */
+    /* bndv's last vert along the boundary arc is the first of the next BoundVert's arc. */
     copy_mesh_vert(vm, i, 0, ns, bndv->next->index, 0, 0);
 
     /* Fix the profile orientations if it's not a miter profile. */
@@ -6906,7 +6906,7 @@ static void find_even_superellipse_chords(int n, float r, double *xvals, double 
 }
 
 /** Find the profile's "fullness," which is the fraction of the space it takes up way from the
- * boundvert's centroid to to the original vertex for a non-custom profile, or in the case of a
+ * boundvert's centroid to the original vertex for a non-custom profile, or in the case of a
  * custom profile, the average "height" of the profile points along its centerline. */
 static float find_profile_fullness(BevelParams *bp)
 {

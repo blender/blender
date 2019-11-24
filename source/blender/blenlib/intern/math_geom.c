@@ -3070,7 +3070,7 @@ bool isect_ray_ray_epsilon_v3(const float ray_origin_a[3],
   cross_v3_v3v3(n, ray_direction_b, ray_direction_a);
   const float nlen = len_squared_v3(n);
 
-  /* `nlen` is the the square of the area formed by the two vectors. */
+  /* `nlen` is the square of the area formed by the two vectors. */
   if (UNLIKELY(nlen < epsilon)) {
     /* The lines are parallel. */
     return false;

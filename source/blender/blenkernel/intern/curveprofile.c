@@ -199,9 +199,11 @@ CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float
   return new_pt;
 }
 
-/** Sets the handle type of the selected control points.
- * \param type_*: Either HD_VECT or HD_AUTO. Handle types for the first and second handles.
- * \note: Requires curveprofile_update call after. */
+/**
+ * Sets the handle type of the selected control points.
+ * \param type_1, type_2: Either HD_VECT or HD_AUTO. Handle types for the first and second handles.
+ * \note: Requires curveprofile_update call after.
+ */
 void BKE_curveprofile_selected_handle_set(CurveProfile *profile, int type_1, int type_2)
 {
   for (int i = 0; i < profile->path_len; i++) {

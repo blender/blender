@@ -4263,8 +4263,7 @@ static int match_region_with_redraws(int spacetype,
         break;
       case SPACE_ACTION:
         /* if only 1 window or 3d windows, we do timeline too
-         * NOTE: Now we do do action editor in all these cases, since timeline is here
-         */
+         * NOTE: Now we do action editor in all these cases, since timeline is here. */
         if ((redraws & (TIME_ALL_ANIM_WIN | TIME_REGION | TIME_ALL_3D_WIN)) || from_anim_edit) {
           return 1;
         }

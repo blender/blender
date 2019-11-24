@@ -837,7 +837,7 @@ int foreach_libblock_validate_callback(void *user_data,
   if (*id_p != NULL) {
     if (!check_datablock_expanded(*id_p)) {
       data->is_valid = false;
-      /* TODO(sergey): Store which is is not valid? */
+      /* TODO(sergey): Store which is not valid? */
     }
   }
   return IDWALK_RET_NOP;

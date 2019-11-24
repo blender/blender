@@ -2735,7 +2735,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name Add Named Object Operator
  *
- * Use for for drag & drop.
+ * Use for drag & drop.
  * \{ */
 
 static int add_named_exec(bContext *C, wmOperator *op)

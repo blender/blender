@@ -530,7 +530,7 @@ enum {
    *
    * This difference can be important because previous settings may be used,
    * even with #PROP_SKIP_SAVE the repeat last operator will use the previous settings.
-   * Unlike #OP_IS_REPEAT the selection (and context generally) may be be different each time.
+   * Unlike #OP_IS_REPEAT the selection (and context generally) may be different each time.
    * See T60777 for an example of when this is needed.
    */
   OP_IS_REPEAT_LAST = (1 << 1),
