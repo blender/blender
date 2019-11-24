@@ -931,7 +931,9 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->alpha = 1.0f;
       break;
     case SCULPT_TOOL_CLAY:
-      br->spacing = 6;
+      br->flag |= BRUSH_SIZE_PRESSURE;
+      br->spacing = 3;
+      br->autosmooth_factor = 0.25f;
       br->normal_radius_factor = 0.75f;
       break;
     case SCULPT_TOOL_CLAY_STRIPS:

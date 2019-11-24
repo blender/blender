@@ -1741,8 +1741,9 @@ static float brush_strength(const Sculpt *sd,
 
   switch (brush->sculpt_tool) {
     case SCULPT_TOOL_CLAY:
+      final_pressure = pow4f(pressure);
       overlap = (1.0f + overlap) / 2.0f;
-      return 0.25f * alpha * flip * pressure * overlap * feather;
+      return 0.25f * alpha * flip * final_pressure * overlap * feather;
     case SCULPT_TOOL_DRAW:
     case SCULPT_TOOL_DRAW_SHARP:
     case SCULPT_TOOL_LAYER:
@@ -4659,7 +4660,6 @@ static void do_clay_brush_task_cb_ex(void *__restrict userdata,
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
       float intr[3];
       float val[3];
-
       closest_to_plane_normalized_v3(intr, test.plane_tool, vd.co);
 
       sub_v3_v3v3(val, intr, vd.co);
@@ -4695,6 +4695,7 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   const float radius = fabsf(ss->cache->radius);
+  const float initial_radius = fabsf(ss->cache->initial_radius);
   bool flip = ss->cache->bstrength < 0.0f;
 
   float offset = get_offset(sd, ss);
@@ -4730,7 +4731,7 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   d_offset = min_ff(radius, d_offset);
   d_offset = d_offset / radius;
   d_offset = 1.0f - d_offset;
-  displace = fabsf(radius * (0.25f + offset + (d_offset * 0.15f)));
+  displace = fabsf(initial_radius * (0.25f + offset + (d_offset * 0.15f)));
   if (flip) {
     displace = -displace;
   }
@@ -6514,8 +6515,10 @@ static void sculpt_update_cache_invariants(
 static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, float initial_size)
 {
   switch (brush->sculpt_tool) {
+    case SCULPT_TOOL_CLAY:
+      return max_ff(initial_size * 0.20f, initial_size * pow3f(cache->pressure));
     case SCULPT_TOOL_CLAY_STRIPS:
-      return max_ff(initial_size * 0.35f, initial_size * cache->pressure * cache->pressure);
+      return max_ff(initial_size * 0.35f, initial_size * pow2f(cache->pressure));
     default:
       return initial_size * cache->pressure;
   }
