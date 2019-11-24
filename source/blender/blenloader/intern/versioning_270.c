@@ -81,6 +81,9 @@
 
 #include "MEM_guardedalloc.h"
 
+/* Make preferences read-only, use versioning_userdef.c. */
+#define U (*((const UserDef *)&U))
+
 /* ************************************************** */
 /* GP Palettes API (Deprecated) */
 

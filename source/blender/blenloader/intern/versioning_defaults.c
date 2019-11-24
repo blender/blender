@@ -56,6 +56,9 @@
 
 #include "BLO_readfile.h"
 
+/* Make preferences read-only, use versioning_userdef.c. */
+#define U (*((const UserDef *)&U))
+
 /**
  * Rename if the ID doesn't exist.
  */

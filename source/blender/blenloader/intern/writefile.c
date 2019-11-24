@@ -181,6 +181,9 @@
 
 #include <errno.h>
 
+/* Make preferences read-only. */
+#define U (*((const UserDef *)&U))
+
 /* ********* my write, buffered writing with minimum size chunks ************ */
 
 /* Use optimal allocation since blocks of this size are kept in memory for undo. */

@@ -79,6 +79,9 @@
 
 #include "readfile.h"
 
+/* Make preferences read-only, use versioning_userdef.c. */
+#define U (*((const UserDef *)&U))
+
 static void do_versions_nodetree_image_default_alpha_output(bNodeTree *ntree)
 {
   bNode *node;

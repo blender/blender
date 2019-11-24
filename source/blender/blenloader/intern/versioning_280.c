@@ -96,6 +96,9 @@
 
 #include "MEM_guardedalloc.h"
 
+/* Make preferences read-only, use versioning_userdef.c. */
+#define U (*((const UserDef *)&U))
+
 static bScreen *screen_parent_find(const bScreen *screen)
 {
   /* Can avoid lookup if screen state isn't maximized/full

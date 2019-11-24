@@ -89,6 +89,9 @@
 
 #include <errno.h>
 
+/* Make preferences read-only, use versioning_userdef.c. */
+#define U (*((const UserDef *)&U))
+
 static void vcol_to_fcol(Mesh *me)
 {
   MFace *mface;

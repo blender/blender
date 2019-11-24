@@ -84,6 +84,9 @@
 
 #include <errno.h>
 
+/* Make preferences read-only, use versioning_userdef.c. */
+#define U (*((const UserDef *)&U))
+
 /* 2.50 patch */
 static void area_add_header_region(ScrArea *sa, ListBase *lb)
 {

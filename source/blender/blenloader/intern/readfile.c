@@ -159,6 +159,9 @@
 
 #include <errno.h>
 
+/* Make preferences read-only. */
+#define U (*((const UserDef *)&U))
+
 /**
  * READ
  * ====
