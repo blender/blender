@@ -1655,8 +1655,6 @@ def km_text(params):
         ("text.scroll", {"type": 'TRACKPADPAN', "value": 'ANY'}, None),
         ("text.selection_set", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
         ("text.cursor_set", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
-        ("text.selection_set", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-         {"properties": [("select", True)]}),
         ("text.scroll", {"type": 'WHEELUPMOUSE', "value": 'PRESS'},
          {"properties": [("lines", -1)]}),
         ("text.scroll", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS'},
