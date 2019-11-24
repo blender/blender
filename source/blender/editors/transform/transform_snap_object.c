@@ -65,7 +65,7 @@
 #include "transform.h"
 
 /* -------------------------------------------------------------------- */
-/** Internal Data Types
+/** \name Internal Data Types
  * \{ */
 
 #define MAX_CLIPPLANE_LEN 3
@@ -147,7 +147,7 @@ struct SnapObjectContext {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** Common Utilities
+/** \name Common Utilities
  * \{ */
 
 /**
@@ -1003,7 +1003,7 @@ static bool raycastObjects(SnapObjectContext *sctx,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** Snap Nearest utilities
+/** \name Snap Nearest utilities
  * \{ */
 
 /* Test BoundBox */
@@ -1161,7 +1161,7 @@ static bool test_projected_edge_dist(const struct DistProjectedAABBPrecalc *prec
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** Walk DFS
+/** \name Walk DFS
  * \{ */
 
 typedef void (*Nearest2DGetVertCoCallback)(const int index, const float **co, void *data);

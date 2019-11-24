@@ -30,7 +30,8 @@ extern "C" {
 
 struct ImBuf;
 
-/** Thumbnail creation and retrieval according to the 'Thumbnail Management Standard'
+/**
+ * Thumbnail creation and retrieval according to the 'Thumbnail Management Standard'
  * supported by Gimp, Gnome (Nautilus), KDE etc.
  * Reference: http://jens.triq.net/thumbnail-spec/index.html
  */

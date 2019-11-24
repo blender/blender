@@ -1462,7 +1462,8 @@ Object *BKE_object_copy(Main *bmain, const Object *ob)
   return ob_copy;
 }
 
-/** Perform deep-copy of object and its 'children' data-blocks (obdata, materials, actions, etc.).
+/**
+ * Perform deep-copy of object and its 'children' data-blocks (obdata, materials, actions, etc.).
  *
  * \param dupflag: Controls which sub-data are also duplicated
  * (see #eDupli_ID_Flags in DNA_userdef_types.h).

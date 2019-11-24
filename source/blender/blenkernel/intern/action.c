@@ -502,9 +502,10 @@ bool BKE_pose_channels_is_valid(const bPose *pose)
 #endif
 
 /**
- * Find the active posechannel for an object (we can't just use pose, as layer info is in armature)
+ * Find the active pose-channel for an object
+ * (we can't just use pose, as layer info is in armature)
  *
- * \note: Object, not bPose is used here, as we need layer info from Armature)
+ * \note #Object, not #bPose is used here, as we need layer info from Armature.
  */
 bPoseChannel *BKE_pose_channel_active(Object *ob)
 {

@@ -212,7 +212,7 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
    *       - use the edge-verts and (vert -> eloop) map
    *         to create a pair of eloop pointers, add these to a hash.
    *
-   * \note, each loop pair will be found twice.
+   * \note Each loop pair will be found twice.
    * could sort and optimize this but not really so important.
    */
 

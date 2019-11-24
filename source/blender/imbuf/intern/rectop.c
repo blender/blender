@@ -213,7 +213,9 @@ void IMB_blend_color_float(float dst[4],
   }
 }
 
-/** Crop */
+/* -------------------------------------------------------------------- */
+/** \name Crop
+ * \{ */
 
 static void rect_crop_4bytes(void **buf_p, const int size_src[2], const rcti *crop)
 {
@@ -279,8 +281,9 @@ void IMB_rect_crop(ImBuf *ibuf, const rcti *crop)
   ibuf->y = size_dst[1];
 }
 
-/** Re-alloc buffers at a new size */
-
+/**
+ * Re-alloc buffers at a new size.
+ */
 static void rect_realloc_4bytes(void **buf_p, const uint size[2])
 {
   if (*buf_p == NULL) {
@@ -317,6 +320,8 @@ void IMB_rect_size_set(ImBuf *ibuf, const uint size[2])
   ibuf->x = size[0];
   ibuf->y = size[1];
 }
+
+/** \} */
 
 /* clipping */
 

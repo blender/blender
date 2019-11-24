@@ -85,7 +85,9 @@ static const char *STUDIOLIGHT_MATCAP_DEFAULT = "basic_1.exr";
 
 /* ITER MACRO */
 
-/** Iter on all pixel giving texel center position and pixel pointer.
+/**
+ * Iter on all pixel giving texel center position and pixel pointer.
+ *
  * Arguments
  *   type : type of src.
  *   src : source buffer.

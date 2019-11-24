@@ -296,8 +296,9 @@ void DM_from_template(DerivedMesh *dm,
                       int numLoops,
                       int numPolys);
 
-/** utility function to release a DerivedMesh's layers
- * returns 1 if DerivedMesh has to be released by the backend, 0 otherwise
+/**
+ * Utility function to release a DerivedMesh's layers
+ * returns 1 if DerivedMesh has to be released by the backend, 0 otherwise.
  */
 int DM_release(DerivedMesh *dm);
 

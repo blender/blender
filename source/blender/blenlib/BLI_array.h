@@ -42,7 +42,8 @@
 
 /** \} */
 
-/** BLI_array.c
+/**
+ * BLI_array.c
  *
  * Doing the realloc in a macro isn't so simple,
  * so use a function the macros can use.

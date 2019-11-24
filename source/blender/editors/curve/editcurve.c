@@ -3341,7 +3341,8 @@ void CURVE_OT_reveal(wmOperatorType *ot)
 
 /********************** subdivide operator *********************/
 
-/** Divide the line segments associated with the currently selected
+/**
+ * Divide the line segments associated with the currently selected
  * curve nodes (Bezier or NURB). If there are no valid segment
  * selections within the current selection, nothing happens.
  */

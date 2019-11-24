@@ -168,8 +168,8 @@ bool CustomData_bmesh_merge(const struct CustomData *source,
 /** NULL's all members and resets the typemap. */
 void CustomData_reset(struct CustomData *data);
 
-/** frees data associated with a CustomData object (doesn't free the object
- * itself, though)
+/**
+ * Frees data associated with a CustomData object (doesn't free the object itself, though).
  */
 void CustomData_free(struct CustomData *data, int totelem);
 

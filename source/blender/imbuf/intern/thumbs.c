@@ -132,11 +132,17 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
 
 #undef THUMBNAILS
 
-/** ----- begin of adapted code from glib ---
+/* --- Begin of adapted code from glib. --- */
+
+/* -------------------------------------------------------------------- */
+/** \name Escape URI String
+ *
  * The following code is adapted from function g_escape_uri_string from the gnome glib
  * Source: http://svn.gnome.org/viewcvs/glib/trunk/glib/gconvert.c?view=markup
  * released under the Gnu General Public License.
- */
+ *
+ * \{ */
+
 typedef enum {
   UNSAFE_ALL = 0x1,        /* Escape all unsafe characters   */
   UNSAFE_ALLOW_PLUS = 0x2, /* Allows '+'  */
@@ -295,7 +301,9 @@ static void escape_uri_string(const char *string,
   *q = '\0';
 }
 
-/** ----- end of adapted code from glib --- */
+/** \} */
+
+/* --- End of adapted code from glib. --- */
 
 static bool thumbhash_from_path(const char *UNUSED(path), ThumbSource source, char *r_hash)
 {

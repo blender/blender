@@ -852,10 +852,10 @@ bool UI_context_copy_to_selected_list(bContext *C,
 }
 
 /**
- * called from both exec & poll
+ * Called from both exec & poll.
  *
- * \note: normally we wouldn't call a loop from within a poll function,
- * However this is a special case, and for regular poll calls, getting
+ * \note Normally we wouldn't call a loop from within a poll function,
+ * however this is a special case, and for regular poll calls, getting
  * the context from the button will fail early.
  */
 static bool copy_to_selected_button(bContext *C, bool all, bool poll)
@@ -1323,8 +1323,9 @@ static void UI_OT_editsource(wmOperatorType *ot)
 
 /**
  * EditTranslation utility funcs and operator,
- * \note: this includes utility functions and button matching checks.
- * this only works in conjunction with a py operator!
+ *
+ * \note this includes utility functions and button matching checks.
+ * this only works in conjunction with a Python operator!
  */
 static void edittranslation_find_po_file(const char *root,
                                          const char *uilng,

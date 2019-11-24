@@ -178,7 +178,8 @@ MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)
 
   return ml;
 }
-/** Compute bounding box of all MetaElems/MetaBalls.
+/**
+ * Compute bounding box of all MetaElems/MetaBalls.
  *
  * Bounding box is computed from polygonized surface. Object *ob is
  * basic MetaBall (usually with name Meta). All other MetaBalls (with

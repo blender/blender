@@ -59,9 +59,10 @@ typedef struct MVert {
   char flag, bweight;
 } MVert;
 
-/** Tessellation vertex color data.
+/**
+ * Tessellation vertex color data.
  * at the moment alpha is abused for vertex painting and not used for transparency,
- * note that red and blue are swapped
+ * note that red and blue are swapped.
  */
 typedef struct MCol {
   unsigned char a, r, g, b;

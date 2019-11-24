@@ -227,7 +227,8 @@ bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACo
 
 /* Low-level functions, also used by non-override RNA API like copy or equality check. */
 
-/** Generic RNA property diff function.
+/**
+ * Generic RNA property diff function.
  *
  * \note about \a prop and \a prop_a/prop_b parameters:
  * the former is expected to be an 'un-resolved' one,
@@ -816,8 +817,10 @@ bool RNA_struct_override_matches(Main *bmain,
   return matching;
 }
 
-/** Store needed second operands into \a storage data-block
- * for differential override operations. */
+/**
+ * Store needed second operands into \a storage data-block
+ * for differential override operations.
+ */
 bool RNA_struct_override_store(Main *bmain,
                                PointerRNA *ptr_local,
                                PointerRNA *ptr_reference,
@@ -977,8 +980,10 @@ static void rna_property_override_apply_ex(Main *bmain,
   }
 }
 
-/** Apply given \a override operations on \a ptr_dst, using \a ptr_src
- * (and \a ptr_storage for differential ops) as source. */
+/**
+ * Apply given \a override operations on \a ptr_dst, using \a ptr_src
+ * (and \a ptr_storage for differential ops) as source.
+ */
 void RNA_struct_override_apply(Main *bmain,
                                PointerRNA *ptr_dst,
                                PointerRNA *ptr_src,

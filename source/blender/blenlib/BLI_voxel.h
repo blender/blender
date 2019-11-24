@@ -24,7 +24,7 @@
  * \ingroup bli
  */
 
-/** find the index number of a voxel, given x/y/z integer coords and resolution vector */
+/** Find the index number of a voxel, given x/y/z integer coords and resolution vector. */
 
 #define BLI_VOXEL_INDEX(x, y, z, res) \
   ((int64_t)(x) + (int64_t)(y) * (int64_t)(res)[0] + \

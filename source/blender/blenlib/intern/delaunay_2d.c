@@ -115,8 +115,10 @@ static void validate_face_centroid(SymEdge *se);
 static void validate_cdt(CDT_state *cdt, bool check_all_tris);
 #endif
 
-/** return 1 if a,b,c forms CCW angle, -1 if a CW angle, 0 if straight.
- * For straight test, allow b to be withing eps of line. */
+/**
+ * Return 1 if a,b,c forms CCW angle, -1 if a CW angle, 0 if straight.
+ * For straight test, allow b to be withing eps of line.
+ */
 static int CCW_test(const double a[2], const double b[2], const double c[2], const double eps)
 {
   double det;
@@ -902,7 +904,8 @@ static LocateResult locate_point(CDT_state *cdt, const double p[2])
   return lr;
 }
 
-/** Return true if circumcircle(v1, v2, v3) does not contain p.
+/**
+ * Return true if circumcircle(v1, v2, v3) does not contain p.
  * To avoid possible infinite flip loops, we will say true even if p is inside the circle
  * but less than epsilon from the boundary; or if v1, v2, v3, form a straight line.
  */

@@ -38,8 +38,10 @@ struct ColorBand;
 
 #define MAX_STYLE_NAME 64
 
-/** default offered by Blender.
- * #uiFont.uifont_id */
+/**
+ * Default offered by Blender.
+ * #uiFont.uifont_id
+ */
 typedef enum eUIFont_ID {
   UIFONT_DEFAULT = 0,
   /*  UIFONT_BITMAP   = 1 */ /* UNUSED */
@@ -1024,9 +1026,11 @@ typedef enum eUserpref_UI_Flag {
   USER_HIDE_SYSTEM_BOOKMARKS = (1u << 31),
 } eUserpref_UI_Flag;
 
-/** #UserDef.uiflag2
+/**
+ * #UserDef.uiflag2
  *
- * \note don't add new flags here, use 'uiflag' which has flags free. */
+ * \note don't add new flags here, use 'uiflag' which has flags free.
+ */
 typedef enum eUserpref_UI_Flag2 {
   USER_UIFLAG2_UNUSED_0 = (1 << 0), /* cleared */
   USER_REGION_OVERLAP = (1 << 1),
@@ -1052,8 +1056,10 @@ typedef enum eUserpref_APP_Flag {
   USER_APP_LOCK_UI_LAYOUT = (1 << 0),
 } eUserpref_APP_Flag;
 
-/** Auto-Keying mode.
- * #UserDef.autokey_mode */
+/**
+ * Auto-Keying mode.
+ * #UserDef.autokey_mode
+ */
 typedef enum eAutokey_Mode {
   /* AUTOKEY_ON is a bitflag */
   AUTOKEY_ON = 1,
@@ -1064,15 +1070,18 @@ typedef enum eAutokey_Mode {
   AUTOKEY_MODE_EDITKEYS = 5,
 } eAutokey_Mode;
 
-/** Zoom to frame mode.
- * #UserDef.view_frame_type */
+/**
+ * Zoom to frame mode.
+ * #UserDef.view_frame_type
+ */
 typedef enum eZoomFrame_Mode {
   ZOOM_FRAME_MODE_KEEP_RANGE = 0,
   ZOOM_FRAME_MODE_SECONDS = 1,
   ZOOM_FRAME_MODE_KEYFRAMES = 2,
 } eZoomFrame_Mode;
 
-/** Auto-Keying flag
+/**
+ * Auto-Keying flag
  * #UserDef.autokey_flag (not strictly used when autokeying only -
  * is also used when keyframing these days).
  * \note #eAutokey_Flag is used with a macro, search for lines like IS_AUTOKEY_FLAG(INSERTAVAIL).
@@ -1121,16 +1130,20 @@ typedef enum eDupli_ID_Flags {
   USER_DUP_GPENCIL = (1 << 13),
 } eDupli_ID_Flags;
 
-/** Max anti alias draw method
- * #UserDef.gpu_viewport_antialias */
+/**
+ * Max anti alias draw method
+ * #UserDef.gpu_viewport_antialias
+ */
 typedef enum eOpenGL_AntiAliasMethod {
   USER_AA_NONE = 0,
   USER_AA_FXAA = 1,
   USER_AA_TAA8 = 2,
 } eOpenGL_AntiAliasMethod;
 
-/** Text draw options
- * #UserDef.text_render */
+/**
+ * Text draw options
+ * #UserDef.text_render
+ */
 typedef enum eText_Draw_Options {
   USER_TEXT_DISABLE_AA = (1 << 0),
 
@@ -1139,8 +1152,10 @@ typedef enum eText_Draw_Options {
   USER_TEXT_HINTING_FULL = (1 << 3),
 } eText_Draw_Options;
 
-/** Grease Pencil Settings.
- * #UserDef.gp_settings */
+/**
+ * Grease Pencil Settings.
+ * #UserDef.gp_settings
+ */
 typedef enum eGP_UserdefSettings {
   GP_PAINT_UNUSED_0 = (1 << 0),
 } eGP_UserdefSettings;
@@ -1149,8 +1164,10 @@ enum {
   USER_GIZMO_DRAW = (1 << 0),
 };
 
-/** Color Picker Types.
- * #UserDef.color_picker_type */
+/**
+ * Color Picker Types.
+ * #UserDef.color_picker_type
+ */
 typedef enum eColorPicker_Types {
   USER_CP_CIRCLE_HSV = 0,
   USER_CP_SQUARE_SV = 1,
@@ -1159,8 +1176,10 @@ typedef enum eColorPicker_Types {
   USER_CP_CIRCLE_HSL = 4,
 } eColorPicker_Types;
 
-/** Timecode display styles
- * #UserDef.timecode_style */
+/**
+ * Timecode display styles
+ * #UserDef.timecode_style
+ */
 typedef enum eTimecodeStyles {
   /**
    * As little info as is necessary to show relevant info with '+' to denote the frames

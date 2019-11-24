@@ -915,7 +915,8 @@ static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
   }
 }
 
-/** Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
+/**
+ * Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
  *
  * Used when defining an empty custom loop normals data layer,
  * to keep same shading as with autosmooth!

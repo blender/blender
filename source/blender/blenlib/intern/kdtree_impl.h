@@ -58,8 +58,10 @@ struct KDTree {
 
 #define KD_NODE_UNSET ((uint)-1)
 
-/** When set we know all values are unbalanced,
- * otherwise clear them when re-balancing: see T62210. */
+/**
+ * When set we know all values are unbalanced,
+ * otherwise clear them when re-balancing: see T62210.
+ */
 #define KD_NODE_ROOT_IS_INIT ((uint)-2)
 
 /* -------------------------------------------------------------------- */

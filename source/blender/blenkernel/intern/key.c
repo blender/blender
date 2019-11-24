@@ -2256,7 +2256,8 @@ void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, const float (*ofs
 
 /* ==========================================================*/
 
-/** Move shape key from org_index to new_index. Safe, clamps index to valid range,
+/**
+ * Move shape key from org_index to new_index. Safe, clamps index to valid range,
  * updates reference keys, the object's active shape index,
  * the 'frame' value in case of absolute keys, etc.
  * Note indices are expected in real values (not 'fake' shapenr +1 ones).

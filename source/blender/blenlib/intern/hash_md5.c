@@ -94,8 +94,9 @@ struct md5_ctx {
  * (RFC 1321, 3.1: Step 1) */
 static const unsigned char fillbuf[64] = {0x80, 0 /* , 0, 0, ...  */};
 
-/** Initialize structure containing state of computation.
- *  (RFC 1321, 3.3: Step 3)
+/**
+ * Initialize structure containing state of computation.
+ * (RFC 1321, 3.3: Step 3)
  */
 static void md5_init_ctx(struct md5_ctx *ctx)
 {
@@ -283,8 +284,9 @@ static void *md5_read_ctx(const struct md5_ctx *ctx, void *resbuf)
 
 /* Top level public functions. */
 
-/** Compute MD5 message digest for bytes read from 'stream'.
- *  The resulting message digest number will be written into the 16 bytes beginning at 'resblock'.
+/**
+ * Compute MD5 message digest for bytes read from 'stream'.
+ * The resulting message digest number will be written into the 16 bytes beginning at 'resblock'.
  * \return Non-zero if an error occurred.
  */
 int BLI_hash_md5_stream(FILE *stream, void *resblock)

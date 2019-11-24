@@ -797,8 +797,10 @@ bool BKE_id_copy(Main *bmain, const ID *id, ID **newid)
   return BKE_id_copy_ex(bmain, id, newid, LIB_ID_COPY_DEFAULT);
 }
 
-/** Does a mere memory swap over the whole IDs data (including type-specific memory).
- * \note Most internal ID data itself is not swapped (only IDProperties are). */
+/**
+ * Does a mere memory swap over the whole IDs data (including type-specific memory).
+ * \note Most internal ID data itself is not swapped (only IDProperties are).
+ */
 void BKE_id_swap(Main *bmain, ID *id_a, ID *id_b)
 {
   BLI_assert(GS(id_a->name) == GS(id_b->name));
@@ -1380,9 +1382,11 @@ void BKE_libblock_init_empty(ID *id)
   }
 }
 
-/** Generic helper to create a new empty data-block of given type in given \a bmain database.
+/**
+ * Generic helper to create a new empty data-block of given type in given \a bmain database.
  *
- * \param name: can be NULL, in which case we get default name for this ID type. */
+ * \param name: can be NULL, in which case we get default name for this ID type.
+ */
 void *BKE_id_new(Main *bmain, const short type, const char *name)
 {
   BLI_assert(bmain != NULL);
@@ -1936,7 +1940,8 @@ static void library_make_local_copying_check(ID *id,
   BLI_gset_remove(loop_tags, id, NULL);
 }
 
-/** Make linked data-blocks local.
+/**
+ * Make linked data-blocks local.
  *
  * \param bmain: Almost certainly global main.
  * \param lib: If not NULL, only make local data-blocks from this library.
@@ -2363,8 +2368,10 @@ void BKE_id_tag_clear_atomic(ID *id, int tag)
   atomic_fetch_and_and_int32(&id->tag, ~tag);
 }
 
-/** Check that given ID pointer actually is in G_MAIN.
- * Main intended use is for debug asserts in places we cannot easily get rid of G_Main... */
+/**
+ * Check that given ID pointer actually is in G_MAIN.
+ * Main intended use is for debug asserts in places we cannot easily get rid of G_Main...
+ */
 bool BKE_id_is_in_global_main(ID *id)
 {
   /* We do not want to fail when id is NULL here, even though this is a bit strange behavior...

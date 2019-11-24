@@ -33,7 +33,8 @@ enum FSMenuInsert;
 struct FSMenu;
 struct FSMenuEntry;
 
-/** Inserts a new fsmenu entry with the given \a path.
+/**
+ * Inserts a new fsmenu entry with the given \a path.
  * Duplicate entries are not added.
  * \param flag: Options for inserting the entry.
  */

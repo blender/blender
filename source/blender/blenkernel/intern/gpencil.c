@@ -1140,7 +1140,8 @@ int BKE_gpencil_object_material_ensure(Main *bmain, Object *ob, Material *materi
   return index;
 }
 
-/** Creates a new gpencil material and assigns it to object.
+/**
+ * Creates a new gpencil material and assigns it to object.
  *
  * \param *r_index: value is set to zero based index of the new material if r_index is not NULL
  */

@@ -400,7 +400,7 @@ typedef enum eStereo3dInterlaceType {
 typedef struct ImageFormatData {
   /**
    * R_IMF_IMTYPE_PNG, R_...
-   * \note, video types should only ever be set from this structure when used from RenderData.
+   * \note Video types should only ever be set from this structure when used from #RenderData.
    */
   char imtype;
   /**

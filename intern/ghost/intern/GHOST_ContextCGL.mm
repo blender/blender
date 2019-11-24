@@ -17,7 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_ContextCGL.mm
+/** \file
  *  \ingroup GHOST
  *
  * Definition of GHOST_ContextCGL class.

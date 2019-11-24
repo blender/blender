@@ -636,7 +636,8 @@ void BKE_libblock_unlink(Main *bmain,
   BKE_main_unlock(bmain);
 }
 
-/** Similar to libblock_remap, but only affects IDs used by given \a idv ID.
+/**
+ * Similar to libblock_remap, but only affects IDs used by given \a idv ID.
  *
  * \param old_idv: Unlike BKE_libblock_remap, can be NULL,
  * in which case all ID usages by given \a idv will be cleared.

@@ -57,8 +57,10 @@
 
 #ifdef WIN32
 
-/** Return true if the path is absolute ie starts with a drive specifier
- * (eg A:\) or is a UNC path. */
+/**
+ * Return true if the path is absolute ie starts with a drive specifier
+ * (eg A:\) or is a UNC path.
+ */
 static bool BLI_path_is_abs(const char *name);
 
 #endif /* WIN32 */
@@ -444,8 +446,10 @@ static int BLI_path_unc_prefix_len(const char *path)
 
 #if defined(WIN32)
 
-/** Return true if the path is absolute ie starts with a drive specifier
- * (eg A:\) or is a UNC path. */
+/**
+ * Return true if the path is absolute ie starts with a drive specifier
+ * (eg A:\) or is a UNC path.
+ */
 static bool BLI_path_is_abs(const char *name)
 {
   return (name[1] == ':' && (name[2] == '\\' || name[2] == '/')) || BLI_path_is_unc(name);

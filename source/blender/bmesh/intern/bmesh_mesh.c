@@ -1108,7 +1108,8 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
   }
 }
 
-/** Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
+/**
+ * Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
  *
  * Used when defining an empty custom loop normals data layer,
  * to keep same shading as with autosmooth!

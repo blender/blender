@@ -5068,8 +5068,10 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
   UI_block_funcN_set(block, NULL, NULL, NULL);
 }
 
-/** Template for a path creation widget intended for custom bevel profiles.
- * This section is quite similar to uiTemplateCurveMapping, but with reduced complexity */
+/**
+ * Template for a path creation widget intended for custom bevel profiles.
+ * This section is quite similar to #uiTemplateCurveMapping, but with reduced complexity.
+ */
 void uiTemplateCurveProfile(uiLayout *layout, PointerRNA *ptr, const char *propname)
 {
   RNAUpdateCb *cb;

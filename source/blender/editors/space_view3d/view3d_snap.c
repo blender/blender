@@ -231,7 +231,8 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 
 /* *************************************************** */
 
-/** Snaps the selection as a whole (use_offset=true) or each selected object to the given location.
+/**
+ * Snaps the selection as a whole (use_offset=true) or each selected object to the given location.
  *
  * \param snap_target_global: a location in global space to snap to
  * (eg. 3D cursor or active object).
@@ -762,10 +763,11 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 
 /* ********************************************** */
 
-/** Calculates the center position of the active object in global space.
+/**
+ * Calculates the center position of the active object in global space.
  *
  * Note: this could be exported to be a generic function.
- * see: calculateCenterActive
+ * see: #calculateCenterActive
  */
 static bool snap_calc_active_center(bContext *C, const bool select_only, float r_center[3])
 {

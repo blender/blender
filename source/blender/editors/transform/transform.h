@@ -213,8 +213,10 @@ typedef struct TransData2D {
   float ih1[2], ih2[2];
 } TransData2D;
 
-/** Used to store 2 handles for each #TransData in case the other handle wasn't selected. Also to
- * unset temporary flags. */
+/**
+ * Used to store 2 handles for each #TransData in case the other handle wasn't selected.
+ * Also to unset temporary flags.
+ */
 typedef struct TransDataCurveHandleFlags {
   char ih1, ih2;
   char *h1, *h2;

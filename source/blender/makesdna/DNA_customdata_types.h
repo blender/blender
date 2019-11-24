@@ -32,7 +32,7 @@ extern "C" {
 
 #include "DNA_defs.h"
 
-/** descriptor and storage for a custom data layer */
+/** Descriptor and storage for a custom data layer. */
 typedef struct CustomDataLayer {
   /** Type of data in layer. */
   int type;
@@ -63,9 +63,11 @@ typedef struct CustomDataExternal {
   char filename[1024];
 } CustomDataExternal;
 
-/** structure which stores custom element data associated with mesh elements
+/**
+ * Structure which stores custom element data associated with mesh elements
  * (vertices, edges or faces). The custom data is organized into a series of
- * layers, each with a data type (e.g. MTFace, MDeformVert, etc.). */
+ * layers, each with a data type (e.g. MTFace, MDeformVert, etc.).
+ */
 typedef struct CustomData {
   /** CustomDataLayers, ordered by type. */
   CustomDataLayer *layers;

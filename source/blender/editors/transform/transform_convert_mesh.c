@@ -192,8 +192,8 @@ static void editmesh_set_connectivity_distance(BMesh *bm,
             if (e_iter->l) {
               BMLoop *l_iter_radial, *l_first_radial;
               /**
-               * imaginary edge diagonally across quad,
-               * \note, this takes advantage of the rules of winding that we
+               * imaginary edge diagonally across quad.
+               * \note This takes advantage of the rules of winding that we
                * know 2 or more of a verts edges wont reference the same face twice.
                * Also, if the edge is hidden, the face will be hidden too.
                */

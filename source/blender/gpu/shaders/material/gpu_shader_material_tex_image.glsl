@@ -67,7 +67,7 @@ void node_tex_image_nearest(vec3 co, sampler2D ima, out vec4 color, out float al
   alpha = color.a;
 }
 
-/* @arg f: signed distance to texel center. */
+/** \param f: Signed distance to texel center. */
 void cubic_bspline_coefs(vec2 f, out vec2 w0, out vec2 w1, out vec2 w2, out vec2 w3)
 {
   vec2 f2 = f * f;

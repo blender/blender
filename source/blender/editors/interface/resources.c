@@ -971,9 +971,10 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 }
 
 /**
- * initialize default theme
- * \note: when you add new colors, created & saved themes need initialized
- * use function below, init_userdef_do_versions()
+ * Initialize default theme.
+ *
+ * \note When you add new colors, created & saved themes need initialized
+ * use function below, #init_userdef_do_versions.
  */
 void UI_theme_init_default(void)
 {

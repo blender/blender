@@ -1550,8 +1550,10 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 #define USE_RELATIVE_ROTATION
 /** Disable overlays, ignoring user setting (light wire gets in the way). */
 #define USE_RENDER_OVERRIDE
-/** Calculate a depth if the cursor isn't already over a depth
- * (not essential but feels buggy without). */
+/**
+ * Calculate a depth if the cursor isn't already over a depth
+ * (not essential but feels buggy without).
+ */
 #define USE_FAKE_DEPTH_INIT
 
 struct XFormAxisItem {

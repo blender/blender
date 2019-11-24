@@ -77,7 +77,7 @@ void mul_qt_qtqt(float q[4], const float q1[4], const float q2[4])
 }
 
 /**
- * \note:
+ * \note
  * Assumes a unit quaternion?
  *
  * in fact not, but you may want to use a unit quat, read on...
@@ -93,7 +93,7 @@ void mul_qt_qtqt(float q[4], const float q1[4], const float q2[4])
  * For people used to python mathutils, its like:
  * def mul_qt_v3(q, v): (q * Quaternion((0.0, v[0], v[1], v[2])) * q.conjugated())[1:]
  *
- * \note: multiplying by 3x3 matrix is ~25% faster.
+ * \note Multiplying by 3x3 matrix is ~25% faster.
  */
 void mul_qt_v3(const float q[4], float v[3])
 {

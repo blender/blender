@@ -45,7 +45,8 @@
 /* Numeric input which isn't allowing full numeric editing. */
 #define USE_FAKE_EDIT
 
-/** #NumInput.flag
+/**
+ * #NumInput.flag
  * (1 << 8) and below are reserved for public flags!
  */
 enum {

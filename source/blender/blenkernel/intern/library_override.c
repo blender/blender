@@ -221,7 +221,8 @@ ID *BKE_override_library_create_from_id(Main *bmain, ID *reference_id, const boo
   return local_id;
 }
 
-/** Create overridden local copies of all tagged data-blocks in given Main.
+/**
+ * Create overridden local copies of all tagged data-blocks in given Main.
  *
  * \note Set id->newid of overridden libs with newly created overrides,
  * caller is responsible to clean those pointers before/after usage as needed.

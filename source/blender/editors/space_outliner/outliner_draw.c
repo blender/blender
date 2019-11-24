@@ -415,7 +415,8 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
   }
 }
 
-/** Check if collection is already isolated.
+/**
+ * Check if collection is already isolated.
  *
  * A collection is isolated if all its parents and children are "visible".
  * All the other collections must be "invisible".

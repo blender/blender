@@ -249,8 +249,9 @@ typedef struct uiWidgetBase {
   uiWidgetBaseParameters uniform_params;
 } uiWidgetBase;
 
-/** uiWidgetType: for time being only for visual appearance,
- * later, a handling callback can be added too
+/**
+ * For time being only for visual appearance,
+ * later, a handling callback can be added too.
  */
 typedef struct uiWidgetType {
 

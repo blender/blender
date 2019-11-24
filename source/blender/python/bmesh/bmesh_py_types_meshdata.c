@@ -384,19 +384,21 @@ PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *data)
  * This is python type wraps a deform vert as a python dictionary,
  * hiding the #MDeformWeight on access, since the mapping is very close, eg:
  *
- * C:
- *     weight = defvert_find_weight(dv, group_nr);
- *     defvert_remove_group(dv, dw)
+ * \code{.c}
+ * weight = defvert_find_weight(dv, group_nr);
+ * defvert_remove_group(dv, dw)
+ * \endcode
  *
- * Py:
- *     weight = dv[group_nr]
- *     del dv[group_nr]
+ * \code{.py}
+ * weight = dv[group_nr]
+ * del dv[group_nr]
+ * \endcode
  *
- * \note: there is nothing BMesh specific here,
+ * \note There is nothing BMesh specific here,
  * its only that BMesh is the only part of blender that uses a hand written api like this.
  * This type could eventually be used to access lattice weights.
  *
- * \note: Many of blender-api's dict-like-wrappers act like ordered dicts,
+ * \note Many of blender-api's dict-like-wrappers act like ordered dicts,
  * This is intentionally _not_ ordered, the weights can be in any order and it won't matter,
  * the order should not be used in the api in any meaningful way (as with a python dict)
  * only expose as mapping, not a sequence.

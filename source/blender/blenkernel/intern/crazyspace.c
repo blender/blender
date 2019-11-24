@@ -251,8 +251,10 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
   }
 }
 
-/** returns an array of deform matrices for crazyspace correction, and the
- * number of modifiers left */
+/**
+ * Returns an array of deform matrices for crazyspace correction,
+ * and the number of modifiers left.
+ */
 int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgraph,
                                                        Scene *scene,
                                                        Object *ob,

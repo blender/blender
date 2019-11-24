@@ -793,10 +793,12 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 
 static MirrTopoStore_t mesh_topo_store = {NULL, -1. - 1, -1};
 
-/** mode is 's' start, or 'e' end, or 'u' use
+/**
+ * Mode is 's' start, or 'e' end, or 'u' use
  * if end, ob can be NULL.
- * \note, is supposed return -1 on error,
- * which callers are currently checking for, but is not used so far. */
+ * \note This is supposed return -1 on error,
+ * which callers are currently checking for, but is not used so far.
+ */
 int ED_mesh_mirror_topo_table(Object *ob, Mesh *me_eval, char mode)
 {
   if (mode == 'u') { /* use table */

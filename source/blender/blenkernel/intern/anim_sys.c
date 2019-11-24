@@ -180,8 +180,10 @@ AnimData *BKE_animdata_add_id(ID *id)
 
 /* Action Setter --------------------------------------- */
 
-/** Called when user tries to change the active action of an AnimData block
- * (via RNA, Outliner, etc.) */
+/**
+ * Called when user tries to change the active action of an AnimData block
+ * (via RNA, Outliner, etc.)
+ */
 bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
 {
   AnimData *adt = BKE_animdata_from_id(id);

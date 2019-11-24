@@ -546,7 +546,8 @@ static void merged_element_search_call_cb(struct bContext *C, void *UNUSED(arg1)
   }
 }
 
-/** Merged element search menu
+/**
+ * Merged element search menu
  * Created on activation of a merged or aggregated icon-row icon.
  */
 static uiBlock *merged_element_search_menu(bContext *C, ARegion *ar, void *data)

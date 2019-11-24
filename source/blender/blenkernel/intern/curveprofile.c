@@ -75,8 +75,10 @@ CurveProfile *BKE_curveprofile_copy(const CurveProfile *profile)
   return NULL;
 }
 
-/** Removes a specific point from the path of control points.
- * \note: Requires curveprofile_update call after. */
+/**
+ * Removes a specific point from the path of control points.
+ * \note Requires #BKE_curveprofile_update call after.
+ */
 bool BKE_curveprofile_remove_point(CurveProfile *profile, CurveProfilePoint *point)
 {
   CurveProfilePoint *pts;
@@ -105,9 +107,13 @@ bool BKE_curveprofile_remove_point(CurveProfile *profile, CurveProfilePoint *poi
   return true;
 }
 
-/** Removes every point in the widget with the supplied flag set, except for the first and last.
- * \param flag: CurveProfilePoint->flag.
- * \note: Requires curveprofile_update call after. */
+/**
+ * Removes every point in the widget with the supplied flag set, except for the first and last.
+ *
+ * \param flag: #CurveProfilePoint.flag.
+ *
+ * \note Requires #BKE_curveprofile_update call after.
+ */
 void BKE_curveprofile_remove_by_flag(CurveProfile *profile, const short flag)
 {
   int i_old, i_new, n_removed = 0;
@@ -134,10 +140,13 @@ void BKE_curveprofile_remove_by_flag(CurveProfile *profile, const short flag)
   profile->path_len -= n_removed;
 }
 
-/** Adds a new point at the specified location. The choice for which points to place the new vertex
+/**
+ * Adds a new point at the specified location. The choice for which points to place the new vertex
  * between is made by checking which control point line segment is closest to the new point and
  * placing the new vertex in between that segment's points.
- * \note: Requires curveprofile_update call after. */
+ *
+ * \note Requires #BKE_curveprofile_update call after.
+ */
 CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float y)
 {
   CurveProfilePoint *new_pt = NULL;
@@ -202,7 +211,8 @@ CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float
 /**
  * Sets the handle type of the selected control points.
  * \param type_1, type_2: Either HD_VECT or HD_AUTO. Handle types for the first and second handles.
- * \note: Requires curveprofile_update call after.
+ *
+ * \note Requires #BKE_curveprofile_update call after.
  */
 void BKE_curveprofile_selected_handle_set(CurveProfile *profile, int type_1, int type_2)
 {
@@ -234,8 +244,11 @@ void BKE_curveprofile_selected_handle_set(CurveProfile *profile, int type_1, int
   }
 }
 
-/** Flips the profile across the diagonal so that its orientation is reversed.
- * \note: Requires curveprofile_update call after.  */
+/**
+ * Flips the profile across the diagonal so that its orientation is reversed.
+ *
+ * \note Requires #BKE_curveprofile_update call after.
+ */
 void BKE_curveprofile_reverse(CurveProfile *profile)
 {
   /* When there are only two points, reversing shouldn't do anything. */
@@ -258,7 +271,9 @@ void BKE_curveprofile_reverse(CurveProfile *profile)
   profile->path = new_pts;
 }
 
-/** Builds a quarter circle profile with space on each side for 'support loops.' */
+/**
+ * Builds a quarter circle profile with space on each side for 'support loops.'
+ */
 static void CurveProfile_build_supports(CurveProfile *profile)
 {
   int n = profile->path_len;
@@ -292,7 +307,10 @@ static void CurveProfile_build_supports(CurveProfile *profile)
   profile->path[n - 1].h2 = HD_VECT;
 }
 
-/** Puts the widget's control points in a step pattern. Uses vector handles for each point. */
+/**
+ * Puts the widget's control points in a step pattern.
+ * Uses vector handles for each point.
+ */
 static void CurveProfile_build_steps(CurveProfile *profile)
 {
   int n, step_x, step_y;
@@ -329,7 +347,9 @@ static void CurveProfile_build_steps(CurveProfile *profile)
   }
 }
 
-/** Shorthand helper function for setting location and interpolation of a point. */
+/**
+ * Shorthand helper function for setting location and interpolation of a point.
+ */
 static void point_init(CurveProfilePoint *point, float x, float y, short flag, char h1, char h2)
 {
   point->x = x;
@@ -339,8 +359,11 @@ static void point_init(CurveProfilePoint *point, float x, float y, short flag, c
   point->h2 = h2;
 }
 
-/** Resets the profile to the current preset.
- * \note: Requires curveprofile_update call after. */
+/**
+ * Resets the profile to the current preset.
+ *
+ * \note Requires #BKE_curveprofile_update call after.
+ */
 void BKE_curveprofile_reset(CurveProfile *profile)
 {
   if (profile->path) {
@@ -429,15 +452,19 @@ void BKE_curveprofile_reset(CurveProfile *profile)
   }
 }
 
-/** Helper for 'curve_profile_create' samples. Returns whether both handles that make up the edge
- * are vector handles. */
+/**
+ * Helper for 'curve_profile_create' samples.
+ * Returns whether both handles that make up the edge are vector handles.
+ */
 static bool is_curved_edge(BezTriple *bezt, int i)
 {
   return (bezt[i].h2 != HD_VECT || bezt[i + 1].h1 != HD_VECT);
 }
 
-/** Used to set bezier handle locations in the sample creation process. Reduced copy of
- * #calchandleNurb_intern code in curve.c. */
+/**
+ * Used to set bezier handle locations in the sample creation process. Reduced copy of
+ * #calchandleNurb_intern code in curve.c.
+ */
 static void calchandle_profile(BezTriple *bezt, const BezTriple *prev, const BezTriple *next)
 {
 #define point_handle1 ((point_loc)-3)
@@ -517,10 +544,12 @@ static void calchandle_profile(BezTriple *bezt, const BezTriple *prev, const Bez
 #undef point_handle2
 }
 
-/** Helper function for 'BKE_CurveProfile_create_samples.' Calculates the angle between the
+/**
+ * Helper function for 'BKE_CurveProfile_create_samples.' Calculates the angle between the
  * handles on the inside of the edge starting at index i. A larger angle means the edge is
  * more curved.
- * \param i_edge: The start index of the edge to calculate the angle for. */
+ * \param i_edge: The start index of the edge to calculate the angle for.
+ */
 static float bezt_edge_handle_angle(const BezTriple *bezt, int i_edge)
 {
   /* Find the direction of the handles that define this edge along the direction of the path. */
@@ -542,7 +571,9 @@ typedef struct {
   float bezt_curvature;
 } CurvatureSortPoint;
 
-/** Helper function for 'BKE_curveprofile_create_samples' for sorting edges based on curvature. */
+/**
+ * Helper function for 'BKE_curveprofile_create_samples' for sorting edges based on curvature.
+ */
 static int sort_points_curvature(const void *in_a, const void *in_b)
 {
   const CurvatureSortPoint *a = (const CurvatureSortPoint *)in_a;
@@ -556,16 +587,19 @@ static int sort_points_curvature(const void *in_a, const void *in_b)
   }
 }
 
-/** Used for sampling curves along the profile's path. Any points more than the number of user-
- * defined points will be evenly distributed among the curved edges. Then the remainders will be
- * distributed to the most curved edges.
+/**
+ * Used for sampling curves along the profile's path. Any points more than the number of
+ * user-defined points will be evenly distributed among the curved edges.
+ * Then the remainders will be distributed to the most curved edges.
+ *
  * \param n_segments: The number of segments to sample along the path. It must be higher than the
- *        number of points used to define the profile (profile->path_len).
+ * number of points used to define the profile (profile->path_len).
  * \param sample_straight_edges: Whether to sample points between vector handle control points. If
- *        this is true and there are only vector edges the straight edges will still be sampled.
+ * this is true and there are only vector edges the straight edges will still be sampled.
  * \param r_samples: An array of points to put the sampled positions. Must have length n_segments.
  * \return r_samples: Fill the array with the sampled locations and if the point corresponds
- *         to a control point, its handle type */
+ * to a control point, its handle type
+ */
 void BKE_curveprofile_create_samples(CurveProfile *profile,
                                      int n_segments,
                                      bool sample_straight_edges,
@@ -726,8 +760,10 @@ void BKE_curveprofile_create_samples(CurveProfile *profile,
   MEM_freeN(n_samples);
 }
 
-/** Creates a higher resolution table by sampling the curved points. This table is used for display
- * and evenly spaced evaluation. */
+/**
+ * Creates a higher resolution table by sampling the curved points.
+ * This table is used for display and evenly spaced evaluation.
+ */
 static void curveprofile_make_table(CurveProfile *profile)
 {
   int n_samples = PROF_N_TABLE(profile->path_len);
@@ -745,8 +781,10 @@ static void curveprofile_make_table(CurveProfile *profile)
   profile->table = new_table;
 }
 
-/** Creates the table of points used for displaying a preview of the sampled segment locations on
- * the widget itself. */
+/**
+ * Creates the table of points used for displaying a preview of the sampled segment locations on
+ * the widget itself.
+ */
 static void CurveProfile_make_segments_table(CurveProfile *profile)
 {
   int n_samples = profile->segments_len;
@@ -771,8 +809,10 @@ static void CurveProfile_make_segments_table(CurveProfile *profile)
   profile->segments = new_table;
 }
 
-/** Sets the default settings and clip range for the profile widget. Does not generate either
- * table. */
+/**
+ * Sets the default settings and clip range for the profile widget.
+ * Does not generate either table.
+ */
 void BKE_curveprofile_set_defaults(CurveProfile *profile)
 {
   profile->flag = PROF_USE_CLIP;
@@ -791,8 +831,10 @@ void BKE_curveprofile_set_defaults(CurveProfile *profile)
   profile->changed_timestamp = 0;
 }
 
-/** Returns a pointer to a newly allocated curve profile, using the given preset.
-  \param preset: Value in eCurveProfilePresets. */
+/**
+ * Returns a pointer to a newly allocated curve profile, using the given preset.
+ * \param preset: Value in #eCurveProfilePresets.
+ */
 struct CurveProfile *BKE_curveprofile_add(int preset)
 {
   CurveProfile *profile = MEM_callocN(sizeof(CurveProfile), "curve profile");
@@ -805,8 +847,10 @@ struct CurveProfile *BKE_curveprofile_add(int preset)
   return profile;
 }
 
-/** Should be called after the widget is changed. Does profile and remove double checks and more
- * importantly, recreates the display / evaluation and segments tables. */
+/**
+ * Should be called after the widget is changed. Does profile and remove double checks and more
+ * importantly, recreates the display / evaluation and segments tables.
+ */
 void BKE_curveprofile_update(CurveProfile *profile, const bool remove_double)
 {
   CurveProfilePoint *points = profile->path;
@@ -873,9 +917,12 @@ void BKE_curveprofile_update(CurveProfile *profile, const bool remove_double)
   }
 }
 
-/** Refreshes the higher resolution table sampled from the input points. A call to this or
- * curveprofile_update is needed before evaluation functions that use the table. Also sets the
- * number of segments used for the display preview of the locations of the sampled points. */
+/**
+ * Refreshes the higher resolution table sampled from the input points. A call to this or
+ * #BKE_curveprofile_update is needed before evaluation functions that use the table.
+ * Also sets the number of segments used for the display preview of the locations
+ * of the sampled points.
+ */
 void BKE_curveprofile_initialize(CurveProfile *profile, short segments_len)
 {
   profile->segments_len = segments_len;
@@ -884,9 +931,12 @@ void BKE_curveprofile_initialize(CurveProfile *profile, short segments_len)
   BKE_curveprofile_update(profile, false);
 }
 
-/** Gives the distance to the next point in the widget's sampled table, in other words the length
+/**
+ * Gives the distance to the next point in the widget's sampled table, in other words the length
  * of the ith edge of the table.
- * \note Requires curveprofile_initialize or curveprofile_update call before to fill table. */
+ *
+ * \note Requires curveprofile_initialize or #BKE_curveprofile_update call before to fill table.
+ */
 static float curveprofile_distance_to_next_table_point(const CurveProfile *profile, int i)
 {
   BLI_assert(i < PROF_N_TABLE(profile->path_len));
@@ -894,8 +944,11 @@ static float curveprofile_distance_to_next_table_point(const CurveProfile *profi
   return len_v2v2(&profile->table[i].x, &profile->table[i + 1].x);
 }
 
-/** Calculates the total length of the profile from the curves sampled in the table.
- * \note Requires curveprofile_initialize or curveprofile_update call before to fill table. */
+/**
+ * Calculates the total length of the profile from the curves sampled in the table.
+ *
+ * \note Requires curveprofile_initialize or #BKE_curveprofile_update call before to fill table.
+ */
 float BKE_curveprofile_total_length(const CurveProfile *profile)
 {
   float total_length = 0;
@@ -905,11 +958,14 @@ float BKE_curveprofile_total_length(const CurveProfile *profile)
   return total_length;
 }
 
-/** Samples evenly spaced positions along the curve profile's table (generated from path). Fills
+/**
+ * Samples evenly spaced positions along the curve profile's table (generated from path). Fills
  * an entire table at once for a speedup if all of the results are going to be used anyway.
- * \note Requires curveprofile_initialize or curveprofile_update call before to fill table.
+ *
+ * \note Requires curveprofile_initialize or #BKE_curveprofile_update call before to fill table.
  * \note Working, but would conflict with "Sample Straight Edges" option, so this is unused for
- * now. */
+ * now.
+ */
 void BKE_curveprofile_create_samples_even_spacing(CurveProfile *profile,
                                                   int n_segments,
                                                   CurveProfilePoint *r_samples)
@@ -964,10 +1020,13 @@ void BKE_curveprofile_create_samples_even_spacing(CurveProfile *profile,
   }
 }
 
-/** Does a single evaluation along the profile's path. Travels down (length_portion * path) length
- * and returns the position at that point.
+/**
+ * Does a single evaluation along the profile's path.
+ * Travels down (length_portion * path) length and returns the position at that point.
+ *
  * \param length_portion: The portion (0 to 1) of the path's full length to sample at.
- * \note Requires curveprofile_initialize or curveprofile_update call before to fill table */
+ * \note Requires curveprofile_initialize or #BKE_curveprofile_update call before to fill table.
+ */
 void BKE_curveprofile_evaluate_length_portion(const CurveProfile *profile,
                                               float length_portion,
                                               float *x_out,

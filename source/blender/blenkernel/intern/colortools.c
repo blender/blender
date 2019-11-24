@@ -1051,7 +1051,8 @@ static void curvemapping_evaluateRGBF_filmlike(const CurveMapping *cumap,
   vecout[channel_offset[2]] = v2;
 }
 
-/** same as #BKE_curvemapping_evaluate_premulRGBF
+/**
+ * Same as #BKE_curvemapping_evaluate_premulRGBF
  * but black/bwmul are passed as args for the compositor
  * where they can change per pixel.
  *

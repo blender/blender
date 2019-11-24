@@ -28,7 +28,8 @@ uniform int hairThicknessRes = 1;
 
 #endif /* LIT_SURFACE_UNIFORM */
 
-/** AUTO CONFIG
+/**
+ * AUTO CONFIG
  * We include the file multiple times each time with a different configuration.
  * This leads to a lot of deadcode. Better idea would be to only generate the one needed.
  */

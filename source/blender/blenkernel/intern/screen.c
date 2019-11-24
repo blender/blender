@@ -756,7 +756,7 @@ ARegion *BKE_screen_find_region_xy(bScreen *sc, const int regiontype, int x, int
 }
 
 /**
- * \note, ideally we can get the area from the context,
+ * \note Ideally we can get the area from the context,
  * there are a few places however where this isn't practical.
  */
 ScrArea *BKE_screen_find_area_from_space(struct bScreen *sc, SpaceLink *sl)

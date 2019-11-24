@@ -2695,7 +2695,7 @@ void ui_but_clipboard_free(void)
  * It converts every UTF-8 character to an asterisk, and also remaps
  * the cursor position and selection start/end.
  *
- * \note: remapping is used, because password could contain UTF-8 characters.
+ * \note remapping is used, because password could contain UTF-8 characters.
  *
  * \{ */
 
@@ -6976,8 +6976,10 @@ static bool ui_numedit_but_CURVEPROFILE(uiBlock *block,
   return changed;
 }
 
-/** Interaction for curve profile widget.
- * \note Uses hardcoded keys rather than the keymap. */
+/**
+ * Interaction for curve profile widget.
+ * \note Uses hardcoded keys rather than the keymap.
+ */
 static int ui_do_but_CURVEPROFILE(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {

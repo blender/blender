@@ -973,7 +973,8 @@ typedef struct FileDirEntry {
   int act_variant;
 } FileDirEntry;
 
-/** Array of direntries.
+/**
+ * Array of direntries.
  *
  * This struct is used in various, different contexts.
  *

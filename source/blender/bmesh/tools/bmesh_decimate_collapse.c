@@ -60,8 +60,10 @@
 #endif
 
 #define BOUNDARY_PRESERVE_WEIGHT 100.0f
-/** Uses double precision, impacts behavior on near-flat surfaces,
- * cane give issues with very small faces. 1e-2 is too big, see: T48154. */
+/**
+ * Uses double precision, impacts behavior on near-flat surfaces,
+ * cane give issues with very small faces. 1e-2 is too big, see: T48154.
+ */
 #define OPTIMIZE_EPS 1e-8
 #define COST_INVALID FLT_MAX
 

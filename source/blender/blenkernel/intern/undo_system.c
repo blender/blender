@@ -50,8 +50,10 @@
 /** Make sure all ID's created at the point we add an undo step that uses ID's. */
 #define WITH_GLOBAL_UNDO_ENSURE_UPDATED
 
-/** Make sure we don't apply edits on top of a newer memfile state, see: T56163.
- * \note Keep an eye on this, could solve differently. */
+/**
+ * Make sure we don't apply edits on top of a newer memfile state, see: T56163.
+ * \note Keep an eye on this, could solve differently.
+ */
 #define WITH_GLOBAL_UNDO_CORRECT_ORDER
 
 /** We only need this locally. */

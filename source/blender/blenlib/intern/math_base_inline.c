@@ -526,15 +526,19 @@ MINLINE int signum_i(float a)
   }
 }
 
-/** Returns number of (base ten) *significant* digits of integer part of given float
- * (negative in case of decimal-only floats, 0.01 returns -1 e.g.). */
+/**
+ * Returns number of (base ten) *significant* digits of integer part of given float
+ * (negative in case of decimal-only floats, 0.01 returns -1 e.g.).
+ */
 MINLINE int integer_digits_f(const float f)
 {
   return (f == 0.0f) ? 0 : (int)floor(log10(fabs(f))) + 1;
 }
 
-/** Returns number of (base ten) *significant* digits of integer part of given double
- * (negative in case of decimal-only floats, 0.01 returns -1 e.g.). */
+/**
+ * Returns number of (base ten) *significant* digits of integer part of given double
+ * (negative in case of decimal-only floats, 0.01 returns -1 e.g.).
+ */
 MINLINE int integer_digits_d(const double d)
 {
   return (d == 0.0) ? 0 : (int)floor(log10(fabs(d))) + 1;

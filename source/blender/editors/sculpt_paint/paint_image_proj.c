@@ -190,9 +190,11 @@ BLI_INLINE unsigned char f_to_char(const float val)
 /* to avoid locking in tile initialization */
 #define TILE_PENDING POINTER_FROM_INT(-1)
 
-/** This is mainly a convenience struct used so we can keep an array of images we use -
+/**
+ * This is mainly a convenience struct used so we can keep an array of images we use -
  * their imbufs, etc, in 1 array, When using threads this array is copied for each thread
- * because 'partRedrawRect' and 'touch' values would not be thread safe */
+ * because 'partRedrawRect' and 'touch' values would not be thread safe.
+ */
 typedef struct ProjPaintImage {
   Image *ima;
   ImBuf *ibuf;

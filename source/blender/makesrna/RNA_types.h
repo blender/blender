@@ -37,7 +37,8 @@ struct ReportList;
 struct StructRNA;
 struct bContext;
 
-/** Pointer
+/**
+ * Pointer
  *
  * RNA pointers are not a single C pointer but include the type,
  * and a pointer to the ID struct that owns the struct, since

@@ -3925,8 +3925,9 @@ static bool mball_circle_select(ViewContext *vc,
   return data.is_changed;
 }
 
-/** Callbacks for circle selection in Editmode */
-
+/**
+ * Callbacks for circle selection in Editmode
+ */
 static bool obedit_circle_select(bContext *C,
                                  ViewContext *vc,
                                  wmGenericUserData *wm_userdata,

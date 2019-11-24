@@ -675,8 +675,10 @@ enum {
   WM_JOB_PROGRESS = (1 << 2),
 };
 
-/** Identifying jobs by owner alone is unreliable, this isnt saved,
- * order can change (keep 0 for 'any'). */
+/**
+ * Identifying jobs by owner alone is unreliable, this isnt saved,
+ * order can change (keep 0 for 'any').
+ */
 enum {
   WM_JOB_TYPE_ANY = 0,
   WM_JOB_TYPE_COMPOSITE,

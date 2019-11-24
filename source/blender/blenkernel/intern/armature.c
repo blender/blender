@@ -1239,8 +1239,10 @@ void BKE_pchan_bbone_segments_cache_copy(bPoseChannel *pchan, bPoseChannel *pcha
   }
 }
 
-/** Calculate index and blend factor for the two B-Bone segment nodes
- * affecting the point at 0 <= pos <= 1. */
+/**
+ * Calculate index and blend factor for the two B-Bone segment nodes
+ * affecting the point at 0 <= pos <= 1.
+ */
 void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan,
                                           float pos,
                                           int *r_index,

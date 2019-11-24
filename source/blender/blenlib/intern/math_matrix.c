@@ -1964,8 +1964,10 @@ void mat4_to_size(float size[3], const float mat[4][4])
   size[2] = len_v3(mat[2]);
 }
 
-/** Extract scale factors from the matrix, with correction to ensure
- *  exact volume in case of a sheared matrix. */
+/**
+ * Extract scale factors from the matrix, with correction to ensure
+ * exact volume in case of a sheared matrix.
+ */
 void mat4_to_size_fix_shear(float size[3], const float mat[4][4])
 {
   mat4_to_size(size, mat);

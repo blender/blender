@@ -36,8 +36,9 @@ class Node;
 class NodeInput;
 class NodeOutput;
 
-/** Internal representation of DNA node data.
- *  This structure is converted into operations by \a NodeCompiler.
+/**
+ * Internal representation of DNA node data.
+ * This structure is converted into operations by \a NodeCompiler.
  */
 class NodeGraph {
  public:

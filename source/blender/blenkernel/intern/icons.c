@@ -468,8 +468,10 @@ void BKE_previewimg_cached_release(const char *name)
   BKE_previewimg_cached_release_pointer(prv);
 }
 
-/** Handle deferred (lazy) loading/generation of preview image, if needed.
- * For now, only used with file thumbnails. */
+/**
+ * Handle deferred (lazy) loading/generation of preview image, if needed.
+ * For now, only used with file thumbnails.
+ */
 void BKE_previewimg_ensure(PreviewImage *prv, const int size)
 {
   if ((prv->tag & PRV_TAG_DEFFERED) != 0) {

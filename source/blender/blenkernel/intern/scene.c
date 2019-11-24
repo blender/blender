@@ -1433,7 +1433,8 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph, Main *bmain)
   }
 }
 
-/** Ensures given scene/view_layer pair has a valid, up-to-date depsgraph.
+/**
+ * Ensures given scene/view_layer pair has a valid, up-to-date depsgraph.
  *
  * \warning Sets matching depsgraph as active,
  * so should only be called from the active editing context (usually, from operators).
