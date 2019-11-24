@@ -7375,8 +7375,8 @@ static void direct_link_area(FileData *fd, ScrArea *area)
       SpaceText *st = (SpaceText *)sl;
 
       st->drawcache = NULL;
-      st->scroll_accum[0] = 0.0f;
-      st->scroll_accum[1] = 0.0f;
+      st->scroll_ofs_px[0] = 0;
+      st->scroll_ofs_px[1] = 0;
     }
     else if (sl->spacetype == SPACE_SEQ) {
       SpaceSeq *sseq = (SpaceSeq *)sl;

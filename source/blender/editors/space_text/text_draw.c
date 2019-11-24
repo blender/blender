@@ -1269,6 +1269,9 @@ static void draw_text_decoration(SpaceText *st, ARegion *ar)
 
     x = TXT_BODY_LEFT(st);
     y = ar->winy;
+    if (st->flags & ST_SCROLL_SELECT) {
+      y += st->scroll_ofs_px[1];
+    }
 
     if (vcurl == vsell) {
       y -= vcurl * lheight;
@@ -1344,9 +1347,11 @@ static void draw_text_decoration(SpaceText *st, ARegion *ar)
 
   if (!hidden) {
     /* Draw the cursor itself (we draw the sel. cursor as this is the leading edge) */
-    x = TXT_BODY_LEFT(st);
-    x += vselc * st->cwidth;
+    x = TXT_BODY_LEFT(st) + (vselc * st->cwidth);
     y = ar->winy - vsell * lheight;
+    if (st->flags & ST_SCROLL_SELECT) {
+      y += st->scroll_ofs_px[1];
+    }
 
     immUniformThemeColor(TH_HILITE);
 
@@ -1498,6 +1503,9 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
   UI_FontThemeColor(tdc->font_id, TH_HILITE);
   x = TXT_BODY_LEFT(st);
   y = ar->winy - st->lheight_dpi;
+  if (st->flags & ST_SCROLL_SELECT) {
+    y += st->scroll_ofs_px[1];
+  }
 
   /* draw opening bracket */
   ch = startl->line[startc];
@@ -1613,6 +1621,12 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
   x = TXT_BODY_LEFT(st);
   y = ar->winy - st->lheight_dpi;
+  int viewlines = st->viewlines;
+  if (st->flags & ST_SCROLL_SELECT) {
+    y += st->scroll_ofs_px[1];
+    viewlines += 1;
+  }
+
   winx = ar->winx - TXT_SCROLL_WIDTH;
 
   /* draw cursor, margin, selection and highlight */
@@ -1621,7 +1635,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
   /* draw the text */
   UI_FontThemeColor(tdc.font_id, TH_TEXT);
 
-  for (i = 0; y > clip_min_y && i < st->viewlines && tmp; i++, tmp = tmp->next) {
+  for (i = 0; y > clip_min_y && i < viewlines && tmp; i++, tmp = tmp->next) {
     if (tdc.syntax_highlight && !tmp->format) {
       tft->format_line(st, tmp, false);
     }
@@ -1763,8 +1777,8 @@ void text_scroll_to_cursor(SpaceText *st, ARegion *ar, const bool center)
     st->left = 0;
   }
 
-  st->scroll_accum[0] = 0.0f;
-  st->scroll_accum[1] = 0.0f;
+  st->scroll_ofs_px[0] = 0;
+  st->scroll_ofs_px[1] = 0;
 }
 
 /* takes an area instead of a region, use for listeners */

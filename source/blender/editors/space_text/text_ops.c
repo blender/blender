@@ -270,8 +270,8 @@ static int text_new_exec(bContext *C, wmOperator *UNUSED(op))
     st->text = text;
     st->left = 0;
     st->top = 0;
-    st->scroll_accum[0] = 0.0f;
-    st->scroll_accum[1] = 0.0f;
+    st->scroll_ofs_px[0] = 0;
+    st->scroll_ofs_px[1] = 0;
     text_drawcache_tag_update(st, 1);
   }
 
@@ -353,8 +353,8 @@ static int text_open_exec(bContext *C, wmOperator *op)
     st->text = text;
     st->left = 0;
     st->top = 0;
-    st->scroll_accum[0] = 0.0f;
-    st->scroll_accum[1] = 0.0f;
+    st->scroll_ofs_px[0] = 0;
+    st->scroll_ofs_px[1] = 0;
   }
 
   text_drawcache_tag_update(st, 1);
@@ -2526,7 +2526,28 @@ typedef struct TextScroll {
   int scrollbar;
 
   int zone;
+
+  /* Store the state of the display, cache some constant vars. */
+  struct {
+    int ofs_init[2];
+    int ofs_max[2];
+    int size_px[2];
+  } state;
+  int ofs_delta[2];
+  int ofs_delta_px[2];
 } TextScroll;
+
+static void text_scroll_state_init(TextScroll *tsc, SpaceText *st, ARegion *ar)
+{
+  tsc->state.ofs_init[0] = st->left;
+  tsc->state.ofs_init[1] = st->top;
+
+  tsc->state.ofs_max[0] = INT_MAX;
+  tsc->state.ofs_max[1] = text_get_total_lines(st, ar) - (st->viewlines / 2);
+
+  tsc->state.size_px[0] = st->cwidth;
+  tsc->state.size_px[1] = TXT_LINE_HEIGHT(st);
+}
 
 static bool text_scroll_poll(bContext *C)
 {
@@ -2556,10 +2577,8 @@ static int text_scroll_exec(bContext *C, wmOperator *op)
 static void text_scroll_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceText *st = CTX_wm_space_text(C);
-  ARegion *ar = CTX_wm_region(C);
   TextScroll *tsc = op->customdata;
   int mval[2] = {event->x, event->y};
-  int scroll_steps[2] = {0, 0};
 
   text_update_character_width(st);
 
@@ -2578,34 +2597,65 @@ static void text_scroll_apply(bContext *C, wmOperator *op, const wmEvent *event)
   /* accumulate scroll, in float values for events that give less than one
    * line offset but taken together should still scroll */
   if (!tsc->scrollbar) {
-    st->scroll_accum[0] += -tsc->delta[0] / (float)st->cwidth;
-    st->scroll_accum[1] += tsc->delta[1] / (float)(TXT_LINE_HEIGHT(st));
+    tsc->ofs_delta_px[0] -= tsc->delta[0];
+    tsc->ofs_delta_px[1] += tsc->delta[1];
   }
   else {
-    st->scroll_accum[1] += -tsc->delta[1] * st->pix_per_line;
+    tsc->ofs_delta_px[1] -= (tsc->delta[1] * st->pix_per_line) * tsc->state.size_px[1];
   }
 
-  /* round to number of lines to scroll */
-  scroll_steps[0] = (int)st->scroll_accum[0];
-  scroll_steps[1] = (int)st->scroll_accum[1];
+  for (int i = 0; i < 2; i += 1) {
+    int lines_from_pixels = tsc->ofs_delta_px[i] / tsc->state.size_px[i];
+    tsc->ofs_delta[i] += lines_from_pixels;
+    tsc->ofs_delta_px[i] -= lines_from_pixels * tsc->state.size_px[i];
+  }
 
-  st->scroll_accum[0] -= scroll_steps[0];
-  st->scroll_accum[1] -= scroll_steps[1];
+  /* The final values need to be calculated from the inputs,
+   * so clamping and ensuring an unsigned pixel offset doesn't conflict with
+   * updating the cursor delta. */
+  int scroll_ofs_new[2] = {
+      tsc->state.ofs_init[0] + tsc->ofs_delta[0],
+      tsc->state.ofs_init[1] + tsc->ofs_delta[1],
+  };
+  int scroll_ofs_px_new[2] = {
+      tsc->ofs_delta_px[0],
+      tsc->ofs_delta_px[1],
+  };
 
-  /* perform vertical and/or horizontal scroll */
-  if (scroll_steps[0] || scroll_steps[1]) {
-    txt_screen_skip(st, ar, scroll_steps[1]);
-
-    if (st->wordwrap) {
-      st->left = 0;
+  for (int i = 0; i < 2; i += 1) {
+    /* Ensure always unsigned (adjusting line/column accordingly). */
+    while (scroll_ofs_px_new[i] < 0) {
+      scroll_ofs_px_new[i] += tsc->state.size_px[i];
+      scroll_ofs_new[i] -= 1;
     }
-    else {
-      st->left += scroll_steps[0];
-      if (st->left < 0) {
-        st->left = 0;
-      }
-    }
 
+    /* Clamp within usable region. */
+    if (scroll_ofs_new[i] < 0) {
+      scroll_ofs_new[i] = 0;
+      scroll_ofs_px_new[i] = 0;
+    }
+    else if (scroll_ofs_new[i] >= tsc->state.ofs_max[i]) {
+      scroll_ofs_new[i] = tsc->state.ofs_max[i];
+      scroll_ofs_px_new[i] = 0;
+    }
+  }
+
+  /* Override for word-wrap. */
+  if (st->wordwrap) {
+    scroll_ofs_new[0] = 0;
+    scroll_ofs_px_new[0] = 0;
+  }
+
+  /* Apply to the screen. */
+  if (scroll_ofs_new[0] != st->left || scroll_ofs_new[1] != st->top ||
+      /* Horizontal sub-pixel offset currently isn't used. */
+      /* scroll_ofs_px_new[0] != st->scroll_ofs_px[0] || */
+      scroll_ofs_px_new[1] != st->scroll_ofs_px[1]) {
+
+    st->left = scroll_ofs_new[0];
+    st->top = scroll_ofs_new[1];
+    st->scroll_ofs_px[0] = scroll_ofs_px_new[0];
+    st->scroll_ofs_px[1] = scroll_ofs_px_new[1];
     ED_area_tag_redraw(CTX_wm_area(C));
   }
 
@@ -2616,8 +2666,18 @@ static void text_scroll_apply(bContext *C, wmOperator *op, const wmEvent *event)
 static void scroll_exit(bContext *C, wmOperator *op)
 {
   SpaceText *st = CTX_wm_space_text(C);
+  TextScroll *tsc = op->customdata;
 
   st->flags &= ~ST_SCROLL_SELECT;
+
+  if (st->scroll_ofs_px[1] > tsc->state.size_px[1] / 2) {
+    st->top += 1;
+  }
+
+  st->scroll_ofs_px[0] = 0;
+  st->scroll_ofs_px[1] = 0;
+  ED_area_tag_redraw(CTX_wm_area(C));
+
   MEM_freeN(op->customdata);
 }
 
@@ -2659,6 +2719,8 @@ static void text_scroll_cancel(bContext *C, wmOperator *op)
 static int text_scroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceText *st = CTX_wm_space_text(C);
+  ARegion *ar = CTX_wm_region(C);
+
   TextScroll *tsc;
 
   if (RNA_struct_property_is_set(op->ptr, "lines")) {
@@ -2668,6 +2730,9 @@ static int text_scroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   tsc = MEM_callocN(sizeof(TextScroll), "TextScroll");
   tsc->first = 1;
   tsc->zone = SCROLLHANDLE_BAR;
+
+  text_scroll_state_init(tsc, st, ar);
+
   op->customdata = tsc;
 
   st->flags |= ST_SCROLL_SELECT;
@@ -2779,6 +2844,8 @@ static int text_scroll_bar_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   tsc->zone = zone;
   op->customdata = tsc;
   st->flags |= ST_SCROLL_SELECT;
+
+  text_scroll_state_init(tsc, st, ar);
 
   /* jump scroll, works in v2d but needs to be added here too :S */
   if (event->type == MIDDLEMOUSE) {
