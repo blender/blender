@@ -146,13 +146,11 @@ static void console_main_region_init(wmWindowManager *wm, ARegion *ar)
 }
 
 /* same as 'text_cursor' */
-static void console_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
+static void console_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *ar)
 {
-  SpaceText *st = sa->spacedata.first;
   int wmcursor = WM_CURSOR_TEXT_EDIT;
-
-  if (st->text &&
-      BLI_rcti_isect_pt(&st->txtbar, win->eventstate->x - ar->winrct.xmin, st->txtbar.ymin)) {
+  const wmEvent *event = win->eventstate;
+  if (UI_view2d_mouse_in_scrollers(ar, &ar->v2d, event->x, event->y)) {
     wmcursor = WM_CURSOR_DEFAULT;
   }
 
@@ -330,6 +328,7 @@ void ED_spacetype_console(void)
   art->init = console_main_region_init;
   art->draw = console_main_region_draw;
   art->cursor = console_cursor;
+  art->event_cursor = true;
   art->listener = console_main_region_listener;
 
   BLI_addhead(&st->regiontypes, art);
