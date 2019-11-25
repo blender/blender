@@ -2042,7 +2042,6 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
             mi++;
             mj = 0;
           }
-          fcurve_is_used(*it);
         }
         unit_converter->dae_matrix_to_mat4_(mat, matrix);
         return true;
