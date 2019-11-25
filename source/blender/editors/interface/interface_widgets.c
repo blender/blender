@@ -2163,7 +2163,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   /* text button selection, cursor, composite underline */
   if (but->editstr && but->pos != -1) {
     int but_pos_ofs;
-    int tx, ty;
 
     /* text button selection */
     if ((but->selend - but->selsta) > 0) {
@@ -2191,9 +2190,9 @@ static void widget_draw_text(const uiFontStyle *fstyle,
         immUniformColor4ubv(wcol->item);
         immRecti(pos,
                  rect->xmin + selsta_draw,
-                 rect->ymin + 2,
+                 rect->ymin + U.pixelsize,
                  min_ii(rect->xmin + selwidth_draw, rect->xmax - 2),
-                 rect->ymax - 2);
+                 rect->ymax - U.pixelsize);
 
         immUnbindProgram();
       }
@@ -2228,11 +2227,12 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
       immUniformColor3f(0.2f, 0.6f, 0.9f);
 
-      tx = rect->xmin + t + 2;
-      ty = rect->ymin + 2;
-
       /* draw cursor */
-      immRecti(pos, rect->xmin + t, ty, tx, rect->ymax - 2);
+      immRecti(pos,
+               rect->xmin + t - U.pixelsize,
+               rect->ymin + U.pixelsize,
+               rect->xmin + t + U.pixelsize,
+               rect->ymax - U.pixelsize);
 
       immUnbindProgram();
     }
