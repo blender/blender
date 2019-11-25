@@ -603,7 +603,7 @@ static void gpencil_fx_swirl(ShaderFxData *fx,
   fxd->runtime.fx_sh = fx_shgrp;
 }
 
-/* Wave Distorsion FX */
+/* Wave Distortion FX */
 static void gpencil_fx_wave(ShaderFxData *fx, GPENCIL_e_data *e_data, GPENCIL_Data *vedata)
 {
   if (fx == NULL) {

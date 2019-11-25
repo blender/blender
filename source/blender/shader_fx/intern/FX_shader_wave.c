@@ -46,7 +46,7 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
 }
 
 ShaderFxTypeInfo shaderfx_Type_Wave = {
-    /* name */ "Wave Distorsion",
+    /* name */ "Wave Distortion",
     /* structName */ "WaveShaderFxData",
     /* structSize */ sizeof(WaveShaderFxData),
     /* type */ eShaderFxType_GpencilType,
