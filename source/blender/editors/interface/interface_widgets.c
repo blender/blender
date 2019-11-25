@@ -2163,6 +2163,8 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   /* text button selection, cursor, composite underline */
   if (but->editstr && but->pos != -1) {
     int but_pos_ofs;
+    /* Shape of the cursor for drawing. */
+    rcti but_cursor_shape;
 
     /* text button selection */
     if ((but->selend - but->selsta) > 0) {
@@ -2227,12 +2229,17 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
       immUniformColor3f(0.2f, 0.6f, 0.9f);
 
+      but_cursor_shape.xmin = (rect->xmin + t) - U.pixelsize;
+      but_cursor_shape.ymin = rect->ymin + U.pixelsize;
+      but_cursor_shape.xmax = (rect->xmin + t) + U.pixelsize;
+      but_cursor_shape.ymax = rect->ymax - U.pixelsize;
+
       /* draw cursor */
       immRecti(pos,
-               rect->xmin + t - U.pixelsize,
-               rect->ymin + U.pixelsize,
-               rect->xmin + t + U.pixelsize,
-               rect->ymax - U.pixelsize);
+               but_cursor_shape.xmin,
+               but_cursor_shape.ymin,
+               but_cursor_shape.xmax,
+               but_cursor_shape.ymax);
 
       immUnbindProgram();
     }
@@ -2241,7 +2248,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     if (ime_data && ime_data->composite_len) {
       /* ime cursor following */
       if (but->pos >= but->ofs) {
-        ui_but_ime_reposition(but, tx + 5, ty + 3, false);
+        ui_but_ime_reposition(but, but_cursor_shape.xmax + 5, but_cursor_shape.ymin + 3, false);
       }
 
       /* composite underline */
