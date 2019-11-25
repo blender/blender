@@ -142,7 +142,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 
   if (mesh->flag & ME_REMESH_REPROJECT_PAINT_MASK) {
     BKE_mesh_runtime_clear_geometry(mesh);
-    BKE_remesh_reproject_paint_mask(new_mesh, mesh);
+    BKE_mesh_remesh_reproject_paint_mask(new_mesh, mesh);
   }
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
@@ -428,7 +428,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
 
   if (qj->preserve_paint_mask) {
     BKE_mesh_runtime_clear_geometry(mesh);
-    BKE_remesh_reproject_paint_mask(new_mesh, mesh);
+    BKE_mesh_remesh_reproject_paint_mask(new_mesh, mesh);
   }
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);

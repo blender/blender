@@ -55,6 +55,6 @@ struct Mesh *BKE_mesh_remesh_quadriflow_to_mesh_nomain(struct Mesh *mesh,
                                                        void *update_cb_data);
 
 /* Data reprojection functions */
-void BKE_remesh_reproject_paint_mask(struct Mesh *target, struct Mesh *source);
+void BKE_mesh_remesh_reproject_paint_mask(struct Mesh *target, struct Mesh *source);
 
 #endif /* __BKE_MESH_REMESH_VOXEL_H__ */

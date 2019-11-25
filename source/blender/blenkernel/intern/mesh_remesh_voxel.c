@@ -316,7 +316,7 @@ Mesh *BKE_mesh_remesh_voxel_to_mesh_nomain(Mesh *mesh,
   return new_mesh;
 }
 
-void BKE_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
+void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
 {
   BVHTreeFromMesh bvhtree = {
       .nearest_callback = NULL,
