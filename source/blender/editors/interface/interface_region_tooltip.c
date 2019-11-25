@@ -295,6 +295,8 @@ static void ui_tooltip_region_free_cb(ARegion *ar)
 /** \name ToolTip Creation
  * \{ */
 
+#ifdef WITH_PYTHON
+
 static bool ui_tooltip_data_append_from_keymap(bContext *C, uiTooltipData *data, wmKeyMap *keymap)
 {
   const int fields_len_init = data->fields_len;
@@ -344,6 +346,8 @@ static bool ui_tooltip_data_append_from_keymap(bContext *C, uiTooltipData *data,
 
   return (fields_len_init != data->fields_len);
 }
+
+#endif /* WITH_PYTHON */
 
 /**
  * Special tool-system exception.
@@ -607,6 +611,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
       BLI_assert(0);
     }
   }
+#else
+  UNUSED_VARS(is_label);
 #endif /* WITH_PYTHON */
 
   if (data->fields_len == 0) {

@@ -35,8 +35,6 @@ set(SRC
 )
 
 set(LIB
-  bf_editor_io
-  bf_editor_sound
   bf_editor_space_action
   bf_editor_space_buttons
   bf_editor_space_clip

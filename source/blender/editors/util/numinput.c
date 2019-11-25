@@ -298,6 +298,7 @@ bool user_string_to_number(
     return success;
   }
 #else
+  UNUSED_VARS(C, unit, type);
   *r_value = atof(str);
   return true;
 #endif

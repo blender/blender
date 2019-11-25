@@ -396,8 +396,6 @@ set(LIB
   bf_modifiers
   bf_nodes
   bf_physics
-  bf_python
-  bf_python_bmesh
   bf_rna
   bf_shader_fx
 )
@@ -502,6 +500,10 @@ endif()
 if(WITH_PYTHON)
   list(APPEND INC
     ../python
+  )
+  list(APPEND LIB
+    bf_python
+    bf_python_bmesh
   )
   add_definitions(-DWITH_PYTHON)
 

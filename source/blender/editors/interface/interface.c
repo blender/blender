@@ -2777,6 +2777,7 @@ static bool ui_number_from_string(bContext *C, const char *str, double *r_value)
 #ifdef WITH_PYTHON
   return BPY_execute_string_as_number(C, NULL, str, true, r_value);
 #else
+  UNUSED_VARS(C);
   *r_value = atof(str);
   return true;
 #endif

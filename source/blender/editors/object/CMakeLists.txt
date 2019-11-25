@@ -73,7 +73,9 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  bf_editor_mesh
   bf_render
+  bf_windowmanager
 )
 
 add_definitions(${GL_DEFINITIONS})
