@@ -138,10 +138,11 @@ def main():
         "BMO_OP_SLOT_SUBTYPE_MAP_EMPTY",
         "BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL",
 
+        "BMO_OP_SLOT_SUBTYPE_PTR_BMESH",
         "BMO_OP_SLOT_SUBTYPE_PTR_SCENE",
         "BMO_OP_SLOT_SUBTYPE_PTR_OBJECT",
         "BMO_OP_SLOT_SUBTYPE_PTR_MESH",
-        "BMO_OP_SLOT_SUBTYPE_PTR_BMESH",
+        "BMO_OP_SLOT_SUBTYPE_PTR_STRUCT",
 
         "BMO_OP_SLOT_SUBTYPE_INT_ENUM",
         "BMO_OP_SLOT_SUBTYPE_INT_FLAG",
@@ -345,6 +346,10 @@ def main():
                         tp_str = ":class:`bpy.types.Object`"
                     elif tp_sub == BMO_OP_SLOT_SUBTYPE_PTR_MESH:
                         tp_str = ":class:`bpy.types.Mesh`"
+                    elif tp_sub == BMO_OP_SLOT_SUBTYPE_PTR_STRUCT:
+                        # XXX Used for CurveProfile only currently I think (bevel code),
+                        #     but think the idea is that that pointer is for any type?
+                        tp_str = ":class:`bpy.types.bpy_struct`"
                     else:
                         print("Can't find", vars_dict_reverse[tp_sub])
                         assert(0)
