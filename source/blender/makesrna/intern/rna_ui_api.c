@@ -435,6 +435,32 @@ static void rna_uiItemPopoverPanelFromGroup(uiLayout *layout,
   uiItemPopoverPanelFromGroup(layout, C, space_id, region_id, context, category);
 }
 
+static void rna_uiTemplateID(uiLayout *layout,
+                             bContext *C,
+                             PointerRNA *ptr,
+                             const char *propname,
+                             const char *newop,
+                             const char *openop,
+                             const char *unlinkop,
+                             int filter,
+                             const bool live_icon,
+                             const char *name,
+                             const char *text_ctxt,
+                             bool translate)
+{
+  PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+
+  if (!prop) {
+    RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+    return;
+  }
+
+  /* Get translated name (label). */
+  name = rna_translate_ui_text(name, text_ctxt, NULL, prop, translate);
+
+  uiTemplateID(layout, C, ptr, propname, newop, openop, unlinkop, filter, live_icon, name);
+}
+
 static void rna_uiTemplateAnyID(uiLayout *layout,
                                 PointerRNA *ptr,
                                 const char *propname,
@@ -1014,7 +1040,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   RNA_def_function_ui_description(func, "Inserts common Space header UI (editor type selector)");
 
-  func = RNA_def_function(srna, "template_ID", "uiTemplateID");
+  func = RNA_def_function(srna, "template_ID", "rna_uiTemplateID");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   api_ui_item_rna_common(func);
   RNA_def_string(func, "new", NULL, 0, "", "Operator identifier to create a new ID block");
@@ -1028,6 +1054,7 @@ void RNA_api_ui_layout(StructRNA *srna)
                "",
                "Optionally limit the items which can be selected");
   RNA_def_boolean(func, "live_icon", false, "", "Show preview instead of fixed icon");
+  api_ui_item_common_text(func);
 
   func = RNA_def_function(srna, "template_ID_preview", "uiTemplateIDPreview");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);

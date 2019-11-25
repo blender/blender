@@ -780,6 +780,7 @@ static void template_ID(bContext *C,
                         const char *newop,
                         const char *openop,
                         const char *unlinkop,
+                        const char *text,
                         const bool live_icon,
                         const bool hide_buttons)
 {
@@ -801,6 +802,11 @@ static void template_ID(bContext *C,
 
   if (idptr.type) {
     type = idptr.type;
+  }
+
+  if (text) {
+    /* Add label resepecting the seperated layout property split state. */
+    layout = uiItemL_respect_property_split(layout, text, ICON_NONE);
   }
 
   if (flag & UI_ID_BROWSE) {
@@ -1187,6 +1193,7 @@ static void ui_template_id(uiLayout *layout,
                            const char *newop,
                            const char *openop,
                            const char *unlinkop,
+                           const char *text,
                            int flag,
                            int prv_rows,
                            int prv_cols,
@@ -1239,13 +1246,22 @@ static void ui_template_id(uiLayout *layout,
    */
   if (template_ui->idlb) {
     if (use_tabs) {
-      uiLayoutRow(layout, true);
+      layout = uiLayoutRow(layout, true);
       template_ID_tabs(C, layout, template_ui, type, flag, newop, unlinkop);
     }
     else {
-      uiLayoutRow(layout, true);
-      template_ID(
-          C, layout, template_ui, type, flag, newop, openop, unlinkop, live_icon, hide_buttons);
+      layout = uiLayoutRow(layout, true);
+      template_ID(C,
+                  layout,
+                  template_ui,
+                  type,
+                  flag,
+                  newop,
+                  openop,
+                  unlinkop,
+                  text,
+                  live_icon,
+                  hide_buttons);
     }
   }
 
@@ -1260,7 +1276,8 @@ void uiTemplateID(uiLayout *layout,
                   const char *openop,
                   const char *unlinkop,
                   int filter,
-                  const bool live_icon)
+                  const bool live_icon,
+                  const char *text)
 {
   ui_template_id(layout,
                  C,
@@ -1269,6 +1286,7 @@ void uiTemplateID(uiLayout *layout,
                  newop,
                  openop,
                  unlinkop,
+                 text,
                  UI_ID_BROWSE | UI_ID_RENAME | UI_ID_DELETE,
                  0,
                  0,
@@ -1286,7 +1304,8 @@ void uiTemplateIDBrowse(uiLayout *layout,
                         const char *newop,
                         const char *openop,
                         const char *unlinkop,
-                        int filter)
+                        int filter,
+                        const char *text)
 {
   ui_template_id(layout,
                  C,
@@ -1295,6 +1314,7 @@ void uiTemplateIDBrowse(uiLayout *layout,
                  newop,
                  openop,
                  unlinkop,
+                 text,
                  UI_ID_BROWSE | UI_ID_RENAME,
                  0,
                  0,
@@ -1324,6 +1344,7 @@ void uiTemplateIDPreview(uiLayout *layout,
                  newop,
                  openop,
                  unlinkop,
+                 NULL,
                  UI_ID_BROWSE | UI_ID_RENAME | UI_ID_DELETE | UI_ID_PREVIEWS,
                  rows,
                  cols,
@@ -1347,6 +1368,7 @@ void uiTemplateGpencilColorPreview(uiLayout *layout,
                  C,
                  ptr,
                  propname,
+                 NULL,
                  NULL,
                  NULL,
                  NULL,
@@ -1378,6 +1400,7 @@ void uiTemplateIDTabs(uiLayout *layout,
                  newop,
                  NULL,
                  unlinkop,
+                 NULL,
                  UI_ID_BROWSE | UI_ID_RENAME,
                  0,
                  0,
@@ -7485,8 +7508,16 @@ void uiTemplateCacheFile(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 
   uiLayoutSetContextPointer(layout, "edit_cachefile", &fileptr);
 
-  uiTemplateID(
-      layout, C, ptr, propname, NULL, "CACHEFILE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL, false);
+  uiTemplateID(layout,
+               C,
+               ptr,
+               propname,
+               NULL,
+               "CACHEFILE_OT_open",
+               NULL,
+               UI_TEMPLATE_ID_FILTER_ALL,
+               false,
+               NULL);
 
   if (!file) {
     return;

@@ -2956,6 +2956,41 @@ void uiItemL(uiLayout *layout, const char *name, int icon)
   uiItemL_(layout, name, icon);
 }
 
+/**
+ * Helper to add a label, which handles logic for split property layout if needed.
+ *
+ * Normally, we handle the split layout in #uiItemFullR(), but there are other cases where we may
+ * want to use the logic. For those this helper was added, although it will likely have to be
+ * extended to support more cases.
+ * Ideally, #uiItemFullR() could just call this, but it currently has too many special needs.
+ *
+ * \return the layout to place the item(s) associated to the label in.
+ */
+uiLayout *uiItemL_respect_property_split(uiLayout *layout, const char *text, int icon)
+{
+  if (layout->item.flag & UI_ITEM_PROP_SEP) {
+    uiLayout *layout_split = uiLayoutSplit(layout, UI_ITEM_PROP_SEP_DIVIDE, true);
+    uiLayout *layout_sub = uiLayoutColumn(layout_split, true);
+
+    layout_split->space = layout_sub->space = layout->space = 0;
+    layout_sub->alignment = UI_LAYOUT_ALIGN_RIGHT;
+
+    uiItemL_(layout_sub, text, icon);
+
+    /* Give caller a new sub-row to place items in. */
+    return uiLayoutRow(layout_split, true);
+  }
+  else {
+    char namestr[UI_MAX_NAME_STR];
+    if (text) {
+      text = ui_item_name_add_colon(text, namestr);
+    }
+    uiItemL_(layout, text, icon);
+
+    return layout;
+  }
+}
+
 void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, const char *name, int icon)
 {
   uiBut *but = uiItemL_(layout, name, icon);

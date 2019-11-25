@@ -135,8 +135,16 @@ void uiTemplateMovieClip(
   uiLayoutSetContextPointer(layout, "edit_movieclip", &clipptr);
 
   if (!compact) {
-    uiTemplateID(
-        layout, C, ptr, propname, NULL, "CLIP_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL, false);
+    uiTemplateID(layout,
+                 C,
+                 ptr,
+                 propname,
+                 NULL,
+                 "CLIP_OT_open",
+                 NULL,
+                 UI_TEMPLATE_ID_FILTER_ALL,
+                 false,
+                 NULL);
   }
 
   if (clip) {

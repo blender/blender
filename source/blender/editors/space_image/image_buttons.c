@@ -813,7 +813,8 @@ void uiTemplateImage(uiLayout *layout,
                  "IMAGE_OT_open",
                  NULL,
                  UI_TEMPLATE_ID_FILTER_ALL,
-                 false);
+                 false,
+                 NULL);
 
     if (ima != NULL) {
       uiItemS(layout);
