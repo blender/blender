@@ -329,16 +329,17 @@ class OptiXDevice : public Device {
 
     const CUDAContextScope scope(cuda_context);
 
-    // Unload any existing modules first
-    if (cuda_module != NULL)
-      cuModuleUnload(cuda_module);
-    if (cuda_filter_module != NULL)
-      cuModuleUnload(cuda_filter_module);
-    if (optix_module != NULL)
+    // Unload existing OptiX module and pipelines first
+    if (optix_module != NULL) {
       optixModuleDestroy(optix_module);
-    for (unsigned int i = 0; i < NUM_PIPELINES; ++i)
-      if (pipelines[i] != NULL)
+      optix_module = NULL;
+    }
+    for (unsigned int i = 0; i < NUM_PIPELINES; ++i) {
+      if (pipelines[i] != NULL) {
         optixPipelineDestroy(pipelines[i]);
+        pipelines[i] = NULL;
+      }
+    }
 
     OptixModuleCompileOptions module_options;
     module_options.maxRegisterCount = 0;  // Do not set an explicit register limit
@@ -399,16 +400,18 @@ class OptiXDevice : public Device {
       cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, info.num);
       cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, info.num);
 
-      string cubin_data;
-      const string cubin_filename = string_printf("lib/kernel_sm_%d%d.cubin", major, minor);
-      if (!path_read_text(path_get(cubin_filename), cubin_data)) {
-        set_error("Failed loading pre-compiled CUDA kernel " + cubin_filename + ".");
-        return false;
+      if (cuda_module == NULL) {  // Avoid reloading module if it was already loaded
+        string cubin_data;
+        const string cubin_filename = string_printf("lib/kernel_sm_%d%d.cubin", major, minor);
+        if (!path_read_text(path_get(cubin_filename), cubin_data)) {
+          set_error("Failed loading pre-compiled CUDA kernel " + cubin_filename + ".");
+          return false;
+        }
+
+        check_result_cuda_ret(cuModuleLoadData(&cuda_module, cubin_data.data()));
       }
 
-      check_result_cuda_ret(cuModuleLoadData(&cuda_module, cubin_data.data()));
-
-      if (requested_features.use_denoising) {
+      if (requested_features.use_denoising && cuda_filter_module == NULL) {
         string filter_data;
         const string filter_filename = string_printf("lib/filter_sm_%d%d.cubin", major, minor);
         if (!path_read_text(path_get(filter_filename), filter_data)) {
