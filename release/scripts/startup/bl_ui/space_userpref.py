@@ -932,6 +932,7 @@ class USERPREF_PT_theme_interface_styles(PreferencePanel, Panel):
         flow.prop(ui, "icon_alpha")
         flow.prop(ui, "icon_saturation")
         flow.prop(ui, "editor_outline")
+        flow.prop(ui, "widget_text_cursor")
         flow.prop(ui, "menu_shadow_width")
         flow.prop(ui, "widget_emboss")
 

@@ -872,6 +872,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_EDITOR_OUTLINE:
           cp = btheme->tui.editor_outline;
           break;
+        case TH_WIDGET_TEXT_CURSOR:
+          cp = btheme->tui.widget_text_cursor;
+          break;
         case TH_AXIS_X:
           cp = btheme->tui.xaxis;
           break;

@@ -293,7 +293,7 @@ typedef enum ThemeColorID {
   TH_NLA_SOUND_SEL,
 
   TH_WIDGET_EMBOSS,
-
+  TH_WIDGET_TEXT_CURSOR,
   TH_EDITOR_OUTLINE,
 
   TH_AXIS_X, /* X/Y/Z Axis */

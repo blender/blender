@@ -238,6 +238,7 @@ const bTheme U_theme_default = {
     .menu_shadow_fac = 0.3f,
     .menu_shadow_width = 4,
     .editor_outline = RGBA(0x1f1f1fff),
+    .widget_text_cursor = RGBA(0x3399e6ff),
     .icon_alpha = 1.0f,
     .icon_saturation = 0.5f,
     .xaxis = RGBA(0xff3352ff),

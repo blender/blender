@@ -173,7 +173,7 @@ typedef struct ThemeUI {
 
   float icon_alpha;
   float icon_saturation;
-  char _pad[4];
+  unsigned char widget_text_cursor[4];
 
   /* Axis Colors */
   unsigned char xaxis[4], yaxis[4], zaxis[4];
