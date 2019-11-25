@@ -1514,6 +1514,7 @@ void BLI_task_parallel_range_pool_work_and_wait(TaskParallelRangePool *range_poo
        state = state->next) {
     const size_t userdata_chunk_size = state->tls_data_size;
     void *userdata_chunk_array = state->flatten_tls_storage;
+    UNUSED_VARS_NDEBUG(userdata_chunk_array);
     if (userdata_chunk_size == 0) {
       BLI_assert(userdata_chunk_array == NULL);
       MEM_freeN(state);
