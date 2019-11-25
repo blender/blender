@@ -49,7 +49,7 @@ static void initData(ModifierData *md)
 {
   BevelModifierData *bmd = (BevelModifierData *)md;
 
-  bmd->value = 1.0f;
+  bmd->value = 0.1f;
   bmd->res = 1;
   bmd->flags = 0;
   bmd->val_flags = MOD_BEVEL_AMT_OFFSET;
