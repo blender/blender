@@ -517,17 +517,6 @@ if(WITH_ALEMBIC)
   set(ALEMBIC_FOUND 1)
 endif()
 
-if(WITH_MOD_CLOTH_ELTOPO)
-  set(LAPACK ${LIBDIR}/lapack)
-  # set(LAPACK_INCLUDE_DIR ${LAPACK}/include)
-  set(LAPACK_LIBPATH ${LAPACK}/lib)
-  set(LAPACK_LIBRARIES
-    ${LIBDIR}/lapack/lib/libf2c.lib
-    ${LIBDIR}/lapack/lib/clapack_nowrap.lib
-    ${LIBDIR}/lapack/lib/BLAS_nowrap.lib
-  )
-endif()
-
 if(WITH_IMAGE_OPENJPEG)
   set(OPENJPEG ${LIBDIR}/openjpeg)
   set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG}/include/openjpeg-2.3)

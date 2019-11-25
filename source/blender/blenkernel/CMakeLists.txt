@@ -442,14 +442,6 @@ if(WITH_BULLET)
   add_definitions(-DWITH_BULLET)
 endif()
 
-# if(WITH_MOD_CLOTH_ELTOPO)
-#   list(APPEND INC
-#     ../../../extern/eltopo
-#     ../../../extern/eltopo/eltopo3d
-#   )
-#   add_definitions(-DWITH_ELTOPO)
-# endif()
-
 if(WITH_IMAGE_OPENEXR)
   add_definitions(-DWITH_OPENEXR)
 endif()
