@@ -579,17 +579,6 @@ endif()
 # used in many places so include globally, like OpenGL
 blender_include_dirs_sys("${PTHREADS_INCLUDE_DIRS}")
 
-# Find signtool.
-set(ProgramFilesX86_NAME "ProgramFiles(x86)") #env dislikes the ( )
-find_program(SIGNTOOL_EXE signtool
-  HINTS
-    "$ENV{${ProgramFilesX86_NAME}}/Windows Kits/10/bin/x86/"
-    "$ENV{ProgramFiles}/Windows Kits/10/bin/x86/"
-    "$ENV{${ProgramFilesX86_NAME}}/Windows Kits/8.1/bin/x86/"
-    "$ENV{ProgramFiles}/Windows Kits/8.1/bin/x86/"
-    "$ENV{${ProgramFilesX86_NAME}}/Windows Kits/8.0/bin/x86/"
-    "$ENV{ProgramFiles}/Windows Kits/8.0/bin/x86/"
-)
 set(WINTAB_INC ${LIBDIR}/wintab/include)
 
 if(WITH_OPENAL)

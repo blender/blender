@@ -1228,29 +1228,6 @@ macro(openmp_delayload
     endif()
 endmacro()
 
-macro(WINDOWS_SIGN_TARGET target)
-  if(WITH_WINDOWS_CODESIGN)
-    if(!SIGNTOOL_EXE)
-      error("Codesigning is enabled, but signtool is not found")
-    else()
-      if(WINDOWS_CODESIGN_PFX_PASSWORD)
-        set(CODESIGNPASSWORD /p ${WINDOWS_CODESIGN_PFX_PASSWORD})
-      else()
-        if($ENV{PFXPASSWORD})
-          set(CODESIGNPASSWORD /p $ENV{PFXPASSWORD})
-        else()
-          message(FATAL_ERROR "WITH_WINDOWS_CODESIGN is on but WINDOWS_CODESIGN_PFX_PASSWORD not set, and environment variable PFXPASSWORD not found, unable to sign code.")
-        endif()
-      endif()
-      add_custom_command(TARGET ${target}
-        POST_BUILD
-        COMMAND ${SIGNTOOL_EXE} sign /f ${WINDOWS_CODESIGN_PFX} ${CODESIGNPASSWORD} $<TARGET_FILE:${target}>
-        VERBATIM
-      )
-    endif()
-  endif()
-endmacro()
-
 macro(blender_precompile_headers target cpp header)
   if(MSVC)
     # get the name for the pch output file

@@ -564,15 +564,6 @@ if(WIN32)
   option(WITH_WINDOWS_FIND_MODULES "Use find_package to locate libraries" OFF)
   mark_as_advanced(WITH_WINDOWS_FIND_MODULES)
 
-  option(WITH_WINDOWS_CODESIGN "Use signtool to sign the final binary." OFF)
-  mark_as_advanced(WITH_WINDOWS_CODESIGN)
-
-  set(WINDOWS_CODESIGN_PFX CACHE FILEPATH  "Path to pfx file to use for codesigning.")
-  mark_as_advanced(WINDOWS_CODESIGN_PFX)
-
-  set(WINDOWS_CODESIGN_PFX_PASSWORD CACHE STRING  "password for pfx file used for codesigning.")
-  mark_as_advanced(WINDOWS_CODESIGN_PFX_PASSWORD)
-
   option(WINDOWS_USE_VISUAL_STUDIO_PROJECT_FOLDERS "Organize the visual studio projects according to source folder structure." ON)
   mark_as_advanced(WINDOWS_USE_VISUAL_STUDIO_PROJECT_FOLDERS)
 
