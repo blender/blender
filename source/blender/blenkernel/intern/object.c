@@ -3763,24 +3763,24 @@ int BKE_object_is_modified(Scene *scene, Object *ob)
  * speed. In combination with checks of modifier stack and real life usage
  * percentage of false-positives shouldn't be that height.
  */
-static bool object_moves_in_time(Object *object)
+bool BKE_object_moves_in_time(const Object *object, bool recurse_parent)
 {
-  AnimData *adt = object->adt;
-  if (adt != NULL) {
-    /* If object has any sort of animation data assume it is moving. */
-    if (adt->action != NULL || !BLI_listbase_is_empty(&adt->nla_tracks) ||
-        !BLI_listbase_is_empty(&adt->drivers) || !BLI_listbase_is_empty(&adt->overrides)) {
-      return true;
-    }
+  /* If object has any sort of animation data assume it is moving. */
+  if (BKE_animdata_id_is_animated(&object->id)) {
+    return true;
   }
   if (!BLI_listbase_is_empty(&object->constraints)) {
     return true;
   }
-  if (object->parent != NULL) {
-    /* TODO(sergey): Do recursive check here? */
-    return true;
+  if (recurse_parent && object->parent != NULL) {
+    return BKE_object_moves_in_time(object->parent, true);
   }
   return false;
+}
+
+static bool object_moves_in_time(const Object *object)
+{
+  return BKE_object_moves_in_time(object, true);
 }
 
 static bool object_deforms_in_time(Object *object)

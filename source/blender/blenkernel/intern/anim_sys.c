@@ -298,7 +298,8 @@ bool BKE_animdata_id_is_animated(const struct ID *id)
     return true;
   }
 
-  return !BLI_listbase_is_empty(&adt->drivers) || !BLI_listbase_is_empty(&adt->nla_tracks);
+  return !BLI_listbase_is_empty(&adt->drivers) || !BLI_listbase_is_empty(&adt->nla_tracks) ||
+         !BLI_listbase_is_empty(&adt->overrides);
 }
 
 /* Copying -------------------------------------------- */
