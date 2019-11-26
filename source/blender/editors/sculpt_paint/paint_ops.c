@@ -98,7 +98,6 @@ static int brush_add_gpencil_exec(bContext *C, wmOperator *UNUSED(op))
   Paint *paint = &ts->gp_paint->paint;
   Brush *br = BKE_paint_brush(paint);
   Main *bmain = CTX_data_main(C);
-  // ePaintMode mode = PAINT_MODE_GPENCIL;
 
   if (br) {
     br = BKE_brush_copy(bmain, br);
@@ -106,12 +105,12 @@ static int brush_add_gpencil_exec(bContext *C, wmOperator *UNUSED(op))
   else {
     br = BKE_brush_add(bmain, "Brush", OB_MODE_PAINT_GPENCIL);
     id_us_min(&br->id); /* fake user only */
+
+    /* Init grease pencil specific data. */
+    BKE_brush_init_gpencil_settings(br);
   }
 
   BKE_paint_brush_set(paint, br);
-
-  /* init grease pencil specific data */
-  BKE_brush_init_gpencil_settings(br);
 
   return OPERATOR_FINISHED;
 }
