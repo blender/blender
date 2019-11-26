@@ -1543,7 +1543,7 @@ static PyObject *bpy_bm_elem_copy_from(BPy_BMElem *self, BPy_BMElem *value)
   }
 
   if (value->ele != self->ele) {
-    BM_elem_attrs_copy(value->bm, self->bm, value->ele, self->ele);
+    BM_elem_attrs_copy_ex(value->bm, self->bm, value->ele, self->ele, 0xff, CD_MASK_BM_ELEM_PYPTR);
   }
 
   Py_RETURN_NONE;
