@@ -2077,9 +2077,7 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
     BKE_gpencil_modifiers_calc(draw_ctx->depsgraph, draw_ctx->scene, ob);
   }
 
-  /* Use original data to shared in edit/transform operators */
-  bGPdata *gpd_eval = (bGPdata *)ob->data;
-  bGPdata *gpd = (bGPdata *)DEG_get_original_id(&gpd_eval->id);
+  bGPdata *gpd = (bGPdata *)ob->data;
 
   const bool main_onion = stl->storage->is_main_onion;
   const bool playing = stl->storage->is_playing;
