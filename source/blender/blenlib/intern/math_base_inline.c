@@ -58,6 +58,10 @@ MINLINE float pow4f(float x)
 {
   return pow2f(pow2f(x));
 }
+MINLINE float pow5f(float x)
+{
+  return pow4f(x) * x;
+}
 MINLINE float pow7f(float x)
 {
   return pow2f(pow3f(x)) * x;

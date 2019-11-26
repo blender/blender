@@ -48,6 +48,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
+#include "BKE_kelvinlet.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -3404,98 +3405,6 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BKE_pbvh_parallel_range(0, totnode, &data, do_grab_brush_task_cb_ex, &settings);
 }
 
-/* Regularized Kelvinlets: Sculpting Brushes based on Fundamental Solutions of Elasticity
- * Pixar Technical Memo #17-03 */
-
-typedef struct KelvinletParams {
-  float f;
-  float a;
-  float b;
-  float c;
-  float radius_scaled;
-} KelvinletParams;
-
-static int sculpt_kelvinlet_get_scale_iteration_count(eBrushElasticDeformType type)
-{
-  if (type == BRUSH_ELASTIC_DEFORM_GRAB) {
-    return 1;
-  }
-  if (type == BRUSH_ELASTIC_DEFORM_GRAB_BISCALE) {
-    return 2;
-  }
-  if (type == BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE) {
-    return 3;
-  }
-  return 0;
-}
-
-static void sculpt_kelvinet_integrate(void (*kelvinlet)(float disp[3],
-                                                        const float vertex_co[3],
-                                                        const float location[3],
-                                                        float normal[3],
-                                                        KelvinletParams *p),
-                                      float r_disp[3],
-                                      const float vertex_co[3],
-                                      const float location[3],
-                                      float normal[3],
-                                      KelvinletParams *p)
-{
-  float k[4][3], k_it[4][3];
-  kelvinlet(k[0], vertex_co, location, normal, p);
-  copy_v3_v3(k_it[0], k[0]);
-  mul_v3_fl(k_it[0], 0.5f);
-  add_v3_v3v3(k_it[0], vertex_co, k_it[0]);
-  kelvinlet(k[1], k_it[0], location, normal, p);
-  copy_v3_v3(k_it[1], k[1]);
-  mul_v3_fl(k_it[1], 0.5f);
-  add_v3_v3v3(k_it[1], vertex_co, k_it[1]);
-  kelvinlet(k[2], k_it[1], location, normal, p);
-  copy_v3_v3(k_it[2], k[2]);
-  add_v3_v3v3(k_it[2], vertex_co, k_it[2]);
-  sub_v3_v3v3(k_it[2], k_it[2], location);
-  kelvinlet(k[3], k_it[2], location, normal, p);
-  copy_v3_v3(r_disp, k[0]);
-  madd_v3_v3fl(r_disp, k[1], 2);
-  madd_v3_v3fl(r_disp, k[2], 2);
-  add_v3_v3(r_disp, k[3]);
-  mul_v3_fl(r_disp, 1.0f / 6.0f);
-}
-
-/* Regularized Kelvinlets: Formula (16) */
-static void sculpt_kelvinlet_scale(float disp[3],
-                                   const float vertex_co[3],
-                                   const float location[3],
-                                   float UNUSED(normal[3]),
-                                   KelvinletParams *p)
-{
-  float r_v[3];
-  sub_v3_v3v3(r_v, vertex_co, location);
-  float r = len_v3(r_v);
-  float r_e = sqrtf(r * r + p->radius_scaled * p->radius_scaled);
-  float u = (2.0f * p->b - p->a) * ((1.0f / (r_e * r_e * r_e))) +
-            ((3.0f * p->radius_scaled * p->radius_scaled) / (2.0f * r_e * r_e * r_e * r_e * r_e));
-  float fade = u * p->c;
-  mul_v3_v3fl(disp, r_v, fade * p->f);
-}
-
-/* Regularized Kelvinlets: Formula (15) */
-static void sculpt_kelvinlet_twist(float disp[3],
-                                   const float vertex_co[3],
-                                   const float location[3],
-                                   float normal[3],
-                                   KelvinletParams *p)
-{
-  float r_v[3], q_r[3];
-  sub_v3_v3v3(r_v, vertex_co, location);
-  float r = len_v3(r_v);
-  float r_e = sqrtf(r * r + p->radius_scaled * p->radius_scaled);
-  float u = -p->a * ((1.0f / (r_e * r_e * r_e))) +
-            ((3.0f * p->radius_scaled * p->radius_scaled) / (2.0f * r_e * r_e * r_e * r_e * r_e));
-  float fade = u * p->c;
-  cross_v3_v3v3(q_r, normal, r_v);
-  mul_v3_v3fl(disp, q_r, fade * p->f);
-}
-
 static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
                                                const int n,
                                                const TaskParallelTLS *__restrict UNUSED(tls))
@@ -3516,23 +3425,6 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
 
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-  /* Maybe this can be exposed to the user */
-  float radius_e[3] = {1.0f, 2.0f, 2.0f};
-  float r_e[3];
-  float kvl[3];
-  float radius_scaled[3];
-
-  radius_scaled[0] = ss->cache->radius * radius_e[0];
-  radius_scaled[1] = radius_scaled[0] * radius_e[1];
-  radius_scaled[2] = radius_scaled[1] * radius_e[2];
-
-  float shear_modulus = 1.0f;
-  float poisson_ratio = brush->elastic_deform_volume_preservation;
-
-  float a = 1.0f / (4.0f * (float)M_PI * shear_modulus);
-  float b = a / (4.0f * (1.0f - poisson_ratio));
-  float c = 2 * (3.0f * a - 2.0f * b);
-
   float dir;
   if (ss->cache->mouse[0] > ss->cache->initial_mouse[0]) {
     dir = 1.0f;
@@ -3547,73 +3439,38 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
       dir = -dir;
     }
   }
+
+  KelvinletParams params;
+  float force = len_v3(grab_delta) * dir * bstrength;
+  BKE_kelvinlet_init_params(
+      &params, ss->cache->radius, force, 1.0f, brush->elastic_deform_volume_preservation);
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     sculpt_orig_vert_data_update(&orig_data, &vd);
-    float fade, final_disp[3], weights[3];
-    float r = len_v3v3(location, orig_data.co);
-    KelvinletParams params;
-    params.a = a;
-    params.b = b;
-    params.c = c;
-    params.radius_scaled = radius_scaled[0];
-
-    int multi_scale_it = sculpt_kelvinlet_get_scale_iteration_count(brush->elastic_deform_type);
-    for (int it = 0; it < max_ii(1, multi_scale_it); it++) {
-      r_e[it] = sqrtf(r * r + radius_scaled[it] * radius_scaled[it]);
-    }
-
-    /* Regularized Kelvinlets: Formula (6) */
-    for (int s_it = 0; s_it < multi_scale_it; s_it++) {
-      kvl[s_it] = ((a - b) / r_e[s_it]) + ((b * r * r) / (r_e[s_it] * r_e[s_it] * r_e[s_it])) +
-                  ((a * radius_scaled[s_it] * radius_scaled[s_it]) /
-                   (2.0f * r_e[s_it] * r_e[s_it] * r_e[s_it]));
-    }
-
+    float final_disp[3];
     switch (brush->elastic_deform_type) {
-      /* Regularized Kelvinlets: Multi-scale extrapolation. Formula (11) */
       case BRUSH_ELASTIC_DEFORM_GRAB:
-        fade = kvl[0] * c;
-        mul_v3_v3fl(final_disp, grab_delta, fade * bstrength * 20.f);
+        BKE_kelvinlet_grab(final_disp, &params, orig_data.co, location, grab_delta);
+        mul_v3_fl(final_disp, bstrength * 20.0f);
         break;
       case BRUSH_ELASTIC_DEFORM_GRAB_BISCALE: {
-        const float u = kvl[0] - kvl[1];
-        fade = u * c / ((1.0f / radius_scaled[0]) - (1.0f / radius_scaled[1]));
-        mul_v3_v3fl(final_disp, grab_delta, fade * bstrength * 20.0f);
+        BKE_kelvinlet_grab_biscale(final_disp, &params, orig_data.co, location, grab_delta);
+        mul_v3_fl(final_disp, bstrength * 20.0f);
         break;
       }
       case BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE: {
-        weights[0] = 1.0f;
-        weights[1] = -(
-            (radius_scaled[2] * radius_scaled[2] - radius_scaled[0] * radius_scaled[0]) /
-            (radius_scaled[2] * radius_scaled[2] - radius_scaled[1] * radius_scaled[1]));
-        weights[2] = ((radius_scaled[1] * radius_scaled[1] - radius_scaled[0] * radius_scaled[0]) /
-                      (radius_scaled[2] * radius_scaled[2] - radius_scaled[1] * radius_scaled[1]));
-
-        const float u = weights[0] * kvl[0] + weights[1] * kvl[1] + weights[2] * kvl[2];
-        fade = u * c /
-               (weights[0] / radius_scaled[0] + weights[1] / radius_scaled[1] +
-                weights[2] / radius_scaled[2]);
-        mul_v3_v3fl(final_disp, grab_delta, fade * bstrength * 20.0f);
+        BKE_kelvinlet_grab_triscale(final_disp, &params, orig_data.co, location, grab_delta);
+        mul_v3_fl(final_disp, bstrength * 20.0f);
         break;
       }
       case BRUSH_ELASTIC_DEFORM_SCALE:
-        params.f = len_v3(grab_delta) * dir * bstrength;
-        sculpt_kelvinet_integrate(sculpt_kelvinlet_scale,
-                                  final_disp,
-                                  orig_data.co,
-                                  location,
-                                  ss->cache->sculpt_normal_symm,
-                                  &params);
+        BKE_kelvinlet_scale(
+            final_disp, &params, orig_data.co, location, ss->cache->sculpt_normal_symm);
         break;
       case BRUSH_ELASTIC_DEFORM_TWIST:
-        params.f = len_v3(grab_delta) * dir * bstrength;
-        sculpt_kelvinet_integrate(sculpt_kelvinlet_twist,
-                                  final_disp,
-                                  orig_data.co,
-                                  location,
-                                  ss->cache->sculpt_normal_symm,
-                                  &params);
+        BKE_kelvinlet_twist(
+            final_disp, &params, orig_data.co, location, ss->cache->sculpt_normal_symm);
         break;
     }
 
