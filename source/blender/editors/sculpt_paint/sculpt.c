@@ -8445,7 +8445,77 @@ static void SCULPT_OT_detail_flood_fill(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static void sample_detail(bContext *C, int mx, int my)
+typedef enum eSculptSampleDetailModeTypes {
+  SAMPLE_DETAIL_DYNTOPO = 0,
+  SAMPLE_DETAIL_VOXEL = 1,
+} eSculptSampleDetailModeTypes;
+
+static EnumPropertyItem prop_sculpt_sample_detail_mode_types[] = {
+    {SAMPLE_DETAIL_DYNTOPO, "DYNTOPO", 0, "Dyntopo", "Sample dyntopo detail"},
+    {SAMPLE_DETAIL_VOXEL, "VOXEL", 0, "Voxel", "Sample mesh voxel size"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static void sample_detail_voxel(bContext *C, ViewContext *vc, int mx, int my)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Object *ob = vc->obact;
+  Mesh *mesh = ob->data;
+
+  SculptSession *ss = ob->sculpt;
+  SculptCursorGeometryInfo sgi;
+  sculpt_vertex_random_access_init(ss);
+
+  /* Update the active vertex */
+  float mouse[2] = {mx, my};
+  sculpt_cursor_geometry_info_update(C, &sgi, mouse, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false);
+
+  /* Average the edge length of the connected edges to the active vertex */
+  int active_vertex = sculpt_active_vertex_get(ss);
+  const float *active_vertex_co = sculpt_active_vertex_co_get(ss);
+  float edge_length = 0.0f;
+  int tot = 0;
+  SculptVertexNeighborIter ni;
+  sculpt_vertex_neighbors_iter_begin(ss, active_vertex, ni)
+  {
+    edge_length += len_v3v3(active_vertex_co, sculpt_vertex_co_get(ss, ni.index));
+    tot += 1;
+  }
+  sculpt_vertex_neighbors_iter_end(ni);
+  if (tot > 0) {
+    mesh->remesh_voxel_size = edge_length / (float)tot;
+  }
+}
+
+static void sample_detail_dyntopo(bContext *C, ViewContext *vc, ARegion *ar, int mx, int my)
+{
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Object *ob = vc->obact;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  sculpt_stroke_modifiers_check(C, ob, brush);
+
+  float mouse[2] = {mx - ar->winrct.xmin, my - ar->winrct.ymin};
+  float ray_start[3], ray_end[3], ray_normal[3];
+  float depth = sculpt_raycast_init(vc, mouse, ray_start, ray_end, ray_normal, false);
+
+  SculptDetailRaycastData srd;
+  srd.hit = 0;
+  srd.ray_start = ray_start;
+  srd.depth = depth;
+  srd.edge_length = 0.0f;
+  isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
+
+  BKE_pbvh_raycast(ob->sculpt->pbvh, sculpt_raycast_detail_cb, &srd, ray_start, ray_normal, false);
+
+  if (srd.hit && srd.edge_length > 0.0f) {
+    /* Convert edge length to world space detail resolution. */
+    sd->constant_detail = 1 / (srd.edge_length * mat4_to_scale(ob->obmat));
+  }
+}
+
+static void sample_detail(bContext *C, int mx, int my, int mode)
 {
   /* Find 3D view to pick from. */
   bScreen *screen = CTX_wm_screen(C);
@@ -8466,28 +8536,13 @@ static void sample_detail(bContext *C, int mx, int my)
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   /* Pick sample detail. */
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-  Object *ob = vc.obact;
-  Brush *brush = BKE_paint_brush(&sd->paint);
-
-  sculpt_stroke_modifiers_check(C, ob, brush);
-
-  float mouse[2] = {mx - ar->winrct.xmin, my - ar->winrct.ymin};
-  float ray_start[3], ray_end[3], ray_normal[3];
-  float depth = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, false);
-
-  SculptDetailRaycastData srd;
-  srd.hit = 0;
-  srd.ray_start = ray_start;
-  srd.depth = depth;
-  srd.edge_length = 0.0f;
-  isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
-
-  BKE_pbvh_raycast(ob->sculpt->pbvh, sculpt_raycast_detail_cb, &srd, ray_start, ray_normal, false);
-
-  if (srd.hit && srd.edge_length > 0.0f) {
-    /* Convert edge length to world space detail resolution. */
-    sd->constant_detail = 1 / (srd.edge_length * mat4_to_scale(ob->obmat));
+  switch (mode) {
+    case SAMPLE_DETAIL_DYNTOPO:
+      sample_detail_dyntopo(C, &vc, ar, mx, my);
+      break;
+    case SAMPLE_DETAIL_VOXEL:
+      sample_detail_voxel(C, &vc, mx, my);
+      break;
   }
 
   /* Restore context. */
@@ -8499,7 +8554,8 @@ static int sculpt_sample_detail_size_exec(bContext *C, wmOperator *op)
 {
   int ss_co[2];
   RNA_int_get_array(op->ptr, "location", ss_co);
-  sample_detail(C, ss_co[0], ss_co[1]);
+  int mode = RNA_enum_get(op->ptr, "mode");
+  sample_detail(C, ss_co[0], ss_co[1], mode);
   return OPERATOR_FINISHED;
 }
 
@@ -8518,7 +8574,8 @@ static int sculpt_sample_detail_size_modal(bContext *C, wmOperator *op, const wm
       if (event->val == KM_PRESS) {
         int ss_co[2] = {event->x, event->y};
 
-        sample_detail(C, ss_co[0], ss_co[1]);
+        int mode = RNA_enum_get(op->ptr, "mode");
+        sample_detail(C, ss_co[0], ss_co[1], mode);
 
         RNA_int_set_array(op->ptr, "location", ss_co);
         WM_cursor_modal_restore(CTX_wm_window(C));
@@ -8551,7 +8608,7 @@ static void SCULPT_OT_sample_detail_size(wmOperatorType *ot)
   ot->invoke = sculpt_sample_detail_size_invoke;
   ot->exec = sculpt_sample_detail_size_exec;
   ot->modal = sculpt_sample_detail_size_modal;
-  ot->poll = sculpt_and_constant_or_manual_detail_poll;
+  ot->poll = sculpt_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -8565,6 +8622,12 @@ static void SCULPT_OT_sample_detail_size(wmOperatorType *ot)
                     "Screen Coordinates of sampling",
                     0,
                     SHRT_MAX);
+  RNA_def_enum(ot->srna,
+               "mode",
+               prop_sculpt_sample_detail_mode_types,
+               SAMPLE_DETAIL_DYNTOPO,
+               "Detail Mode",
+               "Target sculpting workflow that is going to use the sampled size");
 }
 
 /* Dynamic-topology detail size
