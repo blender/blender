@@ -779,7 +779,7 @@ class CLIP_PT_plane_track(CLIP_PT_tracking_panel, Panel):
         layout.prop(active_track, "name")
         layout.prop(active_track, "use_auto_keying")
         layout.template_ID(
-            active_track, "image", new="image.new", open="image.open", text="Image")
+            active_track, "image", new="image.new", open="image.open")
 
         row = layout.row()
         row.active = active_track.image is not None
