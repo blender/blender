@@ -773,6 +773,63 @@ static void update_noise_node_dimensions(bNodeTree *ntree)
   }
 }
 
+/* This structure is only used to pass data to
+ * update_mapping_node_fcurve_rna_path_callback.
+ */
+typedef struct {
+  char *nodePath;
+  bNode *minimumNode;
+  bNode *maximumNode;
+} MappingNodeFCurveCallbackData;
+
+/* This callback function is used by update_mapping_node_inputs_and_properties.
+ * It is executed on every fcurve in the nodetree id updating its RNA paths. The
+ * paths needs to be updated because the node properties became inputs.
+ *
+ * nodes["Mapping"].translation --> nodes["Mapping"].inputs[1].default_value
+ * nodes["Mapping"].rotation --> nodes["Mapping"].inputs[2].default_value
+ * nodes["Mapping"].scale --> nodes["Mapping"].inputs[3].default_value
+ * nodes["Mapping"].max --> nodes["Maximum"].inputs[1].default_value
+ * nodes["Mapping"].min --> nodes["Minimum"].inputs[1].default_value
+ *
+ * The fcurve can be that of any node or property in the nodetree, so we only
+ * update if the rna path starts with the rna path of the mapping node and
+ * doesn't end with "default_value", that is, not the Vector input.
+ */
+static void update_mapping_node_fcurve_rna_path_callback(ID *UNUSED(id),
+                                                         FCurve *fcurve,
+                                                         void *_data)
+{
+  MappingNodeFCurveCallbackData *data = (MappingNodeFCurveCallbackData *)_data;
+  if (!STRPREFIX(fcurve->rna_path, data->nodePath) ||
+      BLI_str_endswith(fcurve->rna_path, "default_value")) {
+    return;
+  }
+  char *old_fcurve_rna_path = fcurve->rna_path;
+
+  if (BLI_str_endswith(old_fcurve_rna_path, "translation")) {
+    fcurve->rna_path = BLI_sprintfN("%s.%s", data->nodePath, "inputs[1].default_value");
+  }
+  else if (BLI_str_endswith(old_fcurve_rna_path, "rotation")) {
+    fcurve->rna_path = BLI_sprintfN("%s.%s", data->nodePath, "inputs[2].default_value");
+  }
+  else if (BLI_str_endswith(old_fcurve_rna_path, "scale")) {
+    fcurve->rna_path = BLI_sprintfN("%s.%s", data->nodePath, "inputs[3].default_value");
+  }
+  else if (data->minimumNode && BLI_str_endswith(old_fcurve_rna_path, "max")) {
+    fcurve->rna_path = BLI_sprintfN(
+        "nodes[\"%s\"].%s", data->minimumNode->name, "inputs[1].default_value");
+  }
+  else if (data->maximumNode && BLI_str_endswith(old_fcurve_rna_path, "min")) {
+    fcurve->rna_path = BLI_sprintfN(
+        "nodes[\"%s\"].%s", data->maximumNode->name, "inputs[1].default_value");
+  }
+
+  if (fcurve->rna_path != old_fcurve_rna_path) {
+    MEM_freeN(old_fcurve_rna_path);
+  }
+}
+
 /* The Mapping node has been rewritten to support dynamic inputs. Previously,
  * the transformation information was stored in a TexMapping struct in the
  * node->storage member of bNode. Currently, the transformation information
@@ -875,40 +932,10 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
       MEM_freeN(node->storage);
       node->storage = NULL;
 
-      AnimData *animData = BKE_animdata_from_id(&ntree->id);
-      if (animData && animData->action) {
-        char *nodePath = BLI_sprintfN("nodes[\"%s\"]", node->name);
-        for (FCurve *fcu = animData->action->curves.first; fcu; fcu = fcu->next) {
-          if (STRPREFIX(fcu->rna_path, nodePath) &&
-              !BLI_str_endswith(fcu->rna_path, "default_value")) {
-            char *old_fcu_rna_path = fcu->rna_path;
-
-            if (BLI_str_endswith(old_fcu_rna_path, "translation")) {
-              fcu->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[1].default_value");
-            }
-            else if (BLI_str_endswith(old_fcu_rna_path, "rotation")) {
-              fcu->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[2].default_value");
-            }
-            else if (BLI_str_endswith(old_fcu_rna_path, "scale")) {
-              fcu->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[3].default_value");
-            }
-            else if (minimumNode && BLI_str_endswith(old_fcu_rna_path, "max")) {
-              fcu->rna_path = BLI_sprintfN(
-                  "nodes[\"%s\"].%s", minimumNode->name, "inputs[1].default_value");
-            }
-            else if (maximumNode && BLI_str_endswith(old_fcu_rna_path, "min")) {
-              fcu->rna_path = BLI_sprintfN(
-                  "nodes[\"%s\"].%s", maximumNode->name, "inputs[1].default_value");
-            }
-
-            if (fcu->rna_path != old_fcu_rna_path) {
-              MEM_freeN(old_fcu_rna_path);
-            }
-          }
-        }
-
-        MEM_freeN(nodePath);
-      }
+      char *nodePath = BLI_sprintfN("nodes[\"%s\"]", node->name);
+      MappingNodeFCurveCallbackData data = {nodePath, minimumNode, maximumNode};
+      BKE_fcurves_id_cb(&ntree->id, update_mapping_node_fcurve_rna_path_callback, &data);
+      MEM_freeN(nodePath);
     }
   }
 
