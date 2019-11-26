@@ -345,7 +345,6 @@ bool BKE_object_shapekey_free(struct Main *bmain, struct Object *ob);
 bool BKE_object_flag_test_recursive(const struct Object *ob, short flag);
 
 bool BKE_object_is_child_recursive(const struct Object *ob_parent, const struct Object *ob_child);
-bool BKE_object_is_animated(struct Scene *scene, struct Object *ob);
 
 /* return ModifierMode flag */
 int BKE_object_is_modified(struct Scene *scene, struct Object *ob);

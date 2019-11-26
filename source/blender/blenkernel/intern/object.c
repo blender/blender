@@ -3826,7 +3826,7 @@ static bool constructive_modifier_is_deform_modified(ModifierData *md)
   return false;
 }
 
-static bool modifiers_has_animation_check(Object *ob)
+static bool modifiers_has_animation_check(const Object *ob)
 {
   /* TODO(sergey): This is a bit code duplication with depsgraph, but
    * would be nicer to solve this as a part of new dependency graph
@@ -3896,21 +3896,6 @@ int BKE_object_is_deform_modified(Scene *scene, Object *ob)
   }
 
   return flag;
-}
-
-/* See if an object is using an animated modifier */
-bool BKE_object_is_animated(Scene *scene, Object *ob)
-{
-  ModifierData *md;
-  VirtualModifierData virtualModifierData;
-
-  for (md = modifiers_getVirtualModifierList(ob, &virtualModifierData); md; md = md->next) {
-    if (modifier_dependsOnTime(md) && (modifier_isEnabled(scene, md, eModifierMode_Realtime) ||
-                                       modifier_isEnabled(scene, md, eModifierMode_Render))) {
-      return true;
-    }
-  }
-  return false;
 }
 
 /** Return the number of scenes using (instantiating) that object in their collections. */
