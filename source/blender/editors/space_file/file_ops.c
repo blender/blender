@@ -2468,7 +2468,7 @@ static bool file_delete_poll(bContext *C)
       poll = 0;
     }
     for (i = 0; i < numfiles; i++) {
-      if (filelist_entry_select_index_get(sfile->files, i, CHECK_FILES)) {
+      if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
         num_selected++;
       }
     }
@@ -2498,7 +2498,7 @@ int file_delete_exec(bContext *C, wmOperator *op)
   bool report_error = false;
   errno = 0;
   for (i = 0; i < numfiles; i++) {
-    if (filelist_entry_select_index_get(sfile->files, i, CHECK_FILES)) {
+    if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
       file = filelist_file(sfile->files, i);
       BLI_make_file_string(BKE_main_blendfile_path(bmain), str, sfile->params->dir, file->relpath);
       if (BLI_delete_soft(str, &error_message) != 0 || BLI_exists(str)) {
