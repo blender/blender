@@ -283,7 +283,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
   }
 }
 
-bool BKE_animdata_id_is_animated(struct ID *id)
+bool BKE_animdata_id_is_animated(const struct ID *id)
 {
   if (id == NULL) {
     return false;
