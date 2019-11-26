@@ -17,6 +17,126 @@ extern "C" {
 
 #define NUM_ITEMS 10000
 
+/* *** Parallel iterations over range of integer values. *** */
+
+static void task_range_iter_func(void *userdata, int index, const TaskParallelTLS *__restrict tls)
+{
+  int *data = (int *)userdata;
+  data[index] = index;
+  *((int *)tls->userdata_chunk) += index;
+  //  printf("%d, %d, %d\n", index, data[index], *((int *)tls->userdata_chunk));
+}
+
+static void task_range_iter_finalize_func(void *__restrict userdata,
+                                          void *__restrict userdata_chunk)
+{
+  int *data = (int *)userdata;
+  data[NUM_ITEMS] += *(int *)userdata_chunk;
+  //  printf("%d, %d\n", data[NUM_ITEMS], *((int *)userdata_chunk));
+}
+
+TEST(task, RangeIter)
+{
+  int data[NUM_ITEMS + 1] = {0};
+  int sum = 0;
+
+  BLI_threadapi_init();
+
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.min_iter_per_thread = 1;
+
+  settings.userdata_chunk = &sum;
+  settings.userdata_chunk_size = sizeof(sum);
+  settings.func_finalize = task_range_iter_finalize_func;
+
+  BLI_task_parallel_range(0, NUM_ITEMS, data, task_range_iter_func, &settings);
+
+  /* Those checks should ensure us all items of the listbase were processed once, and only once -
+   * as expected. */
+
+  int expected_sum = 0;
+  for (int i = 0; i < NUM_ITEMS; i++) {
+    EXPECT_EQ(data[i], i);
+    expected_sum += i;
+  }
+  EXPECT_EQ(data[NUM_ITEMS], expected_sum);
+
+  BLI_threadapi_exit();
+}
+
+TEST(task, RangeIterPool)
+{
+  const int num_tasks = 10;
+  int data[num_tasks][NUM_ITEMS + 1] = {{0}};
+  int sum = 0;
+
+  BLI_threadapi_init();
+
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.min_iter_per_thread = 1;
+
+  TaskParallelRangePool *range_pool = BLI_task_parallel_range_pool_init(&settings);
+
+  for (int j = 0; j < num_tasks; j++) {
+    settings.userdata_chunk = &sum;
+    settings.userdata_chunk_size = sizeof(sum);
+    settings.func_finalize = task_range_iter_finalize_func;
+
+    BLI_task_parallel_range_pool_push(
+        range_pool, 0, NUM_ITEMS, data[j], task_range_iter_func, &settings);
+  }
+
+  BLI_task_parallel_range_pool_work_and_wait(range_pool);
+
+  /* Those checks should ensure us all items of the listbase were processed once, and only once -
+   * as expected. */
+
+  for (int j = 0; j < num_tasks; j++) {
+    int expected_sum = 0;
+    for (int i = 0; i < NUM_ITEMS; i++) {
+      //      EXPECT_EQ(data[j][i], i);
+      expected_sum += i;
+    }
+    EXPECT_EQ(data[j][NUM_ITEMS], expected_sum);
+  }
+
+  /* A pool can be re-used untill it is freed. */
+
+  for (int j = 0; j < num_tasks; j++) {
+    memset(data[j], 0, sizeof(data[j]));
+  }
+  sum = 0;
+
+  for (int j = 0; j < num_tasks; j++) {
+    settings.userdata_chunk = &sum;
+    settings.userdata_chunk_size = sizeof(sum);
+    settings.func_finalize = task_range_iter_finalize_func;
+
+    BLI_task_parallel_range_pool_push(
+        range_pool, 0, NUM_ITEMS, data[j], task_range_iter_func, &settings);
+  }
+
+  BLI_task_parallel_range_pool_work_and_wait(range_pool);
+
+  BLI_task_parallel_range_pool_free(range_pool);
+
+  /* Those checks should ensure us all items of the listbase were processed once, and only once -
+   * as expected. */
+
+  for (int j = 0; j < num_tasks; j++) {
+    int expected_sum = 0;
+    for (int i = 0; i < NUM_ITEMS; i++) {
+      //      EXPECT_EQ(data[j][i], i);
+      expected_sum += i;
+    }
+    EXPECT_EQ(data[j][NUM_ITEMS], expected_sum);
+  }
+
+  BLI_threadapi_exit();
+}
+
 /* *** Parallel iterations over mempool items. *** */
 
 static void task_mempool_iter_func(void *userdata, MempoolIterData *item)
