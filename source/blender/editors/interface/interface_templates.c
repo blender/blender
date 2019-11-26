@@ -156,6 +156,13 @@ static void template_add_button_search_menu(const bContext *C,
     const bool use_preview_icon = use_big_size || (id && (GS(id->name) != ID_SCR));
     const short width = UI_UNIT_X * (use_big_size ? 6 : 1.6f);
     const short height = UI_UNIT_Y * (use_big_size ? 6 : 1);
+    uiLayout *col = NULL;
+
+    if (use_big_size) {
+      /* Assume column layout here. To be more correct, we should check if the layout passed to
+       * template_id is a column one, but this should work well in practice. */
+      col = uiLayoutColumn(layout, true);
+    }
 
     but = uiDefBlockButN(block, block_func, block_argN, "", 0, 0, width, height, tip);
     if (use_preview_icon) {
@@ -171,7 +178,7 @@ static void template_add_button_search_menu(const bContext *C,
       UI_but_flag_enable(but, UI_BUT_DISABLED);
     }
     if (use_big_size) {
-      uiLayoutRow(layout, true);
+      uiLayoutRow(col ? col : layout, true);
     }
   }
   else {
