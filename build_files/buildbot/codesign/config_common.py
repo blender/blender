@@ -24,7 +24,7 @@ from pathlib import Path
 #
 # This is how long buildbot packing step will wait signing server to
 # perform signing.
-TIMEOUT_IN_SECONDS = 120
+TIMEOUT_IN_SECONDS = 240
 
 # Directory which is shared across buildbot worker and signing server.
 #
