@@ -1243,27 +1243,28 @@ static void draw_plane_marker_image(Scene *scene,
       GPU_matrix_mul(gl_matrix);
 
       GPUVertFormat *imm_format = immVertexFormat();
-      uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+      uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
       uint texCoord = GPU_vertformat_attr_add(
           imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-      immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
-      immUniformColor4f(1.0f, 1.0f, 1.0f, plane_track->image_opacity);
+      immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA);
+
+      immUniform1f("alpha", plane_track->image_opacity);
       immUniform1i("image", 0);
 
       immBegin(GPU_PRIM_TRI_FAN, 4);
 
       immAttr2f(texCoord, 0.0f, 0.0f);
-      immVertex2f(pos, 0.0f, 0.0f);
+      immVertex3f(pos, 0.0f, 0.0f, 0.0f);
 
       immAttr2f(texCoord, 1.0f, 0.0f);
-      immVertex2f(pos, 1.0f, 0.0f);
+      immVertex3f(pos, 1.0f, 0.0f, 0.0f);
 
       immAttr2f(texCoord, 1.0f, 1.0f);
-      immVertex2f(pos, 1.0f, 1.0f);
+      immVertex3f(pos, 1.0f, 1.0f, 0.0f);
 
       immAttr2f(texCoord, 0.0f, 1.0f);
-      immVertex2f(pos, 0.0f, 1.0f);
+      immVertex3f(pos, 0.0f, 1.0f, 0.0f);
 
       immEnd();
 
