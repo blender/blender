@@ -97,10 +97,8 @@ wmGesture *WM_gesture_new(bContext *C, const wmEvent *event, int type)
   return gesture;
 }
 
-void WM_gesture_end(bContext *C, wmGesture *gesture)
+static void wm_gesture_end_with_window(wmWindow *win, wmGesture *gesture)
 {
-  wmWindow *win = CTX_wm_window(C);
-
   if (win->tweak == gesture) {
     win->tweak = NULL;
   }
@@ -108,6 +106,18 @@ void WM_gesture_end(bContext *C, wmGesture *gesture)
   MEM_freeN(gesture->customdata);
   WM_generic_user_data_free(&gesture->user_data);
   MEM_freeN(gesture);
+}
+
+void WM_gesture_end(bContext *C, wmGesture *gesture)
+{
+  wm_gesture_end_with_window(CTX_wm_window(C), gesture);
+}
+
+void WM_gestures_free_all(wmWindow *win)
+{
+  while (win->gesture.first) {
+    wm_gesture_end_with_window(win, win->gesture.first);
+  }
 }
 
 void WM_gestures_remove(bContext *C)
