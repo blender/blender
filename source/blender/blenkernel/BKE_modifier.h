@@ -417,7 +417,7 @@ typedef struct VirtualModifierData {
   ShapeKeyModifierData smd;
 } VirtualModifierData;
 
-struct ModifierData *modifiers_getVirtualModifierList(struct Object *ob,
+struct ModifierData *modifiers_getVirtualModifierList(const struct Object *ob,
                                                       struct VirtualModifierData *data);
 
 /* ensure modifier correctness when changing ob->data */

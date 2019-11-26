@@ -614,7 +614,7 @@ ModifierData *modifiers_getLastPreview(struct Scene *scene, ModifierData *md, in
 
 /* This is to include things that are not modifiers in the evaluation of the modifier stack, for
  * example parenting to an armature. */
-ModifierData *modifiers_getVirtualModifierList(Object *ob,
+ModifierData *modifiers_getVirtualModifierList(const Object *ob,
                                                VirtualModifierData *virtualModifierData)
 {
   ModifierData *md;
