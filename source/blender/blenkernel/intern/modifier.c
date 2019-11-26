@@ -612,9 +612,8 @@ ModifierData *modifiers_getLastPreview(struct Scene *scene, ModifierData *md, in
   return tmp_md;
 }
 
-/* NOTE: This is to support old files from before Blender supported modifiers,
- * in some cases versioning code updates these so for new files this will
- * return an empty list. */
+/* This is to include things that are not modifiers in the evaluation of the modifier stack, for
+ * example parenting to an armature. */
 ModifierData *modifiers_getVirtualModifierList(Object *ob,
                                                VirtualModifierData *virtualModifierData)
 {
