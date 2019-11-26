@@ -1322,6 +1322,10 @@ static void draw_plane_marker_ex(SpaceClip *sc,
 
     immUniform1i("colors_len", 0); /* "simple" mode */
 
+    if (is_selected_track) {
+      plane_track_colors(is_active_track, color, selected_color);
+    }
+
     if (draw_plane_quad) {
       const bool stipple = !draw_outline && tiny;
       const bool thick = draw_outline && !tiny;
@@ -1340,7 +1344,6 @@ static void draw_plane_marker_ex(SpaceClip *sc,
         immUniformThemeColor(TH_MARKER_OUTLINE);
       }
       else {
-        plane_track_colors(is_active_track, color, selected_color);
         immUniformColor3fv(is_selected_track ? selected_color : color);
       }
 
