@@ -3415,24 +3415,18 @@ void CustomData_bmesh_free_block(CustomData *data, void **block)
  */
 void CustomData_bmesh_free_block_data(CustomData *data, void *block)
 {
-  const LayerTypeInfo *typeInfo;
-  int i;
-
   if (block == NULL) {
     return;
   }
-
-  for (i = 0; i < data->totlayer; i++) {
+  for (int i = 0; i < data->totlayer; i++) {
     if (!(data->layers[i].flag & CD_FLAG_NOFREE)) {
-      typeInfo = layerType_getInfo(data->layers[i].type);
-
+      const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[i].type);
       if (typeInfo->free) {
         const size_t offset = data->layers[i].offset;
         typeInfo->free(POINTER_OFFSET(block, offset), 1, typeInfo->size);
       }
     }
   }
-
   if (data->totsize) {
     memset(block, 0, data->totsize);
   }
@@ -3450,6 +3444,30 @@ static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
   }
   else {
     *block = NULL;
+  }
+}
+
+/**
+ * A selective version of #CustomData_bmesh_free_block_data.
+ */
+void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
+                                                      void *block,
+                                                      const CustomDataMask mask_exclude)
+{
+  if (block == NULL) {
+    return;
+  }
+  for (int i = 0; i < data->totlayer; i++) {
+    if ((CD_TYPE_AS_MASK(data->layers[i].type) & mask_exclude) == 0) {
+      const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[i].type);
+      const size_t offset = data->layers[i].offset;
+      if (!(data->layers[i].flag & CD_FLAG_NOFREE)) {
+        if (typeInfo->free) {
+          typeInfo->free(POINTER_OFFSET(block, offset), 1, typeInfo->size);
+        }
+      }
+      memset(POINTER_OFFSET(block, offset), 0, typeInfo->size);
+    }
   }
 }
 
@@ -3481,12 +3499,15 @@ void CustomData_bmesh_set_default(CustomData *data, void **block)
   }
 }
 
-void CustomData_bmesh_copy_data(const CustomData *source,
-                                CustomData *dest,
-                                void *src_block,
-                                void **dest_block)
+void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
+                                                CustomData *dest,
+                                                void *src_block,
+                                                void **dest_block,
+                                                const CustomDataMask mask_exclude)
 {
-  const LayerTypeInfo *typeInfo;
+  /* Note that having a version of this function without a 'mask_exclude'
+   * would cause too much duplicate code, so add a check instead. */
+  const bool no_mask = (mask_exclude == 0);
   int dest_i, src_i;
 
   if (*dest_block == NULL) {
@@ -3519,13 +3540,14 @@ void CustomData_bmesh_copy_data(const CustomData *source,
       const void *src_data = POINTER_OFFSET(src_block, source->layers[src_i].offset);
       void *dest_data = POINTER_OFFSET(*dest_block, dest->layers[dest_i].offset);
 
-      typeInfo = layerType_getInfo(source->layers[src_i].type);
-
-      if (typeInfo->copy) {
-        typeInfo->copy(src_data, dest_data, 1);
-      }
-      else {
-        memcpy(dest_data, src_data, typeInfo->size);
+      if (no_mask || ((CD_TYPE_AS_MASK(dest->layers[dest_i].type) & mask_exclude) == 0)) {
+        const LayerTypeInfo *typeInfo = layerType_getInfo(source->layers[src_i].type);
+        if (typeInfo->copy) {
+          typeInfo->copy(src_data, dest_data, 1);
+        }
+        else {
+          memcpy(dest_data, src_data, typeInfo->size);
+        }
       }
 
       /* if there are multiple source & dest layers of the same type,
@@ -3540,6 +3562,14 @@ void CustomData_bmesh_copy_data(const CustomData *source,
     CustomData_bmesh_set_default_n(dest, dest_block, dest_i);
     dest_i++;
   }
+}
+
+void CustomData_bmesh_copy_data(const CustomData *source,
+                                CustomData *dest,
+                                void *src_block,
+                                void **dest_block)
+{
+  CustomData_bmesh_copy_data_exclude_by_type(source, dest, src_block, dest_block, 0);
 }
 
 /* BMesh Custom Data Functions.
