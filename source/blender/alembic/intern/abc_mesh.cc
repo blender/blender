@@ -304,14 +304,8 @@ AbcGenericMeshWriter::~AbcGenericMeshWriter()
 
 bool AbcGenericMeshWriter::isAnimated() const
 {
-  if (m_object->data != NULL) {
-    AnimData *adt = BKE_animdata_from_id(static_cast<ID *>(m_object->data));
-    /* TODO(Sybren): make this check more strict, as the AnimationData may
-     * actually be empty (no fcurves, drivers, etc.) and thus effectively
-     * have no animation at all. */
-    if (adt != NULL) {
-      return true;
-    }
+  if (BKE_animdata_id_is_animated(static_cast<ID *>(m_object->data))) {
+    return true;
   }
   if (BKE_key_from_object(m_object) != NULL) {
     return true;

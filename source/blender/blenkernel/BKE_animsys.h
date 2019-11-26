@@ -60,6 +60,9 @@ bool BKE_animdata_set_action(struct ReportList *reports, struct ID *id, struct b
 /* Free AnimData */
 void BKE_animdata_free(struct ID *id, const bool do_id_user);
 
+/* Return true if the ID-block has non-empty AnimData. */
+bool BKE_animdata_id_is_animated(struct ID *id);
+
 /* Copy AnimData */
 struct AnimData *BKE_animdata_copy(struct Main *bmain, struct AnimData *adt, const int flag);
 

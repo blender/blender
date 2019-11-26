@@ -29,6 +29,7 @@ extern "C" {
 
 #include "BLI_math.h"
 
+#include "BKE_animsys.h"
 #include "BKE_object.h"
 
 #include "DEG_depsgraph_query.h"
@@ -130,10 +131,9 @@ Imath::Box3d AbcTransformWriter::bounds()
   return Imath::transform(bounds, m_matrix);
 }
 
-bool AbcTransformWriter::hasAnimation(Object * /*ob*/) const
+bool AbcTransformWriter::hasAnimation(Object *ob) const
 {
-  /* TODO(kevin): implement this. */
-  return true;
+  return BKE_animdata_id_is_animated(&ob->id);
 }
 
 /* ************************************************************************** */
