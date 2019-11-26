@@ -404,6 +404,38 @@ static PyObject *Quaternion_rotate(QuaternionObject *self, PyObject *value)
   Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(Quaternion_make_compatible_doc,
+             ".. method:: make_compatible(other)\n"
+             "\n"
+             "   Make this quaternion compatible with another,\n"
+             "   so interpolating between them works as intended.\n");
+static PyObject *Quaternion_make_compatible(QuaternionObject *self, PyObject *value)
+{
+  float quat[QUAT_SIZE];
+  float tquat[QUAT_SIZE];
+
+  if (BaseMath_ReadCallback_ForWrite(self) == -1) {
+    return NULL;
+  }
+
+  if (mathutils_array_parse(tquat,
+                            QUAT_SIZE,
+                            QUAT_SIZE,
+                            value,
+                            "Quaternion.make_compatible(other), invalid 'other' arg") == -1) {
+    return NULL;
+  }
+
+  /* Can only operate on unit length quaternions. */
+  const float quat_len = normalize_qt_qt(quat, self->quat);
+  quat_to_compatible_quat(self->quat, quat, tquat);
+  mul_qt_fl(self->quat, quat_len);
+
+  (void)BaseMath_WriteCallback(self);
+
+  Py_RETURN_NONE;
+}
+
 /* ----------------------------Quaternion.normalize()---------------- */
 /* Normalize the quaternion. This may change the angle as well as the
  * rotation axis, as all of (w, x, y, z) are scaled. */
@@ -1430,6 +1462,10 @@ static struct PyMethodDef Quaternion_methods[] = {
      Quaternion_rotation_difference_doc},
     {"slerp", (PyCFunction)Quaternion_slerp, METH_VARARGS, Quaternion_slerp_doc},
     {"rotate", (PyCFunction)Quaternion_rotate, METH_O, Quaternion_rotate_doc},
+    {"make_compatible",
+     (PyCFunction)Quaternion_make_compatible,
+     METH_O,
+     Quaternion_make_compatible_doc},
 
     /* base-math methods */
     {"freeze", (PyCFunction)BaseMathObject_freeze, METH_NOARGS, BaseMathObject_freeze_doc},
