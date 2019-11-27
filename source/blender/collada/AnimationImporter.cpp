@@ -121,12 +121,13 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
             COLLADAFW::FloatOrDoubleArray &outtan = curve->getOutTangentValues();
 
             /* intangent */
-            bez.vec[0][0] = bc_get_float_value(intan, (j * 2 * dim) + (2 * i)) * fps;
-            bez.vec[0][1] = bc_get_float_value(intan, (j * 2 * dim) + (2 * i) + 1);
+            unsigned int index = 2 * (j * dim + i);
+            bez.vec[0][0] = bc_get_float_value(intan, index) * fps;
+            bez.vec[0][1] = bc_get_float_value(intan, index + 1);
 
             /* outtangent */
-            bez.vec[2][0] = bc_get_float_value(outtan, (j * 2 * dim) + (2 * i)) * fps;
-            bez.vec[2][1] = bc_get_float_value(outtan, (j * 2 * dim) + (2 * i) + 1);
+            bez.vec[2][0] = bc_get_float_value(outtan, index) * fps;
+            bez.vec[2][1] = bc_get_float_value(outtan, index + 1);
             if (curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER) {
               bez.ipo = BEZT_IPO_BEZ;
               bez.h1 = bez.h2 = HD_AUTO_ANIM;
