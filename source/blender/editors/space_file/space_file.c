@@ -173,7 +173,7 @@ static void file_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback, area size changes, screen set, etc */
-static void file_init(wmWindowManager *wm, ScrArea *sa)
+static void file_init(wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
   SpaceFile *sfile = (SpaceFile *)sa->spacedata.first;
 

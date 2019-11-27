@@ -289,7 +289,7 @@ bool BKE_animdata_id_is_animated(const struct ID *id)
     return false;
   }
 
-  AnimData *adt = BKE_animdata_from_id(id);
+  const AnimData *adt = BKE_animdata_from_id((ID *)id);
   if (adt == NULL) {
     return false;
   }
