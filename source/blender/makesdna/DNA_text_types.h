@@ -36,7 +36,8 @@ typedef struct TextLine {
   /** May be NULL if syntax is off or not yet formatted. */
   char *format;
   /** Blen unused. */
-  int len, blen;
+  int len;
+  char _pad0[4];
 } TextLine;
 
 typedef struct Text {

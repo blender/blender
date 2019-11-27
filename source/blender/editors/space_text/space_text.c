@@ -117,7 +117,7 @@ static SpaceLink *text_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
 
-  stextn->drawcache = NULL; /* space need it's own cache */
+  stextn->runtime.drawcache = NULL; /* space need it's own cache */
 
   return (SpaceLink *)stextn;
 }
@@ -314,8 +314,9 @@ static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
   SpaceText *st = sa->spacedata.first;
   int wmcursor = WM_CURSOR_TEXT_EDIT;
 
-  if (st->text &&
-      BLI_rcti_isect_pt(&st->txtbar, win->eventstate->x - ar->winrct.xmin, st->txtbar.ymin)) {
+  if (st->text && BLI_rcti_isect_pt(&st->runtime.scroll_region_handle,
+                                    win->eventstate->x - ar->winrct.xmin,
+                                    st->runtime.scroll_region_handle.ymin)) {
     wmcursor = WM_CURSOR_DEFAULT;
   }
 

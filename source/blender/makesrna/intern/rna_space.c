@@ -4699,7 +4699,7 @@ static void rna_def_space_text(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "visible_lines", PROP_INT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_int_sdna(prop, NULL, "viewlines");
+  RNA_def_property_int_sdna(prop, NULL, "runtime.viewlines");
   RNA_def_property_ui_text(
       prop, "Visible Lines", "Amount of lines that can be visible in current editor");
 
