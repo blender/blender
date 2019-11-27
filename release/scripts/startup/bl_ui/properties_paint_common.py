@@ -296,11 +296,11 @@ def brush_basic_wpaint_settings(layout, context, brush, *, compact=False):
 
     row = layout.row(align=True)
     UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True)
-    UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size", text="")
+    row.prop(brush, "use_pressure_size", text="")
 
     row = layout.row(align=True)
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength")
-    UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
+    row.prop(brush, "use_pressure_strength", text="")
 
     layout.prop(brush, "blend", text="" if compact else "Blend")
 
@@ -310,11 +310,11 @@ def brush_basic_vpaint_settings(layout, context, brush, *, compact=False):
 
     row = layout.row(align=True)
     UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True)
-    UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size", text="")
+    row.prop(brush, "use_pressure_size", text="")
 
     row = layout.row(align=True)
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength")
-    UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
+    row.prop(brush, "use_pressure_strength", text="")
 
     if capabilities.has_color:
         layout.prop(brush, "blend", text="" if compact else "Blend")
@@ -326,12 +326,12 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
     if capabilities.has_radius:
         row = layout.row(align=True)
         UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True)
-        UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size", text="")
+        row.prop(brush, "use_pressure_size", text="")
 
     row = layout.row(align=True)
 
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength")
-    UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
+    row.prop(brush, "use_pressure_strength", text="")
 
     if capabilities.has_color:
         layout.prop(brush, "blend", text="" if compact else "Blend")
@@ -352,7 +352,7 @@ def brush_basic_sculpt_settings(layout, context, brush, *, compact=False):
     else:
         UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True)
 
-    UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size", text="")
+    row.prop(brush, "use_pressure_size", text="")
 
     # strength, use_strength_pressure, and use_strength_attenuation
     row = layout.row(align=True)
@@ -360,7 +360,7 @@ def brush_basic_sculpt_settings(layout, context, brush, *, compact=False):
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength")
 
     if capabilities.has_strength_pressure:
-        UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
+        row.prop(brush, "use_pressure_strength", text="")
 
     # direction
     if not capabilities.has_direction:

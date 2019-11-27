@@ -1724,7 +1724,7 @@ static float brush_strength(const Sculpt *sd,
   const float root_alpha = BKE_brush_alpha_get(scene, brush);
   float alpha = root_alpha * root_alpha;
   float dir = (brush->flag & BRUSH_DIR_IN) ? -1 : 1;
-  float pressure = BKE_brush_use_alpha_pressure(scene, brush) ? cache->pressure : 1;
+  float pressure = BKE_brush_use_alpha_pressure(brush) ? cache->pressure : 1;
   float pen_flip = cache->pen_flip ? -1 : 1;
   float invert = cache->invert ? -1 : 1;
   float overlap = ups->overlap_factor;
@@ -6719,7 +6719,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
     }
   }
 
-  if (BKE_brush_use_size_pressure(scene, brush) &&
+  if (BKE_brush_use_size_pressure(brush) &&
       paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT)) {
     cache->radius = sculpt_brush_dynamic_size_get(brush, cache, cache->initial_radius);
     cache->dyntopo_radius = cache->initial_radius * cache->pressure;
@@ -7137,14 +7137,13 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 
 static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
 {
-  SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   /* Restore the mesh before continuing with anchored stroke */
   if ((brush->flag & BRUSH_ANCHORED) ||
       ((brush->sculpt_tool == SCULPT_TOOL_GRAB ||
         brush->sculpt_tool == SCULPT_TOOL_ELASTIC_DEFORM) &&
-       BKE_brush_use_size_pressure(ss->cache->vc->scene, brush)) ||
+       BKE_brush_use_size_pressure(brush)) ||
       (brush->flag & BRUSH_DRAG_DOT)) {
     paint_mesh_restore_co(sd, ob);
   }

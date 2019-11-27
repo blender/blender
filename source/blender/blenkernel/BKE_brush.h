@@ -111,8 +111,8 @@ float BKE_brush_weight_get(const struct Scene *scene, const struct Brush *brush)
 void BKE_brush_weight_set(const struct Scene *scene, struct Brush *brush, float value);
 
 bool BKE_brush_use_locked_size(const struct Scene *scene, const struct Brush *brush);
-bool BKE_brush_use_alpha_pressure(const struct Scene *scene, const struct Brush *brush);
-bool BKE_brush_use_size_pressure(const struct Scene *scene, const struct Brush *brush);
+bool BKE_brush_use_alpha_pressure(const struct Brush *brush);
+bool BKE_brush_use_size_pressure(const struct Brush *brush);
 
 bool BKE_brush_sculpt_has_secondary_color(const struct Brush *brush);
 

@@ -4209,6 +4209,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         br->pose_smooth_iterations = 4;
       }
     }
+
     /* Cloth pressure */
     for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
       for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
@@ -4223,5 +4224,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   {
     /* Versioning code until next subversion bump goes here. */
+
+    /* Remove Unified pressure/size and pressure/alpha */
+    for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+      ToolSettings *ts = scene->toolsettings;
+      UnifiedPaintSettings *ups = &ts->unified_paint_settings;
+      ups->flag &= ~(UNIFIED_PAINT_FLAG_UNUSED_0 | UNIFIED_PAINT_FLAG_UNUSED_1);
+    }
   }
 }

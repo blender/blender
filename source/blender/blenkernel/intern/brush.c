@@ -1399,20 +1399,14 @@ bool BKE_brush_use_locked_size(const Scene *scene, const Brush *brush)
                                           (brush->flag & BRUSH_LOCK_SIZE);
 }
 
-bool BKE_brush_use_size_pressure(const Scene *scene, const Brush *brush)
+bool BKE_brush_use_size_pressure(const Brush *brush)
 {
-  const short us_flag = scene->toolsettings->unified_paint_settings.flag;
-
-  return (us_flag & UNIFIED_PAINT_SIZE) ? (us_flag & UNIFIED_PAINT_BRUSH_SIZE_PRESSURE) :
-                                          (brush->flag & BRUSH_SIZE_PRESSURE);
+  return brush->flag & BRUSH_SIZE_PRESSURE;
 }
 
-bool BKE_brush_use_alpha_pressure(const Scene *scene, const Brush *brush)
+bool BKE_brush_use_alpha_pressure(const Brush *brush)
 {
-  const short us_flag = scene->toolsettings->unified_paint_settings.flag;
-
-  return (us_flag & UNIFIED_PAINT_ALPHA) ? (us_flag & UNIFIED_PAINT_BRUSH_ALPHA_PRESSURE) :
-                                           (brush->flag & BRUSH_ALPHA_PRESSURE);
+  return brush->flag & BRUSH_ALPHA_PRESSURE;
 }
 
 bool BKE_brush_sculpt_has_secondary_color(const Brush *brush)

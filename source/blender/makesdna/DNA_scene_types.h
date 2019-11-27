@@ -1298,14 +1298,11 @@ typedef enum {
   UNIFIED_PAINT_WEIGHT = (1 << 5),
   UNIFIED_PAINT_COLOR = (1 << 6),
 
-  /* only used if unified size is enabled, mirrors the brush flags
-   * BRUSH_LOCK_SIZE and BRUSH_SIZE_PRESSURE */
+  /* only used if unified size is enabled, mirrors the brush flag BRUSH_LOCK_SIZE */
   UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1 << 2),
-  UNIFIED_PAINT_BRUSH_SIZE_PRESSURE = (1 << 3),
+  UNIFIED_PAINT_FLAG_UNUSED_0 = (1 << 3),
 
-  /* only used if unified alpha is enabled, mirrors the brush flag
-   * BRUSH_ALPHA_PRESSURE */
-  UNIFIED_PAINT_BRUSH_ALPHA_PRESSURE = (1 << 4),
+  UNIFIED_PAINT_FLAG_UNUSED_1 = (1 << 4),
 } eUnifiedPaintSettingsFlags;
 
 typedef struct CurvePaintSettings {

@@ -336,7 +336,7 @@ static bool paint_brush_update(bContext *C,
 
   ups->pixel_radius = BKE_brush_size_get(scene, brush);
 
-  if (BKE_brush_use_size_pressure(scene, brush) && paint_supports_dynamic_size(brush, mode)) {
+  if (BKE_brush_use_size_pressure(brush) && paint_supports_dynamic_size(brush, mode)) {
     ups->pixel_radius *= stroke->cached_size_pressure;
   }
 
@@ -527,8 +527,8 @@ static void paint_brush_stroke_add_step(bContext *C,
    * windows for some tablets, then we just skip first touch ..  */
   if (tablet && (pressure >= 0.99f) &&
       ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) ||
-       BKE_brush_use_alpha_pressure(scene, pop->s.brush) ||
-       BKE_brush_use_size_pressure(scene, pop->s.brush))) {
+       BKE_brush_use_alpha_pressure(pop->s.brush) ||
+       BKE_brush_use_size_pressure(pop->s.brush))) {
     return;
   }
 
@@ -540,8 +540,8 @@ static void paint_brush_stroke_add_step(bContext *C,
    * which is the sensitivity of the most sensitive pen tablet available */
   if (tablet && (pressure < 0.0002f) &&
       ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) ||
-       BKE_brush_use_alpha_pressure(scene, pop->s.brush) ||
-       BKE_brush_use_size_pressure(scene, pop->s.brush))) {
+       BKE_brush_use_alpha_pressure(pop->s.brush) ||
+       BKE_brush_use_size_pressure(pop->s.brush))) {
     return;
   }
 #endif
@@ -756,7 +756,7 @@ static float paint_space_stroke_spacing_variable(bContext *C,
                                                  float dpressure,
                                                  float length)
 {
-  if (BKE_brush_use_size_pressure(scene, stroke->brush)) {
+  if (BKE_brush_use_size_pressure(stroke->brush)) {
     /* use pressure to modify size. set spacing so that at 100%, the circles
      * are aligned nicely with no overlap. for this the spacing needs to be
      * the average of the previous and next size. */
