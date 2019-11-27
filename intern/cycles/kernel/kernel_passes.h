@@ -145,7 +145,17 @@ ccl_device_inline void kernel_update_denoising_features(KernelGlobals *kg,
     normal += sc->N * sc->sample_weight;
     sum_weight += sc->sample_weight;
     if (bsdf_get_specular_roughness_squared(sc) > sqr(0.075f)) {
-      albedo += sc->weight;
+      float3 closure_albedo = sc->weight;
+      /* Closures that include a Fresnel term typically have weights close to 1 even though their
+       * actual contribution is significantly lower.
+       * To account for this, we scale their weight by the average fresnel factor (the same is also
+       * done for the sample weight in the BSDF setup, so we don't need to scale that here). */
+      if (CLOSURE_IS_BSDF_MICROFACET_FRESNEL(sc->type)) {
+        MicrofacetBsdf *bsdf = (MicrofacetBsdf *)sc;
+        closure_albedo *= bsdf->extra->fresnel_color;
+      }
+
+      albedo += closure_albedo;
       sum_nonspecular_weight += sc->sample_weight;
     }
   }
