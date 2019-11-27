@@ -879,7 +879,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
         BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
           const int keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
 
-          if (keyi != ORIGINDEX_NONE) {
+          if (keyi != ORIGINDEX_NONE && keyi < actkey->totelem) {
             sub_v3_v3v3(ofs[i], mvert->co, fp[keyi]);
           }
           else {
