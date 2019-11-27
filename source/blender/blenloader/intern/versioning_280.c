@@ -4204,7 +4204,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     /* Pose brush smooth iterations */
-    if (!DNA_struct_elem_find(fd->filesdna, "Brush", "float", "pose_smooth_itereations")) {
+    if (!DNA_struct_elem_find(fd->filesdna, "Brush", "float", "pose_smooth_iterations")) {
       for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
         br->pose_smooth_iterations = 4;
       }
