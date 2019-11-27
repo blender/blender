@@ -236,6 +236,14 @@ void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc); /* rename
 
 bool EDBM_mesh_deselect_all_multi_ex(struct Base **bases, const uint bases_len);
 bool EDBM_mesh_deselect_all_multi(struct bContext *C);
+bool EDBM_selectmode_disable_multi_ex(struct Scene *scene,
+                                      struct Base **bases,
+                                      const uint bases_len,
+                                      const short selectmode_disable,
+                                      const short selectmode_fallback);
+bool EDBM_selectmode_disable_multi(struct bContext *C,
+                                   const short selectmode_disable,
+                                   const short selectmode_fallback);
 
 /* editmesh_preselect_edgering.c */
 struct EditMesh_PreSelEdgeRing;

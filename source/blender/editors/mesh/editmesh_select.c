@@ -2653,6 +2653,41 @@ bool EDBM_mesh_deselect_all_multi(struct bContext *C)
   return changed_multi;
 }
 
+bool EDBM_selectmode_disable_multi_ex(Scene *scene,
+                                      struct Base **bases,
+                                      const uint bases_len,
+                                      const short selectmode_disable,
+                                      const short selectmode_fallback)
+{
+  bool changed_multi = false;
+  for (uint base_index = 0; base_index < bases_len; base_index++) {
+    Base *base_iter = bases[base_index];
+    Object *ob_iter = base_iter->object;
+    BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
+
+    EDBM_selectmode_disable(scene, em_iter, selectmode_disable, selectmode_fallback);
+    changed_multi = true;
+  }
+  return changed_multi;
+}
+
+bool EDBM_selectmode_disable_multi(struct bContext *C,
+                                   const short selectmode_disable,
+                                   const short selectmode_fallback)
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewContext vc;
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  uint bases_len = 0;
+  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+      vc.view_layer, NULL, &bases_len);
+  bool changed_multi = EDBM_selectmode_disable_multi_ex(
+      scene, bases, bases_len, selectmode_disable, selectmode_fallback);
+  MEM_freeN(bases);
+  return changed_multi;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
