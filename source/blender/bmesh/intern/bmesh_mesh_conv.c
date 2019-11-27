@@ -972,6 +972,16 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     if (ofs) {
       MEM_freeN(ofs);
     }
+
+    if (params->update_shapekey_indices) {
+      /* We have written a new shape key, if this mesh is _not_ going to be freed,
+       * update the shape key indices to match the newly updated. */
+      if (cd_shape_keyindex_offset != -1) {
+        BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
+          BM_ELEM_CD_SET_INT(eve, cd_shape_keyindex_offset, i);
+        }
+      }
+    }
   }
 
   if (oldverts != NULL) {

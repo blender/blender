@@ -48,6 +48,16 @@ void BM_mesh_bm_from_me(BMesh *bm, const struct Mesh *me, const struct BMeshFrom
 struct BMeshToMeshParams {
   /** Update object hook indices & vertex parents. */
   uint calc_object_remap : 1;
+  /**
+   * This re-assigns shape-key indices. Only do if the BMesh will have continued use
+   * to update the mesh & shape key in the future.
+   * In the case the BMesh is freed immediately, this can be left false.
+   *
+   * This is needed when flushing changes from edit-mode into object mode,
+   * so a second flush or edit-mode exit doesn't run with indices
+   * that have become invalid from updating the shape-key, see T71865.
+   */
+  uint update_shapekey_indices : 1;
   struct CustomData_MeshMasks cd_mask_extra;
 };
 void BM_mesh_bm_to_me(struct Main *bmain,

@@ -325,7 +325,7 @@ void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
  * \warning This can invalidate the #Mesh runtime cache of other objects (for linked duplicates).
  * Most callers should run #DEG_id_tag_update on \a ob->data, see: T46738, T46913
  */
-void EDBM_mesh_load(Main *bmain, Object *ob)
+void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
 {
   Mesh *me = ob->data;
   BMesh *bm = me->edit_mesh->bm;
@@ -341,6 +341,7 @@ void EDBM_mesh_load(Main *bmain, Object *ob)
                    me,
                    (&(struct BMeshToMeshParams){
                        .calc_object_remap = true,
+                       .update_shapekey_indices = !free_data,
                    }));
 
   /* Free derived mesh. usually this would happen through depsgraph but there
@@ -378,6 +379,11 @@ void EDBM_mesh_clear(BMEditMesh *em)
     MEM_freeN(em->looptris);
     em->looptris = NULL;
   }
+}
+
+void EDBM_mesh_load(Main *bmain, Object *ob)
+{
+  EDBM_mesh_load_ex(bmain, ob, true);
 }
 
 /**

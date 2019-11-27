@@ -1284,6 +1284,7 @@ static void prepare_mesh_for_viewport_render(Main *bmain, const ViewLayer *view_
                          mesh,
                          (&(struct BMeshToMeshParams){
                              .calc_object_remap = true,
+                             .update_shapekey_indices = true,
                          }));
         DEG_id_tag_update(&mesh->id, 0);
       }
