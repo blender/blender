@@ -270,32 +270,6 @@ Using ``bl_idname = 1`` will raise.
 ``TypeError: validating class error: Operator.bl_idname expected a string type, not int``
 
 
-Multiple-Classes
-^^^^^^^^^^^^^^^^
-
-Loading classes into Blender is described above,
-for simple cases calling :mod:`bpy.utils.register_class` (SomeClass) is sufficient,
-but when there are many classes or a packages submodule has its own
-classes it can be tedious to list them all for registration.
-
-For more convenient loading/unloading :mod:`bpy.utils.register_module` (module)
-and :mod:`bpy.utils.unregister_module` (module) functions exist.
-
-A script which defines many of its own operators, panels menus etc. you only need to write:
-
-.. code-block:: python
-
-   def register():
-       bpy.utils.register_module(__name__)
-
-   def unregister():
-       bpy.utils.unregister_module(__name__)
-
-Internally Blender collects subclasses on registrable types, storing them by the module in which they are defined.
-By passing the module name to :mod:`bpy.utils.register_module`
-Blender can register all classes created by this module and its submodules.
-
-
 Inter Classes Dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -316,11 +290,11 @@ Say you want to store material settings for a custom engine.
    import bpy
 
    class MyMaterialProps(bpy.types.PropertyGroup):
-       my_float = bpy.props.FloatProperty()
+       my_float: bpy.props.FloatProperty()
 
    def register():
        bpy.utils.register_class(MyMaterialProps)
-       bpy.types.Material.my_custom_props = bpy.props.PointerProperty(type=MyMaterialProps)
+       bpy.types.Material.my_custom_props: bpy.props.PointerProperty(type=MyMaterialProps)
 
    def unregister():
        del bpy.types.Material.my_custom_props
@@ -343,15 +317,15 @@ Say you want to store material settings for a custom engine.
    import bpy
 
    class MyMaterialSubProps(bpy.types.PropertyGroup):
-       my_float = bpy.props.FloatProperty()
+       my_float: bpy.props.FloatProperty()
 
    class MyMaterialGroupProps(bpy.types.PropertyGroup):
-       sub_group = bpy.props.PointerProperty(type=MyMaterialSubProps)
+       sub_group: bpy.props.PointerProperty(type=MyMaterialSubProps)
 
    def register():
        bpy.utils.register_class(MyMaterialSubProps)
        bpy.utils.register_class(MyMaterialGroupProps)
-       bpy.types.Material.my_custom_props = bpy.props.PointerProperty(type=MyMaterialGroupProps)
+       bpy.types.Material.my_custom_props: bpy.props.PointerProperty(type=MyMaterialGroupProps)
 
    def unregister():
        del bpy.types.Material.my_custom_props
@@ -378,7 +352,7 @@ For example:
 .. code-block:: python
 
    # add a new property to an existing type
-   bpy.types.Object.my_float = bpy.props.FloatProperty()
+   bpy.types.Object.my_float: bpy.props.FloatProperty()
    # remove
    del bpy.types.Object.my_float
 
@@ -388,14 +362,14 @@ This works just as well for PropertyGroup subclasses you define yourself.
 
    class MyPropGroup(bpy.types.PropertyGroup):
        pass
-   MyPropGroup.my_float = bpy.props.FloatProperty()
+   MyPropGroup.my_float: bpy.props.FloatProperty()
 
 ...this is equivalent to:
 
 .. code-block:: python
 
    class MyPropGroup(bpy.types.PropertyGroup):
-       my_float = bpy.props.FloatProperty()
+       my_float: bpy.props.FloatProperty()
 
 
 Dynamic Defined-Classes (Advanced)
