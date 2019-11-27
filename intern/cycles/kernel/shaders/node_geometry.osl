@@ -26,7 +26,8 @@ shader node_geometry(normal NormalIn = N,
                      output vector Incoming = vector(0.0, 0.0, 0.0),
                      output point Parametric = point(0.0, 0.0, 0.0),
                      output float Backfacing = 0.0,
-                     output float Pointiness = 0.0)
+                     output float Pointiness = 0.0,
+                     output float RandomPerIsland = 0.0)
 {
   Position = P;
   Normal = NormalIn;
@@ -65,4 +66,6 @@ shader node_geometry(normal NormalIn = N,
   else if (bump_offset == "dy") {
     Pointiness += Dy(Pointiness);
   }
+
+  getattribute("geom:random_per_island", RandomPerIsland);
 }

@@ -29,8 +29,10 @@
 
 #include "util/util_algorithm.h"
 #include "util/util_foreach.h"
+#include "util/util_hash.h"
 #include "util/util_logging.h"
 #include "util/util_math.h"
+#include "util/util_disjoint_set.h"
 
 #include "mikktspace.h"
 
@@ -679,6 +681,55 @@ static void attr_create_pointiness(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, b
   }
 }
 
+/* The Random Per Island attribute is a random float associated with each
+ * connected component (island) of the mesh. The attribute is computed by
+ * first classifying the vertices into different sets using a Disjoint Set
+ * data structure. Then the index of the root of each vertex (Which is the
+ * representative of the set the vertex belongs to) is hashed and stored.
+ *
+ * We are using a face attribute to avoid interpolation during rendering,
+ * allowing the user to safely hash the output further. Had we used vertex
+ * attribute, the interpolation will introduce very slight variations,
+ * making the output unsafe to hash. */
+static void attr_create_random_per_island(Scene *scene,
+                                          Mesh *mesh,
+                                          BL::Mesh &b_mesh,
+                                          bool subdivision)
+{
+  if (!mesh->need_attribute(scene, ATTR_STD_RANDOM_PER_ISLAND)) {
+    return;
+  }
+
+  int number_of_vertices = b_mesh.vertices.length();
+  if (number_of_vertices == 0) {
+    return;
+  }
+
+  DisjointSet vertices_sets(number_of_vertices);
+
+  BL::Mesh::edges_iterator e;
+  for (b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e) {
+    vertices_sets.join(e->vertices()[0], e->vertices()[1]);
+  }
+
+  AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
+  Attribute *attribute = attributes.add(ATTR_STD_RANDOM_PER_ISLAND);
+  float *data = attribute->data_float();
+
+  if (!subdivision) {
+    BL::Mesh::loop_triangles_iterator t;
+    for (b_mesh.loop_triangles.begin(t); t != b_mesh.loop_triangles.end(); ++t) {
+      data[t->index()] = hash_uint_to_float(vertices_sets.find(t->vertices()[0]));
+    }
+  }
+  else {
+    BL::Mesh::polygons_iterator p;
+    for (b_mesh.polygons.begin(p); p != b_mesh.polygons.end(); ++p) {
+      data[p->index()] = hash_uint_to_float(vertices_sets.find(p->vertices()[0]));
+    }
+  }
+}
+
 /* Create Mesh */
 
 static void create_mesh(Scene *scene,
@@ -799,6 +850,7 @@ static void create_mesh(Scene *scene,
    */
   attr_create_pointiness(scene, mesh, b_mesh, subdivision);
   attr_create_vertex_color(scene, mesh, b_mesh, subdivision);
+  attr_create_random_per_island(scene, mesh, b_mesh, subdivision);
 
   if (subdivision) {
     attr_create_subd_uv_map(scene, mesh, b_mesh, subdivide_uvs);

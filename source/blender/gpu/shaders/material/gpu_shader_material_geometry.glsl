@@ -11,7 +11,8 @@ void node_geometry(vec3 I,
                    out vec3 incoming,
                    out vec3 parametric,
                    out float backfacing,
-                   out float pointiness)
+                   out float pointiness,
+                   out float random_per_island)
 {
   /* handle perspective/orthographic */
   vec3 I_view = (ProjectionMatrix[3][3] == 0.0) ? normalize(I) : vec3(0.0, 0.0, -1.0);
@@ -42,5 +43,6 @@ void node_geometry(vec3 I,
   parametric = vec3(barycentric, 0.0);
   backfacing = (gl_FrontFacing) ? 0.0 : 1.0;
   pointiness = 0.5;
+  random_per_island = 0.0;
 #endif
 }

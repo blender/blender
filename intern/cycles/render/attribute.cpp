@@ -312,6 +312,8 @@ const char *Attribute::standard_name(AttributeStandard std)
       return "velocity";
     case ATTR_STD_POINTINESS:
       return "pointiness";
+    case ATTR_STD_RANDOM_PER_ISLAND:
+      return "random_per_island";
     case ATTR_STD_NOT_FOUND:
     case ATTR_STD_NONE:
     case ATTR_STD_NUM:
@@ -468,6 +470,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
       case ATTR_STD_POINTINESS:
         attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VERTEX);
         break;
+      case ATTR_STD_RANDOM_PER_ISLAND:
+        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_FACE);
+        break;
       default:
         assert(0);
         break;
@@ -495,6 +500,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         break;
       case ATTR_STD_POINTINESS:
         attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VERTEX);
+        break;
+      case ATTR_STD_RANDOM_PER_ISLAND:
+        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_FACE);
         break;
       default:
         assert(0);

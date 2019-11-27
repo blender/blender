@@ -3502,6 +3502,7 @@ NODE_DEFINE(GeometryNode)
   SOCKET_OUT_POINT(parametric, "Parametric");
   SOCKET_OUT_FLOAT(backfacing, "Backfacing");
   SOCKET_OUT_FLOAT(pointiness, "Pointiness");
+  SOCKET_OUT_FLOAT(random_per_island, "Random Per Island");
 
   return type;
 }
@@ -3519,6 +3520,9 @@ void GeometryNode::attributes(Shader *shader, AttributeRequestSet *attributes)
     }
     if (!output("Pointiness")->links.empty()) {
       attributes->add(ATTR_STD_POINTINESS);
+    }
+    if (!output("Random Per Island")->links.empty()) {
+      attributes->add(ATTR_STD_RANDOM_PER_ISLAND);
     }
   }
 
@@ -3580,6 +3584,17 @@ void GeometryNode::compile(SVMCompiler &compiler)
     if (compiler.output_type() != SHADER_TYPE_VOLUME) {
       compiler.add_node(
           attr_node, ATTR_STD_POINTINESS, compiler.stack_assign(out), NODE_ATTR_FLOAT);
+    }
+    else {
+      compiler.add_node(NODE_VALUE_F, __float_as_int(0.0f), compiler.stack_assign(out));
+    }
+  }
+
+  out = output("Random Per Island");
+  if (!out->links.empty()) {
+    if (compiler.output_type() != SHADER_TYPE_VOLUME) {
+      compiler.add_node(
+          attr_node, ATTR_STD_RANDOM_PER_ISLAND, compiler.stack_assign(out), NODE_ATTR_FLOAT);
     }
     else {
       compiler.add_node(NODE_VALUE_F, __float_as_int(0.0f), compiler.stack_assign(out));
