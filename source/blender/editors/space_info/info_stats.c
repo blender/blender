@@ -123,6 +123,10 @@ static bool stats_mesheval(Mesh *me_eval, bool is_selected, SceneStats *stats)
 
 static void stats_object(Object *ob, SceneStats *stats, GSet *objects_gset)
 {
+  if ((ob->base_flag & BASE_VISIBLE_VIEWLAYER) == 0) {
+    return;
+  }
+
   const bool is_selected = (ob->base_flag & BASE_SELECTED) != 0;
 
   stats->totobj++;
