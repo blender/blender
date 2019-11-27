@@ -1320,20 +1320,36 @@ static int change_spacing_exec(bContext *C, wmOperator *op)
   Curve *cu = obedit->data;
   EditFont *ef = cu->editfont;
   int kern, delta = RNA_int_get(op->ptr, "delta");
+  int selstart, selend;
+  bool changed = false;
 
-  kern = ef->textbufinfo[ef->pos - 1].kern;
-  kern += delta;
-  CLAMP(kern, -20, 20);
+  const bool has_select = BKE_vfont_select_get(obedit, &selstart, &selend);
+  if (has_select) {
+    selstart -= 1;
+  }
+  else {
+    selstart = selend = ef->pos - 1;
+  }
+  selstart = max_ii(0, selstart);
 
-  if (ef->textbufinfo[ef->pos - 1].kern == kern) {
-    return OPERATOR_CANCELLED;
+  for (int i = selstart; i <= selend; i++) {
+    kern = ef->textbufinfo[i].kern + delta;
+    CLAMP(kern, -20, 20);
+
+    if (ef->textbufinfo[i].kern != kern) {
+      ef->textbufinfo[i].kern = kern;
+      changed = true;
+    }
   }
 
-  ef->textbufinfo[ef->pos - 1].kern = kern;
+  if (changed) {
+    text_update_edited(C, obedit, FO_EDIT);
 
-  text_update_edited(C, obedit, FO_EDIT);
-
-  return OPERATOR_FINISHED;
+    return OPERATOR_FINISHED;
+  }
+  else {
+    return OPERATOR_CANCELLED;
+  }
 }
 
 void FONT_OT_change_spacing(wmOperatorType *ot)
