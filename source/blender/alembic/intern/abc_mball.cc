@@ -76,7 +76,7 @@ Mesh *AbcMBallWriter::getEvaluatedMesh(Scene * /*scene_eval*/, Object *ob_eval, 
   ListBase disp = {NULL, NULL};
   /* TODO(sergey): This is gonna to work for until Depsgraph
    *               only contains for_render flag. As soon as CoW is
-   *               implemented, this is to be rethinked.
+   *               implemented, this is to be rethought.
    */
   BKE_displist_make_mball_forRender(m_settings.depsgraph, m_settings.scene, m_object, &disp);
   BKE_mesh_from_metaball(&disp, tmpmesh);

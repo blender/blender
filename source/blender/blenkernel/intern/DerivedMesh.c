@@ -807,7 +807,7 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
                                 (final_datamask->lmask & CD_MASK_NORMAL) != 0);
   /* Some modifiers may need this info from their target (other) object,
    * simpler to generate it here as well.
-   * Note that they will always be generated when no loop normals are comptuted,
+   * Note that they will always be generated when no loop normals are computed,
    * since they are needed by drawing code. */
   const bool do_poly_normals = ((final_datamask->pmask & CD_MASK_NORMAL) != 0);
 

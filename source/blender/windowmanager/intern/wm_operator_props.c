@@ -404,7 +404,7 @@ void WM_operator_properties_select_operation_simple(wmOperatorType *ot)
  *
  * For default click selection (with no modifier keys held), the select operators can do the
  * following:
- * - On a mouse press on an unselected item, change selection and finish immidiately after.
+ * - On a mouse press on an unselected item, change selection and finish immediately after.
  *   This sends an undo push and allows transform to take over should a tweak event be caught now.
  * - On a mouse press on a selected item, don't change selection state, but start modal execution
  *   of the operator. Idea is that we wait with deselecting other items until we know that the
@@ -418,8 +418,8 @@ void WM_operator_properties_select_operation_simple(wmOperatorType *ot)
  * help getting the wanted behavior to work. Most generic logic should be handled in these, so that
  * the select operators only have to care for the case dependent handling.
  *
- * Every select operator has slightly diferent requirements, e.g. VSE strip selection also needs to
- * account for handle selection. This should be the baseline behavior though.
+ * Every select operator has slightly different requirements, e.g. VSE strip selection also needs
+ * to account for handle selection. This should be the baseline behavior though.
  */
 void WM_operator_properties_generic_select(wmOperatorType *ot)
 {
