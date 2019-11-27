@@ -130,6 +130,11 @@ void cloth_init(ClothModifierData *clmd)
   clmd->sim_parms->eff_force_scale = 1000.0;
   clmd->sim_parms->eff_wind_scale = 250.0;
 
+  /* Pressure settings */
+  clmd->sim_parms->uniform_pressure_force = 0.0f;
+  clmd->sim_parms->target_volume = 0.0f;
+  clmd->sim_parms->pressure_factor = 1.0f;
+
   // also from softbodies
   clmd->sim_parms->maxgoal = 1.0f;
   clmd->sim_parms->mingoal = 0.0f;
@@ -290,6 +295,12 @@ static int do_init_cloth(Object *ob, ClothModifierData *clmd, Mesh *result, int 
     }
 
     BKE_cloth_solver_set_positions(clmd);
+
+    ClothSimSettings *parms = clmd->sim_parms;
+    if (parms->flags & CLOTH_SIMSETTINGS_FLAG_PRESSURE &&
+        !(parms->flags & CLOTH_SIMSETTINGS_FLAG_PRESSURE_VOL)) {
+      BKE_cloth_solver_set_volume(clmd);
+    }
 
     clmd->clothObject->last_frame = MINFRAME - 1;
     clmd->sim_parms->dt = 1.0f / clmd->sim_parms->stepsPerFrame;
@@ -1742,6 +1753,6 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   return 1;
 
 } /* cloth_build_springs */
-/***************************************************************************************
- * SPRING NETWORK GPU_BATCH_BUILDING IMPLEMENTATION END
- ***************************************************************************************/
+  /***************************************************************************************
+   * SPRING NETWORK GPU_BATCH_BUILDING IMPLEMENTATION END
+   ***************************************************************************************/

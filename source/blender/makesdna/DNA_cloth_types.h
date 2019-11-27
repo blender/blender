@@ -98,6 +98,17 @@ typedef struct ClothSimSettings {
   /** Max amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing). */
   float shrink_max;
 
+  /* Air pressure */
+  /* The uniform pressure that is constanty applied to the mesh. Can be negative */
+  float uniform_pressure_force;
+  /* User set volume. This is the volume the mesh wants to expand to (the equilibrium volume). */
+  float target_volume;
+  /* The scaling factor to apply to the actual pressure.
+     pressure=( (current_volume/target_volume) - 1 + uniform_pressure_force) *
+     pressure_factor */
+  float pressure_factor;
+  char _pad7[4];
+
   /* XXX various hair stuff
    * should really be separate, this struct is a horrible mess already
    */

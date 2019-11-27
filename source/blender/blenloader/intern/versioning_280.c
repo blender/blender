@@ -3977,5 +3977,15 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         br->pose_smooth_iterations = 4;
       }
     }
+    /* Cloth pressure */
+    for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+      for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+        if (md->type == eModifierType_Cloth) {
+          ClothModifierData *clmd = (ClothModifierData *)md;
+
+          clmd->sim_parms->pressure_factor = 1;
+        }
+      }
+    }
   }
 }

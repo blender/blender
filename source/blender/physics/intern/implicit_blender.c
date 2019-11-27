@@ -1469,6 +1469,7 @@ void BPH_mass_spring_force_face_wind(
 
   /* calculate face normal and area */
   area = calc_nor_area_tri(nor, data->X[v1], data->X[v2], data->X[v3]);
+  /* The force is calculated and split up evenly for each of the three face verts */
   factor = effector_scale * area / 3.0f;
 
   world_to_root_v3(data, v1, win, winvec[v1]);
@@ -1479,6 +1480,29 @@ void BPH_mass_spring_force_face_wind(
 
   world_to_root_v3(data, v3, win, winvec[v3]);
   madd_v3_v3fl(data->F[v3], nor, factor * dot_v3v3(win, nor));
+}
+
+float BPH_tri_tetra_volume_signed_6x(Implicit_Data *data, int v1, int v2, int v3)
+{
+  /* The result will be 6x the volume */
+  return volume_tri_tetrahedron_signed_v3_6x(data->X[v1], data->X[v2], data->X[v3]);
+}
+
+void BPH_mass_spring_force_pressure(
+    Implicit_Data *data, int v1, int v2, int v3, float pressure_difference)
+{
+  float nor[3], area;
+  float factor;
+
+  /* calculate face normal and area */
+  area = calc_nor_area_tri(nor, data->X[v1], data->X[v2], data->X[v3]);
+  /* The force is calculated and split up evenly for each of the three face verts */
+  factor = pressure_difference * area / 3.0f;
+
+  /* add pressure to each of the face verts */
+  madd_v3_v3fl(data->F[v1], nor, factor);
+  madd_v3_v3fl(data->F[v2], nor, factor);
+  madd_v3_v3fl(data->F[v3], nor, factor);
 }
 
 static void edge_wind_vertex(const float dir[3],

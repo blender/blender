@@ -92,6 +92,9 @@ float volume_tetrahedron_signed_v3(const float v1[3],
                                    const float v3[3],
                                    const float v4[3]);
 
+float volume_tri_tetrahedron_signed_v3_6x(const float v1[3], const float v2[3], const float v3[3]);
+float volume_tri_tetrahedron_signed_v3(const float v1[3], const float v2[3], const float v3[3]);
+
 bool is_edge_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 bool is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 bool is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2]);

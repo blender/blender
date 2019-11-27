@@ -74,6 +74,25 @@ static int cloth_count_nondiag_blocks(Cloth *cloth)
   return nondiag;
 }
 
+static float cloth_calc_volume(ClothModifierData *clmd)
+{
+  /* calc the (closed) cloth volume */
+  Cloth *cloth = clmd->clothObject;
+  const MVertTri *tri = cloth->tri;
+  Implicit_Data *data = cloth->implicit;
+  float vol = 0;
+
+  for (unsigned int i = 0; i < cloth->tri_num; i++) {
+    const MVertTri *vt = &tri[i];
+    vol += BPH_tri_tetra_volume_signed_6x(data, vt->tri[0], vt->tri[1], vt->tri[2]);
+  }
+
+  /* We need to divide by 6 to get the actual volume */
+  vol = vol / 6.0f;
+
+  return vol;
+}
+
 int BPH_cloth_solver_init(Object *UNUSED(ob), ClothModifierData *clmd)
 {
   Cloth *cloth = clmd->clothObject;
@@ -125,6 +144,13 @@ void BKE_cloth_solver_set_positions(ClothModifierData *clmd)
 
     BPH_mass_spring_set_motion_state(id, i, verts[i].x, verts[i].v);
   }
+}
+
+void BKE_cloth_solver_set_volume(ClothModifierData *clmd)
+{
+  Cloth *cloth = clmd->clothObject;
+
+  cloth->initial_mesh_volume = cloth_calc_volume(clmd);
 }
 
 static bool collision_response(ClothModifierData *clmd,
@@ -526,6 +552,7 @@ static void cloth_calc_force(
 {
   /* Collect forces and derivatives:  F, dFdX, dFdV */
   Cloth *cloth = clmd->clothObject;
+  ClothSimSettings *parms = clmd->sim_parms;
   Implicit_Data *data = cloth->implicit;
   unsigned int i = 0;
   float drag = clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
@@ -570,6 +597,48 @@ static void cloth_calc_force(
 #ifdef CLOTH_FORCE_DRAG
   BPH_mass_spring_force_drag(data, drag);
 #endif
+  /* handle pressure forces */
+  if (parms->flags & CLOTH_SIMSETTINGS_FLAG_PRESSURE) {
+    /* The difference in pressure between the inside and outside of the mesh.*/
+    float pressure_difference = 0.0f;
+
+    float init_vol;
+    if (parms->flags & CLOTH_SIMSETTINGS_FLAG_PRESSURE_VOL) {
+      init_vol = clmd->sim_parms->target_volume;
+    }
+    else {
+      init_vol = cloth->initial_mesh_volume;
+    }
+
+    /* Check if we need to calculate the volume of the mesh. */
+    if (init_vol > 1E-6f) {
+      float f;
+      float vol = cloth_calc_volume(clmd);
+
+      /* Calculate an artifical maximum value for cloth pressure. */
+      f = fabs(clmd->sim_parms->uniform_pressure_force) + 200.0f;
+
+      /* Clamp the cloth pressure to the calculated maximum value. */
+      if (vol * f < init_vol) {
+        pressure_difference = f;
+      }
+      else {
+        /* If the volume is the same don't apply any pressure. */
+        pressure_difference = (init_vol / vol) - 1;
+      }
+    }
+    pressure_difference += clmd->sim_parms->uniform_pressure_force;
+
+    pressure_difference *= clmd->sim_parms->pressure_factor;
+
+    for (i = 0; i < cloth->tri_num; i++) {
+      const MVertTri *vt = &tri[i];
+      if (fabs(pressure_difference) > 1E-6f) {
+        BPH_mass_spring_force_pressure(
+            data, vt->tri[0], vt->tri[1], vt->tri[2], pressure_difference);
+      }
+    }
+  }
 
   /* handle external forces like wind */
   if (effectors) {

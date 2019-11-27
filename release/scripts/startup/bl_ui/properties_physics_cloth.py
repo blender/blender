@@ -161,6 +161,42 @@ class PHYSICS_PT_cloth_damping(PhysicButtonsPanel, Panel):
         col.prop(cloth, "bending_damping", text="Bending")
 
 
+class PHYSICS_PT_cloth_pressure(PhysicButtonsPanel, Panel):
+    bl_label = "Pressure"
+    bl_parent_id = 'PHYSICS_PT_cloth_physical_properties'
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw_header(self, context):
+        cloth = context.cloth.settings
+
+        self.layout.active = cloth_panel_enabled(context.cloth)
+        self.layout.prop(cloth, "use_pressure", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        cloth = context.cloth.settings
+        md = context.cloth
+
+        layout.active = cloth.use_pressure and cloth_panel_enabled(md)
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
+
+        col = flow.column()
+        col.prop(cloth, "uniform_pressure_force")
+
+        col = flow.column()
+        col.prop(cloth, "use_pressure_volume", text="Custom volume")
+
+        col = flow.column()
+        col.active = cloth.use_pressure_volume
+        col.prop(cloth, "target_volume")
+
+        col = flow.column()
+        col.prop(cloth, "pressure_factor", text="Factor")
+
+
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
     bl_label = "Cache"
     bl_parent_id = 'PHYSICS_PT_cloth'
@@ -382,6 +418,7 @@ classes = (
     PHYSICS_PT_cloth_physical_properties,
     PHYSICS_PT_cloth_stiffness,
     PHYSICS_PT_cloth_damping,
+    PHYSICS_PT_cloth_pressure,
     PHYSICS_PT_cloth_cache,
     PHYSICS_PT_cloth_shape,
     PHYSICS_PT_cloth_collision,

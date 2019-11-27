@@ -2392,9 +2392,7 @@ static float mesh_calc_poly_volume_centroid(const MPoly *mpoly,
 
     /* Calculate the 6x volume of the tetrahedron formed by the 3 vertices
      * of the triangle and the origin as the fourth vertex */
-    float v_cross[3];
-    cross_v3_v3v3(v_cross, v_pivot, v_step1);
-    const float tetra_volume = dot_v3v3(v_cross, v_step2);
+    const float tetra_volume = volume_tri_tetrahedron_signed_v3_6x(v_pivot, v_step1, v_step2);
     total_volume += tetra_volume;
 
     /* Calculate the centroid of the tetrahedron formed by the 3 vertices

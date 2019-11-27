@@ -774,6 +774,46 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_cloth_update");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
+  /* Pressure */
+
+  prop = RNA_def_property(srna, "use_pressure", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_SIMSETTINGS_FLAG_PRESSURE);
+  RNA_def_property_ui_text(prop, "Use Pressure", "Simulate pressure inside a closed cloth mesh");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+  prop = RNA_def_property(srna, "use_pressure_volume", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_SIMSETTINGS_FLAG_PRESSURE_VOL);
+  RNA_def_property_ui_text(
+      prop, "Use Custom Volume", "Use the Volume parameter as the initial volume");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+  prop = RNA_def_property(srna, "uniform_pressure_force", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "uniform_pressure_force");
+  RNA_def_property_range(prop, -10000.0f, 10000.0f);
+  RNA_def_property_float_default(prop, 0.0f);
+  RNA_def_property_ui_text(
+      prop,
+      "Pressure",
+      "The uniform pressure that is constanty applied to the mesh. Can be negative");
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+  prop = RNA_def_property(srna, "target_volume", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "target_volume");
+  RNA_def_property_range(prop, 0.0f, 10000.0f);
+  RNA_def_property_float_default(prop, 0.0f);
+  RNA_def_property_ui_text(
+      prop, "Target Volume", "The mesh volume where the inner/outer pressure will be the same");
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+  prop = RNA_def_property(srna, "pressure_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "pressure_factor");
+  RNA_def_property_range(prop, 0.0f, 10000.0f);
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_ui_text(prop, "Pressure Scale", "Air pressure scaling factor");
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
+
   /* unused */
 
   /* unused still */

@@ -300,6 +300,25 @@ float volume_tetrahedron_signed_v3(const float v1[3],
   return determinant_m3_array(m) / 6.0f;
 }
 
+/**
+ * The volume from a triangle that is made into a tetrahedron.
+ * This uses a simplified formula where the tip of the tetrahedron is in the world origin.
+ * Using this method, the total volume of a closed triangle mesh can be calculated.
+ * Note that you need to divide the result by 6 to get the actual volume.
+ */
+float volume_tri_tetrahedron_signed_v3_6x(const float v1[3], const float v2[3], const float v3[3])
+{
+  float v_cross[3];
+  cross_v3_v3v3(v_cross, v1, v2);
+  float tetra_volume = dot_v3v3(v_cross, v3);
+  return tetra_volume;
+}
+
+float volume_tri_tetrahedron_signed_v3(const float v1[3], const float v2[3], const float v3[3])
+{
+  return volume_tri_tetrahedron_signed_v3_6x(v1, v2, v3) / 6.0f;
+}
+
 /********************************* Distance **********************************/
 
 /* distance p to line v1-v2
