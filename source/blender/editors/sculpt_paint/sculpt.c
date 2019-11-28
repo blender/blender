@@ -4616,6 +4616,10 @@ static void calc_clay_surface_task_cb(void *__restrict userdata,
   test.radius_squared = test_radius * test_radius;
   plane_from_point_normal_v3(plane, area_co, area_no);
 
+  if (is_zero_v4(plane)) {
+    return;
+  }
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
 
