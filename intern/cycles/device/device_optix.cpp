@@ -290,8 +290,8 @@ class OptiXDevice : public Device {
         optixPipelineDestroy(pipelines[i]);
 
     // Destroy launch streams
-    for (int i = 0; i < info.cpu_threads; ++i)
-      cuStreamDestroy(cuda_stream[i]);
+    for (CUstream stream : cuda_stream)
+      cuStreamDestroy(stream);
 
     // Destroy OptiX and CUDA context
     optixDeviceContextDestroy(context);
