@@ -655,11 +655,24 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
   // BLI_assert(v_first + v_count <=
   //            (batch->elem ? batch->elem->index_len : batch->verts[0]->vertex_len));
 
+#ifdef __APPLE__
+  GLuint vao = 0;
+#endif
+
   if (!GPU_arb_base_instance_is_supported()) {
     if (i_first > 0) {
+#ifdef __APPLE__
+      /**
+       * There seems to be a nasty bug when drawing using the same VAO reconfiguring. (see T71147)
+       * We just use a throwaway VAO for that. Note that this is likely to degrade performance.
+       **/
+      glGenVertexArrays(1, &vao);
+      glBindVertexArray(vao);
+#else
       /* If using offset drawing with instancing, we must
        * use the default VAO and redo bindings. */
       glBindVertexArray(GPU_vao_default());
+#endif
       batch_update_program_bindings(batch, i_first);
     }
     else {
@@ -698,6 +711,12 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
     glEnable(GL_PRIMITIVE_RESTART);
 #endif
   }
+
+#ifdef __APPLE__
+  if (vao != 0) {
+    glDeleteVertexArrays(1, &vao);
+  }
+#endif
 }
 
 /* just draw some vertices and let shader place them where we want. */
