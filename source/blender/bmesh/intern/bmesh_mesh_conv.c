@@ -574,6 +574,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
   const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
   const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+  const int cd_shape_keyindex_offset = CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX);
 
   ototvert = me->totvert;
 
@@ -831,8 +832,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   /* See comment below, this logic is in twice. */
 
   if (me->key) {
-    const int cd_shape_keyindex_offset = CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX);
-
     KeyBlock *currkey;
     KeyBlock *actkey = BLI_findlink(&me->key->block, bm->shapenr - 1);
 
@@ -972,14 +971,15 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     if (ofs) {
       MEM_freeN(ofs);
     }
+  }
 
-    if (params->update_shapekey_indices) {
-      /* We have written a new shape key, if this mesh is _not_ going to be freed,
-       * update the shape key indices to match the newly updated. */
-      if (cd_shape_keyindex_offset != -1) {
-        BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-          BM_ELEM_CD_SET_INT(eve, cd_shape_keyindex_offset, i);
-        }
+  /* Run this even when shape keys aren't used since it may be used for hooks or vertex parents. */
+  if (params->update_shapekey_indices) {
+    /* We have written a new shape key, if this mesh is _not_ going to be freed,
+     * update the shape key indices to match the newly updated. */
+    if (cd_shape_keyindex_offset != -1) {
+      BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
+        BM_ELEM_CD_SET_INT(eve, cd_shape_keyindex_offset, i);
       }
     }
   }
