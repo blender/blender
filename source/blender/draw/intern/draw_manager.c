@@ -2668,6 +2668,9 @@ void DRW_draw_depth_object(ARegion *ar, GPUViewport *viewport, Object *object)
   RegionView3D *rv3d = ar->regiondata;
 
   DRW_opengl_context_enable();
+  GPU_matrix_projection_set(rv3d->winmat);
+  GPU_matrix_set(rv3d->viewmat);
+  GPU_matrix_mul(object->obmat);
 
   /* Setup framebuffer */
   DefaultFramebufferList *fbl = GPU_viewport_framebuffer_list_get(viewport);
@@ -2675,7 +2678,6 @@ void DRW_draw_depth_object(ARegion *ar, GPUViewport *viewport, Object *object)
   GPU_framebuffer_bind(fbl->depth_only_fb);
   GPU_framebuffer_clear_depth(fbl->depth_only_fb, 1.0f);
   GPU_depth_test(true);
-  GPU_matrix_mul(object->obmat);
 
   const float(*world_clip_planes)[4] = NULL;
   if (rv3d->rflag & RV3D_CLIPPING) {
