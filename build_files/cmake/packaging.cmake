@@ -135,7 +135,7 @@ elseif(UNIX)
 
   add_package_archive(
     "${PROJECT_NAME}-${BLENDER_VERSION}-${BUILD_REV}-${PACKAGE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}"
-    "tar.bz2")
+    "tar.xz")
 endif()
 
 unset(MAJOR_VERSION)

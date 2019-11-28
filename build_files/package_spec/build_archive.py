@@ -51,8 +51,9 @@ try:
 
     if extension == 'zip':
         archive_cmd = ['zip', '-9', '-r', package_archive, package_dir]
-    elif extension == 'tar.bz2':
-        archive_cmd = ['tar', 'cjf', package_archive, package_dir]
+    elif extension == 'tar.xz':
+        archive_cmd = ['tar', '-cf', package_archive, '--owner=0', '--group=0',
+                       '--use-compress-program=xz -9', package_dir]
     else:
         sys.stderr.write('Unknown archive extension: ' + extension)
         sys.exit(-1)
