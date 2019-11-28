@@ -281,22 +281,16 @@ static void armature_transform_recurse(ListBase *bonebase,
 {
   for (Bone *bone = bonebase->first; bone; bone = bone->next) {
 
-    /* Transform the bone's roll. */
-    if (bone_parent == NULL) {
-
-      float roll_mat[3][3];
-      {
-        float delta[3];
-        sub_v3_v3v3(delta, bone->tail, bone->head);
-        vec_roll_to_mat3(delta, bone->roll, roll_mat);
+    float roll_mat3_pre[3][3];
+    {
+      float delta[3];
+      sub_v3_v3v3(delta, bone->tail, bone->head);
+      vec_roll_to_mat3(delta, bone->roll, roll_mat3_pre);
+      if (bone->parent == NULL) {
+        mul_m3_m3m3(roll_mat3_pre, mat3, roll_mat3_pre);
       }
-
-      /* Transform the roll matrix. */
-      mul_m3_m3m3(roll_mat, mat3, roll_mat);
-
-      /* Apply the transformed roll back. */
-      mat3_to_vec_roll(roll_mat, NULL, &bone->roll);
     }
+    bone->roll = 0.0f;
 
     mul_m4_v3(mat, bone->arm_head);
     mul_m4_v3(mat, bone->arm_tail);
@@ -312,6 +306,20 @@ static void armature_transform_recurse(ListBase *bonebase,
     else {
       copy_v3_v3(bone->head, bone->arm_head);
       copy_v3_v3(bone->tail, bone->arm_tail);
+    }
+
+    {
+      float roll_mat3_post[3][3];
+      float delta_mat3[3][3];
+      float delta[3];
+      sub_v3_v3v3(delta, bone->tail, bone->head);
+      vec_roll_to_mat3(delta, bone->roll, roll_mat3_post);
+      normalize_v3(delta);
+
+      invert_m3(roll_mat3_post);
+      mul_m3_m3m3(delta_mat3, roll_mat3_post, roll_mat3_pre);
+
+      bone->roll = atan2f(delta_mat3[2][0], delta_mat3[2][2]);
     }
 
     BKE_armature_where_is_bone(bone, bone_parent, false);
