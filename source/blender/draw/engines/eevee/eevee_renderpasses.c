@@ -236,7 +236,7 @@ void EEVEE_renderpasses_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-  bool is_valid = true;
+  bool is_valid = (render_pass & EEVEE_RENDERPASSES_SUPPORTED) > 0;
   bool needs_color_transfer = (render_pass & EEVEE_RENDERPASSES_COLOR_PASS) > 0 &&
                               DRW_state_is_opengl_render();
 
