@@ -407,7 +407,7 @@ class Device {
                            const DeviceDrawParams &draw_params);
 
   /* acceleration structure building */
-  virtual bool build_optix_bvh(BVH *, device_memory &)
+  virtual bool build_optix_bvh(BVH *)
   {
     return false;
   }

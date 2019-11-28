@@ -49,7 +49,7 @@ void BVHOptiX::copy_to_device(Progress &progress, DeviceScene *dscene)
   progress.set_status("Updating Scene BVH", "Building OptiX acceleration structure");
 
   Device *const device = dscene->bvh_nodes.device;
-  if (!device->build_optix_bvh(this, dscene->bvh_nodes))
+  if (!device->build_optix_bvh(this))
     progress.set_error("Failed to build OptiX acceleration structure");
 }
 
