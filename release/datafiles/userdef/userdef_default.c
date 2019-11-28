@@ -153,7 +153,8 @@ const UserDef U_default = {
     .ndof_sensitivity = 1.0,
     .ndof_orbit_sensitivity = 1.0,
     .ndof_deadzone = 0.1,
-    .ndof_flag = (NDOF_LOCK_HORIZON | NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM | NDOF_SHOULD_ROTATE),
+    .ndof_flag = (NDOF_MODE_ORBIT | NDOF_LOCK_HORIZON | NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM |
+                  NDOF_SHOULD_ROTATE),
     .ogl_multisamples = 0,
     .image_draw_method = IMAGE_DRAW_METHOD_AUTO,
     .glalphaclip = 0.004,
