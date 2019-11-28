@@ -587,15 +587,15 @@ MovieTrackingTrack *BKE_tracking_track_add(MovieTracking *tracking,
 {
   const MovieTrackingSettings *settings = &tracking->settings;
 
+  MovieTrackingTrack *track = BKE_tracking_track_add_empty(tracking, tracksbase);
+  MovieTrackingMarker marker;
+
   const float half_pattern_px = settings->default_pattern_size / 2.0f;
   const float half_search_px = settings->default_search_size / 2.0f;
 
   const float pattern_size[2] = {half_pattern_px / width, half_pattern_px / height};
   const float search_size[2] = {half_search_px / width, half_search_px / height};
 
-  MovieTrackingTrack *track = BKE_tracking_track_add_empty(tracking, tracksbase);
-
-  MovieTrackingMarker marker;
   memset(&marker, 0, sizeof(marker));
   marker.pos[0] = x;
   marker.pos[1] = y;
@@ -663,6 +663,86 @@ void BKE_tracking_track_free(MovieTrackingTrack *track)
   if (track->markers) {
     MEM_freeN(track->markers);
   }
+}
+
+/* Get frame numbers of the very first and last markers.
+ * There is no check on whether the marker is enabled or not. */
+void BKE_tracking_track_first_last_frame_get(const MovieTrackingTrack *track,
+                                             int *r_first_frame,
+                                             int *r_last_frame)
+{
+  BLI_assert(track->markersnr > 0);
+  const int last_marker_index = track->markersnr - 1;
+  *r_first_frame = track->markers[0].framenr;
+  *r_last_frame = track->markers[last_marker_index].framenr;
+}
+
+/* Find the minimum starting frame and maximum ending frame within given set of
+ * tracks.
+ */
+void BKE_tracking_tracks_first_last_frame_minmax(/*const*/ MovieTrackingTrack **tracks,
+                                                 const int num_tracks,
+                                                 int *r_first_frame,
+                                                 int *r_last_frame)
+{
+  *r_first_frame = INT_MAX;
+  *r_last_frame = INT_MIN;
+  for (int i = 0; i < num_tracks; ++i) {
+    const struct MovieTrackingTrack *track = tracks[i];
+    int track_first_frame, track_last_frame;
+    BKE_tracking_track_first_last_frame_get(track, &track_first_frame, &track_last_frame);
+    *r_first_frame = min_ii(*r_first_frame, track_first_frame);
+    *r_last_frame = max_ii(*r_last_frame, track_last_frame);
+  }
+}
+
+int BKE_tracking_count_selected_tracks_in_list(const ListBase *tracks_list)
+{
+  int num_selected_tracks = 0;
+  LISTBASE_FOREACH (const MovieTrackingTrack *, track, tracks_list) {
+    if (TRACK_SELECTED(track)) {
+      ++num_selected_tracks;
+    }
+  }
+  return num_selected_tracks;
+}
+
+int BKE_tracking_count_selected_tracks_in_active_object(/*const*/ MovieTracking *tracking)
+{
+  ListBase *tracks_list = BKE_tracking_get_active_tracks(tracking);
+  return BKE_tracking_count_selected_tracks_in_list(tracks_list);
+}
+
+MovieTrackingTrack **BKE_tracking_selected_tracks_in_active_object(MovieTracking *tracking,
+                                                                   int *r_num_tracks)
+{
+  *r_num_tracks = 0;
+
+  ListBase *tracks_list = BKE_tracking_get_active_tracks(tracking);
+  if (tracks_list == NULL) {
+    return NULL;
+  }
+
+  /* Initialize input. */
+  const int num_selected_tracks = BKE_tracking_count_selected_tracks_in_active_object(tracking);
+  if (num_selected_tracks == 0) {
+    return NULL;
+  }
+
+  MovieTrackingTrack **source_tracks = MEM_malloc_arrayN(
+      num_selected_tracks, sizeof(MovieTrackingTrack *), "selected tracks array");
+  int source_track_index = 0;
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracks_list) {
+    if (!TRACK_SELECTED(track)) {
+      continue;
+    }
+    source_tracks[source_track_index] = track;
+    ++source_track_index;
+  }
+
+  *r_num_tracks = num_selected_tracks;
+
+  return source_tracks;
 }
 
 /* Set flag for all specified track's areas.
@@ -916,6 +996,96 @@ void BKE_tracking_tracks_join(MovieTracking *tracking,
   MEM_freeN(markers);
 
   BKE_tracking_dopesheet_tag_update(tracking);
+}
+
+static void accumulate_marker(MovieTrackingMarker *dst_marker,
+                              const MovieTrackingMarker *src_marker)
+{
+  BLI_assert(dst_marker->framenr == src_marker->framenr);
+
+  if (src_marker->flag & MARKER_DISABLED) {
+    return;
+  }
+
+  add_v2_v2(dst_marker->pos, src_marker->pos);
+  for (int corner = 0; corner < 4; ++corner) {
+    add_v2_v2(dst_marker->pattern_corners[corner], src_marker->pattern_corners[corner]);
+  }
+  add_v2_v2(dst_marker->search_min, src_marker->search_min);
+  add_v2_v2(dst_marker->search_max, src_marker->search_max);
+
+  BLI_assert(is_finite_v2(src_marker->search_min));
+  BLI_assert(is_finite_v2(src_marker->search_max));
+
+  dst_marker->flag &= ~MARKER_DISABLED;
+  if ((src_marker->flag & MARKER_TRACKED) == 0) {
+    dst_marker->flag &= ~MARKER_TRACKED;
+  }
+}
+
+static void multiply_marker(MovieTrackingMarker *marker, const float multiplier)
+{
+  mul_v2_fl(marker->pos, multiplier);
+  for (int corner = 0; corner < 4; ++corner) {
+    mul_v2_fl(marker->pattern_corners[corner], multiplier);
+  }
+  mul_v2_fl(marker->search_min, multiplier);
+  mul_v2_fl(marker->search_max, multiplier);
+}
+
+void BKE_tracking_tracks_average(MovieTrackingTrack *dst_track,
+                                 /*const*/ MovieTrackingTrack **src_tracks,
+                                 const int num_src_tracks)
+{
+  /* Get global range of frames within which averaging would happen. */
+  int first_frame, last_frame;
+  BKE_tracking_tracks_first_last_frame_minmax(
+      src_tracks, num_src_tracks, &first_frame, &last_frame);
+  if (last_frame < first_frame) {
+    return;
+  }
+  const int num_frames = last_frame - first_frame + 1;
+
+  /* Allocate temporary array where averaging will happen into. */
+  MovieTrackingMarker *accumulator = MEM_calloc_arrayN(
+      num_frames, sizeof(MovieTrackingMarker), "tracks average accumulator");
+  int *counters = MEM_calloc_arrayN(num_frames, sizeof(int), "tracks accumulator counters");
+  for (int frame = first_frame; frame <= last_frame; ++frame) {
+    const int frame_index = frame - first_frame;
+    accumulator[frame_index].framenr = frame;
+    accumulator[frame_index].flag |= (MARKER_DISABLED | MARKER_TRACKED);
+  }
+
+  /* Accumulate track markers. */
+  for (int track_index = 0; track_index < num_src_tracks; ++track_index) {
+    /*const*/ MovieTrackingTrack *track = src_tracks[track_index];
+    for (int frame = first_frame; frame <= last_frame; ++frame) {
+      MovieTrackingMarker interpolated_marker;
+      if (!BKE_tracking_marker_get_interpolated(track, frame, &interpolated_marker)) {
+        continue;
+      }
+      const int frame_index = frame - first_frame;
+      accumulate_marker(&accumulator[frame_index], &interpolated_marker);
+      ++counters[frame_index];
+    }
+  }
+
+  /* Average and store the result. */
+  for (int frame = first_frame; frame <= last_frame; ++frame) {
+    /* Average. */
+    const int frame_index = frame - first_frame;
+    if (!counters[frame_index]) {
+      continue;
+    }
+    const float multiplier = 1.0f / (float)counters[frame_index];
+    multiply_marker(&accumulator[frame_index], multiplier);
+    /* Store the result. */
+    BKE_tracking_marker_insert(dst_track, &accumulator[frame_index]);
+  }
+
+  /* Free memory. */
+  MEM_freeN(accumulator);
+  MEM_freeN(counters);
 }
 
 MovieTrackingTrack *BKE_tracking_track_get_named(MovieTracking *tracking,
