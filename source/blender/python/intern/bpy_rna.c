@@ -7818,7 +7818,7 @@ static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
     }
   }
 
-  {
+  if (ret == 0) {
     /* This block can be removed once 2.8x is released and annotations are in use. */
     bool has_warning = false;
     while (PyDict_Next(class_dict, &pos, &key, &item)) {
