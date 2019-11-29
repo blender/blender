@@ -170,7 +170,7 @@ class HierarchicalAndFlatExportTest(AbstractAlembicTest):
     def test_hierarchical_export(self, tempdir: pathlib.Path):
         abc = tempdir / 'cubes_hierarchical.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
-                 "renderable_only=True, visible_layers_only=True, flatten=False)" % abc.as_posix()
+                 "renderable_only=True, visible_objects_only=True, flatten=False)" % abc.as_posix()
         self.run_blender('cubes-hierarchy.blend', script)
 
         # Now check the resulting Alembic file.
@@ -188,7 +188,7 @@ class HierarchicalAndFlatExportTest(AbstractAlembicTest):
     def test_flat_export(self, tempdir: pathlib.Path):
         abc = tempdir / 'cubes_flat.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
-                 "renderable_only=True, visible_layers_only=True, flatten=True)" % abc.as_posix()
+                 "renderable_only=True, visible_objects_only=True, flatten=True)" % abc.as_posix()
         self.run_blender('cubes-hierarchy.blend', script)
 
         # Now check the resulting Alembic file.
@@ -209,7 +209,7 @@ class DupliGroupExportTest(AbstractAlembicTest):
     def test_hierarchical_export(self, tempdir: pathlib.Path):
         abc = tempdir / 'dupligroup_hierarchical.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
-                 "renderable_only=True, visible_layers_only=True, flatten=False)" % abc.as_posix()
+                 "renderable_only=True, visible_objects_only=True, flatten=False)" % abc.as_posix()
         self.run_blender('dupligroup-scene.blend', script)
 
         # Now check the resulting Alembic file.
@@ -227,7 +227,7 @@ class DupliGroupExportTest(AbstractAlembicTest):
     def test_flat_export(self, tempdir: pathlib.Path):
         abc = tempdir / 'dupligroup_hierarchical.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
-                 "renderable_only=True, visible_layers_only=True, flatten=True)" % abc.as_posix()
+                 "renderable_only=True, visible_objects_only=True, flatten=True)" % abc.as_posix()
         self.run_blender('dupligroup-scene.blend', script)
 
         # Now check the resulting Alembic file.
@@ -248,7 +248,7 @@ class CurveExportTest(AbstractAlembicTest):
     def test_export_single_curve(self, tempdir: pathlib.Path):
         abc = tempdir / 'single-curve.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
-                 "renderable_only=True, visible_layers_only=True, flatten=False)" % abc.as_posix()
+                 "renderable_only=True, visible_objects_only=True, flatten=False)" % abc.as_posix()
         self.run_blender('single-curve.blend', script)
 
         # Now check the resulting Alembic file.
@@ -269,7 +269,7 @@ class HairParticlesExportTest(AbstractAlembicTest):
     def _do_test(self, tempdir: pathlib.Path, export_hair: bool, export_particles: bool) -> pathlib.Path:
         abc = tempdir / 'hair-particles.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
-                 "renderable_only=True, visible_layers_only=True, flatten=False, " \
+                 "renderable_only=True, visible_objects_only=True, flatten=False, " \
                  "export_hair=%r, export_particles=%r, as_background_job=False)" \
                  % (abc.as_posix(), export_hair, export_particles)
         self.run_blender('hair-particles.blend', script)
@@ -330,7 +330,7 @@ class LongNamesExportTest(AbstractAlembicTest):
     def test_export_long_names(self, tempdir: pathlib.Path):
         abc = tempdir / 'long-names.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
-                 "renderable_only=False, visible_layers_only=False, flatten=False)" % abc.as_posix()
+                 "renderable_only=False, visible_objects_only=False, flatten=False)" % abc.as_posix()
         self.run_blender('long-names.blend', script)
 
         name_parts = [
