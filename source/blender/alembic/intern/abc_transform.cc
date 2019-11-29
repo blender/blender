@@ -132,7 +132,7 @@ Imath::Box3d AbcTransformWriter::bounds()
   return Imath::transform(bounds, m_matrix);
 }
 
-bool AbcTransformWriter::hasAnimation(Object *ob) const
+bool AbcTransformWriter::hasAnimation(Object * /*ob*/) const
 {
   return true;
 }
