@@ -61,7 +61,7 @@ try:
         sys.stderr.write('Unknown archive extension: ' + extension)
         sys.exit(-1)
 
-    subprocess.call(archive_cmd)
+    subprocess.check_call(archive_cmd, env=archive_env)
 except Exception as ex:
     sys.stderr.write('Failed to create package archive: ' + str(ex) + '\n')
     sys.exit(1)
