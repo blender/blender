@@ -598,6 +598,11 @@ Material *BKE_material_gpencil_get(Object *ob, short act)
   }
 }
 
+struct Material *BKE_material_gpencil_default_get(void)
+{
+  return &defgpencil_material;
+}
+
 MaterialGPencilStyle *BKE_material_gpencil_settings_get(Object *ob, short act)
 {
   Material *ma = give_current_material(ob, act);

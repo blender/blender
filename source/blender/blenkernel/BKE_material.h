@@ -95,6 +95,7 @@ bool BKE_object_material_slot_remove(struct Main *bmain, struct Object *ob);
 bool BKE_object_material_slot_used(struct ID *id, short actcol);
 
 struct Material *BKE_material_gpencil_get(struct Object *ob, short act);
+struct Material *BKE_material_gpencil_default_get(void);
 struct MaterialGPencilStyle *BKE_material_gpencil_settings_get(struct Object *ob, short act);
 
 void BKE_texpaint_slot_refresh_cache(struct Scene *scene, struct Material *ma);
