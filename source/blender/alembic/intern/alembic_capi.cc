@@ -365,7 +365,7 @@ bool ABC_export(Scene *scene,
   /* TODO(Sybren): visible_layer & renderable only is ignored for now,
    * to be replaced with collections later in the 2.8 dev process
    * (also see note above). */
-  job->settings.visible_layers_only = params->visible_layers_only;
+  job->settings.visible_objects_only = params->visible_objects_only;
   job->settings.renderable_only = params->renderable_only;
 
   job->settings.use_subdiv_schema = params->use_subdiv_schema;

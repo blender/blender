@@ -74,7 +74,7 @@ ExportSettings::ExportSettings()
       depsgraph(NULL),
       logger(),
       selected_only(false),
-      visible_layers_only(false),
+      visible_objects_only(false),
       renderable_only(false),
       frame_start(1),
       frame_end(1),
@@ -161,7 +161,7 @@ static bool export_object(const ExportSettings *const settings,
     }
     // FIXME Sybren: handle these cleanly (maybe just remove code),
     // now using active scene layer instead.
-    if (settings->visible_layers_only && !BASE_VISIBLE(v3d, base)) {
+    if (settings->visible_objects_only && !BASE_VISIBLE(v3d, base)) {
       return false;
     }
   }

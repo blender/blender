@@ -127,7 +127,7 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
       .apply_subdiv = RNA_boolean_get(op->ptr, "apply_subdiv"),
       .curves_as_mesh = RNA_boolean_get(op->ptr, "curves_as_mesh"),
       .flatten_hierarchy = RNA_boolean_get(op->ptr, "flatten"),
-      .visible_layers_only = RNA_boolean_get(op->ptr, "visible_layers_only"),
+      .visible_objects_only = RNA_boolean_get(op->ptr, "visible_objects_only"),
       .renderable_only = RNA_boolean_get(op->ptr, "renderable_only"),
       .face_sets = RNA_boolean_get(op->ptr, "face_sets"),
       .use_subdiv_schema = RNA_boolean_get(op->ptr, "subdiv_schema"),
@@ -209,7 +209,7 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(row, imfptr, "renderable_only", 0, NULL, ICON_NONE);
 
   row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "visible_layers_only", 0, NULL, ICON_NONE);
+  uiItemR(row, imfptr, "visible_objects_only", 0, NULL, ICON_NONE);
 
   row = uiLayoutRow(box, false);
   uiItemR(row, imfptr, "flatten", 0, NULL, ICON_NONE);
@@ -392,10 +392,10 @@ void WM_OT_alembic_export(wmOperatorType *ot)
                   "Export only objects marked renderable in the outliner");
 
   RNA_def_boolean(ot->srna,
-                  "visible_layers_only",
+                  "visible_objects_only",
                   0,
-                  "Visible Layers Only",
-                  "Export only objects in visible layers");
+                  "Visible Objects Only",
+                  "Export only objects in visible collections");
 
   RNA_def_boolean(ot->srna,
                   "flatten",

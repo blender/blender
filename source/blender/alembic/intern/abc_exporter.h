@@ -49,7 +49,7 @@ struct ExportSettings {
   SimpleLogger logger;
 
   bool selected_only;
-  bool visible_layers_only;
+  bool visible_objects_only;
   bool renderable_only;
 
   double frame_start, frame_end;
