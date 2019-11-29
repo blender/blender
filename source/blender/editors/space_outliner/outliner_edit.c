@@ -1311,6 +1311,9 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
       outliner_show_active(so, ar, te, id);
     }
 
+    /* Also open back from the active_element (only done for the first found occurance of ID though). */
+    outliner_show_active(so, ar, active_element, id);
+
     /* Center view on first element found */
     int size_y = BLI_rcti_size_y(&v2d->mask) + 1;
     int ytop = (active_element->ys + (size_y / 2));
