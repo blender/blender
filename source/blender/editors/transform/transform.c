@@ -5262,11 +5262,11 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
         copy_v3_v3(tvec, vec);
       }
 
+      mul_m3_v3(td->smtx, tvec);
+
       if (use_rotate_offset) {
         add_v3_v3(tvec, rotate_offset);
       }
-
-      mul_m3_v3(td->smtx, tvec);
 
       if (t->options & CTX_GPENCIL_STROKES) {
         /* grease pencil multiframe falloff */
