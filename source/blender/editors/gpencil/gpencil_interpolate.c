@@ -1052,8 +1052,8 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
         /* if destination stroke is smaller, resize new_stroke to size of gps_to stroke */
         if (gps_from->totpoints > gps_to->totpoints) {
           /* free weights of removed points */
-          if (gps_from->dvert != NULL) {
-            BKE_defvert_array_free_elems(gps_from->dvert + gps_to->totpoints,
+          if (new_stroke->dvert != NULL) {
+            BKE_defvert_array_free_elems(new_stroke->dvert + gps_to->totpoints,
                                          gps_from->totpoints - gps_to->totpoints);
           }
 
