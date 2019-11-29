@@ -28,6 +28,10 @@
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct AnimData;
 struct Ipo;
 struct Key;
@@ -276,5 +280,9 @@ enum {
 };
 
 #define MESH_MAX_VERTS 2000000000L
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -24,6 +24,10 @@
 #ifndef __DNA_MOVIECLIP_TYPES_H__
 #define __DNA_MOVIECLIP_TYPES_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "DNA_ID.h"
 #include "DNA_tracking_types.h"
 #include "DNA_color_types.h" /* for color management */
@@ -206,5 +210,9 @@ enum {
   /** Use original, if proxy is not found. */
   MCLIP_PROXY_RENDER_USE_FALLBACK_RENDER = 2,
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

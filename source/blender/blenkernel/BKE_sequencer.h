@@ -24,6 +24,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Depsgraph;
 struct Editing;
 struct GPUOffScreen;
@@ -598,5 +602,9 @@ void BKE_sequencer_color_balance_apply(struct StripColorBalance *cb,
                                        struct ImBuf *mask_input);
 
 void BKE_sequencer_all_free_anim_ibufs(struct Scene *scene, int cfra);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_SEQUENCER_H__ */

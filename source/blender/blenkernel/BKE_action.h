@@ -25,6 +25,10 @@
  * \brief Blender kernel action and pose functionality.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "DNA_listBase.h"
 
 /* The following structures are defined in DNA_action_types.h, and DNA_anim_types.h */
@@ -37,11 +41,6 @@ struct bItasc;
 struct bPose;
 struct bPoseChannel;
 struct bPoseChannel_Runtime;
-
-/* Kernel prototypes */
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Action Lib Stuff ----------------- */
 

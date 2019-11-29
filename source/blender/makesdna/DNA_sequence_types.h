@@ -37,6 +37,10 @@
 #include "DNA_vec_types.h"
 #include "DNA_vfont_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Ipo;
 struct MovieClip;
 struct Scene;
@@ -679,5 +683,9 @@ enum {
 
   SEQ_CACHE_PREFETCH_ENABLE = (1 << 10),
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __DNA_SEQUENCE_TYPES_H__ */

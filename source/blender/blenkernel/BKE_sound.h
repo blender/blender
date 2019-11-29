@@ -23,6 +23,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define SOUND_WAVE_SAMPLES_PER_SECOND 250
 
 #if defined(WITH_AUDASPACE)
@@ -189,5 +193,9 @@ void BKE_sound_jack_scene_update(struct Scene *scene, int mode, float time);
 struct Depsgraph;
 
 void BKE_sound_evaluate(struct Depsgraph *depsgraph, struct Main *bmain, struct bSound *sound);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_SOUND_H__ */

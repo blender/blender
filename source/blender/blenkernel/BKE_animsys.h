@@ -24,6 +24,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct AnimData;
 struct Depsgraph;
 struct FCurve;
@@ -296,5 +300,9 @@ void BKE_animsys_eval_driver(struct Depsgraph *depsgraph,
 void BKE_animsys_update_driver_array(struct ID *id);
 
 /* ************************************* */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_ANIMSYS_H__*/

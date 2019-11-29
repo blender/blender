@@ -23,6 +23,10 @@
 #ifndef __DRW_ENGINE_H__
 #define __DRW_ENGINE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "BLI_sys_types.h" /* for bool */
 
 struct ARegion;
@@ -165,5 +169,9 @@ void DRW_deferred_shader_remove(struct GPUMaterial *mat);
 
 struct DrawDataList *DRW_drawdatalist_from_id(struct ID *id);
 void DRW_drawdata_free(struct ID *id);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __DRW_ENGINE_H__ */
