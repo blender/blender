@@ -51,6 +51,7 @@ uniform float fade_ob_factor;
 
 #define V3D_SHADING_MATERIAL_COLOR 0
 #define V3D_SHADING_TEXTURE_COLOR 3
+#define V3D_SHADING_VERTEX_COLOR 5
 
 in vec4 finalColor;
 in vec2 texCoord_interp;
@@ -210,7 +211,8 @@ void main()
   /* for solid override color */
   if (shading_type[0] == OB_SOLID) {
     if ((shading_type[1] != V3D_SHADING_MATERIAL_COLOR) &&
-        (shading_type[1] != V3D_SHADING_TEXTURE_COLOR)) {
+        (shading_type[1] != V3D_SHADING_TEXTURE_COLOR) &&
+        (shading_type[1] != V3D_SHADING_VERTEX_COLOR)) {
       fragColor = wire_color;
     }
     if (viewport_xray == 1) {
