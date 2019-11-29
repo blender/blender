@@ -294,6 +294,7 @@ typedef struct uiHandleButtonMulti {
 typedef struct uiHandleButtonData {
   wmWindowManager *wm;
   wmWindow *window;
+  ScrArea *area;
   ARegion *region;
 
   bool interactive;
@@ -7721,7 +7722,8 @@ static void button_tooltip_timer_reset(bContext *C, uiBut *but)
       if (!wm->drags.first) {
         bool is_label = UI_but_has_tooltip_label(but);
         double delay = is_label ? UI_TOOLTIP_DELAY_LABEL : UI_TOOLTIP_DELAY;
-        WM_tooltip_timer_init_ex(C, data->window, data->region, ui_but_tooltip_init, delay);
+        WM_tooltip_timer_init_ex(
+            C, data->window, data->area, data->region, ui_but_tooltip_init, delay);
         if (is_label) {
           bScreen *sc = WM_window_get_active_screen(data->window);
           if (sc->tool_tip) {
@@ -7927,6 +7929,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
   data = MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData");
   data->wm = CTX_wm_manager(C);
   data->window = CTX_wm_window(C);
+  data->area = CTX_wm_area(C);
   BLI_assert(ar != NULL);
   data->region = ar;
 
@@ -8009,7 +8012,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
     /* Show a label for this button. */
     bScreen *sc = WM_window_get_active_screen(data->window);
     if ((PIL_check_seconds_timer() - WM_tooltip_time_closed()) < 0.1) {
-      WM_tooltip_immediate_init(C, CTX_wm_window(C), ar, ui_but_tooltip_init);
+      WM_tooltip_immediate_init(C, CTX_wm_window(C), data->area, ar, ui_but_tooltip_init);
       if (sc->tool_tip) {
         sc->tool_tip->pass = 1;
       }

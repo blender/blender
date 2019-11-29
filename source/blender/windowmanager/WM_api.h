@@ -821,15 +821,18 @@ typedef struct ARegion *(*wmTooltipInitFn)(struct bContext *C,
 
 void WM_tooltip_immediate_init(struct bContext *C,
                                struct wmWindow *win,
+                               struct ScrArea *sa,
                                struct ARegion *ar,
                                wmTooltipInitFn init);
 void WM_tooltip_timer_init_ex(struct bContext *C,
                               struct wmWindow *win,
+                              struct ScrArea *sa,
                               struct ARegion *ar,
                               wmTooltipInitFn init,
                               double delay);
 void WM_tooltip_timer_init(struct bContext *C,
                            struct wmWindow *win,
+                           struct ScrArea *sa,
                            struct ARegion *ar,
                            wmTooltipInitFn init);
 void WM_tooltip_timer_clear(struct bContext *C, struct wmWindow *win);
