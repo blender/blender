@@ -150,8 +150,8 @@ const UserDef U_default = {
     .tablet_api = USER_TABLET_AUTOMATIC,
     .pressure_threshold_max = 1.0,
     .pressure_softness = 0.0,
-    .ndof_sensitivity = 1.0,
-    .ndof_orbit_sensitivity = 1.0,
+    .ndof_sensitivity = 4.0,
+    .ndof_orbit_sensitivity = 4.0,
     .ndof_deadzone = 0.1,
     .ndof_flag = (NDOF_MODE_ORBIT | NDOF_LOCK_HORIZON | NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM |
                   NDOF_SHOULD_ROTATE),
