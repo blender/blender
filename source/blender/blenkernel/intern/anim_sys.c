@@ -1717,7 +1717,7 @@ static bool animsys_store_rna_setting(PointerRNA *ptr,
 /* less than 1.0 evaluates to false, use epsilon to avoid float error */
 #define ANIMSYS_FLOAT_AS_BOOL(value) ((value) > ((1.0f - FLT_EPSILON)))
 
-static bool animsys_read_rna_setting(PathResolvedRNA *anim_rna, float *r_value)
+bool BKE_animsys_read_rna_setting(PathResolvedRNA *anim_rna, float *r_value)
 {
   PropertyRNA *prop = anim_rna->prop;
   PointerRNA *ptr = &anim_rna->ptr;
@@ -1780,7 +1780,7 @@ static bool animsys_read_rna_setting(PathResolvedRNA *anim_rna, float *r_value)
 }
 
 /* Write the given value to a setting using RNA, and return success */
-static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float value)
+bool BKE_animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float value)
 {
   PropertyRNA *prop = anim_rna->prop;
   PointerRNA *ptr = &anim_rna->ptr;
@@ -1791,7 +1791,7 @@ static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float val
 
   /* Check whether value is new. Otherwise we skip all the updates. */
   float old_value;
-  if (!animsys_read_rna_setting(anim_rna, &old_value)) {
+  if (!BKE_animsys_read_rna_setting(anim_rna, &old_value)) {
     return false;
   }
   if (old_value == value) {
@@ -1881,7 +1881,7 @@ static void animsys_write_orig_anim_rna(PointerRNA *ptr,
   PathResolvedRNA orig_anim_rna;
   /* TODO(sergey): Should be possible to cache resolved path in dependency graph somehow. */
   if (animsys_store_rna_setting(&ptr_orig, rna_path, array_index, &orig_anim_rna)) {
-    animsys_write_rna_setting(&orig_anim_rna, value);
+    BKE_animsys_write_rna_setting(&orig_anim_rna, value);
   }
 }
 
@@ -1912,7 +1912,7 @@ static void animsys_evaluate_fcurves(PointerRNA *ptr,
     PathResolvedRNA anim_rna;
     if (animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
       const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
-      animsys_write_rna_setting(&anim_rna, curval);
+      BKE_animsys_write_rna_setting(&anim_rna, curval);
       if (flush_to_original) {
         animsys_write_orig_anim_rna(ptr, fcu->rna_path, fcu->array_index, curval);
       }
@@ -1946,7 +1946,7 @@ static void animsys_evaluate_drivers(PointerRNA *ptr, AnimData *adt, float ctime
         PathResolvedRNA anim_rna;
         if (animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
           const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
-          ok = animsys_write_rna_setting(&anim_rna, curval);
+          ok = BKE_animsys_write_rna_setting(&anim_rna, curval);
         }
 
         /* set error-flag if evaluation failed */
@@ -2025,7 +2025,7 @@ void animsys_evaluate_action_group(PointerRNA *ptr, bAction *act, bActionGroup *
       PathResolvedRNA anim_rna;
       if (animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
         const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
-        animsys_write_rna_setting(&anim_rna, curval);
+        BKE_animsys_write_rna_setting(&anim_rna, curval);
       }
     }
   }
@@ -3319,7 +3319,7 @@ void nladata_flush_channels(PointerRNA *ptr,
         if (nec->is_array) {
           rna.prop_index = i;
         }
-        animsys_write_rna_setting(&rna, value);
+        BKE_animsys_write_rna_setting(&rna, value);
         if (flush_to_original) {
           animsys_write_orig_anim_rna(ptr, nec->rna_path, rna.prop_index, value);
         }
@@ -3804,7 +3804,7 @@ static void animsys_evaluate_overrides(PointerRNA *ptr, AnimData *adt)
   for (aor = adt->overrides.first; aor; aor = aor->next) {
     PathResolvedRNA anim_rna;
     if (animsys_store_rna_setting(ptr, aor->rna_path, aor->array_index, &anim_rna)) {
-      animsys_write_rna_setting(&anim_rna, aor->value);
+      BKE_animsys_write_rna_setting(&anim_rna, aor->value);
     }
   }
 }
@@ -4129,7 +4129,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
         /* Evaluate driver, and write results to COW-domain destination */
         const float ctime = DEG_get_ctime(depsgraph);
         const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
-        ok = animsys_write_rna_setting(&anim_rna, curval);
+        ok = BKE_animsys_write_rna_setting(&anim_rna, curval);
 
         /* Flush results & status codes to original data for UI (T59984) */
         if (ok && DEG_is_active(depsgraph)) {

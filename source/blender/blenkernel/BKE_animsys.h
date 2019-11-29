@@ -37,6 +37,7 @@ struct KeyingSet;
 struct ListBase;
 struct Main;
 struct NlaKeyframingContext;
+struct PathResolvedRNA;
 struct PointerRNA;
 struct PropertyRNA;
 struct ReportList;
@@ -247,6 +248,9 @@ typedef enum eAnimData_Recalc {
   ADT_RECALC_ANIM = (1 << 1),
   ADT_RECALC_ALL = (ADT_RECALC_DRIVERS | ADT_RECALC_ANIM),
 } eAnimData_Recalc;
+
+bool BKE_animsys_read_rna_setting(struct PathResolvedRNA *anim_rna, float *r_value);
+bool BKE_animsys_write_rna_setting(struct PathResolvedRNA *anim_rna, const float value);
 
 /* Evaluation loop for evaluating animation data  */
 void BKE_animsys_evaluate_animdata(struct Scene *scene,
