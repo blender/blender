@@ -59,6 +59,7 @@ set(SRC
   intern/eval/deg_eval_copy_on_write.cc
   intern/eval/deg_eval_flush.cc
   intern/eval/deg_eval_runtime_backup.cc
+  intern/eval/deg_eval_runtime_backup_animation.cc
   intern/eval/deg_eval_runtime_backup_modifier.cc
   intern/eval/deg_eval_runtime_backup_movieclip.cc
   intern/eval/deg_eval_runtime_backup_object.cc
@@ -108,6 +109,7 @@ set(SRC
   intern/eval/deg_eval_copy_on_write.h
   intern/eval/deg_eval_flush.h
   intern/eval/deg_eval_runtime_backup.h
+  intern/eval/deg_eval_runtime_backup_animation.h
   intern/eval/deg_eval_runtime_backup_modifier.h
   intern/eval/deg_eval_runtime_backup_movieclip.h
   intern/eval/deg_eval_runtime_backup_object.h

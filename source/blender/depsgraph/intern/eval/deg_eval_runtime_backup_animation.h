@@ -23,35 +23,42 @@
 
 #pragma once
 
-#include "DNA_ID.h"
+#include "BKE_modifier.h"
 
-#include "intern/eval/deg_eval_runtime_backup_animation.h"
-#include "intern/eval/deg_eval_runtime_backup_movieclip.h"
-#include "intern/eval/deg_eval_runtime_backup_object.h"
-#include "intern/eval/deg_eval_runtime_backup_scene.h"
-#include "intern/eval/deg_eval_runtime_backup_sound.h"
+#include "intern/depsgraph_type.h"
 
 namespace DEG {
 
 struct Depsgraph;
 
-class RuntimeBackup {
+class AnimationValueBackup {
  public:
-  explicit RuntimeBackup(const Depsgraph *depsgraph);
+  AnimationValueBackup();
+  AnimationValueBackup(const string &rna_path, float value);
+  ~AnimationValueBackup();
 
-  /* NOTE: Will reset all runtime fields which has been backed up to NULL. */
+  AnimationValueBackup(const AnimationValueBackup &other) = default;
+  AnimationValueBackup(AnimationValueBackup &&other) noexcept = default;
+
+  AnimationValueBackup &operator=(const AnimationValueBackup &other) = default;
+  AnimationValueBackup &operator=(AnimationValueBackup &&other) = default;
+
+  string rna_path;
+  float value;
+};
+
+/* Backup of animated properties values. */
+class AnimationBackup {
+ public:
+  AnimationBackup(const Depsgraph *depsgraph);
+
+  void reset();
+
   void init_from_id(ID *id);
-
-  /* Restore fields to the given ID. */
   void restore_to_id(ID *id);
 
-  AnimationBackup animation_backup;
-  SceneBackup scene_backup;
-  SoundBackup sound_backup;
-  ObjectRuntimeBackup object_backup;
-  DrawDataList drawdata_backup;
-  DrawDataList *drawdata_ptr;
-  MovieClipBackup movieclip_backup;
+  bool meed_value_backup;
+  vector<AnimationValueBackup> values_backup;
 };
 
 }  // namespace DEG
