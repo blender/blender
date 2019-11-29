@@ -1431,48 +1431,33 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
       xform_flag |= HAS_TRANSLATE;
     }
   }
-  else if ((U.ndof_flag & NDOF_MODE_ORBIT) || ED_view3d_offset_lock_check(v3d, rv3d)) {
+  else {
     /* Note: based on feedback from T67579, users want to have pan and orbit enabled at once.
      * It's arguable that orbit shouldn't pan (since we have a pan only operator),
-     * so if there are users who like to separate orbit/pan operations - it can be a preference.
-     *
-     * Also, the 'orbit' and 'free' blocks of code are now very similar.
-     * these could be merged, keep separate until design issues are sorted out - Campbell. */
+     * so if there are users who like to separate orbit/pan operations - it can be a preference. */
+    const bool is_orbit_around_pivot = (U.ndof_flag & NDOF_MODE_ORBIT) ||
+                                       ED_view3d_offset_lock_check(v3d, rv3d);
     const bool has_rotation = NDOF_HAS_ROTATE;
     const bool has_translate = !is_zero_v2(ndof->tvec) && NDOF_HAS_TRANSLATE;
     const bool has_zoom = (ndof->tvec[2] != 0.0f);
 
+    /* Rotation first because dynamic offset resets offset otherwise (and disasbles panning). */
+    if (has_rotation) {
+      const float dist_backup = rv3d->dist;
+      if (!is_orbit_around_pivot) {
+        ED_view3d_distance_set(rv3d, 0.0f);
+      }
+      view3d_ndof_orbit(ndof, vod->sa, vod->ar, vod, is_orbit_around_pivot);
+      xform_flag |= HAS_ROTATE;
+      if (!is_orbit_around_pivot) {
+        ED_view3d_distance_set(rv3d, dist_backup);
+      }
+    }
+
     if (has_translate || has_zoom) {
       view3d_ndof_pan_zoom(ndof, vod->sa, vod->ar, has_translate, has_zoom);
       xform_flag |= HAS_TRANSLATE;
     }
-
-    if (has_rotation) {
-      view3d_ndof_orbit(ndof, vod->sa, vod->ar, vod, true);
-      xform_flag |= HAS_ROTATE;
-    }
-  }
-  else { /* free/explore (like fly mode) */
-    const bool has_rotation = NDOF_HAS_ROTATE;
-    const bool has_translate = NDOF_HAS_TRANSLATE;
-    const bool has_zoom = (ndof->tvec[2] != 0.0f) && !rv3d->is_persp;
-
-    float dist_backup;
-
-    if (has_translate || has_zoom) {
-      view3d_ndof_pan_zoom(ndof, vod->sa, vod->ar, has_translate, has_zoom);
-      xform_flag |= HAS_TRANSLATE;
-    }
-
-    dist_backup = rv3d->dist;
-    ED_view3d_distance_set(rv3d, 0.0f);
-
-    if (has_rotation) {
-      view3d_ndof_orbit(ndof, vod->sa, vod->ar, vod, false);
-      xform_flag |= HAS_ROTATE;
-    }
-
-    ED_view3d_distance_set(rv3d, dist_backup);
   }
 
   ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
