@@ -262,9 +262,6 @@ void BKE_animsys_evaluate_all_animation(struct Main *main,
                                         struct Scene *scene,
                                         float ctime);
 
-/* TODO(sergey): This is mainly a temp public function. */
-bool BKE_animsys_execute_fcurve(struct PointerRNA *ptr, struct FCurve *fcu, float curval);
-
 /* ------------ Specialized API --------------- */
 /* There are a few special tools which require these following functions. They are NOT to be used
  * for standard animation evaluation UNDER ANY CIRCUMSTANCES!

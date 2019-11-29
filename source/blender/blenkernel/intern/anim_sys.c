@@ -1845,20 +1845,6 @@ static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float val
   return true;
 }
 
-/* Simple replacement based data-setting of the FCurve using RNA */
-bool BKE_animsys_execute_fcurve(PointerRNA *ptr, FCurve *fcu, float curval)
-{
-  PathResolvedRNA anim_rna;
-  bool ok = false;
-
-  if (animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
-    ok = animsys_write_rna_setting(&anim_rna, curval);
-  }
-
-  /* return whether we were successful */
-  return ok;
-}
-
 static bool animsys_construct_orig_pointer_rna(const PointerRNA *ptr, PointerRNA *ptr_orig)
 {
   *ptr_orig = *ptr;
