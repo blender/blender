@@ -395,7 +395,7 @@ void WM_OT_alembic_export(wmOperatorType *ot)
                   "visible_objects_only",
                   0,
                   "Visible Objects Only",
-                  "Export only objects in visible collections");
+                  "Export only objects that are visible");
 
   RNA_def_boolean(ot->srna,
                   "flatten",
