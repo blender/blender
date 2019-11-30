@@ -90,6 +90,7 @@ class TIME_MT_editor_menus(Menu):
     def draw(self, _context):
         layout = self.layout
         horizontal = (layout.direction == 'VERTICAL')
+        st = _context.space_data
         if horizontal:
             row = layout.row()
             sub = row.row(align=True)
@@ -109,7 +110,8 @@ class TIME_MT_editor_menus(Menu):
             sub = row.row(align=True)
 
         sub.menu("TIME_MT_view")
-        sub.menu("TIME_MT_marker")
+        if st.show_markers:
+            sub.menu("TIME_MT_marker")
 
 
 class TIME_MT_marker(Menu):
@@ -135,7 +137,10 @@ class TIME_MT_view(Menu):
 
         layout.separator()
 
-        layout.prop(st, "show_marker_lines")
+        layout.prop(st, "show_markers")
+
+        layout.separator()
+
         layout.prop(scene, "show_keys_from_selected_only")
 
         layout.separator()

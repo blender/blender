@@ -71,7 +71,7 @@ static SpaceLink *action_new(const ScrArea *sa, const Scene *scene)
   saction->autosnap = SACTSNAP_FRAME;
   saction->mode = SACTCONT_DOPESHEET;
   saction->mode_prev = SACTCONT_DOPESHEET;
-  saction->flag = SACTION_SHOW_INTERPOLATION | SACTION_SHOW_MARKER_LINES;
+  saction->flag = SACTION_SHOW_INTERPOLATION | SACTION_SHOW_MARKERS;
 
   saction->ads.filterflag |= ADS_FILTER_SUMMARY;
 
@@ -215,10 +215,10 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
 
   marker_flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0) |
                 DRAW_MARKERS_MARGIN;
-  if (saction->flag & SACTION_SHOW_MARKER_LINES) {
-    marker_flag |= DRAW_MARKERS_LINES;
+
+  if (saction->flag & SACTION_SHOW_MARKERS) {
+    ED_markers_draw(C, marker_flag);
   }
-  ED_markers_draw(C, marker_flag);
 
   /* caches */
   if (saction->mode == SACTCONT_TIMELINE) {

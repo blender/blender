@@ -860,8 +860,8 @@ typedef enum eSAction_Flag {
   SACTION_SHOW_INTERPOLATION = (1 << 12),
   /* show extremes */
   SACTION_SHOW_EXTREMES = (1 << 13),
-  /* show vertical line markers */
-  SACTION_SHOW_MARKER_LINES = (1 << 14),
+  /* show markers region */
+  SACTION_SHOW_MARKERS = (1 << 14),
 } eSAction_Flag;
 
 /* SpaceAction_Runtime.flag */

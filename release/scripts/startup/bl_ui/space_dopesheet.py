@@ -288,7 +288,8 @@ class DOPESHEET_MT_editor_menus(Menu):
 
         layout.menu("DOPESHEET_MT_view")
         layout.menu("DOPESHEET_MT_select")
-        layout.menu("DOPESHEET_MT_marker")
+        if st.show_markers:
+            layout.menu("DOPESHEET_MT_marker")
 
         if st.mode == 'DOPESHEET' or (st.mode == 'ACTION' and st.action is not None):
             layout.menu("DOPESHEET_MT_channel")
@@ -322,9 +323,12 @@ class DOPESHEET_MT_view(Menu):
         layout.prop(st, "show_group_colors")
         layout.prop(st, "show_interpolation")
         layout.prop(st, "show_extremes")
-        layout.prop(st, "show_marker_lines")
         layout.prop(st, "use_auto_merge_keyframes")
 
+        layout.separator()
+        layout.prop(st, "show_markers")
+
+        layout.separator()
         layout.prop(st, "show_seconds")
         layout.prop(st, "show_locked_time")
 

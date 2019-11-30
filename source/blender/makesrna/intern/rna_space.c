@@ -4560,9 +4560,12 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
-  prop = RNA_def_property(srna, "show_marker_lines", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_SHOW_MARKER_LINES);
-  RNA_def_property_ui_text(prop, "Show Marker Lines", "Show a vertical line for every marker");
+  prop = RNA_def_property(srna, "show_markers", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_SHOW_MARKERS);
+  RNA_def_property_ui_text(
+      prop,
+      "Show Markers",
+      "If any exists, show markers in a separate row at the bottom of the editor");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
   prop = RNA_def_property(srna, "show_annotation", PROP_BOOLEAN, PROP_NONE);
@@ -4818,7 +4821,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_pose_markers", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_POSEMARKERS_SHOW);
   RNA_def_property_ui_text(prop,
-                           "Show Pose Markers",
+                           "Toggle Pose Markers",
                            "Show markers belonging to the active action instead of Scene markers "
                            "(Action and Shape Key Editors only)");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_DOPESHEET, NULL);
@@ -4847,10 +4850,13 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
                            "comparison with adjacent keys");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_DOPESHEET, NULL);
 
-  prop = RNA_def_property(srna, "show_marker_lines", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_SHOW_MARKER_LINES);
-  RNA_def_property_ui_text(prop, "Show Marker Lines", "Show a vertical line for every marker");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
+  prop = RNA_def_property(srna, "show_markers", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_SHOW_MARKERS);
+  RNA_def_property_ui_text(
+      prop,
+      "Show Markers",
+      "If any exists, show markers in a separate row at the bottom of the editor");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_DOPESHEET, NULL);
 
   /* editing */
   prop = RNA_def_property(srna, "use_auto_merge_keyframes", PROP_BOOLEAN, PROP_NONE);
@@ -5004,9 +5010,12 @@ static void rna_def_space_graph(BlenderRNA *brna)
       "Display groups and channels with colors matching their corresponding groups");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
-  prop = RNA_def_property(srna, "show_marker_lines", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_MARKER_LINES);
-  RNA_def_property_ui_text(prop, "Show Marker Lines", "Show a vertical line for every marker");
+  prop = RNA_def_property(srna, "show_markers", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_SHOW_MARKERS);
+  RNA_def_property_ui_text(
+      prop,
+      "Show Markers",
+      "If any exists, show markers in a separate row at the bottom of the editor");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
   /* editing */
@@ -5115,10 +5124,13 @@ static void rna_def_space_nla(BlenderRNA *brna)
       "Show action-local markers on the strips, useful when synchronizing timing across strips");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NLA, NULL);
 
-  prop = RNA_def_property(srna, "show_marker_lines", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SNLA_SHOW_MARKER_LINES);
-  RNA_def_property_ui_text(prop, "Show Marker Lines", "Show a vertical line for every marker");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
+  prop = RNA_def_property(srna, "show_markers", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SNLA_SHOW_MARKERS);
+  RNA_def_property_ui_text(
+      prop,
+      "Show Markers",
+      "If any exists, show markers in a separate row at the bottom of the editor");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NLA, NULL);
 
   /* editing */
   prop = RNA_def_property(srna, "use_realtime_update", PROP_BOOLEAN, PROP_NONE);

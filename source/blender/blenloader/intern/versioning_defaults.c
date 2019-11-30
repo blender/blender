@@ -150,10 +150,9 @@ static void blo_update_defaults_screen(bScreen *screen,
       }
     }
     else if (sa->spacetype == SPACE_ACTION) {
-      /* Show marker lines, hide channels and collapse summary in timelines. */
+      /* Show markers region, hide channels and collapse summary in timelines. */
       SpaceAction *saction = sa->spacedata.first;
-      saction->flag |= SACTION_SHOW_MARKER_LINES;
-
+      saction->flag |= SACTION_SHOW_MARKERS;
       if (saction->mode == SACTCONT_TIMELINE) {
         saction->ads.flag |= ADS_FLAG_SUMMARY_COLLAPSED;
 
@@ -166,11 +165,15 @@ static void blo_update_defaults_screen(bScreen *screen,
     }
     else if (sa->spacetype == SPACE_GRAPH) {
       SpaceGraph *sipo = sa->spacedata.first;
-      sipo->flag |= SIPO_MARKER_LINES;
+      sipo->flag |= SIPO_SHOW_MARKERS;
     }
     else if (sa->spacetype == SPACE_NLA) {
       SpaceNla *snla = sa->spacedata.first;
-      snla->flag |= SNLA_SHOW_MARKER_LINES;
+      snla->flag |= SNLA_SHOW_MARKERS;
+    }
+    else if (sa->spacetype == SPACE_SEQ) {
+      SpaceSeq *seq = sa->spacedata.first;
+      seq->flag |= SEQ_SHOW_MARKERS;
     }
     else if (sa->spacetype == SPACE_TEXT) {
       /* Show syntax and line numbers in Script workspace text editor. */

@@ -94,10 +94,12 @@ class GRAPH_MT_editor_menus(Menu):
     bl_label = ""
 
     def draw(self, _context):
+        st = _context.space_data
         layout = self.layout
         layout.menu("GRAPH_MT_view")
         layout.menu("GRAPH_MT_select")
-        layout.menu("GRAPH_MT_marker")
+        if st.mode != 'DRIVERS' and st.show_markers:
+            layout.menu("GRAPH_MT_marker")
         layout.menu("GRAPH_MT_channel")
         layout.menu("GRAPH_MT_key")
 
@@ -117,8 +119,11 @@ class GRAPH_MT_view(Menu):
         layout.prop(st, "show_cursor")
         layout.prop(st, "show_sliders")
         layout.prop(st, "show_group_colors")
-        layout.prop(st, "show_marker_lines")
         layout.prop(st, "use_auto_merge_keyframes")
+
+        if st.mode != 'DRIVERS':
+            layout.separator()
+            layout.prop(st, "show_markers")
 
         layout.separator()
         layout.prop(st, "use_beauty_drawing")

@@ -466,8 +466,8 @@ typedef enum eGraphEdit_Flag {
   /* normalize curves on display */
   SIPO_NORMALIZE = (1 << 14),
   SIPO_NORMALIZE_FREEZE = (1 << 15),
-  /* show vertical line for every marker */
-  SIPO_MARKER_LINES = (1 << 16),
+  /* show markers region */
+  SIPO_SHOW_MARKERS = (1 << 16),
 } eGraphEdit_Flag;
 
 /* SpaceGraph.mode (Graph Editor Mode) */
@@ -532,8 +532,8 @@ typedef enum eSpaceNla_Flag {
   SNLA_NOREALTIMEUPDATES = (1 << 6),
   /* don't show local strip marker indications */
   SNLA_NOLOCALMARKERS = (1 << 7),
-  /* show vertical line for every marker */
-  SNLA_SHOW_MARKER_LINES = (1 << 8),
+  /* show markers region */
+  SNLA_SHOW_MARKERS = (1 << 8),
 } eSpaceNla_Flag;
 
 /** \} */
@@ -615,7 +615,7 @@ typedef enum eSpaceSeq_Flag {
   SEQ_NO_WAVEFORMS = (1 << 8),  /* draw no waveforms */
   SEQ_SHOW_SAFE_CENTER = (1 << 9),
   SEQ_SHOW_METADATA = (1 << 10),
-  SEQ_SHOW_MARKER_LINES = (1 << 11),
+  SEQ_SHOW_MARKERS = (1 << 11), /* show markers region */
 } eSpaceSeq_Flag;
 
 /* SpaceSeq.view */

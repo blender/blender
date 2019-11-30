@@ -2067,10 +2067,9 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
   /* markers */
   UI_view2d_view_orthoSpecial(ar, v2d, 1);
   int marker_draw_flag = DRAW_MARKERS_MARGIN;
-  if (sseq->flag & SEQ_SHOW_MARKER_LINES) {
-    marker_draw_flag |= DRAW_MARKERS_LINES;
+  if (sseq->flag & SEQ_SHOW_MARKERS) {
+    ED_markers_draw(C, marker_draw_flag);
   }
-  ED_markers_draw(C, marker_draw_flag);
 
   UI_view2d_view_ortho(v2d);
   /* draw cache on top of markers area */

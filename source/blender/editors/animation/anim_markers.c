@@ -228,6 +228,47 @@ void ED_markers_get_minmax(ListBase *markers, short sel, float *first, float *la
   *last = max;
 }
 
+/**
+ * Function used in operator polls, checks whether the markers region is currently drawn in the
+ * editor in which the operator is called.
+ */
+static bool ED_operator_markers_region_active(bContext *C)
+{
+  ScrArea *sa = CTX_wm_area(C);
+
+  switch (sa->spacetype) {
+    case SPACE_ACTION: {
+      SpaceAction *saction = sa->spacedata.first;
+      if (saction->flag & SACTION_SHOW_MARKERS) {
+        return true;
+      }
+      break;
+    }
+    case SPACE_GRAPH: {
+      SpaceGraph *sipo = sa->spacedata.first;
+      if (sipo->mode != SIPO_MODE_DRIVERS && sipo->flag & SIPO_SHOW_MARKERS) {
+        return true;
+      }
+      break;
+    }
+    case SPACE_NLA: {
+      SpaceNla *snla = sa->spacedata.first;
+      if (snla->flag & SNLA_SHOW_MARKERS) {
+        return true;
+      }
+      break;
+    }
+    case SPACE_SEQ: {
+      SpaceSeq *seq = sa->spacedata.first;
+      if (seq->flag & SEQ_SHOW_MARKERS) {
+        return true;
+      }
+      break;
+    }
+  }
+  return false;
+}
+
 static bool region_position_is_over_marker(View2D *v2d, ListBase *markers, float region_x)
 {
   if (markers == NULL || BLI_listbase_is_empty(markers)) {
@@ -409,7 +450,7 @@ static void draw_marker_name(const uiFontStyle *fstyle,
   UI_fontstyle_draw_simple(fstyle, name_x, text_y, name, text_color);
 }
 
-static void draw_marker_line(const float color[4], float x, float ymin, float ymax)
+static void draw_marker_line(const float color[4], int xpos, int ymin, int ymax)
 {
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -426,8 +467,8 @@ static void draw_marker_line(const float color[4], float x, float ymin, float ym
   immUniform1f("dash_factor", 0.5f);
 
   immBegin(GPU_PRIM_LINES, 2);
-  immVertex2f(pos, x, ymin);
-  immVertex2f(pos, x, ymax);
+  immVertex2f(pos, xpos, ymin);
+  immVertex2f(pos, xpos, ymax);
   immEnd();
 
   immUnbindProgram();
@@ -449,26 +490,6 @@ static int marker_get_icon_id(TimeMarker *marker, int flag)
   }
 }
 
-static void draw_marker_line_if_necessary(TimeMarker *marker, int flag, int xpos, int height)
-{
-#ifdef DURIAN_CAMERA_SWITCH
-  if ((marker->camera) || (flag & DRAW_MARKERS_LINES))
-#else
-  if (flag & DRAW_MARKERS_LINES)
-#endif
-  {
-    float color[4];
-    if (marker->flag & SELECT) {
-      copy_v4_fl4(color, 1.0f, 1.0f, 1.0f, 0.38f);
-    }
-    else {
-      copy_v4_fl4(color, 0.0f, 0.0f, 0.0f, 0.38f);
-    }
-
-    draw_marker_line(color, xpos, UI_DPI_FAC * 20, height);
-  }
-}
-
 static void draw_marker(
     const uiFontStyle *fstyle, TimeMarker *marker, int cfra, int xpos, int flag, int region_height)
 {
@@ -476,7 +497,15 @@ static void draw_marker(
   GPU_blend_set_func_separate(
       GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
-  draw_marker_line_if_necessary(marker, flag, xpos, region_height);
+  float color[4];
+  if (marker->flag & SELECT) {
+    copy_v4_fl4(color, 1.0f, 1.0f, 1.0f, 0.38f);
+  }
+  else {
+    copy_v4_fl4(color, 0.0f, 0.0f, 0.0f, 0.38f);
+  }
+
+  draw_marker_line(color, xpos, UI_DPI_FAC * 20, region_height);
 
   int icon_id = marker_get_icon_id(marker, flag);
   UI_icon_draw(xpos - 0.55f * UI_DPI_ICON_SIZE, UI_DPI_FAC * 18, icon_id);
@@ -599,8 +628,7 @@ static bool ed_markers_poll_selected_markers(bContext *C)
 {
   ListBase *markers = ED_context_get_markers(C);
 
-  /* first things first: markers can only exist in timeline views */
-  if (ED_operator_animview_active(C) == 0) {
+  if (!ED_operator_markers_region_active(C)) {
     return 0;
   }
 
@@ -613,12 +641,7 @@ static bool ed_markers_poll_selected_no_locked_markers(bContext *C)
   ListBase *markers = ED_context_get_markers(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  if (ts->lock_markers) {
-    return 0;
-  }
-
-  /* first things first: markers can only exist in timeline views */
-  if (ED_operator_animview_active(C) == 0) {
+  if (ts->lock_markers || !ED_operator_markers_region_active(C)) {
     return 0;
   }
 
@@ -632,12 +655,7 @@ static bool ed_markers_poll_markers_exist(bContext *C)
   ListBase *markers = ED_context_get_markers(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  if (ts->lock_markers) {
-    return 0;
-  }
-
-  /* first things first: markers can only exist in timeline views */
-  if (ED_operator_animview_active(C) == 0) {
+  if (ts->lock_markers || !ED_operator_markers_region_active(C)) {
     return 0;
   }
 
@@ -692,7 +710,7 @@ static void MARKER_OT_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = ed_marker_add_exec;
-  ot->poll = ED_operator_animview_active;
+  ot->poll = ED_operator_markers_region_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1661,7 +1679,7 @@ static void MARKER_OT_camera_bind(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = ed_marker_camera_bind_exec;
-  ot->poll = ED_operator_animview_active;
+  ot->poll = ED_operator_markers_region_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
