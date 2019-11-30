@@ -1437,17 +1437,36 @@ class USERPREF_PT_ndof_settings(Panel):
             layout.row().prop(input_prefs, "ndof_view_navigate_method", text="Navigate")
             layout.row().prop(input_prefs, "ndof_view_rotate_method", text="Orbit")
             layout.separator()
+
             layout.label(text="Orbit Options")
-            layout.prop(input_prefs, "ndof_rotx_invert_axis")
-            layout.prop(input_prefs, "ndof_roty_invert_axis")
-            layout.prop(input_prefs, "ndof_rotz_invert_axis")
+            split = layout.split(factor=0.6)
+            row = split.row()
+            row.alignment = 'RIGHT'
+            row.label(text="Invert Axis")
+            row = split.row(align=True)
+            for text, attr in (
+                    ("X", "ndof_rotx_invert_axis"),
+                    ("Y", "ndof_roty_invert_axis"),
+                    ("Z", "ndof_rotz_invert_axis"),
+            ):
+                row.prop(input_prefs, attr, text=text, toggle=True)
 
         # view2d use pan/zoom
         layout.separator()
         layout.label(text="Pan Options")
-        layout.prop(input_prefs, "ndof_panx_invert_axis")
-        layout.prop(input_prefs, "ndof_pany_invert_axis")
-        layout.prop(input_prefs, "ndof_panz_invert_axis")
+
+        split = layout.split(factor=0.6)
+        row = split.row()
+        row.alignment = 'RIGHT'
+        row.label(text="Invert Axis")
+        row = split.row(align=True)
+        for text, attr in (
+                ("X", "ndof_panx_invert_axis"),
+                ("Y", "ndof_pany_invert_axis"),
+                ("Z", "ndof_panz_invert_axis"),
+        ):
+            row.prop(input_prefs, attr, text=text, toggle=True)
+
         layout.prop(input_prefs, "ndof_pan_yz_swap_axis")
 
         layout.label(text="Zoom Options")
