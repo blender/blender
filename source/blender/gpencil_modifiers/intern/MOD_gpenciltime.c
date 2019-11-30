@@ -71,8 +71,14 @@ static int remapTime(struct GpencilModifierData *md,
   const bool invpass = mmd->flag & GP_TIME_INVERT_LAYERPASS;
   int sfra = custom ? mmd->sfra : scene->r.sfra;
   int efra = custom ? mmd->efra : scene->r.efra;
-  CLAMP_MIN(sfra, 1);
-  CLAMP_MIN(efra, 1);
+  CLAMP_MIN(sfra, 0);
+  CLAMP_MIN(efra, 0);
+
+  /* Avoid inverse ranges. */
+  if (efra < sfra) {
+    return cfra;
+  }
+
   const int time_range = efra - sfra + 1;
   int offset = mmd->offset;
   int segments = 0;
