@@ -108,6 +108,7 @@ static void sculpt_vertex_random_access_init(SculptSession *ss)
 {
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
+    BM_mesh_elem_table_ensure(ss->bm, BM_VERT);
   }
 }
 
@@ -3077,7 +3078,12 @@ static void sculpt_relax_vertex(SculptSession *ss,
   float plane[4];
   float smooth_closest_plane[3];
   float vno[3];
-  normal_short_to_float_v3(vno, vd->no);
+  if (vd->no) {
+    normal_short_to_float_v3(vno, vd->no);
+  }
+  else {
+    copy_v3_v3(vno, vd->fno);
+  }
   plane_from_point_normal_v3(plane, vd->co, vno);
   closest_to_plane_v3(smooth_closest_plane, plane, smooth_pos);
   sub_v3_v3v3(final_disp, smooth_closest_plane, vd->co);
@@ -8918,8 +8924,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
   }
   BKE_pbvh_vertex_iter_end;
 
-  BKE_pbvh_node_mark_redraw(node);
-  BKE_pbvh_node_mark_normals_update(node);
+  BKE_pbvh_node_mark_update(node);
 }
 
 static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -8965,6 +8970,11 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
 
   if (ss->deform_modifiers_active || ss->shapekey_active) {
     sculpt_flush_stroke_deform(sd, ob, true);
+  }
+
+  /* The relax mesh filter needs the updated normals of the modified mesh after each iteration */
+  if (filter_type == MESH_FILTER_RELAX) {
+    BKE_pbvh_update_normals(ss->pbvh, ss->subdiv_ccg);
   }
 
   sculpt_flush_update_step(C, SCULPT_UPDATE_COORDS);
