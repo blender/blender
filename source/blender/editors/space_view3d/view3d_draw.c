@@ -1121,13 +1121,6 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
   immEnd();
   immUnbindProgram();
 
-#  if 0
-  /* find screen coordinates for rotation center, then draw pretty icon */
-  mul_m4_v3(rv3d->persinv, rot_center);
-  UI_icon_draw(rot_center[0], rot_center[1], ICON_NDOF_TURN);
-  /* ^^ just playing around, does not work */
-#  endif
-
   GPU_blend(false);
   glDepthMask(GL_TRUE);
 }
