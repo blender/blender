@@ -319,8 +319,8 @@ typedef struct StrokeCache {
   float location[3];
   float last_location[3];
 
-  /* This radius variable is not affected by pressure curves */
-  float dyntopo_radius;
+  /* Original pixel radius with the pressure curve applied for dyntopo detail size */
+  float dyntopo_pixel_radius;
 
   bool is_last_valid;
 

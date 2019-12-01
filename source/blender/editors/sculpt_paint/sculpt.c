@@ -6730,11 +6730,12 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
   if (BKE_brush_use_size_pressure(brush) &&
       paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT)) {
     cache->radius = sculpt_brush_dynamic_size_get(brush, cache, cache->initial_radius);
-    cache->dyntopo_radius = cache->initial_radius * cache->pressure;
+    cache->dyntopo_pixel_radius = sculpt_brush_dynamic_size_get(
+        brush, cache, ups->initial_pixel_radius);
   }
   else {
     cache->radius = cache->initial_radius;
-    cache->dyntopo_radius = cache->initial_radius;
+    cache->dyntopo_pixel_radius = ups->initial_pixel_radius;
   }
 
   cache->radius_squared = cache->radius * cache->radius;
@@ -7345,12 +7346,11 @@ static void sculpt_stroke_update_step(bContext *C,
     BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail);
   }
   else if (sd->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
-    BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
-                                   ss->cache->dyntopo_radius * sd->detail_percent / 100.0f);
+    BKE_pbvh_bmesh_detail_size_set(ss->pbvh, ss->cache->radius * sd->detail_percent / 100.0f);
   }
   else {
     BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
-                                   (ss->cache->dyntopo_radius / (float)ups->pixel_radius) *
+                                   (ss->cache->radius / ss->cache->dyntopo_pixel_radius) *
                                        (float)(sd->detail_size * U.pixelsize) / 0.4f);
   }
 

@@ -335,6 +335,7 @@ static bool paint_brush_update(bContext *C,
   ups->size_pressure_value = stroke->cached_size_pressure;
 
   ups->pixel_radius = BKE_brush_size_get(scene, brush);
+  ups->initial_pixel_radius = BKE_brush_size_get(scene, brush);
 
   if (BKE_brush_use_size_pressure(brush) && paint_supports_dynamic_size(brush, mode)) {
     ups->pixel_radius *= stroke->cached_size_pressure;

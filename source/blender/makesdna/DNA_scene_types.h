@@ -1277,6 +1277,9 @@ typedef struct UnifiedPaintSettings {
   /* radius of brush, premultiplied with pressure.
    * In case of anchored brushes contains the anchored radius */
   float pixel_radius;
+  float initial_pixel_radius;
+
+  char _pad[4];
 
   /* drawing pressure */
   float size_pressure_value;
