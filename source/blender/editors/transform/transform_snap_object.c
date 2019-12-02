@@ -1424,7 +1424,7 @@ static short snap_mesh_polygon(SnapObjectContext *sctx,
     l_iter = l_first = BM_FACE_FIRST_LOOP(f);
     if (snapdata->snap_to_flag & SCE_SNAP_MODE_EDGE) {
       elem = SCE_SNAP_MODE_EDGE;
-      BM_mesh_elem_index_ensure(em->bm, BM_EDGE);
+      BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_EDGE);
       BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE);
       do {
         cb_snap_edge(&nearest2d,
