@@ -119,6 +119,26 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   const bool use_wire = (pd->overlay.flag & V3D_OVERLAY_WIREFRAMES) || (ob->dtx & OB_DRAWWIRE) ||
                         (ob->dt == OB_WIRE);
 
+  if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+    OVERLAY_ExtraCallBuffers *cb = OVERLAY_extra_call_buffer_get(vedata, ob);
+    float *color;
+    DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
+
+    struct GPUBatch *geom = NULL;
+    switch (ob->type) {
+      case OB_CURVE:
+        geom = DRW_cache_curve_edge_wire_get(ob);
+        break;
+      case OB_SURF:
+        geom = DRW_cache_surf_edge_wire_get(ob);
+        break;
+    }
+
+    if (geom) {
+      OVERLAY_extra_wire(cb, geom, ob->obmat, color);
+    }
+  }
+
   /* Fast path for duplis. */
   if (dupli && !init_dupli) {
     if (dupli->wire_shgrp && dupli->wire_geom) {
