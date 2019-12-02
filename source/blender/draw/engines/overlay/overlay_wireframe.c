@@ -204,16 +204,16 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
     /* Draw loose geometry. */
-    if ((me->totpoly == 0 && me->totedge > 0) || has_edit_mesh_cage) {
-      struct GPUBatch *geom = DRW_cache_mesh_loose_edges_get(ob);
-      if (geom) {
-        OVERLAY_extra_wire(cb, geom, ob->obmat, color);
-      }
-    }
-    else if (me->totedge == 0 && me->totvert > 0) {
+    if (me->totedge == 0 && me->totvert > 0) {
       struct GPUBatch *geom = DRW_cache_mesh_all_verts_get(ob);
       if (geom) {
         OVERLAY_extra_loose_points(cb, geom, ob->obmat, color);
+      }
+    }
+    else {
+      struct GPUBatch *geom = DRW_cache_mesh_loose_edges_get(ob);
+      if (geom) {
+        OVERLAY_extra_wire(cb, geom, ob->obmat, color);
       }
     }
   }
