@@ -104,8 +104,8 @@ void main()
   gl_Position = point_world_to_ndc(wpos);
 
   if (get_edge_sharpness(wd) < 0.0) {
-    /* Discard primitive. */
-    gl_Position = vec4(0.0);
+    /* Discard primitive by placing any of the verts at the camera origin. */
+    gl_Position = vec4(0.0, 0.0, -3e36, 0.0);
   }
 
 #ifndef SELECT_EDGES
