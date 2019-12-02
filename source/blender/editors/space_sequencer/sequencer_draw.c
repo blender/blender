@@ -2086,8 +2086,10 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
                         scene->r.cfra + scene->ed->over_ofs;
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
-
+    immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+    float viewport_size[4];
+    GPU_viewport_size_get_f(viewport_size);
+    immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
     immUniform1f("dash_width", 20.0f * U.pixelsize);
     immUniform1f("dash_factor", 0.5f);
     immUniformThemeColor(TH_CFRAME);

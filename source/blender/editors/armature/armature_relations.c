@@ -879,6 +879,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 
   /* note, notifier might evolve */
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SELECT);
 
   return OPERATOR_FINISHED;
 }

@@ -37,16 +37,15 @@ void DRW_shape_cache_reset(void);
 struct GPUBatch *DRW_cache_cursor_get(bool crosshair_lines);
 
 /* Common Shapes */
+struct GPUBatch *DRW_cache_groundline_get(void);
 struct GPUBatch *DRW_cache_grid_get(void);
 struct GPUBatch *DRW_cache_fullscreen_quad_get(void);
 struct GPUBatch *DRW_cache_quad_get(void);
 struct GPUBatch *DRW_cache_quad_wires_get(void);
 struct GPUBatch *DRW_cache_cube_get(void);
 struct GPUBatch *DRW_cache_sphere_get(void);
-struct GPUBatch *DRW_cache_single_vert_get(void);
-struct GPUBatch *DRW_cache_single_line_get(void);
-struct GPUBatch *DRW_cache_single_line_endpoints_get(void);
 struct GPUBatch *DRW_cache_screenspace_circle_get(void);
+struct GPUBatch *DRW_cache_normal_arrow_get(void);
 
 /* Common Object */
 struct GPUBatch *DRW_cache_object_all_edges_get(struct Object *ob);
@@ -66,41 +65,36 @@ struct GPUBatch *DRW_cache_plain_axes_get(void);
 struct GPUBatch *DRW_cache_single_arrow_get(void);
 struct GPUBatch *DRW_cache_empty_cube_get(void);
 struct GPUBatch *DRW_cache_circle_get(void);
-struct GPUBatch *DRW_cache_square_get(void);
 struct GPUBatch *DRW_cache_empty_sphere_get(void);
 struct GPUBatch *DRW_cache_empty_cylinder_get(void);
 struct GPUBatch *DRW_cache_empty_cone_get(void);
 struct GPUBatch *DRW_cache_empty_capsule_cap_get(void);
 struct GPUBatch *DRW_cache_empty_capsule_body_get(void);
-struct GPUBatch *DRW_cache_image_plane_get(void);
-struct GPUBatch *DRW_cache_image_plane_wire_get(void);
 
 /* Force Field */
 struct GPUBatch *DRW_cache_field_wind_get(void);
 struct GPUBatch *DRW_cache_field_force_get(void);
 struct GPUBatch *DRW_cache_field_vortex_get(void);
+struct GPUBatch *DRW_cache_field_curve_get(void);
 struct GPUBatch *DRW_cache_field_tube_limit_get(void);
 struct GPUBatch *DRW_cache_field_cone_limit_get(void);
-
-/* Grease Pencil */
-struct GPUBatch *DRW_cache_gpencil_axes_get(void);
+struct GPUBatch *DRW_cache_field_sphere_limit_get(void);
 
 /* Lights */
-struct GPUBatch *DRW_cache_light_get(void);
-struct GPUBatch *DRW_cache_light_shadows_get(void);
-struct GPUBatch *DRW_cache_light_sunrays_get(void);
-struct GPUBatch *DRW_cache_light_area_square_get(void);
-struct GPUBatch *DRW_cache_light_area_disk_get(void);
-struct GPUBatch *DRW_cache_light_hemi_get(void);
-struct GPUBatch *DRW_cache_light_spot_get(void);
+struct GPUBatch *DRW_cache_light_point_lines_get(void);
+struct GPUBatch *DRW_cache_light_sun_lines_get(void);
+struct GPUBatch *DRW_cache_light_spot_lines_get(void);
+struct GPUBatch *DRW_cache_light_area_disk_lines_get(void);
+struct GPUBatch *DRW_cache_light_area_square_lines_get(void);
 struct GPUBatch *DRW_cache_light_spot_volume_get(void);
-struct GPUBatch *DRW_cache_light_spot_square_get(void);
-struct GPUBatch *DRW_cache_light_spot_square_volume_get(void);
 
 /* Camera */
-struct GPUBatch *DRW_cache_camera_get(void);
 struct GPUBatch *DRW_cache_camera_frame_get(void);
+struct GPUBatch *DRW_cache_camera_volume_get(void);
+struct GPUBatch *DRW_cache_camera_volume_wire_get(void);
+struct GPUBatch *DRW_cache_camera_tria_wire_get(void);
 struct GPUBatch *DRW_cache_camera_tria_get(void);
+struct GPUBatch *DRW_cache_camera_distances_get(void);
 
 /* Speaker */
 struct GPUBatch *DRW_cache_speaker_get(void);

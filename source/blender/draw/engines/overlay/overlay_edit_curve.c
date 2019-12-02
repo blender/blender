@@ -1,0 +1,127 @@
+/*
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Copyright 2019, Blender Foundation.
+ */
+
+/** \file
+ * \ingroup draw_engine
+ */
+
+#include "DRW_render.h"
+
+#include "DNA_curve_types.h"
+
+#include "overlay_private.h"
+
+void OVERLAY_edit_curve_cache_init(OVERLAY_Data *vedata)
+{
+  OVERLAY_PassList *psl = vedata->psl;
+  OVERLAY_PrivateData *pd = vedata->stl->pd;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  View3D *v3d = draw_ctx->v3d;
+  DRWShadingGroup *grp;
+  GPUShader *sh;
+  DRWState state;
+
+  pd->edit_curve.show_handles = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) != 0;
+  pd->shdata.edit_curve_normal_length = v3d->overlay.normals_length;
+
+  /* Run Twice for in-front passes. */
+  for (int i = 0; i < 2; i++) {
+    state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH;
+    state |= ((i == 0) ? DRW_STATE_DEPTH_LESS_EQUAL : DRW_STATE_DEPTH_ALWAYS);
+    DRW_PASS_CREATE(psl->edit_curve_wire_ps[i], state | pd->clipping_state);
+
+    sh = OVERLAY_shader_edit_curve_wire();
+    pd->edit_curve_normal_grp[i] = grp = DRW_shgroup_create(sh, psl->edit_curve_wire_ps[i]);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+    DRW_shgroup_uniform_float_copy(grp, "normalSize", pd->shdata.edit_curve_normal_length);
+
+    pd->edit_curve_wire_grp[i] = grp = DRW_shgroup_create(sh, psl->edit_curve_wire_ps[i]);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+    DRW_shgroup_uniform_float_copy(grp, "normalSize", 0.0f);
+  }
+  {
+    state = DRW_STATE_WRITE_COLOR;
+    DRW_PASS_CREATE(psl->edit_curve_handle_ps, state | pd->clipping_state);
+
+    sh = OVERLAY_shader_edit_curve_handle();
+    pd->edit_curve_handle_grp = grp = DRW_shgroup_create(sh, psl->edit_curve_handle_ps);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+    DRW_shgroup_uniform_bool_copy(grp, "showCurveHandles", pd->edit_curve.show_handles);
+    DRW_shgroup_state_enable(grp, DRW_STATE_BLEND_ALPHA);
+
+    sh = OVERLAY_shader_edit_curve_point();
+    pd->edit_curve_points_grp = grp = DRW_shgroup_create(sh, psl->edit_curve_handle_ps);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+  }
+}
+
+void OVERLAY_edit_curve_cache_populate(OVERLAY_Data *vedata, Object *ob)
+{
+  OVERLAY_PrivateData *pd = vedata->stl->pd;
+  bool draw_normals = (pd->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_NORMALS) != 0;
+  bool do_xray = (ob->dtx & OB_DRAWXRAY) != 0;
+
+  Curve *cu = ob->data;
+  struct GPUBatch *geom;
+
+  geom = DRW_cache_curve_edge_wire_get(ob);
+  if (geom) {
+    DRW_shgroup_call_no_cull(pd->edit_curve_wire_grp[do_xray], geom, ob);
+  }
+
+  if ((cu->flag & CU_3D) && draw_normals) {
+    geom = DRW_cache_curve_edge_normal_get(ob);
+    DRW_shgroup_call_instances(pd->edit_curve_normal_grp[do_xray], ob, geom, 3);
+  }
+
+  geom = DRW_cache_curve_edge_overlay_get(ob);
+  if (geom) {
+    DRW_shgroup_call_no_cull(pd->edit_curve_handle_grp, geom, ob);
+  }
+
+  geom = DRW_cache_curve_vert_overlay_get(ob, pd->edit_curve.show_handles);
+  if (geom) {
+    DRW_shgroup_call_no_cull(pd->edit_curve_points_grp, geom, ob);
+  }
+}
+
+void OVERLAY_edit_surf_cache_populate(OVERLAY_Data *vedata, Object *ob)
+{
+  OVERLAY_PrivateData *pd = vedata->stl->pd;
+  struct GPUBatch *geom;
+
+  geom = DRW_cache_curve_edge_overlay_get(ob);
+  if (geom) {
+    DRW_shgroup_call_no_cull(pd->edit_curve_handle_grp, geom, ob);
+  }
+
+  geom = DRW_cache_curve_vert_overlay_get(ob, false);
+  if (geom) {
+    DRW_shgroup_call_no_cull(pd->edit_curve_points_grp, geom, ob);
+  }
+}
+
+void OVERLAY_edit_curve_draw(OVERLAY_Data *vedata)
+{
+  OVERLAY_PassList *psl = vedata->psl;
+
+  DRW_draw_pass(psl->edit_curve_wire_ps[0]);
+  DRW_draw_pass(psl->edit_curve_wire_ps[1]);
+
+  DRW_draw_pass(psl->edit_curve_handle_ps);
+}

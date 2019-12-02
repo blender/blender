@@ -25,6 +25,8 @@
 
 #include "GPU_batch.h"
 
+extern DrawEngineType draw_engine_gpencil_type;
+
 struct GPENCIL_Data;
 struct GPENCIL_StorageList;
 struct MaterialGPencilStyle;

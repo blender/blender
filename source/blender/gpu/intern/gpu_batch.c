@@ -103,7 +103,9 @@ void GPU_batch_init_ex(
   for (int v = 1; v < GPU_BATCH_VBO_MAX_LEN; v++) {
     batch->verts[v] = NULL;
   }
-  batch->inst = NULL;
+  for (int v = 0; v < GPU_BATCH_INST_VBO_MAX_LEN; v++) {
+    batch->inst[v] = NULL;
+  }
   batch->elem = elem;
   batch->gl_prim_type = convert_prim_type_to_gl(prim_type);
   batch->phase = GPU_BATCH_READY_TO_DRAW;
@@ -129,7 +131,8 @@ void GPU_batch_clear(GPUBatch *batch)
     GPU_indexbuf_discard(batch->elem);
   }
   if (batch->owns_flag & GPU_BATCH_OWNS_INSTANCES) {
-    GPU_vertbuf_discard(batch->inst);
+    GPU_vertbuf_discard(batch->inst[0]);
+    GPU_VERTBUF_DISCARD_SAFE(batch->inst[1]);
   }
   if ((batch->owns_flag & ~GPU_BATCH_OWNS_INDEX) != 0) {
     for (int v = 0; v < GPU_BATCH_VBO_MAX_LEN; v++) {
@@ -171,10 +174,11 @@ void GPU_batch_instbuf_set(GPUBatch *batch, GPUVertBuf *inst, bool own_vbo)
   /* redo the bindings */
   GPU_batch_vao_cache_clear(batch);
 
-  if (batch->inst != NULL && (batch->owns_flag & GPU_BATCH_OWNS_INSTANCES)) {
-    GPU_vertbuf_discard(batch->inst);
+  if (batch->inst[0] != NULL && (batch->owns_flag & GPU_BATCH_OWNS_INSTANCES)) {
+    GPU_vertbuf_discard(batch->inst[0]);
+    GPU_VERTBUF_DISCARD_SAFE(batch->inst[1]);
   }
-  batch->inst = inst;
+  batch->inst[0] = inst;
 
   if (own_vbo) {
     batch->owns_flag |= GPU_BATCH_OWNS_INSTANCES;
@@ -201,6 +205,37 @@ void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *elem, bool own_ibo)
   else {
     batch->owns_flag &= ~GPU_BATCH_OWNS_INDEX;
   }
+}
+
+/* A bit of a quick hack. Should be streamlined as the vbos handling */
+int GPU_batch_instbuf_add_ex(GPUBatch *batch, GPUVertBuf *insts, bool own_vbo)
+{
+  /* redo the bindings */
+  GPU_batch_vao_cache_clear(batch);
+
+  for (uint v = 0; v < GPU_BATCH_INST_VBO_MAX_LEN; v++) {
+    if (batch->inst[v] == NULL) {
+#if TRUST_NO_ONE
+      /* for now all VertexBuffers must have same vertex_len */
+      if (batch->inst[0] != NULL) {
+        /* Allow for different size of vertex buf (will choose the smallest number of verts). */
+        // assert(insts->vertex_len == batch->inst[0]->vertex_len);
+        assert(own_vbo == ((batch->owns_flag & GPU_BATCH_OWNS_INSTANCES) != 0));
+      }
+#endif
+      batch->inst[v] = insts;
+      if (own_vbo) {
+        batch->owns_flag |= GPU_BATCH_OWNS_INSTANCES;
+      }
+      return v;
+    }
+  }
+
+  /* we only make it this far if there is no room for another GPUVertBuf */
+#if TRUST_NO_ONE
+  assert(false);
+#endif
+  return -1;
 }
 
 /* Returns the index of verts in the batch. */
@@ -458,8 +493,10 @@ static void batch_update_program_bindings(GPUBatch *batch, uint i_first)
       create_bindings(batch->verts[v], batch->interface, 0, false);
     }
   }
-  if (batch->inst) {
-    create_bindings(batch->inst, batch->interface, i_first, true);
+  for (int v = GPU_BATCH_INST_VBO_MAX_LEN - 1; v > -1; v--) {
+    if (batch->inst[v]) {
+      create_bindings(batch->inst[v], batch->interface, i_first, true);
+    }
   }
   if (batch->elem) {
     GPU_indexbuf_use(batch->elem);
@@ -639,7 +676,11 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
     v_count = (batch->elem) ? batch->elem->index_len : batch->verts[0]->vertex_len;
   }
   if (i_count == 0) {
-    i_count = (batch->inst) ? batch->inst->vertex_len : 1;
+    i_count = (batch->inst[0]) ? batch->inst[0]->vertex_len : 1;
+    /* Meh. This is to be able to use different numbers of verts in instance vbos. */
+    if (batch->inst[1] && i_count > batch->inst[1]->vertex_len) {
+      i_count = batch->inst[1]->vertex_len;
+    }
   }
 
   if (v_count == 0 || i_count == 0) {

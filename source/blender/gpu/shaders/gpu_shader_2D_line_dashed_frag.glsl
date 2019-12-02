@@ -17,13 +17,16 @@ uniform float dash_factor; /* if > 1.0, solid line. */
 uniform int colors_len; /* Enabled if > 0, 1 for solid line. */
 uniform vec4 colors[32];
 
-noperspective in float distance_along_line;
-noperspective in vec4 color_geom;
+flat in vec4 color_vert;
+
+noperspective in vec2 stipple_pos;
+flat in vec2 stipple_start;
 
 out vec4 fragColor;
 
 void main()
 {
+  float distance_along_line = distance(stipple_pos, stipple_start);
   /* Multi-color option. */
   if (colors_len > 0) {
     /* Solid line case, simple. */
@@ -40,13 +43,13 @@ void main()
   else {
     /* Solid line case, simple. */
     if (dash_factor >= 1.0f) {
-      fragColor = color_geom;
+      fragColor = color_vert;
     }
     /* Actually dashed line... */
     else {
       float normalized_distance = fract(distance_along_line / dash_width);
       if (normalized_distance <= dash_factor) {
-        fragColor = color_geom;
+        fragColor = color_vert;
       }
       else {
         discard;

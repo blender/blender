@@ -24,6 +24,10 @@
 #define __DRAW_MANAGER_TEXT_H__
 
 struct DRWTextStore;
+struct ARegion;
+struct View3D;
+struct Object;
+struct UnitSettings;
 
 struct DRWTextStore *DRW_text_cache_create(void);
 void DRW_text_cache_destroy(struct DRWTextStore *dt);
@@ -38,6 +42,11 @@ void DRW_text_cache_add(struct DRWTextStore *dt,
                         const uchar col[4]);
 
 void DRW_text_cache_draw(struct DRWTextStore *dt, struct ARegion *ar);
+
+void DRW_text_edit_mesh_measure_stats(struct ARegion *ar,
+                                      struct View3D *v3d,
+                                      struct Object *ob,
+                                      const struct UnitSettings *unit);
 
 enum {
   DRW_TEXT_CACHE_ASCII = (1 << 0),

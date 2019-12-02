@@ -647,6 +647,7 @@ static void extract_lines_finish(const MeshRenderData *mr, void *ibo, void *elb)
     GPUIndexBuf *sub_ibo = GPU_indexbuf_create_subrange(ibo, start, len);
     /* WARNING: We modify the GPUBatch here! */
     GPU_batch_elembuf_set(mr->cache->batch.loose_edges, sub_ibo, true);
+    mr->cache->no_loose_wire = (len == 0);
   }
 }
 

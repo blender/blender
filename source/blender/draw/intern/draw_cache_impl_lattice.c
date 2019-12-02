@@ -212,62 +212,6 @@ static const BPoint *lattice_render_data_vert_bpoint(const LatticeRenderData *rd
   return &rdata->bp[vert_idx];
 }
 
-/* TODO, move into shader? */
-static void rgb_from_weight(float r_rgb[3], const float weight)
-{
-  const float blend = ((weight / 2.0f) + 0.5f);
-
-  if (weight <= 0.25f) { /* blue->cyan */
-    r_rgb[0] = 0.0f;
-    r_rgb[1] = blend * weight * 4.0f;
-    r_rgb[2] = blend;
-  }
-  else if (weight <= 0.50f) { /* cyan->green */
-    r_rgb[0] = 0.0f;
-    r_rgb[1] = blend;
-    r_rgb[2] = blend * (1.0f - ((weight - 0.25f) * 4.0f));
-  }
-  else if (weight <= 0.75f) { /* green->yellow */
-    r_rgb[0] = blend * ((weight - 0.50f) * 4.0f);
-    r_rgb[1] = blend;
-    r_rgb[2] = 0.0f;
-  }
-  else if (weight <= 1.0f) { /* yellow->red */
-    r_rgb[0] = blend;
-    r_rgb[1] = blend * (1.0f - ((weight - 0.75f) * 4.0f));
-    r_rgb[2] = 0.0f;
-  }
-  else {
-    /* exceptional value, unclamped or nan,
-     * avoid uninitialized memory use */
-    r_rgb[0] = 1.0f;
-    r_rgb[1] = 0.0f;
-    r_rgb[2] = 1.0f;
-  }
-}
-
-static void lattice_render_data_weight_col_get(const LatticeRenderData *rdata,
-                                               const int vert_idx,
-                                               const int actdef,
-                                               float r_col[4])
-{
-  if (actdef > -1) {
-    float weight = defvert_find_weight(rdata->dvert + vert_idx, actdef);
-
-    if (U.flag & USER_CUSTOM_RANGE) {
-      BKE_colorband_evaluate(&U.coba_weight, weight, r_col);
-    }
-    else {
-      rgb_from_weight(r_col, weight);
-    }
-
-    r_col[3] = 1.0f;
-  }
-  else {
-    zero_v4(r_col);
-  }
-}
-
 /* ---------------------------------------------------------------------- */
 /* Lattice GPUBatch Cache */
 
@@ -402,18 +346,14 @@ static GPUVertBuf *lattice_batch_cache_get_pos(LatticeRenderData *rdata,
   BLI_assert(rdata->types & LR_DATATYPE_VERT);
 
   if (cache->pos == NULL) {
-    static GPUVertFormat format = {0};
-    static struct {
+    GPUVertFormat format = {0};
+    struct {
       uint pos, col;
     } attr_id;
 
-    GPU_vertformat_clear(&format);
-
-    /* initialize vertex format */
     attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-
     if (use_weight) {
-      attr_id.col = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      attr_id.col = GPU_vertformat_attr_add(&format, "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
     }
 
     const int vert_len = lattice_render_data_verts_len_get(rdata);
@@ -425,11 +365,10 @@ static GPUVertBuf *lattice_batch_cache_get_pos(LatticeRenderData *rdata,
       GPU_vertbuf_attr_set(cache->pos, attr_id.pos, i, bp->vec);
 
       if (use_weight) {
-        float w_col[4];
-        lattice_render_data_weight_col_get(rdata, i, actdef, w_col);
-        w_col[3] = 1.0f;
-
-        GPU_vertbuf_attr_set(cache->pos, attr_id.col, i, w_col);
+        const float no_active_weight = 666.0f;
+        float weight = (actdef > -1) ? defvert_find_weight(rdata->dvert + i, actdef) :
+                                       no_active_weight;
+        GPU_vertbuf_attr_set(cache->pos, attr_id.col, i, &weight);
       }
     }
   }

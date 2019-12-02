@@ -41,6 +41,7 @@ typedef enum {
 } GPUBatchPhase;
 
 #define GPU_BATCH_VBO_MAX_LEN 6
+#define GPU_BATCH_INST_VBO_MAX_LEN 2
 #define GPU_BATCH_VAO_STATIC_LEN 3
 #define GPU_BATCH_VAO_DYN_ALLOC_COUNT 16
 
@@ -50,7 +51,7 @@ typedef struct GPUBatch {
   /** verts[0] is required, others can be NULL */
   GPUVertBuf *verts[GPU_BATCH_VBO_MAX_LEN];
   /** Instance attributes. */
-  GPUVertBuf *inst;
+  GPUVertBuf *inst[GPU_BATCH_INST_VBO_MAX_LEN];
   /** NULL if element list not needed */
   GPUIndexBuf *elem;
   uint32_t gl_prim_type;
@@ -117,6 +118,7 @@ void GPU_batch_callback_free_set(GPUBatch *, void (*callback)(GPUBatch *, void *
 void GPU_batch_instbuf_set(GPUBatch *, GPUVertBuf *, bool own_vbo); /* Instancing */
 void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *elem, bool own_ibo);
 
+int GPU_batch_instbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
 int GPU_batch_vertbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
 
 #define GPU_batch_vertbuf_add(batch, verts) GPU_batch_vertbuf_add_ex(batch, verts, false)

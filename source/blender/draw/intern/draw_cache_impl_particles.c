@@ -1339,9 +1339,9 @@ static void particle_batch_cache_ensure_pos(Object *object,
 
   if (format.attr_len == 0) {
     /* initialize vertex format */
-    pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-    rot_id = GPU_vertformat_attr_add(&format, "rot", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-    val_id = GPU_vertformat_attr_add(&format, "val", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    pos_id = GPU_vertformat_attr_add(&format, "part_pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    val_id = GPU_vertformat_attr_add(&format, "part_val", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    rot_id = GPU_vertformat_attr_add(&format, "part_rot", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   }
 
   point_cache->pos = GPU_vertbuf_create_with_format(&format);

@@ -256,6 +256,9 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
           immUnbindProgram();
 
           immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
+          float viewport_size[4];
+          GPU_viewport_size_get_f(viewport_size);
+          immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
           immUniform1f("dash_width", 6.0f * U.pixelsize);
           immUniform1f("dash_factor", 1.0f / 4.0f);
           immUniformColor4ubv(col);

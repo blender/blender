@@ -147,8 +147,8 @@ static void select_engine_init(void *vedata)
 
     /* Create view with depth offset */
     stl->g_data->view_faces = (DRWView *)view_default;
-    stl->g_data->view_edges = DRW_view_create_with_zoffset(draw_ctx->rv3d, 1.0f);
-    stl->g_data->view_verts = DRW_view_create_with_zoffset(draw_ctx->rv3d, 1.1f);
+    stl->g_data->view_edges = DRW_view_create_with_zoffset(view_default, draw_ctx->rv3d, 1.0f);
+    stl->g_data->view_verts = DRW_view_create_with_zoffset(view_default, draw_ctx->rv3d, 1.1f);
   }
 }
 

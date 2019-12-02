@@ -321,6 +321,38 @@ void drw_state_set(DRWState state)
     }
   }
 
+  /* In Front objects selection */
+  {
+    int test;
+    if ((test = CHANGED_TO(DRW_STATE_IN_FRONT_SELECT))) {
+      if (test == 1) {
+        /* XXX `GPU_depth_range` is not a perfect solution
+         * since very distant geometries can still be occluded.
+         * Also the depth test precision of these geometries is impaired.
+         * However, it solves the selection for the vast majority of cases. */
+        GPU_depth_range(0.0f, 0.01f);
+      }
+      else {
+        GPU_depth_range(0.0f, 1.0f);
+      }
+    }
+  }
+
+  /* Logic Ops */
+  {
+    int test;
+    if ((test = CHANGED_TO(DRW_STATE_LOGIC_INVERT))) {
+      if (test == 1) {
+        glLogicOp(GL_INVERT);
+        glEnable(GL_COLOR_LOGIC_OP);
+      }
+      else {
+        glLogicOp(GL_COPY);
+        glDisable(GL_COLOR_LOGIC_OP);
+      }
+    }
+  }
+
   /* Clip Planes */
   {
     int test;
@@ -990,10 +1022,10 @@ BLI_INLINE void draw_select_buffer(DRWShadingGroup *shgroup,
                                    GPUBatch *batch,
                                    const DRWResourceHandle *handle)
 {
-  const bool is_instancing = (batch->inst != NULL);
+  const bool is_instancing = (batch->inst[0] != NULL);
   int start = 0;
   int count = 1;
-  int tot = is_instancing ? batch->inst->vertex_len : batch->verts[0]->vertex_len;
+  int tot = is_instancing ? batch->inst[0]->vertex_len : batch->verts[0]->vertex_len;
   /* Hack : get "vbo" data without actually drawing. */
   int *select_id = (void *)state->select_buf->data;
 
@@ -1091,7 +1123,8 @@ static void draw_call_single_do(DRWShadingGroup *shgroup,
                                 DRWResourceHandle handle,
                                 int vert_first,
                                 int vert_count,
-                                int inst_count)
+                                int inst_count,
+                                bool do_base_instance)
 {
   draw_call_batching_flush(shgroup, state);
 
@@ -1118,7 +1151,7 @@ static void draw_call_single_do(DRWShadingGroup *shgroup,
                         batch,
                         vert_first,
                         vert_count,
-                        DRW_handle_id_get(&handle),
+                        do_base_instance ? DRW_handle_id_get(&handle) : 0,
                         inst_count,
                         state->baseinst_loc);
 }
@@ -1292,7 +1325,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
         case DRW_CMD_DRAW:
           if (!USE_BATCHING || state.obmats_loc == -1 || (G.f & G_FLAG_PICKSEL) ||
               cmd->draw.batch->inst) {
-            draw_call_single_do(shgroup, &state, cmd->draw.batch, cmd->draw.handle, 0, 0, 0);
+            draw_call_single_do(shgroup, &state, cmd->draw.batch, cmd->draw.handle, 0, 0, 0, true);
           }
           else {
             draw_call_batching_do(shgroup, &state, &cmd->draw);
@@ -1305,7 +1338,8 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
                               cmd->procedural.handle,
                               0,
                               cmd->procedural.vert_count,
-                              1);
+                              1,
+                              true);
           break;
         case DRW_CMD_DRAW_INSTANCE:
           draw_call_single_do(shgroup,
@@ -1314,7 +1348,8 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
                               cmd->instance.handle,
                               0,
                               0,
-                              cmd->instance.inst_count);
+                              cmd->instance.inst_count,
+                              cmd->instance.use_attribs == 0);
           break;
         case DRW_CMD_DRAW_RANGE:
           draw_call_single_do(shgroup,
@@ -1323,7 +1358,8 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
                               (DRWResourceHandle)0,
                               cmd->range.vert_first,
                               cmd->range.vert_count,
-                              1);
+                              1,
+                              true);
           break;
       }
     }

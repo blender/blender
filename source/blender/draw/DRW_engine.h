@@ -52,6 +52,7 @@ struct rcti;
 /* Buffer and textures used by the viewport by default */
 typedef struct DefaultFramebufferList {
   struct GPUFrameBuffer *default_fb;
+  struct GPUFrameBuffer *in_front_fb;
   struct GPUFrameBuffer *color_only_fb;
   struct GPUFrameBuffer *depth_only_fb;
   struct GPUFrameBuffer *multisample_fb;
@@ -60,6 +61,7 @@ typedef struct DefaultFramebufferList {
 typedef struct DefaultTextureList {
   struct GPUTexture *color;
   struct GPUTexture *depth;
+  struct GPUTexture *depth_in_front;
   struct GPUTexture *multisample_color;
   struct GPUTexture *multisample_depth;
 } DefaultTextureList;

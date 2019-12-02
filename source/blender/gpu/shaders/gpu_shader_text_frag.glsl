@@ -1,6 +1,5 @@
 
 flat in vec4 color_flat;
-flat in vec4 texCoord_rect;
 noperspective in vec2 texCoord_interp;
 out vec4 fragColor;
 
@@ -34,16 +33,16 @@ void main()
   fragColor.rgb = color_flat.rgb;
 
   vec2 texel = 1.0 / vec2(textureSize(glyph, 0));
-  vec2 texco = mix(abs(texCoord_rect.xy), abs(texCoord_rect.zw), texCoord_interp);
+  vec2 texco = abs(texCoord_interp);
 
   // modulate input alpha & texture alpha
-  if (texCoord_rect.x > 0) {
+  if (texCoord_interp.x > 0) {
     fragColor.a = texture(glyph, texco).r;
   }
   else {
     fragColor.a = 0.0;
 
-    if (texCoord_rect.w > 0) {
+    if (texCoord_interp.y > 0) {
       /* 3x3 blur */
       /* Manual unroll for perf. (stupid glsl compiler) */
       fragColor.a += sample_glyph_offset(texco, texel, offsets4[0]);

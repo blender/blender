@@ -1007,6 +1007,9 @@ static void recalcData_objects(TransInfo *t)
             restoreBones(tc);
           }
         }
+
+        /* Tag for redraw/invalidate overlay cache. */
+        DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
       }
     }
     else {

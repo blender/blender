@@ -134,15 +134,20 @@ GPUVertBuf *DRW_temp_buffer_request(DRWInstanceDataList *idatalist,
 /* NOTE: Does not return a valid drawable batch until DRW_instance_buffer_finish has run. */
 GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
                                           GPUVertBuf *buf,
+                                          GPUBatch *instancer,
                                           GPUBatch *geom)
 {
   /* Do not call this with a batch that is already an instancing batch. */
-  BLI_assert(geom->inst == NULL);
+  BLI_assert(geom->inst[0] == NULL);
+  /* Only call with one of them. */
+  BLI_assert((instancer != NULL) != (buf != NULL));
 
   GPUBatch *batch = BLI_memblock_alloc(idatalist->pool_instancing);
-  bool is_compatible = (batch->gl_prim_type == geom->gl_prim_type) && (batch->inst == buf) &&
-                       (buf->vbo_id != 0) && (batch->phase == GPU_BATCH_READY_TO_DRAW) &&
-                       (batch->elem == geom->elem);
+  bool instancer_compat = buf ? ((batch->inst[0] == buf) && (buf->vbo_id != 0)) :
+                                ((batch->inst[0] == instancer->inst[0]) &&
+                                 (batch->inst[1] == instancer->inst[1]));
+  bool is_compatible = (batch->gl_prim_type == geom->gl_prim_type) && instancer_compat &&
+                       (batch->phase == GPU_BATCH_READY_TO_DRAW) && (batch->elem == geom->elem);
   for (int i = 0; i < GPU_BATCH_VBO_MAX_LEN && is_compatible; i++) {
     if (batch->verts[i] != geom->verts[i]) {
       is_compatible = false;
@@ -152,7 +157,8 @@ GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
   if (!is_compatible) {
     GPU_batch_clear(batch);
     /* Save args and init later */
-    batch->inst = buf;
+    batch->inst[0] = buf;
+    batch->inst[1] = (void *)instancer; /* HACK to save the pointer without other alloc. */
     batch->phase = GPU_BATCH_READY_TO_BUILD;
     batch->verts[0] = (void *)geom; /* HACK to save the pointer without other alloc. */
 
@@ -205,10 +211,19 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
   BLI_memblock_iternew(idatalist->pool_instancing, &iter);
   while ((batch = BLI_memblock_iterstep(&iter))) {
     if (batch->phase == GPU_BATCH_READY_TO_BUILD) {
-      GPUVertBuf *inst = batch->inst;
-      GPUBatch *geom = (void *)batch->verts[0]; /* HACK see DRW_temp_batch_instance_request. */
+      GPUVertBuf *inst_buf = batch->inst[0];
+      /* HACK see DRW_temp_batch_instance_request. */
+      GPUBatch *inst_batch = (void *)batch->inst[1];
+      GPUBatch *geom = (void *)batch->verts[0];
       GPU_batch_copy(batch, geom);
-      GPU_batch_instbuf_set(batch, inst, false);
+      if (inst_batch != NULL) {
+        for (int i = 0; i < GPU_BATCH_INST_VBO_MAX_LEN && inst_batch->verts[i]; i++) {
+          GPU_batch_instbuf_add_ex(batch, inst_batch->verts[i], false);
+        }
+      }
+      else {
+        GPU_batch_instbuf_add_ex(batch, inst_buf, false);
+      }
     }
   }
   /* Resize pools and free unused. */

@@ -506,8 +506,14 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
                      * put it in ob->runtime and make depsgraph ensure it is up to date. */
                     BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
   ob_infos->ob_random = random * (1.0f / (float)0xFFFFFFFF);
+  /* Object State. */
+  ob_infos->ob_flag = 1.0f; /* Required to have a correct sign */
+  ob_infos->ob_flag += (ob->base_flag & BASE_SELECTED) ? (1 << 1) : 0;
+  ob_infos->ob_flag += (ob->base_flag & BASE_FROM_DUPLI) ? (1 << 2) : 0;
+  ob_infos->ob_flag += (ob->base_flag & BASE_FROM_SET) ? (1 << 3) : 0;
+  ob_infos->ob_flag += (ob == DST.draw_ctx.obact) ? (1 << 4) : 0;
   /* Negative scalling. */
-  ob_infos->ob_neg_scale = (ob->transflag & OB_NEG_SCALE) ? -1.0f : 1.0f;
+  ob_infos->ob_flag *= (ob->transflag & OB_NEG_SCALE) ? -1.0f : 1.0f;
   /* Object Color. */
   copy_v4_v4(ob_infos->ob_color, ob->color);
 }
@@ -643,12 +649,14 @@ static void drw_command_draw_range(DRWShadingGroup *shgroup,
 static void drw_command_draw_instance(DRWShadingGroup *shgroup,
                                       GPUBatch *batch,
                                       DRWResourceHandle handle,
-                                      uint count)
+                                      uint count,
+                                      bool use_attrib)
 {
   DRWCommandDrawInstance *cmd = drw_command_create(shgroup, DRW_CMD_DRAW_INSTANCE);
   cmd->batch = batch;
   cmd->handle = handle;
   cmd->inst_count = count;
+  cmd->use_attribs = use_attrib;
 }
 
 static void drw_command_draw_procedural(DRWShadingGroup *shgroup,
@@ -788,7 +796,7 @@ void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
     drw_command_set_select_id(shgroup, NULL, DST.select_id);
   }
   DRWResourceHandle handle = drw_resource_handle(shgroup, ob ? ob->obmat : NULL, ob);
-  drw_command_draw_instance(shgroup, geom, handle, count);
+  drw_command_draw_instance(shgroup, geom, handle, count, false);
 }
 
 void DRW_shgroup_call_instances_with_attribs(DRWShadingGroup *shgroup,
@@ -797,14 +805,13 @@ void DRW_shgroup_call_instances_with_attribs(DRWShadingGroup *shgroup,
                                              struct GPUBatch *inst_attributes)
 {
   BLI_assert(geom != NULL);
-  BLI_assert(inst_attributes->verts[0] != NULL);
+  BLI_assert(inst_attributes != NULL);
   if (G.f & G_FLAG_PICKSEL) {
     drw_command_set_select_id(shgroup, NULL, DST.select_id);
   }
   DRWResourceHandle handle = drw_resource_handle(shgroup, ob ? ob->obmat : NULL, ob);
-  GPUVertBuf *buf_inst = inst_attributes->verts[0];
-  GPUBatch *batch = DRW_temp_batch_instance_request(DST.idatalist, buf_inst, geom);
-  drw_command_draw(shgroup, batch, handle);
+  GPUBatch *batch = DRW_temp_batch_instance_request(DST.idatalist, NULL, inst_attributes, geom);
+  drw_command_draw_instance(shgroup, batch, handle, 0, true);
 }
 
 #define SCULPT_DEBUG_BUFFERS (G.debug_value == 889)
@@ -1027,10 +1034,31 @@ DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shgroup,
   }
 
   DRWResourceHandle handle = drw_resource_handle(shgroup, NULL, NULL);
-  GPUBatch *batch = DRW_temp_batch_instance_request(DST.idatalist, callbuf->buf, geom);
+  GPUBatch *batch = DRW_temp_batch_instance_request(DST.idatalist, callbuf->buf, NULL, geom);
   drw_command_draw(shgroup, batch, handle);
 
   return callbuf;
+}
+
+void DRW_buffer_add_entry_struct(DRWCallBuffer *callbuf, const void *data)
+{
+  GPUVertBuf *buf = callbuf->buf;
+  const bool resize = (callbuf->count == buf->vertex_alloc);
+
+  if (UNLIKELY(resize)) {
+    GPU_vertbuf_data_resize(buf, callbuf->count + DRW_BUFFER_VERTS_CHUNK);
+  }
+
+  GPU_vertbuf_vert_set(buf, callbuf->count, data);
+
+  if (G.f & G_FLAG_PICKSEL) {
+    if (UNLIKELY(resize)) {
+      GPU_vertbuf_data_resize(callbuf->buf_select, callbuf->count + DRW_BUFFER_VERTS_CHUNK);
+    }
+    GPU_vertbuf_attr_set(callbuf->buf_select, 0, callbuf->count, &DST.select_id);
+  }
+
+  callbuf->count++;
 }
 
 void DRW_buffer_add_entry_array(DRWCallBuffer *callbuf, const void *attr[], uint attr_len)
@@ -1595,13 +1623,17 @@ DRWView *DRW_view_create_sub(const DRWView *parent_view,
                              const float viewmat[4][4],
                              const float winmat[4][4])
 {
-  BLI_assert(parent_view && parent_view->parent == NULL);
+  /* Search original parent. */
+  const DRWView *ori_view = parent_view;
+  while (ori_view->parent != NULL) {
+    ori_view = ori_view->parent;
+  }
 
   DRWView *view = BLI_memblock_alloc(DST.vmempool->views);
 
   /* Perform copy. */
-  *view = *parent_view;
-  view->parent = (DRWView *)parent_view;
+  *view = *ori_view;
+  view->parent = (DRWView *)ori_view;
 
   DRW_view_update_sub(view, viewmat, winmat);
 
@@ -1927,6 +1959,16 @@ void DRW_pass_sort_shgroup_z(DRWPass *pass)
     last->pass_handle = pass->handle;
   }
   pass->shgroups.last = last;
+}
+
+/**
+ * Reverse Shading group submission order.
+ */
+void DRW_pass_sort_shgroup_reverse(DRWPass *pass)
+{
+  pass->shgroups.last = pass->shgroups.first;
+  /* WARNING: Assume that DRWShadingGroup->next is the first member. */
+  BLI_linklist_reverse((LinkNode **)&pass->shgroups.first);
 }
 
 /** \} */

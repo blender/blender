@@ -145,6 +145,7 @@ GPUViewport *GPU_viewport_create_from_offscreen(struct GPUOffScreen *ofs)
     GPU_framebuffer_ensure_config(
         &viewport->fbl->depth_only_fb,
         {GPU_ATTACHMENT_TEXTURE(viewport->txl->depth), GPU_ATTACHMENT_NONE});
+    /* TODO infront buffer */
   }
 
   return viewport;

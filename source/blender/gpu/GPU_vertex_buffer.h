@@ -88,6 +88,8 @@ void GPU_vertbuf_data_len_set(GPUVertBuf *, uint v_len);
 
 void GPU_vertbuf_attr_set(GPUVertBuf *, uint a_idx, uint v_idx, const void *data);
 
+void GPU_vertbuf_vert_set(GPUVertBuf *verts, uint v_idx, const void *data);
+
 /* Tightly packed, non interleaved input data. */
 void GPU_vertbuf_attr_fill(GPUVertBuf *, uint a_idx, const void *data);
 

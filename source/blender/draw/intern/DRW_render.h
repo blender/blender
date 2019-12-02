@@ -173,6 +173,7 @@ typedef struct DrawEngineType {
 /* Buffer and textures used by the viewport by default */
 typedef struct DefaultFramebufferList {
   struct GPUFrameBuffer *default_fb;
+  struct GPUFrameBuffer *in_front_fb;
   struct GPUFrameBuffer *color_only_fb;
   struct GPUFrameBuffer *depth_only_fb;
   struct GPUFrameBuffer *multisample_fb;
@@ -181,6 +182,7 @@ typedef struct DefaultFramebufferList {
 typedef struct DefaultTextureList {
   struct GPUTexture *color;
   struct GPUTexture *depth;
+  struct GPUTexture *depth_in_front;
   struct GPUTexture *multisample_color;
   struct GPUTexture *multisample_depth;
 } DefaultTextureList;
@@ -344,6 +346,8 @@ typedef enum {
   /** Use dual source blending. WARNING: Only one color buffer allowed. */
   DRW_STATE_BLEND_CUSTOM = (1 << 23),
 
+  DRW_STATE_IN_FRONT_SELECT = (1 << 25),
+  DRW_STATE_LOGIC_INVERT = (1 << 26),
   DRW_STATE_SHADOW_OFFSET = (1 << 27),
   DRW_STATE_CLIP_PLANES = (1 << 28),
   DRW_STATE_WIRE_SMOOTH = (1 << 29),
@@ -429,11 +433,12 @@ void DRW_shgroup_call_range(DRWShadingGroup *shgroup,
 void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, Object *ob, uint point_ct);
 void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, Object *ob, uint line_ct);
 void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *sh, Object *ob, uint tri_ct);
-
+/* Warning: Only use with Shaders that have IN_PLACE_INSTANCES defined. */
 void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
                                 Object *ob,
                                 struct GPUBatch *geom,
                                 uint count);
+/* Warning: Only use with Shaders that have INSTANCED_ATTRIB defined. */
 void DRW_shgroup_call_instances_with_attribs(DRWShadingGroup *shgroup,
                                              Object *ob,
                                              struct GPUBatch *geom,
@@ -449,6 +454,7 @@ DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shading_group,
                                                 struct GPUVertFormat *format,
                                                 struct GPUBatch *geom);
 
+void DRW_buffer_add_entry_struct(DRWCallBuffer *callbuf, const void *data);
 void DRW_buffer_add_entry_array(DRWCallBuffer *buffer, const void *attr[], uint attr_len);
 
 #define DRW_buffer_add_entry(buffer, ...) \
@@ -548,6 +554,7 @@ void DRW_pass_foreach_shgroup(DRWPass *pass,
                               void (*callback)(void *userData, DRWShadingGroup *shgrp),
                               void *userData);
 void DRW_pass_sort_shgroup_z(DRWPass *pass);
+void DRW_pass_sort_shgroup_reverse(DRWPass *pass);
 
 bool DRW_pass_is_empty(DRWPass *pass);
 

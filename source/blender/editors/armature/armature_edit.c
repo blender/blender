@@ -57,6 +57,8 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "DEG_depsgraph.h"
+
 #include "armature_intern.h"
 
 /* ************************** Object Tools Exports ******************************* */
@@ -443,6 +445,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
     if (changed) {
       /* note, notifier might evolve */
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+      DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
     }
   }
 
@@ -512,6 +515,7 @@ static int armature_roll_clear_exec(bContext *C, wmOperator *op)
     if (changed) {
       /* Note, notifier might evolve. */
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+      DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
     }
   }
   MEM_freeN(objects);
@@ -844,6 +848,7 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
   /* updates */
   ED_armature_edit_refresh_layer_used(arm);
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, obedit);
+  DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
 
   /* free points */
   BLI_freelistN(&points);
@@ -1038,6 +1043,7 @@ static int armature_merge_exec(bContext *C, wmOperator *op)
     ED_armature_edit_sync_selection(arm->edbo);
     ED_armature_edit_refresh_layer_used(arm);
     WM_event_add_notifier(C, NC_OBJECT | ND_POSE, obedit);
+    DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
   }
   MEM_freeN(objects);
 
@@ -1182,6 +1188,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 
     /* note, notifier might evolve */
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+    DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
   }
   MEM_freeN(objects);
 
@@ -1327,6 +1334,7 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 
   /* note, notifier might evolve */
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+  DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
 
   return OPERATOR_FINISHED;
 }
@@ -1370,6 +1378,7 @@ static int armature_split_exec(bContext *C, wmOperator *UNUSED(op))
     }
 
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+    DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
   }
 
   MEM_freeN(objects);
@@ -1447,6 +1456,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
       ED_armature_edit_refresh_layer_used(arm);
       BKE_pose_tag_recalc(CTX_data_main(C), obedit->pose);
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
+      DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
     }
   }
   MEM_freeN(objects);
@@ -1621,6 +1631,7 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator *UNUSED(op))
       ED_armature_edit_sync_selection(arm->edbo);
       ED_armature_edit_refresh_layer_used(arm);
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
+      DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
     }
   }
   MEM_freeN(objects);
@@ -1684,6 +1695,7 @@ static int armature_hide_exec(bContext *C, wmOperator *op)
     ED_armature_edit_sync_selection(arm->edbo);
 
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
+    DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
   }
   MEM_freeN(objects);
   return OPERATOR_FINISHED;
@@ -1736,6 +1748,7 @@ static int armature_reveal_exec(bContext *C, wmOperator *op)
       ED_armature_edit_sync_selection(arm->edbo);
 
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
+      DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
     }
   }
   MEM_freeN(objects);

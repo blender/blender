@@ -29,8 +29,6 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "draw_mode_engines.h"
-
 #include "RE_pipeline.h"
 
 #include "gpencil_engine.h"
