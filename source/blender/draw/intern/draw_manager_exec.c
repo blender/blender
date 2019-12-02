@@ -230,21 +230,6 @@ void drw_state_set(DRWState state)
     }
   }
 
-  /* Wire Width */
-  {
-    int test;
-    if ((test = CHANGED_TO(DRW_STATE_WIRE_SMOOTH))) {
-      if (test == 1) {
-        GPU_line_width(2.0f);
-        GPU_line_smooth(true);
-      }
-      else {
-        GPU_line_width(1.0f);
-        GPU_line_smooth(false);
-      }
-    }
-  }
-
   /* Blending (all buffer) */
   {
     int test;
@@ -453,7 +438,11 @@ void DRW_state_reset(void)
 {
   DRW_state_reset_ex(DRW_STATE_DEFAULT);
 
+  /* Should stay constant during the whole rendering. */
   GPU_point_size(5);
+  GPU_line_smooth(false);
+  /* Bypass U.pixelsize factor. */
+  glLineWidth(1.0f);
 
   /* Reset blending function */
   glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);

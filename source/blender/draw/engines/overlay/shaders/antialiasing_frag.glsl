@@ -2,6 +2,7 @@
 uniform sampler2D colorTex;
 uniform sampler2D depthTex;
 uniform sampler2D lineTex;
+uniform bool doSmoothLines;
 
 in vec2 uvs;
 
@@ -26,11 +27,23 @@ out vec4 fragColor;
  */
 float line_coverage(float distance_to_line, float line_kernel_size)
 {
-  return smoothstep(LINE_SMOOTH_END, LINE_SMOOTH_START, abs(distance_to_line) - line_kernel_size);
+  if (doSmoothLines) {
+    return smoothstep(
+        LINE_SMOOTH_END, LINE_SMOOTH_START, abs(distance_to_line) - line_kernel_size);
+  }
+  else {
+    return step(-0.5, line_kernel_size - abs(distance_to_line));
+  }
 }
 vec4 line_coverage(vec4 distance_to_line, float line_kernel_size)
 {
-  return smoothstep(LINE_SMOOTH_END, LINE_SMOOTH_START, abs(distance_to_line) - line_kernel_size);
+  if (doSmoothLines) {
+    return smoothstep(
+        LINE_SMOOTH_END, LINE_SMOOTH_START, abs(distance_to_line) - line_kernel_size);
+  }
+  else {
+    return step(-0.5, line_kernel_size - abs(distance_to_line));
+  }
 }
 
 vec2 decode_line_dir(vec2 dir)
@@ -79,7 +92,7 @@ void neighbor_blend(
 void main()
 {
   ivec2 center_texel = ivec2(gl_FragCoord.xy);
-  const float line_kernel = 0.0;
+  float line_kernel = sizePixel * 0.5 - 0.5;
 
   fragColor = texelFetch(colorTex, center_texel, 0);
 

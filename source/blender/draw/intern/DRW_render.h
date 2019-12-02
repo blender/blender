@@ -350,7 +350,7 @@ typedef enum {
   DRW_STATE_LOGIC_INVERT = (1 << 26),
   DRW_STATE_SHADOW_OFFSET = (1 << 27),
   DRW_STATE_CLIP_PLANES = (1 << 28),
-  DRW_STATE_WIRE_SMOOTH = (1 << 29),
+  // DRW_STATE_WIRE_SMOOTH = (1 << 29), /* UNUSED */
   DRW_STATE_FIRST_VERTEX_CONVENTION = (1 << 30),
   /** DO NOT USE. Assumed always enabled. Only used internally. */
   DRW_STATE_PROGRAM_POINT_SIZE = (1u << 31),

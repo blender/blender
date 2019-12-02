@@ -80,8 +80,9 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
     return;
   }
 
+  bool need_wire_expansion = (G_draw.block.sizePixel > 1.0f);
   /* TODO Get real userpref option and remove MSAA buffer. */
-  pd->antialiasing.enabled = dtxl->multisample_color != NULL;
+  pd->antialiasing.enabled = (dtxl->multisample_color != NULL) || need_wire_expansion;
 
   /* Use default view */
   pd->view_default = (DRWView *)DRW_view_default_get();
@@ -124,11 +125,15 @@ void OVERLAY_antialiasing_cache_init(OVERLAY_Data *vedata)
   DRWShadingGroup *grp;
 
   if (pd->antialiasing.enabled) {
+    /* TODO Get real userpref option and remove MSAA buffer. */
+    const bool do_smooth_lines = (dtxl->multisample_color != NULL);
+
     DRW_PASS_CREATE(psl->antialiasing_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL);
 
     sh = OVERLAY_shader_antialiasing();
     grp = DRW_shgroup_create(sh, psl->antialiasing_ps);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+    DRW_shgroup_uniform_bool_copy(grp, "doSmoothLines", do_smooth_lines);
     DRW_shgroup_uniform_texture_ref(grp, "depthTex", &dtxl->depth);
     DRW_shgroup_uniform_texture_ref(grp, "colorTex", &txl->overlay_color_tx);
     DRW_shgroup_uniform_texture_ref(grp, "lineTex", &txl->overlay_line_tx);
