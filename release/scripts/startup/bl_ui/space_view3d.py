@@ -5567,7 +5567,7 @@ class VIEW3D_PT_overlay_guides(Panel):
         row = sub.row()
         row_el = row.column()
         row_el.prop(overlay, "show_ortho_grid", text="Grid")
-        grid_active = (
+        grid_active = bool(
             view.region_quadviews or
             (view.region_3d.is_orthographic_side_view and not view.region_3d.is_perspective)
         )
