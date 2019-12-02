@@ -465,7 +465,7 @@ def path_reference(
         if copy_subdir:
             subdir_abs = os.path.join(subdir_abs, copy_subdir)
 
-        filepath_cpy = os.path.join(subdir_abs, os.path.basename(filepath))
+        filepath_cpy = os.path.join(subdir_abs, os.path.basename(filepath_abs))
 
         copy_set.add((filepath_abs, filepath_cpy))
 
