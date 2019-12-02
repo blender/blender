@@ -2167,6 +2167,8 @@ static void armature_context_setup(ArmatureDrawContext *ctx,
   bArmature *arm = ob->data;
   OVERLAY_ArmatureCallBuffers *cb = &pd->armature_call_buffers[is_xray];
 
+  static const float select_const_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+
   switch (arm->drawtype) {
     case ARM_ENVELOPE:
       ctx->envelope_outline = cb->envelope_outline;
@@ -2200,7 +2202,7 @@ static void armature_context_setup(ArmatureDrawContext *ctx,
   ctx->custom_shapes_ghash = cb->custom_shapes_ghash;
   ctx->transparent = pd->armature.transparent;
   ctx->show_relations = pd->armature.show_relations;
-  ctx->const_color = const_color;
+  ctx->const_color = DRW_state_is_select() ? select_const_color : const_color;
   ctx->const_wire = (((ob->base_flag & BASE_SELECTED) || (arm->drawtype == ARM_WIRE)) ?
                          1.5f :
                          ((ctx->transparent) ? 1.0f : 0.0f));
