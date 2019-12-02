@@ -1,36 +1,24 @@
 
 uniform float wireStepParam;
+uniform bool useColoring;
+uniform bool isTransform;
+uniform bool isObjectColor;
+uniform bool isRandomColor;
 
 in vec3 pos;
 in vec3 nor;
 in float wd; /* wiredata */
 
+#ifndef SELECT_EDGES
+out vec3 finalColor;
+flat out vec2 edgeStart;
+noperspective out vec2 edgePos;
+#endif
+
 float get_edge_sharpness(float wd)
 {
   return ((wd == 0.0) ? -1.5 : wd) + wireStepParam;
 }
-
-/* Geometry shader version */
-#if defined(SELECT_EDGES) || defined(USE_GEOM)
-out vec3 finalColor_g;
-out float edgeSharpness_g;
-
-#else /* USE_GEOM */
-
-flat out vec2 edgeStart;
-noperspective out vec2 edgePos;
-
-out vec3 finalColor;
-flat out float edgeSharpness;
-#  define finalColor_g finalColor
-#  define edgeSharpness_g edgeSharpness
-
-#endif /* SELECT_EDGES */
-
-uniform bool useColoring;
-uniform bool isTransform;
-uniform bool isObjectColor;
-uniform bool isRandomColor;
 
 void wire_color_get(out vec3 rim_col, out vec3 wire_col)
 {
@@ -115,12 +103,14 @@ void main()
   vec3 wpos = point_object_to_world(pos);
   gl_Position = point_world_to_ndc(wpos);
 
-#if !(defined(SELECT_EDGES) || defined(USE_GEOM))
+  if (get_edge_sharpness(wd) < 0.0) {
+    /* Discard primitive. */
+    gl_Position = vec4(0.0);
+  }
+
+#ifndef SELECT_EDGES
   /* Convert to screen position [0..sizeVp]. */
   edgePos = edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
-#endif
-
-  edgeSharpness_g = get_edge_sharpness(wd);
 
   vec3 rim_col, wire_col;
   if (isObjectColor || isRandomColor) {
@@ -136,7 +126,8 @@ void main()
 
   vec3 final_front_col = mix(rim_col, wire_col, 0.4);
   vec3 final_rim_col = mix(rim_col, wire_col, 0.1);
-  finalColor_g = mix(final_rim_col, final_front_col, facing);
+  finalColor = mix(final_rim_col, final_front_col, facing);
+#endif
 
 #ifdef USE_WORLD_CLIP_PLANES
   world_clip_planes_calc_clip_distance(wpos);

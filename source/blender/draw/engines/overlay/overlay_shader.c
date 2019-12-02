@@ -100,7 +100,6 @@ extern char datatoc_particle_frag_glsl[];
 extern char datatoc_sculpt_mask_vert_glsl[];
 extern char datatoc_volume_velocity_vert_glsl[];
 extern char datatoc_wireframe_vert_glsl[];
-extern char datatoc_wireframe_geom_glsl[];
 extern char datatoc_wireframe_frag_glsl[];
 
 extern char datatoc_gpu_shader_depth_only_frag_glsl[];
@@ -1216,10 +1215,6 @@ GPUShader *OVERLAY_shader_wireframe_select(void)
                                  datatoc_gpu_shader_common_obinfos_lib_glsl,
                                  datatoc_wireframe_vert_glsl,
                                  NULL},
-        .geom = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_wireframe_geom_glsl,
-                                 NULL},
         .frag = (const char *[]){datatoc_gpu_shader_depth_only_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg->def, "#define SELECT_EDGES\n", NULL},
     });
@@ -1234,23 +1229,14 @@ GPUShader *OVERLAY_shader_wireframe(void)
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->wireframe) {
     sh_data->wireframe = GPU_shader_create_from_arrays({
-      .vert = (const char *[]){sh_cfg->lib,
-                               datatoc_common_view_lib_glsl,
-                               datatoc_common_globals_lib_glsl,
-                               datatoc_gpu_shader_common_obinfos_lib_glsl,
-                               datatoc_wireframe_vert_glsl,
-                               NULL},
-      .frag = (const char *[]){datatoc_common_view_lib_glsl, datatoc_wireframe_frag_glsl, NULL},
-      /* Apple drivers does not support wide wires. Use geometry shader as a workaround. */
-#if USE_GEOM_SHADER_WORKAROUND
-      .geom = (const char *[]){sh_cfg->lib,
-                               datatoc_common_globals_lib_glsl,
-                               datatoc_wireframe_geom_glsl,
-                               NULL},
-      .defs = (const char *[]){sh_cfg->def, "#define USE_GEOM\n", NULL},
-#else
-      .defs = (const char *[]){sh_cfg->def, NULL},
-#endif
+        .vert = (const char *[]){sh_cfg->lib,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_common_globals_lib_glsl,
+                                 datatoc_gpu_shader_common_obinfos_lib_glsl,
+                                 datatoc_wireframe_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_common_view_lib_glsl, datatoc_wireframe_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg->def, NULL},
     });
   }
   return sh_data->wireframe;
