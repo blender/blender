@@ -249,7 +249,8 @@ void OVERLAY_extra_wire(OVERLAY_ExtraCallBuffers *cb,
                         const float color[4])
 {
   float draw_mat[4][4];
-  pack_v4_in_mat4(draw_mat, mat, color);
+  float col[4] = {UNPACK3(color), 0.0f /* No stipples. */};
+  pack_v4_in_mat4(draw_mat, mat, col);
   DRW_shgroup_call_obmat(cb->extra_wire, geom, draw_mat);
 }
 
