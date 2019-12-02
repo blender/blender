@@ -2788,8 +2788,13 @@ static void do_mask_brush_draw_task_cb_ex(void *__restrict userdata,
       const float fade = tex_strength(
           ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, 0.0f, vd.index, tls->thread_id);
 
-      (*vd.mask) += fade * bstrength;
-      CLAMP(*vd.mask, 0, 1);
+      if (bstrength > 0.0f) {
+        (*vd.mask) += fade * bstrength * (1.0f - *vd.mask);
+      }
+      else {
+        (*vd.mask) += fade * bstrength * (*vd.mask);
+      }
+      CLAMP(*vd.mask, 0.0f, 1.0f);
 
       if (vd.mvert) {
         vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
