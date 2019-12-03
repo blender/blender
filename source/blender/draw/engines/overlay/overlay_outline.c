@@ -271,6 +271,12 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
   const DRWContextState *draw_ctx = DRW_context_state_get();
   struct GPUBatch *geom;
   DRWShadingGroup *shgroup = NULL;
+  const bool draw_outline = ob->dt > OB_BOUNDBOX;
+
+  /* Early exit: outlines of bounding boxes are not drawn. */
+  if (!draw_outline) {
+    return;
+  }
 
   if (ob->type == OB_LIGHTPROBE) {
     outline_lightprobe(pd, ob, draw_ctx->view_layer);

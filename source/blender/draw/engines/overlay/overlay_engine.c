@@ -336,7 +336,9 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   }
 
   /* Relationship, object center, bounbox ... */
-  OVERLAY_extra_cache_populate(vedata, ob);
+  if (!pd->hide_overlays) {
+    OVERLAY_extra_cache_populate(vedata, ob);
+  }
 
   if (dupli) {
     dupli->base_flag = ob->base_flag;
