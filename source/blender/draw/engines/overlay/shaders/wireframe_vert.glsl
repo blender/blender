@@ -9,9 +9,10 @@ in vec3 pos;
 in vec3 nor;
 in float wd; /* wiredata */
 
+flat out vec2 edgeStart;
+
 #ifndef SELECT_EDGES
 out vec3 finalColor;
-flat out vec2 edgeStart;
 noperspective out vec2 edgePos;
 #endif
 
@@ -103,14 +104,12 @@ void main()
   vec3 wpos = point_object_to_world(pos);
   gl_Position = point_world_to_ndc(wpos);
 
-  if (get_edge_sharpness(wd) < 0.0) {
-    /* Discard primitive by placing any of the verts at the camera origin. */
-    gl_Position = vec4(0.0, 0.0, -3e36, 0.0);
-  }
+
+  /* Convert to screen position [0..sizeVp]. */
+  edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
 
 #ifndef SELECT_EDGES
-  /* Convert to screen position [0..sizeVp]. */
-  edgePos = edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
+  edgePos = edgeStart;
 
   vec3 rim_col, wire_col;
   if (isObjectColor || isRandomColor) {
@@ -128,6 +127,11 @@ void main()
   vec3 final_rim_col = mix(rim_col, wire_col, 0.1);
   finalColor = mix(final_rim_col, final_front_col, facing);
 #endif
+
+  /* Cull flat edges below threshold. */
+  if (get_edge_sharpness(wd) < 0.0) {
+    edgeStart = vec2(-1.0);
+  }
 
 #ifdef USE_WORLD_CLIP_PLANES
   world_clip_planes_calc_clip_distance(wpos);

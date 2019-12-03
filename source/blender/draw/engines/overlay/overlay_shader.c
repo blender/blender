@@ -1215,7 +1215,7 @@ GPUShader *OVERLAY_shader_wireframe_select(void)
                                  datatoc_gpu_shader_common_obinfos_lib_glsl,
                                  datatoc_wireframe_vert_glsl,
                                  NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_depth_only_frag_glsl, NULL},
+        .frag = (const char *[]){datatoc_wireframe_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg->def, "#define SELECT_EDGES\n", NULL},
     });
   }
