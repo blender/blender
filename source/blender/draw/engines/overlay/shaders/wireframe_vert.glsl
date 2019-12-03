@@ -102,8 +102,25 @@ void wire_object_color_get(out vec3 rim_col, out vec3 wire_col)
 void main()
 {
   vec3 wpos = point_object_to_world(pos);
+  vec3 wnor = normalize(normal_object_to_world(nor));
+
+  bool is_persp = (ProjectionMatrix[3][3] == 0.0);
+  vec3 V = (is_persp) ? normalize(ViewMatrixInverse[3].xyz - wpos) : ViewMatrix[2].xyz;
+
+  float facing = dot(wnor, V);
+  float facing_ratio = clamp(1.0 - facing * facing, 0.0, 1.0);
+  float flip = sign(facing);           /* Flip when not facing the normal (i.e.: backfacing). */
+  float curvature = (1.0 - wd * 0.75); /* Avoid making things worse for curvy areas. */
+  vec3 wofs = wnor * (facing_ratio * curvature * flip);
+  wofs = normal_world_to_view(wofs);
+
   gl_Position = point_world_to_ndc(wpos);
 
+  /* Push vertex half a pixel (maximum) in normal direction. */
+  gl_Position.xy += wofs.xy * sizeViewportInv.xy * gl_Position.w;
+
+  /* Push the vertex towards the camera. Helps a bit. */
+  gl_Position.z -= facing_ratio * curvature * 1e-4;
 
   /* Convert to screen position [0..sizeVp]. */
   edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
@@ -119,8 +136,6 @@ void main()
     wire_color_get(rim_col, wire_col);
   }
 
-  vec3 wnor = normalize(normal_object_to_world(nor));
-  float facing = dot(wnor, ViewMatrixInverse[2].xyz);
   facing = clamp(abs(facing), 0.0, 1.0);
 
   vec3 final_front_col = mix(rim_col, wire_col, 0.4);
