@@ -168,7 +168,7 @@ static void rna_GPencil_editmode_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 }
 
 /* Recalc UVs and Fill for all strokes. */
-static void rna_GPencil_strokes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_GPencil_strokes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   bGPdata *gpd = (bGPdata *)ptr->owner_id;
   if (gpd) {
