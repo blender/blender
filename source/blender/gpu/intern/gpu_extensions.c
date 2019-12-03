@@ -93,6 +93,8 @@ static struct GPUGlobal {
   /* Some crappy Intel drivers don't work well with shaders created in different
    * rendering contexts. */
   bool context_local_shaders_workaround;
+  /* Unmaintained NVIDIA drivers contain certain bugs we need to workaround. */
+  bool legacy_nvidia_driver;
 } GG = {1, 0};
 
 static void gpu_detect_mip_render_workaround(void)
@@ -216,6 +218,11 @@ bool GPU_context_local_shaders_workaround(void)
   return GG.context_local_shaders_workaround;
 }
 
+bool GPU_legacy_nvidia_driver(void)
+{
+  return GG.legacy_nvidia_driver;
+}
+
 bool GPU_crappy_amd_driver(void)
 {
   /* Currently are the same drivers with the `unused_fb_slot` problem. */
@@ -280,6 +287,14 @@ void gpu_extensions_init(void)
 
   GG.glew_arb_base_instance_is_supported = GLEW_ARB_base_instance;
   gpu_detect_mip_render_workaround();
+
+  if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    char *driver_version_str = strstr(version, "NVIDIA ") + 7;
+    int driver_major_version = (int)strtol(driver_version_str, NULL, 10);
+    if (driver_major_version > 0 && driver_major_version < 400) {
+      GG.legacy_nvidia_driver = true;
+    }
+  }
 
   if (G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS) {
     printf("\n");

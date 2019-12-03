@@ -243,11 +243,14 @@ static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH])
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     strcat(defines, "#define GPU_ATI\n");
     if (GPU_crappy_amd_driver()) {
-      strcat(defines, "#define GPU_DEPRECATED_AMD_DRIVER\n");
+      strcat(defines, "#define GPU_DEPRECATED_AMD\n");
     }
   }
   else if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     strcat(defines, "#define GPU_NVIDIA\n");
+    if (GPU_legacy_nvidia_driver()) {
+      strcat(defines, "#define GPU_DEPRECATED_NVIDIA\n");
+    }
   }
   else if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     strcat(defines, "#define GPU_INTEL\n");
