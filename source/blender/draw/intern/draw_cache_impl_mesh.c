@@ -1228,7 +1228,8 @@ void DRW_mesh_batch_cache_create_requested(
     DRW_vbo_request(cache->batch.all_edges, &mbufcache->vbo.pos_nor);
   }
   if (DRW_batch_requested(cache->batch.loose_edges, GPU_PRIM_LINES)) {
-    DRW_ibo_request(cache->batch.loose_edges, &mbufcache->ibo.lines);
+    DRW_ibo_request(NULL, &mbufcache->ibo.lines);
+    DRW_ibo_request(cache->batch.loose_edges, &mbufcache->ibo.lines_loose);
     DRW_vbo_request(cache->batch.loose_edges, &mbufcache->vbo.pos_nor);
   }
   if (DRW_batch_requested(cache->batch.edge_detection, GPU_PRIM_LINES_ADJ)) {

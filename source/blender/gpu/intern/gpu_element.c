@@ -242,6 +242,15 @@ void GPU_indexbuf_set_tri_restart(GPUIndexBufBuilder *builder, uint elem)
 GPUIndexBuf *GPU_indexbuf_create_subrange(GPUIndexBuf *elem_src, uint start, uint length)
 {
   GPUIndexBuf *elem = MEM_callocN(sizeof(GPUIndexBuf), "GPUIndexBuf");
+  GPU_indexbuf_create_subrange_in_place(elem, elem_src, start, length);
+  return elem;
+}
+
+void GPU_indexbuf_create_subrange_in_place(GPUIndexBuf *elem,
+                                           GPUIndexBuf *elem_src,
+                                           uint start,
+                                           uint length)
+{
   BLI_assert(elem_src && !elem_src->is_subrange);
   BLI_assert((length == 0) || (start + length <= elem_src->index_len));
 #if GPU_TRACK_INDEX_RANGE
@@ -253,7 +262,6 @@ GPUIndexBuf *GPU_indexbuf_create_subrange(GPUIndexBuf *elem_src, uint start, uin
   elem->src = elem_src;
   elem->index_start = start;
   elem->index_len = length;
-  return elem;
 }
 
 #if GPU_TRACK_INDEX_RANGE
