@@ -53,7 +53,7 @@ class WindowsCodeSigner(BaseCodeSigner):
         return [
             'signtool', 'sign', '/v',
             '/f', self.config.CERTIFICATE_FILEPATH,
-            '/t', self.config.TIMESTAMP_AUTHORITY_URL]
+            '/tr', self.config.TIMESTAMP_AUTHORITY_URL]
 
     def sign_all_files(self, files: List[AbsoluteAndRelativeFileName]) -> None:
         # NOTE: Sign files one by one to avoid possible command line length
