@@ -52,7 +52,7 @@ typedef struct ConsoleDrawContext {
   /** number of characters that fit into the width of the console (fixed width) */
   int console_width;
   const rcti *draw_rect;
-  int ymin, ymax;
+  int scroll_ymin, scroll_ymax;
   int *xy;   // [2]
   int *sel;  // [2]
   /* bottom of view == 0, top of file == combine chars, end of line is lower then start. */
@@ -169,7 +169,7 @@ static int console_draw_string(ConsoleDrawContext *cdc,
     MEM_freeN(offsets);
     return 1;
   }
-  else if (y_next < cdc->ymin) {
+  else if (y_next < cdc->scroll_ymin) {
     /* have not reached the drawable area so don't break */
     cdc->xy[1] = y_next;
 
@@ -236,7 +236,7 @@ static int console_draw_string(ConsoleDrawContext *cdc,
       cdc->xy[1] += cdc->lheight;
 
       /* check if were out of view bounds */
-      if (cdc->xy[1] > cdc->ymax) {
+      if (cdc->xy[1] > cdc->scroll_ymax) {
         MEM_freeN(offsets);
         return 0;
       }
@@ -275,7 +275,7 @@ static int console_draw_string(ConsoleDrawContext *cdc,
 
     cdc->xy[1] += cdc->lheight;
 
-    if (cdc->xy[1] > cdc->ymax) {
+    if (cdc->xy[1] > cdc->scroll_ymax) {
       MEM_freeN(offsets);
       return 0;
     }
@@ -309,7 +309,7 @@ int textview_draw(
           CLAMPIS(mval_init[0], tvc->draw_rect.xmin, tvc->draw_rect.xmax) - tvc->draw_rect.xmin,
       (mval_init[1] == INT_MAX) ?
           INT_MAX :
-          CLAMPIS(mval_init[1], tvc->draw_rect.ymin, tvc->draw_rect.ymax) + tvc->ymin,
+          CLAMPIS(mval_init[1], tvc->draw_rect.ymin, tvc->draw_rect.ymax) + tvc->scroll_ymin,
   };
 
   if (pos_pick) {
@@ -329,8 +329,8 @@ int textview_draw(
     cdc.console_width = 1;
   }
   cdc.draw_rect = &tvc->draw_rect;
-  cdc.ymin = tvc->ymin;
-  cdc.ymax = tvc->ymax;
+  cdc.scroll_ymin = tvc->scroll_ymin;
+  cdc.scroll_ymax = tvc->scroll_ymax;
   cdc.xy = xy;
   cdc.sel = sel;
   cdc.pos_pick = pos_pick;

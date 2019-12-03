@@ -32,7 +32,8 @@ typedef struct TextViewContext {
   /** Area to draw: (0, 0, winx, winy) with a margin applied and scroll-bar subtracted. */
   rcti draw_rect;
 
-  int ymin, ymax;
+  /** Scroll offset in pixels. */
+  int scroll_ymin, scroll_ymax;
 
   /* callbacks */
   int (*begin)(struct TextViewContext *tvc);

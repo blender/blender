@@ -224,8 +224,8 @@ static int console_textview_main__internal(struct SpaceConsole *sc,
   tvc.sel_start = sc->sel_start;
   tvc.sel_end = sc->sel_end;
   tvc.lheight = sc->lheight * UI_DPI_FAC;
-  tvc.ymin = v2d->cur.ymin;
-  tvc.ymax = v2d->cur.ymax;
+  tvc.scroll_ymin = v2d->cur.ymin;
+  tvc.scroll_ymax = v2d->cur.ymax;
 
   console_textview_draw_rect_calc(ar, &tvc.draw_rect);
 

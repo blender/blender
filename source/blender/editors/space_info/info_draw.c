@@ -266,8 +266,8 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo,
   tvc.sel_start = 0;
   tvc.sel_end = 0;
   tvc.lheight = 14 * UI_DPI_FAC;  // sc->lheight;
-  tvc.ymin = v2d->cur.ymin;
-  tvc.ymax = v2d->cur.ymax;
+  tvc.scroll_ymin = v2d->cur.ymin;
+  tvc.scroll_ymax = v2d->cur.ymax;
 
   info_textview_draw_rect_calc(ar, &tvc.draw_rect);
 
