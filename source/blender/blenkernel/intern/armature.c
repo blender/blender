@@ -1561,7 +1561,6 @@ static void armature_vert_task(void *__restrict userdata,
     MDeformWeight *dw = dvert->dw;
     int deformed = 0;
     unsigned int j;
-    float acum_weight = 0;
     for (j = dvert->totweight; j != 0; j--, dw++) {
       const int index = dw->def_nr;
       if (index >= 0 && index < data->defbase_tot && (pchan = data->defnrToPC[index])) {
@@ -1575,20 +1574,8 @@ static void armature_vert_task(void *__restrict userdata,
               co, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
         }
 
-        /* check limit of weight */
-        if (data->target->type == OB_GPENCIL) {
-          if (acum_weight + weight >= 1.0f) {
-            weight = 1.0f - acum_weight;
-          }
-          acum_weight += weight;
-        }
-
         pchan_bone_deform(pchan, weight, vec, dq, smat, co, &contrib);
 
-        /* if acumulated weight limit exceed, exit loop */
-        if ((data->target->type == OB_GPENCIL) && (acum_weight >= 1.0f)) {
-          break;
-        }
       }
     }
     /* if there are vertexgroups but not groups with bones
