@@ -51,7 +51,7 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const bool use_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d);
 
   if (use_pbvh || !ob->sculpt->deform_modifiers_active || ob->sculpt->shapekey_active) {
-    if (pbvh_has_mask(pbvh)) {
+    if (!use_pbvh || pbvh_has_mask(pbvh)) {
       DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true, false);
     }
   }
