@@ -1362,6 +1362,7 @@ static void TargetSnapClosest(TransInfo *t)
 short snapObjectsTransform(
     TransInfo *t, const float mval[2], float *dist_px, float r_loc[3], float r_no[3])
 {
+  float *target = (t->tsnap.status & TARGET_INIT) ? t->tsnap.snapTarget : t->center_global;
   return ED_transform_snap_object_project_view3d_ex(
       t->tsnap.object_context,
       t->scene->toolsettings->snap_mode,
@@ -1373,7 +1374,7 @@ short snapObjectsTransform(
                                    SCE_SNAP_BACKFACE_CULLING) != 0,
       },
       mval,
-      t->tsnap.snapTarget,
+      target,
       dist_px,
       r_loc,
       r_no,
