@@ -154,12 +154,12 @@ static int console_textview_line_color(struct TextViewContext *tvc,
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     xy[1] += tvc->lheight / 6;
 
-    console_cursor_wrap_offset(sc->prompt, tvc->console_width, &offl, &offc, NULL);
-    console_cursor_wrap_offset(cl->line, tvc->console_width, &offl, &offc, cl->line + cl->cursor);
+    console_cursor_wrap_offset(sc->prompt, tvc->columns, &offl, &offc, NULL);
+    console_cursor_wrap_offset(cl->line, tvc->columns, &offl, &offc, cl->line + cl->cursor);
     pen[0] = tvc->cwidth * offc;
     pen[1] = -2 - tvc->lheight * offl;
 
-    console_cursor_wrap_offset(cl->line + cl->cursor, tvc->console_width, &offl, &offc, NULL);
+    console_cursor_wrap_offset(cl->line + cl->cursor, tvc->columns, &offl, &offc, NULL);
     pen[1] += tvc->lheight * offl;
 
     /* cursor */
@@ -196,16 +196,16 @@ static void console_textview_draw_rect_calc(const ARegion *ar, rcti *draw_rect)
 }
 
 static int console_textview_main__internal(struct SpaceConsole *sc,
-                                           ARegion *ar,
-                                           int draw,
+                                           const ARegion *ar,
+                                           const bool do_draw,
                                            const int mval[2],
-                                           void **mouse_pick,
-                                           int *pos_pick)
+                                           void **r_mval_pick_item,
+                                           int *r_mval_pick_offset)
 {
   ConsoleLine cl_dummy = {NULL};
   int ret = 0;
 
-  View2D *v2d = &ar->v2d;
+  const View2D *v2d = &ar->v2d;
 
   TextViewContext tvc = {0};
 
@@ -230,32 +230,32 @@ static int console_textview_main__internal(struct SpaceConsole *sc,
   console_textview_draw_rect_calc(ar, &tvc.draw_rect);
 
   console_scrollback_prompt_begin(sc, &cl_dummy);
-  ret = textview_draw(&tvc, draw, mval, mouse_pick, pos_pick);
+  ret = textview_draw(&tvc, do_draw, mval, r_mval_pick_item, r_mval_pick_offset);
   console_scrollback_prompt_end(sc, &cl_dummy);
 
   return ret;
 }
 
-void console_textview_main(struct SpaceConsole *sc, ARegion *ar)
+void console_textview_main(struct SpaceConsole *sc, const ARegion *ar)
 {
   const int mval[2] = {INT_MAX, INT_MAX};
-  console_textview_main__internal(sc, ar, 1, mval, NULL, NULL);
+  console_textview_main__internal(sc, ar, true, mval, NULL, NULL);
 }
 
-int console_textview_height(struct SpaceConsole *sc, ARegion *ar)
+int console_textview_height(struct SpaceConsole *sc, const ARegion *ar)
 {
   const int mval[2] = {INT_MAX, INT_MAX};
-  return console_textview_main__internal(sc, ar, 0, mval, NULL, NULL);
+  return console_textview_main__internal(sc, ar, false, mval, NULL, NULL);
 }
 
-int console_char_pick(struct SpaceConsole *sc, ARegion *ar, const int mval[2])
+int console_char_pick(struct SpaceConsole *sc, const ARegion *ar, const int mval[2])
 {
-  int pos_pick = 0;
-  void *mouse_pick = NULL;
+  int r_mval_pick_offset = 0;
+  void *mval_pick_item = NULL;
 
   rcti draw_rect;
   console_textview_draw_rect_calc(ar, &draw_rect);
 
-  console_textview_main__internal(sc, ar, 0, mval, &mouse_pick, &pos_pick);
-  return pos_pick;
+  console_textview_main__internal(sc, ar, false, mval, &mval_pick_item, &r_mval_pick_offset);
+  return r_mval_pick_offset;
 }

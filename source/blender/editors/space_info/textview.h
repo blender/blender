@@ -22,12 +22,14 @@
 #define __TEXTVIEW_H__
 
 typedef struct TextViewContext {
+  /** Font size scaled by the interface size. */
   int lheight;
+  /** Text selection, when a selection range is in use. */
   int sel_start, sel_end;
 
   /* view settings */
-  int cwidth;        /* shouldnt be needed! */
-  int console_width; /* shouldnt be needed! */
+  int cwidth;  /* shouldnt be needed! */
+  int columns; /* shouldnt be needed! */
 
   /** Area to draw: (0, 0, winx, winy) with a margin applied and scroll-bar subtracted. */
   rcti draw_rect;
@@ -49,17 +51,20 @@ typedef struct TextViewContext {
   void (*const_colors)(struct TextViewContext *tvc, unsigned char bg_sel[4]);
   void *iter;
   int iter_index;
-  int iter_char;      /* char intex, used for multi-line report display */
-  int iter_char_next; /* same as above, next \n */
-  int iter_tmp;       /* internal iterator use */
+  /** Char index, used for multi-line report display. */
+  int iter_char;
+  /** Same as 'iter_char', next new-line. */
+  int iter_char_next;
+  /** Internal iterator use. */
+  int iter_tmp;
 
 } TextViewContext;
 
 int textview_draw(struct TextViewContext *tvc,
-                  const int draw,
+                  const bool do_draw,
                   const int mval_init[2],
-                  void **mouse_pick,
-                  int *pos_pick);
+                  void **r_mval_pick_item,
+                  int *r_mval_pick_offset);
 
 #define TVC_LINE_FG (1 << 0)
 #define TVC_LINE_BG (1 << 1)
