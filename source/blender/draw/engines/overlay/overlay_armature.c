@@ -999,7 +999,8 @@ static const float *get_bone_solid_with_consts_color(const ArmatureDrawContext *
   const float *col = get_bone_solid_color(ctx, eBone, pchan, arm, boneflag, constflag);
 
   static float consts_color[4];
-  if (set_pchan_color(ctx, PCHAN_COLOR_CONSTS, boneflag, constflag, consts_color)) {
+  if ((arm->flag & ARM_POSEMODE) &&
+      set_pchan_color(ctx, PCHAN_COLOR_CONSTS, boneflag, constflag, consts_color)) {
     interp_v3_v3v3(consts_color, col, consts_color, 0.5f);
   }
   else {
