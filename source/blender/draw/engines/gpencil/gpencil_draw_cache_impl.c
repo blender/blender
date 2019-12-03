@@ -338,7 +338,7 @@ void gpencil_get_fill_geom(struct GpencilBatchCacheElem *be,
   /* Calculate triangles cache for filling area (must be done only after changes) */
   if ((gps->flag & GP_STROKE_RECALC_GEOMETRY) || (gps->tot_triangles == 0) ||
       (gps->triangles == NULL)) {
-    gpencil_triangulate_stroke_fill(ob, gps);
+    BKE_gpencil_triangulate_stroke_fill((bGPdata *)ob->data, gps);
   }
 
   BLI_assert(gps->tot_triangles >= 1);

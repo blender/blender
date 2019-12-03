@@ -167,32 +167,23 @@ static void rna_GPencil_editmode_update(Main *UNUSED(bmain), Scene *UNUSED(scene
   WM_main_add_notifier(NC_SCENE | ND_MODE | NC_MOVIECLIP, NULL);
 }
 
-static void UNUSED_FUNCTION(rna_GPencil_onion_skinning_update)(Main *bmain,
-                                                               Scene *scene,
-                                                               PointerRNA *ptr)
+/* Recalc UVs and Fill for all strokes. */
+static void rna_GPencil_strokes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   bGPdata *gpd = (bGPdata *)ptr->owner_id;
-  bGPDlayer *gpl;
-  bool enabled = false;
-
-  /* Ensure that the data-block's onion-skinning toggle flag
-   * stays in sync with the status of the actual layers
-   */
-  for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-    if (gpl->onion_flag & GP_LAYER_ONIONSKIN) {
-      enabled = true;
+  if (gpd) {
+    for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+      for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+        for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+          BKE_gpencil_triangulate_stroke_fill(gpd, gps);
+        }
+      }
     }
   }
 
-  if (enabled) {
-    gpd->flag |= GP_DATA_SHOW_ONIONSKINS;
-  }
-  else {
-    gpd->flag &= ~GP_DATA_SHOW_ONIONSKINS;
-  }
-
   /* Now do standard updates... */
-  rna_GPencil_update(bmain, scene, ptr);
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
 
 /* Poll Callback to filter GP Datablocks to only show those for Annotations */
@@ -1781,7 +1772,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_UV_ADAPTIVE);
   RNA_def_property_ui_text(
       prop, "Adaptive UV", "Automatic UVs are calculated depending of the stroke size");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_strokes_update");
 
   prop = RNA_def_property(srna, "use_autolock_layers", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_AUTOLOCK_LAYERS);

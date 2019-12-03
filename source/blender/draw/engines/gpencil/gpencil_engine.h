@@ -417,7 +417,6 @@ void gpencil_populate_multiedit(struct GPENCIL_e_data *e_data,
                                 void *vedata,
                                 struct Object *ob,
                                 struct tGPencilObjectCache *cache_ob);
-void gpencil_triangulate_stroke_fill(struct Object *ob, struct bGPDstroke *gps);
 void gpencil_populate_particles(struct GPENCIL_e_data *e_data,
                                 struct GHash *gh_objects,
                                 void *vedata);

@@ -34,6 +34,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_polyfill_2d.h"
 #include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
@@ -2515,6 +2516,134 @@ void BKE_gpencil_stroke_2d_flat_ref(const bGPDspoint *ref_points,
 
   /* Concave (-1), Convex (1), or Autodetect (0)? */
   *r_direction = (int)locy[2];
+}
+
+/* calc bounding box in 2d using flat projection data */
+static void gpencil_calc_2d_bounding_box(const float (*points2d)[2],
+                                         int totpoints,
+                                         float minv[2],
+                                         float maxv[2])
+{
+  minv[0] = points2d[0][0];
+  minv[1] = points2d[0][1];
+  maxv[0] = points2d[0][0];
+  maxv[1] = points2d[0][1];
+
+  for (int i = 1; i < totpoints; i++) {
+    /* min */
+    if (points2d[i][0] < minv[0]) {
+      minv[0] = points2d[i][0];
+    }
+    if (points2d[i][1] < minv[1]) {
+      minv[1] = points2d[i][1];
+    }
+    /* max */
+    if (points2d[i][0] > maxv[0]) {
+      maxv[0] = points2d[i][0];
+    }
+    if (points2d[i][1] > maxv[1]) {
+      maxv[1] = points2d[i][1];
+    }
+  }
+  /* use a perfect square */
+  if (maxv[0] > maxv[1]) {
+    maxv[1] = maxv[0];
+  }
+  else {
+    maxv[0] = maxv[1];
+  }
+}
+
+/* calc texture coordinates using flat projected points */
+static void gpencil_calc_stroke_fill_uv(const float (*points2d)[2],
+                                        int totpoints,
+                                        const float minv[2],
+                                        float maxv[2],
+                                        float (*r_uv)[2])
+{
+  float d[2];
+  d[0] = maxv[0] - minv[0];
+  d[1] = maxv[1] - minv[1];
+  for (int i = 0; i < totpoints; i++) {
+    r_uv[i][0] = (points2d[i][0] - minv[0]) / d[0];
+    r_uv[i][1] = (points2d[i][1] - minv[1]) / d[1];
+  }
+}
+
+/* Triangulate stroke for high quality fill (this is done only if cache is null or stroke was
+ * modified) */
+void BKE_gpencil_triangulate_stroke_fill(bGPdata *gpd, bGPDstroke *gps)
+{
+  BLI_assert(gps->totpoints >= 3);
+
+  /* allocate memory for temporary areas */
+  gps->tot_triangles = gps->totpoints - 2;
+  uint(*tmp_triangles)[3] = MEM_mallocN(sizeof(*tmp_triangles) * gps->tot_triangles,
+                                        "GP Stroke temp triangulation");
+  float(*points2d)[2] = MEM_mallocN(sizeof(*points2d) * gps->totpoints,
+                                    "GP Stroke temp 2d points");
+  float(*uv)[2] = MEM_mallocN(sizeof(*uv) * gps->totpoints, "GP Stroke temp 2d uv data");
+
+  int direction = 0;
+
+  /* convert to 2d and triangulate */
+  BKE_gpencil_stroke_2d_flat(gps->points, gps->totpoints, points2d, &direction);
+  BLI_polyfill_calc(points2d, (uint)gps->totpoints, direction, tmp_triangles);
+
+  /* calc texture coordinates automatically */
+  float minv[2];
+  float maxv[2];
+  /* first needs bounding box data */
+  if (gpd->flag & GP_DATA_UV_ADAPTIVE) {
+    gpencil_calc_2d_bounding_box(points2d, gps->totpoints, minv, maxv);
+  }
+  else {
+    ARRAY_SET_ITEMS(minv, -1.0f, -1.0f);
+    ARRAY_SET_ITEMS(maxv, 1.0f, 1.0f);
+  }
+
+  /* calc uv data */
+  gpencil_calc_stroke_fill_uv(points2d, gps->totpoints, minv, maxv, uv);
+
+  /* Number of triangles */
+  gps->tot_triangles = gps->totpoints - 2;
+  /* save triangulation data in stroke cache */
+  if (gps->tot_triangles > 0) {
+    if (gps->triangles == NULL) {
+      gps->triangles = MEM_callocN(sizeof(*gps->triangles) * gps->tot_triangles,
+                                   "GP Stroke triangulation");
+    }
+    else {
+      gps->triangles = MEM_recallocN(gps->triangles, sizeof(*gps->triangles) * gps->tot_triangles);
+    }
+
+    for (int i = 0; i < gps->tot_triangles; i++) {
+      bGPDtriangle *stroke_triangle = &gps->triangles[i];
+      memcpy(gps->triangles[i].verts, tmp_triangles[i], sizeof(uint[3]));
+      /* copy texture coordinates */
+      copy_v2_v2(stroke_triangle->uv[0], uv[tmp_triangles[i][0]]);
+      copy_v2_v2(stroke_triangle->uv[1], uv[tmp_triangles[i][1]]);
+      copy_v2_v2(stroke_triangle->uv[2], uv[tmp_triangles[i][2]]);
+    }
+  }
+  else {
+    /* No triangles needed - Free anything allocated previously */
+    if (gps->triangles) {
+      MEM_freeN(gps->triangles);
+    }
+
+    gps->triangles = NULL;
+  }
+
+  /* disable recalculation flag */
+  if (gps->flag & GP_STROKE_RECALC_GEOMETRY) {
+    gps->flag &= ~GP_STROKE_RECALC_GEOMETRY;
+  }
+
+  /* clear memory */
+  MEM_SAFE_FREE(tmp_triangles);
+  MEM_SAFE_FREE(points2d);
+  MEM_SAFE_FREE(uv);
 }
 
 float BKE_gpencil_stroke_length(const bGPDstroke *gps, bool use_3d)
