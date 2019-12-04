@@ -223,6 +223,19 @@ static void select_cache_init(void *vedata)
   /* Check if the viewport has changed. */
   float(*persmat)[4] = draw_ctx->rv3d->persmat;
   e_data.context.is_dirty = !compare_m4m4(e_data.context.persmat, persmat, FLT_EPSILON);
+
+  if (!e_data.context.is_dirty) {
+    /* Check if any of the drawn objects have been transformed. */
+    Object **ob = &e_data.context.objects_drawn[0];
+    for (uint i = e_data.context.objects_drawn_len; i--; ob++) {
+      DrawData *data = DRW_drawdata_get(&(*ob)->id, &draw_engine_select_type);
+      if (data && (data->recalc & ID_RECALC_TRANSFORM) != 0) {
+        data->recalc &= ~ID_RECALC_TRANSFORM;
+        e_data.context.is_dirty = true;
+      }
+    }
+  }
+
   if (e_data.context.is_dirty) {
     /* Remove all tags from drawn or culled objects. */
     copy_m4_m4(e_data.context.persmat, persmat);
@@ -280,6 +293,7 @@ static void select_cache_populate(void *vedata, Object *ob)
       sel_data = (SELECTID_ObjectData *)DRW_drawdata_ensure(
           &ob->id, &draw_engine_select_type, sizeof(SELECTID_ObjectData), NULL, NULL);
     }
+    sel_data->dd.recalc = 0;
     sel_data->drawn_index = e_data.context.objects_drawn_len;
     sel_data->is_drawn = true;
 
