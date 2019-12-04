@@ -22,6 +22,8 @@
 
 #include "DRW_render.h"
 
+#include "BKE_global.h"
+
 #include "DNA_lightprobe_types.h"
 
 #include "UI_resources.h"
@@ -58,77 +60,6 @@ void OVERLAY_outline_init(OVERLAY_Data *vedata)
   }
 }
 
-static int shgroup_theme_id_to_outline_id(int theme_id, const int base_flag)
-{
-  if (UNLIKELY(base_flag & BASE_FROM_DUPLI)) {
-    switch (theme_id) {
-      case TH_ACTIVE:
-      case TH_SELECT:
-        return 2;
-      case TH_TRANSFORM:
-        return 0;
-      default:
-        return -1;
-    }
-  }
-
-  switch (theme_id) {
-    case TH_ACTIVE:
-      return 3;
-    case TH_SELECT:
-      return 1;
-    case TH_TRANSFORM:
-      return 0;
-    default:
-      return -1;
-  }
-}
-
-static DRWShadingGroup *shgroup_theme_id_to_outline_or_null(OVERLAY_PrivateData *pd,
-                                                            int theme_id,
-                                                            const int base_flag)
-{
-  int outline_id = shgroup_theme_id_to_outline_id(theme_id, base_flag);
-  switch (outline_id) {
-    case 3: /* TH_ACTIVE */
-      return pd->outlines_active_grp;
-    case 2: /* Duplis */
-      return pd->outlines_select_dupli_grp;
-    case 1: /* TH_SELECT */
-      return pd->outlines_select_grp;
-    case 0: /* TH_TRANSFORM */
-      return pd->outlines_transform_grp;
-    default:
-      return NULL;
-  }
-}
-
-static DRWShadingGroup *shgroup_theme_id_to_probe_outline_or_null(OVERLAY_PrivateData *pd,
-                                                                  int theme_id,
-                                                                  const int base_flag)
-{
-  int outline_id = shgroup_theme_id_to_outline_id(theme_id, base_flag);
-  switch (outline_id) {
-    case 3: /* TH_ACTIVE */
-      return pd->outlines_probe_active_grp;
-    case 2: /* Duplis */
-      return pd->outlines_probe_select_dupli_grp;
-    case 1: /* TH_SELECT */
-      return pd->outlines_probe_select_grp;
-    case 0: /* TH_TRANSFORM */
-      return pd->outlines_probe_transform_grp;
-    default:
-      return NULL;
-  }
-}
-
-static DRWShadingGroup *outline_shgroup(DRWPass *pass, int outline_id, GPUShader *sh)
-{
-  DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
-  DRW_shgroup_uniform_int_copy(grp, "outlineId", outline_id);
-  return grp;
-}
-
 void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
@@ -146,20 +77,13 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
 
     GPUShader *sh_grid = OVERLAY_shader_outline_prepass_grid();
     GPUShader *sh_geom = OVERLAY_shader_outline_prepass(pd->xray_enabled_and_not_wire);
-    GPUShader *sh = OVERLAY_shader_outline_prepass(false);
 
-    pd->outlines_transform_grp = outline_shgroup(psl->outlines_prepass_ps, 0, sh_geom);
-    pd->outlines_select_grp = outline_shgroup(psl->outlines_prepass_ps, 1, sh_geom);
-    pd->outlines_select_dupli_grp = outline_shgroup(psl->outlines_prepass_ps, 2, sh_geom);
-    pd->outlines_active_grp = outline_shgroup(psl->outlines_prepass_ps, 3, sh_geom);
+    pd->outlines_grp = grp = DRW_shgroup_create(sh_geom, psl->outlines_prepass_ps);
+    DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
 
-    pd->outlines_probe_transform_grp = outline_shgroup(psl->outlines_prepass_ps, 0, sh);
-    pd->outlines_probe_select_grp = outline_shgroup(psl->outlines_prepass_ps, 1, sh);
-    pd->outlines_probe_select_dupli_grp = outline_shgroup(psl->outlines_prepass_ps, 2, sh);
-    pd->outlines_probe_active_grp = outline_shgroup(psl->outlines_prepass_ps, 3, sh);
-
-    pd->outlines_probe_grid_grp = grp = DRW_shgroup_create(sh_grid, psl->outlines_prepass_ps);
+    pd->outlines_grid_grp = grp = DRW_shgroup_create(sh_grid, psl->outlines_prepass_ps);
     DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+    DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
   }
 
   /* outlines_prepass_ps is still needed for selection of probes. */
@@ -221,20 +145,14 @@ static void outline_lightprobe(OVERLAY_PrivateData *pd, Object *ob, ViewLayer *v
       sub_v3_v3(increment[i], corner);
     }
 
-    int outline_id = shgroup_theme_id_to_outline_id(theme_id, ob->base_flag);
     uint cell_count = prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z;
-    grp = DRW_shgroup_create_sub(pd->outlines_probe_grid_grp);
-    DRW_shgroup_uniform_int_copy(grp, "outlineId", outline_id);
+    grp = DRW_shgroup_create_sub(pd->outlines_grid_grp);
     DRW_shgroup_uniform_vec3_copy(grp, "corner", corner);
     DRW_shgroup_uniform_vec3_copy(grp, "increment_x", increment[0]);
     DRW_shgroup_uniform_vec3_copy(grp, "increment_y", increment[1]);
     DRW_shgroup_uniform_vec3_copy(grp, "increment_z", increment[2]);
     DRW_shgroup_uniform_ivec3_copy(grp, "grid_resolution", &prb->grid_resolution_x);
     DRW_shgroup_call_procedural_points(grp, NULL, cell_count);
-  }
-  else if (prb->type == LIGHTPROBE_TYPE_PLANAR && (prb->flag & LIGHTPROBE_FLAG_SHOW_DATA)) {
-    grp = shgroup_theme_id_to_probe_outline_or_null(pd, theme_id, ob->base_flag);
-    DRW_shgroup_call_no_cull(grp, DRW_cache_quad_get(), ob);
   }
 }
 
@@ -278,8 +196,7 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
     }
 
     if (geom) {
-      int theme_id = DRW_object_wire_theme_get(ob, draw_ctx->view_layer, NULL);
-      shgroup = shgroup_theme_id_to_outline_or_null(pd, theme_id, ob->base_flag);
+      shgroup = pd->outlines_grp;
     }
   }
 

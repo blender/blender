@@ -893,6 +893,7 @@ GPUShader *OVERLAY_shader_outline_prepass(bool use_wire)
     sh_data->outline_prepass_wire = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg->lib,
                                  datatoc_common_view_lib_glsl,
+                                 datatoc_gpu_shader_common_obinfos_lib_glsl,
                                  datatoc_outline_prepass_vert_glsl,
                                  NULL},
         .geom = (const char *[]){sh_cfg->lib,
@@ -907,6 +908,7 @@ GPUShader *OVERLAY_shader_outline_prepass(bool use_wire)
     sh_data->outline_prepass = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg->lib,
                                  datatoc_common_view_lib_glsl,
+                                 datatoc_gpu_shader_common_obinfos_lib_glsl,
                                  datatoc_outline_prepass_vert_glsl,
                                  NULL},
         .frag = (const char *[]){datatoc_outline_prepass_frag_glsl, NULL},
@@ -926,6 +928,7 @@ GPUShader *OVERLAY_shader_outline_prepass_grid(void)
         .vert = (const char *[]){sh_cfg->lib,
                                  datatoc_common_view_lib_glsl,
                                  datatoc_common_globals_lib_glsl,
+                                 datatoc_gpu_shader_common_obinfos_lib_glsl,
                                  datatoc_outline_lightprobe_grid_vert_glsl,
                                  NULL},
         .frag = (const char *[]){datatoc_outline_prepass_frag_glsl, NULL},

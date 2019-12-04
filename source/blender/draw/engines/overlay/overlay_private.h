@@ -223,15 +223,8 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *facing_grp;
   DRWShadingGroup *motion_path_lines_grp;
   DRWShadingGroup *motion_path_points_grp;
-  DRWShadingGroup *outlines_active_grp;
-  DRWShadingGroup *outlines_select_grp;
-  DRWShadingGroup *outlines_select_dupli_grp;
-  DRWShadingGroup *outlines_transform_grp;
-  DRWShadingGroup *outlines_probe_transform_grp;
-  DRWShadingGroup *outlines_probe_select_grp;
-  DRWShadingGroup *outlines_probe_select_dupli_grp;
-  DRWShadingGroup *outlines_probe_active_grp;
-  DRWShadingGroup *outlines_probe_grid_grp;
+  DRWShadingGroup *outlines_grp;
+  DRWShadingGroup *outlines_grid_grp;
   DRWShadingGroup *paint_surf_grp;
   DRWShadingGroup *paint_wire_grp;
   DRWShadingGroup *paint_wire_selected_grp;
