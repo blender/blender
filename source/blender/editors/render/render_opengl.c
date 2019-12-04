@@ -286,6 +286,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
   const short view_context = (v3d != NULL);
   bool draw_sky = (scene->r.alphamode == R_ADDSKY);
   float *rectf = NULL;
+  unsigned char *rect = NULL;
   const char *viewname = RE_GetActiveRenderView(oglrender->re);
   ImBuf *ibuf_result = NULL;
 
@@ -400,7 +401,12 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 
     if (ibuf_view) {
       ibuf_result = ibuf_view;
-      rectf = (float *)ibuf_view->rect_float;
+      if (ibuf_view->rect_float) {
+        rectf = ibuf_view->rect_float;
+      }
+      else {
+        rect = (unsigned char *)ibuf_view->rect;
+      }
     }
     else {
       fprintf(stderr, "%s: failed to get buffer, %s\n", __func__, err_out);
@@ -409,7 +415,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 
   if (ibuf_result != NULL) {
     if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW)) {
-      BKE_image_stamp_buf(scene, camera, NULL, NULL, rectf, rr->rectx, rr->recty, 4);
+      BKE_image_stamp_buf(scene, camera, NULL, rect, rectf, rr->rectx, rr->recty, 4);
     }
     RE_render_result_rect_from_ibuf(rr, &scene->r, ibuf_result, oglrender->view_id);
     IMB_freeImBuf(ibuf_result);
