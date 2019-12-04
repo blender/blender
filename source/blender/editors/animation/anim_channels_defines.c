@@ -5069,17 +5069,6 @@ void ANIM_channel_draw_widgets(const bContext *C,
           RNA_id_pointer_create(ale->id, &id_ptr);
           int icon;
 
-          /* Mask Layer. */
-          UI_block_emboss_set(block, UI_EMBOSS_NONE);
-          prop = RNA_struct_find_property(&ptr, "mask_layer");
-          gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
-          if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
-            icon = (gpl->flag & GP_LAYER_USE_MASK) ? ICON_MOD_MASK : ICON_LAYER_ACTIVE;
-            uiDefAutoButR(
-                block, &ptr, prop, array_index, "", icon, offset, ymid, width, channel_height);
-          }
-          MEM_freeN(gp_rna_path);
-
           /* Layer opacity. */
           UI_block_emboss_set(block, UI_EMBOSS);
           prop = RNA_struct_find_property(&ptr, "opacity");
@@ -5091,15 +5080,33 @@ void ANIM_channel_draw_widgets(const bContext *C,
                           array_index,
                           "",
                           ICON_NONE,
-                          offset + width,
+                          offset,
                           ymid,
                           width * 3,
                           channel_height);
           }
           MEM_freeN(gp_rna_path);
 
-          /* Layer onion skinning switch. */
+          /* Mask Layer. */
           UI_block_emboss_set(block, UI_EMBOSS_NONE);
+          prop = RNA_struct_find_property(&ptr, "mask_layer");
+          gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
+          if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
+            icon = (gpl->flag & GP_LAYER_USE_MASK) ? ICON_MOD_MASK : ICON_LAYER_ACTIVE;
+            uiDefAutoButR(block,
+                          &ptr,
+                          prop,
+                          array_index,
+                          "",
+                          icon,
+                          offset + (width * 3),
+                          ymid,
+                          width,
+                          channel_height);
+          }
+          MEM_freeN(gp_rna_path);
+
+          /* Layer onion skinning switch. */
           prop = RNA_struct_find_property(&ptr, "use_onion_skinning");
           gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
           if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
