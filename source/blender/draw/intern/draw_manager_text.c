@@ -213,13 +213,22 @@ void DRW_text_edit_mesh_measure_stats(ARegion *ar,
   float grid = unit->system ? unit->scale_length : v3d->grid;
   const bool do_global = (v3d->flag & V3D_GLOBAL_STATS) != 0;
   const bool do_moving = (G.moving & G_TRANSFORM_EDIT) != 0;
-  /* when 2 edge-info options are enabled, space apart */
-  const bool do_edge_textpair = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) &&
-                                (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_ANG);
-  const short edge_texpair_sep = (short)(5.0f * U.dpi_fac);
   float clip_planes[4][4];
   /* allow for displaying shape keys and deform mods */
   BMIter iter;
+
+  /* when 2 or more edge-info options are enabled, space apart */
+  short edge_tex_count = 0;
+  if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) {
+    edge_tex_count += 1;
+  }
+  if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_ANG) {
+    edge_tex_count += 1;
+  }
+  if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_INDICES) && (em->selectmode & SCE_SELECT_EDGE)) {
+    edge_tex_count += 1;
+  }
+  const short edge_tex_sep = (short)((edge_tex_count - 1) * 5.0f * U.dpi_fac);
 
   /* make the precision of the display value proportionate to the gridsize */
 
@@ -290,7 +299,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *ar,
                              numstr,
                              numstr_len,
                              0,
-                             (do_edge_textpair) ? edge_texpair_sep : 0,
+                             edge_tex_sep,
                              txt_flag,
                              col);
         }
@@ -352,7 +361,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *ar,
                                numstr,
                                numstr_len,
                                0,
-                               (do_edge_textpair) ? -edge_texpair_sep : 0,
+                               -edge_tex_sep,
                                txt_flag,
                                col);
           }
@@ -494,6 +503,9 @@ void DRW_text_edit_mesh_measure_stats(ARegion *ar,
     if (em->selectmode & SCE_SELECT_EDGE) {
       BMEdge *e;
 
+      const bool use_edge_tex_sep = (edge_tex_count == 2);
+      const bool use_edge_tex_len = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN);
+
       BM_ITER_MESH_INDEX (e, &iter, em->bm, BM_EDGES_OF_MESH, i) {
         if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
           float v1_clip[3], v2_clip[3];
@@ -506,7 +518,14 @@ void DRW_text_edit_mesh_measure_stats(ARegion *ar,
             mul_m4_v3(ob->obmat, vmid);
 
             numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
-            DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, 0, txt_flag, col);
+            DRW_text_cache_add(dt,
+                               vmid,
+                               numstr,
+                               numstr_len,
+                               0,
+                               (use_edge_tex_sep) ? (use_edge_tex_len) ? -edge_tex_sep : edge_tex_sep : 0,
+                               txt_flag,
+                               col);
           }
         }
       }
