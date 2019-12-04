@@ -35,16 +35,14 @@ typedef struct OVERLAY_FramebufferList {
   struct GPUFrameBuffer *overlay_color_only_fb;
   struct GPUFrameBuffer *overlay_in_front_fb;
   struct GPUFrameBuffer *outlines_prepass_fb;
-  struct GPUFrameBuffer *outlines_process_fb[2];
+  struct GPUFrameBuffer *outlines_resolve_fb;
 } OVERLAY_FramebufferList;
 
 typedef struct OVERLAY_TextureList {
   struct GPUTexture *temp_depth_tx;
   struct GPUTexture *dummy_depth_tx;
   struct GPUTexture *outlines_id_tx;
-  struct GPUTexture *outlines_color_tx[2];
   struct GPUTexture *overlay_color_tx;
-  struct GPUTexture *overlay_color_history_tx;
   struct GPUTexture *overlay_line_tx;
   struct GPUTexture *edit_mesh_occlude_wire_tx;
 } OVERLAY_TextureList;
@@ -87,8 +85,6 @@ typedef struct OVERLAY_PassList {
   DRWPass *motion_paths_ps;
   DRWPass *outlines_prepass_ps;
   DRWPass *outlines_detect_ps;
-  DRWPass *outlines_expand_ps;
-  DRWPass *outlines_bleed_ps;
   DRWPass *outlines_resolve_ps;
   DRWPass *paint_color_ps;
   DRWPass *paint_overlay_ps;
@@ -278,9 +274,6 @@ typedef struct OVERLAY_PrivateData {
   OVERLAY_ShadingData shdata;
 
   struct {
-    short sample;
-    short target_sample;
-    float prev_persmat[4][4];
     bool enabled;
   } antialiasing;
   struct {
@@ -388,7 +381,6 @@ BLI_INLINE void pack_fl_in_mat4(float rmat[4][4], const float mat[4][4], float a
   rmat[3][3] = a;
 }
 
-void OVERLAY_antialiasing_reset(OVERLAY_Data *vedata);
 void OVERLAY_antialiasing_init(OVERLAY_Data *vedata);
 void OVERLAY_antialiasing_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_antialiasing_cache_finish(OVERLAY_Data *vedata);
@@ -562,9 +554,7 @@ GPUShader *OVERLAY_shader_motion_path_vert(void);
 GPUShader *OVERLAY_shader_uniform_color(void);
 GPUShader *OVERLAY_shader_outline_prepass(bool use_wire);
 GPUShader *OVERLAY_shader_outline_prepass_grid(void);
-GPUShader *OVERLAY_shader_outline_resolve(void);
-GPUShader *OVERLAY_shader_outline_expand(bool high_dpi);
-GPUShader *OVERLAY_shader_outline_detect(bool use_wire);
+GPUShader *OVERLAY_shader_outline_detect(void);
 GPUShader *OVERLAY_shader_paint_face(void);
 GPUShader *OVERLAY_shader_paint_point(void);
 GPUShader *OVERLAY_shader_paint_texture(void);

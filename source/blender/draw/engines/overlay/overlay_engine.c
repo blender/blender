@@ -50,37 +50,27 @@ static void OVERLAY_engine_init(void *vedata)
   }
 
   OVERLAY_PrivateData *pd = stl->pd;
-  View3DOverlay overlay;
-  short v3d_flag, v3d_gridflag;
 
   pd->hide_overlays = (v3d->flag2 & V3D_HIDE_OVERLAYS) != 0;
   pd->ctx_mode = CTX_data_mode_enum_ex(
       draw_ctx->object_edit, draw_ctx->obact, draw_ctx->object_mode);
 
   if (!pd->hide_overlays) {
-    overlay = v3d->overlay;
-    v3d_flag = v3d->flag;
-    v3d_gridflag = v3d->gridflag;
+    pd->overlay = v3d->overlay;
+    pd->v3d_flag = v3d->flag;
+    pd->v3d_gridflag = v3d->gridflag;
   }
   else {
-    memset(&overlay, 0, sizeof(overlay));
-    v3d_flag = 0;
-    v3d_gridflag = 0;
-    overlay.flag = V3D_OVERLAY_HIDE_TEXT | V3D_OVERLAY_HIDE_MOTION_PATHS | V3D_OVERLAY_HIDE_BONES |
-                   V3D_OVERLAY_HIDE_OBJECT_XTRAS | V3D_OVERLAY_HIDE_OBJECT_ORIGINS;
+    memset(&pd->overlay, 0, sizeof(pd->overlay));
+    pd->v3d_flag = 0;
+    pd->v3d_gridflag = 0;
+    pd->overlay.flag = V3D_OVERLAY_HIDE_TEXT | V3D_OVERLAY_HIDE_MOTION_PATHS |
+                       V3D_OVERLAY_HIDE_BONES | V3D_OVERLAY_HIDE_OBJECT_XTRAS |
+                       V3D_OVERLAY_HIDE_OBJECT_ORIGINS;
   }
 
   if (v3d->shading.type == OB_WIRE) {
-    overlay.flag |= V3D_OVERLAY_WIREFRAMES;
-  }
-
-  /* Check if anything changed, and if so, reset AA. */
-  if (v3d_flag != pd->v3d_flag || pd->v3d_gridflag != v3d_gridflag ||
-      memcmp(&pd->overlay, &overlay, sizeof(overlay))) {
-    pd->overlay = overlay;
-    pd->v3d_flag = v3d_flag;
-    pd->v3d_gridflag = v3d_gridflag;
-    OVERLAY_antialiasing_reset(vedata);
+    pd->overlay.flag |= V3D_OVERLAY_WIREFRAMES;
   }
 
   pd->wireframe_mode = (v3d->shading.type == OB_WIRE);
@@ -376,6 +366,9 @@ static void OVERLAY_draw_scene(void *vedata)
 
   OVERLAY_antialiasing_start(vedata);
 
+  DRW_view_set_active(NULL);
+  OVERLAY_outline_draw(vedata);
+
   DRW_view_set_active(pd->view_default);
 
   OVERLAY_image_draw(vedata);
@@ -387,9 +380,7 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_extra_draw(vedata);
 
   DRW_view_set_active(NULL);
-
   OVERLAY_grid_draw(vedata);
-  OVERLAY_outline_draw(vedata);
 
   DRW_view_set_active(pd->view_default);
 

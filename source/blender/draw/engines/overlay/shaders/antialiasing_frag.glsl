@@ -96,6 +96,8 @@ void main()
 
   fragColor = texelFetch(colorTex, center_texel, 0);
 
+  bool original_col_has_alpha = fragColor.a < 1.0;
+
   float depth = texelFetch(depthTex, center_texel, 0).r;
 
   float dist_raw = texelFetch(lineTex, center_texel, 0).b;
@@ -138,7 +140,7 @@ void main()
 
 #if 1
   /* Fix aliasing issue with really dense meshes and 1 pixel sized lines. */
-  if (dist_raw > 0.0 && line_kernel < 0.45) {
+  if (!original_col_has_alpha && dist_raw > 0.0 && line_kernel < 0.45) {
     vec4 lines = vec4(neightbor_line0.z, neightbor_line1.z, neightbor_line2.z, neightbor_line3.z);
     /* Count number of line neighbors. */
     float blend = dot(vec4(0.25), step(0.001, lines));

@@ -80,12 +80,10 @@ extern char datatoc_motion_path_line_vert_glsl[];
 extern char datatoc_motion_path_line_geom_glsl[];
 extern char datatoc_motion_path_point_vert_glsl[];
 extern char datatoc_outline_detect_frag_glsl[];
-extern char datatoc_outline_expand_frag_glsl[];
 extern char datatoc_outline_prepass_frag_glsl[];
 extern char datatoc_outline_prepass_geom_glsl[];
 extern char datatoc_outline_prepass_vert_glsl[];
 extern char datatoc_outline_lightprobe_grid_vert_glsl[];
-extern char datatoc_outline_resolve_frag_glsl[];
 extern char datatoc_paint_face_vert_glsl[];
 extern char datatoc_paint_point_vert_glsl[];
 extern char datatoc_paint_texture_frag_glsl[];
@@ -159,11 +157,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *outline_prepass;
   GPUShader *outline_prepass_wire;
   GPUShader *outline_prepass_lightprobe_grid;
-  GPUShader *outline_resolve;
-  GPUShader *outline_fade;
-  GPUShader *outline_fade_large;
   GPUShader *outline_detect;
-  GPUShader *outline_detect_wire;
   GPUShader *paint_face;
   GPUShader *paint_point;
   GPUShader *paint_texture;
@@ -941,51 +935,19 @@ GPUShader *OVERLAY_shader_outline_prepass_grid(void)
   return sh_data->outline_prepass_lightprobe_grid;
 }
 
-GPUShader *OVERLAY_shader_outline_resolve(void)
+GPUShader *OVERLAY_shader_outline_detect(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
-  if (!sh_data->outline_resolve) {
-    sh_data->outline_resolve = DRW_shader_create_with_lib(datatoc_common_fullscreen_vert_glsl,
-                                                          NULL,
-                                                          datatoc_outline_resolve_frag_glsl,
-                                                          datatoc_common_fxaa_lib_glsl,
-                                                          "#define FXAA_ALPHA\n"
-                                                          "#define USE_FXAA\n");
+  if (!sh_data->outline_detect) {
+    sh_data->outline_detect = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){datatoc_common_fullscreen_vert_glsl, NULL},
+        .frag = (const char *[]){datatoc_common_view_lib_glsl,
+                                 datatoc_common_globals_lib_glsl,
+                                 datatoc_outline_detect_frag_glsl,
+                                 NULL},
+    });
   }
-  return sh_data->outline_resolve;
-}
-
-GPUShader *OVERLAY_shader_outline_expand(bool high_dpi)
-{
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
-  if (high_dpi && !sh_data->outline_fade_large) {
-    sh_data->outline_fade_large = DRW_shader_create_fullscreen(datatoc_outline_expand_frag_glsl,
-                                                               "#define LARGE_OUTLINE\n");
-  }
-  else if (!sh_data->outline_fade) {
-    sh_data->outline_fade = DRW_shader_create_fullscreen(datatoc_outline_expand_frag_glsl, NULL);
-  }
-  return (high_dpi) ? sh_data->outline_fade_large : sh_data->outline_fade;
-}
-
-GPUShader *OVERLAY_shader_outline_detect(bool use_wire)
-{
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
-  if (use_wire && !sh_data->outline_detect_wire) {
-    sh_data->outline_detect_wire = DRW_shader_create_with_lib(datatoc_common_fullscreen_vert_glsl,
-                                                              NULL,
-                                                              datatoc_outline_detect_frag_glsl,
-                                                              datatoc_common_globals_lib_glsl,
-                                                              "#define WIRE\n");
-  }
-  else if (!sh_data->outline_detect) {
-    sh_data->outline_detect = DRW_shader_create_with_lib(datatoc_common_fullscreen_vert_glsl,
-                                                         NULL,
-                                                         datatoc_outline_detect_frag_glsl,
-                                                         datatoc_common_globals_lib_glsl,
-                                                         NULL);
-  }
-  return (use_wire) ? sh_data->outline_detect_wire : sh_data->outline_detect;
+  return sh_data->outline_detect;
 }
 
 GPUShader *OVERLAY_shader_paint_face(void)

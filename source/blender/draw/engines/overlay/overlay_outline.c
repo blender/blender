@@ -32,23 +32,28 @@ void OVERLAY_outline_init(OVERLAY_Data *vedata)
 {
   OVERLAY_FramebufferList *fbl = vedata->fbl;
   OVERLAY_TextureList *txl = vedata->txl;
+  OVERLAY_PrivateData *pd = vedata->stl->pd;
+  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
   if (DRW_state_is_fbo()) {
     /* TODO only alloc if needed. */
-    /* XXX TODO GPU_R16UI can overflow, it would cause no harm
-     * (only bad colored or missing outlines) but we should
-     * use 32bits only if the scene have that many objects */
     DRW_texture_ensure_fullscreen_2d(&txl->temp_depth_tx, GPU_DEPTH24_STENCIL8, 0);
     DRW_texture_ensure_fullscreen_2d(&txl->outlines_id_tx, GPU_R16UI, 0);
+
     GPU_framebuffer_ensure_config(
         &fbl->outlines_prepass_fb,
         {GPU_ATTACHMENT_TEXTURE(txl->temp_depth_tx), GPU_ATTACHMENT_TEXTURE(txl->outlines_id_tx)});
 
-    for (int i = 0; i < 2; i++) {
-      DRW_texture_ensure_fullscreen_2d(&txl->outlines_color_tx[i], GPU_RGBA8, DRW_TEX_FILTER);
+    if (pd->antialiasing.enabled) {
+      GPU_framebuffer_ensure_config(&fbl->outlines_resolve_fb,
+                                    {GPU_ATTACHMENT_NONE,
+                                     GPU_ATTACHMENT_TEXTURE(txl->overlay_color_tx),
+                                     GPU_ATTACHMENT_TEXTURE(txl->overlay_line_tx)});
+    }
+    else {
       GPU_framebuffer_ensure_config(
-          &fbl->outlines_process_fb[i],
-          {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->outlines_color_tx[i])});
+          &fbl->outlines_resolve_fb,
+          {GPU_ATTACHMENT_TEXTURE(txl->temp_depth_tx), GPU_ATTACHMENT_TEXTURE(dtxl->color)});
     }
   }
 }
@@ -133,9 +138,8 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
   DRWShadingGroup *grp = NULL;
 
   const float outline_width = UI_GetThemeValuef(TH_OUTLINE_WIDTH);
-  const bool do_outline_expand = (U.pixelsize > 1.0) || (outline_width > 2.0f);
-  const bool do_large_expand = ((U.pixelsize > 1.0) && (outline_width > 2.0f)) ||
-                               (outline_width > 4.0f);
+  const bool do_expand = (U.pixelsize > 1.0) || (outline_width > 2.0f);
+
   {
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
     DRW_PASS_CREATE(psl->outlines_prepass_ps, state | pd->clipping_state);
@@ -164,49 +168,21 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
   }
 
   {
-    DRW_PASS_CREATE(psl->outlines_detect_ps, DRW_STATE_WRITE_COLOR);
-    DRW_PASS_CREATE(psl->outlines_expand_ps, DRW_STATE_WRITE_COLOR);
-    DRW_PASS_CREATE(psl->outlines_bleed_ps, DRW_STATE_WRITE_COLOR);
-    DRW_PASS_CREATE(psl->outlines_resolve_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
+    /* We can only do alpha blending with lineOutput just after clearing the buffer. */
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
+    DRW_PASS_CREATE(psl->outlines_detect_ps, state);
 
-    GPUShader *sh = OVERLAY_shader_outline_detect(pd->xray_enabled_and_not_wire);
+    GPUShader *sh = OVERLAY_shader_outline_detect();
 
     grp = DRW_shgroup_create(sh, psl->outlines_detect_ps);
     /* Don't occlude the "outline" detection pass if in xray mode (too much flickering). */
-    DRW_shgroup_uniform_float_copy(grp, "alphaOcclu", (pd->xray_enabled) ? 1.0f : 0.35f);
+    DRW_shgroup_uniform_float_copy(grp, "alphaOcclu", (pd->xray_enabled) ? 1.0f : 0.125f);
+    DRW_shgroup_uniform_bool_copy(grp, "doThickOutlines", do_expand);
+    DRW_shgroup_uniform_bool_copy(grp, "isXrayWires", pd->xray_enabled_and_not_wire);
     DRW_shgroup_uniform_texture_ref(grp, "outlineId", &txl->outlines_id_tx);
-    DRW_shgroup_uniform_texture_ref(grp, "outlineDepth", &txl->temp_depth_tx);
     DRW_shgroup_uniform_texture_ref(grp, "sceneDepth", &dtxl->depth);
+    DRW_shgroup_uniform_texture_ref(grp, "outlineDepth", &txl->temp_depth_tx);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
-    DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
-
-    if (do_outline_expand) {
-      sh = OVERLAY_shader_outline_expand(do_large_expand);
-      grp = DRW_shgroup_create(sh, psl->outlines_expand_ps);
-      DRW_shgroup_uniform_texture_ref(grp, "outlineColor", &txl->outlines_color_tx[0]);
-      DRW_shgroup_uniform_bool_copy(grp, "doExpand", true);
-      DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
-
-      sh = OVERLAY_shader_outline_expand(false);
-      grp = DRW_shgroup_create(sh, psl->outlines_bleed_ps);
-      DRW_shgroup_uniform_texture_ref(grp, "outlineColor", &txl->outlines_color_tx[1]);
-      DRW_shgroup_uniform_bool_copy(grp, "doExpand", false);
-      DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
-    }
-    else {
-      sh = OVERLAY_shader_outline_expand(false);
-      grp = DRW_shgroup_create(sh, psl->outlines_expand_ps);
-      DRW_shgroup_uniform_texture_ref(grp, "outlineColor", &txl->outlines_color_tx[0]);
-      DRW_shgroup_uniform_bool_copy(grp, "doExpand", false);
-      DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
-    }
-
-    GPUTexture **outline_tx = &txl->outlines_color_tx[do_outline_expand ? 0 : 1];
-    sh = OVERLAY_shader_outline_resolve();
-
-    grp = DRW_shgroup_create(sh, psl->outlines_resolve_ps);
-    DRW_shgroup_uniform_texture_ref(grp, "outlineBluredColor", outline_tx);
-    DRW_shgroup_uniform_vec2_copy(grp, "rcpDimensions", DRW_viewport_invert_size_get());
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
 }
@@ -331,24 +307,12 @@ void OVERLAY_outline_draw(OVERLAY_Data *vedata)
 
     /* Render filled polygon on a separate framebuffer */
     GPU_framebuffer_bind(fbl->outlines_prepass_fb);
-    GPU_framebuffer_clear_color_depth(fbl->outlines_prepass_fb, clearcol, 1.0f);
+    GPU_framebuffer_clear_color_depth_stencil(fbl->outlines_prepass_fb, clearcol, 1.0f, 0x00);
     DRW_draw_pass(psl->outlines_prepass_ps);
 
     /* Search outline pixels */
-    GPU_framebuffer_bind(fbl->outlines_process_fb[0]);
+    GPU_framebuffer_bind(fbl->outlines_resolve_fb);
     DRW_draw_pass(psl->outlines_detect_ps);
-
-    /* Expand outline to form a 3px wide line */
-    GPU_framebuffer_bind(fbl->outlines_process_fb[1]);
-    DRW_draw_pass(psl->outlines_expand_ps);
-
-    /* Bleed color so the AA can do it's stuff */
-    GPU_framebuffer_bind(fbl->outlines_process_fb[0]);
-    DRW_draw_pass(psl->outlines_bleed_ps);
-
-    /* restore main framebuffer */
-    GPU_framebuffer_bind(fbl->overlay_default_fb);
-    DRW_draw_pass(psl->outlines_resolve_ps);
 
     DRW_stats_group_end();
   }
