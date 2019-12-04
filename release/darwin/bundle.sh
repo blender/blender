@@ -99,7 +99,7 @@ echo
 
 # Create the disk image.
 _directory_size=$(du -sh ${_tmp_dir} | awk -F'[^0-9]*' '$0=$1')
-_image_size=$(echo "${_directory_size}" + 200 | bc) # extra 200 need for codesign to work (why on earth?)
+_image_size=$(echo "${_directory_size}" + 400 | bc) # extra 400 need for codesign to work (why on earth?)
 
 echo
 echo -n "Creating disk image of size ${_image_size}M.."
@@ -174,10 +174,10 @@ rm "${_tmp_dmg}"
 # Notarize
 if [ ! -z "${N_USERNAME}" ] && [ ! -z "${N_PASSWORD}" ] && [ ! -z "${N_BUNDLE_ID}" ]; then
     # Send to Apple
-    echo -n "Sending ${DEST_DMG} for notarization..."
+    echo "Sending ${DEST_DMG} for notarization..."
     _tmpout=$(mktemp)
-    echo xcrun altool --notarize-app -f "${DEST_DMG}" --primary-bundle-id "${N_BUNDLE_ID}" --username "${N_USERNAME}" --password "${N_PASSWORD}"
-    xcrun altool --notarize-app -f "${DEST_DMG}" --primary-bundle-id "${N_BUNDLE_ID}" --username "${N_USERNAME}" --password "${N_PASSWORD}" >${_tmpout} 2>&1
+    echo xcrun altool --notarize-app --verbose -f "${DEST_DMG}" --primary-bundle-id "${N_BUNDLE_ID}" --username "${N_USERNAME}" --password "${N_PASSWORD}"
+    xcrun altool --notarize-app --verbose -f "${DEST_DMG}" --primary-bundle-id "${N_BUNDLE_ID}" --username "${N_USERNAME}" --password "${N_PASSWORD}" >${_tmpout} 2>&1
 
     # Parse request uuid
     _requuid=$(cat "${_tmpout}" | grep "RequestUUID" | awk '{ print $3 }')
@@ -202,6 +202,7 @@ if [ ! -z "${N_USERNAME}" ] && [ ! -z "${N_PASSWORD}" ] && [ ! -z "${N_BUNDLE_ID
             echo "Notarization in progress, waiting..."
         done
     else
+        cat ${_tmpout}
         echo "Error getting RequestUUID, notarization unsuccessful"
     fi
 else
