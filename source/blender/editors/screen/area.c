@@ -1280,11 +1280,12 @@ static void region_rect_recursive(
      */
     const int size_min[2] = {UI_UNIT_X, UI_UNIT_Y};
     rcti overlap_remainder_margin = *overlap_remainder;
+
     BLI_rcti_resize(&overlap_remainder_margin,
                     max_ii(0, BLI_rcti_size_x(overlap_remainder) - UI_UNIT_X / 2),
                     max_ii(0, BLI_rcti_size_y(overlap_remainder) - UI_UNIT_Y / 2));
-    ar->winrct.xmin = overlap_remainder_margin.xmin;
-    ar->winrct.ymin = overlap_remainder_margin.ymin;
+    ar->winrct.xmin = overlap_remainder_margin.xmin + ar->runtime.offset_x;
+    ar->winrct.ymin = overlap_remainder_margin.ymin + ar->runtime.offset_y;
     ar->winrct.xmax = ar->winrct.xmin + prefsizex - 1;
     ar->winrct.ymax = ar->winrct.ymin + prefsizey - 1;
 

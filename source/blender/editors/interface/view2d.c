@@ -174,12 +174,9 @@ static void view2d_masks(View2D *v2d, bool check_scrollers, const rcti *mask_scr
    * - if they overlap, they must not occupy the corners (which are reserved for other widgets)
    */
   if (scroll) {
-    const int scroll_width = (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) ?
-                                 V2D_SCROLL_HANDLE_WIDTH :
-                                 V2D_SCROLL_WIDTH;
-    const int scroll_height = (v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) ?
-                                  V2D_SCROLL_HANDLE_HEIGHT :
-                                  V2D_SCROLL_HEIGHT;
+    float scroll_width, scroll_height;
+
+    UI_view2d_scroller_size_get(v2d, &scroll_width, &scroll_height);
 
     /* vertical scroller */
     if (scroll & V2D_SCROLL_LEFT) {
@@ -1937,6 +1934,31 @@ View2D *UI_view2d_fromcontext_rwin(const bContext *C)
     return ar ? &(ar->v2d) : NULL;
   }
   return &(region->v2d);
+}
+
+/* Get scrollbar sizes of the current 2D view. The size will be zero if the view has its scrollbars
+ * disabled. */
+void UI_view2d_scroller_size_get(const View2D *v2d, float *r_x, float *r_y)
+{
+  int scroll = view2d_scroll_mapped(v2d->scroll);
+
+  if (r_x) {
+    if (scroll & V2D_SCROLL_VERTICAL) {
+      *r_x = (scroll & V2D_SCROLL_VERTICAL_HANDLES) ? V2D_SCROLL_HANDLE_WIDTH : V2D_SCROLL_WIDTH;
+    }
+    else {
+      *r_x = 0;
+    }
+  }
+  if (r_y) {
+    if (scroll & V2D_SCROLL_HORIZONTAL) {
+      *r_y = (scroll & V2D_SCROLL_HORIZONTAL_HANDLES) ? V2D_SCROLL_HANDLE_HEIGHT :
+                                                        V2D_SCROLL_HEIGHT;
+    }
+    else {
+      *r_y = 0;
+    }
+  }
 }
 
 /**

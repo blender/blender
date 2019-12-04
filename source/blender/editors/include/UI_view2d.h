@@ -220,6 +220,7 @@ bool UI_view2d_view_to_region_rcti_clip(struct View2D *v2d,
 struct View2D *UI_view2d_fromcontext(const struct bContext *C);
 struct View2D *UI_view2d_fromcontext_rwin(const struct bContext *C);
 
+void UI_view2d_scroller_size_get(const struct View2D *v2d, float *r_x, float *r_y);
 void UI_view2d_scale_get(struct View2D *v2d, float *r_x, float *r_y);
 float UI_view2d_scale_get_x(const struct View2D *v2d);
 float UI_view2d_scale_get_y(const struct View2D *v2d);

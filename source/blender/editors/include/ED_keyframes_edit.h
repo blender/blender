@@ -309,7 +309,7 @@ void clean_fcurve(struct bAnimContext *ac,
                   struct bAnimListElem *ale,
                   float thresh,
                   bool cleardefault);
-void decimate_fcurve(struct bAnimListElem *ale, float remove_ratio);
+bool decimate_fcurve(struct bAnimListElem *ale, float remove_ratio, float error_sq_max);
 void smooth_fcurve(struct FCurve *fcu);
 void sample_fcurve(struct FCurve *fcu);
 

@@ -382,6 +382,9 @@ typedef struct ARegion_Runtime {
    *
    * Lazy initialize, zero'd when unset, relative to #ARegion.winrct x/y min. */
   rcti visible_rect;
+
+  /* The offset needed to not overlap with window scrollbars. Only used by HUD regions for now. */
+  int offset_x, offset_y;
 } ARegion_Runtime;
 
 typedef struct ARegion {
