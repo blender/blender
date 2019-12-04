@@ -218,6 +218,19 @@ static void blo_update_defaults_screen(bScreen *screen,
       }
     }
   }
+
+  /* 2D animation template. */
+  if (app_template && STREQ(app_template, "2D_Animation")) {
+    for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+      for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+        if (sa->spacetype == SPACE_ACTION) {
+          SpaceAction *saction = sa->spacedata.first;
+          /* Enable Sliders. */
+          saction->flag |= SACTION_SLIDERS;
+        }
+      }
+    }
+  }
 }
 
 void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_template)

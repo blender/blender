@@ -105,6 +105,7 @@ bGPdata **ED_gpencil_data_get_pointers_direct(
       /* XXX: Should we reduce reliance on context.gpencil_data for these cases? */
       case SPACE_PROPERTIES: /* properties */
       case SPACE_INFO:       /* header info (needed after workspaces merge) */
+      case SPACE_ACTION:     /* Dopesheet header. */
       {
         if (ob && (ob->type == OB_GPENCIL)) {
           /* GP Object */

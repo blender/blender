@@ -65,13 +65,13 @@ class GPENCIL_UL_matslots(UIList):
                 row.prop(ma, "name", text="", emboss=False, icon_value=icon)
 
                 row = layout.row(align=True)
-                row.prop(gpcolor, "lock", text="", emboss=False)
-                row.prop(gpcolor, "hide", text="", emboss=False)
                 if gpcolor.ghost is True:
                     icon = 'ONIONSKIN_OFF'
                 else:
                     icon = 'ONIONSKIN_ON'
                 row.prop(gpcolor, "ghost", text="", icon=icon, emboss=False)
+                row.prop(gpcolor, "hide", text="", emboss=False)
+                row.prop(gpcolor, "lock", text="", emboss=False)
 
             elif self.layout_type == 'GRID':
                 layout.alignment = 'CENTER'
