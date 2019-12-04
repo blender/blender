@@ -405,7 +405,7 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 
     /* Shade background. */
     if (!hit) {
-      kernel_path_background(kg, &state, &ray, throughput, &sd, L);
+      kernel_path_background(kg, &state, &ray, throughput, &sd, buffer, L);
       break;
     }
 
@@ -417,7 +417,7 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
     if (!(sd.flag & SD_HAS_ONLY_VOLUME)) {
 #    endif
 
-      shader_eval_surface(kg, &sd, &state, state.flag);
+      shader_eval_surface(kg, &sd, &state, buffer, state.flag);
       shader_merge_closures(&sd);
 
       /* Apply shadow catcher, holdout, emission. */

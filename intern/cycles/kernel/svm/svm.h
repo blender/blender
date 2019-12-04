@@ -164,6 +164,7 @@ CCL_NAMESPACE_END
 #include "kernel/svm/svm_math_util.h"
 #include "kernel/svm/svm_mapping_util.h"
 
+#include "kernel/svm/svm_aov.h"
 #include "kernel/svm/svm_attribute.h"
 #include "kernel/svm/svm_gradient.h"
 #include "kernel/svm/svm_blackbody.h"
@@ -218,6 +219,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg,
                                         ShaderData *sd,
                                         ccl_addr_space PathState *state,
+                                        ccl_global float *buffer,
                                         ShaderType type,
                                         int path_flag)
 {
@@ -466,6 +468,17 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg,
         break;
       case NODE_IES:
         svm_node_ies(kg, sd, stack, node, &offset);
+        break;
+      case NODE_AOV_START:
+        if (!svm_node_aov_check(state, buffer)) {
+          return;
+        }
+        break;
+      case NODE_AOV_COLOR:
+        svm_node_aov_color(kg, sd, stack, node, buffer);
+        break;
+      case NODE_AOV_VALUE:
+        svm_node_aov_value(kg, sd, stack, node, buffer);
         break;
 #  endif /* __EXTRA_NODES__ */
 #endif   /* NODES_GROUP(NODE_GROUP_LEVEL_2) */

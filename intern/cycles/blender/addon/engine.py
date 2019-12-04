@@ -223,65 +223,95 @@ def system_info():
     import _cycles
     return _cycles.system_info()
 
+def list_render_passes(srl):
+    # Builtin Blender passes.
+    yield ("Combined", "RGBA", 'COLOR')
 
-def register_passes(engine, scene, srl):
-    engine.register_pass(scene, srl, "Combined", 4, "RGBA", 'COLOR')
+    if srl.use_pass_z:                     yield ("Depth",         "Z",    'VALUE')
+    if srl.use_pass_mist:                  yield ("Mist",          "Z",    'VALUE')
+    if srl.use_pass_normal:                yield ("Normal",        "XYZ",  'VECTOR')
+    if srl.use_pass_vector:                yield ("Vector",        "XYZW", 'VECTOR')
+    if srl.use_pass_uv:                    yield ("UV",            "UVA",  'VECTOR')
+    if srl.use_pass_object_index:          yield ("IndexOB",       "X",    'VALUE')
+    if srl.use_pass_material_index:        yield ("IndexMA",       "X",    'VALUE')
+    if srl.use_pass_shadow:                yield ("Shadow",        "RGB",  'COLOR')
+    if srl.use_pass_ambient_occlusion:     yield ("AO",            "RGB",  'COLOR')
+    if srl.use_pass_diffuse_direct:        yield ("DiffDir",       "RGB",  'COLOR')
+    if srl.use_pass_diffuse_indirect:      yield ("DiffInd",       "RGB",  'COLOR')
+    if srl.use_pass_diffuse_color:         yield ("DiffCol",       "RGB",  'COLOR')
+    if srl.use_pass_glossy_direct:         yield ("GlossDir",      "RGB",  'COLOR')
+    if srl.use_pass_glossy_indirect:       yield ("GlossInd",      "RGB",  'COLOR')
+    if srl.use_pass_glossy_color:          yield ("GlossCol",      "RGB",  'COLOR')
+    if srl.use_pass_transmission_direct:   yield ("TransDir",      "RGB",  'COLOR')
+    if srl.use_pass_transmission_indirect: yield ("TransInd",      "RGB",  'COLOR')
+    if srl.use_pass_transmission_color:    yield ("TransCol",      "RGB",  'COLOR')
+    if srl.use_pass_subsurface_direct:     yield ("SubsurfaceDir", "RGB",  'COLOR')
+    if srl.use_pass_subsurface_indirect:   yield ("SubsurfaceInd", "RGB",  'COLOR')
+    if srl.use_pass_subsurface_color:      yield ("SubsurfaceCol", "RGB",  'COLOR')
+    if srl.use_pass_emit:                  yield ("Emit",          "RGB",  'COLOR')
+    if srl.use_pass_environment:           yield ("Env",           "RGB",  'COLOR')
 
-    if srl.use_pass_z:                     engine.register_pass(scene, srl, "Depth",         1, "Z",    'VALUE')
-    if srl.use_pass_mist:                  engine.register_pass(scene, srl, "Mist",          1, "Z",    'VALUE')
-    if srl.use_pass_normal:                engine.register_pass(scene, srl, "Normal",        3, "XYZ",  'VECTOR')
-    if srl.use_pass_vector:                engine.register_pass(scene, srl, "Vector",        4, "XYZW", 'VECTOR')
-    if srl.use_pass_uv:                    engine.register_pass(scene, srl, "UV",            3, "UVA",  'VECTOR')
-    if srl.use_pass_object_index:          engine.register_pass(scene, srl, "IndexOB",       1, "X",    'VALUE')
-    if srl.use_pass_material_index:        engine.register_pass(scene, srl, "IndexMA",       1, "X",    'VALUE')
-    if srl.use_pass_shadow:                engine.register_pass(scene, srl, "Shadow",        3, "RGB",  'COLOR')
-    if srl.use_pass_ambient_occlusion:     engine.register_pass(scene, srl, "AO",            3, "RGB",  'COLOR')
-    if srl.use_pass_diffuse_direct:        engine.register_pass(scene, srl, "DiffDir",       3, "RGB",  'COLOR')
-    if srl.use_pass_diffuse_indirect:      engine.register_pass(scene, srl, "DiffInd",       3, "RGB",  'COLOR')
-    if srl.use_pass_diffuse_color:         engine.register_pass(scene, srl, "DiffCol",       3, "RGB",  'COLOR')
-    if srl.use_pass_glossy_direct:         engine.register_pass(scene, srl, "GlossDir",      3, "RGB",  'COLOR')
-    if srl.use_pass_glossy_indirect:       engine.register_pass(scene, srl, "GlossInd",      3, "RGB",  'COLOR')
-    if srl.use_pass_glossy_color:          engine.register_pass(scene, srl, "GlossCol",      3, "RGB",  'COLOR')
-    if srl.use_pass_transmission_direct:   engine.register_pass(scene, srl, "TransDir",      3, "RGB",  'COLOR')
-    if srl.use_pass_transmission_indirect: engine.register_pass(scene, srl, "TransInd",      3, "RGB",  'COLOR')
-    if srl.use_pass_transmission_color:    engine.register_pass(scene, srl, "TransCol",      3, "RGB",  'COLOR')
-    if srl.use_pass_subsurface_direct:     engine.register_pass(scene, srl, "SubsurfaceDir", 3, "RGB",  'COLOR')
-    if srl.use_pass_subsurface_indirect:   engine.register_pass(scene, srl, "SubsurfaceInd", 3, "RGB",  'COLOR')
-    if srl.use_pass_subsurface_color:      engine.register_pass(scene, srl, "SubsurfaceCol", 3, "RGB",  'COLOR')
-    if srl.use_pass_emit:                  engine.register_pass(scene, srl, "Emit",          3, "RGB",  'COLOR')
-    if srl.use_pass_environment:           engine.register_pass(scene, srl, "Env",           3, "RGB",  'COLOR')
-
+    # Cycles specific passes.
     crl = srl.cycles
-    if crl.pass_debug_render_time:             engine.register_pass(scene, srl, "Debug Render Time",             1, "X",   'VALUE')
-    if crl.pass_debug_bvh_traversed_nodes:     engine.register_pass(scene, srl, "Debug BVH Traversed Nodes",     1, "X",   'VALUE')
-    if crl.pass_debug_bvh_traversed_instances: engine.register_pass(scene, srl, "Debug BVH Traversed Instances", 1, "X",   'VALUE')
-    if crl.pass_debug_bvh_intersections:       engine.register_pass(scene, srl, "Debug BVH Intersections",       1, "X",   'VALUE')
-    if crl.pass_debug_ray_bounces:             engine.register_pass(scene, srl, "Debug Ray Bounces",             1, "X",   'VALUE')
-    if crl.use_pass_volume_direct:             engine.register_pass(scene, srl, "VolumeDir",                     3, "RGB", 'COLOR')
-    if crl.use_pass_volume_indirect:           engine.register_pass(scene, srl, "VolumeInd",                     3, "RGB", 'COLOR')
+    if crl.pass_debug_render_time:             yield ("Debug Render Time",             "X",   'VALUE')
+    if crl.pass_debug_bvh_traversed_nodes:     yield ("Debug BVH Traversed Nodes",     "X",   'VALUE')
+    if crl.pass_debug_bvh_traversed_instances: yield ("Debug BVH Traversed Instances", "X",   'VALUE')
+    if crl.pass_debug_bvh_intersections:       yield ("Debug BVH Intersections",       "X",   'VALUE')
+    if crl.pass_debug_ray_bounces:             yield ("Debug Ray Bounces",             "X",   'VALUE')
+    if crl.use_pass_volume_direct:             yield ("VolumeDir",                     "RGB", 'COLOR')
+    if crl.use_pass_volume_indirect:           yield ("VolumeInd",                     "RGB", 'COLOR')
 
+    # Cryptomatte passes.
     if crl.use_pass_crypto_object:
         for i in range(0, crl.pass_crypto_depth, 2):
-            engine.register_pass(scene, srl, "CryptoObject" + '{:02d}'.format(i//2), 4, "RGBA", 'COLOR')
+            yield ("CryptoObject" + '{:02d}'.format(i//2), "RGBA", 'COLOR')
     if crl.use_pass_crypto_material:
         for i in range(0, crl.pass_crypto_depth, 2):
-            engine.register_pass(scene, srl, "CryptoMaterial" + '{:02d}'.format(i//2), 4, "RGBA", 'COLOR')
+            yield ("CryptoMaterial" + '{:02d}'.format(i//2), "RGBA", 'COLOR')
     if srl.cycles.use_pass_crypto_asset:
         for i in range(0, srl.cycles.pass_crypto_depth, 2):
-            engine.register_pass(scene, srl, "CryptoAsset" + '{:02d}'.format(i//2), 4, "RGBA", 'COLOR')
+            yield ("CryptoAsset" + '{:02d}'.format(i//2), "RGBA", 'COLOR')
 
+    # Denoising passes.
     if crl.use_denoising or crl.denoising_store_passes:
-        engine.register_pass(scene, srl, "Noisy Image", 4, "RGBA", 'COLOR')
+        yield ("Noisy Image", "RGBA", 'COLOR')
         if crl.denoising_store_passes:
-            engine.register_pass(scene, srl, "Denoising Normal",          3, "XYZ", 'VECTOR')
-            engine.register_pass(scene, srl, "Denoising Albedo",          3, "RGB", 'COLOR')
-            engine.register_pass(scene, srl, "Denoising Depth",           1, "Z",   'VALUE')
-            engine.register_pass(scene, srl, "Denoising Shadowing",       1, "X",   'VALUE')
-            engine.register_pass(scene, srl, "Denoising Variance",        3, "RGB", 'COLOR')
-            engine.register_pass(scene, srl, "Denoising Intensity",       1, "X",   'VALUE')
+            yield ("Denoising Normal",          "XYZ", 'VECTOR')
+            yield ("Denoising Albedo",          "RGB", 'COLOR')
+            yield ("Denoising Depth",           "Z",   'VALUE')
+            yield ("Denoising Shadowing",       "X",   'VALUE')
+            yield ("Denoising Variance",        "RGB", 'COLOR')
+            yield ("Denoising Intensity",       "X",   'VALUE')
             clean_options = ("denoising_diffuse_direct", "denoising_diffuse_indirect",
                              "denoising_glossy_direct", "denoising_glossy_indirect",
                              "denoising_transmission_direct", "denoising_transmission_indirect",
                              "denoising_subsurface_direct", "denoising_subsurface_indirect")
             if any(getattr(crl, option) for option in clean_options):
-                engine.register_pass(scene, srl, "Denoising Clean", 3, "RGB", 'COLOR')
+                yield ("Denoising Clean", "RGB", 'COLOR')
+
+    # Custom AOV passes.
+    for aov in crl.aovs:
+        if aov.type == 'VALUE':
+            yield (aov.name, "X", 'VALUE')
+        else:
+            yield (aov.name, "RGBA", 'COLOR')
+
+def register_passes(engine, scene, view_layer):
+    # Detect duplicate render pass names, first one wins.
+    listed = set()
+    for name, channelids, channeltype in list_render_passes(view_layer):
+        if name not in listed:
+            engine.register_pass(scene, view_layer, name, len(channelids), channelids, channeltype)
+            listed.add(name)
+
+def detect_conflicting_passes(view_layer):
+    # Detect conflicting render pass names for UI.
+    counter = {}
+    for name, _, _ in list_render_passes(view_layer):
+        counter[name] = counter.get(name, 0) + 1
+
+    for aov in view_layer.cycles.aovs:
+        if counter[aov.name] > 1:
+            aov.conflict = "Conflicts with another render pass with the same name"
+        else:
+            aov.conflict = ""

@@ -93,6 +93,8 @@ class Film : public Node {
   bool modified(const Film &film);
   void tag_passes_update(Scene *scene, const vector<Pass> &passes_, bool update_passes = true);
   void tag_update(Scene *scene);
+
+  int get_aov_offset(string name, bool &is_color);
 };
 
 CCL_NAMESPACE_END

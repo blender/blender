@@ -1154,6 +1154,11 @@ static void node_shader_buts_white_noise(uiLayout *layout, bContext *UNUSED(C), 
   uiItemR(layout, ptr, "noise_dimensions", 0, "", ICON_NONE);
 }
 
+static void node_shader_buts_output_aov(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "name", 0, NULL, ICON_NONE);
+}
+
 /* only once called */
 static void node_shader_set_butfunc(bNodeType *ntype)
 {
@@ -1309,6 +1314,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
       break;
     case SH_NODE_TEX_WHITE_NOISE:
       ntype->draw_buttons = node_shader_buts_white_noise;
+      break;
+    case SH_NODE_OUTPUT_AOV:
+      ntype->draw_buttons = node_shader_buts_output_aov;
       break;
   }
 }

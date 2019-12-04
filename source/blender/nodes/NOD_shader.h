@@ -120,6 +120,7 @@ void register_node_type_sh_output_material(void);
 void register_node_type_sh_output_eevee_material(void);
 void register_node_type_sh_output_world(void);
 void register_node_type_sh_output_linestyle(void);
+void register_node_type_sh_output_aov(void);
 
 void register_node_type_sh_tex_image(void);
 void register_node_type_sh_tex_environment(void);

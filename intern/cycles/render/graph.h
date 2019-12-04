@@ -67,6 +67,7 @@ enum ShaderNodeSpecialType {
   SHADER_SPECIAL_TYPE_COMBINE_CLOSURE,
   SHADER_SPECIAL_TYPE_OUTPUT,
   SHADER_SPECIAL_TYPE_BUMP,
+  SHADER_SPECIAL_TYPE_OUTPUT_AOV,
 };
 
 /* Input
@@ -104,6 +105,8 @@ class ShaderInput {
     ((Node *)parent)->set(socket_type, f);
   }
 
+  void disconnect();
+
   const SocketType &socket_type;
   ShaderNode *parent;
   ShaderOutput *link;
@@ -129,6 +132,8 @@ class ShaderOutput {
   {
     return socket_type.type;
   }
+
+  void disconnect();
 
   const SocketType &socket_type;
   ShaderNode *parent;

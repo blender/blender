@@ -918,6 +918,42 @@ class CYCLES_RENDER_PT_passes_debug(CyclesButtonsPanel, Panel):
         layout.prop(cycles_view_layer, "pass_debug_ray_bounces")
 
 
+class CYCLES_RENDER_UL_aov(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        row = layout.row()
+        split = row.split(factor=0.65)
+        icon = 'ERROR' if item.conflict else 'NONE'
+        split.row().prop(item, "name", text="", icon=icon, emboss=False)
+        split.row().prop(item, "type", text="", emboss=False)
+
+
+class CYCLES_RENDER_PT_passes_aov(CyclesButtonsPanel, Panel):
+    bl_label = "Shader AOV"
+    bl_context = "view_layer"
+    bl_parent_id = "CYCLES_RENDER_PT_passes"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        cycles_view_layer = context.view_layer.cycles
+
+        row = layout.row()
+        col = row.column()
+        col.template_list("CYCLES_RENDER_UL_aov", "aovs", cycles_view_layer, "aovs", cycles_view_layer, "active_aov", rows=2)
+
+        col = row.column()
+        sub = col.column(align=True)
+        sub.operator("cycles.add_aov", icon='ADD', text="")
+        sub.operator("cycles.remove_aov", icon='REMOVE', text="")
+
+        if cycles_view_layer.active_aov < len(cycles_view_layer.aovs):
+          active_aov = cycles_view_layer.aovs[cycles_view_layer.active_aov]
+          if active_aov.conflict:
+            layout.label(text=active_aov.conflict, icon='ERROR')
+
+
 class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
     bl_label = "Denoising"
     bl_context = "view_layer"
@@ -2233,6 +2269,8 @@ classes = (
     CYCLES_RENDER_PT_passes_light,
     CYCLES_RENDER_PT_passes_crypto,
     CYCLES_RENDER_PT_passes_debug,
+    CYCLES_RENDER_UL_aov,
+    CYCLES_RENDER_PT_passes_aov,
     CYCLES_RENDER_PT_filter,
     CYCLES_RENDER_PT_override,
     CYCLES_RENDER_PT_denoising,

@@ -225,6 +225,13 @@ Shader::~Shader()
 
 bool Shader::is_constant_emission(float3 *emission)
 {
+  /* If the shader has AOVs, they need to be evaluated, so we can't skip the shader. */
+  foreach (ShaderNode *node, graph->nodes) {
+    if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
+      return false;
+    }
+  }
+
   ShaderInput *surf = graph->output()->input("Surface");
 
   if (surf->link == NULL) {

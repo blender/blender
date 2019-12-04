@@ -150,6 +150,9 @@ typedef enum ShaderNodeType {
   NODE_VERTEX_COLOR,
   NODE_VERTEX_COLOR_BUMP_DX,
   NODE_VERTEX_COLOR_BUMP_DY,
+  NODE_AOV_START,
+  NODE_AOV_VALUE,
+  NODE_AOV_COLOR,
 } ShaderNodeType;
 
 typedef enum NodeAttributeType {

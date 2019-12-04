@@ -5187,6 +5187,19 @@ static void def_sh_tex_ies(StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "bNode", NULL);
 }
 
+static void def_sh_output_aov(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeShaderOutputAOV", "storage");
+
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Name", "Name of the AOV that this output writes to");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  RNA_def_struct_sdna_from(srna, "bNode", NULL);
+}
+
 static void def_sh_script(StructRNA *srna)
 {
   PropertyRNA *prop;

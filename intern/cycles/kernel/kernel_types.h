@@ -222,6 +222,8 @@ typedef enum ShaderEvalType {
   SHADER_EVAL_TRANSMISSION_COLOR,
   SHADER_EVAL_SUBSURFACE_COLOR,
   SHADER_EVAL_EMISSION,
+  SHADER_EVAL_AOV_COLOR,
+  SHADER_EVAL_AOV_VALUE,
 
   /* light passes */
   SHADER_EVAL_AO,
@@ -371,6 +373,8 @@ typedef enum PassType {
 #endif
   PASS_RENDER_TIME,
   PASS_CRYPTOMATTE,
+  PASS_AOV_COLOR,
+  PASS_AOV_VALUE,
   PASS_CATEGORY_MAIN_END = 31,
 
   PASS_MIST = 32,
@@ -1243,6 +1247,11 @@ typedef struct KernelFilm {
   int pass_denoising_data;
   int pass_denoising_clean;
   int denoising_flags;
+
+  int pass_aov_color;
+  int pass_aov_value;
+  int pad1;
+  int pad2;
 
   /* XYZ to rendering color space transform. float4 instead of float3 to
    * ensure consistent padding/alignment across devices. */

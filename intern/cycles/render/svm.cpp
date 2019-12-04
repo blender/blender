@@ -554,6 +554,24 @@ void SVMCompiler::generated_shared_closure_nodes(ShaderNode *root_node,
   }
 }
 
+void SVMCompiler::generate_aov_node(ShaderNode *node, CompilerState *state)
+{
+  /* execute dependencies for node */
+  foreach (ShaderInput *in, node->inputs) {
+    if (in->link != NULL) {
+      ShaderNodeSet dependencies;
+      find_dependencies(dependencies, state->nodes_done, in);
+      generate_svm_nodes(dependencies, state);
+    }
+  }
+
+  /* compile node itself */
+  generate_node(node, state->nodes_done);
+
+  state->nodes_done.insert(node);
+  state->nodes_done_flag[node->id] = true;
+}
+
 void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
                                          ShaderNode *node,
                                          CompilerState *state)
@@ -703,21 +721,21 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
   current_graph = graph;
 
   /* get input in output node */
-  ShaderNode *node = graph->output();
+  ShaderNode *output = graph->output();
   ShaderInput *clin = NULL;
 
   switch (type) {
     case SHADER_TYPE_SURFACE:
-      clin = node->input("Surface");
+      clin = output->input("Surface");
       break;
     case SHADER_TYPE_VOLUME:
-      clin = node->input("Volume");
+      clin = output->input("Volume");
       break;
     case SHADER_TYPE_DISPLACEMENT:
-      clin = node->input("Displacement");
+      clin = output->input("Displacement");
       break;
     case SHADER_TYPE_BUMP:
-      clin = node->input("Normal");
+      clin = output->input("Normal");
       break;
     default:
       assert(0);
@@ -728,10 +746,10 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
   memset((void *)&active_stack, 0, sizeof(active_stack));
   current_svm_nodes.clear();
 
-  foreach (ShaderNode *node_iter, graph->nodes) {
-    foreach (ShaderInput *input, node_iter->inputs)
+  foreach (ShaderNode *node, graph->nodes) {
+    foreach (ShaderInput *input, node->inputs)
       input->stack_offset = SVM_STACK_INVALID;
-    foreach (ShaderOutput *output, node_iter->outputs)
+    foreach (ShaderOutput *output, node->outputs)
       output->stack_offset = SVM_STACK_INVALID;
   }
 
@@ -745,6 +763,7 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
   }
 
   if (shader->used) {
+    CompilerState state(graph);
     if (clin->link) {
       bool generate = false;
 
@@ -769,13 +788,36 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
       }
 
       if (generate) {
-        CompilerState state(graph);
         generate_multi_closure(clin->link->parent, clin->link->parent, &state);
       }
     }
 
     /* compile output node */
-    node->compile(*this);
+    output->compile(*this);
+
+    if (type == SHADER_TYPE_SURFACE) {
+      vector<OutputAOVNode *> aov_outputs;
+      foreach (ShaderNode *node, graph->nodes) {
+        if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
+          OutputAOVNode *aov_node = static_cast<OutputAOVNode *>(node);
+          if (aov_node->slot >= 0) {
+            aov_outputs.push_back(aov_node);
+          }
+        }
+      }
+      if (aov_outputs.size() > 0) {
+        /* AOV passes are only written if the object is directly visible, so
+         * there is no point in evaluating all the nodes generated only for the
+         * AOV outputs if that's not the case. Therefore, we insert
+         * NODE_AOV_START into the shader before the AOV-only nodes are
+         * generated which tells the kernel that it can stop evaluation
+         * early if AOVs will not be written. */
+        add_node(NODE_AOV_START, 0, 0, 0);
+        foreach (OutputAOVNode *node, aov_outputs) {
+          generate_aov_node(node, &state);
+        }
+      }
+    }
   }
 
   /* add node to restore state after bump shader has finished */

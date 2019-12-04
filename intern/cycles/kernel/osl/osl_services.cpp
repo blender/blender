@@ -44,6 +44,7 @@
 #include "kernel/kernel_globals.h"
 #include "kernel/kernel_color.h"
 #include "kernel/kernel_random.h"
+#include "kernel/kernel_write_passes.h"
 #include "kernel/kernel_projection.h"
 #include "kernel/kernel_differential.h"
 #include "kernel/kernel_montecarlo.h"

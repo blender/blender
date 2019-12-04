@@ -129,6 +129,7 @@ set(SRC_HEADERS
   kernel_types.h
   kernel_volume.h
   kernel_work_stealing.h
+  kernel_write_passes.h
 )
 
 set(SRC_KERNELS_CPU_HEADERS
@@ -182,6 +183,7 @@ set(SRC_CLOSURE_HEADERS
 set(SRC_SVM_HEADERS
   svm/svm.h
   svm/svm_ao.h
+  svm/svm_aov.h
   svm/svm_attribute.h
   svm/svm_bevel.h
   svm/svm_blackbody.h

@@ -1010,6 +1010,10 @@ typedef struct NodeShaderTexIES {
   char filepath[1024];
 } NodeShaderTexIES;
 
+typedef struct NodeShaderOutputAOV {
+  char name[64];
+} NodeShaderOutputAOV;
+
 typedef struct NodeSunBeams {
   float source[2];
 

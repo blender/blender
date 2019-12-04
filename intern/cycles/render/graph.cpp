@@ -55,6 +55,25 @@ bool check_node_inputs_traversed(const ShaderNode *node, const ShaderNodeSet &do
 
 } /* namespace */
 
+/* Sockets */
+
+void ShaderInput::disconnect()
+{
+  if (link) {
+    link->links.erase(remove(link->links.begin(), link->links.end(), this), link->links.end());
+  }
+  link = NULL;
+}
+
+void ShaderOutput::disconnect()
+{
+  foreach (ShaderInput *sock, links) {
+    sock->link = NULL;
+  }
+
+  links.clear();
+}
+
 /* Node */
 
 ShaderNode::ShaderNode(const NodeType *type) : Node(type)
@@ -285,11 +304,7 @@ void ShaderGraph::disconnect(ShaderOutput *from)
   assert(!finalized);
   simplified = false;
 
-  foreach (ShaderInput *sock, from->links) {
-    sock->link = NULL;
-  }
-
-  from->links.clear();
+  from->disconnect();
 }
 
 void ShaderGraph::disconnect(ShaderInput *to)
@@ -298,10 +313,7 @@ void ShaderGraph::disconnect(ShaderInput *to)
   assert(to->link);
   simplified = false;
 
-  ShaderOutput *from = to->link;
-
-  to->link = NULL;
-  from->links.erase(remove(from->links.begin(), from->links.end(), to), from->links.end());
+  to->disconnect();
 }
 
 void ShaderGraph::relink(ShaderInput *from, ShaderInput *to)
@@ -782,6 +794,11 @@ void ShaderGraph::clean(Scene *scene)
 
   /* break cycles */
   break_cycles(output(), visited, on_stack);
+  foreach (ShaderNode *node, nodes) {
+    if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
+      break_cycles(node, visited, on_stack);
+    }
+  }
 
   /* disconnect unused nodes */
   foreach (ShaderNode *node, nodes) {

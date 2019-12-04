@@ -189,6 +189,26 @@ class OutputNode : public ShaderNode {
   }
 };
 
+class OutputAOVNode : public ShaderNode {
+ public:
+  SHADER_NODE_CLASS(OutputAOVNode)
+  virtual void simplify_settings(Scene *scene);
+
+  float value;
+  float3 color;
+
+  ustring name;
+
+  /* Don't allow output node de-duplication. */
+  virtual bool equals(const ShaderNode & /*other*/)
+  {
+    return false;
+  }
+
+  int slot;
+  bool is_color;
+};
+
 class GradientTextureNode : public TextureNode {
  public:
   SHADER_NODE_CLASS(GradientTextureNode)

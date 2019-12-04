@@ -5709,6 +5709,58 @@ void ClampNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_clamp");
 }
 
+/* AOV Output */
+
+NODE_DEFINE(OutputAOVNode)
+{
+  NodeType *type = NodeType::add("aov_output", create, NodeType::SHADER);
+
+  SOCKET_IN_COLOR(color, "Color", make_float3(0.0f, 0.0f, 0.0f));
+  SOCKET_IN_FLOAT(value, "Value", 0.0f);
+
+  SOCKET_STRING(name, "AOV Name", ustring(""));
+
+  return type;
+}
+
+OutputAOVNode::OutputAOVNode() : ShaderNode(node_type)
+{
+  special_type = SHADER_SPECIAL_TYPE_OUTPUT_AOV;
+  slot = -1;
+}
+
+void OutputAOVNode::simplify_settings(Scene *scene)
+{
+  slot = scene->film->get_aov_offset(name.string(), is_color);
+  if (slot == -1) {
+    slot = scene->film->get_aov_offset(name.string(), is_color);
+  }
+
+  if (slot == -1 || is_color) {
+    input("Value")->disconnect();
+  }
+  if (slot == -1 || !is_color) {
+    input("Color")->disconnect();
+  }
+}
+
+void OutputAOVNode::compile(SVMCompiler &compiler)
+{
+  assert(slot >= 0);
+
+  if (is_color) {
+    compiler.add_node(NODE_AOV_COLOR, compiler.stack_assign(input("Color")), slot);
+  }
+  else {
+    compiler.add_node(NODE_AOV_VALUE, compiler.stack_assign(input("Value")), slot);
+  }
+}
+
+void OutputAOVNode::compile(OSLCompiler & /*compiler*/)
+{
+  /* TODO */
+}
+
 /* Math */
 
 NODE_DEFINE(MathNode)

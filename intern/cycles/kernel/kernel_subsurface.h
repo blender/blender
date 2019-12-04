@@ -138,7 +138,7 @@ ccl_device void subsurface_color_bump_blur(
 
   if (bump || texture_blur > 0.0f) {
     /* average color and normal at incoming point */
-    shader_eval_surface(kg, sd, state, state->flag);
+    shader_eval_surface(kg, sd, state, NULL, state->flag);
     float3 in_color = shader_bssrdf_sum(sd, (bump) ? N : NULL, NULL);
 
     /* we simply divide out the average color and multiply with the average

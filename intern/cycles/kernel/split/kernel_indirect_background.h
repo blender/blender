@@ -58,8 +58,10 @@ ccl_device void kernel_indirect_background(KernelGlobals *kg)
     ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
     float3 throughput = kernel_split_state.throughput[ray_index];
     ShaderData *sd = kernel_split_sd(sd, ray_index);
+    uint buffer_offset = kernel_split_state.buffer_offset[ray_index];
+    ccl_global float *buffer = kernel_split_params.tile.buffer + buffer_offset;
 
-    kernel_path_background(kg, state, ray, throughput, sd, L);
+    kernel_path_background(kg, state, ray, throughput, sd, buffer, L);
     kernel_split_path_end(kg, ray_index);
   }
 }

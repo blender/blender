@@ -531,7 +531,7 @@ vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLa
     if (pass_type == PASS_MOTION && scene->integrator->motion_blur)
       continue;
     if (pass_type != PASS_NONE)
-      Pass::add(pass_type, passes);
+      Pass::add(pass_type, passes, b_pass.name().c_str());
   }
 
   PointerRNA crp = RNA_pointer_get(&b_view_layer.ptr, "cycles");
@@ -570,32 +570,32 @@ vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLa
 #ifdef __KERNEL_DEBUG__
   if (get_boolean(crp, "pass_debug_bvh_traversed_nodes")) {
     b_engine.add_pass("Debug BVH Traversed Nodes", 1, "X", b_view_layer.name().c_str());
-    Pass::add(PASS_BVH_TRAVERSED_NODES, passes);
+    Pass::add(PASS_BVH_TRAVERSED_NODES, passes, "Debug BVH Traversed Nodes");
   }
   if (get_boolean(crp, "pass_debug_bvh_traversed_instances")) {
     b_engine.add_pass("Debug BVH Traversed Instances", 1, "X", b_view_layer.name().c_str());
-    Pass::add(PASS_BVH_TRAVERSED_INSTANCES, passes);
+    Pass::add(PASS_BVH_TRAVERSED_INSTANCES, passes, "Debug BVH Traversed Instances");
   }
   if (get_boolean(crp, "pass_debug_bvh_intersections")) {
     b_engine.add_pass("Debug BVH Intersections", 1, "X", b_view_layer.name().c_str());
-    Pass::add(PASS_BVH_INTERSECTIONS, passes);
+    Pass::add(PASS_BVH_INTERSECTIONS, passes, "Debug BVH Intersections");
   }
   if (get_boolean(crp, "pass_debug_ray_bounces")) {
     b_engine.add_pass("Debug Ray Bounces", 1, "X", b_view_layer.name().c_str());
-    Pass::add(PASS_RAY_BOUNCES, passes);
+    Pass::add(PASS_RAY_BOUNCES, passes, "Debug Ray Bounces");
   }
 #endif
   if (get_boolean(crp, "pass_debug_render_time")) {
     b_engine.add_pass("Debug Render Time", 1, "X", b_view_layer.name().c_str());
-    Pass::add(PASS_RENDER_TIME, passes);
+    Pass::add(PASS_RENDER_TIME, passes, "Debug Render Time");
   }
   if (get_boolean(crp, "use_pass_volume_direct")) {
     b_engine.add_pass("VolumeDir", 3, "RGB", b_view_layer.name().c_str());
-    Pass::add(PASS_VOLUME_DIRECT, passes);
+    Pass::add(PASS_VOLUME_DIRECT, passes, "VolumeDir");
   }
   if (get_boolean(crp, "use_pass_volume_indirect")) {
     b_engine.add_pass("VolumeInd", 3, "RGB", b_view_layer.name().c_str());
-    Pass::add(PASS_VOLUME_INDIRECT, passes);
+    Pass::add(PASS_VOLUME_INDIRECT, passes, "VolumeInd");
   }
 
   /* Cryptomatte stores two ID/weight pairs per RGBA layer.
@@ -634,6 +634,21 @@ vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLa
     scene->film->cryptomatte_passes = (CryptomatteType)(scene->film->cryptomatte_passes |
                                                         CRYPT_ACCURATE);
   }
+
+  RNA_BEGIN (&crp, b_aov, "aovs") {
+    bool is_color = (get_enum(b_aov, "type") == 1);
+    string name = get_string(b_aov, "name");
+
+    if (is_color) {
+      b_engine.add_pass(name.c_str(), 4, "RGBA", b_view_layer.name().c_str());
+      Pass::add(PASS_AOV_COLOR, passes, name.c_str());
+    }
+    else {
+      b_engine.add_pass(name.c_str(), 1, "X", b_view_layer.name().c_str());
+      Pass::add(PASS_AOV_VALUE, passes, name.c_str());
+    }
+  }
+  RNA_END;
 
   return passes;
 }

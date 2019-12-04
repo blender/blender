@@ -73,7 +73,7 @@ ccl_device_noinline_cpu float3 direct_emissive_eval(KernelGlobals *kg,
     /* No proper path flag, we're evaluating this for all closures. that's
      * weak but we'd have to do multiple evaluations otherwise. */
     path_state_modify_bounce(state, true);
-    shader_eval_surface(kg, emission_sd, state, PATH_RAY_EMISSION);
+    shader_eval_surface(kg, emission_sd, state, NULL, PATH_RAY_EMISSION);
     path_state_modify_bounce(state, false);
 
     /* Evaluate closures. */
@@ -294,6 +294,7 @@ ccl_device_noinline_cpu bool indirect_lamp_emission(KernelGlobals *kg,
 ccl_device_noinline_cpu float3 indirect_background(KernelGlobals *kg,
                                                    ShaderData *emission_sd,
                                                    ccl_addr_space PathState *state,
+                                                   ccl_global float *buffer,
                                                    ccl_addr_space Ray *ray)
 {
 #ifdef __BACKGROUND__
@@ -322,7 +323,7 @@ ccl_device_noinline_cpu float3 indirect_background(KernelGlobals *kg,
 #  endif
 
     path_state_modify_bounce(state, true);
-    shader_eval_surface(kg, emission_sd, state, state->flag | PATH_RAY_EMISSION);
+    shader_eval_surface(kg, emission_sd, state, buffer, state->flag | PATH_RAY_EMISSION);
     path_state_modify_bounce(state, false);
 
     L = shader_background_eval(emission_sd);

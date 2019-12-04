@@ -234,7 +234,7 @@ bool RenderBuffers::get_denoising_pass_rect(
 }
 
 bool RenderBuffers::get_pass_rect(
-    PassType type, float exposure, int sample, int components, float *pixels, const string &name)
+    const string &name, float exposure, int sample, int components, float *pixels)
 {
   if (buffer.data() == NULL) {
     return false;
@@ -245,18 +245,14 @@ bool RenderBuffers::get_pass_rect(
   for (size_t j = 0; j < params.passes.size(); j++) {
     Pass &pass = params.passes[j];
 
-    if (pass.type != type) {
+    /* Pass is identified by both type and name, multiple of the same type
+     * may exist with a different name. */
+    if (pass.name != name) {
       pass_offset += pass.components;
       continue;
     }
 
-    /* Tell Cryptomatte passes apart by their name. */
-    if (pass.type == PASS_CRYPTOMATTE) {
-      if (pass.name != name) {
-        pass_offset += pass.components;
-        continue;
-      }
-    }
+    PassType type = pass.type;
 
     float *in = buffer.data() + pass_offset;
     int pass_stride = params.get_passes_size();
