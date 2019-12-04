@@ -113,8 +113,9 @@ typedef struct ClothVertex {
   float struct_stiff;
   float bend_stiff;
   float shear_stiff;
-  int spring_count;    /* how many springs attached? */
-  float shrink_factor; /* how much to shrink this cloth */
+  int spring_count;      /* how many springs attached? */
+  float shrink_factor;   /* how much to shrink this cloth */
+  float pressure_factor; /* how much pressure should affect this vertex */
 } ClothVertex;
 
 /**

@@ -93,9 +93,11 @@ typedef struct ClothSimSettings {
   float collider_friction;
   /** Damp the velocity to speed up getting to the resting position. */
   float vel_damping DNA_DEPRECATED;
-  /** Min amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing). */
+  /** Min amount to shrink cloth by 0.0f (no shrink), 1.0f (shrink to nothing), -1.0f (double the
+   * edge length). */
   float shrink_min;
-  /** Max amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing). */
+  /** Max amount to shrink cloth by 0.0f (no shrink), 1.0f (shrink to nothing), -1.0f (double the
+   * edge length). */
   float shrink_max;
 
   /* Air pressure */
@@ -107,7 +109,8 @@ typedef struct ClothSimSettings {
      pressure=( (current_volume/target_volume) - 1 + uniform_pressure_force) *
      pressure_factor */
   float pressure_factor;
-  char _pad7[4];
+  short vgroup_pressure;
+  char _pad7[2];
 
   /* XXX various hair stuff
    * should really be separate, this struct is a horrible mess already

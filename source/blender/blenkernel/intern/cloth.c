@@ -134,6 +134,7 @@ void cloth_init(ClothModifierData *clmd)
   clmd->sim_parms->uniform_pressure_force = 0.0f;
   clmd->sim_parms->target_volume = 0.0f;
   clmd->sim_parms->pressure_factor = 1.0f;
+  clmd->sim_parms->vgroup_pressure = 0;
 
   // also from softbodies
   clmd->sim_parms->maxgoal = 1.0f;
@@ -651,8 +652,9 @@ int cloth_uses_vgroup(ClothModifierData *clmd)
 {
   return (((clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF) &&
            (clmd->coll_parms->vgroup_selfcol > 0)) ||
-          (clmd->sim_parms->vgroup_struct > 0) || (clmd->sim_parms->vgroup_bend > 0) ||
-          (clmd->sim_parms->vgroup_shrink > 0) || (clmd->sim_parms->vgroup_mass > 0));
+          (clmd->sim_parms->vgroup_pressure > 0) || (clmd->sim_parms->vgroup_struct > 0) ||
+          (clmd->sim_parms->vgroup_bend > 0) || (clmd->sim_parms->vgroup_shrink > 0) ||
+          (clmd->sim_parms->vgroup_mass > 0));
 }
 
 /**
@@ -660,27 +662,16 @@ int cloth_uses_vgroup(ClothModifierData *clmd)
  */
 static void cloth_apply_vgroup(ClothModifierData *clmd, Mesh *mesh)
 {
-  /* Can be optimized to do all groups in one loop. */
-  int i = 0;
-  int j = 0;
-  MDeformVert *dvert = NULL;
-  Cloth *clothObj = NULL;
-  int mvert_num;
-  /* float goalfac = 0; */ /* UNUSED */
-  ClothVertex *verts = NULL;
-
   if (!clmd || !mesh) {
     return;
   }
 
-  clothObj = clmd->clothObject;
+  int mvert_num = mesh->totvert;
 
-  mvert_num = mesh->totvert;
-
-  verts = clothObj->verts;
+  ClothVertex *verts = clmd->clothObject->verts;
 
   if (cloth_uses_vgroup(clmd)) {
-    for (i = 0; i < mvert_num; i++, verts++) {
+    for (int i = 0; i < mvert_num; i++, verts++) {
 
       /* Reset Goal values to standard */
       if (clmd->sim_parms->vgroup_mass > 0) {
@@ -697,9 +688,9 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, Mesh *mesh)
       verts->flags &= ~CLOTH_VERT_FLAG_PINNED;
       verts->flags &= ~CLOTH_VERT_FLAG_NOSELFCOLL;
 
-      dvert = CustomData_get(&mesh->vdata, i, CD_MDEFORMVERT);
+      MDeformVert *dvert = CustomData_get(&mesh->vdata, i, CD_MDEFORMVERT);
       if (dvert) {
-        for (j = 0; j < dvert->totweight; j++) {
+        for (int j = 0; j < dvert->totweight; j++) {
           if (dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_mass - 1)) {
             verts->goal = dvert->dw[j].weight;
 
@@ -726,19 +717,21 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, Mesh *mesh)
             verts->bend_stiff = dvert->dw[j].weight;
           }
 
-          if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF) {
-            if (dvert->dw[j].def_nr == (clmd->coll_parms->vgroup_selfcol - 1)) {
-              if (dvert->dw[j].weight > 0.0f) {
-                verts->flags |= CLOTH_VERT_FLAG_NOSELFCOLL;
-              }
+          if (dvert->dw[j].def_nr == (clmd->coll_parms->vgroup_selfcol - 1)) {
+            if (dvert->dw[j].weight > 0.0f) {
+              verts->flags |= CLOTH_VERT_FLAG_NOSELFCOLL;
             }
           }
-          if (clmd->sim_parms->vgroup_shrink > 0) {
-            if (dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_shrink - 1)) {
-              /* Used for linear interpolation between min and max
-               * shrink factor based on weight. */
-              verts->shrink_factor = dvert->dw[j].weight;
-            }
+
+          if (dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_shrink - 1)) {
+            /* Used for linear interpolation between min and max
+             * shrink factor based on weight. */
+            verts->shrink_factor = dvert->dw[j].weight;
+          }
+
+          if (dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_pressure - 1)) {
+            /* Used to define how much the pressure settings should affect the given vertex */
+            verts->pressure_factor = dvert->dw[j].weight;
           }
         }
       }
@@ -750,10 +743,10 @@ static float cloth_shrink_factor(ClothModifierData *clmd, ClothVertex *verts, in
 {
   /* Linear interpolation between min and max shrink factor based on weight. */
   float base = 1.0f - clmd->sim_parms->shrink_min;
-  float delta = clmd->sim_parms->shrink_min - clmd->sim_parms->shrink_max;
+  float shrink_factor_delta = clmd->sim_parms->shrink_min - clmd->sim_parms->shrink_max;
 
-  float k1 = base + delta * verts[i1].shrink_factor;
-  float k2 = base + delta * verts[i2].shrink_factor;
+  float k1 = base + shrink_factor_delta * verts[i1].shrink_factor;
+  float k2 = base + shrink_factor_delta * verts[i2].shrink_factor;
 
   /* Use geometrical mean to average two factors since it behaves better
    * for diagonals when a rectangle transforms into a trapezoid. */

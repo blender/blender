@@ -178,6 +178,7 @@ class PHYSICS_PT_cloth_pressure(PhysicButtonsPanel, Panel):
 
         cloth = context.cloth.settings
         md = context.cloth
+        ob = context.object
 
         layout.active = cloth.use_pressure and cloth_panel_enabled(md)
 
@@ -195,6 +196,9 @@ class PHYSICS_PT_cloth_pressure(PhysicButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(cloth, "pressure_factor", text="Factor")
+
+        col = flow.column()
+        col.prop_search(cloth, "vertex_group_pressure", ob, "vertex_groups", text="Vertex Group")
 
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):

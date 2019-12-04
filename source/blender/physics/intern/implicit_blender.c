@@ -1489,7 +1489,7 @@ float BPH_tri_tetra_volume_signed_6x(Implicit_Data *data, int v1, int v2, int v3
 }
 
 void BPH_mass_spring_force_pressure(
-    Implicit_Data *data, int v1, int v2, int v3, float pressure_difference)
+    Implicit_Data *data, int v1, int v2, int v3, float pressure_difference, float weights[3])
 {
   float nor[3], area;
   float factor;
@@ -1500,9 +1500,9 @@ void BPH_mass_spring_force_pressure(
   factor = pressure_difference * area / 3.0f;
 
   /* add pressure to each of the face verts */
-  madd_v3_v3fl(data->F[v1], nor, factor);
-  madd_v3_v3fl(data->F[v2], nor, factor);
-  madd_v3_v3fl(data->F[v3], nor, factor);
+  madd_v3_v3fl(data->F[v1], nor, factor * weights[0]);
+  madd_v3_v3fl(data->F[v2], nor, factor * weights[1]);
+  madd_v3_v3fl(data->F[v3], nor, factor * weights[2]);
 }
 
 static void edge_wind_vertex(const float dir[3],
