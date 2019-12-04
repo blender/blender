@@ -166,6 +166,8 @@ typedef struct OVERLAY_ExtraCallBuffers {
   DRWCallBuffer *probe_cube;
   DRWCallBuffer *probe_grid;
 
+  DRWCallBuffer *solid_quad;
+
   DRWCallBuffer *speaker;
 
   DRWShadingGroup *extra_wire;

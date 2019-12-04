@@ -143,6 +143,7 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
       cb->probe_cube = BUF_INSTANCE(grp_sub, format, DRW_cache_lightprobe_planar_get());
       cb->probe_grid = BUF_INSTANCE(grp_sub, format, DRW_cache_lightprobe_grid_get());
       cb->probe_planar = BUF_INSTANCE(grp_sub, format, DRW_cache_lightprobe_planar_get());
+      cb->solid_quad = BUF_INSTANCE(grp_sub, format, DRW_cache_quad_get());
       cb->speaker = BUF_INSTANCE(grp_sub, format, DRW_cache_speaker_get());
 
       grp_sub = DRW_shgroup_create_sub(grp);
@@ -758,6 +759,10 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
       break;
     case LIGHTPROBE_TYPE_PLANAR:
       DRW_buffer_add_entry(cb->probe_planar, color_p, &instdata);
+
+      if (DRW_state_is_select() && (prb->flag & LIGHTPROBE_FLAG_SHOW_DATA)) {
+        DRW_buffer_add_entry(cb->solid_quad, color_p, &instdata);
+      }
 
       if (show_influence) {
         normalize_v3_length(instdata.mat[2], prb->distinf);
