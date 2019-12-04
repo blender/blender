@@ -147,9 +147,11 @@ void OVERLAY_armature_cache_init(OVERLAY_Data *vedata)
   OVERLAY_PrivateData *pd = vedata->stl->pd;
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
+  const bool is_select_mode = DRW_state_is_select();
   pd->armature.transparent = (draw_ctx->v3d->shading.type == OB_WIRE) ||
                              XRAY_FLAG_ENABLED(draw_ctx->v3d);
-  pd->armature.show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
+  pd->armature.show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0) &&
+                                !is_select_mode;
   pd->armature.do_pose_fade_geom = (pd->overlay.flag & V3D_OVERLAY_BONE_SELECT) &&
                                    ((draw_ctx->object_mode & OB_MODE_WEIGHT_PAINT) == 0) &&
                                    draw_ctx->object_pose != NULL;
@@ -2159,6 +2161,7 @@ static void armature_context_setup(ArmatureDrawContext *ctx,
                                    OVERLAY_PrivateData *pd,
                                    Object *ob,
                                    const bool do_envelope_dist,
+                                   const bool is_edit_mode,
                                    const bool is_pose_mode,
                                    float *const_color)
 {
@@ -2203,6 +2206,8 @@ static void armature_context_setup(ArmatureDrawContext *ctx,
   ctx->custom_shapes_ghash = cb->custom_shapes_ghash;
   ctx->transparent = pd->armature.transparent;
   ctx->show_relations = pd->armature.show_relations;
+  ctx->do_relations = !DRW_state_is_select() && pd->armature.show_relations &&
+                      (is_edit_mode | is_pose_mode);
   ctx->const_color = DRW_state_is_select() ? select_const_color : const_color;
   ctx->const_wire = (((ob->base_flag & BASE_SELECTED) || (arm->drawtype == ARM_WIRE)) ?
                          1.5f :
@@ -2235,7 +2240,7 @@ void OVERLAY_edit_armature_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   ArmatureDrawContext arm_ctx;
-  armature_context_setup(&arm_ctx, pd, ob, true, false, NULL);
+  armature_context_setup(&arm_ctx, pd, ob, true, true, false, NULL);
   draw_armature_edit(&arm_ctx);
 }
 
@@ -2243,7 +2248,7 @@ void OVERLAY_pose_armature_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   ArmatureDrawContext arm_ctx;
-  armature_context_setup(&arm_ctx, pd, ob, true, true, NULL);
+  armature_context_setup(&arm_ctx, pd, ob, true, false, true, NULL);
   draw_armature_pose(&arm_ctx);
 }
 
@@ -2254,7 +2259,7 @@ void OVERLAY_armature_cache_populate(OVERLAY_Data *vedata, Object *ob)
   ArmatureDrawContext arm_ctx;
   float *color;
   DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
-  armature_context_setup(&arm_ctx, pd, ob, false, false, color);
+  armature_context_setup(&arm_ctx, pd, ob, false, false, false, color);
   draw_armature_pose(&arm_ctx);
 }
 
