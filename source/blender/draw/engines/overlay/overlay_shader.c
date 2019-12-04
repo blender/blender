@@ -65,6 +65,7 @@ extern char datatoc_edit_particle_point_vert_glsl[];
 extern char datatoc_extra_frag_glsl[];
 extern char datatoc_extra_vert_glsl[];
 extern char datatoc_extra_groundline_vert_glsl[];
+extern char datatoc_extra_lightprobe_grid_vert_glsl[];
 extern char datatoc_extra_loose_point_vert_glsl[];
 extern char datatoc_extra_loose_point_frag_glsl[];
 extern char datatoc_extra_point_vert_glsl[];
@@ -83,7 +84,6 @@ extern char datatoc_outline_detect_frag_glsl[];
 extern char datatoc_outline_prepass_frag_glsl[];
 extern char datatoc_outline_prepass_geom_glsl[];
 extern char datatoc_outline_prepass_vert_glsl[];
-extern char datatoc_outline_lightprobe_grid_vert_glsl[];
 extern char datatoc_paint_face_vert_glsl[];
 extern char datatoc_paint_point_vert_glsl[];
 extern char datatoc_paint_texture_frag_glsl[];
@@ -148,6 +148,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *extra_groundline;
   GPUShader *extra_wire[2];
   GPUShader *extra_point;
+  GPUShader *extra_lightprobe_grid;
   GPUShader *extra_loose_point;
   GPUShader *facing;
   GPUShader *grid;
@@ -156,7 +157,6 @@ typedef struct OVERLAY_Shaders {
   GPUShader *motion_path_vert;
   GPUShader *outline_prepass;
   GPUShader *outline_prepass_wire;
-  GPUShader *outline_prepass_lightprobe_grid;
   GPUShader *outline_detect;
   GPUShader *paint_face;
   GPUShader *paint_point;
@@ -688,6 +688,26 @@ GPUShader *OVERLAY_shader_extra(void)
   return sh_data->extra;
 }
 
+GPUShader *OVERLAY_shader_extra_grid(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->extra_lightprobe_grid) {
+    sh_data->extra_lightprobe_grid = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){sh_cfg->lib,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_common_globals_lib_glsl,
+                                 datatoc_gpu_shader_common_obinfos_lib_glsl,
+                                 datatoc_extra_lightprobe_grid_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_gpu_shader_point_varying_color_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg->def, NULL},
+    });
+  }
+  return sh_data->extra_lightprobe_grid;
+}
+
 GPUShader *OVERLAY_shader_extra_groundline(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -916,26 +936,6 @@ GPUShader *OVERLAY_shader_outline_prepass(bool use_wire)
     });
   }
   return use_wire ? sh_data->outline_prepass_wire : sh_data->outline_prepass;
-}
-
-GPUShader *OVERLAY_shader_outline_prepass_grid(void)
-{
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
-  if (!sh_data->outline_prepass_lightprobe_grid) {
-    sh_data->outline_prepass_lightprobe_grid = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_gpu_shader_common_obinfos_lib_glsl,
-                                 datatoc_outline_lightprobe_grid_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_outline_prepass_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
-  }
-  return sh_data->outline_prepass_lightprobe_grid;
 }
 
 GPUShader *OVERLAY_shader_outline_detect(void)

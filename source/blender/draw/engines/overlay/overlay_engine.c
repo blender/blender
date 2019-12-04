@@ -196,10 +196,9 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   const bool draw_bones = (pd->overlay.flag & V3D_OVERLAY_HIDE_BONES) == 0;
   const bool draw_wires = draw_surface && has_surface &&
                           (pd->wireframe_mode || !pd->hide_overlays);
-  const bool draw_outlines = !in_edit_mode && !in_paint_mode && renderable &&
+  const bool draw_outlines = !in_edit_mode && !in_paint_mode && renderable && has_surface &&
                              (pd->v3d_flag & V3D_SELECT_OUTLINE) &&
-                             ((ob->base_flag & BASE_SELECTED) ||
-                              (is_select && ob->type == OB_LIGHTPROBE));
+                             (ob->base_flag & BASE_SELECTED);
   const bool draw_bone_selection = (ob->type == OB_MESH) && pd->armature.do_pose_fade_geom &&
                                    !is_select;
   const bool draw_extras =

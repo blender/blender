@@ -67,6 +67,9 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
+  /* Small texture which will have very small impact on rendertime. */
+  DRW_texture_ensure_2d(&txl->dummy_depth_tx, 1, 1, GPU_DEPTH_COMPONENT24, 0);
+
   if (!DRW_state_is_fbo()) {
     /* Use default view */
     pd->view_default = (DRWView *)DRW_view_default_get();

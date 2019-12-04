@@ -39,16 +39,10 @@
 
 void OVERLAY_edit_mesh_init(OVERLAY_Data *vedata)
 {
-  OVERLAY_TextureList *txl = vedata->txl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
 
   pd->edit_mesh.do_zbufclip = XRAY_FLAG_ENABLED(draw_ctx->v3d);
-
-  if (!pd->edit_mesh.do_zbufclip) {
-    /* Small texture which will have very small impact on rendertime. */
-    DRW_texture_ensure_2d(&txl->dummy_depth_tx, 1, 1, GPU_DEPTH_COMPONENT24, 0);
-  }
 
   /* Create view with depth offset */
   DRWView *default_view = (DRWView *)DRW_view_default_get();

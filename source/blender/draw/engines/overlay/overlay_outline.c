@@ -75,14 +75,9 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
     DRW_PASS_CREATE(psl->outlines_prepass_ps, state | pd->clipping_state);
 
-    GPUShader *sh_grid = OVERLAY_shader_outline_prepass_grid();
     GPUShader *sh_geom = OVERLAY_shader_outline_prepass(pd->xray_enabled_and_not_wire);
 
     pd->outlines_grp = grp = DRW_shgroup_create(sh_geom, psl->outlines_prepass_ps);
-    DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
-
-    pd->outlines_grid_grp = grp = DRW_shgroup_create(sh_grid, psl->outlines_prepass_ps);
-    DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
   }
 
@@ -111,51 +106,6 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
   }
 }
 
-static void outline_lightprobe(OVERLAY_PrivateData *pd, Object *ob, ViewLayer *view_layer)
-{
-  DRWShadingGroup *grp;
-  LightProbe *prb = (LightProbe *)ob->data;
-  int theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
-
-  if (prb->type == LIGHTPROBE_TYPE_GRID) {
-    float corner[3];
-    float increment[3][3];
-    /* Update transforms */
-    float cell_dim[3], half_cell_dim[3];
-    cell_dim[0] = 2.0f / (float)(prb->grid_resolution_x);
-    cell_dim[1] = 2.0f / (float)(prb->grid_resolution_y);
-    cell_dim[2] = 2.0f / (float)(prb->grid_resolution_z);
-
-    mul_v3_v3fl(half_cell_dim, cell_dim, 0.5f);
-
-    /* First cell. */
-    copy_v3_fl(corner, -1.0f);
-    add_v3_v3(corner, half_cell_dim);
-    mul_m4_v3(ob->obmat, corner);
-
-    /* Opposite neighbor cell. */
-    copy_v3_fl3(increment[0], cell_dim[0], 0.0f, 0.0f);
-    copy_v3_fl3(increment[1], 0.0f, cell_dim[1], 0.0f);
-    copy_v3_fl3(increment[2], 0.0f, 0.0f, cell_dim[2]);
-
-    for (int i = 0; i < 3; i++) {
-      add_v3_v3(increment[i], half_cell_dim);
-      add_v3_fl(increment[i], -1.0f);
-      mul_m4_v3(ob->obmat, increment[i]);
-      sub_v3_v3(increment[i], corner);
-    }
-
-    uint cell_count = prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z;
-    grp = DRW_shgroup_create_sub(pd->outlines_grid_grp);
-    DRW_shgroup_uniform_vec3_copy(grp, "corner", corner);
-    DRW_shgroup_uniform_vec3_copy(grp, "increment_x", increment[0]);
-    DRW_shgroup_uniform_vec3_copy(grp, "increment_y", increment[1]);
-    DRW_shgroup_uniform_vec3_copy(grp, "increment_z", increment[2]);
-    DRW_shgroup_uniform_ivec3_copy(grp, "grid_resolution", &prb->grid_resolution_x);
-    DRW_shgroup_call_procedural_points(grp, NULL, cell_count);
-  }
-}
-
 void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
                                     Object *ob,
                                     OVERLAY_DupliData *dupli,
@@ -169,11 +119,6 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
 
   /* Early exit: outlines of bounding boxes are not drawn. */
   if (!draw_outline) {
-    return;
-  }
-
-  if (ob->type == OB_LIGHTPROBE) {
-    outline_lightprobe(pd, ob, draw_ctx->view_layer);
     return;
   }
 
@@ -232,9 +177,5 @@ void OVERLAY_outline_draw(OVERLAY_Data *vedata)
     DRW_draw_pass(psl->outlines_detect_ps);
 
     DRW_stats_group_end();
-  }
-  else if (DRW_state_is_select()) {
-    /* Render probes spheres/planes so we can select them. */
-    DRW_draw_pass(psl->outlines_prepass_ps);
   }
 }

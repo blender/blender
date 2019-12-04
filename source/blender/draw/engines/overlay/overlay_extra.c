@@ -28,6 +28,7 @@
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
+#include "BKE_global.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_movieclip.h"
@@ -60,10 +61,27 @@
 void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
+  OVERLAY_TextureList *txl = vedata->txl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
 
-  DRW_PASS_CREATE(psl->extra_blend_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
-  DRW_PASS_CREATE(psl->extra_centers_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
+  DRWState state_blend = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
+  DRW_PASS_CREATE(psl->extra_blend_ps, state_blend | pd->clipping_state);
+  DRW_PASS_CREATE(psl->extra_centers_ps, state_blend | pd->clipping_state);
+
+  {
+    DRWState state = DRW_STATE_WRITE_COLOR;
+
+    DRW_PASS_CREATE(psl->extra_grid_ps, state | pd->clipping_state);
+    DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+    DRWShadingGroup *grp;
+    struct GPUShader *sh = OVERLAY_shader_extra_grid();
+    struct GPUTexture *tex = DRW_state_is_fbo() ? dtxl->depth : txl->dummy_depth_tx;
+
+    pd->extra_grid_grp = grp = DRW_shgroup_create(sh, psl->extra_grid_ps);
+    DRW_shgroup_uniform_texture_persistent(grp, "depthBuffer", tex);
+    DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+    DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
+  }
 
   for (int i = 0; i < 2; i++) {
     /* Non Meshes Pass (Camera, empties, lights ...) */
@@ -662,11 +680,12 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   ViewLayer *view_layer = draw_ctx->view_layer;
   float *color_p;
-  DRW_object_wire_theme_get(ob, view_layer, &color_p);
+  int theme_id = DRW_object_wire_theme_get(ob, view_layer, &color_p);
   const LightProbe *prb = (LightProbe *)ob->data;
   const bool show_clipping = (prb->flag & LIGHTPROBE_FLAG_SHOW_CLIP_DIST) != 0;
   const bool show_parallax = (prb->flag & LIGHTPROBE_FLAG_SHOW_PARALLAX) != 0;
   const bool show_influence = (prb->flag & LIGHTPROBE_FLAG_SHOW_INFLUENCE) != 0;
+  const bool show_data = (ob->base_flag & BASE_SELECTED) || DRW_state_is_select();
 
   union {
     float mat[4][4];
@@ -710,6 +729,31 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
         float f = 1.0f - prb->falloff;
         OVERLAY_empty_shape(cb, ob->obmat, 1.0 + prb->distinf, OB_CUBE, color_p);
         OVERLAY_empty_shape(cb, ob->obmat, 1.0 + prb->distinf * f, OB_CUBE, color_p);
+      }
+
+      /* Data dots */
+      if (show_data) {
+        instdata.mat[0][3] = prb->grid_resolution_x;
+        instdata.mat[1][3] = prb->grid_resolution_y;
+        instdata.mat[2][3] = prb->grid_resolution_z;
+        /* Put theme id in matrix. */
+        if (UNLIKELY(ob->base_flag & BASE_FROM_DUPLI)) {
+          instdata.mat[3][3] = 0.0;
+        }
+        else if (theme_id == TH_ACTIVE) {
+          instdata.mat[3][3] = 1.0;
+        }
+        else /* TH_SELECT */ {
+          instdata.mat[3][3] = 2.0;
+        }
+
+        uint cell_count = prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z;
+        DRWShadingGroup *grp = DRW_shgroup_create_sub(vedata->stl->pd->extra_grid_grp);
+        DRW_shgroup_uniform_vec4_copy(grp, "gridModelMatrix[0]", instdata.mat[0]);
+        DRW_shgroup_uniform_vec4_copy(grp, "gridModelMatrix[1]", instdata.mat[1]);
+        DRW_shgroup_uniform_vec4_copy(grp, "gridModelMatrix[2]", instdata.mat[2]);
+        DRW_shgroup_uniform_vec4_copy(grp, "gridModelMatrix[3]", instdata.mat[3]);
+        DRW_shgroup_call_procedural_points(grp, NULL, cell_count);
       }
       break;
     case LIGHTPROBE_TYPE_PLANAR:
@@ -1581,7 +1625,17 @@ void OVERLAY_extra_in_front_draw(OVERLAY_Data *vedata)
 
 void OVERLAY_extra_centers_draw(OVERLAY_Data *vedata)
 {
+  OVERLAY_FramebufferList *fbl = vedata->fbl;
   OVERLAY_PassList *psl = vedata->psl;
 
+  if (DRW_state_is_fbo()) {
+    GPU_framebuffer_bind(fbl->overlay_color_only_fb);
+  }
+
+  DRW_draw_pass(psl->extra_grid_ps);
   DRW_draw_pass(psl->extra_centers_ps);
+
+  if (DRW_state_is_fbo()) {
+    GPU_framebuffer_bind(fbl->overlay_default_fb);
+  }
 }
