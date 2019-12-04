@@ -60,6 +60,9 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
 void OVERLAY_sculpt_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
+  OVERLAY_FramebufferList *fbl = vedata->fbl;
+
+  GPU_framebuffer_bind(fbl->overlay_default_fb);
 
   DRW_draw_pass(psl->sculpt_mask_ps);
 }

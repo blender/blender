@@ -43,8 +43,8 @@ void OVERLAY_image_init(OVERLAY_Data *vedata)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   OVERLAY_PrivateData *pd = vedata->stl->pd;
 
-  pd->view_reference_images = DRW_view_create_with_zoffset(
-      pd->view_default, draw_ctx->rv3d, -1.0f);
+  DRWView *default_view = (DRWView *)DRW_view_default_get();
+  pd->view_reference_images = DRW_view_create_with_zoffset(default_view, draw_ctx->rv3d, -1.0f);
 }
 
 void OVERLAY_image_cache_init(OVERLAY_Data *vedata)
@@ -451,7 +451,7 @@ void OVERLAY_image_draw(OVERLAY_Data *vedata)
   DRW_draw_pass(psl->image_empties_ps);
   DRW_draw_pass(psl->image_empties_blend_ps);
 
-  DRW_view_set_active(pd->view_default);
+  DRW_view_set_active(NULL);
 }
 
 void OVERLAY_image_in_front_draw(OVERLAY_Data *vedata)
@@ -464,7 +464,7 @@ void OVERLAY_image_in_front_draw(OVERLAY_Data *vedata)
   DRW_draw_pass(psl->image_empties_front_ps);
   DRW_draw_pass(psl->image_foreground_ps);
 
-  DRW_view_set_active(pd->view_default);
+  DRW_view_set_active(NULL);
 
   OVERLAY_image_free_movieclips_textures(vedata);
 }

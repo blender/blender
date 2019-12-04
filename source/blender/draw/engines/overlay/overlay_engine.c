@@ -366,45 +366,50 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_antialiasing_start(vedata);
 
   DRW_view_set_active(NULL);
+
   OVERLAY_outline_draw(vedata);
 
-  DRW_view_set_active(pd->view_default);
+  if (DRW_state_is_fbo()) {
+    GPU_framebuffer_bind(fbl->overlay_default_fb);
+  }
 
   OVERLAY_image_draw(vedata);
   OVERLAY_facing_draw(vedata);
+
+  if (DRW_state_is_fbo()) {
+    GPU_framebuffer_bind(fbl->overlay_line_fb);
+  }
+
   OVERLAY_wireframe_draw(vedata);
   OVERLAY_armature_draw(vedata);
   OVERLAY_particle_draw(vedata);
   OVERLAY_metaball_draw(vedata);
   OVERLAY_extra_draw(vedata);
 
-  DRW_view_set_active(NULL);
+  if (DRW_state_is_fbo()) {
+    GPU_framebuffer_bind(fbl->overlay_color_only_fb);
+  }
+
   OVERLAY_grid_draw(vedata);
 
-  DRW_view_set_active(pd->view_default);
-
   if (DRW_state_is_fbo()) {
-    GPU_framebuffer_bind(fbl->overlay_in_front_fb);
-
-    /* If we are not in solid shading mode, we clear the depth. */
-    if (pd->clear_in_front) {
-      /* TODO(fclem) This clear should be done in a global place. */
-      GPU_framebuffer_clear_depth(fbl->overlay_in_front_fb, 1.0f);
-    }
+    GPU_framebuffer_bind(fbl->overlay_line_in_front_fb);
   }
 
   OVERLAY_wireframe_in_front_draw(vedata);
   OVERLAY_armature_in_front_draw(vedata);
   OVERLAY_extra_in_front_draw(vedata);
   OVERLAY_metaball_in_front_draw(vedata);
-  OVERLAY_image_in_front_draw(vedata);
 
   if (DRW_state_is_fbo()) {
-    GPU_framebuffer_bind(fbl->overlay_default_fb);
+    GPU_framebuffer_bind(fbl->overlay_color_only_fb);
   }
 
+  OVERLAY_image_in_front_draw(vedata);
   OVERLAY_motion_path_draw(vedata);
   OVERLAY_extra_centers_draw(vedata);
+
+  /* Functions after this point can change FBO freely. */
 
   switch (pd->ctx_mode) {
     case CTX_MODE_EDIT_MESH:
@@ -415,26 +420,20 @@ static void OVERLAY_draw_scene(void *vedata)
       OVERLAY_edit_curve_draw(vedata);
       break;
     case CTX_MODE_EDIT_TEXT:
-      /* Text overlay need final color for color inversion. */
-      OVERLAY_antialiasing_end(vedata);
       OVERLAY_edit_text_draw(vedata);
-      return; /* WATCH! dont do AA twice. */
+      break;
     case CTX_MODE_EDIT_LATTICE:
       OVERLAY_edit_lattice_draw(vedata);
       break;
     case CTX_MODE_POSE:
-      /* Pain overlay needs final color because of multiply blend mode. */
-      OVERLAY_antialiasing_end(vedata);
       OVERLAY_paint_draw(vedata);
       OVERLAY_pose_draw(vedata);
-      return; /* WATCH! dont do AA twice. */
+      break;
     case CTX_MODE_PAINT_WEIGHT:
     case CTX_MODE_PAINT_VERTEX:
     case CTX_MODE_PAINT_TEXTURE:
-      /* Pain overlay need final color because of multiply blend mode. */
-      OVERLAY_antialiasing_end(vedata);
       OVERLAY_paint_draw(vedata);
-      return; /* WATCH! dont do AA twice. */
+      break;
     case CTX_MODE_PARTICLE:
       OVERLAY_edit_particle_draw(vedata);
       break;

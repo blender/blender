@@ -46,7 +46,6 @@ void OVERLAY_edit_mesh_init(OVERLAY_Data *vedata)
 
   /* Create view with depth offset */
   DRWView *default_view = (DRWView *)DRW_view_default_get();
-  /* Don't use AA view (pd->view_default) because edit mode already has anti-aliasing. */
   pd->view_edit_faces = default_view;
   pd->view_edit_faces_cage = DRW_view_create_with_zoffset(default_view, draw_ctx->rv3d, 0.5f);
   pd->view_edit_edges = DRW_view_create_with_zoffset(default_view, draw_ctx->rv3d, 1.0f);
@@ -353,8 +352,6 @@ static void overlay_edit_mesh_draw_components(OVERLAY_PassList *psl,
 
   DRW_view_set_active(pd->view_edit_verts);
   DRW_draw_pass(psl->edit_mesh_verts_ps[in_front]);
-
-  DRW_view_set_active(pd->view_default);
 }
 
 void OVERLAY_edit_mesh_draw(OVERLAY_Data *vedata)
@@ -362,6 +359,8 @@ void OVERLAY_edit_mesh_draw(OVERLAY_Data *vedata)
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   OVERLAY_FramebufferList *fbl = vedata->fbl;
+
+  GPU_framebuffer_bind(fbl->overlay_default_fb);
 
   DRW_draw_pass(psl->edit_mesh_weight_ps);
   DRW_draw_pass(psl->edit_mesh_analysis_ps);
@@ -378,7 +377,7 @@ void OVERLAY_edit_mesh_draw(OVERLAY_Data *vedata)
     DRW_view_set_active(pd->view_edit_faces_cage);
     DRW_draw_pass(psl->edit_mesh_faces_cage_ps[NOT_IN_FRONT]);
 
-    DRW_view_set_active(pd->view_default);
+    DRW_view_set_active(NULL);
 
     GPU_framebuffer_bind(fbl->overlay_in_front_fb);
     GPU_framebuffer_clear_depth(fbl->overlay_in_front_fb, 1.0f);
@@ -389,8 +388,6 @@ void OVERLAY_edit_mesh_draw(OVERLAY_Data *vedata)
 
     DRW_view_set_active(pd->view_edit_verts);
     DRW_draw_pass(psl->edit_mesh_verts_ps[NOT_IN_FRONT]);
-
-    GPU_framebuffer_bind(fbl->overlay_default_fb);
   }
   else {
     const DRWContextState *draw_ctx = DRW_context_state_get();

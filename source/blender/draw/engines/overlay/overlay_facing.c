@@ -53,12 +53,6 @@ void OVERLAY_facing_cache_populate(OVERLAY_Data *vedata, Object *ob)
 void OVERLAY_facing_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
-  OVERLAY_PrivateData *pd = vedata->stl->pd;
-
-  /* We need to match underlying geometry pass, at the cost of bypassing TAA. */
-  DRW_view_set_active(NULL);
 
   DRW_draw_pass(psl->facing_ps);
-
-  DRW_view_set_active(pd->view_default);
 }

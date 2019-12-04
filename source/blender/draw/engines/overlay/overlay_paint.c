@@ -202,9 +202,15 @@ void OVERLAY_paint_weight_cache_populate(OVERLAY_Data *vedata, Object *ob)
 void OVERLAY_paint_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
+  OVERLAY_FramebufferList *fbl = vedata->fbl;
+  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+
+  if (DRW_state_is_fbo()) {
+    /* Pain overlay needs final color because of multiply blend mode. */
+    GPU_framebuffer_bind(dfbl->default_fb);
+  }
 
   if (psl->paint_color_ps) {
-    DRW_view_set_active(NULL);
     DRW_draw_pass(psl->paint_color_ps);
   }
   DRW_draw_pass(psl->paint_overlay_ps);

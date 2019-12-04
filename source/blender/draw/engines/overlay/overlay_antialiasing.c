@@ -71,8 +71,6 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
   DRW_texture_ensure_2d(&txl->dummy_depth_tx, 1, 1, GPU_DEPTH_COMPONENT24, 0);
 
   if (!DRW_state_is_fbo()) {
-    /* Use default view */
-    pd->view_default = (DRWView *)DRW_view_default_get();
     pd->antialiasing.enabled = false;
     return;
   }
@@ -81,35 +79,37 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
   /* TODO Get real userpref option and remove MSAA buffer. */
   pd->antialiasing.enabled = (dtxl->multisample_color != NULL) || need_wire_expansion;
 
-  /* Use default view */
-  pd->view_default = (DRWView *)DRW_view_default_get();
+  GPUTexture *color_tex = NULL;
+  GPUTexture *line_tex = NULL;
 
   if (pd->antialiasing.enabled) {
     DRW_texture_ensure_fullscreen_2d(&txl->overlay_color_tx, GPU_RGBA8, DRW_TEX_FILTER);
     DRW_texture_ensure_fullscreen_2d(&txl->overlay_line_tx, GPU_RGBA8, 0);
 
-    GPU_framebuffer_ensure_config(
-        &fbl->overlay_color_only_fb,
-        {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->overlay_color_tx)});
-    GPU_framebuffer_ensure_config(
-        &fbl->overlay_default_fb,
-        {GPU_ATTACHMENT_TEXTURE(dtxl->depth), GPU_ATTACHMENT_TEXTURE(txl->overlay_color_tx)});
-    GPU_framebuffer_ensure_config(&fbl->overlay_line_fb,
-                                  {GPU_ATTACHMENT_TEXTURE(dtxl->depth),
-                                   GPU_ATTACHMENT_TEXTURE(txl->overlay_color_tx),
-                                   GPU_ATTACHMENT_TEXTURE(txl->overlay_line_tx)});
+    color_tex = txl->overlay_color_tx;
+    line_tex = txl->overlay_line_tx;
   }
   else {
     /* Just a copy of the defaults framebuffers. */
-    GPU_framebuffer_ensure_config(&fbl->overlay_color_only_fb,
-                                  {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(dtxl->color)});
-    GPU_framebuffer_ensure_config(
-        &fbl->overlay_default_fb,
-        {GPU_ATTACHMENT_TEXTURE(dtxl->depth), GPU_ATTACHMENT_TEXTURE(dtxl->color)});
-    GPU_framebuffer_ensure_config(
-        &fbl->overlay_line_fb,
-        {GPU_ATTACHMENT_TEXTURE(dtxl->depth), GPU_ATTACHMENT_TEXTURE(dtxl->color)});
+    color_tex = dtxl->color;
   }
+
+  GPU_framebuffer_ensure_config(&fbl->overlay_color_only_fb,
+                                {
+                                    GPU_ATTACHMENT_NONE,
+                                    GPU_ATTACHMENT_TEXTURE(color_tex),
+                                });
+  GPU_framebuffer_ensure_config(&fbl->overlay_default_fb,
+                                {
+                                    GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+                                    GPU_ATTACHMENT_TEXTURE(color_tex),
+                                });
+  GPU_framebuffer_ensure_config(&fbl->overlay_line_fb,
+                                {
+                                    GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+                                    GPU_ATTACHMENT_TEXTURE(color_tex),
+                                    GPU_ATTACHMENT_TEXTURE(line_tex),
+                                });
 }
 
 void OVERLAY_antialiasing_cache_init(OVERLAY_Data *vedata)
@@ -149,11 +149,21 @@ void OVERLAY_antialiasing_cache_finish(OVERLAY_Data *vedata)
     GPU_framebuffer_ensure_config(&fbl->overlay_in_front_fb,
                                   {GPU_ATTACHMENT_TEXTURE(dtxl->depth_in_front),
                                    GPU_ATTACHMENT_TEXTURE(txl->overlay_color_tx)});
+
+    GPU_framebuffer_ensure_config(&fbl->overlay_line_in_front_fb,
+                                  {GPU_ATTACHMENT_TEXTURE(dtxl->depth_in_front),
+                                   GPU_ATTACHMENT_TEXTURE(txl->overlay_color_tx),
+                                   GPU_ATTACHMENT_TEXTURE(txl->overlay_line_tx)});
   }
   else {
     GPU_framebuffer_ensure_config(
         &fbl->overlay_in_front_fb,
         {GPU_ATTACHMENT_TEXTURE(dtxl->depth_in_front), GPU_ATTACHMENT_TEXTURE(dtxl->color)});
+
+    GPU_framebuffer_ensure_config(&fbl->overlay_line_in_front_fb,
+                                  {GPU_ATTACHMENT_TEXTURE(dtxl->depth_in_front),
+                                   GPU_ATTACHMENT_TEXTURE(dtxl->color),
+                                   GPU_ATTACHMENT_TEXTURE(txl->overlay_line_tx)});
   }
 }
 
@@ -166,8 +176,13 @@ void OVERLAY_antialiasing_start(OVERLAY_Data *vedata)
     float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     GPU_framebuffer_bind(fbl->overlay_line_fb);
     GPU_framebuffer_clear_color(fbl->overlay_line_fb, clear_col);
+  }
 
-    GPU_framebuffer_bind(fbl->overlay_default_fb);
+  /* If we are not in solid shading mode, we clear the depth. */
+  if (DRW_state_is_fbo() && pd->clear_in_front) {
+    /* TODO(fclem) This clear should be done in a global place. */
+    GPU_framebuffer_bind(fbl->overlay_in_front_fb);
+    GPU_framebuffer_clear_depth(fbl->overlay_in_front_fb, 1.0f);
   }
 }
 

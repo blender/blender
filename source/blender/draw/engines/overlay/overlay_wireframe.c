@@ -41,7 +41,8 @@ void OVERLAY_wireframe_init(OVERLAY_Data *vedata)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  pd->view_wires = DRW_view_create_with_zoffset(pd->view_default, draw_ctx->rv3d, 0.5f);
+  DRWView *default_view = (DRWView *)DRW_view_default_get();
+  pd->view_wires = DRW_view_create_with_zoffset(default_view, draw_ctx->rv3d, 0.5f);
 }
 
 void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
@@ -221,22 +222,13 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
 
 void OVERLAY_wireframe_draw(OVERLAY_Data *data)
 {
-  OVERLAY_FramebufferList *fbl = data->fbl;
   OVERLAY_PassList *psl = data->psl;
   OVERLAY_PrivateData *pd = data->stl->pd;
-
-  if (pd->antialiasing.enabled) {
-    GPU_framebuffer_bind(fbl->overlay_line_fb);
-  }
 
   DRW_view_set_active(pd->view_wires);
   DRW_draw_pass(psl->wireframe_ps);
 
-  DRW_view_set_active(pd->view_default);
-
-  if (pd->antialiasing.enabled) {
-    GPU_framebuffer_bind(fbl->overlay_default_fb);
-  }
+  DRW_view_set_active(NULL);
 }
 
 void OVERLAY_wireframe_in_front_draw(OVERLAY_Data *data)
@@ -247,5 +239,5 @@ void OVERLAY_wireframe_in_front_draw(OVERLAY_Data *data)
   DRW_view_set_active(pd->view_wires);
   DRW_draw_pass(psl->wireframe_xray_ps);
 
-  DRW_view_set_active(pd->view_default);
+  DRW_view_set_active(NULL);
 }

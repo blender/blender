@@ -212,9 +212,6 @@ void OVERLAY_grid_draw(OVERLAY_Data *vedata)
   OVERLAY_FramebufferList *fbl = vedata->fbl;
 
   if (psl->grid_ps) {
-    GPU_framebuffer_bind(fbl->overlay_color_only_fb);
     DRW_draw_pass(psl->grid_ps);
-
-    GPU_framebuffer_bind(fbl->overlay_default_fb);
   }
 }

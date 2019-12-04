@@ -1600,30 +1600,19 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
 }
 
+void OVERLAY_extra_blend_draw(OVERLAY_Data *vedata)
+{
+  DRW_draw_pass(vedata->psl->extra_blend_ps);
+}
+
 void OVERLAY_extra_draw(OVERLAY_Data *vedata)
 {
-  OVERLAY_FramebufferList *fbl = vedata->fbl;
-  OVERLAY_PrivateData *pd = vedata->stl->pd;
-  OVERLAY_PassList *psl = vedata->psl;
-
-  DRW_draw_pass(psl->extra_blend_ps);
-
-  if (pd->antialiasing.enabled) {
-    GPU_framebuffer_bind(fbl->overlay_line_fb);
-  }
-
-  DRW_draw_pass(psl->extra_ps[0]);
-
-  if (pd->antialiasing.enabled) {
-    GPU_framebuffer_bind(fbl->overlay_default_fb);
-  }
+  DRW_draw_pass(vedata->psl->extra_ps[0]);
 }
 
 void OVERLAY_extra_in_front_draw(OVERLAY_Data *vedata)
 {
-  OVERLAY_PassList *psl = vedata->psl;
-
-  DRW_draw_pass(psl->extra_ps[1]);
+  DRW_draw_pass(vedata->psl->extra_ps[1]);
 
   OVERLAY_volume_free_smoke_textures(vedata);
 }
@@ -1633,14 +1622,6 @@ void OVERLAY_extra_centers_draw(OVERLAY_Data *vedata)
   OVERLAY_FramebufferList *fbl = vedata->fbl;
   OVERLAY_PassList *psl = vedata->psl;
 
-  if (DRW_state_is_fbo()) {
-    GPU_framebuffer_bind(fbl->overlay_color_only_fb);
-  }
-
   DRW_draw_pass(psl->extra_grid_ps);
   DRW_draw_pass(psl->extra_centers_ps);
-
-  if (DRW_state_is_fbo()) {
-    GPU_framebuffer_bind(fbl->overlay_default_fb);
-  }
 }

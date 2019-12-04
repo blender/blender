@@ -34,6 +34,7 @@ typedef struct OVERLAY_FramebufferList {
   struct GPUFrameBuffer *overlay_line_fb;
   struct GPUFrameBuffer *overlay_color_only_fb;
   struct GPUFrameBuffer *overlay_in_front_fb;
+  struct GPUFrameBuffer *overlay_line_in_front_fb;
   struct GPUFrameBuffer *outlines_prepass_fb;
   struct GPUFrameBuffer *outlines_resolve_fb;
 } OVERLAY_FramebufferList;
@@ -44,7 +45,6 @@ typedef struct OVERLAY_TextureList {
   struct GPUTexture *outlines_id_tx;
   struct GPUTexture *overlay_color_tx;
   struct GPUTexture *overlay_line_tx;
-  struct GPUTexture *edit_mesh_occlude_wire_tx;
 } OVERLAY_TextureList;
 
 #define NOT_IN_FRONT 0
@@ -423,6 +423,7 @@ void OVERLAY_edit_particle_draw(OVERLAY_Data *vedata);
 
 void OVERLAY_extra_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob);
+void OVERLAY_extra_blend_draw(OVERLAY_Data *vedata);
 void OVERLAY_extra_draw(OVERLAY_Data *vedata);
 void OVERLAY_extra_in_front_draw(OVERLAY_Data *vedata);
 void OVERLAY_extra_centers_draw(OVERLAY_Data *vedata);

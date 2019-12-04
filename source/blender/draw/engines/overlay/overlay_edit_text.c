@@ -191,8 +191,10 @@ void OVERLAY_edit_text_cache_populate(OVERLAY_Data *vedata, Object *ob)
 void OVERLAY_edit_text_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
+  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
-  DRW_view_set_active(NULL);
+  /* Text overlay need final color for color inversion. */
+  GPU_framebuffer_bind(dfbl->default_fb);
 
   DRW_draw_pass(psl->edit_text_wire_ps[0]);
   DRW_draw_pass(psl->edit_text_wire_ps[1]);
