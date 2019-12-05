@@ -59,7 +59,7 @@ float noise_texture(float co, float detail, float distortion, output color Color
 {
   float p = co;
   if (distortion != 0.0) {
-    p += safe_noise(p + random_float_offset(0.0)) * distortion;
+    p += safe_snoise(p + random_float_offset(0.0)) * distortion;
   }
 
   float value = fractal_noise(p, detail);
@@ -73,8 +73,8 @@ float noise_texture(vector2 co, float detail, float distortion, output color Col
 {
   vector2 p = co;
   if (distortion != 0.0) {
-    p += vector2(safe_noise(p + random_vector2_offset(0.0)) * distortion,
-                 safe_noise(p + random_vector2_offset(1.0)) * distortion);
+    p += vector2(safe_snoise(p + random_vector2_offset(0.0)) * distortion,
+                 safe_snoise(p + random_vector2_offset(1.0)) * distortion);
   }
 
   float value = fractal_noise(p, detail);
@@ -88,9 +88,9 @@ float noise_texture(vector3 co, float detail, float distortion, output color Col
 {
   vector3 p = co;
   if (distortion != 0.0) {
-    p += vector3(safe_noise(p + random_vector3_offset(0.0)) * distortion,
-                 safe_noise(p + random_vector3_offset(1.0)) * distortion,
-                 safe_noise(p + random_vector3_offset(2.0)) * distortion);
+    p += vector3(safe_snoise(p + random_vector3_offset(0.0)) * distortion,
+                 safe_snoise(p + random_vector3_offset(1.0)) * distortion,
+                 safe_snoise(p + random_vector3_offset(2.0)) * distortion);
   }
 
   float value = fractal_noise(p, detail);
@@ -104,10 +104,10 @@ float noise_texture(vector4 co, float detail, float distortion, output color Col
 {
   vector4 p = co;
   if (distortion != 0.0) {
-    p += vector4(safe_noise(p + random_vector4_offset(0.0)) * distortion,
-                 safe_noise(p + random_vector4_offset(1.0)) * distortion,
-                 safe_noise(p + random_vector4_offset(2.0)) * distortion,
-                 safe_noise(p + random_vector4_offset(3.0)) * distortion);
+    p += vector4(safe_snoise(p + random_vector4_offset(0.0)) * distortion,
+                 safe_snoise(p + random_vector4_offset(1.0)) * distortion,
+                 safe_snoise(p + random_vector4_offset(2.0)) * distortion,
+                 safe_snoise(p + random_vector4_offset(3.0)) * distortion);
   }
 
   float value = fractal_noise(p, detail);

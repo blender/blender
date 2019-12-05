@@ -11,7 +11,7 @@ float calc_wave(
   }
 
   if (distortion != 0.0) {
-    n += distortion * fractal_noise(p * detail_scale, detail);
+    n += distortion * (fractal_noise(p * detail_scale, detail) * 2.0 - 1.0);
   }
 
   if (wave_profile == 0) { /* profile sin */

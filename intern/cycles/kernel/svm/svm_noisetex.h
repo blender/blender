@@ -55,7 +55,7 @@ ccl_device void noise_texture_1d(
 {
   float p = co;
   if (distortion != 0.0f) {
-    p += noise_1d(p + random_float_offset(0.0f)) * distortion;
+    p += snoise_1d(p + random_float_offset(0.0f)) * distortion;
   }
 
   *value = fractal_noise_1d(p, detail);
@@ -71,8 +71,8 @@ ccl_device void noise_texture_2d(
 {
   float2 p = co;
   if (distortion != 0.0f) {
-    p += make_float2(noise_2d(p + random_float2_offset(0.0f)) * distortion,
-                     noise_2d(p + random_float2_offset(1.0f)) * distortion);
+    p += make_float2(snoise_2d(p + random_float2_offset(0.0f)) * distortion,
+                     snoise_2d(p + random_float2_offset(1.0f)) * distortion);
   }
 
   *value = fractal_noise_2d(p, detail);
@@ -88,9 +88,9 @@ ccl_device void noise_texture_3d(
 {
   float3 p = co;
   if (distortion != 0.0f) {
-    p += make_float3(noise_3d(p + random_float3_offset(0.0f)) * distortion,
-                     noise_3d(p + random_float3_offset(1.0f)) * distortion,
-                     noise_3d(p + random_float3_offset(2.0f)) * distortion);
+    p += make_float3(snoise_3d(p + random_float3_offset(0.0f)) * distortion,
+                     snoise_3d(p + random_float3_offset(1.0f)) * distortion,
+                     snoise_3d(p + random_float3_offset(2.0f)) * distortion);
   }
 
   *value = fractal_noise_3d(p, detail);
@@ -106,10 +106,10 @@ ccl_device void noise_texture_4d(
 {
   float4 p = co;
   if (distortion != 0.0f) {
-    p += make_float4(noise_4d(p + random_float4_offset(0.0f)) * distortion,
-                     noise_4d(p + random_float4_offset(1.0f)) * distortion,
-                     noise_4d(p + random_float4_offset(2.0f)) * distortion,
-                     noise_4d(p + random_float4_offset(3.0f)) * distortion);
+    p += make_float4(snoise_4d(p + random_float4_offset(0.0f)) * distortion,
+                     snoise_4d(p + random_float4_offset(1.0f)) * distortion,
+                     snoise_4d(p + random_float4_offset(2.0f)) * distortion,
+                     snoise_4d(p + random_float4_offset(3.0f)) * distortion);
   }
 
   *value = fractal_noise_4d(p, detail);

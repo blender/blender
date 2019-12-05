@@ -37,7 +37,7 @@ void node_noise_texture_1d(
 {
   float p = w * scale;
   if (distortion != 0.0) {
-    p += noise(p + random_float_offset(0.0)) * distortion;
+    p += snoise(p + random_float_offset(0.0)) * distortion;
   }
 
   value = fractal_noise(p, detail);
@@ -52,8 +52,8 @@ void node_noise_texture_2d(
 {
   vec2 p = co.xy * scale;
   if (distortion != 0.0) {
-    p += vec2(noise(p + random_vec2_offset(0.0)) * distortion,
-              noise(p + random_vec2_offset(1.0)) * distortion);
+    p += vec2(snoise(p + random_vec2_offset(0.0)) * distortion,
+              snoise(p + random_vec2_offset(1.0)) * distortion);
   }
 
   value = fractal_noise(p, detail);
@@ -68,9 +68,9 @@ void node_noise_texture_3d(
 {
   vec3 p = co * scale;
   if (distortion != 0.0) {
-    p += vec3(noise(p + random_vec3_offset(0.0)) * distortion,
-              noise(p + random_vec3_offset(1.0)) * distortion,
-              noise(p + random_vec3_offset(2.0)) * distortion);
+    p += vec3(snoise(p + random_vec3_offset(0.0)) * distortion,
+              snoise(p + random_vec3_offset(1.0)) * distortion,
+              snoise(p + random_vec3_offset(2.0)) * distortion);
   }
 
   value = fractal_noise(p, detail);
@@ -85,10 +85,10 @@ void node_noise_texture_4d(
 {
   vec4 p = vec4(co, w) * scale;
   if (distortion != 0.0) {
-    p += vec4(noise(p + random_vec4_offset(0.0)) * distortion,
-              noise(p + random_vec4_offset(1.0)) * distortion,
-              noise(p + random_vec4_offset(2.0)) * distortion,
-              noise(p + random_vec4_offset(3.0)) * distortion);
+    p += vec4(snoise(p + random_vec4_offset(0.0)) * distortion,
+              snoise(p + random_vec4_offset(1.0)) * distortion,
+              snoise(p + random_vec4_offset(2.0)) * distortion,
+              snoise(p + random_vec4_offset(3.0)) * distortion);
   }
 
   value = fractal_noise(p, detail);

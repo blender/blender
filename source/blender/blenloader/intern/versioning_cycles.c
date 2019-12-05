@@ -1205,6 +1205,51 @@ static void update_voronoi_node_square_distance(bNodeTree *ntree)
   }
 }
 
+/* Noise and Wave Texture nodes: Restore previous Distortion range.
+ * In 2.81 we used noise() for distortion, now we use snoise() which has twice the range.
+ * To fix this we halve distortion value, directly or by adding multiply node for used sockets.
+ */
+static void update_noise_and_wave_distortion(bNodeTree *ntree)
+{
+  bool need_update = false;
+
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_TEX_NOISE || node->type == SH_NODE_TEX_WAVE ) {
+
+      bNodeSocket *sockDistortion = nodeFindSocket(node, SOCK_IN, "Distortion");
+      float *distortion = cycles_node_socket_float_value(sockDistortion);
+
+      if (socket_is_used(sockDistortion)) {
+        bNode *distortionInputNode = sockDistortion->link->fromnode;
+        bNodeSocket *distortionInputSock = sockDistortion->link->fromsock;
+
+        bNode *mulNode = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+        mulNode->custom1 = NODE_MATH_MULTIPLY;
+        mulNode->locx = node->locx;
+        mulNode->locy = node->locy - 240.0f;
+        mulNode->flag |= NODE_HIDDEN;
+        bNodeSocket *mulSockA = BLI_findlink(&mulNode->inputs, 0);
+        bNodeSocket *mulSockB = BLI_findlink(&mulNode->inputs, 1);
+        *cycles_node_socket_float_value(mulSockB) = 0.5f;
+        bNodeSocket *mulSockOut = nodeFindSocket(mulNode, SOCK_OUT, "Value");
+
+        nodeRemLink(ntree, sockDistortion->link);
+        nodeAddLink(ntree, distortionInputNode, distortionInputSock, mulNode, mulSockA);
+        nodeAddLink(ntree, mulNode, mulSockOut, node, sockDistortion);
+
+        need_update = true;
+      }
+      else if (*distortion != 0.0f) {
+        *distortion = *distortion * 0.5f;
+      }
+    }
+  }
+
+  if (need_update) {
+    ntreeUpdateTree(NULL, ntree);
+  }
+}
+
 void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bmain)
 {
   /* Particle shape shared with Eevee. */
@@ -1431,6 +1476,15 @@ void do_versions_after_linking_cycles(Main *bmain)
         update_voronoi_node_crackle(ntree);
         update_voronoi_node_coloring(ntree);
         update_voronoi_node_square_distance(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 282, 4)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        update_noise_and_wave_distortion(ntree);
       }
     }
     FOREACH_NODETREE_END;
