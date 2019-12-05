@@ -4483,20 +4483,22 @@ void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
   EXTRACT(ibo, edituv_points);
   EXTRACT(ibo, edituv_fdots);
 
-#undef EXTRACT
-
   /* TODO(fclem) Ideally, we should have one global pool for all
    * objects and wait for finish only before drawing when buffers
    * need to be ready. */
   BLI_task_pool_work_and_wait(task_pool);
-  BLI_task_pool_free(task_pool);
+
+  /* The next task(s) rely on the result of the tasks above. */
 
   /* The `lines_loose` is a sub buffer from `ibo.lines`.
-   * We don't use the extract mechanism due to potential synchronization issues.*/
-  if (mbc.ibo.lines_loose) {
-    extract_task_create(NULL, mr, &extract_lines_loose, mbc.ibo.lines_loose, task_counters);
-  }
+   * We schedule it here due to potential synchronization issues.*/
+  EXTRACT(ibo, lines_loose);
 
+  BLI_task_pool_work_and_wait(task_pool);
+
+#undef EXTRACT
+
+  BLI_task_pool_free(task_pool);
   MEM_freeN(task_counters);
 
   mesh_render_data_free(mr);
