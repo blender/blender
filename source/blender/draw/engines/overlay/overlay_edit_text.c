@@ -193,8 +193,10 @@ void OVERLAY_edit_text_draw(OVERLAY_Data *vedata)
   OVERLAY_PassList *psl = vedata->psl;
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
-  /* Text overlay need final color for color inversion. */
-  GPU_framebuffer_bind(dfbl->default_fb);
+  if (DRW_state_is_fbo()) {
+    /* Text overlay need final color for color inversion. */
+    GPU_framebuffer_bind(dfbl->default_fb);
+  }
 
   DRW_draw_pass(psl->edit_text_wire_ps[0]);
   DRW_draw_pass(psl->edit_text_wire_ps[1]);

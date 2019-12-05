@@ -62,7 +62,9 @@ void OVERLAY_sculpt_draw(OVERLAY_Data *vedata)
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_FramebufferList *fbl = vedata->fbl;
 
-  GPU_framebuffer_bind(fbl->overlay_default_fb);
+  if (DRW_state_is_fbo()) {
+    GPU_framebuffer_bind(fbl->overlay_default_fb);
+  }
 
   DRW_draw_pass(psl->sculpt_mask_ps);
 }
