@@ -770,6 +770,11 @@ static int gp_duplicate_exec(bContext *C, wmOperator *op)
         /* deselect original stroke, or else the originals get moved too
          * (when using the copy + move macro)
          */
+        bGPDspoint *pt;
+        int i;
+        for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+          pt->flag &= ~GP_SPOINT_SELECT;
+        }
         gps->flag &= ~GP_STROKE_SELECT;
       }
     }
