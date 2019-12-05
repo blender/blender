@@ -331,10 +331,6 @@ void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd,
   if (use_highlight) {
     DRW_shgroup_uniform_float(grp, "materialRoughness", &material->roughness, 1);
   }
-
-  if (WORLD_CLIPPING_ENABLED(wpd)) {
-    DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
-  }
 }
 
 void workbench_material_copy(WORKBENCH_MaterialData *dest_material,

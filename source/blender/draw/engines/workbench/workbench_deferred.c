@@ -567,16 +567,15 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
   /* Prepass */
   {
     DRWShadingGroup *grp;
-    const bool do_cull = CULL_BACKFACE_ENABLED(wpd);
+    DRWState clip_state = WORLD_CLIPPING_ENABLED(wpd) ? DRW_STATE_CLIP_PLANES : 0;
+    DRWState cull_state = CULL_BACKFACE_ENABLED(wpd) ? DRW_STATE_CULL_BACK : 0;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
 
-    int state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
-    psl->prepass_pass = DRW_pass_create("Prepass",
-                                        (do_cull) ? state | DRW_STATE_CULL_BACK : state);
-    psl->prepass_hair_pass = DRW_pass_create("Prepass", state);
+    psl->prepass_pass = DRW_pass_create("Prepass", state | cull_state | clip_state);
+    psl->prepass_hair_pass = DRW_pass_create("Prepass", state | clip_state);
 
-    psl->ghost_prepass_pass = DRW_pass_create("Prepass Ghost",
-                                              (do_cull) ? state | DRW_STATE_CULL_BACK : state);
-    psl->ghost_prepass_hair_pass = DRW_pass_create("Prepass Ghost", state);
+    psl->ghost_prepass_pass = DRW_pass_create("Prepass Ghost", state | cull_state | clip_state);
+    psl->ghost_prepass_hair_pass = DRW_pass_create("Prepass Ghost", state | clip_state);
 
     psl->ghost_resolve_pass = DRW_pass_create("Resolve Ghost Depth",
                                               DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
@@ -807,18 +806,19 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
    * this in a clean way.
    */
   if (OIT_ENABLED(wpd)) {
-    const bool do_cull = CULL_BACKFACE_ENABLED(wpd);
-    const int cull_state = (do_cull) ? DRW_STATE_CULL_BACK : 0;
+    DRWState clip_state = WORLD_CLIPPING_ENABLED(wpd) ? DRW_STATE_CLIP_PLANES : 0;
+    DRWState cull_state = CULL_BACKFACE_ENABLED(wpd) ? DRW_STATE_CULL_BACK : 0;
     /* Transparency Accum */
     {
       /* Same as forward but here we use depth test to
        * not bleed through other solid objects. */
-      int state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_OIT | DRW_STATE_DEPTH_LESS | cull_state;
+      int state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND_OIT | cull_state |
+                  clip_state;
       psl->transparent_accum_pass = DRW_pass_create("Transparent Accum", state);
     }
     /* Depth */
     {
-      int state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | cull_state;
+      int state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | cull_state | clip_state;
       psl->object_outline_pass = DRW_pass_create("Transparent Depth", state);
     }
     /* OIT Composite */
