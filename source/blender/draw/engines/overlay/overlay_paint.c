@@ -202,7 +202,6 @@ void OVERLAY_paint_weight_cache_populate(OVERLAY_Data *vedata, Object *ob)
 void OVERLAY_paint_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
-  OVERLAY_FramebufferList *fbl = vedata->fbl;
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
   if (DRW_state_is_fbo()) {

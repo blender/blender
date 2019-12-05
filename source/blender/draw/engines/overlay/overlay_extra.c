@@ -1619,7 +1619,6 @@ void OVERLAY_extra_in_front_draw(OVERLAY_Data *vedata)
 
 void OVERLAY_extra_centers_draw(OVERLAY_Data *vedata)
 {
-  OVERLAY_FramebufferList *fbl = vedata->fbl;
   OVERLAY_PassList *psl = vedata->psl;
 
   DRW_draw_pass(psl->extra_grid_ps);

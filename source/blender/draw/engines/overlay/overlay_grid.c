@@ -209,7 +209,6 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
 void OVERLAY_grid_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
-  OVERLAY_FramebufferList *fbl = vedata->fbl;
 
   if (psl->grid_ps) {
     DRW_draw_pass(psl->grid_ps);
