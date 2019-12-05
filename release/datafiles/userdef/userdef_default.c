@@ -62,7 +62,7 @@ const UserDef U_default = {
                USER_HIDE_DOT | USER_SHOW_GIZMO_NAVIGATE | USER_SHOW_VIEWPORTNAME | USER_SHOW_FPS |
                USER_CONTINUOUS_MOUSE | USER_SAVE_PROMPT),
     .uiflag2 = USER_REGION_OVERLAP,
-    .gpu_flag = 0,
+    .gpu_flag = USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE,
     .app_flag = 0,
     .language = 0,
     .viewzoom = USER_ZOOM_DOLLY,
@@ -160,7 +160,6 @@ const UserDef U_default = {
                   NDOF_ROTX_INVERT_AXIS | NDOF_ROTY_INVERT_AXIS | NDOF_ROTZ_INVERT_AXIS |
                   NDOF_PANX_INVERT_AXIS | NDOF_PANY_INVERT_AXIS | NDOF_PANZ_INVERT_AXIS |
                   NDOF_ZOOM_INVERT),
-    .ogl_multisamples = 0,
     .image_draw_method = IMAGE_DRAW_METHOD_AUTO,
     .glalphaclip = 0.004,
     .autokey_mode = (AUTOKEY_MODE_NORMAL & ~AUTOKEY_ON),

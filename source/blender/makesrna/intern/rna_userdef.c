@@ -5062,12 +5062,11 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 
   /* OpenGL */
 
-  /* Full scene anti-aliasing */
-  prop = RNA_def_property(srna, "multi_sample", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_bitflag_sdna(prop, NULL, "ogl_multisamples");
-  RNA_def_property_enum_items(prop, multi_sample_levels);
+  /* Viewport anti-aliasing */
+  prop = RNA_def_property(srna, "use_overlay_smooth_wire", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "gpu_flag", USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE);
   RNA_def_property_ui_text(
-      prop, "MultiSample", "Enable OpenGL multi-sampling, only for systems that support it");
+      prop, "Overlay Smooth Wires", "Enable overlay smooth wires, reducing aliasing");
   RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 
   prop = RNA_def_property(srna, "use_edit_mode_smooth_wire", PROP_BOOLEAN, PROP_NONE);

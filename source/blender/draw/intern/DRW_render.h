@@ -101,41 +101,6 @@ typedef char DRWViewportEmptyList;
         DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->stl)), \
   }
 
-/* Use of multisample framebuffers. */
-#define MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl) \
-  { \
-    if (dfbl->multisample_fb != NULL && DRW_state_is_fbo()) { \
-      DRW_stats_query_start("Multisample Blit"); \
-      GPU_framebuffer_bind(dfbl->multisample_fb); \
-      /* TODO clear only depth but need to do alpha to coverage for transparencies. */ \
-      GPU_framebuffer_clear_color_depth(dfbl->multisample_fb, (const float[4]){0.0f}, 1.0f); \
-      DRW_stats_query_end(); \
-    } \
-  } \
-  ((void)0)
-
-#define MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl) \
-  { \
-    if (dfbl->multisample_fb != NULL && DRW_state_is_fbo()) { \
-      DRW_stats_query_start("Multisample Resolve"); \
-      GPU_framebuffer_bind(dfbl->default_fb); \
-      DRW_multisamples_resolve(dtxl->multisample_depth, dtxl->multisample_color, true); \
-      DRW_stats_query_end(); \
-    } \
-  } \
-  ((void)0)
-
-#define MULTISAMPLE_SYNC_DISABLE_NO_DEPTH(dfbl, dtxl) \
-  { \
-    if (dfbl->multisample_fb != NULL && DRW_state_is_fbo()) { \
-      DRW_stats_query_start("Multisample Resolve"); \
-      GPU_framebuffer_bind(dfbl->default_fb); \
-      DRW_multisamples_resolve(dtxl->multisample_depth, dtxl->multisample_color, false); \
-      DRW_stats_query_end(); \
-    } \
-  } \
-  ((void)0)
-
 typedef struct DrawEngineDataSize {
   int fbl_len;
   int txl_len;
@@ -176,15 +141,12 @@ typedef struct DefaultFramebufferList {
   struct GPUFrameBuffer *in_front_fb;
   struct GPUFrameBuffer *color_only_fb;
   struct GPUFrameBuffer *depth_only_fb;
-  struct GPUFrameBuffer *multisample_fb;
 } DefaultFramebufferList;
 
 typedef struct DefaultTextureList {
   struct GPUTexture *color;
   struct GPUTexture *depth;
   struct GPUTexture *depth_in_front;
-  struct GPUTexture *multisample_color;
-  struct GPUTexture *multisample_depth;
 } DefaultTextureList;
 #endif
 

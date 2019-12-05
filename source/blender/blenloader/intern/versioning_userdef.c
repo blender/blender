@@ -667,10 +667,7 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
     userdef->file_space_data.filter_id = U_default.file_space_data.filter_id;
   }
 
-  /**
-   * Include next version bump.
-   */
-  {
+  if (!USER_VERSION_ATLEAST(282, 4)) {
     if (userdef->view_rotate_sensitivity_turntable == 0.0f) {
       userdef->view_rotate_sensitivity_turntable = DEG2RADF(0.4f);
       userdef->view_rotate_sensitivity_trackball = 1.0f;
@@ -678,6 +675,15 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
     if (userdef->scrollback == 0) {
       userdef->scrollback = U_default.scrollback;
     }
+
+    /* Enable Overlay Engine Smooth Wire by default */
+    userdef->gpu_flag |= USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE;
+  }
+
+  /**
+   * Include next version bump.
+   */
+  {
     /* pass */
   }
 

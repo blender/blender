@@ -114,7 +114,6 @@ typedef struct OGLRender {
   ImageUser iuser;
 
   GPUOffScreen *ofs;
-  int ofs_samples;
   int sizex, sizey;
   int write_still;
 
@@ -371,7 +370,6 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
                                                  sizey,
                                                  output_flags,
                                                  alpha_mode,
-                                                 oglrender->ofs_samples,
                                                  viewname,
                                                  oglrender->ofs,
                                                  err_out);
@@ -392,7 +390,6 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
                                                         output_flags,
                                                         V3D_OFSDRAW_SHOW_ANNOTATION,
                                                         alpha_mode,
-                                                        oglrender->ofs_samples,
                                                         viewname,
                                                         oglrender->ofs,
                                                         err_out);
@@ -539,7 +536,6 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
   const eImageFormatDepth color_depth = (is_animation) ? scene->r.im_format.depth :
                                                          R_IMF_CHAN_DEPTH_32;
-  const int samples = U.ogl_multisamples;
   char err_out[256] = "unknown";
 
   if (G.background) {
@@ -584,7 +580,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 
   /* corrects render size with actual size, not every card supports non-power-of-two dimensions */
   DRW_opengl_context_enable(); /* Offscreen creation needs to be done in DRW context. */
-  ofs = GPU_offscreen_create(sizex, sizey, samples, true, true, err_out);
+  ofs = GPU_offscreen_create(sizex, sizey, 0, true, true, err_out);
   DRW_opengl_context_disable();
 
   if (!ofs) {
@@ -607,7 +603,6 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
    * output video handles, which does need evaluated scene. */
   oglrender->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   oglrender->cfrao = scene->r.cfra;
-  oglrender->ofs_samples = samples;
 
   oglrender->write_still = is_write_still && !is_animation;
   oglrender->is_animation = is_animation;

@@ -531,7 +531,6 @@ typedef struct ImBuf *(*SequencerDrawView)(struct Depsgraph *depsgraph,
                                            unsigned int flag,
                                            unsigned int draw_flags,
                                            int alpha_mode,
-                                           int samples,
                                            const char *viewname,
                                            struct GPUOffScreen *ofs,
                                            char err_out[256]);
