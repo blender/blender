@@ -326,6 +326,9 @@ void OVERLAY_image_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
       mul_m4_m4m4(mat, norm_obmat, mat);
       const bool is_foreground = (bgpic->flag & CAM_BGIMG_FLAG_FOREGROUND) != 0;
 
+      float color_alpha[4] = {1.0f, 1.0f, 1.0f, bgpic->alpha};
+      float color_premult_alpha[4] = {bgpic->alpha, bgpic->alpha, bgpic->alpha, bgpic->alpha};
+
       /* When drawing background we do 2 passes.
        * - One alpha over, which works where background is visible.
        * - One alpha under, works under partially visible objects. (only in cycles)
@@ -337,7 +340,7 @@ void OVERLAY_image_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
                                                     psl->image_background_over_ps);
         GPUShader *sh = OVERLAY_shader_image();
         DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
-        float color[4] = {1.0f, 1.0f, 1.0f, bgpic->alpha};
+        float *color = (is_foreground || i == 1) ? color_alpha : color_premult_alpha;
         DRW_shgroup_uniform_texture(grp, "imgTexture", tex);
         DRW_shgroup_uniform_bool_copy(grp, "imgPremultiplied", use_alpha_premult);
         DRW_shgroup_uniform_bool_copy(grp, "imgAlphaBlend", true);
@@ -441,11 +444,19 @@ void OVERLAY_image_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
+  OVERLAY_FramebufferList *fbl = vedata->fbl;
+
+  const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
   DRW_view_set_active(pd->view_reference_images);
-
   DRW_draw_pass(psl->image_background_over_ps);
-  DRW_draw_pass(psl->image_background_under_ps);
+
+  if (DRW_state_is_fbo() && !DRW_pass_is_empty(psl->image_background_under_ps)) {
+    GPU_framebuffer_bind(dfbl->default_fb);
+    DRW_draw_pass(psl->image_background_under_ps);
+    GPU_framebuffer_bind(fbl->overlay_default_fb);
+  }
+
   DRW_draw_pass(psl->image_empties_back_ps);
 
   DRW_draw_pass(psl->image_empties_ps);
