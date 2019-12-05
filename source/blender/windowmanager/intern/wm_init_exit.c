@@ -291,6 +291,8 @@ void WM_init(bContext *C, int argc, const char **argv)
    * otherwise the versioning cannot find the default studio-light. */
   BKE_studiolight_init();
 
+  BLI_assert((G.fileflags & G_FILE_NO_UI) == 0);
+
   wm_homefile_read(C,
                    NULL,
                    G.factory_startup,
