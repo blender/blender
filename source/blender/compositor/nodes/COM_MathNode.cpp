@@ -56,6 +56,15 @@ void MathNode::convertToOperations(NodeConverter &converter,
     case NODE_MATH_ARCTANGENT:
       operation = new MathArcTangentOperation();
       break;
+    case NODE_MATH_SINH:
+      operation = new MathHyperbolicSineOperation();
+      break;
+    case NODE_MATH_COSH:
+      operation = new MathHyperbolicCosineOperation();
+      break;
+    case NODE_MATH_TANH:
+      operation = new MathHyperbolicTangentOperation();
+      break;
     case NODE_MATH_POWER:
       operation = new MathPowerOperation();
       break;
@@ -83,6 +92,12 @@ void MathNode::convertToOperations(NodeConverter &converter,
     case NODE_MATH_ABSOLUTE:
       operation = new MathAbsoluteOperation();
       break;
+    case NODE_MATH_RADIANS:
+      operation = new MathRadiansOperation();
+      break;
+    case NODE_MATH_DEGREES:
+      operation = new MathDegreesOperation();
+      break;
     case NODE_MATH_ARCTAN2:
       operation = new MathArcTan2Operation();
       break;
@@ -98,6 +113,39 @@ void MathNode::convertToOperations(NodeConverter &converter,
     case NODE_MATH_SQRT:
       operation = new MathSqrtOperation();
       break;
+    case NODE_MATH_INV_SQRT:
+      operation = new MathInverseSqrtOperation();
+      break;
+    case NODE_MATH_SIGN:
+      operation = new MathSignOperation();
+      break;
+    case NODE_MATH_EXPONENT:
+      operation = new MathExponentOperation();
+      break;
+    case NODE_MATH_TRUNC:
+      operation = new MathTruncOperation();
+      break;
+    case NODE_MATH_SNAP:
+      operation = new MathSnapOperation();
+      break;
+    case NODE_MATH_WRAP:
+      operation = new MathWrapOperation();
+      break;
+    case NODE_MATH_PINGPONG:
+      operation = new MathPingpongOperation();
+      break;
+    case NODE_MATH_COMPARE:
+      operation = new MathCompareOperation();
+      break;
+    case NODE_MATH_MULTIPLY_ADD:
+      operation = new MathMultiplyAddOperation();
+      break;
+    case NODE_MATH_SMOOTH_MIN:
+      operation = new MathSmoothMinOperation();
+      break;
+    case NODE_MATH_SMOOTH_MAX:
+      operation = new MathSmoothMaxOperation();
+      break;
   }
 
   if (operation) {
@@ -107,6 +155,7 @@ void MathNode::convertToOperations(NodeConverter &converter,
 
     converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
     converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+    converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
     converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
   }
 }

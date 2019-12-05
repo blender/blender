@@ -1324,6 +1324,7 @@ class MathNode : public ShaderNode {
 
   float value1;
   float value2;
+  float value3;
   NodeMathType type;
   bool use_clamp;
 };

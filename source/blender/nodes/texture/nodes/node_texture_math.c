@@ -28,6 +28,7 @@
 static bNodeSocketTemplate inputs[] = {
     {SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f, PROP_NONE},
     {SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f, PROP_NONE},
+    {SOCK_FLOAT, 1, N_("Value"), 0.0f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f, PROP_NONE},
     {-1, 0, ""},
 };
 
@@ -72,6 +73,18 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
     }
     case NODE_MATH_TANGENT: {
       *out = tanf(in0);
+      break;
+    }
+    case NODE_MATH_SINH: {
+      *out = sinhf(in0);
+      break;
+    }
+    case NODE_MATH_COSH: {
+      *out = coshf(in0);
+      break;
+    }
+    case NODE_MATH_TANH: {
+      *out = tanhf(in0);
       break;
     }
     case NODE_MATH_ARCSINE: {
@@ -182,8 +195,28 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
       break;
     }
 
+    case NODE_MATH_RADIANS: {
+      *out = DEG2RADF(in0);
+      break;
+    }
+
+    case NODE_MATH_DEGREES: {
+      *out = RAD2DEGF(in0);
+      break;
+    }
+
     case NODE_MATH_ARCTAN2: {
       *out = atan2(in0, in1);
+      break;
+    }
+
+    case NODE_MATH_SIGN: {
+      *out = compatible_signf(in0);
+      break;
+    }
+
+    case NODE_MATH_EXPONENT: {
+      *out = expf(in0);
       break;
     }
 
@@ -212,6 +245,76 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
       break;
     }
 
+    case NODE_MATH_INV_SQRT: {
+      if (in0 > 0.0f) {
+        *out = 1.0f / sqrtf(in0);
+      }
+      else {
+        *out = 0.0f;
+      }
+      break;
+    }
+
+    case NODE_MATH_TRUNC: {
+      if (in0 > 0.0f) {
+        *out = floorf(in0);
+      }
+      else {
+        *out = ceilf(in0);
+      }
+      break;
+    }
+
+    case NODE_MATH_SNAP: {
+      if (in1 == 0) {
+        *out = 0.0;
+      }
+      else {
+        *out = floorf(in0 / in1) * in1;
+      }
+      break;
+    }
+
+    case NODE_MATH_WRAP: {
+      float in2 = tex_input_value(in[2], p, thread);
+      *out = wrapf(in0, in1, in2);
+      break;
+    }
+
+    case NODE_MATH_PINGPONG: {
+      if (in1 == 0.0f) {
+        *out = 0.0f;
+      }
+      else {
+        *out = fabsf(fractf((in0 - in1) / (in1 * 2.0f)) * in1 * 2.0f - in1);
+      }
+      break;
+    }
+
+    case NODE_MATH_COMPARE: {
+      float in2 = tex_input_value(in[2], p, thread);
+      *out = (fabsf(in0 - in1) <= MAX2(in2, 1e-5f)) ? 1.0f : 0.0f;
+      break;
+    }
+
+    case NODE_MATH_MULTIPLY_ADD: {
+      float in2 = tex_input_value(in[2], p, thread);
+      *out = in0 * in1 + in2;
+      break;
+    }
+
+    case NODE_MATH_SMOOTH_MIN: {
+      float in2 = tex_input_value(in[2], p, thread);
+      *out = smoothminf(in0, in1, in2);
+      break;
+    }
+
+    case NODE_MATH_SMOOTH_MAX: {
+      float in2 = tex_input_value(in[2], p, thread);
+      *out = -smoothminf(-in0, -in1, in2);
+      break;
+    }
+
     default: {
       BLI_assert(0);
       break;
@@ -233,6 +336,43 @@ static void exec(void *data,
   tex_output(node, execdata, in, out[0], &valuefn, data);
 }
 
+static void node_shader_update_math(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  bNodeSocket *sock = BLI_findlink(&node->inputs, 1);
+  nodeSetSocketAvailability(sock,
+                            !ELEM(node->custom1,
+                                  NODE_MATH_SQRT,
+                                  NODE_MATH_SIGN,
+                                  NODE_MATH_CEIL,
+                                  NODE_MATH_SINE,
+                                  NODE_MATH_ROUND,
+                                  NODE_MATH_FLOOR,
+                                  NODE_MATH_COSINE,
+                                  NODE_MATH_ARCSINE,
+                                  NODE_MATH_TANGENT,
+                                  NODE_MATH_ABSOLUTE,
+                                  NODE_MATH_RADIANS,
+                                  NODE_MATH_DEGREES,
+                                  NODE_MATH_FRACTION,
+                                  NODE_MATH_ARCCOSINE,
+                                  NODE_MATH_ARCTANGENT) &&
+                                !ELEM(node->custom1,
+                                      NODE_MATH_INV_SQRT,
+                                      NODE_MATH_TRUNC,
+                                      NODE_MATH_EXPONENT,
+                                      NODE_MATH_COSH,
+                                      NODE_MATH_SINH,
+                                      NODE_MATH_TANH));
+  bNodeSocket *sock2 = BLI_findlink(&node->inputs, 2);
+  nodeSetSocketAvailability(sock2,
+                            ELEM(node->custom1,
+                                 NODE_MATH_COMPARE,
+                                 NODE_MATH_MULTIPLY_ADD,
+                                 NODE_MATH_WRAP,
+                                 NODE_MATH_SMOOTH_MIN,
+                                 NODE_MATH_SMOOTH_MAX));
+}
+
 void register_node_type_tex_math(void)
 {
   static bNodeType ntype;
@@ -242,6 +382,7 @@ void register_node_type_tex_math(void)
   node_type_label(&ntype, node_math_label);
   node_type_storage(&ntype, "", NULL, NULL);
   node_type_exec(&ntype, NULL, NULL, exec);
+  node_type_update(&ntype, node_shader_update_math);
 
   nodeRegisterType(&ntype);
 }

@@ -86,7 +86,7 @@ ccl_device void svm_vector_math(
   }
 }
 
-ccl_device float svm_math(NodeMathType type, float a, float b)
+ccl_device float svm_math(NodeMathType type, float a, float b, float c)
 {
   switch (type) {
     case NODE_MATH_ADD:
@@ -103,8 +103,14 @@ ccl_device float svm_math(NodeMathType type, float a, float b)
       return safe_logf(a, b);
     case NODE_MATH_SQRT:
       return safe_sqrtf(a);
+    case NODE_MATH_INV_SQRT:
+      return inversesqrtf(a);
     case NODE_MATH_ABSOLUTE:
       return fabsf(a);
+    case NODE_MATH_RADIANS:
+      return a * (M_PI_F / 180.0f);
+    case NODE_MATH_DEGREES:
+      return a * (180.0f / M_PI_F);
     case NODE_MATH_MINIMUM:
       return fminf(a, b);
     case NODE_MATH_MAXIMUM:
@@ -123,12 +129,26 @@ ccl_device float svm_math(NodeMathType type, float a, float b)
       return a - floorf(a);
     case NODE_MATH_MODULO:
       return safe_modulo(a, b);
+    case NODE_MATH_TRUNC:
+      return a >= 0.0f ? floorf(a) : ceilf(a);
+    case NODE_MATH_SNAP:
+      return floorf(safe_divide(a, b)) * b;
+    case NODE_MATH_WRAP:
+      return wrapf(a, b, c);
+    case NODE_MATH_PINGPONG:
+      return pingpongf(a, b);
     case NODE_MATH_SINE:
       return sinf(a);
     case NODE_MATH_COSINE:
       return cosf(a);
     case NODE_MATH_TANGENT:
       return tanf(a);
+    case NODE_MATH_SINH:
+      return sinhf(a);
+    case NODE_MATH_COSH:
+      return coshf(a);
+    case NODE_MATH_TANH:
+      return tanhf(a);
     case NODE_MATH_ARCSINE:
       return safe_asinf(a);
     case NODE_MATH_ARCCOSINE:
@@ -137,6 +157,18 @@ ccl_device float svm_math(NodeMathType type, float a, float b)
       return atanf(a);
     case NODE_MATH_ARCTAN2:
       return atan2f(a, b);
+    case NODE_MATH_SIGN:
+      return compatible_signf(a);
+    case NODE_MATH_EXPONENT:
+      return expf(a);
+    case NODE_MATH_COMPARE:
+      return ((a == b) || (fabsf(a - b) <= fmaxf(c, FLT_EPSILON))) ? 1.0f : 0.0f;
+    case NODE_MATH_MULTIPLY_ADD:
+      return a * b + c;
+    case NODE_MATH_SMOOTH_MIN:
+      return smoothminf(a, b, c);
+    case NODE_MATH_SMOOTH_MAX:
+      return -smoothminf(-a, -b, c);
     default:
       return 0.0f;
   }

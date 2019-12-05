@@ -24,12 +24,13 @@ ccl_device void svm_node_math(KernelGlobals *kg,
                               uint result_stack_offset,
                               int *offset)
 {
-  uint a_stack_offset, b_stack_offset;
-  svm_unpack_node_uchar2(inputs_stack_offsets, &a_stack_offset, &b_stack_offset);
+  uint a_stack_offset, b_stack_offset, c_stack_offset;
+  svm_unpack_node_uchar3(inputs_stack_offsets, &a_stack_offset, &b_stack_offset, &c_stack_offset);
 
   float a = stack_load_float(stack, a_stack_offset);
   float b = stack_load_float(stack, b_stack_offset);
-  float result = svm_math((NodeMathType)type, a, b);
+  float c = stack_load_float(stack, c_stack_offset);
+  float result = svm_math((NodeMathType)type, a, b, c);
 
   stack_store_float(stack, result_stack_offset, result);
 }

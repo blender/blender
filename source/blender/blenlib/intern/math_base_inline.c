@@ -363,6 +363,18 @@ MINLINE int mod_i(int i, int n)
   return (i % n + n) % n;
 }
 
+MINLINE float fractf(float a)
+{
+  return a - floorf(a);
+}
+
+/* Adapted from godotengine math_funcs.h. */
+MINLINE float wrapf(float value, float max, float min)
+{
+  float range = max - min;
+  return (range != 0.0f) ? value - (range * floorf((value - min) / range)) : min;
+}
+
 MINLINE float min_ff(float a, float b)
 {
   return (a < b) ? a : b;
@@ -370,6 +382,17 @@ MINLINE float min_ff(float a, float b)
 MINLINE float max_ff(float a, float b)
 {
   return (a > b) ? a : b;
+}
+/* See: https://www.iquilezles.org/www/articles/smin/smin.htm. */
+MINLINE float smoothminf(float a, float b, float c)
+{
+  if (c != 0.0f) {
+    float h = max_ff(c - fabsf(a - b), 0.0f) / c;
+    return min_ff(a, b) - h * h * h * c * (1.0f / 6.0f);
+  }
+  else {
+    return min_ff(a, b);
+  }
 }
 
 MINLINE double min_dd(double a, double b)
@@ -502,6 +525,19 @@ MINLINE int compare_ff_relative(float a, float b, const float max_diff, const in
 MINLINE float signf(float f)
 {
   return (f < 0.f) ? -1.f : 1.f;
+}
+
+MINLINE float compatible_signf(float f)
+{
+  if (f > 0.0f) {
+    return 1.0f;
+  }
+  if (f < 0.0f) {
+    return -1.0f;
+  }
+  else {
+    return 0.0f;
+  }
 }
 
 MINLINE int signum_i_ex(float a, float eps)

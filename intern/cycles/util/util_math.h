@@ -344,6 +344,29 @@ ccl_device_inline int ceil_to_int(float f)
   return float_to_int(ceilf(f));
 }
 
+ccl_device_inline float fractf(float x)
+{
+  return x - floorf(x);
+}
+
+/* Adapted from godotengine math_funcs.h. */
+ccl_device_inline float wrapf(float value, float max, float min)
+{
+  float range = max - min;
+  return (range != 0.0f) ? value - (range * floorf((value - min) / range)) : min;
+}
+
+ccl_device_inline float pingpongf(float a, float b)
+{
+  return (b != 0.0f) ? fabsf(fractf((a - b) / (b * 2.0f)) * b * 2.0f - b) : 0.0f;
+}
+
+ccl_device_inline float smoothminf(float a, float b, float k)
+{
+  float h = fmaxf(k - fabsf(a - b), 0.0f) / k;
+  return fminf(a, b) - h * h * h * k * (1.0f / 6.0f);
+}
+
 ccl_device_inline float signf(float f)
 {
   return (f < 0.0f) ? -1.0f : 1.0f;
@@ -355,6 +378,17 @@ ccl_device_inline float nonzerof(float f, float eps)
     return signf(f) * eps;
   else
     return f;
+}
+
+/* Signum function testing for zero. Matches GLSL and OSL functions. */
+ccl_device_inline float compatible_signf(float f)
+{
+  if (f == 0.0f) {
+    return 0.0f;
+  }
+  else {
+    return signf(f);
+  }
 }
 
 ccl_device_inline float smoothstepf(float f)
@@ -547,6 +581,11 @@ ccl_device_inline float3 rotate_around_axis(float3 p, float3 axis, float angle)
 ccl_device_inline float safe_sqrtf(float f)
 {
   return sqrtf(max(f, 0.0f));
+}
+
+ccl_device_inline float inversesqrtf(float f)
+{
+  return (f > 0.0f) ? 1.0f / sqrtf(f) : 0.0f;
 }
 
 ccl_device float safe_asinf(float a)

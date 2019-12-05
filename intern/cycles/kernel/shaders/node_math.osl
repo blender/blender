@@ -26,6 +26,35 @@ float safe_modulo(float a, float b)
   return (b != 0.0) ? fmod(a, b) : 0.0;
 }
 
+float fract(float a)
+{
+  return a - floor(a);
+}
+
+/* Adapted from godotengine math_funcs.h. */
+float wrap(float value, float max, float min)
+{
+  float range = max - min;
+  return (range != 0.0) ? value - (range * floor((value - min) / range)) : min;
+}
+
+/* See: https://www.iquilezles.org/www/articles/smin/smin.htm. */
+float smoothmin(float a, float b, float c)
+{
+  if (c != 0.0) {
+    float h = max(c - abs(a - b), 0.0) / c;
+    return min(a, b) - h * h * h * c * (1.0 / 6.0);
+  }
+  else {
+    return min(a, b);
+  }
+}
+
+float pingpong(float a, float b)
+{
+  return (b != 0.0) ? abs(fract((a - b) / (b * 2.0)) * b * 2.0 - b) : 0.0;
+}
+
 float safe_sqrt(float a)
 {
   return (a > 0.0) ? sqrt(a) : 0.0;
@@ -40,6 +69,7 @@ float safe_log(float a, float b)
 shader node_math(string type = "add",
                  float Value1 = 0.5,
                  float Value2 = 0.5,
+                 float Value3 = 0.5,
                  output float Value = 0.0)
 {
   if (type == "add")
@@ -56,8 +86,14 @@ shader node_math(string type = "add",
     Value = safe_log(Value1, Value2);
   else if (type == "sqrt")
     Value = safe_sqrt(Value1);
+  else if (type == "inversesqrt")
+    Value = inversesqrt(Value1);
   else if (type == "absolute")
     Value = fabs(Value1);
+  else if (type == "radians")
+    Value = radians(Value1);
+  else if (type == "degrees")
+    Value = degrees(Value1);
   else if (type == "minimum")
     Value = min(Value1, Value2);
   else if (type == "maximum")
@@ -76,12 +112,26 @@ shader node_math(string type = "add",
     Value = Value1 - floor(Value1);
   else if (type == "modulo")
     Value = safe_modulo(Value1, Value2);
+  else if (type == "trunc")
+    Value = trunc(Value1);
+  else if (type == "snap")
+    Value = floor(safe_divide(Value1, Value2)) * Value2;
+  else if (type == "wrap")
+    Value = wrap(Value1, Value2, Value3);
+  else if (type == "pingpong")
+    Value = pingpong(Value1, Value2);
   else if (type == "sine")
     Value = sin(Value1);
   else if (type == "cosine")
     Value = cos(Value1);
   else if (type == "tangent")
     Value = tan(Value1);
+  else if (type == "sinh")
+    Value = sinh(Value1);
+  else if (type == "cosh")
+    Value = cosh(Value1);
+  else if (type == "tanh")
+    Value = tanh(Value1);
   else if (type == "arcsine")
     Value = asin(Value1);
   else if (type == "arccosine")
@@ -90,6 +140,18 @@ shader node_math(string type = "add",
     Value = atan(Value1);
   else if (type == "arctan2")
     Value = atan2(Value1, Value2);
+  else if (type == "sign")
+    Value = sign(Value1);
+  else if (type == "exponent")
+    Value = exp(Value1);
+  else if (type == "compare")
+    Value = ((Value1 == Value2) || (abs(Value1 - Value2) <= max(Value3, 1e-5))) ? 1.0 : 0.0;
+  else if (type == "multiply_add")
+    Value = Value1 * Value2 + Value3;
+  else if (type == "smoothmin")
+    Value = smoothmin(Value1, Value2, Value3);
+  else if (type == "smoothmax")
+    Value = -(smoothmin(-Value1, -Value2, Value3));
   else
     warning("%s", "Unknown math operator!");
 }

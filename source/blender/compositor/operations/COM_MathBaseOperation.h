@@ -31,6 +31,7 @@ class MathBaseOperation : public NodeOperation {
    */
   SocketReader *m_inputValue1Operation;
   SocketReader *m_inputValue2Operation;
+  SocketReader *m_inputValue3Operation;
 
   bool m_useClamp;
 
@@ -114,6 +115,28 @@ class MathCosineOperation : public MathBaseOperation {
 class MathTangentOperation : public MathBaseOperation {
  public:
   MathTangentOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
+class MathHyperbolicSineOperation : public MathBaseOperation {
+ public:
+  MathHyperbolicSineOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+class MathHyperbolicCosineOperation : public MathBaseOperation {
+ public:
+  MathHyperbolicCosineOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+class MathHyperbolicTangentOperation : public MathBaseOperation {
+ public:
+  MathHyperbolicTangentOperation() : MathBaseOperation()
   {
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
@@ -206,6 +229,22 @@ class MathAbsoluteOperation : public MathBaseOperation {
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
+class MathRadiansOperation : public MathBaseOperation {
+ public:
+  MathRadiansOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
+class MathDegreesOperation : public MathBaseOperation {
+ public:
+  MathDegreesOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
 class MathArcTan2Operation : public MathBaseOperation {
  public:
   MathArcTan2Operation() : MathBaseOperation()
@@ -246,4 +285,91 @@ class MathSqrtOperation : public MathBaseOperation {
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
 
+class MathInverseSqrtOperation : public MathBaseOperation {
+ public:
+  MathInverseSqrtOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
+class MathSignOperation : public MathBaseOperation {
+ public:
+  MathSignOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
+class MathExponentOperation : public MathBaseOperation {
+ public:
+  MathExponentOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
+class MathTruncOperation : public MathBaseOperation {
+ public:
+  MathTruncOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
+class MathSnapOperation : public MathBaseOperation {
+ public:
+  MathSnapOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
+class MathWrapOperation : public MathBaseOperation {
+ public:
+  MathWrapOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
+class MathPingpongOperation : public MathBaseOperation {
+ public:
+  MathPingpongOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
+class MathCompareOperation : public MathBaseOperation {
+ public:
+  MathCompareOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
+class MathMultiplyAddOperation : public MathBaseOperation {
+ public:
+  MathMultiplyAddOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
+class MathSmoothMinOperation : public MathBaseOperation {
+ public:
+  MathSmoothMinOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
+
+class MathSmoothMaxOperation : public MathBaseOperation {
+ public:
+  MathSmoothMaxOperation() : MathBaseOperation()
+  {
+  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+};
 #endif

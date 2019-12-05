@@ -27,6 +27,7 @@
 static bNodeSocketTemplate sh_node_math_in[] = {
     {SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
     {SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+    {SOCK_FLOAT, 1, N_("Value"), 0.0f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
     {-1, 0, ""}};
 
 static bNodeSocketTemplate sh_node_math_out[] = {{SOCK_FLOAT, 0, N_("Value")}, {-1, 0, ""}};
@@ -42,26 +43,42 @@ static int gpu_shader_math(GPUMaterial *mat,
       [NODE_MATH_SUBTRACT] = "math_subtract",
       [NODE_MATH_MULTIPLY] = "math_multiply",
       [NODE_MATH_DIVIDE] = "math_divide",
+      [NODE_MATH_MULTIPLY_ADD] = "math_multiply_add",
 
       [NODE_MATH_POWER] = "math_power",
       [NODE_MATH_LOGARITHM] = "math_logarithm",
+      [NODE_MATH_EXPONENT] = "math_exponent",
       [NODE_MATH_SQRT] = "math_sqrt",
+      [NODE_MATH_INV_SQRT] = "math_inversesqrt",
       [NODE_MATH_ABSOLUTE] = "math_absolute",
+      [NODE_MATH_RADIANS] = "math_radians",
+      [NODE_MATH_DEGREES] = "math_degrees",
 
       [NODE_MATH_MINIMUM] = "math_minimum",
       [NODE_MATH_MAXIMUM] = "math_maximum",
       [NODE_MATH_LESS_THAN] = "math_less_than",
       [NODE_MATH_GREATER_THAN] = "math_greater_than",
+      [NODE_MATH_SIGN] = "math_sign",
+      [NODE_MATH_COMPARE] = "math_compare",
+      [NODE_MATH_SMOOTH_MIN] = "math_smoothmin",
+      [NODE_MATH_SMOOTH_MAX] = "math_smoothmax",
 
       [NODE_MATH_ROUND] = "math_round",
       [NODE_MATH_FLOOR] = "math_floor",
       [NODE_MATH_CEIL] = "math_ceil",
       [NODE_MATH_FRACTION] = "math_fraction",
       [NODE_MATH_MODULO] = "math_modulo",
+      [NODE_MATH_TRUNC] = "math_trunc",
+      [NODE_MATH_SNAP] = "math_snap",
+      [NODE_MATH_WRAP] = "math_wrap",
+      [NODE_MATH_PINGPONG] = "math_pingpong",
 
       [NODE_MATH_SINE] = "math_sine",
       [NODE_MATH_COSINE] = "math_cosine",
       [NODE_MATH_TANGENT] = "math_tangent",
+      [NODE_MATH_SINH] = "math_sinh",
+      [NODE_MATH_COSH] = "math_cosh",
+      [NODE_MATH_TANH] = "math_tanh",
       [NODE_MATH_ARCSINE] = "math_arcsine",
       [NODE_MATH_ARCCOSINE] = "math_arccosine",
       [NODE_MATH_ARCTANGENT] = "math_arctangent",
@@ -90,6 +107,7 @@ static void node_shader_update_math(bNodeTree *UNUSED(ntree), bNode *node)
   nodeSetSocketAvailability(sock,
                             !ELEM(node->custom1,
                                   NODE_MATH_SQRT,
+                                  NODE_MATH_SIGN,
                                   NODE_MATH_CEIL,
                                   NODE_MATH_SINE,
                                   NODE_MATH_ROUND,
@@ -98,9 +116,26 @@ static void node_shader_update_math(bNodeTree *UNUSED(ntree), bNode *node)
                                   NODE_MATH_ARCSINE,
                                   NODE_MATH_TANGENT,
                                   NODE_MATH_ABSOLUTE,
+                                  NODE_MATH_RADIANS,
+                                  NODE_MATH_DEGREES,
                                   NODE_MATH_FRACTION,
                                   NODE_MATH_ARCCOSINE,
-                                  NODE_MATH_ARCTANGENT));
+                                  NODE_MATH_ARCTANGENT) &&
+                                !ELEM(node->custom1,
+                                      NODE_MATH_INV_SQRT,
+                                      NODE_MATH_TRUNC,
+                                      NODE_MATH_EXPONENT,
+                                      NODE_MATH_COSH,
+                                      NODE_MATH_SINH,
+                                      NODE_MATH_TANH));
+  bNodeSocket *sock2 = BLI_findlink(&node->inputs, 2);
+  nodeSetSocketAvailability(sock2,
+                            ELEM(node->custom1,
+                                 NODE_MATH_COMPARE,
+                                 NODE_MATH_MULTIPLY_ADD,
+                                 NODE_MATH_WRAP,
+                                 NODE_MATH_SMOOTH_MIN,
+                                 NODE_MATH_SMOOTH_MAX));
 }
 
 void register_node_type_sh_math(void)
