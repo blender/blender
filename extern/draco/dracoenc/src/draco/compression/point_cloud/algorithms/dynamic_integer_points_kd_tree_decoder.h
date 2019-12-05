@@ -95,8 +95,11 @@ class DynamicIntegerPointsKdTreeDecoder {
   // Decodes a integer point cloud from |buffer|.
   template <class OutputIteratorT>
   bool DecodePoints(DecoderBuffer *buffer, OutputIteratorT &oit);
+
+#ifndef DRACO_OLD_GCC
   template <class OutputIteratorT>
   bool DecodePoints(DecoderBuffer *buffer, OutputIteratorT &&oit);
+#endif  // DRACO_OLD_GCC
 
   const uint32_t dimension() const { return dimension_; }
 
@@ -138,6 +141,7 @@ class DynamicIntegerPointsKdTreeDecoder {
 };
 
 // Decodes a point cloud from |buffer|.
+#ifndef DRACO_OLD_GCC
 template <int compression_level_t>
 template <class OutputIteratorT>
 bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
@@ -145,6 +149,7 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
   OutputIteratorT local = std::forward<OutputIteratorT>(oit);
   return DecodePoints(buffer, local);
 }
+#endif  // DRACO_OLD_GCC
 
 template <int compression_level_t>
 template <class OutputIteratorT>

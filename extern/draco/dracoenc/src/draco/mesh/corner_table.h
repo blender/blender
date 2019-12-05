@@ -51,7 +51,6 @@ namespace draco {
 // non-manifold edges and vertices are automatically split.
 class CornerTable {
  public:
-  // TODO(hemmer): rename to Face.
   // Corner table face type.
   typedef std::array<VertexIndex, 3> FaceType;
 
@@ -333,9 +332,13 @@ class CornerTable {
 
  private:
   // Computes opposite corners mapping from the data stored in
-  // |corner_to_vertex_map_|. Any non-manifold edge will be split so the result
-  // is always a 2-manifold surface.
+  // |corner_to_vertex_map_|.
   bool ComputeOppositeCorners(int *num_vertices);
+
+  // Finds and breaks non-manifold edges in the 1-ring neighborhood around
+  // vertices (vertices themselves will be split in the ComputeVertexCorners()
+  // function if necessary).
+  bool BreakNonManifoldEdges();
 
   // Computes the lookup map for going from a vertex to a corner. This method
   // can handle non-manifold vertices by splitting them into multiple manifold

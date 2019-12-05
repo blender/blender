@@ -41,4 +41,21 @@ int32_t DataTypeLength(DataType dt) {
   }
 }
 
+bool IsDataTypeIntegral(DataType dt) {
+  switch (dt) {
+    case DT_INT8:
+    case DT_UINT8:
+    case DT_INT16:
+    case DT_UINT16:
+    case DT_INT32:
+    case DT_UINT32:
+    case DT_INT64:
+    case DT_UINT64:
+    case DT_BOOL:
+      return true;
+    default:
+      return false;
+  }
+}
+
 }  // namespace draco

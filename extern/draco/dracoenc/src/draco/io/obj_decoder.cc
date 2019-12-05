@@ -18,6 +18,7 @@
 #include <cmath>
 #include <fstream>
 
+#include "draco/io/file_utils.h"
 #include "draco/io/parser_utils.h"
 #include "draco/metadata/geometry_metadata.h"
 
@@ -103,12 +104,12 @@ Status ObjDecoder::DecodeInternal() {
 
     // Ensure the number of all entries is same for all attributes.
     if (num_positions_ == 0)
-      return Status(Status::ERROR, "No position attribute");
+      return Status(Status::DRACO_ERROR, "No position attribute");
     if (num_tex_coords_ > 0 && num_tex_coords_ != num_positions_)
-      return Status(Status::ERROR,
+      return Status(Status::DRACO_ERROR,
                     "Invalid number of texture coordinates for a point cloud");
     if (num_normals_ > 0 && num_normals_ != num_positions_)
-      return Status(Status::ERROR,
+      return Status(Status::DRACO_ERROR,
                     "Invalid number of normals for a point cloud");
 
     out_mesh_ = nullptr;  // Treat the output geometry as a point cloud.
@@ -151,12 +152,13 @@ Status ObjDecoder::DecodeInternal() {
   }
   if (num_materials_ > 0 && num_obj_faces_ > 0) {
     GeometryAttribute va;
+    const auto geometry_attribute_type = GeometryAttribute::GENERIC;
     if (num_materials_ < 256) {
-      va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT8, false, 1, 0);
+      va.Init(geometry_attribute_type, nullptr, 1, DT_UINT8, false, 1, 0);
     } else if (num_materials_ < (1 << 16)) {
-      va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT16, false, 2, 0);
+      va.Init(geometry_attribute_type, nullptr, 1, DT_UINT16, false, 2, 0);
     } else {
-      va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT32, false, 4, 0);
+      va.Init(geometry_attribute_type, nullptr, 1, DT_UINT32, false, 4, 0);
     }
     material_att_id_ =
         out_point_cloud_->AddAttribute(va, false, num_materials_);
@@ -234,10 +236,13 @@ Status ObjDecoder::DecodeInternal() {
       out_mesh_->SetFace(i, face);
     }
   }
-#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
+
+#ifdef DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
   if (deduplicate_input_values_) {
     out_point_cloud_->DeduplicateAttributeValues();
   }
+#endif
+#ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
   out_point_cloud_->DeduplicatePointIds();
 #endif
   return status;
@@ -298,7 +303,7 @@ bool ObjDecoder::ParseVertexPosition(Status *status) {
     for (int i = 0; i < 3; ++i) {
       parser::SkipWhitespace(buffer());
       if (!parser::ParseFloat(buffer(), val + i)) {
-        *status = Status(Status::ERROR, "Failed to parse a float number");
+        *status = Status(Status::DRACO_ERROR, "Failed to parse a float number");
         // The definition is processed so return true.
         return true;
       }
@@ -326,7 +331,7 @@ bool ObjDecoder::ParseNormal(Status *status) {
     for (int i = 0; i < 3; ++i) {
       parser::SkipWhitespace(buffer());
       if (!parser::ParseFloat(buffer(), val + i)) {
-        *status = Status(Status::ERROR, "Failed to parse a float number");
+        *status = Status(Status::DRACO_ERROR, "Failed to parse a float number");
         // The definition is processed so return true.
         return true;
       }
@@ -354,7 +359,7 @@ bool ObjDecoder::ParseTexCoord(Status *status) {
     for (int i = 0; i < 2; ++i) {
       parser::SkipWhitespace(buffer());
       if (!parser::ParseFloat(buffer(), val + i)) {
-        *status = Status(Status::ERROR, "Failed to parse a float number");
+        *status = Status(Status::DRACO_ERROR, "Failed to parse a float number");
         // The definition is processed so return true.
         return true;
       }
@@ -385,7 +390,7 @@ bool ObjDecoder::ParseFace(Status *status) {
         if (i == 3) {
           break;  // It's OK if there is no fourth vertex index.
         }
-        *status = Status(Status::ERROR, "Failed to parse vertex indices");
+        *status = Status(Status::DRACO_ERROR, "Failed to parse vertex indices");
         return true;
       }
       ++num_valid_indices;
@@ -430,7 +435,8 @@ bool ObjDecoder::ParseFace(Status *status) {
       }
     }
     if (num_indices < 3 || num_indices > 4) {
-      *status = Status(Status::ERROR, "Invalid number of indices on a face");
+      *status =
+          Status(Status::DRACO_ERROR, "Invalid number of indices on a face");
       return false;
     }
     // Either one or two new triangles.
@@ -455,7 +461,7 @@ bool ObjDecoder::ParseMaterialLib(Status *status) {
   parser::SkipWhitespace(&line_buffer);
   material_file_name_.clear();
   if (!parser::ParseString(&line_buffer, &material_file_name_)) {
-    *status = Status(Status::ERROR, "Failed to parse material file name");
+    *status = Status(Status::DRACO_ERROR, "Failed to parse material file name");
     return true;
   }
   parser::SkipLine(&line_buffer);
@@ -492,6 +498,7 @@ bool ObjDecoder::ParseMaterial(Status * /* status */) {
     // will be added to the list.
     last_material_id_ = num_materials_;
     material_name_to_id_[mat_name] = num_materials_++;
+
     return true;
   }
   last_material_id_ = it->second;
@@ -626,15 +633,7 @@ void ObjDecoder::MapPointToVertexIndices(
 
 bool ObjDecoder::ParseMaterialFile(const std::string &file_name,
                                    Status *status) {
-  // Get the correct path to the |file_name| using the folder from
-  // |input_file_name_| as the root folder.
-  const auto pos = input_file_name_.find_last_of("/\\");
-  std::string full_path;
-  if (pos != std::string::npos) {
-    full_path = input_file_name_.substr(0, pos + 1);
-  }
-  full_path += file_name;
-
+  const std::string full_path = GetFullPath(file_name, input_file_name_);
   std::ifstream file(full_path, std::ios::binary);
   if (!file)
     return false;
@@ -676,15 +675,14 @@ bool ObjDecoder::ParseMaterialFileDefinition(Status * /* status */) {
   std::string str;
   if (!parser::ParseString(buffer(), &str))
     return false;
-  if (str.compare("newmtl") == 0) {
+  if (str == "newmtl") {
     parser::SkipWhitespace(buffer());
     parser::ParseLine(buffer(), &str);
-    if (str.length() == 0)
+    if (str.empty())
       return false;
     // Add new material to our map.
     material_name_to_id_[str] = num_materials_++;
   }
-  parser::SkipLine(buffer());
   return true;
 }
 

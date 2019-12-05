@@ -37,7 +37,7 @@ StatusOr<std::unique_ptr<PointCloudDecoder>> CreatePointCloudDecoder(
   } else if (method == POINT_CLOUD_KD_TREE_ENCODING) {
     return std::unique_ptr<PointCloudDecoder>(new PointCloudKdTreeDecoder());
   }
-  return Status(Status::ERROR, "Unsupported encoding method.");
+  return Status(Status::DRACO_ERROR, "Unsupported encoding method.");
 }
 #endif
 
@@ -48,7 +48,7 @@ StatusOr<std::unique_ptr<MeshDecoder>> CreateMeshDecoder(uint8_t method) {
   } else if (method == MESH_EDGEBREAKER_ENCODING) {
     return std::unique_ptr<MeshDecoder>(new MeshEdgebreakerDecoder());
   }
-  return Status(Status::ERROR, "Unsupported encoding method.");
+  return Status(Status::DRACO_ERROR, "Unsupported encoding method.");
 }
 #endif
 
@@ -77,7 +77,7 @@ StatusOr<std::unique_ptr<PointCloud>> Decoder::DecodePointCloudFromBuffer(
     return static_cast<std::unique_ptr<PointCloud>>(std::move(mesh));
 #endif
   }
-  return Status(Status::ERROR, "Unsupported geometry type.");
+  return Status(Status::DRACO_ERROR, "Unsupported geometry type.");
 }
 
 StatusOr<std::unique_ptr<Mesh>> Decoder::DecodeMeshFromBuffer(
@@ -94,7 +94,7 @@ Status Decoder::DecodeBufferToGeometry(DecoderBuffer *in_buffer,
   DracoHeader header;
   DRACO_RETURN_IF_ERROR(PointCloudDecoder::DecodeHeader(&temp_buffer, &header))
   if (header.encoder_type != POINT_CLOUD) {
-    return Status(Status::ERROR, "Input is not a point cloud.");
+    return Status(Status::DRACO_ERROR, "Input is not a point cloud.");
   }
   DRACO_ASSIGN_OR_RETURN(std::unique_ptr<PointCloudDecoder> decoder,
                          CreatePointCloudDecoder(header.encoder_method))
@@ -102,7 +102,7 @@ Status Decoder::DecodeBufferToGeometry(DecoderBuffer *in_buffer,
   DRACO_RETURN_IF_ERROR(decoder->Decode(options_, in_buffer, out_geometry))
   return OkStatus();
 #else
-  return Status(Status::ERROR, "Unsupported geometry type.");
+  return Status(Status::DRACO_ERROR, "Unsupported geometry type.");
 #endif
 }
 
@@ -113,7 +113,7 @@ Status Decoder::DecodeBufferToGeometry(DecoderBuffer *in_buffer,
   DracoHeader header;
   DRACO_RETURN_IF_ERROR(PointCloudDecoder::DecodeHeader(&temp_buffer, &header))
   if (header.encoder_type != TRIANGULAR_MESH) {
-    return Status(Status::ERROR, "Input is not a mesh.");
+    return Status(Status::DRACO_ERROR, "Input is not a mesh.");
   }
   DRACO_ASSIGN_OR_RETURN(std::unique_ptr<MeshDecoder> decoder,
                          CreateMeshDecoder(header.encoder_method))
@@ -121,7 +121,7 @@ Status Decoder::DecodeBufferToGeometry(DecoderBuffer *in_buffer,
   DRACO_RETURN_IF_ERROR(decoder->Decode(options_, in_buffer, out_geometry))
   return OkStatus();
 #else
-  return Status(Status::ERROR, "Unsupported geometry type.");
+  return Status(Status::DRACO_ERROR, "Unsupported geometry type.");
 #endif
 }
 

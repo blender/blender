@@ -20,29 +20,29 @@
 
 #include <vector>
 
-#define ANS_DIVIDE_BY_MULTIPLY 1
-#if ANS_DIVIDE_BY_MULTIPLY
+#define DRACO_ANS_DIVIDE_BY_MULTIPLY 1
+#if DRACO_ANS_DIVIDE_BY_MULTIPLY
 #include "draco/core/divide.h"
 #endif
 #include "draco/core/macros.h"
 
 namespace draco {
 
-#if ANS_DIVIDE_BY_MULTIPLY
+#if DRACO_ANS_DIVIDE_BY_MULTIPLY
 
-#define ANS_DIVREM(quotient, remainder, dividend, divisor) \
-  do {                                                     \
-    quotient = fastdiv(dividend, divisor);                 \
-    remainder = dividend - quotient * divisor;             \
+#define DRACO_ANS_DIVREM(quotient, remainder, dividend, divisor) \
+  do {                                                           \
+    quotient = fastdiv(dividend, divisor);                       \
+    remainder = dividend - quotient * divisor;                   \
   } while (0)
-#define ANS_DIV(dividend, divisor) fastdiv(dividend, divisor)
+#define DRACO_ANS_DIV(dividend, divisor) fastdiv(dividend, divisor)
 #else
-#define ANS_DIVREM(quotient, remainder, dividend, divisor) \
-  do {                                                     \
-    quotient = dividend / divisor;                         \
-    remainder = dividend % divisor;                        \
+#define DRACO_ANS_DIVREM(quotient, remainder, dividend, divisor) \
+  do {                                                           \
+    quotient = dividend / divisor;                               \
+    remainder = dividend % divisor;                              \
   } while (0)
-#define ANS_DIV(dividend, divisor) ((dividend) / (divisor))
+#define DRACO_ANS_DIV(dividend, divisor) ((dividend) / (divisor))
 #endif
 
 struct AnsCoder {
@@ -60,13 +60,9 @@ struct AnsDecoder {
 };
 
 typedef uint8_t AnsP8;
-#define ans_p8_precision 256u
-#define ans_p8_shift 8
-#define ans_p10_precision 1024u
-
-#define l_base (ans_p10_precision * 4)  // l_base % precision must be 0
-#define io_base 256
-// Range I = { l_base, l_base + 1, ..., l_base * io_base - 1 }
+#define DRACO_ANS_P8_PRECISION 256u
+#define DRACO_ANS_L_BASE (4096u)
+#define DRACO_ANS_IO_BASE 256
 
 static uint32_t mem_get_le16(const void *vmem) {
   uint32_t val;
@@ -126,14 +122,14 @@ static inline void ans_write_init(struct AnsCoder *const ans,
                                   uint8_t *const buf) {
   ans->buf = buf;
   ans->buf_offset = 0;
-  ans->state = l_base;
+  ans->state = DRACO_ANS_L_BASE;
 }
 
 static inline int ans_write_end(struct AnsCoder *const ans) {
   uint32_t state;
-  DRACO_DCHECK_GE(ans->state, l_base);
-  DRACO_DCHECK_LT(ans->state, l_base * io_base);
-  state = ans->state - l_base;
+  DRACO_DCHECK_GE(ans->state, DRACO_ANS_L_BASE);
+  DRACO_DCHECK_LT(ans->state, DRACO_ANS_L_BASE * DRACO_ANS_IO_BASE);
+  state = ans->state - DRACO_ANS_L_BASE;
   if (state < (1 << 6)) {
     ans->buf[ans->buf_offset] = (0x00 << 6) + state;
     return ans->buf_offset + 1;
@@ -149,43 +145,44 @@ static inline int ans_write_end(struct AnsCoder *const ans) {
   }
 }
 
-// rABS with descending spread
-// p or p0 takes the place of l_s from the paper
-// ans_p8_precision is m
+// rABS with descending spread.
+// p or p0 takes the place of l_s from the paper.
+// DRACO_ANS_P8_PRECISION is m.
 static inline void rabs_desc_write(struct AnsCoder *ans, int val, AnsP8 p0) {
-  const AnsP8 p = ans_p8_precision - p0;
+  const AnsP8 p = DRACO_ANS_P8_PRECISION - p0;
   const unsigned l_s = val ? p : p0;
   unsigned quot, rem;
-  if (ans->state >= l_base / ans_p8_precision * io_base * l_s) {
-    ans->buf[ans->buf_offset++] = ans->state % io_base;
-    ans->state /= io_base;
+  if (ans->state >=
+      DRACO_ANS_L_BASE / DRACO_ANS_P8_PRECISION * DRACO_ANS_IO_BASE * l_s) {
+    ans->buf[ans->buf_offset++] = ans->state % DRACO_ANS_IO_BASE;
+    ans->state /= DRACO_ANS_IO_BASE;
   }
-  ANS_DIVREM(quot, rem, ans->state, l_s);
-  ans->state = quot * ans_p8_precision + rem + (val ? 0 : p);
+  DRACO_ANS_DIVREM(quot, rem, ans->state, l_s);
+  ans->state = quot * DRACO_ANS_P8_PRECISION + rem + (val ? 0 : p);
 }
 
-#define ANS_IMPL1 0
+#define DRACO_ANS_IMPL1 0
 #define UNPREDICTABLE(x) x
 static inline int rabs_desc_read(struct AnsDecoder *ans, AnsP8 p0) {
   int val;
-#if ANS_IMPL1
+#if DRACO_ANS_IMPL1
   unsigned l_s;
 #else
   unsigned quot, rem, x, xn;
 #endif
-  const AnsP8 p = ans_p8_precision - p0;
-  if (ans->state < l_base && ans->buf_offset > 0) {
-    ans->state = ans->state * io_base + ans->buf[--ans->buf_offset];
+  const AnsP8 p = DRACO_ANS_P8_PRECISION - p0;
+  if (ans->state < DRACO_ANS_L_BASE && ans->buf_offset > 0) {
+    ans->state = ans->state * DRACO_ANS_IO_BASE + ans->buf[--ans->buf_offset];
   }
-#if ANS_IMPL1
-  val = ans->state % ans_p8_precision < p;
+#if DRACO_ANS_IMPL1
+  val = ans->state % DRACO_ANS_P8_PRECISION < p;
   l_s = val ? p : p0;
-  ans->state = (ans->state / ans_p8_precision) * l_s +
-               ans->state % ans_p8_precision - (!val * p);
+  ans->state = (ans->state / DRACO_ANS_P8_PRECISION) * l_s +
+               ans->state % DRACO_ANS_P8_PRECISION - (!val * p);
 #else
   x = ans->state;
-  quot = x / ans_p8_precision;
-  rem = x % ans_p8_precision;
+  quot = x / DRACO_ANS_P8_PRECISION;
+  rem = x % DRACO_ANS_P8_PRECISION;
   xn = quot * p;
   val = rem < p;
   if (UNPREDICTABLE(val)) {
@@ -198,41 +195,42 @@ static inline int rabs_desc_read(struct AnsDecoder *ans, AnsP8 p0) {
   return val;
 }
 
-// rABS with ascending spread
-// p or p0 takes the place of l_s from the paper
-// ans_p8_precision is m
+// rABS with ascending spread.
+// p or p0 takes the place of l_s from the paper.
+// DRACO_ANS_P8_PRECISION is m.
 static inline void rabs_asc_write(struct AnsCoder *ans, int val, AnsP8 p0) {
-  const AnsP8 p = ans_p8_precision - p0;
+  const AnsP8 p = DRACO_ANS_P8_PRECISION - p0;
   const unsigned l_s = val ? p : p0;
   unsigned quot, rem;
-  if (ans->state >= l_base / ans_p8_precision * io_base * l_s) {
-    ans->buf[ans->buf_offset++] = ans->state % io_base;
-    ans->state /= io_base;
+  if (ans->state >=
+      DRACO_ANS_L_BASE / DRACO_ANS_P8_PRECISION * DRACO_ANS_IO_BASE * l_s) {
+    ans->buf[ans->buf_offset++] = ans->state % DRACO_ANS_IO_BASE;
+    ans->state /= DRACO_ANS_IO_BASE;
   }
-  ANS_DIVREM(quot, rem, ans->state, l_s);
-  ans->state = quot * ans_p8_precision + rem + (val ? p0 : 0);
+  DRACO_ANS_DIVREM(quot, rem, ans->state, l_s);
+  ans->state = quot * DRACO_ANS_P8_PRECISION + rem + (val ? p0 : 0);
 }
 
 static inline int rabs_asc_read(struct AnsDecoder *ans, AnsP8 p0) {
   int val;
-#if ANS_IMPL1
+#if DRACO_ANS_IMPL1
   unsigned l_s;
 #else
   unsigned quot, rem, x, xn;
 #endif
-  const AnsP8 p = ans_p8_precision - p0;
-  if (ans->state < l_base) {
-    ans->state = ans->state * io_base + ans->buf[--ans->buf_offset];
+  const AnsP8 p = DRACO_ANS_P8_PRECISION - p0;
+  if (ans->state < DRACO_ANS_L_BASE) {
+    ans->state = ans->state * DRACO_ANS_IO_BASE + ans->buf[--ans->buf_offset];
   }
-#if ANS_IMPL1
-  val = ans->state % ans_p8_precision < p;
+#if DRACO_ANS_IMPL1
+  val = ans->state % DRACO_ANS_P8_PRECISION < p;
   l_s = val ? p : p0;
-  ans->state = (ans->state / ans_p8_precision) * l_s +
-               ans->state % ans_p8_precision - (!val * p);
+  ans->state = (ans->state / DRACO_ANS_P8_PRECISION) * l_s +
+               ans->state % DRACO_ANS_P8_PRECISION - (!val * p);
 #else
   x = ans->state;
-  quot = x / ans_p8_precision;
-  rem = x % ans_p8_precision;
+  quot = x / DRACO_ANS_P8_PRECISION;
+  rem = x % DRACO_ANS_P8_PRECISION;
   xn = quot * p;
   val = rem >= p0;
   if (UNPREDICTABLE(val)) {
@@ -248,32 +246,34 @@ static inline int rabs_asc_read(struct AnsDecoder *ans, AnsP8 p0) {
 #define rabs_read rabs_desc_read
 #define rabs_write rabs_desc_write
 
-// uABS with normalization
+// uABS with normalization.
 static inline void uabs_write(struct AnsCoder *ans, int val, AnsP8 p0) {
-  AnsP8 p = ans_p8_precision - p0;
+  AnsP8 p = DRACO_ANS_P8_PRECISION - p0;
   const unsigned l_s = val ? p : p0;
-  while (ans->state >= l_base / ans_p8_precision * io_base * l_s) {
-    ans->buf[ans->buf_offset++] = ans->state % io_base;
-    ans->state /= io_base;
+  while (ans->state >=
+         DRACO_ANS_L_BASE / DRACO_ANS_P8_PRECISION * DRACO_ANS_IO_BASE * l_s) {
+    ans->buf[ans->buf_offset++] = ans->state % DRACO_ANS_IO_BASE;
+    ans->state /= DRACO_ANS_IO_BASE;
   }
   if (!val)
-    ans->state = ANS_DIV(ans->state * ans_p8_precision, p0);
+    ans->state = DRACO_ANS_DIV(ans->state * DRACO_ANS_P8_PRECISION, p0);
   else
-    ans->state = ANS_DIV((ans->state + 1) * ans_p8_precision + p - 1, p) - 1;
+    ans->state =
+        DRACO_ANS_DIV((ans->state + 1) * DRACO_ANS_P8_PRECISION + p - 1, p) - 1;
 }
 
 static inline int uabs_read(struct AnsDecoder *ans, AnsP8 p0) {
-  AnsP8 p = ans_p8_precision - p0;
+  AnsP8 p = DRACO_ANS_P8_PRECISION - p0;
   int s;
   // unsigned int xp1;
   unsigned xp, sp;
   unsigned state = ans->state;
-  while (state < l_base && ans->buf_offset > 0) {
-    state = state * io_base + ans->buf[--ans->buf_offset];
+  while (state < DRACO_ANS_L_BASE && ans->buf_offset > 0) {
+    state = state * DRACO_ANS_IO_BASE + ans->buf[--ans->buf_offset];
   }
   sp = state * p;
-  // xp1 = (sp + p) / ans_p8_precision;
-  xp = sp / ans_p8_precision;
+  // xp1 = (sp + p) / DRACO_ANS_P8_PRECISION;
+  xp = sp / DRACO_ANS_P8_PRECISION;
   // s = xp1 - xp;
   s = (sp & 0xFF) >= p0;
   if (UNPREDICTABLE(s))
@@ -286,8 +286,8 @@ static inline int uabs_read(struct AnsDecoder *ans, AnsP8 p0) {
 static inline int uabs_read_bit(struct AnsDecoder *ans) {
   int s;
   unsigned state = ans->state;
-  while (state < l_base && ans->buf_offset > 0) {
-    state = state * io_base + ans->buf[--ans->buf_offset];
+  while (state < DRACO_ANS_L_BASE && ans->buf_offset > 0) {
+    state = state * DRACO_ANS_IO_BASE + ans->buf[--ans->buf_offset];
   }
   s = static_cast<int>(state & 1);
   ans->state = state >> 1;
@@ -317,23 +317,23 @@ static inline int ans_read_init(struct AnsDecoder *const ans,
   } else {
     return 1;
   }
-  ans->state += l_base;
-  if (ans->state >= l_base * io_base)
+  ans->state += DRACO_ANS_L_BASE;
+  if (ans->state >= DRACO_ANS_L_BASE * DRACO_ANS_IO_BASE)
     return 1;
   return 0;
 }
 
 static inline int ans_read_end(struct AnsDecoder *const ans) {
-  return ans->state == l_base;
+  return ans->state == DRACO_ANS_L_BASE;
 }
 
 static inline int ans_reader_has_error(const struct AnsDecoder *const ans) {
-  return ans->state < l_base && ans->buf_offset == 0;
+  return ans->state < DRACO_ANS_L_BASE && ans->buf_offset == 0;
 }
 
 struct rans_sym {
   uint32_t prob;
-  uint32_t cum_prob;  // not-inclusive
+  uint32_t cum_prob;  // not-inclusive.
 };
 
 // Class for performing rANS encoding using a desired number of precision bits.
@@ -356,7 +356,7 @@ class RAnsEncoder {
   inline int write_end() {
     uint32_t state;
     DRACO_DCHECK_GE(ans_.state, l_rans_base);
-    DRACO_DCHECK_LT(ans_.state, l_rans_base * io_base);
+    DRACO_DCHECK_LT(ans_.state, l_rans_base * DRACO_ANS_IO_BASE);
     state = ans_.state - l_rans_base;
     if (state < (1 << 6)) {
       ans_.buf[ans_.buf_offset] = (0x00 << 6) + state;
@@ -376,14 +376,14 @@ class RAnsEncoder {
     }
   }
 
-  // rANS with normalization
-  // sym->prob takes the place of l_s from the paper
-  // rans_precision is m
+  // rANS with normalization.
+  // sym->prob takes the place of l_s from the paper.
+  // rans_precision is m.
   inline void rans_write(const struct rans_sym *const sym) {
     const uint32_t p = sym->prob;
-    while (ans_.state >= l_rans_base / rans_precision * io_base * p) {
-      ans_.buf[ans_.buf_offset++] = ans_.state % io_base;
-      ans_.state /= io_base;
+    while (ans_.state >= l_rans_base / rans_precision * DRACO_ANS_IO_BASE * p) {
+      ans_.buf[ans_.buf_offset++] = ans_.state % DRACO_ANS_IO_BASE;
+      ans_.state /= DRACO_ANS_IO_BASE;
     }
     // TODO(ostava): The division and multiplication should be optimized.
     ans_.state =
@@ -399,7 +399,7 @@ class RAnsEncoder {
 struct rans_dec_sym {
   uint32_t val;
   uint32_t prob;
-  uint32_t cum_prob;  // not-inclusive
+  uint32_t cum_prob;  // not-inclusive.
 };
 
 // Class for performing rANS decoding using a desired number of precision bits.
@@ -439,7 +439,7 @@ class RAnsDecoder {
       return 1;
     }
     ans_.state += l_rans_base;
-    if (ans_.state >= l_rans_base * io_base)
+    if (ans_.state >= l_rans_base * DRACO_ANS_IO_BASE)
       return 1;
     return 0;
   }
@@ -455,7 +455,7 @@ class RAnsDecoder {
     unsigned quo;
     struct rans_dec_sym sym;
     while (ans_.state < l_rans_base && ans_.buf_offset > 0) {
-      ans_.state = ans_.state * io_base + ans_.buf[--ans_.buf_offset];
+      ans_.state = ans_.state * DRACO_ANS_IO_BASE + ans_.buf[--ans_.buf_offset];
     }
     // |rans_precision| is a power of two compile time constant, and the below
     // division and modulo are going to be optimized by the compiler.
@@ -507,7 +507,10 @@ class RAnsDecoder {
   AnsDecoder ans_;
 };
 
-#undef ANS_DIVREM
+#undef DRACO_ANS_DIVREM
+#undef DRACO_ANS_P8_PRECISION
+#undef DRACO_ANS_L_BASE
+#undef DRACO_ANS_IO_BASE
 
 }  // namespace draco
 

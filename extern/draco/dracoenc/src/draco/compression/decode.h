@@ -20,7 +20,7 @@
 #include "draco/compression/config/compression_shared.h"
 #include "draco/compression/config/decoder_options.h"
 #include "draco/core/decoder_buffer.h"
-#include "draco/core/statusor.h"
+#include "draco/core/status_or.h"
 #include "draco/mesh/mesh.h"
 
 namespace draco {

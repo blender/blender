@@ -16,10 +16,16 @@
 
 #include <cstdlib>
 #include <string>
+#include <utility>
 
 namespace draco {
 
 Options::Options() {}
+
+void Options::MergeAndReplace(const Options &other_options) {
+  for (const auto &item : other_options.options_)
+    options_[item.first] = item.second;
+}
 
 void Options::SetInt(const std::string &name, int val) {
   options_[name] = std::to_string(val);

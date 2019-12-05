@@ -19,7 +19,9 @@
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_PREDICTION_SCHEME_ENCODER_FACTORY_H_
 
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_constrained_multi_parallelogram_encoder.h"
+#ifdef DRACO_NORMAL_ENCODING_SUPPORTED
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_encoder.h"
+#endif
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_multi_parallelogram_encoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram_encoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_tex_coords_encoder.h"
@@ -49,32 +51,25 @@ struct MeshPredictionSchemeEncoderFactory {
           new MeshPredictionSchemeParallelogramEncoder<DataTypeT, TransformT,
                                                        MeshDataT>(
               attribute, transform, mesh_data));
-    } else if (method == MESH_PREDICTION_MULTI_PARALLELOGRAM) {
-      return std::unique_ptr<PredictionSchemeEncoder<DataTypeT, TransformT>>(
-          new MeshPredictionSchemeMultiParallelogramEncoder<
-              DataTypeT, TransformT, MeshDataT>(attribute, transform,
-                                                mesh_data));
     } else if (method == MESH_PREDICTION_CONSTRAINED_MULTI_PARALLELOGRAM) {
       return std::unique_ptr<PredictionSchemeEncoder<DataTypeT, TransformT>>(
           new MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
               DataTypeT, TransformT, MeshDataT>(attribute, transform,
                                                 mesh_data));
-    } else if (method == MESH_PREDICTION_TEX_COORDS_DEPRECATED) {
-      return std::unique_ptr<PredictionSchemeEncoder<DataTypeT, TransformT>>(
-          new MeshPredictionSchemeTexCoordsEncoder<DataTypeT, TransformT,
-                                                   MeshDataT>(
-              attribute, transform, mesh_data));
     } else if (method == MESH_PREDICTION_TEX_COORDS_PORTABLE) {
       return std::unique_ptr<PredictionSchemeEncoder<DataTypeT, TransformT>>(
           new MeshPredictionSchemeTexCoordsPortableEncoder<
               DataTypeT, TransformT, MeshDataT>(attribute, transform,
                                                 mesh_data));
-    } else if (method == MESH_PREDICTION_GEOMETRIC_NORMAL) {
+    }
+#ifdef DRACO_NORMAL_ENCODING_SUPPORTED
+    else if (method == MESH_PREDICTION_GEOMETRIC_NORMAL) {
       return std::unique_ptr<PredictionSchemeEncoder<DataTypeT, TransformT>>(
           new MeshPredictionSchemeGeometricNormalEncoder<DataTypeT, TransformT,
                                                          MeshDataT>(
               attribute, transform, mesh_data));
     }
+#endif
     return nullptr;
   }
 };

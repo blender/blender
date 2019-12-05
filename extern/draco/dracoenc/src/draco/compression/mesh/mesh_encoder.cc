@@ -23,12 +23,11 @@ void MeshEncoder::SetMesh(const Mesh &m) {
   SetPointCloud(m);
 }
 
-bool MeshEncoder::EncodeGeometryData() {
-  if (!EncodeConnectivity())
-    return false;
+Status MeshEncoder::EncodeGeometryData() {
+  DRACO_RETURN_IF_ERROR(EncodeConnectivity());
   if (options()->GetGlobalBool("store_number_of_encoded_faces", false))
     ComputeNumberOfEncodedFaces();
-  return true;
+  return OkStatus();
 }
 
 }  // namespace draco

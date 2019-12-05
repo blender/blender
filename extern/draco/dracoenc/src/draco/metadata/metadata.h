@@ -18,7 +18,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 #include "draco/core/hash_utils.h"
@@ -101,27 +101,45 @@ class Metadata {
   // accessing entries of common data types. For now, developers need to know
   // the type of entries they are requesting.
   void AddEntryInt(const std::string &name, int32_t value);
+
+  // Returns false if Metadata does not contain an entry with a key of |name|.
+  // This function does not guarantee that entry's type is int32_t.
   bool GetEntryInt(const std::string &name, int32_t *value) const;
 
   void AddEntryIntArray(const std::string &name,
                         const std::vector<int32_t> &value);
+
+  // Returns false if Metadata does not contain an entry with a key of |name|.
+  // This function does not guarantee that entry's type is a vector of int32_t.
   bool GetEntryIntArray(const std::string &name,
                         std::vector<int32_t> *value) const;
 
   void AddEntryDouble(const std::string &name, double value);
+
+  // Returns false if Metadata does not contain an entry with a key of |name|.
+  // This function does not guarantee that entry's type is double.
   bool GetEntryDouble(const std::string &name, double *value) const;
 
   void AddEntryDoubleArray(const std::string &name,
                            const std::vector<double> &value);
+
+  // Returns false if Metadata does not contain an entry with a key of |name|.
+  // This function does not guarantee that entry's type is a vector of double.
   bool GetEntryDoubleArray(const std::string &name,
                            std::vector<double> *value) const;
 
   void AddEntryString(const std::string &name, const std::string &value);
+
+  // Returns false if Metadata does not contain an entry with a key of |name|.
+  // This function does not guarantee that entry's type is std::string.
   bool GetEntryString(const std::string &name, std::string *value) const;
 
   // Add a blob of data as an entry.
   void AddEntryBinary(const std::string &name,
                       const std::vector<uint8_t> &value);
+
+  // Returns false if Metadata does not contain an entry with a key of |name|.
+  // This function does not guarantee that entry's type is a vector of uint8_t.
   bool GetEntryBinary(const std::string &name,
                       std::vector<uint8_t> *value) const;
 
@@ -132,10 +150,10 @@ class Metadata {
   void RemoveEntry(const std::string &name);
 
   int num_entries() const { return static_cast<int>(entries_.size()); }
-  const std::unordered_map<std::string, EntryValue> &entries() const {
+  const std::map<std::string, EntryValue> &entries() const {
     return entries_;
   }
-  const std::unordered_map<std::string, std::unique_ptr<Metadata>>
+  const std::map<std::string, std::unique_ptr<Metadata>>
       &sub_metadatas() const {
     return sub_metadatas_;
   }
@@ -160,8 +178,8 @@ class Metadata {
     return itr->second.GetValue(entry_value);
   }
 
-  std::unordered_map<std::string, EntryValue> entries_;
-  std::unordered_map<std::string, std::unique_ptr<Metadata>> sub_metadatas_;
+  std::map<std::string, EntryValue> entries_;
+  std::map<std::string, std::unique_ptr<Metadata>> sub_metadatas_;
 
   friend struct MetadataHasher;
 };

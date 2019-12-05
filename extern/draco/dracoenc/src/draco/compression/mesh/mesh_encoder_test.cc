@@ -87,7 +87,7 @@ TEST_P(MeshEncoderTest, EncodeGoldenMesh) {
   }
 }
 
-INSTANTIATE_TEST_CASE_P(MeshEncoderTests, MeshEncoderTest,
-                        ::testing::Values("sequential", "edgebreaker"));
+INSTANTIATE_TEST_SUITE_P(MeshEncoderTests, MeshEncoderTest,
+                         ::testing::Values("sequential", "edgebreaker"));
 
 }  // namespace draco

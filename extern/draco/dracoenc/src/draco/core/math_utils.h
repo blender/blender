@@ -17,6 +17,8 @@
 
 #include <inttypes.h>
 
+#include "draco/core/vector_d.h"
+
 #define DRACO_INCREMENT_MOD(I, M) (((I) == ((M)-1)) ? 0 : ((I) + 1))
 
 // Returns floor(sqrt(x)) where x is an integer number. The main intend of this

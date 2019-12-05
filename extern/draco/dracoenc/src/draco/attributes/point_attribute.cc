@@ -64,7 +64,7 @@ bool PointAttribute::Reset(size_t num_attribute_values) {
   return true;
 }
 
-#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
+#ifdef DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
 AttributeValueIndex::ValueType PointAttribute::DeduplicateValues(
     const GeometryAttribute &in_att) {
   return DeduplicateValues(in_att, AttributeValueIndex(0));

@@ -17,6 +17,7 @@
 #include <array>
 #include <regex>
 
+#include "draco/core/status.h"
 #include "draco/io/parser_utils.h"
 #include "draco/io/ply_property_writer.h"
 
@@ -34,13 +35,11 @@ PlyElement::PlyElement(const std::string &name, int64_t num_entries)
 
 PlyReader::PlyReader() : format_(kLittleEndian) {}
 
-bool PlyReader::Read(DecoderBuffer *buffer) {
-  error_message_.clear();
+Status PlyReader::Read(DecoderBuffer *buffer) {
   std::string value;
   // The first line needs to by "ply".
   if (!parser::ParseString(buffer, &value) || value != "ply") {
-    error_message_ = "Not a valid ply file.";
-    return false;
+    return Status(Status::INVALID_PARAMETER, "Not a valid ply file");
   }
   parser::SkipLine(buffer);
 
@@ -52,52 +51,49 @@ bool PlyReader::Read(DecoderBuffer *buffer) {
     format = words[1];
     version = words[2];
   } else {
-    error_message_ = "Missing or wrong format line.";
-    return false;
+    return Status(Status::INVALID_PARAMETER, "Missing or wrong format line");
   }
   if (version != "1.0") {
-    error_message_ = "Unsupported PLY version.";
-    return false;  // Wrong version.
+    return Status(Status::UNSUPPORTED_VERSION, "Unsupported PLY version");
   }
   if (format == "binary_big_endian") {
-    error_message_ =
-        "Unsupported format. Currently we support only ascii and"
-        " binary_little_endian format.";
-    return false;
+    return Status(Status::UNSUPPORTED_VERSION,
+                  "Unsupported format. Currently we support only ascii and"
+                  " binary_little_endian format.");
   }
   if (format == "ascii") {
     format_ = kAscii;
   } else {
     format_ = kLittleEndian;
   }
-  if (!ParseHeader(buffer))
-    return false;
-  if (!ParsePropertiesData(buffer))
-    return false;
-  return true;
+  DRACO_RETURN_IF_ERROR(ParseHeader(buffer));
+  if (!ParsePropertiesData(buffer)) {
+    return Status(Status::INVALID_PARAMETER, "Couldn't parse properties");
+  }
+  return OkStatus();
 }
 
-bool PlyReader::ParseHeader(DecoderBuffer *buffer) {
-  while (error_message_.length() == 0 && !ParseEndHeader(buffer)) {
+Status PlyReader::ParseHeader(DecoderBuffer *buffer) {
+  while (true) {
+    DRACO_ASSIGN_OR_RETURN(bool end, ParseEndHeader(buffer));
+    if (end)
+      break;
     if (ParseElement(buffer))
       continue;
-    if (ParseProperty(buffer))
+    DRACO_ASSIGN_OR_RETURN(bool property_parsed, ParseProperty(buffer));
+    if (property_parsed)
       continue;
     parser::SkipLine(buffer);
   }
-  if (error_message_.length() > 0) {
-    printf("ERROR %s\n", error_message_.c_str());
-    return false;
-  }
-  return true;
+  return OkStatus();
 }
 
-bool PlyReader::ParseEndHeader(DecoderBuffer *buffer) {
+StatusOr<bool> PlyReader::ParseEndHeader(DecoderBuffer *buffer) {
   parser::SkipWhitespace(buffer);
   std::array<char, 10> c;
   if (!buffer->Peek(&c)) {
-    error_message_ = "End of file reached before the end_header.";
-    return false;
+    return Status(Status::INVALID_PARAMETER,
+                  "End of file reached before the end_header");
   }
   if (std::memcmp(&c[0], "end_header", 10) != 0)
     return false;
@@ -126,7 +122,7 @@ bool PlyReader::ParseElement(DecoderBuffer *buffer) {
   return true;
 }
 
-bool PlyReader::ParseProperty(DecoderBuffer *buffer) {
+StatusOr<bool> PlyReader::ParseProperty(DecoderBuffer *buffer) {
   if (elements_.empty())
     return false;  // Ignore properties if there is no active element.
   DecoderBuffer line_buffer(*buffer);
@@ -154,15 +150,13 @@ bool PlyReader::ParseProperty(DecoderBuffer *buffer) {
   }
   const DataType data_type = GetDataTypeFromString(data_type_str);
   if (data_type == DT_INVALID) {
-    error_message_ = "Wrong property data type.";
-    return true;  // Parsed.
+    return Status(Status::INVALID_PARAMETER, "Wrong property data type");
   }
   DataType list_type = DT_INVALID;
   if (property_list_search) {
     list_type = GetDataTypeFromString(list_type_str);
     if (list_type == DT_INVALID) {
-      error_message_ = "Wrong property list type.";
-      return true;  // Parsed.
+      return Status(Status::INVALID_PARAMETER, "Wrong property list type");
     }
   }
   elements_.back().AddProperty(

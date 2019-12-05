@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 #include "draco/core/data_buffer.h"
+#include <algorithm>
 
 namespace draco {
 

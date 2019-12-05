@@ -26,6 +26,8 @@
 
 #include "draco/core/decoder_buffer.h"
 #include "draco/core/draco_types.h"
+#include "draco/core/status.h"
+#include "draco/core/status_or.h"
 
 namespace draco {
 
@@ -111,7 +113,7 @@ class PlyElement {
 class PlyReader {
  public:
   PlyReader();
-  bool Read(DecoderBuffer *buffer);
+  Status Read(DecoderBuffer *buffer);
 
   const PlyElement *GetElementByName(const std::string &name) const {
     const auto it = element_index_.find(name);
@@ -128,10 +130,10 @@ class PlyReader {
  private:
   enum Format { kLittleEndian = 0, kAscii };
 
-  bool ParseHeader(DecoderBuffer *buffer);
-  bool ParseEndHeader(DecoderBuffer *buffer);
+  Status ParseHeader(DecoderBuffer *buffer);
+  StatusOr<bool> ParseEndHeader(DecoderBuffer *buffer);
   bool ParseElement(DecoderBuffer *buffer);
-  bool ParseProperty(DecoderBuffer *buffer);
+  StatusOr<bool> ParseProperty(DecoderBuffer *buffer);
   bool ParsePropertiesData(DecoderBuffer *buffer);
   bool ParseElementData(DecoderBuffer *buffer, int element_index);
   bool ParseElementDataAscii(DecoderBuffer *buffer, int element_index);
@@ -141,7 +143,6 @@ class PlyReader {
   DataType GetDataTypeFromString(const std::string &name) const;
 
   std::vector<PlyElement> elements_;
-  std::string error_message_;
   std::map<std::string, int> element_index_;
   Format format_;
 };

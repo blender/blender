@@ -21,7 +21,9 @@
 #include "draco/draco_features.h"
 
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_constrained_multi_parallelogram_decoder.h"
+#ifdef DRACO_NORMAL_ENCODING_SUPPORTED
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_decoder.h"
+#endif
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_multi_parallelogram_decoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram_decoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_tex_coords_decoder.h"
@@ -82,16 +84,20 @@ struct MeshPredictionSchemeDecoderFactory {
             new MeshPredictionSchemeTexCoordsPortableDecoder<
                 DataTypeT, TransformT, MeshDataT>(attribute, transform,
                                                   mesh_data));
-      } else if (method == MESH_PREDICTION_GEOMETRIC_NORMAL) {
+      }
+#ifdef DRACO_NORMAL_ENCODING_SUPPORTED
+      else if (method == MESH_PREDICTION_GEOMETRIC_NORMAL) {
         return std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>>(
             new MeshPredictionSchemeGeometricNormalDecoder<
                 DataTypeT, TransformT, MeshDataT>(attribute, transform,
                                                   mesh_data));
       }
+#endif
       return nullptr;
     }
   };
 
+#ifdef DRACO_NORMAL_ENCODING_SUPPORTED
   // Operator () specialized for normal octahedron transforms. These transforms
   // are currently used only by the geometric normal prediction scheme (the
   // transform is also used by delta coding, but delta predictor is not
@@ -128,6 +134,7 @@ struct MeshPredictionSchemeDecoderFactory {
       return nullptr;
     }
   };
+#endif
 
   template <class TransformT, class MeshDataT>
   std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>> operator()(

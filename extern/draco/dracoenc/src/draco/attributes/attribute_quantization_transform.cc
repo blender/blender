@@ -92,6 +92,11 @@ bool AttributeQuantizationTransform::ComputeParameters(
       range_ = dif;
   }
 
+  // In case all values are the same, initialize the range to unit length. This
+  // will ensure that all values are quantized properly to the same value.
+  if (range_ == 0.f)
+    range_ = 1.f;
+
   return true;
 }
 

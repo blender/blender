@@ -31,9 +31,7 @@ bool MeshEdgebreakerEncoder::InitializeEncoder() {
   impl_ = nullptr;
   // For tiny meshes it's usually better to use the basic edgebreaker as the
   // overhead of the predictive one may turn out to be too big.
-  // TODO(ostava): For now we have a set limit for forcing the basic edgebreaker
-  // based on the number of faces, but a more complex heuristic may be used if
-  // needed.
+  // TODO(b/111065939): Check if this can be improved.
   const bool is_tiny_mesh = mesh()->num_faces() < 1000;
 
   int selected_edgebreaker_method =
@@ -81,7 +79,7 @@ bool MeshEdgebreakerEncoder::EncodeAttributesEncoderIdentifier(
   return true;
 }
 
-bool MeshEdgebreakerEncoder::EncodeConnectivity() {
+Status MeshEdgebreakerEncoder::EncodeConnectivity() {
   return impl_->EncodeConnectivity();
 }
 

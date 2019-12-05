@@ -61,10 +61,10 @@ class MeshEncoder : public PointCloudEncoder {
   const Mesh *mesh() const { return mesh_; }
 
  protected:
-  bool EncodeGeometryData() override;
+  Status EncodeGeometryData() override;
 
   // Needs to be implemented by the derived classes.
-  virtual bool EncodeConnectivity() = 0;
+  virtual Status EncodeConnectivity() = 0;
 
   // Computes and sets the num_encoded_faces_ for the encoder.
   virtual void ComputeNumberOfEncodedFaces() = 0;

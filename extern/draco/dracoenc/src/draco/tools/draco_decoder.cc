@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
   }
 
   // Save the decoded geometry into a file.
-  // TODO(ostava): Currently only .ply and .obj are supported.
+  // TODO(fgalligan): Change extension code to look for '.'.
   const std::string extension = draco::parser::ToLower(
       options.output.size() >= 4
           ? options.output.substr(options.output.size() - 4)
@@ -167,7 +167,9 @@ int main(int argc, char **argv) {
       }
     }
   } else {
-    printf("Invalid extension of the output file. Use either .ply or .obj\n");
+    printf(
+        "Invalid extension of the output file. Use either .ply, .obj, or "
+        ".gltf\n");
     return -1;
   }
   printf("Decoded geometry saved to %s (%" PRId64 " ms to decode)\n",

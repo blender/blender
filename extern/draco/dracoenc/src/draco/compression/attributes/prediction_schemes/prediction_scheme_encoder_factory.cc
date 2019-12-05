@@ -32,10 +32,12 @@ PredictionSchemeMethod SelectPredictionMethod(
       }
     }
     if (att->attribute_type() == GeometryAttribute::NORMAL) {
+#ifdef DRACO_NORMAL_ENCODING_SUPPORTED
       if (encoder->options()->GetSpeed() < 4) {
         // Use geometric normal prediction for speeds 0, 1, 2, 3.
         return MESH_PREDICTION_GEOMETRIC_NORMAL;
       }
+#endif
       return PREDICTION_DIFFERENCE;  // default
     }
     // Handle other attribute types.

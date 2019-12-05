@@ -33,8 +33,12 @@ class FloatPointsTreeDecoder {
   // Decodes a point cloud from |buffer|.
   template <class OutputIteratorT>
   bool DecodePointCloud(DecoderBuffer *buffer, OutputIteratorT &out);
+
+#ifndef DRACO_OLD_GCC
   template <class OutputIteratorT>
   bool DecodePointCloud(DecoderBuffer *buffer, OutputIteratorT &&out);
+#endif  // DRACO_OLD_GCC
+
   // Initializes a DecoderBuffer from |data|, and calls function above.
   template <class OutputIteratorT>
   bool DecodePointCloud(const char *data, size_t data_size,
@@ -72,12 +76,16 @@ class FloatPointsTreeDecoder {
   uint32_t compression_level_;
 };
 
+#ifndef DRACO_OLD_GCC
+// TODO(vytyaz): Reenable once USD migrates from GCC 4.8 to a higher version
+// that can disambiguate calls to overloaded methods taking rvalue reference.
 template <class OutputIteratorT>
 bool FloatPointsTreeDecoder::DecodePointCloud(DecoderBuffer *buffer,
                                               OutputIteratorT &&out) {
   OutputIteratorT local = std::forward<OutputIteratorT>(out);
   return DecodePointCloud(buffer, local);
 }
+#endif  // DRACO_OLD_GCC
 
 template <class OutputIteratorT>
 bool FloatPointsTreeDecoder::DecodePointCloud(DecoderBuffer *buffer,

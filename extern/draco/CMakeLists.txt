@@ -24,6 +24,6 @@ set(CMAKE_CXX_STANDARD 14)
 add_subdirectory(dracoenc)
 
 # Build blender-draco-exporter module.
-add_library(extern_draco SHARED src/draco-compressor.cpp)
+add_library(extern_draco SHARED src/draco-compressor.cpp src/draco-compressor.h)
 target_include_directories(extern_draco PUBLIC dracoenc/src)
 target_link_libraries(extern_draco PUBLIC dracoenc)

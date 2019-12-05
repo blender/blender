@@ -53,6 +53,11 @@ inline std::unique_ptr<Mesh> ReadMeshFromTestFile(const std::string &file_name,
   const std::string path = GetTestFileFullPath(file_name);
   return ReadMeshFromFile(path, use_metadata).value();
 }
+inline std::unique_ptr<Mesh> ReadMeshFromTestFile(const std::string &file_name,
+                                                  const Options &options) {
+  const std::string path = GetTestFileFullPath(file_name);
+  return ReadMeshFromFile(path, options).value();
+}
 
 inline std::unique_ptr<PointCloud> ReadPointCloudFromTestFile(
     const std::string &file_name) {

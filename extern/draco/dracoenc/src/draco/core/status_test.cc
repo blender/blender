@@ -27,8 +27,8 @@ class StatusTest : public ::testing::Test {
 
 TEST_F(StatusTest, TestStatusOutput) {
   // Tests that the Status can be stored in a provided std::ostream.
-  const draco::Status status(draco::Status::ERROR, "Error msg.");
-  ASSERT_EQ(status.code(), draco::Status::ERROR);
+  const draco::Status status(draco::Status::DRACO_ERROR, "Error msg.");
+  ASSERT_EQ(status.code(), draco::Status::DRACO_ERROR);
 
   std::stringstream str;
   str << status;

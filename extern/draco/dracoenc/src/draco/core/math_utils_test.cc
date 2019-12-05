@@ -1,8 +1,11 @@
 #include "draco/core/math_utils.h"
 
+#include <cmath>
 #include <random>
 
 #include "draco/core/draco_test_base.h"
+
+using draco::Vector3f;
 
 TEST(MathUtils, Mod) { EXPECT_EQ(DRACO_INCREMENT_MOD(1, 1 << 1), 0); }
 

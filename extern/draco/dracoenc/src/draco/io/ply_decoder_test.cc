@@ -26,8 +26,11 @@ class PlyDecoderTest : public ::testing::Test {
     const std::string path = GetTestFileFullPath(file_name);
     PlyDecoder decoder;
     std::unique_ptr<Geometry> geometry(new Geometry());
-    if (!decoder.DecodeFromFile(path, geometry.get()))
+    Status status = decoder.DecodeFromFile(path, geometry.get());
+    if (!status.ok()) {
+      LOG(DRACO_ERROR) << "Failed to decode " << file_name << ": " << status;
       return nullptr;
+    }
     return geometry;
   }
 

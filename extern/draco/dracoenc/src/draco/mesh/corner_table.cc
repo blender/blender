@@ -16,6 +16,7 @@
 
 #include <limits>
 
+#include "draco/attributes/geometry_indices.h"
 #include "draco/mesh/corner_table_iterators.h"
 
 namespace draco {
@@ -45,6 +46,8 @@ bool CornerTable::Init(const IndexTypeVector<FaceIndex, FaceType> &faces) {
   }
   int num_vertices = -1;
   if (!ComputeOppositeCorners(&num_vertices))
+    return false;
+  if (!BreakNonManifoldEdges())
     return false;
   if (!ComputeVertexCorners(num_vertices))
     return false;
@@ -190,6 +193,110 @@ bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
     }
   }
   *num_vertices = static_cast<int>(num_corners_on_vertices.size());
+  return true;
+}
+
+bool CornerTable::BreakNonManifoldEdges() {
+  // This function detects and breaks non-manifold edges that are caused by
+  // folds in 1-ring neighborhood around a vertex. Non-manifold edges can occur
+  // when the 1-ring surface around a vertex self-intersects in a common edge.
+  // For example imagine a surface around a pivot vertex 0, where the 1-ring
+  // is defined by vertices |1, 2, 3, 1, 4|. The surface passes edge <0, 1>
+  // twice which would result in a non-manifold edge that needs to be broken.
+  // For now all faces connected to these non-manifold edges are disconnected
+  // resulting in open boundaries on the mesh. New vertices will be created
+  // automatically for each new disjoint patch in the ComputeVertexCorners()
+  // method.
+  // Note that all other non-manifold edges are implicitly handled by the
+  // function ComputeVertexCorners() that automatically creates new vertices
+  // on disjoint 1-ring surface patches.
+
+  std::vector<bool> visited_corners(num_corners(), false);
+  std::vector<std::pair<VertexIndex, CornerIndex>> sink_vertices;
+  bool mesh_connectivity_updated = false;
+  do {
+    mesh_connectivity_updated = false;
+    for (CornerIndex c(0); c < num_corners(); ++c) {
+      if (visited_corners[c.value()])
+        continue;
+      sink_vertices.clear();
+
+      // First swing all the way to find the left-most corner connected to the
+      // corner's vertex.
+      CornerIndex first_c = c;
+      CornerIndex current_c = c;
+      CornerIndex next_c;
+      while (next_c = SwingLeft(current_c),
+             next_c != first_c && next_c != kInvalidCornerIndex &&
+                 !visited_corners[next_c.value()]) {
+        current_c = next_c;
+      }
+
+      first_c = current_c;
+
+      // Swing right from the first corner and check if all visited edges
+      // are unique.
+      do {
+        visited_corners[current_c.value()] = true;
+        // Each new edge is defined by the pivot vertex (that is the same for
+        // all faces) and by the sink vertex (that is the |next| vertex from the
+        // currently processed pivot corner. I.e., each edge is uniquely defined
+        // by the sink vertex index.
+        const CornerIndex sink_c = Next(current_c);
+        const VertexIndex sink_v = corner_to_vertex_map_[sink_c];
+
+        // Corner that defines the edge on the face.
+        const CornerIndex edge_corner = Previous(current_c);
+        bool vertex_connectivity_updated = false;
+        // Go over all processed edges (sink vertices). If the current sink
+        // vertex has been already encountered before it may indicate a
+        // non-manifold edge that needs to be broken.
+        for (auto &&attached_sink_vertex : sink_vertices) {
+          if (attached_sink_vertex.first == sink_v) {
+            // Sink vertex has been already processed.
+            const CornerIndex other_edge_corner = attached_sink_vertex.second;
+            const CornerIndex opp_edge_corner = Opposite(edge_corner);
+
+            if (opp_edge_corner == other_edge_corner) {
+              // We are closing the loop so no need to change the connectivity.
+              continue;
+            }
+
+            // Break the connectivity on the non-manifold edge.
+            // TODO(ostava): It may be possible to reconnect the faces in a way
+            // that the final surface would be manifold.
+            const CornerIndex opp_other_edge_corner =
+                Opposite(other_edge_corner);
+            if (opp_edge_corner != kInvalidCornerIndex)
+              SetOppositeCorner(opp_edge_corner, kInvalidCornerIndex);
+            if (opp_other_edge_corner != kInvalidCornerIndex)
+              SetOppositeCorner(opp_other_edge_corner, kInvalidCornerIndex);
+
+            SetOppositeCorner(edge_corner, kInvalidCornerIndex);
+            SetOppositeCorner(other_edge_corner, kInvalidCornerIndex);
+
+            vertex_connectivity_updated = true;
+            break;
+          }
+        }
+        if (vertex_connectivity_updated) {
+          // Because of the updated connectivity, not all corners connected to
+          // this vertex have been processed and we need to go over them again.
+          // TODO(ostava): This can be optimized as we don't really need to
+          // iterate over all corners.
+          mesh_connectivity_updated = true;
+          break;
+        }
+        // Insert new sink vertex information <sink vertex index, edge corner>.
+        std::pair<VertexIndex, CornerIndex> new_sink_vert;
+        new_sink_vert.first = corner_to_vertex_map_[Previous(current_c)];
+        new_sink_vert.second = sink_c;
+        sink_vertices.push_back(new_sink_vert);
+
+        current_c = SwingRight(current_c);
+      } while (current_c != first_c && current_c != kInvalidCornerIndex);
+    }
+  } while (mesh_connectivity_updated);
   return true;
 }
 

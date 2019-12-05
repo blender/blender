@@ -87,23 +87,32 @@ int PointCloud::AddAttribute(std::unique_ptr<PointAttribute> pa) {
 int PointCloud::AddAttribute(
     const GeometryAttribute &att, bool identity_mapping,
     AttributeValueIndex::ValueType num_attribute_values) {
-  const GeometryAttribute::Type type = att.attribute_type();
-  if (type == GeometryAttribute::INVALID)
+  auto pa = CreateAttribute(att, identity_mapping, num_attribute_values);
+  if (!pa)
     return -1;
-  const int32_t att_id =
-      AddAttribute(std::unique_ptr<PointAttribute>(new PointAttribute(att)));
+  const int32_t att_id = AddAttribute(std::move(pa));
+  return att_id;
+}
+
+std::unique_ptr<PointAttribute> PointCloud::CreateAttribute(
+    const GeometryAttribute &att, bool identity_mapping,
+    AttributeValueIndex::ValueType num_attribute_values) const {
+  if (att.attribute_type() == GeometryAttribute::INVALID)
+    return nullptr;
+  std::unique_ptr<PointAttribute> pa =
+      std::unique_ptr<PointAttribute>(new PointAttribute(att));
   // Initialize point cloud specific attribute data.
   if (!identity_mapping) {
     // First create mapping between indices.
-    attribute(att_id)->SetExplicitMapping(num_points_);
+    pa->SetExplicitMapping(num_points_);
   } else {
-    attribute(att_id)->SetIdentityMapping();
-    attribute(att_id)->Resize(num_points_);
+    pa->SetIdentityMapping();
+    pa->Resize(num_points_);
   }
   if (num_attribute_values > 0) {
-    attribute(att_id)->Reset(num_attribute_values);
+    pa->Reset(num_attribute_values);
   }
-  return att_id;
+  return pa;
 }
 
 void PointCloud::SetAttribute(int att_id, std::unique_ptr<PointAttribute> pa) {
@@ -148,7 +157,7 @@ void PointCloud::DeleteAttribute(int att_id) {
   }
 }
 
-#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
+#ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
 void PointCloud::DeduplicatePointIds() {
   // Hashing function for a single vertex.
   auto point_hash = [this](PointIndex p) {
@@ -214,7 +223,9 @@ void PointCloud::ApplyPointIdDeduplication(
     attribute(a)->SetExplicitMapping(num_unique_points);
   }
 }
+#endif
 
+#ifdef DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
 bool PointCloud::DeduplicateAttributeValues() {
   // Go over all attributes and create mapping between duplicate entries.
   if (num_points() == 0)

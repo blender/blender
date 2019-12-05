@@ -13,7 +13,9 @@
 // limitations under the License.
 //
 #include "draco/compression/attributes/sequential_attribute_decoders_controller.h"
+#ifdef DRACO_NORMAL_ENCODING_SUPPORTED
 #include "draco/compression/attributes/sequential_normal_attribute_decoder.h"
+#endif
 #include "draco/compression/attributes/sequential_quantization_attribute_decoder.h"
 #include "draco/compression/config/compression_shared.h"
 
@@ -123,9 +125,11 @@ SequentialAttributeDecodersController::CreateSequentialDecoder(
     case SEQUENTIAL_ATTRIBUTE_ENCODER_QUANTIZATION:
       return std::unique_ptr<SequentialAttributeDecoder>(
           new SequentialQuantizationAttributeDecoder());
+#ifdef DRACO_NORMAL_ENCODING_SUPPORTED
     case SEQUENTIAL_ATTRIBUTE_ENCODER_NORMALS:
       return std::unique_ptr<SequentialNormalAttributeDecoder>(
           new SequentialNormalAttributeDecoder());
+#endif
     default:
       break;
   }

@@ -18,6 +18,7 @@
 #include "draco/compression/config/compression_shared.h"
 #include "draco/compression/decode.h"
 #include "draco/compression/expert_encode.h"
+#include "draco/core/options.h"
 
 namespace draco {
 
@@ -88,6 +89,13 @@ StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name);
 // Returns nullptr with an error status if the decoding failed.
 StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name,
                                                  bool use_metadata);
+
+// Reads a mesh from a file. Reading is configured with |options|:
+// use_metadata  : Read obj file info like material names and object names into
+// metadata. Default is false.
+// Returns nullptr with an error status if the decoding failed.
+StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name,
+                                                 const Options &options);
 
 }  // namespace draco
 

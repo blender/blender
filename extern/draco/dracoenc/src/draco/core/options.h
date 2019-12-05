@@ -28,6 +28,11 @@ namespace draco {
 class Options {
  public:
   Options();
+
+  // Merges |other_options| on top of the existing options of this instance
+  // replacing all entries that are present in both options instances.
+  void MergeAndReplace(const Options &other_options);
+
   void SetInt(const std::string &name, int val);
   void SetFloat(const std::string &name, float val);
   void SetBool(const std::string &name, bool val);

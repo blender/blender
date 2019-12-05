@@ -32,20 +32,17 @@ typedef draco::Vector5ui Vector5ui;
 typedef draco::VectorD<int32_t, 3> Vector3i;
 typedef draco::VectorD<int32_t, 4> Vector4i;
 
-class VectorDTest : public ::testing::Test {
- protected:
-  template <class CoeffT, int dimension_t>
-  void TestSquaredDistance(const draco::VectorD<CoeffT, dimension_t> v1,
-                           const draco::VectorD<CoeffT, dimension_t> v2,
-                           const CoeffT result) {
-    CoeffT squared_distance = SquaredDistance(v1, v2);
-    ASSERT_EQ(squared_distance, result);
-    squared_distance = SquaredDistance(v2, v1);
-    ASSERT_EQ(squared_distance, result);
-  }
-};
+template <class CoeffT, int dimension_t>
+void TestSquaredDistance(const draco::VectorD<CoeffT, dimension_t> v1,
+                         const draco::VectorD<CoeffT, dimension_t> v2,
+                         const CoeffT result) {
+  CoeffT squared_distance = SquaredDistance(v1, v2);
+  ASSERT_EQ(squared_distance, result);
+  squared_distance = SquaredDistance(v2, v1);
+  ASSERT_EQ(squared_distance, result);
+}
 
-TEST_F(VectorDTest, TestOperators) {
+TEST(VectorDTest, TestOperators) {
   {
     const Vector3f v;
     ASSERT_EQ(v[0], 0);
@@ -58,10 +55,8 @@ TEST_F(VectorDTest, TestOperators) {
   ASSERT_EQ(v[2], 3);
 
   Vector3f w = v;
-  bool comp = (v == w);
-  ASSERT_TRUE(comp);
-  comp = (v != w);
-  ASSERT_TRUE(!comp);
+  ASSERT_TRUE(v == w);
+  ASSERT_FALSE(v != w);
   ASSERT_EQ(w[0], 1);
   ASSERT_EQ(w[1], 2);
   ASSERT_EQ(w[2], 3);
@@ -81,7 +76,12 @@ TEST_F(VectorDTest, TestOperators) {
   ASSERT_EQ(w[1], 2);
   ASSERT_EQ(w[2], 3);
 
+  // Scalar multiplication from left and right.
   w = v * 2.f;
+  ASSERT_EQ(w[0], 2);
+  ASSERT_EQ(w[1], 4);
+  ASSERT_EQ(w[2], 6);
+  w = 2.f * v;
   ASSERT_EQ(w[0], 2);
   ASSERT_EQ(w[1], 4);
   ASSERT_EQ(w[2], 6);
@@ -109,7 +109,7 @@ TEST_F(VectorDTest, TestOperators) {
   }
 }
 
-TEST_F(VectorDTest, TestSquaredDistance) {
+TEST(VectorDTest, TestSquaredDistance) {
   // Test Vector2f: float, 2D.
   Vector2f v1_2f(5.5, 10.5);
   Vector2f v2_2f(3.5, 15.5);
@@ -158,7 +158,8 @@ TEST_F(VectorDTest, TestSquaredDistance) {
   result_ui = 158;
   TestSquaredDistance(v1_5ui, v2_5ui, result_ui);
 }
-TEST_F(VectorDTest, TestCrossProduct3D) {
+
+TEST(VectorDTest, TestCrossProduct3D) {
   const Vector3i e1(1, 0, 0);
   const Vector3i e2(0, 1, 0);
   const Vector3i e3(0, 0, 1);
@@ -181,7 +182,7 @@ TEST_F(VectorDTest, TestCrossProduct3D) {
   ASSERT_EQ(0, v2.Dot(orth));
 }
 
-TEST_F(VectorDTest, TestAbsSum) {
+TEST(VectorDTest, TestAbsSum) {
   // Testing const of function and zero.
   const Vector3i v(0, 0, 0);
   ASSERT_EQ(v.AbsSum(), 0);
@@ -194,12 +195,41 @@ TEST_F(VectorDTest, TestAbsSum) {
   ASSERT_EQ(Vector4i(-2, 4, -8, 3).AbsSum(), 17);
 }
 
-TEST_F(VectorDTest, TestOstream) {
+TEST(VectorDTest, TestMinMaxCoeff) {
+  // Test verifies that MinCoeff() and MaxCoeff() functions work as intended.
+  const Vector4i vi(-10, 5, 2, 3);
+  ASSERT_EQ(vi.MinCoeff(), -10);
+  ASSERT_EQ(vi.MaxCoeff(), 5);
+
+  const Vector3f vf(6.f, 1000.f, -101.f);
+  ASSERT_EQ(vf.MinCoeff(), -101.f);
+  ASSERT_EQ(vf.MaxCoeff(), 1000.f);
+}
+
+TEST(VectorDTest, TestOstream) {
   // Tests that the vector can be stored in a provided std::ostream.
   const draco::VectorD<int64_t, 3> vector(1, 2, 3);
   std::stringstream str;
   str << vector << " ";
   ASSERT_EQ(str.str(), "1 2 3 ");
+}
+
+TEST(VectorDTest, TestConvertConstructor) {
+  // Tests that a vector can be constructed from another vector with a different
+  // type.
+  const draco::VectorD<int64_t, 3> vector(1, 2, 3);
+
+  const draco::VectorD<float, 3> vector3f(vector);
+  ASSERT_EQ(vector3f, draco::Vector3f(1.f, 2.f, 3.f));
+
+  const draco::VectorD<float, 2> vector2f(vector);
+  ASSERT_EQ(vector2f, draco::Vector2f(1.f, 2.f));
+
+  const draco::VectorD<float, 4> vector4f(vector3f);
+  ASSERT_EQ(vector4f, draco::Vector4f(1.f, 2.f, 3.f, 0.f));
+
+  const draco::VectorD<double, 1> vector1d(vector3f);
+  ASSERT_EQ(vector1d[0], 1.0);
 }
 
 }  // namespace

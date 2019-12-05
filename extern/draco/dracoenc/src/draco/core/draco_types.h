@@ -41,6 +41,11 @@ enum DataType {
 
 int32_t DataTypeLength(DataType dt);
 
+// Equivalent to std::is_integral for draco::DataType. Returns true for all
+// signed and unsigned integer types (including DT_BOOL). Returns false
+// otherwise.
+bool IsDataTypeIntegral(DataType dt);
+
 }  // namespace draco
 
 #endif  // DRACO_CORE_DRACO_TYPES_H_

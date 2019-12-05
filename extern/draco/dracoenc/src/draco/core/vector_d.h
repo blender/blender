@@ -24,16 +24,20 @@
 
 namespace draco {
 // D-dimensional vector class with basic operations.
-template <class CoeffT, int dimension_t>
+template <class ScalarT, int dimension_t>
 class VectorD {
  public:
-  typedef VectorD<CoeffT, dimension_t> Self;
-  typedef CoeffT CoefficientType;
   static constexpr int dimension = dimension_t;
 
+  typedef ScalarT Scalar;
+  typedef VectorD<Scalar, dimension_t> Self;
+
+  // TODO(hemmer): Deprecate.
+  typedef ScalarT CoefficientType;
+
   VectorD() {
-    for (int i = 0; i < dimension_t; ++i)
-      (*this)[i] = CoeffT(0);
+    for (int i = 0; i < dimension; ++i)
+      (*this)[i] = Scalar(0);
   }
 
   // The following constructor does not compile in opt mode, which for now led
@@ -42,58 +46,75 @@ class VectorD {
   // template <typename... Args>
   // explicit VectorD(Args... args) : v_({args...}) {}
 
-  VectorD(const CoeffT &c0, const CoeffT &c1) : v_({{c0, c1}}) {
-    DRACO_DCHECK_EQ(dimension_t, 2);
+  VectorD(const Scalar &c0, const Scalar &c1) : v_({{c0, c1}}) {
+    DRACO_DCHECK_EQ(dimension, 2);
     v_[0] = c0;
     v_[1] = c1;
   }
 
-  VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2)
+  VectorD(const Scalar &c0, const Scalar &c1, const Scalar &c2)
       : v_({{c0, c1, c2}}) {
-    DRACO_DCHECK_EQ(dimension_t, 3);
+    DRACO_DCHECK_EQ(dimension, 3);
   }
 
-  VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2,
-          const CoeffT &c3)
+  VectorD(const Scalar &c0, const Scalar &c1, const Scalar &c2,
+          const Scalar &c3)
       : v_({{c0, c1, c2, c3}}) {
-    DRACO_DCHECK_EQ(dimension_t, 4);
+    DRACO_DCHECK_EQ(dimension, 4);
   }
 
-  VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2,
-          const CoeffT &c3, const CoeffT &c4)
+  VectorD(const Scalar &c0, const Scalar &c1, const Scalar &c2,
+          const Scalar &c3, const Scalar &c4)
       : v_({{c0, c1, c2, c3, c4}}) {
-    DRACO_DCHECK_EQ(dimension_t, 5);
+    DRACO_DCHECK_EQ(dimension, 5);
   }
 
-  VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2,
-          const CoeffT &c3, const CoeffT &c4, const CoeffT &c5)
+  VectorD(const Scalar &c0, const Scalar &c1, const Scalar &c2,
+          const Scalar &c3, const Scalar &c4, const Scalar &c5)
       : v_({{c0, c1, c2, c3, c4, c5}}) {
-    DRACO_DCHECK_EQ(dimension_t, 6);
+    DRACO_DCHECK_EQ(dimension, 6);
   }
 
-  VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2,
-          const CoeffT &c3, const CoeffT &c4, const CoeffT &c5,
-          const CoeffT &c6)
+  VectorD(const Scalar &c0, const Scalar &c1, const Scalar &c2,
+          const Scalar &c3, const Scalar &c4, const Scalar &c5,
+          const Scalar &c6)
       : v_({{c0, c1, c2, c3, c4, c5, c6}}) {
-    DRACO_DCHECK_EQ(dimension_t, 7);
+    DRACO_DCHECK_EQ(dimension, 7);
   }
 
   VectorD(const Self &o) {
-    for (int i = 0; i < dimension_t; ++i)
+    for (int i = 0; i < dimension; ++i)
       (*this)[i] = o[i];
   }
 
-  CoeffT &operator[](int i) { return v_[i]; }
-  const CoeffT &operator[](int i) const { return v_[i]; }
+  // Constructs the vector from another vector with a different data type or a
+  // different number of components. If the |src_vector| has more components
+  // than |this| vector, the excess components are truncated. If the
+  // |src_vector| has fewer components than |this| vector, the remaining
+  // components are padded with 0.
+  // Note that the constructor is intentionally explicit to avoid accidental
+  // conversions between different vector types.
+  template <class OtherScalarT, int other_dimension_t>
+  explicit VectorD(const VectorD<OtherScalarT, other_dimension_t> &src_vector) {
+    for (int i = 0; i < dimension; ++i) {
+      if (i < other_dimension_t)
+        v_[i] = Scalar(src_vector[i]);
+      else
+        v_[i] = Scalar(0);
+    }
+  }
+
+  Scalar &operator[](int i) { return v_[i]; }
+  const Scalar &operator[](int i) const { return v_[i]; }
   // TODO(hemmer): remove.
   // Similar to interface of Eigen library.
-  CoeffT &operator()(int i) { return v_[i]; }
-  const CoeffT &operator()(int i) const { return v_[i]; }
+  Scalar &operator()(int i) { return v_[i]; }
+  const Scalar &operator()(int i) const { return v_[i]; }
 
   // Unary operators.
   Self operator-() const {
     Self ret;
-    for (int i = 0; i < dimension_t; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       ret[i] = -(*this)[i];
     }
     return ret;
@@ -102,7 +123,7 @@ class VectorD {
   // Binary operators.
   Self operator+(const Self &o) const {
     Self ret;
-    for (int i = 0; i < dimension_t; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       ret[i] = (*this)[i] + o[i];
     }
     return ret;
@@ -110,30 +131,46 @@ class VectorD {
 
   Self operator-(const Self &o) const {
     Self ret;
-    for (int i = 0; i < dimension_t; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       ret[i] = (*this)[i] - o[i];
     }
     return ret;
   }
 
-  Self operator*(const CoeffT &o) const {
+  Self operator*(const Scalar &o) const {
     Self ret;
-    for (int i = 0; i < dimension_t; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       ret[i] = (*this)[i] * o;
     }
     return ret;
   }
 
-  Self operator/(const CoeffT &o) const {
+  Self operator/(const Scalar &o) const {
     Self ret;
-    for (int i = 0; i < dimension_t; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       ret[i] = (*this)[i] / o;
     }
     return ret;
   }
 
+  Self operator+(const Scalar &o) const {
+    Self ret;
+    for (int i = 0; i < dimension; ++i) {
+      ret[i] = (*this)[i] + o;
+    }
+    return ret;
+  }
+
+  Self operator-(const Scalar &o) const {
+    Self ret;
+    for (int i = 0; i < dimension; ++i) {
+      ret[i] = (*this)[i] - o;
+    }
+    return ret;
+  }
+
   bool operator==(const Self &o) const {
-    for (int i = 0; i < dimension_t; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       if ((*this)[i] != o[i])
         return false;
     }
@@ -143,67 +180,75 @@ class VectorD {
   bool operator!=(const Self &x) const { return !((*this) == x); }
 
   bool operator<(const Self &x) const {
-    for (int i = 0; i < dimension_t - 1; ++i) {
+    for (int i = 0; i < dimension - 1; ++i) {
       if (v_[i] < x.v_[i])
         return true;
       if (v_[i] > x.v_[i])
         return false;
     }
     // Only one check needed for the last dimension.
-    if (v_[dimension_t - 1] < x.v_[dimension_t - 1])
+    if (v_[dimension - 1] < x.v_[dimension - 1])
       return true;
     return false;
   }
 
   // Functions.
-  CoeffT SquaredNorm() const { return this->Dot(*this); }
+  Scalar SquaredNorm() const { return this->Dot(*this); }
 
   // Computes L1, the sum of absolute values of all entries.
-  CoeffT AbsSum() const {
-    CoeffT result(0);
-    for (int i = 0; i < dimension_t; ++i) {
+  Scalar AbsSum() const {
+    Scalar result(0);
+    for (int i = 0; i < dimension; ++i) {
       result += std::abs(v_[i]);
     }
     return result;
   }
 
-  CoeffT Dot(const Self &o) const {
-    CoeffT ret(0);
-    for (int i = 0; i < dimension_t; ++i) {
+  Scalar Dot(const Self &o) const {
+    Scalar ret(0);
+    for (int i = 0; i < dimension; ++i) {
       ret += (*this)[i] * o[i];
     }
     return ret;
   }
 
   void Normalize() {
-    const CoeffT magnitude = std::sqrt(this->SquaredNorm());
+    const Scalar magnitude = std::sqrt(this->SquaredNorm());
     if (magnitude == 0) {
       return;
     }
-    for (int i = 0; i < dimension_t; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       (*this)[i] /= magnitude;
     }
   }
 
-  CoeffT *data() { return &(v_[0]); }
+  const Scalar &MaxCoeff() const {
+    return *std::max_element(v_.begin(), v_.end());
+  }
+
+  const Scalar &MinCoeff() const {
+    return *std::min_element(v_.begin(), v_.end());
+  }
+
+  Scalar *data() { return &(v_[0]); }
 
  private:
-  std::array<CoeffT, dimension_t> v_;
+  std::array<Scalar, dimension> v_;
 };
 
 // Scalar multiplication from the other side too.
-template <class CoeffT, int dimension_t>
-VectorD<CoeffT, dimension_t> operator*(const CoeffT &o,
-                                       const VectorD<CoeffT, dimension_t> &v) {
+template <class ScalarT, int dimension_t>
+VectorD<ScalarT, dimension_t> operator*(
+    const ScalarT &o, const VectorD<ScalarT, dimension_t> &v) {
   return v * o;
 }
 
 // Calculates the squared distance between two points.
-template <class CoeffT, int dimension_t>
-CoeffT SquaredDistance(const VectorD<CoeffT, dimension_t> &v1,
-                       const VectorD<CoeffT, dimension_t> &v2) {
-  CoeffT difference;
-  CoeffT squared_distance = 0;
+template <class ScalarT, int dimension_t>
+ScalarT SquaredDistance(const VectorD<ScalarT, dimension_t> &v1,
+                        const VectorD<ScalarT, dimension_t> &v2) {
+  ScalarT difference;
+  ScalarT squared_distance = 0;
   // Check each index separately so difference is never negative and underflow
   // is avoided for unsigned types.
   for (int i = 0; i < dimension_t; ++i) {
@@ -218,22 +263,22 @@ CoeffT SquaredDistance(const VectorD<CoeffT, dimension_t> &v1,
 }
 
 // Global function computing the cross product of two 3D vectors.
-template <class CoeffT>
-VectorD<CoeffT, 3> CrossProduct(const VectorD<CoeffT, 3> &u,
-                                const VectorD<CoeffT, 3> &v) {
+template <class ScalarT>
+VectorD<ScalarT, 3> CrossProduct(const VectorD<ScalarT, 3> &u,
+                                 const VectorD<ScalarT, 3> &v) {
   // Preventing accidental use with uint32_t and the like.
-  static_assert(std::is_signed<CoeffT>::value,
-                "CoeffT must be a signed type. ");
-  VectorD<CoeffT, 3> r;
+  static_assert(std::is_signed<ScalarT>::value,
+                "ScalarT must be a signed type. ");
+  VectorD<ScalarT, 3> r;
   r[0] = (u[1] * v[2]) - (u[2] * v[1]);
   r[1] = (u[2] * v[0]) - (u[0] * v[2]);
   r[2] = (u[0] * v[1]) - (u[1] * v[0]);
   return r;
 }
 
-template <class CoeffT, int dimension_t>
+template <class ScalarT, int dimension_t>
 inline std::ostream &operator<<(
-    std::ostream &out, const draco::VectorD<CoeffT, dimension_t> &vec) {
+    std::ostream &out, const draco::VectorD<ScalarT, dimension_t> &vec) {
   for (int i = 0; i < dimension_t - 1; ++i) {
     out << vec[i] << " ";
   }

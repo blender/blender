@@ -45,7 +45,7 @@ class MeshEdgebreakerEncoderImpl : public MeshEdgebreakerEncoderImplInterface {
 
   bool GenerateAttributesEncoder(int32_t att_id) override;
   bool EncodeAttributesEncoderIdentifier(int32_t att_encoder_id) override;
-  bool EncodeConnectivity() override;
+  Status EncodeConnectivity() override;
 
   const CornerTable *GetCornerTable() const override {
     return corner_table_.get();

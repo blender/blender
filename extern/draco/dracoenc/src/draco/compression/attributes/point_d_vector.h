@@ -42,7 +42,7 @@ class PseudoPointD {
 
   // Specifically copies referenced memory
   void swap(PseudoPointD &other) noexcept {
-    for (auto dim = 0; dim < dimension_; dim += 1)
+    for (internal_t dim = 0; dim < dimension_; dim += 1)
       std::swap(mem_[dim], other.mem_[dim]);
   }
 

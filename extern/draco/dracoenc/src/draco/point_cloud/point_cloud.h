@@ -89,9 +89,16 @@ class PointCloud {
   // PointAttribute::SetPointMapEntry() method. |num_attribute_values| can be
   // used to specify the number of attribute values that are going to be
   // stored in the newly created attribute. Returns attribute id of the newly
-  // created attribute.
+  // created attribute or -1 in case of failure.
   int AddAttribute(const GeometryAttribute &att, bool identity_mapping,
                    AttributeValueIndex::ValueType num_attribute_values);
+
+  // Creates and returns a new attribute or nullptr in case of failure. This
+  // method is similar to AddAttribute(), except that it returns the new
+  // attribute instead of adding it to the point cloud.
+  std::unique_ptr<PointAttribute> CreateAttribute(
+      const GeometryAttribute &att, bool identity_mapping,
+      AttributeValueIndex::ValueType num_attribute_values) const;
 
   // Assigns an attribute id to a given PointAttribute. If an attribute with
   // the same attribute id already exists, it is deleted.
@@ -101,11 +108,13 @@ class PointCloud {
   // attribute ids of all subsequent attributes.
   virtual void DeleteAttribute(int att_id);
 
-#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
+#ifdef DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
   // Deduplicates all attribute values (all attribute entries with the same
   // value are merged into a single entry).
   virtual bool DeduplicateAttributeValues();
+#endif
 
+#ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
   // Removes duplicate point ids (two point ids are duplicate when all of their
   // attributes are mapped to the same entry ids).
   virtual void DeduplicatePointIds();
@@ -173,7 +182,7 @@ class PointCloud {
   void set_num_points(PointIndex::ValueType num) { num_points_ = num; }
 
  protected:
-#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
+#ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
   // Applies id mapping of deduplicated points (called by DeduplicatePointIds).
   virtual void ApplyPointIdDeduplication(
       const IndexTypeVector<PointIndex, PointIndex> &id_map,

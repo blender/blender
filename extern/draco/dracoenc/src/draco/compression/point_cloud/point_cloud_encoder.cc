@@ -36,17 +36,16 @@ Status PointCloudEncoder::Encode(const EncoderOptions &options,
   attributes_encoder_ids_order_.clear();
 
   if (!point_cloud_)
-    return Status(Status::ERROR, "Invalid input geometry.");
+    return Status(Status::DRACO_ERROR, "Invalid input geometry.");
   DRACO_RETURN_IF_ERROR(EncodeHeader())
   DRACO_RETURN_IF_ERROR(EncodeMetadata())
   if (!InitializeEncoder())
-    return Status(Status::ERROR, "Failed to initialize encoder.");
+    return Status(Status::DRACO_ERROR, "Failed to initialize encoder.");
   if (!EncodeEncoderData())
-    return Status(Status::ERROR, "Failed to encode internal data.");
-  if (!EncodeGeometryData())
-    return Status(Status::ERROR, "Failed to encode geometry data.");
+    return Status(Status::DRACO_ERROR, "Failed to encode internal data.");
+  DRACO_RETURN_IF_ERROR(EncodeGeometryData());
   if (!EncodePointAttributes())
-    return Status(Status::ERROR, "Failed to encode point attributes.");
+    return Status(Status::DRACO_ERROR, "Failed to encode point attributes.");
   if (options.GetGlobalBool("store_number_of_encoded_points", false))
     ComputeNumberOfEncodedPoints();
   return OkStatus();
@@ -87,7 +86,7 @@ Status PointCloudEncoder::EncodeMetadata() {
   MetadataEncoder metadata_encoder;
   if (!metadata_encoder.EncodeGeometryMetadata(buffer_,
                                                point_cloud_->GetMetadata())) {
-    return Status(Status::ERROR, "Failed to encode metadata.");
+    return Status(Status::DRACO_ERROR, "Failed to encode metadata.");
   }
   return OkStatus();
 }

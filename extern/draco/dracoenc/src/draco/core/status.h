@@ -25,7 +25,7 @@ class Status {
  public:
   enum Code {
     OK = 0,
-    ERROR = -1,                // Used for general errors.
+    DRACO_ERROR = -1,          // Used for general errors.
     IO_ERROR = -2,             // Error when handling input or output stream.
     INVALID_PARAMETER = -3,    // Invalid parameter passed to a function.
     UNSUPPORTED_VERSION = -4,  // Input not compatible with the current version.

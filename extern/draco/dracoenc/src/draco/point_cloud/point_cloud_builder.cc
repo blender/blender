@@ -61,12 +61,14 @@ void PointCloudBuilder::SetAttributeValuesForAllPoints(
 
 std::unique_ptr<PointCloud> PointCloudBuilder::Finalize(
     bool deduplicate_points) {
-#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
   if (deduplicate_points) {
+#ifdef DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
     point_cloud_->DeduplicateAttributeValues();
-    point_cloud_->DeduplicatePointIds();
-  }
 #endif
+#ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
+    point_cloud_->DeduplicatePointIds();
+#endif
+  }
   return std::move(point_cloud_);
 }
 

@@ -20,8 +20,7 @@ namespace draco {
 
 bool MetadataEncoder::EncodeMetadata(EncoderBuffer *out_buffer,
                                      const Metadata *metadata) {
-  const std::unordered_map<std::string, EntryValue> &entries =
-      metadata->entries();
+  const std::map<std::string, EntryValue> &entries = metadata->entries();
   // Encode number of entries.
   EncodeVarint(static_cast<uint32_t>(metadata->num_entries()), out_buffer);
   // Encode all entries.
@@ -33,8 +32,8 @@ bool MetadataEncoder::EncodeMetadata(EncoderBuffer *out_buffer,
     EncodeVarint(data_size, out_buffer);
     out_buffer->Encode(entry_value.data(), data_size);
   }
-  const std::unordered_map<std::string, std::unique_ptr<Metadata>>
-      &sub_metadatas = metadata->sub_metadatas();
+  const std::map<std::string, std::unique_ptr<Metadata>> &sub_metadatas =
+      metadata->sub_metadatas();
   // Encode number of sub-metadata
   EncodeVarint(static_cast<uint32_t>(sub_metadatas.size()), out_buffer);
   // Encode each sub-metadata

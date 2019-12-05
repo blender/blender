@@ -56,6 +56,25 @@ inline bool IsCornerOppositeToAttributeSeam(CornerIndex ci,
   return false;
 }
 
+// Interpolates an attribute value on a face using given barycentric
+// coordinates. InterpolatedVectorT should be a VectorD that corresponds to the
+// values stored in the attribute.
+// TODO(ostava): Find a better place for this.
+template <typename InterpolatedVectorT>
+InterpolatedVectorT ComputeInterpolatedAttributeValueOnMeshFace(
+    const Mesh &mesh, const PointAttribute &attribute, FaceIndex fi,
+    const std::array<float, 3> &barycentric_coord) {
+  const Mesh::Face &face = mesh.face(fi);
+  // Get values for all three corners of the face.
+  InterpolatedVectorT val[3];
+  for (int c = 0; c < 3; ++c) {
+    attribute.GetMappedValue(face[c], &(val[c][0]));
+  }
+  // Return an interpolated value.
+  return barycentric_coord[0] * val[0] + barycentric_coord[1] * val[1] +
+         barycentric_coord[2] * val[2];
+}
+
 }  // namespace draco
 
 #endif  // DRACO_MESH_MESH_MISC_FUNCTIONS_H_

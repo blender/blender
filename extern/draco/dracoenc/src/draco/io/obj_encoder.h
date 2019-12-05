@@ -15,6 +15,8 @@
 #ifndef DRACO_IO_OBJ_ENCODER_H_
 #define DRACO_IO_OBJ_ENCODER_H_
 
+#include <unordered_map>
+
 #include "draco/core/encoder_buffer.h"
 #include "draco/mesh/mesh.h"
 

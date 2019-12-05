@@ -35,7 +35,7 @@ class PointCloudKdTreeEncoder : public PointCloudEncoder {
   }
 
  protected:
-  bool EncodeGeometryData() override;
+  Status EncodeGeometryData() override;
   bool GenerateAttributesEncoder(int32_t att_id) override;
   void ComputeNumberOfEncodedPoints() override;
 };

@@ -17,11 +17,11 @@
 
 #include <memory>
 
-#include "draco/draco_features.h"
-
 #include "draco/attributes/geometry_indices.h"
 #include "draco/core/hash_utils.h"
 #include "draco/core/macros.h"
+#include "draco/core/status.h"
+#include "draco/draco_features.h"
 #include "draco/point_cloud/point_cloud.h"
 
 namespace draco {
@@ -109,7 +109,7 @@ class Mesh : public PointCloud {
   };
 
  protected:
-#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
+#ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
   // Extends the point deduplication to face corners. This method is called from
   // the PointCloud::DeduplicatePointIds() and it remaps all point ids stored in
   // |faces_| to the new deduplicated point ids using the map |id_map|.

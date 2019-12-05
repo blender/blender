@@ -28,11 +28,11 @@ DEFINE_NEW_DRACO_INDEX_TYPE(uint32_t, AttributeValueIndex)
 // Index of a point in a PointCloud.
 DEFINE_NEW_DRACO_INDEX_TYPE(uint32_t, PointIndex)
 // Vertex index in a Mesh or CornerTable.
-DEFINE_NEW_DRACO_INDEX_TYPE(uint32_t, VertexIndex);
+DEFINE_NEW_DRACO_INDEX_TYPE(uint32_t, VertexIndex)
 // Corner index that identifies a corner in a Mesh or CornerTable.
-DEFINE_NEW_DRACO_INDEX_TYPE(uint32_t, CornerIndex);
+DEFINE_NEW_DRACO_INDEX_TYPE(uint32_t, CornerIndex)
 // Face index for Mesh and CornerTable.
-DEFINE_NEW_DRACO_INDEX_TYPE(uint32_t, FaceIndex);
+DEFINE_NEW_DRACO_INDEX_TYPE(uint32_t, FaceIndex)
 
 // Constants denoting invalid indices.
 static constexpr AttributeValueIndex kInvalidAttributeValueIndex(

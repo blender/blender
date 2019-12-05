@@ -85,7 +85,7 @@ class PointCloudEncoder {
   virtual bool EncodeEncoderData() { return true; }
 
   // Encodes any global geometry data (such as the number of points).
-  virtual bool EncodeGeometryData() { return true; }
+  virtual Status EncodeGeometryData() { return OkStatus(); }
 
   // encode all attribute values. The attribute encoders are sorted to resolve
   // any attribute dependencies and all the encoded data is stored into the

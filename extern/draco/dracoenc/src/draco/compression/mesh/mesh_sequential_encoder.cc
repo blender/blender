@@ -25,7 +25,7 @@ namespace draco {
 
 MeshSequentialEncoder::MeshSequentialEncoder() {}
 
-bool MeshSequentialEncoder::EncodeConnectivity() {
+Status MeshSequentialEncoder::EncodeConnectivity() {
   // Serialize indices.
   const uint32_t num_faces = mesh()->num_faces();
   EncodeVarint(num_faces, buffer());
@@ -38,7 +38,7 @@ bool MeshSequentialEncoder::EncodeConnectivity() {
     // 0 = Encode compressed indices.
     buffer()->Encode(static_cast<uint8_t>(0));
     if (!CompressAndEncodeIndices())
-      return false;
+      return Status(Status::DRACO_ERROR, "Failed to compress connectivity.");
   } else {
     // 1 = Encode indices directly.
     buffer()->Encode(static_cast<uint8_t>(1));
@@ -77,7 +77,7 @@ bool MeshSequentialEncoder::EncodeConnectivity() {
       }
     }
   }
-  return true;
+  return OkStatus();
 }
 
 bool MeshSequentialEncoder::GenerateAttributesEncoder(int32_t att_id) {

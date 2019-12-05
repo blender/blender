@@ -41,7 +41,7 @@ class MeshEdgebreakerEncoderImplInterface {
       int att_id) const = 0;
   virtual bool GenerateAttributesEncoder(int32_t att_id) = 0;
   virtual bool EncodeAttributesEncoderIdentifier(int32_t att_encoder_id) = 0;
-  virtual bool EncodeConnectivity() = 0;
+  virtual Status EncodeConnectivity() = 0;
 
   // Returns corner table of the encoded mesh.
   virtual const CornerTable *GetCornerTable() const = 0;

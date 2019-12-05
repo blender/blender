@@ -65,10 +65,12 @@ void TriangleSoupMeshBuilder::SetPerFaceAttributeValueForFace(
 }
 
 std::unique_ptr<Mesh> TriangleSoupMeshBuilder::Finalize() {
-#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
+#ifdef DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
   // First deduplicate attribute values.
   if (!mesh_->DeduplicateAttributeValues())
     return nullptr;
+#endif
+#ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
   // Also deduplicate vertex indices.
   mesh_->DeduplicatePointIds();
 #endif

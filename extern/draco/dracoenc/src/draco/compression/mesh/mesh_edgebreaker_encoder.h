@@ -51,7 +51,7 @@ class MeshEdgebreakerEncoder : public MeshEncoder {
 
  protected:
   bool InitializeEncoder() override;
-  bool EncodeConnectivity() override;
+  Status EncodeConnectivity() override;
   bool GenerateAttributesEncoder(int32_t att_id) override;
   bool EncodeAttributesEncoderIdentifier(int32_t att_encoder_id) override;
   void ComputeNumberOfEncodedPoints() override;

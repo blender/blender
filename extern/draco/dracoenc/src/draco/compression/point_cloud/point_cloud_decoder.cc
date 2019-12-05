@@ -31,7 +31,7 @@ Status PointCloudDecoder::DecodeHeader(DecoderBuffer *buffer,
   if (!buffer->Decode(out_header->draco_string, 5))
     return Status(Status::IO_ERROR, kIoErrorMsg);
   if (memcmp(out_header->draco_string, "DRACO", 5) != 0)
-    return Status(Status::ERROR, "Not a Draco file.");
+    return Status(Status::DRACO_ERROR, "Not a Draco file.");
   if (!buffer->Decode(&(out_header->version_major)))
     return Status(Status::IO_ERROR, kIoErrorMsg);
   if (!buffer->Decode(&(out_header->version_minor)))
@@ -50,7 +50,7 @@ Status PointCloudDecoder::DecodeMetadata() {
       std::unique_ptr<GeometryMetadata>(new GeometryMetadata());
   MetadataDecoder metadata_decoder;
   if (!metadata_decoder.DecodeGeometryMetadata(buffer_, metadata.get()))
-    return Status(Status::ERROR, "Failed to decode metadata.");
+    return Status(Status::DRACO_ERROR, "Failed to decode metadata.");
   point_cloud_->AddMetadata(std::move(metadata));
   return OkStatus();
 }
@@ -66,7 +66,7 @@ Status PointCloudDecoder::Decode(const DecoderOptions &options,
   // Sanity check that we are really using the right decoder (mostly for cases
   // where the Decode method was called manually outside of our main API.
   if (header.encoder_type != GetGeometryType())
-    return Status(Status::ERROR,
+    return Status(Status::DRACO_ERROR,
                   "Using incompatible decoder for the input geometry.");
   // TODO(ostava): We should check the method as well, but currently decoders
   // don't expose the decoding method id.
@@ -93,11 +93,11 @@ Status PointCloudDecoder::Decode(const DecoderOptions &options,
     DRACO_RETURN_IF_ERROR(DecodeMetadata())
   }
   if (!InitializeDecoder())
-    return Status(Status::ERROR, "Failed to initialize the decoder.");
+    return Status(Status::DRACO_ERROR, "Failed to initialize the decoder.");
   if (!DecodeGeometryData())
-    return Status(Status::ERROR, "Failed to decode geometry data.");
+    return Status(Status::DRACO_ERROR, "Failed to decode geometry data.");
   if (!DecodePointAttributes())
-    return Status(Status::ERROR, "Failed to decode point attributes.");
+    return Status(Status::DRACO_ERROR, "Failed to decode point attributes.");
   return OkStatus();
 }
 

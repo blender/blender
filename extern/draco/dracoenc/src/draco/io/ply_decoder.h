@@ -20,6 +20,7 @@
 #include "draco/draco_features.h"
 
 #include "draco/core/decoder_buffer.h"
+#include "draco/core/status.h"
 #include "draco/io/ply_reader.h"
 #include "draco/mesh/mesh.h"
 
@@ -35,21 +36,20 @@ class PlyDecoder {
   PlyDecoder();
 
   // Decodes an obj file stored in the input file.
-  // Returns nullptr if the decoding failed.
-  bool DecodeFromFile(const std::string &file_name, Mesh *out_mesh);
-  bool DecodeFromFile(const std::string &file_name,
-                      PointCloud *out_point_cloud);
+  Status DecodeFromFile(const std::string &file_name, Mesh *out_mesh);
+  Status DecodeFromFile(const std::string &file_name,
+                        PointCloud *out_point_cloud);
 
-  bool DecodeFromBuffer(DecoderBuffer *buffer, Mesh *out_mesh);
-  bool DecodeFromBuffer(DecoderBuffer *buffer, PointCloud *out_point_cloud);
+  Status DecodeFromBuffer(DecoderBuffer *buffer, Mesh *out_mesh);
+  Status DecodeFromBuffer(DecoderBuffer *buffer, PointCloud *out_point_cloud);
 
  protected:
-  bool DecodeInternal();
+  Status DecodeInternal();
   DecoderBuffer *buffer() { return &buffer_; }
 
  private:
-  bool DecodeFaceData(const PlyElement *face_element);
-  bool DecodeVertexData(const PlyElement *vertex_element);
+  Status DecodeFaceData(const PlyElement *face_element);
+  Status DecodeVertexData(const PlyElement *vertex_element);
 
   template <typename DataTypeT>
   bool ReadPropertiesToAttribute(

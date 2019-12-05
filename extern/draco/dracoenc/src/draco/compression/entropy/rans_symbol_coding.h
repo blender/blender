@@ -40,8 +40,8 @@ constexpr int ComputeRAnsPrecisionFromUniqueSymbolsBitLength(
 
 // Compute approximate frequency table size needed for storing the provided
 // symbols.
-static int64_t ApproximateRAnsFrequencyTableBits(int32_t max_value,
-                                                 int num_unique_symbols) {
+static inline int64_t ApproximateRAnsFrequencyTableBits(
+    int32_t max_value, int num_unique_symbols) {
   // Approximate number of bits for storing zero frequency entries using the
   // run length encoding (with max length of 64).
   const int64_t table_zero_frequency_bits =

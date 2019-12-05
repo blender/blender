@@ -128,7 +128,7 @@ bool ParseFloat(DecoderBuffer *buffer, float *value) {
         return false;
 
       // Apply exponent scaling to value.
-      v *= pow(10.0, exponent);
+      v *= pow(static_cast<double>(10.0), exponent);
     }
   }
 

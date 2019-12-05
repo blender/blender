@@ -19,10 +19,10 @@
 
 namespace draco {
 
-bool PointCloudSequentialEncoder::EncodeGeometryData() {
+Status PointCloudSequentialEncoder::EncodeGeometryData() {
   const int32_t num_points = point_cloud()->num_points();
   buffer()->Encode(num_points);
-  return true;
+  return OkStatus();
 }
 
 bool PointCloudSequentialEncoder::GenerateAttributesEncoder(int32_t att_id) {
