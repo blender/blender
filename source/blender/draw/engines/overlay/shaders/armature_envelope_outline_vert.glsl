@@ -12,6 +12,8 @@ in vec4 outlineColorSize;
 in vec3 xAxis;
 
 flat out vec4 finalColor;
+flat out vec2 edgeStart;
+noperspective out vec2 edgePos;
 
 /* project to screen space */
 vec2 proj(vec4 pos)
@@ -132,33 +134,27 @@ void main()
   vec3 wpos2 = get_outline_point(
       pos2, sph_near, sph_far, mat_near, mat_far, z_ofs_near, z_ofs_far, b);
 
-  vec4 pos_4d = vec4(wpos1, 1.0);
 #ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(pos_4d.xyz);
+  world_clip_planes_calc_clip_distance(wpos1);
 #endif
 
-  vec4 V = ViewMatrix * pos_4d;
-  float pres_fac = (ProjectionMatrix[3][3] == 0.0) ? abs(V.z) : 1.0;
+  vec4 p0 = point_world_to_ndc(wpos0);
+  vec4 p1 = point_world_to_ndc(wpos1);
+  vec4 p2 = point_world_to_ndc(wpos2);
 
-  vec4 p0 = ViewProjectionMatrix * vec4(wpos0, 1.0);
-  vec4 p1 = ProjectionMatrix * V;
-  vec4 p2 = ViewProjectionMatrix * vec4(wpos2, 1.0);
+  gl_Position = p1;
 
   /* compute position from 3 vertex because the change in direction
    * can happen very quicky and lead to very thin edges. */
   vec2 ss0 = proj(p0);
   vec2 ss1 = proj(p1);
   vec2 ss2 = proj(p2);
-  vec2 edge_dir = compute_dir(ss0, ss1, ss2);
+  vec2 ofs_dir = compute_dir(ss0, ss1, ss2);
 
-  float line_thickness = 2.0 * sizePixel;
-  bool outer = ((gl_VertexID & 1) == 1);
-  vec2 t = outlineColorSize.w * line_thickness * sizeViewportInv.xy;
-  t *= pres_fac;
-  t = (outer) ? t : vec2(0.0);
+  /* Offset away from the center to avoid overlap with solid shape. */
+  gl_Position.xy += ofs_dir * sizeViewportInv.xy * gl_Position.w;
 
-  gl_Position = p1;
-  gl_Position.xy += t * edge_dir;
+  edgeStart = edgePos = proj(gl_Position);
 
   finalColor = vec4(outlineColorSize.rgb, 1.0);
 }

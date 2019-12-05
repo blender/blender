@@ -8,6 +8,8 @@ in vec4 color;
 in mat4 inst_obmat;
 
 flat out vec4 finalColor;
+flat out vec2 edgeStart;
+noperspective out vec2 edgePos;
 
 vec3 sphere_project(float ax, float az)
 {
@@ -28,6 +30,14 @@ void main()
 
   vec3 final_pos = sphere_project(pos.x * abs((pos.x > 0.0) ? amax.x : amin.x),
                                   pos.y * abs((pos.y > 0.0) ? amax.y : amin.y));
-  gl_Position = ViewProjectionMatrix * (model_mat * vec4(final_pos, 1.0));
+
+  vec3 world_pos = (model_mat * vec4(final_pos, 1.0)).xyz;
+  gl_Position = point_world_to_ndc(world_pos);
   finalColor = color;
+
+  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
+
+#ifdef USE_WORLD_CLIP_PLANES
+  world_clip_planes_calc_clip_distance(world_pos);
+#endif
 }

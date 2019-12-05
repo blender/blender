@@ -2071,7 +2071,7 @@ GPUBatch *DRW_cache_bone_envelope_outline_get(void)
     }
 
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
-    GPU_vertbuf_data_alloc(vbo, (CIRCLE_RESOL + 1) * 2);
+    GPU_vertbuf_data_alloc(vbo, CIRCLE_RESOL + 1);
 
     v0[0] = radius * sinf((2.0f * M_PI * -2) / ((float)CIRCLE_RESOL));
     v0[1] = radius * cosf((2.0f * M_PI * -2) / ((float)CIRCLE_RESOL));
@@ -2080,29 +2080,18 @@ GPUBatch *DRW_cache_bone_envelope_outline_get(void)
 
     /* Output 4 verts for each position. See shader for explanation. */
     uint v = 0;
-    for (int a = 0; a < CIRCLE_RESOL; a++) {
+    for (int a = 0; a <= CIRCLE_RESOL; a++) {
       v2[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
       v2[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
-      GPU_vertbuf_attr_set(vbo, attr_id.pos0, v, v0);
-      GPU_vertbuf_attr_set(vbo, attr_id.pos1, v, v1);
-      GPU_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
       GPU_vertbuf_attr_set(vbo, attr_id.pos0, v, v0);
       GPU_vertbuf_attr_set(vbo, attr_id.pos1, v, v1);
       GPU_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
       copy_v2_v2(v0, v1);
       copy_v2_v2(v1, v2);
     }
-    v2[0] = 0.0f;
-    v2[1] = radius;
-    GPU_vertbuf_attr_set(vbo, attr_id.pos0, v, v0);
-    GPU_vertbuf_attr_set(vbo, attr_id.pos1, v, v1);
-    GPU_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
-    GPU_vertbuf_attr_set(vbo, attr_id.pos0, v, v0);
-    GPU_vertbuf_attr_set(vbo, attr_id.pos1, v, v1);
-    GPU_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
 
     SHC.drw_bone_envelope_outline = GPU_batch_create_ex(
-        GPU_PRIM_TRI_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
+        GPU_PRIM_LINE_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
 #undef CIRCLE_RESOL
   }
   return SHC.drw_bone_envelope_outline;
@@ -2191,44 +2180,30 @@ GPUBatch *DRW_cache_bone_point_wire_outline_get(void)
     SHC.drw_bone_point_wire = GPU_batch_create_ex(GPU_PRIM_LINES, vbo, NULL, GPU_BATCH_OWNS_VBO);
 #else
 #  define CIRCLE_RESOL 64
-    float v0[2], v1[2];
     const float radius = 0.05f;
 
     /* Position Only 2D format */
     static GPUVertFormat format = {0};
     static struct {
-      uint pos0, pos1;
+      uint pos;
     } attr_id;
     if (format.attr_len == 0) {
-      attr_id.pos0 = GPU_vertformat_attr_add(&format, "pos0", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      attr_id.pos1 = GPU_vertformat_attr_add(&format, "pos1", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+      attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     }
 
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
-    GPU_vertbuf_data_alloc(vbo, (CIRCLE_RESOL + 1) * 2);
-
-    v0[0] = radius * sinf((2.0f * M_PI * -1) / ((float)CIRCLE_RESOL));
-    v0[1] = radius * cosf((2.0f * M_PI * -1) / ((float)CIRCLE_RESOL));
+    GPU_vertbuf_data_alloc(vbo, CIRCLE_RESOL + 1);
 
     uint v = 0;
-    for (int a = 0; a < CIRCLE_RESOL; a++) {
-      v1[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
-      v1[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
-      GPU_vertbuf_attr_set(vbo, attr_id.pos0, v, v0);
-      GPU_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
-      GPU_vertbuf_attr_set(vbo, attr_id.pos0, v, v0);
-      GPU_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
-      copy_v2_v2(v0, v1);
+    for (int a = 0; a <= CIRCLE_RESOL; a++) {
+      float pos[2];
+      pos[0] = radius * sinf((2.0f * M_PI * a) / CIRCLE_RESOL);
+      pos[1] = radius * cosf((2.0f * M_PI * a) / CIRCLE_RESOL);
+      GPU_vertbuf_attr_set(vbo, attr_id.pos, v++, pos);
     }
-    v1[0] = 0.0f;
-    v1[1] = radius;
-    GPU_vertbuf_attr_set(vbo, attr_id.pos0, v, v0);
-    GPU_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
-    GPU_vertbuf_attr_set(vbo, attr_id.pos0, v, v0);
-    GPU_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
 
     SHC.drw_bone_point_wire = GPU_batch_create_ex(
-        GPU_PRIM_TRI_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
+        GPU_PRIM_LINE_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
 #  undef CIRCLE_RESOL
 #endif
   }

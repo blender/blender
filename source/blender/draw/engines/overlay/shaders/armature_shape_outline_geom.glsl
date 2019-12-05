@@ -1,6 +1,6 @@
 
 layout(lines_adjacency) in;
-layout(triangle_strip, max_vertices = 6) out;
+layout(line_strip, max_vertices = 2) out;
 
 in vec4 pPos[];
 in vec3 vPos[];
@@ -9,55 +9,8 @@ in vec2 ssNor[];
 in vec4 vColSize[];
 
 flat out vec4 finalColor;
-
-vec2 compute_dir(vec2 v0, vec2 v1)
-{
-  vec2 dir = normalize(v1 - v0);
-  dir = vec2(-dir.y, dir.x);
-  return dir;
-}
-
-void emit_edge(vec2 edge_dir, vec2 hidden_dir, vec2 thick, bool is_persp)
-{
-  float fac = dot(-hidden_dir, edge_dir);
-  edge_dir *= (fac < 0.0) ? -1.0 : 1.0;
-
-  vec2 t = thick * (is_persp ? abs(vPos[1].z) : 1.0);
-  gl_Position = pPos[1];
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_set_clip_distance(gl_in[1].gl_ClipDistance);
-#endif
-  EmitVertex();
-  gl_Position.xy += t * edge_dir;
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_set_clip_distance(gl_in[1].gl_ClipDistance);
-#endif
-  EmitVertex();
-
-  t = thick * (is_persp ? abs(vPos[2].z) : 1.0);
-  gl_Position = pPos[2];
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_set_clip_distance(gl_in[2].gl_ClipDistance);
-#endif
-  EmitVertex();
-  gl_Position.xy += t * edge_dir;
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_set_clip_distance(gl_in[2].gl_ClipDistance);
-#endif
-  EmitVertex();
-}
-
-void emit_corner(const int e, vec2 thick, bool is_persp)
-{
-  vec2 corner_dir = ssNor[e];
-  vec2 t = thick * (is_persp ? abs(vPos[e].z) : 1.0);
-
-  gl_Position = pPos[e] + vec4(t * corner_dir, 0.0, 0.0);
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_set_clip_distance(gl_in[e].gl_ClipDistance);
-#endif
-  EmitVertex();
-}
+flat out vec2 edgeStart;
+noperspective out vec2 edgePos;
 
 void main(void)
 {
@@ -91,9 +44,8 @@ void main(void)
     return;
   }
 
-  float line_thickness = 2.0 * sizePixel;
-  vec2 thick = vColSize[0].w * (line_thickness * sizeViewportInv.xy);
-  vec2 edge_dir = compute_dir(ssPos[1], ssPos[2]);
+  vec2 perp = normalize(ssPos[2] - ssPos[1]);
+  vec2 edge_dir = vec2(-perp.y, perp.x);
 
   vec2 hidden_point;
   /* Take the farthest point to compute edge direction
@@ -109,8 +61,30 @@ void main(void)
   }
   vec2 hidden_dir = normalize(hidden_point - ssPos[1]);
 
-  emit_corner(1, thick, is_persp);
-  emit_edge(edge_dir, hidden_dir, thick, is_persp);
-  emit_corner(2, thick, is_persp);
+  float fac = dot(-hidden_dir, edge_dir);
+  edge_dir *= (fac < 0.0) ? -1.0 : 1.0;
+
+  gl_Position = pPos[1];
+  /* Offset away from the center to avoid overlap with solid shape. */
+  gl_Position.xy += (edge_dir - perp) * sizeViewportInv.xy * gl_Position.w;
+  /* Improve AA bleeding inside bone silhouette. */
+  gl_Position.z -= 1e-4;
+  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
+#ifdef USE_WORLD_CLIP_PLANES
+  world_clip_planes_set_clip_distance(gl_in[1].gl_ClipDistance);
+#endif
+  EmitVertex();
+
+  gl_Position = pPos[2];
+  /* Offset away from the center to avoid overlap with solid shape. */
+  gl_Position.xy += (edge_dir + perp) * sizeViewportInv.xy * gl_Position.w;
+  /* Improve AA bleeding inside bone silhouette. */
+  gl_Position.z -= 1e-4;
+  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
+#ifdef USE_WORLD_CLIP_PLANES
+  world_clip_planes_set_clip_distance(gl_in[2].gl_ClipDistance);
+#endif
+  EmitVertex();
+
   EndPrimitive();
 }

@@ -1,29 +1,18 @@
 
 /* ---- Instantiated Attrs ---- */
-in vec2 pos0;
-in vec2 pos1;
+in vec2 pos;
 
 /* ---- Per instance Attrs ---- */
 in mat4 inst_obmat;
 
 flat out vec4 finalColor;
+flat out vec2 edgeStart;
+noperspective out vec2 edgePos;
 
 /* project to screen space */
 vec2 proj(vec4 pos)
 {
   return (0.5 * (pos.xy / pos.w) + 0.5) * sizeViewport.xy;
-}
-
-vec2 compute_dir(vec2 v0, vec2 v1, vec2 c)
-{
-  vec2 dir = normalize(v1 - v0);
-  dir = vec2(dir.y, -dir.x);
-  /* The model matrix can be scaled negativly.
-   * Use projected sphere center to determine
-   * the outline direction. */
-  vec2 cv = c - v0;
-  dir = (dot(dir, cv) > 0.0) ? -dir : dir;
-  return dir;
 }
 
 void main()
@@ -73,27 +62,17 @@ void main()
   }
 
   /* Camera oriented position (but still in local space) */
-  vec3 cam_pos0 = x_axis * pos0.x + y_axis * pos0.y + z_axis * z_ofs;
-  vec3 cam_pos1 = x_axis * pos1.x + y_axis * pos1.y + z_axis * z_ofs;
+  vec3 cam_pos0 = x_axis * pos.x + y_axis * pos.y + z_axis * z_ofs;
 
   vec4 V = model_view_matrix * vec4(cam_pos0, 1.0);
-  vec4 p0 = ProjectionMatrix * V;
-  vec4 p1 = ProjectionMatrix * (model_view_matrix * vec4(cam_pos1, 1.0));
-  vec4 c = ProjectionMatrix * vec4(model_view_matrix[3].xyz, 1.0);
+  gl_Position = ProjectionMatrix * V;
+  vec4 center = ProjectionMatrix * vec4(model_view_matrix[3].xyz, 1.0);
 
-  vec2 ssc = proj(c);
-  vec2 ss0 = proj(p0);
-  vec2 ss1 = proj(p1);
-  vec2 edge_dir = compute_dir(ss0, ss1, ssc);
+  /* Offset away from the center to avoid overlap with solid shape. */
+  vec2 ofs_dir = normalize(proj(gl_Position) - proj(center));
+  gl_Position.xy += ofs_dir * sizeViewportInv.xy * gl_Position.w;
 
-  bool outer = ((gl_VertexID & 1) == 1);
-
-  vec2 t = bone_color.w * (2.0 * sizeViewportInv.xy);
-  t *= (is_persp) ? abs(V.z) : 1.0;
-  t = (outer) ? t : vec2(0.0);
-
-  gl_Position = p0;
-  gl_Position.xy += t * edge_dir;
+  edgeStart = edgePos = proj(gl_Position);
 
   finalColor = vec4(bone_color.rgb, 1.0);
 
