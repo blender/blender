@@ -1,6 +1,7 @@
 
 uniform float alphaOcclu;
 uniform bool isXrayWires;
+uniform bool doAntiAliasing;
 uniform bool doThickOutlines;
 uniform usampler2D outlineId;
 uniform sampler2D outlineDepth;
@@ -11,10 +12,10 @@ in vec4 uvcoordsvar;
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec4 lineOutput;
 
-#define XPOS 1
-#define XNEG 2
-#define YPOS 4
-#define YNEG 8
+#define XPOS (1 << 0)
+#define XNEG (1 << 1)
+#define YPOS (1 << 2)
+#define YNEG (1 << 3)
 
 #define ALL (XPOS | XNEG | YPOS | YNEG)
 #define NONE 0
@@ -234,17 +235,26 @@ void main()
   /* NOTE: We never set alpha to 1.0 to avoid Antialiasing destroying the line. */
   fragColor *= (occluded) ? alphaOcclu : (254.0 / 255.0);
 
-  float edge_case = 0.0;
-  edge_case += float(has_edge_pos_x) * 1.0;
-  edge_case += float(has_edge_neg_x) * 2.0;
-  edge_case += float(has_edge_pos_y) * 4.0;
-  edge_case += float(has_edge_neg_y) * 8.0;
+  int edge_case = 0;
+  edge_case += int(has_edge_pos_x) * XPOS;
+  edge_case += int(has_edge_neg_x) * XNEG;
+  edge_case += int(has_edge_pos_y) * YPOS;
+  edge_case += int(has_edge_neg_y) * YNEG;
+
+  if (edge_case == ALL || edge_case == NONE) {
+    discard;
+  }
+
+  if (!doAntiAliasing) {
+    lineOutput = vec4(0.0);
+    return;
+  }
 
   vec2 line_start, line_end;
   vec2 line_ofs;
   bvec4 extra_edges, extra_edges2;
   /* TODO simplify this branching hell. */
-  switch (int(edge_case)) {
+  switch (edge_case) {
       /* Straight lines. */
     case YPOS:
       extra_edges = gather_edges(uvs + sizeViewportInv.xy * vec2(2.5, 0.5), ref);
@@ -318,7 +328,7 @@ void main()
       line_end = vec2(0.0, 0.5);
       break;
     default:
-      discard;
+      break;
   }
 
   lineOutput = pack_line_data(vec2(0.0), line_start, line_end);
