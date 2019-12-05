@@ -3006,8 +3006,10 @@ def km_sculpt(params):
         ("object.subdivision_set", {"type": 'PAGE_DOWN', "value": 'PRESS'},
          {"properties": [("level", -1), ("relative", True)]}),
         # Mask
-        ("paint.mask_flood_fill", {"type": 'M', "value": 'PRESS', "alt": True},
+        ("paint.mask_flood_fill", {"type": 'A', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 'VALUE'), ("value", 0.0)]}),
+        ("paint.mask_flood_fill", {"type": 'A', "value": 'PRESS', "ctrl": True, "shift": True},
+         {"properties": [("mode", 'VALUE'), ("value", 1.0)]}),
         ("paint.mask_flood_fill", {"type": 'I', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 'INVERT')]}),
         ("paint.mask_lasso_gesture", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True}, None),
