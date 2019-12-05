@@ -529,6 +529,15 @@ def km_uv_editor(params):
         op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         # Selection modes.
+        ("wm.context_set_enum", {"type": 'ONE', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'VERTEX')]}),
+        ("wm.context_set_enum", {"type": 'TWO', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'EDGE')]}),
+        ("wm.context_set_enum", {"type": 'THREE', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'FACE')]}),
+        ("wm.context_set_enum", {"type": 'FOUR', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'ISLAND')]}),
+  
         ("uv.select", {"type": 'LEFTMOUSE', "value": 'CLICK'},
          {"properties": [("extend", False), ("deselect_all", True)]}),
         ("uv.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
