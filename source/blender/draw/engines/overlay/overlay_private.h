@@ -197,6 +197,7 @@ typedef struct OVERLAY_ArmatureCallBuffers {
 
   DRWShadingGroup *custom_solid;
   DRWShadingGroup *custom_outline;
+  DRWShadingGroup *custom_wire;
   GHash *custom_shapes_ghash;
 } OVERLAY_ArmatureCallBuffers;
 
@@ -520,6 +521,7 @@ GPUShader *OVERLAY_shader_antialiasing(void);
 GPUShader *OVERLAY_shader_armature_degrees_of_freedom(void);
 GPUShader *OVERLAY_shader_armature_envelope(bool use_outline);
 GPUShader *OVERLAY_shader_armature_shape(bool use_outline);
+GPUShader *OVERLAY_shader_armature_shape_wire(void);
 GPUShader *OVERLAY_shader_armature_sphere(bool use_outline);
 GPUShader *OVERLAY_shader_armature_stick(void);
 GPUShader *OVERLAY_shader_armature_wire(void);

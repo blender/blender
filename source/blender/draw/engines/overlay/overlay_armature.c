@@ -223,6 +223,11 @@ void OVERLAY_armature_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
       cb->box_outline = BUF_INSTANCE(grp, format, DRW_cache_bone_box_wire_get());
       cb->octa_outline = BUF_INSTANCE(grp, format, DRW_cache_bone_octahedral_wire_get());
+
+      sh = OVERLAY_shader_armature_shape_wire();
+      cb->custom_wire = grp = DRW_shgroup_create(sh, armature_ps);
+      DRW_shgroup_state_disable(grp, DRW_STATE_BLEND_ALPHA);
+      DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
     }
     {
       format = formats->instance_extra;
@@ -2205,7 +2210,7 @@ static void armature_context_setup(ArmatureDrawContext *ctx,
   ctx->point_outline = cb->point_outline;
   ctx->custom_solid = (is_filled) ? cb->custom_solid : NULL;
   ctx->custom_outline = cb->custom_outline;
-  ctx->custom_wire = cb->custom_solid; /* Use same shader. */
+  ctx->custom_wire = cb->custom_wire;
   ctx->custom_shapes_ghash = cb->custom_shapes_ghash;
   ctx->transparent = pd->armature.transparent;
   ctx->show_relations = pd->armature.show_relations;

@@ -39,6 +39,7 @@ extern char datatoc_armature_shape_outline_geom_glsl[];
 extern char datatoc_armature_shape_outline_vert_glsl[];
 extern char datatoc_armature_shape_solid_frag_glsl[];
 extern char datatoc_armature_shape_solid_vert_glsl[];
+extern char datatoc_armature_shape_wire_vert_glsl[];
 extern char datatoc_armature_sphere_outline_vert_glsl[];
 extern char datatoc_armature_sphere_solid_frag_glsl[];
 extern char datatoc_armature_sphere_solid_vert_glsl[];
@@ -123,6 +124,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *armature_envelope_solid;
   GPUShader *armature_shape_outline;
   GPUShader *armature_shape_solid;
+  GPUShader *armature_shape_wire;
   GPUShader *armature_sphere_outline;
   GPUShader *armature_sphere_solid;
   GPUShader *armature_stick;
@@ -351,6 +353,26 @@ GPUShader *OVERLAY_shader_armature_shape(bool use_outline)
     });
   }
   return use_outline ? sh_data->armature_shape_outline : sh_data->armature_shape_solid;
+}
+
+GPUShader *OVERLAY_shader_armature_shape_wire(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->armature_shape_wire) {
+    sh_data->armature_shape_wire = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){sh_cfg->lib,
+                                 datatoc_common_globals_lib_glsl,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_armature_shape_wire_vert_glsl,
+                                 NULL},
+        .frag =
+            (const char *[]){datatoc_common_view_lib_glsl, datatoc_armature_wire_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg->def, NULL},
+    });
+  }
+  return sh_data->armature_shape_wire;
 }
 
 GPUShader *OVERLAY_shader_armature_envelope(bool use_outline)
