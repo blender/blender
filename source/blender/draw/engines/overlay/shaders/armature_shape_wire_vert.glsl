@@ -6,7 +6,7 @@ in vec3 nor;
 /* ---- Per instance Attrs ---- */
 in mat4 inst_obmat;
 
-out vec4 finalColor;
+flat out vec4 finalColor;
 flat out vec2 edgeStart;
 noperspective out vec2 edgePos;
 
