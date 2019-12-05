@@ -28,12 +28,6 @@
 #  define _WIN32_IE 0x0501 /* shipped before XP, so doesn't impose additional requirements */
 #endif
 
-/* clang-format off */
-#pragma comment(linker,"\"/manifestdependency:type='win32' \
-name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
-processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
-/* clang-format on */
-
 #include <commctrl.h>
 #include <shlobj.h>
 #include <tlhelp32.h>
