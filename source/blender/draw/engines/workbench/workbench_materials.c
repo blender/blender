@@ -311,7 +311,7 @@ void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd,
                                         const bool deferred,
                                         const int interp)
 {
-  if (!(!deferred || workbench_is_matdata_pass_enabled(wpd))) {
+  if (deferred && !workbench_is_matdata_pass_enabled(wpd)) {
     return;
   }
 
