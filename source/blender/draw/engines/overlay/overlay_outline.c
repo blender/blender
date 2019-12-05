@@ -95,7 +95,7 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
 
     grp = DRW_shgroup_create(sh, psl->outlines_detect_ps);
     /* Don't occlude the "outline" detection pass if in xray mode (too much flickering). */
-    DRW_shgroup_uniform_float_copy(grp, "alphaOcclu", (pd->xray_enabled) ? 1.0f : 0.125f);
+    DRW_shgroup_uniform_float_copy(grp, "alphaOcclu", (pd->xray_enabled) ? 1.0f : 0.35f);
     DRW_shgroup_uniform_bool_copy(grp, "doThickOutlines", do_expand);
     DRW_shgroup_uniform_bool_copy(grp, "doAntiAliasing", pd->antialiasing.enabled);
     DRW_shgroup_uniform_bool_copy(grp, "isXrayWires", pd->xray_enabled_and_not_wire);

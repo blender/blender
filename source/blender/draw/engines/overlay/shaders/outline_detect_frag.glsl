@@ -233,7 +233,7 @@ void main()
   bool occluded = (ref_depth > scene_depth + epsilon);
 
   /* NOTE: We never set alpha to 1.0 to avoid Antialiasing destroying the line. */
-  fragColor *= (occluded) ? alphaOcclu : (254.0 / 255.0);
+  fragColor *= (occluded ? alphaOcclu : 1.0) * (254.0 / 255.0);
 
   int edge_case = 0;
   edge_case += int(has_edge_pos_x) * XPOS;
