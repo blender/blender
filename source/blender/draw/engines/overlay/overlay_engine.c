@@ -224,7 +224,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
     OVERLAY_pose_cache_populate(vedata, ob);
   }
 
-  if (in_edit_mode) {
+  if (in_edit_mode && !pd->hide_overlays) {
     switch (ob->type) {
       case OB_MESH:
         OVERLAY_edit_mesh_cache_populate(vedata, ob);
@@ -281,20 +281,22 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
     OVERLAY_motion_path_cache_populate(vedata, ob);
   }
 
-  switch (ob->type) {
-    case OB_ARMATURE:
-      if (draw_bones && (is_select || (!in_edit_mode && !in_pose_mode))) {
-        OVERLAY_armature_cache_populate(vedata, ob);
-      }
-      break;
-    case OB_MBALL:
-      if (!in_edit_mode) {
-        OVERLAY_metaball_cache_populate(vedata, ob);
-      }
-      break;
-    case OB_GPENCIL:
-      OVERLAY_gpencil_cache_populate(vedata, ob);
-      break;
+  if (!pd->hide_overlays) {
+    switch (ob->type) {
+      case OB_ARMATURE:
+        if (draw_bones && (is_select || (!in_edit_mode && !in_pose_mode))) {
+          OVERLAY_armature_cache_populate(vedata, ob);
+        }
+        break;
+      case OB_MBALL:
+        if (!in_edit_mode) {
+          OVERLAY_metaball_cache_populate(vedata, ob);
+        }
+        break;
+      case OB_GPENCIL:
+        OVERLAY_gpencil_cache_populate(vedata, ob);
+        break;
+    }
   }
   /* Non-Meshes */
   if (draw_extras) {
