@@ -71,29 +71,45 @@ typedef struct ButtonGizmo2D {
 
 /* -------------------------------------------------------------------- */
 
-static void button2d_geom_draw_backdrop(const wmGizmo *gz, const float color[4], const bool select)
+static void button2d_geom_draw_backdrop(const wmGizmo *gz,
+                                        const float color[4],
+                                        const float fill_alpha,
+                                        const bool select)
 {
   GPU_line_width(gz->line_width);
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-  immUniformColor4fv(color);
-
   /* TODO, other draw styles */
-  if (color[3] == 1.0 && select == false) {
+  if (color[3] == 1.0 && fill_alpha == 1.0 && select == false) {
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+    immUniformColor4fv(color);
     GPU_polygon_smooth(0);
     imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);
     imm_draw_circle_wire_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);
     GPU_polygon_smooth(1);
+    immUnbindProgram();
   }
   else {
-    imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);
-  }
+    /* Draw fill. */
+    if ((fill_alpha != 0.0f) || (select == true)) {
+      float fill_color[4] = {UNPACK3(color), fill_alpha * color[3]};
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+      immUniformColor4fv(fill_color);
+      imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);
+      immUnbindProgram();
+    }
 
-  immUnbindProgram();
+    /* Draw outline. */
+    if ((fill_alpha != 1.0f) && (select == false)) {
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+      immUniformColor4fv(color);
+      GPU_line_width(gz->line_width);
+      imm_draw_circle_wire_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);
+      immUnbindProgram();
+    }
+  }
 
   UNUSED_VARS(select);
 }
@@ -167,14 +183,15 @@ static void button2d_draw_intern(const bContext *C,
 
   if (select) {
     BLI_assert(is_3d);
-    button2d_geom_draw_backdrop(gz, color, select);
+    button2d_geom_draw_backdrop(gz, color, 1.0, select);
   }
   else {
 
     GPU_blend(true);
 
     if (draw_options & ED_GIZMO_BUTTON_SHOW_BACKDROP) {
-      button2d_geom_draw_backdrop(gz, color, select);
+      const float fill_alpha = RNA_float_get(gz->ptr, "backdrop_fill_alpha");
+      button2d_geom_draw_backdrop(gz, color, fill_alpha, select);
     }
 
     if (button->shape_batch[0] != NULL) {
@@ -336,6 +353,16 @@ static void GIZMO_GT_button_2d(wmGizmoType *gzt)
 
   /* Currently only used for cursor display. */
   RNA_def_boolean(gzt->srna, "show_drag", true, "Show Drag", "");
+
+  RNA_def_float(gzt->srna,
+                "backdrop_fill_alpha",
+                1.0f,
+                0.0f,
+                1.0,
+                "When below 1.0, draw the interior with a reduced alpha compared to the outline",
+                "",
+                0.0f,
+                1.0f);
 }
 
 void ED_gizmotypes_button_2d(void)
