@@ -34,8 +34,10 @@ macro(BLENDER_SRC_GTEST_EX)
       ${CMAKE_SOURCE_DIR}/extern/gmock/include
     )
     unset(_current_include_directories)
-
-    add_executable(${TARGET_NAME} ${ARG_SRC})
+    if(WIN32)
+      set(MANIFEST "${CMAKE_BINARY_DIR}/tests.exe.manifest")
+    endif()
+    add_executable(${TARGET_NAME} ${ARG_SRC} ${MANIFEST})
     target_include_directories(${TARGET_NAME} PUBLIC "${TEST_INC}")
     target_include_directories(${TARGET_NAME} SYSTEM PUBLIC "${TEST_INC_SYS}")
     target_link_libraries(${TARGET_NAME}
@@ -74,6 +76,9 @@ macro(BLENDER_SRC_GTEST_EX)
       # Don't fail tests on leaks since these often happen in external libraries
       # that we can't fix.
       set_tests_properties(${TARGET_NAME} PROPERTIES ENVIRONMENT LSAN_OPTIONS=exitcode=0)
+    endif()
+    if(WIN32)
+      unset(MANIFEST)
     endif()
     unset(TEST_INC)
     unset(TEST_INC_SYS)
