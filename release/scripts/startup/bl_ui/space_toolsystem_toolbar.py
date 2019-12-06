@@ -297,8 +297,15 @@ class _defs_transform:
             if layout.use_property_split:
                 layout.label(text="Gizmos:")
 
-            props = tool.gizmo_group_properties("VIEW3D_GGT_xform_gizmo")
-            layout.prop(props, "drag_action")
+            show_drag = True
+            if context.preferences.experimental.use_tool_fallback:
+                tool_settings = context.tool_settings
+                if tool_settings.workspace_tool_type == 'FALLBACK':
+                    show_drag = False
+
+            if show_drag:
+                props = tool.gizmo_group_properties("VIEW3D_GGT_xform_gizmo")
+                layout.prop(props, "drag_action")
 
             _template_widget.VIEW3D_GGT_xform_gizmo.draw_settings_with_index(context, layout, 1)
 
@@ -472,7 +479,7 @@ class _defs_edit_mesh:
             idname="builtin.rip_region",
             label="Rip Region",
             icon="ops.mesh.rip",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_free",
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -512,7 +519,7 @@ class _defs_edit_mesh:
             idname="builtin.edge_slide",
             label="Edge Slide",
             icon="ops.transform.edge_slide",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_normal",
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -527,7 +534,7 @@ class _defs_edit_mesh:
             idname="builtin.vertex_slide",
             label="Vertex Slide",
             icon="ops.transform.vert_slide",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_free",
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -579,7 +586,7 @@ class _defs_edit_mesh:
             idname="builtin.inset_faces",
             label="Inset Faces",
             icon="ops.mesh.inset",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_normal",
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -597,7 +604,7 @@ class _defs_edit_mesh:
             idname="builtin.bevel",
             label="Bevel",
             icon="ops.mesh.bevel",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_normal",
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -629,7 +636,7 @@ class _defs_edit_mesh:
             idname="builtin.extrude_along_normals",
             label="Extrude Along Normals",
             icon="ops.mesh.extrude_region_shrink_fatten",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_normal",
             operator="mesh.extrude_region_shrink_fatten",
             keymap=(),
             draw_settings=draw_settings,
@@ -641,7 +648,7 @@ class _defs_edit_mesh:
             idname="builtin.extrude_individual",
             label="Extrude Individual",
             icon="ops.mesh.extrude_faces_move",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_normal",
             keymap=(),
         )
 
@@ -698,7 +705,7 @@ class _defs_edit_mesh:
             idname="builtin.smooth",
             label="Smooth",
             icon="ops.mesh.vertices_smooth",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_normal",
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -714,7 +721,7 @@ class _defs_edit_mesh:
             idname="builtin.randomize",
             label="Randomize",
             icon="ops.transform.vertex_random",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_normal",
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -753,7 +760,7 @@ class _defs_edit_mesh:
             idname="builtin.shrink_fatten",
             label="Shrink/Fatten",
             icon="ops.transform.shrink_fatten",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_normal",
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -764,7 +771,7 @@ class _defs_edit_mesh:
             idname="builtin.push_pull",
             label="Push/Pull",
             icon="ops.transform.push_pull",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_normal",
             keymap=(),
         )
 
@@ -890,7 +897,7 @@ class _defs_edit_curve:
             idname="builtin.randomize",
             label="Randomize",
             icon="ops.curve.vertex_random",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_normal",
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1682,6 +1689,9 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     # Satisfy the 'ToolSelectPanelHelper' API.
     keymap_prefix = "Image Editor Tool:"
 
+    # Default group to use as a fallback.
+    tool_fallback_id = "builtin.select"
+
     @classmethod
     def tools_from_context(cls, context, mode=None):
         if mode is None:
@@ -1766,6 +1776,9 @@ class NODE_PT_tools_active(ToolSelectPanelHelper, Panel):
     # Satisfy the 'ToolSelectPanelHelper' API.
     keymap_prefix = "Node Editor Tool:"
 
+    # Default group to use as a fallback.
+    tool_fallback_id = "builtin.select"
+
     @classmethod
     def tools_from_context(cls, context, mode=None):
         if mode is None:
@@ -1821,6 +1834,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
     # Satisfy the 'ToolSelectPanelHelper' API.
     keymap_prefix = "3D View Tool:"
+
+    # Default group to use as a fallback.
+    tool_fallback_id = "builtin.select"
 
     @classmethod
     def tools_from_context(cls, context, mode=None):

@@ -1509,7 +1509,10 @@ typedef struct ToolSettings {
   /* XXX: these sculpt_paint_* fields are deprecated, use the
    * unified_paint_settings field instead! */
   short sculpt_paint_settings DNA_DEPRECATED;
-  char _pad5[2];
+
+  char workspace_tool_type;
+
+  char _pad5[1];
   int sculpt_paint_unified_size DNA_DEPRECATED;
   float sculpt_paint_unified_unprojected_radius DNA_DEPRECATED;
   float sculpt_paint_unified_alpha DNA_DEPRECATED;
@@ -2040,6 +2043,12 @@ enum {
 /* ToolSettings.object_flag */
 enum {
   SCE_OBJECT_MODE_LOCK = (1 << 0),
+};
+
+/* ToolSettings.workspace_tool_flag */
+enum {
+  SCE_WORKSPACE_TOOL_FALLBACK = 0,
+  SCE_WORKSPACE_TOOL_DEFAULT = 1,
 };
 
 /* ToolSettings.snap_flag */

@@ -1645,6 +1645,12 @@ class WM_OT_tool_set_by_id(Operator):
         default=False,
         options={'SKIP_SAVE'},
     )
+    as_fallback: BoolProperty(
+        name="Set Fallback",
+        description="Set the fallback tool instead of the primary tool",
+        default=False,
+        options={'SKIP_SAVE', 'HIDDEN'},
+    )
 
     space_type: rna_space_type_prop
 
@@ -1672,7 +1678,10 @@ class WM_OT_tool_set_by_id(Operator):
             space_type = context.space_data.type
 
         fn = activate_by_id_or_cycle if self.cycle else activate_by_id
-        if fn(context, space_type, self.name):
+        if fn(context, space_type, self.name, as_fallback=self.as_fallback):
+            if self.as_fallback:
+                tool_settings = context.tool_settings
+                tool_settings.workspace_tool_type = 'FALLBACK'
             return {'FINISHED'}
         else:
             self.report({'WARNING'}, f"Tool {self.name!r:s} not found for space {space_type!r:s}.")
@@ -1699,13 +1708,20 @@ class WM_OT_tool_set_by_index(Operator):
         default=True,
     )
 
+    as_fallback: BoolProperty(
+        name="Set Fallback",
+        description="Set the fallback tool instead of the primary",
+        default=False,
+        options={'SKIP_SAVE', 'HIDDEN'},
+    )
+
     space_type: rna_space_type_prop
 
     def execute(self, context):
         from bl_ui.space_toolsystem_common import (
             activate_by_id,
             activate_by_id_or_cycle,
-            item_from_index,
+            item_from_index_active,
             item_from_flat_index,
         )
 
@@ -1714,7 +1730,7 @@ class WM_OT_tool_set_by_index(Operator):
         else:
             space_type = context.space_data.type
 
-        fn = item_from_flat_index if self.expand else item_from_index
+        fn = item_from_flat_index if self.expand else item_from_index_active
         item = fn(context, space_type, self.index)
         if item is None:
             # Don't report, since the number of tools may change.
@@ -1722,7 +1738,10 @@ class WM_OT_tool_set_by_index(Operator):
 
         # Same as: WM_OT_tool_set_by_id
         fn = activate_by_id_or_cycle if self.cycle else activate_by_id
-        if fn(context, space_type, item.idname):
+        if fn(context, space_type, item.idname, as_fallback=self.as_fallback):
+            if self.as_fallback:
+                tool_settings = context.tool_settings
+                tool_settings.workspace_tool_type = 'FALLBACK'
             return {'FINISHED'}
         else:
             # Since we already have the tool, this can't happen.
@@ -1773,6 +1792,41 @@ class WM_OT_toolbar(Operator):
 
         wm = context.window_manager
         wm.popover(draw_menu, ui_units_x=8, keymap=keymap)
+        return {'FINISHED'}
+
+
+class WM_OT_toolbar_fallback_pie(Operator):
+    bl_idname = "wm.toolbar_fallback_pie"
+    bl_label = "Fallback Tool Pie Menu"
+
+    @classmethod
+    def poll(cls, context):
+        return context.space_data is not None
+
+    def invoke(self, context, event):
+        if not context.preferences.experimental.use_tool_fallback:
+            return {'PASS_THROUGH'}
+
+        from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+        space_type = context.space_data.type
+        cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
+        if cls is None:
+            return {'PASS_THROUGH'}
+
+        # It's possible we don't have the fallback tool available.
+        # This can happen in the image editor for example when there is no selection
+        # in painting modes.
+        item, _ = cls._tool_get_by_id(context, space_type, cls.tool_fallback_id)
+        if item is None:
+            print("Tool", cls.tool_fallback_id, "not active in", cls)
+            return {'PASS_THROUGH'}
+
+        def draw_cb(self, context):
+            from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+            ToolSelectPanelHelper.draw_fallback_tool_items_for_pie_menu(self.layout, context)
+
+        wm = context.window_manager
+        wm.popup_menu_pie(draw_func=draw_cb, title="Fallback Tool", event=event)
         return {'FINISHED'}
 
 
@@ -2563,6 +2617,7 @@ classes = (
     WM_OT_tool_set_by_id,
     WM_OT_tool_set_by_index,
     WM_OT_toolbar,
+    WM_OT_toolbar_fallback_pie,
     WM_OT_toolbar_prompt,
     BatchRenameAction,
     WM_OT_batch_rename,

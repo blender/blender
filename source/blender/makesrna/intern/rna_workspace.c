@@ -192,6 +192,18 @@ static int rna_WorkSpaceTool_widget_length(PointerRNA *ptr)
   return tref->runtime ? strlen(tref->runtime->gizmo_group) : 0;
 }
 
+static void rna_WorkSpaceTool_tool_fallback_get(PointerRNA *ptr, char *value)
+{
+  bToolRef *tref = ptr->data;
+  strcpy(value, tref->runtime ? tref->runtime->idname_fallback : "");
+}
+
+static int rna_WorkSpaceTool_tool_fallback_length(PointerRNA *ptr)
+{
+  bToolRef *tref = ptr->data;
+  return tref->runtime ? strlen(tref->runtime->idname_fallback) : 0;
+}
+
 #else /* RNA_RUNTIME */
 
 static void rna_def_workspace_owner(BlenderRNA *brna)
@@ -288,6 +300,13 @@ static void rna_def_workspace_tool(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Widget", "");
   RNA_def_property_string_funcs(
       prop, "rna_WorkSpaceTool_widget_get", "rna_WorkSpaceTool_widget_length", NULL);
+  RNA_define_verify_sdna(1);
+
+  prop = RNA_def_property(srna, "tool_fallback", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Fallback", "");
+  RNA_def_property_string_funcs(
+      prop, "rna_WorkSpaceTool_tool_fallback_get", "rna_WorkSpaceTool_tool_fallback_length", NULL);
   RNA_define_verify_sdna(1);
 
   RNA_api_workspace_tool(srna);

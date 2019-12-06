@@ -120,6 +120,12 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
    * We could even move the options into the key-map item.
    * ~ campbell. */
   WM_GIZMOGROUPTYPE_TOOL_INIT = (1 << 6),
+
+  /**
+   * This gizmo type supports using the fallback tools keymap.
+   * #wmGizmoGroup.use_tool_fallback will need to be set too.
+   */
+  WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP = (1 << 7),
 } eWM_GizmoFlagGroupTypeFlag;
 
 /**
@@ -442,6 +448,8 @@ typedef struct wmGizmoGroup {
   struct ReportList *reports;
 
   bool tag_remove;
+
+  bool use_fallback_keymap;
 
   void *customdata;
   /** For freeing customdata from above. */

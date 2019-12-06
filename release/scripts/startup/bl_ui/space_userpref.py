@@ -2188,6 +2188,12 @@ class USERPREF_PT_experimental_all(ExperimentalPanel, Panel):
         # For the other settings create new panels
         # and make sure they are disabled if use_experimental_all is True
 
+        url_prefix = "https://developer.blender.org/"
+
+        row = col.row()
+        row.prop(experimental, "use_tool_fallback")
+
+        row.operator("wm.url_open", text="", icon='URL').url = url_prefix + "T66304"
 
 """
 # Example panel, leave it here so we always have a template to follow even

@@ -43,14 +43,16 @@
 static void rna_WorkSpaceTool_setup(ID *id,
                                     bToolRef *tref,
                                     bContext *C,
-                                    const char *tool_idname,
+                                    const char *idname,
                                     /* Args for: 'bToolRef_Runtime'. */
                                     int cursor,
                                     const char *keymap,
                                     const char *gizmo_group,
                                     const char *data_block,
                                     const char *op_idname,
-                                    int index)
+                                    int index,
+                                    const char *idname_fallback,
+                                    const char *keymap_fallback)
 {
   bToolRef_Runtime tref_rt = {0};
 
@@ -61,7 +63,10 @@ static void rna_WorkSpaceTool_setup(ID *id,
   STRNCPY(tref_rt.op, op_idname);
   tref_rt.index = index;
 
-  WM_toolsystem_ref_set_from_runtime(C, (WorkSpace *)id, tref, &tref_rt, tool_idname);
+  STRNCPY(tref_rt.idname_fallback, idname_fallback ? idname_fallback : NULL);
+  STRNCPY(tref_rt.keymap_fallback, keymap_fallback ? keymap_fallback : NULL);
+
+  WM_toolsystem_ref_set_from_runtime(C, (WorkSpace *)id, tref, &tref_rt, idname);
 }
 
 static void rna_WorkSpaceTool_refresh_from_context(ID *id, bToolRef *tref, Main *bmain)
@@ -139,6 +144,9 @@ void RNA_api_workspace_tool(StructRNA *srna)
   RNA_def_string(func, "data_block", NULL, MAX_NAME, "Data Block", "");
   RNA_def_string(func, "operator", NULL, MAX_NAME, "Operator", "");
   RNA_def_int(func, "index", 0, INT_MIN, INT_MAX, "Index", "", INT_MIN, INT_MAX);
+
+  RNA_def_string(func, "idname_fallback", NULL, MAX_NAME, "Fallback Identifier", "");
+  RNA_def_string(func, "keymap_fallback", NULL, KMAP_MAX_NAME, "Fallback Key Map", "");
 
   /* Access tool operator options (optionally create). */
   func = RNA_def_function(srna, "operator_properties", "rna_WorkSpaceTool_operator_properties");

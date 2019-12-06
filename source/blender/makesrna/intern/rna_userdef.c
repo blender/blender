@@ -5845,6 +5845,11 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "All Experimental Features",
                            "Expose all the experimental features in the user interface");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "use_tool_fallback", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_tool_fallback", 1);
+  RNA_def_property_ui_text(prop, "Fallback Tool Support", "Allow selection with an active tool");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)

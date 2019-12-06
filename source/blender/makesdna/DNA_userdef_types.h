@@ -607,7 +607,10 @@ typedef struct UserDef_FileSpaceData {
 typedef struct UserDef_Experimental {
   /** #eUserPref_Experimental_Flag options. */
   int flag;
-  char _pad0[4];
+
+  char use_tool_fallback;
+
+  char _pad0[3];
 } UserDef_Experimental;
 
 typedef struct UserDef {

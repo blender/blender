@@ -35,6 +35,10 @@ typedef struct bToolRef_Runtime {
   char gizmo_group[64];
   char data_block[64];
 
+  /** Optionally use these when not interacting directly with the primary tools gizmo. */
+  char idname_fallback[64];
+  char keymap_fallback[64];
+
   /** Use to infer primary operator to use when setting accelerator keys. */
   char op[64];
 

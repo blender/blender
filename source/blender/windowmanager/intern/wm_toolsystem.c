@@ -351,6 +351,25 @@ void WM_toolsystem_ref_set_from_runtime(struct bContext *C,
     *tref->runtime = *tref_rt;
   }
 
+  /* FIXME: ideally Python could check this gizmo group flag and not
+   * pass in the argument to begin with. */
+  bool use_fallback_keymap = false;
+
+  if (U.experimental.use_tool_fallback) {
+    if (tref_rt->gizmo_group[0]) {
+      wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(tref_rt->gizmo_group, false);
+      if (gzgt) {
+        if (gzgt->flag & WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP) {
+          use_fallback_keymap = true;
+        }
+      }
+    }
+  }
+  if (use_fallback_keymap == false) {
+    tref->runtime->idname_fallback[0] = '\0';
+    tref->runtime->keymap_fallback[0] = '\0';
+  }
+
   toolsystem_ref_link(C, workspace, tref);
 
   toolsystem_refresh_screen_from_active_tool(bmain, workspace, tref);

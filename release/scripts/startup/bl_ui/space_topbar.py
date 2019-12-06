@@ -78,6 +78,23 @@ class TOPBAR_HT_upper_bar(Header):
             unlink="scene.view_layer_remove")
 
 
+class TOPBAR_PT_tool_fallback(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Layers"
+    bl_ui_units_x = 8
+
+    def draw(self, context):
+        from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+        layout = self.layout
+
+        tool_settings = context.tool_settings
+        ToolSelectPanelHelper.draw_fallback_tool_items(layout, context)
+        if tool_settings.workspace_tool_type == 'FALLBACK':
+            tool = context.tool
+            ToolSelectPanelHelper.draw_active_tool_fallback(context, layout, tool)
+
+
 class TOPBAR_PT_gpencil_layers(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -772,6 +789,7 @@ classes = (
     TOPBAR_MT_render,
     TOPBAR_MT_window,
     TOPBAR_MT_help,
+    TOPBAR_PT_tool_fallback,
     TOPBAR_PT_gpencil_layers,
     TOPBAR_PT_gpencil_primitive,
     TOPBAR_PT_gpencil_fill,
