@@ -371,6 +371,28 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
   RNA_string_get(but->opptr, "name", tool_id);
   BLI_assert(tool_id[0] != '\0');
 
+  /* When false, we're in a diffrent space type to the tool being set.
+   * Needed for setting the fallback tool from the properties space.
+   *
+   * If we drop the hard coded 3D-view in properties hack, we can remove this check. */
+  bool has_valid_context = true;
+  const char *has_valid_context_error = IFACE_("Unsupported context");
+  {
+    ScrArea *sa = CTX_wm_area(C);
+    if (sa == NULL) {
+      has_valid_context = false;
+    }
+    else {
+      PropertyRNA *prop = RNA_struct_find_property(but->opptr, "space_type");
+      if (RNA_property_is_set(but->opptr, prop)) {
+        const int space_type_prop = RNA_property_enum_get(but->opptr, prop);
+        if (space_type_prop != sa->spacetype) {
+          has_valid_context = false;
+        }
+      }
+    }
+  }
+
   /* We have a tool, now extract the info. */
   uiTooltipData *data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
@@ -391,7 +413,11 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
              tool_id);
     char *expr_result = NULL;
     bool is_error = false;
-    if (BPY_execute_string_as_string(C, expr_imports, expr, true, &expr_result)) {
+
+    if (has_valid_context == false) {
+      expr_result = BLI_strdup(has_valid_context_error);
+    }
+    else if (BPY_execute_string_as_string(C, expr_imports, expr, true, &expr_result)) {
       if (STREQ(expr_result, "")) {
         MEM_freeN(expr_result);
         expr_result = NULL;
@@ -444,7 +470,11 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 
     char *expr_result = NULL;
     bool is_error = false;
-    if (BPY_execute_string_as_string(C, expr_imports, expr, true, &expr_result)) {
+
+    if (has_valid_context == false) {
+      expr_result = BLI_strdup(has_valid_context_error);
+    }
+    else if (BPY_execute_string_as_string(C, expr_imports, expr, true, &expr_result)) {
       if (STREQ(expr_result, ".")) {
         MEM_freeN(expr_result);
         expr_result = NULL;
@@ -541,7 +571,11 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
              "'as_pointer', lambda: 0)()");
 
         intptr_t expr_result = 0;
-        if (BPY_execute_string_as_intptr(C, expr_imports, expr, true, &expr_result)) {
+
+        if (has_valid_context == false) {
+          shortcut = BLI_strdup(has_valid_context_error);
+        }
+        else if (BPY_execute_string_as_intptr(C, expr_imports, expr, true, &expr_result)) {
           if (expr_result != 0) {
             wmKeyMap *keymap = (wmKeyMap *)expr_result;
             for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
@@ -592,7 +626,11 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
              tool_id);
 
     intptr_t expr_result = 0;
-    if (BPY_execute_string_as_intptr(C, expr_imports, expr, true, &expr_result)) {
+
+    if (has_valid_context == false) {
+      /* pass */
+    }
+    else if (BPY_execute_string_as_intptr(C, expr_imports, expr, true, &expr_result)) {
       if (expr_result != 0) {
         {
           uiTooltipField *field = text_field_add(data,
