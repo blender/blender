@@ -2160,6 +2160,8 @@ class ExperimentalPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
 
+    url_prefix = "https://developer.blender.org/"
+
     @classmethod
     def poll(cls, context):
         prefs = context.preferences
@@ -2188,12 +2190,22 @@ class USERPREF_PT_experimental_all(ExperimentalPanel, Panel):
         # For the other settings create new panels
         # and make sure they are disabled if use_experimental_all is True
 
-        url_prefix = "https://developer.blender.org/"
 
-        row = col.row()
-        row.prop(experimental, "use_tool_fallback")
+class USERPREF_PT_experimental_ui(ExperimentalPanel, Panel):
+    bl_label = "User Interface"
 
-        row.operator("wm.url_open", text="", icon='URL').url = url_prefix + "T66304"
+    def draw_props(self, context, layout):
+        prefs = context.preferences
+        experimental = prefs.experimental
+        layout.active = not experimental.use_experimental_all
+
+        task = "T66304"
+        split = layout.split(factor=0.66)
+        col = split.column()
+        col.prop(experimental, "use_tool_fallback", text="Use Tool Fallback")
+        col = split.column()
+        col.operator("wm.url_open", text=task, icon='URL').url = self.url_prefix + task
+
 
 """
 # Example panel, leave it here so we always have a template to follow even
@@ -2212,14 +2224,14 @@ class USERPREF_PT_experimental_virtual_reality(ExperimentalPanel, Panel):
         col = split.split()
         col.prop(experimental, "use_virtual_reality_scene_inspection", text="Scene Inspection")
         col = split.split()
-        col.operator("wm.url_open", text=task, icon='URL').url = "https://developer.blender.org/" + task
+        col.operator("wm.url_open", text=task, icon='URL').url = self.url_prefix + task
 
         task = "T71348"
         split = layout.split(factor=0.66)
         col = split.column()
         col.prop(experimental, "use_virtual_reality_immersive_drawing", text="Continuous Immersive Drawing")
         col = split.column()
-        col.operator("wm.url_open", text=task, icon='URL').url = "https://developer.blender.org/" + task
+        col.operator("wm.url_open", text=task, icon='URL').url = self.url_prefix + task
 """
 
 
@@ -2305,6 +2317,7 @@ classes = (
     USERPREF_PT_studiolight_world,
 
     USERPREF_PT_experimental_all,
+    USERPREF_PT_experimental_ui,
 
     # Popovers.
     USERPREF_PT_ndof_settings,

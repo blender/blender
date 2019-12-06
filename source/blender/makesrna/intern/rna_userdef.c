@@ -575,6 +575,15 @@ static void rna_userdef_autosave_update(Main *bmain, Scene *scene, PointerRNA *p
   rna_userdef_update(bmain, scene, ptr);
 }
 
+#  define RNA_USERDEF_EXPERIMENTAL_BOOLEAN_GET(member) \
+    static bool rna_userdef_experimental_##member##_get(PointerRNA *ptr) \
+    { \
+      UserDef *userdef = POINTER_OFFSET(ptr->data, -offsetof(UserDef, experimental)); \
+      return USER_EXPEREMENTAL_TEST(userdef, member); \
+    }
+
+RNA_USERDEF_EXPERIMENTAL_BOOLEAN_GET(use_tool_fallback)
+
 static bAddon *rna_userdef_addon_new(void)
 {
   ListBase *addons_list = &U.addons;
@@ -5848,6 +5857,7 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_tool_fallback", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_tool_fallback", 1);
+  RNA_def_property_boolean_funcs(prop, "rna_userdef_experimental_use_tool_fallback_get", NULL);
   RNA_def_property_ui_text(prop, "Fallback Tool Support", "Allow selection with an active tool");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
