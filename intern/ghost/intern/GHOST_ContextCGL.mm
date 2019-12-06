@@ -227,8 +227,6 @@ static void makeAttribList(std::vector<NSOpenGLPixelFormatAttribute> &attribs,
     attribs.push_back(NSOpenGLPFANoRecovery);
   }
 
-  attribs.push_back(NSOpenGLPFAAllowOfflineRenderers);  // for automatic GPU switching
-
   if (stereoVisual)
     attribs.push_back(NSOpenGLPFAStereo);
 
