@@ -46,6 +46,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "UI_interface_icons.h"
+#include "UI_resources.h"
 
 #ifdef __APPLE__
 #  include <Carbon/Carbon.h>
@@ -162,6 +164,16 @@ void ED_fsmenu_entry_set_path(struct FSMenuEntry *fsentry, const char *path)
   }
 }
 
+int ED_fsmenu_entry_get_icon(struct FSMenuEntry *fsentry)
+{
+  return (fsentry->icon) ? fsentry->icon : ICON_FILE_FOLDER;
+}
+
+void ED_fsmenu_entry_set_icon(struct FSMenuEntry *fsentry, const int icon)
+{
+  fsentry->icon = icon;
+}
+
 static void fsmenu_entry_generate_name(struct FSMenuEntry *fsentry, char *name, size_t name_size)
 {
   int offset = 0;
@@ -258,6 +270,7 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu,
                          FSMenuCategory category,
                          const char *path,
                          const char *name,
+                         const int icon,
                          FSMenuInsert flag)
 {
   FSMenuEntry *fsm_prev;
@@ -328,6 +341,9 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu,
   else {
     fsm_iter->name[0] = '\0';
   }
+
+  ED_fsmenu_entry_set_icon(fsm_iter, icon);
+
   fsmenu_entry_refresh_valid(fsm_iter);
 
   if (fsm_prev) {
@@ -459,7 +475,7 @@ void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filename)
         if (BLI_exists(line))
 #endif
         {
-          fsmenu_insert_entry(fsmenu, category, line, name, FS_INSERT_SAVE);
+          fsmenu_insert_entry(fsmenu, category, line, name, ICON_FILE_FOLDER, FS_INSERT_SAVE);
         }
       }
       /* always reset name. */
@@ -504,7 +520,24 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
           name = tmps;
         }
 
-        fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, tmps, name, FS_INSERT_SORTED);
+        int icon = ICON_DISK_DRIVE;
+        switch (GetDriveType(tmps)) {
+          case DRIVE_REMOVABLE:
+            icon = ICON_EXTERNAL_DRIVE;
+            break;
+          case DRIVE_CDROM:
+            icon = ICON_DISC;
+            break;
+          case DRIVE_FIXED:
+          case DRIVE_RAMDISK:
+            icon = ICON_DISK_DRIVE;
+            break;
+          case DRIVE_REMOTE:
+            icon = ICON_NETWORK_DRIVE;
+            break;
+        }
+
+        fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, tmps, name, icon, FS_INSERT_SORTED);
       }
     }
 
@@ -512,10 +545,12 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
     if (read_bookmarks) {
       SHGetSpecialFolderPathW(0, wline, CSIDL_PERSONAL, 0);
       BLI_strncpy_wchar_as_utf8(line, wline, FILE_MAXDIR);
-      fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, FS_INSERT_SORTED);
+      fsmenu_insert_entry(
+          fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, ICON_DOCUMENTS, FS_INSERT_SORTED);
       SHGetSpecialFolderPathW(0, wline, CSIDL_DESKTOPDIRECTORY, 0);
       BLI_strncpy_wchar_as_utf8(line, wline, FILE_MAXDIR);
-      fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, FS_INSERT_SORTED);
+      fsmenu_insert_entry(
+          fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, ICON_DESKTOP, FS_INSERT_SORTED);
     }
   }
 #else
@@ -546,7 +581,8 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
       /* Add end slash for consistency with other platforms */
       BLI_add_slash(defPath);
 
-      fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, defPath, NULL, FS_INSERT_SORTED);
+      fsmenu_insert_entry(
+          fsmenu, FS_CATEGORY_SYSTEM, defPath, NULL, ICON_DISK_DRIVE, FS_INSERT_SORTED);
     }
 
     CFRelease(volEnum);
@@ -586,7 +622,8 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
         /* Exclude "all my files" as it makes no sense in blender fileselector */
         /* Exclude "airdrop" if wlan not active as it would show "" ) */
         if (!strstr(line, "myDocuments.cannedSearch") && (*line != '\0')) {
-          fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, FS_INSERT_LAST);
+          fsmenu_insert_entry(
+              fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, ICON_FILE_FOLDER, FS_INSERT_LAST);
         }
 
         CFRelease(pathString);
@@ -604,10 +641,12 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
     if (read_bookmarks && home) {
       BLI_snprintf(line, sizeof(line), "%s/", home);
-      fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, FS_INSERT_SORTED);
+      fsmenu_insert_entry(
+          fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, ICON_HOME, FS_INSERT_SORTED);
       BLI_snprintf(line, sizeof(line), "%s/Desktop/", home);
       if (BLI_exists(line)) {
-        fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, FS_INSERT_SORTED);
+        fsmenu_insert_entry(
+            fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, ICON_DESKTOP, FS_INSERT_SORTED);
       }
     }
 
@@ -641,10 +680,12 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
           len = strlen(mnt->mnt_dir);
           if (len && mnt->mnt_dir[len - 1] != '/') {
             BLI_snprintf(line, sizeof(line), "%s/", mnt->mnt_dir);
-            fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, NULL, FS_INSERT_SORTED);
+            fsmenu_insert_entry(
+                fsmenu, FS_CATEGORY_SYSTEM, line, NULL, ICON_DISK_DRIVE, FS_INSERT_SORTED);
           }
           else {
-            fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, mnt->mnt_dir, NULL, FS_INSERT_SORTED);
+            fsmenu_insert_entry(
+                fsmenu, FS_CATEGORY_SYSTEM, mnt->mnt_dir, NULL, ICON_DISK_DRIVE, FS_INSERT_SORTED);
           }
 
           found = 1;
@@ -674,7 +715,8 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
                 label = *label_test ? label_test : dirname;
               }
               BLI_snprintf(line, sizeof(line), "%s%s/", name, dirname);
-              fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, label, FS_INSERT_SORTED);
+              fsmenu_insert_entry(
+                  fsmenu, FS_CATEGORY_SYSTEM, line, label, ICON_NETWORK_DRIVE, FS_INSERT_SORTED);
               found = 1;
             }
           }
@@ -685,7 +727,8 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
       /* fallback */
       if (!found) {
-        fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, "/", NULL, FS_INSERT_SORTED);
+        fsmenu_insert_entry(
+            fsmenu, FS_CATEGORY_SYSTEM, "/", NULL, ICON_DISK_DRIVE, FS_INSERT_SORTED);
       }
     }
   }

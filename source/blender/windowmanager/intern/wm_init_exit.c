@@ -261,7 +261,6 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   ED_spacetypes_init(); /* editors/space_api/spacetype.c */
 
-  ED_file_init(); /* for fsmenu */
   ED_node_init_butfuncs();
 
   BLF_init();
@@ -305,6 +304,9 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   /* Call again to set from userpreferences... */
   BLT_lang_set(NULL);
+
+  /* For fsMenu. Called here so can include user preference paths if needed. */
+  ED_file_init();
 
   /* That one is generated on demand, we need to be sure it's clear on init. */
   IMB_thumb_clear_translations();

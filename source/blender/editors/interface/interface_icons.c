@@ -2153,6 +2153,9 @@ int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big
   else if (RNA_struct_is_a(ptr->type, &RNA_TextureSlot)) {
     id = RNA_pointer_get(ptr, "texture").data;
   }
+  else if (RNA_struct_is_a(ptr->type, &RNA_FileBrowserFSMenuEntry)) {
+    return RNA_int_get(ptr, "icon");
+  }
   else if (RNA_struct_is_a(ptr->type, &RNA_DynamicPaintSurface)) {
     DynamicPaintSurface *surface = ptr->data;
 

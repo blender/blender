@@ -159,7 +159,7 @@ typedef struct FSMenuEntry {
   char name[256]; /* FILE_MAXFILE */
   short save;
   short valid;
-  short pad[2];
+  int icon;
 } FSMenuEntry;
 
 typedef enum FSMenuCategory {
@@ -196,5 +196,8 @@ void ED_fsmenu_entry_set_path(struct FSMenuEntry *fsentry, const char *path);
 
 char *ED_fsmenu_entry_get_name(struct FSMenuEntry *fsentry);
 void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name);
+
+int ED_fsmenu_entry_get_icon(struct FSMenuEntry *fsentry);
+void ED_fsmenu_entry_set_icon(struct FSMenuEntry *fsentry, const int icon);
 
 #endif /* __ED_FILESELECT_H__ */

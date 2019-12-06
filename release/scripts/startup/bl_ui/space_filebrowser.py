@@ -165,24 +165,15 @@ class FILEBROWSER_UL_dir(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, active_propname, _index):
         direntry = item
         # space = context.space_data
-        icon = 'NONE'
-        if active_propname == "system_folders_active":
-            icon = 'DISK_DRIVE'
-        if active_propname == "system_bookmarks_active":
-            icon = 'BOOKMARKS'
-        if active_propname == "bookmarks_active":
-            icon = 'BOOKMARKS'
-        if active_propname == "recent_folders_active":
-            icon = 'FILE_FOLDER'
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             row = layout.row(align=True)
             row.enabled = direntry.is_valid
             # Non-editable entries would show grayed-out, which is bad in this specific case, so switch to mere label.
             if direntry.is_property_readonly("name"):
-                row.label(text=direntry.name, icon=icon)
+                row.label(text=direntry.name, icon_value=icon)
             else:
-                row.prop(direntry, "name", text="", emboss=False, icon=icon)
+                row.prop(direntry, "name", text="", emboss=False, icon_value=icon)
 
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
