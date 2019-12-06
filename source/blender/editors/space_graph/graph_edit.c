@@ -1375,9 +1375,14 @@ static void decimate_reset_bezts(tDecimateGraphOp *dgo)
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* Loop through filtered data and reset bezts. */
-  for (ale = anim_data.first, link_bezt = dgo->bezt_arr_list.first; ale;
-       ale = ale->next, link_bezt = link_bezt->next) {
+  for (ale = anim_data.first, link_bezt = dgo->bezt_arr_list.first; ale; ale = ale->next) {
     FCurve *fcu = (FCurve *)ale->key_data;
+
+    if (fcu->bezt == NULL) {
+      /* This curve is baked, skip it */
+      continue;
+    }
+
     tBeztCopyData *data = link_bezt->data;
 
     const int arr_size = sizeof(BezTriple) * data->tot_vert;
@@ -1388,6 +1393,8 @@ static void decimate_reset_bezts(tDecimateGraphOp *dgo)
     fcu->totvert = data->tot_vert;
 
     memcpy(fcu->bezt, data->bezt, arr_size);
+
+    link_bezt = link_bezt->next;
   }
 
   ANIM_animdata_freelist(&anim_data);
@@ -1413,7 +1420,9 @@ static void decimate_exit(bContext *C, wmOperator *op)
   BLI_freelistN(&dgo->bezt_arr_list);
   MEM_freeN(dgo);
 
+  /* Return to normal cursor and header status. */
   WM_cursor_modal_restore(win);
+  ED_area_status_text(dgo->sa, NULL);
 
   /* cleanup */
   op->customdata = NULL;
@@ -1497,6 +1506,12 @@ static int graphkeys_decimate_invoke(bContext *C, wmOperator *op, const wmEvent 
     /* Loop through filtered data and copy the curves. */
     for (ale = anim_data.first; ale; ale = ale->next) {
       FCurve *fcu = (FCurve *)ale->key_data;
+
+      if (fcu->bezt == NULL) {
+        /* This curve is baked, skip it */
+        continue;
+      }
+
       const int arr_size = sizeof(BezTriple) * fcu->totvert;
 
       tBeztCopyData *copy = MEM_mallocN(sizeof(tBeztCopyData), "bezts_copy");
@@ -1516,6 +1531,13 @@ static int graphkeys_decimate_invoke(bContext *C, wmOperator *op, const wmEvent 
     }
 
     ANIM_animdata_freelist(&anim_data);
+  }
+
+  if (dgo->bezt_arr_list.first == NULL) {
+    WM_report(RPT_WARNING,
+              "Fcurve Decimate: Can't decimate baked channels. Unbake them and try again.");
+    decimate_exit(C, op);
+    return OPERATOR_CANCELLED;
   }
 
   WM_event_add_modal_handler(C, op);
@@ -1556,8 +1578,6 @@ static int graphkeys_decimate_modal(bContext *C, wmOperator *op, const wmEvent *
     case RETKEY:
     case PADENTER: {
       if (event->val == KM_PRESS) {
-        ED_area_status_text(dgo->sa, NULL);
-
         decimate_exit(C, op);
 
         return OPERATOR_FINISHED;
@@ -1568,9 +1588,6 @@ static int graphkeys_decimate_modal(bContext *C, wmOperator *op, const wmEvent *
     case ESCKEY: /* cancel */
     case RIGHTMOUSE: {
       if (event->val == KM_PRESS) {
-        /* Return to normal cursor and header status. */
-        ED_area_status_text(dgo->sa, NULL);
-
         decimate_reset_bezts(dgo);
 
         WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
