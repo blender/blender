@@ -133,14 +133,7 @@ add_definitions(-D_ALLOW_KEYWORD_MACROS)
 
 # We want to support Vista level ABI
 add_definitions(-D_WIN32_WINNT=0x600)
-
-# Make cmake find the msvc redistributables
-set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP FALSE)
-set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
-set(CMAKE_INSTALL_OPENMP_LIBRARIES ${WITH_OPENMP})
-set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION .)
-include(InstallRequiredSystemLibraries)
-
+include(build_files/cmake/platform/platform_win32_bundle_crt.cmake)
 remove_cc_flag("/MDd" "/MD")
 
 if(MSVC_CLANG) # Clangs version of cl doesn't support all flags

@@ -33,4 +33,5 @@
         />
     </dependentAssembly>
   </dependency>  
+  @BUNDLECRT@
 </assembly>

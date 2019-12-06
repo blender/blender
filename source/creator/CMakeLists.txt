@@ -149,7 +149,7 @@ if(WIN32 AND NOT UNIX)
 
   list(APPEND SRC
     ${CMAKE_SOURCE_DIR}/release/windows/icons/winblender.rc
-    ${CMAKE_SOURCE_DIR}/release/windows/icons/blender.exe.manifest
+    ${CMAKE_BINARY_DIR}/blender.exe.manifest
   )
 endif()
 

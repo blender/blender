@@ -508,6 +508,10 @@ if(WIN32)
 
   option(WINDOWS_PYTHON_DEBUG "Include the files needed for debugging python scripts with visual studio 2017+." OFF)
   mark_as_advanced(WINDOWS_PYTHON_DEBUG)
+
+  option(WITH_WINDOWS_BUNDLE_CRT "Bundle the C runtime for install free distribution." ON)
+  mark_as_advanced(WITH_WINDOWS_BUNDLE_CRT)
+
 endif()
 
 # The following only works with the Ninja generator in CMake >= 3.0.
