@@ -1615,6 +1615,8 @@ static int gp_blank_frame_add_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_blank_frame_add(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Insert Blank Frame";
   ot->idname = "GPENCIL_OT_blank_frame_add";
@@ -1626,13 +1628,15 @@ void GPENCIL_OT_blank_frame_add(wmOperatorType *ot)
   ot->exec = gp_blank_frame_add_exec;
   ot->poll = gp_add_poll;
 
-  /* properties */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-  RNA_def_boolean(ot->srna,
-                  "all_layers",
-                  false,
-                  "All Layers",
-                  "Create blank frame in all layers, not only active");
+
+  /* properties */
+  prop = RNA_def_boolean(ot->srna,
+                         "all_layers",
+                         false,
+                         "All Layers",
+                         "Create blank frame in all layers, not only active");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ******************* Delete Active Frame ************************ */
