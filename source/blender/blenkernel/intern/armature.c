@@ -1575,7 +1575,6 @@ static void armature_vert_task(void *__restrict userdata,
         }
 
         pchan_bone_deform(pchan, weight, vec, dq, smat, co, &contrib);
-
       }
     }
     /* if there are vertexgroups but not groups with bones

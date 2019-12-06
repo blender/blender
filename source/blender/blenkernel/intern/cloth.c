@@ -901,9 +901,9 @@ static void cloth_from_mesh(ClothModifierData *clmd, Mesh *mesh)
   }
 }
 
-/***************************************************************************************
- * SPRING NETWORK GPU_BATCH_BUILDING IMPLEMENTATION BEGIN
- ***************************************************************************************/
+/* -------------------------------------------------------------------- */
+/** \name Spring Network Building Implementation
+ * \{ */
 
 BLI_INLINE void spring_verts_ordered_set(ClothSpring *spring, int v0, int v1)
 {
@@ -1744,8 +1744,6 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
 #endif
 
   return 1;
+}
 
-} /* cloth_build_springs */
-  /***************************************************************************************
-   * SPRING NETWORK GPU_BATCH_BUILDING IMPLEMENTATION END
-   ***************************************************************************************/
+/** \} */

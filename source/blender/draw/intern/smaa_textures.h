@@ -34,6 +34,9 @@
 #define AREATEX_PITCH (AREATEX_WIDTH * 2)
 #define AREATEX_SIZE (AREATEX_HEIGHT * AREATEX_PITCH)
 
+/* Don't re-wrap large data definitions. */
+/* clang-format off */
+
 /**
  * Stored in R8G8 format. Load it in the following format:
  *  - DX10: DXGI_FORMAT_R8G8_UNORM
@@ -14975,10 +14978,15 @@ static const unsigned char areaTexBytes[] = {
     0x00, 0x00, 0x00, 0x00
 };
 
+/* clang-format on */
+
 #define SEARCHTEX_WIDTH 64
 #define SEARCHTEX_HEIGHT 16
 #define SEARCHTEX_PITCH SEARCHTEX_WIDTH
 #define SEARCHTEX_SIZE (SEARCHTEX_HEIGHT * SEARCHTEX_PITCH)
+
+/* Don't re-wrap large data definitions. */
+/* clang-format off */
 
 /**
  * Stored in R8 format. Load it in the following format:
@@ -15072,5 +15080,7 @@ static const unsigned char searchTexBytes[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
     0x00, 0x00, 0x00, 0x00,
 };
+
+/* clang-format off */
 
 #endif /* __SMAA_TEXTURES_H__ */
