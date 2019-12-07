@@ -280,7 +280,7 @@ class ToolSelectPanelHelper:
         return None, None, 0
 
     @classmethod
-    def _tool_get_by_id(cls, context, space_type, idname):
+    def _tool_get_by_id(cls, context, idname):
         """
         Return the active Python tool definition and index (if in sub-group, else -1).
         """
@@ -291,7 +291,7 @@ class ToolSelectPanelHelper:
         return None, -1
 
     @classmethod
-    def _tool_get_by_id_active(cls, context, space_type, idname):
+    def _tool_get_by_id_active(cls, context, idname):
         """
         Return the active Python tool definition and index (if in sub-group, else -1).
         """
@@ -307,7 +307,7 @@ class ToolSelectPanelHelper:
         return None, -1
 
     @classmethod
-    def _tool_get_by_id_active_with_group(cls, context, space_type, idname):
+    def _tool_get_by_id_active_with_group(cls, context, idname):
         """
         Return the active Python tool definition and index (if in sub-group, else -1).
         """
@@ -323,7 +323,7 @@ class ToolSelectPanelHelper:
         return None, -1, None
 
     @classmethod
-    def _tool_get_by_flat_index(cls, context, space_type, tool_index):
+    def _tool_get_by_flat_index(cls, context, tool_index):
         """
         Return the active Python tool definition and index (if in sub-group, else -1).
 
@@ -338,7 +338,7 @@ class ToolSelectPanelHelper:
         return None, -1
 
     @classmethod
-    def _tool_get_active_by_index(cls, context, space_type, tool_index):
+    def _tool_get_active_by_index(cls, context, tool_index):
         """
         Return the active Python tool definition and index (if in sub-group, else -1).
 
@@ -667,7 +667,7 @@ class ToolSelectPanelHelper:
         tool_fallback = tool.tool_fallback
         space_type = tool.space_type
         cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
-        item_fallback, _index = cls._tool_get_by_id(context, space_type, tool_fallback)
+        item_fallback, _index = cls._tool_get_by_id(context, tool_fallback)
         if item_fallback is not None:
             draw_settings = item_fallback.draw_settings
             if draw_settings is not None:
@@ -682,7 +682,6 @@ class ToolSelectPanelHelper:
             show_tool_name=False,
             tool_key=None,
     ):
-        is_horizontal_layout = layout.direction != 'VERTICAL'
         if tool_key is None:
             space_type, mode = ToolSelectPanelHelper._tool_key_from_context(context)
         else:
@@ -715,7 +714,7 @@ class ToolSelectPanelHelper:
             # Show popover which looks like an enum but isn't one.
             if tool_settings.workspace_tool_type == 'FALLBACK':
                 tool_fallback_id = cls.tool_fallback_id
-                item, _select_index = cls._tool_get_by_id_active(context, space_type, tool_fallback_id)
+                item, _select_index = cls._tool_get_by_id_active(context, tool_fallback_id)
                 label = item.label
             else:
                 label = "Active Tool"
@@ -741,7 +740,7 @@ class ToolSelectPanelHelper:
         cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
         tool_fallback_id = cls.tool_fallback_id
 
-        _item, _select_index, item_group = cls._tool_get_by_id_active_with_group(context, space_type, tool_fallback_id)
+        _item, _select_index, item_group = cls._tool_get_by_id_active_with_group(context, tool_fallback_id)
 
         if item_group is None:
             # Could print comprehensive message - listing available items.
@@ -783,7 +782,7 @@ class ToolSelectPanelHelper:
         cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
         tool_fallback_id = cls.tool_fallback_id
 
-        _item, _select_index, item_group = cls._tool_get_by_id_active_with_group(context, space_type, tool_fallback_id)
+        _item, _select_index, item_group = cls._tool_get_by_id_active_with_group(context, tool_fallback_id)
 
         if item_group is None:
             # Could print comprehensive message - listing available items.
@@ -877,7 +876,7 @@ def _activate_by_item(context, space_type, item, index, *, as_fallback=False):
         # If this ends up needing to be more complicated,
         # it would be better to split it into a separate function.
 
-        _item, _select_index, item_group = cls._tool_get_by_id_active_with_group(context, space_type, tool_fallback_id)
+        _item, _select_index, item_group = cls._tool_get_by_id_active_with_group(context, tool_fallback_id)
 
         if item_group is None:
             # Could print comprehensive message - listing available items.
@@ -894,13 +893,13 @@ def _activate_by_item(context, space_type, item, index, *, as_fallback=False):
 
         # Done, now get the current tool to replace the item & index.
         tool_active = ToolSelectPanelHelper._tool_active_from_context(context, space_type)
-        item, index = cls._tool_get_by_id(context, space_type, getattr(tool_active, "idname", None))
+        item, index = cls._tool_get_by_id(context, getattr(tool_active, "idname", None))
 
     # Find fallback keymap.
     item_fallback = None
-    _item, select_index = cls._tool_get_by_id(context, space_type, tool_fallback_id)
+    _item, select_index = cls._tool_get_by_id(context, tool_fallback_id)
     if select_index != -1:
-        item_fallback, _index = cls._tool_get_active_by_index(context, space_type, select_index)
+        item_fallback, _index = cls._tool_get_active_by_index(context, select_index)
     # End calculating fallback.
 
     tool = ToolSelectPanelHelper._tool_active_from_context(context, space_type, create=True)
@@ -937,7 +936,7 @@ def activate_by_id(context, space_type, idname, *, as_fallback=False):
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
     if cls is None:
         return False
-    item, index = cls._tool_get_by_id(context, space_type, idname)
+    item, index = cls._tool_get_by_id(context, idname)
     if item is None:
         return False
     _activate_by_item(context, space_type, item, index, as_fallback=as_fallback)
@@ -948,7 +947,7 @@ def activate_by_id_or_cycle(context, space_type, idname, *, offset=1, as_fallbac
 
     # Only cycle when the active tool is activated again.
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
-    item, _index = cls._tool_get_by_id(context, space_type, idname)
+    item, _index = cls._tool_get_by_id(context, idname)
     if item is None:
         return False
 
@@ -983,7 +982,7 @@ def activate_by_id_or_cycle(context, space_type, idname, *, offset=1, as_fallbac
 def description_from_id(context, space_type, idname, *, use_operator=True):
     # Used directly for tooltips.
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
-    item, _index = cls._tool_get_by_id(context, space_type, idname)
+    item, _index = cls._tool_get_by_id(context, idname)
     if item is None:
         return False
 
@@ -1018,7 +1017,7 @@ def item_from_id(context, space_type, idname):
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
     if cls is None:
         return None
-    item, _index = cls._tool_get_by_id(context, space_type, idname)
+    item, _index = cls._tool_get_by_id(context, idname)
     return item
 
 
@@ -1027,7 +1026,7 @@ def item_from_id_active(context, space_type, idname):
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
     if cls is None:
         return None
-    item, _index = cls._tool_get_by_id_active(context, space_type, idname)
+    item, _index = cls._tool_get_by_id_active(context, idname)
     return item
 
 
@@ -1035,7 +1034,7 @@ def item_from_id_active_with_group(context, space_type, idname):
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
     if cls is None:
         return None
-    cls, item, _index = cls._tool_get_by_id_active_with_group(context, space_type, idname)
+    cls, item, _index = cls._tool_get_by_id_active_with_group(context, idname)
     return item
 
 
@@ -1043,7 +1042,7 @@ def item_from_flat_index(context, space_type, index):
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
     if cls is None:
         return None
-    item, _index = cls._tool_get_by_flat_index(context, space_type, index)
+    item, _index = cls._tool_get_by_flat_index(context, index)
     return item
 
 
@@ -1051,7 +1050,7 @@ def item_from_index_active(context, space_type, index):
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
     if cls is None:
         return None
-    item, _index = cls._tool_get_active_by_index(context, space_type, index)
+    item, _index = cls._tool_get_active_by_index(context, index)
     return item
 
 
@@ -1060,7 +1059,7 @@ def keymap_from_id(context, space_type, idname):
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
     if cls is None:
         return None
-    item, _index = cls._tool_get_by_id(context, space_type, idname)
+    item, _index = cls._tool_get_by_id(context, idname)
     if item is None:
         return False
 

@@ -1816,7 +1816,7 @@ class WM_OT_toolbar_fallback_pie(Operator):
         # It's possible we don't have the fallback tool available.
         # This can happen in the image editor for example when there is no selection
         # in painting modes.
-        item, _ = cls._tool_get_by_id(context, space_type, cls.tool_fallback_id)
+        item, _ = cls._tool_get_by_id(context, cls.tool_fallback_id)
         if item is None:
             print("Tool", cls.tool_fallback_id, "not active in", cls)
             return {'PASS_THROUGH'}
