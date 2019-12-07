@@ -1260,6 +1260,20 @@ enum {
   NODE_VECTOR_MATH_MAXIMUM = 19,
 };
 
+/* Clamp node types. */
+enum {
+  NODE_CLAMP_MINMAX = 0,
+  NODE_CLAMP_RANGE = 1,
+};
+
+/* Map range node types. */
+enum {
+  NODE_MAP_RANGE_LINEAR = 0,
+  NODE_MAP_RANGE_STEPPED = 1,
+  NODE_MAP_RANGE_SMOOTHSTEP = 2,
+  NODE_MAP_RANGE_SMOOTHERSTEP = 3,
+};
+
 /* mix rgb node flags */
 #define SHD_MIXRGB_USE_ALPHA 1
 #define SHD_MIXRGB_CLAMP 2

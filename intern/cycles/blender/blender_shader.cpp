@@ -301,10 +301,14 @@ static ShaderNode *add_node(Scene *scene,
     BL::ShaderNodeMapRange b_map_range_node(b_node);
     MapRangeNode *map_range_node = new MapRangeNode();
     map_range_node->clamp = b_map_range_node.clamp();
+    map_range_node->type = (NodeMapRangeType)b_map_range_node.interpolation_type();
     node = map_range_node;
   }
   else if (b_node.is_a(&RNA_ShaderNodeClamp)) {
-    node = new ClampNode();
+    BL::ShaderNodeClamp b_clamp_node(b_node);
+    ClampNode *clamp_node = new ClampNode();
+    clamp_node->type = (NodeClampType)b_clamp_node.clamp_type();
+    node = clamp_node;
   }
   else if (b_node.is_a(&RNA_ShaderNodeMath)) {
     BL::ShaderNodeMath b_math_node(b_node);

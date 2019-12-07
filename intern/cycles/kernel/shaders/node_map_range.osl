@@ -16,14 +16,43 @@
 
 #include "stdosl.h"
 
-shader node_map_range(float Value = 1.0,
+float safe_divide(float a, float b)
+{
+  return (b != 0.0) ? a / b : 0.0;
+}
+
+float smootherstep(float edge0, float edge1, float x)
+{
+  float t = clamp(safe_divide((x - edge0), (edge1 - edge0)), 0.0, 1.0);
+  return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+}
+
+shader node_map_range(string type = "linear",
+                      float Value = 1.0,
                       float FromMin = 0.0,
                       float FromMax = 1.0,
                       float ToMin = 0.0,
                       float ToMax = 1.0,
+                      float Steps = 4.0,
                       output float Result = 0.0)
 {
   if (FromMax != FromMin) {
-    Result = ToMin + ((Value - FromMin) / (FromMax - FromMin)) * (ToMax - ToMin);
+    float Factor = Value;
+    if (type == "stepped") {
+      Factor = (Value - FromMin) / (FromMax - FromMin);
+      Factor = (Steps > 0) ? floor(Factor * (Steps + 1.0)) / Steps : 0.0;
+    }
+    else if (type == "smoothstep") {
+      Factor = (FromMin > FromMax) ? 1.0 - smoothstep(FromMax, FromMin, Value) :
+                                     smoothstep(FromMin, FromMax, Value);
+    }
+    else if (type == "smootherstep") {
+      Factor = (FromMin > FromMax) ? 1.0 - smootherstep(FromMax, FromMin, Value) :
+                                     smootherstep(FromMin, FromMax, Value);
+    }
+    else {
+      Factor = (Value - FromMin) / (FromMax - FromMin);
+    }
+    Result = ToMin + Factor * (ToMax - ToMin);
   }
 }

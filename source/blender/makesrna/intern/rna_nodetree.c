@@ -226,6 +226,36 @@ const EnumPropertyItem rna_enum_node_vec_math_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_node_map_range_items[] = {
+    {NODE_MAP_RANGE_LINEAR,
+     "LINEAR",
+     0,
+     "Linear",
+     "Linear interpolation between From Min and From Max values"},
+    {NODE_MAP_RANGE_STEPPED,
+     "STEPPED",
+     0,
+     "Stepped Linear",
+     "Stepped linear interpolation between From Min and From Max values"},
+    {NODE_MAP_RANGE_SMOOTHSTEP,
+     "SMOOTHSTEP",
+     0,
+     "Smoothstep",
+     "Smooth hermite edge interpolation between From Min and From Max values"},
+    {NODE_MAP_RANGE_SMOOTHERSTEP,
+     "SMOOTHERSTEP",
+     0,
+     "Smootherstep",
+     "Smoother hermite edge interpolation between From Min and From Max values"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_node_clamp_items[] = {
+    {NODE_CLAMP_MINMAX, "MINMAX", 0, "Min Max", "Clamp values using Min and Max values"},
+    {NODE_CLAMP_RANGE, "RANGE", 0, "Range", "Clamp values between Min and Max range"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static const EnumPropertyItem rna_enum_node_tex_dimensions_items[] = {
     {1, "1D", 0, "1D", "Use the scalar value W as input"},
     {2, "2D", 0, "2D", "Use the 2D vector (x, y) as input. The z component is ignored"},
@@ -3921,6 +3951,17 @@ static void def_frame(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 }
 
+static void def_clamp(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "clamp_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, rna_enum_node_clamp_items);
+  RNA_def_property_ui_text(prop, "Clamp Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
+}
+
 static void def_map_range(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -3929,6 +3970,12 @@ static void def_map_range(StructRNA *srna)
   RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
   RNA_def_property_ui_text(prop, "Clamp", "Clamp the result to the target range [To Min, To Max]");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "interpolation_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom2");
+  RNA_def_property_enum_items(prop, rna_enum_node_map_range_items);
+  RNA_def_property_ui_text(prop, "Interpolation Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
 }
 
 static void def_math(StructRNA *srna)

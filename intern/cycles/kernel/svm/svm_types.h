@@ -325,6 +325,18 @@ typedef enum NodeVectorMathType {
   NODE_VECTOR_MATH_MAXIMUM,
 } NodeVectorMathType;
 
+typedef enum NodeClampType {
+  NODE_CLAMP_MINMAX,
+  NODE_CLAMP_RANGE,
+} NodeClampType;
+
+typedef enum NodeMapRangeType {
+  NODE_MAP_RANGE_LINEAR,
+  NODE_MAP_RANGE_STEPPED,
+  NODE_MAP_RANGE_SMOOTHSTEP,
+  NODE_MAP_RANGE_SMOOTHERSTEP,
+} NodeMapRangeType;
+
 typedef enum NodeMappingType {
   NODE_MAPPING_TYPE_POINT,
   NODE_MAPPING_TYPE_TEXTURE,

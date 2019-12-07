@@ -30,6 +30,7 @@ static bNodeSocketTemplate sh_node_map_range_in[] = {
     {SOCK_FLOAT, 1, N_("From Max"), 1.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
     {SOCK_FLOAT, 1, N_("To Min"), 0.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
     {SOCK_FLOAT, 1, N_("To Max"), 1.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+    {SOCK_FLOAT, 1, N_("Steps"), 4.0f, 1.0f, 1.0f, 1.0f, 0.0f, 10000.0f, PROP_NONE},
     {-1, 0, ""},
 };
 static bNodeSocketTemplate sh_node_map_range_out[] = {
@@ -37,9 +38,16 @@ static bNodeSocketTemplate sh_node_map_range_out[] = {
     {-1, 0, ""},
 };
 
+static void node_shader_update_map_range(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  bNodeSocket *sockSteps = nodeFindSocket(node, SOCK_IN, "Steps");
+  nodeSetSocketAvailability(sockSteps, node->custom2 == NODE_MAP_RANGE_STEPPED);
+}
+
 static void node_shader_init_map_range(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  node->custom1 = true;
+  node->custom1 = true;                  /* use_clamp */
+  node->custom2 = NODE_MAP_RANGE_LINEAR; /* interpolation */
 }
 
 static int gpu_shader_map_range(GPUMaterial *mat,
@@ -48,11 +56,25 @@ static int gpu_shader_map_range(GPUMaterial *mat,
                                 GPUNodeStack *in,
                                 GPUNodeStack *out)
 {
-  GPU_stack_link(mat, node, "map_range", in, out);
-  if (node->custom1) {
-    GPU_link(mat, "clamp_value", out[0].link, in[3].link, in[4].link, &out[0].link);
+  static const char *names[] = {
+      [NODE_MAP_RANGE_LINEAR] = "map_range_linear",
+      [NODE_MAP_RANGE_STEPPED] = "map_range_stepped",
+      [NODE_MAP_RANGE_SMOOTHSTEP] = "map_range_smoothstep",
+      [NODE_MAP_RANGE_SMOOTHERSTEP] = "map_range_smootherstep",
+  };
+
+  int ret = 0;
+  if (node->custom2 < ARRAY_SIZE(names) && names[node->custom2]) {
+    ret = GPU_stack_link(mat, node, names[node->custom2], in, out);
   }
-  return 1;
+  else {
+    ret = GPU_stack_link(mat, node, "map_range_linear", in, out);
+  }
+  if (ret && node->custom1 &&
+      !ELEM(node->custom2, NODE_MAP_RANGE_SMOOTHSTEP, NODE_MAP_RANGE_SMOOTHERSTEP)) {
+    GPU_link(mat, "clamp_range", out[0].link, in[3].link, in[4].link, &out[0].link);
+  }
+  return ret;
 }
 
 void register_node_type_sh_map_range(void)
@@ -62,6 +84,7 @@ void register_node_type_sh_map_range(void)
   sh_node_type_base(&ntype, SH_NODE_MAP_RANGE, "Map Range", NODE_CLASS_CONVERTOR, 0);
   node_type_socket_templates(&ntype, sh_node_map_range_in, sh_node_map_range_out);
   node_type_init(&ntype, node_shader_init_map_range);
+  node_type_update(&ntype, node_shader_update_map_range);
   node_type_gpu(&ntype, gpu_shader_map_range);
 
   nodeRegisterType(&ntype);

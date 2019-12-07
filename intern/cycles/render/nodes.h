@@ -1290,14 +1290,14 @@ class BlackbodyNode : public ShaderNode {
 class MapRangeNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MapRangeNode)
-  void constant_fold(const ConstantFolder &folder);
   virtual int get_group()
   {
     return NODE_GROUP_LEVEL_3;
   }
   void expand(ShaderGraph *graph);
 
-  float value, from_min, from_max, to_min, to_max;
+  float value, from_min, from_max, to_min, to_max, steps;
+  NodeMapRangeType type;
   bool clamp;
 };
 
@@ -1310,6 +1310,7 @@ class ClampNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
   float value, min, max;
+  NodeClampType type;
 };
 
 class MathNode : public ShaderNode {

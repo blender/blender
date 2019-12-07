@@ -188,6 +188,8 @@ extern const EnumPropertyItem rna_enum_node_math_items[];
 extern const EnumPropertyItem rna_enum_mapping_type_items[];
 extern const EnumPropertyItem rna_enum_node_vec_math_items[];
 extern const EnumPropertyItem rna_enum_node_filter_items[];
+extern const EnumPropertyItem rna_enum_node_map_range_items[];
+extern const EnumPropertyItem rna_enum_node_clamp_items[];
 
 extern const EnumPropertyItem rna_enum_ramp_blend_items[];
 
