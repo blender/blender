@@ -70,6 +70,9 @@ layout(std140) uniform globalsBlock
   vec4 colorGridAxisY;
   vec4 colorGridAxisZ;
 
+  vec4 colorFaceBack;
+  vec4 colorFaceFront;
+
   vec4 screenVecs[2];
   vec4 sizeViewport; /* Inverted size in zw. */
 

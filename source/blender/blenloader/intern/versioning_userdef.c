@@ -163,6 +163,8 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_sequencer.anim_preview_range);
     FROM_DEFAULT_V4_UCHAR(space_text.line_numbers);
     FROM_DEFAULT_V4_UCHAR(tui.widget_text_cursor);
+    FROM_DEFAULT_V4_UCHAR(space_view3d.face_back);
+    FROM_DEFAULT_V4_UCHAR(space_view3d.face_front);
   }
 
 #undef FROM_DEFAULT_V4_UCHAR

@@ -99,6 +99,8 @@ typedef enum ThemeColorID {
   TH_EDGE_FACESEL,
   TH_FACE,
   TH_FACE_SELECT,
+  TH_FACE_BACK,
+  TH_FACE_FRONT,
   TH_NORMAL,
   TH_VNORMAL,
   TH_LNORMAL,

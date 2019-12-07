@@ -80,6 +80,8 @@ void DRW_globals_update(void)
   UI_GetThemeColor4fv(TH_EDGE_FACESEL, gb->colorEdgeFaceSelect);
   UI_GetThemeColor4fv(TH_FACE, gb->colorFace);
   UI_GetThemeColor4fv(TH_FACE_SELECT, gb->colorFaceSelect);
+  UI_GetThemeColor4fv(TH_FACE_BACK, gb->colorFaceBack);
+  UI_GetThemeColor4fv(TH_FACE_FRONT, gb->colorFaceFront);
   UI_GetThemeColor4fv(TH_NORMAL, gb->colorNormal);
   UI_GetThemeColor4fv(TH_VNORMAL, gb->colorVNormal);
   UI_GetThemeColor4fv(TH_LNORMAL, gb->colorLNormal);

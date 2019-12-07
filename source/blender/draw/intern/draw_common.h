@@ -34,7 +34,7 @@ struct ParticleSystem;
 struct ViewLayer;
 
 #define UBO_FIRST_COLOR colorWire
-#define UBO_LAST_COLOR colorGridAxisZ
+#define UBO_LAST_COLOR colorFaceFront
 
 /* Used as ubo but colors can be directly referenced as well */
 /* Keep in sync with: common_globals_lib.glsl (globalsBlock) */
@@ -108,6 +108,9 @@ typedef struct GlobalsUboStorage {
   float colorGridAxisX[4];
   float colorGridAxisY[4];
   float colorGridAxisZ[4];
+
+  float colorFaceBack[4];
+  float colorFaceFront[4];
 
   /* NOTE! Put all color before UBO_LAST_COLOR */
   float screenVecs[2][4];                    /* padded as vec4  */

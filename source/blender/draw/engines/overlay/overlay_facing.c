@@ -38,6 +38,7 @@ void OVERLAY_facing_cache_init(OVERLAY_Data *vedata)
 
   GPUShader *sh = OVERLAY_shader_facing();
   pd->facing_grp = DRW_shgroup_create(sh, psl->facing_ps);
+  DRW_shgroup_uniform_block_persistent(pd->facing_grp, "globalsBlock", G_draw.block_ubo);
 }
 
 void OVERLAY_facing_cache_populate(OVERLAY_Data *vedata, Object *ob)

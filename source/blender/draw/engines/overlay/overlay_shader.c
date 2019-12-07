@@ -845,7 +845,7 @@ GPUShader *OVERLAY_shader_facing(void)
                                  datatoc_common_view_lib_glsl,
                                  datatoc_facing_vert_glsl,
                                  NULL},
-        .frag = (const char *[]){datatoc_facing_frag_glsl, NULL},
+        .frag = (const char *[]){datatoc_common_globals_lib_glsl, datatoc_facing_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg->def, NULL},
     });
   }
