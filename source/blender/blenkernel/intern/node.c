@@ -1146,8 +1146,9 @@ bNode *BKE_node_copy_ex(bNodeTree *ntree, const bNode *node_src, const int flag)
 
   node_dst->new_node = NULL;
 
-  bool do_copy_api = !((flag & LIB_ID_CREATE_NO_MAIN) || (flag & LIB_ID_COPY_LOCALIZE));
-  if (node_dst->typeinfo->copyfunc_api && do_copy_api) {
+  /* Only call copy function when a copy is made for the main database, not
+   * for cases like the dependency graph and localization. */
+  if (node_dst->typeinfo->copyfunc_api && !(flag & LIB_ID_CREATE_NO_MAIN)) {
     PointerRNA ptr;
     RNA_pointer_create((ID *)ntree, &RNA_Node, node_dst, &ptr);
 

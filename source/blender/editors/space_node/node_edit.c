@@ -2064,7 +2064,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
       /* No ID refcounting, this node is virtual,
        * detached from any actual Blender data currently. */
       bNode *new_node = BKE_node_copy_store_new_pointers(
-          NULL, node, LIB_ID_CREATE_NO_USER_REFCOUNT);
+          NULL, node, LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_MAIN);
       BKE_node_clipboard_add_node(new_node);
     }
   }
