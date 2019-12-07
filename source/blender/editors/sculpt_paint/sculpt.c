@@ -1256,7 +1256,7 @@ static bool sculpt_automasking_is_constrained_by_radius(Brush *br)
     return false;
   }
 
-  if (ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB)) {
+  if (ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE)) {
     return true;
   }
   return false;
