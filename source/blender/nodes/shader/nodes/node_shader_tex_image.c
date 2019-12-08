@@ -126,6 +126,12 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
   switch (tex->projection) {
     case SHD_PROJ_FLAT:
       if (do_texco_clip) {
+        /* This seems redundant, but is required to ensure the texco link
+         * is not freed by GPU_link, as it is still needed for GPU_stack_link.
+         * Intermediate links like this can only be used once and are then
+         * freed immediately, but if we make it the output link of a set_rgb
+         * node it will be kept and can be used multiple times. */
+        GPU_link(mat, "set_rgb", *texco, texco);
         GPU_link(mat, "set_rgb", *texco, &input_coords);
       }
       if (do_texco_extend) {
@@ -151,6 +157,8 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
       GPU_link(mat, "point_texco_remap_square", *texco, texco);
       GPU_link(mat, "point_map_to_sphere", *texco, texco);
       if (do_texco_clip) {
+        /* See SHD_PROJ_FLAT for explanation. */
+        GPU_link(mat, "set_rgb", *texco, texco);
         GPU_link(mat, "set_rgb", *texco, &input_coords);
       }
       if (do_texco_extend) {
@@ -163,6 +171,8 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
       GPU_link(mat, "point_texco_remap_square", *texco, texco);
       GPU_link(mat, "point_map_to_tube", *texco, texco);
       if (do_texco_clip) {
+        /* See SHD_PROJ_FLAT for explanation. */
+        GPU_link(mat, "set_rgb", *texco, texco);
         GPU_link(mat, "set_rgb", *texco, &input_coords);
       }
       if (do_texco_extend) {
