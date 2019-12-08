@@ -135,7 +135,7 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
            * These rays proceed with path-iteration.
            */
           *throughput = make_float3(1.0f, 1.0f, 1.0f);
-          path_radiance_init(L, kernel_data.film.use_light_pass);
+          path_radiance_init(kg, L);
           path_state_init(kg,
                           AS_SHADER_DATA(&kernel_split_state.sd_DL_shadow[ray_index]),
                           state,

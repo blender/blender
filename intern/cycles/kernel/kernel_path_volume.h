@@ -57,7 +57,7 @@ ccl_device_inline void kernel_path_volume_connect_light(KernelGlobals *kg,
 
   if (has_emission && !blocked) {
     /* accumulate */
-    path_radiance_accum_light(L, state, throughput, &L_light, shadow, 1.0f, is_lamp);
+    path_radiance_accum_light(kg, L, state, throughput, &L_light, shadow, 1.0f, is_lamp);
   }
 #  endif /* __EMISSION__ */
 }
@@ -247,7 +247,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg,
       if (has_emission && !blocked) {
         /* accumulate */
         path_radiance_accum_light(
-            L, state, tp * num_samples_inv, &L_light, shadow, num_samples_inv, is_lamp);
+            kg, L, state, tp * num_samples_inv, &L_light, shadow, num_samples_inv, is_lamp);
       }
     }
   }

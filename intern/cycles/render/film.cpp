@@ -287,8 +287,6 @@ NODE_DEFINE(Film)
   SOCKET_FLOAT(mist_depth, "Mist Depth", 100.0f);
   SOCKET_FLOAT(mist_falloff, "Mist Falloff", 1.0f);
 
-  SOCKET_BOOLEAN(use_sample_clamp, "Use Sample Clamp", false);
-
   SOCKET_BOOLEAN(denoising_data_pass, "Generate Denoising Data Pass", false);
   SOCKET_BOOLEAN(denoising_clean_pass, "Generate Denoising Clean Pass", false);
   SOCKET_BOOLEAN(denoising_prefiltered_pass, "Generate Denoising Prefiltered Pass", false);
@@ -331,7 +329,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
   kfilm->light_pass_flag = 0;
   kfilm->pass_stride = 0;
-  kfilm->use_light_pass = use_light_visibility || use_sample_clamp;
+  kfilm->use_light_pass = use_light_visibility;
 
   bool have_cryptomatte = false, have_aov_color = false, have_aov_value = false;
 

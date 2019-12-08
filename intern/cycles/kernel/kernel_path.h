@@ -104,10 +104,7 @@ ccl_device_forceinline void kernel_path_lamp_emission(KernelGlobals *kg,
     light_ray.dP = ray->dP;
 
     /* intersect with lamp */
-    float3 emission = make_float3(0.0f, 0.0f, 0.0f);
-
-    if (indirect_lamp_emission(kg, emission_sd, state, &light_ray, &emission))
-      path_radiance_accum_emission(L, state, throughput, emission);
+    indirect_lamp_emission(kg, emission_sd, state, L, &light_ray, throughput);
   }
 #endif /* __LAMP_MIS__ */
 }
@@ -139,7 +136,7 @@ ccl_device_forceinline void kernel_path_background(KernelGlobals *kg,
 #ifdef __BACKGROUND__
   /* sample background shader */
   float3 L_background = indirect_background(kg, sd, state, buffer, ray);
-  path_radiance_accum_background(L, state, throughput, L_background);
+  path_radiance_accum_background(kg, L, state, throughput, L_background);
 #endif /* __BACKGROUND__ */
 }
 
@@ -189,7 +186,7 @@ ccl_device_forceinline VolumeIntegrateResult kernel_path_volume(KernelGlobals *k
 
     /* emission */
     if (volume_segment.closure_flag & SD_EMISSION)
-      path_radiance_accum_emission(L, state, *throughput, volume_segment.accum_emission);
+      path_radiance_accum_emission(kg, L, state, *throughput, volume_segment.accum_emission);
 
     /* scattering */
     VolumeIntegrateResult result = VOLUME_PATH_ATTENUATED;
@@ -321,7 +318,7 @@ ccl_device_forceinline bool kernel_path_shader_apply(KernelGlobals *kg,
   if (sd->flag & SD_EMISSION) {
     float3 emission = indirect_primitive_emission(
         kg, sd, sd->ray_length, state->flag, state->ray_pdf);
-    path_radiance_accum_emission(L, state, throughput, emission);
+    path_radiance_accum_emission(kg, L, state, throughput, emission);
   }
 #endif /* __EMISSION__ */
 
@@ -369,7 +366,7 @@ ccl_device_noinline
     light_ray.dD = differential3_zero();
 
     if (!shadow_blocked(kg, sd, emission_sd, state, &light_ray, &ao_shadow)) {
-      path_radiance_accum_ao(L, state, throughput, ao_alpha, ao_bsdf, ao_shadow);
+      path_radiance_accum_ao(kg, L, state, throughput, ao_alpha, ao_bsdf, ao_shadow);
     }
     else {
       path_radiance_accum_total_ao(L, state, throughput, ao_bsdf);
@@ -675,7 +672,7 @@ ccl_device void kernel_path_trace(
   float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
 
   PathRadiance L;
-  path_radiance_init(&L, kernel_data.film.use_light_pass);
+  path_radiance_init(kg, &L);
 
   ShaderDataTinyStorage emission_sd_storage;
   ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);

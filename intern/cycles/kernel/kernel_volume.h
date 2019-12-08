@@ -504,7 +504,7 @@ kernel_volume_integrate_homogeneous(KernelGlobals *kg,
     float3 transmittance = volume_color_transmittance(coeff.sigma_t, ray->t);
     float3 emission = kernel_volume_emission_integrate(
         &coeff, closure_flag, transmittance, ray->t);
-    path_radiance_accum_emission(L, state, *throughput, emission);
+    path_radiance_accum_emission(kg, L, state, *throughput, emission);
   }
 
   /* modify throughput */
@@ -629,7 +629,7 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
       if (L && (closure_flag & SD_EMISSION)) {
         float3 emission = kernel_volume_emission_integrate(
             &coeff, closure_flag, transmittance, dt);
-        path_radiance_accum_emission(L, state, tp, emission);
+        path_radiance_accum_emission(kg, L, state, tp, emission);
       }
 
       /* modify throughput */

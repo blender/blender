@@ -209,13 +209,6 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
   dscene->sobol_directions.copy_to_device();
 
-  /* Clamping. */
-  bool use_sample_clamp = (sample_clamp_direct != 0.0f || sample_clamp_indirect != 0.0f);
-  if (use_sample_clamp != scene->film->use_sample_clamp) {
-    scene->film->use_sample_clamp = use_sample_clamp;
-    scene->film->tag_update(scene);
-  }
-
   need_update = false;
 }
 
