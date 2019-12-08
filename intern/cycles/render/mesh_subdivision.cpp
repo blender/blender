@@ -394,7 +394,7 @@ void Mesh::tessellate(DiagSplit *split)
   int num_faces = subd_faces.size();
 
   Attribute *attr_vN = subd_attributes.find(ATTR_STD_VERTEX_NORMAL);
-  float3 *vN = attr_vN->data_float3();
+  float3 *vN = (attr_vN) ? attr_vN->data_float3() : NULL;
 
   /* count patches */
   int num_patches = 0;
