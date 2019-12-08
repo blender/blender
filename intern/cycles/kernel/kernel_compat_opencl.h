@@ -126,6 +126,8 @@
 #define fminf(x, y) fmin(((float)(x)), ((float)(y)))
 #define fmodf(x, y) fmod((float)(x), (float)(y))
 #define sinhf(x) sinh(((float)(x)))
+#define coshf(x) cosh(((float)(x)))
+#define tanhf(x) tanh(((float)(x)))
 
 /* Use native functions with possibly lower precision for performance,
  * no issues found so far. */
