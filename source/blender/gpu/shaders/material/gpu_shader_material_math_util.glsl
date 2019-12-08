@@ -93,11 +93,6 @@ vec3 c_mod(vec3 a, vec3 b)
   return vec3(c_mod(a.x, b.x), c_mod(a.y, b.y), c_mod(a.z, b.z));
 }
 
-void vector_mix(float strength, vec3 a, vec3 b, out vec3 outVector)
-{
-  outVector = strength * a + (1 - strength) * b;
-}
-
 void invert_z(vec3 v, out vec3 outv)
 {
   v.z = -v.z;

@@ -20,3 +20,8 @@ void color_to_blender_normal_new_shading(vec3 color, out vec3 normal)
 {
   normal = vec3(2.0, -2.0, -2.0) * color - vec3(1.0);
 }
+
+void node_normal_map_mix(float strength, vec3 newnormal, vec3 oldnormal, out vec3 outnormal)
+{
+  outnormal = normalize(mix(oldnormal, newnormal, max(strength, 0.0)));
+}
