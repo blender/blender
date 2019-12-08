@@ -115,8 +115,10 @@ flat in int resourceIDFrag;
 #  define resource_id resourceIDFrag
 #endif
 
-#if !defined(GPU_INTEL) && !defined(GPU_DEPRECATED_AMD_DRIVER) && !defined(OS_MAC) && \
-    !defined(INSTANCED_ATTRIB)
+/* Breaking this across multiple lines causes issues for some older GLSL compilers. */
+/* clang-format off */
+#if !defined(GPU_INTEL) && !defined(GPU_DEPRECATED_AMD_DRIVER) && !defined(OS_MAC) && !defined(INSTANCED_ATTRIB)
+/* clang-format on */
 struct ObjectMatrices {
   mat4 drw_modelMatrix;
   mat4 drw_modelMatrixInverse;
