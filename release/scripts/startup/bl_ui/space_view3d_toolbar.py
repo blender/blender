@@ -1471,32 +1471,6 @@ class VIEW3D_PT_tools_brush_display_custom_icon(Panel, View3DPaintPanel):
 
 
 # TODO, move to space_view3d.py
-class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
-    bl_context = ".weightpaint"
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_label = "Symmetry"
-
-    @classmethod
-    def poll(cls, context):
-        # When used in the tool header, this is explicitly included next to the XYZ symmetry buttons.
-        return (context.region.type != 'TOOL_HEADER')
-
-    def draw(self, context):
-        layout = self.layout
-        tool_settings = context.tool_settings
-        wpaint = tool_settings.weight_paint
-        draw_vpaint_symmetry(layout, wpaint)
-
-
-class VIEW3D_PT_tools_weightpaint_symmetry_for_topbar(Panel):
-    bl_space_type = 'TOPBAR'
-    bl_region_type = 'HEADER'
-    bl_label = "Symmetry"
-
-    draw = VIEW3D_PT_tools_weightpaint_symmetry.draw
-
-
-# TODO, move to space_view3d.py
 class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
     bl_context = ".weightpaint"
     bl_label = "Options"
@@ -2282,8 +2256,6 @@ classes = (
     VIEW3D_PT_sculpt_options,
     VIEW3D_PT_sculpt_options_unified,
     VIEW3D_PT_sculpt_options_gravity,
-    VIEW3D_PT_tools_weightpaint_symmetry,
-    VIEW3D_PT_tools_weightpaint_symmetry_for_topbar,
     VIEW3D_PT_tools_weightpaint_options,
     VIEW3D_PT_tools_weightpaint_options_unified,
     VIEW3D_PT_tools_vertexpaint_symmetry,
