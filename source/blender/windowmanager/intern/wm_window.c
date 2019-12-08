@@ -1885,12 +1885,17 @@ void WM_clipboard_text_set(const char *buf, bool selection)
 
 void WM_progress_set(wmWindow *win, float progress)
 {
-  GHOST_SetProgressBar(win->ghostwin, progress);
+  /* In background mode we may have windows, but not actual GHOST windows. */
+  if (win->ghostwin) {
+    GHOST_SetProgressBar(win->ghostwin, progress);
+  }
 }
 
 void WM_progress_clear(wmWindow *win)
 {
-  GHOST_EndProgressBar(win->ghostwin);
+  if (win->ghostwin) {
+    GHOST_EndProgressBar(win->ghostwin);
+  }
 }
 
 /** \} */
