@@ -603,6 +603,7 @@ static void separate_armature_bones(Main *bmain, Object *ob, short sel)
   }
 
   /* exit editmode (recalculates pchans too) */
+  ED_armature_edit_deselect_all(ob);
   ED_armature_from_edit(bmain, ob->data);
   ED_armature_edit_free(ob->data);
 }
@@ -621,11 +622,6 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       view_layer, CTX_wm_view3d(C), &bases_len);
-
-  CTX_DATA_BEGIN (C, Base *, base, visible_bases) {
-    ED_object_base_select(base, BA_DESELECT);
-  }
-  CTX_DATA_END;
 
   for (uint base_index = 0; base_index < bases_len; base_index++) {
     Base *base_iter = bases[base_index];
@@ -668,9 +664,6 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
      * 5. Make original armature active and enter editmode
      */
 
-    /* 1) only edit-base selected */
-    ED_object_base_select(base_iter, BA_SELECT);
-
     /* 1) store starting settings and exit editmode */
     oldob = obedit;
     oldbase = base_iter;
@@ -684,11 +677,11 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 
     /* only duplicate linked armature */
     newbase = ED_object_add_duplicate(bmain, scene, view_layer, oldbase, USER_DUP_ARM);
+    ED_object_base_select(newbase, BA_SELECT);
 
     DEG_relations_tag_update(bmain);
 
     newob = newbase->object;
-    newbase->flag &= ~BASE_SELECTED;
 
     /* 3) remove bones that shouldn't still be around on both armatures */
     separate_armature_bones(bmain, oldob, 1);
