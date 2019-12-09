@@ -119,7 +119,6 @@ typedef struct ClothSimSettings {
   float bending_damping;
   /** Size of voxel grid cells for continuum dynamics. */
   float voxel_cell_size;
-  char _pad[4];
 
   /** Number of time steps per frame. */
   int stepsPerFrame;
@@ -145,7 +144,6 @@ typedef struct ClothSimSettings {
   short presets;
   short reset;
 
-  char _pad0[4];
   struct EffectorWeights *effector_weights;
 
   short bending_model;
@@ -161,6 +159,20 @@ typedef struct ClothSimSettings {
   float compression_damp;
   /** Mechanical damping of shear springs. */
   float shear_damp;
+
+  /** The maximum lenght an internal spring can have during creation. */
+  float internal_spring_max_length;
+  /** How much the interal spring can diverge from the vertex normal during creation. */
+  float internal_spring_max_diversion;
+  /** Vertex group for scaling structural stiffness. */
+  short vgroup_intern;
+  char _pad1[2];
+  float internal_tension;
+  float internal_compression;
+  float max_internal_tension;
+  float max_internal_compression;
+  char _pad0[4];
+
 } ClothSimSettings;
 
 typedef struct ClothCollSettings {

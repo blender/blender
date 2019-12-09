@@ -427,7 +427,8 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s)
   }
 
   /* Calculate force of structural + shear springs. */
-  if (s->type & (CLOTH_SPRING_TYPE_STRUCTURAL | CLOTH_SPRING_TYPE_SEWING)) {
+  if (s->type &
+      (CLOTH_SPRING_TYPE_STRUCTURAL | CLOTH_SPRING_TYPE_SEWING | CLOTH_SPRING_TYPE_INTERNAL)) {
 #ifdef CLOTH_FORCE_SPRING_STRUCTURAL
     float k_tension, scaling_tension;
 
@@ -453,7 +454,7 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s)
                                           false,
                                           parms->max_sewing);
     }
-    else {
+    else if (s->type & CLOTH_SPRING_TYPE_STRUCTURAL) {
       float k_compression, scaling_compression;
       scaling_compression = parms->compression +
                             s->lin_stiffness * fabsf(parms->max_compression - parms->compression);
@@ -467,6 +468,44 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s)
                                           parms->tension_damp,
                                           k_compression,
                                           parms->compression_damp,
+                                          resist_compress,
+                                          using_angular,
+                                          0.0f);
+    }
+    else {
+      /* CLOTH_SPRING_TYPE_INTERNAL */
+      BLI_assert(s->type & CLOTH_SPRING_TYPE_INTERNAL);
+
+      scaling_tension = parms->internal_tension +
+                        s->lin_stiffness *
+                            fabsf(parms->max_internal_tension - parms->internal_tension);
+      k_tension = scaling_tension / (parms->avg_spring_len + FLT_EPSILON);
+      float scaling_compression = parms->internal_compression +
+                                  s->lin_stiffness * fabsf(parms->max_internal_compression -
+                                                           parms->internal_compression);
+      float k_compression = scaling_compression / (parms->avg_spring_len + FLT_EPSILON);
+
+      float k_tension_damp = parms->tension_damp;
+      float k_compression_damp = parms->compression_damp;
+
+      if (k_tension == 0.0f) {
+        /* No damping so it behaves as if no tension spring was there at all. */
+        k_tension_damp = 0.0f;
+      }
+
+      if (k_compression == 0.0f) {
+        /* No damping so it behaves as if no compression spring was there at all. */
+        k_compression_damp = 0.0f;
+      }
+
+      BPH_mass_spring_force_spring_linear(data,
+                                          s->ij,
+                                          s->kl,
+                                          s->restlen,
+                                          k_tension,
+                                          k_tension_damp,
+                                          k_compression,
+                                          k_compression_damp,
                                           resist_compress,
                                           using_angular,
                                           0.0f);

@@ -29,6 +29,8 @@
 
 #include "rna_internal.h"
 
+#include "BLI_math.h"
+
 #include "BKE_cloth.h"
 #include "BKE_modifier.h"
 
@@ -201,6 +203,54 @@ static void rna_ClothSettings_shrink_max_set(struct PointerRNA *ptr, float value
   settings->shrink_max = value;
 }
 
+static void rna_ClothSettings_internal_tension_set(struct PointerRNA *ptr, float value)
+{
+  ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
+
+  settings->internal_tension = value;
+
+  /* check for max clipping */
+  if (value > settings->max_internal_tension) {
+    settings->max_internal_tension = value;
+  }
+}
+
+static void rna_ClothSettings_max_internal_tension_set(struct PointerRNA *ptr, float value)
+{
+  ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
+
+  /* check for clipping */
+  if (value < settings->internal_tension) {
+    value = settings->internal_tension;
+  }
+
+  settings->max_internal_tension = value;
+}
+
+static void rna_ClothSettings_internal_compression_set(struct PointerRNA *ptr, float value)
+{
+  ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
+
+  settings->internal_compression = value;
+
+  /* check for max clipping */
+  if (value > settings->max_internal_compression) {
+    settings->max_internal_compression = value;
+  }
+}
+
+static void rna_ClothSettings_max_internal_compression_set(struct PointerRNA *ptr, float value)
+{
+  ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
+
+  /* check for clipping */
+  if (value < settings->internal_compression) {
+    value = settings->internal_compression;
+  }
+
+  settings->max_internal_compression = value;
+}
+
 static void rna_ClothSettings_mass_vgroup_get(PointerRNA *ptr, char *value)
 {
   ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
@@ -289,6 +339,24 @@ static void rna_ClothSettings_bend_vgroup_set(PointerRNA *ptr, const char *value
 {
   ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
   rna_object_vgroup_name_index_set(ptr, value, &sim->vgroup_bend);
+}
+
+static void rna_ClothSettings_internal_vgroup_get(PointerRNA *ptr, char *value)
+{
+  ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
+  rna_object_vgroup_name_index_get(ptr, value, sim->vgroup_intern);
+}
+
+static int rna_ClothSettings_internal_vgroup_length(PointerRNA *ptr)
+{
+  ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
+  return rna_object_vgroup_name_index_length(ptr, sim->vgroup_intern);
+}
+
+static void rna_ClothSettings_internal_vgroup_set(PointerRNA *ptr, const char *value)
+{
+  ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
+  rna_object_vgroup_name_index_set(ptr, value, &sim->vgroup_intern);
 }
 
 static void rna_ClothSettings_pressure_vgroup_get(PointerRNA *ptr, char *value)
@@ -391,6 +459,18 @@ static char *rna_ClothCollisionSettings_path(PointerRNA *ptr)
   else {
     return NULL;
   }
+}
+
+static int rna_ClothSettings_internal_editable(struct PointerRNA *ptr, const char **r_info)
+{
+  ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
+
+  if (sim && (sim->bending_model == CLOTH_BENDING_LINEAR)) {
+    *r_info = "Only available with angular bending springs.";
+    return 0;
+  }
+
+  return sim ? PROP_EDITABLE : 0;
 }
 
 #else
@@ -793,6 +873,96 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Bending Model", "Physical model for simulating bending forces");
   RNA_def_property_update(prop, 0, "rna_cloth_update");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "use_internal_springs", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_SIMSETTINGS_FLAG_INTERNAL_SPRINGS);
+  RNA_def_property_ui_text(prop,
+                           "Create Internal Springs",
+                           "Simulate an internal volume structure by creating springs connecting "
+                           "the opposite sides of the mesh");
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "internal_spring_normal_check", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, NULL, "flags", CLOTH_SIMSETTINGS_FLAG_INTERNAL_SPRINGS_NORMAL);
+  RNA_def_property_ui_text(prop,
+                           "Check Internal Spring Normals",
+                           "Require the points the internal springs connect to have opposite "
+                           "normal directions");
+  RNA_def_property_editable_func(prop, "rna_ClothSettings_internal_editable");
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "internal_spring_max_length", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "internal_spring_max_length");
+  RNA_def_property_range(prop, 0.0f, 1000.0f);
+  RNA_def_property_ui_text(
+      prop,
+      "Internal Spring Max Length",
+      "The maximum length an internal spring can have during creation. If the distance between "
+      "internal points is greater than this, no internal spring will be created between these "
+      "points. "
+      "A length of zero means that there is no length limit");
+  RNA_def_property_editable_func(prop, "rna_ClothSettings_internal_editable");
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "internal_spring_max_diversion", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, NULL, "internal_spring_max_diversion");
+  RNA_def_property_range(prop, 0.0f, M_PI / 4.0f);
+  RNA_def_property_ui_text(prop,
+                           "Internal Spring Max Diversion",
+                           "How much the rays used to connect the internal points can diverge "
+                           "from the vertex normal");
+  RNA_def_property_editable_func(prop, "rna_ClothSettings_internal_editable");
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "internal_tension_stiffness", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "internal_tension");
+  RNA_def_property_range(prop, 0.0f, 10000.0f);
+  RNA_def_property_float_funcs(prop, NULL, "rna_ClothSettings_internal_tension_set", NULL);
+  RNA_def_property_ui_text(prop, "Tension Stiffness", "How much the material resists stretching");
+  RNA_def_property_editable_func(prop, "rna_ClothSettings_internal_editable");
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+  prop = RNA_def_property(srna, "internal_tension_stiffness_max", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "max_internal_tension");
+  RNA_def_property_range(prop, 0.0f, 10000.0f);
+  RNA_def_property_float_funcs(prop, NULL, "rna_ClothSettings_max_internal_tension_set", NULL);
+  RNA_def_property_ui_text(prop, "Tension Stiffness Maximum", "Maximum tension stiffness value");
+  RNA_def_property_editable_func(prop, "rna_ClothSettings_internal_editable");
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+  prop = RNA_def_property(srna, "internal_compression_stiffness", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "internal_compression");
+  RNA_def_property_range(prop, 0.0f, 10000.0f);
+  RNA_def_property_float_funcs(prop, NULL, "rna_ClothSettings_internal_compression_set", NULL);
+  RNA_def_property_ui_text(
+      prop, "Compression Stiffness", "How much the material resists compression");
+  RNA_def_property_editable_func(prop, "rna_ClothSettings_internal_editable");
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+  prop = RNA_def_property(srna, "internal_compression_stiffness_max", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "max_internal_compression");
+  RNA_def_property_range(prop, 0.0f, 10000.0f);
+  RNA_def_property_float_funcs(prop, NULL, "rna_ClothSettings_max_internal_compression_set", NULL);
+  RNA_def_property_ui_text(
+      prop, "Compression Stiffness Maximum", "Maximum compression stiffness value");
+  RNA_def_property_editable_func(prop, "rna_ClothSettings_internal_editable");
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+  prop = RNA_def_property(srna, "vertex_group_intern", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop,
+                                "rna_ClothSettings_internal_vgroup_get",
+                                "rna_ClothSettings_internal_vgroup_length",
+                                "rna_ClothSettings_internal_vgroup_set");
+  RNA_def_property_ui_text(prop,
+                           "Internal Springs Vertex Group",
+                           "Vertex group for fine control over the internal spring stiffness");
+  RNA_def_property_editable_func(prop, "rna_ClothSettings_internal_editable");
+  RNA_def_property_update(prop, 0, "rna_cloth_update");
 
   /* Pressure */
 
