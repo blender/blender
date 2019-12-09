@@ -631,6 +631,31 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
     Base *base_iter = bases[base_index];
     Object *obedit = base_iter->object;
 
+    {
+      bArmature *arm_old = obedit->data;
+      bool has_selected_bone = false;
+      bool has_selected_any = false;
+      for (EditBone *ebone = arm_old->edbo->first; ebone; ebone = ebone->next) {
+        if (EBONE_VISIBLE(arm_old, ebone)) {
+          if (ebone->flag & BONE_SELECTED) {
+            has_selected_bone = true;
+            break;
+          }
+          else if (ebone->flag & (BONE_TIPSEL | BONE_ROOTSEL)) {
+            has_selected_any = true;
+          }
+        }
+        if (has_selected_bone == false) {
+          if (has_selected_any) {
+            /* Without this, we may leave head/tail selected
+             * which isn't expected after separating. */
+            ED_armature_edit_deselect_all(obedit);
+          }
+          continue;
+        }
+      }
+    }
+
     Object *oldob, *newob;
     Base *oldbase, *newbase;
 
