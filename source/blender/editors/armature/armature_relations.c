@@ -550,7 +550,7 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
  * sel: remove selected bones from the armature, otherwise the unselected bones are removed
  * (ob is not in editmode)
  */
-static void separate_armature_bones(Main *bmain, Object *ob, short sel)
+static void separate_armature_bones(Main *bmain, Object *ob, const bool is_select)
 {
   bArmature *arm = (bArmature *)ob->data;
   bPoseChannel *pchan, *pchann;
@@ -565,12 +565,10 @@ static void separate_armature_bones(Main *bmain, Object *ob, short sel)
     curbone = ED_armature_ebone_find_name(arm->edbo, pchan->name);
 
     /* check if bone needs to be removed */
-    if (sel == (EBONE_VISIBLE(arm, curbone) && (curbone->flag & BONE_SELECTED))) {
-      EditBone *ebo;
-      bPoseChannel *pchn;
+    if (is_select == (EBONE_VISIBLE(arm, curbone) && (curbone->flag & BONE_SELECTED))) {
 
       /* clear the bone->parent var of any bone that had this as its parent  */
-      for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
+      for (EditBone *ebo = arm->edbo->first; ebo; ebo = ebo->next) {
         if (ebo->parent == curbone) {
           ebo->parent = NULL;
           /* this is needed to prevent random crashes with in ED_armature_from_edit */
@@ -580,7 +578,7 @@ static void separate_armature_bones(Main *bmain, Object *ob, short sel)
       }
 
       /* clear the pchan->parent var of any pchan that had this as its parent */
-      for (pchn = ob->pose->chanbase.first; pchn; pchn = pchn->next) {
+      for (bPoseChannel *pchn = ob->pose->chanbase.first; pchn; pchn = pchn->next) {
         if (pchn->parent == pchan) {
           pchn->parent = NULL;
         }
@@ -624,11 +622,11 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
       view_layer, CTX_wm_view3d(C), &bases_len);
 
   for (uint base_index = 0; base_index < bases_len; base_index++) {
-    Base *base_iter = bases[base_index];
-    Object *obedit = base_iter->object;
+    Base *base_old = bases[base_index];
+    Object *ob_old = base_old->object;
 
     {
-      bArmature *arm_old = obedit->data;
+      bArmature *arm_old = ob_old->data;
       bool has_selected_bone = false;
       bool has_selected_any = false;
       for (EditBone *ebone = arm_old->edbo->first; ebone; ebone = ebone->next) {
@@ -645,15 +643,12 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
           if (has_selected_any) {
             /* Without this, we may leave head/tail selected
              * which isn't expected after separating. */
-            ED_armature_edit_deselect_all(obedit);
+            ED_armature_edit_deselect_all(ob_old);
           }
           continue;
         }
       }
     }
-
-    Object *oldob, *newob;
-    Base *oldbase, *newbase;
 
     /* We are going to do this as follows (unlike every other instance of separate):
      * 1. Exit editmode +posemode for active armature/base. Take note of what this is.
@@ -665,49 +660,42 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
      */
 
     /* 1) store starting settings and exit editmode */
-    oldob = obedit;
-    oldbase = base_iter;
-    oldob->mode &= ~OB_MODE_POSE;
-    // oldbase->flag &= ~OB_POSEMODE;
+    ob_old->mode &= ~OB_MODE_POSE;
 
-    ED_armature_from_edit(bmain, obedit->data);
-    ED_armature_edit_free(obedit->data);
+    ED_armature_from_edit(bmain, ob_old->data);
+    ED_armature_edit_free(ob_old->data);
 
     /* 2) duplicate base */
 
     /* only duplicate linked armature */
-    newbase = ED_object_add_duplicate(bmain, scene, view_layer, oldbase, USER_DUP_ARM);
-    ED_object_base_select(newbase, BA_SELECT);
+    Base *base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, USER_DUP_ARM);
+    Object *ob_new = base_new->object;
 
     DEG_relations_tag_update(bmain);
 
-    newob = newbase->object;
-
     /* 3) remove bones that shouldn't still be around on both armatures */
-    separate_armature_bones(bmain, oldob, 1);
-    separate_armature_bones(bmain, newob, 0);
+    separate_armature_bones(bmain, ob_old, true);
+    separate_armature_bones(bmain, ob_new, false);
 
     /* 4) fix links before depsgraph flushes */  // err... or after?
-    separated_armature_fix_links(bmain, oldob, newob);
+    separated_armature_fix_links(bmain, ob_old, ob_new);
 
-    DEG_id_tag_update(&oldob->id, ID_RECALC_GEOMETRY); /* this is the original one */
-    DEG_id_tag_update(&newob->id, ID_RECALC_GEOMETRY); /* this is the separated one */
+    DEG_id_tag_update(&ob_old->id, ID_RECALC_GEOMETRY); /* this is the original one */
+    DEG_id_tag_update(&ob_new->id, ID_RECALC_GEOMETRY); /* this is the separated one */
 
     /* 5) restore original conditions */
-    obedit = oldob;
+    ED_armature_to_edit(ob_old->data);
 
-    ED_armature_to_edit(obedit->data);
-
-    ED_armature_edit_refresh_layer_used(obedit->data);
-    BKE_armature_refresh_layer_used(newob->data);
+    ED_armature_edit_refresh_layer_used(ob_old->data);
+    BKE_armature_refresh_layer_used(ob_new->data);
 
     /* parents tips remain selected when connected children are removed. */
-    ED_armature_edit_deselect_all(obedit);
+    ED_armature_edit_deselect_all(ob_old);
 
     ok = true;
 
     /* note, notifier might evolve */
-    WM_event_add_notifier(C, NC_OBJECT | ND_POSE, obedit);
+    WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob_old);
   }
   MEM_freeN(bases);
 
