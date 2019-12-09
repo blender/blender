@@ -913,7 +913,7 @@ def _activate_by_item(context, space_type, item, index, *, as_fallback=False):
         index=index,
 
         idname_fallback=item_fallback.idname if item_fallback else "",
-        keymap_fallback=(item_fallback.keymap[0] or "") if item_fallback else "",
+        keymap_fallback=item_fallback.keymap[0] if (item_fallback and item_fallback.keymap) else "",
     )
 
     WindowManager = bpy.types.WindowManager
