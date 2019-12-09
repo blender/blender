@@ -3524,10 +3524,29 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
 static void initShear_mouseInputMode(TransInfo *t)
 {
   float dir[3];
+  bool dir_flip = false;
   copy_v3_v3(dir, t->orient_matrix[t->orient_axis_ortho]);
+
+  /* Needed for axis aligned view gizmo. */
+  if (t->orientation.user == V3D_ORIENT_VIEW) {
+    if (t->orient_axis_ortho == 0) {
+      if (t->center2d[1] > t->mouse.imval[1]) {
+        dir_flip = !dir_flip;
+      }
+    }
+    else if (t->orient_axis_ortho == 1) {
+      if (t->center2d[0] > t->mouse.imval[0]) {
+        dir_flip = !dir_flip;
+      }
+    }
+  }
 
   /* Without this, half the gizmo handles move in the opposite direction. */
   if ((t->orient_axis_ortho + 1) % 3 != t->orient_axis) {
+    dir_flip = !dir_flip;
+  }
+
+  if (dir_flip) {
     negate_v3(dir);
   }
 

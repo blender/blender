@@ -2310,6 +2310,9 @@ void VIEW3D_GGT_xform_cage(wmGizmoGroupType *gzgt)
 
 struct XFormShearWidgetGroup {
   wmGizmo *gizmo[3][2];
+  /** View aligned gizmos. */
+  wmGizmo *gizmo_view[4];
+
   /* Only for view orientation. */
   struct {
     float viewinv_m3[3][3];
@@ -2354,6 +2357,25 @@ static void WIDGETGROUP_xform_shear_setup(const bContext *UNUSED(C), wmGizmoGrou
     }
   }
 
+  for (int i = 0; i < 4; i++) {
+    wmGizmo *gz = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+    RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_BOX);
+    RNA_enum_set(gz->ptr, "draw_options", 0); /* No stem. */
+    copy_v3_fl(gz->color, 1.0f);
+    gz->color[3] = 0.5f;
+    WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_OFFSET_SCALE, true);
+    PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_shear, NULL);
+    RNA_boolean_set(ptr, "release_confirm", 1);
+    xgzgroup->gizmo_view[i] = gz;
+
+    /* Unlike the other gizmos, this never changes so can be set on setup. */
+    wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, 0);
+    RNA_enum_set(&gzop->ptr, "orient_type", V3D_ORIENT_VIEW);
+
+    RNA_enum_set(&gzop->ptr, "orient_axis", 2);
+    RNA_enum_set(&gzop->ptr, "orient_axis_ortho", ((i % 2) ? 0 : 1));
+  }
+
   gzgroup->customdata = xgzgroup;
 }
 
@@ -2382,6 +2404,11 @@ static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzg
         WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
       }
     }
+
+    for (int i = 0; i < 4; i++) {
+      wmGizmo *gz = xgzgroup->gizmo_view[i];
+      WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
+    }
   }
   else {
     gizmo_prepare_mat(C, rv3d, &tbounds);
@@ -2406,6 +2433,11 @@ static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzg
         mul_v3_fl(gz->matrix_basis[0], 0.5f);
         mul_v3_fl(gz->matrix_basis[1], 6.0f);
       }
+    }
+
+    for (int i = 0; i < 4; i++) {
+      wmGizmo *gz = xgzgroup->gizmo_view[i];
+      WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
     }
   }
 
@@ -2452,6 +2484,25 @@ static void WIDGETGROUP_xform_shear_draw_prepare(const bContext *C, wmGizmoGroup
         break;
       }
     }
+  }
+
+  for (int i = 0; i < 4; i++) {
+    const float outer_thin = 0.3f;
+    const float outer_offset = 1.0f / 0.3f;
+    wmGizmo *gz = xgzgroup->gizmo_view[i];
+    WM_gizmo_set_matrix_rotation_from_yz_axis(
+        gz, rv3d->viewinv[(i + 1) % 2], rv3d->viewinv[i % 2]);
+    if (i >= 2) {
+      negate_v3(gz->matrix_basis[1]);
+      negate_v3(gz->matrix_basis[2]);
+    }
+
+    /* No need for depth with view aligned gizmos. */
+    mul_v3_fl(gz->matrix_basis[0], 0.0f);
+    mul_v3_fl(gz->matrix_basis[1], 20.0f + ((1.0f / outer_thin) * 1.8f));
+    mul_v3_fl(gz->matrix_basis[2], outer_thin);
+    WM_gizmo_set_matrix_location(gz, rv3d->twmat[3]);
+    gz->matrix_offset[3][2] = outer_offset;
   }
 
   /* Basic ordering for drawing only. */
