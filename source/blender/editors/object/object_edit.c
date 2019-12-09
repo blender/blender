@@ -513,6 +513,9 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
       ED_mball_editmball_free(obedit);
     }
   }
+  else {
+    return false;
+  }
 
   char *needs_flush_ptr = BKE_object_data_editmode_flush_ptr_get(obedit->data);
   if (needs_flush_ptr) {
