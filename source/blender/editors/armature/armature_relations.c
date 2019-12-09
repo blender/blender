@@ -565,7 +565,7 @@ static void separate_armature_bones(Main *bmain, Object *ob, short sel)
     curbone = ED_armature_ebone_find_name(arm->edbo, pchan->name);
 
     /* check if bone needs to be removed */
-    if ((sel && (curbone->flag & BONE_SELECTED)) || (!sel && !(curbone->flag & BONE_SELECTED))) {
+    if (sel == (EBONE_VISIBLE(arm, curbone) && (curbone->flag & BONE_SELECTED))) {
       EditBone *ebo;
       bPoseChannel *pchn;
 
