@@ -374,7 +374,7 @@ static const EnumPropertyItem rna_enum_studio_light_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-const EnumPropertyItem rna_enum_view3dshading_render_pass_type_items[] = {
+static const EnumPropertyItem rna_enum_view3dshading_render_pass_type_items[] = {
     {SCE_PASS_COMBINED, "COMBINED", 0, "Combined", ""},
     /* {SCE_PASS_Z, "Z", 0, "Z", ""},*/
     {SCE_PASS_AO, "AO", 0, "Ambient Occlusion", ""},
