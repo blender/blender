@@ -371,7 +371,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
   RNA_string_get(but->opptr, "name", tool_id);
   BLI_assert(tool_id[0] != '\0');
 
-  /* When false, we're in a diffrent space type to the tool being set.
+  /* When false, we're in a different space type to the tool being set.
    * Needed for setting the fallback tool from the properties space.
    *
    * If we drop the hard coded 3D-view in properties hack, we can remove this check. */

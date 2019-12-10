@@ -164,8 +164,8 @@ static void eevee_cache_finish(void *vedata)
 
   uint tot_samples = scene_eval->eevee.taa_render_samples;
   if (tot_samples == 0) {
-    /* use a high number of samples so the outputs accum buffers
-     * will have the highest possible precision */
+    /* Use a high number of samples so the outputs accumulation buffers
+     * will have the highest possible precision. */
     tot_samples = 1024;
   }
   EEVEE_renderpasses_output_init(sldata, vedata, tot_samples);

@@ -170,7 +170,7 @@ static void motion_path_cache(OVERLAY_Data *vedata,
     DRW_shgroup_call_range(grp, mpath_batch_points_get(mpath), start_index, len);
   }
 
-  /* Draw frame numbers at each framestep value */
+  /* Draw frame numbers at each frame-step value. */
   if (show_frame_no || (show_keyframes_no && show_keyframes)) {
     int i;
     uchar col[4], col_kf[4];
@@ -193,8 +193,8 @@ static void motion_path_cache(OVERLAY_Data *vedata,
       else if (show_frame_no) {
         bMotionPathVert *mpvP = (mpv - stepsize);
         bMotionPathVert *mpvN = (mpv + stepsize);
-        /* Only draw framenum if several consecutive highlighted points don't occur on same point.
-         */
+        /* Only draw frame number if several consecutive highlighted points
+         * don't occur on same point. */
         if ((equals_v3v3(mpv->co, mpvP->co) == 0) || (equals_v3v3(mpv->co, mpvN->co) == 0)) {
           numstr_len = BLI_snprintf(numstr, sizeof(numstr), " %d", frame);
           DRW_text_cache_add(dt, mpv->co, numstr, numstr_len, 0, 0, txt_flag, col);

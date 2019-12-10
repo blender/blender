@@ -308,7 +308,7 @@ static void CurveProfile_build_supports(CurveProfile *profile)
 }
 
 /**
- * Puts the widget's control points in a step pattern.
+ * Puts the widgets control points in a step pattern.
  * Uses vector handles for each point.
  */
 static void CurveProfile_build_steps(CurveProfile *profile)

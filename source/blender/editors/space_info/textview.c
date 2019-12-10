@@ -319,7 +319,7 @@ int textview_draw(TextViewContext *tvc,
   xy[1] = y_orig;
 
   /* Offset and clamp the results,
-   * clamping so moving the cursor out of the bounds doesn't weap onto the other lines. */
+   * clamping so moving the cursor out of the bounds doesn't wrap onto the other lines. */
   const int mval[2] = {
       (mval_init[0] == INT_MAX) ?
           INT_MAX :

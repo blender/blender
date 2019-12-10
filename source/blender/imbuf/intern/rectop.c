@@ -282,7 +282,7 @@ void IMB_rect_crop(ImBuf *ibuf, const rcti *crop)
 }
 
 /**
- * Re-alloc buffers at a new size.
+ * Re-allocate buffers at a new size.
  */
 static void rect_realloc_4bytes(void **buf_p, const uint size[2])
 {

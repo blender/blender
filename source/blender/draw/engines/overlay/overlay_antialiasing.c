@@ -39,10 +39,10 @@
  *
  * This technique has one major shortcoming compared to MSAA:
  * - It handles (initial) partial visibility poorly (because of single sample). This makes
- *   overlaping / crossing wires a bit too thin at their intersection.
+ *   overlapping / crossing wires a bit too thin at their intersection.
  *   Wireframe meshes overlaid over solid meshes can have half of the edge missing due to
  *   z-fighting (this has workaround).
- *   Another manifestation of this, is fickering of really dense wireframe if using small
+ *   Another manifestation of this, is flickering of really dense wireframe if using small
  *   line thickness (also has workaround).
  *
  * The pros of this approach are many:
