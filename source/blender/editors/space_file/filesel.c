@@ -160,14 +160,11 @@ short ED_fileselect_set_params(SpaceFile *sfile)
       BLI_path_abs(params->dir, blendfile_path);
     }
 
+    params->flag = 0;
     if (is_directory == true && is_filename == false && is_filepath == false &&
         is_files == false) {
       params->flag |= FILE_DIRSEL_ONLY;
     }
-    else {
-      params->flag &= ~FILE_DIRSEL_ONLY;
-    }
-
     if ((prop = RNA_struct_find_property(op->ptr, "check_existing"))) {
       params->flag |= RNA_property_boolean_get(op->ptr, prop) ? FILE_CHECK_EXISTING : 0;
     }
