@@ -94,7 +94,9 @@ void BKE_paint_toolslots_brush_update_ex(Paint *paint, Brush *brush)
   BKE_paint_toolslots_len_ensure(paint, slot_index + 1);
   PaintToolSlot *tslot = &paint->tool_slots[slot_index];
   id_us_plus(&brush->id);
-  id_us_min(&tslot->brush->id);
+  if (tslot->brush) {
+    id_us_min(&tslot->brush->id);
+  }
   tslot->brush = brush;
 }
 

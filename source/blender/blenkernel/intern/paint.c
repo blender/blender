@@ -152,6 +152,9 @@ bool BKE_paint_ensure_from_paintmode(Scene *sce, ePaintMode mode)
 {
   ToolSettings *ts = sce->toolsettings;
   Paint **paint_ptr = NULL;
+  /* Some paint modes don't store paint settings as pointer, for these this can be set and
+   * referenced by paint_ptr. */
+  Paint *paint_tmp = NULL;
 
   switch (mode) {
     case PAINT_MODE_SCULPT:
@@ -165,6 +168,8 @@ bool BKE_paint_ensure_from_paintmode(Scene *sce, ePaintMode mode)
       break;
     case PAINT_MODE_TEXTURE_2D:
     case PAINT_MODE_TEXTURE_3D:
+      paint_tmp = (Paint *)&ts->imapaint;
+      paint_ptr = &paint_tmp;
       break;
     case PAINT_MODE_SCULPT_UV:
       paint_ptr = (Paint **)&ts->uvsculpt;
@@ -175,7 +180,7 @@ bool BKE_paint_ensure_from_paintmode(Scene *sce, ePaintMode mode)
     case PAINT_MODE_INVALID:
       break;
   }
-  if (paint_ptr && (*paint_ptr == NULL)) {
+  if (paint_ptr) {
     BKE_paint_ensure(ts, paint_ptr);
     return true;
   }
@@ -693,26 +698,36 @@ eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode)
 /**
  * Call when entering each respective paint mode.
  */
-bool BKE_paint_ensure(const ToolSettings *ts, struct Paint **r_paint)
+bool BKE_paint_ensure(ToolSettings *ts, struct Paint **r_paint)
 {
   Paint *paint = NULL;
   if (*r_paint) {
-    /* Note: 'ts->imapaint' is ignored, it's not allocated. */
-    BLI_assert(ELEM(*r_paint,
-                    &ts->gp_paint->paint,
-                    &ts->sculpt->paint,
-                    &ts->vpaint->paint,
-                    &ts->wpaint->paint,
-                    &ts->uvsculpt->paint));
+    /* Tool offset should never be 0 for initialized paint settings, so it's a reliable way to
+     * check if already initialized. */
+    if ((*r_paint)->runtime.tool_offset == 0) {
+      /* Currently only image painting is initialized this way, others have to be allocated. */
+      BLI_assert(ELEM(*r_paint, (Paint *)&ts->imapaint));
 
+      BKE_paint_runtime_init(ts, *r_paint);
+    }
+    else {
+      BLI_assert(ELEM(*r_paint,
+                      /* Cast is annoying, but prevent NULL-pointer access. */
+                      (Paint *)ts->gp_paint,
+                      (Paint *)ts->sculpt,
+                      (Paint *)ts->vpaint,
+                      (Paint *)ts->wpaint,
+                      (Paint *)ts->uvsculpt,
+                      (Paint *)&ts->imapaint));
 #ifdef DEBUG
-    struct Paint paint_test = **r_paint;
-    BKE_paint_runtime_init(ts, *r_paint);
-    /* Swap so debug doesn't hide errors when release fails. */
-    SWAP(Paint, **r_paint, paint_test);
-    BLI_assert(paint_test.runtime.ob_mode == (*r_paint)->runtime.ob_mode);
-    BLI_assert(paint_test.runtime.tool_offset == (*r_paint)->runtime.tool_offset);
+      struct Paint paint_test = **r_paint;
+      BKE_paint_runtime_init(ts, *r_paint);
+      /* Swap so debug doesn't hide errors when release fails. */
+      SWAP(Paint, **r_paint, paint_test);
+      BLI_assert(paint_test.runtime.ob_mode == (*r_paint)->runtime.ob_mode);
+      BLI_assert(paint_test.runtime.tool_offset == (*r_paint)->runtime.tool_offset);
 #endif
+    }
     return true;
   }
 
@@ -737,6 +752,9 @@ bool BKE_paint_ensure(const ToolSettings *ts, struct Paint **r_paint)
   else if ((UvSculpt **)r_paint == &ts->uvsculpt) {
     UvSculpt *data = MEM_callocN(sizeof(*data), __func__);
     paint = &data->paint;
+  }
+  else if (*r_paint == &ts->imapaint.paint) {
+    paint = &ts->imapaint.paint;
   }
 
   paint->flags |= PAINT_SHOW_BRUSH;
