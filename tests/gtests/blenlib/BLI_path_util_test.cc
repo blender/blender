@@ -474,7 +474,8 @@ TEST(path_util, SplitDirfile)
     BLI_path_frame_strip(path, ext); \
     EXPECT_STREQ(path, expect_path); \
     EXPECT_STREQ(ext, expect_ext); \
-  }
+  } \
+  ((void)0)
 
 /* BLI_path_frame_strip */
 TEST(path_util, PathFrameStrip)
