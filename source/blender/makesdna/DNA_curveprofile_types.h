@@ -21,8 +21,8 @@
  * \ingroup DNA
  */
 
-#ifndef DNA_PROFILEPATH_TYPES_H
-#define DNA_PROFILEPATH_TYPES_H
+#ifndef __DNA_CURVEPROFILE_TYPES_H__
+#define __DNA_CURVEPROFILE_TYPES_H__
 
 #include "DNA_vec_types.h"
 
@@ -90,4 +90,4 @@ typedef enum eCurveProfilePresets {
   PROF_PRESET_STEPS = 4,    /* Dynamic number of steps defined by segments_len. */
 } eCurveProfilePresets;
 
-#endif
+#endif /* __DNA_CURVEPROFILE_TYPES_H__ */

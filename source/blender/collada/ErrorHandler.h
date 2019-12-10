@@ -18,6 +18,9 @@
  * \ingroup collada
  */
 
+#ifndef __ERRORHANDLER_H__
+#define __ERRORHANDLER_H__
+
 #include <string>
 #include <map>
 #include <vector>
@@ -50,3 +53,5 @@ class ErrorHandler : public COLLADASaxFWL::IErrorHandler {
   /** Hold error status. */
   bool mError;
 };
+
+#endif /* __ERRORHANDLER_H__ */

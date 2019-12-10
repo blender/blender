@@ -14,6 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#ifndef __ANIMATIONCLIPEXPORTER_H__
+#define __ANIMATIONCLIPEXPORTER_H__
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -44,3 +47,5 @@ class AnimationClipExporter : COLLADASW::LibraryAnimationClips {
 
   void exportAnimationClips(Scene *sce);
 };
+
+#endif /*  __ANIMATIONCLIPEXPORTER_H__ */

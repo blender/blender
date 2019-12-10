@@ -21,8 +21,8 @@
  * \ingroup edphys
  */
 
-#ifndef __PARTICLE_EDIT_UTILDEFNIES_H__
-#define __PARTICLE_EDIT_UTILDEFNIES_H__
+#ifndef __PARTICLE_EDIT_UTILDEFINES_H__
+#define __PARTICLE_EDIT_UTILDEFINES_H__
 
 #define KEY_K \
   PTCacheEditKey *key; \
@@ -59,4 +59,4 @@
 
 #define KEY_WCO ((key->flag & PEK_USE_WCO) ? key->world_co : key->co)
 
-#endif /* __PARTICLE_EDIT_UTILDEFNIES_H__ */
+#endif /* __PARTICLE_EDIT_UTILDEFINES_H__ */

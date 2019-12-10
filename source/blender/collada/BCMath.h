@@ -18,8 +18,8 @@
  * \ingroup collada
  */
 
-#ifndef __BCMATRIX_H__
-#define __BCMATRIX_H__
+#ifndef __BCMATH_H__
+#define __BCMATH_H__
 
 #include "BlenderTypes.h"
 
@@ -107,4 +107,4 @@ class BCMatrix {
   static void transpose(Matrix &matrix);
 };
 
-#endif
+#endif /* __BCMATH_H__ */
