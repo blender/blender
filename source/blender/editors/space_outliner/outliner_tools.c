@@ -1559,6 +1559,9 @@ static const EnumPropertyItem *outliner_id_operation_itemf(bContext *C,
   EnumPropertyItem *items = NULL;
   int totitem = 0;
 
+  if (C == NULL) {
+    return prop_id_op_types;
+  }
   for (const EnumPropertyItem *it = prop_id_op_types; it->identifier != NULL; it++) {
     if (!outliner_id_operation_item_poll(C, ptr, prop, it->value)) {
       continue;
