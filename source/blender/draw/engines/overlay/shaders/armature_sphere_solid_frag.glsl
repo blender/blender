@@ -11,7 +11,8 @@ in vec3 viewPosition;
 layout(depth_greater) out float gl_FragDepth;
 #endif
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
+layout(location = 1) out vec4 lineOutput;
 
 #define cameraPos ViewMatrixInverse[3].xyz
 
@@ -70,6 +71,7 @@ void main()
   dither *= (1.0 / 255.0); /* Assume 8bit per color buffer. */
 
   fragColor = vec4(fragColor.rgb + dither, alpha);
+  lineOutput = vec4(0.0);
 
   t /= ray_len;
   gl_FragDepth = get_depth_from_view_z(ray_dir_view.z * t + ray_ori_view.z);

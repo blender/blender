@@ -6,7 +6,8 @@ flat in vec3 finalStateColor;
 flat in vec3 finalBoneColor;
 in vec3 normalView;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
+layout(location = 1) out vec4 lineOutput;
 
 void main()
 {
@@ -22,4 +23,5 @@ void main()
     fragColor.rgb = mix(finalStateColor, finalBoneColor, fac);
     fragColor.a = alpha;
   }
+  lineOutput = vec4(0.0);
 }
