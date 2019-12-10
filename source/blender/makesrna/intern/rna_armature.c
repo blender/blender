@@ -497,7 +497,12 @@ static void rna_EditBone_length_set(PointerRNA *ptr, float length)
   float delta[3];
 
   sub_v3_v3v3(delta, ebone->tail, ebone->head);
-  normalize_v3(delta);
+  if (normalize_v3(delta) == 0.0f) {
+    /* Zero length means directional information is lost. Choose arbitrary direction to avoid
+     * getting stuck. */
+    delta[2] = 1.0f;
+  }
+
   madd_v3_v3v3fl(ebone->tail, ebone->head, delta, length);
 }
 
