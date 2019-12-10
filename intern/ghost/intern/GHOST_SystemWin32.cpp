@@ -821,6 +821,9 @@ GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short exten
       case VK_RWIN:
         key = GHOST_kKeyOS;
         break;
+      case VK_APPS:
+        key = GHOST_kKeyApp;
+        break;
       case VK_NUMLOCK:
         key = GHOST_kKeyNumLock;
         break;

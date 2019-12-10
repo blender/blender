@@ -234,6 +234,9 @@ void GHOST_EventPrinter::getKeyString(GHOST_TKey key, char str[32]) const
       case GHOST_kKeyOS:
         tstr = "OS";
         break;
+      case GHOST_kKeyApp:
+        tstr = "App";
+        break;
       case GHOST_kKeyGrLess:
         // PC german!
         tstr = "GrLess";

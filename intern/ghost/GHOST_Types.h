@@ -312,6 +312,7 @@ typedef enum {
   GHOST_kKeyRightAlt,
   GHOST_kKeyOS,      // Command key on Apple, Windows key(s) on Windows
   GHOST_kKeyGrLess,  // German PC only!
+  GHOST_kKeyApp,     /* Also known as menu key. */
 
   GHOST_kKeyCapsLock,
   GHOST_kKeyNumLock,

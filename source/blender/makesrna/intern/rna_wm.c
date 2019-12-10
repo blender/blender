@@ -242,6 +242,7 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     {RIGHTSHIFTKEY, "RIGHT_SHIFT", 0, "Right Shift", "ShiftR"},
     {0, "", 0, NULL, NULL},
     {OSKEY, "OSKEY", 0, "OS Key", "Cmd"},
+    {APPKEY, "APP", 0, "Application", "App"},
     {GRLESSKEY, "GRLESS", 0, "Grless", ""},
     {ESCKEY, "ESC", 0, "Esc", ""},
     {TABKEY, "TAB", 0, "Tab", ""},

@@ -1721,6 +1721,7 @@ static GHOST_TKey ghost_key_from_keysym(const KeySym key)
       GXMAP(type, XK_Caps_Lock, GHOST_kKeyCapsLock);
       GXMAP(type, XK_Scroll_Lock, GHOST_kKeyScrollLock);
       GXMAP(type, XK_Num_Lock, GHOST_kKeyNumLock);
+      GXMAP(type, XK_Menu, GHOST_kKeyApp);
 
       /* keypad events */
 

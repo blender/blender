@@ -234,6 +234,7 @@ static GHOST_TKey convertSDLKey(SDL_Scancode key)
       GXMAP(type, SDL_SCANCODE_RALT, GHOST_kKeyRightAlt);
       GXMAP(type, SDL_SCANCODE_LGUI, GHOST_kKeyOS);
       GXMAP(type, SDL_SCANCODE_RGUI, GHOST_kKeyOS);
+      GXMAP(type, SDL_SCANCODE_APPLICATION, GHOST_kKeyApp);
 
       GXMAP(type, SDL_SCANCODE_INSERT, GHOST_kKeyInsert);
       GXMAP(type, SDL_SCANCODE_DELETE, GHOST_kKeyDelete);

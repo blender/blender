@@ -202,6 +202,8 @@ enum {
   MEDIAFIRST = 0x00b0, /* 176 */
   MEDIALAST = 0x00b1,  /* 177 */
 
+  APPKEY = 0x00b2, /* 178 */
+
   F1KEY = 0x012c,  /* 300 */
   F2KEY = 0x012d,  /* 301 */
   F3KEY = 0x012e,  /* 302 */

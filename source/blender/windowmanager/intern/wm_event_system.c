@@ -4165,6 +4165,8 @@ static int convert_key(GHOST_TKey key)
         return LEFTALTKEY;
       case GHOST_kKeyRightAlt:
         return RIGHTALTKEY;
+      case GHOST_kKeyApp:
+        return APPKEY;
 
       case GHOST_kKeyCapsLock:
         return CAPSLOCKKEY;
