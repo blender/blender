@@ -521,7 +521,13 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
             prop_rna = type(bone).bl_rna.properties.get(prop, None)
             if prop_rna is None:
                 prop_path = '["%s"]' % prop
-                if bone.path_resolve(prop_path, False).rna_type in prop_type_compat:
+                try:
+                    rna_property = bone.path_resolve(prop_path, False)
+                except ValueError as ex:
+                    # This happens when a custom property is set to None. In that case it cannot
+                    # be converted to an FCurve-compatible value, so we can't keyframe it anyway.
+                    continue
+                if rna_property.rna_type in prop_type_compat:
                     ksi.addProp(ks, bone, prop_path)
             elif prop_rna.is_animatable:
                 ksi.addProp(ks, bone, prop)
