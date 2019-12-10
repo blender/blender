@@ -116,6 +116,8 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
   wpd->preferences = &U;
 
   View3D *v3d = draw_ctx->v3d;
+  RegionView3D *rv3d = draw_ctx->rv3d;
+
   if (!v3d || (v3d->shading.type == OB_RENDER && BKE_scene_uses_blender_workbench(scene))) {
     wpd->shading = scene->display.shading;
     wpd->shading.xray_alpha = XRAY_ALPHA((&scene->display));
@@ -193,21 +195,18 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
   wd->curvature_valley = 0.7f / max_ff(SQUARE(wpd->shading.curvature_valley_factor), 1e-4f);
 
   /* Will be NULL when rendering. */
-  if (draw_ctx->rv3d != NULL) {
-    RegionView3D *rv3d = draw_ctx->rv3d;
-    if (rv3d->rflag & RV3D_CLIPPING) {
-      wpd->world_clip_planes = rv3d->clip;
-      UI_GetThemeColor4fv(TH_V3D_CLIPPING_BORDER, wpd->world_clip_planes_color);
-      if (wpd->use_color_management) {
-        srgb_to_linearrgb_v3_v3(wpd->world_clip_planes_color, wpd->world_clip_planes_color);
-      }
-      else {
-        copy_v3_v3(wpd->world_clip_planes_color, wpd->world_clip_planes_color);
-      }
+  if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
+    wpd->world_clip_planes = rv3d->clip;
+    UI_GetThemeColor4fv(TH_V3D_CLIPPING_BORDER, wpd->world_clip_planes_color);
+    if (wpd->use_color_management) {
+      srgb_to_linearrgb_v3_v3(wpd->world_clip_planes_color, wpd->world_clip_planes_color);
     }
     else {
-      wpd->world_clip_planes = NULL;
+      copy_v3_v3(wpd->world_clip_planes_color, wpd->world_clip_planes_color);
     }
+  }
+  else {
+    wpd->world_clip_planes = NULL;
   }
 
   workbench_world_data_update_shadow_direction_vs(wpd);

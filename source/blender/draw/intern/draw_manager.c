@@ -584,7 +584,7 @@ static void drw_context_state_init(void)
   }
 
   DST.draw_ctx.sh_cfg = GPU_SHADER_CFG_DEFAULT;
-  if (DST.draw_ctx.rv3d && DST.draw_ctx.rv3d->rflag & RV3D_CLIPPING) {
+  if (RV3D_CLIPPING_ENABLED(DST.draw_ctx.v3d, DST.draw_ctx.rv3d)) {
     DST.draw_ctx.sh_cfg = GPU_SHADER_CFG_CLIPPED;
   }
 }
@@ -1235,7 +1235,7 @@ static void drw_engines_draw_text(void)
     PROFILE_START(stime);
 
     if (data->text_draw_cache) {
-      DRW_text_cache_draw(data->text_draw_cache, DST.draw_ctx.ar);
+      DRW_text_cache_draw(data->text_draw_cache, DST.draw_ctx.ar, DST.draw_ctx.v3d);
     }
 
     PROFILE_END_UPDATE(data->render_time, stime);
@@ -2571,7 +2571,7 @@ static void draw_world_clip_planes_from_rv3d(GPUBatch *batch, const float world_
 /**
  * Clears the Depth Buffer and draws only the specified object.
  */
-void DRW_draw_depth_object(ARegion *ar, GPUViewport *viewport, Object *object)
+void DRW_draw_depth_object(ARegion *ar, View3D *v3d, GPUViewport *viewport, Object *object)
 {
   RegionView3D *rv3d = ar->regiondata;
 
@@ -2588,7 +2588,7 @@ void DRW_draw_depth_object(ARegion *ar, GPUViewport *viewport, Object *object)
   GPU_depth_test(true);
 
   const float(*world_clip_planes)[4] = NULL;
-  if (rv3d->rflag & RV3D_CLIPPING) {
+  if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
     ED_view3d_clipping_set(rv3d);
     ED_view3d_clipping_local(rv3d, object->obmat);
     world_clip_planes = rv3d->clip_local;
@@ -2625,7 +2625,7 @@ void DRW_draw_depth_object(ARegion *ar, GPUViewport *viewport, Object *object)
       break;
   }
 
-  if (rv3d->rflag & RV3D_CLIPPING) {
+  if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
     ED_view3d_clipping_disable();
   }
 

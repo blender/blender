@@ -119,7 +119,7 @@ void DRW_text_cache_add(DRWTextStore *dt,
   }
 }
 
-void DRW_text_cache_draw(DRWTextStore *dt, ARegion *ar)
+void DRW_text_cache_draw(DRWTextStore *dt, ARegion *ar, struct View3D *v3d)
 {
   RegionView3D *rv3d = ar->regiondata;
   ViewCachedString *vos;
@@ -147,7 +147,7 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *ar)
   if (tot) {
     int col_pack_prev = 0;
 
-    if (rv3d->rflag & RV3D_CLIPPING) {
+    if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
       ED_view3d_clipping_disable();
     }
 
@@ -185,7 +185,7 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *ar)
     GPU_matrix_pop();
     GPU_matrix_projection_set(original_proj);
 
-    if (rv3d->rflag & RV3D_CLIPPING) {
+    if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
       ED_view3d_clipping_enable();
     }
   }

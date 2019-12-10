@@ -265,7 +265,10 @@ typedef struct SculptSession {
   float cursor_location[3];
   float cursor_normal[3];
   float cursor_view_normal[3];
+
+  /* TODO(jbakker): Replace rv3d adn v3d with ViewContext */
   struct RegionView3D *rv3d;
+  struct View3D *v3d;
 
   /* Dynamic mesh preview */
   int *preview_vert_index_list;

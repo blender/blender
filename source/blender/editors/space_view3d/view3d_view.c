@@ -1099,7 +1099,7 @@ int view3d_opengl_select(ViewContext *vc,
     GPU_depth_test(true);
   }
 
-  if (vc->rv3d->rflag & RV3D_CLIPPING) {
+  if (RV3D_CLIPPING_ENABLED(vc->v3d, vc->rv3d)) {
     ED_view3d_clipping_set(vc->rv3d);
   }
 
@@ -1167,7 +1167,7 @@ int view3d_opengl_select(ViewContext *vc,
     GPU_depth_test(false);
   }
 
-  if (vc->rv3d->rflag & RV3D_CLIPPING) {
+  if (RV3D_CLIPPING_ENABLED(v3d, vc->rv3d)) {
     ED_view3d_clipping_disable();
   }
 

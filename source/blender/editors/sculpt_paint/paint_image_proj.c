@@ -887,7 +887,7 @@ static bool project_bucket_point_occluded(const ProjPaintState *ps,
                                           const float pixelScreenCo[4])
 {
   int isect_ret;
-  const bool do_clip = ps->rv3d ? (ps->rv3d->rflag & RV3D_CLIPPING) != 0 : 0;
+  const bool do_clip = RV3D_CLIPPING_ENABLED(ps->v3d, ps->rv3d);
 
   /* we could return 0 for 1 face buckets, as long as this function assumes
    * that the point its testing is only every originated from an existing face */
@@ -3024,7 +3024,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
   const bool is_ortho = ps->is_ortho;
   const bool is_flip_object = ps->is_flip_object;
   const bool do_backfacecull = ps->do_backfacecull;
-  const bool do_clip = ps->rv3d ? ps->rv3d->rflag & RV3D_CLIPPING : 0;
+  const bool do_clip = RV3D_CLIPPING_ENABLED(ps->v3d, ps->rv3d);
 
   vCo[0] = ps->mvert_eval[lt_vtri[0]].co;
   vCo[1] = ps->mvert_eval[lt_vtri[1]].co;

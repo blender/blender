@@ -1013,6 +1013,7 @@ void ED_sculpt_redraw_planes_get(float planes[4][4], ARegion *ar, Object *ob)
 void sculpt_brush_test_init(SculptSession *ss, SculptBrushTest *test)
 {
   RegionView3D *rv3d = ss->cache ? ss->cache->vc->rv3d : ss->rv3d;
+  View3D *v3d = ss->cache ? ss->cache->vc->v3d : ss->v3d;
 
   test->radius_squared = ss->cache ? ss->cache->radius_squared :
                                      ss->cursor_radius * ss->cursor_radius;
@@ -1033,7 +1034,7 @@ void sculpt_brush_test_init(SculptSession *ss, SculptBrushTest *test)
 
   test->mirror_symmetry_pass = ss->cache ? ss->cache->mirror_symmetry_pass : 0;
 
-  if (rv3d->rflag & RV3D_CLIPPING) {
+  if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
     test->clip_rv3d = rv3d;
   }
   else {
@@ -6896,6 +6897,7 @@ static float sculpt_raycast_init(ViewContext *vc,
   float dist;
   Object *ob = vc->obact;
   RegionView3D *rv3d = vc->ar->regiondata;
+  View3D *v3d = vc->v3d;
 
   /* TODO: what if the segment is totally clipped? (return == 0) */
   ED_view3d_win_to_segment_clipped(
@@ -6910,7 +6912,7 @@ static float sculpt_raycast_init(ViewContext *vc,
 
   if ((rv3d->is_persp == false) &&
       /* if the ray is clipped, don't adjust its start/end */
-      ((rv3d->rflag & RV3D_CLIPPING) == 0)) {
+      RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
     BKE_pbvh_raycast_project_ray_root(ob->sculpt->pbvh, original, ray_start, ray_end, ray_normal);
 
     /* recalculate the normal */
@@ -7005,6 +7007,7 @@ bool sculpt_cursor_geometry_info_update(bContext *C,
   copy_v3_v3(ss->cursor_normal, srd.face_normal);
   copy_v3_v3(ss->cursor_location, out->location);
   ss->rv3d = vc.rv3d;
+  ss->v3d = vc.v3d;
 
   if (!BKE_brush_use_locked_size(scene, brush)) {
     radius = paint_calc_object_space_radius(&vc, out->location, BKE_brush_size_get(scene, brush));

@@ -796,7 +796,7 @@ void ED_view3d_draw_depth(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, bool a
 
   GPU_clear(GPU_DEPTH_BIT);
 
-  if (rv3d->rflag & RV3D_CLIPPING) {
+  if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
     ED_view3d_clipping_set(rv3d);
   }
   /* get surface depth without bias */
@@ -817,7 +817,7 @@ void ED_view3d_draw_depth(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, bool a
 
   WM_draw_region_viewport_unbind(ar);
 
-  if (rv3d->rflag & RV3D_CLIPPING) {
+  if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
     ED_view3d_clipping_disable();
   }
   rv3d->rflag &= ~RV3D_ZOFFSET_DISABLED;

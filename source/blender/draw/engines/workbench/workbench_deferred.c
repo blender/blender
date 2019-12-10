@@ -716,7 +716,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
     }
     DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
 
-    if (draw_ctx->rv3d && (draw_ctx->rv3d->rflag & RV3D_CLIPPING) && draw_ctx->rv3d->clipbb) {
+    if (RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d)) {
       GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR_BACKGROUND);
       grp = DRW_shgroup_create(shader, psl->background_pass);
       wpd->world_clip_planes_batch = DRW_draw_background_clipping_batch_from_rv3d(draw_ctx->rv3d);
