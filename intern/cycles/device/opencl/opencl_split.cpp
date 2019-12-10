@@ -611,7 +611,6 @@ OpenCLDevice::OpenCLDevice(DeviceInfo &info, Stats &stats, Profiler &profiler, b
   cdDevice = NULL;
   cxContext = NULL;
   cqCommandQueue = NULL;
-  null_mem = 0;
   device_initialized = false;
   textures_need_update = true;
   use_preview_kernels = !background;
@@ -662,12 +661,6 @@ OpenCLDevice::OpenCLDevice(DeviceInfo &info, Stats &stats, Profiler &profiler, b
     return;
   }
 
-  null_mem = (device_ptr)clCreateBuffer(cxContext, CL_MEM_READ_ONLY, 1, NULL, &ciErr);
-  if (opencl_error(ciErr)) {
-    opencl_error("OpenCL: Error creating memory buffer for NULL");
-    return;
-  }
-
   /* Allocate this right away so that texture_info
    * is placed at offset 0 in the device memory buffers. */
   texture_info.resize(1);
@@ -688,9 +681,6 @@ OpenCLDevice::~OpenCLDevice()
   load_kernel_task_pool.stop();
 
   memory_manager.free();
-
-  if (null_mem)
-    clReleaseMemObject(CL_MEM_PTR(null_mem));
 
   ConstMemMap::iterator mt;
   for (mt = const_mem_map.begin(); mt != const_mem_map.end(); mt++) {
@@ -962,7 +952,7 @@ void OpenCLDevice::mem_alloc(device_memory &mem)
     opencl_assert_err(ciErr, "clCreateBuffer");
   }
   else {
-    mem.device_pointer = null_mem;
+    mem.device_pointer = 0;
   }
 
   stats.mem_alloc(size);
@@ -1084,7 +1074,7 @@ void OpenCLDevice::mem_free(device_memory &mem)
   }
   else {
     if (mem.device_pointer) {
-      if (mem.device_pointer != null_mem) {
+      if (mem.device_pointer != 0) {
         opencl_assert(clReleaseMemObject(CL_MEM_PTR(mem.device_pointer)));
       }
       mem.device_pointer = 0;
@@ -1120,7 +1110,7 @@ device_ptr OpenCLDevice::mem_alloc_sub_ptr(device_memory &mem, int offset, int s
 
 void OpenCLDevice::mem_free_sub_ptr(device_ptr device_pointer)
 {
-  if (device_pointer && device_pointer != null_mem) {
+  if (device_pointer != 0) {
     opencl_assert(clReleaseMemObject(CL_MEM_PTR(device_pointer)));
   }
 }
@@ -1239,8 +1229,7 @@ void OpenCLDevice::set_kernel_arg_mem(cl_kernel kernel, cl_uint *narg, const cha
     ptr = CL_MEM_PTR(i->second);
   }
   else {
-    /* work around NULL not working, even though the spec says otherwise */
-    ptr = CL_MEM_PTR(null_mem);
+    ptr = 0;
   }
 
   opencl_assert(clSetKernelArg(kernel, (*narg)++, sizeof(ptr), (void *)&ptr));

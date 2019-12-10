@@ -381,7 +381,6 @@ class OpenCLDevice : public Device {
 
   ConstMemMap const_mem_map;
   MemMap mem_map;
-  device_ptr null_mem;
 
   bool device_initialized;
   string platform_name;
