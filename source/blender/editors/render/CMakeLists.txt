@@ -55,6 +55,10 @@ set(LIB
 
 if(WITH_HEADLESS)
   add_definitions(-DWITH_HEADLESS)
+else()
+  list(APPEND LIB
+    bf_editor_datafiles
+  )
 endif()
 
 add_definitions(${GL_DEFINITIONS})
