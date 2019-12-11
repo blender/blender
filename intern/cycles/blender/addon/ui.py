@@ -979,11 +979,21 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
         split = layout.split()
         split.active = cycles_view_layer.use_denoising
 
-        layout = layout.column(align=True)
-        layout.prop(cycles_view_layer, "denoising_radius", text="Radius")
-        layout.prop(cycles_view_layer, "denoising_strength", slider=True, text="Strength")
-        layout.prop(cycles_view_layer, "denoising_feature_strength", slider=True, text="Feature Strength")
-        layout.prop(cycles_view_layer, "denoising_relative_pca")
+        col = split.column(align=True)
+
+        if use_optix(context):
+            col.prop(cycles_view_layer, "use_optix_denoising", text="OptiX AI Denoising")
+
+            if cycles_view_layer.use_optix_denoising:
+                col.prop(cycles_view_layer, "denoising_optix_input_passes")
+                return
+
+            col.separator(factor=2.0)
+
+        col.prop(cycles_view_layer, "denoising_radius", text="Radius")
+        col.prop(cycles_view_layer, "denoising_strength", slider=True, text="Strength")
+        col.prop(cycles_view_layer, "denoising_feature_strength", slider=True, text="Feature Strength")
+        col.prop(cycles_view_layer, "denoising_relative_pca")
 
         layout.separator()
 

@@ -28,6 +28,74 @@
 
 extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
+kernel_cuda_filter_copy_input(float *buffer,
+                              CCL_FILTER_TILE_INFO,
+                              int4 prefilter_rect,
+                              int buffer_pass_stride)
+{
+	int x = prefilter_rect.x + blockDim.x*blockIdx.x + threadIdx.x;
+	int y = prefilter_rect.y + blockDim.y*blockIdx.y + threadIdx.y;
+	if(x < prefilter_rect.z && y < prefilter_rect.w) {
+		int xtile = (x < tile_info->x[1]) ? 0 : ((x < tile_info->x[2]) ? 1 : 2);
+		int ytile = (y < tile_info->y[1]) ? 0 : ((y < tile_info->y[2]) ? 1 : 2);
+		int itile = ytile * 3 + xtile;
+		float *const in = ((float *)ccl_get_tile_buffer(itile)) +
+			(tile_info->offsets[itile] + y * tile_info->strides[itile] + x) * buffer_pass_stride;
+		buffer += ((y - prefilter_rect.y) * (prefilter_rect.z - prefilter_rect.x) + (x - prefilter_rect.x)) * buffer_pass_stride;
+		for (int i = 0; i < buffer_pass_stride; ++i)
+			buffer[i] = in[i];
+	}
+}
+
+extern "C" __global__ void
+CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
+kernel_cuda_filter_convert_to_rgb(float *rgb, float *buf, int sw, int sh, int stride, int pass_stride, int3 pass_offset, int num_inputs, int num_samples)
+{
+	int x = blockDim.x*blockIdx.x + threadIdx.x;
+	int y = blockDim.y*blockIdx.y + threadIdx.y;
+	if(x < sw && y < sh) {
+		if (num_inputs > 0) {
+			float *in = buf + x * pass_stride + (y * stride + pass_offset.x) / sizeof(float);
+			float *out = rgb + (x + y * sw) * 3;
+			out[0] = in[0];
+			out[1] = in[1];
+			out[2] = in[2];
+		}
+		if (num_inputs > 1) {
+			float *in = buf + x * pass_stride + (y * stride + pass_offset.y) / sizeof(float);
+			float *out = rgb + (x + y * sw) * 3 + (sw * sh) * 3;
+			out[0] = in[0] / num_samples;
+			out[1] = in[1] / num_samples;
+			out[2] = in[2] / num_samples;
+		}
+		if (num_inputs > 2) {
+			float *in = buf + x * pass_stride + (y * stride + pass_offset.z) / sizeof(float);
+			float *out = rgb + (x + y * sw) * 3 + (sw * sh * 2) * 3;
+			out[0] = in[0] / num_samples;
+			out[1] = in[1] / num_samples;
+			out[2] = in[2] / num_samples;
+		}
+	}
+}
+
+extern "C" __global__ void
+CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
+kernel_cuda_filter_convert_from_rgb(float *rgb, float *buf, int ix, int iy, int iw, int ih, int sx, int sy, int sw, int sh, int offset, int stride, int pass_stride)
+{
+	int x = blockDim.x*blockIdx.x + threadIdx.x;
+	int y = blockDim.y*blockIdx.y + threadIdx.y;
+	if(x < sw && y < sh) {
+		float *in = rgb + ((ix + x) + (iy + y) * iw) * 3;
+		float *out = buf + (offset + (sx + x) + (sy + y) * stride) * pass_stride;
+		out[0] = in[0];
+		out[1] = in[1];
+		out[2] = in[2];
+	}
+}
+
+
+extern "C" __global__ void
+CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
 kernel_cuda_filter_divide_shadow(int sample,
                                  CCL_FILTER_TILE_INFO,
                                  float *unfilteredA,
@@ -97,14 +165,14 @@ kernel_cuda_filter_write_feature(int sample,
 	int x = blockDim.x*blockIdx.x + threadIdx.x;
 	int y = blockDim.y*blockIdx.y + threadIdx.y;
 	if(x < filter_area.z && y < filter_area.w) {
-	        kernel_filter_write_feature(sample,
-	                                    x + filter_area.x,
-	                                    y + filter_area.y,
-	                                    buffer_params,
-	                                    from,
-	                                    buffer,
-	                                    out_offset,
-	                                    prefilter_rect);
+		kernel_filter_write_feature(sample,
+	                                x + filter_area.x,
+	                                y + filter_area.y,
+	                                buffer_params,
+	                                from,
+	                                buffer,
+	                                out_offset,
+	                                prefilter_rect);
 	}
 }
 

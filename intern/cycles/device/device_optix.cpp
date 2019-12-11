@@ -42,6 +42,9 @@
 #  include <optix_stubs.h>
 #  include <optix_function_table_definition.h>
 
+// TODO(pmours): Disable this once drivers have native support
+#  define OPTIX_DENOISER_NO_PIXEL_STRIDE 1
+
 CCL_NAMESPACE_BEGIN
 
 /* Make sure this stays in sync with kernel_globals.h */
@@ -106,6 +109,30 @@ struct KernelParams {
       } \
     } \
     (void)0
+
+#  define CUDA_GET_BLOCKSIZE(func, w, h) \
+    int threads; \
+    check_result_cuda_ret( \
+        cuFuncGetAttribute(&threads, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, func)); \
+    threads = (int)sqrt((float)threads); \
+    int xblocks = ((w) + threads - 1) / threads; \
+    int yblocks = ((h) + threads - 1) / threads;
+
+#  define CUDA_LAUNCH_KERNEL(func, args) \
+    check_result_cuda_ret(cuLaunchKernel( \
+        func, xblocks, yblocks, 1, threads, threads, 1, 0, cuda_stream[thread_index], args, 0));
+
+/* Similar as above, but for 1-dimensional blocks. */
+#  define CUDA_GET_BLOCKSIZE_1D(func, w, h) \
+    int threads; \
+    check_result_cuda_ret( \
+        cuFuncGetAttribute(&threads, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, func)); \
+    int xblocks = ((w) + threads - 1) / threads; \
+    int yblocks = h;
+
+#  define CUDA_LAUNCH_KERNEL_1D(func, args) \
+    check_result_cuda_ret(cuLaunchKernel( \
+        func, xblocks, yblocks, 1, threads, 1, 1, 0, cuda_stream[thread_index], args, 0));
 
 class OptiXDevice : public Device {
 
@@ -186,6 +213,9 @@ class OptiXDevice : public Device {
   map<device_memory *, CUDAMem> cuda_mem_map;
   bool move_texture_to_host = false;
 
+  OptixDenoiser denoiser = NULL;
+  vector<pair<int2, CUdeviceptr>> denoiser_state;
+
  public:
   OptiXDevice(DeviceInfo &info_, Stats &stats_, Profiler &profiler_, bool background_)
       : Device(info_, stats_, profiler_, background_),
@@ -262,6 +292,9 @@ class OptiXDevice : public Device {
     launch_params.data_elements = sizeof(KernelParams);
     // Allocate launch parameter buffer memory on device
     launch_params.alloc_to_device(info.cpu_threads);
+
+    // Create denoiser state entries for all threads (but do not allocate yet)
+    denoiser_state.resize(info.cpu_threads);
   }
   ~OptiXDevice()
   {
@@ -272,7 +305,11 @@ class OptiXDevice : public Device {
     for (CUdeviceptr mem : as_mem) {
       cuMemFree(mem);
     }
-    as_mem.clear();
+
+    // Free denoiser state for all threads
+    for (const pair<int2, CUdeviceptr> &state : denoiser_state) {
+      cuMemFree(state.second);
+    }
 
     sbt_data.free();
     texture_info.free();
@@ -295,6 +332,9 @@ class OptiXDevice : public Device {
     // Destroy launch streams
     for (CUstream stream : cuda_stream)
       cuStreamDestroy(stream);
+
+    if (denoiser != NULL)
+      optixDenoiserDestroy(denoiser);
 
     // Destroy OptiX and CUDA context
     optixDeviceContextDestroy(context);
@@ -686,46 +726,298 @@ class OptiXDevice : public Device {
     }
   }
 
-  void launch_denoise(DeviceTask &task, RenderTile &rtile, int thread_index)
+  bool launch_denoise(DeviceTask &task, RenderTile &rtile, int thread_index)
   {
+    int total_samples = rtile.start_sample + rtile.num_samples;
+
     const CUDAContextScope scope(cuda_context);
 
-    // Run CUDA denoising kernels
-    DenoisingTask denoising(this, task);
-    denoising.functions.construct_transform = function_bind(
-        &OptiXDevice::denoising_construct_transform, this, &denoising, thread_index);
-    denoising.functions.accumulate = function_bind(
-        &OptiXDevice::denoising_accumulate, this, _1, _2, _3, _4, &denoising, thread_index);
-    denoising.functions.solve = function_bind(
-        &OptiXDevice::denoising_solve, this, _1, &denoising, thread_index);
-    denoising.functions.divide_shadow = function_bind(
-        &OptiXDevice::denoising_divide_shadow, this, _1, _2, _3, _4, _5, &denoising, thread_index);
-    denoising.functions.non_local_means = function_bind(
-        &OptiXDevice::denoising_non_local_means, this, _1, _2, _3, _4, &denoising, thread_index);
-    denoising.functions.combine_halves = function_bind(&OptiXDevice::denoising_combine_halves,
-                                                       this,
-                                                       _1,
-                                                       _2,
-                                                       _3,
-                                                       _4,
-                                                       _5,
-                                                       _6,
-                                                       &denoising,
-                                                       thread_index);
-    denoising.functions.get_feature = function_bind(
-        &OptiXDevice::denoising_get_feature, this, _1, _2, _3, _4, _5, &denoising, thread_index);
-    denoising.functions.write_feature = function_bind(
-        &OptiXDevice::denoising_write_feature, this, _1, _2, _3, &denoising, thread_index);
-    denoising.functions.detect_outliers = function_bind(
-        &OptiXDevice::denoising_detect_outliers, this, _1, _2, _3, _4, &denoising, thread_index);
+    // Choose between OptiX and NLM denoising
+    if (task.denoising_use_optix) {
+      // Map neighboring tiles onto this device, indices are as following:
+      // Where index 4 is the center tile and index 9 is the target for the result.
+      //   0 1 2
+      //   3 4 5
+      //   6 7 8  9
+      RenderTile rtiles[10];
+      rtiles[4] = rtile;
+      task.map_neighbor_tiles(rtiles, this);
 
-    denoising.filter_area = make_int4(rtile.x, rtile.y, rtile.w, rtile.h);
-    denoising.render_buffer.samples = rtile.sample = rtile.start_sample + rtile.num_samples;
-    denoising.buffer.gpu_temporary_mem = true;
+      // Calculate size of the tile to denoise (including overlap)
+      int4 rect = make_int4(
+          rtiles[4].x, rtiles[4].y, rtiles[4].x + rtiles[4].w, rtiles[4].y + rtiles[4].h);
+      // Overlap between tiles has to be at least 64 pixels
+      // TODO(pmours): Query this value from OptiX
+      rect = rect_expand(rect, 64);
+      int4 clip_rect = make_int4(
+          rtiles[3].x, rtiles[1].y, rtiles[5].x + rtiles[5].w, rtiles[7].y + rtiles[7].h);
+      rect = rect_clip(rect, clip_rect);
+      int2 rect_size = make_int2(rect.z - rect.x, rect.w - rect.y);
+      int2 overlap_offset = make_int2(rtile.x - rect.x, rtile.y - rect.y);
 
-    denoising.run_denoising(&rtile);
+      // Calculate byte offsets and strides
+      int pixel_stride = task.pass_stride * (int)sizeof(float);
+      int pixel_offset = (rtile.offset + rtile.x + rtile.y * rtile.stride) * pixel_stride;
+      const int pass_offset[3] = {
+          (task.pass_denoising_data + DENOISING_PASS_COLOR) * (int)sizeof(float),
+          (task.pass_denoising_data + DENOISING_PASS_ALBEDO) * (int)sizeof(float),
+          (task.pass_denoising_data + DENOISING_PASS_NORMAL) * (int)sizeof(float)};
 
+      // Start with the current tile pointer offset
+      int input_stride = pixel_stride;
+      device_ptr input_ptr = rtile.buffer + pixel_offset;
+
+      // Copy tile data into a common buffer if necessary
+      device_only_memory<float> input(this, "denoiser input");
+      device_vector<TileInfo> tile_info_mem(this, "denoiser tile info", MEM_READ_WRITE);
+
+      if ((!rtiles[0].buffer || rtiles[0].buffer == rtile.buffer) &&
+          (!rtiles[1].buffer || rtiles[1].buffer == rtile.buffer) &&
+          (!rtiles[2].buffer || rtiles[2].buffer == rtile.buffer) &&
+          (!rtiles[3].buffer || rtiles[3].buffer == rtile.buffer) &&
+          (!rtiles[5].buffer || rtiles[5].buffer == rtile.buffer) &&
+          (!rtiles[6].buffer || rtiles[6].buffer == rtile.buffer) &&
+          (!rtiles[7].buffer || rtiles[7].buffer == rtile.buffer) &&
+          (!rtiles[8].buffer || rtiles[8].buffer == rtile.buffer)) {
+        // Tiles are in continous memory, so can just subtract overlap offset
+        input_ptr -= (overlap_offset.x + overlap_offset.y * rtile.stride) * pixel_stride;
+        // Stride covers the whole width of the image and not just a single tile
+        input_stride *= rtile.stride;
+      }
+      else {
+        // Adjacent tiles are in separate memory regions, so need to copy them into a single one
+        input.alloc_to_device(rect_size.x * rect_size.y * task.pass_stride);
+        // Start with the new input buffer
+        input_ptr = input.device_pointer;
+        // Stride covers the width of the new input buffer, which includes tile width and overlap
+        input_stride *= rect_size.x;
+
+        TileInfo *tile_info = tile_info_mem.alloc(1);
+        for (int i = 0; i < 9; i++) {
+          tile_info->offsets[i] = rtiles[i].offset;
+          tile_info->strides[i] = rtiles[i].stride;
+          tile_info->buffers[i] = rtiles[i].buffer;
+        }
+        tile_info->x[0] = rtiles[3].x;
+        tile_info->x[1] = rtiles[4].x;
+        tile_info->x[2] = rtiles[5].x;
+        tile_info->x[3] = rtiles[5].x + rtiles[5].w;
+        tile_info->y[0] = rtiles[1].y;
+        tile_info->y[1] = rtiles[4].y;
+        tile_info->y[2] = rtiles[7].y;
+        tile_info->y[3] = rtiles[7].y + rtiles[7].h;
+        tile_info_mem.copy_to_device();
+
+        CUfunction filter_copy_func;
+        check_result_cuda_ret(cuModuleGetFunction(
+            &filter_copy_func, cuda_filter_module, "kernel_cuda_filter_copy_input"));
+        check_result_cuda_ret(cuFuncSetCacheConfig(filter_copy_func, CU_FUNC_CACHE_PREFER_L1));
+
+        void *args[] = {
+            &input.device_pointer, &tile_info_mem.device_pointer, &rect.x, &task.pass_stride};
+        CUDA_GET_BLOCKSIZE(filter_copy_func, rect_size.x, rect_size.y);
+        CUDA_LAUNCH_KERNEL(filter_copy_func, args);
+      }
+
+#  if OPTIX_DENOISER_NO_PIXEL_STRIDE
+      device_only_memory<float> input_rgb(this, "denoiser input rgb");
+      {
+        input_rgb.alloc_to_device(rect_size.x * rect_size.y * 3 *
+                                  task.denoising.optix_input_passes);
+
+        CUfunction convert_to_rgb_func;
+        check_result_cuda_ret(cuModuleGetFunction(
+            &convert_to_rgb_func, cuda_filter_module, "kernel_cuda_filter_convert_to_rgb"));
+        check_result_cuda_ret(cuFuncSetCacheConfig(convert_to_rgb_func, CU_FUNC_CACHE_PREFER_L1));
+
+        void *args[] = {&input_rgb.device_pointer,
+                        &input_ptr,
+                        &rect_size.x,
+                        &rect_size.y,
+                        &input_stride,
+                        &task.pass_stride,
+                        const_cast<int *>(pass_offset),
+                        &task.denoising.optix_input_passes,
+                        &total_samples};
+        CUDA_GET_BLOCKSIZE(convert_to_rgb_func, rect_size.x, rect_size.y);
+        CUDA_LAUNCH_KERNEL(convert_to_rgb_func, args);
+
+        input_ptr = input_rgb.device_pointer;
+        pixel_stride = 3 * sizeof(float);
+        input_stride = rect_size.x * pixel_stride;
+      }
+#  endif
+
+      if (denoiser == NULL) {
+        // Create OptiX denoiser handle on demand when it is first used
+        OptixDenoiserOptions denoiser_options;
+        assert(task.denoising.optix_input_passes >= 1 && task.denoising.optix_input_passes <= 3);
+        denoiser_options.inputKind = static_cast<OptixDenoiserInputKind>(
+            OPTIX_DENOISER_INPUT_RGB + (task.denoising.optix_input_passes - 1));
+        denoiser_options.pixelFormat = OPTIX_PIXEL_FORMAT_FLOAT3;
+        check_result_optix_ret(optixDenoiserCreate(context, &denoiser_options, &denoiser));
+        check_result_optix_ret(
+            optixDenoiserSetModel(denoiser, OPTIX_DENOISER_MODEL_KIND_HDR, NULL, 0));
+      }
+
+      OptixDenoiserSizes sizes = {};
+      check_result_optix_ret(
+          optixDenoiserComputeMemoryResources(denoiser, rect_size.x, rect_size.y, &sizes));
+
+      auto &state = denoiser_state[thread_index].second;
+      auto &state_size = denoiser_state[thread_index].first;
+      const size_t scratch_size = sizes.recommendedScratchSizeInBytes;
+      const size_t scratch_offset = sizes.stateSizeInBytes;
+
+      // Allocate denoiser state if tile size has changed since last setup
+      if (state_size.x != rect_size.x || state_size.y != rect_size.y) {
+        if (state) {
+          cuMemFree(state);
+          state = 0;
+        }
+        check_result_cuda_ret(cuMemAlloc(&state, scratch_offset + scratch_size));
+
+        check_result_optix_ret(optixDenoiserSetup(denoiser,
+                                                  cuda_stream[thread_index],
+                                                  rect_size.x,
+                                                  rect_size.y,
+                                                  state,
+                                                  scratch_offset,
+                                                  state + scratch_offset,
+                                                  scratch_size));
+
+        state_size = rect_size;
+      }
+
+      // Set up input and output layer information
+      OptixImage2D input_layers[3] = {};
+      OptixImage2D output_layers[1] = {};
+
+      for (int i = 0; i < 3; ++i) {
+#  if OPTIX_DENOISER_NO_PIXEL_STRIDE
+        input_layers[i].data = input_ptr + (rect_size.x * rect_size.y * pixel_stride * i);
+#  else
+        input_layers[i].data = input_ptr + pass_offset[i];
+#  endif
+        input_layers[i].width = rect_size.x;
+        input_layers[i].height = rect_size.y;
+        input_layers[i].rowStrideInBytes = input_stride;
+        input_layers[i].pixelStrideInBytes = pixel_stride;
+        input_layers[i].format = OPTIX_PIXEL_FORMAT_FLOAT3;
+      }
+
+#  if OPTIX_DENOISER_NO_PIXEL_STRIDE
+      output_layers[0].data = input_ptr;
+      output_layers[0].width = rect_size.x;
+      output_layers[0].height = rect_size.y;
+      output_layers[0].rowStrideInBytes = input_stride;
+      output_layers[0].pixelStrideInBytes = pixel_stride;
+      int2 output_offset = overlap_offset;
+      overlap_offset = make_int2(0, 0);  // Not supported by denoiser API, so apply manually
+#  else
+      output_layers[0].data = rtiles[9].buffer + pixel_offset;
+      output_layers[0].width = rtiles[9].w;
+      output_layers[0].height = rtiles[9].h;
+      output_layers[0].rowStrideInBytes = rtiles[9].stride * pixel_stride;
+      output_layers[0].pixelStrideInBytes = pixel_stride;
+#  endif
+      output_layers[0].format = OPTIX_PIXEL_FORMAT_FLOAT3;
+
+      // Finally run denonising
+      OptixDenoiserParams params = {};  // All parameters are disabled/zero
+      check_result_optix_ret(optixDenoiserInvoke(denoiser,
+                                                 cuda_stream[thread_index],
+                                                 &params,
+                                                 state,
+                                                 scratch_offset,
+                                                 input_layers,
+                                                 task.denoising.optix_input_passes,
+                                                 overlap_offset.x,
+                                                 overlap_offset.y,
+                                                 output_layers,
+                                                 state + scratch_offset,
+                                                 scratch_size));
+
+#  if OPTIX_DENOISER_NO_PIXEL_STRIDE
+      {
+        CUfunction convert_from_rgb_func;
+        check_result_cuda_ret(cuModuleGetFunction(
+            &convert_from_rgb_func, cuda_filter_module, "kernel_cuda_filter_convert_from_rgb"));
+        check_result_cuda_ret(
+            cuFuncSetCacheConfig(convert_from_rgb_func, CU_FUNC_CACHE_PREFER_L1));
+
+        void *args[] = {&input_ptr,
+                        &rtiles[9].buffer,
+                        &output_offset.x,
+                        &output_offset.y,
+                        &rect_size.x,
+                        &rect_size.y,
+                        &rtiles[9].x,
+                        &rtiles[9].y,
+                        &rtiles[9].w,
+                        &rtiles[9].h,
+                        &rtiles[9].offset,
+                        &rtiles[9].stride,
+                        &task.pass_stride};
+        CUDA_GET_BLOCKSIZE(convert_from_rgb_func, rtiles[9].w, rtiles[9].h);
+        CUDA_LAUNCH_KERNEL(convert_from_rgb_func, args);
+      }
+#  endif
+
+      check_result_cuda_ret(cuStreamSynchronize(cuda_stream[thread_index]));
+
+      task.unmap_neighbor_tiles(rtiles, this);
+    }
+    else {
+      // Run CUDA denoising kernels
+      DenoisingTask denoising(this, task);
+      denoising.functions.construct_transform = function_bind(
+          &OptiXDevice::denoising_construct_transform, this, &denoising, thread_index);
+      denoising.functions.accumulate = function_bind(
+          &OptiXDevice::denoising_accumulate, this, _1, _2, _3, _4, &denoising, thread_index);
+      denoising.functions.solve = function_bind(
+          &OptiXDevice::denoising_solve, this, _1, &denoising, thread_index);
+      denoising.functions.divide_shadow = function_bind(&OptiXDevice::denoising_divide_shadow,
+                                                        this,
+                                                        _1,
+                                                        _2,
+                                                        _3,
+                                                        _4,
+                                                        _5,
+                                                        &denoising,
+                                                        thread_index);
+      denoising.functions.non_local_means = function_bind(
+          &OptiXDevice::denoising_non_local_means, this, _1, _2, _3, _4, &denoising, thread_index);
+      denoising.functions.combine_halves = function_bind(&OptiXDevice::denoising_combine_halves,
+                                                         this,
+                                                         _1,
+                                                         _2,
+                                                         _3,
+                                                         _4,
+                                                         _5,
+                                                         _6,
+                                                         &denoising,
+                                                         thread_index);
+      denoising.functions.get_feature = function_bind(
+          &OptiXDevice::denoising_get_feature, this, _1, _2, _3, _4, _5, &denoising, thread_index);
+      denoising.functions.write_feature = function_bind(
+          &OptiXDevice::denoising_write_feature, this, _1, _2, _3, &denoising, thread_index);
+      denoising.functions.detect_outliers = function_bind(
+          &OptiXDevice::denoising_detect_outliers, this, _1, _2, _3, _4, &denoising, thread_index);
+
+      denoising.filter_area = make_int4(rtile.x, rtile.y, rtile.w, rtile.h);
+      denoising.render_buffer.samples = total_samples;
+      denoising.buffer.gpu_temporary_mem = true;
+
+      denoising.run_denoising(&rtile);
+    }
+
+    // Update current sample, so it is displayed correctly
+    rtile.sample = total_samples;
+    // Update task progress after the denoiser completed processing
     task.update_progress(&rtile, rtile.w * rtile.h);
+
+    return true;
   }
 
   void launch_shader_eval(DeviceTask &task, int thread_index)
@@ -1899,30 +2191,6 @@ class OptiXDevice : public Device {
     task_pool.cancel();
   }
 
-#  define CUDA_GET_BLOCKSIZE(func, w, h) \
-    int threads; \
-    check_result_cuda_ret( \
-        cuFuncGetAttribute(&threads, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, func)); \
-    threads = (int)sqrt((float)threads); \
-    int xblocks = ((w) + threads - 1) / threads; \
-    int yblocks = ((h) + threads - 1) / threads;
-
-#  define CUDA_LAUNCH_KERNEL(func, args) \
-    check_result_cuda_ret(cuLaunchKernel( \
-        func, xblocks, yblocks, 1, threads, threads, 1, 0, cuda_stream[thread_index], args, 0));
-
-  /* Similar as above, but for 1-dimensional blocks. */
-#  define CUDA_GET_BLOCKSIZE_1D(func, w, h) \
-    int threads; \
-    check_result_cuda_ret( \
-        cuFuncGetAttribute(&threads, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, func)); \
-    int xblocks = ((w) + threads - 1) / threads; \
-    int yblocks = h;
-
-#  define CUDA_LAUNCH_KERNEL_1D(func, args) \
-    check_result_cuda_ret(cuLaunchKernel( \
-        func, xblocks, yblocks, 1, threads, 1, 1, 0, cuda_stream[thread_index], args, 0));
-
   bool denoising_non_local_means(device_ptr image_ptr,
                                  device_ptr guide_ptr,
                                  device_ptr variance_ptr,
@@ -2341,9 +2609,8 @@ bool device_optix_init()
   const OptixResult result = optixInit();
 
   if (result == OPTIX_ERROR_UNSUPPORTED_ABI_VERSION) {
-    VLOG(1)
-        << "OptiX initialization failed because the installed driver does not support ABI version "
-        << OPTIX_ABI_VERSION;
+    VLOG(1) << "OptiX initialization failed because driver does not support ABI version "
+            << OPTIX_ABI_VERSION;
     return false;
   }
   else if (result != OPTIX_SUCCESS) {

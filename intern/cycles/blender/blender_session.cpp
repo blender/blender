@@ -478,23 +478,24 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
   buffer_params.passes = passes;
 
   PointerRNA crl = RNA_pointer_get(&b_view_layer.ptr, "cycles");
-  bool full_denoising = get_boolean(crl, "use_denoising");
+  bool use_denoising = get_boolean(crl, "use_denoising");
+  bool use_optix_denoising = get_boolean(crl, "use_optix_denoising");
   bool write_denoising_passes = get_boolean(crl, "denoising_store_passes");
 
-  bool run_denoising = full_denoising || write_denoising_passes;
-
-  session->tile_manager.schedule_denoising = run_denoising;
-  buffer_params.denoising_data_pass = run_denoising;
+  buffer_params.denoising_data_pass = use_denoising || write_denoising_passes;
   buffer_params.denoising_clean_pass = (scene->film->denoising_flags & DENOISING_CLEAN_ALL_PASSES);
-  buffer_params.denoising_prefiltered_pass = write_denoising_passes;
+  buffer_params.denoising_prefiltered_pass = write_denoising_passes && !use_optix_denoising;
 
-  session->params.run_denoising = run_denoising;
-  session->params.full_denoising = full_denoising;
-  session->params.write_denoising_passes = write_denoising_passes;
+  session->params.run_denoising = use_denoising || write_denoising_passes;
+  session->params.full_denoising = use_denoising && !use_optix_denoising;
+  session->params.optix_denoising = use_denoising && use_optix_denoising;
+  session->params.write_denoising_passes = write_denoising_passes && !use_optix_denoising;
   session->params.denoising.radius = get_int(crl, "denoising_radius");
   session->params.denoising.strength = get_float(crl, "denoising_strength");
   session->params.denoising.feature_strength = get_float(crl, "denoising_feature_strength");
   session->params.denoising.relative_pca = get_boolean(crl, "denoising_relative_pca");
+  session->params.denoising.optix_input_passes = get_enum(crl, "denoising_optix_input_passes");
+  session->tile_manager.schedule_denoising = session->params.run_denoising;
 
   scene->film->denoising_data_pass = buffer_params.denoising_data_pass;
   scene->film->denoising_clean_pass = buffer_params.denoising_clean_pass;

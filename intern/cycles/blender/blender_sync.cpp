@@ -535,23 +535,26 @@ vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLa
   }
 
   PointerRNA crp = RNA_pointer_get(&b_view_layer.ptr, "cycles");
-  bool full_denoising = get_boolean(crp, "use_denoising");
+  bool use_denoising = get_boolean(crp, "use_denoising");
+  bool use_optix_denoising = get_boolean(crp, "use_optix_denoising");
   bool write_denoising_passes = get_boolean(crp, "denoising_store_passes");
 
   scene->film->denoising_flags = 0;
-  if (full_denoising || write_denoising_passes) {
+  if (use_denoising || write_denoising_passes) {
+    if (!use_optix_denoising) {
 #define MAP_OPTION(name, flag) \
   if (!get_boolean(crp, name)) \
     scene->film->denoising_flags |= flag;
-    MAP_OPTION("denoising_diffuse_direct", DENOISING_CLEAN_DIFFUSE_DIR);
-    MAP_OPTION("denoising_diffuse_indirect", DENOISING_CLEAN_DIFFUSE_IND);
-    MAP_OPTION("denoising_glossy_direct", DENOISING_CLEAN_GLOSSY_DIR);
-    MAP_OPTION("denoising_glossy_indirect", DENOISING_CLEAN_GLOSSY_IND);
-    MAP_OPTION("denoising_transmission_direct", DENOISING_CLEAN_TRANSMISSION_DIR);
-    MAP_OPTION("denoising_transmission_indirect", DENOISING_CLEAN_TRANSMISSION_IND);
-    MAP_OPTION("denoising_subsurface_direct", DENOISING_CLEAN_SUBSURFACE_DIR);
-    MAP_OPTION("denoising_subsurface_indirect", DENOISING_CLEAN_SUBSURFACE_IND);
+      MAP_OPTION("denoising_diffuse_direct", DENOISING_CLEAN_DIFFUSE_DIR);
+      MAP_OPTION("denoising_diffuse_indirect", DENOISING_CLEAN_DIFFUSE_IND);
+      MAP_OPTION("denoising_glossy_direct", DENOISING_CLEAN_GLOSSY_DIR);
+      MAP_OPTION("denoising_glossy_indirect", DENOISING_CLEAN_GLOSSY_IND);
+      MAP_OPTION("denoising_transmission_direct", DENOISING_CLEAN_TRANSMISSION_DIR);
+      MAP_OPTION("denoising_transmission_indirect", DENOISING_CLEAN_TRANSMISSION_IND);
+      MAP_OPTION("denoising_subsurface_direct", DENOISING_CLEAN_SUBSURFACE_DIR);
+      MAP_OPTION("denoising_subsurface_indirect", DENOISING_CLEAN_SUBSURFACE_IND);
 #undef MAP_OPTION
+    }
     b_engine.add_pass("Noisy Image", 4, "RGBA", b_view_layer.name().c_str());
   }
 
@@ -559,14 +562,17 @@ vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLa
     b_engine.add_pass("Denoising Normal", 3, "XYZ", b_view_layer.name().c_str());
     b_engine.add_pass("Denoising Albedo", 3, "RGB", b_view_layer.name().c_str());
     b_engine.add_pass("Denoising Depth", 1, "Z", b_view_layer.name().c_str());
-    b_engine.add_pass("Denoising Shadowing", 1, "X", b_view_layer.name().c_str());
-    b_engine.add_pass("Denoising Variance", 3, "RGB", b_view_layer.name().c_str());
-    b_engine.add_pass("Denoising Intensity", 1, "X", b_view_layer.name().c_str());
+    if (!use_optix_denoising) {
+      b_engine.add_pass("Denoising Shadowing", 1, "X", b_view_layer.name().c_str());
+      b_engine.add_pass("Denoising Variance", 3, "RGB", b_view_layer.name().c_str());
+      b_engine.add_pass("Denoising Intensity", 1, "X", b_view_layer.name().c_str());
+    }
 
     if (scene->film->denoising_flags & DENOISING_CLEAN_ALL_PASSES) {
       b_engine.add_pass("Denoising Clean", 3, "RGB", b_view_layer.name().c_str());
     }
   }
+
 #ifdef __KERNEL_DEBUG__
   if (get_boolean(crp, "pass_debug_bvh_traversed_nodes")) {
     b_engine.add_pass("Debug BVH Traversed Nodes", 1, "X", b_view_layer.name().c_str());

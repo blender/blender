@@ -47,6 +47,8 @@ class DenoiseParams {
   int neighbor_frames;
   /* Clamp the input to the range of +-1e8. Should be enough for any legitimate data. */
   bool clamp_input;
+  /* Controls which passes the OptiX AI denoiser should use as input. */
+  int optix_input_passes;
 
   DenoiseParams()
   {
@@ -56,6 +58,7 @@ class DenoiseParams {
     relative_pca = false;
     neighbor_frames = 2;
     clamp_input = true;
+    optix_input_passes = 1;
   }
 };
 
@@ -100,6 +103,7 @@ class DeviceTask : public Task {
   vector<int> denoising_frames;
 
   bool denoising_do_filter;
+  bool denoising_use_optix;
   bool denoising_write_passes;
 
   int pass_stride;

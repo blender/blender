@@ -197,6 +197,12 @@ enum_aov_types = (
     ('COLOR', "Color", "Write a Color pass", 1),
 )
 
+enum_denoising_optix_input_passes= (
+    ('RGB', "Color", "Use only color as input", 1),
+    ('RGB_ALBEDO', "Color + Albedo", "Use color and albedo data as input", 2),
+    ('RGB_ALBEDO_NORMAL', "Color + Albedo + Normal", "Use color, albedo and normal data as input", 3),
+)
+
 class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     device: EnumProperty(
@@ -1279,6 +1285,7 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         default=False,
         update=update_render_passes,
     )
+
     use_pass_volume_direct: BoolProperty(
         name="Volume Direct",
         description="Deliver direct volumetric scattering pass",
@@ -1295,6 +1302,12 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
     use_denoising: BoolProperty(
         name="Use Denoising",
         description="Denoise the rendered image",
+        default=False,
+        update=update_render_passes,
+    )
+    use_optix_denoising: BoolProperty(
+        name="Use OptiX AI Denoising",
+        description="Denoise the rendered image with the OptiX AI denoiser",
         default=False,
         update=update_render_passes,
     )
@@ -1374,6 +1387,13 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         min=0, max=7,
         default=0,
     )
+    denoising_optix_input_passes: EnumProperty(
+        name="Input Passes",
+        description="Controls which passes the OptiX AI denoiser should use as input, which can have different effects on the denoised image",
+        items=enum_denoising_optix_input_passes,
+        default='RGB',
+    )
+
     use_pass_crypto_object: BoolProperty(
         name="Cryptomatte Object",
         description="Render cryptomatte object pass, for isolating objects in compositing",
