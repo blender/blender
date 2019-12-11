@@ -1257,10 +1257,11 @@ bool PyC_RunString_AsIntPtr(const char *imports[],
   return ok;
 }
 
-bool PyC_RunString_AsString(const char *imports[],
-                            const char *expr,
-                            const char *filename,
-                            char **r_value)
+bool PyC_RunString_AsStringAndSize(const char *imports[],
+                                   const char *expr,
+                                   const char *filename,
+                                   char **r_value,
+                                   size_t *r_value_size)
 {
   PyObject *py_dict, *retval;
   bool ok = true;
@@ -1288,6 +1289,7 @@ bool PyC_RunString_AsString(const char *imports[],
       char *val_alloc = MEM_mallocN(val_len + 1, __func__);
       memcpy(val_alloc, val, val_len + 1);
       *r_value = val_alloc;
+      *r_value_size = val_len;
     }
 
     Py_DECREF(retval);
@@ -1296,6 +1298,15 @@ bool PyC_RunString_AsString(const char *imports[],
   PyC_MainModule_Restore(main_mod);
 
   return ok;
+}
+
+bool PyC_RunString_AsString(const char *imports[],
+                            const char *expr,
+                            const char *filename,
+                            char **r_value)
+{
+  size_t value_size;
+  return PyC_RunString_AsStringAndSize(imports, expr, filename, r_value, &value_size);
 }
 
 #endif /* #ifndef MATH_STANDALONE */

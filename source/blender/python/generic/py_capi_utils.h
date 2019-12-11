@@ -119,6 +119,11 @@ bool PyC_RunString_AsIntPtr(const char **imports,
                             const char *expr,
                             const char *filename,
                             intptr_t *r_value);
+bool PyC_RunString_AsStringAndSize(const char **imports,
+                                   const char *expr,
+                                   const char *filename,
+                                   char **r_value,
+                                   size_t *r_value_size);
 bool PyC_RunString_AsString(const char **imports,
                             const char *expr,
                             const char *filename,

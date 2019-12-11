@@ -618,8 +618,12 @@ bool BPY_execute_string_as_number(
 /**
  * \return success
  */
-bool BPY_execute_string_as_string(
-    bContext *C, const char *imports[], const char *expr, const bool verbose, char **r_value)
+bool BPY_execute_string_as_string_and_size(bContext *C,
+                                           const char *imports[],
+                                           const char *expr,
+                                           const bool verbose,
+                                           char **r_value,
+                                           size_t *r_value_size)
 {
   BLI_assert(r_value && expr);
   PyGILState_STATE gilstate;
@@ -632,7 +636,7 @@ bool BPY_execute_string_as_string(
 
   bpy_context_set(C, &gilstate);
 
-  ok = PyC_RunString_AsString(imports, expr, "<expr as str>", r_value);
+  ok = PyC_RunString_AsStringAndSize(imports, expr, "<expr as str>", r_value, r_value_size);
 
   if (ok == false) {
     if (verbose) {
@@ -646,6 +650,14 @@ bool BPY_execute_string_as_string(
   bpy_context_clear(C, &gilstate);
 
   return ok;
+}
+
+bool BPY_execute_string_as_string(
+    bContext *C, const char *imports[], const char *expr, const bool verbose, char **r_value)
+{
+  size_t value_dummy_size;
+  return BPY_execute_string_as_string_and_size(
+      C, imports, expr, verbose, r_value, &value_dummy_size);
 }
 
 /**
