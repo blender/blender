@@ -360,7 +360,9 @@ void OVERLAY_edit_mesh_draw(OVERLAY_Data *vedata)
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   OVERLAY_FramebufferList *fbl = vedata->fbl;
 
-  GPU_framebuffer_bind(fbl->overlay_default_fb);
+  if (DRW_state_is_fbo()) {
+    GPU_framebuffer_bind(fbl->overlay_default_fb);
+  }
 
   DRW_draw_pass(psl->edit_mesh_weight_ps);
   DRW_draw_pass(psl->edit_mesh_analysis_ps);
