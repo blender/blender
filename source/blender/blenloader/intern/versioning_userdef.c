@@ -156,15 +156,18 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     copy_v4_v4_uchar(btheme->space_nla.nla_track, btheme->space_nla.header);
   }
 
-  /**
-   * Include next version bump.
-   */
-  {
+  if (!USER_VERSION_ATLEAST(282, 5)) {
     FROM_DEFAULT_V4_UCHAR(space_sequencer.anim_preview_range);
     FROM_DEFAULT_V4_UCHAR(space_text.line_numbers);
     FROM_DEFAULT_V4_UCHAR(tui.widget_text_cursor);
     FROM_DEFAULT_V4_UCHAR(space_view3d.face_back);
     FROM_DEFAULT_V4_UCHAR(space_view3d.face_front);
+  }
+
+  /* Versioning code until next subversion bump goes here.
+   * Note: be sure to check "versioning_{BLENDER_VERSION}.c" when bumping the version.
+   * Note: keep this message at the bottom of the function. */
+  {
   }
 
 #undef FROM_DEFAULT_V4_UCHAR
