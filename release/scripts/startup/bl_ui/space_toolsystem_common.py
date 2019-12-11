@@ -323,6 +323,25 @@ class ToolSelectPanelHelper:
         return None, -1, None
 
     @classmethod
+    def _tool_get_group_by_id(cls, context, idname, *, coerce=False):
+        """
+        Return the group which contains idname, or None.
+        """
+        for item in cls.tools_from_context(context):
+            if item is not None:
+                if type(item) is tuple:
+                    for subitem in item:
+                        if subitem.idname == idname:
+                            return item
+                else:
+                    if item.idname == idname:
+                        if coerce:
+                            return (item,)
+                        else:
+                            return None
+        return None
+
+    @classmethod
     def _tool_get_by_flat_index(cls, context, tool_index):
         """
         Return the active Python tool definition and index (if in sub-group, else -1).
@@ -1036,6 +1055,13 @@ def item_from_id_active_with_group(context, space_type, idname):
         return None
     cls, item, _index = cls._tool_get_by_id_active_with_group(context, idname)
     return item
+
+
+def item_group_from_id(context, space_type, idname, *, coerce=False):
+    cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
+    if cls is None:
+        return None
+    return cls._tool_get_group_by_id(context, idname, coerce=coerce)
 
 
 def item_from_flat_index(context, space_type, index):

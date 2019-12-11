@@ -503,7 +503,10 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
   }
 
   /* Shortcut. */
-  if (is_label == false && ((but->block->flag & UI_BLOCK_SHOW_SHORTCUT_ALWAYS) == 0)) {
+  const bool show_shortcut = is_label == false &&
+                             ((but->block->flag & UI_BLOCK_SHOW_SHORTCUT_ALWAYS) == 0);
+
+  if (show_shortcut) {
     /* There are different kinds of shortcuts:
      *
      * - Direct access to the tool (as if the toolbar button is pressed).
@@ -607,6 +610,80 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
                                              });
       field->text = BLI_sprintfN(TIP_("Shortcut: %s"), shortcut);
       MEM_freeN(shortcut);
+    }
+  }
+
+  if (show_shortcut) {
+    /* Shortcut for Cycling
+     *
+     * As a second option, we may have a shortcut to cycle this tool group.
+     *
+     * Since some keymaps may use this for the primary means of binding keys,
+     * it's useful to show these too.
+     * Without this there is no way to know how to use a key to set the tool.
+     *
+     * This is a little involved since the shortcut may be bound to another tool in this group,
+     * instead of the current tool on display. */
+
+    char *expr_result = NULL;
+    size_t expr_result_len;
+
+    {
+      const char *expr_imports[] = {"bpy", "bl_ui", NULL};
+      char expr[256];
+      SNPRINTF(expr,
+               "'\\x00'.join("
+               "item.idname for item in bl_ui.space_toolsystem_common.item_group_from_id("
+               "bpy.context, "
+               "bpy.context.space_data.type, '%s', coerce=True) "
+               "if item is not None)",
+               tool_id);
+
+      if (has_valid_context == false) {
+        /* pass */
+      }
+      else if (BPY_execute_string_as_string_and_size(
+                   C, expr_imports, expr, true, &expr_result, &expr_result_len)) {
+        /* pass. */
+      }
+    }
+
+    if (expr_result != NULL) {
+      PointerRNA op_props;
+      WM_operator_properties_create_ptr(&op_props, but->optype);
+      RNA_boolean_set(&op_props, "cycle", true);
+
+      char shortcut[128] = "";
+
+      const char *item_end = expr_result + expr_result_len;
+      const char *item_step = expr_result;
+
+      while (item_step < item_end) {
+        RNA_string_set(&op_props, "name", item_step);
+        if (WM_key_event_operator_string(C,
+                                         but->optype->idname,
+                                         WM_OP_INVOKE_REGION_WIN,
+                                         op_props.data,
+                                         true,
+                                         shortcut,
+                                         ARRAY_SIZE(shortcut))) {
+          break;
+        }
+        item_step += strlen(item_step) + 1;
+      }
+
+      WM_operator_properties_free(&op_props);
+      MEM_freeN(expr_result);
+
+      if (shortcut[0] != '\0') {
+        uiTooltipField *field = text_field_add(data,
+                                               &(uiTooltipFormat){
+                                                   .style = UI_TIP_STYLE_NORMAL,
+                                                   .color_id = UI_TIP_LC_VALUE,
+                                                   .is_pad = true,
+                                               });
+        field->text = BLI_sprintfN(TIP_("Shortcut Cycle: %s"), shortcut);
+      }
     }
   }
 
