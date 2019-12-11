@@ -164,10 +164,17 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_view3d.face_front);
   }
 
-  /* Versioning code until next subversion bump goes here.
-   * Note: be sure to check "versioning_{BLENDER_VERSION}.c" when bumping the version.
-   * Note: keep this message at the bottom of the function. */
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - #BLO_version_defaults_userpref_blend in this file.
+   * - "versioning_{BLENDER_VERSION}.c"
+   *
+   * \note Keep this message at the bottom of the function.
+   */
   {
+    /* Keep this block, even when empty. */
   }
 
 #undef FROM_DEFAULT_V4_UCHAR
@@ -686,10 +693,16 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
   }
 
   /**
-   * Include next version bump.
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - #do_versions_theme in this file.
+   * - "versioning_{BLENDER_VERSION}.c"
+   *
+   * \note Keep this message at the bottom of the function.
    */
   {
-    /* pass */
+    /* Keep this block, even when empty. */
   }
 
   if (userdef->pixelsize == 0.0f) {
