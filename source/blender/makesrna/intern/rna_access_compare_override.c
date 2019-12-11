@@ -27,7 +27,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 
-#define DEBUG_OVERRIDE_TIMEIT
+// #define DEBUG_OVERRIDE_TIMEIT
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
 #  include "PIL_time_utildefines.h"
@@ -598,7 +598,6 @@ bool RNA_struct_override_matches(Main *bmain,
   const bool do_create = (flags & RNA_OVERRIDE_COMPARE_CREATE) != 0;
   const bool do_restore = (flags & RNA_OVERRIDE_COMPARE_RESTORE) != 0;
 
-//#define DEBUG_OVERRIDE_TIMEIT
 #ifdef DEBUG_OVERRIDE_TIMEIT
   static float _sum_time_global = 0.0f;
   static float _num_time_global = 0.0f;
