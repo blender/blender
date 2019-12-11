@@ -130,7 +130,10 @@ def object_data_add(context, obdata, operator=None, name=None):
     obj_new.matrix_world = add_object_align_init(context, operator)
 
     space_data = context.space_data
-    if space_data.type == 'VIEW_3D':
+    if space_data and space_data.type != 'VIEW_3D':
+        space_data = None
+
+    if space_data:
         if space_data.local_view:
             obj_new.local_view_set(space_data, True)
 
