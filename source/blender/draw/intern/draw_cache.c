@@ -68,6 +68,12 @@ typedef struct Vert {
   int class;
 } Vert;
 
+typedef struct VertShaded {
+  float pos[3];
+  int class;
+  float nor[3];
+} VertShaded;
+
 /* Batch's only (free'd as an array) */
 static struct DRWShapeCache {
   GPUBatch *drw_procedural_verts;
@@ -471,7 +477,7 @@ static void sphere_lat_lon_vert(GPUVertBuf *vbo, int *v_ofs, float lat, float lo
   float x = sinf(lat) * cosf(lon);
   float y = cosf(lat);
   float z = sinf(lat) * sinf(lon);
-  GPU_vertbuf_vert_set(vbo, *v_ofs, &(Vert){{x, y, z}, VCLASS_EMPTY_SCALED});
+  GPU_vertbuf_vert_set(vbo, *v_ofs, &(VertShaded){{x, y, z}, VCLASS_EMPTY_SCALED, {x, y, z}});
   (*v_ofs)++;
 }
 
@@ -482,6 +488,8 @@ GPUBatch *DRW_cache_sphere_get(void)
     const int lon_res = 24;
 
     GPUVertFormat format = extra_vert_format();
+    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     int v_len = (lat_res - 1) * lon_res * 6;
     GPU_vertbuf_data_alloc(vbo, v_len);
