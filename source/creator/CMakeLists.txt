@@ -41,6 +41,12 @@ set(LIB
   bf_windowmanager
 )
 
+# Note: this should not be needed, but causes issues in some situations:
+# See reply to daf290dcc80c.
+if(WITH_TBB AND WITH_OPENIMAGEDENOISE)
+  list(INSERT LIB 0 bf_blenkernel)
+endif()
+
 add_definitions(${GL_DEFINITIONS})
 blender_include_dirs("${GLEW_INCLUDE_PATH}")
 
