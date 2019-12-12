@@ -1645,6 +1645,14 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
   BVHTree *bvhtree = bvhtree_from_mesh_verts_ex(
       &treedata, mvert, totvert, false, v_mask, v_mask_act, wmd->merge_dist, 2, 6, 0, NULL);
 
+  if (v_mask) {
+    MEM_freeN(v_mask);
+  }
+
+  if (bvhtree == NULL) {
+    return result;
+  }
+
   struct WeldOverlapData data;
   data.mvert = mvert;
   data.merge_dist_sq = SQUARE(wmd->merge_dist);
@@ -1855,9 +1863,6 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
     weld_mesh_context_free(&weld_mesh);
   }
 
-  if (v_mask) {
-    MEM_freeN(v_mask);
-  }
   MEM_freeN(overlap);
   return result;
 }
