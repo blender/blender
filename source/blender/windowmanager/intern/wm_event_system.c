@@ -3731,7 +3731,7 @@ wmKeyMap *WM_event_get_keymap_from_toolsystem(wmWindowManager *wm, wmEventHandle
     const char *keymap_id = tref_rt->keymap;
 
     /* Support for the gizmo owning the tool keymap. */
-    if (USER_EXPEREMENTAL_TEST(&U, use_tool_fallback)) {
+    if (USER_EXPERIMENTAL_TEST(&U, use_tool_fallback)) {
       if (tref_rt->gizmo_group[0] != '\0' && tref_rt->keymap_fallback[0] != '\n') {
         wmGizmoMap *gzmap = NULL;
         wmGizmoGroup *gzgroup = NULL;

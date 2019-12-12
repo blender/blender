@@ -52,7 +52,7 @@ static const char *handle_free_id;
 
 static bool WIDGETGROUP_tool_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
-  if (!USER_EXPEREMENTAL_TEST(&U, use_tool_fallback)) {
+  if (!USER_EXPERIMENTAL_TEST(&U, use_tool_fallback)) {
     return false;
   }
 

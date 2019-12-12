@@ -355,7 +355,7 @@ void WM_toolsystem_ref_set_from_runtime(struct bContext *C,
    * pass in the argument to begin with. */
   bool use_fallback_keymap = false;
 
-  if (USER_EXPEREMENTAL_TEST(&U, use_tool_fallback)) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_tool_fallback)) {
     if (tref_rt->gizmo_group[0]) {
       wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(tref_rt->gizmo_group, false);
       if (gzgt) {

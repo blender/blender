@@ -609,7 +609,7 @@ typedef struct UserDef_Experimental {
   char _pad0[3];
 } UserDef_Experimental;
 
-#define USER_EXPEREMENTAL_TEST(userdef, member) \
+#define USER_EXPERIMENTAL_TEST(userdef, member) \
   (((userdef)->flag & USER_DEVELOPER_UI) && \
    (((userdef)->experimental.flag & USER_EXPERIMENTAL_ALL) || ((userdef)->experimental).member))
 

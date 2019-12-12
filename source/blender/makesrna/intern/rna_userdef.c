@@ -579,7 +579,7 @@ static void rna_userdef_autosave_update(Main *bmain, Scene *scene, PointerRNA *p
     static bool rna_userdef_experimental_##member##_get(PointerRNA *ptr) \
     { \
       UserDef *userdef = POINTER_OFFSET(ptr->data, -offsetof(UserDef, experimental)); \
-      return USER_EXPEREMENTAL_TEST(userdef, member); \
+      return USER_EXPERIMENTAL_TEST(userdef, member); \
     }
 
 RNA_USERDEF_EXPERIMENTAL_BOOLEAN_GET(use_tool_fallback)
