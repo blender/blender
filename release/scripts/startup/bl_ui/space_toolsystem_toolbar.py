@@ -404,7 +404,7 @@ class _defs_edit_armature:
             idname="builtin.roll",
             label="Roll",
             icon="ops.armature.bone.roll",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_free",
             keymap=(),
         )
 
@@ -414,7 +414,7 @@ class _defs_edit_armature:
             idname="builtin.bone_envelope",
             label="Bone Envelope",
             icon="ops.transform.bone_envelope",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_free",
             keymap=(),
         )
 
@@ -424,7 +424,7 @@ class _defs_edit_armature:
             idname="builtin.bone_size",
             label="Bone Size",
             icon="ops.transform.bone_size",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_free",
             keymap=(),
         )
 
@@ -487,7 +487,7 @@ class _defs_edit_mesh:
             idname="builtin.rip_edge",
             label="Rip Edge",
             icon="ops.mesh.rip_edge",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_free",
             keymap=(),
         )
 
@@ -866,7 +866,7 @@ class _defs_edit_curve:
             idname="builtin.tilt",
             label="Tilt",
             icon="ops.transform.tilt",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_free",
             keymap=(),
         )
 
@@ -879,7 +879,7 @@ class _defs_edit_curve:
                 "Expand or contract the radius of the selected curve points"
             ),
             icon="ops.curve.radius",
-            widget=None,
+            widget="VIEW3D_GGT_tool_generic_handle_free",
             keymap=(),
         )
 
