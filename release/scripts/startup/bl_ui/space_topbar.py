@@ -20,7 +20,6 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 
-
 class TOPBAR_HT_upper_bar(Header):
     bl_space_type = 'TOPBAR'
 
@@ -76,6 +75,30 @@ class TOPBAR_HT_upper_bar(Header):
             scene, "view_layers",
             new="scene.view_layer_add",
             unlink="scene.view_layer_remove")
+
+
+class TOPBAR_PT_tool_settings_extra(Panel):
+    """
+    Popover panel for adding extra options that don't fit in the tool settings header
+    """
+    bl_idname = "TOPBAR_PT_tool_settings_extra"
+    bl_region_type = 'HEADER'
+    bl_space_type = 'TOPBAR'
+    bl_label = "Extra Options"
+
+    def draw(self, context):
+        from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+        layout = self.layout
+
+        # Get the active tool
+        space_type, mode = ToolSelectPanelHelper._tool_key_from_context(context)
+        cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
+        item, tool, _ = cls._tool_get_active(context, space_type, mode, with_icon=True)
+        if item is None:
+            return
+
+        # Draw the extra settings
+        item.draw_settings(context, layout, tool, extra=True)
 
 
 class TOPBAR_PT_tool_fallback(Panel):
@@ -790,6 +813,7 @@ classes = (
     TOPBAR_MT_window,
     TOPBAR_MT_help,
     TOPBAR_PT_tool_fallback,
+    TOPBAR_PT_tool_settings_extra,
     TOPBAR_PT_gpencil_layers,
     TOPBAR_PT_gpencil_primitive,
     TOPBAR_PT_gpencil_fill,
