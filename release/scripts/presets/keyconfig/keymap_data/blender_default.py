@@ -168,6 +168,13 @@ def _template_items_context_menu(menu, key_args_primary):
     ]
 
 
+def _template_items_context_panel(menu, key_args_primary):
+    return [
+        op_panel(menu, kmi_args)
+        for kmi_args in (key_args_primary, {"type": 'APP', "value": 'PRESS'})
+    ]
+
+
 def _template_space_region_type_toggle(*, toolbar_key=None, sidebar_key=None):
     items = []
     if toolbar_key is not None:
@@ -3154,7 +3161,7 @@ def km_grease_pencil_stroke_paint_mode(params):
         ("gpencil.hide", {"type": 'H', "value": 'PRESS', "shift": True},
          {"properties": [("unselected", True)]}),
         # Draw context menu
-        *_template_items_context_menu("VIEW3D_PT_gpencil_draw_context_menu", params.context_menu_event),
+        *_template_items_context_panel("VIEW3D_PT_gpencil_draw_context_menu", params.context_menu_event),
     ])
 
     return keymap
@@ -3287,7 +3294,7 @@ def km_grease_pencil_stroke_sculpt_mode(params):
         # Display
         *_grease_pencil_display(),
         # Context menu
-        *_template_items_context_menu("VIEW3D_PT_gpencil_sculpt_context_menu", params.context_menu_event),
+        *_template_items_context_panel("VIEW3D_PT_gpencil_sculpt_context_menu", params.context_menu_event),
     ])
 
     return keymap
@@ -3715,7 +3722,7 @@ def km_image_paint(params):
         op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         ("wm.context_menu_enum", {"type": 'E', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.image_paint.brush.stroke_method')]}),
-        *_template_items_context_menu("VIEW3D_PT_paint_texture_context_menu", params.context_menu_event),
+        *_template_items_context_panel("VIEW3D_PT_paint_texture_context_menu", params.context_menu_event),
     ])
 
     if params.legacy:
@@ -3764,7 +3771,7 @@ def km_vertex_paint(params):
         op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         ("wm.context_menu_enum", {"type": 'E', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.vertex_paint.brush.stroke_method')]}),
-        *_template_items_context_menu("VIEW3D_PT_paint_vertex_context_menu", params.context_menu_event),
+        *_template_items_context_panel("VIEW3D_PT_paint_vertex_context_menu", params.context_menu_event),
     ])
 
     if params.legacy:
@@ -3810,7 +3817,7 @@ def km_weight_paint(params):
          {"properties": [("data_path", 'weight_paint_object.data.use_paint_mask_vertex')]}),
         ("wm.context_toggle", {"type": 'S', "value": 'PRESS', "shift": True},
          {"properties": [("data_path", 'tool_settings.weight_paint.brush.use_smooth_stroke')]}),
-        *_template_items_context_menu("VIEW3D_PT_paint_weight_context_menu", params.context_menu_event),
+        *_template_items_context_panel("VIEW3D_PT_paint_weight_context_menu", params.context_menu_event),
     ])
 
     if params.select_mouse == 'LEFTMOUSE':
@@ -3922,7 +3929,7 @@ def km_sculpt(params):
          {"properties": [("data_path", 'tool_settings.sculpt.brush.use_smooth_stroke')]}),
         op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         op_menu_pie("VIEW3D_MT_sculpt_mask_edit_pie", {"type" : 'A', "value": 'PRESS'}),
-        *_template_items_context_menu("VIEW3D_PT_sculpt_context_menu", params.context_menu_event),
+        *_template_items_context_panel("VIEW3D_PT_sculpt_context_menu", params.context_menu_event),
     ])
 
     if params.legacy:
