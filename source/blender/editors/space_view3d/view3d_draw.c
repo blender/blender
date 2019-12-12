@@ -1280,8 +1280,8 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, int xoffset, int *yoffs
 }
 
 /**
- * draw info beside axes in bottom left-corner:
- * framenum, collection, object name, bone name (if available), marker name (if available)
+ * Draw info beside axes in bottom left-corner:
+ * frame-number, collection, object name, bone name (if available), marker name (if available).
  */
 
 static void draw_selected_name(

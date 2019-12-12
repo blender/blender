@@ -119,20 +119,6 @@ static bScreen *screen_parent_find(const bScreen *screen)
   return NULL;
 }
 
-static int cmp_image_tile(const void *a, const void *b)
-{
-  const ImageTile *tile_a = a;
-  const ImageTile *tile_b = b;
-
-  if (tile_a->tile_number < tile_b->tile_number) {
-    return -1;
-  }
-  if (tile_a->tile_number > tile_b->tile_number) {
-    return 1;
-  }
-  return 0;
-}
-
 static void do_version_workspaces_create_from_screens(Main *bmain)
 {
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
