@@ -388,6 +388,14 @@ bool IMB_moviecache_put_if_possible(MovieCache *cache, void *userkey, ImBuf *ibu
   return result;
 }
 
+void IMB_moviecache_remove(MovieCache *cache, void *userkey)
+{
+  MovieCacheKey key;
+  key.cache_owner = cache;
+  key.userkey = userkey;
+  BLI_ghash_remove(cache->hash, &key, moviecache_keyfree, moviecache_valfree);
+}
+
 ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey)
 {
   MovieCacheKey key;

@@ -99,6 +99,7 @@ struct GPUNodeLink {
     struct {
       struct Image *ima;
       struct ImageUser *iuser;
+      int image_tile;
     };
   };
 };
@@ -138,6 +139,7 @@ typedef struct GPUInput {
       struct ImageUser *iuser;  /* image user */
       bool bindtex;             /* input is responsible for binding the texture? */
       int texid;                /* number for multitexture, starting from zero */
+      int image_tile;           /* image tile */
       eGPUType textype;         /* texture type (2D, 1D Array ...) */
     };
     /* GPU_SOURCE_ATTR */

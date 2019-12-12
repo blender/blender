@@ -158,10 +158,11 @@ class RenderGraph : public testing::Test {
   Device *device_cpu;
   SceneParams scene_params;
   Scene *scene;
+  Shader shader;
   ShaderGraph graph;
   ShaderGraphBuilder builder;
 
-  RenderGraph() : testing::Test(), builder(&graph)
+  RenderGraph() : testing::Test(), graph(&shader), builder(&graph)
   {
   }
 

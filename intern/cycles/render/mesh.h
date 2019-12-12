@@ -28,6 +28,7 @@
 #include "util/util_list.h"
 #include "util/util_map.h"
 #include "util/util_param.h"
+#include "util/util_set.h"
 #include "util/util_transform.h"
 #include "util/util_types.h"
 #include "util/util_vector.h"
@@ -313,6 +314,8 @@ class Mesh : public Node {
   void add_face_normals();
   void add_vertex_normals();
   void add_undisplaced();
+
+  void get_uv_tiles(ustring map, unordered_set<int> &tiles);
 
   void pack_shaders(Scene *scene, uint *shader);
   void pack_normals(float4 *vnormal);

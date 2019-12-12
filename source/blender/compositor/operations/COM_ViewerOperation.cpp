@@ -153,7 +153,8 @@ void ViewerOperation::initImage()
     if (ibuf->x > 0 && ibuf->y > 0) {
       imb_addrectfloatImBuf(ibuf);
     }
-    ima->ok = IMA_OK_LOADED;
+    ImageTile *tile = BKE_image_get_tile(ima, 0);
+    tile->ok = IMA_OK_LOADED;
 
     ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   }

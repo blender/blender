@@ -1063,6 +1063,44 @@ class IMAGE_PT_render_slots(Panel):
         col.operator("image.clear_render_slot", icon='X', text="")
 
 
+class IMAGE_UL_udim_tiles(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        tile = item
+        layout.prop(tile, "label", text="", emboss=False)
+
+
+class IMAGE_PT_udim_tiles(Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Image"
+    bl_label = "UDIM Tiles"
+
+    @classmethod
+    def poll(cls, context):
+        sima = context.space_data
+        return (sima and sima.image and sima.image.source == 'TILED')
+
+    def draw(self, context):
+        layout = self.layout
+
+        sima = context.space_data
+        ima = sima.image
+
+        row = layout.row()
+        col = row.column()
+        col.template_list("IMAGE_UL_udim_tiles", "", ima, "tiles", ima.tiles, "active_index", rows=4)
+
+        col = row.column()
+        sub = col.column(align=True)
+        sub.operator("image.tile_add", icon='ADD', text="")
+        sub.operator("image.tile_remove", icon='REMOVE', text="")
+
+        tile = ima.tiles.active
+        if tile:
+            col = layout.column(align=True)
+            col.operator("image.tile_fill")
+
+
 class IMAGE_PT_paint(Panel, ImagePaintPanel):
     bl_label = "Brush"
     bl_context = ".paint_common_2d"
@@ -1690,6 +1728,28 @@ class IMAGE_PT_uv_cursor(Panel):
         col.prop(sima, "cursor_location", text="Cursor Location")
 
 
+class IMAGE_PT_udim_grid(Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "View"
+    bl_label = "UDIM Grid"
+
+    @classmethod
+    def poll(cls, context):
+        sima = context.space_data
+
+        return sima.show_uvedit and sima.image is None
+
+    def draw(self, context):
+        layout = self.layout
+
+        sima = context.space_data
+        uvedit = sima.uv_editor
+
+        col = layout.column()
+        col.prop(uvedit, "tile_grid_shape", text="Grid Shape")
+
+
 # Grease Pencil properties
 class IMAGE_PT_annotation(AnnotationDataPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -1732,6 +1792,8 @@ classes = (
     IMAGE_PT_image_properties,
     IMAGE_UL_render_slots,
     IMAGE_PT_render_slots,
+    IMAGE_UL_udim_tiles,
+    IMAGE_PT_udim_tiles,
     IMAGE_PT_view_display,
     IMAGE_PT_view_display_uv_edit_overlays,
     IMAGE_PT_view_display_uv_edit_overlays_stretch,
@@ -1758,6 +1820,7 @@ classes = (
     IMAGE_PT_scope_sample,
     IMAGE_PT_uv_cursor,
     IMAGE_PT_annotation,
+    IMAGE_PT_udim_grid,
 )
 
 

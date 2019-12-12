@@ -637,6 +637,50 @@ void Mesh::add_subd_face(int *corners, int num_corners, int shader_, bool smooth
   subd_faces.push_back_reserved(face);
 }
 
+static void get_uv_tiles_from_attribute(Attribute *attr, int num, unordered_set<int> &tiles)
+{
+  if (attr == NULL) {
+    return;
+  }
+
+  const float2 *uv = attr->data_float2();
+  for (int i = 0; i < num; i++, uv++) {
+    float u = uv->x, v = uv->y;
+    int x = (int)u, y = (int)v;
+
+    if (x < 0 || y < 0 || x >= 10) {
+      continue;
+    }
+
+    /* Be conservative in corners - precisely touching the right or upper edge of a tile
+     * should not load its right/upper neighbor as well. */
+    if (x > 0 && (u < x + 1e-6f)) {
+      x--;
+    }
+    if (y > 0 && (v < y + 1e-6f)) {
+      y--;
+    }
+
+    tiles.insert(1001 + 10 * y + x);
+  }
+}
+
+void Mesh::get_uv_tiles(ustring map, unordered_set<int> &tiles)
+{
+  if (map.empty()) {
+    get_uv_tiles_from_attribute(attributes.find(ATTR_STD_UV), num_triangles() * 3, tiles);
+    get_uv_tiles_from_attribute(
+        subd_attributes.find(ATTR_STD_UV), subd_face_corners.size() + num_ngons, tiles);
+    get_uv_tiles_from_attribute(curve_attributes.find(ATTR_STD_UV), num_curves(), tiles);
+  }
+  else {
+    get_uv_tiles_from_attribute(attributes.find(map), num_triangles() * 3, tiles);
+    get_uv_tiles_from_attribute(
+        subd_attributes.find(map), subd_face_corners.size() + num_ngons, tiles);
+    get_uv_tiles_from_attribute(curve_attributes.find(map), num_curves(), tiles);
+  }
+}
+
 void Mesh::compute_bounds()
 {
   BoundBox bnds = BoundBox::empty;
@@ -2085,8 +2129,7 @@ void MeshManager::device_update_displacement_images(Device *device,
           }
 
           ImageSlotTextureNode *image_node = static_cast<ImageSlotTextureNode *>(node);
-          int slot = image_node->slot;
-          if (slot != -1) {
+          foreach (int slot, image_node->slots) {
             bump_images.insert(slot);
           }
         }

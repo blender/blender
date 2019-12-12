@@ -1947,7 +1947,7 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 
   /* if no clip, nothing to do */
   if (!clip) {
-    ED_region_grid_draw(ar, zoomx, zoomy);
+    ED_region_grid_draw(ar, zoomx, zoomy, 0.0f, 0.0f);
     return;
   }
 
@@ -1994,7 +1994,7 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
     draw_movieclip_muted(ar, width, height, zoomx, zoomy);
   }
   else {
-    ED_region_grid_draw(ar, zoomx, zoomy);
+    ED_region_grid_draw(ar, zoomx, zoomy, 0.0f, 0.0f);
   }
 
   if (width && height) {

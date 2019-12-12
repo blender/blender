@@ -36,15 +36,25 @@ void ED_keymap_paint(struct wmKeyConfig *keyconf);
 
 /* paint_image.c */
 void ED_imapaint_clear_partial_redraw(void);
-void ED_imapaint_dirty_region(
-    struct Image *ima, struct ImBuf *ibuf, int x, int y, int w, int h, bool find_old);
-void ED_imapaint_bucket_fill(struct bContext *C, float color[3], struct wmOperator *op);
+void ED_imapaint_dirty_region(struct Image *ima,
+                              struct ImBuf *ibuf,
+                              int tile_number,
+                              int x,
+                              int y,
+                              int w,
+                              int h,
+                              bool find_old);
+void ED_imapaint_bucket_fill(struct bContext *C,
+                             float color[3],
+                             struct wmOperator *op,
+                             const int mouse[2]);
 
 /* image_undo.c */
 void ED_image_undo_push_begin(const char *name, int paint_mode);
 void ED_image_undo_push_begin_with_image(const char *name,
                                          struct Image *image,
-                                         struct ImBuf *ibuf);
+                                         struct ImBuf *ibuf,
+                                         int tile_number);
 
 void ED_image_undo_push_end(void);
 void ED_image_undo_restore(struct UndoStep *us);
@@ -54,6 +64,7 @@ void ED_image_undosys_type(struct UndoType *ut);
 void *ED_image_paint_tile_find(struct ListBase *undo_tiles,
                                struct Image *ima,
                                struct ImBuf *ibuf,
+                               int tile_number,
                                int x_tile,
                                int y_tile,
                                unsigned short **r_mask,
@@ -62,6 +73,7 @@ void *ED_image_paint_tile_push(struct ListBase *undo_tiles,
                                struct Image *ima,
                                struct ImBuf *ibuf,
                                struct ImBuf **tmpibuf,
+                               int tile_number,
                                int x_tile,
                                int y_tile,
                                unsigned short **r_mask,

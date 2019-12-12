@@ -89,6 +89,10 @@ void IMAGE_OT_read_viewlayers(struct wmOperatorType *ot);
 void IMAGE_OT_render_border(struct wmOperatorType *ot);
 void IMAGE_OT_clear_render_border(struct wmOperatorType *ot);
 
+void IMAGE_OT_tile_add(struct wmOperatorType *ot);
+void IMAGE_OT_tile_remove(struct wmOperatorType *ot);
+void IMAGE_OT_tile_fill(struct wmOperatorType *ot);
+
 /* image_panels.c */
 struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);
 void image_buttons_register(struct ARegionType *art);

@@ -33,6 +33,7 @@ struct ImBuf;
 struct Image;
 struct ImageFormatData;
 struct ImagePool;
+struct ImageTile;
 struct ImbFormatOptions;
 struct Main;
 struct Object;
@@ -43,6 +44,7 @@ struct StampData;
 struct anim;
 
 #define IMA_MAX_SPACE 64
+#define IMA_UDIM_MAX 1999
 
 void BKE_images_init(void);
 void BKE_images_exit(void);
@@ -206,7 +208,8 @@ struct Image *BKE_image_add_generated(struct Main *bmain,
                                       short gen_type,
                                       const float color[4],
                                       const bool stereo3d,
-                                      const bool is_data);
+                                      const bool is_data,
+                                      const bool tiled);
 /* adds image from imbuf, owns imbuf */
 struct Image *BKE_image_add_from_imbuf(struct Main *bmain, struct ImBuf *ibuf, const char *name);
 
@@ -302,6 +305,32 @@ bool BKE_image_has_alpha(struct Image *image);
 /* check if texture has gpu texture code */
 bool BKE_image_has_opengl_texture(struct Image *ima);
 
+/* get tile index for tiled images */
+void BKE_image_get_tile_label(struct Image *ima,
+                              struct ImageTile *tile,
+                              char *label,
+                              int len_label);
+
+struct ImageTile *BKE_image_add_tile(struct Image *ima, int tile_number, const char *label);
+bool BKE_image_remove_tile(struct Image *ima, struct ImageTile *tile);
+
+bool BKE_image_fill_tile(struct Image *ima,
+                         struct ImageTile *tile,
+                         int width,
+                         int height,
+                         const float color[4],
+                         int gen_type,
+                         int planes,
+                         bool is_float);
+
+struct ImageTile *BKE_image_get_tile(struct Image *ima, int tile_number);
+struct ImageTile *BKE_image_get_tile_from_iuser(struct Image *ima, struct ImageUser *iuser);
+
+int BKE_image_get_tile_from_pos(struct Image *ima,
+                                const float uv[2],
+                                float new_uv[2],
+                                float ofs[2]);
+
 void BKE_image_get_size(struct Image *image, struct ImageUser *iuser, int *width, int *height);
 void BKE_image_get_size_fl(struct Image *image, struct ImageUser *iuser, float size[2]);
 void BKE_image_get_aspect(struct Image *image, float *aspx, float *aspy);
@@ -316,8 +345,8 @@ void BKE_image_buf_fill_checker_color(unsigned char *rect,
                                       int height);
 
 /* Cycles hookup */
-unsigned char *BKE_image_get_pixels_for_frame(struct Image *image, int frame);
-float *BKE_image_get_float_pixels_for_frame(struct Image *image, int frame);
+unsigned char *BKE_image_get_pixels_for_frame(struct Image *image, int frame, int tile);
+float *BKE_image_get_float_pixels_for_frame(struct Image *image, int frame, int tile);
 
 /* Image modifications */
 bool BKE_image_is_dirty(struct Image *image);
@@ -331,6 +360,7 @@ bool BKE_image_has_anim(struct Image *image);
 bool BKE_image_has_packedfile(struct Image *image);
 bool BKE_image_has_filepath(struct Image *ima);
 bool BKE_image_is_animated(struct Image *image);
+bool BKE_image_has_multiple_ibufs(struct Image *image);
 void BKE_image_file_format_set(struct Image *image,
                                int ftype,
                                const struct ImbFormatOptions *options);

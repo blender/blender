@@ -119,6 +119,20 @@ static bScreen *screen_parent_find(const bScreen *screen)
   return NULL;
 }
 
+static int cmp_image_tile(const void *a, const void *b)
+{
+  const ImageTile *tile_a = a;
+  const ImageTile *tile_b = b;
+
+  if (tile_a->tile_number < tile_b->tile_number) {
+    return -1;
+  }
+  if (tile_a->tile_number > tile_b->tile_number) {
+    return 1;
+  }
+  return 0;
+}
+
 static void do_version_workspaces_create_from_screens(Main *bmain)
 {
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
@@ -4289,6 +4303,31 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           clmd->sim_parms->internal_compression = 15.0f;
           clmd->sim_parms->max_internal_compression = 15.0f;
           clmd->sim_parms->internal_spring_max_diversion = M_PI / 4.0f;
+        }
+      }
+    }
+
+    /* Add primary tile to images. */
+    if (!DNA_struct_elem_find(fd->filesdna, "Image", "ListBase", "tiles")) {
+      for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
+        ImageTile *tile = MEM_callocN(sizeof(ImageTile), "Image Tile");
+        tile->ok = 1;
+        tile->tile_number = 1001;
+        BLI_addtail(&ima->tiles, tile);
+      }
+    }
+
+    /* UDIM Image Editor change. */
+    if (!DNA_struct_elem_find(fd->filesdna, "SpaceImage", "int", "tile_grid_shape[2]")) {
+      for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+        for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+          for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+            if (sl->spacetype == SPACE_IMAGE) {
+              SpaceImage *sima = (SpaceImage *)sl;
+              sima->tile_grid_shape[0] = 1;
+              sima->tile_grid_shape[1] = 1;
+            }
+          }
         }
       }
     }

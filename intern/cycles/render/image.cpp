@@ -630,6 +630,7 @@ bool ImageManager::file_load_image(Image *img,
     if (FileFormat == TypeDesc::FLOAT) {
       builtin_image_float_pixels_cb(img->filename,
                                     img->builtin_data,
+                                    0, /* TODO(lukas): Support tiles here? */
                                     (float *)&pixels[0],
                                     num_pixels * components,
                                     image_associate_alpha(img),
@@ -638,6 +639,7 @@ bool ImageManager::file_load_image(Image *img,
     else if (FileFormat == TypeDesc::UINT8) {
       builtin_image_pixels_cb(img->filename,
                               img->builtin_data,
+                              0, /* TODO(lukas): Support tiles here? */
                               (uchar *)&pixels[0],
                               num_pixels * components,
                               image_associate_alpha(img),

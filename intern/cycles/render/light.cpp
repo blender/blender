@@ -575,7 +575,8 @@ void LightManager::device_update_background(Device *device,
       if (node->type == EnvironmentTextureNode::node_type) {
         EnvironmentTextureNode *env = (EnvironmentTextureNode *)node;
         ImageMetaData metadata;
-        if (env->image_manager && env->image_manager->get_image_metadata(env->slot, metadata)) {
+        if (env->image_manager && !env->slots.empty() &&
+            env->image_manager->get_image_metadata(env->slots[0], metadata)) {
           res.x = max(res.x, metadata.width);
           res.y = max(res.y, metadata.height);
         }

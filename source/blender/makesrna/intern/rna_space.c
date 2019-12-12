@@ -1404,7 +1404,7 @@ static const EnumPropertyItem *rna_SpaceImageEditor_display_channels_itemf(
   void *lock;
   int zbuf, alpha, totitem = 0;
 
-  ibuf = ED_space_image_acquire_buffer(sima, &lock);
+  ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
 
   alpha = ibuf && (ibuf->channels == 4);
   zbuf = ibuf && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1));
@@ -1512,7 +1512,8 @@ static void rna_SpaceImageEditor_scopes_update(struct bContext *C, struct Pointe
   ImBuf *ibuf;
   void *lock;
 
-  ibuf = ED_space_image_acquire_buffer(sima, &lock);
+  /* TODO(lukas): Support tiles in scopes? */
+  ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
   if (ibuf) {
     ED_space_image_scopes_update(C, sima, ibuf, true);
     WM_main_add_notifier(NC_IMAGE, sima->image);
@@ -2801,6 +2802,15 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_faces", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SI_NO_DRAWFACES);
   RNA_def_property_ui_text(prop, "Display Faces", "Display faces over the image");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
+
+  prop = RNA_def_property(srna, "tile_grid_shape", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "tile_grid_shape");
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_int_default(prop, 1);
+  RNA_def_property_range(prop, 1, 10);
+  RNA_def_property_ui_text(
+      prop, "Tile Grid Shape", "How many tiles will be shown in the background");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
   /* todo: move edge and face drawing options here from G.f */

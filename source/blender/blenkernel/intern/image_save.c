@@ -144,7 +144,7 @@ static void imbuf_save_post(ImBuf *ibuf, ImBuf *colormanaged_ibuf)
  * \note ``ima->name`` and ``ibuf->name`` should end up the same.
  * \note for multiview the first ``ibuf`` is important to get the settings.
  */
-bool BKE_image_save(
+static bool image_save_single(
     ReportList *reports, Main *bmain, Image *ima, ImageUser *iuser, ImageSaveOptions *opts)
 {
   void *lock;
@@ -388,6 +388,58 @@ bool BKE_image_save(
 cleanup:
   if (rr) {
     BKE_image_release_renderresult(opts->scene, ima);
+  }
+
+  return ok;
+}
+
+bool BKE_image_save(
+    ReportList *reports, Main *bmain, Image *ima, ImageUser *iuser, ImageSaveOptions *opts)
+{
+  ImageUser save_iuser;
+  BKE_imageuser_default(&save_iuser);
+
+  if (ima->source == IMA_SRC_TILED) {
+    /* Verify filepath for tiles images. */
+    if (BLI_stringdec(opts->filepath, NULL, NULL, NULL) != 1001) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "When saving a tiled image, the path '%s' must contain the UDIM tag 1001",
+                  opts->filepath);
+      return false;
+    }
+
+    /* For saving a tiled image we need an iuser, so use a local one if there isn't already one. */
+    if (iuser == NULL) {
+      iuser = &save_iuser;
+    }
+  }
+
+  /* Save image - or, for tiled images, the first tile. */
+  bool ok = image_save_single(reports, bmain, ima, iuser, opts);
+
+  if (ok && ima->source == IMA_SRC_TILED) {
+    char filepath[FILE_MAX];
+    BLI_strncpy(filepath, opts->filepath, sizeof(filepath));
+
+    char head[FILE_MAX], tail[FILE_MAX];
+    unsigned short numlen;
+    BLI_stringdec(filepath, head, tail, &numlen);
+
+    /* Save all other tiles. */
+    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+      /* Tile 1001 was already saved before the loop. */
+      if (tile->tile_number == 1001 || !ok) {
+        continue;
+      }
+
+      /* Build filepath of the tile. */
+      BLI_stringenc(opts->filepath, head, tail, numlen, tile->tile_number);
+
+      iuser->tile = tile->tile_number;
+      ok = ok && image_save_single(reports, bmain, ima, iuser, opts);
+    }
+    BLI_strncpy(opts->filepath, filepath, sizeof(opts->filepath));
   }
 
   return ok;

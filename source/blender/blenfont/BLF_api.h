@@ -67,6 +67,8 @@ void BLF_size(int fontid, int size, int dpi);
 void BLF_color4ubv(int fontid, const unsigned char rgba[4]);
 void BLF_color3ubv(int fontid, const unsigned char rgb[3]);
 void BLF_color3ubv_alpha(int fontid, const unsigned char rgb[3], unsigned char alpha);
+void BLF_color4ub(
+    int fontid, unsigned char r, unsigned char g, unsigned char b, unsigned char alpha);
 void BLF_color3ub(int fontid, unsigned char r, unsigned char g, unsigned char b);
 void BLF_color4f(int fontid, float r, float g, float b, float a);
 void BLF_color4fv(int fontid, const float rgba[4]);

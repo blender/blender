@@ -57,9 +57,9 @@ void SVMShaderManager::device_update_shader(Scene *scene,
   svm_nodes->push_back_slow(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
 
   SVMCompiler::Summary summary;
-  SVMCompiler compiler(scene->shader_manager, scene->image_manager, scene->light_manager);
+  SVMCompiler compiler(scene);
   compiler.background = (shader == scene->default_background);
-  compiler.compile(scene, shader, *svm_nodes, 0, &summary);
+  compiler.compile(shader, *svm_nodes, 0, &summary);
 
   VLOG(2) << "Compilation summary:\n"
           << "Shader name: " << shader->name << "\n"
@@ -169,13 +169,8 @@ void SVMShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *s
 
 /* Graph Compiler */
 
-SVMCompiler::SVMCompiler(ShaderManager *shader_manager_,
-                         ImageManager *image_manager_,
-                         LightManager *light_manager_)
+SVMCompiler::SVMCompiler(Scene *scene) : scene(scene)
 {
-  shader_manager = shader_manager_;
-  image_manager = image_manager_;
-  light_manager = light_manager_;
   max_stack_use = 0;
   current_type = SHADER_TYPE_SURFACE;
   current_shader = NULL;
@@ -408,12 +403,12 @@ void SVMCompiler::add_node(const float4 &f)
 
 uint SVMCompiler::attribute(ustring name)
 {
-  return shader_manager->get_attribute_id(name);
+  return scene->shader_manager->get_attribute_id(name);
 }
 
 uint SVMCompiler::attribute(AttributeStandard std)
 {
-  return shader_manager->get_attribute_id(std);
+  return scene->shader_manager->get_attribute_id(std);
 }
 
 uint SVMCompiler::attribute_standard(ustring name)
@@ -838,8 +833,7 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
   }
 }
 
-void SVMCompiler::compile(
-    Scene *scene, Shader *shader, array<int4> &svm_nodes, int index, Summary *summary)
+void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Summary *summary)
 {
   /* copy graph for shader with bump mapping */
   ShaderNode *output = shader->graph->output();

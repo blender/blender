@@ -20,6 +20,11 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint flags)
 {
+  if (id == -1) {
+    return make_float4(
+        TEX_IMAGE_MISSING_R, TEX_IMAGE_MISSING_G, TEX_IMAGE_MISSING_B, TEX_IMAGE_MISSING_A);
+  }
+
   float4 r = kernel_tex_image_interp(kg, id, x, y);
   const float alpha = r.w;
 
@@ -45,9 +50,9 @@ ccl_device_inline float3 texco_remap_square(float3 co)
   return (co - make_float3(0.5f, 0.5f, 0.5f)) * 2.0f;
 }
 
-ccl_device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+ccl_device void svm_node_tex_image(
+    KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
-  uint id = node.y;
   uint co_offset, out_offset, alpha_offset, flags;
 
   svm_unpack_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &flags);
@@ -65,6 +70,50 @@ ccl_device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *sta
   else {
     tex_co = make_float2(co.x, co.y);
   }
+
+  /* TODO(lukas): Consider moving tile information out of the SVM node.
+   * TextureInfo seems a reasonable candidate. */
+  int id = -1;
+  int num_nodes = (int)node.y;
+  if (num_nodes > 0) {
+    /* Remember the offset of the node following the tile nodes. */
+    int next_offset = (*offset) + num_nodes;
+
+    /* Find the tile that the UV lies in. */
+    int tx = (int)tex_co.x;
+    int ty = (int)tex_co.y;
+
+    /* Check that we're within a legitimate tile. */
+    if (tx >= 0 && ty >= 0 && tx < 10) {
+      int tile = 1001 + 10 * ty + tx;
+
+      /* Find the index of the tile. */
+      for (int i = 0; i < num_nodes; i++) {
+        uint4 tile_node = read_node(kg, offset);
+        if (tile_node.x == tile) {
+          id = tile_node.y;
+          break;
+        }
+        if (tile_node.z == tile) {
+          id = tile_node.w;
+          break;
+        }
+      }
+
+      /* If we found the tile, offset the UVs to be relative to it. */
+      if (id != -1) {
+        tex_co.x -= tx;
+        tex_co.y -= ty;
+      }
+    }
+
+    /* Skip over the remaining nodes. */
+    *offset = next_offset;
+  }
+  else {
+    id = -num_nodes;
+  }
+
   float4 f = svm_image_texture(kg, id, tex_co.x, tex_co.y, flags);
 
   if (stack_valid(out_offset))

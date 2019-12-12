@@ -142,7 +142,7 @@ typedef enum eGPUMaterialStatus {
 GPUNodeLink *GPU_attribute(CustomDataType type, const char *name);
 GPUNodeLink *GPU_constant(float *num);
 GPUNodeLink *GPU_uniform(float *num);
-GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser);
+GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser, int tile);
 GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *layer);
 GPUNodeLink *GPU_builtin(eGPUBuiltin builtin);
 

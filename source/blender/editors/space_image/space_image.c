@@ -134,6 +134,9 @@ static SpaceLink *image_new(const ScrArea *UNUSED(area), const Scene *UNUSED(sce
   BKE_scopes_new(&simage->scopes);
   simage->sample_line_hist.height = 100;
 
+  simage->tile_grid_shape[0] = 1;
+  simage->tile_grid_shape[1] = 1;
+
   /* tool header */
   ar = MEM_callocN(sizeof(ARegion), "tool header for image");
 
@@ -246,6 +249,10 @@ static void image_operatortypes(void)
   WM_operatortype_append(IMAGE_OT_read_viewlayers);
   WM_operatortype_append(IMAGE_OT_render_border);
   WM_operatortype_append(IMAGE_OT_clear_render_border);
+
+  WM_operatortype_append(IMAGE_OT_tile_add);
+  WM_operatortype_append(IMAGE_OT_tile_remove);
+  WM_operatortype_append(IMAGE_OT_tile_fill);
 }
 
 static void image_keymap(struct wmKeyConfig *keyconf)
@@ -783,7 +790,8 @@ static void image_buttons_region_draw(const bContext *C, ARegion *ar)
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
   void *lock;
-  ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
+  /* TODO(lukas): Support tiles in scopes? */
+  ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
   /* XXX performance regression if name of scopes category changes! */
   PanelCategoryStack *category = UI_panel_category_active_find(ar, "Scopes");
 

@@ -120,7 +120,7 @@ void ED_region_info_draw_multiline(ARegion *ar,
 void ED_region_image_metadata_draw(
     int x, int y, struct ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy);
 void ED_region_image_metadata_panel_draw(struct ImBuf *ibuf, struct uiLayout *layout);
-void ED_region_grid_draw(struct ARegion *ar, float zoomx, float zoomy);
+void ED_region_grid_draw(struct ARegion *ar, float zoomx, float zoomy, float x0, float y0);
 float ED_region_blend_alpha(struct ARegion *ar);
 void ED_region_visible_rect_calc(struct ARegion *ar, struct rcti *rect);
 const rcti *ED_region_visible_rect(ARegion *ar);

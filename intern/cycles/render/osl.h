@@ -131,10 +131,9 @@ class OSLCompiler {
   OSLCompiler(OSLShaderManager *manager,
               OSLRenderServices *services,
               OSL::ShadingSystem *shadingsys,
-              ImageManager *image_manager,
-              LightManager *light_manager);
+              Scene *scene);
 #endif
-  void compile(Scene *scene, OSLGlobals *og, Shader *shader);
+  void compile(OSLGlobals *og, Shader *shader);
 
   void add(ShaderNode *node, const char *name, bool isfilepath = false);
 
@@ -165,8 +164,7 @@ class OSLCompiler {
   }
 
   bool background;
-  ImageManager *image_manager;
-  LightManager *light_manager;
+  Scene *scene;
 
  private:
 #ifdef WITH_OSL

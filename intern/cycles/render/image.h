@@ -130,6 +130,7 @@ class ImageManager {
       builtin_image_info_cb;
   function<bool(const string &filename,
                 void *data,
+                int tile,
                 unsigned char *pixels,
                 const size_t pixels_size,
                 const bool associate_alpha,
@@ -137,6 +138,7 @@ class ImageManager {
       builtin_image_pixels_cb;
   function<bool(const string &filename,
                 void *data,
+                int tile,
                 float *pixels,
                 const size_t pixels_size,
                 const bool associate_alpha,

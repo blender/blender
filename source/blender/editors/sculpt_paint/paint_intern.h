@@ -186,6 +186,7 @@ bool image_texture_paint_poll(struct bContext *C);
 void imapaint_image_update(struct SpaceImage *sima,
                            struct Image *image,
                            struct ImBuf *ibuf,
+                           struct ImageUser *iuser,
                            short texpaint);
 struct ImagePaintPartialRedraw *get_imapaintpartial(void);
 void set_imapaintpartial(struct ImagePaintPartialRedraw *ippr);
@@ -206,6 +207,7 @@ void paint_2d_bucket_fill(const struct bContext *C,
                           const float color[3],
                           struct Brush *br,
                           const float mouse_init[2],
+                          const float mouse_final[2],
                           void *ps);
 void paint_2d_gradient_fill(const struct bContext *C,
                             struct Brush *br,

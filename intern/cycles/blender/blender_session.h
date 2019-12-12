@@ -157,12 +157,14 @@ class BlenderSession {
   void builtin_image_info(const string &builtin_name, void *builtin_data, ImageMetaData &metadata);
   bool builtin_image_pixels(const string &builtin_name,
                             void *builtin_data,
+                            int tile,
                             unsigned char *pixels,
                             const size_t pixels_size,
                             const bool associate_alpha,
                             const bool free_cache);
   bool builtin_image_float_pixels(const string &builtin_name,
                                   void *builtin_data,
+                                  int tile,
                                   float *pixels,
                                   const size_t pixels_size,
                                   const bool associate_alpha,

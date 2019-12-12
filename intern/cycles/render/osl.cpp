@@ -118,9 +118,9 @@ void OSLShaderManager::device_update(Device *device,
      * compile shaders alternating */
     thread_scoped_lock lock(ss_mutex);
 
-    OSLCompiler compiler(this, services, ss, scene->image_manager, scene->light_manager);
+    OSLCompiler compiler(this, services, ss, scene);
     compiler.background = (shader == scene->default_background);
-    compiler.compile(scene, og, shader);
+    compiler.compile(og, shader);
 
     if (shader->use_mis && shader->has_surface_emission)
       scene->light_manager->need_update = true;
@@ -566,13 +566,8 @@ OSLNode *OSLShaderManager::osl_node(const std::string &filepath,
 OSLCompiler::OSLCompiler(OSLShaderManager *manager,
                          OSLRenderServices *services,
                          OSL::ShadingSystem *ss,
-                         ImageManager *image_manager,
-                         LightManager *light_manager)
-    : image_manager(image_manager),
-      light_manager(light_manager),
-      manager(manager),
-      services(services),
-      ss(ss)
+                         Scene *scene)
+    : scene(scene), manager(manager), services(services), ss(ss)
 {
   current_type = SHADER_TYPE_SURFACE;
   current_shader = NULL;
@@ -1114,7 +1109,7 @@ OSL::ShaderGroupRef OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph
   return group;
 }
 
-void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
+void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 {
   if (shader->need_update) {
     ShaderGraph *graph = shader->graph;

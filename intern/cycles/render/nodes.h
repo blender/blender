@@ -77,14 +77,17 @@ class ImageSlotTextureNode : public TextureNode {
   explicit ImageSlotTextureNode(const NodeType *node_type) : TextureNode(node_type)
   {
     special_type = SHADER_SPECIAL_TYPE_IMAGE_SLOT;
+    image_manager = NULL;
   }
-  int slot;
+  ~ImageSlotTextureNode();
+  void add_image_user() const;
+  ImageManager *image_manager;
+  vector<int> slots;
 };
 
 class ImageTextureNode : public ImageSlotTextureNode {
  public:
   SHADER_NODE_NO_CLONE_CLASS(ImageTextureNode)
-  ~ImageTextureNode();
   ShaderNode *clone() const;
   void attributes(Shader *shader, AttributeRequestSet *attributes);
   bool has_attribute_dependency()
@@ -110,18 +113,20 @@ class ImageTextureNode : public ImageSlotTextureNode {
   float projection_blend;
   bool animated;
   float3 vector;
+  ccl::vector<int> tiles;
 
   /* Runtime. */
-  ImageManager *image_manager;
-  int is_float;
+  bool is_float;
   bool compress_as_srgb;
   ustring known_colorspace;
+
+ protected:
+  void cull_tiles(Scene *scene, ShaderGraph *graph);
 };
 
 class EnvironmentTextureNode : public ImageSlotTextureNode {
  public:
   SHADER_NODE_NO_CLONE_CLASS(EnvironmentTextureNode)
-  ~EnvironmentTextureNode();
   ShaderNode *clone() const;
   void attributes(Shader *shader, AttributeRequestSet *attributes);
   bool has_attribute_dependency()
@@ -151,8 +156,7 @@ class EnvironmentTextureNode : public ImageSlotTextureNode {
   float3 vector;
 
   /* Runtime. */
-  ImageManager *image_manager;
-  int is_float;
+  bool is_float;
   bool compress_as_srgb;
   ustring known_colorspace;
 };

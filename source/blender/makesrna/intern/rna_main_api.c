@@ -372,14 +372,24 @@ static Image *rna_Main_images_new(Main *bmain,
                                   bool alpha,
                                   bool float_buffer,
                                   bool stereo3d,
-                                  bool is_data)
+                                  bool is_data,
+                                  bool tiled)
 {
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
   float color[4] = {0.0, 0.0, 0.0, 1.0};
-  Image *image = BKE_image_add_generated(
-      bmain, width, height, safe_name, alpha ? 32 : 24, float_buffer, 0, color, stereo3d, is_data);
+  Image *image = BKE_image_add_generated(bmain,
+                                         width,
+                                         height,
+                                         safe_name,
+                                         alpha ? 32 : 24,
+                                         float_buffer,
+                                         0,
+                                         color,
+                                         stereo3d,
+                                         is_data,
+                                         tiled);
   id_us_min(&image->id);
   return image;
 }
@@ -1146,6 +1156,7 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
       func, "float_buffer", 0, "Float Buffer", "Create an image with floating point color");
   RNA_def_boolean(func, "stereo3d", 0, "Stereo 3D", "Create left and right views");
   RNA_def_boolean(func, "is_data", 0, "Is Data", "Create image with non-color data color space");
+  RNA_def_boolean(func, "tiled", 0, "Tiled", "Create a tiled image");
   /* return type */
   parm = RNA_def_pointer(func, "image", "Image", "", "New image data-block");
   RNA_def_function_return(func, parm);

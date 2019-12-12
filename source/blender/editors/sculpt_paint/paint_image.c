@@ -119,7 +119,8 @@ void imapaint_region_tiles(
   *ty = (y >> ED_IMAGE_UNDO_TILE_BITS);
 }
 
-void ED_imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int h, bool find_old)
+void ED_imapaint_dirty_region(
+    Image *ima, ImBuf *ibuf, int tile_number, int x, int y, int w, int h, bool find_old)
 {
   ImBuf *tmpibuf = NULL;
   int tilex, tiley, tilew, tileh, tx, ty;
@@ -152,7 +153,7 @@ void ED_imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int 
   for (ty = tiley; ty <= tileh; ty++) {
     for (tx = tilex; tx <= tilew; tx++) {
       ED_image_paint_tile_push(
-          undo_tiles, ima, ibuf, &tmpibuf, tx, ty, NULL, NULL, false, find_old);
+          undo_tiles, ima, ibuf, &tmpibuf, tile_number, tx, ty, NULL, NULL, false, find_old);
     }
   }
 
@@ -163,7 +164,8 @@ void ED_imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int 
   }
 }
 
-void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
+void imapaint_image_update(
+    SpaceImage *sima, Image *image, ImBuf *ibuf, ImageUser *iuser, short texpaint)
 {
   if (imapaintpartial.x1 != imapaintpartial.x2 && imapaintpartial.y1 != imapaintpartial.y2) {
     IMB_partial_display_buffer_update_delayed(
@@ -180,8 +182,7 @@ void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short te
     int h = imapaintpartial.y2 - imapaintpartial.y1;
     if (w && h) {
       /* Testing with partial update in uv editor too */
-      GPU_paint_update_image(
-          image, (sima ? &sima->iuser : NULL), imapaintpartial.x1, imapaintpartial.y1, w, h);
+      GPU_paint_update_image(image, iuser, imapaintpartial.x1, imapaintpartial.y1, w, h);
     }
   }
 }
@@ -623,7 +624,7 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
         else {
           srgb_to_linearrgb_v3_v3(color, BKE_brush_color_get(scene, brush));
         }
-        paint_2d_bucket_fill(C, color, brush, pop->prevmouse, pop->custom_paint);
+        paint_2d_bucket_fill(C, color, brush, pop->startmouse, pop->prevmouse, pop->custom_paint);
       }
       else {
         paint_proj_stroke(C,
@@ -1297,7 +1298,10 @@ void PAINT_OT_brush_colors_flip(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-void ED_imapaint_bucket_fill(struct bContext *C, float color[3], wmOperator *op)
+void ED_imapaint_bucket_fill(struct bContext *C,
+                             float color[3],
+                             wmOperator *op,
+                             const int mouse[2])
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -1307,7 +1311,8 @@ void ED_imapaint_bucket_fill(struct bContext *C, float color[3], wmOperator *op)
 
   ED_image_undo_push_begin(op->type->name, PAINT_MODE_TEXTURE_2D);
 
-  paint_2d_bucket_fill(C, color, NULL, NULL, NULL);
+  float mouse_init[2] = {mouse[0], mouse[1]};
+  paint_2d_bucket_fill(C, color, NULL, mouse_init, NULL, NULL);
 
   BKE_undosys_step_push(wm->undo_stack, C, op->type->name);
 

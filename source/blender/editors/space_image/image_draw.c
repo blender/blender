@@ -37,6 +37,7 @@
 
 #include "PIL_time.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_threads.h"
@@ -531,6 +532,36 @@ static void sima_draw_zbuffloat_pixels(Scene *scene,
   MEM_freeN(rectf);
 }
 
+static void draw_udim_label(ARegion *ar, float fx, float fy, const char *label)
+{
+  if (label == NULL || !label[0]) {
+    return;
+  }
+
+  /* find window pixel coordinates of origin */
+  int x, y;
+  UI_view2d_view_to_region(&ar->v2d, fx, fy, &x, &y);
+
+  GPU_blend_set_func_separate(
+      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend(true);
+
+  int textwidth = BLF_width(blf_mono_font, label, strlen(label)) + 10;
+  float stepx = BLI_rcti_size_x(&ar->v2d.mask) / BLI_rctf_size_x(&ar->v2d.cur);
+  float opacity;
+  if (textwidth < 0.5f * (stepx - 10))
+    opacity = 1.0f;
+  else if (textwidth < (stepx - 10))
+    opacity = 2.0f - 2.0f * (textwidth / (stepx - 10));
+  else
+    opacity = 0.0f;
+  BLF_color4ub(blf_mono_font, 220, 220, 220, 150 * opacity);
+  BLF_position(blf_mono_font, (int)(x + 10), (int)(y + 10), 0);
+  BLF_draw_ascii(blf_mono_font, label, strlen(label));
+
+  GPU_blend(false);
+}
+
 static void draw_image_buffer(const bContext *C,
                               SpaceImage *sima,
                               ARegion *ar,
@@ -760,6 +791,83 @@ static void draw_image_paint_helpers(
   }
 }
 
+static void draw_udim_tile_grid(unsigned int pos_attr,
+                                unsigned int color_attr,
+                                ARegion *ar,
+                                int x,
+                                int y,
+                                float stepx,
+                                float stepy,
+                                const float color[3])
+{
+  float x1, y1;
+  UI_view2d_view_to_region_fl(&ar->v2d, x, y, &x1, &y1);
+  int gridpos[5][2] = {{0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0}};
+  for (int i = 0; i < 4; i++) {
+    immAttr3fv(color_attr, color);
+    immVertex2f(pos_attr, x1 + gridpos[i][0] * stepx, y1 + gridpos[i][1] * stepy);
+    immAttr3fv(color_attr, color);
+    immVertex2f(pos_attr, x1 + gridpos[i + 1][0] * stepx, y1 + gridpos[i + 1][1] * stepy);
+  }
+}
+
+static void draw_udim_tile_grids(ARegion *ar, SpaceImage *sima, Image *ima)
+{
+  int num_tiles;
+  if (ima != NULL) {
+    num_tiles = BLI_listbase_count(&ima->tiles);
+
+    if (ima->source != IMA_SRC_TILED) {
+      return;
+    }
+  }
+  else {
+    num_tiles = sima->tile_grid_shape[0] * sima->tile_grid_shape[1];
+  }
+
+  float stepx = BLI_rcti_size_x(&ar->v2d.mask) / BLI_rctf_size_x(&ar->v2d.cur);
+  float stepy = BLI_rcti_size_y(&ar->v2d.mask) / BLI_rctf_size_y(&ar->v2d.cur);
+
+  GPUVertFormat *format = immVertexFormat();
+  unsigned int pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  unsigned color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
+  immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+  immBegin(GPU_PRIM_LINES, 8 * num_tiles);
+
+  float theme_color[3], selected_color[3];
+  UI_GetThemeColorShade3fv(TH_BACK, 60.0f, theme_color);
+  UI_GetThemeColor3fv(TH_FACE_SELECT, selected_color);
+
+  if (ima != NULL) {
+    ImageTile *cur_tile = BLI_findlink(&ima->tiles, ima->active_tile_index);
+
+    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+      if (tile != cur_tile) {
+        int x = (tile->tile_number - 1001) % 10;
+        int y = (tile->tile_number - 1001) / 10;
+        draw_udim_tile_grid(pos, color, ar, x, y, stepx, stepy, theme_color);
+      }
+    }
+
+    if (cur_tile != NULL) {
+      int cur_x = (cur_tile->tile_number - 1001) % 10;
+      int cur_y = (cur_tile->tile_number - 1001) / 10;
+      draw_udim_tile_grid(pos, color, ar, cur_x, cur_y, stepx, stepy, selected_color);
+    }
+  }
+  else {
+    for (int y = 0; y < sima->tile_grid_shape[1]; y++) {
+      for (int x = 0; x < sima->tile_grid_shape[0]; x++) {
+        draw_udim_tile_grid(pos, color, ar, x, y, stepx, stepy, theme_color);
+      }
+    }
+  }
+
+  immEnd();
+  immUnbindProgram();
+}
+
 /* draw main image region */
 
 void draw_image_main(const bContext *C, ARegion *ar)
@@ -827,18 +935,43 @@ void draw_image_main(const bContext *C, ARegion *ar)
     }
   }
 
-  ibuf = ED_space_image_acquire_buffer(sima, &lock);
+  ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
+
+  int main_w = 0;
+  int main_h = 0;
 
   /* draw the image or grid */
   if (ibuf == NULL) {
-    ED_region_grid_draw(ar, zoomx, zoomy);
+    if (ima != NULL) {
+      LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+        int x = (tile->tile_number - 1001) % 10;
+        int y = (tile->tile_number - 1001) / 10;
+        ED_region_grid_draw(ar, zoomx, zoomy, x, y);
+      }
+    }
+    else {
+      for (int y = 0; y < sima->tile_grid_shape[1]; y++) {
+        for (int x = 0; x < sima->tile_grid_shape[0]; x++) {
+          ED_region_grid_draw(ar, zoomx, zoomy, x, y);
+        }
+      }
+    }
   }
   else {
     if (sima->flag & SI_DRAW_TILE) {
       draw_image_buffer_repeated(C, sima, ar, scene, ibuf, zoomx, zoomy);
     }
     else {
+      main_w = ibuf->x;
+      main_h = ibuf->y;
+
       draw_image_buffer(C, sima, ar, scene, ibuf, 0.0f, 0.0f, zoomx, zoomy);
+      if (ima->source == IMA_SRC_TILED) {
+        ImageTile *tile = BKE_image_get_tile(ima, 0);
+        char label[sizeof(tile->label)];
+        BKE_image_get_tile_label(ima, tile, label, sizeof(label));
+        draw_udim_label(ar, 0.0f, 0.0f, label);
+      }
     }
 
     if (sima->flag & SI_DRAW_METADATA) {
@@ -853,6 +986,30 @@ void draw_image_main(const bContext *C, ARegion *ar)
   }
 
   ED_space_image_release_buffer(sima, ibuf, lock);
+
+  if (ima != NULL && ima->source == IMA_SRC_TILED) {
+    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+      if (tile->tile_number == 1001) {
+        continue;
+      }
+
+      ibuf = ED_space_image_acquire_buffer(sima, &lock, tile->tile_number);
+      if (ibuf != NULL) {
+        int x_pos = (tile->tile_number - 1001) % 10;
+        int y_pos = (tile->tile_number - 1001) / 10;
+        char label[sizeof(tile->label)];
+        BKE_image_get_tile_label(ima, tile, label, sizeof(label));
+
+        float tile_zoomx = (zoomx * main_w) / ibuf->x;
+        float tile_zoomy = (zoomy * main_h) / ibuf->y;
+        draw_image_buffer(C, sima, ar, scene, ibuf, x_pos, y_pos, tile_zoomx, tile_zoomy);
+        draw_udim_label(ar, x_pos, y_pos, label);
+      }
+      ED_space_image_release_buffer(sima, ibuf, lock);
+    }
+  }
+
+  draw_udim_tile_grids(ar, sima, ima);
 
   /* paint helpers */
   if (show_paint) {

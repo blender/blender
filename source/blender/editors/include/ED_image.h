@@ -50,7 +50,7 @@ bool ED_space_image_color_sample(struct SpaceImage *sima,
                                  struct ARegion *ar,
                                  int mval[2],
                                  float r_col[3]);
-struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **r_lock);
+struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **r_lock, int tile);
 void ED_space_image_release_buffer(struct SpaceImage *sima, struct ImBuf *ibuf, void *lock);
 bool ED_space_image_has_buffer(struct SpaceImage *sima);
 
