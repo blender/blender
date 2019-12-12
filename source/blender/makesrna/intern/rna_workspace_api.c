@@ -63,8 +63,8 @@ static void rna_WorkSpaceTool_setup(ID *id,
   STRNCPY(tref_rt.op, op_idname);
   tref_rt.index = index;
 
-  STRNCPY(tref_rt.idname_fallback, idname_fallback ? idname_fallback : NULL);
-  STRNCPY(tref_rt.keymap_fallback, keymap_fallback ? keymap_fallback : NULL);
+  STRNCPY(tref_rt.idname_fallback, idname_fallback);
+  STRNCPY(tref_rt.keymap_fallback, keymap_fallback);
 
   WM_toolsystem_ref_set_from_runtime(C, (WorkSpace *)id, tref, &tref_rt, idname);
 }

@@ -929,9 +929,8 @@ def _activate_by_item(context, space_type, item, index, *, as_fallback=False):
         data_block=item.data_block or "",
         operator=item.operator or "",
         index=index,
-
-        idname_fallback=item_fallback.idname if item_fallback else "",
-        keymap_fallback=item_fallback.keymap[0] if (item_fallback and item_fallback.keymap) else "",
+        idname_fallback=(item_fallback and item_fallback.idname) or "",
+        keymap_fallback=(item_fallback and item_fallback.keymap and item_fallback.keymap[0]) or "",
     )
 
     WindowManager = bpy.types.WindowManager
