@@ -3727,12 +3727,12 @@ wmKeyMap *WM_event_get_keymap_from_toolsystem(wmWindowManager *wm, wmEventHandle
   ScrArea *sa = handler->dynamic.user_data;
   handler->keymap_tool = NULL;
   bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
-  if (tref_rt && tref_rt->keymap[0]) {
+  if (tref_rt && (tref_rt->keymap[0] || tref_rt->keymap_fallback[0])) {
     const char *keymap_id = tref_rt->keymap;
 
     /* Support for the gizmo owning the tool keymap. */
     if (USER_EXPEREMENTAL_TEST(&U, use_tool_fallback)) {
-      if (tref_rt->gizmo_group[0] != '\0') {
+      if (tref_rt->gizmo_group[0] != '\0' && tref_rt->keymap_fallback[0] != '\n') {
         wmGizmoMap *gzmap = NULL;
         wmGizmoGroup *gzgroup = NULL;
         for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
@@ -3750,9 +3750,7 @@ wmKeyMap *WM_event_get_keymap_from_toolsystem(wmWindowManager *wm, wmEventHandle
             if (gzgroup->use_fallback_keymap) {
               wmGizmo *highlight = wm_gizmomap_highlight_get(gzmap);
               if (highlight == NULL) {
-                if (tref_rt->keymap_fallback[0]) {
-                  keymap_id = tref_rt->keymap_fallback;
-                }
+                keymap_id = tref_rt->keymap_fallback;
               }
             }
           }
@@ -3760,15 +3758,18 @@ wmKeyMap *WM_event_get_keymap_from_toolsystem(wmWindowManager *wm, wmEventHandle
       }
     }
 
-    wmKeyMap *km = WM_keymap_list_find_spaceid_or_empty(
-        &wm->userconf->keymaps, keymap_id, sa->spacetype, RGN_TYPE_WINDOW);
-    /* We shouldn't use keymaps from unrelated spaces. */
-    if (km != NULL) {
-      handler->keymap_tool = sa->runtime.tool;
-      return km;
-    }
-    else {
-      printf("Keymap: '%s' not found for tool '%s'\n", tref_rt->keymap, sa->runtime.tool->idname);
+    if (keymap_id[0]) {
+      wmKeyMap *km = WM_keymap_list_find_spaceid_or_empty(
+          &wm->userconf->keymaps, keymap_id, sa->spacetype, RGN_TYPE_WINDOW);
+      /* We shouldn't use keymaps from unrelated spaces. */
+      if (km != NULL) {
+        handler->keymap_tool = sa->runtime.tool;
+        return km;
+      }
+      else {
+        printf(
+            "Keymap: '%s' not found for tool '%s'\n", tref_rt->keymap, sa->runtime.tool->idname);
+      }
     }
   }
   return NULL;
