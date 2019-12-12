@@ -738,10 +738,10 @@ class ToolSelectPanelHelper:
             else:
                 label = "Active Tool"
 
-            split = layout.split(factor=0.5)
+            split = layout.split(factor=0.33)
             row = split.row()
             row.alignment = 'RIGHT'
-            row.label(text="Drag")
+            row.label(text="Drag:")
             row = split.row()
             row.context_pointer_set("tool", tool)
             row.popover(panel="TOPBAR_PT_tool_fallback", text=label)
@@ -751,7 +751,6 @@ class ToolSelectPanelHelper:
     # Show a list of tools in the popover.
     @staticmethod
     def draw_fallback_tool_items(layout, context):
-
         space_type = context.space_data.type
         if space_type == 'PROPERTIES':
             space_type = 'VIEW_3D'
