@@ -400,10 +400,9 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
             else:
                 sub.operator("object.shape_key_retime", icon='RECOVER_LAST', text="")
 
+            layout.use_property_split = True
             if key.use_relative:
                 if ob.active_shape_key_index != 0:
-                    layout.use_property_split = True
-
                     row = layout.row()
                     row.active = enable_edit_value
                     row.prop(kb, "value")
