@@ -3237,7 +3237,7 @@ def km_grease_pencil_stroke_paint_erase(params):
     return keymap
 
 
-def km_grease_pencil_stroke_paint_fill(_params):
+def km_grease_pencil_stroke_paint_fill(params):
     items = []
     keymap = (
         "Grease Pencil Stroke Paint (Fill)",
@@ -3258,7 +3258,7 @@ def km_grease_pencil_stroke_paint_fill(_params):
         ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
          {"properties": [("mode", 'DRAW'), ("wait_for_input", False), ("disable_straight", True), ("disable_fill", True)]}),
         # Lasso select
-        ("gpencil.select_lasso", {"type": _params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True}, None),
+        ("gpencil.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True}, None),
     ])
 
     return keymap

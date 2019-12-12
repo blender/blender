@@ -630,9 +630,9 @@ class GPENCIL_MT_gpencil_draw_delete(Menu):
 class GPENCIL_MT_cleanup(Menu):
     bl_label = "Clean Up"
 
-    def draw(self, _context):
+    def draw(self, context):
 
-        ob = _context.active_object
+        ob = context.active_object
 
         layout = self.layout
 
