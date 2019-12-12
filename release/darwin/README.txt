@@ -6,7 +6,7 @@ Install Code Signing Certificate
 --------------------------------
 
 * Go to https://developer.apple.com/account/resources/certificates/list
-* Download the Developer ID Application certifate.
+* Download the Developer ID Application certificate.
 * Double click the file and add to key chain (default options).
 * Delete the file from the Downloads folder.
 
