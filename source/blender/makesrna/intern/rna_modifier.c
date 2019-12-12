@@ -191,7 +191,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      "WELD",
      ICON_AUTOMERGE_OFF,
      "Weld",
-     "Finds groups of vertices closer then dist and merges them together"},
+     "Find groups of vertices closer then dist and merges them together"},
     {0, "", 0, N_("Deform"), ""},
     {eModifierType_Armature,
      "ARMATURE",
