@@ -2172,6 +2172,9 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
             case eModifierType_Wireframe:
               data.icon = ICON_MOD_WIREFRAME;
               break;
+            case eModifierType_Weld:
+              data.icon = ICON_AUTOMERGE_OFF; /* XXX, needs own icon */
+              break;
             case eModifierType_LaplacianDeform:
               data.icon = ICON_MOD_MESHDEFORM; /* XXX, needs own icon */
               break;

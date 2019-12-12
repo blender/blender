@@ -1481,6 +1481,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col.prop(md, "material_offset", text="Material Offset")
 
+    def WELD(self, layout, ob, md):
+        layout.prop(md, "merge_threshold", text="Distance")
+        layout.prop(md, "max_interactions")
+        layout.prop_search(md, "vertex_group", ob, "vertex_groups")
+
     def DATA_TRANSFER(self, layout, ob, md):
         row = layout.row(align=True)
         row.prop(md, "object")
@@ -2372,7 +2377,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         subcol.enabled = md.duplications > 0
         subcol.prop(md, "distance")
         subcol.prop(md, "offset", slider=True)
-    
+
         subcol.separator()
 
         subcol.prop(md, "enable_fading")
@@ -2408,7 +2413,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row = layout.row(align=True)
         row.prop(md, "layer_pass", text="Pass")
         row.prop(md, "invert_layer_pass", text="", icon='ARROW_LEFTRIGHT')
-            
+
 classes = (
     DATA_PT_modifiers,
     DATA_PT_gpencil_modifiers,
