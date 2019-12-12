@@ -6227,15 +6227,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   prop = RNA_def_property(srna, "simplify_gpencil_remove_lines", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(
       prop, NULL, "simplify_gpencil", SIMPLIFY_GPENCIL_REMOVE_FILL_LINE);
-  RNA_def_property_ui_text(
-      prop, "Disable Lines", "Display external lines of fill strokes");
+  RNA_def_property_ui_text(prop, "Disable Lines", "Display external lines of fill strokes");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
   prop = RNA_def_property(srna, "simplify_gpencil_view_modifier", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(
       prop, NULL, "simplify_gpencil", SIMPLIFY_GPENCIL_MODIFIER);
-  RNA_def_property_ui_text(
-      prop, "Disable Modifiers", "Display modifiers in the viewport");
+  RNA_def_property_ui_text(prop, "Disable Modifiers", "Display modifiers in the viewport");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
   prop = RNA_def_property(srna, "simplify_gpencil_shader_fx", PROP_BOOLEAN, PROP_NONE);

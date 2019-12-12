@@ -1214,7 +1214,7 @@ static void update_noise_and_wave_distortion(bNodeTree *ntree)
   bool need_update = false;
 
   for (bNode *node = ntree->nodes.first; node; node = node->next) {
-    if (node->type == SH_NODE_TEX_NOISE || node->type == SH_NODE_TEX_WAVE ) {
+    if (node->type == SH_NODE_TEX_NOISE || node->type == SH_NODE_TEX_WAVE) {
 
       bNodeSocket *sockDistortion = nodeFindSocket(node, SOCK_IN, "Distortion");
       float *distortion = cycles_node_socket_float_value(sockDistortion);
