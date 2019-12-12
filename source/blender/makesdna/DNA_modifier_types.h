@@ -1814,10 +1814,10 @@ enum {
 typedef struct WeldModifierData {
   ModifierData modifier;
 
-  /* the limit below which to merge vertices in adjacent duplicates */
+  /* The limit below which to merge vertices. */
   float merge_dist;
   unsigned int max_interactions;
-  /** Name of vertex group to use to mask, MAX_VGROUP_NAME. */
+  /* Name of vertex group to use to mask, MAX_VGROUP_NAME. */
   char defgrp_name[64];
 } WeldModifierData;
 
