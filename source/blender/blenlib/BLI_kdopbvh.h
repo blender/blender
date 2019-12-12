@@ -93,7 +93,6 @@ enum {
   /* Use a priority queue to process nodes in the optimal order (for slow callbacks) */
   BVH_OVERLAP_USE_THREADING = (1 << 0),
   BVH_OVERLAP_RETURN_PAIRS = (1 << 1),
-  BVH_OVERLAP_BREAK_ON_FIRST = (1 << 2),
 };
 enum {
   /* Use a priority queue to process nodes in the optimal order (for slow callbacks) */
@@ -167,7 +166,8 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(
     /* optional callback to test the overlap before adding (must be thread-safe!) */
     BVHTree_OverlapCallback callback,
     void *userdata,
-    int flag);
+    const uint max_interactions,
+    const int flag);
 BVHTreeOverlap *BLI_bvhtree_overlap(const BVHTree *tree1,
                                     const BVHTree *tree2,
                                     unsigned int *r_overlap_tot,

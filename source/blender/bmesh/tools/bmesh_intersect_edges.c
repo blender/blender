@@ -604,7 +604,7 @@ static void bvhtree_overlap_thread_safe(const BVHTree *tree1,
                                         BVHTree_OverlapCallback callback,
                                         void *userdata)
 {
-  BLI_bvhtree_overlap_ex(tree1, tree2, NULL, callback, userdata, BVH_OVERLAP_BREAK_ON_FIRST);
+  BLI_bvhtree_overlap_ex(tree1, tree2, NULL, callback, userdata, 1, 0);
 }
 
 /* -------------------------------------------------------------------- */
