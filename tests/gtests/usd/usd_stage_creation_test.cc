@@ -41,7 +41,7 @@ TEST_F(USDStageCreationTest, JSONFileLoadingTest)
   std::string filename = "usd-stage-creation-test.usdc";
 
   if (FLAGS_test_blender_executable_dir.empty()) {
-    FAIL() << "Pass the flag";
+    FAIL() << "Pass the --test-blender-executable-dir flag";
   }
 
   /* Required on Linux to make BKE_appdir_folder_id() find the datafiles.
@@ -64,9 +64,18 @@ TEST_F(USDStageCreationTest, JSONFileLoadingTest)
 
   usd_initialise_plugin_path(usd_datafiles_abspath);
 
-  /* Simply the ability to create a USD Stage for a specific filename means that the extension has
-   * been recognised by the USD library, and that a USD plugin has been loaded to write such files.
-   * Practically, this is a test to see whether the USD JSON files can be found and loaded. */
+  /* Simply the ability to create a USD Stage for a specific filename means that the extension
+   * has been recognised by the USD library, and that a USD plugin has been loaded to write such
+   * files. Practically, this is a test to see whether the USD JSON files can be found and
+   * loaded. */
   pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(filename);
-  EXPECT_TRUE(usd_stage) << "unable to find suitable USD plugin to write " << filename;
+  if (usd_stage != nullptr) {
+    /* Even though we don't call usd_stage->SaveFile(), a file is still created on the filesystem
+     * when we call CreateNew(). It's immediately closed, though, so we can safely call unlink()
+     * here. */
+    unlink(filename.c_str());
+  }
+  else {
+    FAIL() << "unable to find suitable USD plugin to write " << filename;
+  }
 }
