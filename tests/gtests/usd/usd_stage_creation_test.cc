@@ -31,43 +31,24 @@ extern "C" {
 void usd_initialise_plugin_path(const char *datafiles_usd_path);
 }
 
-DEFINE_string(test_blender_executable_dir, "", "Blender's installation directory.");
+DEFINE_string(test_usd_datafiles_dir, "", "The bin/{BLENDER_VERSION}/datafiles/usd directory.");
 
 class USDStageCreationTest : public testing::Test {
 };
 
 TEST_F(USDStageCreationTest, JSONFileLoadingTest)
 {
-  std::string filename = "usd-stage-creation-test.usdc";
-
-  if (FLAGS_test_blender_executable_dir.empty()) {
-    FAIL() << "Pass the --test-blender-executable-dir flag";
+  if (FLAGS_test_usd_datafiles_dir.empty()) {
+    FAIL() << "Pass the --test-usd-datafiles-dir flag";
   }
 
-  /* Required on Linux to make BKE_appdir_folder_id() find the datafiles.
-   * Without going to this directory, Blender looks for the datafiles in
-   * .../bin/tests instead of .../bin */
-  const char *blender_executable_dir = FLAGS_test_blender_executable_dir.c_str();
-  if (chdir(blender_executable_dir) < 0) {
-    FAIL() << "unable to change directory to " << FLAGS_test_blender_executable_dir;
-  }
-
-  const char *usd_datafiles_relpath = BKE_appdir_folder_id(BLENDER_DATAFILES, "usd");
-  EXPECT_NE(usd_datafiles_relpath, nullptr) << "Unable to find datafiles/usd";
-
-  char usd_datafiles_abspath[FILE_MAX];
-  BLI_path_join(usd_datafiles_abspath,
-                sizeof(usd_datafiles_abspath),
-                blender_executable_dir,
-                usd_datafiles_relpath,
-                NULL);
-
-  usd_initialise_plugin_path(usd_datafiles_abspath);
+  usd_initialise_plugin_path(FLAGS_test_usd_datafiles_dir.c_str());
 
   /* Simply the ability to create a USD Stage for a specific filename means that the extension
    * has been recognised by the USD library, and that a USD plugin has been loaded to write such
    * files. Practically, this is a test to see whether the USD JSON files can be found and
    * loaded. */
+  std::string filename = "usd-stage-creation-test.usdc";
   pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(filename);
   if (usd_stage != nullptr) {
     /* Even though we don't call usd_stage->SaveFile(), a file is still created on the filesystem
