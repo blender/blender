@@ -26,6 +26,7 @@ set(INC
   ../../depsgraph
   ../../makesdna
   ../../makesrna
+  ../../usd
   ../../windowmanager
   ../../../../intern/guardedalloc
 )
@@ -39,11 +40,13 @@ set(SRC
   io_cache.c
   io_collada.c
   io_ops.c
+  io_usd.c
 
   io_alembic.h
   io_cache.h
   io_collada.h
   io_ops.h
+  io_usd.h
 )
 
 set(LIB
@@ -67,6 +70,13 @@ if(WITH_ALEMBIC)
   if(WITH_ALEMBIC_HDF5)
     add_definitions(-DWITH_ALEMBIC_HDF5)
   endif()
+endif()
+
+if(WITH_USD)
+  list(APPEND LIB
+    bf_usd
+  )
+  add_definitions(-DWITH_USD)
 endif()
 
 if(WITH_INTERNATIONAL)

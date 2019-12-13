@@ -299,6 +299,10 @@ if(WITH_ALEMBIC)
   )
 endif()
 
+if(WITH_USD)
+  add_definitions(-DWITH_USD)
+endif()
+
 if(WITH_OPENIMAGEIO)
   add_definitions(-DWITH_OPENIMAGEIO)
   list(APPEND INC

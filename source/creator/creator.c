@@ -112,6 +112,20 @@ int main_python_enter(int argc, const char **argv);
 void main_python_exit(void);
 #endif
 
+#ifdef WITH_USD
+/* Workaround to make it possible to pass a path at runtime to USD.
+ *
+ * USD requires some JSON files, and it uses a static constructor to determine the possible
+ * filesystem paths to find those files. This made it impossible for Blender to pass a path to the
+ * USD library at runtime, as the constructor would run before Blender's main() function. We have
+ * patched USD (see usd.diff) to avoid that particular static constructor, and have an
+ * initialisation function instead.
+ *
+ * This function is implemented in the USD source code, pxr/base/lib/plug/initConfig.cpp.
+ */
+void usd_initialise_plugin_path(const char *datafiles_usd_path);
+#endif
+
 /* written to by 'creator_args.c' */
 struct ApplicationState app_state = {
     .signal =
@@ -410,6 +424,13 @@ int main(int argc,
   BKE_sound_init_once();
 
   init_def_material();
+
+#ifdef WITH_USD
+  /* Tell USD which directory to search for its JSON files. If datafiles/usd
+   * does not exist, the USD library will not be able to read or write any files.
+   */
+  usd_initialise_plugin_path(BKE_appdir_folder_id(BLENDER_DATAFILES, "usd"));
+#endif
 
   if (G.background == 0) {
 #ifndef WITH_PYTHON_MODULE

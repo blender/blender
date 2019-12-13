@@ -113,7 +113,7 @@ set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
 
 list(APPEND PLATFORM_LINKLIBS
   ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 Comctl32
-  advapi32 shfolder shell32 ole32 oleaut32 uuid psapi Dbghelp
+  advapi32 shfolder shell32 ole32 oleaut32 uuid psapi Dbghelp Shlwapi
 )
 
 if(WITH_INPUT_IME)
@@ -648,6 +648,18 @@ if(WITH_CYCLES_EMBREE)
       debug ${LIBDIR}/embree/lib/simd_d.lib
       debug ${LIBDIR}/embree/lib/sys_d.lib
       debug ${LIBDIR}/embree/lib/tasking_d.lib)
+  endif()
+endif()
+
+if(WITH_USD)
+  windows_find_package(USD)
+  if(NOT USD_FOUND)
+    set(USD_FOUND ON)
+    set(USD_INCLUDE_DIRS ${LIBDIR}/usd/include)
+    set(USD_LIBRARIES
+        debug ${LIBDIR}/usd/lib/libusd_m_d.lib
+        optimized ${LIBDIR}/usd/lib/libusd_m.lib
+    )
   endif()
 endif()
 

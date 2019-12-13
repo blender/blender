@@ -56,6 +56,11 @@ if(WITH_ALEMBIC)
   set(ALEMBIC_FOUND ON)
 endif()
 
+if(WITH_USD)
+  set(USD_LIBRARIES ${LIBDIR}/usd/lib/libusd_m.a)
+  SET(USD_INCLUDE_DIRS ${LIBDIR}/usd/include)
+endif()
+
 if(WITH_OPENSUBDIV)
   set(OPENSUBDIV ${LIBDIR}/opensubdiv)
   set(OPENSUBDIV_LIBPATH ${OPENSUBDIV}/lib)

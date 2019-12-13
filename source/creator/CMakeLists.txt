@@ -1045,6 +1045,19 @@ unset(LIB)
 
 setup_liblinks(blender)
 
+# -----------------------------------------------------------------------------
+# USD registry.
+# USD requires a set of JSON files that define the standard schemas. These
+# files are required at runtime.
+if (WITH_USD)
+  add_definitions(-DWITH_USD)
+  install(DIRECTORY
+    ${LIBDIR}/usd/lib/usd
+    DESTINATION "${TARGETDIR_VER}/datafiles"
+  )
+endif()
+
+
 # vcpkg substitutes our libs with theirs, which will cause issues when you
 # you run these builds on other systems due to missing dlls. So we opt out
 # the use of vcpkg

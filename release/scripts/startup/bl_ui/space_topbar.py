@@ -435,11 +435,13 @@ class TOPBAR_MT_file_export(Menu):
     bl_idname = "TOPBAR_MT_file_export"
     bl_label = "Export"
 
-    def draw(self, _context):
+    def draw(self, context):
         if bpy.app.build_options.collada:
             self.layout.operator("wm.collada_export", text="Collada (Default) (.dae)")
         if bpy.app.build_options.alembic:
             self.layout.operator("wm.alembic_export", text="Alembic (.abc)")
+        if bpy.app.build_options.usd and context.preferences.experimental.use_usd_exporter:
+            self.layout.operator("wm.usd_export", text="Universal Scene Description (.usd, .usdc, .usda)")
 
 
 class TOPBAR_MT_file_external_data(Menu):

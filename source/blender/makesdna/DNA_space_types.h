@@ -859,6 +859,7 @@ typedef enum eFileSel_File_Types {
   FILE_TYPE_ALEMBIC = (1 << 16),
   /** For all kinds of recognized import/export formats. No need for specialized types. */
   FILE_TYPE_OBJECT_IO = (1 << 17),
+  FILE_TYPE_USD = (1 << 18),
 
   /** An FS directory (i.e. S_ISDIR on its path is true). */
   FILE_TYPE_DIR = (1 << 30),
