@@ -605,11 +605,11 @@ class _draw_tool_settings_context_mode:
 
                     row = layout.row(align=True)
                     UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True)
-                    UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size", text="")
+                    row.prop(brush, "use_pressure_size", text="")
 
                     row = layout.row(align=True)
                     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength", slider=True)
-                    UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
+                    row.prop(brush, "use_pressure_strength", text="")
 
     @staticmethod
     def PAINT(context, layout, tool):
