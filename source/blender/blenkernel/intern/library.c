@@ -1545,6 +1545,7 @@ ID *BKE_libblock_find_name(struct Main *bmain, const short type, const char *nam
   return BLI_findstring(lb, name, offsetof(ID, name) + 2);
 }
 
+#define ID_SORT_STEP_SIZE 512
 void id_sort_by_name(ListBase *lb, ID *id)
 {
   ID *idtest;
@@ -1553,20 +1554,61 @@ void id_sort_by_name(ListBase *lb, ID *id)
   if (lb->first != lb->last) {
     BLI_remlink(lb, id);
 
-    idtest = lb->first;
-    while (idtest) {
-      if (BLI_strcasecmp(idtest->name, id->name) > 0 || (idtest->lib && !id->lib)) {
+    void *item_array[ID_SORT_STEP_SIZE];
+    int item_array_index;
+
+    /* Step one: We go backward over a whole chunk of items at once, until we find a limit item
+     * that is lower than, or equal (should never happen!) to the one we want to insert. */
+    /* Note: We start from the end, because in typical 'heavy' case (insertion of lots of IDs at
+     * once using the same base name), newly inserted items will generally be towards the end
+     * (higher extension numbers). */
+    for (idtest = lb->last, item_array_index = ID_SORT_STEP_SIZE - 1; idtest != NULL;
+         idtest = idtest->prev, item_array_index--) {
+      item_array[item_array_index] = idtest;
+      if (item_array_index == 0) {
+        if ((idtest->lib == NULL && id->lib != NULL) ||
+            BLI_strcasecmp(idtest->name, id->name) <= 0) {
+          /* Not directly related to this code, but having two IDs with same name is a hard
+           * catastrophic bug, so having checks for that here does not hurt... */
+          BLI_assert(BLI_strcasecmp(idtest->name, id->name) != 0 || idtest->lib != id->lib);
+
+          break;
+        }
+        item_array_index = ID_SORT_STEP_SIZE;
+      }
+    }
+
+    /* Step two: we go forward in the selected chunk of items and check all of them, as we know
+     * that our target is in there. */
+
+    /* If we reached start of the list, current item_array_index is off-by-one.
+     * Otherwise, we already know that it points to an item lower-or-equal-than the one we want to
+     * insert, no need to redo the check for that one.
+     * So we can increment that index in any case. */
+    for (item_array_index++; item_array_index < ID_SORT_STEP_SIZE; item_array_index++) {
+      idtest = item_array[item_array_index];
+      if ((idtest->lib != NULL && id->lib == NULL) || BLI_strcasecmp(idtest->name, id->name) > 0) {
         BLI_insertlinkbefore(lb, idtest, id);
         break;
       }
-      idtest = idtest->next;
     }
-    /* as last */
-    if (idtest == NULL) {
-      BLI_addtail(lb, id);
+    if (item_array_index == ID_SORT_STEP_SIZE) {
+      if (idtest == NULL) {
+        /* If idtest is NULL here, it means that in the first loop, the last comparison was
+         * performed exactly on the first item of the list, and that it also failed. In other
+         * words, all items in the list are greater than inserted one, so we can put it at the
+         * start of the list. */
+        /* Note that BLI_insertlinkafter() would have same behavior in that case, but better be
+         * explicit here. */
+        BLI_addhead(lb, id);
+      }
+      else {
+        BLI_insertlinkafter(lb, idtest, id);
+      }
     }
   }
 }
+#undef ID_SORT_STEP_SIZE
 
 /**
  * Check to see if there is an ID with the same name as 'name'.
