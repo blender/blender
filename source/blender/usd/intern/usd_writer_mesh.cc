@@ -153,13 +153,19 @@ void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_
     for (int loop_idx = 0; loop_idx < mesh->totloop; loop_idx++) {
       uv_coords.push_back(pxr::GfVec2f(mloopuv[loop_idx].uv));
     }
-    uv_coords_primvar.Set(uv_coords, timecode);
+
+    if (!uv_coords_primvar.HasValue()) {
+      uv_coords_primvar.Set(uv_coords, pxr::UsdTimeCode::Default());
+    }
+    const pxr::UsdAttribute &uv_coords_attr = uv_coords_primvar.GetAttr();
+    usd_value_writer_.SetAttribute(uv_coords_attr, pxr::VtValue(uv_coords), timecode);
   }
 }
 
 void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
 {
   pxr::UsdTimeCode timecode = get_export_time_code();
+  pxr::UsdTimeCode defaultTime = pxr::UsdTimeCode::Default();
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
   const pxr::SdfPath &usd_path = usd_export_context_.usd_path;
 
@@ -194,9 +200,19 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
     return;
   }
 
-  pxr::UsdAttribute attr_points = usd_mesh.CreatePointsAttr();
-  pxr::UsdAttribute attr_face_vertex_counts = usd_mesh.CreateFaceVertexCountsAttr();
-  pxr::UsdAttribute attr_face_vertex_indices = usd_mesh.CreateFaceVertexIndicesAttr();
+  pxr::UsdAttribute attr_points = usd_mesh.CreatePointsAttr(pxr::VtValue(), true);
+  pxr::UsdAttribute attr_face_vertex_counts = usd_mesh.CreateFaceVertexCountsAttr(pxr::VtValue(),
+                                                                                  true);
+  pxr::UsdAttribute attr_face_vertex_indices = usd_mesh.CreateFaceVertexIndicesAttr(pxr::VtValue(),
+                                                                                    true);
+
+  if (!attr_points.HasValue()) {
+    // Provide the initial value as default. This makes USD write the value as constant if they
+    // don't change over time.
+    attr_points.Set(usd_mesh_data.points, defaultTime);
+    attr_face_vertex_counts.Set(usd_mesh_data.face_vertex_counts, defaultTime);
+    attr_face_vertex_indices.Set(usd_mesh_data.face_indices, defaultTime);
+  }
 
   usd_value_writer_.SetAttribute(attr_points, pxr::VtValue(usd_mesh_data.points), timecode);
   usd_value_writer_.SetAttribute(
@@ -205,9 +221,16 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
       attr_face_vertex_indices, pxr::VtValue(usd_mesh_data.face_indices), timecode);
 
   if (!usd_mesh_data.crease_lengths.empty()) {
-    pxr::UsdAttribute attr_crease_lengths = usd_mesh.CreateCreaseLengthsAttr();
-    pxr::UsdAttribute attr_crease_indices = usd_mesh.CreateCreaseIndicesAttr();
-    pxr::UsdAttribute attr_crease_sharpness = usd_mesh.CreateCreaseSharpnessesAttr();
+    pxr::UsdAttribute attr_crease_lengths = usd_mesh.CreateCreaseLengthsAttr(pxr::VtValue(), true);
+    pxr::UsdAttribute attr_crease_indices = usd_mesh.CreateCreaseIndicesAttr(pxr::VtValue(), true);
+    pxr::UsdAttribute attr_crease_sharpness = usd_mesh.CreateCreaseSharpnessesAttr(pxr::VtValue(),
+                                                                                   true);
+
+    if (!attr_crease_lengths.HasValue()) {
+      attr_crease_lengths.Set(usd_mesh_data.crease_lengths, defaultTime);
+      attr_crease_indices.Set(usd_mesh_data.crease_vertex_indices, defaultTime);
+      attr_crease_sharpness.Set(usd_mesh_data.crease_sharpnesses, defaultTime);
+    }
 
     usd_value_writer_.SetAttribute(
         attr_crease_lengths, pxr::VtValue(usd_mesh_data.crease_lengths), timecode);
@@ -404,8 +427,11 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
     }
   }
 
-  pxr::UsdAttribute attr_normals = usd_mesh.CreateNormalsAttr(pxr::VtValue(loop_normals), true);
-  attr_normals.Set(loop_normals, timecode);
+  pxr::UsdAttribute attr_normals = usd_mesh.CreateNormalsAttr(pxr::VtValue(), true);
+  if (!attr_normals.HasValue()) {
+    attr_normals.Set(loop_normals, pxr::UsdTimeCode::Default());
+  }
+  usd_value_writer_.SetAttribute(attr_normals, pxr::VtValue(loop_normals), timecode);
   usd_mesh.SetNormalsInterpolation(pxr::UsdGeomTokens->faceVarying);
 }
 

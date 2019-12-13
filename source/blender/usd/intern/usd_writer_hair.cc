@@ -66,8 +66,14 @@ void USDHairWriter::do_write(HierarchyContext &context)
     }
   }
 
-  curves.CreatePointsAttr().Set(points, timecode);
-  curves.CreateCurveVertexCountsAttr().Set(curve_point_counts, timecode);
+  pxr::UsdAttribute attr_points = curves.CreatePointsAttr(pxr::VtValue(), true);
+  pxr::UsdAttribute attr_vertex_counts = curves.CreateCurveVertexCountsAttr(pxr::VtValue(), true);
+  if (!attr_points.HasValue()) {
+    attr_points.Set(points, pxr::UsdTimeCode::Default());
+    attr_vertex_counts.Set(curve_point_counts, pxr::UsdTimeCode::Default());
+  }
+  usd_value_writer_.SetAttribute(attr_points, pxr::VtValue(points), timecode);
+  usd_value_writer_.SetAttribute(attr_vertex_counts, pxr::VtValue(curve_point_counts), timecode);
 
   if (psys->totpart > 0) {
     pxr::VtArray<pxr::GfVec3f> colors;
