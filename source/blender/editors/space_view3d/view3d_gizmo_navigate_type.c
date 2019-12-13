@@ -466,7 +466,7 @@ static int gizmo_axis_test_select(bContext *UNUSED(C), wmGizmo *gz, const int mv
 {
   float point_local[2] = {UNPACK2(mval)};
   sub_v2_v2(point_local, gz->matrix_basis[3]);
-  mul_v2_fl(point_local, 1.0f / (gz->scale_basis * UI_DPI_FAC));
+  mul_v2_fl(point_local, 1.0f / gz->scale_final);
 
   const float len_sq = len_squared_v2(point_local);
   if (len_sq > 1.0) {

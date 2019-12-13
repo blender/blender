@@ -286,7 +286,7 @@ static int gizmo_button2d_test_select(bContext *C, wmGizmo *gz, const int mval[2
   else {
     copy_v2_v2(point_local, (float[2]){UNPACK2(mval)});
     sub_v2_v2(point_local, gz->matrix_basis[3]);
-    mul_v2_fl(point_local, 1.0f / (gz->scale_basis * UI_DPI_FAC));
+    mul_v2_fl(point_local, 1.0f / gz->scale_final);
   }
   /* The 'gz->scale_final' is already applied when projecting. */
   if (len_squared_v2(point_local) < 1.0f) {
