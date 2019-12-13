@@ -4258,7 +4258,7 @@ static int tile_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
   RNA_int_set(op->ptr, "number", next_number);
   RNA_string_set(op->ptr, "label", "");
 
-  return WM_operator_props_dialog_popup(C, op, 5 * UI_UNIT_X, 5 * UI_UNIT_Y);
+  return WM_operator_props_dialog_popup(C, op, 10 * UI_UNIT_X, 5 * UI_UNIT_Y);
 }
 
 static void tile_add_draw(bContext *UNUSED(C), wmOperator *op)
