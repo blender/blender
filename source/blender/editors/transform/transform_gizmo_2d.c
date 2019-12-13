@@ -52,6 +52,18 @@
 
 #include "transform.h" /* own include */
 
+/* -------------------------------------------------------------------- */
+/** \name Arrow / Cage Gizmo Group
+ *
+ * Defines public functions, not the gizmo it's self:
+ *
+ * - #ED_widgetgroup_gizmo2d_xform_setup
+ * - #ED_widgetgroup_gizmo2d_xform_refresh
+ * - #ED_widgetgroup_gizmo2d_xform_draw_prepare
+ * - #ED_widgetgroup_gizmo2d_xform_poll
+ *
+ * \{ */
+
 /* axes as index */
 enum {
   MAN2D_AXIS_TRANS_X = 0,
@@ -61,8 +73,7 @@ enum {
 };
 
 typedef struct GizmoGroup2D {
-  wmGizmo *translate_x, *translate_y;
-
+  wmGizmo *translate_xy[3];
   wmGizmo *cage;
 
   /* Current origin in view space, used to update widget origin for possible view changes */
@@ -70,36 +81,11 @@ typedef struct GizmoGroup2D {
   float min[2];
   float max[2];
 
+  bool no_cage;
+
 } GizmoGroup2D;
 
 /* **************** Utilities **************** */
-
-/* loop over axes */
-#define MAN2D_ITER_AXES_BEGIN(axis, axis_idx) \
-  { \
-    wmGizmo *axis; \
-    int axis_idx; \
-    for (axis_idx = 0; axis_idx < MAN2D_AXIS_LAST; axis_idx++) { \
-      axis = gizmo2d_get_axis_from_index(ggd, axis_idx);
-
-#define MAN2D_ITER_AXES_END \
-  } \
-  } \
-  ((void)0)
-
-static wmGizmo *gizmo2d_get_axis_from_index(const GizmoGroup2D *ggd, const short axis_idx)
-{
-  BLI_assert(IN_RANGE_INCL(axis_idx, (float)MAN2D_AXIS_TRANS_X, (float)MAN2D_AXIS_TRANS_Y));
-
-  switch (axis_idx) {
-    case MAN2D_AXIS_TRANS_X:
-      return ggd->translate_x;
-    case MAN2D_AXIS_TRANS_Y:
-      return ggd->translate_y;
-  }
-
-  return NULL;
-}
 
 static void gizmo2d_get_axis_color(const int axis_idx, float *r_col, float *r_col_hi)
 {
@@ -131,11 +117,13 @@ static GizmoGroup2D *gizmogroup2d_init(wmGizmoGroup *gzgroup)
 {
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_2d", true);
   const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_2d", true);
+  const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
   GizmoGroup2D *ggd = MEM_callocN(sizeof(GizmoGroup2D), __func__);
 
-  ggd->translate_x = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
-  ggd->translate_y = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+  ggd->translate_xy[0] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+  ggd->translate_xy[1] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+  ggd->translate_xy[2] = WM_gizmo_new_ptr(gzt_button, gzgroup, NULL);
   ggd->cage = WM_gizmo_new_ptr(gzt_cage, gzgroup, NULL);
 
   RNA_enum_set(ggd->cage->ptr,
@@ -208,39 +196,54 @@ static int gizmo2d_modal(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-void ED_widgetgroup_gizmo2d_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
+void ED_widgetgroup_gizmo2d_xform_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
   wmOperatorType *ot_translate = WM_operatortype_find("TRANSFORM_OT_translate", true);
   GizmoGroup2D *ggd = gizmogroup2d_init(gzgroup);
   gzgroup->customdata = ggd;
 
-  MAN2D_ITER_AXES_BEGIN (axis, axis_idx) {
+  for (int i = 0; i < ARRAY_SIZE(ggd->translate_xy); i++) {
+    wmGizmo *gz = ggd->translate_xy[i];
     const float offset[3] = {0.0f, 0.2f};
 
-    float color[4], color_hi[4];
-    gizmo2d_get_axis_color(axis_idx, color, color_hi);
-
     /* custom handler! */
-    WM_gizmo_set_fn_custom_modal(axis, gizmo2d_modal);
-    /* set up widget data */
-    RNA_float_set(axis->ptr, "angle", -M_PI_2 * axis_idx);
-    RNA_float_set(axis->ptr, "length", 0.8f);
-    WM_gizmo_set_matrix_offset_location(axis, offset);
-    WM_gizmo_set_line_width(axis, GIZMO_AXIS_LINE_WIDTH);
-    WM_gizmo_set_scale(axis, U.gizmo_size);
-    WM_gizmo_set_color(axis, color);
-    WM_gizmo_set_color_highlight(axis, color_hi);
+    WM_gizmo_set_fn_custom_modal(gz, gizmo2d_modal);
+    WM_gizmo_set_scale(gz, U.gizmo_size);
 
-    /* assign operator */
-    PointerRNA *ptr = WM_gizmo_operator_set(axis, 0, ot_translate, NULL);
-    bool constraint[3] = {0};
-    constraint[(axis_idx + 1) % 2] = 1;
-    if (RNA_struct_find_property(ptr, "constraint_axis")) {
-      RNA_boolean_set_array(ptr, "constraint_axis", constraint);
+    if (i < 2) {
+      float color[4], color_hi[4];
+      gizmo2d_get_axis_color(i, color, color_hi);
+
+      /* set up widget data */
+      RNA_float_set(gz->ptr, "angle", -M_PI_2 * i);
+      RNA_float_set(gz->ptr, "length", 0.8f);
+      WM_gizmo_set_matrix_offset_location(gz, offset);
+      WM_gizmo_set_line_width(gz, GIZMO_AXIS_LINE_WIDTH);
+      WM_gizmo_set_color(gz, color);
+      WM_gizmo_set_color_highlight(gz, color_hi);
     }
+    else {
+      PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
+      RNA_property_enum_set(gz->ptr, prop, ICON_NONE);
+
+      RNA_enum_set(gz->ptr, "draw_options", ED_GIZMO_BUTTON_SHOW_BACKDROP);
+      /* Make the center low alpha. */
+      WM_gizmo_set_line_width(gz, 2.0f);
+      RNA_float_set(gz->ptr, "backdrop_fill_alpha", 0.0);
+    }
+
+    /* Assign operator. */
+    PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_translate, NULL);
+    if (i < 2) {
+      bool constraint[3] = {0};
+      constraint[(i + 1) % 2] = 1;
+      if (RNA_struct_find_property(ptr, "constraint_axis")) {
+        RNA_boolean_set_array(ptr, "constraint_axis", constraint);
+      }
+    }
+
     RNA_boolean_set(ptr, "release_confirm", 1);
   }
-  MAN2D_ITER_AXES_END;
 
   {
     wmOperatorType *ot_resize = WM_operatortype_find("TRANSFORM_OT_resize", true);
@@ -286,23 +289,44 @@ void ED_widgetgroup_gizmo2d_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgro
   }
 }
 
-void ED_widgetgroup_gizmo2d_refresh(const bContext *C, wmGizmoGroup *gzgroup)
+void ED_widgetgroup_gizmo2d_xform_setup_no_cage(const bContext *C, wmGizmoGroup *gzgroup)
+{
+  ED_widgetgroup_gizmo2d_xform_setup(C, gzgroup);
+  GizmoGroup2D *ggd = gzgroup->customdata;
+  ggd->no_cage = true;
+}
+
+void ED_widgetgroup_gizmo2d_xform_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoGroup2D *ggd = gzgroup->customdata;
   float origin[3];
   gizmo2d_calc_bounds(C, origin, ggd->min, ggd->max);
   copy_v2_v2(ggd->origin, origin);
-  bool show_cage = !equals_v2v2(ggd->min, ggd->max);
+  bool show_cage = !ggd->no_cage && !equals_v2v2(ggd->min, ggd->max);
+
+  if (gzgroup->type->flag & WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP) {
+    Scene *scene = CTX_data_scene(C);
+    if (scene->toolsettings->workspace_tool_type == SCE_WORKSPACE_TOOL_FALLBACK) {
+      gzgroup->use_fallback_keymap = true;
+    }
+    else {
+      gzgroup->use_fallback_keymap = false;
+    }
+  }
 
   if (show_cage) {
     ggd->cage->flag &= ~WM_GIZMO_HIDDEN;
-    ggd->translate_x->flag |= WM_GIZMO_HIDDEN;
-    ggd->translate_y->flag |= WM_GIZMO_HIDDEN;
+    for (int i = 0; i < ARRAY_SIZE(ggd->translate_xy); i++) {
+      wmGizmo *gz = ggd->translate_xy[i];
+      gz->flag |= WM_GIZMO_HIDDEN;
+    }
   }
   else {
     ggd->cage->flag |= WM_GIZMO_HIDDEN;
-    ggd->translate_x->flag &= ~WM_GIZMO_HIDDEN;
-    ggd->translate_y->flag &= ~WM_GIZMO_HIDDEN;
+    for (int i = 0; i < ARRAY_SIZE(ggd->translate_xy); i++) {
+      wmGizmo *gz = ggd->translate_xy[i];
+      gz->flag &= ~WM_GIZMO_HIDDEN;
+    }
   }
 
   if (show_cage) {
@@ -345,7 +369,7 @@ void ED_widgetgroup_gizmo2d_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   }
 }
 
-void ED_widgetgroup_gizmo2d_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
+void ED_widgetgroup_gizmo2d_xform_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
   ARegion *ar = CTX_wm_region(C);
   GizmoGroup2D *ggd = gzgroup->customdata;
@@ -354,10 +378,10 @@ void ED_widgetgroup_gizmo2d_draw_prepare(const bContext *C, wmGizmoGroup *gzgrou
 
   gizmo2d_origin_to_region(ar, origin);
 
-  MAN2D_ITER_AXES_BEGIN (axis, axis_idx) {
-    WM_gizmo_set_matrix_location(axis, origin);
+  for (int i = 0; i < ARRAY_SIZE(ggd->translate_xy); i++) {
+    wmGizmo *gz = ggd->translate_xy[i];
+    WM_gizmo_set_matrix_location(gz, origin);
   }
-  MAN2D_ITER_AXES_END;
 
   UI_view2d_view_to_region_m4(&ar->v2d, ggd->cage->matrix_space);
   WM_gizmo_set_matrix_offset_location(ggd->cage, origin_aa);
@@ -369,7 +393,7 @@ void ED_widgetgroup_gizmo2d_draw_prepare(const bContext *C, wmGizmoGroup *gzgrou
  * - Called on every redraw, better to do a more simple poll and check for selection in _refresh
  * - UV editing only, could be expanded for other things.
  */
-bool ED_widgetgroup_gizmo2d_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
+bool ED_widgetgroup_gizmo2d_xform_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
 {
   if ((U.gizmo_flag & USER_GIZMO_DRAW) == 0) {
     return false;
@@ -404,3 +428,223 @@ bool ED_widgetgroup_gizmo2d_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzg
 
   return false;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scale Handles
+ *
+ * Defines public functions, not the gizmo it's self:
+ *
+ * - #ED_widgetgroup_gizmo2d_resize_setup
+ * - #ED_widgetgroup_gizmo2d_resize_refresh
+ * - #ED_widgetgroup_gizmo2d_resize_draw_prepare
+ * - #ED_widgetgroup_gizmo2d_resize_poll
+ *
+ * \{ */
+
+typedef struct GizmoGroup_Resize2D {
+  wmGizmo *gizmo_xy[3];
+  float origin[2];
+} GizmoGroup_Resize2D;
+
+static GizmoGroup_Resize2D *gizmogroup2d_resize_init(wmGizmoGroup *gzgroup)
+{
+  const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_2d", true);
+  const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
+
+  GizmoGroup_Resize2D *ggd = MEM_callocN(sizeof(GizmoGroup_Resize2D), __func__);
+
+  ggd->gizmo_xy[0] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+  ggd->gizmo_xy[1] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+  ggd->gizmo_xy[2] = WM_gizmo_new_ptr(gzt_button, gzgroup, NULL);
+
+  return ggd;
+}
+
+void ED_widgetgroup_gizmo2d_resize_refresh(const bContext *C, wmGizmoGroup *gzgroup)
+{
+  GizmoGroup_Resize2D *ggd = gzgroup->customdata;
+  float origin[3];
+  gizmo2d_calc_bounds(C, origin, NULL, NULL);
+  copy_v2_v2(ggd->origin, origin);
+}
+
+void ED_widgetgroup_gizmo2d_resize_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
+{
+  ARegion *ar = CTX_wm_region(C);
+  GizmoGroup_Resize2D *ggd = gzgroup->customdata;
+  float origin[3] = {UNPACK2(ggd->origin), 0.0f};
+
+  if (gzgroup->type->flag & WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP) {
+    Scene *scene = CTX_data_scene(C);
+    if (scene->toolsettings->workspace_tool_type == SCE_WORKSPACE_TOOL_FALLBACK) {
+      gzgroup->use_fallback_keymap = true;
+    }
+    else {
+      gzgroup->use_fallback_keymap = false;
+    }
+  }
+
+  gizmo2d_origin_to_region(ar, origin);
+
+  for (int i = 0; i < ARRAY_SIZE(ggd->gizmo_xy); i++) {
+    wmGizmo *gz = ggd->gizmo_xy[i];
+    WM_gizmo_set_matrix_location(gz, origin);
+  }
+}
+
+bool ED_widgetgroup_gizmo2d_resize_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
+{
+  return ED_widgetgroup_gizmo2d_xform_poll(C, NULL);
+}
+
+void ED_widgetgroup_gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
+{
+
+  wmOperatorType *ot_resize = WM_operatortype_find("TRANSFORM_OT_resize", true);
+  GizmoGroup_Resize2D *ggd = gizmogroup2d_resize_init(gzgroup);
+  gzgroup->customdata = ggd;
+
+  for (int i = 0; i < ARRAY_SIZE(ggd->gizmo_xy); i++) {
+    wmGizmo *gz = ggd->gizmo_xy[i];
+
+    /* custom handler! */
+    WM_gizmo_set_fn_custom_modal(gz, gizmo2d_modal);
+    WM_gizmo_set_scale(gz, U.gizmo_size);
+
+    if (i < 2) {
+      const float offset[3] = {0.0f, 0.2f};
+      float color[4], color_hi[4];
+      gizmo2d_get_axis_color(i, color, color_hi);
+
+      /* set up widget data */
+      RNA_float_set(gz->ptr, "angle", -M_PI_2 * i);
+      RNA_float_set(gz->ptr, "length", 0.8f);
+      RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_BOX);
+
+      WM_gizmo_set_matrix_offset_location(gz, offset);
+      WM_gizmo_set_line_width(gz, GIZMO_AXIS_LINE_WIDTH);
+      WM_gizmo_set_color(gz, color);
+      WM_gizmo_set_color_highlight(gz, color_hi);
+    }
+    else {
+      PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
+      RNA_property_enum_set(gz->ptr, prop, ICON_NONE);
+
+      RNA_enum_set(gz->ptr, "draw_options", ED_GIZMO_BUTTON_SHOW_BACKDROP);
+      /* Make the center low alpha. */
+      WM_gizmo_set_line_width(gz, 2.0f);
+      RNA_float_set(gz->ptr, "backdrop_fill_alpha", 0.0);
+    }
+
+    /* Assign operator. */
+    PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_resize, NULL);
+    if (i < 2) {
+      bool constraint[3] = {0};
+      constraint[(i + 1) % 2] = 1;
+      if (RNA_struct_find_property(ptr, "constraint_axis")) {
+        RNA_boolean_set_array(ptr, "constraint_axis", constraint);
+      }
+    }
+    RNA_boolean_set(ptr, "release_confirm", true);
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rotate Handles
+ *
+ * Defines public functions, not the gizmo it's self:
+ *
+ * - #ED_widgetgroup_gizmo2d_rotate_setup
+ * - #ED_widgetgroup_gizmo2d_rotate_refresh
+ * - #ED_widgetgroup_gizmo2d_rotate_draw_prepare
+ * - #ED_widgetgroup_gizmo2d_rotate_poll
+ *
+ * \{ */
+
+typedef struct GizmoGroup_Rotate2D {
+  wmGizmo *gizmo;
+  float origin[2];
+} GizmoGroup_Rotate2D;
+
+static GizmoGroup_Rotate2D *gizmogroup2d_rotate_init(wmGizmoGroup *gzgroup)
+{
+  const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
+
+  GizmoGroup_Rotate2D *ggd = MEM_callocN(sizeof(GizmoGroup_Rotate2D), __func__);
+
+  ggd->gizmo = WM_gizmo_new_ptr(gzt_button, gzgroup, NULL);
+
+  return ggd;
+}
+
+void ED_widgetgroup_gizmo2d_rotate_refresh(const bContext *C, wmGizmoGroup *gzgroup)
+{
+  GizmoGroup_Rotate2D *ggd = gzgroup->customdata;
+  float origin[3];
+  gizmo2d_calc_bounds(C, origin, NULL, NULL);
+  copy_v2_v2(ggd->origin, origin);
+}
+
+void ED_widgetgroup_gizmo2d_rotate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
+{
+  ARegion *ar = CTX_wm_region(C);
+  GizmoGroup_Rotate2D *ggd = gzgroup->customdata;
+  float origin[3] = {UNPACK2(ggd->origin), 0.0f};
+
+  if (gzgroup->type->flag & WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP) {
+    Scene *scene = CTX_data_scene(C);
+    if (scene->toolsettings->workspace_tool_type == SCE_WORKSPACE_TOOL_FALLBACK) {
+      gzgroup->use_fallback_keymap = true;
+    }
+    else {
+      gzgroup->use_fallback_keymap = false;
+    }
+  }
+
+  gizmo2d_origin_to_region(ar, origin);
+
+  wmGizmo *gz = ggd->gizmo;
+  WM_gizmo_set_matrix_location(gz, origin);
+}
+
+bool ED_widgetgroup_gizmo2d_rotate_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
+{
+  return ED_widgetgroup_gizmo2d_xform_poll(C, NULL);
+}
+
+void ED_widgetgroup_gizmo2d_rotate_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
+{
+
+  wmOperatorType *ot_resize = WM_operatortype_find("TRANSFORM_OT_rotate", true);
+  GizmoGroup_Rotate2D *ggd = gizmogroup2d_rotate_init(gzgroup);
+  gzgroup->customdata = ggd;
+
+  /* Other setup functions iterate over axis. */
+  {
+    wmGizmo *gz = ggd->gizmo;
+
+    /* custom handler! */
+    WM_gizmo_set_fn_custom_modal(gz, gizmo2d_modal);
+    WM_gizmo_set_scale(gz, U.gizmo_size);
+
+    {
+      PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
+      RNA_property_enum_set(gz->ptr, prop, ICON_NONE);
+
+      RNA_enum_set(gz->ptr, "draw_options", ED_GIZMO_BUTTON_SHOW_BACKDROP);
+      /* Make the center low alpha. */
+      WM_gizmo_set_line_width(gz, 2.0f);
+      RNA_float_set(gz->ptr, "backdrop_fill_alpha", 0.0);
+    }
+
+    /* Assign operator. */
+    PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_resize, NULL);
+    RNA_boolean_set(ptr, "release_confirm", true);
+  }
+}
+
+/** \} */

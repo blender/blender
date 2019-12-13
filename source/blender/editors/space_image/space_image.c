@@ -464,14 +464,67 @@ static void IMAGE_GGT_gizmo2d(wmGizmoGroupType *gzgt)
   gzgt->name = "UV Transform Gizmo";
   gzgt->idname = "IMAGE_GGT_gizmo2d";
 
+  gzgt->flag |= WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP;
+
   gzgt->gzmap_params.spaceid = SPACE_IMAGE;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-  gzgt->poll = ED_widgetgroup_gizmo2d_poll;
-  gzgt->setup = ED_widgetgroup_gizmo2d_setup;
+  gzgt->poll = ED_widgetgroup_gizmo2d_xform_poll;
+  gzgt->setup = ED_widgetgroup_gizmo2d_xform_setup;
   gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
-  gzgt->refresh = ED_widgetgroup_gizmo2d_refresh;
-  gzgt->draw_prepare = ED_widgetgroup_gizmo2d_draw_prepare;
+  gzgt->refresh = ED_widgetgroup_gizmo2d_xform_refresh;
+  gzgt->draw_prepare = ED_widgetgroup_gizmo2d_xform_draw_prepare;
+}
+
+static void IMAGE_GGT_gizmo2d_translate(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "UV Translate Gizmo";
+  gzgt->idname = "IMAGE_GGT_gizmo2d_translate";
+
+  gzgt->flag |= WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP;
+
+  gzgt->gzmap_params.spaceid = SPACE_IMAGE;
+  gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
+
+  gzgt->poll = ED_widgetgroup_gizmo2d_xform_poll;
+  gzgt->setup = ED_widgetgroup_gizmo2d_xform_setup_no_cage;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
+  gzgt->refresh = ED_widgetgroup_gizmo2d_xform_refresh;
+  gzgt->draw_prepare = ED_widgetgroup_gizmo2d_xform_draw_prepare;
+}
+
+static void IMAGE_GGT_gizmo2d_resize(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "UV Transform Gizmo Resize";
+  gzgt->idname = "IMAGE_GGT_gizmo2d_resize";
+
+  gzgt->flag |= WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP;
+
+  gzgt->gzmap_params.spaceid = SPACE_IMAGE;
+  gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
+
+  gzgt->poll = ED_widgetgroup_gizmo2d_resize_poll;
+  gzgt->setup = ED_widgetgroup_gizmo2d_resize_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
+  gzgt->refresh = ED_widgetgroup_gizmo2d_resize_refresh;
+  gzgt->draw_prepare = ED_widgetgroup_gizmo2d_resize_draw_prepare;
+}
+
+static void IMAGE_GGT_gizmo2d_rotate(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "UV Transform Gizmo Resize";
+  gzgt->idname = "IMAGE_GGT_gizmo2d_rotate";
+
+  gzgt->flag |= WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP;
+
+  gzgt->gzmap_params.spaceid = SPACE_IMAGE;
+  gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
+
+  gzgt->poll = ED_widgetgroup_gizmo2d_rotate_poll;
+  gzgt->setup = ED_widgetgroup_gizmo2d_rotate_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
+  gzgt->refresh = ED_widgetgroup_gizmo2d_rotate_refresh;
+  gzgt->draw_prepare = ED_widgetgroup_gizmo2d_rotate_draw_prepare;
 }
 
 static void IMAGE_GGT_navigate(wmGizmoGroupType *gzgt)
@@ -485,6 +538,9 @@ static void image_widgets(void)
       &(const struct wmGizmoMapType_Params){SPACE_IMAGE, RGN_TYPE_WINDOW});
 
   WM_gizmogrouptype_append(IMAGE_GGT_gizmo2d);
+  WM_gizmogrouptype_append(IMAGE_GGT_gizmo2d_translate);
+  WM_gizmogrouptype_append(IMAGE_GGT_gizmo2d_resize);
+  WM_gizmogrouptype_append(IMAGE_GGT_gizmo2d_rotate);
 
   WM_gizmogrouptype_append_and_link(gzmap_type, IMAGE_GGT_navigate);
 }

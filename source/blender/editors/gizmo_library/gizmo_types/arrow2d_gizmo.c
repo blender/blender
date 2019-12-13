@@ -52,6 +52,7 @@
 
 static void arrow2d_draw_geom(wmGizmo *gz, const float matrix[4][4], const float color[4])
 {
+  const int draw_style = RNA_enum_get(gz->ptr, "draw_style");
   const float size = 0.11f;
   const float size_breadth = size / 2.0f;
   const float size_length = size * 1.7f;
@@ -74,11 +75,21 @@ static void arrow2d_draw_geom(wmGizmo *gz, const float matrix[4][4], const float
   immVertex2f(pos, 0.0f, arrow_length);
   immEnd();
 
-  immBegin(GPU_PRIM_TRIS, 3);
-  immVertex2f(pos, size_breadth, arrow_length);
-  immVertex2f(pos, -size_breadth, arrow_length);
-  immVertex2f(pos, 0.0f, arrow_length + size_length);
-  immEnd();
+  if (draw_style == ED_GIZMO_ARROW_STYLE_BOX) {
+    immBegin(GPU_PRIM_TRI_FAN, 4);
+    immVertex2f(pos, -size / 2, arrow_length);
+    immVertex2f(pos, size / 2, arrow_length);
+    immVertex2f(pos, size / 2, arrow_length + size);
+    immVertex2f(pos, -size / 2, arrow_length + size);
+    immEnd();
+  }
+  else {
+    immBegin(GPU_PRIM_TRIS, 3);
+    immVertex2f(pos, size_breadth, arrow_length);
+    immVertex2f(pos, -size_breadth, arrow_length);
+    immVertex2f(pos, 0.0f, arrow_length + size_length);
+    immEnd();
+  }
 
   immUnbindProgram();
 
@@ -197,6 +208,11 @@ static void GIZMO_GT_arrow_2d(wmGizmoType *gzt)
   gzt->struct_size = sizeof(wmGizmo);
 
   /* rna */
+  static EnumPropertyItem rna_enum_draw_style_items[] = {
+      {ED_GIZMO_ARROW_STYLE_NORMAL, "NORMAL", 0, "Normal", ""},
+      {ED_GIZMO_ARROW_STYLE_BOX, "BOX", 0, "Box", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
   RNA_def_float(gzt->srna, "length", 1.0f, 0.0f, FLT_MAX, "Arrow Line Length", "", 0.0f, FLT_MAX);
   RNA_def_float_rotation(gzt->srna,
                          "angle",
@@ -208,6 +224,12 @@ static void GIZMO_GT_arrow_2d(wmGizmoType *gzt)
                          "",
                          DEG2RADF(-360.0f),
                          DEG2RADF(360.0f));
+  RNA_def_enum(gzt->srna,
+               "draw_style",
+               rna_enum_draw_style_items,
+               ED_GIZMO_ARROW_STYLE_NORMAL,
+               "Draw Style",
+               "");
 }
 
 void ED_gizmotypes_arrow_2d(void)
