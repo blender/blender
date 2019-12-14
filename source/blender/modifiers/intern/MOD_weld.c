@@ -1477,7 +1477,7 @@ static void customdata_weld(
 #endif
   uint crease = 0;
   uint bweight = 0;
-  char flag = 0;
+  short flag = 0;
 
   /* interpolates a layer at a time */
   dest_i = 0;
@@ -1569,7 +1569,7 @@ static void customdata_weld(
       mv_no[2] = (short)no[2];
 #endif
 
-      mv->flag = flag;
+      mv->flag = (char)flag;
       mv->bweight = (char)bweight;
     }
     else if (type == CD_MEDGE) {
@@ -1581,6 +1581,7 @@ static void customdata_weld(
 
       me->crease = (char)crease;
       me->bweight = (char)bweight;
+      me->flag = flag;
     }
   }
 }
