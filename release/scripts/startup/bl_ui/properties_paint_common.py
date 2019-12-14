@@ -294,6 +294,7 @@ class StrokePanel(BrushPanel):
         col = layout.column()
 
         col.prop(brush, "stroke_method")
+        col.separator()
 
         if brush.use_anchor:
             col.prop(brush, "use_edge_to_edge", text="Edge To Edge")
@@ -305,32 +306,32 @@ class StrokePanel(BrushPanel):
             row = col.row(align=True)
             row.prop(brush, "spacing", text="Spacing")
             row.prop(brush, "use_pressure_spacing", toggle=True, text="")
-            col.separator()
-            col.prop(brush, "dash_ratio", text="Dash Ratio")
-            col.prop(brush, "dash_samples", text="Dash Length")
 
         if brush.use_line or brush.use_curve:
             row = col.row(align=True)
             row.prop(brush, "spacing", text="Spacing")
 
-        if brush.use_curve:
-            col.template_ID(brush, "paint_curve", new="paintcurve.new")
-            col.operator("paintcurve.draw")
-
-        if mode in ('PAINT_TEXTURE', "PAINT_2D"):
-            if brush.image_paint_capabilities.has_space_attenuation:
-                col.prop(brush, "use_space_attenuation")
-
         if mode == 'SCULPT':
             col.row().prop(brush, "use_scene_spacing", text="Spacing Distance", expand=True)
 
-            if brush.sculpt_capabilities.has_space_attenuation:
+        if mode in ('PAINT_TEXTURE', 'PAINT_2D', 'SCULPT'):
+            if brush.image_paint_capabilities.has_space_attenuation or brush.sculpt_capabilities.has_space_attenuation:
                 col.prop(brush, "use_space_attenuation")
 
+        if brush.use_curve:
+            col.separator()
+            col.template_ID(brush, "paint_curve", new="paintcurve.new")
+            col.operator("paintcurve.draw")
             col.separator()
 
-        
+        if brush.use_space:
+            col.separator()
+            row = col.row(align=True)
+            col.prop(brush, "dash_ratio", text="Dash Ratio")
+            col.prop(brush, "dash_samples", text="Dash Length")
+
         if (mode == 'SCULPT' and brush.sculpt_capabilities.has_jitter) or mode != 'SCULPT':
+            col.separator()
             row = col.row(align=True)
             if brush.jitter_unit == 'BRUSH':
                 row.prop(brush, "jitter", slider=True)
@@ -338,8 +339,8 @@ class StrokePanel(BrushPanel):
                 row.prop(brush, "jitter_absolute")
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
             col.row().prop(brush, "jitter_unit", expand=True)
-            col.separator()
 
+        col.separator()
         col.prop(settings, "input_samples")
 
 
