@@ -541,7 +541,7 @@ def km_uv_editor(params):
   
         ("uv.select", {"type": 'LEFTMOUSE', "value": 'CLICK'},
          {"properties": [("extend", False), ("deselect_all", True)]}),
-        ("uv.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+        ("uv.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True},
          {"properties": [("extend", True), ("deselect_all", False)]}),
         ("transform.translate", {"type": "EVT_TWEAK_L", "value": 'ANY'}, None),
         ("uv.select_loop", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK', "shift": True},
