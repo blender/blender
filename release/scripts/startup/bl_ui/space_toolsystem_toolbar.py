@@ -1135,11 +1135,10 @@ class _defs_weight_paint:
         def draw_settings(context, layout, tool):
             brush = context.tool_settings.weight_paint.brush
             if brush is not None:
-                from bl_ui.properties_paint_common import UnifiedPaintPanel
-                UnifiedPaintPanel.prop_unified_weight(layout, context, brush, "weight", slider=True)
-                UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True)
+                layout.prop(brush, "weight", slider=True)
+                layout.prop(brush, "strength", slider=True)
             props = tool.operator_properties("paint.weight_gradient")
-            layout.prop(props, "type")
+            layout.prop(props, "type", expand=True)
 
         return dict(
             idname="builtin.gradient",

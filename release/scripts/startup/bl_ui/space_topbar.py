@@ -20,6 +20,7 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 
+
 class TOPBAR_HT_upper_bar(Header):
     bl_space_type = 'TOPBAR'
 
@@ -67,7 +68,8 @@ class TOPBAR_HT_upper_bar(Header):
             layout.template_running_jobs()
 
         # Active workspace view-layer is retrieved through window, not through workspace.
-        layout.template_ID(window, "scene", new="scene.new", unlink="scene.delete")
+        layout.template_ID(window, "scene", new="scene.new",
+                           unlink="scene.delete")
 
         row = layout.row(align=True)
         row.template_search(
@@ -91,9 +93,11 @@ class TOPBAR_PT_tool_settings_extra(Panel):
         layout = self.layout
 
         # Get the active tool
-        space_type, mode = ToolSelectPanelHelper._tool_key_from_context(context)
+        space_type, mode = ToolSelectPanelHelper._tool_key_from_context(
+            context)
         cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
-        item, tool, _ = cls._tool_get_active(context, space_type, mode, with_icon=True)
+        item, tool, _ = cls._tool_get_active(
+            context, space_type, mode, with_icon=True)
         if item is None:
             return
 
@@ -115,7 +119,8 @@ class TOPBAR_PT_tool_fallback(Panel):
         ToolSelectPanelHelper.draw_fallback_tool_items(layout, context)
         if tool_settings.workspace_tool_type == 'FALLBACK':
             tool = context.tool
-            ToolSelectPanelHelper.draw_active_tool_fallback(context, layout, tool)
+            ToolSelectPanelHelper.draw_active_tool_fallback(
+                context, layout, tool)
 
 
 class TOPBAR_PT_gpencil_layers(Panel):
@@ -174,20 +179,25 @@ class TOPBAR_PT_gpencil_layers(Panel):
 
         gpl = context.active_gpencil_layer
         if gpl:
-            sub.menu("GPENCIL_MT_layer_context_menu", icon='DOWNARROW_HLT', text="")
+            sub.menu("GPENCIL_MT_layer_context_menu",
+                     icon='DOWNARROW_HLT', text="")
 
             if len(gpd.layers) > 1:
                 col.separator()
 
                 sub = col.column(align=True)
-                sub.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'UP'
-                sub.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'DOWN'
+                sub.operator("gpencil.layer_move",
+                             icon='TRIA_UP', text="").type = 'UP'
+                sub.operator("gpencil.layer_move",
+                             icon='TRIA_DOWN', text="").type = 'DOWN'
 
                 col.separator()
 
                 sub = col.column(align=True)
-                sub.operator("gpencil.layer_isolate", icon='HIDE_OFF', text="").affect_visibility = True
-                sub.operator("gpencil.layer_isolate", icon='LOCKED', text="").affect_visibility = False
+                sub.operator("gpencil.layer_isolate", icon='HIDE_OFF',
+                             text="").affect_visibility = True
+                sub.operator("gpencil.layer_isolate", icon='LOCKED',
+                             text="").affect_visibility = False
 
 
 class TOPBAR_MT_editor_menus(Menu):
@@ -229,7 +239,8 @@ class TOPBAR_MT_app(Menu):
 
         layout.separator()
 
-        layout.operator("preferences.app_template_install", text="Install Application Template...")
+        layout.operator("preferences.app_template_install",
+                        text="Install Application Template...")
 
 
 class TOPBAR_MT_file(Menu):
@@ -325,7 +336,8 @@ class TOPBAR_MT_file_new(Menu):
 
         # Draw application templates.
         if not use_more:
-            props = layout.operator("wm.read_homefile", text="General", icon=icon)
+            props = layout.operator(
+                "wm.read_homefile", text="General", icon=icon)
             props.app_template = ""
 
         for d in paths:
@@ -370,7 +382,8 @@ class TOPBAR_MT_file_defaults(Menu):
             app_template = None
 
         if app_template:
-            layout.label(text=bpy.path.display_name(app_template, has_ext=False))
+            layout.label(text=bpy.path.display_name(
+                app_template, has_ext=False))
 
         layout.operator("wm.save_homefile")
         props = layout.operator("wm.read_factory_settings")
@@ -384,12 +397,15 @@ class TOPBAR_MT_app_about(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("wm.url_open_preset", text="Release Notes", icon='URL').type = 'RELEASE_NOTES'
+        layout.operator("wm.url_open_preset", text="Release Notes",
+                        icon='URL').type = 'RELEASE_NOTES'
 
         layout.separator()
 
-        layout.operator("wm.url_open_preset", text="Blender Website", icon='URL').type = 'BLENDER'
-        layout.operator("wm.url_open_preset", text="Credits", icon='URL').type = 'CREDITS'
+        layout.operator("wm.url_open_preset",
+                        text="Blender Website", icon='URL').type = 'BLENDER'
+        layout.operator("wm.url_open_preset", text="Credits",
+                        icon='URL').type = 'CREDITS'
 
         layout.separator()
 
@@ -404,7 +420,8 @@ class TOPBAR_MT_app_support(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("wm.url_open_preset", text="Development Fund", icon='FUND').type = 'FUND'
+        layout.operator("wm.url_open_preset",
+                        text="Development Fund", icon='FUND').type = 'FUND'
 
         layout.separator()
 
@@ -417,7 +434,8 @@ class TOPBAR_MT_templates_more(Menu):
     bl_label = "Templates"
 
     def draw(self, context):
-        bpy.types.TOPBAR_MT_file_new.draw_ex(self.layout, context, use_more=True)
+        bpy.types.TOPBAR_MT_file_new.draw_ex(
+            self.layout, context, use_more=True)
 
 
 class TOPBAR_MT_file_import(Menu):
@@ -426,7 +444,8 @@ class TOPBAR_MT_file_import(Menu):
 
     def draw(self, _context):
         if bpy.app.build_options.collada:
-            self.layout.operator("wm.collada_import", text="Collada (Default) (.dae)")
+            self.layout.operator("wm.collada_import",
+                                 text="Collada (Default) (.dae)")
         if bpy.app.build_options.alembic:
             self.layout.operator("wm.alembic_import", text="Alembic (.abc)")
 
@@ -437,11 +456,13 @@ class TOPBAR_MT_file_export(Menu):
 
     def draw(self, context):
         if bpy.app.build_options.collada:
-            self.layout.operator("wm.collada_export", text="Collada (Default) (.dae)")
+            self.layout.operator("wm.collada_export",
+                                 text="Collada (Default) (.dae)")
         if bpy.app.build_options.alembic:
             self.layout.operator("wm.alembic_export", text="Alembic (.abc)")
         if bpy.app.build_options.usd and context.preferences.experimental.use_usd_exporter:
-            self.layout.operator("wm.usd_export", text="Universal Scene Description (.usd, .usdc, .usda)")
+            self.layout.operator(
+                "wm.usd_export", text="Universal Scene Description (.usd, .usdc, .usda)")
 
 
 class TOPBAR_MT_file_external_data(Menu):
@@ -494,8 +515,10 @@ class TOPBAR_MT_render(Menu):
 
         rd = context.scene.render
 
-        layout.operator("render.render", text="Render Image", icon='RENDER_STILL').use_viewport = True
-        props = layout.operator("render.render", text="Render Animation", icon='RENDER_ANIMATION')
+        layout.operator("render.render", text="Render Image",
+                        icon='RENDER_STILL').use_viewport = True
+        props = layout.operator(
+            "render.render", text="Render Animation", icon='RENDER_ANIMATION')
         props.animation = True
         props.use_viewport = True
 
@@ -537,7 +560,8 @@ class TOPBAR_MT_edit(Menu):
 
         layout.separator()
 
-        layout.operator("wm.search_menu", text="Operator Search...", icon='VIEWZOOM')
+        layout.operator("wm.search_menu",
+                        text="Operator Search...", icon='VIEWZOOM')
 
         layout.separator()
 
@@ -556,7 +580,8 @@ class TOPBAR_MT_edit(Menu):
 
         layout.separator()
 
-        layout.operator("screen.userpref_show", text="Preferences...", icon='PREFERENCES')
+        layout.operator("screen.userpref_show",
+                        text="Preferences...", icon='PREFERENCES')
 
 
 class TOPBAR_MT_window(Menu):
@@ -576,8 +601,10 @@ class TOPBAR_MT_window(Menu):
 
         layout.separator()
 
-        layout.operator("screen.workspace_cycle", text="Next Workspace").direction = 'NEXT'
-        layout.operator("screen.workspace_cycle", text="Previous Workspace").direction = 'PREV'
+        layout.operator("screen.workspace_cycle",
+                        text="Next Workspace").direction = 'NEXT'
+        layout.operator("screen.workspace_cycle",
+                        text="Previous Workspace").direction = 'PREV'
 
         layout.separator()
 
@@ -604,7 +631,8 @@ class TOPBAR_MT_help(Menu):
 
         show_developer = context.preferences.view.show_developer_ui
 
-        layout.operator("wm.url_open_preset", text="Manual", icon='HELP').type = 'MANUAL'
+        layout.operator("wm.url_open_preset", text="Manual",
+                        icon='HELP').type = 'MANUAL'
 
         layout.operator(
             "wm.url_open", text="Tutorials", icon='URL',
@@ -637,7 +665,8 @@ class TOPBAR_MT_help(Menu):
 
         layout.separator()
 
-        layout.operator("wm.url_open_preset", text="Report a Bug", icon='URL').type = 'BUG'
+        layout.operator("wm.url_open_preset",
+                        text="Report a Bug", icon='URL').type = 'BUG'
 
         layout.separator()
 
@@ -666,7 +695,8 @@ class TOPBAR_MT_file_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator("screen.userpref_show", text="Preferences...", icon='PREFERENCES')
+        layout.operator("screen.userpref_show",
+                        text="Preferences...", icon='PREFERENCES')
 
 
 class TOPBAR_MT_workspace_menu(Menu):
@@ -675,21 +705,26 @@ class TOPBAR_MT_workspace_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("workspace.duplicate", text="Duplicate", icon='DUPLICATE')
+        layout.operator("workspace.duplicate",
+                        text="Duplicate", icon='DUPLICATE')
         if len(bpy.data.workspaces) > 1:
             layout.operator("workspace.delete", text="Delete", icon='REMOVE')
 
         layout.separator()
 
-        layout.operator("workspace.reorder_to_front", text="Reorder to Front", icon='TRIA_LEFT_BAR')
-        layout.operator("workspace.reorder_to_back", text="Reorder to Back", icon='TRIA_RIGHT_BAR')
+        layout.operator("workspace.reorder_to_front",
+                        text="Reorder to Front", icon='TRIA_LEFT_BAR')
+        layout.operator("workspace.reorder_to_back",
+                        text="Reorder to Back", icon='TRIA_RIGHT_BAR')
 
         layout.separator()
 
         # For key binding discoverability.
-        props = layout.operator("screen.workspace_cycle", text="Previous Workspace")
+        props = layout.operator("screen.workspace_cycle",
+                                text="Previous Workspace")
         props.direction = 'PREV'
-        props = layout.operator("screen.workspace_cycle", text="Next Workspace")
+        props = layout.operator(
+            "screen.workspace_cycle", text="Next Workspace")
         props.direction = 'NEXT'
 
 
@@ -704,29 +739,8 @@ class TOPBAR_PT_gpencil_primitive(Panel):
 
         layout = self.layout
         # Curve
-        layout.template_curve_mapping(settings, "thickness_primitive_curve", brush=True)
-
-
-# Grease Pencil Fill
-class TOPBAR_PT_gpencil_fill(Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'HEADER'
-    bl_label = "Advanced"
-
-    def draw(self, context):
-        paint = context.tool_settings.gpencil_paint
-        brush = paint.brush
-        gp_settings = brush.gpencil_settings
-
-        layout = self.layout
-        # Fill
-        row = layout.row(align=True)
-        row.prop(gp_settings, "fill_factor", text="Resolution")
-        if gp_settings.fill_draw_mode != 'STROKE':
-            row = layout.row(align=True)
-            row.prop(gp_settings, "show_fill", text="Ignore Transparent Strokes")
-            row = layout.row(align=True)
-            row.prop(gp_settings, "fill_threshold", text="Threshold")
+        layout.template_curve_mapping(
+            settings, "thickness_primitive_curve", brush=True)
 
 
 # Only a popover
@@ -818,7 +832,6 @@ classes = (
     TOPBAR_PT_tool_settings_extra,
     TOPBAR_PT_gpencil_layers,
     TOPBAR_PT_gpencil_primitive,
-    TOPBAR_PT_gpencil_fill,
     TOPBAR_PT_name,
 )
 

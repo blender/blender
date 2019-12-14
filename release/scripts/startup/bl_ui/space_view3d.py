@@ -25,6 +25,7 @@ from bpy.types import (
 )
 from bl_ui.properties_paint_common import (
     UnifiedPaintPanel,
+    brush_basic_texpaint_settings,
 )
 from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
@@ -67,7 +68,6 @@ class VIEW3D_HT_tool_header(Header):
             context, layout,
             tool_key=('VIEW_3D', tool_mode),
         )
-
         # Object Mode Options
         # -------------------
 
@@ -79,21 +79,29 @@ class VIEW3D_HT_tool_header(Header):
         if draw_fn is not None:
             draw_fn(context, layout, tool)
 
-        popover_kw = {"space_type": 'VIEW_3D', "region_type": 'UI', "category": "Tool"}
+        def draw_3d_brush_settings(layout, tool_mode):
+            layout.popover("VIEW3D_PT_tools_brush_settings_advanced", text="Brush")
+            if tool_mode != 'PAINT_WEIGHT':
+                layout.popover("VIEW3D_PT_tools_brush_texture")
+            if tool_mode == 'PAINT_TEXTURE':
+                layout.popover("VIEW3D_PT_tools_mask_texture")
+            layout.popover("VIEW3D_PT_tools_brush_stroke")
+            layout.popover("VIEW3D_PT_tools_brush_falloff")
+            layout.popover("VIEW3D_PT_tools_brush_display")
 
         # Note: general mode options should be added to 'draw_mode_settings'.
         if tool_mode == 'SCULPT':
             if (tool is not None) and tool.has_datablock:
-                layout.popover_group(context=".paint_common", **popover_kw)
+                draw_3d_brush_settings(layout, tool_mode)
         elif tool_mode == 'PAINT_VERTEX':
             if (tool is not None) and tool.has_datablock:
-                layout.popover_group(context=".paint_common", **popover_kw)
+                draw_3d_brush_settings(layout, tool_mode)
         elif tool_mode == 'PAINT_WEIGHT':
             if (tool is not None) and tool.has_datablock:
-                layout.popover_group(context=".paint_common", **popover_kw)
+                draw_3d_brush_settings(layout, tool_mode)
         elif tool_mode == 'PAINT_TEXTURE':
             if (tool is not None) and tool.has_datablock:
-                layout.popover_group(context=".paint_common", **popover_kw)
+                draw_3d_brush_settings(layout, tool_mode)
         elif tool_mode == 'EDIT_ARMATURE':
             pass
         elif tool_mode == 'EDIT_CURVE':
@@ -109,11 +117,24 @@ class VIEW3D_HT_tool_header(Header):
             pass
         elif tool_mode == 'PAINT_GPENCIL':
             if (tool is not None) and tool.has_datablock:
-                layout.popover_group(context=".greasepencil_paint", **popover_kw)
+                brush = context.tool_settings.gpencil_paint.brush
+                if brush.gpencil_tool != 'ERASE':
+                    layout.popover("VIEW3D_PT_tools_grease_pencil_brush_advanced")
+
+                    if brush.gpencil_tool != 'FILL':
+                        layout.popover("VIEW3D_PT_tools_grease_pencil_brush_stabilizer")
+                        layout.popover("VIEW3D_PT_tools_grease_pencil_brush_random")
+                        layout.popover("VIEW3D_PT_tools_grease_pencil_brushcurves")
+
+                    layout.popover("VIEW3D_PT_tools_grease_pencil_paint_appearance")
         elif tool_mode == 'SCULPT_GPENCIL':
-            layout.popover_group(context=".greasepencil_sculpt", **popover_kw)
+            settings = context.tool_settings.gpencil_sculpt
+            tool = settings.sculpt_tool
+            if tool in ('SMOOTH', 'RANDOMIZE', 'SMOOTH'):
+                layout.popover("VIEW3D_PT_tools_grease_pencil_sculpt_options")
+            layout.popover("VIEW3D_PT_tools_grease_pencil_sculpt_appearance")
         elif tool_mode == 'WEIGHT_GPENCIL':
-            layout.popover_group(context=".greasepencil_weight", **popover_kw)
+            layout.popover("VIEW3D_PT_tools_grease_pencil_weight_appearance")
 
     def draw_mode_settings(self, context):
         layout = self.layout
@@ -230,10 +251,26 @@ class _draw_tool_settings_context_mode:
         if brush is None:
             return
 
-        from bl_ui.properties_paint_common import (
-            brush_basic_sculpt_settings,
-        )
-        brush_basic_sculpt_settings(layout, context, brush, compact=True)
+        tool_settings = context.tool_settings
+        capabilities = brush.sculpt_capabilities
+
+        ups = tool_settings.unified_paint_settings
+
+        size = "size"
+        size_owner = ups if ups.use_unified_size else brush
+        if size_owner.use_locked_size == 'SCENE':
+            size = "unprojected_radius"
+
+        # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
+        UnifiedPaintPanel.prop_unified(layout, context, brush, size, pressure_name="use_pressure_size", text="Radius", slider=True)
+
+        # strength, use_strength_pressure
+        pressure_name = "use_pressure_strength" if capabilities.has_strength_pressure else None
+        UnifiedPaintPanel.prop_unified(layout, context, brush, "strength", pressure_name=pressure_name, text="Strength")
+
+        # direction
+        if not capabilities.has_direction:
+            layout.row().prop(brush, "direction", expand=True, text="")
 
     @staticmethod
     def PAINT_TEXTURE(context, layout, tool):
@@ -247,13 +284,6 @@ class _draw_tool_settings_context_mode:
         if brush is None:
             return
 
-        from bl_ui.properties_paint_common import (
-            UnifiedPaintPanel,
-            brush_basic_texpaint_settings,
-        )
-        capabilities = brush.image_paint_capabilities
-        if capabilities.has_color:
-            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
         brush_basic_texpaint_settings(layout, context, brush, compact=True)
 
     @staticmethod
@@ -268,14 +298,7 @@ class _draw_tool_settings_context_mode:
         if brush is None:
             return
 
-        from bl_ui.properties_paint_common import (
-            UnifiedPaintPanel,
-            brush_basic_vpaint_settings,
-        )
-        capabilities = brush.vertex_paint_capabilities
-        if capabilities.has_color:
-            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
-        brush_basic_vpaint_settings(layout, context, brush, compact=True)
+        brush_basic_texpaint_settings(layout, context, brush, compact=True)
 
     @staticmethod
     def PAINT_WEIGHT(context, layout, tool):
@@ -288,8 +311,13 @@ class _draw_tool_settings_context_mode:
         if brush is None:
             return
 
-        from bl_ui.properties_paint_common import brush_basic_wpaint_settings
-        brush_basic_wpaint_settings(layout, context, brush, compact=True)
+        # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
+        capabilities = brush.weight_paint_capabilities
+        if capabilities.has_weight:
+            UnifiedPaintPanel.prop_unified(layout, context, brush, "weight", slider=True)
+
+        UnifiedPaintPanel.prop_unified(layout, context, brush, "size", pressure_name="use_pressure_size", slider=True, text="Radius")
+        UnifiedPaintPanel.prop_unified(layout, context, brush, "strength", pressure_name="use_pressure_strength")
 
     @staticmethod
     def PAINT_GPENCIL(context, layout, tool):
@@ -358,7 +386,7 @@ class _draw_tool_settings_context_mode:
         from bl_ui.properties_paint_common import (
             brush_basic_gpencil_paint_settings,
         )
-        brush_basic_gpencil_paint_settings(layout, context, brush, tool, compact=True, is_toolbar=True)
+        brush_basic_gpencil_paint_settings(layout, context, brush, compact=True)
 
     @staticmethod
     def SCULPT_GPENCIL(context, layout, tool):
@@ -467,12 +495,11 @@ class VIEW3D_HT_header(Header):
                 show_snap = True
             else:
 
-                from bl_ui.properties_paint_common import UnifiedPaintPanel
                 paint_settings = UnifiedPaintPanel.paint_settings(context)
 
                 if paint_settings:
                     brush = paint_settings.brush
-                    if brush and brush.stroke_method == 'CURVE':
+                    if brush and hasattr(brush, "stroke_method") and brush.stroke_method == 'CURVE':
                         show_snap = True
 
         if show_snap:
@@ -6653,6 +6680,7 @@ class VIEW3D_PT_paint_vertex_context_menu(Panel):
 
     def draw(self, context):
         layout = self.layout
+
         brush = context.tool_settings.vertex_paint.brush
         capabilities = brush.vertex_paint_capabilities
 
@@ -6662,9 +6690,8 @@ class VIEW3D_PT_paint_vertex_context_menu(Panel):
             UnifiedPaintPanel.prop_unified_color_picker(split, context, brush, "color", value_slider=True)
             layout.prop(brush, "blend", text="")
 
-        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True)
-        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength")
-
+        UnifiedPaintPanel.prop_unified(layout, context, brush, "size", unified_name="use_unified_size", pressure_name="use_pressure_size", slider=True)
+        UnifiedPaintPanel.prop_unified(layout, context, brush, "strength", unified_name="use_unified_strength", pressure_name="use_pressure_strength", slider=True)
 
 class VIEW3D_PT_paint_texture_context_menu(Panel):
     # Only for popover, these are dummy values.
@@ -6674,6 +6701,7 @@ class VIEW3D_PT_paint_texture_context_menu(Panel):
 
     def draw(self, context):
         layout = self.layout
+
         brush = context.tool_settings.image_paint.brush
         capabilities = brush.image_paint_capabilities
 
@@ -6684,8 +6712,8 @@ class VIEW3D_PT_paint_texture_context_menu(Panel):
             layout.prop(brush, "blend", text="")
 
         if capabilities.has_radius:
-            UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True)
-        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength")
+            UnifiedPaintPanel.prop_unified(layout, context, brush, "size", unified_name="use_unified_size", pressure_name="use_pressure_size", slider=True)
+            UnifiedPaintPanel.prop_unified(layout, context, brush, "strength", unified_name="use_unified_strength", pressure_name="use_pressure_strength", slider=True)
 
 
 class VIEW3D_PT_paint_weight_context_menu(Panel):
@@ -6698,9 +6726,9 @@ class VIEW3D_PT_paint_weight_context_menu(Panel):
         layout = self.layout
 
         brush = context.tool_settings.weight_paint.brush
-        UnifiedPaintPanel.prop_unified_weight(layout, context, brush, "weight", slider=True)
-        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True)
-        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength")
+        UnifiedPaintPanel.prop_unified(layout, context, brush, "weight", unified_name="use_unified_weight", slider=True)
+        UnifiedPaintPanel.prop_unified(layout, context, brush, "size", unified_name="use_unified_size", pressure_name="use_pressure_size", slider=True)
+        UnifiedPaintPanel.prop_unified(layout, context, brush, "strength", unified_name="use_unified_strength", pressure_name="use_pressure_strength", slider=True)
 
 
 class VIEW3D_PT_sculpt_context_menu(Panel):
@@ -6715,8 +6743,8 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
         brush = context.tool_settings.sculpt.brush
         capabilities = brush.sculpt_capabilities
 
-        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True)
-        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength")
+        UnifiedPaintPanel.prop_unified(layout, context, brush, "size", unified_name="use_unified_size", pressure_name="use_pressure_size", slider=True)
+        UnifiedPaintPanel.prop_unified(layout, context, brush, "strength", unified_name="use_unified_strength", pressure_name="use_pressure_strength", slider=True)
 
         if capabilities.has_auto_smooth:
             layout.prop(brush, "auto_smooth_factor", slider=True)

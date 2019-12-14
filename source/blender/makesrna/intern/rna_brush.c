@@ -1596,6 +1596,22 @@ static void rna_def_brush(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem brush_jitter_unit_items[] = {
+      {BRUSH_ABSOLUTE_JITTER, "VIEW", 0, "View", "Jitterring happens in screen space, in pixels"},
+      {0, "BRUSH", 0, "Brush", "Jitterring happens relative to the brush size"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem falloff_shape_unit_items[] = {
+      {0, "SPHERE", 0, "Sphere", "Apply brush influence in a Sphere, outwards from the center"},
+      {PAINT_FALLOFF_SHAPE_TUBE,
+       "PROJECTED",
+       0,
+       "Projected",
+       "Apply brush influence in a 2D circle, projected from the view"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   static const EnumPropertyItem brush_curve_preset_items[] = {
       {BRUSH_CURVE_CUSTOM, "CUSTOM", ICON_RNDCURVE, "Custom", ""},
       {BRUSH_CURVE_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
@@ -1702,6 +1718,19 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "elastic_deform_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, brush_elastic_deform_type_items);
   RNA_def_property_ui_text(prop, "Deformation", "Deformation type that is used in the brush");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "jitter_unit", PROP_ENUM, PROP_NONE); /* as an enum */
+  RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+  RNA_def_property_enum_items(prop, brush_jitter_unit_items);
+  RNA_def_property_ui_text(
+      prop, "Jitter Unit", "Jitter in screen space or relative to brush size");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "falloff_shape", PROP_ENUM, PROP_NONE); /* as an enum */
+  RNA_def_property_enum_bitflag_sdna(prop, NULL, "falloff_shape");
+  RNA_def_property_enum_items(prop, falloff_shape_unit_items);
+  RNA_def_property_ui_text(prop, "Falloff Shape", "Use projected or spherical falloff");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   /* number values */
@@ -1993,13 +2022,6 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   /* flag */
-  /* This is an enum but its unlikely we add other shapes, so expose as a boolean. */
-  prop = RNA_def_property(srna, "use_projected", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "falloff_shape", PAINT_FALLOFF_SHAPE_TUBE);
-  RNA_def_property_ui_text(
-      prop, "2D Falloff", "Apply brush influence in 2D circle instead of a sphere");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
-
   prop = RNA_def_property(srna, "use_airbrush", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_AIRBRUSH);
   RNA_def_property_ui_text(
@@ -2045,7 +2067,7 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_paint_antialiasing", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "sampling_flag", BRUSH_PAINT_ANTIALIASING);
-  RNA_def_property_ui_text(prop, "Antialasing", "Smooths the edges of the strokes");
+  RNA_def_property_ui_text(prop, "Anti-Aliasing", "Smooths the edges of the strokes");
 
   prop = RNA_def_property(srna, "use_multiplane_scrape_dynamic", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_MULTIPLANE_SCRAPE_DYNAMIC);
@@ -2115,13 +2137,6 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
   RNA_def_property_ui_text(
       prop, "Inverse Smooth Pressure", "Lighter pressure causes more smoothing to be applied");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-  prop = RNA_def_property(srna, "use_relative_jitter", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BRUSH_ABSOLUTE_JITTER);
-  RNA_def_property_ui_icon(prop, ICON_UNLOCKED, true);
-  RNA_def_property_ui_text(
-      prop, "Absolute Jitter", "Jittering happens in screen space, not relative to brush size");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_plane_trim", PROP_BOOLEAN, PROP_NONE);
