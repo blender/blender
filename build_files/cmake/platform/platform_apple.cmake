@@ -57,8 +57,10 @@ if(WITH_ALEMBIC)
 endif()
 
 if(WITH_USD)
-  set(USD_LIBRARIES ${LIBDIR}/usd/lib/libusd_m.a)
-  SET(USD_INCLUDE_DIRS ${LIBDIR}/usd/include)
+  find_package(USD)
+  if(NOT USD_FOUND)
+    set(WITH_USD OFF)
+  endif()
 endif()
 
 if(WITH_OPENSUBDIV)
