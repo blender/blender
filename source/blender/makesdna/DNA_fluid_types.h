@@ -255,12 +255,13 @@ typedef struct FluidDomainSettings {
   struct GPUTexture *tex_velocity_y;
   struct GPUTexture *tex_velocity_z;
   struct Object *guiding_parent;
-  struct FluidDomainVertexVelocity *mesh_velocities; /* Vertex velocities of simulated fluid mesh. */
+  /** Vertex velocities of simulated fluid mesh. */
+  struct FluidDomainVertexVelocity *mesh_velocities;
   struct EffectorWeights *effector_weights;
 
   /* Domain object data. */
-  float
-      p0[3]; /* Start point of BB in local space (includes sub-cell shift for adaptive domain). */
+  float p0[3];          /* Start point of BB in local space
+                         * (includes sub-cell shift for adaptive domain). */
   float p1[3];          /* End point of BB in local space. */
   float dp0[3];         /* Difference from object center to grid start point. */
   float cell_size[3];   /* Size of simulation cell in local space. */

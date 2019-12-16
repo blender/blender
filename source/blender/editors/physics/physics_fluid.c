@@ -108,40 +108,52 @@ typedef struct FluidJob {
   int *pause_frame;
 } FluidJob;
 
-static inline bool fluid_is_bake_all(FluidJob *job) {
+static inline bool fluid_is_bake_all(FluidJob *job)
+{
   return (STREQ(job->type, FLUID_JOB_BAKE_ALL));
 }
-static inline bool fluid_is_bake_data(FluidJob *job) {
+static inline bool fluid_is_bake_data(FluidJob *job)
+{
   return (STREQ(job->type, FLUID_JOB_BAKE_DATA));
 }
-static inline bool fluid_is_bake_noise(FluidJob *job) {
+static inline bool fluid_is_bake_noise(FluidJob *job)
+{
   return (STREQ(job->type, FLUID_JOB_BAKE_NOISE));
 }
-static inline bool fluid_is_bake_mesh(FluidJob *job) {
+static inline bool fluid_is_bake_mesh(FluidJob *job)
+{
   return (STREQ(job->type, FLUID_JOB_BAKE_MESH));
 }
-static inline bool fluid_is_bake_particle(FluidJob *job) {
+static inline bool fluid_is_bake_particle(FluidJob *job)
+{
   return (STREQ(job->type, FLUID_JOB_BAKE_PARTICLES));
 }
-static inline bool fluid_is_bake_guiding(FluidJob *job) {
+static inline bool fluid_is_bake_guiding(FluidJob *job)
+{
   return (STREQ(job->type, FLUID_JOB_BAKE_GUIDING));
 }
-static inline bool fluid_is_free_all(FluidJob *job) {
+static inline bool fluid_is_free_all(FluidJob *job)
+{
   return (STREQ(job->type, FLUID_JOB_FREE_ALL));
 }
-static inline bool fluid_is_free_data(FluidJob *job) {
+static inline bool fluid_is_free_data(FluidJob *job)
+{
   return (STREQ(job->type, FLUID_JOB_FREE_DATA));
 }
-static inline bool fluid_is_free_noise(FluidJob *job) {
+static inline bool fluid_is_free_noise(FluidJob *job)
+{
   return (STREQ(job->type, FLUID_JOB_FREE_NOISE));
 }
-static inline bool fluid_is_free_mesh(FluidJob *job) {
+static inline bool fluid_is_free_mesh(FluidJob *job)
+{
   return (STREQ(job->type, FLUID_JOB_FREE_MESH));
 }
-static inline bool fluid_is_free_particles(FluidJob *job) {
+static inline bool fluid_is_free_particles(FluidJob *job)
+{
   return (STREQ(job->type, FLUID_JOB_FREE_PARTICLES));
 }
-static inline bool fluid_is_free_guiding(FluidJob *job) {
+static inline bool fluid_is_free_guiding(FluidJob *job)
+{
   return (STREQ(job->type, FLUID_JOB_FREE_GUIDING));
 }
 
@@ -338,10 +350,8 @@ static void fluid_bake_endjob(void *customdata)
    *  Report for ended bake and how long it took */
   if (job->success) {
     /* Show bake info */
-    WM_reportf(RPT_INFO,
-               "Fluid: %s complete! (%.2f)",
-               job->name,
-               PIL_check_seconds_timer() - job->start);
+    WM_reportf(
+        RPT_INFO, "Fluid: %s complete! (%.2f)", job->name, PIL_check_seconds_timer() - job->start);
   }
   else {
     if (mds->error != NULL && mds->error[0] != '\0') {
@@ -442,10 +452,8 @@ static void fluid_free_endjob(void *customdata)
    *  Report for ended free job and how long it took */
   if (job->success) {
     /* Show free job info */
-    WM_reportf(RPT_INFO,
-               "Fluid: %s complete! (%.2f)",
-               job->name,
-               PIL_check_seconds_timer() - job->start);
+    WM_reportf(
+        RPT_INFO, "Fluid: %s complete! (%.2f)", job->name, PIL_check_seconds_timer() - job->start);
   }
   else {
     if (mds->error != NULL && mds->error[0] != '\0') {
