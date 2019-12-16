@@ -1038,8 +1038,10 @@ static void rna_fluid_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
     return;
   }
 
+#  ifdef WITH_FLUID
   fluidModifier_free(mmd);       /* XXX TODO: completely free all 3 pointers */
   fluidModifier_createType(mmd); /* create regarding of selected type */
+#  endif
 
   switch (mmd->type) {
     case MOD_FLUID_TYPE_DOMAIN:

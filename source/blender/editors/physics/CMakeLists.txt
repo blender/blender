@@ -60,6 +60,7 @@ if(WITH_MOD_FLUID)
   list(APPEND LIB
     bf_intern_mantaflow
   )
+  add_definitions(-DWITH_FLUID)
 endif()
 
 if(WITH_INTERNATIONAL)

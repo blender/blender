@@ -87,9 +87,14 @@ static void rna_Fluid_resetCache(Main *UNUSED(bmain), Scene *scene, PointerRNA *
 }
 static void rna_Fluid_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
 
-  fluidModifier_reset(settings->mmd);
+#  ifdef WITH_FLUID
+  {
+    FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
+    fluidModifier_reset(settings->mmd);
+  }
+#  endif
+
   rna_Fluid_resetCache(bmain, scene, ptr);
 
   rna_Fluid_update(bmain, scene, ptr);
@@ -99,7 +104,9 @@ static void rna_Fluid_reset_dependency(Main *bmain, Scene *scene, PointerRNA *pt
 {
   FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
 
+#  ifdef WITH_FLUID
   fluidModifier_reset(settings->mmd);
+#  endif
 
   if (settings->mmd && settings->mmd->domain)
     settings->mmd->domain->point_cache[0]->flag |= PTCACHE_OUTDATED;
@@ -114,14 +121,22 @@ static void rna_Fluid_parts_create(Main *bmain,
                                    const char *psys_name,
                                    int psys_type)
 {
+#  ifndef WITH_FLUID
+  UNUSED_VARS(bmain, ptr, pset_name, parts_name, psys_name, psys_type);
+#  else
   Object *ob = (Object *)ptr->owner_id;
   BKE_fluid_create_particle_system(bmain, ob, pset_name, parts_name, psys_name, psys_type);
+#  endif
 }
 
 static void rna_Fluid_parts_delete(PointerRNA *ptr, int ptype)
 {
+#  ifndef WITH_FLUID
+  UNUSED_VARS(ptr, ptype);
+#  else
   Object *ob = (Object *)ptr->owner_id;
   BKE_fluid_delete_particle_system(ob, ptype);
+#  endif
 }
 
 static bool rna_Fluid_parts_exists(PointerRNA *ptr, int ptype)
@@ -635,6 +650,12 @@ static char *rna_FluidEffectorSettings_path(PointerRNA *ptr)
   return BLI_sprintfN("modifiers[\"%s\"].effec_settings", name_esc);
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Grid Accessors
+ * \{ */
+
+#  ifdef WITH_FLUID
+
 static int rna_FluidModifier_grid_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
   FluidDomainSettings *mds = (FluidDomainSettings *)ptr->data;
@@ -855,6 +876,9 @@ static void rna_FluidModifier_temperature_grid_get(PointerRNA *ptr, float *value
 
   BLI_rw_mutex_unlock(mds->fluid_mutex);
 }
+#  endif /* WITH_FLUID */
+
+/** \} */
 
 static void rna_FluidFlow_density_vgroup_get(PointerRNA *ptr, char *value)
 {
@@ -1196,6 +1220,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
 
   /* grid access */
 
+#  ifdef WITH_FLUID
   prop = RNA_def_property(srna, "density_grid", PROP_FLOAT, PROP_NONE);
   RNA_def_property_array(prop, 32);
   RNA_def_property_flag(prop, PROP_DYNAMIC);
@@ -1244,6 +1269,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_float_funcs(prop, "rna_FluidModifier_temperature_grid_get", NULL, NULL);
   RNA_def_property_ui_text(
       prop, "Temperature Grid", "Smoke temperature grid, range 0..1 represents 0..1000K");
+#  endif /* WITH_FLUID */
 
   /* domain object data */
 

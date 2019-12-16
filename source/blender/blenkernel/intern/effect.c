@@ -1024,6 +1024,7 @@ static void do_physical_effector(EffectorCache *eff,
       break;
     case PFIELD_SMOKEFLOW:
       zero_v3(force);
+#ifdef WITH_FLUID
       if (pd->f_source) {
         float density;
         if ((density = BKE_fluid_get_velocity_at(pd->f_source, point->loc, force)) >= 0.0f) {
@@ -1036,6 +1037,7 @@ static void do_physical_effector(EffectorCache *eff,
           madd_v3_v3fl(total_force, point->vel, -pd->f_flow * influence);
         }
       }
+#endif
       break;
   }
 

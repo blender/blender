@@ -494,7 +494,9 @@ static void fluid_free_startjob(void *customdata, short *stop, short *do_update,
   if (fluid_is_free_guiding(job) || fluid_is_free_all(job)) {
     cache_map |= FLUID_DOMAIN_OUTDATED_GUIDING;
   }
+#ifdef WITH_FLUID
   BKE_fluid_cache_free(mds, job->ob, cache_map);
+#endif
 
   *do_update = true;
   *stop = 0;

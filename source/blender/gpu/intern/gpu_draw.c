@@ -940,12 +940,14 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 
 /* *************************** Transfer functions *************************** */
 
+#ifdef WITH_FLUID
+
 enum {
   TFUNC_FLAME_SPECTRUM = 0,
   TFUNC_COLOR_RAMP = 1,
 };
 
-#define TFUNC_WIDTH 256
+#  define TFUNC_WIDTH 256
 
 static void create_flame_spectrum_texture(float *data)
 {
@@ -1160,6 +1162,8 @@ static GPUTexture *create_flame_texture(FluidDomainSettings *mds, int highres)
   return tex;
 }
 
+#endif /* WITH_FLUID */
+
 void GPU_free_smoke(FluidModifierData *mmd)
 {
   if (mmd->type & MOD_FLUID_TYPE_DOMAIN && mmd->domain) {
@@ -1197,6 +1201,9 @@ void GPU_free_smoke(FluidModifierData *mmd)
 
 void GPU_create_smoke_coba_field(FluidModifierData *mmd)
 {
+#ifndef WITH_FLUID
+  UNUSED_VARS(mmd);
+#else
   if (mmd->type & MOD_FLUID_TYPE_DOMAIN) {
     FluidDomainSettings *mds = mmd->domain;
 
@@ -1207,10 +1214,14 @@ void GPU_create_smoke_coba_field(FluidModifierData *mmd)
       mds->tex_coba = create_transfer_function(TFUNC_COLOR_RAMP, mds->coba);
     }
   }
+#endif
 }
 
 void GPU_create_smoke(FluidModifierData *mmd, int highres)
 {
+#ifndef WITH_FLUID
+  UNUSED_VARS(mmd, highres);
+#else
   if (mmd->type & MOD_FLUID_TYPE_DOMAIN) {
     FluidDomainSettings *mds = mmd->domain;
 
@@ -1236,10 +1247,14 @@ void GPU_create_smoke(FluidModifierData *mmd, int highres)
                                               NULL);
     }
   }
+#endif /* WITH_FLUID */
 }
 
 void GPU_create_smoke_velocity(FluidModifierData *mmd)
 {
+#ifndef WITH_FLUID
+  UNUSED_VARS(mmd);
+#else
   if (mmd->type & MOD_FLUID_TYPE_DOMAIN) {
     FluidDomainSettings *mds = mmd->domain;
 
@@ -1260,6 +1275,7 @@ void GPU_create_smoke_velocity(FluidModifierData *mmd)
           mds->res[0], mds->res[1], mds->res[2], GPU_R16F, vel_z, NULL);
     }
   }
+#endif /* WITH_FLUID */
 }
 
 /* TODO Unify with the other GPU_free_smoke. */

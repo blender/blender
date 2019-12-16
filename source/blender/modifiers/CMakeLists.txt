@@ -133,6 +133,10 @@ if(WITH_MOD_REMESH)
   add_definitions(-DWITH_MOD_REMESH)
 endif()
 
+if(WITH_MOD_FLUID)
+  add_definitions(-DWITH_FLUID)
+endif()
+
 if(WITH_MOD_OCEANSIM)
   add_definitions(-DWITH_OCEANSIM)
 endif()

@@ -60,18 +60,26 @@ static void initData(ModifierData *md)
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
+#ifndef WITH_FLUID
+  UNUSED_VARS(md, target, flag);
+#else
   const FluidModifierData *mmd = (const FluidModifierData *)md;
   FluidModifierData *tmmd = (FluidModifierData *)target;
 
   fluidModifier_free(tmmd);
   fluidModifier_copy(mmd, tmmd, flag);
+#endif /* WITH_FLUID */
 }
 
 static void freeData(ModifierData *md)
 {
+#ifndef WITH_FLUID
+  UNUSED_VARS(md);
+#else
   FluidModifierData *mmd = (FluidModifierData *)md;
 
   fluidModifier_free(mmd);
+#endif /* WITH_FLUID */
 }
 
 static void requiredDataMask(Object *UNUSED(ob),
@@ -96,6 +104,10 @@ static void requiredDataMask(Object *UNUSED(ob),
 
 static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me)
 {
+#ifndef WITH_FLUID
+  UNUSED_VARS(md, ctx);
+  return me;
+#else
   FluidModifierData *mmd = (FluidModifierData *)md;
   Mesh *result = NULL;
 
@@ -107,6 +119,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
   result = fluidModifier_do(mmd, ctx->depsgraph, scene, ctx->object, me);
   return result ? result : me;
+#endif /* WITH_FLUID */
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))
