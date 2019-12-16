@@ -1083,6 +1083,7 @@ class IMAGE_PT_paint_settings(Panel, ImagePaintPanel):
 class IMAGE_PT_paint_settings_advanced(Panel, ImagePaintPanel):
     bl_context = ".paint_common_2d"
     bl_parent_id = "IMAGE_PT_paint_settings"
+    bl_category = "Tool"
     bl_label = "Advanced"
 
     def draw(self, context):
