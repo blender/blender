@@ -4419,7 +4419,7 @@ static void tile_fill_draw(bContext *UNUSED(C), wmOperator *op)
 void IMAGE_OT_tile_fill(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Fill tile";
+  ot->name = "Fill Tile";
   ot->description = "Fill the current tile with a generated image";
   ot->idname = "IMAGE_OT_tile_fill";
 
