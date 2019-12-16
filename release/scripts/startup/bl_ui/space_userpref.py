@@ -2195,7 +2195,6 @@ class USERPREF_PT_experimental_ui(ExperimentalPanel, Panel):
         col = split.column()
         col.operator("wm.url_open", text=task, icon='URL').url = self.url_prefix + task
 
-
 """
 # Example panel, leave it here so we always have a template to follow even
 # after the features are gone from the experimental panel.

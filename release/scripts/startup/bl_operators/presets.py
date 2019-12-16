@@ -382,16 +382,16 @@ class AddPresetFluid(AddPresetBase, Operator):
     """Add or remove a Fluid Preset"""
     bl_idname = "fluid.preset_add"
     bl_label = "Add Fluid Preset"
-    preset_menu = "FLUID_PT_presets"
+    preset_menu = "FLUID_MT_presets"
 
     preset_defines = [
         "fluid = bpy.context.fluid"
-    ]
+        ]
 
     preset_values = [
-        "fluid.settings.viscosity_base",
-        "fluid.settings.viscosity_exponent",
-    ]
+        "fluid.domain_settings.viscosity_base",
+        "fluidanta.domain_settings.viscosity_exponent",
+        ]
 
     preset_subdir = "fluid"
 
