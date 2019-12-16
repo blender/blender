@@ -82,6 +82,7 @@ static void brush_defaults(Brush *brush)
   FROM_DEFAULT(topology_rake_factor);
   FROM_DEFAULT(crease_pinch_factor);
   FROM_DEFAULT(normal_radius_factor);
+  FROM_DEFAULT(area_radius_factor);
   FROM_DEFAULT(sculpt_plane);
   FROM_DEFAULT(plane_offset);
   FROM_DEFAULT(clone.alpha);

@@ -105,6 +105,7 @@ MINLINE void add_v4_fl(float r[4], float f);
 MINLINE void add_v2_v2(float r[2], const float a[2]);
 MINLINE void add_v2_v2_db(double r[2], const double a[2]);
 MINLINE void add_v2_v2v2(float r[2], const float a[2], const float b[2]);
+MINLINE void add_v2_v2_int(int r[2], const int a[2]);
 MINLINE void add_v2_v2v2_int(int r[2], const int a[2], const int b[2]);
 MINLINE void add_v3_v3(float r[3], const float a[3]);
 MINLINE void add_v3_v3_db(double r[3], const double a[3]);

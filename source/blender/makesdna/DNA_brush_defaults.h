@@ -46,6 +46,7 @@
     .topology_rake_factor = 0.0f, \
     .crease_pinch_factor = 0.5f, \
     .normal_radius_factor = 0.5f, \
+    .area_radius_factor = 0.5f, \
     .sculpt_plane = SCULPT_DISP_DIR_AREA, \
     /* How far above or below the plane that is found by averaging the faces. */ \
     .plane_offset = 0.0f, \

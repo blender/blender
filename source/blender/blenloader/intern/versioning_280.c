@@ -4254,6 +4254,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
+      if (br->ob_mode & OB_MODE_SCULPT && br->area_radius_factor == 0.0f) {
+        br->area_radius_factor = 0.5f;
+      }
+    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 282, 2)) {

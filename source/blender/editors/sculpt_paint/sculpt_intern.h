@@ -207,6 +207,13 @@ typedef struct SculptThreadedTaskData {
 
   bool use_area_cos;
   bool use_area_nos;
+
+  /* 0=towards view, 1=flipped */
+  float (*area_cos)[3];
+  float (*area_nos)[3];
+  int *count_no;
+  int *count_co;
+
   bool any_vertex_sampled;
 
   float *prev_mask;

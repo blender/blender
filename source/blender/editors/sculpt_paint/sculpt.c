@@ -1439,7 +1439,8 @@ typedef struct AreaNormalCenterTLSData {
   /* 0 = towards view, 1 = flipped */
   float area_cos[2][3];
   float area_nos[2][3];
-  int area_count[2];
+  int count_no[2];
+  int count_co[2];
 } AreaNormalCenterTLSData;
 
 static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
@@ -1456,24 +1457,45 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
   SculptUndoNode *unode = NULL;
 
   bool use_original = false;
+  bool normal_test_r, area_test_r;
 
   if (ss->cache && ss->cache->original) {
     unode = sculpt_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
     use_original = (unode->co || unode->bm_entry);
   }
 
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = sculpt_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
+  SculptBrushTest normal_test;
+  SculptBrushTestFn sculpt_brush_normal_test_sq_fn = sculpt_brush_test_init_with_falloff_shape(
+      ss, &normal_test, data->brush->falloff_shape);
 
   /* Update the test radius to sample the normal using the normal radius of the brush. */
   if (data->brush->ob_mode == OB_MODE_SCULPT) {
-    float test_radius = sqrtf(test.radius_squared);
-    /* Layer brush produces artifacts with normal radius. */
+    float test_radius = sqrtf(normal_test.radius_squared);
+    /* Layer brush produces artifacts with normal and area radius. */
     if (!(ss->cache && data->brush->sculpt_tool == SCULPT_TOOL_LAYER)) {
       test_radius *= data->brush->normal_radius_factor;
     }
-    test.radius_squared = test_radius * test_radius;
+    normal_test.radius_squared = test_radius * test_radius;
+  }
+
+  SculptBrushTest area_test;
+  SculptBrushTestFn sculpt_brush_area_test_sq_fn = sculpt_brush_test_init_with_falloff_shape(
+      ss, &area_test, data->brush->falloff_shape);
+
+  if (data->brush->ob_mode == OB_MODE_SCULPT) {
+    float test_radius = sqrtf(area_test.radius_squared);
+    /* Layer brush produces artifacts with normal and area radius */
+    if (!(ss->cache && data->brush->sculpt_tool == SCULPT_TOOL_LAYER)) {
+      /* Enable area radius control only on Scrape for now */
+      if (ELEM(data->brush->sculpt_tool, SCULPT_TOOL_SCRAPE, SCULPT_TOOL_FILL) &&
+          data->brush->area_radius_factor > 0.0f) {
+        test_radius *= data->brush->area_radius_factor;
+      }
+      else {
+        test_radius *= data->brush->normal_radius_factor;
+      }
+    }
+    area_test.radius_squared = test_radius * test_radius;
   }
 
   /* When the mesh is edited we can't rely on original coords
@@ -1493,22 +1515,26 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
       };
       float co[3];
 
-      closest_on_tri_to_point_v3(co, test.location, UNPACK3(co_tri));
+      closest_on_tri_to_point_v3(co, normal_test.location, UNPACK3(co_tri));
 
-      if (sculpt_brush_test_sq_fn(&test, co)) {
+      normal_test_r = sculpt_brush_normal_test_sq_fn(&normal_test, co);
+      area_test_r = sculpt_brush_area_test_sq_fn(&area_test, co);
+
+      if (normal_test_r || area_test_r) {
         float no[3];
         int flip_index;
 
         normal_tri_v3(no, UNPACK3(co_tri));
 
         flip_index = (dot_v3v3(ss->cache->view_normal, no) <= 0.0f);
-        if (use_area_cos) {
+        if (use_area_cos && area_test_r) {
           add_v3_v3(anctd->area_cos[flip_index], co);
+          anctd->count_co[flip_index] += 1;
         }
-        if (use_area_nos) {
+        if (use_area_nos && normal_test_r) {
           add_v3_v3(anctd->area_nos[flip_index], no);
+          anctd->count_no[flip_index] += 1;
         }
-        anctd->area_count[flip_index] += 1;
       }
     }
   }
@@ -1532,7 +1558,10 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
         co = vd.co;
       }
 
-      if (sculpt_brush_test_sq_fn(&test, co)) {
+      normal_test_r = sculpt_brush_normal_test_sq_fn(&normal_test, co);
+      area_test_r = sculpt_brush_area_test_sq_fn(&area_test, co);
+
+      if (normal_test_r || area_test_r) {
         float no_buf[3];
         const float *no;
         int flip_index;
@@ -1555,13 +1584,14 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
 
         flip_index = (dot_v3v3(ss->cache ? ss->cache->view_normal : ss->cursor_view_normal, no) <=
                       0.0f);
-        if (use_area_cos) {
+        if (use_area_cos && area_test_r) {
           add_v3_v3(anctd->area_cos[flip_index], co);
+          anctd->count_co[flip_index] += 1;
         }
-        if (use_area_nos) {
+        if (use_area_nos && normal_test_r) {
           add_v3_v3(anctd->area_nos[flip_index], no);
+          anctd->count_no[flip_index] += 1;
         }
-        anctd->area_count[flip_index] += 1;
       }
     }
     BKE_pbvh_vertex_iter_end;
@@ -1584,8 +1614,8 @@ static void calc_area_normal_and_center_reduce(const void *__restrict UNUSED(use
   add_v3_v3(join->area_nos[1], anctd->area_nos[1]);
 
   /* Weights. */
-  join->area_count[0] += anctd->area_count[0];
-  join->area_count[1] += anctd->area_count[1];
+  add_v2_v2_int(join->count_no, anctd->count_no);
+  add_v2_v2_int(join->count_co, anctd->count_co);
 }
 
 static void calc_area_center(
@@ -1607,7 +1637,7 @@ static void calc_area_center(
       .use_area_cos = true,
   };
 
-  AreaNormalCenterTLSData anctd = {{{0}}};
+  AreaNormalCenterTLSData anctd = {0};
 
   PBVHParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
@@ -1618,13 +1648,20 @@ static void calc_area_center(
 
   /* For flatten center. */
   for (n = 0; n < ARRAY_SIZE(anctd.area_cos); n++) {
-    if (anctd.area_count[n] != 0) {
-      mul_v3_v3fl(r_area_co, anctd.area_cos[n], 1.0f / anctd.area_count[n]);
+    if (anctd.count_co[n] != 0) {
+      mul_v3_v3fl(r_area_co, anctd.area_cos[n], 1.0f / anctd.count_co[n]);
       break;
     }
   }
+
   if (n == 2) {
     zero_v3(r_area_co);
+  }
+
+  if (anctd.count_co[0] == 0 && anctd.count_co[1] == 0) {
+    if (ss->cache) {
+      copy_v3_v3(r_area_co, ss->cache->location);
+    }
   }
 }
 
@@ -1711,13 +1748,20 @@ static void calc_area_normal_and_center(
 
   /* For flatten center. */
   for (n = 0; n < ARRAY_SIZE(anctd.area_cos); n++) {
-    if (anctd.area_count[n] != 0) {
-      mul_v3_v3fl(r_area_co, anctd.area_cos[n], 1.0f / anctd.area_count[n]);
+    if (anctd.count_co[n] != 0) {
+      mul_v3_v3fl(r_area_co, anctd.area_cos[n], 1.0f / anctd.count_co[n]);
       break;
     }
   }
+
   if (n == 2) {
     zero_v3(r_area_co);
+  }
+
+  if (anctd.count_co[0] == 0 && anctd.count_co[1] == 0) {
+    if (ss->cache) {
+      copy_v3_v3(r_area_co, ss->cache->location);
+    }
   }
 
   /* For area normal. */
