@@ -2131,8 +2131,10 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
 static int count_active_texture_sampler(GPUShader *shader, char *source)
 {
   char *code = source;
-  int samplers_id[64]; /* Remember this is per stage. */
-  int sampler_len = 0;
+
+  /* Remember this is per stage. */
+  GSet *sampler_ids = BLI_gset_int_new(__func__);
+  int num_samplers = 0;
 
   while ((code = strstr(code, "uniform "))) {
     /* Move past "uniform". */
@@ -2167,22 +2169,16 @@ static int count_active_texture_sampler(GPUShader *shader, char *source)
           continue;
         }
         /* Catch duplicates. */
-        bool is_duplicate = false;
-        for (int i = 0; i < sampler_len; i++) {
-          if (samplers_id[i] == id) {
-            is_duplicate = true;
-          }
-        }
-
-        if (!is_duplicate) {
-          samplers_id[sampler_len] = id;
-          sampler_len++;
+        if (BLI_gset_add(sampler_ids, POINTER_FROM_INT(id))) {
+          num_samplers++;
         }
       }
     }
   }
 
-  return sampler_len;
+  BLI_gset_free(sampler_ids, NULL);
+
+  return num_samplers;
 }
 
 static bool gpu_pass_shader_validate(GPUPass *pass, GPUShader *shader)

@@ -278,4 +278,13 @@ GSet *BLI_gset_pair_new(const char *info)
   return BLI_gset_pair_new_ex(info, 0);
 }
 
+GSet *BLI_gset_int_new_ex(const char *info, const uint nentries_reserve)
+{
+  return BLI_gset_new_ex(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, info, nentries_reserve);
+}
+GSet *BLI_gset_int_new(const char *info)
+{
+  return BLI_gset_int_new_ex(info, 0);
+}
+
 /** \} */
