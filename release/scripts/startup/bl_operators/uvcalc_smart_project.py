@@ -283,7 +283,16 @@ def mergeUvIslands(islandList):
         # UV Edge list used for intersections as well as unique points.
         edges, uniqueEdgePoints = island2Edge(islandList[islandIdx])
 
-        decoratedIslandList.append([islandList[islandIdx], totFaceArea, efficiency, islandBoundsArea, w, h, edges, uniqueEdgePoints])
+        decoratedIslandList.append([
+            islandList[islandIdx],
+            totFaceArea,
+            efficiency,
+            islandBoundsArea,
+            w,
+            h,
+            edges,
+            uniqueEdgePoints,
+        ])
 
     # Sort by island bounding box area, smallest face area first.
     # no.. chance that to most simple edge loop first.
@@ -389,7 +398,8 @@ def mergeUvIslands(islandList):
 
                             # testcount+=1
                             # print 'Testing intersect'
-                            Intersect = islandIntersectUvIsland(sourceIsland, targetIsland, Vector((boxLeft, boxBottom)))
+                            Intersect = islandIntersectUvIsland(
+                                sourceIsland, targetIsland, Vector((boxLeft, boxBottom)))
                             # print 'Done', Intersect
                             if Intersect == 1:  # Line intersect, don't bother with this any more
                                 pass

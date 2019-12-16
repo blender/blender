@@ -162,7 +162,7 @@ def panel_poll_is_upper_region(region):
 
 
 class FILEBROWSER_UL_dir(UIList):
-    def draw_item(self, _context, layout, _data, item, icon, _active_data, active_propname, _index):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         direntry = item
         # space = context.space_data
 

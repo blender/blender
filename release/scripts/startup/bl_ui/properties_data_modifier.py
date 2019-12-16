@@ -2414,6 +2414,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "layer_pass", text="Pass")
         row.prop(md, "invert_layer_pass", text="", icon='ARROW_LEFTRIGHT')
 
+
 classes = (
     DATA_PT_modifiers,
     DATA_PT_gpencil_modifiers,

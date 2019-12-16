@@ -676,7 +676,6 @@ class ToolSelectPanelHelper:
         space_type = context.space_data.type
         return ToolSelectPanelHelper._tool_active_from_context(context, space_type)
 
-
     @staticmethod
     def draw_active_tool_fallback(
             context, layout, tool,

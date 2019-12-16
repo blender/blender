@@ -1213,7 +1213,12 @@ class ThemeGenericClassGenerator():
                             "datapath": new_datapath,
                         })
 
-                        yield from generate_child_panel_classes_recurse(panel_id, prop.fixed_type, theme_area, new_datapath)
+                        yield from generate_child_panel_classes_recurse(
+                            panel_id,
+                            prop.fixed_type,
+                            theme_area,
+                            new_datapath,
+                        )
 
         yield from generate_child_panel_classes_recurse(parent_id, rna_type, theme_area, datapath)
 

@@ -176,7 +176,14 @@ class VertexPaintDirt(Operator):
         obj = context.object
         mesh = obj.data
 
-        ret = applyVertexDirt(mesh, self.blur_iterations, self.blur_strength, self.dirt_angle, self.clean_angle, self.dirt_only)
+        ret = applyVertexDirt(
+            mesh,
+            self.blur_iterations,
+            self.blur_strength,
+            self.dirt_angle,
+            self.clean_angle,
+            self.dirt_only,
+        )
 
         return ret
 

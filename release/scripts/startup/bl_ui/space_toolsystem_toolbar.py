@@ -594,7 +594,7 @@ class _defs_edit_mesh:
             props = tool.operator_properties("mesh.bevel")
             region_type = context.region.type
 
-            if extra == False:
+            if not extra:
                 if props.offset_type == 'PERCENT':
                     layout.prop(props, "offset_pct")
                 else:

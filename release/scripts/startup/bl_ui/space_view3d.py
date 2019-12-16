@@ -262,11 +262,26 @@ class _draw_tool_settings_context_mode:
             size = "unprojected_radius"
 
         # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
-        UnifiedPaintPanel.prop_unified(layout, context, brush, size, pressure_name="use_pressure_size", text="Radius", slider=True)
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            size,
+            pressure_name="use_pressure_size",
+            text="Radius",
+            slider=True,
+        )
 
         # strength, use_strength_pressure
         pressure_name = "use_pressure_strength" if capabilities.has_strength_pressure else None
-        UnifiedPaintPanel.prop_unified(layout, context, brush, "strength", pressure_name=pressure_name, text="Strength")
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "strength",
+            pressure_name=pressure_name,
+            text="Strength",
+        )
 
         # direction
         if not capabilities.has_direction:
@@ -316,8 +331,22 @@ class _draw_tool_settings_context_mode:
         if capabilities.has_weight:
             UnifiedPaintPanel.prop_unified(layout, context, brush, "weight", slider=True)
 
-        UnifiedPaintPanel.prop_unified(layout, context, brush, "size", pressure_name="use_pressure_size", slider=True, text="Radius")
-        UnifiedPaintPanel.prop_unified(layout, context, brush, "strength", pressure_name="use_pressure_strength")
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "size",
+            pressure_name="use_pressure_size",
+            slider=True,
+            text="Radius",
+        )
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "strength",
+            pressure_name="use_pressure_strength",
+        )
 
     @staticmethod
     def PAINT_GPENCIL(context, layout, tool):
@@ -5502,9 +5531,10 @@ class VIEW3D_PT_shading_render_pass(Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.space_data.shading.type == 'MATERIAL'
-            or (context.engine in cls.COMPAT_ENGINES
-                and context.space_data.shading.type == 'RENDERED'))
+        return (
+            (context.space_data.shading.type == 'MATERIAL') or
+            (context.engine in cls.COMPAT_ENGINES and context.space_data.shading.type == 'RENDERED')
+        )
 
     def draw(self, context):
         shading = context.space_data.shading
@@ -6690,8 +6720,25 @@ class VIEW3D_PT_paint_vertex_context_menu(Panel):
             UnifiedPaintPanel.prop_unified_color_picker(split, context, brush, "color", value_slider=True)
             layout.prop(brush, "blend", text="")
 
-        UnifiedPaintPanel.prop_unified(layout, context, brush, "size", unified_name="use_unified_size", pressure_name="use_pressure_size", slider=True)
-        UnifiedPaintPanel.prop_unified(layout, context, brush, "strength", unified_name="use_unified_strength", pressure_name="use_pressure_strength", slider=True)
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "size",
+            unified_name="use_unified_size",
+            pressure_name="use_pressure_size",
+            slider=True,
+        )
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "strength",
+            unified_name="use_unified_strength",
+            pressure_name="use_pressure_strength",
+            slider=True,
+        )
+
 
 class VIEW3D_PT_paint_texture_context_menu(Panel):
     # Only for popover, these are dummy values.
@@ -6712,8 +6759,24 @@ class VIEW3D_PT_paint_texture_context_menu(Panel):
             layout.prop(brush, "blend", text="")
 
         if capabilities.has_radius:
-            UnifiedPaintPanel.prop_unified(layout, context, brush, "size", unified_name="use_unified_size", pressure_name="use_pressure_size", slider=True)
-            UnifiedPaintPanel.prop_unified(layout, context, brush, "strength", unified_name="use_unified_strength", pressure_name="use_pressure_strength", slider=True)
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "size",
+                unified_name="use_unified_size",
+                pressure_name="use_pressure_size",
+                slider=True,
+            )
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "strength",
+                unified_name="use_unified_strength",
+                pressure_name="use_pressure_strength",
+                slider=True,
+            )
 
 
 class VIEW3D_PT_paint_weight_context_menu(Panel):
@@ -6726,9 +6789,32 @@ class VIEW3D_PT_paint_weight_context_menu(Panel):
         layout = self.layout
 
         brush = context.tool_settings.weight_paint.brush
-        UnifiedPaintPanel.prop_unified(layout, context, brush, "weight", unified_name="use_unified_weight", slider=True)
-        UnifiedPaintPanel.prop_unified(layout, context, brush, "size", unified_name="use_unified_size", pressure_name="use_pressure_size", slider=True)
-        UnifiedPaintPanel.prop_unified(layout, context, brush, "strength", unified_name="use_unified_strength", pressure_name="use_pressure_strength", slider=True)
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "weight",
+            unified_name="use_unified_weight",
+            slider=True,
+        )
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "size",
+            unified_name="use_unified_size",
+            pressure_name="use_pressure_size",
+            slider=True,
+        )
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "strength",
+            unified_name="use_unified_strength",
+            pressure_name="use_pressure_strength",
+            slider=True,
+        )
 
 
 class VIEW3D_PT_sculpt_context_menu(Panel):
@@ -6743,8 +6829,24 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
         brush = context.tool_settings.sculpt.brush
         capabilities = brush.sculpt_capabilities
 
-        UnifiedPaintPanel.prop_unified(layout, context, brush, "size", unified_name="use_unified_size", pressure_name="use_pressure_size", slider=True)
-        UnifiedPaintPanel.prop_unified(layout, context, brush, "strength", unified_name="use_unified_strength", pressure_name="use_pressure_strength", slider=True)
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "size",
+            unified_name="use_unified_size",
+            pressure_name="use_pressure_size",
+            slider=True,
+        )
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "strength",
+            unified_name="use_unified_strength",
+            pressure_name="use_pressure_strength",
+            slider=True,
+        )
 
         if capabilities.has_auto_smooth:
             layout.prop(brush, "auto_smooth_factor", slider=True)

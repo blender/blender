@@ -321,6 +321,7 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
 
 # ********** default tools for paint modes ****************
 
+
 class TEXTURE_UL_texpaintslots(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         # mat = data
@@ -330,6 +331,7 @@ class TEXTURE_UL_texpaintslots(UIList):
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="")
+
 
 class View3DPaintPanel(View3DPanel, UnifiedPaintPanel):
     bl_category = "Tool"
@@ -409,6 +411,7 @@ class VIEW3D_PT_tools_brush_settings(Panel, View3DPaintBrushPanel):
 
         brush_settings(layout.column(), context, brush, popover=self.is_popover)
 
+
 class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
     bl_context = ".paint_common"
     bl_parent_id = "VIEW3D_PT_tools_brush_settings"
@@ -436,20 +439,22 @@ class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
     def poll(cls, context):
         settings = cls.paint_settings(context)
         brush = settings.brush
+
         if context.image_paint_object:
             capabilities = brush.image_paint_capabilities
             return capabilities.has_color
-
         elif context.vertex_paint_object:
             capabilities = brush.vertex_paint_capabilities
             return capabilities.has_color
+
+        return False
 
     def draw(self, context):
         layout = self.layout
         settings = self.paint_settings(context)
         brush = settings.brush
 
-        draw_color_settings(context, layout, brush, color_type = not context.vertex_paint_object)
+        draw_color_settings(context, layout, brush, color_type=not context.vertex_paint_object)
 
 
 class VIEW3D_PT_tools_brush_swatches(Panel, View3DPaintPanel, ColorPalettePanel):
@@ -852,6 +857,7 @@ class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
         col.prop(mesh, "use_remesh_preserve_paint_mask")
         col.operator("object.voxel_remesh", text="Remesh")
 
+
 # TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
@@ -878,6 +884,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "show_low_resolution")
         col = flow.column()
         col.prop(sculpt, "use_deform_only")
+
 
 class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
@@ -1047,11 +1054,11 @@ class VIEW3D_PT_tools_vertexpaint_options(Panel, View3DPaintPanel):
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
-    def poll(self, context):
+    def poll(self, _context):
         # This is currently unused, since there aren't any Vertex Paint mode specific options.
         return False
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
@@ -1206,12 +1213,12 @@ class VIEW3D_PT_imagepaint_options(View3DPaintPanel):
     bl_label = "Options"
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         # This is currently unused, since there aren't any Vertex Paint mode specific options.
         return False
-        return (context.image_paint_object and context.tool_settings.image_paint)
+        # return (context.image_paint_object and context.tool_settings.image_paint)
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
@@ -1370,7 +1377,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_select(Panel, View3DPanel, GreasePenci
 
             col.prop(brush, "use_custom_icon", toggle=True, icon='FILE_IMAGE', text="")
 
-            if(brush.use_custom_icon):
+            if brush.use_custom_icon:
                 layout.row().prop(brush, "icon_filepath", text="")
             else:
                 layout.row().prop(gp_settings, "gp_icon", text="Icon")
@@ -1482,7 +1489,8 @@ class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(Panel, View3DPanel):
         return brush is not None and brush.gpencil_tool == 'DRAW'
 
     def draw_header(self, context):
-        if self.is_popover: return
+        if self.is_popover:
+            return
 
         brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
@@ -1521,7 +1529,8 @@ class VIEW3D_PT_tools_grease_pencil_brush_post_processing(View3DPanel, Panel):
         return brush is not None and brush.gpencil_tool not in {'ERASE', 'FILL'}
 
     def draw_header(self, context):
-        if self.is_popover: return
+        if self.is_popover:
+            return
 
         brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
@@ -1575,7 +1584,8 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
         return brush is not None and brush.gpencil_tool not in {'ERASE', 'FILL'}
 
     def draw_header(self, context):
-        if self.is_popover: return
+        if self.is_popover:
+            return
 
         brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
@@ -1734,7 +1744,6 @@ class VIEW3D_PT_tools_grease_pencil_sculpt_select(Panel, View3DPanel):
         layout.use_property_decorate = False
 
         settings = context.tool_settings.gpencil_sculpt
-        brush = settings.brush
 
         layout.template_icon_view(settings, "sculpt_tool", show_labels=True)
 
@@ -1760,6 +1769,7 @@ class VIEW3D_PT_tools_grease_pencil_sculpt_settings(Panel, View3DPanel):
 
 # Grease Pencil weight painting tools
 
+
 class VIEW3D_PT_tools_grease_pencil_weight_paint_select(View3DPanel, Panel):
     bl_context = ".greasepencil_weight"
     bl_label = "Brushes"
@@ -1771,7 +1781,6 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint_select(View3DPanel, Panel):
         layout.use_property_decorate = False
 
         settings = context.tool_settings.gpencil_sculpt
-        brush = settings.brush
 
         layout.template_icon_view(settings, "weight_tool", show_labels=True)
 
@@ -1788,7 +1797,6 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint_settings(Panel, View3DPanel):
 
         settings = context.tool_settings.gpencil_sculpt
         brush = settings.brush
-
 
         if not self.is_popover:
             from bl_ui.properties_paint_common import (

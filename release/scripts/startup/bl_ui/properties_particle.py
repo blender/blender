@@ -119,6 +119,7 @@ def find_modifier(ob, psys):
         if md.type == 'PARTICLE_SYSTEM':
             if md.particle_system == psys:
                 return md
+    return None
 
 
 class PARTICLE_UL_particle_systems(bpy.types.UIList):
@@ -159,7 +160,10 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         engine = context.engine
-        return (context.particle_system or context.object or context.space_data.pin_id) and (engine in cls.COMPAT_ENGINES)
+        return (
+            (context.particle_system or context.object or context.space_data.pin_id) and
+            (engine in cls.COMPAT_ENGINES)
+        )
 
     def draw(self, context):
         layout = self.layout

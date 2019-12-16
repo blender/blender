@@ -657,6 +657,7 @@ class DOPESHEET_MT_snap_pie(Menu):
         pie.operator("action.snap", text="Nearest Second").type = 'NEAREST_SECOND'
         pie.operator("action.snap", text="Nearest Marker").type = 'NEAREST_MARKER'
 
+
 class LayersDopeSheetPanel:
     bl_space_type = 'DOPESHEET_EDITOR'
     bl_region_type = 'UI'

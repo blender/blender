@@ -160,6 +160,7 @@ class PHYSICS_PT_cloth_damping(PhysicButtonsPanel, Panel):
         col = flow.column()
         col.prop(cloth, "bending_damping", text="Bending")
 
+
 class PHYSICS_PT_cloth_internal_springs(PhysicButtonsPanel, Panel):
     bl_label = "Internal Springs"
     bl_parent_id = 'PHYSICS_PT_cloth_physical_properties'
@@ -200,6 +201,7 @@ class PHYSICS_PT_cloth_internal_springs(PhysicButtonsPanel, Panel):
         col.prop(cloth, "internal_tension_stiffness_max", text="Max Tension")
         col = flow.column()
         col.prop(cloth, "internal_compression_stiffness_max", text="Max Compression")
+
 
 class PHYSICS_PT_cloth_pressure(PhysicButtonsPanel, Panel):
     bl_label = "Pressure"
