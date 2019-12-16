@@ -43,7 +43,7 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_multires.h"
-#include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
+#include "BKE_fluid.h" /* For fluidModifier_free & fluidModifier_createType */
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -174,7 +174,7 @@ static const EnumPropertyItem rna_enum_time_mode_items[] = {
 
 #  include "DNA_particle_types.h"
 #  include "DNA_curve_types.h"
-#  include "DNA_smoke_types.h"
+#  include "DNA_fluid_types.h"
 
 #  include "BKE_cachefile.h"
 #  include "BKE_context.h"

@@ -371,7 +371,8 @@ typedef struct Object {
   struct Collection *instance_collection;
 
   /** If fluidsim enabled, store additional settings. */
-  struct FluidsimSettings *fluidsimSettings;
+  struct FluidsimSettings *fluidsimSettings
+      DNA_DEPRECATED;  // XXX deprecated... replaced by mantaflow, keep for readfile
 
   struct DerivedMesh *derivedDeform, *derivedFinal;
 

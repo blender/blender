@@ -59,7 +59,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_smoke_types.h"
+#include "DNA_fluid_types.h"
 #include "DNA_freestyle_types.h"
 
 #include "BLI_blenlib.h"
@@ -498,10 +498,10 @@ void BKE_bpath_traverse_id(
             rewrite_path_fixed(fluidmd->fss->surfdataPath, visit_cb, absbase, bpath_user_data);
           }
         }
-        else if (md->type == eModifierType_Smoke) {
-          SmokeModifierData *smd = (SmokeModifierData *)md;
-          if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
-            BPATH_TRAVERSE_POINTCACHE(smd->domain->ptcaches[0]);
+        else if (md->type == eModifierType_Fluid) {
+          FluidModifierData *mmd = (FluidModifierData *)md;
+          if (mmd->type & MOD_FLUID_TYPE_DOMAIN && mmd->domain) {
+            rewrite_path_fixed(mmd->domain->cache_directory, visit_cb, absbase, bpath_user_data);
           }
         }
         else if (md->type == eModifierType_Cloth) {

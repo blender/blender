@@ -50,7 +50,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_sdna_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_smoke_types.h"
+#include "DNA_fluid_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
@@ -1789,19 +1789,19 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       ModifierData *md;
 
       for (md = ob->modifiers.first; md; md = md->next) {
-        if (md->type == eModifierType_Smoke) {
-          SmokeModifierData *smd = (SmokeModifierData *)md;
+        if (md->type == eModifierType_Fluid) {
+          FluidModifierData *mmd = (FluidModifierData *)md;
 
-          if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
-            smd->domain->vorticity = 2.0f;
-            smd->domain->time_scale = 1.0f;
+          if ((mmd->type & MOD_FLUID_TYPE_DOMAIN) && mmd->domain) {
+            mmd->domain->vorticity = 2.0f;
+            mmd->domain->time_scale = 1.0f;
 
-            if (!(smd->domain->flags & (1 << 4))) {
+            if (!(mmd->domain->flags & (1 << 4))) {
               continue;
             }
 
             /* delete old MOD_SMOKE_INITVELOCITY flag */
-            smd->domain->flags &= ~(1 << 4);
+            mmd->domain->flags &= ~(1 << 4);
 
             /* for now just add it to all flow objects in the scene */
             {
@@ -1809,19 +1809,19 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
               for (ob2 = bmain->objects.first; ob2; ob2 = ob2->id.next) {
                 ModifierData *md2;
                 for (md2 = ob2->modifiers.first; md2; md2 = md2->next) {
-                  if (md2->type == eModifierType_Smoke) {
-                    SmokeModifierData *smd2 = (SmokeModifierData *)md2;
+                  if (md2->type == eModifierType_Fluid) {
+                    FluidModifierData *mmd2 = (FluidModifierData *)md2;
 
-                    if ((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) {
-                      smd2->flow->flags |= MOD_SMOKE_FLOW_INITVELOCITY;
+                    if ((mmd2->type & MOD_FLUID_TYPE_FLOW) && mmd2->flow) {
+                      mmd2->flow->flags |= FLUID_FLOW_INITVELOCITY;
                     }
                   }
                 }
               }
             }
           }
-          else if ((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) {
-            smd->flow->vel_multi = 1.0f;
+          else if ((mmd->type & MOD_FLUID_TYPE_FLOW) && mmd->flow) {
+            mmd->flow->vel_multi = 1.0f;
           }
         }
       }

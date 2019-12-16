@@ -42,6 +42,7 @@ extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h" /* for FILE_MAX */
+#include "DNA_fluid_types.h"
 
 #include "BLI_string.h"
 
@@ -105,11 +106,12 @@ ExportSettings::ExportSettings()
 
 static bool object_is_smoke_sim(Object *ob)
 {
-  ModifierData *md = modifiers_findByType(ob, eModifierType_Smoke);
+  ModifierData *md = modifiers_findByType(ob, eModifierType_Fluid);
 
   if (md) {
-    SmokeModifierData *smd = reinterpret_cast<SmokeModifierData *>(md);
-    return (smd->type == MOD_SMOKE_TYPE_DOMAIN);
+    FluidModifierData *smd = reinterpret_cast<FluidModifierData *>(md);
+    return (smd->type == MOD_FLUID_TYPE_DOMAIN && smd->domain &&
+            smd->domain->type == FLUID_DOMAIN_TYPE_GAS);
   }
 
   return false;
@@ -553,7 +555,10 @@ void AbcExporter::createParticleSystemsWriters(Object *ob, AbcTransformWriter *x
       m_settings.export_child_hairs = true;
       m_shapes.push_back(new AbcHairWriter(ob, xform, m_shape_sampling_index, m_settings, psys));
     }
-    else if (m_settings.export_particles && psys->part->type == PART_EMITTER) {
+    else if (m_settings.export_particles &&
+             (psys->part->type & PART_EMITTER || psys->part->type & PART_FLUID_FLIP ||
+              psys->part->type & PART_FLUID_SPRAY || psys->part->type & PART_FLUID_BUBBLE ||
+              psys->part->type & PART_FLUID_FOAM || psys->part->type & PART_FLUID_TRACER)) {
       m_shapes.push_back(new AbcPointsWriter(ob, xform, m_shape_sampling_index, m_settings, psys));
     }
   }

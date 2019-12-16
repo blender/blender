@@ -197,8 +197,15 @@ void BPY_context_set(bContext *C)
   BPy_SetContext(C);
 }
 
+#ifdef WITH_FLUID
+/* defined in manta module */
+extern PyObject *Manta_initPython(void);
+#endif
+
+#ifdef WITH_AUDASPACE
 /* defined in AUD_C-API.cpp */
 extern PyObject *AUD_initPython(void);
+#endif
 
 #ifdef WITH_CYCLES
 /* defined in cycles module */
@@ -224,6 +231,9 @@ static struct _inittab bpy_internal_modules[] = {
     {"bmesh.types", BPyInit_bmesh_types},
     {"bmesh.utils", BPyInit_bmesh_utils},
     {"bmesh.utils", BPyInit_bmesh_geometry},
+#endif
+#ifdef WITH_FLUID
+    {"manta", Manta_initPython},
 #endif
 #ifdef WITH_AUDASPACE
     {"aud", AUD_initPython},
@@ -285,6 +295,12 @@ void BPY_python_start(int argc, const char **argv)
 
   /* Initialize thread support (also acquires lock) */
   PyEval_InitThreads();
+
+  /* (sebbas): Required to prevent assertion error */
+  /* see:
+   * https://stackoverflow.com/questions/27844676/assertionerror-3-x-only-when-calling-py-finalize-with-threads
+   */
+  Py_DECREF(PyImport_ImportModule("threading"));
 #else
   (void)argc;
   (void)argv;

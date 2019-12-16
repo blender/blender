@@ -39,6 +39,7 @@
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_fluid_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
@@ -48,7 +49,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_shader_fx_types.h"
-#include "DNA_smoke_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
@@ -122,10 +122,6 @@
 #include "DEG_depsgraph_query.h"
 
 #include "DRW_engine.h"
-
-#ifdef WITH_MOD_FLUID
-#  include "LBM_fluidsim.h"
-#endif
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
@@ -1130,13 +1126,13 @@ void BKE_object_copy_particlesystems(Object *ob_dst, const Object *ob_src, const
           }
         }
       }
-      else if (md->type == eModifierType_Smoke) {
-        SmokeModifierData *smd = (SmokeModifierData *)md;
+      else if (md->type == eModifierType_Fluid) {
+        FluidModifierData *mmd = (FluidModifierData *)md;
 
-        if (smd->type == MOD_SMOKE_TYPE_FLOW) {
-          if (smd->flow) {
-            if (smd->flow->psys == psys) {
-              smd->flow->psys = npsys;
+        if (mmd->type == MOD_FLUID_TYPE_FLOW) {
+          if (mmd->flow) {
+            if (mmd->flow->psys == psys) {
+              mmd->flow->psys = npsys;
             }
           }
         }
@@ -4380,10 +4376,10 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
       return true;
     }
   }
-  else if (type == eModifierType_Smoke) {
-    SmokeModifierData *smd = (SmokeModifierData *)md;
+  else if (type == eModifierType_Fluid) {
+    FluidModifierData *mmd = (FluidModifierData *)md;
 
-    if (smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) != 0) {
+    if (mmd && (mmd->type & MOD_FLUID_TYPE_DOMAIN) != 0) {
       return true;
     }
   }

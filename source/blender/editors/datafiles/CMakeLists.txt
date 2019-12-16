@@ -385,9 +385,8 @@ set(ICON_NAMES
   mod_mask
   mod_cloth
   mod_explode
-  mod_fluidsim
   mod_multires
-  mod_smoke
+  mod_fluid
   mod_solidify
   mod_screw
   mod_vertex_weight

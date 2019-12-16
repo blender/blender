@@ -2292,7 +2292,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         part->omat = paf->mat[0];
         part->hair_step = paf->totkey;
 
-        part->eff_group = paf->group;
+        part->force_group = paf->group;
 
         /* old system didn't interpolate between keypoints at render time */
         part->draw_step = part->ren_step = 0;

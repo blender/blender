@@ -44,7 +44,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_smoke_types.h"
+#include "DNA_fluid_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_particle_types.h"
 
@@ -71,9 +71,7 @@
 
 #include "PIL_time.h"
 
-#ifdef WITH_SMOKE
-#  include "smoke_API.h"
-#endif
+#include "manta_fluid_API.h"
 
 static void gpu_free_image_immediate(Image *ima);
 
@@ -949,7 +947,6 @@ enum {
 
 #define TFUNC_WIDTH 256
 
-#ifdef WITH_SMOKE
 static void create_flame_spectrum_texture(float *data)
 {
 #  define FIRE_THRESH 7
@@ -1026,71 +1023,71 @@ static void swizzle_texture_channel_rrrr(GPUTexture *tex)
   GPU_texture_unbind(tex);
 }
 
-static GPUTexture *create_field_texture(SmokeDomainSettings *sds)
+static GPUTexture *create_field_texture(FluidDomainSettings *mds)
 {
   float *field = NULL;
 
-  switch (sds->coba_field) {
-    case FLUID_FIELD_DENSITY:
-      field = smoke_get_density(sds->fluid);
+  switch (mds->coba_field) {
+    case FLUID_DOMAIN_FIELD_DENSITY:
+      field = manta_smoke_get_density(mds->fluid);
       break;
-    case FLUID_FIELD_HEAT:
-      field = smoke_get_heat(sds->fluid);
+    case FLUID_DOMAIN_FIELD_HEAT:
+      field = manta_smoke_get_heat(mds->fluid);
       break;
-    case FLUID_FIELD_FUEL:
-      field = smoke_get_fuel(sds->fluid);
+    case FLUID_DOMAIN_FIELD_FUEL:
+      field = manta_smoke_get_fuel(mds->fluid);
       break;
-    case FLUID_FIELD_REACT:
-      field = smoke_get_react(sds->fluid);
+    case FLUID_DOMAIN_FIELD_REACT:
+      field = manta_smoke_get_react(mds->fluid);
       break;
-    case FLUID_FIELD_FLAME:
-      field = smoke_get_flame(sds->fluid);
+    case FLUID_DOMAIN_FIELD_FLAME:
+      field = manta_smoke_get_flame(mds->fluid);
       break;
-    case FLUID_FIELD_VELOCITY_X:
-      field = smoke_get_velocity_x(sds->fluid);
+    case FLUID_DOMAIN_FIELD_VELOCITY_X:
+      field = manta_get_velocity_x(mds->fluid);
       break;
-    case FLUID_FIELD_VELOCITY_Y:
-      field = smoke_get_velocity_y(sds->fluid);
+    case FLUID_DOMAIN_FIELD_VELOCITY_Y:
+      field = manta_get_velocity_y(mds->fluid);
       break;
-    case FLUID_FIELD_VELOCITY_Z:
-      field = smoke_get_velocity_z(sds->fluid);
+    case FLUID_DOMAIN_FIELD_VELOCITY_Z:
+      field = manta_get_velocity_z(mds->fluid);
       break;
-    case FLUID_FIELD_COLOR_R:
-      field = smoke_get_color_r(sds->fluid);
+    case FLUID_DOMAIN_FIELD_COLOR_R:
+      field = manta_smoke_get_color_r(mds->fluid);
       break;
-    case FLUID_FIELD_COLOR_G:
-      field = smoke_get_color_g(sds->fluid);
+    case FLUID_DOMAIN_FIELD_COLOR_G:
+      field = manta_smoke_get_color_g(mds->fluid);
       break;
-    case FLUID_FIELD_COLOR_B:
-      field = smoke_get_color_b(sds->fluid);
+    case FLUID_DOMAIN_FIELD_COLOR_B:
+      field = manta_smoke_get_color_b(mds->fluid);
       break;
-    case FLUID_FIELD_FORCE_X:
-      field = smoke_get_force_x(sds->fluid);
+    case FLUID_DOMAIN_FIELD_FORCE_X:
+      field = manta_get_force_x(mds->fluid);
       break;
-    case FLUID_FIELD_FORCE_Y:
-      field = smoke_get_force_y(sds->fluid);
+    case FLUID_DOMAIN_FIELD_FORCE_Y:
+      field = manta_get_force_y(mds->fluid);
       break;
-    case FLUID_FIELD_FORCE_Z:
-      field = smoke_get_force_z(sds->fluid);
+    case FLUID_DOMAIN_FIELD_FORCE_Z:
+      field = manta_get_force_z(mds->fluid);
       break;
     default:
       return NULL;
   }
 
   GPUTexture *tex = GPU_texture_create_nD(
-      sds->res[0], sds->res[1], sds->res[2], 3, field, GPU_R8, GPU_DATA_FLOAT, 0, true, NULL);
+      mds->res[0], mds->res[1], mds->res[2], 3, field, GPU_R8, GPU_DATA_FLOAT, 0, true, NULL);
 
   swizzle_texture_channel_rrrr(tex);
   return tex;
 }
 
-static GPUTexture *create_density_texture(SmokeDomainSettings *sds, int highres)
+static GPUTexture *create_density_texture(FluidDomainSettings *mds, int highres)
 {
   float *data = NULL, *source;
-  int cell_count = (highres) ? smoke_turbulence_get_cells(sds->wt) : sds->total_cells;
-  const bool has_color = (highres) ? smoke_turbulence_has_colors(sds->wt) :
-                                     smoke_has_colors(sds->fluid);
-  int *dim = (highres) ? sds->res_wt : sds->res;
+  int cell_count = (highres) ? manta_smoke_turbulence_get_cells(mds->fluid) : mds->total_cells;
+  const bool has_color = (highres) ? manta_smoke_turbulence_has_colors(mds->fluid) :
+                                     manta_smoke_has_colors(mds->fluid);
+  int *dim = (highres) ? mds->res_noise : mds->res;
   eGPUTextureFormat format = (has_color) ? GPU_RGBA8 : GPU_R8;
 
   if (has_color) {
@@ -1099,18 +1096,18 @@ static GPUTexture *create_density_texture(SmokeDomainSettings *sds, int highres)
 
   if (highres) {
     if (has_color) {
-      smoke_turbulence_get_rgba(sds->wt, data, 0);
+      manta_smoke_turbulence_get_rgba(mds->fluid, data, 0);
     }
     else {
-      source = smoke_turbulence_get_density(sds->wt);
+      source = manta_smoke_turbulence_get_density(mds->fluid);
     }
   }
   else {
     if (has_color) {
-      smoke_get_rgba(sds->fluid, data, 0);
+      manta_smoke_get_rgba(mds->fluid, data, 0);
     }
     else {
-      source = smoke_get_density(sds->fluid);
+      source = manta_smoke_get_density(mds->fluid);
     }
   }
 
@@ -1137,22 +1134,22 @@ static GPUTexture *create_density_texture(SmokeDomainSettings *sds, int highres)
   return tex;
 }
 
-static GPUTexture *create_flame_texture(SmokeDomainSettings *sds, int highres)
+static GPUTexture *create_flame_texture(FluidDomainSettings *mds, int highres)
 {
   float *source = NULL;
-  const bool has_fuel = (highres) ? smoke_turbulence_has_fuel(sds->wt) :
-                                    smoke_has_fuel(sds->fluid);
-  int *dim = (highres) ? sds->res_wt : sds->res;
+  const bool has_fuel = (highres) ? manta_smoke_turbulence_has_fuel(mds->fluid) :
+                                    manta_smoke_has_fuel(mds->fluid);
+  int *dim = (highres) ? mds->res_noise : mds->res;
 
   if (!has_fuel) {
     return NULL;
   }
 
   if (highres) {
-    source = smoke_turbulence_get_flame(sds->wt);
+    source = manta_smoke_turbulence_get_flame(mds->fluid);
   }
   else {
-    source = smoke_get_flame(sds->fluid);
+    source = manta_smoke_get_flame(mds->fluid);
   }
 
   GPUTexture *tex = GPU_texture_create_nD(
@@ -1162,82 +1159,76 @@ static GPUTexture *create_flame_texture(SmokeDomainSettings *sds, int highres)
 
   return tex;
 }
-#endif /* WITH_SMOKE */
 
-void GPU_free_smoke(SmokeModifierData *smd)
+void GPU_free_smoke(FluidModifierData *mmd)
 {
-  if (smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
-    if (smd->domain->tex) {
-      GPU_texture_free(smd->domain->tex);
+  if (mmd->type & MOD_FLUID_TYPE_DOMAIN && mmd->domain) {
+    if (mmd->domain->tex) {
+      GPU_texture_free(mmd->domain->tex);
     }
-    smd->domain->tex = NULL;
+    mmd->domain->tex = NULL;
 
-    if (smd->domain->tex_shadow) {
-      GPU_texture_free(smd->domain->tex_shadow);
+    if (mmd->domain->tex_shadow) {
+      GPU_texture_free(mmd->domain->tex_shadow);
     }
-    smd->domain->tex_shadow = NULL;
+    mmd->domain->tex_shadow = NULL;
 
-    if (smd->domain->tex_flame) {
-      GPU_texture_free(smd->domain->tex_flame);
+    if (mmd->domain->tex_flame) {
+      GPU_texture_free(mmd->domain->tex_flame);
     }
-    smd->domain->tex_flame = NULL;
+    mmd->domain->tex_flame = NULL;
 
-    if (smd->domain->tex_flame_coba) {
-      GPU_texture_free(smd->domain->tex_flame_coba);
+    if (mmd->domain->tex_flame_coba) {
+      GPU_texture_free(mmd->domain->tex_flame_coba);
     }
-    smd->domain->tex_flame_coba = NULL;
+    mmd->domain->tex_flame_coba = NULL;
 
-    if (smd->domain->tex_coba) {
-      GPU_texture_free(smd->domain->tex_coba);
+    if (mmd->domain->tex_coba) {
+      GPU_texture_free(mmd->domain->tex_coba);
     }
-    smd->domain->tex_coba = NULL;
+    mmd->domain->tex_coba = NULL;
 
-    if (smd->domain->tex_field) {
-      GPU_texture_free(smd->domain->tex_field);
+    if (mmd->domain->tex_field) {
+      GPU_texture_free(mmd->domain->tex_field);
     }
-    smd->domain->tex_field = NULL;
+    mmd->domain->tex_field = NULL;
   }
 }
 
-void GPU_create_smoke_coba_field(SmokeModifierData *smd)
+void GPU_create_smoke_coba_field(FluidModifierData *mmd)
 {
-#ifdef WITH_SMOKE
-  if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
-    SmokeDomainSettings *sds = smd->domain;
+  if (mmd->type & MOD_FLUID_TYPE_DOMAIN) {
+    FluidDomainSettings *mds = mmd->domain;
 
-    if (!sds->tex_field) {
-      sds->tex_field = create_field_texture(sds);
+    if (!mds->tex_field) {
+      mds->tex_field = create_field_texture(mds);
     }
-    if (!sds->tex_coba) {
-      sds->tex_coba = create_transfer_function(TFUNC_COLOR_RAMP, sds->coba);
+    if (!mds->tex_coba) {
+      mds->tex_coba = create_transfer_function(TFUNC_COLOR_RAMP, mds->coba);
     }
   }
-#else   // WITH_SMOKE
-  smd->domain->tex_field = NULL;
-#endif  // WITH_SMOKE
 }
 
-void GPU_create_smoke(SmokeModifierData *smd, int highres)
+void GPU_create_smoke(FluidModifierData *mmd, int highres)
 {
-#ifdef WITH_SMOKE
-  if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
-    SmokeDomainSettings *sds = smd->domain;
+  if (mmd->type & MOD_FLUID_TYPE_DOMAIN) {
+    FluidDomainSettings *mds = mmd->domain;
 
-    if (!sds->tex) {
-      sds->tex = create_density_texture(sds, highres);
+    if (!mds->tex) {
+      mds->tex = create_density_texture(mds, highres);
     }
-    if (!sds->tex_flame) {
-      sds->tex_flame = create_flame_texture(sds, highres);
+    if (!mds->tex_flame) {
+      mds->tex_flame = create_flame_texture(mds, highres);
     }
-    if (!sds->tex_flame_coba && sds->tex_flame) {
-      sds->tex_flame_coba = create_transfer_function(TFUNC_FLAME_SPECTRUM, NULL);
+    if (!mds->tex_flame_coba && mds->tex_flame) {
+      mds->tex_flame_coba = create_transfer_function(TFUNC_FLAME_SPECTRUM, NULL);
     }
-    if (!sds->tex_shadow) {
-      sds->tex_shadow = GPU_texture_create_nD(sds->res[0],
-                                              sds->res[1],
-                                              sds->res[2],
+    if (!mds->tex_shadow) {
+      mds->tex_shadow = GPU_texture_create_nD(mds->res[0],
+                                              mds->res[1],
+                                              mds->res[2],
                                               3,
-                                              sds->shadow,
+                                              manta_smoke_get_shadow(mds->fluid),
                                               GPU_R8,
                                               GPU_DATA_FLOAT,
                                               0,
@@ -1245,64 +1236,51 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
                                               NULL);
     }
   }
-#else   // WITH_SMOKE
-  (void)highres;
-  smd->domain->tex = NULL;
-  smd->domain->tex_flame = NULL;
-  smd->domain->tex_flame_coba = NULL;
-  smd->domain->tex_shadow = NULL;
-#endif  // WITH_SMOKE
 }
 
-void GPU_create_smoke_velocity(SmokeModifierData *smd)
+void GPU_create_smoke_velocity(FluidModifierData *mmd)
 {
-#ifdef WITH_SMOKE
-  if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
-    SmokeDomainSettings *sds = smd->domain;
+  if (mmd->type & MOD_FLUID_TYPE_DOMAIN) {
+    FluidDomainSettings *mds = mmd->domain;
 
-    const float *vel_x = smoke_get_velocity_x(sds->fluid);
-    const float *vel_y = smoke_get_velocity_y(sds->fluid);
-    const float *vel_z = smoke_get_velocity_z(sds->fluid);
+    const float *vel_x = manta_get_velocity_x(mds->fluid);
+    const float *vel_y = manta_get_velocity_y(mds->fluid);
+    const float *vel_z = manta_get_velocity_z(mds->fluid);
 
     if (ELEM(NULL, vel_x, vel_y, vel_z)) {
       return;
     }
 
-    if (!sds->tex_velocity_x) {
-      sds->tex_velocity_x = GPU_texture_create_3d(
-          sds->res[0], sds->res[1], sds->res[2], GPU_R16F, vel_x, NULL);
-      sds->tex_velocity_y = GPU_texture_create_3d(
-          sds->res[0], sds->res[1], sds->res[2], GPU_R16F, vel_y, NULL);
-      sds->tex_velocity_z = GPU_texture_create_3d(
-          sds->res[0], sds->res[1], sds->res[2], GPU_R16F, vel_z, NULL);
+    if (!mds->tex_velocity_x) {
+      mds->tex_velocity_x = GPU_texture_create_3d(
+          mds->res[0], mds->res[1], mds->res[2], GPU_R16F, vel_x, NULL);
+      mds->tex_velocity_y = GPU_texture_create_3d(
+          mds->res[0], mds->res[1], mds->res[2], GPU_R16F, vel_y, NULL);
+      mds->tex_velocity_z = GPU_texture_create_3d(
+          mds->res[0], mds->res[1], mds->res[2], GPU_R16F, vel_z, NULL);
     }
   }
-#else   // WITH_SMOKE
-  smd->domain->tex_velocity_x = NULL;
-  smd->domain->tex_velocity_y = NULL;
-  smd->domain->tex_velocity_z = NULL;
-#endif  // WITH_SMOKE
 }
 
 /* TODO Unify with the other GPU_free_smoke. */
-void GPU_free_smoke_velocity(SmokeModifierData *smd)
+void GPU_free_smoke_velocity(FluidModifierData *mmd)
 {
-  if (smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
-    if (smd->domain->tex_velocity_x) {
-      GPU_texture_free(smd->domain->tex_velocity_x);
+  if (mmd->type & MOD_FLUID_TYPE_DOMAIN && mmd->domain) {
+    if (mmd->domain->tex_velocity_x) {
+      GPU_texture_free(mmd->domain->tex_velocity_x);
     }
 
-    if (smd->domain->tex_velocity_y) {
-      GPU_texture_free(smd->domain->tex_velocity_y);
+    if (mmd->domain->tex_velocity_y) {
+      GPU_texture_free(mmd->domain->tex_velocity_y);
     }
 
-    if (smd->domain->tex_velocity_z) {
-      GPU_texture_free(smd->domain->tex_velocity_z);
+    if (mmd->domain->tex_velocity_z) {
+      GPU_texture_free(mmd->domain->tex_velocity_z);
     }
 
-    smd->domain->tex_velocity_x = NULL;
-    smd->domain->tex_velocity_y = NULL;
-    smd->domain->tex_velocity_z = NULL;
+    mmd->domain->tex_velocity_x = NULL;
+    mmd->domain->tex_velocity_y = NULL;
+    mmd->domain->tex_velocity_z = NULL;
   }
 }
 

@@ -45,11 +45,11 @@ set(INC
   ../../../intern/atomic
   ../../../intern/clog
   ../../../intern/libmv
+  ../../../intern/mantaflow/extern
   ../../../intern/memutil
   ../../../intern/mikktspace
   ../../../intern/opensubdiv
   ../../../extern/curve_fit_nd
-  ../../../intern/smoke/extern
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
@@ -114,7 +114,6 @@ set(SRC
   intern/editmesh_tangent.c
   intern/effect.c
   intern/fcurve.c
-  intern/fluidsim.c
   intern/fmodifier.c
   intern/font.c
   intern/freestyle.c
@@ -144,6 +143,7 @@ set(SRC
   intern/lightprobe.c
   intern/linestyle.c
   intern/main.c
+  intern/fluid.c
   intern/mask.c
   intern/mask_evaluate.c
   intern/mask_rasterize.c
@@ -198,7 +198,6 @@ set(SRC
   intern/sequencer.c
   intern/shader_fx.c
   intern/shrinkwrap.c
-  intern/smoke.c
   intern/softbody.c
   intern/sound.c
   intern/speaker.c
@@ -281,7 +280,6 @@ set(SRC
   BKE_editmesh_tangent.h
   BKE_effect.h
   BKE_fcurve.h
-  BKE_fluidsim.h
   BKE_font.h
   BKE_freestyle.h
   BKE_global.h
@@ -307,6 +305,7 @@ set(SRC
   BKE_lightprobe.h
   BKE_linestyle.h
   BKE_main.h
+  BKE_fluid.h
   BKE_mask.h
   BKE_material.h
   BKE_mball.h
@@ -341,7 +340,6 @@ set(SRC
   BKE_sequencer.h
   BKE_shader_fx.h
   BKE_shrinkwrap.h
-  BKE_smoke.h
   BKE_softbody.h
   BKE_sound.h
   BKE_speaker.h
@@ -526,20 +524,10 @@ if(WITH_PYTHON)
 endif()
 
 if(WITH_MOD_FLUID)
-  list(APPEND INC
-    ../../../intern/elbeem/extern
-  )
   list(APPEND LIB
-    bf_intern_elbeem
+    bf_intern_mantaflow
   )
-  add_definitions(-DWITH_MOD_FLUID)
-endif()
-
-if(WITH_MOD_SMOKE)
-  list(APPEND LIB
-    bf_intern_smoke
-  )
-  add_definitions(-DWITH_SMOKE)
+  add_definitions(-DWITH_FLUID)
 endif()
 
 if(WITH_MOD_OCEANSIM)

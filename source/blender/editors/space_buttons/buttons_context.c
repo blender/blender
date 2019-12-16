@@ -770,7 +770,6 @@ const char *buttons_context_dir[] = {
     "cloth",
     "soft_body",
     "fluid",
-    "smoke",
     "collision",
     "brush",
     "dynamic_paint",
@@ -1018,24 +1017,14 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       return 1;
     }
   }
+
   else if (CTX_data_equals(member, "fluid")) {
     PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
 
     if (ptr && ptr->data) {
       Object *ob = ptr->data;
-      ModifierData *md = modifiers_findByType(ob, eModifierType_Fluidsim);
-      CTX_data_pointer_set(result, &ob->id, &RNA_FluidSimulationModifier, md);
-      return 1;
-    }
-  }
-
-  else if (CTX_data_equals(member, "smoke")) {
-    PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
-
-    if (ptr && ptr->data) {
-      Object *ob = ptr->data;
-      ModifierData *md = modifiers_findByType(ob, eModifierType_Smoke);
-      CTX_data_pointer_set(result, &ob->id, &RNA_SmokeModifier, md);
+      ModifierData *md = modifiers_findByType(ob, eModifierType_Fluid);
+      CTX_data_pointer_set(result, &ob->id, &RNA_FluidModifier, md);
       return 1;
     }
   }

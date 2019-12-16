@@ -30,7 +30,6 @@ set(INC
   ../makesdna
   ../makesrna
   ../render/extern/include
-  ../../../intern/elbeem/extern
   ../../../intern/eigen
   ../../../intern/guardedalloc
 )

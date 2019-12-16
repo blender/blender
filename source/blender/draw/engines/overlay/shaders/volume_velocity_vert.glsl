@@ -6,11 +6,11 @@ uniform float displaySize = 1.0;
 uniform float slicePosition;
 uniform int sliceAxis; /* -1 is no slice, 0 is X, 1 is Y, 2 is Z. */
 
-/* SmokeDomainSettings.cell_size */
+/* FluidDomainSettings.cell_size */
 uniform vec3 cellSize;
-/* SmokeDomainSettings.p0 */
+/* FluidDomainSettings.p0 */
 uniform vec3 domainOriginOffset;
-/* SmokeDomainSettings.res_min */
+/* FluidDomainSettings.res_min */
 uniform ivec3 adaptiveCellOffset;
 
 flat out vec4 finalColor;

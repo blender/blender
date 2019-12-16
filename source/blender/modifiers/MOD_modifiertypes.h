@@ -56,7 +56,7 @@ extern ModifierTypeInfo modifierType_Mask;
 extern ModifierTypeInfo modifierType_SimpleDeform;
 extern ModifierTypeInfo modifierType_Multires;
 extern ModifierTypeInfo modifierType_Surface;
-extern ModifierTypeInfo modifierType_Smoke;
+extern ModifierTypeInfo modifierType_Fluid;
 extern ModifierTypeInfo modifierType_ShapeKey;
 extern ModifierTypeInfo modifierType_Solidify;
 extern ModifierTypeInfo modifierType_Screw;

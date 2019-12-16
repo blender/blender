@@ -54,7 +54,7 @@ static ePhysicsRelationType modifier_to_relation_type(unsigned int modifier_type
   switch (modifier_type) {
     case eModifierType_Collision:
       return DEG_PHYSICS_COLLISION;
-    case eModifierType_Smoke:
+    case eModifierType_Fluid:
       return DEG_PHYSICS_SMOKE_COLLISION;
     case eModifierType_DynamicPaint:
       return DEG_PHYSICS_DYNAMIC_BRUSH;

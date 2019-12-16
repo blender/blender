@@ -1158,7 +1158,7 @@ void BlenderSession::builtin_image_info(const string &builtin_name,
   else if (b_id.is_a(&RNA_Object)) {
     /* smoke volume data */
     BL::Object b_ob(b_id);
-    BL::SmokeDomainSettings b_domain = object_smoke_domain_find(b_ob);
+    BL::FluidDomainSettings b_domain = object_fluid_domain_find(b_ob);
 
     metadata.is_float = true;
     metadata.depth = 1;
@@ -1180,7 +1180,7 @@ void BlenderSession::builtin_image_info(const string &builtin_name,
       return;
 
     int3 resolution = get_int3(b_domain.domain_resolution());
-    int amplify = (b_domain.use_high_resolution()) ? b_domain.amplify() + 1 : 1;
+    int amplify = (b_domain.use_noise()) ? b_domain.noise_scale() : 1;
 
     /* Velocity and heat data is always low-resolution. */
     if (builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY) ||
@@ -1339,14 +1339,14 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
   else if (b_id.is_a(&RNA_Object)) {
     /* smoke volume data */
     BL::Object b_ob(b_id);
-    BL::SmokeDomainSettings b_domain = object_smoke_domain_find(b_ob);
+    BL::FluidDomainSettings b_domain = object_fluid_domain_find(b_ob);
 
     if (!b_domain) {
       return false;
     }
 
     int3 resolution = get_int3(b_domain.domain_resolution());
-    int length, amplify = (b_domain.use_high_resolution()) ? b_domain.amplify() + 1 : 1;
+    int length, amplify = (b_domain.use_noise()) ? b_domain.noise_scale() : 1;
 
     /* Velocity and heat data is always low-resolution. */
     if (builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY) ||
@@ -1360,47 +1360,47 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
     const size_t num_pixels = ((size_t)width) * height * depth;
 
     if (builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_DENSITY)) {
-      SmokeDomainSettings_density_grid_get_length(&b_domain.ptr, &length);
+      FluidDomainSettings_density_grid_get_length(&b_domain.ptr, &length);
       if (length == num_pixels) {
-        SmokeDomainSettings_density_grid_get(&b_domain.ptr, pixels);
+        FluidDomainSettings_density_grid_get(&b_domain.ptr, pixels);
         return true;
       }
     }
     else if (builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_FLAME)) {
       /* this is in range 0..1, and interpreted by the OpenGL smoke viewer
        * as 1500..3000 K with the first part faded to zero density */
-      SmokeDomainSettings_flame_grid_get_length(&b_domain.ptr, &length);
+      FluidDomainSettings_flame_grid_get_length(&b_domain.ptr, &length);
       if (length == num_pixels) {
-        SmokeDomainSettings_flame_grid_get(&b_domain.ptr, pixels);
+        FluidDomainSettings_flame_grid_get(&b_domain.ptr, pixels);
         return true;
       }
     }
     else if (builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_COLOR)) {
       /* the RGB is "premultiplied" by density for better interpolation results */
-      SmokeDomainSettings_color_grid_get_length(&b_domain.ptr, &length);
+      FluidDomainSettings_color_grid_get_length(&b_domain.ptr, &length);
       if (length == num_pixels * 4) {
-        SmokeDomainSettings_color_grid_get(&b_domain.ptr, pixels);
+        FluidDomainSettings_color_grid_get(&b_domain.ptr, pixels);
         return true;
       }
     }
     else if (builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY)) {
-      SmokeDomainSettings_velocity_grid_get_length(&b_domain.ptr, &length);
+      FluidDomainSettings_velocity_grid_get_length(&b_domain.ptr, &length);
       if (length == num_pixels * 3) {
-        SmokeDomainSettings_velocity_grid_get(&b_domain.ptr, pixels);
+        FluidDomainSettings_velocity_grid_get(&b_domain.ptr, pixels);
         return true;
       }
     }
     else if (builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_HEAT)) {
-      SmokeDomainSettings_heat_grid_get_length(&b_domain.ptr, &length);
+      FluidDomainSettings_heat_grid_get_length(&b_domain.ptr, &length);
       if (length == num_pixels) {
-        SmokeDomainSettings_heat_grid_get(&b_domain.ptr, pixels);
+        FluidDomainSettings_heat_grid_get(&b_domain.ptr, pixels);
         return true;
       }
     }
     else if (builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_TEMPERATURE)) {
-      SmokeDomainSettings_temperature_grid_get_length(&b_domain.ptr, &length);
+      FluidDomainSettings_temperature_grid_get_length(&b_domain.ptr, &length);
       if (length == num_pixels) {
-        SmokeDomainSettings_temperature_grid_get(&b_domain.ptr, pixels);
+        FluidDomainSettings_temperature_grid_get(&b_domain.ptr, pixels);
         return true;
       }
     }

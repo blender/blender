@@ -108,7 +108,9 @@ void BKE_modifier_init(void)
 const ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 {
   /* type unsigned, no need to check < 0 */
-  if (type < NUM_MODIFIER_TYPES && modifier_types[type]->name[0] != '\0') {
+  if (type < NUM_MODIFIER_TYPES && modifier_types[type] &&
+    modifier_types[type]->name[0] != '\0')
+  {
     return modifier_types[type];
   }
   else {

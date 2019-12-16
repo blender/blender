@@ -103,7 +103,19 @@ void BOID_OT_state_move_up(struct wmOperatorType *ot);
 void BOID_OT_state_move_down(struct wmOperatorType *ot);
 
 /* physics_fluid.c */
-void FLUID_OT_bake(struct wmOperatorType *ot);
+void FLUID_OT_bake_all(struct wmOperatorType *ot);
+void FLUID_OT_free_all(struct wmOperatorType *ot);
+void FLUID_OT_bake_data(struct wmOperatorType *ot);
+void FLUID_OT_free_data(struct wmOperatorType *ot);
+void FLUID_OT_bake_noise(struct wmOperatorType *ot);
+void FLUID_OT_free_noise(struct wmOperatorType *ot);
+void FLUID_OT_bake_mesh(struct wmOperatorType *ot);
+void FLUID_OT_free_mesh(struct wmOperatorType *ot);
+void FLUID_OT_bake_particles(struct wmOperatorType *ot);
+void FLUID_OT_free_particles(struct wmOperatorType *ot);
+void FLUID_OT_bake_guiding(struct wmOperatorType *ot);
+void FLUID_OT_free_guiding(struct wmOperatorType *ot);
+void FLUID_OT_pause_bake(struct wmOperatorType *ot);
 
 /* dynamicpaint.c */
 void DPAINT_OT_bake(struct wmOperatorType *ot);

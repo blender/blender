@@ -45,7 +45,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_rigidbody_types.h"
-#include "DNA_smoke_types.h"
+#include "DNA_fluid_types.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -1410,22 +1410,22 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
                                  Scene *scene,
                                  float *color)
 {
-  SmokeModifierData *smd = (SmokeModifierData *)md;
-  SmokeDomainSettings *sds = smd->domain;
+  FluidModifierData *mmd = (FluidModifierData *)md;
+  FluidDomainSettings *mds = mmd->domain;
 
   /* Don't show smoke before simulation starts, this could be made an option in the future. */
-  const bool draw_velocity = (sds->draw_velocity && sds->fluid &&
-                              CFRA >= sds->point_cache[0]->startframe);
+  const bool draw_velocity = (mds->draw_velocity && mds->fluid &&
+                              CFRA >= mds->point_cache[0]->startframe);
 
   /* Small cube showing voxel size. */
   {
     float min[3];
-    madd_v3fl_v3fl_v3fl_v3i(min, sds->p0, sds->cell_size, sds->res_min);
+    madd_v3fl_v3fl_v3fl_v3i(min, mds->p0, mds->cell_size, mds->res_min);
     float voxel_cubemat[4][4] = {{0.0f}};
     /* scale small cube to voxel size */
-    voxel_cubemat[0][0] = 1.0f / (float)sds->base_res[0];
-    voxel_cubemat[1][1] = 1.0f / (float)sds->base_res[1];
-    voxel_cubemat[2][2] = 1.0f / (float)sds->base_res[2];
+    voxel_cubemat[0][0] = 1.0f / (float)mds->base_res[0];
+    voxel_cubemat[1][1] = 1.0f / (float)mds->base_res[1];
+    voxel_cubemat[2][2] = 1.0f / (float)mds->base_res[2];
     voxel_cubemat[3][3] = 1.0f;
     /* translate small cube to corner */
     copy_v3_v3(voxel_cubemat[3], min);
@@ -1437,38 +1437,38 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
   }
 
   if (draw_velocity) {
-    const bool use_needle = (sds->vector_draw_type == VECTOR_DRAW_NEEDLE);
+    const bool use_needle = (mds->vector_draw_type == VECTOR_DRAW_NEEDLE);
     int line_count = (use_needle) ? 6 : 1;
     int slice_axis = -1;
-    line_count *= sds->res[0] * sds->res[1] * sds->res[2];
+    line_count *= mds->res[0] * mds->res[1] * mds->res[2];
 
-    if (sds->slice_method == MOD_SMOKE_SLICE_AXIS_ALIGNED &&
-        sds->axis_slice_method == AXIS_SLICE_SINGLE) {
+    if (mds->slice_method == FLUID_DOMAIN_SLICE_AXIS_ALIGNED &&
+        mds->axis_slice_method == AXIS_SLICE_SINGLE) {
       float viewinv[4][4];
       DRW_view_viewmat_get(NULL, viewinv, true);
 
-      const int axis = (sds->slice_axis == SLICE_AXIS_AUTO) ? axis_dominant_v3_single(viewinv[2]) :
-                                                              sds->slice_axis - 1;
+      const int axis = (mds->slice_axis == SLICE_AXIS_AUTO) ? axis_dominant_v3_single(viewinv[2]) :
+                                                              mds->slice_axis - 1;
       slice_axis = axis;
-      line_count /= sds->res[axis];
+      line_count /= mds->res[axis];
     }
 
-    GPU_create_smoke_velocity(smd);
+    GPU_create_smoke_velocity(mmd);
 
     GPUShader *sh = OVERLAY_shader_volume_velocity(use_needle);
     DRWShadingGroup *grp = DRW_shgroup_create(sh, data->psl->extra_ps[0]);
-    DRW_shgroup_uniform_texture(grp, "velocityX", sds->tex_velocity_x);
-    DRW_shgroup_uniform_texture(grp, "velocityY", sds->tex_velocity_y);
-    DRW_shgroup_uniform_texture(grp, "velocityZ", sds->tex_velocity_z);
-    DRW_shgroup_uniform_float_copy(grp, "displaySize", sds->vector_scale);
-    DRW_shgroup_uniform_float_copy(grp, "slicePosition", sds->slice_depth);
-    DRW_shgroup_uniform_vec3_copy(grp, "cellSize", sds->cell_size);
-    DRW_shgroup_uniform_vec3_copy(grp, "domainOriginOffset", sds->p0);
-    DRW_shgroup_uniform_ivec3_copy(grp, "adaptiveCellOffset", sds->res_min);
+    DRW_shgroup_uniform_texture(grp, "velocityX", mds->tex_velocity_x);
+    DRW_shgroup_uniform_texture(grp, "velocityY", mds->tex_velocity_y);
+    DRW_shgroup_uniform_texture(grp, "velocityZ", mds->tex_velocity_z);
+    DRW_shgroup_uniform_float_copy(grp, "displaySize", mds->vector_scale);
+    DRW_shgroup_uniform_float_copy(grp, "slicePosition", mds->slice_depth);
+    DRW_shgroup_uniform_vec3_copy(grp, "cellSize", mds->cell_size);
+    DRW_shgroup_uniform_vec3_copy(grp, "domainOriginOffset", mds->p0);
+    DRW_shgroup_uniform_ivec3_copy(grp, "adaptiveCellOffset", mds->res_min);
     DRW_shgroup_uniform_int_copy(grp, "sliceAxis", slice_axis);
     DRW_shgroup_call_procedural_lines(grp, ob, line_count);
 
-    BLI_addtail(&data->stl->pd->smoke_domains, BLI_genericNodeN(smd));
+    BLI_addtail(&data->stl->pd->smoke_domains, BLI_genericNodeN(mmd));
   }
 }
 
@@ -1482,8 +1482,8 @@ static void OVERLAY_volume_free_smoke_textures(OVERLAY_Data *data)
    * all viewport in a redraw at least. */
   LinkData *link;
   while ((link = BLI_pophead(&data->stl->pd->smoke_domains))) {
-    SmokeModifierData *smd = (SmokeModifierData *)link->data;
-    GPU_free_smoke_velocity(smd);
+    FluidModifierData *mmd = (FluidModifierData *)link->data;
+    GPU_free_smoke_velocity(mmd);
     MEM_freeN(link);
   }
 }
@@ -1555,9 +1555,9 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const bool draw_xform = draw_ctx->object_mode == OB_MODE_OBJECT &&
                           (scene->toolsettings->transform_flag & SCE_XFORM_DATA_ORIGIN) &&
                           (ob->base_flag & BASE_SELECTED) && !is_select_mode;
-  const bool draw_volume = !from_dupli && (md = modifiers_findByType(ob, eModifierType_Smoke)) &&
+  const bool draw_volume = !from_dupli && (md = modifiers_findByType(ob, eModifierType_Fluid)) &&
                            (modifier_isEnabled(scene, md, eModifierMode_Realtime)) &&
-                           (((SmokeModifierData *)md)->domain != NULL);
+                           (((FluidModifierData *)md)->domain != NULL);
 
   float *color;
   int theme_id = DRW_object_wire_theme_get(ob, view_layer, &color);

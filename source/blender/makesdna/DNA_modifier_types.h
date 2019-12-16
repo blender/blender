@@ -87,6 +87,7 @@ typedef enum ModifierType {
   eModifierType_SurfaceDeform = 53,
   eModifierType_WeightedNormal = 54,
   eModifierType_Weld = 55,
+  eModifierType_Fluid = 56,
   NUM_MODIFIER_TYPES,
 } ModifierType;
 
@@ -451,24 +452,24 @@ enum {
   MOD_BEVEL_VMESH_CUTOFF,
 };
 
-typedef struct SmokeModifierData {
+typedef struct FluidModifierData {
   ModifierData modifier;
 
-  struct SmokeDomainSettings *domain;
+  struct FluidDomainSettings *domain;
   /** Inflow, outflow, smoke objects. */
-  struct SmokeFlowSettings *flow;
-  /** Collision objects. */
-  struct SmokeCollSettings *coll;
+  struct FluidFlowSettings *flow;
+  /** Effector objects (collision, guiding). */
+  struct FluidEffectorSettings *effector;
   float time;
   /** Domain, inflow, outflow, .... */
   int type;
-} SmokeModifierData;
+} FluidModifierData;
 
-/* Smoke modifier flags */
+/* Fluid modifier flags */
 enum {
-  MOD_SMOKE_TYPE_DOMAIN = (1 << 0),
-  MOD_SMOKE_TYPE_FLOW = (1 << 1),
-  MOD_SMOKE_TYPE_COLL = (1 << 2),
+  MOD_FLUID_TYPE_DOMAIN = (1 << 0),
+  MOD_FLUID_TYPE_FLOW = (1 << 1),
+  MOD_FLUID_TYPE_EFFEC = (1 << 2),
 };
 
 typedef struct DisplaceModifierData {
@@ -977,12 +978,18 @@ typedef enum {
   eMultiresModifierFlag_UseCrease = (1 << 2),
 } MultiresModifierFlag;
 
+/* DEPRECATED, only used for versioning. */
 typedef struct FluidsimModifierData {
   ModifierData modifier;
 
   /** Definition is in DNA_object_fluidsim_types.h. */
   struct FluidsimSettings *fss;
 } FluidsimModifierData;
+
+/* DEPRECATED, only used for versioning. */
+typedef struct SmokeModifierData {
+  ModifierData modifier;
+} SmokeModifierData;
 
 typedef struct ShrinkwrapModifierData {
   ModifierData modifier;

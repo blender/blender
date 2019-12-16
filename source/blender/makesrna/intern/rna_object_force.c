@@ -25,7 +25,7 @@
 #include "DNA_object_force_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_smoke_types.h"
+#include "DNA_fluid_types.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -738,10 +738,10 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
     }
 
     /* check smoke modifier */
-    md = (ModifierData *)modifiers_findByType(ob, eModifierType_Smoke);
+    md = (ModifierData *)modifiers_findByType(ob, eModifierType_Fluid);
     if (md) {
-      SmokeModifierData *smd = (SmokeModifierData *)md;
-      if (smd->domain->effector_weights == ew) {
+      FluidModifierData *mmd = (FluidModifierData *)md;
+      if (mmd->domain->effector_weights == ew) {
         char name_esc[sizeof(md->name) * 2];
         BLI_strescape(name_esc, md->name, sizeof(name_esc));
         return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);

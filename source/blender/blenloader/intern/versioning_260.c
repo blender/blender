@@ -39,7 +39,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sdna_types.h"
-#include "DNA_smoke_types.h"
+#include "DNA_fluid_types.h"
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
 #include "DNA_light_types.h"
@@ -1292,12 +1292,12 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
       ModifierData *md;
       for (md = ob->modifiers.first; md; md = md->next) {
-        if (md->type == eModifierType_Smoke) {
-          SmokeModifierData *smd = (SmokeModifierData *)md;
-          if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
-            int maxres = max_iii(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2]);
-            smd->domain->scale = smd->domain->dx * maxres;
-            smd->domain->dx = 1.0f / smd->domain->scale;
+        if (md->type == eModifierType_Fluid) {
+          FluidModifierData *mmd = (FluidModifierData *)md;
+          if ((mmd->type & MOD_FLUID_TYPE_DOMAIN) && mmd->domain) {
+            int maxres = max_iii(mmd->domain->res[0], mmd->domain->res[1], mmd->domain->res[2]);
+            mmd->domain->scale = mmd->domain->dx * maxres;
+            mmd->domain->dx = 1.0f / mmd->domain->scale;
           }
         }
       }
@@ -1610,31 +1610,31 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
       for (ob = bmain->objects.first; ob; ob = ob->id.next) {
         ModifierData *md;
         for (md = ob->modifiers.first; md; md = md->next) {
-          if (md->type == eModifierType_Smoke) {
-            SmokeModifierData *smd = (SmokeModifierData *)md;
-            if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
+          if (md->type == eModifierType_Fluid) {
+            FluidModifierData *mmd = (FluidModifierData *)md;
+            if ((mmd->type & MOD_FLUID_TYPE_DOMAIN) && mmd->domain) {
               /* keep branch saves if possible */
-              if (!smd->domain->flame_max_temp) {
-                smd->domain->burning_rate = 0.75f;
-                smd->domain->flame_smoke = 1.0f;
-                smd->domain->flame_vorticity = 0.5f;
-                smd->domain->flame_ignition = 1.25f;
-                smd->domain->flame_max_temp = 1.75f;
-                smd->domain->adapt_threshold = 0.02f;
-                smd->domain->adapt_margin = 4;
-                smd->domain->flame_smoke_color[0] = 0.7f;
-                smd->domain->flame_smoke_color[1] = 0.7f;
-                smd->domain->flame_smoke_color[2] = 0.7f;
+              if (!mmd->domain->flame_max_temp) {
+                mmd->domain->burning_rate = 0.75f;
+                mmd->domain->flame_smoke = 1.0f;
+                mmd->domain->flame_vorticity = 0.5f;
+                mmd->domain->flame_ignition = 1.25f;
+                mmd->domain->flame_max_temp = 1.75f;
+                mmd->domain->adapt_threshold = 0.02f;
+                mmd->domain->adapt_margin = 4;
+                mmd->domain->flame_smoke_color[0] = 0.7f;
+                mmd->domain->flame_smoke_color[1] = 0.7f;
+                mmd->domain->flame_smoke_color[2] = 0.7f;
               }
             }
-            else if ((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) {
-              if (!smd->flow->texture_size) {
-                smd->flow->fuel_amount = 1.0;
-                smd->flow->surface_distance = 1.5;
-                smd->flow->color[0] = 0.7f;
-                smd->flow->color[1] = 0.7f;
-                smd->flow->color[2] = 0.7f;
-                smd->flow->texture_size = 1.0f;
+            else if ((mmd->type & MOD_FLUID_TYPE_FLOW) && mmd->flow) {
+              if (!mmd->flow->texture_size) {
+                mmd->flow->fuel_amount = 1.0;
+                mmd->flow->surface_distance = 1.5;
+                mmd->flow->color[0] = 0.7f;
+                mmd->flow->color[1] = 0.7f;
+                mmd->flow->color[2] = 0.7f;
+                mmd->flow->texture_size = 1.0f;
               }
             }
           }
@@ -2140,14 +2140,14 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
       ModifierData *md;
       for (md = ob->modifiers.first; md; md = md->next) {
-        if (md->type == eModifierType_Smoke) {
-          SmokeModifierData *smd = (SmokeModifierData *)md;
-          if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
-            if (smd->domain->flags & MOD_SMOKE_HIGH_SMOOTH) {
-              smd->domain->highres_sampling = SM_HRES_LINEAR;
+        if (md->type == eModifierType_Fluid) {
+          FluidModifierData *mmd = (FluidModifierData *)md;
+          if ((mmd->type & MOD_FLUID_TYPE_DOMAIN) && mmd->domain) {
+            if (mmd->domain->flags & FLUID_DOMAIN_USE_HIGH_SMOOTH) {
+              mmd->domain->highres_sampling = SM_HRES_LINEAR;
             }
             else {
-              smd->domain->highres_sampling = SM_HRES_NEAREST;
+              mmd->domain->highres_sampling = SM_HRES_NEAREST;
             }
           }
         }
@@ -2207,11 +2207,11 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
       ModifierData *md;
       for (md = ob->modifiers.first; md; md = md->next) {
-        if (md->type == eModifierType_Smoke) {
-          SmokeModifierData *smd = (SmokeModifierData *)md;
-          if ((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) {
-            if (!smd->flow->particle_size) {
-              smd->flow->particle_size = 1.0f;
+        if (md->type == eModifierType_Fluid) {
+          FluidModifierData *mmd = (FluidModifierData *)md;
+          if ((mmd->type & MOD_FLUID_TYPE_FLOW) && mmd->flow) {
+            if (!mmd->flow->particle_size) {
+              mmd->flow->particle_size = 1.0f;
             }
           }
         }

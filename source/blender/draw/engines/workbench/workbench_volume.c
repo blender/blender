@@ -23,7 +23,7 @@
 #include "workbench_private.h"
 
 #include "BKE_object.h"
-#include "BKE_smoke.h"
+#include "BKE_fluid.h"
 
 #include "BLI_rand.h"
 #include "BLI_dynstr.h"
@@ -31,7 +31,7 @@
 
 #include "DNA_modifier_types.h"
 #include "DNA_object_force_types.h"
-#include "DNA_smoke_types.h"
+#include "DNA_fluid_types.h"
 
 #include "GPU_draw.h"
 
@@ -119,57 +119,56 @@ void workbench_volume_cache_init(WORKBENCH_Data *vedata)
 }
 
 void workbench_volume_cache_populate(WORKBENCH_Data *vedata,
-                                     Scene *scene,
+                                     Scene *UNUSED(scene),
                                      Object *ob,
                                      ModifierData *md)
 {
-  SmokeModifierData *smd = (SmokeModifierData *)md;
-  SmokeDomainSettings *sds = smd->domain;
+  FluidModifierData *mmd = (FluidModifierData *)md;
+  FluidDomainSettings *mds = mmd->domain;
   WORKBENCH_PrivateData *wpd = vedata->stl->g_data;
   WORKBENCH_EffectInfo *effect_info = vedata->stl->effects;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   DRWShadingGroup *grp = NULL;
 
-  /* Don't show smoke before simulation starts, this could be made an option in the future. */
-  if (!sds->fluid || CFRA < sds->point_cache[0]->startframe) {
+  /* Don't try to show liquid domains here */
+  if (!mds->fluid || !(mds->type == FLUID_DOMAIN_TYPE_GAS)) {
     return;
   }
 
   wpd->volumes_do = true;
-  const bool show_highres = BKE_smoke_show_highres(scene, sds);
-  if (sds->use_coba) {
-    GPU_create_smoke_coba_field(smd);
+  if (mds->use_coba) {
+    GPU_create_smoke_coba_field(mmd);
   }
-  else if (!sds->wt || !show_highres) {
-    GPU_create_smoke(smd, 0);
+  else if (!(mds->flags & FLUID_DOMAIN_USE_NOISE)) {
+    GPU_create_smoke(mmd, 0);
   }
-  else if (sds->wt && show_highres) {
-    GPU_create_smoke(smd, 1);
+  else if (mds->flags & FLUID_DOMAIN_USE_NOISE) {
+    GPU_create_smoke(mmd, 1);
   }
 
-  if ((!sds->use_coba && sds->tex == NULL) || (sds->use_coba && sds->tex_field == NULL)) {
+  if ((!mds->use_coba && mds->tex == NULL) || (mds->use_coba && mds->tex_field == NULL)) {
     return;
   }
 
-  const bool use_slice = (sds->slice_method == MOD_SMOKE_SLICE_AXIS_ALIGNED &&
-                          sds->axis_slice_method == AXIS_SLICE_SINGLE);
-  const bool cubic_interp = (sds->interp_method == VOLUME_INTERP_CUBIC);
-  GPUShader *sh = volume_shader_get(use_slice, sds->use_coba, cubic_interp);
+  const bool use_slice = (mds->slice_method == FLUID_DOMAIN_SLICE_AXIS_ALIGNED &&
+                          mds->axis_slice_method == AXIS_SLICE_SINGLE);
+  const bool cubic_interp = (mds->interp_method == VOLUME_INTERP_CUBIC);
+  GPUShader *sh = volume_shader_get(use_slice, mds->use_coba, cubic_interp);
 
   if (use_slice) {
     float invviewmat[4][4];
     DRW_view_viewmat_get(NULL, invviewmat, true);
 
-    const int axis = (sds->slice_axis == SLICE_AXIS_AUTO) ?
+    const int axis = (mds->slice_axis == SLICE_AXIS_AUTO) ?
                          axis_dominant_v3_single(invviewmat[2]) :
-                         sds->slice_axis - 1;
+                         mds->slice_axis - 1;
     float dim[3];
     BKE_object_dimensions_get(ob, dim);
     /* 0.05f to achieve somewhat the same opacity as the full view.  */
     float step_length = max_ff(1e-16f, dim[axis] * 0.05f);
 
     grp = DRW_shgroup_create(sh, vedata->psl->volume_pass);
-    DRW_shgroup_uniform_float_copy(grp, "slicePosition", sds->slice_depth);
+    DRW_shgroup_uniform_float_copy(grp, "slicePosition", mds->slice_depth);
     DRW_shgroup_uniform_int_copy(grp, "sliceAxis", axis);
     DRW_shgroup_uniform_float_copy(grp, "stepLength", step_length);
     DRW_shgroup_state_disable(grp, DRW_STATE_CULL_FRONT);
@@ -178,8 +177,8 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata,
     double noise_ofs;
     BLI_halton_1d(3, 0.0, effect_info->jitter_index, &noise_ofs);
     float dim[3], step_length, max_slice;
-    float slice_ct[3] = {sds->res[0], sds->res[1], sds->res[2]};
-    mul_v3_fl(slice_ct, max_ff(0.001f, sds->slice_per_voxel));
+    float slice_ct[3] = {mds->res[0], mds->res[1], mds->res[2]};
+    mul_v3_fl(slice_ct, max_ff(0.001f, mds->slice_per_voxel));
     max_slice = max_fff(slice_ct[0], slice_ct[1], slice_ct[2]);
     BKE_object_dimensions_get(ob, dim);
     invert_v3(slice_ct);
@@ -194,25 +193,25 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata,
     DRW_shgroup_state_enable(grp, DRW_STATE_CULL_FRONT);
   }
 
-  if (sds->use_coba) {
-    DRW_shgroup_uniform_texture(grp, "densityTexture", sds->tex_field);
-    DRW_shgroup_uniform_texture(grp, "transferTexture", sds->tex_coba);
+  if (mds->use_coba) {
+    DRW_shgroup_uniform_texture(grp, "densityTexture", mds->tex_field);
+    DRW_shgroup_uniform_texture(grp, "transferTexture", mds->tex_coba);
   }
   else {
     static float white[3] = {1.0f, 1.0f, 1.0f};
-    bool use_constant_color = ((sds->active_fields & SM_ACTIVE_COLORS) == 0 &&
-                               (sds->active_fields & SM_ACTIVE_COLOR_SET) != 0);
-    DRW_shgroup_uniform_texture(grp, "densityTexture", sds->tex);
-    DRW_shgroup_uniform_texture(grp, "shadowTexture", sds->tex_shadow);
+    bool use_constant_color = ((mds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) == 0 &&
+                               (mds->active_fields & FLUID_DOMAIN_ACTIVE_COLOR_SET) != 0);
+    DRW_shgroup_uniform_texture(grp, "densityTexture", mds->tex);
+    DRW_shgroup_uniform_texture(grp, "shadowTexture", mds->tex_shadow);
     DRW_shgroup_uniform_texture(
-        grp, "flameTexture", (sds->tex_flame) ? sds->tex_flame : e_data.dummy_tex);
+        grp, "flameTexture", (mds->tex_flame) ? mds->tex_flame : e_data.dummy_tex);
     DRW_shgroup_uniform_texture(
-        grp, "flameColorTexture", (sds->tex_flame) ? sds->tex_flame_coba : e_data.dummy_coba_tex);
+        grp, "flameColorTexture", (mds->tex_flame) ? mds->tex_flame_coba : e_data.dummy_coba_tex);
     DRW_shgroup_uniform_vec3(
-        grp, "activeColor", (use_constant_color) ? sds->active_color : white, 1);
+        grp, "activeColor", (use_constant_color) ? mds->active_color : white, 1);
   }
   DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
-  DRW_shgroup_uniform_float_copy(grp, "densityScale", 10.0f * sds->display_thickness);
+  DRW_shgroup_uniform_float_copy(grp, "densityScale", 10.0f * mds->display_thickness);
 
   if (use_slice) {
     DRW_shgroup_call(grp, DRW_cache_quad_get(), ob);
@@ -221,7 +220,7 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata,
     DRW_shgroup_call(grp, DRW_cache_cube_get(), ob);
   }
 
-  BLI_addtail(&wpd->smoke_domains, BLI_genericNodeN(smd));
+  BLI_addtail(&wpd->smoke_domains, BLI_genericNodeN(mmd));
 }
 
 void workbench_volume_smoke_textures_free(WORKBENCH_PrivateData *wpd)
@@ -233,8 +232,8 @@ void workbench_volume_smoke_textures_free(WORKBENCH_PrivateData *wpd)
    * modifier is not used for display. We should share them for
    * all viewport in a redraw at least. */
   for (LinkData *link = wpd->smoke_domains.first; link; link = link->next) {
-    SmokeModifierData *smd = (SmokeModifierData *)link->data;
-    GPU_free_smoke(smd);
+    FluidModifierData *mmd = (FluidModifierData *)link->data;
+    GPU_free_smoke(mmd);
   }
   BLI_freelistN(&wpd->smoke_domains);
 }

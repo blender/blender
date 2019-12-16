@@ -34,7 +34,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_smoke_types.h"
+#include "DNA_fluid_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_dynamicpaint_types.h"
 
@@ -360,6 +360,11 @@ bool psys_check_enabled(Object *ob, ParticleSystem *psys, const bool use_render_
   }
 
   psmd = psys_get_modifier(ob, psys);
+
+  if (!psmd) {
+    return 0;
+  }
+
   if (use_render_params) {
     if (!(psmd->modifier.mode & eModifierMode_Render)) {
       return 0;
@@ -3577,12 +3582,12 @@ void object_remove_particle_system(Main *bmain, Scene *UNUSED(scene), Object *ob
     return;
   }
 
-  /* clear all other appearances of this pointer (like on smoke flow modifier) */
-  if ((md = modifiers_findByType(ob, eModifierType_Smoke))) {
-    SmokeModifierData *smd = (SmokeModifierData *)md;
-    if ((smd->type == MOD_SMOKE_TYPE_FLOW) && smd->flow && smd->flow->psys) {
-      if (smd->flow->psys == psys) {
-        smd->flow->psys = NULL;
+  /* clear all other appearances of this pointer (like on manta flow modifier) */
+  if ((md = modifiers_findByType(ob, eModifierType_Fluid))) {
+    FluidModifierData *mmd = (FluidModifierData *)md;
+    if ((mmd->type == MOD_FLUID_TYPE_FLOW) && mmd->flow && mmd->flow->psys) {
+      if (mmd->flow->psys == psys) {
+        mmd->flow->psys = NULL;
       }
     }
   }

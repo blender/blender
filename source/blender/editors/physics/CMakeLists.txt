@@ -27,6 +27,7 @@ set(INC
   ../../windowmanager
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
+  ../../../../intern/mantaflow/extern
 )
 
 set(INC_SYS
@@ -56,18 +57,8 @@ set(LIB
 )
 
 if(WITH_MOD_FLUID)
-  list(APPEND INC
-    ../../../../intern/elbeem/extern
-  )
   list(APPEND LIB
-    bf_intern_elbeem
-  )
-  add_definitions(-DWITH_MOD_FLUID)
-endif()
-
-if(WITH_MOD_SMOKE)
-  list(APPEND LIB
-    bf_intern_smoke
+    bf_intern_mantaflow
   )
 endif()
 

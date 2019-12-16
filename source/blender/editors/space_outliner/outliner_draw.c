@@ -2125,14 +2125,14 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
             case eModifierType_Surface:
               data.icon = ICON_MOD_PHYSICS;
               break;
-            case eModifierType_Fluidsim:
+            case eModifierType_Fluidsim: /* deprecated, old fluid modifier */
               data.icon = ICON_MOD_FLUIDSIM;
               break;
             case eModifierType_Multires:
               data.icon = ICON_MOD_MULTIRES;
               break;
-            case eModifierType_Smoke:
-              data.icon = ICON_MOD_SMOKE;
+            case eModifierType_Fluid:
+              data.icon = ICON_MOD_FLUID;
               break;
             case eModifierType_Solidify:
               data.icon = ICON_MOD_SOLIDIFY;

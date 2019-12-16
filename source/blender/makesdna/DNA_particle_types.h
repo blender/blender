@@ -273,7 +273,7 @@ typedef struct ParticleSettings {
 
   struct Collection *instance_collection;
   struct ListBase instance_weights;
-  struct Collection *eff_group DNA_DEPRECATED;  // deprecated
+  struct Collection *force_group DNA_DEPRECATED;  // deprecated
   struct Object *instance_object;
   struct Object *bb_ob;
   /** Old animation system, deprecated for 2.5. */
@@ -429,13 +429,33 @@ typedef enum eParticleDrawFlag {
   PART_DRAW_HAIR_GRID = (1 << 18),
 } eParticleDrawFlag;
 
-/* part->type */
-/* hair is always baked static in object/geometry space */
-/* other types (normal particles) are in global space and not static baked */
-#define PART_EMITTER 0
-//#define PART_REACTOR      1
-#define PART_HAIR 2
-#define PART_FLUID 3
+/* part->type
+ * Hair is always baked static in object/geometry space.
+ * Other types (normal particles) are in global space and not static baked. */
+enum {
+  PART_EMITTER = (1 << 0),
+  /* REACTOR type currently unused */
+  /* PART_REACTOR = (1 << 1), */
+  PART_HAIR = (1 << 2),
+  PART_FLUID = (1 << 3), /* deprecated (belonged to elbeem) */
+  PART_FLUID_FLIP = (1 << 4),
+  PART_FLUID_SPRAY = (1 << 5),
+  PART_FLUID_BUBBLE = (1 << 6),
+  PART_FLUID_FOAM = (1 << 7),
+  PART_FLUID_TRACER = (1 << 8),
+};
+
+/* Mirroring Mantaflow particle types from particle.h (Mantaflow header). */
+enum {
+  PARTICLE_TYPE_NONE = (0 << 0),
+  PARTICLE_TYPE_NEW = (1 << 0),
+  PARTICLE_TYPE_SPRAY = (1 << 1),
+  PARTICLE_TYPE_BUBBLE = (1 << 2),
+  PARTICLE_TYPE_FOAM = (1 << 3),
+  PARTICLE_TYPE_TRACER = (1 << 4),
+  PARTICLE_TYPE_DELETE = (1 << 10),
+  PARTICLE_TYPE_INVALID = (1 << 30),
+};
 
 /* part->flag */
 #define PART_REACT_STA_END 1
