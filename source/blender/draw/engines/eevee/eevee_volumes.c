@@ -390,8 +390,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
                                     Scene *scene,
                                     Object *ob)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  static float white[3] = {1.0f, 1.0f, 1.0f};
+  static const float white[3] = {1.0f, 1.0f, 1.0f};
 
   float *texcoloc = NULL;
   float *texcosize = NULL;
@@ -443,8 +442,11 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
 
     /* Don't show smoke before simulation starts, this could be made an option in the future. */
     /* (sebbas): Always show smoke for manta */
-    /* const bool show_smoke = ((int)DEG_get_ctime(draw_ctx->depsgraph) >=
-     * mds->point_cache[0]->startframe); */
+#if 0
+    const DRWContextState *draw_ctx = DRW_context_state_get();
+    const bool show_smoke = ((int)DEG_get_ctime(draw_ctx->depsgraph) >=
+                             *mds->point_cache[0]->startframe);
+#endif
 
     if (mds->fluid && (mds->type == FLUID_DOMAIN_TYPE_GAS) /* && show_smoke */) {
       if (!(mds->flags & FLUID_DOMAIN_USE_NOISE)) {
@@ -462,7 +464,6 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
         grp, "sampflame", mds->tex_flame ? &mds->tex_flame : &e_data.dummy_flame);
 
     /* Constant Volume color. */
-    static float white[3] = {1.0f, 1.0f, 1.0f};
     bool use_constant_color = ((mds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) == 0 &&
                                (mds->active_fields & FLUID_DOMAIN_ACTIVE_COLOR_SET) != 0);
 

@@ -62,7 +62,9 @@ typedef enum ModifierType {
   eModifierType_SimpleDeform = 28,
   eModifierType_Multires = 29,
   eModifierType_Surface = 30,
+#ifdef DNA_DEPRECATED
   eModifierType_Smoke = 31,
+#endif
   eModifierType_ShapeKey = 32,
   eModifierType_Solidify = 33,
   eModifierType_Screw = 34,

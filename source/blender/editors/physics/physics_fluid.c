@@ -471,9 +471,6 @@ static void fluid_free_startjob(void *customdata, short *stop, short *do_update,
   FluidDomainSettings *mds = job->mmd->domain;
   Scene *scene = job->scene;
 
-  char tmpDir[FILE_MAX];
-  tmpDir[0] = '\0';
-
   job->stop = stop;
   job->do_update = do_update;
   job->progress = progress;

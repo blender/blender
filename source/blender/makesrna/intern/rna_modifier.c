@@ -718,7 +718,6 @@ static StructRNA *rna_Modifier_refine(struct PointerRNA *ptr)
       return &RNA_WeightedNormalModifier;
     /* Default */
     case eModifierType_Fluidsim: /* deprecated */
-    case eModifierType_Smoke:
     case eModifierType_None:
     case eModifierType_ShapeKey:
     case NUM_MODIFIER_TYPES:
