@@ -85,14 +85,11 @@
 
 #include "RE_shader_ext.h"
 
-/* fluid sim particle import */
-#ifdef WITH_MOD_FLUID
-#  include "DNA_object_fluidsim_types.h"
-#  include "LBM_fluidsim.h"
-#  include <zlib.h>
-#  include <string.h>
-
-#endif  // WITH_MOD_FLUID
+/* FLUID sim particle import */
+#ifdef WITH_FLUID
+#  include "DNA_fluid_types.h"
+#  include "manta_fluid_API.h"
+#endif  // WITH_FLUID
 
 static ThreadRWMutex psys_bvhtree_rwlock = BLI_RWLOCK_INITIALIZER;
 
@@ -593,8 +590,6 @@ static void initialize_particle_texture(ParticleSimulationData *sim, ParticleDat
         pa->flag |= PARS_UNEXIST;
       }
       pa->time = 0.f;
-      break;
-    case PART_FLUID:
       break;
   }
 }
@@ -4143,7 +4138,7 @@ static void cached_step(ParticleSimulationData *sim, float cfra, const bool use_
 }
 
 static void particles_fluid_step(ParticleSimulationData *sim,
-                                 int UNUSED(cfra),
+                                 int cfra,
                                  const bool use_render_params)
 {
   ParticleSystem *psys = sim->psys;
@@ -4153,80 +4148,223 @@ static void particles_fluid_step(ParticleSimulationData *sim,
     psys->totpart = 0;
   }
 
-  /* fluid sim particle import handling, actual loading of particles from file */
-#ifdef WITH_MOD_FLUID
+#ifdef WITH_FLUID
   {
-    FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(
-        sim->ob, eModifierType_Fluidsim);
+    Object *ob = sim->ob;
+    FluidModifierData *mmd = (FluidModifierData *)modifiers_findByType(ob, eModifierType_Fluid);
 
-    if (fluidmd && fluidmd->fss) {
-      FluidsimSettings *fss = fluidmd->fss;
+    if (mmd && mmd->domain && mmd->domain->fluid) {
+      FluidDomainSettings *mds = mmd->domain;
+
       ParticleSettings *part = psys->part;
       ParticleData *pa = NULL;
-      char filename[256];
+
+      int p, totpart, tottypepart = 0;
+      int flagActivePart, activeParts = 0;
+      float posX, posY, posZ, velX, velY, velZ;
+      float resX, resY, resZ;
+      int upres = 1;
       char debugStrBuffer[256];
-      int curFrame = sim->scene->r.cfra - 1;  // warning - sync with derived mesh fsmesh loading
-      int p, j, totpart;
-      int readMask, activeParts = 0, fileParts = 0;
-      gzFile gzf;
+      float tmp[3] = {0}, tmp2[3] = {0};
 
-      // XXX          if (ob==G.obedit) // off...
-      //              return;
+      /* Helper variables for scaling. */
+      float min[3], max[3], size[3], cell_size_scaled[3], max_size;
 
-      // ok, start loading
-      BLI_join_dirfile(
-          filename, sizeof(filename), fss->surfdataPath, OB_FLUIDSIM_SURF_PARTICLES_FNAME);
-
-      BLI_path_abs(filename, modifier_path_relbase_from_global(sim->ob));
-
-      BLI_path_frame(filename, curFrame, 0);  // fixed #frame-no
-
-      gzf = BLI_gzopen(filename, "rb");
-      if (!gzf) {
+      /* Sanity check: parts also enabled in fluid domain? */
+      if ((part->type & PART_FLUID_FLIP &&
+           (mds->particle_type & FLUID_DOMAIN_PARTICLE_FLIP) == 0) ||
+          (part->type & PART_FLUID_SPRAY &&
+           (mds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) == 0) ||
+          (part->type & PART_FLUID_BUBBLE &&
+           (mds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) == 0) ||
+          (part->type & PART_FLUID_FOAM &&
+           (mds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) == 0) ||
+          (part->type & PART_FLUID_TRACER &&
+           (mds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER) == 0)) {
         BLI_snprintf(debugStrBuffer,
                      sizeof(debugStrBuffer),
-                     "readFsPartData::error - Unable to open file for reading '%s'\n",
-                     filename);
-        // XXX bad level call elbeemDebugOut(debugStrBuffer);
+                     "particles_fluid_step::error - found particle system that is not enabled in "
+                     "fluid domain\n");
         return;
       }
 
-      gzread(gzf, &totpart, sizeof(totpart));
-      totpart = (use_render_params) ? totpart : (part->disp * totpart) / 100;
+      /* Count particle amount. tottypepart is only important for snd particles. */
+      if (part->type & PART_FLUID_FLIP) {
+        tottypepart = totpart = manta_liquid_get_num_flip_particles(mds->fluid);
+      }
+      if (part->type &
+          (PART_FLUID_SPRAY | PART_FLUID_BUBBLE | PART_FLUID_FOAM | PART_FLUID_TRACER)) {
+        totpart = manta_liquid_get_num_snd_particles(mds->fluid);
 
-      part->totpart = totpart;
+        /* tottypepart is the amount of particles of a snd particle type. */
+        for (p = 0; p < totpart; p++) {
+          flagActivePart = manta_liquid_get_snd_particle_flag_at(mds->fluid, p);
+          if ((part->type & PART_FLUID_SPRAY) && (flagActivePart & PARTICLE_TYPE_SPRAY))
+            tottypepart++;
+          if ((part->type & PART_FLUID_BUBBLE) && (flagActivePart & PARTICLE_TYPE_BUBBLE))
+            tottypepart++;
+          if ((part->type & PART_FLUID_FOAM) && (flagActivePart & PARTICLE_TYPE_FOAM))
+            tottypepart++;
+          if ((part->type & PART_FLUID_TRACER) && (flagActivePart & PARTICLE_TYPE_TRACER))
+            tottypepart++;
+        }
+      }
+      /* Sanity check: no particles present. */
+      if (!totpart || !tottypepart)
+        return;
+
+      /* How many particles to display? */
+      tottypepart = (use_render_params) ? tottypepart : (part->disp * tottypepart) / 100;
+
+      part->totpart = tottypepart;
       part->sta = part->end = 1.0f;
       part->lifetime = sim->scene->r.efra + 1;
 
-      /* allocate particles */
+      /* Allocate particles. */
       realloc_particles(sim, part->totpart);
 
-      // set up reading mask
-      readMask = fss->typeFlags;
+      /* Set some randomness when choosing which particles to display. */
+      sim->rng = BLI_rng_new_srandom(31415926 + (int)cfra + psys->seed);
+      double r, dispProb = (double)part->disp / 100.0;
 
-      for (p = 0, pa = psys->particles; p < totpart; p++, pa++) {
-        int ptype = 0;
+      /* Loop over *all* particles. Will break out of loop before tottypepart amount exceeded. */
+      for (p = 0, pa = psys->particles; p < totpart; p++) {
 
-        gzread(gzf, &ptype, sizeof(ptype));
-        if (ptype & readMask) {
+        /* Apply some randomness and determine which particles to skip. */
+        r = BLI_rng_get_double(sim->rng);
+        if (r > dispProb)
+          continue;
+
+        /* flag, res, upres, pos, vel for FLIP and snd particles have different getters. */
+        if (part->type & PART_FLUID_FLIP) {
+          flagActivePart = manta_liquid_get_flip_particle_flag_at(mds->fluid, p);
+
+          resX = (float)manta_get_res_x(mds->fluid);
+          resY = (float)manta_get_res_y(mds->fluid);
+          resZ = (float)manta_get_res_z(mds->fluid);
+
+          upres = 1;
+
+          posX = manta_liquid_get_flip_particle_position_x_at(mds->fluid, p);
+          posY = manta_liquid_get_flip_particle_position_y_at(mds->fluid, p);
+          posZ = manta_liquid_get_flip_particle_position_z_at(mds->fluid, p);
+
+          velX = manta_liquid_get_flip_particle_velocity_x_at(mds->fluid, p);
+          velY = manta_liquid_get_flip_particle_velocity_y_at(mds->fluid, p);
+          velZ = manta_liquid_get_flip_particle_velocity_z_at(mds->fluid, p);
+        }
+        else if (part->type &
+                 (PART_FLUID_SPRAY | PART_FLUID_BUBBLE | PART_FLUID_FOAM | PART_FLUID_TRACER)) {
+          flagActivePart = manta_liquid_get_snd_particle_flag_at(mds->fluid, p);
+
+          resX = (float)manta_liquid_get_particle_res_x(mds->fluid);
+          resY = (float)manta_liquid_get_particle_res_y(mds->fluid);
+          resZ = (float)manta_liquid_get_particle_res_z(mds->fluid);
+
+          upres = manta_liquid_get_particle_upres(mds->fluid);
+
+          posX = manta_liquid_get_snd_particle_position_x_at(mds->fluid, p);
+          posY = manta_liquid_get_snd_particle_position_y_at(mds->fluid, p);
+          posZ = manta_liquid_get_snd_particle_position_z_at(mds->fluid, p);
+
+          velX = manta_liquid_get_snd_particle_velocity_x_at(mds->fluid, p);
+          velY = manta_liquid_get_snd_particle_velocity_y_at(mds->fluid, p);
+          velZ = manta_liquid_get_snd_particle_velocity_z_at(mds->fluid, p);
+        }
+        else {
+          BLI_snprintf(debugStrBuffer,
+                       sizeof(debugStrBuffer),
+                       "particles_fluid_step::error - unknown particle system type\n");
+          return;
+        }
+#  if 0
+        /* Debugging: Print type of particle system and current particles. */
+        printf("system type is %d and particle type is %d\n", part->type, flagActivePart);
+#  endif
+
+        /* Type of particle must matche current particle system type (only important for snd
+         * particles). */
+        if ((flagActivePart & PARTICLE_TYPE_SPRAY) && (part->type & PART_FLUID_SPRAY) == 0)
+          continue;
+        if ((flagActivePart & PARTICLE_TYPE_BUBBLE) && (part->type & PART_FLUID_BUBBLE) == 0)
+          continue;
+        if ((flagActivePart & PARTICLE_TYPE_FOAM) && (part->type & PART_FLUID_FOAM) == 0)
+          continue;
+        if ((flagActivePart & PARTICLE_TYPE_TRACER) && (part->type & PART_FLUID_TRACER) == 0)
+          continue;
+#  if 0
+        /* Debugging: Print type of particle system and current particles. */
+        printf("system type is %d and particle type is %d\n", part->type, flagActivePart);
+#  endif
+        /* Particle system has allocated tottypeparts particles - so break early before exceeded.
+         */
+        if (activeParts >= tottypepart)
+          break;
+
+        /* Only show active particles, i.e. filter out dead particles that just Mantaflow needs.
+         * Mantaflow convention: PARTICLE_TYPE_DELETE == inactive particle. */
+        if ((flagActivePart & PARTICLE_TYPE_DELETE) == 0) {
           activeParts++;
 
-          gzread(gzf, &(pa->size), sizeof(float));
+          /* Use particle system settings for particle size. */
+          pa->size = part->size;
+          if (part->randsize > 0.0f)
+            pa->size *= 1.0f - part->randsize * psys_frand(psys, p + 1);
 
-          pa->size /= 10.0f;
+          /* Get size (dimension) but considering scaling */
+          copy_v3_v3(cell_size_scaled, mds->cell_size);
+          mul_v3_v3(cell_size_scaled, ob->scale);
+          madd_v3fl_v3fl_v3fl_v3i(min, mds->p0, cell_size_scaled, mds->res_min);
+          madd_v3fl_v3fl_v3fl_v3i(max, mds->p0, cell_size_scaled, mds->res_max);
+          sub_v3_v3v3(size, max, min);
 
-          for (j = 0; j < 3; j++) {
-            float wrf;
-            gzread(gzf, &wrf, sizeof(wrf));
-            pa->state.co[j] = wrf;
-            // fprintf(stderr,"Rj%d ",j);
-          }
-          for (j = 0; j < 3; j++) {
-            float wrf;
-            gzread(gzf, &wrf, sizeof(wrf));
-            pa->state.vel[j] = wrf;
-          }
+          /* Biggest dimension will be used for upscaling. */
+          max_size = MAX3(size[0] / (float)upres, size[1] / (float)upres, size[2] / (float)upres);
 
+          /* Set particle position. */
+          float posParticle[3] = {posX, posY, posZ};
+          copy_v3_v3(pa->state.co, posParticle);
+
+          /* Normalize to unit cube around 0. */
+          float resDomain[3] = {resX, resY, resZ};
+          mul_v3_fl(resDomain, 0.5f);
+          sub_v3_v3(pa->state.co, resDomain);
+          mul_v3_fl(pa->state.co, mds->dx);
+
+          /* Match domain dimension / size. */
+          float scaleAbs[3] = {
+              1. / fabsf(ob->scale[0]), 1. / fabsf(ob->scale[1]), 1. / fabsf(ob->scale[2])};
+          mul_v3_fl(scaleAbs, max_size);
+          mul_v3_v3(pa->state.co, scaleAbs);
+          ;
+
+          /* Match domain scale. */
+          mul_m4_v3(ob->obmat, pa->state.co);
+
+          /* Add origin offset to particle position. */
+          zero_v3(tmp);
+          zero_v3(tmp2);
+          sub_v3_v3v3(tmp2, mds->p1, mds->p0);
+          mul_v3_fl(tmp2, 0.5f);
+          add_v3_v3v3(tmp, tmp, mds->p1);
+          sub_v3_v3(tmp, tmp2);
+          mul_v3_v3(tmp, ob->scale);
+          add_v3_v3(pa->state.co, tmp);
+#  if 0
+          /* Debugging: Print particle coordinates. */
+          printf("pa->state.co[0]: %f, pa->state.co[1]: %f, pa->state.co[2]: %f\n",
+          pa->state.co[0], pa->state.co[1], pa->state.co[2]);
+#  endif
+          /* Set particle velocity. */
+          float velParticle[3] = {velX, velY, velZ};
+          copy_v3_v3(pa->state.vel, velParticle);
+          mul_v3_fl(pa->state.vel, mds->dx);
+#  if 0
+          /* Debugging: Print particle velocity. */
+          printf("pa->state.vel[0]: %f, pa->state.vel[1]: %f, pa->state.vel[2]: %f\n",
+          pa->state.vel[0], pa->state.vel[1], pa->state.vel[2]);
+#  endif
+          /* Set default angular velocity and particle rotation. */
           zero_v3(pa->state.ave);
           unit_qt(pa->state.rot);
 
@@ -4234,46 +4372,25 @@ static void particles_fluid_step(ParticleSimulationData *sim,
           pa->dietime = sim->scene->r.efra + 1;
           pa->lifetime = sim->scene->r.efra;
           pa->alive = PARS_ALIVE;
-#  if 0
-          if (a < 25) {
-            fprintf(stderr,
-                    "FSPARTICLE debug set %s, a%d = %f,%f,%f, life=%f\n",
-                    filename,
-                    a,
-                    pa->co[0],
-                    pa->co[1],
-                    pa->co[2],
-                    pa->lifetime);
-          }
-#  endif
+
+          /* Increasing particle settings pointer only for active particles. */
+          pa++;
         }
-        else {
-          // skip...
-          for (j = 0; j < 2 * 3 + 1; j++) {
-            float wrf;
-            gzread(gzf, &wrf, sizeof(wrf));
-          }
-        }
-        fileParts++;
       }
-      gzclose(gzf);
+#  if 0
+      /* Debugging: Print number of active particles. */
+      printf("active parts: %d\n", activeParts);
+#  endif
+      totpart = psys->totpart = part->totpart = activeParts;
 
-      totpart = psys->totpart = activeParts;
-      BLI_snprintf(debugStrBuffer,
-                   sizeof(debugStrBuffer),
-                   "readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d\n",
-                   psys->totpart,
-                   activeParts,
-                   fileParts,
-                   readMask);
-      // bad level call
-      // XXX elbeemDebugOut(debugStrBuffer);
+      BLI_rng_free(sim->rng);
+      sim->rng = NULL;
 
-    }  // fluid sim particles done
+    } /* Fluid sim particles done. */
   }
 #else
   UNUSED_VARS(use_render_params);
-#endif  // WITH_MOD_FLUID
+#endif  // WITH_FLUID
 }
 
 static int emit_particles(ParticleSimulationData *sim, PTCacheID *pid, float UNUSED(cfra))
@@ -4654,128 +4771,124 @@ void particle_system_update(struct Depsgraph *depsgraph,
   /* setup necessary physics type dependent additional data if it doesn't yet exist */
   psys_prepare_physics(&sim);
 
-  switch (part->type) {
-    case PART_HAIR: {
-      /* nothing to do so bail out early */
-      if (psys->totpart == 0 && part->totpart == 0) {
-        psys_free_path_cache(psys, NULL);
-        free_hair(ob, psys, 0);
-        psys->flag |= PSYS_HAIR_DONE;
+  if (part->type & PART_HAIR) {
+    /* nothing to do so bail out early */
+    if (psys->totpart == 0 && part->totpart == 0) {
+      psys_free_path_cache(psys, NULL);
+      free_hair(ob, psys, 0);
+      psys->flag |= PSYS_HAIR_DONE;
+    }
+    /* (re-)create hair */
+    else if (hair_needs_recalc(psys)) {
+      float hcfra = 0.0f;
+      int i, recalc = psys->recalc;
+
+      free_hair(ob, psys, 0);
+
+      if (psys_orig->edit && psys_orig->free_edit) {
+        psys_orig->free_edit(psys_orig->edit);
+        psys_orig->edit = NULL;
+        psys_orig->free_edit = NULL;
       }
-      /* (re-)create hair */
-      else if (hair_needs_recalc(psys)) {
-        float hcfra = 0.0f;
-        int i, recalc = psys->recalc;
 
-        free_hair(ob, psys, 0);
+      /* first step is negative so particles get killed and reset */
+      psys->cfra = 1.0f;
 
-        if (psys_orig->edit && psys_orig->free_edit) {
-          psys_orig->free_edit(psys_orig->edit);
-          psys_orig->edit = NULL;
-          psys_orig->free_edit = NULL;
-        }
+      ParticleSettings *part_local = part;
+      if ((part->flag & PART_HAIR_REGROW) == 0) {
+        part_local = particle_settings_localize(part);
+        psys->part = part_local;
+      }
 
-        /* first step is negative so particles get killed and reset */
-        psys->cfra = 1.0f;
-
-        ParticleSettings *part_local = part;
+      for (i = 0; i <= part->hair_step; i++) {
+        hcfra = 100.0f * (float)i / (float)psys->part->hair_step;
         if ((part->flag & PART_HAIR_REGROW) == 0) {
-          part_local = particle_settings_localize(part);
-          psys->part = part_local;
+          BKE_animsys_evaluate_animdata(
+              scene, &part_local->id, part_local->adt, hcfra, ADT_RECALC_ANIM, false);
         }
-
-        for (i = 0; i <= part->hair_step; i++) {
-          hcfra = 100.0f * (float)i / (float)psys->part->hair_step;
-          if ((part->flag & PART_HAIR_REGROW) == 0) {
-            BKE_animsys_evaluate_animdata(
-                scene, &part_local->id, part_local->adt, hcfra, ADT_RECALC_ANIM, false);
-          }
-          system_step(&sim, hcfra, use_render_params);
-          psys->cfra = hcfra;
-          psys->recalc = 0;
-          save_hair(&sim, hcfra);
-        }
-
-        if (part_local != part) {
-          particle_settings_free_local(part_local);
-          psys->part = part;
-        }
-
-        psys->flag |= PSYS_HAIR_DONE;
-        psys->recalc = recalc;
-      }
-      else if (psys->flag & PSYS_EDITED) {
-        psys->flag |= PSYS_HAIR_DONE;
+        system_step(&sim, hcfra, use_render_params);
+        psys->cfra = hcfra;
+        psys->recalc = 0;
+        save_hair(&sim, hcfra);
       }
 
-      if (psys->flag & PSYS_HAIR_DONE) {
-        hair_step(&sim, cfra, use_render_params);
+      if (part_local != part) {
+        particle_settings_free_local(part_local);
+        psys->part = part;
       }
-      break;
+
+      psys->flag |= PSYS_HAIR_DONE;
+      psys->recalc = recalc;
     }
-    case PART_FLUID: {
-      particles_fluid_step(&sim, (int)cfra, use_render_params);
-      break;
+    else if (psys->flag & PSYS_EDITED) {
+      psys->flag |= PSYS_HAIR_DONE;
     }
-    default: {
-      switch (part->phystype) {
-        case PART_PHYS_NO:
-        case PART_PHYS_KEYED: {
-          PARTICLE_P;
-          float disp = psys_get_current_display_percentage(psys, use_render_params);
-          bool free_unexisting = false;
 
-          /* Particles without dynamics haven't been reset yet because they don't use pointcache */
-          if (psys->recalc & ID_RECALC_PSYS_RESET) {
-            psys_reset(psys, PSYS_RESET_ALL);
-          }
+    if (psys->flag & PSYS_HAIR_DONE) {
+      hair_step(&sim, cfra, use_render_params);
+    }
+  }
+  else if (part->type & (PART_FLUID_FLIP | PART_FLUID_BUBBLE | PART_FLUID_BUBBLE |
+                         PART_FLUID_FOAM | PART_FLUID_TRACER)) {
+    particles_fluid_step(&sim, (int)cfra, use_render_params);
+  }
+  else {
+    switch (part->phystype) {
+      case PART_PHYS_NO:
+      case PART_PHYS_KEYED: {
+        PARTICLE_P;
+        float disp = psys_get_current_display_percentage(psys, use_render_params);
+        bool free_unexisting = false;
 
-          if (emit_particles(&sim, NULL, cfra) || (psys->recalc & ID_RECALC_PSYS_RESET)) {
-            free_keyed_keys(psys);
-            distribute_particles(&sim, part->from);
-            initialize_all_particles(&sim);
-            free_unexisting = true;
-
-            /* flag for possible explode modifiers after this system */
-            sim.psmd->flag |= eParticleSystemFlag_Pars;
-          }
-
-          LOOP_EXISTING_PARTICLES
-          {
-            pa->size = part->size;
-            if (part->randsize > 0.0f) {
-              pa->size *= 1.0f - part->randsize * psys_frand(psys, p + 1);
-            }
-
-            reset_particle(&sim, pa, 0.0, cfra);
-
-            if (psys_frand(psys, p) > disp) {
-              pa->flag |= PARS_NO_DISP;
-            }
-            else {
-              pa->flag &= ~PARS_NO_DISP;
-            }
-          }
-
-          /* free unexisting after resetting particles */
-          if (free_unexisting) {
-            free_unexisting_particles(&sim);
-          }
-
-          if (part->phystype == PART_PHYS_KEYED) {
-            psys_count_keyed_targets(&sim);
-            set_keyed_keys(&sim);
-            psys_update_path_cache(&sim, (int)cfra, use_render_params);
-          }
-          break;
+        /* Particles without dynamics haven't been reset yet because they don't use pointcache */
+        if (psys->recalc & ID_RECALC_PSYS_RESET) {
+          psys_reset(psys, PSYS_RESET_ALL);
         }
-        default: {
-          /* the main dynamic particle system step */
-          system_step(&sim, cfra, use_render_params);
-          break;
+
+        if (emit_particles(&sim, NULL, cfra) || (psys->recalc & ID_RECALC_PSYS_RESET)) {
+          free_keyed_keys(psys);
+          distribute_particles(&sim, part->from);
+          initialize_all_particles(&sim);
+          free_unexisting = true;
+
+          /* flag for possible explode modifiers after this system */
+          sim.psmd->flag |= eParticleSystemFlag_Pars;
         }
+
+        LOOP_EXISTING_PARTICLES
+        {
+          pa->size = part->size;
+          if (part->randsize > 0.0f) {
+            pa->size *= 1.0f - part->randsize * psys_frand(psys, p + 1);
+          }
+
+          reset_particle(&sim, pa, 0.0, cfra);
+
+          if (psys_frand(psys, p) > disp) {
+            pa->flag |= PARS_NO_DISP;
+          }
+          else {
+            pa->flag &= ~PARS_NO_DISP;
+          }
+        }
+
+        /* free unexisting after resetting particles */
+        if (free_unexisting) {
+          free_unexisting_particles(&sim);
+        }
+
+        if (part->phystype == PART_PHYS_KEYED) {
+          psys_count_keyed_targets(&sim);
+          set_keyed_keys(&sim);
+          psys_update_path_cache(&sim, (int)cfra, use_render_params);
+        }
+        break;
       }
-      break;
+      default: {
+        /* the main dynamic particle system step */
+        system_step(&sim, cfra, use_render_params);
+        break;
+      }
     }
   }
 
