@@ -411,6 +411,10 @@ if(NOT WITH_TBB OR NOT TBB_FOUND)
     message(STATUS "TBB not found, disabling OpenVDB")
     set(WITH_OPENVDB OFF)
   endif()
+  if(WITH_MOD_FLUID)
+    message(STATUS "TBB not found, disabling Fluid modifier")
+    set(WITH_MOD_FLUID OFF)
+  endif()
 endif()
 
 # CMake FindOpenMP doesn't know about AppleClang before 3.12, so provide custom flags.

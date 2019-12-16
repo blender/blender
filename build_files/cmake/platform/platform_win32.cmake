@@ -567,6 +567,10 @@ else()
     message(STATUS "TBB disabled, also disabling OpenVDB")
     set(WITH_OPENVDB OFF)
   endif()
+  if(WITH_MOD_FLUID)
+    message(STATUS "TBB disabled, disabling Fluid modifier")
+    set(WITH_MOD_FLUID OFF)
+  endif()
 endif()
 
 # used in many places so include globally, like OpenGL
