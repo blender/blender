@@ -32,7 +32,6 @@ _modules = [
     "constraint",
     "file",
     "image",
-    "mask",
     "mesh",
     "node",
     "object",
