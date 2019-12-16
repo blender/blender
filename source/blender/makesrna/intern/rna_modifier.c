@@ -45,7 +45,7 @@
 #include "BKE_mesh_remap.h"
 #include "BKE_multires.h"
 #include "BKE_ocean.h"
-#include "BKE_fluid.h" /* For fluidModifier_free & fluidModifier_createType */
+#include "BKE_fluid.h" /* For BKE_fluid_modifier_free & BKE_fluid_modifier_create_type_data */
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -1038,8 +1038,8 @@ static void rna_fluid_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
   }
 
 #  ifdef WITH_FLUID
-  fluidModifier_free(mmd);       /* XXX TODO: completely free all 3 pointers */
-  fluidModifier_createType(mmd); /* create regarding of selected type */
+  BKE_fluid_modifier_free(mmd);             /* XXX TODO: completely free all 3 pointers */
+  BKE_fluid_modifier_create_type_data(mmd); /* create regarding of selected type */
 #  endif
 
   switch (mmd->type) {

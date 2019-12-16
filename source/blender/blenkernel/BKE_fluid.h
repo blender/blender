@@ -28,21 +28,21 @@ struct Scene;
 struct FluidDomainSettings;
 struct FluidModifierData;
 
-typedef float (*bresenham_callback)(
+typedef float (*BKE_Fluid_BresenhamFn)(
     float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
 
-struct Mesh *fluidModifier_do(struct FluidModifierData *mmd,
-                              struct Depsgraph *depsgraph,
-                              struct Scene *scene,
-                              struct Object *ob,
-                              struct Mesh *me);
+struct Mesh *BKE_fluid_modifier_do(struct FluidModifierData *mmd,
+                                   struct Depsgraph *depsgraph,
+                                   struct Scene *scene,
+                                   struct Object *ob,
+                                   struct Mesh *me);
 
-void fluidModifier_free(struct FluidModifierData *mmd);
-void fluidModifier_reset(struct FluidModifierData *mmd);
-void fluidModifier_createType(struct FluidModifierData *mmd);
-void fluidModifier_copy(const struct FluidModifierData *mmd,
-                        struct FluidModifierData *tmmd,
-                        const int flag);
+void BKE_fluid_modifier_free(struct FluidModifierData *mmd);
+void BKE_fluid_modifier_reset(struct FluidModifierData *mmd);
+void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd);
+void BKE_fluid_modifier_copy(const struct FluidModifierData *mmd,
+                             struct FluidModifierData *tmmd,
+                             const int flag);
 
 void BKE_fluid_reallocate_fluid(struct FluidDomainSettings *mds, int res[3], int free_old);
 void BKE_fluid_reallocate_copy_fluid(struct FluidDomainSettings *mds,

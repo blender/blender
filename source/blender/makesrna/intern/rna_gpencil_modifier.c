@@ -43,7 +43,7 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_multires.h"
-#include "BKE_fluid.h" /* For fluidModifier_free & fluidModifier_createType */
+#include "BKE_fluid.h" /* For BKE_fluid_modifier_free & BKE_fluid_modifier_create_type_data */
 
 #include "RNA_access.h"
 #include "RNA_define.h"

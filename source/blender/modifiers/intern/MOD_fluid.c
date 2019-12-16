@@ -66,8 +66,8 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   const FluidModifierData *mmd = (const FluidModifierData *)md;
   FluidModifierData *tmmd = (FluidModifierData *)target;
 
-  fluidModifier_free(tmmd);
-  fluidModifier_copy(mmd, tmmd, flag);
+  BKE_fluid_modifier_free(tmmd);
+  BKE_fluid_modifier_copy(mmd, tmmd, flag);
 #endif /* WITH_FLUID */
 }
 
@@ -78,7 +78,7 @@ static void freeData(ModifierData *md)
 #else
   FluidModifierData *mmd = (FluidModifierData *)md;
 
-  fluidModifier_free(mmd);
+  BKE_fluid_modifier_free(mmd);
 #endif /* WITH_FLUID */
 }
 
@@ -117,7 +117,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
-  result = fluidModifier_do(mmd, ctx->depsgraph, scene, ctx->object, me);
+  result = BKE_fluid_modifier_do(mmd, ctx->depsgraph, scene, ctx->object, me);
   return result ? result : me;
 #endif /* WITH_FLUID */
 }

@@ -487,7 +487,7 @@ static void manta_set_domain_gravity(Scene *scene, FluidDomainSettings *mds)
   }
 }
 
-static bool fluidModifier_init(
+static bool BKE_fluid_modifier_init(
     FluidModifierData *mmd, Depsgraph *depsgraph, Object *ob, Scene *scene, Mesh *me)
 {
   int scene_framenr = (int)DEG_get_ctime(depsgraph);
@@ -537,14 +537,14 @@ static bool fluidModifier_init(
   }
   else if (mmd->type & MOD_FLUID_TYPE_FLOW) {
     if (!mmd->flow) {
-      fluidModifier_createType(mmd);
+      BKE_fluid_modifier_create_type_data(mmd);
     }
     mmd->time = scene_framenr;
     return true;
   }
   else if (mmd->type & MOD_FLUID_TYPE_EFFEC) {
     if (!mmd->effector) {
-      fluidModifier_createType(mmd);
+      BKE_fluid_modifier_create_type_data(mmd);
     }
     mmd->time = scene_framenr;
     return true;
@@ -552,7 +552,7 @@ static bool fluidModifier_init(
   return false;
 }
 
-static void fluidModifier_freeDomain(FluidModifierData *mmd)
+static void BKE_fluid_modifier_freeDomain(FluidModifierData *mmd)
 {
   if (mmd->domain) {
     if (mmd->domain->fluid) {
@@ -587,7 +587,7 @@ static void fluidModifier_freeDomain(FluidModifierData *mmd)
   }
 }
 
-static void fluidModifier_freeFlow(FluidModifierData *mmd)
+static void BKE_fluid_modifier_freeFlow(FluidModifierData *mmd)
 {
   if (mmd->flow) {
     if (mmd->flow->mesh) {
@@ -606,7 +606,7 @@ static void fluidModifier_freeFlow(FluidModifierData *mmd)
   }
 }
 
-static void fluidModifier_freeEffector(FluidModifierData *mmd)
+static void BKE_fluid_modifier_freeEffector(FluidModifierData *mmd)
 {
   if (mmd->effector) {
     if (mmd->effector->mesh) {
@@ -625,7 +625,7 @@ static void fluidModifier_freeEffector(FluidModifierData *mmd)
   }
 }
 
-static void fluidModifier_reset_ex(struct FluidModifierData *mmd, bool need_lock)
+static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *mmd, bool need_lock)
 {
   if (!mmd) {
     return;
@@ -665,23 +665,23 @@ static void fluidModifier_reset_ex(struct FluidModifierData *mmd, bool need_lock
   }
 }
 
-void fluidModifier_reset(struct FluidModifierData *mmd)
+void BKE_fluid_modifier_reset(struct FluidModifierData *mmd)
 {
-  fluidModifier_reset_ex(mmd, true);
+  BKE_fluid_modifier_reset_ex(mmd, true);
 }
 
-void fluidModifier_free(FluidModifierData *mmd)
+void BKE_fluid_modifier_free(FluidModifierData *mmd)
 {
   if (!mmd) {
     return;
   }
 
-  fluidModifier_freeDomain(mmd);
-  fluidModifier_freeFlow(mmd);
-  fluidModifier_freeEffector(mmd);
+  BKE_fluid_modifier_freeDomain(mmd);
+  BKE_fluid_modifier_freeFlow(mmd);
+  BKE_fluid_modifier_freeEffector(mmd);
 }
 
-void fluidModifier_createType(struct FluidModifierData *mmd)
+void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
 {
   if (!mmd) {
     return;
@@ -689,7 +689,7 @@ void fluidModifier_createType(struct FluidModifierData *mmd)
 
   if (mmd->type & MOD_FLUID_TYPE_DOMAIN) {
     if (mmd->domain) {
-      fluidModifier_freeDomain(mmd);
+      BKE_fluid_modifier_freeDomain(mmd);
     }
 
     /* domain object data */
@@ -862,7 +862,7 @@ void fluidModifier_createType(struct FluidModifierData *mmd)
   }
   else if (mmd->type & MOD_FLUID_TYPE_FLOW) {
     if (mmd->flow) {
-      fluidModifier_freeFlow(mmd);
+      BKE_fluid_modifier_freeFlow(mmd);
     }
 
     /* flow object data */
@@ -905,7 +905,7 @@ void fluidModifier_createType(struct FluidModifierData *mmd)
   }
   else if (mmd->type & MOD_FLUID_TYPE_EFFEC) {
     if (mmd->effector) {
-      fluidModifier_freeEffector(mmd);
+      BKE_fluid_modifier_freeEffector(mmd);
     }
 
     /* effector object data */
@@ -924,14 +924,14 @@ void fluidModifier_createType(struct FluidModifierData *mmd)
   }
 }
 
-void fluidModifier_copy(const struct FluidModifierData *mmd,
-                        struct FluidModifierData *tmmd,
-                        const int flag)
+void BKE_fluid_modifier_copy(const struct FluidModifierData *mmd,
+                             struct FluidModifierData *tmmd,
+                             const int flag)
 {
   tmmd->type = mmd->type;
   tmmd->time = mmd->time;
 
-  fluidModifier_createType(tmmd);
+  BKE_fluid_modifier_create_type_data(tmmd);
 
   if (tmmd->domain) {
     FluidDomainSettings *tmds = tmmd->domain;
@@ -4055,15 +4055,15 @@ static void manta_guiding(
   BLI_mutex_unlock(&object_update_lock);
 }
 
-static void fluidModifier_processFlow(FluidModifierData *mmd,
-                                      Depsgraph *depsgraph,
-                                      Scene *scene,
-                                      Object *ob,
-                                      Mesh *me,
-                                      const int scene_framenr)
+static void BKE_fluid_modifier_processFlow(FluidModifierData *mmd,
+                                           Depsgraph *depsgraph,
+                                           Scene *scene,
+                                           Object *ob,
+                                           Mesh *me,
+                                           const int scene_framenr)
 {
   if (scene_framenr >= mmd->time) {
-    fluidModifier_init(mmd, depsgraph, ob, scene, me);
+    BKE_fluid_modifier_init(mmd, depsgraph, ob, scene, me);
   }
 
   if (mmd->flow) {
@@ -4078,19 +4078,19 @@ static void fluidModifier_processFlow(FluidModifierData *mmd,
   }
   else if (scene_framenr < mmd->time) {
     mmd->time = scene_framenr;
-    fluidModifier_reset_ex(mmd, false);
+    BKE_fluid_modifier_reset_ex(mmd, false);
   }
 }
 
-static void fluidModifier_processEffector(FluidModifierData *mmd,
-                                          Depsgraph *depsgraph,
-                                          Scene *scene,
-                                          Object *ob,
-                                          Mesh *me,
-                                          const int scene_framenr)
+static void BKE_fluid_modifier_processEffector(FluidModifierData *mmd,
+                                               Depsgraph *depsgraph,
+                                               Scene *scene,
+                                               Object *ob,
+                                               Mesh *me,
+                                               const int scene_framenr)
 {
   if (scene_framenr >= mmd->time) {
-    fluidModifier_init(mmd, depsgraph, ob, scene, me);
+    BKE_fluid_modifier_init(mmd, depsgraph, ob, scene, me);
   }
 
   if (mmd->effector) {
@@ -4105,16 +4105,16 @@ static void fluidModifier_processEffector(FluidModifierData *mmd,
   }
   else if (scene_framenr < mmd->time) {
     mmd->time = scene_framenr;
-    fluidModifier_reset_ex(mmd, false);
+    BKE_fluid_modifier_reset_ex(mmd, false);
   }
 }
 
-static void fluidModifier_processDomain(FluidModifierData *mmd,
-                                        Depsgraph *depsgraph,
-                                        Scene *scene,
-                                        Object *ob,
-                                        Mesh *me,
-                                        const int scene_framenr)
+static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
+                                             Depsgraph *depsgraph,
+                                             Scene *scene,
+                                             Object *ob,
+                                             Mesh *me,
+                                             const int scene_framenr)
 {
   FluidDomainSettings *mds = mmd->domain;
   Object *guiding_parent = NULL;
@@ -4128,10 +4128,10 @@ static void fluidModifier_processDomain(FluidModifierData *mmd,
   /* Reset fluid if no fluid present (obviously)
    * or if timeline gets reset to startframe */
   if (!mds->fluid || is_startframe) {
-    fluidModifier_reset_ex(mmd, false);
+    BKE_fluid_modifier_reset_ex(mmd, false);
   }
 
-  fluidModifier_init(mmd, depsgraph, ob, scene, me);
+  BKE_fluid_modifier_init(mmd, depsgraph, ob, scene, me);
 
   /* ensure that time parameters are initialized correctly before every step */
   float fps = scene->r.frs_sec / scene->r.frs_sec_base;
@@ -4398,23 +4398,23 @@ static void fluidModifier_processDomain(FluidModifierData *mmd,
   mmd->time = scene_framenr;
 }
 
-static void fluidModifier_process(
+static void BKE_fluid_modifier_process(
     FluidModifierData *mmd, Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me)
 {
   const int scene_framenr = (int)DEG_get_ctime(depsgraph);
 
   if ((mmd->type & MOD_FLUID_TYPE_FLOW)) {
-    fluidModifier_processFlow(mmd, depsgraph, scene, ob, me, scene_framenr);
+    BKE_fluid_modifier_processFlow(mmd, depsgraph, scene, ob, me, scene_framenr);
   }
   else if (mmd->type & MOD_FLUID_TYPE_EFFEC) {
-    fluidModifier_processEffector(mmd, depsgraph, scene, ob, me, scene_framenr);
+    BKE_fluid_modifier_processEffector(mmd, depsgraph, scene, ob, me, scene_framenr);
   }
   else if (mmd->type & MOD_FLUID_TYPE_DOMAIN) {
-    fluidModifier_processDomain(mmd, depsgraph, scene, ob, me, scene_framenr);
+    BKE_fluid_modifier_processDomain(mmd, depsgraph, scene, ob, me, scene_framenr);
   }
 }
 
-struct Mesh *fluidModifier_do(
+struct Mesh *BKE_fluid_modifier_do(
     FluidModifierData *mmd, Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me)
 {
   /* Lock so preview render does not read smoke data while it gets modified. */
@@ -4422,7 +4422,7 @@ struct Mesh *fluidModifier_do(
     BLI_rw_mutex_lock(mmd->domain->fluid_mutex, THREAD_LOCK_WRITE);
   }
 
-  fluidModifier_process(mmd, depsgraph, scene, ob, me);
+  BKE_fluid_modifier_process(mmd, depsgraph, scene, ob, me);
 
   if ((mmd->type & MOD_FLUID_TYPE_DOMAIN) && mmd->domain) {
     BLI_rw_mutex_unlock(mmd->domain->fluid_mutex);
@@ -4483,7 +4483,7 @@ static void bresenham_linie_3D(int x1,
                                int y2,
                                int z2,
                                float *tRay,
-                               bresenham_callback cb,
+                               BKE_Fluid_BresenhamFn cb,
                                float *result,
                                float *input,
                                int res[3],

@@ -91,7 +91,7 @@ static void rna_Fluid_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 #  ifdef WITH_FLUID
   {
     FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
-    fluidModifier_reset(settings->mmd);
+    BKE_fluid_modifier_reset(settings->mmd);
   }
 #  endif
 
@@ -105,7 +105,7 @@ static void rna_Fluid_reset_dependency(Main *bmain, Scene *scene, PointerRNA *pt
   FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
 
 #  ifdef WITH_FLUID
-  fluidModifier_reset(settings->mmd);
+  BKE_fluid_modifier_reset(settings->mmd);
 #  endif
 
   if (settings->mmd && settings->mmd->domain) {
@@ -1597,7 +1597,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Fractional Obstacles",
-      "Fractional obstacles improve and smoothen the fluid-obstacle boundary.");
+      "Fractional obstacles improve and smoothen the fluid-obstacle boundary");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_resetCache");
 
   prop = RNA_def_property(srna, "fractions_threshold", PROP_FLOAT, PROP_NONE);
