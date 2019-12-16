@@ -296,11 +296,12 @@ void BPY_python_start(int argc, const char **argv)
   /* Initialize thread support (also acquires lock) */
   PyEval_InitThreads();
 
-  /* (sebbas): Required to prevent assertion error */
-  /* see:
-   * https://stackoverflow.com/questions/27844676/assertionerror-3-x-only-when-calling-py-finalize-with-threads
-   */
+#  ifdef WITH_FLUID
+  /* Required to prevent assertion error, see:
+   * https://stackoverflow.com/questions/27844676 */
   Py_DECREF(PyImport_ImportModule("threading"));
+#  endif
+
 #else
   (void)argc;
   (void)argv;
