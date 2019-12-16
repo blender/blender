@@ -23,9 +23,9 @@
 
 #pragma once
 
-struct anim;
 struct MovieClip;
 struct MovieClipCache;
+struct anim;
 
 namespace DEG {
 

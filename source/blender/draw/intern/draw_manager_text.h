@@ -23,11 +23,11 @@
 #ifndef __DRAW_MANAGER_TEXT_H__
 #define __DRAW_MANAGER_TEXT_H__
 
-struct DRWTextStore;
 struct ARegion;
-struct View3D;
+struct DRWTextStore;
 struct Object;
 struct UnitSettings;
+struct View3D;
 
 struct DRWTextStore *DRW_text_cache_create(void);
 void DRW_text_cache_destroy(struct DRWTextStore *dt);

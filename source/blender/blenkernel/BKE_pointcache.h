@@ -75,6 +75,7 @@
 
 /* Structs */
 struct ClothModifierData;
+struct FluidModifierData;
 struct ListBase;
 struct Main;
 struct Object;
@@ -83,7 +84,6 @@ struct ParticleSystem;
 struct PointCache;
 struct RigidBodyWorld;
 struct Scene;
-struct FluidModifierData;
 struct SoftBody;
 struct ViewLayer;
 

@@ -35,12 +35,12 @@ struct ID;
 struct IDOverrideLibrary;
 struct IDOverrideLibraryProperty;
 struct IDOverrideLibraryPropertyOperation;
+struct IDProperty;
 struct ListBase;
 struct Main;
 struct ReportList;
 struct Scene;
 struct bContext;
-struct IDProperty;
 
 /* Types */
 extern BlenderRNA BLENDER_RNA;

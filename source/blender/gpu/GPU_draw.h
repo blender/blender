@@ -28,11 +28,11 @@
 extern "C" {
 #endif
 
+struct FluidModifierData;
 struct ImBuf;
 struct Image;
 struct ImageUser;
 struct Main;
-struct FluidModifierData;
 
 #include "DNA_object_enums.h"
 

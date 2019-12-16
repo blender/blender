@@ -24,9 +24,9 @@
  * \ingroup bke
  */
 
-struct Scene;
 struct FluidDomainSettings;
 struct FluidModifierData;
+struct Scene;
 
 typedef float (*BKE_Fluid_BresenhamFn)(
     float *result, float *input, int res[3], int *pixel, float *tRay, float correct);

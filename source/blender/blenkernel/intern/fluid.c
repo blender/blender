@@ -78,10 +78,10 @@
 
 static ThreadMutex object_update_lock = BLI_MUTEX_INITIALIZER;
 
+struct FluidModifierData;
 struct Mesh;
 struct Object;
 struct Scene;
-struct FluidModifierData;
 
 // timestep default value for nice appearance 0.1f
 #  define DT_DEFAULT 0.1f
