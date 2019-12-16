@@ -235,6 +235,8 @@ NODE_DEFINE(ImageTextureNode)
   SOCKET_STRING(filename, "Filename", ustring());
   SOCKET_STRING(colorspace, "Colorspace", u_colorspace_auto);
 
+  SOCKET_BOOLEAN(is_tiled, "Is Tiled", false);
+
   static NodeEnum alpha_type_enum;
   alpha_type_enum.insert("auto", IMAGE_ALPHA_AUTO);
   alpha_type_enum.insert("unassociated", IMAGE_ALPHA_UNASSOCIATED);
@@ -366,15 +368,12 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
   image_manager = compiler.scene->image_manager;
   if (slots.empty()) {
     cull_tiles(compiler.scene, compiler.current_graph);
-  }
-  if (slots.size() < tiles.size()) {
-    slots.clear();
     slots.reserve(tiles.size());
 
     bool have_metadata = false;
     foreach (int tile, tiles) {
       string tile_name = filename.string();
-      if (tiles.size() > 1) {
+      if (is_tiled) {
         tile_name = string_printf(tile_name.c_str(), tile);
       }
 
