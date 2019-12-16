@@ -54,7 +54,7 @@ class UnifiedPaintPanel:
                     return 'UV_SCULPT'
                 return 'PAINT_2D'
 
-            if space_type in ('VIEW_3D', 'PROPERTIES'):
+            if space_type in {'VIEW_3D', 'PROPERTIES'}:
                 if context.mode == 'PAINT_TEXTURE':
                     if tool_settings.image_paint and tool_settings.image_paint.detect_data():
                         return context.mode
@@ -87,7 +87,7 @@ class UnifiedPaintPanel:
         # Grease Pencil settings
         elif mode == 'PAINT_GPENCIL':
             return tool_settings.gpencil_paint
-        elif mode in ('SCULPT_GPENCIL', 'WEIGHT_GPENCIL'):
+        elif mode in {'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}:
             return tool_settings.gpencil_sculpt
 
     @staticmethod
@@ -192,7 +192,7 @@ class ClonePanel(BrushPanel):
         settings = cls.paint_settings(context)
 
         mode = cls.get_brush_mode(context)
-        if mode in ('PAINT_TEXTURE', 'PAINT_2D'):
+        if mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
             brush = settings.brush
             return brush.image_tool == 'CLONE'
 
@@ -314,7 +314,7 @@ class StrokePanel(BrushPanel):
         if mode == 'SCULPT':
             col.row().prop(brush, "use_scene_spacing", text="Spacing Distance", expand=True)
 
-        if mode in ('PAINT_TEXTURE', 'PAINT_2D', 'SCULPT'):
+        if mode in {'PAINT_TEXTURE', 'PAINT_2D', 'SCULPT'}:
             if brush.image_paint_capabilities.has_space_attenuation or brush.sculpt_capabilities.has_space_attenuation:
                 col.prop(brush, "use_space_attenuation")
 
@@ -529,7 +529,7 @@ def brush_settings(layout, context, brush, popover=False):
         # crease_pinch_factor
         if capabilities.has_pinch_factor:
             text = "Pinch"
-            if brush.sculpt_tool in ('BLOB', 'SNAKE_HOOK'):
+            if brush.sculpt_tool in {'BLOB', 'SNAKE_HOOK'}:
                 text = "Magnify"
             layout.prop(brush, "crease_pinch_factor", slider=True, text=text)
 
@@ -578,7 +578,7 @@ def brush_settings(layout, context, brush, popover=False):
         if brush.sculpt_tool == 'POSE':
             row = layout.row()
             row.prop(brush, "pose_offset")
-        
+
         if brush.sculpt_tool == 'SCRAPE':
             row = layout.row()
             row.prop(brush, "invert_to_scrape_fill", text = "Invert to Fill")
@@ -600,7 +600,7 @@ def brush_settings(layout, context, brush, popover=False):
             layout.row().prop(brush, "mask_tool", expand=True)
 
     # 3D and 2D Texture Paint Mode #
-    elif mode in ('PAINT_TEXTURE', 'PAINT_2D'):
+    elif mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
         capabilities = brush.image_paint_capabilities
 
         if brush.image_tool == 'FILL':
@@ -625,7 +625,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
     direction = False
 
     # 3D and 2D Texture Paint #
-    if mode in ('PAINT_TEXTURE', 'PAINT_2D'):
+    if mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
         if not popover:
             blend_mode = brush.image_paint_capabilities.has_color
             size = brush.image_paint_capabilities.has_radius
@@ -660,7 +660,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
     # UV Sculpt #
     if mode == 'UV_SCULPT':
         size = True
-        strength = True 
+        strength = True
 
     ### Draw settings. ###
     ups = context.scene.tool_settings.unified_paint_settings
@@ -723,7 +723,7 @@ def brush_settings_advanced(layout, context, brush, popover=False):
             layout.separator()
 
     # 3D and 2D Texture Paint #
-    elif mode in ('PAINT_TEXTURE', 'PAINT_2D'):
+    elif mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
         capabilities = brush.image_paint_capabilities
         use_accumulate = capabilities.has_accumulate
 
@@ -935,7 +935,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
         row = layout.row(align=True)
         row.prop(gp_settings, "fill_draw_mode", text="Boundary")
         row.prop(gp_settings, "show_fill_boundary", text="", icon='GRID')
-        
+
     else:  # brush.gpencil_tool == 'DRAW':
         row = layout.row(align=True)
         row.prop(brush, "size", text="Radius")

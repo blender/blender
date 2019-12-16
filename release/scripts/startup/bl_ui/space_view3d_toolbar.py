@@ -1208,7 +1208,7 @@ class VIEW3D_PT_imagepaint_options(View3DPaintPanel):
     @classmethod
     def poll(cls, context):
         # This is currently unused, since there aren't any Vertex Paint mode specific options.
-        return False 
+        return False
         return (context.image_paint_object and context.tool_settings.image_paint)
 
     def draw(self, context):
@@ -1337,7 +1337,7 @@ class GreasePencilPanel:
 
     @classmethod
     def poll(cls, context):
-        if context.space_data.type in ('VIEW_3D', 'PROPERTIES'):
+        if context.space_data.type in {'VIEW_3D', 'PROPERTIES'}:
             if context.gpencil_data is None:
                 return False
 
@@ -1518,7 +1518,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_post_processing(View3DPanel, Panel):
     @classmethod
     def poll(cls, context):
         brush = context.tool_settings.gpencil_paint.brush
-        return brush is not None and brush.gpencil_tool not in ('ERASE', 'FILL')
+        return brush is not None and brush.gpencil_tool not in {'ERASE', 'FILL'}
 
     def draw_header(self, context):
         if self.is_popover: return
@@ -1572,7 +1572,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
     @classmethod
     def poll(cls, context):
         brush = context.tool_settings.gpencil_paint.brush
-        return brush is not None and brush.gpencil_tool not in ('ERASE', 'FILL')
+        return brush is not None and brush.gpencil_tool not in {'ERASE', 'FILL'}
 
     def draw_header(self, context):
         if self.is_popover: return
@@ -1846,7 +1846,7 @@ classes = (
     VIEW3D_PT_tools_posemode_options,
 
     VIEW3D_PT_slots_projectpaint,
-    VIEW3D_PT_tools_brush_select, 
+    VIEW3D_PT_tools_brush_select,
     VIEW3D_PT_tools_brush_settings,
     VIEW3D_PT_tools_brush_color,
     VIEW3D_PT_tools_brush_swatches,

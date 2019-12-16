@@ -184,7 +184,7 @@ class GreasePencilDisplayPanel:
             gp_settings = brush.gpencil_settings
 
             self.layout.prop(gp_settings, "use_cursor", text="")
-        elif context.mode in ('SCULPT_GPENCIL', 'WEIGHT_GPENCIL'):
+        elif context.mode in {'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}:
             settings = context.tool_settings.gpencil_sculpt
             brush = settings.brush
 
