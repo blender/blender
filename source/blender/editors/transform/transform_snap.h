@@ -26,6 +26,8 @@
 /* For enum. */
 #include "DNA_space_types.h"
 
+struct SnapObjectParams;
+
 bool peelObjectsTransform(struct TransInfo *t,
                           const float mval[2],
                           const bool use_peel_object,

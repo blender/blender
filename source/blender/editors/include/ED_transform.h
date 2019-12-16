@@ -27,8 +27,6 @@
 /* ******************* Registration Function ********************** */
 
 struct Object;
-struct SnapObjectContext;
-struct SnapObjectParams;
 struct bContext;
 struct wmKeyConfig;
 struct wmOperatorType;
@@ -107,7 +105,6 @@ bool calculateTransformCenter(struct bContext *C,
 
 struct Object;
 struct Scene;
-struct TransInfo;
 struct wmGizmoGroup;
 struct wmGizmoGroupType;
 

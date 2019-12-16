@@ -19,7 +19,6 @@
 
 #include <string.h> /* for memset() */
 
-struct Link;
 struct ListBase;
 
 /** \file

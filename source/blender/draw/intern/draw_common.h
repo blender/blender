@@ -23,10 +23,8 @@
 #ifndef __DRAW_COMMON_H__
 #define __DRAW_COMMON_H__
 
-struct DRWCallBuffer;
 struct DRWPass;
 struct DRWShadingGroup;
-struct GPUBatch;
 struct GPUMaterial;
 struct ModifierData;
 struct Object;

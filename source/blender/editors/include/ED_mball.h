@@ -25,7 +25,6 @@
 #define __ED_MBALL_H__
 
 struct Base;
-struct MetaBall;
 struct Object;
 struct UndoType;
 struct bContext;
