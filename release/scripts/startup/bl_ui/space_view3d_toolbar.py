@@ -1283,6 +1283,8 @@ class VIEW3D_PT_tools_particlemode_options(View3DPanel, Panel):
         col = layout.column(align=True)
         col.active = pe.is_editable
         col.prop(ob.data, "use_mirror_x")
+        if pe.tool == 'ADD':
+          col.prop(ob.data, "use_mirror_topology")
         col.separator()
         col.prop(pe, "use_preserve_length", text="Preserve Strand Lengths")
         col.prop(pe, "use_preserve_root", text="Preserve Root Positions")
