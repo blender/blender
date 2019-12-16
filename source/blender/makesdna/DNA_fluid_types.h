@@ -30,7 +30,7 @@ enum {
   FLUID_DOMAIN_USE_DISSOLVE = (1 << 2),     /* Let smoke dissolve. */
   FLUID_DOMAIN_USE_DISSOLVE_LOG = (1 << 3), /* Using 1/x for dissolve. */
 
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   FLUID_DOMAIN_USE_HIGH_SMOOTH = (1 << 5), /* -- Deprecated -- */
 #endif
   FLUID_DOMAIN_FILE_LOAD = (1 << 6), /* Flag for file load. */

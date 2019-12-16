@@ -101,7 +101,7 @@ typedef struct AviCodecData {
 typedef enum eFFMpegPreset {
   FFM_PRESET_NONE,
 
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   /* Previously used by h.264 to control encoding speed vs. file size. */
   FFM_PRESET_ULTRAFAST, /* DEPRECATED */
   FFM_PRESET_SUPERFAST, /* DEPRECATED */
@@ -1929,7 +1929,7 @@ enum {
   R_COLOR_MANAGEMENT_UNUSED_1 = (1 << 1),
 };
 
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
 /* RenderData.subimtype flag options for imtype */
 enum {
   R_OPENEXR_HALF = (1 << 0), /*deprecated*/
@@ -2169,7 +2169,7 @@ typedef enum eVGroupSelect {
 
 /* FFMpegCodecData.flags */
 enum {
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   FFMPEG_MULTIPLEX_AUDIO = (1 << 0), /* deprecated, you can choose none as audiocodec now */
 #endif
   FFMPEG_AUTOSPLIT_OUTPUT = (1 << 1),

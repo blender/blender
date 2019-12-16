@@ -62,7 +62,7 @@ typedef enum ModifierType {
   eModifierType_SimpleDeform = 28,
   eModifierType_Multires = 29,
   eModifierType_Surface = 30,
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   eModifierType_Smoke = 31,
 #endif
   eModifierType_ShapeKey = 32,
@@ -1157,7 +1157,7 @@ enum {
   MOD_SOLIDIFY_EVEN = (1 << 1),
   MOD_SOLIDIFY_NORMAL_CALC = (1 << 2),
   MOD_SOLIDIFY_VGROUP_INV = (1 << 3),
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   MOD_SOLIDIFY_RIM_MATERIAL = (1 << 4), /* deprecated, used in do_versions */
 #endif
   MOD_SOLIDIFY_FLIP = (1 << 5),
@@ -1604,7 +1604,7 @@ typedef struct TriangulateModifierData {
 
 /* TriangulateModifierData.flag */
 enum {
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   MOD_TRIANGULATE_BEAUTY = (1 << 0), /* deprecated */
 #endif
   MOD_TRIANGULATE_KEEP_CUSTOMLOOP_NORMALS = 1 << 1,

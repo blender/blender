@@ -903,7 +903,8 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
   /* Write test to verify sizes are accurate. */
   fprintf(file_verify, "/* Verify struct sizes and member offsets are as expected by DNA. */\n");
   fprintf(file_verify, "#include \"BLI_assert.h\"\n\n");
-  fprintf(file_verify, "#define DNA_DEPRECATED\n");
+  /* Needed so we can find offsets of deprecated structs. */
+  fprintf(file_verify, "#define DNA_DEPRECATED_ALLOW\n");
   /* Workaround enum naming collision in static asserts
    * (ideally this included a unique name/id per file). */
   fprintf(file_verify, "#define assert_line_ assert_line_DNA_\n");

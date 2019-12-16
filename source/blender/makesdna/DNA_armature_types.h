@@ -182,7 +182,7 @@ typedef enum eArmature_DeformFlag {
   ARM_DEF_VGROUP = (1 << 0),
   ARM_DEF_ENVELOPE = (1 << 1),
   ARM_DEF_QUATERNION = (1 << 2),
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   ARM_DEF_B_BONE_REST = (1 << 3), /* deprecated */
 #endif
   ARM_DEF_INVERT_VGROUP = (1 << 4),
@@ -190,7 +190,7 @@ typedef enum eArmature_DeformFlag {
 
 /* armature->pathflag */
 // XXX deprecated... old animation system (armature only viz)
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
 typedef enum eArmature_PathFlag {
   ARM_PATH_FNUMS = (1 << 0),
   ARM_PATH_KFRAS = (1 << 1),
@@ -228,7 +228,7 @@ typedef enum eBone_Flag {
   BONE_UNKEYED = (1 << 13),
   /** set to prevent hinge child bones from influencing the transform center */
   BONE_HINGE_CHILD_TRANSFORM = (1 << 14),
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   /** No parent scale */
   BONE_NO_SCALE = (1 << 15),
 #endif

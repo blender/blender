@@ -1012,10 +1012,10 @@ typedef enum eUserpref_UI_Flag {
   USER_ZOOM_HORIZ = (1 << 26), /* for CONTINUE and DOLLY zoom */
   USER_SPLASH_DISABLE = (1 << 27),
   USER_HIDE_RECENT = (1 << 28),
-#ifdef DNA_DEPRECATED
-  USER_SHOW_THUMBNAILS =
-      (1 << 29), /* deprecated - We're just trying if there's much desire for this feature, or if
-                    we can make it go for good. Should be cleared if so - Julian, Oct. 2019 */
+#ifdef DNA_DEPRECATED_ALLOW
+  /* Deprecated: We're just trying if there's much desire for this feature,
+   * or if we can make it go for good. Should be cleared if so - Julian, Oct. 2019. */
+  USER_SHOW_THUMBNAILS = (1 << 29),
 #endif
   USER_SAVE_PROMPT = (1 << 30),
   USER_HIDE_SYSTEM_BOOKMARKS = (1u << 31),

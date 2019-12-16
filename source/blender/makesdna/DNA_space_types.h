@@ -1697,7 +1697,7 @@ typedef enum eSpace_Type {
   SPACE_INFO = 7,
   SPACE_SEQ = 8,
   SPACE_TEXT = 9,
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   SPACE_IMASEL = 10, /* Deprecated */
   SPACE_SOUND = 11,  /* Deprecated */
 #endif
@@ -1705,11 +1705,11 @@ typedef enum eSpace_Type {
   SPACE_NLA = 13,
   /* TODO: fully deprecate */
   SPACE_SCRIPT = 14, /* Deprecated */
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   SPACE_TIME = 15, /* Deprecated */
 #endif
   SPACE_NODE = 16,
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   SPACE_LOGIC = 17, /* Deprecated */
 #endif
   SPACE_CONSOLE = 18,

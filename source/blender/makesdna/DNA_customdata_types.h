@@ -97,7 +97,7 @@ typedef enum CustomDataType {
   CD_AUTO_FROM_NAME = -1,
 
   CD_MVERT = 0,
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   CD_MSTICKY = 1, /* DEPRECATED */
 #endif
   CD_MDEFORMVERT = 2,
@@ -113,7 +113,7 @@ typedef enum CustomDataType {
   CD_PROP_STR = 12,
   CD_ORIGSPACE = 13, /* for modifier stack face location mapping */
   CD_ORCO = 14,      /* undeformed vertex coordinates, normalized to 0..1 range */
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   CD_MTEXPOLY = 15, /* deprecated */
 #endif
   CD_MLOOPUV = 16,

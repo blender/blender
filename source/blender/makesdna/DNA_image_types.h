@@ -184,7 +184,7 @@ typedef struct Image {
 enum {
   IMA_FLAG_UNUSED_0 = (1 << 0), /* cleared */
   IMA_FLAG_UNUSED_1 = (1 << 1), /* cleared */
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   IMA_DO_PREMUL = (1 << 2),
 #endif
   IMA_FLAG_UNUSED_4 = (1 << 4), /* cleared */

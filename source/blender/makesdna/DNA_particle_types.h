@@ -406,7 +406,7 @@ typedef enum eParticleDrawFlag {
   PART_DRAW_VEL = (1 << 0),
   PART_DRAW_GLOBAL_OB = (1 << 1),
   PART_DRAW_SIZE = (1 << 2),
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   /** Render emitter as well. */
   PART_DRAW_EMITTER = (1 << 3), /* DEPRECATED */
 #endif

@@ -755,7 +755,7 @@ typedef enum eCopyRotation_Flags {
   ROTLIKE_X_INVERT = (1 << 4),
   ROTLIKE_Y_INVERT = (1 << 5),
   ROTLIKE_Z_INVERT = (1 << 6),
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   ROTLIKE_OFFSET = (1 << 7),
 #endif
 } eCopyRotation_Flags;
@@ -976,7 +976,7 @@ typedef enum eSplineIK_Flags {
   CONSTRAINT_SPLINEIK_BOUND = (1 << 0),
   /* root of chain is not influenced by the constraint */
   CONSTRAINT_SPLINEIK_NO_ROOT = (1 << 1),
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
   /* bones in the chain should not scale to fit the curve */
   CONSTRAINT_SPLINEIK_SCALE_LIMITED = (1 << 2),
 #endif

@@ -204,7 +204,7 @@ typedef struct Mesh {
 } Mesh;
 
 /* deprecated by MTFace, only here for file reading */
-#ifdef DNA_DEPRECATED
+#ifdef DNA_DEPRECATED_ALLOW
 typedef struct TFace {
   /** The faces image for the active UVLayer. */
   void *tpage;
