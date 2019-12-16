@@ -21,67 +21,58 @@
  * \ingroup bke
  */
 
-#include "MEM_guardedalloc.h"
-
-#include <float.h>
-#include <math.h>
-#include <stdio.h>
-#include <string.h> /* memset */
-
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_kdopbvh.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
-
-#include "DNA_anim_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_customdata_types.h"
-#include "DNA_light_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_fluid_types.h"
-
-#include "BKE_appdir.h"
-#include "BKE_animsys.h"
-#include "BKE_armature.h"
-#include "BKE_bvhutils.h"
-#include "BKE_collision.h"
-#include "BKE_colortools.h"
-#include "BKE_constraint.h"
-#include "BKE_customdata.h"
-#include "BKE_deform.h"
-#include "BKE_effect.h"
-#include "BKE_library.h"
-#include "BKE_mesh.h"
-#include "BKE_mesh_runtime.h"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
-#include "BKE_particle.h"
-#include "BKE_pointcache.h"
-#include "BKE_scene.h"
-#include "BKE_fluid.h"
-#include "BKE_texture.h"
-
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
-
-#include "RE_shader_ext.h"
-
-#include "GPU_glew.h"
-
-#include "manta_fluid_API.h"
-
-#include "BLI_task.h"
-#include "BLI_kdtree.h"
-#include "BLI_voxel.h"
-
 #ifdef WITH_FLUID
+
+#  include "MEM_guardedalloc.h"
+
+#  include <float.h>
+#  include <math.h>
+#  include <stdio.h>
+#  include <string.h> /* memset */
+
+#  include "BLI_blenlib.h"
+#  include "BLI_math.h"
+#  include "BLI_kdopbvh.h"
+#  include "BLI_threads.h"
+#  include "BLI_utildefines.h"
+
+#  include "DNA_customdata_types.h"
+#  include "DNA_light_types.h"
+#  include "DNA_mesh_types.h"
+#  include "DNA_meshdata_types.h"
+#  include "DNA_modifier_types.h"
+#  include "DNA_object_types.h"
+#  include "DNA_particle_types.h"
+#  include "DNA_scene_types.h"
+#  include "DNA_fluid_types.h"
+
+#  include "BKE_bvhutils.h"
+#  include "BKE_collision.h"
+#  include "BKE_colortools.h"
+#  include "BKE_customdata.h"
+#  include "BKE_deform.h"
+#  include "BKE_effect.h"
+#  include "BKE_library.h"
+#  include "BKE_mesh.h"
+#  include "BKE_mesh_runtime.h"
+#  include "BKE_modifier.h"
+#  include "BKE_object.h"
+#  include "BKE_particle.h"
+#  include "BKE_pointcache.h"
+#  include "BKE_scene.h"
+#  include "BKE_fluid.h"
+#  include "BKE_texture.h"
+
+#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph_query.h"
+
+#  include "RE_shader_ext.h"
+
+#  include "manta_fluid_API.h"
+
+#  include "BLI_task.h"
+#  include "BLI_kdtree.h"
+#  include "BLI_voxel.h"
 
 // #define DEBUG_PRINT
 
