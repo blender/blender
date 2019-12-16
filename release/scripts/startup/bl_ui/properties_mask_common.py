@@ -25,6 +25,32 @@ from bpy.types import Menu, UIList
 from bpy.app.translations import contexts as i18n_contexts
 
 
+# Use by both image & clip context menus.
+def draw_mask_context_menu(layout, context):
+    layout.operator_menu_enum("mask.handle_type_set", "type")
+    layout.operator("mask.switch_direction")
+    layout.operator("mask.cyclic_toggle")
+
+    layout.separator()
+    layout.operator("mask.copy_splines", icon='COPYDOWN')
+    layout.operator("mask.paste_splines", icon='PASTEDOWN')
+
+    layout.separator()
+
+    layout.operator("mask.shape_key_rekey", text="Re-key Shape Points")
+    layout.operator("mask.feather_weight_clear")
+    layout.operator("mask.shape_key_feather_reset", text="Reset Feather Animation")
+
+    layout.separator()
+
+    layout.operator("mask.parent_set")
+    layout.operator("mask.parent_clear")
+
+    layout.separator()
+
+    layout.operator("mask.delete")
+
+
 class MASK_UL_layers(UIList):
     def draw_item(self, _context, layout, _data, item, icon,
                   _active_data, _active_propname, _index):

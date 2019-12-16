@@ -778,44 +778,13 @@ class IMAGE_MT_mask_context_menu(Menu):
     @classmethod
     def poll(cls, context):
         sima = context.space_data
-        return (sima.show_maskedit)
+        return sima.show_maskedit
 
     def draw(self, context):
         layout = self.layout
-        sima = context.space_data
+        from .properties_mask_common import draw_mask_context_menu
+        draw_mask_context_menu(layout, context)
 
-        if not sima.mask:
-            layout.operator("mask.new")
-            layout.separator()
-            layout.operator("mask.primitive_circle_add", icon='MESH_CIRCLE')
-            layout.operator("mask.primitive_square_add", icon='MESH_PLANE')
-        else:
-            layout.operator_menu_enum("mask.handle_type_set", "type")
-            layout.operator("mask.switch_direction")
-            layout.operator("mask.cyclic_toggle")
-
-            layout.separator()
-            layout.operator("mask.primitive_circle_add", icon='MESH_CIRCLE')
-            layout.operator("mask.primitive_square_add", icon='MESH_PLANE')
-
-            layout.separator()
-            layout.operator("mask.copy_splines", icon='COPYDOWN')
-            layout.operator("mask.paste_splines", icon='PASTEDOWN')
-
-            layout.separator()
-
-            layout.operator("mask.shape_key_rekey", text="Re-key Shape Points")
-            layout.operator("mask.feather_weight_clear")
-            layout.operator("mask.shape_key_feather_reset", text="Reset Feather Animation")
-
-            layout.separator()
-
-            layout.operator("mask.parent_set")
-            layout.operator("mask.parent_clear")
-
-            layout.separator()
-
-            layout.operator("mask.delete")
 
 # -----------------------------------------------------------------------------
 # Mask (similar code in space_clip.py, keep in sync)
