@@ -1948,9 +1948,12 @@ void gpencil_populate_datablock(GPENCIL_e_data *e_data,
 
   bGPdata *gpd = (bGPdata *)ob->data;
 
-  const bool main_onion = stl->storage->is_main_onion;
+  /* If render mode, instead to use view switches, test if the datablock has
+   * the onion activated for render. */
+  const bool render_onion = (gpd && gpd->onion_flag & GP_ONION_GHOST_ALWAYS);
+  const bool main_onion = (stl->storage->is_render) ? render_onion : stl->storage->is_main_onion;
+  const bool overlay = (stl->storage->is_render) ? render_onion : stl->storage->is_main_overlay;
   const bool playing = stl->storage->is_playing;
-  const bool overlay = stl->storage->is_main_overlay;
   const bool do_onion = (bool)((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0) && overlay &&
                         main_onion && !playing && gpencil_onion_active(gpd);
 
