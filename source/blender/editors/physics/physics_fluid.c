@@ -259,8 +259,9 @@ static void fluid_bake_sequence(FluidJob *job)
   }
 
   /* Show progress bar. */
-  if (job->do_update)
+  if (job->do_update) {
     *(job->do_update) = true;
+  }
 
   /* Get current pause frame (pointer) - depending on bake type */
   pause_frame = job->pause_frame;
@@ -287,10 +288,12 @@ static void fluid_bake_sequence(FluidJob *job)
     }
 
     /* Update progress bar */
-    if (job->do_update)
+    if (job->do_update) {
       *(job->do_update) = true;
-    if (job->progress)
+    }
+    if (job->progress) {
       *(job->progress) = progress;
+    }
 
     CFRA = frame;
 
@@ -425,10 +428,12 @@ static void fluid_bake_startjob(void *customdata, short *stop, short *do_update,
 
   fluid_bake_sequence(job);
 
-  if (do_update)
+  if (do_update) {
     *do_update = true;
-  if (stop)
+  }
+  if (stop) {
     *stop = 0;
+  }
 }
 
 static void fluid_free_endjob(void *customdata)
@@ -571,8 +576,9 @@ static int fluid_bake_invoke(struct bContext *C,
 static int fluid_bake_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   /* no running blender, remove handler and pass through */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_SIM_FLUID))
+  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+  }
 
   switch (event->type) {
     case ESCKEY:

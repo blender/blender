@@ -549,12 +549,15 @@ static void draw_udim_label(ARegion *ar, float fx, float fy, const char *label)
   int textwidth = BLF_width(blf_mono_font, label, strlen(label)) + 10;
   float stepx = BLI_rcti_size_x(&ar->v2d.mask) / BLI_rctf_size_x(&ar->v2d.cur);
   float opacity;
-  if (textwidth < 0.5f * (stepx - 10))
+  if (textwidth < 0.5f * (stepx - 10)) {
     opacity = 1.0f;
-  else if (textwidth < (stepx - 10))
+  }
+  else if (textwidth < (stepx - 10)) {
     opacity = 2.0f - 2.0f * (textwidth / (stepx - 10));
-  else
+  }
+  else {
     opacity = 0.0f;
+  }
   BLF_color4ub(blf_mono_font, 220, 220, 220, 150 * opacity);
   BLF_position(blf_mono_font, (int)(x + 10), (int)(y + 10), 0);
   BLF_draw_ascii(blf_mono_font, label, strlen(label));

@@ -324,32 +324,37 @@ void BKE_fluid_cache_free(FluidDomainSettings *mds, Object *ob, int cache_map)
     flags &= ~(FLUID_DOMAIN_BAKING_DATA | FLUID_DOMAIN_BAKED_DATA | FLUID_DOMAIN_OUTDATED_DATA);
     tmpDir[0] = '\0';
     BLI_path_join(tmpDir, sizeof(tmpDir), mds->cache_directory, FLUID_DOMAIN_DIR_CONFIG, NULL);
-    if (BLI_exists(tmpDir))
+    if (BLI_exists(tmpDir)) {
       BLI_delete(tmpDir, true, true);
+    }
     tmpDir[0] = '\0';
     BLI_path_join(tmpDir, sizeof(tmpDir), mds->cache_directory, FLUID_DOMAIN_DIR_DATA, NULL);
-    if (BLI_exists(tmpDir))
+    if (BLI_exists(tmpDir)) {
       BLI_delete(tmpDir, true, true);
+    }
     tmpDir[0] = '\0';
     BLI_path_join(tmpDir, sizeof(tmpDir), mds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, NULL);
-    if (BLI_exists(tmpDir))
+    if (BLI_exists(tmpDir)) {
       BLI_delete(tmpDir, true, true);
+    }
     mds->cache_frame_pause_data = 0;
   }
   if (cache_map & FLUID_DOMAIN_OUTDATED_NOISE) {
     flags &= ~(FLUID_DOMAIN_BAKING_NOISE | FLUID_DOMAIN_BAKED_NOISE | FLUID_DOMAIN_OUTDATED_NOISE);
     tmpDir[0] = '\0';
     BLI_path_join(tmpDir, sizeof(tmpDir), mds->cache_directory, FLUID_DOMAIN_DIR_NOISE, NULL);
-    if (BLI_exists(tmpDir))
+    if (BLI_exists(tmpDir)) {
       BLI_delete(tmpDir, true, true);
+    }
     mds->cache_frame_pause_noise = 0;
   }
   if (cache_map & FLUID_DOMAIN_OUTDATED_MESH) {
     flags &= ~(FLUID_DOMAIN_BAKING_MESH | FLUID_DOMAIN_BAKED_MESH | FLUID_DOMAIN_OUTDATED_MESH);
     tmpDir[0] = '\0';
     BLI_path_join(tmpDir, sizeof(tmpDir), mds->cache_directory, FLUID_DOMAIN_DIR_MESH, NULL);
-    if (BLI_exists(tmpDir))
+    if (BLI_exists(tmpDir)) {
       BLI_delete(tmpDir, true, true);
+    }
     mds->cache_frame_pause_mesh = 0;
   }
   if (cache_map & FLUID_DOMAIN_OUTDATED_PARTICLES) {
@@ -357,8 +362,9 @@ void BKE_fluid_cache_free(FluidDomainSettings *mds, Object *ob, int cache_map)
                FLUID_DOMAIN_OUTDATED_PARTICLES);
     tmpDir[0] = '\0';
     BLI_path_join(tmpDir, sizeof(tmpDir), mds->cache_directory, FLUID_DOMAIN_DIR_PARTICLES, NULL);
-    if (BLI_exists(tmpDir))
+    if (BLI_exists(tmpDir)) {
       BLI_delete(tmpDir, true, true);
+    }
     mds->cache_frame_pause_particles = 0;
   }
 
@@ -367,8 +373,9 @@ void BKE_fluid_cache_free(FluidDomainSettings *mds, Object *ob, int cache_map)
                FLUID_DOMAIN_OUTDATED_GUIDING);
     tmpDir[0] = '\0';
     BLI_path_join(tmpDir, sizeof(tmpDir), mds->cache_directory, FLUID_DOMAIN_DIR_GUIDING, NULL);
-    if (BLI_exists(tmpDir))
+    if (BLI_exists(tmpDir)) {
       BLI_delete(tmpDir, true, true);
+    }
     mds->cache_frame_pause_guiding = 0;
   }
   mds->cache_flag = flags;

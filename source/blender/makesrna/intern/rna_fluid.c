@@ -108,8 +108,9 @@ static void rna_Fluid_reset_dependency(Main *bmain, Scene *scene, PointerRNA *pt
   fluidModifier_reset(settings->mmd);
 #  endif
 
-  if (settings->mmd && settings->mmd->domain)
+  if (settings->mmd && settings->mmd->domain) {
     settings->mmd->domain->point_cache[0]->flag |= PTCACHE_OUTDATED;
+  }
 
   rna_Fluid_dependency_update(bmain, scene, ptr);
 }
@@ -145,8 +146,9 @@ static bool rna_Fluid_parts_exists(PointerRNA *ptr, int ptype)
   ParticleSystem *psys;
 
   for (psys = ob->particlesystem.first; psys; psys = psys->next) {
-    if (psys->part->type == ptype)
+    if (psys->part->type == ptype) {
       return true;
+    }
   }
   return false;
 }
@@ -318,9 +320,10 @@ static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerR
     }
   }
   else if (mmd->domain->sndparticle_combined_export == SNDPARTICLE_COMBINED_EXPORT_SPRAY_FOAM) {
-    if (ob->type == OB_MESH && !rna_Fluid_parts_exists(ptr, (PART_FLUID_SPRAY | PART_FLUID_FOAM)))
-
+    if (ob->type == OB_MESH &&
+        !rna_Fluid_parts_exists(ptr, (PART_FLUID_SPRAY | PART_FLUID_FOAM))) {
       rna_Fluid_parts_delete(ptr, (PART_FLUID_SPRAY | PART_FLUID_FOAM));
+    }
     rna_Fluid_parts_create(bmain,
                            ptr,
                            "SprayFoamParticleSettings",
@@ -338,9 +341,9 @@ static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerR
   }
   else if (mmd->domain->sndparticle_combined_export == SNDPARTICLE_COMBINED_EXPORT_SPRAY_BUBBLE) {
     if (ob->type == OB_MESH &&
-        !rna_Fluid_parts_exists(ptr, (PART_FLUID_SPRAY | PART_FLUID_BUBBLE)))
-
+        !rna_Fluid_parts_exists(ptr, (PART_FLUID_SPRAY | PART_FLUID_BUBBLE))) {
       rna_Fluid_parts_delete(ptr, (PART_FLUID_SPRAY | PART_FLUID_BUBBLE));
+    }
     rna_Fluid_parts_create(bmain,
                            ptr,
                            "SprayBubbleParticleSettings",
@@ -357,9 +360,10 @@ static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerR
     }
   }
   else if (mmd->domain->sndparticle_combined_export == SNDPARTICLE_COMBINED_EXPORT_FOAM_BUBBLE) {
-    if (ob->type == OB_MESH && !rna_Fluid_parts_exists(ptr, (PART_FLUID_FOAM | PART_FLUID_BUBBLE)))
-
+    if (ob->type == OB_MESH &&
+        !rna_Fluid_parts_exists(ptr, (PART_FLUID_FOAM | PART_FLUID_BUBBLE))) {
       rna_Fluid_parts_delete(ptr, (PART_FLUID_FOAM | PART_FLUID_BUBBLE));
+    }
     rna_Fluid_parts_create(bmain,
                            ptr,
                            "FoamBubbleParticleSettings",
@@ -378,9 +382,9 @@ static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerR
   else if (mmd->domain->sndparticle_combined_export ==
            SNDPARTICLE_COMBINED_EXPORT_SPRAY_FOAM_BUBBLE) {
     if (ob->type == OB_MESH &&
-        !rna_Fluid_parts_exists(ptr, (PART_FLUID_SPRAY | PART_FLUID_FOAM | PART_FLUID_BUBBLE)))
-
+        !rna_Fluid_parts_exists(ptr, (PART_FLUID_SPRAY | PART_FLUID_FOAM | PART_FLUID_BUBBLE))) {
       rna_Fluid_parts_delete(ptr, (PART_FLUID_SPRAY | PART_FLUID_FOAM | PART_FLUID_BUBBLE));
+    }
     rna_Fluid_parts_create(bmain,
                            ptr,
                            "SprayFoamBubbleParticleSettings",
@@ -737,10 +741,12 @@ static void rna_FluidModifier_density_grid_get(PointerRNA *ptr, float *values)
 
   BLI_rw_mutex_lock(mds->fluid_mutex, THREAD_LOCK_READ);
 
-  if (mds->flags & FLUID_DOMAIN_USE_NOISE && mds->fluid)
+  if (mds->flags & FLUID_DOMAIN_USE_NOISE && mds->fluid) {
     density = manta_smoke_turbulence_get_density(mds->fluid);
-  else
+  }
+  else {
     density = manta_smoke_get_density(mds->fluid);
+  }
 
   memcpy(values, density, size * sizeof(float));
 
@@ -783,16 +789,20 @@ static void rna_FluidModifier_color_grid_get(PointerRNA *ptr, float *values)
   }
   else {
     if (mds->flags & FLUID_DOMAIN_USE_NOISE) {
-      if (manta_smoke_turbulence_has_colors(mds->fluid))
+      if (manta_smoke_turbulence_has_colors(mds->fluid)) {
         manta_smoke_turbulence_get_rgba(mds->fluid, values, 0);
-      else
+      }
+      else {
         manta_smoke_turbulence_get_rgba_from_density(mds->fluid, mds->active_color, values, 0);
+      }
     }
     else {
-      if (manta_smoke_has_colors(mds->fluid))
+      if (manta_smoke_has_colors(mds->fluid)) {
         manta_smoke_get_rgba(mds->fluid, values, 0);
-      else
+      }
+      else {
         manta_smoke_get_rgba_from_density(mds->fluid, mds->active_color, values, 0);
+      }
     }
   }
 
@@ -808,15 +818,19 @@ static void rna_FluidModifier_flame_grid_get(PointerRNA *ptr, float *values)
 
   BLI_rw_mutex_lock(mds->fluid_mutex, THREAD_LOCK_READ);
 
-  if (mds->flags & FLUID_DOMAIN_USE_NOISE && mds->fluid)
+  if (mds->flags & FLUID_DOMAIN_USE_NOISE && mds->fluid) {
     flame = manta_smoke_turbulence_get_flame(mds->fluid);
-  else
+  }
+  else {
     flame = manta_smoke_get_flame(mds->fluid);
+  }
 
-  if (flame)
+  if (flame) {
     memcpy(values, flame, size * sizeof(float));
-  else
+  }
+  else {
     memset(values, 0, size * sizeof(float));
+  }
 
   BLI_rw_mutex_unlock(mds->fluid_mutex);
 }

@@ -4199,19 +4199,24 @@ static void particles_fluid_step(ParticleSimulationData *sim,
         /* tottypepart is the amount of particles of a snd particle type. */
         for (p = 0; p < totpart; p++) {
           flagActivePart = manta_liquid_get_snd_particle_flag_at(mds->fluid, p);
-          if ((part->type & PART_FLUID_SPRAY) && (flagActivePart & PARTICLE_TYPE_SPRAY))
+          if ((part->type & PART_FLUID_SPRAY) && (flagActivePart & PARTICLE_TYPE_SPRAY)) {
             tottypepart++;
-          if ((part->type & PART_FLUID_BUBBLE) && (flagActivePart & PARTICLE_TYPE_BUBBLE))
+          }
+          if ((part->type & PART_FLUID_BUBBLE) && (flagActivePart & PARTICLE_TYPE_BUBBLE)) {
             tottypepart++;
-          if ((part->type & PART_FLUID_FOAM) && (flagActivePart & PARTICLE_TYPE_FOAM))
+          }
+          if ((part->type & PART_FLUID_FOAM) && (flagActivePart & PARTICLE_TYPE_FOAM)) {
             tottypepart++;
-          if ((part->type & PART_FLUID_TRACER) && (flagActivePart & PARTICLE_TYPE_TRACER))
+          }
+          if ((part->type & PART_FLUID_TRACER) && (flagActivePart & PARTICLE_TYPE_TRACER)) {
             tottypepart++;
+          }
         }
       }
       /* Sanity check: no particles present. */
-      if (!totpart || !tottypepart)
+      if (!totpart || !tottypepart) {
         return;
+      }
 
       /* How many particles to display? */
       tottypepart = (use_render_params) ? tottypepart : (part->disp * tottypepart) / 100;
@@ -4232,8 +4237,9 @@ static void particles_fluid_step(ParticleSimulationData *sim,
 
         /* Apply some randomness and determine which particles to skip. */
         r = BLI_rng_get_double(sim->rng);
-        if (r > dispProb)
+        if (r > dispProb) {
           continue;
+        }
 
         /* flag, res, upres, pos, vel for FLIP and snd particles have different getters. */
         if (part->type & PART_FLUID_FLIP) {
@@ -4284,22 +4290,27 @@ static void particles_fluid_step(ParticleSimulationData *sim,
 
         /* Type of particle must matche current particle system type (only important for snd
          * particles). */
-        if ((flagActivePart & PARTICLE_TYPE_SPRAY) && (part->type & PART_FLUID_SPRAY) == 0)
+        if ((flagActivePart & PARTICLE_TYPE_SPRAY) && (part->type & PART_FLUID_SPRAY) == 0) {
           continue;
-        if ((flagActivePart & PARTICLE_TYPE_BUBBLE) && (part->type & PART_FLUID_BUBBLE) == 0)
+        }
+        if ((flagActivePart & PARTICLE_TYPE_BUBBLE) && (part->type & PART_FLUID_BUBBLE) == 0) {
           continue;
-        if ((flagActivePart & PARTICLE_TYPE_FOAM) && (part->type & PART_FLUID_FOAM) == 0)
+        }
+        if ((flagActivePart & PARTICLE_TYPE_FOAM) && (part->type & PART_FLUID_FOAM) == 0) {
           continue;
-        if ((flagActivePart & PARTICLE_TYPE_TRACER) && (part->type & PART_FLUID_TRACER) == 0)
+        }
+        if ((flagActivePart & PARTICLE_TYPE_TRACER) && (part->type & PART_FLUID_TRACER) == 0) {
           continue;
+        }
 #  if 0
         /* Debugging: Print type of particle system and current particles. */
         printf("system type is %d and particle type is %d\n", part->type, flagActivePart);
 #  endif
         /* Particle system has allocated tottypeparts particles - so break early before exceeded.
          */
-        if (activeParts >= tottypepart)
+        if (activeParts >= tottypepart) {
           break;
+        }
 
         /* Only show active particles, i.e. filter out dead particles that just Mantaflow needs.
          * Mantaflow convention: PARTICLE_TYPE_DELETE == inactive particle. */
@@ -4308,8 +4319,9 @@ static void particles_fluid_step(ParticleSimulationData *sim,
 
           /* Use particle system settings for particle size. */
           pa->size = part->size;
-          if (part->randsize > 0.0f)
+          if (part->randsize > 0.0f) {
             pa->size *= 1.0f - part->randsize * psys_frand(psys, p + 1);
+          }
 
           /* Get size (dimension) but considering scaling */
           copy_v3_v3(cell_size_scaled, mds->cell_size);

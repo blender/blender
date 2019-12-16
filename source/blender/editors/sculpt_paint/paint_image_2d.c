@@ -1656,8 +1656,9 @@ void paint_2d_stroke(void *ps,
 
     brush_painter_2d_refresh_cache(s, painter, tile, new_coord, mval, pressure, distance, size);
 
-    if (paint_2d_op(s, tile, old_coord, new_coord))
+    if (paint_2d_op(s, tile, old_coord, new_coord)) {
       tile->need_redraw = true;
+    }
   }
 
   painter->firsttouch = 0;

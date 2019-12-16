@@ -317,8 +317,9 @@ static void rna_Image_active_tile_set(PointerRNA *ptr,
   Image *image = (Image *)ptr->data;
   ImageTile *tile = (ImageTile *)value.data;
   const int index = BLI_findindex(&image->tiles, tile);
-  if (index != -1)
+  if (index != -1) {
     image->active_tile_index = index;
+  }
 }
 
 static bool rna_Image_has_data_get(PointerRNA *ptr)
