@@ -114,6 +114,7 @@ set(SRC
   intern/editmesh_tangent.c
   intern/effect.c
   intern/fcurve.c
+  intern/fluid.c
   intern/fmodifier.c
   intern/font.c
   intern/freestyle.c
@@ -143,7 +144,6 @@ set(SRC
   intern/lightprobe.c
   intern/linestyle.c
   intern/main.c
-  intern/fluid.c
   intern/mask.c
   intern/mask_evaluate.c
   intern/mask_rasterize.c
@@ -280,6 +280,7 @@ set(SRC
   BKE_editmesh_tangent.h
   BKE_effect.h
   BKE_fcurve.h
+  BKE_fluid.h
   BKE_font.h
   BKE_freestyle.h
   BKE_global.h
@@ -305,7 +306,6 @@ set(SRC
   BKE_lightprobe.h
   BKE_linestyle.h
   BKE_main.h
-  BKE_fluid.h
   BKE_mask.h
   BKE_material.h
   BKE_mball.h

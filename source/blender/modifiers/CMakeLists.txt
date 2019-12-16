@@ -54,11 +54,11 @@ set(SRC
   intern/MOD_dynamicpaint.c
   intern/MOD_edgesplit.c
   intern/MOD_explode.c
+  intern/MOD_fluid.c
   intern/MOD_hook.c
   intern/MOD_laplaciandeform.c
   intern/MOD_laplaciansmooth.c
   intern/MOD_lattice.c
-  intern/MOD_fluid.c
   intern/MOD_mask.c
   intern/MOD_meshcache.c
   intern/MOD_meshcache_mdd.c

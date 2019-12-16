@@ -32,12 +32,14 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_color_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_constraint_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_curve_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_curveprofile_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_customdata_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_defs.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_documentation.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_dynamicpaint_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_effect_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_fileglobal_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_fluid_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_freestyle_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_genfile.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_gpencil_modifier_types.h
@@ -53,7 +55,6 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_linestyle_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_listBase.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_mask_types.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_fluid_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_material_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_mesh_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_meshdata_types.h
@@ -69,7 +70,6 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_outliner_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_packedFile_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_particle_types.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_curveprofile_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_rigidbody_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_scene_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_screen_types.h

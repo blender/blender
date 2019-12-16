@@ -121,10 +121,10 @@ set(SRC
   engines/select/select_engine.c
   engines/overlay/overlay_antialiasing.c
   engines/overlay/overlay_armature.c
-  engines/overlay/overlay_engine.c
   engines/overlay/overlay_edit_curve.c
-  engines/overlay/overlay_edit_text.c
   engines/overlay/overlay_edit_mesh.c
+  engines/overlay/overlay_edit_text.c
+  engines/overlay/overlay_engine.c
   engines/overlay/overlay_extra.c
   engines/overlay/overlay_facing.c
   engines/overlay/overlay_grid.c
@@ -135,8 +135,8 @@ set(SRC
   engines/overlay/overlay_outline.c
   engines/overlay/overlay_paint.c
   engines/overlay/overlay_particle.c
-  engines/overlay/overlay_shader.c
   engines/overlay/overlay_sculpt.c
+  engines/overlay/overlay_shader.c
   engines/overlay/overlay_wireframe.c
 
   DRW_engine.h
