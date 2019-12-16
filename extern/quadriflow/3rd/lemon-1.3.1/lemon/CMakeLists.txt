@@ -88,4 +88,3 @@ INSTALL(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/lemon.pc
   DESTINATION lib/pkgconfig
 )
-

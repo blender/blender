@@ -16,4 +16,3 @@ LINK_DIRECTORIES(
 
 # ADD_EXECUTABLE(myprog myprog-main.cc)
 # TARGET_LINK_LIBRARIES(myprog lemon)
-
