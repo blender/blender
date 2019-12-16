@@ -18,10 +18,6 @@
  *  \ingroup intern
  */
 
-/** \defgroup elbeem elbeem
- *  \ingroup intern
- */
-
 /** \defgroup iksolver iksolver
  *  \ingroup intern
  */
