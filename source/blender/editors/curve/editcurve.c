@@ -922,11 +922,15 @@ static void fcurve_path_rename(AnimData *adt,
       nfcu = copy_fcurve(fcu);
       spath = nfcu->rna_path;
       nfcu->rna_path = BLI_sprintfN("%s%s", rna_path, suffix);
+
+      /* copy_fcurve() sets nfcu->grp to NULL. To maintain the groups, we need to keep the pointer.
+       * As a result, the group's 'channels' pointers will be wrong, which is fixed by calling
+       * `action_groups_reconstruct(action)` later, after all fcurves have been renamed. */
+      nfcu->grp = fcu->grp;
       BLI_addtail(curves, nfcu);
 
       if (fcu->grp) {
         action_groups_remove_channel(adt->action, fcu);
-        action_groups_add_channel(adt->action, fcu->grp, nfcu);
       }
       else if ((adt->action) && (&adt->action->curves == orig_curves)) {
         BLI_remlink(&adt->action->curves, fcu);
@@ -1077,6 +1081,9 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
   }
 
   *orig_curves = curves;
+  if (adt != NULL) {
+    BKE_action_groups_reconstruct(adt->action);
+  }
 }
 
 /* return 0 if animation data wasn't changed, 1 otherwise */

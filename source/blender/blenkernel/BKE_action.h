@@ -122,6 +122,9 @@ void action_groups_add_channel(struct bAction *act,
 /* Remove the given channel from all groups */
 void action_groups_remove_channel(struct bAction *act, struct FCurve *fcu);
 
+/* Reconstruct group channel pointers. */
+void BKE_action_groups_reconstruct(struct bAction *act);
+
 /* Find a group with the given name */
 struct bActionGroup *BKE_action_group_find_name(struct bAction *act, const char name[]);
 

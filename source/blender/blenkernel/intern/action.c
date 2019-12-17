@@ -343,6 +343,43 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
   fcurve->grp = agrp;
 }
 
+/* Reconstruct group channel pointers.
+ * Assumes that the channels are still in the proper order, i.e. that channels of the same group
+ * are adjacent in the act->channels list. It also assumes that the groups
+ * referred to by the FCurves are already in act->groups.
+ */
+void BKE_action_groups_reconstruct(bAction *act)
+{
+  /* Sanity check. */
+  if (ELEM(NULL, act, act->groups.first)) {
+    return;
+  }
+
+  /* Clear out all group channels. Channels that are actually in use are
+   * reconstructed below; this step is necessary to clear out unused groups. */
+  LISTBASE_FOREACH (bActionGroup *, group, &act->groups) {
+    BLI_listbase_clear(&group->channels);
+  }
+
+  bActionGroup *grp;
+  bActionGroup *last_grp = NULL;
+  LISTBASE_FOREACH (FCurve *, fcurve, &act->curves) {
+    if (fcurve->grp == NULL) {
+      continue;
+    }
+
+    grp = fcurve->grp;
+    if (last_grp != grp) {
+      /* If this is the first time we see this group, this must be the first channel. */
+      grp->channels.first = fcurve;
+    }
+
+    /* This is the last channel, until it's overwritten by a later iteration. */
+    grp->channels.last = fcurve;
+    last_grp = grp;
+  }
+}
+
 /* Remove the given channel from all groups */
 void action_groups_remove_channel(bAction *act, FCurve *fcu)
 {
