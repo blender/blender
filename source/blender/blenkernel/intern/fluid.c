@@ -3131,6 +3131,12 @@ static void update_flowsflags(FluidDomainSettings *mds, Object **flowobjs, int n
   int active_fields = mds->active_fields;
   uint flow_index;
 
+  /* First, remove all flags that we want to update. */
+  int prev_flags = (FLUID_DOMAIN_ACTIVE_INVEL | FLUID_DOMAIN_ACTIVE_OUTFLOW |
+                    FLUID_DOMAIN_ACTIVE_HEAT | FLUID_DOMAIN_ACTIVE_FIRE |
+                    FLUID_DOMAIN_ACTIVE_COLOR_SET | FLUID_DOMAIN_ACTIVE_COLORS);
+  active_fields &= ~prev_flags;
+
   /* Monitor active fields based on flow settings */
   for (flow_index = 0; flow_index < numflowobj; flow_index++) {
     Object *coll_ob = flowobjs[flow_index];
@@ -3141,12 +3147,6 @@ static void update_flowsflags(FluidDomainSettings *mds, Object **flowobjs, int n
     if (!mmd2) {
       continue;
     }
-
-    /* First, remove all flags that we want to update. */
-    int prev_flags = (FLUID_DOMAIN_ACTIVE_INVEL | FLUID_DOMAIN_ACTIVE_OUTFLOW |
-                      FLUID_DOMAIN_ACTIVE_HEAT | FLUID_DOMAIN_ACTIVE_FIRE |
-                      FLUID_DOMAIN_ACTIVE_COLOR_SET | FLUID_DOMAIN_ACTIVE_COLORS);
-    active_fields &= ~prev_flags;
 
     if ((mmd2->type & MOD_FLUID_TYPE_FLOW) && mmd2->flow) {
       FluidFlowSettings *mfs = mmd2->flow;
