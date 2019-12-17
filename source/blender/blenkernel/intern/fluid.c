@@ -322,17 +322,14 @@ void BKE_fluid_cache_free(FluidDomainSettings *mds, Object *ob, int cache_map)
 
   if (cache_map & FLUID_DOMAIN_OUTDATED_DATA) {
     flags &= ~(FLUID_DOMAIN_BAKING_DATA | FLUID_DOMAIN_BAKED_DATA | FLUID_DOMAIN_OUTDATED_DATA);
-    temp_dir[0] = '\0';
     BLI_path_join(temp_dir, sizeof(temp_dir), mds->cache_directory, FLUID_DOMAIN_DIR_CONFIG, NULL);
     if (BLI_exists(temp_dir)) {
       BLI_delete(temp_dir, true, true);
     }
-    temp_dir[0] = '\0';
     BLI_path_join(temp_dir, sizeof(temp_dir), mds->cache_directory, FLUID_DOMAIN_DIR_DATA, NULL);
     if (BLI_exists(temp_dir)) {
       BLI_delete(temp_dir, true, true);
     }
-    temp_dir[0] = '\0';
     BLI_path_join(temp_dir, sizeof(temp_dir), mds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, NULL);
     if (BLI_exists(temp_dir)) {
       BLI_delete(temp_dir, true, true);
@@ -341,7 +338,6 @@ void BKE_fluid_cache_free(FluidDomainSettings *mds, Object *ob, int cache_map)
   }
   if (cache_map & FLUID_DOMAIN_OUTDATED_NOISE) {
     flags &= ~(FLUID_DOMAIN_BAKING_NOISE | FLUID_DOMAIN_BAKED_NOISE | FLUID_DOMAIN_OUTDATED_NOISE);
-    temp_dir[0] = '\0';
     BLI_path_join(temp_dir, sizeof(temp_dir), mds->cache_directory, FLUID_DOMAIN_DIR_NOISE, NULL);
     if (BLI_exists(temp_dir)) {
       BLI_delete(temp_dir, true, true);
@@ -350,7 +346,6 @@ void BKE_fluid_cache_free(FluidDomainSettings *mds, Object *ob, int cache_map)
   }
   if (cache_map & FLUID_DOMAIN_OUTDATED_MESH) {
     flags &= ~(FLUID_DOMAIN_BAKING_MESH | FLUID_DOMAIN_BAKED_MESH | FLUID_DOMAIN_OUTDATED_MESH);
-    temp_dir[0] = '\0';
     BLI_path_join(temp_dir, sizeof(temp_dir), mds->cache_directory, FLUID_DOMAIN_DIR_MESH, NULL);
     if (BLI_exists(temp_dir)) {
       BLI_delete(temp_dir, true, true);
@@ -360,7 +355,6 @@ void BKE_fluid_cache_free(FluidDomainSettings *mds, Object *ob, int cache_map)
   if (cache_map & FLUID_DOMAIN_OUTDATED_PARTICLES) {
     flags &= ~(FLUID_DOMAIN_BAKING_PARTICLES | FLUID_DOMAIN_BAKED_PARTICLES |
                FLUID_DOMAIN_OUTDATED_PARTICLES);
-    temp_dir[0] = '\0';
     BLI_path_join(
         temp_dir, sizeof(temp_dir), mds->cache_directory, FLUID_DOMAIN_DIR_PARTICLES, NULL);
     if (BLI_exists(temp_dir)) {
@@ -372,7 +366,6 @@ void BKE_fluid_cache_free(FluidDomainSettings *mds, Object *ob, int cache_map)
   if (cache_map & FLUID_DOMAIN_OUTDATED_GUIDING) {
     flags &= ~(FLUID_DOMAIN_BAKING_GUIDING | FLUID_DOMAIN_BAKED_GUIDING |
                FLUID_DOMAIN_OUTDATED_GUIDING);
-    temp_dir[0] = '\0';
     BLI_path_join(
         temp_dir, sizeof(temp_dir), mds->cache_directory, FLUID_DOMAIN_DIR_GUIDING, NULL);
     if (BLI_exists(temp_dir)) {
