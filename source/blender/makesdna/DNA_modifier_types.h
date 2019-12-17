@@ -991,6 +991,10 @@ typedef struct FluidsimModifierData {
 /* DEPRECATED, only used for versioning. */
 typedef struct SmokeModifierData {
   ModifierData modifier;
+
+  /** Domain, inflow, outflow, .... */
+  int type;
+  int _pad;
 } SmokeModifierData;
 
 typedef struct ShrinkwrapModifierData {

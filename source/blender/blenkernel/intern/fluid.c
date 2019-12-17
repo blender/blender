@@ -4803,4 +4803,121 @@ void BKE_fluid_particle_system_destroy(struct Object *ob, const int particle_typ
   }
 }
 
+void BKE_fluid_cachetype_mesh_set(FluidDomainSettings *settings, int cache_mesh_format)
+{
+  if (cache_mesh_format == settings->cache_mesh_format) {
+    return;
+  }
+  /* TODO(sebbas): Clear old caches. */
+  settings->cache_mesh_format = cache_mesh_format;
+}
+
+void BKE_fluid_cachetype_data_set(FluidDomainSettings *settings, int cache_data_format)
+{
+  if (cache_data_format == settings->cache_data_format) {
+    return;
+  }
+  /* TODO(sebbas): Clear old caches. */
+  settings->cache_data_format = cache_data_format;
+}
+
+void BKE_fluid_cachetype_particle_set(FluidDomainSettings *settings, int cache_particle_format)
+{
+  if (cache_particle_format == settings->cache_particle_format) {
+    return;
+  }
+  /* TODO(sebbas): Clear old caches. */
+  settings->cache_particle_format = cache_particle_format;
+}
+
+void BKE_fluid_cachetype_noise_set(FluidDomainSettings *settings, int cache_noise_format)
+{
+  if (cache_noise_format == settings->cache_noise_format) {
+    return;
+  }
+  /* TODO(sebbas): Clear old caches. */
+  settings->cache_noise_format = cache_noise_format;
+}
+
+void BKE_fluid_collisionextents_set(FluidDomainSettings *settings, int value, bool clear)
+{
+  if (clear) {
+    settings->border_collisions &= value;
+  }
+  else {
+    settings->border_collisions |= value;
+  }
+}
+
+void BKE_fluid_particles_set(FluidDomainSettings *settings, int value, bool clear)
+{
+  if (clear) {
+    settings->particle_type &= ~value;
+  }
+  else {
+    settings->border_collisions |= value;
+  }
+}
+
+void BKE_fluid_domain_type_set(Object *object, FluidDomainSettings *settings, int type)
+{
+  /* Set common values for liquid/smoke domain: cache type,
+   * border collision and viewport draw-type. */
+  if (type == FLUID_DOMAIN_TYPE_GAS) {
+    BKE_fluid_cachetype_mesh_set(settings, FLUID_DOMAIN_FILE_BIN_OBJECT);
+    BKE_fluid_cachetype_data_set(settings, FLUID_DOMAIN_FILE_UNI);
+    BKE_fluid_cachetype_particle_set(settings, FLUID_DOMAIN_FILE_UNI);
+    BKE_fluid_cachetype_noise_set(settings, FLUID_DOMAIN_FILE_UNI);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_FRONT, 1);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BACK, 1);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_RIGHT, 1);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_LEFT, 1);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_TOP, 1);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BOTTOM, 1);
+    object->dt = OB_WIRE;
+  }
+  else if (type == FLUID_DOMAIN_TYPE_LIQUID) {
+    BKE_fluid_cachetype_mesh_set(settings, FLUID_DOMAIN_FILE_BIN_OBJECT);
+    BKE_fluid_cachetype_data_set(settings, FLUID_DOMAIN_FILE_UNI);
+    BKE_fluid_cachetype_particle_set(settings, FLUID_DOMAIN_FILE_UNI);
+    BKE_fluid_cachetype_noise_set(settings, FLUID_DOMAIN_FILE_UNI);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_FRONT, 0);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BACK, 0);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_RIGHT, 0);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_LEFT, 0);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_TOP, 0);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BOTTOM, 0);
+    BKE_fluid_particles_set(settings, FLUID_DOMAIN_PARTICLE_FLIP, 0);
+    object->dt = OB_SOLID;
+  }
+
+  /* Set actual domain type. */
+  settings->type = type;
+}
+
+void BKE_fluid_flow_behavior_set(Object *UNUSED(object), FluidFlowSettings *settings, int behavior)
+{
+  settings->behavior = behavior;
+}
+
+void BKE_fluid_flow_type_set(Object *object, FluidFlowSettings *settings, int type)
+{
+  /* By default, liquid flow objects should behave like their geometry (geomtery behavior),
+   * gas flow objects should continously produce smoke (inflow behavior). */
+  if (type == FLUID_FLOW_TYPE_LIQUID) {
+    BKE_fluid_flow_behavior_set(object, settings, FLUID_FLOW_BEHAVIOR_GEOMETRY);
+  }
+  else {
+    BKE_fluid_flow_behavior_set(object, settings, FLUID_FLOW_BEHAVIOR_INFLOW);
+  }
+
+  /* Set actual flow type. */
+  settings->type = type;
+}
+
+void BKE_fluid_effector_type_set(Object *UNUSED(object), FluidEffectorSettings *settings, int type)
+{
+  settings->type = type;
+}
+
 #endif /* WITH_FLUID */

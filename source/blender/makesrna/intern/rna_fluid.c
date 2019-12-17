@@ -407,41 +407,25 @@ static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerR
 static void rna_Fluid_cachetype_mesh_set(struct PointerRNA *ptr, int value)
 {
   FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
-
-  if (value != settings->cache_mesh_format) {
-    /* TODO (sebbas): Clear old caches. */
-    settings->cache_mesh_format = value;
-  }
+  BKE_fluid_cachetype_mesh_set(settings, value);
 }
 
 static void rna_Fluid_cachetype_data_set(struct PointerRNA *ptr, int value)
 {
   FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
-
-  if (value != settings->cache_data_format) {
-    /* TODO (sebbas): Clear old caches. */
-    settings->cache_data_format = value;
-  }
+  BKE_fluid_cachetype_data_set(settings, value);
 }
 
 static void rna_Fluid_cachetype_particle_set(struct PointerRNA *ptr, int value)
 {
   FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
-
-  if (value != settings->cache_particle_format) {
-    /* TODO (sebbas): Clear old caches. */
-    settings->cache_particle_format = value;
-  }
+  BKE_fluid_cachetype_particle_set(settings, value);
 }
 
 static void rna_Fluid_cachetype_noise_set(struct PointerRNA *ptr, int value)
 {
   FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
-
-  if (value != settings->cache_noise_format) {
-    /* TODO (sebbas): Clear old caches. */
-    settings->cache_noise_format = value;
-  }
+  BKE_fluid_cachetype_noise_set(settings, value);
 }
 
 static void rna_Fluid_cachetype_set(struct PointerRNA *ptr, int value)
@@ -558,17 +542,6 @@ static const EnumPropertyItem *rna_Fluid_cachetype_particle_itemf(bContext *UNUS
   return item;
 }
 
-static void rna_Fluid_collisionextents_set(struct PointerRNA *ptr, int value, bool clear)
-{
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
-  if (clear) {
-    settings->border_collisions &= value;
-  }
-  else {
-    settings->border_collisions |= value;
-  }
-}
-
 static void rna_Fluid_cache_directory_set(struct PointerRNA *ptr, const char *value)
 {
   FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
@@ -588,40 +561,7 @@ static void rna_Fluid_domaintype_set(struct PointerRNA *ptr, int value)
 {
   FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
   Object *ob = (Object *)ptr->owner_id;
-
-  if (value != settings->type) {
-    /* Set common values for liquid/smoke domain: cache type,
-     * border collision and viewport draw-type. */
-    if (value == FLUID_DOMAIN_TYPE_GAS) {
-      rna_Fluid_cachetype_mesh_set(ptr, FLUID_DOMAIN_FILE_BIN_OBJECT);
-      rna_Fluid_cachetype_data_set(ptr, FLUID_DOMAIN_FILE_UNI);
-      rna_Fluid_cachetype_particle_set(ptr, FLUID_DOMAIN_FILE_UNI);
-      rna_Fluid_cachetype_noise_set(ptr, FLUID_DOMAIN_FILE_UNI);
-      rna_Fluid_collisionextents_set(ptr, FLUID_DOMAIN_BORDER_FRONT, 1);
-      rna_Fluid_collisionextents_set(ptr, FLUID_DOMAIN_BORDER_BACK, 1);
-      rna_Fluid_collisionextents_set(ptr, FLUID_DOMAIN_BORDER_RIGHT, 1);
-      rna_Fluid_collisionextents_set(ptr, FLUID_DOMAIN_BORDER_LEFT, 1);
-      rna_Fluid_collisionextents_set(ptr, FLUID_DOMAIN_BORDER_TOP, 1);
-      rna_Fluid_collisionextents_set(ptr, FLUID_DOMAIN_BORDER_BOTTOM, 1);
-      ob->dt = OB_WIRE;
-    }
-    else if (value == FLUID_DOMAIN_TYPE_LIQUID) {
-      rna_Fluid_cachetype_mesh_set(ptr, FLUID_DOMAIN_FILE_BIN_OBJECT);
-      rna_Fluid_cachetype_data_set(ptr, FLUID_DOMAIN_FILE_UNI);
-      rna_Fluid_cachetype_particle_set(ptr, FLUID_DOMAIN_FILE_UNI);
-      rna_Fluid_cachetype_noise_set(ptr, FLUID_DOMAIN_FILE_UNI);
-      rna_Fluid_collisionextents_set(ptr, FLUID_DOMAIN_BORDER_FRONT, 0);
-      rna_Fluid_collisionextents_set(ptr, FLUID_DOMAIN_BORDER_BACK, 0);
-      rna_Fluid_collisionextents_set(ptr, FLUID_DOMAIN_BORDER_RIGHT, 0);
-      rna_Fluid_collisionextents_set(ptr, FLUID_DOMAIN_BORDER_LEFT, 0);
-      rna_Fluid_collisionextents_set(ptr, FLUID_DOMAIN_BORDER_TOP, 0);
-      rna_Fluid_collisionextents_set(ptr, FLUID_DOMAIN_BORDER_BOTTOM, 0);
-      ob->dt = OB_SOLID;
-    }
-
-    /* Set actual domain type */
-    settings->type = value;
-  }
+  BKE_fluid_domain_type_set(ob, settings, value);
 }
 
 static char *rna_FluidDomainSettings_path(PointerRNA *ptr)

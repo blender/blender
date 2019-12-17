@@ -113,6 +113,7 @@
 #include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
+#include "BKE_fluid.h"
 #include "BKE_global.h"  // for G
 #include "BKE_gpencil_modifier.h"
 #include "BKE_idcode.h"
@@ -239,7 +240,7 @@
 /* local prototypes */
 static void read_libraries(FileData *basefd, ListBase *mainlist);
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
-static void direct_link_modifiers(FileData *fd, ListBase *lb, const Object *ob);
+static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob);
 static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const char *name);
 static BHead *find_bhead_from_idname(FileData *fd, const char *idname);
 
@@ -5485,7 +5486,118 @@ static void direct_link_pose(FileData *fd, bPose *pose)
   }
 }
 
-static void direct_link_modifiers(FileData *fd, ListBase *lb, const Object *ob)
+/* TODO(sergey): Find a more better place for this.
+ *
+ * Unfortunately, this can not be done as a regular do_versions() since the modifier type is
+ * set to NONE, so the do_versions code wouldn't know where the modifier came from.
+ *
+ * Most bestest approach seems to have the functionality in versioning_280 but still call the
+ * function from direct_link_modifiers(). */
+
+/* Domain, inflow, ... */
+static void modifier_ensure_type(FluidModifierData *fluid_modifier_data, int type)
+{
+  fluid_modifier_data->type = type;
+  BKE_fluid_modifier_free(fluid_modifier_data);
+  BKE_fluid_modifier_create_type_data(fluid_modifier_data);
+}
+
+/* NOTE: The old_modifier_data is NOT linked. This means that in ordet to access subdata
+ * pointers newdataadr is to be used. */
+static ModifierData *modifier_replace_with_fluid(FileData *fd,
+                                                 Object *object,
+                                                 ListBase *modifiers,
+                                                 ModifierData *old_modifier_data)
+{
+  ModifierData *new_modifier_data = modifier_new(eModifierType_Fluid);
+  FluidModifierData *fluid_modifier_data = (FluidModifierData *)new_modifier_data;
+
+  if (old_modifier_data->type == eModifierType_Fluidsim) {
+    FluidsimModifierData *old_fluidsim_modifier_data = (FluidsimModifierData *)old_modifier_data;
+    FluidsimSettings *old_fluidsim_settings = newdataadr(fd, old_fluidsim_modifier_data->fss);
+    switch (old_fluidsim_settings->type) {
+      case OB_FLUIDSIM_ENABLE:
+        modifier_ensure_type(fluid_modifier_data, 0);
+        break;
+      case OB_FLUIDSIM_DOMAIN:
+        modifier_ensure_type(fluid_modifier_data, MOD_FLUID_TYPE_DOMAIN);
+        BKE_fluid_domain_type_set(object, fluid_modifier_data->domain, FLUID_DOMAIN_TYPE_LIQUID);
+        break;
+      case OB_FLUIDSIM_FLUID:
+        modifier_ensure_type(fluid_modifier_data, MOD_FLUID_TYPE_FLOW);
+        BKE_fluid_flow_type_set(object, fluid_modifier_data->flow, FLUID_FLOW_TYPE_LIQUID);
+        /* No need to emit liquid far away from surface. */
+        fluid_modifier_data->flow->surface_distance = 0.0f;
+        break;
+      case OB_FLUIDSIM_OBSTACLE:
+        modifier_ensure_type(fluid_modifier_data, MOD_FLUID_TYPE_EFFEC);
+        BKE_fluid_effector_type_set(
+            object, fluid_modifier_data->effector, FLUID_EFFECTOR_TYPE_COLLISION);
+        break;
+      case OB_FLUIDSIM_INFLOW:
+        modifier_ensure_type(fluid_modifier_data, MOD_FLUID_TYPE_FLOW);
+        BKE_fluid_flow_type_set(object, fluid_modifier_data->flow, FLUID_FLOW_TYPE_LIQUID);
+        BKE_fluid_flow_behavior_set(object, fluid_modifier_data->flow, FLUID_FLOW_BEHAVIOR_INFLOW);
+        /* No need to emit liquid far away from surface. */
+        fluid_modifier_data->flow->surface_distance = 0.0f;
+        break;
+      case OB_FLUIDSIM_OUTFLOW:
+        modifier_ensure_type(fluid_modifier_data, MOD_FLUID_TYPE_FLOW);
+        BKE_fluid_flow_type_set(object, fluid_modifier_data->flow, FLUID_FLOW_TYPE_LIQUID);
+        BKE_fluid_flow_behavior_set(
+            object, fluid_modifier_data->flow, FLUID_FLOW_BEHAVIOR_OUTFLOW);
+        break;
+      case OB_FLUIDSIM_PARTICLE:
+        /* "Particle" type objects not being used by Mantaflow fluid simulations.
+         * Skip this object, secondary particles can only be enabled through the domain object. */
+        break;
+      case OB_FLUIDSIM_CONTROL:
+        /* "Control" type objects not being used by Mantaflow fluid simulations.
+         * Use guiding type instead which is similar. */
+        modifier_ensure_type(fluid_modifier_data, MOD_FLUID_TYPE_EFFEC);
+        BKE_fluid_effector_type_set(
+            object, fluid_modifier_data->effector, FLUID_EFFECTOR_TYPE_GUIDE);
+        break;
+    }
+  }
+  else if (old_modifier_data->type == eModifierType_Smoke) {
+    SmokeModifierData *old_smoke_modifier_data = (SmokeModifierData *)old_modifier_data;
+    modifier_ensure_type(fluid_modifier_data, old_smoke_modifier_data->type);
+    if (fluid_modifier_data->type == MOD_FLUID_TYPE_DOMAIN) {
+      BKE_fluid_domain_type_set(object, fluid_modifier_data->domain, FLUID_DOMAIN_TYPE_GAS);
+    }
+    else if (fluid_modifier_data->type == MOD_FLUID_TYPE_FLOW) {
+      BKE_fluid_flow_type_set(object, fluid_modifier_data->flow, FLUID_FLOW_TYPE_SMOKE);
+    }
+    else if (fluid_modifier_data->type == MOD_FLUID_TYPE_EFFEC) {
+      BKE_fluid_effector_type_set(
+          object, fluid_modifier_data->effector, FLUID_EFFECTOR_TYPE_COLLISION);
+    }
+  }
+
+  /* Replace modifier data in the stack. */
+  new_modifier_data->next = old_modifier_data->next;
+  new_modifier_data->prev = old_modifier_data->prev;
+  if (new_modifier_data->prev != NULL) {
+    new_modifier_data->prev->next = new_modifier_data;
+  }
+  if (new_modifier_data->next != NULL) {
+    new_modifier_data->next->prev = new_modifier_data;
+  }
+  if (modifiers->first == old_modifier_data) {
+    modifiers->first = new_modifier_data;
+  }
+  if (modifiers->last == old_modifier_data) {
+    modifiers->last = new_modifier_data;
+  }
+
+  /* Free old modifier data. */
+  MEM_freeN(old_modifier_data);
+
+  return new_modifier_data;
+}
+
+static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
 {
   ModifierData *md;
 
@@ -5495,6 +5607,10 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, const Object *ob)
     md->error = NULL;
     md->runtime = NULL;
 
+    /* Modifier data has been allocated as a part of data migration process and
+     * no reading of nested fields from file is needed. */
+    bool is_allocated = false;
+
     if (md->type == eModifierType_Fluidsim) {
       blo_reportf_wrap(
           fd->reports,
@@ -5503,6 +5619,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, const Object *ob)
               "Possible data loss when saving this file! %s modifier is deprecated (Object: %s)."),
           md->name,
           ob->id.name + 2);
+      md = modifier_replace_with_fluid(fd, ob, lb, md);
+      is_allocated = true;
     }
     else if (md->type == eModifierType_Smoke) {
       blo_reportf_wrap(
@@ -5512,13 +5630,18 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, const Object *ob)
               "Possible data loss when saving this file! %s modifier is deprecated (Object: %s)."),
           md->name,
           ob->id.name + 2);
+      md = modifier_replace_with_fluid(fd, ob, lb, md);
+      is_allocated = true;
     }
     /* if modifiers disappear, or for upward compatibility */
     if (NULL == modifierType_getInfo(md->type)) {
       md->type = eModifierType_None;
     }
 
-    if (md->type == eModifierType_Subsurf) {
+    if (is_allocated) {
+      /* All the fields has been properly allocated. */
+    }
+    else if (md->type == eModifierType_Subsurf) {
       SubsurfModifierData *smd = (SubsurfModifierData *)md;
 
       smd->emCache = smd->mCache = NULL;
