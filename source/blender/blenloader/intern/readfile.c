@@ -3874,7 +3874,7 @@ static void direct_link_bones(FileData *fd, Bone *bone)
   bone->bbone_next = newdataadr(fd, bone->bbone_next);
   bone->bbone_prev = newdataadr(fd, bone->bbone_prev);
 
-  bone->flag &= ~BONE_DRAW_ACTIVE;
+  bone->flag &= ~(BONE_DRAW_ACTIVE | BONE_DRAW_LOCKED_WEIGHT);
 
   link_list(fd, &bone->childbase);
 

@@ -252,7 +252,8 @@ typedef enum eBone_Flag {
   BONE_ADD_PARENT_END_ROLL = (1 << 24),
   /** this bone was transformed by the mirror function */
   BONE_TRANSFORM_MIRROR = (1 << 25),
-
+  /** this bone is associated with a locked vertex group, ONLY USE FOR DRAWING */
+  BONE_DRAW_LOCKED_WEIGHT = (1 << 26),
 } eBone_Flag;
 
 /* bone->inherit_scale_mode */

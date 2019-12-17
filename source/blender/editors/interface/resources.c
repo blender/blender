@@ -443,6 +443,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_BONE_POSE_ACTIVE:
           cp = ts->bone_pose_active;
           break;
+        case TH_BONE_LOCKED_WEIGHT:
+          cp = ts->bone_locked_weight;
+          break;
         case TH_STRIP:
           cp = ts->strip;
           break;

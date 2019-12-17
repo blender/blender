@@ -997,6 +997,7 @@ class PreferenceThemeSpacePanel:
             "freestyle_face_mark",
             "split_normal",
             "bone_solid",
+            "bone_locked_weight",
             "paint_curve_pivot",
         },
         'GRAPH_EDITOR': {

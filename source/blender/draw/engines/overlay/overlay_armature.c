@@ -35,6 +35,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_modifier.h"
 
@@ -974,6 +975,15 @@ static bool set_pchan_color(const ArmatureDrawContext *ctx,
 /** \name Drawing Color Helpers
  * \{ */
 
+static void bone_locked_color_shade(float color[4])
+{
+  float locked_color[4];
+
+  UI_GetThemeColor4fv(TH_BONE_LOCKED_WEIGHT, locked_color);
+
+  interp_v3_v3v3(color, color, locked_color, locked_color[3]);
+}
+
 static const float *get_bone_solid_color(const ArmatureDrawContext *ctx,
                                          const EditBone *UNUSED(eBone),
                                          const bPoseChannel *pchan,
@@ -989,6 +999,11 @@ static const float *get_bone_solid_color(const ArmatureDrawContext *ctx,
     static float disp_color[4];
     copy_v4_v4(disp_color, pchan->draw_data->solid_color);
     set_pchan_color(ctx, PCHAN_COLOR_SOLID, boneflag, constflag, disp_color);
+
+    if (boneflag & BONE_DRAW_LOCKED_WEIGHT) {
+      bone_locked_color_shade(disp_color);
+    }
+
     return disp_color;
   }
 
@@ -1009,7 +1024,7 @@ static const float *get_bone_solid_with_consts_color(const ArmatureDrawContext *
   const float *col = get_bone_solid_color(ctx, eBone, pchan, arm, boneflag, constflag);
 
   static float consts_color[4];
-  if ((arm->flag & ARM_POSEMODE) &&
+  if ((arm->flag & ARM_POSEMODE) && !(boneflag & BONE_DRAW_LOCKED_WEIGHT) &&
       set_pchan_color(ctx, PCHAN_COLOR_CONSTS, boneflag, constflag, consts_color)) {
     interp_v3_v3v3(consts_color, col, consts_color, 0.5f);
   }
@@ -1065,6 +1080,10 @@ static const float *get_bone_wire_color(const ArmatureDrawContext *ctx,
   else if (arm->flag & ARM_POSEMODE) {
     copy_v4_v4(disp_color, pchan->draw_data->wire_color);
     set_pchan_color(ctx, PCHAN_COLOR_NORMAL, boneflag, constflag, disp_color);
+
+    if (boneflag & BONE_DRAW_LOCKED_WEIGHT) {
+      bone_locked_color_shade(disp_color);
+    }
   }
   else {
     copy_v3_v3(disp_color, ctx->color.vertex);
@@ -1518,7 +1537,7 @@ static void draw_bone_custom_shape(ArmatureDrawContext *ctx,
       drw_shgroup_bone_custom_empty(ctx, disp_mat, col_wire, pchan->custom);
     }
   }
-  if ((boneflag & BONE_DRAWWIRE) == 0) {
+  if ((boneflag & BONE_DRAWWIRE) == 0 && (boneflag & BONE_DRAW_LOCKED_WEIGHT) == 0) {
     drw_shgroup_bone_custom_solid(ctx, disp_mat, col_solid, col_hint, col_wire, pchan->custom);
   }
   else {
@@ -2010,6 +2029,8 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
           boneflag |= BONE_DRAW_ACTIVE;
         }
 
+        boneflag &= ~BONE_DRAW_LOCKED_WEIGHT;
+
         draw_bone_relations(ctx, eBone, NULL, arm, boneflag, constflag);
 
         if (arm->drawtype == ARM_ENVELOPE) {
@@ -2054,6 +2075,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
   bPoseChannel *pchan;
   int index = -1;
   const bool show_text = DRW_state_show_text();
+  bool draw_locked_weights = false;
 
   /* We can't safely draw non-updated pose, might contain NULL bone pointers... */
   if (ob->pose->flag & POSE_RECALC) {
@@ -2089,6 +2111,28 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
     }
   }
 
+  /* In weight paint mode retrieve the vertex group lock status. */
+  if ((draw_ctx->object_mode == OB_MODE_WEIGHT_PAINT) && (draw_ctx->object_pose == ob) &&
+      (draw_ctx->obact != NULL)) {
+    draw_locked_weights = true;
+
+    for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+      pchan->bone->flag &= ~BONE_DRAW_LOCKED_WEIGHT;
+    }
+
+    const Object *obact_orig = DEG_get_original_object(draw_ctx->obact);
+
+    LISTBASE_FOREACH (bDeformGroup *, dg, &obact_orig->defbase) {
+      if (dg->flag & DG_LOCK_WEIGHT) {
+        pchan = BKE_pose_channel_find_name(ob->pose, dg->name);
+
+        if (pchan) {
+          pchan->bone->flag |= BONE_DRAW_LOCKED_WEIGHT;
+        }
+      }
+    }
+  }
+
   for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next, index += 0x10000) {
     Bone *bone = pchan->bone;
     const bool bone_visible = (bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0;
@@ -2118,6 +2162,10 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
         /* set temporary flag for drawing bone as active, but only if selected */
         if (bone == arm->act_bone) {
           boneflag |= BONE_DRAW_ACTIVE;
+        }
+
+        if (!draw_locked_weights) {
+          boneflag &= ~BONE_DRAW_LOCKED_WEIGHT;
         }
 
         draw_bone_relations(ctx, NULL, pchan, arm, boneflag, constflag);

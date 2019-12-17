@@ -339,6 +339,7 @@ const bTheme U_theme_default = {
     .bone_solid = RGBA(0xb2b2b2ff),
     .bone_pose = RGBA(0x50c8ff50),
     .bone_pose_active = RGBA(0x8cffff50),
+    .bone_locked_weight = RGBA(0xff000080),
     .cframe = RGBA(0x60c040ff),
     .time_keyframe = RGBA(0xddd700ff),
     .time_gp_keyframe = RGBA(0xb5e61dff),
