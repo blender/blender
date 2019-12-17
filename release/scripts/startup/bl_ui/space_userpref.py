@@ -2225,6 +2225,11 @@ class USERPREF_PT_experimental_virtual_reality(ExperimentalPanel, Panel):
 class USERPREF_PT_experimental_usd(ExperimentalPanel, Panel):
     bl_label = "Universal Scene Description"
 
+    @classmethod
+    def poll(cls, context):
+        # Only show the panel if Blender was actually built with USD support.
+        return getattr(bpy.app.build_options, 'usd', False)
+
     def draw_props(self, context, layout):
         prefs = context.preferences
 
