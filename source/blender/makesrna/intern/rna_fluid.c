@@ -651,7 +651,7 @@ static char *rna_FluidEffectorSettings_path(PointerRNA *ptr)
   char name_esc[sizeof(md->name) * 2];
 
   BLI_strescape(name_esc, md->name, sizeof(name_esc));
-  return BLI_sprintfN("modifiers[\"%s\"].effec_settings", name_esc);
+  return BLI_sprintfN("modifiers[\"%s\"].effector_settings", name_esc);
 }
 
 /* -------------------------------------------------------------------- */
@@ -2502,9 +2502,9 @@ static void rna_def_fluid_flow_settings(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 }
 
-static void rna_def_fluid_effec_settings(BlenderRNA *brna)
+static void rna_def_fluid_effector_settings(BlenderRNA *brna)
 {
-  static EnumPropertyItem effec_type_items[] = {
+  static EnumPropertyItem effector_type_items[] = {
       {FLUID_EFFECTOR_TYPE_COLLISION, "COLLISION", 0, "Collision", "Create collision object"},
       {FLUID_EFFECTOR_TYPE_GUIDE, "GUIDE", 0, "Guide", "Create guide object"},
       {0, NULL, 0, NULL, NULL},
@@ -2545,9 +2545,9 @@ static void rna_def_fluid_effec_settings(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "FluidEffectorSettings");
   RNA_def_struct_path_func(srna, "rna_FluidEffectorSettings_path");
 
-  prop = RNA_def_property(srna, "effec_type", PROP_ENUM, PROP_NONE);
+  prop = RNA_def_property(srna, "effector_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "type");
-  RNA_def_property_enum_items(prop, effec_type_items);
+  RNA_def_property_enum_items(prop, effector_type_items);
   RNA_def_property_ui_text(prop, "Effector Type", "Change type of effector in the simulation");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 
@@ -2580,7 +2580,7 @@ void RNA_def_fluid(BlenderRNA *brna)
 {
   rna_def_fluid_domain_settings(brna);
   rna_def_fluid_flow_settings(brna);
-  rna_def_fluid_effec_settings(brna);
+  rna_def_fluid_effector_settings(brna);
 }
 
 #endif

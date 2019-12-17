@@ -222,22 +222,22 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
                 col.prop_search(flow, "density_vertex_group", ob, "vertex_groups", text="Vertex Group")
 
         elif md.fluid_type == 'EFFECTOR':
-            effec = md.effec_settings
+            effector_settings = md.effector_settings
 
             row = layout.row()
-            row.prop(effec, "effec_type")
+            row.prop(effector_settings, "effector_type")
 
             flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
             col = flow.column()
 
-            col.prop(effec, "use_plane_init", text="Is Planar")
-            col.prop(effec, "surface_distance", text="Surface Thickness")
+            col.prop(effector_settings, "use_plane_init", text="Is Planar")
+            col.prop(effector_settings, "surface_distance", text="Surface Thickness")
 
-            if effec.effec_type == 'GUIDE':
-                col.prop(effec, "velocity_factor", text="Velocity Factor")
+            if effector_settings.effector_type == 'GUIDE':
+                col.prop(effector_settings, "velocity_factor", text="Velocity Factor")
                 col = flow.column()
-                col.prop(effec, "guide_mode", text="Guide Mode")
+                col.prop(effector_settings, "guide_mode", text="Guide Mode")
 
 
 class PHYSICS_PT_borders(PhysicButtonsPanel, Panel):
