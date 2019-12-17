@@ -68,8 +68,10 @@
 #include "DNA_world_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+
+#include "BLI_bitmap.h"
+#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
@@ -1636,128 +1638,134 @@ static ID *is_dupid(ListBase *lb, ID *id, const char *name)
 
 /**
  * Check to see if an ID name is already used, and find a new one if so.
- * Return true if created a new name (returned in name).
+ * Return true if a new name was created (returned in name).
  *
- * Normally the ID that's being check is already in the ListBase, so ID *id
- * points at the new entry.  The Python Library module needs to know what
- * the name of a data-block will be before it is appended; in this case ID *id
- * id is NULL
+ * Normally the ID that's being checked is already in the ListBase, so ID *id points at the new
+ * entry. The Python Library module needs to know what the name of a data-block will be before it
+ * is appended, in this case ID *id is NULL.
  */
-
 static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 {
-  ID *idtest;
-  int nr = 0, a;
-  size_t left_len;
-#define MAX_IN_USE 64
-  bool in_use[MAX_IN_USE];
-  /* to speed up finding unused numbers within [1 .. MAX_IN_USE - 1] */
+  /* Note: this code assumes and ensures that the suffix number can never go beyond 1 billion. */
+#define MAX_NUMBER 1000000000
+  /* We do not want to get "name.000", so minimal number is 1. */
+#define MIN_NUMBER 1
 
-  char left[MAX_ID_NAME + 8], leftest[MAX_ID_NAME + 8];
+  BLI_assert(strlen(name) < MAX_ID_NAME - 2);
+
+  bool is_name_changed = false;
+
+  /* To speed up finding smallest unused number within [0 .. MAX_NUMBERS_IN_USE - 1].
+   * We do not bother beyond that point. */
+#define MAX_NUMBERS_IN_USE 1024
+  BLI_bitmap *numbers_in_use = BLI_BITMAP_NEW_ALLOCA(MAX_NUMBERS_IN_USE);
+
+  ID *id_test;
 
   while (true) {
-
     /* phase 1: id already exists? */
-    idtest = is_dupid(lb, id, name);
+    id_test = is_dupid(lb, id, name);
 
-    /* if there is no double, done */
-    if (idtest == NULL) {
-      return false;
+    /* If there is no double, we are done.
+     * Note however that name might have been changed (truncated) in a previous iteration already.
+     */
+    if (id_test == NULL) {
+      return is_name_changed;
     }
 
-    /* we have a dup; need to make a new name */
-    /* quick check so we can reuse one of first MAX_IN_USE - 1 ids if vacant */
-    memset(in_use, false, sizeof(in_use));
+    /* Get the name and number parts ("name.number"). */
+    char root_name[MAX_ID_NAME - 2];
+    int number = MIN_NUMBER;
+    size_t root_name_len = BLI_split_name_num(root_name, &number, name, '.');
 
-    /* get name portion, number portion ("name.number") */
-    left_len = BLI_split_name_num(left, &nr, name, '.');
-
-    /* if new name will be too long, truncate it */
-    if (nr > 999 && left_len > (MAX_ID_NAME - 8)) { /* assumption: won't go beyond 9999 */
-      left[MAX_ID_NAME - 8] = '\0';
-      left_len = MAX_ID_NAME - 8;
-    }
-    else if (left_len > (MAX_ID_NAME - 7)) {
-      left[MAX_ID_NAME - 7] = '\0';
-      left_len = MAX_ID_NAME - 7;
+    /* In case we get an insane initial number suffix in given name. */
+    /* Note: BLI_split_name_num() cannot return negative numbers, so we do not have to check for
+     * that here. */
+    if (number >= MAX_NUMBER || number < MIN_NUMBER) {
+      number = MIN_NUMBER;
     }
 
-    /* Code above may have generated invalid utf-8 string, due to raw truncation.
-     * Ensure we get a valid one now! */
-    left_len -= (size_t)BLI_utf8_invalid_strip(left, left_len);
+    char number_str[11]; /* Dot + nine digits + NULL terminator. */
+    size_t number_str_len = BLI_snprintf_rlen(number_str, ARRAY_SIZE(number_str), ".%.3d", number);
 
-    for (idtest = lb->first; idtest; idtest = idtest->next) {
-      int nrtest;
-      if ((id != idtest) && !ID_IS_LINKED(idtest) && (*name == *(idtest->name + 2)) &&
-          STREQLEN(name, idtest->name + 2, left_len) &&
-          (BLI_split_name_num(leftest, &nrtest, idtest->name + 2, '.') == left_len)) {
+    if (root_name_len + number_str_len >= MAX_ID_NAME - 2) {
+      /* This would overflow the maximum ID name length. */
+      root_name_len = MAX_ID_NAME - 2 - number_str_len - 1;
+      root_name[root_name_len] = '\0';
+
+      /* Code above may have generated invalid utf-8 string, due to raw truncation.
+       * Ensure we get a valid one now. */
+      root_name_len -= (size_t)BLI_utf8_invalid_strip(root_name, root_name_len);
+
+      /* Copy back truncated root name into orig name, and start the whole check again. */
+      BLI_strncpy(name, root_name, root_name_len + 1);
+      is_name_changed = true;
+      continue;
+    }
+
+    for (id_test = lb->first; id_test; id_test = id_test->next) {
+      char root_name_test[MAX_ID_NAME - 2];
+      int number_test;
+      if ((id != id_test) && !ID_IS_LINKED(id_test) && (*name == *(id_test->name + 2)) &&
+          STREQLEN(name, id_test->name + 2, root_name_len) &&
+          (BLI_split_name_num(root_name_test, &number_test, id_test->name + 2, '.') ==
+           root_name_len)) {
         /* will get here at least once, otherwise is_dupid call above would have returned NULL */
-        if (nrtest < MAX_IN_USE) {
-          in_use[nrtest] = true; /* mark as used */
+        if (number_test < MAX_NUMBERS_IN_USE) {
+          BLI_BITMAP_SET(numbers_in_use, number_test, true); /* Mark as used. */
         }
-        if (nr <= nrtest) {
-          nr = nrtest + 1; /* track largest unused */
+        if (number <= number_test) {
+          number = number_test + 1; /* Track first largest unused. */
         }
       }
     }
-    /* At this point, 'nr' will typically be at least 1. (but not always) */
-    // BLI_assert(nr >= 1);
 
-    /* decide which value of nr to use */
-    for (a = 0; a < MAX_IN_USE; a++) {
-      if (a >= nr) {
-        break; /* stop when we've checked up to biggest */ /* redundant check */
-      }
-      if (!in_use[a]) { /* found an unused value */
-        nr = a;
-        /* can only be zero if all potential duplicate names had
-         * nonzero numeric suffixes, which means name itself has
-         * nonzero numeric suffix (else no name conflict and wouldn't
-         * have got here), which means name[left_len] is not a null */
+    /* Decide which value of nr to use, either, if possible, the smallest unused one, or default to
+     * the first largest unused one we got from previous loop. */
+    for (int i = MIN_NUMBER; i < MAX_NUMBERS_IN_USE; i++) {
+      if (!BLI_BITMAP_TEST_BOOL(numbers_in_use, i)) {
+        number = i;
         break;
       }
     }
-    /* At this point, nr is either the lowest unused number within [0 .. MAX_IN_USE - 1],
-     * or 1 greater than the largest used number if all those low ones are taken.
-     * We can't be bothered to look for the lowest unused number beyond (MAX_IN_USE - 1). */
+    /* At this point, number is either the lowest unused number within
+     * [MIN_NUMBER .. MAX_NUMBERS_IN_USE - 1], or 1 greater than the largest used number if all
+     * those low ones are taken.
+     * We can't be bothered to look for the lowest unused number beyond
+     * (MAX_NUMBERS_IN_USE - 1).
+     */
 
-    /* If the original name has no numeric suffix,
-     * rather than just chopping and adding numbers,
-     * shave off the end chars until we have a unique name.
-     * Check the null terminators match as well so we don't get Cube.000 -> Cube.00 */
-    if (nr == 0 && name[left_len] == '\0') {
-      size_t len;
-      /* FIXME: this code will never be executed, because either nr will be
-       * at least 1, or name will not end at left_len! */
-      BLI_assert(0);
+    number_str_len = BLI_snprintf_rlen(number_str, ARRAY_SIZE(number_str), ".%.3d", number);
 
-      len = left_len - 1;
-      idtest = is_dupid(lb, id, name);
+    /* If the number would lead to an overflow of the maximum ID name length, we need to truncate
+     * the root name part and do all the number checks again. */
+    if (root_name_len + number_str_len >= MAX_ID_NAME - 2 || number >= MAX_NUMBER) {
+      root_name_len = MAX_ID_NAME - 2 - number_str_len - 1;
+      root_name[root_name_len] = '\0';
 
-      while (idtest && len > 1) {
-        name[len--] = '\0';
-        idtest = is_dupid(lb, id, name);
-      }
-      if (idtest == NULL) {
-        return true;
-      }
-      /* otherwise just continue and use a number suffix */
-    }
+      /* Code above may have generated invalid utf-8 string, due to raw truncation.
+       * Ensure we get a valid one now. */
+      root_name_len -= (size_t)BLI_utf8_invalid_strip(root_name, root_name_len);
 
-    if (nr > 999 && left_len > (MAX_ID_NAME - 8)) {
-      /* this would overflow name buffer */
-      left[MAX_ID_NAME - 8] = 0;
-      /* left_len = MAX_ID_NAME - 8; */ /* for now this isn't used again */
-      memcpy(name, left, sizeof(char) * (MAX_ID_NAME - 7));
+      /* We have to clear our list of small used numbers before we do the whole check again. */
+      BLI_bitmap_set_all(numbers_in_use, false, MAX_NUMBERS_IN_USE);
+
+      /* Copy back truncated root name into orig name, and start the whole check again. */
+      BLI_strncpy(name, root_name, root_name_len + 1);
+      is_name_changed = true;
       continue;
     }
-    /* this format specifier is from hell... */
-    BLI_snprintf(name, sizeof(id->name) - 2, "%s.%.3d", left, nr);
 
-    return true;
+    /* We have our final number, we can put it in name and exit the function. */
+    BLI_strncpy(name + root_name_len, number_str, number_str_len + 1);
+    is_name_changed = true;
+
+    return is_name_changed;
   }
 
-#undef MAX_IN_USE
+#undef MAX_NUMBERS_IN_USE
+#undef MIN_NUMBER
+#undef MAX_NUMBER
 }
 
 /**
