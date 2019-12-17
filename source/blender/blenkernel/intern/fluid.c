@@ -1443,7 +1443,7 @@ static void update_obstacleflags(FluidDomainSettings *mds,
                                  int coll_ob_array_len)
 {
   int active_fields = mds->active_fields;
-  unsigned int coll_index;
+  uint coll_index;
 
   /* First, remove all flags that we want to update. */
   int prev_flags = (FLUID_DOMAIN_ACTIVE_OBSTACLE | FLUID_DOMAIN_ACTIVE_GUIDING);
@@ -1488,7 +1488,7 @@ static void update_obstacles(Depsgraph *depsgraph,
                              float dt)
 {
   Object **coll_ob_array = NULL;
-  unsigned int coll_ob_array_len = 0, coll_index = 0;
+  uint coll_ob_array_len = 0, coll_index = 0;
 
   coll_ob_array = BKE_collision_objects_create(
       depsgraph, ob, mds->effector_group, &coll_ob_array_len, eModifierType_Fluid);
@@ -1516,7 +1516,7 @@ static void update_obstacles(Depsgraph *depsgraph,
   int *obstacles = manta_smoke_get_obstacle(mds->fluid);
   int *num_obstacles = manta_get_num_obstacle(mds->fluid);
   int *num_guides = manta_get_num_guide(mds->fluid);
-  unsigned int z;
+  uint z;
   float tmp = 0;
 
   /* Grid reset before writing again. */
@@ -2741,7 +2741,7 @@ static void emit_from_mesh(
  **********************************************************/
 
 static void adaptive_domain_adjust(
-    FluidDomainSettings *mds, Object *ob, EmissionMap *emaps, unsigned int numflowobj, float dt)
+    FluidDomainSettings *mds, Object *ob, EmissionMap *emaps, uint numflowobj, float dt)
 {
   /* calculate domain shift for current frame */
   int new_shift[3] = {0};
@@ -3132,7 +3132,7 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *mfs,
 static void update_flowsflags(FluidDomainSettings *mds, Object **flowobjs, int numflowobj)
 {
   int active_fields = mds->active_fields;
-  unsigned int flow_index;
+  uint flow_index;
 
   /* Monitor active fields based on flow settings */
   for (flow_index = 0; flow_index < numflowobj; flow_index++) {
@@ -3241,7 +3241,7 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
 {
   EmissionMap *emaps = NULL;
   Object **flowobjs = NULL;
-  unsigned int numflowobj = 0, flow_index = 0;
+  uint numflowobj = 0, flow_index = 0;
   bool is_first_frame = (frame == mds->cache_frame_start);
 
   flowobjs = BKE_collision_objects_create(
@@ -3406,7 +3406,7 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
   float *velx_initial = manta_get_in_velocity_x(mds->fluid);
   float *vely_initial = manta_get_in_velocity_y(mds->fluid);
   float *velz_initial = manta_get_in_velocity_z(mds->fluid);
-  unsigned int z;
+  uint z;
 
   /* Grid reset before writing again */
   for (z = 0; z < mds->res[0] * mds->res[1] * mds->res[2]; z++) {
@@ -3590,7 +3590,7 @@ static void update_effectors_task_cb(void *__restrict userdata,
       EffectedPoint epoint;
       float mag;
       float voxel_center[3] = {0, 0, 0}, vel[3] = {0, 0, 0}, retvel[3] = {0, 0, 0};
-      const unsigned int index = manta_get_index(x, mds->res[0], y, mds->res[1], z);
+      const uint index = manta_get_index(x, mds->res[0], y, mds->res[1], z);
 
       if ((data->fuel && MAX2(data->density[index], data->fuel[index]) < FLT_EPSILON) ||
           (data->density && data->density[index] < FLT_EPSILON) ||
@@ -4129,7 +4129,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   FluidDomainSettings *mds = mmd->domain;
   Object *guiding_parent = NULL;
   Object **objs = NULL;
-  unsigned int numobj = 0;
+  uint numobj = 0;
   FluidModifierData *mmd_parent = NULL;
 
   bool is_startframe;
