@@ -748,11 +748,7 @@ static bool project_paint_PickColor(const ProjPaintState *ps,
   iuser.tile = tile_number;
   ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
   if (ibuf == NULL) {
-    iuser.tile = 0;
-    ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
-    if (ibuf == NULL) {
-      return 0;
-    }
+    return false;
   }
 
   if (interp) {
@@ -3554,16 +3550,7 @@ static void project_bucket_init(const ProjPaintState *ps,
             break;
           }
         }
-        if (ibuf == NULL) {
-          /* Failed to find the specific tile, fall back to the primary tile. */
-          for (image_index = 0; image_index < ps->image_tot; image_index++) {
-            ProjPaintImage *projIma = &ps->projImages[image_index];
-            if ((projIma->ima == tpage) && (projIma->iuser.tile == 0)) {
-              ibuf = projIma->ibuf;
-              break;
-            }
-          }
-        }
+        BLI_assert(ibuf != NULL);
       }
       /* context switching done */
 
@@ -4454,11 +4441,19 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
         }
 
         if (image_index == ps->image_tot) {
-          PrepareImageEntry *e = MEM_callocN(sizeof(PrepareImageEntry), "PrepareImageEntry");
-          e->ima = tpage;
-          e->tile = tile;
-          BLI_addtail(&used_images, e);
-          ps->image_tot++;
+          ImageUser iuser;
+          BKE_imageuser_default(&iuser);
+          iuser.tile = tile;
+          if (BKE_image_has_ibuf(tpage, &iuser)) {
+            PrepareImageEntry *e = MEM_callocN(sizeof(PrepareImageEntry), "PrepareImageEntry");
+            e->ima = tpage;
+            e->tile = tile;
+            BLI_addtail(&used_images, e);
+            ps->image_tot++;
+          }
+          else {
+            image_index = -1;
+          }
         }
 
         tpage_last = tpage;
