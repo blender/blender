@@ -134,7 +134,7 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             domain = md.domain_settings
 
             # Deactivate UI if guiding is enabled but not baked yet
-            layout.active = not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == "EFFECTOR" or (domain.guiding_source == "DOMAIN" and not domain.guiding_parent)))
+            layout.active = not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
 
             baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
             baked_data = domain.cache_baked_data
@@ -170,7 +170,7 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             # TODO (sebbas): Clipping var useful for manta openvdb caching?
             # col.prop(domain, "clipping", text="Empty Space")
 
-            if domain.cache_type == "MODULAR":
+            if domain.cache_type == 'MODULAR':
                 col.separator()
                 split = layout.split()
 
@@ -234,7 +234,7 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             col.prop(effec, "use_plane_init", text="Is Planar")
             col.prop(effec, "surface_distance", text="Surface Thickness")
 
-            if effec.effec_type == "GUIDE":
+            if effec.effec_type == 'GUIDE':
                 col.prop(effec, "velocity_factor", text="Velocity Factor")
                 col = flow.column()
                 col.prop(effec, "guiding_mode", text="Guiding Mode")
@@ -642,7 +642,7 @@ class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guiding is enabled but not baked yet
-        layout.active = domain.use_noise and not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == "EFFECTOR" or (domain.guiding_source == "DOMAIN" and not domain.guiding_parent)))
+        layout.active = domain.use_noise and not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
 
         baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
         baked_noise = domain.cache_baked_noise
@@ -660,7 +660,7 @@ class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
         col.prop(domain, "noise_pos_scale", text="Scale")
         col.prop(domain, "noise_time_anim", text="Time")
 
-        if domain.cache_type == "MODULAR":
+        if domain.cache_type == 'MODULAR':
             col.separator()
 
             split = layout.split()
@@ -708,7 +708,7 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guiding is enabled but not baked yet
-        layout.active = domain.use_mesh and not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == "EFFECTOR" or (domain.guiding_source == "DOMAIN" and not domain.guiding_parent)))
+        layout.active = domain.use_mesh and not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
 
         baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
         baked_mesh = domain.cache_baked_mesh
@@ -739,7 +739,7 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
         # TODO (sebbas): for now just interpolate any upres grids, ie not sampling highres grids
         #col.prop(domain, "highres_sampling", text="Flow Sampling:")
 
-        if domain.cache_type == "MODULAR":
+        if domain.cache_type == 'MODULAR':
             col.separator()
 
             split = layout.split()
@@ -780,7 +780,7 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guiding is enabled but not baked yet
-        layout.active = not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == "EFFECTOR" or (domain.guiding_source == "DOMAIN" and not domain.guiding_parent)))
+        layout.active = not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
 
         baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
         baked_particles = domain.cache_baked_particles
@@ -845,7 +845,7 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
         col = flow.column()
         col.prop(domain, "sndparticle_boundary", text="Particles in Boundary:")
 
-        if domain.cache_type == "MODULAR":
+        if domain.cache_type == 'MODULAR':
             col.separator()
 
             split = layout.split()
@@ -887,7 +887,7 @@ class PHYSICS_PT_diffusion(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guiding is enabled but not baked yet
-        layout.active = not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == "EFFECTOR" or (domain.guiding_source == "DOMAIN" and not domain.guiding_parent)))
+        layout.active = not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
 
         baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
         baked_any = domain.cache_baked_data or domain.cache_baked_mesh or domain.cache_baked_particles or domain.cache_baked_noise or domain.cache_baked_guiding
@@ -956,13 +956,13 @@ class PHYSICS_PT_guiding(PhysicButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(domain, "guiding_source", text="Velocity Source")
-        if domain.guiding_source == "DOMAIN":
+        if domain.guiding_source == 'DOMAIN':
             col.prop(domain, "guiding_parent", text="Guiding Parent")
 
-        if domain.cache_type == "MODULAR":
+        if domain.cache_type == 'MODULAR':
             col.separator()
 
-            if domain.guiding_source == "EFFECTOR":
+            if domain.guiding_source == 'EFFECTOR':
                 split = layout.split()
                 bake_incomplete = (domain.cache_frame_pause_guiding < domain.cache_frame_end)
                 if domain.cache_baked_guiding and not domain.cache_baking_guiding and bake_incomplete:
@@ -1063,7 +1063,7 @@ class PHYSICS_PT_cache(PhysicButtonsPanel, Panel):
             if domain.use_mesh:
                 col.prop(domain, "cache_mesh_format", text="Mesh File Format")
 
-        if domain.cache_type == "FINAL":
+        if domain.cache_type == 'FINAL':
 
             col.separator()
             split = layout.split()

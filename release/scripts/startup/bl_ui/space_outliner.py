@@ -48,7 +48,7 @@ class OUTLINER_HT_header(Header):
 
         if display_mode == 'SEQUENCE':
             row = layout.row(align=True)
-            row.prop(space, "use_sync_select", icon="UV_SYNC_SELECT", text="")
+            row.prop(space, "use_sync_select", icon='UV_SYNC_SELECT', text="")
 
         row = layout.row(align=True)
         if display_mode in {'SCENES', 'VIEW_LAYER'}:
