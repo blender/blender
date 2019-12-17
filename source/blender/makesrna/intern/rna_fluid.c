@@ -454,9 +454,9 @@ static void rna_Fluid_cachetype_set(struct PointerRNA *ptr, int value)
   }
 }
 
-static void rna_Fluid_guiding_parent_set(struct PointerRNA *ptr,
-                                         struct PointerRNA value,
-                                         struct ReportList *UNUSED(reports))
+static void rna_Fluid_guide_parent_set(struct PointerRNA *ptr,
+                                       struct PointerRNA value,
+                                       struct ReportList *UNUSED(reports))
 {
   FluidDomainSettings *mds = (FluidDomainSettings *)ptr->data;
   Object *par = (Object *)value.data;
@@ -466,12 +466,12 @@ static void rna_Fluid_guiding_parent_set(struct PointerRNA *ptr,
   if (par != NULL) {
     mmd_par = (FluidModifierData *)modifiers_findByType(par, eModifierType_Fluid);
     if (mmd_par && mmd_par->domain) {
-      mds->guiding_parent = value.data;
+      mds->guide_parent = value.data;
       copy_v3_v3_int(mds->guide_res, mmd_par->domain->res);
     }
   }
   else {
-    mds->guiding_parent = NULL;
+    mds->guide_parent = NULL;
   }
 }
 
@@ -1082,14 +1082,14 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  static EnumPropertyItem fluid_guiding_source_items[] = {
-      {FLUID_DOMAIN_GUIDING_SRC_DOMAIN,
+  static EnumPropertyItem fluid_guide_source_items[] = {
+      {FLUID_DOMAIN_GUIDE_SRC_DOMAIN,
        "DOMAIN",
        0,
        "Domain",
        "Use a fluid domain for guiding (domain needs to be baked already so that velocities can "
        "be extracted but can be of any type)"},
-      {FLUID_DOMAIN_GUIDING_SRC_EFFECTOR,
+      {FLUID_DOMAIN_GUIDE_SRC_EFFECTOR,
        "EFFECTOR",
        0,
        "Effector",
@@ -1897,20 +1897,20 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
 
   /* fluid guiding options */
 
-  prop = RNA_def_property(srna, "guiding_alpha", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "guiding_alpha");
+  prop = RNA_def_property(srna, "guide_alpha", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "guide_alpha");
   RNA_def_property_range(prop, 1.0, 100.0);
   RNA_def_property_ui_text(prop, "Weight", "Guiding weight (higher value results in greater lag)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 
-  prop = RNA_def_property(srna, "guiding_beta", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "guiding_beta");
+  prop = RNA_def_property(srna, "guide_beta", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "guide_beta");
   RNA_def_property_range(prop, 1, 50);
   RNA_def_property_ui_text(prop, "Size", "Guiding size (higher value results in larger vortices)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 
-  prop = RNA_def_property(srna, "guiding_vel_factor", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "guiding_vel_factor");
+  prop = RNA_def_property(srna, "guide_vel_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "guide_vel_factor");
   RNA_def_property_range(prop, 0.0, 100.0);
   RNA_def_property_ui_text(
       prop,
@@ -1918,16 +1918,16 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       "Guiding velocity factor (higher value results in bigger guiding velocities)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 
-  prop = RNA_def_property(srna, "guiding_source", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "guiding_source");
-  RNA_def_property_enum_items(prop, fluid_guiding_source_items);
+  prop = RNA_def_property(srna, "guide_source", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "guide_source");
+  RNA_def_property_enum_items(prop, fluid_guide_source_items);
   RNA_def_property_ui_text(prop, "Guiding source", "Choose where to get guiding velocities from");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Fluid_update");
 
-  prop = RNA_def_property(srna, "guiding_parent", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, NULL, "guiding_parent");
+  prop = RNA_def_property(srna, "guide_parent", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "guide_parent");
   RNA_def_property_struct_type(prop, "Object");
-  RNA_def_property_pointer_funcs(prop, NULL, "rna_Fluid_guiding_parent_set", NULL, NULL);
+  RNA_def_property_pointer_funcs(prop, NULL, "rna_Fluid_guide_parent_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "",
@@ -1935,8 +1935,8 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
                            "to have fluid modifier and be of type domain))");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Fluid_update");
 
-  prop = RNA_def_property(srna, "use_guiding", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flags", FLUID_DOMAIN_USE_GUIDING);
+  prop = RNA_def_property(srna, "use_guide", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", FLUID_DOMAIN_USE_GUIDE);
   RNA_def_property_ui_text(prop, "Use Guiding", "Enable fluid guiding");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
@@ -1966,8 +1966,8 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "cache_frame_pause_particles", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, NULL, "cache_frame_pause_particles");
 
-  prop = RNA_def_property(srna, "cache_frame_pause_guiding", PROP_INT, PROP_TIME);
-  RNA_def_property_int_sdna(prop, NULL, "cache_frame_pause_guiding");
+  prop = RNA_def_property(srna, "cache_frame_pause_guide", PROP_INT, PROP_TIME);
+  RNA_def_property_int_sdna(prop, NULL, "cache_frame_pause_guide");
 
   prop = RNA_def_property(srna, "cache_mesh_format", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "cache_mesh_format");
@@ -2051,12 +2051,12 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKED_PARTICLES);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
-  prop = RNA_def_property(srna, "is_cache_baking_guiding", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKING_GUIDING);
+  prop = RNA_def_property(srna, "is_cache_baking_guide", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKING_GUIDE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
-  prop = RNA_def_property(srna, "has_cache_baked_guiding", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKED_GUIDING);
+  prop = RNA_def_property(srna, "has_cache_baked_guide", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKED_GUIDE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
   /* Read only checks, avoids individually accessing flags above. */
@@ -2506,30 +2506,30 @@ static void rna_def_fluid_effec_settings(BlenderRNA *brna)
 {
   static EnumPropertyItem effec_type_items[] = {
       {FLUID_EFFECTOR_TYPE_COLLISION, "COLLISION", 0, "Collision", "Create collision object"},
-      {FLUID_EFFECTOR_TYPE_GUIDE, "GUIDE", 0, "Guide", "Create guiding object"},
+      {FLUID_EFFECTOR_TYPE_GUIDE, "GUIDE", 0, "Guide", "Create guide object"},
       {0, NULL, 0, NULL, NULL},
   };
 
-  static EnumPropertyItem fluid_guiding_mode_items[] = {
-      {FLUID_EFFECTOR_GUIDING_MAXIMUM,
+  static EnumPropertyItem fluid_guide_mode_items[] = {
+      {FLUID_EFFECTOR_GUIDE_MAX,
        "MAXIMUM",
        0,
        "Maximize",
        "Compare velocities from previous frame with new velocities from current frame and keep "
        "the maximum"},
-      {FLUID_EFFECTOR_GUIDING_MINIMUM,
+      {FLUID_EFFECTOR_GUIDE_MIN,
        "MINIMUM",
        0,
        "Minimize",
        "Compare velocities from previous frame with new velocities from current frame and keep "
        "the minimum"},
-      {FLUID_EFFECTOR_GUIDING_OVERRIDE,
+      {FLUID_EFFECTOR_GUIDE_OVERRIDE,
        "OVERRIDE",
        0,
        "Override",
-       "Always write new guiding velocities for every frame (each frame only contains current "
+       "Always write new guide velocities for every frame (each frame only contains current "
        "velocities from guiding objects)"},
-      {FLUID_EFFECTOR_GUIDING_AVERAGED,
+      {FLUID_EFFECTOR_GUIDE_AVERAGED,
        "AVERAGED",
        0,
        "Averaged",
@@ -2569,9 +2569,9 @@ static void rna_def_fluid_effec_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Source", "Multiplier of obstacle velocity");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 
-  prop = RNA_def_property(srna, "guiding_mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "guiding_mode");
-  RNA_def_property_enum_items(prop, fluid_guiding_mode_items);
+  prop = RNA_def_property(srna, "guide_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "guide_mode");
+  RNA_def_property_enum_items(prop, fluid_guide_mode_items);
   RNA_def_property_ui_text(prop, "Guiding mode", "How to create guiding velocities");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Fluid_update");
 }

@@ -136,8 +136,8 @@ static void operatortypes_fluid(void)
   WM_operatortype_append(FLUID_OT_free_mesh);
   WM_operatortype_append(FLUID_OT_bake_particles);
   WM_operatortype_append(FLUID_OT_free_particles);
-  WM_operatortype_append(FLUID_OT_bake_guiding);
-  WM_operatortype_append(FLUID_OT_free_guiding);
+  WM_operatortype_append(FLUID_OT_bake_guides);
+  WM_operatortype_append(FLUID_OT_free_guides);
   WM_operatortype_append(FLUID_OT_pause_bake);
 }
 

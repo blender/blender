@@ -163,11 +163,11 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
                                  PFIELD_SMOKEFLOW,
                                  "Fluid Force Field");
 
-    if (mmd->domain->guiding_parent != NULL) {
+    if (mmd->domain->guide_parent != NULL) {
       DEG_add_object_relation(
-          ctx->node, mmd->domain->guiding_parent, DEG_OB_COMP_TRANSFORM, "Fluid Guiding Object");
+          ctx->node, mmd->domain->guide_parent, DEG_OB_COMP_TRANSFORM, "Fluid Guiding Object");
       DEG_add_object_relation(
-          ctx->node, mmd->domain->guiding_parent, DEG_OB_COMP_GEOMETRY, "Fluid Guiding Object");
+          ctx->node, mmd->domain->guide_parent, DEG_OB_COMP_GEOMETRY, "Fluid Guiding Object");
     }
   }
 }
@@ -181,8 +181,8 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
     walk(userData, ob, (ID **)&mmd->domain->fluid_group, IDWALK_CB_NOP);
     walk(userData, ob, (ID **)&mmd->domain->force_group, IDWALK_CB_NOP);
 
-    if (mmd->domain->guiding_parent) {
-      walk(userData, ob, (ID **)&mmd->domain->guiding_parent, IDWALK_CB_NOP);
+    if (mmd->domain->guide_parent) {
+      walk(userData, ob, (ID **)&mmd->domain->guide_parent, IDWALK_CB_NOP);
     }
 
     if (mmd->domain->effector_weights) {

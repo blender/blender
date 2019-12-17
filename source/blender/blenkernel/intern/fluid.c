@@ -363,15 +363,13 @@ void BKE_fluid_cache_free(FluidDomainSettings *mds, Object *ob, int cache_map)
     mds->cache_frame_pause_particles = 0;
   }
 
-  if (cache_map & FLUID_DOMAIN_OUTDATED_GUIDING) {
-    flags &= ~(FLUID_DOMAIN_BAKING_GUIDING | FLUID_DOMAIN_BAKED_GUIDING |
-               FLUID_DOMAIN_OUTDATED_GUIDING);
-    BLI_path_join(
-        temp_dir, sizeof(temp_dir), mds->cache_directory, FLUID_DOMAIN_DIR_GUIDING, NULL);
+  if (cache_map & FLUID_DOMAIN_OUTDATED_GUIDE) {
+    flags &= ~(FLUID_DOMAIN_BAKING_GUIDE | FLUID_DOMAIN_BAKED_GUIDE | FLUID_DOMAIN_OUTDATED_GUIDE);
+    BLI_path_join(temp_dir, sizeof(temp_dir), mds->cache_directory, FLUID_DOMAIN_DIR_GUIDE, NULL);
     if (BLI_exists(temp_dir)) {
       BLI_delete(temp_dir, true, true);
     }
-    mds->cache_frame_pause_guiding = 0;
+    mds->cache_frame_pause_guide = 0;
   }
   mds->cache_flag = flags;
 }
@@ -789,12 +787,12 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
     mmd->domain->particle_type = 0;
     mmd->domain->particle_scale = 1;
 
-    /* fluid guiding options */
-    mmd->domain->guiding_parent = NULL;
-    mmd->domain->guiding_alpha = 2.0f;
-    mmd->domain->guiding_beta = 5;
-    mmd->domain->guiding_vel_factor = 2.0f;
-    mmd->domain->guiding_source = FLUID_DOMAIN_GUIDING_SRC_DOMAIN;
+    /* fluid guide options */
+    mmd->domain->guide_parent = NULL;
+    mmd->domain->guide_alpha = 2.0f;
+    mmd->domain->guide_beta = 5;
+    mmd->domain->guide_vel_factor = 2.0f;
+    mmd->domain->guide_source = FLUID_DOMAIN_GUIDE_SRC_DOMAIN;
 
     /* cache options */
     mmd->domain->cache_frame_start = 1;
@@ -803,7 +801,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
     mmd->domain->cache_frame_pause_noise = 0;
     mmd->domain->cache_frame_pause_mesh = 0;
     mmd->domain->cache_frame_pause_particles = 0;
-    mmd->domain->cache_frame_pause_guiding = 0;
+    mmd->domain->cache_frame_pause_guide = 0;
     mmd->domain->cache_flag = 0;
     mmd->domain->cache_type = FLUID_DOMAIN_CACHE_MODULAR;
     mmd->domain->cache_mesh_format = FLUID_DOMAIN_FILE_BIN_OBJECT;
@@ -913,8 +911,8 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
     mmd->effector->type = FLUID_EFFECTOR_TYPE_COLLISION;
     mmd->effector->flags = 0;
 
-    /* guiding options */
-    mmd->effector->guiding_mode = FLUID_EFFECTOR_GUIDING_MAXIMUM;
+    /* guide options */
+    mmd->effector->guide_mode = FLUID_EFFECTOR_GUIDE_MAX;
     mmd->effector->vel_multi = 1.0f;
   }
 }
@@ -1029,13 +1027,13 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *mmd,
     tmds->particle_type = mds->particle_type;
     tmds->particle_scale = mds->particle_scale;
 
-    /* fluid guiding options */
-    tmds->guiding_parent = mds->guiding_parent;
-    tmds->guiding_alpha = mds->guiding_alpha;
-    tmds->guiding_beta = mds->guiding_beta;
-    tmds->guiding_vel_factor = mds->guiding_vel_factor;
+    /* fluid guide options */
+    tmds->guide_parent = mds->guide_parent;
+    tmds->guide_alpha = mds->guide_alpha;
+    tmds->guide_beta = mds->guide_beta;
+    tmds->guide_vel_factor = mds->guide_vel_factor;
     copy_v3_v3_int(tmds->guide_res, mds->guide_res);
-    tmds->guiding_source = mds->guiding_source;
+    tmds->guide_source = mds->guide_source;
 
     /* cache options */
     tmds->cache_frame_start = mds->cache_frame_start;
@@ -1044,7 +1042,7 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *mmd,
     tmds->cache_frame_pause_noise = mds->cache_frame_pause_noise;
     tmds->cache_frame_pause_mesh = mds->cache_frame_pause_mesh;
     tmds->cache_frame_pause_particles = mds->cache_frame_pause_particles;
-    tmds->cache_frame_pause_guiding = mds->cache_frame_pause_guiding;
+    tmds->cache_frame_pause_guide = mds->cache_frame_pause_guide;
     tmds->cache_flag = mds->cache_flag;
     tmds->cache_type = mds->cache_type;
     tmds->cache_mesh_format = mds->cache_mesh_format;
@@ -1140,8 +1138,8 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *mmd,
     tmes->surface_distance = mes->surface_distance;
     tmes->type = mes->type;
 
-    /* guiding options */
-    tmes->guiding_mode = mes->guiding_mode;
+    /* guide options */
+    tmes->guide_mode = mes->guide_mode;
     tmes->vel_multi = mes->vel_multi;
   }
 }
@@ -1256,23 +1254,23 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
           if (data->mes->type == FLUID_EFFECTOR_TYPE_GUIDE) {
             mul_v3_fl(hit_vel, data->mes->vel_multi);
 
-            switch (data->mes->guiding_mode) {
-              case FLUID_EFFECTOR_GUIDING_AVERAGED:
+            switch (data->mes->guide_mode) {
+              case FLUID_EFFECTOR_GUIDE_AVERAGED:
                 data->velocity_x[index] = (data->velocity_x[index] + hit_vel[0]) * 0.5f;
                 data->velocity_y[index] = (data->velocity_y[index] + hit_vel[1]) * 0.5f;
                 data->velocity_z[index] = (data->velocity_z[index] + hit_vel[2]) * 0.5f;
                 break;
-              case FLUID_EFFECTOR_GUIDING_OVERRIDE:
+              case FLUID_EFFECTOR_GUIDE_OVERRIDE:
                 data->velocity_x[index] = hit_vel[0];
                 data->velocity_y[index] = hit_vel[1];
                 data->velocity_z[index] = hit_vel[2];
                 break;
-              case FLUID_EFFECTOR_GUIDING_MINIMUM:
+              case FLUID_EFFECTOR_GUIDE_MIN:
                 data->velocity_x[index] = MIN2(fabsf(hit_vel[0]), fabsf(data->velocity_x[index]));
                 data->velocity_y[index] = MIN2(fabsf(hit_vel[1]), fabsf(data->velocity_y[index]));
                 data->velocity_z[index] = MIN2(fabsf(hit_vel[2]), fabsf(data->velocity_z[index]));
                 break;
-              case FLUID_EFFECTOR_GUIDING_MAXIMUM:
+              case FLUID_EFFECTOR_GUIDE_MAX:
               default:
                 data->velocity_x[index] = MAX2(fabsf(hit_vel[0]), fabsf(data->velocity_x[index]));
                 data->velocity_y[index] = MAX2(fabsf(hit_vel[1]), fabsf(data->velocity_y[index]));
@@ -1446,7 +1444,7 @@ static void update_obstacleflags(FluidDomainSettings *mds,
   uint coll_index;
 
   /* First, remove all flags that we want to update. */
-  int prev_flags = (FLUID_DOMAIN_ACTIVE_OBSTACLE | FLUID_DOMAIN_ACTIVE_GUIDING);
+  int prev_flags = (FLUID_DOMAIN_ACTIVE_OBSTACLE | FLUID_DOMAIN_ACTIVE_GUIDE);
   active_fields &= ~prev_flags;
 
   /* Monitor active fields based on flow settings */
@@ -1464,7 +1462,7 @@ static void update_obstacleflags(FluidDomainSettings *mds,
         active_fields |= FLUID_DOMAIN_ACTIVE_OBSTACLE;
       }
       if (mes->type == FLUID_EFFECTOR_TYPE_GUIDE) {
-        active_fields |= FLUID_DOMAIN_ACTIVE_GUIDING;
+        active_fields |= FLUID_DOMAIN_ACTIVE_GUIDE;
       }
     }
   }
@@ -1472,7 +1470,7 @@ static void update_obstacleflags(FluidDomainSettings *mds,
   if (active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE) {
     manta_ensure_obstacle(mds->fluid, mds->mmd);
   }
-  if (active_fields & FLUID_DOMAIN_ACTIVE_GUIDING) {
+  if (active_fields & FLUID_DOMAIN_ACTIVE_GUIDE) {
     manta_ensure_guiding(mds->fluid, mds->mmd);
   }
   mds->active_fields = active_fields;
@@ -4127,7 +4125,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
                                              const int scene_framenr)
 {
   FluidDomainSettings *mds = mmd->domain;
-  Object *guiding_parent = NULL;
+  Object *guide_parent = NULL;
   Object **objs = NULL;
   uint numobj = 0;
   FluidModifierData *mmd_parent = NULL;
@@ -4151,9 +4149,9 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   mds->time_total = (scene_framenr - 1) * mds->frame_length;
 
   /* Guiding parent res pointer needs initialization */
-  guiding_parent = mds->guiding_parent;
-  if (guiding_parent) {
-    mmd_parent = (FluidModifierData *)modifiers_findByType(guiding_parent, eModifierType_Fluid);
+  guide_parent = mds->guide_parent;
+  if (guide_parent) {
+    mmd_parent = (FluidModifierData *)modifiers_findByType(guide_parent, eModifierType_Fluid);
     if (mmd_parent->domain) {
       copy_v3_v3_int(mds->guide_res, mmd_parent->domain->res);
     }
@@ -4178,7 +4176,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   BLI_path_abs(mds->cache_directory, relbase);
 
   int data_frame = scene_framenr, noise_frame = scene_framenr;
-  int mesh_frame = scene_framenr, particles_frame = scene_framenr, guiding_frame = scene_framenr;
+  int mesh_frame = scene_framenr, particles_frame = scene_framenr, guide_frame = scene_framenr;
 
   bool with_smoke, with_liquid;
   with_smoke = mds->type == FLUID_DOMAIN_TYPE_GAS;
@@ -4189,40 +4187,40 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   bubble = mds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE;
   floater = mds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM;
 
-  bool with_script, with_adaptive, with_noise, with_mesh, with_particles, with_guiding;
+  bool with_script, with_adaptive, with_noise, with_mesh, with_particles, with_guide;
   with_script = mds->flags & FLUID_DOMAIN_EXPORT_MANTA_SCRIPT;
   with_adaptive = mds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN;
   with_noise = mds->flags & FLUID_DOMAIN_USE_NOISE;
   with_mesh = mds->flags & FLUID_DOMAIN_USE_MESH;
-  with_guiding = mds->flags & FLUID_DOMAIN_USE_GUIDING;
+  with_guide = mds->flags & FLUID_DOMAIN_USE_GUIDE;
   with_particles = drops || bubble || floater;
 
-  bool has_data, has_noise, has_mesh, has_particles, has_guiding;
-  has_data = has_noise = has_mesh = has_particles = has_guiding = false;
+  bool has_data, has_noise, has_mesh, has_particles, has_guide;
+  has_data = has_noise = has_mesh = has_particles = has_guide = false;
 
-  bool baking_data, baking_noise, baking_mesh, baking_particles, baking_guiding, bake_outdated;
+  bool baking_data, baking_noise, baking_mesh, baking_particles, baking_guide, bake_outdated;
   baking_data = mds->cache_flag & FLUID_DOMAIN_BAKING_DATA;
   baking_noise = mds->cache_flag & FLUID_DOMAIN_BAKING_NOISE;
   baking_mesh = mds->cache_flag & FLUID_DOMAIN_BAKING_MESH;
   baking_particles = mds->cache_flag & FLUID_DOMAIN_BAKING_PARTICLES;
-  baking_guiding = mds->cache_flag & FLUID_DOMAIN_BAKING_GUIDING;
+  baking_guide = mds->cache_flag & FLUID_DOMAIN_BAKING_GUIDE;
   bake_outdated = mds->cache_flag &
                   (FLUID_DOMAIN_OUTDATED_DATA | FLUID_DOMAIN_OUTDATED_NOISE |
                    FLUID_DOMAIN_OUTDATED_NOISE | FLUID_DOMAIN_OUTDATED_MESH |
-                   FLUID_DOMAIN_OUTDATED_PARTICLES | FLUID_DOMAIN_OUTDATED_GUIDING);
+                   FLUID_DOMAIN_OUTDATED_PARTICLES | FLUID_DOMAIN_OUTDATED_GUIDE);
 
-  bool resume_data, resume_noise, resume_mesh, resume_particles, resume_guiding;
+  bool resume_data, resume_noise, resume_mesh, resume_particles, resume_guide;
   resume_data = (!is_startframe) && (mds->cache_frame_pause_data == scene_framenr);
   resume_noise = (!is_startframe) && (mds->cache_frame_pause_noise == scene_framenr);
   resume_mesh = (!is_startframe) && (mds->cache_frame_pause_mesh == scene_framenr);
   resume_particles = (!is_startframe) && (mds->cache_frame_pause_particles == scene_framenr);
-  resume_guiding = (!is_startframe) && (mds->cache_frame_pause_guiding == scene_framenr);
+  resume_guide = (!is_startframe) && (mds->cache_frame_pause_guide == scene_framenr);
 
   bool read_cache, bake_cache;
   read_cache = false, bake_cache = baking_data || baking_noise || baking_mesh || baking_particles;
 
   bool with_gdomain;
-  with_gdomain = (mds->guiding_source == FLUID_DOMAIN_GUIDING_SRC_DOMAIN);
+  with_gdomain = (mds->guide_source == FLUID_DOMAIN_GUIDE_SRC_DOMAIN);
 
   int o_res[3], o_min[3], o_max[3], o_shift[3];
   int mode = mds->cache_type;
@@ -4262,15 +4260,15 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
       if (baking_particles && resume_particles) {
         particles_frame = prev_frame;
       }
-      if (baking_guiding && resume_guiding) {
-        guiding_frame = prev_frame;
+      if (baking_guide && resume_guide) {
+        guide_frame = prev_frame;
       }
 
       /* Noise, mesh and particles can never be baked more than data. */
       CLAMP(noise_frame, noise_frame, data_frame);
       CLAMP(mesh_frame, mesh_frame, data_frame);
       CLAMP(particles_frame, particles_frame, data_frame);
-      CLAMP(guiding_frame, guiding_frame, mds->cache_frame_end);
+      CLAMP(guide_frame, guide_frame, mds->cache_frame_end);
 
       /* Force to read cache as we're resuming the bake */
       read_cache = true;
@@ -4304,10 +4302,10 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
       has_particles = manta_read_particles(mds->fluid, mmd, particles_frame);
     }
 
-    /* Read guiding cache. */
-    if (with_guiding) {
+    /* Read guide cache. */
+    if (with_guide) {
       FluidModifierData *mmd2 = (with_gdomain) ? mmd_parent : mmd;
-      has_guiding = manta_read_guiding(mds->fluid, mmd2, scene_framenr, with_gdomain);
+      has_guide = manta_read_guiding(mds->fluid, mmd2, scene_framenr, with_gdomain);
     }
 
     /* Read noise and data cache */
@@ -4385,7 +4383,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
       }
     }
 
-    if (baking_guiding && with_guiding) {
+    if (baking_guide && with_guide) {
       manta_guiding(depsgraph, scene, ob, mmd, scene_framenr);
     }
     if (baking_data) {
@@ -4452,7 +4450,7 @@ struct Mesh *BKE_fluid_modifier_do(
     mmd->domain->cache_flag &= ~FLUID_DOMAIN_OUTDATED_NOISE;
     mmd->domain->cache_flag &= ~FLUID_DOMAIN_OUTDATED_MESH;
     mmd->domain->cache_flag &= ~FLUID_DOMAIN_OUTDATED_PARTICLES;
-    mmd->domain->cache_flag &= ~FLUID_DOMAIN_OUTDATED_GUIDING;
+    mmd->domain->cache_flag &= ~FLUID_DOMAIN_OUTDATED_GUIDE;
   }
   if (!result) {
     result = BKE_mesh_copy_for_eval(me, false);

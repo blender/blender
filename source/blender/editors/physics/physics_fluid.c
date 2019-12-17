@@ -70,13 +70,13 @@
 #define FLUID_JOB_BAKE_NOISE "FLUID_OT_bake_noise"
 #define FLUID_JOB_BAKE_MESH "FLUID_OT_bake_mesh"
 #define FLUID_JOB_BAKE_PARTICLES "FLUID_OT_bake_particles"
-#define FLUID_JOB_BAKE_GUIDING "FLUID_OT_bake_guiding"
+#define FLUID_JOB_BAKE_GUIDES "FLUID_OT_bake_guides"
 #define FLUID_JOB_FREE_ALL "FLUID_OT_free_all"
 #define FLUID_JOB_FREE_DATA "FLUID_OT_free_data"
 #define FLUID_JOB_FREE_NOISE "FLUID_OT_free_noise"
 #define FLUID_JOB_FREE_MESH "FLUID_OT_free_mesh"
 #define FLUID_JOB_FREE_PARTICLES "FLUID_OT_free_particles"
-#define FLUID_JOB_FREE_GUIDING "FLUID_OT_free_guiding"
+#define FLUID_JOB_FREE_GUIDES "FLUID_OT_free_guides"
 #define FLUID_JOB_BAKE_PAUSE "FLUID_OT_pause_bake"
 
 typedef struct FluidJob {
@@ -122,7 +122,7 @@ static inline bool fluid_is_bake_particle(FluidJob *job)
 }
 static inline bool fluid_is_bake_guiding(FluidJob *job)
 {
-  return (STREQ(job->type, FLUID_JOB_BAKE_GUIDING));
+  return (STREQ(job->type, FLUID_JOB_BAKE_GUIDES));
 }
 static inline bool fluid_is_free_all(FluidJob *job)
 {
@@ -146,7 +146,7 @@ static inline bool fluid_is_free_particles(FluidJob *job)
 }
 static inline bool fluid_is_free_guiding(FluidJob *job)
 {
-  return (STREQ(job->type, FLUID_JOB_FREE_GUIDING));
+  return (STREQ(job->type, FLUID_JOB_FREE_GUIDES));
 }
 
 static bool fluid_initjob(
@@ -326,9 +326,9 @@ static void fluid_bake_endjob(void *customdata)
     mds->cache_flag &= ~FLUID_DOMAIN_OUTDATED_PARTICLES;
   }
   if (fluid_is_bake_guiding(job) || fluid_is_bake_all(job)) {
-    mds->cache_flag &= ~FLUID_DOMAIN_BAKING_GUIDING;
-    mds->cache_flag |= FLUID_DOMAIN_BAKED_GUIDING;
-    mds->cache_flag &= ~FLUID_DOMAIN_OUTDATED_GUIDING;
+    mds->cache_flag &= ~FLUID_DOMAIN_BAKING_GUIDE;
+    mds->cache_flag |= FLUID_DOMAIN_BAKED_GUIDE;
+    mds->cache_flag &= ~FLUID_DOMAIN_OUTDATED_GUIDE;
   }
   if (fluid_is_bake_data(job) || fluid_is_bake_all(job)) {
     mds->cache_flag &= ~FLUID_DOMAIN_BAKING_DATA;
@@ -399,12 +399,11 @@ static void fluid_bake_startjob(void *customdata, short *stop, short *do_update,
     job->pause_frame = &mds->cache_frame_pause_particles;
   }
   if (fluid_is_bake_guiding(job) || fluid_is_bake_all(job)) {
-    BLI_path_join(
-        temp_dir, sizeof(temp_dir), mds->cache_directory, FLUID_DOMAIN_DIR_GUIDING, NULL);
+    BLI_path_join(temp_dir, sizeof(temp_dir), mds->cache_directory, FLUID_DOMAIN_DIR_GUIDE, NULL);
     BLI_dir_create_recursive(temp_dir); /* Create 'guiding' subdir if it does not exist already */
-    mds->cache_flag &= ~(FLUID_DOMAIN_BAKED_GUIDING | FLUID_DOMAIN_OUTDATED_GUIDING);
-    mds->cache_flag |= FLUID_DOMAIN_BAKING_GUIDING;
-    job->pause_frame = &mds->cache_frame_pause_guiding;
+    mds->cache_flag &= ~(FLUID_DOMAIN_BAKED_GUIDE | FLUID_DOMAIN_OUTDATED_GUIDE);
+    mds->cache_flag |= FLUID_DOMAIN_BAKING_GUIDE;
+    job->pause_frame = &mds->cache_frame_pause_guide;
   }
   if (fluid_is_bake_data(job) || fluid_is_bake_all(job)) {
     BLI_path_join(temp_dir, sizeof(temp_dir), mds->cache_directory, FLUID_DOMAIN_DIR_CONFIG, NULL);
@@ -492,7 +491,7 @@ static void fluid_free_startjob(void *customdata, short *stop, short *do_update,
     cache_map |= FLUID_DOMAIN_OUTDATED_PARTICLES;
   }
   if (fluid_is_free_guiding(job) || fluid_is_free_all(job)) {
-    cache_map |= FLUID_DOMAIN_OUTDATED_GUIDING;
+    cache_map |= FLUID_DOMAIN_OUTDATED_GUIDE;
   }
 #ifdef WITH_FLUID
   BKE_fluid_cache_free(mds, job->ob, cache_map);
@@ -800,12 +799,12 @@ void FLUID_OT_free_particles(wmOperatorType *ot)
   ot->poll = ED_operator_object_active_editable;
 }
 
-void FLUID_OT_bake_guiding(wmOperatorType *ot)
+void FLUID_OT_bake_guides(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Bake Guiding";
+  ot->name = "Bake Guides";
   ot->description = "Bake Fluid Guiding";
-  ot->idname = FLUID_JOB_BAKE_GUIDING;
+  ot->idname = FLUID_JOB_BAKE_GUIDES;
 
   /* api callbacks */
   ot->exec = fluid_bake_exec;
@@ -814,12 +813,12 @@ void FLUID_OT_bake_guiding(wmOperatorType *ot)
   ot->poll = ED_operator_object_active_editable;
 }
 
-void FLUID_OT_free_guiding(wmOperatorType *ot)
+void FLUID_OT_free_guides(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Free Guiding";
+  ot->name = "Free Guides";
   ot->description = "Free Fluid Guiding";
-  ot->idname = FLUID_JOB_FREE_GUIDING;
+  ot->idname = FLUID_JOB_FREE_GUIDES;
 
   /* api callbacks */
   ot->exec = fluid_free_exec;

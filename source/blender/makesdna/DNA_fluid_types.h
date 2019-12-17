@@ -37,7 +37,7 @@ enum {
   FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN = (1 << 7),
   FLUID_DOMAIN_USE_ADAPTIVE_TIME = (1 << 8),    /* Adaptive time stepping in domain. */
   FLUID_DOMAIN_USE_MESH = (1 << 9),             /* Use mesh. */
-  FLUID_DOMAIN_USE_GUIDING = (1 << 10),         /* Use guiding. */
+  FLUID_DOMAIN_USE_GUIDE = (1 << 10),           /* Use guiding. */
   FLUID_DOMAIN_USE_SPEED_VECTORS = (1 << 11),   /* Generate mesh speed vectors. */
   FLUID_DOMAIN_EXPORT_MANTA_SCRIPT = (1 << 12), /* Export mantaflow script during bake. */
   FLUID_DOMAIN_USE_FRACTIONS = (1 << 13),       /* Use second order obstacles. */
@@ -142,8 +142,8 @@ enum {
 
 /* Guiding velocity source. */
 enum {
-  FLUID_DOMAIN_GUIDING_SRC_DOMAIN = 0,
-  FLUID_DOMAIN_GUIDING_SRC_EFFECTOR = 1,
+  FLUID_DOMAIN_GUIDE_SRC_DOMAIN = 0,
+  FLUID_DOMAIN_GUIDE_SRC_EFFECTOR = 1,
 };
 
 /* Fluid data fields (active_fields). */
@@ -153,7 +153,7 @@ enum {
   FLUID_DOMAIN_ACTIVE_COLORS = (1 << 2),
   FLUID_DOMAIN_ACTIVE_COLOR_SET = (1 << 3),
   FLUID_DOMAIN_ACTIVE_OBSTACLE = (1 << 4),
-  FLUID_DOMAIN_ACTIVE_GUIDING = (1 << 5),
+  FLUID_DOMAIN_ACTIVE_GUIDE = (1 << 5),
   FLUID_DOMAIN_ACTIVE_INVEL = (1 << 6),
   FLUID_DOMAIN_ACTIVE_OUTFLOW = (1 << 7),
 };
@@ -183,22 +183,22 @@ enum {
   FLUID_DOMAIN_BAKED_MESH = (1 << 5),
   FLUID_DOMAIN_BAKING_PARTICLES = (1 << 6),
   FLUID_DOMAIN_BAKED_PARTICLES = (1 << 7),
-  FLUID_DOMAIN_BAKING_GUIDING = (1 << 8),
-  FLUID_DOMAIN_BAKED_GUIDING = (1 << 9),
+  FLUID_DOMAIN_BAKING_GUIDE = (1 << 8),
+  FLUID_DOMAIN_BAKED_GUIDE = (1 << 9),
   FLUID_DOMAIN_OUTDATED_DATA = (1 << 10),
   FLUID_DOMAIN_OUTDATED_NOISE = (1 << 11),
   FLUID_DOMAIN_OUTDATED_MESH = (1 << 12),
   FLUID_DOMAIN_OUTDATED_PARTICLES = (1 << 13),
-  FLUID_DOMAIN_OUTDATED_GUIDING = (1 << 14),
+  FLUID_DOMAIN_OUTDATED_GUIDE = (1 << 14),
 };
 
 #define FLUID_DOMAIN_BAKING_ALL \
   (FLUID_DOMAIN_BAKING_DATA | FLUID_DOMAIN_BAKING_NOISE | FLUID_DOMAIN_BAKING_MESH | \
-   FLUID_DOMAIN_BAKING_PARTICLES | FLUID_DOMAIN_BAKING_GUIDING)
+   FLUID_DOMAIN_BAKING_PARTICLES | FLUID_DOMAIN_BAKING_GUIDE)
 
 #define FLUID_DOMAIN_BAKED_ALL \
   (FLUID_DOMAIN_BAKED_DATA | FLUID_DOMAIN_BAKED_NOISE | FLUID_DOMAIN_BAKED_MESH | \
-   FLUID_DOMAIN_BAKED_PARTICLES | FLUID_DOMAIN_BAKED_GUIDING)
+   FLUID_DOMAIN_BAKED_PARTICLES | FLUID_DOMAIN_BAKED_GUIDE)
 
 #define FLUID_DOMAIN_DIR_DEFAULT "cache_fluid"
 #define FLUID_DOMAIN_DIR_CONFIG "config"
@@ -206,7 +206,7 @@ enum {
 #define FLUID_DOMAIN_DIR_NOISE "noise"
 #define FLUID_DOMAIN_DIR_MESH "mesh"
 #define FLUID_DOMAIN_DIR_PARTICLES "particles"
-#define FLUID_DOMAIN_DIR_GUIDING "guiding"
+#define FLUID_DOMAIN_DIR_GUIDE "guiding"
 #define FLUID_DOMAIN_DIR_SCRIPT "script"
 #define FLUID_DOMAIN_SMOKE_SCRIPT "smoke_script.py"
 #define FLUID_DOMAIN_LIQUID_SCRIPT "liquid_script.py"
@@ -262,7 +262,7 @@ typedef struct FluidDomainSettings {
   struct GPUTexture *tex_velocity_x;
   struct GPUTexture *tex_velocity_y;
   struct GPUTexture *tex_velocity_z;
-  struct Object *guiding_parent;
+  struct Object *guide_parent;
   /** Vertex velocities of simulated fluid mesh. */
   struct FluidDomainVertexVelocity *mesh_velocities;
   struct EffectorWeights *effector_weights;
@@ -383,11 +383,11 @@ typedef struct FluidDomainSettings {
   char _pad6[6]; /* Unused. */
 
   /* Fluid guiding options. */
-  float guiding_alpha;      /* Guiding weight scalar (determines strength). */
-  int guiding_beta;         /* Guiding blur radius (affects size of vortices). */
-  float guiding_vel_factor; /* Multiply guiding velocity by this factor. */
-  int guide_res[3];         /* Res for velocity guide grids - independent from base res. */
-  short guiding_source;
+  float guide_alpha;      /* Guiding weight scalar (determines strength). */
+  int guide_beta;         /* Guiding blur radius (affects size of vortices). */
+  float guide_vel_factor; /* Multiply guiding velocity by this factor. */
+  int guide_res[3];       /* Res for velocity guide grids - independent from base res. */
+  short guide_source;
   char _pad7[2]; /* Unused. */
 
   /* Cache options. */
@@ -397,7 +397,7 @@ typedef struct FluidDomainSettings {
   int cache_frame_pause_noise;
   int cache_frame_pause_mesh;
   int cache_frame_pause_particles;
-  int cache_frame_pause_guiding;
+  int cache_frame_pause_guide;
   int cache_flag;
   char cache_mesh_format;
   char cache_data_format;
@@ -557,10 +557,10 @@ enum {
 
 /* Guiding velocity modes. */
 enum {
-  FLUID_EFFECTOR_GUIDING_MAXIMUM = 0,
-  FLUID_EFFECTOR_GUIDING_MINIMUM = 1,
-  FLUID_EFFECTOR_GUIDING_OVERRIDE = 2,
-  FLUID_EFFECTOR_GUIDING_AVERAGED = 3,
+  FLUID_EFFECTOR_GUIDE_MAX = 0,
+  FLUID_EFFECTOR_GUIDE_MIN = 1,
+  FLUID_EFFECTOR_GUIDE_OVERRIDE = 2,
+  FLUID_EFFECTOR_GUIDE_AVERAGED = 3,
 };
 
 /* Collision objects (filled with smoke). */
@@ -583,7 +583,7 @@ typedef struct FluidEffectorSettings {
 
   /* Guiding options. */
   float vel_multi; /* Multiplier for object velocity. */
-  short guiding_mode;
+  short guide_mode;
   char _pad2[2];
 } FluidEffectorSettings;
 

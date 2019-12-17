@@ -133,8 +133,8 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
         if md.fluid_type == 'DOMAIN':
             domain = md.domain_settings
 
-            # Deactivate UI if guiding is enabled but not baked yet
-            layout.active = not (domain.use_guiding and not domain.has_cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
+            # Deactivate UI if guides are enabled but not baked yet.
+            layout.active = not (domain.use_guide and not domain.has_cache_baked_guide and (domain.guide_source == 'EFFECTOR' or (domain.guide_source == 'DOMAIN' and not domain.guide_parent)))
 
             is_baking_any = domain.is_cache_baking_any
             has_baked_data = domain.has_cache_baked_data
@@ -237,7 +237,7 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             if effec.effec_type == 'GUIDE':
                 col.prop(effec, "velocity_factor", text="Velocity Factor")
                 col = flow.column()
-                col.prop(effec, "guiding_mode", text="Guiding Mode")
+                col.prop(effec, "guide_mode", text="Guide Mode")
 
 
 class PHYSICS_PT_borders(PhysicButtonsPanel, Panel):
@@ -643,8 +643,8 @@ class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
 
         domain = context.fluid.domain_settings
 
-        # Deactivate UI if guiding is enabled but not baked yet
-        layout.active = domain.use_noise and not (domain.use_guiding and not domain.has_cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
+        # Deactivate UI if guides are enabled but not baked yet.
+        layout.active = domain.use_noise and not (domain.use_guide and not domain.has_cache_baked_guide and (domain.guide_source == 'EFFECTOR' or (domain.guide_source == 'DOMAIN' and not domain.guide_parent)))
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_noise = domain.has_cache_baked_noise
@@ -709,8 +709,8 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
 
         domain = context.fluid.domain_settings
 
-        # Deactivate UI if guiding is enabled but not baked yet
-        layout.active = domain.use_mesh and not (domain.use_guiding and not domain.has_cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
+        # Deactivate UI if guides are enabled but not baked yet.
+        layout.active = domain.use_mesh and not (domain.use_guide and not domain.has_cache_baked_guide and (domain.guide_source == 'EFFECTOR' or (domain.guide_source == 'DOMAIN' and not domain.guide_parent)))
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_mesh = domain.has_cache_baked_mesh
@@ -781,8 +781,8 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
 
         domain = context.fluid.domain_settings
 
-        # Deactivate UI if guiding is enabled but not baked yet
-        layout.active = not (domain.use_guiding and not domain.has_cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
+        # Deactivate UI if guides are enabled but not baked yet.
+        layout.active = not (domain.use_guide and not domain.has_cache_baked_guide and (domain.guide_source == 'EFFECTOR' or (domain.guide_source == 'DOMAIN' and not domain.guide_parent)))
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_particles = domain.has_cache_baked_particles
@@ -888,8 +888,8 @@ class PHYSICS_PT_diffusion(PhysicButtonsPanel, Panel):
 
         domain = context.fluid.domain_settings
 
-        # Deactivate UI if guiding is enabled but not baked yet
-        layout.active = not (domain.use_guiding and not domain.has_cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
+        # Deactivate UI if guides are enabled but not baked yet.
+        layout.active = not (domain.use_guide and not domain.has_cache_baked_guide and (domain.guide_source == 'EFFECTOR' or (domain.guide_source == 'DOMAIN' and not domain.guide_parent)))
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_any = domain.has_cache_baked_any
@@ -917,8 +917,8 @@ class PHYSICS_PT_diffusion(PhysicButtonsPanel, Panel):
         col.prop(domain, "surface_tension", text="Surface Tension")
 
 
-class PHYSICS_PT_guiding(PhysicButtonsPanel, Panel):
-    bl_label = "Guiding"
+class PHYSICS_PT_guide(PhysicButtonsPanel, Panel):
+    bl_label = "Guides"
     bl_parent_id = 'PHYSICS_PT_fluid'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
@@ -937,7 +937,7 @@ class PHYSICS_PT_guiding(PhysicButtonsPanel, Panel):
         is_baking_any = domain.is_cache_baking_any
 
         self.layout.enabled = not is_baking_any
-        self.layout.prop(md, "use_guiding", text="")
+        self.layout.prop(md, "use_guide", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -945,7 +945,7 @@ class PHYSICS_PT_guiding(PhysicButtonsPanel, Panel):
 
         domain = context.fluid.domain_settings
 
-        layout.active = domain.use_guiding
+        layout.active = domain.use_guide
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_data = domain.has_cache_baked_data
@@ -954,32 +954,32 @@ class PHYSICS_PT_guiding(PhysicButtonsPanel, Panel):
         flow.enabled = not is_baking_any and not has_baked_data
 
         col = flow.column()
-        col.prop(domain, "guiding_alpha", text="Weight")
-        col.prop(domain, "guiding_beta", text="Size")
-        col.prop(domain, "guiding_vel_factor", text="Velocity Factor")
+        col.prop(domain, "guide_alpha", text="Weight")
+        col.prop(domain, "guide_beta", text="Size")
+        col.prop(domain, "guide_vel_factor", text="Velocity Factor")
 
         col = flow.column()
-        col.prop(domain, "guiding_source", text="Velocity Source")
-        if domain.guiding_source == 'DOMAIN':
-            col.prop(domain, "guiding_parent", text="Guiding Parent")
+        col.prop(domain, "guide_source", text="Velocity Source")
+        if domain.guide_source == 'DOMAIN':
+            col.prop(domain, "guide_parent", text="Guide Parent")
 
         if domain.cache_type == 'MODULAR':
             col.separator()
 
-            if domain.guiding_source == 'EFFECTOR':
+            if domain.guide_source == 'EFFECTOR':
                 split = layout.split()
-                bake_incomplete = (domain.cache_frame_pause_guiding < domain.cache_frame_end)
-                if domain.has_cache_baked_guiding and not domain.is_cache_baking_guiding and bake_incomplete:
+                bake_incomplete = (domain.cache_frame_pause_guide < domain.cache_frame_end)
+                if domain.has_cache_baked_guide and not domain.is_cache_baking_guide and bake_incomplete:
                     col = split.column()
-                    col.operator("fluid.bake_guiding", text="Resume")
+                    col.operator("fluid.bake_guides", text="Resume")
                     col = split.column()
-                    col.operator("fluid.free_guiding", text="Free")
-                elif not domain.has_cache_baked_guiding and domain.is_cache_baking_guiding:
-                    split.operator("fluid.pause_bake", text="Pause Guiding")
-                elif not domain.has_cache_baked_guiding and not domain.is_cache_baking_guiding:
-                    split.operator("fluid.bake_guiding", text="Bake Guiding")
+                    col.operator("fluid.free_guides", text="Free")
+                elif not domain.has_cache_baked_guide and domain.is_cache_baking_guide:
+                    split.operator("fluid.pause_bake", text="Pause Guides")
+                elif not domain.has_cache_baked_guide and not domain.is_cache_baking_guide:
+                    split.operator("fluid.bake_guides", text="Bake Guides")
                 else:
-                    split.operator("fluid.free_guiding", text="Free Guiding")
+                    split.operator("fluid.free_guides", text="Free Guides")
 
 
 class PHYSICS_PT_collections(PhysicButtonsPanel, Panel):
@@ -1254,7 +1254,7 @@ classes = (
     PHYSICS_PT_mesh,
     PHYSICS_PT_particles,
     PHYSICS_PT_diffusion,
-    PHYSICS_PT_guiding,
+    PHYSICS_PT_guide,
     PHYSICS_PT_collections,
     PHYSICS_PT_cache,
     PHYSICS_PT_export,

@@ -113,8 +113,8 @@ void FLUID_OT_bake_mesh(struct wmOperatorType *ot);
 void FLUID_OT_free_mesh(struct wmOperatorType *ot);
 void FLUID_OT_bake_particles(struct wmOperatorType *ot);
 void FLUID_OT_free_particles(struct wmOperatorType *ot);
-void FLUID_OT_bake_guiding(struct wmOperatorType *ot);
-void FLUID_OT_free_guiding(struct wmOperatorType *ot);
+void FLUID_OT_bake_guides(struct wmOperatorType *ot);
+void FLUID_OT_free_guides(struct wmOperatorType *ot);
 void FLUID_OT_pause_bake(struct wmOperatorType *ot);
 
 /* dynamicpaint.c */
