@@ -2019,45 +2019,54 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Cache directory", "Directory that contains fluid cache files");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
-  prop = RNA_def_property(srna, "cache_baking_data", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "is_cache_baking_data", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKING_DATA);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
-  prop = RNA_def_property(srna, "cache_baked_data", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "has_cache_baked_data", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKED_DATA);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
-  prop = RNA_def_property(srna, "cache_baking_noise", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "is_cache_baking_noise", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKING_NOISE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
-  prop = RNA_def_property(srna, "cache_baked_noise", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "has_cache_baked_noise", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKED_NOISE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
-  prop = RNA_def_property(srna, "cache_baking_mesh", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "is_cache_baking_mesh", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKING_MESH);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
-  prop = RNA_def_property(srna, "cache_baked_mesh", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "has_cache_baked_mesh", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKED_MESH);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
-  prop = RNA_def_property(srna, "cache_baking_particles", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "is_cache_baking_particles", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKING_PARTICLES);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
-  prop = RNA_def_property(srna, "cache_baked_particles", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "has_cache_baked_particles", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKED_PARTICLES);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
-  prop = RNA_def_property(srna, "cache_baking_guiding", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "is_cache_baking_guiding", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKING_GUIDING);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
-  prop = RNA_def_property(srna, "cache_baked_guiding", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "has_cache_baked_guiding", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKED_GUIDING);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
+
+  /* Read only checks, avoids individually accessing flags above. */
+  prop = RNA_def_property(srna, "is_cache_baking_any", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKING_ALL);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "has_cache_baked_any", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", FLUID_DOMAIN_BAKED_ALL);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "export_manta_script", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", FLUID_DOMAIN_EXPORT_MANTA_SCRIPT);

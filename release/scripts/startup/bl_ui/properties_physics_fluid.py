@@ -134,17 +134,17 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             domain = md.domain_settings
 
             # Deactivate UI if guiding is enabled but not baked yet
-            layout.active = not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
+            layout.active = not (domain.use_guiding and not domain.has_cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
 
-            baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-            baked_data = domain.cache_baked_data
+            is_baking_any = domain.is_cache_baking_any
+            has_baked_data = domain.has_cache_baked_data
 
             row = layout.row()
-            row.enabled = not baking_any and not baked_data
+            row.enabled = not is_baking_any and not has_baked_data
             row.prop(domain, "domain_type", expand=False)
 
             flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-            flow.enabled = not baking_any and not baked_data
+            flow.enabled = not is_baking_any and not has_baked_data
 
             col = flow.column()
             col.prop(domain, "resolution_max", text="Resolution Divisions")
@@ -175,15 +175,15 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
                 split = layout.split()
 
                 bake_incomplete = (domain.cache_frame_pause_data < domain.cache_frame_end)
-                if domain.cache_baked_data and not domain.cache_baking_data and bake_incomplete:
+                if domain.has_cache_baked_data and not domain.is_cache_baking_data and bake_incomplete:
                     col = split.column()
                     col.operator("fluid.bake_data", text="Resume")
                     col = split.column()
                     col.operator("fluid.free_data", text="Free")
-                elif domain.cache_baking_data and not domain.cache_baked_data:
+                elif domain.is_cache_baking_data and not domain.has_cache_baked_data:
                     split.enabled = False
                     split.operator("fluid.pause_bake", text="Baking Data - ESC to pause")
-                elif not domain.cache_baked_data and not domain.cache_baking_data:
+                elif not domain.has_cache_baked_data and not domain.is_cache_baking_data:
                     split.operator("fluid.bake_data", text="Bake Data")
                 else:
                     split.operator("fluid.free_data", text="Free Data")
@@ -259,11 +259,11 @@ class PHYSICS_PT_borders(PhysicButtonsPanel, Panel):
         md = context.fluid
         domain = md.domain_settings
 
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_data = domain.cache_baked_data
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_data = domain.has_cache_baked_data
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        flow.enabled = not baking_any and not baked_data
+        flow.enabled = not is_baking_any and not has_baked_data
 
         col = flow.column()
         col.prop(domain, "use_collision_border_front", text="Front")
@@ -298,11 +298,11 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
         md = context.fluid
         domain = md.domain_settings
 
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_data = domain.cache_baked_data
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_data = domain.has_cache_baked_data
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        flow.enabled = not baking_any and not baked_data
+        flow.enabled = not is_baking_any and not has_baked_data
 
         col = flow.column()
         col.prop(domain, "alpha")
@@ -337,11 +337,11 @@ class PHYSICS_PT_smoke_dissolve(PhysicButtonsPanel, Panel):
         md = context.fluid
         domain = md.domain_settings
 
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_data = domain.cache_baked_data
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_data = domain.has_cache_baked_data
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        flow.enabled = not baking_any and not baked_data
+        flow.enabled = not is_baking_any and not has_baked_data
 
         layout.active = domain.use_dissolve_smoke
 
@@ -372,11 +372,11 @@ class PHYSICS_PT_fire(PhysicButtonsPanel, Panel):
         md = context.fluid
         domain = md.domain_settings
 
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_data = domain.cache_baked_data
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_data = domain.has_cache_baked_data
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        flow.enabled = not baking_any and not baked_data
+        flow.enabled = not is_baking_any and not has_baked_data
 
         col = flow.column()
         col.prop(domain, "burning_rate", text="Reaction Speed")
@@ -415,31 +415,31 @@ class PHYSICS_PT_liquid(PhysicButtonsPanel, Panel):
         md = context.fluid
         domain = md.domain_settings
 
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_data = domain.cache_baked_data
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_data = domain.has_cache_baked_data
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column()
         col0 = col.column()
-        col0.enabled = not baking_any and not baked_data
+        col0.enabled = not is_baking_any and not has_baked_data
         col0.prop(domain, "simulation_method", expand=False)
         col0.prop(domain, "flip_ratio", text="FLIP Ratio")
         col0.prop(domain, "particle_radius", text="Particle Radius")
 
         col1 = flow.column(align=True)
-        col1.enabled = not baking_any and not baked_data
+        col1.enabled = not is_baking_any and not has_baked_data
         col1.prop(domain, "particle_maximum", text="Particles Maximum")
         col1.prop(domain, "particle_minimum", text="Minimum")
 
         col1 = flow.column()
-        col1.enabled = not baking_any and not baked_data
+        col1.enabled = not is_baking_any and not has_baked_data
         col1.prop(domain, "particle_number", text="Particle Sampling")
         col1.prop(domain, "particle_band_width", text="Narrow Band Width")
         col1.prop(domain, "particle_randomness", text="Particle Randomness")
 
         col2 = flow.column()
-        col2.enabled = not baking_any and not baked_data
+        col2.enabled = not is_baking_any and not has_baked_data
         col2.prop(domain, "use_fractions", text="Fractional Obstacles")
         col3 = col2.column()
         col3.enabled = domain.use_fractions and col2.enabled
@@ -587,9 +587,11 @@ class PHYSICS_PT_adaptive_domain(PhysicButtonsPanel, Panel):
     def draw_header(self, context):
         md = context.fluid.domain_settings
         domain = context.fluid.domain_settings
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_any = domain.cache_baked_data or domain.cache_baked_mesh or domain.cache_baked_particles or domain.cache_baked_noise or domain.cache_baked_guiding
-        self.layout.enabled = not baking_any and not baked_any
+
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_any = domain.has_cache_baked_any
+
+        self.layout.enabled = not is_baking_any and not has_baked_any
         self.layout.prop(md, "use_adaptive_domain", text="")
 
     def draw(self, context):
@@ -599,11 +601,11 @@ class PHYSICS_PT_adaptive_domain(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
         layout.active = domain.use_adaptive_domain
 
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_any = domain.cache_baked_data or domain.cache_baked_mesh or domain.cache_baked_particles or domain.cache_baked_noise or domain.cache_baked_guiding
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_any = domain.has_cache_baked_any
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
-        flow.enabled = not baking_any and not baked_any
+        flow.enabled = not is_baking_any and not has_baked_any
 
         col = flow.column()
         col.prop(domain, "additional_res", text="Add Resolution")
@@ -631,8 +633,8 @@ class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
     def draw_header(self, context):
         md = context.fluid.domain_settings
         domain = context.fluid.domain_settings
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        self.layout.enabled = not baking_any
+        is_baking_any = domain.is_cache_baking_any
+        self.layout.enabled = not is_baking_any
         self.layout.prop(md, "use_noise", text="")
 
     def draw(self, context):
@@ -642,13 +644,13 @@ class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guiding is enabled but not baked yet
-        layout.active = domain.use_noise and not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
+        layout.active = domain.use_noise and not (domain.use_guiding and not domain.has_cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
 
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_noise = domain.cache_baked_noise
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_noise = domain.has_cache_baked_noise
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        flow.enabled = not baking_any and not baked_noise
+        flow.enabled = not is_baking_any and not has_baked_noise
 
         col = flow.column()
         col.prop(domain, "noise_scale", text="Upres Factor")
@@ -664,18 +666,18 @@ class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
             col.separator()
 
             split = layout.split()
-            split.enabled = domain.cache_baked_data
+            split.enabled = domain.has_cache_baked_data
 
             bake_incomplete = (domain.cache_frame_pause_noise < domain.cache_frame_end)
-            if domain.cache_baked_noise and not domain.cache_baking_noise and bake_incomplete:
+            if domain.has_cache_baked_noise and not domain.is_cache_baking_noise and bake_incomplete:
                 col = split.column()
                 col.operator("fluid.bake_noise", text="Resume")
                 col = split.column()
                 col.operator("fluid.free_noise", text="Free")
-            elif not domain.cache_baked_noise and domain.cache_baking_noise:
+            elif not domain.has_cache_baked_noise and domain.is_cache_baking_noise:
                 split.enabled = False
                 split.operator("fluid.pause_bake", text="Baking Noise - ESC to pause")
-            elif not domain.cache_baked_noise and not domain.cache_baking_noise:
+            elif not domain.has_cache_baked_noise and not domain.is_cache_baking_noise:
                 split.operator("fluid.bake_noise", text="Bake Noise")
             else:
                 split.operator("fluid.free_noise", text="Free Noise")
@@ -697,8 +699,8 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
     def draw_header(self, context):
         md = context.fluid.domain_settings
         domain = context.fluid.domain_settings
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        self.layout.enabled = not baking_any
+        is_baking_any = domain.is_cache_baking_any
+        self.layout.enabled = not is_baking_any
         self.layout.prop(md, "use_mesh", text="")
 
     def draw(self, context):
@@ -708,13 +710,13 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guiding is enabled but not baked yet
-        layout.active = domain.use_mesh and not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
+        layout.active = domain.use_mesh and not (domain.use_guiding and not domain.has_cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
 
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_mesh = domain.cache_baked_mesh
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_mesh = domain.has_cache_baked_mesh
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        flow.enabled = not baking_any and not baked_mesh
+        flow.enabled = not is_baking_any and not has_baked_mesh
 
         col = flow.column()
 
@@ -743,18 +745,18 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
             col.separator()
 
             split = layout.split()
-            split.enabled = domain.cache_baked_data
+            split.enabled = domain.has_cache_baked_data
 
             bake_incomplete = (domain.cache_frame_pause_mesh < domain.cache_frame_end)
-            if domain.cache_baked_mesh and not domain.cache_baking_mesh and bake_incomplete:
+            if domain.has_cache_baked_mesh and not domain.is_cache_baking_mesh and bake_incomplete:
                 col = split.column()
                 col.operator("fluid.bake_mesh", text="Resume")
                 col = split.column()
                 col.operator("fluid.free_mesh", text="Free")
-            elif not domain.cache_baked_mesh and domain.cache_baking_mesh:
+            elif not domain.has_cache_baked_mesh and domain.is_cache_baking_mesh:
                 split.enabled = False
                 split.operator("fluid.pause_bake", text="Baking Mesh - ESC to pause")
-            elif not domain.cache_baked_mesh and not domain.cache_baking_mesh:
+            elif not domain.has_cache_baked_mesh and not domain.is_cache_baking_mesh:
                 split.operator("fluid.bake_mesh", text="Bake Mesh")
             else:
                 split.operator("fluid.free_mesh", text="Free Mesh")
@@ -780,14 +782,14 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guiding is enabled but not baked yet
-        layout.active = not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
+        layout.active = not (domain.use_guiding and not domain.has_cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
 
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_particles = domain.cache_baked_particles
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_particles = domain.has_cache_baked_particles
         using_particles = domain.use_spray_particles or domain.use_foam_particles or domain.use_bubble_particles
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        flow.enabled = not baking_any
+        flow.enabled = not is_baking_any
 
         subSpray = flow.column()
         subSpray.enabled = (domain.sndparticle_combined_export == 'OFF') or (domain.sndparticle_combined_export == 'FOAM + BUBBLES')
@@ -800,7 +802,7 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
         subBubbles.prop(domain, "use_bubble_particles", text="Bubbles")
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        flow.enabled = not baking_any and not baked_particles and using_particles
+        flow.enabled = not is_baking_any and not has_baked_particles and using_particles
 
         col = flow.column()
         col.prop(domain, "sndparticle_combined_export")
@@ -849,18 +851,18 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
             col.separator()
 
             split = layout.split()
-            split.enabled = domain.cache_baked_data and (domain.use_spray_particles or domain.use_bubble_particles or domain.use_foam_particles or domain.use_tracer_particles)
+            split.enabled = domain.has_cache_baked_data and (domain.use_spray_particles or domain.use_bubble_particles or domain.use_foam_particles or domain.use_tracer_particles)
 
             bake_incomplete = (domain.cache_frame_pause_particles < domain.cache_frame_end)
-            if domain.cache_baked_particles and not domain.cache_baking_particles and bake_incomplete:
+            if domain.has_cache_baked_particles and not domain.is_cache_baking_particles and bake_incomplete:
                 col = split.column()
                 col.operator("fluid.bake_particles", text="Resume")
                 col = split.column()
                 col.operator("fluid.free_particles", text="Free")
-            elif not domain.cache_baked_particles and domain.cache_baking_particles:
+            elif not domain.has_cache_baked_particles and domain.is_cache_baking_particles:
                 split.enabled = False
                 split.operator("fluid.pause_bake", text="Baking Particles - ESC to pause")
-            elif not domain.cache_baked_particles and not domain.cache_baking_particles:
+            elif not domain.has_cache_baked_particles and not domain.is_cache_baking_particles:
                 split.operator("fluid.bake_particles", text="Bake Particles")
             else:
                 split.operator("fluid.free_particles", text="Free Particles")
@@ -887,14 +889,14 @@ class PHYSICS_PT_diffusion(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guiding is enabled but not baked yet
-        layout.active = not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
+        layout.active = not (domain.use_guiding and not domain.has_cache_baked_guiding and (domain.guiding_source == 'EFFECTOR' or (domain.guiding_source == 'DOMAIN' and not domain.guiding_parent)))
 
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_any = domain.cache_baked_data or domain.cache_baked_mesh or domain.cache_baked_particles or domain.cache_baked_noise or domain.cache_baked_guiding
-        baked_data = domain.cache_baked_data
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_any = domain.has_cache_baked_any
+        has_baked_data = domain.has_cache_baked_data
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        flow.enabled = not baking_any and not baked_any and not baked_data
+        flow.enabled = not is_baking_any and not has_baked_any and not has_baked_data
 
         row = flow.row()
 
@@ -931,8 +933,10 @@ class PHYSICS_PT_guiding(PhysicButtonsPanel, Panel):
     def draw_header(self, context):
         md = context.fluid.domain_settings
         domain = context.fluid.domain_settings
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        self.layout.enabled = not baking_any
+
+        is_baking_any = domain.is_cache_baking_any
+
+        self.layout.enabled = not is_baking_any
         self.layout.prop(md, "use_guiding", text="")
 
     def draw(self, context):
@@ -943,11 +947,11 @@ class PHYSICS_PT_guiding(PhysicButtonsPanel, Panel):
 
         layout.active = domain.use_guiding
 
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_data = domain.cache_baked_data
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_data = domain.has_cache_baked_data
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        flow.enabled = not baking_any and not baked_data
+        flow.enabled = not is_baking_any and not has_baked_data
 
         col = flow.column()
         col.prop(domain, "guiding_alpha", text="Weight")
@@ -965,14 +969,14 @@ class PHYSICS_PT_guiding(PhysicButtonsPanel, Panel):
             if domain.guiding_source == 'EFFECTOR':
                 split = layout.split()
                 bake_incomplete = (domain.cache_frame_pause_guiding < domain.cache_frame_end)
-                if domain.cache_baked_guiding and not domain.cache_baking_guiding and bake_incomplete:
+                if domain.has_cache_baked_guiding and not domain.is_cache_baking_guiding and bake_incomplete:
                     col = split.column()
                     col.operator("fluid.bake_guiding", text="Resume")
                     col = split.column()
                     col.operator("fluid.free_guiding", text="Free")
-                elif not domain.cache_baked_guiding and domain.cache_baking_guiding:
+                elif not domain.has_cache_baked_guiding and domain.is_cache_baking_guiding:
                     split.operator("fluid.pause_bake", text="Pause Guiding")
-                elif not domain.cache_baked_guiding and not domain.cache_baking_guiding:
+                elif not domain.has_cache_baked_guiding and not domain.is_cache_baking_guiding:
                     split.operator("fluid.bake_guiding", text="Bake Guiding")
                 else:
                     split.operator("fluid.free_guiding", text="Free Guiding")
@@ -1024,12 +1028,12 @@ class PHYSICS_PT_cache(PhysicButtonsPanel, Panel):
         md = context.fluid
         domain = context.fluid.domain_settings
 
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_any = domain.cache_baked_data or domain.cache_baked_mesh or domain.cache_baked_particles or domain.cache_baked_noise or domain.cache_baked_guiding
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_any = domain.has_cache_baked_any
 
         col = layout.column()
         col.prop(domain, "cache_directory", text="")
-        col.enabled = not baking_any
+        col.enabled = not is_baking_any
 
         layout.use_property_split = True
 
@@ -1037,19 +1041,19 @@ class PHYSICS_PT_cache(PhysicButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(domain, "cache_type", expand=False)
-        col.enabled = not baking_any
+        col.enabled = not is_baking_any
 
         col = flow.column(align=True)
         col.separator()
 
         col.prop(domain, "cache_frame_start", text="Frame Start")
         col.prop(domain, "cache_frame_end", text="End")
-        col.enabled = not baking_any
+        col.enabled = not is_baking_any
 
         col.separator()
 
         col = flow.column()
-        col.enabled = not baking_any and not baked_any
+        col.enabled = not is_baking_any and not has_baked_any
         col.prop(domain, "cache_data_format", text="Data File Format")
 
         if md.domain_settings.domain_type in {'GAS'}:
@@ -1069,15 +1073,15 @@ class PHYSICS_PT_cache(PhysicButtonsPanel, Panel):
             split = layout.split()
 
             bake_incomplete = (domain.cache_frame_pause_data < domain.cache_frame_end)
-            if domain.cache_baked_data and not domain.cache_baking_data and bake_incomplete:
+            if domain.has_cache_baked_data and not domain.is_cache_baking_data and bake_incomplete:
                 col = split.column()
                 col.operator("fluid.bake_all", text="Resume")
                 col = split.column()
                 col.operator("fluid.free_all", text="Free")
-            elif domain.cache_baking_data and not domain.cache_baked_data:
+            elif domain.is_cache_baking_data and not domain.has_cache_baked_data:
                 split.enabled = False
                 split.operator("fluid.pause_bake", text="Baking All - ESC to pause")
-            elif not domain.cache_baked_data and not domain.cache_baking_data:
+            elif not domain.has_cache_baked_data and not domain.is_cache_baking_data:
                 split.operator("fluid.bake_all", text="Bake All")
             else:
                 split.operator("fluid.free_all", text="Free All")
@@ -1102,11 +1106,11 @@ class PHYSICS_PT_export(PhysicButtonsPanel, Panel):
 
         domain = context.fluid.domain_settings
 
-        baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_any = domain.cache_baked_data or domain.cache_baked_mesh or domain.cache_baked_particles or domain.cache_baked_noise or domain.cache_baked_guiding
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_any = domain.has_cache_baked_any
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        flow.enabled = not baking_any and not baked_any
+        flow.enabled = not is_baking_any and not has_baked_any
 
         col = flow.column()
         col.prop(domain, "export_manta_script", text="Export Mantaflow Script")
