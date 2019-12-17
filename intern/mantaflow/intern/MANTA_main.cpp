@@ -1784,20 +1784,16 @@ void MANTA::exportSmokeScript(FluidModifierData *mmd)
   if (with_debug)
     std::cout << "MANTA::exportSmokeScript()" << std::endl;
 
-  char cacheDirScript[FILE_MAX];
-  cacheDirScript[0] = '\0';
+  char cacheDir[FILE_MAX] = "\0";
+  char cacheDirScript[FILE_MAX] = "\0";
 
-  BLI_path_join(cacheDirScript,
-                sizeof(cacheDirScript),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_SCRIPT,
-                NULL);
-  BLI_path_make_safe(cacheDirScript);
-  BLI_dir_create_recursive(
-      cacheDirScript); /* Create 'script' subdir if it does not exist already */
   BLI_path_join(
-      cacheDirScript, sizeof(cacheDirScript), cacheDirScript, FLUID_DOMAIN_SMOKE_SCRIPT, NULL);
-  BLI_path_make_safe(cacheDirScript);
+      cacheDir, sizeof(cacheDir), mmd->domain->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, NULL);
+  BLI_path_make_safe(cacheDir);
+  /* Create 'script' subdir if it does not exist already */
+  BLI_dir_create_recursive(cacheDir);
+  BLI_path_join(cacheDirScript, sizeof(cacheDirScript), cacheDir, FLUID_DOMAIN_SMOKE_SCRIPT, NULL);
+  BLI_path_make_safe(cacheDir);
 
   bool noise = mmd->domain->flags & FLUID_DOMAIN_USE_NOISE;
   bool heat = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_HEAT;
@@ -1891,19 +1887,16 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
   if (with_debug)
     std::cout << "MANTA::exportLiquidScript()" << std::endl;
 
-  char cacheDirScript[FILE_MAX];
-  cacheDirScript[0] = '\0';
+  char cacheDir[FILE_MAX] = "\0";
+  char cacheDirScript[FILE_MAX] = "\0";
 
-  BLI_path_join(cacheDirScript,
-                sizeof(cacheDirScript),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_SCRIPT,
-                NULL);
-  BLI_path_make_safe(cacheDirScript);
-  BLI_dir_create_recursive(
-      cacheDirScript); /* Create 'script' subdir if it does not exist already */
   BLI_path_join(
-      cacheDirScript, sizeof(cacheDirScript), cacheDirScript, FLUID_DOMAIN_LIQUID_SCRIPT, NULL);
+      cacheDir, sizeof(cacheDir), mmd->domain->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, NULL);
+  BLI_path_make_safe(cacheDir);
+  /* Create 'script' subdir if it does not exist already */
+  BLI_dir_create_recursive(cacheDir);
+  BLI_path_join(
+      cacheDirScript, sizeof(cacheDirScript), cacheDir, FLUID_DOMAIN_LIQUID_SCRIPT, NULL);
   BLI_path_make_safe(cacheDirScript);
 
   bool mesh = mmd->domain->flags & FLUID_DOMAIN_USE_MESH;
