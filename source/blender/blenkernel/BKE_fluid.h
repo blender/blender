@@ -58,12 +58,12 @@ void BKE_fluid_cache_free(struct FluidDomainSettings *mds, struct Object *ob, in
 float BKE_fluid_get_velocity_at(struct Object *ob, float position[3], float velocity[3]);
 int BKE_fluid_get_data_flags(struct FluidDomainSettings *mds);
 
-void BKE_fluid_create_particle_system(struct Main *bmain,
+void BKE_fluid_particle_system_create(struct Main *bmain,
                                       struct Object *ob,
                                       const char *pset_name,
                                       const char *parts_name,
                                       const char *psys_name,
                                       const int psys_type);
-void BKE_fluid_delete_particle_system(struct Object *ob, const int particle_type);
+void BKE_fluid_particle_system_destroy(struct Object *ob, const int particle_type);
 
 #endif /* __BKE_FLUID_H__ */

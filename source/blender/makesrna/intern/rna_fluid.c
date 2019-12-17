@@ -126,7 +126,7 @@ static void rna_Fluid_parts_create(Main *bmain,
   UNUSED_VARS(bmain, ptr, pset_name, parts_name, psys_name, psys_type);
 #  else
   Object *ob = (Object *)ptr->owner_id;
-  BKE_fluid_create_particle_system(bmain, ob, pset_name, parts_name, psys_name, psys_type);
+  BKE_fluid_particle_system_create(bmain, ob, pset_name, parts_name, psys_name, psys_type);
 #  endif
 }
 
@@ -136,7 +136,7 @@ static void rna_Fluid_parts_delete(PointerRNA *ptr, int ptype)
   UNUSED_VARS(ptr, ptype);
 #  else
   Object *ob = (Object *)ptr->owner_id;
-  BKE_fluid_delete_particle_system(ob, ptype);
+  BKE_fluid_particle_system_destroy(ob, ptype);
 #  endif
 }
 

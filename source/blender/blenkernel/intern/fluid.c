@@ -4754,7 +4754,7 @@ int BKE_fluid_get_data_flags(FluidDomainSettings *mds)
   return flags;
 }
 
-void BKE_fluid_create_particle_system(struct Main *bmain,
+void BKE_fluid_particle_system_create(struct Main *bmain,
                                       struct Object *ob,
                                       const char *pset_name,
                                       const char *parts_name,
@@ -4786,7 +4786,7 @@ void BKE_fluid_create_particle_system(struct Main *bmain,
   modifier_unique_name(&ob->modifiers, (ModifierData *)pmmd);
 }
 
-void BKE_fluid_delete_particle_system(struct Object *ob, const int particle_type)
+void BKE_fluid_particle_system_destroy(struct Object *ob, const int particle_type)
 {
   ParticleSystemModifierData *pmmd;
   ParticleSystem *psys, *next_psys;
