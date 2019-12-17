@@ -137,7 +137,6 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             layout.active = not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == "EFFECTOR" or (domain.guiding_source == "DOMAIN" and not domain.guiding_parent)))
 
             baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-            baked_any = domain.cache_baked_data or domain.cache_baked_mesh or domain.cache_baked_particles or domain.cache_baked_noise or domain.cache_baked_guiding
             baked_data = domain.cache_baked_data
 
             row = layout.row()
@@ -261,7 +260,6 @@ class PHYSICS_PT_borders(PhysicButtonsPanel, Panel):
         domain = md.domain_settings
 
         baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_any = domain.cache_baked_data or domain.cache_baked_mesh or domain.cache_baked_particles or domain.cache_baked_noise or domain.cache_baked_guiding
         baked_data = domain.cache_baked_data
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
@@ -301,7 +299,6 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
         domain = md.domain_settings
 
         baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_any = domain.cache_baked_data or domain.cache_baked_mesh or domain.cache_baked_particles or domain.cache_baked_noise or domain.cache_baked_guiding
         baked_data = domain.cache_baked_data
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
@@ -341,7 +338,6 @@ class PHYSICS_PT_smoke_dissolve(PhysicButtonsPanel, Panel):
         domain = md.domain_settings
 
         baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_any = domain.cache_baked_data or domain.cache_baked_mesh or domain.cache_baked_particles or domain.cache_baked_noise or domain.cache_baked_guiding
         baked_data = domain.cache_baked_data
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
@@ -377,7 +373,6 @@ class PHYSICS_PT_fire(PhysicButtonsPanel, Panel):
         domain = md.domain_settings
 
         baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_any = domain.cache_baked_data or domain.cache_baked_mesh or domain.cache_baked_particles or domain.cache_baked_noise or domain.cache_baked_guiding
         baked_data = domain.cache_baked_data
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
@@ -421,7 +416,6 @@ class PHYSICS_PT_liquid(PhysicButtonsPanel, Panel):
         domain = md.domain_settings
 
         baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
-        baked_any = domain.cache_baked_data or domain.cache_baked_mesh or domain.cache_baked_particles or domain.cache_baked_noise or domain.cache_baked_guiding
         baked_data = domain.cache_baked_data
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
@@ -895,7 +889,6 @@ class PHYSICS_PT_diffusion(PhysicButtonsPanel, Panel):
         # Deactivate UI if guiding is enabled but not baked yet
         layout.active = not (domain.use_guiding and not domain.cache_baked_guiding and (domain.guiding_source == "EFFECTOR" or (domain.guiding_source == "DOMAIN" and not domain.guiding_parent)))
 
-        split = layout.split()
         baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
         baked_any = domain.cache_baked_data or domain.cache_baked_mesh or domain.cache_baked_particles or domain.cache_baked_noise or domain.cache_baked_guiding
         baked_data = domain.cache_baked_data
@@ -1107,7 +1100,6 @@ class PHYSICS_PT_export(PhysicButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        md = context.fluid
         domain = context.fluid.domain_settings
 
         baking_any = domain.cache_baking_data or domain.cache_baking_mesh or domain.cache_baking_particles or domain.cache_baking_noise or domain.cache_baking_guiding
