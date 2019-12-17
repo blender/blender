@@ -70,19 +70,17 @@ static bool WIDGETGROUP_tool_generic_poll(const bContext *C, wmGizmoGroupType *g
 
 static wmGizmo *tool_generic_create_gizmo(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  wmGizmo *gz;
+  wmGizmo *gz = WM_gizmo_new("GIZMO_GT_button_2d", gzgroup, NULL);
+  gz->flag |= WM_GIZMO_OPERATOR_TOOL_INIT;
+
+  UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+  UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
+
+  unit_m4(gz->matrix_offset);
+
+  RNA_enum_set(gz->ptr, "icon", ICON_NONE);
 
   if (gzgroup->type->idname == handle_normal_id) {
-    gz = WM_gizmo_new("GIZMO_GT_button_2d", gzgroup, NULL);
-
-    UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
-    UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
-
-    unit_m4(gz->matrix_offset);
-
-    PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
-    RNA_property_enum_set(gz->ptr, prop, ICON_NONE);
-
     gz->scale_basis = 0.12f;
     gz->matrix_offset[3][2] -= 12.0;
     RNA_enum_set(gz->ptr,
@@ -91,16 +89,7 @@ static wmGizmo *tool_generic_create_gizmo(const bContext *C, wmGizmoGroup *gzgro
                   ED_GIZMO_BUTTON_SHOW_OUTLINE));
   }
   else {
-    gz = WM_gizmo_new("GIZMO_GT_button_2d", gzgroup, NULL);
-
-    UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
-    UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
-
-    unit_m4(gz->matrix_offset);
     gz->scale_basis = 0.16f * 3;
-
-    PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
-    RNA_property_enum_set(gz->ptr, prop, ICON_NONE);
 
     RNA_enum_set(gz->ptr, "draw_options", ED_GIZMO_BUTTON_SHOW_BACKDROP);
 
@@ -108,8 +97,6 @@ static wmGizmo *tool_generic_create_gizmo(const bContext *C, wmGizmoGroup *gzgro
     WM_gizmo_set_line_width(gz, 2.0f);
     RNA_float_set(gz->ptr, "backdrop_fill_alpha", 0.125f);
   }
-
-  gz->flag |= WM_GIZMO_OPERATOR_TOOL_INIT;
 
   bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
   wmWindowManager *wm = CTX_wm_manager(C);
