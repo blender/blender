@@ -4288,25 +4288,32 @@ static int tile_add_exec(bContext *C, wmOperator *op)
 {
   Image *ima = CTX_data_edit_image(C);
 
-  int tile_number = RNA_int_get(op->ptr, "number");
-
+  int start_tile = RNA_int_get(op->ptr, "number");
+  int end_tile = min_ii(start_tile + RNA_int_get(op->ptr, "count"), IMA_UDIM_MAX);
+  bool fill_tile = RNA_boolean_get(op->ptr, "fill");
   char *label = RNA_string_get_alloc(op->ptr, "label", NULL, 0);
 
-  ImageTile *tile = BKE_image_add_tile(ima, tile_number, label);
+  bool created_tile = false;
+  for (int tile_number = start_tile; tile_number < end_tile; tile_number++) {
+    ImageTile *tile = BKE_image_add_tile(ima, tile_number, label);
+
+    if (tile != NULL) {
+      ima->active_tile_index = BLI_findindex(&ima->tiles, tile);
+
+      if (fill_tile) {
+        do_fill_tile(op->ptr, ima, tile);
+      }
+
+      created_tile = true;
+    }
+  }
   MEM_freeN(label);
 
-  if (tile == NULL) {
+  if (!created_tile) {
     return OPERATOR_CANCELLED;
   }
 
-  ima->active_tile_index = BLI_findindex(&ima->tiles, tile);
-
-  if (RNA_boolean_get(op->ptr, "fill")) {
-    do_fill_tile(op->ptr, ima, tile);
-  }
-
   WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
-
   return OPERATOR_FINISHED;
 }
 
@@ -4325,6 +4332,7 @@ static int tile_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
   }
 
   RNA_int_set(op->ptr, "number", next_number);
+  RNA_int_set(op->ptr, "count", 1);
   RNA_string_set(op->ptr, "label", "");
 
   return WM_operator_props_dialog_popup(C, op, 10 * UI_UNIT_X, 5 * UI_UNIT_Y);
@@ -4344,6 +4352,9 @@ static void tile_add_draw(bContext *UNUSED(C), wmOperator *op)
 
   uiItemL(col[0], IFACE_("Number"), ICON_NONE);
   uiItemR(col[1], &ptr, "number", 0, "", ICON_NONE);
+
+  uiItemL(col[0], IFACE_("Count"), ICON_NONE);
+  uiItemR(col[1], &ptr, "count", 0, "", ICON_NONE);
 
   uiItemL(col[0], IFACE_("Label"), ICON_NONE);
   uiItemR(col[1], &ptr, "label", 0, "", ICON_NONE);
@@ -4373,6 +4384,7 @@ void IMAGE_OT_tile_add(wmOperatorType *ot)
 
   RNA_def_int(
       ot->srna, "number", 1002, 1001, INT_MAX, "Number", "UDIM number of the tile", 1001, 1099);
+  RNA_def_int(ot->srna, "count", 1, 1, INT_MAX, "Count", "How many tiles to add", 1, 1000);
   RNA_def_string(ot->srna, "label", NULL, 0, "Label", "Optional tile label");
   RNA_def_boolean(ot->srna, "fill", true, "Fill", "Fill new tile with a generated image");
   def_fill_tile(ot->srna);
