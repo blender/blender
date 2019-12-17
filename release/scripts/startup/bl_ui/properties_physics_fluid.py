@@ -27,6 +27,7 @@ from .properties_physics_common import (
     effector_weights_ui,
 )
 
+
 class FLUID_MT_presets(Menu):
     bl_label = "Fluid Presets"
     preset_subdir = "fluid"
@@ -38,6 +39,14 @@ class PhysicButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "physics"
+
+    @staticmethod
+    def check_domain_has_unbaked_guide(domain):
+        return (
+            domain.use_guide and not domain.has_cache_baked_guide and
+            ((domain.guide_source == 'EFFECTOR') or
+             (domain.guide_source == 'DOMAIN' and not domain.guide_parent))
+        )
 
     @staticmethod
     def poll_fluid(context):
@@ -134,7 +143,7 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             domain = md.domain_settings
 
             # Deactivate UI if guides are enabled but not baked yet.
-            layout.active = not (domain.use_guide and not domain.has_cache_baked_guide and (domain.guide_source == 'EFFECTOR' or (domain.guide_source == 'DOMAIN' and not domain.guide_parent)))
+            layout.active = not self.check_domain_has_unbaked_guide(domain)
 
             is_baking_any = domain.is_cache_baking_any
             has_baked_data = domain.has_cache_baked_data
@@ -644,7 +653,7 @@ class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guides are enabled but not baked yet.
-        layout.active = domain.use_noise and not (domain.use_guide and not domain.has_cache_baked_guide and (domain.guide_source == 'EFFECTOR' or (domain.guide_source == 'DOMAIN' and not domain.guide_parent)))
+        layout.active = domain.use_noise and not self.check_domain_has_unbaked_guide(domain)
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_noise = domain.has_cache_baked_noise
@@ -710,7 +719,7 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guides are enabled but not baked yet.
-        layout.active = domain.use_mesh and not (domain.use_guide and not domain.has_cache_baked_guide and (domain.guide_source == 'EFFECTOR' or (domain.guide_source == 'DOMAIN' and not domain.guide_parent)))
+        layout.active = domain.use_mesh and not self.check_domain_has_unbaked_guide(domain)
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_mesh = domain.has_cache_baked_mesh
@@ -782,7 +791,7 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guides are enabled but not baked yet.
-        layout.active = not (domain.use_guide and not domain.has_cache_baked_guide and (domain.guide_source == 'EFFECTOR' or (domain.guide_source == 'DOMAIN' and not domain.guide_parent)))
+        layout.active = not self.check_domain_has_unbaked_guide(domain)
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_particles = domain.has_cache_baked_particles
@@ -791,15 +800,16 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
         flow.enabled = not is_baking_any
 
-        subSpray = flow.column()
-        subSpray.enabled = (domain.sndparticle_combined_export == 'OFF') or (domain.sndparticle_combined_export == 'FOAM + BUBBLES')
-        subSpray.prop(domain, "use_spray_particles", text="Spray")
-        subFoam = flow.column()
-        subFoam.enabled = (domain.sndparticle_combined_export == 'OFF') or (domain.sndparticle_combined_export == 'SPRAY + BUBBLES')
-        subFoam.prop(domain, "use_foam_particles", text="Foam")
-        subBubbles = flow.column()
-        subBubbles.enabled = (domain.sndparticle_combined_export == 'OFF') or (domain.sndparticle_combined_export == 'SPRAY + FOAM')
-        subBubbles.prop(domain, "use_bubble_particles", text="Bubbles")
+        sndparticle_combined_export = domain.sndparticle_combined_export
+        col = flow.column()
+        col.enabled = sndparticle_combined_export in {'OFF', 'FOAM + BUBBLES'}
+        col.prop(domain, "use_spray_particles", text="Spray")
+        col = flow.column()
+        col.enabled = sndparticle_combined_export in {'OFF', 'SPRAY + BUBBLES'}
+        col.prop(domain, "use_foam_particles", text="Foam")
+        col = flow.column()
+        col.enabled = sndparticle_combined_export in {'OFF', 'SPRAY + FOAM'}
+        col.prop(domain, "use_bubble_particles", text="Bubbles")
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
         flow.enabled = not is_baking_any and not has_baked_particles and using_particles
@@ -851,7 +861,13 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
             col.separator()
 
             split = layout.split()
-            split.enabled = domain.has_cache_baked_data and (domain.use_spray_particles or domain.use_bubble_particles or domain.use_foam_particles or domain.use_tracer_particles)
+            split.enabled = (
+                domain.has_cache_baked_data and
+                (domain.use_spray_particles or
+                 domain.use_bubble_particles or
+                 domain.use_foam_particles or
+                 domain.use_tracer_particles)
+            )
 
             bake_incomplete = (domain.cache_frame_pause_particles < domain.cache_frame_end)
             if domain.has_cache_baked_particles and not domain.is_cache_baking_particles and bake_incomplete:
@@ -889,7 +905,7 @@ class PHYSICS_PT_diffusion(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guides are enabled but not baked yet.
-        layout.active = not (domain.use_guide and not domain.has_cache_baked_guide and (domain.guide_source == 'EFFECTOR' or (domain.guide_source == 'DOMAIN' and not domain.guide_parent)))
+        layout.active = not self.check_domain_has_unbaked_guide(domain)
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_any = domain.has_cache_baked_any
