@@ -5593,8 +5593,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, const Object *ob)
           if (mmd->domain->point_cache[1]) {
             PointCache *cache = newdataadr(fd, mmd->domain->point_cache[1]);
             if (cache->flag & PTCACHE_FAKE_SMOKE) {
-              /* Mantasim / smoke was already saved in "new format" and this cache is a fake one.
-               */
+              /* Manta-sim/smoke was already saved in "new format" and this cache is a fake one. */
             }
             else {
               printf(

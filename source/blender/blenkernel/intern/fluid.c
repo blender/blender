@@ -1301,7 +1301,7 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
         }
       }
 
-      /* Get distance to mesh surface from both within and outside grid (mantaflow phi grid) */
+      /* Get distance to mesh surface from both within and outside grid (mantaflow phi grid). */
       if (data->distances_map) {
         update_mesh_distances(index,
                               data->distances_map,
@@ -1310,8 +1310,8 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
                               data->mes->surface_distance,
                               data->mes->flags & FLUID_FLOW_USE_PLANE_INIT);
 
-        /* Ensure that num objects are also counted inside object. But dont count twice (see object
-         * inc for nearest point) */
+        /* Ensure that num objects are also counted inside object.
+         * But don't count twice (see object inc for nearest point). */
         if (data->distances_map[index] < 0 && !has_inc_obj) {
           data->num_objects[index]++;
         }
@@ -1579,7 +1579,7 @@ static void update_obstacles(Depsgraph *depsgraph,
              scene->r.subframe);
 #  endif
       /* TODO (sebbas): Using BKE_scene_frame_get(scene) instead of new DEG_get_ctime(depsgraph) as
-       * subframes dont work with the latter yet. */
+       * subframes don't work with the latter yet. */
       BKE_object_modifier_update_subframe(
           depsgraph, scene, coll_ob, true, 5, BKE_scene_frame_get(scene), eModifierType_Fluid);
 
@@ -2125,8 +2125,8 @@ static void emit_from_particles(Object *flow_ob,
     else if (valid_particles > 0) {  // FLUID_FLOW_USE_PART_SIZE
       int min[3], max[3], res[3];
       const float hr = 1.0f / ((float)hires_multiplier);
-      /* slightly adjust high res antialias smoothness based on number of divisions
-       * to allow smaller details but yet not differing too much from the low res size */
+      /* Slightly adjust high res anti-alias smoothness based on number of divisions
+       * to allow smaller details but yet not differing too much from the low res size. */
       const float hr_smooth = smooth * powf(hr, 1.0f / 3.0f);
 
       /* setup loop bounds */
@@ -2201,8 +2201,8 @@ static void update_mesh_distances(int index,
     return;
   }
 
-  /* First pass: Raycasts in 26 directions (6 main axis + 12 quadrant diagonals (2D) + 8 octant
-   * diagonals (3D)). */
+  /* First pass: Ray-casts in 26 directions
+   * (6 main axis + 12 quadrant diagonals (2D) + 8 octant diagonals (3D)). */
   float ray_dirs[26][3] = {
       {1.0f, 0.0f, 0.0f},   {0.0f, 1.0f, 0.0f},   {0.0f, 0.0f, 1.0f},  {-1.0f, 0.0f, 0.0f},
       {0.0f, -1.0f, 0.0f},  {0.0f, 0.0f, -1.0f},  {1.0f, 1.0f, 0.0f},  {1.0f, -1.0f, 0.0f},
@@ -2257,7 +2257,7 @@ static void update_mesh_distances(int index,
   /* Update global distance array but ensure that older entries are not overridden. */
   mesh_distances[index] = MIN2(mesh_distances[index], min_dist);
 
-  /* Second pass: Use nearest neighbour search on mesh surface. */
+  /* Second pass: Use nearest neighbor search on mesh surface. */
   BVHTreeNearest nearest = {0};
   nearest.index = -1;
   nearest.dist_sq = 5;
@@ -2285,7 +2285,7 @@ static void update_mesh_distances(int index,
         min_dist = (-1.0f) * fabsf(min_dist);
       }
 
-      /* Update distance value with more accurate one from this nearest neighbour search.
+      /* Update distance value with more accurate one from this nearest neighbor search.
        * Skip if new value would be outside and current value has inside value already. */
       if (!(min_dist > 0 && mesh_distances[index] <= 0)) {
         mesh_distances[index] = min_dist;
@@ -3055,8 +3055,8 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *mfs,
   if (heat && heat_in) {
     if (emission_value > 0.0f) {
       heat_in[index] = ADD_IF_LOWER(heat[index], mfs->temperature);
-      /* Scale inflow by dt/framelength. This is to ensure that adaptive steps don't apply too much
-       * emission. */
+      /* Scale inflow by dt/frame-length.
+       * This is to ensure that adaptive steps don't apply too much emission. */
     }
     else {
       heat_in[index] = heat[index];
@@ -3112,8 +3112,7 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *mfs,
 
   /* set fire reaction coordinate */
   if (fuel && fuel_in) {
-    /* instead of using 1.0 for all new fuel add slight falloff
-     * to reduce flow blockiness */
+    /* Instead of using 1.0 for all new fuel add slight falloff to reduce flow blocky-ness. */
     float value = 1.0f - pow2f(1.0f - emission_value);
 
     if (fuel[index] > FLT_EPSILON && value > react[index]) {
@@ -3327,7 +3326,7 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
         /* Update frame time, this is considering current subframe fraction
          * BLI_mutex_lock() called in manta_step(), so safe to update subframe here
          * TODO (sebbas): Using BKE_scene_frame_get(scene) instead of new DEG_get_ctime(depsgraph)
-         * as subframes dont work with the latter yet */
+         * as subframes don't work with the latter yet */
         BKE_object_modifier_update_subframe(
             depsgraph, scene, flowobj, true, 5, BKE_scene_frame_get(scene), eModifierType_Fluid);
 

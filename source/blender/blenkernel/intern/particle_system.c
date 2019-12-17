@@ -4288,8 +4288,8 @@ static void particles_fluid_step(ParticleSimulationData *sim,
         printf("system type is %d and particle type is %d\n", part->type, flagActivePart);
 #  endif
 
-        /* Type of particle must matche current particle system type (only important for snd
-         * particles). */
+        /* Type of particle must match current particle system type
+         * (only important for snd particles). */
         if ((flagActivePart & PARTICLE_TYPE_SPRAY) && (part->type & PART_FLUID_SPRAY) == 0) {
           continue;
         }
@@ -4306,7 +4306,7 @@ static void particles_fluid_step(ParticleSimulationData *sim,
         /* Debugging: Print type of particle system and current particles. */
         printf("system type is %d and particle type is %d\n", part->type, flagActivePart);
 #  endif
-        /* Particle system has allocated tottypeparts particles - so break early before exceeded.
+        /* Particle system has allocated 'tottypepart' particles - so break early before exceeded.
          */
         if (activeParts >= tottypepart) {
           break;
@@ -4330,7 +4330,7 @@ static void particles_fluid_step(ParticleSimulationData *sim,
           madd_v3fl_v3fl_v3fl_v3i(max, mds->p0, cell_size_scaled, mds->res_max);
           sub_v3_v3v3(size, max, min);
 
-          /* Biggest dimension will be used for upscaling. */
+          /* Biggest dimension will be used for up-scaling. */
           max_size = MAX3(size[0] / (float)upres, size[1] / (float)upres, size[2] / (float)upres);
 
           /* Set particle position. */
@@ -4418,12 +4418,16 @@ static int emit_particles(ParticleSimulationData *sim, PTCacheID *pid, float UNU
   return totpart - oldtotpart;
 }
 
-/* Calculates the next state for all particles of the system
- * In particles code most fra-ending are frames, time-ending are fra*timestep (seconds)
+/**
+ * Calculates the next state for all particles of the system.
+ * In particles code most 'cfra - ending' are frames,
+ * 'time - ending' are 'cfra * timestep' (seconds).
+ *
  * 1. Emit particles
  * 2. Check cache (if used) and return if frame is cached
  * 3. Do dynamics
- * 4. Save to cache */
+ * 4. Save to cache
+ */
 static void system_step(ParticleSimulationData *sim, float cfra, const bool use_render_params)
 {
   ParticleSystem *psys = sim->psys;

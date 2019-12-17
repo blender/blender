@@ -113,13 +113,14 @@ void main_python_exit(void);
 #endif
 
 #ifdef WITH_USD
-/* Workaround to make it possible to pass a path at runtime to USD.
+/**
+ * Workaround to make it possible to pass a path at runtime to USD.
  *
  * USD requires some JSON files, and it uses a static constructor to determine the possible
- * filesystem paths to find those files. This made it impossible for Blender to pass a path to the
+ * file-system paths to find those files. This made it impossible for Blender to pass a path to the
  * USD library at runtime, as the constructor would run before Blender's main() function. We have
  * patched USD (see usd.diff) to avoid that particular static constructor, and have an
- * initialisation function instead.
+ * initialization function instead.
  *
  * This function is implemented in the USD source code, pxr/base/lib/plug/initConfig.cpp.
  */

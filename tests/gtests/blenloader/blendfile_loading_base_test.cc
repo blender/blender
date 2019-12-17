@@ -89,7 +89,7 @@ void BlendfileLoadingBaseTest::TearDownTestCase()
   }
 
   /* Copied from WM_exit_ex() in wm_init_exit.c, and cherry-picked those lines that match the
-   * allocation/initialisation done in SetUpTestCase(). */
+   * allocation/initialization done in SetUpTestCase(). */
   BKE_blender_free();
   RNA_exit();
 

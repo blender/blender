@@ -4506,7 +4506,7 @@ static void def_sh_tex_voronoi(StructRNA *srna)
        "SMOOTH_F1",
        0,
        "Smooth F1",
-       "Smoothed version of F1. Weighted sum of neighbour voronoi cells"},
+       "Smoothed version of F1. Weighted sum of neighbor voronoi cells"},
       {SHD_VORONOI_DISTANCE_TO_EDGE,
        "DISTANCE_TO_EDGE",
        0,

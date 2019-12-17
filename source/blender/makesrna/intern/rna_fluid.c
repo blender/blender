@@ -590,8 +590,8 @@ static void rna_Fluid_domaintype_set(struct PointerRNA *ptr, int value)
   Object *ob = (Object *)ptr->owner_id;
 
   if (value != settings->type) {
-    /* Set common values for liquid/smoke domain: cache type, border collision and viewport
-     * drawtype. */
+    /* Set common values for liquid/smoke domain: cache type,
+     * border collision and viewport draw-type. */
     if (value == FLUID_DOMAIN_TYPE_GAS) {
       rna_Fluid_cachetype_mesh_set(ptr, FLUID_DOMAIN_FILE_BIN_OBJECT);
       rna_Fluid_cachetype_data_set(ptr, FLUID_DOMAIN_FILE_UNI);
