@@ -2265,9 +2265,18 @@ static int wm_handler_operator_call(bContext *C,
       bool use_last_properties = true;
       PointerRNA tool_properties = {0};
 
-      bToolRef *keymap_tool = ((handler_base->type == WM_HANDLER_TYPE_KEYMAP) ?
-                                   ((wmEventHandler_Keymap *)handler_base)->keymap_tool :
-                                   NULL);
+      bToolRef *keymap_tool = NULL;
+      if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
+        keymap_tool = ((wmEventHandler_Keymap *)handler_base)->keymap_tool;
+      }
+      else if (handler_base->type == WM_HANDLER_TYPE_GIZMO) {
+        wmGizmoMap *gizmo_map = ((wmEventHandler_Gizmo *)handler_base)->gizmo_map;
+        wmGizmo *gz = wm_gizmomap_highlight_get(gizmo_map);
+        if (gz && (gz->flag & WM_GIZMO_OPERATOR_TOOL_INIT)) {
+          keymap_tool = WM_toolsystem_ref_from_context(C);
+        }
+      }
+
       const bool is_tool = (keymap_tool != NULL);
       const bool use_tool_properties = is_tool;
 

@@ -109,6 +109,8 @@ static wmGizmo *tool_generic_create_gizmo(const bContext *C, wmGizmoGroup *gzgro
     RNA_float_set(gz->ptr, "backdrop_fill_alpha", 0.125f);
   }
 
+  gz->flag |= WM_GIZMO_OPERATOR_TOOL_INIT;
+
   bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
   wmWindowManager *wm = CTX_wm_manager(C);
   struct wmKeyConfig *kc = wm->defaultconf;
