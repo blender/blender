@@ -1389,13 +1389,13 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
     case USER_TEMP_SPACE_DISPLAY_FULLSCREEN: {
       ScrArea *ctx_sa = CTX_wm_area(C);
 
-      if (ctx_sa->full) {
+      if (ctx_sa != NULL && ctx_sa->full) {
         sa = ctx_sa;
         ED_area_newspace(C, ctx_sa, space_type, true);
         sa->flag |= AREA_FLAG_STACKED_FULLSCREEN;
         ((SpaceLink *)sa->spacedata.first)->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
       }
-      else if (ctx_sa->spacetype == space_type) {
+      else if (ctx_sa != NULL && ctx_sa->spacetype == space_type) {
         sa = ED_screen_state_toggle(C, CTX_wm_window(C), ctx_sa, SCREENMAXIMIZED);
       }
       else {
