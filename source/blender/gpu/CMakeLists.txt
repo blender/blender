@@ -61,6 +61,7 @@ set(SRC
   intern/gpu_context.cpp
   intern/gpu_debug.c
   intern/gpu_draw.c
+  intern/gpu_draw_smoke.c
   intern/gpu_element.c
   intern/gpu_extensions.c
   intern/gpu_framebuffer.c
