@@ -161,11 +161,11 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             col.prop(domain, "cfl_condition", text="CFL Number")
 
             col = flow.column()
-            col.prop(domain, "use_adaptive_stepping", text="Use Adaptive Stepping")
+            col.prop(domain, "use_adaptive_timesteps")
             col1 = col.column(align=True)
             col1.enabled = domain.use_adaptive_stepping
-            col1.prop(domain, "timesteps_maximum", text="Timesteps Maximum")
-            col1.prop(domain, "timesteps_minimum", text="Minimum")
+            col1.prop(domain, "timesteps_max", text="Timesteps Maximum")
+            col1.prop(domain, "timesteps_min", text="Minimum")
 
             col.separator()
 
@@ -438,8 +438,8 @@ class PHYSICS_PT_liquid(PhysicButtonsPanel, Panel):
 
         col1 = flow.column(align=True)
         col1.enabled = not is_baking_any and not has_baked_data
-        col1.prop(domain, "particle_maximum", text="Particles Maximum")
-        col1.prop(domain, "particle_minimum", text="Minimum")
+        col1.prop(domain, "particle_max", text="Particles Maximum")
+        col1.prop(domain, "particle_min", text="Minimum")
 
         col1 = flow.column()
         col1.enabled = not is_baking_any and not has_baked_data

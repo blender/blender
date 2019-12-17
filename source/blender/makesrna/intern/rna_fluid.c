@@ -1554,7 +1554,8 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       prop, "Number", "Particle number factor (higher value results in more particles)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_resetCache");
 
-  prop = RNA_def_property(srna, "particle_minimum", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "particle_min", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "particle_minimum");
   RNA_def_property_range(prop, 0, 1000);
   RNA_def_property_ui_text(prop,
                            "Minimum",
@@ -1562,7 +1563,8 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
                            "least this amount of particles)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_resetCache");
 
-  prop = RNA_def_property(srna, "particle_maximum", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "particle_max", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "particle_maximum");
   RNA_def_property_range(prop, 0, 1000);
   RNA_def_property_ui_text(prop,
                            "Maximum",
@@ -2094,19 +2096,21 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       prop, "CFL", "Maximal velocity per cell (higher value results in larger timesteps)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_resetCache");
 
-  prop = RNA_def_property(srna, "use_adaptive_stepping", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_adaptive_timesteps", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", FLUID_DOMAIN_USE_ADAPTIVE_TIME);
-  RNA_def_property_ui_text(prop, "Adaptive stepping", "Enable adaptive time-stepping");
+  RNA_def_property_ui_text(prop, "Use Adaptive Time Steps", "");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_resetCache");
 
-  prop = RNA_def_property(srna, "timesteps_minimum", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "timesteps_min", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "timesteps_minimum");
   RNA_def_property_range(prop, 1, 100);
   RNA_def_property_ui_range(prop, 0, 100, 1, -1);
   RNA_def_property_ui_text(
       prop, "Minimum", "Minimum number of simulation steps to perform for one frame");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 
-  prop = RNA_def_property(srna, "timesteps_maximum", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "timesteps_max", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "timesteps_maximum");
   RNA_def_property_range(prop, 1, 100);
   RNA_def_property_ui_range(prop, 0, 100, 1, -1);
   RNA_def_property_ui_text(
