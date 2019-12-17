@@ -1379,8 +1379,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_select(Panel, View3DPanel, GreasePenci
 
             if brush.use_custom_icon:
                 layout.row().prop(brush, "icon_filepath", text="")
-            else:
-                layout.row().prop(gp_settings, "gp_icon", text="Icon")
 
 
 class VIEW3D_PT_tools_grease_pencil_brush_settings(Panel, View3DPanel, GreasePencilPanel):
@@ -1470,15 +1468,34 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
                 subcol.prop(gp_settings, "gradient_shape")
 
             elif brush.gpencil_tool == 'FILL':
+                row = col.row(align=True)
+                row.prop(gp_settings, "fill_draw_mode", text="Boundary")
+                row.prop(gp_settings, "show_fill_boundary", text="", icon='GRID')
+                col.separator()
                 col.prop(gp_settings, "fill_factor", text="Resolution")
                 if gp_settings.fill_draw_mode != 'STROKE':
                     col.prop(gp_settings, "show_fill", text="Ignore Transparent Strokes")
                     col.prop(gp_settings, "fill_threshold", text="Threshold")
 
+class VIEW3D_PT_tools_grease_pencil_brush_stroke(Panel, View3DPanel):
+    bl_context = ".greasepencil_paint"
+    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_settings'
+    bl_label = "Stroke"
+    bl_category = "Tool"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        brush = context.tool_settings.gpencil_paint.brush
+        return brush is not None and brush.gpencil_tool == 'DRAW'
+
+    def draw(self, context):
+        layout = self.layout
+
 
 class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(Panel, View3DPanel):
     bl_context = ".greasepencil_paint"
-    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_settings'
+    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_stroke'
     bl_label = "Stabilize Stroke"
     bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1518,7 +1535,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(Panel, View3DPanel):
 
 class VIEW3D_PT_tools_grease_pencil_brush_post_processing(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
-    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_settings'
+    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_stroke'
     bl_label = "Post-Processing"
     bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1573,7 +1590,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_post_processing(View3DPanel, Panel):
 
 class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
-    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_settings'
+    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_stroke'
     bl_label = "Randomize"
     bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1903,9 +1920,10 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_brush_select,
     VIEW3D_PT_tools_grease_pencil_brush_settings,
     VIEW3D_PT_tools_grease_pencil_brush_advanced,
+    VIEW3D_PT_tools_grease_pencil_brush_stroke,
     VIEW3D_PT_tools_grease_pencil_brush_post_processing,
-    VIEW3D_PT_tools_grease_pencil_brush_stabilizer,
     VIEW3D_PT_tools_grease_pencil_brush_random,
+    VIEW3D_PT_tools_grease_pencil_brush_stabilizer,
     VIEW3D_PT_tools_grease_pencil_brushcurves,
     VIEW3D_PT_tools_grease_pencil_brushcurves_sensitivity,
     VIEW3D_PT_tools_grease_pencil_brushcurves_strength,

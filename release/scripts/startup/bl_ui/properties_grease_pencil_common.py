@@ -233,14 +233,14 @@ class GreasePencilDisplayPanel:
             col.active = brush.use_cursor
 
             if tool in {'THICKNESS', 'STRENGTH'}:
-                col.prop(brush, "cursor_color_add", text="Add Cursor Color")
-                col.prop(brush, "cursor_color_sub", text="Subtract Cursor Color")
+                col.prop(brush, "cursor_color_add", text="Cursor Color")
+                col.prop(brush, "cursor_color_sub", text="Inverse Cursor Color")
             elif tool == 'PINCH':
-                col.prop(brush, "cursor_color_add", text="Pinch Cursor Color")
-                col.prop(brush, "cursor_color_sub", text="Inflate Cursor Color")
+                col.prop(brush, "cursor_color_add", text="Cursor Color")
+                col.prop(brush, "cursor_color_sub", text="Inverse Cursor Color")
             elif tool == 'TWIST':
-                col.prop(brush, "cursor_color_add", text="CCW Cursor Color")
-                col.prop(brush, "cursor_color_sub", text="CW Cursor Color")
+                col.prop(brush, "cursor_color_add", text="Cursor Color")
+                col.prop(brush, "cursor_color_sub", text="Inverse Cursor Color")
             else:
                 col.prop(brush, "cursor_color_add", text="Cursor Color")
 
