@@ -188,7 +188,7 @@ class CurveMappingModifier(ScalarBlendModifier):
         # deprecated: return evaluateCurveMappingF(self.curve, 0, t)
         curve = self.curve
         curve.initialize()
-        result = curve.curves[0].evaluate(t)
+        result = curve.evaluate(curve=curve.curves[0], position=t)
         # float precision errors in t can give a very weird result for evaluate.
         # therefore, bound the result by the curve's min and max values
         return bound(curve.clip_min_y, result, curve.clip_max_y)
