@@ -908,7 +908,7 @@ static bool curve_is_animated(Curve *cu)
 
 static void fcurve_path_rename(AnimData *adt,
                                const char *orig_rna_path,
-                               char *rna_path,
+                               const char *rna_path,
                                ListBase *orig_curves,
                                ListBase *curves)
 {
