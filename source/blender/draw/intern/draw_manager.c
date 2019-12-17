@@ -2468,6 +2468,9 @@ void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
 
   /* Get list of enabled engines */
   {
+    /* Required by `DRW_state_draw_support()` */
+    DST.draw_ctx.v3d = v3d;
+
     drw_engines_enable_basic();
     if (DRW_state_draw_support()) {
       drw_engines_enable_overlays();
