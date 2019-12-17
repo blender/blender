@@ -163,7 +163,7 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             col = flow.column()
             col.prop(domain, "use_adaptive_timesteps")
             col1 = col.column(align=True)
-            col1.enabled = domain.use_adaptive_stepping
+            col1.enabled = domain.use_adaptive_timesteps
             col1.prop(domain, "timesteps_max", text="Timesteps Maximum")
             col1.prop(domain, "timesteps_min", text="Minimum")
 
