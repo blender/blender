@@ -4171,15 +4171,15 @@ static void particles_fluid_step(ParticleSimulationData *sim,
       float min[3], max[3], size[3], cell_size_scaled[3], max_size;
 
       /* Sanity check: parts also enabled in fluid domain? */
-      if ((part->type & PART_FLUID_FLIP &&
+      if ((part->type == PART_FLUID_FLIP &&
            (mds->particle_type & FLUID_DOMAIN_PARTICLE_FLIP) == 0) ||
-          (part->type & PART_FLUID_SPRAY &&
+          (part->type == PART_FLUID_SPRAY &&
            (mds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) == 0) ||
-          (part->type & PART_FLUID_BUBBLE &&
+          (part->type == PART_FLUID_BUBBLE &&
            (mds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) == 0) ||
-          (part->type & PART_FLUID_FOAM &&
+          (part->type == PART_FLUID_FOAM &&
            (mds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) == 0) ||
-          (part->type & PART_FLUID_TRACER &&
+          (part->type == PART_FLUID_TRACER &&
            (mds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER) == 0)) {
         BLI_snprintf(debugStrBuffer,
                      sizeof(debugStrBuffer),
@@ -4189,11 +4189,11 @@ static void particles_fluid_step(ParticleSimulationData *sim,
       }
 
       /* Count particle amount. tottypepart is only important for snd particles. */
-      if (part->type & PART_FLUID_FLIP) {
+      if (part->type == PART_FLUID_FLIP) {
         tottypepart = totpart = manta_liquid_get_num_flip_particles(mds->fluid);
       }
-      if (part->type &
-          (PART_FLUID_SPRAY | PART_FLUID_BUBBLE | PART_FLUID_FOAM | PART_FLUID_TRACER)) {
+      if ((part->type == PART_FLUID_SPRAY) || (part->type == PART_FLUID_BUBBLE) ||
+          (part->type == PART_FLUID_FOAM) || (part->type == PART_FLUID_TRACER)) {
         totpart = manta_liquid_get_num_snd_particles(mds->fluid);
 
         /* tottypepart is the amount of particles of a snd particle type. */
@@ -4242,7 +4242,7 @@ static void particles_fluid_step(ParticleSimulationData *sim,
         }
 
         /* flag, res, upres, pos, vel for FLIP and snd particles have different getters. */
-        if (part->type & PART_FLUID_FLIP) {
+        if (part->type == PART_FLUID_FLIP) {
           flagActivePart = manta_liquid_get_flip_particle_flag_at(mds->fluid, p);
 
           resX = (float)manta_get_res_x(mds->fluid);
@@ -4259,8 +4259,8 @@ static void particles_fluid_step(ParticleSimulationData *sim,
           velY = manta_liquid_get_flip_particle_velocity_y_at(mds->fluid, p);
           velZ = manta_liquid_get_flip_particle_velocity_z_at(mds->fluid, p);
         }
-        else if (part->type &
-                 (PART_FLUID_SPRAY | PART_FLUID_BUBBLE | PART_FLUID_FOAM | PART_FLUID_TRACER)) {
+        else if ((part->type == PART_FLUID_SPRAY) || (part->type == PART_FLUID_BUBBLE) ||
+                 (part->type == PART_FLUID_FOAM) || (part->type == PART_FLUID_TRACER)) {
           flagActivePart = manta_liquid_get_snd_particle_flag_at(mds->fluid, p);
 
           resX = (float)manta_liquid_get_particle_res_x(mds->fluid);
@@ -4787,7 +4787,7 @@ void particle_system_update(struct Depsgraph *depsgraph,
   /* setup necessary physics type dependent additional data if it doesn't yet exist */
   psys_prepare_physics(&sim);
 
-  if (part->type & PART_HAIR) {
+  if (part->type == PART_HAIR) {
     /* nothing to do so bail out early */
     if (psys->totpart == 0 && part->totpart == 0) {
       psys_free_path_cache(psys, NULL);
@@ -4844,8 +4844,9 @@ void particle_system_update(struct Depsgraph *depsgraph,
       hair_step(&sim, cfra, use_render_params);
     }
   }
-  else if (part->type & (PART_FLUID_FLIP | PART_FLUID_BUBBLE | PART_FLUID_BUBBLE |
-                         PART_FLUID_FOAM | PART_FLUID_TRACER)) {
+  else if ((part->type == PART_FLUID_FLIP) || (part->type == PART_FLUID_SPRAY) ||
+           (part->type == PART_FLUID_BUBBLE) || (part->type == PART_FLUID_FOAM) ||
+           (part->type == PART_FLUID_TRACER)) {
     particles_fluid_step(&sim, (int)cfra, use_render_params);
   }
   else {

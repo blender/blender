@@ -556,9 +556,9 @@ void AbcExporter::createParticleSystemsWriters(Object *ob, AbcTransformWriter *x
       m_shapes.push_back(new AbcHairWriter(ob, xform, m_shape_sampling_index, m_settings, psys));
     }
     else if (m_settings.export_particles &&
-             (psys->part->type & PART_EMITTER || psys->part->type & PART_FLUID_FLIP ||
-              psys->part->type & PART_FLUID_SPRAY || psys->part->type & PART_FLUID_BUBBLE ||
-              psys->part->type & PART_FLUID_FOAM || psys->part->type & PART_FLUID_TRACER)) {
+             (psys->part->type == PART_EMITTER || psys->part->type == PART_FLUID_FLIP ||
+              psys->part->type == PART_FLUID_SPRAY || psys->part->type == PART_FLUID_BUBBLE ||
+              psys->part->type == PART_FLUID_FOAM || psys->part->type == PART_FLUID_TRACER)) {
       m_shapes.push_back(new AbcPointsWriter(ob, xform, m_shape_sampling_index, m_settings, psys));
     }
   }
