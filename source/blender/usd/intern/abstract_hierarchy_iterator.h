@@ -33,8 +33,8 @@
  * Selections like "selected only" or "no hair systems" are left to concrete subclasses.
  */
 
-#ifndef __USD__ABSTRACT_HIERARCHY_ITERATOR_H__
-#define __USD__ABSTRACT_HIERARCHY_ITERATOR_H__
+#ifndef __ABSTRACT_HIERARCHY_ITERATOR_H__
+#define __ABSTRACT_HIERARCHY_ITERATOR_H__
 
 #include <map>
 #include <string>
@@ -245,4 +245,4 @@ class AbstractHierarchyIterator {
 
 }  // namespace USD
 
-#endif /* __USD__ABSTRACT_HIERARCHY_ITERATOR_H__ */
+#endif /* __ABSTRACT_HIERARCHY_ITERATOR_H__ */

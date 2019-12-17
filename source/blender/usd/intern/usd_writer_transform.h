@@ -16,8 +16,8 @@
  * The Original Code is Copyright (C) 2019 Blender Foundation.
  * All rights reserved.
  */
-#ifndef __USD__USD_WRITER_TRANSFORM_H__
-#define __USD__USD_WRITER_TRANSFORM_H__
+#ifndef __USD_WRITER_TRANSFORM_H__
+#define __USD_WRITER_TRANSFORM_H__
 
 #include "usd_writer_abstract.h"
 
@@ -39,4 +39,4 @@ class USDTransformWriter : public USDAbstractWriter {
 
 }  // namespace USD
 
-#endif /* __USD__USD_WRITER_TRANSFORM_H__ */
+#endif /* __USD_WRITER_TRANSFORM_H__ */

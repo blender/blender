@@ -16,8 +16,8 @@
  * The Original Code is Copyright (C) 2019 Blender Foundation.
  * All rights reserved.
  */
-#ifndef __USD__USD_WRITER_ABSTRACT_H__
-#define __USD__USD_WRITER_ABSTRACT_H__
+#ifndef __USD_WRITER_ABSTRACT_H__
+#define __USD_WRITER_ABSTRACT_H__
 
 #include "usd_exporter_context.h"
 #include "abstract_hierarchy_iterator.h"
@@ -75,4 +75,4 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
 
 }  // namespace USD
 
-#endif /* __USD__USD_WRITER_ABSTRACT_H__ */
+#endif /* __USD_WRITER_ABSTRACT_H__ */

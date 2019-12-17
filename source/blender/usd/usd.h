@@ -17,8 +17,8 @@
  * All rights reserved.
  */
 
-#ifndef __BLENDER_USD_H__
-#define __BLENDER_USD_H__
+#ifndef __USD_H__
+#define __USD_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,4 +59,4 @@ bool USD_export(struct bContext *C,
 }
 #endif
 
-#endif /* __BLENDER_USD_H__ */
+#endif /* __USD_H__ */

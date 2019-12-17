@@ -18,8 +18,8 @@
  * \ingroup modifiers
  */
 
-#ifndef __MOD_MESHCACHE_UTIL_H__
-#define __MOD_MESHCACHE_UTIL_H__
+#ifndef __MOD_SOLIDIFY_UTIL_H__
+#define __MOD_SOLIDIFY_UTIL_H__
 
 /* MOD_solidify_extrude.c */
 Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
@@ -31,4 +31,4 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                                              const ModifierEvalContext *ctx,
                                              Mesh *mesh);
 
-#endif /* __MOD_MESHCACHE_UTIL_H__ */
+#endif /* __MOD_SOLIDIFY_UTIL_H__ */

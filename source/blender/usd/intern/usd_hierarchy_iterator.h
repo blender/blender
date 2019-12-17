@@ -16,8 +16,8 @@
  * The Original Code is Copyright (C) 2019 Blender Foundation.
  * All rights reserved.
  */
-#ifndef __USD__USD_HIERARCHY_ITERATOR_H__
-#define __USD__USD_HIERARCHY_ITERATOR_H__
+#ifndef __USD_HIERARCHY_ITERATOR_H__
+#define __USD_HIERARCHY_ITERATOR_H__
 
 #include "abstract_hierarchy_iterator.h"
 #include "usd_exporter_context.h"
@@ -68,4 +68,4 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
 
 }  // namespace USD
 
-#endif /* __USD__USD_HIERARCHY_ITERATOR_H__ */
+#endif /* __USD_HIERARCHY_ITERATOR_H__ */

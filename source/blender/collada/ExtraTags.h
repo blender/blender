@@ -18,6 +18,9 @@
  * \ingroup collada
  */
 
+#ifndef __EXTRATAGS_H__
+#define __EXTRATAGS_H__
+
 #include <string>
 #include <map>
 #include <vector>
@@ -70,3 +73,5 @@ class ExtraTags {
   /** Get text data for tag as a string. */
   std::string asString(std::string tag, bool *ok);
 };
+
+#endif /* __EXTRATAGS_H__ */
