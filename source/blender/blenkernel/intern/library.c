@@ -1613,30 +1613,6 @@ void id_sort_by_name(ListBase *lb, ID *id)
 #undef ID_SORT_STEP_SIZE
 
 /**
- * Check to see if there is an ID with the same name as 'name'.
- * Returns the ID if so, if not, returns NULL
- */
-static ID *is_dupid(ListBase *lb, ID *id, const char *name)
-{
-  ID *idtest = NULL;
-
-  for (idtest = lb->first; idtest; idtest = idtest->next) {
-    /* if idtest is not a lib */
-    if (id != idtest && !ID_IS_LINKED(idtest)) {
-      /* do not test alphabetic! */
-      /* optimized */
-      if (idtest->name[2] == name[0]) {
-        if (STREQ(name, idtest->name + 2)) {
-          break;
-        }
-      }
-    }
-  }
-
-  return idtest;
-}
-
-/**
  * Check to see if an ID name is already used, and find a new one if so.
  * Return true if a new name was created (returned in name).
  *
@@ -1663,16 +1639,6 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
   ID *id_test;
 
   while (true) {
-    /* phase 1: id already exists? */
-    id_test = is_dupid(lb, id, name);
-
-    /* If there is no double, we are done.
-     * Note however that name might have been changed (truncated) in a previous iteration already.
-     */
-    if (id_test == NULL) {
-      return is_name_changed;
-    }
-
     /* Get the name and number parts ("name.number"). */
     char root_name[MAX_ID_NAME - 2];
     int number = MIN_NUMBER;
@@ -1685,42 +1651,39 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
       number = MIN_NUMBER;
     }
 
-    char number_str[11]; /* Dot + nine digits + NULL terminator. */
-    size_t number_str_len = BLI_snprintf_rlen(number_str, ARRAY_SIZE(number_str), ".%.3d", number);
-
-    if (root_name_len + number_str_len >= MAX_ID_NAME - 2) {
-      /* This would overflow the maximum ID name length. */
-      root_name_len = MAX_ID_NAME - 2 - number_str_len - 1;
-      root_name[root_name_len] = '\0';
-
-      /* Code above may have generated invalid utf-8 string, due to raw truncation.
-       * Ensure we get a valid one now. */
-      root_name_len -= (size_t)BLI_utf8_invalid_strip(root_name, root_name_len);
-
-      /* Copy back truncated root name into orig name, and start the whole check again. */
-      BLI_strncpy(name, root_name, root_name_len + 1);
-      is_name_changed = true;
-      continue;
-    }
-
+    bool is_orig_name_used = false;
     for (id_test = lb->first; id_test; id_test = id_test->next) {
       char root_name_test[MAX_ID_NAME - 2];
       int number_test;
-      if ((id != id_test) && !ID_IS_LINKED(id_test) && (*name == *(id_test->name + 2)) &&
+      if ((id != id_test) && !ID_IS_LINKED(id_test) && (name[0] == id_test->name[2]) &&
+          (id_test->name[root_name_len + 2] == '.' || id_test->name[root_name_len + 2] == '\0') &&
           STREQLEN(name, id_test->name + 2, root_name_len) &&
           (BLI_split_name_num(root_name_test, &number_test, id_test->name + 2, '.') ==
            root_name_len)) {
-        /* will get here at least once, otherwise is_dupid call above would have returned NULL */
-        if (number_test < MAX_NUMBERS_IN_USE) {
-          BLI_BITMAP_SET(numbers_in_use, number_test, true); /* Mark as used. */
+        /* If we did not yet encounter exact same name as the given one, check the remaining parts
+         * of the strings. */
+        if (!is_orig_name_used) {
+          is_orig_name_used = STREQ(name + root_name_len, id_test->name + 2 + root_name_len);
         }
+        /* Mark number of current id_test name as used, if possible. */
+        if (number_test < MAX_NUMBERS_IN_USE) {
+          BLI_BITMAP_SET(numbers_in_use, number_test, true);
+        }
+        /* Keep track of first largest unused number. */
         if (number <= number_test) {
-          number = number_test + 1; /* Track first largest unused. */
+          number = number_test + 1;
         }
       }
     }
 
-    /* Decide which value of nr to use, either, if possible, the smallest unused one, or default to
+    /* If there is no double, we are done.
+     * Note however that name might have been changed (truncated) in a previous iteration already.
+     */
+    if (!is_orig_name_used) {
+      return is_name_changed;
+    }
+
+    /* Decide which value of nr to use, either the smallest unused one if possible, or default to
      * the first largest unused one we got from previous loop. */
     for (int i = MIN_NUMBER; i < MAX_NUMBERS_IN_USE; i++) {
       if (!BLI_BITMAP_TEST_BOOL(numbers_in_use, i)) {
@@ -1735,12 +1698,18 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
      * (MAX_NUMBERS_IN_USE - 1).
      */
 
-    number_str_len = BLI_snprintf_rlen(number_str, ARRAY_SIZE(number_str), ".%.3d", number);
+    char number_str[11]; /* Dot + nine digits + NULL char. */
+    size_t number_str_len = BLI_snprintf_rlen(number_str, ARRAY_SIZE(number_str), ".%.3d", number);
 
     /* If the number would lead to an overflow of the maximum ID name length, we need to truncate
      * the root name part and do all the number checks again. */
     if (root_name_len + number_str_len >= MAX_ID_NAME - 2 || number >= MAX_NUMBER) {
-      root_name_len = MAX_ID_NAME - 2 - number_str_len - 1;
+      if (root_name_len + number_str_len >= MAX_ID_NAME - 2) {
+        root_name_len = MAX_ID_NAME - 2 - number_str_len - 1;
+      }
+      else {
+        root_name_len--;
+      }
       root_name[root_name_len] = '\0';
 
       /* Code above may have generated invalid utf-8 string, due to raw truncation.
