@@ -730,9 +730,8 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
       }
 
       if (do_step[step]) {
-        if ((gzmap->update_flag[step] & GIZMOMAP_IS_REFRESH_CALLBACK) &&
-            (gzgroup->type->refresh != NULL)) {
-          gzgroup->type->refresh(C, gzgroup);
+        if (gzmap->update_flag[step] & GIZMOMAP_IS_REFRESH_CALLBACK) {
+          WM_gizmo_group_refresh(C, gzgroup);
           /* cleared below */
         }
         if (step == WM_GIZMOMAP_DRAWSTEP_3D) {
