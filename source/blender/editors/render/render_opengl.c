@@ -1124,6 +1124,17 @@ static int screen_opengl_render_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static char *screen_opengl_render_description(struct bContext *UNUSED(C),
+                                              struct wmOperatorType *UNUSED(ot),
+                                              struct PointerRNA *ptr)
+{
+  if (!RNA_boolean_get(ptr, "animation")) {
+    return NULL;
+  }
+
+  return BLI_strdup("Render the viewport for the animation range of this scene");
+}
+
 void RENDER_OT_opengl(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -1134,6 +1145,7 @@ void RENDER_OT_opengl(wmOperatorType *ot)
   ot->idname = "RENDER_OT_opengl";
 
   /* api callbacks */
+  ot->get_description = screen_opengl_render_description;
   ot->invoke = screen_opengl_render_invoke;
   ot->exec = screen_opengl_render_exec; /* blocking */
   ot->modal = screen_opengl_render_modal;
