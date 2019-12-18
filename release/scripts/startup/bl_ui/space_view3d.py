@@ -1115,6 +1115,12 @@ class VIEW3D_MT_view(Menu):
 
         layout.operator("render.opengl", text="Viewport Render Image", icon='RENDER_STILL')
         layout.operator("render.opengl", text="Viewport Render Animation", icon='RENDER_ANIMATION').animation = True
+        props = layout.operator("render.opengl",
+                                text="Viewport Render Keyframes",
+                                icon='RENDER_ANIMATION',
+        )
+        props.animation = True
+        props.render_keyed_only = True
 
         layout.separator()
 
