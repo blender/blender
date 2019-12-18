@@ -2721,7 +2721,7 @@ static void *extract_stretch_area_init(const MeshRenderData *mr, void *buf)
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "ratio", GPU_COMP_U16, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    GPU_vertformat_attr_add(&format, "ratio", GPU_COMP_I16, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
   }
 
   GPUVertBuf *vbo = buf;
@@ -2788,7 +2788,7 @@ static void mesh_stretch_area_finish(const MeshRenderData *mr, void *buf, void *
   /* Convert in place to avoid an extra allocation */
   uint16_t *poly_stretch = (uint16_t *)area_ratio;
   for (int p = 0; p < mr->poly_len; p++) {
-    poly_stretch[p] = area_ratio[p] * 65534.0f;
+    poly_stretch[p] = area_ratio[p] * SHRT_MAX;
   }
 
   /* Copy face data for each loop. */

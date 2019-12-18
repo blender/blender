@@ -90,7 +90,7 @@ void main()
   stretch = stretch;
   stretch = 1.0 - stretch * stretch;
 #else
-  float stretch = 1.0 - area_ratio_to_stretch(ratio, totalAreaRatio, -totalAreaRatioInv);
+  float stretch = 1.0 - area_ratio_to_stretch(ratio, totalAreaRatio, totalAreaRatioInv);
 
 #endif
 
