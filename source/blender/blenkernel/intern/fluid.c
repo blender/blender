@@ -4287,7 +4287,7 @@ void BKE_fluid_particles_set(FluidDomainSettings *settings, int value, bool clea
     settings->particle_type &= ~value;
   }
   else {
-    settings->border_collisions |= value;
+    settings->particle_type |= value;
   }
 }
 
