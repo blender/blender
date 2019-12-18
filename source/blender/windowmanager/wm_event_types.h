@@ -317,7 +317,7 @@ enum {
   EVT_TWEAK_L = 0x5002,
   EVT_TWEAK_M = 0x5003,
   EVT_TWEAK_R = 0x5004,
-  EVT_GESTURE = 0x5010,
+  /* 0x5010 (and lower) should be left to add other tweak types in the future. */
 
   /* 0x5011 is taken, see EVT_ACTIONZONE_FULLSCREEN */
 
@@ -369,7 +369,7 @@ enum {
         BUTTON7MOUSE))
 
 /* test whether the event is tweak event */
-#define ISTWEAK(event_type) ((event_type) >= EVT_TWEAK_L && (event_type) <= EVT_GESTURE)
+#define ISTWEAK(event_type) ((event_type) >= EVT_TWEAK_L && (event_type) <= EVT_TWEAK_R)
 
 /* test whether the event is a NDOF event */
 #define ISNDOF(event_type) ((event_type) >= NDOF_MOTION && (event_type) < NDOF_LAST)
