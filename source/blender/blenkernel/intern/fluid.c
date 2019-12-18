@@ -21,46 +21,56 @@
  * \ingroup bke
  */
 
-#ifdef WITH_FLUID
+#include "MEM_guardedalloc.h"
 
-#  include "MEM_guardedalloc.h"
+#include "BLI_listbase.h"
+
+#include "BLI_fileops.h"
+#include "BLI_math.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+#include "BLI_task.h"
+#include "BLI_utildefines.h"
+
+#include "DNA_fluid_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
+
+#include "BKE_effect.h"
+#include "BKE_fluid.h"
+#include "BKE_library.h"
+#include "BKE_modifier.h"
+#include "BKE_pointcache.h"
+
+#ifdef WITH_FLUID
 
 #  include <float.h>
 #  include <math.h>
 #  include <stdio.h>
 #  include <string.h> /* memset */
 
-#  include "BLI_blenlib.h"
-#  include "BLI_math.h"
-#  include "BLI_kdopbvh.h"
-#  include "BLI_threads.h"
-#  include "BLI_utildefines.h"
-
 #  include "DNA_customdata_types.h"
 #  include "DNA_light_types.h"
 #  include "DNA_mesh_types.h"
 #  include "DNA_meshdata_types.h"
-#  include "DNA_modifier_types.h"
-#  include "DNA_object_types.h"
 #  include "DNA_particle_types.h"
 #  include "DNA_scene_types.h"
-#  include "DNA_fluid_types.h"
+
+#  include "BLI_kdopbvh.h"
+#  include "BLI_threads.h"
+#  include "BLI_kdtree.h"
+#  include "BLI_voxel.h"
 
 #  include "BKE_bvhutils.h"
 #  include "BKE_collision.h"
 #  include "BKE_colortools.h"
 #  include "BKE_customdata.h"
 #  include "BKE_deform.h"
-#  include "BKE_effect.h"
-#  include "BKE_library.h"
 #  include "BKE_mesh.h"
 #  include "BKE_mesh_runtime.h"
-#  include "BKE_modifier.h"
 #  include "BKE_object.h"
 #  include "BKE_particle.h"
-#  include "BKE_pointcache.h"
 #  include "BKE_scene.h"
-#  include "BKE_fluid.h"
 #  include "BKE_texture.h"
 
 #  include "DEG_depsgraph.h"
@@ -70,11 +80,19 @@
 
 #  include "manta_fluid_API.h"
 
-#  include "BLI_task.h"
-#  include "BLI_kdtree.h"
-#  include "BLI_voxel.h"
+#endif /* WITH_FLUID */
 
+/** Time step default value for nice appearance. */
+#define DT_DEFAULT 0.1f
+
+static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *mmd, bool need_lock);
+
+#ifdef WITH_FLUID
 // #define DEBUG_PRINT
+
+/* -------------------------------------------------------------------- */
+/** \name Fluid API
+ * \{ */
 
 static ThreadMutex object_update_lock = BLI_MUTEX_INITIALIZER;
 
@@ -82,9 +100,6 @@ struct FluidModifierData;
 struct Mesh;
 struct Object;
 struct Scene;
-
-// timestep default value for nice appearance 0.1f
-#  define DT_DEFAULT 0.1f
 
 #  define ADD_IF_LOWER_POS(a, b) (min_ff((a) + (b), max_ff((a), (b))))
 #  define ADD_IF_LOWER_NEG(a, b) (max_ff((a) + (b), min_ff((a), (b))))
@@ -545,605 +560,6 @@ static bool BKE_fluid_modifier_init(
   return false;
 }
 
-static void BKE_fluid_modifier_freeDomain(FluidModifierData *mmd)
-{
-  if (mmd->domain) {
-    if (mmd->domain->fluid) {
-      manta_free(mmd->domain->fluid);
-    }
-
-    if (mmd->domain->fluid_mutex) {
-      BLI_rw_mutex_free(mmd->domain->fluid_mutex);
-    }
-
-    if (mmd->domain->effector_weights) {
-      MEM_freeN(mmd->domain->effector_weights);
-    }
-    mmd->domain->effector_weights = NULL;
-
-    if (!(mmd->modifier.flag & eModifierFlag_SharedCaches)) {
-      BKE_ptcache_free_list(&(mmd->domain->ptcaches[0]));
-      mmd->domain->point_cache[0] = NULL;
-    }
-
-    if (mmd->domain->mesh_velocities) {
-      MEM_freeN(mmd->domain->mesh_velocities);
-    }
-    mmd->domain->mesh_velocities = NULL;
-
-    if (mmd->domain->coba) {
-      MEM_freeN(mmd->domain->coba);
-    }
-
-    MEM_freeN(mmd->domain);
-    mmd->domain = NULL;
-  }
-}
-
-static void BKE_fluid_modifier_freeFlow(FluidModifierData *mmd)
-{
-  if (mmd->flow) {
-    if (mmd->flow->mesh) {
-      BKE_id_free(NULL, mmd->flow->mesh);
-    }
-    mmd->flow->mesh = NULL;
-
-    if (mmd->flow->verts_old) {
-      MEM_freeN(mmd->flow->verts_old);
-    }
-    mmd->flow->verts_old = NULL;
-    mmd->flow->numverts = 0;
-
-    MEM_freeN(mmd->flow);
-    mmd->flow = NULL;
-  }
-}
-
-static void BKE_fluid_modifier_freeEffector(FluidModifierData *mmd)
-{
-  if (mmd->effector) {
-    if (mmd->effector->mesh) {
-      BKE_id_free(NULL, mmd->effector->mesh);
-    }
-    mmd->effector->mesh = NULL;
-
-    if (mmd->effector->verts_old) {
-      MEM_freeN(mmd->effector->verts_old);
-    }
-    mmd->effector->verts_old = NULL;
-    mmd->effector->numverts = 0;
-
-    MEM_freeN(mmd->effector);
-    mmd->effector = NULL;
-  }
-}
-
-static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *mmd, bool need_lock)
-{
-  if (!mmd) {
-    return;
-  }
-
-  if (mmd->domain) {
-    if (mmd->domain->fluid) {
-      if (need_lock) {
-        BLI_rw_mutex_lock(mmd->domain->fluid_mutex, THREAD_LOCK_WRITE);
-      }
-
-      manta_free(mmd->domain->fluid);
-      mmd->domain->fluid = NULL;
-
-      if (need_lock) {
-        BLI_rw_mutex_unlock(mmd->domain->fluid_mutex);
-      }
-    }
-
-    mmd->time = -1;
-    mmd->domain->total_cells = 0;
-    mmd->domain->active_fields = 0;
-  }
-  else if (mmd->flow) {
-    if (mmd->flow->verts_old) {
-      MEM_freeN(mmd->flow->verts_old);
-    }
-    mmd->flow->verts_old = NULL;
-    mmd->flow->numverts = 0;
-  }
-  else if (mmd->effector) {
-    if (mmd->effector->verts_old) {
-      MEM_freeN(mmd->effector->verts_old);
-    }
-    mmd->effector->verts_old = NULL;
-    mmd->effector->numverts = 0;
-  }
-}
-
-void BKE_fluid_modifier_reset(struct FluidModifierData *mmd)
-{
-  BKE_fluid_modifier_reset_ex(mmd, true);
-}
-
-void BKE_fluid_modifier_free(FluidModifierData *mmd)
-{
-  if (!mmd) {
-    return;
-  }
-
-  BKE_fluid_modifier_freeDomain(mmd);
-  BKE_fluid_modifier_freeFlow(mmd);
-  BKE_fluid_modifier_freeEffector(mmd);
-}
-
-void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
-{
-  if (!mmd) {
-    return;
-  }
-
-  if (mmd->type & MOD_FLUID_TYPE_DOMAIN) {
-    if (mmd->domain) {
-      BKE_fluid_modifier_freeDomain(mmd);
-    }
-
-    /* domain object data */
-    mmd->domain = MEM_callocN(sizeof(FluidDomainSettings), "FluidDomain");
-    mmd->domain->mmd = mmd;
-    mmd->domain->effector_weights = BKE_effector_add_weights(NULL);
-    mmd->domain->fluid = NULL;
-    mmd->domain->fluid_mutex = BLI_rw_mutex_alloc();
-    mmd->domain->force_group = NULL;
-    mmd->domain->fluid_group = NULL;
-    mmd->domain->effector_group = NULL;
-
-    /* adaptive domain options */
-    mmd->domain->adapt_margin = 4;
-    mmd->domain->adapt_res = 0;
-    mmd->domain->adapt_threshold = 0.02f;
-
-    /* fluid domain options */
-    mmd->domain->maxres = 64;
-    mmd->domain->solver_res = 3;
-    mmd->domain->border_collisions = 0;  // open domain
-    mmd->domain->flags = FLUID_DOMAIN_USE_DISSOLVE_LOG | FLUID_DOMAIN_USE_ADAPTIVE_TIME;
-    mmd->domain->gravity[0] = 0.0f;
-    mmd->domain->gravity[1] = 0.0f;
-    mmd->domain->gravity[2] = -1.0f;
-    mmd->domain->active_fields = 0;
-    mmd->domain->type = FLUID_DOMAIN_TYPE_GAS;
-    mmd->domain->boundary_width = 1;
-
-    /* smoke domain options */
-    mmd->domain->alpha = 1.0f;
-    mmd->domain->beta = 1.0f;
-    mmd->domain->diss_speed = 5;
-    mmd->domain->vorticity = 0;
-    mmd->domain->active_color[0] = 0.0f;
-    mmd->domain->active_color[1] = 0.0f;
-    mmd->domain->active_color[2] = 0.0f;
-    mmd->domain->highres_sampling = SM_HRES_FULLSAMPLE;
-
-    /* flame options */
-    mmd->domain->burning_rate = 0.75f;
-    mmd->domain->flame_smoke = 1.0f;
-    mmd->domain->flame_vorticity = 0.5f;
-    mmd->domain->flame_ignition = 1.5f;
-    mmd->domain->flame_max_temp = 3.0f;
-    mmd->domain->flame_smoke_color[0] = 0.7f;
-    mmd->domain->flame_smoke_color[1] = 0.7f;
-    mmd->domain->flame_smoke_color[2] = 0.7f;
-
-    /* noise options */
-    mmd->domain->noise_strength = 1.0;
-    mmd->domain->noise_pos_scale = 2.0f;
-    mmd->domain->noise_time_anim = 0.1f;
-    mmd->domain->noise_scale = 2;
-    mmd->domain->noise_type = FLUID_NOISE_TYPE_WAVELET;
-
-    /* liquid domain options */
-    mmd->domain->simulation_method = FLUID_DOMAIN_METHOD_FLIP;
-    mmd->domain->flip_ratio = 0.97f;
-    mmd->domain->particle_randomness = 0.1f;
-    mmd->domain->particle_number = 2;
-    mmd->domain->particle_minimum = 8;
-    mmd->domain->particle_maximum = 16;
-    mmd->domain->particle_radius = 1.5f;
-    mmd->domain->particle_band_width = 3.0f;
-    mmd->domain->fractions_threshold = 0.05f;
-
-    /* diffusion options*/
-    mmd->domain->surface_tension = 0.0f;
-    mmd->domain->viscosity_base = 1.0f;
-    mmd->domain->viscosity_exponent = 6.0f;
-    mmd->domain->domain_size = 0.5f;
-
-    /* mesh options */
-    mmd->domain->mesh_velocities = NULL;
-    mmd->domain->mesh_concave_upper = 3.5f;
-    mmd->domain->mesh_concave_lower = 0.4f;
-    mmd->domain->mesh_particle_radius = 2.0;
-    mmd->domain->mesh_smoothen_pos = 1;
-    mmd->domain->mesh_smoothen_neg = 1;
-    mmd->domain->mesh_scale = 2;
-    mmd->domain->totvert = 0;
-    mmd->domain->mesh_generator = FLUID_DOMAIN_MESH_IMPROVED;
-
-    /* secondary particle options */
-    mmd->domain->sndparticle_tau_min_wc = 2.0;
-    mmd->domain->sndparticle_tau_max_wc = 8.0;
-    mmd->domain->sndparticle_tau_min_ta = 5.0;
-    mmd->domain->sndparticle_tau_max_ta = 20.0;
-    mmd->domain->sndparticle_tau_min_k = 1.0;
-    mmd->domain->sndparticle_tau_max_k = 5.0;
-    mmd->domain->sndparticle_k_wc = 200;
-    mmd->domain->sndparticle_k_ta = 40;
-    mmd->domain->sndparticle_k_b = 0.5;
-    mmd->domain->sndparticle_k_d = 0.6;
-    mmd->domain->sndparticle_l_min = 10.0;
-    mmd->domain->sndparticle_l_max = 25.0;
-    mmd->domain->sndparticle_boundary = SNDPARTICLE_BOUNDARY_DELETE;
-    mmd->domain->sndparticle_combined_export = SNDPARTICLE_COMBINED_EXPORT_OFF;
-    mmd->domain->sndparticle_potential_radius = 2;
-    mmd->domain->sndparticle_update_radius = 2;
-    mmd->domain->particle_type = 0;
-    mmd->domain->particle_scale = 1;
-
-    /* fluid guide options */
-    mmd->domain->guide_parent = NULL;
-    mmd->domain->guide_alpha = 2.0f;
-    mmd->domain->guide_beta = 5;
-    mmd->domain->guide_vel_factor = 2.0f;
-    mmd->domain->guide_source = FLUID_DOMAIN_GUIDE_SRC_DOMAIN;
-
-    /* cache options */
-    mmd->domain->cache_frame_start = 1;
-    mmd->domain->cache_frame_end = 50;
-    mmd->domain->cache_frame_pause_data = 0;
-    mmd->domain->cache_frame_pause_noise = 0;
-    mmd->domain->cache_frame_pause_mesh = 0;
-    mmd->domain->cache_frame_pause_particles = 0;
-    mmd->domain->cache_frame_pause_guide = 0;
-    mmd->domain->cache_flag = 0;
-    mmd->domain->cache_type = FLUID_DOMAIN_CACHE_MODULAR;
-    mmd->domain->cache_mesh_format = FLUID_DOMAIN_FILE_BIN_OBJECT;
-    mmd->domain->cache_data_format = FLUID_DOMAIN_FILE_UNI;
-    mmd->domain->cache_particle_format = FLUID_DOMAIN_FILE_UNI;
-    mmd->domain->cache_noise_format = FLUID_DOMAIN_FILE_UNI;
-    modifier_path_init(mmd->domain->cache_directory,
-                       sizeof(mmd->domain->cache_directory),
-                       FLUID_DOMAIN_DIR_DEFAULT);
-
-    /* time options */
-    mmd->domain->time_scale = 1.0;
-    mmd->domain->cfl_condition = 4.0;
-    mmd->domain->timesteps_minimum = 1;
-    mmd->domain->timesteps_maximum = 4;
-
-    /* display options */
-    mmd->domain->slice_method = FLUID_DOMAIN_SLICE_VIEW_ALIGNED;
-    mmd->domain->axis_slice_method = AXIS_SLICE_FULL;
-    mmd->domain->slice_axis = 0;
-    mmd->domain->interp_method = 0;
-    mmd->domain->draw_velocity = false;
-    mmd->domain->slice_per_voxel = 5.0f;
-    mmd->domain->slice_depth = 0.5f;
-    mmd->domain->display_thickness = 1.0f;
-    mmd->domain->coba = NULL;
-    mmd->domain->vector_scale = 1.0f;
-    mmd->domain->vector_draw_type = VECTOR_DRAW_NEEDLE;
-    mmd->domain->use_coba = false;
-    mmd->domain->coba_field = FLUID_DOMAIN_FIELD_DENSITY;
-
-    /* -- Deprecated / unsed options (below)-- */
-
-    /* pointcache options */
-    BLI_listbase_clear(&mmd->domain->ptcaches[1]);
-    mmd->domain->point_cache[0] = BKE_ptcache_add(&(mmd->domain->ptcaches[0]));
-    mmd->domain->point_cache[0]->flag |= PTCACHE_DISK_CACHE;
-    mmd->domain->point_cache[0]->step = 1;
-    mmd->domain->point_cache[1] = NULL; /* Deprecated */
-    mmd->domain->cache_comp = SM_CACHE_LIGHT;
-    mmd->domain->cache_high_comp = SM_CACHE_LIGHT;
-
-    /* OpenVDB cache options */
-#  ifdef WITH_OPENVDB_BLOSC
-    mmd->domain->openvdb_comp = VDB_COMPRESSION_BLOSC;
-#  else
-    mmd->domain->openvdb_comp = VDB_COMPRESSION_ZIP;
-#  endif
-    mmd->domain->clipping = 1e-3f;
-    mmd->domain->data_depth = 0;
-  }
-  else if (mmd->type & MOD_FLUID_TYPE_FLOW) {
-    if (mmd->flow) {
-      BKE_fluid_modifier_freeFlow(mmd);
-    }
-
-    /* flow object data */
-    mmd->flow = MEM_callocN(sizeof(FluidFlowSettings), "MantaFlow");
-    mmd->flow->mmd = mmd;
-    mmd->flow->mesh = NULL;
-    mmd->flow->psys = NULL;
-    mmd->flow->noise_texture = NULL;
-
-    /* initial velocity */
-    mmd->flow->verts_old = NULL;
-    mmd->flow->numverts = 0;
-    mmd->flow->vel_multi = 1.0f;
-    mmd->flow->vel_normal = 0.0f;
-    mmd->flow->vel_random = 0.0f;
-    mmd->flow->vel_coord[0] = 0.0f;
-    mmd->flow->vel_coord[1] = 0.0f;
-    mmd->flow->vel_coord[2] = 0.0f;
-
-    /* emission */
-    mmd->flow->density = 1.0f;
-    mmd->flow->color[0] = 0.7f;
-    mmd->flow->color[1] = 0.7f;
-    mmd->flow->color[2] = 0.7f;
-    mmd->flow->fuel_amount = 1.0f;
-    mmd->flow->temperature = 1.0f;
-    mmd->flow->volume_density = 0.0f;
-    mmd->flow->surface_distance = 1.5f;
-    mmd->flow->particle_size = 1.0f;
-    mmd->flow->subframes = 0;
-
-    /* texture control */
-    mmd->flow->source = FLUID_FLOW_SOURCE_MESH;
-    mmd->flow->texture_size = 1.0f;
-
-    mmd->flow->type = FLUID_FLOW_TYPE_SMOKE;
-    mmd->flow->behavior = FLUID_FLOW_BEHAVIOR_GEOMETRY;
-    mmd->flow->type = FLUID_FLOW_TYPE_SMOKE;
-    mmd->flow->flags = FLUID_FLOW_ABSOLUTE | FLUID_FLOW_USE_PART_SIZE | FLUID_FLOW_USE_INFLOW;
-  }
-  else if (mmd->type & MOD_FLUID_TYPE_EFFEC) {
-    if (mmd->effector) {
-      BKE_fluid_modifier_freeEffector(mmd);
-    }
-
-    /* effector object data */
-    mmd->effector = MEM_callocN(sizeof(FluidEffectorSettings), "MantaEffector");
-    mmd->effector->mmd = mmd;
-    mmd->effector->mesh = NULL;
-    mmd->effector->verts_old = NULL;
-    mmd->effector->numverts = 0;
-    mmd->effector->surface_distance = 0.0f;
-    mmd->effector->type = FLUID_EFFECTOR_TYPE_COLLISION;
-    mmd->effector->flags = 0;
-
-    /* guide options */
-    mmd->effector->guide_mode = FLUID_EFFECTOR_GUIDE_MAX;
-    mmd->effector->vel_multi = 1.0f;
-  }
-}
-
-void BKE_fluid_modifier_copy(const struct FluidModifierData *mmd,
-                             struct FluidModifierData *tmmd,
-                             const int flag)
-{
-  tmmd->type = mmd->type;
-  tmmd->time = mmd->time;
-
-  BKE_fluid_modifier_create_type_data(tmmd);
-
-  if (tmmd->domain) {
-    FluidDomainSettings *tmds = tmmd->domain;
-    FluidDomainSettings *mds = mmd->domain;
-
-    /* domain object data */
-    tmds->fluid_group = mds->fluid_group;
-    tmds->force_group = mds->force_group;
-    tmds->effector_group = mds->effector_group;
-    if (tmds->effector_weights) {
-      MEM_freeN(tmds->effector_weights);
-    }
-    tmds->effector_weights = MEM_dupallocN(mds->effector_weights);
-
-    /* adaptive domain options */
-    tmds->adapt_margin = mds->adapt_margin;
-    tmds->adapt_res = mds->adapt_res;
-    tmds->adapt_threshold = mds->adapt_threshold;
-
-    /* fluid domain options */
-    tmds->maxres = mds->maxres;
-    tmds->solver_res = mds->solver_res;
-    tmds->border_collisions = mds->border_collisions;
-    tmds->flags = mds->flags;
-    tmds->gravity[0] = mds->gravity[0];
-    tmds->gravity[1] = mds->gravity[1];
-    tmds->gravity[2] = mds->gravity[2];
-    tmds->active_fields = mds->active_fields;
-    tmds->type = mds->type;
-    tmds->boundary_width = mds->boundary_width;
-
-    /* smoke domain options */
-    tmds->alpha = mds->alpha;
-    tmds->beta = mds->beta;
-    tmds->diss_speed = mds->diss_speed;
-    tmds->vorticity = mds->vorticity;
-    tmds->highres_sampling = mds->highres_sampling;
-
-    /* flame options */
-    tmds->burning_rate = mds->burning_rate;
-    tmds->flame_smoke = mds->flame_smoke;
-    tmds->flame_vorticity = mds->flame_vorticity;
-    tmds->flame_ignition = mds->flame_ignition;
-    tmds->flame_max_temp = mds->flame_max_temp;
-    copy_v3_v3(tmds->flame_smoke_color, mds->flame_smoke_color);
-
-    /* noise options */
-    tmds->noise_strength = mds->noise_strength;
-    tmds->noise_pos_scale = mds->noise_pos_scale;
-    tmds->noise_time_anim = mds->noise_time_anim;
-    tmds->noise_scale = mds->noise_scale;
-    tmds->noise_type = mds->noise_type;
-
-    /* liquid domain options */
-    tmds->flip_ratio = mds->flip_ratio;
-    tmds->particle_randomness = mds->particle_randomness;
-    tmds->particle_number = mds->particle_number;
-    tmds->particle_minimum = mds->particle_minimum;
-    tmds->particle_maximum = mds->particle_maximum;
-    tmds->particle_radius = mds->particle_radius;
-    tmds->particle_band_width = mds->particle_band_width;
-    tmds->fractions_threshold = mds->fractions_threshold;
-
-    /* diffusion options*/
-    tmds->surface_tension = mds->surface_tension;
-    tmds->viscosity_base = mds->viscosity_base;
-    tmds->viscosity_exponent = mds->viscosity_exponent;
-    tmds->domain_size = mds->domain_size;
-
-    /* mesh options */
-    if (mds->mesh_velocities) {
-      tmds->mesh_velocities = MEM_dupallocN(mds->mesh_velocities);
-    }
-    tmds->mesh_concave_upper = mds->mesh_concave_upper;
-    tmds->mesh_concave_lower = mds->mesh_concave_lower;
-    tmds->mesh_particle_radius = mds->mesh_particle_radius;
-    tmds->mesh_smoothen_pos = mds->mesh_smoothen_pos;
-    tmds->mesh_smoothen_neg = mds->mesh_smoothen_neg;
-    tmds->mesh_scale = mds->mesh_scale;
-    tmds->totvert = mds->totvert;
-    tmds->mesh_generator = mds->mesh_generator;
-
-    /* secondary particle options */
-    tmds->sndparticle_k_b = mds->sndparticle_k_b;
-    tmds->sndparticle_k_d = mds->sndparticle_k_d;
-    tmds->sndparticle_k_ta = mds->sndparticle_k_ta;
-    tmds->sndparticle_k_wc = mds->sndparticle_k_wc;
-    tmds->sndparticle_l_max = mds->sndparticle_l_max;
-    tmds->sndparticle_l_min = mds->sndparticle_l_min;
-    tmds->sndparticle_tau_max_k = mds->sndparticle_tau_max_k;
-    tmds->sndparticle_tau_max_ta = mds->sndparticle_tau_max_ta;
-    tmds->sndparticle_tau_max_wc = mds->sndparticle_tau_max_wc;
-    tmds->sndparticle_tau_min_k = mds->sndparticle_tau_min_k;
-    tmds->sndparticle_tau_min_ta = mds->sndparticle_tau_min_ta;
-    tmds->sndparticle_tau_min_wc = mds->sndparticle_tau_min_wc;
-    tmds->sndparticle_boundary = mds->sndparticle_boundary;
-    tmds->sndparticle_combined_export = mds->sndparticle_combined_export;
-    tmds->sndparticle_potential_radius = mds->sndparticle_potential_radius;
-    tmds->sndparticle_update_radius = mds->sndparticle_update_radius;
-    tmds->particle_type = mds->particle_type;
-    tmds->particle_scale = mds->particle_scale;
-
-    /* fluid guide options */
-    tmds->guide_parent = mds->guide_parent;
-    tmds->guide_alpha = mds->guide_alpha;
-    tmds->guide_beta = mds->guide_beta;
-    tmds->guide_vel_factor = mds->guide_vel_factor;
-    copy_v3_v3_int(tmds->guide_res, mds->guide_res);
-    tmds->guide_source = mds->guide_source;
-
-    /* cache options */
-    tmds->cache_frame_start = mds->cache_frame_start;
-    tmds->cache_frame_end = mds->cache_frame_end;
-    tmds->cache_frame_pause_data = mds->cache_frame_pause_data;
-    tmds->cache_frame_pause_noise = mds->cache_frame_pause_noise;
-    tmds->cache_frame_pause_mesh = mds->cache_frame_pause_mesh;
-    tmds->cache_frame_pause_particles = mds->cache_frame_pause_particles;
-    tmds->cache_frame_pause_guide = mds->cache_frame_pause_guide;
-    tmds->cache_flag = mds->cache_flag;
-    tmds->cache_type = mds->cache_type;
-    tmds->cache_mesh_format = mds->cache_mesh_format;
-    tmds->cache_data_format = mds->cache_data_format;
-    tmds->cache_particle_format = mds->cache_particle_format;
-    tmds->cache_noise_format = mds->cache_noise_format;
-    BLI_strncpy(tmds->cache_directory, mds->cache_directory, sizeof(tmds->cache_directory));
-
-    /* time options */
-    tmds->time_scale = mds->time_scale;
-    tmds->cfl_condition = mds->cfl_condition;
-    tmds->timesteps_minimum = mds->timesteps_minimum;
-    tmds->timesteps_maximum = mds->timesteps_maximum;
-
-    /* display options */
-    tmds->slice_method = mds->slice_method;
-    tmds->axis_slice_method = mds->axis_slice_method;
-    tmds->slice_axis = mds->slice_axis;
-    tmds->interp_method = mds->interp_method;
-    tmds->draw_velocity = mds->draw_velocity;
-    tmds->slice_per_voxel = mds->slice_per_voxel;
-    tmds->slice_depth = mds->slice_depth;
-    tmds->display_thickness = mds->display_thickness;
-    if (mds->coba) {
-      tmds->coba = MEM_dupallocN(mds->coba);
-    }
-    tmds->vector_scale = mds->vector_scale;
-    tmds->vector_draw_type = mds->vector_draw_type;
-    tmds->use_coba = mds->use_coba;
-    tmds->coba_field = mds->coba_field;
-
-    /* -- Deprecated / unsed options (below)-- */
-
-    /* pointcache options */
-    BKE_ptcache_free_list(&(tmds->ptcaches[0]));
-    if (flag & LIB_ID_CREATE_NO_MAIN) {
-      /* Share the cache with the original object's modifier. */
-      tmmd->modifier.flag |= eModifierFlag_SharedCaches;
-      tmds->point_cache[0] = mds->point_cache[0];
-      tmds->ptcaches[0] = mds->ptcaches[0];
-    }
-    else {
-      tmds->point_cache[0] = BKE_ptcache_copy_list(
-          &(tmds->ptcaches[0]), &(mds->ptcaches[0]), flag);
-    }
-
-    /* OpenVDB cache options */
-    tmds->openvdb_comp = mds->openvdb_comp;
-    tmds->clipping = mds->clipping;
-    tmds->data_depth = mds->data_depth;
-  }
-  else if (tmmd->flow) {
-    FluidFlowSettings *tmfs = tmmd->flow;
-    FluidFlowSettings *mfs = mmd->flow;
-
-    tmfs->psys = mfs->psys;
-    tmfs->noise_texture = mfs->noise_texture;
-
-    /* initial velocity */
-    tmfs->vel_multi = mfs->vel_multi;
-    tmfs->vel_normal = mfs->vel_normal;
-    tmfs->vel_random = mfs->vel_random;
-    tmfs->vel_coord[0] = mfs->vel_coord[0];
-    tmfs->vel_coord[1] = mfs->vel_coord[1];
-    tmfs->vel_coord[2] = mfs->vel_coord[2];
-
-    /* emission */
-    tmfs->density = mfs->density;
-    copy_v3_v3(tmfs->color, mfs->color);
-    tmfs->fuel_amount = mfs->fuel_amount;
-    tmfs->temperature = mfs->temperature;
-    tmfs->volume_density = mfs->volume_density;
-    tmfs->surface_distance = mfs->surface_distance;
-    tmfs->particle_size = mfs->particle_size;
-    tmfs->subframes = mfs->subframes;
-
-    /* texture control */
-    tmfs->texture_size = mfs->texture_size;
-    tmfs->texture_offset = mfs->texture_offset;
-    BLI_strncpy(tmfs->uvlayer_name, mfs->uvlayer_name, sizeof(tmfs->uvlayer_name));
-    tmfs->vgroup_density = mfs->vgroup_density;
-
-    tmfs->type = mfs->type;
-    tmfs->behavior = mfs->behavior;
-    tmfs->source = mfs->source;
-    tmfs->texture_type = mfs->texture_type;
-    tmfs->flags = mfs->flags;
-  }
-  else if (tmmd->effector) {
-    FluidEffectorSettings *tmes = tmmd->effector;
-    FluidEffectorSettings *mes = mmd->effector;
-
-    tmes->surface_distance = mes->surface_distance;
-    tmes->type = mes->type;
-
-    /* guide options */
-    tmes->guide_mode = mes->guide_mode;
-    tmes->vel_multi = mes->vel_multi;
-  }
-}
-
 // forward declaration
 static void manta_smoke_calc_transparency(FluidDomainSettings *mds, ViewLayer *view_layer);
 static float calc_voxel_transp(
@@ -1179,9 +595,11 @@ static int get_light(ViewLayer *view_layer, float *light)
   return found_light;
 }
 
-/**********************************************************
- * Obstacles
- **********************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Obstacles
+ * \{ */
 
 typedef struct ObstaclesFromDMData {
   FluidDomainSettings *mds;
@@ -1641,9 +1059,11 @@ static void update_obstacles(Depsgraph *depsgraph,
   }
 }
 
-/**********************************************************
- * Flow emission code
- **********************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Flow Emission
+ * \{ */
 
 typedef struct EmissionMap {
   float *influence;
@@ -2734,9 +2154,11 @@ static void emit_from_mesh(
   }
 }
 
-/**********************************************************
- *  Smoke step
- **********************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Smoke Step
+ * \{ */
 
 static void adaptive_domain_adjust(
     FluidDomainSettings *mds, Object *ob, EmissionMap *emaps, uint numflowobj, float dt)
@@ -4803,6 +4225,16 @@ void BKE_fluid_particle_system_destroy(struct Object *ob, const int particle_typ
   }
 }
 
+#endif /* WITH_FLUID */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public Data Access API
+ *
+ * Use for versioning, even when fluids are disabled.
+ * \{ */
+
 void BKE_fluid_cachetype_mesh_set(FluidDomainSettings *settings, int cache_mesh_format)
 {
   if (cache_mesh_format == settings->cache_mesh_format) {
@@ -4920,4 +4352,615 @@ void BKE_fluid_effector_type_set(Object *UNUSED(object), FluidEffectorSettings *
   settings->type = type;
 }
 
-#endif /* WITH_FLUID */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public Modifier API
+ *
+ * Use for versioning, even when fluids are disabled.
+ * \{ */
+
+static void BKE_fluid_modifier_freeDomain(FluidModifierData *mmd)
+{
+  if (mmd->domain) {
+    if (mmd->domain->fluid) {
+#ifdef WITH_FLUID
+      manta_free(mmd->domain->fluid);
+#endif
+    }
+
+    if (mmd->domain->fluid_mutex) {
+      BLI_rw_mutex_free(mmd->domain->fluid_mutex);
+    }
+
+    if (mmd->domain->effector_weights) {
+      MEM_freeN(mmd->domain->effector_weights);
+    }
+    mmd->domain->effector_weights = NULL;
+
+    if (!(mmd->modifier.flag & eModifierFlag_SharedCaches)) {
+      BKE_ptcache_free_list(&(mmd->domain->ptcaches[0]));
+      mmd->domain->point_cache[0] = NULL;
+    }
+
+    if (mmd->domain->mesh_velocities) {
+      MEM_freeN(mmd->domain->mesh_velocities);
+    }
+    mmd->domain->mesh_velocities = NULL;
+
+    if (mmd->domain->coba) {
+      MEM_freeN(mmd->domain->coba);
+    }
+
+    MEM_freeN(mmd->domain);
+    mmd->domain = NULL;
+  }
+}
+
+static void BKE_fluid_modifier_freeFlow(FluidModifierData *mmd)
+{
+  if (mmd->flow) {
+    if (mmd->flow->mesh) {
+      BKE_id_free(NULL, mmd->flow->mesh);
+    }
+    mmd->flow->mesh = NULL;
+
+    if (mmd->flow->verts_old) {
+      MEM_freeN(mmd->flow->verts_old);
+    }
+    mmd->flow->verts_old = NULL;
+    mmd->flow->numverts = 0;
+
+    MEM_freeN(mmd->flow);
+    mmd->flow = NULL;
+  }
+}
+
+static void BKE_fluid_modifier_freeEffector(FluidModifierData *mmd)
+{
+  if (mmd->effector) {
+    if (mmd->effector->mesh) {
+      BKE_id_free(NULL, mmd->effector->mesh);
+    }
+    mmd->effector->mesh = NULL;
+
+    if (mmd->effector->verts_old) {
+      MEM_freeN(mmd->effector->verts_old);
+    }
+    mmd->effector->verts_old = NULL;
+    mmd->effector->numverts = 0;
+
+    MEM_freeN(mmd->effector);
+    mmd->effector = NULL;
+  }
+}
+
+static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *mmd, bool need_lock)
+{
+  if (!mmd) {
+    return;
+  }
+
+  if (mmd->domain) {
+    if (mmd->domain->fluid) {
+      if (need_lock) {
+        BLI_rw_mutex_lock(mmd->domain->fluid_mutex, THREAD_LOCK_WRITE);
+      }
+
+#ifdef WITH_FLUID
+      manta_free(mmd->domain->fluid);
+#endif
+      mmd->domain->fluid = NULL;
+
+      if (need_lock) {
+        BLI_rw_mutex_unlock(mmd->domain->fluid_mutex);
+      }
+    }
+
+    mmd->time = -1;
+    mmd->domain->total_cells = 0;
+    mmd->domain->active_fields = 0;
+  }
+  else if (mmd->flow) {
+    if (mmd->flow->verts_old) {
+      MEM_freeN(mmd->flow->verts_old);
+    }
+    mmd->flow->verts_old = NULL;
+    mmd->flow->numverts = 0;
+  }
+  else if (mmd->effector) {
+    if (mmd->effector->verts_old) {
+      MEM_freeN(mmd->effector->verts_old);
+    }
+    mmd->effector->verts_old = NULL;
+    mmd->effector->numverts = 0;
+  }
+}
+
+void BKE_fluid_modifier_reset(struct FluidModifierData *mmd)
+{
+  BKE_fluid_modifier_reset_ex(mmd, true);
+}
+
+void BKE_fluid_modifier_free(FluidModifierData *mmd)
+{
+  if (!mmd) {
+    return;
+  }
+
+  BKE_fluid_modifier_freeDomain(mmd);
+  BKE_fluid_modifier_freeFlow(mmd);
+  BKE_fluid_modifier_freeEffector(mmd);
+}
+
+void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
+{
+  if (!mmd) {
+    return;
+  }
+
+  if (mmd->type & MOD_FLUID_TYPE_DOMAIN) {
+    if (mmd->domain) {
+      BKE_fluid_modifier_freeDomain(mmd);
+    }
+
+    /* domain object data */
+    mmd->domain = MEM_callocN(sizeof(FluidDomainSettings), "FluidDomain");
+    mmd->domain->mmd = mmd;
+    mmd->domain->effector_weights = BKE_effector_add_weights(NULL);
+    mmd->domain->fluid = NULL;
+    mmd->domain->fluid_mutex = BLI_rw_mutex_alloc();
+    mmd->domain->force_group = NULL;
+    mmd->domain->fluid_group = NULL;
+    mmd->domain->effector_group = NULL;
+
+    /* adaptive domain options */
+    mmd->domain->adapt_margin = 4;
+    mmd->domain->adapt_res = 0;
+    mmd->domain->adapt_threshold = 0.02f;
+
+    /* fluid domain options */
+    mmd->domain->maxres = 64;
+    mmd->domain->solver_res = 3;
+    mmd->domain->border_collisions = 0;  // open domain
+    mmd->domain->flags = FLUID_DOMAIN_USE_DISSOLVE_LOG | FLUID_DOMAIN_USE_ADAPTIVE_TIME;
+    mmd->domain->gravity[0] = 0.0f;
+    mmd->domain->gravity[1] = 0.0f;
+    mmd->domain->gravity[2] = -1.0f;
+    mmd->domain->active_fields = 0;
+    mmd->domain->type = FLUID_DOMAIN_TYPE_GAS;
+    mmd->domain->boundary_width = 1;
+
+    /* smoke domain options */
+    mmd->domain->alpha = 1.0f;
+    mmd->domain->beta = 1.0f;
+    mmd->domain->diss_speed = 5;
+    mmd->domain->vorticity = 0;
+    mmd->domain->active_color[0] = 0.0f;
+    mmd->domain->active_color[1] = 0.0f;
+    mmd->domain->active_color[2] = 0.0f;
+    mmd->domain->highres_sampling = SM_HRES_FULLSAMPLE;
+
+    /* flame options */
+    mmd->domain->burning_rate = 0.75f;
+    mmd->domain->flame_smoke = 1.0f;
+    mmd->domain->flame_vorticity = 0.5f;
+    mmd->domain->flame_ignition = 1.5f;
+    mmd->domain->flame_max_temp = 3.0f;
+    mmd->domain->flame_smoke_color[0] = 0.7f;
+    mmd->domain->flame_smoke_color[1] = 0.7f;
+    mmd->domain->flame_smoke_color[2] = 0.7f;
+
+    /* noise options */
+    mmd->domain->noise_strength = 1.0;
+    mmd->domain->noise_pos_scale = 2.0f;
+    mmd->domain->noise_time_anim = 0.1f;
+    mmd->domain->noise_scale = 2;
+    mmd->domain->noise_type = FLUID_NOISE_TYPE_WAVELET;
+
+    /* liquid domain options */
+    mmd->domain->simulation_method = FLUID_DOMAIN_METHOD_FLIP;
+    mmd->domain->flip_ratio = 0.97f;
+    mmd->domain->particle_randomness = 0.1f;
+    mmd->domain->particle_number = 2;
+    mmd->domain->particle_minimum = 8;
+    mmd->domain->particle_maximum = 16;
+    mmd->domain->particle_radius = 1.5f;
+    mmd->domain->particle_band_width = 3.0f;
+    mmd->domain->fractions_threshold = 0.05f;
+
+    /* diffusion options*/
+    mmd->domain->surface_tension = 0.0f;
+    mmd->domain->viscosity_base = 1.0f;
+    mmd->domain->viscosity_exponent = 6.0f;
+    mmd->domain->domain_size = 0.5f;
+
+    /* mesh options */
+    mmd->domain->mesh_velocities = NULL;
+    mmd->domain->mesh_concave_upper = 3.5f;
+    mmd->domain->mesh_concave_lower = 0.4f;
+    mmd->domain->mesh_particle_radius = 2.0;
+    mmd->domain->mesh_smoothen_pos = 1;
+    mmd->domain->mesh_smoothen_neg = 1;
+    mmd->domain->mesh_scale = 2;
+    mmd->domain->totvert = 0;
+    mmd->domain->mesh_generator = FLUID_DOMAIN_MESH_IMPROVED;
+
+    /* secondary particle options */
+    mmd->domain->sndparticle_tau_min_wc = 2.0;
+    mmd->domain->sndparticle_tau_max_wc = 8.0;
+    mmd->domain->sndparticle_tau_min_ta = 5.0;
+    mmd->domain->sndparticle_tau_max_ta = 20.0;
+    mmd->domain->sndparticle_tau_min_k = 1.0;
+    mmd->domain->sndparticle_tau_max_k = 5.0;
+    mmd->domain->sndparticle_k_wc = 200;
+    mmd->domain->sndparticle_k_ta = 40;
+    mmd->domain->sndparticle_k_b = 0.5;
+    mmd->domain->sndparticle_k_d = 0.6;
+    mmd->domain->sndparticle_l_min = 10.0;
+    mmd->domain->sndparticle_l_max = 25.0;
+    mmd->domain->sndparticle_boundary = SNDPARTICLE_BOUNDARY_DELETE;
+    mmd->domain->sndparticle_combined_export = SNDPARTICLE_COMBINED_EXPORT_OFF;
+    mmd->domain->sndparticle_potential_radius = 2;
+    mmd->domain->sndparticle_update_radius = 2;
+    mmd->domain->particle_type = 0;
+    mmd->domain->particle_scale = 1;
+
+    /* fluid guide options */
+    mmd->domain->guide_parent = NULL;
+    mmd->domain->guide_alpha = 2.0f;
+    mmd->domain->guide_beta = 5;
+    mmd->domain->guide_vel_factor = 2.0f;
+    mmd->domain->guide_source = FLUID_DOMAIN_GUIDE_SRC_DOMAIN;
+
+    /* cache options */
+    mmd->domain->cache_frame_start = 1;
+    mmd->domain->cache_frame_end = 50;
+    mmd->domain->cache_frame_pause_data = 0;
+    mmd->domain->cache_frame_pause_noise = 0;
+    mmd->domain->cache_frame_pause_mesh = 0;
+    mmd->domain->cache_frame_pause_particles = 0;
+    mmd->domain->cache_frame_pause_guide = 0;
+    mmd->domain->cache_flag = 0;
+    mmd->domain->cache_type = FLUID_DOMAIN_CACHE_MODULAR;
+    mmd->domain->cache_mesh_format = FLUID_DOMAIN_FILE_BIN_OBJECT;
+    mmd->domain->cache_data_format = FLUID_DOMAIN_FILE_UNI;
+    mmd->domain->cache_particle_format = FLUID_DOMAIN_FILE_UNI;
+    mmd->domain->cache_noise_format = FLUID_DOMAIN_FILE_UNI;
+    modifier_path_init(mmd->domain->cache_directory,
+                       sizeof(mmd->domain->cache_directory),
+                       FLUID_DOMAIN_DIR_DEFAULT);
+
+    /* time options */
+    mmd->domain->time_scale = 1.0;
+    mmd->domain->cfl_condition = 4.0;
+    mmd->domain->timesteps_minimum = 1;
+    mmd->domain->timesteps_maximum = 4;
+
+    /* display options */
+    mmd->domain->slice_method = FLUID_DOMAIN_SLICE_VIEW_ALIGNED;
+    mmd->domain->axis_slice_method = AXIS_SLICE_FULL;
+    mmd->domain->slice_axis = 0;
+    mmd->domain->interp_method = 0;
+    mmd->domain->draw_velocity = false;
+    mmd->domain->slice_per_voxel = 5.0f;
+    mmd->domain->slice_depth = 0.5f;
+    mmd->domain->display_thickness = 1.0f;
+    mmd->domain->coba = NULL;
+    mmd->domain->vector_scale = 1.0f;
+    mmd->domain->vector_draw_type = VECTOR_DRAW_NEEDLE;
+    mmd->domain->use_coba = false;
+    mmd->domain->coba_field = FLUID_DOMAIN_FIELD_DENSITY;
+
+    /* -- Deprecated / unsed options (below)-- */
+
+    /* pointcache options */
+    BLI_listbase_clear(&mmd->domain->ptcaches[1]);
+    mmd->domain->point_cache[0] = BKE_ptcache_add(&(mmd->domain->ptcaches[0]));
+    mmd->domain->point_cache[0]->flag |= PTCACHE_DISK_CACHE;
+    mmd->domain->point_cache[0]->step = 1;
+    mmd->domain->point_cache[1] = NULL; /* Deprecated */
+    mmd->domain->cache_comp = SM_CACHE_LIGHT;
+    mmd->domain->cache_high_comp = SM_CACHE_LIGHT;
+
+    /* OpenVDB cache options */
+#ifdef WITH_OPENVDB_BLOSC
+    mmd->domain->openvdb_comp = VDB_COMPRESSION_BLOSC;
+#else
+    mmd->domain->openvdb_comp = VDB_COMPRESSION_ZIP;
+#endif
+    mmd->domain->clipping = 1e-3f;
+    mmd->domain->data_depth = 0;
+  }
+  else if (mmd->type & MOD_FLUID_TYPE_FLOW) {
+    if (mmd->flow) {
+      BKE_fluid_modifier_freeFlow(mmd);
+    }
+
+    /* flow object data */
+    mmd->flow = MEM_callocN(sizeof(FluidFlowSettings), "MantaFlow");
+    mmd->flow->mmd = mmd;
+    mmd->flow->mesh = NULL;
+    mmd->flow->psys = NULL;
+    mmd->flow->noise_texture = NULL;
+
+    /* initial velocity */
+    mmd->flow->verts_old = NULL;
+    mmd->flow->numverts = 0;
+    mmd->flow->vel_multi = 1.0f;
+    mmd->flow->vel_normal = 0.0f;
+    mmd->flow->vel_random = 0.0f;
+    mmd->flow->vel_coord[0] = 0.0f;
+    mmd->flow->vel_coord[1] = 0.0f;
+    mmd->flow->vel_coord[2] = 0.0f;
+
+    /* emission */
+    mmd->flow->density = 1.0f;
+    mmd->flow->color[0] = 0.7f;
+    mmd->flow->color[1] = 0.7f;
+    mmd->flow->color[2] = 0.7f;
+    mmd->flow->fuel_amount = 1.0f;
+    mmd->flow->temperature = 1.0f;
+    mmd->flow->volume_density = 0.0f;
+    mmd->flow->surface_distance = 1.5f;
+    mmd->flow->particle_size = 1.0f;
+    mmd->flow->subframes = 0;
+
+    /* texture control */
+    mmd->flow->source = FLUID_FLOW_SOURCE_MESH;
+    mmd->flow->texture_size = 1.0f;
+
+    mmd->flow->type = FLUID_FLOW_TYPE_SMOKE;
+    mmd->flow->behavior = FLUID_FLOW_BEHAVIOR_GEOMETRY;
+    mmd->flow->type = FLUID_FLOW_TYPE_SMOKE;
+    mmd->flow->flags = FLUID_FLOW_ABSOLUTE | FLUID_FLOW_USE_PART_SIZE | FLUID_FLOW_USE_INFLOW;
+  }
+  else if (mmd->type & MOD_FLUID_TYPE_EFFEC) {
+    if (mmd->effector) {
+      BKE_fluid_modifier_freeEffector(mmd);
+    }
+
+    /* effector object data */
+    mmd->effector = MEM_callocN(sizeof(FluidEffectorSettings), "MantaEffector");
+    mmd->effector->mmd = mmd;
+    mmd->effector->mesh = NULL;
+    mmd->effector->verts_old = NULL;
+    mmd->effector->numverts = 0;
+    mmd->effector->surface_distance = 0.0f;
+    mmd->effector->type = FLUID_EFFECTOR_TYPE_COLLISION;
+    mmd->effector->flags = 0;
+
+    /* guide options */
+    mmd->effector->guide_mode = FLUID_EFFECTOR_GUIDE_MAX;
+    mmd->effector->vel_multi = 1.0f;
+  }
+}
+
+void BKE_fluid_modifier_copy(const struct FluidModifierData *mmd,
+                             struct FluidModifierData *tmmd,
+                             const int flag)
+{
+  tmmd->type = mmd->type;
+  tmmd->time = mmd->time;
+
+  BKE_fluid_modifier_create_type_data(tmmd);
+
+  if (tmmd->domain) {
+    FluidDomainSettings *tmds = tmmd->domain;
+    FluidDomainSettings *mds = mmd->domain;
+
+    /* domain object data */
+    tmds->fluid_group = mds->fluid_group;
+    tmds->force_group = mds->force_group;
+    tmds->effector_group = mds->effector_group;
+    if (tmds->effector_weights) {
+      MEM_freeN(tmds->effector_weights);
+    }
+    tmds->effector_weights = MEM_dupallocN(mds->effector_weights);
+
+    /* adaptive domain options */
+    tmds->adapt_margin = mds->adapt_margin;
+    tmds->adapt_res = mds->adapt_res;
+    tmds->adapt_threshold = mds->adapt_threshold;
+
+    /* fluid domain options */
+    tmds->maxres = mds->maxres;
+    tmds->solver_res = mds->solver_res;
+    tmds->border_collisions = mds->border_collisions;
+    tmds->flags = mds->flags;
+    tmds->gravity[0] = mds->gravity[0];
+    tmds->gravity[1] = mds->gravity[1];
+    tmds->gravity[2] = mds->gravity[2];
+    tmds->active_fields = mds->active_fields;
+    tmds->type = mds->type;
+    tmds->boundary_width = mds->boundary_width;
+
+    /* smoke domain options */
+    tmds->alpha = mds->alpha;
+    tmds->beta = mds->beta;
+    tmds->diss_speed = mds->diss_speed;
+    tmds->vorticity = mds->vorticity;
+    tmds->highres_sampling = mds->highres_sampling;
+
+    /* flame options */
+    tmds->burning_rate = mds->burning_rate;
+    tmds->flame_smoke = mds->flame_smoke;
+    tmds->flame_vorticity = mds->flame_vorticity;
+    tmds->flame_ignition = mds->flame_ignition;
+    tmds->flame_max_temp = mds->flame_max_temp;
+    copy_v3_v3(tmds->flame_smoke_color, mds->flame_smoke_color);
+
+    /* noise options */
+    tmds->noise_strength = mds->noise_strength;
+    tmds->noise_pos_scale = mds->noise_pos_scale;
+    tmds->noise_time_anim = mds->noise_time_anim;
+    tmds->noise_scale = mds->noise_scale;
+    tmds->noise_type = mds->noise_type;
+
+    /* liquid domain options */
+    tmds->flip_ratio = mds->flip_ratio;
+    tmds->particle_randomness = mds->particle_randomness;
+    tmds->particle_number = mds->particle_number;
+    tmds->particle_minimum = mds->particle_minimum;
+    tmds->particle_maximum = mds->particle_maximum;
+    tmds->particle_radius = mds->particle_radius;
+    tmds->particle_band_width = mds->particle_band_width;
+    tmds->fractions_threshold = mds->fractions_threshold;
+
+    /* diffusion options*/
+    tmds->surface_tension = mds->surface_tension;
+    tmds->viscosity_base = mds->viscosity_base;
+    tmds->viscosity_exponent = mds->viscosity_exponent;
+    tmds->domain_size = mds->domain_size;
+
+    /* mesh options */
+    if (mds->mesh_velocities) {
+      tmds->mesh_velocities = MEM_dupallocN(mds->mesh_velocities);
+    }
+    tmds->mesh_concave_upper = mds->mesh_concave_upper;
+    tmds->mesh_concave_lower = mds->mesh_concave_lower;
+    tmds->mesh_particle_radius = mds->mesh_particle_radius;
+    tmds->mesh_smoothen_pos = mds->mesh_smoothen_pos;
+    tmds->mesh_smoothen_neg = mds->mesh_smoothen_neg;
+    tmds->mesh_scale = mds->mesh_scale;
+    tmds->totvert = mds->totvert;
+    tmds->mesh_generator = mds->mesh_generator;
+
+    /* secondary particle options */
+    tmds->sndparticle_k_b = mds->sndparticle_k_b;
+    tmds->sndparticle_k_d = mds->sndparticle_k_d;
+    tmds->sndparticle_k_ta = mds->sndparticle_k_ta;
+    tmds->sndparticle_k_wc = mds->sndparticle_k_wc;
+    tmds->sndparticle_l_max = mds->sndparticle_l_max;
+    tmds->sndparticle_l_min = mds->sndparticle_l_min;
+    tmds->sndparticle_tau_max_k = mds->sndparticle_tau_max_k;
+    tmds->sndparticle_tau_max_ta = mds->sndparticle_tau_max_ta;
+    tmds->sndparticle_tau_max_wc = mds->sndparticle_tau_max_wc;
+    tmds->sndparticle_tau_min_k = mds->sndparticle_tau_min_k;
+    tmds->sndparticle_tau_min_ta = mds->sndparticle_tau_min_ta;
+    tmds->sndparticle_tau_min_wc = mds->sndparticle_tau_min_wc;
+    tmds->sndparticle_boundary = mds->sndparticle_boundary;
+    tmds->sndparticle_combined_export = mds->sndparticle_combined_export;
+    tmds->sndparticle_potential_radius = mds->sndparticle_potential_radius;
+    tmds->sndparticle_update_radius = mds->sndparticle_update_radius;
+    tmds->particle_type = mds->particle_type;
+    tmds->particle_scale = mds->particle_scale;
+
+    /* fluid guide options */
+    tmds->guide_parent = mds->guide_parent;
+    tmds->guide_alpha = mds->guide_alpha;
+    tmds->guide_beta = mds->guide_beta;
+    tmds->guide_vel_factor = mds->guide_vel_factor;
+    copy_v3_v3_int(tmds->guide_res, mds->guide_res);
+    tmds->guide_source = mds->guide_source;
+
+    /* cache options */
+    tmds->cache_frame_start = mds->cache_frame_start;
+    tmds->cache_frame_end = mds->cache_frame_end;
+    tmds->cache_frame_pause_data = mds->cache_frame_pause_data;
+    tmds->cache_frame_pause_noise = mds->cache_frame_pause_noise;
+    tmds->cache_frame_pause_mesh = mds->cache_frame_pause_mesh;
+    tmds->cache_frame_pause_particles = mds->cache_frame_pause_particles;
+    tmds->cache_frame_pause_guide = mds->cache_frame_pause_guide;
+    tmds->cache_flag = mds->cache_flag;
+    tmds->cache_type = mds->cache_type;
+    tmds->cache_mesh_format = mds->cache_mesh_format;
+    tmds->cache_data_format = mds->cache_data_format;
+    tmds->cache_particle_format = mds->cache_particle_format;
+    tmds->cache_noise_format = mds->cache_noise_format;
+    BLI_strncpy(tmds->cache_directory, mds->cache_directory, sizeof(tmds->cache_directory));
+
+    /* time options */
+    tmds->time_scale = mds->time_scale;
+    tmds->cfl_condition = mds->cfl_condition;
+    tmds->timesteps_minimum = mds->timesteps_minimum;
+    tmds->timesteps_maximum = mds->timesteps_maximum;
+
+    /* display options */
+    tmds->slice_method = mds->slice_method;
+    tmds->axis_slice_method = mds->axis_slice_method;
+    tmds->slice_axis = mds->slice_axis;
+    tmds->interp_method = mds->interp_method;
+    tmds->draw_velocity = mds->draw_velocity;
+    tmds->slice_per_voxel = mds->slice_per_voxel;
+    tmds->slice_depth = mds->slice_depth;
+    tmds->display_thickness = mds->display_thickness;
+    if (mds->coba) {
+      tmds->coba = MEM_dupallocN(mds->coba);
+    }
+    tmds->vector_scale = mds->vector_scale;
+    tmds->vector_draw_type = mds->vector_draw_type;
+    tmds->use_coba = mds->use_coba;
+    tmds->coba_field = mds->coba_field;
+
+    /* -- Deprecated / unsed options (below)-- */
+
+    /* pointcache options */
+    BKE_ptcache_free_list(&(tmds->ptcaches[0]));
+    if (flag & LIB_ID_CREATE_NO_MAIN) {
+      /* Share the cache with the original object's modifier. */
+      tmmd->modifier.flag |= eModifierFlag_SharedCaches;
+      tmds->point_cache[0] = mds->point_cache[0];
+      tmds->ptcaches[0] = mds->ptcaches[0];
+    }
+    else {
+      tmds->point_cache[0] = BKE_ptcache_copy_list(
+          &(tmds->ptcaches[0]), &(mds->ptcaches[0]), flag);
+    }
+
+    /* OpenVDB cache options */
+    tmds->openvdb_comp = mds->openvdb_comp;
+    tmds->clipping = mds->clipping;
+    tmds->data_depth = mds->data_depth;
+  }
+  else if (tmmd->flow) {
+    FluidFlowSettings *tmfs = tmmd->flow;
+    FluidFlowSettings *mfs = mmd->flow;
+
+    tmfs->psys = mfs->psys;
+    tmfs->noise_texture = mfs->noise_texture;
+
+    /* initial velocity */
+    tmfs->vel_multi = mfs->vel_multi;
+    tmfs->vel_normal = mfs->vel_normal;
+    tmfs->vel_random = mfs->vel_random;
+    tmfs->vel_coord[0] = mfs->vel_coord[0];
+    tmfs->vel_coord[1] = mfs->vel_coord[1];
+    tmfs->vel_coord[2] = mfs->vel_coord[2];
+
+    /* emission */
+    tmfs->density = mfs->density;
+    copy_v3_v3(tmfs->color, mfs->color);
+    tmfs->fuel_amount = mfs->fuel_amount;
+    tmfs->temperature = mfs->temperature;
+    tmfs->volume_density = mfs->volume_density;
+    tmfs->surface_distance = mfs->surface_distance;
+    tmfs->particle_size = mfs->particle_size;
+    tmfs->subframes = mfs->subframes;
+
+    /* texture control */
+    tmfs->texture_size = mfs->texture_size;
+    tmfs->texture_offset = mfs->texture_offset;
+    BLI_strncpy(tmfs->uvlayer_name, mfs->uvlayer_name, sizeof(tmfs->uvlayer_name));
+    tmfs->vgroup_density = mfs->vgroup_density;
+
+    tmfs->type = mfs->type;
+    tmfs->behavior = mfs->behavior;
+    tmfs->source = mfs->source;
+    tmfs->texture_type = mfs->texture_type;
+    tmfs->flags = mfs->flags;
+  }
+  else if (tmmd->effector) {
+    FluidEffectorSettings *tmes = tmmd->effector;
+    FluidEffectorSettings *mes = mmd->effector;
+
+    tmes->surface_distance = mes->surface_distance;
+    tmes->type = mes->type;
+
+    /* guide options */
+    tmes->guide_mode = mes->guide_mode;
+    tmes->vel_multi = mes->vel_multi;
+  }
+}
+
+/** \} */

@@ -24,10 +24,12 @@
  * \ingroup bke
  */
 
+struct Depsgraph;
 struct FluidDomainSettings;
 struct FluidEffectorSettings;
 struct FluidFlowSettings;
 struct FluidModifierData;
+struct Main;
 struct Scene;
 
 typedef float (*BKE_Fluid_BresenhamFn)(
