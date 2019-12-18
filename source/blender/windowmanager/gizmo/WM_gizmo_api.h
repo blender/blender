@@ -280,7 +280,13 @@ const struct ListBase *WM_gizmomap_group_list(struct wmGizmoMap *gzmap);
 struct wmGizmoGroup *WM_gizmomap_group_find(struct wmGizmoMap *gzmap, const char *idname);
 struct wmGizmoGroup *WM_gizmomap_group_find_ptr(struct wmGizmoMap *gzmap,
                                                 const struct wmGizmoGroupType *gzgt);
+
+eWM_GizmoFlagMapDrawStep WM_gizmomap_drawstep_from_gizmo_group(const struct wmGizmoGroup *gzgroup);
+void WM_gizmomap_tag_refresh_drawstep(struct wmGizmoMap *gzmap,
+                                      const eWM_GizmoFlagMapDrawStep drawstep);
 void WM_gizmomap_tag_refresh(struct wmGizmoMap *gzmap);
+bool WM_gizmomap_tag_refresh_check(struct wmGizmoMap *gzmap);
+
 void WM_gizmomap_draw(struct wmGizmoMap *gzmap,
                       const struct bContext *C,
                       const eWM_GizmoFlagMapDrawStep drawstep);

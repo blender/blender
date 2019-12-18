@@ -2046,7 +2046,8 @@ void VIEW3D_GGT_xform_gizmo(wmGizmoGroupType *gzgt)
   gzgt->name = "3D View: Transform Gizmo";
   gzgt->idname = "VIEW3D_GGT_xform_gizmo";
 
-  gzgt->flag = WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP;
+  gzgt->flag = WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+               WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
@@ -2081,7 +2082,7 @@ void VIEW3D_GGT_xform_gizmo_context(wmGizmoGroupType *gzgt)
   gzgt->idname = "VIEW3D_GGT_xform_gizmo_context";
 
   gzgt->flag = WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_PERSISTENT |
-               WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP;
+               WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP | WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
 
   gzgt->poll = WIDGETGROUP_gizmo_poll_context;
   gzgt->setup = WIDGETGROUP_gizmo_setup;
@@ -2289,7 +2290,8 @@ void VIEW3D_GGT_xform_cage(wmGizmoGroupType *gzgt)
   gzgt->name = "Transform Cage";
   gzgt->idname = "VIEW3D_GGT_xform_cage";
 
-  gzgt->flag |= WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP;
+  gzgt->flag |= WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
@@ -2530,7 +2532,8 @@ void VIEW3D_GGT_xform_shear(wmGizmoGroupType *gzgt)
   gzgt->name = "Transform Shear";
   gzgt->idname = "VIEW3D_GGT_xform_shear";
 
-  gzgt->flag |= WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP;
+  gzgt->flag |= WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;

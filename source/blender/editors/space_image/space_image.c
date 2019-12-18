@@ -464,7 +464,8 @@ static void IMAGE_GGT_gizmo2d(wmGizmoGroupType *gzgt)
   gzgt->name = "UV Transform Gizmo";
   gzgt->idname = "IMAGE_GGT_gizmo2d";
 
-  gzgt->flag |= WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP;
+  gzgt->flag |= (WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                 WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK);
 
   gzgt->gzmap_params.spaceid = SPACE_IMAGE;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
@@ -481,7 +482,8 @@ static void IMAGE_GGT_gizmo2d_translate(wmGizmoGroupType *gzgt)
   gzgt->name = "UV Translate Gizmo";
   gzgt->idname = "IMAGE_GGT_gizmo2d_translate";
 
-  gzgt->flag |= WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP;
+  gzgt->flag |= (WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                 WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK);
 
   gzgt->gzmap_params.spaceid = SPACE_IMAGE;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
@@ -498,7 +500,8 @@ static void IMAGE_GGT_gizmo2d_resize(wmGizmoGroupType *gzgt)
   gzgt->name = "UV Transform Gizmo Resize";
   gzgt->idname = "IMAGE_GGT_gizmo2d_resize";
 
-  gzgt->flag |= WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP;
+  gzgt->flag |= (WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                 WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK);
 
   gzgt->gzmap_params.spaceid = SPACE_IMAGE;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
@@ -515,7 +518,8 @@ static void IMAGE_GGT_gizmo2d_rotate(wmGizmoGroupType *gzgt)
   gzgt->name = "UV Transform Gizmo Resize";
   gzgt->idname = "IMAGE_GGT_gizmo2d_rotate";
 
-  gzgt->flag |= WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP;
+  gzgt->flag |= (WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                 WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK);
 
   gzgt->gzmap_params.spaceid = SPACE_IMAGE;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;

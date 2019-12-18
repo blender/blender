@@ -195,7 +195,8 @@ void VIEW3D_GGT_tool_generic_handle_normal(wmGizmoGroupType *gzgt)
   gzgt->name = "Generic Tool Widget Normal";
   gzgt->idname = handle_normal_id;
 
-  gzgt->flag |= (WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP);
+  gzgt->flag |= (WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                 WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK);
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
@@ -211,6 +212,8 @@ void VIEW3D_GGT_tool_generic_handle_free(wmGizmoGroupType *gzgt)
   gzgt->name = "Generic Tool Widget Free";
   gzgt->idname = handle_free_id;
 
+  /* Don't use 'WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK' here since this style of gizmo
+   * is better suited to being activated immediately. */
   gzgt->flag |= (WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP);
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;

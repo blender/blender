@@ -304,14 +304,45 @@ static GHash *WM_gizmomap_gizmo_hash_new(const bContext *C,
   return hash;
 }
 
+eWM_GizmoFlagMapDrawStep WM_gizmomap_drawstep_from_gizmo_group(const wmGizmoGroup *gzgroup)
+{
+  eWM_GizmoFlagMapDrawStep step;
+  if (gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
+    step = WM_GIZMOMAP_DRAWSTEP_3D;
+  }
+  else {
+    step = WM_GIZMOMAP_DRAWSTEP_2D;
+  }
+  return step;
+}
+
+void WM_gizmomap_tag_refresh_drawstep(wmGizmoMap *gzmap, const eWM_GizmoFlagMapDrawStep drawstep)
+{
+  BLI_assert((uint)drawstep < WM_GIZMOMAP_DRAWSTEP_MAX);
+  if (gzmap) {
+    gzmap->update_flag[drawstep] |= (GIZMOMAP_IS_PREPARE_DRAW | GIZMOMAP_IS_REFRESH_CALLBACK);
+  }
+}
+
 void WM_gizmomap_tag_refresh(wmGizmoMap *gzmap)
 {
   if (gzmap) {
-    /* We might want only to refresh some, for tag all steps. */
     for (int i = 0; i < WM_GIZMOMAP_DRAWSTEP_MAX; i++) {
       gzmap->update_flag[i] |= (GIZMOMAP_IS_PREPARE_DRAW | GIZMOMAP_IS_REFRESH_CALLBACK);
     }
   }
+}
+
+bool WM_gizmomap_tag_refresh_check(wmGizmoMap *gzmap)
+{
+  if (gzmap) {
+    for (int i = 0; i < WM_GIZMOMAP_DRAWSTEP_MAX; i++) {
+      if (gzmap->update_flag[i] & (GIZMOMAP_IS_PREPARE_DRAW | GIZMOMAP_IS_REFRESH_CALLBACK)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 static bool gizmo_prepare_drawing(wmGizmoMap *gzmap,
@@ -359,7 +390,8 @@ static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
   /* only active gizmo needs updating */
   if (gz_modal) {
     if ((gz_modal->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL) == 0) {
-      if (wm_gizmogroup_is_visible_in_drawstep(gz_modal->parent_gzgroup, drawstep)) {
+      if ((gz_modal->parent_gzgroup->hide.any == 0) &&
+          wm_gizmogroup_is_visible_in_drawstep(gz_modal->parent_gzgroup, drawstep)) {
         if (gizmo_prepare_drawing(gzmap, gz_modal, C, draw_gizmos, drawstep)) {
           gzmap->update_flag[drawstep] &= ~GIZMOMAP_IS_PREPARE_DRAW;
         }
@@ -369,9 +401,13 @@ static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
     }
   }
 
+  /* Allow refresh functions to ask to be refreshed again, clear before the loop below. */
+  const bool do_refresh = gzmap->update_flag[drawstep] & GIZMOMAP_IS_REFRESH_CALLBACK;
+  gzmap->update_flag[drawstep] &= ~GIZMOMAP_IS_REFRESH_CALLBACK;
+
   for (wmGizmoGroup *gzgroup = gzmap->groups.first; gzgroup; gzgroup = gzgroup->next) {
     /* check group visibility - drawstep first to avoid unnecessary call of group poll callback */
-    if (!wm_gizmogroup_is_visible_in_drawstep(gzgroup, drawstep) ||
+    if ((gzgroup->hide.any != 0) || !wm_gizmogroup_is_visible_in_drawstep(gzgroup, drawstep) ||
         !WM_gizmo_group_type_poll(C, gzgroup->type)) {
       continue;
     }
@@ -379,7 +415,7 @@ static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
     /* Needs to be initialized on first draw. */
     /* XXX weak: Gizmo-group may skip refreshing if it's invisible
      * (map gets untagged nevertheless). */
-    if (gzmap->update_flag[drawstep] & GIZMOMAP_IS_REFRESH_CALLBACK) {
+    if (do_refresh) {
       /* force refresh again. */
       gzgroup->init_flag &= ~WM_GIZMOGROUP_INIT_REFRESH;
     }
@@ -396,7 +432,7 @@ static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
     }
   }
 
-  gzmap->update_flag[drawstep] &= ~(GIZMOMAP_IS_REFRESH_CALLBACK | GIZMOMAP_IS_PREPARE_DRAW);
+  gzmap->update_flag[drawstep] &= ~GIZMOMAP_IS_PREPARE_DRAW;
 }
 
 /**
@@ -716,7 +752,7 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
     /* If it were important we could initialize here,
      * but this only happens when events are handled before drawing,
      * just skip to keep code-path for initializing gizmos simple. */
-    if ((gzgroup->init_flag & WM_GIZMOGROUP_INIT_SETUP) == 0) {
+    if ((gzgroup->hide.any != 0) || ((gzgroup->init_flag & WM_GIZMOGROUP_INIT_SETUP) == 0)) {
       continue;
     }
 
@@ -1126,7 +1162,7 @@ void WM_gizmomap_message_subscribe(bContext *C,
                                    struct wmMsgBus *mbus)
 {
   for (wmGizmoGroup *gzgroup = gzmap->groups.first; gzgroup; gzgroup = gzgroup->next) {
-    if ((gzgroup->init_flag & WM_GIZMOGROUP_INIT_SETUP) == 0 ||
+    if ((gzgroup->hide.any != 0) || (gzgroup->init_flag & WM_GIZMOGROUP_INIT_SETUP) == 0 ||
         !WM_gizmo_group_type_poll(C, gzgroup->type)) {
       continue;
     }

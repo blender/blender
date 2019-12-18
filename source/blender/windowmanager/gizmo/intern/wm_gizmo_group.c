@@ -284,8 +284,10 @@ void WM_gizmogroup_ensure_init(const bContext *C, wmGizmoGroup *gzgroup)
   /* Refresh may be called multiple times,
    * this just ensures its called at least once before we draw. */
   if (UNLIKELY((gzgroup->init_flag & WM_GIZMOGROUP_INIT_REFRESH) == 0)) {
-    WM_gizmo_group_refresh(C, gzgroup);
+    /* Clear the flag before calling refresh so the callback
+     * can postpone the refresh by clearing this flag. */
     gzgroup->init_flag |= WM_GIZMOGROUP_INIT_REFRESH;
+    WM_gizmo_group_refresh(C, gzgroup);
   }
 }
 
@@ -1147,6 +1149,26 @@ bool WM_gizmo_group_type_poll(const bContext *C, const wmGizmoGroupType *gzgt)
 void WM_gizmo_group_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   const wmGizmoGroupType *gzgt = gzgroup->type;
+  if (gzgt->flag & WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK) {
+    wmGizmoMap *gzmap = gzgroup->parent_gzmap;
+    wmGizmo *gz = wm_gizmomap_highlight_get(gzmap);
+    if (!gz || gz->parent_gzgroup != gzgroup) {
+      wmWindow *win = CTX_wm_window(C);
+      if (win->tweak) {
+        /* We need to run refresh again. */
+        gzgroup->init_flag &= ~WM_GIZMOGROUP_INIT_REFRESH;
+        WM_gizmomap_tag_refresh_drawstep(gzmap, WM_gizmomap_drawstep_from_gizmo_group(gzgroup));
+        gzgroup->hide.delay_refresh_for_tweak = true;
+        return;
+      }
+    }
+    gzgroup->hide.delay_refresh_for_tweak = false;
+  }
+
+  if (gzgroup->hide.any) {
+    return;
+  }
+
   if (gzgt->refresh) {
     gzgt->refresh(C, gzgroup);
   }

@@ -514,7 +514,8 @@ void VIEW3D_GGT_xform_extrude(struct wmGizmoGroupType *gzgt)
   gzgt->name = "3D View Extrude";
   gzgt->idname = "VIEW3D_GGT_xform_extrude";
 
-  gzgt->flag = WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP;
+  gzgt->flag = WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+               WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
