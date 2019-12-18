@@ -114,6 +114,14 @@ add_blender_test(
 )
 
 # ------------------------------------------------------------------------------
+# DATA MANAGEMENT TESTS
+
+add_blender_test(
+  id_management
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_id_management.py
+)
+
+# ------------------------------------------------------------------------------
 # MODELING TESTS
 add_blender_test(
   bmesh_bevel
