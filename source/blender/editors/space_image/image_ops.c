@@ -4212,13 +4212,6 @@ void IMAGE_OT_clear_render_border(wmOperatorType *ot)
 
 /* ********************* Add tile operator ****************** */
 
-static bool tile_poll(bContext *C)
-{
-  Image *ima = CTX_data_edit_image(C);
-
-  return (ima != NULL && ima->source == IMA_SRC_TILED);
-}
-
 static bool do_fill_tile(PointerRNA *ptr, Image *ima, ImageTile *tile)
 {
   float color[4];
@@ -4282,6 +4275,13 @@ static void def_fill_tile(StructOrFunctionRNA *srna)
   RNA_def_boolean(
       srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth");
   RNA_def_boolean(srna, "alpha", 1, "Alpha", "Create an image with an alpha channel");
+}
+
+static bool tile_add_poll(bContext *C)
+{
+  Image *ima = CTX_data_edit_image(C);
+
+  return (ima != NULL && ima->source == IMA_SRC_TILED && BKE_image_has_ibuf(ima, NULL));
 }
 
 static int tile_add_exec(bContext *C, wmOperator *op)
@@ -4374,7 +4374,7 @@ void IMAGE_OT_tile_add(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_tile_add";
 
   /* api callbacks */
-  ot->poll = tile_poll;
+  ot->poll = tile_add_poll;
   ot->exec = tile_add_exec;
   ot->invoke = tile_add_invoke;
   ot->ui = tile_add_draw;
@@ -4433,6 +4433,17 @@ void IMAGE_OT_tile_remove(wmOperatorType *ot)
 
 /* ********************* Fill tile operator ****************** */
 
+static bool tile_fill_poll(bContext *C)
+{
+  Image *ima = CTX_data_edit_image(C);
+
+  if (ima != NULL && ima->source == IMA_SRC_TILED) {
+    /* Filling secondary tiles is only allowed if the primary tile exists. */
+    return (ima->active_tile_index == 0) || BKE_image_has_ibuf(ima, NULL);
+  }
+  return false;
+}
+
 static int tile_fill_exec(bContext *C, wmOperator *op)
 {
   Image *ima = CTX_data_edit_image(C);
@@ -4480,7 +4491,7 @@ void IMAGE_OT_tile_fill(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_tile_fill";
 
   /* api callbacks */
-  ot->poll = tile_poll;
+  ot->poll = tile_fill_poll;
   ot->exec = tile_fill_exec;
   ot->invoke = tile_fill_invoke;
   ot->ui = tile_fill_draw;
