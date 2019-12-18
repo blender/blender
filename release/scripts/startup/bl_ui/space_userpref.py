@@ -2227,8 +2227,10 @@ class USERPREF_PT_experimental_usd(ExperimentalPanel, Panel):
 
     @classmethod
     def poll(cls, context):
+        if not super().poll(context):
+            return False
         # Only show the panel if Blender was actually built with USD support.
-        return getattr(bpy.app.build_options, 'usd', False)
+        return getattr(bpy.app.build_options, "usd", False)
 
     def draw_props(self, context, layout):
         prefs = context.preferences
