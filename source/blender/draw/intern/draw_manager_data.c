@@ -1416,53 +1416,19 @@ static void draw_frustum_boundbox_calc(const float (*viewinv)[4],
   }
 }
 
-static void draw_frustum_culling_planes_calc(const BoundBox *bbox, float (*frustum_planes)[4])
+static void draw_frustum_culling_planes_calc(const float (*persmat)[4], float (*frustum_planes)[4])
 {
-  /* TODO See if planes_from_projmat cannot do the job. */
+  planes_from_projmat(persmat,
+                      frustum_planes[0],
+                      frustum_planes[5],
+                      frustum_planes[3],
+                      frustum_planes[1],
+                      frustum_planes[4],
+                      frustum_planes[2]);
 
-  /* Compute clip planes using the world space frustum corners. */
+  /* Normalize. */
   for (int p = 0; p < 6; p++) {
-    int q, r, s;
-    switch (p) {
-      case 0:
-        q = 1;
-        r = 2;
-        s = 3;
-        break; /* -X */
-      case 1:
-        q = 0;
-        r = 4;
-        s = 5;
-        break; /* -Y */
-      case 2:
-        q = 1;
-        r = 5;
-        s = 6;
-        break; /* +Z (far) */
-      case 3:
-        q = 2;
-        r = 6;
-        s = 7;
-        break; /* +Y */
-      case 4:
-        q = 0;
-        r = 3;
-        s = 7;
-        break; /* -Z (near) */
-      default:
-        q = 4;
-        r = 7;
-        s = 6;
-        break; /* +X */
-    }
-
-    normal_quad_v3(frustum_planes[p], bbox->vec[p], bbox->vec[q], bbox->vec[r], bbox->vec[s]);
-    /* Increase precision and use the mean of all 4 corners. */
-    frustum_planes[p][3] = -dot_v3v3(frustum_planes[p], bbox->vec[p]);
-    frustum_planes[p][3] += -dot_v3v3(frustum_planes[p], bbox->vec[q]);
-    frustum_planes[p][3] += -dot_v3v3(frustum_planes[p], bbox->vec[r]);
-    frustum_planes[p][3] += -dot_v3v3(frustum_planes[p], bbox->vec[s]);
-    frustum_planes[p][3] *= 0.25f;
+    frustum_planes[p][3] /= normalize_v3(frustum_planes[p]);
   }
 }
 
@@ -1720,7 +1686,7 @@ void DRW_view_update(DRWView *view,
   }
 
   draw_frustum_boundbox_calc(viewinv, winmat, &view->frustum_corners);
-  draw_frustum_culling_planes_calc(&view->frustum_corners, view->frustum_planes);
+  draw_frustum_culling_planes_calc(view->storage.persmat, view->frustum_planes);
   draw_frustum_bound_sphere_calc(
       &view->frustum_corners, viewinv, winmat, wininv, &view->frustum_bsphere);
 
