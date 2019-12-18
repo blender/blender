@@ -4148,7 +4148,9 @@ static void particles_fluid_step(ParticleSimulationData *sim,
     psys->totpart = 0;
   }
 
-#ifdef WITH_FLUID
+#ifndef WITH_FLUID
+  UNUSED_VARS(use_render_params, cfra);
+#else
   {
     Object *ob = sim->ob;
     FluidModifierData *mmd = (FluidModifierData *)modifiers_findByType(ob, eModifierType_Fluid);
@@ -4400,9 +4402,7 @@ static void particles_fluid_step(ParticleSimulationData *sim,
 
     } /* Fluid sim particles done. */
   }
-#else
-  UNUSED_VARS(use_render_params);
-#endif  // WITH_FLUID
+#endif /* WITH_FLUID */
 }
 
 static int emit_particles(ParticleSimulationData *sim, PTCacheID *pid, float UNUSED(cfra))

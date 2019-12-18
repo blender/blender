@@ -645,7 +645,7 @@ void orthographic_m4(float mat[4][4],
                      const float farClip);
 void window_translate_m4(float winmat[4][4], float perspmat[4][4], const float x, const float y);
 
-void planes_from_projmat(float mat[4][4],
+void planes_from_projmat(const float mat[4][4],
                          float left[4],
                          float right[4],
                          float top[4],
