@@ -207,6 +207,7 @@ typedef struct WORKBENCH_PrivateData {
   struct GPUShader *prepass_uniform_sh;
   struct GPUShader *prepass_uniform_hair_sh;
   struct GPUShader *prepass_textured_sh;
+  struct GPUShader *prepass_vertex_sh;
   struct GPUShader *composite_sh;
   struct GPUShader *background_sh;
   struct GPUShader *transparent_accum_sh;
@@ -214,6 +215,7 @@ typedef struct WORKBENCH_PrivateData {
   struct GPUShader *transparent_accum_uniform_sh;
   struct GPUShader *transparent_accum_uniform_hair_sh;
   struct GPUShader *transparent_accum_textured_sh;
+  struct GPUShader *transparent_accum_vertex_sh;
   View3DShading shading;
   StudioLight *studio_light;
   const UserDef *preferences;
@@ -318,6 +320,15 @@ typedef struct WORKBENCH_WorldData {
   struct GPUUniformBuffer *world_ubo;
 } WORKBENCH_WorldData;
 
+/* Enumeration containing override options for base color rendering.
+ * This is used to during painting to force the base color to show what you are
+ * painting using the selected lighting model. */
+typedef enum WORKBENCH_ColorOverride {
+  WORKBENCH_COLOR_OVERRIDE_OFF = 0,
+  WORKBENCH_COLOR_OVERRIDE_TEXTURE = CTX_MODE_PAINT_TEXTURE,
+  WORKBENCH_COLOR_OVERRIDE_VERTEX = CTX_MODE_PAINT_VERTEX,
+} WORKBENCH_ColorOverride;
+
 /* inline helper functions */
 BLI_INLINE bool workbench_is_specular_highlight_enabled(WORKBENCH_PrivateData *wpd)
 {
@@ -375,23 +386,35 @@ BLI_INLINE bool workbench_is_in_texture_paint_mode(void)
   return draw_ctx->object_mode == OB_MODE_TEXTURE_PAINT;
 }
 
-/** Is texture paint mode active for the given object */
-BLI_INLINE bool workbench_is_object_in_texture_paint_mode(Object *ob)
+/** Is vertex paint mode enabled (globally) */
+BLI_INLINE bool workbench_is_in_vertex_paint_mode(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  return draw_ctx->object_mode == OB_MODE_VERTEX_PAINT;
+}
+
+/* Must the `View3DShading.color_type` be overriden for the given object. */
+BLI_INLINE WORKBENCH_ColorOverride workbench_object_color_override_get(Object *ob)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   if (ob->type == OB_MESH && (draw_ctx->obact == ob)) {
     const enum eContextObjectMode mode = CTX_data_mode_enum_ex(
         draw_ctx->object_edit, draw_ctx->obact, draw_ctx->object_mode);
-    return (mode == CTX_MODE_PAINT_TEXTURE);
+    if (mode == CTX_MODE_PAINT_TEXTURE) {
+      return WORKBENCH_COLOR_OVERRIDE_TEXTURE;
+    }
+    else if (mode == CTX_MODE_PAINT_VERTEX) {
+      return WORKBENCH_COLOR_OVERRIDE_VERTEX;
+    }
   }
 
-  return false;
+  return WORKBENCH_COLOR_OVERRIDE_OFF;
 }
 
 BLI_INLINE bool workbench_is_matdata_pass_enabled(WORKBENCH_PrivateData *wpd)
 {
   return (wpd->shading.color_type != V3D_SHADING_SINGLE_COLOR || MATCAP_ENABLED(wpd)) ||
-         workbench_is_in_texture_paint_mode();
+         workbench_is_in_texture_paint_mode() || workbench_is_in_vertex_paint_mode();
 }
 
 /**
@@ -409,7 +432,7 @@ BLI_INLINE eGPUTextureFormat workbench_color_texture_format(const WORKBENCH_Priv
       TEXTURE_DRAWING_ENABLED(wpd)) {
     result = GPU_RGBA16F;
   }
-  else if (VERTEX_COLORS_ENABLED(wpd)) {
+  else if (workbench_is_in_vertex_paint_mode() || VERTEX_COLORS_ENABLED(wpd)) {
     result = GPU_RGBA16;
   }
   else {
@@ -493,7 +516,7 @@ void workbench_material_get_image_and_mat(
 char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd,
                                        bool is_uniform_color,
                                        bool is_hair,
-                                       bool is_texture_painting);
+                                       const WORKBENCH_ColorOverride color_override);
 void workbench_material_update_data(WORKBENCH_PrivateData *wpd,
                                     Object *ob,
                                     Material *mat,
@@ -504,11 +527,11 @@ int workbench_material_get_composite_shader_index(WORKBENCH_PrivateData *wpd);
 int workbench_material_get_prepass_shader_index(WORKBENCH_PrivateData *wpd,
                                                 bool is_uniform_color,
                                                 bool is_hair,
-                                                bool is_texture_painting);
+                                                const WORKBENCH_ColorOverride color_override);
 int workbench_material_get_accum_shader_index(WORKBENCH_PrivateData *wpd,
                                               bool is_uniform_color,
                                               bool is_hair,
-                                              bool is_texture_painting);
+                                              const WORKBENCH_ColorOverride color_override);
 void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd,
                                         DRWShadingGroup *grp,
                                         WORKBENCH_MaterialData *material,

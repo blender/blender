@@ -226,16 +226,16 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(WORKBENCH_
 static GPUShader *ensure_forward_accum_shaders(WORKBENCH_PrivateData *wpd,
                                                bool is_uniform_color,
                                                bool is_hair,
-                                               bool is_texture_painting,
+                                               const WORKBENCH_ColorOverride color_override,
                                                eGPUShaderConfig sh_cfg)
 {
   WORKBENCH_FORWARD_Shaders *sh_data = &e_data.sh_data[sh_cfg];
   int index = workbench_material_get_accum_shader_index(
-      wpd, is_uniform_color, is_hair, is_texture_painting);
+      wpd, is_uniform_color, is_hair, color_override);
   if (sh_data->transparent_accum_sh_cache[index] == NULL) {
     const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
     char *defines = workbench_material_build_defines(
-        wpd, is_uniform_color, is_hair, is_texture_painting);
+        wpd, is_uniform_color, is_hair, color_override);
     char *transparent_accum_vert = workbench_build_forward_vert(is_hair);
     char *transparent_accum_frag = workbench_build_forward_transparent_accum_frag();
     sh_data->transparent_accum_sh_cache[index] = GPU_shader_create_from_arrays({
@@ -254,7 +254,8 @@ static GPUShader *ensure_forward_composite_shaders(WORKBENCH_PrivateData *wpd)
 {
   int index = OBJECT_OUTLINE_ENABLED(wpd) ? 1 : 0;
   if (e_data.composite_sh_cache[index] == NULL) {
-    char *defines = workbench_material_build_defines(wpd, false, false, false);
+    char *defines = workbench_material_build_defines(
+        wpd, false, false, WORKBENCH_COLOR_OVERRIDE_OFF);
     char *composite_frag = workbench_build_forward_composite_frag();
     e_data.composite_sh_cache[index] = DRW_shader_create_fullscreen(composite_frag, defines);
     MEM_freeN(composite_frag);
@@ -266,14 +267,18 @@ static GPUShader *ensure_forward_composite_shaders(WORKBENCH_PrivateData *wpd)
 void workbench_forward_choose_shaders(WORKBENCH_PrivateData *wpd, eGPUShaderConfig sh_cfg)
 {
   wpd->composite_sh = ensure_forward_composite_shaders(wpd);
-  wpd->transparent_accum_sh = ensure_forward_accum_shaders(wpd, false, false, false, sh_cfg);
-  wpd->transparent_accum_hair_sh = ensure_forward_accum_shaders(wpd, false, true, false, sh_cfg);
+  wpd->transparent_accum_sh = ensure_forward_accum_shaders(
+      wpd, false, false, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
+  wpd->transparent_accum_hair_sh = ensure_forward_accum_shaders(
+      wpd, false, true, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
   wpd->transparent_accum_uniform_sh = ensure_forward_accum_shaders(
-      wpd, true, false, false, sh_cfg);
+      wpd, true, false, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
   wpd->transparent_accum_uniform_hair_sh = ensure_forward_accum_shaders(
-      wpd, true, true, false, sh_cfg);
+      wpd, true, true, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
   wpd->transparent_accum_textured_sh = ensure_forward_accum_shaders(
-      wpd, false, false, true, sh_cfg);
+      wpd, false, false, WORKBENCH_COLOR_OVERRIDE_TEXTURE, sh_cfg);
+  wpd->transparent_accum_vertex_sh = ensure_forward_accum_shaders(
+      wpd, false, false, WORKBENCH_COLOR_OVERRIDE_VERTEX, sh_cfg);
 }
 
 void workbench_forward_outline_shaders_ensure(WORKBENCH_PrivateData *wpd, eGPUShaderConfig sh_cfg)
@@ -282,9 +287,12 @@ void workbench_forward_outline_shaders_ensure(WORKBENCH_PrivateData *wpd, eGPUSh
 
   if (sh_data->object_outline_sh == NULL) {
     const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
-    char *defines = workbench_material_build_defines(wpd, false, false, false);
-    char *defines_texture = workbench_material_build_defines(wpd, true, false, false);
-    char *defines_hair = workbench_material_build_defines(wpd, false, true, false);
+    char *defines = workbench_material_build_defines(
+        wpd, false, false, WORKBENCH_COLOR_OVERRIDE_OFF);
+    char *defines_texture = workbench_material_build_defines(
+        wpd, true, false, WORKBENCH_COLOR_OVERRIDE_OFF);
+    char *defines_hair = workbench_material_build_defines(
+        wpd, false, true, WORKBENCH_COLOR_OVERRIDE_OFF);
     char *forward_vert = workbench_build_forward_vert(false);
     char *forward_frag = workbench_build_forward_outline_frag();
     char *forward_hair_vert = workbench_build_forward_vert(true);
@@ -600,6 +608,23 @@ static void workbench_forward_cache_populate_texture_paint_mode(WORKBENCH_Data *
     }
   }
 }
+static void workbench_forward_cache_populate_vertex_paint_mode(WORKBENCH_Data *vedata, Object *ob)
+{
+  WORKBENCH_StorageList *stl = vedata->stl;
+  WORKBENCH_PrivateData *wpd = stl->g_data;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+
+  const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
+                               !DRW_state_is_image_render();
+  WORKBENCH_MaterialData *material;
+
+  int color_type = workbench_material_determine_color_type(wpd, NULL, ob, use_sculpt_pbvh);
+  struct GPUBatch *geom = DRW_cache_mesh_surface_vertpaint_get(ob);
+  material = workbench_forward_get_or_create_material_data(
+      vedata, ob, NULL, NULL, NULL, color_type, false);
+  DRW_shgroup_call(material->shgrp, geom, ob);
+  DRW_shgroup_call(material->shgrp_object_outline, geom, ob);
+}
 
 void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 {
@@ -640,13 +665,21 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
                                  !DRW_state_is_image_render();
     const int materials_len = MAX2(1, ob->totcol);
     const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
+    const WORKBENCH_ColorOverride color_override = workbench_object_color_override_get(ob);
     const bool use_texture_paint_drawing = !(DRW_state_is_image_render() &&
                                              draw_ctx->v3d == NULL) &&
-                                           workbench_is_object_in_texture_paint_mode(ob) && me &&
-                                           me->mloopuv;
+                                           (color_override == WORKBENCH_COLOR_OVERRIDE_TEXTURE) &&
+                                           me && me->mloopuv;
+    const bool use_vertex_paint_drawing = !(DRW_state_is_image_render() &&
+                                            draw_ctx->v3d == NULL) &&
+                                          (color_override == WORKBENCH_COLOR_OVERRIDE_VERTEX) &&
+                                          me && me->mloopcol;
 
     if (use_texture_paint_drawing) {
       workbench_forward_cache_populate_texture_paint_mode(vedata, ob);
+    }
+    else if (use_vertex_paint_drawing) {
+      workbench_forward_cache_populate_vertex_paint_mode(vedata, ob);
     }
     else if (!use_sculpt_pbvh && TEXTURE_DRAWING_ENABLED(wpd) && me && me->mloopuv) {
       struct GPUBatch **geom_array = DRW_cache_mesh_surface_texpaint_get(ob);

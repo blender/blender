@@ -159,23 +159,16 @@ void OVERLAY_paint_vertex_cache_populate(OVERLAY_Data *vedata, Object *ob)
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   struct GPUBatch *geom = NULL;
 
-  const Mesh *me = ob->data;
   const Mesh *me_orig = DEG_get_original_object(ob)->data;
   const bool use_wire = (pd->overlay.paint_flag & V3D_OVERLAY_PAINT_WIRE) != 0;
   const bool use_face_sel = (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
   const bool use_vert_sel = (me_orig->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
   if (pd->paint_surf_grp) {
-    if (ob->mode == OB_MODE_VERTEX_PAINT) {
-      if (me->mloopcol == NULL) {
-        return;
-      }
-      geom = DRW_cache_mesh_surface_vertpaint_get(ob);
-    }
-    else {
+    if (ob->mode == OB_MODE_WEIGHT_PAINT) {
       geom = DRW_cache_mesh_surface_weights_get(ob);
+      DRW_shgroup_call(pd->paint_surf_grp, geom, ob);
     }
-    DRW_shgroup_call(pd->paint_surf_grp, geom, ob);
   }
 
   if (use_face_sel || use_wire) {

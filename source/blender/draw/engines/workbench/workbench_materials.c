@@ -85,16 +85,26 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd,
 char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd,
                                        bool is_uniform_color,
                                        bool is_hair,
-                                       bool is_texture_painting)
+                                       const WORKBENCH_ColorOverride color_override)
 {
   char *str = NULL;
   bool use_textures = (wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR) && !is_uniform_color;
   bool use_vertex_colors = (wpd->shading.color_type == V3D_SHADING_VERTEX_COLOR) &&
                            !is_uniform_color;
 
-  if (is_texture_painting) {
-    use_textures = true;
-    use_vertex_colors = false;
+  switch (color_override) {
+    case WORKBENCH_COLOR_OVERRIDE_TEXTURE:
+      use_textures = true;
+      use_vertex_colors = false;
+      is_hair = false;
+      break;
+    case WORKBENCH_COLOR_OVERRIDE_VERTEX:
+      use_textures = false;
+      use_vertex_colors = true;
+      is_hair = false;
+      break;
+    case WORKBENCH_COLOR_OVERRIDE_OFF:
+      break;
   }
 
   DynStr *ds = BLI_dynstr_new();
@@ -201,15 +211,25 @@ int workbench_material_get_composite_shader_index(WORKBENCH_PrivateData *wpd)
 int workbench_material_get_prepass_shader_index(WORKBENCH_PrivateData *wpd,
                                                 bool is_uniform_color,
                                                 bool is_hair,
-                                                bool is_texture_painting)
+                                                const WORKBENCH_ColorOverride color_override)
 {
   bool use_textures = (wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR) && !is_uniform_color;
   bool use_vertex_colors = (wpd->shading.color_type == V3D_SHADING_VERTEX_COLOR) &&
                            !is_uniform_color;
-  if (is_texture_painting) {
-    use_textures = true;
-    use_vertex_colors = false;
+
+  switch (color_override) {
+    case WORKBENCH_COLOR_OVERRIDE_TEXTURE:
+      use_textures = true;
+      use_vertex_colors = false;
+      break;
+    case WORKBENCH_COLOR_OVERRIDE_VERTEX:
+      use_textures = false;
+      use_vertex_colors = true;
+      break;
+    case WORKBENCH_COLOR_OVERRIDE_OFF:
+      break;
   }
+
   /* NOTE: change MAX_PREPASS_SHADERS accordingly when modifying this function. */
   int index = 0;
   SET_FLAG_FROM_TEST(index, is_hair, 1 << 0);
@@ -226,15 +246,25 @@ int workbench_material_get_prepass_shader_index(WORKBENCH_PrivateData *wpd,
 int workbench_material_get_accum_shader_index(WORKBENCH_PrivateData *wpd,
                                               bool is_uniform_color,
                                               bool is_hair,
-                                              bool is_texture_painting)
+                                              const WORKBENCH_ColorOverride color_override)
 {
   bool use_textures = (wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR) && !is_uniform_color;
   bool use_vertex_colors = (wpd->shading.color_type == V3D_SHADING_VERTEX_COLOR) &&
                            !is_uniform_color;
-  if (is_texture_painting) {
-    use_textures = true;
-    use_vertex_colors = false;
-    is_hair = false;
+
+  switch (color_override) {
+    case WORKBENCH_COLOR_OVERRIDE_TEXTURE:
+      use_textures = true;
+      use_vertex_colors = false;
+      is_hair = false;
+      break;
+    case WORKBENCH_COLOR_OVERRIDE_VERTEX:
+      use_textures = false;
+      use_vertex_colors = true;
+      is_hair = false;
+      break;
+    case WORKBENCH_COLOR_OVERRIDE_OFF:
+      break;
   }
 
   /* NOTE: change MAX_ACCUM_SHADERS accordingly when modifying this function. */
@@ -267,12 +297,25 @@ int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd,
     color_type = V3D_SHADING_OBJECT_COLOR;
   }
 
-  /* Force V3D_SHADING_TEXTURE_COLOR for active object when in texture painting
-   * no matter the shading color that the user has chosen, when there is no
-   * texture we will render the object with the error color */
-  if (workbench_is_object_in_texture_paint_mode(ob)) {
-    color_type = ima ? V3D_SHADING_TEXTURE_COLOR : V3D_SHADING_ERROR_COLOR;
+  switch (workbench_object_color_override_get(ob)) {
+    /* Force V3D_SHADING_TEXTURE_COLOR for active object when in texture painting
+     * no matter the shading color that the user has chosen, when there is no
+     * texture we will render the object with the error color */
+    case WORKBENCH_COLOR_OVERRIDE_TEXTURE:
+      color_type = ima ? V3D_SHADING_TEXTURE_COLOR : V3D_SHADING_ERROR_COLOR;
+      break;
+
+    /* Force V3D_SHADING_VERTEX_COLOR for active object when in vertex painting
+     * no matter the shading color that the user has chosen, when there is no
+     * vertex color we will render the object with the error color */
+    case WORKBENCH_COLOR_OVERRIDE_VERTEX:
+      color_type = V3D_SHADING_VERTEX_COLOR;
+      break;
+
+    case WORKBENCH_COLOR_OVERRIDE_OFF:
+      break;
   }
+
   return color_type;
 }
 
