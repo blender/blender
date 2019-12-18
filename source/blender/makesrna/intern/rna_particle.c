@@ -952,14 +952,14 @@ static float rna_PartSetting_linelenhead_get(struct PointerRNA *ptr)
 
 static int rna_PartSettings_is_fluid_get(PointerRNA *ptr)
 {
-  ParticleSettings *part = (ParticleSettings *)ptr->data;
-
-  if (part->type == PART_FLUID || part->type == PART_FLUID_FLIP || part->type == PART_FLUID_FOAM ||
-      part->type == PART_FLUID_SPRAY || part->type == PART_FLUID_BUBBLE ||
-      part->type == PART_FLUID_TRACER) {
-    return true;
-  }
-  return false;
+  ParticleSettings *part = ptr->data;
+  return (ELEM(part->type,
+               PART_FLUID,
+               PART_FLUID_FLIP,
+               PART_FLUID_FOAM,
+               PART_FLUID_SPRAY,
+               PART_FLUID_BUBBLE,
+               PART_FLUID_TRACER));
 }
 
 static void rna_ParticleSettings_use_clump_curve_update(Main *bmain, Scene *scene, PointerRNA *ptr)
