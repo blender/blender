@@ -25,6 +25,8 @@
  */
 
 struct FluidDomainSettings;
+struct FluidEffectorSettings;
+struct FluidFlowSettings;
 struct FluidModifierData;
 struct Scene;
 
