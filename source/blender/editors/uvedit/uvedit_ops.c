@@ -1286,7 +1286,7 @@ static void uv_select_linked_multi(Scene *scene,
     vmap = BM_uv_vert_map_create(em->bm, limit, !select_faces, false);
 
     if (vmap == NULL) {
-      return;
+      continue;
     }
 
     stack = MEM_mallocN(sizeof(*stack) * (em->bm->totface + 1), "UvLinkStack");
