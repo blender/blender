@@ -138,49 +138,49 @@ class USERPREF_PT_save_preferences(Panel):
 # Min-In Helpers
 
 # Panel mix-in.
-class PreferencePanel:
+class CenterAlignMixIn:
     """
     Base class for panels to center align contents with some horizontal margin.
-    Deriving classes need to implement a ``draw_props(context, layout)`` function.
+    Deriving classes need to implement a ``draw_centered(context, layout)`` function.
     """
-
-    bl_space_type = 'PREFERENCES'
-    bl_region_type = 'WINDOW'
 
     def draw(self, context):
         layout = self.layout
         width = context.region.width
         ui_scale = context.preferences.system.ui_scale
+        # No horizontal margin if region is rather small.
+        is_wide = width > (350 * ui_scale)
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
         row = layout.row()
-        if width > (350 * ui_scale):  # No horizontal margin if region is rather small.
+        if is_wide:
             row.label()  # Needed so col below is centered.
 
         col = row.column()
         col.ui_units_x = 50
 
-        # draw_props implemented by deriving classes.
-        self.draw_props(context, col)
+        # Implemented by sub-classes.
+        self.draw_centered(context, col)
 
-        if width > (350 * ui_scale):  # No horizontal margin if region is rather small.
+        if is_wide:
             row.label()  # Needed so col above is centered.
 
 
 # -----------------------------------------------------------------------------
 # Interface Panels
 
-class USERPREF_PT_interface_display(PreferencePanel, Panel):
+class InterfacePanel:
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
+    bl_context = "interface"
+
+
+class USERPREF_PT_interface_display(InterfacePanel, CenterAlignMixIn, Panel):
     bl_label = "Display"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'INTERFACE')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         view = prefs.view
 
@@ -200,16 +200,11 @@ class USERPREF_PT_interface_display(PreferencePanel, Panel):
         flow.prop(view, "show_large_cursors")
 
 
-class USERPREF_PT_interface_text(PreferencePanel, Panel):
+class USERPREF_PT_interface_text(InterfacePanel, CenterAlignMixIn, Panel):
     bl_label = "Text Rendering"
     bl_options = {'DEFAULT_CLOSED'}
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'INTERFACE')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         view = prefs.view
 
@@ -224,14 +219,13 @@ class USERPREF_PT_interface_text(PreferencePanel, Panel):
         flow.prop(view, "font_path_ui_mono")
 
 
-class USERPREF_PT_interface_translation(PreferencePanel, Panel):
+class USERPREF_PT_interface_translation(InterfacePanel, CenterAlignMixIn, Panel):
     bl_label = "Translation"
     bl_translation_context = i18n_contexts.id_windowmanager
 
     @classmethod
     def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'INTERFACE') and bpy.app.build_options.international
+        return bpy.app.build_options.international
 
     def draw_header(self, context):
         prefs = context.preferences
@@ -239,7 +233,7 @@ class USERPREF_PT_interface_translation(PreferencePanel, Panel):
 
         self.layout.prop(view, "use_international_fonts", text="")
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         view = prefs.view
 
@@ -254,15 +248,10 @@ class USERPREF_PT_interface_translation(PreferencePanel, Panel):
         flow.prop(view, "use_translate_new_dataname", text="New Data")
 
 
-class USERPREF_PT_interface_editors(PreferencePanel, Panel):
+class USERPREF_PT_interface_editors(InterfacePanel, CenterAlignMixIn, Panel):
     bl_label = "Editors"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'INTERFACE')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         view = prefs.view
         system = prefs.system
@@ -277,17 +266,12 @@ class USERPREF_PT_interface_editors(PreferencePanel, Panel):
         flow.prop(view, "factor_display_type")
 
 
-class USERPREF_PT_interface_temporary_windows(PreferencePanel, Panel):
+class USERPREF_PT_interface_temporary_windows(InterfacePanel, CenterAlignMixIn, Panel):
     bl_label = "Temporary Windows"
     bl_parent_id = "USERPREF_PT_interface_editors"
     bl_options = {'DEFAULT_CLOSED'}
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'INTERFACE')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         view = prefs.view
 
@@ -297,22 +281,15 @@ class USERPREF_PT_interface_temporary_windows(PreferencePanel, Panel):
         flow.prop(view, "filebrowser_display_type", text="File Browser")
 
 
-class USERPREF_PT_interface_menus(Panel):
-    bl_space_type = 'PREFERENCES'
-    bl_region_type = 'WINDOW'
+class USERPREF_PT_interface_menus(InterfacePanel, Panel):
     bl_label = "Menus"
     bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'INTERFACE')
 
     def draw(self, context):
         pass
 
 
-class USERPREF_PT_interface_menus_mouse_over(PreferencePanel, Panel):
+class USERPREF_PT_interface_menus_mouse_over(InterfacePanel, CenterAlignMixIn, Panel):
     bl_label = "Open on Mouse Over"
     bl_parent_id = "USERPREF_PT_interface_menus"
 
@@ -322,7 +299,7 @@ class USERPREF_PT_interface_menus_mouse_over(PreferencePanel, Panel):
 
         self.layout.prop(view, "use_mouse_over_open", text="")
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         view = prefs.view
 
@@ -334,11 +311,11 @@ class USERPREF_PT_interface_menus_mouse_over(PreferencePanel, Panel):
         flow.prop(view, "open_sublevel_delay", text="Sub Level")
 
 
-class USERPREF_PT_interface_menus_pie(PreferencePanel, Panel):
+class USERPREF_PT_interface_menus_pie(InterfacePanel, CenterAlignMixIn, Panel):
     bl_label = "Pie Menus"
     bl_parent_id = "USERPREF_PT_interface_menus"
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         view = prefs.view
 
@@ -355,25 +332,24 @@ class USERPREF_PT_interface_menus_pie(PreferencePanel, Panel):
 # -----------------------------------------------------------------------------
 # Editing Panels
 
-class USERPREF_PT_edit_objects(Panel):
-    bl_label = "Objects"
+class EditingPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
+    bl_context = "editing"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'EDITING')
+
+class USERPREF_PT_edit_objects(EditingPanel, Panel):
+    bl_label = "Objects"
 
     def draw(self, context):
         pass
 
 
-class USERPREF_PT_edit_objects_new(PreferencePanel, Panel):
+class USERPREF_PT_edit_objects_new(EditingPanel, CenterAlignMixIn, Panel):
     bl_label = "New Objects"
     bl_parent_id = "USERPREF_PT_edit_objects"
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         edit = prefs.edit
 
@@ -384,11 +360,11 @@ class USERPREF_PT_edit_objects_new(PreferencePanel, Panel):
         flow.prop(edit, "use_enter_edit_mode", text="Enter Edit Mode")
 
 
-class USERPREF_PT_edit_objects_duplicate_data(PreferencePanel, Panel):
+class USERPREF_PT_edit_objects_duplicate_data(EditingPanel, CenterAlignMixIn, Panel):
     bl_label = "Duplicate Data"
     bl_parent_id = "USERPREF_PT_edit_objects"
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         edit = prefs.edit
 
@@ -413,15 +389,10 @@ class USERPREF_PT_edit_objects_duplicate_data(PreferencePanel, Panel):
         col.prop(edit, "use_duplicate_grease_pencil", text="Grease Pencil")
 
 
-class USERPREF_PT_edit_cursor(PreferencePanel, Panel):
+class USERPREF_PT_edit_cursor(EditingPanel, CenterAlignMixIn, Panel):
     bl_label = "3D Cursor"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'EDITING')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         edit = prefs.edit
 
@@ -431,16 +402,11 @@ class USERPREF_PT_edit_cursor(PreferencePanel, Panel):
         flow.prop(edit, "use_cursor_lock_adjust")
 
 
-class USERPREF_PT_edit_gpencil(PreferencePanel, Panel):
+class USERPREF_PT_edit_gpencil(EditingPanel, CenterAlignMixIn, Panel):
     bl_label = "Grease Pencil"
     bl_options = {'DEFAULT_CLOSED'}
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'EDITING')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         edit = prefs.edit
 
@@ -450,15 +416,10 @@ class USERPREF_PT_edit_gpencil(PreferencePanel, Panel):
         flow.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
 
 
-class USERPREF_PT_edit_annotations(PreferencePanel, Panel):
+class USERPREF_PT_edit_annotations(EditingPanel, CenterAlignMixIn, Panel):
     bl_label = "Annotations"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'EDITING')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         edit = prefs.edit
 
@@ -468,16 +429,11 @@ class USERPREF_PT_edit_annotations(PreferencePanel, Panel):
         flow.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
 
 
-class USERPREF_PT_edit_weight_paint(PreferencePanel, Panel):
+class USERPREF_PT_edit_weight_paint(EditingPanel, CenterAlignMixIn, Panel):
     bl_label = "Weight Paint"
     bl_options = {'DEFAULT_CLOSED'}
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'EDITING')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         view = prefs.view
 
@@ -488,16 +444,11 @@ class USERPREF_PT_edit_weight_paint(PreferencePanel, Panel):
         col.template_color_ramp(view, "weight_color_range", expand=True)
 
 
-class USERPREF_PT_edit_misc(PreferencePanel, Panel):
+class USERPREF_PT_edit_misc(EditingPanel, CenterAlignMixIn, Panel):
     bl_label = "Miscellaneous"
     bl_options = {'DEFAULT_CLOSED'}
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'EDITING')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         edit = prefs.edit
 
@@ -510,15 +461,16 @@ class USERPREF_PT_edit_misc(PreferencePanel, Panel):
 # -----------------------------------------------------------------------------
 # Animation Panels
 
-class USERPREF_PT_animation_timeline(PreferencePanel, Panel):
+class AnimationPanel:
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
+    bl_context = "animation"
+
+
+class USERPREF_PT_animation_timeline(AnimationPanel, CenterAlignMixIn, Panel):
     bl_label = "Timeline"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'ANIMATION')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         view = prefs.view
         edit = prefs.edit
@@ -539,15 +491,10 @@ class USERPREF_PT_animation_timeline(PreferencePanel, Panel):
             flow.prop(view, "view_frame_keyframes")
 
 
-class USERPREF_PT_animation_keyframes(PreferencePanel, Panel):
+class USERPREF_PT_animation_keyframes(AnimationPanel, CenterAlignMixIn, Panel):
     bl_label = "Keyframes"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'ANIMATION')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         edit = prefs.edit
 
@@ -557,11 +504,11 @@ class USERPREF_PT_animation_keyframes(PreferencePanel, Panel):
         flow.prop(edit, "use_keyframe_insert_needed", text="Only Insert Needed")
 
 
-class USERPREF_PT_animation_autokey(PreferencePanel, Panel):
+class USERPREF_PT_animation_autokey(AnimationPanel, CenterAlignMixIn, Panel):
     bl_label = "Auto-Keyframing"
     bl_parent_id = "USERPREF_PT_animation_keyframes"
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         edit = prefs.edit
 
@@ -572,15 +519,10 @@ class USERPREF_PT_animation_autokey(PreferencePanel, Panel):
         flow.prop(edit, "use_auto_keying", text="Enable in New Scenes")
 
 
-class USERPREF_PT_animation_fcurves(PreferencePanel, Panel):
+class USERPREF_PT_animation_fcurves(AnimationPanel, CenterAlignMixIn, Panel):
     bl_label = "F-Curves"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'ANIMATION')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         edit = prefs.edit
 
@@ -596,15 +538,16 @@ class USERPREF_PT_animation_fcurves(PreferencePanel, Panel):
 # -----------------------------------------------------------------------------
 # System Panels
 
-class USERPREF_PT_system_sound(PreferencePanel, Panel):
+class SystemPanel:
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
+    bl_context = "system"
+
+
+class USERPREF_PT_system_sound(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Sound"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'SYSTEM')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         system = prefs.system
 
@@ -618,15 +561,10 @@ class USERPREF_PT_system_sound(PreferencePanel, Panel):
         sub.prop(system, "audio_sample_format", text="Sample Format")
 
 
-class USERPREF_PT_system_cycles_devices(PreferencePanel, Panel):
+class USERPREF_PT_system_cycles_devices(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Cycles Render Devices"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'SYSTEM')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
 
         col = layout.column()
@@ -645,15 +583,10 @@ class USERPREF_PT_system_cycles_devices(PreferencePanel, Panel):
         #     col.row().prop(system, "opensubdiv_compute_type", text="")
 
 
-class USERPREF_PT_system_memory(PreferencePanel, Panel):
+class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Memory & Limits"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'SYSTEM')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         system = prefs.system
         edit = prefs.edit
@@ -689,15 +622,16 @@ class USERPREF_PT_system_memory(PreferencePanel, Panel):
 # -----------------------------------------------------------------------------
 # Viewport Panels
 
-class USERPREF_PT_viewport_display(PreferencePanel, Panel):
+class ViewportPanel:
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
+    bl_context = "viewport"
+
+
+class USERPREF_PT_viewport_display(ViewportPanel, CenterAlignMixIn, Panel):
     bl_label = "Display"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'VIEWPORT')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         view = prefs.view
 
@@ -725,15 +659,10 @@ class USERPREF_PT_viewport_display(PreferencePanel, Panel):
             col.prop(view, "mini_axis_brightness", text="Brightness")
 
 
-class USERPREF_PT_viewport_quality(PreferencePanel, Panel):
+class USERPREF_PT_viewport_quality(ViewportPanel, CenterAlignMixIn, Panel):
     bl_label = "Quality"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'VIEWPORT')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         system = prefs.system
 
@@ -745,15 +674,10 @@ class USERPREF_PT_viewport_quality(PreferencePanel, Panel):
         flow.prop(system, "use_edit_mode_smooth_wire")
 
 
-class USERPREF_PT_viewport_textures(PreferencePanel, Panel):
+class USERPREF_PT_viewport_textures(ViewportPanel, CenterAlignMixIn, Panel):
     bl_label = "Textures"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'VIEWPORT')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         system = prefs.system
 
@@ -765,16 +689,11 @@ class USERPREF_PT_viewport_textures(PreferencePanel, Panel):
         flow.prop(system, "image_draw_method", text="Image Display Method")
 
 
-class USERPREF_PT_viewport_selection(PreferencePanel, Panel):
+class USERPREF_PT_viewport_selection(ViewportPanel, CenterAlignMixIn, Panel):
     bl_label = "Selection"
     bl_options = {'DEFAULT_CLOSED'}
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'VIEWPORT')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         system = prefs.system
 
@@ -785,6 +704,12 @@ class USERPREF_PT_viewport_selection(PreferencePanel, Panel):
 
 # -----------------------------------------------------------------------------
 # Theme Panels
+
+class ThemePanel:
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
+    bl_context = "themes"
+
 
 class USERPREF_MT_interface_theme_presets(Menu):
     bl_label = "Presets"
@@ -802,16 +727,9 @@ class USERPREF_MT_interface_theme_presets(Menu):
         bpy.ops.preferences.reset_default_theme()
 
 
-class USERPREF_PT_theme(Panel):
-    bl_space_type = 'PREFERENCES'
+class USERPREF_PT_theme(ThemePanel, Panel):
     bl_label = "Themes"
-    bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'THEMES')
 
     def draw(self, _context):
         layout = self.layout
@@ -828,16 +746,9 @@ class USERPREF_PT_theme(Panel):
         row.operator("preferences.reset_default_theme", text="Reset", icon='LOOP_BACK')
 
 
-class USERPREF_PT_theme_user_interface(PreferencePanel, Panel):
-    bl_space_type = 'PREFERENCES'
-    bl_region_type = 'WINDOW'
+class USERPREF_PT_theme_user_interface(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "User Interface"
     bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'THEMES')
 
     def draw_header(self, _context):
         layout = self.layout
@@ -849,9 +760,8 @@ class USERPREF_PT_theme_user_interface(PreferencePanel, Panel):
 
 
 # Base class for dynamically defined widget color panels.
+# This is not registered.
 class PreferenceThemeWidgetColorPanel:
-    bl_space_type = 'PREFERENCES'
-    bl_region_type = 'WINDOW'
     bl_parent_id = "USERPREF_PT_theme_user_interface"
 
     def draw(self, context):
@@ -878,15 +788,10 @@ class PreferenceThemeWidgetColorPanel:
 
         col.prop(widget_style, "roundness")
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'THEMES')
 
-
+# Base class for dynamically defined widget color panels.
+# This is not registered.
 class PreferenceThemeWidgetShadePanel:
-    bl_space_type = 'PREFERENCES'
-    bl_region_type = 'WINDOW'
 
     def draw(self, context):
         theme = context.preferences.themes[0]
@@ -909,12 +814,12 @@ class PreferenceThemeWidgetShadePanel:
         self.layout.prop(widget_style, "show_shaded", text="")
 
 
-class USERPREF_PT_theme_interface_state(PreferencePanel, Panel):
+class USERPREF_PT_theme_interface_state(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "State"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_theme_user_interface"
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
         ui_state = theme.user_interface.wcol_state
 
@@ -944,12 +849,12 @@ class USERPREF_PT_theme_interface_state(PreferencePanel, Panel):
         col.prop(ui_state, "blend")
 
 
-class USERPREF_PT_theme_interface_styles(PreferencePanel, Panel):
+class USERPREF_PT_theme_interface_styles(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Styles"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_theme_user_interface"
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
         ui = theme.user_interface
 
@@ -964,12 +869,12 @@ class USERPREF_PT_theme_interface_styles(PreferencePanel, Panel):
         flow.prop(ui, "widget_emboss")
 
 
-class USERPREF_PT_theme_interface_gizmos(PreferencePanel, Panel):
+class USERPREF_PT_theme_interface_gizmos(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Axis & Gizmo Colors"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_theme_user_interface"
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
         ui = theme.user_interface
 
@@ -989,12 +894,12 @@ class USERPREF_PT_theme_interface_gizmos(PreferencePanel, Panel):
         col.prop(ui, "gizmo_b")
 
 
-class USERPREF_PT_theme_interface_icons(PreferencePanel, Panel):
+class USERPREF_PT_theme_interface_icons(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Icon Colors"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_theme_user_interface"
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
         ui = theme.user_interface
 
@@ -1010,14 +915,9 @@ class USERPREF_PT_theme_interface_icons(PreferencePanel, Panel):
         flow.prop(ui, "icon_border_intensity")
 
 
-class USERPREF_PT_theme_text_style(PreferencePanel, Panel):
+class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Text Style"
     bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'THEMES')
 
     @staticmethod
     def _ui_font_style(layout, font_style):
@@ -1042,7 +942,7 @@ class USERPREF_PT_theme_text_style(PreferencePanel, Panel):
 
         layout.label(icon='FONTPREVIEW')
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         style = context.preferences.ui_styles[0]
 
         layout.label(text="Panel Title")
@@ -1059,21 +959,16 @@ class USERPREF_PT_theme_text_style(PreferencePanel, Panel):
         self._ui_font_style(layout, style.widget_label)
 
 
-class USERPREF_PT_theme_bone_color_sets(PreferencePanel, Panel):
+class USERPREF_PT_theme_bone_color_sets(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Bone Color Sets"
     bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'THEMES')
 
     def draw_header(self, _context):
         layout = self.layout
 
         layout.label(icon='COLOR')
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
 
         layout.use_property_split = True
@@ -1090,9 +985,8 @@ class USERPREF_PT_theme_bone_color_sets(PreferencePanel, Panel):
 
 
 # Base class for dynamically defined theme-space panels.
+# This is not registered.
 class PreferenceThemeSpacePanel:
-    bl_space_type = 'PREFERENCES'
-    bl_region_type = 'WINDOW'
 
     # not essential, hard-coded UI delimiters for the theme layout
     ui_delimiters = {
@@ -1164,11 +1058,6 @@ class PreferenceThemeSpacePanel:
             data = getattr(data, datapath_item)
         PreferenceThemeSpacePanel._theme_generic(layout, data, self.theme_area)
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'THEMES')
-
 
 class ThemeGenericClassGenerator():
 
@@ -1199,7 +1088,7 @@ class ThemeGenericClassGenerator():
 
         for (name, wcol) in wcols:
             panel_id = "USERPREF_PT_theme_interface_" + wcol
-            yield type(panel_id, (PreferenceThemeWidgetColorPanel, Panel), {
+            yield type(panel_id, (PreferenceThemeWidgetColorPanel, ThemePanel, Panel), {
                 "bl_label": name,
                 "bl_options": {'DEFAULT_CLOSED'},
                 "draw": PreferenceThemeWidgetColorPanel.draw,
@@ -1207,7 +1096,7 @@ class ThemeGenericClassGenerator():
             })
 
             panel_shade_id = "USERPREF_PT_theme_interface_shade_" + wcol
-            yield type(panel_shade_id, (PreferenceThemeWidgetShadePanel, Panel), {
+            yield type(panel_shade_id, (PreferenceThemeWidgetShadePanel, ThemePanel, Panel), {
                 "bl_label": "Shaded",
                 "bl_options": {'DEFAULT_CLOSED'},
                 "bl_parent_id": panel_id,
@@ -1231,7 +1120,7 @@ class ThemeGenericClassGenerator():
                     for prop in props_ls:
                         new_datapath = datapath + "." + prop.identifier if datapath else prop.identifier
                         panel_id = parent_id + "_" + prop.identifier
-                        yield type(panel_id, (PreferenceThemeSpacePanel, Panel), {
+                        yield type(panel_id, (PreferenceThemeSpacePanel, ThemePanel, Panel), {
                             "bl_label": rna_type.properties[prop.identifier].name,
                             "bl_parent_id": parent_id,
                             "bl_options": {'DEFAULT_CLOSED'},
@@ -1259,7 +1148,7 @@ class ThemeGenericClassGenerator():
 
             panel_id = "USERPREF_PT_theme_" + theme_area.identifier.lower()
             # Generate panel-class from theme_area
-            yield type(panel_id, (PreferenceThemeSpacePanel, Panel), {
+            yield type(panel_id, (PreferenceThemeSpacePanel, ThemePanel, Panel), {
                 "bl_label": theme_area.name,
                 "bl_options": {'DEFAULT_CLOSED'},
                 "draw_header": PreferenceThemeSpacePanel.draw_header,
@@ -1281,25 +1170,17 @@ class ThemeGenericClassGenerator():
 class FilePathsPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'FILE_PATHS')
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        self.draw_props(context, layout)
+    bl_context = "file_paths"
 
 
 class USERPREF_PT_file_paths_data(FilePathsPanel, Panel):
     bl_label = "Data"
 
-    def draw_props(self, context, _layout):
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         paths = context.preferences.filepaths
 
         col = self.layout.column()
@@ -1313,7 +1194,11 @@ class USERPREF_PT_file_paths_data(FilePathsPanel, Panel):
 class USERPREF_PT_file_paths_render(FilePathsPanel, Panel):
     bl_label = "Render"
 
-    def draw_props(self, context, _layout):
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         paths = context.preferences.filepaths
 
         col = self.layout.column()
@@ -1324,7 +1209,11 @@ class USERPREF_PT_file_paths_render(FilePathsPanel, Panel):
 class USERPREF_PT_file_paths_applications(FilePathsPanel, Panel):
     bl_label = "Applications"
 
-    def draw_props(self, context, layout):
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         paths = context.preferences.filepaths
 
         col = layout.column()
@@ -1340,14 +1229,18 @@ class USERPREF_PT_file_paths_development(FilePathsPanel, Panel):
     @classmethod
     def poll(cls, context):
         prefs = context.preferences
-        return (prefs.active_section == 'FILE_PATHS') and prefs.view.show_developer_ui
+        return prefs.view.show_developer_ui
 
-    def draw_props(self, context, layout):
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         paths = context.preferences.filepaths
         layout.prop(paths, "i18n_branches_directory", text="I18n Branches")
 
 
-class USERPREF_PT_saveload_autorun(PreferencePanel, Panel):
+class USERPREF_PT_saveload_autorun(FilePathsPanel, Panel):
     bl_label = "Auto Run Python Scripts"
     bl_parent_id = "USERPREF_PT_saveload_blend"
 
@@ -1381,15 +1274,16 @@ class USERPREF_PT_saveload_autorun(PreferencePanel, Panel):
 # -----------------------------------------------------------------------------
 # Save/Load Panels
 
-class USERPREF_PT_saveload_blend(PreferencePanel, Panel):
+class SaveLoadPanel:
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
+    bl_context = "save_load"
+
+
+class USERPREF_PT_saveload_blend(SaveLoadPanel, CenterAlignMixIn, Panel):
     bl_label = "Blend Files"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'SAVE_LOAD')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         paths = prefs.filepaths
         view = prefs.view
@@ -1411,11 +1305,11 @@ class USERPREF_PT_saveload_blend(PreferencePanel, Panel):
         flow.prop(paths, "recent_files")
 
 
-class USERPREF_PT_saveload_blend_autosave(PreferencePanel, Panel):
+class USERPREF_PT_saveload_blend_autosave(SaveLoadPanel, CenterAlignMixIn, Panel):
     bl_label = "Auto Save"
     bl_parent_id = "USERPREF_PT_saveload_blend"
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         paths = prefs.filepaths
 
@@ -1427,15 +1321,10 @@ class USERPREF_PT_saveload_blend_autosave(PreferencePanel, Panel):
         sub.prop(paths, "auto_save_time", text="Timer (mins)")
 
 
-class USERPREF_PT_saveload_file_browser(PreferencePanel, Panel):
+class USERPREF_PT_saveload_file_browser(SaveLoadPanel, CenterAlignMixIn, Panel):
     bl_label = "File Browser"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'SAVE_LOAD')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         paths = prefs.filepaths
 
@@ -1450,15 +1339,16 @@ class USERPREF_PT_saveload_file_browser(PreferencePanel, Panel):
 # -----------------------------------------------------------------------------
 # Input Panels
 
-class USERPREF_PT_input_keyboard(PreferencePanel, Panel):
+class InputPanel:
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
+    bl_context = "input"
+
+
+class USERPREF_PT_input_keyboard(InputPanel, CenterAlignMixIn, Panel):
     bl_label = "Keyboard"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'INPUT')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         inputs = prefs.inputs
 
@@ -1466,15 +1356,10 @@ class USERPREF_PT_input_keyboard(PreferencePanel, Panel):
         layout.prop(inputs, "use_numeric_input_advanced")
 
 
-class USERPREF_PT_input_mouse(PreferencePanel, Panel):
+class USERPREF_PT_input_mouse(InputPanel, CenterAlignMixIn, Panel):
     bl_label = "Mouse"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'INPUT')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         import sys
         prefs = context.preferences
         inputs = prefs.inputs
@@ -1495,15 +1380,10 @@ class USERPREF_PT_input_mouse(PreferencePanel, Panel):
         flow.prop(inputs, "move_threshold")
 
 
-class USERPREF_PT_input_tablet(PreferencePanel, Panel):
+class USERPREF_PT_input_tablet(InputPanel, CenterAlignMixIn, Panel):
     bl_label = "Tablet"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return prefs.active_section == 'INPUT'
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         inputs = prefs.inputs
 
@@ -1518,7 +1398,7 @@ class USERPREF_PT_input_tablet(PreferencePanel, Panel):
         flow.prop(inputs, "pressure_softness")
 
 
-class USERPREF_PT_input_ndof(PreferencePanel, Panel):
+class USERPREF_PT_input_ndof(InputPanel, CenterAlignMixIn, Panel):
     bl_label = "NDOF"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1526,9 +1406,9 @@ class USERPREF_PT_input_ndof(PreferencePanel, Panel):
     def poll(cls, context):
         prefs = context.preferences
         inputs = prefs.inputs
-        return prefs.active_section == 'INPUT' and inputs.use_ndof
+        return inputs.use_ndof
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         inputs = prefs.inputs
 
@@ -1547,15 +1427,16 @@ class USERPREF_PT_input_ndof(PreferencePanel, Panel):
 # -----------------------------------------------------------------------------
 # Navigation Panels
 
-class USERPREF_PT_navigation_orbit(PreferencePanel, Panel):
+class NavigationPanel:
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
+    bl_context = "navigation"
+
+
+class USERPREF_PT_navigation_orbit(NavigationPanel, CenterAlignMixIn, Panel):
     bl_label = "Orbit & Pan"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'NAVIGATION')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         import sys
         prefs = context.preferences
         inputs = prefs.inputs
@@ -1581,15 +1462,10 @@ class USERPREF_PT_navigation_orbit(PreferencePanel, Panel):
         flow.prop(view, "rotation_angle")
 
 
-class USERPREF_PT_navigation_zoom(PreferencePanel, Panel):
+class USERPREF_PT_navigation_zoom(NavigationPanel, CenterAlignMixIn, Panel):
     bl_label = "Zoom"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'NAVIGATION')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         inputs = prefs.inputs
 
@@ -1605,15 +1481,10 @@ class USERPREF_PT_navigation_zoom(PreferencePanel, Panel):
         flow.prop(inputs, "use_zoom_to_mouse")
 
 
-class USERPREF_PT_navigation_fly_walk(PreferencePanel, Panel):
+class USERPREF_PT_navigation_fly_walk(NavigationPanel, CenterAlignMixIn, Panel):
     bl_label = "Fly & Walk"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'NAVIGATION')
-
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         inputs = prefs.inputs
 
@@ -1623,7 +1494,7 @@ class USERPREF_PT_navigation_fly_walk(PreferencePanel, Panel):
         flow.prop(inputs, "use_camera_lock_parent")
 
 
-class USERPREF_PT_navigation_fly_walk_navigation(PreferencePanel, Panel):
+class USERPREF_PT_navigation_fly_walk_navigation(NavigationPanel, CenterAlignMixIn, Panel):
     bl_label = "Walk"
     bl_parent_id = "USERPREF_PT_navigation_fly_walk"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1633,7 +1504,7 @@ class USERPREF_PT_navigation_fly_walk_navigation(PreferencePanel, Panel):
         prefs = context.preferences
         return prefs.inputs.navigation_mode == 'WALK'
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         inputs = prefs.inputs
         walk = inputs.walk_navigation
@@ -1649,7 +1520,7 @@ class USERPREF_PT_navigation_fly_walk_navigation(PreferencePanel, Panel):
         sub.prop(walk, "walk_speed_factor")
 
 
-class USERPREF_PT_navigation_fly_walk_gravity(PreferencePanel, Panel):
+class USERPREF_PT_navigation_fly_walk_gravity(NavigationPanel, CenterAlignMixIn, Panel):
     bl_label = "Gravity"
     bl_parent_id = "USERPREF_PT_navigation_fly_walk"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1666,7 +1537,7 @@ class USERPREF_PT_navigation_fly_walk_gravity(PreferencePanel, Panel):
 
         self.layout.prop(walk, "use_gravity", text="")
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         inputs = prefs.inputs
         walk = inputs.walk_navigation
@@ -1753,6 +1624,12 @@ class USERPREF_PT_ndof_settings(Panel):
 # -----------------------------------------------------------------------------
 # Key-Map Editor Panels
 
+class KeymapPanel:
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
+    bl_context = "keymap"
+
+
 class USERPREF_MT_keyconfigs(Menu):
     bl_label = "KeyPresets"
     preset_subdir = "keyconfig"
@@ -1762,16 +1639,9 @@ class USERPREF_MT_keyconfigs(Menu):
         Menu.draw_preset(self, context)
 
 
-class USERPREF_PT_keymap(Panel):
-    bl_space_type = 'PREFERENCES'
+class USERPREF_PT_keymap(KeymapPanel, Panel):
     bl_label = "Keymap"
-    bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'KEYMAP')
 
     def draw(self, context):
         from rna_keymap_ui import draw_keymaps
@@ -1791,10 +1661,14 @@ class USERPREF_PT_keymap(Panel):
 # -----------------------------------------------------------------------------
 # Add-On Panels
 
-class USERPREF_PT_addons(Panel):
+class AddOnPanel:
     bl_space_type = 'PREFERENCES'
-    bl_label = "Add-ons"
     bl_region_type = 'WINDOW'
+    bl_context = "addons"
+
+
+class USERPREF_PT_addons(AddOnPanel, Panel):
+    bl_label = "Add-ons"
     bl_options = {'HIDE_HEADER'}
 
     _support_icon_mapping = {
@@ -1802,11 +1676,6 @@ class USERPREF_PT_addons(Panel):
         'COMMUNITY': 'COMMUNITY',
         'TESTING': 'EXPERIMENTAL',
     }
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'ADDONS')
 
     @staticmethod
     def is_user_addon(mod, user_addon_paths):
@@ -2081,14 +1950,13 @@ class USERPREF_PT_addons(Panel):
 # -----------------------------------------------------------------------------
 # Studio Light Panels
 
-class StudioLightPanelMixin:
+class StudioLightPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
+    bl_context = "lights"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'LIGHTS')
+
+class StudioLightPanelMixin:
 
     def _get_lights(self, prefs):
         return [light for light in prefs.studio_lights if light.is_user_defined and light.type == self.sl_type]
@@ -2124,7 +1992,7 @@ class StudioLightPanelMixin:
         box.label(text=studio_light.name)
 
 
-class USERPREF_PT_studiolight_matcaps(Panel, StudioLightPanelMixin):
+class USERPREF_PT_studiolight_matcaps(StudioLightPanel, StudioLightPanelMixin, Panel):
     bl_label = "MatCaps"
     sl_type = 'MATCAP'
 
@@ -2134,7 +2002,7 @@ class USERPREF_PT_studiolight_matcaps(Panel, StudioLightPanelMixin):
         layout.separator()
 
 
-class USERPREF_PT_studiolight_world(Panel, StudioLightPanelMixin):
+class USERPREF_PT_studiolight_world(StudioLightPanel, StudioLightPanelMixin, Panel):
     bl_label = "LookDev HDRIs"
     sl_type = 'WORLD'
 
@@ -2144,7 +2012,7 @@ class USERPREF_PT_studiolight_world(Panel, StudioLightPanelMixin):
         layout.separator()
 
 
-class USERPREF_PT_studiolight_lights(Panel, StudioLightPanelMixin):
+class USERPREF_PT_studiolight_lights(StudioLightPanel, StudioLightPanelMixin, Panel):
     bl_label = "Studio Lights"
     sl_type = 'STUDIO'
 
@@ -2156,14 +2024,13 @@ class USERPREF_PT_studiolight_lights(Panel, StudioLightPanelMixin):
         layout.separator()
 
 
-class USERPREF_PT_studiolight_light_editor(Panel):
+class USERPREF_PT_studiolight_light_editor(StudioLightPanel, Panel):
     bl_label = "Editor"
     bl_parent_id = "USERPREF_PT_studiolight_lights"
-    bl_space_type = 'PREFERENCES'
-    bl_region_type = 'WINDOW'
     bl_options = {'DEFAULT_CLOSED'}
 
-    def opengl_light_buttons(self, layout, light):
+    @staticmethod
+    def opengl_light_buttons(layout, light):
 
         col = layout.column()
         col.active = light.use
@@ -2216,29 +2083,21 @@ class USERPREF_PT_studiolight_light_editor(Panel):
 class ExperimentalPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
+    bl_context = "experimental"
 
     url_prefix = "https://developer.blender.org/"
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'EXPERIMENTAL')
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        self.draw_props(context, layout)
 
 
 class USERPREF_PT_experimental_ui(ExperimentalPanel, Panel):
     bl_label = "User Interface"
 
-    def draw_props(self, context, layout):
+    def draw(self, context):
         prefs = context.preferences
         experimental = prefs.experimental
+
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         task = "T66304"
         split = layout.split(factor=0.66)
@@ -2255,7 +2114,7 @@ class USERPREF_PT_experimental_ui(ExperimentalPanel, Panel):
 class USERPREF_PT_experimental_virtual_reality(ExperimentalPanel, Panel):
     bl_label = "Virtual Reality"
 
-    def draw_props(self, context, layout):
+    def draw_centered(self, context, layout):
         prefs = context.preferences
         experimental = prefs.experimental
 
@@ -2280,17 +2139,20 @@ class USERPREF_PT_experimental_usd(ExperimentalPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        if not super().poll(context):
-            return False
         # Only show the panel if Blender was actually built with USD support.
         return getattr(bpy.app.build_options, "usd", False)
 
-    def draw_props(self, context, layout):
+    def draw(self, context):
         prefs = context.preferences
+        experimental = prefs.experimental
+
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         split = layout.split(factor=0.66)
         col = split.split()
-        col.prop(prefs.experimental, "use_usd_exporter", text="USD Exporter")
+        col.prop(experimental, "use_usd_exporter", text="USD Exporter")
         col = split.split()
         url = "https://devtalk.blender.org/t/universal-scene-description-usd-exporter-feedback/10920"
         col.operator("wm.url_open", text='Give Feedback', icon='URL').url = url

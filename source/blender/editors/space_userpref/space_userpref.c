@@ -35,6 +35,9 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 
+#include "RNA_access.h"
+#include "RNA_enum_types.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -119,9 +122,27 @@ static void userpref_main_region_init(wmWindowManager *wm, ARegion *ar)
   ED_region_panels_init(wm, ar);
 }
 
-static void userpref_main_region_draw(const bContext *C, ARegion *ar)
+static void userpref_main_region_layout(const bContext *C, ARegion *ar)
 {
-  ED_region_panels_ex(C, ar, NULL, U.space_data.section_active, true);
+  char id_lower[64];
+  const char *contexts[2] = {id_lower, NULL};
+
+  /* Avoid duplicating identifiers, use existing RNA enum. */
+  {
+    const EnumPropertyItem *items = rna_enum_preference_section_items;
+    int i = RNA_enum_from_value(items, U.space_data.section_active);
+    /* File is from the future. */
+    if (i == -1) {
+      i = 0;
+    }
+    const char *id = items[i].identifier;
+    BLI_assert(strlen(id) < sizeof(id_lower));
+    STRNCPY(id_lower, id);
+    BLI_str_tolower_ascii(id_lower, strlen(id_lower));
+  }
+
+  ED_region_panels_layout_ex(
+      C, ar, &ar->type->paneltypes, contexts, U.space_data.section_active, true, NULL);
 }
 
 static void userpref_operatortypes(void)
@@ -225,7 +246,8 @@ void ED_spacetype_userpref(void)
   art = MEM_callocN(sizeof(ARegionType), "spacetype userpref region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = userpref_main_region_init;
-  art->draw = userpref_main_region_draw;
+  art->layout = userpref_main_region_layout;
+  art->draw = ED_region_panels_draw;
   art->listener = userpref_main_region_listener;
   art->keymapflag = ED_KEYMAP_UI;
 
