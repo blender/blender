@@ -407,7 +407,7 @@ static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
 
   for (wmGizmoGroup *gzgroup = gzmap->groups.first; gzgroup; gzgroup = gzgroup->next) {
     /* check group visibility - drawstep first to avoid unnecessary call of group poll callback */
-    if ((gzgroup->hide.any != 0) || !wm_gizmogroup_is_visible_in_drawstep(gzgroup, drawstep) ||
+    if (!wm_gizmogroup_is_visible_in_drawstep(gzgroup, drawstep) ||
         !WM_gizmo_group_type_poll(C, gzgroup->type)) {
       continue;
     }
@@ -421,6 +421,11 @@ static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
     }
     /* Calls `setup`, `setup_keymap` and `refresh` if they're defined. */
     WM_gizmogroup_ensure_init(C, gzgroup);
+
+    /* Check after ensure which can run refresh and update this value. */
+    if (gzgroup->hide.any != 0) {
+      continue;
+    }
 
     /* prepare drawing */
     if (gzgroup->type->draw_prepare) {

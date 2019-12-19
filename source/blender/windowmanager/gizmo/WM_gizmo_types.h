@@ -461,12 +461,12 @@ typedef struct wmGizmoGroup {
   struct ReportList *reports;
 
   /** Has the same result as hiding all gizmos individually. */
-  struct {
-    /* Reasons for hiding. */
-    union {
+  union {
+    /** Reasons for hiding. */
+    struct {
       uint delay_refresh_for_tweak : 1;
     };
-    /* All, when we only want to check. */
+    /** All, when we only want to check if any are hidden. */
     uint any;
   } hide;
 
