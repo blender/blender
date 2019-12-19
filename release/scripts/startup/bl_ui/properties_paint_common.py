@@ -29,8 +29,9 @@ class UnifiedPaintPanel:
     def get_brush_mode(context):
         """ Get the correct mode for this context. For any context where this returns None,
             no brush options should be displayed."""
+        mode = context.mode
 
-        if context.mode == 'PARTICLE':
+        if mode == 'PARTICLE':
             # Particle brush settings currently completely do their own thing.
             return None
 
@@ -54,14 +55,13 @@ class UnifiedPaintPanel:
                 if space_data.show_uvedit:
                     return 'UV_SCULPT'
                 return 'PAINT_2D'
-
-            if space_type in {'VIEW_3D', 'PROPERTIES'}:
-                if context.mode == 'PAINT_TEXTURE':
-                    if tool_settings.image_paint and tool_settings.image_paint.detect_data():
-                        return context.mode
+            elif space_type in {'VIEW_3D', 'PROPERTIES'}:
+                if mode == 'PAINT_TEXTURE':
+                    if tool_settings.image_paint:
+                        return mode
                     else:
                         return None
-                return context.mode
+                return mode
         return None
 
     @staticmethod
@@ -91,7 +91,7 @@ class UnifiedPaintPanel:
             return tool_settings.gpencil_paint
         elif mode in {'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}:
             return tool_settings.gpencil_sculpt
-        return False
+        return None
 
     @staticmethod
     def prop_unified(
@@ -160,10 +160,12 @@ class BrushSelectPanel(BrushPanel):
             row.column().template_ID(settings, "brush", new="brush.add")
         col = row.column()
         col.menu("VIEW3D_MT_brush_context_menu", icon='DOWNARROW_HLT', text="")
-        col.prop(brush, "use_custom_icon", toggle=True, icon='FILE_IMAGE', text="")
 
-        if brush.use_custom_icon:
-            layout.prop(brush, "icon_filepath", text="")
+        if brush is not None:
+            col.prop(brush, "use_custom_icon", toggle=True, icon='FILE_IMAGE', text="")
+
+            if brush.use_custom_icon:
+                layout.prop(brush, "icon_filepath", text="")
 
 
 class ColorPalettePanel(BrushPanel):
