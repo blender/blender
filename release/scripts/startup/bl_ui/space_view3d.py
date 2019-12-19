@@ -77,7 +77,7 @@ class VIEW3D_HT_tool_header(Header):
         # (obviously separated for from the users POV)
         draw_fn = getattr(_draw_tool_settings_context_mode, tool_mode, None)
         if draw_fn is not None:
-            draw_fn(context, layout, tool)
+            is_valid_context = draw_fn(context, layout, tool)
 
         def draw_3d_brush_settings(layout, tool_mode):
             layout.popover("VIEW3D_PT_tools_brush_settings_advanced", text="Brush")
@@ -91,16 +91,16 @@ class VIEW3D_HT_tool_header(Header):
 
         # Note: general mode options should be added to 'draw_mode_settings'.
         if tool_mode == 'SCULPT':
-            if (tool is not None) and tool.has_datablock:
+            if is_valid_context:
                 draw_3d_brush_settings(layout, tool_mode)
         elif tool_mode == 'PAINT_VERTEX':
-            if (tool is not None) and tool.has_datablock:
+            if is_valid_context:
                 draw_3d_brush_settings(layout, tool_mode)
         elif tool_mode == 'PAINT_WEIGHT':
-            if (tool is not None) and tool.has_datablock:
+            if is_valid_context:
                 draw_3d_brush_settings(layout, tool_mode)
         elif tool_mode == 'PAINT_TEXTURE':
-            if (tool is not None) and tool.has_datablock:
+            if is_valid_context:
                 draw_3d_brush_settings(layout, tool_mode)
         elif tool_mode == 'EDIT_ARMATURE':
             pass
@@ -116,7 +116,7 @@ class VIEW3D_HT_tool_header(Header):
             #     layout.popover_group(context=".paint_common", **popover_kw)
             pass
         elif tool_mode == 'PAINT_GPENCIL':
-            if (tool is not None) and tool.has_datablock:
+            if is_valid_context:
                 brush = context.tool_settings.gpencil_paint.brush
                 if brush.gpencil_tool != 'ERASE':
                     layout.popover("VIEW3D_PT_tools_grease_pencil_brush_advanced")
@@ -241,14 +241,14 @@ class _draw_tool_settings_context_mode:
     @staticmethod
     def SCULPT(context, layout, tool):
         if (tool is None) or (not tool.has_datablock):
-            return
+            return False
 
         paint = context.tool_settings.sculpt
         layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
 
         brush = paint.brush
         if brush is None:
-            return
+            return False
 
         tool_settings = context.tool_settings
         capabilities = brush.sculpt_capabilities
@@ -286,44 +286,50 @@ class _draw_tool_settings_context_mode:
         if not capabilities.has_direction:
             layout.row().prop(brush, "direction", expand=True, text="")
 
+        return True
+
     @staticmethod
     def PAINT_TEXTURE(context, layout, tool):
         if (tool is None) or (not tool.has_datablock):
-            return
+            return False
 
         paint = context.tool_settings.image_paint
         layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
 
         brush = paint.brush
         if brush is None:
-            return
+            return False
 
         brush_basic_texpaint_settings(layout, context, brush, compact=True)
+
+        return True
 
     @staticmethod
     def PAINT_VERTEX(context, layout, tool):
         if (tool is None) or (not tool.has_datablock):
-            return
+            return False
 
         paint = context.tool_settings.vertex_paint
         layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
 
         brush = paint.brush
         if brush is None:
-            return
+            return False
 
         brush_basic_texpaint_settings(layout, context, brush, compact=True)
+
+        return True
 
     @staticmethod
     def PAINT_WEIGHT(context, layout, tool):
         if (tool is None) or (not tool.has_datablock):
-            return
+            return False
 
         paint = context.tool_settings.weight_paint
         layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
         brush = paint.brush
         if brush is None:
-            return
+            return False
 
         # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
         capabilities = brush.weight_paint_capabilities
@@ -347,10 +353,12 @@ class _draw_tool_settings_context_mode:
             pressure_name="use_pressure_strength",
         )
 
+        return True
+
     @staticmethod
     def PAINT_GPENCIL(context, layout, tool):
         if tool is None:
-            return
+            return False
 
         # is_paint = True
         # FIXME: tools must use their own UI drawing!
@@ -367,14 +375,14 @@ class _draw_tool_settings_context_mode:
         elif tool.idname == "Cutter":
             row = layout.row(align=True)
             row.prop(context.tool_settings.gpencil_sculpt, "intersection_threshold")
-            return
+            return False
         elif not tool.has_datablock:
-            return
+            return False
 
         paint = context.tool_settings.gpencil_paint
         brush = paint.brush
         if brush is None:
-            return
+            return False
 
         gp_settings = brush.gpencil_settings
 
@@ -416,10 +424,12 @@ class _draw_tool_settings_context_mode:
         )
         brush_basic_gpencil_paint_settings(layout, context, brush, compact=True)
 
+        return True
+
     @staticmethod
     def SCULPT_GPENCIL(context, layout, tool):
         if (tool is None) or (not tool.has_datablock):
-            return
+            return False
         tool_settings = context.tool_settings
         settings = tool_settings.gpencil_sculpt
         brush = settings.brush
@@ -429,10 +439,12 @@ class _draw_tool_settings_context_mode:
         )
         brush_basic_gpencil_sculpt_settings(layout, context, brush, compact=True)
 
+        return True
+
     @staticmethod
     def WEIGHT_GPENCIL(context, layout, tool):
         if (tool is None) or (not tool.has_datablock):
-            return
+            return False
         tool_settings = context.tool_settings
         settings = tool_settings.gpencil_sculpt
         brush = settings.brush
@@ -442,38 +454,44 @@ class _draw_tool_settings_context_mode:
         )
         brush_basic_gpencil_weight_settings(layout, context, brush, compact=True)
 
+        return True
+
     @staticmethod
     def PARTICLE(context, layout, tool):
         if (tool is None) or (not tool.has_datablock):
-            return
+            return False
 
         # See: 'VIEW3D_PT_tools_brush', basically a duplicate
         settings = context.tool_settings.particle_edit
         brush = settings.brush
         tool = settings.tool
-        if tool != 'NONE':
-            layout.prop(brush, "size", slider=True)
-            if tool == 'ADD':
-                layout.prop(brush, "count")
+        if tool == 'NONE':
+            return False
 
-                layout.prop(settings, "use_default_interpolate")
-                layout.prop(brush, "steps", slider=True)
-                layout.prop(settings, "default_key_count", slider=True)
-            else:
-                layout.prop(brush, "strength", slider=True)
+        layout.prop(brush, "size", slider=True)
+        if tool == 'ADD':
+            layout.prop(brush, "count")
 
-                if tool == 'LENGTH':
-                    layout.row().prop(brush, "length_mode", expand=True)
-                elif tool == 'PUFF':
-                    layout.row().prop(brush, "puff_mode", expand=True)
-                    layout.prop(brush, "use_puff_volume")
-                elif tool == 'COMB':
-                    row = layout.row()
-                    row.active = settings.is_editable
-                    row.prop(settings, "use_emitter_deflect", text="Deflect Emitter")
-                    sub = row.row(align=True)
-                    sub.active = settings.use_emitter_deflect
-                    sub.prop(settings, "emitter_distance", text="Distance")
+            layout.prop(settings, "use_default_interpolate")
+            layout.prop(brush, "steps", slider=True)
+            layout.prop(settings, "default_key_count", slider=True)
+        else:
+            layout.prop(brush, "strength", slider=True)
+
+            if tool == 'LENGTH':
+                layout.row().prop(brush, "length_mode", expand=True)
+            elif tool == 'PUFF':
+                layout.row().prop(brush, "puff_mode", expand=True)
+                layout.prop(brush, "use_puff_volume")
+            elif tool == 'COMB':
+                row = layout.row()
+                row.active = settings.is_editable
+                row.prop(settings, "use_emitter_deflect", text="Deflect Emitter")
+                sub = row.row(align=True)
+                sub.active = settings.use_emitter_deflect
+                sub.prop(settings, "emitter_distance", text="Distance")
+
+        return True
 
 
 class VIEW3D_HT_header(Header):
