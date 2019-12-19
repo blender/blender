@@ -27,6 +27,9 @@ from bpy.app.translations import pgettext_iface as iface_
 from bpy.app.translations import contexts as i18n_contexts
 
 
+# -----------------------------------------------------------------------------
+# Main Header
+
 class USERPREF_HT_header(Header):
     bl_space_type = 'PREFERENCES'
 
@@ -59,6 +62,9 @@ class USERPREF_HT_header(Header):
         layout.separator_spacer()
         self.draw_buttons(layout, context)
 
+
+# -----------------------------------------------------------------------------
+# Main Navigation Bar
 
 class USERPREF_PT_navigation_bar(Panel):
     bl_label = "Preferences Navigation"
@@ -128,6 +134,9 @@ class USERPREF_PT_save_preferences(Panel):
         USERPREF_HT_header.draw_buttons(layout, context)
 
 
+# -----------------------------------------------------------------------------
+# Min-In Helpers
+
 # Panel mix-in.
 class PreferencePanel:
     """
@@ -159,6 +168,9 @@ class PreferencePanel:
         if width > (350 * ui_scale):  # No horizontal margin if region is rather small.
             row.label()  # Needed so col above is centered.
 
+
+# -----------------------------------------------------------------------------
+# Interface Panels
 
 class USERPREF_PT_interface_display(PreferencePanel, Panel):
     bl_label = "Display"
@@ -340,6 +352,9 @@ class USERPREF_PT_interface_menus_pie(PreferencePanel, Panel):
         flow.prop(view, "pie_menu_confirm")
 
 
+# -----------------------------------------------------------------------------
+# Editing Panels
+
 class USERPREF_PT_edit_objects(Panel):
     bl_label = "Objects"
     bl_space_type = 'PREFERENCES'
@@ -492,6 +507,9 @@ class USERPREF_PT_edit_misc(PreferencePanel, Panel):
         flow.prop(edit, "node_margin", text="Node Auto-offset Margin")
 
 
+# -----------------------------------------------------------------------------
+# Animation Panels
+
 class USERPREF_PT_animation_timeline(PreferencePanel, Panel):
     bl_label = "Timeline"
 
@@ -575,6 +593,9 @@ class USERPREF_PT_animation_fcurves(PreferencePanel, Panel):
         flow.prop(edit, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
+# -----------------------------------------------------------------------------
+# System Panels
+
 class USERPREF_PT_system_sound(PreferencePanel, Panel):
     bl_label = "Sound"
 
@@ -623,6 +644,50 @@ class USERPREF_PT_system_cycles_devices(PreferencePanel, Panel):
         #     col.label(text="OpenSubdiv compute:")
         #     col.row().prop(system, "opensubdiv_compute_type", text="")
 
+
+class USERPREF_PT_system_memory(PreferencePanel, Panel):
+    bl_label = "Memory & Limits"
+
+    @classmethod
+    def poll(cls, context):
+        prefs = context.preferences
+        return (prefs.active_section == 'SYSTEM')
+
+    def draw_props(self, context, layout):
+        prefs = context.preferences
+        system = prefs.system
+        edit = prefs.edit
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+
+        flow.prop(edit, "undo_steps", text="Undo Steps")
+        flow.prop(edit, "undo_memory_limit", text="Undo Memory Limit")
+        flow.prop(edit, "use_global_undo")
+
+        layout.separator()
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+
+        flow.prop(system, "memory_cache_limit", text="Sequencer Cache Limit")
+        flow.prop(system, "scrollback", text="Console Scrollback Lines")
+
+        layout.separator()
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+
+        flow.prop(system, "texture_time_out", text="Texture Time Out")
+        flow.prop(system, "texture_collection_rate", text="Garbage Collection Rate")
+
+        layout.separator()
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+
+        flow.prop(system, "vbo_time_out", text="Vbo Time Out")
+        flow.prop(system, "vbo_collection_rate", text="Garbage Collection Rate")
+
+
+# -----------------------------------------------------------------------------
+# Viewport Panels
 
 class USERPREF_PT_viewport_display(PreferencePanel, Panel):
     bl_label = "Display"
@@ -718,46 +783,8 @@ class USERPREF_PT_viewport_selection(PreferencePanel, Panel):
         flow.prop(system, "use_select_pick_depth")
 
 
-class USERPREF_PT_system_memory(PreferencePanel, Panel):
-    bl_label = "Memory & Limits"
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'SYSTEM')
-
-    def draw_props(self, context, layout):
-        prefs = context.preferences
-        system = prefs.system
-        edit = prefs.edit
-
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
-
-        flow.prop(edit, "undo_steps", text="Undo Steps")
-        flow.prop(edit, "undo_memory_limit", text="Undo Memory Limit")
-        flow.prop(edit, "use_global_undo")
-
-        layout.separator()
-
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
-
-        flow.prop(system, "memory_cache_limit", text="Sequencer Cache Limit")
-        flow.prop(system, "scrollback", text="Console Scrollback Lines")
-
-        layout.separator()
-
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
-
-        flow.prop(system, "texture_time_out", text="Texture Time Out")
-        flow.prop(system, "texture_collection_rate", text="Garbage Collection Rate")
-
-        layout.separator()
-
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
-
-        flow.prop(system, "vbo_time_out", text="Vbo Time Out")
-        flow.prop(system, "vbo_collection_rate", text="Garbage Collection Rate")
-
+# -----------------------------------------------------------------------------
+# Theme Panels
 
 class USERPREF_MT_interface_theme_presets(Menu):
     bl_label = "Presets"
@@ -1247,6 +1274,9 @@ class ThemeGenericClassGenerator():
                 theme_area, theme_area.identifier.lower())
 
 
+# -----------------------------------------------------------------------------
+# File Paths Panels
+
 # Panel mix-in.
 class FilePathsPanel:
     bl_space_type = 'PREFERENCES'
@@ -1348,6 +1378,9 @@ class USERPREF_PT_saveload_autorun(PreferencePanel, Panel):
             row.operator("wm.userpref_autoexec_path_remove", text="", icon='X', emboss=False).index = i
 
 
+# -----------------------------------------------------------------------------
+# Save/Load Panels
+
 class USERPREF_PT_saveload_blend(PreferencePanel, Panel):
     bl_label = "Blend Files"
 
@@ -1414,75 +1447,8 @@ class USERPREF_PT_saveload_file_browser(PreferencePanel, Panel):
         flow.prop(paths, "hide_system_bookmarks")
 
 
-class USERPREF_PT_ndof_settings(Panel):
-    bl_label = "3D Mouse Settings"
-    bl_space_type = 'TOPBAR'  # dummy.
-    bl_region_type = 'HEADER'
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
-
-        input_prefs = context.preferences.inputs
-
-        is_view3d = context.space_data.type == 'VIEW_3D'
-
-        col = layout.column(align=True)
-        col.prop(input_prefs, "ndof_sensitivity")
-        col.prop(input_prefs, "ndof_orbit_sensitivity")
-        col.prop(input_prefs, "ndof_deadzone")
-
-        if is_view3d:
-            layout.separator()
-            layout.prop(input_prefs, "ndof_show_guide")
-
-            layout.separator()
-            layout.label(text="Orbit Style")
-            layout.row().prop(input_prefs, "ndof_view_navigate_method", text="Navigate")
-            layout.row().prop(input_prefs, "ndof_view_rotate_method", text="Orbit")
-            layout.separator()
-
-            layout.label(text="Orbit Options")
-            split = layout.split(factor=0.6)
-            row = split.row()
-            row.alignment = 'RIGHT'
-            row.label(text="Invert Axis")
-            row = split.row(align=True)
-            for text, attr in (
-                    ("X", "ndof_rotx_invert_axis"),
-                    ("Y", "ndof_roty_invert_axis"),
-                    ("Z", "ndof_rotz_invert_axis"),
-            ):
-                row.prop(input_prefs, attr, text=text, toggle=True)
-
-        # view2d use pan/zoom
-        layout.separator()
-        layout.label(text="Pan Options")
-
-        split = layout.split(factor=0.6)
-        row = split.row()
-        row.alignment = 'RIGHT'
-        row.label(text="Invert Axis")
-        row = split.row(align=True)
-        for text, attr in (
-                ("X", "ndof_panx_invert_axis"),
-                ("Y", "ndof_pany_invert_axis"),
-                ("Z", "ndof_panz_invert_axis"),
-        ):
-            row.prop(input_prefs, attr, text=text, toggle=True)
-
-        layout.prop(input_prefs, "ndof_pan_yz_swap_axis")
-
-        layout.label(text="Zoom Options")
-        layout.prop(input_prefs, "ndof_zoom_invert")
-
-        if is_view3d:
-            layout.separator()
-            layout.label(text="Fly/Walk Options")
-            layout.prop(input_prefs, "ndof_fly_helicopter")
-            layout.prop(input_prefs, "ndof_lock_horizon")
-
+# -----------------------------------------------------------------------------
+# Input Panels
 
 class USERPREF_PT_input_keyboard(PreferencePanel, Panel):
     bl_label = "Keyboard"
@@ -1528,6 +1494,58 @@ class USERPREF_PT_input_mouse(PreferencePanel, Panel):
         flow.prop(inputs, "drag_threshold")
         flow.prop(inputs, "move_threshold")
 
+
+class USERPREF_PT_input_tablet(PreferencePanel, Panel):
+    bl_label = "Tablet"
+
+    @classmethod
+    def poll(cls, context):
+        prefs = context.preferences
+        return prefs.active_section == 'INPUT'
+
+    def draw_props(self, context, layout):
+        prefs = context.preferences
+        inputs = prefs.inputs
+
+        import sys
+        if sys.platform[:3] == "win":
+            layout.prop(inputs, "tablet_api")
+            layout.separator()
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+
+        flow.prop(inputs, "pressure_threshold_max")
+        flow.prop(inputs, "pressure_softness")
+
+
+class USERPREF_PT_input_ndof(PreferencePanel, Panel):
+    bl_label = "NDOF"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        prefs = context.preferences
+        inputs = prefs.inputs
+        return prefs.active_section == 'INPUT' and inputs.use_ndof
+
+    def draw_props(self, context, layout):
+        prefs = context.preferences
+        inputs = prefs.inputs
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+
+        flow.prop(inputs, "ndof_sensitivity", text="Pan Sensitivity")
+        flow.prop(inputs, "ndof_orbit_sensitivity", text="Orbit Sensitivity")
+        flow.prop(inputs, "ndof_deadzone", text="Deadzone")
+
+        layout.separator()
+
+        flow.row().prop(inputs, "ndof_view_navigate_method", expand=True)
+        flow.row().prop(inputs, "ndof_view_rotate_method", expand=True)
+
+
+# -----------------------------------------------------------------------------
+# Navigation Panels
 
 class USERPREF_PT_navigation_orbit(PreferencePanel, Panel):
     bl_label = "Orbit & Pan"
@@ -1661,54 +1679,79 @@ class USERPREF_PT_navigation_fly_walk_gravity(PreferencePanel, Panel):
         flow.prop(walk, "jump_height")
 
 
-class USERPREF_PT_input_tablet(PreferencePanel, Panel):
-    bl_label = "Tablet"
+# Special case, this is only exposed as a popover.
+class USERPREF_PT_ndof_settings(Panel):
+    bl_label = "3D Mouse Settings"
+    bl_space_type = 'TOPBAR'  # dummy.
+    bl_region_type = 'HEADER'
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return prefs.active_section == 'INPUT'
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
 
-    def draw_props(self, context, layout):
-        prefs = context.preferences
-        inputs = prefs.inputs
+        input_prefs = context.preferences.inputs
 
-        import sys
-        if sys.platform[:3] == "win":
-            layout.prop(inputs, "tablet_api")
+        is_view3d = context.space_data.type == 'VIEW_3D'
+
+        col = layout.column(align=True)
+        col.prop(input_prefs, "ndof_sensitivity")
+        col.prop(input_prefs, "ndof_orbit_sensitivity")
+        col.prop(input_prefs, "ndof_deadzone")
+
+        if is_view3d:
+            layout.separator()
+            layout.prop(input_prefs, "ndof_show_guide")
+
+            layout.separator()
+            layout.label(text="Orbit Style")
+            layout.row().prop(input_prefs, "ndof_view_navigate_method", text="Navigate")
+            layout.row().prop(input_prefs, "ndof_view_rotate_method", text="Orbit")
             layout.separator()
 
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+            layout.label(text="Orbit Options")
+            split = layout.split(factor=0.6)
+            row = split.row()
+            row.alignment = 'RIGHT'
+            row.label(text="Invert Axis")
+            row = split.row(align=True)
+            for text, attr in (
+                    ("X", "ndof_rotx_invert_axis"),
+                    ("Y", "ndof_roty_invert_axis"),
+                    ("Z", "ndof_rotz_invert_axis"),
+            ):
+                row.prop(input_prefs, attr, text=text, toggle=True)
 
-        flow.prop(inputs, "pressure_threshold_max")
-        flow.prop(inputs, "pressure_softness")
-
-
-class USERPREF_PT_input_ndof(PreferencePanel, Panel):
-    bl_label = "NDOF"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        inputs = prefs.inputs
-        return prefs.active_section == 'INPUT' and inputs.use_ndof
-
-    def draw_props(self, context, layout):
-        prefs = context.preferences
-        inputs = prefs.inputs
-
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
-
-        flow.prop(inputs, "ndof_sensitivity", text="Pan Sensitivity")
-        flow.prop(inputs, "ndof_orbit_sensitivity", text="Orbit Sensitivity")
-        flow.prop(inputs, "ndof_deadzone", text="Deadzone")
-
+        # view2d use pan/zoom
         layout.separator()
+        layout.label(text="Pan Options")
 
-        flow.row().prop(inputs, "ndof_view_navigate_method", expand=True)
-        flow.row().prop(inputs, "ndof_view_rotate_method", expand=True)
+        split = layout.split(factor=0.6)
+        row = split.row()
+        row.alignment = 'RIGHT'
+        row.label(text="Invert Axis")
+        row = split.row(align=True)
+        for text, attr in (
+                ("X", "ndof_panx_invert_axis"),
+                ("Y", "ndof_pany_invert_axis"),
+                ("Z", "ndof_panz_invert_axis"),
+        ):
+            row.prop(input_prefs, attr, text=text, toggle=True)
 
+        layout.prop(input_prefs, "ndof_pan_yz_swap_axis")
+
+        layout.label(text="Zoom Options")
+        layout.prop(input_prefs, "ndof_zoom_invert")
+
+        if is_view3d:
+            layout.separator()
+            layout.label(text="Fly/Walk Options")
+            layout.prop(input_prefs, "ndof_fly_helicopter")
+            layout.prop(input_prefs, "ndof_lock_horizon")
+
+
+# -----------------------------------------------------------------------------
+# Key-Map Editor Panels
 
 class USERPREF_MT_keyconfigs(Menu):
     bl_label = "KeyPresets"
@@ -1744,6 +1787,9 @@ class USERPREF_PT_keymap(Panel):
 
         # print("runtime", time.time() - start)
 
+
+# -----------------------------------------------------------------------------
+# Add-On Panels
 
 class USERPREF_PT_addons(Panel):
     bl_space_type = 'PREFERENCES'
@@ -2032,7 +2078,10 @@ class USERPREF_PT_addons(Panel):
                 row.label(text=module_name, translate=False)
 
 
-class StudioLightPanelMixin():
+# -----------------------------------------------------------------------------
+# Studio Light Panels
+
+class StudioLightPanelMixin:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
 
@@ -2161,6 +2210,9 @@ class USERPREF_PT_studiolight_light_editor(Panel):
         layout.prop(system, "light_ambient")
 
 
+# -----------------------------------------------------------------------------
+# Experimental Panels
+
 class ExperimentalPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -2194,6 +2246,7 @@ class USERPREF_PT_experimental_ui(ExperimentalPanel, Panel):
         col.prop(experimental, "use_tool_fallback", text="Use Tool Fallback")
         col = split.column()
         col.operator("wm.url_open", text=task, icon='URL').url = self.url_prefix + task
+
 
 """
 # Example panel, leave it here so we always have a template to follow even
@@ -2242,6 +2295,9 @@ class USERPREF_PT_experimental_usd(ExperimentalPanel, Panel):
         url = "https://devtalk.blender.org/t/universal-scene-description-usd-exporter-feedback/10920"
         col.operator("wm.url_open", text='Give Feedback', icon='URL').url = url
 
+
+# -----------------------------------------------------------------------------
+# Class Registration
 
 # Order of registration defines order in UI,
 # so dynamically generated classes are 'injected' in the intended order.
