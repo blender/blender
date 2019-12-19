@@ -1292,7 +1292,7 @@ static bool select_grouped_time_overlap(Editing *ed, Sequence *actseq)
   bool changed = false;
 
   SEQP_BEGIN (ed, seq) {
-    if (!((seq->startdisp >= actseq->enddisp) || (seq->enddisp < actseq->startdisp))) {
+    if (seq->startdisp < actseq->enddisp && seq->enddisp > actseq->startdisp) {
       seq->flag |= SELECT;
       changed = true;
     }
