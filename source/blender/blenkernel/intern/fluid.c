@@ -4334,8 +4334,8 @@ void BKE_fluid_flow_behavior_set(Object *UNUSED(object), FluidFlowSettings *sett
 
 void BKE_fluid_flow_type_set(Object *object, FluidFlowSettings *settings, int type)
 {
-  /* By default, liquid flow objects should behave like their geometry (geomtery behavior),
-   * gas flow objects should continously produce smoke (inflow behavior). */
+  /* By default, liquid flow objects should behave like their geometry (geometry behavior),
+   * gas flow objects should continuously produce smoke (inflow behavior). */
   if (type == FLUID_FLOW_TYPE_LIQUID) {
     BKE_fluid_flow_behavior_set(object, settings, FLUID_FLOW_BEHAVIOR_GEOMETRY);
   }

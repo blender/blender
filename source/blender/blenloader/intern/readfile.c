@@ -5502,8 +5502,10 @@ static void modifier_ensure_type(FluidModifierData *fluid_modifier_data, int typ
   BKE_fluid_modifier_create_type_data(fluid_modifier_data);
 }
 
-/* NOTE: The old_modifier_data is NOT linked. This means that in ordet to access subdata
- * pointers newdataadr is to be used. */
+/**
+ * \note The old_modifier_data is NOT linked.
+ * This means that in order to access sub-data pointers #newdataadr is to be used.
+ */
 static ModifierData *modifier_replace_with_fluid(FileData *fd,
                                                  Object *object,
                                                  ListBase *modifiers,

@@ -561,8 +561,10 @@ static void gather_frames_to_render_for_adt(OGLRender *oglrender,
   }
 }
 
-/* Collect the frame numbers for which selected objects have keys in the animation data.
- * The frames ares tored in oglrender->render_frames. */
+/**
+ * Collect the frame numbers for which selected objects have keys in the animation data.
+ * The frames ares stored in #OGLRender.render_frames.
+ */
 static void gather_frames_to_render(bContext *C, OGLRender *oglrender)
 {
   Scene *scene = CTX_data_scene(C);
