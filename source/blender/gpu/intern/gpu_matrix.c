@@ -535,6 +535,11 @@ bool GPU_matrix_unproject_precalc(struct GPUMatrixUnproject_Precalc *precalc,
                      &precalc->dims.ymax,
                      &precalc->dims.zmin,
                      &precalc->dims.zmax);
+  if (isinf(precalc->dims.zmax)) {
+    /* We cannot retrieve the actual value of the clip_end.
+     * Use `FLT_MAX` to avoid nans. */
+    precalc->dims.zmax = FLT_MAX;
+  }
   for (int i = 0; i < 4; i++) {
     precalc->view[i] = (float)view[i];
   }
