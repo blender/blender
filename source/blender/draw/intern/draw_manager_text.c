@@ -294,14 +294,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *ar,
             numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), conv_float, len_v3v3(v1, v2));
           }
 
-          DRW_text_cache_add(dt,
-                             vmid,
-                             numstr,
-                             numstr_len,
-                             0,
-                             edge_tex_sep,
-                             txt_flag,
-                             col);
+          DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, edge_tex_sep, txt_flag, col);
         }
       }
     }
@@ -356,14 +349,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *ar,
                                            (is_rad) ? angle : RAD2DEGF(angle),
                                            (is_rad) ? "r" : "°");
 
-            DRW_text_cache_add(dt,
-                               vmid,
-                               numstr,
-                               numstr_len,
-                               0,
-                               -edge_tex_sep,
-                               txt_flag,
-                               col);
+            DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, -edge_tex_sep, txt_flag, col);
           }
         }
       }
@@ -518,14 +504,15 @@ void DRW_text_edit_mesh_measure_stats(ARegion *ar,
             mul_m4_v3(ob->obmat, vmid);
 
             numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
-            DRW_text_cache_add(dt,
-                               vmid,
-                               numstr,
-                               numstr_len,
-                               0,
-                               (use_edge_tex_sep) ? (use_edge_tex_len) ? -edge_tex_sep : edge_tex_sep : 0,
-                               txt_flag,
-                               col);
+            DRW_text_cache_add(
+                dt,
+                vmid,
+                numstr,
+                numstr_len,
+                0,
+                (use_edge_tex_sep) ? (use_edge_tex_len) ? -edge_tex_sep : edge_tex_sep : 0,
+                txt_flag,
+                col);
           }
         }
       }
