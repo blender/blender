@@ -162,8 +162,8 @@ static int Id_second_set(BPy_Id *self, PyObject *value, void *UNUSED(closure))
 }
 
 static PyGetSetDef BPy_Id_getseters[] = {
-    {(char *)"first", (getter)Id_first_get, (setter)Id_first_set, (char *)Id_first_doc, NULL},
-    {(char *)"second", (getter)Id_second_get, (setter)Id_second_set, (char *)Id_second_doc, NULL},
+    {"first", (getter)Id_first_get, (setter)Id_first_set, Id_first_doc, NULL},
+    {"second", (getter)Id_second_get, (setter)Id_second_set, Id_second_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

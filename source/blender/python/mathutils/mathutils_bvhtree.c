@@ -349,7 +349,7 @@ static PyObject *py_bvhtree_ray_cast(PyBVHTree *self, PyObject *args)
   {
     PyObject *py_co, *py_direction;
 
-    if (!PyArg_ParseTuple(args, (char *)"OO|f:ray_cast", &py_co, &py_direction, &max_dist)) {
+    if (!PyArg_ParseTuple(args, "OO|f:ray_cast", &py_co, &py_direction, &max_dist)) {
       return NULL;
     }
 
@@ -397,7 +397,7 @@ static PyObject *py_bvhtree_find_nearest(PyBVHTree *self, PyObject *args)
   {
     PyObject *py_co;
 
-    if (!PyArg_ParseTuple(args, (char *)"O|f:find_nearest", &py_co, &max_dist)) {
+    if (!PyArg_ParseTuple(args, "O|f:find_nearest", &py_co, &max_dist)) {
       return NULL;
     }
 
@@ -478,7 +478,7 @@ static PyObject *py_bvhtree_find_nearest_range(PyBVHTree *self, PyObject *args)
   {
     PyObject *py_co;
 
-    if (!PyArg_ParseTuple(args, (char *)"O|f:find_nearest_range", &py_co, &max_dist)) {
+    if (!PyArg_ParseTuple(args, "O|f:find_nearest_range", &py_co, &max_dist)) {
       return NULL;
     }
 
@@ -678,7 +678,7 @@ static PyObject *C_BVHTree_FromPolygons(PyObject *UNUSED(cls), PyObject *args, P
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
-                                   (char *)"OO|$O&f:BVHTree.FromPolygons",
+                                   "OO|$O&f:BVHTree.FromPolygons",
                                    (char **)keywords,
                                    &py_coords,
                                    &py_tris,
@@ -951,7 +951,7 @@ static PyObject *C_BVHTree_FromBMesh(PyObject *UNUSED(cls), PyObject *args, PyOb
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
-                                   (char *)"O!|$f:BVHTree.FromBMesh",
+                                   "O!|$f:BVHTree.FromBMesh",
                                    (char **)keywords,
                                    &BPy_BMesh_Type,
                                    &py_bm,
@@ -1142,7 +1142,7 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
-                                   (char *)"OO|$O&O&f:BVHTree.FromObject",
+                                   "OO|$O&O&f:BVHTree.FromObject",
                                    (char **)keywords,
                                    &py_ob,
                                    &py_depsgraph,

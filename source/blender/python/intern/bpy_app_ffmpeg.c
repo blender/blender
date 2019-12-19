@@ -36,13 +36,13 @@
 static PyTypeObject BlenderAppFFmpegType;
 
 #define DEF_FFMPEG_LIB_VERSION(lib) \
-  {(char *)(#lib "_version"), (char *)("The " #lib " version  as a tuple of 3 numbers")}, \
+  {(#lib "_version"), ("The " #lib " version  as a tuple of 3 numbers")}, \
   { \
-    (char *)(#lib "_version_string"), (char *)("The " #lib " version formatted as a string") \
+    (#lib "_version_string"), ("The " #lib " version formatted as a string") \
   }
 
 static PyStructSequence_Field app_ffmpeg_info_fields[] = {
-    {(char *)"supported", (char *)("Boolean, True when Blender is built with FFmpeg support")},
+    {"supported", "Boolean, True when Blender is built with FFmpeg support"},
 
     DEF_FFMPEG_LIB_VERSION(avcodec),
     DEF_FFMPEG_LIB_VERSION(avdevice),
@@ -55,9 +55,9 @@ static PyStructSequence_Field app_ffmpeg_info_fields[] = {
 #undef DEF_FFMPEG_LIB_VERSION
 
 static PyStructSequence_Desc app_ffmpeg_info_desc = {
-    (char *)"bpy.app.ffmpeg",                                                          /* name */
-    (char *)"This module contains information about FFmpeg blender is linked against", /* doc */
-    app_ffmpeg_info_fields,                                                            /* fields */
+    "bpy.app.ffmpeg",                                                          /* name */
+    "This module contains information about FFmpeg blender is linked against", /* doc */
+    app_ffmpeg_info_fields,                                                    /* fields */
     ARRAY_SIZE(app_ffmpeg_info_fields) - 1,
 };
 

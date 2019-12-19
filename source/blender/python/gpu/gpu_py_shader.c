@@ -578,11 +578,7 @@ static PyObject *bpygpu_shader_program_get(BPyGPUShader *self, void *UNUSED(clos
 }
 
 static PyGetSetDef bpygpu_shader_getseters[] = {
-    {(char *)"program",
-     (getter)bpygpu_shader_program_get,
-     (setter)NULL,
-     bpygpu_shader_program_doc,
-     NULL},
+    {"program", (getter)bpygpu_shader_program_get, (setter)NULL, bpygpu_shader_program_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

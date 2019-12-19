@@ -165,10 +165,10 @@ static int integration_type_set(BPy_UnaryFunction1DEdgeNature *self,
 }
 
 static PyGetSetDef BPy_UnaryFunction1DEdgeNature_getseters[] = {
-    {(char *)"integration_type",
+    {"integration_type",
      (getter)integration_type_get,
      (setter)integration_type_set,
-     (char *)integration_type_doc,
+     integration_type_doc,
      NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };

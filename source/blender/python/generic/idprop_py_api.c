@@ -267,10 +267,10 @@ static PyObject *BPy_IDGroup_GetType(BPy_IDProperty *self)
 #endif
 
 static PyGetSetDef BPy_IDGroup_getseters[] = {
-    {(char *)"name",
+    {"name",
      (getter)BPy_IDGroup_GetName,
      (setter)BPy_IDGroup_SetName,
-     (char *)"The name of this Group.",
+     "The name of this Group.",
      NULL},
     {NULL, NULL, NULL, NULL, NULL},
 };
@@ -1269,7 +1269,7 @@ static PyObject *BPy_IDArray_get_typecode(BPy_IDArray *self)
 
 static PyGetSetDef BPy_IDArray_getseters[] = {
     /* matches pythons array.typecode */
-    {(char *)"typecode",
+    {"typecode",
      (getter)BPy_IDArray_get_typecode,
      (setter)NULL,
      BPy_IDArray_get_typecode_doc,

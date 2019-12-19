@@ -44,42 +44,41 @@ void bpy_app_generic_callback(struct Main *main,
 static PyTypeObject BlenderAppCbType;
 
 static PyStructSequence_Field app_cb_info_fields[] = {
-    {(char *)"frame_change_pre", (char *)"on frame change for playback and rendering (before)"},
-    {(char *)"frame_change_post", (char *)"on frame change for playback and rendering (after)"},
-    {(char *)"render_pre", (char *)"on render (before)"},
-    {(char *)"render_post", (char *)"on render (after)"},
-    {(char *)"render_write",
-     (char *)"on writing a render frame (directly after the frame is written)"},
-    {(char *)"render_stats", (char *)"on printing render statistics"},
-    {(char *)"render_init", (char *)"on initialization of a render job"},
-    {(char *)"render_complete", (char *)"on completion of render job"},
-    {(char *)"render_cancel", (char *)"on canceling a render job"},
-    {(char *)"load_pre", (char *)"on loading a new blend file (before)"},
-    {(char *)"load_post", (char *)"on loading a new blend file (after)"},
-    {(char *)"save_pre", (char *)"on saving a blend file (before)"},
-    {(char *)"save_post", (char *)"on saving a blend file (after)"},
-    {(char *)"undo_pre", (char *)"on loading an undo step (before)"},
-    {(char *)"undo_post", (char *)"on loading an undo step (after)"},
-    {(char *)"redo_pre", (char *)"on loading a redo step (before)"},
-    {(char *)"redo_post", (char *)"on loading a redo step (after)"},
-    {(char *)"depsgraph_update_pre", (char *)"on depsgraph update (pre)"},
-    {(char *)"depsgraph_update_post", (char *)"on depsgraph update (post)"},
-    {(char *)"version_update", (char *)"on ending the versioning code"},
-    {(char *)"load_factory_preferences_post", (char *)"on loading factory preferences (after)"},
-    {(char *)"load_factory_startup_post", (char *)"on loading factory startup (after)"},
+    {"frame_change_pre", "on frame change for playback and rendering (before)"},
+    {"frame_change_post", "on frame change for playback and rendering (after)"},
+    {"render_pre", "on render (before)"},
+    {"render_post", "on render (after)"},
+    {"render_write", "on writing a render frame (directly after the frame is written)"},
+    {"render_stats", "on printing render statistics"},
+    {"render_init", "on initialization of a render job"},
+    {"render_complete", "on completion of render job"},
+    {"render_cancel", "on canceling a render job"},
+    {"load_pre", "on loading a new blend file (before)"},
+    {"load_post", "on loading a new blend file (after)"},
+    {"save_pre", "on saving a blend file (before)"},
+    {"save_post", "on saving a blend file (after)"},
+    {"undo_pre", "on loading an undo step (before)"},
+    {"undo_post", "on loading an undo step (after)"},
+    {"redo_pre", "on loading a redo step (before)"},
+    {"redo_post", "on loading a redo step (after)"},
+    {"depsgraph_update_pre", "on depsgraph update (pre)"},
+    {"depsgraph_update_post", "on depsgraph update (post)"},
+    {"version_update", "on ending the versioning code"},
+    {"load_factory_preferences_post", "on loading factory preferences (after)"},
+    {"load_factory_startup_post", "on loading factory startup (after)"},
 
 /* sets the permanent tag */
 #define APP_CB_OTHER_FIELDS 1
-    {(char *)"persistent",
-     (char *)"Function decorator for callback functions not to be removed when loading new files"},
+    {"persistent",
+     "Function decorator for callback functions not to be removed when loading new files"},
 
     {NULL},
 };
 
 static PyStructSequence_Desc app_cb_info_desc = {
-    (char *)"bpy.app.handlers",                    /* name */
-    (char *)"This module contains callback lists", /* doc */
-    app_cb_info_fields,                            /* fields */
+    "bpy.app.handlers",                    /* name */
+    "This module contains callback lists", /* doc */
+    app_cb_info_fields,                    /* fields */
     ARRAY_SIZE(app_cb_info_fields) - 1,
 };
 

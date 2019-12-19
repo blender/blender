@@ -289,19 +289,15 @@ static PyObject *py_imbuf_channels_get(Py_ImBuf *self, void *UNUSED(closure))
 }
 
 static PyGetSetDef Py_ImBuf_getseters[] = {
-    {(char *)"size", (getter)py_imbuf_size_get, (setter)NULL, (char *)py_imbuf_size_doc, NULL},
-    {(char *)"ppm",
-     (getter)py_imbuf_ppm_get,
-     (setter)py_imbuf_ppm_set,
-     (char *)py_imbuf_ppm_doc,
-     NULL},
-    {(char *)"filepath",
+    {"size", (getter)py_imbuf_size_get, (setter)NULL, py_imbuf_size_doc, NULL},
+    {"ppm", (getter)py_imbuf_ppm_get, (setter)py_imbuf_ppm_set, py_imbuf_ppm_doc, NULL},
+    {"filepath",
      (getter)py_imbuf_filepath_get,
      (setter)py_imbuf_filepath_set,
-     (char *)py_imbuf_filepath_doc,
+     py_imbuf_filepath_doc,
      NULL},
-    {(char *)"planes", (getter)py_imbuf_planes_get, NULL, (char *)py_imbuf_planes_doc, NULL},
-    {(char *)"channels", (getter)py_imbuf_channels_get, NULL, (char *)py_imbuf_channels_doc, NULL},
+    {"planes", (getter)py_imbuf_planes_get, NULL, py_imbuf_planes_doc, NULL},
+    {"channels", (getter)py_imbuf_channels_get, NULL, py_imbuf_channels_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

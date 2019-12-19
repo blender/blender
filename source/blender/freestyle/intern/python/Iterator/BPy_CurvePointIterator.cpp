@@ -123,21 +123,13 @@ static PyObject *CurvePointIterator_u_get(BPy_CurvePointIterator *self, void *UN
 }
 
 static PyGetSetDef BPy_CurvePointIterator_getseters[] = {
-    {(char *)"object",
+    {"object",
      (getter)CurvePointIterator_object_get,
      (setter)NULL,
-     (char *)CurvePointIterator_object_doc,
+     CurvePointIterator_object_doc,
      NULL},
-    {(char *)"t",
-     (getter)CurvePointIterator_t_get,
-     (setter)NULL,
-     (char *)CurvePointIterator_t_doc,
-     NULL},
-    {(char *)"u",
-     (getter)CurvePointIterator_u_get,
-     (setter)NULL,
-     (char *)CurvePointIterator_u_doc,
-     NULL},
+    {"t", (getter)CurvePointIterator_t_get, (setter)NULL, CurvePointIterator_t_doc, NULL},
+    {"u", (getter)CurvePointIterator_u_get, (setter)NULL, CurvePointIterator_u_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

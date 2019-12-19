@@ -466,27 +466,23 @@ static int Stroke_id_set(BPy_Stroke *self, PyObject *value, void *UNUSED(closure
 }
 
 static PyGetSetDef BPy_Stroke_getseters[] = {
-    {(char *)"medium_type",
+    {"medium_type",
      (getter)Stroke_medium_type_get,
      (setter)Stroke_medium_type_set,
-     (char *)Stroke_medium_type_doc,
+     Stroke_medium_type_doc,
      NULL},
-    {(char *)"texture_id",
+    {"texture_id",
      (getter)Stroke_texture_id_get,
      (setter)Stroke_texture_id_set,
-     (char *)Stroke_texture_id_doc,
+     Stroke_texture_id_doc,
      NULL},
-    {(char *)"tips",
-     (getter)Stroke_tips_get,
-     (setter)Stroke_tips_set,
-     (char *)Stroke_tips_doc,
-     NULL},
-    {(char *)"length_2d",
+    {"tips", (getter)Stroke_tips_get, (setter)Stroke_tips_set, Stroke_tips_doc, NULL},
+    {"length_2d",
      (getter)Stroke_length_2d_get,
      (setter)Stroke_length_2d_set,
-     (char *)Stroke_length_2d_doc,
+     Stroke_length_2d_doc,
      NULL},
-    {(char *)"id", (getter)Stroke_id_get, (setter)Stroke_id_set, (char *)Stroke_id_doc, NULL},
+    {"id", (getter)Stroke_id_get, (setter)Stroke_id_set, Stroke_id_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

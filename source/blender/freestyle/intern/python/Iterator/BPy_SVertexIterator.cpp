@@ -151,21 +151,9 @@ static PyObject *SVertexIterator_u_get(BPy_SVertexIterator *self, void *UNUSED(c
 }
 
 static PyGetSetDef BPy_SVertexIterator_getseters[] = {
-    {(char *)"object",
-     (getter)SVertexIterator_object_get,
-     (setter)NULL,
-     (char *)SVertexIterator_object_doc,
-     NULL},
-    {(char *)"t",
-     (getter)SVertexIterator_t_get,
-     (setter)NULL,
-     (char *)SVertexIterator_t_doc,
-     NULL},
-    {(char *)"u",
-     (getter)SVertexIterator_u_get,
-     (setter)NULL,
-     (char *)SVertexIterator_u_doc,
-     NULL},
+    {"object", (getter)SVertexIterator_object_get, (setter)NULL, SVertexIterator_object_doc, NULL},
+    {"t", (getter)SVertexIterator_t_get, (setter)NULL, SVertexIterator_t_doc, NULL},
+    {"u", (getter)SVertexIterator_u_get, (setter)NULL, SVertexIterator_u_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

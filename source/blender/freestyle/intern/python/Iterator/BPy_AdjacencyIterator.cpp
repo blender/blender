@@ -172,15 +172,15 @@ static PyObject *AdjacencyIterator_is_incoming_get(BPy_AdjacencyIterator *self,
 }
 
 static PyGetSetDef BPy_AdjacencyIterator_getseters[] = {
-    {(char *)"is_incoming",
+    {"is_incoming",
      (getter)AdjacencyIterator_is_incoming_get,
      (setter)NULL,
-     (char *)AdjacencyIterator_is_incoming_doc,
+     AdjacencyIterator_is_incoming_doc,
      NULL},
-    {(char *)"object",
+    {"object",
      (getter)AdjacencyIterator_object_get,
      (setter)NULL,
-     (char *)AdjacencyIterator_object_doc,
+     AdjacencyIterator_object_doc,
      NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };

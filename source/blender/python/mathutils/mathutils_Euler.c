@@ -688,30 +688,22 @@ static int Euler_order_set(EulerObject *self, PyObject *value, void *UNUSED(clos
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Euler_getseters[] = {
-    {(char *)"x", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, (void *)0},
-    {(char *)"y", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, (void *)1},
-    {(char *)"z", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, (void *)2},
-    {(char *)"order",
-     (getter)Euler_order_get,
-     (setter)Euler_order_set,
-     Euler_order_doc,
-     (void *)NULL},
+    {"x", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, (void *)0},
+    {"y", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, (void *)1},
+    {"z", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, (void *)2},
+    {"order", (getter)Euler_order_get, (setter)Euler_order_set, Euler_order_doc, (void *)NULL},
 
-    {(char *)"is_wrapped",
+    {"is_wrapped",
      (getter)BaseMathObject_is_wrapped_get,
      (setter)NULL,
      BaseMathObject_is_wrapped_doc,
      NULL},
-    {(char *)"is_frozen",
+    {"is_frozen",
      (getter)BaseMathObject_is_frozen_get,
      (setter)NULL,
      BaseMathObject_is_frozen_doc,
      NULL},
-    {(char *)"owner",
-     (getter)BaseMathObject_owner_get,
-     (setter)NULL,
-     BaseMathObject_owner_doc,
-     NULL},
+    {"owner", (getter)BaseMathObject_owner_get, (setter)NULL, BaseMathObject_owner_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

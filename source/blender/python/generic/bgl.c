@@ -576,7 +576,7 @@ static PyMethodDef Buffer_methods[] = {
 };
 
 static PyGetSetDef Buffer_getseters[] = {
-    {(char *)"dimensions", (getter)Buffer_dimensions, NULL, NULL, NULL},
+    {"dimensions", (getter)Buffer_dimensions, NULL, NULL, NULL},
     {NULL, NULL, NULL, NULL, NULL},
 };
 

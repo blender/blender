@@ -131,10 +131,10 @@ static PyObject *orientedViewEdgeIterator_object_get(BPy_orientedViewEdgeIterato
 }
 
 static PyGetSetDef BPy_orientedViewEdgeIterator_getseters[] = {
-    {(char *)"object",
+    {"object",
      (getter)orientedViewEdgeIterator_object_get,
      (setter)NULL,
-     (char *)orientedViewEdgeIterator_object_doc,
+     orientedViewEdgeIterator_object_doc,
      NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };

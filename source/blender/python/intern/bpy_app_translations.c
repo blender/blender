@@ -402,9 +402,9 @@ static BLT_i18n_contexts_descriptor _contexts[] = BLT_I18NCONTEXTS_DESC;
 static PyStructSequence_Field app_translations_contexts_fields[ARRAY_SIZE(_contexts)] = {{NULL}};
 
 static PyStructSequence_Desc app_translations_contexts_desc = {
-    (char *)"bpy.app.translations.contexts",                                  /* name */
-    (char *)"This named tuple contains all pre-defined translation contexts", /* doc */
-    app_translations_contexts_fields,                                         /* fields */
+    "bpy.app.translations.contexts",                                  /* name */
+    "This named tuple contains all pre-defined translation contexts", /* doc */
+    app_translations_contexts_fields,                                 /* fields */
     ARRAY_SIZE(app_translations_contexts_fields) - 1,
 };
 
@@ -453,12 +453,12 @@ PyDoc_STRVAR(app_translations_contexts_C_to_py_doc,
              "A readonly dict mapping contexts' C-identifiers to their py-identifiers.");
 
 static PyMemberDef app_translations_members[] = {
-    {(char *)"contexts",
+    {"contexts",
      T_OBJECT_EX,
      offsetof(BlenderAppTranslations, contexts),
      READONLY,
      app_translations_contexts_doc},
-    {(char *)"contexts_C_to_py",
+    {"contexts_C_to_py",
      T_OBJECT_EX,
      offsetof(BlenderAppTranslations, contexts_C_to_py),
      READONLY,
@@ -508,16 +508,8 @@ static PyObject *app_translations_locales_get(PyObject *UNUSED(self), void *UNUS
 
 static PyGetSetDef app_translations_getseters[] = {
     /* {name, getter, setter, doc, userdata} */
-    {(char *)"locale",
-     (getter)app_translations_locale_get,
-     NULL,
-     app_translations_locale_doc,
-     NULL},
-    {(char *)"locales",
-     (getter)app_translations_locales_get,
-     NULL,
-     app_translations_locales_doc,
-     NULL},
+    {"locale", (getter)app_translations_locale_get, NULL, app_translations_locale_doc, NULL},
+    {"locales", (getter)app_translations_locales_get, NULL, app_translations_locales_doc, NULL},
     {NULL},
 };
 
@@ -865,7 +857,7 @@ PyObject *BPY_app_translations_struct(void)
     /* We really populate the contexts' fields here! */
     for (ctxt = _contexts, desc = app_translations_contexts_desc.fields; ctxt->c_id;
          ctxt++, desc++) {
-      desc->name = (char *)ctxt->py_id;
+      desc->name = ctxt->py_id;
       desc->doc = NULL;
     }
     desc->name = desc->doc = NULL; /* End sentinel! */

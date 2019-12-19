@@ -348,27 +348,27 @@ static PyObject *StrokeVertex_u_get(BPy_StrokeVertex *self, void *UNUSED(closure
 }
 
 static PyGetSetDef BPy_StrokeVertex_getseters[] = {
-    {(char *)"attribute",
+    {"attribute",
      (getter)StrokeVertex_attribute_get,
      (setter)StrokeVertex_attribute_set,
-     (char *)StrokeVertex_attribute_doc,
+     StrokeVertex_attribute_doc,
      NULL},
-    {(char *)"curvilinear_abscissa",
+    {"curvilinear_abscissa",
      (getter)StrokeVertex_curvilinear_abscissa_get,
      (setter)StrokeVertex_curvilinear_abscissa_set,
-     (char *)StrokeVertex_curvilinear_abscissa_doc,
+     StrokeVertex_curvilinear_abscissa_doc,
      NULL},
-    {(char *)"point",
+    {"point",
      (getter)StrokeVertex_point_get,
      (setter)StrokeVertex_point_set,
-     (char *)StrokeVertex_point_doc,
+     StrokeVertex_point_doc,
      NULL},
-    {(char *)"stroke_length",
+    {"stroke_length",
      (getter)StrokeVertex_stroke_length_get,
      (setter)StrokeVertex_stroke_length_set,
-     (char *)StrokeVertex_stroke_length_doc,
+     StrokeVertex_stroke_length_doc,
      NULL},
-    {(char *)"u", (getter)StrokeVertex_u_get, (setter)NULL, (char *)StrokeVertex_u_doc, NULL},
+    {"u", (getter)StrokeVertex_u_get, (setter)NULL, StrokeVertex_u_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

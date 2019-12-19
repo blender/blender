@@ -150,10 +150,10 @@ static int ViewVertex_nature_set(BPy_ViewVertex *self, PyObject *value, void *UN
 }
 
 static PyGetSetDef BPy_ViewVertex_getseters[] = {
-    {(char *)"nature",
+    {"nature",
      (getter)ViewVertex_nature_get,
      (setter)ViewVertex_nature_set,
-     (char *)ViewVertex_nature_doc,
+     ViewVertex_nature_doc,
      NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };

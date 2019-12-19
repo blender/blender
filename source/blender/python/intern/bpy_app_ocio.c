@@ -32,18 +32,17 @@
 static PyTypeObject BlenderAppOCIOType;
 
 static PyStructSequence_Field app_ocio_info_fields[] = {
-    {(char *)"supported",
-     (char *)("Boolean, True when Blender is built with OpenColorIO support")},
-    {(char *)("version"), (char *)("The OpenColorIO version as a tuple of 3 numbers")},
-    {(char *)("version_string"), (char *)("The OpenColorIO version formatted as a string")},
+    {"supported", "Boolean, True when Blender is built with OpenColorIO support"},
+    {"version", "The OpenColorIO version as a tuple of 3 numbers"},
+    {"version_string", "The OpenColorIO version formatted as a string"},
     {NULL},
 };
 
 static PyStructSequence_Desc app_ocio_info_desc = {
     /* name */
-    (char *)"bpy.app.ocio",
+    "bpy.app.ocio",
     /* doc */
-    (char *)"This module contains information about OpenColorIO blender is linked against",
+    "This module contains information about OpenColorIO blender is linked against",
     /* fields */
     app_ocio_info_fields,
     ARRAY_SIZE(app_ocio_info_fields) - 1,

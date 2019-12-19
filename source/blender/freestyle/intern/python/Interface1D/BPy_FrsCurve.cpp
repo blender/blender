@@ -180,15 +180,11 @@ static PyObject *FrsCurve_segments_size_get(BPy_FrsCurve *self, void *UNUSED(clo
 }
 
 static PyGetSetDef BPy_FrsCurve_getseters[] = {
-    {(char *)"is_empty",
-     (getter)FrsCurve_is_empty_get,
-     (setter)NULL,
-     (char *)FrsCurve_is_empty_doc,
-     NULL},
-    {(char *)"segments_size",
+    {"is_empty", (getter)FrsCurve_is_empty_get, (setter)NULL, FrsCurve_is_empty_doc, NULL},
+    {"segments_size",
      (getter)FrsCurve_segments_size_get,
      (setter)NULL,
-     (char *)FrsCurve_segments_size_doc,
+     FrsCurve_segments_size_doc,
      NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };

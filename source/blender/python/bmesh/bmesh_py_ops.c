@@ -154,7 +154,7 @@ static PyObject *bpy_bmesh_op_doc_get(BPy_BMeshOpFunc *self, void *UNUSED(closur
 }
 
 static PyGetSetDef bpy_bmesh_op_getseters[] = {
-    {(char *)"__doc__", (getter)bpy_bmesh_op_doc_get, (setter)NULL, NULL, NULL},
+    {"__doc__", (getter)bpy_bmesh_op_doc_get, (setter)NULL, NULL, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

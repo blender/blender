@@ -268,23 +268,11 @@ static PyObject *SShape_edges_get(BPy_SShape *self, void *UNUSED(closure))
 }
 
 static PyGetSetDef BPy_SShape_getseters[] = {
-    {(char *)"id", (getter)SShape_id_get, (setter)SShape_id_set, (char *)SShape_id_doc, NULL},
-    {(char *)"name",
-     (getter)SShape_name_get,
-     (setter)SShape_name_set,
-     (char *)SShape_name_doc,
-     NULL},
-    {(char *)"bbox",
-     (getter)SShape_bbox_get,
-     (setter)SShape_bbox_set,
-     (char *)SShape_bbox_doc,
-     NULL},
-    {(char *)"edges", (getter)SShape_edges_get, (setter)NULL, (char *)SShape_edges_doc, NULL},
-    {(char *)"vertices",
-     (getter)SShape_vertices_get,
-     (setter)NULL,
-     (char *)SShape_vertices_doc,
-     NULL},
+    {"id", (getter)SShape_id_get, (setter)SShape_id_set, SShape_id_doc, NULL},
+    {"name", (getter)SShape_name_get, (setter)SShape_name_set, SShape_name_doc, NULL},
+    {"bbox", (getter)SShape_bbox_get, (setter)SShape_bbox_set, SShape_bbox_doc, NULL},
+    {"edges", (getter)SShape_edges_get, (setter)NULL, SShape_edges_doc, NULL},
+    {"vertices", (getter)SShape_vertices_get, (setter)NULL, SShape_vertices_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

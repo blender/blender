@@ -57,10 +57,10 @@ static PyObject *bpy_bmeditselseq_active_get(BPy_BMEditSelSeq *self, void *UNUSE
 }
 
 static PyGetSetDef bpy_bmeditselseq_getseters[] = {
-    {(char *)"active",
+    {"active",
      (getter)bpy_bmeditselseq_active_get,
      (setter)NULL,
-     (char *)bpy_bmeditselseq_active_doc,
+     bpy_bmeditselseq_active_doc,
      NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };

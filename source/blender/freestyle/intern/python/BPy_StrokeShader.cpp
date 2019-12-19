@@ -273,11 +273,7 @@ static PyObject *StrokeShader_name_get(BPy_StrokeShader *self, void *UNUSED(clos
 }
 
 static PyGetSetDef BPy_StrokeShader_getseters[] = {
-    {(char *)"name",
-     (getter)StrokeShader_name_get,
-     (setter)NULL,
-     (char *)StrokeShader_name_doc,
-     NULL},
+    {"name", (getter)StrokeShader_name_get, (setter)NULL, StrokeShader_name_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

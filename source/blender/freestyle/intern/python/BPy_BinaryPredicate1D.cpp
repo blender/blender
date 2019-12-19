@@ -175,11 +175,7 @@ static PyObject *BinaryPredicate1D_name_get(BPy_BinaryPredicate1D *self, void *U
 }
 
 static PyGetSetDef BPy_BinaryPredicate1D_getseters[] = {
-    {(char *)"name",
-     (getter)BinaryPredicate1D_name_get,
-     (setter)NULL,
-     (char *)BinaryPredicate1D_name_doc,
-     NULL},
+    {"name", (getter)BinaryPredicate1D_name_get, (setter)NULL, BinaryPredicate1D_name_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

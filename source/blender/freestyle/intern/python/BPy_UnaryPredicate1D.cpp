@@ -212,11 +212,7 @@ static PyObject *UnaryPredicate1D_name_get(BPy_UnaryPredicate1D *self, void *UNU
 }
 
 static PyGetSetDef BPy_UnaryPredicate1D_getseters[] = {
-    {(char *)"name",
-     (getter)UnaryPredicate1D_name_get,
-     (setter)NULL,
-     (char *)UnaryPredicate1D_name_doc,
-     NULL},
+    {"name", (getter)UnaryPredicate1D_name_get, (setter)NULL, UnaryPredicate1D_name_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

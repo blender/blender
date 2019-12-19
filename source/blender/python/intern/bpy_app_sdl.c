@@ -46,20 +46,20 @@
 static PyTypeObject BlenderAppSDLType;
 
 static PyStructSequence_Field app_sdl_info_fields[] = {
-    {(char *)"supported", (char *)("Boolean, True when Blender is built with SDL support")},
-    {(char *)"version", (char *)("The SDL version as a tuple of 3 numbers")},
-    {(char *)"version_string", (char *)("The SDL version formatted as a string")},
-    {(char *)"available",
-     (char *)("Boolean, True when SDL is available. This is False when "
-              "either *supported* is False, or *dynload* is True and "
-              "Blender cannot find the correct library.")},
+    {"supported", ("Boolean, True when Blender is built with SDL support")},
+    {"version", ("The SDL version as a tuple of 3 numbers")},
+    {"version_string", ("The SDL version formatted as a string")},
+    {"available",
+     ("Boolean, True when SDL is available. This is False when "
+      "either *supported* is False, or *dynload* is True and "
+      "Blender cannot find the correct library.")},
     {NULL},
 };
 
 static PyStructSequence_Desc app_sdl_info_desc = {
-    (char *)"bpy.app.sdl",                                                          /* name */
-    (char *)"This module contains information about SDL blender is linked against", /* doc */
-    app_sdl_info_fields,                                                            /* fields */
+    "bpy.app.sdl",                                                          /* name */
+    "This module contains information about SDL blender is linked against", /* doc */
+    app_sdl_info_fields,                                                    /* fields */
     ARRAY_SIZE(app_sdl_info_fields) - 1,
 };
 

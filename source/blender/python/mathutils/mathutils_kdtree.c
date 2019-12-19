@@ -134,8 +134,7 @@ static PyObject *py_kdtree_insert(PyKDTree *self, PyObject *args, PyObject *kwar
   int index;
   const char *keywords[] = {"co", "index", NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwargs, (char *)"Oi:insert", (char **)keywords, &py_co, &index)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi:insert", (char **)keywords, &py_co, &index)) {
     return NULL;
   }
 
@@ -223,7 +222,7 @@ static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs
   const char *keywords[] = {"co", "filter", NULL};
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwargs, (char *)"O|O:find", (char **)keywords, &py_co, &py_filter)) {
+          args, kwargs, "O|O:find", (char **)keywords, &py_co, &py_filter)) {
     return NULL;
   }
 
@@ -278,8 +277,7 @@ static PyObject *py_kdtree_find_n(PyKDTree *self, PyObject *args, PyObject *kwar
   int i, found;
   const char *keywords[] = {"co", "n", NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwargs, (char *)"OI:find_n", (char **)keywords, &py_co, &n)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OI:find_n", (char **)keywords, &py_co, &n)) {
     return NULL;
   }
 
@@ -335,7 +333,7 @@ static PyObject *py_kdtree_find_range(PyKDTree *self, PyObject *args, PyObject *
   const char *keywords[] = {"co", "radius", NULL};
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwargs, (char *)"Of:find_range", (char **)keywords, &py_co, &radius)) {
+          args, kwargs, "Of:find_range", (char **)keywords, &py_co, &radius)) {
     return NULL;
   }
 

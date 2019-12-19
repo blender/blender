@@ -326,28 +326,24 @@ static PyObject *ViewShape_id_get(BPy_ViewShape *self, void *UNUSED(closure))
 }
 
 static PyGetSetDef BPy_ViewShape_getseters[] = {
-    {(char *)"sshape",
+    {"sshape",
      (getter)ViewShape_sshape_get,
      (setter)ViewShape_sshape_set,
-     (char *)ViewShape_sshape_doc,
+     ViewShape_sshape_doc,
      NULL},
-    {(char *)"vertices",
+    {"vertices",
      (getter)ViewShape_vertices_get,
      (setter)ViewShape_vertices_set,
-     (char *)ViewShape_vertices_doc,
+     ViewShape_vertices_doc,
      NULL},
-    {(char *)"edges",
-     (getter)ViewShape_edges_get,
-     (setter)ViewShape_edges_set,
-     (char *)ViewShape_edges_doc,
-     NULL},
-    {(char *)"name", (getter)ViewShape_name_get, (setter)NULL, (char *)ViewShape_name_doc, NULL},
-    {(char *)"library_path",
+    {"edges", (getter)ViewShape_edges_get, (setter)ViewShape_edges_set, ViewShape_edges_doc, NULL},
+    {"name", (getter)ViewShape_name_get, (setter)NULL, ViewShape_name_doc, NULL},
+    {"library_path",
      (getter)ViewShape_library_path_get,
      (setter)NULL,
-     (char *)ViewShape_library_path_doc,
+     ViewShape_library_path_doc,
      NULL},
-    {(char *)"id", (getter)ViewShape_id_get, (setter)NULL, (char *)ViewShape_id_doc, NULL},
+    {"id", (getter)ViewShape_id_get, (setter)NULL, ViewShape_id_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

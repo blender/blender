@@ -171,10 +171,10 @@ static int ViewMap_scene_bbox_set(BPy_ViewMap *self, PyObject *value, void *UNUS
 }
 
 static PyGetSetDef BPy_ViewMap_getseters[] = {
-    {(char *)"scene_bbox",
+    {"scene_bbox",
      (getter)ViewMap_scene_bbox_get,
      (setter)ViewMap_scene_bbox_set,
-     (char *)ViewMap_scene_bbox_doc,
+     ViewMap_scene_bbox_doc,
      NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };

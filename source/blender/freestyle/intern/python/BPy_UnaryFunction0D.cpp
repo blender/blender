@@ -109,11 +109,7 @@ static PyObject *UnaryFunction0D_name_get(BPy_UnaryFunction0D *self, void *UNUSE
 }
 
 static PyGetSetDef BPy_UnaryFunction0D_getseters[] = {
-    {(char *)"name",
-     (getter)UnaryFunction0D_name_get,
-     (setter)NULL,
-     (char *)UnaryFunction0D_name_doc,
-     NULL},
+    {"name", (getter)UnaryFunction0D_name_get, (setter)NULL, UnaryFunction0D_name_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

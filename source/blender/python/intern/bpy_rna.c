@@ -4771,29 +4771,25 @@ static PyObject *pyrna_struct_get_rna_type(BPy_PropertyRNA *self)
 /*****************************************************************************/
 
 static PyGetSetDef pyrna_prop_getseters[] = {
-    {(char *)"id_data",
+    {"id_data",
      (getter)pyrna_struct_get_id_data,
      (setter)NULL,
-     (char *)pyrna_struct_get_id_data_doc,
+     pyrna_struct_get_id_data_doc,
      NULL},
-    {(char *)"data",
-     (getter)pyrna_struct_get_data,
-     (setter)NULL,
-     (char *)pyrna_struct_get_data_doc,
-     NULL},
-    {(char *)"rna_type",
+    {"data", (getter)pyrna_struct_get_data, (setter)NULL, pyrna_struct_get_data_doc, NULL},
+    {"rna_type",
      (getter)pyrna_struct_get_rna_type,
      (setter)NULL,
-     (char *)pyrna_struct_get_rna_type_doc,
+     pyrna_struct_get_rna_type_doc,
      NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 static PyGetSetDef pyrna_struct_getseters[] = {
-    {(char *)"id_data",
+    {"id_data",
      (getter)pyrna_struct_get_id_data,
      (setter)NULL,
-     (char *)pyrna_struct_get_id_data_doc,
+     pyrna_struct_get_id_data_doc,
      NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
@@ -4801,7 +4797,7 @@ static PyGetSetDef pyrna_struct_getseters[] = {
 static PyObject *pyrna_func_doc_get(BPy_FunctionRNA *self, void *closure);
 
 static PyGetSetDef pyrna_func_getseters[] = {
-    {(char *)"__doc__", (getter)pyrna_func_doc_get, (setter)NULL, NULL, NULL},
+    {"__doc__", (getter)pyrna_func_doc_get, (setter)NULL, NULL, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 

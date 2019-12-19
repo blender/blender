@@ -199,17 +199,17 @@ static int TVertex_id_set(BPy_TVertex *self, PyObject *value, void *UNUSED(closu
 }
 
 static PyGetSetDef BPy_TVertex_getseters[] = {
-    {(char *)"front_svertex",
+    {"front_svertex",
      (getter)TVertex_front_svertex_get,
      (setter)TVertex_front_svertex_set,
-     (char *)TVertex_front_svertex_doc,
+     TVertex_front_svertex_doc,
      NULL},
-    {(char *)"back_svertex",
+    {"back_svertex",
      (getter)TVertex_back_svertex_get,
      (setter)TVertex_back_svertex_set,
-     (char *)TVertex_back_svertex_doc,
+     TVertex_back_svertex_doc,
      NULL},
-    {(char *)"id", (getter)TVertex_id_get, (setter)TVertex_id_set, (char *)TVertex_id_doc, NULL},
+    {"id", (getter)TVertex_id_get, (setter)TVertex_id_set, TVertex_id_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
