@@ -1455,7 +1455,7 @@ static float calc_nor_area_tri(float nor[3],
   sub_v3_v3v3(n2, v2, v3);
 
   cross_v3_v3v3(nor, n1, n2);
-  return normalize_v3(nor);
+  return normalize_v3(nor) / 2.0f;
 }
 
 /* XXX does not support force jacobians yet, since the effector system does not provide them either
