@@ -130,7 +130,7 @@ typedef struct OGLRender {
   int totvideos;
 
   /* For only rendering frames that have a key in animation data. */
-  unsigned int *render_frames; /* BLI_bitmap */
+  BLI_bitmap *render_frames;
 
   /* quick lookup */
   int view_id;
