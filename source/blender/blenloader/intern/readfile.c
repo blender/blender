@@ -9189,7 +9189,7 @@ static ID *create_placeholder(Main *mainvar, const short idcode, const char *idn
   ph_id->icon_id = 0;
 
   BLI_addtail(lb, ph_id);
-  id_sort_by_name(lb, ph_id);
+  id_sort_by_name(lb, ph_id, NULL);
 
   return ph_id;
 }
@@ -11590,7 +11590,7 @@ static ID *link_named_part(
       if (id) {
         /* sort by name in list */
         ListBase *lb = which_libbase(mainl, idcode);
-        id_sort_by_name(lb, id);
+        id_sort_by_name(lb, id, NULL);
       }
     }
     else {
@@ -11647,7 +11647,7 @@ int BLO_library_link_copypaste(Main *mainl, BlendHandle *bh, const unsigned int 
     if (id) {
       /* sort by name in list */
       ListBase *lb = which_libbase(mainl, GS(id->name));
-      id_sort_by_name(lb, id);
+      id_sort_by_name(lb, id, NULL);
 
       if (bhead->code == ID_OB) {
         /* Instead of instancing Base's directly, postpone until after collections are loaded

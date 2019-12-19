@@ -828,7 +828,7 @@ static void lib_relocate_do(Main *bmain,
         BLI_strncpy(&old_id->name[len], "~000", 7);
       }
 
-      id_sort_by_name(which_libbase(bmain, GS(old_id->name)), old_id);
+      id_sort_by_name(which_libbase(bmain, GS(old_id->name)), old_id, NULL);
 
       BKE_reportf(
           reports,

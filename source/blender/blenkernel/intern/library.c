@@ -1547,70 +1547,99 @@ ID *BKE_libblock_find_name(struct Main *bmain, const short type, const char *nam
   return BLI_findstring(lb, name, offsetof(ID, name) + 2);
 }
 
-#define ID_SORT_STEP_SIZE 512
-void id_sort_by_name(ListBase *lb, ID *id)
+/**
+ * Sort given \a id into given \a lb list, using case-insensitive comparison of the id names.
+ *
+ * \note All other IDs beside given one are assumed already properly sorted in the list.
+ *
+ * \param id_sorting_hint Ignored if NULL. Otherwise, used to check if we can insert \a id
+ * immediately before or after that pointer. It must always be into given \a lb list.
+ */
+void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
 {
+#define ID_SORT_STEP_SIZE 512
+
   ID *idtest;
 
   /* insert alphabetically */
-  if (lb->first != lb->last) {
-    BLI_remlink(lb, id);
+  if (lb->first == lb->last) {
+    return;
+  }
 
-    void *item_array[ID_SORT_STEP_SIZE];
-    int item_array_index;
+  BLI_remlink(lb, id);
 
-    /* Step one: We go backward over a whole chunk of items at once, until we find a limit item
-     * that is lower than, or equal (should never happen!) to the one we want to insert. */
-    /* Note: We start from the end, because in typical 'heavy' case (insertion of lots of IDs at
-     * once using the same base name), newly inserted items will generally be towards the end
-     * (higher extension numbers). */
-    for (idtest = lb->last, item_array_index = ID_SORT_STEP_SIZE - 1; idtest != NULL;
-         idtest = idtest->prev, item_array_index--) {
-      item_array[item_array_index] = idtest;
-      if (item_array_index == 0) {
-        if ((idtest->lib == NULL && id->lib != NULL) ||
-            BLI_strcasecmp(idtest->name, id->name) <= 0) {
-          /* Not directly related to this code, but having two IDs with same name is a hard
-           * catastrophic bug, so having checks for that here does not hurt... */
-          BLI_assert(BLI_strcasecmp(idtest->name, id->name) != 0 || idtest->lib != id->lib);
+  /* Check if we can actually insert id before or after id_sorting_hint, if given. */
+  if (id_sorting_hint != NULL && id_sorting_hint != id) {
+    BLI_assert(BLI_findindex(lb, id_sorting_hint) >= 0);
 
-          break;
-        }
-        item_array_index = ID_SORT_STEP_SIZE;
-      }
+    ID *id_sorting_hint_next = id_sorting_hint->next;
+    if (BLI_strcasecmp(id_sorting_hint->name, id->name) < 0 &&
+        (id_sorting_hint_next == NULL ||
+         BLI_strcasecmp(id_sorting_hint_next->name, id->name) > 0)) {
+      BLI_insertlinkafter(lb, id_sorting_hint, id);
+      return;
     }
 
-    /* Step two: we go forward in the selected chunk of items and check all of them, as we know
-     * that our target is in there. */
-
-    /* If we reached start of the list, current item_array_index is off-by-one.
-     * Otherwise, we already know that it points to an item lower-or-equal-than the one we want to
-     * insert, no need to redo the check for that one.
-     * So we can increment that index in any case. */
-    for (item_array_index++; item_array_index < ID_SORT_STEP_SIZE; item_array_index++) {
-      idtest = item_array[item_array_index];
-      if ((idtest->lib != NULL && id->lib == NULL) || BLI_strcasecmp(idtest->name, id->name) > 0) {
-        BLI_insertlinkbefore(lb, idtest, id);
-        break;
-      }
-    }
-    if (item_array_index == ID_SORT_STEP_SIZE) {
-      if (idtest == NULL) {
-        /* If idtest is NULL here, it means that in the first loop, the last comparison was
-         * performed exactly on the first item of the list, and that it also failed. In other
-         * words, all items in the list are greater than inserted one, so we can put it at the
-         * start of the list. */
-        /* Note that BLI_insertlinkafter() would have same behavior in that case, but better be
-         * explicit here. */
-        BLI_addhead(lb, id);
-      }
-      else {
-        BLI_insertlinkafter(lb, idtest, id);
-      }
+    ID *id_sorting_hint_prev = id_sorting_hint->prev;
+    if (BLI_strcasecmp(id_sorting_hint->name, id->name) > 0 &&
+        (id_sorting_hint_prev == NULL ||
+         BLI_strcasecmp(id_sorting_hint_prev->name, id->name) < 0)) {
+      BLI_insertlinkbefore(lb, id_sorting_hint, id);
+      return;
     }
   }
-}
+
+  void *item_array[ID_SORT_STEP_SIZE];
+  int item_array_index;
+
+  /* Step one: We go backward over a whole chunk of items at once, until we find a limit item
+   * that is lower than, or equal (should never happen!) to the one we want to insert. */
+  /* Note: We start from the end, because in typical 'heavy' case (insertion of lots of IDs at
+   * once using the same base name), newly inserted items will generally be towards the end
+   * (higher extension numbers). */
+  for (idtest = lb->last, item_array_index = ID_SORT_STEP_SIZE - 1; idtest != NULL;
+       idtest = idtest->prev, item_array_index--) {
+    item_array[item_array_index] = idtest;
+    if (item_array_index == 0) {
+      if ((idtest->lib == NULL && id->lib != NULL) ||
+          BLI_strcasecmp(idtest->name, id->name) <= 0) {
+        break;
+      }
+      item_array_index = ID_SORT_STEP_SIZE;
+    }
+  }
+
+  /* Step two: we go forward in the selected chunk of items and check all of them, as we know
+   * that our target is in there. */
+
+  /* If we reached start of the list, current item_array_index is off-by-one.
+   * Otherwise, we already know that it points to an item lower-or-equal-than the one we want to
+   * insert, no need to redo the check for that one.
+   * So we can increment that index in any case. */
+  for (item_array_index++; item_array_index < ID_SORT_STEP_SIZE; item_array_index++) {
+    idtest = item_array[item_array_index];
+    if ((idtest->lib != NULL && id->lib == NULL) || BLI_strcasecmp(idtest->name, id->name) > 0) {
+      BLI_insertlinkbefore(lb, idtest, id);
+      break;
+    }
+  }
+  if (item_array_index == ID_SORT_STEP_SIZE) {
+    if (idtest == NULL) {
+      /* If idtest is NULL here, it means that in the first loop, the last comparison was
+       * performed exactly on the first item of the list, and that it also failed. In other
+       * words, all items in the list are greater than inserted one, so we can put it at the
+       * start of the list. */
+      /* Note that BLI_insertlinkafter() would have same behavior in that case, but better be
+       * explicit here. */
+      BLI_addhead(lb, id);
+    }
+    else {
+      BLI_insertlinkafter(lb, idtest, id);
+    }
+  }
+
 #undef ID_SORT_STEP_SIZE
+}
 
 /* Note: this code assumes and ensures that the suffix number can never go beyond 1 billion. */
 #define MAX_NUMBER 1000000000
@@ -1667,9 +1696,11 @@ static bool id_name_final_build(char *name, char *root_name, size_t root_name_le
  * entry. The Python Library module needs to know what the name of a data-block will be before it
  * is appended, in this case ID *id is NULL.
  */
-static bool check_for_dupid(ListBase *lb, ID *id, char *name)
+static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_hint)
 {
   BLI_assert(strlen(name) < MAX_ID_NAME - 2);
+
+  *r_id_sorting_hint = NULL;
 
   ID *id_test = lb->first;
   bool is_name_changed = false;
@@ -1730,6 +1761,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
             if (!is_valid && id_test->name[2] == prev_final_name[0] &&
                 STREQ(prev_final_name, id_test->name + 2)) {
               is_valid = true;
+              *r_id_sorting_hint = id_test;
             }
           }
         }
@@ -1748,7 +1780,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 
   /* To speed up finding smallest unused number within [0 .. MAX_NUMBERS_IN_USE - 1].
    * We do not bother beyond that point. */
-  BLI_bitmap *numbers_in_use = BLI_BITMAP_NEW_ALLOCA(MAX_NUMBERS_IN_USE);
+  ID *ids_in_use[MAX_NUMBERS_IN_USE] = {NULL};
 
   bool is_first_run = true;
   while (true) {
@@ -1786,10 +1818,11 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
         }
         /* Mark number of current id_test name as used, if possible. */
         if (number_test < MAX_NUMBERS_IN_USE) {
-          BLI_BITMAP_SET(numbers_in_use, number_test, true);
+          ids_in_use[number_test] = id_test;
         }
         /* Keep track of first largest unused number. */
         if (number <= number_test) {
+          *r_id_sorting_hint = id_test;
           number = number_test + 1;
         }
       }
@@ -1805,14 +1838,20 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
       prev_final_root_name[0] = '\0';
       prev_number = MIN_NUMBER - 1;
 
+      /* Value set previously is meaningless in that case. */
+      *r_id_sorting_hint = NULL;
+
       return is_name_changed;
     }
 
     /* Decide which value of number to use, either the smallest unused one if possible, or default
      * to the first largest unused one we got from previous loop. */
     for (int i = MIN_NUMBER; i < MAX_NUMBERS_IN_USE; i++) {
-      if (!BLI_BITMAP_TEST_BOOL(numbers_in_use, i)) {
+      if (ids_in_use[i] == NULL) {
         number = i;
+        if (i > 0) {
+          *r_id_sorting_hint = ids_in_use[i - 1];
+        }
         break;
       }
     }
@@ -1829,7 +1868,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
      * have to go over the whole check again. */
     if (!id_name_final_build(name, root_name, root_name_len, number)) {
       /* We have to clear our list of small used numbers before we do the whole check again. */
-      BLI_bitmap_set_all(numbers_in_use, false, MAX_NUMBERS_IN_USE);
+      memset(ids_in_use, 0, sizeof(ids_in_use));
 
       continue;
     }
@@ -1884,7 +1923,8 @@ bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname)
     BLI_utf8_invalid_strip(name, strlen(name));
   }
 
-  result = check_for_dupid(lb, id, name);
+  ID *id_sorting_hint = NULL;
+  result = check_for_dupid(lb, id, name, &id_sorting_hint);
   strcpy(id->name + 2, name);
 
   /* This was in 2.43 and previous releases
@@ -1893,11 +1933,11 @@ bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname)
    * functions work, so sort every time. */
 #if 0
   if (result) {
-    id_sort_by_name(lb, id);
+    id_sort_by_name(lb, id, id_sorting_hint);
   }
 #endif
 
-  id_sort_by_name(lb, id);
+  id_sort_by_name(lb, id, id_sorting_hint);
 
   return result;
 }

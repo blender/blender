@@ -873,7 +873,7 @@ bool BKE_blendfile_write_partial(Main *bmain_src,
 
     while ((id = BLI_pophead(lb_src))) {
       BLI_addtail(lb_dst, id);
-      id_sort_by_name(lb_dst, id);
+      id_sort_by_name(lb_dst, id, NULL);
     }
   }
 

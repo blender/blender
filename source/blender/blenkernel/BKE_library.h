@@ -199,7 +199,7 @@ bool BKE_id_copy_is_allowed(const struct ID *id);
 bool BKE_id_copy(struct Main *bmain, const struct ID *id, struct ID **newid);
 bool BKE_id_copy_ex(struct Main *bmain, const struct ID *id, struct ID **r_newid, const int flag);
 void BKE_id_swap(struct Main *bmain, struct ID *id_a, struct ID *id_b);
-void id_sort_by_name(struct ListBase *lb, struct ID *id);
+void id_sort_by_name(struct ListBase *lb, struct ID *id, struct ID *id_sorting_hint);
 void BKE_id_expand_local(struct Main *bmain, struct ID *id);
 void BKE_id_copy_ensure_local(struct Main *bmain, const struct ID *old_id, struct ID *new_id);
 
