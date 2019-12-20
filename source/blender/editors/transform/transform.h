@@ -649,7 +649,7 @@ typedef struct TransInfo {
     short index;
     short *types[2];
     /* this gets used when custom_orientation is V3D_ORIENT_CUSTOM */
-    TransformOrientation *custom;
+    struct TransformOrientation *custom;
   } orientation;
   /** backup from view3d, to restore on end. */
   short gizmo_flag;

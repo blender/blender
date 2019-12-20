@@ -59,6 +59,7 @@ set(SRC
   transform_convert_sculpt.c
   transform_convert_sequencer.c
   transform_convert_tracking.c
+  transform_draw_cursors.c
   transform_generics.c
   transform_gizmo_2d.c
   transform_gizmo_3d.c
@@ -71,6 +72,7 @@ set(SRC
 
   transform.h
   transform_convert.h
+  transform_draw_cursors.h
   transform_snap.h
 )
 
