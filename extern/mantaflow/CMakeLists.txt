@@ -23,6 +23,14 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+# Mantaflow triggers a clang-cl compiler error with versions before 9.0.1
+# Since mantaflow does not appear to be using OpenMP at this point in time,
+# disable the flag for now. See https://bugs.llvm.org/show_bug.cgi?id=43175 for details.
+
+if(MSVC_CLANG AND WITH_OPENMP AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0.1")
+  remove_cc_flag("-fopenmp")
+endif()
+
 set(MANTAVERSION "0.12")
 
 add_definitions(-DWITH_FLUID=1)
