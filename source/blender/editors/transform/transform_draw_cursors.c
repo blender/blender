@@ -38,27 +38,33 @@
 #include "transform.h"
 #include "transform_draw_cursors.h" /* Own include. */
 
-typedef enum {
+enum eArrowDirection {
   UP,
   DOWN,
   LEFT,
   RIGHT,
-} ArrowDirection;
+};
+
+struct ArrowDims {
+  int offset;
+  int length;
+  int size;
+};
 
 #define POS_INDEX 0
 /* NOTE: this --^ is a bit hackish, but simplifies GPUVertFormat usage among functions
  * private to this file  - merwin
  */
 
-static void drawArrow(ArrowDirection d, short offset, short length, short size)
+static void drawArrow(enum eArrowDirection dir, const struct ArrowDims *arrow_dims)
 {
+  int offset = arrow_dims->offset;
+  int length = arrow_dims->length;
+  int size = arrow_dims->size;
+
   immBegin(GPU_PRIM_LINES, 6);
 
-  offset = round_fl_to_short(UI_DPI_FAC * offset);
-  length = round_fl_to_short(UI_DPI_FAC * length);
-  size = round_fl_to_short(UI_DPI_FAC * size);
-
-  switch (d) {
+  switch (dir) {
     case LEFT:
       offset = -offset;
       length = -length;
@@ -91,13 +97,11 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
   immEnd();
 }
 
-static void drawArrowHead(ArrowDirection d, short size)
+static void drawArrowHead(enum eArrowDirection dir, int size)
 {
-  size = round_fl_to_short(UI_DPI_FAC * size);
-
   immBegin(GPU_PRIM_LINES, 4);
 
-  switch (d) {
+  switch (dir) {
     case LEFT:
       size = -size;
       ATTR_FALLTHROUGH;
@@ -124,8 +128,6 @@ static void drawArrowHead(ArrowDirection d, short size)
 
 static void drawArc(float angle_start, float angle_end, int segments, float size)
 {
-  segments = round_fl_to_int(segments * UI_DPI_FAC);
-
   float delta = (angle_end - angle_start) / segments;
   float angle;
   int a;
@@ -163,12 +165,14 @@ void transform_draw_cursor_draw(bContext *UNUSED(C), int x, int y, void *customd
   TransInfo *t = (TransInfo *)customdata;
 
   if (t->helpline != HLP_NONE) {
-    float cent[2];
-    const float mval[3] = {
-        x,
-        y,
-        0.0f,
+    struct ArrowDims arrow_dims = {
+        .offset = 5 * UI_DPI_FAC,
+        .length = 10 * UI_DPI_FAC,
+        .size = 5 * UI_DPI_FAC,
     };
+
+    float cent[2];
+    const float mval[3] = {x, y, 0.0f};
     float tmval[2] = {
         (float)t->mval[0],
         (float)t->mval[1],
@@ -234,16 +238,16 @@ void transform_draw_cursor_draw(bContext *UNUSED(C), int x, int y, void *customd
         GPU_matrix_rotate_axis(-RAD2DEGF(atan2f(cent[0] - tmval[0], cent[1] - tmval[1])), 'Z');
 
         GPU_line_width(3.0f);
-        drawArrow(UP, 5, 10, 5);
-        drawArrow(DOWN, 5, 10, 5);
+        drawArrow(UP, &arrow_dims);
+        drawArrow(DOWN, &arrow_dims);
         break;
       case HLP_HARROW:
         immUniformThemeColor3(TH_VIEW_OVERLAY);
         GPU_matrix_translate_3fv(mval);
 
         GPU_line_width(3.0f);
-        drawArrow(RIGHT, 5, 10, 5);
-        drawArrow(LEFT, 5, 10, 5);
+        drawArrow(RIGHT, &arrow_dims);
+        drawArrow(LEFT, &arrow_dims);
         break;
       case HLP_VARROW:
         immUniformThemeColor3(TH_VIEW_OVERLAY);
@@ -251,8 +255,8 @@ void transform_draw_cursor_draw(bContext *UNUSED(C), int x, int y, void *customd
         GPU_matrix_translate_3fv(mval);
 
         GPU_line_width(3.0f);
-        drawArrow(UP, 5, 10, 5);
-        drawArrow(DOWN, 5, 10, 5);
+        drawArrow(UP, &arrow_dims);
+        drawArrow(DOWN, &arrow_dims);
         break;
       case HLP_CARROW: {
         /* Draw arrow based on direction defined by custom-points. */
@@ -270,8 +274,8 @@ void transform_draw_cursor_draw(bContext *UNUSED(C), int x, int y, void *customd
 
         GPU_matrix_rotate_axis(RAD2DEGF(angle), 'Z');
 
-        drawArrow(UP, 5, 10, 5);
-        drawArrow(DOWN, 5, 10, 5);
+        drawArrow(UP, &arrow_dims);
+        drawArrow(DOWN, &arrow_dims);
 
         GPU_matrix_pop();
         break;
@@ -297,7 +301,7 @@ void transform_draw_cursor_draw(bContext *UNUSED(C), int x, int y, void *customd
             cosf(angle - delta_angle) * dist, sinf(angle - delta_angle) * dist, 0);
         GPU_matrix_rotate_axis(RAD2DEGF(angle - delta_angle), 'Z');
 
-        drawArrowHead(DOWN, 5);
+        drawArrowHead(DOWN, arrow_dims.size);
 
         GPU_matrix_pop();
 
@@ -305,7 +309,7 @@ void transform_draw_cursor_draw(bContext *UNUSED(C), int x, int y, void *customd
             cosf(angle + delta_angle) * dist, sinf(angle + delta_angle) * dist, 0);
         GPU_matrix_rotate_axis(RAD2DEGF(angle + delta_angle), 'Z');
 
-        drawArrowHead(UP, 5);
+        drawArrowHead(UP, arrow_dims.size);
         break;
       }
       case HLP_TRACKBALL: {
@@ -319,14 +323,14 @@ void transform_draw_cursor_draw(bContext *UNUSED(C), int x, int y, void *customd
         UI_make_axis_color(col, col2, 'X');
         immUniformColor3ubv(col2);
 
-        drawArrow(RIGHT, 5, 10, 5);
-        drawArrow(LEFT, 5, 10, 5);
+        drawArrow(RIGHT, &arrow_dims);
+        drawArrow(LEFT, &arrow_dims);
 
         UI_make_axis_color(col, col2, 'Y');
         immUniformColor3ubv(col2);
 
-        drawArrow(UP, 5, 10, 5);
-        drawArrow(DOWN, 5, 10, 5);
+        drawArrow(UP, &arrow_dims);
+        drawArrow(DOWN, &arrow_dims);
         break;
       }
     }
