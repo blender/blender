@@ -3484,6 +3484,7 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
 
   const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
+  const bool use_pre_deselect = SEL_OP_USE_PRE_DESELECT(sel_op);
 
   pinned = RNA_boolean_get(op->ptr, "pinned");
 
@@ -3493,7 +3494,7 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       view_layer, ((View3D *)NULL), &objects_len);
 
-  if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+  if (use_pre_deselect) {
     uv_select_all_perform_multi(scene, ima, objects, objects_len, SEL_DESELECT);
   }
 
@@ -3510,8 +3511,6 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
     if (use_face_center && !pinned) {
       /* handle face selection mode */
       float cent[2];
-
-      changed = false;
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         /* assume not touched */
@@ -3565,7 +3564,7 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
       }
     }
 
-    if (changed) {
+    if (changed || use_pre_deselect) {
       changed_multi = true;
 
       uv_select_sync_flush(ts, em, select);
@@ -3661,9 +3660,10 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = ED_select_op_modal(RNA_enum_get(op->ptr, "mode"),
                                               WM_gesture_is_modal_first(op->customdata));
   const bool select = (sel_op != SEL_OP_SUB);
-  if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+  const bool use_pre_deselect = SEL_OP_USE_PRE_DESELECT(sel_op);
+
+  if (use_pre_deselect) {
     uv_select_all_perform_multi(scene, ima, objects, objects_len, SEL_DESELECT);
-    changed_multi = true;
   }
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -3676,7 +3676,6 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 
     /* do selection */
     if (use_face_center) {
-      changed = false;
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         BM_elem_flag_disable(efa, BM_ELEM_TAG);
         /* assume not touched */
@@ -3714,7 +3713,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
       }
     }
 
-    if (changed) {
+    if (changed || use_pre_deselect) {
       changed_multi = true;
 
       uv_select_sync_flush(ts, em, select);
@@ -3770,6 +3769,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
                                     (ts->selectmode == SCE_SELECT_FACE) :
                                     (ts->uv_selectmode == UV_SELECT_FACE));
   const bool select = (sel_op != SEL_OP_SUB);
+  const bool use_pre_deselect = SEL_OP_USE_PRE_DESELECT(sel_op);
 
   BMIter iter, liter;
 
@@ -3785,7 +3785,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       view_layer, ((View3D *)NULL), &objects_len);
 
-  if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+  if (use_pre_deselect) {
     uv_select_all_perform_multi(scene, ima, objects, objects_len, SEL_DESELECT);
   }
 
@@ -3850,7 +3850,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
       }
     }
 
-    if (changed) {
+    if (changed || use_pre_deselect) {
       changed_multi = true;
 
       uv_select_sync_flush(ts, em, select);
