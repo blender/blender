@@ -1651,40 +1651,40 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
 #define MAX_NUMBERS_IN_USE 1024
 
 /**
- * Helper building final ID name from given root_name and number.
+ * Helper building final ID name from given base_name and number.
  *
  * If everything goes well and we do generate a valid final ID anme in given name, we return true.
  * In case the final name would overflow the allowed ID name length, or given number is bigger than
- * maximum allowed value, we truncate further the root_name (and given name, which is assumed to
- * have the same 'root_name' part), and return false.
+ * maximum allowed value, we truncate further the base_name (and given name, which is assumed to
+ * have the same 'base_name' part), and return false.
  */
-static bool id_name_final_build(char *name, char *root_name, size_t root_name_len, int number)
+static bool id_name_final_build(char *name, char *base_name, size_t base_name_len, int number)
 {
   char number_str[11]; /* Dot + nine digits + NULL terminator. */
   size_t number_str_len = BLI_snprintf_rlen(number_str, ARRAY_SIZE(number_str), ".%.3d", number);
 
   /* If the number would lead to an overflow of the maximum ID name length, we need to truncate
-   * the root name part and do all the number checks again. */
-  if (root_name_len + number_str_len >= MAX_ID_NAME - 2 || number >= MAX_NUMBER) {
-    if (root_name_len + number_str_len >= MAX_ID_NAME - 2) {
-      root_name_len = MAX_ID_NAME - 2 - number_str_len - 1;
+   * the base name part and do all the number checks again. */
+  if (base_name_len + number_str_len >= MAX_ID_NAME - 2 || number >= MAX_NUMBER) {
+    if (base_name_len + number_str_len >= MAX_ID_NAME - 2) {
+      base_name_len = MAX_ID_NAME - 2 - number_str_len - 1;
     }
     else {
-      root_name_len--;
+      base_name_len--;
     }
-    root_name[root_name_len] = '\0';
+    base_name[base_name_len] = '\0';
 
     /* Code above may have generated invalid utf-8 string, due to raw truncation.
      * Ensure we get a valid one now. */
-    root_name_len -= (size_t)BLI_utf8_invalid_strip(root_name, root_name_len);
+    base_name_len -= (size_t)BLI_utf8_invalid_strip(base_name, base_name_len);
 
     /* Also truncate orig name, and start the whole check again. */
-    name[root_name_len] = '\0';
+    name[base_name_len] = '\0';
     return false;
   }
 
   /* We have our final number, we can put it in name and exit the function. */
-  BLI_strncpy(name + root_name_len, number_str, number_str_len + 1);
+  BLI_strncpy(name + base_name_len, number_str, number_str_len + 1);
   return true;
 }
 
@@ -1712,9 +1712,9 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
   const short id_type = (short)GS(id_test->name);
 
   /* Static storage of previous handled ID/name info, used to perform a quicker test and optimize
-   * creation of huge number of IDs using the same given root name. */
-  static char prev_orig_root_name[MAX_ID_NAME - 2] = {0};
-  static char prev_final_root_name[MAX_ID_NAME - 2] = {0};
+   * creation of huge number of IDs using the same given base name. */
+  static char prev_orig_base_name[MAX_ID_NAME - 2] = {0};
+  static char prev_final_base_name[MAX_ID_NAME - 2] = {0};
   static short prev_id_type = ID_LINK_PLACEHOLDER; /* Should never exist in actual ID list. */
   static int prev_number = MIN_NUMBER - 1;
 
@@ -1723,28 +1723,28 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
    * available number in some cases, and benefits of this special case handling mostly show up with
    * high numbers anyway. */
   if (id_type == prev_id_type && prev_number >= MAX_NUMBERS_IN_USE &&
-      prev_number < MAX_NUMBER - 1 && name[0] == prev_final_root_name[0]) {
+      prev_number < MAX_NUMBER - 1 && name[0] == prev_final_base_name[0]) {
 
     /* Get the name and number parts ("name.number"). */
-    char root_name[MAX_ID_NAME - 2];
+    char base_name[MAX_ID_NAME - 2];
     int number = MIN_NUMBER;
-    size_t root_name_len = BLI_split_name_num(root_name, &number, name, '.');
-    size_t prev_final_root_name_len = strlen(prev_final_root_name);
-    size_t prev_orig_root_name_len = strlen(prev_orig_root_name);
+    size_t base_name_len = BLI_split_name_num(base_name, &number, name, '.');
+    size_t prev_final_base_name_len = strlen(prev_final_base_name);
+    size_t prev_orig_base_name_len = strlen(prev_orig_base_name);
 
-    if (root_name_len == prev_orig_root_name_len &&
-        STREQLEN(root_name, prev_orig_root_name, prev_orig_root_name_len)) {
-      /* Once we have ensured given root_name and original previous one are the same, we can check
+    if (base_name_len == prev_orig_base_name_len &&
+        STREQLEN(base_name, prev_orig_base_name, prev_orig_base_name_len)) {
+      /* Once we have ensured given base_name and original previous one are the same, we can check
        * that previously used number is actually used, and that next one is free. */
-      /* Note that from now on, we only used previous final root name, as it might have been
+      /* Note that from now on, we only used previous final base name, as it might have been
        * truncated from original one due to number suffix length. */
       char final_name[MAX_ID_NAME - 2];
       char prev_final_name[MAX_ID_NAME - 2];
-      BLI_strncpy(final_name, prev_final_root_name, prev_final_root_name_len + 1);
-      BLI_strncpy(prev_final_name, prev_final_root_name, prev_final_root_name_len + 1);
+      BLI_strncpy(final_name, prev_final_base_name, prev_final_base_name_len + 1);
+      BLI_strncpy(prev_final_name, prev_final_base_name, prev_final_base_name_len + 1);
 
-      if (id_name_final_build(final_name, root_name, prev_final_root_name_len, prev_number + 1) &&
-          id_name_final_build(prev_final_name, root_name, prev_final_root_name_len, prev_number)) {
+      if (id_name_final_build(final_name, base_name, prev_final_base_name_len, prev_number + 1) &&
+          id_name_final_build(prev_final_name, base_name, prev_final_base_name_len, prev_number)) {
         /* We succeffuly built valid final names of previous and current iterations, now we have to
          * ensure that previous final name is indeed used in curent ID list, and that current one
          * is not. */
@@ -1767,8 +1767,8 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
         }
 
         if (is_valid) {
-          /* Only the number changed, prev_orig_root_name, prev_root_name and prev_id_type remain
-           * the same. */
+          /* Only the number changed, prev_orig_base_name, prev_final_base_name and prev_id_type
+           * remain the same. */
           prev_number++;
 
           strcpy(name, final_name);
@@ -1785,13 +1785,13 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
   bool is_first_run = true;
   while (true) {
     /* Get the name and number parts ("name.number"). */
-    char root_name[MAX_ID_NAME - 2];
+    char base_name[MAX_ID_NAME - 2];
     int number = MIN_NUMBER;
-    size_t root_name_len = BLI_split_name_num(root_name, &number, name, '.');
+    size_t base_name_len = BLI_split_name_num(base_name, &number, name, '.');
 
-    /* Store previous original given root name now, as we might alter it later in code below. */
+    /* Store previous original given base name now, as we might alter it later in code below. */
     if (is_first_run) {
-      strcpy(prev_orig_root_name, root_name);
+      strcpy(prev_orig_base_name, base_name);
       is_first_run = false;
     }
 
@@ -1804,17 +1804,17 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
 
     bool is_orig_name_used = false;
     for (id_test = lb->first; id_test; id_test = id_test->next) {
-      char root_name_test[MAX_ID_NAME - 2];
+      char base_name_test[MAX_ID_NAME - 2];
       int number_test;
       if ((id != id_test) && !ID_IS_LINKED(id_test) && (name[0] == id_test->name[2]) &&
-          (id_test->name[root_name_len + 2] == '.' || id_test->name[root_name_len + 2] == '\0') &&
-          STREQLEN(name, id_test->name + 2, root_name_len) &&
-          (BLI_split_name_num(root_name_test, &number_test, id_test->name + 2, '.') ==
-           root_name_len)) {
+          (id_test->name[base_name_len + 2] == '.' || id_test->name[base_name_len + 2] == '\0') &&
+          STREQLEN(name, id_test->name + 2, base_name_len) &&
+          (BLI_split_name_num(base_name_test, &number_test, id_test->name + 2, '.') ==
+           base_name_len)) {
         /* If we did not yet encounter exact same name as the given one, check the remaining parts
          * of the strings. */
         if (!is_orig_name_used) {
-          is_orig_name_used = STREQ(name + root_name_len, id_test->name + 2 + root_name_len);
+          is_orig_name_used = STREQ(name + base_name_len, id_test->name + 2 + base_name_len);
         }
         /* Mark number of current id_test name as used, if possible. */
         if (number_test < MAX_NUMBERS_IN_USE) {
@@ -1835,7 +1835,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
       /* Don't bother updating prev_ static variables here, this case is not supposed to happen
        * that often, and is not straight-forward here, so just ignore and reset them to default. */
       prev_id_type = ID_LINK_PLACEHOLDER;
-      prev_final_root_name[0] = '\0';
+      prev_final_base_name[0] = '\0';
       prev_number = MIN_NUMBER - 1;
 
       /* Value set previously is meaningless in that case. */
@@ -1866,7 +1866,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
 
     /* If id_name_final_build helper returns false, it had to truncate further given name, hence we
      * have to go over the whole check again. */
-    if (!id_name_final_build(name, root_name, root_name_len, number)) {
+    if (!id_name_final_build(name, base_name, base_name_len, number)) {
       /* We have to clear our list of small used numbers before we do the whole check again. */
       memset(ids_in_use, 0, sizeof(ids_in_use));
 
@@ -1874,9 +1874,9 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
     }
 
     /* Update prev_ static variables, in case next call is for the same type of IDs and with the
-     * same initial root name, we can skip a lot of above process. */
+     * same initial base name, we can skip a lot of above process. */
     prev_id_type = id_type;
-    strcpy(prev_final_root_name, root_name);
+    strcpy(prev_final_base_name, base_name);
     prev_number = number;
 
     return is_name_changed;
