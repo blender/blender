@@ -228,6 +228,8 @@ struct wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *han
 typedef struct wmKeyMap *(wmEventHandler_KeymapDynamicFn)(
     wmWindowManager *wm, struct wmEventHandler_Keymap *handler)ATTR_WARN_UNUSED_RESULT;
 
+struct wmKeyMap *WM_event_get_keymap_from_toolsystem_fallback(
+    struct wmWindowManager *wm, struct wmEventHandler_Keymap *handler);
 struct wmKeyMap *WM_event_get_keymap_from_toolsystem(struct wmWindowManager *wm,
                                                      struct wmEventHandler_Keymap *handler);
 

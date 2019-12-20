@@ -1595,6 +1595,8 @@ static void ed_default_handlers(
     }
   }
   if (flag & ED_KEYMAP_TOOL) {
+    WM_event_add_keymap_handler_dynamic(
+        &ar->handlers, WM_event_get_keymap_from_toolsystem_fallback, sa);
     WM_event_add_keymap_handler_dynamic(&ar->handlers, WM_event_get_keymap_from_toolsystem, sa);
   }
   if (flag & ED_KEYMAP_VIEW2D) {
