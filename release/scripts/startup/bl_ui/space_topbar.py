@@ -243,6 +243,16 @@ class TOPBAR_MT_app(Menu):
                         text="Install Application Template...")
 
 
+class TOPBAR_MT_file_cleanup(Menu):
+    bl_label = "Clean Up"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.separator()
+
+        layout.operator("outliner.orphans_purge")
+
+
 class TOPBAR_MT_file(Menu):
     bl_label = "File"
 
@@ -281,6 +291,7 @@ class TOPBAR_MT_file(Menu):
         layout.separator()
 
         layout.menu("TOPBAR_MT_file_external_data")
+        layout.menu("TOPBAR_MT_file_cleanup")
 
         layout.separator()
 
@@ -823,6 +834,7 @@ classes = (
     TOPBAR_MT_file_import,
     TOPBAR_MT_file_export,
     TOPBAR_MT_file_external_data,
+    TOPBAR_MT_file_cleanup,
     TOPBAR_MT_file_previews,
     TOPBAR_MT_edit,
     TOPBAR_MT_render,

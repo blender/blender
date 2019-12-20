@@ -1311,7 +1311,8 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
       outliner_show_active(so, ar, te, id);
     }
 
-    /* Also open back from the active_element (only done for the first found occurance of ID though). */
+    /* Also open back from the active_element (only done for the first found occurance of ID
+     * though). */
     outliner_show_active(so, ar, active_element, id);
 
     /* Center view on first element found */
@@ -2176,9 +2177,15 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 static bool ed_operator_outliner_id_orphans_active(bContext *C)
 {
   ScrArea *sa = CTX_wm_area(C);
-  if ((sa) && (sa->spacetype == SPACE_OUTLINER)) {
-    SpaceOutliner *so = CTX_wm_space_outliner(C);
-    return (so->outlinevis == SO_ID_ORPHANS);
+  if (sa != NULL) {
+    if (sa->spacetype == SPACE_TOPBAR) {
+      return true;
+    }
+
+    if (sa->spacetype == SPACE_OUTLINER) {
+      SpaceOutliner *so = CTX_wm_space_outliner(C);
+      return (so->outlinevis == SO_ID_ORPHANS);
+    }
   }
   return 0;
 }
@@ -2245,6 +2252,7 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
 static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
+  ScrArea *sa = CTX_wm_area(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   int num_tagged[INDEX_ID_MAX] = {0};
 
@@ -2271,7 +2279,9 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
    *      outliner several mouse events can be handled in one cycle without
    *      handling notifiers/redraw which leads to deleting the same object twice.
    *      cleanup tree here to prevent such cases. */
-  outliner_cleanup_tree(soops);
+  if ((sa != NULL) && (sa->spacetype == SPACE_OUTLINER)) {
+    outliner_cleanup_tree(soops);
+  }
 
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_ID | NA_EDITED, NULL);
