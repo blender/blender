@@ -1219,7 +1219,7 @@ static int multitex(Tex *tex,
               tex, tex->ima, NULL, texvec, dxt, dyt, texres, pool, skip_load_image);
         }
         else {
-          retval = imagewrap(tex, tex->ima, NULL, texvec, texres, pool, skip_load_image);
+          retval = imagewrap(tex, tex->ima, texvec, texres, pool, skip_load_image);
         }
         if (tex->ima) {
           BKE_image_tag_time(tex->ima);

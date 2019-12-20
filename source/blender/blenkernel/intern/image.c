@@ -4652,6 +4652,9 @@ static void image_get_entry_and_index(Image *ima, ImageUser *iuser, int *r_entry
       frame = iuser ? iuser->framenr : ima->lastframe;
     }
   }
+  else if (ima->source == IMA_SRC_TILED) {
+    frame = (iuser && iuser->tile) ? iuser->tile : 1001;
+  }
 
   *r_entry = frame;
   *r_index = index;

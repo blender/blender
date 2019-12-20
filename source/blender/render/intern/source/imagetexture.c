@@ -100,7 +100,6 @@ static void ibuf_get_color(float col[4], struct ImBuf *ibuf, int x, int y)
 
 int imagewrap(Tex *tex,
               Image *ima,
-              ImBuf *ibuf,
               const float texvec[3],
               TexResult *texres,
               struct ImagePool *pool,
@@ -116,35 +115,44 @@ int imagewrap(Tex *tex,
   retval = texres->nor ? 3 : 1;
 
   /* quick tests */
-  if (ibuf == NULL && ima == NULL) {
+  if (ima == NULL) {
     return retval;
   }
-  if (ima) {
 
-    /* hack for icon render */
-    if (skip_load_image && !BKE_image_has_loaded_ibuf(ima)) {
-      return retval;
-    }
-
-    ibuf = BKE_image_pool_acquire_ibuf(ima, &tex->iuser, pool);
-
-    ima->flag |= IMA_USED_FOR_RENDER;
+  /* hack for icon render */
+  if (skip_load_image && !BKE_image_has_loaded_ibuf(ima)) {
+    return retval;
   }
+
+  ImageUser *iuser = &tex->iuser;
+  ImageUser local_iuser;
+  if (ima->source == IMA_SRC_TILED) {
+    /* tex->iuser might be shared by threads, so create a local copy. */
+    local_iuser = tex->iuser;
+    iuser = &local_iuser;
+
+    float new_uv[2];
+    iuser->tile = BKE_image_get_tile_from_pos(ima, texvec, new_uv, NULL);
+    fx = new_uv[0];
+    fy = new_uv[1];
+  }
+  else {
+    fx = texvec[0];
+    fy = texvec[1];
+  }
+
+  ImBuf *ibuf = BKE_image_pool_acquire_ibuf(ima, iuser, pool);
+
+  ima->flag |= IMA_USED_FOR_RENDER;
+
   if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) {
-    if (ima) {
-      BKE_image_pool_release_ibuf(ima, ibuf, pool);
-    }
+    BKE_image_pool_release_ibuf(ima, ibuf, pool);
     return retval;
   }
 
   /* setup mapping */
   if (tex->imaflag & TEX_IMAROT) {
-    fy = texvec[0];
-    fx = texvec[1];
-  }
-  else {
-    fx = texvec[0];
-    fy = texvec[1];
+    SWAP(float, fx, fy);
   }
 
   if (tex->extend == TEX_CHECKER) {

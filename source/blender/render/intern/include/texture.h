@@ -83,7 +83,6 @@ int imagewraposa(struct Tex *tex,
                  const bool skip_load_image);
 int imagewrap(struct Tex *tex,
               struct Image *ima,
-              struct ImBuf *ibuf,
               const float texvec[3],
               struct TexResult *texres,
               struct ImagePool *pool,
