@@ -2339,7 +2339,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
   /* calculate pivot for rotation around seletion if needed */
   /* also needed for "View Selected" on last stroke */
-  paint_last_stroke_update(scene, ss->cache->true_location);
+  float loc_world[3];
+  mul_v3_m4v3(loc_world, ob->obmat, ss->cache->true_location);
+  paint_last_stroke_update(scene, loc_world);
 
   BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 
@@ -3314,7 +3316,9 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
   /* calculate pivot for rotation around seletion if needed */
   /* also needed for "View Selected" on last stroke */
-  paint_last_stroke_update(scene, ss->cache->true_location);
+  float loc_world[3];
+  mul_v3_m4v3(loc_world, ob->obmat, ss->cache->true_location);
+  paint_last_stroke_update(scene, loc_world);
 
   ED_region_tag_redraw(vc->ar);
 
