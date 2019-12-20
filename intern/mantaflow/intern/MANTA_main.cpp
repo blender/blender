@@ -2028,10 +2028,14 @@ static PyObject *callPythonFunction(std::string varName,
 
 static char *pyObjectToString(PyObject *inputObject)
 {
+  PyGILState_STATE gilstate = PyGILState_Ensure();
+
   PyObject *encoded = PyUnicode_AsUTF8String(inputObject);
   char *result = PyBytes_AsString(encoded);
   Py_DECREF(encoded);
   Py_DECREF(inputObject);
+
+  PyGILState_Release(gilstate);
   return result;
 }
 
