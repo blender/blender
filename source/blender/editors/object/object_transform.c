@@ -72,6 +72,7 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_gpencil.h"
+#include "ED_object.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -292,6 +293,8 @@ static int object_clear_transform_generic_exec(bContext *C,
                                                void (*clear_func)(Object *, const bool),
                                                const char default_ksName[])
 {
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   KeyingSet *ks;
   const bool clear_delta = RNA_boolean_get(op->ptr, "clear_delta");
@@ -304,6 +307,16 @@ static int object_clear_transform_generic_exec(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
+  /* Support transforming the object data. */
+  const bool use_transform_data_origin = (scene->toolsettings->transform_flag &
+                                          SCE_XFORM_DATA_ORIGIN);
+  struct XFormObjectData_Container *xds = NULL;
+
+  if (use_transform_data_origin) {
+    BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+    xds = ED_object_data_xform_container_create();
+  }
+
   /* get KeyingSet to use */
   ks = ANIM_get_keyingset_for_autokeying(scene, default_ksName);
 
@@ -311,17 +324,28 @@ static int object_clear_transform_generic_exec(bContext *C,
    * (so that object-transform clearing won't be applied at same time as bone-clearing)
    */
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
-    if (!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
-      /* run provided clearing function */
-      clear_func(ob, clear_delta);
-
-      ED_autokeyframe_object(C, scene, ob, ks);
-
-      /* tag for updates */
-      DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+    if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+      continue;
     }
+
+    if (use_transform_data_origin) {
+      ED_object_data_xform_container_item_ensure(xds, ob);
+    }
+
+    /* run provided clearing function */
+    clear_func(ob, clear_delta);
+
+    ED_autokeyframe_object(C, scene, ob, ks);
+
+    /* tag for updates */
+    DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
   }
   CTX_DATA_END;
+
+  if (use_transform_data_origin) {
+    ED_object_data_xform_container_update_all(xds, bmain, depsgraph);
+    ED_object_data_xform_container_destroy(xds);
+  }
 
   /* this is needed so children are also updated */
   WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
