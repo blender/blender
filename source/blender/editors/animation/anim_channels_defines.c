@@ -5057,72 +5057,76 @@ void ANIM_channel_draw_widgets(const bContext *C,
         }
         /* Special for Grease Pencil Layer. */
         else if (ale->type == ANIMTYPE_GPLAYER) {
-          /* Add some offset to make it more pleasing to the eye. */
-          offset += SLIDER_WIDTH / 2.1f;
+          bGPdata *gpd = (bGPdata *)ale->id;
+          if ((gpd != NULL) && ((gpd->flag & GP_DATA_ANNOTATIONS) == 0)) {
+            /* Add some offset to make it more pleasing to the eye. */
+            offset += SLIDER_WIDTH / 2.1f;
 
-          char *gp_rna_path = NULL;
-          bGPDlayer *gpl = (bGPDlayer *)ale->data;
-          const short width = SLIDER_WIDTH / 5;
+            char *gp_rna_path = NULL;
+            bGPDlayer *gpl = (bGPDlayer *)ale->data;
+            const short width = SLIDER_WIDTH / 5;
 
-          /* Create the RNA pointers. */
-          RNA_pointer_create(ale->id, &RNA_GPencilLayer, ale->data, &ptr);
-          RNA_id_pointer_create(ale->id, &id_ptr);
-          int icon;
+            /* Create the RNA pointers. */
+            RNA_pointer_create(ale->id, &RNA_GPencilLayer, ale->data, &ptr);
+            RNA_id_pointer_create(ale->id, &id_ptr);
+            int icon;
 
-          /* Layer opacity. */
-          UI_block_emboss_set(block, UI_EMBOSS);
-          prop = RNA_struct_find_property(&ptr, "opacity");
-          gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
-          if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
-            uiDefAutoButR(block,
-                          &ptr,
-                          prop,
-                          array_index,
-                          "",
-                          ICON_NONE,
-                          offset,
-                          ymid,
-                          width * 3,
-                          channel_height);
+            /* Layer opacity. */
+            UI_block_emboss_set(block, UI_EMBOSS);
+            prop = RNA_struct_find_property(&ptr, "opacity");
+            gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
+            if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
+              uiDefAutoButR(block,
+                            &ptr,
+                            prop,
+                            array_index,
+                            "",
+                            ICON_NONE,
+                            offset,
+                            ymid,
+                            width * 3,
+                            channel_height);
+            }
+            MEM_freeN(gp_rna_path);
+
+            /* Mask Layer. */
+            UI_block_emboss_set(block, UI_EMBOSS_NONE);
+            prop = RNA_struct_find_property(&ptr, "mask_layer");
+            gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
+            if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
+              icon = (gpl->flag & GP_LAYER_USE_MASK) ? ICON_MOD_MASK : ICON_LAYER_ACTIVE;
+              uiDefAutoButR(block,
+                            &ptr,
+                            prop,
+                            array_index,
+                            "",
+                            icon,
+                            offset + (width * 3),
+                            ymid,
+                            width,
+                            channel_height);
+            }
+            MEM_freeN(gp_rna_path);
+
+            /* Layer onion skinning switch. */
+            prop = RNA_struct_find_property(&ptr, "use_onion_skinning");
+            gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
+            if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
+              icon = (gpl->onion_flag & GP_LAYER_ONIONSKIN) ? ICON_ONIONSKIN_ON :
+                                                              ICON_ONIONSKIN_OFF;
+              uiDefAutoButR(block,
+                            &ptr,
+                            prop,
+                            array_index,
+                            "",
+                            icon,
+                            offset + (width * 4),
+                            ymid,
+                            width,
+                            channel_height);
+            }
+            MEM_freeN(gp_rna_path);
           }
-          MEM_freeN(gp_rna_path);
-
-          /* Mask Layer. */
-          UI_block_emboss_set(block, UI_EMBOSS_NONE);
-          prop = RNA_struct_find_property(&ptr, "mask_layer");
-          gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
-          if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
-            icon = (gpl->flag & GP_LAYER_USE_MASK) ? ICON_MOD_MASK : ICON_LAYER_ACTIVE;
-            uiDefAutoButR(block,
-                          &ptr,
-                          prop,
-                          array_index,
-                          "",
-                          icon,
-                          offset + (width * 3),
-                          ymid,
-                          width,
-                          channel_height);
-          }
-          MEM_freeN(gp_rna_path);
-
-          /* Layer onion skinning switch. */
-          prop = RNA_struct_find_property(&ptr, "use_onion_skinning");
-          gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
-          if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
-            icon = (gpl->onion_flag & GP_LAYER_ONIONSKIN) ? ICON_ONIONSKIN_ON : ICON_ONIONSKIN_OFF;
-            uiDefAutoButR(block,
-                          &ptr,
-                          prop,
-                          array_index,
-                          "",
-                          icon,
-                          offset + (width * 4),
-                          ymid,
-                          width,
-                          channel_height);
-          }
-          MEM_freeN(gp_rna_path);
         }
 
         /* Only if RNA-Path found. */
