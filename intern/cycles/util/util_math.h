@@ -363,8 +363,13 @@ ccl_device_inline float pingpongf(float a, float b)
 
 ccl_device_inline float smoothminf(float a, float b, float k)
 {
-  float h = fmaxf(k - fabsf(a - b), 0.0f) / k;
-  return fminf(a, b) - h * h * h * k * (1.0f / 6.0f);
+  if (k != 0.0f) {
+    float h = fmaxf(k - fabsf(a - b), 0.0f) / k;
+    return fminf(a, b) - h * h * h * k * (1.0f / 6.0f);
+  }
+  else {
+    return fminf(a, b);
+  }
 }
 
 ccl_device_inline float signf(float f)
