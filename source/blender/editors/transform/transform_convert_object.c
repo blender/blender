@@ -55,10 +55,8 @@ typedef struct TransDataObject {
    * Object to object data transform table.
    * Don't add these to transform data because we may want to include child objects
    * which aren't being transformed.
-   * - The key is object data #ID.
-   * - The value is #XFormObjectData_Extra.
    */
-  struct GHash *obdata_in_obmode_map;
+  struct XFormObjectData_Container *xds;
 
   /**
    * Transform
@@ -69,7 +67,6 @@ typedef struct TransDataObject {
 
 } TransDataObject;
 
-static void trans_obdata_in_obmode_free_all(TransDataObject *tdo);
 static void trans_obchild_in_obmode_free_all(TransDataObject *tdo);
 
 static void freeTransObjectCustomData(TransInfo *t,
@@ -80,7 +77,7 @@ static void freeTransObjectCustomData(TransInfo *t,
   custom_data->data = NULL;
 
   if (t->options & CTX_OBMODE_XFORM_OBDATA) {
-    trans_obdata_in_obmode_free_all(tdo);
+    ED_object_data_xform_container_destroy(tdo->xds);
   }
 
   if (t->options & CTX_OBMODE_XFORM_SKIP_CHILDREN) {
@@ -98,81 +95,18 @@ static void freeTransObjectCustomData(TransInfo *t,
  * We need this to be detached from transform data because,
  * unlike transforming regular objects, we need to transform the children.
  *
+ * Nearly all of the logic here is in the 'ED_object_data_xform_container_*' API.
  * \{ */
-
-struct XFormObjectData_Extra {
-  Object *ob;
-  float obmat_orig[4][4];
-  struct XFormObjectData *xod;
-};
-
-static void trans_obdata_in_obmode_ensure_object(TransDataObject *tdo, Object *ob)
-{
-  if (tdo->obdata_in_obmode_map == NULL) {
-    tdo->obdata_in_obmode_map = BLI_ghash_ptr_new(__func__);
-  }
-
-  void **xf_p;
-  if (!BLI_ghash_ensure_p(tdo->obdata_in_obmode_map, ob->data, &xf_p)) {
-    struct XFormObjectData_Extra *xf = MEM_mallocN(sizeof(*xf), __func__);
-    copy_m4_m4(xf->obmat_orig, ob->obmat);
-    xf->ob = ob;
-    /* Result may be NULL, that's OK. */
-    xf->xod = ED_object_data_xform_create(ob->data);
-    *xf_p = xf;
-  }
-}
 
 void trans_obdata_in_obmode_update_all(TransInfo *t)
 {
   TransDataObject *tdo = t->custom.type.data;
-  if (tdo->obdata_in_obmode_map == NULL) {
+  if (tdo->xds == NULL) {
     return;
   }
 
   struct Main *bmain = CTX_data_main(t->context);
-  BKE_scene_graph_evaluated_ensure(t->depsgraph, bmain);
-
-  GHashIterator gh_iter;
-  GHASH_ITER (gh_iter, tdo->obdata_in_obmode_map) {
-    ID *id = BLI_ghashIterator_getKey(&gh_iter);
-    struct XFormObjectData_Extra *xf = BLI_ghashIterator_getValue(&gh_iter);
-    if (xf->xod == NULL) {
-      continue;
-    }
-
-    Object *ob_eval = DEG_get_evaluated_object(t->depsgraph, xf->ob);
-    float imat[4][4], dmat[4][4];
-    invert_m4_m4(imat, xf->obmat_orig);
-    mul_m4_m4m4(dmat, imat, ob_eval->obmat);
-    invert_m4(dmat);
-
-    ED_object_data_xform_by_mat4(xf->xod, dmat);
-    if (xf->ob->type == OB_ARMATURE) {
-      /* TODO: none of the current flags properly update armatures, needs investigation. */
-      DEG_id_tag_update(id, 0);
-    }
-    else {
-      DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
-    }
-  }
-}
-
-/** Callback for #GHash free. */
-static void trans_obdata_in_obmode_free_elem(void *xf_p)
-{
-  struct XFormObjectData_Extra *xf = xf_p;
-  if (xf->xod) {
-    ED_object_data_xform_destroy(xf->xod);
-  }
-  MEM_freeN(xf);
-}
-
-static void trans_obdata_in_obmode_free_all(TransDataObject *tdo)
-{
-  if (tdo->obdata_in_obmode_map != NULL) {
-    BLI_ghash_free(tdo->obdata_in_obmode_map, NULL, trans_obdata_in_obmode_free_elem);
-  }
+  ED_object_data_xform_container_update_all(tdo->xds, bmain, t->depsgraph);
 }
 
 /** \} */
@@ -697,6 +631,10 @@ void createTransObject(bContext *C, TransInfo *t)
   t->custom.type.data = tdo;
   t->custom.type.free_cb = freeTransObjectCustomData;
 
+  if (t->options & CTX_OBMODE_XFORM_OBDATA) {
+    tdo->xds = ED_object_data_xform_container_create();
+  }
+
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
     Object *ob = base->object;
 
@@ -729,7 +667,7 @@ void createTransObject(bContext *C, TransInfo *t)
 
     if (t->options & CTX_OBMODE_XFORM_OBDATA) {
       if ((td->flag & TD_SKIP) == 0) {
-        trans_obdata_in_obmode_ensure_object(tdo, ob);
+        ED_object_data_xform_container_item_ensure(tdo->xds, ob);
       }
     }
 
@@ -797,7 +735,7 @@ void createTransObject(bContext *C, TransInfo *t)
               ob_parent = ob_parent->parent;
             }
             if (parent_in_transdata) {
-              trans_obdata_in_obmode_ensure_object(tdo, ob);
+              ED_object_data_xform_container_item_ensure(tdo->xds, ob);
             }
           }
         }
