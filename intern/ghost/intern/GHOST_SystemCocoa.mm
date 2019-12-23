@@ -1802,8 +1802,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
       }
 
       /* arrow keys should not have utf8 */
-      if ((keyCode > 266) && (keyCode < 271))
+      if ((keyCode >= GHOST_kKeyLeftArrow) && (keyCode <= GHOST_kKeyDownArrow)) {
         utf8_buf[0] = '\0';
+      }
 
       /* F keys should not have utf8 */
       if ((keyCode >= GHOST_kKeyF1) && (keyCode <= GHOST_kKeyF20))
