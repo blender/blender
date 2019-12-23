@@ -8845,14 +8845,14 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, ARegion *ar, int
   }
 }
 
-static void sample_detail(bContext *C, int mx, int my, int mode)
+static int sample_detail(bContext *C, int mx, int my, int mode)
 {
   /* Find 3D view to pick from. */
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *sa = BKE_screen_find_area_xy(screen, SPACE_VIEW3D, mx, my);
   ARegion *ar = (sa) ? BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my) : NULL;
   if (ar == NULL) {
-    return;
+    return OPERATOR_CANCELLED;
   }
 
   /* Set context to 3D view. */
@@ -8865,12 +8865,29 @@ static void sample_detail(bContext *C, int mx, int my, int mode)
   ViewContext vc;
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
+  Object *ob = vc.obact;
+  SculptSession *ss = ob->sculpt;
+
+  if (!ss->pbvh) {
+    return OPERATOR_CANCELLED;
+  }
+
   /* Pick sample detail. */
   switch (mode) {
     case SAMPLE_DETAIL_DYNTOPO:
+      if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+        CTX_wm_area_set(C, prev_sa);
+        CTX_wm_region_set(C, prev_ar);
+        return OPERATOR_CANCELLED;
+      }
       sample_detail_dyntopo(C, &vc, ar, mx, my);
       break;
     case SAMPLE_DETAIL_VOXEL:
+      if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+        CTX_wm_area_set(C, prev_sa);
+        CTX_wm_region_set(C, prev_ar);
+        return OPERATOR_CANCELLED;
+      }
       sample_detail_voxel(C, &vc, mx, my);
       break;
   }
@@ -8878,6 +8895,8 @@ static void sample_detail(bContext *C, int mx, int my, int mode)
   /* Restore context. */
   CTX_wm_area_set(C, prev_sa);
   CTX_wm_region_set(C, prev_ar);
+
+  return OPERATOR_FINISHED;
 }
 
 static int sculpt_sample_detail_size_exec(bContext *C, wmOperator *op)
@@ -8885,8 +8904,7 @@ static int sculpt_sample_detail_size_exec(bContext *C, wmOperator *op)
   int ss_co[2];
   RNA_int_get_array(op->ptr, "location", ss_co);
   int mode = RNA_enum_get(op->ptr, "mode");
-  sample_detail(C, ss_co[0], ss_co[1], mode);
-  return OPERATOR_FINISHED;
+  return sample_detail(C, ss_co[0], ss_co[1], mode);
 }
 
 static int sculpt_sample_detail_size_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e))
