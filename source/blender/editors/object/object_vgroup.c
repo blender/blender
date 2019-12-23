@@ -47,6 +47,7 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_editmesh.h"
@@ -1687,13 +1688,78 @@ static const EnumPropertyItem vgroup_lock_actions[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static void vgroup_lock_all(Object *ob, int action)
+enum {
+  VGROUP_MASK_ALL,
+  VGROUP_MASK_SELECTED,
+  VGROUP_MASK_UNSELECTED,
+  VGROUP_MASK_INVERT_UNSELECTED,
+};
+
+static const EnumPropertyItem vgroup_lock_mask[] = {
+    {VGROUP_MASK_ALL, "ALL", 0, "All", "Apply action to all vertex groups"},
+    {VGROUP_MASK_SELECTED, "SELECTED", 0, "Selected", "Apply to selected vertex groups"},
+    {VGROUP_MASK_UNSELECTED, "UNSELECTED", 0, "Unselected", "Apply to unselected vertex groups"},
+    {VGROUP_MASK_INVERT_UNSELECTED,
+     "INVERT_UNSELECTED",
+     0,
+     "Invert Unselected",
+     "Apply the opposite of Lock/Unlock to unselected vertex groups"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static bool *vgroup_selected_get(Object *ob)
+{
+  int sel_count = 0, defbase_tot = BLI_listbase_count(&ob->defbase);
+  bool *mask;
+
+  if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+    mask = BKE_object_defgroup_selected_get(ob, defbase_tot, &sel_count);
+
+    /* Mirror the selection if X Mirror is enabled. */
+    Mesh *me = BKE_mesh_from_object(ob);
+
+    if (me && (me->editflag & ME_EDIT_MIRROR_X) != 0) {
+      BKE_object_defgroup_mirror_selection(ob, defbase_tot, mask, mask, &sel_count);
+    }
+  }
+  else {
+    mask = MEM_callocN(defbase_tot * sizeof(bool), __func__);
+  }
+
+  if (sel_count == 0 && ob->actdef >= 1 && ob->actdef <= defbase_tot) {
+    mask[ob->actdef - 1] = true;
+  }
+
+  return mask;
+}
+
+static void vgroup_lock_all(Object *ob, int action, int mask)
 {
   bDeformGroup *dg;
+  bool *selected = NULL;
+  int i;
+
+  if (mask != VGROUP_MASK_ALL) {
+    selected = vgroup_selected_get(ob);
+  }
 
   if (action == VGROUP_TOGGLE) {
     action = VGROUP_LOCK;
-    for (dg = ob->defbase.first; dg; dg = dg->next) {
+
+    for (dg = ob->defbase.first, i = 0; dg; dg = dg->next, i++) {
+      switch (mask) {
+        case VGROUP_MASK_INVERT_UNSELECTED:
+        case VGROUP_MASK_SELECTED:
+          if (!selected[i])
+            continue;
+          break;
+        case VGROUP_MASK_UNSELECTED:
+          if (selected[i])
+            continue;
+          break;
+        default:;
+      }
+
       if (dg->flag & DG_LOCK_WEIGHT) {
         action = VGROUP_UNLOCK;
         break;
@@ -1701,7 +1767,19 @@ static void vgroup_lock_all(Object *ob, int action)
     }
   }
 
-  for (dg = ob->defbase.first; dg; dg = dg->next) {
+  for (dg = ob->defbase.first, i = 0; dg; dg = dg->next, i++) {
+    switch (mask) {
+      case VGROUP_MASK_SELECTED:
+        if (!selected[i])
+          continue;
+        break;
+      case VGROUP_MASK_UNSELECTED:
+        if (selected[i])
+          continue;
+        break;
+      default:;
+    }
+
     switch (action) {
       case VGROUP_LOCK:
         dg->flag |= DG_LOCK_WEIGHT;
@@ -1713,6 +1791,14 @@ static void vgroup_lock_all(Object *ob, int action)
         dg->flag ^= DG_LOCK_WEIGHT;
         break;
     }
+
+    if (mask == VGROUP_MASK_INVERT_UNSELECTED && !selected[i]) {
+      dg->flag ^= DG_LOCK_WEIGHT;
+    }
+  }
+
+  if (selected) {
+    MEM_freeN(selected);
   }
 }
 
@@ -3176,12 +3262,71 @@ static int vertex_group_lock_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
 
   int action = RNA_enum_get(op->ptr, "action");
+  int mask = RNA_enum_get(op->ptr, "mask");
 
-  vgroup_lock_all(ob, action);
+  vgroup_lock_all(ob, action, mask);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
   return OPERATOR_FINISHED;
+}
+
+static char *vertex_group_lock_description(struct bContext *UNUSED(C),
+                                           struct wmOperatorType *UNUSED(op),
+                                           struct PointerRNA *params)
+{
+  int action = RNA_enum_get(params, "action");
+  int mask = RNA_enum_get(params, "mask");
+
+  const char *action_str, *target_str;
+
+  switch (action) {
+    case VGROUP_LOCK:
+      action_str = "Lock";
+      break;
+    case VGROUP_UNLOCK:
+      action_str = "Unlock";
+      break;
+    case VGROUP_TOGGLE:
+      action_str = "Toggle locks of";
+      break;
+    case VGROUP_INVERT:
+      action_str = "Invert locks of";
+      break;
+    default:
+      return NULL;
+  }
+
+  switch (mask) {
+    case VGROUP_MASK_ALL:
+      target_str = "all";
+      break;
+    case VGROUP_MASK_SELECTED:
+      target_str = "selected";
+      break;
+    case VGROUP_MASK_UNSELECTED:
+      target_str = "unselected";
+      break;
+    case VGROUP_MASK_INVERT_UNSELECTED:
+      switch (action) {
+        case VGROUP_INVERT:
+          target_str = "selected";
+          break;
+        case VGROUP_LOCK:
+          target_str = "selected and unlock unselected";
+          break;
+        case VGROUP_UNLOCK:
+          target_str = "selected and lock unselected";
+          break;
+        default:
+          target_str = "all and invert unselected";
+      }
+      break;
+    default:
+      return NULL;
+  }
+
+  return BLI_sprintfN("%s %s vertex groups of the active object", action_str, target_str);
 }
 
 void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)
@@ -3189,11 +3334,12 @@ void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Change the Lock On Vertex Groups";
   ot->idname = "OBJECT_OT_vertex_group_lock";
-  ot->description = "Change the lock state of all vertex groups of active object";
+  ot->description = "Change the lock state of all or some vertex groups of active object";
 
   /* api callbacks */
   ot->poll = vertex_group_poll;
   ot->exec = vertex_group_lock_exec;
+  ot->get_description = vertex_group_lock_description;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3204,6 +3350,13 @@ void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)
                VGROUP_TOGGLE,
                "Action",
                "Lock action to execute on vertex groups");
+
+  RNA_def_enum(ot->srna,
+               "mask",
+               vgroup_lock_mask,
+               VGROUP_MASK_ALL,
+               "Mask",
+               "Apply the action based on vertex group selection");
 }
 
 static int vertex_group_invert_exec(bContext *C, wmOperator *op)

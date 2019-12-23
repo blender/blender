@@ -55,9 +55,12 @@ class MESH_MT_vertex_group_context_menu(Menu):
         layout.operator("object.vertex_group_remove", text="Delete All Unlocked Groups").all_unlocked = True
         layout.operator("object.vertex_group_remove", text="Delete All Groups").all = True
         layout.separator()
-        layout.operator("object.vertex_group_lock", icon='LOCKED', text="Lock All").action = 'LOCK'
-        layout.operator("object.vertex_group_lock", icon='UNLOCKED', text="UnLock All").action = 'UNLOCK'
-        layout.operator("object.vertex_group_lock", text="Lock Invert All").action = 'INVERT'
+        props = layout.operator("object.vertex_group_lock", icon='LOCKED', text="Lock All")
+        props.action, props.mask = 'LOCK', 'ALL'
+        props = layout.operator("object.vertex_group_lock", icon='UNLOCKED', text="UnLock All")
+        props.action, props.mask = 'UNLOCK', 'ALL'
+        props = layout.operator("object.vertex_group_lock", text="Lock Invert All")
+        props.action, props.mask = 'INVERT', 'ALL'
 
 
 class MESH_MT_shape_key_context_menu(Menu):

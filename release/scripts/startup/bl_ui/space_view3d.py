@@ -5020,6 +5020,39 @@ class VIEW3D_MT_sculpt_mask_edit_pie(Menu):
         op.auto_iteration_count = False
 
 
+class VIEW3D_MT_wpaint_vgroup_lock_pie(Menu):
+    bl_label = "Vertex Group Locks"
+
+    def draw(self, _context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        # 1: Left
+        op = pie.operator("object.vertex_group_lock", icon='LOCKED', text="Lock All")
+        op.action, op.mask = 'LOCK', 'ALL'
+        # 2: Right
+        op = pie.operator("object.vertex_group_lock", icon='UNLOCKED', text="Unlock All")
+        op.action, op.mask = 'UNLOCK', 'ALL'
+        # 3: Down
+        op = pie.operator("object.vertex_group_lock", icon='UNLOCKED', text="Unlock Selected")
+        op.action, op.mask = 'UNLOCK', 'SELECTED'
+        # 4: Up
+        op = pie.operator("object.vertex_group_lock", icon='LOCKED', text="Lock Selected")
+        op.action, op.mask = 'LOCK', 'SELECTED'
+        # 5: Up/Left
+        op = pie.operator("object.vertex_group_lock", icon='LOCKED', text="Lock Unselected")
+        op.action, op.mask = 'LOCK', 'UNSELECTED'
+        # 6: Up/Right
+        op = pie.operator("object.vertex_group_lock", text="Lock Only Selected")
+        op.action, op.mask = 'LOCK', 'INVERT_UNSELECTED'
+        # 7: Down/Left
+        op = pie.operator("object.vertex_group_lock", text="Lock Only Unselected")
+        op.action, op.mask = 'UNLOCK', 'INVERT_UNSELECTED'
+        # 8: Down/Right
+        op = pie.operator("object.vertex_group_lock", text="Invert Locks")
+        op.action, op.mask = 'INVERT', 'ALL'
+
+
 # ********** Panel **********
 
 
@@ -7090,6 +7123,7 @@ classes = (
     VIEW3D_MT_orientations_pie,
     VIEW3D_MT_proportional_editing_falloff_pie,
     VIEW3D_MT_sculpt_mask_edit_pie,
+    VIEW3D_MT_wpaint_vgroup_lock_pie,
     VIEW3D_PT_active_tool,
     VIEW3D_PT_active_tool_duplicate,
     VIEW3D_PT_view3d_properties,
