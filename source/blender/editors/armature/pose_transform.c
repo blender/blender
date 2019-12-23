@@ -463,7 +463,7 @@ static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
-    /* loop over all selected pchans
+    /* Loop over all selected pchan's.
      *
      * TODO, loop over children before parents if multiple bones
      * at once are to be predictable*/

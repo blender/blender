@@ -1311,7 +1311,7 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
       outliner_show_active(so, ar, te, id);
     }
 
-    /* Also open back from the active_element (only done for the first found occurance of ID
+    /* Also open back from the active_element (only done for the first found occurrence of ID
      * though). */
     outliner_show_active(so, ar, active_element, id);
 

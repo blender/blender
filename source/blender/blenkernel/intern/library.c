@@ -1653,7 +1653,7 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
 /**
  * Helper building final ID name from given base_name and number.
  *
- * If everything goes well and we do generate a valid final ID anme in given name, we return true.
+ * If everything goes well and we do generate a valid final ID name in given name, we return true.
  * In case the final name would overflow the allowed ID name length, or given number is bigger than
  * maximum allowed value, we truncate further the base_name (and given name, which is assumed to
  * have the same 'base_name' part), and return false.
@@ -1745,9 +1745,9 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
 
       if (id_name_final_build(final_name, base_name, prev_final_base_name_len, prev_number + 1) &&
           id_name_final_build(prev_final_name, base_name, prev_final_base_name_len, prev_number)) {
-        /* We succeffuly built valid final names of previous and current iterations, now we have to
-         * ensure that previous final name is indeed used in curent ID list, and that current one
-         * is not. */
+        /* We successfully built valid final names of previous and current iterations,
+         * now we have to ensure that previous final name is indeed used in current ID list,
+         * and that current one is not. */
         bool is_valid = false;
         for (id_test = lb->first; id_test; id_test = id_test->next) {
           if (id != id_test && !ID_IS_LINKED(id_test)) {

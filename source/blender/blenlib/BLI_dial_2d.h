@@ -40,7 +40,7 @@
  *
  * dial = BLI_dial_initialize(start_position, threshold);
  *
- * angle = BLI_dial_angle(dial, curent_position);
+ * angle = BLI_dial_angle(dial, current_position);
  *
  * MEM_freeN(dial);
  * \endcode

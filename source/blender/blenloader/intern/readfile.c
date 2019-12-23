@@ -5486,13 +5486,14 @@ static void direct_link_pose(FileData *fd, bPose *pose)
   }
 }
 
-/* TODO(sergey): Find a more better place for this.
+/* TODO(sergey): Find a better place for this.
  *
  * Unfortunately, this can not be done as a regular do_versions() since the modifier type is
  * set to NONE, so the do_versions code wouldn't know where the modifier came from.
  *
- * Most bestest approach seems to have the functionality in versioning_280 but still call the
- * function from direct_link_modifiers(). */
+ * The best approach seems to have the functionality in versioning_280.c but still call the
+ * function from #direct_link_modifiers().
+ */
 
 /* Domain, inflow, ... */
 static void modifier_ensure_type(FluidModifierData *fluid_modifier_data, int type)
