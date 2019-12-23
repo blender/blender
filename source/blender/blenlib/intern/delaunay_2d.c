@@ -1771,7 +1771,7 @@ static void add_edge_constraint(
         vb = t->next->vert;
         /* Get curco; cdata should have data from last time through the loop still. */
         if (cdata.lambda == 0.0) {
-          copy_v3_v3_db(curco, cdata.vert->co);
+          copy_v2_v2_db(curco, cdata.vert->co);
         }
         else {
           interp_v2_v2v2_db(curco, cdata.in->vert->co, cdata.in->next->vert->co, lambda);
