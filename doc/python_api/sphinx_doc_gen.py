@@ -1055,7 +1055,6 @@ context_type_map = {
     "selected_sequences": ("Sequence", True),
     "selected_visible_fcurves": ("FCurve", True),
     "sequences": ("Sequence", True),
-    "smoke": ("SmokeModifier", False),
     "soft_body": ("SoftBodyModifier", False),
     "speaker": ("Speaker", False),
     "texture": ("Texture", False),
