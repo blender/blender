@@ -982,14 +982,16 @@ Object *BKE_scene_camera_switch_find(Scene *scene)
     return NULL;
   }
 
-  TimeMarker *m;
-  int cfra = scene->r.cfra;
+  const int cfra = ((scene->r.images == scene->r.framapto) ?
+                        scene->r.cfra :
+                        (int)(scene->r.cfra *
+                              ((float)scene->r.framapto / (float)scene->r.images)));
   int frame = -(MAXFRAME + 1);
   int min_frame = MAXFRAME + 1;
   Object *camera = NULL;
   Object *first_camera = NULL;
 
-  for (m = scene->markers.first; m; m = m->next) {
+  for (TimeMarker *m = scene->markers.first; m; m = m->next) {
     if (m->camera && (m->camera->restrictflag & OB_RESTRICT_RENDER) == 0) {
       if ((m->frame <= cfra) && (m->frame > frame)) {
         camera = m->camera;
