@@ -89,16 +89,16 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
             min_dist = sys.float_info.max
             max_dist = -min_dist
             if m.type == 'DISTANCE_FROM_CAMERA':
-                ob_to_cam = matrix_to_camera * ob.matrix_world
+                ob_to_cam = matrix_to_camera @ ob.matrix_world
                 for vert in selected_verts:
                     # dist in the camera space
-                    dist = (ob_to_cam * vert.co).length
+                    dist = (ob_to_cam @ vert.co).length
                     min_dist = min(dist, min_dist)
                     max_dist = max(dist, max_dist)
             elif m.type == 'DISTANCE_FROM_OBJECT':
                 for vert in selected_verts:
                     # dist in the world space
-                    dist = (ob.matrix_world * vert.co - target_location).length
+                    dist = (ob.matrix_world @ vert.co - target_location).length
                     min_dist = min(dist, min_dist)
                     max_dist = max(dist, max_dist)
             # Fill the Range Min/Max entries with the computed distances
