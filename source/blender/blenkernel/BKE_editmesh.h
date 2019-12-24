@@ -65,10 +65,6 @@ typedef struct BMEditMesh {
 
   /*derivedmesh stuff*/
   CustomData_MeshMasks lastDataMask;
-  unsigned char (*derivedVertColor)[4];
-  int derivedVertColorLen;
-  unsigned char (*derivedFaceColor)[4];
-  int derivedFaceColorLen;
 
   /*selection mode*/
   short selectmode;
@@ -96,20 +92,11 @@ BMEditMesh *BKE_editmesh_from_object(struct Object *ob);
 void BKE_editmesh_free_derivedmesh(BMEditMesh *em);
 void BKE_editmesh_free(BMEditMesh *em);
 
-void BKE_editmesh_color_free(BMEditMesh *em);
-void BKE_editmesh_color_ensure(BMEditMesh *em, const char htype);
+float (*BKE_editmesh_vert_coords_alloc(
+    struct Depsgraph *depsgraph, struct BMEditMesh *em, struct Scene *scene, int *r_vert_len))[3];
 float (*BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em, int *r_vert_len))[3];
 void BKE_editmesh_lnorspace_update(BMEditMesh *em);
 void BKE_editmesh_ensure_autosmooth(BMEditMesh *em);
 struct BoundBox *BKE_editmesh_cage_boundbox_get(BMEditMesh *em);
-
-/* editderivedmesh.c */
-/* should really be defined in editmesh.c, but they use 'EditDerivedBMesh' */
-void BKE_editmesh_statvis_calc(BMEditMesh *em,
-                               struct EditMeshData *emd,
-                               const struct MeshStatVis *statvis);
-
-float (*BKE_editmesh_vert_coords_alloc(
-    struct Depsgraph *depsgraph, struct BMEditMesh *em, struct Scene *scene, int *r_vert_len))[3];
 
 #endif /* __BKE_EDITMESH_H__ */

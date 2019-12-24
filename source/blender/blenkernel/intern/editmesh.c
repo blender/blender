@@ -33,6 +33,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_iterators.h"
 #include "BKE_object.h"
 
 BMEditMesh *BKE_editmesh_create(BMesh *bm, const bool do_tessellate)
@@ -54,11 +55,6 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
 
   em_copy->mesh_eval_cage = em_copy->mesh_eval_final = NULL;
   em_copy->bb_cage = NULL;
-
-  em_copy->derivedVertColor = NULL;
-  em_copy->derivedVertColorLen = 0;
-  em_copy->derivedFaceColor = NULL;
-  em_copy->derivedFaceColorLen = 0;
 
   em_copy->bm = BM_mesh_copy(em->bm);
 
@@ -163,8 +159,6 @@ void BKE_editmesh_free(BMEditMesh *em)
 {
   BKE_editmesh_free_derivedmesh(em);
 
-  BKE_editmesh_color_free(em);
-
   if (em->looptris) {
     MEM_freeN(em->looptris);
   }
@@ -174,44 +168,54 @@ void BKE_editmesh_free(BMEditMesh *em)
   }
 }
 
-void BKE_editmesh_color_free(BMEditMesh *em)
-{
-  if (em->derivedVertColor) {
-    MEM_freeN(em->derivedVertColor);
-  }
-  if (em->derivedFaceColor) {
-    MEM_freeN(em->derivedFaceColor);
-  }
-  em->derivedVertColor = NULL;
-  em->derivedFaceColor = NULL;
+struct CageUserData {
+  int totvert;
+  float (*cos_cage)[3];
+  BLI_bitmap *visit_bitmap;
+};
 
-  em->derivedVertColorLen = 0;
-  em->derivedFaceColorLen = 0;
+static void cage_mapped_verts_callback(void *userData,
+                                       int index,
+                                       const float co[3],
+                                       const float UNUSED(no_f[3]),
+                                       const short UNUSED(no_s[3]))
+{
+  struct CageUserData *data = userData;
+
+  if ((index >= 0 && index < data->totvert) && (!BLI_BITMAP_TEST(data->visit_bitmap, index))) {
+    BLI_BITMAP_ENABLE(data->visit_bitmap, index);
+    copy_v3_v3(data->cos_cage[index], co);
+  }
 }
 
-void BKE_editmesh_color_ensure(BMEditMesh *em, const char htype)
+float (*BKE_editmesh_vert_coords_alloc(
+    struct Depsgraph *depsgraph, BMEditMesh *em, struct Scene *scene, int *r_vert_len))[3]
 {
-  switch (htype) {
-    case BM_VERT:
-      if (em->derivedVertColorLen != em->bm->totvert) {
-        BKE_editmesh_color_free(em);
-        em->derivedVertColor = MEM_mallocN(sizeof(*em->derivedVertColor) * em->bm->totvert,
-                                           __func__);
-        em->derivedVertColorLen = em->bm->totvert;
-      }
-      break;
-    case BM_FACE:
-      if (em->derivedFaceColorLen != em->bm->totface) {
-        BKE_editmesh_color_free(em);
-        em->derivedFaceColor = MEM_mallocN(sizeof(*em->derivedFaceColor) * em->bm->totface,
-                                           __func__);
-        em->derivedFaceColorLen = em->bm->totface;
-      }
-      break;
-    default:
-      BLI_assert(0);
-      break;
+  Mesh *cage;
+  BLI_bitmap *visit_bitmap;
+  struct CageUserData data;
+  float(*cos_cage)[3];
+
+  cage = editbmesh_get_eval_cage(depsgraph, scene, em->ob, em, &CD_MASK_BAREMESH);
+  cos_cage = MEM_callocN(sizeof(*cos_cage) * em->bm->totvert, "bmbvh cos_cage");
+
+  /* when initializing cage verts, we only want the first cage coordinate for each vertex,
+   * so that e.g. mirror or array use original vertex coordinates and not mirrored or duplicate */
+  visit_bitmap = BLI_BITMAP_NEW(em->bm->totvert, __func__);
+
+  data.totvert = em->bm->totvert;
+  data.cos_cage = cos_cage;
+  data.visit_bitmap = visit_bitmap;
+
+  BKE_mesh_foreach_mapped_vert(cage, cage_mapped_verts_callback, &data, MESH_FOREACH_NOP);
+
+  MEM_freeN(visit_bitmap);
+
+  if (r_vert_len) {
+    *r_vert_len = em->bm->totvert;
   }
+
+  return cos_cage;
 }
 
 float (*BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em, int *r_vert_len))[3]
