@@ -2353,7 +2353,7 @@ compile_ALEMBIC() {
 
     prepare_opt
 
-    if [ ! -d $_src -o true ]; then
+    if [ ! -d $_src ]; then
       mkdir -p $SRC
       download ALEMBIC_SOURCE[@] "$_src.tar.gz"
 
