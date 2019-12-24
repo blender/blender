@@ -61,7 +61,9 @@
 static bool snap_curs_to_sel_ex(bContext *C, float cursor[3]);
 static bool snap_calc_active_center(bContext *C, const bool select_only, float r_center[3]);
 
-/* *********************** operators ******************** */
+/* -------------------------------------------------------------------- */
+/** \name Snap Selection to Grid Operator
+ * \{ */
 
 /** Snaps every individual object center to its nearest point on the grid. */
 static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
@@ -229,7 +231,11 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* *************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Snap Selection to Location (Utility)
+ * \{ */
 
 /**
  * Snaps the selection as a whole (use_offset=true) or each selected object to the given location.
@@ -464,6 +470,12 @@ static int snap_selected_to_location(bContext *C,
   return OPERATOR_FINISHED;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Snap Selection to Cursor Operator
+ * \{ */
+
 static int snap_selected_to_cursor_exec(bContext *C, wmOperator *op)
 {
   const bool use_offset = RNA_boolean_get(op->ptr, "use_offset");
@@ -497,7 +509,11 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
                   "If the selection should be snapped as a whole or by each object center");
 }
 
-/* *************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Snap Selection to Active Operator
+ * \{ */
 
 /** Snaps each selected object to the location of the active selected object. */
 static int snap_selected_to_active_exec(bContext *C, wmOperator *op)
@@ -527,7 +543,11 @@ void VIEW3D_OT_snap_selected_to_active(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* *************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Snap Cursor to Grid Operator
+ * \{ */
 
 /** Snaps the 3D cursor location to its nearest point on the grid. */
 static int snap_curs_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
@@ -565,7 +585,11 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* **************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Snap Cursor to Selection Operator
+ * \{ */
 
 /**
  * Returns the center position of a tracking marker visible on the viewport
@@ -761,7 +785,11 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Snap Cursor to Active Operator
+ * \{ */
 
 /**
  * Calculates the center position of the active object in global space.
@@ -809,7 +837,11 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* **************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Snap Cursor to Center Operator
+ * \{ */
 
 /** Snaps the 3D cursor location to the origin and clears cursor rotation. */
 static int snap_curs_to_center_exec(bContext *C, wmOperator *UNUSED(op))
@@ -842,7 +874,11 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* **************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Min/Max Object Vertices Utility
+ * \{ */
 
 /**
  * Calculates the bounding box corners (min and max) for \a obedit.
@@ -890,3 +926,5 @@ bool ED_view3d_minmax_verts(Object *obedit, float r_min[3], float r_max[3])
 
   return true;
 }
+
+/** \} */
