@@ -611,13 +611,26 @@ static void cubic_from_points_offset_fallback(
 		}
 	}
 
+	/* The value of 'dists[..] / 0.75' is the length to use when the tangents
+	 * are perpendicular to the direction defined by the two points.
+	 *
+	 * Project tangents onto these perpendicular lengths.
+	 * Note that this can cause divide by zero in the case of co-linear tangents.
+	 * The limits check afterwards accounts for this.
+	 *
+	 * The 'dists[..] + dir_dirs' limit is just a rough approximation.
+	 * While a more exact value could be calculated,
+	 * in this case the error values approach divide by zero (inf)
+	 * so there is no need to be too precise when checking if limits have been exceeded. */
+
 	double alpha_l = (dists[0] / 0.75) / fabs(dot_vnvn(tan_l, a[0], dims));
 	double alpha_r = (dists[1] / 0.75) / fabs(dot_vnvn(tan_r, a[1], dims));
 
-	if (!(alpha_l > 0.0)) {
+
+	if (!(alpha_l > 0.0) || (alpha_l > dists[0] + dir_dist)) {
 		alpha_l = dir_dist / 3.0;
 	}
-	if (!(alpha_r > 0.0)) {
+	if (!(alpha_r > 0.0) || (alpha_r > dists[1] + dir_dist)) {
 		alpha_r = dir_dist / 3.0;
 	}
 
