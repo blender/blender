@@ -184,8 +184,18 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
   }
   else {
     /* Object mode. */
+    Main *bmain = CTX_data_main(C);
 
     struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
+
+    const bool use_transform_data_origin = (scene->toolsettings->transform_flag &
+                                            SCE_XFORM_DATA_ORIGIN);
+    struct XFormObjectData_Container *xds = NULL;
+
+    if (use_transform_data_origin) {
+      BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+      xds = ED_object_data_xform_container_create();
+    }
 
     FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN (view_layer_eval, v3d, ob_eval) {
       Object *ob = DEG_get_original_object(ob_eval);
@@ -213,9 +223,18 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
       /* auto-keyframing */
       ED_autokeyframe_object(C, scene, ob, ks);
 
+      if (use_transform_data_origin) {
+        ED_object_data_xform_container_item_ensure(xds, ob);
+      }
+
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
     }
     FOREACH_SELECTED_EDITABLE_OBJECT_END;
+
+    if (use_transform_data_origin) {
+      ED_object_data_xform_container_update_all(xds, bmain, depsgraph);
+      ED_object_data_xform_container_destroy(xds);
+    }
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
@@ -406,6 +425,7 @@ static int snap_selected_to_location(bContext *C,
   else {
     struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
     Main *bmain = CTX_data_main(C);
+    Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
     ListBase ctx_data_list;
     CollectionPointerLink *ctx_ob;
@@ -422,6 +442,22 @@ static int snap_selected_to_location(bContext *C,
     for (ctx_ob = ctx_data_list.first; ctx_ob; ctx_ob = ctx_ob->next) {
       ob = ctx_ob->ptr.data;
       ob->flag |= OB_DONE;
+    }
+
+    const bool use_transform_data_origin = (scene->toolsettings->transform_flag &
+                                            SCE_XFORM_DATA_ORIGIN);
+    struct XFormObjectData_Container *xds = NULL;
+
+    if (use_transform_data_origin) {
+      BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+      xds = ED_object_data_xform_container_create();
+
+      /* Initialize the transform data in a separate loop because the depsgraph
+       * may be evaluated while setting the locations. */
+      for (ctx_ob = ctx_data_list.first; ctx_ob; ctx_ob = ctx_ob->next) {
+        ob = ctx_ob->ptr.data;
+        ED_object_data_xform_container_item_ensure(xds, ob);
+      }
     }
 
     for (ctx_ob = ctx_data_list.first; ctx_ob; ctx_ob = ctx_ob->next) {
@@ -444,7 +480,7 @@ static int snap_selected_to_location(bContext *C,
           float originmat[3][3], parentmat[4][4];
           /* Use the evaluated object here because sometimes
            * `ob->parent->runtime.curve_cache` is required. */
-          Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+          BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
           Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 
           BKE_object_get_parent_matrix(ob_eval, ob_eval->parent, parentmat);
@@ -470,6 +506,11 @@ static int snap_selected_to_location(bContext *C,
     }
 
     BLI_freelistN(&ctx_data_list);
+
+    if (use_transform_data_origin) {
+      ED_object_data_xform_container_update_all(xds, bmain, depsgraph);
+      ED_object_data_xform_container_destroy(xds);
+    }
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
