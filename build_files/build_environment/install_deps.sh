@@ -767,7 +767,7 @@ while true; do
     ;;
     *)
       PRINT ""
-      ERROR "Wrong parameter! Usage:"
+      ERROR "Wrong parameter '$1'; Usage:"
       PRINT ""
       PRINT "`eval _echo "$COMMON_INFO"`"
       PRINT ""
