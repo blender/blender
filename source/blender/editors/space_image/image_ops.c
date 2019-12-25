@@ -1318,7 +1318,9 @@ static int image_get_udim(char *filepath, LinkNodePair *udim_tiles)
   BLI_filelist_free(dir, totfile);
 
   if (is_udim && has_primary) {
-    BLI_stringenc_path(filepath, dirname, base_head, base_tail, digits, 1001);
+    char primary_filename[FILE_MAX];
+    BLI_stringenc(primary_filename, base_head, base_tail, digits, 1001);
+    BLI_join_dirfile(filepath, FILE_MAX, dirname, primary_filename);
     return max_udim - 1000;
   }
   return 0;

@@ -157,20 +157,6 @@ void BLI_stringenc(
   sprintf(string, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
 }
 
-/**
- * Returns in area pointed to by string a string of the form "<dir><head><pic><tail>", where pic
- * is formatted as numlen digits with leading zeroes.
- */
-void BLI_stringenc_path(char *string,
-                        const char *dir,
-                        const char *head,
-                        const char *tail,
-                        unsigned short numlen,
-                        int pic)
-{
-  sprintf(string, "%s%s%.*d%s", dir, head, numlen, MAX2(0, pic), tail);
-}
-
 static int BLI_path_unc_prefix_len(const char *path); /* defined below in same file */
 
 /* ******************** string encoding ***************** */

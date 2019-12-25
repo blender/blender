@@ -81,12 +81,6 @@ bool BLI_ensure_filename(char *filepath, size_t maxlen, const char *filename) AT
 int BLI_stringdec(const char *string, char *head, char *start, unsigned short *numlen);
 void BLI_stringenc(
     char *string, const char *head, const char *tail, unsigned short numlen, int pic);
-void BLI_stringenc_path(char *string,
-                        const char *dir,
-                        const char *head,
-                        const char *tail,
-                        unsigned short numlen,
-                        int pic);
 
 /* removes trailing slash */
 void BLI_cleanup_file(const char *relabase, char *path) ATTR_NONNULL(2);
