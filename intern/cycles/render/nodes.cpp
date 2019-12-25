@@ -504,11 +504,14 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
   if (slots.size() == 0) {
     ImageMetaData metadata;
     if (builtin_data == NULL) {
-      image_manager->get_image_metadata(filename.string(), NULL, colorspace, metadata);
+      string tile_name = filename.string();
+      if (is_tiled) {
+        tile_name = string_printf(tile_name.c_str(), 1001);
+      }
+      image_manager->get_image_metadata(tile_name, NULL, colorspace, metadata);
       slots.push_back(-1);
     }
     else {
-      /* TODO(lukas): OSL UDIMs */
       int slot = image_manager->add_image(filename.string(),
                                           builtin_data,
                                           animated,
@@ -526,8 +529,17 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
   }
 
   if (slots[0] == -1) {
+    ustring texture_name = filename;
+    if (is_tiled) {
+      size_t udim_pos = filename.rfind("%04d");
+      if (udim_pos != string::npos) {
+        string texture_name_str = filename.string();
+        texture_name_str.replace(udim_pos, 4, "<UDIM>");
+        texture_name = ustring(texture_name_str);
+      }
+    }
     compiler.parameter_texture(
-        "filename", filename, compress_as_srgb ? u_colorspace_raw : known_colorspace);
+        "filename", texture_name, compress_as_srgb ? u_colorspace_raw : known_colorspace);
   }
   else {
     compiler.parameter_texture("filename", slots[0]);
@@ -543,6 +555,7 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
   compiler.parameter("ignore_alpha", alpha_type == IMAGE_ALPHA_IGNORE);
   compiler.parameter("unassociate_alpha", !alpha_out->links.empty() && unassociate_alpha);
   compiler.parameter("is_float", is_float);
+  compiler.parameter("is_tiled", is_tiled);
   compiler.parameter(this, "interpolation");
   compiler.parameter(this, "extension");
 
