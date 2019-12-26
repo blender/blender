@@ -234,24 +234,18 @@ static inline int render_resolution_y(BL::RenderSettings &b_render)
 static inline string image_user_file_path(BL::ImageUser &iuser,
                                           BL::Image &ima,
                                           int cfra,
-                                          bool *is_tiled)
+                                          bool load_tiled)
 {
-  if (is_tiled != NULL) {
-    *is_tiled = false;
-  }
-
   char filepath[1024];
   iuser.tile(0);
   BKE_image_user_frame_calc(NULL, iuser.ptr.data, cfra);
   BKE_image_user_file_path(iuser.ptr.data, ima.ptr.data, filepath);
-  if (ima.source() == BL::Image::source_TILED && is_tiled != NULL) {
-    char *udim_id = strstr(filepath, "1001");
-    if (udim_id != NULL) {
-      memcpy(udim_id, "%04d", 4);
-      *is_tiled = true;
-    }
+
+  string filepath_str = string(filepath);
+  if (load_tiled && ima.source() == BL::Image::source_TILED) {
+    string_replace(filepath_str, "1001", "<UDIM>");
   }
-  return string(filepath);
+  return filepath_str;
 }
 
 static inline int image_user_frame_number(BL::ImageUser &iuser, int cfra)

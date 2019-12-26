@@ -235,8 +235,6 @@ NODE_DEFINE(ImageTextureNode)
   SOCKET_STRING(filename, "Filename", ustring());
   SOCKET_STRING(colorspace, "Colorspace", u_colorspace_auto);
 
-  SOCKET_BOOLEAN(is_tiled, "Is Tiled", false);
-
   static NodeEnum alpha_type_enum;
   alpha_type_enum.insert("auto", IMAGE_ALPHA_AUTO);
   alpha_type_enum.insert("unassociated", IMAGE_ALPHA_UNASSOCIATED);
@@ -381,9 +379,7 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
     bool have_metadata = false;
     foreach (int tile, tiles) {
       string tile_name = filename.string();
-      if (is_tiled) {
-        tile_name = string_printf(tile_name.c_str(), tile);
-      }
+      string_replace(tile_name, "<UDIM>", string_printf("%04d", tile));
 
       ImageMetaData metadata;
       int slot = image_manager->add_image(tile_name,
@@ -505,9 +501,7 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
     ImageMetaData metadata;
     if (builtin_data == NULL) {
       string tile_name = filename.string();
-      if (is_tiled) {
-        tile_name = string_printf(tile_name.c_str(), 1001);
-      }
+      string_replace(tile_name, "<UDIM>", "1001");
       image_manager->get_image_metadata(tile_name, NULL, colorspace, metadata);
       slots.push_back(-1);
     }
@@ -529,17 +523,8 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
   }
 
   if (slots[0] == -1) {
-    ustring texture_name = filename;
-    if (is_tiled) {
-      size_t udim_pos = filename.rfind("%04d");
-      if (udim_pos != string::npos) {
-        string texture_name_str = filename.string();
-        texture_name_str.replace(udim_pos, 4, "<UDIM>");
-        texture_name = ustring(texture_name_str);
-      }
-    }
     compiler.parameter_texture(
-        "filename", texture_name, compress_as_srgb ? u_colorspace_raw : known_colorspace);
+        "filename", filename, compress_as_srgb ? u_colorspace_raw : known_colorspace);
   }
   else {
     compiler.parameter_texture("filename", slots[0]);
@@ -548,6 +533,7 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
   const bool unassociate_alpha = !(ColorSpaceManager::colorspace_is_data(colorspace) ||
                                    alpha_type == IMAGE_ALPHA_CHANNEL_PACKED ||
                                    alpha_type == IMAGE_ALPHA_IGNORE);
+  const bool is_tiled = (filename.find("<UDIM>") != string::npos);
 
   compiler.parameter(this, "projection");
   compiler.parameter(this, "projection_blend");

@@ -656,7 +656,7 @@ static ShaderNode *add_node(Scene *scene,
       }
       else {
         image->filename = image_user_file_path(
-            b_image_user, b_image, b_scene.frame_current(), &image->is_tiled);
+            b_image_user, b_image, b_scene.frame_current(), true);
         image->builtin_data = NULL;
       }
 
@@ -710,7 +710,8 @@ static ShaderNode *add_node(Scene *scene,
         env->builtin_data = b_image.ptr.data;
       }
       else {
-        env->filename = image_user_file_path(b_image_user, b_image, b_scene.frame_current(), NULL);
+        env->filename = image_user_file_path(
+            b_image_user, b_image, b_scene.frame_current(), false);
         env->builtin_data = NULL;
       }
 
