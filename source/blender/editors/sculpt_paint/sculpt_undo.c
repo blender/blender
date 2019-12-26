@@ -498,7 +498,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
   SculptUndoNode *unode;
-  bool update = false, rebuild = false, update_mask = false;
+  bool update = false, rebuild = false, update_mask = false, update_visibility = false;
   bool need_mask = false;
 
   for (unode = lb->first; unode; unode = unode->next) {
@@ -575,6 +575,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       case SCULPT_UNDO_HIDDEN:
         if (sculpt_undo_restore_hidden(C, unode)) {
           rebuild = true;
+          update_visibility = true;
         }
         break;
       case SCULPT_UNDO_MASK:
@@ -639,6 +640,11 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
       BKE_sculptsession_free_deformMats(ss);
       tag_update |= true;
+    }
+
+    if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && update_visibility) {
+      Mesh *mesh = ob->data;
+      BKE_mesh_flush_hidden_from_verts(mesh);
     }
 
     if (tag_update) {
