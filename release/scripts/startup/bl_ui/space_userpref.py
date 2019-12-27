@@ -2003,7 +2003,7 @@ class USERPREF_PT_studiolight_matcaps(StudioLightPanel, StudioLightPanelMixin, P
 
 
 class USERPREF_PT_studiolight_world(StudioLightPanel, StudioLightPanelMixin, Panel):
-    bl_label = "LookDev HDRIs"
+    bl_label = "HDRIs"
     sl_type = 'WORLD'
 
     def draw_header_preset(self, _context):
