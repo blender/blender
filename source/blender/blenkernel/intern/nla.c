@@ -1499,6 +1499,10 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
 
       fcu->bezt->vec[1][0] = strip->start;
       fcu->bezt->vec[1][1] = strip->influence;
+
+      /* Respect User Preferences for default interpolation and handles. */
+      fcu->bezt->h1 = fcu->bezt->h2 = U.keyhandles_new;
+      fcu->bezt->ipo = U.ipo_new;
     }
   }
 
