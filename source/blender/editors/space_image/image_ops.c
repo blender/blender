@@ -4279,6 +4279,33 @@ static void draw_fill_tile(PointerRNA *ptr, uiLayout *layout)
   uiItemR(col[1], ptr, "float", 0, NULL, ICON_NONE);
 }
 
+static void initialize_fill_tile(PointerRNA *ptr, Image *ima, ImageTile *tile)
+{
+  ImageUser iuser;
+  BKE_imageuser_default(&iuser);
+  if (tile != NULL) {
+    iuser.tile = tile->tile_number;
+  }
+
+  /* Acquire ibuf to get the default values.
+   * If the specified tile has no ibuf, try acquiring the main tile instead
+   * (unless the specified tile already was the main tile).*/
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
+  if (ibuf == NULL && (tile != NULL) && (tile->tile_number != 1001)) {
+    ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+  }
+
+  if (ibuf != NULL) {
+    /* Initialize properties from reference tile. */
+    RNA_int_set(ptr, "width", ibuf->x);
+    RNA_int_set(ptr, "height", ibuf->y);
+    RNA_boolean_set(ptr, "float", ibuf->rect_float != NULL);
+    RNA_boolean_set(ptr, "alpha", ibuf->planes > 24);
+
+    BKE_image_release_ibuf(ima, ibuf, NULL);
+  }
+}
+
 static void def_fill_tile(StructOrFunctionRNA *srna)
 {
   PropertyRNA *prop;
@@ -4357,6 +4384,9 @@ static int tile_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
       break;
     }
   }
+
+  ImageTile *tile = BLI_findlink(&ima->tiles, ima->active_tile_index);
+  initialize_fill_tile(op->ptr, ima, tile);
 
   RNA_int_set(op->ptr, "number", next_number);
   RNA_int_set(op->ptr, "count", 1);
@@ -4487,17 +4517,7 @@ static int tile_fill_exec(bContext *C, wmOperator *op)
 
 static int tile_fill_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  Image *ima = CTX_data_edit_image(C);
-
-  /* Acquire first tile to get the defaults. */
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-  if (ibuf != NULL) {
-    RNA_int_set(op->ptr, "width", ibuf->x);
-    RNA_int_set(op->ptr, "height", ibuf->y);
-    RNA_boolean_set(op->ptr, "float", ibuf->rect_float != NULL);
-    RNA_boolean_set(op->ptr, "alpha", ibuf->planes > 24);
-    BKE_image_release_ibuf(ima, ibuf, NULL);
-  }
+  initialize_fill_tile(op->ptr, CTX_data_edit_image(C), NULL);
 
   return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, 5 * UI_UNIT_Y);
 }
