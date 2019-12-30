@@ -1949,7 +1949,7 @@ class CYCLES_RENDER_PT_bake_output(CyclesButtonsPanel, Panel):
             layout.prop(rd, "use_bake_clear", text="Clear Image")
 
             if rd.bake_type == 'DISPLACEMENT':
-                col.prop(rd, "use_bake_lores_mesh")
+                layout.prop(rd, "use_bake_lores_mesh")
         else:
 
             layout.prop(cbk, "margin")
