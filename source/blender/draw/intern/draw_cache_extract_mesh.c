@@ -678,6 +678,18 @@ static void extract_lines_loose_ledge_mesh(const MeshRenderData *UNUSED(mr),
    * `ibo.lines`. */
 }
 
+static void extract_lines_loose_ledge_bmesh(const MeshRenderData *UNUSED(mr),
+                                            int UNUSED(e),
+                                            BMEdge *UNUSED(eed),
+                                            void *UNUSED(elb))
+{
+  /* This function is intentionally empty. The existence of this functions ensures that
+   * `iter_type` `MR_ITER_LVERT` is set when initializing the `MeshRenderData` (See
+   * `mesh_extract_iter_type`). This flag ensures that `mr->edge_loose_len` field is filled. This
+   * field we use in the `extract_lines_loose_finish` function to create a subrange from the
+   * `ibo.lines`. */
+}
+
 static void extract_lines_loose_finish(const MeshRenderData *mr,
                                        void *UNUSED(ibo),
                                        void *UNUSED(elb))
@@ -696,7 +708,7 @@ static const MeshExtract extract_lines_loose = {
     NULL,
     NULL,
     NULL,
-    NULL,
+    extract_lines_loose_ledge_bmesh,
     extract_lines_loose_ledge_mesh,
     NULL,
     NULL,
