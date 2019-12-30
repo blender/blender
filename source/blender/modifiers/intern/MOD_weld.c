@@ -1629,13 +1629,15 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
   if (defgrp_index != -1) {
     MDeformVert *dvert, *dv;
     dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
-    dv = &dvert[0];
-    v_mask = BLI_BITMAP_NEW(totvert, __func__);
-    for (i = 0; i < totvert; i++, dv++) {
-      const bool found = defvert_find_weight(dv, defgrp_index) > 0.0f;
-      if (found) {
-        BLI_BITMAP_ENABLE(v_mask, i);
-        v_mask_act++;
+    if (dvert) {
+      dv = &dvert[0];
+      v_mask = BLI_BITMAP_NEW(totvert, __func__);
+      for (i = 0; i < totvert; i++, dv++) {
+        const bool found = defvert_find_weight(dv, defgrp_index) > 0.0f;
+        if (found) {
+          BLI_BITMAP_ENABLE(v_mask, i);
+          v_mask_act++;
+        }
       }
     }
   }
