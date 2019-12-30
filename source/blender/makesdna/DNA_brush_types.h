@@ -357,8 +357,8 @@ typedef struct Brush {
   /* fill tool */
   float fill_threshold;
 
-  float add_col[3];
-  float sub_col[3];
+  float add_col[4];
+  float sub_col[4];
 
   float stencil_pos[2];
   float stencil_dimension[2];

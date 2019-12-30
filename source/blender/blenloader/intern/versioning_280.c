@@ -4317,5 +4317,11 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Brush cursor alpha */
+    for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
+      br->add_col[3] = 0.9f;
+      br->sub_col[3] = 0.9f;
+    }
   }
 }

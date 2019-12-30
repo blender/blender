@@ -2374,13 +2374,13 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "cursor_color_add", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_float_sdna(prop, NULL, "add_col");
-  RNA_def_property_array(prop, 3);
+  RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Add Color", "Color of cursor when adding");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "cursor_color_subtract", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_float_sdna(prop, NULL, "sub_col");
-  RNA_def_property_array(prop, 3);
+  RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Subtract Color", "Color of cursor when subtracting");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 

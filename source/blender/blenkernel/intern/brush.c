@@ -893,9 +893,11 @@ void BKE_brush_debug_print_state(Brush *br)
   BR_TEST(add_col[0], f);
   BR_TEST(add_col[1], f);
   BR_TEST(add_col[2], f);
+  BR_TEST(add_col[3], f);
   BR_TEST(sub_col[0], f);
   BR_TEST(sub_col[1], f);
   BR_TEST(sub_col[2], f);
+  BR_TEST(sub_col[3], f);
 
   printf("\n");
 
@@ -1006,6 +1008,11 @@ void BKE_brush_sculpt_reset(Brush *br)
   }
 
   /* Cursor colors */
+
+  /* Default Alpha */
+  br->add_col[3] = 0.90f;
+  br->sub_col[3] = 0.90f;
+
   switch (br->sculpt_tool) {
     case SCULPT_TOOL_DRAW:
     case SCULPT_TOOL_DRAW_SHARP:

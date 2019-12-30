@@ -2209,7 +2209,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
   short strdrawlen = 0;
   float strwidth, strheight;
   float r1 = 0.0f, r2 = 0.0f, rmin = 0.0, tex_radius, alpha;
-  float zoom[2], col[3] = {1, 1, 1};
+  float zoom[2], col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
   switch (rc->subtype) {
     case PROP_NONE:
@@ -2477,7 +2477,7 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
   }
 
   if (!radial_control_get_path(
-          &ctx_ptr, op, "color_path", &rc->col_ptr, &rc->col_prop, 3, RC_PROP_REQUIRE_FLOAT)) {
+          &ctx_ptr, op, "color_path", &rc->col_ptr, &rc->col_prop, 4, RC_PROP_REQUIRE_FLOAT)) {
     return 0;
   }
 
