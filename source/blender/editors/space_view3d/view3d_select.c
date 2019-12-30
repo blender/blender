@@ -2077,7 +2077,8 @@ static bool ed_object_select_pick(bContext *C,
 
       if (has_bones && basact) {
         if (basact->object->type == OB_CAMERA) {
-          if (oldbasact == basact) {
+          MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
+          if (clip != NULL && oldbasact == basact) {
             int i, hitresult;
             bool changed = false;
 
@@ -2094,7 +2095,6 @@ static bool ed_object_select_pick(bContext *C,
                * in height word, this buffer value belongs to camera. not to bundle
                */
               if (buffer[4 * i + 3] & 0xFFFF0000) {
-                MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
                 MovieTracking *tracking = &clip->tracking;
                 ListBase *tracksbase;
                 MovieTrackingTrack *track;
