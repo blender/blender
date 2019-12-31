@@ -51,6 +51,7 @@
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_uvedit.h"
 #include "ED_view3d.h"
 
 #include "mesh_intern.h" /* own include */
@@ -662,7 +663,9 @@ UvMapVert *BM_uv_vert_map_at_index(UvVertMap *vmap, unsigned int v)
 
 /* A specialized vert map used by stitch operator */
 UvElementMap *BM_uv_element_map_create(BMesh *bm,
-                                       const bool selected,
+                                       const Scene *scene,
+                                       const bool face_selected,
+                                       const bool uv_selected,
                                        const bool use_winding,
                                        const bool do_islands)
 {
@@ -689,8 +692,17 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
 
   /* generate UvElement array */
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-    if (!selected || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-      totuv += efa->len;
+    if (!face_selected || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+      if (!uv_selected) {
+        totuv += efa->len;
+      }
+      else {
+        BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+          if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+            totuv++;
+          }
+        }
+      }
     }
   }
 
@@ -715,7 +727,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
       winding[j] = false;
     }
 
-    if (!selected || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+    if (!face_selected || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
       float(*tf_uv)[2] = NULL;
 
       if (use_winding) {
@@ -723,6 +735,10 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
       }
 
       BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
+        if (uv_selected && !uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+          continue;
+        }
+
         buf->l = l;
         buf->separate = 0;
         buf->island = INVALID_ISLAND;
@@ -832,6 +848,10 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
           efa = stack[--stacksize];
 
           BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+            if (uv_selected && !uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+              continue;
+            }
+
             UvElement *element, *initelement = element_map->vert[BM_elem_index_get(l->v)];
 
             for (element = initelement; element; element = element->next) {

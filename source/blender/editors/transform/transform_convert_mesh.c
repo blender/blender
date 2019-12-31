@@ -1451,7 +1451,7 @@ void createTransUVs(bContext *C, TransInfo *t)
     if (is_prop_connected || is_island_center) {
       /* create element map with island information */
       const bool use_facesel = (ts->uv_flag & UV_SYNC_SELECTION) == 0;
-      elementmap = BM_uv_element_map_create(em->bm, use_facesel, false, true);
+      elementmap = BM_uv_element_map_create(em->bm, scene, use_facesel, true, false, true);
       if (elementmap == NULL) {
         continue;
       }

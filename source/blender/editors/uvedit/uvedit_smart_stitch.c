@@ -1935,10 +1935,10 @@ static StitchState *stitch_init(bContext *C,
 
   /* in uv synch selection, all uv's are visible */
   if (ts->uv_flag & UV_SYNC_SELECTION) {
-    state->element_map = BM_uv_element_map_create(state->em->bm, false, true, true);
+    state->element_map = BM_uv_element_map_create(state->em->bm, scene, false, false, true, true);
   }
   else {
-    state->element_map = BM_uv_element_map_create(state->em->bm, true, true, true);
+    state->element_map = BM_uv_element_map_create(state->em->bm, scene, true, false, true, true);
   }
   if (!state->element_map) {
     state_delete(state);
