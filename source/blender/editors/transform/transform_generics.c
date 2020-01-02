@@ -31,6 +31,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_screen_types.h"
@@ -785,50 +786,61 @@ static void recalcData_spaceclip(TransInfo *t)
  * if pose bone (partial) selected, copy data.
  * context; posemode armature, with mirror editing enabled.
  *
- * \param pid: Optional, apply relative transform when set.
+ * \param pid: Optional, apply relative transform when set (has no effect on mirrored bones).
  */
-static void pose_transform_mirror_update(Object *ob, PoseInitData_Mirror *pid)
+static void pose_transform_mirror_update(TransInfo *t,
+                                         TransDataContainer *tc,
+                                         Object *ob,
+                                         PoseInitData_Mirror *pid)
 {
   float flip_mtx[4][4];
   unit_m4(flip_mtx);
   flip_mtx[0][0] = -1;
 
-  for (bPoseChannel *pchan_orig = ob->pose->chanbase.first; pchan_orig;
-       pchan_orig = pchan_orig->next) {
-    /* Clear the MIRROR flag from previous runs */
-    pchan_orig->bone->flag &= ~BONE_TRANSFORM_MIRROR;
-  }
+  TransData *td = tc->data;
+  for (int i = tc->data_len; i--; td++) {
+    bPoseChannel *pchan_orig = td->extra;
+    BLI_assert(pchan_orig->bone->flag & BONE_TRANSFORM);
+    /* No layer check, correct mirror is more important. */
+    bPoseChannel *pchan = BKE_pose_channel_get_mirrored(ob->pose, pchan_orig->name);
+    if (pchan == NULL) {
+      continue;
+    }
 
-  for (bPoseChannel *pchan_orig = ob->pose->chanbase.first; pchan_orig;
-       pchan_orig = pchan_orig->next) {
-    /* no layer check, correct mirror is more important */
-    if (pchan_orig->bone->flag & BONE_TRANSFORM) {
-      bPoseChannel *pchan = BKE_pose_channel_get_mirrored(ob->pose, pchan_orig->name);
+    /* Also do bbone scaling. */
+    pchan->bone->xwidth = pchan_orig->bone->xwidth;
+    pchan->bone->zwidth = pchan_orig->bone->zwidth;
 
-      if (pchan) {
-        /* also do bbone scaling */
-        pchan->bone->xwidth = pchan_orig->bone->xwidth;
-        pchan->bone->zwidth = pchan_orig->bone->zwidth;
+    /* We assume X-axis flipping for now. */
+    pchan->curve_in_x = pchan_orig->curve_in_x * -1;
+    pchan->curve_out_x = pchan_orig->curve_out_x * -1;
+    pchan->roll1 = pchan_orig->roll1 * -1;  // XXX?
+    pchan->roll2 = pchan_orig->roll2 * -1;  // XXX?
 
-        /* we assume X-axis flipping for now */
-        pchan->curve_in_x = pchan_orig->curve_in_x * -1;
-        pchan->curve_out_x = pchan_orig->curve_out_x * -1;
-        pchan->roll1 = pchan_orig->roll1 * -1;  // XXX?
-        pchan->roll2 = pchan_orig->roll2 * -1;  // XXX?
+    float pchan_mtx_final[4][4];
+    BKE_pchan_to_mat4(pchan_orig, pchan_mtx_final);
+    mul_m4_m4m4(pchan_mtx_final, pchan_mtx_final, flip_mtx);
+    mul_m4_m4m4(pchan_mtx_final, flip_mtx, pchan_mtx_final);
+    if (pid) {
+      mul_m4_m4m4(pchan_mtx_final, pid->offset_mtx, pchan_mtx_final);
+    }
+    BKE_pchan_apply_mat4(pchan, pchan_mtx_final, false);
 
-        float pchan_mtx_final[4][4];
-        BKE_pchan_to_mat4(pchan_orig, pchan_mtx_final);
-        mul_m4_m4m4(pchan_mtx_final, pchan_mtx_final, flip_mtx);
-        mul_m4_m4m4(pchan_mtx_final, flip_mtx, pchan_mtx_final);
-        if (pid) {
-          mul_m4_m4m4(pchan_mtx_final, pid->offset_mtx, pchan_mtx_final);
-          pid++;
-        }
-        BKE_pchan_apply_mat4(pchan, pchan_mtx_final, false);
-
-        /* set flag to let autokeyframe know to keyframe the mirrred bone */
-        pchan->bone->flag |= BONE_TRANSFORM_MIRROR;
+    /* In this case we can do target-less IK grabbing. */
+    if (t->mode == TFM_TRANSLATION) {
+      bKinematicConstraint *data = has_targetless_ik(pchan);
+      if (data == NULL) {
+        continue;
       }
+      mul_v3_m4v3(data->grabtarget, flip_mtx, td->loc);
+      if (pid) {
+        /* TODO(germano): Realitve Mirror support */
+      }
+      data->flag |= CONSTRAINT_IK_AUTO;
+    }
+
+    if (pid) {
+      pid++;
     }
   }
 }
@@ -1045,7 +1057,7 @@ static void recalcData_objects(TransInfo *t)
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
         bPose *pose = ob->pose;
         if (arm->flag & ARM_MIRROR_EDIT || pose->flag & POSE_MIRROR_EDIT) {
-          pose_transform_mirror_update(ob, NULL);
+          pose_transform_mirror_update(t, tc, ob, NULL);
         }
       }
     }
@@ -1063,7 +1075,7 @@ static void recalcData_objects(TransInfo *t)
           if (pose->flag & POSE_MIRROR_RELATIVE) {
             pid = tc->custom.type.data;
           }
-          pose_transform_mirror_update(ob, pid);
+          pose_transform_mirror_update(t, tc, ob, pid);
         }
         else {
           restoreMirrorPoseBones(tc);

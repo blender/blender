@@ -413,7 +413,7 @@ static int count_bone_select(bArmature *arm, ListBase *lb, const bool do_it)
   int total = 0;
 
   for (bone = lb->first; bone; bone = bone->next) {
-    bone->flag &= ~BONE_TRANSFORM;
+    bone->flag &= ~(BONE_TRANSFORM | BONE_TRANSFORM_MIRROR);
     do_next = do_it;
     if (do_it) {
       if (bone->layer & arm->layer) {

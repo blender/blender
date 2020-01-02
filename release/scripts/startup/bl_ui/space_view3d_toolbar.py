@@ -313,7 +313,7 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
         layout.prop(pose, "use_auto_ik")
         layout.prop(pose, "use_mirror_x")
         col = layout.column()
-        col.active = pose.use_mirror_x
+        col.active = pose.use_mirror_x and not pose.use_auto_ik
         col.prop(pose, "use_mirror_relative")
 
         layout.label(text="Affect Only")

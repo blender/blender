@@ -1663,7 +1663,9 @@ static void rna_def_pose(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_mirror_relative", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", POSE_MIRROR_RELATIVE);
   RNA_def_property_ui_text(
-      prop, "Relative Mirror", "Apply relative transformations in X-mirror mode");
+      prop,
+      "Relative Mirror",
+      "Apply relative transformations in X-mirror mode (not supported with Auto IK)");
   RNA_def_struct_path_func(srna, "rna_Pose_path");
   RNA_def_property_update(prop, 0, "rna_Pose_update");
   RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);

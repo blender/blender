@@ -86,6 +86,7 @@ static void add_pose_transdata(
     td->flag |= TD_NO_LOC;
   }
 
+  td->extra = pchan;
   td->protectflag = pchan->protectflag;
 
   td->loc = pchan->loc;
@@ -364,7 +365,7 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
    * (but they must be selected, and only one ik-solver per chain should get added) */
   for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
     if (pchan->bone->layer & arm->layer) {
-      if (pchan->bone->flag & BONE_SELECTED) {
+      if (pchan->bone->flag & (BONE_SELECTED | BONE_TRANSFORM_MIRROR)) {
         /* Rule: no IK for solitatry (unconnected) bones */
         for (bonec = pchan->bone->childbase.first; bonec; bonec = bonec->next) {
           if (bonec->flag & BONE_CONNECTED) {
@@ -379,7 +380,7 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
         if (pchan->parent) {
           /* only adds if there's no IK yet (and no parent bone was selected) */
           for (parent = pchan->parent; parent; parent = parent->parent) {
-            if (parent->bone->flag & BONE_SELECTED) {
+            if (parent->bone->flag & (BONE_SELECTED | BONE_TRANSFORM_MIRROR)) {
               break;
             }
           }
@@ -513,14 +514,6 @@ void createTransPose(TransInfo *t)
       }
     }
 
-    /* do we need to add temporal IK chains? */
-    if ((pose->flag & POSE_AUTO_IK) && t->mode == TFM_TRANSLATION) {
-      if (pose_grab_with_ik(bmain, ob)) {
-        t->flag |= T_AUTOIK;
-        has_translate_rotate[0] = true;
-      }
-    }
-
     if (mirror) {
       int total_mirrored = 0;
       for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
@@ -538,16 +531,6 @@ void createTransPose(TransInfo *t)
 
       tc->custom.type.data = pid;
       tc->custom.type.use_free = true;
-    }
-  }
-
-  /* if there are no translatable bones, do rotation */
-  if ((t->mode == TFM_TRANSLATION) && !has_translate_rotate[0]) {
-    if (has_translate_rotate[1]) {
-      t->mode = TFM_ROTATION;
-    }
-    else {
-      t->mode = TFM_RESIZE;
     }
   }
 
@@ -582,20 +565,32 @@ void createTransPose(TransInfo *t)
       td->val = NULL;
     }
 
+    if (mirror) {
+      for (bPoseChannel *pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+        if (pchan->bone->flag & BONE_TRANSFORM) {
+          bPoseChannel *pchan_mirror = BKE_pose_channel_get_mirrored(ob->pose, pchan->name);
+          if (pchan_mirror) {
+            pchan_mirror->bone->flag |= BONE_TRANSFORM_MIRROR;
+            pose_mirror_info_init(&pid[pid_index], pchan_mirror, pchan, is_mirror_relative);
+            pid_index++;
+          }
+        }
+      }
+    }
+
+    /* do we need to add temporal IK chains? */
+    if ((pose->flag & POSE_AUTO_IK) && t->mode == TFM_TRANSLATION) {
+      if (pose_grab_with_ik(bmain, ob)) {
+        t->flag |= T_AUTOIK;
+        has_translate_rotate[0] = true;
+      }
+    }
+
     /* use pose channels to fill trans data */
     td = tc->data;
     for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
       if (pchan->bone->flag & BONE_TRANSFORM) {
         add_pose_transdata(t, pchan, ob, tc, td);
-
-        if (mirror) {
-          bPoseChannel *pchan_mirror = BKE_pose_channel_get_mirrored(ob->pose, pchan->name);
-          if (pchan_mirror) {
-            pose_mirror_info_init(&pid[pid_index], pchan_mirror, pchan, is_mirror_relative);
-            pid_index++;
-          }
-        }
-
         td++;
       }
     }
@@ -603,10 +598,20 @@ void createTransPose(TransInfo *t)
     if (td != (tc->data + tc->data_len)) {
       BKE_report(t->reports, RPT_DEBUG, "Bone selection count error");
     }
+  }
 
-    /* initialize initial auto=ik chainlen's? */
-    if (t->flag & T_AUTOIK) {
-      transform_autoik_update(t, 0);
+  /* initialize initial auto=ik chainlen's? */
+  if (t->flag & T_AUTOIK) {
+    transform_autoik_update(t, 0);
+  }
+
+  /* if there are no translatable bones, do rotation */
+  if ((t->mode == TFM_TRANSLATION) && !has_translate_rotate[0]) {
+    if (has_translate_rotate[1]) {
+      t->mode = TFM_ROTATION;
+    }
+    else {
+      t->mode = TFM_RESIZE;
     }
   }
 

@@ -450,19 +450,14 @@ int count_set_pose_transflags(Object *ob,
 
   for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
     bone = pchan->bone;
+    bone->flag &= ~(BONE_TRANSFORM | BONE_TRANSFORM_MIRROR);
     if (PBONE_VISIBLE(arm, bone)) {
       if ((bone->flag & BONE_SELECTED)) {
         bone->flag |= BONE_TRANSFORM;
       }
-      else {
-        bone->flag &= ~BONE_TRANSFORM;
-      }
 
       bone->flag &= ~BONE_HINGE_CHILD_TRANSFORM;
       bone->flag &= ~BONE_TRANSFORM_CHILD;
-    }
-    else {
-      bone->flag &= ~BONE_TRANSFORM;
     }
   }
 
