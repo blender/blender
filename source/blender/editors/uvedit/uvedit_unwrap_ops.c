@@ -75,7 +75,7 @@
 #include "uvedit_intern.h"
 #include "uvedit_parametrizer.h"
 
-static void modifier_unwrap_state(Object *obedit, Scene *scene, bool *r_use_subsurf)
+static void modifier_unwrap_state(Object *obedit, const Scene *scene, bool *r_use_subsurf)
 {
   ModifierData *md;
   bool subsurf = (scene->toolsettings->uvcalc_flag & UVCALC_USESUBSURF) != 0;
@@ -95,7 +95,7 @@ static void modifier_unwrap_state(Object *obedit, Scene *scene, bool *r_use_subs
   *r_use_subsurf = subsurf;
 }
 
-static bool ED_uvedit_ensure_uvs(bContext *C, Scene *UNUSED(scene), Object *obedit)
+static bool ED_uvedit_ensure_uvs(bContext *C, const Scene *UNUSED(scene), Object *obedit)
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMFace *efa;
@@ -168,7 +168,7 @@ typedef struct UnwrapOptions {
   bool correct_aspect;    /* Correct for mapped image texture aspect ratio. */
 } UnwrapOptions;
 
-static bool uvedit_have_selection(Scene *scene, BMEditMesh *em, const UnwrapOptions *options)
+static bool uvedit_have_selection(const Scene *scene, BMEditMesh *em, const UnwrapOptions *options)
 {
   BMFace *efa;
   BMLoop *l;
@@ -207,7 +207,7 @@ static bool uvedit_have_selection(Scene *scene, BMEditMesh *em, const UnwrapOpti
   return false;
 }
 
-static bool uvedit_have_selection_multi(Scene *scene,
+static bool uvedit_have_selection_multi(const Scene *scene,
                                         Object **objects,
                                         const uint objects_len,
                                         const UnwrapOptions *options)
@@ -224,7 +224,8 @@ static bool uvedit_have_selection_multi(Scene *scene,
   return have_select;
 }
 
-void ED_uvedit_get_aspect(Scene *UNUSED(scene), Object *ob, BMesh *bm, float *aspx, float *aspy)
+void ED_uvedit_get_aspect(
+    const Scene *UNUSED(scene), Object *ob, BMesh *bm, float *aspx, float *aspy)
 {
   bool sloppy = true;
   bool selected = false;
@@ -244,8 +245,11 @@ void ED_uvedit_get_aspect(Scene *UNUSED(scene), Object *ob, BMesh *bm, float *as
   }
 }
 
-static void construct_param_handle_face_add(
-    ParamHandle *handle, Scene *scene, BMFace *efa, int face_index, const int cd_loop_uv_offset)
+static void construct_param_handle_face_add(ParamHandle *handle,
+                                            const Scene *scene,
+                                            BMFace *efa,
+                                            int face_index,
+                                            const int cd_loop_uv_offset)
 {
   ParamKey key;
   ParamKey *vkeys = BLI_array_alloca(vkeys, efa->len);
@@ -276,7 +280,7 @@ static void construct_param_handle_face_add(
 }
 
 /* See: construct_param_handle_multi to handle multiple objects at once. */
-static ParamHandle *construct_param_handle(Scene *scene,
+static ParamHandle *construct_param_handle(const Scene *scene,
                                            Object *ob,
                                            BMesh *bm,
                                            const UnwrapOptions *options)
@@ -348,7 +352,7 @@ static ParamHandle *construct_param_handle(Scene *scene,
 /**
  * Version of #construct_param_handle_single that handles multiple objects.
  */
-static ParamHandle *construct_param_handle_multi(Scene *scene,
+static ParamHandle *construct_param_handle_multi(const Scene *scene,
                                                  Object **objects,
                                                  const uint objects_len,
                                                  const UnwrapOptions *options)
@@ -437,7 +441,7 @@ static void texface_from_original_index(BMFace *efa,
                                         float **uv,
                                         ParamBool *pin,
                                         ParamBool *select,
-                                        Scene *scene,
+                                        const Scene *scene,
                                         const int cd_loop_uv_offset)
 {
   BMLoop *l;
@@ -468,7 +472,7 @@ static void texface_from_original_index(BMFace *efa,
  * The many modifications required to make the original function(see above)
  * work justified the existence of a new function.
  */
-static ParamHandle *construct_param_handle_subsurfed(Scene *scene,
+static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
                                                      Object *ob,
                                                      BMEditMesh *em,
                                                      const UnwrapOptions *options)
@@ -656,7 +660,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene,
 /* ******************** Minimize Stretch operator **************** */
 
 typedef struct MinStretch {
-  Scene *scene;
+  const Scene *scene;
   Object **objects_edit;
   uint objects_len;
   ParamHandle *handle;
@@ -668,7 +672,7 @@ typedef struct MinStretch {
 
 static bool minimize_stretch_init(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   const UnwrapOptions options = {
@@ -711,7 +715,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
 {
   MinStretch *ms = op->customdata;
   ScrArea *sa = CTX_wm_area(C);
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
   const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
 
@@ -752,7 +756,7 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, bool cancel)
 {
   MinStretch *ms = op->customdata;
   ScrArea *sa = CTX_wm_area(C);
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
   const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
 
@@ -928,7 +932,7 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 
 /* ******************** Pack Islands operator **************** */
 
-static void uvedit_pack_islands(Scene *scene, Object *ob, BMesh *bm)
+static void uvedit_pack_islands(const Scene *scene, Object *ob, BMesh *bm)
 {
   const UnwrapOptions options = {
       .topology_from_uvs = true,
@@ -947,7 +951,7 @@ static void uvedit_pack_islands(Scene *scene, Object *ob, BMesh *bm)
   param_delete(handle);
 }
 
-static void uvedit_pack_islands_multi(Scene *scene,
+static void uvedit_pack_islands_multi(const Scene *scene,
                                       Object **objects,
                                       const uint objects_len,
                                       const UnwrapOptions *options,
@@ -970,7 +974,7 @@ static void uvedit_pack_islands_multi(Scene *scene,
 static int pack_islands_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
 
   const UnwrapOptions options = {
       .topology_from_uvs = true,
@@ -1028,7 +1032,7 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 
 static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   ToolSettings *ts = scene->toolsettings;
   const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
@@ -1200,8 +1204,12 @@ static void uv_map_transform_calc_center_median(BMEditMesh *em, float r_center[3
   mul_v3_fl(r_center, 1.0f / (float)center_accum_num);
 }
 
-static void uv_map_transform_center(
-    Scene *scene, View3D *v3d, Object *ob, BMEditMesh *em, float r_center[3], float r_bounds[2][3])
+static void uv_map_transform_center(const Scene *scene,
+                                    View3D *v3d,
+                                    Object *ob,
+                                    BMEditMesh *em,
+                                    float r_center[3],
+                                    float r_bounds[2][3])
 {
   /* only operates on the edit object - this is all that's needed now */
   const int around = (v3d) ? scene->toolsettings->transform_pivot_point : V3D_AROUND_CENTER_BOUNDS;
@@ -1395,7 +1403,7 @@ static void uv_transform_properties(wmOperatorType *ot, int radius)
   }
 }
 
-static void correct_uv_aspect(Scene *scene, Object *ob, BMEditMesh *em)
+static void correct_uv_aspect(const Scene *scene, Object *ob, BMEditMesh *em)
 {
   BMLoop *l;
   BMIter iter, liter;
@@ -1462,7 +1470,7 @@ static void uv_map_clip_correct_properties(wmOperatorType *ot)
                   "Scale UV coordinates to bounds after unwrapping");
 }
 
-static void uv_map_clip_correct_multi(Scene *scene,
+static void uv_map_clip_correct_multi(const Scene *scene,
                                       Object **objects,
                                       uint objects_len,
                                       wmOperator *op)
@@ -1552,7 +1560,7 @@ static void uv_map_clip_correct_multi(Scene *scene,
   }
 }
 
-static void uv_map_clip_correct(Scene *scene, Object *ob, wmOperator *op)
+static void uv_map_clip_correct(const Scene *scene, Object *ob, wmOperator *op)
 {
   uv_map_clip_correct_multi(scene, &ob, 1, op);
 }
@@ -1560,7 +1568,7 @@ static void uv_map_clip_correct(Scene *scene, Object *ob, wmOperator *op)
 /* ******************** Unwrap operator **************** */
 
 /* Assumes UV Map exists, doesn't run update funcs. */
-static void uvedit_unwrap(Scene *scene, Object *obedit, const UnwrapOptions *options)
+static void uvedit_unwrap(const Scene *scene, Object *obedit, const UnwrapOptions *options)
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   if (!CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV)) {
@@ -1589,7 +1597,7 @@ static void uvedit_unwrap(Scene *scene, Object *obedit, const UnwrapOptions *opt
   param_delete(handle);
 }
 
-static void uvedit_unwrap_multi(Scene *scene,
+static void uvedit_unwrap_multi(const Scene *scene,
                                 Object **objects,
                                 const int objects_len,
                                 const UnwrapOptions *options)
@@ -1602,7 +1610,7 @@ static void uvedit_unwrap_multi(Scene *scene,
   }
 }
 
-void ED_uvedit_live_unwrap(Scene *scene, Object **objects, int objects_len)
+void ED_uvedit_live_unwrap(const Scene *scene, Object **objects, int objects_len)
 {
   if (scene->toolsettings->edge_mode_live_unwrap) {
     const UnwrapOptions options = {
@@ -1628,7 +1636,7 @@ enum {
 static int unwrap_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
   int method = RNA_enum_get(op->ptr, "method");
   const bool use_subsurf = RNA_boolean_get(op->ptr, "use_subsurf_data");
   int reported_errors = 0;
@@ -1823,7 +1831,7 @@ static int uv_from_view_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 static int uv_from_view_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
   ARegion *ar = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -1987,7 +1995,7 @@ void UV_OT_project_from_view(wmOperatorType *ot)
 
 static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
 
@@ -2087,7 +2095,7 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa)
 
 static int sphere_project_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2181,7 +2189,7 @@ static void uv_cylinder_project(float target[2],
 
 static int cylinder_project_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2298,7 +2306,7 @@ static void uvedit_unwrap_cube_project(BMesh *bm,
 
 static int cube_project_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
 
   PropertyRNA *prop_cube_size = RNA_struct_find_property(op->ptr, "cube_size");
@@ -2384,7 +2392,7 @@ void UV_OT_cube_project(wmOperatorType *ot)
 
 /************************* Simple UVs for texture painting *****************/
 
-void ED_uvedit_add_simple_uvs(Main *bmain, Scene *scene, Object *ob)
+void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
 {
   Mesh *me = ob->data;
   bool sync_selection = (scene->toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;

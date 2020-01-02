@@ -109,7 +109,7 @@ void EDBM_update_generic(struct BMEditMesh *em,
                          const bool is_destructive);
 
 struct UvElementMap *BM_uv_element_map_create(struct BMesh *bm,
-                                              struct Scene *scene,
+                                              const struct Scene *scene,
                                               const bool face_selected,
                                               const bool uv_selected,
                                               const bool use_winding,

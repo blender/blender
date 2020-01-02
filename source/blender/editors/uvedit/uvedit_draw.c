@@ -217,7 +217,7 @@ static void uvedit_get_batches(Object *ob,
 }
 
 static void draw_uvs_shadow(SpaceImage *UNUSED(sima),
-                            Scene *scene,
+                            const Scene *scene,
                             Object *obedit,
                             Depsgraph *depsgraph)
 {
@@ -237,11 +237,11 @@ static void draw_uvs_shadow(SpaceImage *UNUSED(sima),
   }
 }
 
-static void draw_uvs_texpaint(Scene *scene, Object *ob, Depsgraph *depsgraph)
+static void draw_uvs_texpaint(const Scene *scene, Object *ob, Depsgraph *depsgraph)
 {
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   Mesh *me = ob_eval->data;
-  ToolSettings *ts = scene->toolsettings;
+  const ToolSettings *ts = scene->toolsettings;
   float col[4];
   UI_GetThemeColor4fv(TH_UV_SHADOW, col);
 
@@ -296,7 +296,7 @@ static void draw_uvs_texpaint(Scene *scene, Object *ob, Depsgraph *depsgraph)
 
 /* draws uv's in the image space */
 static void draw_uvs(SpaceImage *sima,
-                     Scene *scene,
+                     const Scene *scene,
                      Depsgraph *depsgraph,
                      UVEditGPUBatches *batch,
                      float tot_area_ratio,
@@ -496,7 +496,7 @@ static void draw_uv_shadows_get(
 }
 
 void ED_uvedit_draw_main(SpaceImage *sima,
-                         Scene *scene,
+                         const Scene *scene,
                          ViewLayer *view_layer,
                          Object *obedit,
                          Object *obact,
