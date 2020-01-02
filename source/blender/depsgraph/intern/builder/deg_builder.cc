@@ -55,6 +55,12 @@ extern "C" {
 
 namespace DEG {
 
+bool deg_check_id_in_depsgraph(const Depsgraph *graph, ID *id_orig)
+{
+  IDNode *id_node = graph->find_id_node(id_orig);
+  return id_node != NULL;
+}
+
 bool deg_check_base_in_depsgraph(const Depsgraph *graph, Base *base)
 {
   Object *object_orig = base->base_orig->object;

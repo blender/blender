@@ -759,17 +759,17 @@ void update_animation_data_after_copy(const ID *id_orig, ID *id_cow)
 /* Some builders (like motion path one) will ignore proxies from being built. This code makes it so
  * proxy and proxy_group pointers never point to an original objects, preventing evaluation code
  * from assign evaluated pointer to an original proxy->proxy_from. */
-void update_proxy_pointers_after_copy(const Depsgraph * /*depsgraph*/,
-                                      const Object * /*object_orig*/,
+void update_proxy_pointers_after_copy(const Depsgraph *depsgraph,
+                                      const Object *object_orig,
                                       Object *object_cow)
 {
   if (object_cow->proxy != NULL) {
-    if ((object_cow->proxy->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0) {
+    if (!deg_check_id_in_depsgraph(depsgraph, &object_orig->proxy->id)) {
       object_cow->proxy = NULL;
     }
   }
   if (object_cow->proxy_group != NULL) {
-    if ((object_cow->proxy_group->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0) {
+    if (!deg_check_id_in_depsgraph(depsgraph, &object_orig->proxy_group->id)) {
       object_cow->proxy_group = NULL;
     }
   }
