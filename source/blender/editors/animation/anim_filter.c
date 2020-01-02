@@ -2433,8 +2433,9 @@ static size_t animdata_filter_ds_particles(
     ListBase tmp_data = {NULL, NULL};
     size_t tmp_items = 0;
 
-    /* if no material returned, skip - so that we don't get weird blank entries... */
-    if (ELEM(NULL, psys->part, psys->part->adt)) {
+    /* Note that when psys->part->adt is NULL the textures can still be
+     * animated. */
+    if (psys->part == NULL) {
       continue;
     }
 
