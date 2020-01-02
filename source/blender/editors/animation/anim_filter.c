@@ -56,6 +56,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_force_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_space_types.h"
 #include "DNA_sequence_types.h"
@@ -2731,6 +2732,12 @@ static size_t animdata_filter_dopesheet_ob(
     /* object-level animation */
     if ((ob->adt) && !(ads->filterflag & ADS_FILTER_NOOBJ)) {
       tmp_items += animdata_filter_ds_obanim(ac, &tmp_data, ads, ob, filter_mode);
+    }
+
+    /* particle deflector textures */
+    if (ob->pd != NULL && ob->pd->tex != NULL && !(ads->filterflag & ADS_FILTER_NOTEX)) {
+      tmp_items += animdata_filter_ds_texture(
+          ac, &tmp_data, ads, ob->pd->tex, &ob->id, filter_mode);
     }
 
     /* shape-key */
