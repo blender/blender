@@ -5535,7 +5535,7 @@ def km_3d_view_tool_edit_mesh_smooth(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("mesh.vertices_smooth", {"type": params.tool_tweak, "value": 'ANY'},
-             {"properties": [("factor", 0.0), ("wait_for_input", False)]}),
+             {"properties": [("wait_for_input", False)]}),
         ]},
     )
 
@@ -5686,7 +5686,7 @@ def km_3d_view_tool_edit_curve_randomize(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("transform.vertex_random", {"type": params.tool_tweak, "value": 'ANY'},
-             {"properties": [("offset", 0.0), ("wait_for_input", False)]}),
+             {"properties": [("wait_for_input", False)]}),
         ]},
     )
 

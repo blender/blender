@@ -194,6 +194,10 @@ static void op_generic_value_cancel(bContext *UNUSED(C), wmOperator *op)
 
 static int op_generic_value_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  if (RNA_property_is_set(op->ptr, op->type->prop)) {
+    return WM_operator_call_notest(C, op);
+  }
+
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
