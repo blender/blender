@@ -1355,6 +1355,19 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
     if (run_callbacks) {
       BKE_callback_exec_id_depsgraph(
           bmain, &scene->id, depsgraph, BKE_CB_EVT_DEPSGRAPH_UPDATE_POST);
+
+      /* It is possible that the custom callback modified scene and removed some IDs from the main
+       * database. In this case DEG_ids_clear_recalc() will crash because it iterates over all IDs
+       * which depsgraph was built for.
+       *
+       * The solution is to update relations prior to this call, avoiding access to freed IDs.
+       * Should be safe because relations update is supposed to preserve flags of all IDs which are
+       * still a part of the dependency graph. If an ID is kicked out of the dependency graph it
+       * should also be fine because when/if it's added to another dependency graph it will need to
+       * be tagged for an update anyway.
+       *
+       * If there are no relations changed by the callback this call will do nothing. */
+      DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
     }
     /* Inform editors about possible changes. */
     DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, false);
@@ -1420,6 +1433,10 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph, Main *bmain)
     /* Notify editors and python about recalc. */
     if (pass == 0) {
       BKE_callback_exec_id_depsgraph(bmain, &scene->id, depsgraph, BKE_CB_EVT_FRAME_CHANGE_POST);
+
+      /* NOTE: Similar to this case in scene_graph_update_tagged(). Need to ensure that
+       * DEG_ids_clear_recalc() doesn't access freed memory of possibly removed ID. */
+      DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
     }
 
     /* Inform editors about possible changes. */
