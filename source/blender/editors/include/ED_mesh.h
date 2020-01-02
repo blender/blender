@@ -144,9 +144,9 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree,
 /* editmesh_automerge.c */
 void EDBM_automerge(struct Object *ob, bool update, const char hflag, const float dist);
 void EDBM_automerge_and_split(struct Object *ob,
-                              bool split_edges,
-                              bool split_faces,
-                              bool update,
+                              const bool split_edges,
+                              const bool split_faces,
+                              const bool update,
                               const char hflag,
                               const float dist);
 
