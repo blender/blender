@@ -9501,7 +9501,8 @@ static int ui_handle_menu_event(bContext *C,
                  * To support we would need UI_RETURN_OUT_PARENT to be handled by
                  * top-level buttons, not just menus. Note that this isn't very important
                  * since it's easy to manually close these menus by clicking on them. */
-                menu->menuretval = (level > 0) ? UI_RETURN_OUT_PARENT : UI_RETURN_OUT;
+                menu->menuretval = (level > 0 && is_parent_inside) ? UI_RETURN_OUT_PARENT :
+                                                                     UI_RETURN_OUT;
               }
             }
             retval = WM_UI_HANDLER_BREAK;
