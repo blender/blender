@@ -95,55 +95,27 @@ static void modifier_unwrap_state(Object *obedit, const Scene *scene, bool *r_us
   *r_use_subsurf = subsurf;
 }
 
-static bool ED_uvedit_ensure_uvs(bContext *C, const Scene *UNUSED(scene), Object *obedit)
+static bool ED_uvedit_ensure_uvs(Object *obedit)
 {
-  BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  BMFace *efa;
-  BMIter iter;
-  Image *ima;
-  bScreen *sc;
-  ScrArea *sa;
-  SpaceLink *slink;
-  SpaceImage *sima;
-  int cd_loop_uv_offset;
-
   if (ED_uvedit_test(obedit)) {
     return 1;
   }
+
+  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  BMFace *efa;
+  BMIter iter;
+  int cd_loop_uv_offset;
 
   if (em && em->bm->totface && !CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV)) {
     ED_mesh_uv_texture_add(obedit->data, NULL, true, true);
   }
 
+  /* Happens when there are no faces. */
   if (!ED_uvedit_test(obedit)) {
     return 0;
   }
 
   cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
-  ima = CTX_data_edit_image(C);
-
-  if (!ima) {
-    /* no image in context in the 3d view, we find first image window .. */
-    sc = CTX_wm_screen(C);
-
-    for (sa = sc->areabase.first; sa; sa = sa->next) {
-      slink = sa->spacedata.first;
-      if (slink->spacetype == SPACE_IMAGE) {
-        sima = (SpaceImage *)slink;
-
-        ima = sima->image;
-        if (ima) {
-          if (ima->type == IMA_TYPE_R_RESULT || ima->type == IMA_TYPE_COMPOSITE) {
-            ima = NULL;
-          }
-          else {
-            break;
-          }
-        }
-      }
-    }
-  }
 
   /* select new UV's (ignore UV_SYNC_SELECTION in this case) */
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -1669,7 +1641,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
     float obsize[3];
     bool use_subsurf_final;
 
-    if (!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+    if (!ED_uvedit_ensure_uvs(obedit)) {
       continue;
     }
 
@@ -1869,7 +1841,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
     bool changed = false;
 
     /* add uvs if they don't exist yet */
-    if (!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+    if (!ED_uvedit_ensure_uvs(obedit)) {
       continue;
     }
 
@@ -1995,7 +1967,6 @@ void UV_OT_project_from_view(wmOperatorType *ot)
 
 static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
 
@@ -2012,7 +1983,7 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
     }
 
     /* add uvs if they don't exist yet */
-    if (!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+    if (!ED_uvedit_ensure_uvs(obedit)) {
       continue;
     }
 
@@ -2115,7 +2086,7 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
     }
 
     /* add uvs if they don't exist yet */
-    if (!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+    if (!ED_uvedit_ensure_uvs(obedit)) {
       continue;
     }
 
@@ -2209,7 +2180,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
     }
 
     /* add uvs if they don't exist yet */
-    if (!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+    if (!ED_uvedit_ensure_uvs(obedit)) {
       continue;
     }
 
@@ -2325,7 +2296,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
     }
 
     /* add uvs if they don't exist yet */
-    if (!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+    if (!ED_uvedit_ensure_uvs(obedit)) {
       continue;
     }
 
