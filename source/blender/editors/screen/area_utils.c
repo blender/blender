@@ -64,12 +64,17 @@ void ED_region_generic_tools_region_message_subscribe(const struct bContext *UNU
 int ED_region_generic_tools_region_snap_size(const ARegion *ar, int size, int axis)
 {
   if (axis == 0) {
-    const float aspect = BLI_rctf_size_x(&ar->v2d.cur) / (BLI_rcti_size_x(&ar->v2d.mask) + 1);
-    const int icon_size = ICON_DEFAULT_HEIGHT_TOOLBAR / aspect;
+    /* Using Y axis avoids slight feedback loop when adjusting X. */
+    const float aspect = BLI_rctf_size_y(&ar->v2d.cur) / (BLI_rcti_size_y(&ar->v2d.mask) + 1);
+    const float icon_size = ICON_DEFAULT_HEIGHT_TOOLBAR / aspect;
     const float column = 1.25f * icon_size;
     const float margin = 0.5f * icon_size;
     const float snap_units[] = {
-        column + margin, (2.0f * column) + margin, (2.7f * column) + margin};
+        0, /* Without this we can't hide the toolbar. */
+        column + margin,
+        (2.0f * column) + margin,
+        (2.7f * column) + margin,
+    };
     int best_diff = INT_MAX;
     int best_size = size;
     /* Only snap if less than last snap unit. */
