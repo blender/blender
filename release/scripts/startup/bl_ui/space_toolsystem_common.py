@@ -709,11 +709,7 @@ class ToolSelectPanelHelper:
         if draw_settings is not None:
             draw_settings(context, layout, tool)
 
-        if context.preferences.experimental.use_tool_fallback:
-            idname_fallback = tool.idname_fallback
-        else:
-            idname_fallback = None
-
+        idname_fallback = tool.idname_fallback
         if idname_fallback and idname_fallback != item.idname:
             tool_settings = context.tool_settings
 

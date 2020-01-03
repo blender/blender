@@ -601,10 +601,9 @@ typedef struct UserDef_FileSpaceData {
 } UserDef_FileSpaceData;
 
 typedef struct UserDef_Experimental {
-  char use_tool_fallback;
   char use_usd_exporter;
 
-  char _pad0[6];
+  char _pad0[7];
 } UserDef_Experimental;
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) \

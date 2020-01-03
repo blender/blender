@@ -1804,9 +1804,6 @@ class WM_OT_toolbar_fallback_pie(Operator):
         return context.space_data is not None
 
     def invoke(self, context, event):
-        if not context.preferences.experimental.use_tool_fallback:
-            return {'PASS_THROUGH'}
-
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         space_type = context.space_data.type
         cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)

@@ -298,10 +298,9 @@ class _defs_transform:
                 layout.label(text="Gizmos:")
 
             show_drag = True
-            if context.preferences.experimental.use_tool_fallback:
-                tool_settings = context.tool_settings
-                if tool_settings.workspace_tool_type == 'FALLBACK':
-                    show_drag = False
+            tool_settings = context.tool_settings
+            if tool_settings.workspace_tool_type == 'FALLBACK':
+                show_drag = False
 
             if show_drag:
                 props = tool.gizmo_group_properties("VIEW3D_GGT_xform_gizmo")

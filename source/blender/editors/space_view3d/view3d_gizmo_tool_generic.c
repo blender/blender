@@ -52,10 +52,6 @@ static const char *handle_free_id;
 
 static bool WIDGETGROUP_tool_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
-  if (!USER_EXPERIMENTAL_TEST(&U, use_tool_fallback)) {
-    return false;
-  }
-
   if (!ED_gizmo_poll_or_unlink_delayed_from_tool(C, gzgt)) {
     return false;
   }

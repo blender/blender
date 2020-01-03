@@ -3751,10 +3751,6 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap 
 wmKeyMap *WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
                                                        wmEventHandler_Keymap *handler)
 {
-  if (!USER_EXPERIMENTAL_TEST(&U, use_tool_fallback)) {
-    return NULL;
-  }
-
   ScrArea *sa = handler->dynamic.user_data;
   handler->keymap_tool = NULL;
   bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
