@@ -929,6 +929,8 @@ static void actionzone_exit(wmOperator *op)
     MEM_freeN(op->customdata);
   }
   op->customdata = NULL;
+
+  G.moving &= ~G_TRANSFORM_WM;
 }
 
 /* send EVT_ACTIONZONE event */
@@ -986,9 +988,11 @@ static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_FINISHED;
   }
   else {
-    /* add modal handler */
-    WM_event_add_modal_handler(C, op);
+    BLI_assert(ELEM(sad->az->type, AZONE_AREA, AZONE_REGION_SCROLL));
 
+    /* add modal handler */
+    G.moving |= G_TRANSFORM_WM;
+    WM_event_add_modal_handler(C, op);
     return OPERATOR_RUNNING_MODAL;
   }
 }
@@ -1807,9 +1811,8 @@ static int area_move_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_PASS_THROUGH;
   }
 
-  G.moving |= G_TRANSFORM_WM;
-
   /* add temp handler */
+  G.moving |= G_TRANSFORM_WM;
   WM_event_add_modal_handler(C, op);
 
   return OPERATOR_RUNNING_MODAL;
@@ -2115,6 +2118,8 @@ static void area_split_exit(bContext *C, wmOperator *op)
   /* this makes sure aligned edges will result in aligned grabbing */
   BKE_screen_remove_double_scrverts(CTX_wm_screen(C));
   BKE_screen_remove_double_scredges(CTX_wm_screen(C));
+
+  G.moving &= ~G_TRANSFORM_WM;
 }
 
 static void area_split_preview_update_cursor(bContext *C, wmOperator *op)
@@ -2247,6 +2252,7 @@ static int area_split_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       area_move_set_limits(win, sc, dir, &sd->bigger, &sd->smaller, NULL);
 
       /* add temp handler for edge move or cancel */
+      G.moving |= G_TRANSFORM_WM;
       WM_event_add_modal_handler(C, op);
 
       return OPERATOR_RUNNING_MODAL;
@@ -2526,6 +2532,14 @@ static bool is_split_edge(const int alignment, const AZEdge edge)
          ((alignment == RGN_ALIGN_RIGHT) && (edge == AE_LEFT_TO_TOPRIGHT));
 }
 
+static void region_scale_exit(wmOperator *op)
+{
+  MEM_freeN(op->customdata);
+  op->customdata = NULL;
+
+  G.moving &= ~G_TRANSFORM_WM;
+}
+
 static int region_scale_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   sActionzoneData *sad = event->customdata;
@@ -2579,6 +2593,7 @@ static int region_scale_invoke(bContext *C, wmOperator *op, const wmEvent *event
     CLAMP(rmd->maxsize, 0, 1000);
 
     /* add temp handler */
+    G.moving |= G_TRANSFORM_WM;
     WM_event_add_modal_handler(C, op);
 
     return OPERATOR_RUNNING_MODAL;
@@ -2727,8 +2742,8 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
           ED_area_tag_redraw(rmd->sa);
           WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
         }
-        MEM_freeN(op->customdata);
-        op->customdata = NULL;
+
+        region_scale_exit(op);
 
         return OPERATOR_FINISHED;
       }
@@ -2743,8 +2758,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 static void region_scale_cancel(bContext *UNUSED(C), wmOperator *op)
 {
-  MEM_freeN(op->customdata);
-  op->customdata = NULL;
+  region_scale_exit(op);
 }
 
 static void SCREEN_OT_region_scale(wmOperatorType *ot)
