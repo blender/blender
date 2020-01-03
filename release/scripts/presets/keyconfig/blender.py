@@ -70,6 +70,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
             ('DRAG', "Drag", "Drag allows click events to pass through to the tool, adding a small delay"),
         ),
         description="Activation event for gizmos that support drag motion",
+        default='DRAG',
         update=update_fn,
     )
 
