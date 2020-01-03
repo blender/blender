@@ -366,7 +366,7 @@ void WM_toolsystem_ref_set_from_runtime(struct bContext *C,
     }
   }
   if (use_fallback_keymap == false) {
-    tref->runtime->idname_fallback[0] = '\0';
+    tref->idname_fallback[0] = '\0';
     tref->runtime->keymap_fallback[0] = '\0';
   }
 
