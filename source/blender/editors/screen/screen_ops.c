@@ -2666,7 +2666,8 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
         /* region sizes now get multiplied */
         delta /= UI_DPI_FAC;
 
-        rmd->ar->sizex = rmd->origval + delta;
+        const int size_no_snap = rmd->origval + delta;
+        rmd->ar->sizex = size_no_snap;
 
         if (rmd->ar->type->snap_size) {
           short sizex_test = rmd->ar->type->snap_size(rmd->ar, rmd->ar->sizex, 0);
@@ -2676,7 +2677,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
         CLAMP(rmd->ar->sizex, 0, rmd->maxsize);
 
-        if (rmd->ar->sizex < UI_UNIT_X) {
+        if (size_no_snap < UI_UNIT_X / aspect) {
           rmd->ar->sizex = rmd->origval;
           if (!(rmd->ar->flag & RGN_FLAG_HIDDEN)) {
             region_scale_toggle_hidden(C, rmd);
@@ -2698,7 +2699,8 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
         /* region sizes now get multiplied */
         delta /= UI_DPI_FAC;
 
-        rmd->ar->sizey = rmd->origval + delta;
+        const int size_no_snap = rmd->origval + delta;
+        rmd->ar->sizey = size_no_snap;
 
         if (rmd->ar->type->snap_size) {
           short sizey_test = rmd->ar->type->snap_size(rmd->ar, rmd->ar->sizey, 1);
@@ -2711,7 +2713,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
         /* note, 'UI_UNIT_Y/4' means you need to drag the footer and execute region
          * almost all the way down for it to become hidden, this is done
          * otherwise its too easy to do this by accident */
-        if (rmd->ar->sizey < UI_UNIT_Y / 4) {
+        if (size_no_snap < (UI_UNIT_Y / 4) / aspect) {
           rmd->ar->sizey = rmd->origval;
           if (!(rmd->ar->flag & RGN_FLAG_HIDDEN)) {
             region_scale_toggle_hidden(C, rmd);

@@ -70,7 +70,6 @@ int ED_region_generic_tools_region_snap_size(const ARegion *ar, int size, int ax
     const float column = 1.25f * icon_size;
     const float margin = 0.5f * icon_size;
     const float snap_units[] = {
-        0, /* Without this we can't hide the toolbar. */
         column + margin,
         (2.0f * column) + margin,
         (2.7f * column) + margin,
