@@ -542,8 +542,8 @@ class DOPESHEET_MT_gpencil_channel(Menu):
         # layout.operator("anim.channels_expand")
         # layout.operator("anim.channels_collapse")
 
-        # layout.separator()
-        #layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
+        layout.separator()
+        layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
 
 
 class DOPESHEET_MT_gpencil_frame(Menu):
