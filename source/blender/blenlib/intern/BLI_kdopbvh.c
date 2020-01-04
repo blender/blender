@@ -1187,9 +1187,9 @@ static void tree_overlap_traverse_cb(BVHOverlapData_Thread *data_thread,
 /**
  * a version of #tree_overlap_traverse_cb that that break on first true return.
  */
-static bool tree_overlap_num_recursive(BVHOverlapData_Thread *data_thread,
-                                       const BVHNode *node1,
-                                       const BVHNode *node2)
+static bool tree_overlap_traverse_num(BVHOverlapData_Thread *data_thread,
+                                      const BVHNode *node1,
+                                      const BVHNode *node2)
 {
   BVHOverlapData_Shared *data = data_thread->shared;
   int j;
@@ -1219,7 +1219,7 @@ static bool tree_overlap_num_recursive(BVHOverlapData_Thread *data_thread,
       }
       else {
         for (j = 0; j < node2->totnode; j++) {
-          if (tree_overlap_num_recursive(data_thread, node1, node2->children[j])) {
+          if (tree_overlap_traverse_num(data_thread, node1, node2->children[j])) {
             return true;
           }
         }
@@ -1228,7 +1228,7 @@ static bool tree_overlap_num_recursive(BVHOverlapData_Thread *data_thread,
     else {
       const uint max_interactions = data_thread->max_interactions;
       for (j = 0; j < node1->totnode; j++) {
-        if (tree_overlap_num_recursive(data_thread, node1->children[j], node2)) {
+        if (tree_overlap_traverse_num(data_thread, node1->children[j], node2)) {
           data_thread->max_interactions = max_interactions;
         }
       }
@@ -1254,7 +1254,12 @@ static void bvhtree_overlap_task_cb(void *__restrict userdata,
   BVHOverlapData_Thread *data = &((BVHOverlapData_Thread *)userdata)[j];
   BVHOverlapData_Shared *data_shared = data->shared;
 
-  if (data_shared->callback) {
+  if (data->max_interactions) {
+    tree_overlap_traverse_num(data,
+                              data_shared->tree1->nodes[data_shared->tree1->totleaf]->children[j],
+                              data_shared->tree2->nodes[data_shared->tree2->totleaf]);
+  }
+  else if (data_shared->callback) {
     tree_overlap_traverse_cb(data,
                              data_shared->tree1->nodes[data_shared->tree1->totleaf]->children[j],
                              data_shared->tree2->nodes[data_shared->tree2->totleaf]);
@@ -1264,18 +1269,6 @@ static void bvhtree_overlap_task_cb(void *__restrict userdata,
                           data_shared->tree1->nodes[data_shared->tree1->totleaf]->children[j],
                           data_shared->tree2->nodes[data_shared->tree2->totleaf]);
   }
-}
-
-static void bvhtree_overlap_num_task_cb(void *__restrict userdata,
-                                        const int j,
-                                        const TaskParallelTLS *__restrict UNUSED(tls))
-{
-  BVHOverlapData_Thread *data = &((BVHOverlapData_Thread *)userdata)[j];
-  BVHOverlapData_Shared *data_shared = data->shared;
-
-  tree_overlap_num_recursive(data,
-                             data_shared->tree1->nodes[data_shared->tree1->totleaf]->children[j],
-                             data_shared->tree2->nodes[data_shared->tree2->totleaf]);
 }
 
 BVHTreeOverlap *BLI_bvhtree_overlap_ex(
@@ -1345,16 +1338,11 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(
     TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.min_iter_per_thread = 1;
-    BLI_task_parallel_range(0,
-                            root_node_len,
-                            data,
-                            max_interactions ? bvhtree_overlap_num_task_cb :
-                                               bvhtree_overlap_task_cb,
-                            &settings);
+    BLI_task_parallel_range(0, root_node_len, data, bvhtree_overlap_task_cb, &settings);
   }
   else {
     if (max_interactions) {
-      tree_overlap_num_recursive(data, root1, root2);
+      tree_overlap_traverse_num(data, root1, root2);
     }
     else if (callback) {
       tree_overlap_traverse_cb(data, root1, root2);
