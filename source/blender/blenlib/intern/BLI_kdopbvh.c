@@ -1344,6 +1344,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(
   if (use_threading) {
     TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
+    settings.min_iter_per_thread = 1;
     BLI_task_parallel_range(0,
                             root_node_len,
                             data,
