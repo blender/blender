@@ -33,6 +33,7 @@
 
 #include "bmesh_intersect_edges.h" /* own include */
 
+#define KDOP_TREE_TYPE 4
 #define KDOP_AXIS_LEN 14
 
 /* -------------------------------------------------------------------- */
@@ -239,7 +240,7 @@ struct EDBMSplitElem {
 
 struct EDBMSplitData {
   BMesh *bm;
-  BLI_Stack *pair_stack;
+  BLI_Stack **pair_stack;
   int cut_edges_len;
   float dist_sq;
   float dist_sq_sq;
@@ -318,17 +319,14 @@ static bool bm_edgexvert_isect_impl(BMVert *v,
 
 /* Vertex x Vertex Callback */
 
-static bool bm_vertxvert_isect_cb(void *userdata, int index_a, int index_b, int UNUSED(thread))
+static bool bm_vertxvert_isect_cb(void *userdata, int index_a, int index_b, int thread)
 {
   struct EDBMSplitData *data = userdata;
   BMVert *v_a = BM_vert_at_index(data->bm, index_a);
   BMVert *v_b = BM_vert_at_index(data->bm, index_b);
 
-  struct EDBMSplitElem *pair = BLI_stack_push_r(data->pair_stack);
+  struct EDBMSplitElem *pair = BLI_stack_push_r(data->pair_stack[thread]);
 
-  BLI_assert(v_a->head.index == -1);
-
-  /* Set index -2 for sure that it will not repeat keys in `targetmap`. */
   bm_vert_pair_elem_setup_ex(v_a, &pair[0]);
   bm_vert_pair_elem_setup_ex(v_b, &pair[1]);
 
@@ -345,7 +343,7 @@ static bool bm_vertxvert_self_isect_cb(void *userdata, int index_a, int index_b,
 
 /* Vertex x Edge and Edge x Vertex Callbacks */
 
-static bool bm_edgexvert_isect_cb(void *userdata, int index_a, int index_b, int UNUSED(thread))
+static bool bm_edgexvert_isect_cb(void *userdata, int index_a, int index_b, int thread)
 {
   struct EDBMSplitData *data = userdata;
   BMEdge *e = BM_edge_at_index(data->bm, index_a);
@@ -359,7 +357,7 @@ static bool bm_edgexvert_isect_cb(void *userdata, int index_a, int index_b, int 
   struct EDBMSplitElem pair_tmp[2];
   if (bm_edgexvert_isect_impl(
           v, e, co, dir, lambda, data->dist_sq, &data->cut_edges_len, pair_tmp)) {
-    struct EDBMSplitElem *pair = BLI_stack_push_r(data->pair_stack);
+    struct EDBMSplitElem *pair = BLI_stack_push_r(data->pair_stack[thread]);
     pair[0] = pair_tmp[0];
     pair[1] = pair_tmp[1];
   }
@@ -370,7 +368,7 @@ static bool bm_edgexvert_isect_cb(void *userdata, int index_a, int index_b, int 
 
 /* Edge x Edge Callbacks */
 
-static void bm_edgexedge_isect_impl(struct EDBMSplitData *data,
+static bool bm_edgexedge_isect_impl(struct EDBMSplitData *data,
                                     BMEdge *e_a,
                                     BMEdge *e_b,
                                     const float co_a[3],
@@ -378,7 +376,8 @@ static void bm_edgexedge_isect_impl(struct EDBMSplitData *data,
                                     const float co_b[3],
                                     const float dir_b[3],
                                     float lambda_a,
-                                    float lambda_b)
+                                    float lambda_b,
+                                    struct EDBMSplitElem r_pair[2])
 {
   float dist_sq_va_factor, dist_sq_vb_factor;
   BMVert *e_a_v, *e_b_v;
@@ -403,7 +402,7 @@ static void bm_edgexedge_isect_impl(struct EDBMSplitData *data,
   if (e_a_v != e_b_v) {
     if (!IN_RANGE_INCL(lambda_a, 0.0f, 1.0f) || !IN_RANGE_INCL(lambda_b, 0.0f, 1.0f)) {
       /* Vert x Edge is already handled elsewhere. */
-      return;
+      return false;
     }
 
     float dist_sq_va = SQUARE(dist_sq_va_factor) * len_squared_v3(dir_a);
@@ -411,7 +410,7 @@ static void bm_edgexedge_isect_impl(struct EDBMSplitData *data,
 
     if (dist_sq_va < data->dist_sq || dist_sq_vb < data->dist_sq) {
       /* Vert x Edge is already handled elsewhere. */
-      return;
+      return false;
     }
 
     float near_a[3], near_b[3];
@@ -420,19 +419,15 @@ static void bm_edgexedge_isect_impl(struct EDBMSplitData *data,
 
     float dist_sq = len_squared_v3v3(near_a, near_b);
     if (dist_sq < data->dist_sq) {
-      struct EDBMSplitElem pair_tmp[2];
-
-      bm_edge_pair_elem_setup(e_a, lambda_a, &data->cut_edges_len, &pair_tmp[0]);
-      bm_edge_pair_elem_setup(e_b, lambda_b, &data->cut_edges_len, &pair_tmp[1]);
-
-      struct EDBMSplitElem *pair = BLI_stack_push_r(data->pair_stack);
-      pair[0] = pair_tmp[0];
-      pair[1] = pair_tmp[1];
+      bm_edge_pair_elem_setup(e_a, lambda_a, &data->cut_edges_len, &r_pair[0]);
+      bm_edge_pair_elem_setup(e_b, lambda_b, &data->cut_edges_len, &r_pair[1]);
+      return true;
     }
   }
+  return false;
 }
 
-static bool bm_edgexedge_isect_cb(void *userdata, int index_a, int index_b, int UNUSED(thread))
+static bool bm_edgexedge_isect_cb(void *userdata, int index_a, int index_b, int thread)
 {
   struct EDBMSplitData *data = userdata;
   BMEdge *e_a = BM_edge_at_index(data->bm, index_a);
@@ -453,7 +448,13 @@ static bool bm_edgexedge_isect_cb(void *userdata, int index_a, int index_b, int 
   float lambda_a, lambda_b;
   /* Using with dist^4 as `epsilon` is not the best solution, but it fits in most cases. */
   if (isect_ray_ray_epsilon_v3(co_a, dir_a, co_b, dir_b, data->dist_sq_sq, &lambda_a, &lambda_b)) {
-    bm_edgexedge_isect_impl(data, e_a, e_b, co_a, dir_a, co_b, dir_b, lambda_a, lambda_b);
+    struct EDBMSplitElem pair_tmp[2];
+    if (bm_edgexedge_isect_impl(
+            data, e_a, e_b, co_a, dir_a, co_b, dir_b, lambda_a, lambda_b, pair_tmp)) {
+      struct EDBMSplitElem *pair = BLI_stack_push_r(data->pair_stack[thread]);
+      pair[0] = pair_tmp[0];
+      pair[1] = pair_tmp[1];
+    }
   }
 
   /* Edge x Edge returns always false. */
@@ -471,12 +472,26 @@ static bool bm_edgexedge_self_isect_cb(void *userdata, int index_a, int index_b,
 /* -------------------------------------------------------------------- */
 /* BVHTree Overlap Function */
 
-static void bvhtree_overlap_thread_safe(const BVHTree *tree1,
-                                        const BVHTree *tree2,
-                                        BVHTree_OverlapCallback callback,
-                                        void *userdata)
+static void bm_elemxelem_bvhtree_overlap(const BVHTree *tree1,
+                                         const BVHTree *tree2,
+                                         BVHTree_OverlapCallback callback,
+                                         struct EDBMSplitData *data,
+                                         BLI_Stack **pair_stack,
+                                         bool use_thread)
 {
-  BLI_bvhtree_overlap_ex(tree1, tree2, NULL, callback, userdata, 1, 0);
+  int flag = 0;
+  int thread_num = 1;
+  if (use_thread) {
+    flag |= BVH_OVERLAP_USE_THREADING;
+    thread_num = BLI_bvhtree_overlap_thread_num(tree1);
+  }
+  for (int i = 0; i < thread_num; i++) {
+    if (pair_stack[i] == NULL) {
+      pair_stack[i] = BLI_stack_new(sizeof(struct EDBMSplitElem[2]), __func__);
+    }
+  }
+  data->pair_stack = pair_stack;
+  BLI_bvhtree_overlap_ex(tree1, tree2, NULL, callback, data, 1, flag);
 }
 
 /* -------------------------------------------------------------------- */
@@ -508,12 +523,11 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
   BMEdge *e;
   int i;
 
-  BM_mesh_elem_table_ensure(bm, BM_VERT | BM_EDGE);
-
   /* Store all intersections in this array. */
   struct EDBMSplitElem(*pair_iter)[2], (*pair_array)[2] = NULL;
-  BLI_Stack *pair_stack = BLI_stack_new(sizeof(*pair_array), __func__);
   int pair_len = 0;
+
+  BLI_Stack *pair_stack[KDOP_TREE_TYPE] = {{NULL}};
 
   const float dist_sq = SQUARE(dist);
   const float dist_half = dist / 2;
@@ -525,6 +539,8 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
       .dist_sq = dist_sq,
       .dist_sq_sq = SQUARE(dist_sq),
   };
+
+  BM_mesh_elem_table_ensure(bm, BM_VERT | BM_EDGE);
 
   /* tag and count the verts to be tested. */
   int verts_act_len = 0, verts_remain_len = 0;
@@ -547,10 +563,11 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
   /* Start the creation of BVHTrees. */
   BVHTree *tree_verts_act = NULL, *tree_verts_remain = NULL;
   if (verts_act_len) {
-    tree_verts_act = BLI_bvhtree_new(verts_act_len, dist_half, 2, KDOP_AXIS_LEN);
+    tree_verts_act = BLI_bvhtree_new(verts_act_len, dist_half, KDOP_TREE_TYPE, KDOP_AXIS_LEN);
   }
   if (verts_remain_len) {
-    tree_verts_remain = BLI_bvhtree_new(verts_remain_len, dist_half, 2, KDOP_AXIS_LEN);
+    tree_verts_remain = BLI_bvhtree_new(
+        verts_remain_len, dist_half, KDOP_TREE_TYPE, KDOP_AXIS_LEN);
   }
 
   if (tree_verts_act || tree_verts_remain) {
@@ -568,8 +585,8 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
     if (tree_verts_act) {
       BLI_bvhtree_balance(tree_verts_act);
       /* First pair search. */
-      bvhtree_overlap_thread_safe(
-          tree_verts_act, tree_verts_act, bm_vertxvert_self_isect_cb, &data);
+      bm_elemxelem_bvhtree_overlap(
+          tree_verts_act, tree_verts_act, bm_vertxvert_self_isect_cb, &data, pair_stack, true);
     }
 
     if (tree_verts_remain) {
@@ -577,51 +594,70 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
     }
 
     if (tree_verts_act && tree_verts_remain) {
-      bvhtree_overlap_thread_safe(tree_verts_remain, tree_verts_act, bm_vertxvert_isect_cb, &data);
+      bm_elemxelem_bvhtree_overlap(
+          tree_verts_remain, tree_verts_act, bm_vertxvert_isect_cb, &data, pair_stack, true);
     }
   }
 
-  if (true) {
-    uint vert_x_vert_pair_len = BLI_stack_count(pair_stack);
+  for (i = KDOP_TREE_TYPE; i--;) {
+    if (pair_stack[i]) {
+      pair_len += BLI_stack_count(pair_stack[i]);
+    }
+  }
 
+  const bool intersect_edges = true;
+  if (intersect_edges) {
+    uint vert_x_vert_pair_len = pair_len;
+
+#define EDGE_ACT_TO_TEST 1
+#define EDGE_REMAIN_TO_TEST 2
     /* Tag and count the edges. */
     int edges_act_len = 0, edges_remain_len = 0;
     BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+      if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) ||
+          (len_squared_v3v3(e->v1->co, e->v2->co) < dist_sq)) {
+        /* Don't test hidden edges or smaller than the minimum distance.
+         * These have already been handled in the vertices overlap. */
+        BM_elem_index_set(e, 0);
+        continue;
+      }
+
       if (BM_elem_flag_test(e->v1, BM_ELEM_TAG) || BM_elem_flag_test(e->v2, BM_ELEM_TAG)) {
-        BM_elem_flag_enable(e, BM_ELEM_TAG);
+        BM_elem_index_set(e, EDGE_ACT_TO_TEST);
         edges_act_len++;
       }
       else {
-        BM_elem_flag_disable(e, BM_ELEM_TAG);
-        if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-          edges_remain_len++;
-        }
+        BM_elem_index_set(e, EDGE_REMAIN_TO_TEST);
+        edges_remain_len++;
       }
+
+      /* Tag used in the overlap callbacks. */
+      BM_elem_flag_enable(e, BM_ELEM_TAG);
     }
 
     BVHTree *tree_edges_act = NULL, *tree_edges_remain = NULL;
     if (edges_act_len) {
-      tree_edges_act = BLI_bvhtree_new(edges_act_len, dist_half, 2, KDOP_AXIS_LEN);
+      tree_edges_act = BLI_bvhtree_new(edges_act_len, dist_half, KDOP_TREE_TYPE, KDOP_AXIS_LEN);
     }
 
     if (edges_remain_len && (tree_edges_act || tree_verts_act)) {
-      tree_edges_remain = BLI_bvhtree_new(edges_remain_len, dist_half, 2, KDOP_AXIS_LEN);
+      tree_edges_remain = BLI_bvhtree_new(
+          edges_remain_len, dist_half, KDOP_TREE_TYPE, KDOP_AXIS_LEN);
     }
 
     if (tree_edges_act || tree_edges_remain) {
       BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
+        int edge_test = BM_elem_index_get(e);
         float co[2][3];
-        if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-          if (tree_edges_act) {
-            e->head.index = 0;
-            copy_v3_v3(co[0], e->v1->co);
-            copy_v3_v3(co[1], e->v2->co);
-            BLI_bvhtree_insert(tree_edges_act, i, co[0], 2);
-          }
+        if (edge_test == EDGE_ACT_TO_TEST) {
+          BLI_assert(tree_edges_act);
+          e->head.index = 0;
+          copy_v3_v3(co[0], e->v1->co);
+          copy_v3_v3(co[1], e->v2->co);
+          BLI_bvhtree_insert(tree_edges_act, i, co[0], 2);
         }
-        else if (tree_edges_remain && !BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-          /* Tag used in the overlap callbacks. */
-          BM_elem_flag_enable(e, BM_ELEM_TAG);
+        else if (edge_test == EDGE_REMAIN_TO_TEST) {
+          BLI_assert(tree_edges_act);
           e->head.index = 0;
           copy_v3_v3(co[0], e->v1->co);
           copy_v3_v3(co[1], e->v2->co);
@@ -641,24 +677,40 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
 
       if (tree_edges_act) {
         /* Edge x Edge */
-        bvhtree_overlap_thread_safe(
-            tree_edges_act, tree_edges_act, bm_edgexedge_self_isect_cb, &data);
+        bm_elemxelem_bvhtree_overlap(tree_edges_act,
+                                     tree_edges_act,
+                                     bm_edgexedge_self_isect_cb,
+                                     &data,
+                                     &pair_stack[KDOP_TREE_TYPE - 1],
+                                     false);
 
         if (tree_edges_remain) {
-          bvhtree_overlap_thread_safe(
-              tree_edges_remain, tree_edges_act, bm_edgexedge_isect_cb, &data);
+          bm_elemxelem_bvhtree_overlap(tree_edges_remain,
+                                       tree_edges_act,
+                                       bm_edgexedge_isect_cb,
+                                       &data,
+                                       &pair_stack[KDOP_TREE_TYPE - 1],
+                                       false);
         }
 
         if (tree_verts_act) {
           /* Vert x Edge */
-          bvhtree_overlap_thread_safe(
-              tree_edges_act, tree_verts_act, bm_edgexvert_isect_cb, &data);
+          bm_elemxelem_bvhtree_overlap(tree_edges_act,
+                                       tree_verts_act,
+                                       bm_edgexvert_isect_cb,
+                                       &data,
+                                       &pair_stack[KDOP_TREE_TYPE - 1],
+                                       false);
         }
 
         if (tree_verts_remain) {
           /* Vert x Edge */
-          bvhtree_overlap_thread_safe(
-              tree_edges_act, tree_verts_remain, bm_edgexvert_isect_cb, &data);
+          bm_elemxelem_bvhtree_overlap(tree_edges_act,
+                                       tree_verts_remain,
+                                       bm_edgexvert_isect_cb,
+                                       &data,
+                                       &pair_stack[KDOP_TREE_TYPE - 1],
+                                       false);
         }
 
         BLI_bvhtree_free(tree_edges_act);
@@ -666,17 +718,35 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
 
       if (tree_verts_act && tree_edges_remain) {
         /* Vert x Edge */
-        bvhtree_overlap_thread_safe(
-            tree_edges_remain, tree_verts_act, bm_edgexvert_isect_cb, &data);
+        bm_elemxelem_bvhtree_overlap(tree_edges_remain,
+                                     tree_verts_act,
+                                     bm_edgexvert_isect_cb,
+                                     &data,
+                                     &pair_stack[KDOP_TREE_TYPE - 1],
+                                     false);
       }
 
       BLI_bvhtree_free(tree_edges_remain);
 
-      pair_len = BLI_stack_count(pair_stack);
-      int elem_x_edge_pair_len = pair_len - vert_x_vert_pair_len;
-      if (elem_x_edge_pair_len) {
+      pair_len = 0;
+      for (i = KDOP_TREE_TYPE; i--;) {
+        if (pair_stack[i]) {
+          pair_len += BLI_stack_count(pair_stack[i]);
+        }
+      }
+
+      int edge_x_elem_pair_len = pair_len - vert_x_vert_pair_len;
+      if (edge_x_elem_pair_len) {
         pair_array = MEM_mallocN(sizeof(*pair_array) * pair_len, __func__);
-        BLI_stack_pop_n_reverse(pair_stack, pair_array, pair_len);
+
+        pair_iter = pair_array;
+        for (i = 0; i < KDOP_TREE_TYPE; i++) {
+          if (pair_stack[i]) {
+            uint count = (uint)BLI_stack_count(pair_stack[i]);
+            BLI_stack_pop_n_reverse(pair_stack[i], pair_iter, count);
+            pair_iter += count;
+          }
+        }
 
         /* Map intersections per edge. */
         union {
@@ -688,7 +758,7 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
         } * e_map_iter, *e_map;
 
         size_t e_map_size = (data.cut_edges_len * sizeof(*e_map)) +
-                            (2 * (size_t)elem_x_edge_pair_len * sizeof(*(e_map->cuts_index)));
+                            (2 * (size_t)edge_x_elem_pair_len * sizeof(*(e_map->cuts_index)));
 
         e_map = MEM_mallocN(e_map_size, __func__);
         int map_len = 0;
@@ -696,12 +766,12 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
         /* Convert every pair to Vert x Vert. */
 
         /* The list of pairs starts with [vert x vert] followed by [edge x edge]
-         * and finally [vert x edge].
+         * and finally [edge x vert].
          * Ignore the [vert x vert] pairs */
         struct EDBMSplitElem *pair_flat, *pair_flat_iter;
         pair_flat = (struct EDBMSplitElem *)&pair_array[vert_x_vert_pair_len];
         pair_flat_iter = &pair_flat[0];
-        uint pair_flat_len = 2 * elem_x_edge_pair_len;
+        uint pair_flat_len = 2 * edge_x_elem_pair_len;
         for (i = 0; i < pair_flat_len; i++, pair_flat_iter++) {
           if (pair_flat_iter->elem->head.htype != BM_EDGE) {
             continue;
@@ -760,11 +830,15 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
   BLI_bvhtree_free(tree_verts_remain);
 
   if (r_targetmap) {
-    if (pair_array == NULL) {
-      pair_len = BLI_stack_count(pair_stack);
-      if (pair_len) {
-        pair_array = MEM_mallocN(sizeof(*pair_array) * pair_len, __func__);
-        BLI_stack_pop_n_reverse(pair_stack, pair_array, pair_len);
+    if (pair_len && pair_array == NULL) {
+      pair_array = MEM_mallocN(sizeof(*pair_array) * pair_len, __func__);
+      pair_iter = pair_array;
+      for (i = 0; i < KDOP_TREE_TYPE; i++) {
+        if (pair_stack[i]) {
+          uint count = (uint)BLI_stack_count(pair_stack[i]);
+          BLI_stack_pop_n_reverse(pair_stack[i], pair_iter, count);
+          pair_iter += count;
+        }
       }
     }
 
@@ -782,7 +856,11 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
     }
   }
 
-  BLI_stack_free(pair_stack);
+  for (i = KDOP_TREE_TYPE; i--;) {
+    if (pair_stack[i]) {
+      BLI_stack_free(pair_stack[i]);
+    }
+  }
   if (pair_array) {
     MEM_freeN(pair_array);
   }
