@@ -113,7 +113,6 @@ BLI_STATIC_ASSERT((sizeof(void *) == 8 && sizeof(BVHTree) <= 48) ||
 typedef struct BVHOverlapData_Shared {
   const BVHTree *tree1, *tree2;
   axis_t start_axis, stop_axis;
-  bool use_threading;
 
   /* use for callbacks */
   BVHTree_OverlapCallback callback;
@@ -1252,11 +1251,8 @@ static void bvhtree_overlap_task_cb(void *__restrict userdata,
                                     const int j,
                                     const TaskParallelTLS *__restrict UNUSED(tls))
 {
-  BVHOverlapData_Thread *data = (BVHOverlapData_Thread *)userdata;
+  BVHOverlapData_Thread *data = &((BVHOverlapData_Thread *)userdata)[j];
   BVHOverlapData_Shared *data_shared = data->shared;
-  if (data_shared->use_threading) {
-    data += j;
-  }
 
   if (data_shared->callback) {
     tree_overlap_traverse_cb(data,
@@ -1274,11 +1270,8 @@ static void bvhtree_overlap_num_task_cb(void *__restrict userdata,
                                         const int j,
                                         const TaskParallelTLS *__restrict UNUSED(tls))
 {
-  BVHOverlapData_Thread *data = (BVHOverlapData_Thread *)userdata;
+  BVHOverlapData_Thread *data = &((BVHOverlapData_Thread *)userdata)[j];
   BVHOverlapData_Shared *data_shared = data->shared;
-  if (data_shared->use_threading) {
-    data += j;
-  }
 
   tree_overlap_num_recursive(data,
                              data_shared->tree1->nodes[data_shared->tree1->totleaf]->children[j],
@@ -1333,7 +1326,6 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(
   data_shared.tree2 = tree2;
   data_shared.start_axis = start_axis;
   data_shared.stop_axis = stop_axis;
-  data_shared.use_threading = use_threading;
 
   /* can be NULL */
   data_shared.callback = callback;
@@ -1349,14 +1341,27 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(
     data[j].thread = j;
   }
 
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = use_threading;
-  BLI_task_parallel_range(0,
-                          root_node_len,
-                          data,
-                          max_interactions ? bvhtree_overlap_num_task_cb : bvhtree_overlap_task_cb,
-                          &settings);
+  if (use_threading) {
+    TaskParallelSettings settings;
+    BLI_parallel_range_settings_defaults(&settings);
+    BLI_task_parallel_range(0,
+                            root_node_len,
+                            data,
+                            max_interactions ? bvhtree_overlap_num_task_cb :
+                                               bvhtree_overlap_task_cb,
+                            &settings);
+  }
+  else {
+    if (max_interactions) {
+      tree_overlap_num_recursive(data, root1, root2);
+    }
+    else if (callback) {
+      tree_overlap_traverse_cb(data, root1, root2);
+    }
+    else {
+      tree_overlap_traverse(data, root1, root2);
+    }
+  }
 
   if (overlap_pairs) {
     for (j = 0; j < thread_num; j++) {
