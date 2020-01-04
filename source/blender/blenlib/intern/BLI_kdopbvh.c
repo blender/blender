@@ -1129,7 +1129,7 @@ static void tree_overlap_traverse(BVHOverlapData_Thread *data_thread,
       }
     }
     else {
-      for (j = 0; j < data->tree2->tree_type; j++) {
+      for (j = 0; j < data->tree1->tree_type; j++) {
         if (node1->children[j]) {
           tree_overlap_traverse(data_thread, node1->children[j], node2);
         }
@@ -1176,7 +1176,7 @@ static void tree_overlap_traverse_cb(BVHOverlapData_Thread *data_thread,
       }
     }
     else {
-      for (j = 0; j < data->tree2->tree_type; j++) {
+      for (j = 0; j < data->tree1->tree_type; j++) {
         if (node1->children[j]) {
           tree_overlap_traverse_cb(data_thread, node1->children[j], node2);
         }
