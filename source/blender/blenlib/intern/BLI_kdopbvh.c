@@ -1302,7 +1302,8 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(
   /* `RETURN_PAIRS` was not implemented without `max_interations`. */
   BLI_assert(overlap_pairs || max_interactions);
 
-  const int thread_num = use_threading ? BLI_bvhtree_overlap_thread_num(tree1) : 1;
+  const int root_node_len = BLI_bvhtree_overlap_thread_num(tree1);
+  const int thread_num = use_threading ? root_node_len : 1;
   int j;
   size_t total = 0;
   BVHTreeOverlap *overlap = NULL, *to = NULL;
@@ -1352,7 +1353,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = use_threading;
   BLI_task_parallel_range(0,
-                          root1->totnode,
+                          root_node_len,
                           data,
                           max_interactions ? bvhtree_overlap_num_task_cb : bvhtree_overlap_task_cb,
                           &settings);
