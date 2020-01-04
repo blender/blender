@@ -180,6 +180,19 @@ def _template_items_tool_select_actions_simple(operator, *, type, value, propert
     ]
 
 
+def _template_items_editmode_mesh_select_mode(params):
+    return [
+        (
+            "mesh.select_mode",
+            {"type": k, "value": 'PRESS', **key_expand, **key_extend},
+            {"properties": [*prop_extend, *prop_expand, ("type", e)]}
+        )
+        for key_expand, prop_expand in (({}, ()), ({"ctrl": True}, (("use_expand", True),)))
+        for key_extend, prop_extend in (({}, ()), ({"shift": True}, (("use_extend", True),)))
+        for k, e in (('ONE', 'VERT'), ('TWO', 'EDGE'), ('THREE', 'FACE'))
+    ]
+
+
 # ------------------------------------------------------------------------------
 # Window, Screen, Areas, Regions
 
@@ -541,6 +554,7 @@ def km_uv_editor(params):
         op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         # Selection modes.
+        *_template_items_editmode_mesh_select_mode(params),
         ("wm.context_set_enum", {"type": 'ONE', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'VERTEX')]}),
         ("wm.context_set_enum", {"type": 'TWO', "value": 'PRESS'},
@@ -554,6 +568,7 @@ def km_uv_editor(params):
          {"properties": [("extend", False), ("deselect_all", True)]}),
         ("uv.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True},
          {"properties": [("extend", True), ("deselect_all", False)]}),
+
         ("transform.translate", {"type": "EVT_TWEAK_L", "value": 'ANY'}, None),
         ("uv.select_loop", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK', "shift": True},
          {"properties": [("extend", True)]}),
@@ -1004,14 +1019,6 @@ def km_image(params):
          {"properties": [("point", 'BLACK_POINT')]}),
         ("image.curves_point_set", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("point", 'WHITE_POINT')]}),
-        ("object.mode_set", {"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("mode", 'EDIT')]}),
-        ("object.mode_set", {"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("mode", 'OBJECT')]}),
-        ("object.mode_set", {"type": 'THREE', "value": 'PRESS'},
-         {"properties": [("mode", 'OBJECT')]}),
-        ("object.mode_set", {"type": 'FOUR', "value": 'PRESS'},
-         {"properties": [("mode", 'OBJECT')]}),
         op_menu_pie("IMAGE_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
         # Tools
         op_tool_cycle("builtin.select_box", {"type": 'Q', "value": 'PRESS'}),
@@ -3122,6 +3129,9 @@ def km_mesh(params):
         ("mesh.select_more", {"type": 'UP_ARROW', "value": 'PRESS'}, None),
         ("mesh.select_less", {"type": 'DOWN_ARROW', "value": 'PRESS'}, None),
         ("mesh.select_linked", {"type": 'RIGHT_BRACKET', "value": 'PRESS'}, None),
+
+        *_template_items_editmode_mesh_select_mode(params),
+
         # Hide/reveal.
         ("mesh.hide", {"type": 'H', "value": 'PRESS', "ctrl": True},
          {"properties": [("unselected", False)]}),
