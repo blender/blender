@@ -527,7 +527,7 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
   struct EDBMSplitElem(*pair_iter)[2], (*pair_array)[2] = NULL;
   int pair_len = 0;
 
-  BLI_Stack *pair_stack[KDOP_TREE_TYPE] = {{NULL}};
+  BLI_Stack *pair_stack[KDOP_TREE_TYPE] = {NULL};
 
   const float dist_sq = SQUARE(dist);
   const float dist_half = dist / 2;
