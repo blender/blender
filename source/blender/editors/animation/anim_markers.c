@@ -1001,13 +1001,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
             mm->evtx = event->x;
             fac = ((float)(event->x - mm->firstx) * dx);
 
-            apply_keyb_grid(event->shift,
-                            event->ctrl,
-                            &fac,
-                            0.0,
-                            1.0,
-                            0.1,
-                            0 /*was: U.flag & USER_AUTOGRABGRID*/);
+            apply_keyb_grid(event->shift, event->ctrl, &fac, 0.0, FPS, 0.1 * FPS, 0);
 
             RNA_int_set(op->ptr, "frames", (int)fac);
             ed_marker_move_apply(C, op);
