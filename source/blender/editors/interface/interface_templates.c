@@ -5013,7 +5013,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
                       0.0,
                       0.0,
                       0.0,
-                      TIP_("Set the point's handle type to sharp."));
+                      TIP_("Set the point's handle type to sharp"));
     if (point_last_or_first) {
       UI_but_flag_enable(bt, UI_BUT_DISABLED);
     }
@@ -5031,7 +5031,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
                       0.0,
                       0.0,
                       0.0,
-                      TIP_("Set the point's handle type to sharp."));
+                      TIP_("Set the point's handle type to smooth"));
     UI_but_funcN_set(bt, CurveProfile_buttons_setcurved, MEM_dupallocN(cb), profile);
     if (point_last_or_first) {
       UI_but_flag_enable(bt, UI_BUT_DISABLED);
