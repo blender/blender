@@ -1377,6 +1377,9 @@ static void rearrange_gpencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode
 
     /* free visible layers data */
     BLI_freelistN(&anim_data_visible);
+
+    /* Tag to recalc geometry */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   }
 
   /* free GPD channel data */
