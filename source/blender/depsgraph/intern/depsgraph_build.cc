@@ -345,7 +345,7 @@ class DepsgraphFromIDsFilter {
   DepsgraphFromIDsFilter(ID **ids, const int num_ids)
   {
     for (int i = 0; i < num_ids; ++i) {
-      ids_.insert(ids[0]);
+      ids_.insert(ids[i]);
     }
   }
 
