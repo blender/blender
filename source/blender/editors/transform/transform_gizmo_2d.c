@@ -208,7 +208,6 @@ void ED_widgetgroup_gizmo2d_xform_setup(const bContext *UNUSED(C), wmGizmoGroup 
 
     /* custom handler! */
     WM_gizmo_set_fn_custom_modal(gz, gizmo2d_modal);
-    WM_gizmo_set_scale(gz, U.gizmo_size);
 
     if (i < 2) {
       float color[4], color_hi[4];
@@ -221,6 +220,8 @@ void ED_widgetgroup_gizmo2d_xform_setup(const bContext *UNUSED(C), wmGizmoGroup 
       WM_gizmo_set_line_width(gz, GIZMO_AXIS_LINE_WIDTH);
       WM_gizmo_set_color(gz, color);
       WM_gizmo_set_color_highlight(gz, color_hi);
+
+      WM_gizmo_set_scale(gz, 1.0f);
     }
     else {
       PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
@@ -230,6 +231,8 @@ void ED_widgetgroup_gizmo2d_xform_setup(const bContext *UNUSED(C), wmGizmoGroup 
       /* Make the center low alpha. */
       WM_gizmo_set_line_width(gz, 2.0f);
       RNA_float_set(gz->ptr, "backdrop_fill_alpha", 0.0);
+
+      WM_gizmo_set_scale(gz, 1.2f);
     }
 
     /* Assign operator. */
@@ -511,7 +514,6 @@ void ED_widgetgroup_gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup
 
     /* custom handler! */
     WM_gizmo_set_fn_custom_modal(gz, gizmo2d_modal);
-    WM_gizmo_set_scale(gz, U.gizmo_size);
 
     if (i < 2) {
       const float offset[3] = {0.0f, 0.2f};
@@ -527,6 +529,8 @@ void ED_widgetgroup_gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup
       WM_gizmo_set_line_width(gz, GIZMO_AXIS_LINE_WIDTH);
       WM_gizmo_set_color(gz, color);
       WM_gizmo_set_color_highlight(gz, color_hi);
+
+      WM_gizmo_set_scale(gz, 1.0f);
     }
     else {
       PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
@@ -536,6 +540,8 @@ void ED_widgetgroup_gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup
       /* Make the center low alpha. */
       WM_gizmo_set_line_width(gz, 2.0f);
       RNA_float_set(gz->ptr, "backdrop_fill_alpha", 0.0);
+
+      WM_gizmo_set_scale(gz, 1.2f);
     }
 
     /* Assign operator. */
@@ -629,7 +635,7 @@ void ED_widgetgroup_gizmo2d_rotate_setup(const bContext *UNUSED(C), wmGizmoGroup
 
     /* custom handler! */
     WM_gizmo_set_fn_custom_modal(gz, gizmo2d_modal);
-    WM_gizmo_set_scale(gz, U.gizmo_size);
+    WM_gizmo_set_scale(gz, 1.0f);
 
     {
       PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");

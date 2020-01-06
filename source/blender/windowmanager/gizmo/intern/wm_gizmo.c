@@ -503,9 +503,6 @@ void wm_gizmo_calculate_scale(wmGizmo *gz, const bContext *C)
       /* Exclude matrix_offset from scale. */
       scale *= ED_view3d_pixel_size_no_ui_scale(rv3d, matrix_world[3]);
     }
-    else {
-      scale *= 0.02f;
-    }
   }
 
   gz->scale_final = gz->scale_basis * scale;

@@ -91,13 +91,7 @@ static void gizmo_calc_rect_view_scale(const wmGizmo *gz, const float dims[3], f
 
 static void gizmo_calc_rect_view_margin(const wmGizmo *gz, const float dims[3], float margin[3])
 {
-  float handle_size;
-  if (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
-    handle_size = 0.15f;
-  }
-  else {
-    handle_size = GIZMO_RESIZER_SIZE;
-  }
+  const float handle_size = 0.15f;
   // XXX, the scale isn't taking offset into account, we need to calculate scale per handle!
   // handle_size *= gz->scale_final;
 
