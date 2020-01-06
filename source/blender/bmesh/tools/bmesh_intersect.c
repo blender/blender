@@ -1082,7 +1082,15 @@ bool BM_mesh_intersect(BMesh *bm,
     tree_b = tree_a;
   }
 
-  overlap = BLI_bvhtree_overlap(tree_b, tree_a, &tree_overlap_tot, NULL, NULL);
+  int flag = BVH_OVERLAP_USE_THREADING | BVH_OVERLAP_RETURN_PAIRS;
+#  if DEBUG
+  /* The overlap result must match that obtained in Release to succeed
+   * in the `bmesh_boolean` test. */
+  if (looptris_tot < 1024) {
+    flag &= ~BVH_OVERLAP_USE_THREADING;
+  }
+#  endif
+  overlap = BLI_bvhtree_overlap_ex(tree_b, tree_a, &tree_overlap_tot, NULL, NULL, 0, flag);
 
   if (overlap) {
     uint i;
