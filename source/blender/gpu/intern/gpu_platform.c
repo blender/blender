@@ -158,7 +158,8 @@ void gpu_platform_init(void)
 
     if (strstr(renderer, "UHD Graphics") ||
         /* Not UHD but affected by the same bugs. */
-        strstr(renderer, "HD Graphics 530") || strstr(renderer, "Kaby Lake GT2")) {
+        strstr(renderer, "HD Graphics 530") || strstr(renderer, "Kaby Lake GT2") ||
+        strstr(renderer, "Whiskey Lake")) {
       GPG.device |= GPU_DEVICE_INTEL_UHD;
     }
   }
