@@ -80,6 +80,8 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
   Scene *scene = CTX_data_scene(C);
 
+  BKE_sculpt_mask_layers_ensure(ob, NULL);
+
   Mesh *mesh = ob->data;
   Mesh *new_mesh = BKE_mesh_copy(bmain, mesh);
 
@@ -104,9 +106,8 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   BMIter face_iter;
 
   /* Delete all unmasked faces */
-  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
-  BLI_assert(cd_vert_mask_offset != -1);
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
 
   float mask_threshold = RNA_float_get(op->ptr, "mask_threshold");
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
@@ -335,6 +336,8 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   struct Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
   View3D *v3d = CTX_wm_view3d(C);
+
+  BKE_sculpt_mask_layers_ensure(ob, NULL);
 
   Mesh *mesh = ob->data;
   Mesh *new_mesh = BKE_mesh_copy(bmain, mesh);
