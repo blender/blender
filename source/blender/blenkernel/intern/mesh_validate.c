@@ -866,7 +866,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
           tot_elem = mesh->totedge;
           break;
         case ME_FSEL:
-          tot_elem = mesh->totface;
+          tot_elem = mesh->totpoly;
           break;
       }
 
