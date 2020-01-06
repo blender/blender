@@ -601,9 +601,7 @@ typedef struct UserDef_FileSpaceData {
 } UserDef_FileSpaceData;
 
 typedef struct UserDef_Experimental {
-  char use_usd_exporter;
-
-  char _pad0[7];
+  char _pad0[8]; /* makesdna does not allow empty structs. */
 } UserDef_Experimental;
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) \

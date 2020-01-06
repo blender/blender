@@ -2118,30 +2118,6 @@ class USERPREF_PT_experimental_virtual_reality(ExperimentalPanel, Panel):
 """
 
 
-class USERPREF_PT_experimental_usd(ExperimentalPanel, Panel):
-    bl_label = "Universal Scene Description"
-
-    @classmethod
-    def poll(cls, context):
-        # Only show the panel if Blender was actually built with USD support.
-        return getattr(bpy.app.build_options, "usd", False)
-
-    def draw(self, context):
-        prefs = context.preferences
-        experimental = prefs.experimental
-
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        split = layout.split(factor=0.66)
-        col = split.split()
-        col.prop(experimental, "use_usd_exporter", text="USD Exporter")
-        col = split.split()
-        url = "https://devtalk.blender.org/t/universal-scene-description-usd-exporter-feedback/10920"
-        col.operator("wm.url_open", text='Give Feedback', icon='URL').url = url
-
-
 # -----------------------------------------------------------------------------
 # Class Registration
 
@@ -2225,8 +2201,6 @@ classes = (
     USERPREF_PT_studiolight_light_editor,
     USERPREF_PT_studiolight_matcaps,
     USERPREF_PT_studiolight_world,
-
-    USERPREF_PT_experimental_usd,
 
     # Popovers.
     USERPREF_PT_ndof_settings,
