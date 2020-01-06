@@ -152,8 +152,8 @@ static bool ObtainCacheParticleData(
 
         float radius = b_part.radius_scale() * 0.5f;
 
-        CData->psys_rootradius.push_back_slow(radius * b_part.root_radius());
-        CData->psys_tipradius.push_back_slow(radius * b_part.tip_radius());
+        CData->psys_rootradius.push_back_slow(radius * b_part.root_diameter());
+        CData->psys_tipradius.push_back_slow(radius * b_part.tip_diameter());
         CData->psys_shape.push_back_slow(b_part.shape());
         CData->psys_closetip.push_back_slow(b_part.use_close_tip());
 
