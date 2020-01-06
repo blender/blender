@@ -930,6 +930,7 @@ static void edituv_request_active_uv(MeshBatchCache *cache, Mesh *me)
 {
   DRW_MeshCDMask cd_needed;
   mesh_cd_layers_type_clear(&cd_needed);
+  mesh_cd_calc_active_uv_layer(me, &cd_needed);
   mesh_cd_calc_edit_uv_layer(me, &cd_needed);
 
   BLI_assert(cd_needed.edit_uv != 0 &&
