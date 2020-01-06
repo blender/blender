@@ -1219,7 +1219,7 @@ static void update_noise_and_wave_distortion(bNodeTree *ntree)
       bNodeSocket *sockDistortion = nodeFindSocket(node, SOCK_IN, "Distortion");
       float *distortion = cycles_node_socket_float_value(sockDistortion);
 
-      if (socket_is_used(sockDistortion)) {
+      if (socket_is_used(sockDistortion) && sockDistortion->link != NULL) {
         bNode *distortionInputNode = sockDistortion->link->fromnode;
         bNodeSocket *distortionInputSock = sockDistortion->link->fromsock;
 
