@@ -115,7 +115,7 @@ static void gizmo2d_get_axis_color(const int axis_idx, float *r_col, float *r_co
 
 static GizmoGroup2D *gizmogroup2d_init(wmGizmoGroup *gzgroup)
 {
-  const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_2d", true);
+  const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
   const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_2d", true);
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
@@ -214,8 +214,11 @@ void ED_widgetgroup_gizmo2d_xform_setup(const bContext *UNUSED(C), wmGizmoGroup 
       gizmo2d_get_axis_color(i, color, color_hi);
 
       /* set up widget data */
-      RNA_float_set(gz->ptr, "angle", -M_PI_2 * i);
       RNA_float_set(gz->ptr, "length", 0.8f);
+      float axis[3] = {0.0f};
+      axis[(i + 1) % 2] = 1.0f;
+      WM_gizmo_set_matrix_rotation_from_z_axis(gz, axis);
+
       WM_gizmo_set_matrix_offset_location(gz, offset);
       WM_gizmo_set_line_width(gz, GIZMO_AXIS_LINE_WIDTH);
       WM_gizmo_set_color(gz, color);
@@ -453,7 +456,7 @@ typedef struct GizmoGroup_Resize2D {
 
 static GizmoGroup_Resize2D *gizmogroup2d_resize_init(wmGizmoGroup *gzgroup)
 {
-  const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_2d", true);
+  const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
   GizmoGroup_Resize2D *ggd = MEM_callocN(sizeof(GizmoGroup_Resize2D), __func__);
@@ -521,8 +524,11 @@ void ED_widgetgroup_gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup
       gizmo2d_get_axis_color(i, color, color_hi);
 
       /* set up widget data */
-      RNA_float_set(gz->ptr, "angle", -M_PI_2 * i);
       RNA_float_set(gz->ptr, "length", 0.8f);
+      float axis[3] = {0.0f};
+      axis[(i + 1) % 2] = 1.0f;
+      WM_gizmo_set_matrix_rotation_from_z_axis(gz, axis);
+
       RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_BOX);
 
       WM_gizmo_set_matrix_offset_location(gz, offset);

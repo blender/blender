@@ -33,6 +33,7 @@
  */
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_view3d_types.h"
 
@@ -55,6 +56,8 @@
 #include "ED_view3d.h"
 #include "ED_screen.h"
 #include "ED_gizmo_library.h"
+
+#include "UI_interface.h"
 
 /* own includes */
 #include "../gizmo_geometry.h"
@@ -211,6 +214,37 @@ static void gizmo_arrow_draw_select(const bContext *UNUSED(C), wmGizmo *gz, int 
 static void gizmo_arrow_draw(const bContext *UNUSED(C), wmGizmo *gz)
 {
   arrow_draw_intern((ArrowGizmo3D *)gz, false, (gz->state & WM_GIZMO_STATE_HIGHLIGHT) != 0);
+}
+
+/**
+ * Selection for 2D views.
+ */
+static int gizmo_arrow_test_select(bContext *UNUSED(C), wmGizmo *gz, const int mval[2])
+{
+  /* Project into 2D space since it simplifies pixel threshold tests. */
+  ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
+  const float arrow_length = RNA_float_get(arrow->gizmo.ptr, "length");
+
+  float matrix_final[4][4];
+  WM_gizmo_calc_matrix_final(gz, matrix_final);
+
+  /* Arrow in pixel space. */
+  float arrow_start[2] = {matrix_final[3][0], matrix_final[3][1]};
+  float arrow_end[2];
+  {
+    float co[3] = {0, 0, arrow_length};
+    mul_m4_v3(matrix_final, co);
+    copy_v2_v2(arrow_end, co);
+  }
+
+  const float mval_fl[2] = {UNPACK2(mval)};
+  const float arrow_stem_threshold_px = 5 * UI_DPI_FAC;
+  const float arrow_head_threshold_px = 10 * UI_DPI_FAC;
+  if (dist_squared_to_line_v2(mval_fl, arrow_start, arrow_end) < SQUARE(arrow_stem_threshold_px) ||
+      len_squared_v2v2(mval_fl, arrow_end) < SQUARE(arrow_head_threshold_px)) {
+    return 0;
+  }
+  return -1;
 }
 
 /**
@@ -427,6 +461,7 @@ static void GIZMO_GT_arrow_3d(wmGizmoType *gzt)
   /* api callbacks */
   gzt->draw = gizmo_arrow_draw;
   gzt->draw_select = gizmo_arrow_draw_select;
+  gzt->test_select = gizmo_arrow_test_select;
   gzt->matrix_basis_get = gizmo_arrow_matrix_basis_get;
   gzt->modal = gizmo_arrow_modal;
   gzt->setup = gizmo_arrow_setup;
