@@ -22,14 +22,14 @@
  *
  * \name Arrow Gizmo
  *
- * 3D Gizmo
+ * 2D/3D Gizmo
  *
  * \brief Simple arrow gizmo which is dragged into a certain direction.
  * The arrow head can have varying shapes, e.g. cone, box, etc.
  *
  * - `matrix[0]` is derived from Y and Z.
  * - `matrix[1]` is 'up' for gizmo types that have an up.
- * - `matrix[2]` is the arrow direction (for all arrowes).
+ * - `matrix[2]` is the arrow direction (for all arrows).
  */
 
 #include "BLI_math.h"
