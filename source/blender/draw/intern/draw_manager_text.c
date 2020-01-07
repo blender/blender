@@ -253,7 +253,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *ar,
     BoundBox bb;
     const rcti rect = {0, ar->winx, 0, ar->winy};
 
-    ED_view3d_clipping_calc(&bb, clip_planes, ar, em->ob, &rect);
+    ED_view3d_clipping_calc(&bb, clip_planes, ar, ob, &rect);
   }
 
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) {

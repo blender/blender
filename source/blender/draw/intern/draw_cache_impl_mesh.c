@@ -1399,16 +1399,32 @@ void DRW_mesh_batch_cache_create_requested(
 
   if (do_uvcage) {
     mesh_buffer_cache_create_requested(
-        cache, cache->uv_cage, me, false, true, false, &cache->cd_used, ts, true);
+        cache, cache->uv_cage, me, ob->obmat, false, true, false, &cache->cd_used, ts, true);
   }
 
   if (do_cage) {
-    mesh_buffer_cache_create_requested(
-        cache, cache->cage, me, false, false, use_subsurf_fdots, &cache->cd_used, ts, true);
+    mesh_buffer_cache_create_requested(cache,
+                                       cache->cage,
+                                       me,
+                                       ob->obmat,
+                                       false,
+                                       false,
+                                       use_subsurf_fdots,
+                                       &cache->cd_used,
+                                       ts,
+                                       true);
   }
 
-  mesh_buffer_cache_create_requested(
-      cache, cache->final, me, true, false, use_subsurf_fdots, &cache->cd_used, ts, use_hide);
+  mesh_buffer_cache_create_requested(cache,
+                                     cache->final,
+                                     me,
+                                     ob->obmat,
+                                     true,
+                                     false,
+                                     use_subsurf_fdots,
+                                     &cache->cd_used,
+                                     ts,
+                                     use_hide);
 
 #ifdef DEBUG
 check:
