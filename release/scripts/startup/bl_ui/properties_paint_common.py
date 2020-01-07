@@ -616,9 +616,12 @@ def brush_settings(layout, context, brush, popover=False):
             layout.separator()
 
         if brush.sculpt_tool == 'POSE':
-            row = layout.row()
-            row.prop(brush, "pose_offset")
-
+            layout.separator()
+            layout.prop(brush, "pose_offset")
+            layout.prop(brush, "pose_smooth_iterations")
+            layout.prop(brush, "pose_ik_segments")
+            layout.separator()
+        
         if brush.sculpt_tool == 'SCRAPE':
             row = layout.row()
             row.prop(brush, "invert_to_scrape_fill", text="Invert to Fill")

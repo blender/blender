@@ -98,6 +98,20 @@ typedef enum eOverlayControlFlags {
   (PAINT_OVERLAY_OVERRIDE_SECONDARY | PAINT_OVERLAY_OVERRIDE_PRIMARY | \
    PAINT_OVERLAY_OVERRIDE_CURSOR)
 
+/* Defines 8 areas resulting of splitting the object space by the XYZ axis planes. This is used to
+ * flip or mirror transform values depending on where the vertex is and where the transform
+ * operation started to support XYZ symmetry on those operations in a predictable way. */
+
+#define AREA_SYMM_DEFAULT 0
+
+typedef enum ePaintSymmetryAreas {
+  AREA_SYMM_X = (1 << 0),
+  AREA_SYMM_Y = (1 << 1),
+  AREA_SYMM_Z = (1 << 2),
+} ePaintSymmetryAreas;
+
+#define PAINT_SYMM_AREAS 8
+
 void BKE_paint_invalidate_overlay_tex(struct Scene *scene,
                                       struct ViewLayer *view_layer,
                                       const struct Tex *tex);
@@ -211,6 +225,29 @@ struct SculptVertexPaintGeomMap {
   struct MeshElemMap *vert_to_poly;
 };
 
+/* Pose Brush IK Chain */
+typedef struct PoseIKChainSegment {
+  float orig[3];
+  float head[3];
+
+  float initial_orig[3];
+  float initial_head[3];
+  float len;
+  float rot[4];
+  float *weights;
+
+  /* Store a 4x4 transform matrix for each of the possible combinations of enabled XYZ symmetry
+   * axis. */
+  float trans_mat[PAINT_SYMM_AREAS][4][4];
+  float pivot_mat[PAINT_SYMM_AREAS][4][4];
+  float pivot_mat_inv[PAINT_SYMM_AREAS][4][4];
+} PoseIKChainSegment;
+
+typedef struct PoseIKChain {
+  PoseIKChainSegment *segments;
+  int tot_segments;
+} PoseIKChain;
+
 /* Session data (mode-specific) */
 
 typedef struct SculptSession {
@@ -273,7 +310,10 @@ typedef struct SculptSession {
   /* Dynamic mesh preview */
   int *preview_vert_index_list;
   int preview_vert_index_count;
+
+  /* Pose Brush Preview */
   float pose_origin[3];
+  PoseIKChain *pose_ik_chain_preview;
 
   /* Transform operator */
   float pivot_pos[3];

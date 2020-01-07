@@ -1461,15 +1461,30 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
             cursor_draw_point_with_symmetry(pos, ar, gi.active_vertex_co, sd, vc.obact, rds);
           }
 
-          /* Draw pose brush origin */
+          /* Draw pose brush origins. */
           if (brush->sculpt_tool == SCULPT_TOOL_POSE) {
             immUniformColor4f(1.0f, 1.0f, 1.0f, 0.8f);
             if (update_previews) {
               BKE_sculpt_update_object_for_edit(depsgraph, vc.obact, true, false);
-              sculpt_pose_calc_pose_data(
-                  sd, vc.obact, ss, gi.location, rds, brush->pose_offset, ss->pose_origin, NULL);
+
+              /* Free the previous pose brush preview. */
+              if (ss->pose_ik_chain_preview) {
+                sculpt_pose_ik_chain_free(ss->pose_ik_chain_preview);
+              }
+
+              /* Generate a new pose brush preview from the current cursor location. */
+              ss->pose_ik_chain_preview = sculpt_pose_ik_chain_init(
+                  sd, vc.obact, ss, brush, gi.location, rds);
             }
-            cursor_draw_point_screen_space(pos, ar, ss->pose_origin, vc.obact->obmat, 5);
+
+            /* Draw the pose brush rotation origins. */
+            for (int i = 0; i < ss->pose_ik_chain_preview->tot_segments; i++) {
+              cursor_draw_point_screen_space(pos,
+                                             ar,
+                                             ss->pose_ik_chain_preview->segments[i].initial_orig,
+                                             vc.obact->obmat,
+                                             3);
+            }
           }
 
           /* Draw 3D brush cursor */
@@ -1518,9 +1533,13 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
           if (brush->sculpt_tool == SCULPT_TOOL_POSE) {
             immUniformColor4f(1.0f, 1.0f, 1.0f, 0.8f);
             GPU_line_width(2.0f);
-            immBegin(GPU_PRIM_LINES, 2);
-            immVertex3fv(pos, ss->pose_origin);
-            immVertex3fv(pos, gi.location);
+
+            immBegin(GPU_PRIM_LINES, ss->pose_ik_chain_preview->tot_segments * 2);
+            for (int i = 0; i < ss->pose_ik_chain_preview->tot_segments; i++) {
+              immVertex3fv(pos, ss->pose_ik_chain_preview->segments[i].initial_orig);
+              immVertex3fv(pos, ss->pose_ik_chain_preview->segments[i].initial_head);
+            }
+
             immEnd();
           }
 

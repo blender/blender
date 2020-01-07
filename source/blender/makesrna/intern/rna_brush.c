@@ -1927,6 +1927,16 @@ static void rna_def_brush(BlenderRNA *brna)
       "Smooth iterations applied after calculating the pose factor of each vertex");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "pose_ik_segments", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, NULL, "pose_ik_segments");
+  RNA_def_property_range(prop, 1, 20);
+  RNA_def_property_ui_range(prop, 1, 20, 1, 3);
+  RNA_def_property_ui_text(
+      prop,
+      "Pose IK Segments",
+      "Number of segments of the inverse kinematics chain that will deform the mesh");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "auto_smooth_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "autosmooth_factor");
   RNA_def_property_float_default(prop, 0);

@@ -336,8 +336,7 @@ typedef struct Brush {
   /* pose */
   float pose_offset;
   int pose_smooth_iterations;
-
-  char _pad2[4];
+  int pose_ik_segments;
 
   /* multiplane scrape */
   float multiplane_scrape_angle;

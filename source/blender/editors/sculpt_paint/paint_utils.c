@@ -412,7 +412,7 @@ static Image *imapaint_face_image(Object *ob, Mesh *me, int face_index)
 }
 
 /* Uses symm to selectively flip any axis of a coordinate. */
-void flip_v3_v3(float out[3], const float in[3], const char symm)
+void flip_v3_v3(float out[3], const float in[3], const ePaintSymmetryFlags symm)
 {
   if (symm & PAINT_SYMM_X) {
     out[0] = -in[0];
@@ -434,7 +434,7 @@ void flip_v3_v3(float out[3], const float in[3], const char symm)
   }
 }
 
-void flip_qt_qt(float out[4], const float in[4], const char symm)
+void flip_qt_qt(float out[4], const float in[4], const ePaintSymmetryFlags symm)
 {
   float axis[3], angle;
 

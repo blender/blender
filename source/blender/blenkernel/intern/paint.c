@@ -1096,6 +1096,14 @@ void BKE_sculptsession_free(Object *ob)
       MEM_freeN(ss->preview_vert_index_list);
     }
 
+    if (ss->pose_ik_chain_preview) {
+      for (int i = 0; i < ss->pose_ik_chain_preview->tot_segments; i++) {
+        MEM_SAFE_FREE(ss->pose_ik_chain_preview->segments[i].weights);
+      }
+      MEM_SAFE_FREE(ss->pose_ik_chain_preview->segments);
+      MEM_SAFE_FREE(ss->pose_ik_chain_preview);
+    }
+
     BKE_sculptsession_free_vwpaint_data(ob->sculpt);
 
     MEM_freeN(ss);

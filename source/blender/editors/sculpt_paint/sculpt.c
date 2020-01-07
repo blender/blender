@@ -443,7 +443,7 @@ static void nearest_vertex_get_reduce(const void *__restrict UNUSED(userdata),
 }
 
 static int sculpt_nearest_vertex_get(
-    Sculpt *sd, Object *ob, float co[3], float max_distance, bool use_original)
+    Sculpt *sd, Object *ob, const float co[3], float max_distance, bool use_original)
 {
   SculptSession *ss = ob->sculpt;
   PBVHNode **nodes = NULL;
@@ -1330,9 +1330,14 @@ static void sculpt_automasking_init(Sculpt *sd, Object *ob)
 
 /* ===== Sculpting =====
  */
-static void flip_v3(float v[3], const char symm)
+static void flip_v3(float v[3], const ePaintSymmetryFlags symm)
 {
   flip_v3_v3(v, v, symm);
+}
+
+static void flip_qt(float quat[3], const ePaintSymmetryFlags symm)
+{
+  flip_qt_qt(quat, quat, symm);
 }
 
 static float calc_overlap(StrokeCache *cache, const char symm, const char axis, const float angle)
@@ -1921,7 +1926,8 @@ float tex_strength(SculptSession *ss,
 bool sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
 {
   SculptSearchSphereData *data = data_v;
-  float *center, nearest[3];
+  const float *center;
+  float nearest[3];
   if (data->center) {
     center = data->center;
   }
@@ -3527,15 +3533,141 @@ static void do_elastic_deform_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   BKE_pbvh_parallel_range(0, totnode, &data, do_elastic_deform_brush_task_cb_ex, &settings);
 }
 
+static ePaintSymmetryAreas sculpt_get_vertex_symm_area(const float co[3])
+{
+  ePaintSymmetryAreas symm_area = AREA_SYMM_DEFAULT;
+  if (co[0] < 0.0f) {
+    symm_area |= AREA_SYMM_X;
+  }
+  if (co[1] < 0.0f) {
+    symm_area |= AREA_SYMM_Y;
+  }
+  if (co[2] < 0.0f) {
+    symm_area |= AREA_SYMM_Z;
+  }
+  return symm_area;
+}
+
+static void sculpt_flip_v3_by_symm_area(float v[3],
+                                        const ePaintSymmetryFlags symm,
+                                        const ePaintSymmetryAreas symmarea,
+                                        const float pivot[3])
+{
+  for (char i = 0; i < 3; i++) {
+    ePaintSymmetryFlags symm_it = 1 << i;
+    if (symm & symm_it) {
+      if (symmarea & symm_it) {
+        flip_v3(v, symm_it);
+      }
+      if (pivot[0] < 0) {
+        flip_v3(v, symm_it);
+      }
+    }
+  }
+}
+
+static void sculpt_flip_quat_by_symm_area(float quat[3],
+                                          const ePaintSymmetryFlags symm,
+                                          const ePaintSymmetryAreas symmarea,
+                                          const float pivot[3])
+{
+  for (char i = 0; i < 3; i++) {
+    ePaintSymmetryFlags symm_it = 1 << i;
+    if (symm & symm_it) {
+      if (symmarea & symm_it) {
+        flip_qt(quat, symm_it);
+      }
+      if (pivot[0] < 0) {
+        flip_qt(quat, symm_it);
+      }
+    }
+  }
+}
+
+static void pose_solve_ik_chain(PoseIKChain *ik_chain, const float initial_target[3])
+{
+  PoseIKChainSegment *segments = ik_chain->segments;
+  int tot_segments = ik_chain->tot_segments;
+
+  float target[3];
+
+  /* Set the initial target. */
+  copy_v3_v3(target, initial_target);
+
+  /* Solve the positions and rotations of all segments in the chain. */
+  for (int i = 0; i < tot_segments; i++) {
+    float initial_orientation[3];
+    float current_orientation[3];
+    float current_head_position[3];
+    float current_origin_position[3];
+
+    /* Calculate the rotation to orientate the segment to the target from its initial state. */
+    sub_v3_v3v3(current_orientation, target, segments[i].orig);
+    normalize_v3(current_orientation);
+    sub_v3_v3v3(initial_orientation, segments[i].initial_head, segments[i].initial_orig);
+    normalize_v3(initial_orientation);
+    rotation_between_vecs_to_quat(segments[i].rot, initial_orientation, current_orientation);
+
+    /* Rotate the segment by calculating a new head position. */
+    madd_v3_v3v3fl(current_head_position, segments[i].orig, current_orientation, segments[i].len);
+
+    /* Move the origin of the segment towards the target. */
+    sub_v3_v3v3(current_origin_position, target, current_head_position);
+
+    /* Store the new head and origin positions to the segment. */
+    copy_v3_v3(segments[i].head, current_head_position);
+    add_v3_v3(segments[i].orig, current_origin_position);
+
+    /* Use the origin of this segment as target for the next segment in the chain. */
+    copy_v3_v3(target, segments[i].orig);
+  }
+
+  /* Move back the whole chain to preserve the anchor point. */
+  float anchor_diff[3];
+  sub_v3_v3v3(
+      anchor_diff, segments[tot_segments - 1].initial_orig, segments[tot_segments - 1].orig);
+
+  for (int i = 0; i < tot_segments; i++) {
+    add_v3_v3(segments[i].orig, anchor_diff);
+    add_v3_v3(segments[i].head, anchor_diff);
+  }
+}
+
+static void pose_solve_roll_chain(PoseIKChain *ik_chain, const Brush *brush, const float roll)
+{
+  PoseIKChainSegment *segments = ik_chain->segments;
+  int tot_segments = ik_chain->tot_segments;
+
+  for (int i = 0; i < tot_segments; i++) {
+    float initial_orientation[3];
+    float initial_rotation[4];
+    float current_rotation[4];
+
+    sub_v3_v3v3(initial_orientation, segments[i].initial_head, segments[i].initial_orig);
+    normalize_v3(initial_orientation);
+
+    /* Calculate the current roll angle using the brush curve. */
+    float current_roll = roll * BKE_brush_curve_strength(brush, i, tot_segments);
+
+    axis_angle_normalized_to_quat(initial_rotation, initial_orientation, 0.0f);
+    axis_angle_normalized_to_quat(current_rotation, initial_orientation, current_roll);
+
+    /* Store the difference of the rotations in the segment rotation. */
+    rotation_between_quats_to_quat(segments[i].rot, current_rotation, initial_rotation);
+  }
+}
+
 static void do_pose_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
                                      const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
+  PoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+  PoseIKChainSegment *segments = ik_chain->segments;
 
   PBVHVertexIter vd;
-  float disp[3], val[3];
+  float disp[3], new_co[3];
   float final_pos[3];
 
   SculptOrigVertData orig_data;
@@ -3543,25 +3675,41 @@ static void do_pose_brush_task_cb_ex(void *__restrict userdata,
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
-
     sculpt_orig_vert_data_update(&orig_data, &vd);
-    if (check_vertex_pivot_symmetry(
-            orig_data.co, data->pose_initial_co, ss->cache->mirror_symmetry_pass)) {
-      copy_v3_v3(val, orig_data.co);
-      mul_m4_v3(data->transform_trans_inv, val);
-      mul_m4_v3(data->transform_rot, val);
-      mul_m4_v3(data->transform_trans, val);
-      sub_v3_v3v3(disp, val, orig_data.co);
 
-      mul_v3_fl(disp, ss->cache->pose_factor[vd.index]);
+    float total_disp[3];
+    zero_v3(total_disp);
+
+    ePaintSymmetryAreas symm_area = sculpt_get_vertex_symm_area(orig_data.co);
+
+    /* Calculate the displacement of each vertex for all the segments in the chain. */
+    for (int ik = 0; ik < ik_chain->tot_segments; ik++) {
+      copy_v3_v3(new_co, orig_data.co);
+
+      /* Get the transform matrix for the vertex symmetry area to calculate a displacement in the
+       * vertex. */
+      mul_m4_v3(segments[ik].pivot_mat_inv[(int)symm_area], new_co);
+      mul_m4_v3(segments[ik].trans_mat[(int)symm_area], new_co);
+      mul_m4_v3(segments[ik].pivot_mat[(int)symm_area], new_co);
+
+      /* Apply the segment weight of the vertex to the displacement. */
+      sub_v3_v3v3(disp, new_co, orig_data.co);
+      mul_v3_fl(disp, segments[ik].weights[vd.index]);
+
+      /* Apply the vertex mask to the displacement. */
       float mask = vd.mask ? *vd.mask : 0.0f;
       mul_v3_fl(disp, 1.0f - mask);
-      add_v3_v3v3(final_pos, orig_data.co, disp);
-      copy_v3_v3(vd.co, final_pos);
 
-      if (vd.mvert) {
-        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-      }
+      /* Accumulate the displacement. */
+      add_v3_v3(total_disp, disp);
+    }
+
+    /* Apply the accumulated displacement to the vertex. */
+    add_v3_v3v3(final_pos, orig_data.co, total_disp);
+    copy_v3_v3(vd.co, final_pos);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -3571,32 +3719,75 @@ static void do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
-  float grab_delta[3], rot_quat[4], initial_v[3], current_v[3], temp[3];
-  float pose_origin[3];
-  float pose_initial_co[3];
-  float transform_rot[4][4], transform_trans[4][4], transform_trans_inv[4][4];
+  float grab_delta[3];
+  float ik_target[3];
+  const ePaintSymmetryFlags symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
-  copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
+  /* The pose brush applies all enabled symmetry axis in a sigle iteration, so the rest can be
+   * ignored. */
+  if (ss->cache->mirror_symmetry_pass != 0) {
+    return;
+  }
 
-  copy_v3_v3(pose_origin, ss->cache->pose_origin);
-  flip_v3(pose_origin, (char)ss->cache->mirror_symmetry_pass);
+  PoseIKChain *ik_chain = ss->cache->pose_ik_chain;
 
-  copy_v3_v3(pose_initial_co, ss->cache->pose_initial_co);
-  flip_v3(pose_initial_co, (char)ss->cache->mirror_symmetry_pass);
+  /* Solve the positions and rotations of the IK chain. */
+  if (ss->cache->invert) {
+    /* Roll Mode */
+    /* Calculate the maximum roll. 0.02 radians per pixel works fine. */
+    float roll = (ss->cache->initial_mouse[0] - ss->cache->mouse[0]) * ss->cache->bstrength *
+                 0.02f;
+    BKE_curvemapping_initialize(brush->curve);
+    pose_solve_roll_chain(ik_chain, brush, roll);
+  }
+  else {
+    /* IK follow target mode */
+    /* Calculate the IK target. */
 
-  sub_v3_v3v3(initial_v, pose_initial_co, pose_origin);
-  normalize_v3(initial_v);
+    copy_v3_v3(grab_delta, ss->cache->grab_delta);
+    copy_v3_v3(ik_target, ss->cache->true_location);
+    add_v3_v3(ik_target, ss->cache->grab_delta);
 
-  add_v3_v3v3(temp, pose_initial_co, grab_delta);
-  sub_v3_v3v3(current_v, temp, pose_origin);
-  normalize_v3(current_v);
+    /* Solve the IK positions */
+    pose_solve_ik_chain(ik_chain, ik_target);
+  }
 
-  rotation_between_vecs_to_quat(rot_quat, initial_v, current_v);
-  unit_m4(transform_rot);
-  unit_m4(transform_trans);
-  quat_to_mat4(transform_rot, rot_quat);
-  translate_m4(transform_trans, pose_origin[0], pose_origin[1], pose_origin[2]);
-  invert_m4_m4(transform_trans_inv, transform_trans);
+  /* Flip the segment chain in all symmetry axis and calculate the transform matrices for each
+   * possible combination. */
+  /* This can be optimized by skipping the calculation of matrices where the symmetry is not
+   * enabled. */
+  for (int symm_it = 0; symm_it < PAINT_SYMM_AREAS; symm_it++) {
+    for (int i = 0; i < brush->pose_ik_segments; i++) {
+      float symm_rot[4];
+      float symm_orig[3];
+      float symm_initial_orig[3];
+
+      ePaintSymmetryAreas symm_area = symm_it;
+
+      copy_qt_qt(symm_rot, ik_chain->segments[i].rot);
+      copy_v3_v3(symm_orig, ik_chain->segments[i].orig);
+      copy_v3_v3(symm_initial_orig, ik_chain->segments[i].initial_orig);
+
+      /* Flip the origins and rotation quats of each segment. */
+      sculpt_flip_quat_by_symm_area(symm_rot, symm, symm_area, ss->cache->orig_grab_location);
+      sculpt_flip_v3_by_symm_area(symm_orig, symm, symm_area, ss->cache->orig_grab_location);
+      sculpt_flip_v3_by_symm_area(
+          symm_initial_orig, symm, symm_area, ss->cache->orig_grab_location);
+
+      /* Create the transform matrix and store it in the segment. */
+      unit_m4(ik_chain->segments[i].pivot_mat[symm_it]);
+      quat_to_mat4(ik_chain->segments[i].trans_mat[symm_it], symm_rot);
+
+      translate_m4(ik_chain->segments[i].trans_mat[symm_it],
+                   symm_orig[0] - symm_initial_orig[0],
+                   symm_orig[1] - symm_initial_orig[1],
+                   symm_orig[2] - symm_initial_orig[2]);
+      translate_m4(
+          ik_chain->segments[i].pivot_mat[symm_it], symm_orig[0], symm_orig[1], symm_orig[2]);
+      invert_m4_m4(ik_chain->segments[i].pivot_mat_inv[symm_it],
+                   ik_chain->segments[i].pivot_mat[symm_it]);
+    }
+  }
 
   SculptThreadedTaskData data = {
       .sd = sd,
@@ -3604,11 +3795,6 @@ static void do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
       .brush = brush,
       .nodes = nodes,
       .grab_delta = grab_delta,
-      .pose_origin = pose_origin,
-      .pose_initial_co = pose_initial_co,
-      .transform_rot = transform_rot,
-      .transform_trans = transform_trans,
-      .transform_trans_inv = transform_trans_inv,
   };
 
   PBVHParallelSettings settings;
@@ -3629,23 +3815,24 @@ static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
   PoseGrowFactorTLSData *gftd = tls->userdata_chunk;
   SculptSession *ss = data->ob->sculpt;
   const char symm = data->sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
-  const float *active_co = sculpt_active_vertex_co_get(ss);
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     SculptVertexNeighborIter ni;
     float max = 0.0f;
+
+    /* Grow the factor. */
     sculpt_vertex_neighbors_iter_begin(ss, vd.index, ni)
     {
       float vmask_f = data->prev_mask[ni.index];
-      if (vmask_f > max) {
-        max = vmask_f;
-      }
+      max = MAX2(vmask_f, max);
     }
     sculpt_vertex_neighbors_iter_end(ni);
-    if (max != data->prev_mask[vd.index]) {
+
+    /* Keep the count of the vertices that where added to the factors in this grow iteration. */
+    if (max > data->prev_mask[vd.index]) {
       data->pose_factor[vd.index] = max;
-      if (check_vertex_pivot_symmetry(vd.co, active_co, symm)) {
+      if (check_vertex_pivot_symmetry(vd.co, data->pose_initial_co, symm)) {
         add_v3_v3(gftd->pos_avg, vd.co);
         gftd->pos_count++;
       }
@@ -3665,9 +3852,16 @@ static void pose_brush_grow_factor_reduce(const void *__restrict UNUSED(userdata
   join->pos_count += gftd->pos_count;
 }
 
-/* Grow the factor until its boundary is near to the offset pose origin */
-static void sculpt_pose_grow_pose_factor(
-    Sculpt *sd, Object *ob, SculptSession *ss, float pose_origin[3], float *pose_factor)
+/* Grow the factor until its boundary is near to the offset pose origin or outside the target
+ * distance. */
+static void sculpt_pose_grow_pose_factor(Sculpt *sd,
+                                         Object *ob,
+                                         SculptSession *ss,
+                                         float pose_origin[3],
+                                         float pose_target[3],
+                                         float max_len,
+                                         float *r_pose_origin,
+                                         float *pose_factor)
 {
   PBVHNode **nodes;
   PBVH *pbvh = ob->sculpt->pbvh;
@@ -3681,6 +3875,8 @@ static void sculpt_pose_grow_pose_factor(
       .totnode = totnode,
       .pose_factor = pose_factor,
   };
+
+  data.pose_initial_co = pose_target;
   PBVHParallelSettings settings;
   PoseGrowFactorTLSData gftd;
   gftd.pos_count = 0;
@@ -3698,19 +3894,44 @@ static void sculpt_pose_grow_pose_factor(
     gftd.pos_count = 0;
     memcpy(data.prev_mask, pose_factor, sculpt_vertex_count_get(ss) * sizeof(float));
     BKE_pbvh_parallel_range(0, totnode, &data, pose_brush_grow_factor_task_cb_ex, &settings);
+
     if (gftd.pos_count != 0) {
       mul_v3_fl(gftd.pos_avg, 1.0f / (float)gftd.pos_count);
-      float len = len_v3v3(gftd.pos_avg, pose_origin);
-      if (len < prev_len) {
-        prev_len = len;
-        grow_next_iteration = true;
+      if (pose_origin) {
+        /* Test with pose origin. Used when growing the factors to compensate the Origin Offset. */
+        /* Stop when the factor's avg_pos starts moving away from the origin instead of getting
+         * closert to it. */
+        float len = len_v3v3(gftd.pos_avg, pose_origin);
+        if (len < prev_len) {
+          prev_len = len;
+          grow_next_iteration = true;
+        }
+        else {
+          grow_next_iteration = false;
+          memcpy(pose_factor, data.prev_mask, sculpt_vertex_count_get(ss) * sizeof(float));
+        }
       }
       else {
-        grow_next_iteration = false;
-        memcpy(pose_factor, data.prev_mask, sculpt_vertex_count_get(ss) * sizeof(float));
+        /* Test with length. Used to calculate the origin positions of the IK chain. */
+        /* Stops when the factors have grown enough to generate a new segment origin. */
+        float len = len_v3v3(gftd.pos_avg, pose_target);
+        if (len < max_len) {
+          prev_len = len;
+          grow_next_iteration = true;
+        }
+        else {
+          grow_next_iteration = false;
+          if (r_pose_origin) {
+            copy_v3_v3(r_pose_origin, gftd.pos_avg);
+          }
+          memcpy(pose_factor, data.prev_mask, sculpt_vertex_count_get(ss) * sizeof(float));
+        }
       }
     }
     else {
+      if (r_pose_origin) {
+        copy_v3_v3(r_pose_origin, pose_target);
+      }
       grow_next_iteration = false;
     }
   }
@@ -3736,10 +3957,6 @@ static bool sculpt_pose_brush_is_vertex_inside_brush_radius(const float vertex[3
   return false;
 }
 
-/* Calculate the pose origin and (Optionaly the pose factor) that is used when using the pose brush
- *
- * r_pose_origin must be a valid pointer. the r_pose_factor is optional. When set to NULL it won't
- * be calculated. */
 typedef struct PoseFloodFillData {
   float pose_initial_co[3];
   float radius;
@@ -3774,6 +3991,10 @@ static bool pose_floodfill_cb(
   return false;
 }
 
+/* Calculate the pose origin and (Optionaly the pose factor) that is used when using the pose brush
+ *
+ * r_pose_origin must be a valid pointer. the r_pose_factor is optional. When set to NULL it won't
+ * be calculated. */
 void sculpt_pose_calc_pose_data(Sculpt *sd,
                                 Object *ob,
                                 SculptSession *ss,
@@ -3812,8 +4033,11 @@ void sculpt_pose_calc_pose_data(Sculpt *sd,
   madd_v3_v3fl(fdata.pose_origin, pose_d, radius * pose_offset);
   copy_v3_v3(r_pose_origin, fdata.pose_origin);
 
+  /* Do the initial grow of the factors to get the first segment of the chain with Origin Offset.
+   */
   if (pose_offset != 0.0f && r_pose_factor) {
-    sculpt_pose_grow_pose_factor(sd, ob, ss, fdata.pose_origin, r_pose_factor);
+    sculpt_pose_grow_pose_factor(
+        sd, ob, ss, fdata.pose_origin, fdata.pose_origin, 0, NULL, r_pose_factor);
   }
 }
 
@@ -3827,33 +4051,137 @@ static void pose_brush_init_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     SculptVertexNeighborIter ni;
-    float avg = 0;
-    int total = 0;
+    float avg = 0.0f;
+    int total = 0.0f;
     sculpt_vertex_neighbors_iter_begin(ss, vd.index, ni)
     {
-      avg += ss->cache->pose_factor[ni.index];
+      avg += data->pose_factor[ni.index];
       total++;
     }
     sculpt_vertex_neighbors_iter_end(ni);
 
     if (total > 0) {
-      ss->cache->pose_factor[vd.index] = avg / (float)total;
+      data->pose_factor[vd.index] = avg / total;
     }
   }
   BKE_pbvh_vertex_iter_end;
 }
 
-static void sculpt_pose_brush_init(
-    Sculpt *sd, Object *ob, SculptSession *ss, Brush *br, float initial_location[3], float radius)
+void sculpt_pose_ik_chain_free(PoseIKChain *ik_chain)
 {
-  float *pose_factor = MEM_callocN(sculpt_vertex_count_get(ss) * sizeof(float), "Pose factor");
+  for (int i = 0; i < ik_chain->tot_segments; i++) {
+    MEM_SAFE_FREE(ik_chain->segments[i].weights);
+  }
+  MEM_SAFE_FREE(ik_chain->segments);
+  MEM_SAFE_FREE(ik_chain);
+}
 
-  sculpt_pose_calc_pose_data(
-      sd, ob, ss, initial_location, radius, br->pose_offset, ss->cache->pose_origin, pose_factor);
+PoseIKChain *sculpt_pose_ik_chain_init(Sculpt *sd,
+                                       Object *ob,
+                                       SculptSession *ss,
+                                       Brush *br,
+                                       const float initial_location[3],
+                                       const float radius)
+{
 
-  copy_v3_v3(ss->cache->pose_initial_co, initial_location);
-  ss->cache->pose_factor = pose_factor;
+  float chain_end[3];
+  float chain_segment_len = len_v3v3(initial_location, chain_end) / br->pose_ik_segments;
+  chain_segment_len = radius * (1.0f + br->pose_offset);
+  float next_chain_segment_target[3];
 
+  int totvert = sculpt_vertex_count_get(ss);
+  int nearest_vertex_index = sculpt_nearest_vertex_get(sd, ob, initial_location, FLT_MAX, true);
+
+  /* Init the buffers used to keep track of the changes in the pose factors as more segments are
+   * added to the IK chain. */
+
+  /* This stores the whole pose factors values as they grow through the mesh. */
+  float *pose_factor_grow = MEM_callocN(totvert * sizeof(float), "Pose Factor Grow");
+
+  /* This stores the previous status of the factors when growing a new iteration. */
+  float *pose_factor_grow_prev = MEM_callocN(totvert * sizeof(float),
+                                             "Pose Factor Grow Prev Iteration");
+
+  pose_factor_grow[nearest_vertex_index] = 1.0f;
+
+  /* Init the IK chain with empty weights. */
+  PoseIKChain *ik_chain = MEM_callocN(sizeof(PoseIKChain), "Pose IK Chain");
+  ik_chain->tot_segments = br->pose_ik_segments;
+  ik_chain->segments = MEM_callocN(ik_chain->tot_segments * sizeof(PoseIKChainSegment),
+                                   "Pose IK Chain Segments");
+  for (int i = 0; i < br->pose_ik_segments; i++) {
+    ik_chain->segments[i].weights = MEM_callocN(totvert * sizeof(float), "Pose IK weights");
+  }
+
+  /* Calculate the first segment in the chain using the brush radius and the pose origin offset. */
+  copy_v3_v3(next_chain_segment_target, initial_location);
+  sculpt_pose_calc_pose_data(sd,
+                             ob,
+                             ss,
+                             next_chain_segment_target,
+                             radius,
+                             br->pose_offset,
+                             ik_chain->segments[0].orig,
+                             pose_factor_grow);
+
+  copy_v3_v3(next_chain_segment_target, ik_chain->segments[0].orig);
+
+  /* Init the weights of this segment and store the status of the pose factors to start calculating
+   * new segment origins. */
+  for (int j = 0; j < totvert; j++) {
+    ik_chain->segments[0].weights[j] = pose_factor_grow[j];
+    pose_factor_grow_prev[j] = pose_factor_grow[j];
+  }
+
+  /* Calculate the next segments in the chain growing the pose factors. */
+  for (int i = 1; i < ik_chain->tot_segments; i++) {
+
+    /* Grow the factors to get the new segment origin. */
+    sculpt_pose_grow_pose_factor(sd,
+                                 ob,
+                                 ss,
+                                 NULL,
+                                 next_chain_segment_target,
+                                 chain_segment_len,
+                                 ik_chain->segments[i].orig,
+                                 pose_factor_grow);
+    copy_v3_v3(next_chain_segment_target, ik_chain->segments[i].orig);
+
+    /* Create the weights for this segment from the difference between the previous grow factor
+     * iteration an the current iteration. */
+    for (int j = 0; j < totvert; j++) {
+      ik_chain->segments[i].weights[j] = pose_factor_grow[j] - pose_factor_grow_prev[j];
+      /* Store the current grow factor status for the next interation. */
+      pose_factor_grow_prev[j] = pose_factor_grow[j];
+    }
+  }
+
+  /* Init the origin/head pairs of all the segments from the calculated origins. */
+  float origin[3];
+  float head[3];
+  for (int i = 0; i < ik_chain->tot_segments; i++) {
+    if (i == 0) {
+      copy_v3_v3(head, initial_location);
+      copy_v3_v3(origin, ik_chain->segments[i].orig);
+    }
+    else {
+      copy_v3_v3(head, ik_chain->segments[i - 1].orig);
+      copy_v3_v3(origin, ik_chain->segments[i].orig);
+    }
+    copy_v3_v3(ik_chain->segments[i].orig, origin);
+    copy_v3_v3(ik_chain->segments[i].initial_orig, origin);
+    copy_v3_v3(ik_chain->segments[i].initial_head, head);
+    ik_chain->segments[i].len = len_v3v3(head, origin);
+  }
+
+  MEM_freeN(pose_factor_grow);
+  MEM_freeN(pose_factor_grow_prev);
+
+  return ik_chain;
+}
+
+static void sculpt_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Brush *br)
+{
   PBVHNode **nodes;
   PBVH *pbvh = ob->sculpt->pbvh;
   int totnode;
@@ -3867,11 +4195,18 @@ static void sculpt_pose_brush_init(
       .nodes = nodes,
   };
 
-  /* Smooth the pose brush factor for cleaner deformation */
-  for (int i = 0; i < br->pose_smooth_iterations; i++) {
-    PBVHParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-    BKE_pbvh_parallel_range(0, totnode, &data, pose_brush_init_task_cb_ex, &settings);
+  /* Init the IK chain that is going to be used to deform the vertices. */
+  ss->cache->pose_ik_chain = sculpt_pose_ik_chain_init(
+      sd, ob, ss, br, ss->cache->true_location, ss->cache->radius);
+
+  /* Smooth the weights of each segment for cleaner deformation. */
+  for (int ik = 0; ik < ss->cache->pose_ik_chain->tot_segments; ik++) {
+    data.pose_factor = ss->cache->pose_ik_chain->segments[ik].weights;
+    for (int i = 0; i < br->pose_smooth_iterations; i++) {
+      PBVHParallelSettings settings;
+      BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+      BKE_pbvh_parallel_range(0, totnode, &data, pose_brush_init_task_cb_ex, &settings);
+    }
   }
 
   MEM_SAFE_FREE(nodes);
@@ -5625,23 +5960,13 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
   /* Build a list of all nodes that are potentially within the brush's area of influence */
 
   /* These brushes need to update all nodes as they are not constrained by the brush radius */
-  if (brush->sculpt_tool == SCULPT_TOOL_ELASTIC_DEFORM) {
+  /* Elastic deform needs all nodes to avoid artifacts as the effect of the brush is not
+   * constrained by the radius */
+  /* Pose needs all nodes because it applies all symmetry iterations at the same time and the IK
+   * chain can grow to any area of the model. */
+  /* This can be optimized by filtering the nodes after calculating the chain. */
+  if (ELEM(brush->sculpt_tool, SCULPT_TOOL_ELASTIC_DEFORM, SCULPT_TOOL_POSE)) {
     BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
-  }
-  else if (brush->sculpt_tool == SCULPT_TOOL_POSE) {
-    /* After smoothing the pose factor an arbitrary number of times, the pose factor values can
-     * expand to nodes that are not inside the original radius of the brush. Using a slightly
-     * bigger radius should prevent those artifacts. */
-    /* We can optimize this further by removing the nodes that have all 0 values in the pose factor
-     * after calculating it. */
-    float final_radius = ss->cache->radius * 1.5f * (1.0f + brush->pose_offset);
-    SculptSearchSphereData data = {
-        .ss = ss,
-        .sd = sd,
-        .radius_squared = final_radius * final_radius,
-        .original = true,
-    };
-    BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
   }
   else {
     const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
@@ -5686,7 +6011,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 
     if (brush->sculpt_tool == SCULPT_TOOL_POSE && ss->cache->first_time &&
         ss->cache->mirror_symmetry_pass == 0) {
-      sculpt_pose_brush_init(sd, ob, ss, brush, ss->cache->location, ss->cache->radius);
+      sculpt_pose_brush_init(sd, ob, ss, brush);
     }
 
     bool invert = ss->cache->pen_flip || ss->cache->invert || brush->flag & BRUSH_DIR_IN;
@@ -6301,8 +6626,8 @@ void sculpt_cache_free(StrokeCache *cache)
   if (cache->dial) {
     MEM_freeN(cache->dial);
   }
-  if (cache->pose_factor) {
-    MEM_freeN(cache->pose_factor);
+  if (cache->pose_ik_chain) {
+    sculpt_pose_ik_chain_free(cache->pose_ik_chain);
   }
   MEM_freeN(cache);
 }
@@ -9969,79 +10294,6 @@ void ED_sculpt_init_transform(struct bContext *C)
   sculpt_filter_cache_init(ob, sd);
 }
 
-typedef enum PaintSymmetryAreas {
-  AREA_SYMM_X = (1 << 0),
-  AREA_SYMM_Y = (1 << 1),
-  AREA_SYMM_Z = (1 << 2),
-} PaintSymmetryAreas;
-
-static char sculpt_get_vertex_symm_area(float co[3])
-{
-  float vco[3];
-  char symm_area = 0;
-  copy_v3_v3(vco, co);
-  if (vco[0] < 0) {
-    symm_area |= AREA_SYMM_X;
-  }
-  if (vco[1] < 0) {
-    symm_area |= AREA_SYMM_Y;
-  }
-  if (vco[2] < 0) {
-    symm_area |= AREA_SYMM_Z;
-  }
-  return symm_area;
-}
-
-static void flip_qt(float qt[4], char symm)
-{
-  float euler[3];
-  if (symm & PAINT_SYMM_X) {
-    quat_to_eul(euler, qt);
-    euler[1] = -euler[1];
-    euler[2] = -euler[2];
-    eul_to_quat(qt, euler);
-  }
-  if (symm & PAINT_SYMM_Y) {
-    quat_to_eul(euler, qt);
-    euler[0] = -euler[0];
-    euler[2] = -euler[2];
-    eul_to_quat(qt, euler);
-  }
-  if (symm & PAINT_SYMM_Z) {
-    quat_to_eul(euler, qt);
-    euler[0] = -euler[0];
-    euler[1] = -euler[1];
-    eul_to_quat(qt, euler);
-  }
-}
-
-static void sculpt_flip_transform_by_symm_area(
-    float disp[3], float rot[4], char symm, char symmarea, float pivot[3])
-{
-
-  for (char i = 0; i < 3; i++) {
-    char symm_it = 1 << i;
-    if (symm & symm_it) {
-      if (symmarea & symm_it) {
-        if (disp) {
-          flip_v3(disp, symm_it);
-        }
-        if (rot) {
-          flip_qt(rot, symm_it);
-        }
-      }
-      if (pivot[0] < 0) {
-        if (disp) {
-          flip_v3(disp, symm_it);
-        }
-        if (rot) {
-          flip_qt(rot, symm_it);
-        }
-      }
-    }
-  }
-}
-
 static void sculpt_transform_task_cb(void *__restrict userdata,
                                      const int i,
                                      const TaskParallelTLS *__restrict UNUSED(tls))
@@ -10103,7 +10355,9 @@ void ED_sculpt_update_modal_transform(struct bContext *C)
       transform_mat[4][4];
 
   copy_v3_v3(final_pivot_pos, ss->pivot_pos);
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < PAINT_SYMM_AREAS; i++) {
+    ePaintSymmetryAreas v_symm = i;
+
     copy_v3_v3(final_pivot_pos, ss->pivot_pos);
 
     unit_m4(pivot_mat);
@@ -10114,20 +10368,20 @@ void ED_sculpt_update_modal_transform(struct bContext *C)
 
     /* Translation matrix */
     sub_v3_v3v3(d_t, ss->pivot_pos, ss->init_pivot_pos);
-    sculpt_flip_transform_by_symm_area(d_t, NULL, symm, (char)i, ss->init_pivot_pos);
+    sculpt_flip_v3_by_symm_area(d_t, symm, v_symm, ss->init_pivot_pos);
     translate_m4(t_mat, d_t[0], d_t[1], d_t[2]);
 
     /* Rotation matrix */
     sub_qt_qtqt(d_r, ss->pivot_rot, ss->init_pivot_rot);
     normalize_qt(d_r);
-    sculpt_flip_transform_by_symm_area(NULL, d_r, symm, (char)i, ss->init_pivot_pos);
+    sculpt_flip_quat_by_symm_area(d_r, symm, v_symm, ss->init_pivot_pos);
     quat_to_mat4(r_mat, d_r);
 
     /* Scale matrix */
     size_to_mat4(s_mat, ss->pivot_scale);
 
     /* Pivot matrix */
-    sculpt_flip_transform_by_symm_area(final_pivot_pos, NULL, symm, (char)i, ss->init_pivot_pos);
+    sculpt_flip_v3_by_symm_area(final_pivot_pos, symm, v_symm, ss->init_pivot_pos);
     translate_m4(pivot_mat, final_pivot_pos[0], final_pivot_pos[1], final_pivot_pos[2]);
     invert_m4_m4(pivot_imat, pivot_mat);
 
