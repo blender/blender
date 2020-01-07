@@ -56,6 +56,7 @@ namespace DEG {
 
 namespace {
 
+template<typename ScheduleFunction>
 void schedule_children(TaskPool *pool, Depsgraph *graph, OperationNode *node, const int thread_id);
 
 /* Denotes which part of dependency graph is being evaluated. */
@@ -65,7 +66,7 @@ enum class EvaluationStage {
    * involved. */
   COPY_ON_WRITE,
 
-  /* Threaded evaluation of all possible operationsd. */
+  /* Threaded evaluation of all possible operations. */
   THREADED_EVALUATION,
 };
 
