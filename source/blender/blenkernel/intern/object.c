@@ -1323,7 +1323,7 @@ void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
 {
   copy_v3_v3(ob_tar->loc, ob_src->loc);
   copy_v3_v3(ob_tar->rot, ob_src->rot);
-  copy_v3_v3(ob_tar->quat, ob_src->quat);
+  copy_v4_v4(ob_tar->quat, ob_src->quat);
   copy_v3_v3(ob_tar->rotAxis, ob_src->rotAxis);
   ob_tar->rotAngle = ob_src->rotAngle;
   ob_tar->rotmode = ob_src->rotmode;
