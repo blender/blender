@@ -54,14 +54,9 @@
 
 namespace DEG {
 
-/* ********************** */
-/* Evaluation Entrypoints */
+namespace {
 
-/* Forward declarations. */
-static void schedule_children(TaskPool *pool,
-                              Depsgraph *graph,
-                              OperationNode *node,
-                              const int thread_id);
+void schedule_children(TaskPool *pool, Depsgraph *graph, OperationNode *node, const int thread_id);
 
 struct DepsgraphEvalState {
   Depsgraph *graph;
@@ -69,7 +64,7 @@ struct DepsgraphEvalState {
   bool is_cow_stage;
 };
 
-static void deg_task_run_func(TaskPool *pool, void *taskdata, int thread_id)
+void deg_task_run_func(TaskPool *pool, void *taskdata, int thread_id)
 {
   void *userdata_v = BLI_task_pool_userdata(pool);
   DepsgraphEvalState *state = (DepsgraphEvalState *)userdata_v;
@@ -91,7 +86,7 @@ static void deg_task_run_func(TaskPool *pool, void *taskdata, int thread_id)
   BLI_task_pool_delayed_push_end(pool, thread_id);
 }
 
-static bool check_operation_node_visible(OperationNode *op_node)
+bool check_operation_node_visible(OperationNode *op_node)
 {
   const ComponentNode *comp_node = op_node->owner;
   /* Special exception, copy on write component is to be always evaluated,
@@ -102,7 +97,7 @@ static bool check_operation_node_visible(OperationNode *op_node)
   return comp_node->affects_directly_visible;
 }
 
-static void calculate_pending_parents_for_node(OperationNode *node)
+void calculate_pending_parents_for_node(OperationNode *node)
 {
   /* Update counters, applies for both visible and invisible IDs. */
   node->num_links_pending = 0;
@@ -134,14 +129,14 @@ static void calculate_pending_parents_for_node(OperationNode *node)
   }
 }
 
-static void calculate_pending_parents(Depsgraph *graph)
+void calculate_pending_parents(Depsgraph *graph)
 {
   for (OperationNode *node : graph->operations) {
     calculate_pending_parents_for_node(node);
   }
 }
 
-static void initialize_execution(DepsgraphEvalState *state, Depsgraph *graph)
+void initialize_execution(DepsgraphEvalState *state, Depsgraph *graph)
 {
   const bool do_stats = state->do_stats;
   calculate_pending_parents(graph);
@@ -157,7 +152,7 @@ static void initialize_execution(DepsgraphEvalState *state, Depsgraph *graph)
  *   dec_parents: Decrement pending parents count, true when child nodes are
  *                scheduled after a task has been completed.
  */
-static void schedule_node(
+void schedule_node(
     TaskPool *pool, Depsgraph *graph, OperationNode *node, bool dec_parents, const int thread_id)
 {
   /* No need to schedule nodes of invisible ID. */
@@ -205,17 +200,14 @@ static void schedule_node(
   }
 }
 
-static void schedule_graph(TaskPool *pool, Depsgraph *graph)
+void schedule_graph(TaskPool *pool, Depsgraph *graph)
 {
   for (OperationNode *node : graph->operations) {
     schedule_node(pool, graph, node, false, -1);
   }
 }
 
-static void schedule_children(TaskPool *pool,
-                              Depsgraph *graph,
-                              OperationNode *node,
-                              const int thread_id)
+void schedule_children(TaskPool *pool, Depsgraph *graph, OperationNode *node, const int thread_id)
 {
   for (Relation *rel : node->outlinks) {
     OperationNode *child = (OperationNode *)rel->to;
@@ -228,7 +220,7 @@ static void schedule_children(TaskPool *pool,
   }
 }
 
-static void depsgraph_ensure_view_layer(Depsgraph *graph)
+void depsgraph_ensure_view_layer(Depsgraph *graph)
 {
   /* We update copy-on-write scene in the following cases:
    * - It was not expanded yet.
@@ -241,6 +233,8 @@ static void depsgraph_ensure_view_layer(Depsgraph *graph)
     deg_update_copy_on_write_datablock(graph, id_node);
   }
 }
+
+}  // namespace
 
 /**
  * Evaluate all nodes tagged for updating,
