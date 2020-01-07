@@ -90,11 +90,14 @@ const char *screen_context_dir[] = {
     "selected_editable_sequences", /* sequencer */
     "gpencil_data",
     "gpencil_data_owner", /* grease pencil data */
+    "annotation_data",
+    "annotation_data_owner",
     "visible_gpencil_layers",
     "editable_gpencil_layers",
     "editable_gpencil_strokes",
     "active_gpencil_layer",
     "active_gpencil_frame",
+    "active_annotation_layer",
     "active_operator",
     "visible_fcurves",
     "editable_fcurves",
@@ -506,7 +509,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
      * That causes the get_active function to fail when called from context.
      * For that reason, we end up using an alternative where we pass everything in!
      */
-    bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, sa, scene, obact);
+    bGPdata *gpd = ED_gpencil_data_get_active_direct(sa, obact);
 
     if (gpd) {
       CTX_data_id_pointer_set(result, &gpd->id);
@@ -515,14 +518,33 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
   }
   else if (CTX_data_equals(member, "gpencil_data_owner")) {
     /* Pointer to which data/datablock owns the reference to the Grease Pencil data being used
-     * (as gpencil_data).
-     * XXX: see comment for gpencil_data case.
-     */
+     * (as gpencil_data). */
     bGPdata **gpd_ptr = NULL;
     PointerRNA ptr;
 
     /* get pointer to Grease Pencil Data */
-    gpd_ptr = ED_gpencil_data_get_pointers_direct((ID *)sc, sa, scene, obact, &ptr);
+    gpd_ptr = ED_gpencil_data_get_pointers_direct(sa, obact, &ptr);
+
+    if (gpd_ptr) {
+      CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
+      return 1;
+    }
+  }
+  else if (CTX_data_equals(member, "annotation_data")) {
+    bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)sc, sa, scene);
+
+    if (gpd) {
+      CTX_data_id_pointer_set(result, &gpd->id);
+      return 1;
+    }
+  }
+  else if (CTX_data_equals(member, "annotation_data_owner")) {
+    /* Pointer to which data/datablock owns the reference to the Grease Pencil data being used. */
+    bGPdata **gpd_ptr = NULL;
+    PointerRNA ptr;
+
+    /* Get pointer to Grease Pencil Data. */
+    gpd_ptr = ED_annotation_data_get_pointers_direct((ID *)sc, sa, scene, &ptr);
 
     if (gpd_ptr) {
       CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
@@ -530,8 +552,19 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "active_gpencil_layer")) {
-    /* XXX: see comment for gpencil_data case... */
-    bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, sa, scene, obact);
+    bGPdata *gpd = ED_gpencil_data_get_active_direct(sa, obact);
+
+    if (gpd) {
+      bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
+
+      if (gpl) {
+        CTX_data_pointer_set(result, &gpd->id, &RNA_GPencilLayer, gpl);
+        return 1;
+      }
+    }
+  }
+  else if (CTX_data_equals(member, "active_annotation_layer")) {
+    bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)sc, sa, scene);
 
     if (gpd) {
       bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
@@ -543,8 +576,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "active_gpencil_frame")) {
-    /* XXX: see comment for gpencil_data case... */
-    bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, sa, scene, obact);
+    bGPdata *gpd = ED_gpencil_data_get_active_direct(sa, obact);
 
     if (gpd) {
       bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
@@ -556,8 +588,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "visible_gpencil_layers")) {
-    /* XXX: see comment for gpencil_data case... */
-    bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, sa, scene, obact);
+    bGPdata *gpd = ED_gpencil_data_get_active_direct(sa, obact);
 
     if (gpd) {
       bGPDlayer *gpl;
@@ -572,8 +603,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "editable_gpencil_layers")) {
-    /* XXX: see comment for gpencil_data case... */
-    bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, sa, scene, obact);
+    bGPdata *gpd = ED_gpencil_data_get_active_direct(sa, obact);
 
     if (gpd) {
       bGPDlayer *gpl;
@@ -588,8 +618,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "editable_gpencil_strokes")) {
-    /* XXX: see comment for gpencil_data case... */
-    bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, sa, scene, obact);
+    bGPdata *gpd = ED_gpencil_data_get_active_direct(sa, obact);
     const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
     if (gpd) {

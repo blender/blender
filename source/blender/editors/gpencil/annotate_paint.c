@@ -218,19 +218,9 @@ static void gp_session_validatebuffer(tGPsdata *p);
 /* check if context is suitable for drawing */
 static bool gpencil_draw_poll(bContext *C)
 {
-  /* if is inside grease pencil draw mode cannot use annotations */
-  Object *obact = CTX_data_active_object(C);
-  ScrArea *sa = CTX_wm_area(C);
-  if ((sa) && (sa->spacetype == SPACE_VIEW3D)) {
-    if ((obact) && (obact->type == OB_GPENCIL) && (obact->mode == OB_MODE_PAINT_GPENCIL)) {
-      CTX_wm_operator_poll_msg_set(C, "Annotation cannot be used in grease pencil draw mode");
-      return false;
-    }
-  }
-
   if (ED_operator_regionactive(C)) {
     /* check if current context can support GPencil data */
-    if (ED_gpencil_data_get_pointers(C, NULL) != NULL) {
+    if (ED_annotation_data_get_pointers(C, NULL) != NULL) {
       /* check if Grease Pencil isn't already running */
       if (ED_gpencil_session_active() == 0) {
         return true;
@@ -240,7 +230,7 @@ static bool gpencil_draw_poll(bContext *C)
       }
     }
     else {
-      CTX_wm_operator_poll_msg_set(C, "Failed to find Grease Pencil data to draw into");
+      CTX_wm_operator_poll_msg_set(C, "Failed to find Annotation data to draw into");
     }
   }
   else {
@@ -1115,7 +1105,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
   }
 
   /* get gp-data */
-  gpd_ptr = ED_gpencil_data_get_pointers(C, &p->ownerPtr);
+  gpd_ptr = ED_annotation_data_get_pointers(C, &p->ownerPtr);
   if ((gpd_ptr == NULL) || !ED_gpencil_data_owner_is_annotation(&p->ownerPtr)) {
     p->status = GP_STATUS_ERROR;
     if (G.debug & G_DEBUG) {
@@ -1886,34 +1876,11 @@ static int gpencil_draw_exec(bContext *C, wmOperator *op)
 /* start of interactive drawing part of operator */
 static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  Object *ob = CTX_data_active_object(C);
-  ScrArea *sa = CTX_wm_area(C);
-  Scene *scene = CTX_data_scene(C);
   tGPsdata *p = NULL;
 
   /* support for tablets eraser pen */
   if (gpencil_is_tablet_eraser_active(event)) {
     RNA_enum_set(op->ptr, "mode", GP_PAINTMODE_ERASER);
-  }
-
-  /* if try to do annotations with a gp object selected, first
-   * unselect the object to avoid conflicts.
-   * The solution is not perfect but we can keep running the annotations while
-   * found a better solution.
-   */
-  if (sa && sa->spacetype == SPACE_VIEW3D) {
-    if ((ob != NULL) && (ob->type == OB_GPENCIL)) {
-      ob->mode = OB_MODE_OBJECT;
-      bGPdata *gpd = (bGPdata *)ob->data;
-      ED_gpencil_setup_modes(C, gpd, 0);
-      DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
-
-      ViewLayer *view_layer = CTX_data_view_layer(C);
-      BKE_view_layer_base_deselect_all(view_layer);
-      view_layer->basact = NULL;
-      DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-      WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-    }
   }
 
   if (G.debug & G_DEBUG) {

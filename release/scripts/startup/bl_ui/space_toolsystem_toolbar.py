@@ -2115,6 +2115,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_gpencil_paint.curve,
             _defs_gpencil_paint.box,
             _defs_gpencil_paint.circle,
+            None,
+            *_tools_annotate,
         ],
         'EDIT_GPENCIL': [
             *_tools_gpencil_select,
@@ -2129,11 +2131,13 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_gpencil_edit.shear,
                 _defs_gpencil_edit.tosphere,
             ),
-
+            None,
+            *_tools_annotate,
         ],
         'SCULPT_GPENCIL': [
             _defs_gpencil_sculpt.generate_from_brushes,
             None,
+            *_tools_annotate,
             lambda context: (
                 VIEW3D_PT_tools_active._tools_gpencil_select
                 if _defs_gpencil_sculpt.poll_select_mask(context)
@@ -2142,6 +2146,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'WEIGHT_GPENCIL': [
             _defs_gpencil_weight.generate_from_brushes,
+            None,
+            *_tools_annotate,
         ],
     }
 

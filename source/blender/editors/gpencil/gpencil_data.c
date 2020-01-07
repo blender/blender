@@ -91,64 +91,43 @@
 /* ******************* Add New Data ************************ */
 static bool gp_data_add_poll(bContext *C)
 {
-  Object *obact = CTX_data_active_object(C);
-  if (obact && obact->type == OB_GPENCIL) {
-    if (obact->mode != OB_MODE_OBJECT) {
-      return false;
-    }
-  }
 
   /* the base line we have is that we have somewhere to add Grease Pencil data */
-  return ED_gpencil_data_get_pointers(C, NULL) != NULL;
+  return ED_annotation_data_get_pointers(C, NULL) != NULL;
 }
 
 /* add new datablock - wrapper around API */
 static int gp_data_add_exec(bContext *C, wmOperator *op)
 {
   PointerRNA gpd_owner = {NULL};
-  bGPdata **gpd_ptr = ED_gpencil_data_get_pointers(C, &gpd_owner);
-  bool is_annotation = ED_gpencil_data_owner_is_annotation(&gpd_owner);
+  bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, &gpd_owner);
 
   if (gpd_ptr == NULL) {
     BKE_report(op->reports, RPT_ERROR, "Nowhere for grease pencil data to go");
     return OPERATOR_CANCELLED;
   }
-  else {
-    /* decrement user count and add new datablock */
-    /* TODO: if a datablock exists,
-     * we should make a copy of it instead of starting fresh (as in other areas) */
-    Main *bmain = CTX_data_main(C);
 
-    /* decrement user count of old GP datablock */
-    if (*gpd_ptr) {
-      bGPdata *gpd = (*gpd_ptr);
-      id_us_min(&gpd->id);
-    }
+  /* decrement user count and add new datablock */
+  /* TODO: if a datablock exists,
+   * we should make a copy of it instead of starting fresh (as in other areas) */
+  Main *bmain = CTX_data_main(C);
 
-    /* Add new datablock, with a single layer ready to use
-     * (so users don't have to perform an extra step). */
-    if (is_annotation) {
-      bGPdata *gpd = BKE_gpencil_data_addnew(bmain, DATA_("Annotations"));
-      *gpd_ptr = gpd;
-
-      /* tag for annotations */
-      gpd->flag |= GP_DATA_ANNOTATIONS;
-
-      /* add new layer (i.e. a "note") */
-      BKE_gpencil_layer_addnew(*gpd_ptr, DATA_("Note"), true);
-    }
-    else {
-      /* GP Object Case - This shouldn't happen! */
-      *gpd_ptr = BKE_gpencil_data_addnew(bmain, DATA_("GPencil"));
-
-      /* add default sets of colors and brushes */
-      Object *ob = CTX_data_active_object(C);
-      ED_gpencil_add_defaults(C, ob);
-
-      /* add new layer */
-      BKE_gpencil_layer_addnew(*gpd_ptr, DATA_("GP_Layer"), true);
-    }
+  /* decrement user count of old GP datablock */
+  if (*gpd_ptr) {
+    bGPdata *gpd = (*gpd_ptr);
+    id_us_min(&gpd->id);
   }
+
+  /* Add new datablock, with a single layer ready to use
+   * (so users don't have to perform an extra step). */
+  bGPdata *gpd = BKE_gpencil_data_addnew(bmain, DATA_("Annotations"));
+  *gpd_ptr = gpd;
+
+  /* tag for annotations */
+  gpd->flag |= GP_DATA_ANNOTATIONS;
+
+  /* add new layer (i.e. a "note") */
+  BKE_gpencil_layer_addnew(*gpd_ptr, DATA_("Note"), true);
 
   /* notifiers */
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
@@ -156,12 +135,12 @@ static int gp_data_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void GPENCIL_OT_data_add(wmOperatorType *ot)
+void GPENCIL_OT_annotation_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Grease Pencil Add New";
-  ot->idname = "GPENCIL_OT_data_add";
-  ot->description = "Add new Grease Pencil data-block";
+  ot->name = "Annotation Add New";
+  ot->idname = "GPENCIL_OT_annotation_add";
+  ot->description = "Add new Annotation data-block";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* callbacks */
@@ -174,7 +153,7 @@ void GPENCIL_OT_data_add(wmOperatorType *ot)
 /* poll callback for adding data/layers - special */
 static bool gp_data_unlink_poll(bContext *C)
 {
-  bGPdata **gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
+  bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, NULL);
 
   /* only unlink annotation datablocks */
   if ((gpd_ptr != NULL) && (*gpd_ptr != NULL)) {
@@ -190,7 +169,7 @@ static bool gp_data_unlink_poll(bContext *C)
 /* unlink datablock - wrapper around API */
 static int gp_data_unlink_exec(bContext *C, wmOperator *op)
 {
-  bGPdata **gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
+  bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, NULL);
 
   if (gpd_ptr == NULL) {
     BKE_report(op->reports, RPT_ERROR, "Nowhere for grease pencil data to go");
@@ -231,47 +210,43 @@ void GPENCIL_OT_data_unlink(wmOperatorType *ot)
 /* add new layer - wrapper around API */
 static int gp_layer_add_exec(bContext *C, wmOperator *op)
 {
+  const bool is_annotation = STREQ(op->idname, "GPENCIL_OT_layer_annotation_add");
+
   PointerRNA gpd_owner = {NULL};
-  bGPdata **gpd_ptr = ED_gpencil_data_get_pointers(C, &gpd_owner);
-  bool is_annotation = ED_gpencil_data_owner_is_annotation(&gpd_owner);
+  Main *bmain = CTX_data_main(C);
+  bGPdata *gpd = NULL;
 
-  /* if there's no existing Grease-Pencil data there, add some */
-  if (gpd_ptr == NULL) {
-    BKE_report(op->reports, RPT_ERROR, "Nowhere for grease pencil data to go");
-    return OPERATOR_CANCELLED;
-  }
-
-  if (*gpd_ptr == NULL) {
-    Main *bmain = CTX_data_main(C);
-    if (is_annotation) {
-      /* Annotations */
-      *gpd_ptr = BKE_gpencil_data_addnew(bmain, DATA_("Annotations"));
-
-      /* mark as annotation */
-      (*gpd_ptr)->flag |= GP_DATA_ANNOTATIONS;
-    }
-    else {
-      /* GP Object */
-      /* NOTE: This shouldn't actually happen in practice */
-      *gpd_ptr = BKE_gpencil_data_addnew(bmain, DATA_("GPencil"));
-
-      /* add default sets of colors and brushes */
-      Object *ob = CTX_data_active_object(C);
-      ED_gpencil_add_defaults(C, ob);
-    }
-  }
-
-  /* add new layer now */
   if (is_annotation) {
+    bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, &gpd_owner);
+    /* if there's no existing Grease-Pencil data there, add some */
+    if (gpd_ptr == NULL) {
+      BKE_report(op->reports, RPT_ERROR, "Nowhere for grease pencil data to go");
+      return OPERATOR_CANCELLED;
+    }
+    /* Annotations */
+    if (*gpd_ptr == NULL) {
+      *gpd_ptr = BKE_gpencil_data_addnew(bmain, DATA_("Annotations"));
+    }
+
+    /* mark as annotation */
+    (*gpd_ptr)->flag |= GP_DATA_ANNOTATIONS;
     BKE_gpencil_layer_addnew(*gpd_ptr, DATA_("Note"), true);
+    gpd = *gpd_ptr;
   }
   else {
-    BKE_gpencil_layer_addnew(*gpd_ptr, DATA_("GP_Layer"), true);
+    /* GP Object */
+    Object *ob = CTX_data_active_object(C);
+    if ((ob != NULL) && (ob->type == OB_GPENCIL)) {
+      gpd = (bGPdata *)ob->data;
+      BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true);
+    }
   }
 
   /* notifiers */
-  bGPdata *gpd = *gpd_ptr;
-  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  if (gpd) {
+    DEG_id_tag_update(&gpd->id,
+                      ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  }
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
   return OPERATOR_FINISHED;
@@ -291,11 +266,32 @@ void GPENCIL_OT_layer_add(wmOperatorType *ot)
   ot->poll = gp_add_poll;
 }
 
+static bool gp_add_annotation_poll(bContext *C)
+{
+  return ED_annotation_data_get_pointers(C, NULL) != NULL;
+}
+
+void GPENCIL_OT_layer_annotation_add(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add New Annotation Layer";
+  ot->idname = "GPENCIL_OT_layer_annotation_add";
+  ot->description = "Add new Annotation layer or note for the active data-block";
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* callbacks */
+  ot->exec = gp_layer_add_exec;
+  ot->poll = gp_add_annotation_poll;
+}
 /* ******************* Remove Active Layer ************************* */
 
 static int gp_layer_remove_exec(bContext *C, wmOperator *op)
 {
-  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  const bool is_annotation = STREQ(op->idname, "GPENCIL_OT_layer_annotation_remove");
+
+  bGPdata *gpd = (!is_annotation) ? ED_gpencil_data_get_active(C) :
+                                    ED_annotation_data_get_active(C);
   bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 
   /* sanity checks */
@@ -343,6 +339,27 @@ void GPENCIL_OT_layer_remove(wmOperatorType *ot)
   ot->poll = gp_active_layer_poll;
 }
 
+static bool gp_active_layer_annotation_poll(bContext *C)
+{
+  bGPdata *gpd = ED_annotation_data_get_active(C);
+  bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
+
+  return (gpl != NULL);
+}
+
+void GPENCIL_OT_layer_annotation_remove(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Remove Annotation Layer";
+  ot->idname = "GPENCIL_OT_layer_annotation_remove";
+  ot->description = "Remove active Annotation layer";
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* callbacks */
+  ot->exec = gp_layer_remove_exec;
+  ot->poll = gp_active_layer_annotation_poll;
+}
 /* ******************* Move Layer Up/Down ************************** */
 
 enum {
@@ -352,7 +369,10 @@ enum {
 
 static int gp_layer_move_exec(bContext *C, wmOperator *op)
 {
-  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  const bool is_annotation = STREQ(op->idname, "GPENCIL_OT_layer_annotation_move");
+
+  bGPdata *gpd = (!is_annotation) ? ED_gpencil_data_get_active(C) :
+                                    ED_annotation_data_get_active(C);
   bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 
   const int direction = RNA_enum_get(op->ptr, "type") * -1;
@@ -394,6 +414,28 @@ void GPENCIL_OT_layer_move(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
 }
 
+void GPENCIL_OT_layer_annotation_move(wmOperatorType *ot)
+{
+  static const EnumPropertyItem slot_move[] = {
+      {GP_LAYER_MOVE_UP, "UP", 0, "Up", ""},
+      {GP_LAYER_MOVE_DOWN, "DOWN", 0, "Down", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  /* identifiers */
+  ot->name = "Move Annotation Layer";
+  ot->idname = "GPENCIL_OT_layer_annotation_move";
+  ot->description = "Move the active Annotation layer up/down in the list";
+
+  /* api callbacks */
+  ot->exec = gp_layer_move_exec;
+  ot->poll = gp_active_layer_annotation_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
+}
 /* ********************* Duplicate Layer ************************** */
 
 static int gp_layer_copy_exec(bContext *C, wmOperator *UNUSED(op))
@@ -995,7 +1037,7 @@ void GPENCIL_OT_lock_all(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_lock_all_exec;
-  ot->poll = gp_reveal_poll; /* XXX: could use dedicated poll later */
+  ot->poll = gp_reveal_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1034,7 +1076,7 @@ void GPENCIL_OT_unlock_all(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gp_unlock_all_exec;
-  ot->poll = gp_reveal_poll; /* XXX: could use dedicated poll later */
+  ot->poll = gp_reveal_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2176,22 +2218,22 @@ static void joined_gpencil_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data)
   if (fcu->driver) {
     /* Fix driver references to invalid ID's */
     for (DriverVar *dvar = fcu->driver->variables.first; dvar; dvar = dvar->next) {
-      /* only change the used targets, since the others will need fixing manually anyway */
+      /* Only change the used targets, since the others will need fixing manually anyway. */
       DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
-        /* change the ID's used... */
+        /* Change the ID's used. */
         if (dtar->id == src_id) {
           dtar->id = dst_id;
 
-          /* also check on the subtarget...
-           * XXX: We duplicate the logic from drivers_path_rename_fix() here, with our own
-           *      little twists so that we know that it isn't going to clobber the wrong data
+          /* Also check on the subtarget...
+           * We duplicate the logic from drivers_path_rename_fix() here, with our own
+           * little twists so that we know that it isn't going to clobber the wrong data
            */
           if (dtar->rna_path && strstr(dtar->rna_path, "layers[")) {
             GHASH_ITER (gh_iter, afd->names_map) {
               const char *old_name = BLI_ghashIterator_getKey(&gh_iter);
               const char *new_name = BLI_ghashIterator_getValue(&gh_iter);
 
-              /* only remap if changed */
+              /* Only remap if changed. */
               if (!STREQ(old_name, new_name)) {
                 if ((dtar->rna_path) && strstr(dtar->rna_path, old_name)) {
                   /* Fix up path */
@@ -2230,7 +2272,6 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
   }
 
   /* Ensure all rotations are applied before */
-  // XXX: Why don't we apply them here instead of warning?
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
     if (ob_iter->type == OB_GPENCIL) {
       if ((ob_iter->rot[0] != 0) || (ob_iter->rot[1] != 0) || (ob_iter->rot[2] != 0)) {

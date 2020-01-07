@@ -97,15 +97,21 @@ struct bGPdata *ED_gpencil_data_get_active(const struct bContext *C);
 struct bGPdata *ED_gpencil_data_get_active_evaluated(const struct bContext *C);
 
 /* Context independent (i.e. each required part is passed in instead) */
-struct bGPdata **ED_gpencil_data_get_pointers_direct(struct ID *screen_id,
-                                                     struct ScrArea *sa,
-                                                     struct Scene *scene,
+struct bGPdata **ED_gpencil_data_get_pointers_direct(struct ScrArea *sa,
                                                      struct Object *ob,
                                                      struct PointerRNA *r_ptr);
-struct bGPdata *ED_gpencil_data_get_active_direct(struct ID *screen_id,
-                                                  struct ScrArea *sa,
-                                                  struct Scene *scene,
-                                                  struct Object *ob);
+struct bGPdata *ED_gpencil_data_get_active_direct(struct ScrArea *sa, struct Object *ob);
+
+struct bGPdata *ED_annotation_data_get_active(const struct bContext *C);
+struct bGPdata **ED_annotation_data_get_pointers(const struct bContext *C,
+                                                 struct PointerRNA *r_ptr);
+struct bGPdata **ED_annotation_data_get_pointers_direct(struct ID *screen_id,
+                                                        struct ScrArea *sa,
+                                                        struct Scene *scene,
+                                                        struct PointerRNA *r_ptr);
+struct bGPdata *ED_annotation_data_get_active_direct(struct ID *screen_id,
+                                                     struct ScrArea *sa,
+                                                     struct Scene *scene);
 
 bool ED_gpencil_data_owner_is_annotation(struct PointerRNA *owner_ptr);
 

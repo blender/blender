@@ -92,23 +92,20 @@
  * and an RNA-pointer to trace back to whatever owns it,
  * when context info is not available.
  */
-bGPdata **ED_gpencil_data_get_pointers_direct(
-    ID *screen_id, ScrArea *sa, Scene *scene, Object *ob, PointerRNA *r_ptr)
+bGPdata **ED_gpencil_data_get_pointers_direct(ScrArea *sa, Object *ob, PointerRNA *r_ptr)
 {
   /* if there's an active area, check if the particular editor may
    * have defined any special Grease Pencil context for editing...
    */
   if (sa) {
-    SpaceLink *sl = sa->spacedata.first;
-
     switch (sa->spacetype) {
-      /* XXX: Should we reduce reliance on context.gpencil_data for these cases? */
       case SPACE_PROPERTIES: /* properties */
-      case SPACE_INFO:       /* header info (needed after workspaces merge) */
-      case SPACE_ACTION:     /* Dopesheet header. */
+      case SPACE_INFO:       /* header info */
+      case SPACE_TOPBAR:     /* Topbar */
+      case SPACE_VIEW3D:     /* 3D-View */
       {
         if (ob && (ob->type == OB_GPENCIL)) {
-          /* GP Object */
+          /* GP Object. */
           if (r_ptr) {
             RNA_id_pointer_create(&ob->id, r_ptr);
           }
@@ -120,25 +117,44 @@ bGPdata **ED_gpencil_data_get_pointers_direct(
 
         break;
       }
+      default: /* Unsupported space. */
+        return NULL;
+    }
+  }
 
-      case SPACE_TOPBAR: /* Topbar (needed after topbar merge) */
+  return NULL;
+}
+
+/**
+ * Get pointer to active Grease Pencil datablock for annotations,
+ * and an RNA-pointer to trace back to whatever owns it,
+ * when context info is not available.
+ */
+bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
+                                                 ScrArea *sa,
+                                                 Scene *scene,
+                                                 PointerRNA *r_ptr)
+{
+  /* If there's an active area, check if the particular editor may
+   * have defined any special Grease Pencil context for editing. */
+  if (sa) {
+    SpaceLink *sl = sa->spacedata.first;
+
+    switch (sa->spacetype) {
+      case SPACE_PROPERTIES: /* properties */
+      case SPACE_INFO:       /* header info */
+      {
+        return NULL;
+        break;
+      }
+
+      case SPACE_TOPBAR: /* Topbar */
       case SPACE_VIEW3D: /* 3D-View */
       {
-        if (ob && (ob->type == OB_GPENCIL)) {
-          /* GP Object */
-          if (r_ptr) {
-            RNA_id_pointer_create(&ob->id, r_ptr);
-          }
-          return (bGPdata **)&ob->data;
+        if (r_ptr) {
+          RNA_id_pointer_create(&scene->id, r_ptr);
         }
-        else {
-          /* Annotations */
-          /* XXX: */
-          if (r_ptr) {
-            RNA_id_pointer_create(&scene->id, r_ptr);
-          }
-          return &scene->gpd;
-        }
+        return &scene->gpd;
 
         break;
       }
@@ -156,7 +172,7 @@ bGPdata **ED_gpencil_data_get_pointers_direct(
           return &snode->nodetree->gpd;
         }
 
-        /* even when there is no node-tree, don't allow this to flow to scene */
+        /* Even when there is no node-tree, don't allow this to flow to scene. */
         return NULL;
       }
       case SPACE_SEQ: /* Sequencer */
@@ -165,7 +181,6 @@ bGPdata **ED_gpencil_data_get_pointers_direct(
 
         /* For now, Grease Pencil data is associated with the space
          * (actually preview region only). */
-        /* XXX our convention for everything else is to link to data though... */
         if (r_ptr) {
           RNA_pointer_create(screen_id, &RNA_SpaceSequenceEditor, sseq, r_ptr);
         }
@@ -175,8 +190,7 @@ bGPdata **ED_gpencil_data_get_pointers_direct(
       {
         SpaceImage *sima = (SpaceImage *)sl;
 
-        /* for now, Grease Pencil data is associated with the space... */
-        /* XXX our convention for everything else is to link to data though... */
+        /* For now, Grease Pencil data is associated with the space... */
         if (r_ptr) {
           RNA_pointer_create(screen_id, &RNA_SpaceImageEditor, sima, r_ptr);
         }
@@ -221,34 +235,61 @@ bGPdata **ED_gpencil_data_get_pointers_direct(
  * and an RNA-pointer to trace back to whatever owns it. */
 bGPdata **ED_gpencil_data_get_pointers(const bContext *C, PointerRNA *r_ptr)
 {
-  ID *screen_id = (ID *)CTX_wm_screen(C);
-  Scene *scene = CTX_data_scene(C);
   ScrArea *sa = CTX_wm_area(C);
   Object *ob = CTX_data_active_object(C);
 
-  return ED_gpencil_data_get_pointers_direct(screen_id, sa, scene, ob, r_ptr);
+  return ED_gpencil_data_get_pointers_direct(sa, ob, r_ptr);
 }
 
+/* Get pointer to active Grease Pencil datablock,
+ * and an RNA-pointer to trace back to whatever owns it. */
+bGPdata **ED_annotation_data_get_pointers(const bContext *C, PointerRNA *r_ptr)
+{
+  ID *screen_id = (ID *)CTX_wm_screen(C);
+  Scene *scene = CTX_data_scene(C);
+  ScrArea *sa = CTX_wm_area(C);
+
+  return ED_annotation_data_get_pointers_direct(screen_id, sa, scene, r_ptr);
+}
 /* -------------------------------------------------------- */
 
 /* Get the active Grease Pencil datablock, when context is not available */
-bGPdata *ED_gpencil_data_get_active_direct(ID *screen_id, ScrArea *sa, Scene *scene, Object *ob)
+bGPdata *ED_gpencil_data_get_active_direct(ScrArea *sa, Object *ob)
 {
-  bGPdata **gpd_ptr = ED_gpencil_data_get_pointers_direct(screen_id, sa, scene, ob, NULL);
+  bGPdata **gpd_ptr = ED_gpencil_data_get_pointers_direct(sa, ob, NULL);
+  return (gpd_ptr) ? *(gpd_ptr) : NULL;
+}
+
+/* Get the active Grease Pencil datablock, when context is not available */
+bGPdata *ED_annotation_data_get_active_direct(ID *screen_id, ScrArea *sa, Scene *scene)
+{
+  bGPdata **gpd_ptr = ED_annotation_data_get_pointers_direct(screen_id, sa, scene, NULL);
   return (gpd_ptr) ? *(gpd_ptr) : NULL;
 }
 
 /**
  * Get the active Grease Pencil datablock
- * \note This is the original (bmain) copy of the datablock, stored in files.
- * Do not use for reading evaluated copies of GP Objects data
  */
 bGPdata *ED_gpencil_data_get_active(const bContext *C)
 {
-  bGPdata **gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
-  return (gpd_ptr) ? *(gpd_ptr) : NULL;
+  Object *ob = CTX_data_active_object(C);
+  if (ob == NULL) {
+    return NULL;
+  }
+  bGPdata *gpd = (bGPdata *)ob->data;
+
+  return gpd;
 }
 
+/* Get the active Grease Pencil datablock
+ * \note This is the original (bmain) copy of the datablock, stored in files.
+ * Do not use for reading evaluated copies of GP Objects data
+ */
+bGPdata *ED_annotation_data_get_active(const bContext *C)
+{
+  bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, NULL);
+  return (gpd_ptr) ? *(gpd_ptr) : NULL;
+}
 /**
  * Get the evaluated copy of the active Grease Pencil datablock (where applicable)
  * - For the 3D View (i.e. "GP Objects"), this gives the evaluated copy of the GP datablock
@@ -259,20 +300,13 @@ bGPdata *ED_gpencil_data_get_active(const bContext *C)
  */
 bGPdata *ED_gpencil_data_get_active_evaluated(const bContext *C)
 {
-  ID *screen_id = (ID *)CTX_wm_screen(C);
   ScrArea *sa = CTX_wm_area(C);
 
   const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *ob = CTX_data_active_object(C);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 
-#if 0
-  if (ob && ob->type == OB_GPENCIL) {
-    BLI_assert(ob_eval->data == DEG_get_evaluated_id(ob->data));
-  }
-#endif
-  return ED_gpencil_data_get_active_direct(screen_id, sa, scene_eval, ob_eval);
+  return ED_gpencil_data_get_active_direct(sa, ob_eval);
 }
 
 /* -------------------------------------------------------- */
@@ -318,14 +352,23 @@ bool ED_gpencil_has_keyframe_v3d(Scene *UNUSED(scene), Object *ob, int cfra)
 /* poll callback for adding data/layers - special */
 bool gp_add_poll(bContext *C)
 {
-  /* the base line we have is that we have somewhere to add Grease Pencil data */
-  return ED_gpencil_data_get_pointers(C, NULL) != NULL;
+  Object *ob = CTX_data_active_object(C);
+  if (ob == NULL) {
+    return false;
+  }
+  bGPdata *gpd = (bGPdata *)ob->data;
+
+  return (gpd != NULL);
 }
 
 /* poll callback for checking if there is an active layer */
 bool gp_active_layer_poll(bContext *C)
 {
-  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  Object *ob = CTX_data_active_object(C);
+  if (ob == NULL) {
+    return false;
+  }
+  bGPdata *gpd = (bGPdata *)ob->data;
   bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 
   return (gpl != NULL);
