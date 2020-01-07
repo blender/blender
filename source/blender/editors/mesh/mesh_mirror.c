@@ -148,19 +148,15 @@ static int mirrtopo_vert_sort(const void *v1, const void *v2)
   return 0;
 }
 
-bool ED_mesh_mirrtopo_recalc_check(Mesh *me, Mesh *me_eval, MirrTopoStore_t *mesh_topo_store)
+bool ED_mesh_mirrtopo_recalc_check(BMEditMesh *em, Mesh *me, MirrTopoStore_t *mesh_topo_store)
 {
-  const bool is_editmode = (me->edit_mesh != NULL);
+  const bool is_editmode = em != NULL;
   int totvert;
   int totedge;
 
-  if (me_eval) {
-    totvert = me_eval->totvert;
-    totedge = me_eval->totedge;
-  }
-  else if (me->edit_mesh) {
-    totvert = me->edit_mesh->bm->totvert;
-    totedge = me->edit_mesh->bm->totedge;
+  if (em) {
+    totvert = em->bm->totvert;
+    totedge = em->bm->totedge;
   }
   else {
     totvert = me->totvert;
@@ -177,14 +173,16 @@ bool ED_mesh_mirrtopo_recalc_check(Mesh *me, Mesh *me_eval, MirrTopoStore_t *mes
   }
 }
 
-void ED_mesh_mirrtopo_init(Mesh *me,
-                           Mesh *me_eval,
+void ED_mesh_mirrtopo_init(BMEditMesh *em,
+                           Mesh *me,
                            MirrTopoStore_t *mesh_topo_store,
                            const bool skip_em_vert_array_init)
 {
-  const bool is_editmode = (me->edit_mesh != NULL);
+  if (em) {
+    BLI_assert(me == NULL);
+  }
+  const bool is_editmode = (em != NULL);
   MEdge *medge = NULL, *med;
-  BMEditMesh *em = me_eval ? NULL : me->edit_mesh;
 
   /* editmode*/
   BMEdge *eed;
@@ -213,14 +211,14 @@ void ED_mesh_mirrtopo_init(Mesh *me,
     totvert = em->bm->totvert;
   }
   else {
-    totvert = me_eval ? me_eval->totvert : me->totvert;
+    totvert = me->totvert;
   }
 
   topo_hash = MEM_callocN(totvert * sizeof(MirrTopoHash_t), "TopoMirr");
 
   /* Initialize the vert-edge-user counts used to detect unique topology */
   if (em) {
-    totedge = me->edit_mesh->bm->totedge;
+    totedge = em->bm->totedge;
 
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
       const int i1 = BM_elem_index_get(eed->v1), i2 = BM_elem_index_get(eed->v2);
@@ -229,8 +227,8 @@ void ED_mesh_mirrtopo_init(Mesh *me,
     }
   }
   else {
-    totedge = me_eval ? me_eval->totedge : me->totedge;
-    medge = me_eval ? me_eval->medge : me->medge;
+    totedge = me->totedge;
+    medge = me->medge;
 
     for (a = 0, med = medge; a < totedge; a++, med++) {
       const unsigned int i1 = med->v1, i2 = med->v2;

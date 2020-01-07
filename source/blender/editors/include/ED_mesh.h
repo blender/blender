@@ -336,11 +336,11 @@ typedef struct MirrTopoStore_t {
   bool prev_is_editmode;
 } MirrTopoStore_t;
 
-bool ED_mesh_mirrtopo_recalc_check(struct Mesh *me,
-                                   struct Mesh *me_eval,
+bool ED_mesh_mirrtopo_recalc_check(struct BMEditMesh *em,
+                                   struct Mesh *me,
                                    MirrTopoStore_t *mesh_topo_store);
-void ED_mesh_mirrtopo_init(struct Mesh *me,
-                           struct Mesh *me_eval,
+void ED_mesh_mirrtopo_init(struct BMEditMesh *em,
+                           struct Mesh *me,
                            MirrTopoStore_t *mesh_topo_store,
                            const bool skip_em_vert_array_init);
 void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);

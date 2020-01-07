@@ -1061,7 +1061,6 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
                                       float maxdist,
                                       int *r_index)
 {
-  Mesh *me = (Mesh *)em->ob->data;
   BMesh *bm = em->bm;
   BMIter iter;
   BMVert *v;
@@ -1094,7 +1093,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
   BM_mesh_elem_index_ensure(bm, BM_VERT);
 
   if (use_topology) {
-    ED_mesh_mirrtopo_init(me, NULL, &mesh_topo_store, true);
+    ED_mesh_mirrtopo_init(em, NULL, &mesh_topo_store, true);
   }
   else {
     tree = BLI_kdtree_3d_new(bm->totvert);

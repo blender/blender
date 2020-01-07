@@ -801,13 +801,30 @@ static MirrTopoStore_t mesh_topo_store = {NULL, -1. - 1, -1};
  */
 int ED_mesh_mirror_topo_table(Object *ob, Mesh *me_eval, char mode)
 {
+
+  Mesh *me_mirror = NULL;
+  BMEditMesh *em_mirror = NULL;
+
+  if (mode != 'e') {
+    Mesh *me = ob->data;
+    if (me_eval != NULL) {
+      me_mirror = me_eval;
+    }
+    else if (me->edit_mesh != NULL) {
+      em_mirror = me->edit_mesh;
+    }
+    else {
+      me_mirror = me;
+    }
+  }
+
   if (mode == 'u') { /* use table */
-    if (ED_mesh_mirrtopo_recalc_check(ob->data, me_eval, &mesh_topo_store)) {
+    if (ED_mesh_mirrtopo_recalc_check(em_mirror, me_mirror, &mesh_topo_store)) {
       ED_mesh_mirror_topo_table(ob, me_eval, 's');
     }
   }
   else if (mode == 's') { /* start table */
-    ED_mesh_mirrtopo_init(ob->data, me_eval, &mesh_topo_store, false);
+    ED_mesh_mirrtopo_init(em_mirror, me_mirror, &mesh_topo_store, false);
   }
   else if (mode == 'e') { /* end table */
     ED_mesh_mirrtopo_free(&mesh_topo_store);
