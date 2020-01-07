@@ -56,7 +56,6 @@ namespace DEG {
 
 namespace {
 
-template<typename ScheduleFunction>
 void schedule_children(TaskPool *pool, Depsgraph *graph, OperationNode *node, const int thread_id);
 
 /* Denotes which part of dependency graph is being evaluated. */
