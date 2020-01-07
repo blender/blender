@@ -161,14 +161,14 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
     em->emcopyusers = 0;
     em->emcopy = NULL;
 
-    /* when copying, tessellation isn't to for faster copying,
-     * but means we need to re-tessellate here */
-    if (em->looptris == NULL) {
-      BKE_editmesh_looptri_calc(em);
-    }
-
+    /**
+     * Note, we could pass in the mesh, however this is an exceptional case, allow a slow lookup.
+     *
+     * This is needed because the COW mesh makes a full copy of the #BMEditMesh
+     * instead of sharing the pointer, tagging since this has been freed above,
+     * the #BMEditMesh.emcopy needs to be flushed to the COW edit-mesh, see T55457.
+     */
     {
-      /* FIXME: pass in mesh. */
       Main *bmain = G_MAIN;
       for (Mesh *mesh = bmain->meshes.first; mesh; mesh = mesh->id.next) {
         if (mesh->edit_mesh == em) {
@@ -176,6 +176,12 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
           break;
         }
       }
+    }
+
+    /* when copying, tessellation isn't to for faster copying,
+     * but means we need to re-tessellate here */
+    if (em->looptris == NULL) {
+      BKE_editmesh_looptri_calc(em);
     }
 
     return false;
