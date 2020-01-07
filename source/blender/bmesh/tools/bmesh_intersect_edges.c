@@ -552,13 +552,11 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     if (BM_elem_flag_test(v, hflag)) {
       BM_elem_flag_enable(v, BM_ELEM_TAG);
-      v->head.index = -1;
       verts_act_len++;
     }
     else {
       BM_elem_flag_disable(v, BM_ELEM_TAG);
       if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
-        v->head.index = -1;
         verts_remain_len++;
       }
     }
@@ -827,7 +825,6 @@ bool BM_mesh_intersect_edges(BMesh *bm, const char hflag, const float dist, GHas
           e = pair_elem->edge;
 
           BMVert *v_new = BM_edge_split(bm, e, e->v1, NULL, lambda);
-          v_new->head.index = -1;
           pair_elem->vert = v_new;
         }
       }
