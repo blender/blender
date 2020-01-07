@@ -130,6 +130,8 @@ struct SnapObjectContext {
   /* Object -> SnapObjectData map */
   struct {
     GHash *object_map;
+    /** Map object-data to objects so objects share edit mode data. */
+    GHash *data_to_object_map;
     MemArena *mem_arena;
   } cache;
 
@@ -164,6 +166,21 @@ static void bm_mesh_minmax(BMesh *bm, float r_min[3], float r_max[3])
   }
 }
 
+static SnapObjectData *snap_object_data_lookup(SnapObjectContext *sctx, Object *ob)
+{
+  SnapObjectData *sod = BLI_ghash_lookup(sctx->cache.object_map, ob);
+  if (sod == NULL) {
+    if (sctx->cache.data_to_object_map != NULL) {
+      ob = BLI_ghash_lookup(sctx->cache.data_to_object_map, ob->data);
+      /* Could be NULl when mixing edit-mode and non edit-mode objects. */
+      if (ob != NULL) {
+        sod = BLI_ghash_lookup(sctx->cache.object_map, ob);
+      }
+    }
+  }
+  return sod;
+}
+
 static SnapObjectData_Mesh *snap_object_data_mesh_get(SnapObjectContext *sctx, Object *ob)
 {
   void **sod_p;
@@ -182,13 +199,28 @@ static SnapObjectData_Mesh *snap_object_data_mesh_get(SnapObjectContext *sctx, O
   return *sod_p;
 }
 
-/* Use `em->ob` as the key in ghash since the editmesh is used
- * to create bvhtree and is the same for each linked object. */
 static SnapObjectData_EditMesh *snap_object_data_editmesh_get(SnapObjectContext *sctx,
+                                                              Object *ob,
                                                               BMEditMesh *em)
 {
   void **sod_p;
-  if (BLI_ghash_ensure_p(sctx->cache.object_map, em->ob, &sod_p)) {
+
+  {
+    /* Use object-data as the key in ghash since the editmesh
+     * is used to create bvhtree and is the same for each linked object. */
+    if (sctx->cache.data_to_object_map == NULL) {
+      sctx->cache.data_to_object_map = BLI_ghash_ptr_new(__func__);
+    }
+    void **ob_p;
+    if (BLI_ghash_ensure_p(sctx->cache.data_to_object_map, ob->data, &ob_p)) {
+      ob = *ob_p;
+    }
+    else {
+      *ob_p = ob;
+    }
+  }
+
+  if (BLI_ghash_ensure_p(sctx->cache.object_map, ob, &sod_p)) {
     BLI_assert(((SnapObjectData *)*sod_p)->type == SNAP_EDIT_MESH);
   }
   else {
@@ -617,8 +649,6 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
     return retval;
   }
 
-  BLI_assert(BKE_object_get_pre_modified_mesh(em->ob) == BKE_object_get_pre_modified_mesh(ob));
-
   float imat[4][4];
   float ray_start_local[3], ray_normal_local[3];
   float local_scale, local_depth, len_diff = 0.0f;
@@ -638,7 +668,7 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
     local_depth *= local_scale;
   }
 
-  SnapObjectData_EditMesh *sod = snap_object_data_editmesh_get(sctx, em);
+  SnapObjectData_EditMesh *sod = snap_object_data_editmesh_get(sctx, ob, em);
 
   /* Test BoundBox */
 
@@ -666,7 +696,7 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
 
   BVHTreeFromEditMesh *treedata = sod->bvh_trees[2];
 
-  BVHCache **em_bvh_cache = &((Mesh *)em->ob->data)->runtime.bvh_cache;
+  BVHCache **em_bvh_cache = &((Mesh *)ob->data)->runtime.bvh_cache;
 
   if (sctx->callbacks.edit_mesh.test_face_fn == NULL) {
     /* The tree is owned by the Mesh and may have been freed since we last used! */
@@ -1365,13 +1395,7 @@ static short snap_mesh_polygon(SnapObjectContext *sctx,
       .dist_sq = SQUARE(*dist_px),
   };
 
-  SnapObjectData *sod = BLI_ghash_lookup(sctx->cache.object_map, ob);
-  if (sod == NULL) {
-    /* The object is in edit mode, and the key used
-     * was the object referenced in BMEditMesh */
-    BMEditMesh *em = BKE_editmesh_from_object(ob);
-    sod = BLI_ghash_lookup(sctx->cache.object_map, em->ob);
-  }
+  SnapObjectData *sod = snap_object_data_lookup(sctx, ob);
 
   BLI_assert(sod != NULL);
 
@@ -1492,13 +1516,7 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
     return elem;
   }
 
-  SnapObjectData *sod = BLI_ghash_lookup(sctx->cache.object_map, ob);
-  if (sod == NULL) {
-    /* The object is in edit mode, and the key used
-     * was the object referenced in BMEditMesh */
-    BMEditMesh *em = BKE_editmesh_from_object(ob);
-    sod = BLI_ghash_lookup(sctx->cache.object_map, em->ob);
-  }
+  SnapObjectData *sod = snap_object_data_lookup(sctx, ob);
 
   BLI_assert(sod != NULL);
 
@@ -2380,7 +2398,7 @@ static short snapEditMesh(SnapObjectContext *sctx,
 
   float dist_px_sq = SQUARE(*dist_px);
 
-  SnapObjectData_EditMesh *sod = snap_object_data_editmesh_get(sctx, em);
+  SnapObjectData_EditMesh *sod = snap_object_data_editmesh_get(sctx, ob, em);
 
   /* Test BoundBox */
 
@@ -2390,7 +2408,7 @@ static short snapEditMesh(SnapObjectContext *sctx,
     return 0;
   }
 
-  BVHCache **em_bvh_cache = &((Mesh *)em->ob->data)->runtime.bvh_cache;
+  BVHCache **em_bvh_cache = &((Mesh *)ob->data)->runtime.bvh_cache;
 
   if (snapdata->snap_to_flag & SCE_SNAP_MODE_VERTEX) {
     if (sod->bvh_trees[0] == NULL) {
@@ -2750,6 +2768,8 @@ SnapObjectContext *ED_transform_snap_object_context_create(Main *bmain,
   sctx->depsgraph = depsgraph;
 
   sctx->cache.object_map = BLI_ghash_ptr_new(__func__);
+  /* Initialize as needed (edit-mode only). */
+  sctx->cache.data_to_object_map = NULL;
   sctx->cache.mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
   return sctx;
@@ -2797,6 +2817,9 @@ static void snap_object_data_free(void *sod_v)
 void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx)
 {
   BLI_ghash_free(sctx->cache.object_map, NULL, snap_object_data_free);
+  if (sctx->cache.data_to_object_map != NULL) {
+    BLI_ghash_free(sctx->cache.data_to_object_map, NULL, NULL);
+  }
   BLI_memarena_free(sctx->cache.mem_arena);
 
   MEM_freeN(sctx);
