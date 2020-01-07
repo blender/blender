@@ -101,7 +101,7 @@ static int bm_face_isect_pair_swap(BMFace *f, void *UNUSED(user_data))
 /**
  * Use for intersect and boolean.
  */
-static void edbm_intersect_select(BMEditMesh *em, bool do_select)
+static void edbm_intersect_select(BMEditMesh *em, struct Mesh *me, bool do_select)
 {
   if (do_select) {
     BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
@@ -119,7 +119,7 @@ static void edbm_intersect_select(BMEditMesh *em, bool do_select)
   }
 
   EDBM_mesh_normals_update(em);
-  EDBM_update_generic(em, true, true);
+  EDBM_update_generic(me, true, true);
 }
 
 /* -------------------------------------------------------------------- */
@@ -212,7 +212,7 @@ static int edbm_intersect_exec(bContext *C, wmOperator *op)
           em->bm, BM_elem_cb_check_hflag_enabled_simple(const BMFace *, BM_ELEM_SELECT));
     }
 
-    edbm_intersect_select(em, has_isect);
+    edbm_intersect_select(em, obedit->data, has_isect);
 
     if (!has_isect) {
       isect_len++;
@@ -318,7 +318,7 @@ static int edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
                                   boolean_operation,
                                   eps);
 
-    edbm_intersect_select(em, has_isect);
+    edbm_intersect_select(em, obedit->data, has_isect);
 
     if (!has_isect) {
       isect_len++;
@@ -847,7 +847,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 #endif
 
     EDBM_mesh_normals_update(em);
-    EDBM_update_generic(em, true, true);
+    EDBM_update_generic(obedit->data, true, true);
 
 #ifdef USE_NET_ISLAND_CONNECT
     /* we may have remaining isolated regions remaining,
@@ -952,7 +952,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
       BLI_ghash_free(face_edge_map, NULL, NULL);
 
       EDBM_mesh_normals_update(em);
-      EDBM_update_generic(em, true, true);
+      EDBM_update_generic(obedit->data, true, true);
     }
 
     BLI_stack_free(edges_loose);

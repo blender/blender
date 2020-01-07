@@ -538,7 +538,7 @@ void ED_object_data_xform_tag_update(struct XFormObjectData *xod_base)
     case ID_ME: {
       Mesh *me = (Mesh *)xod_base->id;
       if (xod_base->is_edit_mode) {
-        EDBM_update_generic(me->edit_mesh, true, false);
+        EDBM_update_generic(me, true, false);
         EDBM_mesh_normals_update(me->edit_mesh);
       }
       DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);

@@ -197,7 +197,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 
       /* when used in a macro the tessfaces will be recalculated anyway,
        * this is needed here because modifiers depend on updated tessellation, see T45920 */
-      EDBM_update_generic(em, true, true);
+      EDBM_update_generic(lcd->ob->data, true, true);
 
       if (is_single) {
         /* de-select endpoints */

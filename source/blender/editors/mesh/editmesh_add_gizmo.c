@@ -357,7 +357,7 @@ static int add_primitive_cube_gizmo_exec(bContext *C, wmOperator *op)
   }
 
   EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
-  EDBM_update_generic(em, true, true);
+  EDBM_update_generic(obedit->data, true, true);
 
   return OPERATOR_FINISHED;
 }

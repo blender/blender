@@ -51,7 +51,8 @@
 #include "mesh_intern.h" /* own include */
 
 typedef struct {
-  BMEditMesh *em;
+  /** Must have a valid edit-mesh. */
+  Object *ob;
   BMBackup mesh_backup;
 } InsetObjectStore;
 
@@ -141,7 +142,7 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
       opdata->max_obj_scale = max_ff(opdata->max_obj_scale, scale);
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
       if (em->bm->totvertsel > 0) {
-        opdata->ob_store[objects_used_len].em = em;
+        opdata->ob_store[objects_used_len].ob = obedit;
         objects_used_len++;
       }
     }
@@ -167,8 +168,9 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
     ARegion *ar = CTX_wm_region(C);
 
     for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
-      opdata->ob_store[ob_index].mesh_backup = EDBM_redo_state_store(
-          opdata->ob_store[ob_index].em);
+      Object *obedit = opdata->ob_store[ob_index].ob;
+      BMEditMesh *em = BKE_editmesh_from_object(obedit);
+      opdata->ob_store[ob_index].mesh_backup = EDBM_redo_state_store(em);
     }
 
     opdata->draw_handle_pixel = ED_region_draw_cb_activate(
@@ -218,9 +220,10 @@ static void edbm_inset_cancel(bContext *C, wmOperator *op)
   opdata = op->customdata;
   if (opdata->is_modal) {
     for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
-      EDBM_redo_state_free(
-          &opdata->ob_store[ob_index].mesh_backup, opdata->ob_store[ob_index].em, true);
-      EDBM_update_generic(opdata->ob_store[ob_index].em, false, true);
+      Object *obedit = opdata->ob_store[ob_index].ob;
+      BMEditMesh *em = BKE_editmesh_from_object(obedit);
+      EDBM_redo_state_free(&opdata->ob_store[ob_index].mesh_backup, em, true);
+      EDBM_update_generic(obedit->data, false, true);
     }
   }
 
@@ -233,7 +236,6 @@ static void edbm_inset_cancel(bContext *C, wmOperator *op)
 static bool edbm_inset_calc(wmOperator *op)
 {
   InsetData *opdata;
-  BMEditMesh *em;
   BMOperator bmop;
   bool changed = false;
 
@@ -252,7 +254,8 @@ static bool edbm_inset_calc(wmOperator *op)
   opdata = op->customdata;
 
   for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
-    em = opdata->ob_store[ob_index].em;
+    Object *obedit = opdata->ob_store[ob_index].ob;
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     if (opdata->is_modal) {
       EDBM_redo_state_restore(opdata->ob_store[ob_index].mesh_backup, em, false);
@@ -310,7 +313,7 @@ static bool edbm_inset_calc(wmOperator *op)
       continue;
     }
     else {
-      EDBM_update_generic(em, true, true);
+      EDBM_update_generic(obedit->data, true, true);
       changed = true;
     }
   }

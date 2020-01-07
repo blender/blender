@@ -497,7 +497,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
     if (changed) {
       EDBM_selectmode_flush(em);
-      EDBM_update_generic(em, false, false);
+      EDBM_update_generic(ob->data, false, false);
     }
   }
 
@@ -519,7 +519,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
         }
       }
       EDBM_selectmode_flush(em);
-      EDBM_update_generic(em, false, false);
+      EDBM_update_generic(ob->data, false, false);
     }
   }
 
@@ -917,7 +917,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
     if (changed) {
       EDBM_selectmode_flush(em);
-      EDBM_update_generic(em, false, false);
+      EDBM_update_generic(ob->data, false, false);
     }
   }
 
@@ -939,7 +939,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
         }
       }
       EDBM_selectmode_flush(em);
-      EDBM_update_generic(em, false, false);
+      EDBM_update_generic(ob->data, false, false);
     }
   }
 
@@ -1186,7 +1186,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
     if (changed) {
       EDBM_selectmode_flush(em);
-      EDBM_update_generic(em, false, false);
+      EDBM_update_generic(ob->data, false, false);
     }
   }
 

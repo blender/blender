@@ -155,7 +155,7 @@ static int edbm_polybuild_transform_at_cursor_invoke(bContext *C,
   }
 
   EDBM_mesh_normals_update(em);
-  EDBM_update_generic(em, true, true);
+  EDBM_update_generic(vc.obedit->data, true, true);
   if (basact != NULL) {
     if (vc.view_layer->basact != basact) {
       ED_object_base_activate(C, basact);
@@ -238,7 +238,7 @@ static int edbm_polybuild_delete_at_cursor_invoke(bContext *C,
 
   if (changed) {
     EDBM_mesh_normals_update(em);
-    EDBM_update_generic(em, true, true);
+    EDBM_update_generic(vc.obedit->data, true, true);
     if (basact != NULL) {
       if (vc.view_layer->basact != basact) {
         ED_object_base_activate(C, basact);
@@ -403,7 +403,7 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
 
   if (changed) {
     EDBM_mesh_normals_update(em);
-    EDBM_update_generic(em, true, true);
+    EDBM_update_generic(vc.obedit->data, true, true);
 
     if (basact != NULL) {
       if (vc.view_layer->basact != basact) {
@@ -493,7 +493,7 @@ static int edbm_polybuild_split_at_cursor_invoke(bContext *C,
 
   if (changed) {
     EDBM_mesh_normals_update(em);
-    EDBM_update_generic(em, true, true);
+    EDBM_update_generic(vc.obedit->data, true, true);
 
     WM_event_add_mousemove(C);
 
@@ -586,7 +586,7 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(bContext *C,
     edbm_flag_disable_all_multi(vc.view_layer, vc.v3d, BM_ELEM_SELECT);
 
     EDBM_mesh_normals_update(em);
-    EDBM_update_generic(em, true, true);
+    EDBM_update_generic(vc.obedit->data, true, true);
 
     if (vc.view_layer->basact != basact) {
       ED_object_base_activate(C, basact);

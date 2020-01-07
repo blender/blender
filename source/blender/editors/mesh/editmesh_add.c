@@ -92,7 +92,7 @@ static void make_prim_finish(bContext *C,
   EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
 
   /* only recalc editmode tessface if we are staying in editmode */
-  EDBM_update_generic(em, !exit_editmode, true);
+  EDBM_update_generic(obedit->data, !exit_editmode, true);
 
   /* userdef */
   if (exit_editmode) {

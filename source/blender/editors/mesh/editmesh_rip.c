@@ -1075,7 +1075,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
     error_rip_failed = false;
 
-    EDBM_update_generic(em, true, true);
+    EDBM_update_generic(obedit->data, true, true);
   }
 
   MEM_freeN(objects);

@@ -4223,7 +4223,7 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
 
     if (edbm_deselect_nth(em, &op_params) == true) {
       found_active_elt = true;
-      EDBM_update_generic(em, false, false);
+      EDBM_update_generic(obedit->data, false, false);
     }
   }
   MEM_freeN(objects);

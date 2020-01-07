@@ -1421,18 +1421,12 @@ void EDBM_stats_update(BMEditMesh *em)
 
 /* so many tools call these that we better make it a generic function.
  */
-void EDBM_update_generic(BMEditMesh *em, const bool do_tessellation, const bool is_destructive)
+void EDBM_update_generic(Mesh *mesh, const bool do_tessellation, const bool is_destructive)
 {
-  /* FIXME: pass in mesh. */
-  Main *bmain = G_MAIN;
-  for (Mesh *mesh = bmain->meshes.first; mesh; mesh = mesh->id.next) {
-    if (mesh->edit_mesh == em) {
-      /* Order of calling isn't important. */
-      DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
-      WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
-      break;
-    }
-  }
+  BMEditMesh *em = mesh->edit_mesh;
+  /* Order of calling isn't important. */
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
 
   if (do_tessellation) {
     BKE_editmesh_looptri_calc(em);

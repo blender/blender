@@ -2564,7 +2564,7 @@ static void knifetool_finish_ex(KnifeTool_OpData *kcd)
 
   EDBM_selectmode_flush(kcd->em);
   EDBM_mesh_normals_update(kcd->em);
-  EDBM_update_generic(kcd->em, true, true);
+  EDBM_update_generic(kcd->ob->data, true, true);
 
   /* re-tessellating makes this invalid, dont use again by accident */
   knifetool_free_bmbvh(kcd);
