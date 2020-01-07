@@ -820,7 +820,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 
         /* also project the source, for retopo workflow */
         if (use_proj) {
-          EDBM_project_snap_verts(C, depsgraph, vc.ar, vc.em);
+          EDBM_project_snap_verts(C, depsgraph, vc.ar, vc.obedit, vc.em);
         }
       }
 
@@ -853,7 +853,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
     }
 
     if (use_proj) {
-      EDBM_project_snap_verts(C, depsgraph, vc.ar, vc.em);
+      EDBM_project_snap_verts(C, depsgraph, vc.ar, vc.obedit, vc.em);
     }
 
     /* This normally happens when pushing undo but modal operators

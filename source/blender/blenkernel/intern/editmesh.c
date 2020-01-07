@@ -188,15 +188,18 @@ static void cage_mapped_verts_callback(void *userData,
   }
 }
 
-float (*BKE_editmesh_vert_coords_alloc(
-    struct Depsgraph *depsgraph, BMEditMesh *em, struct Scene *scene, int *r_vert_len))[3]
+float (*BKE_editmesh_vert_coords_alloc(struct Depsgraph *depsgraph,
+                                       BMEditMesh *em,
+                                       struct Scene *scene,
+                                       Object *ob,
+                                       int *r_vert_len))[3]
 {
   Mesh *cage;
   BLI_bitmap *visit_bitmap;
   struct CageUserData data;
   float(*cos_cage)[3];
 
-  cage = editbmesh_get_eval_cage(depsgraph, scene, em->ob, em, &CD_MASK_BAREMESH);
+  cage = editbmesh_get_eval_cage(depsgraph, scene, ob, em, &CD_MASK_BAREMESH);
   cos_cage = MEM_callocN(sizeof(*cos_cage) * em->bm->totvert, "bmbvh cos_cage");
 
   /* when initializing cage verts, we only want the first cage coordinate for each vertex,

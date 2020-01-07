@@ -295,6 +295,7 @@ void ED_keymap_mesh(struct wmKeyConfig *keyconf);
 void EDBM_project_snap_verts(struct bContext *C,
                              struct Depsgraph *depsgraph,
                              struct ARegion *ar,
+                             struct Object *obedit,
                              struct BMEditMesh *em);
 
 /* editface.c */

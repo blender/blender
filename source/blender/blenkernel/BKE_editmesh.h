@@ -92,8 +92,11 @@ BMEditMesh *BKE_editmesh_from_object(struct Object *ob);
 void BKE_editmesh_free_derivedmesh(BMEditMesh *em);
 void BKE_editmesh_free(BMEditMesh *em);
 
-float (*BKE_editmesh_vert_coords_alloc(
-    struct Depsgraph *depsgraph, struct BMEditMesh *em, struct Scene *scene, int *r_vert_len))[3];
+float (*BKE_editmesh_vert_coords_alloc(struct Depsgraph *depsgraph,
+                                       struct BMEditMesh *em,
+                                       struct Scene *scene,
+                                       struct Object *ob,
+                                       int *r_vert_len))[3];
 float (*BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em, int *r_vert_len))[3];
 void BKE_editmesh_lnorspace_update(BMEditMesh *em);
 void BKE_editmesh_ensure_autosmooth(BMEditMesh *em);
