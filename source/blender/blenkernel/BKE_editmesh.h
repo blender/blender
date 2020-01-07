@@ -98,8 +98,8 @@ float (*BKE_editmesh_vert_coords_alloc(struct Depsgraph *depsgraph,
                                        struct Object *ob,
                                        int *r_vert_len))[3];
 float (*BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em, int *r_vert_len))[3];
-void BKE_editmesh_lnorspace_update(BMEditMesh *em);
-void BKE_editmesh_ensure_autosmooth(BMEditMesh *em);
+void BKE_editmesh_lnorspace_update(BMEditMesh *em, struct Mesh *me);
+void BKE_editmesh_ensure_autosmooth(BMEditMesh *em, struct Mesh *me);
 struct BoundBox *BKE_editmesh_cage_boundbox_get(BMEditMesh *em);
 
 #endif /* __BKE_EDITMESH_H__ */

@@ -226,7 +226,7 @@ float (*BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em, int *r_vert_len))[3]
   return BM_mesh_vert_coords_alloc(em->bm, r_vert_len);
 }
 
-void BKE_editmesh_lnorspace_update(BMEditMesh *em)
+void BKE_editmesh_lnorspace_update(BMEditMesh *em, Mesh *me)
 {
   BMesh *bm = em->bm;
 
@@ -238,7 +238,6 @@ void BKE_editmesh_lnorspace_update(BMEditMesh *em)
    * with related sharp edges (and hence autosmooth is 'lost').
    * Not sure how critical this is, and how to fix that issue? */
   if (!CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL)) {
-    Mesh *me = em->ob->data;
     if (me->flag & ME_AUTOSMOOTH) {
       BM_edges_sharp_from_angle_set(bm, me->smoothresh);
     }
@@ -248,12 +247,11 @@ void BKE_editmesh_lnorspace_update(BMEditMesh *em)
 }
 
 /* If autosmooth not already set, set it */
-void BKE_editmesh_ensure_autosmooth(BMEditMesh *em)
+void BKE_editmesh_ensure_autosmooth(BMEditMesh *em, Mesh *me)
 {
-  Mesh *me = em->ob->data;
   if (!(me->flag & ME_AUTOSMOOTH)) {
     me->flag |= ME_AUTOSMOOTH;
-    BKE_editmesh_lnorspace_update(em);
+    BKE_editmesh_lnorspace_update(em, me);
   }
 }
 
