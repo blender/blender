@@ -75,15 +75,18 @@
 /** \name Select Mirror
  * \{ */
 
-void EDBM_select_mirrored(
-    BMEditMesh *em, const int axis, const bool extend, int *r_totmirr, int *r_totfail)
+void EDBM_select_mirrored(BMEditMesh *em,
+                          const Mesh *me,
+                          const int axis,
+                          const bool extend,
+                          int *r_totmirr,
+                          int *r_totfail)
 {
-  Mesh *me = (Mesh *)em->ob->data;
   BMesh *bm = em->bm;
   BMIter iter;
   int totmirr = 0;
   int totfail = 0;
-  bool use_topology = (me && (me->editflag & ME_EDIT_MIRROR_TOPO));
+  bool use_topology = me->editflag & ME_EDIT_MIRROR_TOPO;
 
   *r_totmirr = *r_totfail = 0;
 
@@ -3863,7 +3866,7 @@ static int edbm_select_mirror_exec(bContext *C, wmOperator *op)
 
     for (int axis = 0; axis < 3; axis++) {
       if ((1 << axis) & axis_flag) {
-        EDBM_select_mirrored(em, axis, extend, &tot_mirr_iter, &tot_fail_iter);
+        EDBM_select_mirrored(em, obedit->data, axis, extend, &tot_mirr_iter, &tot_fail_iter);
       }
     }
 
