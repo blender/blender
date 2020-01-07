@@ -58,10 +58,21 @@ namespace {
 
 void schedule_children(TaskPool *pool, Depsgraph *graph, OperationNode *node, const int thread_id);
 
+/* Denotes which part of dependency graph is being evaluated. */
+enum class EvaluationStage {
+  /* Stage 1: Only  Copy-on-Write operations are to be evaluated, prior to anything else.
+   * This allows other operations to access its dependencies when there is a dependency cycle
+   * involved. */
+  COPY_ON_WRITE,
+
+  /* Threaded evaluation of all possible operationsd. */
+  THREADED_EVALUATION,
+};
+
 struct DepsgraphEvalState {
   Depsgraph *graph;
   bool do_stats;
-  bool is_cow_stage;
+  EvaluationStage stage;
 };
 
 void deg_task_run_func(TaskPool *pool, void *taskdata, int thread_id)
@@ -148,6 +159,25 @@ void initialize_execution(DepsgraphEvalState *state, Depsgraph *graph)
   }
 }
 
+bool need_evaluate_operation_at_stage(const DepsgraphEvalState *state,
+                                      const OperationNode *operation_node)
+{
+  const ComponentNode *component_node = operation_node->owner;
+  switch (state->stage) {
+    case EvaluationStage::COPY_ON_WRITE:
+      return (component_node->type == NodeType::COPY_ON_WRITE);
+
+    case EvaluationStage::THREADED_EVALUATION:
+      /* Sanity check: copy-on-write node should be evaluated already. This will be indicated by
+       * scheduled flag (we assume that scheduled operations have been actually handled by previous
+       * stage). */
+      BLI_assert(operation_node->scheduled || component_node->type != NodeType::COPY_ON_WRITE);
+      return true;
+  }
+  BLI_assert(!"Unhandled evaluation stage, should never happen.");
+  return false;
+}
+
 /* Schedule a node if it needs evaluation.
  *   dec_parents: Decrement pending parents count, true when child nodes are
  *                scheduled after a task has been completed.
@@ -176,14 +206,9 @@ void schedule_node(
     return;
   }
   /* During the COW stage only schedule COW nodes. */
-  DepsgraphEvalState *state = (DepsgraphEvalState *)BLI_task_pool_userdata(pool);
-  if (state->is_cow_stage) {
-    if (node->owner->type != NodeType::COPY_ON_WRITE) {
-      return;
-    }
-  }
-  else {
-    BLI_assert(node->scheduled || node->owner->type != NodeType::COPY_ON_WRITE);
+  const DepsgraphEvalState *state = (DepsgraphEvalState *)BLI_task_pool_userdata(pool);
+  if (!need_evaluate_operation_at_stage(state, node)) {
+    return;
   }
   /* Actually schedule the node. */
   bool is_scheduled = atomic_fetch_and_or_uint8((uint8_t *)&node->scheduled, (uint8_t) true);
@@ -271,16 +296,21 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
   TaskPool *task_pool = BLI_task_pool_create_suspended(task_scheduler, &state);
   /* Prepare all nodes for evaluation. */
   initialize_execution(&state, graph);
+
   /* Do actual evaluation now. */
+
   /* First, process all Copy-On-Write nodes. */
-  state.is_cow_stage = true;
+  state.stage = EvaluationStage::COPY_ON_WRITE;
   schedule_graph(task_pool, graph);
   BLI_task_pool_work_wait_and_reset(task_pool);
+
   /* After that, process all other nodes. */
-  state.is_cow_stage = false;
+  state.stage = EvaluationStage::THREADED_EVALUATION;
   schedule_graph(task_pool, graph);
   BLI_task_pool_work_and_wait(task_pool);
+
   BLI_task_pool_free(task_pool);
+
   /* Finalize statistics gathering. This is because we only gather single
    * operation timing here, without aggregating anything to avoid any extra
    * synchronization. */
