@@ -447,12 +447,13 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     EEVEE_volumes_set_jitter(sldata, stl->effects->taa_current_sample - 1);
     EEVEE_materials_init(sldata, stl, fbl);
 
-    /* Refresh Probes */
+    /* Refresh Probes
+     * Shadows needs to be updated for correct probes */
+    EEVEE_shadows_update(sldata, vedata);
     EEVEE_lightprobes_refresh(sldata, vedata);
     EEVEE_lightprobes_refresh_planar(sldata, vedata);
 
     /* Refresh Shadows */
-    EEVEE_shadows_update(sldata, vedata);
     EEVEE_shadows_draw(sldata, vedata, stl->effects->taa_view);
 
     /* Set matrices. */

@@ -229,8 +229,10 @@ static void eevee_draw_background(void *vedata)
     /* Copy previous persmat to UBO data */
     copy_m4_m4(sldata->common_data.prev_persmat, stl->effects->prev_persmat);
 
-    /* Refresh Probes */
+    /* Refresh Probes
+     * Shadows needs to be updated for correct probes */
     DRW_stats_group_start("Probes Refresh");
+    EEVEE_shadows_update(sldata, vedata);
     EEVEE_lightprobes_refresh(sldata, vedata);
     EEVEE_lightprobes_refresh_planar(sldata, vedata);
     DRW_stats_group_end();
