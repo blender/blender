@@ -349,7 +349,6 @@ void DRW_gpencil_freecache(struct Object *ob)
   for (int i = 0; i < ob->runtime.gpencil_tot_layers; i++) {
     bGPDframe *gpf_eval = &ob->runtime.gpencil_evaluated_frames[i];
     BKE_gpencil_free_frame_runtime_data(gpf_eval);
-    gpf_eval = NULL;
   }
 
   ob->runtime.gpencil_tot_layers = 0;

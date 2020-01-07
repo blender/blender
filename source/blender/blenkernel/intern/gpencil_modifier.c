@@ -862,6 +862,14 @@ void BKE_gpencil_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
   const bool time_remap = BKE_gpencil_has_time_modifiers(ob);
   int cfra_eval = (int)DEG_get_ctime(depsgraph);
 
+  /* Clear any previous evaluated data. */
+  if (ob->runtime.gpencil_tot_layers > 0) {
+    for (int i = 0; i < ob->runtime.gpencil_tot_layers; i++) {
+      bGPDframe *gpf_eval = &ob->runtime.gpencil_evaluated_frames[i];
+      BKE_gpencil_free_frame_runtime_data(gpf_eval);
+    }
+  }
+
   /* Create array of evaluated frames equal to number of layers. */
   ob->runtime.gpencil_tot_layers = BLI_listbase_count(&gpd->layers);
   CLAMP_MIN(ob->runtime.gpencil_tot_layers, 1);
