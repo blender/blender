@@ -1839,7 +1839,7 @@ static void editbmesh_build_data(struct Depsgraph *depsgraph,
                                  BMEditMesh *em,
                                  CustomData_MeshMasks *dataMask)
 {
-  BLI_assert(em->ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
+  BLI_assert(obedit->id.tag & LIB_TAG_COPIED_ON_WRITE);
 
   BKE_object_free_derived_caches(obedit);
   if (DEG_is_active(depsgraph)) {

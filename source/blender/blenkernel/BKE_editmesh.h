@@ -35,6 +35,7 @@ struct Depsgraph;
 struct EditMeshData;
 struct Mesh;
 struct MeshStatVis;
+struct Object;
 struct Scene;
 
 /**
@@ -69,9 +70,6 @@ typedef struct BMEditMesh {
   /*selection mode*/
   short selectmode;
   short mat_nr;
-
-  /* Object this editmesh came from (if it came from one) */
-  struct Object *ob;
 
   /*temp variables for x-mirror editing*/
   int mirror_cdlayer; /* -1 is invalid */

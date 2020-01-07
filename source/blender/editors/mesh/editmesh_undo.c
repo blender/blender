@@ -605,7 +605,6 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em, Key *
 
   em->selectmode = um->selectmode;
   bm->selectmode = um->selectmode;
-  em->ob = ob;
 
   bm->spacearr_dirty = BM_SPACEARR_DIRTY_ALL;
 

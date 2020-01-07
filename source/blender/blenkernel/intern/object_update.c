@@ -163,9 +163,6 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       BMEditMesh *em = (ob->mode & OB_MODE_EDIT) ? BKE_editmesh_from_object(ob) : NULL;
 #else
       BMEditMesh *em = (ob->mode & OB_MODE_EDIT) ? ((Mesh *)ob->data)->edit_mesh : NULL;
-      if (em && em->ob != ob) {
-        em = NULL;
-      }
 #endif
 
       CustomData_MeshMasks cddata_masks = scene->customdata_mask;

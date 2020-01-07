@@ -41,6 +41,7 @@
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_bvh.h"
+#include "BKE_global.h"
 
 #include "DEG_depsgraph.h"
 
@@ -166,8 +167,15 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
       BKE_editmesh_looptri_calc(em);
     }
 
-    if (em->ob) {
-      DEG_id_tag_update(&((Mesh *)em->ob->data)->id, ID_RECALC_COPY_ON_WRITE);
+    {
+      /* FIXME: pass in mesh. */
+      Main *bmain = G_MAIN;
+      for (Mesh *mesh = bmain->meshes.first; mesh; mesh = mesh->id.next) {
+        if (mesh->edit_mesh == em) {
+          DEG_id_tag_update(&mesh->id, ID_RECALC_COPY_ON_WRITE);
+          break;
+        }
+      }
     }
 
     return false;
@@ -316,7 +324,6 @@ void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 
   me->edit_mesh->selectmode = me->edit_mesh->bm->selectmode = select_mode;
   me->edit_mesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
-  me->edit_mesh->ob = ob;
 
   /* we need to flush selection because the mode may have changed from when last in editmode */
   EDBM_selectmode_flush(me->edit_mesh);
@@ -1416,10 +1423,16 @@ void EDBM_stats_update(BMEditMesh *em)
  */
 void EDBM_update_generic(BMEditMesh *em, const bool do_tessellation, const bool is_destructive)
 {
-  Object *ob = em->ob;
-  /* order of calling isn't important */
-  DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
-  WM_main_add_notifier(NC_GEOM | ND_DATA, ob->data);
+  /* FIXME: pass in mesh. */
+  Main *bmain = G_MAIN;
+  for (Mesh *mesh = bmain->meshes.first; mesh; mesh = mesh->id.next) {
+    if (mesh->edit_mesh == em) {
+      /* Order of calling isn't important. */
+      DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+      WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
+      break;
+    }
+  }
 
   if (do_tessellation) {
     BKE_editmesh_looptri_calc(em);
