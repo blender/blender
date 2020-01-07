@@ -743,7 +743,9 @@ class TransformsToDeltas(Operator):
     def transfer_rotation(self, obj):
         # TODO: add transforms together...
         if obj.rotation_mode == 'QUATERNION':
-            obj.delta_rotation_quaternion += obj.rotation_quaternion
+            delta = obj.delta_rotation_quaternion.copy()
+            obj.delta_rotation_quaternion = obj.rotation_quaternion
+            obj.delta_rotation_quaternion.rotate(delta)
 
             if self.reset_values:
                 obj.rotation_quaternion.identity()
