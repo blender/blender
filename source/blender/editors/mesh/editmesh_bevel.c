@@ -77,7 +77,8 @@ static const float value_start[NUM_VALUE_KINDS] = {0.0f, 0.0f, 0.5f, 1.0f};
 static const float value_scale_per_inch[NUM_VALUE_KINDS] = {0.0f, 100.0f, 1.0f, 4.0f};
 
 typedef struct {
-  BMEditMesh *em;
+  /** Every object must have a valid #BMEditMesh. */
+  Object *ob;
   BMBackup mesh_backup;
 } BevelObjectStore;
 
@@ -261,7 +262,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
       opdata->max_obj_scale = max_ff(opdata->max_obj_scale, scale);
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
       if (em->bm->totvertsel > 0) {
-        opdata->ob_store[objects_used_len].em = em;
+        opdata->ob_store[objects_used_len].ob = obedit;
         objects_used_len++;
       }
     }
@@ -300,8 +301,9 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
     ARegion *ar = CTX_wm_region(C);
 
     for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
-      opdata->ob_store[ob_index].mesh_backup = EDBM_redo_state_store(
-          opdata->ob_store[ob_index].em);
+      Object *obedit = opdata->ob_store[ob_index].ob;
+      BMEditMesh *em = BKE_editmesh_from_object(obedit);
+      opdata->ob_store[ob_index].mesh_backup = EDBM_redo_state_store(em);
     }
     opdata->draw_handle_pixel = ED_region_draw_cb_activate(
         ar->type, ED_region_draw_mouse_line_cb, opdata->mcenter, REGION_DRAW_POST_PIXEL);
@@ -319,7 +321,6 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 static bool edbm_bevel_calc(wmOperator *op)
 {
   BevelData *opdata = op->customdata;
-  BMEditMesh *em;
   BMOperator bmop;
   bool changed = false;
 
@@ -329,7 +330,7 @@ static bool edbm_bevel_calc(wmOperator *op)
   const float profile = RNA_float_get(op->ptr, "profile");
   const bool vertex_only = RNA_boolean_get(op->ptr, "vertex_only");
   const bool clamp_overlap = RNA_boolean_get(op->ptr, "clamp_overlap");
-  int material = RNA_int_get(op->ptr, "material");
+  const int material_init = RNA_int_get(op->ptr, "material");
   const bool loop_slide = RNA_boolean_get(op->ptr, "loop_slide");
   const bool mark_seam = RNA_boolean_get(op->ptr, "mark_seam");
   const bool mark_sharp = RNA_boolean_get(op->ptr, "mark_sharp");
@@ -342,18 +343,17 @@ static bool edbm_bevel_calc(wmOperator *op)
   const int vmesh_method = RNA_enum_get(op->ptr, "vmesh_method");
 
   for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
-    em = opdata->ob_store[ob_index].em;
+    Object *obedit = opdata->ob_store[ob_index].ob;
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     /* revert to original mesh */
     if (opdata->is_modal) {
       EDBM_redo_state_restore(opdata->ob_store[ob_index].mesh_backup, em, false);
     }
 
-    if (em->ob) {
-      material = CLAMPIS(material, -1, em->ob->totcol - 1);
-    }
+    const int material = CLAMPIS(material_init, -1, obedit->totcol - 1);
 
-    Mesh *me = em->ob->data;
+    Mesh *me = obedit->data;
 
     if (harden_normals && !(me->flag & ME_AUTOSMOOTH)) {
       /* harden_normals only has a visible effect if autosmooth is on, so turn it on */
@@ -443,9 +443,10 @@ static void edbm_bevel_cancel(bContext *C, wmOperator *op)
   BevelData *opdata = op->customdata;
   if (opdata->is_modal) {
     for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
-      EDBM_redo_state_free(
-          &opdata->ob_store[ob_index].mesh_backup, opdata->ob_store[ob_index].em, true);
-      EDBM_update_generic(opdata->ob_store[ob_index].em, false, true);
+      Object *obedit = opdata->ob_store[ob_index].ob;
+      BMEditMesh *em = BKE_editmesh_from_object(obedit);
+      EDBM_redo_state_free(&opdata->ob_store[ob_index].mesh_backup, em, true);
+      EDBM_update_generic(em, false, true);
     }
   }
 
