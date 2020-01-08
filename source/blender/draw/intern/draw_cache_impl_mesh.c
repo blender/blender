@@ -1064,6 +1064,19 @@ void DRW_mesh_batch_cache_create_requested(
     return;
   }
 
+  /* Sanity check. */
+  if ((me->edit_mesh != NULL) && (ob->mode & OB_MODE_EDIT)) {
+    BLI_assert(me->edit_mesh->mesh_eval_final != NULL);
+  }
+
+  const bool is_editmode =
+      (me->edit_mesh != NULL) &&
+      (/* Simple case, the object is in edit-mode with an edit-mesh. */
+       (ob->mode & OB_MODE_EDIT) ||
+       /* This is needed so linked duplicates show updates while the user edits the mesh.
+        * While this is not essential, it's useful to see the edit-mode changes everywhere. */
+       (me->edit_mesh->mesh_eval_final != NULL));
+
   DRWBatchFlag batch_requested = cache->batch_requested;
   cache->batch_requested = 0;
 
@@ -1200,10 +1213,10 @@ void DRW_mesh_batch_cache_create_requested(
 
   cache->batch_ready |= batch_requested;
 
-  const bool do_cage = (me->edit_mesh &&
+  const bool do_cage = (is_editmode &&
                         (me->edit_mesh->mesh_eval_final != me->edit_mesh->mesh_eval_cage));
 
-  const bool do_uvcage = me->edit_mesh && !me->edit_mesh->mesh_eval_final->runtime.is_original;
+  const bool do_uvcage = is_editmode && !me->edit_mesh->mesh_eval_final->runtime.is_original;
 
   MeshBufferCache *mbufcache = &cache->final;
 
@@ -1398,14 +1411,24 @@ void DRW_mesh_batch_cache_create_requested(
   const bool use_subsurf_fdots = scene ? modifiers_usesSubsurfFacedots((Scene *)scene, ob) : false;
 
   if (do_uvcage) {
-    mesh_buffer_cache_create_requested(
-        cache, cache->uv_cage, me, ob->obmat, false, true, false, &cache->cd_used, ts, true);
+    mesh_buffer_cache_create_requested(cache,
+                                       cache->uv_cage,
+                                       me,
+                                       is_editmode,
+                                       ob->obmat,
+                                       false,
+                                       true,
+                                       false,
+                                       &cache->cd_used,
+                                       ts,
+                                       true);
   }
 
   if (do_cage) {
     mesh_buffer_cache_create_requested(cache,
                                        cache->cage,
                                        me,
+                                       is_editmode,
                                        ob->obmat,
                                        false,
                                        false,
@@ -1418,6 +1441,7 @@ void DRW_mesh_batch_cache_create_requested(
   mesh_buffer_cache_create_requested(cache,
                                      cache->final,
                                      me,
+                                     is_editmode,
                                      ob->obmat,
                                      true,
                                      false,
