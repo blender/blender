@@ -466,16 +466,17 @@ static void gesture_tweak_modal(bContext *C, const wmEvent *event)
   wmWindow *window = CTX_wm_window(C);
   wmGesture *gesture = window->tweak;
   rcti *rect = gesture->customdata;
-  int val;
+  bool gesture_end = false;
 
   switch (event->type) {
     case MOUSEMOVE:
-    case INBETWEEN_MOUSEMOVE:
+    case INBETWEEN_MOUSEMOVE: {
 
       rect->xmax = event->x - gesture->winrct.xmin;
       rect->ymax = event->y - gesture->winrct.ymin;
 
-      if ((val = wm_gesture_evaluate(gesture, event))) {
+      const int val = wm_gesture_evaluate(gesture, event);
+      if (val != 0) {
         wmEvent tevent;
 
         wm_event_init_from_window(window, &tevent);
@@ -499,16 +500,17 @@ static void gesture_tweak_modal(bContext *C, const wmEvent *event)
          * (which may be in the queue already), are handled in order, see T44740 */
         wm_event_add_ex(window, &tevent, event);
 
-        WM_gesture_end(C, gesture); /* frees gesture itself, and unregisters from window */
+        gesture_end = true;
       }
 
       break;
+    }
 
     case LEFTMOUSE:
     case RIGHTMOUSE:
     case MIDDLEMOUSE:
       if (gesture->event_type == event->type) {
-        WM_gesture_end(C, gesture);
+        gesture_end = true;
 
         /* when tweak fails we should give the other keymap entries a chance */
 
@@ -518,9 +520,14 @@ static void gesture_tweak_modal(bContext *C, const wmEvent *event)
       break;
     default:
       if (!ISTIMER(event->type) && event->type != EVENT_NONE) {
-        WM_gesture_end(C, gesture);
+        gesture_end = true;
       }
       break;
+  }
+
+  if (gesture_end) {
+    /* Frees gesture itself, and unregisters from window. */
+    WM_gesture_end(C, gesture);
   }
 }
 
