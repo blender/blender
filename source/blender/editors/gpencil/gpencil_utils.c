@@ -365,7 +365,7 @@ bool gp_add_poll(bContext *C)
 bool gp_active_layer_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if (ob == NULL) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
     return false;
   }
   bGPdata *gpd = (bGPdata *)ob->data;
