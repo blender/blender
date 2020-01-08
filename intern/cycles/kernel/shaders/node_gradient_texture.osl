@@ -56,7 +56,7 @@ float gradient(point p, string type)
       result = r;
   }
 
-  return result;
+  return clamp(result, 0.0, 1.0);
 }
 
 shader node_gradient_texture(
