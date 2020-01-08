@@ -685,6 +685,7 @@ int BLI_strcasecmp_natural(const char *s1, const char *s2)
         return numcompare;
       }
 
+      /* Some wasted work here, left_number_strcmp already consumes at least some digits. */
       d1++;
       while (isdigit(s1[d1])) {
         d1++;
@@ -695,14 +696,22 @@ int BLI_strcasecmp_natural(const char *s1, const char *s2)
       }
     }
 
+    /* Test for end of strings first so that shorter strings are ordered in front. */
+    if (ELEM(0, s1[d1], s2[d2])) {
+      break;
+    }
+
     c1 = tolower(s1[d1]);
     c2 = tolower(s2[d2]);
 
-    /* first check for '.' so "foo.bar" comes before "foo 1.bar" */
-    if (c1 == '.' && c2 != '.') {
+    if (c1 == c2) {
+      /* Continue iteration */
+    }
+    /* Check for '.' so "foo.bar" comes before "foo 1.bar". */
+    else if (c1 == '.') {
       return -1;
     }
-    if (c1 != '.' && c2 == '.') {
+    else if (c2 == '.') {
       return 1;
     }
     else if (c1 < c2) {
@@ -711,9 +720,7 @@ int BLI_strcasecmp_natural(const char *s1, const char *s2)
     else if (c1 > c2) {
       return 1;
     }
-    else if (c1 == 0) {
-      break;
-    }
+
     d1++;
     d2++;
   }

@@ -801,7 +801,7 @@ TEST_F(StringCasecmpNatural, TextAndNumbers)
   const CompareWordsArray negative{
       {"00je møder0", "00je møder1"},
       {"05je møder0", "06je møder1"},
-      // {"Cube", "Cube.001"},
+      {"Cube", "Cube.001"},
       {"Cube.001", "Cube.002"},
       {"CUbe.001", "Cube.002"},
       {"CUbe.002", "Cube.002"},
