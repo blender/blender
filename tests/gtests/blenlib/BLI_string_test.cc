@@ -2,6 +2,7 @@
 
 #include "testing/testing.h"
 
+#include <array>
 #include <initializer_list>
 #include <ostream>  // NOLINT
 #include <string>
