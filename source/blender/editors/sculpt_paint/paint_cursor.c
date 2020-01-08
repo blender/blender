@@ -252,14 +252,14 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
   TexSnapshot *target;
 
   MTex *mtex = (primary) ? &br->mtex : &br->mask_mtex;
-  eOverlayControlFlags overlay_flags = BKE_paint_get_overlay_flags();
+  ePaintOverlayControlFlags overlay_flags = BKE_paint_get_overlay_flags();
   GLubyte *buffer = NULL;
 
   int size;
   bool refresh;
-  eOverlayControlFlags invalid = ((primary) ?
-                                      (overlay_flags & PAINT_OVERLAY_INVALID_TEXTURE_PRIMARY) :
-                                      (overlay_flags & PAINT_OVERLAY_INVALID_TEXTURE_SECONDARY));
+  ePaintOverlayControlFlags invalid =
+      ((primary) ? (overlay_flags & PAINT_OVERLAY_INVALID_TEXTURE_PRIMARY) :
+                   (overlay_flags & PAINT_OVERLAY_INVALID_TEXTURE_SECONDARY));
   target = (primary) ? &primary_snap : &secondary_snap;
 
   refresh = !target->overlay_texture || (invalid != 0) ||
@@ -422,7 +422,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 {
   bool init;
 
-  eOverlayControlFlags overlay_flags = BKE_paint_get_overlay_flags();
+  ePaintOverlayControlFlags overlay_flags = BKE_paint_get_overlay_flags();
   GLubyte *buffer = NULL;
 
   int size;
@@ -836,7 +836,7 @@ static bool paint_draw_alpha_overlay(UnifiedPaintSettings *ups,
 
   bool alpha_overlay_active = false;
 
-  eOverlayControlFlags flags = BKE_paint_get_overlay_flags();
+  ePaintOverlayControlFlags flags = BKE_paint_get_overlay_flags();
   gpuPushAttr(GPU_DEPTH_BUFFER_BIT | GPU_BLEND_BIT);
 
   /* Translate to region. */

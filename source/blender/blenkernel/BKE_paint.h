@@ -85,14 +85,14 @@ typedef enum ePaintMode {
 #define PAINT_MODE_HAS_BRUSH(mode) !ELEM(mode, PAINT_MODE_SCULPT_UV)
 
 /* overlay invalidation */
-typedef enum eOverlayControlFlags {
+typedef enum ePaintOverlayControlFlags {
   PAINT_OVERLAY_INVALID_TEXTURE_PRIMARY = 1,
   PAINT_OVERLAY_INVALID_TEXTURE_SECONDARY = (1 << 2),
   PAINT_OVERLAY_INVALID_CURVE = (1 << 3),
   PAINT_OVERLAY_OVERRIDE_CURSOR = (1 << 4),
   PAINT_OVERLAY_OVERRIDE_PRIMARY = (1 << 5),
   PAINT_OVERLAY_OVERRIDE_SECONDARY = (1 << 6),
-} eOverlayControlFlags;
+} ePaintOverlayControlFlags;
 
 #define PAINT_OVERRIDE_MASK \
   (PAINT_OVERLAY_OVERRIDE_SECONDARY | PAINT_OVERLAY_OVERRIDE_PRIMARY | \
@@ -102,12 +102,12 @@ typedef enum eOverlayControlFlags {
  * flip or mirror transform values depending on where the vertex is and where the transform
  * operation started to support XYZ symmetry on those operations in a predictable way. */
 
-#define AREA_SYMM_DEFAULT 0
+#define PAINT_SYMM_AREA_DEFAULT 0
 
 typedef enum ePaintSymmetryAreas {
-  AREA_SYMM_X = (1 << 0),
-  AREA_SYMM_Y = (1 << 1),
-  AREA_SYMM_Z = (1 << 2),
+  PAINT_SYMM_AREA_X = (1 << 0),
+  PAINT_SYMM_AREA_Y = (1 << 1),
+  PAINT_SYMM_AREA_Z = (1 << 2),
 } ePaintSymmetryAreas;
 
 #define PAINT_SYMM_AREAS 8
@@ -119,8 +119,8 @@ void BKE_paint_invalidate_cursor_overlay(struct Scene *scene,
                                          struct ViewLayer *view_layer,
                                          struct CurveMapping *curve);
 void BKE_paint_invalidate_overlay_all(void);
-eOverlayControlFlags BKE_paint_get_overlay_flags(void);
-void BKE_paint_reset_overlay_invalid(eOverlayControlFlags flag);
+ePaintOverlayControlFlags BKE_paint_get_overlay_flags(void);
+void BKE_paint_reset_overlay_invalid(ePaintOverlayControlFlags flag);
 void BKE_paint_set_overlay_override(enum eOverlayFlags flag);
 
 /* palettes */
@@ -226,7 +226,7 @@ struct SculptVertexPaintGeomMap {
 };
 
 /* Pose Brush IK Chain */
-typedef struct PoseIKChainSegment {
+typedef struct SculptPoseIKChainSegment {
   float orig[3];
   float head[3];
 
@@ -241,12 +241,12 @@ typedef struct PoseIKChainSegment {
   float trans_mat[PAINT_SYMM_AREAS][4][4];
   float pivot_mat[PAINT_SYMM_AREAS][4][4];
   float pivot_mat_inv[PAINT_SYMM_AREAS][4][4];
-} PoseIKChainSegment;
+} SculptPoseIKChainSegment;
 
-typedef struct PoseIKChain {
-  PoseIKChainSegment *segments;
+typedef struct SculptPoseIKChain {
+  SculptPoseIKChainSegment *segments;
   int tot_segments;
-} PoseIKChain;
+} SculptPoseIKChain;
 
 /* Session data (mode-specific) */
 
@@ -313,7 +313,7 @@ typedef struct SculptSession {
 
   /* Pose Brush Preview */
   float pose_origin[3];
-  PoseIKChain *pose_ik_chain_preview;
+  SculptPoseIKChain *pose_ik_chain_preview;
 
   /* Transform operator */
   float pivot_pos[3];

@@ -37,7 +37,7 @@ struct KeyBlock;
 struct Object;
 struct SculptUndoNode;
 struct bContext;
-struct PoseIKChainSegment;
+struct SculptPoseIKChainSegment;
 
 bool sculpt_mode_poll(struct bContext *C);
 bool sculpt_mode_poll_view3d(struct bContext *C);
@@ -75,14 +75,14 @@ void sculpt_pose_calc_pose_data(struct Sculpt *sd,
                                 float *r_pose_origin,
                                 float *r_pose_factor);
 
-struct PoseIKChain *sculpt_pose_ik_chain_init(struct Sculpt *sd,
-                                              struct Object *ob,
-                                              struct SculptSession *ss,
-                                              struct Brush *br,
-                                              const float initial_location[3],
-                                              const float radius);
+struct SculptPoseIKChain *sculpt_pose_ik_chain_init(struct Sculpt *sd,
+                                                    struct Object *ob,
+                                                    struct SculptSession *ss,
+                                                    struct Brush *br,
+                                                    const float initial_location[3],
+                                                    const float radius);
 
-void sculpt_pose_ik_chain_free(struct PoseIKChain *ik_chain);
+void sculpt_pose_ik_chain_free(struct SculptPoseIKChain *ik_chain);
 
 /* Sculpt PBVH abstraction API */
 const float *sculpt_vertex_co_get(struct SculptSession *ss, int index);
@@ -388,7 +388,7 @@ typedef struct StrokeCache {
   float anchored_location[3];
 
   /* Pose brush */
-  struct PoseIKChain *pose_ik_chain;
+  struct SculptPoseIKChain *pose_ik_chain;
 
   float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
   struct Dial *dial;
