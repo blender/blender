@@ -1448,10 +1448,20 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
     const bool is_orbit_around_pivot = (U.ndof_flag & NDOF_MODE_ORBIT) ||
                                        ED_view3d_offset_lock_check(v3d, rv3d);
     const bool has_rotation = ndof_has_rotate(ndof, rv3d);
-    const bool has_translate = !is_zero_v2(ndof->tvec) && ndof_has_translate(ndof, v3d, rv3d);
-    const bool has_zoom = (ndof->tvec[2] != 0.0f);
+    bool has_translate, has_zoom;
 
-    /* Rotation first because dynamic offset resets offset otherwise (and disasbles panning). */
+    if (is_orbit_around_pivot) {
+      /* Orbit preference or forced lock (Z zooms). */
+      has_translate = !is_zero_v2(ndof->tvec) && ndof_has_translate(ndof, v3d, rv3d);
+      has_zoom = (ndof->tvec[2] != 0.0f);
+    }
+    else {
+      /* Free preference (Z translates). */
+      has_translate = ndof_has_translate(ndof, v3d, rv3d);
+      has_zoom = false;
+    }
+
+    /* Rotation first because dynamic offset resets offset otherwise (and disables panning). */
     if (has_rotation) {
       const float dist_backup = rv3d->dist;
       if (!is_orbit_around_pivot) {
