@@ -608,3 +608,207 @@ TEST(string, StrIsDecimal)
   EXPECT_TRUE(BLI_string_is_decimal("001"));
   EXPECT_TRUE(BLI_string_is_decimal("11342908713948713498745980171334059871345098713405981734"));
 }
+
+/* BLI_strcasecmp_natural */
+class StringCasecmpNatural : public testing::Test {
+ protected:
+  StringCasecmpNatural() = default;
+
+  using CompareWordsArray = vector<std::array<const char *, 2>>;
+
+  void testReturnsZeroForAll(const CompareWordsArray &items)
+  {
+    for (auto &item : items) {
+      int res = BLI_strcasecmp_natural(item[0], item[1]);
+      EXPECT_EQ(res, 0);
+    }
+  }
+  void testReturnsLessThanZeroForAll(const CompareWordsArray &items)
+  {
+    for (auto &item : items) {
+      int res = BLI_strcasecmp_natural(item[0], item[1]);
+      EXPECT_LT(res, 0);
+    }
+  }
+  void testReturnsMoreThanZeroForAll(const CompareWordsArray &items)
+  {
+    for (auto &item : items) {
+      int res = BLI_strcasecmp_natural(item[0], item[1]);
+      EXPECT_GT(res, 0);
+    }
+  }
+
+  CompareWordsArray copyWithSwappedWords(const CompareWordsArray &items)
+  {
+    CompareWordsArray ret_array;
+
+    /* E.g. {{"a", "b"}, {"ab", "cd"}} becomes {{"b", "a"}, {"cd", "ab"}} */
+
+    ret_array.reserve(items.size());
+    for (auto &item : items) {
+      ret_array.push_back({item[1], item[0]});
+    }
+
+    return ret_array;
+  }
+};
+
+TEST_F(StringCasecmpNatural, Empty)
+{
+  const CompareWordsArray equal{
+      {"", ""},
+  };
+  const CompareWordsArray negative{
+      {"", "a"},
+      {"", "A"},
+  };
+  CompareWordsArray positive = copyWithSwappedWords(negative);
+
+  testReturnsZeroForAll(equal);
+  testReturnsLessThanZeroForAll(negative);
+  testReturnsMoreThanZeroForAll(positive);
+}
+
+TEST_F(StringCasecmpNatural, Whitespace)
+{
+  const CompareWordsArray equal{
+      {" ", " "},
+      {" a", " a"},
+      {" a ", " a "},
+  };
+  const CompareWordsArray negative{
+      {"", " "},
+      {"", " a"},
+      {"", " a "},
+      {" ", " a"},
+  };
+  CompareWordsArray positive = copyWithSwappedWords(negative);
+
+  testReturnsZeroForAll(equal);
+  testReturnsLessThanZeroForAll(negative);
+  testReturnsMoreThanZeroForAll(positive);
+}
+
+TEST_F(StringCasecmpNatural, TextOnlyLowerCase)
+{
+  const CompareWordsArray equal{
+      {"a", "a"},
+      {"aa", "aa"},
+      {"ab", "ab"},
+      {"ba", "ba"},
+      {"je møder", "je møder"},
+  };
+  const CompareWordsArray negative{
+      {"a", "b"},
+      {"a", "aa"},
+      {"a", "ab"},
+      {"aa", "b"},
+      {"je møda", "je møder"},
+  };
+  CompareWordsArray positive = copyWithSwappedWords(negative);
+
+  testReturnsZeroForAll(equal);
+  testReturnsLessThanZeroForAll(negative);
+  testReturnsMoreThanZeroForAll(positive);
+}
+
+TEST_F(StringCasecmpNatural, TextMixedCase)
+{
+  const CompareWordsArray equal{
+      {"A", "A"},
+      {"AA", "AA"},
+      {"AB", "AB"},
+      {"Ab", "Ab"},
+      {"aB", "aB"},
+  };
+  const CompareWordsArray negative{
+      {"A", "a"},
+      {"A", "B"},
+      {"A", "b"},
+      {"a", "B"},
+      {"AA", "aA"},
+      {"AA", "aA"},
+      {"Ab", "ab"},
+      {"AB", "Ab"},
+      /* Different lengths */
+      {"A", "ab"},
+      {"Aa", "b"},
+      {"aA", "b"},
+      {"AA", "b"},
+      {"A", "Ab"},
+      {"A", "aB"},
+      {"Aa", "B"},
+      {"aA", "B"},
+      {"AA", "B"},
+  };
+  CompareWordsArray positive = copyWithSwappedWords(negative);
+
+  testReturnsZeroForAll(equal);
+  testReturnsLessThanZeroForAll(negative);
+  testReturnsMoreThanZeroForAll(positive);
+}
+
+TEST_F(StringCasecmpNatural, Period)
+{
+  const CompareWordsArray equal{
+      {".", "."},
+      {". ", ". "},
+      {" .", " ."},
+      {" . ", " . "},
+  };
+  const CompareWordsArray negative{
+      {".", ". "},
+      {" .", " . "},
+      {"foo.bar", "foo 1.bar"},
+  };
+  CompareWordsArray positive = copyWithSwappedWords(negative);
+
+  testReturnsZeroForAll(equal);
+  testReturnsLessThanZeroForAll(negative);
+  testReturnsMoreThanZeroForAll(positive);
+}
+
+TEST_F(StringCasecmpNatural, OnlyNumbers)
+{
+  const CompareWordsArray equal{
+      {"0", "0"},
+      {"0001", "0001"},
+      {"42", "42"},
+      {"0042", "0042"},
+  };
+  const CompareWordsArray negative{
+      /* If numeric values are equal, number of leading zeros is used as tiebreaker. */
+      {"1", "0001"},
+      {"01", "001"},
+      {"0042", "0043"},
+      {"0042", "43"},
+  };
+  const CompareWordsArray positive = copyWithSwappedWords(negative);
+
+  testReturnsZeroForAll(equal);
+  testReturnsLessThanZeroForAll(negative);
+  testReturnsMoreThanZeroForAll(positive);
+}
+
+TEST_F(StringCasecmpNatural, TextAndNumbers)
+{
+  const CompareWordsArray equal{
+      {"00je møder1", "00je møder1"},
+      {".0 ", ".0 "},
+      {" 1.", " 1."},
+      {" .0 ", " .0 "},
+  };
+  const CompareWordsArray negative{
+      {"00je møder0", "00je møder1"},
+      {"05je møder0", "06je møder1"},
+      // {"Cube", "Cube.001"},
+      {"Cube.001", "Cube.002"},
+      {"CUbe.001", "Cube.002"},
+      {"CUbe.002", "Cube.002"},
+  };
+  const CompareWordsArray positive = copyWithSwappedWords(negative);
+
+  testReturnsZeroForAll(equal);
+  testReturnsLessThanZeroForAll(negative);
+  testReturnsMoreThanZeroForAll(positive);
+}
