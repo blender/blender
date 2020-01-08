@@ -115,6 +115,12 @@ def _template_items_animation():
     ]
 
 
+def _template_items_gizmo_tweak_value_drag():
+    return [
+        ("gizmogroup.gizmo_tweak", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
+    ]
+
+
 # Tool System Templates
 
 def _template_items_basic_tools(*, connected=False):
@@ -3635,6 +3641,30 @@ def km_3d_view_tool_transform(params):
     )
 
 
+# Fallback for gizmos that don't have custom a custom key-map.
+
+
+def km_generic_gizmo_drag(_params):
+    keymap = (
+        "Generic Gizmo Drag",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": _template_items_gizmo_tweak_value_drag()},
+    )
+
+    return keymap
+
+
+def km_generic_gizmo_maybe_drag(params):
+    keymap = (
+        "Generic Gizmo Maybe Drag",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items":
+         _template_items_gizmo_tweak_value_drag()
+        },
+    )
+
+    return keymap
+
 
 # ------------------------------------------------------------------------------
 # Full Configuration
@@ -3723,6 +3753,10 @@ def generate_keymaps(params=None):
         km_eyedropper_modal_map(params),
         km_eyedropper_colorramp_pointsampling_map(params),
         km_transform_modal_map(params),
+
+        # Gizmos.
+        km_generic_gizmo_drag(params),
+        km_generic_gizmo_maybe_drag(params),
 
         # Tool System.
         km_image_editor_tool_uv_move(params),
