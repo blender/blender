@@ -322,7 +322,7 @@ static FileSelect file_select(
   if (select != FILE_SEL_ADD && !file_is_any_selected(sfile->files)) {
     sfile->params->active_file = -1;
   }
-  else {
+  else if (sel.last >= 0) {
     ARegion *ar = CTX_wm_region(C);
     const FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
 
