@@ -271,7 +271,7 @@ void transform_motion_decompose(DecomposedTransform *decomp, const Transform *mo
       /* Ensure rotation around shortest angle, negated quaternions are the same
        * but this means we don't have to do the check in quat_interpolate */
       if (dot(decomp[i - 1].x, decomp[i].x) < 0.0f)
-        decomp[i - 1].x = -decomp[i - 1].x;
+        decomp[i].x = -decomp[i].x;
     }
   }
 }
