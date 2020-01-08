@@ -387,10 +387,14 @@ typedef struct GridPaintMask {
  * Unlike UV's these are not user editable and always start out using a fixed 0-1 range.
  * Currently only used for particle placement.
  */
+#
+#
 typedef struct OrigSpaceFace {
   float uv[4][2];
 } OrigSpaceFace;
 
+#
+#
 typedef struct OrigSpaceLoop {
   float uv[2];
 } OrigSpaceLoop;
