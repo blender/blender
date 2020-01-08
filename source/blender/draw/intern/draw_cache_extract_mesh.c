@@ -2671,6 +2671,7 @@ static void extract_edituv_data_loop_bmesh(const MeshRenderData *mr,
   EditLoopData *eldata = data->vbo_data + l;
   memset(eldata, 0x0, sizeof(*eldata));
   mesh_render_data_loop_flag(mr, loop, data->cd_ofs, eldata);
+  mesh_render_data_face_flag(mr, loop->f, data->cd_ofs, eldata);
   mesh_render_data_loop_edge_flag(mr, loop, data->cd_ofs, eldata);
 }
 
