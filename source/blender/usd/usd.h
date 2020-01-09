@@ -36,7 +36,6 @@ struct USDExportParams {
   bool export_normals;
   bool export_materials;
   bool selected_objects_only;
-  bool visible_objects_only;
   bool use_instancing;
   enum eEvaluationMode evaluation_mode;
 };

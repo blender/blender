@@ -56,9 +56,6 @@ bool USDHierarchyIterator::mark_as_weak_export(const Object *object) const
   if (params_.selected_objects_only && (object->base_flag & BASE_SELECTED) == 0) {
     return true;
   }
-  if (params_.visible_objects_only && (object->base_flag & BASE_VISIBLE_VIEWLAYER) == 0) {
-    return true;
-  }
   return false;
 }
 
