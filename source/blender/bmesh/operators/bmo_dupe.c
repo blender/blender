@@ -543,9 +543,14 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
       BMO_op_initf(bm,
                    &extop,
                    op->flag,
-                   "extrude_face_region geom=%S use_normal_flip=%b use_normal_from_adjacent=%b",
+                   "extrude_face_region "
+                   "geom=%S "
+                   "use_keep_orig=%b "
+                   "use_normal_flip=%b "
+                   "use_normal_from_adjacent=%b",
                    op,
                    "geom_last.out",
+                   use_merge,
                    use_normal_flip && (a == 0),
                    (a != 0));
       BMO_op_exec(bm, &extop);
