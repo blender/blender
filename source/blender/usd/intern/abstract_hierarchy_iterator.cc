@@ -126,10 +126,10 @@ std::string AbstractHierarchyIterator::get_object_data_path(const HierarchyConte
   return path_concatenate(context->export_path, get_object_data_name(context->object));
 }
 
-void AbstractHierarchyIterator::debug_print_export_graph() const
+void AbstractHierarchyIterator::debug_print_export_graph(const ExportGraph &graph) const
 {
   size_t total_graph_size = 0;
-  for (const ExportGraph::value_type &map_iter : export_graph_) {
+  for (const ExportGraph::value_type &map_iter : graph) {
     const DupliAndDuplicator &parent_info = map_iter.first;
     Object *const export_parent = parent_info.first;
     Object *const duplicator = parent_info.second;

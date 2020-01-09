@@ -171,7 +171,7 @@ class AbstractHierarchyIterator {
   virtual std::string get_object_data_path(const HierarchyContext *context) const;
 
  private:
-  void debug_print_export_graph() const;
+  void debug_print_export_graph(const ExportGraph &graph) const;
 
   void export_graph_construct();
   void connect_loose_objects();
