@@ -167,6 +167,7 @@ class NLA_MT_edit(Menu):
         layout.operator("nla.duplicate", text="Linked Duplicate").linked = True
         layout.operator("nla.split")
         layout.operator("nla.delete")
+        layout.operator("nla.tracks_delete")
 
         layout.separator()
         layout.operator("nla.mute_toggle")
