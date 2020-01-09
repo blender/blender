@@ -239,11 +239,24 @@ static int gizmo_arrow_test_select(bContext *UNUSED(C), wmGizmo *gz, const int m
 
   const float mval_fl[2] = {UNPACK2(mval)};
   const float arrow_stem_threshold_px = 5 * UI_DPI_FAC;
-  const float arrow_head_threshold_px = 10 * UI_DPI_FAC;
-  if (dist_squared_to_line_v2(mval_fl, arrow_start, arrow_end) < SQUARE(arrow_stem_threshold_px) ||
-      len_squared_v2v2(mval_fl, arrow_end) < SQUARE(arrow_head_threshold_px)) {
+  const float arrow_head_threshold_px = 12 * UI_DPI_FAC;
+
+  /* Distance to arrow head. */
+  if (len_squared_v2v2(mval_fl, arrow_end) < SQUARE(arrow_head_threshold_px)) {
     return 0;
   }
+
+  /* Distance to arrow stem. */
+  float co_isect[2];
+  const float lambda = closest_to_line_v2(co_isect, mval_fl, arrow_start, arrow_end);
+  /* Clamp inside the line, to avoid overlapping with other gizmos,
+   * especially around the start of the arrow. */
+  if (lambda >= 0.0 && lambda <= 1.0) {
+    if (len_squared_v2v2(mval_fl, co_isect) < SQUARE(arrow_stem_threshold_px)) {
+      return 0;
+    }
+  }
+
   return -1;
 }
 
