@@ -93,7 +93,8 @@ ccl_device_inline void kernel_update_denoising_features(KernelGlobals *kg,
     }
 
     /* Transform normal into camera space. */
-    normal = transform_direction(&kernel_data.cam.worldtocamera, normal);
+    const Transform worldtocamera = kernel_data.cam.worldtocamera;
+    normal = transform_direction(&worldtocamera, normal);
 
     L->denoising_normal += ensure_finite3(state->denoising_feature_weight * normal);
     L->denoising_albedo += ensure_finite3(state->denoising_feature_weight * albedo);
