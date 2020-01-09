@@ -40,6 +40,25 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="2.82" date="2020-02-13">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Grease pencil stroke</li>
+                    <li>Custom bevel profiles and cutoff vertex mesh method</li>
+                    <li>Custom render passes possible for Cycles</li>
+                    <li>UDIM support</li>
+                    <li>Basic USD export</li>
+                    <li>Mantaflow integration</li<
+                </ul>
+                <ul>
+                <p>Enhancements:</p>
+                    <li>Improvements to rigging and animation tools</li>
+                    <li>Many grease pencil improvements</li>
+                    <li>Many sculpting tool improvements</li>
+                </ul>
+            </description>
+        </release>
         <release version="2.81" date="2019-11-14">
             <description>
                 <p>New features:</p>
