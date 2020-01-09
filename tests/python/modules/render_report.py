@@ -29,6 +29,11 @@ class COLORS_DUMMY:
 COLORS = COLORS_DUMMY
 
 
+# NOTE: Keep everything lowercase.
+BLACKLIST = (
+  'fluid_motion_blur.blend',
+)
+
 def print_message(message, type=None, status=''):
     if type == 'SUCCESS':
         print(COLORS.GREEN, end="")
@@ -55,7 +60,10 @@ def print_message(message, type=None, status=''):
 def blend_list(dirpath):
     for root, dirs, files in os.walk(dirpath):
         for filename in files:
-            if filename.lower().endswith(".blend"):
+            filename_lower = filename.lower()
+            if filename_lower in BLACKLIST:
+                continue
+            if filename_lower.endswith(".blend"):
                 filepath = os.path.join(root, filename)
                 yield filepath
 
