@@ -1363,7 +1363,7 @@ bool WM_operator_last_properties_store(wmOperator *op)
               IDP_GROUP, &(IDPropertyTemplate){0}, "wmOperatorProperties");
         }
         IDProperty *idp_macro = IDP_CopyProperty(opm->properties);
-        STRNCPY(idp_macro->name, opm->idname);
+        STRNCPY(idp_macro->name, opm->type->idname);
         IDP_ReplaceInGroup(op->type->last_properties, idp_macro);
       }
     }
