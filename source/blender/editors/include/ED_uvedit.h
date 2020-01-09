@@ -50,8 +50,6 @@ bool ED_uvedit_minmax(const struct Scene *scene,
                       struct Object *obedit,
                       float min[2],
                       float max[2]);
-bool ED_uvedit_center(
-    const struct Scene *scene, Image *ima, struct Object *obedit, float cent[2], char mode);
 void ED_uvedit_select_all(struct BMesh *bm);
 
 bool ED_uvedit_minmax_multi(const struct Scene *scene,
@@ -66,6 +64,12 @@ bool ED_uvedit_center_multi(const struct Scene *scene,
                             uint objects_len,
                             float r_cent[2],
                             char mode);
+
+bool ED_uvedit_center_from_pivot(struct SpaceImage *sima,
+                                 struct Scene *scene,
+                                 struct ViewLayer *view_layer,
+                                 float r_center[2],
+                                 char mode);
 
 bool ED_object_get_active_image(struct Object *ob,
                                 int mat_nr,

@@ -44,6 +44,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h" /* XXX */
+#include "WM_message.h"
 
 #include "ED_image.h"
 #include "ED_screen.h"
@@ -53,14 +54,55 @@
 #include "transform.h" /* own include */
 
 /* -------------------------------------------------------------------- */
+/** \name Shared Callback's
+ */
+
+static void gizmo2d_pivot_point_message_subscribe(struct wmGizmoGroup *gzgroup,
+                                                  struct wmMsgBus *mbus,
+                                                  /* Additional args. */
+                                                  bScreen *screen,
+                                                  ScrArea *sa,
+                                                  ARegion *ar)
+{
+  wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
+      .owner = ar,
+      .user_data = gzgroup->parent_gzmap,
+      .notify = WM_gizmo_do_msg_notify_tag_refresh,
+  };
+
+  switch (sa->spacetype) {
+    case SPACE_IMAGE: {
+      SpaceImage *sima = sa->spacedata.first;
+      PointerRNA ptr;
+      RNA_pointer_create(&screen->id, &RNA_SpaceImageEditor, sima, &ptr);
+      {
+        extern PropertyRNA rna_SpaceImageEditor_pivot_point;
+        extern PropertyRNA rna_SpaceImageEditor_cursor_location;
+        const PropertyRNA *props[] = {
+            &rna_SpaceImageEditor_pivot_point,
+            (sima->around == V3D_AROUND_CURSOR) ? &rna_SpaceImageEditor_cursor_location : NULL,
+        };
+        for (int i = 0; i < ARRAY_SIZE(props); i++) {
+          if (props[i] == NULL) {
+            continue;
+          }
+          WM_msg_subscribe_rna(mbus, &ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
+        }
+      }
+      break;
+    }
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Arrow / Cage Gizmo Group
  *
  * Defines public functions, not the gizmo it's self:
  *
- * - #ED_widgetgroup_gizmo2d_xform_setup
- * - #ED_widgetgroup_gizmo2d_xform_refresh
- * - #ED_widgetgroup_gizmo2d_xform_draw_prepare
- * - #ED_widgetgroup_gizmo2d_xform_poll
+ * - #ED_widgetgroup_gizmo2d_xform_callbacks_set
+ * - #ED_widgetgroup_gizmo2d_xform_no_cage_callbacks_set
  *
  * \{ */
 
@@ -150,12 +192,13 @@ static void gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
   ScrArea *sa = CTX_wm_area(C);
   if (sa->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = sa->spacedata.first;
+    Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Image *ima = ED_space_image(sima);
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
         view_layer, NULL, &objects_len);
-    if (!ED_uvedit_minmax_multi(CTX_data_scene(C), ima, objects, objects_len, r_min, r_max)) {
+    if (!ED_uvedit_minmax_multi(scene, ima, objects, objects_len, r_min, r_max)) {
       zero_v2(r_min);
       zero_v2(r_max);
     }
@@ -166,6 +209,18 @@ static void gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
     zero_v2(r_max);
   }
   mid_v2_v2v2(r_center, r_min, r_max);
+}
+
+static void gizmo2d_calc_center(const bContext *C, float r_center[2])
+{
+  ScrArea *sa = CTX_wm_area(C);
+  zero_v2(r_center);
+  if (sa->spacetype == SPACE_IMAGE) {
+    SpaceImage *sima = sa->spacedata.first;
+    Scene *scene = CTX_data_scene(C);
+    ViewLayer *view_layer = CTX_data_view_layer(C);
+    ED_uvedit_center_from_pivot(sima, scene, view_layer, r_center, sima->around);
+  }
 }
 
 /**
@@ -187,7 +242,7 @@ static int gizmo2d_modal(bContext *C,
   ARegion *ar = CTX_wm_region(C);
   float origin[3];
 
-  gizmo2d_calc_bounds(C, origin, NULL, NULL);
+  gizmo2d_calc_center(C, origin);
   gizmo2d_origin_to_region(ar, origin);
   WM_gizmo_set_matrix_location(widget, origin);
 
@@ -196,7 +251,7 @@ static int gizmo2d_modal(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-void ED_widgetgroup_gizmo2d_xform_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
+static void gizmo2d_xform_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
   wmOperatorType *ot_translate = WM_operatortype_find("TRANSFORM_OT_translate", true);
   GizmoGroup2D *ggd = gizmogroup2d_init(gzgroup);
@@ -299,18 +354,23 @@ void ED_widgetgroup_gizmo2d_xform_setup(const bContext *UNUSED(C), wmGizmoGroup 
   }
 }
 
-void ED_widgetgroup_gizmo2d_xform_setup_no_cage(const bContext *C, wmGizmoGroup *gzgroup)
+static void gizmo2d_xform_setup_no_cage(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  ED_widgetgroup_gizmo2d_xform_setup(C, gzgroup);
+  gizmo2d_xform_setup(C, gzgroup);
   GizmoGroup2D *ggd = gzgroup->customdata;
   ggd->no_cage = true;
 }
 
-void ED_widgetgroup_gizmo2d_xform_refresh(const bContext *C, wmGizmoGroup *gzgroup)
+static void gizmo2d_xform_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoGroup2D *ggd = gzgroup->customdata;
   float origin[3];
-  gizmo2d_calc_bounds(C, origin, ggd->min, ggd->max);
+  if (ggd->no_cage) {
+    gizmo2d_calc_center(C, origin);
+  }
+  else {
+    gizmo2d_calc_bounds(C, origin, ggd->min, ggd->max);
+  }
   copy_v2_v2(ggd->origin, origin);
   bool show_cage = !ggd->no_cage && !equals_v2v2(ggd->min, ggd->max);
 
@@ -379,7 +439,7 @@ void ED_widgetgroup_gizmo2d_xform_refresh(const bContext *C, wmGizmoGroup *gzgro
   }
 }
 
-void ED_widgetgroup_gizmo2d_xform_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
+static void gizmo2d_xform_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
   ARegion *ar = CTX_wm_region(C);
   GizmoGroup2D *ggd = gzgroup->customdata;
@@ -403,7 +463,7 @@ void ED_widgetgroup_gizmo2d_xform_draw_prepare(const bContext *C, wmGizmoGroup *
  * - Called on every redraw, better to do a more simple poll and check for selection in _refresh
  * - UV editing only, could be expanded for other things.
  */
-bool ED_widgetgroup_gizmo2d_xform_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
+static bool gizmo2d_xform_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
 {
   if ((U.gizmo_flag & USER_GIZMO_DRAW) == 0) {
     return false;
@@ -439,6 +499,32 @@ bool ED_widgetgroup_gizmo2d_xform_poll(const bContext *C, wmGizmoGroupType *UNUS
   return false;
 }
 
+static void gizmo2d_xform_no_cage_message_subscribe(const struct bContext *C,
+                                                    struct wmGizmoGroup *gzgroup,
+                                                    struct wmMsgBus *mbus)
+{
+  bScreen *screen = CTX_wm_screen(C);
+  ScrArea *sa = CTX_wm_area(C);
+  ARegion *ar = CTX_wm_region(C);
+  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, sa, ar);
+}
+
+void ED_widgetgroup_gizmo2d_xform_callbacks_set(wmGizmoGroupType *gzgt)
+{
+  gzgt->poll = gizmo2d_xform_poll;
+  gzgt->setup = gizmo2d_xform_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
+  gzgt->refresh = gizmo2d_xform_refresh;
+  gzgt->draw_prepare = gizmo2d_xform_draw_prepare;
+}
+
+void ED_widgetgroup_gizmo2d_xform_no_cage_callbacks_set(wmGizmoGroupType *gzgt)
+{
+  ED_widgetgroup_gizmo2d_xform_callbacks_set(gzgt);
+  gzgt->setup = gizmo2d_xform_setup_no_cage;
+  gzgt->message_subscribe = gizmo2d_xform_no_cage_message_subscribe;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -446,10 +532,7 @@ bool ED_widgetgroup_gizmo2d_xform_poll(const bContext *C, wmGizmoGroupType *UNUS
  *
  * Defines public functions, not the gizmo it's self:
  *
- * - #ED_widgetgroup_gizmo2d_resize_setup
- * - #ED_widgetgroup_gizmo2d_resize_refresh
- * - #ED_widgetgroup_gizmo2d_resize_draw_prepare
- * - #ED_widgetgroup_gizmo2d_resize_poll
+ * - #ED_widgetgroup_gizmo2d_resize_callbacks_set
  *
  * \{ */
 
@@ -472,15 +555,15 @@ static GizmoGroup_Resize2D *gizmogroup2d_resize_init(wmGizmoGroup *gzgroup)
   return ggd;
 }
 
-void ED_widgetgroup_gizmo2d_resize_refresh(const bContext *C, wmGizmoGroup *gzgroup)
+static void gizmo2d_resize_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoGroup_Resize2D *ggd = gzgroup->customdata;
   float origin[3];
-  gizmo2d_calc_bounds(C, origin, NULL, NULL);
+  gizmo2d_calc_center(C, origin);
   copy_v2_v2(ggd->origin, origin);
 }
 
-void ED_widgetgroup_gizmo2d_resize_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
+static void gizmo2d_resize_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
   ARegion *ar = CTX_wm_region(C);
   GizmoGroup_Resize2D *ggd = gzgroup->customdata;
@@ -504,12 +587,12 @@ void ED_widgetgroup_gizmo2d_resize_draw_prepare(const bContext *C, wmGizmoGroup 
   }
 }
 
-bool ED_widgetgroup_gizmo2d_resize_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
+static bool gizmo2d_resize_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
 {
-  return ED_widgetgroup_gizmo2d_xform_poll(C, NULL);
+  return gizmo2d_xform_poll(C, NULL);
 }
 
-void ED_widgetgroup_gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
+static void gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
 
   wmOperatorType *ot_resize = WM_operatortype_find("TRANSFORM_OT_resize", true);
@@ -566,6 +649,26 @@ void ED_widgetgroup_gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup
   }
 }
 
+static void gizmo2d_resize_message_subscribe(const struct bContext *C,
+                                             struct wmGizmoGroup *gzgroup,
+                                             struct wmMsgBus *mbus)
+{
+  bScreen *screen = CTX_wm_screen(C);
+  ScrArea *sa = CTX_wm_area(C);
+  ARegion *ar = CTX_wm_region(C);
+  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, sa, ar);
+}
+
+void ED_widgetgroup_gizmo2d_resize_callbacks_set(wmGizmoGroupType *gzgt)
+{
+  gzgt->poll = gizmo2d_resize_poll;
+  gzgt->setup = gizmo2d_resize_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
+  gzgt->refresh = gizmo2d_resize_refresh;
+  gzgt->draw_prepare = gizmo2d_resize_draw_prepare;
+  gzgt->message_subscribe = gizmo2d_resize_message_subscribe;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -574,9 +677,6 @@ void ED_widgetgroup_gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup
  * Defines public functions, not the gizmo it's self:
  *
  * - #ED_widgetgroup_gizmo2d_rotate_setup
- * - #ED_widgetgroup_gizmo2d_rotate_refresh
- * - #ED_widgetgroup_gizmo2d_rotate_draw_prepare
- * - #ED_widgetgroup_gizmo2d_rotate_poll
  *
  * \{ */
 
@@ -596,15 +696,15 @@ static GizmoGroup_Rotate2D *gizmogroup2d_rotate_init(wmGizmoGroup *gzgroup)
   return ggd;
 }
 
-void ED_widgetgroup_gizmo2d_rotate_refresh(const bContext *C, wmGizmoGroup *gzgroup)
+static void gizmo2d_rotate_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoGroup_Rotate2D *ggd = gzgroup->customdata;
   float origin[3];
-  gizmo2d_calc_bounds(C, origin, NULL, NULL);
+  gizmo2d_calc_center(C, origin);
   copy_v2_v2(ggd->origin, origin);
 }
 
-void ED_widgetgroup_gizmo2d_rotate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
+static void gizmo2d_rotate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
   ARegion *ar = CTX_wm_region(C);
   GizmoGroup_Rotate2D *ggd = gzgroup->customdata;
@@ -626,12 +726,12 @@ void ED_widgetgroup_gizmo2d_rotate_draw_prepare(const bContext *C, wmGizmoGroup 
   WM_gizmo_set_matrix_location(gz, origin);
 }
 
-bool ED_widgetgroup_gizmo2d_rotate_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
+static bool gizmo2d_rotate_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
 {
-  return ED_widgetgroup_gizmo2d_xform_poll(C, NULL);
+  return gizmo2d_xform_poll(C, NULL);
 }
 
-void ED_widgetgroup_gizmo2d_rotate_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
+static void gizmo2d_rotate_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
 
   wmOperatorType *ot_resize = WM_operatortype_find("TRANSFORM_OT_rotate", true);
@@ -661,6 +761,26 @@ void ED_widgetgroup_gizmo2d_rotate_setup(const bContext *UNUSED(C), wmGizmoGroup
     PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_resize, NULL);
     RNA_boolean_set(ptr, "release_confirm", true);
   }
+}
+
+static void gizmo2d_rotate_message_subscribe(const struct bContext *C,
+                                             struct wmGizmoGroup *gzgroup,
+                                             struct wmMsgBus *mbus)
+{
+  bScreen *screen = CTX_wm_screen(C);
+  ScrArea *sa = CTX_wm_area(C);
+  ARegion *ar = CTX_wm_region(C);
+  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, sa, ar);
+}
+
+void ED_widgetgroup_gizmo2d_rotate_callbacks_set(wmGizmoGroupType *gzgt)
+{
+  gzgt->poll = gizmo2d_rotate_poll;
+  gzgt->setup = gizmo2d_rotate_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
+  gzgt->refresh = gizmo2d_rotate_refresh;
+  gzgt->draw_prepare = gizmo2d_rotate_draw_prepare;
+  gzgt->message_subscribe = gizmo2d_rotate_message_subscribe;
 }
 
 /** \} */

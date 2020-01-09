@@ -81,6 +81,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -729,14 +730,6 @@ static bool ED_uvedit_median_multi(
   return (sel != 0);
 }
 
-static bool UNUSED_FUNCTION(ED_uvedit_median)(Scene *scene,
-                                              Image *ima,
-                                              Object *obedit,
-                                              float co[2])
-{
-  return ED_uvedit_median_multi(scene, ima, &obedit, 1, co);
-}
-
 bool ED_uvedit_center_multi(const Scene *scene,
                             Image *ima,
                             Object **objects_edit,
@@ -762,9 +755,26 @@ bool ED_uvedit_center_multi(const Scene *scene,
   return changed;
 }
 
-bool ED_uvedit_center(const Scene *scene, Image *ima, Object *obedit, float cent[2], char mode)
+bool ED_uvedit_center_from_pivot(
+    SpaceImage *sima, Scene *scene, ViewLayer *view_layer, float r_center[2], char mode)
 {
-  return ED_uvedit_center_multi(scene, ima, &obedit, 1, cent, mode);
+  bool changed = false;
+  switch (mode) {
+    case V3D_AROUND_CURSOR: {
+      copy_v2_v2(r_center, sima->cursor);
+      changed = true;
+      break;
+    }
+    default: {
+      uint objects_len = 0;
+      Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+          view_layer, ((View3D *)NULL), &objects_len);
+      changed = ED_uvedit_center_multi(scene, sima->image, objects, objects_len, r_center, mode);
+      MEM_freeN(objects);
+      break;
+    }
+  }
+  return changed;
 }
 
 /** \} */
@@ -4910,6 +4920,12 @@ static int uv_set_2d_cursor_exec(bContext *C, wmOperator *op)
   }
 
   RNA_float_get_array(op->ptr, "location", sima->cursor);
+
+  {
+    struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+    bScreen *screen = CTX_wm_screen(C);
+    WM_msg_publish_rna_prop(mbus, &screen->id, sima, SpaceImageEditor, cursor_location);
+  }
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
