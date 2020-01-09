@@ -46,6 +46,7 @@
 #include "wm.h" /* XXX */
 #include "WM_message.h"
 
+#include "ED_gizmo_utils.h"
 #include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
@@ -463,8 +464,12 @@ static void gizmo2d_xform_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
  * - Called on every redraw, better to do a more simple poll and check for selection in _refresh
  * - UV editing only, could be expanded for other things.
  */
-static bool gizmo2d_xform_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
+static bool gizmo2d_xform_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
+  if (!ED_gizmo_poll_or_unlink_delayed_from_tool(C, gzgt)) {
+    return false;
+  }
+
   if ((U.gizmo_flag & USER_GIZMO_DRAW) == 0) {
     return false;
   }
@@ -587,9 +592,9 @@ static void gizmo2d_resize_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup
   }
 }
 
-static bool gizmo2d_resize_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
+static bool gizmo2d_resize_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
-  return gizmo2d_xform_poll(C, NULL);
+  return gizmo2d_xform_poll(C, gzgt);
 }
 
 static void gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
@@ -726,9 +731,9 @@ static void gizmo2d_rotate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup
   WM_gizmo_set_matrix_location(gz, origin);
 }
 
-static bool gizmo2d_rotate_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
+static bool gizmo2d_rotate_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
-  return gizmo2d_xform_poll(C, NULL);
+  return gizmo2d_xform_poll(C, gzgt);
 }
 
 static void gizmo2d_rotate_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
