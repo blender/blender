@@ -174,11 +174,6 @@ void AbstractHierarchyIterator::export_graph_construct()
                          object,
                          DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
                              DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET) {
-    if (object->base_flag & BASE_HOLDOUT) {
-      visit_object(object, object->parent, true);
-      continue;
-    }
-
     // Non-instanced objects always have their object-parent as export-parent.
     const bool weak_export = mark_as_weak_export(object);
     visit_object(object, object->parent, weak_export);
