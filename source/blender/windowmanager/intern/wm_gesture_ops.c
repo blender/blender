@@ -528,6 +528,15 @@ static void gesture_tweak_modal(bContext *C, const wmEvent *event)
   if (gesture_end) {
     /* Frees gesture itself, and unregisters from window. */
     WM_gesture_end(C, gesture);
+
+    /* This isn't very nice but needed to redraw gizmos which are hidden while tweaking,
+     * See #WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK for details. */
+    ARegion *ar = CTX_wm_region(C);
+    if ((ar != NULL) && (ar->gizmo_map != NULL)) {
+      if (WM_gizmomap_tag_delay_refresh_for_tweak_check(ar->gizmo_map)) {
+        ED_region_tag_redraw(ar);
+      }
+    }
   }
 }
 

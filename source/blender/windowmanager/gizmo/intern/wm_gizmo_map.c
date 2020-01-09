@@ -333,13 +333,11 @@ void WM_gizmomap_tag_refresh(wmGizmoMap *gzmap)
   }
 }
 
-bool WM_gizmomap_tag_refresh_check(wmGizmoMap *gzmap)
+bool WM_gizmomap_tag_delay_refresh_for_tweak_check(wmGizmoMap *gzmap)
 {
-  if (gzmap) {
-    for (int i = 0; i < WM_GIZMOMAP_DRAWSTEP_MAX; i++) {
-      if (gzmap->update_flag[i] & (GIZMOMAP_IS_PREPARE_DRAW | GIZMOMAP_IS_REFRESH_CALLBACK)) {
-        return true;
-      }
+  for (wmGizmoGroup *gzgroup = gzmap->groups.first; gzgroup; gzgroup = gzgroup->next) {
+    if (gzgroup->hide.delay_refresh_for_tweak) {
+      return true;
     }
   }
   return false;

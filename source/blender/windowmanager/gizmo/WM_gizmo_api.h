@@ -285,7 +285,8 @@ eWM_GizmoFlagMapDrawStep WM_gizmomap_drawstep_from_gizmo_group(const struct wmGi
 void WM_gizmomap_tag_refresh_drawstep(struct wmGizmoMap *gzmap,
                                       const eWM_GizmoFlagMapDrawStep drawstep);
 void WM_gizmomap_tag_refresh(struct wmGizmoMap *gzmap);
-bool WM_gizmomap_tag_refresh_check(struct wmGizmoMap *gzmap);
+
+bool WM_gizmomap_tag_delay_refresh_for_tweak_check(struct wmGizmoMap *gzmap);
 
 void WM_gizmomap_draw(struct wmGizmoMap *gzmap,
                       const struct bContext *C,
