@@ -65,6 +65,12 @@ bool ED_uvedit_center_multi(const struct Scene *scene,
                             float r_cent[2],
                             char mode);
 
+bool ED_uvedit_center_from_pivot_ex(struct SpaceImage *sima,
+                                    struct Scene *scene,
+                                    struct ViewLayer *view_layer,
+                                    float r_center[2],
+                                    char mode,
+                                    bool *r_has_select);
 bool ED_uvedit_center_from_pivot(struct SpaceImage *sima,
                                  struct Scene *scene,
                                  struct ViewLayer *view_layer,

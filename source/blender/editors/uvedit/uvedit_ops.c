@@ -755,14 +755,25 @@ bool ED_uvedit_center_multi(const Scene *scene,
   return changed;
 }
 
-bool ED_uvedit_center_from_pivot(
-    SpaceImage *sima, Scene *scene, ViewLayer *view_layer, float r_center[2], char mode)
+bool ED_uvedit_center_from_pivot_ex(SpaceImage *sima,
+                                    Scene *scene,
+                                    ViewLayer *view_layer,
+                                    float r_center[2],
+                                    char mode,
+                                    bool *r_has_select)
 {
   bool changed = false;
   switch (mode) {
     case V3D_AROUND_CURSOR: {
       copy_v2_v2(r_center, sima->cursor);
       changed = true;
+      if (r_has_select != NULL) {
+        uint objects_len = 0;
+        Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+            view_layer, ((View3D *)NULL), &objects_len);
+        *r_has_select = uv_select_is_any_selected_multi(scene, sima->image, objects, objects_len);
+        MEM_freeN(objects);
+      }
       break;
     }
     default: {
@@ -771,10 +782,19 @@ bool ED_uvedit_center_from_pivot(
           view_layer, ((View3D *)NULL), &objects_len);
       changed = ED_uvedit_center_multi(scene, sima->image, objects, objects_len, r_center, mode);
       MEM_freeN(objects);
+      if (r_has_select != NULL) {
+        *r_has_select = changed;
+      }
       break;
     }
   }
   return changed;
+}
+
+bool ED_uvedit_center_from_pivot(
+    SpaceImage *sima, Scene *scene, ViewLayer *view_layer, float r_center[2], char mode)
+{
+  return ED_uvedit_center_from_pivot_ex(sima, scene, view_layer, r_center, mode, NULL);
 }
 
 /** \} */
