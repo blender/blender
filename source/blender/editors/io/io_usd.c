@@ -187,28 +187,25 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "export_animation",
                   false,
-                  "Export Animation",
+                  "Animation",
                   "When checked, the render frame range is exported. When false, only the current "
                   "frame is exported");
-  RNA_def_boolean(ot->srna,
-                  "export_hair",
-                  false,
-                  "Export Hair",
-                  "When checked, hair is exported as USD curves");
+  RNA_def_boolean(
+      ot->srna, "export_hair", false, "Hair", "When checked, hair is exported as USD curves");
   RNA_def_boolean(ot->srna,
                   "export_uvmaps",
                   true,
-                  "Export UV Maps",
+                  "UV Maps",
                   "When checked, all UV maps of exported meshes are included in the export");
   RNA_def_boolean(ot->srna,
                   "export_normals",
                   true,
-                  "Export Normals",
+                  "Normals",
                   "When checked, normals of exported meshes are included in the export");
   RNA_def_boolean(ot->srna,
                   "export_materials",
                   true,
-                  "Export Materials",
+                  "Materials",
                   "When checked, the viewport settings of materials are exported as USD preview "
                   "materials, and material assignments are exported as geometry subsets");
 
