@@ -174,6 +174,7 @@ class AbstractHierarchyIterator {
   void debug_print_export_graph() const;
 
   void export_graph_construct();
+  void connect_loose_objects();
   void export_graph_prune();
   void export_graph_clear();
 

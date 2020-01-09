@@ -88,6 +88,7 @@ AbstractHierarchyIterator::~AbstractHierarchyIterator()
 void AbstractHierarchyIterator::iterate_and_write()
 {
   export_graph_construct();
+  connect_loose_objects();
   export_graph_prune();
   determine_export_paths(HierarchyContext::root());
   determine_duplication_references(HierarchyContext::root(), "");
@@ -208,6 +209,48 @@ void AbstractHierarchyIterator::export_graph_construct()
     free_object_duplilist(lb);
   }
   DEG_OBJECT_ITER_END;
+}
+
+void AbstractHierarchyIterator::connect_loose_objects()
+{
+  // Find those objects whose parent is not part of the export graph; these
+  // objects would be skipped when traversing the graph as a hierarchy.
+  // These objects will have to be re-attached to some parent object in order to
+  // fit into the hierarchy.
+  ExportGraph loose_objects_graph = export_graph_;
+  for (const ExportGraph::value_type &map_iter : export_graph_) {
+    for (const HierarchyContext *child : map_iter.second) {
+      // An object that is marked as a child of another object is not considered 'loose'.
+      loose_objects_graph.erase(std::make_pair(child->object, child->duplicator));
+    }
+  }
+  // The root of the hierarchy is always found, so it's never considered 'loose'.
+  loose_objects_graph.erase(std::make_pair(nullptr, nullptr));
+
+  // Iterate over the loose objects and connect them to their export parent.
+  for (const ExportGraph::value_type &map_iter : loose_objects_graph) {
+    const DupliAndDuplicator &export_info = map_iter.first;
+    Object *object = export_info.first;
+    Object *export_parent = object->parent;
+
+    while (true) {
+      // Loose objects will all be real objects, as duplicated objects always have
+      // their duplicator or other exported duplicated object as ancestor.
+      ExportGraph::iterator found_parent_iter = export_graph_.find(
+          std::make_pair(export_parent, nullptr));
+
+      visit_object(object, export_parent, true);
+      if (found_parent_iter != export_graph_.end()) {
+        break;
+      }
+      // 'export_parent' will never be nullptr here, as the export graph contains the
+      // tuple <nullptr, nullptr> as root and thus will cause a break.
+      BLI_assert(export_parent != nullptr);
+
+      object = export_parent;
+      export_parent = export_parent->parent;
+    }
+  }
 }
 
 static bool remove_weak_subtrees(const HierarchyContext *context,
