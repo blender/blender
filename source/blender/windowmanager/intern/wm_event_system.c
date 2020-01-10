@@ -2073,7 +2073,16 @@ static wmKeyMapItem *wm_eventmatch_modal_keymap_items(const wmKeyMap *keymap,
   return NULL;
 }
 
-/* operator exists */
+/**
+ * This function prepares events for use with #wmOperatorType.modal by:
+ *
+ * - Matching keymap items with the operators modal keymap.
+ * - Converting double click events into press events,
+ *   allowing them to be restored when the events aren't handled.
+ *
+ *   This is done since we only want to use double click events to match key-map items,
+ *   allowing modal functions to check for press/release events without having to interpret them.
+ */
 static void wm_event_modalkeymap(const bContext *C,
                                  wmOperator *op,
                                  wmEvent *event,
