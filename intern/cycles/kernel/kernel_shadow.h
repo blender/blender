@@ -431,8 +431,13 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
   if (state->transparent_bounce >= transparent_max_bounce) {
     return true;
   }
-  const uint max_hits = transparent_max_bounce - state->transparent_bounce - 1;
-#    if defined(__KERNEL_GPU__) && !defined(__KERNEL_OPTIX__)
+  uint max_hits = transparent_max_bounce - state->transparent_bounce - 1;
+#    if defined(__KERNEL_OPTIX__)
+  /* Always use record-all behavior in OptiX, but ensure there are no out of bounds
+   * accesses to the hit stack.
+   */
+  max_hits = min(max_hits, SHADOW_STACK_MAX_HITS - 1);
+#    elif defined(__KERNEL_GPU__)
   /* On GPU we do tricky with tracing opaque ray first, this avoids speed
    * regressions in some files.
    *
