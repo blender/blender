@@ -1019,15 +1019,12 @@ static void sculptsession_free_pbvh(Object *object)
     ss->pbvh = NULL;
   }
 
-  if (ss->pmap) {
-    MEM_freeN(ss->pmap);
-    ss->pmap = NULL;
-  }
+  MEM_SAFE_FREE(ss->pmap);
 
-  if (ss->pmap_mem) {
-    MEM_freeN(ss->pmap_mem);
-    ss->pmap_mem = NULL;
-  }
+  MEM_SAFE_FREE(ss->pmap_mem);
+
+  MEM_SAFE_FREE(ss->preview_vert_index_list);
+  ss->preview_vert_index_count = 0;
 }
 
 void BKE_sculptsession_bm_to_me_for_render(Object *object)
