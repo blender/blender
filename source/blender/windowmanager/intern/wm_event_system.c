@@ -2124,14 +2124,13 @@ static void wm_event_modalkeymap(const bContext *C,
        * which would break when modal functions expect press/release. */
       if (event->prevtype == KM_DBL_CLICK) {
         event->prevtype = KM_PRESS;
+        *dbl_click_disabled = true;
       }
     }
   }
 
   if (event->type != EVT_MODAL_MAP) {
-    /* modal keymap checking returns handled events fine, but all hardcoded modal
-     * handling typically swallows all events (OPERATOR_RUNNING_MODAL).
-     * This bypass just disables support for double clicks in hardcoded modal handlers */
+    /* This bypass just disables support for double-click in modal handlers. */
     if (event->val == KM_DBL_CLICK) {
       event->val = KM_PRESS;
       *dbl_click_disabled = true;
@@ -2166,7 +2165,8 @@ static void wm_event_modalmap_end(wmEvent *event, bool dbl_click_disabled)
     event->val = event->prevval;
     event->prevval = 0;
   }
-  else if (dbl_click_disabled) {
+
+  if (dbl_click_disabled) {
     event->val = KM_DBL_CLICK;
   }
 }
