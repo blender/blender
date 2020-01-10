@@ -1188,8 +1188,8 @@ class OptiXDevice : public Device {
                                            out_data,
                                            sizes.outputSizeInBytes,
                                            &out_handle,
-                                           &compacted_size_prop,
-                                           1));
+                                           background ? &compacted_size_prop : NULL,
+                                           background ? 1 : 0));
 
     // Wait for all operations to finish
     check_result_cuda_ret(cuStreamSynchronize(NULL));
