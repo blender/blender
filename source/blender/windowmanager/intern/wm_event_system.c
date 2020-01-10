@@ -114,7 +114,9 @@ static int wm_operator_call_internal(bContext *C,
                                      const bool poll_only,
                                      wmEvent *event);
 
-/* ************ event management ************** */
+/* -------------------------------------------------------------------- */
+/** \name Event Management
+ * \{ */
 
 wmEvent *wm_event_add_ex(wmWindow *win,
                          const wmEvent *event_to_add,
@@ -199,7 +201,11 @@ void wm_event_init_from_window(wmWindow *win, wmEvent *event)
   *event = *(win->eventstate);
 }
 
-/* ********************* notifiers, listeners *************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Notifiers & Listeners
+ * \{ */
 
 static bool wm_test_duplicate_notifier(wmWindowManager *wm, unsigned int type, void *reference)
 {
@@ -578,7 +584,11 @@ static int wm_event_always_pass(const wmEvent *event)
   return ISTIMER(event->type) || (event->type == WINDEACTIVATE);
 }
 
-/* ********************* ui handler ******************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UI Handling
+ * \{ */
 
 static int wm_handler_ui_call(bContext *C,
                               wmEventHandler_UI *handler,
@@ -669,7 +679,11 @@ static void wm_handler_ui_cancel(bContext *C)
   }
 }
 
-/* ********************* operators ******************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Logic
+ * \{ */
 
 bool WM_operator_poll(bContext *C, wmOperatorType *ot)
 {
@@ -1794,7 +1808,13 @@ int WM_operator_call_py(bContext *C,
   return retval;
 }
 
-/* ********************* handlers *************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Handler Types
+ *
+ * General API for different handler types.
+ * \{ */
 
 /* future extra customadata free? */
 void wm_event_free_handler(wmEventHandler *handler)
@@ -3549,7 +3569,11 @@ void wm_event_do_handlers(bContext *C)
   WM_gizmoconfig_update(CTX_data_main(C));
 }
 
-/* ********** filesector handling ************ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name File Selector Handling
+ * \{ */
 
 void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, int eventval)
 {
@@ -3645,6 +3669,12 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 
   WM_event_fileselect_event(wm, op, EVT_FILESELECT_FULL_OPEN);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Modal Operator Handling
+ * \{ */
 
 #if 0
 /* lets not expose struct outside wm? */
@@ -4154,7 +4184,11 @@ bool WM_event_type_mask_test(const int event_type, const enum eEventType_Mask ma
   return false;
 }
 
-/* ********************* ghost stuff *************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Ghost Event Conversion
+ * \{ */
 
 static int convert_key(GHOST_TKey key)
 {
@@ -4991,9 +5025,8 @@ void WM_set_locked_interface(wmWindowManager *wm, bool lock)
 }
 
 #ifdef WITH_INPUT_NDOF
-/* -------------------------------------------------------------------- */
-/* NDOF */
 
+/* -------------------------------------------------------------------- */
 /** \name NDOF Utility Functions
  * \{ */
 
