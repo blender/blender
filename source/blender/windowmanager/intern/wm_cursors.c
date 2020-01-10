@@ -304,8 +304,7 @@ void WM_cursor_grab_enable(wmWindow *win, int wrap, bool hide, int bounds[4])
 
   if ((G.debug & G_DEBUG) == 0) {
     if (win->ghostwin) {
-      /* Note: There is no tabletdata on Windows if no tablet device is connected. */
-      if (win->eventstate->is_motion_absolute == false) {
+      if (win->eventstate->tablet.is_motion_absolute == false) {
         GHOST_SetCursorGrab(win->ghostwin, mode, mode_axis, bounds, NULL);
       }
 

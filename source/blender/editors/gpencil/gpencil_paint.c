@@ -2553,12 +2553,7 @@ static void gpencil_draw_toggle_eraser_cursor(bContext *C, tGPsdata *p, short en
 /* Check if tablet eraser is being used (when processing events) */
 static bool gpencil_is_tablet_eraser_active(const wmEvent *event)
 {
-  if (event->tablet_data) {
-    const wmTabletData *wmtab = event->tablet_data;
-    return (wmtab->Active == EVT_TABLET_ERASER);
-  }
-
-  return false;
+  return (event->tablet.active == EVT_TABLET_ERASER);
 }
 
 /* ------------------------------- */
@@ -3020,7 +3015,6 @@ static void gpencil_draw_apply_event(bContext *C,
   GP_Sculpt_Guide *guide = &p->scene->toolsettings->gp_sculpt.guide;
   PointerRNA itemptr;
   float mousef[2];
-  int tablet = 0;
   bool is_speed_guide = ((guide->use_guide) &&
                          (p->brush && (p->brush->gpencil_tool == GPAINT_TOOL_DRAW)));
 
@@ -3055,28 +3049,19 @@ static void gpencil_draw_apply_event(bContext *C,
 
   p->curtime = PIL_check_seconds_timer();
 
-  /* handle pressure sensitivity (which is supplied by tablets) */
-  if (event->tablet_data) {
-    const wmTabletData *wmtab = event->tablet_data;
+  /* handle pressure sensitivity (which is supplied by tablets or otherwise 1.0) */
+  p->pressure = event->tablet.pressure;
 
-    tablet = (wmtab->Active != EVT_TABLET_NONE);
-    p->pressure = wmtab->Pressure;
-
-    /* Hack for pressure sensitive eraser on D+RMB when using a tablet:
-     * The pen has to float over the tablet surface, resulting in
-     * zero pressure (T47101). Ignore pressure values if floating
-     * (i.e. "effectively zero" pressure), and only when the "active"
-     * end is the stylus (i.e. the default when not eraser)
-     */
-    if (p->paintmode == GP_PAINTMODE_ERASER) {
-      if ((wmtab->Active != EVT_TABLET_ERASER) && (p->pressure < 0.001f)) {
-        p->pressure = 1.0f;
-      }
+  /* Hack for pressure sensitive eraser on D+RMB when using a tablet:
+   * The pen has to float over the tablet surface, resulting in
+   * zero pressure (T47101). Ignore pressure values if floating
+   * (i.e. "effectively zero" pressure), and only when the "active"
+   * end is the stylus (i.e. the default when not eraser)
+   */
+  if (p->paintmode == GP_PAINTMODE_ERASER) {
+    if ((event->tablet.active != EVT_TABLET_ERASER) && (p->pressure < 0.001f)) {
+      p->pressure = 1.0f;
     }
-  }
-  else {
-    /* No tablet data -> No pressure info is available */
-    p->pressure = 1.0f;
   }
 
   /* special eraser modes */
@@ -3101,7 +3086,7 @@ static void gpencil_draw_apply_event(bContext *C,
     /* special exception here for too high pressure values on first touch in
      * windows for some tablets, then we just skip first touch...
      */
-    if (tablet && (p->pressure >= 0.99f)) {
+    if ((event->tablet.active != EVT_TABLET_NONE) && (p->pressure >= 0.99f)) {
       return;
     }
 

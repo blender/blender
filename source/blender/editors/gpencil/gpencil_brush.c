@@ -1976,7 +1976,6 @@ static void gpsculpt_brush_apply_event(bContext *C, wmOperator *op, const wmEven
   GP_Sculpt_Settings *gset = &ts->gp_sculpt;
   PointerRNA itemptr;
   float mouse[2];
-  int tablet = 0;
 
   mouse[0] = event->mval[0] + 1;
   mouse[1] = event->mval[1] + 1;
@@ -1988,24 +1987,14 @@ static void gpsculpt_brush_apply_event(bContext *C, wmOperator *op, const wmEven
   RNA_boolean_set(&itemptr, "pen_flip", event->ctrl != false);
   RNA_boolean_set(&itemptr, "is_start", gso->first);
 
-  /* handle pressure sensitivity (which is supplied by tablets) */
-  if (event->tablet_data) {
-    const wmTabletData *wmtab = event->tablet_data;
-    float pressure = wmtab->Pressure;
-
-    tablet = (wmtab->Active != EVT_TABLET_NONE);
-
-    /* special exception here for too high pressure values on first touch in
-     * windows for some tablets: clamp the values to be sane
-     */
-    if (tablet && (pressure >= 0.99f)) {
-      pressure = 1.0f;
-    }
-    RNA_float_set(&itemptr, "pressure", pressure);
+  /* handle pressure sensitivity (which is supplied by tablets and otherwise 1.0) */
+  float pressure = event->tablet.pressure;
+  /* special exception here for too high pressure values on first touch in
+   * windows for some tablets: clamp the values to be sane */
+  if (pressure >= 0.99f) {
+    pressure = 1.0f;
   }
-  else {
-    RNA_float_set(&itemptr, "pressure", 1.0f);
-  }
+  RNA_float_set(&itemptr, "pressure", pressure);
 
   if (!gso->is_weight_mode) {
     if (event->shift) {

@@ -505,6 +505,19 @@ typedef struct wmGesture {
 
 /* ************** wmEvent ************************ */
 
+typedef struct wmTabletData {
+  /** 0=EVT_TABLET_NONE, 1=EVT_TABLET_STYLUS, 2=EVT_TABLET_ERASER. */
+  int active;
+  /** range 0.0 (not touching) to 1.0 (full pressure). */
+  float pressure;
+  /** range 0.0 (upright) to 1.0 (tilted fully against the tablet surface). */
+  float x_tilt;
+  /** as above. */
+  float y_tilt;
+  /** Interpret mouse motion as absolute as typical for tablets. */
+  char is_motion_absolute;
+} wmTabletData;
+
 /**
  * Each event should have full modifier state.
  * event comes from event manager and from keymap.
@@ -546,10 +559,9 @@ typedef struct wmEvent {
   /** Set in case a #KM_PRESS went by unhandled. */
   char check_click;
   char check_drag;
-  char is_motion_absolute;
 
   /** Tablet info, only use when the tablet is active. */
-  const struct wmTabletData *tablet_data;
+  wmTabletData tablet;
 
   /* custom data */
   /** Custom data type, stylus, 6dof, see wm_event_types.h */
@@ -576,18 +588,6 @@ bool WM_event_cursor_click_drag_threshold_met(const wmEvent *event);
  * Always check for <= this value since it may be zero.
  */
 #define WM_EVENT_CURSOR_MOTION_THRESHOLD ((float)U.move_threshold * U.dpi_fac)
-
-/* ************** custom wmEvent data ************** */
-typedef struct wmTabletData {
-  /** 0=EVT_TABLET_NONE, 1=EVT_TABLET_STYLUS, 2=EVT_TABLET_ERASER. */
-  int Active;
-  /** range 0.0 (not touching) to 1.0 (full pressure). */
-  float Pressure;
-  /** range 0.0 (upright) to 1.0 (tilted fully against the tablet surface). */
-  float Xtilt;
-  /** as above. */
-  float Ytilt;
-} wmTabletData;
 
 /** Motion progress, for modal handlers. */
 typedef enum {

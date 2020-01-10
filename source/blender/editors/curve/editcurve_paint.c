@@ -460,14 +460,8 @@ static void curve_draw_event_add(wmOperator *op, const wmEvent *event)
 
   ARRAY_SET_ITEMS(selem->mval, event->mval[0], event->mval[1]);
 
-  /* handle pressure sensitivity (which is supplied by tablets) */
-  if (event->tablet_data) {
-    const wmTabletData *wmtab = event->tablet_data;
-    selem->pressure = wmtab->Pressure;
-  }
-  else {
-    selem->pressure = 1.0f;
-  }
+  /* handle pressure sensitivity (which is supplied by tablets or otherwise 1.0) */
+  selem->pressure = event->tablet.pressure;
 
   bool is_depth_found = stroke_elem_project_fallback_elem(
       cdd, cdd->prev.location_world_valid, selem);

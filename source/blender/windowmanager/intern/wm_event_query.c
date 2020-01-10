@@ -101,13 +101,13 @@ void WM_event_print(const wmEvent *event)
     }
 #endif /* WITH_INPUT_NDOF */
 
-    if (event->tablet_data) {
-      const wmTabletData *wmtab = event->tablet_data;
+    if (event->tablet.active != EVT_TABLET_NONE) {
+      const wmTabletData *wmtab = &event->tablet;
       printf(" tablet: active: %d, pressure %.4f, tilt: (%.4f %.4f)\n",
-             wmtab->Active,
-             wmtab->Pressure,
-             wmtab->Xtilt,
-             wmtab->Ytilt);
+             wmtab->active,
+             wmtab->pressure,
+             wmtab->x_tilt,
+             wmtab->y_tilt);
     }
   }
   else {
@@ -392,36 +392,21 @@ float wm_pressure_curve(float pressure)
  * to 1 if the eraser tool is being used, 0 otherwise */
 float WM_event_tablet_data(const wmEvent *event, int *pen_flip, float tilt[2])
 {
-  int erasor = 0;
-  float pressure = 1;
-
   if (tilt) {
-    zero_v2(tilt);
-  }
-
-  if (event->tablet_data) {
-    const wmTabletData *wmtab = event->tablet_data;
-
-    erasor = (wmtab->Active == EVT_TABLET_ERASER);
-    if (wmtab->Active != EVT_TABLET_NONE) {
-      pressure = wmtab->Pressure;
-      if (tilt) {
-        tilt[0] = wmtab->Xtilt;
-        tilt[1] = wmtab->Ytilt;
-      }
-    }
+    tilt[0] = event->tablet.x_tilt;
+    tilt[1] = event->tablet.y_tilt;
   }
 
   if (pen_flip) {
-    (*pen_flip) = erasor;
+    (*pen_flip) = (event->tablet.active == EVT_TABLET_ERASER);
   }
 
-  return pressure;
+  return event->tablet.pressure;
 }
 
 bool WM_event_is_tablet(const struct wmEvent *event)
 {
-  return (event->tablet_data) ? true : false;
+  return (event->tablet.active != EVT_TABLET_NONE);
 }
 
 /** \} */

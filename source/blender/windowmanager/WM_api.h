@@ -205,7 +205,6 @@ void WM_paint_cursor_tag_redraw(struct wmWindow *win, struct ARegion *ar);
 
 void WM_cursor_warp(struct wmWindow *win, int x, int y);
 void WM_cursor_compatible_xy(wmWindow *win, int *x, int *y);
-float WM_cursor_pressure(const struct wmWindow *win);
 
 /* handlers */
 
