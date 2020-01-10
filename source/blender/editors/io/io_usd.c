@@ -32,6 +32,8 @@
 #  include "BLI_string.h"
 #  include "BLI_utildefines.h"
 
+#  include "BLT_translation.h"
+
 #  include "MEM_guardedalloc.h"
 
 #  include "RNA_access.h"
@@ -152,10 +154,13 @@ static void wm_usd_export_draw(bContext *UNUSED(C), wmOperator *op)
   uiItemR(col, ptr, "export_uvmaps", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "export_normals", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "export_materials", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "use_instancing", 0, NULL, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
   uiItemR(col, ptr, "evaluation_mode", 0, NULL, ICON_NONE);
+
+  uiLayout *box = uiLayoutBox(layout);
+  uiItemL(box, IFACE_("Experimental:"), ICON_NONE);
+  uiItemR(box, ptr, "use_instancing", 0, NULL, ICON_NONE);
 }
 
 void WM_OT_usd_export(struct wmOperatorType *ot)
@@ -180,7 +185,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "selected_objects_only",
                   false,
-                  "Only Export Selected Objects",
+                  "Selection Only",
                   "Only selected objects are exported. Unselected parents of selected objects are "
                   "exported as empty transform");
 
@@ -212,16 +217,17 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "use_instancing",
                   false,
-                  "Use Instancing (EXPERIMENTAL)",
-                  "When true, dupli-objects are written as instances of the original in USD. "
-                  "Experimental feature, not working perfectly");
+                  "Instancing",
+                  "When checked, instanced objects are exported as references in USD. "
+                  "When unchecked, instanced objects are exported as real objects");
 
   RNA_def_enum(ot->srna,
                "evaluation_mode",
                rna_enum_usd_export_evaluation_mode_items,
                DAG_EVAL_RENDER,
-               "Evaluation Mode",
-               "Determines visibility of objects and modifier settings");
+               "Use Settings for",
+               "Determines visibility of objects, modifier settings, and other areas where there "
+               "are different settings for viewport and rendering");
 }
 
 #endif /* WITH_USD */
