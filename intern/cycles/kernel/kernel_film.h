@@ -70,12 +70,12 @@ ccl_device float4 film_map(KernelGlobals *kg, float4 rgba_in, float scale)
   float4 result;
 
   /* conversion to srgb */
-  result.x = color_linear_to_srgb(rgba_in.x);
-  result.y = color_linear_to_srgb(rgba_in.y);
-  result.z = color_linear_to_srgb(rgba_in.z);
+  result.x = color_linear_to_srgb(rgba_in.x * scale);
+  result.y = color_linear_to_srgb(rgba_in.y * scale);
+  result.z = color_linear_to_srgb(rgba_in.z * scale);
 
   /* clamp since alpha might be > 1.0 due to russian roulette */
-  result.w = saturate(rgba_in.w);
+  result.w = saturate(rgba_in.w * scale);
 
   return result;
 }
@@ -108,19 +108,12 @@ ccl_device void kernel_film_convert_to_byte(KernelGlobals *kg,
   bool use_display_sample_scale = (kernel_data.film.display_divide_pass_stride == -1);
   float4 rgba_in = film_get_pass_result(kg, buffer, sample_scale, index, use_display_sample_scale);
 
-  rgba += index;
-
   /* map colors */
-  if (use_display_sample_scale) {
-    float4 float_result = film_map(kg, rgba_in, sample_scale);
-    uchar4 byte_result = film_float_to_byte(float_result);
-    *rgba = byte_result;
-  }
-  else {
-    float4 float_result = film_map(kg, rgba_in, 1.0);
-    uchar4 byte_result = film_float_to_byte(float_result);
-    *rgba = byte_result;
-  }
+  float4 float_result = film_map(kg, rgba_in, use_display_sample_scale ? sample_scale : 1.0f);
+  uchar4 uchar_result = film_float_to_byte(float_result);
+
+  rgba += index;
+  *rgba = uchar_result;
 }
 
 ccl_device void kernel_film_convert_to_half_float(KernelGlobals *kg,
@@ -134,16 +127,12 @@ ccl_device void kernel_film_convert_to_half_float(KernelGlobals *kg,
 {
   /* buffer offset */
   int index = offset + x + y * stride;
+
   bool use_display_sample_scale = (kernel_data.film.display_divide_pass_stride == -1);
   float4 rgba_in = film_get_pass_result(kg, buffer, sample_scale, index, use_display_sample_scale);
 
   ccl_global half *out = (ccl_global half *)rgba + index * 4;
-  if (use_display_sample_scale) {
-    float4_store_half(out, rgba_in, sample_scale);
-  }
-  else {
-    float4_store_half(out, rgba_in, 1.0f);
-  }
+  float4_store_half(out, rgba_in, use_display_sample_scale ? sample_scale : 1.0f);
 }
 
 CCL_NAMESPACE_END
