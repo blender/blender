@@ -720,6 +720,111 @@ void WM_operator_properties_free(PointerRNA *ptr)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Operator Last Properties API
+ * \{ */
+
+#if 1 /* may want to disable operator remembering previous state for testing */
+
+static bool operator_last_properties_init_impl(wmOperator *op, IDProperty *last_properties)
+{
+  bool changed = false;
+  IDPropertyTemplate val = {0};
+  IDProperty *replaceprops = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
+  PropertyRNA *iterprop;
+
+  CLOG_INFO(WM_LOG_OPERATORS, 1, "loading previous properties for '%s'", op->type->idname);
+
+  iterprop = RNA_struct_iterator_property(op->type->srna);
+
+  RNA_PROP_BEGIN (op->ptr, itemptr, iterprop) {
+    PropertyRNA *prop = itemptr.data;
+    if ((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
+      if (!RNA_property_is_set(op->ptr, prop)) { /* don't override a setting already set */
+        const char *identifier = RNA_property_identifier(prop);
+        IDProperty *idp_src = IDP_GetPropertyFromGroup(last_properties, identifier);
+        if (idp_src) {
+          IDProperty *idp_dst = IDP_CopyProperty(idp_src);
+
+          /* note - in the future this may need to be done recursively,
+           * but for now RNA doesn't access nested operators */
+          idp_dst->flag |= IDP_FLAG_GHOST;
+
+          /* add to temporary group instead of immediate replace,
+           * because we are iterating over this group */
+          IDP_AddToGroup(replaceprops, idp_dst);
+          changed = true;
+        }
+      }
+    }
+  }
+  RNA_PROP_END;
+
+  IDP_MergeGroup(op->properties, replaceprops, true);
+  IDP_FreeProperty(replaceprops);
+  return changed;
+}
+
+bool WM_operator_last_properties_init(wmOperator *op)
+{
+  bool changed = false;
+  if (op->type->last_properties) {
+    changed |= operator_last_properties_init_impl(op, op->type->last_properties);
+    for (wmOperator *opm = op->macro.first; opm; opm = opm->next) {
+      IDProperty *idp_src = IDP_GetPropertyFromGroup(op->type->last_properties, opm->idname);
+      if (idp_src) {
+        changed |= operator_last_properties_init_impl(opm, idp_src);
+      }
+    }
+  }
+  return changed;
+}
+
+bool WM_operator_last_properties_store(wmOperator *op)
+{
+  if (op->type->last_properties) {
+    IDP_FreeProperty(op->type->last_properties);
+    op->type->last_properties = NULL;
+  }
+
+  if (op->properties) {
+    CLOG_INFO(WM_LOG_OPERATORS, 1, "storing properties for '%s'", op->type->idname);
+    op->type->last_properties = IDP_CopyProperty(op->properties);
+  }
+
+  if (op->macro.first != NULL) {
+    for (wmOperator *opm = op->macro.first; opm; opm = opm->next) {
+      if (opm->properties) {
+        if (op->type->last_properties == NULL) {
+          op->type->last_properties = IDP_New(
+              IDP_GROUP, &(IDPropertyTemplate){0}, "wmOperatorProperties");
+        }
+        IDProperty *idp_macro = IDP_CopyProperty(opm->properties);
+        STRNCPY(idp_macro->name, opm->type->idname);
+        IDP_ReplaceInGroup(op->type->last_properties, idp_macro);
+      }
+    }
+  }
+
+  return (op->type->last_properties != NULL);
+}
+
+#else
+
+bool WM_operator_last_properties_init(wmOperator *UNUSED(op))
+{
+  return false;
+}
+
+bool WM_operator_last_properties_store(wmOperator *UNUSED(op))
+{
+  return false;
+}
+
+#endif
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Default Operator Callbacks
  * \{ */
 
