@@ -111,6 +111,8 @@ static int wm_operator_call_internal(bContext *C,
                                      const bool poll_only,
                                      wmEvent *event);
 
+static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot);
+
 /* -------------------------------------------------------------------- */
 /** \name Event Management
  * \{ */
@@ -679,6 +681,82 @@ static void wm_handler_ui_cancel(bContext *C)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name WM Reports
+ *
+ * Access to #wmWindowManager.reports
+ * \{ */
+
+/**
+ * Show the report in the info header.
+ */
+void WM_report_banner_show(void)
+{
+  wmWindowManager *wm = G_MAIN->wm.first;
+  ReportList *wm_reports = &wm->reports;
+  ReportTimerInfo *rti;
+
+  /* After adding reports to the global list, reset the report timer. */
+  WM_event_remove_timer(wm, NULL, wm_reports->reporttimer);
+
+  /* Records time since last report was added */
+  wm_reports->reporttimer = WM_event_add_timer(wm, wm->winactive, TIMERREPORT, 0.05);
+
+  rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
+  wm_reports->reporttimer->customdata = rti;
+}
+
+#ifdef WITH_INPUT_NDOF
+void WM_ndof_deadzone_set(float deadzone)
+{
+  GHOST_setNDOFDeadZone(deadzone);
+}
+#endif
+
+static void wm_add_reports(ReportList *reports)
+{
+  /* if the caller owns them, handle this */
+  if (reports->list.first && (reports->flag & RPT_OP_HOLD) == 0) {
+    wmWindowManager *wm = G_MAIN->wm.first;
+
+    /* add reports to the global list, otherwise they are not seen */
+    BLI_movelisttolist(&wm->reports.list, &reports->list);
+
+    WM_report_banner_show();
+  }
+}
+
+void WM_report(ReportType type, const char *message)
+{
+  ReportList reports;
+
+  BKE_reports_init(&reports, RPT_STORE);
+  BKE_report(&reports, type, message);
+
+  wm_add_reports(&reports);
+
+  BKE_reports_clear(&reports);
+}
+
+void WM_reportf(ReportType type, const char *format, ...)
+{
+  DynStr *ds;
+  va_list args;
+
+  ds = BLI_dynstr_new();
+  va_start(args, format);
+  BLI_dynstr_vappendf(ds, format, args);
+  va_end(args);
+
+  char *str = BLI_dynstr_get_cstring(ds);
+  WM_report(type, str);
+  MEM_freeN(str);
+
+  BLI_dynstr_free(ds);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Operator Logic
  * \{ */
 
@@ -757,74 +835,6 @@ void WM_operator_region_active_win_set(bContext *C)
       sa->region_active_win = BLI_findindex(&sa->regionbase, ar);
     }
   }
-}
-
-/**
- * Show the report in the info header.
- */
-void WM_report_banner_show(void)
-{
-  wmWindowManager *wm = G_MAIN->wm.first;
-  ReportList *wm_reports = &wm->reports;
-  ReportTimerInfo *rti;
-
-  /* After adding reports to the global list, reset the report timer. */
-  WM_event_remove_timer(wm, NULL, wm_reports->reporttimer);
-
-  /* Records time since last report was added */
-  wm_reports->reporttimer = WM_event_add_timer(wm, wm->winactive, TIMERREPORT, 0.05);
-
-  rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
-  wm_reports->reporttimer->customdata = rti;
-}
-
-#ifdef WITH_INPUT_NDOF
-void WM_ndof_deadzone_set(float deadzone)
-{
-  GHOST_setNDOFDeadZone(deadzone);
-}
-#endif
-
-static void wm_add_reports(ReportList *reports)
-{
-  /* if the caller owns them, handle this */
-  if (reports->list.first && (reports->flag & RPT_OP_HOLD) == 0) {
-    wmWindowManager *wm = G_MAIN->wm.first;
-
-    /* add reports to the global list, otherwise they are not seen */
-    BLI_movelisttolist(&wm->reports.list, &reports->list);
-
-    WM_report_banner_show();
-  }
-}
-
-void WM_report(ReportType type, const char *message)
-{
-  ReportList reports;
-
-  BKE_reports_init(&reports, RPT_STORE);
-  BKE_report(&reports, type, message);
-
-  wm_add_reports(&reports);
-
-  BKE_reports_clear(&reports);
-}
-
-void WM_reportf(ReportType type, const char *format, ...)
-{
-  DynStr *ds;
-  va_list args;
-
-  ds = BLI_dynstr_new();
-  va_start(args, format);
-  BLI_dynstr_vappendf(ds, format, args);
-  va_end(args);
-
-  char *str = BLI_dynstr_get_cstring(ds);
-  WM_report(type, str);
-  MEM_freeN(str);
-
-  BLI_dynstr_free(ds);
 }
 
 /* (caller_owns_reports == true) when called from python */
@@ -1875,10 +1885,10 @@ static wmKeyMapItem *wm_eventmatch_modal_keymap_items(const wmKeyMap *keymap,
  *   This is done since we only want to use double click events to match key-map items,
  *   allowing modal functions to check for press/release events without having to interpret them.
  */
-static void wm_event_modalkeymap(const bContext *C,
-                                 wmOperator *op,
-                                 wmEvent *event,
-                                 bool *dbl_click_disabled)
+static void wm_event_modalkeymap_begin(const bContext *C,
+                                       wmOperator *op,
+                                       wmEvent *event,
+                                       bool *dbl_click_disabled)
 {
   BLI_assert(event->type != EVT_MODAL_MAP);
 
@@ -1931,25 +1941,13 @@ static void wm_event_modalkeymap(const bContext *C,
 }
 
 /**
- * Check whether operator is allowed to run in case interface is locked,
- * If interface is unlocked, will always return truth.
+ * Restore changes from #wm_event_modalkeymap_begin
+ *
+ * \warning bad hacking event system...
+ * better restore event type for checking of #KM_CLICK for example.
+ * Modal maps could use different method (ton).
  */
-static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot)
-{
-  wmWindowManager *wm = CTX_wm_manager(C);
-
-  if (wm->is_interface_locked) {
-    if ((ot->flag & OPTYPE_LOCK_BYPASS) == 0) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-/* bad hacking event system... better restore event type for checking of KM_CLICK for example */
-/* XXX modal maps could use different method (ton) */
-static void wm_event_modalmap_end(wmEvent *event, bool dbl_click_disabled)
+static void wm_event_modalkeymap_end(wmEvent *event, bool dbl_click_disabled)
 {
   if (event->type == EVT_MODAL_MAP) {
     event->type = event->prevtype;
@@ -1993,7 +1991,7 @@ static int wm_handler_operator_call(bContext *C,
 
       wm_handler_op_context(C, handler, event);
       wm_region_mouse_co(C, event);
-      wm_event_modalkeymap(C, op, event, &dbl_click_disabled);
+      wm_event_modalkeymap_begin(C, op, event, &dbl_click_disabled);
 
       if (ot->flag & OPTYPE_UNDO) {
         wm->op_undo_depth++;
@@ -2008,7 +2006,7 @@ static int wm_handler_operator_call(bContext *C,
        * the event, operator etc have all been freed. - campbell */
       if (CTX_wm_manager(C) == wm) {
 
-        wm_event_modalmap_end(event, dbl_click_disabled);
+        wm_event_modalkeymap_end(event, dbl_click_disabled);
 
         if (ot->flag & OPTYPE_UNDO) {
           wm->op_undo_depth--;
@@ -4672,6 +4670,29 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 #if 0
   WM_event_print(&event);
 #endif
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name WM Interface Locking
+ * \{ */
+
+/**
+ * Check whether operator is allowed to run in case interface is locked,
+ * If interface is unlocked, will always return truth.
+ */
+static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+
+  if (wm->is_interface_locked) {
+    if ((ot->flag & OPTYPE_LOCK_BYPASS) == 0) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 void WM_set_locked_interface(wmWindowManager *wm, bool lock)
