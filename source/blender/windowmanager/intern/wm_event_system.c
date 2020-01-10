@@ -2088,6 +2088,8 @@ static void wm_event_modalkeymap(const bContext *C,
                                  wmEvent *event,
                                  bool *dbl_click_disabled)
 {
+  BLI_assert(event->type != EVT_MODAL_MAP);
+
   /* support for modal keymap in macros */
   if (op->opm) {
     op = op->opm;
@@ -2116,9 +2118,17 @@ static void wm_event_modalkeymap(const bContext *C,
       event->prevval = event_match->val;
       event->type = EVT_MODAL_MAP;
       event->val = kmi->propvalue;
+
+      /* Avoid double-click events even in the case of 'EVT_MODAL_MAP',
+       * since it's possible users configure double-click keymap items
+       * which would break when modal functions expect press/release. */
+      if (event->prevtype == KM_DBL_CLICK) {
+        event->prevtype = KM_PRESS;
+      }
     }
   }
-  else {
+
+  if (event->type != EVT_MODAL_MAP) {
     /* modal keymap checking returns handled events fine, but all hardcoded modal
      * handling typically swallows all events (OPERATOR_RUNNING_MODAL).
      * This bypass just disables support for double clicks in hardcoded modal handlers */
