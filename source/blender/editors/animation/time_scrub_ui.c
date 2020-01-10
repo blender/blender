@@ -179,9 +179,9 @@ void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *ar, bDopeShee
 
   rcti rect;
   rect.xmin = 0;
-  rect.xmax = ceilf(ar->sizex * UI_DPI_FAC);
-  rect.ymin = ar->sizey * UI_DPI_FAC - UI_TIME_SCRUB_MARGIN_Y;
-  rect.ymax = ceilf(ar->sizey * UI_DPI_FAC);
+  rect.xmax = ar->winx;
+  rect.ymin = ar->winy - UI_TIME_SCRUB_MARGIN_Y;
+  rect.ymax = ar->winy;
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);

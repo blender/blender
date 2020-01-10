@@ -298,7 +298,7 @@ static int graphkeys_viewall(bContext *C,
   if (!BLI_listbase_is_empty(ED_context_get_markers(C))) {
     pad_bottom = UI_MARKER_MARGIN_Y;
   }
-  BLI_rctf_pad_y(&cur_new, ac.ar->sizey * UI_DPI_FAC, pad_bottom, pad_top);
+  BLI_rctf_pad_y(&cur_new, ac.ar->winy, pad_bottom, pad_top);
 
   UI_view2d_smooth_view(C, ac.ar, &cur_new, smooth_viewtx);
   return OPERATOR_FINISHED;

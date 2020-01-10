@@ -2119,11 +2119,7 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
   /* channel numbers */
   {
     rcti rect;
-    BLI_rcti_init(&rect,
-                  0,
-                  15 * UI_DPI_FAC,
-                  15 * UI_DPI_FAC,
-                  UI_DPI_FAC * ar->sizey - UI_TIME_SCRUB_MARGIN_Y);
+    BLI_rcti_init(&rect, 0, 15 * UI_DPI_FAC, 15 * UI_DPI_FAC, ar->winy - UI_TIME_SCRUB_MARGIN_Y);
     UI_view2d_draw_scale_y__block(ar, v2d, &rect, TH_SCROLL_TEXT);
   }
 }
