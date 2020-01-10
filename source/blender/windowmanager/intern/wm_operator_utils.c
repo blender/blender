@@ -26,6 +26,7 @@
 #include "BLI_string.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_layer.h"
 
 #include "RNA_access.h"
@@ -176,6 +177,8 @@ static void op_generic_value_exit(wmOperator *op)
     MEM_freeN(cd->objects_xform);
     MEM_freeN(cd);
   }
+
+  G.moving &= ~G_TRANSFORM_EDIT;
 }
 
 static void op_generic_value_restore(wmOperator *op)
@@ -228,6 +231,8 @@ static int op_generic_value_invoke(bContext *C, wmOperator *op, const wmEvent *e
   op->customdata = cd;
 
   WM_event_add_modal_handler(C, op);
+  G.moving |= G_TRANSFORM_EDIT;
+
   return OPERATOR_RUNNING_MODAL;
 }
 
