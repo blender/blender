@@ -4919,7 +4919,10 @@ static int shuffle_seq_time_offset(Scene *scene, ListBase *seqbasep, char dir)
   return tot_ofs;
 }
 
-bool BKE_sequence_base_shuffle_time(ListBase *seqbasep, Scene *evil_scene)
+bool BKE_sequence_base_shuffle_time(ListBase *seqbasep,
+                                    Scene *evil_scene,
+                                    ListBase *markers,
+                                    const bool use_sync_markers)
 {
   /* note: seq->tmp is used to tag strips to move */
 
@@ -4934,6 +4937,16 @@ bool BKE_sequence_base_shuffle_time(ListBase *seqbasep, Scene *evil_scene)
       if (seq->tmp) {
         BKE_sequence_translate(evil_scene, seq, offset);
         seq->flag &= ~SEQ_OVERLAP;
+      }
+    }
+
+    if (use_sync_markers && !(evil_scene->toolsettings->lock_markers) && (markers != NULL)) {
+      TimeMarker *marker;
+      /* affect selected markers - it's unlikely that we will want to affect all in this way? */
+      for (marker = markers->first; marker; marker = marker->next) {
+        if (marker->flag & SELECT) {
+          marker->frame += offset;
+        }
       }
     }
   }

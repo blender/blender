@@ -2561,7 +2561,7 @@ int transformEnd(bContext *C, TransInfo *t)
     /* aftertrans does insert keyframes, and clears base flags; doesn't read transdata */
     special_aftertrans_update(C, t);
 
-    /* free data */
+    /* Free data, also handles overlap [in freeTransCustomData()]. */
     postTrans(C, t);
 
     /* send events out for redraws */
