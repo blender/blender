@@ -34,7 +34,7 @@ struct Depsgraph;
 class AnimationValueBackup {
  public:
   AnimationValueBackup();
-  AnimationValueBackup(const string &rna_path, float value);
+  AnimationValueBackup(const string &rna_path, int array_index, float value);
   ~AnimationValueBackup();
 
   AnimationValueBackup(const AnimationValueBackup &other) = default;
@@ -44,6 +44,7 @@ class AnimationValueBackup {
   AnimationValueBackup &operator=(AnimationValueBackup &&other) = default;
 
   string rna_path;
+  int array_index;
   float value;
 };
 

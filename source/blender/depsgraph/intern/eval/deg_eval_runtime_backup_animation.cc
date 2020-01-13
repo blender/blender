@@ -59,11 +59,8 @@ void animated_property_store_cb(ID *id, FCurve *fcurve, void *data_v)
 
   /* Resolve path to the property. */
   PathResolvedRNA resolved_rna;
-  if (!RNA_path_resolve_property_full(&data->id_pointer_rna,
-                                      fcurve->rna_path,
-                                      &resolved_rna.ptr,
-                                      &resolved_rna.prop,
-                                      &resolved_rna.prop_index)) {
+  if (!BKE_animsys_store_rna_setting(
+          &data->id_pointer_rna, fcurve->rna_path, fcurve->array_index, &resolved_rna)) {
     return;
   }
 
@@ -73,7 +70,7 @@ void animated_property_store_cb(ID *id, FCurve *fcurve, void *data_v)
     return;
   }
 
-  data->backup->values_backup.emplace_back(fcurve->rna_path, value);
+  data->backup->values_backup.emplace_back(fcurve->rna_path, fcurve->array_index, value);
 }
 
 }  // namespace
@@ -82,8 +79,8 @@ AnimationValueBackup::AnimationValueBackup()
 {
 }
 
-AnimationValueBackup::AnimationValueBackup(const string &rna_path, float value)
-    : rna_path(rna_path), value(value)
+AnimationValueBackup::AnimationValueBackup(const string &rna_path, int array_index, float value)
+    : rna_path(rna_path), array_index(array_index), value(value)
 {
 }
 
@@ -121,11 +118,10 @@ void AnimationBackup::restore_to_id(ID *id)
      * changed after copy-on-write.
      */
     PathResolvedRNA resolved_rna;
-    if (!RNA_path_resolve_property_full(&id_pointer_rna,
-                                        value_backup.rna_path.c_str(),
-                                        &resolved_rna.ptr,
-                                        &resolved_rna.prop,
-                                        &resolved_rna.prop_index)) {
+    if (!BKE_animsys_store_rna_setting(&id_pointer_rna,
+                                       value_backup.rna_path.c_str(),
+                                       value_backup.array_index,
+                                       &resolved_rna)) {
       return;
     }
 
