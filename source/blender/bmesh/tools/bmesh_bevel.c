@@ -994,23 +994,31 @@ static bool point_between_edges(float co[3], BMVert *v, BMFace *f, EdgeHalf *e1,
   return (ang11 - ang1co > -BEVEL_EPSILON_ANG);
 }
 
-/*
+/**
  * Calculate the meeting point between the offset edges for e1 and e2, putting answer in meetco.
  * e1 and e2 share vertex v and face f (may be NULL) and viewed from the normal side of
  * the bevel vertex, e1 precedes e2 in CCW order.
- * Except: if edges_between is true, there are edges between e1 and e2 in CCW order so they
- * don't share a common face. We want the meeting point to be on an existing face so it
- * should be dropped onto one of the intermediate faces, if possible.
  * Offset edge is on right of both edges, where e1 enters v and e2 leave it.
  * When offsets are equal, the new point is on the edge bisector, with length offset/sin(angle/2),
- * but if the offsets are not equal (allowing for this, as bevel modifier has edge weights that may
- * lead to different offsets) then meeting point can be found be intersecting offset lines.
+ * but if the offsets are not equal (we allow for because the bevel modifier has edge weights that
+ * may lead to different offsets) then the meeting point can be found by intersecting offset lines.
  * If making the meeting point significantly changes the left or right offset from the user spec,
  * record the change in offset_l (or offset_r); later we can tell that a change has happened
  * because the offset will differ from its original value in offset_l_spec (or offset_r_spec).
+ *
+ * \param edges_between If this is true, there are edges between e1 and e2 in CCW order so they
+ * don't share a common face. We want the meeting point to be on an existing face so it
+ * should be dropped onto one of the intermediate faces, if possible.
+ * \param e_in_plane If we need to drop from the calculated offset lines to one of the faces,
+ * we don't want to drop onto the 'in plane' face, so if this is not null skip this edge's faces.
  */
-static void offset_meet(
-    EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, bool edges_between, float meetco[3])
+static void offset_meet(EdgeHalf *e1,
+                        EdgeHalf *e2,
+                        BMVert *v,
+                        BMFace *f,
+                        bool edges_between,
+                        float meetco[3],
+                        const EdgeHalf *e_in_plane)
 {
   float dir1[3], dir2[3], dir1n[3], dir2p[3], norm_v[3], norm_v1[3], norm_v2[3];
   float norm_perp1[3], norm_perp2[3], off1a[3], off1b[3], off2a[3], off2b[3];
@@ -1018,10 +1026,10 @@ static void offset_meet(
   float ang, d;
   BMVert *closer_v;
   EdgeHalf *e, *e1next, *e2prev;
-  BMFace *ff;
+  BMFace *fnext;
   int isect_kind;
 
-  /* get direction vectors for two offset lines */
+  /* Get direction vectors for two offset lines. */
   sub_v3_v3v3(dir1, v->co, BM_edge_other_vert(e1->e, v)->co);
   sub_v3_v3v3(dir2, BM_edge_other_vert(e2->e, v)->co, v->co);
 
@@ -1032,20 +1040,20 @@ static void offset_meet(
     sub_v3_v3v3(dir2p, v->co, BM_edge_other_vert(e2prev->e, v)->co);
   }
   else {
-    /* shup up 'maybe unused' warnings */
+    /* Shut up 'maybe unused' warnings. */
     zero_v3(dir1n);
     zero_v3(dir2p);
   }
 
   ang = angle_v3v3(dir1, dir2);
   if (ang < BEVEL_EPSILON_ANG) {
-    /* special case: e1 and e2 are parallel; put offset point perp to both, from v.
+    /* Special case: e1 and e2 are parallel; put offset point perp to both, from v.
      * need to find a suitable plane.
-     * this code used to just use offset and dir1, but that makes for visible errors
+     * This code used to just use offset and dir1, but that makes for visible errors
      * on a circle with > 200 sides, which trips this "nearly perp" code (see T61214).
      * so use the average of the two, and the offset formula for angle bisector.
-     * if offsets are different, we're out of luck:
-     * use the max of the two (so get consistent looking results if the same situation
+     * If offsets are different, we're out of luck:
+     * Use the max of the two (so get consistent looking results if the same situation
      * arises elsewhere in the object but with opposite roles for e1 and e2 */
     if (f) {
       copy_v3_v3(norm_v, f->no);
@@ -1063,23 +1071,21 @@ static void offset_meet(
     copy_v3_v3(meetco, off1a);
   }
   else if (fabsf(ang - (float)M_PI) < BEVEL_EPSILON_ANG) {
-    /* special case e1 and e2 are antiparallel, so bevel is into
-     * a zero-area face.  Just make the offset point on the
-     * common line, at offset distance from v. */
+    /* Special case: e1 and e2 are antiparallel, so bevel is into a zero-area face.
+     * Just make the offset point on the common line, at offset distance from v. */
     d = max_ff(e1->offset_r, e2->offset_l);
     slide_dist(e2, v, d, meetco);
   }
   else {
-    /* Get normal to plane where meet point should be,
-     * using cross product instead of f->no in case f is non-planar.
-     * Except: sometimes locally there can be a small angle
-     * between dir1 and dir2 that leads to a normal that is actually almost
-     * perpendicular to the face normal; in this case it looks wrong to use
-     * the local (cross-product) normal, so use the face normal if the angle
-     * between dir1 and dir2 is smallish.
+    /* Get normal to plane where meet point should be, using cross product instead of f->no
+     * in case f is non-planar.
+     * Except: sometimes locally there can be a small angle between dir1 and dir2 that leads
+     * to a normal that is actually almost perpendicular to the face normal;
+     * in this case it looks wrong to use the local (cross-product) normal,
+     * so use the face normal if the angle between dir1 and dir2 is smallish.
      * If e1-v-e2 is a reflex angle (viewed from vertex normal side), need to flip.
-     * Use f->no to figure out which side to look at angle from, as even if
-     * f is non-planar, will be more accurate than vertex normal */
+     * Use f->no to figure out which side to look at angle from, as even if f is non-planar,
+     * will be more accurate than vertex normal. */
     if (f && ang < BEVEL_SMALL_ANG) {
       copy_v3_v3(norm_v1, f->no);
       copy_v3_v3(norm_v2, f->no);
@@ -1093,7 +1099,7 @@ static void offset_meet(
       copy_v3_v3(norm_v2, norm_v1);
     }
     else {
-      /* separate faces; get face norms at corners for each separately */
+      /* Separate faces; get face norms at corners for each separately. */
       cross_v3_v3v3(norm_v1, dir1n, dir1);
       normalize_v3(norm_v1);
       f = e1->fnext;
@@ -1108,13 +1114,13 @@ static void offset_meet(
       }
     }
 
-    /* get vectors perp to each edge, perp to norm_v, and pointing into face */
+    /* Get vectors perp to each edge, perp to norm_v, and pointing into face. */
     cross_v3_v3v3(norm_perp1, dir1, norm_v1);
     cross_v3_v3v3(norm_perp2, dir2, norm_v2);
     normalize_v3(norm_perp1);
     normalize_v3(norm_perp2);
 
-    /* get points that are offset distances from each line, then another point on each line */
+    /* Get points that are offset distances from each line, then another point on each line. */
     copy_v3_v3(off1a, v->co);
     madd_v3_v3fl(off1a, norm_perp1, e1->offset_r);
     add_v3_v3v3(off1b, off1a, dir1);
@@ -1122,18 +1128,17 @@ static void offset_meet(
     madd_v3_v3fl(off2a, norm_perp2, e2->offset_l);
     add_v3_v3v3(off2b, off2a, dir2);
 
-    /* intersect the lines */
+    /* Intersect the offset lines. */
     isect_kind = isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2);
     if (isect_kind == 0) {
-      /* lines are collinear: we already tested for this, but this used a different epsilon */
-      copy_v3_v3(meetco, off1a); /* just to do something */
+      /* Lines are collinear: we already tested for this, but this used a different epsilon. */
+      copy_v3_v3(meetco, off1a); /* Just to do something. */
     }
     else {
       /* The lines intersect, but is it at a reasonable place?
-       * One problem to check: if one of the offsets is 0, then don't
-       * want an intersection that is outside that edge itself.
-       * This can happen if angle between them is > 180 degrees,
-       * or if the offset amount is > the edge length*/
+       * One problem to check: if one of the offsets is 0, then don't want an intersection
+       * that is outside that edge itself. This can happen if angle between them is > 180 degrees,
+       * or if the offset amount is > the edge length. */
       if (e1->offset_r == 0.0f && is_outside_edge(e1, meetco, &closer_v)) {
         copy_v3_v3(meetco, closer_v->co);
       }
@@ -1141,19 +1146,26 @@ static void offset_meet(
         copy_v3_v3(meetco, closer_v->co);
       }
       if (edges_between && e1->offset_r > 0.0f && e2->offset_l > 0.0f) {
-        /* Try to drop meetco to a face between e1 and e2 */
+        /* Try to drop meetco to a face between e1 and e2. */
         if (isect_kind == 2) {
-          /* lines didn't meet in 3d: get average of meetco and isect2 */
+          /* Lines didn't meet in 3d: get average of meetco and isect2. */
           mid_v3_v3v3(meetco, meetco, isect2);
         }
         for (e = e1; e != e2; e = e->next) {
-          ff = e->fnext;
-          if (!ff) {
+          fnext = e->fnext;
+          if (!fnext) {
             continue;
           }
-          plane_from_point_normal_v3(plane, v->co, ff->no);
+          plane_from_point_normal_v3(plane, v->co, fnext->no);
           closest_to_plane_normalized_v3(dropco, plane, meetco);
-          if (point_between_edges(dropco, v, ff, e, e->next)) {
+          /* Don't drop to the faces next to the in plane edge. */
+          if (e_in_plane) {
+            ang = angle_v3v3(fnext->no, e_in_plane->fnext->no);
+            if ((fabsf(ang) < BEVEL_SMALL_ANG) || (fabsf(ang - (float)M_PI) < BEVEL_SMALL_ANG)) {
+              continue;
+            }
+          }
+          if (point_between_edges(dropco, v, fnext, e, e->next)) {
             copy_v3_v3(meetco, dropco);
             break;
           }
@@ -1163,8 +1175,7 @@ static void offset_meet(
   }
 }
 
-/* Chosen so that 1/sin(BEVEL_GOOD_ANGLE) is about 4,
- * giving that expansion factor to bevel width. */
+/* Chosen so 1/sin(BEVEL_GOOD_ANGLE) is about 4, giving that expansion factor to bevel width. */
 #define BEVEL_GOOD_ANGLE 0.25f
 
 /* Calculate the meeting point between e1 and e2 (one of which should have zero offsets),
@@ -1182,7 +1193,7 @@ static bool offset_meet_edge(
   normalize_v3(dir1);
   normalize_v3(dir2);
 
-  /* find angle from dir1 to dir2 as viewed from vertex normal side */
+  /* Find angle from dir1 to dir2 as viewed from vertex normal side. */
   ang = angle_normalized_v3v3(dir1, dir2);
   if (fabsf(ang) < BEVEL_GOOD_ANGLE) {
     if (r_angle) {
@@ -1192,7 +1203,7 @@ static bool offset_meet_edge(
   }
   cross_v3_v3v3(fno, dir1, dir2);
   if (dot_v3v3(fno, v->no) < 0.0f) {
-    ang = 2.0f * (float)M_PI - ang; /* angle is reflex */
+    ang = 2.0f * (float)M_PI - ang; /* Angle is reflex. */
     if (r_angle) {
       *r_angle = ang;
     }
@@ -1219,7 +1230,7 @@ static bool offset_meet_edge(
 }
 
 /* Return true if it will look good to put the meeting point where offset_on_edge_between
- * would put it. This means that neither side sees a reflex angle */
+ * would put it. This means that neither side sees a reflex angle. */
 static bool good_offset_on_edge_between(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid, BMVert *v)
 {
   float ang;
@@ -1248,7 +1259,7 @@ static bool offset_on_edge_between(
   if (ok1 && ok2) {
     mid_v3_v3v3(meetco, meet1, meet2);
     if (r_sinratio) {
-      /* ang1 should not be 0, but be paranoid */
+      /* ang1 should not be 0, but be paranoid. */
       *r_sinratio = (ang1 == 0.0f) ? 1.0f : sinf(ang2) / sinf(ang1);
     }
     retval = true;
@@ -1261,7 +1272,7 @@ static bool offset_on_edge_between(
   }
   else {
     /* Neither offset line met emid.
-     * This should only happen if all three lines are on top of each other */
+     * This should only happen if all three lines are on top of each other. */
     slide_dist(emid, v, e1->offset_r, meetco);
   }
 
@@ -1269,8 +1280,7 @@ static bool offset_on_edge_between(
 }
 
 /* Offset by e->offset in plane with normal plane_no, on left if left==true,
- * else on right.  If no is NULL, choose an arbitrary plane different
- * from eh's direction. */
+ * else on right.  If no is NULL, choose an arbitrary plane different from eh's direction. */
 static void offset_in_plane(EdgeHalf *e, const float plane_no[3], bool left, float r[3])
 {
   float dir[3], no[3], fdir[3];
@@ -1303,7 +1313,7 @@ static void offset_in_plane(EdgeHalf *e, const float plane_no[3], bool left, flo
   madd_v3_v3fl(r, fdir, left ? e->offset_l : e->offset_r);
 }
 
-/* Calculate the point on e where line (co_a, co_b) comes closest to and return it in projco */
+/* Calculate the point on e where line (co_a, co_b) comes closest to and return it in projco. */
 static void project_to_edge(BMEdge *e, const float co_a[3], const float co_b[3], float projco[3])
 {
   float otherco[3];
@@ -1317,56 +1327,55 @@ static void project_to_edge(BMEdge *e, const float co_a[3], const float co_b[3],
 }
 
 /* If there is a bndv->ebev edge, find the mid control point if necessary.
- * It is the closest point on the beveled edge to the line segment between
- * bndv and bndv->next.  */
+ * It is the closest point on the beveled edge to the line segment between bndv and bndv->next.  */
 static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
 {
   EdgeHalf *e;
   Profile *pro;
-  float co1[3], co2[3], co3[3], d1[3], d2[3];
+  float start[3], end[3], co3[3], d1[3], d2[3];
   bool do_linear_interp;
 
-  copy_v3_v3(co1, bndv->nv.co);
-  copy_v3_v3(co2, bndv->next->nv.co);
+  copy_v3_v3(start, bndv->nv.co);
+  copy_v3_v3(end, bndv->next->nv.co);
   pro = &bndv->profile;
   e = bndv->ebev;
   do_linear_interp = true;
   if (e) {
     do_linear_interp = false;
     pro->super_r = bp->pro_super_r;
-    /* projection direction is direction of the edge */
+    /* projection direction is direction of the edge. */
     sub_v3_v3v3(pro->proj_dir, e->e->v1->co, e->e->v2->co);
     if (e->is_rev) {
       negate_v3(pro->proj_dir);
     }
     normalize_v3(pro->proj_dir);
-    project_to_edge(e->e, co1, co2, pro->middle);
+    project_to_edge(e->e, start, end, pro->middle);
     if (DEBUG_OLD_PROJ_TO_PERP_PLANE) {
-      /* put arc endpoints on plane with normal proj_dir, containing middle */
-      add_v3_v3v3(co3, co1, pro->proj_dir);
-      if (!isect_line_plane_v3(pro->start, co1, co3, pro->middle, pro->proj_dir)) {
-        /* shouldn't happen */
-        copy_v3_v3(pro->start, co1);
+      /* Put arc endpoints on plane with normal proj_dir, containing middle. */
+      add_v3_v3v3(co3, start, pro->proj_dir);
+      if (!isect_line_plane_v3(pro->start, start, co3, pro->middle, pro->proj_dir)) {
+        /* Shouldn't happen. */
+        copy_v3_v3(pro->start, start);
       }
-      add_v3_v3v3(co3, co2, pro->proj_dir);
-      if (!isect_line_plane_v3(pro->end, co2, co3, pro->middle, pro->proj_dir)) {
-        /* shouldn't happen */
-        copy_v3_v3(pro->end, co2);
+      add_v3_v3v3(co3, end, pro->proj_dir);
+      if (!isect_line_plane_v3(pro->end, end, co3, pro->middle, pro->proj_dir)) {
+        /* Shouldn't happen. */
+        copy_v3_v3(pro->end, end);
       }
     }
     else {
-      copy_v3_v3(pro->start, co1);
-      copy_v3_v3(pro->end, co2);
+      copy_v3_v3(pro->start, start);
+      copy_v3_v3(pro->end, end);
     }
-    /* default plane to project onto is the one with triangle co1 - middle - co2 in it */
-    sub_v3_v3v3(d1, pro->middle, co1);
-    sub_v3_v3v3(d2, pro->middle, co2);
+    /* Default plane to project onto is the one with triangle start - middle - end in it. */
+    sub_v3_v3v3(d1, pro->middle, start);
+    sub_v3_v3v3(d2, pro->middle, end);
     normalize_v3(d1);
     normalize_v3(d2);
     cross_v3_v3v3(pro->plane_no, d1, d2);
     normalize_v3(pro->plane_no);
     if (nearly_parallel(d1, d2)) {
-      /* co1 - middle -co2 are collinear.
+      /* Start - middle - end are collinear.
        * Should be case that beveled edge is coplanar with two boundary verts.
        * We want to move the profile to that common plane, if possible.
        * That makes the multi-segment bevels curve nicely in that plane, as users expect.
@@ -1380,8 +1389,8 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
       }
       else {
         if (DEBUG_OLD_PROJ_TO_PERP_PLANE) {
-          copy_v3_v3(pro->start, co1);
-          copy_v3_v3(pro->end, co2);
+          copy_v3_v3(pro->start, start);
+          copy_v3_v3(pro->end, end);
         }
         if (DEBUG_OLD_FLAT_MID) {
           copy_v3_v3(pro->middle, bv->v->co);
@@ -1389,7 +1398,7 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
         else {
           copy_v3_v3(pro->middle, bv->v->co);
           if (e->prev->is_bev && e->next->is_bev && bv->selcount >= 3) {
-            /* want mid at the meet point of next and prev offset edges */
+            /* Want mid at the meet point of next and prev offset edges. */
             float d3[3], d4[3], co4[3], meetco[3], isect2[3];
             int isect_kind;
 
@@ -1398,34 +1407,34 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
             normalize_v3(d3);
             normalize_v3(d4);
             if (nearly_parallel(d3, d4)) {
-              /* offset lines are collinear - want linear interpolation */
-              mid_v3_v3v3(pro->middle, co1, co2);
+              /* Offset lines are collinear - want linear interpolation. */
+              mid_v3_v3v3(pro->middle, start, end);
               do_linear_interp = true;
             }
             else {
-              add_v3_v3v3(co3, co1, d3);
-              add_v3_v3v3(co4, co2, d4);
-              isect_kind = isect_line_line_v3(co1, co3, co2, co4, meetco, isect2);
+              add_v3_v3v3(co3, start, d3);
+              add_v3_v3v3(co4, end, d4);
+              isect_kind = isect_line_line_v3(start, co3, end, co4, meetco, isect2);
               if (isect_kind != 0) {
                 copy_v3_v3(pro->middle, meetco);
               }
               else {
-                /* offset lines don't intersect - want linear interpolation */
-                mid_v3_v3v3(pro->middle, co1, co2);
+                /* Offset lines don't intersect - want linear interpolation. */
+                mid_v3_v3v3(pro->middle, start, end);
                 do_linear_interp = true;
               }
             }
           }
         }
-        copy_v3_v3(pro->end, co2);
-        sub_v3_v3v3(d1, pro->middle, co1);
+        copy_v3_v3(pro->end, end);
+        sub_v3_v3v3(d1, pro->middle, start);
         normalize_v3(d1);
-        sub_v3_v3v3(d2, pro->middle, co2);
+        sub_v3_v3v3(d2, pro->middle, end);
         normalize_v3(d2);
         cross_v3_v3v3(pro->plane_no, d1, d2);
         normalize_v3(pro->plane_no);
         if (nearly_parallel(d1, d2)) {
-          /* whole profile is collinear with edge: just interpolate */
+          /* Whole profile is collinear with edge: just interpolate. */
           do_linear_interp = true;
         }
         else {
@@ -1434,12 +1443,12 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
         }
       }
     }
-    copy_v3_v3(pro->plane_co, co1);
+    copy_v3_v3(pro->plane_co, start);
   }
   else if (bndv->is_arc_start) {
-    /* assume pro->middle was alredy set */
-    copy_v3_v3(pro->start, co1);
-    copy_v3_v3(pro->end, co2);
+    /* Assume pro->middle was alredy set. */
+    copy_v3_v3(pro->start, start);
+    copy_v3_v3(pro->end, end);
     pro->super_r = PRO_CIRCLE_R;
     zero_v3(pro->plane_co);
     zero_v3(pro->plane_no);
@@ -1448,10 +1457,10 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
   }
   if (do_linear_interp) {
     pro->super_r = PRO_LINE_R;
-    copy_v3_v3(pro->start, co1);
-    copy_v3_v3(pro->end, co2);
-    mid_v3_v3v3(pro->middle, co1, co2);
-    /* won't use projection for this line profile */
+    copy_v3_v3(pro->start, start);
+    copy_v3_v3(pro->end, end);
+    mid_v3_v3v3(pro->middle, start, end);
+    /* Won't use projection for this line profile. */
     zero_v3(pro->plane_co);
     zero_v3(pro->plane_no);
     zero_v3(pro->proj_dir);
@@ -2295,14 +2304,14 @@ static int count_bound_vert_seams(BevVert *bv)
   return ans;
 }
 
-/* Is e between two planes where angle between is 180? */
+/* Is e between two faces with a 180 degree angle between their normals? */
 static bool eh_on_plane(EdgeHalf *e)
 {
   float dot;
 
   if (e->fprev && e->fnext) {
     dot = dot_v3v3(e->fprev->no, e->fnext->no);
-    if (fabsf(dot) <= BEVEL_EPSILON_BIG || fabsf(dot - 1.0f) <= BEVEL_EPSILON_BIG) {
+    if (fabsf(dot + 1.0f) <= BEVEL_EPSILON_BIG || fabsf(dot - 1.0f) <= BEVEL_EPSILON_BIG) {
       return true;
     }
   }
@@ -2422,7 +2431,7 @@ static void build_boundary_terminal_edge(BevelParams *bp,
      * and join with the beveled edge to make a poly or adj mesh,
      * Because e->prev has offset 0, offset_meet will put co on that edge. */
     /* TODO: should do something else if angle between e and e->prev > 180 */
-    offset_meet(e->prev, e, bv->v, e->fprev, false, co);
+    offset_meet(e->prev, e, bv->v, e->fprev, false, co, NULL);
     if (construct) {
       bndv = add_new_bound_vert(mem_arena, vm, co);
       bndv->efirst = e->prev;
@@ -2434,7 +2443,7 @@ static void build_boundary_terminal_edge(BevelParams *bp,
       adjust_bound_vert(e->leftv, co);
     }
     e = e->next;
-    offset_meet(e->prev, e, bv->v, e->fprev, false, co);
+    offset_meet(e->prev, e, bv->v, e->fprev, false, co, NULL);
     if (construct) {
       bndv = add_new_bound_vert(mem_arena, vm, co);
       bndv->efirst = e->prev;
@@ -2592,18 +2601,20 @@ static void adjust_miter_inner_coords(BevelParams *bp, BevVert *bv, EdgeHalf *em
   } while (v != vstart);
 }
 
-/* Make a circular list of BoundVerts for bv, each of which has the coordinates
- * of a vertex on the boundary of the beveled vertex bv->v.
- * This may adjust some EdgeHalf widths, and there might have to be
- * a subsequent pass to make the widths as consistent as possible.
- * The first time through, construct will be true and we are making the BoundVerts
- * and setting up the BoundVert and EdgeHalf pointers appropriately.
- * For a width consistency path, we just recalculate the coordinates of the
- * BoundVerts. If the other ends have been (re)built already, then we
- * copy the offsets from there to match, else we use the ideal (user-specified)
- * widths.
- * Also, if construct, decide on the mesh pattern that will be used inside the boundary.
- * Doesn't make the actual BMVerts */
+/**
+ * Make a circular list of BoundVerts for bv, each of which has the coordinates of a vertex on the
+ * boundary of the beveled vertex bv->v. This may adjust some EdgeHalf widths, and there might have
+ * to be a subsequent pass to make the widths as consistent as possible.
+ * Doesn't make the actual BMVerts.
+ *
+ * For a width consistency pass, we just recalculate the coordinates of the BoundVerts. If the
+ * other ends have been (re)built already, then we copy the offsets from there to match, else we
+ * use the ideal (user-specified) widths.
+ *
+ * \param construct The first time through, construct will be true and we are making the BoundVerts
+ * and setting up the BoundVert and EdgeHalf pointers appropriately. Also, if construct, decide on
+ * the mesh pattern that will be used inside the boundary.
+ */
 static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 {
   MemArena *mem_arena = bp->mem_arena;
@@ -2614,7 +2625,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
   int in_plane, not_in_plane, miter_outer, miter_inner;
   int ang_kind;
 
-  /* Current bevel does nothing if only one edge into a vertex */
+  /* Current bevel does nothing if only one edge into a vertex. */
   if (bv->edgecount <= 1) {
     return;
   }
@@ -2626,21 +2637,21 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 
   vm = bv->vmesh;
 
-  /* Find a beveled edge to be efirst */
+  /* Find a beveled edge to be efirst. */
   e = efirst = next_bev(bv, NULL);
   BLI_assert(e->is_bev);
 
   if (bv->selcount == 1) {
-    /* Special case: only one beveled edge in */
+    /* Special case: only one beveled edge in. */
     build_boundary_terminal_edge(bp, bv, efirst, construct);
     return;
   }
 
-  /* Special miters outside only for 3 or more beveled edges */
+  /* Special miters outside only for 3 or more beveled edges. */
   miter_outer = (bv->selcount >= 3) ? bp->miter_outer : BEVEL_MITER_SHARP;
   miter_inner = bp->miter_inner;
 
-  /* keep track of the first beveled edge of an outside miter (there can be at most 1 per bv */
+  /* Keep track of the first beveled edge of an outside miter (there can be at most 1 per bv). */
   emiter = NULL;
 
   /* There is more than one beveled edge.
@@ -2650,14 +2661,13 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
   do {
     BLI_assert(e->is_bev);
     eon = NULL;
-    /* Make the BoundVert for the right side of e; other side will be made
-     * when the beveled edge to the left of e is handled.
-     * Analyze edges until next beveled edge.
-     * They are either "in plane" (preceding and subsequent faces are coplanar) or not.
-     * The "non-in-plane" edges affect the silhouette and we prefer to slide along one of those if
-     * possible. */
-    in_plane = not_in_plane = 0; /* Counts of in-plane / not-in-plane */
-    enip = eip = NULL;           /* representatives of each */
+    /* Make the BoundVert for the right side of e; the other side will be made when the beveled
+     * edge to the left of e is handled.
+     * Analyze edges until next beveled edge: They are either "in plane" (preceding and subsequent
+     * faces are coplanar) or not. The "non-in-plane" edges affect the silhouette and we prefer to
+     * slide along one of those if possible. */
+    in_plane = not_in_plane = 0; /* Counts of in-plane / not-in-plane. */
+    enip = eip = NULL;           /* Representatives of each type. */
     for (e2 = e->next; !e2->is_bev; e2 = e2->next) {
       if (eh_on_plane(e2)) {
         in_plane++;
@@ -2668,8 +2678,9 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
         enip = e2;
       }
     }
+
     if (in_plane == 0 && not_in_plane == 0) {
-      offset_meet(e, e2, bv->v, e->fnext, false, co);
+      offset_meet(e, e2, bv->v, e->fnext, false, co, NULL);
     }
     else if (not_in_plane > 0) {
       if (bp->loop_slide && not_in_plane == 1 && good_offset_on_edge_between(e, e2, enip, bv->v)) {
@@ -2678,7 +2689,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
         }
       }
       else {
-        offset_meet(e, e2, bv->v, NULL, true, co);
+        offset_meet(e, e2, bv->v, NULL, true, co, eip);
       }
     }
     else {
@@ -2689,9 +2700,10 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
         }
       }
       else {
-        offset_meet(e, e2, bv->v, e->fnext, true, co);
+        offset_meet(e, e2, bv->v, e->fnext, true, co, eip);
       }
     }
+
     if (construct) {
       v = add_new_bound_vert(mem_arena, vm, co);
       v->efirst = e;
