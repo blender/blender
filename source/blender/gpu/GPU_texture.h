@@ -188,7 +188,6 @@ GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat data_type, const uint bu
 
 GPUTexture *GPU_texture_from_bindcode(int textarget, int bindcode);
 GPUTexture *GPU_texture_from_blender(struct Image *ima, struct ImageUser *iuser, int textarget);
-GPUTexture *GPU_texture_from_preview(struct PreviewImage *prv, int mipmap);
 
 /* movie clip drawing */
 GPUTexture *GPU_texture_from_movieclip(struct MovieClip *clip,

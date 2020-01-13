@@ -1072,56 +1072,6 @@ GPUTexture *GPU_texture_from_bindcode(int textarget, int bindcode)
   return tex;
 }
 
-GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
-{
-  GPUTexture *tex = prv->gputexture[0];
-  GLuint bindcode = 0;
-
-  if (tex) {
-    bindcode = tex->bindcode;
-  }
-
-  /* this binds a texture, so that's why we restore it to 0 */
-  if (bindcode == 0) {
-    GPU_create_gl_tex(
-        &bindcode, prv->rect[0], NULL, prv->w[0], prv->h[0], GL_TEXTURE_2D, mipmap, false, NULL);
-  }
-  if (tex) {
-    tex->bindcode = bindcode;
-    glBindTexture(GL_TEXTURE_2D, 0);
-    return tex;
-  }
-
-  tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
-  tex->bindcode = bindcode;
-  tex->number = -1;
-  tex->refcount = 1;
-  tex->target = GL_TEXTURE_2D;
-  tex->target_base = GL_TEXTURE_2D;
-  tex->format = -1;
-  tex->components = -1;
-
-  prv->gputexture[0] = tex;
-
-  if (!glIsTexture(tex->bindcode)) {
-    GPU_print_error_debug("Blender Texture Not Loaded");
-  }
-  else {
-    GLint w, h;
-
-    glBindTexture(GL_TEXTURE_2D, tex->bindcode);
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
-
-    tex->w = w;
-    tex->h = h;
-  }
-
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  return tex;
-}
-
 GPUTexture *GPU_texture_create_1d(int w,
                                   eGPUTextureFormat tex_format,
                                   const float *pixels,
