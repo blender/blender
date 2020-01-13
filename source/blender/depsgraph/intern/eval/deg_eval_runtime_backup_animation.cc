@@ -100,6 +100,14 @@ void AnimationBackup::reset()
 
 void AnimationBackup::init_from_id(ID *id)
 {
+  /* NOTE: This animation backup nicely preserves values which are animated and
+   * are not touched by frame/depsgraph post_update handler.
+   *
+   * But it makes it impossible to have user edits to animated properties: for
+   * example, translation of object with animated location will not work with
+   * the current version of backup. */
+  return;
+
   AnimatedPropertyStoreCalbackData data;
   data.backup = this;
   data.id = id;
@@ -109,6 +117,8 @@ void AnimationBackup::init_from_id(ID *id)
 
 void AnimationBackup::restore_to_id(ID *id)
 {
+  return;
+
   PointerRNA id_pointer_rna;
   RNA_id_pointer_create(id, &id_pointer_rna);
   for (const AnimationValueBackup &value_backup : values_backup) {

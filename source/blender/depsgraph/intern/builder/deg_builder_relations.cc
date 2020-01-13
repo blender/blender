@@ -2675,6 +2675,10 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
     }
   }
 
+#if 0
+  /* NOTE: Relation is disabled since AnimationBackup() is disabled.
+   * See comment in  AnimationBackup:init_from_id(). */
+
   /* Copy-on-write of write will iterate over f-curves to store current values corresponding
    * to their RNA path. This means that action must be copied prior to the ID's copy-on-write,
    * otherwise depsgraph might try to access freed data. */
@@ -2689,6 +2693,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
                    RELATION_FLAG_GODMODE | RELATION_FLAG_NO_FLUSH);
     }
   }
+#endif
 }
 
 /* **** ID traversal callbacks functions **** */
