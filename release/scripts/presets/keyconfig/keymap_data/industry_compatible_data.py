@@ -946,7 +946,7 @@ def km_image_generic(params):
         ("image.reload", {"type": 'R', "value": 'PRESS', "alt": True}, None),
         ("image.read_viewlayers", {"type": 'R', "value": 'PRESS', "ctrl": True}, None),
         ("image.save", {"type": 'S', "value": 'PRESS', "alt": True}, None),
-        ("image.save_as", {"type": 'S', "value": 'PRESS', "shift": True}, None),
+        ("image.save_as", {"type": 'S', "value": 'PRESS', "shift": True, "alt": True}, None),
     ])
 
     return keymap
