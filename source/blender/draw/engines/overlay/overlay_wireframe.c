@@ -167,9 +167,10 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
 
   /* Don't do that in edit Mesh mode, unless there is a modifier preview. */
   if (use_wire && (!is_mesh || (!is_edit_mode || has_edit_mesh_cage))) {
+    const bool is_sculpt_mode = ((ob->mode & OB_MODE_SCULPT) != 0) && (ob->sculpt != NULL);
     const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
                                  !DRW_state_is_image_render();
-    const bool use_coloring = (use_wire && !is_edit_mode && !use_sculpt_pbvh &&
+    const bool use_coloring = (use_wire && !is_edit_mode && !is_sculpt_mode &&
                                !has_edit_mesh_cage);
     DRWShadingGroup *shgrp = NULL;
     struct GPUBatch *geom = DRW_cache_object_face_wireframe_get(ob);
