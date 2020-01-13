@@ -1606,6 +1606,8 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
     drw_draw_background_alpha_under();
   }
 
+  drw_debug_draw();
+
   /* Fix 3D view being "laggy" on macos and win+nvidia. (See T56996, T61474) */
   GPU_flush();
 
@@ -1629,8 +1631,6 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
      * Don't trust them! */
     DRW_state_reset();
   }
-
-  drw_debug_draw();
 
   GPU_depth_test(false);
   drw_engines_draw_text();

@@ -210,6 +210,10 @@ static void drw_debug_draw_spheres(void)
   GPU_batch_instbuf_set(draw_batch, inst_vbo, true);
   GPU_batch_program_set_builtin(draw_batch, GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE);
 
+  float persmat[4][4];
+  DRW_view_persmat_get(NULL, persmat, false);
+  GPU_batch_uniform_mat4(draw_batch, "ViewProjectionMatrix", persmat);
+
   GPU_batch_draw(draw_batch);
   GPU_batch_discard(draw_batch);
 }
