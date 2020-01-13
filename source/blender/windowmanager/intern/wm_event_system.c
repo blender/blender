@@ -1966,7 +1966,8 @@ static int wm_handler_operator_call(bContext *C,
                                     ListBase *handlers,
                                     wmEventHandler *handler_base,
                                     wmEvent *event,
-                                    PointerRNA *properties)
+                                    PointerRNA *properties,
+                                    const char *kmi_idname)
 {
   int retval = OPERATOR_PASS_THROUGH;
 
@@ -2068,7 +2069,7 @@ static int wm_handler_operator_call(bContext *C,
     }
   }
   else {
-    wmOperatorType *ot = WM_operatortype_find(event->keymap_idname, 0);
+    wmOperatorType *ot = WM_operatortype_find(kmi_idname, 0);
 
     if (ot && wm_operator_check_locked_interface(C, ot)) {
       bool use_last_properties = true;
@@ -2406,10 +2407,8 @@ static int wm_handlers_do_keymap_with_keymap_handler(
 
           PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
 
-          /* weak, but allows interactive callback to not use rawkey */
-          event->keymap_idname = kmi->idname;
-
-          action |= wm_handler_operator_call(C, handlers, &handler->head, event, kmi->ptr);
+          action |= wm_handler_operator_call(
+              C, handlers, &handler->head, event, kmi->ptr, kmi->idname);
 
           if (action & WM_HANDLER_BREAK) {
             /* not always_pass here, it denotes removed handler_base */
@@ -2463,13 +2462,11 @@ static int wm_handlers_do_keymap_with_gizmo_handler(
       if (wm_eventmatch(event, kmi)) {
         PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
 
-        /* weak, but allows interactive callback to not use rawkey */
-        event->keymap_idname = kmi->idname;
-
         CTX_wm_gizmo_group_set(C, gzgroup);
 
         /* handler->op is called later, we want keymap op to be triggered here */
-        action |= wm_handler_operator_call(C, handlers, &handler->head, event, kmi->ptr);
+        action |= wm_handler_operator_call(
+            C, handlers, &handler->head, event, kmi->ptr, kmi->idname);
 
         CTX_wm_gizmo_group_set(C, NULL);
 
@@ -2760,7 +2757,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
           }
         }
         else {
-          action |= wm_handler_operator_call(C, handlers, handler_base, event, NULL);
+          action |= wm_handler_operator_call(C, handlers, handler_base, event, NULL, NULL);
         }
       }
       else {

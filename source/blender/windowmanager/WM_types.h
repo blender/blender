@@ -548,9 +548,6 @@ typedef struct wmEvent {
   char check_drag;
   char is_motion_absolute;
 
-  /** Keymap item, set by handler (weak?). */
-  const char *keymap_idname;
-
   /** Tablet info, only use when the tablet is active. */
   const struct wmTabletData *tablet_data;
 

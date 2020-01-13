@@ -68,7 +68,7 @@ void WM_event_print(const wmEvent *event)
     printf(
         "wmEvent  type:%d / %s, val:%d / %s,\n"
         "         shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d,\n"
-        "         mouse:(%d,%d), ascii:'%c', utf8:'%.*s', keymap_idname:%s, pointer:%p\n",
+        "         mouse:(%d,%d), ascii:'%c', utf8:'%.*s', pointer:%p\n",
         event->type,
         type_id,
         event->val,
@@ -83,7 +83,6 @@ void WM_event_print(const wmEvent *event)
         event->ascii,
         BLI_str_utf8_size(event->utf8_buf),
         event->utf8_buf,
-        event->keymap_idname,
         (const void *)event);
 
 #ifdef WITH_INPUT_NDOF
