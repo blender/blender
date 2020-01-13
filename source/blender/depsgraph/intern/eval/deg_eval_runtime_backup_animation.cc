@@ -114,9 +114,8 @@ void AnimationBackup::restore_to_id(ID *id)
   for (const AnimationValueBackup &value_backup : values_backup) {
     /* Resolve path to the property.
      *
-     * NOTE: Do it again (after storing), since the sub-data [ointers might be
-     * changed after copy-on-write.
-     */
+     * NOTE: Do it again (after storing), since the sub-data pointers might be
+     * changed after copy-on-write. */
     PathResolvedRNA resolved_rna;
     if (!BKE_animsys_store_rna_setting(&id_pointer_rna,
                                        value_backup.rna_path.c_str(),
