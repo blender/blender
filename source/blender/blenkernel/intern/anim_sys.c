@@ -1665,11 +1665,11 @@ void BKE_keyingsets_free(ListBase *list)
 /* ***************************************** */
 /* Evaluation Data-Setting Backend */
 
-static bool animsys_store_rna_setting(PointerRNA *ptr,
-                                      /* typically 'fcu->rna_path', 'fcu->array_index' */
-                                      const char *rna_path,
-                                      const int array_index,
-                                      PathResolvedRNA *r_result)
+bool BKE_animsys_store_rna_setting(PointerRNA *ptr,
+                                   /* typically 'fcu->rna_path', 'fcu->array_index' */
+                                   const char *rna_path,
+                                   const int array_index,
+                                   PathResolvedRNA *r_result)
 {
   bool success = false;
   const char *path = rna_path;
@@ -1880,7 +1880,7 @@ static void animsys_write_orig_anim_rna(PointerRNA *ptr,
   }
   PathResolvedRNA orig_anim_rna;
   /* TODO(sergey): Should be possible to cache resolved path in dependency graph somehow. */
-  if (animsys_store_rna_setting(&ptr_orig, rna_path, array_index, &orig_anim_rna)) {
+  if (BKE_animsys_store_rna_setting(&ptr_orig, rna_path, array_index, &orig_anim_rna)) {
     BKE_animsys_write_rna_setting(&orig_anim_rna, value);
   }
 }
@@ -1910,7 +1910,7 @@ static void animsys_evaluate_fcurves(PointerRNA *ptr,
       continue;
     }
     PathResolvedRNA anim_rna;
-    if (animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
+    if (BKE_animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
       const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
       BKE_animsys_write_rna_setting(&anim_rna, curval);
       if (flush_to_original) {
@@ -1944,7 +1944,7 @@ static void animsys_evaluate_drivers(PointerRNA *ptr, AnimData *adt, float ctime
          * NOTE: for 'layering' option later on, we should check if we should remove old value
          * before adding new to only be done when drivers only changed. */
         PathResolvedRNA anim_rna;
-        if (animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
+        if (BKE_animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
           const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
           ok = BKE_animsys_write_rna_setting(&anim_rna, curval);
         }
@@ -2023,7 +2023,7 @@ void animsys_evaluate_action_group(PointerRNA *ptr, bAction *act, bActionGroup *
     /* check if this curve should be skipped */
     if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) == 0 && !BKE_fcurve_is_empty(fcu)) {
       PathResolvedRNA anim_rna;
-      if (animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
+      if (BKE_animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
         const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
         BKE_animsys_write_rna_setting(&anim_rna, curval);
       }
@@ -3803,7 +3803,7 @@ static void animsys_evaluate_overrides(PointerRNA *ptr, AnimData *adt)
   /* for each override, simply execute... */
   for (aor = adt->overrides.first; aor; aor = aor->next) {
     PathResolvedRNA anim_rna;
-    if (animsys_store_rna_setting(ptr, aor->rna_path, aor->array_index, &anim_rna)) {
+    if (BKE_animsys_store_rna_setting(ptr, aor->rna_path, aor->array_index, &anim_rna)) {
       BKE_animsys_write_rna_setting(&anim_rna, aor->value);
     }
   }
@@ -4125,7 +4125,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
       // printf("\told val = %f\n", fcu->curval);
 
       PathResolvedRNA anim_rna;
-      if (animsys_store_rna_setting(&id_ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
+      if (BKE_animsys_store_rna_setting(&id_ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
         /* Evaluate driver, and write results to COW-domain destination */
         const float ctime = DEG_get_ctime(depsgraph);
         const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
