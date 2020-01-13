@@ -1805,91 +1805,88 @@ void BKE_curve_bevel_make(Object *ob, ListBase *disp)
     }
   }
   else {
-    short dnr;
+    /* The general case for nonzero extrusion or an incomplete loop. */
+    dl = MEM_callocN(sizeof(DispList), "makebevelcurve");
+    if ((cu->flag & (CU_FRONT | CU_BACK)) == 0) {
+      /* The full loop. */
+      nr = 4 * cu->bevresol + 6;
+      dl->flag = DL_FRONT_CURVE | DL_BACK_CURVE;
+    }
+    else if ((cu->flag & CU_FRONT) && (cu->flag & CU_BACK)) {
+      /* Half the loop. */
+      nr = 2 * (cu->bevresol + 1) + ((cu->ext1 == 0.0f) ? 1 : 2);
+      dl->flag = DL_FRONT_CURVE | DL_BACK_CURVE;
+    }
+    else {
+      /* One quarter of the loop (just front or back). */
+      nr = (cu->ext1 == 0.0f) ? cu->bevresol + 2 : cu->bevresol + 3;
+      dl->flag = (cu->flag & CU_FRONT) ? DL_FRONT_CURVE : DL_BACK_CURVE;
+    }
 
-    /* bevel now in three parts, for proper vertex normals */
-    /* part 1, back */
+    dl->verts = MEM_malloc_arrayN(nr, sizeof(float[3]), "makebevelcurve");
+    BLI_addtail(disp, dl);
+    /* Use a different type depending on whether the loop is complete or not. */
+    dl->type = ((cu->flag & (CU_FRONT | CU_BACK)) == 0) ? DL_POLY : DL_SEGM;
+    dl->parts = 1;
+    dl->nr = nr;
 
-    if ((cu->flag & CU_BACK) || !(cu->flag & CU_FRONT)) {
-      dnr = nr = 2 + cu->bevresol;
-      if ((cu->flag & (CU_FRONT | CU_BACK)) == 0) {
-        nr = 3 + 2 * cu->bevresol;
-      }
-      dl = MEM_callocN(sizeof(DispList), "makebevelcurve p1");
-      dl->verts = MEM_malloc_arrayN(nr, sizeof(float[3]), "makebevelcurve p1");
-      BLI_addtail(disp, dl);
-      dl->type = DL_SEGM;
-      dl->parts = 1;
-      dl->flag = DL_BACK_CURVE;
-      dl->nr = nr;
+    fp = dl->verts;
+    dangle = (float)M_PI_2 / (cu->bevresol + 1);
+    angle = 0.0;
 
-      /* half a circle */
-      fp = dl->verts;
-      dangle = ((float)M_PI_2 / (dnr - 1));
-      angle = -(nr - 1) * dangle;
-
-      for (a = 0; a < nr; a++) {
+    /* Build the back section. */
+    if (cu->flag & CU_BACK || !(cu->flag & CU_FRONT)) {
+      angle = (float)M_PI_2 * 3.0f;
+      for (a = 0; a < cu->bevresol + 2; a++) {
         fp[0] = 0.0;
         fp[1] = (float)(cosf(angle) * (cu->ext2));
         fp[2] = (float)(sinf(angle) * (cu->ext2)) - cu->ext1;
         angle += dangle;
         fp += 3;
       }
-    }
-
-    /* part 2, sidefaces */
-    if (cu->ext1 != 0.0f) {
-      nr = 2;
-
-      dl = MEM_callocN(sizeof(DispList), "makebevelcurve p2");
-      dl->verts = MEM_malloc_arrayN(nr, sizeof(float[3]), "makebevelcurve p2");
-      BLI_addtail(disp, dl);
-      dl->type = DL_SEGM;
-      dl->parts = 1;
-      dl->nr = nr;
-
-      fp = dl->verts;
-      fp[1] = cu->ext2;
-      fp[2] = -cu->ext1;
-      fp[4] = cu->ext2;
-      fp[5] = cu->ext1;
-
-      if ((cu->flag & (CU_FRONT | CU_BACK)) == 0) {
-        dl = MEM_dupallocN(dl);
-        dl->verts = MEM_dupallocN(dl->verts);
-        BLI_addtail(disp, dl);
-
-        fp = dl->verts;
-        fp[1] = -fp[1];
-        fp[2] = -fp[2];
-        fp[4] = -fp[4];
-        fp[5] = -fp[5];
+      if ((cu->ext1 != 0.0f) && !(cu->flag & CU_FRONT) && (cu->flag & CU_BACK)) {
+        /* Add the extrusion if we're only building the back. */
+        fp[0] = 0.0;
+        fp[1] = cu->ext2;
+        fp[2] = cu->ext1;
       }
     }
 
-    /* part 3, front */
-    if ((cu->flag & CU_FRONT) || !(cu->flag & CU_BACK)) {
-      dnr = nr = 2 + cu->bevresol;
-      if ((cu->flag & (CU_FRONT | CU_BACK)) == 0) {
-        nr = 3 + 2 * cu->bevresol;
+    /* Build the front section. */
+    if (cu->flag & CU_FRONT || !(cu->flag & CU_BACK)) {
+      if ((cu->ext1 != 0.0f) && !(cu->flag & CU_BACK) && (cu->flag & CU_FRONT)) {
+        /* Add the extrusion if we're only building the back. */
+        fp[0] = 0.0;
+        fp[1] = cu->ext2;
+        fp[2] = -cu->ext1;
+        fp += 3;
       }
-      dl = MEM_callocN(sizeof(DispList), "makebevelcurve p3");
-      dl->verts = MEM_malloc_arrayN(nr, sizeof(float[3]), "makebevelcurve p3");
-      BLI_addtail(disp, dl);
-      dl->type = DL_SEGM;
-      dl->flag = DL_FRONT_CURVE;
-      dl->parts = 1;
-      dl->nr = nr;
-
-      /* half a circle */
-      fp = dl->verts;
-      angle = 0.0;
-      dangle = ((float)M_PI_2 / (dnr - 1));
-
-      for (a = 0; a < nr; a++) {
+      /* Don't duplicate the last back vertex. */
+      angle = (cu->ext1 == 0.0f && (cu->flag & CU_BACK)) ? dangle : 0;
+      for (a = 0; a < cu->bevresol + 2; a++) {
         fp[0] = 0.0;
         fp[1] = (float)(cosf(angle) * (cu->ext2));
         fp[2] = (float)(sinf(angle) * (cu->ext2)) + cu->ext1;
+        angle += dangle;
+        fp += 3;
+      }
+    }
+
+    /* Build the other half only if we're building the full loop. */
+    if (!(cu->flag & (CU_FRONT | CU_BACK))) {
+      for (a = 0; a < cu->bevresol + 1; a++) {
+        fp[0] = 0.0;
+        fp[1] = (float)(cosf(angle) * (cu->ext2));
+        fp[2] = (float)(sinf(angle) * (cu->ext2)) + cu->ext1;
+        angle += dangle;
+        fp += 3;
+      }
+
+      angle = (float)M_PI;
+      for (a = 0; a < cu->bevresol + 1; a++) {
+        fp[0] = 0.0;
+        fp[1] = (float)(cosf(angle) * (cu->ext2));
+        fp[2] = (float)(sinf(angle) * (cu->ext2)) - cu->ext1;
         angle += dangle;
         fp += 3;
       }
