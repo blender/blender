@@ -129,6 +129,7 @@ void drw_state_set(DRWState state)
       }
       else {
         glStencilMask(0x00);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
       }
     }
   }

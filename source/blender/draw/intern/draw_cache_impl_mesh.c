@@ -1055,6 +1055,7 @@ void DRW_mesh_batch_cache_create_requested(
     ts = scene->toolsettings;
   }
   MeshBatchCache *cache = mesh_batch_cache_get(me);
+  bool cd_uv_update = false;
 
   /* Early out */
   if (cache->batch_requested == 0) {
@@ -1138,6 +1139,7 @@ void DRW_mesh_batch_cache_create_requested(
       {
         if ((cache->cd_used.uv & cache->cd_needed.uv) != cache->cd_needed.uv) {
           GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.uv);
+          cd_uv_update = true;
         }
         if ((cache->cd_used.tan & cache->cd_needed.tan) != cache->cd_needed.tan ||
             cache->cd_used.tan_orco != cache->cd_needed.tan_orco) {
@@ -1177,29 +1179,27 @@ void DRW_mesh_batch_cache_create_requested(
 
   if (batch_requested & MBC_EDITUV) {
     /* Discard UV batches if sync_selection changes */
-    if (ts != NULL) {
-      const bool is_uvsyncsel = (ts->uv_flag & UV_SYNC_SELECTION);
-      if (cache->is_uvsyncsel != is_uvsyncsel) {
-        cache->is_uvsyncsel = is_uvsyncsel;
-        FOREACH_MESH_BUFFER_CACHE(cache, mbuffercache)
-        {
-          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.edituv_data);
-          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.fdots_uv);
-          GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_tris);
-          GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_lines);
-          GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_points);
-        }
-        /* We only clear the batches as they may already have been
-         * referenced. */
-        GPU_BATCH_CLEAR_SAFE(cache->batch.wire_loops_uvs);
-        GPU_BATCH_CLEAR_SAFE(cache->batch.edituv_faces_stretch_area);
-        GPU_BATCH_CLEAR_SAFE(cache->batch.edituv_faces_stretch_angle);
-        GPU_BATCH_CLEAR_SAFE(cache->batch.edituv_faces);
-        GPU_BATCH_CLEAR_SAFE(cache->batch.edituv_edges);
-        GPU_BATCH_CLEAR_SAFE(cache->batch.edituv_verts);
-        GPU_BATCH_CLEAR_SAFE(cache->batch.edituv_fdots);
-        cache->batch_ready &= ~MBC_EDITUV;
+    const bool is_uvsyncsel = ts && (ts->uv_flag & UV_SYNC_SELECTION);
+    if (cd_uv_update || (cache->is_uvsyncsel != is_uvsyncsel)) {
+      cache->is_uvsyncsel = is_uvsyncsel;
+      FOREACH_MESH_BUFFER_CACHE(cache, mbuffercache)
+      {
+        GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.edituv_data);
+        GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.fdots_uv);
+        GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_tris);
+        GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_lines);
+        GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_points);
       }
+      /* We only clear the batches as they may already have been
+       * referenced. */
+      GPU_BATCH_CLEAR_SAFE(cache->batch.wire_loops_uvs);
+      GPU_BATCH_CLEAR_SAFE(cache->batch.edituv_faces_stretch_area);
+      GPU_BATCH_CLEAR_SAFE(cache->batch.edituv_faces_stretch_angle);
+      GPU_BATCH_CLEAR_SAFE(cache->batch.edituv_faces);
+      GPU_BATCH_CLEAR_SAFE(cache->batch.edituv_edges);
+      GPU_BATCH_CLEAR_SAFE(cache->batch.edituv_verts);
+      GPU_BATCH_CLEAR_SAFE(cache->batch.edituv_fdots);
+      cache->batch_ready &= ~MBC_EDITUV;
     }
   }
 

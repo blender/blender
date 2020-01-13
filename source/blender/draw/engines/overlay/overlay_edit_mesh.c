@@ -204,6 +204,7 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_bool_copy(grp, "selectEdges", pd->edit_mesh.do_edges || select_edge);
 
     /* Verts */
+    state |= DRW_STATE_WRITE_DEPTH;
     DRW_PASS_CREATE(psl->edit_mesh_verts_ps[i], state | pd->clipping_state);
 
     if (select_vert) {

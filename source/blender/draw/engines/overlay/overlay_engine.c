@@ -412,6 +412,11 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_motion_path_draw(vedata);
   OVERLAY_extra_centers_draw(vedata);
 
+  if (DRW_state_is_select()) {
+    /* Edit modes have their own selection code. */
+    return;
+  }
+
   /* Functions after this point can change FBO freely. */
 
   switch (pd->ctx_mode) {
