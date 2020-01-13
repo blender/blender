@@ -4957,7 +4957,7 @@ static int edbm_region_to_loop_exec(bContext *C, wmOperator *UNUSED(op))
       EDBM_selectmode_to_scene(C);
     }
 
-    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
+    DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
   MEM_freeN(objects);
