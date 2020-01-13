@@ -277,14 +277,15 @@ def draw(layout, context, context_member, property_type, use_edit=True):
         else:
             val_draw = val
 
-        row = flow.row(align=True)
+        row = layout.row(align=True)
         box = row.box()
 
         if use_edit:
             split = box.split(factor=0.75)
             row = split.row(align=True)
         else:
-            row = box.row(align=True)
+            split = box.split(factor=1.00)
+            row = split.row(align=True)
 
         row.alignment = 'RIGHT'
 
