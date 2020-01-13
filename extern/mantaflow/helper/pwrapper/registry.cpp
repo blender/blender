@@ -128,6 +128,7 @@ class WrapperRegistry {
   void registerOperators(ClassData *cls);
   void addParentMethods(ClassData *cls, ClassData *base);
   WrapperRegistry();
+  ~WrapperRegistry();
   std::map<std::string, ClassData *> mClasses;
   std::vector<ClassData *> mClassList;
   std::vector<InitFunc> mExtInitializers;
@@ -208,6 +209,13 @@ WrapperRegistry::WrapperRegistry()
 {
   addClass("__modclass__", "__modclass__", "");
   addClass("PbClass", "PbClass", "");
+}
+
+WrapperRegistry::~WrapperRegistry()
+{
+  // Some static constructions may have called WrapperRegistry.instance() and added
+  // own classes, functions, etc. Ensure everything is cleaned up properly.
+  cleanup();
 }
 
 ClassData *WrapperRegistry::getOrConstructClass(const string &classname)
