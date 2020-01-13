@@ -37,8 +37,8 @@
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
 #define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
 #define MAX_COMPOSITE_SHADERS (1 << 7)
-#define MAX_PREPASS_SHADERS (1 << 7)
-#define MAX_ACCUM_SHADERS (1 << 7)
+#define MAX_PREPASS_SHADERS (1 << 8)
+#define MAX_ACCUM_SHADERS (1 << 8)
 #define MAX_CAVITY_SHADERS (1 << 3)
 
 #define TEXTURE_DRAWING_ENABLED(wpd) (wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR)
@@ -207,6 +207,7 @@ typedef struct WORKBENCH_PrivateData {
   struct GPUShader *prepass_uniform_sh;
   struct GPUShader *prepass_uniform_hair_sh;
   struct GPUShader *prepass_textured_sh;
+  struct GPUShader *prepass_textured_array_sh;
   struct GPUShader *prepass_vertex_sh;
   struct GPUShader *composite_sh;
   struct GPUShader *background_sh;
@@ -215,6 +216,7 @@ typedef struct WORKBENCH_PrivateData {
   struct GPUShader *transparent_accum_uniform_sh;
   struct GPUShader *transparent_accum_uniform_hair_sh;
   struct GPUShader *transparent_accum_textured_sh;
+  struct GPUShader *transparent_accum_textured_array_sh;
   struct GPUShader *transparent_accum_vertex_sh;
   View3DShading shading;
   StudioLight *studio_light;
@@ -516,6 +518,7 @@ void workbench_material_get_image_and_mat(
 char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd,
                                        bool is_uniform_color,
                                        bool is_hair,
+                                       bool is_tiled,
                                        const WORKBENCH_ColorOverride color_override);
 void workbench_material_update_data(WORKBENCH_PrivateData *wpd,
                                     Object *ob,
@@ -527,16 +530,19 @@ int workbench_material_get_composite_shader_index(WORKBENCH_PrivateData *wpd);
 int workbench_material_get_prepass_shader_index(WORKBENCH_PrivateData *wpd,
                                                 bool is_uniform_color,
                                                 bool is_hair,
+                                                bool is_tiled,
                                                 const WORKBENCH_ColorOverride color_override);
 int workbench_material_get_accum_shader_index(WORKBENCH_PrivateData *wpd,
                                               bool is_uniform_color,
                                               bool is_hair,
+                                              bool is_tiled,
                                               const WORKBENCH_ColorOverride color_override);
 void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd,
                                         DRWShadingGroup *grp,
                                         WORKBENCH_MaterialData *material,
                                         Object *ob,
                                         const bool deferred,
+                                        const bool is_tiled,
                                         const int interp);
 void workbench_material_copy(WORKBENCH_MaterialData *dest_material,
                              const WORKBENCH_MaterialData *source_material);

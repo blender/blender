@@ -172,8 +172,10 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(WORKBENCH_
     GPUShader *shader = (wpd->shading.color_type == color_type) ?
                             wpd->transparent_accum_sh :
                             wpd->transparent_accum_uniform_sh;
+    const bool is_tiled = (ima && ima->source == IMA_SRC_TILED);
     if (color_type == V3D_SHADING_TEXTURE_COLOR) {
-      shader = wpd->transparent_accum_textured_sh;
+      shader = is_tiled ? wpd->transparent_accum_textured_array_sh :
+                          wpd->transparent_accum_textured_sh;
     }
 
     grp = DRW_shgroup_create(shader, psl->transparent_accum_pass);
@@ -201,7 +203,7 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(WORKBENCH_
       DRW_shgroup_uniform_float_copy(grp, "shadowFocus", wpd->shadow_focus);
     }
 
-    workbench_material_shgroup_uniform(wpd, grp, material, ob, false, interp);
+    workbench_material_shgroup_uniform(wpd, grp, material, ob, false, is_tiled, interp);
     material->shgrp = grp;
 
     /* Depth */
@@ -226,16 +228,17 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(WORKBENCH_
 static GPUShader *ensure_forward_accum_shaders(WORKBENCH_PrivateData *wpd,
                                                bool is_uniform_color,
                                                bool is_hair,
+                                               bool is_tiled,
                                                const WORKBENCH_ColorOverride color_override,
                                                eGPUShaderConfig sh_cfg)
 {
   WORKBENCH_FORWARD_Shaders *sh_data = &e_data.sh_data[sh_cfg];
   int index = workbench_material_get_accum_shader_index(
-      wpd, is_uniform_color, is_hair, color_override);
+      wpd, is_uniform_color, is_hair, is_tiled, color_override);
   if (sh_data->transparent_accum_sh_cache[index] == NULL) {
     const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
     char *defines = workbench_material_build_defines(
-        wpd, is_uniform_color, is_hair, color_override);
+        wpd, is_uniform_color, is_hair, is_tiled, color_override);
     char *transparent_accum_vert = workbench_build_forward_vert(is_hair);
     char *transparent_accum_frag = workbench_build_forward_transparent_accum_frag();
     sh_data->transparent_accum_sh_cache[index] = GPU_shader_create_from_arrays({
@@ -255,7 +258,7 @@ static GPUShader *ensure_forward_composite_shaders(WORKBENCH_PrivateData *wpd)
   int index = OBJECT_OUTLINE_ENABLED(wpd) ? 1 : 0;
   if (e_data.composite_sh_cache[index] == NULL) {
     char *defines = workbench_material_build_defines(
-        wpd, false, false, WORKBENCH_COLOR_OVERRIDE_OFF);
+        wpd, false, false, false, WORKBENCH_COLOR_OVERRIDE_OFF);
     char *composite_frag = workbench_build_forward_composite_frag();
     e_data.composite_sh_cache[index] = DRW_shader_create_fullscreen(composite_frag, defines);
     MEM_freeN(composite_frag);
@@ -268,17 +271,19 @@ void workbench_forward_choose_shaders(WORKBENCH_PrivateData *wpd, eGPUShaderConf
 {
   wpd->composite_sh = ensure_forward_composite_shaders(wpd);
   wpd->transparent_accum_sh = ensure_forward_accum_shaders(
-      wpd, false, false, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
+      wpd, false, false, false, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
   wpd->transparent_accum_hair_sh = ensure_forward_accum_shaders(
-      wpd, false, true, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
+      wpd, false, true, false, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
   wpd->transparent_accum_uniform_sh = ensure_forward_accum_shaders(
-      wpd, true, false, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
+      wpd, true, false, false, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
   wpd->transparent_accum_uniform_hair_sh = ensure_forward_accum_shaders(
-      wpd, true, true, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
+      wpd, true, true, false, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
   wpd->transparent_accum_textured_sh = ensure_forward_accum_shaders(
-      wpd, false, false, WORKBENCH_COLOR_OVERRIDE_TEXTURE, sh_cfg);
+      wpd, false, false, false, WORKBENCH_COLOR_OVERRIDE_TEXTURE, sh_cfg);
+  wpd->transparent_accum_textured_array_sh = ensure_forward_accum_shaders(
+      wpd, false, false, true, WORKBENCH_COLOR_OVERRIDE_TEXTURE, sh_cfg);
   wpd->transparent_accum_vertex_sh = ensure_forward_accum_shaders(
-      wpd, false, false, WORKBENCH_COLOR_OVERRIDE_VERTEX, sh_cfg);
+      wpd, false, false, false, WORKBENCH_COLOR_OVERRIDE_VERTEX, sh_cfg);
 }
 
 void workbench_forward_outline_shaders_ensure(WORKBENCH_PrivateData *wpd, eGPUShaderConfig sh_cfg)
@@ -288,11 +293,11 @@ void workbench_forward_outline_shaders_ensure(WORKBENCH_PrivateData *wpd, eGPUSh
   if (sh_data->object_outline_sh == NULL) {
     const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
     char *defines = workbench_material_build_defines(
-        wpd, false, false, WORKBENCH_COLOR_OVERRIDE_OFF);
+        wpd, false, false, false, WORKBENCH_COLOR_OVERRIDE_OFF);
     char *defines_texture = workbench_material_build_defines(
-        wpd, true, false, WORKBENCH_COLOR_OVERRIDE_OFF);
+        wpd, true, false, false, WORKBENCH_COLOR_OVERRIDE_OFF);
     char *defines_hair = workbench_material_build_defines(
-        wpd, false, true, WORKBENCH_COLOR_OVERRIDE_OFF);
+        wpd, false, true, false, WORKBENCH_COLOR_OVERRIDE_OFF);
     char *forward_vert = workbench_build_forward_vert(false);
     char *forward_frag = workbench_build_forward_outline_frag();
     char *forward_hair_vert = workbench_build_forward_vert(true);
@@ -533,7 +538,7 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
       DRWShadingGroup *shgrp = DRW_shgroup_hair_create(
           ob, psys, md, psl->transparent_accum_pass, shader);
       DRW_shgroup_uniform_block(shgrp, "world_block", wpd->world_ubo);
-      workbench_material_shgroup_uniform(wpd, shgrp, material, ob, false, interp);
+      workbench_material_shgroup_uniform(wpd, shgrp, material, ob, false, false, interp);
       DRW_shgroup_uniform_vec4(shgrp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
       /* Hairs have lots of layer and can rapidly become the most prominent surface.
        * So lower their alpha artificially. */

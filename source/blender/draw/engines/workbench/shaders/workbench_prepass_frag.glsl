@@ -2,7 +2,12 @@
 uniform vec4 materialColorAndMetal;
 uniform float materialRoughness;
 
+#ifdef TEXTURE_IMAGE_ARRAY
+uniform sampler2DArray image_tile_array;
+uniform sampler1DArray image_tile_data;
+#else
 uniform sampler2D image;
+#endif
 uniform float ImageTransparencyCutoff = 0.1;
 uniform bool imageNearest;
 uniform bool imagePremultiplied;
@@ -39,7 +44,12 @@ void main()
   vec4 color;
 
 #  if defined(V3D_SHADING_TEXTURE_COLOR)
+#    ifdef TEXTURE_IMAGE_ARRAY
+  color = workbench_sample_texture_array(
+      image_tile_array, image_tile_data, uv_interp, imageNearest, imagePremultiplied);
+#    else
   color = workbench_sample_texture(image, uv_interp, imageNearest, imagePremultiplied);
+#    endif
   if (color.a < ImageTransparencyCutoff) {
     discard;
   }

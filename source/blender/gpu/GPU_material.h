@@ -71,12 +71,13 @@ typedef enum eGPUType {
   /* Values not in GPU_DATATYPE_STR */
   GPU_TEX1D_ARRAY = 1001,
   GPU_TEX2D = 1002,
-  GPU_TEX3D = 1003,
-  GPU_SHADOW2D = 1004,
-  GPU_TEXCUBE = 1005,
+  GPU_TEX2D_ARRAY = 1003,
+  GPU_TEX3D = 1004,
+  GPU_SHADOW2D = 1005,
+  GPU_TEXCUBE = 1006,
 
   /* GLSL Struct types */
-  GPU_CLOSURE = 1006,
+  GPU_CLOSURE = 1007,
 
   /* Opengl Attributes */
   GPU_ATTR = 3001,
@@ -142,7 +143,8 @@ typedef enum eGPUMaterialStatus {
 GPUNodeLink *GPU_attribute(CustomDataType type, const char *name);
 GPUNodeLink *GPU_constant(float *num);
 GPUNodeLink *GPU_uniform(float *num);
-GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser, int tile);
+GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser);
+GPUNodeLink *GPU_image_tilemap(struct Image *ima, struct ImageUser *iuser);
 GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *layer);
 GPUNodeLink *GPU_builtin(eGPUBuiltin builtin);
 

@@ -31,6 +31,7 @@
 #include <string.h>
 
 #include "BLI_blenlib.h"
+#include "BLI_boxpack_2d.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_threads.h"
@@ -71,7 +72,7 @@ static bool is_power_of_2_resolution(int w, int h)
 
 static bool is_over_resolution_limit(GLenum textarget, int w, int h)
 {
-  int size = (textarget == GL_TEXTURE_2D) ? GPU_max_texture_size() : GPU_max_cube_map_size();
+  int size = (textarget == GL_TEXTURE_CUBE_MAP) ? GPU_max_cube_map_size() : GPU_max_texture_size();
   int reslimit = (U.glreslimit != 0) ? min_ii(U.glreslimit, size) : size;
 
   return (w > reslimit || h > reslimit);
@@ -179,16 +180,292 @@ float GPU_get_anisotropic(void)
 
 /* Set OpenGL state for an MTFace */
 
-static GPUTexture **gpu_get_tile_gputexture(ImageTile *tile, GLenum textarget)
+static GPUTexture **gpu_get_image_gputexture(Image *ima, GLenum textarget)
 {
   if (textarget == GL_TEXTURE_2D) {
-    return &tile->gputexture[TEXTARGET_TEXTURE_2D];
+    return &ima->gputexture[TEXTARGET_TEXTURE_2D];
   }
   else if (textarget == GL_TEXTURE_CUBE_MAP) {
-    return &tile->gputexture[TEXTARGET_TEXTURE_CUBE_MAP];
+    return &ima->gputexture[TEXTARGET_TEXTURE_CUBE_MAP];
+  }
+  else if (textarget == GL_TEXTURE_2D_ARRAY) {
+    return &ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY];
+  }
+  else if (textarget == GL_TEXTURE_1D_ARRAY) {
+    return &ima->gputexture[TEXTARGET_TEXTURE_TILE_MAPPING];
   }
 
   return NULL;
+}
+
+static uint gpu_texture_create_tile_mapping(Image *ima)
+{
+  GPUTexture *tilearray = ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY];
+  if (tilearray == NULL) {
+    return 0;
+  }
+
+  float array_w = GPU_texture_width(tilearray);
+  float array_h = GPU_texture_height(tilearray);
+
+  ImageTile *last_tile = ima->tiles.last;
+  /* Tiles are sorted by number. */
+  int max_tile = last_tile->tile_number - 1001;
+
+  /* create image */
+  int bindcode;
+  glGenTextures(1, (GLuint *)&bindcode);
+  glBindTexture(GL_TEXTURE_1D_ARRAY, bindcode);
+
+  int width = max_tile + 1;
+  float *data = MEM_callocN(width * 8 * sizeof(float), __func__);
+  for (int i = 0; i < width; i++) {
+    data[4 * i] = -1.0f;
+  }
+  LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+    int i = tile->tile_number - 1001;
+    data[4 * i] = tile->runtime.tilearray_layer;
+
+    float *tile_info = &data[4 * width + 4 * i];
+    tile_info[0] = tile->runtime.tilearray_offset[0] / array_w;
+    tile_info[1] = tile->runtime.tilearray_offset[1] / array_h;
+    tile_info[2] = tile->runtime.tilearray_size[0] / array_w;
+    tile_info[3] = tile->runtime.tilearray_size[1] / array_h;
+  }
+
+  glTexImage2D(GL_TEXTURE_1D_ARRAY, 0, GL_RGBA32F, width, 2, 0, GL_RGBA, GL_FLOAT, data);
+  MEM_freeN(data);
+
+  glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  glBindTexture(GL_TEXTURE_1D_ARRAY, 0);
+
+  return bindcode;
+}
+
+typedef struct PackTile {
+  FixedSizeBoxPack boxpack;
+  ImageTile *tile;
+  float pack_score;
+} PackTile;
+
+static int compare_packtile(const void *a, const void *b)
+{
+  const PackTile *tile_a = a;
+  const PackTile *tile_b = b;
+
+  return tile_a->pack_score < tile_b->pack_score;
+}
+
+static uint gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
+{
+  int arraywidth = 0, arrayheight = 0;
+
+  ListBase boxes = {NULL};
+
+  LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+    ImageUser iuser;
+    BKE_imageuser_default(&iuser);
+    iuser.tile = tile->tile_number;
+    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
+
+    if (ibuf) {
+      PackTile *packtile = MEM_callocN(sizeof(PackTile), __func__);
+      packtile->tile = tile;
+      packtile->boxpack.w = ibuf->x;
+      packtile->boxpack.h = ibuf->y;
+
+      if (is_over_resolution_limit(
+              GL_TEXTURE_2D_ARRAY, packtile->boxpack.w, packtile->boxpack.h)) {
+        packtile->boxpack.w = smaller_power_of_2_limit(packtile->boxpack.w);
+        packtile->boxpack.h = smaller_power_of_2_limit(packtile->boxpack.h);
+      }
+      arraywidth = max_ii(arraywidth, packtile->boxpack.w);
+      arrayheight = max_ii(arrayheight, packtile->boxpack.h);
+
+      /* We sort the tiles by decreasing size, with an additional penalty term
+       * for high aspect ratios. This improves packing efficiency. */
+      float w = packtile->boxpack.w, h = packtile->boxpack.h;
+      packtile->pack_score = max_ff(w, h) / min_ff(w, h) * w * h;
+
+      BKE_image_release_ibuf(ima, ibuf, NULL);
+      BLI_addtail(&boxes, packtile);
+    }
+  }
+
+  BLI_assert(arraywidth > 0 && arrayheight > 0);
+
+  BLI_listbase_sort(&boxes, compare_packtile);
+  int arraylayers = 0;
+  /* Keep adding layers until all tiles are packed. */
+  while (boxes.first != NULL) {
+    ListBase packed = {NULL};
+    BLI_box_pack_2d_fixedarea(&boxes, arraywidth, arrayheight, &packed);
+    BLI_assert(packed.first != NULL);
+
+    LISTBASE_FOREACH (PackTile *, packtile, &packed) {
+      ImageTile *tile = packtile->tile;
+      int *tileoffset = tile->runtime.tilearray_offset;
+      int *tilesize = tile->runtime.tilearray_size;
+
+      tileoffset[0] = packtile->boxpack.x;
+      tileoffset[1] = packtile->boxpack.y;
+      tilesize[0] = packtile->boxpack.w;
+      tilesize[1] = packtile->boxpack.h;
+      tile->runtime.tilearray_layer = arraylayers;
+    }
+
+    BLI_freelistN(&packed);
+    arraylayers++;
+  }
+
+  /* create image */
+  int bindcode;
+  glGenTextures(1, (GLuint *)&bindcode);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, bindcode);
+
+  GLenum data_type, internal_format;
+  if (main_ibuf->rect_float) {
+    data_type = GL_FLOAT;
+    internal_format = GL_RGBA16F;
+  }
+  else {
+    data_type = GL_UNSIGNED_BYTE;
+    internal_format = GL_RGBA8;
+    if (!IMB_colormanagement_space_is_data(main_ibuf->rect_colorspace) &&
+        !IMB_colormanagement_space_is_scene_linear(main_ibuf->rect_colorspace)) {
+      internal_format = GL_SRGB8_ALPHA8;
+    }
+  }
+
+  glTexImage3D(GL_TEXTURE_2D_ARRAY,
+               0,
+               internal_format,
+               arraywidth,
+               arrayheight,
+               arraylayers,
+               0,
+               GL_RGBA,
+               data_type,
+               NULL);
+
+  LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+    int tilelayer = tile->runtime.tilearray_layer;
+    int *tileoffset = tile->runtime.tilearray_offset;
+    int *tilesize = tile->runtime.tilearray_size;
+
+    if (tilesize[0] == 0 || tilesize[1] == 0) {
+      continue;
+    }
+
+    ImageUser iuser;
+    BKE_imageuser_default(&iuser);
+    iuser.tile = tile->tile_number;
+    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
+    BLI_assert(ibuf != NULL);
+
+    bool needs_scale = (ibuf->x != tilesize[0] || ibuf->y != tilesize[1]);
+
+    ImBuf *scale_ibuf = NULL;
+    if (ibuf->rect_float) {
+      float *rect_float = ibuf->rect_float;
+
+      const bool store_premultiplied = ima->alpha_mode != IMA_ALPHA_STRAIGHT;
+      if (ibuf->channels != 4 || !store_premultiplied) {
+        rect_float = MEM_mallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, __func__);
+        IMB_colormanagement_imbuf_to_float_texture(
+            rect_float, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
+      }
+
+      float *pixeldata = rect_float;
+      if (needs_scale) {
+        scale_ibuf = IMB_allocFromBuffer(NULL, rect_float, ibuf->x, ibuf->y, 4);
+        IMB_scaleImBuf(scale_ibuf, tilesize[0], tilesize[1]);
+        pixeldata = scale_ibuf->rect_float;
+      }
+
+      glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+                      0,
+                      tileoffset[0],
+                      tileoffset[1],
+                      tilelayer,
+                      tilesize[0],
+                      tilesize[1],
+                      1,
+                      GL_RGBA,
+                      GL_FLOAT,
+                      pixeldata);
+
+      if (rect_float != ibuf->rect_float) {
+        MEM_freeN(rect_float);
+      }
+    }
+    else {
+      unsigned int *rect = ibuf->rect;
+
+      if (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace)) {
+        rect = MEM_mallocN(sizeof(uchar) * 4 * ibuf->x * ibuf->y, __func__);
+        IMB_colormanagement_imbuf_to_byte_texture((uchar *)rect,
+                                                  0,
+                                                  0,
+                                                  ibuf->x,
+                                                  ibuf->y,
+                                                  ibuf,
+                                                  internal_format == GL_SRGB8_ALPHA8,
+                                                  ima->alpha_mode == IMA_ALPHA_PREMUL);
+      }
+
+      unsigned int *pixeldata = rect;
+      if (needs_scale) {
+        scale_ibuf = IMB_allocFromBuffer(rect, NULL, ibuf->x, ibuf->y, 4);
+        IMB_scaleImBuf(scale_ibuf, tilesize[0], tilesize[1]);
+        pixeldata = scale_ibuf->rect;
+      }
+      glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+                      0,
+                      tileoffset[0],
+                      tileoffset[1],
+                      tilelayer,
+                      tilesize[0],
+                      tilesize[1],
+                      1,
+                      GL_RGBA,
+                      GL_UNSIGNED_BYTE,
+                      pixeldata);
+
+      if (rect != ibuf->rect) {
+        MEM_freeN(rect);
+      }
+    }
+
+    if (scale_ibuf != NULL) {
+      IMB_freeImBuf(scale_ibuf);
+    }
+
+    BKE_image_release_ibuf(ima, ibuf, NULL);
+  }
+
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
+
+  if (GPU_get_mipmap()) {
+    glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
+    if (ima) {
+      ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
+    }
+  }
+  else {
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  }
+
+  if (GLEW_EXT_texture_filter_anisotropic) {
+    glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_ANISOTROPY_EXT, GPU_get_anisotropic());
+  }
+
+  glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+
+  return bindcode;
 }
 
 static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
@@ -305,48 +582,105 @@ static GPUTexture **gpu_get_movieclip_gputexture(MovieClip *clip,
   return NULL;
 }
 
+static ImBuf *update_do_scale(uchar *rect,
+                              float *rect_float,
+                              int *x,
+                              int *y,
+                              int *w,
+                              int *h,
+                              int limit_w,
+                              int limit_h,
+                              int full_w,
+                              int full_h)
+{
+  /* Partial update with scaling. */
+  float xratio = limit_w / (float)full_w;
+  float yratio = limit_h / (float)full_h;
+
+  int part_w = *w, part_h = *h;
+
+  /* Find sub coordinates in scaled image. Take ceiling because we will be
+   * losing 1 pixel due to rounding errors in x,y. */
+  *x *= xratio;
+  *y *= yratio;
+  *w = (int)ceil(xratio * (*w));
+  *h = (int)ceil(yratio * (*h));
+
+  /* ...but take back if we are over the limit! */
+  if (*x + *w > limit_w) {
+    (*w)--;
+  }
+  if (*y + *h > limit_h) {
+    (*h)--;
+  }
+
+  /* Scale pixels. */
+  ImBuf *ibuf = IMB_allocFromBuffer((uint *)rect, rect_float, part_w, part_h, 4);
+  IMB_scaleImBuf(ibuf, *w, *h);
+
+  return ibuf;
+}
+
+static void gpu_texture_update_scaled_array(uchar *rect,
+                                            float *rect_float,
+                                            int full_w,
+                                            int full_h,
+                                            int x,
+                                            int y,
+                                            int layer,
+                                            const int *tile_offset,
+                                            const int *tile_size,
+                                            int w,
+                                            int h)
+{
+  ImBuf *ibuf = update_do_scale(
+      rect, rect_float, &x, &y, &w, &h, tile_size[0], tile_size[1], full_w, full_h);
+
+  /* Shift to account for tile packing. */
+  x += tile_offset[0];
+  y += tile_offset[1];
+
+  if (ibuf->rect_float) {
+    glTexSubImage3D(
+        GL_TEXTURE_2D_ARRAY, 0, x, y, layer, w, h, 1, GL_RGBA, GL_FLOAT, ibuf->rect_float);
+  }
+  else {
+    glTexSubImage3D(
+        GL_TEXTURE_2D_ARRAY, 0, x, y, layer, w, h, 1, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+  }
+
+  IMB_freeImBuf(ibuf);
+}
+
 static void gpu_texture_update_scaled(
     uchar *rect, float *rect_float, int full_w, int full_h, int x, int y, int w, int h)
 {
   /* Partial update with scaling. */
   int limit_w = smaller_power_of_2_limit(full_w);
   int limit_h = smaller_power_of_2_limit(full_h);
-  float xratio = limit_w / (float)full_w;
-  float yratio = limit_h / (float)full_h;
 
-  /* Find sub coordinates in scaled image. Take ceiling because we will be
-   * losing 1 pixel due to rounding errors in x,y. */
-  int sub_x = x * xratio;
-  int sub_y = y * yratio;
-  int sub_w = (int)ceil(xratio * w);
-  int sub_h = (int)ceil(yratio * h);
-
-  /* ...but take back if we are over the limit! */
-  if (sub_w + sub_x > limit_w) {
-    sub_w--;
-  }
-  if (sub_h + sub_y > limit_h) {
-    sub_h--;
-  }
-
-  /* Scale pixels. */
-  ImBuf *ibuf = IMB_allocFromBuffer((uint *)rect, rect_float, w, h, 4);
-  IMB_scaleImBuf(ibuf, sub_w, sub_h);
+  ImBuf *ibuf = update_do_scale(
+      rect, rect_float, &x, &y, &w, &h, limit_w, limit_h, full_w, full_h);
 
   if (ibuf->rect_float) {
-    glTexSubImage2D(
-        GL_TEXTURE_2D, 0, sub_x, sub_y, sub_w, sub_h, GL_RGBA, GL_FLOAT, ibuf->rect_float);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_FLOAT, ibuf->rect_float);
   }
   else {
-    glTexSubImage2D(
-        GL_TEXTURE_2D, 0, sub_x, sub_y, sub_w, sub_h, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
   }
 
   IMB_freeImBuf(ibuf);
 }
 
-static void gpu_texture_update_unscaled(
-    uchar *rect, float *rect_float, int x, int y, int w, int h, GLint tex_stride, GLint tex_offset)
+static void gpu_texture_update_unscaled(uchar *rect,
+                                        float *rect_float,
+                                        int x,
+                                        int y,
+                                        int layer,
+                                        int w,
+                                        int h,
+                                        GLint tex_stride,
+                                        GLint tex_offset)
 {
   /* Partial update without scaling. Stride and offset are used to copy only a
    * subset of a possible larger buffer than what we are updating. */
@@ -354,22 +688,61 @@ static void gpu_texture_update_unscaled(
   glGetIntegerv(GL_UNPACK_ROW_LENGTH, &row_length);
   glPixelStorei(GL_UNPACK_ROW_LENGTH, tex_stride);
 
-  if (rect_float == NULL) {
-    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, rect + tex_offset);
+  if (layer >= 0) {
+    if (rect_float == NULL) {
+      glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+                      0,
+                      x,
+                      y,
+                      layer,
+                      w,
+                      h,
+                      1,
+                      GL_RGBA,
+                      GL_UNSIGNED_BYTE,
+                      rect + tex_offset);
+    }
+    else {
+      glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+                      0,
+                      x,
+                      y,
+                      layer,
+                      w,
+                      h,
+                      1,
+                      GL_RGBA,
+                      GL_FLOAT,
+                      rect_float + tex_offset);
+    }
   }
   else {
-    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_FLOAT, rect_float + tex_offset);
+    if (rect_float == NULL) {
+      glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, rect + tex_offset);
+    }
+    else {
+      glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_FLOAT, rect_float + tex_offset);
+    }
   }
 
   glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
 }
 
-static void gpu_texture_update_from_ibuf(Image *ima, ImBuf *ibuf, int x, int y, int w, int h)
+static void gpu_texture_update_from_ibuf(
+    GPUTexture *tex, Image *ima, ImBuf *ibuf, ImageTile *tile, int x, int y, int w, int h)
 {
   /* Partial update of texture for texture painting. This is often much
-   * quicker than fully updating the texture for high resolution images.
-   * Assumes the OpenGL texture is bound to 0. */
-  const bool scaled = is_over_resolution_limit(GL_TEXTURE_2D, ibuf->x, ibuf->y);
+   * quicker than fully updating the texture for high resolution images. */
+  GPU_texture_bind(tex, 0);
+
+  bool scaled;
+  if (tile != NULL) {
+    int *tilesize = tile->runtime.tilearray_size;
+    scaled = (ibuf->x != tilesize[0]) || (ibuf->y != tilesize[1]);
+  }
+  else {
+    scaled = is_over_resolution_limit(GL_TEXTURE_2D, ibuf->x, ibuf->y);
+  }
 
   if (scaled) {
     /* Extra padding to account for bleed from neighboring pixels. */
@@ -429,11 +802,35 @@ static void gpu_texture_update_from_ibuf(Image *ima, ImBuf *ibuf, int x, int y, 
 
   if (scaled) {
     /* Slower update where we first have to scale the input pixels. */
-    gpu_texture_update_scaled(rect, rect_float, ibuf->x, ibuf->y, x, y, w, h);
+    if (tile != NULL) {
+      int *tileoffset = tile->runtime.tilearray_offset;
+      int *tilesize = tile->runtime.tilearray_size;
+      int tilelayer = tile->runtime.tilearray_layer;
+      gpu_texture_update_scaled_array(
+          rect, rect_float, ibuf->x, ibuf->y, x, y, tilelayer, tileoffset, tilesize, w, h);
+    }
+    else {
+      gpu_texture_update_scaled(rect, rect_float, ibuf->x, ibuf->y, x, y, w, h);
+    }
   }
   else {
     /* Fast update at same resolution. */
-    gpu_texture_update_unscaled(rect, rect_float, x, y, w, h, tex_stride, tex_offset);
+    if (tile != NULL) {
+      int *tileoffset = tile->runtime.tilearray_offset;
+      int tilelayer = tile->runtime.tilearray_layer;
+      gpu_texture_update_unscaled(rect,
+                                  rect_float,
+                                  x + tileoffset[0],
+                                  y + tileoffset[1],
+                                  tilelayer,
+                                  w,
+                                  h,
+                                  tex_stride,
+                                  tex_offset);
+    }
+    else {
+      gpu_texture_update_unscaled(rect, rect_float, x, y, -1, w, h, tex_stride, tex_offset);
+    }
   }
 
   /* Free buffers if needed. */
@@ -443,6 +840,15 @@ static void gpu_texture_update_from_ibuf(Image *ima, ImBuf *ibuf, int x, int y, 
   if (rect_float && rect_float != ibuf->rect_float) {
     MEM_freeN(rect_float);
   }
+
+  if (GPU_get_mipmap()) {
+    glGenerateMipmap((tile != NULL) ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D);
+  }
+  else {
+    ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
+  }
+
+  GPU_texture_unbind(tex);
 }
 
 GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget)
@@ -460,19 +866,8 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
   /* Tag as in active use for garbage collector. */
   BKE_image_tag_time(ima);
 
-  ImageTile *tile = BKE_image_get_tile_from_iuser(ima, iuser);
-
-  if (tile == NULL) {
-    /* TODO(lukas): When a tile gets deleted, the materials using the image
-     * aren't rebuilt and therefore continue to use it.
-     * This workaround isn't ideal, the result should be a pink color
-     * (for a missing tile). With the current behavior, new tiles also won't
-     * be detected. */
-    tile = BKE_image_get_tile(ima, 0);
-  }
-
   /* Test if we already have a texture. */
-  GPUTexture **tex = gpu_get_tile_gputexture(tile, textarget);
+  GPUTexture **tex = gpu_get_image_gputexture(ima, textarget);
   if (*tex) {
     return *tex;
   }
@@ -480,6 +875,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
   /* Check if we have a valid image. If not, we return a dummy
    * texture with zero bindcode so we don't keep trying. */
   uint bindcode = 0;
+  ImageTile *tile = BKE_image_get_tile(ima, 0);
   if (tile->ok == 0) {
     *tex = GPU_texture_from_bindcode(textarget, bindcode);
     return *tex;
@@ -492,7 +888,15 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
     return *tex;
   }
 
-  bindcode = gpu_texture_create_from_ibuf(ima, ibuf, textarget);
+  if (textarget == GL_TEXTURE_2D_ARRAY) {
+    bindcode = gpu_texture_create_tile_array(ima, ibuf);
+  }
+  else if (textarget == GL_TEXTURE_1D_ARRAY) {
+    bindcode = gpu_texture_create_tile_mapping(ima);
+  }
+  else {
+    bindcode = gpu_texture_create_from_ibuf(ima, ibuf, textarget);
+  }
 
   BKE_image_release_ibuf(ima, ibuf, NULL);
 
@@ -856,13 +1260,15 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
     for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
       if (BKE_image_has_opengl_texture(ima)) {
         if (ima->gpuflag & IMA_GPU_MIPMAP_COMPLETE) {
-          LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-            GPUTexture *tex = tile->gputexture[TEXTARGET_TEXTURE_2D];
-            if (tex != NULL) {
-              GPU_texture_bind(tex, 0);
-              glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
-              glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
-              GPU_texture_unbind(tex);
+          for (int a = 0; a < TEXTARGET_COUNT; a++) {
+            if (ELEM(a, TEXTARGET_TEXTURE_2D, TEXTARGET_TEXTURE_2D_ARRAY)) {
+              GPUTexture *tex = ima->gputexture[a];
+              if (tex != NULL) {
+                GPU_texture_bind(tex, 0);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
+                GPU_texture_unbind(tex);
+              }
             }
           }
         }
@@ -878,13 +1284,15 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
   else {
     for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
       if (BKE_image_has_opengl_texture(ima)) {
-        LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-          GPUTexture *tex = tile->gputexture[TEXTARGET_TEXTURE_2D];
-          if (tex != NULL) {
-            GPU_texture_bind(tex, 0);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
-            GPU_texture_unbind(tex);
+        for (int a = 0; a < TEXTARGET_COUNT; a++) {
+          if (ELEM(a, TEXTARGET_TEXTURE_2D, TEXTARGET_TEXTURE_2D_ARRAY)) {
+            GPUTexture *tex = ima->gputexture[a];
+            if (tex != NULL) {
+              GPU_texture_bind(tex, 0);
+              glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+              glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
+              GPU_texture_unbind(tex);
+            }
           }
         }
       }
@@ -899,26 +1307,22 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 {
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
   ImageTile *tile = BKE_image_get_tile_from_iuser(ima, iuser);
-  GPUTexture *tex = tile->gputexture[TEXTARGET_TEXTURE_2D];
 
-  if ((tex == NULL) || (ibuf == NULL) || (w == 0) || (h == 0)) {
+  if ((ibuf == NULL) || (w == 0) || (h == 0)) {
     /* Full reload of texture. */
     GPU_free_image(ima);
   }
-  else {
-    /* Partial update of texture. */
-    GPU_texture_bind(tex, 0);
 
-    gpu_texture_update_from_ibuf(ima, ibuf, x, y, w, h);
+  GPUTexture *tex = ima->gputexture[TEXTARGET_TEXTURE_2D];
+  /* Check if we need to update the main gputexture. */
+  if (tex != NULL && tile == ima->tiles.first) {
+    gpu_texture_update_from_ibuf(tex, ima, ibuf, NULL, x, y, w, h);
+  }
 
-    if (GPU_get_mipmap()) {
-      glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else {
-      ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
-    }
-
-    GPU_texture_unbind(tex);
+  /* Check if we need to update the array gputexture. */
+  tex = ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY];
+  if (tex != NULL) {
+    gpu_texture_update_from_ibuf(tex, ima, ibuf, tile, x, y, w, h);
   }
 
   BKE_image_release_ibuf(ima, ibuf, NULL);
@@ -960,13 +1364,11 @@ void GPU_free_unused_buffers(Main *bmain)
 
 static void gpu_free_image_immediate(Image *ima)
 {
-  LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-    for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      /* free glsl image binding */
-      if (tile->gputexture[i] != NULL) {
-        GPU_texture_free(tile->gputexture[i]);
-        tile->gputexture[i] = NULL;
-      }
+  for (int i = 0; i < TEXTARGET_COUNT; i++) {
+    /* free glsl image binding */
+    if (ima->gputexture[i] != NULL) {
+      GPU_texture_free(ima->gputexture[i]);
+      ima->gputexture[i] = NULL;
     }
   }
 

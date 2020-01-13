@@ -1032,10 +1032,6 @@ GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat tex_format, const GLuint
 
 GPUTexture *GPU_texture_from_bindcode(int textarget, int bindcode)
 {
-  /* see GPUInput::textarget: it can take two values - GL_TEXTURE_2D and GL_TEXTURE_CUBE_MAP
-   * these values are correct for glDisable, so textarget can be safely used in
-   * GPU_texture_bind/GPU_texture_unbind through tex->target_base */
-  /* (is any of this obsolete now that we don't glEnable/Disable textures?) */
   GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
   tex->bindcode = bindcode;
   tex->number = -1;
@@ -1052,12 +1048,8 @@ GPUTexture *GPU_texture_from_bindcode(int textarget, int bindcode)
   else {
     GLint w, h;
 
-    GLenum gettarget;
-
-    if (textarget == GL_TEXTURE_2D) {
-      gettarget = GL_TEXTURE_2D;
-    }
-    else {
+    GLenum gettarget = textarget;
+    if (textarget == GL_TEXTURE_CUBE_MAP) {
       gettarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
     }
 

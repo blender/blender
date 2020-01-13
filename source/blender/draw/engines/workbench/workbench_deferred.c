@@ -214,16 +214,17 @@ static GPUShader *workbench_cavity_shader_get(bool cavity, bool curvature)
 static GPUShader *ensure_deferred_prepass_shader(WORKBENCH_PrivateData *wpd,
                                                  bool is_uniform_color,
                                                  bool is_hair,
+                                                 bool is_tiled,
                                                  const WORKBENCH_ColorOverride color_override,
                                                  eGPUShaderConfig sh_cfg)
 {
   WORKBENCH_DEFERRED_Shaders *sh_data = &e_data.sh_data[sh_cfg];
   int index = workbench_material_get_prepass_shader_index(
-      wpd, is_uniform_color, is_hair, color_override);
+      wpd, is_uniform_color, is_hair, is_tiled, color_override);
   if (sh_data->prepass_sh_cache[index] == NULL) {
     const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
     char *defines = workbench_material_build_defines(
-        wpd, is_uniform_color, is_hair, color_override);
+        wpd, is_uniform_color, is_hair, is_tiled, color_override);
     char *prepass_vert = workbench_build_prepass_vert(is_hair);
     char *prepass_frag = workbench_build_prepass_frag();
     sh_data->prepass_sh_cache[index] = GPU_shader_create_from_arrays({
@@ -243,7 +244,7 @@ static GPUShader *ensure_deferred_composite_shader(WORKBENCH_PrivateData *wpd)
   int index = workbench_material_get_composite_shader_index(wpd);
   if (e_data.composite_sh_cache[index] == NULL) {
     char *defines = workbench_material_build_defines(
-        wpd, false, false, WORKBENCH_COLOR_OVERRIDE_OFF);
+        wpd, false, false, false, WORKBENCH_COLOR_OVERRIDE_OFF);
     char *composite_frag = workbench_build_composite_frag(wpd);
     e_data.composite_sh_cache[index] = DRW_shader_create_fullscreen(composite_frag, defines);
     MEM_freeN(composite_frag);
@@ -271,17 +272,19 @@ static GPUShader *ensure_background_shader(WORKBENCH_PrivateData *wpd)
 static void select_deferred_shaders(WORKBENCH_PrivateData *wpd, eGPUShaderConfig sh_cfg)
 {
   wpd->prepass_sh = ensure_deferred_prepass_shader(
-      wpd, false, false, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
+      wpd, false, false, false, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
   wpd->prepass_hair_sh = ensure_deferred_prepass_shader(
-      wpd, false, true, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
+      wpd, false, true, false, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
   wpd->prepass_uniform_sh = ensure_deferred_prepass_shader(
-      wpd, true, false, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
+      wpd, true, false, false, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
   wpd->prepass_uniform_hair_sh = ensure_deferred_prepass_shader(
-      wpd, true, true, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
+      wpd, true, true, false, WORKBENCH_COLOR_OVERRIDE_OFF, sh_cfg);
   wpd->prepass_textured_sh = ensure_deferred_prepass_shader(
-      wpd, false, false, WORKBENCH_COLOR_OVERRIDE_TEXTURE, sh_cfg);
+      wpd, false, false, false, WORKBENCH_COLOR_OVERRIDE_TEXTURE, sh_cfg);
+  wpd->prepass_textured_array_sh = ensure_deferred_prepass_shader(
+      wpd, false, false, true, WORKBENCH_COLOR_OVERRIDE_TEXTURE, sh_cfg);
   wpd->prepass_vertex_sh = ensure_deferred_prepass_shader(
-      wpd, false, false, WORKBENCH_COLOR_OVERRIDE_VERTEX, sh_cfg);
+      wpd, false, false, false, WORKBENCH_COLOR_OVERRIDE_VERTEX, sh_cfg);
   wpd->composite_sh = ensure_deferred_composite_shader(wpd);
   wpd->background_sh = ensure_background_shader(wpd);
 }
@@ -873,8 +876,9 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
     /* select the correct prepass shader */
     GPUShader *shader = (wpd->shading.color_type == color_type) ? wpd->prepass_sh :
                                                                   wpd->prepass_uniform_sh;
+    const bool is_tiled = (ima && ima->source == IMA_SRC_TILED);
     if (color_type == V3D_SHADING_TEXTURE_COLOR) {
-      shader = wpd->prepass_textured_sh;
+      shader = is_tiled ? wpd->prepass_textured_array_sh : wpd->prepass_textured_sh;
     }
     if (color_type == V3D_SHADING_VERTEX_COLOR) {
       shader = wpd->prepass_vertex_sh;
@@ -883,7 +887,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
         shader, (ob->dtx & OB_DRAWXRAY) ? psl->ghost_prepass_pass : psl->prepass_pass);
     workbench_material_copy(material, &material_template);
     DRW_shgroup_stencil_mask(material->shgrp, (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF);
-    workbench_material_shgroup_uniform(wpd, material->shgrp, material, ob, true, interp);
+    workbench_material_shgroup_uniform(wpd, material->shgrp, material, ob, true, is_tiled, interp);
     BLI_ghash_insert(wpd->material_hash, POINTER_FROM_UINT(hash), material);
   }
   return material;
@@ -926,7 +930,7 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
           (ob->dtx & OB_DRAWXRAY) ? psl->ghost_prepass_hair_pass : psl->prepass_hair_pass,
           shader);
       DRW_shgroup_stencil_mask(shgrp, (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF);
-      workbench_material_shgroup_uniform(wpd, shgrp, material, ob, true, interp);
+      workbench_material_shgroup_uniform(wpd, shgrp, material, ob, true, false, interp);
     }
   }
 }

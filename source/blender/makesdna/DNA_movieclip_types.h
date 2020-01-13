@@ -64,8 +64,8 @@ typedef struct MovieClipProxy {
 typedef struct MovieClip_RuntimeGPUTexture {
   void *next, *prev;
   MovieClipUser user;
-  /** Not written in file 2 = TEXTARGET_COUNT. */
-  struct GPUTexture *gputexture[2];
+  /** Not written in file 4 = TEXTARGET_COUNT. */
+  struct GPUTexture *gputexture[4];
 } MovieClip_RuntimeGPUTexture;
 
 typedef struct MovieClip_Runtime {
