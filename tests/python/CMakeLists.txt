@@ -22,6 +22,7 @@
 set(USE_EXPERIMENTAL_TESTS FALSE)
 
 set(TEST_SRC_DIR ${CMAKE_SOURCE_DIR}/../lib/tests)
+set(TEST_PYTHON_DIR ${CMAKE_SOURCE_DIR}/tests/python)
 set(TEST_OUT_DIR ${CMAKE_BINARY_DIR}/tests)
 
 # ugh, any better way to do this on testing only?
@@ -126,13 +127,17 @@ add_blender_test(
 add_blender_test(
   bmesh_bevel
   ${TEST_SRC_DIR}/modeling/bevel_regression.blend
-  --python-text run_tests
+  --python ${TEST_PYTHON_DIR}/bevel_operator.py
+  --
+  --run-all-tests
 )
 
 add_blender_test(
   bmesh_boolean
   ${TEST_SRC_DIR}/modeling/bool_regression.blend
-  --python-text run_tests
+  --python ${TEST_PYTHON_DIR}/boolean_operator.py
+  --
+  --run-all-tests
 )
 
 add_blender_test(
@@ -147,6 +152,24 @@ add_blender_test(
   object_modifier_array
   ${TEST_SRC_DIR}/modifier_stack/array_test.blend
   --python-text run_tests.py
+)
+
+add_blender_test(
+  modifiers
+  ${TEST_SRC_DIR}/modeling/modifiers.blend
+  --python ${TEST_PYTHON_DIR}/modifiers.py
+  --
+  --run-all-tests
+)
+
+# ------------------------------------------------------------------------------
+# OPERATORS TESTS
+add_blender_test(
+  operators
+  ${TEST_SRC_DIR}/modeling/operators.blend
+  --python ${TEST_PYTHON_DIR}/operators.py
+  --
+  --run-all-tests
 )
 
 # ------------------------------------------------------------------------------
