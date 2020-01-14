@@ -4954,6 +4954,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
                                                    &(const struct SnapObjectParams){
                                                        .snap_select = SNAP_ALL,
                                                        .use_object_edit_cage = false,
+                                                       .use_occlusion_test = true,
                                                    },
                                                    mval_fl,
                                                    NULL,
