@@ -1438,9 +1438,8 @@ static void region_rect_recursive(
       }
 
       /* Fix any negative dimensions. This can happen when a quad split 3d view gets to small. (see
-       * T72200). BLI_rcti_init() sanitizes, making sure min values are <= max values. */
-      BLI_rcti_init(
-          &ar->winrct, ar->winrct.xmin, ar->winrct.xmax, ar->winrct.ymin, ar->winrct.ymax);
+       * T72200). */
+      BLI_rcti_sanitize(&ar->winrct);
 
       quad++;
     }
@@ -2902,7 +2901,7 @@ void ED_region_info_draw(ARegion *ar,
                          float fill_color[4],
                          const bool full_redraw)
 {
-  ED_region_info_draw_multiline(ar, (const char * [2]){text, NULL}, fill_color, full_redraw);
+  ED_region_info_draw_multiline(ar, (const char *[2]){text, NULL}, fill_color, full_redraw);
 }
 
 #define MAX_METADATA_STR 1024

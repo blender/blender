@@ -439,42 +439,22 @@ void BLI_rcti_union(rcti *rct1, const rcti *rct2)
 
 void BLI_rctf_init(rctf *rect, float xmin, float xmax, float ymin, float ymax)
 {
-  if (xmin <= xmax) {
-    rect->xmin = xmin;
-    rect->xmax = xmax;
-  }
-  else {
-    rect->xmax = xmin;
-    rect->xmin = xmax;
-  }
-  if (ymin <= ymax) {
-    rect->ymin = ymin;
-    rect->ymax = ymax;
-  }
-  else {
-    rect->ymax = ymin;
-    rect->ymin = ymax;
-  }
+  rect->xmin = xmin;
+  rect->xmax = xmax;
+  rect->ymin = ymin;
+  rect->ymax = ymax;
+
+  BLI_rctf_sanitize(rect);
 }
 
 void BLI_rcti_init(rcti *rect, int xmin, int xmax, int ymin, int ymax)
 {
-  if (xmin <= xmax) {
-    rect->xmin = xmin;
-    rect->xmax = xmax;
-  }
-  else {
-    rect->xmax = xmin;
-    rect->xmin = xmax;
-  }
-  if (ymin <= ymax) {
-    rect->ymin = ymin;
-    rect->ymax = ymax;
-  }
-  else {
-    rect->ymax = ymin;
-    rect->ymin = ymax;
-  }
+  rect->xmin = xmin;
+  rect->xmax = xmax;
+  rect->ymin = ymin;
+  rect->ymax = ymax;
+
+  BLI_rcti_sanitize(rect);
 }
 
 /**

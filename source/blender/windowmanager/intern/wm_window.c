@@ -2191,8 +2191,8 @@ void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect)
     }
   }
 
-  BLI_assert(screen_rect.xmin < screen_rect.xmax);
-  BLI_assert(screen_rect.ymin < screen_rect.ymax);
+  BLI_assert(BLI_rcti_is_valid(&screen_rect));
+
   *r_rect = screen_rect;
 }
 
