@@ -33,6 +33,7 @@
 
 #include "wm.h"
 
+#include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -354,6 +355,21 @@ void WM_gizmo_target_property_subscribe_all(wmGizmo *gz, struct wmMsgBus *mbus, 
         }
       }
     }
+  }
+}
+
+/**
+ * Auto-key function if auto-key is enabled.
+ */
+void WM_gizmo_target_property_anim_autokey(bContext *C,
+                                           const wmGizmo *UNUSED(gz),
+                                           wmGizmoProperty *gz_prop)
+{
+  if (gz_prop->prop != NULL) {
+    Scene *scene = CTX_data_scene(C);
+    const float cfra = (float)CFRA;
+    const int index = gz_prop->index == -1 ? 0 : gz_prop->index;
+    ED_autokeyframe_property(C, scene, &gz_prop->ptr, gz_prop->prop, index, cfra);
   }
 }
 

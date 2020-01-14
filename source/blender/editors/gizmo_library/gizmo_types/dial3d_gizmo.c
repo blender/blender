@@ -537,6 +537,13 @@ static void gizmo_dial_exit(bContext *C, wmGizmo *gz, const bool cancel)
       WM_gizmo_target_property_float_set(C, gz, gz_prop, reset_value);
     }
   }
+
+  if (!cancel) {
+    wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
+    if (WM_gizmo_target_property_is_valid(gz_prop)) {
+      WM_gizmo_target_property_anim_autokey(C, gz, gz_prop);
+    }
+  }
 }
 
 static void gizmo_dial_setup(wmGizmo *gz)
