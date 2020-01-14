@@ -257,6 +257,9 @@ def bake_action_iter(
 
         atd.action = action
 
+    # Baking the action only makes sense in Replace mode, so force it (T69105)
+    if not atd.use_tweak_mode:
+        atd.action_blend_type = 'REPLACE'
 
     # -------------------------------------------------------------------------
     # Apply transformations to action
