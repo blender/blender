@@ -578,7 +578,8 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
     ED_sequencer_deselect_all(scene);
   }
 
-  if (RNA_struct_property_is_set(op->ptr, "files")) {
+  if (RNA_struct_property_is_set(op->ptr, "files") &&
+      RNA_struct_property_is_set(op->ptr, "directory")) {
     tot_files = RNA_property_collection_length(op->ptr,
                                                RNA_struct_find_property(op->ptr, "files"));
   }
@@ -591,7 +592,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
     char dir_only[FILE_MAX];
     char file_only[FILE_MAX];
 
-    BLI_split_dir_part(seq_load.path, dir_only, sizeof(dir_only));
+    RNA_string_get(op->ptr, "directory", dir_only);
 
     RNA_BEGIN (op->ptr, itemptr, "files") {
       Sequence *seq;
