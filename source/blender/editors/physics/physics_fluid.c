@@ -178,11 +178,12 @@ static bool fluid_initjob(
   return true;
 }
 
-static bool fluid_initpaths(FluidJob *job, ReportList *reports)
+static bool fluid_validatepaths(FluidJob *job, ReportList *reports)
 {
   FluidDomainSettings *mds = job->mmd->domain;
   char temp_dir[FILE_MAX];
   temp_dir[0] = '\0';
+  bool is_relative = false;
 
   const char *relbase = modifier_path_relbase(job->bmain, job->ob);
 
@@ -197,7 +198,7 @@ static bool fluid_initpaths(FluidJob *job, ReportList *reports)
   }
 
   BLI_strncpy(temp_dir, mds->cache_directory, FILE_MAXDIR);
-  BLI_path_abs(temp_dir, relbase);
+  is_relative = BLI_path_abs(temp_dir, relbase);
 
   /* Ensure whole path exists */
   const bool dir_exists = BLI_dir_create_recursive(temp_dir);
@@ -215,7 +216,6 @@ static bool fluid_initpaths(FluidJob *job, ReportList *reports)
                 mds->cache_directory);
 
     BLI_strncpy(temp_dir, mds->cache_directory, FILE_MAXDIR);
-    BLI_path_abs(temp_dir, relbase);
 
     /* Ensure whole path exists and is writable. */
     if (!BLI_dir_create_recursive(temp_dir)) {
@@ -224,11 +224,17 @@ static bool fluid_initpaths(FluidJob *job, ReportList *reports)
                   "Fluid: Could not use default cache directory '%s', "
                   "please define a valid cache path manually",
                   temp_dir);
+      return false;
     }
     /* Copy final dir back into domain settings */
     BLI_strncpy(mds->cache_directory, temp_dir, FILE_MAXDIR);
 
     return false;
+  }
+
+  /* Change path back to is original state (ie relative or absolute). */
+  if (is_relative) {
+    BLI_path_rel(temp_dir, relbase);
   }
 
   /* Copy final dir back into domain settings */
@@ -521,7 +527,7 @@ static int fluid_bake_exec(struct bContext *C, struct wmOperator *op)
     fluid_bake_free(job);
     return OPERATOR_CANCELLED;
   }
-  if (!fluid_initpaths(job, op->reports)) {
+  if (!fluid_validatepaths(job, op->reports)) {
     return OPERATOR_CANCELLED;
   }
   fluid_bake_startjob(job, NULL, NULL, NULL);
@@ -547,7 +553,7 @@ static int fluid_bake_invoke(struct bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  if (!fluid_initpaths(job, op->reports)) {
+  if (!fluid_validatepaths(job, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -621,7 +627,7 @@ static int fluid_free_exec(struct bContext *C, struct wmOperator *op)
   job->type = op->type->idname;
   job->name = op->type->name;
 
-  if (!fluid_initpaths(job, op->reports)) {
+  if (!fluid_validatepaths(job, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
