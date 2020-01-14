@@ -1120,7 +1120,7 @@ static void pbvh_update_mask_redraw_task_cb(void *__restrict userdata,
     if (node->flag & PBVH_Leaf) {
       PBVHVertexIter vd;
 
-      BKE_pbvh_vertex_iter_begin(bvh, node, vd, PBVH_ITER_UNIQUE)
+      BKE_pbvh_vertex_iter_begin(bvh, node, vd, PBVH_ITER_ALL)
       {
         if (vd.mask && *vd.mask < 1.0f) {
           has_unmasked = true;
