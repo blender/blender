@@ -249,11 +249,14 @@ def bake_action_iter(
     if action is None:
         action = bpy.data.actions.new("Action")
 
-    # Leave tweak mode before trying to modify the action (T48397)
-    if atd.use_tweak_mode:
-        atd.use_tweak_mode = False
+    # Only leave tweak mode if we actually need to modify the action (T57159)
+    if action != atd.action:
+        # Leave tweak mode before trying to modify the action (T48397)
+        if atd.use_tweak_mode:
+            atd.use_tweak_mode = False
 
-    atd.action = action
+        atd.action = action
+
 
     # -------------------------------------------------------------------------
     # Apply transformations to action
