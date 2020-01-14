@@ -1091,6 +1091,18 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
   }
 }
 
+static void do_version_fcurve_hide_viewport_fix(struct ID *UNUSED(id),
+                                                struct FCurve *fcu,
+                                                void *UNUSED(user_data))
+{
+  if (strcmp(fcu->rna_path, "hide")) {
+    return;
+  }
+
+  MEM_freeN(fcu->rna_path);
+  fcu->rna_path = BLI_strdupn("hide_viewport", 13);
+}
+
 void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
 {
   bool use_collection_compat_28 = true;
@@ -1522,6 +1534,25 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
           }
         }
       }
+    }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
+
+    /* During development of Blender 2.80 the "Object.hide" property was
+     * removed, and reintroduced in 5e968a996a53 as "Object.hide_viewport". */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      BKE_fcurves_id_cb(&ob->id, do_version_fcurve_hide_viewport_fix, NULL);
     }
   }
 }

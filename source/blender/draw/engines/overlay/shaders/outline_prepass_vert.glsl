@@ -5,14 +5,14 @@ in vec3 pos;
 
 #ifdef USE_GEOM
 out vec3 vPos;
-out int objectId_g;
+out uint objectId_g;
 #  define objectId objectId_g
 #else
 
-flat out int objectId;
+flat out uint objectId;
 #endif
 
-int outline_colorid_get(void)
+uint outline_colorid_get(void)
 {
   int flag = int(abs(ObjectInfo.w));
   bool is_from_dupli = (flag & DRW_BASE_FROM_DUPLI) != 0;
@@ -20,24 +20,24 @@ int outline_colorid_get(void)
 
   if (is_from_dupli) {
     if (isTransform) {
-      return 0; /* colorTransform */
+      return 0u; /* colorTransform */
     }
     else {
-      return 2; /* colorDupliSelect */
+      return 2u; /* colorDupliSelect */
     }
   }
 
   if (isTransform) {
-    return 0; /* colorTransform */
+    return 0u; /* colorTransform */
   }
   else if (is_active) {
-    return 3; /* colorActive */
+    return 3u; /* colorActive */
   }
   else {
-    return 1; /* colorSelect */
+    return 1u; /* colorSelect */
   }
 
-  return 0;
+  return 0u;
 }
 
 /* Replace top 2 bits (of the 16bit output) by outlineId.
@@ -56,13 +56,13 @@ void main()
   gl_Position.z -= 1e-3;
 
   /* ID 0 is nothing (background) */
-  objectId = resource_handle + 1;
+  objectId = uint(resource_handle + 1);
 
   /* Should be 2 bits only [0..3]. */
-  int outline_id = outline_colorid_get();
+  uint outline_id = outline_colorid_get();
 
   /* Combine for 16bit uint target. */
-  objectId = (outline_id << 14) | ((objectId << SHIFT) >> SHIFT);
+  objectId = (outline_id << 14u) | ((objectId << SHIFT) >> SHIFT);
 
 #ifdef USE_WORLD_CLIP_PLANES
   world_clip_planes_calc_clip_distance(world_pos);
