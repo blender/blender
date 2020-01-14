@@ -3,9 +3,9 @@ layout(lines_adjacency) in;
 layout(line_strip, max_vertices = 2) out;
 
 in vec3 vPos[];
-in int objectId_g[];
+in uint objectId_g[];
 
-flat out int objectId;
+flat out uint objectId;
 
 void vert_from_gl_in(int v)
 {
