@@ -1027,7 +1027,8 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
   WORKBENCH_MaterialData *material;
   if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
     const bool is_active = (ob == draw_ctx->obact);
-    const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d);
+    const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
+                                 !DRW_state_is_image_render();
     const bool use_hide = is_active && DRW_object_use_hide_faces(ob);
     const int materials_len = MAX2(1, ob->totcol);
     const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
