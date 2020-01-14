@@ -702,6 +702,8 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
 
     /* happens after fileread */
     wm_window_ensure_eventstate(win);
+
+    WM_window_set_dpi(win);
   }
 
   /* add keymap handlers (1 handler for all keys in map!) */
