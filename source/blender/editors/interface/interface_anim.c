@@ -270,79 +270,8 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
 
 void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 {
-  Main *bmain = CTX_data_main(C);
-  ID *id;
-  bAction *action;
-  FCurve *fcu;
-  bool driven;
-  bool special;
-
-  fcu = ui_but_get_fcurve(but, NULL, &action, &driven, &special);
-
-  if (fcu == NULL) {
-    return;
-  }
-
-  if (special) {
-    /* NLA Strip property */
-    if (IS_AUTOKEY_ON(scene)) {
-      ReportList *reports = CTX_wm_reports(C);
-      ToolSettings *ts = scene->toolsettings;
-
-      insert_keyframe_direct(
-          reports, but->rnapoin, but->rnaprop, fcu, cfra, ts->keyframe_type, NULL, 0);
-      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
-    }
-  }
-  else if (driven) {
-    /* Driver - Try to insert keyframe using the driver's input as the frame,
-     * making it easier to set up corrective drivers
-     */
-    if (IS_AUTOKEY_ON(scene)) {
-      ReportList *reports = CTX_wm_reports(C);
-      ToolSettings *ts = scene->toolsettings;
-
-      insert_keyframe_direct(reports,
-                             but->rnapoin,
-                             but->rnaprop,
-                             fcu,
-                             cfra,
-                             ts->keyframe_type,
-                             NULL,
-                             INSERTKEY_DRIVER);
-      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
-    }
-  }
-  else {
-    id = but->rnapoin.owner_id;
-
-    /* TODO: this should probably respect the keyingset only option for anim */
-    if (autokeyframe_cfra_can_key(scene, id)) {
-      ReportList *reports = CTX_wm_reports(C);
-      ToolSettings *ts = scene->toolsettings;
-      short flag = ANIM_get_keyframing_flags(scene, 1);
-
-      fcu->flag &= ~FCURVE_SELECTED;
-
-      /* Note: We use but->rnaindex instead of fcu->array_index,
-       *       because a button may control all items of an array at once.
-       *       E.g., color wheels (see T42567). */
-      BLI_assert((fcu->array_index == but->rnaindex) || (but->rnaindex == -1));
-      insert_keyframe(bmain,
-                      reports,
-                      id,
-                      action,
-                      ((fcu->grp) ? (fcu->grp->name) : (NULL)),
-                      fcu->rna_path,
-                      but->rnaindex,
-                      cfra,
-                      ts->keyframe_type,
-                      NULL,
-                      flag);
-
-      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
-    }
-  }
+  const int rnaindex = (but->rnaindex == -1) ? 0 : but->rnaindex;
+  ED_autokeyframe_property(C, scene, &but->rnapoin, but->rnaprop, rnaindex, cfra);
 }
 
 void ui_but_anim_copy_driver(bContext *C)

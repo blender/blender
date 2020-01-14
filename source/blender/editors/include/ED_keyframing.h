@@ -492,6 +492,12 @@ bool ED_autokeyframe_pchan(struct bContext *C,
                            struct Object *ob,
                            struct bPoseChannel *pchan,
                            struct KeyingSet *ks);
+bool ED_autokeyframe_property(struct bContext *C,
+                              struct Scene *scene,
+                              PointerRNA *ptr,
+                              PropertyRNA *prop,
+                              int rnaindex,
+                              float cfra);
 
 /* Names for builtin keying sets so we don't confuse these with labels/text,
  * defined in python script: keyingsets_builtins.py */
