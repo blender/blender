@@ -109,3 +109,15 @@ diff -x .git -ur usd.orig/pxr/usd/CMakeLists.txt external_usd/pxr/usd/CMakeLists
 +else()
 +    message(STATUS "Skipping commandline tools because PXR_BUILD_USD_TOOLS=OFF")
 +endif()
+diff -Naur external_usd_orig/pxr/base/lib/tf/preprocessorUtils.h external_usd/pxr/base/lib/tf/preprocessorUtils.h
+--- external_usd_orig/pxr/base/lib/tf/preprocessorUtils.h	2019-10-24 14:39:53 -0600
++++ external_usd/pxr/base/lib/tf/preprocessorUtils.h	2020-01-14 09:30:18 -0700
+@@ -189,7 +189,7 @@
+ /// Exapnds to 1 if the argument is a tuple, and 0 otherwise.
+ /// \ingroup group_tf_Preprocessor
+ /// \hideinitializer
+-#if defined(ARCH_OS_WINDOWS)
++#if defined(ARCH_COMPILER_MSVC)
+     #define TF_PP_IS_TUPLE(sequence) \
+         BOOST_VMD_IS_TUPLE(sequence)
+ #else
