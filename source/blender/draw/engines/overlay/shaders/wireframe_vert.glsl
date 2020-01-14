@@ -105,7 +105,7 @@ void main()
   vec3 wnor = normalize(normal_object_to_world(nor));
 
   bool is_persp = (ProjectionMatrix[3][3] == 0.0);
-  vec3 V = (is_persp) ? normalize(ViewMatrixInverse[3].xyz - wpos) : ViewMatrix[2].xyz;
+  vec3 V = (is_persp) ? normalize(ViewMatrixInverse[3].xyz - wpos) : ViewMatrixInverse[2].xyz;
 
   float facing = dot(wnor, V);
   float facing_ratio = clamp(1.0 - facing * facing, 0.0, 1.0);
@@ -120,7 +120,7 @@ void main()
   gl_Position.xy += wofs.xy * sizeViewportInv.xy * gl_Position.w;
 
   /* Push the vertex towards the camera. Helps a bit. */
-  gl_Position.z -= facing_ratio * curvature * 1e-4;
+  gl_Position.z -= facing_ratio * curvature * 4.0e-5;
 
   /* Convert to screen position [0..sizeVp]. */
   edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
