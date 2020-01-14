@@ -177,6 +177,30 @@ BLI_INLINE OVERLAY_DupliData *OVERLAY_duplidata_get(Object *ob, void *vedata, bo
   return NULL;
 }
 
+static bool overlay_object_is_edit_mode(const OVERLAY_PrivateData *pd, const Object *ob)
+{
+  if ((ob->mode & OB_MODE_EDIT) && BKE_object_is_in_editmode(ob)) {
+    /* Also check for context mode as the object mode is not 100% reliable. (see T72490) */
+    switch (ob->type) {
+      case OB_MESH:
+        return pd->ctx_mode == CTX_MODE_EDIT_MESH;
+      case OB_ARMATURE:
+        return pd->ctx_mode == CTX_MODE_EDIT_ARMATURE;
+      case OB_CURVE:
+        return pd->ctx_mode == CTX_MODE_EDIT_CURVE;
+      case OB_SURF:
+        return pd->ctx_mode == CTX_MODE_EDIT_SURFACE;
+      case OB_LATTICE:
+        return pd->ctx_mode == CTX_MODE_EDIT_LATTICE;
+      case OB_MBALL:
+        return pd->ctx_mode == CTX_MODE_EDIT_METABALL;
+      case OB_FONT:
+        return pd->ctx_mode == CTX_MODE_EDIT_TEXT;
+    }
+  }
+  return false;
+}
+
 static void OVERLAY_cache_populate(void *vedata, Object *ob)
 {
   OVERLAY_Data *data = vedata;
@@ -185,7 +209,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   const bool is_select = DRW_state_is_select();
   const bool renderable = DRW_object_is_renderable(ob);
   const bool in_pose_mode = ob->type == OB_ARMATURE && OVERLAY_armature_is_pose_mode(ob, draw_ctx);
-  const bool in_edit_mode = (ob->mode & OB_MODE_EDIT) && BKE_object_is_in_editmode(ob);
+  const bool in_edit_mode = overlay_object_is_edit_mode(pd, ob);
   const bool in_particle_edit_mode = ob->mode == OB_MODE_PARTICLE_EDIT;
   const bool in_paint_mode = (ob == draw_ctx->obact) &&
                              (draw_ctx->object_mode & OB_MODE_ALL_PAINT);

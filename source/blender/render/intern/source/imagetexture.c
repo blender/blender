@@ -112,7 +112,7 @@ int imagewrap(Tex *tex,
   texres->tin = texres->ta = texres->tr = texres->tg = texres->tb = 0.0f;
 
   /* we need to set retval OK, otherwise texture code generates normals itself... */
-  retval = texres->nor ? 3 : 1;
+  retval = texres->nor ? (TEX_RGB | TEX_NOR) : TEX_RGB;
 
   /* quick tests */
   if (ima == NULL) {
@@ -1035,7 +1035,7 @@ static int imagewraposa_aniso(Tex *tex,
   texres->tin = texres->ta = texres->tr = texres->tg = texres->tb = 0.f;
 
   /* we need to set retval OK, otherwise texture code generates normals itself... */
-  retval = texres->nor ? 3 : 1;
+  retval = texres->nor ? (TEX_RGB | TEX_NOR) : TEX_RGB;
 
   /* quick tests */
   if (ibuf == NULL && ima == NULL) {
@@ -1492,7 +1492,7 @@ int imagewraposa(Tex *tex,
   texres->tin = texres->ta = texres->tr = texres->tg = texres->tb = 0.0f;
 
   /* we need to set retval OK, otherwise texture code generates normals itself... */
-  retval = texres->nor ? 3 : 1;
+  retval = texres->nor ? (TEX_RGB | TEX_NOR) : TEX_RGB;
 
   /* quick tests */
   if (ibuf == NULL && ima == NULL) {
