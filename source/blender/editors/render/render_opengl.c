@@ -50,6 +50,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_library_query.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -526,14 +527,15 @@ static void screen_opengl_render_apply(const bContext *C, OGLRender *oglrender)
   }
 }
 
-static void gather_frames_to_render_for_adt(OGLRender *oglrender,
-                                            int frame_start,
-                                            int frame_end,
-                                            const AnimData *adt)
+static void gather_frames_to_render_for_adt(const OGLRender *oglrender, const AnimData *adt)
 {
   if (adt == NULL || adt->action == NULL) {
     return;
   }
+
+  Scene *scene = oglrender->scene;
+  int frame_start = PSFRA;
+  int frame_end = PEFRA;
 
   LISTBASE_FOREACH (FCurve *, fcu, &adt->action->curves) {
     if (fcu->driver != NULL || fcu->fpt != NULL) {
@@ -561,13 +563,114 @@ static void gather_frames_to_render_for_adt(OGLRender *oglrender,
   }
 }
 
+static void gather_frames_to_render_for_grease_pencil(const OGLRender *oglrender,
+                                                      const bGPdata *gp)
+{
+  if (gp == NULL) {
+    return;
+  }
+
+  Scene *scene = oglrender->scene;
+  int frame_start = PSFRA;
+  int frame_end = PEFRA;
+
+  LISTBASE_FOREACH (const bGPDlayer *, gp_layer, &gp->layers) {
+    LISTBASE_FOREACH (const bGPDframe *, gp_frame, &gp_layer->frames) {
+      if (gp_frame->framenum < frame_start || gp_frame->framenum > frame_end) {
+        continue;
+      }
+      BLI_BITMAP_ENABLE(oglrender->render_frames, gp_frame->framenum - frame_start);
+    }
+  }
+}
+
+static int gather_frames_to_render_for_id(void *user_data_v, ID *id_self, ID **id_p, int cb_flag)
+{
+  if (id_p == NULL || *id_p == NULL) {
+    return IDWALK_RET_NOP;
+  }
+  ID *id = *id_p;
+
+  if (cb_flag == IDWALK_CB_LOOPBACK || id == id_self) {
+    /* IDs may end up referencing themselves one way or the other, and those
+     * (the id_self ones) have always already been processed. */
+    return IDWALK_RET_STOP_RECURSION;
+  }
+
+  OGLRender *oglrender = user_data_v;
+
+  /* Whitelist of datablocks to follow pointers into. */
+  const ID_Type id_type = GS(id->name);
+  switch (id_type) {
+    /* Whitelist: */
+    case ID_ME:  /* Mesh */
+    case ID_CU:  /* Curve */
+    case ID_MB:  /* MetaBall */
+    case ID_MA:  /* Material */
+    case ID_TE:  /* Tex (Texture) */
+    case ID_IM:  /* Image */
+    case ID_LT:  /* Lattice */
+    case ID_LA:  /* Light */
+    case ID_CA:  /* Camera */
+    case ID_KE:  /* Key (shape key) */
+    case ID_VF:  /* VFont (Vector Font) */
+    case ID_TXT: /* Text */
+    case ID_SPK: /* Speaker */
+    case ID_SO:  /* Sound */
+    case ID_AR:  /* bArmature */
+    case ID_NT:  /* bNodeTree */
+    case ID_PA:  /* ParticleSettings */
+    case ID_MC:  /* MovieClip */
+    case ID_MSK: /* Mask */
+    case ID_LP:  /* LightProbe */
+      break;
+
+      /* Blacklist: */
+    case ID_SCE: /* Scene */
+    case ID_LI:  /* Library */
+    case ID_OB:  /* Object */
+    case ID_IP:  /* Ipo (depreciated, replaced by FCurves) */
+    case ID_WO:  /* World */
+    case ID_SCR: /* Screen */
+    case ID_GR:  /* Group */
+    case ID_AC:  /* bAction */
+    case ID_BR:  /* Brush */
+    case ID_WM:  /* WindowManager */
+    case ID_LS:  /* FreestyleLineStyle */
+    case ID_PAL: /* Palette */
+    case ID_PC:  /* PaintCurve  */
+    case ID_CF:  /* CacheFile */
+    case ID_WS:  /* WorkSpace */
+      /* Only follow pointers to specific datablocks, to avoid ending up in
+       * unrelated datablocks and exploding the number of blocks we follow. If the
+       * frames of the animation of certain objects should be taken into account,
+       * they should have been selected by the user. */
+      return IDWALK_RET_STOP_RECURSION;
+
+    /* Special cases: */
+    case ID_GD: /* bGPdata, (Grease Pencil) */
+      /* In addition to regular ID's animdata, GreasePencil uses a specific frame-based animation
+       * system that requires specific handling here. */
+      gather_frames_to_render_for_grease_pencil(oglrender, (bGPdata *)id);
+      break;
+  }
+
+  AnimData *adt = BKE_animdata_from_id(id);
+  gather_frames_to_render_for_adt(oglrender, adt);
+
+  return IDWALK_RET_NOP;
+}
+
 /**
  * Collect the frame numbers for which selected objects have keys in the animation data.
  * The frames ares stored in #OGLRender.render_frames.
+ *
+ * Note that this follows all pointers to ID blocks, only filtering on ID type,
+ * so it will pick up keys from pointers in custom properties as well.
  */
 static void gather_frames_to_render(bContext *C, OGLRender *oglrender)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = oglrender->scene;
   int frame_start = PSFRA;
   int frame_end = PEFRA;
 
@@ -579,14 +682,15 @@ static void gather_frames_to_render(bContext *C, OGLRender *oglrender)
   BLI_BITMAP_ENABLE(oglrender->render_frames, 0);
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
-    if (ob->adt != NULL) {
-      gather_frames_to_render_for_adt(oglrender, frame_start, frame_end, ob->adt);
-    }
+    ID *id = &ob->id;
 
-    AnimData *adt = BKE_animdata_from_id(ob->data);
-    if (adt != NULL) {
-      gather_frames_to_render_for_adt(oglrender, frame_start, frame_end, adt);
-    }
+    /* Gather the frames from the object animation data. */
+    AnimData *adt = BKE_animdata_from_id(id);
+    gather_frames_to_render_for_adt(oglrender, adt);
+
+    /* Gather the frames from linked datablocks (materials, shapkeys, etc.). */
+    BKE_library_foreach_ID_link(
+        NULL, id, gather_frames_to_render_for_id, oglrender, IDWALK_RECURSE);
   }
   CTX_DATA_END;
 }
