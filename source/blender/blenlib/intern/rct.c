@@ -477,6 +477,50 @@ void BLI_rcti_init(rcti *rect, int xmin, int xmax, int ymin, int ymax)
   }
 }
 
+/**
+ * Check if X-min and Y-min are less than or equal to X-max and Y-max, respectively.
+ * If this returns false, #BLI_rctf_sanitize() can be called to address this.
+ *
+ * This is not a hard constraint or invariant for rectangles, in some cases it may be useful to
+ * have max < min. Usually this is what you'd want though.
+ */
+bool BLI_rctf_is_valid(const rctf *rect)
+{
+  return (rect->xmin <= rect->xmax) && (rect->ymin <= rect->ymax);
+}
+
+bool BLI_rcti_is_valid(const rcti *rect)
+{
+  return (rect->xmin <= rect->xmax) && (rect->ymin <= rect->ymax);
+}
+
+/**
+ * Ensure X-min and Y-min are less than or equal to X-max and Y-max, respectively.
+ */
+void BLI_rctf_sanitize(rctf *rect)
+{
+  if (rect->xmin > rect->xmax) {
+    SWAP(float, rect->xmin, rect->xmax);
+  }
+  if (rect->ymin > rect->ymax) {
+    SWAP(float, rect->ymin, rect->ymax);
+  }
+
+  BLI_assert(BLI_rctf_is_valid(rect));
+}
+
+void BLI_rcti_sanitize(rcti *rect)
+{
+  if (rect->xmin > rect->xmax) {
+    SWAP(int, rect->xmin, rect->xmax);
+  }
+  if (rect->ymin > rect->ymax) {
+    SWAP(int, rect->ymin, rect->ymax);
+  }
+
+  BLI_assert(BLI_rcti_is_valid(rect));
+}
+
 void BLI_rctf_init_pt_radius(rctf *rect, const float xy[2], float size)
 {
   rect->xmin = xy[0] - size;
