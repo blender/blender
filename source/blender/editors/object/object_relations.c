@@ -1706,17 +1706,27 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 
 /**************************** Make Single User ********************************/
 
-static void libblock_relink_collection(Collection *collection)
+static void libblock_relink_collection(Collection *collection, const bool do_collection)
 {
-  BKE_libblock_relink_to_newid(&collection->id);
+  if (do_collection) {
+    BKE_libblock_relink_to_newid(&collection->id);
+  }
 
   for (CollectionObject *cob = collection->gobject.first; cob != NULL; cob = cob->next) {
     BKE_libblock_relink_to_newid(&cob->ob->id);
   }
 
   for (CollectionChild *child = collection->children.first; child; child = child->next) {
-    libblock_relink_collection(child->collection);
+    libblock_relink_collection(child->collection, true);
   }
+}
+
+static void libblock_relink_collections_from_scene(Scene *scene)
+{
+  /* Will also handle the master collection. */
+  BKE_libblock_relink_to_newid(&scene->id);
+
+  libblock_relink_collection(scene->master_collection, false);
 }
 
 static Collection *single_object_users_collection(Main *bmain,
@@ -1807,7 +1817,7 @@ static void single_object_users(
 #endif
 
   /* Collection and object pointers in collections */
-  libblock_relink_collection(master_collection);
+  libblock_relink_collections_from_scene(scene);
 
   /* collection pointers in scene */
   BKE_scene_groups_relink(scene);
@@ -2056,7 +2066,7 @@ void ED_object_single_users(Main *bmain,
      * rewritten at some point to make use of proper modern ID management code,
      * but that is no small task.
      * For now we are doomed to that kind of band-aid to try to cover most of remapping cases. */
-    libblock_relink_collection(scene->master_collection);
+    libblock_relink_collections_from_scene(scene);
   }
 
   /* Relink nodetrees' pointers that have been duplicated. */
