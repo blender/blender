@@ -345,7 +345,7 @@ void defvert_normalize_lock_single(MDeformVert *dvert,
   else if (dvert->totweight == 1) {
     MDeformWeight *dw = dvert->dw;
     if ((dw->def_nr < vgroup_tot) && vgroup_subset[dw->def_nr]) {
-      if (def_nr_lock != 0) {
+      if (def_nr_lock != dw->def_nr) {
         dw->weight = 1.0f;
       }
     }
