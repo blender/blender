@@ -934,6 +934,11 @@ void main()
   vec3 vol_transmit, vol_scatter;
   volumetric_resolve(uvs, gl_FragCoord.z, vol_transmit, vol_scatter);
 
+  /* Removes part of the volume scattering that have
+   * already been added to the destination pixels.
+   * Since we do that using the blending pipeline we need to account for material transmittance. */
+  vol_scatter -= vol_scatter * cl.transmittance;
+
   outRadiance = vec4(cl.radiance * vol_transmit + vol_scatter, alpha * holdout);
   outTransmittance = vec4(cl.transmittance, transmit * holdout);
 #    else
