@@ -408,7 +408,14 @@ static void gizmo_arrow_exit(bContext *C, wmGizmo *gz, const bool cancel)
   wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
   const bool is_prop_valid = WM_gizmo_target_property_is_valid(gz_prop);
 
-  if (!cancel) {
+  if (cancel) {
+    GizmoInteraction *inter = gz->interaction_data;
+    if (is_prop_valid) {
+      gizmo_property_value_reset(C, gz, inter, gz_prop);
+    }
+    data->offset = inter->init_offset;
+  }
+  else {
     /* Assign in case applying the operation needs an updated offset
      * edit-mesh bisect needs this. */
     if (is_prop_valid) {
@@ -418,14 +425,13 @@ static void gizmo_arrow_exit(bContext *C, wmGizmo *gz, const bool cancel)
       const float value = WM_gizmo_target_property_float_get(gz, gz_prop);
       data->offset = gizmo_offset_from_value(data, value, constrained, inverted);
     }
-    return;
   }
 
-  GizmoInteraction *inter = gz->interaction_data;
-  if (is_prop_valid) {
-    gizmo_property_value_reset(C, gz, inter, gz_prop);
+  if (!cancel) {
+    if (is_prop_valid) {
+      WM_gizmo_target_property_anim_autokey(C, gz, gz_prop);
+    }
   }
-  data->offset = inter->init_offset;
 }
 
 /* -------------------------------------------------------------------- */

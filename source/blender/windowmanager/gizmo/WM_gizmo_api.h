@@ -236,6 +236,10 @@ void WM_gizmo_target_property_subscribe_all(struct wmGizmo *gz,
                                             struct wmMsgBus *mbus,
                                             struct ARegion *ar);
 
+void WM_gizmo_target_property_anim_autokey(struct bContext *C,
+                                           const struct wmGizmo *gz,
+                                           struct wmGizmoProperty *gz_prop);
+
 /* -------------------------------------------------------------------- */
 /* wmGizmoGroup */
 

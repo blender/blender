@@ -335,6 +335,13 @@ static void gizmo_move_exit(bContext *C, wmGizmo *gz, const bool cancel)
     ED_transform_snap_object_context_destroy(inter->snap_context_v3d);
     inter->snap_context_v3d = NULL;
   }
+
+  if (!cancel) {
+    wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
+    if (WM_gizmo_target_property_is_valid(gz_prop)) {
+      WM_gizmo_target_property_anim_autokey(C, gz, gz_prop);
+    }
+  }
 }
 
 static int gizmo_move_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
