@@ -28,9 +28,9 @@ struct CCLIntersectContext {
   typedef enum {
     RAY_REGULAR = 0,
     RAY_SHADOW_ALL = 1,
-    RAY_SSS = 2,
-    RAY_VOLUME_ALL = 3,
-
+    RAY_LOCAL = 2,
+    RAY_SSS = 3,
+    RAY_VOLUME_ALL = 4,
   } RayType;
 
   KernelGlobals *kg;
@@ -42,8 +42,8 @@ struct CCLIntersectContext {
   int num_hits;
 
   /* for SSS Rays: */
-  LocalIntersection *ss_isect;
-  int sss_object_id;
+  LocalIntersection *local_isect;
+  int local_object_id;
   uint *lcg_state;
 
   CCLIntersectContext(KernelGlobals *kg_, RayType type_)
@@ -53,8 +53,8 @@ struct CCLIntersectContext {
     max_hits = 1;
     num_hits = 0;
     isect_s = NULL;
-    ss_isect = NULL;
-    sss_object_id = -1;
+    local_isect = NULL;
+    local_object_id = -1;
     lcg_state = NULL;
   }
 };
@@ -121,11 +121,11 @@ ccl_device_inline void kernel_embree_convert_hit(KernelGlobals *kg,
   isect->type = kernel_tex_fetch(__prim_type, isect->prim);
 }
 
-ccl_device_inline void kernel_embree_convert_local_hit(KernelGlobals *kg,
-                                                       const RTCRay *ray,
-                                                       const RTCHit *hit,
-                                                       Intersection *isect,
-                                                       int local_object_id)
+ccl_device_inline void kernel_embree_convert_sss_hit(KernelGlobals *kg,
+                                                     const RTCRay *ray,
+                                                     const RTCHit *hit,
+                                                     Intersection *isect,
+                                                     int local_object_id)
 {
   isect->u = 1.0f - hit->v - hit->u;
   isect->v = hit->u;

@@ -329,24 +329,26 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
 
 #    ifdef __EMBREE__
   if (kernel_data.bvh.scene) {
-    CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_SSS);
+    const bool has_bvh = !(kernel_tex_fetch(__object_flag, local_object) &
+                           SD_OBJECT_TRANSFORM_APPLIED);
+    CCLIntersectContext ctx(
+        kg, has_bvh ? CCLIntersectContext::RAY_SSS : CCLIntersectContext::RAY_LOCAL);
     ctx.lcg_state = lcg_state;
     ctx.max_hits = max_hits;
-    ctx.ss_isect = local_isect;
+    ctx.local_isect = local_isect;
     local_isect->num_hits = 0;
-    ctx.sss_object_id = local_object;
+    ctx.local_object_id = local_object;
     IntersectContext rtc_ctx(&ctx);
     RTCRay rtc_ray;
     kernel_embree_setup_ray(*ray, rtc_ray, PATH_RAY_ALL_VISIBILITY);
 
-    /* Get the Embree scene for this intersection. */
-    RTCGeometry geom = rtcGetGeometry(kernel_data.bvh.scene, local_object * 2);
-    if (geom) {
-      float3 P = ray->P;
-      float3 dir = ray->D;
-      float3 idir = ray->D;
-      const int object_flag = kernel_tex_fetch(__object_flag, local_object);
-      if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+    /* If this object has its own BVH, use it. */
+    if (has_bvh) {
+      RTCGeometry geom = rtcGetGeometry(kernel_data.bvh.scene, local_object * 2);
+      if (geom) {
+        float3 P = ray->P;
+        float3 dir = ray->D;
+        float3 idir = ray->D;
         Transform ob_itfm;
         rtc_ray.tfar = bvh_instance_motion_push(
             kg, local_object, ray, &P, &dir, &idir, ray->t, &ob_itfm);
@@ -360,11 +362,15 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
         rtc_ray.dir_x = dir.x;
         rtc_ray.dir_y = dir.y;
         rtc_ray.dir_z = dir.z;
+        RTCScene scene = (RTCScene)rtcGetGeometryUserData(geom);
+        kernel_assert(scene);
+        if (scene) {
+          rtcOccluded1(scene, &rtc_ctx.context, &rtc_ray);
+        }
       }
-      RTCScene scene = (RTCScene)rtcGetGeometryUserData(geom);
-      if (scene) {
-        rtcOccluded1(scene, &rtc_ctx.context, &rtc_ray);
-      }
+    }
+    else {
+      rtcOccluded1(kernel_data.bvh.scene, &rtc_ctx.context, &rtc_ray);
     }
 
     return local_isect->num_hits > 0;

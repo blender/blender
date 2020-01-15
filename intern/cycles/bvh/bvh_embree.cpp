@@ -146,7 +146,21 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       }
       break;
     }
+    case CCLIntersectContext::RAY_LOCAL:
     case CCLIntersectContext::RAY_SSS: {
+      /* Check if it's hitting the correct object. */
+      Intersection current_isect;
+      if (ctx->type == CCLIntersectContext::RAY_SSS) {
+        kernel_embree_convert_sss_hit(kg, ray, hit, &current_isect, ctx->local_object_id);
+      }
+      else {
+        kernel_embree_convert_hit(kg, ray, hit, &current_isect);
+        if (ctx->local_object_id != current_isect.object) {
+          /* This tells Embree to continue tracing. */
+          *args->valid = 0;
+        }
+      }
+
       /* No intersection information requested, just return a hit. */
       if (ctx->max_hits == 0) {
         break;
@@ -160,8 +174,8 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       }
 
       /* See triangle_intersect_subsurface() for the native equivalent. */
-      for (int i = min(ctx->max_hits, ctx->ss_isect->num_hits) - 1; i >= 0; --i) {
-        if (ctx->ss_isect->hits[i].t == ray->tfar) {
+      for (int i = min(ctx->max_hits, ctx->local_isect->num_hits) - 1; i >= 0; --i) {
+        if (ctx->local_isect->hits[i].t == ray->tfar) {
           /* This tells Embree to continue tracing. */
           *args->valid = 0;
           break;
@@ -172,14 +186,14 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
 
       if (ctx->lcg_state) {
 
-        ++ctx->ss_isect->num_hits;
-        if (ctx->ss_isect->num_hits <= ctx->max_hits) {
-          hit_idx = ctx->ss_isect->num_hits - 1;
+        ++ctx->local_isect->num_hits;
+        if (ctx->local_isect->num_hits <= ctx->max_hits) {
+          hit_idx = ctx->local_isect->num_hits - 1;
         }
         else {
           /* reservoir sampling: if we are at the maximum number of
            * hits, randomly replace element or skip it */
-          hit_idx = lcg_step_uint(ctx->lcg_state) % ctx->ss_isect->num_hits;
+          hit_idx = lcg_step_uint(ctx->lcg_state) % ctx->local_isect->num_hits;
 
           if (hit_idx >= ctx->max_hits) {
             /* This tells Embree to continue tracing. */
@@ -189,15 +203,11 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
         }
       }
       else {
-        ctx->ss_isect->num_hits = 1;
+        ctx->local_isect->num_hits = 1;
       }
       /* record intersection */
-      kernel_embree_convert_local_hit(
-          kg, ray, hit, &ctx->ss_isect->hits[hit_idx], ctx->sss_object_id);
-      ctx->ss_isect->Ng[hit_idx].x = hit->Ng_x;
-      ctx->ss_isect->Ng[hit_idx].y = hit->Ng_y;
-      ctx->ss_isect->Ng[hit_idx].z = hit->Ng_z;
-      ctx->ss_isect->Ng[hit_idx] = normalize(ctx->ss_isect->Ng[hit_idx]);
+      ctx->local_isect->hits[hit_idx] = current_isect;
+      ctx->local_isect->Ng[hit_idx] = normalize(make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z));
       /* This tells Embree to continue tracing .*/
       *args->valid = 0;
       break;
