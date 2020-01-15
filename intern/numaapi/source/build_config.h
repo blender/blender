@@ -46,6 +46,14 @@
 #if defined(__native_client__)
 // __native_client__ must be first, so that other OS_ defines are not set.
 #  define OS_NACL 1
+// OS_NACL comes in two sandboxing technology flavors, SFI or Non-SFI.
+// PNaCl toolchain defines __native_client_nonsfi__ macro in Non-SFI build
+// mode, while it does not in SFI build mode.
+#  if defined(__native_client_nonsfi__)
+#    define OS_NACL_NONSFI
+#  else
+#    define OS_NACL_SFI
+#  endif
 #elif defined(_AIX)
 #  define OS_AIX 1
 #elif defined(ANDROID)
@@ -75,6 +83,8 @@
 #  define OS_IRIX 1
 #elif defined(_WIN32)
 #  define OS_WIN 1
+#elif defined(__Fuchsia__)
+#  define OS_FUCHSIA 1
 #elif defined(__FreeBSD__)
 #  define OS_FREEBSD 1
 #elif defined(__NetBSD__)
@@ -85,6 +95,8 @@
 #  define OS_SOLARIS 1
 #elif defined(__QNXNTO__)
 #  define OS_QNX 1
+#elif defined(__asmjs__) || defined(__wasm__)
+#  define OS_ASMJS
 #else
 #  error Please add support for your platform in build_config.h
 #endif
@@ -92,8 +104,17 @@
 #if !defined(OS_AIX)
 #  define OS_AIX 0
 #endif
+#if !defined(OS_ASMJS)
+#  define OS_ASMJS 0
+#endif
 #if !defined(OS_NACL)
 #  define OS_NACL 0
+#endif
+#if !defined(OS_NACL_NONSFI)
+#  define OS_NACL_NONSFI 0
+#endif
+#if !defined(OS_NACL_SFI)
+#  define OS_NACL_SFI 0
 #endif
 #if !defined(OS_ANDROID)
 #  define OS_ANDROID 0
@@ -121,6 +142,9 @@
 #endif
 #if !defined(OS_WIN)
 #  define OS_WIN 0
+#endif
+#if !defined(OS_FUCHSIA)
+#  define OS_FUCHSIA 0
 #endif
 #if !defined(OS_FREEBSD)
 #  define OS_FREEBSD 0
@@ -154,8 +178,8 @@
 //
 // For access to standard POSIXish features use OS_POSIX instead of a
 // more specific macro.
-#if OS_MACOSX || OS_LINUX || OS_BSD || OS_SOLARIS ||OS_ANDROID || OS_NACL ||  \
-    OS_QNX || OS_HAIKU || OS_AIX || OS_HPUX || OS_IRIX
+#if OS_AIX || OS_ANDROID || OS_ASMJS || OS_FREEBSD || OS_LINUX || OS_MACOSX || \
+    OS_NACL || OS_NETBSD || OS_OPENBSD || OS_QNX || OS_SOLARIS
 #  define OS_POSIX 1
 #else
 #  define OS_POSIX 0
@@ -210,7 +234,7 @@
 // particular case, that warning might be helpful to catch errors elsewhere.
 
 // C++11 check.
-#if ((defined(__cplusplus) && (__cplusplus > 199711L)) || \
+#if ((defined(__cplusplus) && (__cplusplus > 199711L)) ||                      \
      (defined(_MSC_VER) && (_MSC_VER >= 1800)))
 #  define COMPILER_SUPPORTS_CXX11 1
 #else
@@ -218,21 +242,21 @@
 #endif
 // C++14 check.
 #if (defined(__cplusplus) && (__cplusplus > 201311L))
-#  define COMPILER_SUPPORTS_CXX14  1
+#  define COMPILER_SUPPORTS_CXX14 1
 #else
-#  define COMPILER_SUPPORTS_CXX14  0
+#  define COMPILER_SUPPORTS_CXX14 0
 #endif
 // C++17 check.
 #if (defined(__cplusplus) && (__cplusplus > 201611L))
-#  define COMPILER_SUPPORTS_CXX17  1
+#  define COMPILER_SUPPORTS_CXX17 1
 #else
-#  define COMPILER_SUPPORTS_CXX17  0
+#  define COMPILER_SUPPORTS_CXX17 0
 #endif
 // C++20 check.
 #if (defined(__cplusplus) && (__cplusplus > 201911L))
-#  define COMPILER_SUPPORTS_CXX20  1
+#  define COMPILER_SUPPORTS_CXX20 1
 #else
-#  define COMPILER_SUPPORTS_CXX20  0
+#  define COMPILER_SUPPORTS_CXX20 0
 #endif
 
 // COMPILER_USE_ADDRESS_SANITIZER is defined when program is detected that
@@ -270,22 +294,42 @@
 #  define ARCH_CPU_X86 1
 #  define ARCH_CPU_32_BITS 1
 #  define ARCH_CPU_LITTLE_ENDIAN 1
+#elif defined(__s390x__)
+#  define ARCH_CPU_S390_FAMILY 1
+#  define ARCH_CPU_S390X 1
+#  define ARCH_CPU_64_BITS 1
+#  define ARCH_CPU_BIG_ENDIAN 1
+#elif defined(__s390__)
+#  define ARCH_CPU_S390_FAMILY 1
+#  define ARCH_CPU_S390 1
+#  define ARCH_CPU_31_BITS 1
+#  define ARCH_CPU_BIG_ENDIAN 1
+#elif (defined(__PPC64__) || defined(__PPC__)) && defined(__BIG_ENDIAN__)
+#  define ARCH_CPU_PPC64_FAMILY 1
+#  define ARCH_CPU_PPC64 1
+#  define ARCH_CPU_64_BITS 1
+#  define ARCH_CPU_BIG_ENDIAN 1
+#elif defined(__PPC64__)
+#  define ARCH_CPU_PPC64_FAMILY 1
+#  define ARCH_CPU_PPC64 1
+#  define ARCH_CPU_64_BITS 1
+#  define ARCH_CPU_LITTLE_ENDIAN 1
 #elif defined(__ARMEL__)
 #  define ARCH_CPU_ARM_FAMILY 1
 #  define ARCH_CPU_ARMEL 1
 #  define ARCH_CPU_32_BITS 1
 #  define ARCH_CPU_LITTLE_ENDIAN 1
-#elif defined(__aarch64__)
+#elif defined(__aarch64__) || defined(_M_ARM64)
 #  define ARCH_CPU_ARM_FAMILY 1
 #  define ARCH_CPU_ARM64 1
 #  define ARCH_CPU_64_BITS 1
 #  define ARCH_CPU_LITTLE_ENDIAN 1
-#elif defined(__pnacl__)
+#elif defined(__pnacl__) || defined(__asmjs__) || defined(__wasm__)
 #  define ARCH_CPU_32_BITS 1
 #  define ARCH_CPU_LITTLE_ENDIAN 1
 #elif defined(__MIPSEL__)
 #  if defined(__LP64__)
-#    define ARCH_CPU_MIPS64_FAMILY 1
+#    define ARCH_CPU_MIPS_FAMILY 1
 #    define ARCH_CPU_MIPS64EL 1
 #    define ARCH_CPU_64_BITS 1
 #    define ARCH_CPU_LITTLE_ENDIAN 1
@@ -297,37 +341,16 @@
 #  endif
 #elif defined(__MIPSEB__)
 #  if defined(__LP64__)
-#    define ARCH_CPU_MIPS64_FAMILY 1
-#    define ARCH_CPU_MIPS64EB 1
+#    define ARCH_CPU_MIPS_FAMILY 1
+#    define ARCH_CPU_MIPS64 1
 #    define ARCH_CPU_64_BITS 1
 #    define ARCH_CPU_BIG_ENDIAN 1
 #  else
 #    define ARCH_CPU_MIPS_FAMILY 1
-#    define ARCH_CPU_MIPSEB 1
+#    define ARCH_CPU_MIPS 1
 #    define ARCH_CPU_32_BITS 1
 #    define ARCH_CPU_BIG_ENDIAN 1
 #  endif
-#elif defined(__powerpc64__)
-#  define ARCH_CPU_PPC_FAMILY 1
-#  define ARCH_CPU_PPC 1
-#  define ARCH_CPU_64_BITS 1
-#  if defined(__BIG_ENDIAN__)
-#    define ARCH_CPU_BIG_ENDIAN 1
-#  elif defined(__LITTLE_ENDIAN)
-#    define ARCH_CPU_LITTLE_ENDIAN 1
-#  else
-#    error Please define your endianness
-#  endif
-#elif defined(__s390x__)
-#  define ARCH_CPU_S390_FAMILY 1
-#  define ARCH_CPU_S390X 1
-#  define ARCH_CPU_64_BITS 1
-#  define ARCH_CPU_BIG_ENDIAN 1
-#elif defined(__s390__)
-#  define ARCH_CPU_S390_FAMILY 1
-#  define ARCH_CPU_S390 1
-#  define ARCH_CPU_31_BITS 1
-#  define ARCH_CPU_BIG_ENDIAN 1
 #else
 #  error Please add support for your architecture in build_config.h
 #endif
@@ -355,11 +378,8 @@
 #if !defined(ARCH_CPU_MIPS_FAMILY)
 #  define ARCH_CPU_MIPS_FAMILY 0
 #endif
-#if !defined(ARCH_CPU_MIPS64_FAMILY)
-#  define ARCH_CPU_MIPS64_FAMILY 0
-#endif
-#if !defined(ARCH_CPU_PPC_FAMILY)
-#  define ARCH_CPU_PPC_FAMILY 0
+#if !defined(ARCH_CPU_PPC64_FAMILY)
+#  define ARCH_CPU_PPC64_FAMILY 0
 #endif
 #if !defined(ARCH_CPU_S390_FAMILY)
 #  define ARCH_CPU_S390_FAMILY 0
@@ -384,7 +404,7 @@
 #  endif
 #endif
 #if !defined(PLATFORM_SIZEOF_PTR)
-#  error "Cannot find pointer size"
+#  error Cannot find pointer size.
 #endif
 
 #if (UINT_MAX == 0xffffffff)
@@ -392,7 +412,7 @@
 #elif (UINT_MAX == 0xffffffffffffffff)  // NOLINT
 #  define PLATFORM_SIZEOF_INT 8
 #else
-#  error "Cannot find int size"
+#  error Cannot find "int" size.
 #endif
 
 #if (USHRT_MAX == 0xffffffff)
@@ -400,7 +420,7 @@
 #elif (USHRT_MAX == 0xffff)  // NOLINT
 #  define PLATFORM_SIZEOF_SHORT 2
 #else
-#  error "Cannot find short size"
+#  error Cannot find "short" size.
 #endif
 
 #endif  // __BUILD_CONFIG_H__
