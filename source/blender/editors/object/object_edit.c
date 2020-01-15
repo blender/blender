@@ -218,7 +218,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 
   /* Hide selected or unselected objects. */
   for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-    if (!(base->flag & BASE_VISIBLE_DEPSGRAPH)) {
+    if (!(base->flag & BASE_VISIBLE_VIEWLAYER)) {
       continue;
     }
 
