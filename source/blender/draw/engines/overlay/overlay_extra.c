@@ -637,6 +637,9 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
     DRW_buffer_add_entry(cb->light_sun, color, &instdata);
   }
   else if (la->type == LA_SPOT) {
+    /* Previous implementation was using the clipend distance as cone size.
+     * We cannot do this anymore so we use a fixed size of 10. (see T72871) */
+    rescale_m4(instdata.mat, (float[3]){10.0f, 10.0f, 10.0f});
     /* For cycles and eevee the spot attenuation is
      * y = (1/(1 + x^2) - a)/((1 - a) b)
      * We solve the case where spot attenuation y = 1 and y = 0
