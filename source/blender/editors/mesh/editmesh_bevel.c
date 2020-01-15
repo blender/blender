@@ -425,7 +425,13 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
     View3D *v3d = CTX_wm_view3d(C);
     ARegion *ar = CTX_wm_region(C);
     for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
+      Object *obedit = opdata->ob_store[ob_index].ob;
+      BMEditMesh *em = BKE_editmesh_from_object(obedit);
       EDBM_redo_state_free(&opdata->ob_store[ob_index].mesh_backup, NULL, false);
+      /* Without this, faces surrounded by selected edges/verts will be unselected. */
+      if ((em->selectmode & SCE_SELECT_FACE) == 0) {
+        EDBM_selectmode_flush(em);
+      }
     }
     ED_region_draw_cb_exit(ar->type, opdata->draw_handle_pixel);
     if (v3d) {

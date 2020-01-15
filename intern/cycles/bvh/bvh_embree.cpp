@@ -190,10 +190,10 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       }
       else {
         ctx->ss_isect->num_hits = 1;
-	  }
-        /* record intersection */
-        kernel_embree_convert_local_hit(
-            kg, ray, hit, &ctx->ss_isect->hits[hit_idx], ctx->sss_object_id);
+      }
+      /* record intersection */
+      kernel_embree_convert_local_hit(
+          kg, ray, hit, &ctx->ss_isect->hits[hit_idx], ctx->sss_object_id);
       ctx->ss_isect->Ng[hit_idx].x = hit->Ng_x;
       ctx->ss_isect->Ng[hit_idx].y = hit->Ng_y;
       ctx->ss_isect->Ng[hit_idx].z = hit->Ng_z;

@@ -3883,7 +3883,7 @@ static int convert_key(GHOST_TKey key)
   else if (key >= GHOST_kKeyNumpad0 && key <= GHOST_kKeyNumpad9) {
     return (PAD0 + ((int)key - GHOST_kKeyNumpad0));
   }
-  else if (key >= GHOST_kKeyF1 && key <= GHOST_kKeyF19) {
+  else if (key >= GHOST_kKeyF1 && key <= GHOST_kKeyF24) {
     return (F1KEY + ((int)key - GHOST_kKeyF1));
   }
   else {
