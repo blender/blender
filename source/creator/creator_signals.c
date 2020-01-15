@@ -102,15 +102,18 @@ static void sig_handle_crash_backtrace(FILE *fp)
 
 static void sig_handle_crash(int signum)
 {
-  wmWindowManager *wm = G_MAIN->wm.first;
+  /* Might be called after WM/Main exit, so needs to be careful about NULL-checking before
+   * dereferencing. */
+
+  wmWindowManager *wm = G_MAIN ? G_MAIN->wm.first : NULL;
 
 #  ifdef USE_WRITE_CRASH_BLEND
-  if (wm->undo_stack) {
+  if (wm && wm->undo_stack) {
     struct MemFile *memfile = BKE_undosys_stack_memfile_get_active(wm->undo_stack);
     if (memfile) {
       char fname[FILE_MAX];
 
-      if (!G_MAIN->name[0]) {
+      if (!(G_MAIN && G_MAIN->name[0])) {
         BLI_make_file_string("/", fname, BKE_tempdir_base(), "crash.blend");
       }
       else {
@@ -131,7 +134,7 @@ static void sig_handle_crash(int signum)
 
   char fname[FILE_MAX];
 
-  if (!G_MAIN->name[0]) {
+  if (!(G_MAIN && G_MAIN->name[0])) {
     BLI_join_dirfile(fname, sizeof(fname), BKE_tempdir_base(), "blender.crash.txt");
   }
   else {
