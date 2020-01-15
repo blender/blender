@@ -2254,6 +2254,10 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
       FOREACH_OBJECT_IN_MODE_END;
     }
     else {
+      /* When selecting pose-bones in pose mode, check for visibility not select-ability
+       * as pose-bones have their own selection restriction flag. */
+      const bool use_pose_exception = (DST.draw_ctx.object_pose != NULL);
+
       const int object_type_exclude_select = (v3d->object_type_exclude_viewport |
                                               v3d->object_type_exclude_select);
       bool filter_exclude = false;
@@ -2261,8 +2265,19 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
         if (!BKE_object_is_visible_in_viewport(v3d, ob)) {
           continue;
         }
-        if ((ob->base_flag & BASE_SELECTABLE) &&
-            (object_type_exclude_select & (1 << ob->type)) == 0) {
+
+        if (use_pose_exception && (ob->mode & OB_MODE_POSE)) {
+          if ((ob->base_flag & BASE_VISIBLE_VIEWLAYER) == 0) {
+            continue;
+          }
+        }
+        else {
+          if ((ob->base_flag & BASE_SELECTABLE) == 0) {
+            continue;
+          }
+        }
+
+        if ((object_type_exclude_select & (1 << ob->type)) == 0) {
           if (object_filter_fn != NULL) {
             if (ob->base_flag & BASE_FROM_DUPLI) {
               /* pass (use previous filter_exclude value) */
