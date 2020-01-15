@@ -547,6 +547,12 @@ void WM_window_set_dpi(const wmWindow *win)
   BLF_default_dpi(U.pixelsize * U.dpi);
 }
 
+static void wm_window_update_eventstate(wmWindow *win)
+{
+  /* Update mouse position when a window is activated. */
+  wm_get_cursor_position(win, &win->eventstate->x, &win->eventstate->y);
+}
+
 static void wm_window_ensure_eventstate(wmWindow *win)
 {
   if (win->eventstate) {
@@ -554,7 +560,7 @@ static void wm_window_ensure_eventstate(wmWindow *win)
   }
 
   win->eventstate = MEM_callocN(sizeof(wmEvent), "window event state");
-  wm_get_cursor_position(win, &win->eventstate->x, &win->eventstate->y);
+  wm_window_update_eventstate(win);
 }
 
 /* belongs to below */
@@ -1208,7 +1214,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
       case GHOST_kEventWindowActivate: {
         GHOST_TEventKeyData kdata;
         wmEvent event;
-        int wx, wy;
         const int keymodifier = ((query_qual(SHIFT) ? KM_SHIFT : 0) |
                                  (query_qual(CONTROL) ? KM_CTRL : 0) |
                                  (query_qual(ALT) ? KM_ALT : 0) | (query_qual(OS) ? KM_OSKEY : 0));
@@ -1293,10 +1298,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         win->eventstate->keymodifier = 0;
 
         /* entering window, update mouse pos. but no event */
-        wm_get_cursor_position(win, &wx, &wy);
-
-        win->eventstate->x = wx;
-        win->eventstate->y = wy;
+        wm_window_update_eventstate(win);
 
         win->addmousemove = 1; /* enables highlighted buttons */
 
@@ -1457,12 +1459,9 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
       case GHOST_kEventDraggingDropDone: {
         wmEvent event;
         GHOST_TEventDragnDropData *ddd = GHOST_GetEventData(evt);
-        int wx, wy;
 
         /* entering window, update mouse pos */
-        wm_get_cursor_position(win, &wx, &wy);
-        win->eventstate->x = wx;
-        win->eventstate->y = wy;
+        wm_window_update_eventstate(win);
 
         wm_event_init_from_window(win, &event); /* copy last state, like mouse coords */
 
@@ -1544,9 +1543,21 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         wm_event_add_ghostevent(wm, win, type, data);
         break;
       }
-      default:
+      case GHOST_kEventButtonDown:
+      case GHOST_kEventButtonUp: {
+        if (win->active == 0) {
+          /* Entering window, update cursor and tablet state.
+           * (ghost sends win-activate *after* the mouseclick in window!) */
+          wm_window_update_eventstate(win);
+        }
+
         wm_event_add_ghostevent(wm, win, type, data);
         break;
+      }
+      default: {
+        wm_event_add_ghostevent(wm, win, type, data);
+        break;
+      }
     }
   }
   return 1;

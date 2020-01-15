@@ -4359,17 +4359,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       evt->val = event.val;
       evt->type = event.type;
 
-      if (win->active == 0) {
-        int cx, cy;
-
-        /* Entering window, update mouse pos.
-         * (ghost sends win-activate *after* the mouseclick in window!) */
-        wm_get_cursor_position(win, &cx, &cy);
-
-        event.x = evt->x = cx;
-        event.y = evt->y = cy;
-      }
-
       /* double click test */
       if (wm_event_is_double_click(&event, evt)) {
         CLOG_INFO(WM_LOG_HANDLERS, 1, "Send double click");
