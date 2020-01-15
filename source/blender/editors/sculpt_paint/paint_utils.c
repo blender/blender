@@ -519,13 +519,20 @@ void paint_sample_color(
           }
 
           if (image) {
-            ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
-            if (ibuf && ibuf->rect) {
-              float uv[2];
-              float u, v;
-              imapaint_pick_uv(me_eval, scene, ob_eval, faceindex, mval, uv);
-              sample_success = true;
+            float uv[2];
+            float u, v;
+            ImageUser iuser;
+            BKE_imageuser_default(&iuser);
 
+            imapaint_pick_uv(me_eval, scene, ob_eval, faceindex, mval, uv);
+
+            if (image->source == IMA_SRC_TILED) {
+              float new_uv[2];
+              iuser.tile = BKE_image_get_tile_from_pos(image, uv, new_uv, NULL);
+              u = new_uv[0];
+              v = new_uv[1];
+            }
+            else {
               u = fmodf(uv[0], 1.0f);
               v = fmodf(uv[1], 1.0f);
 
@@ -535,6 +542,11 @@ void paint_sample_color(
               if (v < 0.0f) {
                 v += 1.0f;
               }
+            }
+
+            ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, NULL);
+            if (ibuf && ibuf->rect) {
+              sample_success = true;
 
               u = u * ibuf->x;
               v = v * ibuf->y;
