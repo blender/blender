@@ -1512,14 +1512,9 @@ static void vwpaint_update_cache_variants(bContext *C, VPaint *vp, Object *ob, P
 
   /* Truly temporary data that isn't stored in properties */
   if (cache->first_time) {
-    if (!BKE_brush_use_locked_size(scene, brush)) {
-      cache->initial_radius = paint_calc_object_space_radius(
-          cache->vc, cache->true_location, BKE_brush_size_get(scene, brush));
-      BKE_brush_unprojected_radius_set(scene, brush, cache->initial_radius);
-    }
-    else {
-      cache->initial_radius = BKE_brush_unprojected_radius_get(scene, brush);
-    }
+    cache->initial_radius = paint_calc_object_space_radius(
+        cache->vc, cache->true_location, BKE_brush_size_get(scene, brush));
+    BKE_brush_unprojected_radius_set(scene, brush, cache->initial_radius);
   }
 
   if (BKE_brush_use_size_pressure(brush) &&
