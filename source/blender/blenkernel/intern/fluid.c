@@ -2859,7 +2859,7 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
                                    color_b_in,
                                    phiout_in);
             }
-            else if (mfs->behavior == FLUID_FLOW_BEHAVIOR_GEOMETRY && mmd2->time > 2) {
+            else if (mfs->behavior == FLUID_FLOW_BEHAVIOR_GEOMETRY && !is_first_frame) {
               apply_inflow_fields(mfs,
                                   0.0f,
                                   FLT_MAX,
