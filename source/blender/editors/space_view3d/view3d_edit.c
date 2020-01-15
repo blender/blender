@@ -4968,10 +4968,9 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
         copy_v3_v3(cursor_co, ray_co);
       }
 
-      float tquat[4];
-
       /* Math normal (Z). */
       {
+        float tquat[4];
         float z_src[3] = {0, 0, 1};
         mul_qt_v3(cursor_quat, z_src);
         rotation_between_vecs_to_quat(tquat, z_src, ray_no);
@@ -4986,13 +4985,34 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
             dot_v3v3(ray_no, obmat[2]),
         };
         const int ortho_axis = axis_dominant_v3_ortho_single(ortho_axis_dot);
-        float x_src[3] = {1, 0, 0};
-        float x_dst[3];
-        mul_qt_v3(cursor_quat, x_src);
-        project_plane_v3_v3v3(x_dst, obmat[ortho_axis], ray_no);
-        normalize_v3(x_dst);
-        rotation_between_vecs_to_quat(tquat, x_src, x_dst);
-        mul_qt_qtqt(cursor_quat, tquat, cursor_quat);
+
+        float tquat_best[4];
+        float angle_best = -1.0f;
+
+        float tan_dst[3];
+        project_plane_v3_v3v3(tan_dst, obmat[ortho_axis], ray_no);
+        normalize_v3(tan_dst);
+
+        /* As the tangent is arbitrary from the users point of view,
+         * make the cursor 'roll' on the shortest angle.
+         * otherwise this can cause noticeable 'flipping', see T72419. */
+        for (int axis = 0; axis < 2; axis++) {
+          float tan_src[3] = {0, 0, 0};
+          tan_src[axis] = 1.0f;
+          mul_qt_v3(cursor_quat, tan_src);
+
+          for (int axis_sign = 0; axis_sign < 2; axis_sign++) {
+            float tquat_test[4];
+            rotation_between_vecs_to_quat(tquat_test, tan_src, tan_dst);
+            const float angle_test = angle_normalized_qt(tquat_test);
+            if (angle_test < angle_best || angle_best == -1.0f) {
+              angle_best = angle_test;
+              copy_qt_qt(tquat_best, tquat_test);
+            }
+            negate_v3(tan_src);
+          }
+        }
+        mul_qt_qtqt(cursor_quat, tquat_best, cursor_quat);
       }
     }
     ED_transform_snap_object_context_destroy(snap_context);
