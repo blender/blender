@@ -1785,7 +1785,13 @@ static int mixed_bones_object_selectbuffer_extended(ViewContext *vc,
   return hits;
 }
 
-/* returns basact */
+/**
+ * \param has_bones: When true, skip non-bone hits, also allow bases to be used
+ * that are visible but not select-able,
+ * since you may be in pose mode with an an unselect-able object.
+ *
+ * \return the active base or NULL.
+ */
 static Base *mouse_select_eval_buffer(ViewContext *vc,
                                       const uint *buffer,
                                       int hits,
@@ -1827,7 +1833,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
 
     base = FIRSTBASE(view_layer);
     while (base) {
-      if (BASE_SELECTABLE(v3d, base)) {
+      if (has_bones ? BASE_VISIBLE(v3d, base) : BASE_SELECTABLE(v3d, base)) {
         if (base->object->runtime.select_id == selcol) {
           break;
         }
@@ -1844,7 +1850,8 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
     while (base) {
       /* skip objects with select restriction, to prevent prematurely ending this loop
        * with an un-selectable choice */
-      if ((base->flag & BASE_SELECTABLE) == 0) {
+      if (has_bones ? (base->flag & BASE_VISIBLE_VIEWLAYER) == 0 :
+                      (base->flag & BASE_SELECTABLE) == 0) {
         base = base->next;
         if (base == NULL) {
           base = FIRSTBASE(view_layer);
@@ -1854,7 +1861,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
         }
       }
 
-      if (BASE_SELECTABLE(v3d, base)) {
+      if (has_bones ? BASE_VISIBLE(v3d, base) : BASE_SELECTABLE(v3d, base)) {
         for (a = 0; a < hits; a++) {
           if (has_bones) {
             /* skip non-bone objects */
