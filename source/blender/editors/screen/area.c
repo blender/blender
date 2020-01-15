@@ -1244,6 +1244,20 @@ static void region_rect_recursive(
     alignment = RGN_ALIGN_NONE;
   }
 
+  /* If both the ARegion.sizex/y and the prefsize are 0, the region is tagged as too small, even
+   * before the layout for dynamic regions is created. #wm_draw_window_offscreen() allows the
+   * layout to be created despite the RGN_FLAG_TOO_SMALL flag being set. But there may still be
+   * regions that don't have a separate ARegionType.layout callback. For those, set a default
+   * prefsize so they can become visible. */
+  if ((ar->flag & RGN_FLAG_DYNAMIC_SIZE) && !(ar->type->layout)) {
+    if ((ar->sizex == 0) && (ar->type->prefsizex == 0)) {
+      ar->type->prefsizex = AREAMINX;
+    }
+    if ((ar->sizey == 0) && (ar->type->prefsizey == 0)) {
+      ar->type->prefsizey = HEADERY;
+    }
+  }
+
   /* prefsize, taking into account DPI */
   int prefsizex = UI_DPI_FAC * ((ar->sizex > 1) ? ar->sizex + 0.5f : ar->type->prefsizex);
   int prefsizey;
@@ -1323,7 +1337,7 @@ static void region_rect_recursive(
   else if (alignment == RGN_ALIGN_TOP || alignment == RGN_ALIGN_BOTTOM) {
     rcti *winrct = (ar->overlap) ? overlap_remainder : remainder;
 
-    if (rct_fits(winrct, 'v', prefsizey) < 0) {
+    if ((prefsizey == 0) || (rct_fits(winrct, 'v', prefsizey) < 0)) {
       ar->flag |= RGN_FLAG_TOO_SMALL;
     }
     else {
@@ -1348,7 +1362,7 @@ static void region_rect_recursive(
   else if (ELEM(alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
     rcti *winrct = (ar->overlap) ? overlap_remainder : remainder;
 
-    if (rct_fits(winrct, 'h', prefsizex) < 0) {
+    if ((prefsizex == 0) || (rct_fits(winrct, 'h', prefsizex) < 0)) {
       ar->flag |= RGN_FLAG_TOO_SMALL;
     }
     else {
@@ -1478,9 +1492,12 @@ static void region_rect_recursive(
         ar->winrct.xmin = ar->winrct.xmax;
         break;
       case RGN_ALIGN_LEFT:
+        ar->winrct.xmax = ar->winrct.xmin;
+        break;
       default:
         /* prevent winrct to be valid */
         ar->winrct.xmax = ar->winrct.xmin;
+        BLI_rcti_sanitize(&ar->winrct);
         break;
     }
   }
@@ -1499,6 +1516,8 @@ static void region_rect_recursive(
   if (!ar->overlap) {
     *overlap_remainder = *remainder;
   }
+
+  BLI_assert(BLI_rcti_is_valid(&ar->winrct));
 
   region_rect_recursive(sa, ar->next, remainder, overlap_remainder, quad);
 

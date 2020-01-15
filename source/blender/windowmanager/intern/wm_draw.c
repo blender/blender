@@ -581,7 +581,14 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 
     /* Compute UI layouts for dynamically size regions. */
     for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-      if (ar->visible && ar->do_draw && ar->type && ar->type->layout) {
+      /* Dynamic region may have been flagged as too small because their size on init is 0.
+       * ARegion.visible is false then, as expected. The layout should still be created then, so
+       * the region size can be updated (it may turn out to be not too small then). */
+      const bool ignore_visibility = (ar->flag & RGN_FLAG_DYNAMIC_SIZE) &&
+                                     (ar->flag & RGN_FLAG_TOO_SMALL) &&
+                                     !(ar->flag & RGN_FLAG_HIDDEN);
+
+      if ((ar->visible || ignore_visibility) && ar->do_draw && ar->type && ar->type->layout) {
         CTX_wm_region_set(C, ar);
         ED_region_do_layout(C, ar);
         CTX_wm_region_set(C, NULL);
