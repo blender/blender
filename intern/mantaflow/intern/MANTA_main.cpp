@@ -2621,7 +2621,7 @@ void MANTA::updatePointers()
   mantaFloatObjects.push_back(std::make_tuple(
       &mColorGHigh, "color_g" + noise_ext, func, mUsingSmoke & mUsingNoise & mUsingColors));
   mantaFloatObjects.push_back(std::make_tuple(
-      &mColorRHigh, "color_b" + noise_ext, func, mUsingSmoke & mUsingNoise & mUsingColors));
+      &mColorBHigh, "color_b" + noise_ext, func, mUsingSmoke & mUsingNoise & mUsingColors));
 
   std::vector<std::tuple<std::vector<pData> **, std::string, std::string, bool>> mantaPDataObjects;
   mantaPDataObjects.push_back(
