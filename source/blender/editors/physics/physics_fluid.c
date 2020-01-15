@@ -215,8 +215,6 @@ static bool fluid_validatepaths(FluidJob *job, ReportList *reports)
                 temp_dir,
                 mds->cache_directory);
 
-    BLI_strncpy(temp_dir, mds->cache_directory, FILE_MAXDIR);
-
     /* Ensure whole path exists and is writable. */
     if (!BLI_dir_create_recursive(temp_dir)) {
       BKE_reportf(reports,
