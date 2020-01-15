@@ -3377,6 +3377,11 @@ static void lib_link_workspaces(FileData *fd, Main *bmain)
           }
         }
       }
+      else {
+        /* If we're reading a layout without screen stored, it's useless and we shouldn't keep it
+         * around. */
+        BKE_workspace_layout_remove(bmain, workspace, layout);
+      }
     }
 
     id->tag &= ~LIB_TAG_NEED_LINK;
