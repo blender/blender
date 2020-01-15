@@ -157,13 +157,13 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
 
       grp_sub = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_state_enable(grp_sub, DRW_STATE_CULL_BACK);
+      DRW_shgroup_state_enable(grp_sub, DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK);
       cb->camera_volume = BUF_INSTANCE(grp_sub, format, DRW_cache_camera_volume_get());
       cb->camera_volume_frame = BUF_INSTANCE(grp_sub, format, DRW_cache_camera_volume_wire_get());
       cb->light_spot_cone_back = BUF_INSTANCE(grp_sub, format, DRW_cache_light_spot_volume_get());
 
       grp_sub = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_state_enable(grp_sub, DRW_STATE_CULL_FRONT);
+      DRW_shgroup_state_enable(grp_sub, DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_FRONT);
       cb->light_spot_cone_front = BUF_INSTANCE(grp_sub, format, DRW_cache_light_spot_volume_get());
     }
     {

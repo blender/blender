@@ -402,6 +402,7 @@ static void OVERLAY_draw_scene(void *vedata)
 
   OVERLAY_image_draw(vedata);
   OVERLAY_facing_draw(vedata);
+  OVERLAY_extra_blend_draw(vedata);
 
   if (DRW_state_is_fbo()) {
     GPU_framebuffer_bind(fbl->overlay_line_fb);
