@@ -243,7 +243,7 @@ fluid_data_dict_s$ID$ = dict(vel=vel_s$ID$, phiObs=phiObs_s$ID$, phiIn=phiIn_s$I
 const std::string fluid_alloc_obstacle =
     "\n\
 mantaMsg('Allocating obstacle data')\n\
-numObs_s$ID$     = s$ID$.create(IntGrid)\n\
+numObs_s$ID$     = s$ID$.create(RealGrid)\n\
 phiObsIn_s$ID$   = s$ID$.create(LevelsetGrid)\n\
 obvel_s$ID$      = s$ID$.create(MACGrid)\n\
 obvelC_s$ID$     = s$ID$.create(Vec3Grid)\n\
@@ -259,7 +259,7 @@ const std::string fluid_alloc_guiding =
 mantaMsg('Allocating guiding data')\n\
 velT_s$ID$        = s$ID$.create(MACGrid)\n\
 weightGuide_s$ID$ = s$ID$.create(RealGrid)\n\
-numGuides_s$ID$   = s$ID$.create(IntGrid)\n\
+numGuides_s$ID$   = s$ID$.create(RealGrid)\n\
 phiGuideIn_s$ID$  = s$ID$.create(LevelsetGrid)\n\
 guidevelC_s$ID$   = s$ID$.create(Vec3Grid)\n\
 x_guidevel_s$ID$  = s$ID$.create(RealGrid)\n\
@@ -324,9 +324,15 @@ def fluid_pre_step_$ID$():\n\
     \n\
     # translate obvels (world space) to grid space\n\
     if using_obstacle_s$ID$:\n\
+        # Average out velocities from multiple obstacle objects at one cell\n\
+        x_obvel_s$ID$.safeDivide(numObs_s$ID$)\n\
+        y_obvel_s$ID$.safeDivide(numObs_s$ID$)\n\
+        z_obvel_s$ID$.safeDivide(numObs_s$ID$)\n\
+        \n\
         x_obvel_s$ID$.multConst(toMantaUnitsFac_s$ID$)\n\
         y_obvel_s$ID$.multConst(toMantaUnitsFac_s$ID$)\n\
         z_obvel_s$ID$.multConst(toMantaUnitsFac_s$ID$)\n\
+        \n\
         copyRealToVec3(sourceX=x_obvel_s$ID$, sourceY=y_obvel_s$ID$, sourceZ=z_obvel_s$ID$, target=obvelC_s$ID$)\n\
     \n\
     # translate invels (world space) to grid space\n\
@@ -572,9 +578,15 @@ def bake_guiding_process_$ID$(framenr, format_guiding, path_guiding):\n\
     if framenr>1:\n\
         fluid_load_guiding_$ID$(path_guiding, framenr-1, format_guiding)\n\
     \n\
+    # Average out velocities from multiple guiding objects at one cell\n\
+    x_guidevel_s$ID$.safeDivide(numGuides_s$ID$)\n\
+    y_guidevel_s$ID$.safeDivide(numGuides_s$ID$)\n\
+    z_guidevel_s$ID$.safeDivide(numGuides_s$ID$)\n\
+    \n\
     x_guidevel_s$ID$.multConst(Real(toMantaUnitsFac_s$ID$))\n\
     y_guidevel_s$ID$.multConst(Real(toMantaUnitsFac_s$ID$))\n\
     z_guidevel_s$ID$.multConst(Real(toMantaUnitsFac_s$ID$))\n\
+    \n\
     copyRealToVec3(sourceX=x_guidevel_s$ID$, sourceY=y_guidevel_s$ID$, sourceZ=z_guidevel_s$ID$, target=guidevelC_s$ID$)\n\
     \n\
     mantaMsg('Extrapolating guiding velocity')\n\

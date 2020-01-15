@@ -103,6 +103,7 @@ extern void PbRegister_obstacleLevelset();
 extern void PbRegister_applyEmission();
 extern void PbRegister_densityInflowMeshNoise();
 extern void PbRegister_densityInflowMesh();
+extern void PbRegister_resetInObstacle();
 extern void PbRegister_checkSymmetry();
 extern void PbRegister_checkSymmetryVec3();
 extern void PbRegister_projectPpmFull();
@@ -295,6 +296,7 @@ void MantaEnsureRegistration()
   PbRegister_applyEmission();
   PbRegister_densityInflowMeshNoise();
   PbRegister_densityInflowMesh();
+  PbRegister_resetInObstacle();
   PbRegister_checkSymmetry();
   PbRegister_checkSymmetryVec3();
   PbRegister_projectPpmFull();

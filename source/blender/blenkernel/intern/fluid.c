@@ -616,7 +616,7 @@ typedef struct ObstaclesFromDMData {
   bool has_velocity;
   float *vert_vel;
   float *velocity_x, *velocity_y, *velocity_z;
-  int *num_objects;
+  float *num_objects;
   float *distances_map;
 } ObstaclesFromDMData;
 
@@ -702,15 +702,9 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
           }
           else {
             /* Apply (i.e. add) effector object velocity */
-            data->velocity_x[index] += (data->mes->type == FLUID_EFFECTOR_TYPE_GUIDE) ?
-                                           hit_vel[0] * data->mes->vel_multi :
-                                           hit_vel[0];
-            data->velocity_y[index] += (data->mes->type == FLUID_EFFECTOR_TYPE_GUIDE) ?
-                                           hit_vel[1] * data->mes->vel_multi :
-                                           hit_vel[1];
-            data->velocity_z[index] += (data->mes->type == FLUID_EFFECTOR_TYPE_GUIDE) ?
-                                           hit_vel[2] * data->mes->vel_multi :
-                                           hit_vel[2];
+            data->velocity_x[index] += hit_vel[0];
+            data->velocity_y[index] += hit_vel[1];
+            data->velocity_z[index] += hit_vel[2];
 #  ifdef DEBUG_PRINT
             /* Debugging: Print object velocities. */
             printf("adding effector object vel: [%f, %f, %f], dx is: %f\n",
@@ -749,7 +743,7 @@ static void obstacles_from_mesh(Object *coll_ob,
                                 float *velocity_x,
                                 float *velocity_y,
                                 float *velocity_z,
-                                int *num_objects,
+                                float *num_objects,
                                 float dt)
 {
   if (!mes->mesh) {
@@ -922,22 +916,11 @@ static void update_obstacles(Depsgraph *depsgraph,
   float *vel_x_guide = manta_get_guide_velocity_x(mds->fluid);
   float *vel_y_guide = manta_get_guide_velocity_y(mds->fluid);
   float *vel_z_guide = manta_get_guide_velocity_z(mds->fluid);
-  float *vel_x_orig = manta_get_velocity_x(mds->fluid);
-  float *vel_y_orig = manta_get_velocity_y(mds->fluid);
-  float *vel_z_orig = manta_get_velocity_z(mds->fluid);
-  float *density = manta_smoke_get_density(mds->fluid);
-  float *fuel = manta_smoke_get_fuel(mds->fluid);
-  float *flame = manta_smoke_get_flame(mds->fluid);
-  float *r = manta_smoke_get_color_r(mds->fluid);
-  float *g = manta_smoke_get_color_g(mds->fluid);
-  float *b = manta_smoke_get_color_b(mds->fluid);
   float *phi_obs_in = manta_get_phiobs_in(mds->fluid);
   float *phi_guide_in = manta_get_phiguide_in(mds->fluid);
-  int *obstacles = manta_smoke_get_obstacle(mds->fluid);
-  int *num_obstacles = manta_get_num_obstacle(mds->fluid);
-  int *num_guides = manta_get_num_guide(mds->fluid);
+  float *num_obstacles = manta_get_num_obstacle(mds->fluid);
+  float *num_guides = manta_get_num_guide(mds->fluid);
   uint z;
-  float tmp = 0;
 
   /* Grid reset before writing again. */
   for (z = 0; z < mds->res[0] * mds->res[1] * mds->res[2]; z++) {
@@ -1023,44 +1006,6 @@ static void update_obstacles(Depsgraph *depsgraph,
   }
 
   BKE_collision_objects_free(coll_ob_array);
-
-  /* Obstacle cells should not contain any velocity from the smoke simulation. */
-  for (z = 0; z < mds->res[0] * mds->res[1] * mds->res[2]; z++) {
-    if (obstacles[z] & 2) /* Mantaflow convention: FlagObstacle. */
-    {
-      if (vel_x_orig && vel_y_orig && vel_z_orig) {
-        vel_x_orig[z] = 0.0f;
-        vel_y_orig[z] = 0.0f;
-        vel_z_orig[z] = 0.0f;
-      }
-      if (density) {
-        density[z] = 0.0f;
-      }
-      if (fuel) {
-        fuel[z] = 0.0f;
-        flame[z] = 0.0f;
-      }
-      if (r) {
-        r[z] = 0.0f;
-        g[z] = 0.0f;
-        b[z] = 0.0f;
-      }
-    }
-    /* Average velocities from multiple obstacles in one cell. */
-    if (num_obstacles && num_obstacles[z]) {
-      tmp = 1.0f / num_obstacles[z];
-      vel_x[z] *= tmp;
-      vel_y[z] *= tmp;
-      vel_z[z] *= tmp;
-    }
-    /* Average velocities from multiple guides in one cell. */
-    if (num_guides && num_guides[z]) {
-      tmp = 1.0f / num_guides[z];
-      vel_x_guide[z] *= tmp;
-      vel_y_guide[z] *= tmp;
-      vel_z_guide[z] *= tmp;
-    }
-  }
 }
 
 /** \} */
