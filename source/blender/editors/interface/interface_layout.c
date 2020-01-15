@@ -2436,6 +2436,10 @@ void uiItemEnumR_string_prop(uiLayout *layout,
   }
 
   for (a = 0; item[a].identifier; a++) {
+    if (item[a].identifier[0] == '\0') {
+      /* Skip enum item separators. */
+      continue;
+    }
     if (item[a].value == ivalue) {
       const char *item_name = name ?
                                   name :
