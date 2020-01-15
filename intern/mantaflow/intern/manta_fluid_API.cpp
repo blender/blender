@@ -292,11 +292,11 @@ float *manta_get_phiguide_in(MANTA *fluid)
   return fluid->getPhiGuideIn();
 }
 
-int *manta_get_num_obstacle(MANTA *fluid)
+float *manta_get_num_obstacle(MANTA *fluid)
 {
   return fluid->getNumObstacle();
 }
-int *manta_get_num_guide(MANTA *fluid)
+float *manta_get_num_guide(MANTA *fluid)
 {
   return fluid->getNumGuide();
 }

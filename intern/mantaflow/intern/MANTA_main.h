@@ -248,11 +248,11 @@ struct MANTA {
   {
     return mObstacle;
   }
-  inline int *getNumObstacle()
+  inline float *getNumObstacle()
   {
     return mNumObstacle;
   }
-  inline int *getNumGuide()
+  inline float *getNumGuide()
   {
     return mNumGuide;
   }
@@ -765,8 +765,8 @@ struct MANTA {
   float *mForceY;
   float *mForceZ;
   int *mObstacle;
-  int *mNumObstacle;
-  int *mNumGuide;
+  float *mNumObstacle;
+  float *mNumGuide;
 
   // Smoke grids
   float *mDensity;

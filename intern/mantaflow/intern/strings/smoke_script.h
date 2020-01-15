@@ -371,6 +371,9 @@ def smoke_step_$ID$():\n\
         extrapolateVec3Simple(vel=obvelC_s$ID$, phi=phiObsIn_s$ID$, distance=3, inside=False)\n\
         resampleVec3ToMac(source=obvelC_s$ID$, target=obvel_s$ID$)\n\
     \n\
+    # Cells inside obstacle should not contain any density, fire, etc.\n\
+    resetInObstacle(flags=flags_s$ID$, density=density_s$ID$, vel=vel_s$ID$, heat=heat_s$ID$, fuel=fuel_s$ID$, flame=flame_s$ID$, red=color_r_s$ID$, green=color_g_s$ID$, blue=color_b_s$ID$)\n\
+    \n\
     # add initial velocity\n\
     if using_invel_s$ID$:\n\
         resampleVec3ToMac(source=invelC_s$ID$, target=invel_s$ID$)\n\
@@ -388,7 +391,7 @@ def smoke_step_$ID$():\n\
 \n\
 def process_burn_$ID$():\n\
     mantaMsg('Process burn')\n\
-    processBurn(fuel=fuel_s$ID$, density=density_s$ID$, react=react_s$ID$, red=color_r_s$ID$ if using_colors_s$ID$ else None, green=color_g_s$ID$ if using_colors_s$ID$ else None, blue=color_b_s$ID$ if using_colors_s$ID$ else None, heat=heat_s$ID$ if using_heat_s$ID$ else None, burningRate=burningRate_s$ID$, flameSmoke=flameSmoke_s$ID$, ignitionTemp=ignitionTemp_s$ID$, maxTemp=maxTemp_s$ID$, flameSmokeColor=flameSmokeColor_s$ID$)\n\
+    processBurn(fuel=fuel_s$ID$, density=density_s$ID$, react=react_s$ID$, red=color_r_s$ID$, green=color_g_s$ID$, blue=color_b_s$ID$, heat=heat_s$ID$, burningRate=burningRate_s$ID$, flameSmoke=flameSmoke_s$ID$, ignitionTemp=ignitionTemp_s$ID$, maxTemp=maxTemp_s$ID$, flameSmokeColor=flameSmokeColor_s$ID$)\n\
 \n\
 def update_flame_$ID$():\n\
     mantaMsg('Update flame')\n\
@@ -503,7 +506,7 @@ def step_noise_$ID$():\n\
 \n\
 def process_burn_noise_$ID$():\n\
     mantaMsg('Process burn noise')\n\
-    processBurn(fuel=fuel_sn$ID$, density=density_sn$ID$, react=react_sn$ID$, red=color_r_sn$ID$ if using_colors_s$ID$ else None, green=color_g_sn$ID$ if using_colors_s$ID$ else None, blue=color_b_sn$ID$ if using_colors_s$ID$ else None, burningRate=burningRate_s$ID$, flameSmoke=flameSmoke_s$ID$, ignitionTemp=ignitionTemp_s$ID$, maxTemp=maxTemp_s$ID$, flameSmokeColor=flameSmokeColor_s$ID$)\n\
+    processBurn(fuel=fuel_sn$ID$, density=density_sn$ID$, react=react_sn$ID$, red=color_r_sn$ID$, green=color_g_sn$ID$, blue=color_b_sn$ID$, burningRate=burningRate_s$ID$, flameSmoke=flameSmoke_s$ID$, ignitionTemp=ignitionTemp_s$ID$, maxTemp=maxTemp_s$ID$, flameSmokeColor=flameSmokeColor_s$ID$)\n\
 \n\
 def update_flame_noise_$ID$():\n\
     mantaMsg('Update flame noise')\n\
