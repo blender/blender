@@ -2213,7 +2213,16 @@ void BKE_scene_cursor_mat3_to_rot(View3DCursor *cursor, const float mat[3][3], b
 
   switch (cursor->rotation_mode) {
     case ROT_MODE_QUAT: {
-      mat3_normalized_to_quat(cursor->rotation_quaternion, mat);
+      float quat[4];
+      mat3_normalized_to_quat(quat, mat);
+      if (use_compat) {
+        float quat_orig[4];
+        copy_v4_v4(quat_orig, cursor->rotation_quaternion);
+        quat_to_compatible_quat(cursor->rotation_quaternion, quat, quat_orig);
+      }
+      else {
+        copy_v4_v4(cursor->rotation_quaternion, quat);
+      }
       break;
     }
     case ROT_MODE_AXISANGLE: {
@@ -2239,7 +2248,14 @@ void BKE_scene_cursor_quat_to_rot(View3DCursor *cursor, const float quat[4], boo
 
   switch (cursor->rotation_mode) {
     case ROT_MODE_QUAT: {
-      copy_qt_qt(cursor->rotation_quaternion, quat);
+      if (use_compat) {
+        float quat_orig[4];
+        copy_v4_v4(quat_orig, cursor->rotation_quaternion);
+        quat_to_compatible_quat(cursor->rotation_quaternion, quat, quat_orig);
+      }
+      else {
+        copy_qt_qt(cursor->rotation_quaternion, quat);
+      }
       break;
     }
     case ROT_MODE_AXISANGLE: {
