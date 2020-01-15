@@ -4268,7 +4268,6 @@ void BKE_fluid_domain_type_set(Object *object, FluidDomainSettings *settings, in
     BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_LEFT, 0);
     BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_TOP, 0);
     BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BOTTOM, 0);
-    BKE_fluid_particles_set(settings, FLUID_DOMAIN_PARTICLE_FLIP, 0);
     object->dt = OB_SOLID;
   }
 

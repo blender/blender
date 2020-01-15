@@ -176,6 +176,12 @@ static void rna_Fluid_flip_parts_update(Main *bmain, Scene *scene, PointerRNA *p
   mmd = (FluidModifierData *)modifiers_findByType(ob, eModifierType_Fluid);
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_FLIP);
 
+  /* Only create a particle system in liquid domain mode. */
+  if (mmd->domain->type != FLUID_DOMAIN_TYPE_LIQUID) {
+    rna_Fluid_reset(bmain, scene, ptr);
+    return;
+  }
+
   if (ob->type == OB_MESH && !exists) {
     rna_Fluid_parts_create(bmain,
                            ptr,
@@ -1330,7 +1336,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, domain_types);
   RNA_def_property_enum_funcs(prop, NULL, "rna_Fluid_domaintype_set", NULL);
   RNA_def_property_ui_text(prop, "Domain Type", "Change domain type of the simulation");
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Fluid_reset");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Fluid_flip_parts_update");
 
   /* smoke domain options */
 
