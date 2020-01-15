@@ -1497,9 +1497,11 @@ static void region_rect_recursive(
       default:
         /* prevent winrct to be valid */
         ar->winrct.xmax = ar->winrct.xmin;
-        BLI_rcti_sanitize(&ar->winrct);
         break;
     }
+
+    /* Size on one axis is now 0, the other axis may still be invalid (negative) though. */
+    BLI_rcti_sanitize(&ar->winrct);
   }
 
   /* restore prev-split exception */
