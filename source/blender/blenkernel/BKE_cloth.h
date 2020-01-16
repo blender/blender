@@ -74,11 +74,11 @@ typedef struct ClothSolverResult {
  * own connectivity of the mesh based on the actual edges in the mesh.
  */
 typedef struct Cloth {
-  struct ClothVertex *verts; /* The vertices that represent this cloth. */
-  struct LinkNode *springs;  /* The springs connecting the mesh. */
-  unsigned int numsprings;   /* The count of springs. */
-  unsigned int mvert_num;    /* The number of verts == m * n. */
-  unsigned int tri_num;
+  struct ClothVertex *verts;     /* The vertices that represent this cloth. */
+  struct LinkNode *springs;      /* The springs connecting the mesh. */
+  unsigned int numsprings;       /* The count of springs. */
+  unsigned int mvert_num;        /* The number of verts == m * n. */
+  unsigned int primitive_num;    /* Number of triangles for cloth and edges for hair. */
   unsigned char old_solver_type; /* unused, only 1 solver here */
   unsigned char pad2;
   short pad3;
@@ -89,6 +89,7 @@ typedef struct Cloth {
   struct EdgeSet *edgeset;        /* used for selfcollisions */
   int last_frame;
   float initial_mesh_volume; /* Initial volume of the mesh. Used for pressure */
+  struct MEdge *edges;       /* Used for hair collisions. */
 } Cloth;
 
 /**
@@ -264,15 +265,6 @@ int cloth_bvh_collision(struct Depsgraph *depsgraph,
                         struct ClothModifierData *clmd,
                         float step,
                         float dt);
-
-void cloth_find_point_contacts(struct Depsgraph *depsgraph,
-                               struct Object *ob,
-                               struct ClothModifierData *clmd,
-                               float step,
-                               float dt,
-                               ColliderContacts **r_collider_contacts,
-                               int *r_totcolliders);
-void cloth_free_contacts(ColliderContacts *collider_contacts, int totcolliders);
 
 ////////////////////////////////////////////////
 

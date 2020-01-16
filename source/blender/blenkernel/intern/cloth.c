@@ -190,22 +190,36 @@ static BVHTree *bvhtree_build_from_cloth(ClothModifierData *clmd, float epsilon)
   vt = cloth->tri;
 
   /* in the moment, return zero if no faces there */
-  if (!cloth->tri_num) {
+  if (!cloth->primitive_num) {
     return NULL;
   }
 
   /* create quadtree with k=26 */
-  bvhtree = BLI_bvhtree_new(cloth->tri_num, epsilon, 4, 26);
+  bvhtree = BLI_bvhtree_new(cloth->primitive_num, epsilon, 4, 26);
 
   /* fill tree */
-  for (i = 0; i < cloth->tri_num; i++, vt++) {
-    float co[3][3];
+  if (clmd->hairdata == NULL) {
+    for (i = 0; i < cloth->primitive_num; i++, vt++) {
+      float co[3][3];
 
-    copy_v3_v3(co[0], verts[vt->tri[0]].xold);
-    copy_v3_v3(co[1], verts[vt->tri[1]].xold);
-    copy_v3_v3(co[2], verts[vt->tri[2]].xold);
+      copy_v3_v3(co[0], verts[vt->tri[0]].xold);
+      copy_v3_v3(co[1], verts[vt->tri[1]].xold);
+      copy_v3_v3(co[2], verts[vt->tri[2]].xold);
 
-    BLI_bvhtree_insert(bvhtree, i, co[0], 3);
+      BLI_bvhtree_insert(bvhtree, i, co[0], 3);
+    }
+  }
+  else {
+    MEdge *edges = cloth->edges;
+
+    for (i = 0; i < cloth->primitive_num; i++) {
+      float co[2][3];
+
+      copy_v3_v3(co[0], verts[edges[i].v1].xold);
+      copy_v3_v3(co[1], verts[edges[i].v2].xold);
+
+      BLI_bvhtree_insert(bvhtree, i, co[0], 2);
+    }
   }
 
   /* balance tree */
@@ -222,6 +236,8 @@ void bvhtree_update_from_cloth(ClothModifierData *clmd, bool moving, bool self)
   ClothVertex *verts = cloth->verts;
   const MVertTri *vt;
 
+  BLI_assert(!(clmd->hairdata != NULL && self));
+
   if (self) {
     bvhtree = cloth->bvhselftree;
   }
@@ -236,39 +252,59 @@ void bvhtree_update_from_cloth(ClothModifierData *clmd, bool moving, bool self)
   vt = cloth->tri;
 
   /* update vertex position in bvh tree */
-  if (verts && vt) {
-    for (i = 0; i < cloth->tri_num; i++, vt++) {
-      float co[3][3], co_moving[3][3];
-      bool ret;
+  if (clmd->hairdata == NULL) {
+    if (verts && vt) {
+      for (i = 0; i < cloth->primitive_num; i++, vt++) {
+        float co[3][3], co_moving[3][3];
+        bool ret;
 
-      /* copy new locations into array */
-      if (moving) {
-        copy_v3_v3(co[0], verts[vt->tri[0]].txold);
-        copy_v3_v3(co[1], verts[vt->tri[1]].txold);
-        copy_v3_v3(co[2], verts[vt->tri[2]].txold);
+        /* copy new locations into array */
+        if (moving) {
+          copy_v3_v3(co[0], verts[vt->tri[0]].txold);
+          copy_v3_v3(co[1], verts[vt->tri[1]].txold);
+          copy_v3_v3(co[2], verts[vt->tri[2]].txold);
 
-        /* update moving positions */
-        copy_v3_v3(co_moving[0], verts[vt->tri[0]].tx);
-        copy_v3_v3(co_moving[1], verts[vt->tri[1]].tx);
-        copy_v3_v3(co_moving[2], verts[vt->tri[2]].tx);
+          /* update moving positions */
+          copy_v3_v3(co_moving[0], verts[vt->tri[0]].tx);
+          copy_v3_v3(co_moving[1], verts[vt->tri[1]].tx);
+          copy_v3_v3(co_moving[2], verts[vt->tri[2]].tx);
 
-        ret = BLI_bvhtree_update_node(bvhtree, i, co[0], co_moving[0], 3);
+          ret = BLI_bvhtree_update_node(bvhtree, i, co[0], co_moving[0], 3);
+        }
+        else {
+          copy_v3_v3(co[0], verts[vt->tri[0]].tx);
+          copy_v3_v3(co[1], verts[vt->tri[1]].tx);
+          copy_v3_v3(co[2], verts[vt->tri[2]].tx);
+
+          ret = BLI_bvhtree_update_node(bvhtree, i, co[0], NULL, 3);
+        }
+
+        /* check if tree is already full */
+        if (ret == false) {
+          break;
+        }
       }
-      else {
-        copy_v3_v3(co[0], verts[vt->tri[0]].tx);
-        copy_v3_v3(co[1], verts[vt->tri[1]].tx);
-        copy_v3_v3(co[2], verts[vt->tri[2]].tx);
 
-        ret = BLI_bvhtree_update_node(bvhtree, i, co[0], NULL, 3);
-      }
-
-      /* check if tree is already full */
-      if (ret == false) {
-        break;
-      }
+      BLI_bvhtree_update_tree(bvhtree);
     }
+  }
+  else {
+    if (verts) {
+      MEdge *edges = cloth->edges;
 
-    BLI_bvhtree_update_tree(bvhtree);
+      for (i = 0; i < cloth->primitive_num; i++) {
+        float co[2][3];
+
+        copy_v3_v3(co[0], verts[edges[i].v1].tx);
+        copy_v3_v3(co[1], verts[edges[i].v2].tx);
+
+        if (!BLI_bvhtree_update_node(bvhtree, i, co[0], NULL, 2)) {
+          break;
+        }
+      }
+
+      BLI_bvhtree_update_tree(bvhtree);
+    }
   }
 }
 
@@ -900,7 +936,13 @@ static void cloth_from_mesh(ClothModifierData *clmd, Mesh *mesh)
   }
 
   /* save face information */
-  clmd->clothObject->tri_num = looptri_num;
+  if (clmd->hairdata == NULL) {
+    clmd->clothObject->primitive_num = looptri_num;
+  }
+  else {
+    clmd->clothObject->primitive_num = mesh->totedge;
+  }
+
   clmd->clothObject->tri = MEM_mallocN(sizeof(MVertTri) * looptri_num, "clothLoopTris");
   if (clmd->clothObject->tri == NULL) {
     cloth_free_modifier(clmd);
@@ -909,6 +951,8 @@ static void cloth_from_mesh(ClothModifierData *clmd, Mesh *mesh)
     return;
   }
   BKE_mesh_runtime_verttri_from_looptri(clmd->clothObject->tri, mloop, looptri, looptri_num);
+
+  clmd->clothObject->edges = mesh->medge;
 
   /* Free the springs since they can't be correct if the vertices
    * changed.

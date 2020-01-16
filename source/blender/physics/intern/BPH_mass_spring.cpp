@@ -83,7 +83,7 @@ static float cloth_calc_volume(ClothModifierData *clmd)
   float vol = 0;
 
   if (clmd->sim_parms->vgroup_pressure > 0) {
-    for (unsigned int i = 0; i < cloth->tri_num; i++) {
+    for (unsigned int i = 0; i < cloth->primitive_num; i++) {
       bool skip_face = false;
       /* We have custom vertex weights for pressure. */
       const MVertTri *vt = &tri[i];
@@ -103,7 +103,7 @@ static float cloth_calc_volume(ClothModifierData *clmd)
     }
   }
   else {
-    for (unsigned int i = 0; i < cloth->tri_num; i++) {
+    for (unsigned int i = 0; i < cloth->primitive_num; i++) {
       const MVertTri *vt = &tri[i];
       vol += BPH_tri_tetra_volume_signed_6x(data, vt->tri[0], vt->tri[1], vt->tri[2]);
     }
@@ -174,96 +174,17 @@ void BKE_cloth_solver_set_volume(ClothModifierData *clmd)
   cloth->initial_mesh_volume = cloth_calc_volume(clmd);
 }
 
-static bool collision_response(ClothModifierData *clmd,
-                               CollisionModifierData *collmd,
-                               CollPair *collpair,
-                               float dt,
-                               float restitution,
-                               float r_impulse[3])
-{
-  Cloth *cloth = clmd->clothObject;
-  int index = collpair->ap1;
-  bool result = false;
-
-  float v1[3], v2_old[3], v2_new[3], v_rel_old[3], v_rel_new[3];
-  float epsilon2 = BLI_bvhtree_get_epsilon(collmd->bvhtree);
-
-  float margin_distance = (float)collpair->distance - epsilon2;
-  float mag_v_rel;
-
-  zero_v3(r_impulse);
-
-  if (margin_distance > 0.0f) {
-    return false; /* XXX tested before already? */
-  }
-
-  /* only handle static collisions here */
-  if (collpair->flag & COLLISION_IN_FUTURE) {
-    return false;
-  }
-
-  /* velocity */
-  copy_v3_v3(v1, cloth->verts[index].v);
-  collision_get_collider_velocity(v2_old, v2_new, collmd, collpair);
-  /* relative velocity = velocity of the cloth point relative to the collider */
-  sub_v3_v3v3(v_rel_old, v1, v2_old);
-  sub_v3_v3v3(v_rel_new, v1, v2_new);
-  /* normal component of the relative velocity */
-  mag_v_rel = dot_v3v3(v_rel_old, collpair->normal);
-
-  /* only valid when moving toward the collider */
-  if (mag_v_rel < -ALMOST_ZERO) {
-    float v_nor_old, v_nor_new;
-    float v_tan_old[3], v_tan_new[3];
-    float bounce, repulse;
-
-    /* Collision response based on
-     * "Simulating Complex Hair with Robust Collision Handling" (Choe, Choi, Ko, ACM SIGGRAPH 2005)
-     * http://graphics.snu.ac.kr/publications/2005-choe-HairSim/Choe_2005_SCA.pdf
-     */
-
-    v_nor_old = mag_v_rel;
-    v_nor_new = dot_v3v3(v_rel_new, collpair->normal);
-
-    madd_v3_v3v3fl(v_tan_old, v_rel_old, collpair->normal, -v_nor_old);
-    madd_v3_v3v3fl(v_tan_new, v_rel_new, collpair->normal, -v_nor_new);
-
-    bounce = -v_nor_old * restitution;
-
-    repulse = -margin_distance / dt; /* base repulsion velocity in normal direction */
-    /* XXX this clamping factor is quite arbitrary ...
-     * not sure if there is a more scientific approach, but seems to give good results
-     */
-    CLAMP(repulse, 0.0f, 4.0f * bounce);
-
-    if (margin_distance < -epsilon2) {
-      mul_v3_v3fl(r_impulse, collpair->normal, max_ff(repulse, bounce) - v_nor_new);
-    }
-    else {
-      bounce = 0.0f;
-      mul_v3_v3fl(r_impulse, collpair->normal, repulse - v_nor_new);
-    }
-
-    result = true;
-  }
-
-  return result;
-}
-
 /* Init constraint matrix
  * This is part of the modified CG method suggested by Baraff/Witkin in
  * "Large Steps in Cloth Simulation" (Siggraph 1998)
  */
-static void cloth_setup_constraints(ClothModifierData *clmd,
-                                    ColliderContacts *contacts,
-                                    int totcolliders,
-                                    float dt)
+static void cloth_setup_constraints(ClothModifierData *clmd)
 {
   Cloth *cloth = clmd->clothObject;
   Implicit_Data *data = cloth->implicit;
   ClothVertex *verts = cloth->verts;
   int mvert_num = cloth->mvert_num;
-  int i, j, v;
+  int v;
 
   const float ZERO[3] = {0.0f, 0.0f, 0.0f};
 
@@ -276,37 +197,6 @@ static void cloth_setup_constraints(ClothModifierData *clmd,
     }
 
     verts[v].impulse_count = 0;
-  }
-
-  for (i = 0; i < totcolliders; i++) {
-    ColliderContacts *ct = &contacts[i];
-    for (j = 0; j < ct->totcollisions; j++) {
-      CollPair *collpair = &ct->collisions[j];
-      // float restitution = (1.0f - clmd->coll_parms->damping) * (1.0f - ct->ob->pd->pdef_sbdamp);
-      float restitution = 0.0f;
-      int v = collpair->face1;
-      float impulse[3];
-
-      /* pinned verts handled separately */
-      if (verts[v].flags & CLOTH_VERT_FLAG_PINNED) {
-        continue;
-      }
-
-      /* XXX cheap way of avoiding instability from multiple collisions in the same step
-       * this should eventually be supported ...
-       */
-      if (verts[v].impulse_count > 0) {
-        continue;
-      }
-
-      /* calculate collision response */
-      if (!collision_response(clmd, ct->collmd, collpair, dt, restitution, impulse)) {
-        continue;
-      }
-
-      BPH_mass_spring_add_constraint_ndof2(data, v, collpair->normal, impulse);
-      ++verts[v].impulse_count;
-    }
   }
 }
 
@@ -691,7 +581,7 @@ static void cloth_calc_force(
 
     pressure_difference *= clmd->sim_parms->pressure_factor;
 
-    for (i = 0; i < cloth->tri_num; i++) {
+    for (i = 0; i < cloth->primitive_num; i++) {
       const MVertTri *vt = &tri[i];
       if (fabs(pressure_difference) > 1E-6f) {
         if (clmd->sim_parms->vgroup_pressure > 0) {
@@ -744,13 +634,13 @@ static void cloth_calc_force(
           effectors, NULL, clmd->sim_parms->effector_weights, &epoint, winvec[i], NULL);
     }
 
-    for (i = 0; i < cloth->tri_num; i++) {
+    for (i = 0; i < cloth->primitive_num; i++) {
       const MVertTri *vt = &tri[i];
       BPH_mass_spring_force_face_wind(data, vt->tri[0], vt->tri[1], vt->tri[2], winvec);
     }
 
     /* Hair has only edges */
-    if (cloth->tri_num == 0) {
+    if (cloth->primitive_num == 0) {
 #if 0
       ClothHairData *hairdata = clmd->hairdata;
       ClothHairData *hair_ij, *hair_kl;
@@ -1241,8 +1131,6 @@ int BPH_cloth_solve(
   unsigned int mvert_num = cloth->mvert_num;
   float dt = clmd->sim_parms->dt * clmd->sim_parms->timescale;
   Implicit_Data *id = cloth->implicit;
-  ColliderContacts *contacts = NULL;
-  int totcolliders = 0;
 
   BKE_sim_debug_data_clear_category("collision");
 
@@ -1269,25 +1157,8 @@ int BPH_cloth_solve(
   while (step < tf) {
     ImplicitSolverResult result;
 
-    if (is_hair) {
-      /* copy velocities for collision */
-      for (i = 0; i < mvert_num; i++) {
-        BPH_mass_spring_get_motion_state(id, i, NULL, verts[i].tv);
-        copy_v3_v3(verts[i].v, verts[i].tv);
-      }
-
-      /* determine contact points */
-      if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
-        cloth_find_point_contacts(depsgraph, ob, clmd, 0.0f, tf, &contacts, &totcolliders);
-      }
-
-      /* setup vertex constraints for pinned vertices and contacts */
-      cloth_setup_constraints(clmd, contacts, totcolliders, dt);
-    }
-    else {
-      /* setup vertex constraints for pinned vertices */
-      cloth_setup_constraints(clmd, NULL, 0, dt);
-    }
+    /* setup vertex constraints for pinned vertices */
+    cloth_setup_constraints(clmd);
 
     /* initialize forces to zero */
     BPH_mass_spring_clear_forces(id);
@@ -1300,9 +1171,7 @@ int BPH_cloth_solve(
     cloth_record_result(clmd, &result, dt);
 
     /* Calculate collision impulses. */
-    if (!is_hair) {
-      cloth_solve_collisions(depsgraph, ob, clmd, step, dt);
-    }
+    cloth_solve_collisions(depsgraph, ob, clmd, step, dt);
 
     if (is_hair) {
       cloth_continuum_step(clmd, dt);
@@ -1325,11 +1194,6 @@ int BPH_cloth_solve(
       }
 
       BPH_mass_spring_get_motion_state(id, i, verts[i].txold, NULL);
-    }
-
-    /* free contact points */
-    if (contacts) {
-      cloth_free_contacts(contacts, totcolliders);
     }
 
     step += dt;
