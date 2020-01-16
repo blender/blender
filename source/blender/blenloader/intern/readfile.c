@@ -1910,11 +1910,9 @@ void blo_make_image_pointer_map(FileData *fd, Main *oldmain)
     if (ima->cache) {
       oldnewmap_insert(fd->imamap, ima->cache, ima->cache, 0);
     }
-    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-      for (a = 0; a < TEXTARGET_COUNT; a++) {
-        if (tile->gputexture[a] != NULL) {
-          oldnewmap_insert(fd->imamap, tile->gputexture[a], tile->gputexture[a], 0);
-        }
+    for (a = 0; a < TEXTARGET_COUNT; a++) {
+      if (ima->gputexture[a] != NULL) {
+        oldnewmap_insert(fd->imamap, ima->gputexture[a], ima->gputexture[a], 0);
       }
     }
     if (ima->rr) {
@@ -1958,10 +1956,8 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
     if (ima->cache == NULL) {
       ima->gpuflag = 0;
       ima->gpuframenr = INT_MAX;
-      LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-        for (i = 0; i < TEXTARGET_COUNT; i++) {
-          tile->gputexture[i] = NULL;
-        }
+      for (i = 0; i < TEXTARGET_COUNT; i++) {
+        ima->gputexture[i] = NULL;
       }
       ima->rr = NULL;
     }
@@ -1969,10 +1965,8 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
       slot->render = newimaadr(fd, slot->render);
     }
 
-    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-      for (i = 0; i < TEXTARGET_COUNT; i++) {
-        tile->gputexture[i] = newimaadr(fd, tile->gputexture[i]);
-      }
+    for (i = 0; i < TEXTARGET_COUNT; i++) {
+      ima->gputexture[i] = newimaadr(fd, ima->gputexture[i]);
     }
     ima->rr = newimaadr(fd, ima->rr);
   }
@@ -4274,18 +4268,14 @@ static void direct_link_image(FileData *fd, Image *ima)
   if (!ima->cache) {
     ima->gpuflag = 0;
     ima->gpuframenr = INT_MAX;
-    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-      for (int i = 0; i < TEXTARGET_COUNT; i++) {
-        tile->gputexture[i] = NULL;
-      }
+    for (int i = 0; i < TEXTARGET_COUNT; i++) {
+      ima->gputexture[i] = NULL;
     }
     ima->rr = NULL;
   }
   else {
-    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-      for (int i = 0; i < TEXTARGET_COUNT; i++) {
-        tile->gputexture[i] = newimaadr(fd, tile->gputexture[i]);
-      }
+    for (int i = 0; i < TEXTARGET_COUNT; i++) {
+      ima->gputexture[i] = newimaadr(fd, ima->gputexture[i]);
     }
     ima->rr = newimaadr(fd, ima->rr);
   }

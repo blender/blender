@@ -354,67 +354,92 @@ void node_tex_image_empty(vec3 co, out vec4 color, out float alpha)
   alpha = 0.0;
 }
 
-void node_tex_tile_map(vec3 co, out vec4 color, out vec3 map)
+bool node_tex_tile_lookup(inout vec3 co, sampler2DArray ima, sampler1DArray map)
 {
-  float tx = floor(co.x);
-  float ty = floor(co.y);
+  vec2 tile_pos = floor(co.xy);
 
-  if (tx < 0 || ty < 0 || tx >= 10)
-    map = vec3(0, 0, -1);
-  else
-    map = vec3(co.x - tx, co.y - ty, 1001 + 10 * ty + tx);
+  if (tile_pos.x < 0 || tile_pos.y < 0 || tile_pos.x >= 10)
+    return false;
 
-  color = vec4(1.0, 0.0, 1.0, 1.0);
+  float tile = 10 * tile_pos.y + tile_pos.x;
+  if (tile >= textureSize(map, 0).x)
+    return false;
+
+  /* Fetch tile information. */
+  float tile_layer = texelFetch(map, ivec2(tile, 0), 0).x;
+  if (tile_layer < 0)
+    return false;
+
+  vec4 tile_info = texelFetch(map, ivec2(tile, 1), 0);
+
+  co = vec3(((co.xy - tile_pos) * tile_info.zw) + tile_info.xy, tile_layer);
+  return true;
 }
 
 void node_tex_tile_linear(
-    vec3 map, float tile_id, sampler2D ima, vec4 in_color, out vec4 color, out float alpha)
+    vec3 co, sampler2DArray ima, sampler1DArray map, out vec4 color, out float alpha)
 {
-  if (map.z == tile_id) {
-    vec3 co = map.xyy;
-    node_tex_image_linear(co, ima, color, alpha);
+  if (node_tex_tile_lookup(co, ima, map)) {
+    color = safe_color(texture(ima, co));
   }
   else {
-    color = in_color;
-    alpha = color.a;
+    color = vec4(1.0, 0.0, 1.0, 1.0);
   }
+
+  alpha = color.a;
 }
 
 void node_tex_tile_nearest(
-    vec3 map, float tile_id, sampler2D ima, vec4 in_color, out vec4 color, out float alpha)
+    vec3 co, sampler2DArray ima, sampler1DArray map, out vec4 color, out float alpha)
 {
-  if (map.z == tile_id) {
-    vec3 co = map.xyy;
-    node_tex_image_nearest(co, ima, color, alpha);
+  if (node_tex_tile_lookup(co, ima, map)) {
+    ivec3 pix = ivec3(fract(co.xy) * textureSize(ima, 0).xy, co.z);
+    color = safe_color(texelFetch(ima, pix, 0));
   }
   else {
-    color = in_color;
-    alpha = color.a;
+    color = vec4(1.0, 0.0, 1.0, 1.0);
   }
+
+  alpha = color.a;
 }
 
 void node_tex_tile_cubic(
-    vec3 map, float tile_id, sampler2D ima, vec4 in_color, out vec4 color, out float alpha)
+    vec3 co, sampler2DArray ima, sampler1DArray map, out vec4 color, out float alpha)
 {
-  if (map.z == tile_id) {
-    vec3 co = map.xyy;
-    node_tex_image_cubic(co, ima, color, alpha);
+  if (node_tex_tile_lookup(co, ima, map)) {
+    vec2 tex_size = vec2(textureSize(ima, 0).xy);
+
+    co.xy *= tex_size;
+    /* texel center */
+    vec2 tc = floor(co.xy - 0.5) + 0.5;
+    vec2 w0, w1, w2, w3;
+    cubic_bspline_coefs(co.xy - tc, w0, w1, w2, w3);
+
+    vec2 s0 = w0 + w1;
+    vec2 s1 = w2 + w3;
+
+    vec2 f0 = w1 / (w0 + w1);
+    vec2 f1 = w3 / (w2 + w3);
+
+    vec4 final_co;
+    final_co.xy = tc - 1.0 + f0;
+    final_co.zw = tc + 1.0 + f1;
+    final_co /= tex_size.xyxy;
+
+    color = safe_color(textureLod(ima, vec3(final_co.xy, co.z), 0.0)) * s0.x * s0.y;
+    color += safe_color(textureLod(ima, vec3(final_co.zy, co.z), 0.0)) * s1.x * s0.y;
+    color += safe_color(textureLod(ima, vec3(final_co.xw, co.z), 0.0)) * s0.x * s1.y;
+    color += safe_color(textureLod(ima, vec3(final_co.zw, co.z), 0.0)) * s1.x * s1.y;
   }
   else {
-    color = in_color;
-    alpha = color.a;
+    color = vec4(1.0, 0.0, 1.0, 1.0);
   }
+
+  alpha = color.a;
 }
 
 void node_tex_tile_smart(
-    vec3 map, float tile_id, sampler2D ima, vec4 in_color, out vec4 color, out float alpha)
+    vec3 co, sampler2DArray ima, sampler1DArray map, out vec4 color, out float alpha)
 {
-  if (map.z == tile_id) {
-    vec3 co = map.xyy;
-    node_tex_image_smart(co, ima, color, alpha);
-  }
-  else {
-    color = in_color;
-    alpha = color.a;
-  }
+  node_tex_tile_cubic(co, ima, map, color, alpha);
 }

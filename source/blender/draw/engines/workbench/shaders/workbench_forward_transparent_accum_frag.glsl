@@ -1,6 +1,11 @@
 
 uniform float ImageTransparencyCutoff = 0.1;
+#ifdef TEXTURE_IMAGE_ARRAY
+uniform sampler2DArray image_tile_array;
+uniform sampler1DArray image_tile_data;
+#else
 uniform sampler2D image;
+#endif
 uniform bool imageNearest;
 uniform bool imagePremultiplied;
 
@@ -44,7 +49,12 @@ void main()
   vec4 base_color;
 
 #if defined(V3D_SHADING_TEXTURE_COLOR)
+#  ifdef TEXTURE_IMAGE_ARRAY
+  base_color = workbench_sample_texture_array(
+      image_tile_array, image_tile_data, uv_interp, imageNearest, imagePremultiplied);
+#  else
   base_color = workbench_sample_texture(image, uv_interp, imageNearest, imagePremultiplied);
+#  endif
   if (base_color.a < ImageTransparencyCutoff) {
     discard;
   }

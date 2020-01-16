@@ -24,6 +24,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 #include "BLI_boxpack_2d.h" /* own include */
 
 #include "BLI_sort.h" /* qsort_r */
@@ -672,4 +673,111 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
   }
   MEM_freeN(vertex_pack_indices);
   MEM_freeN(vs_ctx.vertarray);
+}
+
+/* Packs boxes into a fixed area.
+ * boxes and packed are linked lists containing structs that can be cast to
+ * FixedSizeBoxPack (i.e. contains a FixedSizeBoxPack as its first element).
+ * Boxes that were packed successfully are placed into *packed and removed from *boxes.
+ *
+ * The algorithm is a simplified version of https://github.com/TeamHypersomnia/rectpack2D.
+ * Better ones could be used, but for the current use case (packing Image tiles into GPU
+ * textures) this is fine.
+ *
+ * Note that packing efficiency depends on the order of the input boxes. Generally speaking,
+ * larger boxes should come first, though how exactly size is best defined (e.g. area,
+ * perimeter) depends on the particular application. */
+void BLI_box_pack_2d_fixedarea(ListBase *boxes, int width, int height, ListBase *packed)
+{
+  ListBase spaces = {NULL};
+  FixedSizeBoxPack *full_rect = MEM_callocN(sizeof(FixedSizeBoxPack), __func__);
+  full_rect->w = width;
+  full_rect->h = height;
+
+  BLI_addhead(&spaces, full_rect);
+
+  /* The basic idea of the algorithm is to keep a list of free spaces in the packing area.
+   * Then, for each box to be packed, we try to find a space that can contain it.
+   * The found space is then split into the area that is occupied by the box and the
+   * remaining area, which is reinserted into the free space list.
+   * By inserting the smaller remaining spaces first, the algorithm tries to use these
+   * smaller spaces first instead of "wasting" a large space. */
+  LISTBASE_FOREACH_MUTABLE (FixedSizeBoxPack *, box, boxes) {
+    LISTBASE_FOREACH (FixedSizeBoxPack *, space, &spaces) {
+      /* Skip this space if it's too small. */
+      if (box->w > space->w || box->h > space->w) {
+        continue;
+      }
+
+      /* Pack this box into this space. */
+      box->x = space->x;
+      box->y = space->y;
+      BLI_remlink(boxes, box);
+      BLI_addtail(packed, box);
+
+      if (box->w == space->w && box->h == space->h) {
+        /* Box exactly fills space, so just remove the space. */
+        BLI_remlink(&spaces, space);
+        MEM_freeN(space);
+      }
+      else if (box->w == space->w) {
+        /* Box fills the entire width, so we can just contract the box
+         * to the upper part that remains. */
+        space->y += box->h;
+        space->h -= box->h;
+      }
+      else if (box->h == space->h) {
+        /* Box fills the entire height, so we can just contract the box
+         * to the right part that remains. */
+        space->x += box->w;
+        space->w -= box->w;
+      }
+      else {
+        /* Split the remaining L-shaped space into two spaces.
+         * There are two ways to do so, we pick the one that produces the biggest
+         * remaining space:
+         *
+         *  Horizontal Split            Vertical Split
+         * ###################        ###################
+         * #                 #        #       -         #
+         * #      Large      #        # Small -         #
+         * #                 #        #       -         #
+         * #********---------#        #********  Large  #
+         * #  Box  *  Small  #        #  Box  *         #
+         * #       *         #        #       *         #
+         * ###################        ###################
+         *
+         */
+        int area_hsplit_large = space->w * (space->h - box->h);
+        int area_vsplit_large = (space->w - box->w) * space->h;
+
+        /* Perform split. This space becomes the larger space,
+         * while the new smaller space is inserted _before_ it. */
+        FixedSizeBoxPack *new_space = MEM_callocN(sizeof(FixedSizeBoxPack), __func__);
+        if (area_hsplit_large > area_vsplit_large) {
+          new_space->x = space->x + box->w;
+          new_space->y = space->y;
+          new_space->w = space->w - box->w;
+          new_space->h = box->h;
+
+          space->y += box->h;
+          space->h -= box->h;
+        }
+        else {
+          new_space->x = space->x;
+          new_space->y = space->y + box->h;
+          new_space->w = box->w;
+          new_space->h = space->h - box->h;
+
+          space->x += box->w;
+          space->w -= box->w;
+        }
+        BLI_addhead(&spaces, new_space);
+      }
+
+      break;
+    }
+  }
+
+  BLI_freelistN(&spaces);
 }

@@ -157,13 +157,13 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
 
       grp_sub = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_state_enable(grp_sub, DRW_STATE_CULL_BACK);
+      DRW_shgroup_state_enable(grp_sub, DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK);
       cb->camera_volume = BUF_INSTANCE(grp_sub, format, DRW_cache_camera_volume_get());
       cb->camera_volume_frame = BUF_INSTANCE(grp_sub, format, DRW_cache_camera_volume_wire_get());
       cb->light_spot_cone_back = BUF_INSTANCE(grp_sub, format, DRW_cache_light_spot_volume_get());
 
       grp_sub = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_state_enable(grp_sub, DRW_STATE_CULL_FRONT);
+      DRW_shgroup_state_enable(grp_sub, DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_FRONT);
       cb->light_spot_cone_front = BUF_INSTANCE(grp_sub, format, DRW_cache_light_spot_volume_get());
     }
     {
@@ -637,6 +637,9 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
     DRW_buffer_add_entry(cb->light_sun, color, &instdata);
   }
   else if (la->type == LA_SPOT) {
+    /* Previous implementation was using the clipend distance as cone size.
+     * We cannot do this anymore so we use a fixed size of 10. (see T72871) */
+    rescale_m4(instdata.mat, (float[3]){10.0f, 10.0f, 10.0f});
     /* For cycles and eevee the spot attenuation is
      * y = (1/(1 + x^2) - a)/((1 - a) b)
      * We solve the case where spot attenuation y = 1 and y = 0

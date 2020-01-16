@@ -81,7 +81,6 @@ static void rna_Fluid_resetCache(Main *UNUSED(bmain), Scene *scene, PointerRNA *
                                           FLUID_DOMAIN_OUTDATED_NOISE |
                                           FLUID_DOMAIN_OUTDATED_MESH |
                                           FLUID_DOMAIN_OUTDATED_PARTICLES);
-    scene->r.cfra = settings->cache_frame_start;
   }
   DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
 }

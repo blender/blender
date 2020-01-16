@@ -441,10 +441,9 @@ void BKE_image_copy_data(Main *UNUSED(bmain), Image *ima_dst, const Image *ima_s
   BLI_listbase_clear(&ima_dst->anims);
 
   BLI_duplicatelist(&ima_dst->tiles, &ima_src->tiles);
-  LISTBASE_FOREACH (ImageTile *, tile, &ima_dst->tiles) {
-    for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      tile->gputexture[i] = NULL;
-    }
+
+  for (int i = 0; i < TEXTARGET_COUNT; i++) {
+    ima_dst->gputexture[i] = NULL;
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
@@ -510,11 +509,9 @@ bool BKE_image_scale(Image *image, int width, int height)
 
 bool BKE_image_has_opengl_texture(Image *ima)
 {
-  LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-    for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      if (tile->gputexture[i] != NULL) {
-        return true;
-      }
+  for (int i = 0; i < TEXTARGET_COUNT; i++) {
+    if (ima->gputexture[i] != NULL) {
+      return true;
     }
   }
   return false;
@@ -3293,9 +3290,16 @@ void BKE_image_init_imageuser(Image *ima, ImageUser *iuser)
 static void image_free_tile(Image *ima, ImageTile *tile)
 {
   for (int i = 0; i < TEXTARGET_COUNT; i++) {
-    if (tile->gputexture[i] != NULL) {
-      GPU_texture_free(tile->gputexture[i]);
-      tile->gputexture[i] = NULL;
+    /* Only two textures depends on all tiles, so if this is a secondary tile we can keep the other
+     * two. */
+    if (tile != ima->tiles.first &&
+        !(ELEM(i, TEXTARGET_TEXTURE_2D_ARRAY, TEXTARGET_TEXTURE_TILE_MAPPING))) {
+      continue;
+    }
+
+    if (ima->gputexture[i] != NULL) {
+      GPU_texture_free(ima->gputexture[i]);
+      ima->gputexture[i] = NULL;
     }
   }
 
@@ -3558,6 +3562,16 @@ ImageTile *BKE_image_add_tile(struct Image *ima, int tile_number, const char *la
 
   if (label) {
     BLI_strncpy(tile->label, label, sizeof(tile->label));
+  }
+
+  /* Reallocate GPU tile array. */
+  if (ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY] != NULL) {
+    GPU_texture_free(ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY]);
+    ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY] = NULL;
+  }
+  if (ima->gputexture[TEXTARGET_TEXTURE_TILE_MAPPING] != NULL) {
+    GPU_texture_free(ima->gputexture[TEXTARGET_TEXTURE_TILE_MAPPING]);
+    ima->gputexture[TEXTARGET_TEXTURE_TILE_MAPPING] = NULL;
   }
 
   return tile;

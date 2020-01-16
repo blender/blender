@@ -215,8 +215,6 @@ static bool fluid_validatepaths(FluidJob *job, ReportList *reports)
                 temp_dir,
                 mds->cache_directory);
 
-    BLI_strncpy(temp_dir, mds->cache_directory, FILE_MAXDIR);
-
     /* Ensure whole path exists and is writable. */
     if (!BLI_dir_create_recursive(temp_dir)) {
       BKE_reportf(reports,
@@ -477,7 +475,6 @@ static void fluid_free_startjob(void *customdata, short *stop, short *do_update,
 {
   FluidJob *job = customdata;
   FluidDomainSettings *mds = job->mmd->domain;
-  Scene *scene = job->scene;
 
   job->stop = stop;
   job->do_update = do_update;
@@ -513,9 +510,6 @@ static void fluid_free_startjob(void *customdata, short *stop, short *do_update,
 
   *do_update = true;
   *stop = 0;
-
-  /* Reset scene frame to cache frame start */
-  CFRA = mds->cache_frame_start;
 
   /* Update scene so that viewport shows freed up scene */
   ED_update_for_newframe(job->bmain, job->depsgraph);

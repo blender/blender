@@ -216,12 +216,11 @@ static void rna_Image_scale(Image *image, ReportList *reports, int width, int he
   }
 }
 
-static int rna_Image_gl_load(Image *image, ReportList *reports, int frame, int tile_number)
+static int rna_Image_gl_load(Image *image, ReportList *reports, int frame)
 {
   ImageUser iuser;
   BKE_imageuser_default(&iuser);
   iuser.framenr = frame;
-  iuser.tile = tile_number;
 
   GPUTexture *tex = GPU_texture_from_blender(image, &iuser, GL_TEXTURE_2D);
 
@@ -233,15 +232,14 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int frame, int t
   return GL_NO_ERROR;
 }
 
-static int rna_Image_gl_touch(Image *image, ReportList *reports, int frame, int tile_number)
+static int rna_Image_gl_touch(Image *image, ReportList *reports, int frame)
 {
   int error = GL_NO_ERROR;
 
   BKE_image_tag_time(image);
 
-  ImageTile *tile = BKE_image_get_tile(image, tile_number);
-  if (tile->gputexture[TEXTARGET_TEXTURE_2D] == NULL) {
-    error = rna_Image_gl_load(image, reports, frame, tile_number);
+  if (image->gputexture[TEXTARGET_TEXTURE_2D] == NULL) {
+    error = rna_Image_gl_load(image, reports, frame);
   }
 
   return error;
@@ -336,7 +334,6 @@ void RNA_api_image(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_int(
       func, "frame", 0, 0, INT_MAX, "Frame", "Frame of image sequence or movie", 0, INT_MAX);
-  RNA_def_int(func, "tile_number", 0, 0, INT_MAX, "Tile", "Tile of a tiled image", 0, INT_MAX);
   /* return value */
   parm = RNA_def_int(
       func, "error", 0, -INT_MAX, INT_MAX, "Error", "OpenGL error value", -INT_MAX, INT_MAX);
@@ -351,7 +348,6 @@ void RNA_api_image(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_int(
       func, "frame", 0, 0, INT_MAX, "Frame", "Frame of image sequence or movie", 0, INT_MAX);
-  RNA_def_int(func, "tile_number", 0, 0, INT_MAX, "Tile", "Tile of a tiled image", 0, INT_MAX);
   /* return value */
   parm = RNA_def_int(
       func, "error", 0, -INT_MAX, INT_MAX, "Error", "OpenGL error value", -INT_MAX, INT_MAX);
