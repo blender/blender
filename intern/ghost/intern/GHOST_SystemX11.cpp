@@ -2533,7 +2533,7 @@ void GHOST_SystemX11::refreshXInputDevices()
           XAnyClassPtr ici = device_info[i].inputclassinfo;
 
           if (ici != NULL) {
-            for (int j = 0; j < xtablet.Device->num_classes; ++j) {
+            for (int j = 0; j < device_info[i].num_classes; ++j) {
               if (ici->c_class == ValuatorClass) {
                 XValuatorInfo *xvi = (XValuatorInfo *)ici;
                 if (xvi->axes != NULL) {

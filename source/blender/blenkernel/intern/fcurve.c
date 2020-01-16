@@ -1171,16 +1171,16 @@ void testhandles_fcurve(FCurve *fcu, eBezTriple_Flag sel_flag, const bool use_ha
  */
 void sort_time_fcurve(FCurve *fcu)
 {
-  bool ok = true;
 
   /* keep adjusting order of beztriples until nothing moves (bubble-sort) */
-  while (ok) {
-    ok = 0;
+  if (fcu->bezt) {
+    BezTriple *bezt;
+    uint a;
 
-    /* currently, will only be needed when there are beztriples */
-    if (fcu->bezt) {
-      BezTriple *bezt;
-      unsigned int a;
+    bool ok = true;
+    while (ok) {
+      ok = 0;
+      /* currently, will only be needed when there are beztriples */
 
       /* loop over ALL points to adjust position in array and recalculate handles */
       for (a = 0, bezt = fcu->bezt; a < fcu->totvert; a++, bezt++) {
@@ -1191,18 +1191,20 @@ void sort_time_fcurve(FCurve *fcu)
             SWAP(BezTriple, *bezt, *(bezt + 1));
             ok = 1;
           }
-
-          /* if either one of both of the points exceeds crosses over the keyframe time... */
-          if ((bezt->vec[0][0] > bezt->vec[1][0]) && (bezt->vec[2][0] < bezt->vec[1][0])) {
-            /* swap handles if they have switched sides for some reason */
-            swap_v2_v2(bezt->vec[0], bezt->vec[2]);
-          }
-          else {
-            /* clamp handles */
-            CLAMP_MAX(bezt->vec[0][0], bezt->vec[1][0]);
-            CLAMP_MIN(bezt->vec[2][0], bezt->vec[1][0]);
-          }
         }
+      }
+    }
+
+    for (a = 0, bezt = fcu->bezt; a < fcu->totvert; a++, bezt++) {
+      /* if either one of both of the points exceeds crosses over the keyframe time... */
+      if ((bezt->vec[0][0] > bezt->vec[1][0]) && (bezt->vec[2][0] < bezt->vec[1][0])) {
+        /* swap handles if they have switched sides for some reason */
+        swap_v2_v2(bezt->vec[0], bezt->vec[2]);
+      }
+      else {
+        /* clamp handles */
+        CLAMP_MAX(bezt->vec[0][0], bezt->vec[1][0]);
+        CLAMP_MIN(bezt->vec[2][0], bezt->vec[1][0]);
       }
     }
   }
