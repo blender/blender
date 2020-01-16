@@ -506,6 +506,8 @@ static void fluid_free_startjob(void *customdata, short *stop, short *do_update,
   }
 #ifdef WITH_FLUID
   BKE_fluid_cache_free(mds, job->ob, cache_map);
+#else
+  UNUSED_VARS(mds);
 #endif
 
   *do_update = true;
