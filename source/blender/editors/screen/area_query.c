@@ -67,10 +67,12 @@ bool ED_region_panel_category_gutter_calc_rect(const ARegion *ar, rcti *r_ar_gut
   if (UI_panel_category_is_visible(ar)) {
     const int category_tabs_width = round_fl_to_int(UI_view2d_scale_get_x(&ar->v2d) *
                                                     UI_PANEL_CATEGORY_MARGIN_WIDTH);
-    if (ar->alignment == RGN_ALIGN_LEFT) {
+    const int alignment = RGN_ALIGN_ENUM_FROM_MASK(ar->alignment);
+
+    if (alignment == RGN_ALIGN_LEFT) {
       r_ar_gutter->xmax = r_ar_gutter->xmin + category_tabs_width;
     }
-    else if (ar->alignment == RGN_ALIGN_RIGHT) {
+    else if (alignment == RGN_ALIGN_RIGHT) {
       r_ar_gutter->xmin = r_ar_gutter->xmax - category_tabs_width;
     }
     else {
@@ -141,14 +143,16 @@ bool ED_region_contains_xy(const ARegion *ar, const int event_xy[2])
       else {
         /* Side-bar & any other kind of overlapping region. */
 
+        const int alignment = RGN_ALIGN_ENUM_FROM_MASK(ar->alignment);
+
         /* Check alignment to avoid region tabs being clipped out
          * by only clipping a single axis for aligned regions. */
-        if (ELEM(ar->alignment, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
+        if (ELEM(alignment, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
           if (!ED_region_overlap_isect_x_with_margin(ar, event_xy[0], overlap_margin)) {
             return false;
           }
         }
-        else if (ELEM(ar->alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
+        else if (ELEM(alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
           if (ED_region_panel_category_gutter_isect_xy(ar, event_xy)) {
             /* pass */
           }

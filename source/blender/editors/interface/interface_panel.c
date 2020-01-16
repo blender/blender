@@ -1065,7 +1065,7 @@ static bool uiAlignPanelStep(ScrArea *sa, ARegion *ar, const float fac, const bo
   ps->pa->ofsy = -get_panel_size_y(ps->pa);
 
   if (has_category_tabs) {
-    if (align == BUT_VERTICAL && (ar->alignment != RGN_ALIGN_RIGHT)) {
+    if (align == BUT_VERTICAL && (RGN_ALIGN_ENUM_FROM_MASK(ar->alignment) != RGN_ALIGN_RIGHT)) {
       ps->pa->ofsx += UI_PANEL_CATEGORY_MARGIN_WIDTH;
     }
   }
@@ -1913,7 +1913,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 {
   /* no tab outlines for */
   // #define USE_FLAT_INACTIVE
-  const bool is_left = (ar->alignment != RGN_ALIGN_RIGHT);
+  const bool is_left = RGN_ALIGN_ENUM_FROM_MASK(ar->alignment != RGN_ALIGN_RIGHT);
   View2D *v2d = &ar->v2d;
   uiStyle *style = UI_style_get();
   const uiFontStyle *fstyle = &style->widget;
@@ -2201,7 +2201,7 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
 {
   const bool is_mousewheel = ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE);
   const bool inside_tabregion =
-      ((ar->alignment != RGN_ALIGN_RIGHT) ?
+      ((RGN_ALIGN_ENUM_FROM_MASK(ar->alignment) != RGN_ALIGN_RIGHT) ?
            (event->mval[0] < ((PanelCategoryDyn *)ar->panels_category.first)->rect.xmax) :
            (event->mval[0] > ((PanelCategoryDyn *)ar->panels_category.first)->rect.xmin));
 

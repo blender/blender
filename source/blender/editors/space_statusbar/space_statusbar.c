@@ -81,7 +81,7 @@ static SpaceLink *statusbar_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void statusbar_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
 {
-  if (ELEM(region->alignment, RGN_ALIGN_RIGHT)) {
+  if (ELEM(RGN_ALIGN_ENUM_FROM_MASK(region->alignment), RGN_ALIGN_RIGHT)) {
     region->flag |= RGN_FLAG_DYNAMIC_SIZE;
   }
   ED_region_header_init(region);

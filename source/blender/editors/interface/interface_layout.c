@@ -1241,17 +1241,19 @@ static void ui_item_menu_hold(struct bContext *C, ARegion *butregion, uiBut *but
 
   char direction = UI_DIR_DOWN;
   if (!but->drawstr[0]) {
-    if (butregion->alignment == RGN_ALIGN_LEFT) {
-      direction = UI_DIR_RIGHT;
-    }
-    else if (butregion->alignment == RGN_ALIGN_RIGHT) {
-      direction = UI_DIR_LEFT;
-    }
-    else if (butregion->alignment == RGN_ALIGN_BOTTOM) {
-      direction = UI_DIR_UP;
-    }
-    else {
-      direction = UI_DIR_DOWN;
+    switch (RGN_ALIGN_ENUM_FROM_MASK(butregion->alignment)) {
+      case RGN_ALIGN_LEFT:
+        direction = UI_DIR_RIGHT;
+        break;
+      case RGN_ALIGN_RIGHT:
+        direction = UI_DIR_LEFT;
+        break;
+      case RGN_ALIGN_BOTTOM:
+        direction = UI_DIR_UP;
+        break;
+      default:
+        direction = UI_DIR_DOWN;
+        break;
     }
   }
   UI_block_direction_set(block, direction);

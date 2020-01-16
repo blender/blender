@@ -4114,8 +4114,9 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
 {
   ScrArea *sa = CTX_wm_area(C);
   ARegion *ar = CTX_wm_region(C);
-  const char *but_flip_str = (ar->alignment == RGN_ALIGN_TOP) ? IFACE_("Flip to Bottom") :
-                                                                IFACE_("Flip to Top");
+  const char *but_flip_str = (RGN_ALIGN_ENUM_FROM_MASK(ar->alignment) == RGN_ALIGN_TOP) ?
+                                 IFACE_("Flip to Bottom") :
+                                 IFACE_("Flip to Top");
   {
     PointerRNA ptr;
     RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_Space, sa->spacedata.first, &ptr);
@@ -4160,8 +4161,9 @@ void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void *UN
 {
   ScrArea *sa = CTX_wm_area(C);
   ARegion *ar = CTX_wm_region(C);
-  const char *but_flip_str = (ar->alignment == RGN_ALIGN_TOP) ? IFACE_("Flip to Bottom") :
-                                                                IFACE_("Flip to Top");
+  const char *but_flip_str = (RGN_ALIGN_ENUM_FROM_MASK(ar->alignment) == RGN_ALIGN_TOP) ?
+                                 IFACE_("Flip to Bottom") :
+                                 IFACE_("Flip to Top");
   {
     PointerRNA ptr;
     RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_Space, sa->spacedata.first, &ptr);
@@ -4186,8 +4188,9 @@ void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void *UN
 void ED_screens_navigation_bar_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
   const ARegion *ar = CTX_wm_region(C);
-  const char *but_flip_str = (ar->alignment == RGN_ALIGN_LEFT) ? IFACE_("Flip to Right") :
-                                                                 IFACE_("Flip to Left");
+  const char *but_flip_str = (RGN_ALIGN_ENUM_FROM_MASK(ar->alignment) == RGN_ALIGN_LEFT) ?
+                                 IFACE_("Flip to Right") :
+                                 IFACE_("Flip to Left");
 
   /* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);

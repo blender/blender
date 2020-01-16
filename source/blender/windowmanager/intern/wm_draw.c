@@ -514,12 +514,12 @@ void wm_draw_region_blend(ARegion *ar, int view, bool blend)
 
   /* Slide vertical panels */
   float ofs_x = BLI_rcti_size_x(&ar->winrct) * (1.0f - alpha_easing);
-  if (ar->alignment == RGN_ALIGN_RIGHT) {
+  if (RGN_ALIGN_ENUM_FROM_MASK(ar->alignment) == RGN_ALIGN_RIGHT) {
     rect_geo.xmin += ofs_x;
     rect_tex.xmax *= alpha_easing;
     alpha = 1.0f;
   }
-  else if (ar->alignment == RGN_ALIGN_LEFT) {
+  else if (RGN_ALIGN_ENUM_FROM_MASK(ar->alignment) == RGN_ALIGN_LEFT) {
     rect_geo.xmax -= ofs_x;
     rect_tex.xmin += 1.0f - alpha_easing;
     alpha = 1.0f;
