@@ -2848,7 +2848,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
                * fine to always insert headers first. */
               BLI_assert(!do_versions_find_region_or_null(regionbase, RGN_TYPE_TOOL_HEADER));
 
-              ARegion *ar = do_versions_add_region(RGN_TYPE_HEADER, "footer for text");
+              ARegion *ar = do_versions_add_region(RGN_TYPE_HEADER, "header 2.83.1 versioning");
               ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
               BLI_addhead(regionbase, ar);
             }
