@@ -73,7 +73,7 @@ static void rna_Fluid_dependency_update(Main *bmain, Scene *scene, PointerRNA *p
   DEG_relations_tag_update(bmain);
 }
 
-static void rna_Fluid_resetCache(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_Fluid_resetCache(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
   if (settings->mmd && settings->mmd->domain) {
