@@ -2828,6 +2828,35 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
+    /* Files stored pre 2.5 (possibly re-saved with newer versions) may have non-visible
+     * spaces without a header (visible/active ones are properly versioned).
+     * Multiple version patches below assume there's always a header though. So inserting this
+     * patch in-between older ones to add a header when needed.
+     *
+     * From here on it should be fine to assume there always is a header.
+     */
+    if (!MAIN_VERSION_ATLEAST(bmain, 283, 1)) {
+      for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+        for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+          for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+            ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+            ARegion *ar_header = do_versions_find_region_or_null(regionbase, RGN_TYPE_HEADER);
+
+            if (!ar_header) {
+              /* Headers should always be first in the region list, except if there's also a
+               * tool-header. These were only introduced in later versions though, so should be
+               * fine to always insert headers first. */
+              BLI_assert(!do_versions_find_region_or_null(regionbase, RGN_TYPE_TOOL_HEADER));
+
+              ARegion *ar = do_versions_add_region(RGN_TYPE_HEADER, "footer for text");
+              ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+              BLI_addhead(regionbase, ar);
+            }
+          }
+        }
+      }
+    }
+
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
         for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
