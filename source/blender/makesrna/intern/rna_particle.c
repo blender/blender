@@ -286,6 +286,11 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
       psmd, part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co, nor, 0, 0, sd.orco, 0);
 #  endif
 
+  if (modifier->mesh_final == NULL) {
+    BKE_report(reports, RPT_ERROR, "uv_on_emitter() requires a modifier from an evaluated object");
+    return;
+  }
+
   /* get uvco & mcol */
   int num = particle->num_dmcache;
   int from = modifier->psys->part->from;
