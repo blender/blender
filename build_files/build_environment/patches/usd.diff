@@ -121,3 +121,19 @@ diff -Naur external_usd_orig/pxr/base/lib/tf/preprocessorUtils.h external_usd/px
      #define TF_PP_IS_TUPLE(sequence) \
          BOOST_VMD_IS_TUPLE(sequence)
  #else
+diff -Naur external_usd_base/cmake/macros/Public.cmake external_usd/cmake/macros/Public.cmake
+--- external_usd_base/cmake/macros/Public.cmake	2019-10-24 14:39:53 -0600
++++ external_usd/cmake/macros/Public.cmake	2020-01-11 13:33:29 -0700
+@@ -996,6 +996,12 @@
+     foreach(lib ${PXR_OBJECT_LIBS})
+         string(TOUPPER ${lib} uppercaseName)
+         list(APPEND exports "${uppercaseName}_EXPORTS=1")
++        # When building for blender, we do NOT want to export all symbols on windows.
++        # This is a dirty hack, but USD makes it impossible to do the right thing
++        # with the default options exposed.
++        if (WIN32)
++            list(APPEND exports "PXR_STATIC=1")
++        endif()
+     endforeach()
+     foreach(lib ${PXR_OBJECT_LIBS})
+         set(objects "${objects};\$<TARGET_OBJECTS:${lib}>")
