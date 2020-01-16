@@ -1034,7 +1034,7 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
 
   /* Free Style */
   LISTBASE_FOREACH (struct FreestyleLineStyle *, linestyle, &bmain->linestyles) {
-    LISTBASE_FOREACH (LineStyleModifier *, m, &linestyle->thickness_modifiers) {
+    LISTBASE_FOREACH (LineStyleModifier *, m, &linestyle->alpha_modifiers) {
       switch (m->type) {
         case LS_MODIFIER_ALONG_STROKE:
           callback(((LineStyleAlphaModifier_AlongStroke *)m)->curve);
