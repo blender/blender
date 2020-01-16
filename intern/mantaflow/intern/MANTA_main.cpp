@@ -1438,6 +1438,7 @@ int MANTA::readMesh(FluidModifierData *mmd, int framenr)
   targetFile[0] = '\0';
 
   std::string mformat = getCacheFileEnding(mmd->domain->cache_mesh_format);
+  std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
 
   BLI_path_join(cacheDirMesh,
                 sizeof(cacheDirMesh),
@@ -1463,7 +1464,7 @@ int MANTA::readMesh(FluidModifierData *mmd, int framenr)
     if (mUsingMVel) {
       ss.str("");
       ss << "liquid_load_meshvel_" << mCurrentID << "('" << escapeSlashes(cacheDirMesh) << "', "
-         << framenr << ", '" << mformat << "')";
+         << framenr << ", '" << dformat << "')";
       pythonCommands.push_back(ss.str());
     }
   }
