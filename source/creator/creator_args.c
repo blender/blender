@@ -559,6 +559,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   BLI_argsPrintArgDoc(ba, "--python-expr");
   BLI_argsPrintArgDoc(ba, "--python-console");
   BLI_argsPrintArgDoc(ba, "--python-exit-code");
+  BLI_argsPrintArgDoc(ba, "--python-use-system-env");
   BLI_argsPrintArgDoc(ba, "--addons");
 
   printf("\n");
@@ -1907,6 +1908,17 @@ static int arg_handle_python_exit_code_set(int argc, const char **argv, void *UN
   }
 }
 
+static const char arg_handle_python_use_system_env_set_doc[] =
+    "\n\t"
+    "Allow Python to use system environment variables such as 'PYTHONPATH'.";
+static int arg_handle_python_use_system_env_set(int UNUSED(argc),
+                                                const char **UNUSED(argv),
+                                                void *UNUSED(data))
+{
+  BPY_python_use_system_env();
+  return 0;
+}
+
 static const char arg_handle_addons_set_doc[] =
     "<addon(s)>\n"
     "\tComma separated list of add-ons (no spaces).";
@@ -2187,6 +2199,9 @@ void main_args_setup(bContext *C, bArgs *ba)
   BLI_argsAdd(
       ba, 1, NULL, "--env-system-scripts", CB_EX(arg_handle_env_system_set, scripts), NULL);
   BLI_argsAdd(ba, 1, NULL, "--env-system-python", CB_EX(arg_handle_env_system_set, python), NULL);
+
+  BLI_argsAdd(
+      ba, 1, NULL, "--python-use-system-env", CB(arg_handle_python_use_system_env_set), NULL);
 
   /* second pass: custom window stuff */
   BLI_argsAdd(ba, 2, "-p", "--window-geometry", CB(arg_handle_window_geometry), NULL);
