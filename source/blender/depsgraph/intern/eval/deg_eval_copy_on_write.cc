@@ -499,21 +499,6 @@ BLI_INLINE bool check_datablock_expanded(const ID *id_cow)
   return (id_cow->name[0] != '\0');
 }
 
-/* Those are data-blocks which are not covered by dependency graph and hence
- * does not need any remapping or anything.
- *
- * TODO(sergey): How to make it more robust for the future, so we don't have
- * to maintain exception lists all over the code? */
-bool check_datablocks_copy_on_writable(const ID *id_orig)
-{
-  const ID_Type id_type = GS(id_orig->name);
-  /* We shouldn't bother if copied ID is same as original one. */
-  if (!deg_copy_on_write_is_needed(id_orig)) {
-    return false;
-  }
-  return !ELEM(id_type, ID_BR, ID_LS, ID_PAL);
-}
-
 /* Callback for BKE_library_foreach_ID_link which remaps original ID pointer
  * with the one created by CoW system. */
 
@@ -536,7 +521,7 @@ int foreach_libblock_remap_callback(void *user_data_v, ID *id_self, ID **id_p, i
   RemapCallbackUserData *user_data = (RemapCallbackUserData *)user_data_v;
   const Depsgraph *depsgraph = user_data->depsgraph;
   ID *id_orig = *id_p;
-  if (check_datablocks_copy_on_writable(id_orig)) {
+  if (deg_copy_on_write_is_needed(id_orig)) {
     ID *id_cow;
     if (user_data->create_placeholders) {
       /* Special workaround to stop creating temp datablocks for
@@ -1123,7 +1108,7 @@ bool deg_copy_on_write_is_expanded(const ID *id_cow)
 bool deg_copy_on_write_is_needed(const ID *id_orig)
 {
   const ID_Type id_type = GS(id_orig->name);
-  return !ELEM(id_type, ID_IM);
+  return ID_TYPE_IS_COW(id_type);
 }
 
 }  // namespace DEG

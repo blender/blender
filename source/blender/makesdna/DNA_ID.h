@@ -457,9 +457,8 @@ typedef enum ID_Type {
   (!ID_IS_LINKED((_id)) && ID_IS_OVERRIDE_LIBRARY((_id)) && \
    (((ID *)(_id))->override_library->flag & OVERRIDE_LIBRARY_AUTO))
 
-/* No copy-on-write for these types.
- * Keep in sync with check_datablocks_copy_on_writable and deg_copy_on_write_is_needed */
-#define ID_TYPE_IS_COW(_id_type) (!ELEM(_id_type, ID_BR, ID_LS, ID_PAL, ID_IM))
+/* Check whether datablock type is covered by copy-on-write. */
+#define ID_TYPE_IS_COW(_id_type) (!ELEM(_id_type, ID_BR, ID_PAL, ID_IM))
 
 #ifdef GS
 #  undef GS

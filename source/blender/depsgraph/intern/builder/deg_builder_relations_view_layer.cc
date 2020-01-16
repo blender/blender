@@ -35,6 +35,7 @@
 #include "BLI_blenlib.h"
 
 extern "C" {
+#include "DNA_linestyle_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -72,6 +73,16 @@ void DepsgraphRelationBuilder::build_layer_collections(ListBase *lb)
       build_collection(lc, NULL, lc->collection);
     }
     build_layer_collections(&lc->layer_collections);
+  }
+}
+
+void DepsgraphRelationBuilder::build_freestyle_lineset(FreestyleLineSet *fls)
+{
+  if (fls->group != NULL) {
+    build_collection(NULL, NULL, fls->group);
+  }
+  if (fls->linestyle != NULL) {
+    build_freestyle_linestyle(fls->linestyle);
   }
 }
 
@@ -120,11 +131,9 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
   if (view_layer->mat_override != NULL) {
     build_material(view_layer->mat_override);
   }
-  /* Freestyle collections. */
+  /* Freestyle linesets. */
   LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
-    if (fls->group != NULL) {
-      build_collection(NULL, NULL, fls->group);
-    }
+    build_freestyle_lineset(fls);
   }
   /* Scene parameters, compositor and such. */
   build_scene_compositor(scene);

@@ -35,6 +35,8 @@ struct CacheFile;
 struct Camera;
 struct Collection;
 struct FCurve;
+struct FreestyleLineSet;
+struct FreestyleLineStyle;
 struct GHash;
 struct ID;
 struct Image;
@@ -201,6 +203,8 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_nodetree(bNodeTree *ntree);
   virtual void build_material(Material *ma);
   virtual void build_materials(Material **materials, int num_materials);
+  virtual void build_freestyle_lineset(FreestyleLineSet *fls);
+  virtual void build_freestyle_linestyle(FreestyleLineStyle *linestyle);
   virtual void build_texture(Tex *tex);
   virtual void build_image(Image *image);
   virtual void build_world(World *world);
