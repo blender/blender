@@ -720,7 +720,7 @@ static void TRANSFORM_OT_translate(struct wmOperatorType *ot)
   ot->poll = ED_operator_screenactive;
   ot->poll_property = transform_poll_property;
 
-  RNA_def_float_vector_xyz(
+  RNA_def_float_translation(
       ot->srna, "value", 3, NULL, -FLT_MAX, FLT_MAX, "Move", "", -FLT_MAX, FLT_MAX);
 
   WM_operatortype_props_advanced_begin(ot);
