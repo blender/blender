@@ -21,7 +21,10 @@
 set(INC
   .
   ..
+
   ${FFMPEG_INCLUDE_DIRS}
+  ${PNG_INCLUDE_DIRS}
+  ${ZLIB_INCLUDE_DIRS}
 )
 
 set(LIB
@@ -34,6 +37,8 @@ if(WITH_IMAGE_OPENJPEG)
   set(LIB ${LIB} ${OPENJPEG_LIBRARIES})
 endif()
 
+setup_platform_linker_flags()
+link_directories(${FFMPEG_LIBPATH} ${PNG_LIBPATH} ${ZLIB_LIBPATH})
 include_directories(${INC})
 
 BLENDER_SRC_GTEST(ffmpeg "ffmpeg_codecs.cc" "${LIB}")
