@@ -227,6 +227,7 @@ static void transform_decompose(DecomposedTransform *decomp, const Transform *tf
   M.y.w = 0.0f;
   M.z.w = 0.0f;
 
+#if 0
   Transform R = M;
   float norm;
   int iteration = 0;
@@ -260,6 +261,41 @@ static void transform_decompose(DecomposedTransform *decomp, const Transform *tf
   decomp->y.w = scale.x.x;
   decomp->z = make_float4(scale.x.y, scale.x.z, scale.y.x, scale.y.y);
   decomp->w = make_float4(scale.y.z, scale.z.x, scale.z.y, scale.z.z);
+#else
+  float3 colx = transform_get_column(&M, 0);
+  float3 coly = transform_get_column(&M, 1);
+  float3 colz = transform_get_column(&M, 2);
+
+  /* extract scale and shear first */
+  float3 scale, shear;
+  scale.x = len(colx);
+  colx /= scale.x;
+  shear.z = dot(colx, coly);
+  coly -= shear.z * colx;
+  scale.y = len(coly);
+  coly /= scale.y;
+  shear.y = dot(colx, colz);
+  colz -= shear.y * colx;
+  shear.x = dot(coly, colz);
+  colz -= shear.x * coly;
+  scale.z = len(colz);
+  colz /= scale.z;
+
+  transform_set_column(&M, 0, colx);
+  transform_set_column(&M, 1, coly);
+  transform_set_column(&M, 2, colz);
+
+  if (transform_negative_scale(M)) {
+    scale *= -1.0f;
+    M = M * transform_scale(-1.0f, -1.0f, -1.0f);
+  }
+
+  decomp->x = transform_to_quat(M);
+
+  decomp->y.w = scale.x;
+  decomp->z = make_float4(shear.z, shear.y, 0.0f, scale.y);
+  decomp->w = make_float4(shear.x, 0.0f, 0.0f, scale.z);
+#endif
 }
 
 void transform_motion_decompose(DecomposedTransform *decomp, const Transform *motion, size_t size)
