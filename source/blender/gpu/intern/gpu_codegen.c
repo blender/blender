@@ -1340,17 +1340,12 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code, cons
                           "barycentricPosg[2]);\n");
       }
 
-      BLI_dynstr_append(ds, "\tgl_Position = gl_in[0].gl_Position;\n");
-      BLI_dynstr_append(ds, "\tpass_attr(0);\n");
-      BLI_dynstr_append(ds, "\tEmitVertex();\n");
-
-      BLI_dynstr_append(ds, "\tgl_Position = gl_in[1].gl_Position;\n");
-      BLI_dynstr_append(ds, "\tpass_attr(1);\n");
-      BLI_dynstr_append(ds, "\tEmitVertex();\n");
-
-      BLI_dynstr_append(ds, "\tgl_Position = gl_in[2].gl_Position;\n");
-      BLI_dynstr_append(ds, "\tpass_attr(2);\n");
-      BLI_dynstr_append(ds, "\tEmitVertex();\n");
+      for (int i = 0; i < 3; i++) {
+        BLI_dynstr_appendf(ds, "\tgl_Position = gl_in[%d].gl_Position;\n", i);
+        BLI_dynstr_appendf(ds, "\tgl_ClipDistance[0] = gl_in[%d].gl_ClipDistance[0];\n", i);
+        BLI_dynstr_appendf(ds, "\tpass_attr(%d);\n", i);
+        BLI_dynstr_append(ds, "\tEmitVertex();\n");
+      }
       BLI_dynstr_append(ds, "}\n");
     }
   }

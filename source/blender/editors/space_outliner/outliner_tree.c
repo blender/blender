@@ -1267,6 +1267,7 @@ static TreeElement *outliner_add_library_contents(Main *mainvar,
   for (a = 0; a < tot; a++) {
     if (lbarray[a] && lbarray[a]->first) {
       ID *id = lbarray[a]->first;
+      const bool is_library = (GS(id->name) == ID_LI) && (lib != NULL);
 
       /* check if there's data in current lib */
       for (; id; id = id->next) {
@@ -1275,7 +1276,9 @@ static TreeElement *outliner_add_library_contents(Main *mainvar,
         }
       }
 
-      if (id) {
+      /* We always want to create an entry for libraries, even if/when we have no more IDs from
+       * them. This invalid state is important to show to user as well.*/
+      if (id != NULL || is_library) {
         if (!tenlib) {
           /* Create library tree element on demand, depending if there are any data-blocks. */
           if (lib) {
@@ -1288,18 +1291,20 @@ static TreeElement *outliner_add_library_contents(Main *mainvar,
         }
 
         /* Create data-block list parent element on demand. */
-        if (filter_id_type) {
-          ten = tenlib;
-        }
-        else {
-          ten = outliner_add_element(soops, &tenlib->subtree, lbarray[a], NULL, TSE_ID_BASE, 0);
-          ten->directdata = lbarray[a];
-          ten->name = outliner_idcode_to_plural(GS(id->name));
-        }
+        if (id != NULL) {
+          if (filter_id_type) {
+            ten = tenlib;
+          }
+          else {
+            ten = outliner_add_element(soops, &tenlib->subtree, lbarray[a], NULL, TSE_ID_BASE, 0);
+            ten->directdata = lbarray[a];
+            ten->name = outliner_idcode_to_plural(GS(id->name));
+          }
 
-        for (id = lbarray[a]->first; id; id = id->next) {
-          if (outliner_library_id_show(lib, id, filter_id_type)) {
-            outliner_add_element(soops, &ten->subtree, id, ten, 0, 0);
+          for (id = lbarray[a]->first; id; id = id->next) {
+            if (outliner_library_id_show(lib, id, filter_id_type)) {
+              outliner_add_element(soops, &ten->subtree, id, ten, 0, 0);
+            }
           }
         }
       }
@@ -2306,9 +2311,8 @@ void outliner_build_tree(
 
     for (lib = mainvar->libraries.first; lib; lib = lib->id.next) {
       ten = outliner_add_library_contents(mainvar, soops, &soops->tree, lib);
-      if (ten) {
-        lib->id.newid = (ID *)ten;
-      }
+      BLI_assert(ten != NULL);
+      lib->id.newid = (ID *)ten;
     }
     /* make hierarchy */
     ten = soops->tree.first;
