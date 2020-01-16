@@ -1089,7 +1089,11 @@ static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src,
 
 /* keep socket listorder identical, for copying links */
 /* ntree is the target tree */
-bNode *BKE_node_copy_ex(bNodeTree *ntree, const bNode *node_src, const int flag)
+/* unique_name needs to be true. It's only disabled for speed when doing GPUnodetrees. */
+bNode *BKE_node_copy_ex(bNodeTree *ntree,
+                        const bNode *node_src,
+                        const int flag,
+                        const bool unique_name)
 {
   bNode *node_dst = MEM_callocN(sizeof(bNode), "dupli node");
   bNodeSocket *sock_dst, *sock_src;
@@ -1098,7 +1102,9 @@ bNode *BKE_node_copy_ex(bNodeTree *ntree, const bNode *node_src, const int flag)
   *node_dst = *node_src;
   /* can be called for nodes outside a node tree (e.g. clipboard) */
   if (ntree) {
-    nodeUniqueName(ntree, node_dst);
+    if (unique_name) {
+      nodeUniqueName(ntree, node_dst);
+    }
 
     BLI_addtail(&ntree->nodes, node_dst);
   }
@@ -1186,7 +1192,7 @@ static void node_set_new_pointers(bNode *node_src, bNode *new_node)
 
 bNode *BKE_node_copy_store_new_pointers(bNodeTree *ntree, bNode *node_src, const int flag)
 {
-  bNode *new_node = BKE_node_copy_ex(ntree, node_src, flag);
+  bNode *new_node = BKE_node_copy_ex(ntree, node_src, flag, true);
   node_set_new_pointers(node_src, new_node);
   return new_node;
 }
@@ -1516,7 +1522,7 @@ void BKE_node_tree_copy_data(Main *UNUSED(bmain),
   GHash *new_pointers = BLI_ghash_ptr_new("BKE_node_tree_copy_data");
 
   for (const bNode *node_src = ntree_src->nodes.first; node_src; node_src = node_src->next) {
-    bNode *new_node = BKE_node_copy_ex(ntree_dst, node_src, flag_subdata);
+    bNode *new_node = BKE_node_copy_ex(ntree_dst, node_src, flag_subdata, true);
     BLI_ghash_insert(new_pointers, (void *)node_src, new_node);
     /* Store mapping to inputs. */
     bNodeSocket *new_input_sock = new_node->inputs.first;
