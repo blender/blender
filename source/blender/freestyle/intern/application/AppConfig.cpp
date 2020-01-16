@@ -53,10 +53,6 @@ void Path::setRootDir(const string &iRootDir)
                   string(DIR_SEP.c_str());
   _BrushesPath = _ProjectDir + string(DIR_SEP.c_str()) + "data" + string(DIR_SEP.c_str()) +
                  "textures" + string(DIR_SEP.c_str()) + "brushes" + string(DIR_SEP.c_str());
-  _PythonPath = _ProjectDir + string(DIR_SEP.c_str()) + "modules" + string(DIR_SEP.c_str());
-  if (getenv("PYTHONPATH")) {
-    _PythonPath += string(PATH_SEP.c_str()) + string(getenv("PYTHONPATH"));
-  }
   _EnvMapDir = _ProjectDir + string(DIR_SEP.c_str()) + "data" + string(DIR_SEP.c_str()) +
                "env_map" + string(DIR_SEP.c_str());
   _MapsDir = _ProjectDir + string(DIR_SEP.c_str()) + "data" + string(DIR_SEP.c_str()) + "maps" +
