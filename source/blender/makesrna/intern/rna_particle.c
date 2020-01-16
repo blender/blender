@@ -286,6 +286,11 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
       psmd, part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co, nor, 0, 0, sd.orco, 0);
 #  endif
 
+  if (modifier->mesh_final == NULL) {
+    BKE_report(reports, RPT_ERROR, "uv_on_emitter() requires a modifier from an evaluated object");
+    return;
+  }
+
   /* get uvco & mcol */
   int num = particle->num_dmcache;
   int from = modifier->psys->part->from;
@@ -1763,9 +1768,14 @@ static void rna_def_particle(BlenderRNA *brna)
 
   /* UVs */
   func = RNA_def_function(srna, "uv_on_emitter", "rna_Particle_uv_on_emitter");
-  RNA_def_function_ui_description(func, "Obtain uv for particle on derived mesh");
+  RNA_def_function_ui_description(func,
+                                  "Obtain UV coordinates for a particle on an evaluated mesh.");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
-  parm = RNA_def_pointer(func, "modifier", "ParticleSystemModifier", "", "Particle modifier");
+  parm = RNA_def_pointer(func,
+                         "modifier",
+                         "ParticleSystemModifier",
+                         "",
+                         "Particle modifier from an evaluated object");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_property(func, "uv", PROP_FLOAT, PROP_COORDS);
   RNA_def_property_array(parm, 2);
