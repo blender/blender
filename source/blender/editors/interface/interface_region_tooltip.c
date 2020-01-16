@@ -292,6 +292,22 @@ static void ui_tooltip_region_free_cb(ARegion *ar)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name ToolTip Creation Utility Functions
+ * \{ */
+
+static char *ui_tooltip_text_python_from_op(bContext *C, wmOperatorType *ot, PointerRNA *opptr)
+{
+  char *str = WM_operator_pystring_ex(C, NULL, false, false, ot, opptr);
+
+  /* Avoid overly verbose tips (eg, arrays of 20 layers), exact limit is arbitrary. */
+  WM_operator_pystring_abbreviate(str, 32);
+
+  return str;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name ToolTip Creation
  * \{ */
 
@@ -336,8 +352,7 @@ static bool ui_tooltip_data_append_from_keymap(bContext *C, uiTooltipData *data,
                                                    .style = UI_TIP_STYLE_NORMAL,
                                                    .color_id = UI_TIP_LC_PYTHON,
                                                });
-        char *str = WM_operator_pystring_ex(C, NULL, false, false, ot, kmi->ptr);
-        WM_operator_pystring_abbreviate(str, 32);
+        char *str = ui_tooltip_text_python_from_op(C, ot, kmi->ptr);
         field->text = BLI_sprintfN(TIP_("Python: %s"), str);
         MEM_freeN(str);
       }
@@ -687,6 +702,19 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
     }
   }
 
+  /* Python */
+  if ((is_label == false) && (U.flag & USER_TOOLTIPS_PYTHON)) {
+    uiTooltipField *field = text_field_add(data,
+                                           &(uiTooltipFormat){
+                                               .style = UI_TIP_STYLE_NORMAL,
+                                               .color_id = UI_TIP_LC_PYTHON,
+                                               .is_pad = true,
+                                           });
+    char *str = ui_tooltip_text_python_from_op(C, but->optype, but->opptr);
+    field->text = BLI_sprintfN(TIP_("Python: %s"), str);
+    MEM_freeN(str);
+  }
+
   /* Keymap */
 
   /* This is too handy not to expose somehow, let's be sneaky for now. */
@@ -906,10 +934,7 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
     /* so the context is passed to fieldf functions (some py fieldf functions use it) */
     WM_operator_properties_sanitize(opptr, false);
 
-    str = WM_operator_pystring_ex(C, NULL, false, false, but->optype, opptr);
-
-    /* avoid overly verbose tips (eg, arrays of 20 layers), exact limit is arbitrary */
-    WM_operator_pystring_abbreviate(str, 32);
+    str = ui_tooltip_text_python_from_op(C, but->optype, opptr);
 
     /* operator info */
     if (U.flag & USER_TOOLTIPS_PYTHON) {
@@ -1380,6 +1405,10 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 /** \name ToolTip Public API
  * \{ */
 
+/**
+ * \param is_label: When true, show a small tip that only shows the name,
+ * otherwise show the full tooltip.
+ */
 ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *but, bool is_label)
 {
   wmWindow *win = CTX_wm_window(C);
