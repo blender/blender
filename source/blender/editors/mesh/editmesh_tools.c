@@ -1288,7 +1288,7 @@ static int edbm_vert_connect_exec(bContext *C, wmOperator *op)
     }
   }
   MEM_freeN(objects);
-  return failed_objects_len == objects_len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  return failed_objects_len == objects_len ? OPERATOR_CANCELLED : OPERATOR_FINISHED;
 }
 
 void MESH_OT_vert_connect(wmOperatorType *ot)
