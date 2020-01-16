@@ -830,17 +830,19 @@ static void eevee_lightbake_render_world_sample(void *ved, void *user_data)
   EEVEE_lightbake_render_world(sldata, vedata, lbake->rt_fb);
   EEVEE_lightbake_filter_diffuse(sldata, vedata, lbake->rt_color, lbake->store_fb, 0, 1.0f);
 
-  /* Clear the cache to avoid white values in the grid. */
-  GPU_framebuffer_texture_attach(lbake->store_fb, lbake->grid_prev, 0, 0);
-  GPU_framebuffer_bind(lbake->store_fb);
-  /* Clear to 1.0f for visibility. */
-  GPU_framebuffer_clear_color(lbake->store_fb, ((float[4]){1.0f, 1.0f, 1.0f, 1.0f}));
-  DRW_draw_pass(vedata->psl->probe_grid_fill);
+  if (lcache->flag & LIGHTCACHE_UPDATE_GRID) {
+    /* Clear the cache to avoid white values in the grid. */
+    GPU_framebuffer_texture_attach(lbake->store_fb, lbake->grid_prev, 0, 0);
+    GPU_framebuffer_bind(lbake->store_fb);
+    /* Clear to 1.0f for visibility. */
+    GPU_framebuffer_clear_color(lbake->store_fb, ((float[4]){1.0f, 1.0f, 1.0f, 1.0f}));
+    DRW_draw_pass(vedata->psl->probe_grid_fill);
 
-  SWAP(GPUTexture *, lbake->grid_prev, lcache->grid_tx.tex);
+    SWAP(GPUTexture *, lbake->grid_prev, lcache->grid_tx.tex);
 
-  /* Make a copy for later. */
-  eevee_lightbake_copy_irradiance(lbake, lcache);
+    /* Make a copy for later. */
+    eevee_lightbake_copy_irradiance(lbake, lcache);
+  }
 
   lcache->cube_len = 1;
   lcache->grid_len = lbake->grid_len;

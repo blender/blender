@@ -84,6 +84,9 @@ CLG_LOGREF_DECLARE_GLOBAL(BPY_LOG_RNA, "bpy.rna");
  * stop bpy_context_clear from invalidating. */
 static int py_call_level = 0;
 
+/* Set by command line arguments before Python starts. */
+static bool py_use_system_env = false;
+
 // #define TIME_PY_RUN // simple python tests. prints on exit.
 
 #ifdef TIME_PY_RUN
@@ -276,6 +279,10 @@ void BPY_python_start(int argc, const char **argv)
    * While harmless, it's noisy. */
   Py_FrozenFlag = 1;
 
+  /* Only use the systems environment variables when explicitly requested.
+   * Since an incorrect 'PYTHONPATH' causes difficult to debug errors, see: T72807. */
+  Py_IgnoreEnvironmentFlag = !py_use_system_env;
+
   Py_Initialize();
 
   // PySys_SetArgv(argc, argv);  /* broken in py3, not a huge deal */
@@ -406,6 +413,12 @@ void BPY_python_reset(bContext *C)
   BPY_driver_reset();
   BPY_app_handlers_reset(false);
   BPY_modules_load_user(C);
+}
+
+void BPY_python_use_system_env(void)
+{
+  BLI_assert(!Py_IsInitialized());
+  py_use_system_env = true;
 }
 
 static void python_script_error_jump_text(struct Text *text)
