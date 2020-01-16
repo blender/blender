@@ -1451,7 +1451,8 @@ void createTransUVs(bContext *C, TransInfo *t)
     if (is_prop_connected || is_island_center) {
       /* create element map with island information */
       const bool use_facesel = (ts->uv_flag & UV_SYNC_SELECTION) == 0;
-      elementmap = BM_uv_element_map_create(em->bm, scene, use_facesel, true, false, true);
+      const bool use_uvsel = !is_prop_connected;
+      elementmap = BM_uv_element_map_create(em->bm, scene, use_facesel, use_uvsel, false, true);
       if (elementmap == NULL) {
         continue;
       }
@@ -1547,16 +1548,17 @@ void createTransUVs(bContext *C, TransInfo *t)
 
         if (is_prop_connected || is_island_center) {
           UvElement *element = BM_uv_element_get(elementmap, efa, l);
-
-          if (is_prop_connected) {
-            if (!BLI_BITMAP_TEST(island_enabled, element->island)) {
-              count_rejected++;
-              continue;
+          if (element) {
+            if (is_prop_connected) {
+              if (!BLI_BITMAP_TEST(island_enabled, element->island)) {
+                count_rejected++;
+                continue;
+              }
             }
-          }
 
-          if (is_island_center) {
-            center = island_center[element->island].co;
+            if (is_island_center) {
+              center = island_center[element->island].co;
+            }
           }
         }
 
