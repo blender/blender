@@ -17,9 +17,9 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # To run all tests, use
-# BLENDER_VERBOSE=1 blender path/to/bevel_regression.blend --python path/to/bevel_operator.py -- --run_all_tests
+# BLENDER_VERBOSE=1 blender path/to/bevel_regression.blend --python path/to/bevel_operator.py -- --run-all-tests
 # To run one test, use
-# BLENDER_VERBOSE=1 blender path/to/bevel_regression.blend --python path/to/bevel_operator.py -- --run_test <index>
+# BLENDER_VERBOSE=1 blender path/to/bevel_regression.blend --python path/to/bevel_operator.py -- --run-test <index>
 # where <index> is the index of the test specified in the list tests.
 
 import bpy
