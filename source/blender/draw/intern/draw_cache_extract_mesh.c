@@ -1928,7 +1928,7 @@ static void *extract_vcol_init(const MeshRenderData *mr, void *buf)
       GPU_vertformat_safe_attrib_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTRIB_NAME);
 
       BLI_snprintf(attr_name, sizeof(attr_name), "c%s", attr_safe_name);
-      GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
       if (i == CustomData_get_render_layer(cd_ldata, CD_MLOOPCOL)) {
         GPU_vertformat_alias_add(&format, "c");
@@ -1948,12 +1948,20 @@ static void *extract_vcol_init(const MeshRenderData *mr, void *buf)
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len);
 
-  MLoopCol *vcol_data = (MLoopCol *)vbo->data;
+  typedef struct gpuMeshVcol {
+    ushort r, g, b, a;
+  } gpuMeshVcol;
+
+  gpuMeshVcol *vcol_data = (gpuMeshVcol *)vbo->data;
   for (int i = 0; i < 8; i++) {
     if (vcol_layers & (1 << i)) {
-      void *layer_data = CustomData_get_layer_n(cd_ldata, CD_MLOOPCOL, i);
-      memcpy(vcol_data, layer_data, sizeof(*vcol_data) * mr->loop_len);
-      vcol_data += mr->loop_len;
+      MLoopCol *mcol = (MLoopCol *)CustomData_get_layer_n(cd_ldata, CD_MLOOPCOL, i);
+      for (int l = 0; l < mr->loop_len; l++, mcol++, vcol_data++) {
+        vcol_data->r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->r]);
+        vcol_data->g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->g]);
+        vcol_data->b = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->b]);
+        vcol_data->a = unit_float_to_ushort_clamp(mcol->a * (1.0f / 255.0f));
+      }
     }
   }
   return NULL;

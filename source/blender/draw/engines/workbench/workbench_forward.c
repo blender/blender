@@ -756,7 +756,7 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
         memset(gpumat_array, 0, sizeof(*gpumat_array) * materials_len);
 
         struct GPUBatch **mat_geom = DRW_cache_object_surface_material_get(
-            ob, gpumat_array, materials_len, NULL, NULL, NULL);
+            ob, gpumat_array, materials_len);
         if (mat_geom) {
           for (int i = 0; i < materials_len; i++) {
             if (mat_geom[i] == NULL) {

@@ -1138,8 +1138,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
         struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
         memset(gpumat_array, 0, sizeof(*gpumat_array) * materials_len);
 
-        geoms = DRW_cache_object_surface_material_get(
-            ob, gpumat_array, materials_len, NULL, NULL, NULL);
+        geoms = DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len);
         for (int i = 0; i < materials_len; i++) {
           if (geoms != NULL && geoms[i] != NULL) {
             Material *mat = give_current_material(ob, i + 1);

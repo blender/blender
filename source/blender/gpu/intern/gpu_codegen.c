@@ -1042,12 +1042,6 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
                              input->attr_id,
                              attr_prefix_get(input->attr_type),
                              attr_safe_name);
-          /* Auto attribute can be vertex color byte buffer.
-           * We need to know and convert them to linear space in VS. */
-          if (input->attr_type == CD_AUTO_FROM_NAME) {
-            BLI_dynstr_appendf(ds, "uniform bool ba%s;\n", attr_safe_name);
-            BLI_dynstr_appendf(ds, "#define att%d_is_srgb ba%s\n", input->attr_id, attr_safe_name);
-          }
         }
         BLI_dynstr_appendf(ds,
                            "out %s var%d%s;\n",
@@ -1100,24 +1094,6 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
   BLI_dynstr_append(ds, "\n");
 
   BLI_dynstr_append(ds, use_geom ? "RESOURCE_ID_VARYING_GEOM\n" : "RESOURCE_ID_VARYING\n");
-
-  BLI_dynstr_append(ds,
-                    "#define USE_ATTR\n"
-                    "vec3 srgb_to_linear_attr(vec3 c) {\n"
-                    "\tc = max(c, vec3(0.0));\n"
-                    "\tvec3 c1 = c * (1.0 / 12.92);\n"
-                    "\tvec3 c2 = pow((c + 0.055) * (1.0 / 1.055), vec3(2.4));\n"
-                    "\treturn mix(c1, c2, step(vec3(0.04045), c));\n"
-                    "}\n\n");
-
-  BLI_dynstr_append(ds,
-                    "vec4 srgba_to_linear_attr(vec4 c) {\n"
-                    "\tc = max(c, vec4(0.0));\n"
-                    "\tvec4 c1 = c * (1.0 / 12.92);\n"
-                    "\tvec4 c2 = pow((c + 0.055) * (1.0 / 1.055), vec4(2.4));\n"
-                    "\tvec4 final = mix(c1, c2, step(vec4(0.04045), c));"
-                    "\treturn vec4(final.xyz, c.a);\n"
-                    "}\n\n");
 
   /* Prototype because defined later. */
   BLI_dynstr_append(ds,
@@ -1223,22 +1199,6 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
                              "\tif (orco.w == 0.0) { var%d%s = orco.xyz * 0.5 + 0.5; }\n",
                              input->attr_id,
                              use_geom ? "g" : "");
-        }
-        else if (input->attr_type == CD_MCOL) {
-          BLI_dynstr_appendf(ds,
-                             "\tvar%d%s = srgba_to_linear_attr(att%d);\n",
-                             input->attr_id,
-                             use_geom ? "g" : "",
-                             input->attr_id);
-        }
-        else if (input->attr_type == CD_AUTO_FROM_NAME) {
-          BLI_dynstr_appendf(ds,
-                             "\tvar%d%s = (att%d_is_srgb) ? srgb_to_linear_attr(att%d) : att%d;\n",
-                             input->attr_id,
-                             use_geom ? "g" : "",
-                             input->attr_id,
-                             input->attr_id,
-                             input->attr_id);
         }
         else {
           BLI_dynstr_appendf(

@@ -4,13 +4,18 @@ in vec3 pos;
 in vec3 nor;
 in vec2 au; /* active texture layer */
 #  ifdef V3D_SHADING_VERTEX_COLOR
-in vec3 ac; /* active color */
+in vec4 ac; /* active color */
 #  endif
 #  define uv au
 #else /* HAIR_SHADER */
+
 #  ifdef V3D_SHADING_TEXTURE_COLOR
 uniform samplerBuffer au; /* active texture layer */
 #  endif
+#  ifdef V3D_SHADING_VERTEX_COLOR
+uniform samplerBuffer ac; /* active color layer */
+#  endif
+
 flat out float hair_rand;
 #endif /* HAIR_SHADER */
 
@@ -36,16 +41,6 @@ float integer_noise(int n)
   int nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
   return (float(nn) / 1073741824.0);
 }
-
-#ifdef V3D_SHADING_VERTEX_COLOR
-vec3 srgb_to_linear_attr(vec3 c)
-{
-  c = max(c, vec3(0.0));
-  vec3 c1 = c * (1.0 / 12.92);
-  vec3 c2 = pow((c + 0.055) * (1.0 / 1.055), vec3(2.4));
-  return mix(c1, c2, step(vec3(0.04045), c));
-}
-#endif
 
 vec3 workbench_hair_hair_normal(vec3 tan, vec3 binor, float rand)
 {
@@ -90,7 +85,9 @@ void main()
 
 #ifdef V3D_SHADING_VERTEX_COLOR
 #  ifndef HAIR_SHADER
-  vertexColor = srgb_to_linear_attr(ac);
+  vertexColor = ac.rgb;
+#  else
+  vertexColor = hair_get_customdata_vec4(ac).rgb;
 #  endif
 #endif
 

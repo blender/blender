@@ -1199,7 +1199,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
       GPU_vertformat_safe_attrib_name(name, attr_safe_name, GPU_MAX_SAFE_ATTRIB_NAME);
 
       BLI_snprintf(uuid, sizeof(uuid), "c%s", attr_safe_name);
-      col_id[i] = GPU_vertformat_attr_add(&format, uuid, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+      col_id[i] = GPU_vertformat_attr_add(&format, uuid, GPU_COMP_U16, 4, GPU_FETCH_FLOAT);
 
       if (i == active_col) {
         GPU_vertformat_alias_add(&format, "c");

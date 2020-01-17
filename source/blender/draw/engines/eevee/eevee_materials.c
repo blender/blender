@@ -1529,18 +1529,10 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
 
     if ((ob->dt >= OB_SOLID) || DRW_state_is_image_render()) {
       /* Get per-material split surface */
-      char *auto_layer_names;
-      int *auto_layer_is_srgb;
-      int auto_layer_count;
       struct GPUBatch **mat_geom = NULL;
 
       if (!use_sculpt_pbvh) {
-        mat_geom = DRW_cache_object_surface_material_get(ob,
-                                                         gpumat_array,
-                                                         materials_len,
-                                                         &auto_layer_names,
-                                                         &auto_layer_is_srgb,
-                                                         &auto_layer_count);
+        mat_geom = DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len);
       }
 
       if (use_sculpt_pbvh) {
@@ -1576,28 +1568,6 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
           ADD_SHGROUP_CALL(shgrp_array[i], ob, mat_geom[i], oedata);
           ADD_SHGROUP_CALL_SAFE(shgrp_depth_array[i], ob, mat_geom[i], oedata);
           ADD_SHGROUP_CALL_SAFE(shgrp_depth_clip_array[i], ob, mat_geom[i], oedata);
-
-          char *name = auto_layer_names;
-          for (int j = 0; j < auto_layer_count; j++) {
-            /* TODO don't add these uniform when not needed (default pass shaders). */
-            /* FIXME: This is broken, as it overrides any autolayers srgb bool of the previous mesh
-             * that shares the same material.  */
-            if (shgrp_array[i]) {
-              DRW_shgroup_uniform_bool_copy(shgrp_array[i], name, auto_layer_is_srgb[j]);
-            }
-            if (shgrp_depth_array[i]) {
-              DRW_shgroup_uniform_bool_copy(shgrp_depth_array[i], name, auto_layer_is_srgb[j]);
-            }
-            if (shgrp_depth_clip_array[i]) {
-              DRW_shgroup_uniform_bool_copy(
-                  shgrp_depth_clip_array[i], name, auto_layer_is_srgb[j]);
-            }
-            /* Go to next layer name. */
-            while (*name != '\0') {
-              name++;
-            }
-            name += 1;
-          }
 
           /* Shadow Pass */
           struct GPUMaterial *gpumat;

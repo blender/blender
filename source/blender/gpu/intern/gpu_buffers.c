@@ -116,7 +116,7 @@ void gpu_pbvh_init()
     g_vbo_id.msk = GPU_vertformat_attr_add(
         &g_vbo_id.format, "msk", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
     g_vbo_id.col = GPU_vertformat_attr_add(
-        &g_vbo_id.format, "ac", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        &g_vbo_id.format, "ac", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
   }
 }
 
@@ -240,8 +240,13 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
             for (int j = 0; j < 3; j++) {
               const int loop_index = lt->tri[j];
               const int vidx = face_vert_indices[i][j];
-              const uchar *elem = &vcol[loop_index].r;
-              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vidx, elem);
+              const MLoopCol *mcol = &vcol[loop_index];
+              ushort scol[4];
+              scol[0] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->r]);
+              scol[1] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->g]);
+              scol[2] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->b]);
+              scol[3] = unit_float_to_ushort_clamp(mcol->a * (1.0f / 255.0f));
+              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vidx, scol);
             }
           }
         }
@@ -289,8 +294,13 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
             if (show_vcol) {
               const uint loop_index = lt->tri[j];
-              const uchar *elem = &vcol[loop_index].r;
-              memcpy(GPU_vertbuf_raw_step(&col_step), elem, sizeof(uchar) * 4);
+              const MLoopCol *mcol = &vcol[loop_index];
+              ushort scol[4];
+              scol[0] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->r]);
+              scol[1] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->g]);
+              scol[2] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->b]);
+              scol[3] = unit_float_to_ushort_clamp(mcol->a * (1.0f / 255.0f));
+              memcpy(GPU_vertbuf_raw_step(&col_step), scol, sizeof(scol));
             }
           }
         }
@@ -654,7 +664,7 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
             }
 
             if (show_vcol) {
-              char vcol[4] = {255, 255, 255, 255};
+              ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
               GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index, &vcol);
             }
 
@@ -705,7 +715,7 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
               empty_mask = empty_mask && (fmask == 0.0f);
             }
 
-            char vcol[4] = {255, 255, 255, 255};
+            ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
             GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index + 0, &vcol);
             GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index + 1, &vcol);
             GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index + 2, &vcol);
@@ -781,7 +791,7 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
   }
 
   if (show_vcol) {
-    static char vcol[4] = {255, 255, 255, 255};
+    ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
     GPU_vertbuf_attr_set(vert_buf, g_vbo_id.col, v_index, &vcol);
   }
 }
