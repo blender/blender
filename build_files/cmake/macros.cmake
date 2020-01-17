@@ -416,6 +416,17 @@ function(setup_liblinks
   set(CMAKE_MODULE_LINKER_FLAGS_DEBUG "${CMAKE_MODULE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}" PARENT_SCOPE)
   set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS_RELEASE} ${PLATFORM_LINKFLAGS_RELEASE}" PARENT_SCOPE)
 
+  # Work around undefined reference errors when disabling certain libraries.
+  # Finding the right order for all combinations of options is too hard, so
+  # we use --start-group and --end-group so the linker does not discard symbols
+  # too early. This appears to have no significant performance impact.
+  if(UNIX AND NOT APPLE)
+    target_link_libraries(
+      ${target}
+      -Wl,--start-group
+    )
+  endif()
+
   # jemalloc must be early in the list, to be before pthread (see T57998)
   if(WITH_MEM_JEMALLOC)
     target_link_libraries(${target} ${JEMALLOC_LIBRARIES})
@@ -592,6 +603,14 @@ function(setup_liblinks
 
   # target_link_libraries(${target} ${PLATFORM_LINKLIBS} ${CMAKE_DL_LIBS})
   target_link_libraries(${target} ${PLATFORM_LINKLIBS})
+
+  # See comments above regarding --start-group.
+  if(UNIX AND NOT APPLE)
+    target_link_libraries(
+      ${target}
+      -Wl,--end-group
+    )
+  endif()
 endfunction()
 
 macro(TEST_SSE_SUPPORT
