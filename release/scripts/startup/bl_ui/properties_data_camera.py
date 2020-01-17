@@ -501,6 +501,7 @@ class DATA_PT_camera_safe_areas_center_cut(CameraButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(safe_data, "title_center", slider=True)
+        col.prop(safe_data, "action_center", slider=True)
 
 
 class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, Panel):
