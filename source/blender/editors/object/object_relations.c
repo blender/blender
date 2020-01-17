@@ -1721,14 +1721,6 @@ static void libblock_relink_collection(Collection *collection, const bool do_col
   }
 }
 
-static void libblock_relink_collections_from_scene(Scene *scene)
-{
-  /* Will also handle the master collection. */
-  BKE_libblock_relink_to_newid(&scene->id);
-
-  libblock_relink_collection(scene->master_collection, false);
-}
-
 static Collection *single_object_users_collection(Main *bmain,
                                                   Scene *scene,
                                                   Collection *collection,
@@ -1763,6 +1755,7 @@ static Collection *single_object_users_collection(Main *bmain,
     child_next = child->next;
     Collection *collection_child_new = single_object_users_collection(
         bmain, scene, child->collection, flag, copy_collections, false);
+
     if (is_master_collection && copy_collections && child->collection != collection_child_new) {
       BKE_collection_child_add(bmain, collection, collection_child_new);
       BLI_remlink(&collection->children, child);
@@ -1784,20 +1777,15 @@ static void single_object_users(
   Collection *master_collection = scene->master_collection;
   single_object_users_collection(bmain, scene, master_collection, flag, copy_collections, true);
 
+  /* Will also handle the master collection. */
+  BKE_libblock_relink_to_newid(&scene->id);
+
   /* Collection and object pointers in collections */
-  libblock_relink_collections_from_scene(scene);
+  libblock_relink_collection(scene->master_collection, false);
 
-  /* collection pointers in scene */
-  BKE_scene_groups_relink(scene);
-
-  /* active camera */
-  ID_NEW_REMAP(scene->camera);
+  /* We also have to handle runtime things in UI. */
   if (v3d) {
     ID_NEW_REMAP(v3d->camera);
-  }
-  /* Camera pointers of markers. */
-  for (TimeMarker *marker = scene->markers.first; marker; marker = marker->next) {
-    ID_NEW_REMAP(marker->camera);
   }
 
   /* Making single user may affect other scenes if they share
@@ -2028,13 +2016,19 @@ void ED_object_single_users(Main *bmain,
     single_obdata_users(bmain, scene, NULL, NULL, 0);
     single_object_action_users(bmain, scene, NULL, NULL, 0);
     single_mat_users_expand(bmain);
+
     /* Duplicating obdata and other IDs may require another update of the collections and objects
      * pointers, especially regarding drivers and custom props, see T66641.
      * Note that this whole scene duplication code and 'make single user' functions have te be
      * rewritten at some point to make use of proper modern ID management code,
      * but that is no small task.
      * For now we are doomed to that kind of band-aid to try to cover most of remapping cases. */
-    libblock_relink_collections_from_scene(scene);
+
+    /* Will also handle the master collection. */
+    BKE_libblock_relink_to_newid(&scene->id);
+
+    /* Collection and object pointers in collections */
+    libblock_relink_collection(scene->master_collection, false);
   }
 
   /* Relink nodetrees' pointers that have been duplicated. */
