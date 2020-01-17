@@ -91,8 +91,8 @@ static int txtfmt_ini_find_keyword(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "P",          len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "T",          len)) { i = len;
 
-  } else {                                                        i = 0;
-}
+  } else                                                        { i = 0;
+  }
 
   /* clang-format on */
 
@@ -304,8 +304,8 @@ static int txtfmt_ini_find_reserved(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "sint32be",                     len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "sint32le",                     len)) { i = len;
 
-  } else {                                                                          i = 0;
-}
+  } else                                                                          { i = 0;
+  }
 
   /* clang-format on */
 
@@ -335,8 +335,8 @@ static int txtfmt_ini_find_bool(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "%k",      len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "%h",      len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "%w",      len)) { i = len;
-  } else {                                                     i = 0;
-}
+  } else                                                     { i = 0;
+  }
 
   /* clang-format on */
 
@@ -483,7 +483,7 @@ static void txtfmt_pov_ini_format_line(SpaceText *st, TextLine *line, const bool
 
         /* Special vars(v) or built-in keywords(b) */
         /* keep in sync with 'txtfmt_ini_format_identifier()' */
-        if      ((i = txtfmt_ini_find_keyword(str))  != -1) { prev = FMT_TYPE_KEYWORD;
+        if        ((i = txtfmt_ini_find_keyword(str))  != -1) { prev = FMT_TYPE_KEYWORD;
         } else if ((i = txtfmt_ini_find_reserved(str)) != -1) { prev = FMT_TYPE_RESERVED;
 }
 
