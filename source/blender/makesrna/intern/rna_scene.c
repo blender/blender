@@ -941,8 +941,8 @@ static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
   CLAMP(value, MINFRAME, MAXFRAME);
   data->r.sfra = value;
 
-  if (data->r.sfra >= data->r.efra) {
-    data->r.efra = MIN2(data->r.sfra, MAXFRAME);
+  if (value > data->r.efra) {
+    data->r.efra = MIN2(value, MAXFRAME);
   }
 }
 
@@ -952,8 +952,8 @@ static void rna_Scene_end_frame_set(PointerRNA *ptr, int value)
   CLAMP(value, MINFRAME, MAXFRAME);
   data->r.efra = value;
 
-  if (data->r.sfra >= data->r.efra) {
-    data->r.sfra = MAX2(data->r.efra, MINFRAME);
+  if (data->r.sfra > value) {
+    data->r.sfra = MAX2(value, MINFRAME);
   }
 }
 
@@ -985,10 +985,12 @@ static void rna_Scene_preview_range_start_frame_set(PointerRNA *ptr, int value)
     /* TODO: or just refuse to set instead? */
     data->r.pefra = data->r.efra;
   }
-
-  /* now set normally */
-  CLAMP(value, MINAFRAME, data->r.pefra);
+  CLAMP(value, MINAFRAME, MAXFRAME);
   data->r.psfra = value;
+
+  if (value > data->r.pefra) {
+    data->r.pefra = MIN2(value, MAXFRAME);
+  }
 }
 
 static void rna_Scene_preview_range_end_frame_set(PointerRNA *ptr, int value)
@@ -1001,10 +1003,12 @@ static void rna_Scene_preview_range_end_frame_set(PointerRNA *ptr, int value)
     /* TODO: or just refuse to set instead? */
     data->r.psfra = data->r.sfra;
   }
-
-  /* now set normally */
-  CLAMP(value, data->r.psfra, MAXFRAME);
+  CLAMP(value, MINAFRAME, MAXFRAME);
   data->r.pefra = value;
+
+  if (data->r.psfra > value) {
+    data->r.psfra = MAX2(value, MINAFRAME);
+  }
 }
 
 static void rna_Scene_show_subframe_update(Main *UNUSED(bmain),
