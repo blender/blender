@@ -1390,6 +1390,8 @@ static void gp_layer_to_curve(bContext *C,
   }
 
   ED_object_base_select(base_new, BA_SELECT);
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 }
 
 /* --- */
