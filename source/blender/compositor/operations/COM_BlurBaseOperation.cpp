@@ -44,20 +44,22 @@ void BlurBaseOperation::initExecution()
   this->m_data.image_in_width = this->getWidth();
   this->m_data.image_in_height = this->getHeight();
   if (this->m_data.relative) {
+    int sizex, sizey;
     switch (this->m_data.aspect) {
-      case CMP_NODE_BLUR_ASPECT_NONE:
-        this->m_data.sizex = (int)(this->m_data.percentx * 0.01f * this->m_data.image_in_width);
-        this->m_data.sizey = (int)(this->m_data.percenty * 0.01f * this->m_data.image_in_height);
-        break;
       case CMP_NODE_BLUR_ASPECT_Y:
-        this->m_data.sizex = (int)(this->m_data.percentx * 0.01f * this->m_data.image_in_width);
-        this->m_data.sizey = (int)(this->m_data.percenty * 0.01f * this->m_data.image_in_width);
+        sizex = sizey = this->m_data.image_in_width;
         break;
       case CMP_NODE_BLUR_ASPECT_X:
-        this->m_data.sizex = (int)(this->m_data.percentx * 0.01f * this->m_data.image_in_height);
-        this->m_data.sizey = (int)(this->m_data.percenty * 0.01f * this->m_data.image_in_height);
+        sizex = sizey = this->m_data.image_in_height;
+        break;
+      default:
+        BLI_assert(this->m_data.aspect == CMP_NODE_BLUR_ASPECT_NONE);
+        sizex = this->m_data.image_in_width;
+        sizey = this->m_data.image_in_height;
         break;
     }
+    this->m_data.sizex = round_fl_to_int(this->m_data.percentx * 0.01f * sizex);
+    this->m_data.sizey = round_fl_to_int(this->m_data.percenty * 0.01f * sizey);
   }
 
   QualityStepHelper::initExecution(COM_QH_MULTIPLY);
