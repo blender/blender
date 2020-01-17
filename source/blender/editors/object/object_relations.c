@@ -1784,38 +1784,6 @@ static void single_object_users(
   Collection *master_collection = scene->master_collection;
   single_object_users_collection(bmain, scene, master_collection, flag, copy_collections, true);
 
-  /* duplicate collections that consist entirely of duplicated objects */
-  /* XXX I guess that was designed for calls from 'make single user' operator.
-   *     But since copy_collection is always false then, was not doing anything.
-   *     And that kind of behavior should be added at operator level,
-   *     not in a utility function also used by rather different code. */
-#if 0
-  if (copy_collections) {
-    Collection *collection, *collectionn;
-    for (collection = bmain->collections.first; collection; collection = collection->id.next) {
-      bool all_duplicated = true;
-      bool any_duplicated = false;
-
-      for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
-        any_duplicated = true;
-        if (cob->ob->id.newid == NULL) {
-          all_duplicated = false;
-          break;
-        }
-      }
-
-      if (any_duplicated && all_duplicated) {
-        // TODO: test if this works, with child collections ..
-        collectionn = ID_NEW_SET(collection, BKE_collection_copy(bmain, NULL, collection));
-
-        for (CollectionObject *cob = collectionn->gobject.first; cob; cob = cob->next) {
-          cob->ob = (Object *)cob->ob->id.newid;
-        }
-      }
-    }
-  }
-#endif
-
   /* Collection and object pointers in collections */
   libblock_relink_collections_from_scene(scene);
 
