@@ -142,6 +142,8 @@ bool BKE_collection_child_add(struct Main *bmain,
                               struct Collection *parent,
                               struct Collection *child);
 
+bool BKE_collection_child_add_no_sync(struct Collection *parent, struct Collection *child);
+
 bool BKE_collection_child_remove(struct Main *bmain,
                                  struct Collection *parent,
                                  struct Collection *child);

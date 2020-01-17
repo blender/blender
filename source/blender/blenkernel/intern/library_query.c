@@ -340,6 +340,23 @@ static void library_foreach_layer_collection(LibraryForeachIDData *data, ListBas
   FOREACH_FINALIZE_VOID;
 }
 
+/* Used by both real Collection data-blokcs, and the fake horror of master collection from Scene.
+ */
+static void library_foreach_collection(LibraryForeachIDData *data, Collection *collection)
+{
+  for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
+    FOREACH_CALLBACK_INVOKE(data, cob->ob, IDWALK_CB_USER);
+  }
+  for (CollectionChild *child = collection->children.first; child; child = child->next) {
+    FOREACH_CALLBACK_INVOKE(data, child->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_USER);
+  }
+  for (CollectionParent *parent = collection->parents.first; parent; parent = parent->next) {
+    FOREACH_CALLBACK_INVOKE(data, parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK);
+  }
+
+  FOREACH_FINALIZE_VOID;
+}
+
 static void library_foreach_ID_as_subdata_link(ID **id_pp,
                                                LibraryIDLinkCallback callback,
                                                void *user_data,
@@ -484,14 +501,7 @@ static void library_foreach_ID_link(Main *bmain,
           SEQ_END;
         }
 
-        for (CollectionObject *cob = scene->master_collection->gobject.first; cob;
-             cob = cob->next) {
-          CALLBACK_INVOKE(cob->ob, IDWALK_CB_USER);
-        }
-        for (CollectionChild *child = scene->master_collection->children.first; child;
-             child = child->next) {
-          CALLBACK_INVOKE(child->collection, IDWALK_CB_USER);
-        }
+        library_foreach_collection(&data, scene->master_collection);
 
         ViewLayer *view_layer;
         for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
@@ -800,15 +810,7 @@ static void library_foreach_ID_link(Main *bmain,
 
       case ID_GR: {
         Collection *collection = (Collection *)id;
-        for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
-          CALLBACK_INVOKE(cob->ob, IDWALK_CB_USER);
-        }
-        for (CollectionChild *child = collection->children.first; child; child = child->next) {
-          CALLBACK_INVOKE(child->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_USER);
-        }
-        for (CollectionParent *parent = collection->parents.first; parent; parent = parent->next) {
-          CALLBACK_INVOKE(parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK);
-        }
+        library_foreach_collection(&data, collection);
         break;
       }
 
