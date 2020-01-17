@@ -208,13 +208,11 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
   linfo->num_light++;
 }
 
-void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(vedata))
 {
   EEVEE_LightsInfo *linfo = sldata->lights;
 
   sldata->common_data.la_num_light = linfo->num_light;
 
   DRW_uniformbuffer_update(sldata->light_ubo, &linfo->light_data);
-
-  EEVEE_shadows_update(sldata, vedata);
 }
