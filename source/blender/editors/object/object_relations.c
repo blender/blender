@@ -1802,7 +1802,7 @@ static void single_object_users(
 
   /* Making single user may affect other scenes if they share
    * with current one some collections in their ViewLayer. */
-  BKE_main_collection_sync(bmain);
+  BKE_main_collection_sync_remap(bmain);
 }
 
 /* not an especially efficient function, only added so the single user
