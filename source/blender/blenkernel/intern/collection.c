@@ -1057,6 +1057,11 @@ bool BKE_collection_child_add(Main *bmain, Collection *parent, Collection *child
   return true;
 }
 
+bool BKE_collection_child_add_no_sync(Collection *parent, Collection *child)
+{
+  return collection_child_add(parent, child, 0, true);
+}
+
 bool BKE_collection_child_remove(Main *bmain, Collection *parent, Collection *child)
 {
   if (!collection_child_remove(parent, child)) {
