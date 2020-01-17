@@ -88,8 +88,8 @@ static int txtfmt_py_find_builtinfunc(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "while",    len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "with",     len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "yield",    len)) { i = len;
-  } else {                                                      i = 0;
-}
+  } else                                                      { i = 0;
+  }
 
   /* clang-format on */
 
@@ -114,10 +114,10 @@ static int txtfmt_py_find_specialvar(const char *string)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if        (STR_LITERAL_STARTSWITH(string, "def", len)) {   i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "def", len))   { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "class", len)) { i = len;
-  } else {                                                   i = 0;
-}
+  } else                                                   { i = 0;
+  }
 
   /* clang-format on */
 
@@ -155,11 +155,11 @@ static int txtfmt_py_find_bool(const char *string)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if        (STR_LITERAL_STARTSWITH(string, "None",  len)) {  i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "True",  len)) {  i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "False", len)) {  i = len;
-  } else {                                                    i = 0;
-}
+  if        (STR_LITERAL_STARTSWITH(string, "None",  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "True",  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "False", len)) { i = len;
+  } else                                                   { i = 0;
+  }
 
   /* clang-format on */
 
@@ -170,6 +170,144 @@ static int txtfmt_py_find_bool(const char *string)
   return i;
 }
 
+/* Numeral character matching. */
+#define TXTFMT_PY_NUMERAL_STRING_COUNT_IMPL(txtfmt_py_numeral_char_is_fn) \
+  { \
+    uint count = 0; \
+    for (; txtfmt_py_numeral_char_is_fn(*string); string += 1) { \
+      count += 1; \
+    } \
+    return count; \
+  } \
+  ((void)0)
+
+/* Binary. */
+static bool txtfmt_py_numeral_char_is_binary(const char c)
+{
+  return ELEM(c, '0', '1') || (c == '_');
+}
+static uint txtfmt_py_numeral_string_count_binary(const char *string)
+{
+  TXTFMT_PY_NUMERAL_STRING_COUNT_IMPL(txtfmt_py_numeral_char_is_binary);
+}
+
+/* Octal. */
+static bool txtfmt_py_numeral_char_is_octal(const char c)
+{
+  return (c >= '0' && c <= '7') || (c == '_');
+}
+static uint txtfmt_py_numeral_string_count_octal(const char *string)
+{
+  TXTFMT_PY_NUMERAL_STRING_COUNT_IMPL(txtfmt_py_numeral_char_is_octal);
+}
+
+/* Decimal. */
+static bool txtfmt_py_numeral_char_is_decimal(const char c)
+{
+  return (c >= '0' && c <= '9') || (c == '_');
+}
+static uint txtfmt_py_numeral_string_count_decimal(const char *string)
+{
+  TXTFMT_PY_NUMERAL_STRING_COUNT_IMPL(txtfmt_py_numeral_char_is_decimal);
+}
+
+/* Hexadecimal. */
+static bool txtfmt_py_numeral_char_is_hexadecimal(const char c)
+{
+  return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') || (c == '_');
+}
+static uint txtfmt_py_numeral_string_count_hexadecimal(const char *string)
+{
+  TXTFMT_PY_NUMERAL_STRING_COUNT_IMPL(txtfmt_py_numeral_char_is_hexadecimal);
+}
+
+/* Zeros. */
+static bool txtfmt_py_numeral_char_is_zero(const char c)
+{
+  return (c == '0') || (c == '_');
+}
+static uint txtfmt_py_numeral_string_count_zeros(const char *string)
+{
+  TXTFMT_PY_NUMERAL_STRING_COUNT_IMPL(txtfmt_py_numeral_char_is_zero);
+}
+
+#undef TXTFMT_PY_NUMERAL_STRING_COUNT_IMPL
+
+static int txtfmt_py_find_numeral_inner(const char *string)
+{
+  if (string == NULL || *string == '\0') {
+    return -1;
+  }
+
+  const char first = *string, second = *(string + 1);
+
+  /* Decimal dot must be followed by a digit, any decimal digit.
+   * Note that the there can be any number of leading zeros after
+   * the decimal point (leading zeros are not allowed in integers) */
+  if (first == '.') {
+    if (text_check_digit(second)) {
+      return 1 + txtfmt_py_numeral_string_count_decimal(string + 1);
+    }
+  }
+  else if (first == '0') {
+    /* Numerals starting with '0x' or '0X' is followed by hexadecimal digits. */
+    if (ELEM(second, 'x', 'X')) {
+      return 2 + txtfmt_py_numeral_string_count_hexadecimal(string + 2);
+    }
+    /* Numerals starting with '0o' or '0O' is followed by octal digits. */
+    if (ELEM(second, 'o', 'O')) {
+      return 2 + txtfmt_py_numeral_string_count_octal(string + 2);
+    }
+    /* Numerals starting with '0b' or '0B' is followed by binary digits. */
+    if (ELEM(second, 'b', 'B')) {
+      return 2 + txtfmt_py_numeral_string_count_binary(string + 2);
+    }
+    /* Other numerals starting with '0' can be followed by any number of '0' characters. */
+    if (ELEM(second, '0', '_')) {
+      return 2 + txtfmt_py_numeral_string_count_zeros(string + 2);
+    }
+  }
+  /* Any non-zero digit is the start of a decimal number. */
+  else if (first > '0' && first <= '9') {
+    return 1 + txtfmt_py_numeral_string_count_decimal(string + 1);
+  }
+  /* A single zero is also allowed. */
+  return (first == '0') ? 1 : 0;
+}
+
+static int txtfmt_py_literal_numeral(const char *string, char prev_fmt)
+{
+  if (string == NULL || *string == '\0') {
+    return -1;
+  }
+
+  const char first = *string, second = *(string + 1);
+
+  if (prev_fmt == FMT_TYPE_NUMERAL) {
+    /* Previous was a number; if immediately followed by 'e' or 'E' and a digit,
+     * it's a base 10 exponent (scientific notation). */
+    if (ELEM(first, 'e', 'E') && (text_check_digit(second) || second == '-')) {
+      return 1 + txtfmt_py_find_numeral_inner(string + 1);
+    }
+    /* Previous was a number; if immediately followed by '.' it's a floating point decimal number.
+     * Note: keep the decimal point, it's needed to allow leading zeros. */
+    if ((prev_fmt == FMT_TYPE_NUMERAL) && (first == '.')) {
+      return txtfmt_py_find_numeral_inner(string);
+    }
+    /* "Imaginary" part of a complex number ends with 'j' */
+    if (ELEM(first, 'j', 'J') && !text_check_digit(second)) {
+      return 1;
+    }
+  }
+  else if ((prev_fmt != FMT_TYPE_DEFAULT) &&
+           (text_check_digit(first) || (first == '.' && text_check_digit(second)))) {
+    /* New numeral, starting with a digit or a decimal point followed by a digit. */
+    return txtfmt_py_find_numeral_inner(string);
+  }
+  /* Not a literal numeral. */
+  return 0;
+}
+
 static char txtfmt_py_format_identifier(const char *str)
 {
   char fmt;
@@ -177,11 +315,11 @@ static char txtfmt_py_format_identifier(const char *str)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      ((txtfmt_py_find_specialvar(str))   != -1) { fmt = FMT_TYPE_SPECIAL;
+  if        ((txtfmt_py_find_specialvar(str))   != -1) { fmt = FMT_TYPE_SPECIAL;
   } else if ((txtfmt_py_find_builtinfunc(str))  != -1) { fmt = FMT_TYPE_KEYWORD;
   } else if ((txtfmt_py_find_decorator(str))    != -1) { fmt = FMT_TYPE_RESERVED;
-  } else {                                               fmt = FMT_TYPE_DEFAULT;
-}
+  } else                                               { fmt = FMT_TYPE_DEFAULT;
+  }
 
   /* clang-format on */
   return fmt;
@@ -289,10 +427,9 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
       else if (*str == ' ') {
         *fmt = FMT_TYPE_WHITESPACE;
       }
-      /* Numbers (digits not part of an identifier and periods followed by digits) */
-      else if ((prev != FMT_TYPE_DEFAULT && text_check_digit(*str)) ||
-               (*str == '.' && text_check_digit(*(str + 1)))) {
-        *fmt = FMT_TYPE_NUMERAL;
+      /* Literal numerals, "numbers". */
+      else if ((i = txtfmt_py_literal_numeral(str, prev)) > 0) {
+        text_format_fill(&str, &fmt, FMT_TYPE_NUMERAL, i);
       }
       /* Booleans */
       else if (prev != FMT_TYPE_DEFAULT && (i = txtfmt_py_find_bool(str)) != -1) {
@@ -320,10 +457,10 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
 
         /* Special vars(v) or built-in keywords(b) */
         /* keep in sync with 'txtfmt_py_format_identifier()' */
-        if      ((i = txtfmt_py_find_specialvar(str))   != -1) { prev = FMT_TYPE_SPECIAL;
+        if        ((i = txtfmt_py_find_specialvar(str))   != -1) { prev = FMT_TYPE_SPECIAL;
         } else if ((i = txtfmt_py_find_builtinfunc(str))  != -1) { prev = FMT_TYPE_KEYWORD;
         } else if ((i = txtfmt_py_find_decorator(str))    != -1) { prev = FMT_TYPE_DIRECTIVE;
-}
+        }
 
         /* clang-format on */
 

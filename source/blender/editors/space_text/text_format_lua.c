@@ -66,7 +66,8 @@ static int txtfmt_lua_find_keyword(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "then",     len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "until",    len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "while",    len)) { i = len;
-  } else {                                                      i = 0; }
+  } else                                                      { i = 0;
+  }
 
   /* clang-format on */
 
@@ -123,7 +124,8 @@ static int txtfmt_lua_find_specialvar(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "unpack",           len)) {   i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "_VERSION",         len)) {   i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "xpcall",           len)) {   i = len;
-  } else {                                                                i = 0; }
+  } else                                                              {   i = 0;
+  }
 
   /* clang-format on */
 
@@ -144,7 +146,8 @@ static int txtfmt_lua_find_bool(const char *string)
   if        (STR_LITERAL_STARTSWITH(string, "nil",    len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "true",   len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "false",  len)) { i = len;
-  } else {                                                    i = 0; }
+  } else                                                    { i = 0;
+  }
 
   /* clang-format on */
 
@@ -164,7 +167,8 @@ static char txtfmt_lua_format_identifier(const char *str)
 
   if        ((txtfmt_lua_find_specialvar(str))  != -1) { fmt = FMT_TYPE_SPECIAL;
   } else if ((txtfmt_lua_find_keyword(str))     != -1) { fmt = FMT_TYPE_KEYWORD;
-  } else {                                               fmt = FMT_TYPE_DEFAULT; }
+  } else                                               { fmt = FMT_TYPE_DEFAULT;
+  }
 
   /* clang-format on */
 
@@ -308,9 +312,9 @@ static void txtfmt_lua_format_line(SpaceText *st, TextLine *line, const bool do_
 
         /* Special vars(v) or built-in keywords(b) */
         /* keep in sync with 'txtfmt_osl_format_identifier()' */
-        if      ((i = txtfmt_lua_find_specialvar(str))   != -1) { prev = FMT_TYPE_SPECIAL;
+        if        ((i = txtfmt_lua_find_specialvar(str))   != -1) { prev = FMT_TYPE_SPECIAL;
         } else if ((i = txtfmt_lua_find_keyword(str))      != -1) { prev = FMT_TYPE_KEYWORD;
-}
+        }
 
         /* clang-format on */
 

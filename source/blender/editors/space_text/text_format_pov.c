@@ -80,8 +80,8 @@ static int txtfmt_pov_find_keyword(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "end",         len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "for",         len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "if",          len)) { i = len;
-  } else {                                                         i = 0;
-}
+  } else                                                         { i = 0;
+  }
 
   /* clang-format on */
 
@@ -239,8 +239,8 @@ static int txtfmt_pov_find_reserved_keywords(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "vstr",               len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "chr",                len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "str",                len)) { i = len;
-  } else {                                                                i = 0;
-}
+  } else                                                                { i = 0;
+  }
 
   /* clang-format on */
 
@@ -475,8 +475,8 @@ static int txtfmt_pov_find_reserved_builtins(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "x",                   len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "y",                   len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "z",                   len)) { i = len;
-  } else {                                                                 i = 0;
-}
+  } else                                                                 { i = 0;
+  }
 
   /* clang-format off */
 
@@ -695,8 +695,8 @@ static int txtfmt_pov_find_specialvar(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "edwards",                  len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "peters",                   len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "gall",                     len)) { i = len;
-  } else {                                                                i = 0;
-}
+  } else                                                                      { i = 0;
+  }
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
   return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
@@ -746,8 +746,8 @@ static int txtfmt_pov_find_bool(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "sys",                 len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "tga",                 len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "ttf",                 len)) { i = len;
-  } else {                                                                 i = 0;
-}
+  } else                                                                 { i = 0;
+  }
 
   /* clang-format on */
 
@@ -762,12 +762,12 @@ static char txtfmt_pov_format_identifier(const char *str)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      ((txtfmt_pov_find_specialvar(str))        != -1) { fmt = FMT_TYPE_SPECIAL;
+  if        ((txtfmt_pov_find_specialvar(str))        != -1) { fmt = FMT_TYPE_SPECIAL;
   } else if ((txtfmt_pov_find_keyword(str))           != -1) { fmt = FMT_TYPE_KEYWORD;
   } else if ((txtfmt_pov_find_reserved_keywords(str)) != -1) { fmt = FMT_TYPE_RESERVED;
   } else if ((txtfmt_pov_find_reserved_builtins(str)) != -1) { fmt = FMT_TYPE_DIRECTIVE;
-  } else {                                                     fmt = FMT_TYPE_DEFAULT;
-}
+  } else                                                     { fmt = FMT_TYPE_DEFAULT;
+  }
 
   /* clang-format on */
 
@@ -905,11 +905,11 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
 
         /* Special vars(v) or built-in keywords(b) */
         /* keep in sync with 'txtfmt_pov_format_identifier()' */
-        if      ((i = txtfmt_pov_find_specialvar(str))        != -1) { prev = FMT_TYPE_SPECIAL;
+        if        ((i = txtfmt_pov_find_specialvar(str))        != -1) { prev = FMT_TYPE_SPECIAL;
         } else if ((i = txtfmt_pov_find_keyword(str))           != -1) { prev = FMT_TYPE_KEYWORD;
         } else if ((i = txtfmt_pov_find_reserved_keywords(str)) != -1) { prev = FMT_TYPE_RESERVED;
         } else if ((i = txtfmt_pov_find_reserved_builtins(str)) != -1) { prev = FMT_TYPE_DIRECTIVE;
-}
+        }
 
         /* clang-format on */
 
