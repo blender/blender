@@ -33,6 +33,7 @@
 
 #include "BLI_buffer.h"
 #include "BLI_listbase.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 
 #include "BKE_context.h"
@@ -1154,7 +1155,10 @@ void WM_gizmo_group_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     wmGizmo *gz = wm_gizmomap_highlight_get(gzmap);
     if (!gz || gz->parent_gzgroup != gzgroup) {
       wmWindow *win = CTX_wm_window(C);
-      if (win->tweak) {
+      ARegion *ar = CTX_wm_region(C);
+      BLI_assert(ar->gizmo_map == gzmap);
+      /* Check if the tweak event originated from this region. */
+      if ((win->tweak != NULL) && BLI_rcti_compare(&ar->winrct, &win->tweak->winrct)) {
         /* We need to run refresh again. */
         gzgroup->init_flag &= ~WM_GIZMOGROUP_INIT_REFRESH;
         WM_gizmomap_tag_refresh_drawstep(gzmap, WM_gizmomap_drawstep_from_gizmo_group(gzgroup));
