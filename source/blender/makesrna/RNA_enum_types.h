@@ -141,6 +141,8 @@ extern const EnumPropertyItem rna_enum_texture_type_items[];
 
 extern const EnumPropertyItem rna_enum_light_type_items[];
 
+extern const EnumPropertyItem rna_enum_lightprobes_type_items[];
+
 extern const EnumPropertyItem rna_enum_unpack_method_items[];
 
 extern const EnumPropertyItem rna_enum_object_type_items[];

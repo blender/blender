@@ -25,6 +25,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_customdata_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_force_types.h"
@@ -193,6 +194,13 @@ const EnumPropertyItem rna_enum_metaelem_type_items[] = {
     /* NOTE: typo at original definition! */
     {MB_ELIPSOID, "ELLIPSOID", ICON_META_ELLIPSOID, "Ellipsoid", ""},
     {MB_CUBE, "CUBE", ICON_META_CUBE, "Cube", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_lightprobes_type_items[] = {
+    {LIGHTPROBE_TYPE_CUBE, "CUBE", ICON_LIGHTPROBE_CUBEMAP, "Cube", ""},
+    {LIGHTPROBE_TYPE_PLANAR, "PLANAR", ICON_LIGHTPROBE_PLANAR, "Planar", ""},
+    {LIGHTPROBE_TYPE_GRID, "GRID", ICON_LIGHTPROBE_GRID, "Grid", ""},
     {0, NULL, 0, NULL, NULL},
 };
 

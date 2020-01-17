@@ -804,6 +804,8 @@ static const char *get_obdata_defname(int type)
       return DATA_("Empty");
     case OB_GPENCIL:
       return DATA_("GPencil");
+    case OB_LIGHTPROBE:
+      return DATA_("LightProbe");
     default:
       CLOG_ERROR(&LOG, "Internal error, bad type: %d", type);
       return DATA_("Empty");

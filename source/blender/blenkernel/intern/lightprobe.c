@@ -41,6 +41,30 @@ void BKE_lightprobe_init(LightProbe *probe)
   MEMCPY_STRUCT_AFTER(probe, DNA_struct_default_get(LightProbe), id);
 }
 
+void BKE_lightprobe_configure(LightProbe *probe, const short lightprobe_type)
+{
+  probe->type = lightprobe_type;
+
+  switch (probe->type) {
+    case LIGHTPROBE_TYPE_GRID:
+      probe->distinf = 0.3f;
+      probe->falloff = 1.0f;
+      probe->clipsta = 0.01f;
+      break;
+    case LIGHTPROBE_TYPE_PLANAR:
+      probe->distinf = 0.1f;
+      probe->falloff = 0.5f;
+      probe->clipsta = 0.001f;
+      break;
+    case LIGHTPROBE_TYPE_CUBE:
+      probe->attenuation_type = LIGHTPROBE_SHAPE_ELIPSOID;
+      break;
+    default:
+      BLI_assert(!"LightProbe type not configured.");
+      break;
+  }
+}
+
 void *BKE_lightprobe_add(Main *bmain, const char *name)
 {
   LightProbe *probe;
