@@ -867,7 +867,7 @@ static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
 
   /* check for clipping */
   if (value > settings->end) {
-    value = settings->end;
+    settings->end = value;
   }
 
   /*if (settings->type==PART_REACTOR && value < 1.0) */
@@ -886,7 +886,7 @@ static void rna_PartSettings_end_set(struct PointerRNA *ptr, float value)
 
   /* check for clipping */
   if (value < settings->sta) {
-    value = settings->sta;
+    settings->sta = value;
   }
 
   settings->end = value;
