@@ -235,7 +235,7 @@ static void dial_ghostarc_draw_incremental_angle(const float incremental_angle, 
 }
 
 static void dial_ghostarc_draw(const float angle_ofs,
-                               const float angle_delta,
+                               float angle_delta,
                                const float arc_inner_factor,
                                const float color[4])
 {
@@ -244,21 +244,36 @@ static void dial_ghostarc_draw(const float angle_ofs,
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
+  /* Avoid artifacts by drawing the main arc over the span of one rotation only. */
+  const float pi2 = (float)(M_PI * 2.0);
+  int rotation_count = (int)floorf(fabsf(angle_delta) / pi2);
+  angle_delta = fmod(angle_delta, pi2);
+
+  /* Calculate the remaining angle that can be filled with the background color. */
+  const float angle_background = angle_delta >= 0 ? (pi2 - angle_delta) : -(pi2 + angle_delta);
+
+  float color_background[4] = {0};
   if (arc_inner_factor != 0.0) {
-    float color_dark[4] = {0};
-    color_dark[3] = color[3] / 2;
-    immUniformColor4fv(color_dark);
-    imm_draw_disk_partial_fill_2d(pos,
-                                  0,
-                                  0,
-                                  arc_inner_factor,
-                                  width_inner,
-                                  DIAL_RESOLUTION,
-                                  RAD2DEGF(angle_ofs),
-                                  RAD2DEGF(M_PI * 2));
+    color_background[3] = color[3] / 2.0f;
   }
 
-  immUniformColor4fv(color);
+  if (rotation_count != 0) {
+    /* Calculate the background color to visualize the rotation count. */
+    copy_v4_v4(color_background, color);
+    color_background[3] = color[3] * rotation_count;
+  }
+
+  immUniformColor4fv(color_background);
+  imm_draw_disk_partial_fill_2d(pos,
+                                0,
+                                0,
+                                arc_inner_factor,
+                                width_inner,
+                                DIAL_RESOLUTION,
+                                RAD2DEGF(angle_ofs + angle_delta),
+                                RAD2DEGF(angle_background));
+
+  immUniformColor4f(UNPACK3(color), color[3] * (rotation_count + 1));
   imm_draw_disk_partial_fill_2d(pos,
                                 0,
                                 0,
