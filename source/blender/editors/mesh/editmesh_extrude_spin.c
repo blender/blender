@@ -199,7 +199,7 @@ void MESH_OT_spin(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  RNA_def_int(ot->srna, "steps", 9, 0, 1000000, "Steps", "Steps", 0, 1000);
+  RNA_def_int(ot->srna, "steps", 12, 0, 1000000, "Steps", "Steps", 0, 1000);
 
   prop = RNA_def_boolean(ot->srna, "dupli", 0, "Use Duplicates", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
