@@ -184,6 +184,7 @@ void id_us_plus(struct ID *id);
 void id_us_min(struct ID *id);
 void id_fake_user_set(struct ID *id);
 void id_fake_user_clear(struct ID *id);
+int BKE_id_num_real_users(const struct ID *id);
 void BKE_id_clear_newpoin(struct ID *id);
 
 void BKE_id_make_local_generic(struct Main *bmain,

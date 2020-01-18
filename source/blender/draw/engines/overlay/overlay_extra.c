@@ -29,6 +29,7 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_movieclip.h"
@@ -1500,7 +1501,7 @@ static void OVERLAY_object_center(OVERLAY_ExtraCallBuffers *cb,
                                   OVERLAY_PrivateData *pd,
                                   ViewLayer *view_layer)
 {
-  const bool is_library = ob->id.us > 1 || ID_IS_LINKED(ob);
+  const bool is_library = BKE_id_num_real_users(&ob->id) > 1 || ID_IS_LINKED(ob);
 
   if (ob == OBACT(view_layer)) {
     DRW_buffer_add_entry(cb->center_active, ob->obmat[3]);
