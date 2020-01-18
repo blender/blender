@@ -603,7 +603,7 @@ void voronoi_distance_to_edge_3d(vector3 coord, float randomness, output float o
         vector3 perpendicularToEdge = vectorToPoint - vectorToClosest;
         if (dot(perpendicularToEdge, perpendicularToEdge) > 0.0001) {
           float distanceToEdge = dot((vectorToClosest + vectorToPoint) / 2.0,
-                                     normalize(perpendicularToEdge));
+                                     normalize((vector)perpendicularToEdge));
           minDistance = min(minDistance, distanceToEdge);
         }
       }

@@ -31,7 +31,7 @@ shader node_ies_light(int use_mapping = 0,
     p = transform(mapping, p);
   }
 
-  p = normalize(p);
+  p = normalize((vector)p);
 
   float v_angle = acos(-p[2]);
   float h_angle = atan2(p[0], p[1]) + M_PI;

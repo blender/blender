@@ -65,7 +65,7 @@ shader node_mapping(string type = "point",
     VectorOut = transform(euler_to_mat(Rotation), (VectorIn * Scale));
   }
   else if (type == "normal") {
-    VectorOut = normalize(transform(euler_to_mat(Rotation), safe_divide(VectorIn, Scale)));
+    VectorOut = normalize((vector)transform(euler_to_mat(Rotation), safe_divide(VectorIn, Scale)));
   }
   else {
     warning("%s", "Unknown Mapping vector type!");
