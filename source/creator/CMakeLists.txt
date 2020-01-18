@@ -686,12 +686,14 @@ elseif(WIN32)
     if(NOT CMAKE_COMPILER_IS_GNUCC)
       install(
         FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}.dll
+              ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python3.dll
         DESTINATION "."
         CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
       )
 
       install(
         FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}_d.dll
+              ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python3_d.dll
         DESTINATION "."
         CONFIGURATIONS Debug
       )
