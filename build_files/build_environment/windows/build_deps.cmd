@@ -126,6 +126,7 @@ if "%dobuild%" == "1" (
 	cmake --build . --target Harvest_Release_Results  > Harvest_Release.txt
 )
 echo %DATE% %TIME% : Release Harvest done >> %StatusFile%
+if "%NODEBUG%" == "1" goto exit
 cd %BUILD_DIR%
 mkdir %STAGING%\%BuildDir%%ARCH%D
 cd %Staging%\%BuildDir%%ARCH%D

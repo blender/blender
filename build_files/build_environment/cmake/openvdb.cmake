@@ -29,24 +29,20 @@ set(OPENVDB_EXTRA_ARGS
   -DBoost_NO_SYSTEM_PATHS=ON
   -DZLIB_LIBRARY=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
   -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include/
-  -DBLOSC_INCLUDE_DIR=${LIBDIR}/blosc/include/
-  -DBLOSC_blosc_LIBRARY=${LIBDIR}/blosc/lib/libblosc${BLOSC_POST}${LIBEXT}
+  -DBlosc_INCLUDE_DIR=${LIBDIR}/blosc/include/
+  -DBlosc_LIBRARY=${LIBDIR}/blosc/lib/libblosc${BLOSC_POST}${LIBEXT}
   -DOPENVDB_ENABLE_3_ABI_COMPATIBLE=OFF
   -DOPENVDB_BUILD_UNITTESTS=Off
   -DOPENVDB_BUILD_PYTHON_MODULE=Off
-  -DGLEW_LOCATION=${LIBDIR}/glew/
-  -DBLOSC_LOCATION=${LIBDIR}/blosc/
-  -DTBB_LOCATION=${LIBDIR}/tbb/
+  -DBlosc_ROOT=${LIBDIR}/blosc/
   -DTBB_ROOT=${LIBDIR}/tbb/
-  -DOPENEXR_LOCATION=${LIBDIR}/openexr
-  -DILMBASE_LOCATION=${LIBDIR}/ilmbase
-  -DIlmbase_HALF_LIBRARY=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Half${ILMBASE_VERSION_POSTFIX}${LIBEXT}
-  -DIlmbase_IEX_LIBRARY=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Iex${ILMBASE_VERSION_POSTFIX}${LIBEXT}
-  -DIlmbase_ILMTHREAD_LIBRARY=${LIBDIR}/ilmbase/lib/${LIBPREFIX}IlmThread${ILMBASE_VERSION_POSTFIX}${LIBEXT}
-  -DOpenexr_ILMIMF_LIBRARY=${LIBDIR}/openexr/lib/${LIBPREFIX}IlmImf${OPENEXR_VERSION_POSTFIX}${LIBEXT}
-  -DTBB_LIBRARYDIR=${LIBDIR}/tbb/lib
-  -DTbb_TBB_LIBRARY=${LIBDIR}/tbb/lib/${LIBPREFIX}tbb_static${LIBEXT}
-  -DTBB_LIBRARY_PATH=${LIBDIR}/tbb/lib
+  -DOpenEXR_ROOT=${LIBDIR}/openexr
+  -DIlmBase_ROOT=${LIBDIR}/openexr
+  -DOPENEXR_LIBRARYDIR=${LIBDIR}/openexr/lib
+   # All libs live in openexr, even the ilmbase ones
+  -DILMBASE_LIBRARYDIR=${LIBDIR}/openexr/lib
+  -DOPENVDB_CORE_SHARED=Off
+  -DOPENVDB_BUILD_BINARIES=Off
 )
 
 if(WIN32)
@@ -54,15 +50,17 @@ if(WIN32)
   # being in the correct namespace
   # needs to link pthreads due to it being a blosc dependency
   set(OPENVDB_EXTRA_ARGS ${OPENVDB_EXTRA_ARGS}
-    -DOPENEXR_NAMESPACE_VERSIONING=OFF
-    -DEXTRA_LIBS:FILEPATH=${LIBDIR}/pthreads/lib/pthreadVC3.lib
+    -DCMAKE_CXX_STANDARD_LIBRARIES="${LIBDIR}/pthreads/lib/pthreadVC3.lib"
+    -DUSE_EXR=On
   )
-  if("${CMAKE_SIZEOF_VOID_P}" EQUAL "4")
-    set(OPENVDB_EXTRA_ARGS ${OPENVDB_EXTRA_ARGS}
-      -DCMAKE_SHARED_LINKER_FLAGS="/safeseh:no"
-      -DCMAKE_EXE_LINKER_FLAGS="/safeseh:no"
-    )
-  endif()
+else()
+  # OpenVDB can't find the _static libraries automatically.
+  set(OPENVDB_EXTRA_ARGS ${OPENVDB_EXTRA_ARGS}
+    -DTbb_LIBRARIES=${LIBDIR}/tbb/lib/${LIBPREFIX}tbb_static${LIBEXT}
+    -DTbb_tbb_LIBRARY=${LIBDIR}/tbb/lib/${LIBPREFIX}tbb_static${LIBEXT}
+    -DTbb_tbbmalloc_LIBRARY=${LIBDIR}/tbb/lib/${LIBPREFIX}tbbmalloc_static${LIBEXT}
+    -DTbb_tbbmalloc_proxy_LIBRARY=${LIBDIR}/tbb/lib/${LIBPREFIX}tbbmalloc_proxy_static${LIBEXT}
+  )
 endif()
 
 ExternalProject_Add(openvdb
@@ -79,7 +77,6 @@ add_dependencies(
   openvdb
   external_tbb
   external_boost
-  external_ilmbase
   external_openexr
   external_zlib
   external_blosc

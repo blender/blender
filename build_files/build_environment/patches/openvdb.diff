@@ -1,102 +1,73 @@
-diff -Naur openvdb.orig/openvdb/CMakeLists.txt openvdb/openvdb/CMakeLists.txt
---- openvdb.orig/openvdb/CMakeLists.txt	2018-04-10 12:22:17 -0600
-+++ openvdb/openvdb/CMakeLists.txt	2018-08-15 19:04:52 -0600
-@@ -82,6 +82,9 @@
- IF (WIN32 AND OPENVDB_DISABLE_BOOST_IMPLICIT_LINKING)
-   ADD_DEFINITIONS ( -DBOOST_ALL_NO_LIB )
- ENDIF ()
-+if(WIN32)
-+ADD_DEFINITIONS ( -D__TBB_NO_IMPLICIT_LINKAGE )
-+endif()
- 
- FIND_PACKAGE ( Blosc REQUIRED )
- FIND_PACKAGE ( TBB REQUIRED )
-@@ -195,6 +198,7 @@
-   ${Ilmbase_HALF_LIBRARY}
-   ${ZLIB_LIBRARY}
-   ${BLOSC_blosc_LIBRARY}
-+  ${EXTRA_LIBS}
+diff -Naur orig/cmake/FindIlmBase.cmake openvdb/cmake/FindIlmBase.cmake
+--- orig/cmake/FindIlmBase.cmake	2019-12-06 13:11:33 -0700
++++ openvdb/cmake/FindIlmBase.cmake	2020-01-16 09:06:32 -0700
+@@ -225,6 +225,12 @@
+   list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
+     "-${IlmBase_VERSION_MAJOR}_${IlmBase_VERSION_MINOR}.lib"
    )
-
- IF (WIN32)
-@@ -225,13 +228,16 @@
-   ${VDB_PRINT_SOURCE_FILES}
-   )
- 
-+if(NOT WIN32)
-+	set(EXTRA_LIBS m stdc++ dl)
-+endif()
-+  
- TARGET_LINK_LIBRARIES ( vdb_print
-   openvdb_shared
-   ${CMAKE_THREAD_LIBS_INIT}
-   ${BLOSC_blosc_LIBRARY}
--  m
--  stdc++
--  )
-+  ${EXTRA_LIBS}
-+)
- 
- SET ( VDB_RENDER_SOURCE_FILES cmd/openvdb_render/main.cc )
- SET_SOURCE_FILES_PROPERTIES ( ${VDB_RENDER_SOURCE_FILES}
-@@ -249,8 +255,7 @@
-   ${Openexr_ILMIMF_LIBRARY}
-   ${Ilmbase_ILMTHREAD_LIBRARY}
-   ${Ilmbase_IEX_LIBRARY}
--  m
--  stdc++
-+  ${EXTRA_LIBS}
-   )
- 
- SET ( VDB_VIEW_SOURCE_FILES
-@@ -270,7 +270,7 @@
-   PROPERTIES
-   COMPILE_FLAGS "-DOPENVDB_USE_BLOSC ${OPENVDB_USE_GLFW_FLAG} -DGL_GLEXT_PROTOTYPES=1"
-   )
--IF (NOT WIN32)
-+IF (FALSE)
-   ADD_EXECUTABLE ( vdb_view
-     ${VDB_VIEW_SOURCE_FILES}
-     )
-@@ -283,9 +288,8 @@
-     ${GLFW_LINK_LIBRARY}
-     ${GLFW_DEPENDENT_LIBRARIES}
-     ${GLEW_GLEW_LIBRARY}
--    m
--    stdc++
--    )
-+	${EXTRA_LIBS}
++  list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
++    "_s.lib"
 +  )
- ENDIF ()
++  list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
++    "_s_d.lib"
++  )
+ else()
+   if(ILMBASE_USE_STATIC_LIBS)
+     list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
+diff -Naur orig/cmake/FindOpenEXR.cmake openvdb/cmake/FindOpenEXR.cmake
+--- orig/cmake/FindOpenEXR.cmake	2019-12-06 13:11:33 -0700
++++ openvdb/cmake/FindOpenEXR.cmake	2020-01-16 09:06:39 -0700
+@@ -218,6 +218,12 @@
+   list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
+     "-${OpenEXR_VERSION_MAJOR}_${OpenEXR_VERSION_MINOR}.lib"
+   )
++  list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
++    "_s.lib"
++  )
++  list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
++    "_s_d.lib"
++  )
+ else()
+   if(OPENEXR_USE_STATIC_LIBS)
+     list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
+diff -Naur orig/openvdb/CMakeLists.txt openvdb/openvdb/CMakeLists.txt
+--- orig/openvdb/CMakeLists.txt	2019-12-06 13:11:33 -0700
++++ openvdb/openvdb/CMakeLists.txt	2020-01-16 08:56:25 -0700
+@@ -193,11 +193,12 @@
+   if(OPENVDB_DISABLE_BOOST_IMPLICIT_LINKING)
+     add_definitions(-DBOOST_ALL_NO_LIB)
+   endif()
++  add_definitions(-D__TBB_NO_IMPLICIT_LINKAGE -DOPENVDB_OPENEXR_STATICLIB)
+ endif()
  
- SET ( UNITTEST_SOURCE_FILES
-@@ -392,8 +396,7 @@
-   TARGET_LINK_LIBRARIES ( vdb_test
-     ${CPPUnit_cppunit_LIBRARY}
-     openvdb_shared
--    m
--    stdc++
-+    ${EXTRA_LIBS}
-     )
+ # @todo Should be target definitions
+ if(WIN32)
+-  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_DLL)
++  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_STATICLIB)
+ endif()
  
-   ADD_TEST ( vdb_unit_test vdb_test )
-@@ -422,7 +422,7 @@
- ENDIF ()
+ ##### Core library configuration
+diff -Naur orig/openvdb/cmd/CMakeLists.txt openvdb/openvdb/cmd/CMakeLists.txt
+--- orig/openvdb/cmd/CMakeLists.txt	2019-12-06 13:11:33 -0700
++++ openvdb/openvdb/cmd/CMakeLists.txt	2020-01-16 08:56:25 -0700
+@@ -53,7 +53,7 @@
+ endif()
  
- # Installation
--IF ( NOT WIN32 )
-+IF ( FALSE )
-   INSTALL ( TARGETS
-     vdb_view
-     DESTINATION
-diff -Naur openvdb.orig/openvdb/math/Coord.h openvdb/openvdb/math/Coord.h
---- openvdb.orig/openvdb/math/Coord.h	2018-04-10 12:22:17 -0600
-+++ openvdb/openvdb/math/Coord.h	2018-08-15 20:32:43 -0600
-@@ -35,6 +35,7 @@
- #include <array> // for std::array
- #include <iostream>
- #include <limits>
-+#define NOMINMAX
- #include <openvdb/Platform.h>
- #include "Math.h"
- #include "Vec3.h"
+ if(WIN32)
+-  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_DLL)
++  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_STATICLIB)
+ endif()
+ 
+ # rpath handling
+diff -Naur orig/openvdb/unittest/CMakeLists.txt openvdb/openvdb/unittest/CMakeLists.txt
+--- orig/openvdb/unittest/CMakeLists.txt	2019-12-06 13:11:33 -0700
++++ openvdb/openvdb/unittest/CMakeLists.txt	2020-01-16 08:56:25 -0700
+@@ -49,7 +49,7 @@
+ endif()
+ 
+ if(WIN32)
+-  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_DLL)
++  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_STATICLIB)
+ endif()
+ 
+ ##### VDB unit tests
