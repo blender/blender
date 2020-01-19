@@ -93,7 +93,7 @@ include(cmake/python_site_packages.cmake)
 include(cmake/package_python.cmake)
 include(cmake/numpy.cmake)
 include(cmake/usd.cmake)
-if(UNIX AND NOT APPLE)
+if(UNIX)
   # Rely on PugiXML compiled with OpenImageIO
 else()
   include(cmake/pugixml.cmake)

@@ -87,7 +87,6 @@ elseif(APPLE)
   set(OSL_EXTRA_ARGS
     ${OSL_EXTRA_ARGS}
     -DHIDE_SYMBOLS=OFF
-    -DPUGIXML_HOME=${LIBDIR}/pugixml
   )
 endif()
 
@@ -114,7 +113,7 @@ add_dependencies(
   external_openimageio
 )
 
-if(UNIX AND NOT APPLE)
+if(UNIX)
   # Rely on PugiXML compiled with OpenImageIO
 else()
   add_dependencies(
