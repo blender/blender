@@ -49,10 +49,10 @@
                     <li>Custom render passes possible for Cycles</li>
                     <li>UDIM support</li>
                     <li>Basic USD export</li>
-                    <li>Mantaflow integration</li<
+                    <li>Mantaflow integration</li>
                 </ul>
-                <ul>
                 <p>Enhancements:</p>
+                <ul>
                     <li>Improvements to rigging and animation tools</li>
                     <li>Many grease pencil improvements</li>
                     <li>Many sculpting tool improvements</li>
@@ -69,7 +69,6 @@
                     <li>Revamped shaders for texturing</li>
                     <li>Cycles denoising with OpenImageDenoise and NVIDIA RTX support</li>
                     <li>Library overrides to make local overrides to linked characters and other data</li>
-                    <li>
                 </ul>
                 <ul>
                 <p>Enhancements:</p>
