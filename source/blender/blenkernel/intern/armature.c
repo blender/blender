@@ -2293,13 +2293,17 @@ void mat3_to_vec_roll(const float mat[3][3], float r_vec[3], float *r_roll)
  * If vec is the Y vector from purely rotational mat, result should be exact. */
 void mat3_vec_to_roll(const float mat[3][3], const float vec[3], float *r_roll)
 {
-  float vecmat[3][3], vecmatinv[3][3], rollmat[3][3];
+  float vecmat[3][3], vecmatinv[3][3], rollmat[3][3], q[4];
 
+  /* Compute the orientation relative to the vector with zero roll. */
   vec_roll_to_mat3(vec, 0.0f, vecmat);
   invert_m3_m3(vecmatinv, vecmat);
   mul_m3_m3m3(rollmat, vecmatinv, mat);
 
-  *r_roll = atan2f(rollmat[2][0], rollmat[2][2]);
+  /* Extract the twist angle as the roll value. */
+  mat3_to_quat(q, rollmat);
+
+  *r_roll = quat_split_swing_and_twist(q, 1, NULL, NULL);
 }
 
 /* Calculates the rest matrix of a bone based on its vector and a roll around that vector. */
