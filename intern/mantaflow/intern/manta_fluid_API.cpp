@@ -864,3 +864,16 @@ float manta_liquid_get_snd_particle_velocity_z_at(MANTA *liquid, int i)
 {
   return liquid->getSndParticleVelocityZAt(i);
 }
+
+bool manta_liquid_flip_from_file(MANTA *liquid)
+{
+  return liquid->usingFlipFromFile();
+}
+bool manta_liquid_mesh_from_file(MANTA *liquid)
+{
+  return liquid->usingMeshFromFile();
+}
+bool manta_liquid_particle_from_file(MANTA *liquid)
+{
+  return liquid->usingParticleFromFile();
+}

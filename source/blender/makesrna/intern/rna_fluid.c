@@ -997,13 +997,18 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
        "REPLAY",
        0,
        "Replay",
-       "Use the timeline to bake the scene. Pausing and resuming possible."},
+       "Use the timeline to bake the scene. Pausing and resuming possible"},
       {FLUID_DOMAIN_CACHE_MODULAR,
        "MODULAR",
        0,
        "Modular",
-       "Bake every stage of the simulation on its own. Can pause and resume bake jobs."},
-      {FLUID_DOMAIN_CACHE_FINAL, "FINAL", 0, "Final", "Bake the entire simulation at once."},
+       "Bake every stage of the simulation on its own. Pausing and resuming possible"},
+      {FLUID_DOMAIN_CACHE_FINAL,
+       "FINAL",
+       0,
+       "Final",
+       "Bake the entire simulation at once. Only produces the most essential cache files. Pausing "
+       "and resuming not possible"},
       {0, NULL, 0, NULL, NULL}};
 
   static const EnumPropertyItem smoke_data_depth_items[] = {
