@@ -282,6 +282,19 @@ TEST(expr_pylike, MultipleArgs)
   BLI_expr_pylike_free(expr);
 }
 
+TEST(expr_pylike, UsingParam)
+{
+  const char *names[3] = {"x", "y", "z"};
+
+  ExprPyLike_Parsed *expr = BLI_expr_pylike_parse("x + z", names, ARRAY_SIZE(names));
+
+  EXPECT_TRUE(BLI_expr_pylike_is_using_param(expr, 0));
+  EXPECT_FALSE(BLI_expr_pylike_is_using_param(expr, 1));
+  EXPECT_TRUE(BLI_expr_pylike_is_using_param(expr, 2));
+
+  BLI_expr_pylike_free(expr);
+}
+
 #define TEST_ERROR(name, str, x, code) \
   TEST(expr_pylike, Error_##name) \
   { \
