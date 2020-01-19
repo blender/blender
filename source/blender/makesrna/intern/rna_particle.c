@@ -964,7 +964,11 @@ static int rna_PartSettings_is_fluid_get(PointerRNA *ptr)
                PART_FLUID_FOAM,
                PART_FLUID_SPRAY,
                PART_FLUID_BUBBLE,
-               PART_FLUID_TRACER));
+               PART_FLUID_TRACER,
+               PART_FLUID_SPRAYFOAM,
+               PART_FLUID_SPRAYBUBBLE,
+               PART_FLUID_FOAMBUBBLE,
+               PART_FLUID_SPRAYFOAMBUBBLE));
 }
 
 static void rna_ParticleSettings_use_clump_curve_update(Main *bmain, Scene *scene, PointerRNA *ptr)

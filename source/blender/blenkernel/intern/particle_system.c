@@ -4137,6 +4137,34 @@ static void cached_step(ParticleSimulationData *sim, float cfra, const bool use_
   }
 }
 
+static bool particles_has_flip(short parttype)
+{
+  return (parttype == PART_FLUID_FLIP);
+}
+
+static bool particles_has_tracer(short parttype)
+{
+  return (parttype == PART_FLUID_TRACER);
+}
+
+static bool particles_has_spray(short parttype)
+{
+  return ((parttype == PART_FLUID_SPRAY) || (parttype == PART_FLUID_SPRAYFOAM) ||
+          (parttype == PART_FLUID_SPRAYFOAMBUBBLE));
+}
+
+static bool particles_has_bubble(short parttype)
+{
+  return ((parttype == PART_FLUID_BUBBLE) || (parttype == PART_FLUID_FOAMBUBBLE) ||
+          (parttype == PART_FLUID_SPRAYFOAMBUBBLE));
+}
+
+static bool particles_has_foam(short parttype)
+{
+  return ((parttype == PART_FLUID_FOAM) || (parttype == PART_FLUID_SPRAYFOAM) ||
+          (parttype == PART_FLUID_SPRAYFOAMBUBBLE));
+}
+
 static void particles_fluid_step(ParticleSimulationData *sim,
                                  int cfra,
                                  const bool use_render_params)
@@ -4173,15 +4201,15 @@ static void particles_fluid_step(ParticleSimulationData *sim,
       float min[3], max[3], size[3], cell_size_scaled[3], max_size;
 
       /* Sanity check: parts also enabled in fluid domain? */
-      if ((part->type == PART_FLUID_FLIP &&
+      if ((particles_has_flip(part->type) &&
            (mds->particle_type & FLUID_DOMAIN_PARTICLE_FLIP) == 0) ||
-          (part->type == PART_FLUID_SPRAY &&
+          (particles_has_spray(part->type) &&
            (mds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) == 0) ||
-          (part->type == PART_FLUID_BUBBLE &&
+          (particles_has_bubble(part->type) &&
            (mds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) == 0) ||
-          (part->type == PART_FLUID_FOAM &&
+          (particles_has_foam(part->type) &&
            (mds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) == 0) ||
-          (part->type == PART_FLUID_TRACER &&
+          (particles_has_tracer(part->type) &&
            (mds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER) == 0)) {
         BLI_snprintf(debugStrBuffer,
                      sizeof(debugStrBuffer),
@@ -4194,23 +4222,23 @@ static void particles_fluid_step(ParticleSimulationData *sim,
       if (part->type == PART_FLUID_FLIP) {
         tottypepart = totpart = manta_liquid_get_num_flip_particles(mds->fluid);
       }
-      if ((part->type == PART_FLUID_SPRAY) || (part->type == PART_FLUID_BUBBLE) ||
-          (part->type == PART_FLUID_FOAM) || (part->type == PART_FLUID_TRACER)) {
+      if (particles_has_spray(part->type) || particles_has_bubble(part->type) ||
+          particles_has_foam(part->type) || particles_has_tracer(part->type)) {
         totpart = manta_liquid_get_num_snd_particles(mds->fluid);
 
         /* tottypepart is the amount of particles of a snd particle type. */
         for (p = 0; p < totpart; p++) {
           flagActivePart = manta_liquid_get_snd_particle_flag_at(mds->fluid, p);
-          if ((part->type & PART_FLUID_SPRAY) && (flagActivePart & PARTICLE_TYPE_SPRAY)) {
+          if (particles_has_spray(part->type) && (flagActivePart & PARTICLE_TYPE_SPRAY)) {
             tottypepart++;
           }
-          if ((part->type & PART_FLUID_BUBBLE) && (flagActivePart & PARTICLE_TYPE_BUBBLE)) {
+          if (particles_has_bubble(part->type) && (flagActivePart & PARTICLE_TYPE_BUBBLE)) {
             tottypepart++;
           }
-          if ((part->type & PART_FLUID_FOAM) && (flagActivePart & PARTICLE_TYPE_FOAM)) {
+          if (particles_has_foam(part->type) && (flagActivePart & PARTICLE_TYPE_FOAM)) {
             tottypepart++;
           }
-          if ((part->type & PART_FLUID_TRACER) && (flagActivePart & PARTICLE_TYPE_TRACER)) {
+          if (particles_has_tracer(part->type) && (flagActivePart & PARTICLE_TYPE_TRACER)) {
             tottypepart++;
           }
         }
@@ -4261,8 +4289,8 @@ static void particles_fluid_step(ParticleSimulationData *sim,
           velY = manta_liquid_get_flip_particle_velocity_y_at(mds->fluid, p);
           velZ = manta_liquid_get_flip_particle_velocity_z_at(mds->fluid, p);
         }
-        else if ((part->type == PART_FLUID_SPRAY) || (part->type == PART_FLUID_BUBBLE) ||
-                 (part->type == PART_FLUID_FOAM) || (part->type == PART_FLUID_TRACER)) {
+        else if (particles_has_spray(part->type) || particles_has_bubble(part->type) ||
+                 particles_has_foam(part->type) || particles_has_tracer(part->type)) {
           flagActivePart = manta_liquid_get_snd_particle_flag_at(mds->fluid, p);
 
           resX = (float)manta_liquid_get_particle_res_x(mds->fluid);
@@ -4292,16 +4320,16 @@ static void particles_fluid_step(ParticleSimulationData *sim,
 
         /* Type of particle must match current particle system type
          * (only important for snd particles). */
-        if ((flagActivePart & PARTICLE_TYPE_SPRAY) && (part->type & PART_FLUID_SPRAY) == 0) {
+        if ((flagActivePart & PARTICLE_TYPE_SPRAY) && !particles_has_spray(part->type)) {
           continue;
         }
-        if ((flagActivePart & PARTICLE_TYPE_BUBBLE) && (part->type & PART_FLUID_BUBBLE) == 0) {
+        if ((flagActivePart & PARTICLE_TYPE_BUBBLE) && !particles_has_bubble(part->type)) {
           continue;
         }
-        if ((flagActivePart & PARTICLE_TYPE_FOAM) && (part->type & PART_FLUID_FOAM) == 0) {
+        if ((flagActivePart & PARTICLE_TYPE_FOAM) && !particles_has_foam(part->type)) {
           continue;
         }
-        if ((flagActivePart & PARTICLE_TYPE_TRACER) && (part->type & PART_FLUID_TRACER) == 0) {
+        if ((flagActivePart & PARTICLE_TYPE_TRACER) && !particles_has_tracer(part->type)) {
           continue;
         }
 #  if 0
@@ -4844,9 +4872,9 @@ void particle_system_update(struct Depsgraph *depsgraph,
       hair_step(&sim, cfra, use_render_params);
     }
   }
-  else if ((part->type == PART_FLUID_FLIP) || (part->type == PART_FLUID_SPRAY) ||
-           (part->type == PART_FLUID_BUBBLE) || (part->type == PART_FLUID_FOAM) ||
-           (part->type == PART_FLUID_TRACER)) {
+  else if (particles_has_flip(part->type) || particles_has_spray(part->type) ||
+           particles_has_bubble(part->type) || particles_has_foam(part->type) ||
+           particles_has_tracer(part->type)) {
     particles_fluid_step(&sim, (int)cfra, use_render_params);
   }
   else {

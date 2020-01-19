@@ -443,6 +443,10 @@ enum {
   PART_FLUID_BUBBLE = 6,
   PART_FLUID_FOAM = 7,
   PART_FLUID_TRACER = 8,
+  PART_FLUID_SPRAYFOAM = 9,
+  PART_FLUID_SPRAYBUBBLE = 10,
+  PART_FLUID_FOAMBUBBLE = 11,
+  PART_FLUID_SPRAYFOAMBUBBLE = 12,
 };
 
 /* Mirroring Mantaflow particle types from particle.h (Mantaflow header). */
