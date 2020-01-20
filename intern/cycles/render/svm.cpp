@@ -15,6 +15,8 @@
  */
 
 #include "device/device.h"
+
+#include "render/background.h"
 #include "render/graph.h"
 #include "render/light.h"
 #include "render/mesh.h"
@@ -58,7 +60,7 @@ void SVMShaderManager::device_update_shader(Scene *scene,
 
   SVMCompiler::Summary summary;
   SVMCompiler compiler(scene);
-  compiler.background = (shader == scene->default_background);
+  compiler.background = (shader == scene->background->get_shader(scene));
   compiler.compile(shader, *svm_nodes, 0, &summary);
 
   VLOG(2) << "Compilation summary:\n"

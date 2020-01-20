@@ -616,12 +616,12 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
           continue;
         }
 
-        /* Add end slash for consistency with other platforms */
-        BLI_add_slash(line);
-
         /* Exclude "all my files" as it makes no sense in blender fileselector */
         /* Exclude "airdrop" if wlan not active as it would show "" ) */
         if (!strstr(line, "myDocuments.cannedSearch") && (*line != '\0')) {
+          /* Add end slash for consistency with other platforms */
+          BLI_add_slash(line);
+
           fsmenu_insert_entry(
               fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, ICON_FILE_FOLDER, FS_INSERT_LAST);
         }

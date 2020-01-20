@@ -46,7 +46,6 @@
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_key.h"
-#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
@@ -633,7 +632,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       }
     }
 
-    tag_update |= BKE_id_num_real_users(ob->data) > 1 || !BKE_sculptsession_use_pbvh_draw(ob, v3d);
+    tag_update |= ID_REAL_USERS(ob->data) > 1 || !BKE_sculptsession_use_pbvh_draw(ob, v3d);
 
     if (ss->shapekey_active || ss->deform_modifiers_active) {
       Mesh *mesh = ob->data;

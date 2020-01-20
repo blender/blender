@@ -573,7 +573,7 @@ def smoke_save_noise_$ID$(path, framenr, file_format, resumable):\n\
         if resumable:\n\
             fluid_file_export_s$ID$(dict=smoke_noise_dict_resume_s$ID$, framenr=framenr, file_format=file_format, path=path)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=smoke_noise_final_dict_s$ID$, do_join=False)\n\
+        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=smoke_noise_dict_final_s$ID$, do_join=False)\n\
         if resumable:\n\
             fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=smoke_noise_dict_resume_s$ID$, do_join=False)\n";
 

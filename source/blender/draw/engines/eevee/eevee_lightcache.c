@@ -768,6 +768,7 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
   EEVEE_materials_cache_finish(sldata, vedata);
   EEVEE_lights_cache_finish(sldata, vedata);
   EEVEE_lightprobes_cache_finish(sldata, vedata);
+  EEVEE_shadows_update(sldata, vedata);
 
   /* Disable volumetrics when baking. */
   stl->effects->enabled_effects &= ~EFFECT_VOLUMETRIC;

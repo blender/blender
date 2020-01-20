@@ -55,6 +55,8 @@ class Background : public Node {
 
   bool modified(const Background &background);
   void tag_update(Scene *scene);
+
+  Shader *get_shader(const Scene *scene);
 };
 
 CCL_NAMESPACE_END

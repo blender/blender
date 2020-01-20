@@ -3826,7 +3826,8 @@ struct Mesh *BKE_fluid_modifier_do(
     FluidDomainSettings *mds = mmd->domain;
 
     /* Always update viewport in cache replay mode. */
-    if (mds->cache_type == FLUID_DOMAIN_CACHE_REPLAY) {
+    if (mds->cache_type == FLUID_DOMAIN_CACHE_REPLAY ||
+        mds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) {
       needs_viewport_update = true;
     }
     /* In other cache modes, only update the viewport when no bake is going on. */
