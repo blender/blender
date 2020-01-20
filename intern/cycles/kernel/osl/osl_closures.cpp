@@ -197,15 +197,32 @@ CLOSURE_FLOAT3_PARAM(DiffuseClosure, params.N),
     CLOSURE_FLOAT_PARAM(PrincipledDiffuseClosure, params.roughness),
     BSDF_CLOSURE_CLASS_END(PrincipledDiffuse, principled_diffuse)
 
-        BSDF_CLOSURE_CLASS_BEGIN(PrincipledSheen,
-                                 principled_sheen,
-                                 PrincipledSheenBsdf,
-                                 LABEL_DIFFUSE)
-            CLOSURE_FLOAT3_PARAM(PrincipledSheenClosure, params.N),
-    BSDF_CLOSURE_CLASS_END(PrincipledSheen, principled_sheen)
+        class PrincipledSheenClosure : public CBSDFClosure {
+ public:
+  PrincipledSheenBsdf params;
 
-    /* PRINCIPLED HAIR BSDF */
-    class PrincipledHairClosure : public CBSDFClosure {
+  void setup(ShaderData *sd, int path_flag, float3 weight)
+  {
+    if (!skip(sd, path_flag, LABEL_DIFFUSE)) {
+      PrincipledSheenBsdf *bsdf = (PrincipledSheenBsdf *)bsdf_alloc_osl(
+          sd, sizeof(PrincipledSheenBsdf), weight, &params);
+      sd->flag |= (bsdf) ? bsdf_principled_sheen_setup(sd, bsdf) : 0;
+    }
+  }
+};
+
+static ClosureParam *bsdf_principled_sheen_params()
+{
+  static ClosureParam params[] = {CLOSURE_FLOAT3_PARAM(PrincipledSheenClosure, params.N),
+                                  CLOSURE_STRING_KEYPARAM(PrincipledSheenClosure, label, "label"),
+                                  CLOSURE_FINISH_PARAM(PrincipledSheenClosure)};
+  return params;
+}
+
+CCLOSURE_PREPARE_STATIC(closure_bsdf_principled_sheen_prepare, PrincipledSheenClosure)
+
+/* PRINCIPLED HAIR BSDF */
+class PrincipledHairClosure : public CBSDFClosure {
  public:
   PrincipledHairBSDF params;
 
@@ -425,8 +442,11 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
                    id++,
                    bsdf_principled_diffuse_params(),
                    bsdf_principled_diffuse_prepare);
-  register_closure(
-      ss, "principled_sheen", id++, bsdf_principled_sheen_params(), bsdf_principled_sheen_prepare);
+  register_closure(ss,
+                   "principled_sheen",
+                   id++,
+                   bsdf_principled_sheen_params(),
+                   closure_bsdf_principled_sheen_prepare);
   register_closure(ss,
                    "principled_clearcoat",
                    id++,
