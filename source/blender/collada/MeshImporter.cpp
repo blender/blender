@@ -1014,12 +1014,12 @@ void MeshImporter::optimize_material_assignements()
        ++it) {
     Object *ob = (*it);
     Mesh *me = (Mesh *)ob->data;
-    if (BKE_id_num_real_users(&me->id) == 1) {
+    if (ID_REAL_USERS(&me->id) == 1) {
       bc_copy_materials_to_data(ob, me);
       bc_remove_materials_from_object(ob, me);
       bc_remove_mark(ob);
     }
-    else if (BKE_id_num_real_users(&me->id) > 1) {
+    else if (ID_REAL_USERS(&me->id) > 1) {
       bool can_move = true;
       std::vector<Object *> mesh_users = get_all_users_of(me);
       if (mesh_users.size() > 1) {

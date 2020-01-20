@@ -7562,8 +7562,7 @@ static void sculpt_flush_update_done(const bContext *C, Object *ob, SculptUpdate
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = ob->data;
-  bool need_tag = (BKE_id_num_real_users(&mesh->id) >
-                   1); /* Always needed for linked duplicates. */
+  bool need_tag = (ID_REAL_USERS(&mesh->id) > 1); /* Always needed for linked duplicates. */
 
   if (rv3d) {
     rv3d->rflag &= ~RV3D_PAINTING;

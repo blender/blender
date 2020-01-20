@@ -2344,7 +2344,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 
       if (!keep_original) {
         /* other users */
-        if (BKE_id_num_real_users(&cu->id) > 1) {
+        if (ID_REAL_USERS(&cu->id) > 1) {
           for (ob1 = bmain->objects.first; ob1; ob1 = ob1->id.next) {
             if (ob1->data == ob->data) {
               ob1->type = OB_CURVE;
