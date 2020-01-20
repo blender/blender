@@ -219,8 +219,7 @@ void LightManager::disable_ineffective_light(Scene *scene)
      * - If unsupported on a device
      * - If we don't need it (no HDRs etc.)
      */
-    Shader *shader = (scene->background->shader) ? scene->background->shader :
-                                                   scene->default_background;
+    Shader *shader = scene->background->get_shader(scene);
     const bool disable_mis = !(has_portal || shader->has_surface_spatial_varying);
     VLOG_IF(1, disable_mis) << "Background MIS has been disabled.\n";
     foreach (Light *light, scene->lights) {
@@ -569,8 +568,7 @@ void LightManager::device_update_background(Device *device,
   int2 res = make_int2(background_light->map_resolution, background_light->map_resolution / 2);
   /* If the resolution isn't set manually, try to find an environment texture. */
   if (res.x == 0) {
-    Shader *shader = (scene->background->shader) ? scene->background->shader :
-                                                   scene->default_background;
+    Shader *shader = scene->background->get_shader(scene);
     foreach (ShaderNode *node, shader->graph->nodes) {
       if (node->type == EnvironmentTextureNode::node_type) {
         EnvironmentTextureNode *env = (EnvironmentTextureNode *)node;

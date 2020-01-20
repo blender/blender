@@ -64,14 +64,7 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
   device_free(device, dscene);
 
-  Shader *bg_shader = shader;
-
-  if (use_shader) {
-    if (!bg_shader)
-      bg_shader = scene->default_background;
-  }
-  else
-    bg_shader = scene->default_empty;
+  Shader *bg_shader = get_shader(scene);
 
   /* set shader index and transparent option */
   KernelBackground *kbackground = &dscene->data.background;
@@ -132,6 +125,11 @@ void Background::tag_update(Scene *scene)
 {
   scene->integrator->tag_update(scene);
   need_update = true;
+}
+
+Shader *Background::get_shader(const Scene *scene)
+{
+  return (use_shader) ? ((shader) ? shader : scene->default_background) : scene->default_empty;
 }
 
 CCL_NAMESPACE_END
