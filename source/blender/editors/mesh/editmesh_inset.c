@@ -72,6 +72,7 @@ typedef struct {
   uint ob_store_len;
 
   /* modal only */
+  int launch_event;
   float mcenter[2];
   void *draw_handle_pixel;
   short gizmo_flag;
@@ -348,6 +349,8 @@ static int edbm_inset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   opdata = op->customdata;
 
+  opdata->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
+
   /* initialize mouse values */
   if (!calculateTransformCenter(C, V3D_AROUND_CENTER_MEDIAN, center_3d, opdata->mcenter)) {
     /* in this case the tool will likely do nothing,
@@ -388,6 +391,12 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
       edbm_inset_cancel(C, op);
       return OPERATOR_CANCELLED;
     }
+  }
+  else if ((event->type == opdata->launch_event) && (event->val == KM_RELEASE) &&
+           RNA_boolean_get(op->ptr, "release_confirm")) {
+    edbm_inset_calc(op);
+    edbm_inset_exit(C, op);
+    return OPERATOR_FINISHED;
   }
   else {
     bool handled = false;

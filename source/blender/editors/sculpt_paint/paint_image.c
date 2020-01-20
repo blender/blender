@@ -939,7 +939,7 @@ void PAINT_OT_grab_clone(wmOperatorType *ot)
 /******************** sample color operator ********************/
 typedef struct {
   bool show_cursor;
-  short event_type;
+  short launch_event;
   float initcolor[3];
   bool sample_palette;
 } SampleColorData;
@@ -1000,7 +1000,7 @@ static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *event
   ARegion *ar = CTX_wm_region(C);
   wmWindow *win = CTX_wm_window(C);
 
-  data->event_type = event->type;
+  data->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
   data->show_cursor = ((paint->flags & PAINT_SHOW_BRUSH) != 0);
   copy_v3_v3(data->initcolor, BKE_brush_color_get(scene, brush));
   data->sample_palette = false;
@@ -1036,7 +1036,7 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
 
-  if ((event->type == data->event_type) && (event->val == KM_RELEASE)) {
+  if ((event->type == data->launch_event) && (event->val == KM_RELEASE)) {
     if (data->show_cursor) {
       paint->flags |= PAINT_SHOW_BRUSH;
     }

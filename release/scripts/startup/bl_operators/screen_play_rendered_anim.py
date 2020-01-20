@@ -85,12 +85,13 @@ class PlayRenderedAnim(Operator):
         fps_final = rd.fps / rd.fps_base
 
         preset = prefs.filepaths.animation_player_preset
-        player_path = prefs.filepaths.animation_player
         # file_path = bpy.path.abspath(rd.filepath)  # UNUSED
         is_movie = rd.is_movie_format
 
         # try and guess a command line if it doesn't exist
-        if player_path == "":
+        if preset == 'CUSTOM':
+            player_path = prefs.filepaths.animation_player
+        else:
             player_path = guess_player_path(preset)
 
         if is_movie is False and preset in {'FRAMECYCLER', 'RV', 'MPLAYER'}:

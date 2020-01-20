@@ -98,7 +98,7 @@ void CLIP_OT_create_plane_track(wmOperatorType *ot)
 /********************** Slide plane marker corner operator *********************/
 
 typedef struct SlidePlaneMarkerData {
-  int event_type;
+  int launch_event;
   MovieTrackingPlaneTrack *plane_track;
   MovieTrackingPlaneMarker *plane_marker;
   int width, height;
@@ -195,7 +195,7 @@ static void *slide_plane_marker_customdata(bContext *C, const wmEvent *event)
 
     customdata = MEM_callocN(sizeof(SlidePlaneMarkerData), "slide plane marker data");
 
-    customdata->event_type = event->type;
+    customdata->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
     plane_marker = BKE_tracking_plane_marker_ensure(plane_track, framenr);
 
@@ -345,7 +345,7 @@ static int slide_plane_marker_modal(bContext *C, wmOperator *op, const wmEvent *
 
     case LEFTMOUSE:
     case RIGHTMOUSE:
-      if (event->type == data->event_type && event->val == KM_RELEASE) {
+      if (event->type == data->launch_event && event->val == KM_RELEASE) {
         /* Marker is now keyframed. */
         data->plane_marker->flag &= ~PLANE_MARKER_TRACKED;
 

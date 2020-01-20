@@ -562,7 +562,7 @@ typedef struct {
   float *dim_target;
   float *rot_target;
   float *pos_target;
-  short event_type;
+  short launch_event;
 } StencilControlData;
 
 static void stencil_set_target(StencilControlData *scd)
@@ -626,7 +626,7 @@ static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   stencil_set_target(scd);
 
   scd->mode = RNA_enum_get(op->ptr, "mode");
-  scd->event_type = event->type;
+  scd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
   scd->area_size[0] = ar->winx;
   scd->area_size[1] = ar->winy;
 
@@ -709,7 +709,7 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 {
   StencilControlData *scd = op->customdata;
 
-  if (event->type == scd->event_type && event->val == KM_RELEASE) {
+  if (event->type == scd->launch_event && event->val == KM_RELEASE) {
     MEM_freeN(op->customdata);
     WM_event_add_notifier(C, NC_WINDOW, NULL);
     return OPERATOR_FINISHED;

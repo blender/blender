@@ -95,6 +95,7 @@ typedef struct {
   uint ob_store_len;
 
   /* modal only */
+  int launch_event;
   float mcenter[2];
   void *draw_handle_pixel;
   short gizmo_flag;
@@ -520,6 +521,8 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   opdata = op->customdata;
 
+  opdata->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
+
   /* initialize mouse values */
   if (!calculateTransformCenter(C, V3D_AROUND_CENTER_MEDIAN, center_3d, opdata->mcenter)) {
     /* in this case the tool will likely do nothing,
@@ -710,7 +713,8 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
   short eval = event->val;
 
   /* When activated from toolbar, need to convert leftmouse release to confirm */
-  if (etype == LEFTMOUSE && eval == KM_RELEASE && RNA_boolean_get(op->ptr, "release_confirm")) {
+  if (ELEM(etype, LEFTMOUSE, opdata->launch_event) && (eval == KM_RELEASE) &&
+      RNA_boolean_get(op->ptr, "release_confirm")) {
     etype = EVT_MODAL_MAP;
     eval = BEV_MODAL_CONFIRM;
   }
