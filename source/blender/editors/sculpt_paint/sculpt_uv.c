@@ -807,6 +807,23 @@ static int uv_sculpt_stroke_modal(bContext *C, wmOperator *op, const wmEvent *ev
   return OPERATOR_RUNNING_MODAL;
 }
 
+static bool uv_sculpt_stroke_poll(bContext *C)
+{
+  if (ED_operator_uvedit_space_image(C)) {
+    /* While these values could be initialized on demand,
+     * the only case this would be useful is running from the operator search popup.
+     * This is such a corner case that it's simpler to check a brush has already been created
+     * (something the tool system ensures). */
+    Scene *scene = CTX_data_scene(C);
+    ToolSettings *ts = scene->toolsettings;
+    Brush *brush = BKE_paint_brush(&ts->uvsculpt->paint);
+    if (brush != NULL) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void SCULPT_OT_uv_sculpt_stroke(wmOperatorType *ot)
 {
   static const EnumPropertyItem stroke_mode_items[] = {
@@ -832,7 +849,7 @@ void SCULPT_OT_uv_sculpt_stroke(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = uv_sculpt_stroke_invoke;
   ot->modal = uv_sculpt_stroke_modal;
-  ot->poll = ED_operator_uvedit_space_image;
+  ot->poll = uv_sculpt_stroke_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
