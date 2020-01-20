@@ -939,9 +939,15 @@ bGPDframe *BKE_gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_M
       gpl->actframe = gpf;
     }
     else {
-      /* unresolved errogenous situation! */
-      CLOG_STR_ERROR(&LOG, "cannot find appropriate gp-frame");
-      /* gpl->actframe should still be NULL */
+      /* If delete first frame, need to find one. */
+      if (gpl->frames.first != NULL) {
+        gpl->actframe = gpl->frames.first;
+      }
+      else {
+        /* unresolved errogenous situation! */
+        CLOG_STR_ERROR(&LOG, "cannot find appropriate gp-frame");
+        /* gpl->actframe should still be NULL */
+      }
     }
   }
   else {
