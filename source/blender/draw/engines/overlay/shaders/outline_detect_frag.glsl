@@ -57,62 +57,6 @@ bvec4 gather_edges(vec2 uv, uint ref)
   return notEqual(ids, uvec4(ref));
 }
 
-/* Apply offset to line endpoint based on surrounding edges infos. */
-bool line_offset(bvec2 edges, vec2 ofs, inout vec2 line_point)
-{
-  if (all(edges.xy)) {
-    line_point.y -= ofs.y;
-  }
-  else if (!edges.x) {
-    line_point.y += ofs.y;
-  }
-  else /* !edges.y */ {
-    line_point.x += ofs.x;
-    return true;
-  }
-  return false;
-}
-
-/* Changes Antialiasing pattern and makes line thicker. 0.0 is thin. */
-#define PROXIMITY_OFS -0.35
-
-/* Use surrounding edges to approximate the outline direction to create smooth lines. */
-void straight_line_dir(bvec4 edges1, bvec4 edges2, out vec2 line_start, out vec2 line_end)
-{
-  line_end = vec2(1.5, 0.5 + PROXIMITY_OFS);
-  line_start = vec2(-line_end.x, line_end.y);
-
-  vec2 line_ofs = vec2(1.0, 0.5);
-  if (line_offset(edges1.xw, line_ofs, line_end)) {
-    line_offset(edges1.yz, line_ofs, line_end);
-  }
-  line_ofs = vec2(-line_ofs.x, line_ofs.y);
-  if (line_offset(edges2.yz, line_ofs, line_start)) {
-    line_offset(edges2.xw, line_ofs, line_start);
-  }
-}
-
-/* Compute line direction vector from the bottom left corner. */
-void diag_dir(bvec4 edges, out vec2 line_start, out vec2 line_end)
-{
-  /* TODO Improve diagonal antialiasing. */
-  if (all(edges.wz)) {
-    line_start = vec2(-3.0, -0.5 + PROXIMITY_OFS);
-    line_end = vec2(3.0, 0.5 + PROXIMITY_OFS);
-  }
-  else if (all(not(edges.xw))) {
-    line_start = vec2(-0.5 - PROXIMITY_OFS, -3.0);
-    line_end = vec2(0.5 - PROXIMITY_OFS, 3.0);
-  }
-  else if (edges.w) {
-    line_start = vec2(-1.0, -0.5 - PROXIMITY_OFS);
-    line_end = vec2(2.0, 0.5 - PROXIMITY_OFS);
-  }
-  else {
-    line_start = vec2(-0.6, -0.5 + PROXIMITY_OFS);
-    line_end = vec2(0.6 - PROXIMITY_OFS, 0.5);
-  }
-}
 /* Clockwise */
 vec2 rotate_90(vec2 v)
 {
@@ -139,6 +83,88 @@ bvec4 rotate_180(bvec4 v)
 bvec4 rotate_270(bvec4 v)
 {
   return v.wxyz;
+}
+
+/* Apply offset to line endpoint based on surrounding edges infos. */
+bool line_offset(bvec2 edges, vec2 ofs, inout vec2 line_point)
+{
+  if (all(edges.xy)) {
+    line_point.y -= ofs.y;
+  }
+  else if (!edges.x) {
+    line_point.y += ofs.y;
+  }
+  else /* !edges.y */ {
+    line_point.x += ofs.x;
+    return true;
+  }
+  return false;
+}
+
+/* Changes Antialiasing pattern and makes line thicker. 0.0 is thin. */
+#define PROXIMITY_OFS -0.35
+
+/* Use surrounding edges to approximate the outline direction to create smooth lines. */
+void straight_line_dir(bvec4 edges1, bvec4 edges2, out vec2 line_start, out vec2 line_end)
+{
+  /* Y_POS as reference. Other cases are rotated to match reference. */
+  line_end = vec2(1.5, 0.5 + PROXIMITY_OFS);
+  line_start = vec2(-line_end.x, line_end.y);
+
+  vec2 line_ofs = vec2(1.0, 0.5);
+  if (line_offset(edges1.xw, line_ofs, line_end)) {
+    line_offset(edges1.yz, line_ofs, line_end);
+  }
+  line_ofs = vec2(-line_ofs.x, line_ofs.y);
+  if (line_offset(edges2.yz, line_ofs, line_start)) {
+    line_offset(edges2.xw, line_ofs, line_start);
+  }
+}
+
+vec2 diag_offset(bvec4 edges)
+{
+  /* X_NEG | Y_POS as reference. Other cases are rotated to match reference.
+   * So the line is comming from bottom left. */
+  if (all(edges.wz)) {
+    /* Horizontal line. */
+    return vec2(2.5, 0.5);
+  }
+  else if (all(not(edges.xw))) {
+    /* Vertical line. */
+    return vec2(0.5, 2.5);
+  }
+  else if (edges.w) {
+    /* Less horizontal Line. */
+    return vec2(2.5, 0.5);
+  }
+  else {
+    /* Less vertical Line. */
+    return vec2(0.5, 2.5);
+  }
+}
+
+/* Compute line direction vector from the bottom left corner. */
+void diag_dir(bvec4 edges1, bvec4 edges2, out vec2 line_start, out vec2 line_end)
+{
+  /* Negate instead of rotating back the result of diag_offset. */
+  edges2 = not(edges2);
+  edges2 = rotate_180(edges2);
+  line_end = diag_offset(edges1);
+  line_end += diag_offset(edges2);
+
+  if (line_end.x == line_end.y) {
+    /* Perfect diagonal line. Push line start towards edge. */
+    line_start = vec2(-1.0, 1.0) * PROXIMITY_OFS * 0.4;
+  }
+  else if (line_end.x > line_end.y) {
+    /* Horizontal Line. Lower line start. */
+    line_start = vec2(0.0, PROXIMITY_OFS);
+  }
+  else {
+    /* Vertical Line. Push line start to the right. */
+    line_start = -vec2(PROXIMITY_OFS, 0.0);
+  }
+  line_end += line_start;
 }
 
 void main()
@@ -292,26 +318,33 @@ void main()
       /* Diagonal */
     case DIAG_XNEG_YPOS:
       extra_edges = gather_edges(uvs + ofs.xy * vec2(1.5), ref);
-      diag_dir(extra_edges, line_start, line_end);
+      extra_edges2 = gather_edges(uvs + ofs.xy * vec2(-1.5), ref);
+      diag_dir(extra_edges, extra_edges2, line_start, line_end);
       break;
     case DIAG_XPOS_YNEG:
       extra_edges = gather_edges(uvs - ofs.xy * vec2(1.5), ref);
+      extra_edges2 = gather_edges(uvs - ofs.xy * vec2(-1.5), ref);
       extra_edges = rotate_180(extra_edges);
-      diag_dir(extra_edges, line_start, line_end);
+      extra_edges2 = rotate_180(extra_edges2);
+      diag_dir(extra_edges, extra_edges2, line_start, line_end);
       line_start = rotate_180(line_start);
       line_end = rotate_180(line_end);
       break;
     case DIAG_XPOS_YPOS:
       extra_edges = gather_edges(uvs + ofs.xy * vec2(1.5, -1.5), ref);
+      extra_edges2 = gather_edges(uvs - ofs.xy * vec2(1.5, -1.5), ref);
       extra_edges = rotate_90(extra_edges);
-      diag_dir(extra_edges, line_start, line_end);
+      extra_edges2 = rotate_90(extra_edges2);
+      diag_dir(extra_edges, extra_edges2, line_start, line_end);
       line_start = rotate_90(line_start);
       line_end = rotate_90(line_end);
       break;
     case DIAG_XNEG_YNEG:
       extra_edges = gather_edges(uvs - ofs.xy * vec2(1.5, -1.5), ref);
+      extra_edges2 = gather_edges(uvs + ofs.xy * vec2(1.5, -1.5), ref);
       extra_edges = rotate_270(extra_edges);
-      diag_dir(extra_edges, line_start, line_end);
+      extra_edges2 = rotate_270(extra_edges2);
+      diag_dir(extra_edges, extra_edges2, line_start, line_end);
       line_start = rotate_270(line_start);
       line_end = rotate_270(line_end);
       break;
