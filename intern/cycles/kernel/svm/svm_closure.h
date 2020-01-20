@@ -290,7 +290,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
           bsdf->N = N;
 
           /* setup bsdf */
-          sd->flag |= bsdf_principled_sheen_setup(bsdf);
+          sd->flag |= bsdf_principled_sheen_setup(sd, bsdf);
         }
       }
 

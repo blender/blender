@@ -80,6 +80,10 @@ ccl_device_inline void kernel_update_denoising_features(KernelGlobals *kg,
         MicrofacetBsdf *bsdf = (MicrofacetBsdf *)sc;
         closure_albedo *= bsdf->extra->fresnel_color;
       }
+      else if (sc->type == CLOSURE_BSDF_PRINCIPLED_SHEEN_ID) {
+        PrincipledSheenBsdf *bsdf = (PrincipledSheenBsdf *)sc;
+        closure_albedo *= bsdf->avg_value;
+      }
 
       albedo += closure_albedo;
       sum_nonspecular_weight += sc->sample_weight;

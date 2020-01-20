@@ -26,13 +26,26 @@ CCL_NAMESPACE_BEGIN
 
 typedef ccl_addr_space struct PrincipledSheenBsdf {
   SHADER_CLOSURE_BASE;
+  float avg_value;
 } PrincipledSheenBsdf;
 
 static_assert(sizeof(ShaderClosure) >= sizeof(PrincipledSheenBsdf),
               "PrincipledSheenBsdf is too large!");
 
-ccl_device float3 calculate_principled_sheen_brdf(
-    const PrincipledSheenBsdf *bsdf, float3 N, float3 V, float3 L, float3 H, float *pdf)
+ccl_device_inline float calculate_avg_principled_sheen_brdf(float3 N, float3 I)
+{
+  /* To compute the average, we set the half-vector to the normal, resulting in
+   * NdotI = NdotL = NdotV = LdotH */
+  float NdotI = dot(N, I);
+  if (NdotI < 0.0f) {
+    return 0.0f;
+  }
+
+  return schlick_fresnel(NdotI) * NdotI;
+}
+
+ccl_device float3
+calculate_principled_sheen_brdf(float3 N, float3 V, float3 L, float3 H, float *pdf)
 {
   float NdotL = dot(N, L);
   float NdotV = dot(N, V);
@@ -49,9 +62,11 @@ ccl_device float3 calculate_principled_sheen_brdf(
   return make_float3(value, value, value);
 }
 
-ccl_device int bsdf_principled_sheen_setup(PrincipledSheenBsdf *bsdf)
+ccl_device int bsdf_principled_sheen_setup(const ShaderData *sd, PrincipledSheenBsdf *bsdf)
 {
   bsdf->type = CLOSURE_BSDF_PRINCIPLED_SHEEN_ID;
+  bsdf->avg_value = calculate_avg_principled_sheen_brdf(bsdf->N, sd->I);
+  bsdf->sample_weight *= bsdf->avg_value;
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
@@ -69,7 +84,7 @@ ccl_device float3 bsdf_principled_sheen_eval_reflect(const ShaderClosure *sc,
 
   if (dot(N, omega_in) > 0.0f) {
     *pdf = fmaxf(dot(N, omega_in), 0.0f) * M_1_PI_F;
-    return calculate_principled_sheen_brdf(bsdf, N, V, L, H, pdf);
+    return calculate_principled_sheen_brdf(N, V, L, H, pdf);
   }
   else {
     *pdf = 0.0f;
@@ -107,7 +122,7 @@ ccl_device int bsdf_principled_sheen_sample(const ShaderClosure *sc,
   if (dot(Ng, *omega_in) > 0) {
     float3 H = normalize(I + *omega_in);
 
-    *eval = calculate_principled_sheen_brdf(bsdf, N, I, *omega_in, H, pdf);
+    *eval = calculate_principled_sheen_brdf(N, I, *omega_in, H, pdf);
 
 #ifdef __RAY_DIFFERENTIALS__
     // TODO: find a better approximation for the diffuse bounce
