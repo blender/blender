@@ -549,6 +549,9 @@ set(SRC
 
 set(LIB
   bf_python_mathutils
+
+  ${PYTHON_LINKFLAGS}
+  ${PYTHON_LIBRARIES}
 )
 
 set(INC

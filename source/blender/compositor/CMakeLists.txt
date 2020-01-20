@@ -568,6 +568,10 @@ if(WITH_OPENIMAGEDENOISE)
     ${OPENIMAGEDENOISE_INCLUDE_DIRS}
     ${TBB_INCLUDE_DIRS}
   )
+  list(APPEND LIB
+    ${OPENIMAGEDENOISE_LIBRARIES}
+    ${TBB_LIBRARIES}
+  )
 endif()
 
 blender_add_lib(bf_compositor "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

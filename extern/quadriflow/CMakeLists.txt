@@ -105,6 +105,7 @@ set(SRC
 )
 
 set(LIB
+ ${BOOST_LIBRARIES}
 )
 
 blender_add_lib(extern_quadriflow "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

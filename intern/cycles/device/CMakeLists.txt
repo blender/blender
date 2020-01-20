@@ -60,7 +60,9 @@ set(SRC_HEADERS
 )
 
 set(LIB
-
+  cycles_render
+  cycles_kernel
+  cycles_util
 )
 
 if(WITH_CUDA_DYNLOAD)

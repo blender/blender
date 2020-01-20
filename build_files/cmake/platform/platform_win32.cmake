@@ -225,7 +225,7 @@ windows_find_package(png)
 if(NOT PNG_FOUND)
   warn_hardcoded_paths(libpng)
   set(PNG_PNG_INCLUDE_DIR ${LIBDIR}/png/include)
-  set(PNG_LIBRARIES ${LIBDIR}/png/lib/libpng.lib)
+  set(PNG_LIBRARIES ${LIBDIR}/png/lib/libpng.lib ${ZLIB_LIBRARY})
   set(PNG "${LIBDIR}/png")
   set(PNG_INCLUDE_DIRS "${PNG}/include")
   set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
@@ -269,21 +269,33 @@ if(WITH_OPENCOLLADA)
   )
 
   set(OPENCOLLADA_LIBRARIES
-    ${OPENCOLLADA}/lib/opencollada/OpenCOLLADASaxFrameworkLoader.lib
-    ${OPENCOLLADA}/lib/opencollada/OpenCOLLADAFramework.lib
-    ${OPENCOLLADA}/lib/opencollada/OpenCOLLADABaseUtils.lib
-    ${OPENCOLLADA}/lib/opencollada/OpenCOLLADAStreamWriter.lib
-    ${OPENCOLLADA}/lib/opencollada/MathMLSolver.lib
-    ${OPENCOLLADA}/lib/opencollada/GeneratedSaxParser.lib
-    ${OPENCOLLADA}/lib/opencollada/xml.lib
-    ${OPENCOLLADA}/lib/opencollada/buffer.lib
-    ${OPENCOLLADA}/lib/opencollada/ftoa.lib
+    optimized ${OPENCOLLADA}/lib/opencollada/OpenCOLLADASaxFrameworkLoader.lib
+    optimized ${OPENCOLLADA}/lib/opencollada/OpenCOLLADAFramework.lib
+    optimized ${OPENCOLLADA}/lib/opencollada/OpenCOLLADABaseUtils.lib
+    optimized ${OPENCOLLADA}/lib/opencollada/OpenCOLLADAStreamWriter.lib
+    optimized ${OPENCOLLADA}/lib/opencollada/MathMLSolver.lib
+    optimized ${OPENCOLLADA}/lib/opencollada/GeneratedSaxParser.lib
+    optimized ${OPENCOLLADA}/lib/opencollada/xml.lib
+    optimized ${OPENCOLLADA}/lib/opencollada/buffer.lib
+    optimized ${OPENCOLLADA}/lib/opencollada/ftoa.lib
+
+    debug ${OPENCOLLADA}/lib/opencollada/OpenCOLLADASaxFrameworkLoader_d.lib
+    debug ${OPENCOLLADA}/lib/opencollada/OpenCOLLADAFramework_d.lib
+    debug ${OPENCOLLADA}/lib/opencollada/OpenCOLLADABaseUtils_d.lib
+    debug ${OPENCOLLADA}/lib/opencollada/OpenCOLLADAStreamWriter_d.lib
+    debug ${OPENCOLLADA}/lib/opencollada/MathMLSolver_d.lib
+    debug ${OPENCOLLADA}/lib/opencollada/GeneratedSaxParser_d.lib
+    debug ${OPENCOLLADA}/lib/opencollada/xml_d.lib
+    debug ${OPENCOLLADA}/lib/opencollada/buffer_d.lib
+    debug ${OPENCOLLADA}/lib/opencollada/ftoa_d.lib
   )
 
   list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/UTF.lib)
 
   set(PCRE_LIBRARIES
-    ${OPENCOLLADA}/lib/opencollada/pcre.lib
+    optimized ${OPENCOLLADA}/lib/opencollada/pcre.lib
+
+    debug ${OPENCOLLADA}/lib/opencollada/pcre_d.lib
   )
 endif()
 

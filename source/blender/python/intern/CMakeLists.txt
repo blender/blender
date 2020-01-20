@@ -123,6 +123,9 @@ set(LIB
   bf_editor_interface
   bf_editor_space_api
   bf_python_gpu
+
+  ${PYTHON_LINKFLAGS}
+  ${PYTHON_LIBRARIES}
 )
 
 # only to check if buildinfo is available
@@ -155,6 +158,9 @@ endif()
 if(WITH_CODEC_FFMPEG)
   list(APPEND INC_SYS
     ${FFMPEG_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    ${FFMPEG_LIBRARIES}
   )
   add_definitions(-DWITH_FFMPEG)
 endif()
@@ -240,6 +246,11 @@ if(WITH_SDL)
   list(APPEND INC_SYS
     ${SDL_INCLUDE_DIR}
   )
+  if(NOT WITH_SDL_DYNLOAD)
+    list(APPEND LIB
+      ${SDL_LIBRARY}
+    )
+  endif()
   add_definitions(-DWITH_SDL)
 endif()
 

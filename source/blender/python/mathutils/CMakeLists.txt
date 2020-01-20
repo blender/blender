@@ -58,6 +58,9 @@ set(SRC
 set(LIB
   bf_blenlib
   bf_python_ext
+
+  ${PYTHON_LINKFLAGS}
+  ${PYTHON_LIBRARIES}
 )
 
 

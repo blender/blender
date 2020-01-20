@@ -50,6 +50,8 @@ set(SRC
 
 set(LIB
   ${GLEW_LIBRARY}
+  ${PYTHON_LINKFLAGS}
+  ${PYTHON_LIBRARIES}
 )
 
 add_definitions(${GL_DEFINITIONS})

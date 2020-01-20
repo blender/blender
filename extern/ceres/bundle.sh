@@ -136,7 +136,8 @@ ${headers}
 )
 
 set(LIB
-  extern_glog
+  \${GLOG_LIBRARIES}
+  \${GFLAGS_LIBRARIES}
 )
 
 if(WITH_LIBMV_SCHUR_SPECIALIZATIONS)

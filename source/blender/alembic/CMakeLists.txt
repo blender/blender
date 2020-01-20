@@ -75,10 +75,20 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+
+  ${ALEMBIC_LIBRARIES}
+  ${OPENEXR_LIBRARIES}
 )
 
 if(WITH_ALEMBIC_HDF5)
   add_definitions(-DWITH_ALEMBIC_HDF5)
+  list(APPEND LIB
+    ${HDF5_LIBRARIES}
+  )
 endif()
+
+list(APPEND LIB
+  ${BOOST_LIBRARIES}
+)
 
 blender_add_lib(bf_alembic "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -132,12 +132,12 @@ if(WITH_FFTW3)
   set(FFTW3_LIBPATH ${FFTW3}/lib)
 endif()
 
-set(PNG_LIBRARIES png)
-set(JPEG_LIBRARIES jpeg)
-
 set(ZLIB /usr)
 set(ZLIB_INCLUDE_DIRS "${ZLIB}/include")
 set(ZLIB_LIBRARIES z bz2)
+
+set(PNG_LIBRARIES png ${ZLIB_LIBRARIES})
+set(JPEG_LIBRARIES jpeg)
 
 set(FREETYPE ${LIBDIR}/freetype)
 set(FREETYPE_INCLUDE_DIRS ${FREETYPE}/include ${FREETYPE}/include/freetype2)
@@ -228,10 +228,6 @@ if(WITH_OPENCOLLADA)
   # set(PCRE ${LIBDIR}/pcre)
   # set(PCRE_LIBPATH ${PCRE}/lib)
   set(PCRE_LIBRARIES pcre)
-  # libxml2 is used
-  # set(EXPAT ${LIBDIR}/expat)
-  # set(EXPAT_LIBPATH ${EXPAT}/lib)
-  set(EXPAT_LIB)
 endif()
 
 if(WITH_SDL)

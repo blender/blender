@@ -275,6 +275,10 @@ if(WITH_PYTHON)
   list(APPEND INC_SYS
     ${PYTHON_INCLUDE_DIRS}
   )
+  list(APPEND LIB
+    ${PYTHON_LINKFLAGS}
+    ${PYTHON_LIBRARIES}
+  )
   add_definitions(-DWITH_PYTHON)
 endif()
 

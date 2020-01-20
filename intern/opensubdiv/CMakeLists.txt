@@ -83,6 +83,16 @@ if(WITH_OPENSUBDIV)
     internal/opensubdiv_util.h
   )
 
+  list(APPEND LIB
+    ${OPENSUBDIV_LIBRARIES}
+  )
+
+  if(WITH_OPENMP_STATIC)
+    list(APPEND LIB
+      ${OpenMP_LIBRARIES}
+    )
+  endif()
+
   OPENSUBDIV_DEFINE_COMPONENT(OPENSUBDIV_HAS_OPENMP)
   # TODO(sergey): OpenCL is not tested and totally unstable atm.
   # OPENSUBDIV_DEFINE_COMPONENT(OPENSUBDIV_HAS_OPENCL)

@@ -50,6 +50,11 @@ if(NOT WITH_SYSTEM_AUDASPACE)
       extern_sdlew
     )
   endif()
+else()
+  list(APPEND LIB
+    ${AUDASPACE_C_LIBRARIES}
+    ${AUDASPACE_PY_LIBRARIES}
+  )
 endif()
 
 if(WITH_PYTHON)
@@ -59,6 +64,10 @@ if(WITH_PYTHON)
   list(APPEND SRC
     intern/AUD_PyInit.cpp
     intern/AUD_PyInit.h
+  )
+  list(APPEND LIB
+      ${PYTHON_LINKFLAGS}
+      ${PYTHON_LIBRARIES}
   )
   if(NOT WITH_SYSTEM_AUDASPACE)
     list(APPEND LIB

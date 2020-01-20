@@ -38,6 +38,8 @@ set(LIB
 )
 
 if(WITH_LIBMV)
+  setup_libdirs()
+
   if(WIN32)
     add_definitions(-D_USE_MATH_DEFINES)
   endif()
@@ -62,7 +64,10 @@ if(WITH_LIBMV)
 
   list(APPEND LIB
     extern_ceres
-    extern_glog
+
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
+    ${PNG_LIBRARIES}
   )
 
   add_definitions(

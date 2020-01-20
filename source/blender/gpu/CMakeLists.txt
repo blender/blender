@@ -129,6 +129,7 @@ set(SRC
 )
 
 set(LIB
+  ${BLENDER_GL_LIBRARIES}
 )
 
 if(NOT WITH_SYSTEM_GLEW)

@@ -77,11 +77,26 @@ if(WITH_OPENVDB)
     openvdb_util.h
   )
 
+  list(APPEND LIB
+    ${OPENVDB_LIBRARIES}
+    ${OPENEXR_LIBRARIES}
+    ${ZLIB_LIBRARIES}
+  )
+
   if(WITH_OPENVDB_BLOSC)
     add_definitions(
       -DWITH_OPENVDB_BLOSC
     )
+    list(APPEND LIB
+      ${BLOSC_LIBRARIES}
+      ${ZLIB_LIBRARIES}
+    )
   endif()
+
+  list(APPEND LIB
+    ${BOOST_LIBRARIES}
+    ${TBB_LIBRARIES}
+  )
 endif()
 
 blender_add_lib(bf_intern_openvdb "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
