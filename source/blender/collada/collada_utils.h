@@ -397,9 +397,10 @@ double bc_get_shininess(Material *ma);
 double bc_get_float_from_shader(bNode *shader, double &ior, std::string nodeid);
 COLLADASW::ColorOrTexture bc_get_cot_from_shader(bNode *shader,
                                                  std::string nodeid,
-                                                 Color &default_color);
+                                                 Color &default_color,
+                                                 bool with_alpha = true);
 
 COLLADASW::ColorOrTexture bc_get_cot(float r, float g, float b, float a);
-COLLADASW::ColorOrTexture bc_get_cot(Color col);
+COLLADASW::ColorOrTexture bc_get_cot(Color col, bool with_alpha = true);
 
 #endif

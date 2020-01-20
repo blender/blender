@@ -1324,7 +1324,7 @@ COLLADASW::ColorOrTexture bc_get_base_color(Material *ma)
   Color default_color = {0.8, 0.8, 0.8, 1.0};
   bNode *shader = bc_get_master_shader(ma);
   if (ma->use_nodes && shader) {
-    return bc_get_cot_from_shader(shader, "Base Color", default_color);
+    return bc_get_cot_from_shader(shader, "Base Color", default_color, false);
   }
   else {
     return bc_get_cot(default_color);
@@ -1414,16 +1414,17 @@ double bc_get_float_from_shader(bNode *shader, double &val, std::string nodeid)
 
 COLLADASW::ColorOrTexture bc_get_cot_from_shader(bNode *shader,
                                                  std::string nodeid,
-                                                 Color &default_color)
+                                                 Color &default_color,
+                                                 bool with_alpha)
 {
   bNodeSocket *socket = nodeFindSocket(shader, SOCK_IN, nodeid.c_str());
   if (socket) {
     bNodeSocketValueRGBA *dcol = (bNodeSocketValueRGBA *)socket->default_value;
     float *col = dcol->value;
-    return bc_get_cot(col);
+    return bc_get_cot(col, with_alpha);
   }
   else {
-    return bc_get_cot(default_color); /* default black */
+    return bc_get_cot(default_color, with_alpha); /* default black */
   }
 }
 
@@ -1447,9 +1448,9 @@ COLLADASW::ColorOrTexture bc_get_cot(float r, float g, float b, float a)
   return cot;
 }
 
-COLLADASW::ColorOrTexture bc_get_cot(Color col)
+COLLADASW::ColorOrTexture bc_get_cot(Color col, bool with_alpha)
 {
-  COLLADASW::Color color(col[0], col[1], col[2], col[3]);
+  COLLADASW::Color color(col[0], col[1], col[2], (with_alpha) ? col[3] : 1.0);
   COLLADASW::ColorOrTexture cot(color);
   return cot;
 }
