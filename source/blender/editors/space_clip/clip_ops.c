@@ -374,7 +374,7 @@ void CLIP_OT_reload(wmOperatorType *ot)
 typedef struct ViewPanData {
   float x, y;
   float xof, yof, xorig, yorig;
-  int event_type;
+  int launch_event;
   bool own_cursor;
   float *vec;
 } ViewPanData;
@@ -406,7 +406,7 @@ static void view_pan_init(bContext *C, wmOperator *op, const wmEvent *event)
   copy_v2_v2(&vpd->xof, vpd->vec);
   copy_v2_v2(&vpd->xorig, &vpd->xof);
 
-  vpd->event_type = event->type;
+  vpd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
   WM_event_add_modal_handler(C, op);
 }
@@ -493,7 +493,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
       return OPERATOR_FINISHED;
     default:
-      if (event->type == vpd->event_type && event->val == KM_RELEASE) {
+      if (event->type == vpd->launch_event && event->val == KM_RELEASE) {
         view_pan_exit(C, op, 0);
 
         return OPERATOR_FINISHED;
@@ -548,7 +548,7 @@ void CLIP_OT_view_pan(wmOperatorType *ot)
 typedef struct ViewZoomData {
   float x, y;
   float zoom;
-  int event_type;
+  int launch_event;
   float location[2];
   wmTimer *timer;
   double timer_lastdraw;
@@ -579,7 +579,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
   vpd->x = event->x;
   vpd->y = event->y;
   vpd->zoom = sc->zoom;
-  vpd->event_type = event->type;
+  vpd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
   ED_clip_mouse_pos(sc, ar, event->mval, vpd->location);
 
@@ -697,7 +697,7 @@ static int view_zoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
       view_zoom_apply(C, vpd, op, event, use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS));
       break;
     default:
-      if (event->type == vpd->event_type && event->val == KM_RELEASE) {
+      if (event->type == vpd->launch_event && event->val == KM_RELEASE) {
         view_zoom_exit(C, op, 0);
 
         return OPERATOR_FINISHED;
