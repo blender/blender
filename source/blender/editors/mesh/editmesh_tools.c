@@ -96,13 +96,12 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
   const float smooth = RNA_float_get(op->ptr, "smoothness");
   const float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
   const float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
+  const bool use_quad_tri = !RNA_boolean_get(op->ptr, "ngon");
 
-  if (RNA_boolean_get(op->ptr, "ngon") &&
-      RNA_enum_get(op->ptr, "quadcorner") == SUBD_CORNER_STRAIGHT_CUT) {
+  if (use_quad_tri && RNA_enum_get(op->ptr, "quadcorner") == SUBD_CORNER_STRAIGHT_CUT) {
     RNA_enum_set(op->ptr, "quadcorner", SUBD_CORNER_INNERVERT);
   }
   const int quad_corner_type = RNA_enum_get(op->ptr, "quadcorner");
-  const bool use_quad_tri = !RNA_boolean_get(op->ptr, "ngon");
   const int seed = RNA_int_get(op->ptr, "seed");
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
