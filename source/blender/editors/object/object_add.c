@@ -604,7 +604,7 @@ static int lightprobe_add_exec(bContext *C, wmOperator *op)
 
   probe = (LightProbe *)ob->data;
 
-  BKE_lightprobe_configure(probe, type);
+  BKE_lightprobe_type_set(probe, type);
 
   DEG_relations_tag_update(CTX_data_main(C));
 

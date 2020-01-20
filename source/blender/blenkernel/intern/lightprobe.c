@@ -41,7 +41,7 @@ void BKE_lightprobe_init(LightProbe *probe)
   MEMCPY_STRUCT_AFTER(probe, DNA_struct_default_get(LightProbe), id);
 }
 
-void BKE_lightprobe_configure(LightProbe *probe, const short lightprobe_type)
+void BKE_lightprobe_type_set(LightProbe *probe, const short lightprobe_type)
 {
   probe->type = lightprobe_type;
 

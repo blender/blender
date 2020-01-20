@@ -675,7 +675,7 @@ static LightProbe *rna_Main_lightprobe_new(Main *bmain, const char *name, int ty
 
   LightProbe *probe = BKE_lightprobe_add(bmain, safe_name);
 
-  BKE_lightprobe_configure(probe, type);
+  BKE_lightprobe_type_set(probe, type);
 
   id_us_min(&probe->id);
   return probe;

@@ -29,7 +29,7 @@ struct LightProbe;
 struct Main;
 
 void BKE_lightprobe_init(struct LightProbe *probe);
-void BKE_lightprobe_configure(struct LightProbe *probe, const short lightprobe_type);
+void BKE_lightprobe_type_set(struct LightProbe *probe, const short lightprobe_type);
 void *BKE_lightprobe_add(struct Main *bmain, const char *name);
 void BKE_lightprobe_copy_data(struct Main *bmain,
                               struct LightProbe *probe_dst,
