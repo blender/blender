@@ -6285,7 +6285,11 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
                    PART_FLUID_SPRAY,
                    PART_FLUID_BUBBLE,
                    PART_FLUID_FOAM,
-                   PART_FLUID_TRACER) &&
+                   PART_FLUID_TRACER,
+                   PART_FLUID_SPRAYFOAM,
+                   PART_FLUID_SPRAYBUBBLE,
+                   PART_FLUID_FOAMBUBBLE,
+                   PART_FLUID_SPRAYFOAMBUBBLE) &&
               psys_check_enabled(brushObj, brush->psys, for_render)) {
             /* Paint a particle system */
             dynamicPaint_paintParticles(surface, brush->psys, brush, timescale);

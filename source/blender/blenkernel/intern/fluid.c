@@ -3110,7 +3110,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *mds, Mesh *orgmesh, Obj
 
     // if reading raw data directly from manta, normalize now, otherwise omit this, ie when reading
     // from files
-    {
+    if (!manta_liquid_mesh_from_file(mds->fluid)) {
       // normalize to unit cube around 0
       mverts->co[0] -= ((float)mds->res[0] * mds->mesh_scale) * 0.5f;
       mverts->co[1] -= ((float)mds->res[1] * mds->mesh_scale) * 0.5f;
@@ -3664,12 +3664,14 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
 
     /* Read mesh cache. */
     if (with_liquid && with_mesh) {
-      has_mesh = manta_read_mesh(mds->fluid, mmd, mesh_frame);
+      /* Update mesh data from file is faster than via Python (manta_read_mesh()). */
+      has_mesh = manta_update_mesh_structures(mds->fluid, mmd, mesh_frame);
     }
 
     /* Read particles cache. */
     if (with_liquid && with_particles) {
-      has_particles = manta_read_particles(mds->fluid, mmd, particles_frame);
+      /* Update particle data from file is faster than via Python (manta_read_particles()). */
+      has_particles = manta_update_particle_structures(mds->fluid, mmd, particles_frame);
     }
 
     /* Read guide cache. */
@@ -3707,12 +3709,23 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
     }
     /* Read data cache only */
     else {
-      /* Read config and realloc fluid object if needed. */
-      if (manta_read_config(mds->fluid, mmd, data_frame) && manta_needs_realloc(mds->fluid, mmd)) {
-        BKE_fluid_reallocate_fluid(mds, mds->res, 1);
+      if (with_smoke) {
+        /* Read config and realloc fluid object if needed. */
+        if (manta_read_config(mds->fluid, mmd, data_frame) &&
+            manta_needs_realloc(mds->fluid, mmd)) {
+          BKE_fluid_reallocate_fluid(mds, mds->res, 1);
+        }
+        /* Read data cache */
+        has_data = manta_read_data(mds->fluid, mmd, data_frame);
       }
-      /* Read data cache */
-      has_data = manta_read_data(mds->fluid, mmd, data_frame);
+      if (with_liquid) {
+        if (!baking_data && !baking_particles && !baking_mesh) {
+          has_data = manta_update_liquid_structures(mds->fluid, mmd, data_frame);
+        }
+        else {
+          has_data = manta_read_data(mds->fluid, mmd, data_frame);
+        }
+      }
     }
   }
 
@@ -3806,15 +3819,46 @@ struct Mesh *BKE_fluid_modifier_do(
     BLI_rw_mutex_unlock(mmd->domain->fluid_mutex);
   }
 
+  /* Optimization: Do not update viewport during bakes (except in replay mode)
+   * Reason: UI is locked and updated liquid / smoke geometry is not visible anyways. */
+  bool needs_viewport_update = false;
+  if (mmd->domain) {
+    FluidDomainSettings *mds = mmd->domain;
+
+    /* Always update viewport in cache replay mode. */
+    if (mds->cache_type == FLUID_DOMAIN_CACHE_REPLAY) {
+      needs_viewport_update = true;
+    }
+    /* In other cache modes, only update the viewport when no bake is going on. */
+    else {
+      bool with_mesh;
+      with_mesh = mds->flags & FLUID_DOMAIN_USE_MESH;
+      bool baking_data, baking_noise, baking_mesh, baking_particles, baking_guide;
+      baking_data = mds->cache_flag & FLUID_DOMAIN_BAKING_DATA;
+      baking_noise = mds->cache_flag & FLUID_DOMAIN_BAKING_NOISE;
+      baking_mesh = mds->cache_flag & FLUID_DOMAIN_BAKING_MESH;
+      baking_particles = mds->cache_flag & FLUID_DOMAIN_BAKING_PARTICLES;
+      baking_guide = mds->cache_flag & FLUID_DOMAIN_BAKING_GUIDE;
+
+      if (with_mesh && !baking_data && !baking_noise && !baking_mesh && !baking_particles &&
+          !baking_guide) {
+        needs_viewport_update = true;
+      }
+    }
+  }
+
   Mesh *result = NULL;
   if (mmd->type & MOD_FLUID_TYPE_DOMAIN && mmd->domain) {
-    /* Return generated geometry depending on domain type. */
-    if (mmd->domain->type == FLUID_DOMAIN_TYPE_LIQUID) {
-      result = create_liquid_geometry(mmd->domain, me, ob);
+    if (needs_viewport_update) {
+      /* Return generated geometry depending on domain type. */
+      if (mmd->domain->type == FLUID_DOMAIN_TYPE_LIQUID) {
+        result = create_liquid_geometry(mmd->domain, me, ob);
+      }
+      if (mmd->domain->type == FLUID_DOMAIN_TYPE_GAS) {
+        result = create_smoke_geometry(mmd->domain, me, ob);
+      }
     }
-    if (mmd->domain->type == FLUID_DOMAIN_TYPE_GAS) {
-      result = create_smoke_geometry(mmd->domain, me, ob);
-    }
+
     /* Clear flag outside of locked block (above). */
     mmd->domain->cache_flag &= ~FLUID_DOMAIN_OUTDATED_DATA;
     mmd->domain->cache_flag &= ~FLUID_DOMAIN_OUTDATED_NOISE;
@@ -4161,7 +4205,7 @@ void BKE_fluid_particle_system_destroy(struct Object *ob, const int particle_typ
 
   for (psys = ob->particlesystem.first; psys; psys = next_psys) {
     next_psys = psys->next;
-    if (psys->part->type & particle_type) {
+    if (psys->part->type == particle_type) {
       /* clear modifier */
       pmmd = psys_get_modifier(ob, psys);
       BLI_remlink(&ob->modifiers, pmmd);

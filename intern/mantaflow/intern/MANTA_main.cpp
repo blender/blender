@@ -160,6 +160,11 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
   mSndParticleVelocity = NULL;
   mSndParticleLife = NULL;
 
+  // Cache read success indicators
+  mFlipFromFile = false;
+  mMeshFromFile = false;
+  mParticlesFromFile = false;
+
   // Only start Mantaflow once. No need to start whenever new FLUID objected is allocated
   if (!mantaInitialized)
     initializeMantaflow();
@@ -376,8 +381,7 @@ void MANTA::initLiquid(FluidModifierData *mmd)
   if (!mPhiIn) {
     std::vector<std::string> pythonCommands;
     std::string tmpString = liquid_variables + liquid_alloc + liquid_init_phi + liquid_save_data +
-                            liquid_save_flip + liquid_load_data + liquid_load_flip +
-                            liquid_adaptive_step + liquid_step;
+                            liquid_load_data + liquid_adaptive_step + liquid_step;
     std::string finalString = parseScript(tmpString, mmd);
     pythonCommands.push_back(finalString);
 
@@ -389,8 +393,7 @@ void MANTA::initLiquid(FluidModifierData *mmd)
 void MANTA::initMesh(FluidModifierData *mmd)
 {
   std::vector<std::string> pythonCommands;
-  std::string tmpString = fluid_variables_mesh + fluid_solver_mesh + liquid_load_mesh +
-                          liquid_load_meshvel;
+  std::string tmpString = fluid_variables_mesh + fluid_solver_mesh + liquid_load_mesh;
   std::string finalString = parseScript(tmpString, mmd);
   pythonCommands.push_back(finalString);
 
@@ -401,8 +404,7 @@ void MANTA::initMesh(FluidModifierData *mmd)
 void MANTA::initLiquidMesh(FluidModifierData *mmd)
 {
   std::vector<std::string> pythonCommands;
-  std::string tmpString = liquid_alloc_mesh + liquid_step_mesh + liquid_save_mesh +
-                          liquid_save_meshvel;
+  std::string tmpString = liquid_alloc_mesh + liquid_step_mesh + liquid_save_mesh;
   std::string finalString = parseScript(tmpString, mmd);
   pythonCommands.push_back(finalString);
 
@@ -477,8 +479,7 @@ void MANTA::initOutflow(FluidModifierData *mmd)
 void MANTA::initSndParts(FluidModifierData *mmd)
 {
   std::vector<std::string> pythonCommands;
-  std::string tmpString = fluid_variables_particles + fluid_solver_particles +
-                          fluid_load_particles + fluid_save_particles;
+  std::string tmpString = fluid_variables_particles + fluid_solver_particles;
   std::string finalString = parseScript(tmpString, mmd);
   pythonCommands.push_back(finalString);
 
@@ -489,9 +490,9 @@ void MANTA::initLiquidSndParts(FluidModifierData *mmd)
 {
   if (!mSndParticleData) {
     std::vector<std::string> pythonCommands;
-    std::string tmpString = fluid_alloc_sndparts + liquid_alloc_particles +
-                            liquid_variables_particles + liquid_step_particles +
-                            fluid_with_sndparts + liquid_load_particles + liquid_save_particles;
+    std::string tmpString = liquid_alloc_particles + liquid_variables_particles +
+                            liquid_step_particles + fluid_with_sndparts + liquid_load_particles +
+                            liquid_save_particles;
     std::string finalString = parseScript(tmpString, mmd);
     pythonCommands.push_back(finalString);
 
@@ -1008,6 +1009,8 @@ int MANTA::updateFlipStructures(FluidModifierData *mmd, int framenr)
   if (MANTA::with_debug)
     std::cout << "MANTA::updateFlipStructures()" << std::endl;
 
+  mFlipFromFile = false;
+
   // Ensure empty data structures at start
   if (mFlipParticleData)
     mFlipParticleData->clear();
@@ -1046,6 +1049,7 @@ int MANTA::updateFlipStructures(FluidModifierData *mmd, int framenr)
   if (BLI_exists(targetFile)) {
     updateParticlesFromFile(targetFile, false, true);
   }
+  mFlipFromFile = true;
   return 1;
 }
 
@@ -1053,6 +1057,8 @@ int MANTA::updateMeshStructures(FluidModifierData *mmd, int framenr)
 {
   if (MANTA::with_debug)
     std::cout << "MANTA::updateMeshStructures()" << std::endl;
+
+  mMeshFromFile = false;
 
   if (!mUsingMesh)
     return 0;
@@ -1095,6 +1101,7 @@ int MANTA::updateMeshStructures(FluidModifierData *mmd, int framenr)
       updateMeshFromFile(targetFile);
     }
   }
+  mMeshFromFile = true;
   return 1;
 }
 
@@ -1102,6 +1109,8 @@ int MANTA::updateParticleStructures(FluidModifierData *mmd, int framenr)
 {
   if (MANTA::with_debug)
     std::cout << "MANTA::updateParticleStructures()" << std::endl;
+
+  mParticlesFromFile = false;
 
   if (!mUsingDrops && !mUsingBubbles && !mUsingFloats && !mUsingTracers)
     return 0;
@@ -1150,6 +1159,7 @@ int MANTA::updateParticleStructures(FluidModifierData *mmd, int framenr)
   if (BLI_exists(targetFile)) {
     updateParticlesFromFile(targetFile, true, false);
   }
+  mParticlesFromFile = true;
   return 1;
 }
 
@@ -1229,6 +1239,9 @@ int MANTA::writeData(FluidModifierData *mmd, int framenr)
   std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
   std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
 
+  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  std::string resumable_cache = (final_cache) ? "False" : "True";
+
   BLI_path_join(cacheDirData,
                 sizeof(cacheDirData),
                 mmd->domain->cache_directory,
@@ -1238,23 +1251,19 @@ int MANTA::writeData(FluidModifierData *mmd, int framenr)
 
   ss.str("");
   ss << "fluid_save_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', " << framenr
-     << ", '" << dformat << "')";
+     << ", '" << dformat << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
   if (mUsingSmoke) {
     ss.str("");
     ss << "smoke_save_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', "
-       << framenr << ", '" << dformat << "')";
+       << framenr << ", '" << dformat << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
   }
   if (mUsingLiquid) {
     ss.str("");
     ss << "liquid_save_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', "
-       << framenr << ", '" << dformat << "')";
-    pythonCommands.push_back(ss.str());
-    ss.str("");
-    ss << "liquid_save_flip_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', "
-       << framenr << ", '" << pformat << "')";
+       << framenr << ", '" << dformat << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
   }
   runPythonString(pythonCommands);
@@ -1329,6 +1338,9 @@ int MANTA::readData(FluidModifierData *mmd, int framenr)
   std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
   std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
 
+  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  std::string resumable_cache = (final_cache) ? "False" : "True";
+
   BLI_path_join(cacheDirData,
                 sizeof(cacheDirData),
                 mmd->domain->cache_directory,
@@ -1336,44 +1348,30 @@ int MANTA::readData(FluidModifierData *mmd, int framenr)
                 NULL);
   BLI_path_make_safe(cacheDirData);
 
-  if (mUsingSmoke) {
-    /* Exit early if there is nothing present in the cache for this frame */
-    ss.str("");
-    ss << "density_####" << dformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirData, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (!BLI_exists(targetFile))
-      return 0;
+  /* Exit early if there is nothing present in the cache for this frame */
+  ss.str("");
+  ss << "vel_####" << dformat;
+  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirData, ss.str().c_str());
+  BLI_path_frame(targetFile, framenr, 0);
+  if (!BLI_exists(targetFile))
+    return 0;
 
-    ss.str("");
-    ss << "fluid_load_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', "
-       << framenr << ", '" << dformat << "')";
-    pythonCommands.push_back(ss.str());
+  ss.str("");
+  ss << "fluid_load_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', " << framenr
+     << ", '" << dformat << "', " << resumable_cache << ")";
+  pythonCommands.push_back(ss.str());
+
+  if (mUsingSmoke) {
     ss.str("");
     ss << "smoke_load_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', "
-       << framenr << ", '" << dformat << "')";
+       << framenr << ", '" << dformat << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
   }
   if (mUsingLiquid) {
     /* Exit early if there is nothing present in the cache for this frame */
     ss.str("");
-    ss << "phiIn_####" << dformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirData, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (!BLI_exists(targetFile))
-      return 0;
-
-    ss.str("");
-    ss << "fluid_load_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', "
-       << framenr << ", '" << dformat << "')";
-    pythonCommands.push_back(ss.str());
-    ss.str("");
     ss << "liquid_load_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', "
-       << framenr << ", '" << dformat << "')";
-    pythonCommands.push_back(ss.str());
-    ss.str("");
-    ss << "liquid_load_flip_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', "
-       << framenr << ", '" << pformat << "')";
+       << framenr << ", '" << dformat << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
   }
   runPythonString(pythonCommands);
@@ -1385,7 +1383,7 @@ int MANTA::readNoise(FluidModifierData *mmd, int framenr)
   if (with_debug)
     std::cout << "MANTA::readNoise()" << std::endl;
 
-  if (!mUsingNoise)
+  if (!mUsingSmoke || !mUsingNoise)
     return 0;
 
   std::ostringstream ss;
@@ -1396,6 +1394,9 @@ int MANTA::readNoise(FluidModifierData *mmd, int framenr)
   targetFile[0] = '\0';
 
   std::string nformat = getCacheFileEnding(mmd->domain->cache_noise_format);
+
+  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  std::string resumable_cache = (final_cache) ? "False" : "True";
 
   BLI_path_join(cacheDirNoise,
                 sizeof(cacheDirNoise),
@@ -1412,22 +1413,24 @@ int MANTA::readNoise(FluidModifierData *mmd, int framenr)
   if (!BLI_exists(targetFile))
     return 0;
 
-  if (mUsingSmoke && mUsingNoise) {
-    ss.str("");
-    ss << "smoke_load_noise_" << mCurrentID << "('" << escapeSlashes(cacheDirNoise) << "', "
-       << framenr << ", '" << nformat << "')";
-    pythonCommands.push_back(ss.str());
-  }
+  ss.str("");
+  ss << "smoke_load_noise_" << mCurrentID << "('" << escapeSlashes(cacheDirNoise) << "', "
+     << framenr << ", '" << nformat << "', " << resumable_cache << ")";
+  pythonCommands.push_back(ss.str());
+
   runPythonString(pythonCommands);
   return 1;
 }
 
+/* Deprecated! This function read mesh data via the Manta Python API.
+ * MANTA:updateMeshStructures() reads cache files directly from disk
+ * and is preferred due to its better performance. */
 int MANTA::readMesh(FluidModifierData *mmd, int framenr)
 {
   if (with_debug)
     std::cout << "MANTA::readMesh()" << std::endl;
 
-  if (!mUsingMesh)
+  if (!mUsingLiquid || !mUsingMesh)
     return 0;
 
   std::ostringstream ss;
@@ -1447,36 +1450,40 @@ int MANTA::readMesh(FluidModifierData *mmd, int framenr)
                 NULL);
   BLI_path_make_safe(cacheDirMesh);
 
-  if (mUsingLiquid) {
-    /* Exit early if there is nothing present in the cache for this frame */
-    ss.str("");
-    ss << "lMesh_####" << mformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirMesh, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (!BLI_exists(targetFile))
-      return 0;
+  /* Exit early if there is nothing present in the cache for this frame */
+  ss.str("");
+  ss << "lMesh_####" << mformat;
+  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirMesh, ss.str().c_str());
+  BLI_path_frame(targetFile, framenr, 0);
+  if (!BLI_exists(targetFile))
+    return 0;
 
+  ss.str("");
+  ss << "liquid_load_mesh_" << mCurrentID << "('" << escapeSlashes(cacheDirMesh) << "', "
+     << framenr << ", '" << mformat << "')";
+  pythonCommands.push_back(ss.str());
+
+  if (mUsingMVel) {
     ss.str("");
-    ss << "liquid_load_mesh_" << mCurrentID << "('" << escapeSlashes(cacheDirMesh) << "', "
-       << framenr << ", '" << mformat << "')";
+    ss << "liquid_load_meshvel_" << mCurrentID << "('" << escapeSlashes(cacheDirMesh) << "', "
+       << framenr << ", '" << dformat << "')";
     pythonCommands.push_back(ss.str());
-
-    if (mUsingMVel) {
-      ss.str("");
-      ss << "liquid_load_meshvel_" << mCurrentID << "('" << escapeSlashes(cacheDirMesh) << "', "
-         << framenr << ", '" << dformat << "')";
-      pythonCommands.push_back(ss.str());
-    }
   }
+
   runPythonString(pythonCommands);
   return 1;
 }
 
+/* Deprecated! This function reads particle data via the Manta Python API.
+ * MANTA:updateParticleStructures() reads cache files directly from disk
+ * and is preferred due to its better performance. */
 int MANTA::readParticles(FluidModifierData *mmd, int framenr)
 {
   if (with_debug)
     std::cout << "MANTA::readParticles()" << std::endl;
 
+  if (!mUsingLiquid)
+    return 0;
   if (!mUsingDrops && !mUsingBubbles && !mUsingFloats && !mUsingTracers)
     return 0;
 
@@ -1488,6 +1495,9 @@ int MANTA::readParticles(FluidModifierData *mmd, int framenr)
   targetFile[0] = '\0';
 
   std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
+
+  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  std::string resumable_cache = (final_cache) ? "False" : "True";
 
   BLI_path_join(cacheDirParticles,
                 sizeof(cacheDirParticles),
@@ -1504,16 +1514,11 @@ int MANTA::readParticles(FluidModifierData *mmd, int framenr)
   if (!BLI_exists(targetFile))
     return 0;
 
-  if (mUsingDrops || mUsingBubbles || mUsingFloats || mUsingTracers) {
-    ss.str("");
-    ss << "fluid_load_particles_" << mCurrentID << "('" << escapeSlashes(cacheDirParticles)
-       << "', " << framenr << ", '" << pformat << "')";
-    pythonCommands.push_back(ss.str());
-    ss.str("");
-    ss << "liquid_load_particles_" << mCurrentID << "('" << escapeSlashes(cacheDirParticles)
-       << "', " << framenr << ", '" << pformat << "')";
-    pythonCommands.push_back(ss.str());
-  }
+  ss.str("");
+  ss << "liquid_load_particles_" << mCurrentID << "('" << escapeSlashes(cacheDirParticles) << "', "
+     << framenr << ", '" << pformat << "', " << resumable_cache << ")";
+  pythonCommands.push_back(ss.str());
+
   runPythonString(pythonCommands);
   return 1;
 }
@@ -1544,7 +1549,7 @@ int MANTA::readGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain)
 
   /* Exit early if there is nothing present in the cache for this frame */
   ss.str("");
-  ss << "guidevel_####" << gformat;
+  ss << (sourceDomain ? "vel_####" : "guidevel_####") << gformat;
   BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirGuiding, ss.str().c_str());
   BLI_path_frame(targetFile, framenr, 0);
   if (!BLI_exists(targetFile))
@@ -1621,6 +1626,9 @@ int MANTA::bakeNoise(FluidModifierData *mmd, int framenr)
   std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
   std::string nformat = getCacheFileEnding(mmd->domain->cache_noise_format);
 
+  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  std::string resumable_cache = (final_cache) ? "False" : "True";
+
   BLI_path_join(cacheDirData,
                 sizeof(cacheDirData),
                 mmd->domain->cache_directory,
@@ -1637,7 +1645,7 @@ int MANTA::bakeNoise(FluidModifierData *mmd, int framenr)
   ss.str("");
   ss << "bake_noise_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', '"
      << escapeSlashes(cacheDirNoise) << "', " << framenr << ", '" << dformat << "', '" << nformat
-     << "')";
+     << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
   runPythonString(pythonCommands);
@@ -1698,6 +1706,9 @@ int MANTA::bakeParticles(FluidModifierData *mmd, int framenr)
   std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
   std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
 
+  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  std::string resumable_cache = (final_cache) ? "False" : "True";
+
   BLI_path_join(cacheDirData,
                 sizeof(cacheDirData),
                 mmd->domain->cache_directory,
@@ -1714,7 +1725,7 @@ int MANTA::bakeParticles(FluidModifierData *mmd, int framenr)
   ss.str("");
   ss << "bake_particles_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', '"
      << escapeSlashes(cacheDirParticles) << "', " << framenr << ", '" << dformat << "', '"
-     << pformat << "')";
+     << pformat << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
   runPythonString(pythonCommands);
@@ -1937,7 +1948,7 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
   if (mesh)
     manta_script += liquid_alloc_mesh;
   if (drops || bubble || floater || tracer)
-    manta_script += fluid_alloc_sndparts + liquid_alloc_particles;
+    manta_script += liquid_alloc_particles;
   if (guiding)
     manta_script += fluid_alloc_guiding;
   if (obstacle)
@@ -1953,11 +1964,11 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
 
   // Import
   manta_script += header_import + fluid_file_import + fluid_cache_helper + fluid_load_data +
-                  liquid_load_data + liquid_load_flip;
+                  liquid_load_data;
   if (mesh)
     manta_script += liquid_load_mesh;
   if (drops || bubble || floater || tracer)
-    manta_script += fluid_load_particles + liquid_load_particles;
+    manta_script += liquid_load_particles;
   if (guiding)
     manta_script += fluid_load_guiding;
 
@@ -2668,4 +2679,8 @@ void MANTA::updatePointers()
   setPointers(mantaNodeObjects);
   setPointers(mantaTriangleObjects);
   setPointers(mantaFloatVecObjects);
+
+  mFlipFromFile = true;
+  mMeshFromFile = false;
+  mParticlesFromFile = false;
 }

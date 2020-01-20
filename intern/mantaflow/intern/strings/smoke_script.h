@@ -100,7 +100,8 @@ color_g_in_s$ID$ = None\n\
 color_b_in_s$ID$ = None\n\
 \n\
 # Keep track of important objects in dict to load them later on\n\
-smoke_data_dict_s$ID$ = dict(density=density_s$ID$, shadow=shadow_s$ID$, densityIn=densityIn_s$ID$, emissionIn=emissionIn_s$ID$)\n";
+smoke_data_dict_final_s$ID$ = dict(density=density_s$ID$, shadow=shadow_s$ID$)\n\
+smoke_data_dict_resume_s$ID$ = dict(densityIn=densityIn_s$ID$, emissionIn=emissionIn_s$ID$)\n";
 
 const std::string smoke_alloc_noise =
     "\n\
@@ -140,7 +141,8 @@ copyVec3ToReal(source=uvGrid0_s$ID$, targetX=texture_u_s$ID$, targetY=texture_v_
 copyVec3ToReal(source=uvGrid1_s$ID$, targetX=texture_u2_s$ID$, targetY=texture_v2_s$ID$, targetZ=texture_w2_s$ID$)\n\
 \n\
 # Keep track of important objects in dict to load them later on\n\
-smoke_noise_dict_s$ID$ = dict(density_noise=density_sn$ID$, uv0_noise=uvGrid0_s$ID$, uv1_noise=uvGrid1_s$ID$)\n";
+smoke_noise_dict_final_s$ID$ = dict(density_noise=density_sn$ID$)\n\
+smoke_noise_dict_resume_s$ID$ = dict(uv0_noise=uvGrid0_s$ID$, uv1_noise=uvGrid1_s$ID$)\n";
 
 //////////////////////////////////////////////////////////////////////
 // ADDITIONAL GRIDS
@@ -162,9 +164,10 @@ color_g_in_s$ID$ = s$ID$.create(RealGrid)\n\
 color_b_in_s$ID$ = s$ID$.create(RealGrid)\n\
 \n\
 # Add objects to dict to load them later on\n\
-if 'smoke_data_dict_s$ID$' in globals():\n\
-    smoke_data_dict_s$ID$.update(color_r=color_r_s$ID$, color_g=color_g_s$ID$, color_b=color_b_s$ID$)\n\
-    smoke_data_dict_s$ID$.update(color_r_in=color_r_in_s$ID$, color_g_in=color_g_in_s$ID$, color_b_in=color_b_in_s$ID$)\n";
+if 'smoke_data_dict_final_s$ID$' in globals():\n\
+    smoke_data_dict_final_s$ID$.update(color_r=color_r_s$ID$, color_g=color_g_s$ID$, color_b=color_b_s$ID$)\n\
+if 'smoke_data_dict_resume_s$ID$' in globals():\n\
+    smoke_data_dict_resume_s$ID$.update(color_r_in=color_r_in_s$ID$, color_g_in=color_g_in_s$ID$, color_b_in=color_b_in_s$ID$)\n";
 
 const std::string smoke_alloc_colors_noise =
     "\n\
@@ -179,8 +182,8 @@ color_g_sn$ID$ = sn$ID$.create(RealGrid)\n\
 color_b_sn$ID$ = sn$ID$.create(RealGrid)\n\
 \n\
 # Add objects to dict to load them later on\n\
-if 'smoke_noise_dict_s$ID$' in globals():\n\
-    smoke_noise_dict_s$ID$.update(color_r_noise=color_r_sn$ID$, color_g_noise=color_g_sn$ID$, color_b_noise=color_b_sn$ID$)\n";
+if 'smoke_noise_dict_final_s$ID$' in globals():\n\
+    smoke_noise_dict_final_s$ID$.update(color_r_noise=color_r_sn$ID$, color_g_noise=color_g_sn$ID$, color_b_noise=color_b_sn$ID$)\n";
 
 const std::string smoke_init_colors =
     "\n\
@@ -213,8 +216,10 @@ heat_s$ID$   = s$ID$.create(RealGrid)\n\
 heatIn_s$ID$ = s$ID$.create(RealGrid)\n\
 \n\
 # Add objects to dict to load them later on\n\
-if 'smoke_data_dict_s$ID$' in globals():\n\
-    smoke_data_dict_s$ID$.update(heat=heat_s$ID$, heatIn=heatIn_s$ID$)\n";
+if 'smoke_data_dict_final_s$ID$' in globals():\n\
+    smoke_data_dict_final_s$ID$.update(heat=heat_s$ID$)\n\
+if 'smoke_data_dict_resume_s$ID$' in globals():\n\
+    smoke_data_dict_resume_s$ID$.update(heatIn=heatIn_s$ID$)\n";
 
 const std::string smoke_alloc_fire =
     "\n\
@@ -233,9 +238,10 @@ fuelIn_s$ID$  = s$ID$.create(RealGrid)\n\
 reactIn_s$ID$ = s$ID$.create(RealGrid)\n\
 \n\
 # Add objects to dict to load them later on\n\
-if 'smoke_data_dict_s$ID$' in globals():\n\
-    smoke_data_dict_s$ID$.update(flame=flame_s$ID$, fuel=fuel_s$ID$, react=react_s$ID$)\n\
-    smoke_data_dict_s$ID$.update(fuelIn=fuelIn_s$ID$, reactIn=reactIn_s$ID$)\n";
+if 'smoke_data_dict_final_s$ID$' in globals():\n\
+    smoke_data_dict_final_s$ID$.update(flame=flame_s$ID$)\n\
+if 'smoke_data_dict_resume_s$ID$' in globals():\n\
+    smoke_data_dict_resume_s$ID$.update(fuel=fuel_s$ID$, react=react_s$ID$, fuelIn=fuelIn_s$ID$, reactIn=reactIn_s$ID$)\n";
 
 const std::string smoke_alloc_fire_noise =
     "\n\
@@ -250,8 +256,10 @@ fuel_sn$ID$  = sn$ID$.create(RealGrid)\n\
 react_sn$ID$ = sn$ID$.create(RealGrid)\n\
 \n\
 # Add objects to dict to load them later on\n\
-if 'smoke_noise_dict_s$ID$' in globals():\n\
-    smoke_noise_dict_s$ID$.update(flame_noise=flame_sn$ID$, fuel_noise=fuel_sn$ID$, react_noise=react_sn$ID$)\n";
+if 'smoke_noise_dict_final_s$ID$' in globals():\n\
+    smoke_noise_dict_final_s$ID$.update(flame_noise=flame_sn$ID$)\n\
+if 'smoke_noise_dict_resume_s$ID$' in globals():\n\
+    smoke_noise_dict_resume_s$ID$.update(fuel_noise=fuel_sn$ID$, react_noise=react_sn$ID$)\n";
 
 //////////////////////////////////////////////////////////////////////
 // STEP FUNCTIONS
@@ -518,19 +526,24 @@ def update_flame_noise_$ID$():\n\
 
 const std::string smoke_load_data =
     "\n\
-def smoke_load_data_$ID$(path, framenr, file_format):\n\
+def smoke_load_data_$ID$(path, framenr, file_format, resumable):\n\
     mantaMsg('Smoke load data')\n\
-    fluid_file_import_s$ID$(dict=smoke_data_dict_s$ID$, path=path, framenr=framenr, file_format=file_format)\n";
+    fluid_file_import_s$ID$(dict=smoke_data_dict_final_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
+    if resumable:\n\
+        fluid_file_import_s$ID$(dict=smoke_data_dict_resume_s$ID$, path=path, framenr=framenr, file_format=file_format)\n";
 
 const std::string smoke_load_noise =
     "\n\
-def smoke_load_noise_$ID$(path, framenr, file_format):\n\
+def smoke_load_noise_$ID$(path, framenr, file_format, resumable):\n\
     mantaMsg('Smoke load noise')\n\
-    fluid_file_import_s$ID$(dict=smoke_noise_dict_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
+    fluid_file_import_s$ID$(dict=smoke_noise_dict_final_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
     \n\
-    # Fill up xyz texture grids, important when resuming a bake\n\
-    copyVec3ToReal(source=uvGrid0_s$ID$, targetX=texture_u_s$ID$, targetY=texture_v_s$ID$, targetZ=texture_w_s$ID$)\n\
-    copyVec3ToReal(source=uvGrid1_s$ID$, targetX=texture_u2_s$ID$, targetY=texture_v2_s$ID$, targetZ=texture_w2_s$ID$)\n";
+    if resumable:\n\
+        fluid_file_import_s$ID$(dict=smoke_noise_dict_resume_s$ID$, path=path, framenr=framenr, file_format=file_format)\n\
+        \n\
+        # Fill up xyz texture grids, important when resuming a bake\n\
+        copyVec3ToReal(source=uvGrid0_s$ID$, targetX=texture_u_s$ID$, targetY=texture_v_s$ID$, targetZ=texture_w_s$ID$)\n\
+        copyVec3ToReal(source=uvGrid1_s$ID$, targetX=texture_u2_s$ID$, targetY=texture_v2_s$ID$, targetZ=texture_w2_s$ID$)\n";
 
 //////////////////////////////////////////////////////////////////////
 // EXPORT
@@ -538,23 +551,31 @@ def smoke_load_noise_$ID$(path, framenr, file_format):\n\
 
 const std::string smoke_save_data =
     "\n\
-def smoke_save_data_$ID$(path, framenr, file_format):\n\
+def smoke_save_data_$ID$(path, framenr, file_format, resumable):\n\
     mantaMsg('Smoke save data')\n\
     start_time = time.time()\n\
     if not withMPSave or isWindows:\n\
-        fluid_file_export_s$ID$(framenr=framenr, file_format=file_format, path=path, dict=smoke_data_dict_s$ID$,)\n\
+        fluid_file_export_s$ID$(framenr=framenr, file_format=file_format, path=path, dict=smoke_data_dict_final_s$ID$,)\n\
+        if resumable:\n\
+            fluid_file_export_s$ID$(framenr=framenr, file_format=file_format, path=path, dict=smoke_data_dict_resume_s$ID$,)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=smoke_data_dict_s$ID$, do_join=False)\n\
+        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=smoke_data_dict_final_s$ID$, do_join=False)\n\
+        if resumable:\n\
+            fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=smoke_data_dict_resume_s$ID$, do_join=False)\n\
     mantaMsg('--- Save: %s seconds ---' % (time.time() - start_time))\n";
 
 const std::string smoke_save_noise =
     "\n\
-def smoke_save_noise_$ID$(path, framenr, file_format):\n\
+def smoke_save_noise_$ID$(path, framenr, file_format, resumable):\n\
     mantaMsg('Smoke save noise')\n\
     if not withMPSave or isWindows:\n\
-        fluid_file_export_s$ID$(dict=smoke_noise_dict_s$ID$, framenr=framenr, file_format=file_format, path=path)\n\
+        fluid_file_export_s$ID$(dict=smoke_noise_dict_final_s$ID$, framenr=framenr, file_format=file_format, path=path)\n\
+        if resumable:\n\
+            fluid_file_export_s$ID$(dict=smoke_noise_dict_resume_s$ID$, framenr=framenr, file_format=file_format, path=path)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=smoke_noise_dict_s$ID$, do_join=False)\n";
+        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=smoke_noise_final_dict_s$ID$, do_join=False)\n\
+        if resumable:\n\
+            fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=smoke_noise_dict_resume_s$ID$, do_join=False)\n";
 
 //////////////////////////////////////////////////////////////////////
 // STANDALONE MODE

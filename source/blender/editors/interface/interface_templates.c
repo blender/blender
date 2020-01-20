@@ -1822,7 +1822,9 @@ static int modifier_can_delete(ModifierData *md)
     short particle_type = ((ParticleSystemModifierData *)md)->psys->part->type;
     if (particle_type == PART_FLUID || particle_type == PART_FLUID_FLIP ||
         particle_type == PART_FLUID_FOAM || particle_type == PART_FLUID_SPRAY ||
-        particle_type == PART_FLUID_BUBBLE || particle_type == PART_FLUID_TRACER) {
+        particle_type == PART_FLUID_BUBBLE || particle_type == PART_FLUID_TRACER ||
+        particle_type == PART_FLUID_SPRAYFOAM || particle_type == PART_FLUID_SPRAYBUBBLE ||
+        particle_type == PART_FLUID_FOAMBUBBLE || particle_type == PART_FLUID_SPRAYFOAMBUBBLE) {
       return 0;
     }
   }

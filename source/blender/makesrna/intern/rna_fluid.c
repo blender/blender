@@ -192,15 +192,13 @@ static void rna_Fluid_flip_parts_update(Main *bmain, Scene *scene, PointerRNA *p
   }
   else {
     rna_Fluid_parts_delete(ptr, PART_FLUID_FLIP);
-    rna_Fluid_resetCache(bmain, scene, ptr);
-
     mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_FLIP;
   }
   rna_Fluid_draw_type_update(NULL, NULL, ptr);
-  rna_Fluid_reset(bmain, scene, ptr);
+  rna_Fluid_update(bmain, scene, ptr);
 }
 
-static void rna_Fluid_spray_parts_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Fluid_spray_parts_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
   FluidModifierData *mmd;
@@ -218,15 +216,12 @@ static void rna_Fluid_spray_parts_update(Main *bmain, Scene *scene, PointerRNA *
   }
   else {
     rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAY);
-    rna_Fluid_resetCache(bmain, scene, ptr);
-
     mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_SPRAY;
   }
   rna_Fluid_draw_type_update(NULL, NULL, ptr);
-  rna_Fluid_reset(bmain, scene, ptr);
 }
 
-static void rna_Fluid_bubble_parts_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Fluid_bubble_parts_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
   FluidModifierData *mmd;
@@ -244,15 +239,12 @@ static void rna_Fluid_bubble_parts_update(Main *bmain, Scene *scene, PointerRNA 
   }
   else {
     rna_Fluid_parts_delete(ptr, PART_FLUID_BUBBLE);
-    rna_Fluid_resetCache(bmain, scene, ptr);
-
     mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_BUBBLE;
   }
   rna_Fluid_draw_type_update(NULL, NULL, ptr);
-  rna_Fluid_reset(bmain, scene, ptr);
 }
 
-static void rna_Fluid_foam_parts_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Fluid_foam_parts_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
   FluidModifierData *mmd;
@@ -270,15 +262,12 @@ static void rna_Fluid_foam_parts_update(Main *bmain, Scene *scene, PointerRNA *p
   }
   else {
     rna_Fluid_parts_delete(ptr, PART_FLUID_FOAM);
-    rna_Fluid_resetCache(bmain, scene, ptr);
-
     mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_FOAM;
   }
   rna_Fluid_draw_type_update(NULL, NULL, ptr);
-  rna_Fluid_reset(bmain, scene, ptr);
 }
 
-static void rna_Fluid_tracer_parts_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Fluid_tracer_parts_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
   FluidModifierData *mmd;
@@ -296,12 +285,9 @@ static void rna_Fluid_tracer_parts_update(Main *bmain, Scene *scene, PointerRNA 
   }
   else {
     rna_Fluid_parts_delete(ptr, PART_FLUID_TRACER);
-    rna_Fluid_resetCache(bmain, scene, ptr);
-
     mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_TRACER;
   }
   rna_Fluid_draw_type_update(NULL, NULL, ptr);
-  rna_Fluid_reset(bmain, scene, ptr);
 }
 
 static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -311,101 +297,131 @@ static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerR
   mmd = (FluidModifierData *)modifiers_findByType(ob, eModifierType_Fluid);
 
   if (mmd->domain->sndparticle_combined_export == SNDPARTICLE_COMBINED_EXPORT_OFF) {
-    rna_Fluid_parts_delete(ptr, (PART_FLUID_SPRAY | PART_FLUID_FOAM | PART_FLUID_BUBBLE));
+    rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAYFOAM);
+    rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAYBUBBLE);
+    rna_Fluid_parts_delete(ptr, PART_FLUID_FOAMBUBBLE);
+    rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAYFOAMBUBBLE);
 
-    // re-add each particle type if enabled
-    if ((mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) != 0) {
+    bool exists_spray = rna_Fluid_parts_exists(ptr, PART_FLUID_SPRAY);
+    bool exists_foam = rna_Fluid_parts_exists(ptr, PART_FLUID_FOAM);
+    bool exists_bubble = rna_Fluid_parts_exists(ptr, PART_FLUID_BUBBLE);
+
+    /* Re-add each particle type if enabled and no particle system exists for them anymore. */
+    if ((mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) && !exists_spray) {
       rna_Fluid_spray_parts_update(bmain, scene, ptr);
     }
-    if ((mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) != 0) {
+    if ((mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) && !exists_foam) {
       rna_Fluid_foam_parts_update(bmain, scene, ptr);
     }
-    if ((mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) != 0) {
+    if ((mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) && !exists_bubble) {
       rna_Fluid_bubble_parts_update(bmain, scene, ptr);
     }
   }
   else if (mmd->domain->sndparticle_combined_export == SNDPARTICLE_COMBINED_EXPORT_SPRAY_FOAM) {
-    if (ob->type == OB_MESH &&
-        !rna_Fluid_parts_exists(ptr, (PART_FLUID_SPRAY | PART_FLUID_FOAM))) {
-      rna_Fluid_parts_delete(ptr, (PART_FLUID_SPRAY | PART_FLUID_FOAM));
-    }
-    rna_Fluid_parts_create(bmain,
-                           ptr,
-                           "SprayFoamParticleSettings",
-                           "Spray + Foam Particles",
-                           "Spray + Foam Particle System",
-                           (PART_FLUID_SPRAY | PART_FLUID_FOAM));
+    if (ob->type == OB_MESH && !rna_Fluid_parts_exists(ptr, PART_FLUID_SPRAYFOAM)) {
 
-    mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_SPRAY;
-    mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_FOAM;
+      rna_Fluid_parts_create(bmain,
+                             ptr,
+                             "SprayFoamParticleSettings",
+                             "Spray + Foam Particles",
+                             "Spray + Foam Particle System",
+                             PART_FLUID_SPRAYFOAM);
 
-    // re-add bubbles if enabled
-    if ((mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) != 0) {
-      rna_Fluid_bubble_parts_update(bmain, scene, ptr);
+      mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_SPRAY;
+      mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_FOAM;
+
+      rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAY);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_FOAM);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAYBUBBLE);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_FOAMBUBBLE);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAYFOAMBUBBLE);
+
+      /* Re-add spray if enabled and no particle system exists for it anymore. */
+      bool exists_bubble = rna_Fluid_parts_exists(ptr, PART_FLUID_BUBBLE);
+      if ((mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) && !exists_bubble) {
+        rna_Fluid_bubble_parts_update(bmain, scene, ptr);
+      }
     }
   }
   else if (mmd->domain->sndparticle_combined_export == SNDPARTICLE_COMBINED_EXPORT_SPRAY_BUBBLE) {
-    if (ob->type == OB_MESH &&
-        !rna_Fluid_parts_exists(ptr, (PART_FLUID_SPRAY | PART_FLUID_BUBBLE))) {
-      rna_Fluid_parts_delete(ptr, (PART_FLUID_SPRAY | PART_FLUID_BUBBLE));
-    }
-    rna_Fluid_parts_create(bmain,
-                           ptr,
-                           "SprayBubbleParticleSettings",
-                           "Spray + Bubble Particles",
-                           "Spray + Bubble Particle System",
-                           (PART_FLUID_SPRAY | PART_FLUID_BUBBLE));
+    if (ob->type == OB_MESH && !rna_Fluid_parts_exists(ptr, PART_FLUID_SPRAYBUBBLE)) {
 
-    mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_SPRAY;
-    mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_BUBBLE;
+      rna_Fluid_parts_create(bmain,
+                             ptr,
+                             "SprayBubbleParticleSettings",
+                             "Spray + Bubble Particles",
+                             "Spray + Bubble Particle System",
+                             PART_FLUID_SPRAYBUBBLE);
 
-    // re-add foam if enabled
-    if ((mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) != 0) {
-      rna_Fluid_foam_parts_update(bmain, scene, ptr);
+      mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_SPRAY;
+      mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_BUBBLE;
+
+      rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAY);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_BUBBLE);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAYFOAM);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_FOAMBUBBLE);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAYFOAMBUBBLE);
+
+      /* Re-add foam if enabled and no particle system exists for it anymore. */
+      bool exists_foam = rna_Fluid_parts_exists(ptr, PART_FLUID_FOAM);
+      if ((mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) && !exists_foam) {
+        rna_Fluid_foam_parts_update(bmain, scene, ptr);
+      }
     }
   }
   else if (mmd->domain->sndparticle_combined_export == SNDPARTICLE_COMBINED_EXPORT_FOAM_BUBBLE) {
-    if (ob->type == OB_MESH &&
-        !rna_Fluid_parts_exists(ptr, (PART_FLUID_FOAM | PART_FLUID_BUBBLE))) {
-      rna_Fluid_parts_delete(ptr, (PART_FLUID_FOAM | PART_FLUID_BUBBLE));
-    }
-    rna_Fluid_parts_create(bmain,
-                           ptr,
-                           "FoamBubbleParticleSettings",
-                           "Foam + Bubble Particles",
-                           "Foam + Bubble Particle System",
-                           (PART_FLUID_FOAM | PART_FLUID_BUBBLE));
+    if (ob->type == OB_MESH && !rna_Fluid_parts_exists(ptr, PART_FLUID_FOAMBUBBLE)) {
 
-    mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_FOAM;
-    mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_BUBBLE;
+      rna_Fluid_parts_create(bmain,
+                             ptr,
+                             "FoamBubbleParticleSettings",
+                             "Foam + Bubble Particles",
+                             "Foam + Bubble Particle System",
+                             PART_FLUID_FOAMBUBBLE);
 
-    // re-add spray if enabled
-    if ((mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) != 0) {
-      rna_Fluid_spray_parts_update(bmain, scene, ptr);
+      mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_FOAM;
+      mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_BUBBLE;
+
+      rna_Fluid_parts_delete(ptr, PART_FLUID_FOAM);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_BUBBLE);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAYFOAM);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAYBUBBLE);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAYFOAMBUBBLE);
+
+      /* Re-add foam if enabled and no particle system exists for it anymore. */
+      bool exists_spray = rna_Fluid_parts_exists(ptr, PART_FLUID_SPRAY);
+      if ((mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) && !exists_spray) {
+        rna_Fluid_spray_parts_update(bmain, scene, ptr);
+      }
     }
   }
   else if (mmd->domain->sndparticle_combined_export ==
            SNDPARTICLE_COMBINED_EXPORT_SPRAY_FOAM_BUBBLE) {
-    if (ob->type == OB_MESH &&
-        !rna_Fluid_parts_exists(ptr, (PART_FLUID_SPRAY | PART_FLUID_FOAM | PART_FLUID_BUBBLE))) {
-      rna_Fluid_parts_delete(ptr, (PART_FLUID_SPRAY | PART_FLUID_FOAM | PART_FLUID_BUBBLE));
-    }
-    rna_Fluid_parts_create(bmain,
-                           ptr,
-                           "SprayFoamBubbleParticleSettings",
-                           "Spray + Foam + Bubble Particles",
-                           "Spray + Foam + Bubble Particle System",
-                           (PART_FLUID_SPRAY | PART_FLUID_FOAM | PART_FLUID_BUBBLE));
+    if (ob->type == OB_MESH && !rna_Fluid_parts_exists(ptr, PART_FLUID_SPRAYFOAMBUBBLE)) {
 
-    mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_SPRAY;
-    mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_FOAM;
-    mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_BUBBLE;
+      rna_Fluid_parts_create(bmain,
+                             ptr,
+                             "SprayFoamBubbleParticleSettings",
+                             "Spray + Foam + Bubble Particles",
+                             "Spray + Foam + Bubble Particle System",
+                             PART_FLUID_SPRAYFOAMBUBBLE);
+
+      mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_SPRAY;
+      mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_FOAM;
+      mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_BUBBLE;
+
+      rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAY);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_FOAM);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_BUBBLE);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAYFOAM);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAYBUBBLE);
+      rna_Fluid_parts_delete(ptr, PART_FLUID_FOAMBUBBLE);
+    }
   }
   else {
     // sanity check, should not occur
     printf("ERROR: Unexpected combined export setting encountered!");
   }
-  rna_Fluid_resetCache(bmain, scene, ptr);
   rna_Fluid_draw_type_update(NULL, NULL, ptr);
 }
 
@@ -997,13 +1013,18 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
        "REPLAY",
        0,
        "Replay",
-       "Use the timeline to bake the scene. Pausing and resuming possible."},
+       "Use the timeline to bake the scene. Pausing and resuming possible"},
       {FLUID_DOMAIN_CACHE_MODULAR,
        "MODULAR",
        0,
        "Modular",
-       "Bake every stage of the simulation on its own. Can pause and resume bake jobs."},
-      {FLUID_DOMAIN_CACHE_FINAL, "FINAL", 0, "Final", "Bake the entire simulation at once."},
+       "Bake every stage of the simulation on its own. Pausing and resuming possible"},
+      {FLUID_DOMAIN_CACHE_FINAL,
+       "FINAL",
+       0,
+       "Final",
+       "Bake the entire simulation at once. Only produces the most essential cache files. Pausing "
+       "and resuming not possible"},
       {0, NULL, 0, NULL, NULL}};
 
   static const EnumPropertyItem smoke_data_depth_items[] = {
@@ -1537,7 +1558,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "particle_type", FLUID_DOMAIN_PARTICLE_FLIP);
   RNA_def_property_ui_text(prop, "FLIP", "Create FLIP particle system");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, 0, "rna_Fluid_flip_parts_update");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Fluid_flip_parts_update");
 
   prop = RNA_def_property(srna, "use_fractions", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", FLUID_DOMAIN_USE_FRACTIONS);
@@ -1822,25 +1843,25 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "particle_type", FLUID_DOMAIN_PARTICLE_SPRAY);
   RNA_def_property_ui_text(prop, "Spray", "Create spray particle system");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, 0, "rna_Fluid_spray_parts_update");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Fluid_spray_parts_update");
 
   prop = RNA_def_property(srna, "use_bubble_particles", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "particle_type", FLUID_DOMAIN_PARTICLE_BUBBLE);
   RNA_def_property_ui_text(prop, "Bubble", "Create bubble particle system");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, 0, "rna_Fluid_bubble_parts_update");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Fluid_bubble_parts_update");
 
   prop = RNA_def_property(srna, "use_foam_particles", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "particle_type", FLUID_DOMAIN_PARTICLE_FOAM);
   RNA_def_property_ui_text(prop, "Foam", "Create foam particle system");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, 0, "rna_Fluid_foam_parts_update");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Fluid_foam_parts_update");
 
   prop = RNA_def_property(srna, "use_tracer_particles", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "particle_type", FLUID_DOMAIN_PARTICLE_TRACER);
   RNA_def_property_ui_text(prop, "Tracer", "Create tracer particle system");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, 0, "rna_Fluid_tracer_parts_update");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Fluid_tracer_parts_update");
 
   /* fluid guiding options */
 

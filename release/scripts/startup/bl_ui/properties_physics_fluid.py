@@ -1088,13 +1088,7 @@ class PHYSICS_PT_cache(PhysicButtonsPanel, Panel):
             col.separator()
             split = layout.split()
 
-            bake_incomplete = (domain.cache_frame_pause_data < domain.cache_frame_end)
-            if domain.has_cache_baked_data and not domain.is_cache_baking_data and bake_incomplete:
-                col = split.column()
-                col.operator("fluid.bake_all", text="Resume")
-                col = split.column()
-                col.operator("fluid.free_all", text="Free")
-            elif domain.is_cache_baking_data and not domain.has_cache_baked_data:
+            if domain.is_cache_baking_data and not domain.has_cache_baked_data:
                 split.enabled = False
                 split.operator("fluid.pause_bake", text="Baking All - ESC to pause")
             elif not domain.has_cache_baked_data and not domain.is_cache_baking_data:

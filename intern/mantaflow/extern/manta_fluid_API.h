@@ -218,6 +218,9 @@ float manta_liquid_get_snd_particle_position_z_at(struct MANTA *liquid, int i);
 float manta_liquid_get_snd_particle_velocity_x_at(struct MANTA *liquid, int i);
 float manta_liquid_get_snd_particle_velocity_y_at(struct MANTA *liquid, int i);
 float manta_liquid_get_snd_particle_velocity_z_at(struct MANTA *liquid, int i);
+bool manta_liquid_flip_from_file(struct MANTA *liquid);
+bool manta_liquid_mesh_from_file(struct MANTA *liquid);
+bool manta_liquid_particle_from_file(struct MANTA *liquid);
 
 #ifdef __cplusplus
 }
