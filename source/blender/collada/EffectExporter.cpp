@@ -112,26 +112,22 @@ void EffectsExporter::set_transparency(COLLADASW::EffectProfile &ep, Material *m
 
 void EffectsExporter::set_diffuse_color(COLLADASW::EffectProfile &ep, Material *ma)
 {
-  // get diffuse color
   COLLADASW::ColorOrTexture cot = bc_get_base_color(ma);
   ep.setDiffuse(cot, false, "diffuse");
 }
 
 void EffectsExporter::set_ambient(COLLADASW::EffectProfile &ep, Material *ma)
 {
-  // get diffuse color
   COLLADASW::ColorOrTexture cot = bc_get_ambient(ma);
   ep.setAmbient(cot, false, "ambient");
 }
 void EffectsExporter::set_specular(COLLADASW::EffectProfile &ep, Material *ma)
 {
-  // get diffuse color
   COLLADASW::ColorOrTexture cot = bc_get_specular(ma);
   ep.setSpecular(cot, false, "specular");
 }
 void EffectsExporter::set_reflective(COLLADASW::EffectProfile &ep, Material *ma)
 {
-  // get diffuse color
   COLLADASW::ColorOrTexture cot = bc_get_reflective(ma);
   ep.setReflective(cot, false, "reflective");
 }
