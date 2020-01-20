@@ -51,7 +51,7 @@
 // Must be overwritten when this header file is used with the optionally also
 // built static library instead; set by CMake's INTERFACE_COMPILE_DEFINITIONS.
 #ifndef GFLAGS_IS_A_DLL
-#  define GFLAGS_IS_A_DLL 1
+#  define GFLAGS_IS_A_DLL 0
 #endif
 
 // We always want to import the symbols of the gflags library.
