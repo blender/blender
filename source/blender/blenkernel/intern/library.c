@@ -294,6 +294,11 @@ void id_fake_user_clear(ID *id)
   }
 }
 
+int BKE_id_num_real_users(const ID *id)
+{
+  return (id->flag & LIB_FAKEUSER) ? id->us - 1 : id->us;
+}
+
 void BKE_id_clear_newpoin(ID *id)
 {
   if (id->newid) {

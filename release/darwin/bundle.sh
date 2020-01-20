@@ -104,7 +104,7 @@ _image_size=$(echo "${_directory_size}" + 400 | bc) # extra 400 need for codesig
 echo
 echo -n "Creating disk image of size ${_image_size}M.."
 test -f "${_tmp_dmg}" && rm "${_tmp_dmg}"
-hdiutil create -size "${_image_size}m" -fs HFS+ -srcfolder "${_tmp_dir}" -volname "${_volume_name}" -format UDRW "${_tmp_dmg}"
+hdiutil create -size "${_image_size}m" -fs HFS+ -srcfolder "${_tmp_dir}" -volname "${_volume_name}" -format UDRW "${_tmp_dmg}" -uid 0 -gid 0 -mode 755
 
 echo "Mounting readwrite image..."
 hdiutil attach -readwrite -noverify -noautoopen "${_tmp_dmg}"

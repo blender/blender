@@ -43,6 +43,7 @@ if(WITH_OPENVDB)
   if(WIN32)
     add_definitions(
       -DOPENVDB_STATICLIB
+      -D_USE_MATH_DEFINES
     )
   endif()
 

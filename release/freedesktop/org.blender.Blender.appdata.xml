@@ -44,18 +44,19 @@
             <description>
                 <p>New features:</p>
                 <ul>
-                    <li>Grease pencil stroke</li>
-                    <li>Custom bevel profiles and cutoff vertex mesh method</li>
-                    <li>Custom render passes possible for Cycles</li>
-                    <li>UDIM support</li>
-                    <li>Basic USD export</li>
-                    <li>Mantaflow integration</li<
+                    <li>New Mantaflow fluid and smoke simulation system</li>
+                    <li>UDIM textures for rendering and painting</li>
+                    <li>USD scene export</li>
+                    <li>Bevel custom profiles</li>
+                    <li>Cycles custom shader AOVs</li>
+                    <li>Cloth air pressure simulation</li>
+                    <li>Weld modifier for meshes</li>
                 </ul>
-                <ul>
                 <p>Enhancements:</p>
-                    <li>Improvements to rigging and animation tools</li>
-                    <li>Many grease pencil improvements</li>
-                    <li>Many sculpting tool improvements</li>
+                <ul>
+                    <li>New and improved sculpt tools</li>
+                    <li>New grease pencil tools and modifiers</li>
+                    <li>New bone and constraint settings for rigging</li>
                 </ul>
             </description>
         </release>
@@ -69,7 +70,6 @@
                     <li>Revamped shaders for texturing</li>
                     <li>Cycles denoising with OpenImageDenoise and NVIDIA RTX support</li>
                     <li>Library overrides to make local overrides to linked characters and other data</li>
-                    <li>
                 </ul>
                 <ul>
                 <p>Enhancements:</p>
