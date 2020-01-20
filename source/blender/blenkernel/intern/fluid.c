@@ -3719,7 +3719,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
         has_data = manta_read_data(mds->fluid, mmd, data_frame);
       }
       if (with_liquid) {
-        if (!baking_data && !baking_particles && !baking_mesh) {
+        if (!baking_data && !baking_particles && !baking_mesh && !mode_replay) {
           has_data = manta_update_liquid_structures(mds->fluid, mmd, data_frame);
         }
         else {
