@@ -193,27 +193,26 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
   }
   uiItemL(col, name, icon);
 
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
   /* RNA-Path Editing - only really should be enabled when things aren't working */
-  col = uiLayoutColumn(layout, true);
+  col = uiLayoutColumn(layout, false);
   uiLayoutSetEnabled(col, (fcu->flag & FCURVE_DISABLED) != 0);
   uiItemR(col, &fcu_ptr, "data_path", 0, "", ICON_RNA);
   uiItemR(col, &fcu_ptr, "array_index", 0, NULL, ICON_NONE);
 
   /* color settings */
   col = uiLayoutColumn(layout, true);
-  uiItemL(col, IFACE_("Display Color:"), ICON_NONE);
+  uiItemR(col, &fcu_ptr, "color_mode", 0, "Display Color", ICON_NONE);
 
-  row = uiLayoutRow(col, true);
-  uiItemR(row, &fcu_ptr, "color_mode", 0, "", ICON_NONE);
-
-  sub = uiLayoutRow(row, true);
-  uiLayoutSetEnabled(sub, (fcu->color_mode == FCURVE_COLOR_CUSTOM));
-  uiItemR(sub, &fcu_ptr, "color", 0, "", ICON_NONE);
+  if (fcu->color_mode == FCURVE_COLOR_CUSTOM) {
+    uiItemR(col, &fcu_ptr, "color", 0, "Color", ICON_NONE);
+  }
 
   /* smoothing setting */
   col = uiLayoutColumn(layout, true);
-  uiItemL(col, IFACE_("Auto Handle Smoothing:"), ICON_NONE);
-  uiItemR(col, &fcu_ptr, "auto_smoothing", 0, "", ICON_NONE);
+  uiItemR(col, &fcu_ptr, "auto_smoothing", 0, "Handle Smoothing", ICON_NONE);
 
   MEM_freeN(ale);
 }
@@ -339,6 +338,9 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
   BezTriple *bezt, *prevbezt;
 
   uiLayout *layout = pa->layout;
+  const ARegion *ar = CTX_wm_region(C);
+  /* Just a width big enough so buttons use entire layout width (will be clamped by it then). */
+  const int but_max_width = ar->winx;
   uiLayout *col;
   uiBlock *block;
 
@@ -348,6 +350,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 
   block = uiLayoutGetBlock(layout);
   /* UI_block_func_handle_set(block, do_graph_region_buttons, NULL); */
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
 
   /* only show this info if there are keyframes to edit */
   if (get_active_fcurve_keyframe_edit(fcu, &bezt, &prevbezt)) {
@@ -404,33 +408,15 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
     col = uiLayoutColumn(layout, true);
     /* keyframe itself */
     {
-      uiItemL(col, IFACE_("Key:"), ICON_NONE);
 
+      uiItemL_respect_property_split(col, IFACE_("Key Value"), ICON_NONE);
       but = uiDefButR(block,
                       UI_BTYPE_NUM,
                       B_REDR,
-                      IFACE_("Frame:"),
+                      "",
                       0,
                       0,
-                      UI_UNIT_X,
-                      UI_UNIT_Y,
-                      &bezt_ptr,
-                      "co",
-                      0,
-                      0,
-                      0,
-                      -1,
-                      -1,
-                      NULL);
-      UI_but_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
-
-      but = uiDefButR(block,
-                      UI_BTYPE_NUM,
-                      B_REDR,
-                      IFACE_("Value:"),
-                      0,
-                      0,
-                      UI_UNIT_X,
+                      but_max_width,
                       UI_UNIT_Y,
                       &bezt_ptr,
                       "co",
@@ -442,19 +428,40 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
                       NULL);
       UI_but_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
       UI_but_unit_type_set(but, unit);
+
+      uiItemL_respect_property_split(col, IFACE_("Frame"), ICON_NONE);
+      but = uiDefButR(block,
+                      UI_BTYPE_NUM,
+                      B_REDR,
+                      "",
+                      0,
+                      0,
+                      but_max_width,
+                      UI_UNIT_Y,
+                      &bezt_ptr,
+                      "co",
+                      0,
+                      0,
+                      0,
+                      -1,
+                      -1,
+                      NULL);
+      UI_but_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
     }
 
     /* previous handle - only if previous was Bezier interpolation */
     if ((prevbezt) && (prevbezt->ipo == BEZT_IPO_BEZ)) {
-      uiItemL(col, IFACE_("Left Handle:"), ICON_NONE);
 
+      col = uiLayoutColumn(layout, true);
+
+      uiItemL_respect_property_split(col, IFACE_("Left Handle X"), ICON_NONE);
       but = uiDefButR(block,
                       UI_BTYPE_NUM,
                       B_REDR,
-                      "X:",
+                      "",
                       0,
                       0,
-                      UI_UNIT_X,
+                      but_max_width,
                       UI_UNIT_Y,
                       &bezt_ptr,
                       "handle_left",
@@ -466,13 +473,14 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
                       NULL);
       UI_but_func_set(but, graphedit_activekey_left_handle_coord_cb, fcu, bezt);
 
+      uiItemL_respect_property_split(col, IFACE_("Y"), ICON_NONE);
       but = uiDefButR(block,
                       UI_BTYPE_NUM,
                       B_REDR,
-                      "Y:",
+                      "",
                       0,
                       0,
-                      UI_UNIT_X,
+                      but_max_width,
                       UI_UNIT_Y,
                       &bezt_ptr,
                       "handle_left",
@@ -485,14 +493,14 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
       UI_but_func_set(but, graphedit_activekey_left_handle_coord_cb, fcu, bezt);
       UI_but_unit_type_set(but, unit);
 
-      /* XXX: with label? */
+      uiItemL_respect_property_split(col, IFACE_("Type"), ICON_NONE);
       but = uiDefButR(block,
                       UI_BTYPE_MENU,
                       B_REDR,
                       NULL,
                       0,
                       0,
-                      UI_UNIT_X,
+                      but_max_width,
                       UI_UNIT_Y,
                       &bezt_ptr,
                       "handle_left_type",
@@ -508,15 +516,16 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
     /* next handle - only if current is Bezier interpolation */
     if (bezt->ipo == BEZT_IPO_BEZ) {
       /* NOTE: special update callbacks are needed on the coords here due to T39911 */
-      uiItemL(col, IFACE_("Right Handle:"), ICON_NONE);
 
+      col = uiLayoutColumn(layout, true);
+      uiItemL_respect_property_split(col, IFACE_("Right Handle X"), ICON_NONE);
       but = uiDefButR(block,
                       UI_BTYPE_NUM,
                       B_REDR,
-                      "X:",
+                      "",
                       0,
                       0,
-                      UI_UNIT_X,
+                      but_max_width,
                       UI_UNIT_Y,
                       &bezt_ptr,
                       "handle_right",
@@ -528,13 +537,14 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
                       NULL);
       UI_but_func_set(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
 
+      uiItemL_respect_property_split(col, IFACE_("Y"), ICON_NONE);
       but = uiDefButR(block,
                       UI_BTYPE_NUM,
                       B_REDR,
-                      "Y:",
+                      "",
                       0,
                       0,
-                      UI_UNIT_X,
+                      but_max_width,
                       UI_UNIT_Y,
                       &bezt_ptr,
                       "handle_right",
@@ -547,14 +557,14 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
       UI_but_func_set(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
       UI_but_unit_type_set(but, unit);
 
-      /* XXX: with label? */
+      uiItemL_respect_property_split(col, IFACE_("Type"), ICON_NONE);
       but = uiDefButR(block,
                       UI_BTYPE_MENU,
                       B_REDR,
                       NULL,
                       0,
                       0,
-                      UI_UNIT_X,
+                      but_max_width,
                       UI_UNIT_Y,
                       &bezt_ptr,
                       "handle_right_type",
