@@ -1547,10 +1547,10 @@ void render_result_rect_get_pixels(RenderResult *rr,
 {
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
-  if (rv->rect32) {
+  if (rv && rv->rect32) {
     memcpy(rect, rv->rect32, sizeof(int) * rr->rectx * rr->recty);
   }
-  else if (rv->rectf) {
+  else if (rv && rv->rectf) {
     IMB_display_buffer_transform_apply((unsigned char *)rect,
                                        rv->rectf,
                                        rr->rectx,
