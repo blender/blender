@@ -1018,6 +1018,11 @@ static void camera_stereoscopy_extra(OVERLAY_ExtraCallBuffers *cb,
   const bool is_stereo3d_plane = (v3d->stereo3d_flag & V3D_S3D_DISPPLANE) != 0;
   const bool is_stereo3d_volume = (v3d->stereo3d_flag & V3D_S3D_DISPVOLUME) != 0;
 
+  if (!is_stereo3d_cameras) {
+    /* Draw single camera. */
+    DRW_buffer_add_entry_struct(cb->camera_frame, instdata);
+  }
+
   for (int eye = 0; eye < 2; eye++) {
     ob = BKE_camera_multiview_render(scene, ob, viewnames[eye]);
     BKE_camera_multiview_model_matrix(&scene->r, ob, viewnames[eye], stereodata.mat);
