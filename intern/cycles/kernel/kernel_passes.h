@@ -58,7 +58,8 @@ ccl_device_inline void kernel_update_denoising_features(KernelGlobals *kg,
   }
 
   float3 normal = make_float3(0.0f, 0.0f, 0.0f);
-  float3 albedo = make_float3(0.0f, 0.0f, 0.0f);
+  float3 diffuse_albedo = make_float3(0.0f, 0.0f, 0.0f);
+  float3 specular_albedo = make_float3(0.0f, 0.0f, 0.0f);
   float sum_weight = 0.0f, sum_nonspecular_weight = 0.0f;
 
   for (int i = 0; i < sd->num_closure; i++) {
@@ -70,23 +71,27 @@ ccl_device_inline void kernel_update_denoising_features(KernelGlobals *kg,
     /* All closures contribute to the normal feature, but only diffuse-like ones to the albedo. */
     normal += sc->N * sc->sample_weight;
     sum_weight += sc->sample_weight;
-    if (bsdf_get_specular_roughness_squared(sc) > sqr(0.075f)) {
-      float3 closure_albedo = sc->weight;
-      /* Closures that include a Fresnel term typically have weights close to 1 even though their
-       * actual contribution is significantly lower.
-       * To account for this, we scale their weight by the average fresnel factor (the same is also
-       * done for the sample weight in the BSDF setup, so we don't need to scale that here). */
-      if (CLOSURE_IS_BSDF_MICROFACET_FRESNEL(sc->type)) {
-        MicrofacetBsdf *bsdf = (MicrofacetBsdf *)sc;
-        closure_albedo *= bsdf->extra->fresnel_color;
-      }
-      else if (sc->type == CLOSURE_BSDF_PRINCIPLED_SHEEN_ID) {
-        PrincipledSheenBsdf *bsdf = (PrincipledSheenBsdf *)sc;
-        closure_albedo *= bsdf->avg_value;
-      }
 
-      albedo += closure_albedo;
+    float3 closure_albedo = sc->weight;
+    /* Closures that include a Fresnel term typically have weights close to 1 even though their
+     * actual contribution is significantly lower.
+     * To account for this, we scale their weight by the average fresnel factor (the same is also
+     * done for the sample weight in the BSDF setup, so we don't need to scale that here). */
+    if (CLOSURE_IS_BSDF_MICROFACET_FRESNEL(sc->type)) {
+      MicrofacetBsdf *bsdf = (MicrofacetBsdf *)sc;
+      closure_albedo *= bsdf->extra->fresnel_color;
+    }
+    else if (sc->type == CLOSURE_BSDF_PRINCIPLED_SHEEN_ID) {
+      PrincipledSheenBsdf *bsdf = (PrincipledSheenBsdf *)sc;
+      closure_albedo *= bsdf->avg_value;
+    }
+
+    if (bsdf_get_specular_roughness_squared(sc) > sqr(0.075f)) {
+      diffuse_albedo += closure_albedo;
       sum_nonspecular_weight += sc->sample_weight;
+    }
+    else {
+      specular_albedo += closure_albedo;
     }
   }
 
@@ -101,9 +106,13 @@ ccl_device_inline void kernel_update_denoising_features(KernelGlobals *kg,
     normal = transform_direction(&worldtocamera, normal);
 
     L->denoising_normal += ensure_finite3(state->denoising_feature_weight * normal);
-    L->denoising_albedo += ensure_finite3(state->denoising_feature_weight * albedo);
+    L->denoising_albedo += ensure_finite3(state->denoising_feature_weight *
+                                          state->denoising_feature_throughput * diffuse_albedo);
 
     state->denoising_feature_weight = 0.0f;
+  }
+  else {
+    state->denoising_feature_throughput *= specular_albedo;
   }
 }
 #endif /* __DENOISING_FEATURES__ */

@@ -1057,6 +1057,7 @@ typedef struct PathState {
 
 #ifdef __DENOISING_FEATURES__
   float denoising_feature_weight;
+  float3 denoising_feature_throughput;
 #endif /* __DENOISING_FEATURES__ */
 
   /* multiple importance sampling */

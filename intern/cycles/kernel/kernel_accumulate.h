@@ -528,7 +528,8 @@ ccl_device_inline void path_radiance_accum_background(KernelGlobals *kg,
   }
 
 #ifdef __DENOISING_FEATURES__
-  L->denoising_albedo += state->denoising_feature_weight * value;
+  L->denoising_albedo += state->denoising_feature_weight * state->denoising_feature_throughput *
+                         value;
 #endif /* __DENOISING_FEATURES__ */
 }
 
