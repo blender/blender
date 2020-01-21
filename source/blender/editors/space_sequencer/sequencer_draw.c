@@ -1023,27 +1023,25 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain,
   SeqRenderData context = {0};
   ImBuf *ibuf;
   int rectx, recty;
-  float render_size;
-  float proxy_size = 100.0;
+  double render_size;
   short is_break = G.is_break;
 
-  render_size = sseq->render_size;
-  if (render_size == 0) {
-    render_size = scene->r.size;
-  }
-  else {
-    proxy_size = render_size;
-  }
-
-  if (render_size < 0) {
+  if (sseq->render_size == SEQ_PROXY_RENDER_SIZE_NONE) {
     return NULL;
   }
 
-  rectx = (render_size * (float)scene->r.xsch) / 100.0f + 0.5f;
-  recty = (render_size * (float)scene->r.ysch) / 100.0f + 0.5f;
+  if (sseq->render_size == SEQ_PROXY_RENDER_SIZE_SCENE) {
+    render_size = scene->r.size / 100.0;
+  }
+  else {
+    render_size = BKE_sequencer_rendersize_to_scale_factor(sseq->render_size);
+  }
+
+  rectx = render_size * scene->r.xsch + 0.5;
+  recty = render_size * scene->r.ysch + 0.5;
 
   BKE_sequencer_new_render_data(
-      bmain, depsgraph, scene, rectx, recty, proxy_size, false, &context);
+      bmain, depsgraph, scene, rectx, recty, sseq->render_size, false, &context);
   context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
 
   /* Sequencer could start rendering, in this case we need to be sure it wouldn't be canceled
@@ -1628,23 +1626,19 @@ void sequencer_draw_preview(const bContext *C,
 void drawprefetchseqspace(Scene *scene, ARegion *UNUSED(ar), SpaceSeq *sseq)
 {
   int rectx, recty;
-  int render_size = sseq->render_size;
-  int proxy_size = 100.0;
-  if (render_size == 0) {
-    render_size = scene->r.size;
-  }
-  else {
-    proxy_size = render_size;
-  }
-  if (render_size < 0) {
+  int render_size = BKE_sequencer_rendersize_to_scale_factor(sseq->render_size);
+  if (sseq->render_size == SEQ_PROXY_RENDER_SIZE_NONE) {
     return;
   }
 
-  rectx = (render_size * scene->r.xsch) / 100;
-  recty = (render_size * scene->r.ysch) / 100;
+  if (sseq->render_size == SEQ_PROXY_RENDER_SIZE_SCENE) {
+    render_size = scene->r.size / 100.0;
+  }
+  rectx = render_size * scene->r.xsch + 0.5;
+  recty = render_size * scene->r.ysch + 0.5;
 
   if (sseq->mainb != SEQ_DRAW_SEQUENCE) {
-    give_ibuf_prefetch_request(rectx, recty, (scene->r.cfra), sseq->chanshown, proxy_size);
+    give_ibuf_prefetch_request(rectx, recty, (scene->r.cfra), sseq->chanshown, sseq->render_size);
   }
 }
 #endif
