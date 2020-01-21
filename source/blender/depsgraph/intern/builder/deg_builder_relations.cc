@@ -47,6 +47,7 @@ extern "C" {
 #include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
@@ -535,6 +536,9 @@ void DepsgraphRelationBuilder::build_id(ID *id)
       break;
     case ID_MSK:
       build_mask((Mask *)id);
+      break;
+    case ID_LS:
+      build_freestyle_linestyle((FreestyleLineStyle *)id);
       break;
     case ID_MC:
       build_movieclip((MovieClip *)id);
@@ -2427,6 +2431,18 @@ void DepsgraphRelationBuilder::build_mask(Mask *mask)
       }
     }
   }
+}
+
+void DepsgraphRelationBuilder::build_freestyle_linestyle(FreestyleLineStyle *linestyle)
+{
+  if (built_map_.checkIsBuiltAndTag(linestyle)) {
+    return;
+  }
+
+  ID *linestyle_id = &linestyle->id;
+  build_parameters(linestyle_id);
+  build_animdata(linestyle_id);
+  build_nodetree(linestyle->nodetree);
 }
 
 void DepsgraphRelationBuilder::build_movieclip(MovieClip *clip)

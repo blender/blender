@@ -37,6 +37,7 @@
 extern "C" {
 #include "DNA_freestyle_types.h"
 #include "DNA_layer_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -71,6 +72,16 @@ void DepsgraphNodeBuilder::build_layer_collections(ListBase *lb)
       build_collection(lc, lc->collection);
     }
     build_layer_collections(&lc->layer_collections);
+  }
+}
+
+void DepsgraphNodeBuilder::build_freestyle_lineset(FreestyleLineSet *fls)
+{
+  if (fls->group != NULL) {
+    build_collection(NULL, fls->group);
+  }
+  if (fls->linestyle != NULL) {
+    build_freestyle_linestyle(fls->linestyle);
   }
 }
 
@@ -140,11 +151,9 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
   if (view_layer->mat_override != NULL) {
     build_material(view_layer->mat_override);
   }
-  /* Freestyle collections. */
+  /* Freestyle linesets. */
   LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
-    if (fls->group != NULL) {
-      build_collection(NULL, fls->group);
-    }
+    build_freestyle_lineset(fls);
   }
   /* Sequencer. */
   if (linked_state == DEG_ID_LINKED_DIRECTLY) {

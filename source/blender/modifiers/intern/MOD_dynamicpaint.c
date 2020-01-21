@@ -178,7 +178,7 @@ ModifierTypeInfo modifierType_DynamicPaint = {
     /* structSize */ sizeof(DynamicPaintModifierData),
     /* type */ eModifierTypeType_Constructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh |
-        /*                          eModifierTypeFlag_SupportsMapping |*/
+        eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_UsesPointCache | eModifierTypeFlag_Single |
         eModifierTypeFlag_UsesPreview,
 
