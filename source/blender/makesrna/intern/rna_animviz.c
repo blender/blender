@@ -63,6 +63,8 @@ static void rna_AnimViz_path_start_frame_set(PointerRNA *ptr, int value)
 
   /* XXX: watchit! Path Start > MAXFRAME/2 could be a problem... */
   data->path_sf = value;
+  FRAMENUMBER_MIN_CLAMP(data->path_sf);
+
   CLAMP(data->path_ef, data->path_sf + 1, MAXFRAME / 2);
 }
 
@@ -71,7 +73,11 @@ static void rna_AnimViz_path_end_frame_set(PointerRNA *ptr, int value)
   bAnimVizSettings *data = (bAnimVizSettings *)ptr->data;
 
   data->path_ef = value;
-  CLAMP(data->path_sf, 1, data->path_ef - 1);
+  CLAMP_MAX(data->path_sf, data->path_ef - 1);
+  if (U.flag & USER_NONEGFRAMES) {
+    CLAMP_MIN(data->path_sf, 0);
+    CLAMP_MIN(data->path_ef, 1);
+  }
 }
 
 #else
