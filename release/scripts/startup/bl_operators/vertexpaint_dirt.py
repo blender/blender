@@ -37,6 +37,20 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
     from math import acos
     import array
 
+    # We simulate the accumulation of dirt in the creases of geometric surfaces
+    # by comparing the vertex normal to the average direction of all vertices
+    # connected to that vertex. We can also simulate surfaces being buffed or
+    # worn by testing protruding surfaces.
+    #
+    # So if the angle between the normal and geometric direction is:
+    # < 90 - dirt has accumulated in the crease
+    # > 90 - surface has been worn or buffed
+    # ~ 90 - surface is flat and is generally unworn and clean
+    #
+    # This method is limited by the complexity or lack there of in the geometry.
+    #
+    # Original code and method by Keith "Wahooney" Boshoff.
+
     vert_tone = array.array("f", [0.0]) * len(me.vertices)
 
     # create lookup table for each vertex's connected vertices (via edges)
