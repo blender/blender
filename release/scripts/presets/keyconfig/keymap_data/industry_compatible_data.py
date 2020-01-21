@@ -3669,7 +3669,7 @@ def km_generic_gizmo_maybe_drag(params):
 # ------------------------------------------------------------------------------
 # Full Configuration
 
-def generate_keymaps(params=None):
+def generate_keymaps_impl(params=None):
     if params is None:
         params = Params()
     return [
@@ -3768,3 +3768,50 @@ def generate_keymaps(params=None):
         km_3d_view_tool_scale(params),
 
     ]
+
+
+def keymap_transform_tool_mmb(keymap):
+    import re
+    # Any tool besides fallback tools.
+    re_fallback_tool = re.compile(
+        r".*\bTool:\s(?!"
+        r".*\bSelect Box$|"
+        r".*\bSelect Circle$|"
+        r".*\bSelect Lasso$|"
+        r".*\bTweak$)",
+    )
+    for km_name, km_args, km_content in keymap:
+        if re_fallback_tool.match(km_name):
+            km_items = km_content["items"]
+            km_items_new = []
+            for kmi in km_items:
+                ty = kmi[1]["type"]
+                if ty == 'LEFTMOUSE':
+                    kmi = (kmi[0], kmi[1].copy(), kmi[2])
+                    kmi[1]["type"] = 'MIDDLEMOUSE'
+                    km_items_new.append(kmi)
+                elif ty == 'EVT_TWEAK_L':
+                    kmi = (kmi[0], kmi[1].copy(), kmi[2])
+                    kmi[1]["type"] = 'EVT_TWEAK_M'
+                    km_items_new.append(kmi)
+            km_items.extend(km_items_new)
+
+
+def generate_keymaps(params=None):
+    import os
+    from bpy.utils import execfile
+    keymap = generate_keymaps_impl(params)
+
+    # Combine the key-map to support manipulating it, so we don't need to manually
+    # define key-map here just to manipulate them.
+    blender_default = execfile(
+        os.path.join(os.path.dirname(__file__), "blender_default.py"),
+    ).generate_keymaps()
+
+    keymap_existing_names = {km[0] for km in keymap}
+    keymap.extend([km for km in blender_default if km[0] not in keymap_existing_names])
+
+    # Manipulate the key-map.
+    keymap_transform_tool_mmb(keymap)
+
+    return keymap
