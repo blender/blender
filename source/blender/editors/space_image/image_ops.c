@@ -3356,6 +3356,9 @@ static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 /* Returns color in linear space, matching ED_space_node_color_sample(). */
 bool ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], float r_col[3])
 {
+  if (sima->image == NULL) {
+    return false;
+  }
   float uv[2];
   UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &uv[0], &uv[1]);
   int tile = BKE_image_get_tile_from_pos(sima->image, uv, uv, NULL);
