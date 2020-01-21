@@ -163,6 +163,8 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
 
   const float ofs_front = (smd->offset_fac + 1.0f) * 0.5f * smd->offset;
   const float ofs_back = ofs_front - smd->offset * smd->offset_fac;
+  const float ofs_front_clamped = max_ff(1e-5f, fabsf(smd->offset > 0 ? ofs_front : ofs_back));
+  const float ofs_back_clamped = max_ff(1e-5f, fabsf(smd->offset > 0 ? ofs_back : ofs_front));
   const float offset_fac_vg = smd->offset_fac_vg;
   const float offset_fac_vg_inv = 1.0f - smd->offset_fac_vg;
   const float offset = fabsf(smd->offset) * smd->offset_clamp;
@@ -1262,15 +1264,16 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                     NewFaceRef *face = edge->faces[l];
                     if (face && (first_edge == NULL ||
                                  (first_edge->faces[0] != face && first_edge->faces[1] != face))) {
+                      const float ofs = face->reversed ? ofs_back_clamped : ofs_front_clamped;
                       if (!null_faces[face->index]) {
                         mul_v3_v3fl(normals_queue[queue_index],
                                     poly_nors[face->index],
                                     face->reversed ? -1 : 1);
-                        normals_queue[queue_index++][3] = face->reversed ? ofs_back : ofs_front;
+                        normals_queue[queue_index++][3] = ofs;
                       }
                       else {
                         mul_v3_v3fl(face_nors[0], poly_nors[face->index], face->reversed ? -1 : 1);
-                        nor_ofs[0] = face->reversed ? ofs_back : ofs_front;
+                        nor_ofs[0] = ofs;
                       }
                     }
                   }
@@ -1280,7 +1283,7 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                 }
               }
               uint face_nors_len = 0;
-              const float stop_explosion = 1 - fabsf(smd->offset_fac) * 0.05f;
+              const float stop_explosion = 0.999f - fabsf(smd->offset_fac) * 0.05f;
               while (queue_index > 0) {
                 if (face_nors_len == 0) {
                   if (queue_index <= 2) {
@@ -1371,50 +1374,23 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
               }
               MEM_freeN(normals_queue);
               /* When up to 3 constraint normals are found. */
-              float d, q;
-              switch (face_nors_len) {
-                case 0:
-                  mul_v3_v3fl(nor, face_nors[0], nor_ofs[0]);
-                  disable_boundary_fix = true;
-                  break;
-                case 1:
-                  mul_v3_v3fl(nor, face_nors[0], nor_ofs[0]);
-                  disable_boundary_fix = true;
-                  break;
-                case 2:
-                  q = dot_v3v3(face_nors[0], face_nors[1]);
-                  d = 1.0f - q * q;
-                  if (LIKELY(d > FLT_EPSILON) && q < stop_explosion) {
-                    d = 1.0f / d;
-                    mul_v3_fl(face_nors[0], (nor_ofs[0] - nor_ofs[1] * q) * d);
-                    mul_v3_fl(face_nors[1], (nor_ofs[1] - nor_ofs[0] * q) * d);
-                    add_v3_v3v3(nor, face_nors[0], face_nors[1]);
-                  }
-                  else {
-                    mul_v3_fl(face_nors[0], nor_ofs[0] * 0.5f);
-                    mul_v3_fl(face_nors[1], nor_ofs[1] * 0.5f);
-                    add_v3_v3v3(nor, face_nors[0], face_nors[1]);
-                  }
-                  if (!disable_boundary_fix) {
-                    cross_v3_v3v3(move_nor, face_nors[0], face_nors[1]);
-                  }
-                  break;
-                case 3:
-                  q = dot_v3v3(face_nors[0], face_nors[1]);
-                  d = 1.0f - q * q;
-                  float *free_nor = move_nor; /* No need to allocate a new array. */
-                  cross_v3_v3v3(free_nor, face_nors[0], face_nors[1]);
-                  if (LIKELY(d > FLT_EPSILON) && q < stop_explosion) {
-                    d = 1.0f / d;
-                    mul_v3_fl(face_nors[0], (nor_ofs[0] - nor_ofs[1] * q) * d);
-                    mul_v3_fl(face_nors[1], (nor_ofs[1] - nor_ofs[0] * q) * d);
-                    add_v3_v3v3(nor, face_nors[0], face_nors[1]);
-                  }
-                  else {
-                    mul_v3_fl(face_nors[0], nor_ofs[0] * 0.5f);
-                    mul_v3_fl(face_nors[1], nor_ofs[1] * 0.5f);
-                    add_v3_v3v3(nor, face_nors[0], face_nors[1]);
-                  }
+              if (ELEM(face_nors_len, 2, 3)) {
+                const float q = dot_v3v3(face_nors[0], face_nors[1]);
+                float d = 1.0f - q * q;
+                cross_v3_v3v3(move_nor, face_nors[0], face_nors[1]);
+                if (d > FLT_EPSILON * 10 && q < stop_explosion) {
+                  d = 1.0f / d;
+                  mul_v3_fl(face_nors[0], (nor_ofs[0] - nor_ofs[1] * q) * d);
+                  mul_v3_fl(face_nors[1], (nor_ofs[1] - nor_ofs[0] * q) * d);
+                }
+                else {
+                  d = 1.0f / (fabsf(q) + 1.0f);
+                  mul_v3_fl(face_nors[0], nor_ofs[0] * d);
+                  mul_v3_fl(face_nors[1], nor_ofs[1] * d);
+                }
+                add_v3_v3v3(nor, face_nors[0], face_nors[1]);
+                if (face_nors_len == 3) {
+                  float *free_nor = move_nor;
                   mul_v3_fl(face_nors[2], nor_ofs[2]);
                   d = dot_v3v3(face_nors[2], free_nor);
                   if (LIKELY(fabsf(d) > FLT_EPSILON)) {
@@ -1423,9 +1399,12 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                     sub_v3_v3(nor, free_nor);
                   }
                   disable_boundary_fix = true;
-                  break;
-                default:
-                  BLI_assert(0);
+                }
+              }
+              else {
+                BLI_assert(face_nors_len < 2);
+                mul_v3_v3fl(nor, face_nors[0], nor_ofs[0]);
+                disable_boundary_fix = true;
               }
             }
             /* Simple/Even Method. */
@@ -1447,8 +1426,7 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                     if (face && (first_edge == NULL ||
                                  (first_edge->faces[0] != face && first_edge->faces[1] != face))) {
                       float angle = 1.0f;
-                      float ofs = face->reversed ? -max_ff(1.0e-5f, ofs_back) :
-                                                   max_ff(1.0e-5f, ofs_front);
+                      float ofs = face->reversed ? -ofs_back_clamped : ofs_front_clamped;
                       if (smd->nonmanifold_offset_mode ==
                           MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_EVEN) {
                         MLoop *ml_next = orig_mloop + face->face->loopstart;
@@ -1495,17 +1473,16 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
 
               /* Set normal length with selected method. */
               if (smd->nonmanifold_offset_mode == MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_EVEN) {
-                float d = dot_v3v3(nor, nor_back);
                 if (has_front) {
-                  float length = len_squared_v3(nor);
-                  if (LIKELY(length > FLT_EPSILON)) {
-                    mul_v3_fl(nor, total_angle / length);
+                  float length_sq = len_squared_v3(nor);
+                  if (LIKELY(length_sq > FLT_EPSILON)) {
+                    mul_v3_fl(nor, total_angle / length_sq);
                   }
                 }
                 if (has_back) {
-                  float length = len_squared_v3(nor_back);
-                  if (LIKELY(length > FLT_EPSILON)) {
-                    mul_v3_fl(nor_back, total_angle_back / length);
+                  float length_sq = len_squared_v3(nor_back);
+                  if (LIKELY(length_sq > FLT_EPSILON)) {
+                    mul_v3_fl(nor_back, total_angle_back / length_sq);
                   }
                   if (!has_front) {
                     copy_v3_v3(nor, nor_back);
@@ -1518,7 +1495,7 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                   if (LIKELY(fabsf(q) > FLT_EPSILON)) {
                     q /= nor_length * nor_back_length;
                   }
-                  d = 1.0f - q * q;
+                  float d = 1.0f - q * q;
                   if (LIKELY(d > FLT_EPSILON)) {
                     d = 1.0f / d;
                     if (LIKELY(nor_length > FLT_EPSILON)) {
@@ -1625,24 +1602,26 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
             /* Do clamping. */
             if (do_clamp) {
               if (do_angle_clamp) {
-                float min_length = 0;
-                float angle = 0.5f * M_PI;
-                uint k = 0;
-                for (NewEdgeRef **p = g->edges; k < g->edges_len; k++, p++) {
-                  float length = orig_edge_lengths[(*p)->old_edge];
-                  float e_ang = (*p)->angle;
-                  if (e_ang > angle) {
-                    angle = e_ang;
+                if (g->edges_len > 2) {
+                  float min_length = 0;
+                  float angle = 0.5f * M_PI;
+                  uint k = 0;
+                  for (NewEdgeRef **p = g->edges; k < g->edges_len; k++, p++) {
+                    float length = orig_edge_lengths[(*p)->old_edge];
+                    float e_ang = (*p)->angle;
+                    if (e_ang > angle) {
+                      angle = e_ang;
+                    }
+                    if (length < min_length || k == 0) {
+                      min_length = length;
+                    }
                   }
-                  if (length < min_length || k == 0) {
-                    min_length = length;
-                  }
-                }
-                float cos_ang = cosf(angle * 0.5f);
-                if (cos_ang > 0) {
-                  float max_off = min_length * 0.5f / cos_ang;
-                  if (max_off < offset * 0.5f) {
-                    scalar_vgroup *= max_off / offset * 2;
+                  float cos_ang = cosf(angle * 0.5f);
+                  if (cos_ang > 0) {
+                    float max_off = min_length * 0.5f / cos_ang;
+                    if (max_off < offset * 0.5f) {
+                      scalar_vgroup *= max_off / offset * 2;
+                    }
                   }
                 }
               }
