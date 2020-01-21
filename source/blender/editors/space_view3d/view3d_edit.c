@@ -158,6 +158,12 @@ typedef struct ViewOpsData {
     float trackvec[3];
     /** Dolly only. */
     float mousevec[3];
+
+    /**
+     * #RegionView3D.persp set after auto-perspective is applied.
+     * If we want the value before running the operator, add a separate member.
+     */
+    char persp;
   } init;
 
   /** Previous state (previous modal event handled). */
@@ -413,6 +419,7 @@ static void viewops_data_create(bContext *C,
    * we may want to make this optional but for now its needed always */
   ED_view3d_camera_lock_init(depsgraph, vod->v3d, vod->rv3d);
 
+  vod->init.persp = rv3d->persp;
   vod->init.dist = rv3d->dist;
   vod->init.camzoom = rv3d->camzoom;
   copy_qt_qt(vod->init.quat, rv3d->viewquat);
@@ -613,6 +620,7 @@ static void viewrotate_apply_snap(ViewOpsData *vod)
   float zaxis_best[3];
   int x, y, z;
   bool found = false;
+  bool is_axis_aligned = false;
 
   invert_qt_qt_normalized(viewquat_inv, vod->curr.viewquat);
 
@@ -630,6 +638,10 @@ static void viewrotate_apply_snap(ViewOpsData *vod)
           if (angle_normalized_v3v3(zaxis_test, zaxis) < axis_limit) {
             copy_v3_v3(zaxis_best, zaxis_test);
             found = true;
+
+            if (abs(x) + abs(y) + abs(z) == 1) {
+              is_axis_aligned = true;
+            }
           }
         }
       }
@@ -700,6 +712,17 @@ static void viewrotate_apply_snap(ViewOpsData *vod)
     copy_qt_qt(rv3d->viewquat, quat_best);
 
     viewrotate_apply_dyn_ofs(vod, rv3d->viewquat);
+
+    if (U.uiflag & USER_AUTOPERSP) {
+      if (is_axis_aligned) {
+        if (rv3d->persp == RV3D_PERSP) {
+          rv3d->persp = RV3D_ORTHO;
+        }
+      }
+    }
+  }
+  else if (U.uiflag & USER_AUTOPERSP) {
+    rv3d->persp = vod->init.persp;
   }
 }
 
@@ -859,6 +882,7 @@ static int viewrotate_modal(bContext *C, wmOperator *op, const wmEvent *event)
         event_code = VIEW_APPLY;
         break;
       case VIEWROT_MODAL_AXIS_SNAP_DISABLE:
+        vod->rv3d->persp = vod->init.persp;
         vod->axis_snap = false;
         event_code = VIEW_APPLY;
         break;
