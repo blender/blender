@@ -134,17 +134,15 @@ class DATA_PT_EEVEE_light_distance(DataButtonsPanel, Panel):
         light = context.light
 
         layout = self.layout
-        layout.active = light.use_shadow
         layout.prop(light, "use_custom_distance", text="")
 
     def draw(self, context):
         layout = self.layout
         light = context.light
+        layout.active = light.use_custom_distance
         layout.use_property_split = True
 
-        col = layout.column()
-
-        col.prop(light, "cutoff_distance", text="Distance")
+        layout.prop(light, "cutoff_distance", text="Distance")
 
 
 class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
@@ -311,7 +309,8 @@ class DATA_PT_falloff_curve(DataButtonsPanel, Panel):
     def draw(self, context):
         light = context.light
 
-        self.layout.template_curve_mapping(light, "falloff_curve", use_negative_slope=True)
+        self.layout.template_curve_mapping(
+            light, "falloff_curve", use_negative_slope=True)
 
 
 class DATA_PT_custom_props_light(DataButtonsPanel, PropertyPanel, Panel):
