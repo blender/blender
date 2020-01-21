@@ -129,6 +129,12 @@ typedef struct ScrAreaMap {
   ListBase areabase;
 } ScrAreaMap;
 
+typedef struct Panel_Runtime {
+  /* Applied to Panel.ofsx, but saved separately so we can track changes between redraws. */
+  int region_ofsx;
+  char _pad[4];
+} Panel_Runtime;
+
 /** The part from uiBlock that needs saved in file. */
 typedef struct Panel {
   struct Panel *next, *prev;
@@ -159,6 +165,8 @@ typedef struct Panel {
   void *activedata;
   /** Sub panels. */
   ListBase children;
+
+  Panel_Runtime runtime;
 } Panel;
 
 /**

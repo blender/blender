@@ -131,7 +131,7 @@ typedef enum eSpaceButtons_Align {
   BUT_AUTO = 2,
 } eSpaceButtons_Align;
 
-static int panel_aligned(ScrArea *sa, ARegion *ar)
+static int panel_aligned(const ScrArea *sa, const ARegion *ar)
 {
   if (sa->spacetype == SPACE_PROPERTIES && ar->regiontype == RGN_TYPE_WINDOW) {
     return BUT_VERTICAL;
@@ -367,7 +367,19 @@ Panel *UI_panel_begin(
   return pa;
 }
 
-void UI_panel_end(uiBlock *block, int width, int height, bool open)
+static float panel_region_offset_x_get(const ARegion *ar, int align)
+{
+  if (UI_panel_category_is_visible(ar)) {
+    if (align == BUT_VERTICAL && (RGN_ALIGN_ENUM_FROM_MASK(ar->alignment) != RGN_ALIGN_RIGHT)) {
+      return UI_PANEL_CATEGORY_MARGIN_WIDTH;
+    }
+  }
+
+  return 0;
+}
+
+void UI_panel_end(
+    const ScrArea *sa, const ARegion *ar, uiBlock *block, int width, int height, bool open)
 {
   Panel *pa = block->panel;
 
@@ -391,6 +403,7 @@ void UI_panel_end(uiBlock *block, int width, int height, bool open)
   }
   else {
     int old_sizex = pa->sizex, old_sizey = pa->sizey;
+    int old_region_ofsx = pa->runtime.region_ofsx;
 
     /* update width/height if non-zero */
     if (width != 0) {
@@ -404,6 +417,11 @@ void UI_panel_end(uiBlock *block, int width, int height, bool open)
     if (pa->sizex != old_sizex || pa->sizey != old_sizey) {
       pa->runtime_flag |= PNL_ANIM_ALIGN;
       pa->ofsy += old_sizey - pa->sizey;
+    }
+
+    int align = panel_aligned(sa, ar);
+    if (old_region_ofsx != panel_region_offset_x_get(ar, align)) {
+      pa->runtime_flag |= PNL_ANIM_ALIGN;
     }
   }
 }
@@ -1004,7 +1022,6 @@ static bool uiAlignPanelStep(ScrArea *sa, ARegion *ar, const float fac, const bo
   int a, tot = 0;
   bool done;
   int align = panel_aligned(sa, ar);
-  bool has_category_tabs = UI_panel_category_is_visible(ar);
 
   /* count active, not tabbed panels */
   for (pa = ar->panels.first; pa; pa = pa->next) {
@@ -1061,14 +1078,10 @@ static bool uiAlignPanelStep(ScrArea *sa, ARegion *ar, const float fac, const bo
 
   /* no smart other default start loc! this keeps switching f5/f6/etc compatible */
   ps = panelsort;
+  ps->pa->runtime.region_ofsx = panel_region_offset_x_get(ar, align);
   ps->pa->ofsx = 0;
   ps->pa->ofsy = -get_panel_size_y(ps->pa);
-
-  if (has_category_tabs) {
-    if (align == BUT_VERTICAL && (RGN_ALIGN_ENUM_FROM_MASK(ar->alignment) != RGN_ALIGN_RIGHT)) {
-      ps->pa->ofsx += UI_PANEL_CATEGORY_MARGIN_WIDTH;
-    }
-  }
+  ps->pa->ofsx += ps->pa->runtime.region_ofsx;
 
   for (a = 0; a < tot - 1; a++, ps++) {
     psnext = ps + 1;
