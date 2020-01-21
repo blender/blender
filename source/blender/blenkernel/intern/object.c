@@ -2332,38 +2332,36 @@ static void give_parvert(Object *par, int nr, float vec[3])
       int count = 0;
       const int numVerts = me_eval->totvert;
 
-      if (nr < numVerts) {
-        if (em && me_eval->runtime.is_original) {
-          if (em->bm->elem_table_dirty & BM_VERT) {
+      if (em && me_eval->runtime.is_original) {
+        if (em->bm->elem_table_dirty & BM_VERT) {
 #ifdef VPARENT_THREADING_HACK
-            BLI_mutex_lock(&vparent_lock);
-            if (em->bm->elem_table_dirty & BM_VERT) {
-              BM_mesh_elem_table_ensure(em->bm, BM_VERT);
-            }
-            BLI_mutex_unlock(&vparent_lock);
-#else
-            BLI_assert(!"Not safe for threading");
+          BLI_mutex_lock(&vparent_lock);
+          if (em->bm->elem_table_dirty & BM_VERT) {
             BM_mesh_elem_table_ensure(em->bm, BM_VERT);
+          }
+          BLI_mutex_unlock(&vparent_lock);
+#else
+          BLI_assert(!"Not safe for threading");
+          BM_mesh_elem_table_ensure(em->bm, BM_VERT);
 #endif
-          }
         }
+      }
 
-        if (CustomData_has_layer(&me_eval->vdata, CD_ORIGINDEX) &&
-            !(em && me_eval->runtime.is_original)) {
-          const int *index = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
-          /* Get the average of all verts with (original index == nr). */
-          for (int i = 0; i < numVerts; i++) {
-            if (index[i] == nr) {
-              add_v3_v3(vec, me_eval->mvert[i].co);
-              count++;
-            }
-          }
-        }
-        else {
-          if (nr < numVerts) {
-            add_v3_v3(vec, me_eval->mvert[nr].co);
+      if (CustomData_has_layer(&me_eval->vdata, CD_ORIGINDEX) &&
+          !(em && me_eval->runtime.is_original)) {
+        const int *index = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
+        /* Get the average of all verts with (original index == nr). */
+        for (int i = 0; i < numVerts; i++) {
+          if (index[i] == nr) {
+            add_v3_v3(vec, me_eval->mvert[i].co);
             count++;
           }
+        }
+      }
+      else {
+        if (nr < numVerts) {
+          add_v3_v3(vec, me_eval->mvert[nr].co);
+          count++;
         }
       }
 
