@@ -2477,39 +2477,53 @@ bool BM_face_is_normal_valid(const BMFace *f)
   return len_squared_v3v3(no, f->no) < (eps * eps);
 }
 
-static void bm_mesh_calc_volume_face(const BMFace *f, float *r_vol)
+/**
+ * Use to accumulate volume calculation for faces with consistent winding.
+ *
+ * Use double precision since this is prone to float precision error, see T73295.
+ */
+static double bm_mesh_calc_volume_face(const BMFace *f)
 {
   const int tottri = f->len - 2;
   BMLoop **loops = BLI_array_alloca(loops, f->len);
   uint(*index)[3] = BLI_array_alloca(index, tottri);
-  int j;
+  double vol = 0.0;
 
   BM_face_calc_tessellation(f, false, loops, index);
 
-  for (j = 0; j < tottri; j++) {
+  for (int j = 0; j < tottri; j++) {
     const float *p1 = loops[index[j][0]]->v->co;
     const float *p2 = loops[index[j][1]]->v->co;
     const float *p3 = loops[index[j][2]]->v->co;
 
+    double p1_db[3];
+    double p2_db[3];
+    double p3_db[3];
+
+    copy_v3db_v3fl(p1_db, p1);
+    copy_v3db_v3fl(p2_db, p2);
+    copy_v3db_v3fl(p3_db, p3);
+
     /* co1.dot(co2.cross(co3)) / 6.0 */
-    float cross[3];
-    cross_v3_v3v3(cross, p2, p3);
-    *r_vol += (1.0f / 6.0f) * dot_v3v3(p1, cross);
+    double cross[3];
+    cross_v3_v3v3_db(cross, p2_db, p3_db);
+    vol += dot_v3v3_db(p1_db, cross);
   }
+  return (1.0 / 6.0) * vol;
 }
-float BM_mesh_calc_volume(BMesh *bm, bool is_signed)
+double BM_mesh_calc_volume(BMesh *bm, bool is_signed)
 {
   /* warning, calls own tessellation function, may be slow */
-  float vol = 0.0f;
+  double vol = 0.0;
   BMFace *f;
   BMIter fiter;
 
   BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-    bm_mesh_calc_volume_face(f, &vol);
+    vol += bm_mesh_calc_volume_face(f);
   }
 
   if (is_signed == false) {
-    vol = fabsf(vol);
+    vol = fabs(vol);
   }
 
   return vol;
