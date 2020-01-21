@@ -372,7 +372,8 @@ void manta_smoke_export(MANTA *smoke,
   if (b)
     *b = smoke->getColorB();
   *obstacle = smoke->getObstacle();
-  *shadow = smoke->getShadow();
+  if (shadow)
+    *shadow = smoke->getShadow();
   *dt = 1;  // dummy value, not needed for smoke
   *dx = 1;  // dummy value, not needed for smoke
 }
@@ -557,9 +558,9 @@ float *manta_smoke_get_flame(MANTA *smoke)
 {
   return smoke->getFlame();
 }
-float *manta_smoke_get_shadow(MANTA *fluid)
+float *manta_smoke_get_shadow(MANTA *smoke)
 {
-  return fluid->getShadow();
+  return smoke->getShadow();
 }
 
 float *manta_smoke_get_color_r(MANTA *smoke)
