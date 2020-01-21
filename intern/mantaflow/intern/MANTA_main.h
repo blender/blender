@@ -854,8 +854,6 @@ struct MANTA {
   void updateParticlesFromUni(const char *filename, bool isSecondarySys, bool isVelData);
   void updateMeshFromFile(const char *filename);
   void updateParticlesFromFile(const char *filename, bool isSecondarySys, bool isVelData);
-  template<class T>
-  void setPointers(std::vector<std::tuple<T **, std::string, std::string, bool>>);
 };
 
 #endif

@@ -3132,8 +3132,10 @@ SoftBody *sbNew(Scene *scene)
   sb->inpush = 0.5f;
 
   sb->interval = 10;
-  sb->sfra = scene->r.sfra;
-  sb->efra = scene->r.efra;
+  if (scene != NULL) {
+    sb->sfra = scene->r.sfra;
+    sb->efra = scene->r.efra;
+  }
 
   sb->colball = 0.49f;
   sb->balldamp = 0.50f;

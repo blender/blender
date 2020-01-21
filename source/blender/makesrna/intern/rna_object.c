@@ -1522,7 +1522,7 @@ static void rna_Object_modifier_clear(Object *object, bContext *C)
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
 }
 
-bool rna_Object_modifiers_override_apply(Main *UNUSED(bmain),
+bool rna_Object_modifiers_override_apply(Main *bmain,
                                          PointerRNA *ptr_dst,
                                          PointerRNA *ptr_src,
                                          PointerRNA *UNUSED(ptr_storage),
@@ -1545,7 +1545,7 @@ bool rna_Object_modifiers_override_apply(Main *UNUSED(bmain),
 
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
-   * So we should always find 'anchor' constraint in both _src *and* _dst. */
+   * So we should always find 'anchor' modifier in both _src *and* _dst. */
   ModifierData *mod_anchor = NULL;
   if (opop->subitem_local_name && opop->subitem_local_name[0]) {
     mod_anchor = BLI_findstring(
@@ -1568,18 +1568,32 @@ bool rna_Object_modifiers_override_apply(Main *UNUSED(bmain),
 
   BLI_assert(mod_src != NULL);
 
-  ModifierData *mod_dst = modifier_new(mod_src->type);
-  modifier_copyData(mod_src, mod_dst);
+  /* While it would be nicer to use lower-level modifier_new() here, this one is lacking
+   * special-cases handling (particles and other physics modifiers mostly), so using the ED version
+   * instead, to avoid duplicating code. */
+  ModifierData *mod_dst = ED_object_modifier_add(
+      NULL, bmain, NULL, ob_dst, mod_src->name, mod_src->type);
 
+  /* XXX Current handling of 'copy' from particlesystem modifier is *very* bad (it keeps same psys
+   * pointer as source, then calling code copies psys of object separately and do some magic
+   * remapping of pointers...), unfortunately several pieces of code in Obejct editing area rely on
+   * this behavior. So for now, hacking around it to get it doing what we want it to do, as getting
+   * a proper behavior would be everything but trivial, and this whole particle thingy is
+   * end-of-life. */
+  ParticleSystem *psys_dst = (mod_dst->type == eModifierType_ParticleSystem) ?
+                                 ((ParticleSystemModifierData *)mod_dst)->psys :
+                                 NULL;
+  modifier_copyData(mod_src, mod_dst);
+  if (mod_dst->type == eModifierType_ParticleSystem) {
+    psys_dst->flag &= ~PSYS_DELETE;
+    ((ParticleSystemModifierData *)mod_dst)->psys = psys_dst;
+  }
+
+  BLI_remlink(&ob_dst->modifiers, mod_dst);
   /* This handles NULL anchor as expected by adding at head of list. */
   BLI_insertlinkafter(&ob_dst->modifiers, mod_anchor, mod_dst);
 
-  /* This should actually *not* be needed in typical cases.
-   * However, if overridden source was edited,
-   * we *may* have some new conflicting names. */
-  modifier_unique_name(&ob_dst->modifiers, mod_dst);
-
-  //  printf("%s: We inserted a modifier...\n", __func__);
+  //  printf("%s: We inserted a modifier '%s'...\n", __func__, mod_dst->name);
   return true;
 }
 
