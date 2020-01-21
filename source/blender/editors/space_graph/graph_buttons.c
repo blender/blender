@@ -156,7 +156,7 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
   FCurve *fcu;
   PointerRNA fcu_ptr;
   uiLayout *layout = pa->layout;
-  uiLayout *col, *row, *sub;
+  uiLayout *col;
   char name[256];
   int icon = 0;
 
