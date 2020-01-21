@@ -636,7 +636,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
   if (cuts != lcd->cuts) {
     /* allow zero so you can backspace and type in a value
      * otherwise 1 as minimum would make more sense */
-    lcd->cuts = clamp_i(cuts, 0, SUBD_CUTS_MAX);
+    lcd->cuts = clamp_f(cuts, 0, SUBD_CUTS_MAX);
     RNA_int_set(op->ptr, "number_cuts", (int)lcd->cuts);
     ringsel_find_edge(lcd, (int)lcd->cuts);
     show_cuts = true;
