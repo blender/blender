@@ -354,11 +354,6 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
       /* note, scroll is being flipped in ED_region_panels() drawing */
       v2d->scroll |= (V2D_SCROLL_HORIZONTAL_HIDE | V2D_SCROLL_VERTICAL_HIDE);
 
-      /* initialize without scroll bars (interferes with zoom level see: T47047) */
-      if (do_init) {
-        v2d->scroll |= (V2D_SCROLL_VERTICAL_FULLR | V2D_SCROLL_HORIZONTAL_FULLR);
-      }
-
       if (do_init) {
         float panelzoom = (style) ? style->panelzoom : 1.0f;
 
