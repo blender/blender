@@ -4713,7 +4713,7 @@ print_info() {
   _1="-D PYTHON_VERSION=$PYTHON_VERSION_MIN"
   PRINT "  $_1"
   _buildargs="$_buildargs $_1"
-  if [ -d $INST/python-$PYTHON_VERSION_MIN ]; then
+  if [ -d "$INST/python-$PYTHON_VERSION_MIN" ]; then
     _1="-D PYTHON_ROOT_DIR=$INST/python-$PYTHON_VERSION_MIN"
     PRINT "  $_1"
     _buildargs="$_buildargs $_1"
