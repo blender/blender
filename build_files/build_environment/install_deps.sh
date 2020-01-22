@@ -996,8 +996,7 @@ download() {
 # Return 0 if $1 = $2 (i.e. 1.01.0 = 1.1, but 1.1.1 != 1.1), else 1.
 # $1 and $2 should be version numbers made of numbers only.
 version_eq() {
-  backIFS=$IFS
-  IFS='.'
+  local IFS='.'
 
   # Split both version numbers into their numeric elements.
   arr1=( $1 )
@@ -1032,7 +1031,6 @@ version_eq() {
     fi
   done
 
-  IFS=$backIFS
   return $ret
 }
 
@@ -1063,8 +1061,7 @@ version_ge_lt() {
 # $1 and $2 should be version numbers made of numbers only.
 # $1 should be at least as long as $2!
 version_match() {
-  backIFS=$IFS
-  IFS='.'
+  local IFS='.'
 
   # Split both version numbers into their numeric elements.
   arr1=( $1 )
@@ -1085,7 +1082,6 @@ version_match() {
     done
   fi
 
-  IFS=$backIFS
   return $ret
 }
 
