@@ -2066,9 +2066,7 @@ static void write_customdata(WriteData *wd,
                              int count,
                              CustomData *data,
                              CustomDataLayer *layers,
-                             CustomDataMask cddata_mask,
-                             int partial_type,
-                             int partial_count)
+                             CustomDataMask cddata_mask)
 {
   int i;
 
@@ -2105,16 +2103,7 @@ static void write_customdata(WriteData *wd,
     else {
       CustomData_file_write_info(layer->type, &structname, &structnum);
       if (structnum) {
-        /* when using partial visibility, the MEdge and MFace layers
-         * are smaller than the original, so their type and count is
-         * passed to make this work */
-        if (layer->type != partial_type) {
-          datasize = structnum * count;
-        }
-        else {
-          datasize = structnum * partial_count;
-        }
-
+        datasize = structnum * count;
         writestruct_id(wd, DATA, structname, datasize, layer->data);
       }
       else {
@@ -2133,85 +2122,70 @@ static void write_customdata(WriteData *wd,
 
 static void write_mesh(WriteData *wd, Mesh *mesh)
 {
-  CustomDataLayer *vlayers = NULL, vlayers_buff[CD_TEMP_CHUNK_SIZE];
-  CustomDataLayer *elayers = NULL, elayers_buff[CD_TEMP_CHUNK_SIZE];
-  CustomDataLayer *flayers = NULL, flayers_buff[CD_TEMP_CHUNK_SIZE];
-  CustomDataLayer *llayers = NULL, llayers_buff[CD_TEMP_CHUNK_SIZE];
-  CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
-
   if (mesh->id.us > 0 || wd->use_memfile) {
-    /* write LibData */
-    {
-      /* write a copy of the mesh, don't modify in place because it is
-       * not thread safe for threaded renders that are reading this */
-      Mesh *old_mesh = mesh;
-      Mesh copy_mesh = *mesh;
-      mesh = &copy_mesh;
+    /* Write a copy of the mesh with possibly reduced number of data layers.
+     * Don't edit the original since other threads might be reading it. */
+    Mesh *old_mesh = mesh;
+    Mesh copy_mesh = *mesh;
+    mesh = &copy_mesh;
 
-      /* cache only - don't write */
-      mesh->mface = NULL;
-      mesh->totface = 0;
-      memset(&mesh->fdata, 0, sizeof(mesh->fdata));
+    /* cache only - don't write */
+    mesh->mface = NULL;
+    mesh->totface = 0;
+    memset(&mesh->fdata, 0, sizeof(mesh->fdata));
 
-      /**
-       * Those calls:
-       * - Reduce mesh->xdata.totlayer to number of layers to write.
-       * - Fill xlayers with those layers to be written.
-       * Note that mesh->xdata is from now on invalid for Blender,
-       * but this is why the whole mesh is a temp local copy!
-       */
-      CustomData_file_write_prepare(
-          &mesh->vdata, &vlayers, vlayers_buff, ARRAY_SIZE(vlayers_buff));
-      CustomData_file_write_prepare(
-          &mesh->edata, &elayers, elayers_buff, ARRAY_SIZE(elayers_buff));
-      flayers = flayers_buff;
-      CustomData_file_write_prepare(
-          &mesh->ldata, &llayers, llayers_buff, ARRAY_SIZE(llayers_buff));
-      CustomData_file_write_prepare(
-          &mesh->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
+    /* Reduce xdata layers, fill xlayers with layers to be written.
+     * This makes xdata invalid for Blender, which is why we made a
+     * temporary local copy. */
+    CustomDataLayer *vlayers = NULL, vlayers_buff[CD_TEMP_CHUNK_SIZE];
+    CustomDataLayer *elayers = NULL, elayers_buff[CD_TEMP_CHUNK_SIZE];
+    CustomDataLayer *flayers = NULL, flayers_buff[CD_TEMP_CHUNK_SIZE];
+    CustomDataLayer *llayers = NULL, llayers_buff[CD_TEMP_CHUNK_SIZE];
+    CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
 
-      writestruct_at_address(wd, ID_ME, Mesh, 1, old_mesh, mesh);
-      write_iddata(wd, &mesh->id);
+    CustomData_file_write_prepare(&mesh->vdata, &vlayers, vlayers_buff, ARRAY_SIZE(vlayers_buff));
+    CustomData_file_write_prepare(&mesh->edata, &elayers, elayers_buff, ARRAY_SIZE(elayers_buff));
+    flayers = flayers_buff;
+    CustomData_file_write_prepare(&mesh->ldata, &llayers, llayers_buff, ARRAY_SIZE(llayers_buff));
+    CustomData_file_write_prepare(&mesh->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
 
-      /* direct data */
-      if (mesh->adt) {
-        write_animdata(wd, mesh->adt);
-      }
+    writestruct_at_address(wd, ID_ME, Mesh, 1, old_mesh, mesh);
+    write_iddata(wd, &mesh->id);
 
-      writedata(wd, DATA, sizeof(void *) * mesh->totcol, mesh->mat);
-      writedata(wd, DATA, sizeof(MSelect) * mesh->totselect, mesh->mselect);
-
-      write_customdata(
-          wd, &mesh->id, mesh->totvert, &mesh->vdata, vlayers, CD_MASK_MESH.vmask, -1, 0);
-      write_customdata(
-          wd, &mesh->id, mesh->totedge, &mesh->edata, elayers, CD_MASK_MESH.emask, -1, 0);
-      /* fdata is really a dummy - written so slots align */
-      write_customdata(
-          wd, &mesh->id, mesh->totface, &mesh->fdata, flayers, CD_MASK_MESH.fmask, -1, 0);
-      write_customdata(
-          wd, &mesh->id, mesh->totloop, &mesh->ldata, llayers, CD_MASK_MESH.lmask, -1, 0);
-      write_customdata(
-          wd, &mesh->id, mesh->totpoly, &mesh->pdata, players, CD_MASK_MESH.pmask, -1, 0);
-
-      /* restore pointer */
-      mesh = old_mesh;
+    /* direct data */
+    if (mesh->adt) {
+      write_animdata(wd, mesh->adt);
     }
-  }
 
-  if (vlayers && vlayers != vlayers_buff) {
-    MEM_freeN(vlayers);
-  }
-  if (elayers && elayers != elayers_buff) {
-    MEM_freeN(elayers);
-  }
-  if (flayers && flayers != flayers_buff) {
-    MEM_freeN(flayers);
-  }
-  if (llayers && llayers != llayers_buff) {
-    MEM_freeN(llayers);
-  }
-  if (players && players != players_buff) {
-    MEM_freeN(players);
+    writedata(wd, DATA, sizeof(void *) * mesh->totcol, mesh->mat);
+    writedata(wd, DATA, sizeof(MSelect) * mesh->totselect, mesh->mselect);
+
+    write_customdata(wd, &mesh->id, mesh->totvert, &mesh->vdata, vlayers, CD_MASK_MESH.vmask);
+    write_customdata(wd, &mesh->id, mesh->totedge, &mesh->edata, elayers, CD_MASK_MESH.emask);
+    /* fdata is really a dummy - written so slots align */
+    write_customdata(wd, &mesh->id, mesh->totface, &mesh->fdata, flayers, CD_MASK_MESH.fmask);
+    write_customdata(wd, &mesh->id, mesh->totloop, &mesh->ldata, llayers, CD_MASK_MESH.lmask);
+    write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, players, CD_MASK_MESH.pmask);
+
+    /* restore pointer */
+    mesh = old_mesh;
+
+    /* free temporary data */
+    if (vlayers && vlayers != vlayers_buff) {
+      MEM_freeN(vlayers);
+    }
+    if (elayers && elayers != elayers_buff) {
+      MEM_freeN(elayers);
+    }
+    if (flayers && flayers != flayers_buff) {
+      MEM_freeN(flayers);
+    }
+    if (llayers && llayers != llayers_buff) {
+      MEM_freeN(llayers);
+    }
+    if (players && players != players_buff) {
+      MEM_freeN(players);
+    }
   }
 }
 
