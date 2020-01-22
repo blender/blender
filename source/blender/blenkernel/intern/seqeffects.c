@@ -3888,7 +3888,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   int font = blf_mono_font_render;
   int line_height;
   int y_ofs, x, y;
-  float proxy_size_comp;
+  double proxy_size_comp;
 
   if (data->text_blf_id == SEQ_FONT_NOT_LOADED) {
     data->text_blf_id = -1;
@@ -3906,15 +3906,11 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   display = IMB_colormanagement_display_get_named(display_device);
 
   /* Compensate text size for preview render size. */
-  if (ELEM(
-          context->preview_render_size, SEQ_PROXY_RENDER_SIZE_SCENE, SEQ_PROXY_RENDER_SIZE_FULL)) {
-    proxy_size_comp = context->scene->r.size / 100.0f;
-  }
-  else if (context->preview_render_size == SEQ_PROXY_RENDER_SIZE_100) {
-    proxy_size_comp = 1.0f;
+  if (context->preview_render_size == SEQ_PROXY_RENDER_SIZE_SCENE) {
+    proxy_size_comp = context->scene->r.size / 100.0;
   }
   else {
-    proxy_size_comp = context->preview_render_size / 100.0f;
+    proxy_size_comp = BKE_sequencer_rendersize_to_scale_factor(context->preview_render_size);
   }
 
   /* set before return */

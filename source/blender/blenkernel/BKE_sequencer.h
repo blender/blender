@@ -208,6 +208,7 @@ struct SeqEffectHandle {
  *
  * sequencer render functions
  * ********************************************************************** */
+double BKE_sequencer_rendersize_to_scale_factor(int size);
 
 struct ImBuf *BKE_sequencer_give_ibuf(const SeqRenderData *context, float cfra, int chanshown);
 struct ImBuf *BKE_sequencer_give_ibuf_threaded(const SeqRenderData *context,

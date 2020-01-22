@@ -38,6 +38,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_math.h"
 #include "BLI_fileops.h"
@@ -1587,35 +1588,32 @@ typedef struct SeqIndexBuildContext {
 
 #define PROXY_MAXFILE (2 * FILE_MAXDIR + FILE_MAXFILE)
 
-static IMB_Proxy_Size seq_rendersize_to_proxysize(int size)
+static IMB_Proxy_Size seq_rendersize_to_proxysize(int render_size)
 {
-  if (size >= 100) {
-    return IMB_PROXY_NONE;
+  switch (render_size) {
+    case SEQ_PROXY_RENDER_SIZE_25:
+      return IMB_PROXY_25;
+    case SEQ_PROXY_RENDER_SIZE_50:
+      return IMB_PROXY_50;
+    case SEQ_PROXY_RENDER_SIZE_75:
+      return IMB_PROXY_75;
+    case SEQ_PROXY_RENDER_SIZE_100:
+      return IMB_PROXY_100;
   }
-  if (size >= 99) {
-    return IMB_PROXY_100;
-  }
-  if (size >= 75) {
-    return IMB_PROXY_75;
-  }
-  if (size >= 50) {
-    return IMB_PROXY_50;
-  }
-  return IMB_PROXY_25;
+  return IMB_PROXY_NONE;
 }
 
-static double seq_rendersize_to_scale_factor(int size)
+double BKE_sequencer_rendersize_to_scale_factor(int render_size)
 {
-  if (size >= 99) {
-    return 1.0;
+  switch (render_size) {
+    case SEQ_PROXY_RENDER_SIZE_25:
+      return 0.25;
+    case SEQ_PROXY_RENDER_SIZE_50:
+      return 0.50;
+    case SEQ_PROXY_RENDER_SIZE_75:
+      return 0.75;
   }
-  if (size >= 75) {
-    return 0.75;
-  }
-  if (size >= 50) {
-    return 0.50;
-  }
-  return 0.25;
+  return 1.0;
 }
 
 /* the number of files will vary according to the stereo format */
@@ -1773,8 +1771,12 @@ static void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   }
 }
 
-static bool seq_proxy_get_fname(
-    Editing *ed, Sequence *seq, int cfra, int render_size, char *name, const int view_id)
+static bool seq_proxy_get_fname(Editing *ed,
+                                Sequence *seq,
+                                int cfra,
+                                eSpaceSeq_Proxy_RenderSize render_size,
+                                char *name,
+                                const int view_id)
 {
   int frameno;
   char dir[PROXY_MAXFILE];
@@ -1868,19 +1870,21 @@ static bool seq_proxy_get_fname(
 
   /* generate a separate proxy directory for each preview size */
 
+  int proxy_size_number = BKE_sequencer_rendersize_to_scale_factor(render_size) * 100;
+
   if (seq->type == SEQ_TYPE_IMAGE) {
     BLI_snprintf(name,
                  PROXY_MAXFILE,
                  "%s/images/%d/%s_proxy%s",
                  dir,
-                 render_size,
+                 proxy_size_number,
                  BKE_sequencer_give_stripelem(seq, cfra)->name,
                  suffix);
     frameno = 1;
   }
   else {
     frameno = (int)give_stripelem_index(seq, cfra) + seq->anim_startofs;
-    BLI_snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####%s", dir, render_size, suffix);
+    BLI_snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####%s", dir, proxy_size_number, suffix);
   }
 
   BLI_path_abs(name, BKE_main_blendfile_path_from_global());
@@ -1896,7 +1900,6 @@ static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int c
   char name[PROXY_MAXFILE];
   IMB_Proxy_Size psize = seq_rendersize_to_proxysize(context->preview_render_size);
   int size_flags;
-  int render_size = context->preview_render_size;
   StripProxy *proxy = seq->strip->proxy;
   Editing *ed = context->scene->ed;
   StripAnim *sanim;
@@ -1905,22 +1908,17 @@ static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int c
     return NULL;
   }
 
-  /* dirty hack to distinguish 100% render size from PROXY_100 */
-  if (render_size == 99) {
-    render_size = 100;
-  }
-
   size_flags = proxy->build_size_flags;
 
   /* only use proxies, if they are enabled (even if present!) */
-  if (psize == IMB_PROXY_NONE || ((size_flags & psize) != psize)) {
+  if (psize == IMB_PROXY_NONE || (size_flags & psize) == 0) {
     return NULL;
   }
 
   if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
     int frameno = (int)give_stripelem_index(seq, cfra) + seq->anim_startofs;
     if (proxy->anim == NULL) {
-      if (seq_proxy_get_fname(ed, seq, cfra, render_size, name, context->view_id) == 0) {
+      if (seq_proxy_get_fname(ed, seq, cfra, psize, name, context->view_id) == 0) {
         return NULL;
       }
 
@@ -1939,7 +1937,7 @@ static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int c
     return IMB_anim_absolute(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
   }
 
-  if (seq_proxy_get_fname(ed, seq, cfra, render_size, name, context->view_id) == 0) {
+  if (seq_proxy_get_fname(ed, seq, cfra, psize, name, context->view_id) == 0) {
     return NULL;
   }
 
@@ -2700,10 +2698,10 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
     int sx, sy, dx, dy;
 
     if (is_proxy_image) {
-      double f = seq_rendersize_to_scale_factor(context->preview_render_size);
+      double f = BKE_sequencer_rendersize_to_scale_factor(context->preview_render_size);
 
       if (f != 1.0) {
-        IMB_scalefastImBuf(ibuf, ibuf->x / f, ibuf->y / f);
+        IMB_scalefastImBuf(ibuf, ibuf->x * f, ibuf->y * f);
       }
     }
 
@@ -3151,12 +3149,11 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
   bool is_multiview = (seq->flag & SEQ_USE_VIEWS) != 0 &&
                       (context->scene->r.scemode & R_MULTIVIEW) != 0;
 
-  IMB_Proxy_Size proxy_size = seq_rendersize_to_proxysize(context->preview_render_size);
+  IMB_Proxy_Size psize = seq_rendersize_to_proxysize(context->preview_render_size);
 
   if ((seq->flag & SEQ_USE_PROXY) == 0) {
-    proxy_size = IMB_PROXY_NONE;
+    psize = IMB_PROXY_NONE;
   }
-
   /* load all the videos */
   seq_open_anim_file(context->scene, seq, false);
 
@@ -3181,10 +3178,10 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
                                         nr + seq->anim_startofs,
                                         seq->strip->proxy ? seq->strip->proxy->tc :
                                                             IMB_TC_RECORD_RUN,
-                                        proxy_size);
+                                        psize);
 
         /* fetching for requested proxy size failed, try fetching the original instead */
-        if (!ibuf_arr[i] && proxy_size != IMB_PROXY_NONE) {
+        if (!ibuf_arr[i] && psize != IMB_PROXY_NONE) {
           ibuf_arr[i] = IMB_anim_absolute(sanim->anim,
                                           nr + seq->anim_startofs,
                                           seq->strip->proxy ? seq->strip->proxy->tc :
@@ -3250,10 +3247,10 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
       ibuf = IMB_anim_absolute(sanim->anim,
                                nr + seq->anim_startofs,
                                seq->strip->proxy ? seq->strip->proxy->tc : IMB_TC_RECORD_RUN,
-                               proxy_size);
+                               psize);
 
       /* fetching for requested proxy size failed, try fetching the original instead */
-      if (!ibuf && proxy_size != IMB_PROXY_NONE) {
+      if (!ibuf && psize != IMB_PROXY_NONE) {
         ibuf = IMB_anim_absolute(sanim->anim,
                                  nr + seq->anim_startofs,
                                  seq->strip->proxy ? seq->strip->proxy->tc : IMB_TC_RECORD_RUN,
@@ -3280,6 +3277,7 @@ static ImBuf *seq_render_movieclip_strip(const SeqRenderData *context, Sequence 
   ImBuf *ibuf = NULL;
   MovieClipUser user;
   float tloc[2], tscale, tangle;
+  IMB_Proxy_Size psize = seq_rendersize_to_proxysize(context->preview_render_size);
 
   if (!seq->clip) {
     return NULL;
@@ -3292,7 +3290,7 @@ static ImBuf *seq_render_movieclip_strip(const SeqRenderData *context, Sequence 
   user.render_flag |= MCLIP_PROXY_RENDER_USE_FALLBACK_RENDER;
 
   user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
-  switch (seq_rendersize_to_proxysize(context->preview_render_size)) {
+  switch (psize) {
     case IMB_PROXY_NONE:
       user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
       break;
@@ -3876,7 +3874,8 @@ static ImBuf *seq_render_strip(const SeqRenderData *context,
 
       if (ibuf) {
         if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_MOVIECLIP)) {
-          is_proxy_image = (context->preview_render_size != 100);
+          is_proxy_image = seq_rendersize_to_proxysize(context->preview_render_size) !=
+                           IMB_PROXY_NONE;
         }
       }
     }
