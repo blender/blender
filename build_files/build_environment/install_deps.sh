@@ -4079,7 +4079,7 @@ install_ARCH() {
   fi
 
   if [ "$WITH_JACK" = true ]; then
-    _packages="$_packages jack"
+    _packages="$_packages jack2"
   fi
 
   PRINT ""
