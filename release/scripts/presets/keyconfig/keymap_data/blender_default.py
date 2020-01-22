@@ -290,14 +290,14 @@ def _template_items_proportional_editing(*, connected=False):
 
 # Tool System Templates
 
-def _template_items_tool_select(params, operator, cursor_operator, extend_type):
+def _template_items_tool_select(params, operator, cursor_operator, *, extend):
     if params.select_mouse == 'LEFTMOUSE':
         # Immediate select without quick delay.
         return [
             (operator, {"type": 'LEFTMOUSE', "value": 'PRESS'},
              {"properties": [("deselect_all", True)]}),
             (operator, {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-             {"properties": [(extend_type, True)]}),
+             {"properties": [(extend, True)]}),
         ]
     else:
         # For right mouse, set the cursor.
@@ -5057,7 +5057,7 @@ def km_image_editor_tool_uv_select(params):
     return (
         "Image Editor Tool: Uv, Tweak",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
-        {"items": _template_items_tool_select(params, "uv.select", "uv.cursor_set", "extend")},
+        {"items": _template_items_tool_select(params, "uv.select", "uv.cursor_set", extend="extend")},
     )
 
 
@@ -5208,7 +5208,7 @@ def km_3d_view_tool_select(params):
     return (
         "3D View Tool: Tweak",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": _template_items_tool_select(params, "view3d.select", "view3d.cursor3d", "toggle")},
+        {"items": _template_items_tool_select(params, "view3d.select", "view3d.cursor3d", extend="toggle")},
     )
 
 
@@ -5915,7 +5915,7 @@ def km_3d_view_tool_edit_gpencil_select(params):
     return (
         "3D View Tool: Edit Gpencil, Tweak",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": _template_items_tool_select(params, "gpencil.select", "view3d.cursor3d", "toggle")},
+        {"items": _template_items_tool_select(params, "gpencil.select", "view3d.cursor3d", extend="toggle")},
     )
 
 
@@ -6020,7 +6020,7 @@ def km_3d_view_tool_sculpt_gpencil_select(params):
     return (
         "3D View Tool: Sculpt Gpencil, Tweak",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": _template_items_tool_select(params, "gpencil.select", "view3d.cursor3d", "toggle")},
+        {"items": _template_items_tool_select(params, "gpencil.select", "view3d.cursor3d", extend="toggle")},
     )
 
 
