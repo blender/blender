@@ -993,6 +993,13 @@ download() {
   fi
 }
 
+string_trim() {
+    local var="$*"
+    var="${var#"${var%%[![:space:]]*}"}" # Leading.
+    var="${var%"${var##*[![:space:]]}"}" # Trailing.
+    echo -n "$var"
+}
+
 # Return 0 if $1 = $2 (i.e. 1.01.0 = 1.1, but 1.1.1 != 1.1), else 1.
 # $1 and $2 should be version numbers made of numbers only.
 version_eq() {
@@ -4752,6 +4759,8 @@ print_info_ffmpeglink() {
   if [ "$OPENJPEG_USE" = true ]; then
     _packages="$_packages $OPENJPEG_DEV"
   fi
+
+  _packages="$(string_trim $_packages)"
 
   if [ "$DISTRO" = "DEB" ]; then
     print_info_ffmpeglink_DEB
