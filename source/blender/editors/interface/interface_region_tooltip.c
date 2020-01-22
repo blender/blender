@@ -1391,7 +1391,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   }
 
   /* adds subwindow */
-  ED_region_init(ar);
+  ED_region_floating_initialize(ar);
 
   /* notify change and redraw */
   ED_region_tag_redraw(ar);

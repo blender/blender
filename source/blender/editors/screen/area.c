@@ -1841,8 +1841,10 @@ void ED_region_update_rect(ARegion *ar)
 }
 
 /* externally called for floating regions like menus */
-void ED_region_init(ARegion *ar)
+void ED_region_floating_initialize(ARegion *ar)
 {
+  BLI_assert(ar->alignment == RGN_ALIGN_FLOAT);
+
   /* refresh can be called before window opened */
   region_subwindow(ar);
 
