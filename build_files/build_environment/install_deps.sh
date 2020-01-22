@@ -993,18 +993,21 @@ download() {
   fi
 }
 
-# Remove suffix such as '1.3_RC2', keeping only '1.3'.
-# Needed for numeric comparisons.
 version_sanitize() {
-  echo "$(sed -r 's/^([^_]+).*/\1/' <<< \"$1\")"
+  # Remove suffix such as '1.3_RC2', keeping only '1.3'.
+  # Needed for numeric comparisons.
+  local val=$(sed -r 's/^([^_]+).*/\1/' <<< "$1")
+  # Remove trailing punctuation such as '1.0.', keeping only '1.0'.
+  val=$(sed -r 's/[[:punct:]]*$//g' <<< "$val")
+  echo $val
 }
 
 # Return 0 if $1 = $2 (i.e. 1.01.0 = 1.1, but 1.1.1 != 1.1), else 1.
 # $1 and $2 should be version numbers made of numbers only.
 version_eq() {
-  local IFS='.'
   local VER_1=$(version_sanitize "$1")
   local VER_2=$(version_sanitize "$2")
+  local IFS='.'
 
   # Split both version numbers into their numeric elements.
   arr1=( $VER_1 )
@@ -1069,9 +1072,9 @@ version_ge_lt() {
 # $1 and $2 should be version numbers made of numbers only.
 # $1 should be at least as long as $2!
 version_match() {
-  local IFS='.'
   local VER_1=$(version_sanitize "$1")
   local VER_2=$(version_sanitize "$2")
+  local IFS='.'
 
   # Split both version numbers into their numeric elements.
   arr1=( $VER_1 )
