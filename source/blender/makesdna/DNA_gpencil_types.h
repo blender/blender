@@ -181,6 +181,7 @@ typedef struct bGPDstroke_Runtime {
 
   /** Original stroke (used to dereference evaluated data) */
   struct bGPDstroke *gps_orig;
+  void *_pad2;
 } bGPDstroke_Runtime;
 
 /* Grease-Pencil Annotations - 'Stroke'

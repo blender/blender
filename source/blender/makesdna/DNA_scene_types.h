@@ -1793,6 +1793,7 @@ typedef struct Scene {
 
   /** Settings to be override by workspaces. */
   IDProperty *layer_properties;
+  void *_pad9;
 
   struct SceneDisplay display;
   struct SceneEEVEE eevee;
