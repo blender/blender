@@ -92,7 +92,7 @@ class INFO_MT_area(Menu):
 
         layout.separator()
 
-        layout.operator("screen.area_dupli", icon='DUPLICATE')
+        layout.operator("screen.area_dupli", icon='WINDOW')
 
         layout.separator()
 
