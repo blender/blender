@@ -386,6 +386,7 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
   }
   else {
     ob = gob;
+    gob = NULL;
   }
 
   if (ob) {
