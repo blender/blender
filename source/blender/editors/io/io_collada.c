@@ -541,7 +541,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
                                  FILE_TYPE_FOLDER | FILE_TYPE_COLLADA,
                                  FILE_BLENDER,
                                  FILE_SAVE,
-                                 WM_FILESEL_FILEPATH,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_ALPHA);
 
@@ -870,7 +870,7 @@ void WM_OT_collada_import(wmOperatorType *ot)
                                  FILE_TYPE_FOLDER | FILE_TYPE_COLLADA,
                                  FILE_BLENDER,
                                  FILE_OPENFILE,
-                                 WM_FILESEL_FILEPATH,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_ALPHA);
 
