@@ -411,7 +411,7 @@ void BKE_sound_delete_cache(bSound *sound)
   }
 }
 
-static void sound_load_audio(Main *bmain, bSound *sound)
+static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
 {
 
   if (sound->cache) {
@@ -425,7 +425,9 @@ static void sound_load_audio(Main *bmain, bSound *sound)
     sound->playback_handle = NULL;
   }
 
-  BKE_sound_free_waveform(sound);
+  if (free_waveform) {
+    BKE_sound_free_waveform(sound);
+  }
 
 /* XXX unused currently */
 #  if 0
@@ -488,7 +490,7 @@ static void sound_load_audio(Main *bmain, bSound *sound)
 void BKE_sound_load(Main *bmain, bSound *sound)
 {
   sound_verify_evaluated_id(&sound->id);
-  sound_load_audio(bmain, sound);
+  sound_load_audio(bmain, sound, true);
 }
 
 AUD_Device *BKE_sound_mixdown(Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
@@ -902,7 +904,7 @@ void BKE_sound_read_waveform(Main *bmain, bSound *sound, short *stop)
   bool need_close_audio_handles = false;
   if (sound->playback_handle == NULL) {
     /* TODO(sergey): Make it fully independent audio handle. */
-    sound_load_audio(bmain, sound);
+    sound_load_audio(bmain, sound, true);
     need_close_audio_handles = true;
   }
 
@@ -1096,7 +1098,9 @@ bool BKE_sound_info_get(struct Main *main, struct bSound *sound, SoundInfo *soun
     return sound_info_from_playback_handle(sound->playback_handle, sound_info);
   }
   /* TODO(sergey): Make it fully independent audio handle. */
-  sound_load_audio(main, sound);
+  /* Don't free waveforms during non-destructive queries.
+   * This causes unnecessary recalculation - see T69921 */
+  sound_load_audio(main, sound, false);
   const bool result = sound_info_from_playback_handle(sound->playback_handle, sound_info);
   sound_free_audio(sound);
   return result;

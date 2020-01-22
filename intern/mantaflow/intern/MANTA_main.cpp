@@ -2057,7 +2057,10 @@ static char *pyObjectToString(PyObject *inputObject)
 
   PyObject *encoded = PyUnicode_AsUTF8String(inputObject);
   char *result = PyBytes_AsString(encoded);
-  Py_DECREF(encoded);
+
+  /* Do not decref (i.e. Py_DECREF(encoded)) of string 'encoded' PyObject.
+   * Otherwise those objects will be invalidated too early (see T72894).
+   * Reference count of those Python objects will be decreased with 'del' in Python scripts. */
   Py_DECREF(inputObject);
 
   PyGILState_Release(gilstate);
@@ -2566,6 +2569,8 @@ void MANTA::updatePointers()
         pyObjectToString(callPythonFunction("y_guidevel" + solver_ext, func)));
     mGuideVelocityZ = (float *)stringToPointer(
         pyObjectToString(callPythonFunction("z_guidevel" + solver_ext, func)));
+    mNumGuide = (float *)stringToPointer(
+        pyObjectToString(callPythonFunction("numGuides" + solver_ext, func)));
   }
   if (mUsingInvel) {
     mInVelocityX = (float *)stringToPointer(
@@ -2574,8 +2579,6 @@ void MANTA::updatePointers()
         pyObjectToString(callPythonFunction("y_invel" + solver_ext, func)));
     mInVelocityZ = (float *)stringToPointer(
         pyObjectToString(callPythonFunction("z_invel" + solver_ext, func)));
-    mNumGuide = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("numGuides" + solver_ext, func)));
   }
   if (mUsingSmoke) {
     mDensity = (float *)stringToPointer(
