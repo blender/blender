@@ -202,6 +202,7 @@ void MaterialNode::set_alpha(COLLADAFW::EffectCommon::OpaqueMode mode,
 
     bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Alpha");
     ((bNodeSocketValueFloat *)socket->default_value)->value = alpha;
+    material->a = alpha;
   }
   else if (cot.isTexture()) {
     int locy = -300 * (node_map.size() - 2);
