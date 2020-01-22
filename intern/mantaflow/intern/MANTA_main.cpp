@@ -2569,6 +2569,8 @@ void MANTA::updatePointers()
         pyObjectToString(callPythonFunction("y_guidevel" + solver_ext, func)));
     mGuideVelocityZ = (float *)stringToPointer(
         pyObjectToString(callPythonFunction("z_guidevel" + solver_ext, func)));
+    mNumGuide = (float *)stringToPointer(
+        pyObjectToString(callPythonFunction("numGuides" + solver_ext, func)));
   }
   if (mUsingInvel) {
     mInVelocityX = (float *)stringToPointer(
@@ -2577,8 +2579,6 @@ void MANTA::updatePointers()
         pyObjectToString(callPythonFunction("y_invel" + solver_ext, func)));
     mInVelocityZ = (float *)stringToPointer(
         pyObjectToString(callPythonFunction("z_invel" + solver_ext, func)));
-    mNumGuide = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("numGuides" + solver_ext, func)));
   }
   if (mUsingSmoke) {
     mDensity = (float *)stringToPointer(
