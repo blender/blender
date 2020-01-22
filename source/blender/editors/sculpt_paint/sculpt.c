@@ -1754,6 +1754,9 @@ static float brush_strength(const Sculpt *sd,
       /* Clay Strips needs less strength to compensate the curve. */
       final_pressure = pressure * pressure * pressure;
       return alpha * flip * final_pressure * overlap * feather * 0.3f;
+    case SCULPT_TOOL_CLAY_THUMB:
+      final_pressure = pressure * pressure;
+      return alpha * flip * final_pressure * overlap * feather * 1.3f;
 
     case SCULPT_TOOL_MASK:
       overlap = (1.0f + overlap) / 2.0f;
@@ -5753,6 +5756,188 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
   BKE_pbvh_parallel_range(0, totnode, &data, do_scrape_brush_task_cb_ex, &settings);
 }
 
+/* -------------------------------------------------------------------- */
+
+/** \name Sculpt Clay Thumb Brush
+ * \{ */
+
+static void do_clay_thumb_brush_task_cb_ex(void *__restrict userdata,
+                                           const int n,
+                                           const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+  float(*mat)[4] = data->mat;
+  const float *area_no_sp = data->area_no_sp;
+  const float *area_co = data->area_co;
+  const float hardness = 0.50f;
+
+  PBVHVertexIter vd;
+  float(*proxy)[3];
+  const float bstrength = data->clay_strength;
+
+  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = sculpt_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+
+  float plane_tilt[4];
+  float normal_tilt[3];
+  float imat[4][4];
+
+  invert_m4_m4(imat, mat);
+  rotate_v3_v3v3fl(normal_tilt, area_no_sp, imat[0], DEG2RADF(-ss->cache->clay_thumb_front_angle));
+
+  /* Plane aligned to the geometry normal (back part of the brush). */
+  plane_from_point_normal_v3(test.plane_tool, area_co, area_no_sp);
+  /* Tilted plane (front part of the brush). */
+  plane_from_point_normal_v3(plane_tilt, area_co, normal_tilt);
+
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+      float local_co[3];
+      mul_v3_m4v3(local_co, mat, vd.co);
+      float intr[3], intr_tilt[3];
+      float val[3];
+
+      closest_to_plane_normalized_v3(intr, test.plane_tool, vd.co);
+      closest_to_plane_normalized_v3(intr_tilt, plane_tilt, vd.co);
+
+      /* Mix the deformation of the aligned and the tilted plane based on the brush space vertex
+       * coordinates. */
+      /* We can also control the mix with a curve if it produces noticeable artifacts in the center
+       * of the brush. */
+      const float tilt_mix = local_co[1] > 0.0f ? 0.0f : 1.0f;
+      interp_v3_v3v3(intr, intr, intr_tilt, tilt_mix);
+      sub_v3_v3v3(val, intr_tilt, vd.co);
+
+      /* Deform the real vertex test distance with a hardness factor. This moves the falloff
+       * towards the edges of the brush, producing a more defined falloff and a flat center. */
+      float dist = sqrtf(test.dist);
+      float p = dist / ss->cache->radius;
+      p = (p - hardness) / (1.0f - hardness);
+      CLAMP(p, 0.0f, 1.0f);
+      dist *= p;
+      const float fade = bstrength * tex_strength(ss,
+                                                  brush,
+                                                  vd.co,
+                                                  dist,
+                                                  vd.no,
+                                                  vd.fno,
+                                                  vd.mask ? *vd.mask : 0.0f,
+                                                  vd.index,
+                                                  tls->thread_id);
+
+      mul_v3_v3fl(proxy[vd.i], val, fade);
+
+      if (vd.mvert) {
+        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      }
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static float sculpt_clay_thumb_get_stabilized_pressure(StrokeCache *cache)
+{
+  float final_pressure = 0.0f;
+  for (int i = 0; i < CLAY_STABILIZER_LEN; i++) {
+    final_pressure += cache->clay_pressure_stabilizer[i];
+  }
+  return final_pressure / (float)CLAY_STABILIZER_LEN;
+}
+
+static void do_clay_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  const float radius = ss->cache->radius;
+  const float offset = get_offset(sd, ss);
+  const float displace = radius * (0.25f + offset);
+
+  /* Sampled geometry normal and area center. */
+  float area_no_sp[3];
+  float area_no[3];
+  float area_co[3];
+
+  float temp[3];
+  float mat[4][4];
+  float scale[4][4];
+  float tmat[4][4];
+
+  calc_sculpt_plane(sd, ob, nodes, totnode, area_no_sp, area_co);
+
+  if (brush->sculpt_plane != SCULPT_DISP_DIR_AREA || (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
+    calc_area_normal(sd, ob, nodes, totnode, area_no);
+  }
+  else {
+    copy_v3_v3(area_no, area_no_sp);
+  }
+
+  /* Delay the first daub because grab delta is not setup. */
+  if (ss->cache->first_time) {
+    ss->cache->clay_thumb_front_angle = 0.0f;
+    return;
+  }
+
+  /* Simulate the clay accumulation by increasing the plane angle as more samples are added to the
+   * stroke. */
+  if (ss->cache->mirror_symmetry_pass == 0) {
+    ss->cache->clay_thumb_front_angle += 0.8f;
+    CLAMP(ss->cache->clay_thumb_front_angle, 0.0f, 60.0f);
+  }
+
+  if (is_zero_v3(ss->cache->grab_delta_symmetry)) {
+    return;
+  }
+
+  /* Displace the brush planes. */
+  copy_v3_v3(area_co, ss->cache->location);
+  mul_v3_v3v3(temp, area_no_sp, ss->cache->scale);
+  mul_v3_fl(temp, displace);
+  add_v3_v3(area_co, temp);
+
+  /* Init brush local space matrix. */
+  cross_v3_v3v3(mat[0], area_no, ss->cache->grab_delta_symmetry);
+  mat[0][3] = 0.0f;
+  cross_v3_v3v3(mat[1], area_no, mat[0]);
+  mat[1][3] = 0.0f;
+  copy_v3_v3(mat[2], area_no);
+  mat[2][3] = 0.0f;
+  copy_v3_v3(mat[3], ss->cache->location);
+  mat[3][3] = 1.0f;
+  normalize_m4(mat);
+
+  /* Scale brush local space matrix. */
+  scale_m4_fl(scale, ss->cache->radius);
+  mul_m4_m4m4(tmat, mat, scale);
+  invert_m4_m4(mat, tmat);
+
+  float clay_strength = ss->cache->bstrength *
+                        sculpt_clay_thumb_get_stabilized_pressure(ss->cache);
+
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+      .area_no_sp = area_no_sp,
+      .area_co = ss->cache->location,
+      .mat = mat,
+      .clay_strength = clay_strength,
+  };
+
+  PBVHParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range(0, totnode, &data, do_clay_thumb_brush_task_cb_ex, &settings);
+}
+
+/** \} */
+
 static void do_gravity_task_cb_ex(void *__restrict userdata,
                                   const int n,
                                   const TaskParallelTLS *__restrict tls)
@@ -6060,6 +6245,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         break;
       case SCULPT_TOOL_MULTIPLANE_SCRAPE:
         do_multiplane_scrape_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_CLAY_THUMB:
+        do_clay_thumb_brush(sd, ob, nodes, totnode);
         break;
       case SCULPT_TOOL_FILL:
         if (invert && brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
@@ -6586,6 +6774,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Clay Brush";
     case SCULPT_TOOL_CLAY_STRIPS:
       return "Clay Strips Brush";
+    case SCULPT_TOOL_CLAY_THUMB:
+      return "Clay Thumb Brush";
     case SCULPT_TOOL_FILL:
       return "Fill Brush";
     case SCULPT_TOOL_SCRAPE:
@@ -6854,6 +7044,11 @@ static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, flo
       return max_ff(initial_size * 0.20f, initial_size * pow3f(cache->pressure));
     case SCULPT_TOOL_CLAY_STRIPS:
       return max_ff(initial_size * 0.35f, initial_size * pow2f(cache->pressure));
+    case SCULPT_TOOL_CLAY_THUMB: {
+      float clay_stabilized_pressure = sculpt_clay_thumb_get_stabilized_pressure(cache);
+      return initial_size * clay_stabilized_pressure;
+    }
+
     default:
       return initial_size * cache->pressure;
   }
@@ -6875,6 +7070,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
            SCULPT_TOOL_NUDGE,
            SCULPT_TOOL_CLAY_STRIPS,
            SCULPT_TOOL_MULTIPLANE_SCRAPE,
+           SCULPT_TOOL_CLAY_THUMB,
            SCULPT_TOOL_SNAKE_HOOK,
            SCULPT_TOOL_POSE,
            SCULPT_TOOL_THUMB) ||
@@ -6911,6 +7107,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
           break;
         case SCULPT_TOOL_CLAY_STRIPS:
         case SCULPT_TOOL_MULTIPLANE_SCRAPE:
+        case SCULPT_TOOL_CLAY_THUMB:
         case SCULPT_TOOL_NUDGE:
         case SCULPT_TOOL_SNAKE_HOOK:
           if (brush->flag & BRUSH_ANCHORED) {
@@ -7051,6 +7248,23 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
     }
     else {
       cache->initial_radius = BKE_brush_unprojected_radius_get(scene, brush);
+    }
+  }
+
+  /* Clay stabilized pressure. */
+  if (brush->sculpt_tool == SCULPT_TOOL_CLAY_THUMB) {
+    if (ss->cache->first_time) {
+      for (int i = 0; i < CLAY_STABILIZER_LEN; i++) {
+        ss->cache->clay_pressure_stabilizer[i] = 0.0f;
+      }
+      ss->cache->clay_pressure_stabilizer_index = 0;
+    }
+    else {
+      cache->clay_pressure_stabilizer[cache->clay_pressure_stabilizer_index] = cache->pressure;
+      cache->clay_pressure_stabilizer_index += 1;
+      if (cache->clay_pressure_stabilizer_index >= CLAY_STABILIZER_LEN) {
+        cache->clay_pressure_stabilizer_index = 0;
+      }
     }
   }
 

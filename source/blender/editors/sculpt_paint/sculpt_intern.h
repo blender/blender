@@ -221,6 +221,9 @@ typedef struct SculptThreadedTaskData {
   float max_distance_squared;
   float nearest_vertex_search_co[3];
 
+  /* Stabilized strength for the Clay Thumb brush. */
+  float clay_strength;
+
   int mask_expand_update_it;
   bool mask_expand_invert_mask;
   bool mask_expand_use_normals;
@@ -312,6 +315,8 @@ bool sculpt_pbvh_calc_area_normal(const struct Brush *brush,
  * For descriptions of these settings, check the operator properties.
  */
 
+#define CLAY_STABILIZER_LEN 10
+
 typedef struct StrokeCache {
   /* Invariants */
   float initial_radius;
@@ -389,6 +394,13 @@ typedef struct StrokeCache {
 
   /* Pose brush */
   struct SculptPoseIKChain *pose_ik_chain;
+
+  /* Clay Thumb brush */
+  /* Angle of the front tilting plane of the brush to simulate clay accumulation. */
+  float clay_thumb_front_angle;
+  /* Stores pressure samples to get an stabilized strength and radius variation. */
+  float clay_pressure_stabilizer[CLAY_STABILIZER_LEN];
+  int clay_pressure_stabilizer_index;
 
   float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
   struct Dial *dial;

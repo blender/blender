@@ -938,6 +938,13 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->autosmooth_factor = 0.25f;
       br->normal_radius_factor = 0.75f;
       break;
+    case SCULPT_TOOL_CLAY_THUMB:
+      br->alpha = 0.5f;
+      br->normal_radius_factor = 1.0f;
+      br->spacing = 6;
+      br->flag |= BRUSH_SIZE_PRESSURE;
+      br->flag &= ~BRUSH_SPACE_ATTEN;
+      break;
     case SCULPT_TOOL_CLAY_STRIPS:
       br->flag |= BRUSH_ACCUMULATE | BRUSH_SIZE_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
@@ -1019,6 +1026,7 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_DRAW_SHARP:
     case SCULPT_TOOL_CLAY:
     case SCULPT_TOOL_CLAY_STRIPS:
+    case SCULPT_TOOL_CLAY_THUMB:
     case SCULPT_TOOL_LAYER:
     case SCULPT_TOOL_INFLATE:
     case SCULPT_TOOL_BLOB:
@@ -1428,6 +1436,7 @@ bool BKE_brush_sculpt_has_secondary_color(const Brush *brush)
               SCULPT_TOOL_INFLATE,
               SCULPT_TOOL_CLAY,
               SCULPT_TOOL_CLAY_STRIPS,
+              SCULPT_TOOL_CLAY_THUMB,
               SCULPT_TOOL_PINCH,
               SCULPT_TOOL_CREASE,
               SCULPT_TOOL_LAYER,
