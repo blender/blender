@@ -19,6 +19,29 @@
 
 # A shell script installing/building all needed dependencies to build Blender, for some Linux distributions.
 
+##### Debugging Helpers #####
+#
+# Use for developing this script (keep first).
+
+# Useful for debugging this script:
+USE_DEBUG_TRAP=${USE_DEBUG_TRAP:-0}
+USE_DEBUG_LOG=${USE_DEBUG_LOG:-0}
+
+# Print the line that exits.
+if [ $USE_DEBUG_TRAP -ne 0 ]; then
+  err_report() {
+    echo "Error on line $1"
+    exit 1
+  }
+  trap 'err_report $LINENO' ERR
+fi
+
+# Noisy, show every line that runs with it's line number.
+if [ $USE_DEBUG_LOG -ne 0 ]; then
+  PS4='\e[0;33m$(printf %4d ${LINENO}):\e\033[0m '
+  set -x
+fi
+
 ##### Args and Help Handling #####
 
 # Parse command line!
