@@ -993,14 +993,22 @@ download() {
   fi
 }
 
+# Remove suffix such as '1.3_RC2', keeping only '1.3'.
+# Needed for numeric comparisons.
+version_sanitize() {
+  echo "$(sed -r 's/^([^_]+).*/\1/' <<< \"$1\")"
+}
+
 # Return 0 if $1 = $2 (i.e. 1.01.0 = 1.1, but 1.1.1 != 1.1), else 1.
 # $1 and $2 should be version numbers made of numbers only.
 version_eq() {
   local IFS='.'
+  local VER_1=$(version_sanitize "$1")
+  local VER_2=$(version_sanitize "$2")
 
   # Split both version numbers into their numeric elements.
-  arr1=( $1 )
-  arr2=( $2 )
+  arr1=( $VER_1 )
+  arr2=( $VER_2 )
 
   ret=1
 
@@ -1010,8 +1018,8 @@ version_eq() {
     _t=$count1
     count1=$count2
     count2=$_t
-    arr1=( $2 )
-    arr2=( $1 )
+    arr1=( $VER_2 )
+    arr2=( $VER_1 )
   fi
 
   ret=0
@@ -1062,10 +1070,12 @@ version_ge_lt() {
 # $1 should be at least as long as $2!
 version_match() {
   local IFS='.'
+  local VER_1=$(version_sanitize "$1")
+  local VER_2=$(version_sanitize "$2")
 
   # Split both version numbers into their numeric elements.
-  arr1=( $1 )
-  arr2=( $2 )
+  arr1=( $VER_1 )
+  arr2=( $VER_2 )
 
   ret=1
 
