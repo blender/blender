@@ -390,6 +390,14 @@ class ToolSelectPanelHelper:
             if tool is not None:
                 tool.refresh_from_context()
                 return tool
+        elif space_type == 'SEQUENCE_EDITOR':
+            space_data = context.space_data
+            if mode is None:
+                mode = space_data.view_type
+            tool = context.workspace.tools.from_space_sequencer(mode, create=create)
+            if tool is not None:
+                tool.refresh_from_context()
+                return tool
         return None
 
     @staticmethod
@@ -656,6 +664,8 @@ class ToolSelectPanelHelper:
             return space_type, space_data.mode
         elif space_type == 'NODE_EDITOR':
             return space_type, None
+        elif space_type == 'SEQUENCE_EDITOR':
+            return space_type, context.space_data.view_type
         else:
             return None, None
 

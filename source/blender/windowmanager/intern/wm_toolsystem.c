@@ -487,6 +487,8 @@ static bool toolsystem_key_ensure_check(const bToolKey *tkey)
       break;
     case SPACE_NODE:
       return true;
+    case SPACE_SEQ:
+      return true;
   }
   return false;
 }
@@ -514,6 +516,11 @@ int WM_toolsystem_mode_from_spacetype(ViewLayer *view_layer, ScrArea *sa, int sp
     }
     case SPACE_NODE: {
       mode = 0;
+      break;
+    }
+    case SPACE_SEQ: {
+      SpaceSeq *sseq = sa->spacedata.first;
+      mode = sseq->view;
       break;
     }
   }
@@ -734,6 +741,17 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
       }
       break;
     case SPACE_NODE: {
+      return "builtin.select_box";
+    }
+    case SPACE_SEQ: {
+      switch (tkey->mode) {
+        case SEQ_VIEW_SEQUENCE:
+          return "builtin.select";
+        case SEQ_VIEW_PREVIEW:
+          return "builtin.annotate";
+        case SEQ_VIEW_SEQUENCE_PREVIEW:
+          return "builtin.select";
+      }
       return "builtin.select_box";
     }
   }

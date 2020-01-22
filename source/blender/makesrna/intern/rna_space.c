@@ -161,6 +161,13 @@ const EnumPropertyItem rna_enum_space_graph_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_space_sequencer_view_type_items[] = {
+    {SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
+    {SEQ_VIEW_PREVIEW, "PREVIEW", ICON_SEQ_PREVIEW, "Preview", ""},
+    {SEQ_VIEW_SEQUENCE_PREVIEW, "SEQUENCER_PREVIEW", ICON_SEQ_SPLITVIEW, "Sequencer/Preview", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #define SACT_ITEM_DOPESHEET \
   { \
     SACTCONT_DOPESHEET, "DOPESHEET", ICON_ACTION, "Dope Sheet", "Edit all keyframes in scene" \
@@ -4458,17 +4465,6 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem view_type_items[] = {
-      {SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
-      {SEQ_VIEW_PREVIEW, "PREVIEW", ICON_SEQ_PREVIEW, "Preview", ""},
-      {SEQ_VIEW_SEQUENCE_PREVIEW,
-       "SEQUENCER_PREVIEW",
-       ICON_SEQ_SPLITVIEW,
-       "Sequencer/Preview",
-       ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   static const EnumPropertyItem display_mode_items[] = {
       {SEQ_DRAW_IMG_IMBUF, "IMAGE", ICON_SEQ_PREVIEW, "Image Preview", ""},
       {SEQ_DRAW_IMG_WAVEFORM, "WAVEFORM", ICON_SEQ_LUMA_WAVEFORM, "Luma Waveform", ""},
@@ -4528,12 +4524,13 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "SpaceSeq");
   RNA_def_struct_ui_text(srna, "Space Sequence Editor", "Sequence editor space data");
 
-  rna_def_space_generic_show_region_toggles(srna, ((1 << RGN_TYPE_UI) | (1 << RGN_TYPE_HUD)));
+  rna_def_space_generic_show_region_toggles(
+      srna, (1 << RGN_TYPE_TOOL_HEADER) | (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_TOOLS));
 
   /* view type, fairly important */
   prop = RNA_def_property(srna, "view_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "view");
-  RNA_def_property_enum_items(prop, view_type_items);
+  RNA_def_property_enum_items(prop, rna_enum_space_sequencer_view_type_items);
   RNA_def_property_ui_text(
       prop, "View Type", "Type of the Sequencer view (sequencer, preview or both)");
   RNA_def_property_update(prop, 0, "rna_Sequencer_view_type_update");

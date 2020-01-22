@@ -103,6 +103,7 @@ EnumPropertyItem prop_side_types[] = {
     {SEQ_SIDE_LEFT, "LEFT", 0, "Left", ""},
     {SEQ_SIDE_RIGHT, "RIGHT", 0, "Right", ""},
     {SEQ_SIDE_BOTH, "BOTH", 0, "Both", ""},
+    {SEQ_SIDE_NO_CHANGE, "NO_CHANGE", 0, "No change", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -958,6 +959,8 @@ static bool cut_seq_list(Main *bmain,
                          Scene *scene,
                          ListBase *slist,
                          int cutframe,
+                         int channel,
+                         bool use_cursor_position,
                          Sequence *(*cut_seq)(Main *bmain, Scene *, Sequence *, ListBase *, int))
 {
   Sequence *seq, *seq_next_iter;
@@ -968,8 +971,8 @@ static bool cut_seq_list(Main *bmain,
   while (seq && seq != seq_first_new) {
     seq_next_iter = seq->next; /* we need this because we may remove seq */
     seq->tmp = NULL;
-    if (seq->flag & SELECT) {
-      if (cutframe > seq->startdisp && cutframe < seq->enddisp) {
+    if (use_cursor_position) {
+      if (seq->machine == channel && seq->startdisp < cutframe && seq->enddisp > cutframe) {
         Sequence *seqn = cut_seq(bmain, scene, seq, slist, cutframe);
         if (seqn) {
           if (seq_first_new == NULL) {
@@ -977,16 +980,28 @@ static bool cut_seq_list(Main *bmain,
           }
         }
       }
-      else if (seq->enddisp <= cutframe) {
-        /* do nothing */
-      }
-      else if (seq->startdisp >= cutframe) {
-        /* move to tail */
-        BLI_remlink(slist, seq);
-        BLI_addtail(slist, seq);
+    }
+    else {
+      if (seq->flag & SELECT) {
+        if (cutframe > seq->startdisp && cutframe < seq->enddisp) {
+          Sequence *seqn = cut_seq(bmain, scene, seq, slist, cutframe);
+          if (seqn) {
+            if (seq_first_new == NULL) {
+              seq_first_new = seqn;
+            }
+          }
+        }
+        else if (seq->enddisp <= cutframe) {
+          /* do nothing */
+        }
+        else if (seq->startdisp >= cutframe) {
+          /* move to tail */
+          BLI_remlink(slist, seq);
+          BLI_addtail(slist, seq);
 
-        if (seq_first_new == NULL) {
-          seq_first_new = seq;
+          if (seq_first_new == NULL) {
+            seq_first_new = seq;
+          }
         }
       }
     }
@@ -2154,40 +2169,64 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = BKE_sequencer_editing_get(scene, false);
-  int cut_side, cut_hard, cut_frame;
-
-  bool changed;
+  int cut_side, cut_hard, cut_frame, cut_channel;
+  bool changed, use_cursor_position, ignore_selection;
+  bool seq_selected = false;
 
   cut_frame = RNA_int_get(op->ptr, "frame");
+  cut_channel = RNA_int_get(op->ptr, "channel");
+  use_cursor_position = RNA_boolean_get(op->ptr, "use_cursor_position");
   cut_hard = RNA_enum_get(op->ptr, "type");
   cut_side = RNA_enum_get(op->ptr, "side");
+  ignore_selection = RNA_boolean_get(op->ptr, "ignore_selection");
 
   if (cut_hard == SEQ_CUT_HARD) {
-    changed = cut_seq_list(bmain, scene, ed->seqbasep, cut_frame, cut_seq_hard);
+    changed = cut_seq_list(
+        bmain, scene, ed->seqbasep, cut_frame, cut_channel, use_cursor_position, cut_seq_hard);
   }
   else {
-    changed = cut_seq_list(bmain, scene, ed->seqbasep, cut_frame, cut_seq_soft);
+    changed = cut_seq_list(
+        bmain, scene, ed->seqbasep, cut_frame, cut_channel, use_cursor_position, cut_seq_soft);
   }
 
   if (changed) { /* got new strips ? */
     Sequence *seq;
 
-    if (cut_side != SEQ_SIDE_BOTH) {
-      SEQP_BEGIN (ed, seq) {
-        if (cut_side == SEQ_SIDE_LEFT) {
-          if (seq->startdisp >= cut_frame) {
-            seq->flag &= ~SEQ_ALLSEL;
+    if (ignore_selection) {
+      if (use_cursor_position) {
+        SEQP_BEGIN (ed, seq) {
+          if (seq->enddisp == cut_frame && seq->machine == cut_channel) {
+            seq_selected = seq->flag & SEQ_ALLSEL;
           }
         }
-        else {
-          if (seq->enddisp <= cut_frame) {
-            seq->flag &= ~SEQ_ALLSEL;
+        SEQ_END;
+        if (!seq_selected) {
+          SEQP_BEGIN (ed, seq) {
+            if (seq->startdisp == cut_frame && seq->machine == cut_channel) {
+              seq->flag &= ~SEQ_ALLSEL;
+            }
           }
+          SEQ_END;
         }
       }
-      SEQ_END;
     }
-
+    else {
+      if (cut_side != SEQ_SIDE_BOTH) {
+        SEQP_BEGIN (ed, seq) {
+          if (cut_side == SEQ_SIDE_LEFT) {
+            if (seq->startdisp >= cut_frame) {
+              seq->flag &= ~SEQ_ALLSEL;
+            }
+          }
+          else {
+            if (seq->enddisp <= cut_frame) {
+              seq->flag &= ~SEQ_ALLSEL;
+            }
+          }
+        }
+        SEQ_END;
+      }
+    }
     SEQP_BEGIN (ed, seq) {
       if (seq->seq1 || seq->seq2 || seq->seq3) {
         BKE_sequence_calc(scene, seq);
@@ -2204,7 +2243,8 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
   else {
-    return OPERATOR_CANCELLED;
+    /* Passthrough to selection if used as tool. */
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 }
 
@@ -2224,7 +2264,17 @@ static int sequencer_cut_invoke(bContext *C, wmOperator *op, const wmEvent *even
       cut_side = SEQ_SIDE_BOTH;
     }
   }
-  RNA_int_set(op->ptr, "frame", cut_frame);
+
+  float mouseloc[2];
+  UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mouseloc[0], &mouseloc[1]);
+
+  if (RNA_boolean_get(op->ptr, "use_cursor_position")) {
+    RNA_int_set(op->ptr, "frame", mouseloc[0]);
+  }
+  else {
+    RNA_int_set(op->ptr, "frame", cut_frame);
+  }
+  RNA_int_set(op->ptr, "channel", mouseloc[1]);
   RNA_enum_set(op->ptr, "side", cut_side);
   /*RNA_enum_set(op->ptr, "type", cut_hard); */ /*This type is set from the key shortcut */
   return sequencer_cut_exec(C, op);
@@ -2255,19 +2305,43 @@ void SEQUENCER_OT_cut(struct wmOperatorType *ot)
               "Frame where selected strips will be cut",
               INT_MIN,
               INT_MAX);
+  RNA_def_int(ot->srna,
+              "channel",
+              0,
+              INT_MIN,
+              INT_MAX,
+              "Channel",
+              "Channel in which strip will be cut",
+              INT_MIN,
+              INT_MAX);
   RNA_def_enum(ot->srna,
                "type",
                prop_cut_types,
                SEQ_CUT_SOFT,
                "Type",
                "The type of cut operation to perform on strips");
+  RNA_def_boolean(ot->srna,
+                  "use_cursor_position",
+                  0,
+                  "Use Cursor Position",
+                  "Cut at position of the cursor instead of playhead");
   prop = RNA_def_enum(ot->srna,
                       "side",
                       prop_side_types,
                       SEQ_SIDE_MOUSE,
                       "Side",
                       "The side that remains selected after cutting");
+
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(
+      ot->srna,
+      "ignore_selection",
+      false,
+      "Ignore Selection",
+      "Make cut event if strip is not selected preserving selection state after cut");
+
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 #undef SEQ_SIDE_MOUSE

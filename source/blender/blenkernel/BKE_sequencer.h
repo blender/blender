@@ -504,6 +504,7 @@ enum {
   SEQ_SIDE_LEFT,
   SEQ_SIDE_RIGHT,
   SEQ_SIDE_BOTH,
+  SEQ_SIDE_NO_CHANGE,
 };
 int BKE_sequencer_find_next_prev_edit(struct Scene *scene,
                                       int cfra,

@@ -110,6 +110,14 @@ static SpaceLink *sequencer_new(const ScrArea *UNUSED(sa), const Scene *scene)
   ar->alignment = RGN_ALIGN_RIGHT;
   ar->flag = RGN_FLAG_HIDDEN;
 
+  /* toolbar */
+  ar = MEM_callocN(sizeof(ARegion), "tools for sequencer");
+
+  BLI_addtail(&sseq->regionbase, ar);
+  ar->regiontype = RGN_TYPE_TOOLS;
+  ar->alignment = RGN_ALIGN_LEFT;
+  ar->flag = RGN_FLAG_HIDDEN;
+
   /* preview region */
   /* NOTE: if you change values here, also change them in sequencer_init_preview_region */
   ar = MEM_callocN(sizeof(ARegion), "preview region for sequencer");
@@ -618,6 +626,23 @@ static void sequencer_header_region_draw(const bContext *C, ARegion *ar)
   ED_region_header(C, ar);
 }
 
+/* *********************** toolbar region ************************ */
+/* add handlers, stuff you only do once or on area/region changes */
+static void sequencer_tools_region_init(wmWindowManager *wm, ARegion *ar)
+{
+  wmKeyMap *keymap;
+
+  ar->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
+  ED_region_panels_init(wm, ar);
+
+  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+}
+
+static void sequencer_tools_region_draw(const bContext *C, ARegion *ar)
+{
+  ED_region_panels(C, ar);
+}
 /* *********************** preview region ************************ */
 static void sequencer_preview_region_init(wmWindowManager *wm, ARegion *ar)
 {
@@ -832,7 +857,7 @@ void ED_spacetype_sequencer(void)
   art->draw = sequencer_main_region_draw;
   art->listener = sequencer_main_region_listener;
   art->message_subscribe = sequencer_main_region_message_subscribe;
-  art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_ANIMATION;
+  art->keymapflag = ED_KEYMAP_TOOL | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_ANIMATION;
 
   BLI_addhead(&st->regiontypes, art);
 
@@ -842,7 +867,8 @@ void ED_spacetype_sequencer(void)
   art->init = sequencer_preview_region_init;
   art->draw = sequencer_preview_region_draw;
   art->listener = sequencer_preview_region_listener;
-  art->keymapflag = ED_KEYMAP_GIZMO | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_GPENCIL;
+  art->keymapflag = ED_KEYMAP_TOOL | ED_KEYMAP_GIZMO | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES |
+                    ED_KEYMAP_GPENCIL;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: listview/buttons */
@@ -850,12 +876,35 @@ void ED_spacetype_sequencer(void)
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH * 1.3f;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
+  art->message_subscribe = ED_area_do_mgs_subscribe_for_tool_ui;
   art->listener = sequencer_buttons_region_listener;
   art->init = sequencer_buttons_region_init;
   art->draw = sequencer_buttons_region_draw;
   BLI_addhead(&st->regiontypes, art);
 
   sequencer_buttons_register(art);
+  /* regions: tool(bar) */
+  art = MEM_callocN(sizeof(ARegionType), "spacetype sequencer tools region");
+  art->regionid = RGN_TYPE_TOOLS;
+  art->prefsizex = 58; /* XXX */
+  art->prefsizey = 50; /* XXX */
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
+  art->message_subscribe = ED_region_generic_tools_region_message_subscribe;
+  art->snap_size = ED_region_generic_tools_region_snap_size;
+  art->init = sequencer_tools_region_init;
+  art->draw = sequencer_tools_region_draw;
+  BLI_addhead(&st->regiontypes, art);
+
+  /* regions: tool header */
+  art = MEM_callocN(sizeof(ARegionType), "spacetype sequencer tool header region");
+  art->regionid = RGN_TYPE_TOOL_HEADER;
+  art->prefsizey = HEADERY;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
+  art->listener = sequencer_main_region_listener;
+  art->init = sequencer_header_region_init;
+  art->draw = sequencer_header_region_draw;
+  art->message_subscribe = ED_area_do_mgs_subscribe_for_tool_header;
+  BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
   art = MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");

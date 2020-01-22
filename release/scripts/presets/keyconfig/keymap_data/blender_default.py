@@ -2335,12 +2335,20 @@ def km_sequencercommon(_params):
 
     items.extend([
         *_template_space_region_type_toggle(
+            toolbar_key={"type": 'T', "value": 'PRESS'},
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
         ("wm.context_toggle", {"type": 'O', "value": 'PRESS', "shift": True},
          {"properties": [("data_path", 'scene.sequence_editor.show_overlay')]}),
         ("sequencer.view_toggle", {"type": 'TAB', "value": 'PRESS', "ctrl": True}, None),
     ])
+
+    if _params.select_mouse == 'LEFTMOUSE' and not _params.legacy:
+        # Quick switch to select tool, since left select can't easily
+        # select with any tool active.
+        items.extend([
+            op_tool_cycle("builtin.select_box", {"type": 'W', "value": 'PRESS'}),
+        ])
 
     return keymap
 
@@ -6051,6 +6059,39 @@ def km_3d_view_tool_sculpt_gpencil_select_lasso(params):
     )
 
 
+def km_sequencer_editor_tool_select(params):
+    return (
+        "Sequencer Tool: Select",
+        {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
+        {"items": [
+            ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS'},
+             {"properties": [("extend", False), ("deselect_all", not params.legacy)]}),
+        ]},
+    )
+
+
+def km_sequencer_editor_tool_select_box(params):
+    return (
+        "Sequencer Tool: Select Box",
+        {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
+        {"items": _template_items_tool_select_actions_simple(
+            "sequencer.select_box", type=params.tool_tweak, value='ANY',
+            properties=[("tweak", True)],
+        )},
+    )
+
+
+def km_sequencer_editor_tool_cut(params):
+    return (
+        "Sequencer Tool: Cut",
+        {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
+        {"items":[
+            ("sequencer.cut", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+             {"properties": [("type", 'SOFT'), ("side", 'NO_CHANGE'), ("use_cursor_position", True), ("ignore_selection", True)]}),
+        ]},
+    )
+
+
 # ------------------------------------------------------------------------------
 # Full Configuration
 
@@ -6264,6 +6305,9 @@ def generate_keymaps(params=None):
         km_3d_view_tool_sculpt_gpencil_select_box(params),
         km_3d_view_tool_sculpt_gpencil_select_circle(params),
         km_3d_view_tool_sculpt_gpencil_select_lasso(params),
+        km_sequencer_editor_tool_select(params),
+        km_sequencer_editor_tool_select_box(params),
+        km_sequencer_editor_tool_cut(params),
     ]
 
 # ------------------------------------------------------------------------------

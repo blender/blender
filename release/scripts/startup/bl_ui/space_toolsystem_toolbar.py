@@ -1707,6 +1707,51 @@ class _defs_node_edit:
             keymap="Node Tool: Links Cut",
         )
 
+class _defs_sequencer_generic:
+
+    @ToolDef.from_fn
+    def cut():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sequencer.cut")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "type", expand=True)
+        return dict(
+            idname="builtin.cut",
+            label="Cut",
+            icon="ops.mesh.knife_tool",
+            widget=None,
+            keymap="Sequencer Tool: Cut",
+            draw_settings=draw_settings,
+        )
+
+class _defs_sequencer_select:
+    @ToolDef.from_fn
+    def select():
+        return dict(
+            idname="builtin.select",
+            label="Select",
+            icon="ops.generic.select",
+            widget=None,
+            keymap="Sequencer Tool: Select",
+        )
+    @ToolDef.from_fn
+    def box():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sequencer.select_box")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
+            pass
+        return dict(
+            idname="builtin.select_box",
+            label="Select Box",
+            icon="ops.generic.select_box",
+            widget=None,
+            keymap="Sequencer Tool: Select Box",
+            draw_settings=draw_settings,
+        )
+
 
 class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -2150,12 +2195,71 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_annotate,
         ],
     }
+class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_label = "Tools"  # not visible
+    bl_options = {'HIDE_HEADER'}
 
+    # Satisfy the 'ToolSelectPanelHelper' API.
+    keymap_prefix = "Sequence Editor Tool:"
+
+    # Default group to use as a fallback.
+    tool_fallback_id = "builtin.select"
+
+    @classmethod
+    def tools_from_context(cls, context, mode=None):
+        if mode is None:
+            if context.space_data:
+                mode = context.space_data.view_type
+        for tools in (cls._tools[None], cls._tools.get(mode, ())):
+            for item in tools:
+                if not (type(item) is ToolDef) and callable(item):
+                    yield from item(context)
+                else:
+                    yield item
+
+    @classmethod
+    def tools_all(cls):
+        yield from cls._tools.items()
+
+    _tools_select = (
+        (
+            _defs_sequencer_select.select,
+            _defs_sequencer_select.box,
+        ),
+    )
+    _tools_annotate = (
+        (
+            _defs_annotate.scribble,
+            _defs_annotate.line,
+            _defs_annotate.poly,
+            _defs_annotate.eraser,
+        ),
+    )
+
+    _tools = {
+        None: [
+        ],
+        'PREVIEW': [
+            *_tools_annotate,
+        ],
+        'SEQUENCER': [
+            *_tools_select,
+            _defs_sequencer_generic.cut,
+        ],
+        'SEQUENCER_PREVIEW': [
+            *_tools_select,
+            *_tools_annotate,
+            _defs_sequencer_generic.cut,
+        ],
+    }
 
 classes = (
     IMAGE_PT_tools_active,
     NODE_PT_tools_active,
     VIEW3D_PT_tools_active,
+    SEQUENCER_PT_tools_active,
 )
 
 if __name__ == "__main__":  # only for live edit.

@@ -41,8 +41,8 @@ struct wmOperatorType;
 
 /* wm_toolsystem.c  */
 
-#define WM_TOOLSYSTEM_SPACE_MASK ((1 << SPACE_IMAGE) | (1 << SPACE_NODE) | (1 << SPACE_VIEW3D))
-
+#define WM_TOOLSYSTEM_SPACE_MASK \
+  ((1 << SPACE_IMAGE) | (1 << SPACE_NODE) | (1 << SPACE_VIEW3D) | (1 << SPACE_SEQ))
 /* Values that define a categoey of active tool. */
 typedef struct bToolKey {
   int space_type;

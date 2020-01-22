@@ -636,6 +636,29 @@ static ARegion *do_versions_add_region(int regiontype, const char *name)
   return ar;
 }
 
+static void do_versions_area_ensure_tool_region(Main *bmain,
+                                                const short space_type,
+                                                const short region_flag)
+{
+  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+      for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+        if (sl->spacetype == space_type) {
+          ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+          ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
+          if (!ar) {
+            ARegion *header = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+            ar = do_versions_add_region(RGN_TYPE_TOOLS, "tools region");
+            BLI_insertlinkafter(regionbase, header, ar);
+            ar->alignment = RGN_ALIGN_LEFT;
+            ar->flag = region_flag;
+          }
+        }
+      }
+    }
+  }
+}
+
 static void do_version_bones_split_bbone_scale(ListBase *lb)
 {
   for (Bone *bone = lb->first; bone; bone = bone->next) {
@@ -3738,7 +3761,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
           /* All spaces that use tools must be eventually added. */
           ARegion *ar = NULL;
-          if (ELEM(sl->spacetype, SPACE_VIEW3D, SPACE_IMAGE) &&
+          if (ELEM(sl->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_SEQ) &&
               ((ar = do_versions_find_region_or_null(regionbase, RGN_TYPE_TOOL_HEADER)) == NULL)) {
             /* Add tool header. */
             ar = do_versions_add_region(RGN_TYPE_TOOL_HEADER, "tool header");
@@ -4337,6 +4360,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Sequencer Tool region */
+    do_versions_area_ensure_tool_region(bmain, SPACE_SEQ, RGN_FLAG_HIDDEN);
 
     /* Cloth internal springs */
     for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
