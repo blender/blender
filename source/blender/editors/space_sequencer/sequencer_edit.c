@@ -2326,9 +2326,6 @@ void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  /* to give to transform */
-  RNA_def_enum(ot->srna, "mode", rna_enum_transform_mode_types, TFM_TRANSLATION, "Mode", "");
 }
 
 /* delete operator */
@@ -3153,7 +3150,7 @@ void SEQUENCER_OT_strip_jump(wmOperatorType *ot)
   ot->poll = sequencer_strip_jump_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO;
 
   /* properties */
   RNA_def_boolean(ot->srna, "next", true, "Next Strip", "");
@@ -4246,5 +4243,5 @@ void SEQUENCER_OT_set_range_to_strips(struct wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   prop = RNA_def_boolean(ot->srna, "preview", false, "Preview", "Set the preview range instead");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }

@@ -228,6 +228,9 @@ class SEQUENCER_MT_view(Menu):
         layout.prop(st, "show_region_ui")
         layout.operator_context = 'INVOKE_DEFAULT'
 
+        if is_sequencer_view:
+            layout.prop(st, "show_region_hud")
+
         if st.view_type == 'SEQUENCER':
             layout.prop(st, "show_backdrop", text="Preview as Backdrop")
 

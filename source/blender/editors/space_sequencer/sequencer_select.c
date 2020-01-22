@@ -312,7 +312,7 @@ void SEQUENCER_OT_select_all(struct wmOperatorType *ot)
   ot->poll = sequencer_edit_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO;
 
   WM_operator_properties_select_all(ot);
 }
@@ -353,7 +353,7 @@ void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot)
   ot->poll = sequencer_edit_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO;
 }
 
 static int sequencer_select_exec(bContext *C, wmOperator *op)
@@ -647,7 +647,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
   ot->poll = ED_operator_sequencer_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO;
 
   /* properties */
   WM_operator_properties_generic_select(ot);
@@ -1086,7 +1086,7 @@ void SEQUENCER_OT_select_box(wmOperatorType *ot)
   ot->poll = ED_operator_sequencer_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO;
 
   /* properties */
   WM_operator_properties_gesture_box(ot);

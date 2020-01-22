@@ -869,6 +869,10 @@ void ED_spacetype_sequencer(void)
 
   BLI_addhead(&st->regiontypes, art);
 
+  /* regions: hud */
+  art = ED_area_type_hud(st->spaceid);
+  BLI_addhead(&st->regiontypes, art);
+
   BKE_spacetype_register(st);
 
   /* set the sequencer callback when not in background mode */

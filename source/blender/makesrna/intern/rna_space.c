@@ -4528,7 +4528,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "SpaceSeq");
   RNA_def_struct_ui_text(srna, "Space Sequence Editor", "Sequence editor space data");
 
-  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_UI));
+  rna_def_space_generic_show_region_toggles(srna, ((1 << RGN_TYPE_UI) | (1 << RGN_TYPE_HUD)));
 
   /* view type, fairly important */
   prop = RNA_def_property(srna, "view_type", PROP_ENUM, PROP_NONE);
