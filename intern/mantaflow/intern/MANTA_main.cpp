@@ -2008,8 +2008,13 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
   myfile.close();
 }
 
-/* Call Mantaflow python functions through this function. Use isAttribute for object attributes,
- * e.g. s.cfl (here 's' is varname, 'cfl' functionName, and isAttribute true) */
+/* Call Mantaflow Python functions through this function. Use isAttribute for object attributes,
+ * e.g. s.cfl (here 's' is varname, 'cfl' functionName, and isAttribute true) or
+ *      grid.getDataPointer (here 's' is varname, 'getDataPointer' functionName, and isAttribute
+ * false)
+ *
+ * Important! Return value: New reference or nullptr
+ * Caller of this function needs to handle reference count of returned object. */
 static PyObject *callPythonFunction(std::string varName,
                                     std::string functionName,
                                     bool isAttribute = false)
@@ -2051,8 +2056,13 @@ static PyObject *callPythonFunction(std::string varName,
   return (!isAttribute) ? returnedValue : func;
 }
 
+/* Argument of this function may be a nullptr.
+ * If it's not function will handle the reference count decrement of that argument. */
 static void *pyObjectToPointer(PyObject *inputObject)
 {
+  if (!inputObject)
+    return nullptr;
+
   PyGILState_STATE gilstate = PyGILState_Ensure();
 
   PyObject *encoded = PyUnicode_AsUTF8String(inputObject);
@@ -2066,21 +2076,43 @@ static void *pyObjectToPointer(PyObject *inputObject)
   in >> dataPointer;
 
   Py_DECREF(encoded);
-  PyGILState_Release(gilstate);
 
+  PyGILState_Release(gilstate);
   return dataPointer;
 }
 
+/* Argument of this function may be a nullptr.
+ * If it's not function will handle the reference count decrement of that argument. */
 static double pyObjectToDouble(PyObject *inputObject)
 {
-  // Cannot use PyFloat_AsDouble() since its error check crashes - likely because of Real (aka
-  // float) type in Mantaflow
-  return PyFloat_AS_DOUBLE(inputObject);
+  if (!inputObject)
+    return 0.0;
+
+  PyGILState_STATE gilstate = PyGILState_Ensure();
+
+  /* Cannot use PyFloat_AsDouble() since its error check crashes.
+   * Likely because of typedef 'Real' for 'float' types in Mantaflow. */
+  double result = PyFloat_AS_DOUBLE(inputObject);
+  Py_DECREF(inputObject);
+
+  PyGILState_Release(gilstate);
+  return result;
 }
 
+/* Argument of this function may be a nullptr.
+ * If it's not function will handle the reference count decrement of that argument. */
 static long pyObjectToLong(PyObject *inputObject)
 {
-  return PyLong_AsLong(inputObject);
+  if (!inputObject)
+    return 0;
+
+  PyGILState_STATE gilstate = PyGILState_Ensure();
+
+  long result = PyLong_AsLong(inputObject);
+  Py_DECREF(inputObject);
+
+  PyGILState_Release(gilstate);
+  return result;
 }
 
 int MANTA::getFrame()
@@ -2104,7 +2136,7 @@ float MANTA::getTimestep()
   std::string id = std::to_string(mCurrentID);
   std::string solver = "s" + id;
 
-  return pyObjectToDouble(callPythonFunction(solver, func, true));
+  return (float)pyObjectToDouble(callPythonFunction(solver, func, true));
 }
 
 bool MANTA::needsRealloc(FluidModifierData *mmd)
