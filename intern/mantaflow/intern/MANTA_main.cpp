@@ -2057,7 +2057,10 @@ static char *pyObjectToString(PyObject *inputObject)
 
   PyObject *encoded = PyUnicode_AsUTF8String(inputObject);
   char *result = PyBytes_AsString(encoded);
-  Py_DECREF(encoded);
+
+  /* Do not decref (i.e. Py_DECREF(encoded)) of string 'encoded' PyObject.
+   * Otherwise those objects will be invalidated too early (see T72894).
+   * Reference count of those Python objects will be decreased with 'del' in Python scripts. */
   Py_DECREF(inputObject);
 
   PyGILState_Release(gilstate);
