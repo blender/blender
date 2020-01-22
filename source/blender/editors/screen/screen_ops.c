@@ -4843,7 +4843,10 @@ static int userpref_show_invoke(bContext *C, wmOperator *op, const wmEvent *even
      * So hiding in the temp window makes sense. */
     ScrArea *area = CTX_wm_area(C);
     ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
+
     region->flag |= RGN_FLAG_HIDDEN;
+    ED_region_visibility_change_update(C, area, region);
+
     return OPERATOR_FINISHED;
   }
   else {
