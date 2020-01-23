@@ -10,6 +10,70 @@ diff -Naur src/blosc/CMakeLists.txt external_blosc/blosc/CMakeLists.txt
      endif(NOT Threads_FOUND)
  else(WIN32)
      find_package(Threads REQUIRED)
+diff -Naur src/CMakeLists.txt external_blosc/CMakeLists.txt
+--- src/CMakeLists.txt	2016-02-03 10:26:28 -0700
++++ external_blosc/CMakeLists.txt	2017-03-03 09:03:31 -0700
+@@ -17,8 +17,8 @@
+ #       do not include support for the Snappy library
+ #   DEACTIVATE_ZLIB: default OFF
+ #       do not include support for the Zlib library
+-#   PREFER_EXTERNAL_COMPLIBS: default ON
+-#       when found, use the installed compression libs instead of included sources
++#   PREFER_EXTERNAL_ZLIB: default ON
++#       when found, use the installed zlib instead of included sources
+ #   TEST_INCLUDE_BENCH_SINGLE_1: default ON
+ #       add a test that runs the benchmark program passing "single" with 1 thread
+ #       as first parameter
+@@ -80,29 +80,23 @@
+     "Do not include support for the SNAPPY library." OFF)
+ option(DEACTIVATE_ZLIB
+     "Do not include support for the ZLIB library." OFF)
+-option(PREFER_EXTERNAL_COMPLIBS
+-    "When found, use the installed compression libs instead of included sources." ON)
++option(PREFER_EXTERNAL_ZLIB
++    "When found, use the installed zlib instead of included sources." ON)
+ 
+ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+ 
+-if(NOT PREFER_EXTERNAL_COMPLIBS)
++if(NOT PREFER_EXTERNAL_ZLIB)
+     message(STATUS "Finding external libraries disabled.  Using internal sources.")
+-endif(NOT PREFER_EXTERNAL_COMPLIBS)
++endif(NOT PREFER_EXTERNAL_ZLIB)
+ 
+ 
+ if(NOT DEACTIVATE_LZ4)
+-    if(PREFER_EXTERNAL_COMPLIBS)
+-        find_package(LZ4)
+-    endif(PREFER_EXTERNAL_COMPLIBS)
+     # HAVE_LZ4 will be set to true because even if the library is
+     # not found, we will use the included sources for it
+     set(HAVE_LZ4 TRUE)
+ endif(NOT DEACTIVATE_LZ4)
+ 
+ if(NOT DEACTIVATE_SNAPPY)
+-    if(PREFER_EXTERNAL_COMPLIBS)
+-        find_package(Snappy)
+-    endif(PREFER_EXTERNAL_COMPLIBS)
+     # HAVE_SNAPPY will be set to true because even if the library is not found,
+     # we will use the included sources for it
+     set(HAVE_SNAPPY TRUE)
+@@ -110,13 +104,13 @@
+ 
+ if(NOT DEACTIVATE_ZLIB)
+     # import the ZLIB_ROOT environment variable to help finding the zlib library
+-    if(PREFER_EXTERNAL_COMPLIBS)
++    if(PREFER_EXTERNAL_ZLIB)
+         set(ZLIB_ROOT $ENV{ZLIB_ROOT})
+         find_package( ZLIB )
+         if (NOT ZLIB_FOUND )
+             message(STATUS "No zlib found.  Using internal sources.")
+         endif (NOT ZLIB_FOUND )
+-    endif(PREFER_EXTERNAL_COMPLIBS)
++    endif(PREFER_EXTERNAL_ZLIB)
+     # HAVE_ZLIB will be set to true because even if the library is not found,
+     # we will use the included sources for it
+     set(HAVE_ZLIB TRUE)
 diff -Naur external_blosc.orig/blosc/blosc.c external_blosc/blosc/blosc.c
 --- external_blosc.orig/blosc/blosc.c   2018-07-30 04:56:38 -0600
 +++ external_blosc/blosc/blosc.c        2018-08-11 15:27:26 -0600
