@@ -307,6 +307,7 @@ class SEQUENCER_MT_view(Menu):
             layout.operator_context = 'INVOKE_DEFAULT'
 
             layout.prop(st, "show_seconds")
+            layout.prop(st, "show_locked_time")
             layout.prop(st, "show_strip_offset")
             layout.separator()
             layout.prop(st, "show_markers")

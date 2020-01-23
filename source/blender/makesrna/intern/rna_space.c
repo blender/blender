@@ -2647,7 +2647,9 @@ static void rna_def_space(BlenderRNA *brna)
   /* access to V2D_VIEWSYNC_SCREEN_TIME */
   prop = RNA_def_property(srna, "show_locked_time", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_Space_view2d_sync_get", "rna_Space_view2d_sync_set");
-  RNA_def_property_ui_text(prop, "Lock Time to Other Windows", "");
+  RNA_def_property_ui_text(prop,
+                           "Sync Visible Range",
+                           "Syncronize the visible timeline range with other time-based editors");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, "rna_Space_view2d_sync_update");
 
   rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_HEADER));
