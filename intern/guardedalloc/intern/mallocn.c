@@ -70,6 +70,9 @@ const char *(*MEM_name_ptr)(void *vmemh) = MEM_lockfree_name_ptr;
 
 void *aligned_malloc(size_t size, size_t alignment)
 {
+  /* posix_memalign requires alignment to be a multiple of sizeof(void *). */
+  assert(alignment >= ALIGNED_MALLOC_MINIMUM_ALIGNMENT);
+
 #ifdef _WIN32
   return _aligned_malloc(size, alignment);
 #elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__)

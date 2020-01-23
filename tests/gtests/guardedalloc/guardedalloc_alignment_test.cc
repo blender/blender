@@ -34,6 +34,50 @@ void DoBasicAlignmentChecks(const int alignment)
 
 }  // namespace
 
+TEST(guardedalloc, LockfreeAlignedAlloc1)
+{
+  DoBasicAlignmentChecks(1);
+}
+
+TEST(guardedalloc, GuardedAlignedAlloc1)
+{
+  MEM_use_guarded_allocator();
+  DoBasicAlignmentChecks(1);
+}
+
+TEST(guardedalloc, LockfreeAlignedAlloc2)
+{
+  DoBasicAlignmentChecks(2);
+}
+
+TEST(guardedalloc, GuardedAlignedAlloc2)
+{
+  MEM_use_guarded_allocator();
+  DoBasicAlignmentChecks(2);
+}
+
+TEST(guardedalloc, LockfreeAlignedAlloc4)
+{
+  DoBasicAlignmentChecks(4);
+}
+
+TEST(guardedalloc, GuardedAlignedAlloc4)
+{
+  MEM_use_guarded_allocator();
+  DoBasicAlignmentChecks(4);
+}
+
+TEST(guardedalloc, LockfreeAlignedAlloc8)
+{
+  DoBasicAlignmentChecks(8);
+}
+
+TEST(guardedalloc, GuardedAlignedAlloc8)
+{
+  MEM_use_guarded_allocator();
+  DoBasicAlignmentChecks(8);
+}
+
 TEST(guardedalloc, LockfreeAlignedAlloc16)
 {
   DoBasicAlignmentChecks(16);
@@ -45,13 +89,35 @@ TEST(guardedalloc, GuardedAlignedAlloc16)
   DoBasicAlignmentChecks(16);
 }
 
-// On Apple we currently support 16 bit alignment only.
-// Harmless for Blender, but would be nice to support
-// eventually.
-#ifndef __APPLE__
+TEST(guardedalloc, LockfreeAlignedAlloc32)
+{
+  DoBasicAlignmentChecks(32);
+}
+
 TEST(guardedalloc, GuardedAlignedAlloc32)
 {
   MEM_use_guarded_allocator();
   DoBasicAlignmentChecks(32);
 }
-#endif
+
+TEST(guardedalloc, LockfreeAlignedAlloc256)
+{
+  DoBasicAlignmentChecks(256);
+}
+
+TEST(guardedalloc, GuardedAlignedAlloc256)
+{
+  MEM_use_guarded_allocator();
+  DoBasicAlignmentChecks(256);
+}
+
+TEST(guardedalloc, LockfreeAlignedAlloc512)
+{
+  DoBasicAlignmentChecks(512);
+}
+
+TEST(guardedalloc, GuardedAlignedAlloc512)
+{
+  MEM_use_guarded_allocator();
+  DoBasicAlignmentChecks(512);
+}

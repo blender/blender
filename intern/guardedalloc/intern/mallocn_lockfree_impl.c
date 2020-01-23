@@ -346,7 +346,17 @@ void *MEM_lockfree_malloc_arrayN(size_t len, size_t size, const char *str)
 
 void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str)
 {
-  MemHeadAligned *memh;
+  /* Huge alignment values doesn't make sense and they wouldn't fit into 'short' used in the
+   * MemHead. */
+  assert(alignment < 1024);
+
+  /* We only support alignments that are a power of two. */
+  assert(IS_POW2(alignment));
+
+  /* Some OS specific aligned allocators require a certain minimal alignment. */
+  if (alignment < ALIGNED_MALLOC_MINIMUM_ALIGNMENT) {
+    alignment = ALIGNED_MALLOC_MINIMUM_ALIGNMENT;
+  }
 
   /* It's possible that MemHead's size is not properly aligned,
    * do extra padding to deal with this.
@@ -356,17 +366,10 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
    */
   size_t extra_padding = MEMHEAD_ALIGN_PADDING(alignment);
 
-  /* Huge alignment values doesn't make sense and they
-   * wouldn't fit into 'short' used in the MemHead.
-   */
-  assert(alignment < 1024);
-
-  /* We only support alignment to a power of two. */
-  assert(IS_POW2(alignment));
-
   len = SIZET_ALIGN_4(len);
 
-  memh = (MemHeadAligned *)aligned_malloc(len + extra_padding + sizeof(MemHeadAligned), alignment);
+  MemHeadAligned *memh = (MemHeadAligned *)aligned_malloc(
+      len + extra_padding + sizeof(MemHeadAligned), alignment);
 
   if (LIKELY(memh)) {
     /* We keep padding in the beginning of MemHead,

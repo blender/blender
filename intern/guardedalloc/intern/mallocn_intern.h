@@ -107,6 +107,8 @@ size_t malloc_usable_size(void *ptr);
 
 #include "mallocn_inline.h"
 
+#define ALIGNED_MALLOC_MINIMUM_ALIGNMENT sizeof(void *)
+
 void *aligned_malloc(size_t size, size_t alignment);
 void aligned_free(void *ptr);
 
