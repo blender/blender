@@ -1103,8 +1103,11 @@ static void cursor_draw_point_screen_space(
   copy_v3_v3(location, true_location);
   mul_m4_v3(obmat, location);
   ED_view3d_project(ar, location, translation_vertex_cursor);
-  imm_draw_circle_fill_3d(
-      gpuattr, translation_vertex_cursor[0], translation_vertex_cursor[1], size, 10);
+  /* Do not draw points behind the view. Z [near, far] is mapped to [-1, 1]. */
+  if (translation_vertex_cursor[2] <= 1.0f) {
+    imm_draw_circle_fill_3d(
+        gpuattr, translation_vertex_cursor[0], translation_vertex_cursor[1], size, 10);
+  }
 }
 
 static void cursor_draw_tiling_preview(const uint gpuattr,
