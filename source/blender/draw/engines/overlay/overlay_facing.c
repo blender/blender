@@ -21,6 +21,7 @@
  */
 
 #include "DRW_render.h"
+#include "BKE_paint.h"
 
 #include "overlay_private.h"
 
@@ -45,9 +46,17 @@ void OVERLAY_facing_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
 
-  struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
-  if (geom) {
-    DRW_shgroup_call(pd->facing_grp, geom, ob);
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
+                               !DRW_state_is_image_render();
+  if (use_sculpt_pbvh) {
+    DRW_shgroup_call_sculpt(pd->facing_grp, ob, false, false, false);
+  }
+  else {
+    struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
+    if (geom) {
+      DRW_shgroup_call(pd->facing_grp, geom, ob);
+    }
   }
 }
 
