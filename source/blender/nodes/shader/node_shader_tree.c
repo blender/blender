@@ -332,7 +332,16 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
 
     bNodeSocket *group_socket = group_node->inputs.first;
     for (; group_socket; group_socket = group_socket->next) {
+
       if (group_socket->link != NULL) {
+        bNodeLink *link = group_socket->link;
+        /* Fix the case where the socket is actually converting the data. (see T71374)
+         * We only do the case of lossy conversion to float.*/
+        if ((group_socket->type == SOCK_FLOAT) && (link->fromsock->type != link->tosock->type)) {
+          bNode *node = nodeAddStaticNode(NULL, localtree, SH_NODE_RGBTOBW);
+          nodeAddLink(localtree, link->fromnode, link->fromsock, node, node->inputs.first);
+          nodeAddLink(localtree, node, node->outputs.first, group_node, group_socket);
+        }
         continue;
       }
 
