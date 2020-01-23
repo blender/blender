@@ -211,12 +211,13 @@ static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
   PointerRNA ptr, idptr;
   PropertyRNA *prop;
 
+  bAction *oldact = NULL;
+  AnimData *adt = NULL;
   /* hook into UI */
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   if (prop) {
-    bAction *action = NULL, *oldact = NULL;
-    AnimData *adt = NULL;
+    /* The operator was called from a button. */
     PointerRNA oldptr;
 
     oldptr = RNA_property_pointer_get(&ptr, prop);
@@ -229,6 +230,13 @@ static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
     else if (ptr.type == &RNA_SpaceDopeSheetEditor) {
       adt = ED_actedit_animdata_from_context(C);
     }
+  }
+  else {
+    adt = ED_actedit_animdata_from_context(C);
+    oldact = adt->action;
+  }
+  {
+    bAction *action = NULL;
 
     /* Perform stashing operation - But only if there is an action */
     if (adt && oldact) {
@@ -257,12 +265,14 @@ static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
     /* create action */
     action = action_create_new(C, oldact);
 
-    /* set this new action
-     * NOTE: we can't use actedit_change_action, as this function is also called from the NLA
-     */
-    RNA_id_pointer_create(&action->id, &idptr);
-    RNA_property_pointer_set(&ptr, prop, idptr, NULL);
-    RNA_property_update(C, &ptr, prop);
+    if (prop) {
+      /* set this new action
+       * NOTE: we can't use actedit_change_action, as this function is also called from the NLA
+       */
+      RNA_id_pointer_create(&action->id, &idptr);
+      RNA_property_pointer_set(&ptr, prop, idptr, NULL);
+      RNA_property_update(C, &ptr, prop);
+    }
   }
 
   /* set notifier that keyframes have changed */
