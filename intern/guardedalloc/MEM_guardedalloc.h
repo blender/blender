@@ -278,6 +278,15 @@ template<class T> inline void OBJECT_GUARDED_DESTRUCTOR(T *what)
       } \
     } \
     (void)0
+#  define OBJECT_GUARDED_SAFE_DELETE(what, type) \
+    { \
+      if (what) { \
+        OBJECT_GUARDED_DESTRUCTOR((type *)what); \
+        MEM_freeN(what); \
+        what = NULL; \
+      } \
+    } \
+    (void)0
 #endif /* __cplusplus */
 
 #endif /* __MEM_GUARDEDALLOC_H__ */
