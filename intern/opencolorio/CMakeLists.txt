@@ -59,12 +59,19 @@ if(WITH_OPENCOLORIO)
     ocio_impl_glsl.cc
   )
 
+  list(APPEND LIB
+    ${OPENCOLORIO_LIBRARIES}
+  )
+
   if(WIN32)
     list(APPEND INC_SYS
       ${BOOST_INCLUDE_DIR}
     )
     add_definitions(
       -DOpenColorIO_STATIC
+    )
+    list(APPEND LIB
+      ${BOOST_LIBRARIES}
     )
   endif()
 

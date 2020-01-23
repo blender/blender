@@ -54,6 +54,8 @@ set(SRC
 set(LIB
   bf_gpu
   bf_intern_guardedalloc
+
+  ${FREETYPE_LIBRARY}
 )
 
 if(WIN32)

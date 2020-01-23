@@ -52,6 +52,9 @@ set(LIB
   bf_gpu
 
   bf_usd
+
+  ${BOOST_LIBRARIES}
+  ${TBB_LIBRARIES}
 )
 
 include_directories(${INC})

@@ -27,6 +27,7 @@ set(INC
   ../../../intern/atomic
 )
 
+setup_libdirs()
 include_directories(${INC})
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")

@@ -37,6 +37,9 @@ set(LIB
   bf_intern_opencolorio # Should not be needed but gives windows linker errors if the ocio libs are linked before this
   bf_gpu # Should not be needed but gives windows linker errors if the ocio libs are linked before this
   bf_alembic
+
+  ${OPENEXR_LIBRARIES}
+  ${BOOST_LIBRARIES}
 )
 
 include_directories(${INC})

@@ -62,6 +62,10 @@ set(SRC
 
 set(LIB
   extern_mantaflow
+
+  ${PYTHON_LINKFLAGS}
+  ${PYTHON_LIBRARIES}
+  ${ZLIB_LIBRARIES}
 )
 
 blender_add_lib(bf_intern_mantaflow "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

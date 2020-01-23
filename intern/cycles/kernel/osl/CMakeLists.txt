@@ -27,6 +27,10 @@ set(HEADER_SRC
 
 set(LIB
   cycles_render
+
+  ${OSL_LIBRARIES}
+  ${OPENIMAGEIO_LIBRARIES}
+  ${LLVM_LIBRARY}
 )
 
 include_directories(${INC})

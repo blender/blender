@@ -117,6 +117,8 @@ set(LIB
 )
 
 if(WITH_LIBMV)
+  setup_libdirs()
+
   add_definitions(\${GFLAGS_DEFINES})
   add_definitions(\${GLOG_DEFINES})
   add_definitions(\${CERES_DEFINES})
@@ -138,7 +140,10 @@ if(WITH_LIBMV)
 
   list(APPEND LIB
     extern_ceres
-    extern_glog
+
+    \${GLOG_LIBRARIES}
+    \${GFLAGS_LIBRARIES}
+    \${PNG_LIBRARIES}
   )
 
   add_definitions(

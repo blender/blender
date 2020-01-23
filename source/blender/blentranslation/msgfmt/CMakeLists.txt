@@ -30,6 +30,7 @@ set(SRC
   msgfmt.c
 )
 
+setup_libdirs()
 add_cc_flags_custom_test(msgfmt)
 
 if(APPLE)

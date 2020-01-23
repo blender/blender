@@ -78,4 +78,36 @@ set(LIB
   bf_blenlib
 )
 
+# Source: https://github.com/PixarAnimationStudios/USD/blob/master/BUILDING.md#linking-whole-archives
+if(WIN32)
+  list(APPEND LIB
+    ${USD_LIBRARIES}
+  )
+elseif(CMAKE_COMPILER_IS_GNUCXX)
+  list(APPEND LIB
+    -Wl,--whole-archive ${USD_LIBRARIES} -Wl,--no-whole-archive
+  )
+elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+  list(APPEND LIB
+    -Wl,-force_load ${USD_LIBRARIES}
+  )
+else()
+  message(FATAL_ERROR "Unknown how to link USD with your compiler ${CMAKE_CXX_COMPILER_ID}")
+endif()
+
+list(APPEND LIB
+  ${BOOST_LIBRARIES}
+)
+
+list(APPEND LIB
+  ${TBB_LIBRARIES}
+)
+
 blender_add_lib(bf_usd "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+if(WIN32)
+  set_property(TARGET bf_usd APPEND_STRING PROPERTY LINK_FLAGS_DEBUG " /WHOLEARCHIVE:${USD_DEBUG_LIB}")
+  set_property(TARGET bf_usd APPEND_STRING PROPERTY LINK_FLAGS_RELEASE " /WHOLEARCHIVE:${USD_RELEASE_LIB}")
+  set_property(TARGET bf_usd APPEND_STRING PROPERTY LINK_FLAGS_RELWITHDEBINFO " /WHOLEARCHIVE:${USD_RELEASE_LIB}")
+  set_property(TARGET bf_usd APPEND_STRING PROPERTY LINK_FLAGS_MINSIZEREL " /WHOLEARCHIVE:${USD_RELEASE_LIB}")
+endif()

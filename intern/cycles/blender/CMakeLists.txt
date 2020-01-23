@@ -49,11 +49,15 @@ set(LIB
   cycles_render
   cycles_subd
   cycles_util
+
+  ${PYTHON_LINKFLAGS}
+  ${PYTHON_LIBRARIES}
 )
 
 if(WITH_CYCLES_LOGGING)
   list(APPEND LIB
-    extern_glog
+    ${GLOG_LIBRARIES}
+    ${GFLAGS_LIBRARIES}
   )
 endif()
 

@@ -17,7 +17,7 @@ set(SRC_HEADERS
 )
 
 set(LIB
-
+  cycles_util
 )
 
 include_directories(${INC})

@@ -47,11 +47,22 @@ if(WITH_OPENIMAGEIO)
     ${OPENIMAGEIO_INCLUDE_DIRS}
     ${BOOST_INCLUDE_DIR}
   )
+  list(APPEND LIB
+    ${OPENIMAGEIO_LIBRARIES}
+  )
   if(WITH_IMAGE_OPENEXR)
     list(APPEND INC_SYS
       ${OPENEXR_INCLUDE_DIRS}
     )
+    list(APPEND LIB
+      ${OPENEXR_LIBRARIES}
+    )
   endif()
+
+  list(APPEND LIB
+    ${BOOST_LIBRARIES}
+  )
+
   add_definitions(-DWITH_OPENIMAGEIO)
 endif()
 

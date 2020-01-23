@@ -90,6 +90,9 @@ set(LIB
   bf_intern_guardedalloc
   bf_intern_memutil
   bf_intern_opencolorio
+
+  ${PNG_LIBRARIES}
+  ${JPEG_LIBRARIES}
 )
 
 if(WITH_IMAGE_OPENEXR)
@@ -110,6 +113,9 @@ if(WITH_IMAGE_TIFF)
   list(APPEND SRC
     intern/tiff.c
   )
+  list(APPEND LIB
+    ${TIFF_LIBRARY}
+  )
   add_definitions(-DWITH_TIFF)
 endif()
 
@@ -127,6 +133,9 @@ if(WITH_IMAGE_OPENJPEG)
   )
   list(APPEND SRC
     intern/jp2.c
+  )
+  list(APPEND LIB
+    ${OPENJPEG_LIBRARIES}
   )
 
   add_definitions(-DWITH_OPENJPEG ${OPENJPEG_DEFINES})
@@ -148,6 +157,10 @@ if(WITH_CODEC_FFMPEG)
   )
   list(APPEND INC_SYS
     ${FFMPEG_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    ${FFMPEG_LIBRARIES}
+    ${OPENJPEG_LIBRARIES}
   )
   add_definitions(-DWITH_FFMPEG)
 

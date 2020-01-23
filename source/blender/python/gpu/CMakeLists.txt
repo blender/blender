@@ -55,6 +55,8 @@ set(SRC
 )
 
 set(LIB
+  ${PYTHON_LINKFLAGS}
+  ${PYTHON_LIBRARIES}
 )
 
 add_definitions(${GL_DEFINITIONS})

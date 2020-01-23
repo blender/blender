@@ -48,4 +48,10 @@ set(SRC
 set(LIB
 )
 
+if(WITH_OPENMP_STATIC)
+  list(APPEND LIB
+    ${OpenMP_LIBRARIES}
+  )
+endif()
+
 blender_add_lib(bf_physics "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

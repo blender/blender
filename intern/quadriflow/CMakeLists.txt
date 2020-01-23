@@ -36,6 +36,7 @@ set(SRC
 
 set(LIB
   extern_quadriflow
+  ${BOOST_LIBRARIES}
 )
 
 if(WIN32)

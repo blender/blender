@@ -47,6 +47,7 @@ set(SRC
 )
 
 set(LIB
+  ${JPEG_LIBRARIES}
 )
 
 blender_add_lib(bf_avi "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
