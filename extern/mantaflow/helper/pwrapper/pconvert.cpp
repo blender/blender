@@ -144,7 +144,12 @@ template<> int fromPy<int>(PyObject *obj)
 template<> string fromPy<string>(PyObject *obj)
 {
   if (PyUnicode_Check(obj))
+#ifdef BLENDER
+    // Blender is completely UTF-8 based
+    return PyBytes_AsString(PyUnicode_AsUTF8String(obj));
+#else
     return PyBytes_AsString(PyUnicode_AsLatin1String(obj));
+#endif
 #if PY_MAJOR_VERSION <= 2
   else if (PyString_Check(obj))
     return PyString_AsString(obj);
@@ -155,7 +160,12 @@ template<> string fromPy<string>(PyObject *obj)
 template<> const char *fromPy<const char *>(PyObject *obj)
 {
   if (PyUnicode_Check(obj))
+#ifdef BLENDER
+    // Blender is completely UTF-8 based
+    return PyBytes_AsString(PyUnicode_AsUTF8String(obj));
+#else
     return PyBytes_AsString(PyUnicode_AsLatin1String(obj));
+#endif
 #if PY_MAJOR_VERSION <= 2
   else if (PyString_Check(obj))
     return PyString_AsString(obj);
