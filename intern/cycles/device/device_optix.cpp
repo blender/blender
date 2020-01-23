@@ -1461,6 +1461,9 @@ class OptiXDevice : public Device {
             srt_data[i].a = decomp[i].z.x;  // scale.x.y
             srt_data[i].b = decomp[i].z.y;  // scale.x.z
             srt_data[i].c = decomp[i].w.x;  // scale.y.z
+            assert(decomp[i].z.z == 0.0f);  // scale.y.x
+            assert(decomp[i].w.y == 0.0f);  // scale.z.x
+            assert(decomp[i].w.z == 0.0f);  // scale.z.y
 
             // Pivot point
             srt_data[i].pvx = 0.0f;

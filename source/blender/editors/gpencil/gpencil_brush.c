@@ -424,7 +424,8 @@ static bool gp_brush_strength_apply(tGP_BrushEditData *gso,
    * - We divide the strength, so that users can set "sane" values.
    *   Otherwise, good default values are in the range of 0.093
    */
-  inf = gp_brush_influence_calc(gso, radius, co) / 20.0f;
+  inf = gp_brush_influence_calc(gso, radius, co) / 2.0f;
+  CLAMP_MIN(inf, 0.01f);
 
   /* apply */
   if (gp_brush_invert_check(gso)) {
@@ -435,11 +436,11 @@ static bool gp_brush_strength_apply(tGP_BrushEditData *gso,
     /* make line more opaque - increase stroke strength */
     pt->strength += inf;
   }
-  /* smooth the strength */
-  BKE_gpencil_smooth_stroke_strength(gps, pt_index, inf);
-
   /* Strength should stay within [0.0, 1.0] */
   CLAMP(pt->strength, 0.0f, 1.0f);
+
+  /* smooth the strength */
+  BKE_gpencil_smooth_stroke_strength(gps, pt_index, inf);
 
   return true;
 }

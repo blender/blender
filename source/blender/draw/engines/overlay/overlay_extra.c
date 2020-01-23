@@ -623,8 +623,9 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
   copy_m4_m4(instdata.mat, ob->obmat);
   /* FIXME / TODO: clipend has no meaning nowadays.
    * In EEVEE, Only clipsta is used shadowmaping.
-   * Clip end is computed automatically based on light power. */
-  instdata.clip_end = la->clipend;
+   * Clip end is computed automatically based on light power.
+   * For now, always use the custom distance as clipend. */
+  instdata.clip_end = la->att_dist;
   instdata.clip_sta = la->clipsta;
 
   DRW_buffer_add_entry(cb->groundline, instdata.pos);

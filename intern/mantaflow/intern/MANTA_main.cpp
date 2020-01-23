@@ -2008,8 +2008,13 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
   myfile.close();
 }
 
-/* Call Mantaflow python functions through this function. Use isAttribute for object attributes,
- * e.g. s.cfl (here 's' is varname, 'cfl' functionName, and isAttribute true) */
+/* Call Mantaflow Python functions through this function. Use isAttribute for object attributes,
+ * e.g. s.cfl (here 's' is varname, 'cfl' functionName, and isAttribute true) or
+ *      grid.getDataPointer (here 's' is varname, 'getDataPointer' functionName, and isAttribute
+ * false)
+ *
+ * Important! Return value: New reference or nullptr
+ * Caller of this function needs to handle reference count of returned object. */
 static PyObject *callPythonFunction(std::string varName,
                                     std::string functionName,
                                     bool isAttribute = false)
@@ -2051,41 +2056,63 @@ static PyObject *callPythonFunction(std::string varName,
   return (!isAttribute) ? returnedValue : func;
 }
 
-static char *pyObjectToString(PyObject *inputObject)
+/* Argument of this function may be a nullptr.
+ * If it's not function will handle the reference count decrement of that argument. */
+static void *pyObjectToPointer(PyObject *inputObject)
 {
+  if (!inputObject)
+    return nullptr;
+
   PyGILState_STATE gilstate = PyGILState_Ensure();
 
   PyObject *encoded = PyUnicode_AsUTF8String(inputObject);
   char *result = PyBytes_AsString(encoded);
 
-  /* Do not decref (i.e. Py_DECREF(encoded)) of string 'encoded' PyObject.
-   * Otherwise those objects will be invalidated too early (see T72894).
-   * Reference count of those Python objects will be decreased with 'del' in Python scripts. */
+  Py_DECREF(inputObject);
+
+  std::string str(result);
+  std::istringstream in(str);
+  void *dataPointer = nullptr;
+  in >> dataPointer;
+
+  Py_DECREF(encoded);
+
+  PyGILState_Release(gilstate);
+  return dataPointer;
+}
+
+/* Argument of this function may be a nullptr.
+ * If it's not function will handle the reference count decrement of that argument. */
+static double pyObjectToDouble(PyObject *inputObject)
+{
+  if (!inputObject)
+    return 0.0;
+
+  PyGILState_STATE gilstate = PyGILState_Ensure();
+
+  /* Cannot use PyFloat_AsDouble() since its error check crashes.
+   * Likely because of typedef 'Real' for 'float' types in Mantaflow. */
+  double result = PyFloat_AS_DOUBLE(inputObject);
   Py_DECREF(inputObject);
 
   PyGILState_Release(gilstate);
   return result;
 }
 
-static double pyObjectToDouble(PyObject *inputObject)
-{
-  // Cannot use PyFloat_AsDouble() since its error check crashes - likely because of Real (aka
-  // float) type in Mantaflow
-  return PyFloat_AS_DOUBLE(inputObject);
-}
-
+/* Argument of this function may be a nullptr.
+ * If it's not function will handle the reference count decrement of that argument. */
 static long pyObjectToLong(PyObject *inputObject)
 {
-  return PyLong_AsLong(inputObject);
-}
+  if (!inputObject)
+    return 0;
 
-static void *stringToPointer(char *inputString)
-{
-  std::string str(inputString);
-  std::istringstream in(str);
-  void *dataPointer = nullptr;
-  in >> dataPointer;
-  return dataPointer;
+  PyGILState_STATE gilstate = PyGILState_Ensure();
+
+  long result = PyLong_AsLong(inputObject);
+  Py_DECREF(inputObject);
+
+  PyGILState_Release(gilstate);
+  return result;
 }
 
 int MANTA::getFrame()
@@ -2109,7 +2136,7 @@ float MANTA::getTimestep()
   std::string id = std::to_string(mCurrentID);
   std::string solver = "s" + id;
 
-  return pyObjectToDouble(callPythonFunction(solver, func, true));
+  return (float)pyObjectToDouble(callPythonFunction(solver, func, true));
 }
 
 bool MANTA::needsRealloc(FluidModifierData *mmd)
@@ -2527,158 +2554,108 @@ void MANTA::updatePointers()
   std::string mesh_ext2 = "_" + mesh2;
   std::string noise_ext = "_" + noise;
 
-  mObstacle = (int *)stringToPointer(
-      pyObjectToString(callPythonFunction("flags" + solver_ext, func)));
-  mPhiIn = (float *)stringToPointer(
-      pyObjectToString(callPythonFunction("phiIn" + solver_ext, func)));
-  mVelocityX = (float *)stringToPointer(
-      pyObjectToString(callPythonFunction("x_vel" + solver_ext, func)));
-  mVelocityY = (float *)stringToPointer(
-      pyObjectToString(callPythonFunction("y_vel" + solver_ext, func)));
-  mVelocityZ = (float *)stringToPointer(
-      pyObjectToString(callPythonFunction("z_vel" + solver_ext, func)));
-  mForceX = (float *)stringToPointer(
-      pyObjectToString(callPythonFunction("x_force" + solver_ext, func)));
-  mForceY = (float *)stringToPointer(
-      pyObjectToString(callPythonFunction("y_force" + solver_ext, func)));
-  mForceZ = (float *)stringToPointer(
-      pyObjectToString(callPythonFunction("z_force" + solver_ext, func)));
+  mObstacle = (int *)pyObjectToPointer(callPythonFunction("flags" + solver_ext, func));
+  mPhiIn = (float *)pyObjectToPointer(callPythonFunction("phiIn" + solver_ext, func));
+  mVelocityX = (float *)pyObjectToPointer(callPythonFunction("x_vel" + solver_ext, func));
+  mVelocityY = (float *)pyObjectToPointer(callPythonFunction("y_vel" + solver_ext, func));
+  mVelocityZ = (float *)pyObjectToPointer(callPythonFunction("z_vel" + solver_ext, func));
+  mForceX = (float *)pyObjectToPointer(callPythonFunction("x_force" + solver_ext, func));
+  mForceY = (float *)pyObjectToPointer(callPythonFunction("y_force" + solver_ext, func));
+  mForceZ = (float *)pyObjectToPointer(callPythonFunction("z_force" + solver_ext, func));
 
   if (mUsingOutflow) {
-    mPhiOutIn = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("phiOutIn" + solver_ext, func)));
+    mPhiOutIn = (float *)pyObjectToPointer(callPythonFunction("phiOutIn" + solver_ext, func));
   }
   if (mUsingObstacle) {
-    mPhiObsIn = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("phiObsIn" + solver_ext, func)));
-    mObVelocityX = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("x_obvel" + solver_ext, func)));
-    mObVelocityY = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("y_obvel" + solver_ext, func)));
-    mObVelocityZ = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("z_obvel" + solver_ext, func)));
-    mNumObstacle = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("numObs" + solver_ext, func)));
+    mPhiObsIn = (float *)pyObjectToPointer(callPythonFunction("phiObsIn" + solver_ext, func));
+    mObVelocityX = (float *)pyObjectToPointer(callPythonFunction("x_obvel" + solver_ext, func));
+    mObVelocityY = (float *)pyObjectToPointer(callPythonFunction("y_obvel" + solver_ext, func));
+    mObVelocityZ = (float *)pyObjectToPointer(callPythonFunction("z_obvel" + solver_ext, func));
+    mNumObstacle = (float *)pyObjectToPointer(callPythonFunction("numObs" + solver_ext, func));
   }
   if (mUsingGuiding) {
-    mPhiGuideIn = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("phiGuideIn" + solver_ext, func)));
-    mGuideVelocityX = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("x_guidevel" + solver_ext, func)));
-    mGuideVelocityY = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("y_guidevel" + solver_ext, func)));
-    mGuideVelocityZ = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("z_guidevel" + solver_ext, func)));
-    mNumGuide = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("numGuides" + solver_ext, func)));
+    mPhiGuideIn = (float *)pyObjectToPointer(callPythonFunction("phiGuideIn" + solver_ext, func));
+    mGuideVelocityX = (float *)pyObjectToPointer(
+        callPythonFunction("x_guidevel" + solver_ext, func));
+    mGuideVelocityY = (float *)pyObjectToPointer(
+        callPythonFunction("y_guidevel" + solver_ext, func));
+    mGuideVelocityZ = (float *)pyObjectToPointer(
+        callPythonFunction("z_guidevel" + solver_ext, func));
+    mNumGuide = (float *)pyObjectToPointer(callPythonFunction("numGuides" + solver_ext, func));
   }
   if (mUsingInvel) {
-    mInVelocityX = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("x_invel" + solver_ext, func)));
-    mInVelocityY = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("y_invel" + solver_ext, func)));
-    mInVelocityZ = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("z_invel" + solver_ext, func)));
+    mInVelocityX = (float *)pyObjectToPointer(callPythonFunction("x_invel" + solver_ext, func));
+    mInVelocityY = (float *)pyObjectToPointer(callPythonFunction("y_invel" + solver_ext, func));
+    mInVelocityZ = (float *)pyObjectToPointer(callPythonFunction("z_invel" + solver_ext, func));
   }
   if (mUsingSmoke) {
-    mDensity = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("density" + solver_ext, func)));
-    mDensityIn = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("densityIn" + solver_ext, func)));
-    mShadow = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("shadow" + solver_ext, func)));
-    mEmissionIn = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("emissionIn" + solver_ext, func)));
+    mDensity = (float *)pyObjectToPointer(callPythonFunction("density" + solver_ext, func));
+    mDensityIn = (float *)pyObjectToPointer(callPythonFunction("densityIn" + solver_ext, func));
+    mShadow = (float *)pyObjectToPointer(callPythonFunction("shadow" + solver_ext, func));
+    mEmissionIn = (float *)pyObjectToPointer(callPythonFunction("emissionIn" + solver_ext, func));
   }
   if (mUsingSmoke && mUsingHeat) {
-    mHeat = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("heat" + solver_ext, func)));
-    mHeatIn = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("heatIn" + solver_ext, func)));
+    mHeat = (float *)pyObjectToPointer(callPythonFunction("heat" + solver_ext, func));
+    mHeatIn = (float *)pyObjectToPointer(callPythonFunction("heatIn" + solver_ext, func));
   }
   if (mUsingSmoke && mUsingFire) {
-    mFlame = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("flame" + solver_ext, func)));
-    mFuel = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("fuel" + solver_ext, func)));
-    mReact = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("react" + solver_ext, func)));
-    mFuelIn = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("fuelIn" + solver_ext, func)));
-    mReactIn = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("reactIn" + solver_ext, func)));
+    mFlame = (float *)pyObjectToPointer(callPythonFunction("flame" + solver_ext, func));
+    mFuel = (float *)pyObjectToPointer(callPythonFunction("fuel" + solver_ext, func));
+    mReact = (float *)pyObjectToPointer(callPythonFunction("react" + solver_ext, func));
+    mFuelIn = (float *)pyObjectToPointer(callPythonFunction("fuelIn" + solver_ext, func));
+    mReactIn = (float *)pyObjectToPointer(callPythonFunction("reactIn" + solver_ext, func));
   }
   if (mUsingSmoke && mUsingColors) {
-    mColorR = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("color_r" + solver_ext, func)));
-    mColorG = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("color_g" + solver_ext, func)));
-    mColorB = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("color_b" + solver_ext, func)));
-    mColorRIn = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("color_r_in" + solver_ext, func)));
-    mColorGIn = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("color_g_in" + solver_ext, func)));
-    mColorBIn = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("color_b_in" + solver_ext, func)));
+    mColorR = (float *)pyObjectToPointer(callPythonFunction("color_r" + solver_ext, func));
+    mColorG = (float *)pyObjectToPointer(callPythonFunction("color_g" + solver_ext, func));
+    mColorB = (float *)pyObjectToPointer(callPythonFunction("color_b" + solver_ext, func));
+    mColorRIn = (float *)pyObjectToPointer(callPythonFunction("color_r_in" + solver_ext, func));
+    mColorGIn = (float *)pyObjectToPointer(callPythonFunction("color_g_in" + solver_ext, func));
+    mColorBIn = (float *)pyObjectToPointer(callPythonFunction("color_b_in" + solver_ext, func));
   }
   if (mUsingSmoke && mUsingNoise) {
-    mDensityHigh = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("density" + noise_ext, func)));
-    mTextureU = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("texture_u" + solver_ext, func)));
-    mTextureV = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("texture_v" + solver_ext, func)));
-    mTextureW = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("texture_w" + solver_ext, func)));
-    mTextureU2 = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("texture_u2" + solver_ext, func)));
-    mTextureV2 = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("texture_v2" + solver_ext, func)));
-    mTextureW2 = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("texture_w2" + solver_ext, func)));
+    mDensityHigh = (float *)pyObjectToPointer(callPythonFunction("density" + noise_ext, func));
+    mTextureU = (float *)pyObjectToPointer(callPythonFunction("texture_u" + solver_ext, func));
+    mTextureV = (float *)pyObjectToPointer(callPythonFunction("texture_v" + solver_ext, func));
+    mTextureW = (float *)pyObjectToPointer(callPythonFunction("texture_w" + solver_ext, func));
+    mTextureU2 = (float *)pyObjectToPointer(callPythonFunction("texture_u2" + solver_ext, func));
+    mTextureV2 = (float *)pyObjectToPointer(callPythonFunction("texture_v2" + solver_ext, func));
+    mTextureW2 = (float *)pyObjectToPointer(callPythonFunction("texture_w2" + solver_ext, func));
   }
   if (mUsingSmoke && mUsingNoise && mUsingFire) {
-    mFlameHigh = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("flame" + noise_ext, func)));
-    mFuelHigh = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("fuel" + noise_ext, func)));
-    mReactHigh = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("react" + noise_ext, func)));
+    mFlameHigh = (float *)pyObjectToPointer(callPythonFunction("flame" + noise_ext, func));
+    mFuelHigh = (float *)pyObjectToPointer(callPythonFunction("fuel" + noise_ext, func));
+    mReactHigh = (float *)pyObjectToPointer(callPythonFunction("react" + noise_ext, func));
   }
   if (mUsingSmoke && mUsingNoise && mUsingColors) {
-    mColorRHigh = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("color_r" + noise_ext, func)));
-    mColorGHigh = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("color_g" + noise_ext, func)));
-    mColorBHigh = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("color_b" + noise_ext, func)));
+    mColorRHigh = (float *)pyObjectToPointer(callPythonFunction("color_r" + noise_ext, func));
+    mColorGHigh = (float *)pyObjectToPointer(callPythonFunction("color_g" + noise_ext, func));
+    mColorBHigh = (float *)pyObjectToPointer(callPythonFunction("color_b" + noise_ext, func));
   }
   if (mUsingLiquid) {
-    mPhi = (float *)stringToPointer(
-        pyObjectToString(callPythonFunction("phi" + solver_ext, func)));
-    mFlipParticleData = (std::vector<pData> *)stringToPointer(
-        pyObjectToString(callPythonFunction("pp" + solver_ext, func)));
-    mFlipParticleVelocity = (std::vector<pVel> *)stringToPointer(
-        pyObjectToString(callPythonFunction("pVel" + parts_ext, func)));
+    mPhi = (float *)pyObjectToPointer(callPythonFunction("phi" + solver_ext, func));
+    mFlipParticleData = (std::vector<pData> *)pyObjectToPointer(
+        callPythonFunction("pp" + solver_ext, func));
+    mFlipParticleVelocity = (std::vector<pVel> *)pyObjectToPointer(
+        callPythonFunction("pVel" + parts_ext, func));
   }
   if (mUsingLiquid && mUsingMesh) {
-    mMeshNodes = (std::vector<Node> *)stringToPointer(
-        pyObjectToString(callPythonFunction("mesh" + mesh_ext, funcNodes)));
-    mMeshTriangles = (std::vector<Triangle> *)stringToPointer(
-        pyObjectToString(callPythonFunction("mesh" + mesh_ext, funcTris)));
+    mMeshNodes = (std::vector<Node> *)pyObjectToPointer(
+        callPythonFunction("mesh" + mesh_ext, funcNodes));
+    mMeshTriangles = (std::vector<Triangle> *)pyObjectToPointer(
+        callPythonFunction("mesh" + mesh_ext, funcTris));
   }
   if (mUsingLiquid && mUsingMVel) {
-    mMeshVelocities = (std::vector<pVel> *)stringToPointer(
-        pyObjectToString(callPythonFunction("mVel" + mesh_ext2, func)));
+    mMeshVelocities = (std::vector<pVel> *)pyObjectToPointer(
+        callPythonFunction("mVel" + mesh_ext2, func));
   }
   if (mUsingLiquid && (mUsingDrops | mUsingBubbles | mUsingFloats | mUsingTracers)) {
-    mSndParticleData = (std::vector<pData> *)stringToPointer(
-        pyObjectToString(callPythonFunction("ppSnd" + snd_ext, func)));
-    mSndParticleVelocity = (std::vector<pVel> *)stringToPointer(
-        pyObjectToString(callPythonFunction("pVelSnd" + parts_ext, func)));
-    mSndParticleLife = (std::vector<float> *)stringToPointer(
-        pyObjectToString(callPythonFunction("pLifeSnd" + parts_ext, func)));
+    mSndParticleData = (std::vector<pData> *)pyObjectToPointer(
+        callPythonFunction("ppSnd" + snd_ext, func));
+    mSndParticleVelocity = (std::vector<pVel> *)pyObjectToPointer(
+        callPythonFunction("pVelSnd" + parts_ext, func));
+    mSndParticleLife = (std::vector<float> *)pyObjectToPointer(
+        callPythonFunction("pLifeSnd" + parts_ext, func));
   }
 
   mFlipFromFile = true;

@@ -1208,10 +1208,11 @@ GPUBatch *DRW_cache_field_curve_get(void)
 GPUBatch *DRW_cache_field_tube_limit_get(void)
 {
 #define CIRCLE_RESOL 32
+#define SIDE_STIPPLE 32
   if (!SHC.drw_field_tube_limit) {
     GPUVertFormat format = extra_vert_format();
 
-    int v_len = 2 * (CIRCLE_RESOL * 2 + 4);
+    int v_len = 2 * (CIRCLE_RESOL * 2 + 4 * SIDE_STIPPLE / 2);
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
@@ -1219,14 +1220,14 @@ GPUBatch *DRW_cache_field_tube_limit_get(void)
     int flag = VCLASS_EMPTY_SIZE;
     /* Caps */
     for (int i = 0; i < 2; i++) {
-      float z = (float)i * 2.0f - 1.0f;
-      circle_verts(vbo, &v, CIRCLE_RESOL, 1.0f, z, flag);
+      float z = i * 2.0f - 1.0f;
+      circle_dashed_verts(vbo, &v, CIRCLE_RESOL, 1.0f, z, flag);
     }
     /* Side Edges */
     for (int a = 0; a < 4; a++) {
-      for (int i = 0; i < 2; i++) {
-        float z = (float)i * 2.0f - 1.0f;
-        float angle = (2.0f * M_PI * a) / 4.0f;
+      float angle = (2.0f * M_PI * a) / 4.0f;
+      for (int i = 0; i < SIDE_STIPPLE; i++) {
+        float z = (i / (float)SIDE_STIPPLE) * 2.0f - 1.0f;
         GPU_vertbuf_vert_set(vbo, v++, &(Vert){{sinf(angle), cosf(angle), z}, flag});
       }
     }
@@ -1234,16 +1235,18 @@ GPUBatch *DRW_cache_field_tube_limit_get(void)
     SHC.drw_field_tube_limit = GPU_batch_create_ex(GPU_PRIM_LINES, vbo, NULL, GPU_BATCH_OWNS_VBO);
   }
   return SHC.drw_field_tube_limit;
+#undef SIDE_STIPPLE
 #undef CIRCLE_RESOL
 }
 
 GPUBatch *DRW_cache_field_cone_limit_get(void)
 {
 #define CIRCLE_RESOL 32
+#define SIDE_STIPPLE 32
   if (!SHC.drw_field_cone_limit) {
     GPUVertFormat format = extra_vert_format();
 
-    int v_len = 2 * (CIRCLE_RESOL * 2 + 4);
+    int v_len = 2 * (CIRCLE_RESOL * 2 + 4 * SIDE_STIPPLE / 2);
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
@@ -1251,14 +1254,14 @@ GPUBatch *DRW_cache_field_cone_limit_get(void)
     int flag = VCLASS_EMPTY_SIZE;
     /* Caps */
     for (int i = 0; i < 2; i++) {
-      float z = (float)i * 2.0f - 1.0f;
-      circle_verts(vbo, &v, CIRCLE_RESOL, 1.0f, z, flag);
+      float z = i * 2.0f - 1.0f;
+      circle_dashed_verts(vbo, &v, CIRCLE_RESOL, 1.0f, z, flag);
     }
     /* Side Edges */
     for (int a = 0; a < 4; a++) {
-      for (int i = 0; i < 2; i++) {
-        float z = (float)i * 2.0f - 1.0f;
-        float angle = (2.0f * M_PI * a) / 4.0f;
+      float angle = (2.0f * M_PI * a) / 4.0f;
+      for (int i = 0; i < SIDE_STIPPLE; i++) {
+        float z = (i / (float)SIDE_STIPPLE) * 2.0f - 1.0f;
         GPU_vertbuf_vert_set(vbo, v++, &(Vert){{sinf(angle) * z, cosf(angle) * z, z}, flag});
       }
     }
@@ -1266,6 +1269,7 @@ GPUBatch *DRW_cache_field_cone_limit_get(void)
     SHC.drw_field_cone_limit = GPU_batch_create_ex(GPU_PRIM_LINES, vbo, NULL, GPU_BATCH_OWNS_VBO);
   }
   return SHC.drw_field_cone_limit;
+#undef SIDE_STIPPLE
 #undef CIRCLE_RESOL
 }
 
