@@ -383,9 +383,9 @@ static int graphkeys_view_frame_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_view_frame(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "View Frame";
+  ot->name = "Go to Current Frame";
   ot->idname = "GRAPH_OT_view_frame";
-  ot->description = "Reset viewable area to show range around current frame";
+  ot->description = "Move the view to the playhead";
 
   /* api callbacks */
   ot->exec = graphkeys_view_frame_exec;

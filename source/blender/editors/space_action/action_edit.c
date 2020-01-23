@@ -488,9 +488,9 @@ static int actkeys_view_frame_exec(bContext *C, wmOperator *op)
 void ACTION_OT_view_frame(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "View Frame";
+  ot->name = "Go to Current Frame";
   ot->idname = "ACTION_OT_view_frame";
-  ot->description = "Reset viewable area to show range around current frame";
+  ot->description = "Move the view to the playhead";
 
   /* api callbacks */
   ot->exec = actkeys_view_frame_exec;
