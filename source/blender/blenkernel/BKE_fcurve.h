@@ -107,6 +107,7 @@ bool driver_get_variable_property(struct ChannelDriver *driver,
                                   int *r_index);
 
 bool BKE_driver_has_simple_expression(struct ChannelDriver *driver);
+bool BKE_driver_expression_depends_on_time(struct ChannelDriver *driver);
 void BKE_driver_invalidate_expression(struct ChannelDriver *driver,
                                       bool expr_changed,
                                       bool varname_changed);

@@ -140,6 +140,24 @@ bool BLI_expr_pylike_is_constant(ExprPyLike_Parsed *expr)
   return expr != NULL && expr->ops_count == 1 && expr->ops[0].opcode == OPCODE_CONST;
 }
 
+/** Check if the parsed expression uses the parameter with the given index. */
+bool BLI_expr_pylike_is_using_param(ExprPyLike_Parsed *expr, int index)
+{
+  int i;
+
+  if (expr == NULL) {
+    return false;
+  }
+
+  for (i = 0; i < expr->ops_count; i++) {
+    if (expr->ops[i].opcode == OPCODE_PARAMETER && expr->ops[i].arg.ival == index) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

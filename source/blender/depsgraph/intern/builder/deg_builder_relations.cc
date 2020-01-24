@@ -124,28 +124,6 @@ namespace DEG {
 
 namespace {
 
-/* TODO(sergey): This is somewhat weak, but we don't want neither false-positive
- * time dependencies nor special exceptions in the depsgraph evaluation. */
-
-bool python_driver_exression_depends_on_time(const char *expression)
-{
-  if (expression[0] == '\0') {
-    /* Empty expression depends on nothing. */
-    return false;
-  }
-  if (strchr(expression, '(') != NULL) {
-    /* Function calls are considered dependent on a time. */
-    return true;
-  }
-  if (strstr(expression, "frame") != NULL) {
-    /* Variable `frame` depends on time. */
-    /* TODO(sergey): This is a bit weak, but not sure about better way of handling this. */
-    return true;
-  }
-  /* Possible indirect time relation s should be handled via variable targets. */
-  return false;
-}
-
 bool driver_target_depends_on_time(const DriverTarget *target)
 {
   if (target->idtype == ID_SCE &&
@@ -177,10 +155,8 @@ bool driver_variables_depends_on_time(const ListBase *variables)
 
 bool driver_depends_on_time(ChannelDriver *driver)
 {
-  if (driver->type == DRIVER_TYPE_PYTHON) {
-    if (python_driver_exression_depends_on_time(driver->expression)) {
-      return true;
-    }
+  if (BKE_driver_expression_depends_on_time(driver)) {
+    return true;
   }
   if (driver_variables_depends_on_time(&driver->variables)) {
     return true;
