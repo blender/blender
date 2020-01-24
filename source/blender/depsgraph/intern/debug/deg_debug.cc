@@ -28,12 +28,48 @@
 #include "BLI_hash.h"
 #include "BLI_string.h"
 
+#include "PIL_time_utildefines.h"
+
 #include "BKE_global.h"
 
 namespace DEG {
 
-DepsgraphDebug::DepsgraphDebug() : flags(G.debug)
+DepsgraphDebug::DepsgraphDebug()
+    : flags(G.debug), is_ever_evaluated(false), graph_evaluation_start_time_(0)
 {
+}
+
+bool DepsgraphDebug::do_time_debug() const
+{
+  return ((G.debug & G_DEBUG_DEPSGRAPH_TIME) != 0);
+}
+
+void DepsgraphDebug::begin_graph_evaluation()
+{
+  if (!do_time_debug()) {
+    return;
+  }
+
+  const double current_time = PIL_check_seconds_timer();
+
+  if (is_ever_evaluated) {
+    fps_samples_.add_sample(current_time - graph_evaluation_start_time_);
+  }
+
+  graph_evaluation_start_time_ = current_time;
+}
+
+void DepsgraphDebug::end_graph_evaluation()
+{
+  if (!do_time_debug()) {
+    return;
+  }
+
+  const double graph_eval_end_time = PIL_check_seconds_timer();
+  printf("Depsgraph updated in %f seconds.\n", graph_eval_end_time - graph_evaluation_start_time_);
+  printf("Depsgraph evaluation FPS: %f\n", fps_samples_.get_averaged());
+
+  is_ever_evaluated = true;
 }
 
 bool terminal_do_color(void)

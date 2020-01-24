@@ -365,14 +365,15 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
   if (BLI_gset_len(graph->entry_tags) == 0) {
     return;
   }
-  const bool do_time_debug = ((G.debug & G_DEBUG_DEPSGRAPH_TIME) != 0);
-  const double start_time = do_time_debug ? PIL_check_seconds_timer() : 0;
+
+  graph->debug.begin_graph_evaluation();
+
   graph->is_evaluating = true;
   depsgraph_ensure_view_layer(graph);
   /* Set up evaluation state. */
   DepsgraphEvalState state;
   state.graph = graph;
-  state.do_stats = do_time_debug;
+  state.do_stats = graph->debug.do_time_debug();
   state.need_single_thread_pass = false;
   /* Set up task scheduler and pull for threaded evaluation. */
   TaskScheduler *task_scheduler;
@@ -419,9 +420,8 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
     BLI_task_scheduler_free(task_scheduler);
   }
   graph->is_evaluating = false;
-  if (do_time_debug) {
-    printf("Depsgraph updated in %f seconds.\n", PIL_check_seconds_timer() - start_time);
-  }
+
+  graph->debug.end_graph_evaluation();
 }
 
 }  // namespace DEG

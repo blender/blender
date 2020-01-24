@@ -106,6 +106,7 @@ set(SRC
   intern/builder/deg_builder_rna.h
   intern/builder/deg_builder_transitive.h
   intern/debug/deg_debug.h
+  intern/debug/deg_time_average.h
   intern/eval/deg_eval.h
   intern/eval/deg_eval_copy_on_write.h
   intern/eval/deg_eval_flush.h
