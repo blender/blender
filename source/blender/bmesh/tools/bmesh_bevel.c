@@ -155,6 +155,8 @@ typedef struct Profile {
   float *prof_co;
   /** Like prof_co, but for seg power of 2 >= seg */
   float *prof_co_2;
+  /** Mark a special case so the these parameters aren't reset with others. */
+  bool special_params;
 } Profile;
 #define PRO_SQUARE_R 1e4f
 #define PRO_CIRCLE_R 2.0f
@@ -358,6 +360,9 @@ typedef struct BevelParams {
 } BevelParams;
 
 // #pragma GCC diagnostic ignored "-Wpadded"
+
+/* Only for debugging, shouldn't be in blender repo. */
+// #include "bevdebug.c"
 
 /* Some flags to re-enable old behavior for a while,
  * in case fixes broke things not caught by regression tests. */
@@ -1314,7 +1319,10 @@ static void offset_in_plane(EdgeHalf *e, const float plane_no[3], bool left, flo
 }
 
 /* Calculate the point on e where line (co_a, co_b) comes closest to and return it in projco. */
-static void project_to_edge(BMEdge *e, const float co_a[3], const float co_b[3], float projco[3])
+static void project_to_edge(const BMEdge *e,
+                            const float co_a[3],
+                            const float co_b[3],
+                            float projco[3])
 {
   float otherco[3];
 
@@ -1330,16 +1338,13 @@ static void project_to_edge(BMEdge *e, const float co_a[3], const float co_b[3],
  * It is the closest point on the beveled edge to the line segment between bndv and bndv->next.  */
 static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
 {
-  EdgeHalf *e;
-  Profile *pro;
   float start[3], end[3], co3[3], d1[3], d2[3];
-  bool do_linear_interp;
+  bool do_linear_interp = true;
+  EdgeHalf *e = bndv->ebev;
+  Profile *pro = &bndv->profile;
 
   copy_v3_v3(start, bndv->nv.co);
   copy_v3_v3(end, bndv->next->nv.co);
-  pro = &bndv->profile;
-  e = bndv->ebev;
-  do_linear_interp = true;
   if (e) {
     do_linear_interp = false;
     pro->super_r = bp->pro_super_r;
@@ -1446,7 +1451,7 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
     copy_v3_v3(pro->plane_co, start);
   }
   else if (bndv->is_arc_start) {
-    /* Assume pro->middle was alredy set. */
+    /* Assume pro->middle was already set. */
     copy_v3_v3(pro->start, start);
     copy_v3_v3(pro->end, end);
     pro->super_r = PRO_CIRCLE_R;
@@ -1455,6 +1460,17 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
     zero_v3(pro->proj_dir);
     do_linear_interp = false;
   }
+  else if (bp->vertex_only) {
+    copy_v3_v3(pro->start, start);
+    copy_v3_v3(pro->middle, bv->v->co);
+    copy_v3_v3(pro->end, end);
+    pro->super_r = bp->pro_super_r;
+    zero_v3(pro->plane_co);
+    zero_v3(pro->plane_no);
+    zero_v3(pro->proj_dir);
+    do_linear_interp = false;
+  }
+
   if (do_linear_interp) {
     pro->super_r = PRO_LINE_R;
     copy_v3_v3(pro->start, start);
@@ -1467,11 +1483,11 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
   }
 }
 
-/* Maybe move the profile plane for bndv->ebev to the plane its profile's start,  and the
+/* Maybe move the profile plane for bndv->ebev to the plane its profile's start, and the
  * original beveled vert, bmv. This will usually be the plane containing its adjacent
  * non-beveled edges, but sometimes the start and the end are not on those edges.
  *
- * Currently just used in build boundary terminal edge */
+ * Currently just used in #build_boundary_terminal_edge */
 static void move_profile_plane(BoundVert *bndv, BMVert *bmvert)
 {
   float d1[3], d2[3], no[3], no2[3], no3[3], dot2, dot3;
@@ -1496,6 +1512,9 @@ static void move_profile_plane(BoundVert *bndv, BMVert *bmvert)
       copy_v3_v3(bndv->profile.plane_no, no);
     }
   }
+
+  /* We've changed the parameters from their defaults, so don't recalculate them later. */
+  pro->special_params = true;
 }
 
 /* Move the profile plane for the two BoundVerts involved in a weld.
@@ -1531,6 +1550,10 @@ static void move_weld_profile_planes(BevVert *bv, BoundVert *bndv1, BoundVert *b
       copy_v3_v3(bndv2->profile.plane_no, no);
     }
   }
+
+  /* We've changed the parameters from their defaults, so don't recalculate them later. */
+  bndv1->profile.special_params = true;
+  bndv2->profile.special_params = true;
 }
 
 /* return 1 if a and b are in CCW order on the normal side of f,
@@ -1748,6 +1771,7 @@ static void calculate_profile(BevelParams *bp, BoundVert *bndv, bool reversed, b
   else {
     map_ok = make_unit_square_map(pro->start, pro->middle, pro->end, map);
   }
+
   if (bp->vmesh_method == BEVEL_VMESH_CUTOFF && map_ok) {
     /* Calculate the "height" of the profile by putting the (0,0) and (1,1) corners of the
      * un-transformed profile throughout the 2D->3D map and calculating the distance between them.
@@ -1759,6 +1783,7 @@ static void calculate_profile(BevelParams *bp, BoundVert *bndv, bool reversed, b
     mul_v3_m4v3(top_corner, map, p);
     pro->height = len_v3v3(bottom_corner, top_corner);
   }
+
   /* The first iteration is the nseg case, the second is the seg_2 case (if it's needed) */
   for (i = 0; i < 2; i++) {
     if (i == 0) {
@@ -2321,15 +2346,20 @@ static bool eh_on_plane(EdgeHalf *e)
 /* Calculate the profiles for all the BoundVerts of VMesh vm */
 static void calculate_vm_profiles(BevelParams *bp, BevVert *bv, VMesh *vm)
 {
-  BoundVert *bndv;
-
-  bndv = vm->boundstart;
+  BoundVert *bndv = vm->boundstart;
   do {
-    set_profile_params(bp, bv, bndv);
-    /* Use the miter profile spacing struct if the default is filled with the custom profile. */
-    bool miter_profile = bp->use_custom_profile && (bndv->is_arc_start || bndv->is_patch_start);
-    /* Don't bother reversing the profile if it's a miter profile */
-    bool reverse_profile = !bndv->is_profile_start && !miter_profile;
+    /* In special cases the params will have already been set. */
+    if (!bndv->profile.special_params) {
+      set_profile_params(bp, bv, bndv);
+    }
+    bool miter_profile = false;
+    bool reverse_profile = false;
+    if (bp->use_custom_profile) {
+      /* Use the miter profile spacing struct if the default is filled with the custom profile. */
+      miter_profile = (bndv->is_arc_start || bndv->is_patch_start);
+      /* Don't bother reversing the profile if it's a miter profile */
+      reverse_profile = !bndv->is_profile_start && !miter_profile;
+    }
     calculate_profile(bp, bndv, reverse_profile, miter_profile);
   } while ((bndv = bndv->next) != vm->boundstart);
 }
@@ -2356,8 +2386,6 @@ static void build_boundary_vertex_only(BevelParams *bp, BevVert *bv, bool constr
       adjust_bound_vert(e->leftv, co);
     }
   } while ((e = e->next) != efirst);
-
-  calculate_vm_profiles(bp, bv, vm);
 
   if (construct) {
     set_bound_vert_seams(bv, bp->mark_seam, bp->mark_sharp);
@@ -2471,15 +2499,13 @@ static void build_boundary_terminal_edge(BevelParams *bp,
       }
     }
   }
-  calculate_vm_profiles(bp, bv, vm);
 
   if (bv->edgecount >= 3) {
     /* Special case: snap profile to plane of adjacent two edges. */
     bndv = vm->boundstart;
     BLI_assert(bndv->ebev != NULL);
+    set_profile_params(bp, bv, bndv);
     move_profile_plane(bndv, bv->v);
-    /* This step happens before the profile orientation pass so don't reverse the profile. */
-    calculate_profile(bp, bndv, false, false);
   }
 
   if (construct) {
@@ -2830,8 +2856,6 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
   if (emiter) {
     adjust_miter_coords(bp, bv, emiter);
   }
-
-  calculate_vm_profiles(bp, bv, vm);
 
   if (construct) {
     set_bound_vert_seams(bv, bp->mark_seam, bp->mark_sharp);
@@ -4157,9 +4181,8 @@ static VMesh *make_cube_corner_adj_vmesh(BevelParams *bp)
     copy_v3_v3(bndv->profile.plane_co, bndv->profile.start);
     cross_v3_v3v3(bndv->profile.plane_no, bndv->profile.start, bndv->profile.end);
     copy_v3_v3(bndv->profile.proj_dir, bndv->profile.plane_no);
-    /* No need to reverse the profile or use the miter profile spacing struct because this case
-     * isn't used with custom profiles. */
-    calculate_profile(bp, bndv, false, false);
+    /* Calculate profiles again because we started over with new boundverts. */
+    calculate_profile(bp, bndv, false, false); /* No custom profiles in this case. */
 
     /* Just building the boundaries here, so sample the profile halfway through */
     get_profile_point(bp, &bndv->profile, 1, 2, mesh_vert(vm0, i, 0, 1)->co);
@@ -4922,20 +4945,6 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv, BoundVert
   odd = ns % 2;
   BLI_assert(n_bndv >= 3 && ns > 1);
 
-  /* Add support for profiles in vertex only in-plane bevels. */
-  if (bp->vertex_only) {
-    bndv = bv->vmesh->boundstart;
-    do {
-      Profile *pro = &bndv->profile;
-      copy_v3_v3(pro->middle, bv->v->co);
-      pro->super_r = bp->pro_super_r;
-      bool miter_profile = bp->use_custom_profile && (bndv->is_arc_start || bndv->is_patch_start);
-      /* Orientation doesn't matter when only beveling vertices */
-      calculate_profile(bp, bndv, false, miter_profile);
-      bndv = bndv->next;
-    } while (bndv != bv->vmesh->boundstart);
-  }
-
   if (bp->pro_super_r == PRO_SQUARE_R && bv->selcount >= 3 && !odd && !bp->use_custom_profile) {
     vm1 = square_out_adj_vmesh(bp, bv);
   }
@@ -5428,7 +5437,6 @@ static void bevel_build_trifan(BevelParams *bp, BMesh *bm, BevVert *bv)
  * we have to make it here. */
 static void bevel_vert_two_edges(BevelParams *bp, BMesh *bm, BevVert *bv)
 {
-
   VMesh *vm = bv->vmesh;
   BMVert *v1, *v2;
   BMEdge *e_eg, *bme;
@@ -5455,8 +5463,6 @@ static void bevel_vert_two_edges(BevelParams *bp, BMesh *bm, BevVert *bv)
     zero_v3(pro->plane_co);
     zero_v3(pro->plane_no);
     zero_v3(pro->proj_dir);
-    /* there's no orientation chain to continue so the orientation of the bevel doesn't matter. */
-    calculate_profile(bp, bndv, false, false);
 
     for (k = 1; k < ns; k++) {
       get_profile_point(bp, pro, k, ns, co);
@@ -5519,14 +5525,16 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
       }
       else { /* Get the last of the two BoundVerts. */
         weld2 = bndv;
+        set_profile_params(bp, bv, weld1);
+        set_profile_params(bp, bv, weld2);
         move_weld_profile_planes(bv, weld1, weld2);
-        if (!bp->use_custom_profile) { /* Else profile recalculated in next loop. */
-          calculate_profile(bp, weld1, !weld1->is_profile_start, false);
-          calculate_profile(bp, weld2, !weld2->is_profile_start, false);
-        }
       }
     }
   } while ((bndv = bndv->next) != vm->boundstart);
+
+  /* It's simpler to calculate all profiles only once at a single moment, so keep just a single
+   * profile calculation here, the last point before actual mesh verts are created. */
+  calculate_vm_profiles(bp, bv, vm);
 
   /* Create new vertices and place them based on the profiles. */
   /* Copy other ends to (i, 0, ns) for all i, and fill in profiles for edges. */
@@ -5536,10 +5544,6 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
     /* bndv's last vert along the boundary arc is the first of the next BoundVert's arc. */
     copy_mesh_vert(vm, i, 0, ns, bndv->next->index, 0, 0);
 
-    /* Fix the profile orientations if it's not a miter profile. */
-    if (bp->use_custom_profile && !bndv->is_arc_start && !bndv->is_patch_start) {
-      calculate_profile(bp, bndv, !bndv->is_profile_start, false);
-    }
     if (vm->mesh_kind != M_ADJ) {
       for (k = 1; k < ns; k++) {
         if (bndv->ebev) {
@@ -7423,7 +7427,7 @@ void BM_mesh_bevel(BMesh *bm,
       adjust_offsets(&bp, bm);
     }
 
-    /* Maintain consistent orientations for the unsymmetrical custom profiles. */
+    /* Maintain consistent orientations for the asymmetrical custom profiles. */
     if (bp.use_custom_profile) {
       BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
         if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
