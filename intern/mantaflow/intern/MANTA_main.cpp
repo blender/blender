@@ -934,6 +934,8 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
     ss << mmd->domain->gravity[2];
   else if (varName == "CACHE_DIR")
     ss << mmd->domain->cache_directory;
+  else if (varName == "CACHE_RESUMABLE")
+    ss << (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL ? "False" : "True");
   else if (varName == "USING_ADAPTIVETIME")
     ss << (mmd->domain->flags & FLUID_DOMAIN_USE_ADAPTIVE_TIME ? "True" : "False");
   else if (varName == "USING_SPEEDVECTORS")

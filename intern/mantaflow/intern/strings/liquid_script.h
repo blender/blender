@@ -438,13 +438,11 @@ def liquid_save_particles_$ID$(path, framenr, file_format, resumable):\n\
 const std::string liquid_standalone =
     "\n\
 # Helper function to call cache load functions\n\
-def load(frame):\n\
-    fluid_load_data_$ID$(os.path.join(cache_dir, 'data'), frame, file_format_data)\n\
-    liquid_load_data_$ID$(os.path.join(cache_dir, 'data'), frame, file_format_data)\n\
-    liquid_load_flip_$ID$(os.path.join(cache_dir, 'data'), frame, file_format_particles)\n\
+def load(frame, cache_resumable):\n\
+    fluid_load_data_$ID$(os.path.join(cache_dir, 'data'), frame, file_format_data, cache_resumable)\n\
+    liquid_load_data_$ID$(os.path.join(cache_dir, 'data'), frame, file_format_data, cache_resumable)\n\
     if using_sndparts_s$ID$:\n\
-        fluid_load_particles_$ID$(os.path.join(cache_dir, 'particles'), frame, file_format_particles)\n\
-        liquid_load_particles_$ID$(os.path.join(cache_dir, 'particles'), frame, file_format_particles)\n\
+        liquid_load_particles_$ID$(os.path.join(cache_dir, 'particles'), frame, file_format_particles, cache_resumable)\n\
     if using_mesh_s$ID$:\n\
         liquid_load_mesh_$ID$(os.path.join(cache_dir, 'mesh'), frame, file_format_mesh)\n\
     if using_guiding_s$ID$:\n\
