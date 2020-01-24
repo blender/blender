@@ -72,6 +72,9 @@ set(BOOST_OPTIONS
   --with-serialization
   --with-program_options
   --with-iostreams
+  -sNO_BZIP2=1
+  -sNO_LZMA=1
+  -sNO_ZSTD=1
   ${BOOST_TOOLSET}
 )
 
