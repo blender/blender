@@ -833,7 +833,7 @@ static bool raycastObj(SnapObjectContext *sctx,
 {
   bool retval = false;
   if (use_occlusion_test) {
-    if (use_obedit && sctx->use_v3d && XRAY_ENABLED(sctx->v3d_data.v3d)) {
+    if (use_obedit && sctx->use_v3d && XRAY_FLAG_ENABLED(sctx->v3d_data.v3d)) {
       /* Use of occlude geometry in editing mode disabled. */
       return false;
     }
