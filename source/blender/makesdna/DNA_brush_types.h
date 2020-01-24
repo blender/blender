@@ -504,7 +504,7 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_ELASTIC_DEFORM = 21,
   SCULPT_TOOL_POSE = 22,
   SCULPT_TOOL_MULTIPLANE_SCRAPE = 23,
-  SCULPT_TOOL_TOPOLOGY = 24,
+  SCULPT_TOOL_SLIDE_RELAX = 24,
 } eBrushSculptTool;
 
 /* Brush.uv_sculpt_tool */
@@ -519,7 +519,7 @@ typedef enum eBrushUVSculptTool {
   ELEM(t, \
        SCULPT_TOOL_DRAW, \
        SCULPT_TOOL_DRAW_SHARP, \
-       SCULPT_TOOL_TOPOLOGY, \
+       SCULPT_TOOL_SLIDE_RELAX, \
        SCULPT_TOOL_CREASE, \
        SCULPT_TOOL_BLOB, \
        SCULPT_TOOL_LAYER, \
@@ -542,7 +542,7 @@ typedef enum eBrushUVSculptTool {
         SCULPT_TOOL_THUMB, \
         SCULPT_TOOL_LAYER, \
         SCULPT_TOOL_DRAW_SHARP, \
-        SCULPT_TOOL_TOPOLOGY, \
+        SCULPT_TOOL_SLIDE_RELAX, \
         SCULPT_TOOL_ELASTIC_DEFORM, \
         SCULPT_TOOL_POSE, \
 \
@@ -557,7 +557,7 @@ typedef enum eBrushUVSculptTool {
         SCULPT_TOOL_ROTATE, \
         SCULPT_TOOL_THUMB, \
         SCULPT_TOOL_DRAW_SHARP, \
-        SCULPT_TOOL_TOPOLOGY, \
+        SCULPT_TOOL_SLIDE_RELAX, \
         SCULPT_TOOL_MASK) == 0)
 
 /* ImagePaintSettings.tool */

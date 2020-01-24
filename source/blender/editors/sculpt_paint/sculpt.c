@@ -1755,7 +1755,7 @@ static float brush_strength(const Sculpt *sd,
     case SCULPT_TOOL_DRAW_SHARP:
     case SCULPT_TOOL_LAYER:
       return alpha * flip * pressure * overlap * feather;
-    case SCULPT_TOOL_TOPOLOGY:
+    case SCULPT_TOOL_SLIDE_RELAX:
       return alpha * pressure * overlap * feather * 2.0f;
     case SCULPT_TOOL_CLAY_STRIPS:
       /* Clay Strips needs less strength to compensate the curve */
@@ -3142,7 +3142,7 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_topology_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+static void do_slide_relax_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -6096,8 +6096,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       case SCULPT_TOOL_ELASTIC_DEFORM:
         do_elastic_deform_brush(sd, ob, nodes, totnode);
         break;
-      case SCULPT_TOOL_TOPOLOGY:
-        do_topology_brush(sd, ob, nodes, totnode);
+      case SCULPT_TOOL_SLIDE_RELAX:
+        do_slide_relax_brush(sd, ob, nodes, totnode);
         break;
     }
 
@@ -6612,8 +6612,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Pose Brush";
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
       return "Multiplane Scrape Brush";
-    case SCULPT_TOOL_TOPOLOGY:
-      return "Topology Slide/Relax Brush";
+    case SCULPT_TOOL_SLIDE_RELAX:
+      return "Slide/Relax Brush";
   }
 
   return "Sculpting";
@@ -6737,7 +6737,7 @@ static void sculpt_update_cache_invariants(
       cache->saved_mask_brush_tool = brush->mask_tool;
       brush->mask_tool = BRUSH_MASK_SMOOTH;
     }
-    else if (brush->sculpt_tool == SCULPT_TOOL_TOPOLOGY) {
+    else if (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) {
       /* Do nothing, this tool has its own smooth mode */
     }
     else {
@@ -7117,7 +7117,7 @@ static bool sculpt_needs_connectivity_info(const Brush *brush, SculptSession *ss
           (brush->sculpt_tool == SCULPT_TOOL_SMOOTH) || (brush->autosmooth_factor > 0) ||
           ((brush->sculpt_tool == SCULPT_TOOL_MASK) && (brush->mask_tool == BRUSH_MASK_SMOOTH)) ||
           (brush->sculpt_tool == SCULPT_TOOL_POSE) ||
-          (brush->sculpt_tool == SCULPT_TOOL_TOPOLOGY));
+          (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX));
 }
 
 static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush)
@@ -7749,7 +7749,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
       if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
         brush->mask_tool = ss->cache->saved_mask_brush_tool;
       }
-      else if (brush->sculpt_tool == SCULPT_TOOL_TOPOLOGY) {
+      else if (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) {
         /* Do nothing */
       }
       else {
