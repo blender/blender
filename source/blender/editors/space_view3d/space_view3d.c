@@ -1027,19 +1027,9 @@ static void view3d_main_region_message_subscribe(const struct bContext *C,
   }
 }
 
-/* concept is to retrieve cursor type context-less */
 static void view3d_main_region_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 {
-  if (WM_cursor_set_from_tool(win, sa, ar)) {
-    return;
-  }
-
-  ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
-  if (obedit) {
-    WM_cursor_set(win, WM_CURSOR_EDIT);
-  }
-  else {
+  if (!WM_cursor_set_from_tool(win, sa, ar)) {
     WM_cursor_set(win, WM_CURSOR_DEFAULT);
   }
 }
