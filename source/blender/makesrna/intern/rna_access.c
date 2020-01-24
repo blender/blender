@@ -3762,25 +3762,59 @@ void RNA_property_pointer_set(PointerRNA *ptr,
                               ReportList *reports)
 {
   PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
+  IDProperty *idprop = rna_idproperty_check(&prop, ptr);
   BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
-  /* Check types */
-  if (ptr_value.type != NULL && !RNA_struct_is_a(ptr_value.type, pprop->type)) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "%s: expected %s type, not %s.\n",
-                __func__,
-                pprop->type->identifier,
-                ptr_value.type->identifier);
-    return;
+  /* Check types. */
+  if (pprop->set != NULL) {
+    /* Assigning to a real RNA property. */
+    if (ptr_value.type != NULL && !RNA_struct_is_a(ptr_value.type, pprop->type)) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s: expected %s type, not %s.\n",
+                  __func__,
+                  pprop->type->identifier,
+                  ptr_value.type->identifier);
+      return;
+    }
+  }
+  else {
+    /* Assigning to an IDProperty desguised as RNA one. */
+    if (ptr_value.type != NULL && !RNA_struct_is_a(ptr_value.type, &RNA_ID)) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s: expected ID type, not %s.\n",
+                  __func__,
+                  ptr_value.type->identifier);
+      return;
+    }
   }
 
-  /* RNA */
-  if (pprop->set && !((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL) &&
-      !((prop->flag & PROP_ID_SELF_CHECK) && ptr->owner_id == ptr_value.owner_id)) {
+  /* We got an existing IDProperty. */
+  if (idprop != NULL) {
+    /* Not-yet-defined ID IDProps have an IDP_GROUP type, not an IDP_ID one - because of reasons?
+     * XXX This has to be investigated fully - there might be a good reason for it, but off hands
+     * this seems really weird... */
+    if (idprop->type == IDP_ID) {
+      IDP_AssignID(idprop, ptr_value.data, 0);
+      rna_idproperty_touch(idprop);
+    }
+    else {
+      BLI_assert(idprop->type == IDP_GROUP);
+
+      IDPropertyTemplate val = {.id = ptr_value.data};
+      IDProperty *group = RNA_struct_idprops(ptr, true);
+      BLI_assert(group != NULL);
+
+      IDP_ReplaceInGroup_ex(group, IDP_New(IDP_ID, &val, idprop->name), idprop);
+    }
+  }
+  /* RNA property. */
+  else if (pprop->set && !((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL) &&
+           !((prop->flag & PROP_ID_SELF_CHECK) && ptr->owner_id == ptr_value.owner_id)) {
     pprop->set(ptr, ptr_value, reports);
   }
-  /* IDProperty */
+  /* IDProperty desguised as RNA property (and not yet defined in ptr). */
   else if (prop->flag & PROP_EDITABLE) {
     IDPropertyTemplate val = {0};
     IDProperty *group;
