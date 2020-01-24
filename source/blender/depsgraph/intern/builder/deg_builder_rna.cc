@@ -183,43 +183,41 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
   node_identifier.operation_name = "";
   node_identifier.operation_name_tag = -1;
   /* Handling of commonly known scenarios. */
-  if (ptr->type == &RNA_PoseBone) {
+  if (prop != NULL && RNA_property_is_idprop(prop)) {
+    node_identifier.type = NodeType::PARAMETERS;
+    node_identifier.operation_code = OperationCode::ID_PROPERTY;
+    node_identifier.operation_name = RNA_property_identifier(
+        reinterpret_cast<const PropertyRNA *>(prop));
+    return node_identifier;
+  }
+  else if (ptr->type == &RNA_PoseBone) {
     const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr->data);
-    if (prop != NULL && RNA_property_is_idprop(prop)) {
-      node_identifier.type = NodeType::PARAMETERS;
-      node_identifier.operation_code = OperationCode::ID_PROPERTY;
-      node_identifier.operation_name = RNA_property_identifier(
-          reinterpret_cast<const PropertyRNA *>(prop));
-      node_identifier.operation_name_tag = -1;
-    }
-    else {
-      /* Bone - generally, we just want the bone component. */
-      node_identifier.type = NodeType::BONE;
-      node_identifier.component_name = pchan->name;
-      /* However check property name for special handling. */
-      if (prop != NULL) {
-        Object *object = reinterpret_cast<Object *>(node_identifier.id);
-        const char *prop_name = RNA_property_identifier(prop);
-        /* B-Bone properties should connect to the final operation. */
-        if (STRPREFIX(prop_name, "bbone_")) {
-          if (builder_->check_pchan_has_bbone_segments(object, pchan)) {
-            node_identifier.operation_code = OperationCode::BONE_SEGMENTS;
-          }
-          else {
-            node_identifier.operation_code = OperationCode::BONE_DONE;
-          }
+    /* Bone - generally, we just want the bone component. */
+    node_identifier.type = NodeType::BONE;
+    node_identifier.component_name = pchan->name;
+    /* However check property name for special handling. */
+    if (prop != NULL) {
+      Object *object = reinterpret_cast<Object *>(node_identifier.id);
+      const char *prop_name = RNA_property_identifier(prop);
+      /* B-Bone properties should connect to the final operation. */
+      if (STRPREFIX(prop_name, "bbone_")) {
+        if (builder_->check_pchan_has_bbone_segments(object, pchan)) {
+          node_identifier.operation_code = OperationCode::BONE_SEGMENTS;
         }
-        /* Final transform properties go to the Done node for the exit. */
-        else if (STREQ(prop_name, "head") || STREQ(prop_name, "tail") ||
-                 STREQ(prop_name, "length") || STRPREFIX(prop_name, "matrix")) {
-          if (source == RNAPointerSource::EXIT) {
-            node_identifier.operation_code = OperationCode::BONE_DONE;
-          }
-        }
-        /* And other properties can always go to the entry operation. */
         else {
-          node_identifier.operation_code = OperationCode::BONE_LOCAL;
+          node_identifier.operation_code = OperationCode::BONE_DONE;
         }
+      }
+      /* Final transform properties go to the Done node for the exit. */
+      else if (STREQ(prop_name, "head") || STREQ(prop_name, "tail") ||
+               STREQ(prop_name, "length") || STRPREFIX(prop_name, "matrix")) {
+        if (source == RNAPointerSource::EXIT) {
+          node_identifier.operation_code = OperationCode::BONE_DONE;
+        }
+      }
+      /* And other properties can always go to the entry operation. */
+      else {
+        node_identifier.operation_code = OperationCode::BONE_LOCAL;
       }
     }
     return node_identifier;
@@ -374,18 +372,10 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
   }
   if (prop != NULL) {
     /* All unknown data effectively falls under "parameter evaluation". */
-    if (RNA_property_is_idprop(prop)) {
-      node_identifier.type = NodeType::PARAMETERS;
-      node_identifier.operation_code = OperationCode::ID_PROPERTY;
-      node_identifier.operation_name = RNA_property_identifier((PropertyRNA *)prop);
-      node_identifier.operation_name_tag = -1;
-    }
-    else {
-      node_identifier.type = NodeType::PARAMETERS;
-      node_identifier.operation_code = OperationCode::PARAMETERS_EVAL;
-      node_identifier.operation_name = "";
-      node_identifier.operation_name_tag = -1;
-    }
+    node_identifier.type = NodeType::PARAMETERS;
+    node_identifier.operation_code = OperationCode::PARAMETERS_EVAL;
+    node_identifier.operation_name = "";
+    node_identifier.operation_name_tag = -1;
     return node_identifier;
   }
   return node_identifier;
