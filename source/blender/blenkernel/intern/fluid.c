@@ -85,6 +85,9 @@
 /** Time step default value for nice appearance. */
 #define DT_DEFAULT 0.1f
 
+/** Max value for phi initialization */
+#define PHI_MAX 9999.0f
+
 static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *mmd, bool need_lock);
 
 #ifdef WITH_FLUID
@@ -927,10 +930,10 @@ static void update_obstacles(Depsgraph *depsgraph,
 
     /* Use big value that's not inf to initialize levelset grids. */
     if (phi_obs_in) {
-      phi_obs_in[z] = FLT_MAX;
+      phi_obs_in[z] = PHI_MAX;
     }
     if (phi_guide_in) {
-      phi_guide_in[z] = FLT_MAX;
+      phi_guide_in[z] = PHI_MAX;
     }
     if (num_obstacles) {
       num_obstacles[z] = 0;
@@ -1551,7 +1554,7 @@ static void update_mesh_distances(int index,
                                   float surface_thickness,
                                   int use_plane_init)
 {
-  float min_dist = FLT_MAX;
+  float min_dist = PHI_MAX;
 
   /* Ensure that planes get initialized correctly. */
   if (use_plane_init) {
@@ -1585,12 +1588,12 @@ static void update_mesh_distances(int index,
   /* Count for ray misses (no face hit) and cases where ray direction matches face normal
    * direction. */
   int miss_cnt = 0, dir_cnt = 0;
-  min_dist = FLT_MAX;
+  min_dist = PHI_MAX;
 
   for (int i = 0; i < ray_cnt; i++) {
     BVHTreeRayHit hit_tree = {0};
     hit_tree.index = -1;
-    hit_tree.dist = FLT_MAX;
+    hit_tree.dist = PHI_MAX;
 
     normalize_v3(ray_dirs[i]);
     BLI_bvhtree_ray_cast(tree_data->tree,
@@ -1640,7 +1643,7 @@ static void update_mesh_distances(int index,
 
     BVHTreeRayHit hit_tree = {0};
     hit_tree.index = -1;
-    hit_tree.dist = FLT_MAX;
+    hit_tree.dist = PHI_MAX;
 
     normalize_v3(ray);
     BLI_bvhtree_ray_cast(
@@ -1695,7 +1698,7 @@ static void sample_mesh(FluidFlowSettings *mfs,
   float sample_str = 0.0f;
 
   hit.index = -1;
-  hit.dist = FLT_MAX;
+  hit.dist = PHI_MAX;
   nearest.index = -1;
   nearest.dist_sq = mfs->surface_distance *
                     mfs->surface_distance; /* find_nearest uses squared distance */
@@ -1717,7 +1720,7 @@ static void sample_mesh(FluidFlowSettings *mfs,
          * point is at least surrounded by two faces */
         negate_v3(ray_dir);
         hit.index = -1;
-        hit.dist = FLT_MAX;
+        hit.dist = PHI_MAX;
 
         BLI_bvhtree_ray_cast(tree_data->tree,
                              ray_start,
@@ -2779,10 +2782,10 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
   /* Grid reset before writing again */
   for (z = 0; z < mds->res[0] * mds->res[1] * mds->res[2]; z++) {
     if (phi_in) {
-      phi_in[z] = FLT_MAX;
+      phi_in[z] = PHI_MAX;
     }
     if (phiout_in) {
-      phiout_in[z] = FLT_MAX;
+      phiout_in[z] = PHI_MAX;
     }
     if (density_in) {
       density_in[z] = 0.0f;
@@ -2862,7 +2865,7 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
             else if (mfs->behavior == FLUID_FLOW_BEHAVIOR_GEOMETRY && !is_first_frame) {
               apply_inflow_fields(mfs,
                                   0.0f,
-                                  FLT_MAX,
+                                  PHI_MAX,
                                   d_index,
                                   density_in,
                                   density,
