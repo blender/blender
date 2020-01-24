@@ -67,7 +67,7 @@ void DepsgraphDebug::end_graph_evaluation()
 
   const double graph_eval_end_time = PIL_check_seconds_timer();
   printf("Depsgraph updated in %f seconds.\n", graph_eval_end_time - graph_evaluation_start_time_);
-  printf("Depsgraph evaluation FPS: %f\n", fps_samples_.get_averaged());
+  printf("Depsgraph evaluation FPS: %f\n", 1.0f / fps_samples_.get_averaged());
 
   is_ever_evaluated = true;
 }
