@@ -82,7 +82,7 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
   BLI_spin_init(&lock);
   id_hash = BLI_ghash_ptr_new("Depsgraph id hash");
   entry_tags = BLI_gset_ptr_new("Depsgraph entry_tags");
-  debug_flags = G.debug;
+  debug.flags = G.debug;
   memset(id_type_updated, 0, sizeof(id_type_updated));
   memset(id_type_exist, 0, sizeof(id_type_exist));
   memset(physics_relations, 0, sizeof(physics_relations));

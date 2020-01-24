@@ -194,9 +194,14 @@ struct Depsgraph {
    * to read stuff from. */
   bool is_active;
 
-  /* NOTE: Corresponds to G_DEBUG_DEPSGRAPH_* flags. */
-  int debug_flags;
-  string debug_name;
+  struct {
+    /* NOTE: Corresponds to G_DEBUG_DEPSGRAPH_* flags. */
+    int flags;
+
+    /* Name of this dependency graph (is used for debug prints, helping to distinguish graphs
+     * created for different view layer). */
+    string name;
+  } debug;
 
   bool is_evaluating;
 
