@@ -32,6 +32,10 @@
 
 namespace DEG {
 
+DepsgraphDebug::DepsgraphDebug() : flags(G.debug)
+{
+}
+
 bool terminal_do_color(void)
 {
   return (G.debug & G_DEBUG_DEPSGRAPH_PRETTY) != 0;

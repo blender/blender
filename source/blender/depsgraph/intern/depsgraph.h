@@ -40,6 +40,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_physics.h"
 
+#include "intern/debug/deg_debug.h"
 #include "intern/depsgraph_type.h"
 
 struct GHash;
@@ -156,14 +157,7 @@ struct Depsgraph {
    * to read stuff from. */
   bool is_active;
 
-  struct {
-    /* NOTE: Corresponds to G_DEBUG_DEPSGRAPH_* flags. */
-    int flags;
-
-    /* Name of this dependency graph (is used for debug prints, helping to distinguish graphs
-     * created for different view layer). */
-    string name;
-  } debug;
+  DepsgraphDebug debug;
 
   bool is_evaluating;
 

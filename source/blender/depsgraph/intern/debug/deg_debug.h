@@ -31,6 +31,17 @@
 
 namespace DEG {
 
+struct DepsgraphDebug {
+  DepsgraphDebug();
+
+  /* NOTE: Corresponds to G_DEBUG_DEPSGRAPH_* flags. */
+  int flags;
+
+  /* Name of this dependency graph (is used for debug prints, helping to distinguish graphs
+   * created for different view layer). */
+  string name;
+};
+
 #define DEG_DEBUG_PRINTF(depsgraph, type, ...) \
   do { \
     if (DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_##type) { \
