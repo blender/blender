@@ -42,6 +42,7 @@ extern "C" {
 }
 
 #include "intern/depsgraph.h"
+#include "intern/depsgraph_relation.h"
 #include "intern/depsgraph_tag.h"
 #include "intern/depsgraph_type.h"
 #include "intern/builder/deg_builder_cache.h"

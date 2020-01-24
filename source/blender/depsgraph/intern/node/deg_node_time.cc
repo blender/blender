@@ -26,6 +26,7 @@
 #include "DNA_scene_types.h"
 
 #include "intern/depsgraph.h"
+#include "intern/depsgraph_relation.h"
 
 namespace DEG {
 

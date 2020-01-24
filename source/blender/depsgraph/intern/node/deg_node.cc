@@ -28,6 +28,7 @@
 #include "BLI_utildefines.h"
 
 #include "intern/depsgraph.h"
+#include "intern/depsgraph_relation.h"
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/node/deg_node_component.h"
 #include "intern/node/deg_node_factory.h"

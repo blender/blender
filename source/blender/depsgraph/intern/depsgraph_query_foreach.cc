@@ -40,6 +40,7 @@ extern "C" {
 #include "DEG_depsgraph_query.h"
 
 #include "intern/depsgraph.h"
+#include "intern/depsgraph_relation.h"
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_component.h"
 #include "intern/node/deg_node_id.h"

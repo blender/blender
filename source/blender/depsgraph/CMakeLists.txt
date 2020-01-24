@@ -83,6 +83,7 @@ set(SRC
   intern/depsgraph_query.cc
   intern/depsgraph_query_foreach.cc
   intern/depsgraph_query_iter.cc
+  intern/depsgraph_relation.cc
   intern/depsgraph_registry.cc
   intern/depsgraph_tag.cc
   intern/depsgraph_type.cc
@@ -129,6 +130,7 @@ set(SRC
   intern/depsgraph.h
   intern/depsgraph_physics.h
   intern/depsgraph_registry.h
+  intern/depsgraph_relation.h
   intern/depsgraph_tag.h
   intern/depsgraph_type.h
   intern/depsgraph_update.h

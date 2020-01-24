@@ -52,6 +52,7 @@
 #include "intern/node/deg_node_operation.h"
 #include "intern/node/deg_node_time.h"
 #include "intern/depsgraph.h"
+#include "intern/depsgraph_relation.h"
 
 namespace DEG {
 

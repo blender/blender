@@ -38,6 +38,7 @@ extern "C" {
 #include "DEG_depsgraph_query.h"
 
 #include "intern/depsgraph.h"
+#include "intern/depsgraph_relation.h"
 #include "intern/depsgraph_type.h"
 #include "intern/debug/deg_debug.h"
 #include "intern/node/deg_node_component.h"

@@ -49,6 +49,7 @@ extern "C" {
 
 #include "intern/debug/deg_debug.h"
 #include "intern/depsgraph.h"
+#include "intern/depsgraph_relation.h"
 #include "intern/depsgraph_update.h"
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_component.h"

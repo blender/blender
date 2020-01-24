@@ -58,6 +58,7 @@ extern "C" {
 #include "intern/node/deg_node_operation.h"
 
 #include "intern/depsgraph_type.h"
+#include "intern/depsgraph_relation.h"
 
 namespace DEG {
 
