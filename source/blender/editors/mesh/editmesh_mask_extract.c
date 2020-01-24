@@ -125,6 +125,10 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_FACES);
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    mul_v3_v3(v->co, ob->scale);
+  }
+
   if (RNA_boolean_get(op->ptr, "add_boundary_loop")) {
     BM_ITER_MESH (ed, &iter, bm, BM_EDGES_OF_MESH) {
       BM_elem_flag_set(ed, BM_ELEM_TAG, BM_edge_is_boundary(ed));

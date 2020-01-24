@@ -693,6 +693,7 @@ if (GUI):\n\
     gui.pause()\n\
 \n\
 cache_dir = '$CACHE_DIR$'\n\
+cache_resumable = $CACHE_RESUMABLE$\n\
 file_format_data      = '.uni'\n\
 file_format_noise     = '.uni'\n\
 file_format_particles = '.uni'\n\
@@ -710,7 +711,7 @@ while current_frame <= end_frame:\n\
     \n\
     # Load already simulated data from cache:\n\
     if loop_cnt < from_cache_cnt:\n\
-        load(current_frame)\n\
+        load(current_frame, cache_resumable)\n\
     \n\
     # Otherwise simulate new data\n\
     else:\n\

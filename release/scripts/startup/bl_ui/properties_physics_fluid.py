@@ -95,6 +95,16 @@ class PhysicButtonsPanel:
         md = context.fluid
         return md and (md.fluid_type == 'FLOW')
 
+    @staticmethod
+    def poll_fluid_flow_outflow(context):
+        if not PhysicButtonsPanel.poll_fluid_flow(context):
+            return False
+
+        md = context.fluid
+        flow = md.flow_settings
+        if (flow.flow_behavior == 'OUTFLOW'):
+            return True
+
 
 class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
     bl_label = "Fluid"
@@ -507,6 +517,9 @@ class PHYSICS_PT_flow_initial_velocity(PhysicButtonsPanel, Panel):
         if not PhysicButtonsPanel.poll_fluid_flow(context):
             return False
 
+        if PhysicButtonsPanel.poll_fluid_flow_outflow(context):
+            return False
+
         return (context.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
@@ -544,6 +557,9 @@ class PHYSICS_PT_flow_texture(PhysicButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         if not PhysicButtonsPanel.poll_fluid_flow(context):
+            return False
+
+        if PhysicButtonsPanel.poll_fluid_flow_outflow(context):
             return False
 
         return (context.engine in cls.COMPAT_ENGINES)
