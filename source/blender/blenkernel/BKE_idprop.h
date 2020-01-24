@@ -83,6 +83,8 @@ void IDP_FreeString(struct IDProperty *prop) ATTR_NONNULL();
 
 typedef void (*IDPWalkFunc)(void *userData, IDProperty *idp);
 
+void IDP_AssignID(IDProperty *prop, ID *id, const int flag);
+
 /*-------- Group Functions -------*/
 
 /** Sync values from one group to another, only where they match */
