@@ -82,13 +82,13 @@ typedef struct EXTERNAL_Data {
 static struct {
   /* Depth Pre Pass */
   struct GPUShader *depth_sh;
-  bool draw_depth;
 } e_data = {NULL}; /* Engine data */
 
 typedef struct EXTERNAL_PrivateData {
   DRWShadingGroup *depth_shgrp;
 
   /* Do we need to update the depth or can we reuse the last calculated texture. */
+  bool need_depth;
   bool update_depth;
 
   float last_persmat[4][4];
@@ -110,13 +110,15 @@ static void external_engine_init(void *vedata)
   if (!stl->g_data) {
     /* Alloc transient pointers */
     stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
-    stl->g_data->update_depth = true;
+    stl->g_data->need_depth = true;
   }
+
+  stl->g_data->update_depth = true;
 
   /* Progressive render samples are tagged with no rebuild, in that case we
    * can skip updating the depth buffer */
-  if (!(ar && (ar->do_draw & RGN_DRAW_NO_REBUILD))) {
-    stl->g_data->update_depth = true;
+  if (ar && (ar->do_draw & RGN_DRAW_NO_REBUILD)) {
+    stl->g_data->update_depth = false;
   }
 }
 
@@ -126,6 +128,8 @@ static void external_cache_init(void *vedata)
   EXTERNAL_StorageList *stl = ((EXTERNAL_Data *)vedata)->stl;
   EXTERNAL_TextureList *txl = ((EXTERNAL_Data *)vedata)->txl;
   EXTERNAL_FramebufferList *fbl = ((EXTERNAL_Data *)vedata)->fbl;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const View3D *v3d = draw_ctx->v3d;
 
   {
     DRW_texture_ensure_fullscreen_2d(&txl->depth_buffer_tx, GPU_DEPTH24_STENCIL8, 0);
@@ -144,14 +148,7 @@ static void external_cache_init(void *vedata)
   }
 
   /* Do not draw depth pass when overlays are turned off. */
-  e_data.draw_depth = false;
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  const View3D *v3d = draw_ctx->v3d;
-  if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
-    /* mark `update_depth` for when overlays are turned on again. */
-    stl->g_data->update_depth = true;
-    return;
-  }
+  stl->g_data->need_depth = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
 }
 
 static void external_cache_populate(void *vedata, Object *ob)
@@ -163,20 +160,16 @@ static void external_cache_populate(void *vedata, Object *ob)
     return;
   }
 
-  /* Do not draw depth pass when overlays are turned off. */
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  const View3D *v3d = draw_ctx->v3d;
-  if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
+  if (ob->type == OB_GPENCIL) {
+    /* Grease Pencil objects need correct depth to do the blending. */
+    stl->g_data->need_depth = true;
     return;
   }
 
-  if (stl->g_data->update_depth) {
-    e_data.draw_depth = true;
-    struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
-    if (geom) {
-      /* Depth Prepass */
-      DRW_shgroup_call(stl->g_data->depth_shgrp, geom, ob);
-    }
+  struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
+  if (geom) {
+    /* Depth Prepass */
+    DRW_shgroup_call(stl->g_data->depth_shgrp, geom, ob);
   }
 }
 
@@ -246,16 +239,14 @@ static void external_draw_scene(void *vedata)
     external_draw_scene_do(vedata);
   }
 
-  if (e_data.draw_depth) {
+  if (stl->g_data->update_depth && stl->g_data->need_depth) {
     DRW_draw_pass(psl->depth_pass);
-    // copy result to tmp buffer
+    /* Copy main depth buffer to cached framebuffer. */
     GPU_framebuffer_blit(dfbl->depth_only_fb, 0, fbl->depth_buffer_fb, 0, GPU_DEPTH_BIT);
-    stl->g_data->update_depth = false;
   }
-  else {
-    // copy tmp buffer to default
-    GPU_framebuffer_blit(fbl->depth_buffer_fb, 0, dfbl->depth_only_fb, 0, GPU_DEPTH_BIT);
-  }
+
+  /* Copy cached depth buffer to main framebuffer. */
+  GPU_framebuffer_blit(fbl->depth_buffer_fb, 0, dfbl->depth_only_fb, 0, GPU_DEPTH_BIT);
 }
 
 static void external_engine_free(void)
