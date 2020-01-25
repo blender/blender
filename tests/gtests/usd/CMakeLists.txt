@@ -76,7 +76,9 @@ set(SRC
 
 
 if(WITH_BUILDINFO)
-  list(APPEND SRC "$<TARGET_OBJECTS:buildinfoobj>")
+  list(APPEND SRC
+    "$<TARGET_OBJECTS:buildinfoobj>"
+  )
 endif()
 
 # get_cmake_property(_variableNames VARIABLES)

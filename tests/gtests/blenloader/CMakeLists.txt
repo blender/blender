@@ -76,7 +76,9 @@ set(SRC
     blendfile_load_test.cc
 )
 if(WITH_BUILDINFO)
-  list(APPEND SRC "$<TARGET_OBJECTS:buildinfoobj>")
+  list(APPEND SRC
+    "$<TARGET_OBJECTS:buildinfoobj>"
+  )
 endif()
 
 BLENDER_SRC_GTEST_EX(

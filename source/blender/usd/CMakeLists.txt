@@ -64,6 +64,7 @@ set(SRC
 
   usd.h
   intern/abstract_hierarchy_iterator.h
+  intern/usd_exporter_context.h
   intern/usd_hierarchy_iterator.h
   intern/usd_writer_abstract.h
   intern/usd_writer_camera.h

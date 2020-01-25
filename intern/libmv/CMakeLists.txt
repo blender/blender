@@ -133,9 +133,11 @@ if(WITH_LIBMV)
     intern/image.h
     intern/logging.h
     intern/reconstruction.h
+    intern/region.h
     intern/track_region.h
     intern/tracks.h
     intern/tracksN.h
+    intern/utildefines.h
     libmv/autotrack/autotrack.h
     libmv/autotrack/callbacks.h
     libmv/autotrack/frame_accessor.h

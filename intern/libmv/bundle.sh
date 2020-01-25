@@ -174,9 +174,11 @@ ${third_sources}
     intern/image.h
     intern/logging.h
     intern/reconstruction.h
+    intern/region.h
     intern/track_region.h
     intern/tracks.h
     intern/tracksN.h
+    intern/utildefines.h
 ${headers}
 
 ${third_headers}
