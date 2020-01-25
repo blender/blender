@@ -1758,10 +1758,10 @@ static Collection *single_object_users_collection(Main *bmain,
         bmain, scene, child->collection, flag, copy_collections, false);
 
     if (is_master_collection && copy_collections && child->collection != collection_child_new) {
-      /* We do not want a collection sync here, our collections are in a complete unsetled state
-       * currently. With current code, that would lead to a memory leak - because of reasons.
+      /* We do not want a collection sync here, our collections are in a complete uninitialized
+       * state currently. With current code, that would lead to a memory leak - because of reasons.
        * It would be a useless loss of computing anyway, since caller has to fully refresh
-       * viewlayers/collections caching at the end. */
+       * view-layers/collections caching at the end. */
       BKE_collection_child_add_no_sync(collection, collection_child_new);
       BLI_remlink(&collection->children, child);
       MEM_freeN(child);

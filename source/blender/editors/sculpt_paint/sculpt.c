@@ -3725,7 +3725,7 @@ static void do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   float ik_target[3];
   const ePaintSymmetryFlags symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
-  /* The pose brush applies all enabled symmetry axis in a sigle iteration, so the rest can be
+  /* The pose brush applies all enabled symmetry axis in a single iteration, so the rest can be
    * ignored. */
   if (ss->cache->mirror_symmetry_pass != 0) {
     return;
@@ -3902,7 +3902,7 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
       if (pose_origin) {
         /* Test with pose origin. Used when growing the factors to compensate the Origin Offset. */
         /* Stop when the factor's avg_pos starts moving away from the origin instead of getting
-         * closert to it. */
+         * closer to it. */
         float len = len_v3v3(gftd.pos_avg, pose_origin);
         if (len < prev_len) {
           prev_len = len;

@@ -103,7 +103,7 @@ static void sig_handle_crash_backtrace(FILE *fp)
 static void sig_handle_crash(int signum)
 {
   /* Might be called after WM/Main exit, so needs to be careful about NULL-checking before
-   * dereferencing. */
+   * de-referencing. */
 
   wmWindowManager *wm = G_MAIN ? G_MAIN->wm.first : NULL;
 

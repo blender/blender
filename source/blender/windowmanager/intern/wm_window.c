@@ -1547,7 +1547,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
       case GHOST_kEventButtonUp: {
         if (win->active == 0) {
           /* Entering window, update cursor and tablet state.
-           * (ghost sends win-activate *after* the mouseclick in window!) */
+           * (ghost sends win-activate *after* the mouse-click in window!) */
           wm_window_update_eventstate(win);
         }
 

@@ -340,7 +340,7 @@ static void library_foreach_layer_collection(LibraryForeachIDData *data, ListBas
   FOREACH_FINALIZE_VOID;
 }
 
-/* Used by both real Collection data-blokcs, and the fake horror of master collection from Scene.
+/* Used by both real Collection data-blocks, and the fake horror of master collection from Scene.
  */
 static void library_foreach_collection(LibraryForeachIDData *data, Collection *collection)
 {

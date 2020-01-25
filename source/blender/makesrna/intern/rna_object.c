@@ -1574,9 +1574,9 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
   ModifierData *mod_dst = ED_object_modifier_add(
       NULL, bmain, NULL, ob_dst, mod_src->name, mod_src->type);
 
-  /* XXX Current handling of 'copy' from particlesystem modifier is *very* bad (it keeps same psys
+  /* XXX Current handling of 'copy' from particle-system modifier is *very* bad (it keeps same psys
    * pointer as source, then calling code copies psys of object separately and do some magic
-   * remapping of pointers...), unfortunately several pieces of code in Obejct editing area rely on
+   * remapping of pointers...), unfortunately several pieces of code in Object editing area rely on
    * this behavior. So for now, hacking around it to get it doing what we want it to do, as getting
    * a proper behavior would be everything but trivial, and this whole particle thingy is
    * end-of-life. */
