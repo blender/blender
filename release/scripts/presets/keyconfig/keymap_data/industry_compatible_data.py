@@ -39,6 +39,9 @@ class Params:
             use_mouse_emulate_3_button=False,
     ):
         self.tool_mouse = 'LEFTMOUSE'
+        self.select_mouse = 'LEFTMOUSE'
+        self.select_mouse_value = 'CLICK'
+        self.select_tweak = 'EVT_TWEAK_L'
         self.tool_tweak = 'EVT_TWEAK_L'
         self.action_tweak = 'EVT_TWEAK_R'
         self.use_mouse_emulate_3_button = use_mouse_emulate_3_button
@@ -135,8 +138,13 @@ def _template_items_basic_tools(*, connected=False):
         op_tool_cycle("builtin.cursor", {"type": 'C', "value": 'PRESS'}),
     ]
 
-def _template_items_tool_select(params, operator, cursor_operator):
-        return [(operator, {"type": 'LEFTMOUSE', "value": 'PRESS'}, None)]
+def _template_items_tool_select(params, operator, *, extend):
+        return [
+            (operator, {"type": 'LEFTMOUSE', "value": 'PRESS'},
+             {"properties": [("deselect_all", True)]}),
+            (operator, {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+             {"properties": [(extend, True)]}),
+        ]
 
 
 def _template_items_tool_select_actions(operator, *, type, value):
@@ -3565,6 +3573,22 @@ def km_transform_modal_map(_params):
 # Named are auto-generated based on the tool name and it's toolbar.
 
 
+def km_3d_view_tool_select(params):
+    return (
+        "3D View Tool: Tweak",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": _template_items_tool_select(params, "view3d.select", extend="toggle")},
+    )
+
+
+def km_image_editor_tool_uv_select(params):
+    return (
+        "Image Editor Tool: Uv, Tweak",
+        {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
+        {"items": _template_items_tool_select(params, "uv.select", extend="extend")},
+    )
+
+
 def km_image_editor_tool_uv_move(params):
     return (
         "Image Editor Tool: Uv, Move",
@@ -3759,6 +3783,8 @@ def generate_keymaps_impl(params=None):
         km_generic_gizmo_maybe_drag(params),
 
         # Tool System.
+        km_3d_view_tool_select(params),
+        km_image_editor_tool_uv_select(params),
         km_image_editor_tool_uv_move(params),
         km_image_editor_tool_uv_rotate(params),
         km_image_editor_tool_uv_scale(params),
