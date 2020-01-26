@@ -374,8 +374,6 @@ typedef struct Object {
   struct FluidsimSettings *fluidsimSettings
       DNA_DEPRECATED;  // XXX deprecated... replaced by mantaflow, keep for readfile
 
-  struct DerivedMesh *derivedDeform, *derivedFinal;
-
   ListBase pc_ids;
 
   /** Settings for Bullet rigid body. */

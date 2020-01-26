@@ -6220,8 +6220,6 @@ static void direct_link_object(FileData *fd, Object *ob)
     BKE_object_empty_draw_type_set(ob, ob->empty_drawtype);
   }
 
-  ob->derivedDeform = NULL;
-  ob->derivedFinal = NULL;
   BKE_object_runtime_reset(ob);
   link_list(fd, &ob->pc_ids);
 

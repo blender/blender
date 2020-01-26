@@ -66,7 +66,6 @@ void BKE_object_free_curve_cache(struct Object *ob);
 
 void BKE_object_free(struct Object *ob);
 void BKE_object_free_derived_caches(struct Object *ob);
-void BKE_object_free_derived_mesh_caches(struct Object *ob);
 void BKE_object_free_caches(struct Object *object);
 
 void BKE_object_modifier_hook_reset(struct Object *ob, struct HookModifierData *hmd);
