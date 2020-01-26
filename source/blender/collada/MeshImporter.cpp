@@ -31,6 +31,8 @@
 #include "COLLADAFWMeshVertexData.h"
 #include "COLLADAFWPolygons.h"
 
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_displist.h"
@@ -44,8 +46,6 @@ extern "C" {
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_edgehash.h"
-
-#include "MEM_guardedalloc.h"
 }
 
 #include "ArmatureImporter.h"

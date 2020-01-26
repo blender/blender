@@ -65,6 +65,8 @@
 #  include "utfconv.h"
 #endif
 
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 
 // The following prevents a linking error in debug mode for MSVC using the libs in CVS
@@ -73,8 +75,6 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 {
 }
 #endif
-
-#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"

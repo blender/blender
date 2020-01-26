@@ -23,6 +23,8 @@
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/tokens.h>
 
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -38,8 +40,6 @@ extern "C" {
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

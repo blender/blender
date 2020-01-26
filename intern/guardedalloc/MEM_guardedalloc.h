@@ -231,6 +231,10 @@ extern const char *(*MEM_name_ptr)(void *vmemh);
 void MEM_use_guarded_allocator(void);
 
 #ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#ifdef __cplusplus
 /* alloc funcs for C++ only */
 #  define MEM_CXX_CLASS_ALLOC_FUNCS(_id) \
    public: \
@@ -253,6 +257,13 @@ void MEM_use_guarded_allocator(void);
         MEM_freeN(mem); \
     }
 
+/* Needed when type includes a namespace, then the namespace should not be
+ * specified after ~, so using a macro fails. */
+template<class T> inline void OBJECT_GUARDED_DESTRUCTOR(T *what)
+{
+  what->~T();
+}
+
 #  if defined __GNUC__
 #    define OBJECT_GUARDED_NEW(type, args...) new (MEM_mallocN(sizeof(type), __func__)) type(args)
 #  else
@@ -262,15 +273,11 @@ void MEM_use_guarded_allocator(void);
 #  define OBJECT_GUARDED_DELETE(what, type) \
     { \
       if (what) { \
-        ((type *)(what))->~type(); \
+        OBJECT_GUARDED_DESTRUCTOR((type *)what); \
         MEM_freeN(what); \
       } \
     } \
     (void)0
-#endif /* __cplusplus */
-
-#ifdef __cplusplus
-}
 #endif /* __cplusplus */
 
 #endif /* __MEM_GUARDEDALLOC_H__ */

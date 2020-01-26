@@ -23,9 +23,9 @@
 #include "../application/AppConfig.h"
 #include "../stroke/Canvas.h"
 
-extern "C" {
 #include "MEM_guardedalloc.h"
 
+extern "C" {
 #include "RNA_access.h"
 #include "RNA_types.h"
 

@@ -20,12 +20,12 @@
 #define __COM_RENDERLAYERSPROG_H__
 
 #include "COM_NodeOperation.h"
+#include "MEM_guardedalloc.h"
 #include "DNA_scene_types.h"
 #include "BLI_listbase.h"
 #include "BKE_image.h"
 extern "C" {
 #include "RE_pipeline.h"
-#include "MEM_guardedalloc.h"
 }
 
 /**

@@ -7,6 +7,8 @@
 
 #define GHASH_INTERNAL_API
 
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 #include "BLI_utildefines.h"
 
@@ -15,8 +17,6 @@ extern "C" {
 #include "BLI_task.h"
 
 #include "PIL_time.h"
-
-#include "MEM_guardedalloc.h"
 }
 
 #define NUM_RUN_AVERAGED 100

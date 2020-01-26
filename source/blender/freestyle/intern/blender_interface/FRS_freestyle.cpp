@@ -32,9 +32,9 @@
 using namespace std;
 using namespace Freestyle;
 
-extern "C" {
-
 #include "MEM_guardedalloc.h"
+
+extern "C" {
 
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"

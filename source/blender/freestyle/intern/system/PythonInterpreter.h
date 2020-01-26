@@ -31,10 +31,10 @@ extern "C" {
 #include "StringUtils.h"
 #include "Interpreter.h"
 
-// soc
-extern "C" {
 #include "MEM_guardedalloc.h"
 
+// soc
+extern "C" {
 #include "DNA_text_types.h"
 
 #include "BKE_context.h"

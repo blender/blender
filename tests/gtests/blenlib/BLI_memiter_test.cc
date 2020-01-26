@@ -2,10 +2,11 @@
 
 #include "testing/testing.h"
 
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 #include "BLI_array_utils.h"
 #include "BLI_memiter.h"
-#include "MEM_guardedalloc.h"
 
 #include "BLI_string.h"
 #include "BLI_ressource_strings.h"

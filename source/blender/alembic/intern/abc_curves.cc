@@ -28,9 +28,9 @@
 #include "abc_transform.h"
 #include "abc_util.h"
 
-extern "C" {
 #include "MEM_guardedalloc.h"
 
+extern "C" {
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 

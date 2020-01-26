@@ -22,6 +22,8 @@
 #include "abc_mesh.h"
 #include "abc_transform.h"
 
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
@@ -35,7 +37,6 @@ extern "C" {
 #include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
-#include "MEM_guardedalloc.h"
 }
 
 AbcMBallWriter::AbcMBallWriter(Main *bmain,

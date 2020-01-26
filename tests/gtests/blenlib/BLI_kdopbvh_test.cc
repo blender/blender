@@ -4,12 +4,13 @@
 
 /* TODO: ray intersection, overlap ... etc.*/
 
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 #include "BLI_compiler_attrs.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_rand.h"
 #include "BLI_math_vector.h"
-#include "MEM_guardedalloc.h"
 }
 
 #include "stubs/bf_intern_eigen_stubs.h"

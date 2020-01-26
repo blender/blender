@@ -56,6 +56,8 @@
 #include "COLLADASWInstanceNode.h"
 #include "COLLADASWBaseInputElement.h"
 
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -98,8 +100,6 @@ extern char build_commit_date[];
 extern char build_commit_time[];
 extern char build_hash[];
 #endif
-
-#include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
 }

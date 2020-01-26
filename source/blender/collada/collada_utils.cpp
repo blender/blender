@@ -27,6 +27,9 @@
 
 #include <set>
 #include <string>
+
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 #include "DNA_modifier_types.h"
 #include "DNA_customdata_types.h"
@@ -61,8 +64,6 @@ extern "C" {
 #include "ED_screen.h"
 #include "ED_node.h"
 #include "ED_object.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "WM_api.h" /* XXX hrm, see if we can do without this */
 #include "WM_types.h"

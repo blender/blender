@@ -43,6 +43,8 @@
 #include "COLLADASaxFWLLoader.h"
 #include "COLLADASaxFWLIExtraDataCallbackHandler.h"
 
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -67,8 +69,6 @@ extern "C" {
 #include "DNA_light_types.h"
 
 #include "RNA_access.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

@@ -5,8 +5,9 @@
 
 #define GHASH_INTERNAL_API
 
-extern "C" {
 #include "MEM_guardedalloc.h"
+
+extern "C" {
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_rand.h"

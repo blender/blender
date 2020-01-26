@@ -33,9 +33,9 @@
 #include "openimageio_api.h"
 #include <OpenImageIO/imageio.h>
 
-extern "C" {
 #include "MEM_guardedalloc.h"
 
+extern "C" {
 #include "BLI_blenlib.h"
 
 #include "IMB_imbuf_types.h"

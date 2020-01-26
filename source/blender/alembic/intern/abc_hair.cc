@@ -25,9 +25,9 @@
 #include "abc_transform.h"
 #include "abc_util.h"
 
-extern "C" {
 #include "MEM_guardedalloc.h"
 
+extern "C" {
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"

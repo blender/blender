@@ -21,9 +21,9 @@
  * \ingroup bph
  */
 
-extern "C" {
 #include "MEM_guardedalloc.h"
 
+extern "C" {
 #include "DNA_cloth_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_force_types.h"

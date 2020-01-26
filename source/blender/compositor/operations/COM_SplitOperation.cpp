@@ -22,9 +22,9 @@
 #include "BLI_utildefines.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
+#include "MEM_guardedalloc.h"
 
 extern "C" {
-#include "MEM_guardedalloc.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 }

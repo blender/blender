@@ -25,6 +25,8 @@
 #include "abc_transform.h"
 #include "abc_util.h"
 
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -45,8 +47,6 @@ extern "C" {
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

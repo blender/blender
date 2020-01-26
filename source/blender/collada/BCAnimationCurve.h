@@ -23,8 +23,9 @@
 #include "collada_utils.h"
 #include "BCSampleData.h"
 
-extern "C" {
 #include "MEM_guardedalloc.h"
+
+extern "C" {
 #include "BKE_fcurve.h"
 #include "BKE_armature.h"
 #include "BKE_material.h"
