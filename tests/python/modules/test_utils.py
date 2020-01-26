@@ -85,7 +85,6 @@ class AbstractBlenderRunnerTest(unittest.TestCase):
             command.append(str(blendfile))
 
         command.extend([
-            '-E', 'CYCLES',
             '--python-exit-code', '47',
             '--python-expr', python_script,
         ]
