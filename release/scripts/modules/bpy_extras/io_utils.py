@@ -116,13 +116,6 @@ class ImportHelper:
         subtype='FILE_PATH',
     )
 
-    # Hide opertator properties, rest of this is managed in C. See WM_operator_properties_filesel().
-    hide_props_region: BoolProperty(
-        name="Hide Operator Properties",
-        description="Collapse the region displaying the operator settings",
-        default=True,
-    )
-
     def invoke(self, context, _event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
