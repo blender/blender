@@ -449,8 +449,6 @@ void AbstractHierarchyIterator::make_writers(const HierarchyContext *parent_cont
     unit_m4(parent_matrix_inv_world);
   }
 
-  const std::string &parent_export_path = parent_context ? parent_context->export_path : "";
-
   for (HierarchyContext *context : graph_children(parent_context)) {
     copy_m4_m4(context->parent_matrix_inv_world, parent_matrix_inv_world);
 

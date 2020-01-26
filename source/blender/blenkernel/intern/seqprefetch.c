@@ -416,9 +416,7 @@ static PrefetchJob *seq_prefetch_start(const SeqRenderData *context, float cfra)
   pfjob->stop = false;
   pfjob->running = true;
 
-  if (&pfjob->threads) {
-    BLI_threadpool_remove(&pfjob->threads, pfjob);
-  }
+  BLI_threadpool_remove(&pfjob->threads, pfjob);
   BLI_threadpool_insert(&pfjob->threads, pfjob);
 
   return pfjob;
