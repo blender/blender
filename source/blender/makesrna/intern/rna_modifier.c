@@ -3217,6 +3217,11 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
+  prop = RNA_def_property(srna, "invert_vertex_group", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_INVERT_VGROUP);
+  RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
   prop = RNA_def_property(srna, "use_x", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_X);
   RNA_def_property_ui_text(prop, "X", "");

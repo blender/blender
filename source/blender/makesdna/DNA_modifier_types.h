@@ -611,6 +611,7 @@ typedef struct CastModifierData {
 /* Cast modifier flags */
 enum {
   /* And what bout (1 << 0) flag? ;) */
+  MOD_CAST_INVERT_VGROUP = (1 << 0),
   MOD_CAST_X = (1 << 1),
   MOD_CAST_Y = (1 << 2),
   MOD_CAST_Z = (1 << 3),

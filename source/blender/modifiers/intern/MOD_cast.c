@@ -105,6 +105,7 @@ static void sphere_do(CastModifierData *cmd,
                       int numVerts)
 {
   MDeformVert *dvert = NULL;
+  const bool invert_vgroup = (cmd->flag & MOD_CAST_INVERT_VGROUP) != 0;
 
   Object *ctrl_ob = NULL;
 
@@ -198,7 +199,9 @@ static void sphere_do(CastModifierData *cmd,
     }
 
     if (dvert) {
-      const float weight = defvert_find_weight(&dvert[i], defgrp_index);
+      const float weight = invert_vgroup ? 1.0f - defvert_find_weight(&dvert[i], defgrp_index) :
+                                           defvert_find_weight(&dvert[i], defgrp_index);
+
       if (weight == 0.0f) {
         continue;
       }
@@ -240,6 +243,8 @@ static void cuboid_do(CastModifierData *cmd,
                       int numVerts)
 {
   MDeformVert *dvert = NULL;
+  const bool invert_vgroup = (cmd->flag & MOD_CAST_INVERT_VGROUP) != 0;
+
   Object *ctrl_ob = NULL;
 
   int i, defgrp_index;
@@ -365,7 +370,9 @@ static void cuboid_do(CastModifierData *cmd,
     }
 
     if (dvert) {
-      const float weight = defvert_find_weight(&dvert[i], defgrp_index);
+      const float weight = invert_vgroup ? 1.0f - defvert_find_weight(&dvert[i], defgrp_index) :
+                                           defvert_find_weight(&dvert[i], defgrp_index);
+
       if (weight == 0.0f) {
         continue;
       }
