@@ -376,14 +376,15 @@ void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd,
   if (use_texture) {
     if (is_tiled) {
       GPUTexture *array_tex = GPU_texture_from_blender(
-          material->ima, material->iuser, GL_TEXTURE_2D_ARRAY);
+          material->ima, material->iuser, NULL, GL_TEXTURE_2D_ARRAY);
       GPUTexture *data_tex = GPU_texture_from_blender(
-          material->ima, material->iuser, GL_TEXTURE_1D_ARRAY);
+          material->ima, material->iuser, NULL, GL_TEXTURE_1D_ARRAY);
       DRW_shgroup_uniform_texture(grp, "image_tile_array", array_tex);
       DRW_shgroup_uniform_texture(grp, "image_tile_data", data_tex);
     }
     else {
-      GPUTexture *tex = GPU_texture_from_blender(material->ima, material->iuser, GL_TEXTURE_2D);
+      GPUTexture *tex = GPU_texture_from_blender(
+          material->ima, material->iuser, NULL, GL_TEXTURE_2D);
       DRW_shgroup_uniform_texture(grp, "image", tex);
     }
     DRW_shgroup_uniform_bool_copy(

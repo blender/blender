@@ -1226,7 +1226,7 @@ static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp,
         else {
           textarget = GL_TEXTURE_2D;
         }
-        *tex_ref = tex = GPU_texture_from_blender(input->ima, input->iuser, textarget);
+        *tex_ref = tex = GPU_texture_from_blender(input->ima, input->iuser, NULL, textarget);
 
         GPU_texture_ref(tex);
       }
