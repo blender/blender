@@ -1079,7 +1079,7 @@ static void clamp_bounds_in_domain(FluidDomainSettings *mds,
   }
 }
 
-static void em_allocateData(EmissionMap *em, bool use_velocity, int hires_mul)
+static void em_allocateData(EmissionMap *em, bool use_velocity)
 {
   int i, res[3];
 
@@ -1101,23 +1101,6 @@ static void em_allocateData(EmissionMap *em, bool use_velocity, int hires_mul)
   /* Initialize to infinity. */
   memset(em->distances, 0x7f7f7f7f, sizeof(float) * em->total_cells);
 
-  /* Allocate high resolution map if required. */
-  if (hires_mul > 1) {
-    int total_cells_high = em->total_cells * (hires_mul * hires_mul * hires_mul);
-
-    for (i = 0; i < 3; i++) {
-      em->hmin[i] = em->min[i] * hires_mul;
-      em->hmax[i] = em->max[i] * hires_mul;
-      em->hres[i] = em->res[i] * hires_mul;
-    }
-
-    em->influence_high = MEM_calloc_arrayN(
-        total_cells_high, sizeof(float), "manta_flow_influence_high");
-    em->distances_high = MEM_malloc_arrayN(
-        total_cells_high, sizeof(float), "manta_flow_distances_high");
-    /* Initialize to infinity. */
-    memset(em->distances_high, 0x7f7f7f7f, sizeof(float) * total_cells_high);
-  }
   em->valid = true;
 }
 
@@ -1141,7 +1124,7 @@ static void em_freeData(EmissionMap *em)
 }
 
 static void em_combineMaps(
-    EmissionMap *output, EmissionMap *em2, int hires_multiplier, int additive, float sample_size)
+    EmissionMap *output, EmissionMap *em2, int additive, float sample_size)
 {
   int i, x, y, z;
 
@@ -1161,7 +1144,7 @@ static void em_combineMaps(
     }
   }
   /* allocate output map */
-  em_allocateData(output, (em1.velocity || em2->velocity), hires_multiplier);
+  em_allocateData(output, (em1.velocity || em2->velocity));
 
   /* base resolution inputs */
   for (x = output->min[0]; x < output->max[0]; x++) {
@@ -1217,48 +1200,6 @@ static void em_combineMaps(
     }
   }
 
-  /* initialize high resolution input if available */
-  if (output->influence_high) {
-    for (x = output->hmin[0]; x < output->hmax[0]; x++) {
-      for (y = output->hmin[1]; y < output->hmax[1]; y++) {
-        for (z = output->hmin[2]; z < output->hmax[2]; z++) {
-          int index_out = manta_get_index(x - output->hmin[0],
-                                          output->hres[0],
-                                          y - output->hmin[1],
-                                          output->hres[1],
-                                          z - output->hmin[2]);
-
-          /* initialize with first input if in range */
-          if (x >= em1.hmin[0] && x < em1.hmax[0] && y >= em1.hmin[1] && y < em1.hmax[1] &&
-              z >= em1.hmin[2] && z < em1.hmax[2]) {
-            int index_in = manta_get_index(
-                x - em1.hmin[0], em1.hres[0], y - em1.hmin[1], em1.hres[1], z - em1.hmin[2]);
-            /* values */
-            output->influence_high[index_out] = em1.influence_high[index_in];
-          }
-
-          /* apply second input if in range */
-          if (x >= em2->hmin[0] && x < em2->hmax[0] && y >= em2->hmin[1] && y < em2->hmax[1] &&
-              z >= em2->hmin[2] && z < em2->hmax[2]) {
-            int index_in = manta_get_index(
-                x - em2->hmin[0], em2->hres[0], y - em2->hmin[1], em2->hres[1], z - em2->hmin[2]);
-
-            /* values */
-            if (additive) {
-              output->influence_high[index_out] += em2->distances_high[index_in] * sample_size;
-            }
-            else {
-              output->distances_high[index_out] = MAX2(em2->distances_high[index_in],
-                                                       output->distances_high[index_out]);
-            }
-            output->distances_high[index_out] = MIN2(em2->distances_high[index_in],
-                                                     output->distances_high[index_out]);
-          }
-        }  // high res loop
-      }
-    }
-  }
-
   /* free original data */
   em_freeData(&em1);
 }
@@ -1266,17 +1207,13 @@ static void em_combineMaps(
 typedef struct EmitFromParticlesData {
   FluidFlowSettings *mfs;
   KDTree_3d *tree;
-  int hires_multiplier;
 
   EmissionMap *em;
   float *particle_vel;
-  float hr;
-
   int *min, *max, *res;
 
   float solid;
   float smooth;
-  float hr_smooth;
 } EmitFromParticlesData;
 
 static void emit_from_particles_task_cb(void *__restrict userdata,
@@ -1286,62 +1223,27 @@ static void emit_from_particles_task_cb(void *__restrict userdata,
   EmitFromParticlesData *data = userdata;
   FluidFlowSettings *mfs = data->mfs;
   EmissionMap *em = data->em;
-  const int hires_multiplier = data->hires_multiplier;
 
   for (int x = data->min[0]; x < data->max[0]; x++) {
     for (int y = data->min[1]; y < data->max[1]; y++) {
-      /* Take low res samples where possible. */
-      if (hires_multiplier <= 1 ||
-          !(x % hires_multiplier || y % hires_multiplier || z % hires_multiplier)) {
-        /* Get low res space coordinates. */
-        float inv_multiplier = 1.0f / hires_multiplier;
-        const int lx = x * inv_multiplier;
-        const int ly = y * inv_multiplier;
-        const int lz = z * inv_multiplier;
+      const int index = manta_get_index(
+          x - em->min[0], em->res[0], y - em->min[1], em->res[1], z - em->min[2]);
+      const float ray_start[3] = {((float)x) + 0.5f, ((float)y) + 0.5f, ((float)z) + 0.5f};
 
-        const int index = manta_get_index(
-            lx - em->min[0], em->res[0], ly - em->min[1], em->res[1], lz - em->min[2]);
-        const float ray_start[3] = {((float)lx) + 0.5f, ((float)ly) + 0.5f, ((float)lz) + 0.5f};
+      /* Find particle distance from the kdtree. */
+      KDTreeNearest_3d nearest;
+      const float range = data->solid + data->smooth;
+      BLI_kdtree_3d_find_nearest(data->tree, ray_start, &nearest);
 
-        /* Find particle distance from the kdtree. */
-        KDTreeNearest_3d nearest;
-        const float range = data->solid + data->smooth;
-        BLI_kdtree_3d_find_nearest(data->tree, ray_start, &nearest);
-
-        if (nearest.dist < range) {
-          em->influence[index] = (nearest.dist < data->solid) ?
-                                     1.0f :
-                                     (1.0f - (nearest.dist - data->solid) / data->smooth);
-          /* Uses particle velocity as initial velocity for smoke. */
-          if (mfs->flags & FLUID_FLOW_INITVELOCITY &&
-              (mfs->psys->part->phystype != PART_PHYS_NO)) {
-            madd_v3_v3fl(
-                &em->velocity[index * 3], &data->particle_vel[nearest.index * 3], mfs->vel_multi);
-          }
-        }
-      }
-
-      /* Take high res samples if required. */
-      if (hires_multiplier > 1) {
-        /* get low res space coordinates */
-        const float lx = ((float)x) * data->hr;
-        const float ly = ((float)y) * data->hr;
-        const float lz = ((float)z) * data->hr;
-
-        const int index = manta_get_index(
-            x - data->min[0], data->res[0], y - data->min[1], data->res[1], z - data->min[2]);
-        const float ray_start[3] = {
-            lx + 0.5f * data->hr, ly + 0.5f * data->hr, lz + 0.5f * data->hr};
-
-        /* Find particle distance from the kdtree. */
-        KDTreeNearest_3d nearest;
-        const float range = data->solid + data->hr_smooth;
-        BLI_kdtree_3d_find_nearest(data->tree, ray_start, &nearest);
-
-        if (nearest.dist < range) {
-          em->influence_high[index] = (nearest.dist < data->solid) ?
-                                          1.0f :
-                                          (1.0f - (nearest.dist - data->solid) / data->smooth);
+      if (nearest.dist < range) {
+        em->influence[index] = (nearest.dist < data->solid) ?
+                                   1.0f :
+                                   (1.0f - (nearest.dist - data->solid) / data->smooth);
+        /* Uses particle velocity as initial velocity for smoke. */
+        if (mfs->flags & FLUID_FLOW_INITVELOCITY &&
+            (mfs->psys->part->phystype != PART_PHYS_NO)) {
+          madd_v3_v3fl(
+              &em->velocity[index * 3], &data->particle_vel[nearest.index * 3], mfs->vel_multi);
         }
       }
     }
@@ -1371,7 +1273,6 @@ static void emit_from_particles(Object *flow_ob,
     /* radius based flow */
     const float solid = mfs->particle_size * 0.5f;
     const float smooth = 0.5f; /* add 0.5 cells of linear falloff to reduce aliasing */
-    int hires_multiplier = 1;
     KDTree_3d *tree = NULL;
 
     sim.depsgraph = depsgraph;
@@ -1408,12 +1309,6 @@ static void emit_from_particles(Object *flow_ob,
     /* setup particle radius emission if enabled */
     if (mfs->flags & FLUID_FLOW_USE_PART_SIZE) {
       tree = BLI_kdtree_3d_new(psys->totpart + psys->totchild);
-
-      /* check need for high resolution map */
-      if ((mds->flags & FLUID_DOMAIN_USE_NOISE) && (mds->highres_sampling == SM_HRES_FULLSAMPLE)) {
-        hires_multiplier = mds->noise_scale;
-      }
-
       bounds_margin = (int)ceil(solid + smooth);
     }
 
@@ -1461,7 +1356,7 @@ static void emit_from_particles(Object *flow_ob,
 
     /* set emission map */
     clamp_bounds_in_domain(mds, em->min, em->max, NULL, NULL, bounds_margin, dt);
-    em_allocateData(em, mfs->flags & FLUID_FLOW_INITVELOCITY, hires_multiplier);
+    em_allocateData(em, mfs->flags & FLUID_FLOW_INITVELOCITY);
 
     if (!(mfs->flags & FLUID_FLOW_USE_PART_SIZE)) {
       for (p = 0; p < valid_particles; p++) {
@@ -1496,16 +1391,12 @@ static void emit_from_particles(Object *flow_ob,
     }
     else if (valid_particles > 0) {  // FLUID_FLOW_USE_PART_SIZE
       int min[3], max[3], res[3];
-      const float hr = 1.0f / ((float)hires_multiplier);
-      /* Slightly adjust high res anti-alias smoothness based on number of divisions
-       * to allow smaller details but yet not differing too much from the low res size. */
-      const float hr_smooth = smooth * powf(hr, 1.0f / 3.0f);
 
       /* setup loop bounds */
       for (int i = 0; i < 3; i++) {
-        min[i] = em->min[i] * hires_multiplier;
-        max[i] = em->max[i] * hires_multiplier;
-        res[i] = em->res[i] * hires_multiplier;
+        min[i] = em->min[i];
+        max[i] = em->max[i];
+        res[i] = em->res[i];
       }
 
       BLI_kdtree_3d_balance(tree);
@@ -1513,8 +1404,6 @@ static void emit_from_particles(Object *flow_ob,
       EmitFromParticlesData data = {
           .mfs = mfs,
           .tree = tree,
-          .hires_multiplier = hires_multiplier,
-          .hr = hr,
           .em = em,
           .particle_vel = particle_vel,
           .min = min,
@@ -1522,7 +1411,6 @@ static void emit_from_particles(Object *flow_ob,
           .res = res,
           .solid = solid,
           .smooth = smooth,
-          .hr_smooth = hr_smooth,
       };
 
       TaskParallelSettings settings;
@@ -1852,9 +1740,6 @@ typedef struct EmitFromDMData {
   int defgrp_index;
 
   BVHTreeFromMesh *tree;
-  int hires_multiplier;
-  float hr;
-
   EmissionMap *em;
   bool has_velocity;
   float *vert_vel;
@@ -1869,92 +1754,40 @@ static void emit_from_mesh_task_cb(void *__restrict userdata,
 {
   EmitFromDMData *data = userdata;
   EmissionMap *em = data->em;
-  const int hires_multiplier = data->hires_multiplier;
 
   for (int x = data->min[0]; x < data->max[0]; x++) {
     for (int y = data->min[1]; y < data->max[1]; y++) {
-      /* take low res samples where possible */
-      if (hires_multiplier <= 1 ||
-          !(x % hires_multiplier || y % hires_multiplier || z % hires_multiplier)) {
-        /* get low res space coordinates */
-        const int lx = x / hires_multiplier;
-        const int ly = y / hires_multiplier;
-        const int lz = z / hires_multiplier;
+      const int index = manta_get_index(
+          x - em->min[0], em->res[0], y - em->min[1], em->res[1], z - em->min[2]);
+      const float ray_start[3] = {((float)x) + 0.5f, ((float)y) + 0.5f, ((float)z) + 0.5f};
 
-        const int index = manta_get_index(
-            lx - em->min[0], em->res[0], ly - em->min[1], em->res[1], lz - em->min[2]);
-        const float ray_start[3] = {((float)lx) + 0.5f, ((float)ly) + 0.5f, ((float)lz) + 0.5f};
+      sample_mesh(data->mfs,
+                  data->mvert,
+                  data->mloop,
+                  data->mlooptri,
+                  data->mloopuv,
+                  em->influence,
+                  em->velocity,
+                  index,
+                  data->mds->base_res,
+                  data->flow_center,
+                  data->tree,
+                  ray_start,
+                  data->vert_vel,
+                  data->has_velocity,
+                  data->defgrp_index,
+                  data->dvert,
+                  (float)x,
+                  (float)y,
+                  (float)z);
 
-        /* Emission for smoke and fire. Result in em->influence. Also, calculate invels */
-        sample_mesh(data->mfs,
-                    data->mvert,
-                    data->mloop,
-                    data->mlooptri,
-                    data->mloopuv,
-                    em->influence,
-                    em->velocity,
-                    index,
-                    data->mds->base_res,
-                    data->flow_center,
-                    data->tree,
-                    ray_start,
-                    data->vert_vel,
-                    data->has_velocity,
-                    data->defgrp_index,
-                    data->dvert,
-                    (float)lx,
-                    (float)ly,
-                    (float)lz);
-
-        /* Calculate levelset from meshes. Result in em->distances */
-        update_mesh_distances(index,
-                              em->distances,
-                              data->tree,
-                              ray_start,
-                              data->mfs->surface_distance,
-                              data->mfs->flags & FLUID_FLOW_USE_PLANE_INIT);
-      }
-
-      /* take high res samples if required */
-      if (hires_multiplier > 1) {
-        /* get low res space coordinates */
-        const float lx = ((float)x) * data->hr;
-        const float ly = ((float)y) * data->hr;
-        const float lz = ((float)z) * data->hr;
-
-        const int index = manta_get_index(
-            x - data->min[0], data->res[0], y - data->min[1], data->res[1], z - data->min[2]);
-        const float ray_start[3] = {
-            lx + 0.5f * data->hr,
-            ly + 0.5f * data->hr,
-            lz + 0.5f * data->hr,
-        };
-
-        /* Emission for smoke and fire high. Result in em->influence_high */
-        if (data->mfs->type == FLUID_FLOW_TYPE_SMOKE || data->mfs->type == FLUID_FLOW_TYPE_FIRE ||
-            data->mfs->type == FLUID_FLOW_TYPE_SMOKEFIRE) {
-          sample_mesh(data->mfs,
-                      data->mvert,
-                      data->mloop,
-                      data->mlooptri,
-                      data->mloopuv,
-                      em->influence_high,
-                      NULL,
-                      index,
-                      data->mds->base_res,
-                      data->flow_center,
-                      data->tree,
-                      ray_start,
-                      data->vert_vel,
-                      data->has_velocity,
-                      data->defgrp_index,
-                      data->dvert,
-                      /* x,y,z needs to be always lowres */
-                      lx,
-                      ly,
-                      lz);
-        }
-      }
+      /* Calculate levelset values from meshes. Result in em->distances. */
+      update_mesh_distances(index,
+                            em->distances,
+                            data->tree,
+                            ray_start,
+                            data->mfs->surface_distance,
+                            data->mfs->flags & FLUID_FLOW_USE_PLANE_INIT);
     }
   }
 }
@@ -1978,7 +1811,6 @@ static void emit_from_mesh(
     int defgrp_index = mfs->vgroup_density - 1;
     float flow_center[3] = {0};
     int min[3], max[3], res[3];
-    int hires_multiplier = 1;
 
     /* copy mesh for thread safety because we modify it,
      * main issue is its VertArray being modified, then replaced and freed
@@ -2047,25 +1879,19 @@ static void emit_from_mesh(
     mul_m4_v3(flow_ob->obmat, flow_center);
     manta_pos_to_cell(mds, flow_center);
 
-    /* check need for high resolution map */
-    if ((mds->flags & FLUID_DOMAIN_USE_NOISE) && (mds->highres_sampling == SM_HRES_FULLSAMPLE)) {
-      hires_multiplier = mds->noise_scale;
-    }
-
     /* set emission map */
     clamp_bounds_in_domain(
         mds, em->min, em->max, NULL, NULL, (int)ceil(mfs->surface_distance), dt);
-    em_allocateData(em, mfs->flags & FLUID_FLOW_INITVELOCITY, hires_multiplier);
+    em_allocateData(em, mfs->flags & FLUID_FLOW_INITVELOCITY);
 
     /* setup loop bounds */
     for (i = 0; i < 3; i++) {
-      min[i] = em->min[i] * hires_multiplier;
-      max[i] = em->max[i] * hires_multiplier;
-      res[i] = em->res[i] * hires_multiplier;
+      min[i] = em->min[i];
+      max[i] = em->max[i];
+      res[i] = em->res[i];
     }
 
     if (BKE_bvhtree_from_mesh_get(&tree_data, me, BVHTREE_FROM_LOOPTRI, 4)) {
-      const float hr = 1.0f / ((float)hires_multiplier);
 
       EmitFromDMData data = {
           .mds = mds,
@@ -2077,8 +1903,6 @@ static void emit_from_mesh(
           .dvert = dvert,
           .defgrp_index = defgrp_index,
           .tree = &tree_data,
-          .hires_multiplier = hires_multiplier,
-          .hr = hr,
           .em = em,
           .has_velocity = has_velocity,
           .vert_vel = vert_vel,
@@ -2645,7 +2469,6 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
       /* Further splitting because of emission subframe: If no subframes present, sample_size is 1
        */
       float sample_size = 1.0f / (float)(subframes + 1);
-      int hires_multiplier = 1;
 
       /* First frame cannot have any subframes because there is (obviously) no previous frame from
        * where subframes could come from */
@@ -2712,10 +2535,6 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
           else {
             emit_from_particles(flowobj, mds, mfs, em, depsgraph, scene, subframe_dt);
           }
-
-          if (!(mfs->flags & FLUID_FLOW_USE_PART_SIZE)) {
-            hires_multiplier = 1;
-          }
         }
         /* Emission from mesh */
         else if (mfs->source == FLUID_FLOW_SOURCE_MESH) {
@@ -2735,7 +2554,7 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
         if (subframes) {
           /* Combine emission maps */
           em_combineMaps(
-              em, &em_temp, hires_multiplier, !(mfs->flags & FLUID_FLOW_ABSOLUTE), sample_size);
+              em, &em_temp, !(mfs->flags & FLUID_FLOW_ABSOLUTE), sample_size);
           em_freeData(&em_temp);
         }
       }
