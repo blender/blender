@@ -95,6 +95,14 @@ static SpaceLink *sequencer_new(const ScrArea *UNUSED(sa), const Scene *scene)
   sseq->mainb = SEQ_DRAW_IMG_IMBUF;
   sseq->flag = SEQ_SHOW_GPENCIL | SEQ_USE_ALPHA | SEQ_SHOW_MARKERS;
 
+  /* tool header */
+  ar = MEM_callocN(sizeof(ARegion), "tool header for sequencer");
+
+  BLI_addtail(&sseq->regionbase, ar);
+  ar->regiontype = RGN_TYPE_TOOL_HEADER;
+  ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+  ar->flag = RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
+
   /* header */
   ar = MEM_callocN(sizeof(ARegion), "header for sequencer");
 
