@@ -309,7 +309,7 @@ static void quadriflow_update_job(void *customdata, float progress, int *cancel)
 
 static Mesh *remesh_symmetry_bisect(Main *bmain, Mesh *mesh, eSymmetryAxes symmetry_axes)
 {
-  MirrorModifierData mmd = {0};
+  MirrorModifierData mmd = {{0}};
   mmd.tolerance = QUADRIFLOW_MIRROR_BISECT_TOLERANCE;
 
   Mesh *mesh_bisect, *mesh_bisect_temp;
@@ -343,7 +343,7 @@ static Mesh *remesh_symmetry_bisect(Main *bmain, Mesh *mesh, eSymmetryAxes symme
 
 static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmetry_axes)
 {
-  MirrorModifierData mmd = {0};
+  MirrorModifierData mmd = {{0}};
   mmd.tolerance = QUADRIFLOW_MIRROR_BISECT_TOLERANCE;
   Mesh *mesh_mirror, *mesh_mirror_temp;
 

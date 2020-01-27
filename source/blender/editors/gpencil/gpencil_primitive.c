@@ -1386,7 +1386,7 @@ static void gpencil_primitive_edit_event_handling(
     case LEFTMOUSE: {
       if ((event->val == KM_RELEASE) && (tgpi->flag == IN_PROGRESS)) {
         /* set control points and enter edit mode */
-        if ((ELEM(tgpi->type, GP_STROKE_POLYLINE))) {
+        if (ELEM(tgpi->type, GP_STROKE_POLYLINE)) {
           gpencil_primitive_add_segment(tgpi);
           copy_v2_v2(tgpi->start, tgpi->end);
           copy_v2_v2(tgpi->origin, tgpi->start);

@@ -8379,7 +8379,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
       ED_sculpt_undo_geometry_begin(ob, "mesh symmetrize");
       Mesh *mesh = ob->data;
       Mesh *mesh_mirror;
-      MirrorModifierData mmd = {0};
+      MirrorModifierData mmd = {{0}};
       int axis = 0;
       mmd.flag = 0;
       mmd.tolerance = 0.005f;
