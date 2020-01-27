@@ -102,6 +102,16 @@ static BMO_FlagSet bmo_enum_axis_xyz[] = {
   {0, NULL},
 };
 
+static BMO_FlagSet bmo_enum_axis_neg_xyz_and_xyz[] = {
+  {0, "-X"},
+  {1, "-Y"},
+  {2, "-Z"},
+  {3, "X"},
+  {4, "Y"},
+  {5, "Z"},
+  {0, NULL},
+};
+
 static BMO_FlagSet bmo_enum_falloff_type[] = {
   {SUBD_FALLOFF_SMOOTH, "SMOOTH"},
   {SUBD_FALLOFF_SPHERE, "SPHERE"},
@@ -2046,7 +2056,7 @@ static BMOpDefine bmo_symmetrize_def = {
   "symmetrize",
   /* slots_in */
   {{"input", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
-   {"direction", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM}, bmo_enum_axis_xyz}, /* axis to use */
+   {"direction", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM}, bmo_enum_axis_neg_xyz_and_xyz}, /* axis to use */
    {"dist", BMO_OP_SLOT_FLT}, /* minimum distance */
    {{'\0'}},
   },
