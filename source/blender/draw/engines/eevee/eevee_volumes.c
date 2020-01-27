@@ -401,6 +401,14 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
     return;
   }
 
+  float size[3];
+  mat4_to_size(size, ob->obmat);
+  /* Check if any of the axes have 0 length. (see T69070) */
+  const float epsilon = 1e-8f;
+  if ((size[0] < epsilon) || (size[1] < epsilon) || (size[2] < epsilon)) {
+    return;
+  }
+
   struct GPUMaterial *mat = EEVEE_material_mesh_volume_get(scene, ma);
   eGPUMaterialStatus status = GPU_material_status(mat);
 
