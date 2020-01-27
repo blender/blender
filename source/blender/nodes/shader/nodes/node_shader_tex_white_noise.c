@@ -28,6 +28,7 @@ static bNodeSocketTemplate sh_node_tex_white_noise_in[] = {
 
 static bNodeSocketTemplate sh_node_tex_white_noise_out[] = {
     {SOCK_FLOAT, 0, N_("Value")},
+    {SOCK_RGBA, 0, N_("Color")},
     {-1, 0, ""},
 };
 
