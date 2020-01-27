@@ -1331,6 +1331,7 @@ def km_markers(params):
         ("marker.delete", {"type": 'DEL', "value": 'PRESS'}, None),
         ("marker.rename", {"type": 'M', "value": 'PRESS', "ctrl": True}, None),
         ("marker.move", {"type": 'G', "value": 'PRESS'}, None),
+        ("marker.camera_bind", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
     ])
 
     return keymap
