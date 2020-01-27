@@ -860,7 +860,6 @@ bool BM_mesh_intersect_edges(
           if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
             continue;
           }
-          BM_elem_flag_enable(e, BM_ELEM_TAG);
 
           BMVert *va, *vb, *va_dest = NULL;
           va = e->v1;
@@ -869,8 +868,15 @@ bool BM_mesh_intersect_edges(
           int v_cut = BM_elem_index_get(va);
           int v_cut_other = BM_elem_index_get(vb);
           if (v_cut == -1 && v_cut_other == -1) {
+            if (!BM_elem_flag_test(va, BM_ELEM_TAG) && !BM_elem_flag_test(vb, BM_ELEM_TAG)) {
+              /* Ignore edges out of context. */
+              BM_elem_flag_enable(e, BM_ELEM_TAG);
+            }
             continue;
           }
+
+          /* Tag to avoid testing again. */
+          BM_elem_flag_enable(e, BM_ELEM_TAG);
 
           if (v_cut == -1) {
             SWAP(BMVert *, va, vb);
@@ -900,6 +906,11 @@ bool BM_mesh_intersect_edges(
               v_other_dest = v_other;
             }
 
+            if (BM_edge_exists(va_dest, v_other_dest)) {
+              /* No need to detect face. (Optimization). */
+              break;
+            }
+
             best_face = bm_vert_pair_best_face_get(
                 va_dest, v_other_dest, edgenet, edgenet_len, dist);
 
@@ -925,10 +936,11 @@ bool BM_mesh_intersect_edges(
             BMEdge *e_test = e_net, *e_next = NULL;
             while ((e_test = BM_DISK_EDGE_NEXT(e_test, v_other)) != (e_net)) {
               if (!BM_edge_is_wire(e_test)) {
-                if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+                if (BM_elem_flag_test(e_test, BM_ELEM_TAG)) {
                   continue;
                 }
-                if (BM_elem_index_get(e_test->v1) == -1 && BM_elem_index_get(e_test->v2) == -1) {
+                if (!BM_elem_flag_test(e_test->v1, BM_ELEM_TAG) &&
+                    !BM_elem_flag_test(e_test->v2, BM_ELEM_TAG)) {
                   continue;
                 }
               }
