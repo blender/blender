@@ -82,6 +82,10 @@ if(WITH_CYCLES_NETWORK)
   add_definitions(-DWITH_NETWORK)
 endif()
 
+if(WITH_MOD_FLUID)
+  add_definitions(-DWITH_FLUID)
+endif()
+
 blender_add_lib(bf_intern_cycles "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # avoid link failure with clang 3.4 debug
