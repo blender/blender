@@ -306,6 +306,9 @@ struct XFormObjectData_MetaBall {
 struct XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode)
 {
   struct XFormObjectData *xod_base = NULL;
+  if (id == NULL) {
+    return xod_base;
+  }
   switch (GS(id->name)) {
     case ID_ME: {
       Mesh *me = (Mesh *)id;
