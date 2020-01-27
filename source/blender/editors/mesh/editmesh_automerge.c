@@ -123,62 +123,10 @@ void EDBM_automerge_and_split(Object *obedit,
 
   GHash *ghash_targetmap = BMO_SLOT_AS_GHASH(slot_targetmap);
 
-  ok = BM_mesh_intersect_edges(bm, hflag, dist, ghash_targetmap);
+  ok = BM_mesh_intersect_edges(bm, hflag, dist, split_faces, ghash_targetmap);
 
   if (ok) {
-    GHashIterator gh_iter;
-    BMVert **v_survivors, **v_iter;
-    uint v_survivors_len = 0;
-    if (split_faces) {
-      BMVert *v_src, *v_dst;
-      GHASH_ITER (gh_iter, ghash_targetmap) {
-        v_src = BLI_ghashIterator_getKey(&gh_iter);
-        v_dst = BLI_ghashIterator_getValue(&gh_iter);
-        BM_elem_flag_disable(v_src, BM_ELEM_TAG);
-        BM_elem_flag_disable(v_dst, BM_ELEM_TAG);
-      }
-
-      int v_survivors_len_max = BLI_ghash_len(ghash_targetmap);
-      GHASH_ITER (gh_iter, ghash_targetmap) {
-        v_src = BLI_ghashIterator_getKey(&gh_iter);
-        v_dst = BLI_ghashIterator_getValue(&gh_iter);
-        if (!BM_elem_flag_test(v_src, BM_ELEM_TAG)) {
-          BM_elem_flag_enable(v_src, BM_ELEM_TAG);
-        }
-        if (BM_elem_flag_test(v_dst, BM_ELEM_TAG)) {
-          v_survivors_len_max--;
-        }
-      }
-
-      v_survivors = MEM_mallocN(sizeof(*v_survivors) * v_survivors_len_max, __func__);
-      v_iter = &v_survivors[0];
-      GHASH_ITER (gh_iter, ghash_targetmap) {
-        v_dst = BLI_ghashIterator_getValue(&gh_iter);
-        if (!BM_elem_flag_test(v_dst, BM_ELEM_TAG)) {
-          *v_iter = v_dst;
-          v_iter++;
-          v_survivors_len++;
-        }
-      }
-    }
-
     BMO_op_exec(bm, &weldop);
-
-    BMEdge **edgenet = NULL;
-    int edgenet_alloc_len = 0;
-    if (split_faces) {
-      v_iter = &v_survivors[0];
-      for (int i = v_survivors_len; i--; v_iter++) {
-        BM_vert_weld_linked_wire_edges_into_linked_faces(
-            bm, *v_iter, dist, &edgenet, &edgenet_alloc_len);
-      }
-
-      MEM_freeN(v_survivors);
-    }
-
-    if (edgenet) {
-      MEM_freeN(edgenet);
-    }
   }
 
   BMO_op_finish(bm, &weldop);
