@@ -145,6 +145,8 @@ static BMFace *bm_vert_pair_best_face_get(
 {
   BMFace *r_best_face = NULL;
 
+  BLI_assert(v_a != v_b);
+
   BMLoop *dummy;
   if (edgenet_len == 1) {
     float data[2][3];
@@ -636,7 +638,7 @@ bool BM_mesh_intersect_edges(
         BLI_bvhtree_insert(tree_edges_act, i, co[0], 2);
       }
       else if (edge_test == EDGE_REMAIN_TO_TEST) {
-        BLI_assert(tree_edges_act);
+        BLI_assert(tree_edges_remain);
         e->head.index = 0;
         copy_v3_v3(co[0], e->v1->co);
         copy_v3_v3(co[1], e->v2->co);
