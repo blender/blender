@@ -644,6 +644,9 @@ GHOST_TSuccess GHOST_WindowWin32::setOrder(GHOST_TWindowOrder order)
     hWndToRaise = ::GetWindow(m_hWnd, GW_HWNDNEXT); /* the window to raise */
   }
   else {
+    if (getState() == GHOST_kWindowStateMinimized) {
+      setState(GHOST_kWindowStateNormal);
+    }
     hWndInsertAfter = HWND_TOP;
     hWndToRaise = NULL;
   }
