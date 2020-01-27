@@ -923,6 +923,90 @@ bool BLI_rcti_isect(const rcti *src1, const rcti *src2, rcti *dest)
   }
 }
 
+bool BLI_rctf_isect_rect_x(const rctf *src1, const rctf *src2, float range_x[2])
+{
+  const float xmin = (src1->xmin) > (src2->xmin) ? (src1->xmin) : (src2->xmin);
+  const float xmax = (src1->xmax) < (src2->xmax) ? (src1->xmax) : (src2->xmax);
+
+  if (xmax >= xmin) {
+    if (range_x) {
+      range_x[0] = xmin;
+      range_x[1] = xmax;
+    }
+    return true;
+  }
+  else {
+    if (range_x) {
+      range_x[0] = 0;
+      range_x[1] = 0;
+    }
+    return false;
+  }
+}
+
+bool BLI_rctf_isect_rect_y(const rctf *src1, const rctf *src2, float range_y[2])
+{
+  const float ymin = (src1->ymin) > (src2->ymin) ? (src1->ymin) : (src2->ymin);
+  const float ymax = (src1->ymax) < (src2->ymax) ? (src1->ymax) : (src2->ymax);
+
+  if (ymax >= ymin) {
+    if (range_y) {
+      range_y[0] = ymin;
+      range_y[1] = ymax;
+    }
+    return true;
+  }
+  else {
+    if (range_y) {
+      range_y[0] = 0;
+      range_y[1] = 0;
+    }
+    return false;
+  }
+}
+
+bool BLI_rcti_isect_rect_x(const rcti *src1, const rcti *src2, int range_x[2])
+{
+  const int xmin = (src1->xmin) > (src2->xmin) ? (src1->xmin) : (src2->xmin);
+  const int xmax = (src1->xmax) < (src2->xmax) ? (src1->xmax) : (src2->xmax);
+
+  if (xmax >= xmin) {
+    if (range_x) {
+      range_x[0] = xmin;
+      range_x[1] = xmax;
+    }
+    return true;
+  }
+  else {
+    if (range_x) {
+      range_x[0] = 0;
+      range_x[1] = 0;
+    }
+    return false;
+  }
+}
+
+bool BLI_rcti_isect_rect_y(const rcti *src1, const rcti *src2, int range_y[2])
+{
+  const int ymin = (src1->ymin) > (src2->ymin) ? (src1->ymin) : (src2->ymin);
+  const int ymax = (src1->ymax) < (src2->ymax) ? (src1->ymax) : (src2->ymax);
+
+  if (ymax >= ymin) {
+    if (range_y) {
+      range_y[0] = ymin;
+      range_y[1] = ymax;
+    }
+    return true;
+  }
+  else {
+    if (range_y) {
+      range_y[0] = 0;
+      range_y[1] = 0;
+    }
+    return false;
+  }
+}
+
 void BLI_rcti_rctf_copy(rcti *dst, const rctf *src)
 {
   dst->xmin = floorf(src->xmin + 0.5f);

@@ -10616,7 +10616,13 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSE
         (ui_screen_region_find_mouse_over(screen, event) == NULL) &&
         (ELEM(but->type, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER, UI_BTYPE_MENU)) &&
         (but_other = ui_but_find_mouse_over(ar, event)) && (but != but_other) &&
-        (ELEM(but_other->type, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER, UI_BTYPE_MENU))) {
+        (ELEM(but_other->type, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER, UI_BTYPE_MENU)) &&
+        /* Hover-opening menu's doesn't work well for buttons over one another
+         * along the same axis the menu is opening on (see T71719). */
+        (((data->menu->direction & (UI_DIR_LEFT | UI_DIR_RIGHT)) &&
+          BLI_rctf_isect_rect_x(&but->rect, &but_other->rect, NULL)) ||
+         ((data->menu->direction & (UI_DIR_DOWN | UI_DIR_UP)) &&
+          BLI_rctf_isect_rect_y(&but->rect, &but_other->rect, NULL)))) {
       /* if mouse moves to a different root-level menu button,
        * open it to replace the current menu */
       if ((but_other->flag & UI_BUT_DISABLED) == 0) {
