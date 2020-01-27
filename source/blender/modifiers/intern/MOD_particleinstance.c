@@ -164,6 +164,9 @@ static bool particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *ps
     if (pa->alive == PARS_DEAD && (pimd->flag & eParticleInstanceFlag_Dead) == 0) {
       return true;
     }
+    if (pa->flag & (PARS_UNEXIST | PARS_NO_DISP)) {
+      return true;
+    }
   }
 
   if (pimd->particle_amount == 1.0f) {

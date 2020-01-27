@@ -799,6 +799,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 
   GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setOrder(): window invalid");
   if (order == GHOST_kWindowOrderTop) {
+    [NSApp activateIgnoringOtherApps:YES];
     [m_window makeKeyAndOrderFront:nil];
   }
   else {

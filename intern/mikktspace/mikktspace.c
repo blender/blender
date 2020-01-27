@@ -27,6 +27,7 @@
 #include <string.h>
 #include <float.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #include "mikktspace.h"
 
@@ -134,6 +135,17 @@ MIKK_INLINE tbool VNotZero(const SVec3 v)
   return NotZero(v.x) || NotZero(v.y) || NotZero(v.z);
 }
 #endif
+
+// Shift operations in C are only defined for shift values which are
+// not negative and smaller than sizeof(value) * CHAR_BIT.
+// The mask, used with bitwise-and (&), prevents undefined behaviour
+// when the shift count is 0 or >= the width of unsigned int.
+MIKK_INLINE unsigned int rotl(unsigned int value, unsigned int count)
+{
+  const unsigned int mask = CHAR_BIT * sizeof(value) - 1;
+  count &= mask;
+  return (value << count) | (value >> (-count & mask));
+}
 
 typedef struct {
   int iNrFaces;
@@ -1605,7 +1617,7 @@ static void QuickSortEdges(
 
   // Random
   t = uSeed & 31;
-  t = (uSeed << t) | (uSeed >> (32 - t));
+  t = rotl(uSeed, t);
   uSeed = uSeed + t + 3;
   // Random end
 
