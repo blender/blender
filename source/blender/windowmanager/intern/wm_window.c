@@ -395,6 +395,7 @@ void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
 
   if (U.uiflag & USER_SAVE_PROMPT) {
     if (wm_file_or_image_is_modified(C) && !G.background) {
+      wm_window_raise(win);
       wm_confirm_quit(C);
     }
     else {
