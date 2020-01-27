@@ -25,7 +25,7 @@
 
 namespace DEG {
 
-class Node;
+struct Node;
 
 /* Settings/Tags on Relationship.
  * NOTE: Is a bitmask, allowing accumulation. */
