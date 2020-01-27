@@ -119,21 +119,19 @@ static bool bm_vert_pair_share_splittable_face_cb(BMFace *UNUSED(f),
 
   float co[3];
   float dir[3];
-  float lambda_a;
   float lambda_b;
 
   copy_v3_v3(co, l_a->prev->v->co);
   sub_v3_v3v3(dir, l_a->next->v->co, co);
-  if (isect_ray_ray_v3(v_a_co, v_a_b_dir, co, dir, &lambda_a, &lambda_b)) {
-    if (IN_RANGE(lambda_a, range_min, range_max) && IN_RANGE(lambda_b, range_min, range_max)) {
+  if (isect_ray_ray_v3(v_a_co, v_a_b_dir, co, dir, NULL, &lambda_b)) {
+    if (IN_RANGE(lambda_b, range_min, range_max)) {
       return true;
     }
     else {
       copy_v3_v3(co, l_b->prev->v->co);
       sub_v3_v3v3(dir, l_b->next->v->co, co);
-      if (isect_ray_ray_v3(v_a_co, v_a_b_dir, co, dir, &lambda_a, &lambda_b)) {
-        return IN_RANGE(lambda_a, range_min, range_max) &&
-               IN_RANGE(lambda_b, range_min, range_max);
+      if (isect_ray_ray_v3(v_a_co, v_a_b_dir, co, dir, NULL, &lambda_b)) {
+        return IN_RANGE(lambda_b, range_min, range_max);
       }
     }
   }
