@@ -486,7 +486,10 @@ def is_path_builtin(path):
             ):
                 return True
         except FileNotFoundError:
-            #The path we tried to look up doesn't exist
+            # The path we tried to look up doesn't exist.
+            pass
+        except ValueError:
+            # Happens on Windows when paths don't have the same drive.
             pass
 
     return False
