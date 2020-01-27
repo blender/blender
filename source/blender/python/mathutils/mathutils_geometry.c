@@ -1246,7 +1246,8 @@ PyDoc_STRVAR(M_Geometry_tessellate_polygon_doc,
              ".. function:: tessellate_polygon(veclist_list)\n"
              "\n"
              "   Takes a list of polylines (each point a pair or triplet of numbers) and returns "
-             "the point indices for a polyline filled with triangles.\n"
+             "the point indices for a polyline filled with triangles. Does not handle degenerate "
+             "geometry (such as zero-length lines due to consecutive identical points).\n"
              "\n"
              "   :arg veclist_list: list of polylines\n"
              "   :rtype: list\n");

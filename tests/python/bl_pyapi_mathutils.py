@@ -3,7 +3,7 @@
 # ./blender.bin --background -noaudio --python tests/python/bl_pyapi_mathutils.py -- --verbose
 import unittest
 from mathutils import Matrix, Vector, Quaternion
-from mathutils import kdtree
+from mathutils import kdtree, geometry
 import math
 
 # keep globals immutable
@@ -486,6 +486,43 @@ class KDTreeTesting(unittest.TestCase):
         # bad return value
         with self.assertRaises(ValueError):
             k.find((0,) * 3, filter=lambda i: None)
+
+
+class TesselatePolygon(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual([], geometry.tessellate_polygon([]))
+
+    def test_2d(self):
+        polyline = [
+            Vector((-0.14401324093341827, 0.1266411542892456)),
+            Vector((-0.14401324093341827, 0.13)),
+            Vector((0.13532273471355438, 0.1266411542892456)),
+            Vector((0.13532273471355438, 0.13)),
+        ]
+        expect = [(0, 1, 2), (0, 3, 2)]
+        self.assertEqual(expect, geometry.tessellate_polygon([polyline]))
+
+    def test_3d(self):
+        polyline = [
+            Vector((-0.14401324093341827, 0.1266411542892456, -0.13966798782348633)),
+            Vector((-0.14401324093341827, 0.1266411542892456, 0.13966798782348633)),
+            Vector((0.13532273471355438, 0.1266411542892456, 0.13966798782348633)),
+            Vector((0.13532273471355438, 0.1266411542892456, -0.13966798782348633)),
+        ]
+        expect = [(2, 3, 0), (2, 0, 1)]
+        self.assertEqual(expect, geometry.tessellate_polygon([polyline]))
+
+    def test_3d_degenerate(self):
+        polyline = [
+            Vector((-0.14401324093341827, -0.15269476175308228, -0.13966798782348633)),
+            Vector((0.13532273471355438, -0.15269476175308228, -0.13966798782348633)),
+            Vector((0.13532273471355438, -0.15269476175308228, -0.13966798782348633)),
+            Vector((-0.14401324093341827, -0.15269476175308228, -0.13966798782348633)),
+        ]
+        # If this returns a proper result, rather than [(0, 0, 0)], it could mean that
+        # degenerate geometry is handled properly.
+        expect = [(0, 0, 0)]
+        self.assertEqual(expect, geometry.tessellate_polygon([polyline]))
 
 
 if __name__ == '__main__':
