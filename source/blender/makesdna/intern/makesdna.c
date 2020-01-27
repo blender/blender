@@ -942,7 +942,11 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
 
           /* Write size verification to file. */
           {
-            char *name_static = alloca(namelen + 1);
+            /* Normally 'alloca' would be used here, however we can't in a loop.
+             * Use an over-sized buffer instead. */
+            char name_static[1024];
+            BLI_assert(sizeof(name_static) > namelen);
+
             DNA_elem_id_strip_copy(name_static, cp);
             const char *str_pair[2] = {types[structtype], name_static};
             const char *name_alias = BLI_ghash_lookup(g_version_data.elem_map_alias_from_static,
