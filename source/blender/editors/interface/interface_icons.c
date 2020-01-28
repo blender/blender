@@ -1506,7 +1506,7 @@ static void icon_draw_rect(float x,
     return;
   }
   /* modulate color */
-  float col[4] = {1.0f, 1.0f, 1.0f, alpha};
+  float col[4] = {alpha, alpha, alpha, alpha};
 
   /* rect contains image in 'rendersize', we only scale if needed */
   if (rw != w || rh != h) {
