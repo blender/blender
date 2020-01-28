@@ -804,45 +804,6 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
   return result;
 }
 
-/* Generate the mipmap levels for the icon textures
- * During creation the source16 ImBuf will be freed to reduce memory overhead
- * A new ImBuf will be returned that needs is owned by the caller.
- *
- * FIXME: Mipmap levels are generated until the width of the image is 1, which
- *        are too many levels than that are needed.*/
-static ImBuf *create_mono_icon_mipmaps(ImBuf *source32, ImBuf *source16, int level)
-{
-  if (level == 0) {
-    glTexImage2D(GL_TEXTURE_2D,
-                 level,
-                 GL_RGBA8,
-                 source32->x,
-                 source32->y,
-                 0,
-                 GL_RGBA,
-                 GL_UNSIGNED_BYTE,
-                 source32->rect);
-    return create_mono_icon_mipmaps(source32, source16, level + 1);
-  }
-  else {
-    glTexImage2D(GL_TEXTURE_2D,
-                 level,
-                 GL_RGBA8,
-                 source16->x,
-                 source16->y,
-                 0,
-                 GL_RGBA,
-                 GL_UNSIGNED_BYTE,
-                 source16->rect);
-    if (source16->x > 1) {
-      ImBuf *nbuf = IMB_onehalf(source16);
-      IMB_freeImBuf(source16);
-      source16 = create_mono_icon_mipmaps(source32, nbuf, level + 1);
-    }
-    return source16;
-  }
-}
-
 static void free_icons_textures(void)
 {
   if (icongltex.num_textures > 0) {
@@ -900,6 +861,8 @@ void UI_icons_reload_internal_textures(void)
     icongltex.num_textures = need_icons_with_border ? 2 : 1;
     glGenTextures(icongltex.num_textures, icongltex.id);
 
+    /* Note the filter and LOD bias were tweaked to better preserve icon
+     * sharpness at different UI scales. */
     if (icongltex.id[0]) {
       icongltex.w = b32buf->x;
       icongltex.h = b32buf->y;
@@ -907,17 +870,57 @@ void UI_icons_reload_internal_textures(void)
       icongltex.invh = 1.0f / b32buf->y;
 
       glBindTexture(GL_TEXTURE_2D, icongltex.id[0]);
-      b16buf = create_mono_icon_mipmaps(b32buf, b16buf, 0);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+      glTexImage2D(GL_TEXTURE_2D,
+                   0,
+                   GL_RGBA8,
+                   b32buf->x,
+                   b32buf->y,
+                   0,
+                   GL_RGBA,
+                   GL_UNSIGNED_BYTE,
+                   b32buf->rect);
+      glTexImage2D(GL_TEXTURE_2D,
+                   1,
+                   GL_RGBA8,
+                   b16buf->x,
+                   b16buf->y,
+                   0,
+                   GL_RGBA,
+                   GL_UNSIGNED_BYTE,
+                   b16buf->rect);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.5f);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
       glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     if (need_icons_with_border && icongltex.id[1]) {
       glBindTexture(GL_TEXTURE_2D, icongltex.id[1]);
-      b16buf_border = create_mono_icon_mipmaps(b32buf_border, b16buf_border, 0);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+      glTexImage2D(GL_TEXTURE_2D,
+                   0,
+                   GL_RGBA8,
+                   b32buf_border->x,
+                   b32buf_border->y,
+                   0,
+                   GL_RGBA,
+                   GL_UNSIGNED_BYTE,
+                   b32buf_border->rect);
+      glTexImage2D(GL_TEXTURE_2D,
+                   1,
+                   GL_RGBA8,
+                   b16buf_border->x,
+                   b16buf_border->y,
+                   0,
+                   GL_RGBA,
+                   GL_UNSIGNED_BYTE,
+                   b16buf_border->rect);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.5f);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
       glBindTexture(GL_TEXTURE_2D, 0);
     }
   }
