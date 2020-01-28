@@ -578,11 +578,41 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
       CFURLGetFileSystemRepresentation(cfURL, false, (UInt8 *)defPath, FILE_MAX);
 
+      /* Get name of the volume. */
+      char name[FILE_MAXFILE] = "";
+      CFStringRef nameString = NULL;
+      CFURLCopyResourcePropertyForKey(cfURL, kCFURLVolumeLocalizedNameKey, &nameString, NULL);
+      if (nameString != NULL) {
+        CFStringGetCString(nameString, name, sizeof(name), kCFStringEncodingUTF8);
+        CFRelease(nameString);
+      }
+
+      /* Set icon for regular, removable or network drive. */
+      int icon = ICON_DISK_DRIVE;
+      CFBooleanRef localKey = NULL;
+      CFURLCopyResourcePropertyForKey(cfURL, kCFURLVolumeIsLocalKey, &localKey, NULL);
+      if (localKey != NULL) {
+        if (!CFBooleanGetValue(localKey)) {
+          icon = ICON_NETWORK_DRIVE;
+        }
+        else {
+          CFBooleanRef ejectableKey = NULL;
+          CFURLCopyResourcePropertyForKey(cfURL, kCFURLVolumeIsEjectableKey, &ejectableKey, NULL);
+          if (ejectableKey != NULL) {
+            if (CFBooleanGetValue(ejectableKey)) {
+              icon = ICON_EXTERNAL_DRIVE;
+            }
+            CFRelease(ejectableKey);
+          }
+        }
+        CFRelease(localKey);
+      }
+
       /* Add end slash for consistency with other platforms */
       BLI_add_slash(defPath);
 
       fsmenu_insert_entry(
-          fsmenu, FS_CATEGORY_SYSTEM, defPath, NULL, ICON_DISK_DRIVE, FS_INSERT_SORTED);
+          fsmenu, FS_CATEGORY_SYSTEM, defPath, name[0] ? name : NULL, icon, FS_INSERT_SORTED);
     }
 
     CFRelease(volEnum);
