@@ -469,7 +469,7 @@ int wm_stereo3d_set_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
     return wm_stereo3d_set_exec(C, op);
   }
   else {
-    return WM_operator_props_dialog_popup(C, op, 250, 100);
+    return WM_operator_props_dialog_popup(C, op, 250);
   }
 }
 

@@ -2821,7 +2821,7 @@ static int image_new_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 
   /* Better for user feedback. */
   RNA_string_set(op->ptr, "name", DATA_(IMA_DEF_NAME));
-  return WM_operator_props_dialog_popup(C, op, 300, 100);
+  return WM_operator_props_dialog_popup(C, op, 300);
 }
 
 static void image_new_draw(bContext *UNUSED(C), wmOperator *op)
@@ -3067,7 +3067,7 @@ static int image_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
     RNA_property_int_set_array(op->ptr, prop, size);
     BKE_image_release_ibuf(ima, ibuf, NULL);
   }
-  return WM_operator_props_dialog_popup(C, op, 200, 200);
+  return WM_operator_props_dialog_popup(C, op, 200);
 }
 
 static int image_scale_exec(bContext *C, wmOperator *op)
@@ -4428,7 +4428,7 @@ static int tile_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
   RNA_int_set(op->ptr, "count", 1);
   RNA_string_set(op->ptr, "label", "");
 
-  return WM_operator_props_dialog_popup(C, op, 10 * UI_UNIT_X, 5 * UI_UNIT_Y);
+  return WM_operator_props_dialog_popup(C, op, 10 * UI_UNIT_X);
 }
 
 static void tile_add_draw(bContext *UNUSED(C), wmOperator *op)
@@ -4562,7 +4562,7 @@ static int tile_fill_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 {
   initialize_fill_tile(op->ptr, CTX_data_edit_image(C), NULL);
 
-  return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, 5 * UI_UNIT_Y);
+  return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X);
 }
 
 static void tile_fill_draw(bContext *UNUSED(C), wmOperator *op)

@@ -1500,12 +1500,13 @@ static void wm_operator_ui_popup_ok(struct bContext *C, void *arg, int retval)
   MEM_freeN(data);
 }
 
-int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
+int WM_operator_ui_popup(bContext *C, wmOperator *op, int width)
 {
   wmOpPopUp *data = MEM_callocN(sizeof(wmOpPopUp), "WM_operator_ui_popup");
   data->op = op;
   data->width = width * U.dpi_fac;
-  data->height = height * U.dpi_fac;
+  /* Actual used height depends on the content. */
+  data->height = 0;
   data->free_op = true; /* if this runs and gets registered we may want not to free it */
   UI_popup_block_ex(C, wm_operator_ui_create, NULL, wm_operator_ui_popup_cancel, data, op);
   return OPERATOR_RUNNING_MODAL;
@@ -1541,7 +1542,7 @@ static int wm_operator_props_popup_ex(bContext *C,
   /* if we don't have global undo, we can't do undo push for automatic redo,
    * so we require manual OK clicking in this popup */
   if (!do_redo || !(U.uiflag & USER_GLOBALUNDO)) {
-    return WM_operator_props_dialog_popup(C, op, 300, 20);
+    return WM_operator_props_dialog_popup(C, op, 300);
   }
 
   UI_popup_block_ex(C, wm_block_create_redo, NULL, wm_block_redo_cancel_cb, op, op);
@@ -1577,13 +1578,14 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
   return wm_operator_props_popup_ex(C, op, false, true);
 }
 
-int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width, int height)
+int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width)
 {
   wmOpPopUp *data = MEM_callocN(sizeof(wmOpPopUp), "WM_operator_props_dialog_popup");
 
   data->op = op;
   data->width = width * U.dpi_fac;
-  data->height = height * U.dpi_fac;
+  /* Actual height depends on the content. */
+  data->height = 0;
   data->free_op = true; /* if this runs and gets registered we may want not to free it */
 
   /* op is not executed until popup OK but is clicked */
@@ -1634,7 +1636,7 @@ static int wm_debug_menu_exec(bContext *C, wmOperator *op)
 static int wm_debug_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   RNA_int_set(op->ptr, "debug_value", G.debug_value);
-  return WM_operator_props_dialog_popup(C, op, 180, 20);
+  return WM_operator_props_dialog_popup(C, op, 180);
 }
 
 static void WM_OT_debug_menu(wmOperatorType *ot)

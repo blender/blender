@@ -378,12 +378,9 @@ int WM_operator_props_popup_call(struct bContext *C,
 int WM_operator_props_popup(struct bContext *C,
                             struct wmOperator *op,
                             const struct wmEvent *event);
-int WM_operator_props_dialog_popup(struct bContext *C,
-                                   struct wmOperator *op,
-                                   int width,
-                                   int height);
+int WM_operator_props_dialog_popup(struct bContext *C, struct wmOperator *op, int width);
 int WM_operator_redo_popup(struct bContext *C, struct wmOperator *op);
-int WM_operator_ui_popup(struct bContext *C, struct wmOperator *op, int width, int height);
+int WM_operator_ui_popup(struct bContext *C, struct wmOperator *op, int width);
 
 int WM_operator_confirm_message_ex(struct bContext *C,
                                    struct wmOperator *op,

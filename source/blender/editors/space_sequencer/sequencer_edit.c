@@ -3759,7 +3759,7 @@ static int sequencer_enable_proxies_invoke(bContext *C,
                                            wmOperator *op,
                                            const wmEvent *UNUSED(event))
 {
-  return WM_operator_props_dialog_popup(C, op, 200, 100);
+  return WM_operator_props_dialog_popup(C, op, 200);
 }
 
 static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
