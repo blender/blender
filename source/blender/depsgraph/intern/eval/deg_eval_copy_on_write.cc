@@ -1086,7 +1086,8 @@ bool deg_validate_copy_on_write_datablock(ID *id_cow)
   }
   ValidateData data;
   data.is_valid = true;
-  BKE_library_foreach_ID_link(nullptr, id_cow, foreach_libblock_validate_callback, &data, IDWALK_NOP);
+  BKE_library_foreach_ID_link(
+      nullptr, id_cow, foreach_libblock_validate_callback, &data, IDWALK_NOP);
   return data.is_valid;
 }
 

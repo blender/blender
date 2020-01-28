@@ -309,7 +309,8 @@ void DepsgraphRelationBuilder::add_modifier_to_transform_relation(const DepsNode
 void DepsgraphRelationBuilder::add_customdata_mask(Object *object,
                                                    const DEGCustomDataMeshMasks &customdata_masks)
 {
-  if (customdata_masks != DEGCustomDataMeshMasks() && object != nullptr && object->type == OB_MESH) {
+  if (customdata_masks != DEGCustomDataMeshMasks() && object != nullptr &&
+      object->type == OB_MESH) {
     DEG::IDNode *id_node = graph_->find_id_node(&object->id);
 
     if (id_node == nullptr) {
@@ -562,8 +563,9 @@ void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_coll
     return;
   }
   const bool group_done = built_map_.checkIsBuiltAndTag(collection);
-  OperationKey object_transform_final_key(
-      object != nullptr ? &object->id : nullptr, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
+  OperationKey object_transform_final_key(object != nullptr ? &object->id : nullptr,
+                                          NodeType::TRANSFORM,
+                                          OperationCode::TRANSFORM_FINAL);
   ComponentKey duplicator_key(object != nullptr ? &object->id : nullptr, NodeType::DUPLI);
   if (!group_done) {
     LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
