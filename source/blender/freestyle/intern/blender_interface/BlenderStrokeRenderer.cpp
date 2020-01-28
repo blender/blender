@@ -118,8 +118,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
     freestyle_scene->id.properties = IDP_CopyProperty_ex(old_scene->id.properties, 0);
   }
   // Copy eevee render settings.
-  freestyle_scene->eevee = old_scene->eevee;
-  freestyle_scene->eevee.light_cache = NULL;
+  BKE_scene_copy_data_eevee(freestyle_scene, old_scene);
 
   /* Render with transparent background. */
   freestyle_scene->r.alphamode = R_ALPHAPREMUL;
