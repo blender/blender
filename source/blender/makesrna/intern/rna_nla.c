@@ -801,7 +801,8 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_MUTED);
-  RNA_def_property_ui_text(prop, "Muted", "Disable NLA Strip evaluation");
+  RNA_def_property_ui_icon(prop, ICON_CHECKBOX_HLT, -1);
+  RNA_def_property_ui_text(prop, "Mute", "Disable NLA Strip evaluation");
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_update");
 
   prop = RNA_def_property(srna, "use_reverse", PROP_BOOLEAN, PROP_NONE);
