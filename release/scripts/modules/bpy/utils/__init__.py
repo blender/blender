@@ -413,7 +413,6 @@ def app_template_paths(subdir=None):
     # Note: keep in sync with: Blender's 'BKE_appdir_app_template_any'.
     # Uses 'BLENDER_USER_SCRIPTS', 'BLENDER_SYSTEM_SCRIPTS'
     # ... in this case 'system' accounts for 'local' too.
-    scripts_system, scripts_user = _bpy_script_paths()
     for resource_fn, module_name in (
             (_user_resource, "bl_app_templates_user"),
             (system_resource, "bl_app_templates_system"),
