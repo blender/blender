@@ -50,6 +50,7 @@
 
 #if defined(WITH_GL_EGL)
 #  include "GHOST_ContextEGL.h"
+#  include <EGL/eglext.h>
 #else
 #  include "GHOST_ContextGLX.h"
 #endif
@@ -243,6 +244,10 @@ GHOST_SystemX11::~GHOST_SystemX11()
   clearXInputDevices();
 #endif /* WITH_X11_XINPUT */
 
+#ifdef WITH_GL_EGL
+  ::eglTerminate(::eglGetDisplay(m_display));
+#endif
+
   if (m_xkb_descr) {
     XkbFreeKeyboard(m_xkb_descr, XkbAllComponentsMask, true);
   }
@@ -406,17 +411,39 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext()
 #endif
 
   const int profile_mask =
-#if defined(WITH_GL_PROFILE_CORE)
-      GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
-#elif defined(WITH_GL_PROFILE_COMPAT)
-      GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+#ifdef WITH_GL_EGL
+#  if defined(WITH_GL_PROFILE_CORE)
+      EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT;
+#  elif defined(WITH_GL_PROFILE_COMPAT)
+      EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT;
+#  else
+#    error  // must specify either core or compat at build time
+#  endif
 #else
-#  error  // must specify either core or compat at build time
+#  if defined(WITH_GL_PROFILE_CORE)
+      GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+#  elif defined(WITH_GL_PROFILE_COMPAT)
+      GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+#  else
+#    error  // must specify either core or compat at build time
+#  endif
 #endif
 
   GHOST_Context *context;
 
   for (int minor = 5; minor >= 0; --minor) {
+#if defined(WITH_GL_EGL)
+    context = new GHOST_ContextEGL(false,
+                                   EGLNativeWindowType(nullptr),
+                                   EGLNativeDisplayType(m_display),
+                                   profile_mask,
+                                   4,
+                                   minor,
+                                   GHOST_OPENGL_EGL_CONTEXT_FLAGS |
+                                       (false ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
+                                   GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+                                   EGL_OPENGL_API);
+#else
     context = new GHOST_ContextGLX(false,
                                    (Window)NULL,
                                    m_display,
@@ -427,6 +454,7 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext()
                                    GHOST_OPENGL_GLX_CONTEXT_FLAGS |
                                        (false ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
                                    GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
+#endif
 
     if (context->initializeDrawingContext())
       return context;
@@ -434,6 +462,18 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext()
       delete context;
   }
 
+#if defined(WITH_GL_EGL)
+  context = new GHOST_ContextEGL(false,
+                                 EGLNativeWindowType(nullptr),
+                                 EGLNativeDisplayType(m_display),
+                                 profile_mask,
+                                 3,
+                                 3,
+                                 GHOST_OPENGL_EGL_CONTEXT_FLAGS |
+                                     (false ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
+                                 GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+                                 EGL_OPENGL_API);
+#else
   context = new GHOST_ContextGLX(false,
                                  (Window)NULL,
                                  m_display,
@@ -444,6 +484,7 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext()
                                  GHOST_OPENGL_GLX_CONTEXT_FLAGS |
                                      (false ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
                                  GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
+#endif
 
   if (context->initializeDrawingContext())
     return context;

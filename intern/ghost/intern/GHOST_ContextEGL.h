@@ -102,7 +102,7 @@ class GHOST_ContextEGL : public GHOST_Context {
   GHOST_TSuccess getSwapInterval(int &intervalOut);
 
  private:
-  void initContextEGLEW();
+  bool initContextEGLEW();
 
   EGLNativeDisplayType m_nativeDisplay;
   EGLNativeWindowType m_nativeWindow;

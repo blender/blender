@@ -37,7 +37,7 @@
   case code: \
     return #code;
 
-static const char *get_egl_error_enum_string(EGLenum error)
+static const char *get_egl_error_enum_string(EGLint error)
 {
   switch (error) {
     CASE_CODE_RETURN_STR(EGL_SUCCESS)
@@ -60,7 +60,7 @@ static const char *get_egl_error_enum_string(EGLenum error)
   }
 }
 
-static const char *get_egl_error_message_string(EGLenum error)
+static const char *get_egl_error_message_string(EGLint error)
 {
   switch (error) {
     case EGL_SUCCESS:
@@ -129,7 +129,7 @@ static const char *get_egl_error_message_string(EGLenum error)
 static bool egl_chk(bool result, const char *file = NULL, int line = 0, const char *text = NULL)
 {
   if (!result) {
-    EGLenum error = eglGetError();
+    const EGLint error = eglGetError();
 
     const char *code = get_egl_error_enum_string(error);
     const char *msg = get_egl_error_message_string(error);
@@ -140,13 +140,13 @@ static bool egl_chk(bool result, const char *file = NULL, int line = 0, const ch
             file,
             line,
             text,
-            error,
+            static_cast<unsigned int>(error),
             code ? code : "<Unknown>",
             msg ? msg : "<Unknown>");
 #else
     fprintf(stderr,
             "EGL Error (0x%04X): %s: %s\n",
-            error,
+            static_cast<unsigned int>(error),
             code ? code : "<Unknown>",
             msg ? msg : "<Unknown>");
 #endif
@@ -225,8 +225,6 @@ GHOST_ContextEGL::GHOST_ContextEGL(bool stereoVisual,
           choose_api(api, s_gl_sharedContext, s_gles_sharedContext, s_vg_sharedContext)),
       m_sharedCount(choose_api(api, s_gl_sharedCount, s_gles_sharedCount, s_vg_sharedCount))
 {
-  assert(m_nativeWindow != 0);
-  assert(m_nativeDisplay != NULL);
 }
 
 GHOST_ContextEGL::~GHOST_ContextEGL()
@@ -253,8 +251,6 @@ GHOST_ContextEGL::~GHOST_ContextEGL()
 
     if (m_surface != EGL_NO_SURFACE)
       EGL_CHK(::eglDestroySurface(m_display, m_surface));
-
-    EGL_CHK(::eglTerminate(m_display));
   }
 }
 
@@ -307,18 +303,35 @@ GHOST_TSuccess GHOST_ContextEGL::releaseDrawingContext()
   if (m_display) {
     bindAPI(m_api);
 
-    return EGL_CHK(::eglMakeCurrent(m_display, None, None, NULL)) ? GHOST_kSuccess :
-                                                                    GHOST_kFailure;
+    return EGL_CHK(::eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)) ?
+               GHOST_kSuccess :
+               GHOST_kFailure;
   }
   else {
     return GHOST_kFailure;
   }
 }
 
-void GHOST_ContextEGL::initContextEGLEW()
+bool GHOST_ContextEGL::initContextEGLEW()
 {
-  if (GLEW_CHK(eglewInit(m_display)) != GLEW_OK)
+  /* We have to manually get this function before we can call eglewInit, since
+   * it requires a display argument. glewInit() does the same, but we only want
+   * to intialize EGLEW here. */
+  eglGetDisplay = (PFNEGLGETDISPLAYPROC)eglGetProcAddress("eglGetDisplay");
+  if (eglGetDisplay == NULL) {
+    return false;
+  }
+
+  if (!EGL_CHK((m_display = ::eglGetDisplay(m_nativeDisplay)) != EGL_NO_DISPLAY)) {
+    return false;
+  }
+
+  if (GLEW_CHK(eglewInit(m_display)) != GLEW_OK) {
     fprintf(stderr, "Warning! EGLEW failed to initialize properly.\n");
+    return false;
+  }
+
+  return true;
 }
 
 static const std::string &api_string(EGLenum api)
@@ -341,6 +354,10 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 
   m_stereoVisual = false;  // It doesn't matter what the Window wants.
 
+  if (!initContextEGLEW()) {
+    return GHOST_kFailure;
+  }
+
 #ifdef WITH_GL_ANGLE
   // d3dcompiler_XX.dll needs to be loaded before ANGLE will work
   if (s_d3dcompiler == NULL) {
@@ -360,11 +377,6 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   EGLSurface prev_read = eglGetCurrentSurface(EGL_READ);
   EGLContext prev_context = eglGetCurrentContext();
 
-  m_display = ::eglGetDisplay(m_nativeDisplay);
-
-  if (!EGL_CHK(m_display != EGL_NO_DISPLAY))
-    return GHOST_kFailure;
-
   EGLint egl_major, egl_minor;
 
   if (!EGL_CHK(::eglInitialize(m_display, &egl_major, &egl_minor)))
@@ -374,8 +386,6 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 
   if (!EGL_CHK(::eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)))
     goto error;
-
-  initContextEGLEW();
 
   if (!bindAPI(m_api))
     goto error;
@@ -419,6 +429,10 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
               egl_minor);
     }
   }
+  else {
+    attrib_list.push_back(EGL_RENDERABLE_TYPE);
+    attrib_list.push_back(EGL_OPENGL_BIT);
+  }
 
   attrib_list.push_back(EGL_RED_SIZE);
   attrib_list.push_back(8);
@@ -434,6 +448,12 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   attrib_list.push_back(8);
 #endif
 
+  if (m_nativeWindow == 0) {
+    // off-screen surface
+    attrib_list.push_back(EGL_SURFACE_TYPE);
+    attrib_list.push_back(EGL_PBUFFER_BIT);
+  }
+
   attrib_list.push_back(EGL_NONE);
 
   EGLConfig config;
@@ -445,7 +465,19 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   if (num_config != 1)  // num_config should be exactly 1
     goto error;
 
-  m_surface = ::eglCreateWindowSurface(m_display, config, m_nativeWindow, NULL);
+  if (m_nativeWindow != 0) {
+    m_surface = ::eglCreateWindowSurface(m_display, config, m_nativeWindow, NULL);
+  }
+  else {
+    static const EGLint pb_attrib_list[] = {
+        EGL_WIDTH,
+        1,
+        EGL_HEIGHT,
+        1,
+        EGL_NONE,
+    };
+    m_surface = ::eglCreatePbufferSurface(m_display, config, pb_attrib_list);
+  }
 
   if (!EGL_CHK(m_surface != EGL_NO_SURFACE))
     goto error;
