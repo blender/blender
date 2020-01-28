@@ -409,26 +409,18 @@ def app_template_paths(subdir=None):
     :return: app template paths.
     :rtype: generator
     """
-    # Note: keep in sync with: Blender's BKE_appdir_app_template_any
-
-    subdir_tuple = (subdir,) if subdir is not None else ()
-
-    # Avoid adding 'bl_app_templates_system' twice.
-    # Either we have a portable build or an installed system build.
-    for resource_type, module_name in (
-            ('USER', "bl_app_templates_user"),
-            ('LOCAL', "bl_app_templates_system"),
-            ('SYSTEM', "bl_app_templates_system"),
+    subdir_args = (subdir,) if subdir is not None else ()
+    # Note: keep in sync with: Blender's 'BKE_appdir_app_template_any'.
+    # Uses 'BLENDER_USER_SCRIPTS', 'BLENDER_SYSTEM_SCRIPTS'
+    # ... in this case 'system' accounts for 'local' too.
+    scripts_system, scripts_user = _bpy_script_paths()
+    for resource_fn, module_name in (
+            (_user_resource, "bl_app_templates_user"),
+            (system_resource, "bl_app_templates_system"),
     ):
-        path = resource_path(resource_type)
-        if path:
-            path = _os.path.join(
-                *(path, "scripts", "startup", module_name, *subdir_tuple))
-            if _os.path.isdir(path):
-                yield path
-                # Only load LOCAL or SYSTEM (never both).
-                if resource_type == 'LOCAL':
-                    break
+        path = resource_fn('SCRIPTS', _os.path.join("startup", module_name, *subdir_args))
+        if path and _os.path.isdir(path):
+            yield path
 
 
 def preset_paths(subdir):
