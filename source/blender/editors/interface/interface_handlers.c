@@ -9551,18 +9551,29 @@ static int ui_handle_menu_event(bContext *C,
           break;
 
         case WHEELUPMOUSE:
-        case WHEELDOWNMOUSE: {
+        case WHEELDOWNMOUSE:
+        case MOUSEPAN: {
           if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
             /* pass */
           }
           else if (!ui_block_is_menu(block)) {
-            const int scroll_dir = (event->type == WHEELUPMOUSE) ? 1 : -1;
-            if (ui_menu_scroll_step(ar, block, scroll_dir)) {
-              if (but) {
-                but->active->cancel = true;
-                button_activate_exit(C, but, but->active, false, false);
+            int type = event->type;
+            int val = event->val;
+
+            /* convert pan to scrollwheel */
+            if (type == MOUSEPAN) {
+              ui_pan_to_scroll(event, &type, &val);
+            }
+
+            if (type != MOUSEPAN) {
+              const int scroll_dir = (type == WHEELUPMOUSE) ? 1 : -1;
+              if (ui_menu_scroll_step(ar, block, scroll_dir)) {
+                if (but) {
+                  but->active->cancel = true;
+                  button_activate_exit(C, but, but->active, false, false);
+                }
+                WM_event_add_mousemove(C);
               }
-              WM_event_add_mousemove(C);
             }
             break;
           }
@@ -9574,7 +9585,6 @@ static int ui_handle_menu_event(bContext *C,
         case PAGEDOWNKEY:
         case HOMEKEY:
         case ENDKEY:
-        case MOUSEPAN:
           /* arrowkeys: only handle for block_loop blocks */
           if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
             /* pass */
