@@ -428,6 +428,8 @@ static void buttons_area_listener(wmWindow *UNUSED(win),
           buttons_area_redraw(sa, BCONTEXT_OBJECT);
           buttons_area_redraw(sa, BCONTEXT_DATA);
           buttons_area_redraw(sa, BCONTEXT_PHYSICS);
+          /* Needed to refresh context path when changing active particle system index. */
+          buttons_area_redraw(sa, BCONTEXT_PARTICLE);
           break;
         case ND_SHADING:
         case ND_SHADING_DRAW:
