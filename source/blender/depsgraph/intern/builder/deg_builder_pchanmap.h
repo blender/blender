@@ -39,7 +39,7 @@ struct RootPChanMap {
   void add_bone(const char *bone, const char *root);
 
   /* Check if there's a common root bone between two bones. */
-  bool has_common_root(const char *bone1, const char *bone2);
+  bool has_common_root(const char *bone1, const char *bone2) const;
 
  protected:
   /* The actual map:

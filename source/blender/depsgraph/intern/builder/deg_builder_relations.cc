@@ -203,7 +203,7 @@ bool check_id_has_anim_component(ID *id)
 bool check_id_has_driver_component(ID *id)
 {
   AnimData *adt = BKE_animdata_from_id(id);
-  if (adt == nullptr) {
+  if (adt == NULL) {
     return false;
   }
   return !BLI_listbase_is_empty(&adt->drivers);
