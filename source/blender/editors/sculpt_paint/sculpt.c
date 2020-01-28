@@ -7537,7 +7537,9 @@ static void sculpt_flush_update_step(bContext *C, SculptUpdateType update_flags)
     ED_region_tag_redraw(ar);
   }
   else {
-    /* Fast path where we just update the BVH nodes that changed. */
+    /* Fast path where we just update the BVH nodes that changed, and redraw
+     * only the part of the 3D viewport where changes happened. */
+    rcti r;
 
     if (update_flags & SCULPT_UPDATE_COORDS) {
       BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB);
@@ -7547,7 +7549,21 @@ static void sculpt_flush_update_step(bContext *C, SculptUpdateType update_flags)
       sculpt_update_object_bounding_box(ob);
     }
 
-    ED_region_tag_redraw(ar);
+    if (sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r)) {
+      if (ss->cache) {
+        ss->cache->current_r = r;
+      }
+
+      /* previous is not set in the current cache else
+       * the partial rect will always grow */
+      sculpt_extend_redraw_rect_previous(ob, &r);
+
+      r.xmin += ar->winrct.xmin - 2;
+      r.xmax += ar->winrct.xmin + 2;
+      r.ymin += ar->winrct.ymin - 2;
+      r.ymax += ar->winrct.ymin + 2;
+      ED_region_tag_redraw_partial(ar, &r, true);
+    }
   }
 }
 
