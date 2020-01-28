@@ -636,8 +636,9 @@ void nla_buttons_register(ARegionType *art)
   pt->flag = PNL_DEFAULT_CLOSED;
   pt->poll = nla_strip_eval_panel_poll;
   BLI_addtail(&pt_properties->children, BLI_genericNodeN(pt));
+  BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_callocN(sizeof(PanelType), "spacetype nla panel evaluation");
+  pt = MEM_callocN(sizeof(PanelType), "spacetype nla panel animated strip time");
   strcpy(pt->idname, "NLA_PT_animated_strip_time");
   strcpy(pt->parent_id, "NLA_PT_properties");
   strcpy(pt->label, N_("Animated Strip Time"));
@@ -649,6 +650,7 @@ void nla_buttons_register(ARegionType *art)
   pt->flag = PNL_DEFAULT_CLOSED;
   pt->poll = nla_strip_eval_panel_poll;
   BLI_addtail(&pt_properties->children, BLI_genericNodeN(pt));
+  BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype nla panel modifiers");
   strcpy(pt->idname, "NLA_PT_modifiers");
