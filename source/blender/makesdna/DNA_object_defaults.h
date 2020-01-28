@@ -66,7 +66,6 @@
     .col_mask = 0xffff, \
     .preview = NULL, \
     .duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT | OB_DUPLI_FLAG_RENDER, \
-    .fluidsimSettings = NULL, \
     .pc_ids = {NULL, NULL}, \
   }
 

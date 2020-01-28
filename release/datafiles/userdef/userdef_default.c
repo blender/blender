@@ -108,7 +108,6 @@ const UserDef U_default = {
     .keyconfigstr = "blender",
     .undosteps = 32,
     .undomemory = 0,
-    .gpu_viewport_quality = 0.6,
     .gp_manhattendist = 1,
     .gp_euclideandist = 2,
     .gp_eraser = 25,
