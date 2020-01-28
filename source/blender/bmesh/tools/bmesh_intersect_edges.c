@@ -805,7 +805,7 @@ bool BM_mesh_intersect_edges(
           e = pair_elem->edge;
           if (split_faces) {
             /* Tagged edges are ignored when split faces.
-            /* Untag these. */
+             * Un-tag these. */
             BM_elem_flag_disable(e, BM_ELEM_TAG);
           }
 

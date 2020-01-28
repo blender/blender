@@ -1322,7 +1322,8 @@ void bc_add_default_shader(bContext *C, Material *ma)
 
 COLLADASW::ColorOrTexture bc_get_base_color(Material *ma)
 {
-  Color default_color = {ma->r, ma->g, ma->b, 1.0}; // for alpha see bc_get_alpha()
+  /* for alpha see bc_get_alpha() */
+  Color default_color = {ma->r, ma->g, ma->b, 1.0};
   bNode *shader = bc_get_master_shader(ma);
   if (ma->use_nodes && shader) {
     return bc_get_cot_from_shader(shader, "Base Color", default_color, false);
