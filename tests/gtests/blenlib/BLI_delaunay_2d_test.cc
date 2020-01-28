@@ -17,8 +17,8 @@ extern "C" {
 #include <sstream>
 
 #define DO_REGULAR_TESTS 1
-#define DO_RANDOM_TESTS 1
-#define DO_FILE_TESTS 1
+#define DO_RANDOM_TESTS 0
+#define DO_FILE_TESTS 0
 
 static void fill_input_verts(CDT_input *r_input, float (*vcos)[2], int nverts)
 {
