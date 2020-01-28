@@ -54,6 +54,9 @@ vec3 solve_cubic(vec4 coefs)
   /* Discriminant */
   float discr = dot(vec2(4.0 * delta.x, -delta.y), delta.zy);
 
+  /* Clamping avoid NaN output on some platform. (see T67060) */
+  float sqrt_discr = sqrt(clamp(discr, 0.0, FLT_MAX));
+
   vec2 xlc, xsc;
 
   /* Algorithm A */
@@ -63,7 +66,7 @@ vec3 solve_cubic(vec4 coefs)
     float D_a = -2.0 * B * delta.x + delta.y;
 
     /* Take the cubic root of a normalized complex number */
-    float theta = atan(sqrt(discr), -D_a) / 3.0;
+    float theta = atan(sqrt_discr, -D_a) / 3.0;
 
     float x_1a = 2.0 * sqrt(-C_a) * cos(theta);
     float x_3a = 2.0 * sqrt(-C_a) * cos(theta + (2.0 / 3.0) * M_PI);
@@ -86,7 +89,7 @@ vec3 solve_cubic(vec4 coefs)
     float D_d = -D * delta.y + 2.0 * C * delta.z;
 
     /* Take the cubic root of a normalized complex number */
-    float theta = atan(D * sqrt(discr), -D_d) / 3.0;
+    float theta = atan(D * sqrt_discr, -D_d) / 3.0;
 
     float x_1d = 2.0 * sqrt(-C_d) * cos(theta);
     float x_3d = 2.0 * sqrt(-C_d) * cos(theta + (2.0 / 3.0) * M_PI);
