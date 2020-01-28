@@ -942,6 +942,7 @@ def km_view3d(params):
         # Visibility.
         ("view3d.localview", {"type": 'NUMPAD_SLASH', "value": 'PRESS'}, None),
         ("view3d.localview", {"type": 'SLASH', "value": 'PRESS'}, None),
+        ("view3d.localview", {"type": 'MOUSESMARTZOOM', "value": 'ANY'}, None),
         ("view3d.localview_remove_from", {"type": 'M', "value": 'PRESS'}, None),
         # Navigation.
         ("view3d.rotate", {"type": 'MIDDLEMOUSE', "value": 'PRESS'}, None),

@@ -63,6 +63,8 @@ enum {
   MOUSEPAN = 0x000e,
   MOUSEZOOM = 0x000f,
   MOUSEROTATE = 0x0010,
+  MOUSESMARTZOOM = 0x0017,
+
   /* defaults from ghost */
   WHEELUPMOUSE = 0x000a,
   WHEELDOWNMOUSE = 0x000b,
@@ -359,7 +361,8 @@ enum {
   (((event_type) >= LEFTCTRLKEY && (event_type) <= LEFTSHIFTKEY) || (event_type) == OSKEY)
 
 /* test whether the event is a mouse button */
-#define ISMOUSE(event_type) ((event_type) >= LEFTMOUSE && (event_type) <= BUTTON7MOUSE)
+#define ISMOUSE(event_type) \
+  (((event_type) >= LEFTMOUSE && (event_type) <= BUTTON7MOUSE) || (event_type) == MOUSESMARTZOOM)
 
 #define ISMOUSE_WHEEL(event_type) ((event_type) >= WHEELUPMOUSE && (event_type) <= WHEELOUTMOUSE)
 #define ISMOUSE_GESTURE(event_type) ((event_type) >= MOUSEPAN && (event_type) <= MOUSEROTATE)

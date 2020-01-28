@@ -4292,6 +4292,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
           pd->deltaX = -pd->deltaX;
           pd->deltaY = -pd->deltaY;
           break;
+        case GHOST_kTrackpadEventSmartMagnify:
+          event.type = MOUSESMARTZOOM;
+          break;
         case GHOST_kTrackpadEventRotate:
           event.type = MOUSEROTATE;
           break;

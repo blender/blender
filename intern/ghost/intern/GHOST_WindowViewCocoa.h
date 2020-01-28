@@ -154,6 +154,11 @@
   systemCocoa->handleMouseEvent(event);
 }
 
+- (void)smartMagnifyWithEvent:(NSEvent *)event
+{
+  systemCocoa->handleMouseEvent(event);
+}
+
 - (void)rotateWithEvent:(NSEvent *)event
 {
   systemCocoa->handleMouseEvent(event);

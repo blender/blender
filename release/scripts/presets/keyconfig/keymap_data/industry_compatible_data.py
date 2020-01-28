@@ -630,6 +630,7 @@ def km_view3d(params):
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         # Visibility.
         ("view3d.localview", {"type": 'I', "value": 'PRESS', "shift": True}, None),
+        ("view3d.localview", {"type": 'MOUSESMARTZOOM', "value": 'ANY'}, None),
         op_menu_pie("VIEW3D_MT_view_pie", {"type": 'V', "value": 'PRESS'}),
         # Navigation.
         ("view3d.rotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True}, None),
