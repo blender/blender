@@ -3643,6 +3643,15 @@ static void SCREEN_OT_spacedata_cleanup(wmOperatorType *ot)
 /** \name Repeat Last Operator
  * \{ */
 
+static bool repeat_history_poll(bContext *C)
+{
+  if (!ED_operator_screenactive(C)) {
+    return false;
+  }
+  wmWindowManager *wm = CTX_wm_manager(C);
+  return !BLI_listbase_is_empty(&wm->operators);
+}
+
 static int repeat_last_exec(bContext *C, wmOperator *UNUSED(op))
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -3676,7 +3685,7 @@ static void SCREEN_OT_repeat_last(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = repeat_last_exec;
 
-  ot->poll = ED_operator_screenactive;
+  ot->poll = repeat_history_poll;
 }
 
 /** \} */
@@ -3743,8 +3752,7 @@ static void SCREEN_OT_repeat_history(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = repeat_history_invoke;
   ot->exec = repeat_history_exec;
-
-  ot->poll = ED_operator_screenactive;
+  ot->poll = repeat_history_poll;
 
   RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
 }
@@ -3775,8 +3783,7 @@ static void SCREEN_OT_redo_last(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = redo_last_invoke;
-
-  ot->poll = ED_operator_screenactive;
+  ot->poll = repeat_history_poll;
 }
 
 /** \} */
