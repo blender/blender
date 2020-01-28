@@ -275,6 +275,11 @@ void WM_check(bContext *C)
     return;
   }
 
+  /* Run before loading the keyconfig. */
+  if (wm->message_bus == NULL) {
+    wm->message_bus = WM_msgbus_create();
+  }
+
   if (!G.background) {
     /* case: fileread */
     if ((wm->initialized & WM_WINDOW_IS_INITIALIZED) == 0) {
@@ -284,10 +289,6 @@ void WM_check(bContext *C)
 
     /* case: no open windows at all, for old file reads */
     wm_window_ghostwindows_ensure(wm);
-  }
-
-  if (wm->message_bus == NULL) {
-    wm->message_bus = WM_msgbus_create();
   }
 
   /* case: fileread */
