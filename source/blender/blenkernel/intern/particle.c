@@ -3246,22 +3246,24 @@ static void psys_cache_edit_paths_iter(void *__restrict iter_data_v,
       }
     }
     else {
+      /* HACK(fclem): Instead of setting the color we pass the select state in the red channel.
+       * This is then picked up in DRW and the gpu shader will do the color interpolation. */
       if ((ekey + (pind.ekey[0] - point->keys))->flag & PEK_SELECT) {
         if ((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT) {
-          copy_v3_v3(ca->col, iter_data->sel_col);
+          ca->col[0] = 1.0f;
         }
         else {
           keytime = (t - (*pind.ekey[0]->time)) / ((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
-          interp_v3_v3v3(ca->col, iter_data->sel_col, iter_data->nosel_col, keytime);
+          ca->col[0] = 1.0f - keytime;
         }
       }
       else {
         if ((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT) {
           keytime = (t - (*pind.ekey[0]->time)) / ((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
-          interp_v3_v3v3(ca->col, iter_data->nosel_col, iter_data->sel_col, keytime);
+          ca->col[0] = keytime;
         }
         else {
-          copy_v3_v3(ca->col, iter_data->nosel_col);
+          ca->col[0] = 0.0f;
         }
       }
     }
