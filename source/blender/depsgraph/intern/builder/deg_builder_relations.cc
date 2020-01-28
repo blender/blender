@@ -201,6 +201,15 @@ bool check_id_has_anim_component(ID *id)
   return (adt->action != nullptr) || (!BLI_listbase_is_empty(&adt->nla_tracks));
 }
 
+bool check_id_has_driver_component(ID *id)
+{
+  AnimData *adt = BKE_animdata_from_id(id);
+  if (adt == nullptr) {
+    return false;
+  }
+  return !BLI_listbase_is_empty(&adt->drivers);
+}
+
 OperationCode bone_target_opcode(ID *target,
                                  const char *subtarget,
                                  ID *id,
@@ -2361,8 +2370,9 @@ void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file)
   /* Animation. */
   build_animdata(&cache_file->id);
   build_parameters(&cache_file->id);
-  if (check_id_has_anim_component(&cache_file->id)) {
-    ComponentKey animation_key(&cache_file->id, NodeType::ANIMATION);
+  if (check_id_has_anim_component(&cache_file->id) ||
+      check_id_has_driver_component(&cache_file->id)) {
+    ComponentKey animation_key(&cache_file->id, NodeType::PARAMETERS);
     ComponentKey datablock_key(&cache_file->id, NodeType::CACHE);
     add_relation(animation_key, datablock_key, "Datablock Animation");
   }
