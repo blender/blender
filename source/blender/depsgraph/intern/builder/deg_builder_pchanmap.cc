@@ -35,7 +35,7 @@ static void free_rootpchanmap_valueset(void *val)
 {
   /* Just need to free the set itself - the names stored are all references. */
   GSet *values = (GSet *)val;
-  BLI_gset_free(values, NULL);
+  BLI_gset_free(values, nullptr);
 }
 
 RootPChanMap::RootPChanMap()
@@ -47,7 +47,7 @@ RootPChanMap::RootPChanMap()
 RootPChanMap::~RootPChanMap()
 {
   /* Free the map, and all the value sets. */
-  BLI_ghash_free(map_, NULL, free_rootpchanmap_valueset);
+  BLI_ghash_free(map_, nullptr, free_rootpchanmap_valueset);
 }
 
 /* Debug contents of map */

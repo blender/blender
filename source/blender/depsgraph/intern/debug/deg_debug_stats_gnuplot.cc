@@ -156,7 +156,7 @@ void DEG_debug_stats_gnuplot(const Depsgraph *depsgraph,
                              const char *label,
                              const char *output_filename)
 {
-  if (depsgraph == NULL) {
+  if (depsgraph == nullptr) {
     return;
   }
   DEG::DebugContext ctx;

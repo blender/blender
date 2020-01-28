@@ -36,8 +36,8 @@ MovieClipBackup::MovieClipBackup(const Depsgraph * /*depsgraph*/)
 
 void MovieClipBackup::reset()
 {
-  anim = NULL;
-  cache = NULL;
+  anim = nullptr;
+  cache = nullptr;
 }
 
 void MovieClipBackup::init_from_movieclip(MovieClip *movieclip)
@@ -46,8 +46,8 @@ void MovieClipBackup::init_from_movieclip(MovieClip *movieclip)
   cache = movieclip->cache;
   /* Clear pointers stored in the movie clip, so they are not freed when copied-on-written
    * datablock is freed for re-allocation. */
-  movieclip->anim = NULL;
-  movieclip->cache = NULL;
+  movieclip->anim = nullptr;
+  movieclip->cache = nullptr;
 }
 
 void MovieClipBackup::restore_to_movieclip(MovieClip *movieclip)

@@ -103,7 +103,7 @@ bool DEG_id_type_any_exists(const Depsgraph *depsgraph, short id_type)
 
 uint32_t DEG_get_eval_flags_for_id(const Depsgraph *graph, ID *id)
 {
-  if (graph == NULL) {
+  if (graph == nullptr) {
     /* Happens when converting objects to mesh from a python script
      * after modifying scene graph.
      *
@@ -114,7 +114,7 @@ uint32_t DEG_get_eval_flags_for_id(const Depsgraph *graph, ID *id)
 
   const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
   const DEG::IDNode *id_node = deg_graph->find_id_node(DEG_get_original_id(id));
-  if (id_node == NULL) {
+  if (id_node == nullptr) {
     /* TODO(sergey): Does it mean we need to check set scene? */
     return 0;
   }
@@ -126,7 +126,7 @@ void DEG_get_customdata_mask_for_object(const Depsgraph *graph,
                                         Object *ob,
                                         CustomData_MeshMasks *r_mask)
 {
-  if (graph == NULL) {
+  if (graph == nullptr) {
     /* Happens when converting objects to mesh from a python script
      * after modifying scene graph.
      *
@@ -137,7 +137,7 @@ void DEG_get_customdata_mask_for_object(const Depsgraph *graph,
 
   const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
   const DEG::IDNode *id_node = deg_graph->find_id_node(DEG_get_original_id(&ob->id));
-  if (id_node == NULL) {
+  if (id_node == nullptr) {
     /* TODO(sergey): Does it mean we need to check set scene? */
     return;
   }
@@ -155,7 +155,7 @@ Scene *DEG_get_evaluated_scene(const Depsgraph *graph)
   Scene *scene_cow = deg_graph->scene_cow;
   /* TODO(sergey): Shall we expand data-block here? Or is it OK to assume
    * that caller is OK with just a pointer in case scene is not updated yet? */
-  BLI_assert(scene_cow != NULL && DEG::deg_copy_on_write_is_expanded(&scene_cow->id));
+  BLI_assert(scene_cow != nullptr && DEG::deg_copy_on_write_is_expanded(&scene_cow->id));
   return scene_cow;
 }
 
@@ -163,15 +163,15 @@ ViewLayer *DEG_get_evaluated_view_layer(const Depsgraph *graph)
 {
   const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
   Scene *scene_cow = DEG_get_evaluated_scene(graph);
-  if (scene_cow == NULL) {
-    return NULL; /* Happens with new, not-yet-built/evaluated graphes. */
+  if (scene_cow == nullptr) {
+    return nullptr; /* Happens with new, not-yet-built/evaluated graphes. */
   }
   /* Do name-based lookup. */
   /* TODO(sergey): Can this be optimized? */
   ViewLayer *view_layer_orig = deg_graph->view_layer;
   ViewLayer *view_layer_cow = (ViewLayer *)BLI_findstring(
       &scene_cow->view_layers, view_layer_orig->name, offsetof(ViewLayer, name));
-  BLI_assert(view_layer_cow != NULL);
+  BLI_assert(view_layer_cow != nullptr);
   return view_layer_cow;
 }
 
@@ -182,15 +182,15 @@ Object *DEG_get_evaluated_object(const Depsgraph *depsgraph, Object *object)
 
 ID *DEG_get_evaluated_id(const Depsgraph *depsgraph, ID *id)
 {
-  if (id == NULL) {
-    return NULL;
+  if (id == nullptr) {
+    return nullptr;
   }
   /* TODO(sergey): This is a duplicate of Depsgraph::get_cow_id(),
    * but here we never do assert, since we don't know nature of the
    * incoming ID data-block. */
   const DEG::Depsgraph *deg_graph = (const DEG::Depsgraph *)depsgraph;
   const DEG::IDNode *id_node = deg_graph->find_id_node(id);
-  if (id_node == NULL) {
+  if (id_node == nullptr) {
     return id;
   }
   return id_node->id_cow;
@@ -201,7 +201,7 @@ void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
                                    PointerRNA *ptr,
                                    PointerRNA *r_ptr_eval)
 {
-  if ((ptr == NULL) || (r_ptr_eval == NULL)) {
+  if ((ptr == nullptr) || (r_ptr_eval == nullptr)) {
     return;
   }
   ID *orig_id = ptr->owner_id;
@@ -233,7 +233,7 @@ void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
     if (path) {
       PointerRNA cow_id_ptr;
       RNA_id_pointer_create(cow_id, &cow_id_ptr);
-      if (!RNA_path_resolve(&cow_id_ptr, path, r_ptr_eval, NULL)) {
+      if (!RNA_path_resolve(&cow_id_ptr, path, r_ptr_eval, nullptr)) {
         /* Couldn't find COW copy of data */
         fprintf(stderr,
                 "%s: Couldn't resolve RNA path ('%s') relative to COW ID (%p) for '%s'\n",
@@ -261,10 +261,10 @@ Object *DEG_get_original_object(Object *object)
 
 ID *DEG_get_original_id(ID *id)
 {
-  if (id == NULL) {
-    return NULL;
+  if (id == nullptr) {
+    return nullptr;
   }
-  if (id->orig_id == NULL) {
+  if (id->orig_id == nullptr) {
     return id;
   }
   BLI_assert((id->tag & LIB_TAG_COPIED_ON_WRITE) != 0);

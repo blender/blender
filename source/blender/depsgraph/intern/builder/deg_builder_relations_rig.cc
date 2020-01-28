@@ -71,7 +71,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
   bKinematicConstraint *data = (bKinematicConstraint *)con->data;
   /* Attach owner to IK Solver to. */
   bPoseChannel *rootchan = BKE_armature_ik_solver_find_root(pchan, data);
-  if (rootchan == NULL) {
+  if (rootchan == nullptr) {
     return;
   }
   OperationKey pchan_local_key(
@@ -91,7 +91,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
   OperationKey target_dependent_key = is_itasc ? init_ik_key : solver_key;
   /* IK target */
   /* TODO(sergey): This should get handled as part of the constraint code. */
-  if (data->tar != NULL) {
+  if (data->tar != nullptr) {
     /* Different object - requires its transform. */
     if (data->tar != object) {
       ComponentKey target_key(&data->tar->id, NodeType::TRANSFORM);
@@ -120,7 +120,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
   }
   /* Pole Target. */
   /* TODO(sergey): This should get handled as part of the constraint code. */
-  if (data->poletar != NULL) {
+  if (data->poletar != nullptr) {
     /* Different object - requires its transform. */
     if (data->poletar != object) {
       ComponentKey target_key(&data->poletar->id, NodeType::TRANSFORM);
@@ -147,7 +147,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
                    "\nStarting IK Build: pchan = %s, target = (%s, %s), "
                    "segcount = %d\n",
                    pchan->name,
-                   data->tar ? data->tar->id.name : "NULL",
+                   data->tar ? data->tar->id.name : "nullptr",
                    data->subtarget,
                    data->rootbone);
   bPoseChannel *parchan = pchan;
@@ -161,7 +161,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
   add_relation(parchan_transforms_key, solver_key, "IK Solver Owner");
   /* Walk to the chain's root. */
   int segcount = 0;
-  while (parchan != NULL) {
+  while (parchan != nullptr) {
     /* Make IK-solver dependent on this bone's result, since it can only run
      * after the standard results of the bone are know. Validate links step
      * on the bone will ensure that users of this bone only grab the result
@@ -215,7 +215,7 @@ void DepsgraphRelationBuilder::build_splineik_pose(Object *object,
   /* Attach owner to IK Solver. */
   add_relation(transforms_key, solver_key, "Spline IK Solver Owner", RELATION_FLAG_GODMODE);
   /* Attach path dependency to solver. */
-  if (data->tar != NULL) {
+  if (data->tar != nullptr) {
     ComponentKey target_geometry_key(&data->tar->id, NodeType::GEOMETRY);
     add_relation(target_geometry_key, solver_key, "Curve.Path -> Spline IK");
     ComponentKey target_transform_key(&data->tar->id, NodeType::TRANSFORM);
@@ -229,7 +229,7 @@ void DepsgraphRelationBuilder::build_splineik_pose(Object *object,
   root_map->add_bone(pchan->name, rootchan->name);
   /* Walk to the chain's root/ */
   int segcount = 1;
-  for (bPoseChannel *parchan = pchan->parent; parchan != NULL && segcount < data->chainlen;
+  for (bPoseChannel *parchan = pchan->parent; parchan != nullptr && segcount < data->chainlen;
        parchan = parchan->parent, segcount++) {
     /* Make Spline IK solver dependent on this bone's result, since it can
      * only run after the standard results of the bone are know. Validate
@@ -333,7 +333,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
     /* Local to pose parenting operation. */
     add_relation(bone_local_key, bone_pose_key, "Bone Local - Bone Pose");
     /* Parent relation. */
-    if (pchan->parent != NULL) {
+    if (pchan->parent != nullptr) {
       OperationCode parent_key_opcode;
       /* NOTE: this difference in handling allows us to prevent lockups
        * while ensuring correct poses for separate chains. */
@@ -348,7 +348,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
       add_relation(parent_key, bone_pose_key, "Parent Bone -> Child Bone");
     }
     /* Build constraints. */
-    if (pchan->constraints.first != NULL) {
+    if (pchan->constraints.first != nullptr) {
       /* Build relations for indirectly linked objects. */
       BuilderWalkUserData data;
       data.builder = this;
@@ -413,8 +413,8 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
       add_relation(bone_ready_key, pose_cleanup_key, "Ready -> Cleanup");
     }
     /* Custom shape. */
-    if (pchan->custom != NULL) {
-      build_object(NULL, pchan->custom);
+    if (pchan->custom != nullptr) {
+      build_object(nullptr, pchan->custom);
     }
   }
 }
@@ -457,13 +457,13 @@ void DepsgraphRelationBuilder::build_proxy_rig(Object *object)
      * the parent bone, some users expect the parent to be ready if the
      * bone itself is (e.g. for computing the local space matrix).
      */
-    if (pchan->parent != NULL) {
+    if (pchan->parent != nullptr) {
       OperationKey parent_key(
           &object->id, NodeType::BONE, pchan->parent->name, OperationCode::BONE_DONE);
       add_relation(parent_key, bone_done_key, "Parent Bone -> Child Bone");
     }
 
-    if (pchan->prop != NULL) {
+    if (pchan->prop != nullptr) {
       OperationKey bone_parameters(
           &object->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, pchan->name);
       OperationKey from_bone_parameters(

@@ -122,7 +122,7 @@ namespace {
 void free_copy_on_write_datablock(void *id_info_v)
 {
   DepsgraphNodeBuilder::IDInfo *id_info = (DepsgraphNodeBuilder::IDInfo *)id_info_v;
-  if (id_info->id_cow != NULL) {
+  if (id_info->id_cow != nullptr) {
     deg_free_copy_on_write_datablock(id_info->id_cow);
     MEM_freeN(id_info->id_cow);
   }
@@ -140,37 +140,37 @@ DepsgraphNodeBuilder::DepsgraphNodeBuilder(Main *bmain,
                                            Depsgraph *graph,
                                            DepsgraphBuilderCache *cache)
     : DepsgraphBuilder(bmain, graph, cache),
-      scene_(NULL),
-      view_layer_(NULL),
+      scene_(nullptr),
+      view_layer_(nullptr),
       view_layer_index_(-1),
-      collection_(NULL),
+      collection_(nullptr),
       is_parent_collection_visible_(true),
-      id_info_hash_(NULL)
+      id_info_hash_(nullptr)
 {
 }
 
 DepsgraphNodeBuilder::~DepsgraphNodeBuilder()
 {
-  if (id_info_hash_ != NULL) {
-    BLI_ghash_free(id_info_hash_, NULL, free_copy_on_write_datablock);
+  if (id_info_hash_ != nullptr) {
+    BLI_ghash_free(id_info_hash_, nullptr, free_copy_on_write_datablock);
   }
 }
 
 IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 {
-  IDNode *id_node = NULL;
-  ID *id_cow = NULL;
+  IDNode *id_node = nullptr;
+  ID *id_cow = nullptr;
   IDComponentsMask previously_visible_components_mask = 0;
   uint32_t previous_eval_flags = 0;
   DEGCustomDataMeshMasks previous_customdata_masks;
   IDInfo *id_info = (IDInfo *)BLI_ghash_lookup(id_info_hash_, id);
-  if (id_info != NULL) {
+  if (id_info != nullptr) {
     id_cow = id_info->id_cow;
     previously_visible_components_mask = id_info->previously_visible_components_mask;
     previous_eval_flags = id_info->previous_eval_flags;
     previous_customdata_masks = id_info->previous_customdata_masks;
     /* Tag ID info to not free the CoW ID pointer. */
-    id_info->id_cow = NULL;
+    id_info->id_cow = nullptr;
   }
   id_node = graph_->add_id_node(id, id_cow);
   id_node->previously_visible_components_mask = previously_visible_components_mask;
@@ -218,7 +218,7 @@ OperationNode *DepsgraphNodeBuilder::add_operation_node(ComponentNode *comp_node
                                                         int name_tag)
 {
   OperationNode *op_node = comp_node->find_operation(opcode, name, name_tag);
-  if (op_node == NULL) {
+  if (op_node == nullptr) {
     op_node = comp_node->add_operation(op, opcode, name, name_tag);
     graph_->operations.push_back(op_node);
   }
@@ -263,7 +263,7 @@ OperationNode *DepsgraphNodeBuilder::ensure_operation_node(ID *id,
                                                            int name_tag)
 {
   OperationNode *operation = find_operation_node(id, comp_type, opcode, name, name_tag);
-  if (operation != NULL) {
+  if (operation != nullptr) {
     return operation;
   }
   return add_operation_node(id, comp_type, opcode, op, name, name_tag);
@@ -276,7 +276,7 @@ bool DepsgraphNodeBuilder::has_operation_node(ID *id,
                                               const char *name,
                                               int name_tag)
 {
-  return find_operation_node(id, comp_type, comp_name, opcode, name, name_tag) != NULL;
+  return find_operation_node(id, comp_type, comp_name, opcode, name, name_tag) != nullptr;
 }
 
 OperationNode *DepsgraphNodeBuilder::find_operation_node(ID *id,
@@ -324,13 +324,13 @@ void DepsgraphNodeBuilder::begin_build()
       id_info->id_cow = id_node->id_cow;
     }
     else {
-      id_info->id_cow = NULL;
+      id_info->id_cow = nullptr;
     }
     id_info->previously_visible_components_mask = id_node->visible_components_mask;
     id_info->previous_eval_flags = id_node->eval_flags;
     id_info->previous_customdata_masks = id_node->customdata_masks;
     BLI_ghash_insert(id_info_hash_, id_node->id_orig, id_info);
-    id_node->id_cow = NULL;
+    id_node->id_cow = nullptr;
   }
 
   GSET_FOREACH_BEGIN (OperationNode *, op_node, graph_->entry_tags) {
@@ -350,23 +350,23 @@ void DepsgraphNodeBuilder::begin_build()
   /* Make sure graph has no nodes left from previous state. */
   graph_->clear_all_nodes();
   graph_->operations.clear();
-  BLI_gset_clear(graph_->entry_tags, NULL);
+  BLI_gset_clear(graph_->entry_tags, nullptr);
 }
 
 void DepsgraphNodeBuilder::end_build()
 {
   for (const SavedEntryTag &entry_tag : saved_entry_tags_) {
     IDNode *id_node = find_id_node(entry_tag.id_orig);
-    if (id_node == NULL) {
+    if (id_node == nullptr) {
       continue;
     }
     ComponentNode *comp_node = id_node->find_component(entry_tag.component_type);
-    if (comp_node == NULL) {
+    if (comp_node == nullptr) {
       continue;
     }
     OperationNode *op_node = comp_node->find_operation(
         entry_tag.opcode, entry_tag.name.c_str(), entry_tag.name_tag);
-    if (op_node == NULL) {
+    if (op_node == nullptr) {
       continue;
     }
     /* Since the tag is coming from a saved copy of entry tags, this means
@@ -377,7 +377,7 @@ void DepsgraphNodeBuilder::end_build()
 
 void DepsgraphNodeBuilder::build_id(ID *id)
 {
-  if (id == NULL) {
+  if (id == nullptr) {
     return;
   }
   switch (GS(id->name)) {
@@ -391,7 +391,7 @@ void DepsgraphNodeBuilder::build_id(ID *id)
       build_camera((Camera *)id);
       break;
     case ID_GR:
-      build_collection(NULL, (Collection *)id);
+      build_collection(nullptr, (Collection *)id);
       break;
     case ID_OB:
       /* TODO(sergey): Get visibility from a "parent" somehow.
@@ -487,7 +487,7 @@ void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collecti
        * objects are poked with the new visibility flag, since they
        * might become visible too. */
     }
-    else if (from_layer_collection == NULL && !id_node->is_collection_fully_expanded) {
+    else if (from_layer_collection == nullptr && !id_node->is_collection_fully_expanded) {
       /* Initially collection was built from layer now, and was requested
        * to not recurs into object. But nw it's asked to recurs into all
        * objects. */
@@ -501,7 +501,7 @@ void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collecti
     id_node = add_id_node(&collection->id);
     id_node->is_directly_visible = is_collection_visible;
   }
-  if (from_layer_collection != NULL) {
+  if (from_layer_collection != nullptr) {
     /* If we came from layer collection we don't go deeper, view layer
      * builder takes care of going deeper. */
     return;
@@ -518,7 +518,7 @@ void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collecti
   }
   /* Build child collections. */
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    build_collection(NULL, child->collection);
+    build_collection(nullptr, child->collection);
   }
   /* Restore state. */
   collection_ = current_state_collection;
@@ -531,7 +531,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
                                         eDepsNode_LinkedState_Type linked_state,
                                         bool is_visible)
 {
-  if (object->proxy != NULL) {
+  if (object->proxy != nullptr) {
     object->proxy->proxy_from = object;
   }
   const bool has_object = built_map_.checkIsBuiltAndTag(object);
@@ -554,10 +554,10 @@ void DepsgraphNodeBuilder::build_object(int base_index,
   IDNode *id_node = add_id_node(&object->id);
   Object *object_cow = get_cow_datablock(object);
   id_node->linked_state = linked_state;
-  /* NOTE: Scene is NULL when building dependency graph for render pipeline.
-   * Probably need to assign that to something non-NULL, but then the logic here will still be
+  /* NOTE: Scene is nullptr when building dependency graph for render pipeline.
+   * Probably need to assign that to something non-nullptr, but then the logic here will still be
    * somewhat weird. */
-  if (scene_ != NULL && object == scene_->camera) {
+  if (scene_ != nullptr && object == scene_->camera) {
     id_node->is_directly_visible = true;
   }
   else {
@@ -569,32 +569,32 @@ void DepsgraphNodeBuilder::build_object(int base_index,
   /* Transform. */
   build_object_transform(object);
   /* Parent. */
-  if (object->parent != NULL) {
+  if (object->parent != nullptr) {
     build_object(-1, object->parent, DEG_ID_LINKED_INDIRECTLY, is_visible);
   }
   /* Modifiers. */
-  if (object->modifiers.first != NULL) {
+  if (object->modifiers.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
     data.is_parent_visible = is_visible;
     modifiers_foreachIDLink(object, modifier_walk, &data);
   }
   /* Grease Pencil Modifiers. */
-  if (object->greasepencil_modifiers.first != NULL) {
+  if (object->greasepencil_modifiers.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
     data.is_parent_visible = is_visible;
     BKE_gpencil_modifiers_foreachIDLink(object, modifier_walk, &data);
   }
   /* Shader FX. */
-  if (object->shader_fx.first != NULL) {
+  if (object->shader_fx.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
     data.is_parent_visible = is_visible;
     BKE_shaderfx_foreachIDLink(object, modifier_walk, &data);
   }
   /* Constraints. */
-  if (object->constraints.first != NULL) {
+  if (object->constraints.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
     data.is_parent_visible = is_visible;
@@ -612,17 +612,17 @@ void DepsgraphNodeBuilder::build_object(int base_index,
    * pose for proxy. */
   build_animdata(&object->id);
   /* Particle systems. */
-  if (object->particlesystem.first != NULL) {
+  if (object->particlesystem.first != nullptr) {
     build_particle_systems(object, is_visible);
   }
   /* Proxy object to copy from. */
   build_object_proxy_from(object, is_visible);
   build_object_proxy_group(object, is_visible);
   /* Object dupligroup. */
-  if (object->instance_collection != NULL) {
+  if (object->instance_collection != nullptr) {
     const bool is_current_parent_collection_visible = is_parent_collection_visible_;
     is_parent_collection_visible_ = is_visible;
-    build_collection(NULL, object->instance_collection);
+    build_collection(nullptr, object->instance_collection);
     is_parent_collection_visible_ = is_current_parent_collection_visible;
     add_operation_node(&object->id, NodeType::DUPLI, OperationCode::DUPLI);
   }
@@ -658,7 +658,7 @@ void DepsgraphNodeBuilder::build_object_flags(int base_index,
 
 void DepsgraphNodeBuilder::build_object_proxy_from(Object *object, bool is_visible)
 {
-  if (object->proxy_from == NULL) {
+  if (object->proxy_from == nullptr) {
     return;
   }
   build_object(-1, object->proxy_from, DEG_ID_LINKED_INDIRECTLY, is_visible);
@@ -666,7 +666,7 @@ void DepsgraphNodeBuilder::build_object_proxy_from(Object *object, bool is_visib
 
 void DepsgraphNodeBuilder::build_object_proxy_group(Object *object, bool is_visible)
 {
-  if (object->proxy_group == NULL) {
+  if (object->proxy_group == nullptr) {
     return;
   }
   build_object(-1, object->proxy_group, DEG_ID_LINKED_INDIRECTLY, is_visible);
@@ -674,7 +674,7 @@ void DepsgraphNodeBuilder::build_object_proxy_group(Object *object, bool is_visi
 
 void DepsgraphNodeBuilder::build_object_data(Object *object, bool is_object_visible)
 {
-  if (object->data == NULL) {
+  if (object->data == nullptr) {
     return;
   }
   /* type-specific data. */
@@ -689,7 +689,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object, bool is_object_visi
       build_object_data_geometry(object, is_object_visible);
       break;
     case OB_ARMATURE:
-      if (ID_IS_LINKED(object) && object->proxy_from != NULL) {
+      if (ID_IS_LINKED(object) && object->proxy_from != nullptr) {
         build_proxy_rig(object);
       }
       else {
@@ -718,7 +718,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object, bool is_object_visi
   }
   /* Materials. */
   Material ***materials_ptr = give_matarar(object);
-  if (materials_ptr != NULL) {
+  if (materials_ptr != nullptr) {
     short *num_materials_ptr = give_totcolp(object);
     build_materials(*materials_ptr, *num_materials_ptr);
   }
@@ -763,14 +763,14 @@ void DepsgraphNodeBuilder::build_object_transform(Object *object)
                      OperationCode::TRANSFORM_LOCAL,
                      function_bind(BKE_object_eval_local_transform, _1, ob_cow));
   /* Object parent. */
-  if (object->parent != NULL) {
+  if (object->parent != nullptr) {
     add_operation_node(&object->id,
                        NodeType::TRANSFORM,
                        OperationCode::TRANSFORM_PARENT,
                        function_bind(BKE_object_eval_parent, _1, ob_cow));
   }
   /* Object constraints. */
-  if (object->constraints.first != NULL) {
+  if (object->constraints.first != nullptr) {
     build_object_constraints(object);
   }
   /* Rest of transformation update. */
@@ -840,16 +840,16 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
   build_animation_images(id);
   /* Regular animation. */
   AnimData *adt = BKE_animdata_from_id(id);
-  if (adt == NULL) {
+  if (adt == nullptr) {
     return;
   }
-  if (adt->action != NULL) {
+  if (adt->action != nullptr) {
     build_action(adt->action);
   }
   /* Make sure ID node exists. */
   (void)add_id_node(id);
   ID *id_cow = get_cow_id(id);
-  if (adt->action != NULL || !BLI_listbase_is_empty(&adt->nla_tracks)) {
+  if (adt->action != nullptr || !BLI_listbase_is_empty(&adt->nla_tracks)) {
     OperationNode *operation_node;
     /* Explicit entry operation. */
     operation_node = add_operation_node(id, NodeType::ANIMATION, OperationCode::ANIMATION_ENTRY);
@@ -878,10 +878,10 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 void DepsgraphNodeBuilder::build_animdata_nlastrip_targets(ListBase *strips)
 {
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
-    if (strip->act != NULL) {
+    if (strip->act != nullptr) {
       build_action(strip->act);
     }
-    else if (strip->strips.first != NULL) {
+    else if (strip->strips.first != nullptr) {
       build_animdata_nlastrip_targets(&strip->strips);
     }
   }
@@ -938,13 +938,13 @@ void DepsgraphNodeBuilder::build_driver_variables(ID *id, FCurve *fcurve)
   build_driver_id_property(id, fcurve->rna_path);
   LISTBASE_FOREACH (DriverVar *, dvar, &fcurve->driver->variables) {
     DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
-      if (dtar->id == NULL) {
+      if (dtar->id == nullptr) {
         continue;
       }
       build_id(dtar->id);
       build_driver_id_property(dtar->id, dtar->rna_path);
       /* Corresponds to dtar_id_ensure_proxy_from(). */
-      if ((GS(dtar->id->name) == ID_OB) && (((Object *)dtar->id)->proxy_from != NULL)) {
+      if ((GS(dtar->id->name) == ID_OB) && (((Object *)dtar->id)->proxy_from != nullptr)) {
         Object *proxy_from = ((Object *)dtar->id)->proxy_from;
         build_id(&proxy_from->id);
         build_driver_id_property(&proxy_from->id, dtar->rna_path);
@@ -956,7 +956,7 @@ void DepsgraphNodeBuilder::build_driver_variables(ID *id, FCurve *fcurve)
 
 void DepsgraphNodeBuilder::build_driver_id_property(ID *id, const char *rna_path)
 {
-  if (id == NULL || rna_path == NULL) {
+  if (id == nullptr || rna_path == nullptr) {
     return;
   }
   PointerRNA id_ptr, ptr;
@@ -966,7 +966,7 @@ void DepsgraphNodeBuilder::build_driver_id_property(ID *id, const char *rna_path
   if (!RNA_path_resolve_full(&id_ptr, rna_path, &ptr, &prop, &index)) {
     return;
   }
-  if (prop == NULL) {
+  if (prop == nullptr) {
     return;
   }
   if (!RNA_property_is_idprop(prop)) {
@@ -974,7 +974,7 @@ void DepsgraphNodeBuilder::build_driver_id_property(ID *id, const char *rna_path
   }
   const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
   ensure_operation_node(
-      id, NodeType::PARAMETERS, OperationCode::ID_PROPERTY, NULL, prop_identifier);
+      id, NodeType::PARAMETERS, OperationCode::ID_PROPERTY, nullptr, prop_identifier);
 }
 
 void DepsgraphNodeBuilder::build_parameters(ID *id)
@@ -1053,8 +1053,8 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
   sim_node->set_as_exit();
   sim_node->owner->entry_operation = sim_node;
   /* Objects - simulation participants. */
-  if (rbw->group != NULL) {
-    build_collection(NULL, rbw->group);
+  if (rbw->group != nullptr) {
+    build_collection(nullptr, rbw->group);
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->group, object) {
       if (object->type != OB_MESH) {
         continue;
@@ -1072,11 +1072,11 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
   /* Constraints. */
-  if (rbw->constraints != NULL) {
+  if (rbw->constraints != nullptr) {
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->constraints, object) {
       RigidBodyCon *rbc = object->rigidbody_constraint;
-      if (rbc == NULL || rbc->ob1 == NULL || rbc->ob2 == NULL) {
-        /* When either ob1 or ob2 is NULL, the constraint doesn't work. */
+      if (rbc == nullptr || rbc->ob1 == nullptr || rbc->ob2 == nullptr) {
+        /* When either ob1 or ob2 is nullptr, the constraint doesn't work. */
         continue;
       }
       /* Make sure indirectly linked objects are fully built. */
@@ -1120,11 +1120,11 @@ void DepsgraphNodeBuilder::build_particle_systems(Object *object, bool is_object
      * NOTE: The call itself ensures settings are only build once.  */
     build_particle_settings(part);
     /* Particle system evaluation. */
-    add_operation_node(psys_comp, OperationCode::PARTICLE_SYSTEM_EVAL, NULL, psys->name);
+    add_operation_node(psys_comp, OperationCode::PARTICLE_SYSTEM_EVAL, nullptr, psys->name);
     /* Keyed particle targets. */
     if (part->phystype == PART_PHYS_KEYED) {
       LISTBASE_FOREACH (ParticleTarget *, particle_target, &psys->targets) {
-        if (particle_target->ob == NULL || particle_target->ob == object) {
+        if (particle_target->ob == nullptr || particle_target->ob == object) {
           continue;
         }
         build_object(-1, particle_target->ob, DEG_ID_LINKED_INDIRECTLY, is_object_visible);
@@ -1133,13 +1133,13 @@ void DepsgraphNodeBuilder::build_particle_systems(Object *object, bool is_object
     /* Visualization of particle system. */
     switch (part->ren_as) {
       case PART_DRAW_OB:
-        if (part->instance_object != NULL) {
+        if (part->instance_object != nullptr) {
           build_object(-1, part->instance_object, DEG_ID_LINKED_INDIRECTLY, is_object_visible);
         }
         break;
       case PART_DRAW_GR:
-        if (part->instance_collection != NULL) {
-          build_collection(NULL, part->instance_collection);
+        if (part->instance_collection != nullptr) {
+          build_collection(nullptr, part->instance_collection);
         }
         break;
     }
@@ -1174,7 +1174,7 @@ void DepsgraphNodeBuilder::build_particle_settings(ParticleSettings *particle_se
   /* Texture slots. */
   for (int mtex_index = 0; mtex_index < MAX_MTEX; mtex_index++) {
     MTex *mtex = particle_settings->mtex[mtex_index];
-    if (mtex == NULL || mtex->tex == NULL) {
+    if (mtex == nullptr || mtex->tex == nullptr) {
       continue;
     }
     build_texture(mtex->tex);
@@ -1196,7 +1196,7 @@ void DepsgraphNodeBuilder::build_shapekeys(Key *key)
    * drivers evaluation. */
   LISTBASE_FOREACH (KeyBlock *, key_block, &key->block) {
     add_operation_node(
-        &key->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, NULL, key_block->name);
+        &key->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, nullptr, key_block->name);
   }
 }
 
@@ -1274,13 +1274,13 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata, bool
       /* Make sure objects used for bevel.taper are in the graph.
        * NOTE: This objects might be not linked to the scene. */
       Curve *cu = (Curve *)obdata;
-      if (cu->bevobj != NULL) {
+      if (cu->bevobj != nullptr) {
         build_object(-1, cu->bevobj, DEG_ID_LINKED_INDIRECTLY, is_object_visible);
       }
-      if (cu->taperobj != NULL) {
+      if (cu->taperobj != nullptr) {
         build_object(-1, cu->taperobj, DEG_ID_LINKED_INDIRECTLY, is_object_visible);
       }
-      if (cu->textoncurve != NULL) {
+      if (cu->textoncurve != nullptr) {
         build_object(-1, cu->textoncurve, DEG_ID_LINKED_INDIRECTLY, is_object_visible);
       }
       break;
@@ -1338,7 +1338,7 @@ void DepsgraphNodeBuilder::build_camera(Camera *camera)
   }
   build_animdata(&camera->id);
   build_parameters(&camera->id);
-  if (camera->dof.focus_object != NULL) {
+  if (camera->dof.focus_object != nullptr) {
     build_object(-1, camera->dof.focus_object, DEG_ID_LINKED_INDIRECTLY, false);
   }
 }
@@ -1356,7 +1356,7 @@ void DepsgraphNodeBuilder::build_light(Light *lamp)
 
 void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 {
-  if (ntree == NULL) {
+  if (ntree == nullptr) {
     return;
   }
   if (built_map_.checkIsBuiltAndTag(ntree)) {
@@ -1380,7 +1380,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   /* nodetree's nodes... */
   LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
     ID *id = bnode->id;
-    if (id == NULL) {
+    if (id == nullptr) {
       continue;
     }
     ID_Type id_type = GS(id->name);
@@ -1404,7 +1404,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
        *
        * On the one hand it's annoying to always pull it in, but on another hand it's also annoying
        * to have hardcoded node-type exception here. */
-      if (node_scene->camera != NULL) {
+      if (node_scene->camera != nullptr) {
         /* TODO(sergey): Use visibility of owner of the node tree. */
         build_object(-1, node_scene->camera, DEG_ID_LINKED_INDIRECTLY, true);
       }
@@ -1454,7 +1454,7 @@ void DepsgraphNodeBuilder::build_material(Material *material)
 void DepsgraphNodeBuilder::build_materials(Material **materials, int num_materials)
 {
   for (int i = 0; i < num_materials; i++) {
-    if (materials[i] == NULL) {
+    if (materials[i] == nullptr) {
       continue;
     }
     build_material(materials[i]);
@@ -1474,7 +1474,7 @@ void DepsgraphNodeBuilder::build_texture(Tex *texture)
   build_nodetree(texture->nodetree);
   /* Special cases for different IDs which texture uses. */
   if (texture->type == TEX_IMAGE) {
-    if (texture->ima != NULL) {
+    if (texture->ima != nullptr) {
       build_image(texture->ima);
     }
   }
@@ -1552,7 +1552,7 @@ void DepsgraphNodeBuilder::build_mask(Mask *mask)
       for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
         MaskParent *parent = &point->parent;
-        if (parent == NULL || parent->id == NULL) {
+        if (parent == nullptr || parent->id == nullptr) {
           continue;
         }
         build_id(parent->id);
@@ -1615,7 +1615,7 @@ void DepsgraphNodeBuilder::build_speaker(Speaker *speaker)
   add_operation_node(&speaker->id, NodeType::AUDIO, OperationCode::SPEAKER_EVAL);
   build_animdata(&speaker->id);
   build_parameters(&speaker->id);
-  if (speaker->sound != NULL) {
+  if (speaker->sound != nullptr) {
     build_sound(speaker->sound);
   }
 }
@@ -1637,7 +1637,7 @@ void DepsgraphNodeBuilder::build_sound(bSound *sound)
 
 void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
 {
-  if (scene->ed == NULL) {
+  if (scene->ed == nullptr) {
     return;
   }
   build_scene_audio(scene);
@@ -1649,13 +1649,13 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
   /* Make sure data for sequences is in the graph. */
   Sequence *seq;
   SEQ_BEGIN (scene->ed, seq) {
-    if (seq->sound != NULL) {
+    if (seq->sound != nullptr) {
       build_sound(seq->sound);
     }
-    if (seq->scene != NULL) {
+    if (seq->scene != nullptr) {
       build_scene_parameters(seq->scene);
     }
-    if (seq->type == SEQ_TYPE_SCENE && seq->scene != NULL) {
+    if (seq->type == SEQ_TYPE_SCENE && seq->scene != nullptr) {
       if (seq->flag & SEQ_SCENE_STRIPS) {
         build_scene_sequencer(seq->scene);
       }
@@ -1696,7 +1696,7 @@ void DepsgraphNodeBuilder::modifier_walk(void *user_data,
 {
   BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
   ID *id = *idpoin;
-  if (id == NULL) {
+  if (id == nullptr) {
     return;
   }
   switch (GS(id->name)) {
@@ -1719,7 +1719,7 @@ void DepsgraphNodeBuilder::constraint_walk(bConstraint * /*con*/,
 {
   BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
   ID *id = *idpoin;
-  if (id == NULL) {
+  if (id == nullptr) {
     return;
   }
   switch (GS(id->name)) {

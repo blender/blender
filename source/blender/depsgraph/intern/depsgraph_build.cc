@@ -144,7 +144,7 @@ void DEG_add_object_pointcache_relation(struct DepsNodeHandle *node_handle,
   ID *id = DEG_get_id_from_handle(node_handle);
   DEG::ComponentKey point_cache_key(id, DEG::NodeType::POINT_CACHE);
   DEG::Relation *rel = relation_builder->add_relation(comp_key, point_cache_key, "Point Cache");
-  if (rel != NULL) {
+  if (rel != nullptr) {
     rel->flag |= DEG::RELATION_FLAG_FLUSH_USER_EDIT_ONLY;
   }
   else {
@@ -377,7 +377,7 @@ class DepsgraphFromIDsNodeBuilder : public DepsgraphNodeBuilder {
 
   virtual void build_object_proxy_group(Object *object, bool is_visible) override
   {
-    if (object->proxy_group == NULL) {
+    if (object->proxy_group == nullptr) {
       return;
     }
     if (!filter_.contains(&object->proxy_group->id)) {
@@ -408,7 +408,7 @@ class DepsgraphFromIDsRelationBuilder : public DepsgraphRelationBuilder {
 
   virtual void build_object_proxy_group(Object *object) override
   {
-    if (object->proxy_group == NULL) {
+    if (object->proxy_group == nullptr) {
       return;
     }
     if (!filter_.contains(&object->proxy_group->id)) {
@@ -479,7 +479,7 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
    * TODO(sergey): Try to make it so we don't flush updates
    * to the whole depsgraph. */
   DEG::IDNode *id_node = deg_graph->find_id_node(&deg_graph->scene->id);
-  if (id_node != NULL) {
+  if (id_node != nullptr) {
     id_node->tag_update(deg_graph, DEG::DEG_UPDATE_SOURCE_RELATIONS);
   }
 }

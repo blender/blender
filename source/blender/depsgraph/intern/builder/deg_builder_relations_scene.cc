@@ -42,8 +42,8 @@ void DepsgraphRelationBuilder::build_scene_render(Scene *scene, ViewLayer *view_
     build_scene_sequencer(scene);
     build_scene_speakers(scene, view_layer);
   }
-  if (scene->camera != NULL) {
-    build_object(NULL, scene->camera);
+  if (scene->camera != nullptr) {
+    build_object(nullptr, scene->camera);
   }
 }
 
@@ -64,7 +64,7 @@ void DepsgraphRelationBuilder::build_scene_compositor(Scene *scene)
   if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_SCENE_COMPOSITOR)) {
     return;
   }
-  if (scene->nodetree == NULL) {
+  if (scene->nodetree == nullptr) {
     return;
   }
   build_nodetree(scene->nodetree);

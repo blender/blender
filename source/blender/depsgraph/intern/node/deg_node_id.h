@@ -57,7 +57,7 @@ struct IDNode : public Node {
   };
 
   virtual void init(const ID *id, const char *subdata) override;
-  void init_copy_on_write(ID *id_cow_hint = NULL);
+  void init_copy_on_write(ID *id_cow_hint = nullptr);
   ~IDNode();
   void destroy();
 

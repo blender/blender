@@ -70,7 +70,7 @@ struct Depsgraph {
   TimeSourceNode *find_time_source() const;
 
   IDNode *find_id_node(const ID *id) const;
-  IDNode *add_id_node(ID *id, ID *id_cow_hint = NULL);
+  IDNode *add_id_node(ID *id, ID *id_cow_hint = nullptr);
   void clear_id_nodes();
   void clear_id_nodes_conditional(const std::function<bool(ID_Type id_type)> &filter);
 
@@ -78,7 +78,7 @@ struct Depsgraph {
   Relation *add_new_relation(Node *from, Node *to, const char *description, int flags = 0);
 
   /* Check whether two nodes are connected by relation with given
-   * description. Description might be NULL to check ANY relation between
+   * description. Description might be nullptr to check ANY relation between
    * given nodes. */
   Relation *check_nodes_connected(const Node *from, const Node *to, const char *description);
 

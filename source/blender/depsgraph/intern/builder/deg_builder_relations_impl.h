@@ -36,7 +36,7 @@ template<typename KeyType>
 OperationNode *DepsgraphRelationBuilder::find_operation_node(const KeyType &key)
 {
   Node *node = get_node(key);
-  return node != NULL ? node->get_exit_operation() : NULL;
+  return node != nullptr ? node->get_exit_operation() : nullptr;
 }
 
 template<typename KeyFrom, typename KeyTo>
@@ -47,8 +47,8 @@ Relation *DepsgraphRelationBuilder::add_relation(const KeyFrom &key_from,
 {
   Node *node_from = get_node(key_from);
   Node *node_to = get_node(key_to);
-  OperationNode *op_from = node_from ? node_from->get_exit_operation() : NULL;
-  OperationNode *op_to = node_to ? node_to->get_entry_operation() : NULL;
+  OperationNode *op_from = node_from ? node_from->get_exit_operation() : nullptr;
+  OperationNode *op_to = node_to ? node_to->get_entry_operation() : nullptr;
   if (op_from && op_to) {
     return add_operation_relation(op_from, op_to, description, flags);
   }
@@ -80,7 +80,7 @@ Relation *DepsgraphRelationBuilder::add_relation(const KeyFrom &key_from,
               key_to.identifier().c_str());
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 template<typename KeyTo>
@@ -91,11 +91,11 @@ Relation *DepsgraphRelationBuilder::add_relation(const TimeSourceKey &key_from,
 {
   TimeSourceNode *time_from = get_node(key_from);
   Node *node_to = get_node(key_to);
-  OperationNode *op_to = node_to ? node_to->get_entry_operation() : NULL;
-  if (time_from != NULL && op_to != NULL) {
+  OperationNode *op_to = node_to ? node_to->get_entry_operation() : nullptr;
+  if (time_from != nullptr && op_to != nullptr) {
     return add_time_relation(time_from, op_to, description, flags);
   }
-  return NULL;
+  return nullptr;
 }
 
 template<typename KeyType>
@@ -105,9 +105,9 @@ Relation *DepsgraphRelationBuilder::add_node_handle_relation(const KeyType &key_
                                                              int flags)
 {
   Node *node_from = get_node(key_from);
-  OperationNode *op_from = node_from ? node_from->get_exit_operation() : NULL;
+  OperationNode *op_from = node_from ? node_from->get_exit_operation() : nullptr;
   OperationNode *op_to = handle->node->get_entry_operation();
-  if (op_from != NULL && op_to != NULL) {
+  if (op_from != nullptr && op_to != nullptr) {
     return add_operation_relation(op_from, op_to, description, flags);
   }
   else {
@@ -124,7 +124,7 @@ Relation *DepsgraphRelationBuilder::add_node_handle_relation(const KeyType &key_
               key_from.identifier().c_str());
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 template<typename KeyTo>
@@ -135,7 +135,7 @@ Relation *DepsgraphRelationBuilder::add_depends_on_transform_relation(ID *id,
 {
   if (GS(id->name) == ID_OB) {
     Object *object = reinterpret_cast<Object *>(id);
-    if (object->rigidbody_object != NULL) {
+    if (object->rigidbody_object != nullptr) {
       OperationKey transform_key(&object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_EVAL);
       return add_relation(transform_key, key_to, description, flags);
     }
@@ -162,12 +162,12 @@ bool DepsgraphRelationBuilder::is_same_bone_dependency(const KeyFrom &key_from,
   /* Get operations for requested keys. */
   Node *node_from = get_node(key_from);
   Node *node_to = get_node(key_to);
-  if (node_from == NULL || node_to == NULL) {
+  if (node_from == nullptr || node_to == nullptr) {
     return false;
   }
   OperationNode *op_from = node_from->get_exit_operation();
   OperationNode *op_to = node_to->get_entry_operation();
-  if (op_from == NULL || op_to == NULL) {
+  if (op_from == nullptr || op_to == nullptr) {
     return false;
   }
   /* Different armatures, bone can't be the same. */
@@ -193,12 +193,12 @@ bool DepsgraphRelationBuilder::is_same_nodetree_node_dependency(const KeyFrom &k
   /* Get operations for requested keys. */
   Node *node_from = get_node(key_from);
   Node *node_to = get_node(key_to);
-  if (node_from == NULL || node_to == NULL) {
+  if (node_from == nullptr || node_to == nullptr) {
     return false;
   }
   OperationNode *op_from = node_from->get_exit_operation();
   OperationNode *op_to = node_to->get_entry_operation();
-  if (op_from == NULL || op_to == NULL) {
+  if (op_from == nullptr || op_to == nullptr) {
     return false;
   }
   /* Check if this is actually a node tree. */

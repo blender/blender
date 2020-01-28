@@ -104,7 +104,7 @@ static void comp_node_hash_value_free(void *value_v)
 }
 
 ComponentNode::ComponentNode()
-    : entry_operation(NULL), exit_operation(NULL), affects_directly_visible(false)
+    : entry_operation(nullptr), exit_operation(nullptr), affects_directly_visible(false)
 {
   operations_map = BLI_ghash_new(comp_node_hash_key, comp_node_hash_key_cmp, "Depsgraph id hash");
 }
@@ -120,7 +120,7 @@ void ComponentNode::init(const ID * /*id*/, const char * /*subdata*/)
 ComponentNode::~ComponentNode()
 {
   clear_operations();
-  if (operations_map != NULL) {
+  if (operations_map != nullptr) {
     BLI_ghash_free(operations_map, comp_node_hash_key_free, comp_node_hash_value_free);
   }
 }
@@ -135,8 +135,8 @@ string ComponentNode::identifier() const
 
 OperationNode *ComponentNode::find_operation(OperationIDKey key) const
 {
-  OperationNode *node = NULL;
-  if (operations_map != NULL) {
+  OperationNode *node = nullptr;
+  if (operations_map != nullptr) {
     node = (OperationNode *)BLI_ghash_lookup(operations_map, &key);
   }
   else {
@@ -162,13 +162,13 @@ OperationNode *ComponentNode::find_operation(OperationCode opcode,
 OperationNode *ComponentNode::get_operation(OperationIDKey key) const
 {
   OperationNode *node = find_operation(key);
-  if (node == NULL) {
+  if (node == nullptr) {
     fprintf(stderr,
             "%s: find_operation(%s) failed\n",
             this->identifier().c_str(),
             key.identifier().c_str());
     BLI_assert(!"Request for non-existing operation, should not happen");
-    return NULL;
+    return nullptr;
   }
   return node;
 }
@@ -183,7 +183,7 @@ OperationNode *ComponentNode::get_operation(OperationCode opcode,
 
 bool ComponentNode::has_operation(OperationIDKey key) const
 {
-  return find_operation(key) != NULL;
+  return find_operation(key) != nullptr;
 }
 
 bool ComponentNode::has_operation(OperationCode opcode, const char *name, int name_tag) const
@@ -229,19 +229,19 @@ OperationNode *ComponentNode::add_operation(const DepsEvalOperationCb &op,
 
 void ComponentNode::set_entry_operation(OperationNode *op_node)
 {
-  BLI_assert(entry_operation == NULL);
+  BLI_assert(entry_operation == nullptr);
   entry_operation = op_node;
 }
 
 void ComponentNode::set_exit_operation(OperationNode *op_node)
 {
-  BLI_assert(exit_operation == NULL);
+  BLI_assert(exit_operation == nullptr);
   exit_operation = op_node;
 }
 
 void ComponentNode::clear_operations()
 {
-  if (operations_map != NULL) {
+  if (operations_map != nullptr) {
     BLI_ghash_clear(operations_map, comp_node_hash_key_free, comp_node_hash_value_free);
   }
   for (OperationNode *op_node : operations) {
@@ -253,14 +253,14 @@ void ComponentNode::clear_operations()
 void ComponentNode::tag_update(Depsgraph *graph, eUpdateSource source)
 {
   OperationNode *entry_op = get_entry_operation();
-  if (entry_op != NULL && entry_op->flag & DEPSOP_FLAG_NEEDS_UPDATE) {
+  if (entry_op != nullptr && entry_op->flag & DEPSOP_FLAG_NEEDS_UPDATE) {
     return;
   }
   for (OperationNode *op_node : operations) {
     op_node->tag_update(graph, source);
   }
   // It is possible that tag happens before finalization.
-  if (operations_map != NULL) {
+  if (operations_map != nullptr) {
     GHASH_FOREACH_BEGIN (OperationNode *, op_node, operations_map) {
       op_node->tag_update(graph, source);
     }
@@ -273,8 +273,8 @@ OperationNode *ComponentNode::get_entry_operation()
   if (entry_operation) {
     return entry_operation;
   }
-  else if (operations_map != NULL && BLI_ghash_len(operations_map) == 1) {
-    OperationNode *op_node = NULL;
+  else if (operations_map != nullptr && BLI_ghash_len(operations_map) == 1) {
+    OperationNode *op_node = nullptr;
     /* TODO(sergey): This is somewhat slow. */
     GHASH_FOREACH_BEGIN (OperationNode *, tmp, operations_map) {
       op_node = tmp;
@@ -287,7 +287,7 @@ OperationNode *ComponentNode::get_entry_operation()
   else if (operations.size() == 1) {
     return operations[0];
   }
-  return NULL;
+  return nullptr;
 }
 
 OperationNode *ComponentNode::get_exit_operation()
@@ -295,8 +295,8 @@ OperationNode *ComponentNode::get_exit_operation()
   if (exit_operation) {
     return exit_operation;
   }
-  else if (operations_map != NULL && BLI_ghash_len(operations_map) == 1) {
-    OperationNode *op_node = NULL;
+  else if (operations_map != nullptr && BLI_ghash_len(operations_map) == 1) {
+    OperationNode *op_node = nullptr;
     /* TODO(sergey): This is somewhat slow. */
     GHASH_FOREACH_BEGIN (OperationNode *, tmp, operations_map) {
       op_node = tmp;
@@ -309,7 +309,7 @@ OperationNode *ComponentNode::get_exit_operation()
   else if (operations.size() == 1) {
     return operations[0];
   }
-  return NULL;
+  return nullptr;
 }
 
 void ComponentNode::finalize_build(Depsgraph * /*graph*/)
@@ -319,8 +319,8 @@ void ComponentNode::finalize_build(Depsgraph * /*graph*/)
     operations.push_back(op_node);
   }
   GHASH_FOREACH_END();
-  BLI_ghash_free(operations_map, comp_node_hash_key_free, NULL);
-  operations_map = NULL;
+  BLI_ghash_free(operations_map, comp_node_hash_key_free, nullptr);
+  operations_map = nullptr;
 }
 
 /* Bone Component ========================================= */

@@ -555,7 +555,7 @@ static void deg_debug_graphviz_graph_nodes(const DebugContext &ctx, const Depsgr
     deg_debug_graphviz_node(ctx, node);
   }
   TimeSourceNode *time_source = graph->find_time_source();
-  if (time_source != NULL) {
+  if (time_source != nullptr) {
     deg_debug_graphviz_node(ctx, time_source);
   }
 }
@@ -572,7 +572,7 @@ static void deg_debug_graphviz_graph_relations(const DebugContext &ctx, const De
   }
 
   TimeSourceNode *time_source = graph->find_time_source();
-  if (time_source != NULL) {
+  if (time_source != nullptr) {
     deg_debug_graphviz_node_relations(ctx, time_source);
   }
 }

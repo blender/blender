@@ -59,13 +59,13 @@ Relation::Relation(Node *from, Node *to, const char *description)
 Relation::~Relation()
 {
   /* Sanity check. */
-  BLI_assert(from != NULL && to != NULL);
+  BLI_assert(from != nullptr && to != nullptr);
 }
 
 void Relation::unlink()
 {
   /* Sanity check. */
-  BLI_assert(from != NULL && to != NULL);
+  BLI_assert(from != nullptr && to != nullptr);
   remove_from_vector(&from->outlinks, this);
   remove_from_vector(&to->inlinks, this);
 }

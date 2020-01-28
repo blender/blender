@@ -65,7 +65,7 @@ struct ComponentNode : public Node {
   virtual string identifier() const override;
 
   /* Find an existing operation, if requested operation does not exist
-   * NULL will be returned. */
+   * nullptr will be returned. */
   OperationNode *find_operation(OperationIDKey key) const;
   OperationNode *find_operation(OperationCode opcode, const char *name, int name_tag) const;
 

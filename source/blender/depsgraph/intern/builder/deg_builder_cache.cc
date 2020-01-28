@@ -37,7 +37,7 @@ namespace DEG {
 
 /* Animated property storage. */
 
-AnimatedPropertyID::AnimatedPropertyID() : data(NULL), property_rna(NULL)
+AnimatedPropertyID::AnimatedPropertyID() : data(nullptr), property_rna(nullptr)
 {
 }
 
@@ -89,13 +89,13 @@ struct AnimatedPropertyCallbackData {
 
 void animated_property_cb(ID * /*id*/, FCurve *fcurve, void *data_v)
 {
-  if (fcurve->rna_path == NULL || fcurve->rna_path[0] == '\0') {
+  if (fcurve->rna_path == nullptr || fcurve->rna_path[0] == '\0') {
     return;
   }
   AnimatedPropertyCallbackData *data = static_cast<AnimatedPropertyCallbackData *>(data_v);
   /* Resolve property. */
   PointerRNA pointer_rna;
-  PropertyRNA *property_rna = NULL;
+  PropertyRNA *property_rna = nullptr;
   if (!RNA_path_resolve_property(
           &data->pointer_rna, fcurve->rna_path, &pointer_rna, &property_rna)) {
     return;

@@ -26,7 +26,7 @@
 namespace DEG {
 
 ModifierDataBackupID::ModifierDataBackupID(const Depsgraph * /*depsgraph*/)
-    : ModifierDataBackupID(NULL, eModifierType_None)
+    : ModifierDataBackupID(nullptr, eModifierType_None)
 {
 }
 

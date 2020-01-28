@@ -67,7 +67,7 @@ namespace {
 void deg_invalidate_iterator_work_data(DEGObjectIterData *data)
 {
 #ifdef INVALIDATE_WORK_DATA
-  BLI_assert(data != NULL);
+  BLI_assert(data != nullptr);
   memset(&data->temp_dupli_object, 0xff, sizeof(data->temp_dupli_object));
 #else
   (void)data;
@@ -76,14 +76,14 @@ void deg_invalidate_iterator_work_data(DEGObjectIterData *data)
 
 void verify_id_properties_freed(DEGObjectIterData *data)
 {
-  if (data->dupli_object_current == NULL) {
+  if (data->dupli_object_current == nullptr) {
     // We didn't enter duplication yet, so we can't have any dangling
     // pointers.
     return;
   }
   const Object *dupli_object = data->dupli_object_current->ob;
   Object *temp_dupli_object = &data->temp_dupli_object;
-  if (temp_dupli_object->id.properties == NULL) {
+  if (temp_dupli_object->id.properties == nullptr) {
     // No ID properties in temp datablock -- no leak is possible.
     return;
   }
@@ -94,7 +94,7 @@ void verify_id_properties_freed(DEGObjectIterData *data)
   // Free memory which is owned by temporary storage which is about to
   // get overwritten.
   IDP_FreeProperty(temp_dupli_object->id.properties);
-  temp_dupli_object->id.properties = NULL;
+  temp_dupli_object->id.properties = nullptr;
 }
 
 static bool deg_object_hide_original(eEvaluationMode eval_mode, Object *ob, DupliObject *dob)
@@ -120,7 +120,7 @@ static bool deg_object_hide_original(eEvaluationMode eval_mode, Object *ob, Dupl
 bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 {
   DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
-  while (data->dupli_object_next != NULL) {
+  while (data->dupli_object_next != nullptr) {
     DupliObject *dob = data->dupli_object_next;
     Object *obd = dob->ob;
 
@@ -215,7 +215,7 @@ void deg_iterator_objects_step(BLI_Iterator *iter, DEG::IDNode *id_node)
   if (data->flag & DEG_ITER_OBJECT_FLAG_VISIBLE) {
     ob_visibility = BKE_object_visibility(object, data->eval_mode);
 
-    if (deg_object_hide_original(data->eval_mode, object, NULL)) {
+    if (deg_object_hide_original(data->eval_mode, object, nullptr)) {
       return;
     }
   }
@@ -249,10 +249,10 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
     return;
   }
 
-  data->dupli_parent = NULL;
-  data->dupli_list = NULL;
-  data->dupli_object_next = NULL;
-  data->dupli_object_current = NULL;
+  data->dupli_parent = nullptr;
+  data->dupli_list = nullptr;
+  data->dupli_object_next = nullptr;
+  data->dupli_object_current = nullptr;
   data->scene = DEG_get_evaluated_scene(depsgraph);
   data->id_node_index = 0;
   data->num_id_nodes = num_id_nodes;
@@ -281,10 +281,10 @@ void DEG_iterator_objects_next(BLI_Iterator *iter)
       else {
         verify_id_properties_freed(data);
         free_object_duplilist(data->dupli_list);
-        data->dupli_parent = NULL;
-        data->dupli_list = NULL;
-        data->dupli_object_next = NULL;
-        data->dupli_object_current = NULL;
+        data->dupli_parent = nullptr;
+        data->dupli_list = nullptr;
+        data->dupli_object_next = nullptr;
+        data->dupli_object_current = nullptr;
         deg_invalidate_iterator_work_data(data);
       }
     }
@@ -303,7 +303,7 @@ void DEG_iterator_objects_next(BLI_Iterator *iter)
 void DEG_iterator_objects_end(BLI_Iterator *iter)
 {
   DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
-  if (data != NULL) {
+  if (data != nullptr) {
     /* Force crash in case the iterator data is referenced and accessed down
      * the line. (T51718) */
     deg_invalidate_iterator_work_data(data);

@@ -52,7 +52,7 @@ void ObjectRuntimeBackup::init_from_object(Object *object)
   /* Object update will override actual object->data to an evaluated version.
    * Need to make sure we don't have data set to evaluated one before free
    * anything. */
-  if (mesh_eval != NULL && object->data == mesh_eval) {
+  if (mesh_eval != nullptr && object->data == mesh_eval) {
     object->data = runtime.mesh_orig;
   }
   /* Make a backup of base flags. */
@@ -73,22 +73,22 @@ inline ModifierDataBackupID create_modifier_data_id(const ModifierData *modifier
 void ObjectRuntimeBackup::backup_modifier_runtime_data(Object *object)
 {
   LISTBASE_FOREACH (ModifierData *, modifier_data, &object->modifiers) {
-    if (modifier_data->runtime == NULL) {
+    if (modifier_data->runtime == nullptr) {
       continue;
     }
-    BLI_assert(modifier_data->orig_modifier_data != NULL);
+    BLI_assert(modifier_data->orig_modifier_data != nullptr);
     ModifierDataBackupID modifier_data_id = create_modifier_data_id(modifier_data);
     modifier_runtime_data.insert(make_pair(modifier_data_id, modifier_data->runtime));
-    modifier_data->runtime = NULL;
+    modifier_data->runtime = nullptr;
   }
 }
 
 void ObjectRuntimeBackup::backup_pose_channel_runtime_data(Object *object)
 {
-  if (object->pose != NULL) {
+  if (object->pose != nullptr) {
     LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-      /* This is NULL in Edit mode. */
-      if (pchan->orig_pchan != NULL) {
+      /* This is nullptr in Edit mode. */
+      if (pchan->orig_pchan != nullptr) {
         pose_channel_runtime_data[pchan->orig_pchan] = pchan->runtime;
         BKE_pose_channel_runtime_reset(&pchan->runtime);
       }
@@ -103,7 +103,7 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
   object->runtime = runtime;
   object->runtime.mesh_orig = mesh_orig;
   object->runtime.bb = bb;
-  if (object->type == OB_MESH && object->runtime.mesh_eval != NULL) {
+  if (object->type == OB_MESH && object->runtime.mesh_eval != nullptr) {
     if (object->id.recalc & ID_RECALC_GEOMETRY) {
       /* If geometry is tagged for update it means, that part of
        * evaluated mesh are not valid anymore. In this case we can not
@@ -138,33 +138,33 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
 void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object)
 {
   LISTBASE_FOREACH (ModifierData *, modifier_data, &object->modifiers) {
-    BLI_assert(modifier_data->orig_modifier_data != NULL);
+    BLI_assert(modifier_data->orig_modifier_data != nullptr);
     ModifierDataBackupID modifier_data_id = create_modifier_data_id(modifier_data);
     ModifierRuntimeDataBackup::iterator runtime_data_iterator = modifier_runtime_data.find(
         modifier_data_id);
     if (runtime_data_iterator != modifier_runtime_data.end()) {
       modifier_data->runtime = runtime_data_iterator->second;
-      runtime_data_iterator->second = NULL;
+      runtime_data_iterator->second = nullptr;
     }
   }
   for (ModifierRuntimeDataBackup::value_type value : modifier_runtime_data) {
     const ModifierDataBackupID modifier_data_id = value.first;
     void *runtime = value.second;
-    if (value.second == NULL) {
+    if (value.second == nullptr) {
       continue;
     }
     const ModifierTypeInfo *modifier_type_info = modifierType_getInfo(modifier_data_id.type);
-    BLI_assert(modifier_type_info != NULL);
+    BLI_assert(modifier_type_info != nullptr);
     modifier_type_info->freeRuntimeData(runtime);
   }
 }
 
 void ObjectRuntimeBackup::restore_pose_channel_runtime_data(Object *object)
 {
-  if (object->pose != NULL) {
+  if (object->pose != nullptr) {
     LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-      /* This is NULL in Edit mode. */
-      if (pchan->orig_pchan != NULL) {
+      /* This is nullptr in Edit mode. */
+      if (pchan->orig_pchan != nullptr) {
         PoseChannelRuntimeDataBackup::iterator runtime_data_iterator =
             pose_channel_runtime_data.find(pchan->orig_pchan);
         if (runtime_data_iterator != pose_channel_runtime_data.end()) {

@@ -36,9 +36,9 @@ SoundBackup::SoundBackup(const Depsgraph * /*depsgraph*/)
 
 void SoundBackup::reset()
 {
-  cache = NULL;
-  waveform = NULL;
-  playback_handle = NULL;
+  cache = nullptr;
+  waveform = nullptr;
+  playback_handle = nullptr;
 }
 
 void SoundBackup::init_from_sound(bSound *sound)
@@ -47,9 +47,9 @@ void SoundBackup::init_from_sound(bSound *sound)
   waveform = sound->waveform;
   playback_handle = sound->playback_handle;
 
-  sound->cache = NULL;
-  sound->waveform = NULL;
-  sound->playback_handle = NULL;
+  sound->cache = nullptr;
+  sound->waveform = nullptr;
+  sound->playback_handle = nullptr;
 }
 
 void SoundBackup::restore_to_sound(bSound *sound)

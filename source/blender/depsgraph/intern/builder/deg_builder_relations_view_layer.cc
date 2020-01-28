@@ -70,7 +70,7 @@ void DepsgraphRelationBuilder::build_layer_collections(ListBase *lb)
       continue;
     }
     if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
-      build_collection(lc, NULL, lc->collection);
+      build_collection(lc, nullptr, lc->collection);
     }
     build_layer_collections(&lc->layer_collections);
   }
@@ -78,10 +78,10 @@ void DepsgraphRelationBuilder::build_layer_collections(ListBase *lb)
 
 void DepsgraphRelationBuilder::build_freestyle_lineset(FreestyleLineSet *fls)
 {
-  if (fls->group != NULL) {
-    build_collection(NULL, NULL, fls->group);
+  if (fls->group != nullptr) {
+    build_collection(nullptr, nullptr, fls->group);
   }
-  if (fls->linestyle != NULL) {
+  if (fls->linestyle != nullptr) {
     build_freestyle_linestyle(fls->linestyle);
   }
 }
@@ -95,7 +95,7 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
   /* Scene objects. */
   /* NOTE: Nodes builder requires us to pass CoW base because it's being
    * passed to the evaluation functions. During relations builder we only
-   * do NULL-pointer check of the base, so it's fine to pass original one. */
+   * do nullptr-pointer check of the base, so it's fine to pass original one. */
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (need_pull_base_into_graph(base)) {
       build_object(base, base->object);
@@ -104,19 +104,19 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
 
   build_layer_collections(&view_layer->layer_collections);
 
-  if (scene->camera != NULL) {
-    build_object(NULL, scene->camera);
+  if (scene->camera != nullptr) {
+    build_object(nullptr, scene->camera);
   }
   /* Rigidbody. */
-  if (scene->rigidbody_world != NULL) {
+  if (scene->rigidbody_world != nullptr) {
     build_rigidbody(scene);
   }
   /* Scene's animation and drivers. */
-  if (scene->adt != NULL) {
+  if (scene->adt != nullptr) {
     build_animdata(&scene->id);
   }
   /* World. */
-  if (scene->world != NULL) {
+  if (scene->world != nullptr) {
     build_world(scene->world);
   }
   /* Masks. */
@@ -128,7 +128,7 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
     build_movieclip(clip);
   }
   /* Material override. */
-  if (view_layer->mat_override != NULL) {
+  if (view_layer->mat_override != nullptr) {
     build_material(view_layer->mat_override);
   }
   /* Freestyle linesets. */
@@ -149,7 +149,7 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
     build_scene_sequencer(scene);
   }
   /* Build all set scenes. */
-  if (scene->set != NULL) {
+  if (scene->set != nullptr) {
     ViewLayer *set_view_layer = BKE_view_layer_default_render(scene->set);
     build_view_layer(scene->set, set_view_layer, DEG_ID_LINKED_VIA_SET);
   }

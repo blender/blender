@@ -67,7 +67,7 @@ template<typename T> static void remove_from_vector(vector<T> *vector, const T &
 }
 
 Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
-    : time_source(NULL),
+    : time_source(nullptr),
       need_update(true),
       need_update_time(false),
       bmain(bmain),
@@ -75,7 +75,7 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
       view_layer(view_layer),
       mode(mode),
       ctime(BKE_scene_frame_get(scene)),
-      scene_cow(NULL),
+      scene_cow(nullptr),
       is_active(false),
       is_evaluating(false),
       is_render_pipeline_depsgraph(false)
@@ -91,9 +91,9 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
 Depsgraph::~Depsgraph()
 {
   clear_id_nodes();
-  BLI_ghash_free(id_hash, NULL, NULL);
-  BLI_gset_free(entry_tags, NULL);
-  if (time_source != NULL) {
+  BLI_ghash_free(id_hash, nullptr, nullptr);
+  BLI_gset_free(entry_tags, nullptr);
+  if (time_source != nullptr) {
     OBJECT_GUARDED_DELETE(time_source, TimeSourceNode);
   }
   BLI_spin_end(&lock);
@@ -103,9 +103,9 @@ Depsgraph::~Depsgraph()
 
 TimeSourceNode *Depsgraph::add_time_source()
 {
-  if (time_source == NULL) {
+  if (time_source == nullptr) {
     DepsNodeFactory *factory = type_get_factory(NodeType::TIMESOURCE);
-    time_source = (TimeSourceNode *)factory->create_node(NULL, "", "Time Source");
+    time_source = (TimeSourceNode *)factory->create_node(nullptr, "", "Time Source");
   }
   return time_source;
 }
@@ -143,7 +143,7 @@ IDNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
 void Depsgraph::clear_id_nodes_conditional(const std::function<bool(ID_Type id_type)> &filter)
 {
   for (IDNode *id_node : id_nodes) {
-    if (id_node->id_cow == NULL) {
+    if (id_node->id_cow == nullptr) {
       /* This means builder "stole" ownership of the copy-on-written
        * datablock for her own dirty needs. */
       continue;
@@ -170,7 +170,7 @@ void Depsgraph::clear_id_nodes()
     OBJECT_GUARDED_DELETE(id_node, IDNode);
   }
   /* Clear containers. */
-  BLI_ghash_clear(id_hash, NULL, NULL);
+  BLI_ghash_clear(id_hash, nullptr, nullptr);
   id_nodes.clear();
   /* Clear physics relation caches. */
   clear_physics_relations(this);
@@ -179,11 +179,11 @@ void Depsgraph::clear_id_nodes()
 /* Add new relation between two nodes */
 Relation *Depsgraph::add_new_relation(Node *from, Node *to, const char *description, int flags)
 {
-  Relation *rel = NULL;
+  Relation *rel = nullptr;
   if (flags & RELATION_CHECK_BEFORE_ADD) {
     rel = check_nodes_connected(from, to, description);
   }
-  if (rel != NULL) {
+  if (rel != nullptr) {
     rel->flag |= flags;
     return rel;
   }
@@ -212,12 +212,12 @@ Relation *Depsgraph::check_nodes_connected(const Node *from,
     if (rel->to != to) {
       continue;
     }
-    if (description != NULL && !STREQ(rel->name, description)) {
+    if (description != nullptr && !STREQ(rel->name, description)) {
       continue;
     }
     return rel;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* Low level tagging -------------------------------------- */
@@ -226,7 +226,7 @@ Relation *Depsgraph::check_nodes_connected(const Node *from,
 void Depsgraph::add_entry_tag(OperationNode *node)
 {
   /* Sanity check. */
-  if (node == NULL) {
+  if (node == nullptr) {
     return;
   }
   /* Add to graph-level set of directly modified nodes to start searching
@@ -239,16 +239,16 @@ void Depsgraph::add_entry_tag(OperationNode *node)
 void Depsgraph::clear_all_nodes()
 {
   clear_id_nodes();
-  if (time_source != NULL) {
+  if (time_source != nullptr) {
     OBJECT_GUARDED_DELETE(time_source, TimeSourceNode);
-    time_source = NULL;
+    time_source = nullptr;
   }
 }
 
 ID *Depsgraph::get_cow_id(const ID *id_orig) const
 {
   IDNode *id_node = find_id_node(id_orig);
-  if (id_node == NULL) {
+  if (id_node == nullptr) {
     /* This function is used from places where we expect ID to be either
      * already a copy-on-write version or have a corresponding copy-on-write
      * version.
@@ -288,7 +288,7 @@ Depsgraph *DEG_graph_new(Main *bmain, Scene *scene, ViewLayer *view_layer, eEval
 /* Free graph's contents and graph itself */
 void DEG_graph_free(Depsgraph *graph)
 {
-  if (graph == NULL) {
+  if (graph == nullptr) {
     return;
   }
   using DEG::Depsgraph;
@@ -305,10 +305,10 @@ bool DEG_is_evaluating(struct Depsgraph *depsgraph)
 
 bool DEG_is_active(const struct Depsgraph *depsgraph)
 {
-  if (depsgraph == NULL) {
+  if (depsgraph == nullptr) {
     /* Happens for such cases as work object in what_does_obaction(),
      * and sine render pipeline parts. Shouldn't really be accepting
-     * NULL depsgraph, but is quite hard to get proper one in those
+     * nullptr depsgraph, but is quite hard to get proper one in those
      * cases. */
     return false;
   }

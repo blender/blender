@@ -364,7 +364,7 @@ struct DepsNodeHandle {
                  const char *default_name = "")
       : builder(builder), node(node), default_name(default_name)
   {
-    BLI_assert(node != NULL);
+    BLI_assert(node != nullptr);
   }
 
   DepsgraphRelationBuilder *builder;

@@ -67,8 +67,8 @@ static ePhysicsRelationType modifier_to_relation_type(unsigned int modifier_type
 ListBase *DEG_get_effector_relations(const Depsgraph *graph, Collection *collection)
 {
   const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
-  if (deg_graph->physics_relations[DEG_PHYSICS_EFFECTOR] == NULL) {
-    return NULL;
+  if (deg_graph->physics_relations[DEG_PHYSICS_EFFECTOR] == nullptr) {
+    return nullptr;
   }
 
   ID *collection_orig = DEG_get_original_id(&collection->id);
@@ -82,8 +82,8 @@ ListBase *DEG_get_collision_relations(const Depsgraph *graph,
 {
   const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
   const ePhysicsRelationType type = modifier_to_relation_type(modifier_type);
-  if (deg_graph->physics_relations[type] == NULL) {
-    return NULL;
+  if (deg_graph->physics_relations[type] == nullptr) {
+    return nullptr;
   }
   ID *collection_orig = DEG_get_original_id(&collection->id);
   return (ListBase *)BLI_ghash_lookup(deg_graph->physics_relations[type], collection_orig);
@@ -106,7 +106,7 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
     if (ob1 == object) {
       continue;
     }
-    if (filter_function == NULL ||
+    if (filter_function == nullptr ||
         filter_function(ob1, modifiers_findByType(ob1, (ModifierType)modifier_type))) {
       DEG_add_object_pointcache_relation(handle, ob1, DEG_OB_COMP_TRANSFORM, name);
       DEG_add_object_pointcache_relation(handle, ob1, DEG_OB_COMP_GEOMETRY, name);
@@ -144,7 +144,7 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
     }
 
     /* Smoke flow relations. */
-    if (relation->pd->forcefield == PFIELD_SMOKEFLOW && relation->pd->f_source != NULL) {
+    if (relation->pd->forcefield == PFIELD_SMOKEFLOW && relation->pd->f_source != nullptr) {
       DEG_add_object_pointcache_relation(
           handle, relation->pd->f_source, DEG_OB_COMP_TRANSFORM, "Smoke Force Domain");
       DEG_add_object_pointcache_relation(
@@ -154,7 +154,7 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
     /* Absorption forces need collision relation. */
     if (add_absorption && (relation->pd->flag & PFIELD_VISIBILITY)) {
       DEG_add_collision_relations(
-          handle, object, NULL, eModifierType_Collision, NULL, "Force Absorption");
+          handle, object, nullptr, eModifierType_Collision, nullptr, "Force Absorption");
     }
   }
 }
@@ -166,13 +166,13 @@ namespace DEG {
 ListBase *build_effector_relations(Depsgraph *graph, Collection *collection)
 {
   GHash *hash = graph->physics_relations[DEG_PHYSICS_EFFECTOR];
-  if (hash == NULL) {
+  if (hash == nullptr) {
     graph->physics_relations[DEG_PHYSICS_EFFECTOR] = BLI_ghash_ptr_new(
         "Depsgraph physics relations hash");
     hash = graph->physics_relations[DEG_PHYSICS_EFFECTOR];
   }
   ListBase *relations = reinterpret_cast<ListBase *>(BLI_ghash_lookup(hash, collection));
-  if (relations == NULL) {
+  if (relations == nullptr) {
     ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(graph);
     relations = BKE_effector_relations_create(depsgraph, graph->view_layer, collection);
     BLI_ghash_insert(hash, &collection->id, relations);
@@ -186,12 +186,12 @@ ListBase *build_collision_relations(Depsgraph *graph,
 {
   const ePhysicsRelationType type = modifier_to_relation_type(modifier_type);
   GHash *hash = graph->physics_relations[type];
-  if (hash == NULL) {
+  if (hash == nullptr) {
     graph->physics_relations[type] = BLI_ghash_ptr_new("Depsgraph physics relations hash");
     hash = graph->physics_relations[type];
   }
   ListBase *relations = reinterpret_cast<ListBase *>(BLI_ghash_lookup(hash, collection));
-  if (relations == NULL) {
+  if (relations == nullptr) {
     ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(graph);
     relations = BKE_collision_relations_create(depsgraph, collection, modifier_type);
     BLI_ghash_insert(hash, &collection->id, relations);
@@ -221,17 +221,17 @@ void clear_physics_relations(Depsgraph *graph)
 
       switch (type) {
         case DEG_PHYSICS_EFFECTOR:
-          BLI_ghash_free(graph->physics_relations[i], NULL, free_effector_relations);
+          BLI_ghash_free(graph->physics_relations[i], nullptr, free_effector_relations);
           break;
         case DEG_PHYSICS_COLLISION:
         case DEG_PHYSICS_SMOKE_COLLISION:
         case DEG_PHYSICS_DYNAMIC_BRUSH:
-          BLI_ghash_free(graph->physics_relations[i], NULL, free_collision_relations);
+          BLI_ghash_free(graph->physics_relations[i], nullptr, free_collision_relations);
           break;
         case DEG_PHYSICS_RELATIONS_NUM:
           break;
       }
-      graph->physics_relations[i] = NULL;
+      graph->physics_relations[i] = nullptr;
     }
   }
 }

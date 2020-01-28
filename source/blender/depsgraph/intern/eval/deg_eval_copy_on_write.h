@@ -52,11 +52,11 @@ struct IDNode;
  */
 ID *deg_expand_copy_on_write_datablock(const struct Depsgraph *depsgraph,
                                        const IDNode *id_node,
-                                       DepsgraphNodeBuilder *node_builder = NULL,
+                                       DepsgraphNodeBuilder *node_builder = nullptr,
                                        bool create_placeholders = false);
 ID *deg_expand_copy_on_write_datablock(const struct Depsgraph *depsgraph,
                                        struct ID *id_orig,
-                                       DepsgraphNodeBuilder *node_builder = NULL,
+                                       DepsgraphNodeBuilder *node_builder = nullptr,
                                        bool create_placeholders = false);
 
 /* Makes sure given CoW data-block is brought back to state of the original

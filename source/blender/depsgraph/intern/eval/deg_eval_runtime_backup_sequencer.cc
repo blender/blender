@@ -63,7 +63,7 @@ void SequencerBackup::restore_to_scene(Scene *scene)
   /* Cleanup audio while the scene is still known. */
   for (SequencesBackupMap::value_type &it : sequences_backup) {
     SequenceBackup &sequence_backup = it.second;
-    if (sequence_backup.scene_sound != NULL) {
+    if (sequence_backup.scene_sound != nullptr) {
       BKE_sound_remove_scene_sound(scene, sequence_backup.scene_sound);
     }
   }

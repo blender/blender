@@ -39,7 +39,7 @@ class RuntimeBackup {
  public:
   explicit RuntimeBackup(const Depsgraph *depsgraph);
 
-  /* NOTE: Will reset all runtime fields which has been backed up to NULL. */
+  /* NOTE: Will reset all runtime fields which has been backed up to nullptr. */
   void init_from_id(ID *id);
 
   /* Restore fields to the given ID. */

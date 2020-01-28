@@ -191,11 +191,11 @@ struct Node {
 
   virtual OperationNode *get_entry_operation()
   {
-    return NULL;
+    return nullptr;
   }
   virtual OperationNode *get_exit_operation()
   {
-    return NULL;
+    return nullptr;
   }
 
   virtual NodeClass get_class() const;

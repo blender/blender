@@ -77,10 +77,10 @@ void DepsgraphNodeBuilder::build_layer_collections(ListBase *lb)
 
 void DepsgraphNodeBuilder::build_freestyle_lineset(FreestyleLineSet *fls)
 {
-  if (fls->group != NULL) {
-    build_collection(NULL, fls->group);
+  if (fls->group != nullptr) {
+    build_collection(nullptr, fls->group);
   }
-  if (fls->linestyle != NULL) {
+  if (fls->linestyle != nullptr) {
     build_freestyle_linestyle(fls->linestyle);
   }
 }
@@ -120,19 +120,19 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
     }
   }
   build_layer_collections(&view_layer->layer_collections);
-  if (scene->camera != NULL) {
+  if (scene->camera != nullptr) {
     build_object(-1, scene->camera, DEG_ID_LINKED_INDIRECTLY, true);
   }
   /* Rigidbody. */
-  if (scene->rigidbody_world != NULL) {
+  if (scene->rigidbody_world != nullptr) {
     build_rigidbody(scene);
   }
   /* Scene's animation and drivers. */
-  if (scene->adt != NULL) {
+  if (scene->adt != nullptr) {
     build_animdata(&scene->id);
   }
   /* World. */
-  if (scene->world != NULL) {
+  if (scene->world != nullptr) {
     build_world(scene->world);
   }
   /* Cache file. */
@@ -148,7 +148,7 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
     build_movieclip(clip);
   }
   /* Material override. */
-  if (view_layer->mat_override != NULL) {
+  if (view_layer->mat_override != nullptr) {
     build_material(view_layer->mat_override);
   }
   /* Freestyle linesets. */
@@ -170,7 +170,7 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
   build_scene_compositor(scene);
   build_scene_parameters(scene);
   /* Build all set scenes. */
-  if (scene->set != NULL) {
+  if (scene->set != nullptr) {
     ViewLayer *set_view_layer = BKE_view_layer_default_render(scene->set);
     build_view_layer(scene->set, set_view_layer, DEG_ID_LINKED_VIA_SET);
   }

@@ -87,7 +87,7 @@ void DepsgraphNodeBuilder::build_ik_pose(Object *object, bPoseChannel *pchan, bC
 
   /* Find the chain's root. */
   bPoseChannel *rootchan = BKE_armature_ik_solver_find_root(pchan, data);
-  if (rootchan == NULL) {
+  if (rootchan == nullptr) {
     return;
   }
 
@@ -154,12 +154,12 @@ void DepsgraphNodeBuilder::build_rig(Object *object, bool is_object_visible)
   /* Armature. */
   build_armature(armature);
   /* Rebuild pose if not up to date. */
-  if (object->pose == NULL || (object->pose->flag & POSE_RECALC)) {
-    /* By definition, no need to tag depsgraph as dirty from here, so we can pass NULL bmain. */
-    BKE_pose_rebuild(NULL, object, armature, true);
+  if (object->pose == nullptr || (object->pose->flag & POSE_RECALC)) {
+    /* By definition, no need to tag depsgraph as dirty from here, so we can pass nullptr bmain. */
+    BKE_pose_rebuild(nullptr, object, armature, true);
   }
   /* Speed optimization for animation lookups. */
-  if (object->pose != NULL) {
+  if (object->pose != nullptr) {
     BKE_pose_channels_hash_make(object->pose);
     if (object->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
       BKE_pose_update_constraint_flags(object->pose);
@@ -243,12 +243,12 @@ void DepsgraphNodeBuilder::build_rig(Object *object, bool is_object_visible)
     op_node->set_as_exit();
 
     /* Custom properties. */
-    if (pchan->prop != NULL) {
+    if (pchan->prop != nullptr) {
       add_operation_node(
-          &object->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, NULL, pchan->name);
+          &object->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, nullptr, pchan->name);
     }
     /* Build constraints. */
-    if (pchan->constraints.first != NULL) {
+    if (pchan->constraints.first != nullptr) {
       build_pose_constraints(object, pchan, pchan_index, is_object_visible);
     }
     /**
@@ -277,7 +277,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object, bool is_object_visible)
       }
     }
     /* Custom shape. */
-    if (pchan->custom != NULL) {
+    if (pchan->custom != nullptr) {
       /* TODO(sergey): Use own visibility. */
       build_object(-1, pchan->custom, DEG_ID_LINKED_INDIRECTLY, is_object_visible);
     }
@@ -291,7 +291,7 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
   OperationNode *op_node;
   Object *object_cow = get_cow_datablock(object);
   /* Sanity check. */
-  BLI_assert(object->pose != NULL);
+  BLI_assert(object->pose != nullptr);
   /* Armature. */
   build_armature(armature);
   /* speed optimization for animation lookups */
@@ -322,9 +322,9 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
     op_node->set_as_exit();
 
     /* Custom properties. */
-    if (pchan->prop != NULL) {
+    if (pchan->prop != nullptr) {
       add_operation_node(
-          &object->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, NULL, pchan->name);
+          &object->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, nullptr, pchan->name);
     }
 
     pchan_index++;

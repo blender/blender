@@ -34,14 +34,14 @@ SequenceBackup::SequenceBackup(const Depsgraph * /*depsgraph*/)
 
 void SequenceBackup::reset()
 {
-  scene_sound = NULL;
+  scene_sound = nullptr;
 }
 
 void SequenceBackup::init_from_sequence(Sequence *sequence)
 {
   scene_sound = sequence->scene_sound;
 
-  sequence->scene_sound = NULL;
+  sequence->scene_sound = nullptr;
 }
 
 void SequenceBackup::restore_to_sequence(Sequence *sequence)
@@ -52,7 +52,7 @@ void SequenceBackup::restore_to_sequence(Sequence *sequence)
 
 bool SequenceBackup::isEmpty() const
 {
-  return (scene_sound == NULL);
+  return (scene_sound == nullptr);
 }
 
 }  // namespace DEG
