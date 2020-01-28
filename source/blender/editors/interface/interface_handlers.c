@@ -10599,14 +10599,10 @@ static void ui_region_handler_remove(bContext *C, void *UNUSED(userdata))
  * number sliding, text editing, or when a menu block is open */
 static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSED(userdata))
 {
-  ARegion *ar;
+  ARegion *menu_region = CTX_wm_menu(C);
+  ARegion *ar = menu_region ? menu_region : CTX_wm_region(C);
   uiBut *but;
   int retval = WM_UI_HANDLER_CONTINUE;
-
-  ar = CTX_wm_menu(C);
-  if (!ar) {
-    ar = CTX_wm_region(C);
-  }
 
   but = ui_region_find_active_but(ar);
 
@@ -10670,8 +10666,17 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSE
     ui_blocks_set_tooltips(ar, true);
   }
 
+  if (but && but->active && but->active->menu) {
+    /* Set correct context menu-region. The handling button above breaks if we set the region
+     * first, so only set it for executing the after-funcs. */
+    CTX_wm_menu_set(C, but->active->menu->region);
+  }
+
   /* delayed apply callbacks */
   ui_apply_but_funcs_after(C);
+
+  /* Reset to previous context region. */
+  CTX_wm_menu_set(C, menu_region);
 
   /* Don't handle double-click events,
    * these will be converted into regular clicks which we handle. */

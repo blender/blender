@@ -1067,7 +1067,7 @@ void UI_context_active_but_prop_get_filebrowser(const bContext *C,
                                                 PropertyRNA **r_prop,
                                                 bool *r_is_undo)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *ar = CTX_wm_menu(C) ? CTX_wm_menu(C) : CTX_wm_region(C);
   uiBlock *block;
   uiBut *but, *prevbut = NULL;
 
