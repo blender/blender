@@ -59,6 +59,7 @@ struct GPUBatch **DRW_cache_object_surface_material_get(struct Object *ob,
                                                         int **auto_layer_is_srgb,
                                                         int *auto_layer_count);
 struct GPUBatch *DRW_cache_object_face_wireframe_get(struct Object *ob);
+int DRW_cache_object_material_count_get(struct Object *ob);
 
 /* Empties */
 struct GPUBatch *DRW_cache_plain_axes_get(void);
@@ -137,8 +138,6 @@ struct GPUBatch *DRW_cache_mesh_surface_vertpaint_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_weights_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_mesh_analysis_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_face_wireframe_get(struct Object *ob);
-
-void DRW_cache_mesh_sculpt_coords_ensure(struct Object *ob);
 
 /* Curve */
 struct GPUBatch *DRW_cache_curve_surface_get(struct Object *ob);
