@@ -17,8 +17,8 @@ extern "C" {
 #include <sstream>
 
 #define DO_REGULAR_TESTS 1
-#define DO_RANDOM_TESTS 0
-#define DO_FILE_TESTS 0
+#define DO_RANDOM_TESTS 1
+#define DO_FILE_TESTS 1
 
 static void fill_input_verts(CDT_input *r_input, float (*vcos)[2], int nverts)
 {
@@ -322,15 +322,20 @@ TEST(delaunay, OnePt)
 {
   CDT_input in;
   CDT_result *out;
-  float p[][2] = {{0.0f, 0.0f}};
+  const char *spec = R"(1 0 0
+  0.0 0.0
+  )";
 
-  fill_input_verts(&in, p, 1);
+  fill_input_from_string(&in, spec);
   out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
   EXPECT_EQ(out->verts_len, 1);
   EXPECT_EQ(out->edges_len, 0);
   EXPECT_EQ(out->faces_len, 0);
-  EXPECT_EQ(out->vert_coords[0][0], 0.0f);
-  EXPECT_EQ(out->vert_coords[0][1], 0.0f);
+  if (out->verts_len >= 1) {
+    EXPECT_EQ(out->vert_coords[0][0], 0.0f);
+    EXPECT_EQ(out->vert_coords[0][1], 0.0f);
+  }
+  free_spec_arrays(&in);
   BLI_delaunay_2d_cdt_free(out);
 }
 
@@ -339,9 +344,12 @@ TEST(delaunay, TwoPt)
   CDT_input in;
   CDT_result *out;
   int v0_out, v1_out, e0_out;
-  float p[][2] = {{0.0f, -0.75f}, {0.0f, 0.75f}};
+  const char *spec = R"(2 0 0
+  0.0 -0.75
+  0.0 0.75
+  )";
 
-  fill_input_verts(&in, p, 2);
+  fill_input_from_string(&in, spec);
   out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
   EXPECT_EQ(out->verts_len, 2);
   EXPECT_EQ(out->edges_len, 1);
@@ -351,12 +359,15 @@ TEST(delaunay, TwoPt)
   EXPECT_NE(v0_out, -1);
   EXPECT_NE(v1_out, -1);
   EXPECT_NE(v0_out, v1_out);
-  EXPECT_NEAR(out->vert_coords[v0_out][0], p[0][0], in.epsilon);
-  EXPECT_NEAR(out->vert_coords[v0_out][1], p[0][1], in.epsilon);
-  EXPECT_NEAR(out->vert_coords[v1_out][0], p[1][0], in.epsilon);
-  EXPECT_NEAR(out->vert_coords[v1_out][1], p[1][1], in.epsilon);
+  if (out->verts_len >= 2) {
+    EXPECT_NEAR(out->vert_coords[v0_out][0], 0.0, in.epsilon);
+    EXPECT_NEAR(out->vert_coords[v0_out][1], -0.75, in.epsilon);
+    EXPECT_NEAR(out->vert_coords[v1_out][0], 0.0, in.epsilon);
+    EXPECT_NEAR(out->vert_coords[v1_out][1], 0.75, in.epsilon);
+  }
   e0_out = get_edge(out, v0_out, v1_out);
   EXPECT_EQ(e0_out, 0);
+  free_spec_arrays(&in);
   BLI_delaunay_2d_cdt_free(out);
 }
 
@@ -367,9 +378,13 @@ TEST(delaunay, ThreePt)
   int v0_out, v1_out, v2_out;
   int e0_out, e1_out, e2_out;
   int f0_out;
-  float p[][2] = {{-0.1f, -0.75f}, {0.1f, 0.75f}, {0.5f, 0.5f}};
+  const char *spec = R"(3 0 0
+  -0.1 -0.75
+  0.1 0.75
+  0.5 0.5
+  )";
 
-  fill_input_verts(&in, p, 3);
+  fill_input_from_string(&in, spec);
   out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
   EXPECT_EQ(out->verts_len, 3);
   EXPECT_EQ(out->edges_len, 3);
@@ -386,6 +401,7 @@ TEST(delaunay, ThreePt)
   EXPECT_TRUE(e0_out != e1_out && e0_out != e2_out && e1_out != e2_out);
   f0_out = get_face_tri(out, v0_out, v2_out, v1_out);
   EXPECT_EQ(f0_out, 0);
+  free_spec_arrays(&in);
   BLI_delaunay_2d_cdt_free(out);
 }
 
@@ -394,11 +410,14 @@ TEST(delaunay, ThreePtsMerge)
   CDT_input in;
   CDT_result *out;
   int v0_out, v1_out, v2_out;
-  /* equilateral triangle with side 0.1 */
-  float p[][2] = {{-0.05f, -0.05f}, {0.05f, -0.05f}, {0.0f, 0.03660254f}};
+  const char *spec = R"(3 0 0
+  -0.05 -0.05
+  0.05 -0.05
+  0.0 0.03660254
+  )";
 
   /* First with epsilon such that points are within that distance of each other */
-  fill_input_verts(&in, p, 3);
+  fill_input_from_string(&in, spec);
   in.epsilon = 0.21f;
   out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
   EXPECT_EQ(out->verts_len, 1);
@@ -422,6 +441,7 @@ TEST(delaunay, ThreePtsMerge)
   EXPECT_EQ(out->verts_len, 3);
   EXPECT_EQ(out->edges_len, 3);
   EXPECT_EQ(out->faces_len, 1);
+  free_spec_arrays(&in);
   BLI_delaunay_2d_cdt_free(out);
 }
 
@@ -429,13 +449,19 @@ TEST(delaunay, MixedPts)
 {
   CDT_input in;
   CDT_result *out;
-  float p[][2] = {{0.0f, 0.0f}, {-0.5f, -0.5f}, {-0.4f, -0.25f}, {-0.3f, 0.8}};
-  int e[][2] = {{0, 1}, {1, 2}, {2, 3}};
   int v0_out, v1_out, v2_out, v3_out;
   int e0_out, e1_out, e2_out;
+  const char *spec = R"(4 3 0
+  0.0 0.0
+  -0.5 -0.5
+  -0.4 -0.25
+  -0.3 0.8
+  0 1
+  1 2
+  2 3
+  )";
 
-  fill_input_verts(&in, p, 4);
-  add_input_edges(&in, e, 3);
+  fill_input_from_string(&in, spec);
   out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
   EXPECT_EQ(out->verts_len, 4);
   EXPECT_EQ(out->edges_len, 6);
@@ -451,6 +477,134 @@ TEST(delaunay, MixedPts)
   EXPECT_TRUE(out_edge_has_input_id(out, e0_out, 0));
   EXPECT_TRUE(out_edge_has_input_id(out, e1_out, 1));
   EXPECT_TRUE(out_edge_has_input_id(out, e2_out, 2));
+  free_spec_arrays(&in);
+  BLI_delaunay_2d_cdt_free(out);
+}
+
+TEST(delaunay, Quad0)
+{
+  CDT_input in;
+  CDT_result *out;
+  int e_diag_out;
+  const char *spec = R"(4 0 0
+  0.0 1.0
+  1,0. 0.0
+  2.0 0.1
+  2.25 0.5
+  )";
+  fill_input_from_string(&in, spec);
+  out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
+  EXPECT_EQ(out->verts_len, 4);
+  EXPECT_EQ(out->edges_len, 5);
+  e_diag_out = get_edge(out, 1, 3);
+  EXPECT_NE(e_diag_out, -1);
+  free_spec_arrays(&in);
+  BLI_delaunay_2d_cdt_free(out);
+}
+
+TEST(delaunay, Quad1)
+{
+  CDT_input in;
+  CDT_result *out;
+  int e_diag_out;
+  const char *spec = R"(4 0 0
+  0.0 0.0
+  0.9 -1.0
+  2.0 0.0
+  0.9 3.0
+  )";
+  fill_input_from_string(&in, spec);
+  out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
+  EXPECT_EQ(out->verts_len, 4);
+  EXPECT_EQ(out->edges_len, 5);
+  e_diag_out = get_edge(out, 0, 2);
+  EXPECT_NE(e_diag_out, -1);
+  free_spec_arrays(&in);
+  BLI_delaunay_2d_cdt_free(out);
+}
+
+TEST(delaunay, Quad2)
+{
+  CDT_input in;
+  CDT_result *out;
+  int e_diag_out;
+  const char *spec = R"(4 0 0
+  0.5 0.0
+  0.15 0.2
+  0.3 0.4
+  .45 0.35
+  )";
+  fill_input_from_string(&in, spec);
+  out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
+  EXPECT_EQ(out->verts_len, 4);
+  EXPECT_EQ(out->edges_len, 5);
+  e_diag_out = get_edge(out, 1, 3);
+  EXPECT_NE(e_diag_out, -1);
+  free_spec_arrays(&in);
+  BLI_delaunay_2d_cdt_free(out);
+}
+
+TEST(delaunay, Quad3)
+{
+  CDT_input in;
+  CDT_result *out;
+  int e_diag_out;
+  const char *spec = R"(4 0 0
+  0.5 0.0
+  0.0 0.0
+  0.3 0.4
+  .45 0.35
+  )";
+  fill_input_from_string(&in, spec);
+  out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
+  EXPECT_EQ(out->verts_len, 4);
+  EXPECT_EQ(out->edges_len, 5);
+  e_diag_out = get_edge(out, 0, 2);
+  EXPECT_NE(e_diag_out, -1);
+  free_spec_arrays(&in);
+  BLI_delaunay_2d_cdt_free(out);
+}
+
+TEST(delaunay, Quad4)
+{
+  CDT_input in;
+  CDT_result *out;
+  int e_diag_out;
+  const char *spec = R"(4 0 0
+  1.0 1.0
+  0.0 0.0
+  1.0 -3.0
+  0.0 1.0
+  )";
+  fill_input_from_string(&in, spec);
+  out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
+  EXPECT_EQ(out->verts_len, 4);
+  EXPECT_EQ(out->edges_len, 5);
+  e_diag_out = get_edge(out, 0, 1);
+  EXPECT_NE(e_diag_out, -1);
+  free_spec_arrays(&in);
+  BLI_delaunay_2d_cdt_free(out);
+}
+
+TEST(delaunay, LineInSquare)
+{
+  CDT_input in;
+  CDT_result *out;
+  const char *spec = R"(6 1 1
+  -0.5 -0.5
+  0.5 -0.5
+  -0.5 0.5
+  0.5 0.5
+  -0.25 0.0
+  0.25 0.0
+  4 5
+  0 1 3 2
+  )";
+  fill_input_from_string(&in, spec);
+  out = BLI_delaunay_2d_cdt_calc(&in, CDT_CONSTRAINTS);
+  EXPECT_EQ(out->verts_len, 6);
+  EXPECT_EQ(out->faces_len, 1);
+  free_spec_arrays(&in);
   BLI_delaunay_2d_cdt_free(out);
 }
 
@@ -458,13 +612,18 @@ TEST(delaunay, CrossSegs)
 {
   CDT_input in;
   CDT_result *out;
-  float p[][2] = {{-0.5f, 0.0f}, {0.5f, 0.0f}, {-0.4f, -0.5f}, {0.4f, 0.5f}};
-  int e[][2] = {{0, 1}, {2, 3}};
   int v0_out, v1_out, v2_out, v3_out, v_intersect;
   int i;
+  const char *spec = R"(4 2 0
+  -0.5 0.0
+  0.5 0.0
+  -0.4 -0.5
+  0.4 0.5
+  0 1
+  2 3
+  )";
 
-  fill_input_verts(&in, p, 4);
-  add_input_edges(&in, e, 2);
+  fill_input_from_string(&in, spec);
   out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
   EXPECT_EQ(out->verts_len, 5);
   EXPECT_EQ(out->edges_len, 8);
@@ -482,8 +641,11 @@ TEST(delaunay, CrossSegs)
     }
   }
   EXPECT_NE(v_intersect, -1);
-  EXPECT_NEAR(out->vert_coords[v_intersect][0], 0.0f, in.epsilon);
-  EXPECT_NEAR(out->vert_coords[v_intersect][1], 0.0f, in.epsilon);
+  if (v_intersect != -1) {
+    EXPECT_NEAR(out->vert_coords[v_intersect][0], 0.0f, in.epsilon);
+    EXPECT_NEAR(out->vert_coords[v_intersect][1], 0.0f, in.epsilon);
+  }
+  free_spec_arrays(&in);
   BLI_delaunay_2d_cdt_free(out);
 }
 
@@ -491,23 +653,27 @@ TEST(delaunay, DiamondCross)
 {
   CDT_input in;
   CDT_result *out;
-  float p[][2] = {
-      {0.0f, 0.0f},
-      {1.0f, 3.0f},
-      {2.0f, 0.0f},
-      {1.0f, -3.0f},
-      {0.0f, 0.0f},
-      {1.0f, -3.0f},
-      {1.0f, 3.0f},
-  };
-  int e[][2] = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {5, 6}};
+  const char *spec = R"(7 5 0
+  0.0 0.0
+  1.0 3.0
+  2.0 0.0
+  1.0 -3.0
+  0.0 0.0
+  1.0 -3.0
+  1.0 3.0
+  0 1
+  1 2
+  2 3
+  3 4
+  5 6
+  )";
 
-  fill_input_verts(&in, p, 7);
-  add_input_edges(&in, e, 5);
+  fill_input_from_string(&in, spec);
   out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
   EXPECT_EQ(out->verts_len, 4);
   EXPECT_EQ(out->edges_len, 5);
   EXPECT_EQ(out->faces_len, 2);
+  free_spec_arrays(&in);
   BLI_delaunay_2d_cdt_free(out);
 }
 
@@ -516,27 +682,35 @@ TEST(delaunay, TwoDiamondsCrossed)
   CDT_input in;
   CDT_result *out;
   /* Input has some repetition of vertices, on purpose */
-  float p[][2] = {
-      {0.0f, 0.0f},
-      {1.0f, 2.0f},
-      {2.0f, 0.0f},
-      {1.0f, -2.0f},
-      {0.0f, 0.0f},
-      {3.0f, 0.0f},
-      {4.0f, 2.0f},
-      {5.0f, 0.0f},
-      {4.0f, -2.0f},
-      {3.0f, 0.0f},
-      {0.0f, 0.0f},
-      {5.0f, 0.0f},
-  };
   int e[][2] = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {5, 6}, {6, 7}, {7, 8}, {8, 9}, {10, 11}};
   int v_out[12];
   int e_out[9], e_cross_1, e_cross_2, e_cross_3;
   int i;
+  const char *spec = R"(12 9 0
+  0.0 0.0
+  1.0 2.0
+  2.0 0.0
+  1.0 -2.0
+  0.0 0.0
+  3.0 0.0
+  4.0 2.0
+  5.0 0.0
+  4.0 -2.0
+  3.0 0.0
+  0.0 0.0
+  5.0 0.0
+  0 1
+  1 2
+  2 3
+  3 4
+  5 6
+  6 7
+  7 8
+  8 9
+  10 11
+  )";
 
-  fill_input_verts(&in, p, 12);
-  add_input_edges(&in, e, 9);
+  fill_input_from_string(&in, spec);
   out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
   EXPECT_EQ(out->verts_len, 8);
   EXPECT_EQ(out->edges_len, 15);
@@ -562,6 +736,7 @@ TEST(delaunay, TwoDiamondsCrossed)
   EXPECT_TRUE(out_edge_has_input_id(out, e_cross_1, 8));
   EXPECT_TRUE(out_edge_has_input_id(out, e_cross_2, 8));
   EXPECT_TRUE(out_edge_has_input_id(out, e_cross_3, 8));
+  free_spec_arrays(&in);
   BLI_delaunay_2d_cdt_free(out);
 }
 
@@ -570,53 +745,63 @@ TEST(delaunay, ManyCross)
   CDT_input in;
   CDT_result *out;
   /* Input has some repetition of vertices, on purpose */
-  float p[][2] = {
-      /* upper: verts 0 to 10 */
-      {0.0f, 0.0f},
-      {6.0f, 9.0f},
-      {15.0f, 18.0f},
-      {35.0f, 13.0f},
-      {43.0f, 18.0f},
-      {57.0f, 12.0f},
-      {69.0f, 10.0f},
-      {78.0f, 0.0f},
-      {91.0f, 0.0f},
-      {107.0f, 22.0f},
-      {123.0f, 0.0f},
-      /* lower part 1: verts 11 to 16 */
-      {0.0f, 0.0f},
-      {10.0f, -14.0f},
-      {35.0f, -8.0f},
-      {43.0f, -12.0f},
-      {64.0f, -13.0f},
-      {78.0f, 0.0f},
-      /* lower part 2: verts 17 to 20 */
-      {91.0f, 0.0f},
-      {102.0f, -9.0f},
-      {116.0f, -9.0f},
-      {123.0f, 0.0f},
-      /* cross 1: verts 21, 22 */
-      {43.0f, 18.0f},
-      {43.0f, -12.0f},
-      /* cross 2: verts 23, 24 */
-      {107.0f, 22.0f},
-      {102.0f, -9.0f},
-      /* cross all: verts 25, 26 */
-      {0.0f, 0.0f},
-      {123.0f, 0.0f},
-  };
-  int e[][2] = {
-      {0, 1},   {1, 2},   {2, 3},   {3, 4},   {4, 5},   {5, 6},   {6, 7},
-      {7, 8},   {8, 9},   {9, 10},  {11, 12}, {12, 13}, {13, 14}, {14, 15},
-      {15, 16}, {17, 18}, {18, 19}, {19, 20}, {21, 22}, {23, 24}, {25, 26},
-  };
+  const char *spec = R"(27 21 0
+  0.0 0.0
+  6.0 9.0
+  15.0 18.0
+  35.0 13.0
+  43.0 18.0
+  57.0 12.0
+  69.0 10.0
+  78.0 0.0
+  91.0 0.0
+  107.0 22.0
+  123.0 0.0
+  0.0 0.0
+  10.0 -14.0
+  35.0 -8.0
+  43.0 -12.0
+  64.0 -13.0
+  78.0 0.0
+  91.0 0.0
+  102.0 -9.0
+  116.0 -9.0
+  123.0 0.0
+  43.0 18.0
+  43.0 -12.0
+  107.0 22.0
+  102.0 -9.0
+  0.0 0.0
+  123.0 0.0
+  0 1
+  1 2
+  2 3
+  3 4
+  4 5
+  5 6
+  6 7
+  7 8
+  8 9
+  9 10
+  11 12
+  12 13
+  13 14
+  14 15
+  15 16
+  17 18
+  18 19
+  19 20
+  21 22
+  23 24
+  25 26
+  )";
 
-  fill_input_verts(&in, p, 27);
-  add_input_edges(&in, e, 21);
+  fill_input_from_string(&in, spec);
   out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
   EXPECT_EQ(out->verts_len, 19);
   EXPECT_EQ(out->edges_len, 46);
   EXPECT_EQ(out->faces_len, 28);
+  free_spec_arrays(&in);
   BLI_delaunay_2d_cdt_free(out);
 }
 
@@ -624,16 +809,20 @@ TEST(delaunay, TwoFace)
 {
   CDT_input in;
   CDT_result *out;
-  float p[][2] = {
-      {0.0f, 0.0f}, {1.0f, 0.0f}, {0.5f, 1.0f}, {1.1f, 1.0f}, {1.1f, 0.0f}, {1.6f, 1.0f}};
-  int f[] = {/* 0 */ 0, 1, 2, /* 1 */ 3, 4, 5};
-  int fstart[] = {0, 3};
-  int flen[] = {3, 3};
   int v_out[6], f0_out, f1_out, e0_out, e1_out, e2_out;
   int i;
+  const char *spec = R"(6 0 2
+  0.0 0.0
+  1.0 0.0
+  0.5 1.0
+  1.1 1.0
+  1.1 0.0
+  1.6 1.0
+  0 1 2
+  3 4 5
+  )";
 
-  fill_input_verts(&in, p, 6);
-  add_input_faces(&in, f, fstart, flen, 2);
+  fill_input_from_string(&in, spec);
   out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
   EXPECT_EQ(out->verts_len, 6);
   EXPECT_EQ(out->edges_len, 9);
@@ -657,6 +846,7 @@ TEST(delaunay, TwoFace)
   EXPECT_TRUE(out_edge_has_input_id(out, e2_out, out->face_edge_offset + 2));
   EXPECT_TRUE(out_face_has_input_id(out, f0_out, 0));
   EXPECT_TRUE(out_face_has_input_id(out, f1_out, 1));
+  free_spec_arrays(&in);
   BLI_delaunay_2d_cdt_free(out);
 }
 
@@ -664,28 +854,27 @@ TEST(delaunay, OverlapFaces)
 {
   CDT_input in;
   CDT_result *out;
-  float p[][2] = {
-      {0.0f, 0.0f},
-      {1.0f, 0.0f},
-      {1.0f, 1.0f},
-      {0.0f, 1.0f},
-      {0.5f, 0.5f},
-      {1.5f, 0.5f},
-      {1.5f, 1.3f},
-      {0.5f, 1.3f},
-      {0.1f, 0.1f},
-      {0.3f, 0.1f},
-      {0.3f, 0.3f},
-      {0.1f, 0.3f},
-  };
-  int f[] = {/* 0 */ 0, 1, 2, 3, /* 1 */ 4, 5, 6, 7, /* 2*/ 8, 9, 10, 11};
-  int fstart[] = {0, 4, 8};
-  int flen[] = {4, 4, 4};
   int v_out[12], v_int1, v_int2, f0_out, f1_out, f2_out;
   int i;
+  const char *spec = R"(12 0 3
+  0.0 0.0
+  1.0 0.0
+  1.0 1.0
+  0.0 1.0
+  0.5 0.5
+  1.5 0.5
+  1.5 1.3
+  0.5 1.3
+  0.1 0.1
+  0.3 0.1
+  0.3 0.3
+  0.1 0.3
+  0 1 2 3
+  4 5 6 7
+  8 9 10 11
+  )";
 
-  fill_input_verts(&in, p, 12);
-  add_input_faces(&in, f, fstart, flen, 3);
+  fill_input_from_string(&in, spec);
   out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
   EXPECT_EQ(out->verts_len, 14);
   EXPECT_EQ(out->edges_len, 33);
@@ -696,22 +885,26 @@ TEST(delaunay, OverlapFaces)
   }
   v_int1 = 12;
   v_int2 = 13;
-  if (fabsf(out->vert_coords[v_int1][0] - 1.0f) > in.epsilon) {
-    v_int1 = 13;
-    v_int2 = 12;
+  if (out->verts_len > 13) {
+    if (fabsf(out->vert_coords[v_int1][0] - 1.0f) > in.epsilon) {
+      v_int1 = 13;
+      v_int2 = 12;
+    }
+    EXPECT_NEAR(out->vert_coords[v_int1][0], 1.0, in.epsilon);
+    EXPECT_NEAR(out->vert_coords[v_int1][1], 0.5, in.epsilon);
+    EXPECT_NEAR(out->vert_coords[v_int2][0], 0.5, in.epsilon);
+    EXPECT_NEAR(out->vert_coords[v_int2][1], 1.0, in.epsilon);
   }
-  EXPECT_NEAR(out->vert_coords[v_int1][0], 1.0, in.epsilon);
-  EXPECT_NEAR(out->vert_coords[v_int1][1], 0.5, in.epsilon);
-  EXPECT_NEAR(out->vert_coords[v_int2][0], 0.5, in.epsilon);
-  EXPECT_NEAR(out->vert_coords[v_int2][1], 1.0, in.epsilon);
   f0_out = get_face_tri(out, v_out[1], v_int1, v_out[4]);
   EXPECT_NE(f0_out, -1);
   EXPECT_TRUE(out_face_has_input_id(out, f0_out, 0));
   f1_out = get_face_tri(out, v_out[4], v_int1, v_out[2]);
   EXPECT_NE(f1_out, -1);
   EXPECT_TRUE(out_face_has_input_id(out, f1_out, 0));
-  EXPECT_TRUE(out_face_has_input_id(out, f1_out, 0));
+  EXPECT_TRUE(out_face_has_input_id(out, f1_out, 1));
   f2_out = get_face_tri(out, v_out[8], v_out[9], v_out[10]);
+  if (f2_out == -1)
+    f2_out = get_face_tri(out, v_out[8], v_out[9], v_out[11]);
   EXPECT_NE(f2_out, -1);
   EXPECT_TRUE(out_face_has_input_id(out, f2_out, 0));
   EXPECT_TRUE(out_face_has_input_id(out, f2_out, 2));
@@ -728,6 +921,7 @@ TEST(delaunay, OverlapFaces)
 
   out = BLI_delaunay_2d_cdt_calc(&in, CDT_CONSTRAINTS_VALID_BMESH);
   EXPECT_EQ(out->faces_len, 5);
+  free_spec_arrays(&in);
   BLI_delaunay_2d_cdt_free(out);
 }
 
@@ -735,52 +929,25 @@ TEST(delaunay, TwoSquaresOverlap)
 {
   CDT_input in;
   CDT_result *out;
-  float p[][2] = {
-      {1.0f, -1.0f},
-      {-1.0f, -1.0f},
-      {-1.0f, 1.0f},
-      {1.0f, 1.0f},
-      {-1.5f, 1.5f},
-      {0.5f, 1.5f},
-      {0.5f, -0.5f},
-      {-1.5f, -0.5f},
-  };
-  int f[] = {/* 0 */ 7, 6, 5, 4, /* 1 */ 3, 2, 1, 0};
-  int fstart[] = {0, 4};
-  int flen[] = {4, 4};
+  const char *spec = R"(8 0 2
+  1.0 -1.0
+  -1.0 -1.0
+  -1.0 1.0
+  1.0 1.0
+  -1.5 1.5
+  0.5 1.5
+  0.5 -0.5
+  -1.5 -0.5
+  7 6 5 4
+  3 2 1 0
+  )";
 
-  fill_input_verts(&in, p, 8);
-  add_input_faces(&in, f, fstart, flen, 2);
+  fill_input_from_string(&in, spec);
   out = BLI_delaunay_2d_cdt_calc(&in, CDT_CONSTRAINTS_VALID_BMESH);
   EXPECT_EQ(out->verts_len, 10);
   EXPECT_EQ(out->edges_len, 12);
   EXPECT_EQ(out->faces_len, 3);
-  BLI_delaunay_2d_cdt_free(out);
-}
-
-TEST(delaunay, TriCutoff)
-{
-  CDT_input in;
-  CDT_result *out;
-  float p[][2] = {
-      {-3.53009f, 1.29403f},
-      {-4.11844f, -1.08375f},
-      {1.56893f, 1.29403f},
-      {0.621034f, 0.897734f},
-      {0.549125f, 1.29403f},
-  };
-  int f[] = {0, 2, 1};
-  int fstart[] = {0};
-  int flen[] = {3};
-  int e[][2] = {{3, 4}};
-
-  fill_input_verts(&in, p, 5);
-  add_input_faces(&in, f, fstart, flen, 1);
-  add_input_edges(&in, e, 1);
-  out = BLI_delaunay_2d_cdt_calc(&in, CDT_CONSTRAINTS_VALID_BMESH);
-  EXPECT_EQ(out->verts_len, 5);
-  EXPECT_EQ(out->edges_len, 6);
-  EXPECT_EQ(out->faces_len, 2);
+  free_spec_arrays(&in);
   BLI_delaunay_2d_cdt_free(out);
 }
 
@@ -788,24 +955,23 @@ TEST(delaunay, TriInTri)
 {
   CDT_input in;
   CDT_result *out;
-  float p[][2] = {
-      {-5.65685f, 0.0f},
-      {1.41421f, -5.83095f},
-      {0.0f, 0.0f},
-      {-2.47487f, -1.45774f},
-      {-0.707107f, -2.91548f},
-      {-1.06066f, -1.45774f},
-  };
-  int f[] = {0, 1, 2, 3, 4, 5};
-  int fstart[] = {0, 3};
-  int flen[] = {3, 3};
+  const char *spec = R"(6 0 2
+  -5.65685 0.0
+  1.41421 -5.83095
+  0.0 0.0
+  -2.47487 -1.45774
+  -0.707107 -2.91548
+  -1.06066 -1.45774
+  0 1 2
+  3 4 5
+  )";
 
-  fill_input_verts(&in, p, 6);
-  add_input_faces(&in, f, fstart, flen, 2);
+  fill_input_from_string(&in, spec);
   out = BLI_delaunay_2d_cdt_calc(&in, CDT_CONSTRAINTS_VALID_BMESH);
   EXPECT_EQ(out->verts_len, 6);
   EXPECT_EQ(out->edges_len, 8);
   EXPECT_EQ(out->faces_len, 3);
+  free_spec_arrays(&in);
   BLI_delaunay_2d_cdt_free(out);
 }
 
@@ -831,6 +997,7 @@ TEST(delaunay, DiamondInSquare)
   EXPECT_EQ(out->edges_len, 10);
   EXPECT_EQ(out->faces_len, 3);
   free_spec_arrays(&in);
+  BLI_delaunay_2d_cdt_free(out);
 }
 
 TEST(delaunay, DiamondInSquareWire)
@@ -861,52 +1028,76 @@ TEST(delaunay, DiamondInSquareWire)
   EXPECT_EQ(out->edges_len, 8);
   EXPECT_EQ(out->faces_len, 2);
   free_spec_arrays(&in);
+  BLI_delaunay_2d_cdt_free(out);
 }
 
-TEST(delaunay, ClosePts)
+TEST(delaunay, TinyEdge)
 {
   CDT_input in;
   CDT_result *out;
-  const char *spec = R"(7 2 1
-  0.46876350045204163 0.06087132915854454
-  0.46865847706794739 0.03632887825369835
-  0.49176687002182007 0.03632888197898865
-  0.49166208505630493 0.06087132543325424
-  0.49171400070190430 0.04841339960694313
-  0.49171534180641174 0.04839951172471046
-  0.49045535922050476 0.06087132915854454
-  4 5
-  6 4
-  0 1 2 3
+  /* An intersect with triangle would be at (0.8, 0.2). */
+  const char *spec = R"(4 1 1
+  0.0 0.0
+  1.0 0.0
+  0.5 0.5
+  0.84 0.21
+  0 3
+  0 1 2
   )";
   fill_input_from_string(&in, spec);
-  out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
-  EXPECT_EQ(out->verts_len, 7);
-  EXPECT_EQ(out->edges_len, 12);
-  EXPECT_EQ(out->faces_len, 6);
+  in.epsilon = 0.1;
+  out = BLI_delaunay_2d_cdt_calc(&in, CDT_CONSTRAINTS);
+  EXPECT_EQ(out->verts_len, 4);
+  EXPECT_EQ(out->edges_len, 5);
+  EXPECT_EQ(out->faces_len, 2);
   free_spec_arrays(&in);
+  BLI_delaunay_2d_cdt_free(out);
 }
 
-TEST(delaunay, ClosePts2)
+TEST(delaunay, TinyEdge2)
 {
   CDT_input in;
   CDT_result *out;
+  /* An intersect with triangle would be at (0.8, 0.2). */
   const char *spec = R"(6 1 1
-  -0.17878936231136322 -0.44374340772628784
-  -0.17871695756912231 -0.45601493120193481
-  -0.17544384300708771 -0.45601493120193481
-  -0.17537136375904083 -0.44374340772628784
-  -0.17544738948345184 -0.45602506399154663
-  -0.17872454226016998 -0.45472940802574158
-  4 5
-  0 1 2 3
+  0.0 0.0
+  0.2 -0.2
+  1.0 0.0
+  0.5 0.5
+  0.2 0.4
+  0.84 0.21
+  0 5
+  0 1 2 3 4
   )";
   fill_input_from_string(&in, spec);
-  out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
+  in.epsilon = 0.1;
+  out = BLI_delaunay_2d_cdt_calc(&in, CDT_CONSTRAINTS);
   EXPECT_EQ(out->verts_len, 6);
-  EXPECT_EQ(out->edges_len, 10);
-  EXPECT_EQ(out->faces_len, 5);
+  EXPECT_EQ(out->edges_len, 7);
+  EXPECT_EQ(out->faces_len, 2);
   free_spec_arrays(&in);
+  BLI_delaunay_2d_cdt_free(out);
+}
+
+TEST(delaunay, repeatededge)
+{
+  CDT_input in;
+  CDT_result *out;
+  const char *spec = R"(5 3 0
+  0.0 0.0
+  0.0 1.0
+  1.0 1.1
+  0.5 -0.5
+  0.5 2.5
+  0 1
+  2 3
+  2 3
+  )";
+  fill_input_from_string(&in, spec);
+  out = BLI_delaunay_2d_cdt_calc(&in, CDT_CONSTRAINTS);
+  EXPECT_EQ(out->edges_len, 2);
+  free_spec_arrays(&in);
+  BLI_delaunay_2d_cdt_free(out);
 }
 #endif
 
@@ -915,67 +1106,216 @@ enum {
   RANDOM_PTS,
   RANDOM_SEGS,
   RANDOM_POLY,
+  RANDOM_TILTED_GRID,
+  RANDOM_CIRCLE,
+  RANDOM_TRI_BETWEEN_CIRCLES,
 };
 
-// #define DO_TIMING
-static void rand_delaunay_test(int test_kind,
-                               int max_lg_size,
-                               int reps_per_size,
-                               CDT_output_type otype)
+#  define DO_TIMING
+static void rand_delaunay_test(
+    int test_kind, int max_lg_size, int reps_per_size, double param, CDT_output_type otype)
 {
   CDT_input in;
   CDT_result *out;
-  int lg_size, size, rep, i, npts, nedges;
+  int lg_size, size, rep, i, j, size_max, npts_max, nedges_max, nfaces_max, npts, nedges, nfaces;
+  int ia, ib, ic;
   float(*p)[2];
   int(*e)[2];
+  int *faces, *faces_start_table, *faces_len_table;
+  double start_angle, angle_delta, angle1, angle2, angle3;
+  float orient;
   double tstart;
   double *times;
   RNG *rng;
 
   rng = BLI_rng_new(0);
-  npts = (1 << max_lg_size);
-  p = (float(*)[2])MEM_malloc_arrayN(npts, 2 * sizeof(float), "delaunay");
+  e = NULL;
+  faces = NULL;
+  faces_start_table = NULL;
+  faces_len_table = NULL;
+  nedges_max = 0;
+  nfaces_max = 0;
+
+  /* Set up npts, nedges, nfaces, and allocate needed arrays at max length needed. */
+  size_max = 1 << max_lg_size;
   switch (test_kind) {
     case RANDOM_PTS:
-      nedges = 0;
-      e = NULL;
-      break;
-
     case RANDOM_SEGS:
     case RANDOM_POLY:
-      /* TODO: use faces for poly case, but need to deal with winding parity issue */
-      nedges = npts - 1 + (test_kind == RANDOM_POLY);
-      e = (int(*)[2])MEM_malloc_arrayN(nedges, 2 * sizeof(int), "delaunay");
+      npts_max = size_max;
+      if (test_kind == RANDOM_SEGS) {
+        nedges_max = npts_max - 1;
+      }
+      else if (test_kind == RANDOM_POLY) {
+        nedges_max = npts_max;
+      }
+      break;
+
+    case RANDOM_TILTED_GRID:
+      /* A 'size' x 'size' grid of points, tilted by angle 'param'.
+       * Edges will go from left ends to right ends and tops to bottoms, so 2 x size of them.
+       * Depending on epsilon, the vertical-ish edges may or may not go through the intermediate
+       * vertices, but the horizontal ones always should.
+       */
+      npts_max = size_max * size_max;
+      nedges_max = 2 * size_max;
+      break;
+
+    case RANDOM_CIRCLE:
+      /* A circle with 'size' points, a random start angle, and equal spacing thereafter.
+       * Will be input as one face.
+       */
+      npts_max = size_max;
+      nfaces_max = 1;
+      break;
+
+    case RANDOM_TRI_BETWEEN_CIRCLES:
+      /* A set of 'size' triangles, each has two random points on the unit circle,
+       * and the third point is a random point on the circle with radius 'param'.
+       * Each triangle will be input as a face.
+       */
+      npts_max = 3 * size_max;
+      nfaces_max = size_max;
       break;
 
     default:
       fprintf(stderr, "unknown random delaunay test kind\n");
       return;
   }
-  times = (double *)MEM_malloc_arrayN(max_lg_size + 1, sizeof(double), "delaunay");
+  fprintf(stderr,
+          "size_max=%d, npts_max=%d, nedges_max=%d, nfaces_max=%d\n",
+          size_max,
+          npts_max,
+          nedges_max,
+          nfaces_max); /*DEBUG!!*/
+  p = (float(*)[2])MEM_malloc_arrayN(npts_max, 2 * sizeof(float), __func__);
+  if (nedges_max > 0) {
+    e = (int(*)[2])MEM_malloc_arrayN(nedges_max, 2 * sizeof(int), __func__);
+  }
+  if (nfaces_max > 0) {
+    faces_start_table = (int *)MEM_malloc_arrayN(nfaces_max, sizeof(int), __func__);
+    faces_len_table = (int *)MEM_malloc_arrayN(nfaces_max, sizeof(int), __func__);
+    faces = (int *)MEM_malloc_arrayN(npts_max, sizeof(int), __func__);
+  }
+
+  times = (double *)MEM_malloc_arrayN(max_lg_size + 1, sizeof(double), __func__);
+
+  /* For powers of 2 sizes up to max_lg_size power of 2. */
   for (lg_size = 0; lg_size <= max_lg_size; lg_size++) {
     size = 1 << lg_size;
+    nedges = 0;
+    nfaces = 0;
     times[lg_size] = 0.0;
-    if (size == 1 && test_kind != RANDOM_PTS)
+    if (size == 1 && test_kind != RANDOM_PTS) {
       continue;
+    }
+    /* Do 'rep' repetitions. */
     for (rep = 0; rep < reps_per_size; rep++) {
-      for (i = 0; i < size; i++) {
-        p[i][0] = (float)BLI_rng_get_double(rng); /* will be in range in [0,1) */
-        p[i][1] = (float)BLI_rng_get_double(rng);
-      }
-      fill_input_verts(&in, p, size);
+      /* Make vertices and edges or faces. */
+      switch (test_kind) {
+        case RANDOM_PTS:
+        case RANDOM_SEGS:
+        case RANDOM_POLY:
+          npts = size;
+          if (test_kind == RANDOM_SEGS) {
+            nedges = npts - 1;
+          }
+          else if (test_kind == RANDOM_POLY) {
+            nedges = npts;
+          }
+          for (i = 0; i < size; i++) {
+            p[i][0] = (float)BLI_rng_get_double(rng); /* will be in range in [0,1) */
+            p[i][1] = (float)BLI_rng_get_double(rng);
+            if (test_kind != RANDOM_PTS) {
+              if (i > 0) {
+                e[i - 1][0] = i - 1;
+                e[i - 1][1] = i;
+              }
+            }
+          }
+          if (test_kind == RANDOM_POLY) {
+            e[size - 1][0] = size - 1;
+            e[size - 1][1] = 0;
+          }
+          break;
 
-      if (test_kind == RANDOM_SEGS || test_kind == RANDOM_POLY) {
-        for (i = 0; i < size - 1; i++) {
-          e[i][0] = i;
-          e[i][1] = i + 1;
-        }
-        if (test_kind == RANDOM_POLY) {
-          e[size - 1][0] = size - 1;
-          e[size - 1][1] = 0;
-        }
-        add_input_edges(&in, e, size - 1 + (test_kind == RANDOM_POLY));
+        case RANDOM_TILTED_GRID:
+          /* 'param' is slope of tilt of vertical lines. */
+          npts = size * size;
+          nedges = 2 * size;
+          for (i = 0; i < size; i++) {
+            for (j = 0; j < size; j++) {
+              p[i * size + j][0] = i * param + j;
+              p[i * size + j][1] = i;
+            }
+          }
+          for (i = 0; i < size; i++) {
+            /* Horizontal edges: connect p(i,0) to p(i,size-1). */
+            e[i][0] = i * size;
+            e[i][1] = i * size + size - 1;
+            /* Vertical edges: conntect p(0,i) to p(size-1,i). */
+            e[size + i][0] = i;
+            e[size + i][1] = (size - 1) * size + i;
+          }
+          break;
+
+        case RANDOM_CIRCLE:
+          npts = size;
+          nfaces = 1;
+          faces_start_table[0] = 0;
+          faces_len_table[0] = npts;
+          start_angle = BLI_rng_get_double(rng) * 2.0 * M_PI;
+          angle_delta = 2.0 * M_PI / size;
+          for (i = 0; i < size; i++) {
+            p[i][0] = (float)cos(start_angle + i * angle_delta);
+            p[i][1] = (float)sin(start_angle + i * angle_delta);
+            faces[i] = i;
+          }
+          break;
+
+        case RANDOM_TRI_BETWEEN_CIRCLES:
+          npts = 3 * size;
+          nfaces = size;
+          for (i = 0; i < size; i++) {
+            /* Get three random angles in [0, 2pi). */
+            angle1 = BLI_rng_get_double(rng) * 2.0 * M_PI;
+            angle2 = BLI_rng_get_double(rng) * 2.0 * M_PI;
+            angle3 = BLI_rng_get_double(rng) * 2.0 * M_PI;
+            ia = 3 * i;
+            ib = 3 * i + 1;
+            ic = 3 * i + 2;
+            p[ia][0] = (float)cos(angle1);
+            p[ia][1] = (float)sin(angle1);
+            p[ib][0] = (float)cos(angle2);
+            p[ib][1] = (float)sin(angle2);
+            p[ic][0] = (float)(param * cos(angle3));
+            p[ic][1] = (float)(param * sin(angle3));
+            faces_start_table[i] = 3 * i;
+            faces_len_table[i] = 3;
+            /* Put the coordinates in ccw order. */
+            faces[ia] = ia;
+            orient = (p[ia][0] - p[ic][0]) * (p[ib][1] - p[ic][1]) -
+                     (p[ib][0] - p[ic][0]) * (p[ia][1] - p[ic][1]);
+            if (orient >= 0.0f) {
+              faces[ib] = ib;
+              faces[ic] = ic;
+            }
+            else {
+              faces[ib] = ic;
+              faces[ic] = ib;
+            }
+          }
+          break;
       }
+      fill_input_verts(&in, p, npts);
+      if (nedges > 0) {
+        add_input_edges(&in, e, nedges);
+      }
+      if (nfaces > 0) {
+        add_input_faces(&in, faces, faces_start_table, faces_len_table, nfaces);
+      }
+
+      /* Run the test. */
       tstart = PIL_check_seconds_timer();
       out = BLI_delaunay_2d_cdt_calc(&in, otype);
       EXPECT_NE(out->verts_len, 0);
@@ -990,46 +1330,82 @@ static void rand_delaunay_test(int test_kind,
   }
 #  endif
   MEM_freeN(p);
-  if (e)
+  if (e) {
     MEM_freeN(e);
+  }
+  if (faces) {
+    MEM_freeN(faces);
+    MEM_freeN(faces_start_table);
+    MEM_freeN(faces_len_table);
+  }
   MEM_freeN(times);
   BLI_rng_free(rng);
 }
 
 TEST(delaunay, randompts)
 {
-  rand_delaunay_test(RANDOM_PTS, 7, 100, CDT_FULL);
+  rand_delaunay_test(RANDOM_PTS, 7, 1, 0.0, CDT_FULL);
 }
 
 TEST(delaunay, randomsegs)
 {
-  rand_delaunay_test(RANDOM_SEGS, 7, 100, CDT_FULL);
+  rand_delaunay_test(RANDOM_SEGS, 7, 1, 0.0, CDT_FULL);
 }
 
 TEST(delaunay, randompoly)
 {
-  rand_delaunay_test(RANDOM_POLY, 7, 100, CDT_FULL);
+  rand_delaunay_test(RANDOM_POLY, 7, 1, 0.0, CDT_FULL);
 }
 
 TEST(delaunay, randompoly_inside)
 {
-  rand_delaunay_test(RANDOM_POLY, 7, 1, CDT_INSIDE);
+  rand_delaunay_test(RANDOM_POLY, 7, 1, 0.0, CDT_INSIDE);
 }
 
 TEST(delaunay, randompoly_constraints)
 {
-  rand_delaunay_test(RANDOM_POLY, 7, 1, CDT_CONSTRAINTS);
+  rand_delaunay_test(RANDOM_POLY, 7, 1, 0.0, CDT_CONSTRAINTS);
 }
 
 TEST(delaunay, randompoly_validbmesh)
 {
-  rand_delaunay_test(RANDOM_POLY, 7, 1, CDT_CONSTRAINTS_VALID_BMESH);
+  rand_delaunay_test(RANDOM_POLY, 7, 1, 0.0, CDT_CONSTRAINTS_VALID_BMESH);
+}
+
+TEST(delaunay, grid)
+{
+  rand_delaunay_test(RANDOM_TILTED_GRID, 6, 1, 0.0, CDT_FULL);
+}
+
+TEST(delaunay, tilted_grid_a)
+{
+  rand_delaunay_test(RANDOM_TILTED_GRID, 6, 1, 1.0, CDT_FULL);
+}
+
+TEST(delaunay, tilted_grid_b)
+{
+  rand_delaunay_test(RANDOM_TILTED_GRID, 6, 1, 0.01, CDT_FULL);
+}
+
+TEST(delaunay, randomcircle)
+{
+  rand_delaunay_test(RANDOM_CIRCLE, 7, 1, 0.0, CDT_FULL);
+}
+
+TEST(delaunay, random_tris_circle)
+{
+  rand_delaunay_test(RANDOM_TRI_BETWEEN_CIRCLES, 6, 1, 0.25, CDT_FULL);
+}
+
+TEST(delaunay, random_tris_circle_b)
+{
+  rand_delaunay_test(RANDOM_TRI_BETWEEN_CIRCLES, 6, 1, 1e-4, CDT_FULL);
 }
 #endif
 
 #if DO_FILE_TESTS
 /* For timing large examples of points only.
- * The given file should have one point per line, as a space-separated pair of floats.
+ * See fill_input_from_file for file format.
  */
 static void points_from_file_test(const char *filename)
 {
@@ -1045,17 +1421,19 @@ static void points_from_file_test(const char *filename)
   free_spec_arrays(&in);
 }
 
+#  if 0
 TEST(delaunay, debug)
 {
   CDT_input in;
   CDT_result *out;
   fill_input_from_file(&in, "/tmp/cdtinput.txt");
-  out = BLI_delaunay_2d_cdt_calc(&in, CDT_FULL);
+  out = BLI_delaunay_2d_cdt_calc(&in, CDT_CONSTRAINTS);
   BLI_delaunay_2d_cdt_free(out);
   free_spec_arrays(&in);
 }
+#  endif
 
-#  if 0
+#  if 1
 #    define POINTFILEROOT "/tmp/"
 
 TEST(delaunay, terrain1)

@@ -17,8 +17,7 @@
 /** \file
  * \ingroup bli
  *
- * Dynamic Constrained Delaunay Triangulation.
- * See paper by Marcelo Kallmann, Hanspeter Bieri, and Daniel Thalmann
+ * Constrained 2d Delaunay Triangulation.
  */
 
 #include "MEM_guardedalloc.h"
@@ -29,12 +28,11 @@
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
-#include "BLI_rand.h"
 
 #include "BLI_delaunay_2d.h"
 
 /* Uncomment this define to get helpful debugging functions etc. defined. */
-// #define DEBUG_CDT
+#define DEBUG_CDT
 
 struct CDTEdge;
 struct CDTFace;
@@ -53,20 +51,21 @@ typedef struct CDTVert {
   SymEdge *symedge;    /* Some edge attached to it. */
   LinkNode *input_ids; /* List of corresponding vertex input ids. */
   int index;           /* Index into array that cdt keeps. */
-  int visit_index;     /* Which visit epoch has this been seen. */
+  int merge_to_index;  /* Index of a CDTVert that this has merged to. -1 if no merge. */
 } CDTVert;
 
 typedef struct CDTEdge {
   LinkNode *input_ids; /* List of input edge ids that this is part of. */
   SymEdge symedges[2]; /* The directed edges for this edge. */
+  bool in_queue;       /* Used in flipping algorithm. */
 } CDTEdge;
 
 typedef struct CDTFace {
-  double centroid[2];  /* Average of vertex coords. */
   SymEdge *symedge;    /* A symedge in face; only used during output. */
   LinkNode *input_ids; /* List of input face ids that this is part of. */
   int visit_index;     /* Which visit epoch has this been seen. */
   bool deleted;        /* Marks this face no longer used. */
+  bool in_queue;       /* Used in remove_small_features algorithm. */
 } CDTFace;
 
 typedef struct CDT_state {
@@ -76,6 +75,7 @@ typedef struct CDT_state {
   CDTVert **vert_array;
   int vert_array_len;
   int vert_array_len_alloc;
+  int input_vert_tot;
   double minx;
   double miny;
   double maxx;
@@ -83,18 +83,12 @@ typedef struct CDT_state {
   double margin;
   int visit_count;
   int face_edge_offset;
-  RNG *rng;
   MemArena *arena;
   BLI_mempool *listpool;
   double epsilon;
+  double epsilon_squared;
   bool output_prepared;
 } CDT_state;
-
-typedef struct LocateResult {
-  enum { OnVert, OnEdge, InFace } loc_kind;
-  SymEdge *se;
-  double edge_lambda;
-} LocateResult;
 
 #define DLNY_ARENASIZE 1 << 14
 
@@ -105,60 +99,57 @@ typedef struct LocateResult {
 #define DLNY_MARGIN_PCT 2000.0
 
 #ifdef DEBUG_CDT
+#  ifdef __GNUC__
+#    define ATTU __attribute__((unused))
+#  else
+#    define ATTU
+#  endif
 #  define F2(p) p[0], p[1]
-static void dump_se(const SymEdge *se, const char *lab);
-static void dump_v(const CDTVert *v, const char *lab);
-static void dump_se_cycle(const SymEdge *se, const char *lab, const int limit);
-static void dump_id_list(const LinkNode *id_list, const char *lab);
-static void dump_cdt(const CDT_state *cdt, const char *lab);
-static void dump_cdt_vert_neighborhood(CDT_state *cdt, int v, int maxdist, const char *lab);
-static void cdt_draw(CDT_state *cdt, const char *lab);
-static void write_cdt_input_to_file(const CDT_input *inp);
-static void validate_face_centroid(SymEdge *se);
-static void validate_cdt(CDT_state *cdt, bool check_all_tris);
+#  define F3(p) p[0], p[1], p[2]
+ATTU static void dump_se(const SymEdge *se, const char *lab);
+ATTU static void dump_v(const CDTVert *v, const char *lab);
+ATTU static void dump_se_cycle(const SymEdge *se, const char *lab, const int limit);
+ATTU static void dump_id_list(const LinkNode *id_list, const char *lab);
+ATTU static void dump_cdt(const CDT_state *cdt, const char *lab);
+ATTU static void dump_cdt_vert_neighborhood(CDT_state *cdt, int v, int maxdist, const char *lab);
+ATTU static void cdt_draw(CDT_state *cdt, const char *lab);
+ATTU static void cdt_draw_vertex_region(CDT_state *cdt, int v, double dist, const char *lab);
+ATTU static void write_cdt_input_to_file(const CDT_input *inp);
+ATTU static void validate_cdt(CDT_state *cdt,
+                              bool check_all_tris,
+                              bool check_delaunay,
+                              bool check_visibility);
 #endif
 
-/**
- * Return 1 if a,b,c forms CCW angle, -1 if a CW angle, 0 if straight.
- * For straight test, allow b to be withing eps of line.
- */
-static int CCW_test(const double a[2], const double b[2], const double c[2], const double eps)
-{
-  double det;
-  double ab;
+static void exactinit(void);
+static double orient2d(const double *pa, const double *pb, const double *pc);
+static double incircle(const double *pa, const double *pb, const double *pc, const double *pd);
 
-  /* This is twice the signed area of triangle abc. */
-  det = (b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1]);
-  if (eps == 0.0) {
-    if (det > 0) {
-      return 1;
-    }
-    else if (det < 0) {
-      return -1;
-    }
-    else {
-      return 0;
-    }
-  }
-  ab = len_v2v2_db(a, b);
-  if (ab <= eps) {
-    return 0;
-  }
-  det /= ab;
-  if (det > eps) {
-    return 1;
-  }
-  else if (det < -eps) {
-    return -1;
-  }
-  return 0;
+/** Return other #SymEdge for same #CDTEdge as se. */
+BLI_INLINE SymEdge *sym(const SymEdge *se)
+{
+  return se->next->rot;
 }
 
-/** return true if a -- b -- c are in that order, assuming they are on a straight line according to
- * CCW_test. */
-static bool in_line(const double a[2], const double b[2], const double c[2], double eps)
+/** Return SymEdge whose next is se. */
+BLI_INLINE SymEdge *prev(const SymEdge *se)
 {
-  return fabs(len_v2v2_db(a, c) - (len_v2v2_db(a, b) + len_v2v2_db(b, c))) <= eps;
+  return se->rot->next->rot;
+}
+
+/** Return true if a -- b -- c are in that order, assuming they are on a straight line according to
+ * orient2d and we know the order is either abc or bac.
+ * This means ab . ac and bc . ac must both be non-negative.  */
+static bool in_line(const double a[2], const double b[2], const double c[2])
+{
+  double ab[2], bc[2], ac[2];
+  sub_v2_v2v2_db(ab, b, a);
+  sub_v2_v2v2_db(bc, c, b);
+  sub_v2_v2v2_db(ac, c, a);
+  if (dot_v2v2_db(ab, ac) < 0.0) {
+    return false;
+  }
+  return dot_v2v2_db(bc, ac) >= 0.0;
 }
 
 #ifndef NDEBUG
@@ -175,21 +166,6 @@ static bool reachable(SymEdge *s1, SymEdge *s2, int limit)
   return false;
 }
 #endif
-
-static void calc_face_centroid(SymEdge *se)
-{
-  SymEdge *senext;
-  double *centroidp = se->face->centroid;
-  int count;
-  copy_v2_v2_db(centroidp, se->vert->co);
-  count = 1;
-  for (senext = se->next; senext != se; senext = senext->next) {
-    add_v2_v2_db(centroidp, senext->vert->co);
-    count++;
-  }
-  centroidp[0] /= count;
-  centroidp[1] /= count;
-}
 
 /** Using array to store these instead of linked list so can make a random selection from them. */
 static CDTVert *add_cdtvert(CDT_state *cdt, double x, double y)
@@ -208,7 +184,7 @@ static CDTVert *add_cdtvert(CDT_state *cdt, double x, double y)
   }
   BLI_assert(cdt->vert_array_len < cdt->vert_array_len_alloc);
   v->index = cdt->vert_array_len;
-  v->visit_index = 0;
+  v->merge_to_index = -1;
   cdt->vert_array[cdt->vert_array_len++] = v;
   return v;
 }
@@ -220,6 +196,7 @@ static CDTEdge *add_cdtedge(
   SymEdge *se = &e->symedges[0];
   SymEdge *sesym = &e->symedges[1];
   e->input_ids = NULL;
+  e->in_queue = false;
   BLI_linklist_prepend_arena(&cdt->edges, (void *)e, cdt->arena);
   se->edge = sesym->edge = e;
   se->face = fleft;
@@ -243,6 +220,7 @@ static CDTFace *add_cdtface(CDT_state *cdt)
   f->deleted = false;
   f->symedge = NULL;
   f->input_ids = NULL;
+  f->in_queue = false;
   BLI_linklist_prepend_arena(&cdt->faces, (void *)f, cdt->arena);
   return f;
 }
@@ -290,37 +268,24 @@ static void add_list_to_input_ids(LinkNode **dst, const LinkNode *src, CDT_state
   }
 }
 
-/** Return other #SymEdge for same #CDTEdge as se. */
-static inline SymEdge *sym(const SymEdge *se)
-{
-  return se->next->rot;
-}
-
-/** Return SymEdge whose next is se. */
-static inline SymEdge *prev(const SymEdge *se)
-{
-  return se->rot->next->rot;
-}
-
-static inline bool is_border_edge(const CDTEdge *e, const CDT_state *cdt)
+BLI_INLINE bool is_border_edge(const CDTEdge *e, const CDT_state *cdt)
 {
   return e->symedges[0].face == cdt->outer_face || e->symedges[1].face == cdt->outer_face;
 }
 
-/** Does one edge of this edge touch the frame? */
-static bool edge_touches_frame(const CDTEdge *e)
-{
-  return e->symedges[0].vert->index < 4 || e->symedges[1].vert->index < 4;
-}
-
-static inline bool is_constrained_edge(const CDTEdge *e)
+BLI_INLINE bool is_constrained_edge(const CDTEdge *e)
 {
   return e->input_ids != NULL;
 }
 
-static inline bool is_deleted_edge(const CDTEdge *e)
+BLI_INLINE bool is_deleted_edge(const CDTEdge *e)
 {
   return e->symedges[0].next == NULL;
+}
+
+BLI_INLINE bool is_original_vert(const CDTVert *v, CDT_state *cdt)
+{
+  return (v->index < cdt->input_vert_tot);
 }
 
 /** Is there already an edge between a and b? */
@@ -357,7 +322,6 @@ static bool vert_touches_face(const CDTVert *v, const CDTFace *f)
  * Add an edge from s1->v to s2->v, splitting the face in two.
  * The original face will continue to be associated with the subface
  * that has s1, and a new face will be made for s2's new face.
- * The centroids of both faces are recalculated.
  * Return the new diagonal's CDTEdge *.
  */
 static CDTEdge *add_diagonal(CDT_state *cdt, SymEdge *s1, SymEdge *s2)
@@ -366,8 +330,8 @@ static CDTEdge *add_diagonal(CDT_state *cdt, SymEdge *s1, SymEdge *s2)
   CDTFace *fold, *fnew;
   SymEdge *sdiag, *sdiagsym;
   SymEdge *s1prev, *s1prevsym, *s2prev, *s2prevsym, *se;
-  BLI_assert(reachable(s1, s2, 2000));
-  BLI_assert(reachable(s2, s1, 2000));
+  BLI_assert(reachable(s1, s2, 20000));
+  BLI_assert(reachable(s2, s1, 20000));
   fold = s1->face;
   fnew = add_cdtface(cdt);
   s1prev = prev(s1);
@@ -392,9 +356,58 @@ static CDTEdge *add_diagonal(CDT_state *cdt, SymEdge *s1, SymEdge *s2)
     se->face = fnew;
   }
   add_list_to_input_ids(&fnew->input_ids, fold->input_ids, cdt);
-  calc_face_centroid(sdiag);
-  calc_face_centroid(sdiagsym);
   return ediag;
+}
+
+/**
+ * Add a dangling edge from an isolated v to the vert at se in the same face as se->face.
+ */
+static CDTEdge *add_vert_to_symedge_edge(CDT_state *cdt, CDTVert *v, SymEdge *se)
+{
+  CDTEdge *e;
+  SymEdge *se_rot, *se_rotsym, *new_se, *new_se_sym;
+
+  se_rot = se->rot;
+  se_rotsym = sym(se_rot);
+  e = add_cdtedge(cdt, v, se->vert, se->face, se->face);
+  new_se = &e->symedges[0];
+  new_se_sym = &e->symedges[1];
+  new_se->next = se;
+  new_se_sym->next = new_se;
+  new_se->rot = new_se;
+  new_se_sym->rot = se_rot;
+  se->rot = new_se_sym;
+  se_rotsym->next = new_se_sym;
+  return e;
+}
+
+/* Connect the verts of se1 and se2, assuming that currently those two SymEdges are on
+ * the outer boundary (have face == outer_face) of two components that are isolated from
+ * each other.
+ */
+static CDTEdge *connect_separate_parts(CDT_state *cdt, SymEdge *se1, SymEdge *se2)
+{
+  CDTEdge *e;
+  SymEdge *se1_rot, *se1_rotsym, *se2_rot, *se2_rotsym, *new_se, *new_se_sym;
+  ;
+
+  BLI_assert(se1->face == cdt->outer_face && se2->face == cdt->outer_face);
+  se1_rot = se1->rot;
+  se1_rotsym = sym(se1_rot);
+  se2_rot = se2->rot;
+  se2_rotsym = sym(se2_rot);
+  e = add_cdtedge(cdt, se1->vert, se2->vert, cdt->outer_face, cdt->outer_face);
+  new_se = &e->symedges[0];
+  new_se_sym = &e->symedges[1];
+  new_se->next = se2;
+  new_se_sym->next = se1;
+  new_se->rot = se1_rot;
+  new_se_sym->rot = se2_rot;
+  se1->rot = new_se;
+  se2->rot = new_se_sym;
+  se1_rotsym->next = new_se;
+  se2_rotsym->next = new_se_sym;
+  return e;
 }
 
 /**
@@ -435,14 +448,12 @@ static CDTEdge *split_edge(CDT_state *cdt, SymEdge *se, double lambda)
     newsesym->vert->symedge = newsesym;
   }
   add_list_to_input_ids(&e->input_ids, se->edge->input_ids, cdt);
-  calc_face_centroid(se);
-  calc_face_centroid(sesym);
   return e;
 }
 
 /**
  * Delete an edge from the structure. The new combined face on either side of
- * the deleted edge will be the one that was e's face; the centroid is updated.
+ * the deleted edge will be the one that was e's face.
  * There will be now an unused face, marked by setting its deleted flag,
  * and an unused #CDTEdge, marked by setting the next and rot pointers of
  * its SymEdges to NULL.
@@ -519,820 +530,486 @@ static void delete_edge(CDT_state *cdt, SymEdge *e)
       cdt->outer_face = aface;
     }
   }
-  if (aface != cdt->outer_face) {
-    calc_face_centroid(f);
-  }
 }
 
-/**
- * The initial structure will be the rectangle with opposite corners (minx,miny)
- * and (maxx,maxy), and a diagonal going between those two corners.
- * We keep track of the outer face (surrounding the entire structure; its boundary
- * is the clockwise traversal of the bounding box rectangle initially) in cdt->outer_face.
- *
- * The vertices are kept as pointers in an array (which may need to be reallocated from
- * time to time); the edges and faces are kept in lists. Sometimes edges and faces are deleted,
- * marked by setting all pointers to NULL (for edges), or setting the deleted flag to true (for
- * faces).
- *
- * A #MemArena is allocated to do all allocations from except for link list nodes; a listpool
- * is created for link list node allocations.
- *
- * The epsilon argument is stored and used in "near enough" distance calculations.
- *
- * When done, caller must call BLI_constrained_delaunay_free to free
- * the memory used by the returned #CDT_state.
- */
-static CDT_state *cdt_init(double minx, double maxx, double miny, double maxy, double epsilon)
+static CDT_state *new_cdt_init(const CDT_input *in)
 {
-  double x0, x1, y0, y1;
-  double margin;
-  CDTVert *v[4];
-  CDTEdge *e[4];
-  CDTFace *f0, *fouter;
-  int i, inext, iprev;
+  int i;
   MemArena *arena = BLI_memarena_new(DLNY_ARENASIZE, __func__);
-  CDT_state *cdt = BLI_memarena_alloc(arena, sizeof(CDT_state));
-  cdt->edges = NULL;
-  cdt->faces = NULL;
-  cdt->vert_array_len = 0;
-  cdt->vert_array_len_alloc = 32;
+  CDT_state *cdt = BLI_memarena_calloc(arena, sizeof(CDT_state));
+
+  cdt->epsilon = (double)in->epsilon;
+  cdt->epsilon_squared = cdt->epsilon * cdt->epsilon;
+  cdt->arena = arena;
+  cdt->input_vert_tot = in->verts_len;
+  cdt->vert_array_len_alloc = 2 * in->verts_len;
   cdt->vert_array = BLI_memarena_alloc(arena,
                                        cdt->vert_array_len_alloc * sizeof(*cdt->vert_array));
-  cdt->minx = minx;
-  cdt->miny = miny;
-  cdt->maxx = maxx;
-  cdt->maxy = maxy;
-  cdt->arena = arena;
-  cdt->listpool = BLI_mempool_create(sizeof(LinkNode), 128, 128, 0);
-  cdt->rng = BLI_rng_new(0);
-  cdt->epsilon = epsilon;
+  cdt->listpool = BLI_mempool_create(
+      sizeof(LinkNode), 128 + 4 * in->verts_len, 128 + in->verts_len, 0);
 
-  /* Expand bounding box a bit and make initial CDT from it. */
-  margin = DLNY_MARGIN_PCT * max_dd(maxx - minx, maxy - miny) / 100.0;
-  if (margin <= 0.0) {
-    margin = 1.0;
+  for (i = 0; i < in->verts_len; i++) {
+    add_cdtvert(cdt, (double)(in->vert_coords[i][0]), (double)(in->vert_coords[i][1]));
   }
-  if (margin < epsilon) {
-    margin = 4 * epsilon; /* Make sure constraint verts don't merge with border verts. */
-  }
-  cdt->margin = margin;
-  x0 = minx - margin;
-  y0 = miny - margin;
-  x1 = maxx + margin;
-  y1 = maxy + margin;
-
-  /* Make a quad, then split it with a diagonal. */
-  v[0] = add_cdtvert(cdt, x0, y0);
-  v[1] = add_cdtvert(cdt, x1, y0);
-  v[2] = add_cdtvert(cdt, x1, y1);
-  v[3] = add_cdtvert(cdt, x0, y1);
-  cdt->outer_face = fouter = add_cdtface(cdt);
-  f0 = add_cdtface(cdt);
-  for (i = 0; i < 4; i++) {
-    e[i] = add_cdtedge(cdt, v[i], v[(i + 1) % 4], f0, fouter);
-  }
-  for (i = 0; i < 4; i++) {
-    inext = (i + 1) % 4;
-    iprev = (i + 3) % 4;
-    e[i]->symedges[0].next = &e[inext]->symedges[0];
-    e[inext]->symedges[1].next = &e[i]->symedges[1];
-    e[i]->symedges[0].rot = &e[iprev]->symedges[1];
-    e[iprev]->symedges[1].rot = &e[i]->symedges[0];
-  }
-  calc_face_centroid(&e[0]->symedges[0]);
-  add_diagonal(cdt, &e[0]->symedges[0], &e[2]->symedges[0]);
-  fouter->centroid[0] = fouter->centroid[1] = 0.0;
-
-  cdt->visit_count = 0;
-  cdt->output_prepared = false;
-  cdt->face_edge_offset = 0;
+  cdt->outer_face = add_cdtface(cdt);
   return cdt;
 }
 
-static void cdt_free(CDT_state *cdt)
+static void new_cdt_free(CDT_state *cdt)
 {
-  BLI_rng_free(cdt->rng);
   BLI_mempool_destroy(cdt->listpool);
   BLI_memarena_free(cdt->arena);
 }
 
-static bool locate_point_final(const double p[2],
-                               SymEdge *tri_se,
-                               bool try_neighbors,
-                               const double epsilon,
-                               LocateResult *r_lr)
-{
-  /* 'p' should be in or on our just outside of 'cur_tri'. */
-  double dist_inside[3];
-  int i;
-  SymEdge *se;
-  const double *a, *b;
-  double lambda, close[2];
-  bool done = false;
-#ifdef DEBUG_CDT
-  int dbg_level = 0;
+typedef struct SiteInfo {
+  CDTVert *v;
+  int orig_index;
+} SiteInfo;
 
-  if (dbg_level > 0) {
-    fprintf(stderr, "locate_point_final %d\n", try_neighbors);
-    dump_se(tri_se, "tri_se");
-    fprintf(stderr, "\n");
+static int site_lexicographic_cmp(const void *a, const void *b)
+{
+  const SiteInfo *s1 = a;
+  const SiteInfo *s2 = b;
+  const double *co1 = s1->v->co;
+  const double *co2 = s2->v->co;
+
+  if (co1[0] < co2[0]) {
+    return -1;
   }
-#endif
-  se = tri_se;
-  i = 0;
-  do {
-#ifdef DEBUG_CDT
-    if (dbg_level > 1) {
-      fprintf(stderr, "%d: ", i);
-      dump_se(se, "search se");
-    }
-#endif
-    a = se->vert->co;
-    b = se->next->vert->co;
-    lambda = closest_to_line_v2_db(close, p, a, b);
-    double len_close_p = len_v2v2_db(close, p);
-    if (len_close_p < epsilon) {
-      if (len_v2v2_db(p, a) < epsilon) {
-#ifdef DEBUG_CDT
-        if (dbg_level > 0) {
-          fprintf(stderr, "OnVert case a (%.2f,%.2f)\n", F2(a));
-        }
-#endif
-        r_lr->loc_kind = OnVert;
-        r_lr->se = se;
-        r_lr->edge_lambda = 0.0;
-        done = true;
-      }
-      else if (len_v2v2_db(p, b) < epsilon) {
-#ifdef DEBUG_CDT
-        if (dbg_level > 0) {
-          fprintf(stderr, "OnVert case b (%.2f,%.2f)\n", F2(b));
-        }
-#endif
-        r_lr->loc_kind = OnVert;
-        r_lr->se = se->next;
-        r_lr->edge_lambda = 0.0;
-        done = true;
-      }
-      else if (lambda > 0.0 && lambda < 1.0) {
-#ifdef DEBUG_CDT
-        if (dbg_level > 0) {
-          fprintf(stderr, "OnEdge case, lambda=%f\n", lambda);
-          dump_se(se, "se");
-        }
-#endif
-        r_lr->loc_kind = OnEdge;
-        r_lr->se = se;
-        r_lr->edge_lambda = lambda;
-        done = true;
-      }
-    }
-    else {
-      dist_inside[i] = len_close_p;
-      dist_inside[i] = CCW_test(a, b, p, epsilon) >= 0 ? len_close_p : -len_close_p;
-    }
-    i++;
-    se = se->next;
-  } while (se != tri_se && !done);
-  if (!done) {
-#ifdef DEBUG_CDT
-    if (dbg_level > 1) {
-      fprintf(stderr,
-              "not done, dist_inside=%f %f %f\n",
-              dist_inside[0],
-              dist_inside[1],
-              dist_inside[2]);
-    }
-#endif
-    if (dist_inside[0] >= 0.0 && dist_inside[1] >= 0.0 && dist_inside[2] >= 0.0) {
-#ifdef DEBUG_CDT
-      if (dbg_level > 0) {
-        fprintf(stderr, "InFace case\n");
-        dump_se_cycle(tri_se, "tri", 10);
-      }
-#endif
-      r_lr->loc_kind = InFace;
-      r_lr->se = tri_se;
-      r_lr->edge_lambda = 0.0;
-      done = true;
-    }
-    else if (try_neighbors) {
-      for (se = tri_se->next; se != tri_se; se = se->next) {
-        if (locate_point_final(p, se, false, epsilon, r_lr)) {
-          done = true;
-          break;
-        }
-      }
-      if (!done) {
-        /* Shouldn't happen desperation mode: pick something. */
-        se = NULL;
-        if (dist_inside[0] > 0) {
-          se = tri_se;
-        }
-        if (dist_inside[1] > 0 && (se == NULL || dist_inside[1] < dist_inside[i])) {
-          se = tri_se->next;
-        }
-        if (se == NULL) {
-          se = tri_se->next->next;
-        }
-        a = se->vert->co;
-        b = se->next->vert->co;
-        lambda = closest_to_line_v2_db(close, p, a, b);
-        if (lambda <= 0.0) {
-          r_lr->loc_kind = OnVert;
-          r_lr->se = se;
-          r_lr->edge_lambda = 0.0;
-        }
-        else if (lambda >= 1.0) {
-          r_lr->loc_kind = OnVert;
-          r_lr->se = se->next;
-          r_lr->edge_lambda = 0.0;
-        }
-        else {
-          r_lr->loc_kind = OnEdge;
-          r_lr->se = se->next;
-          r_lr->edge_lambda = lambda;
-        }
-#ifdef DEBUG_CDT
-        if (dbg_level > 0) {
-          fprintf(
-              stderr, "desperation case kind=%u lambda=%f\n", r_lr->loc_kind, r_lr->edge_lambda);
-          dump_se(r_lr->se, "se");
-          BLI_assert(0); /* While developing, catch these "should not happens" */
-        }
-#endif
-        fprintf(stderr, "desperation! point=(%g,%g)\n", p[0], p[1]);  // TODO: remove
-        return true;
-      }
-    }
+  else if (co1[0] > co2[0]) {
+    return 1;
   }
-  return done;
+  else if (co1[1] < co2[1]) {
+    return -1;
+  }
+  else if (co1[1] > co2[1]) {
+    return 1;
+  }
+  else if (s1->orig_index < s2->orig_index) {
+    return -1;
+  }
+  else if (s1->orig_index > s2->orig_index) {
+    return 1;
+  }
+  return 0;
 }
 
-static LocateResult locate_point(CDT_state *cdt, const double p[2])
+BLI_INLINE bool vert_left_of_symedge(CDTVert *v, SymEdge *se)
 {
-  LocateResult lr;
-  SymEdge *cur_se, *next_se, *next_se_sym;
-  CDTFace *cur_tri;
-  bool done;
-  int sample_n, i, k;
-  CDTVert *v, *best_start_vert;
-  double dist_squared, best_dist_squared;
-  double *a, *b, *c;
-  const double epsilon = cdt->epsilon;
-  int visit = ++cdt->visit_count;
-  int loop_count = 0;
+  return orient2d(v->co, se->vert->co, se->next->vert->co) > 0.0;
+}
+
+BLI_INLINE bool vert_right_of_symedge(CDTVert *v, SymEdge *se)
+{
+  return orient2d(v->co, se->next->vert->co, se->vert->co) > 0.0;
+}
+
+/* Is se above basel? */
+BLI_INLINE bool dc_tri_valid(SymEdge *se, SymEdge *basel, SymEdge *basel_sym)
+{
+  return orient2d(se->next->vert->co, basel_sym->vert->co, basel->vert->co) > 0.0;
+}
+
+/* Delaunay triangulate sites[start} to sites[end-1].
+ * Assume sites are lexicographically sorted by coordinate.
+ * Return SymEdge of ccw convex hull at left-most point in *r_le
+ * and that of right-most point of cw convex null in *r_re.
+ */
+static void dc_tri(
+    CDT_state *cdt, SiteInfo *sites, int start, int end, SymEdge **r_le, SymEdge **r_re)
+{
+  int n = end - start;
+  int n2;
+  CDTVert *v1, *v2, *v3;
+  CDTEdge *ea, *eb, *ebasel;
+  SymEdge *ldo, *ldi, *rdi, *rdo, *basel, *basel_sym, *lcand, *rcand, *t;
+  double orient;
+  bool valid_lcand, valid_rcand;
 #ifdef DEBUG_CDT
+  char label_buf[100];
   int dbg_level = 0;
 
   if (dbg_level > 0) {
-    fprintf(stderr, "locate_point (%.2f,%.2f), visit_index=%d\n", F2(p), visit);
+    fprintf(stderr, "DC_TRI start=%d end=%d\n", start, end);
   }
 #endif
-  /* Starting point determined by closest to p in an n ** (1/3) sized sample of current points. */
-  BLI_assert(cdt->vert_array_len > 0);
-  sample_n = (int)round(pow((double)cdt->vert_array_len, 0.33333));
-  if (sample_n < 1) {
-    sample_n = 1;
+
+  BLI_assert(r_le != NULL && r_re != NULL);
+  if (n <= 1) {
+    *r_le = NULL;
+    *r_re = NULL;
+    return;
   }
-  best_start_vert = NULL;
-  best_dist_squared = DBL_MAX;
-  for (k = 0; k < sample_n; k++) {
-    /* Yes, this may try some i's more than once,
-     * but will still get about an n ** (1/3) size sample. */
-    i = (int)(BLI_rng_get_uint(cdt->rng) % cdt->vert_array_len);
-    v = cdt->vert_array[i];
-    dist_squared = len_squared_v2v2_db(p, v->co);
+  if (n <= 3) {
+    v1 = sites[start].v;
+    v2 = sites[start + 1].v;
+    ea = add_cdtedge(cdt, v1, v2, cdt->outer_face, cdt->outer_face);
+    ea->symedges[0].next = &ea->symedges[1];
+    ea->symedges[1].next = &ea->symedges[0];
+    ea->symedges[0].rot = &ea->symedges[0];
+    ea->symedges[1].rot = &ea->symedges[1];
+    if (n == 2) {
+      *r_le = &ea->symedges[0];
+      *r_re = &ea->symedges[1];
+      return;
+    }
+    v3 = sites[start + 2].v;
+    eb = add_vert_to_symedge_edge(cdt, v3, &ea->symedges[1]);
+    orient = orient2d(v1->co, v2->co, v3->co);
+    if (orient > 0.0) {
+      add_diagonal(cdt, &eb->symedges[0], &ea->symedges[0]);
+      *r_le = &ea->symedges[0];
+      *r_re = &eb->symedges[0];
+    }
+    else if (orient < 0.0) {
+      add_diagonal(cdt, &ea->symedges[0], &eb->symedges[0]);
+      *r_le = ea->symedges[0].rot;
+      *r_re = eb->symedges[0].rot;
+    }
+    else {
+      /* Collinear points. Just return a line. */
+      *r_le = &ea->symedges[0];
+      *r_re = &eb->symedges[0];
+    }
+    return;
+  }
+  /* Here: n >= 4.  Divide and conquer. */
+  n2 = n / 2;
+  BLI_assert(n2 >= 2 && end - (start + n2) >= 2);
+
+  /* Delaunay triangulate two halves, L and R. */
+  dc_tri(cdt, sites, start, start + n2, &ldo, &ldi);
+  dc_tri(cdt, sites, start + n2, end, &rdi, &rdo);
 #ifdef DEBUG_CDT
-    if (dbg_level > 0) {
-      fprintf(stderr, "try start vert %d, dist_squared=%f\n", i, dist_squared);
-      dump_v(v, "v");
-    }
-#endif
-    if (dist_squared < best_dist_squared) {
-      best_dist_squared = dist_squared;
-      best_start_vert = v;
+  if (dbg_level > 0) {
+    fprintf(stderr, "\nDC_TRI merge step for start=%d, end=%d\n", start, end);
+    dump_se(ldo, "ldo");
+    dump_se(ldi, "ldi");
+    dump_se(rdi, "rdi");
+    dump_se(rdo, "rdo");
+    if (dbg_level > 1) {
+      sprintf(label_buf, "dc_tri(%d,%d)(%d,%d)", start, start + n2, start + n2, end);
+      /* dump_cdt(cdt, label_buf); */
+      cdt_draw(cdt, label_buf);
     }
   }
-  cur_se = &best_start_vert->symedge[0];
-  if (cur_se->face == cdt->outer_face) {
-    cur_se = cur_se->rot;
-    BLI_assert(cur_se->face != cdt->outer_face);
+#endif
+
+  /* Find lower common tangent of L and R. */
+  for (;;) {
+    if (vert_left_of_symedge(rdi->vert, ldi)) {
+      ldi = ldi->next;
+    }
+    else if (vert_right_of_symedge(ldi->vert, rdi)) {
+      rdi = sym(rdi)->rot; /* Previous edge to rdi with same right face. */
+    }
+    else {
+      break;
+    }
   }
 #ifdef DEBUG_CDT
   if (dbg_level > 0) {
-    dump_se(cur_se, "start vert edge");
+    fprintf(stderr, "common lower tangent is between\n");
+    dump_se(rdi, "rdi");
+    dump_se(ldi, "ldi");
   }
 #endif
-  done = false;
-  while (!done) {
-    /* Find edge of cur_tri that separates p and t's centroid,
-     * and where other tri over the edge is unvisited. */
+  ebasel = connect_separate_parts(cdt, sym(rdi)->next, ldi);
+  basel = &ebasel->symedges[0];
+  basel_sym = &ebasel->symedges[1];
 #ifdef DEBUG_CDT
-    if (dbg_level > 0) {
-      dump_se_cycle(cur_se, "cur search face", 5);
-    }
+  if (dbg_level > 1) {
+    dump_se(basel, "basel");
+    cdt_draw(cdt, "after basel made");
+  }
 #endif
-    cur_tri = cur_se->face;
-    BLI_assert(cur_tri != cdt->outer_face);
-    cur_tri->visit_index = visit;
-    /* Is p in or on current triangle? */
-    a = cur_se->vert->co;
-    b = cur_se->next->vert->co;
-    c = cur_se->next->next->vert->co;
-    if (CCW_test(a, b, p, 0.0) >= 0 && CCW_test(b, c, p, 0.0) >= 0 &&
-        CCW_test(c, a, p, 0.0) >= 0) {
-#ifdef DEBUG_CDT
-      if (dbg_level > 1) {
-        fprintf(stderr, "p in current triangle\n");
-      }
-#endif
-      done = locate_point_final(p, cur_se, false, epsilon, &lr);
-      BLI_assert(done == true);
-      break;
-    }
-    bool found_next = false;
-    next_se = cur_se;
-    do {
-      a = next_se->vert->co;
-      b = next_se->next->vert->co;
-      c = next_se->next->next->vert->co;
-#ifdef DEBUG_CDT
-      if (dbg_level > 1) {
-        dump_se(next_se, "search edge");
-        fprintf(stderr, "tri centroid=(%.3f,%.3f)\n", F2(cur_tri->centroid));
-        validate_face_centroid(next_se);
-      }
-#endif
-      next_se_sym = sym(next_se);
-      if (CCW_test(a, b, p, 0.0) <= 0 && next_se->face != cdt->outer_face) {
-#ifdef DEBUG_CDT
-        if (dbg_level > 1) {
-          fprintf(stderr, "CCW_test(a, b, p) <= 0\n");
-        }
-#endif
-#ifdef DEBUG_CDT
-        if (dbg_level > 0) {
-          dump_se(next_se_sym, "next_se_sym");
-          fprintf(stderr, "next_se_sym face visit=%d\n", next_se_sym->face->visit_index);
-        }
-#endif
-        if (next_se_sym->face->visit_index != visit) {
-#ifdef DEBUG_CDT
-          if (dbg_level > 0) {
-            fprintf(stderr, "found edge to cross\n");
-          }
-#endif
-          found_next = true;
-          cur_se = next_se_sym;
-          break;
-        }
-      }
-      next_se = next_se->next;
-    } while (next_se != cur_se);
-    if (!found_next) {
-      done = locate_point_final(p, cur_se, true, epsilon, &lr);
-      BLI_assert(done = true);
-      done = true;
-    }
-    if (++loop_count > 1000000) {
-      fprintf(stderr, "infinite search loop?\n");
-      done = locate_point_final(p, cur_se, true, epsilon, &lr);
-    }
+  if (ldi->vert == ldo->vert) {
+    ldo = basel_sym;
+  }
+  if (rdi->vert == rdo->vert) {
+    rdo = basel;
   }
 
-  return lr;
+  /* Merge loop. */
+  for (;;) {
+    /* Locate the first point lcand->next->vert encountered by rising bubble,
+     * and delete L edges out of basel->next->vert that fail the circle test. */
+    lcand = basel_sym->rot;
+    rcand = basel_sym->next;
+#ifdef DEBUG_CDT
+    if (dbg_level > 1) {
+      fprintf(stderr, "\ntop of merge loop\n");
+      dump_se(lcand, "lcand");
+      dump_se(rcand, "rcand");
+      dump_se(basel, "basel");
+    }
+#endif
+    if (dc_tri_valid(lcand, basel, basel_sym)) {
+#ifdef DEBUG_CDT
+      if (dbg_level > 1) {
+        fprintf(stderr, "found valid lcand\n");
+        dump_se(lcand, "  lcand");
+      }
+#endif
+      while (incircle(basel_sym->vert->co,
+                      basel->vert->co,
+                      lcand->next->vert->co,
+                      lcand->rot->next->vert->co) > 0.0) {
+#ifdef DEBUG_CDT
+        if (dbg_level > 1) {
+          fprintf(stderr, "incircle says to remove lcand\n");
+          dump_se(lcand, "  lcand");
+        }
+#endif
+        t = lcand->rot;
+        delete_edge(cdt, sym(lcand));
+        lcand = t;
+      }
+    }
+    /* Symmetrically, locate first R point to be hit and delete R edges. */
+    if (dc_tri_valid(rcand, basel, basel_sym)) {
+#ifdef DEBUG_CDT
+      if (dbg_level > 1) {
+        fprintf(stderr, "found valid rcand\n");
+        dump_se(rcand, "  rcand");
+      }
+#endif
+      while (incircle(basel_sym->vert->co,
+                      basel->vert->co,
+                      rcand->next->vert->co,
+                      sym(rcand)->next->next->vert->co) > 0.0) {
+#ifdef DEBUG_CDT
+        if (dbg_level > 0) {
+          fprintf(stderr, "incircle says to remove rcand\n");
+          dump_se(lcand, "  rcand");
+        }
+#endif
+        t = sym(rcand)->next;
+        delete_edge(cdt, rcand);
+        rcand = t;
+      }
+    }
+    /* If both lcand and rcand are invalid, then basel is the common upper tangent. */
+    valid_lcand = dc_tri_valid(lcand, basel, basel_sym);
+    valid_rcand = dc_tri_valid(rcand, basel, basel_sym);
+#ifdef DEBUG_CDT
+    if (dbg_level > 0) {
+      fprintf(
+          stderr, "after bubbling up, valid_lcand=%d, valid_rcand=%d\n", valid_lcand, valid_rcand);
+      dump_se(lcand, "lcand");
+      dump_se(rcand, "rcand");
+    }
+#endif
+    if (!valid_lcand && !valid_rcand) {
+      break;
+    }
+    /* The next cross edge to be connected is to either lcand->next->vert or rcand->next->vert;
+     * if both are valid, choose the appropriate one using the incircle test.
+     */
+    if (!valid_lcand ||
+        (valid_rcand &&
+         incircle(lcand->next->vert->co, lcand->vert->co, rcand->vert->co, rcand->next->vert->co) >
+             0.0)) {
+#ifdef DEBUG_CDT
+      if (dbg_level > 0) {
+        fprintf(stderr, "connecting rcand\n");
+        dump_se(basel_sym, "  se1=basel_sym");
+        dump_se(rcand->next, "  se2=rcand->next");
+      }
+#endif
+      ebasel = add_diagonal(cdt, rcand->next, basel_sym);
+    }
+    else {
+#ifdef DEBUG_CDT
+      if (dbg_level > 0) {
+        fprintf(stderr, "connecting lcand\n");
+        dump_se(sym(lcand), "  se1=sym(lcand)");
+        dump_se(basel_sym->next, "  se2=basel_sym->next");
+      }
+#endif
+      ebasel = add_diagonal(cdt, basel_sym->next, sym(lcand));
+    }
+    basel = &ebasel->symedges[0];
+    basel_sym = &ebasel->symedges[1];
+    BLI_assert(basel_sym->face == cdt->outer_face);
+#ifdef DEBUG_CDT
+    if (dbg_level > 2) {
+      cdt_draw(cdt, "after adding new crossedge");
+      // dump_cdt(cdt, "after adding new crossedge");
+    }
+#endif
+  }
+  *r_le = ldo;
+  *r_re = rdo;
+  BLI_assert(sym(ldo)->face == cdt->outer_face && rdo->face == cdt->outer_face);
+}
+
+/* Guibas-Stolfi Divide-and_Conquer algorithm. */
+static void dc_triangulate(CDT_state *cdt, SiteInfo *sites, int nsites)
+{
+  int i, j, n;
+  SymEdge *le, *re;
+
+  /* Compress sites in place to eliminated verts that merge to others. */
+  i = 0;
+  j = 0;
+  while (j < nsites) {
+    /* Invariante: sites[0..i-1] have non-merged verts from 0..(j-1) in them. */
+    sites[i] = sites[j++];
+    if (sites[i].v->merge_to_index < 0) {
+      i++;
+    }
+  }
+  n = i;
+  if (n == 0) {
+    return;
+  }
+  dc_tri(cdt, sites, 0, n, &le, &re);
 }
 
 /**
- * Return true if circumcircle(v1, v2, v3) does not contain p.
- * To avoid possible infinite flip loops, we will say true even if p is inside the circle
- * but less than epsilon from the boundary; or if v1, v2, v3, form a straight line.
+ * Do a Delaunay Triangulation of the points in cdt->vert_array.
+ * This  is only a first step in the Constrained Delaunay triangulation,
+ * because it doesn't yet deal with the segment constraints.
+ * The algorithm used is the Divide & Conquer algorithm from the
+ * Guibas-Stolfi "Primitives for the Manipulation of General Subdivision
+ * and the Computation of Voronoi Diagrams" paper.
+ * The data structure here is similar to but not exactly the same as
+ * the quad-edge structure described in that paper.
+ * The incircle and ccw tests are done using Shewchuk's exact
+ * primitives (see below), so that this routine is robust.
+ *
+ * As a preprocessing step, we want to merge all vertices that are
+ * within cdt->epsilon of each other. This is accomplished by lexicographically
+ * sorting the coordinates first (which is needed anyway for the D&C algorithm).
+ * The CDTVerts with merge_to_index not equal to -1 are after this regarded
+ * as having been merged into the vertex with the corresponding index.
  */
-static bool delaunay_check(CDTVert *v1, CDTVert *v2, CDTVert *v3, CDTVert *p, const double epsilon)
+static void initial_triangulation(CDT_state *cdt)
 {
-  double x1, y1, x2, y2, den, cenx, ceny, rad, pc, a, b, w, z, q, s;
+  int i, j, n;
+  SiteInfo *sites;
+  double *ico, *jco;
+  double xend, yend, xcur;
+  double epsilon = cdt->epsilon;
+  double epsilon_squared = cdt->epsilon_squared;
+#ifdef SJF_WAY
+  CDTEdge *e;
+  CDTVert *va, *vb;
+#endif
+#ifdef DEBUG_CDT
+  int dbg_level = 0;
 
-  /* Find center and radius of circum-circle of v1,v2,v3.
-   * Transform coords so v3 is at origin to help reduce floating point error
-   * when coordinates are far from (0,0) but close together.
-   */
-  x1 = v1->co[0] - v3->co[0];
-  y1 = v1->co[1] - v3->co[1];
-  x2 = v2->co[0] - v3->co[0];
-  y2 = v2->co[1] - v3->co[1];
-  den = 2.0 * (x1 * y2 - x2 * y1);
-  if (UNLIKELY(den == 0.0)) {
-    /* v1, v2, v3 are in a line. */
-    return true;
+  if (dbg_level > 0) {
+    fprintf(stderr, "\nINITIAL TRIANGULATION\n\n");
   }
-  /* cen[0] = det(x1**2 + y1**2, y1, x2**2 + y2**2, y2) / den
-   * cen[1] = det(x1, x1**2 + y1**2, x2, x2**2 + y2**2) / den
-   * den = 2 * det(x1, y1, x2, y2)
-   */
-  a = x1 * x1 + y1 * y1;
-  b = x2 * x2 + y2 * y2;
-  cenx = (a * y2 - b * y1) / den;
-  ceny = (x1 * b - x2 * a) / den;
-  w = x1 - cenx;
-  z = y1 - ceny;
-  rad = sqrt(w * w + z * z);
-  q = p->co[0] - v3->co[0] - cenx;
-  s = p->co[1] - v3->co[1] - ceny;
-  pc = sqrt(q * q + s * s);
-  return (pc >= rad - epsilon);
-}
+#endif
 
-/* Return true if we can flip edge v1-v3 to edge v2-v4 inside quad v1v2v3v4 (in CCW order).
- * We can do this if angles v4-v1-v2 and v2-v3-v4 are both CCW or straight.
- */
-static inline bool can_flip(CDTVert *v1, CDTVert *v2, CDTVert *v3, CDTVert *v4)
-{
-  return CCW_test(v4->co, v1->co, v2->co, 0.0) >= 0 && CCW_test(v2->co, v3->co, v4->co, 0.0) >= 0;
+  /* First sort the vertices by lexicographic order of their
+   * coordinates, breaking ties by putting earlier original-index
+   * vertices first.
+   */
+  n = cdt->vert_array_len;
+  if (n <= 1) {
+    return;
+  }
+  sites = MEM_malloc_arrayN(n, sizeof(SiteInfo), __func__);
+  for (i = 0; i < n; i++) {
+    sites[i].v = cdt->vert_array[i];
+    sites[i].orig_index = i;
+  }
+  qsort(sites, n, sizeof(SiteInfo), site_lexicographic_cmp);
+#ifdef DEBUG_CDT
+  if (dbg_level > 0) {
+    fprintf(stderr, "after sorting\n");
+    for (i = 0; i < n; i++) {
+      fprintf(stderr, "%d: orig index: %d, (%f,%f)\n", i, sites[i].orig_index, F2(sites[i].v->co));
+    }
+  }
+#endif
+
+  /* Now dedup according to user-defined epsilon.
+   * We will merge a vertex into an earlier-indexed vertex
+   * that is within epsilon (Euclidean distance).
+   * Merges may cascade. So we may end up merging two things
+   * that are farther than epsilon by transitive merging. Oh well.
+   * Assume that merges are rare, so use simple searches in the
+   * lexicographic ordering - likely we will soon hit y's with
+   * the same x that are farther away than epsilon, and then
+   * skipping ahead to the next biggest x, are likely to soon
+   * find one of those farther away than epsilon.
+   */
+  for (i = 0; i < n - 1; i++) {
+    ico = sites[i].v->co;
+    /* Start j at next place that has both x and y coords within epsilon. */
+    xend = ico[0] + epsilon;
+    yend = ico[1] + epsilon;
+    j = i + 1;
+    while (j < n) {
+      jco = sites[j].v->co;
+      if (jco[0] > xend) {
+        break; /* No more j's to process. */
+      }
+      else if (jco[1] > yend) {
+        /* Get past any string of v's with the same x and too-big y. */
+        xcur = jco[0];
+        while (++j < n) {
+          if (sites[j].v->co[0] > xcur) {
+            break;
+          }
+        }
+        BLI_assert(j == n || sites[j].v->co[0] > xcur);
+        if (j == n) {
+          break;
+        }
+        jco = sites[j].v->co;
+        if (jco[0] > xend || jco[1] > yend) {
+          break;
+        }
+      }
+      /* When here, vertex i and j are within epsilon by box test.
+       * The Euclidean distance test is stricter, so need to do it too, now.
+       */
+      BLI_assert(j < n && jco[0] <= xend && jco[1] <= yend);
+      if (len_squared_v2v2_db(ico, jco) <= epsilon_squared) {
+        sites[j].v->merge_to_index = (sites[i].v->merge_to_index == -1) ?
+                                         sites[i].orig_index :
+                                         sites[i].v->merge_to_index;
+#ifdef DEBUG_CDT
+        if (dbg_level > 0) {
+          fprintf(stderr,
+                  "merged orig vert %d to %d\n",
+                  sites[j].orig_index,
+                  sites[j].v->merge_to_index);
+        }
+#endif
+      }
+      j++;
+    }
+  }
+
+  /* Now add non-dup vertices into triangulation in lexicographic order. */
+
+  dc_triangulate(cdt, sites, n);
+  MEM_freeN(sites);
 }
 
 /** Use LinkNode linked list as stack of SymEdges, allocating from cdt->listpool. */
 typedef LinkNode *Stack;
 
-static inline void push(Stack *stack, SymEdge *se, CDT_state *cdt)
+BLI_INLINE void push(Stack *stack, SymEdge *se, CDT_state *cdt)
 {
   BLI_linklist_prepend_pool(stack, se, cdt->listpool);
 }
 
-static inline SymEdge *pop(Stack *stack, CDT_state *cdt)
+BLI_INLINE SymEdge *pop(Stack *stack, CDT_state *cdt)
 {
   return (SymEdge *)BLI_linklist_pop_pool(stack, cdt->listpool);
 }
 
-static inline bool is_empty(Stack *stack)
+BLI_INLINE bool is_empty(Stack *stack)
 {
   return *stack == NULL;
-}
-
-/**
- * <pre>
- *       /\                  /\
- *      /a|\                /  \
- *     /  | sesym          /    \
- *    /   |  \            /      \
- *   . b  | d .  ->      . se______
- *    \ se|  /            \       /
- *     \  |c/              \     /
- *      \ |/                \   /
- * </pre>
- */
-static void flip(SymEdge *se, CDT_state *cdt)
-{
-  SymEdge *a, *b, *c, *d;
-  SymEdge *sesym, *asym, *bsym, *csym, *dsym;
-  CDTFace *t1, *t2;
-  CDTVert *v1, *v2;
-#ifdef DEBUG_CDT
-  const int dbg_level = 0;
-#endif
-
-  sesym = sym(se);
-#ifdef DEBUG_CDT
-  if (dbg_level > 0) {
-    fprintf(stderr, "flip\n");
-    dump_se(se, "se");
-    dump_se(sesym, "sesym");
-  }
-#endif
-  a = se->next;
-  b = a->next;
-  c = sesym->next;
-  d = c->next;
-  asym = sym(a);
-  bsym = sym(b);
-  csym = sym(c);
-  dsym = sym(d);
-#ifdef DEBUG_CDT
-  if (dbg_level > 1) {
-    dump_se(a, "a");
-    dump_se(b, "b");
-    dump_se(c, "c");
-    dump_se(d, "d");
-  }
-#endif
-  v1 = se->vert;
-  v2 = sesym->vert;
-  t1 = a->face;
-  t2 = c->face;
-
-  se->vert = b->vert;
-  sesym->vert = d->vert;
-
-  a->next = se;
-  se->next = d;
-  d->next = a;
-
-  sesym->next = b;
-  b->next = c;
-  c->next = sesym;
-
-  a->rot = dsym;
-  b->rot = se;
-  se->rot = asym;
-
-  c->rot = bsym;
-  d->rot = sesym;
-  sesym->rot = csym;
-
-  a->face = se->face = d->face = t1;
-  sesym->face = b->face = c->face = t2;
-
-  if (v1->symedge == se) {
-    v1->symedge = c;
-  }
-  if (v2->symedge == sesym) {
-    v2->symedge = a;
-  }
-
-  calc_face_centroid(a);
-  calc_face_centroid(sesym);
-
-#ifdef DEBUG_CDT
-  if (dbg_level > 0) {
-    fprintf(stderr, "after flip\n");
-    dump_se_cycle(a, "a cycle", 5);
-    dump_se_cycle(sesym, "sesym cycle", 5);
-  }
-#endif
-  if (cdt) {
-    /* Pass. */
-  }
-}
-
-static void flip_edges(CDTVert *v, Stack *stack, CDT_state *cdt)
-{
-  SymEdge *se, *sesym;
-  CDTVert *a, *b, *c, *d;
-  SymEdge *tri_without_p;
-  bool is_delaunay;
-  const double epsilon = cdt->epsilon;
-  int count = 3;
-#ifdef DEBUG_CDT
-  const int dbg_level = 0;
-  if (dbg_level > 0) {
-    fprintf(stderr, "flip_edges, v=(%.2f,%.2f)\n", F2(v->co));
-  }
-#endif
-  while (!is_empty(stack)) {
-    if (++count > 10000) {
-      fprintf(stderr, "infinite flip loop?\n");
-      return;
-    }
-    se = pop(stack, cdt);
-#ifdef DEBUG_CDT
-    if (dbg_level > 0) {
-      dump_se(se, "flip_edges popped");
-    }
-#endif
-    if (!is_constrained_edge(se->edge)) {
-      /* Edge is not constrained; is it Delaunay? */
-#ifdef DEBUG_CDT
-      if (dbg_level > 1) {
-        dump_se_cycle(se, "unconstrained edge", 5);
-      }
-      else if (dbg_level > 0) {
-        fprintf(stderr, "unconstrained edge\n");
-      }
-#endif
-      a = se->vert;
-      b = se->next->vert;
-      c = se->next->next->vert;
-      sesym = sym(se);
-      d = sesym->next->next->vert;
-#ifdef DEBUG_CDT
-      if (dbg_level > 1) {
-        fprintf(stderr, "a=(%.3f,%.3f) b=(%.3f,%.3f)\n", F2(a->co), F2(b->co));
-        fprintf(stderr, "c=(%.3f,%.3f) d=(%.3f,%.3f)\n", F2(c->co), F2(d->co));
-      }
-#endif
-      if (v == c) {
-        tri_without_p = sesym;
-        is_delaunay = delaunay_check(a, b, c, d, epsilon);
-#ifdef DEBUG_CDT
-        if (dbg_level > 1) {
-          fprintf(stderr, "v==c, delaunay(a,b,c,d)=%d\n", is_delaunay);
-        }
-#endif
-      }
-      else {
-        tri_without_p = se;
-        BLI_assert(d == v);
-        is_delaunay = delaunay_check(b, a, d, c, epsilon);
-#ifdef DEBUG_CDT
-        if (dbg_level > 1) {
-          fprintf(stderr, "v!=c, delaunay(b,a,d,c)=%d\n", is_delaunay);
-        }
-#endif
-      }
-      if (!is_delaunay && can_flip(a, d, b, c)) {
-        /* Push two edges of tri without p that aren't se. */
-#ifdef DEBUG_CDT
-        if (dbg_level > 0) {
-          fprintf(stderr, "maybe pushing more edges\n");
-        }
-#endif
-        if (!is_border_edge(tri_without_p->next->edge, cdt)) {
-#ifdef DEBUG_CDT
-          if (dbg_level > 0) {
-            dump_se(tri_without_p->next, "push1");
-          }
-#endif
-          push(stack, tri_without_p->next, cdt);
-        }
-        if (!is_border_edge(tri_without_p->next->next->edge, cdt)) {
-#ifdef DEBUG_CDT
-          if (dbg_level > 0) {
-            dump_se(tri_without_p->next->next, "\npush2");
-          }
-#endif
-          push(stack, tri_without_p->next->next, cdt);
-        }
-        flip(se, cdt);
-#ifdef DEBUG_CDT
-        if (dbg_level > 2) {
-          dump_cdt(cdt, "after flip");
-          cdt_draw(cdt, "afer flip");
-          validate_cdt(cdt, true);
-        }
-#endif
-      }
-    }
-  }
-}
-
-/**
- * Splits e at lambda and returns a #SymEdge with new vert as its vert.
- * The two opposite triangle vertices to e are connect to new point.
- * <pre>
- *       /\                  /\
- *      /f|\                / |\
- *     /  |j\              /  | \
- *    /   | i\            /  k|  \
- *   .    |   .  ->      . l_ p m_.
- *    \g  |  /            \    |  /
- *     \  |h/              \   | /
- *      \e|/                \ e|/
- *
- * t1 = {e, f, g}; t2 = {h, i, j};
- * t1' = {e, l.sym, g}; t2' = {h, m.sym, e'.sym}
- * t3 = {k, f, l}; t4 = {m, i, j}
- * </pre>
- */
-static CDTVert *insert_point_in_edge(CDT_state *cdt, SymEdge *e, double lambda)
-{
-  SymEdge *f, *g, *h, *i, *j, *k;
-  CDTEdge *ke;
-  CDTVert *p;
-  Stack stack;
-  /* Split e at lambda. */
-
-  f = e->next;
-  g = f->next;
-  BLI_assert(g->next == e);
-  j = sym(e);
-  h = j->next;
-  i = h->next;
-  BLI_assert(i->next == j);
-
-  ke = split_edge(cdt, e, lambda);
-  k = &ke->symedges[0];
-  p = k->vert;
-
-  add_diagonal(cdt, g, k);
-  add_diagonal(cdt, sym(e), i);
-
-  stack = NULL;
-  if (!is_border_edge(f->edge, cdt)) {
-    push(&stack, f, cdt);
-  }
-  if (!is_border_edge(g->edge, cdt)) {
-    push(&stack, g, cdt);
-  }
-  if (!is_border_edge(h->edge, cdt)) {
-    push(&stack, h, cdt);
-  }
-  if (!is_border_edge(i->edge, cdt)) {
-    push(&stack, i, cdt);
-  }
-  flip_edges(k->vert, &stack, cdt);
-  return p;
-}
-
-/**
- * Inserts p inside e's triangle and connects the three cornders
- * of the triangle to the new point. Returns a SymEdge that has
- * new point as its point.
- * <pre>
- *               *                                *
- *             *g  *                            * .j*
- *           *       *                        *   .   *
- *         *     p     *       ->           *  1. p .  3*
- *       *               *                *  .         .  *
- *     *   e              f*            *  . h     2    i . *
- *   * * * * * * * * * * * * *        * * * * * * * * * * * * *
- * </pre>
- */
-static CDTVert *insert_point_in_face(CDT_state *cdt, SymEdge *e, const double p[2])
-{
-  SymEdge *f, *g, *h, *i, *j;
-  SymEdge *esym, *fsym, *gsym, *hsym, *isym, *jsym;
-  CDTVert *v;
-  CDTEdge *he, *ie, *je;
-  CDTFace *t1, *t2, *t3;
-  Stack stack;
-#ifdef DEBUG_CDT
-  int dbg_level = 0;
-
-  if (dbg_level > 0) {
-    fprintf(stderr, "insert point in face, p=(%.3f,%.3f)\n", F2(p));
-    dump_se_cycle(e, "insert face", 20);
-  }
-#endif
-
-  f = e->next;
-  g = f->next;
-  esym = sym(e);
-  fsym = sym(f);
-  gsym = sym(g);
-  t1 = e->face;
-  t2 = add_cdtface(cdt);
-  t3 = add_cdtface(cdt);
-
-  v = add_cdtvert(cdt, p[0], p[1]);
-  he = add_cdtedge(cdt, e->vert, v, t1, t2);
-  h = &he->symedges[0];
-  hsym = &he->symedges[1];
-  ie = add_cdtedge(cdt, f->vert, v, t2, t3);
-  i = &ie->symedges[0];
-  isym = &ie->symedges[1];
-  je = add_cdtedge(cdt, g->vert, v, t3, t1);
-  j = &je->symedges[0];
-  jsym = &je->symedges[1];
-
-  e->next = i;
-  i->next = hsym;
-  hsym->next = e;
-  e->face = t2;
-
-  f->next = j;
-  j->next = isym;
-  isym->next = f;
-  f->face = t3;
-
-  g->next = h;
-  h->next = jsym;
-  jsym->next = g;
-  g->face = t1;
-
-  e->rot = h;
-  i->rot = esym;
-  hsym->rot = isym;
-
-  f->rot = i;
-  j->rot = fsym;
-  isym->rot = jsym;
-
-  g->rot = j;
-  h->rot = gsym;
-  jsym->rot = hsym;
-
-  calc_face_centroid(e);
-  calc_face_centroid(f);
-  calc_face_centroid(g);
-
-#ifdef DEBUG_CDT
-  if (dbg_level > 1) {
-    fprintf(stderr, "after initial insert:\n");
-    dump_se_cycle(e, "e", 20);
-    dump_se_cycle(f, "f", 20);
-    dump_se_cycle(g, "g", 20);
-    if (dbg_level > 2) {
-      dump_cdt(cdt, "after initial insert, before flip");
-      cdt_draw(cdt, "after initial insert, before flip");
-      validate_cdt(cdt, true);
-    }
-  }
-#endif
-
-  stack = NULL;
-  if (!is_border_edge(e->edge, cdt)) {
-    push(&stack, e, cdt);
-  }
-  if (!is_border_edge(f->edge, cdt)) {
-    push(&stack, f, cdt);
-  }
-  if (!is_border_edge(g->edge, cdt)) {
-    push(&stack, g, cdt);
-  }
-  flip_edges(v, &stack, cdt);
-
-  return v;
 }
 
 /**
@@ -1347,12 +1024,16 @@ static void re_delaunay_triangulate(CDT_state *cdt, SymEdge *se)
   SymEdge *ss, *first, *cse;
   CDTVert *a, *b, *c, *v;
   CDTEdge *ebc, *eca;
-  const double epsilon = cdt->epsilon;
   int count;
 #ifdef DEBUG_CDT
   SymEdge *last;
   const int dbg_level = 0;
+#endif
 
+  if (se->face == cdt->outer_face || sym(se)->face == cdt->outer_face) {
+    return;
+  }
+#ifdef DEBUG_CDT
   if (dbg_level > 0) {
     fprintf(stderr, "retriangulate");
     dump_se_cycle(se, "poly ", 1000);
@@ -1391,7 +1072,7 @@ static void re_delaunay_triangulate(CDT_state *cdt, SymEdge *se)
 #endif
   for (ss = first->next; ss != se; ss = ss->next) {
     v = ss->vert;
-    if (!delaunay_check(a, b, c, v, epsilon)) {
+    if (incircle(a->co, b->co, c->co, v->co) > 0.0) {
       c = v;
       cse = ss;
 #ifdef DEBUG_CDT
@@ -1440,50 +1121,6 @@ static void re_delaunay_triangulate(CDT_state *cdt, SymEdge *se)
 }
 
 /**
- * Add a constrained point to cdt structure, and return the corresponding CDTVert*.
- * May not be at exact coords given, because it can be merged with an existing vertex
- * or moved to an existing edge (which could be a triangulation edge, not just a constraint one)
- * if the point is within cdt->epsilon of those other elements.
- *
- * input_id will be added to the list of input_ids for the returned CDTVert (don't use -1 for id).
- *
- * Assumes cdt has been initialized, with min/max bounds that contain coords.
- * Assumes that #BLI_constrained_delaunay_get_output has not been called yet.
- */
-static CDTVert *add_point_constraint(CDT_state *cdt, const double coords[2], int input_id)
-{
-  LocateResult lr;
-  CDTVert *v;
-#ifdef DEBUG_CDT
-  const int dbg_level = 0;
-#endif
-
-  BLI_assert(!cdt->output_prepared);
-#ifdef DEBUG_CDT
-  if (dbg_level > 0) {
-    fprintf(stderr, "add point constraint (%.3f,%.3f), id=%d\n", F2(coords), input_id);
-  }
-#endif
-  lr = locate_point(cdt, coords);
-#ifdef DEBUG_CDT
-  if (dbg_level > 0) {
-    fprintf(stderr, "  locate result has loc_kind %u\n", lr.loc_kind);
-  }
-#endif
-  if (lr.loc_kind == OnVert) {
-    v = lr.se->vert;
-  }
-  else if (lr.loc_kind == OnEdge) {
-    v = insert_point_in_edge(cdt, lr.se, lr.edge_lambda);
-  }
-  else {
-    v = insert_point_in_face(cdt, lr.se, coords);
-  }
-  add_to_input_ids(&v->input_ids, input_id, cdt);
-  return v;
-}
-
-/**
  * Add a constrained edge between v1 and v2 to cdt structure.
  * This may result in a number of #CDTEdges created, due to intersections
  * and partial overlaps with existing cdt vertices and edges.
@@ -1505,11 +1142,11 @@ static void add_edge_constraint(
   SymEdge *t, *tstart, *tout, *tnext;
   SymEdge *se;
   CDTEdge *edge;
-  int ccw1, ccw2, isect;
-  int i, search_count, visit;
+  int isect;
+  double orient1, orient2;
+  int i, search_count;
   double curco[2];
   double lambda;
-  const double epsilon = cdt->epsilon;
   bool done, state_through_vert;
   LinkNodePair edge_list = {NULL, NULL};
   typedef struct CrossData {
@@ -1523,7 +1160,7 @@ static void add_edge_constraint(
   CrossData *cd;
   BLI_array_staticdeclare(crossings, 128);
 #ifdef DEBUG_CDT
-  const int dbg_level = 0;
+  int dbg_level = 0;
 #endif
 
   /* Find path through structure from v1 to v2 and record how we got there in crossings.
@@ -1564,15 +1201,16 @@ static void add_edge_constraint(
 #ifdef DEBUG_CDT
   if (dbg_level > 0) {
     vse2 = v2->symedge;
+    if (dbg_level > 2) {
+      // dump_cdt(cdt, "before insert_segment");
+      cdt_draw(cdt, "before insert segment");
+    }
     fprintf(stderr, "\ninsert_segment %d\n", input_id);
     dump_v(v1, "  1");
     dump_v(v2, "  2");
     if (dbg_level > 1) {
       dump_se(vse1, "  se1");
       dump_se(vse2, "  se2");
-    }
-    if (dbg_level > 2) {
-      dump_cdt(cdt, "before insert_segment");
     }
   }
 #endif
@@ -1600,7 +1238,7 @@ static void add_edge_constraint(
       cdata.vert = v2;
       BLI_array_append(crossings, cdata);
 #ifdef DEBUG_CDT
-      if (dbg_level > 1) {
+      if (dbg_level > 0) {
         fprintf(stderr, "special one segment case\n");
         dump_se(t, "  ");
       }
@@ -1611,10 +1249,6 @@ static void add_edge_constraint(
     t = t->rot;
   } while (t != tstart);
   if (!done) {
-    /* To prevent infinite loop in the face of epsilon tests that might lead us back to
-     * an already-visited (vertex, face) pair, use visit indices.
-     */
-    visit = ++cdt->visit_count;
     state_through_vert = true;
     done = false;
     t = vse1;
@@ -1636,9 +1270,6 @@ static void add_edge_constraint(
         dump_se_cycle(t, "current t ", 4);
       }
 #endif
-      BLI_assert(t->vert->visit_index != visit || t->face->visit_index != visit);
-      t->vert->visit_index = visit;
-      t->face->visit_index = visit;
       if (state_through_vert) {
         /* Invariant: ray vcur--v2 contains t->vert. */
         cdata.in = (BLI_array_len(crossings) == 0) ? NULL : t;
@@ -1648,7 +1279,7 @@ static void add_edge_constraint(
         BLI_array_append(crossings, cdata);
         if (t->vert == v2) {
 #ifdef DEBUG_CDT
-          if (dbg_level > 0) {
+          if (dbg_level > 1) {
             fprintf(stderr, "found v2, so done\n");
           }
 #endif
@@ -1661,20 +1292,18 @@ static void add_edge_constraint(
           do {
             va = t->next->vert;
             vb = t->next->next->vert;
-            ccw1 = CCW_test(t->vert->co, va->co, v2->co, epsilon);
-            ccw2 = CCW_test(t->vert->co, vb->co, v2->co, epsilon);
+            orient1 = orient2d(t->vert->co, va->co, v2->co);
 #ifdef DEBUG_CDT
             if (dbg_level > 1) {
               fprintf(stderr, "non-final through vert case\n");
               dump_v(va, " va");
               dump_v(vb, " vb");
-              fprintf(stderr, "ccw1=%d, ccw2=%d\n", ccw1, ccw2);
+              fprintf(stderr, "orient1=%g\n", orient1);
             }
 #endif
-            if (ccw1 == 0 && in_line(t->vert->co, va->co, v2->co, epsilon) &&
-                va->visit_index != visit) {
+            if (orient1 == 0.0 && in_line(t->vert->co, va->co, v2->co)) {
 #ifdef DEBUG_CDT
-              if (dbg_level > 0) {
+              if (dbg_level > 1) {
                 fprintf(stderr, "ray goes through va\n");
               }
 #endif
@@ -1683,30 +1312,35 @@ static void add_edge_constraint(
               t = t->next;
               break;
             }
-            else if (ccw2 == 0 && in_line(t->vert->co, vb->co, v2->co, epsilon) &&
-                     vb->visit_index != visit) {
+            else if (t->face != cdt->outer_face) {
+              orient2 = orient2d(t->vert->co, vb->co, v2->co);
 #ifdef DEBUG_CDT
-              if (dbg_level > 0) {
-                fprintf(stderr, "ray goes through vb\n");
+              if (dbg_level > 1) {
+                fprintf(stderr, "orient2=%g\n", orient2);
               }
 #endif
-              state_through_vert = true;
-              t = t->next->next;
-              tout = sym(t);
-              break;
-            }
-            else if (ccw1 > 0 && ccw2 < 0 &&
-                     (t->next->vert->visit_index != visit ||
-                      t->next->face->visit_index != visit)) {
+              if (orient2 == 0.0 && in_line(t->vert->co, vb->co, v2->co)) {
 #ifdef DEBUG_CDT
-              if (dbg_level > 0) {
-                fprintf(stderr, "segment intersects\n");
-              }
+                if (dbg_level > 1) {
+                  fprintf(stderr, "ray goes through vb\n");
+                }
 #endif
-              state_through_vert = false;
-              tout = t;
-              t = t->next;
-              break;
+                state_through_vert = true;
+                t = t->next->next;
+                tout = sym(t);
+                break;
+              }
+              else if (orient1 > 0.0 && orient2 < 0.0) {
+#ifdef DEBUG_CDT
+                if (dbg_level > 1) {
+                  fprintf(stderr, "segment intersects\n");
+                }
+#endif
+                state_through_vert = false;
+                tout = t;
+                t = t->next;
+                break;
+              }
             }
             t = t->rot;
 #ifdef DEBUG_CDT
@@ -1715,57 +1349,13 @@ static void add_edge_constraint(
             }
 #endif
           } while (t != tstart);
-          if (tout == NULL) {
-            /* With exact arithmetic this shouldn't happen, but maybe the epsilon tests made it so
-             * that we want to go back to a previous vertex.
-             * As desperation measure, pick unvisited vertex that is closest in line with
-             * destination.
-             */
-#ifdef DEBUG_CDT
-            if (dbg_level > 0) {
-              fprintf(stderr, "add_edge_constraint desperation search\n");
-            }
-#endif
-            SymEdge *bestt = NULL;
-            double dot, bestdot = -2.0;
-            double dir_tv_v2[2], dir_tvnext_v2[2];
-            sub_v2_v2v2_db(dir_tv_v2, v2->co, t->vert->co);
-            do {
-              if (t->next->vert->visit_index != visit) {
-                sub_v2_v2v2_db(dir_tvnext_v2, v2->co, t->next->vert->co);
-                dot = dot_v2v2_db(dir_tv_v2, dir_tvnext_v2);
-                if (dot > bestdot) {
-                  bestdot = dot;
-                  bestt = t->next;
-                }
-              }
-              t = t->rot;
-            } while (t != tstart);
-            if (bestt == NULL) {
-              /* No unvisited place to go! Give up on adding this edge constraint. */
-#ifdef DEBUG_CDT
-              fprintf(stderr, "could not add edge constraint\n");
-#endif
-              return;
-            }
-            else {
-#ifdef DEBUG_CDT
-              if (dbg_level > 0) {
-                fprintf(stderr, "add_edge_constraint desperation search chose to go through\n");
-                dump_v(bestt->vert, "desperation vert");
-              }
-#endif
-              tout = bestt;
-              t = t->next;
-            }
-          }
+          BLI_assert(tout != NULL);
           crossings[BLI_array_len(crossings) - 1].out = tout;
         }
       }
       else { /* State is "through edge", not "through vert" */
         /* Invariant: ray v1--v2 intersects segment t->edge, not at either end.
          * and t->face is the face we have just passed through.
-         * Whatever we make t next should not have both vert and face visited.
          */
         va = t->vert;
         vb = t->next->vert;
@@ -1784,19 +1374,41 @@ static void add_edge_constraint(
         }
 #endif
         isect = isect_seg_seg_v2_lambda_mu_db(va->co, vb->co, curco, v2->co, &lambda, NULL);
-        if (isect != ISECT_LINE_LINE_CROSS) {
-          /* Shouldn't happen. Just pick something. */
+        if (isect == ISECT_LINE_LINE_NONE || isect == ISECT_LINE_LINE_EXACT) {
+          /* The orient tests say that there is an intersection between
+           * va and vb, but the inexect isect routine has either put the
+           * intersection exactly on one of the endpoints or just outside
+           * one of them.
+           * Or this is an exact intersection at one of the curco / v2 ends.
+           * If lambda is outside of range, move the intersection to somewhere
+           * just inside the segment.
+           * Could also snap to an endpoint and redo this as a "through vert"
+           * case, but the short edge will be cleaned up later and this seems
+           * less risky to get into "impossible" cases.
+           */
+          if (lambda <= 0.0) {
+            lambda = 4.0 * (double)FLT_EPSILON;
+          }
+          else if (lambda >= 1.0) {
+            lambda = 1.0 - 4.0 * (double)FLT_EPSILON;
+          }
+        }
+        if (isect == ISECT_LINE_LINE_COLINEAR) {
 #ifdef DEBUG_CDT
           if (dbg_level > 1) {
-            fprintf(stderr, "add_edge_constraint no intersect found, using lambda = 0.5\n");
+            fprintf(stderr, "intersect is collinear, treating as through vert\n");
           }
+          dump_v(va, "va");
 #endif
-          lambda = 0.5;
+          state_through_vert = true;
+          continue;
         }
 #ifdef DEBUG_CDT
+        interp_v2_v2v2_db(curco, va->co, vb->co, lambda);
         if (dbg_level > 0) {
-          fprintf(stderr, "intersect point at %f along va--vb\n", lambda);
-          if (dbg_level == 1) {
+          fprintf(stderr, "intersect point at lambda=%.17g along va--vb\n", lambda);
+          fprintf(stderr, "which is (%g,%g)\n", F2(curco));
+          if (dbg_level > 1) {
             dump_v(va, " va");
             dump_v(vb, " vb");
           }
@@ -1817,15 +1429,15 @@ static void add_edge_constraint(
         /* 'tout' is 'symedge' from 'va' to third vertex, 'vc'. */
         BLI_assert(tout->vert == va);
         vc = tout->next->vert;
-        ccw1 = CCW_test(curco, v2->co, vc->co, epsilon);
+        orient1 = orient2d(curco, v2->co, vc->co);
 #ifdef DEBUG_CDT
         if (dbg_level > 1) {
           fprintf(stderr, "now searching with third vertex ");
           dump_v(vc, "vc");
-          fprintf(stderr, "ccw(vcur, v2, vc) = %d\n", ccw1);
+          fprintf(stderr, "orient2d(vcur, v2, vc) = %g\n", orient1);
         }
 #endif
-        if (ccw1 == -1 && (vc->visit_index != visit || tout->next->face->visit_index != visit)) {
+        if (orient1 < 0.0) {
           /* vcur--v2 should intersect vb--vc. */
 #ifdef DEBUG_CDT
           if (dbg_level > 1) {
@@ -1835,7 +1447,7 @@ static void add_edge_constraint(
           t = tout->next;
           state_through_vert = false;
         }
-        else if (ccw1 == 1 && tout->face->visit_index != visit) {
+        else if (orient1 > 0.0) {
           /* vcur--v2 should intersect va--vc. */
 #ifdef DEBUG_CDT
           if (dbg_level > 1) {
@@ -1845,7 +1457,7 @@ static void add_edge_constraint(
           t = tout;
           state_through_vert = false;
         }
-        else if (ccw1 == 0 && vc->visit_index != visit) {
+        else if (orient1 == 0.0) {
 #ifdef DEBUG_CDT
           if (dbg_level > 1) {
             fprintf(stderr, "ccw==0 case, so going through or to vc\n");
@@ -1856,16 +1468,11 @@ static void add_edge_constraint(
         }
         else {
 #ifdef DEBUG_CDT
-          fprintf(stderr, "add_edge_constraint desperation search 2\n");
+          fprintf(stderr, "add_edge_constraint desperation search needed\n");
 #endif
-          if (tout->face->visit_index != visit) {
-            /* Treat as if an intersection of va-vc. */
-            t = tout;
-            state_through_vert = false;
-          }
         }
       }
-      if (++search_count > 10000) {
+      if (++search_count > 1000000) {
         fprintf(stderr, "infinite loop? bailing out\n");
         BLI_assert(0); /* Catch these while developing. */
         break;
@@ -2091,6 +1698,304 @@ static void dissolve_symedge(CDT_state *cdt, SymEdge *se)
   delete_edge(cdt, se);
 }
 
+/* Return true if we can merge se's vert into se->next's vert
+ * without making the area of any new triangle formed by doing
+ * that into a zero or negative area triangle.*/
+static bool can_collapse(const SymEdge *se)
+{
+  SymEdge *loop_se;
+  const double *co = se->next->vert->co;
+
+  for (loop_se = se->rot; loop_se != se && loop_se->rot != se; loop_se = loop_se->rot) {
+    if (orient2d(co, loop_se->next->vert->co, loop_se->rot->next->vert->co) <= 0.0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/*
+ * Merge one end of e onto the other, fixing up surrounding faces.
+ *
+ * General situation looks something like:
+ *
+ *             c-----e
+ *           /  \   / \
+ *          /    \ /   \
+ *         a------b-----f
+ *          \    / \   /
+ *           \  /   \ /
+ *             d-----g
+ *
+ * where ab is the tiny edge. We want to merge a and b and delete edge ab.
+ * We don't want to change the coordinates of input vertices [We could revisit this
+ * in the future, as API def doesn't prohibit this, but callers will appreciate if they
+ * don't change.]
+ * Sometimes the collapse shouldn't happen because the triangles formed by the changed
+ * edges may end up with zero or negative area (see can_collapse, above).
+ * So don't choose a collapse direction that is not allowed or one that has an original vertex
+ * as origin and a non-original vertex as destination.
+ * If both collapse directions are allowed by that rule, picke the one with the lower original
+ * index.
+ *
+ * After merging, the faces abc and adb disappear (if they are not the outer face).
+ * Suppose we merge b onto a.
+ * Then edges cb and db are deleted. Face cbe becomes cae and face bdg becomes adg.
+ * Any other faces attached to b now have a in their place.
+ * We can do this by rotating edges round b, replacing their vert references with a.
+ * Similar statements can be made about what happens when a merges into b;
+ * in code below we'll swap a and b to make above lettering work for a b->a merge.
+ * Return the vert at the collapsed edge, if a collapse happens.
+ */
+static CDTVert *collapse_tiny_edge(CDT_state *cdt, CDTEdge *e)
+{
+  CDTVert *va, *vb;
+  SymEdge *ab_se, *ba_se, *bd_se, *bc_se, *ad_se, *ac_se;
+  SymEdge *bg_se, *be_se, *se, *gb_se, *ca_se;
+  bool can_collapse_a_to_b, can_collapse_b_to_a;
+#ifdef DEBUG_CDT
+  int dbg_level = 0;
+#endif
+
+  ab_se = &e->symedges[0];
+  ba_se = &e->symedges[1];
+  va = ab_se->vert;
+  vb = ba_se->vert;
+#ifdef DEBUG_CDT
+  if (dbg_level > 0) {
+    fprintf(stderr, "\ncollapse_tiny_edge\n");
+    dump_se(&e->symedges[0], "tiny edge");
+    fprintf(stderr, "a = [%d], b = [%d]\n", va->index, vb->index);
+    validate_cdt(cdt, true, false, true);
+  }
+#endif
+  can_collapse_a_to_b = can_collapse(ab_se);
+  can_collapse_b_to_a = can_collapse(ba_se);
+  /* Now swap a and b if necessary and possible, so that from this point on we are collapsing b to
+   * a. */
+  if (va->index > vb->index || !can_collapse_b_to_a) {
+    if (can_collapse_a_to_b && !(is_original_vert(va, cdt) && !is_original_vert(vb, cdt))) {
+      SWAP(CDTVert *, va, vb);
+      ab_se = &e->symedges[1];
+      ba_se = &e->symedges[0];
+#ifdef DEBUG_CDT
+      if (dbg_level > 0) {
+        fprintf(stderr, "swapped a and b\n");
+      }
+#endif
+    }
+    else {
+      /* Neither collapse direction is OK. */
+#ifdef DEBUG_CDT
+      if (dbg_level > 0) {
+        fprintf(stderr, "neither collapse direction ok\n");
+      }
+#endif
+      return NULL;
+    }
+  }
+  bc_se = ab_se->next;
+  bd_se = ba_se->rot;
+  if (bd_se == ba_se) {
+    /* Shouldn't happen. Wire edge in outer face. */
+    fprintf(stderr, "unexpected wire edge\n");
+    return NULL;
+  }
+  vb->merge_to_index = va->merge_to_index == -1 ? va->index : va->merge_to_index;
+  vb->symedge = NULL;
+#ifdef DEBUG_CDT
+  if (dbg_level > 0) {
+    fprintf(stderr,
+            "vb = v[%d] merges to va = v[%d], vb->merge_to_index=%d\n",
+            vb->index,
+            va->index,
+            vb->merge_to_index);
+  }
+#endif
+  /* First fix the vertex of intermediate triangles, like bgf. */
+  for (se = bd_se->rot; se != bc_se; se = se->rot) {
+#ifdef DEBUG_CDT
+    if (dbg_level > 0) {
+      dump_se(se, "intermediate tri edge, setting vert to va");
+    }
+#endif
+    se->vert = va;
+  }
+  ad_se = sym(sym(bd_se)->rot);
+  ca_se = bc_se->next;
+  ac_se = sym(ca_se);
+  if (bd_se->rot != bc_se) {
+    bg_se = bd_se->rot;
+    be_se = sym(bc_se)->next;
+    gb_se = sym(bg_se);
+  }
+  else {
+    bg_se = NULL;
+    be_se = NULL;
+  }
+#ifdef DEBUG_CDT
+  if (dbg_level > 0) {
+    fprintf(stderr, "delete bd, inputs to ad\n");
+    dump_se(bd_se, "  bd");
+    dump_se(ad_se, "  ad");
+    fprintf(stderr, "delete bc, inputs to ac\n");
+    dump_se(bc_se, "  bc");
+    dump_se(ac_se, "  ac");
+    fprintf(stderr, "delete ab\n");
+    dump_se(ab_se, "  ab");
+    if (bg_se != NULL) {
+      fprintf(stderr, "fix up bg, be\n");
+      dump_se(bg_se, "  bg");
+      dump_se(be_se, "  be");
+    }
+  }
+#endif
+  add_list_to_input_ids(&ad_se->edge->input_ids, bd_se->edge->input_ids, cdt);
+  delete_edge(cdt, bd_se);
+  add_list_to_input_ids(&ac_se->edge->input_ids, bc_se->edge->input_ids, cdt);
+  delete_edge(cdt, sym(bc_se));
+  /* At this point we have this:
+   *
+   *             c-----e
+   *           /      / \
+   *          /      /   \
+   *         a------b-----f
+   *          \      \   /
+   *           \      \ /
+   *             d-----g
+   *
+   * Or, if there is not bg_se and be_se, like this:
+   *
+   *             c
+   *           /
+   *          /
+   *         a------b
+   *          \
+   *           \
+   *             d
+   *
+   * (But we've already changed the vert field for bg, bf, ..., be to be va.)
+   */
+  if (bg_se != NULL) {
+    gb_se->next = ad_se;
+    ad_se->rot = bg_se;
+    ca_se->next = be_se;
+    be_se->rot = ac_se;
+    bg_se->vert = va;
+    be_se->vert = va;
+  }
+  else {
+    ca_se->next = ad_se;
+    ad_se->rot = ac_se;
+  }
+  /* Don't use delete_edge as it changes too much. */
+  ab_se->next = ab_se->rot = NULL;
+  ba_se->next = ba_se->rot = NULL;
+  if (va->symedge == ab_se) {
+    va->symedge = ac_se;
+  }
+  return va;
+}
+
+/*
+ * Check to see if e is tiny (length <= epsilon) and queue it if so.
+ */
+static void maybe_enqueue_small_feature(CDT_state *cdt, CDTEdge *e, LinkNodePair *tiny_edge_queue)
+{
+  SymEdge *se, *sesym;
+#ifdef DEBUG_CDT
+  int dbg_level = 0;
+
+  if (dbg_level > 0) {
+    fprintf(stderr, "\nmaybe_enqueue_small_features\n");
+    dump_se(&e->symedges[0], "  se0");
+  }
+#endif
+
+  if (is_deleted_edge(e) || e->in_queue) {
+#ifdef DEBUG_CDT
+    if (dbg_level > 0) {
+      fprintf(stderr, "returning because of e conditions\n");
+    }
+#endif
+    return;
+  }
+  se = &e->symedges[0];
+  sesym = &e->symedges[1];
+  if (len_squared_v2v2_db(se->vert->co, sesym->vert->co) <= cdt->epsilon_squared) {
+    BLI_linklist_append_pool(tiny_edge_queue, e, cdt->listpool);
+    e->in_queue = true;
+#ifdef DEBUG_CDT
+    if (dbg_level > 0) {
+      fprintf(stderr, "Queue tiny edge\n");
+    }
+#endif
+  }
+}
+
+/* Consider all edges in rot ring around v for possible enqueing as small features .*/
+static void maybe_enqueue_small_features(CDT_state *cdt, CDTVert *v, LinkNodePair *tiny_edge_queue)
+{
+  SymEdge *se, *se_start;
+
+  se = se_start = v->symedge;
+  if (!se_start) {
+    return;
+  }
+  do {
+    maybe_enqueue_small_feature(cdt, se->edge, tiny_edge_queue);
+  } while ((se = se->rot) != se_start);
+}
+
+/* Collapse small edges (length <= epsilon) until no more exist.
+ */
+static void remove_small_features(CDT_state *cdt)
+{
+  double epsilon = cdt->epsilon;
+  LinkNodePair tiny_edge_queue = {NULL, NULL};
+  BLI_mempool *pool = cdt->listpool;
+  LinkNode *ln;
+  CDTEdge *e;
+  CDTVert *v_change;
+#ifdef DEBUG_CDT
+  int dbg_level = 0;
+
+  if (dbg_level > 0) {
+    fprintf(stderr, "\nREMOVE_SMALL_FEATURES, epsilon=%g\n", epsilon);
+  }
+#endif
+
+  if (epsilon == 0.0) {
+    return;
+  }
+
+  for (ln = cdt->edges; ln; ln = ln->next) {
+    e = (CDTEdge *)ln->link;
+    maybe_enqueue_small_feature(cdt, e, &tiny_edge_queue);
+  }
+
+  while (tiny_edge_queue.list != NULL) {
+    e = (CDTEdge *)BLI_linklist_pop_pool(&tiny_edge_queue.list, pool);
+    if (tiny_edge_queue.list == NULL) {
+      tiny_edge_queue.last_node = NULL;
+    }
+    e->in_queue = false;
+    if (is_deleted_edge(e)) {
+      continue;
+    }
+#ifdef DEBUG_CDT
+    if (dbg_level > 0) {
+      fprintf(stderr, "collapse tiny edge\n");
+      dump_se(&e->symedges[0], "");
+    }
+#endif
+    v_change = collapse_tiny_edge(cdt, e);
+    if (v_change) {
+      maybe_enqueue_small_features(cdt, v_change, &tiny_edge_queue);
+    }
+  }
+}
+
 /* Remove all non-constraint edges. */
 static void remove_non_constraint_edges(CDT_state *cdt)
 {
@@ -2176,7 +2081,7 @@ static void remove_non_constraint_edges_leave_valid_bmesh(CDT_state *cdt)
     e = sorted_edges[i].e;
     se = &e->symedges[0];
     dissolve = true;
-    if (!edge_touches_frame(e)) {
+    if (true /*!edge_touches_frame(e)*/) {
       fleft = se->face;
       fright = sym(se)->face;
       if (fleft != cdt->outer_face && fright != cdt->outer_face &&
@@ -2197,7 +2102,7 @@ static void remove_non_constraint_edges_leave_valid_bmesh(CDT_state *cdt)
   }
 }
 
-static void remove_outer_edges(CDT_state *cdt, const bool remove_until_constraints)
+static void remove_outer_edges_until_constraints(CDT_state *cdt)
 {
   LinkNode *fstack = NULL;
   SymEdge *se, *se_start;
@@ -2207,27 +2112,28 @@ static void remove_outer_edges(CDT_state *cdt, const bool remove_until_constrain
   int dbg_level = 0;
 
   if (dbg_level > 0) {
-    fprintf(stderr, "remove_outer_edges, until_constraints=%d\n", remove_until_constraints);
+    fprintf(stderr, "remove_outer_edges_until_constraints\n");
   }
 #endif
 
   cdt->outer_face->visit_index = visit;
-
-  /* Find an f, not outer face, but touching outer face. */
-  f = NULL;
-  se_start = se = cdt->vert_array[0]->symedge;
+  /* Walk around outer face, adding faces on other side of dissolvable edges to stack. */
+  se_start = se = cdt->outer_face->symedge;
   do {
-    if (se->face != cdt->outer_face) {
-      f = se->face;
-      break;
+    if (!is_constrained_edge(se->edge)) {
+      fsym = sym(se)->face;
+      if (fsym->visit_index != visit) {
+#ifdef DEBUG_CDT
+        if (dbg_level > 0) {
+          fprintf(stderr, "pushing f=%p from symedge ", fsym);
+          dump_se(se, "an outer edge");
+        }
+#endif
+        BLI_linklist_prepend_pool(&fstack, fsym, cdt->listpool);
+      }
     }
-    se = se->rot;
-  } while (se != se_start);
-  BLI_assert(f != NULL && f->symedge != NULL);
-  if (f == NULL) {
-    return;
-  }
-  BLI_linklist_prepend_pool(&fstack, f, cdt->listpool);
+  } while ((se = se->next) != se_start);
+
   while (fstack != NULL) {
     LinkNode *to_dissolve = NULL;
     bool dissolvable;
@@ -2245,18 +2151,16 @@ static void remove_outer_edges(CDT_state *cdt, const bool remove_until_constrain
     if (dbg_level > 0) {
       fprintf(stderr, "top of loop, f=%p\n", f);
       dump_se_cycle(f->symedge, "visit", 10000);
-      dump_cdt(cdt, "cdt at top of loop");
+      if (dbg_level > 1) {
+        dump_cdt(cdt, "cdt at top of loop");
+        cdt_draw(cdt, "top of dissolve loop");
+      }
     }
 #endif
     f->visit_index = visit;
     se_start = se = f->symedge;
     do {
-      if (remove_until_constraints) {
-        dissolvable = !is_constrained_edge(se->edge);
-      }
-      else {
-        dissolvable = edge_touches_frame(se->edge);
-      }
+      dissolvable = !is_constrained_edge(se->edge);
 #ifdef DEBUG_CDT
       if (dbg_level > 1) {
         dump_se(se, "edge in f");
@@ -2306,15 +2210,20 @@ static void prepare_cdt_for_output(CDT_state *cdt, const CDT_output_type output_
   LinkNode *ln;
 
   cdt->output_prepared = true;
+  if (cdt->edges == NULL) {
+    return;
+  }
 
   /* Make sure all non-deleted faces have a symedge. */
   for (ln = cdt->edges; ln; ln = ln->next) {
     e = (CDTEdge *)ln->link;
-    if (e->symedges[0].face->symedge == NULL) {
-      e->symedges[0].face->symedge = &e->symedges[0];
-    }
-    if (e->symedges[1].face->symedge == NULL) {
-      e->symedges[1].face->symedge = &e->symedges[1];
+    if (!is_deleted_edge(e)) {
+      if (e->symedges[0].face->symedge == NULL) {
+        e->symedges[0].face->symedge = &e->symedges[0];
+      }
+      if (e->symedges[1].face->symedge == NULL) {
+        e->symedges[1].face->symedge = &e->symedges[1];
+      }
     }
   }
 #ifdef DEBUG_CDT
@@ -2335,19 +2244,20 @@ static void prepare_cdt_for_output(CDT_state *cdt, const CDT_output_type output_
   else if (output_type == CDT_CONSTRAINTS_VALID_BMESH) {
     remove_non_constraint_edges_leave_valid_bmesh(cdt);
   }
-  else if (output_type == CDT_FULL || output_type == CDT_INSIDE) {
-    remove_outer_edges(cdt, output_type == CDT_INSIDE);
+  else if (output_type == CDT_INSIDE) {
+    remove_outer_edges_until_constraints(cdt);
   }
 }
 
-#define NUM_BOUND_VERTS 4
-#define VERT_OUT_INDEX(v) ((v)->index - NUM_BOUND_VERTS)
-
-static CDT_result *cdt_get_output(CDT_state *cdt, const CDT_output_type output_type)
+static CDT_result *cdt_get_output(CDT_state *cdt,
+                                  const CDT_input *input,
+                                  const CDT_output_type output_type)
 {
   int i, j, nv, ne, nf, faces_len_total;
   int orig_map_size, orig_map_index;
+  int *vert_to_output_map;
   CDT_result *result;
+  CDTVert *v;
   LinkNode *lne, *lnf, *ln;
   SymEdge *se, *se_start;
   CDTEdge *e;
@@ -2356,11 +2266,39 @@ static CDT_result *cdt_get_output(CDT_state *cdt, const CDT_output_type output_t
   prepare_cdt_for_output(cdt, output_type);
 
   result = (CDT_result *)MEM_callocN(sizeof(*result), __func__);
+  if (cdt->vert_array_len == 0) {
+    return result;
+  }
 
-  /* All verts except first NUM_BOUND_VERTS will be output. */
-  nv = cdt->vert_array_len - NUM_BOUND_VERTS;
+  /* All verts without a merge_to_index will be output.
+   * vert_to_output_map[i] will hold the output vertex index
+   * corresponding to the vert in position i in cdt->vert_array.
+   * Since merging picked the leftmost-lowermost representative,
+   * that is not necessarily the same as the vertex with the lowest original
+   * index (i.e., index in cdt->vert_array), so we need two passes:
+   * one to get the non-merged-to vertices in vert_to_output_map,
+   * and a second to put in the merge targets for merged-to vertices.
+   */
+  vert_to_output_map = BLI_memarena_alloc(cdt->arena, (size_t)cdt->vert_array_len * sizeof(int *));
+  nv = 0;
+  for (i = 0; i < cdt->vert_array_len; i++) {
+    v = cdt->vert_array[i];
+    if (v->merge_to_index == -1) {
+      vert_to_output_map[i] = nv;
+      nv++;
+    }
+  }
   if (nv <= 0) {
     return result;
+  }
+  if (nv < cdt->vert_array_len) {
+    for (i = 0; i < input->verts_len; i++) {
+      v = cdt->vert_array[i];
+      if (v->merge_to_index != -1) {
+        add_to_input_ids(&cdt->vert_array[v->merge_to_index]->input_ids, i, cdt);
+        vert_to_output_map[i] = vert_to_output_map[v->merge_to_index];
+      }
+    }
   }
 
   result->verts_len = nv;
@@ -2368,23 +2306,30 @@ static CDT_result *cdt_get_output(CDT_state *cdt, const CDT_output_type output_t
 
   /* Make the vertex "orig" map arrays, mapping output verts to lists of input ones. */
   orig_map_size = 0;
-  for (i = 0; i < nv; i++) {
-    orig_map_size += BLI_linklist_count(cdt->vert_array[i + 4]->input_ids);
+  for (i = 0; i < cdt->vert_array_len; i++) {
+    if (cdt->vert_array[i]->merge_to_index == -1) {
+      orig_map_size += 1 + BLI_linklist_count(cdt->vert_array[i]->input_ids);
+    }
   }
   result->verts_orig_len_table = MEM_malloc_arrayN(nv, sizeof(int), __func__);
   result->verts_orig_start_table = MEM_malloc_arrayN(nv, sizeof(int), __func__);
   result->verts_orig = MEM_malloc_arrayN(orig_map_size, sizeof(int), __func__);
 
   orig_map_index = 0;
-  for (i = 0; i < nv; i++) {
-    j = i + NUM_BOUND_VERTS;
-    result->vert_coords[i][0] = (float)cdt->vert_array[j]->co[0];
-    result->vert_coords[i][1] = (float)cdt->vert_array[j]->co[1];
-    result->verts_orig_start_table[i] = orig_map_index;
-    for (ln = cdt->vert_array[j]->input_ids; ln; ln = ln->next) {
-      result->verts_orig[orig_map_index++] = POINTER_AS_INT(ln->link);
+  i = 0;
+  for (j = 0; j < cdt->vert_array_len; j++) {
+    v = cdt->vert_array[j];
+    if (v->merge_to_index == -1) {
+      result->vert_coords[i][0] = (float)v->co[0];
+      result->vert_coords[i][1] = (float)v->co[1];
+      result->verts_orig_start_table[i] = orig_map_index;
+      result->verts_orig[orig_map_index++] = j;
+      for (ln = v->input_ids; ln; ln = ln->next) {
+        result->verts_orig[orig_map_index++] = POINTER_AS_INT(ln->link);
+      }
+      result->verts_orig_len_table[i] = orig_map_index - result->verts_orig_start_table[i];
+      i++;
     }
-    result->verts_orig_len_table[i] = orig_map_index - result->verts_orig_start_table[i];
   }
 
   ne = 0;
@@ -2412,8 +2357,8 @@ static CDT_result *cdt_get_output(CDT_state *cdt, const CDT_output_type output_t
     for (lne = cdt->edges; lne; lne = lne->next) {
       e = (CDTEdge *)lne->link;
       if (!is_deleted_edge(e)) {
-        result->edges[i][0] = VERT_OUT_INDEX(e->symedges[0].vert);
-        result->edges[i][1] = VERT_OUT_INDEX(e->symedges[1].vert);
+        result->edges[i][0] = vert_to_output_map[e->symedges[0].vert->index];
+        result->edges[i][1] = vert_to_output_map[e->symedges[1].vert->index];
         result->edges_orig_start_table[i] = orig_map_index;
         for (ln = e->input_ids; ln; ln = ln->next) {
           result->edges_orig[orig_map_index++] = POINTER_AS_INT(ln->link);
@@ -2462,7 +2407,7 @@ static CDT_result *cdt_get_output(CDT_state *cdt, const CDT_output_type output_t
         result->faces_start_table[i] = j;
         se = se_start = f->symedge;
         do {
-          result->faces[j++] = VERT_OUT_INDEX(se->vert);
+          result->faces[j++] = se->vert->index;
           se = se->next;
         } while (se != se_start);
         result->faces_len_table[i] = j - result->faces_start_table[i];
@@ -2478,28 +2423,72 @@ static CDT_result *cdt_get_output(CDT_state *cdt, const CDT_output_type output_t
   return result;
 }
 
+/**
+ * Calculate the Constrained Delaunay Triangulation of the 2d elements given in \a input.
+ *
+ * A Delaunay triangulation of a set of vertices is a triangulation where no triangle in the
+ * triangulation has a circumcircle that strictly contains another vertex. Delaunay triangulations
+ * are avoid long skinny triangles: they maximize the minimum angle of all triangles in the
+ * triangulation.
+ *
+ * A Constrained Delaunay Triangulation adds the requirement that user-provided line segments must
+ * appear as edges in the output (perhaps divided into several sub-segments). It is not required
+ * that the input edges be non-intersecting: this routine will calculate the intersections. This
+ * means that besides triangulating, this routine is also useful for general and robust 2d edge and
+ * face intersection.
+ *
+ * This routine also takes an epsilon parameter in the \a input. Input vertices closer than epsilon
+ * will be merged, and we collapse tiny edges (less than epsilon length) and skinny triangles
+ * (having an altitude of less than epsilon).
+ *
+ * The current initial Deluanay triangulation algorithm is the Guibas-Stolfi Divide and Conquer
+ * algorithm (see "Primitives for the Manipulation of General Subdivisions and the Computation of
+ * Voronoi Diagrams"). and uses Shewchuk's exact predicates to issues where numeric errors cause
+ * inconsistent geometric judgements. This is followed by inserting edge constraints (including the
+ * edges implied by faces) using the algorithms discussed in "Fully Dynamic Constrained Delaunay
+ * Triangulations" by Kallmann, Bieri, and Thalmann.
+ *
+ * \param input: points to a CDT_input struct which contains the vertices, edges, and faces to be
+ * triangulated. \param output_type: specifies which edges to remove after doing the triangulation.
+ * \return A pointer to an allocated CDT_result struct, which describes the triangulation in terms
+ * of vertices, edges, and faces, and also has tables to map output elements back to input
+ * elements. The caller must use BLI_delaunay_2d_cdt_free() on the result when done with it.
+ *
+ * See the header file BLI_delaunay_2d.h for details of the CDT_input and CDT_result structs and
+ * the CDT_output_type enum.
+ */
 CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_type output_type)
 {
   int nv = input->verts_len;
   int ne = input->edges_len;
   int nf = input->faces_len;
-  double epsilon = (double)input->epsilon;
-  int i, f, v1, v2;
-  int fedge_start, fedge_end;
-  double minx, maxx, miny, maxy;
-  float *xy;
-  double vert_co[2];
+  int i, iv1, iv2, f, fedge_start, fedge_end;
   CDT_state *cdt;
-  CDT_result *result;
-  CDTVert **verts;
-  LinkNode *edge_list;
+  CDTVert *v1, *v2;
   CDTEdge *face_edge;
   SymEdge *face_symedge;
+  LinkNode *edge_list;
+  CDT_result *result;
+  static bool called_exactinit = false;
 #ifdef DEBUG_CDT
   int dbg_level = 0;
 #endif
 
+  /* The exact orientation and incircle primitives need a one-time initialization of certain
+   * constants. */
+  if (!called_exactinit) {
+    exactinit();
+    called_exactinit = true;
+  }
 #ifdef DEBUG_CDT
+  if (dbg_level > 0) {
+    fprintf(stderr,
+            "\n\nCDT CALC, nv=%d, ne=%d, nf=%d, eps=%g\n",
+            input->verts_len,
+            input->edges_len,
+            input->faces_len,
+            input->epsilon);
+  }
   if (dbg_level == -1) {
     write_cdt_input_to_file(input);
   }
@@ -2514,77 +2503,43 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
     return NULL;
   }
 
-  if (nv > 0) {
-    minx = miny = DBL_MAX;
-    maxx = maxy = -DBL_MAX;
-    for (i = 0; i < nv; i++) {
-      xy = input->vert_coords[i];
-      if (xy[0] < minx) {
-        minx = xy[0];
-      }
-      if (xy[0] > maxx) {
-        maxx = xy[0];
-      }
-      if (xy[1] < miny) {
-        miny = xy[1];
-      }
-      if (xy[1] > maxy) {
-        maxy = xy[1];
-      }
-    }
-    verts = (CDTVert **)MEM_mallocN(nv * sizeof(CDTVert *), "constrained delaunay");
-  }
-  else {
-    minx = miny = maxx = maxy = 0;
-    verts = NULL;
-  }
-
-  if (epsilon == 0.0) {
-    epsilon = 1e-8;
-  }
-  cdt = cdt_init(minx, maxx, miny, maxy, epsilon);
-  /* TODO: use a random permutation for order of adding the vertices. */
-  for (i = 0; i < nv; i++) {
-    vert_co[0] = (double)input->vert_coords[i][0];
-    vert_co[1] = (double)input->vert_coords[i][1];
-    verts[i] = add_point_constraint(cdt, vert_co, i);
+  cdt = new_cdt_init(input);
+  initial_triangulation(cdt);
 #ifdef DEBUG_CDT
-    if (dbg_level > 3) {
-      char namebuf[60];
-      sprintf(namebuf, "after point %d = (%f,%f)\n", i, vert_co[0], vert_co[1]);
-      cdt_draw(cdt, namebuf);
-      dump_cdt(cdt, namebuf);
-      validate_cdt(cdt, true);
-    }
+  if (dbg_level > 0) {
+    validate_cdt(cdt, true, false, false);
+  }
 #endif
-  }
+
   for (i = 0; i < ne; i++) {
-    v1 = input->edges[i][0];
-    v2 = input->edges[i][1];
-    if (v1 < 0 || v1 >= nv || v2 < 0 || v2 >= nv) {
+    iv1 = input->edges[i][0];
+    iv2 = input->edges[i][1];
+    if (iv1 < 0 || iv1 >= nv || iv2 < 0 || iv2 >= nv) {
 #ifdef DEBUG_CDT
-      fprintf(stderr, "edge indices not valid: v1=%d, v2=%d, nv=%d\n", v1, v2, nv);
+      fprintf(stderr, "edge indices for e%d not valid: v1=%d, v2=%d, nv=%d\n", i, iv1, iv2, nv);
 #endif
       continue;
     }
-    add_edge_constraint(cdt, verts[v1], verts[v2], i, NULL);
+    v1 = cdt->vert_array[iv1];
+    v2 = cdt->vert_array[iv2];
+    if (v1->merge_to_index != -1) {
+      v1 = cdt->vert_array[v1->merge_to_index];
+    }
+    if (v2->merge_to_index != -1) {
+      v2 = cdt->vert_array[v2->merge_to_index];
+    }
+    add_edge_constraint(cdt, v1, v2, i, NULL);
 #ifdef DEBUG_CDT
     if (dbg_level > 3) {
       char namebuf[60];
-      sprintf(namebuf, "after edge constraint %d = (%d,%d)\n", i, v1, v2);
+      sprintf(namebuf, "after edge constraint %d = (%d,%d)\n", i, iv1, iv2);
       cdt_draw(cdt, namebuf);
-      dump_cdt(cdt, namebuf);
-      validate_cdt(cdt, true);
+      // dump_cdt(cdt, namebuf);
+      validate_cdt(cdt, true, true, false);
     }
 #endif
   }
-#ifdef DEBUG_CDT
-  if (dbg_level > 2) {
-    cdt_draw(cdt, "after edge constraints");
-    dump_cdt(cdt, "after edge constraints");
-    validate_cdt(cdt, true);
-  }
-#endif
+
   cdt->face_edge_offset = ne;
   for (f = 0; f < nf; f++) {
     int flen = input->faces_len_table[f];
@@ -2597,17 +2552,25 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
     }
     for (i = 0; i < flen; i++) {
       int face_edge_id = cdt->face_edge_offset + fstart + i;
-      v1 = input->faces[fstart + i];
-      v2 = input->faces[fstart + ((i + 1) % flen)];
-      if (v1 < 0 || v1 >= nv || v2 < 0 || v2 >= nv) {
+      iv1 = input->faces[fstart + i];
+      iv2 = input->faces[fstart + ((i + 1) % flen)];
+      if (iv1 < 0 || iv1 >= nv || iv2 < 0 || iv2 >= nv) {
 #ifdef DEBUG_CDT
-        fprintf(stderr, "face indices not valid: f=%d, v1=%d, v2=%d, nv=%d\n", f, v1, v2, nv);
+        fprintf(stderr, "face indices not valid: f=%d, iv1=%d, iv2=%d, nv=%d\n", f, iv1, iv2, nv);
 #endif
         continue;
       }
-      add_edge_constraint(cdt, verts[v1], verts[v2], face_edge_id, &edge_list);
+      v1 = cdt->vert_array[iv1];
+      v2 = cdt->vert_array[iv2];
+      if (v1->merge_to_index != -1) {
+        v1 = cdt->vert_array[v1->merge_to_index];
+      }
+      if (v2->merge_to_index != -1) {
+        v2 = cdt->vert_array[v2->merge_to_index];
+      }
+      add_edge_constraint(cdt, v1, v2, face_edge_id, &edge_list);
 #ifdef DEBUG_CDT
-      if (dbg_level > 1) {
+      if (dbg_level > 2) {
         fprintf(stderr, "edges for edge %d:\n", i);
         for (LinkNode *ln = edge_list; ln; ln = ln->next) {
           CDTEdge *cdt_e = (CDTEdge *)ln->link;
@@ -2619,16 +2582,18 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
       }
       if (dbg_level > 2) {
         cdt_draw(cdt, "after a face edge");
-        dump_cdt(cdt, "after a face edge");
-        validate_cdt(cdt, true);
+        if (dbg_level > 3) {
+          dump_cdt(cdt, "after a face edge");
+        }
+        validate_cdt(cdt, true, true, false);
       }
 #endif
       if (i == 0) {
         face_edge = (CDTEdge *)edge_list->link;
         face_symedge = &face_edge->symedges[0];
-        if (face_symedge->vert != verts[v1]) {
+        if (face_symedge->vert != v1) {
           face_symedge = &face_edge->symedges[1];
-          BLI_assert(face_symedge->vert == verts[v1]);
+          BLI_assert(face_symedge->vert == v1);
         }
       }
       BLI_linklist_free_pool(edge_list, NULL, cdt->listpool);
@@ -2639,22 +2604,36 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
   }
 #ifdef DEBUG_CDT
   if (dbg_level > 0) {
-    validate_cdt(cdt, true);
+    validate_cdt(cdt, true, true, false);
   }
   if (dbg_level > 1) {
-    cdt_draw(cdt, "before cdt_get_output");
+    cdt_draw(cdt, "after adding edges and faces");
+    if (dbg_level > 2) {
+      dump_cdt(cdt, "after adding edges and faces");
+    }
   }
 #endif
-  result = cdt_get_output(cdt, output_type);
+
+  if (cdt->epsilon > 0.0) {
+    remove_small_features(cdt);
+#ifdef DEBUG_CDT
+    if (dbg_level > 2) {
+      cdt_draw(cdt, "after collapse skinny triangles\n");
+      if (dbg_level > 3) {
+        dump_cdt(cdt, "after collapse skinny triangles\n");
+      }
+    }
+#endif
+  }
+
+  result = cdt_get_output(cdt, input, output_type);
 #ifdef DEBUG_CDT
   if (dbg_level > 0) {
     cdt_draw(cdt, "final");
   }
 #endif
-  if (verts) {
-    MEM_freeN(verts);
-  }
-  cdt_free(cdt);
+
+  new_cdt_free(cdt);
   return result;
 }
 
@@ -2710,17 +2689,20 @@ void BLI_delaunay_2d_cdt_free(CDT_result *result)
 
 #ifdef DEBUG_CDT
 
-static const char *vertname(const CDTVert *v)
+ATTU static const char *vertname(const CDTVert *v)
 {
   static char vertnamebuf[20];
 
-  if (v->index < 4) {
-    sprintf(vertnamebuf, "[%c]", "ABCD"[v->index]);
-  }
-  else {
-    sprintf(vertnamebuf, "[%d]", v->index - 4);
-  }
+  sprintf(vertnamebuf, "[%d]", v->index);
   return vertnamebuf;
+}
+
+ATTU static const char *sename(const SymEdge *se)
+{
+  static char senamebuf[20];
+
+  sprintf(senamebuf, "{%x}", (POINTER_AS_UINT(se)) & 0xFFFF);
+  return senamebuf;
 }
 
 static void dump_v(const CDTVert *v, const char *lab)
@@ -2732,11 +2714,12 @@ static void dump_se(const SymEdge *se, const char *lab)
 {
   if (se->next) {
     fprintf(stderr,
-            "%s%s((%.3f,%.3f)->(%.3f,%.3f))\n",
+            "%s%s((%.3f,%.3f)->(%.3f,%.3f))",
             lab,
             vertname(se->vert),
             F2(se->vert->co),
             F2(se->next->vert->co));
+    fprintf(stderr, "%s\n", vertname(se->next->vert));
   }
   else {
     fprintf(stderr, "%s%s((%.3f,%.3f)->NULL)\n", lab, vertname(se->vert), F2(se->vert->co));
@@ -2791,13 +2774,28 @@ static void dump_cdt_filtered(const CDT_state *cdt,
       continue;
     }
     v = cdt->vert_array[i];
-    fprintf(stderr, "%s %x: (%f,%f) symedge=%x\n", vertname(v), PL(v), F2(v->co), PL(v->symedge));
+    fprintf(stderr, "%s %x: (%f,%f) symedge=%x", vertname(v), PL(v), F2(v->co), PL(v->symedge));
+    if (v->merge_to_index == -1) {
+      fprintf(stderr, "\n");
+    }
+    else {
+      fprintf(stderr, " merge to %s\n", vertname(cdt->vert_array[v->merge_to_index]));
+      continue;
+    }
     dump_id_list(v->input_ids, "  ");
     se = v->symedge;
     cnt = 0;
     if (se) {
       fprintf(stderr, "  edges out:\n");
       do {
+        if (se->next == NULL) {
+          fprintf(stderr, "    [NULL next/rot symedge, se=%x\n", PL(se));
+          break;
+        }
+        if (se->next->next == NULL) {
+          fprintf(stderr, "    [NULL next-next/rot symedge, se=%x\n", PL(se));
+          break;
+        }
         vother = sym(se)->vert;
         fprintf(stderr, "    %s (e=%x, se=%x)\n", vertname(vother), PL(se->edge), PL(se));
         se = se->rot;
@@ -2839,15 +2837,13 @@ static void dump_cdt_filtered(const CDT_state *cdt,
       continue;
     }
     if (f == cdt->outer_face) {
-      fprintf(stderr, "outer");
-    }
-    else {
-      fprintf(stderr, "%x: centroid (%f,%f)", PL(f), F2(f->centroid));
+      fprintf(stderr, "%x: outer", PL(f));
     }
     fprintf(stderr, " symedge=%x\n", PL(f->symedge));
     dump_id_list(f->input_ids, "  ");
   }
   fprintf(stderr, "\nOTHER\n");
+  fprintf(stderr, "outer_face=%x\n", PL(cdt->outer_face));
   fprintf(
       stderr, "minx=%f, maxx=%f, miny=%f, maxy=%f\n", cdt->minx, cdt->maxx, cdt->miny, cdt->maxy);
   fprintf(stderr, "margin=%f\n", cdt->margin);
@@ -2895,6 +2891,37 @@ static bool reachable_filter(const CDT_state *cdt, int v_index, void *filter_dat
   return false;
 }
 
+static void set_min_max(CDT_state *cdt)
+{
+  int i;
+  double minx, maxx, miny, maxy;
+  double *co;
+
+  minx = miny = DBL_MAX;
+  maxx = maxy = -DBL_MAX;
+  for (i = 0; i < cdt->vert_array_len; i++) {
+    co = cdt->vert_array[i]->co;
+    if (co[0] < minx) {
+      minx = co[0];
+    }
+    if (co[0] > maxx) {
+      maxx = co[0];
+    }
+    if (co[1] < miny) {
+      miny = co[1];
+    }
+    if (co[1] > maxy) {
+      maxy = co[1];
+    }
+  }
+  if (minx != DBL_MAX) {
+    cdt->minx = minx;
+    cdt->miny = miny;
+    cdt->maxx = maxx;
+    cdt->maxy = maxy;
+  }
+}
+
 static void dump_cdt_vert_neighborhood(CDT_state *cdt, int v, int maxdist, const char *lab)
 {
   ReachableFilterData rfd;
@@ -2903,7 +2930,7 @@ static void dump_cdt_vert_neighborhood(CDT_state *cdt, int v, int maxdist, const
   dump_cdt_filtered(cdt, reachable_filter, &rfd, lab);
 }
 
-/**
+/*
  * Make an html file with svg in it to display the argument cdt.
  * Mouse-overs will reveal the coordinates of vertices and edges.
  * Constraint edges are drawn thicker than non-constraint edges.
@@ -2916,24 +2943,20 @@ static void dump_cdt_vert_neighborhood(CDT_state *cdt, int v, int maxdist, const
 #  define THICK_LINE 3
 #  define VERT_RADIUS 3
 #  define DRAW_VERT_LABELS 1
-static void cdt_draw(CDT_state *cdt, const char *lab)
+#  define DRAW_EDGE_LABELS 0
+
+static void cdt_draw_region(
+    CDT_state *cdt, const char *lab, double minx, double miny, double maxx, double maxy)
 {
   static bool append = false;
   FILE *f = fopen(DRAWFILE, append ? "a" : "w");
-  double draw_margin = (cdt->maxx - cdt->minx + cdt->maxy - cdt->miny + 1) * 0.05;
-  double minx = cdt->minx - draw_margin;
-  double maxx = cdt->maxx + draw_margin;
-  double miny = cdt->miny - draw_margin;
-  double maxy = cdt->maxy + draw_margin;
-  double width, height, aspect;
   int view_width, view_height;
-  double scale;
+  double width, height, aspect, scale;
   LinkNode *ln;
   CDTVert *v, *u;
   CDTEdge *e;
   int i, strokew;
 
-  /* Note: to debug a small area: assign custom min's/max's here. */
   width = maxx - minx;
   height = maxy - miny;
   aspect = height / width;
@@ -2979,10 +3002,23 @@ static void cdt_draw(CDT_state *cdt, const char *lab)
     fprintf(f, "  <title>%s", vertname(u));
     fprintf(f, "%s</title>\n", vertname(v));
     fprintf(f, "</line>\n");
+#  if DRAW_EDGE_LABELS
+    fprintf(f,
+            "<text x=\"%f\" y=\"%f\" font-size=\"small\">",
+            SX(0.5 * (u->co[0] + v->co[0])),
+            SY(0.5 * (u->co[1] + v->co[1])));
+    fprintf(f, "%s", vertname(u));
+    fprintf(f, "%s", vertname(v));
+    fprintf(f, "%s", sename(&e->symedges[0]));
+    fprintf(f, "%s</text>\n", sename(&e->symedges[1]));
+#  endif
   }
-  i = cdt->output_prepared ? NUM_BOUND_VERTS : 0;
+  i = 0;
   for (; i < cdt->vert_array_len; i++) {
     v = cdt->vert_array[i];
+    if (v->merge_to_index != -1) {
+      continue;
+    }
     fprintf(f,
             "<circle fill=\"black\" cx=\"%f\" cy=\"%f\" r=\"%d\">\n",
             SX(v->co[0]),
@@ -3004,6 +3040,25 @@ static void cdt_draw(CDT_state *cdt, const char *lab)
   append = true;
 #  undef SX
 #  undef SY
+}
+
+static void cdt_draw(CDT_state *cdt, const char *lab)
+{
+  double draw_margin, minx, maxx, miny, maxy;
+
+  set_min_max(cdt);
+  draw_margin = (cdt->maxx - cdt->minx + cdt->maxy - cdt->miny + 1) * 0.05;
+  minx = cdt->minx - draw_margin;
+  maxx = cdt->maxx + draw_margin;
+  miny = cdt->miny - draw_margin;
+  maxy = cdt->maxy + draw_margin;
+  cdt_draw_region(cdt, lab, minx, miny, maxx, maxy);
+}
+
+static void cdt_draw_vertex_region(CDT_state *cdt, int v, double dist, const char *lab)
+{
+  const double *co = cdt->vert_array[v]->co;
+  cdt_draw_region(cdt, lab, co[0] - dist, co[1] - dist, co[0] + dist, co[1] + dist);
 }
 
 #  define CDTFILE "/tmp/cdtinput.txt"
@@ -3029,16 +3084,18 @@ static void write_cdt_input_to_file(const CDT_input *inp)
 }
 
 #  ifndef NDEBUG /* Only used in assert. */
-/**
+/*
  * Is a visible from b: i.e., ab crosses no edge of cdt?
  * If constrained is true, consider only constrained edges as possible crossers.
  * In any case, don't count an edge ab itself.
+ * Note: this is an expensive test if there are a lot of edges.
  */
 static bool is_visible(const CDTVert *a, const CDTVert *b, bool constrained, const CDT_state *cdt)
 {
   const LinkNode *ln;
   const CDTEdge *e;
   const SymEdge *se, *senext;
+  double lambda, mu;
   int ikind;
 
   for (ln = cdt->edges; ln; ln = ln->next) {
@@ -3055,13 +3112,17 @@ static bool is_visible(const CDTVert *a, const CDTVert *b, bool constrained, con
       continue;
     }
     ikind = isect_seg_seg_v2_lambda_mu_db(
-        a->co, b->co, se->vert->co, senext->vert->co, NULL, NULL);
+        a->co, b->co, se->vert->co, senext->vert->co, &lambda, &mu);
     if (ikind != ISECT_LINE_LINE_NONE) {
       if (ikind == ISECT_LINE_LINE_COLINEAR) {
         /* TODO: special test here for overlap. */
         continue;
       }
-      return false;
+      /* Allow an intersection very near or at ends, to allow for numerical error. */
+      if (lambda > FLT_EPSILON && (1.0 - lambda) > FLT_EPSILON && mu > FLT_EPSILON &&
+          (1.0 - mu) > FLT_EPSILON) {
+        return false;
+      }
     }
   }
   return true;
@@ -3069,7 +3130,7 @@ static bool is_visible(const CDTVert *a, const CDTVert *b, bool constrained, con
 #  endif
 
 #  ifndef NDEBUG /* Only used in assert. */
-/**
+/*
  * Check that edge ab satisfies constrained delaunay condition:
  * That is, for all non-constraint, non-border edges ab,
  * (1) ab is visible in the constraint graph; and
@@ -3078,7 +3139,7 @@ static bool is_visible(const CDTVert *a, const CDTVert *b, bool constrained, con
  * The argument 'se' specifies ab by: a is se's vert and b is se->next's vert.
  * Return true if check is OK.
  */
-static bool is_delaunay_edge(const SymEdge *se, const double epsilon)
+static bool is_delaunay_edge(const SymEdge *se)
 {
   int i;
   CDTVert *a, *b, *c;
@@ -3099,7 +3160,7 @@ static bool is_delaunay_edge(const SymEdge *se, const double epsilon)
     b = curse->next->vert;
     c = curse->next->next->vert;
     for (ss = curse->rot; ss != curse; ss = ss->rot) {
-      ok[i] |= delaunay_check(a, b, c, ss->next->vert, epsilon);
+      ok[i] |= incircle(a->co, b->co, c->co, ss->next->vert->co) <= 0.0;
     }
   }
   return ok[0] || ok[1];
@@ -3113,48 +3174,29 @@ static bool plausible_non_null_ptr(void *p)
 }
 #  endif
 
-static void validate_face_centroid(SymEdge *se)
+static void validate_cdt(CDT_state *cdt,
+                         bool check_all_tris,
+                         bool check_delaunay,
+                         bool check_visibility)
 {
-  SymEdge *senext;
-#  ifndef NDEBUG
-  double *centroidp = se->face->centroid;
-#  endif
-  double c[2];
-  int count;
-  copy_v2_v2_db(c, se->vert->co);
-  BLI_assert(reachable(se->next, se, 100));
-  count = 1;
-  for (senext = se->next; senext != se; senext = senext->next) {
-    add_v2_v2_db(c, senext->vert->co);
-    count++;
-  }
-  c[0] /= count;
-  c[1] /= count;
-  BLI_assert(fabs(c[0] - centroidp[0]) < 1e-8 && fabs(c[1] - centroidp[1]) < 1e-8);
-}
-
-static void validate_cdt(CDT_state *cdt, bool check_all_tris)
-{
-  LinkNode *ln, *lne;
-  int totedges, totfaces, totverts, totborderedges;
+  LinkNode *ln;
+  int totedges, totfaces, totverts;
   CDTEdge *e;
   SymEdge *se, *sesym, *s;
   CDTVert *v, *v1, *v2, *v3;
   CDTFace *f;
-  double *p;
-  double margin;
   int i, limit;
   bool isborder;
 
   if (cdt->output_prepared) {
     return;
   }
+  if (cdt->edges == NULL || cdt->edges->next == NULL) {
+    return;
+  }
 
   BLI_assert(cdt != NULL);
-  BLI_assert(cdt->maxx >= cdt->minx);
-  BLI_assert(cdt->maxy >= cdt->miny);
   totedges = 0;
-  totborderedges = 0;
   for (ln = cdt->edges; ln; ln = ln->next) {
     e = (CDTEdge *)ln->link;
     se = &e->symedges[0];
@@ -3165,13 +3207,6 @@ static void validate_cdt(CDT_state *cdt, bool check_all_tris)
     }
     totedges++;
     isborder = is_border_edge(e, cdt);
-    if (isborder) {
-      totborderedges++;
-      BLI_assert((se->face == cdt->outer_face && sesym->face != cdt->outer_face) ||
-                 (se->face != cdt->outer_face && sesym->face == cdt->outer_face));
-    }
-    /* BLI_assert(se->face != sesym->face);
-     * Not required because faces can have intruding wire edges. */
     BLI_assert(se->vert != sesym->vert);
     BLI_assert(se->edge == sesym->edge && se->edge == e);
     BLI_assert(sym(se) == sesym && sym(sesym) == se);
@@ -3179,8 +3214,6 @@ static void validate_cdt(CDT_state *cdt, bool check_all_tris)
       se = &e->symedges[i];
       v = se->vert;
       f = se->face;
-      p = v->co;
-      UNUSED_VARS_NDEBUG(p);
       BLI_assert(plausible_non_null_ptr(v));
       if (f != NULL) {
         BLI_assert(plausible_non_null_ptr(f));
@@ -3198,9 +3231,9 @@ static void validate_cdt(CDT_state *cdt, bool check_all_tris)
         v1 = se->vert;
         v2 = se->next->vert;
         v3 = se->next->next->vert;
-        BLI_assert(CCW_test(v1->co, v2->co, v3->co, 0.0));
-        BLI_assert(CCW_test(v2->co, v3->co, v1->co, 0.0));
-        BLI_assert(CCW_test(v3->co, v1->co, v2->co, 0.0));
+        BLI_assert(orient2d(v1->co, v2->co, v3->co) >= 0.0);
+        BLI_assert(orient2d(v2->co, v3->co, v1->co) >= 0.0);
+        BLI_assert(orient2d(v3->co, v1->co, v2->co) >= 0.0);
       }
       UNUSED_VARS_NDEBUG(limit);
       BLI_assert(se->next->next != se);
@@ -3211,19 +3244,23 @@ static void validate_cdt(CDT_state *cdt, bool check_all_tris)
         s = s->next;
       } while (s != se);
     }
-    BLI_assert(isborder || is_visible(se->vert, se->next->vert, false, cdt));
-    BLI_assert(isborder || is_delaunay_edge(se, cdt->epsilon));
+    if (check_visibility) {
+      BLI_assert(isborder || is_visible(se->vert, se->next->vert, false, cdt));
+    }
+    if (!isborder && check_delaunay) {
+      BLI_assert(is_delaunay_edge(se));
+    }
   }
   totverts = 0;
-  margin = cdt->margin;
   for (i = 0; i < cdt->vert_array_len; i++) {
-    totverts++;
     v = cdt->vert_array[i];
     BLI_assert(plausible_non_null_ptr(v));
-    p = v->co;
-    BLI_assert(p[0] >= cdt->minx - margin && p[0] <= cdt->maxx + margin);
-    UNUSED_VARS_NDEBUG(margin);
-    BLI_assert(v->symedge->vert == v);
+    if (v->merge_to_index != -1) {
+      BLI_assert(v->merge_to_index >= 0 && v->merge_to_index < cdt->vert_array_len);
+      continue;
+    }
+    totverts++;
+    BLI_assert(cdt->vert_array_len <= 1 || v->symedge->vert == v);
   }
   totfaces = 0;
   for (ln = cdt->faces; ln; ln = ln->next) {
@@ -3236,23 +3273,1111 @@ static void validate_cdt(CDT_state *cdt, bool check_all_tris)
     if (f == cdt->outer_face) {
       continue;
     }
-    for (lne = cdt->edges; lne; lne = lne->next) {
-      e = (CDTEdge *)lne->link;
-      if (!is_deleted_edge(e)) {
-        for (i = 0; i < 2; i++) {
-          if (e->symedges[i].face == f) {
-            validate_face_centroid(&e->symedges[i]);
-          }
-        }
-      }
-    }
-    p = f->centroid;
-    BLI_assert(p[0] >= cdt->minx - margin && p[0] <= cdt->maxx + margin);
-    BLI_assert(p[1] >= cdt->miny - margin && p[1] <= cdt->maxy + margin);
   }
   /* Euler's formula for planar graphs. */
-  if (check_all_tris) {
+  if (check_all_tris && totfaces > 1) {
     BLI_assert(totverts - totedges + totfaces == 2);
   }
 }
 #endif
+
+/* Jonathan Shewchuk's adaptive predicates, trimmed to those needed here.
+ * Permission obtained by private communication from Jonathan to include this code in Blender.
+ */
+
+/*
+ *  Routines for Arbitrary Precision Floating-point Arithmetic
+ *  and Fast Robust Geometric Predicates
+ *  (predicates.c)
+ *
+ *  May 18, 1996
+ *
+ *  Placed in the public domain by
+ *  Jonathan Richard Shewchuk
+ *  School of Computer Science
+ *  Carnegie Mellon University
+ *  5000 Forbes Avenue
+ *  Pittsburgh, Pennsylvania  15213-3891
+ *  jrs@cs.cmu.edu
+ *
+ *  This file contains C implementation of algorithms for exact addition
+ *    and multiplication of floating-point numbers, and predicates for
+ *    robustly performing the orientation and incircle tests used in
+ *    computational geometry.  The algorithms and underlying theory are
+ *    described in Jonathan Richard Shewchuk.  "Adaptive Precision Floating-
+ *    Point Arithmetic and Fast Robust Geometric Predicates."  Technical
+ *    Report CMU-CS-96-140, School of Computer Science, Carnegie Mellon
+ *    University, Pittsburgh, Pennsylvania, May 1996.  (Submitted to
+ *    Discrete & Computational Geometry.)
+ *
+ *  This file, the paper listed above, and other information are available
+ *    from the Web page http://www.cs.cmu.edu/~quake/robust.html .
+ *
+ *  Using this code:
+ *
+ *  First, read the short or long version of the paper (from the Web page
+ *    above).
+ *
+ *  Be sure to call exactinit() once, before calling any of the arithmetic
+ *    functions or geometric predicates.  Also be sure to turn on the
+ *    optimizer when compiling this file.
+ *
+ * On some machines, the exact arithmetic routines might be defeated by the
+ *   use of internal extended precision floating-point registers.  Sometimes
+ *   this problem can be fixed by defining certain values to be volatile,
+ *   thus forcing them to be stored to memory and rounded off.  This isn't
+ *   a great solution, though, as it slows the arithmetic down.
+ *
+ * To try this out, write "#define INEXACT volatile" below.  Normally,
+ *   however, INEXACT should be defined to be nothing.  ("#define INEXACT".)
+ */
+
+#define INEXACT /* Nothing */
+/* #define INEXACT volatile */
+
+/* Which of the following two methods of finding the absolute values is
+ *   fastest is compiler-dependent.  A few compilers can inline and optimize
+ *   the fabs() call; but most will incur the overhead of a function call,
+ *   which is disastrously slow.  A faster way on IEEE machines might be to
+ *   mask the appropriate bit, but that's difficult to do in C.
+ */
+
+#define Absolute(a) ((a) >= 0.0 ? (a) : -(a))
+/* #define Absolute(a)  fabs(a) */
+
+/* Many of the operations are broken up into two pieces, a main part that
+ *   performs an approximate operation, and a "tail" that computes the
+ *   roundoff error of that operation.
+ *
+ * The operations Fast_Two_Sum(), Fast_Two_Diff(), Two_Sum(), Two_Diff(),
+ *   Split(), and Two_Product() are all implemented as described in the
+ *   reference.  Each of these macros requires certain variables to be
+ *   defined in the calling routine.  The variables `bvirt', `c', `abig',
+ *   `_i', `_j', `_k', `_l', `_m', and `_n' are declared `INEXACT' because
+ *   they store the result of an operation that may incur roundoff error.
+ *   The input parameter `x' (or the highest numbered `x_' parameter) must
+ *   also be declared `INEXACT'.
+ */
+
+#define Fast_Two_Sum_Tail(a, b, x, y) \
+  bvirt = x - a; \
+  y = b - bvirt
+
+#define Fast_Two_Sum(a, b, x, y) \
+  x = (double)(a + b); \
+  Fast_Two_Sum_Tail(a, b, x, y)
+
+#define Fast_Two_Diff_Tail(a, b, x, y) \
+  bvirt = a - x; \
+  y = bvirt - b
+
+#define Fast_Two_Diff(a, b, x, y) \
+  x = (double)(a - b); \
+  Fast_Two_Diff_Tail(a, b, x, y)
+
+#define Two_Sum_Tail(a, b, x, y) \
+  bvirt = (double)(x - a); \
+  avirt = x - bvirt; \
+  bround = b - bvirt; \
+  around = a - avirt; \
+  y = around + bround
+
+#define Two_Sum(a, b, x, y) \
+  x = (double)(a + b); \
+  Two_Sum_Tail(a, b, x, y)
+
+#define Two_Diff_Tail(a, b, x, y) \
+  bvirt = (double)(a - x); \
+  avirt = x + bvirt; \
+  bround = bvirt - b; \
+  around = a - avirt; \
+  y = around + bround
+
+#define Two_Diff(a, b, x, y) \
+  x = (double)(a - b); \
+  Two_Diff_Tail(a, b, x, y)
+
+#define Split(a, ahi, alo) \
+  c = (double)(splitter * a); \
+  abig = (double)(c - a); \
+  ahi = c - abig; \
+  alo = a - ahi
+
+#define Two_Product_Tail(a, b, x, y) \
+  Split(a, ahi, alo); \
+  Split(b, bhi, blo); \
+  err1 = x - (ahi * bhi); \
+  err2 = err1 - (alo * bhi); \
+  err3 = err2 - (ahi * blo); \
+  y = (alo * blo) - err3
+
+#define Two_Product(a, b, x, y) \
+  x = (double)(a * b); \
+  Two_Product_Tail(a, b, x, y)
+
+#define Two_Product_Presplit(a, b, bhi, blo, x, y) \
+  x = (double)(a * b); \
+  Split(a, ahi, alo); \
+  err1 = x - (ahi * bhi); \
+  err2 = err1 - (alo * bhi); \
+  err3 = err2 - (ahi * blo); \
+  y = (alo * blo) - err3
+
+#define Square_Tail(a, x, y) \
+  Split(a, ahi, alo); \
+  err1 = x - (ahi * ahi); \
+  err3 = err1 - ((ahi + ahi) * alo); \
+  y = (alo * alo) - err3
+
+#define Square(a, x, y) \
+  x = (double)(a * a); \
+  Square_Tail(a, x, y)
+
+#define Two_One_Sum(a1, a0, b, x2, x1, x0) \
+  Two_Sum(a0, b, _i, x0); \
+  Two_Sum(a1, _i, x2, x1)
+
+#define Two_One_Diff(a1, a0, b, x2, x1, x0) \
+  Two_Diff(a0, b, _i, x0); \
+  Two_Sum(a1, _i, x2, x1)
+
+#define Two_Two_Sum(a1, a0, b1, b0, x3, x2, x1, x0) \
+  Two_One_Sum(a1, a0, b0, _j, _0, x0); \
+  Two_One_Sum(_j, _0, b1, x3, x2, x1)
+
+#define Two_Two_Diff(a1, a0, b1, b0, x3, x2, x1, x0) \
+  Two_One_Diff(a1, a0, b0, _j, _0, x0); \
+  Two_One_Diff(_j, _0, b1, x3, x2, x1)
+
+static double splitter;  /* = 2^ceiling(p / 2) + 1.  Used to split floats in half. */
+static double m_epsilon; /* = 2^(-p).  Used to estimate roundoff errors. */
+/* A set of coefficients used to calculate maximum roundoff errors. */
+static double resulterrbound;
+static double ccwerrboundA, ccwerrboundB, ccwerrboundC;
+static double o3derrboundA, o3derrboundB, o3derrboundC;
+static double iccerrboundA, iccerrboundB, iccerrboundC;
+static double isperrboundA, isperrboundB, isperrboundC;
+
+/*  exactinit()   Initialize the variables used for exact arithmetic.
+ *
+ *  `epsilon' is the largest power of two such that 1.0 + epsilon = 1.0 in
+ *  floating-point arithmetic.  `epsilon' bounds the relative roundoff
+ *  error.  It is used for floating-point error analysis.
+ *
+ *  `splitter' is used to split floating-point numbers into two half-
+ *  length significands for exact multiplication.
+ *
+ *  I imagine that a highly optimizing compiler might be too smart for its
+ *  own good, and somehow cause this routine to fail, if it pretends that
+ *  floating-point arithmetic is too much like real arithmetic.
+ *
+ *  Don't change this routine unless you fully understand it.
+ */
+
+static void exactinit(void)
+{
+  double half;
+  double check, lastcheck;
+  int every_other;
+
+  every_other = 1;
+  half = 0.5;
+  m_epsilon = 1.0;
+  splitter = 1.0;
+  check = 1.0;
+  /* Repeatedly divide `epsilon' by two until it is too small to add to
+   *   one without causing roundoff.  (Also check if the sum is equal to
+   *   the previous sum, for machines that round up instead of using exact
+   *   rounding.  Not that this library will work on such machines anyway.
+   */
+  do {
+    lastcheck = check;
+    m_epsilon *= half;
+    if (every_other) {
+      splitter *= 2.0;
+    }
+    every_other = !every_other;
+    check = 1.0 + m_epsilon;
+  } while ((check != 1.0) && (check != lastcheck));
+  splitter += 1.0;
+
+  /* Error bounds for orientation and incircle tests. */
+  resulterrbound = (3.0 + 8.0 * m_epsilon) * m_epsilon;
+  ccwerrboundA = (3.0 + 16.0 * m_epsilon) * m_epsilon;
+  ccwerrboundB = (2.0 + 12.0 * m_epsilon) * m_epsilon;
+  ccwerrboundC = (9.0 + 64.0 * m_epsilon) * m_epsilon * m_epsilon;
+  o3derrboundA = (7.0 + 56.0 * m_epsilon) * m_epsilon;
+  o3derrboundB = (3.0 + 28.0 * m_epsilon) * m_epsilon;
+  o3derrboundC = (26.0 + 288.0 * m_epsilon) * m_epsilon * m_epsilon;
+  iccerrboundA = (10.0 + 96.0 * m_epsilon) * m_epsilon;
+  iccerrboundB = (4.0 + 48.0 * m_epsilon) * m_epsilon;
+  iccerrboundC = (44.0 + 576.0 * m_epsilon) * m_epsilon * m_epsilon;
+  isperrboundA = (16.0 + 224.0 * m_epsilon) * m_epsilon;
+  isperrboundB = (5.0 + 72.0 * m_epsilon) * m_epsilon;
+  isperrboundC = (71.0 + 1408.0 * m_epsilon) * m_epsilon * m_epsilon;
+}
+
+/*  fast_expansion_sum_zeroelim()   Sum two expansions, eliminating zero
+ *                                  components from the output expansion.
+ *
+ *  Sets h = e + f.  See the long version of my paper for details.
+ *
+ *  If round-to-even is used (as with IEEE 754), maintains the strongly
+ *  nonoverlapping property.  (That is, if e is strongly nonoverlapping, h
+ *  will be also.)  Does NOT maintain the nonoverlapping or nonadjacent
+ *  properties.
+ */
+
+static int fast_expansion_sum_zeroelim(
+    int elen, double *e, int flen, double *f, double *h) /* h cannot be e or f. */
+{
+  double Q;
+  INEXACT double Qnew;
+  INEXACT double hh;
+  INEXACT double bvirt;
+  double avirt, bround, around;
+  int eindex, findex, hindex;
+  double enow, fnow;
+
+  enow = e[0];
+  fnow = f[0];
+  eindex = findex = 0;
+  if ((fnow > enow) == (fnow > -enow)) {
+    Q = enow;
+    enow = e[++eindex];
+  }
+  else {
+    Q = fnow;
+    fnow = f[++findex];
+  }
+  hindex = 0;
+  if ((eindex < elen) && (findex < flen)) {
+    if ((fnow > enow) == (fnow > -enow)) {
+      Fast_Two_Sum(enow, Q, Qnew, hh);
+      enow = e[++eindex];
+    }
+    else {
+      Fast_Two_Sum(fnow, Q, Qnew, hh);
+      fnow = f[++findex];
+    }
+    Q = Qnew;
+    if (hh != 0.0) {
+      h[hindex++] = hh;
+    }
+    while ((eindex < elen) && (findex < flen)) {
+      if ((fnow > enow) == (fnow > -enow)) {
+        Two_Sum(Q, enow, Qnew, hh);
+        enow = e[++eindex];
+      }
+      else {
+        Two_Sum(Q, fnow, Qnew, hh);
+        fnow = f[++findex];
+      }
+      Q = Qnew;
+      if (hh != 0.0) {
+        h[hindex++] = hh;
+      }
+    }
+  }
+  while (eindex < elen) {
+    Two_Sum(Q, enow, Qnew, hh);
+    enow = e[++eindex];
+    Q = Qnew;
+    if (hh != 0.0) {
+      h[hindex++] = hh;
+    }
+  }
+  while (findex < flen) {
+    Two_Sum(Q, fnow, Qnew, hh);
+    fnow = f[++findex];
+    Q = Qnew;
+    if (hh != 0.0) {
+      h[hindex++] = hh;
+    }
+  }
+  if ((Q != 0.0) || (hindex == 0)) {
+    h[hindex++] = Q;
+  }
+  return hindex;
+}
+
+/*  scale_expansion_zeroelim()   Multiply an expansion by a scalar,
+ *                               eliminating zero components from the
+ *                               output expansion.
+ *
+ *  Sets h = be.  See either version of my paper for details.
+ *
+ *  Maintains the nonoverlapping property.  If round-to-even is used (as
+ *  with IEEE 754), maintains the strongly nonoverlapping and nonadjacent
+ *  properties as well.  (That is, if e has one of these properties, so
+ *  will h.)
+ */
+
+static int scale_expansion_zeroelim(int elen,
+                                    double *e,
+                                    double b,
+                                    double *h) /* e and h cannot be the same. */
+{
+  INEXACT double Q, sum;
+  double hh;
+  INEXACT double product1;
+  double product0;
+  int eindex, hindex;
+  double enow;
+  INEXACT double bvirt;
+  double avirt, bround, around;
+  INEXACT double c;
+  INEXACT double abig;
+  double ahi, alo, bhi, blo;
+  double err1, err2, err3;
+
+  Split(b, bhi, blo);
+  Two_Product_Presplit(e[0], b, bhi, blo, Q, hh);
+  hindex = 0;
+  if (hh != 0) {
+    h[hindex++] = hh;
+  }
+  for (eindex = 1; eindex < elen; eindex++) {
+    enow = e[eindex];
+    Two_Product_Presplit(enow, b, bhi, blo, product1, product0);
+    Two_Sum(Q, product0, sum, hh);
+    if (hh != 0) {
+      h[hindex++] = hh;
+    }
+    Fast_Two_Sum(product1, sum, Q, hh);
+    if (hh != 0) {
+      h[hindex++] = hh;
+    }
+  }
+  if ((Q != 0.0) || (hindex == 0)) {
+    h[hindex++] = Q;
+  }
+  return hindex;
+}
+
+/*  estimate()   Produce a one-word estimate of an expansion's value.
+ *
+ *  See either version of my paper for details.
+ */
+
+static double estimate(int elen, double *e)
+{
+  double Q;
+  int eindex;
+
+  Q = e[0];
+  for (eindex = 1; eindex < elen; eindex++) {
+    Q += e[eindex];
+  }
+  return Q;
+}
+
+/*  orient2d()   Adaptive exact 2D orientation test.  Robust.
+ *
+ *               Return a positive value if the points pa, pb, and pc occur
+ *               in counterclockwise order; a negative value if they occur
+ *               in clockwise order; and zero if they are collinear.  The
+ *               result is also a rough approximation of twice the signed
+ *               area of the triangle defined by the three points.
+ *
+ *  This uses exact arithmetic to ensure a correct answer.  The
+ *  result returned is the determinant of a matrix.
+ *  This determinant is computed adaptively, in the sense that exact
+ *  arithmetic is used only to the degree it is needed to ensure that the
+ *  returned value has the correct sign.  Hence, orient2d() is usually quite
+ *  fast, but will run more slowly when the input points are collinear or
+ *  nearly so.
+ */
+
+static double orient2dadapt(const double *pa, const double *pb, const double *pc, double detsum)
+{
+  INEXACT double acx, acy, bcx, bcy;
+  double acxtail, acytail, bcxtail, bcytail;
+  INEXACT double detleft, detright;
+  double detlefttail, detrighttail;
+  double det, errbound;
+  double B[4], C1[8], C2[12], D[16];
+  INEXACT double B3;
+  int C1length, C2length, Dlength;
+  double u[4];
+  INEXACT double u3;
+  INEXACT double s1, t1;
+  double s0, t0;
+
+  INEXACT double bvirt;
+  double avirt, bround, around;
+  INEXACT double c;
+  INEXACT double abig;
+  double ahi, alo, bhi, blo;
+  double err1, err2, err3;
+  INEXACT double _i, _j;
+  double _0;
+
+  acx = (double)(pa[0] - pc[0]);
+  bcx = (double)(pb[0] - pc[0]);
+  acy = (double)(pa[1] - pc[1]);
+  bcy = (double)(pb[1] - pc[1]);
+
+  Two_Product(acx, bcy, detleft, detlefttail);
+  Two_Product(acy, bcx, detright, detrighttail);
+
+  Two_Two_Diff(detleft, detlefttail, detright, detrighttail, B3, B[2], B[1], B[0]);
+  B[3] = B3;
+
+  det = estimate(4, B);
+  errbound = ccwerrboundB * detsum;
+  if ((det >= errbound) || (-det >= errbound)) {
+    return det;
+  }
+
+  Two_Diff_Tail(pa[0], pc[0], acx, acxtail);
+  Two_Diff_Tail(pb[0], pc[0], bcx, bcxtail);
+  Two_Diff_Tail(pa[1], pc[1], acy, acytail);
+  Two_Diff_Tail(pb[1], pc[1], bcy, bcytail);
+
+  if ((acxtail == 0.0) && (acytail == 0.0) && (bcxtail == 0.0) && (bcytail == 0.0)) {
+    return det;
+  }
+
+  errbound = ccwerrboundC * detsum + resulterrbound * Absolute(det);
+  det += (acx * bcytail + bcy * acxtail) - (acy * bcxtail + bcx * acytail);
+  if ((det >= errbound) || (-det >= errbound)) {
+    return det;
+  }
+
+  Two_Product(acxtail, bcy, s1, s0);
+  Two_Product(acytail, bcx, t1, t0);
+  Two_Two_Diff(s1, s0, t1, t0, u3, u[2], u[1], u[0]);
+  u[3] = u3;
+  C1length = fast_expansion_sum_zeroelim(4, B, 4, u, C1);
+
+  Two_Product(acx, bcytail, s1, s0);
+  Two_Product(acy, bcxtail, t1, t0);
+  Two_Two_Diff(s1, s0, t1, t0, u3, u[2], u[1], u[0]);
+  u[3] = u3;
+  C2length = fast_expansion_sum_zeroelim(C1length, C1, 4, u, C2);
+
+  Two_Product(acxtail, bcytail, s1, s0);
+  Two_Product(acytail, bcxtail, t1, t0);
+  Two_Two_Diff(s1, s0, t1, t0, u3, u[2], u[1], u[0]);
+  u[3] = u3;
+  Dlength = fast_expansion_sum_zeroelim(C2length, C2, 4, u, D);
+
+  return (D[Dlength - 1]);
+}
+
+static double orient2d(const double *pa, const double *pb, const double *pc)
+{
+  double detleft, detright, det;
+  double detsum, errbound;
+
+  detleft = (pa[0] - pc[0]) * (pb[1] - pc[1]);
+  detright = (pa[1] - pc[1]) * (pb[0] - pc[0]);
+  det = detleft - detright;
+
+  if (detleft > 0.0) {
+    if (detright <= 0.0) {
+      return det;
+    }
+    else {
+      detsum = detleft + detright;
+    }
+  }
+  else if (detleft < 0.0) {
+    if (detright >= 0.0) {
+      return det;
+    }
+    else {
+      detsum = -detleft - detright;
+    }
+  }
+  else {
+    return det;
+  }
+
+  errbound = ccwerrboundA * detsum;
+  if ((det >= errbound) || (-det >= errbound)) {
+    return det;
+  }
+
+  return orient2dadapt(pa, pb, pc, detsum);
+}
+
+/*  incircle()   Adaptive exact 2D incircle test.  Robust.
+ *
+ *               Return a positive value if the point pd lies inside the
+ *               circle passing through pa, pb, and pc; a negative value if
+ *               it lies outside; and zero if the four points are cocircular.
+ *               The points pa, pb, and pc must be in counterclockwise
+ *               order, or the sign of the result will be reversed.
+ *
+ *  This uses exact arithmetic to ensure a correct answer.
+ *  The result returned is the determinant of a matrix.
+ *  This determinant is computed adaptively, in the sense that exact
+ *  arithmetic is used only to the degree it is needed to ensure that the
+ *  returned value has the correct sign.  Hence, incircle() is usually quite
+ *  fast, but will run more slowly when the input points are cocircular or
+ *  nearly so.
+ */
+
+static double incircleadapt(
+    const double *pa, const double *pb, const double *pc, const double *pd, double permanent)
+{
+  INEXACT double adx, bdx, cdx, ady, bdy, cdy;
+  double det, errbound;
+
+  INEXACT double bdxcdy1, cdxbdy1, cdxady1, adxcdy1, adxbdy1, bdxady1;
+  double bdxcdy0, cdxbdy0, cdxady0, adxcdy0, adxbdy0, bdxady0;
+  double bc[4], ca[4], ab[4];
+  INEXACT double bc3, ca3, ab3;
+  double axbc[8], axxbc[16], aybc[8], ayybc[16], adet[32];
+  int axbclen, axxbclen, aybclen, ayybclen, alen;
+  double bxca[8], bxxca[16], byca[8], byyca[16], bdet[32];
+  int bxcalen, bxxcalen, bycalen, byycalen, blen;
+  double cxab[8], cxxab[16], cyab[8], cyyab[16], cdet[32];
+  int cxablen, cxxablen, cyablen, cyyablen, clen;
+  double abdet[64];
+  int ablen;
+  double fin1[1152], fin2[1152];
+  double *finnow, *finother, *finswap;
+  int finlength;
+
+  double adxtail, bdxtail, cdxtail, adytail, bdytail, cdytail;
+  INEXACT double adxadx1, adyady1, bdxbdx1, bdybdy1, cdxcdx1, cdycdy1;
+  double adxadx0, adyady0, bdxbdx0, bdybdy0, cdxcdx0, cdycdy0;
+  double aa[4], bb[4], cc[4];
+  INEXACT double aa3, bb3, cc3;
+  INEXACT double ti1, tj1;
+  double ti0, tj0;
+  double u[4], v[4];
+  INEXACT double u3, v3;
+  double temp8[8], temp16a[16], temp16b[16], temp16c[16];
+  double temp32a[32], temp32b[32], temp48[48], temp64[64];
+  int temp8len, temp16alen, temp16blen, temp16clen;
+  int temp32alen, temp32blen, temp48len, temp64len;
+  double axtbb[8], axtcc[8], aytbb[8], aytcc[8];
+  int axtbblen, axtcclen, aytbblen, aytcclen;
+  double bxtaa[8], bxtcc[8], bytaa[8], bytcc[8];
+  int bxtaalen, bxtcclen, bytaalen, bytcclen;
+  double cxtaa[8], cxtbb[8], cytaa[8], cytbb[8];
+  int cxtaalen, cxtbblen, cytaalen, cytbblen;
+  double axtbc[8], aytbc[8], bxtca[8], bytca[8], cxtab[8], cytab[8];
+  int axtbclen, aytbclen, bxtcalen, bytcalen, cxtablen, cytablen;
+  double axtbct[16], aytbct[16], bxtcat[16], bytcat[16], cxtabt[16], cytabt[16];
+  int axtbctlen, aytbctlen, bxtcatlen, bytcatlen, cxtabtlen, cytabtlen;
+  double axtbctt[8], aytbctt[8], bxtcatt[8];
+  double bytcatt[8], cxtabtt[8], cytabtt[8];
+  int axtbcttlen, aytbcttlen, bxtcattlen, bytcattlen, cxtabttlen, cytabttlen;
+  double abt[8], bct[8], cat[8];
+  int abtlen, bctlen, catlen;
+  double abtt[4], bctt[4], catt[4];
+  int abttlen, bcttlen, cattlen;
+  INEXACT double abtt3, bctt3, catt3;
+  double negate;
+
+  INEXACT double bvirt;
+  double avirt, bround, around;
+  INEXACT double c;
+  INEXACT double abig;
+  double ahi, alo, bhi, blo;
+  double err1, err2, err3;
+  INEXACT double _i, _j;
+  double _0;
+
+  adx = (double)(pa[0] - pd[0]);
+  bdx = (double)(pb[0] - pd[0]);
+  cdx = (double)(pc[0] - pd[0]);
+  ady = (double)(pa[1] - pd[1]);
+  bdy = (double)(pb[1] - pd[1]);
+  cdy = (double)(pc[1] - pd[1]);
+
+  Two_Product(bdx, cdy, bdxcdy1, bdxcdy0);
+  Two_Product(cdx, bdy, cdxbdy1, cdxbdy0);
+  Two_Two_Diff(bdxcdy1, bdxcdy0, cdxbdy1, cdxbdy0, bc3, bc[2], bc[1], bc[0]);
+  bc[3] = bc3;
+  axbclen = scale_expansion_zeroelim(4, bc, adx, axbc);
+  axxbclen = scale_expansion_zeroelim(axbclen, axbc, adx, axxbc);
+  aybclen = scale_expansion_zeroelim(4, bc, ady, aybc);
+  ayybclen = scale_expansion_zeroelim(aybclen, aybc, ady, ayybc);
+  alen = fast_expansion_sum_zeroelim(axxbclen, axxbc, ayybclen, ayybc, adet);
+
+  Two_Product(cdx, ady, cdxady1, cdxady0);
+  Two_Product(adx, cdy, adxcdy1, adxcdy0);
+  Two_Two_Diff(cdxady1, cdxady0, adxcdy1, adxcdy0, ca3, ca[2], ca[1], ca[0]);
+  ca[3] = ca3;
+  bxcalen = scale_expansion_zeroelim(4, ca, bdx, bxca);
+  bxxcalen = scale_expansion_zeroelim(bxcalen, bxca, bdx, bxxca);
+  bycalen = scale_expansion_zeroelim(4, ca, bdy, byca);
+  byycalen = scale_expansion_zeroelim(bycalen, byca, bdy, byyca);
+  blen = fast_expansion_sum_zeroelim(bxxcalen, bxxca, byycalen, byyca, bdet);
+
+  Two_Product(adx, bdy, adxbdy1, adxbdy0);
+  Two_Product(bdx, ady, bdxady1, bdxady0);
+  Two_Two_Diff(adxbdy1, adxbdy0, bdxady1, bdxady0, ab3, ab[2], ab[1], ab[0]);
+  ab[3] = ab3;
+  cxablen = scale_expansion_zeroelim(4, ab, cdx, cxab);
+  cxxablen = scale_expansion_zeroelim(cxablen, cxab, cdx, cxxab);
+  cyablen = scale_expansion_zeroelim(4, ab, cdy, cyab);
+  cyyablen = scale_expansion_zeroelim(cyablen, cyab, cdy, cyyab);
+  clen = fast_expansion_sum_zeroelim(cxxablen, cxxab, cyyablen, cyyab, cdet);
+
+  ablen = fast_expansion_sum_zeroelim(alen, adet, blen, bdet, abdet);
+  finlength = fast_expansion_sum_zeroelim(ablen, abdet, clen, cdet, fin1);
+
+  det = estimate(finlength, fin1);
+  errbound = iccerrboundB * permanent;
+  if ((det >= errbound) || (-det >= errbound)) {
+    return det;
+  }
+
+  Two_Diff_Tail(pa[0], pd[0], adx, adxtail);
+  Two_Diff_Tail(pa[1], pd[1], ady, adytail);
+  Two_Diff_Tail(pb[0], pd[0], bdx, bdxtail);
+  Two_Diff_Tail(pb[1], pd[1], bdy, bdytail);
+  Two_Diff_Tail(pc[0], pd[0], cdx, cdxtail);
+  Two_Diff_Tail(pc[1], pd[1], cdy, cdytail);
+  if ((adxtail == 0.0) && (bdxtail == 0.0) && (cdxtail == 0.0) && (adytail == 0.0) &&
+      (bdytail == 0.0) && (cdytail == 0.0)) {
+    return det;
+  }
+
+  errbound = iccerrboundC * permanent + resulterrbound * Absolute(det);
+  det += ((adx * adx + ady * ady) *
+              ((bdx * cdytail + cdy * bdxtail) - (bdy * cdxtail + cdx * bdytail)) +
+          2.0 * (adx * adxtail + ady * adytail) * (bdx * cdy - bdy * cdx)) +
+         ((bdx * bdx + bdy * bdy) *
+              ((cdx * adytail + ady * cdxtail) - (cdy * adxtail + adx * cdytail)) +
+          2.0 * (bdx * bdxtail + bdy * bdytail) * (cdx * ady - cdy * adx)) +
+         ((cdx * cdx + cdy * cdy) *
+              ((adx * bdytail + bdy * adxtail) - (ady * bdxtail + bdx * adytail)) +
+          2.0 * (cdx * cdxtail + cdy * cdytail) * (adx * bdy - ady * bdx));
+  if ((det >= errbound) || (-det >= errbound)) {
+    return det;
+  }
+
+  finnow = fin1;
+  finother = fin2;
+
+  if ((bdxtail != 0.0) || (bdytail != 0.0) || (cdxtail != 0.0) || (cdytail != 0.0)) {
+    Square(adx, adxadx1, adxadx0);
+    Square(ady, adyady1, adyady0);
+    Two_Two_Sum(adxadx1, adxadx0, adyady1, adyady0, aa3, aa[2], aa[1], aa[0]);
+    aa[3] = aa3;
+  }
+  if ((cdxtail != 0.0) || (cdytail != 0.0) || (adxtail != 0.0) || (adytail != 0.0)) {
+    Square(bdx, bdxbdx1, bdxbdx0);
+    Square(bdy, bdybdy1, bdybdy0);
+    Two_Two_Sum(bdxbdx1, bdxbdx0, bdybdy1, bdybdy0, bb3, bb[2], bb[1], bb[0]);
+    bb[3] = bb3;
+  }
+  if ((adxtail != 0.0) || (adytail != 0.0) || (bdxtail != 0.0) || (bdytail != 0.0)) {
+    Square(cdx, cdxcdx1, cdxcdx0);
+    Square(cdy, cdycdy1, cdycdy0);
+    Two_Two_Sum(cdxcdx1, cdxcdx0, cdycdy1, cdycdy0, cc3, cc[2], cc[1], cc[0]);
+    cc[3] = cc3;
+  }
+
+  if (adxtail != 0.0) {
+    axtbclen = scale_expansion_zeroelim(4, bc, adxtail, axtbc);
+    temp16alen = scale_expansion_zeroelim(axtbclen, axtbc, 2.0 * adx, temp16a);
+
+    axtcclen = scale_expansion_zeroelim(4, cc, adxtail, axtcc);
+    temp16blen = scale_expansion_zeroelim(axtcclen, axtcc, bdy, temp16b);
+
+    axtbblen = scale_expansion_zeroelim(4, bb, adxtail, axtbb);
+    temp16clen = scale_expansion_zeroelim(axtbblen, axtbb, -cdy, temp16c);
+
+    temp32alen = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp16blen, temp16b, temp32a);
+    temp48len = fast_expansion_sum_zeroelim(temp16clen, temp16c, temp32alen, temp32a, temp48);
+    finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp48len, temp48, finother);
+    finswap = finnow;
+    finnow = finother;
+    finother = finswap;
+  }
+  if (adytail != 0.0) {
+    aytbclen = scale_expansion_zeroelim(4, bc, adytail, aytbc);
+    temp16alen = scale_expansion_zeroelim(aytbclen, aytbc, 2.0 * ady, temp16a);
+
+    aytbblen = scale_expansion_zeroelim(4, bb, adytail, aytbb);
+    temp16blen = scale_expansion_zeroelim(aytbblen, aytbb, cdx, temp16b);
+
+    aytcclen = scale_expansion_zeroelim(4, cc, adytail, aytcc);
+    temp16clen = scale_expansion_zeroelim(aytcclen, aytcc, -bdx, temp16c);
+
+    temp32alen = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp16blen, temp16b, temp32a);
+    temp48len = fast_expansion_sum_zeroelim(temp16clen, temp16c, temp32alen, temp32a, temp48);
+    finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp48len, temp48, finother);
+    finswap = finnow;
+    finnow = finother;
+    finother = finswap;
+  }
+  if (bdxtail != 0.0) {
+    bxtcalen = scale_expansion_zeroelim(4, ca, bdxtail, bxtca);
+    temp16alen = scale_expansion_zeroelim(bxtcalen, bxtca, 2.0 * bdx, temp16a);
+
+    bxtaalen = scale_expansion_zeroelim(4, aa, bdxtail, bxtaa);
+    temp16blen = scale_expansion_zeroelim(bxtaalen, bxtaa, cdy, temp16b);
+
+    bxtcclen = scale_expansion_zeroelim(4, cc, bdxtail, bxtcc);
+    temp16clen = scale_expansion_zeroelim(bxtcclen, bxtcc, -ady, temp16c);
+
+    temp32alen = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp16blen, temp16b, temp32a);
+    temp48len = fast_expansion_sum_zeroelim(temp16clen, temp16c, temp32alen, temp32a, temp48);
+    finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp48len, temp48, finother);
+    finswap = finnow;
+    finnow = finother;
+    finother = finswap;
+  }
+  if (bdytail != 0.0) {
+    bytcalen = scale_expansion_zeroelim(4, ca, bdytail, bytca);
+    temp16alen = scale_expansion_zeroelim(bytcalen, bytca, 2.0 * bdy, temp16a);
+
+    bytcclen = scale_expansion_zeroelim(4, cc, bdytail, bytcc);
+    temp16blen = scale_expansion_zeroelim(bytcclen, bytcc, adx, temp16b);
+
+    bytaalen = scale_expansion_zeroelim(4, aa, bdytail, bytaa);
+    temp16clen = scale_expansion_zeroelim(bytaalen, bytaa, -cdx, temp16c);
+
+    temp32alen = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp16blen, temp16b, temp32a);
+    temp48len = fast_expansion_sum_zeroelim(temp16clen, temp16c, temp32alen, temp32a, temp48);
+    finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp48len, temp48, finother);
+    finswap = finnow;
+    finnow = finother;
+    finother = finswap;
+  }
+  if (cdxtail != 0.0) {
+    cxtablen = scale_expansion_zeroelim(4, ab, cdxtail, cxtab);
+    temp16alen = scale_expansion_zeroelim(cxtablen, cxtab, 2.0 * cdx, temp16a);
+
+    cxtbblen = scale_expansion_zeroelim(4, bb, cdxtail, cxtbb);
+    temp16blen = scale_expansion_zeroelim(cxtbblen, cxtbb, ady, temp16b);
+
+    cxtaalen = scale_expansion_zeroelim(4, aa, cdxtail, cxtaa);
+    temp16clen = scale_expansion_zeroelim(cxtaalen, cxtaa, -bdy, temp16c);
+
+    temp32alen = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp16blen, temp16b, temp32a);
+    temp48len = fast_expansion_sum_zeroelim(temp16clen, temp16c, temp32alen, temp32a, temp48);
+    finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp48len, temp48, finother);
+    finswap = finnow;
+    finnow = finother;
+    finother = finswap;
+  }
+  if (cdytail != 0.0) {
+    cytablen = scale_expansion_zeroelim(4, ab, cdytail, cytab);
+    temp16alen = scale_expansion_zeroelim(cytablen, cytab, 2.0 * cdy, temp16a);
+
+    cytaalen = scale_expansion_zeroelim(4, aa, cdytail, cytaa);
+    temp16blen = scale_expansion_zeroelim(cytaalen, cytaa, bdx, temp16b);
+
+    cytbblen = scale_expansion_zeroelim(4, bb, cdytail, cytbb);
+    temp16clen = scale_expansion_zeroelim(cytbblen, cytbb, -adx, temp16c);
+
+    temp32alen = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp16blen, temp16b, temp32a);
+    temp48len = fast_expansion_sum_zeroelim(temp16clen, temp16c, temp32alen, temp32a, temp48);
+    finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp48len, temp48, finother);
+    finswap = finnow;
+    finnow = finother;
+    finother = finswap;
+  }
+
+  if ((adxtail != 0.0) || (adytail != 0.0)) {
+    if ((bdxtail != 0.0) || (bdytail != 0.0) || (cdxtail != 0.0) || (cdytail != 0.0)) {
+      Two_Product(bdxtail, cdy, ti1, ti0);
+      Two_Product(bdx, cdytail, tj1, tj0);
+      Two_Two_Sum(ti1, ti0, tj1, tj0, u3, u[2], u[1], u[0]);
+      u[3] = u3;
+      negate = -bdy;
+      Two_Product(cdxtail, negate, ti1, ti0);
+      negate = -bdytail;
+      Two_Product(cdx, negate, tj1, tj0);
+      Two_Two_Sum(ti1, ti0, tj1, tj0, v3, v[2], v[1], v[0]);
+      v[3] = v3;
+      bctlen = fast_expansion_sum_zeroelim(4, u, 4, v, bct);
+
+      Two_Product(bdxtail, cdytail, ti1, ti0);
+      Two_Product(cdxtail, bdytail, tj1, tj0);
+      Two_Two_Diff(ti1, ti0, tj1, tj0, bctt3, bctt[2], bctt[1], bctt[0]);
+      bctt[3] = bctt3;
+      bcttlen = 4;
+    }
+    else {
+      bct[0] = 0.0;
+      bctlen = 1;
+      bctt[0] = 0.0;
+      bcttlen = 1;
+    }
+
+    if (adxtail != 0.0) {
+      temp16alen = scale_expansion_zeroelim(axtbclen, axtbc, adxtail, temp16a);
+      axtbctlen = scale_expansion_zeroelim(bctlen, bct, adxtail, axtbct);
+      temp32alen = scale_expansion_zeroelim(axtbctlen, axtbct, 2.0 * adx, temp32a);
+      temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp32alen, temp32a, temp48);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp48len, temp48, finother);
+      finswap = finnow;
+      finnow = finother;
+      finother = finswap;
+      if (bdytail != 0.0) {
+        temp8len = scale_expansion_zeroelim(4, cc, adxtail, temp8);
+        temp16alen = scale_expansion_zeroelim(temp8len, temp8, bdytail, temp16a);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp16alen, temp16a, finother);
+        finswap = finnow;
+        finnow = finother;
+        finother = finswap;
+      }
+      if (cdytail != 0.0) {
+        temp8len = scale_expansion_zeroelim(4, bb, -adxtail, temp8);
+        temp16alen = scale_expansion_zeroelim(temp8len, temp8, cdytail, temp16a);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp16alen, temp16a, finother);
+        finswap = finnow;
+        finnow = finother;
+        finother = finswap;
+      }
+
+      temp32alen = scale_expansion_zeroelim(axtbctlen, axtbct, adxtail, temp32a);
+      axtbcttlen = scale_expansion_zeroelim(bcttlen, bctt, adxtail, axtbctt);
+      temp16alen = scale_expansion_zeroelim(axtbcttlen, axtbctt, 2.0 * adx, temp16a);
+      temp16blen = scale_expansion_zeroelim(axtbcttlen, axtbctt, adxtail, temp16b);
+      temp32blen = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp16blen, temp16b, temp32b);
+      temp64len = fast_expansion_sum_zeroelim(temp32alen, temp32a, temp32blen, temp32b, temp64);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp64len, temp64, finother);
+      finswap = finnow;
+      finnow = finother;
+      finother = finswap;
+    }
+    if (adytail != 0.0) {
+      temp16alen = scale_expansion_zeroelim(aytbclen, aytbc, adytail, temp16a);
+      aytbctlen = scale_expansion_zeroelim(bctlen, bct, adytail, aytbct);
+      temp32alen = scale_expansion_zeroelim(aytbctlen, aytbct, 2.0 * ady, temp32a);
+      temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp32alen, temp32a, temp48);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp48len, temp48, finother);
+      finswap = finnow;
+      finnow = finother;
+      finother = finswap;
+
+      temp32alen = scale_expansion_zeroelim(aytbctlen, aytbct, adytail, temp32a);
+      aytbcttlen = scale_expansion_zeroelim(bcttlen, bctt, adytail, aytbctt);
+      temp16alen = scale_expansion_zeroelim(aytbcttlen, aytbctt, 2.0 * ady, temp16a);
+      temp16blen = scale_expansion_zeroelim(aytbcttlen, aytbctt, adytail, temp16b);
+      temp32blen = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp16blen, temp16b, temp32b);
+      temp64len = fast_expansion_sum_zeroelim(temp32alen, temp32a, temp32blen, temp32b, temp64);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp64len, temp64, finother);
+      finswap = finnow;
+      finnow = finother;
+      finother = finswap;
+    }
+  }
+  if ((bdxtail != 0.0) || (bdytail != 0.0)) {
+    if ((cdxtail != 0.0) || (cdytail != 0.0) || (adxtail != 0.0) || (adytail != 0.0)) {
+      Two_Product(cdxtail, ady, ti1, ti0);
+      Two_Product(cdx, adytail, tj1, tj0);
+      Two_Two_Sum(ti1, ti0, tj1, tj0, u3, u[2], u[1], u[0]);
+      u[3] = u3;
+      negate = -cdy;
+      Two_Product(adxtail, negate, ti1, ti0);
+      negate = -cdytail;
+      Two_Product(adx, negate, tj1, tj0);
+      Two_Two_Sum(ti1, ti0, tj1, tj0, v3, v[2], v[1], v[0]);
+      v[3] = v3;
+      catlen = fast_expansion_sum_zeroelim(4, u, 4, v, cat);
+
+      Two_Product(cdxtail, adytail, ti1, ti0);
+      Two_Product(adxtail, cdytail, tj1, tj0);
+      Two_Two_Diff(ti1, ti0, tj1, tj0, catt3, catt[2], catt[1], catt[0]);
+      catt[3] = catt3;
+      cattlen = 4;
+    }
+    else {
+      cat[0] = 0.0;
+      catlen = 1;
+      catt[0] = 0.0;
+      cattlen = 1;
+    }
+
+    if (bdxtail != 0.0) {
+      temp16alen = scale_expansion_zeroelim(bxtcalen, bxtca, bdxtail, temp16a);
+      bxtcatlen = scale_expansion_zeroelim(catlen, cat, bdxtail, bxtcat);
+      temp32alen = scale_expansion_zeroelim(bxtcatlen, bxtcat, 2.0 * bdx, temp32a);
+      temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp32alen, temp32a, temp48);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp48len, temp48, finother);
+      finswap = finnow;
+      finnow = finother;
+      finother = finswap;
+      if (cdytail != 0.0) {
+        temp8len = scale_expansion_zeroelim(4, aa, bdxtail, temp8);
+        temp16alen = scale_expansion_zeroelim(temp8len, temp8, cdytail, temp16a);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp16alen, temp16a, finother);
+        finswap = finnow;
+        finnow = finother;
+        finother = finswap;
+      }
+      if (adytail != 0.0) {
+        temp8len = scale_expansion_zeroelim(4, cc, -bdxtail, temp8);
+        temp16alen = scale_expansion_zeroelim(temp8len, temp8, adytail, temp16a);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp16alen, temp16a, finother);
+        finswap = finnow;
+        finnow = finother;
+        finother = finswap;
+      }
+
+      temp32alen = scale_expansion_zeroelim(bxtcatlen, bxtcat, bdxtail, temp32a);
+      bxtcattlen = scale_expansion_zeroelim(cattlen, catt, bdxtail, bxtcatt);
+      temp16alen = scale_expansion_zeroelim(bxtcattlen, bxtcatt, 2.0 * bdx, temp16a);
+      temp16blen = scale_expansion_zeroelim(bxtcattlen, bxtcatt, bdxtail, temp16b);
+      temp32blen = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp16blen, temp16b, temp32b);
+      temp64len = fast_expansion_sum_zeroelim(temp32alen, temp32a, temp32blen, temp32b, temp64);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp64len, temp64, finother);
+      finswap = finnow;
+      finnow = finother;
+      finother = finswap;
+    }
+    if (bdytail != 0.0) {
+      temp16alen = scale_expansion_zeroelim(bytcalen, bytca, bdytail, temp16a);
+      bytcatlen = scale_expansion_zeroelim(catlen, cat, bdytail, bytcat);
+      temp32alen = scale_expansion_zeroelim(bytcatlen, bytcat, 2.0 * bdy, temp32a);
+      temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp32alen, temp32a, temp48);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp48len, temp48, finother);
+      finswap = finnow;
+      finnow = finother;
+      finother = finswap;
+
+      temp32alen = scale_expansion_zeroelim(bytcatlen, bytcat, bdytail, temp32a);
+      bytcattlen = scale_expansion_zeroelim(cattlen, catt, bdytail, bytcatt);
+      temp16alen = scale_expansion_zeroelim(bytcattlen, bytcatt, 2.0 * bdy, temp16a);
+      temp16blen = scale_expansion_zeroelim(bytcattlen, bytcatt, bdytail, temp16b);
+      temp32blen = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp16blen, temp16b, temp32b);
+      temp64len = fast_expansion_sum_zeroelim(temp32alen, temp32a, temp32blen, temp32b, temp64);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp64len, temp64, finother);
+      finswap = finnow;
+      finnow = finother;
+      finother = finswap;
+    }
+  }
+  if ((cdxtail != 0.0) || (cdytail != 0.0)) {
+    if ((adxtail != 0.0) || (adytail != 0.0) || (bdxtail != 0.0) || (bdytail != 0.0)) {
+      Two_Product(adxtail, bdy, ti1, ti0);
+      Two_Product(adx, bdytail, tj1, tj0);
+      Two_Two_Sum(ti1, ti0, tj1, tj0, u3, u[2], u[1], u[0]);
+      u[3] = u3;
+      negate = -ady;
+      Two_Product(bdxtail, negate, ti1, ti0);
+      negate = -adytail;
+      Two_Product(bdx, negate, tj1, tj0);
+      Two_Two_Sum(ti1, ti0, tj1, tj0, v3, v[2], v[1], v[0]);
+      v[3] = v3;
+      abtlen = fast_expansion_sum_zeroelim(4, u, 4, v, abt);
+
+      Two_Product(adxtail, bdytail, ti1, ti0);
+      Two_Product(bdxtail, adytail, tj1, tj0);
+      Two_Two_Diff(ti1, ti0, tj1, tj0, abtt3, abtt[2], abtt[1], abtt[0]);
+      abtt[3] = abtt3;
+      abttlen = 4;
+    }
+    else {
+      abt[0] = 0.0;
+      abtlen = 1;
+      abtt[0] = 0.0;
+      abttlen = 1;
+    }
+
+    if (cdxtail != 0.0) {
+      temp16alen = scale_expansion_zeroelim(cxtablen, cxtab, cdxtail, temp16a);
+      cxtabtlen = scale_expansion_zeroelim(abtlen, abt, cdxtail, cxtabt);
+      temp32alen = scale_expansion_zeroelim(cxtabtlen, cxtabt, 2.0 * cdx, temp32a);
+      temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp32alen, temp32a, temp48);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp48len, temp48, finother);
+      finswap = finnow;
+      finnow = finother;
+      finother = finswap;
+      if (adytail != 0.0) {
+        temp8len = scale_expansion_zeroelim(4, bb, cdxtail, temp8);
+        temp16alen = scale_expansion_zeroelim(temp8len, temp8, adytail, temp16a);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp16alen, temp16a, finother);
+        finswap = finnow;
+        finnow = finother;
+        finother = finswap;
+      }
+      if (bdytail != 0.0) {
+        temp8len = scale_expansion_zeroelim(4, aa, -cdxtail, temp8);
+        temp16alen = scale_expansion_zeroelim(temp8len, temp8, bdytail, temp16a);
+        finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp16alen, temp16a, finother);
+        finswap = finnow;
+        finnow = finother;
+        finother = finswap;
+      }
+
+      temp32alen = scale_expansion_zeroelim(cxtabtlen, cxtabt, cdxtail, temp32a);
+      cxtabttlen = scale_expansion_zeroelim(abttlen, abtt, cdxtail, cxtabtt);
+      temp16alen = scale_expansion_zeroelim(cxtabttlen, cxtabtt, 2.0 * cdx, temp16a);
+      temp16blen = scale_expansion_zeroelim(cxtabttlen, cxtabtt, cdxtail, temp16b);
+      temp32blen = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp16blen, temp16b, temp32b);
+      temp64len = fast_expansion_sum_zeroelim(temp32alen, temp32a, temp32blen, temp32b, temp64);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp64len, temp64, finother);
+      finswap = finnow;
+      finnow = finother;
+      finother = finswap;
+    }
+    if (cdytail != 0.0) {
+      temp16alen = scale_expansion_zeroelim(cytablen, cytab, cdytail, temp16a);
+      cytabtlen = scale_expansion_zeroelim(abtlen, abt, cdytail, cytabt);
+      temp32alen = scale_expansion_zeroelim(cytabtlen, cytabt, 2.0 * cdy, temp32a);
+      temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp32alen, temp32a, temp48);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp48len, temp48, finother);
+      finswap = finnow;
+      finnow = finother;
+      finother = finswap;
+
+      temp32alen = scale_expansion_zeroelim(cytabtlen, cytabt, cdytail, temp32a);
+      cytabttlen = scale_expansion_zeroelim(abttlen, abtt, cdytail, cytabtt);
+      temp16alen = scale_expansion_zeroelim(cytabttlen, cytabtt, 2.0 * cdy, temp16a);
+      temp16blen = scale_expansion_zeroelim(cytabttlen, cytabtt, cdytail, temp16b);
+      temp32blen = fast_expansion_sum_zeroelim(temp16alen, temp16a, temp16blen, temp16b, temp32b);
+      temp64len = fast_expansion_sum_zeroelim(temp32alen, temp32a, temp32blen, temp32b, temp64);
+      finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp64len, temp64, finother);
+      finswap = finnow;
+      finnow = finother;
+      finother = finswap;
+    }
+  }
+
+  return finnow[finlength - 1];
+}
+
+static double incircle(const double *pa, const double *pb, const double *pc, const double *pd)
+{
+  double adx, bdx, cdx, ady, bdy, cdy;
+  double bdxcdy, cdxbdy, cdxady, adxcdy, adxbdy, bdxady;
+  double alift, blift, clift;
+  double det;
+  double permanent, errbound;
+
+  adx = pa[0] - pd[0];
+  bdx = pb[0] - pd[0];
+  cdx = pc[0] - pd[0];
+  ady = pa[1] - pd[1];
+  bdy = pb[1] - pd[1];
+  cdy = pc[1] - pd[1];
+
+  bdxcdy = bdx * cdy;
+  cdxbdy = cdx * bdy;
+  alift = adx * adx + ady * ady;
+
+  cdxady = cdx * ady;
+  adxcdy = adx * cdy;
+  blift = bdx * bdx + bdy * bdy;
+
+  adxbdy = adx * bdy;
+  bdxady = bdx * ady;
+  clift = cdx * cdx + cdy * cdy;
+
+  det = alift * (bdxcdy - cdxbdy) + blift * (cdxady - adxcdy) + clift * (adxbdy - bdxady);
+
+  permanent = (Absolute(bdxcdy) + Absolute(cdxbdy)) * alift +
+              (Absolute(cdxady) + Absolute(adxcdy)) * blift +
+              (Absolute(adxbdy) + Absolute(bdxady)) * clift;
+  errbound = iccerrboundA * permanent;
+  if ((det > errbound) || (-det > errbound)) {
+    return det;
+  }
+
+  return incircleadapt(pa, pb, pc, pd, permanent);
+}
