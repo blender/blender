@@ -1385,6 +1385,8 @@ void DepsgraphRelationBuilder::build_animation_images(ID *id)
   /* TODO: can we check for existence of node for performance? */
   if (BKE_image_user_id_has_animation(id)) {
     OperationKey image_animation_key(id, NodeType::ANIMATION, OperationCode::IMAGE_ANIMATION);
+    ComponentKey cow_key(id, NodeType::COPY_ON_WRITE);
+    add_relation(cow_key, image_animation_key, "CoW -> Image Animation");
     TimeSourceKey time_src_key;
     add_relation(time_src_key, image_animation_key, "TimeSrc -> Image Animation");
   }
@@ -2370,11 +2372,15 @@ void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file)
   /* Animation. */
   build_animdata(&cache_file->id);
   build_parameters(&cache_file->id);
-  if (check_id_has_anim_component(&cache_file->id) ||
-      check_id_has_driver_component(&cache_file->id)) {
-    ComponentKey animation_key(&cache_file->id, NodeType::PARAMETERS);
+  if (check_id_has_anim_component(&cache_file->id)) {
+    ComponentKey animation_key(&cache_file->id, NodeType::ANIMATION);
     ComponentKey datablock_key(&cache_file->id, NodeType::CACHE);
     add_relation(animation_key, datablock_key, "Datablock Animation");
+  }
+  if (check_id_has_driver_component(&cache_file->id)) {
+    ComponentKey animation_key(&cache_file->id, NodeType::PARAMETERS);
+    ComponentKey datablock_key(&cache_file->id, NodeType::CACHE);
+    add_relation(animation_key, datablock_key, "Drivers -> Cache Eval");
   }
 
   /* Cache file updates */

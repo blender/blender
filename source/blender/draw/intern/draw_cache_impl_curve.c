@@ -414,7 +414,7 @@ static bool curve_batch_cache_valid(Curve *cu)
     return false;
   }
 
-  if (cache->mat_len != max_ii(1, cu->totcol)) {
+  if (cache->mat_len != DRW_curve_material_count_get(cu)) {
     return false;
   }
 
@@ -912,6 +912,11 @@ GPUBatch *DRW_curve_batch_cache_get_edge_detection(Curve *cu, bool *r_is_manifol
     *r_is_manifold = cache->is_manifold;
   }
   return DRW_batch_request(&cache->batch.edge_detection);
+}
+
+int DRW_curve_material_count_get(Curve *cu)
+{
+  return max_ii(1, cu->totcol);
 }
 
 /** \} */

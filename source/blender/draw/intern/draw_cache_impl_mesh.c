@@ -751,6 +751,11 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_vertpaint(Mesh *me)
   return DRW_batch_request(&cache->batch.surface);
 }
 
+int DRW_mesh_material_count_get(Mesh *me)
+{
+  return mesh_render_mat_len_get(me);
+}
+
 /** \} */
 
 /* ---------------------------------------------------------------------- */

@@ -824,6 +824,25 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
   }
 }
 
+int DRW_cache_object_material_count_get(struct Object *ob)
+{
+  short type = (ob->runtime.mesh_eval != NULL) ? OB_MESH : ob->type;
+
+  switch (type) {
+    case OB_MESH:
+      return DRW_mesh_material_count_get(ob->data);
+    case OB_CURVE:
+    case OB_SURF:
+    case OB_FONT:
+      return DRW_curve_material_count_get(ob->data);
+    case OB_MBALL:
+      return DRW_metaball_material_count_get(ob->data);
+    default:
+      BLI_assert(0);
+      return 0;
+  }
+}
+
 GPUBatch **DRW_cache_object_surface_material_get(struct Object *ob,
                                                  struct GPUMaterial **gpumat_array,
                                                  uint gpumat_array_len)

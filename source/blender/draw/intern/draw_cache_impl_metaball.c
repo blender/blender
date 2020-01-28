@@ -25,6 +25,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_meta_types.h"
@@ -206,6 +207,8 @@ GPUBatch **DRW_metaball_batch_cache_get_surface_shaded(Object *ob,
     return NULL;
   }
 
+  BLI_assert(gpumat_array_len == DRW_metaball_material_count_get(mb));
+
   MetaBallBatchCache *cache = metaball_batch_cache_get(mb);
   if (cache->shaded_triangles == NULL) {
     cache->mat_len = gpumat_array_len;
@@ -269,4 +272,9 @@ struct GPUBatch *DRW_metaball_batch_cache_get_edge_detection(struct Object *ob,
   }
 
   return cache->edge_detection;
+}
+
+int DRW_metaball_material_count_get(MetaBall *mb)
+{
+  return max_ii(1, mb->totcol);
 }
