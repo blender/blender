@@ -293,6 +293,20 @@ class _defs_transform:
         )
 
     @ToolDef.from_fn
+    def shear():
+        def draw_settings(context, layout, _tool):
+            # props = tool.operator_properties("transform.shear")
+            _template_widget.VIEW3D_GGT_xform_gizmo.draw_settings_with_index(context, layout, 2)
+        return dict(
+            idname="builtin.shear",
+            label="Shear",
+            icon="ops.transform.shear",
+            widget="VIEW3D_GGT_xform_shear",
+            keymap="3D View Tool: Shear",
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
     def transform():
         def draw_settings(context, layout, tool):
             if layout.use_property_split:
@@ -761,20 +775,6 @@ class _defs_edit_mesh:
             label="Randomize",
             icon="ops.transform.vertex_random",
             widget="VIEW3D_GGT_tool_generic_handle_normal",
-            keymap=(),
-            draw_settings=draw_settings,
-        )
-
-    @ToolDef.from_fn
-    def shear():
-        def draw_settings(context, layout, _tool):
-            # props = tool.operator_properties("transform.shear")
-            _template_widget.VIEW3D_GGT_xform_gizmo.draw_settings_with_index(context, layout, 2)
-        return dict(
-            idname="builtin.shear",
-            label="Shear",
-            icon="ops.transform.shear",
-            widget="VIEW3D_GGT_xform_shear",
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -2008,6 +2008,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_edit_armature.extrude,
                 _defs_edit_armature.extrude_cursor,
             ),
+            _defs_transform.shear,
         ],
         'EDIT_MESH': [
             *_tools_default,
@@ -2046,7 +2047,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_edit_mesh.push_pull,
             ),
             (
-                _defs_edit_mesh.shear,
+                _defs_transform.shear,
                 _defs_edit_mesh.tosphere,
             ),
             (
@@ -2066,16 +2067,23 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_edit_curve.curve_radius,
             _defs_edit_curve.tilt,
             None,
+            _defs_transform.shear,
             _defs_edit_curve.curve_vertex_randomize,
         ],
         'EDIT_SURFACE': [
             *_tools_default,
+            None,
+            _defs_transform.shear,
         ],
         'EDIT_METABALL': [
             *_tools_default,
+            None,
+            _defs_transform.shear,
         ],
         'EDIT_LATTICE': [
             *_tools_default,
+            None,
+            _defs_transform.shear,
         ],
         'EDIT_TEXT': [
             _defs_view3d_generic.cursor,

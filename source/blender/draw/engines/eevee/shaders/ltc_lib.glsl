@@ -47,12 +47,13 @@ vec3 solve_cubic(vec4 coefs)
   float D = coefs.x;
 
   /* Compute the Hessian and the discriminant */
-  vec3 delta = vec3(-coefs.z * coefs.z + coefs.y,
-                    -coefs.y * coefs.z + coefs.x,
-                    dot(vec2(coefs.z, -coefs.y), coefs.xy));
+  vec3 delta = vec3(-coefs.zy * coefs.zz + coefs.yx, dot(vec2(coefs.z, -coefs.y), coefs.xy));
 
   /* Discriminant */
   float discr = dot(vec2(4.0 * delta.x, -delta.y), delta.zy);
+
+  /* Clamping avoid NaN output on some platform. (see T67060) */
+  float sqrt_discr = sqrt(clamp(discr, 0.0, FLT_MAX));
 
   vec2 xlc, xsc;
 
@@ -63,10 +64,11 @@ vec3 solve_cubic(vec4 coefs)
     float D_a = -2.0 * B * delta.x + delta.y;
 
     /* Take the cubic root of a normalized complex number */
-    float theta = atan(sqrt(discr), -D_a) / 3.0;
+    float theta = atan(sqrt_discr, -D_a) / 3.0;
 
-    float x_1a = 2.0 * sqrt(-C_a) * cos(theta);
-    float x_3a = 2.0 * sqrt(-C_a) * cos(theta + (2.0 / 3.0) * M_PI);
+    float _2_sqrt_C_a = 2.0 * sqrt(-C_a);
+    float x_1a = _2_sqrt_C_a * cos(theta);
+    float x_3a = _2_sqrt_C_a * cos(theta + (2.0 / 3.0) * M_PI);
 
     float xl;
     if ((x_1a + x_3a) > 2.0 * B) {
@@ -86,10 +88,11 @@ vec3 solve_cubic(vec4 coefs)
     float D_d = -D * delta.y + 2.0 * C * delta.z;
 
     /* Take the cubic root of a normalized complex number */
-    float theta = atan(D * sqrt(discr), -D_d) / 3.0;
+    float theta = atan(D * sqrt_discr, -D_d) / 3.0;
 
-    float x_1d = 2.0 * sqrt(-C_d) * cos(theta);
-    float x_3d = 2.0 * sqrt(-C_d) * cos(theta + (2.0 / 3.0) * M_PI);
+    float _2_sqrt_C_d = 2.0 * sqrt(-C_d);
+    float x_1d = _2_sqrt_C_d * cos(theta);
+    float x_3d = _2_sqrt_C_d * cos(theta + (2.0 / 3.0) * M_PI);
 
     float xs;
     if (x_1d + x_3d < 2.0 * C) {
@@ -269,15 +272,18 @@ float ltc_evaluate_disk(vec3 N, vec3 V, mat3 Minv, vec3 disk_points[3])
   }
 
   float L = dot(V3, C);
-  float x0 = dot(V1, C) / L;
-  float y0 = dot(V2, C) / L;
+  float inv_L = 1.0 / L;
+  float x0 = dot(V1, C) * inv_L;
+  float y0 = dot(V2, C) * inv_L;
 
-  a *= L * L;
-  b *= L * L;
+  float L_sqr = L * L;
+  a *= L_sqr;
+  b *= L_sqr;
 
+  float t = 1.0 + x0 * x0;
   float c0 = a * b;
-  float c1 = a * b * (1.0 + x0 * x0 + y0 * y0) - a - b;
-  float c2 = 1.0 - a * (1.0 + x0 * x0) - b * (1.0 + y0 * y0);
+  float c1 = c0 * (t + y0 * y0) - a - b;
+  float c2 = (1.0 - a * t) - b * (1.0 + y0 * y0);
   float c3 = 1.0;
 
   vec3 roots = solve_cubic(vec4(c0, c1, c2, c3));
