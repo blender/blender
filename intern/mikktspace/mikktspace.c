@@ -1392,7 +1392,7 @@ static void QuickSort(int *pSortBuffer, int iLeft, int iRight, unsigned int uSee
 
   // Random
   unsigned int t = uSeed & 31;
-  t = (uSeed << t) | (uSeed >> (32 - t));
+  t = rotl(uSeed, t);
   uSeed = uSeed + t + 3;
   // Random end
 
