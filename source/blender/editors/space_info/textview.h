@@ -31,6 +31,10 @@ typedef struct TextViewContext {
   int cwidth;  /* shouldnt be needed! */
   int columns; /* shouldnt be needed! */
 
+  int row_vpadding;
+  int margin_left_chars;
+  int margin_right_chars;
+
   /** Area to draw: (0, 0, winx, winy) with a margin applied and scroll-bar subtracted. */
   rcti draw_rect;
 
@@ -46,7 +50,13 @@ typedef struct TextViewContext {
   /* iterator */
   int (*step)(struct TextViewContext *tvc);
   int (*line_get)(struct TextViewContext *tvc, const char **, int *);
-  int (*line_color)(struct TextViewContext *tvc, unsigned char fg[3], unsigned char bg[3]);
+  int (*line_data)(struct TextViewContext *tvc,
+                   unsigned char fg[4],
+                   unsigned char bg[4],
+                   int *icon,
+                   unsigned char icon_fg[4],
+                   unsigned char icon_bg[4]);
+  void (*draw_cursor)(struct TextViewContext *tvc);
   /* constant theme colors */
   void (*const_colors)(struct TextViewContext *tvc, unsigned char bg_sel[4]);
   void *iter;
@@ -66,7 +76,12 @@ int textview_draw(struct TextViewContext *tvc,
                   void **r_mval_pick_item,
                   int *r_mval_pick_offset);
 
-#define TVC_LINE_FG (1 << 0)
-#define TVC_LINE_BG (1 << 1)
+enum {
+  TVC_LINE_FG = (1 << 0),
+  TVC_LINE_BG = (1 << 1),
+  TVC_LINE_ICON = (1 << 2),
+  TVC_LINE_ICON_FG = (1 << 3),
+  TVC_LINE_ICON_BG = (1 << 4)
+};
 
 #endif /* __TEXTVIEW_H__ */

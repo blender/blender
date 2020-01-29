@@ -413,6 +413,8 @@ typedef struct ThemeSpace {
   unsigned char info_warning[4], info_warning_text[4];
   unsigned char info_info[4], info_info_text[4];
   unsigned char info_debug[4], info_debug_text[4];
+  unsigned char info_property[4], info_property_text[4];
+  unsigned char info_operator[4], info_operator_text[4];
 
   unsigned char paint_curve_pivot[4];
   unsigned char paint_curve_handle[4];
