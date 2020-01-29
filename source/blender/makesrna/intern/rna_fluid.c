@@ -152,22 +152,6 @@ static bool rna_Fluid_parts_exists(PointerRNA *ptr, int ptype)
   return false;
 }
 
-static void rna_Fluid_draw_type_update(Main *UNUSED(bmain),
-                                       Scene *UNUSED(scene),
-                                       struct PointerRNA *ptr)
-{
-  Object *ob = (Object *)ptr->owner_id;
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
-
-  /* Wireframe mode more convenient when particles present */
-  if (settings->particle_type == 0) {
-    ob->dt = OB_SOLID;
-  }
-  else {
-    ob->dt = OB_WIRE;
-  }
-}
-
 static void rna_Fluid_flip_parts_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
@@ -194,7 +178,6 @@ static void rna_Fluid_flip_parts_update(Main *bmain, Scene *scene, PointerRNA *p
     rna_Fluid_parts_delete(ptr, PART_FLUID_FLIP);
     mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_FLIP;
   }
-  rna_Fluid_draw_type_update(NULL, NULL, ptr);
   rna_Fluid_update(bmain, scene, ptr);
 }
 
@@ -218,7 +201,6 @@ static void rna_Fluid_spray_parts_update(Main *bmain, Scene *UNUSED(scene), Poin
     rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAY);
     mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_SPRAY;
   }
-  rna_Fluid_draw_type_update(NULL, NULL, ptr);
 }
 
 static void rna_Fluid_bubble_parts_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -241,7 +223,6 @@ static void rna_Fluid_bubble_parts_update(Main *bmain, Scene *UNUSED(scene), Poi
     rna_Fluid_parts_delete(ptr, PART_FLUID_BUBBLE);
     mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_BUBBLE;
   }
-  rna_Fluid_draw_type_update(NULL, NULL, ptr);
 }
 
 static void rna_Fluid_foam_parts_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -264,7 +245,6 @@ static void rna_Fluid_foam_parts_update(Main *bmain, Scene *UNUSED(scene), Point
     rna_Fluid_parts_delete(ptr, PART_FLUID_FOAM);
     mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_FOAM;
   }
-  rna_Fluid_draw_type_update(NULL, NULL, ptr);
 }
 
 static void rna_Fluid_tracer_parts_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -287,7 +267,6 @@ static void rna_Fluid_tracer_parts_update(Main *bmain, Scene *UNUSED(scene), Poi
     rna_Fluid_parts_delete(ptr, PART_FLUID_TRACER);
     mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_TRACER;
   }
-  rna_Fluid_draw_type_update(NULL, NULL, ptr);
 }
 
 static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -422,7 +401,6 @@ static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerR
     // sanity check, should not occur
     printf("ERROR: Unexpected combined export setting encountered!");
   }
-  rna_Fluid_draw_type_update(NULL, NULL, ptr);
 }
 
 static void rna_Fluid_cachetype_mesh_set(struct PointerRNA *ptr, int value)

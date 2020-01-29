@@ -466,6 +466,13 @@ class QuickLiquid(Operator):
             self.report({'ERROR'}, "Select at least one mesh object")
             return {'CANCELLED'}
 
+        # set shading type to wireframe so that liquid particles are visible
+        for area in bpy.context.screen.areas:
+            if area.type == 'VIEW_3D':
+                for space in area.spaces:
+                    if space.type == 'VIEW_3D':
+                        space.shading.type = 'WIREFRAME'
+
         for obj in mesh_objects:
             fake_context["object"] = obj
             # make each selected object a liquid flow
