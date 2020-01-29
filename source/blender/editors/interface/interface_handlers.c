@@ -2239,7 +2239,13 @@ static void ui_but_set_float_array(
     RNA_property_float_set_index(&but->rnapoin, but->rnaprop, i, values[i]);
   }
   if (data) {
-    data->value = values[but->rnaindex];
+    if (but->type == UI_BTYPE_UNITVEC) {
+      BLI_assert(array_length == 3);
+      copy_v3_v3(data->vec, values);
+    }
+    else {
+      data->value = values[but->rnaindex];
+    }
   }
 
   button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -2348,7 +2354,10 @@ static void ui_but_paste_numeric_value(bContext *C,
   }
 }
 
-static void ui_but_paste_normalized_vector(bContext *C, uiBut *but, char *buf_paste)
+static void ui_but_paste_normalized_vector(bContext *C,
+                                           uiBut *but,
+                                           uiHandleButtonData *data,
+                                           char *buf_paste)
 {
   float xyz[3];
   if (parse_float_array(buf_paste, xyz, 3)) {
@@ -2356,7 +2365,7 @@ static void ui_but_paste_normalized_vector(bContext *C, uiBut *but, char *buf_pa
       /* better set Z up then have a zero vector */
       xyz[2] = 1.0;
     }
-    ui_but_set_float_array(C, but, NULL, xyz, 3);
+    ui_but_set_float_array(C, but, data, xyz, 3);
   }
   else {
     WM_report(RPT_ERROR, "Paste expected 3 numbers, formatted: '[n, n, n]'");
@@ -2644,7 +2653,7 @@ static void ui_but_paste(bContext *C, uiBut *but, uiHandleButtonData *data, cons
       if (!has_required_data) {
         break;
       }
-      ui_but_paste_normalized_vector(C, but, buf_paste);
+      ui_but_paste_normalized_vector(C, but, data, buf_paste);
       break;
 
     case UI_BTYPE_COLOR:
