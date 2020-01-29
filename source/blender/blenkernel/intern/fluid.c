@@ -1018,10 +1018,8 @@ static void update_obstacles(Depsgraph *depsgraph,
 
 typedef struct EmissionMap {
   float *influence;
-  float *influence_high;
   float *velocity;
   float *distances;
-  float *distances_high;
   int min[3], max[3], res[3];
   int hmin[3], hmax[3], hres[3];
   int total_cells, valid;
@@ -1108,17 +1106,11 @@ static void em_freeData(EmissionMap *em)
   if (em->influence) {
     MEM_freeN(em->influence);
   }
-  if (em->influence_high) {
-    MEM_freeN(em->influence_high);
-  }
   if (em->velocity) {
     MEM_freeN(em->velocity);
   }
   if (em->distances) {
     MEM_freeN(em->distances);
-  }
-  if (em->distances_high) {
-    MEM_freeN(em->distances_high);
   }
 }
 
