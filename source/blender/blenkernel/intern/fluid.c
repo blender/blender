@@ -2453,6 +2453,15 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
       if (mfs->behavior == FLUID_FLOW_BEHAVIOR_GEOMETRY && !is_first_frame) {
         continue;
       }
+      /* Optimization: Skip flow object if it does not "belong" to this domain type. */
+      if (mfs->type == FLUID_FLOW_TYPE_LIQUID && mds->type == FLUID_DOMAIN_TYPE_GAS) {
+        continue;
+      }
+      if ((mfs->type == FLUID_FLOW_TYPE_SMOKE || mfs->type == FLUID_FLOW_TYPE_FIRE ||
+           mfs->type == FLUID_FLOW_TYPE_SMOKEFIRE) &&
+          mds->type == FLUID_DOMAIN_TYPE_LIQUID) {
+        continue;
+      }
 
       /* Length of one adaptive frame. If using adaptive stepping, length is smaller than actual
        * frame length */
