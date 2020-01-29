@@ -1718,7 +1718,7 @@ static int mouse_action_keys(bAnimContext *ac,
     /* reset selection mode for next steps */
     select_mode = SELECT_ADD;
 
-    if (wait_to_deselect_others && is_selected) {
+    if (wait_to_deselect_others) {
       ret_value = OPERATOR_RUNNING_MODAL;
     }
     else {
