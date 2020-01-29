@@ -2930,6 +2930,10 @@ def km_animation_channels(params):
         *_template_items_select_actions(params, "anim.channels_select_all"),
         ("anim.channels_select_box", {"type": 'B', "value": 'PRESS'}, None),
         ("anim.channels_select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
+        ("anim.channels_select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "shift": True,},
+         {"properties": [("extend", True)]}),
+        ("anim.channels_select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "ctrl": True,},
+         {"properties": [("deselect", True)]}),
         # Delete.
         ("anim.channels_delete", {"type": 'X', "value": 'PRESS'}, None),
         ("anim.channels_delete", {"type": 'DEL', "value": 'PRESS'}, None),
