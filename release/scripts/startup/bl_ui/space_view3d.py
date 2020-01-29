@@ -621,15 +621,19 @@ class VIEW3D_HT_header(Header):
         tool_settings = context.tool_settings
         view = context.space_data
         shading = view.shading
-        # mode_string = context.mode
-        obj = context.active_object
         show_region_tool_header = view.show_region_tool_header
 
         if not show_region_tool_header:
             layout.row(align=True).template_header()
 
         row = layout.row(align=True)
+        obj = context.active_object
+        # mode_string = context.mode
         object_mode = 'OBJECT' if obj is None else obj.mode
+        has_pose_mode = (
+            (object_mode == 'POSE') or
+            (object_mode == 'WEIGHT_PAINT' and context.pose_object is not None)
+        )
 
         # Note: This is actually deadly in case enum_items have to be dynamically generated
         #       (because internal RNA array iterator will free everything immediately...).
@@ -780,10 +784,13 @@ class VIEW3D_HT_header(Header):
             "view3d.toggle_xray",
             text="",
             icon='XRAY',
-            depress=getattr(
-                shading,
-                "show_xray_wireframe" if shading.type == 'WIREFRAME' else
-                "show_xray"
+            depress=(
+                overlay.show_xray_bone if has_pose_mode else
+                getattr(
+                    shading,
+                    "show_xray_wireframe" if shading.type == 'WIREFRAME' else
+                    "show_xray"
+                )
             ),
         )
 

@@ -1407,7 +1407,7 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                 disable_boundary_fix = true;
               }
             }
-            /* Simple/Even Method. */
+            /* Fixed/Even Method. */
             else {
               float total_angle = 0;
               float total_angle_back = 0;
@@ -1520,6 +1520,9 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                 if (has_back && total_angle_back > FLT_EPSILON) {
                   mul_v3_fl(nor_back, 1.0f / total_angle_back);
                   add_v3_v3(nor, nor_back);
+                  if (has_front && total_angle > FLT_EPSILON) {
+                    mul_v3_fl(nor, 0.5f);
+                  }
                 }
               }
               /* Set move_nor for boundary fix. */
