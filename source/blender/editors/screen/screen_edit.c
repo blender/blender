@@ -558,9 +558,6 @@ void ED_region_exit(bContext *C, ARegion *ar)
   WM_msgbus_clear_by_owner(wm->message_bus, ar);
 
   CTX_wm_region_set(C, prevar);
-  if (CTX_wm_menu(C) == ar) {
-    CTX_wm_region_set(C, NULL);
-  }
 }
 
 void ED_area_exit(bContext *C, ScrArea *sa)
