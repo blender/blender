@@ -76,7 +76,7 @@ void vector_math_ceil(vec3 a, vec3 b, float scale, out vec3 outVector, out float
 
 void vector_math_modulo(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)
 {
-  outVector = c_mod(a, b);
+  outVector = compatible_fmod(a, b);
 }
 
 void vector_math_fraction(vec3 a, vec3 b, float scale, out vec3 outVector, out float outValue)

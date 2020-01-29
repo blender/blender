@@ -5,10 +5,11 @@ float safe_divide(float a, float b)
   return (b != 0.0) ? a / b : 0.0;
 }
 
-/* Modulo with C sign convention. mod in GLSL will take absolute for negative numbers. */
-float c_mod(float a, float b)
+/* fmod function compatible with OSL using nvidia reference example. */
+float compatible_fmod(float a, float b)
 {
-  return (b != 0.0 && a != b) ? sign(a) * mod(abs(a), b) : 0.0;
+  float c = (b != 0.0) ? fract(abs(a / b)) * abs(b) : 0.0;
+  return (a < 0.0) ? -c : c;
 }
 
 float compatible_pow(float x, float y)
@@ -88,9 +89,9 @@ vec4 safe_divide(vec4 a, float b)
   return (b != 0.0) ? a / b : vec4(0.0);
 }
 
-vec3 c_mod(vec3 a, vec3 b)
+vec3 compatible_fmod(vec3 a, vec3 b)
 {
-  return vec3(c_mod(a.x, b.x), c_mod(a.y, b.y), c_mod(a.z, b.z));
+  return vec3(compatible_fmod(a.x, b.x), compatible_fmod(a.y, b.y), compatible_fmod(a.z, b.z));
 }
 
 void invert_z(vec3 v, out vec3 outv)

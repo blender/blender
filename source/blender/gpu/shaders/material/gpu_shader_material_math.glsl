@@ -106,7 +106,7 @@ void math_fraction(float a, float b, float c, out float result)
 
 void math_modulo(float a, float b, float c, out float result)
 {
-  result = c_mod(a, b);
+  result = compatible_fmod(a, b);
 }
 
 void math_trunc(float a, float b, float c, out float result)

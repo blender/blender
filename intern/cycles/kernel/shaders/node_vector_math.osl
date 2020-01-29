@@ -92,7 +92,7 @@ shader node_vector_math(string type = "add",
     Vector = ceil(Vector1);
   }
   else if (type == "modulo") {
-    Vector = mod(Vector1, Vector2);
+    Vector = fmod(Vector1, Vector2);
   }
   else if (type == "fraction") {
     Vector = Vector1 - floor(Vector1);
