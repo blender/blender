@@ -313,7 +313,7 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu,
   fsm_iter->path = BLI_strdup(path);
   fsm_iter->save = (flag & FS_INSERT_SAVE) != 0;
 
-   /* If entry is also in another list, use that icon and maybe name. */
+  /* If entry is also in another list, use that icon and maybe name. */
   if (ELEM(category, FS_CATEGORY_BOOKMARKS, FS_CATEGORY_RECENT)) {
 
     FSMenuCategory cats[] = {
@@ -702,13 +702,75 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
     const char *home = BLI_getenv("HOME");
 
     if (read_bookmarks && home) {
+
       BLI_snprintf(line, sizeof(line), "%s/", home);
-      fsmenu_insert_entry(
-          fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, ICON_HOME, FS_INSERT_SORTED);
-      BLI_snprintf(line, sizeof(line), "%s/Desktop/", home);
       if (BLI_exists(line)) {
         fsmenu_insert_entry(
-            fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, ICON_DESKTOP, FS_INSERT_SORTED);
+            fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, IFACE_("Home"), ICON_HOME, FS_INSERT_LAST);
+      }
+
+      /* Follow the XDG spec, check if these are available. */
+
+      /* TODO: parse "$XDG_CONFIG_HOME/user-dirs.dirs" for localized paths. */
+
+      BLI_snprintf(line, sizeof(line), "%s/Desktop/", home);
+      if (BLI_exists(line)) {
+        fsmenu_insert_entry(fsmenu,
+                            FS_CATEGORY_SYSTEM_BOOKMARKS,
+                            line,
+                            IFACE_("Desktop"),
+                            ICON_DESKTOP,
+                            FS_INSERT_LAST);
+      }
+
+      BLI_snprintf(line, sizeof(line), "%s/Documents/", home);
+      if (BLI_exists(line)) {
+        fsmenu_insert_entry(fsmenu,
+                            FS_CATEGORY_SYSTEM_BOOKMARKS,
+                            line,
+                            IFACE_("Documents"),
+                            ICON_DOCUMENTS,
+                            FS_INSERT_LAST);
+      }
+
+      BLI_snprintf(line, sizeof(line), "%s/Downloads/", home);
+      if (BLI_exists(line)) {
+        fsmenu_insert_entry(fsmenu,
+                            FS_CATEGORY_SYSTEM_BOOKMARKS,
+                            line,
+                            IFACE_("Downloads"),
+                            ICON_IMPORT,
+                            FS_INSERT_LAST);
+      }
+
+      BLI_snprintf(line, sizeof(line), "%s/Videos/", home);
+      if (BLI_exists(line)) {
+        fsmenu_insert_entry(fsmenu,
+                            FS_CATEGORY_SYSTEM_BOOKMARKS,
+                            line,
+                            IFACE_("Videos"),
+                            ICON_FILE_MOVIE,
+                            FS_INSERT_LAST);
+      }
+
+      BLI_snprintf(line, sizeof(line), "%s/Pictures/", home);
+      if (BLI_exists(line)) {
+        fsmenu_insert_entry(fsmenu,
+                            FS_CATEGORY_SYSTEM_BOOKMARKS,
+                            line,
+                            IFACE_("Pictures"),
+                            ICON_FILE_IMAGE,
+                            FS_INSERT_LAST);
+      }
+
+      BLI_snprintf(line, sizeof(line), "%s/Music/", home);
+      if (BLI_exists(line)) {
+        fsmenu_insert_entry(fsmenu,
+                            FS_CATEGORY_SYSTEM_BOOKMARKS,
+                            line,
+                            IFACE_("Music"),
+                            ICON_FILE_SOUND,
+                            FS_INSERT_LAST);
       }
     }
 
