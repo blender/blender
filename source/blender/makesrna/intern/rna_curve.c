@@ -1033,16 +1033,9 @@ static void rna_def_path(BlenderRNA *UNUSED(brna), StructRNA *srna)
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 
-static void rna_def_nurbs(BlenderRNA *UNUSED(brna), StructRNA *srna)
+static void rna_def_nurbs(BlenderRNA *UNUSED(brna), StructRNA *UNUSED(srna))
 {
-  PropertyRNA *prop;
-
-  /* flags */
-  prop = RNA_def_property(srna, "use_uv_as_generated", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_UV_ORCO);
-  RNA_def_property_ui_text(
-      prop, "Use UV for Mapping", "Uses the UV values as Generated textured coordinates");
-  RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+  /* Nothing. */
 }
 
 static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
@@ -1755,12 +1748,6 @@ static void rna_def_curve(BlenderRNA *brna)
   RNA_def_property_editable_func(prop, "rna_Curve_texspace_editable");
   RNA_def_property_float_funcs(
       prop, "rna_Curve_texspace_size_get", "rna_Curve_texspace_size_set", NULL);
-  RNA_def_property_update(prop, 0, "rna_Curve_update_data");
-
-  prop = RNA_def_property(srna, "use_uv_as_generated", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_UV_ORCO);
-  RNA_def_property_ui_text(
-      prop, "Use UV for mapping", "Uses the UV values as Generated textured coordinates");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   /* materials */

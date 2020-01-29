@@ -197,7 +197,6 @@ url_manual_mapping = (
 	("bpy.types.compositornodedilateerode*", "compositing/types/filter/dilate_erode.html#bpy-types-compositornodedilateerode"),
 	("bpy.types.compositornodeellipsemask*", "compositing/types/matte/ellipse_mask.html#bpy-types-compositornodeellipsemask"),
 	("bpy.types.compositornodesplitviewer*", "compositing/types/output/split_viewer.html#bpy-types-compositornodesplitviewer"),
-	("bpy.types.curve.use_uv_as_generated*", "editors/uv/generated_uvs.html#bpy-types-curve-use-uv-as-generated"),
 	("bpy.types.dynamicpaintbrushsettings*", "physics/dynamic_paint/brush.html#bpy-types-dynamicpaintbrushsettings"),
 	("bpy.types.materialgpencilstyle.flip*", "grease_pencil/materials/grease_pencil_shader.html#bpy-types-materialgpencilstyle-flip"),
 	("bpy.types.materialgpencilstyle.mode*", "grease_pencil/materials/grease_pencil_shader.html#bpy-types-materialgpencilstyle-mode"),

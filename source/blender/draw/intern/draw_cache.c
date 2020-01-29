@@ -826,11 +826,12 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
 
 int DRW_cache_object_material_count_get(struct Object *ob)
 {
+  Mesh *me = (ob->runtime.mesh_eval != NULL) ? ob->runtime.mesh_eval : (Mesh *)ob->data;
   short type = (ob->runtime.mesh_eval != NULL) ? OB_MESH : ob->type;
 
   switch (type) {
     case OB_MESH:
-      return DRW_mesh_material_count_get(ob->data);
+      return DRW_mesh_material_count_get(me);
     case OB_CURVE:
     case OB_SURF:
     case OB_FONT:

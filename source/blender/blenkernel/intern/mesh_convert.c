@@ -522,7 +522,6 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
 
 Mesh *BKE_mesh_new_nomain_from_curve_displist(Object *ob, ListBase *dispbase)
 {
-  Curve *cu = ob->data;
   Mesh *mesh;
   MVert *allvert;
   MEdge *alledge;
@@ -530,7 +529,6 @@ Mesh *BKE_mesh_new_nomain_from_curve_displist(Object *ob, ListBase *dispbase)
   MPoly *allpoly;
   MLoopUV *alluv = NULL;
   int totvert, totedge, totloop, totpoly;
-  bool use_orco_uv = (cu->flag & CU_UV_ORCO) != 0;
 
   if (BKE_mesh_nurbs_displist_to_mdata(ob,
                                        dispbase,
@@ -540,7 +538,7 @@ Mesh *BKE_mesh_new_nomain_from_curve_displist(Object *ob, ListBase *dispbase)
                                        &totedge,
                                        &allloop,
                                        &allpoly,
-                                       (use_orco_uv) ? &alluv : NULL,
+                                       &alluv,
                                        &totloop,
                                        &totpoly) != 0) {
     /* Error initializing mdata. This often happens when curve is empty */
@@ -580,12 +578,8 @@ Mesh *BKE_mesh_new_nomain_from_curve(Object *ob)
 }
 
 /* this may fail replacing ob->data, be sure to check ob->type */
-void BKE_mesh_from_nurbs_displist(Main *bmain,
-                                  Object *ob,
-                                  ListBase *dispbase,
-                                  const bool use_orco_uv,
-                                  const char *obdata_name,
-                                  bool temporary)
+void BKE_mesh_from_nurbs_displist(
+    Main *bmain, Object *ob, ListBase *dispbase, const char *obdata_name, bool temporary)
 {
   Object *ob1;
   Mesh *me_eval = ob->runtime.mesh_eval;
@@ -609,7 +603,7 @@ void BKE_mesh_from_nurbs_displist(Main *bmain,
                                          &totedge,
                                          &allloop,
                                          &allpoly,
-                                         (use_orco_uv) ? &alluv : NULL,
+                                         &alluv,
                                          &totloop,
                                          &totpoly) != 0) {
       /* Error initializing */
@@ -706,14 +700,13 @@ void BKE_mesh_from_nurbs_displist(Main *bmain,
 void BKE_mesh_from_nurbs(Main *bmain, Object *ob)
 {
   Curve *cu = (Curve *)ob->data;
-  bool use_orco_uv = (cu->flag & CU_UV_ORCO) != 0;
   ListBase disp = {NULL, NULL};
 
   if (ob->runtime.curve_cache) {
     disp = ob->runtime.curve_cache->disp;
   }
 
-  BKE_mesh_from_nurbs_displist(bmain, ob, &disp, use_orco_uv, cu->id.name, false);
+  BKE_mesh_from_nurbs_displist(bmain, ob, &disp, cu->id.name, false);
 }
 
 typedef struct EdgeLink {
@@ -1023,8 +1016,6 @@ static void curve_to_mesh_eval_ensure(Object *object)
 static Mesh *mesh_new_from_curve_type_object(Object *object)
 {
   Curve *curve = object->data;
-  const bool uv_from_orco = (curve->flag & CU_UV_ORCO) != 0;
-
   Object *temp_object = object_for_curve_to_mesh_create(object);
   Curve *temp_curve = (Curve *)temp_object->data;
 
@@ -1039,12 +1030,8 @@ static Mesh *mesh_new_from_curve_type_object(Object *object)
   temp_curve->editnurb = NULL;
 
   /* Convert to mesh. */
-  BKE_mesh_from_nurbs_displist(NULL,
-                               temp_object,
-                               &temp_object->runtime.curve_cache->disp,
-                               uv_from_orco,
-                               curve->id.name + 2,
-                               true);
+  BKE_mesh_from_nurbs_displist(
+      NULL, temp_object, &temp_object->runtime.curve_cache->disp, curve->id.name + 2, true);
 
   /* BKE_mesh_from_nurbs changes the type to a mesh, check it worked. If it didn't the curve did
    * not have any segments or otherwise would have generated an empty mesh. */
