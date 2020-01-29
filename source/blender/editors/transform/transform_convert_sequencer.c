@@ -381,6 +381,10 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
         }
 
         if (overlap) {
+          const bool use_sync_markers = (((SpaceSeq *)t->sa->spacedata.first)->flag &
+                                         SEQ_MARKER_TRANS) != 0;
+          ListBase *markers = &t->scene->markers;
+
           bool has_effect_root = false, has_effect_any = false;
           for (seq = seqbasep->first; seq; seq = seq->next) {
             seq->tmp = NULL;
@@ -425,7 +429,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
               }
             }
 
-            BKE_sequence_base_shuffle_time(seqbasep, t->scene);
+            BKE_sequence_base_shuffle_time(seqbasep, t->scene, markers, use_sync_markers);
 
             for (seq = seqbasep->first; seq; seq = seq->next) {
               if (seq->machine >= MAXSEQ * 2) {
@@ -437,10 +441,10 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
               }
             }
 
-            BKE_sequence_base_shuffle_time(seqbasep, t->scene);
+            BKE_sequence_base_shuffle_time(seqbasep, t->scene, markers, use_sync_markers);
           }
           else {
-            BKE_sequence_base_shuffle_time(seqbasep, t->scene);
+            BKE_sequence_base_shuffle_time(seqbasep, t->scene, markers, use_sync_markers);
           }
 
           if (has_effect_any) {
