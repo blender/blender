@@ -105,6 +105,16 @@ class PhysicButtonsPanel:
         if (flow.flow_behavior == 'OUTFLOW'):
             return True
 
+    @staticmethod
+    def poll_fluid_flow_liquid(context):
+        if not PhysicButtonsPanel.poll_fluid_flow(context):
+            return False
+
+        md = context.fluid
+        flow = md.flow_settings
+        if (flow.flow_type == 'LIQUID'):
+            return True
+
 
 class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
     bl_label = "Fluid"
@@ -323,9 +333,9 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
         flow.enabled = not is_baking_any and not has_baked_data
 
-        col = flow.column()
-        col.prop(domain, "alpha")
-        col.prop(domain, "beta", text="Temperature Diff.")
+        col = flow.column(align=True)
+        col.prop(domain, "alpha", text="Buoyancy Density")
+        col.prop(domain, "beta", text="Heat")
         col = flow.column()
         col.prop(domain, "vorticity")
 
@@ -399,14 +409,12 @@ class PHYSICS_PT_fire(PhysicButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(domain, "burning_rate", text="Reaction Speed")
-        col = flow.column()
+        col = flow.column(align=True)
         col.prop(domain, "flame_smoke", text="Flame Smoke")
-        col = flow.column()
-        col.prop(domain, "flame_vorticity", text="Flame Vorticity")
-        col = flow.column()
-        col.prop(domain, "flame_ignition", text="Temperature Ignition")
-        col = flow.column()
-        col.prop(domain, "flame_max_temp", text="Maximum Temperature")
+        col.prop(domain, "flame_vorticity", text="Vorticity")
+        col = flow.column(align=True)
+        col.prop(domain, "flame_max_temp", text="Temperature Maximum")
+        col.prop(domain, "flame_ignition", text="Minimum")
         col = flow.column()
         col.prop(domain, "flame_smoke_color", text="Flame Color")
 
@@ -495,10 +503,10 @@ class PHYSICS_PT_flow_source(PhysicButtonsPanel, Panel):
         col = grid.column()
         if flow.flow_source == 'MESH':
             col.prop(flow, "use_plane_init", text="Is Planar")
-            col.prop(flow, "surface_distance", text="Surface Thickness")
+            col.prop(flow, "surface_distance", text="Surface Emission")
             if flow.flow_type in {'SMOKE', 'BOTH', 'FIRE'}:
                 col = grid.column()
-                col.prop(flow, "volume_density", text="Volume Density")
+                col.prop(flow, "volume_density", text="Volume Emission")
 
         if flow.flow_source == 'PARTICLES':
             col.prop(flow, "use_particle_size", text="Set Size")
@@ -560,6 +568,9 @@ class PHYSICS_PT_flow_texture(PhysicButtonsPanel, Panel):
             return False
 
         if PhysicButtonsPanel.poll_fluid_flow_outflow(context):
+            return False
+
+        if PhysicButtonsPanel.poll_fluid_flow_liquid(context):
             return False
 
         return (context.engine in cls.COMPAT_ENGINES)
