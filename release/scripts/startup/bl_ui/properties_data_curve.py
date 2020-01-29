@@ -144,7 +144,6 @@ class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
         curve = context.curve
 
         col = layout.column()
-        col.prop(curve, "use_uv_as_generated")
         col.prop(curve, "use_auto_texspace")
 
         col = layout.column()

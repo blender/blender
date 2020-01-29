@@ -177,7 +177,6 @@ int BKE_mesh_nurbs_displist_to_mdata(struct Object *ob,
 void BKE_mesh_from_nurbs_displist(struct Main *bmain,
                                   struct Object *ob,
                                   struct ListBase *dispbase,
-                                  const bool use_orco_uv,
                                   const char *obdata_name,
                                   bool temporary);
 void BKE_mesh_from_nurbs(struct Main *bmain, struct Object *ob);
