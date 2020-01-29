@@ -454,6 +454,9 @@ static void fluid_free_endjob(void *customdata)
   BKE_spacedata_draw_locks(false);
   WM_set_locked_interface(G_MAIN->wm.first, false);
 
+  /* Reflect the now empty cache in the viewport too. */
+  DEG_id_tag_update(&job->ob->id, ID_RECALC_GEOMETRY);
+
   /* Free was successful:
    *  Report for ended free job and how long it took */
   if (job->success) {

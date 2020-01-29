@@ -43,3 +43,6 @@ Desktop.ini
 
 # in-source buildbot signing configuration
 /build_files/buildbot/codesign/config_server.py
+
+# smoke simulation noise tile (generated)
+waveletNoiseTile.bin
