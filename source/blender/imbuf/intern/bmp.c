@@ -306,8 +306,11 @@ int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
 
   (void)flags; /* unused */
 
-  extrabytes = (4 - ibuf->x * 3 % 4) % 4;
-  bytesize = (ibuf->x * 3 + extrabytes) * ibuf->y;
+  const size_t bytes_per_pixel = (ibuf->planes + 7) >> 3;
+  BLI_assert(bytes_per_pixel == 1 || bytes_per_pixel == 3);
+
+  extrabytes = (4 - ibuf->x * bytes_per_pixel % 4) % 4;
+  bytesize = (ibuf->x * bytes_per_pixel + extrabytes) * ibuf->y;
 
   data = (uchar *)ibuf->rect;
   ofile = BLI_fopen(name, "wb");
@@ -315,17 +318,21 @@ int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
     return 0;
   }
 
-  putShortLSB(19778, ofile);                                             /* "BM" */
-  putIntLSB(bytesize + BMP_FILEHEADER_SIZE + sizeof(infoheader), ofile); /* Total file size */
-  putShortLSB(0, ofile);                                                 /* Res1 */
-  putShortLSB(0, ofile);                                                 /* Res2 */
-  putIntLSB(BMP_FILEHEADER_SIZE + sizeof(infoheader), ofile);
+  const bool is_grayscale = bytes_per_pixel == 1;
+  const size_t palette_size = is_grayscale ? 255 * 4 : 0; /* RGBA32 */
+  const size_t pixel_array_start = BMP_FILEHEADER_SIZE + sizeof(infoheader) + palette_size;
+
+  putShortLSB(19778, ofile);                      /* "BM" */
+  putIntLSB(bytesize + pixel_array_start, ofile); /* Total file size */
+  putShortLSB(0, ofile);                          /* Res1 */
+  putShortLSB(0, ofile);                          /* Res2 */
+  putIntLSB(pixel_array_start, ofile);            /* offset to start of pixel array */
 
   putIntLSB(sizeof(infoheader), ofile);
   putIntLSB(ibuf->x, ofile);
   putIntLSB(ibuf->y, ofile);
   putShortLSB(1, ofile);
-  putShortLSB(24, ofile);
+  putShortLSB(is_grayscale ? 8 : 24, ofile);
   putIntLSB(0, ofile);
   putIntLSB(bytesize, ofile);
   putIntLSB((int)(ibuf->ppm[0] + 0.5), ofile);
@@ -333,24 +340,52 @@ int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
   putIntLSB(0, ofile);
   putIntLSB(0, ofile);
 
-  /* Need to write out padded image data in bgr format */
-  for (size_t y = 0; y < ibuf->y; y++) {
-    for (size_t x = 0; x < ibuf->x; x++) {
-      ptr = (x + y * ibuf->x) * 4;
-      if (putc(data[ptr + 2], ofile) == EOF) {
-        return 0;
+  /* color palette table, which is just every grayscale color, full alpha */
+  if (is_grayscale) {
+    for (char i = 0; i < 255; i++) {
+      putc(i, ofile);
+      putc(i, ofile);
+      putc(i, ofile);
+      putc(0xFF, ofile);
+    }
+  }
+
+  if (is_grayscale) {
+    for (size_t y = 0; y < ibuf->y; y++) {
+      for (size_t x = 0; x < ibuf->x; x++) {
+        ptr = (x + y * ibuf->x) * 4;
+        if (putc(data[ptr], ofile) == EOF) {
+          return 0;
+        }
       }
-      if (putc(data[ptr + 1], ofile) == EOF) {
-        return 0;
-      }
-      if (putc(data[ptr], ofile) == EOF) {
-        return 0;
+      /* add padding here */
+      for (size_t t = 0; t < extrabytes; t++) {
+        if (putc(0, ofile) == EOF) {
+          return 0;
+        }
       }
     }
-    /* add padding here */
-    for (size_t t = 0; t < extrabytes; t++) {
-      if (putc(0, ofile) == EOF) {
-        return 0;
+  }
+  else {
+    /* Need to write out padded image data in bgr format */
+    for (size_t y = 0; y < ibuf->y; y++) {
+      for (size_t x = 0; x < ibuf->x; x++) {
+        ptr = (x + y * ibuf->x) * 4;
+        if (putc(data[ptr + 2], ofile) == EOF) {
+          return 0;
+        }
+        if (putc(data[ptr + 1], ofile) == EOF) {
+          return 0;
+        }
+        if (putc(data[ptr], ofile) == EOF) {
+          return 0;
+        }
+      }
+      /* add padding here */
+      for (size_t t = 0; t < extrabytes; t++) {
+        if (putc(0, ofile) == EOF) {
+          return 0;
+        }
       }
     }
   }

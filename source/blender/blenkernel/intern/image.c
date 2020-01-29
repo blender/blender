@@ -1345,6 +1345,7 @@ char BKE_imtype_valid_channels(const char imtype, bool write_file)
 
   /* bw */
   switch (imtype) {
+    case R_IMF_IMTYPE_BMP:
     case R_IMF_IMTYPE_PNG:
     case R_IMF_IMTYPE_JPEG90:
     case R_IMF_IMTYPE_TARGA:
