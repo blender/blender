@@ -630,9 +630,10 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
   ObstaclesFromDMData *data = userdata;
   FluidDomainSettings *mds = data->mds;
 
-  /* Distance from unit cube center to one of the vertices.
-   * I.e. half the cube diagonal or sqrt(3) * 0.5. */
-  const float surface_distance = 0.867f;
+  /* Distance between two opposing vertices in a unit cube.
+   * I.e. the unit cube diagonal or sqrt(3).
+   * This value is our nearest neighbour search distance. */
+  const float surface_distance = 1.732;
 
   for (int x = mds->res_min[0]; x < mds->res_max[0]; x++) {
     for (int y = mds->res_min[1]; y < mds->res_max[1]; y++) {
@@ -646,7 +647,7 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
                         surface_distance; /* find_nearest uses squared distance */
       bool has_inc_obj = false;
 
-      /* find the nearest point on the mesh */
+      /* Find the nearest point on the mesh. */
       if (BLI_bvhtree_find_nearest(
               data->tree->tree, ray_start, &nearest, data->tree->nearest_callback, data->tree) !=
           -1) {
@@ -1433,11 +1434,12 @@ static void update_mesh_distances(int index,
 {
   float min_dist = PHI_MAX;
 
-  /* Ensure that planes get initialized correctly. */
+  /* a) Planar initialization */
   if (use_plane_init) {
     BVHTreeNearest nearest = {0};
     nearest.index = -1;
-    nearest.dist_sq = surface_thickness;
+    nearest.dist_sq = surface_thickness *
+                      surface_thickness; /* find_nearest uses squared distance */
 
     if (BLI_bvhtree_find_nearest(
             tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1) {
@@ -1445,12 +1447,14 @@ static void update_mesh_distances(int index,
       sub_v3_v3v3(ray, ray_start, nearest.co);
       min_dist = len_v3(ray);
       min_dist = (-1.0f) * fabsf(min_dist);
-      mesh_distances[index] = MIN2(mesh_distances[index], min_dist);
+      mesh_distances[index] = min_dist;
     }
     return;
   }
 
-  /* First pass: Ray-casts in 26 directions
+  /* b) Volumetric initialization: 1) Ray-casts around mesh object. */
+
+  /* Ray-casts in 26 directions.
    * (6 main axis + 12 quadrant diagonals (2D) + 8 octant diagonals (3D)). */
   float ray_dirs[26][3] = {
       {1.0f, 0.0f, 0.0f},   {0.0f, 1.0f, 0.0f},   {0.0f, 0.0f, 1.0f},  {-1.0f, 0.0f, 0.0f},
@@ -1462,8 +1466,9 @@ static void update_mesh_distances(int index,
       {-1.0f, 1.0f, -1.0f}, {-1.0f, -1.0f, -1.0f}};
   size_t ray_cnt = sizeof ray_dirs / sizeof ray_dirs[0];
 
-  /* Count for ray misses (no face hit) and cases where ray direction matches face normal
-   * direction. */
+  /* Count ray mesh misses (i.e. no face hit) and cases where the ray direction matches the face
+   * normal direction. From this information it can be derived whether a cell is inside or outside
+   * the mesh. */
   int miss_cnt = 0, dir_cnt = 0;
   min_dist = PHI_MAX;
 
@@ -1481,14 +1486,13 @@ static void update_mesh_distances(int index,
                          tree_data->raycast_callback,
                          tree_data);
 
-    /* Ray did not hit mesh. Current point definitely not inside mesh. Inside mesh all rays have to
-     * hit. */
+    /* Ray did not hit mesh.
+     * Current point definitely not inside mesh. Inside mesh as all rays have to hit. */
     if (hit_tree.index == -1) {
       miss_cnt++;
-      continue;
     }
 
-    /* Ray and normal are in pointing opposite directions. */
+    /* Ray and normal are pointing in opposite directions. */
     if (dot_v3v3(ray_dirs[i], hit_tree.no) <= 0) {
       dir_cnt++;
     }
@@ -1498,25 +1502,30 @@ static void update_mesh_distances(int index,
     }
   }
 
-  /* Point lies inside mesh. Use negative sign for distance value. */
+  /* Point lies inside mesh. Use negative sign for distance value.
+   * This "if statement" has 2 conditions that can be true for points outside mesh. */
   if (!(miss_cnt > 0 || dir_cnt == ray_cnt)) {
     min_dist = (-1.0f) * fabsf(min_dist);
   }
 
-  /* Update global distance array but ensure that older entries are not overridden. */
-  mesh_distances[index] = MIN2(mesh_distances[index], min_dist);
+  /* Update global distance array with distance value. */
+  mesh_distances[index] = min_dist;
 
-  /* Second pass: Use nearest neighbor search on mesh surface. */
+  /* b) Volumetric initialization: 2) Use nearest neighbor search on mesh surface. */
+
+  /* Distance between two opposing vertices in a unit cube.
+   * I.e. the unit cube diagonal or sqrt(3).
+   * This value is our nearest neighbour search distance. */
+  const float surface_distance = 1.732;
   BVHTreeNearest nearest = {0};
   nearest.index = -1;
-  nearest.dist_sq = 5;
+  nearest.dist_sq = surface_distance * surface_distance; /* find_nearest uses squared distance. */
 
   if (BLI_bvhtree_find_nearest(
           tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1) {
     float ray[3] = {0};
     sub_v3_v3v3(ray, nearest.co, ray_start);
     min_dist = len_v3(ray);
-    //    CLAMP(min_dist, 0.5, min_dist);
 
     BVHTreeRayHit hit_tree = {0};
     hit_tree.index = -1;
@@ -1529,22 +1538,23 @@ static void update_mesh_distances(int index,
     /* Only proceed if casted ray hit the mesh surface. */
     if (hit_tree.index != -1) {
 
-      /* Ray and normal are in pointing same directions: Point must lie inside mesh. */
+      /* Ray and normal are pointing in the same direction: Point must lie inside mesh. */
       if (dot_v3v3(ray, hit_tree.no) > 0) {
         min_dist = (-1.0f) * fabsf(min_dist);
       }
 
-      /* Update distance value with more accurate one from this nearest neighbor search.
-       * Skip if new value would be outside and current value has inside value already. */
-      if (!(min_dist > 0 && mesh_distances[index] <= 0)) {
-        mesh_distances[index] = min_dist;
-      }
+      /* Update distance map with more accurate distance from this nearest neighbor search. */
+      mesh_distances[index] = min_dist;
     }
   }
 
+  /* Subtract optional surface thickness value and virtually increase the object size. */
   if (surface_thickness) {
     mesh_distances[index] -= surface_thickness;
   }
+
+  /* Sanity check: Ensure that distances don't explode. */
+  CLAMP(mesh_distances[index], -PHI_MAX, PHI_MAX);
 }
 
 static void sample_mesh(FluidFlowSettings *mfs,
@@ -1578,9 +1588,10 @@ static void sample_mesh(FluidFlowSettings *mfs,
   hit.dist = PHI_MAX;
   nearest.index = -1;
 
-  /* Distance from unit cube center to one of the vertices.
-   * I.e. half the cube diagonal or sqrt(3) * 0.5. */
-  const float surface_distance = 0.867f;
+  /* Distance between two opposing vertices in a unit cube.
+   * I.e. the unit cube diagonal or sqrt(3).
+   * This value is our nearest neighbour search distance. */
+  const float surface_distance = 1.732;
   nearest.dist_sq = surface_distance * surface_distance; /* find_nearest uses squared distance. */
 
   bool is_gas_flow = (mfs->type == FLUID_FLOW_TYPE_SMOKE || mfs->type == FLUID_FLOW_TYPE_FIRE ||
@@ -1625,22 +1636,13 @@ static void sample_mesh(FluidFlowSettings *mfs,
     int v1, v2, v3, f_index = nearest.index;
     float n1[3], n2[3], n3[3], hit_normal[3];
 
-    /* Emission from surface is based on UI configurable distance value. */
-    if (mfs->surface_distance) {
-      emission_strength = sqrtf(nearest.dist_sq) / mfs->surface_distance;
-      CLAMP(emission_strength, 0.0f, 1.0f);
-      emission_strength = pow(1.0f - emission_strength, 0.5f);
-    }
-    else {
-      emission_strength = 0.0f;
-    }
-
     /* Calculate barycentric weights for nearest point. */
     v1 = mloop[mlooptri[f_index].tri[0]].v;
     v2 = mloop[mlooptri[f_index].tri[1]].v;
     v3 = mloop[mlooptri[f_index].tri[2]].v;
     interp_weights_tri_v3(weights, mvert[v1].co, mvert[v2].co, mvert[v3].co, nearest.co);
 
+    /* Initial velocity of flow object. */
     if (mfs->flags & FLUID_FLOW_INITVELOCITY && velocity_map) {
       /* Apply normal directional velocity. */
       if (mfs->vel_normal) {
@@ -1674,40 +1676,54 @@ static void sample_mesh(FluidFlowSettings *mfs,
       velocity_map[index * 3 + 2] += mfs->vel_coord[2];
     }
 
-    /* Apply vertex group influence if it is being used. */
-    if (defgrp_index != -1 && dvert) {
-      float weight_mask = defvert_find_weight(&dvert[v1], defgrp_index) * weights[0] +
-                          defvert_find_weight(&dvert[v2], defgrp_index) * weights[1] +
-                          defvert_find_weight(&dvert[v3], defgrp_index) * weights[2];
-      emission_strength *= weight_mask;
-    }
-
-    /* Apply emission texture. */
-    if (is_gas_flow && (mfs->flags & FLUID_FLOW_TEXTUREEMIT) && mfs->noise_texture) {
-      float tex_co[3] = {0};
-      TexResult texres;
-
-      if (mfs->texture_type == FLUID_FLOW_TEXTURE_MAP_AUTO) {
-        tex_co[0] = ((x - flow_center[0]) / base_res[0]) / mfs->texture_size;
-        tex_co[1] = ((y - flow_center[1]) / base_res[1]) / mfs->texture_size;
-        tex_co[2] = ((z - flow_center[2]) / base_res[2] - mfs->texture_offset) / mfs->texture_size;
+    /* Compute emission strength for smoke flow. */
+    if (is_gas_flow) {
+      /* Emission from surface is based on UI configurable distance value. */
+      if (mfs->surface_distance) {
+        emission_strength = sqrtf(nearest.dist_sq) / mfs->surface_distance;
+        CLAMP(emission_strength, 0.0f, 1.0f);
+        emission_strength = pow(1.0f - emission_strength, 0.5f);
       }
-      else if (mloopuv) {
-        const float *uv[3];
-        uv[0] = mloopuv[mlooptri[f_index].tri[0]].uv;
-        uv[1] = mloopuv[mlooptri[f_index].tri[1]].uv;
-        uv[2] = mloopuv[mlooptri[f_index].tri[2]].uv;
-
-        interp_v2_v2v2v2(tex_co, UNPACK3(uv), weights);
-
-        /* Map texure coord between -1.0f and 1.0f. */
-        tex_co[0] = tex_co[0] * 2.0f - 1.0f;
-        tex_co[1] = tex_co[1] * 2.0f - 1.0f;
-        tex_co[2] = mfs->texture_offset;
+      else {
+        emission_strength = 0.0f;
       }
-      texres.nor = NULL;
-      BKE_texture_get_value(NULL, mfs->noise_texture, tex_co, &texres, false);
-      emission_strength *= texres.tin;
+
+      /* Apply vertex group influence if it is being used. */
+      if (defgrp_index != -1 && dvert) {
+        float weight_mask = defvert_find_weight(&dvert[v1], defgrp_index) * weights[0] +
+                            defvert_find_weight(&dvert[v2], defgrp_index) * weights[1] +
+                            defvert_find_weight(&dvert[v3], defgrp_index) * weights[2];
+        emission_strength *= weight_mask;
+      }
+
+      /* Apply emission texture. */
+      if ((mfs->flags & FLUID_FLOW_TEXTUREEMIT) && mfs->noise_texture) {
+        float tex_co[3] = {0};
+        TexResult texres;
+
+        if (mfs->texture_type == FLUID_FLOW_TEXTURE_MAP_AUTO) {
+          tex_co[0] = ((x - flow_center[0]) / base_res[0]) / mfs->texture_size;
+          tex_co[1] = ((y - flow_center[1]) / base_res[1]) / mfs->texture_size;
+          tex_co[2] = ((z - flow_center[2]) / base_res[2] - mfs->texture_offset) /
+                      mfs->texture_size;
+        }
+        else if (mloopuv) {
+          const float *uv[3];
+          uv[0] = mloopuv[mlooptri[f_index].tri[0]].uv;
+          uv[1] = mloopuv[mlooptri[f_index].tri[1]].uv;
+          uv[2] = mloopuv[mlooptri[f_index].tri[2]].uv;
+
+          interp_v2_v2v2v2(tex_co, UNPACK3(uv), weights);
+
+          /* Map texure coord between -1.0f and 1.0f. */
+          tex_co[0] = tex_co[0] * 2.0f - 1.0f;
+          tex_co[1] = tex_co[1] * 2.0f - 1.0f;
+          tex_co[2] = mfs->texture_offset;
+        }
+        texres.nor = NULL;
+        BKE_texture_get_value(NULL, mfs->noise_texture, tex_co, &texres, false);
+        emission_strength *= texres.tin;
+      }
     }
   }
 
@@ -1868,9 +1884,10 @@ static void emit_from_mesh(
     mul_m4_v3(flow_ob->obmat, flow_center);
     manta_pos_to_cell(mds, flow_center);
 
-    /* Set emission map. */
-    clamp_bounds_in_domain(
-        mds, em->min, em->max, NULL, NULL, (int)ceil(mfs->surface_distance), dt);
+    /* Set emission map.
+     * Use 3 cell diagonals as margin (3 * 1.732 = 5.196). */
+    int bounds_margin = (int)ceil(5.196);
+    clamp_bounds_in_domain(mds, em->min, em->max, NULL, NULL, bounds_margin, dt);
     em_allocateData(em, mfs->flags & FLUID_FLOW_INITVELOCITY);
 
     /* Setup loop bounds. */
@@ -2222,60 +2239,55 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *mfs,
                                     float *phi_in,
                                     float *emission_in)
 {
-  /* add inflow */
+  /* Set levelset value for liquid inflow.
+   * Ensure that distance value is "joined" into the levelset. */
   if (phi_in) {
-    phi_in[index] = distance_value;
+    phi_in[index] = MIN2(distance_value, phi_in[index]);
   }
 
-  /* save emission value for manta inflow */
+  /* Set emission value for smoke inflow.
+   * Ensure that emission value is "maximised". */
   if (emission_in) {
-    emission_in[index] = emission_value;
+    emission_in[index] = MAX2(emission_value, emission_in[index]);
   }
 
-  /* add smoke inflow */
+  /* Set inflow for smoke from here on. */
   int absolute_flow = (mfs->flags & FLUID_FLOW_ABSOLUTE);
   float dens_old = (density) ? density[index] : 0.0;
   // float fuel_old = (fuel) ? fuel[index] : 0.0f;  /* UNUSED */
   float dens_flow = (mfs->type == FLUID_FLOW_TYPE_FIRE) ? 0.0f : emission_value * mfs->density;
   float fuel_flow = (fuel) ? emission_value * mfs->fuel_amount : 0.0f;
-  /* add heat */
+  /* Set heat inflow. */
   if (heat && heat_in) {
     if (emission_value > 0.0f) {
       heat_in[index] = ADD_IF_LOWER(heat[index], mfs->temperature);
-      /* Scale inflow by dt/frame-length.
-       * This is to ensure that adaptive steps don't apply too much emission. */
-    }
-    else {
-      heat_in[index] = heat[index];
     }
   }
 
-  /* set density and fuel - absolute mode */
+  /* Set density and fuel - absolute mode. */
   if (absolute_flow) {
     if (density && density_in) {
-      density_in[index] = density[index];
       if (mfs->type != FLUID_FLOW_TYPE_FIRE && dens_flow > density[index]) {
-        density_in[index] = dens_flow;
+        /* Use MAX2 to preserve values from other emitters at this cell. */
+        density_in[index] = MAX2(dens_flow, density_in[index]);
       }
     }
     if (fuel && fuel_in) {
-      fuel_in[index] = fuel[index];
       if (mfs->type != FLUID_FLOW_TYPE_SMOKE && fuel_flow && fuel_flow > fuel[index]) {
-        fuel_in[index] = fuel_flow;
+        /* Use MAX2 to preserve values from other emitters at this cell. */
+        fuel_in[index] = MAX2(fuel_flow, fuel_in[index]);
       }
     }
   }
-  /* set density and fuel - additive mode */
+  /* Set density and fuel - additive mode. */
   else {
     if (density && density_in) {
-      density_in[index] = density[index];
       if (mfs->type != FLUID_FLOW_TYPE_FIRE) {
         density_in[index] += dens_flow;
         CLAMP(density_in[index], 0.0f, 1.0f);
       }
     }
     if (fuel && fuel_in) {
-      fuel_in[index] = fuel[index];
       if (mfs->type != FLUID_FLOW_TYPE_SMOKE && mfs->fuel_amount) {
         fuel_in[index] += fuel_flow;
         CLAMP(fuel_in[index], 0.0f, 10.0f);
@@ -2283,12 +2295,8 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *mfs,
     }
   }
 
-  /* set color */
+  /* Set color. */
   if (color_r && color_r_in) {
-    color_r_in[index] = color_r[index];
-    color_g_in[index] = color_g[index];
-    color_b_in[index] = color_b[index];
-
     if (dens_flow) {
       float total_dens = density[index] / (dens_old + dens_flow);
       color_r_in[index] = (color_r[index] + mfs->color[0] * dens_flow) * total_dens;
@@ -2297,7 +2305,7 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *mfs,
     }
   }
 
-  /* set fire reaction coordinate */
+  /* Set fire reaction coordinate. */
   if (fuel && fuel_in) {
     /* Instead of using 1.0 for all new fuel add slight falloff to reduce flow blocky-ness. */
     float value = 1.0f - pow2f(1.0f - emission_value);
@@ -2306,9 +2314,6 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *mfs,
       float f = fuel_flow / fuel[index];
       react_in[index] = value * f + (1.0f - f) * react[index];
       CLAMP(react_in[index], 0.0f, value);
-    }
-    else {
-      react_in[index] = react[index];
     }
   }
 }
@@ -2607,20 +2612,21 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
     if (phiout_in) {
       phiout_in[z] = PHI_MAX;
     }
+    /* Sync smoke inflow grids with their counterparts (simulation grids). */
     if (density_in) {
-      density_in[z] = 0.0f;
+      density_in[z] = density[z];
     }
     if (heat_in) {
-      heat_in[z] = 0.0f;
+      heat_in[z] = heat[z];
     }
     if (color_r_in) {
-      color_r_in[z] = 0.0f;
-      color_g_in[z] = 0.0f;
-      color_b_in[z] = 0.0f;
+      color_r_in[z] = color_r[z];
+      color_g_in[z] = color_b[z];
+      color_b_in[z] = color_g[z];
     }
     if (fuel_in) {
-      fuel_in[z] = 0.0f;
-      react_in[z] = 0.0f;
+      fuel_in[z] = fuel[z];
+      react_in[z] = react[z];
     }
     if (emission_in) {
       emission_in[z] = 0.0f;
