@@ -8777,9 +8777,10 @@ static void applyTimeTranslateValue(TransInfo *t, float value)
     /* It doesn't matter whether we apply to t->data or
      * t->data2d, but t->data2d is more convenient. */
     for (i = 0; i < tc->data_len; i++, td++, td2d++) {
-      /* it is assumed that td->extra is a pointer to the AnimData,
-       * whose active action is where this keyframe comes from
+      /* It is assumed that td->extra is a pointer to the AnimData,
+       * whose active action is where this keyframe comes from.
        * (this is only valid when not in NLA)
+       * (also: masks and gpencil dont have animadata)
        */
       AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 
@@ -8810,7 +8811,7 @@ static void applyTimeTranslateValue(TransInfo *t, float value)
           val = floorf(val + 0.5f);
         }
 
-        *(td->val) = td->ival + val;
+        *(td->val) = td->ival + val * td->factor;
       }
 
       /* apply nearest snapping */
