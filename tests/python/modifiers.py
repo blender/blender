@@ -18,14 +18,17 @@
 
 # <pep8 compliant>
 
-import bpy
+import math
 import os
 import sys
 from random import shuffle, seed
-seed(0)
+
+import bpy
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from modules.mesh_test import ModifierTest, ModifierSpec
+
+seed(0)
 
 
 def get_generate_modifiers_list(test_object_name, randomize=False):
@@ -89,32 +92,108 @@ def main():
         ["testCubeRandom", "expectedCubeRandom", get_generate_modifiers_list("testCubeRandom", randomize=True)],
         ["testCubeMaskFirst", "expectedCubeMaskFirst", mask_first_list],
 
+        ["testCollapseDecimate", "expectedCollapseDecimate",
+         [ModifierSpec("subdivision", 'SUBSURF', {"levels": 2}),
+          ModifierSpec('decimate', 'DECIMATE', {'decimate_type': 'COLLAPSE', 'ratio': 0.25, 'use_collapse_triangulate': True})]],
+        ["testPlanarDecimate", "expectedPlanarDecimate",
+         [ModifierSpec("subdivision", 'SUBSURF', {"levels": 2}),
+          ModifierSpec('decimate', 'DECIMATE', {'decimate_type': 'DISSOLVE', 'angle_limit': math.radians(30)})]],
+        ["testUnsubdivideDecimate", "expectedUnsubdivideDecimate",
+         [ModifierSpec("subdivision", 'SUBSURF', {"levels": 2}),
+          ModifierSpec('decimate', 'DECIMATE', {'decimate_type': 'UNSUBDIV', 'iterations': 2})]],
+
+        # 5
+        ["testRadialBisectMirror", "expectedRadialBisectMirror",
+         [ModifierSpec('mirror1', 'MIRROR', {'use_bisect_axis': (True, False, False)}),
+          ModifierSpec('mirror2', 'MIRROR', {'use_bisect_axis': (True, False, False), 'mirror_object': bpy.data.objects["testRadialBisectMirrorHelper"]}),
+          ModifierSpec('mirror3', 'MIRROR', {'use_axis': (False, True, False), 'use_bisect_axis': (False, True, False), 'use_bisect_flip_axis': (False, True, False), 'mirror_object': bpy.data.objects["testRadialBisectMirrorHelper"]})]],
+        ["regressT58411Mirror", "expectedT58411Mirror",
+         [ModifierSpec('mirror', 'MIRROR', {}),
+          ModifierSpec('bevel', 'BEVEL', {'segments': 2, 'limit_method': 'WEIGHT'}),
+          ModifierSpec('subd', 'SUBSURF', {'levels': 1})]],
+
+        ["testBasicScrew", "expectedBasicScrew",
+         [ModifierSpec('mirror', 'MIRROR', {'mirror_object': bpy.data.objects["testBasicScrewHelper"]}),
+          ModifierSpec("screw", 'SCREW', {'angle': math.radians(400), 'steps': 20, 'iterations': 2, 'screw_offset': 2, 'use_normal_calculate': True})]],
+        ["testObjectScrew", "expectedObjectScrew",
+         [ModifierSpec('mirror', 'MIRROR', {'mirror_object': bpy.data.objects["testObjectScrewHelper2"]}),
+          ModifierSpec("screw", 'SCREW', {"angle": math.radians(600), 'steps': 32, 'iterations': 1, 'use_object_screw_offset': True, 'use_normal_calculate': True, 'object': bpy.data.objects["testObjectScrewHelper1"]})]],
+
+        # 9
+        ["testMergedScrewWeld", "expectedMergedScrewWeld",
+         [ModifierSpec("screw", 'SCREW', {'angle': math.radians(360), 'steps': 12, 'iterations': 1, 'screw_offset': 1, 'use_normal_calculate': True, 'use_merge_vertices': True}),
+          ModifierSpec("weld", 'WELD', {"merge_threshold": 0.001})]],
+        ["regressT72380Weld", "expectedT72380Weld",
+         [ModifierSpec('vedit', 'VERTEX_WEIGHT_EDIT', {'vertex_group': 'Group', 'use_remove': True, 'remove_threshold': 1}),
+          ModifierSpec("weld", 'WELD', {"merge_threshold": 0.2, "vertex_group": "Group"})]],
+        ["regressT72792Weld", "expectedT72792Weld",
+         [ModifierSpec('array', 'ARRAY', {'fit_type': 'FIXED_COUNT', 'count': 2}),
+          ModifierSpec("weld", 'WELD', {"merge_threshold": 0.1, "vertex_group": "Group"})]],
+
         ############################################
         # One 'Generate' modifier on primitive meshes
         #############################################
-        # 4
+        # 12
         ["testCubeArray", "expectedCubeArray", [ModifierSpec('array', 'ARRAY', {})]],
+        ["testCapArray", "expectedCapArray",
+         [ModifierSpec('array', 'ARRAY', {'fit_type': 'FIT_LENGTH', 'fit_length': 2.0, 'start_cap': bpy.data.objects["testCapStart"], 'end_cap': bpy.data.objects["testCapEnd"]})]],
+        ["testCurveArray", "expectedCurveArray",
+         [ModifierSpec('array', 'ARRAY', {'fit_type': 'FIT_CURVE', 'curve': bpy.data.objects["testCurveArrayHelper"], 'use_relative_offset': False, 'use_constant_offset': True, 'constant_offset_displace': (0.5, 0, 0)})]],
+        ["testRadialArray", "expectedRadialArray",
+         [ModifierSpec('array', 'ARRAY', {'fit_type': 'FIXED_COUNT', 'count': 3, 'use_merge_vertices': True, 'use_merge_vertices_cap': True, 'use_relative_offset': False, 'use_object_offset': True, 'offset_object': bpy.data.objects["testRadialArrayHelper"]})]],
+
         ["testCylinderBuild", "expectedCylinderBuild", [ModifierSpec('build', 'BUILD', {'frame_start': 0, 'frame_duration': 1})]],
 
-        # 6
+        # 17
         ["testConeDecimate", "expectedConeDecimate", [ModifierSpec('decimate', 'DECIMATE', {'ratio': 0.5})]],
         ["testCubeEdgeSplit", "expectedCubeEdgeSplit", [ModifierSpec('edge split', 'EDGE_SPLIT', {})]],
+
         ["testSphereMirror", "expectedSphereMirror", [ModifierSpec('mirror', 'MIRROR', {})]],
+        ["testLocalMirror", "expectedLocalMirror",
+         [ModifierSpec('mirror', 'MIRROR', {'use_clip': True})]],
+        ["testObjectOffsetMirror", "expectedObjectOffsetMirror",
+         [ModifierSpec('mirror', 'MIRROR', {'mirror_object': bpy.data.objects["testObjectOffsetMirrorHelper"]})]],
+
         ["testCylinderMask", "expectedCylinderMask", [ModifierSpec('mask', 'MASK', {'vertex_group': "mask_vertex_group"})]],
         ["testConeMultiRes", "expectedConeMultiRes", [ModifierSpec('multires', 'MULTIRES', {})]],
 
-        # 11
+        # 24
         ["testCubeScrew", "expectedCubeScrew", [ModifierSpec('screw', 'SCREW', {})]],
+
         ["testCubeSolidify", "expectedCubeSolidify", [ModifierSpec('solidify', 'SOLIDIFY', {})]],
+        ["testComplexSolidify", "expectedComplexSolidify",
+         [ModifierSpec('solidify', 'SOLIDIFY', {'solidify_mode': 'NON_MANIFOLD', 'thickness': 0.05, 'offset': 0, 'nonmanifold_thickness_mode': 'CONSTRAINTS'})]],
+        ["regressT63063Solidify", "expectedT63063Solidify",
+         [ModifierSpec('solid', 'SOLIDIFY', {'thickness': 0.1, 'offset': 0.7})]],
+        ["regressT61979Solidify", "expectedT61979Solidify",
+         [ModifierSpec('solid', 'SOLIDIFY', {'thickness': -0.25, 'use_even_offset': True, 'use_quality_normals': True})]],
+
         ["testMonkeySubsurf", "expectedMonkeySubsurf", [ModifierSpec('subsurf', 'SUBSURF', {})]],
+        ["testCatmullClarkSubdivisionSurface", "expectedCatmullClarkSubdivisionSurface",
+         [ModifierSpec("subdivision", 'SUBSURF', {"levels": 2})]],
+        ["testSimpleSubdivisionSurface", "expectedSimpleSubdivisionSurface",
+         [ModifierSpec("subdivision", 'SUBSURF', {"levels": 2, 'subdivision_type': 'SIMPLE'})]],
+        ["testCrease2dSubdivisionSurface", "expectedCrease2dSubdivisionSurface",
+         [ModifierSpec("subdivision", 'SUBSURF', {"levels": 2})]],
+        ["testCrease3dSubdivisionSurface", "expectedCrease3dSubdivisionSurface",
+         [ModifierSpec("subdivision", 'SUBSURF', {"levels": 2})]],
+
+        # 34
         ["testSphereTriangulate", "expectedSphereTriangulate", [ModifierSpec('triangulate', 'TRIANGULATE', {})]],
         ["testMonkeyWireframe", "expectedMonkeyWireframe", [ModifierSpec('wireframe', 'WIREFRAME', {})]],
         #ModifierSpec('skin', 'SKIN', {}), # skin is not reproducible .
 
+        ["testMergedWeld", "expectedMergedWeld",
+         [ModifierSpec("weld", 'WELD', {"merge_threshold": 0.021})]],
+        ["testMergedAllWeld", "expectedMergedAllWeld",
+         [ModifierSpec("weld", 'WELD', {"merge_threshold": 1.1})]],
+        ["testMergedNoneWeld", "expectedMergedNoneWeld",
+         [ModifierSpec("weld", 'WELD', {"merge_threshold": 0.019})]],
+
         #############################################
         # One 'Deform' modifier on primitive meshes
         #############################################
-        # 16
+        # 39
         ["testMonkeyArmature", "expectedMonkeyArmature",
          [ModifierSpec('armature', 'ARMATURE', {'object': bpy.data.objects['testArmature'], 'use_vertex_groups': True})]],
         ["testTorusCast", "expectedTorusCast", [ModifierSpec('cast', 'CAST', {'factor': 2.64})]],
@@ -126,10 +205,11 @@ def main():
         # ["testMonkeyHook", "expectedMonkeyHook",
         # [ModifierSpec('hook', 'HOOK', {'object': bpy.data.objects["EmptyHook"], 'vertex_group': "HookVertexGroup"})]],
 
-        # 20
+        # 43
         #ModifierSpec('laplacian_deform', 'LAPLACIANDEFORM', {}) Laplacian requires a more complex mesh
         ["testCubeLattice", "expectedCubeLattice",
          [ModifierSpec('lattice', 'LATTICE', {'object': bpy.data.objects["testLattice"]})]],
+
     ]
 
     modifiers_test = ModifierTest(tests)
