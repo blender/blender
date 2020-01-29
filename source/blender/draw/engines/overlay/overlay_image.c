@@ -134,6 +134,7 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
                                                               float *r_aspect,
                                                               bool *r_use_alpha_premult)
 {
+  void *lock;
   Image *image = bgpic->ima;
   ImageUser *iuser = &bgpic->iuser;
   MovieClip *clip = NULL;
@@ -160,12 +161,19 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
         camera_background_images_stereo_setup(scene, draw_ctx->v3d, image, iuser);
       }
 
-      ImBuf *ibuf = BKE_image_acquire_ibuf(image, iuser, NULL);
+      iuser->scene = draw_ctx->scene;
+      ImBuf *ibuf = BKE_image_acquire_ibuf(image, iuser, &lock);
       if (ibuf == NULL) {
+        BKE_image_release_ibuf(image, ibuf, lock);
+        iuser->scene = NULL;
         return NULL;
       }
+      width = ibuf->x;
+      height = ibuf->y;
+      tex = GPU_texture_from_blender(image, iuser, ibuf, GL_TEXTURE_2D);
+      BKE_image_release_ibuf(image, ibuf, lock);
+      iuser->scene = NULL;
 
-      tex = GPU_texture_from_blender(image, iuser, GL_TEXTURE_2D);
       if (tex == NULL) {
         return NULL;
       }
@@ -173,10 +181,6 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
       aspect_x = bgpic->ima->aspx;
       aspect_y = bgpic->ima->aspy;
 
-      width = ibuf->x;
-      height = ibuf->y;
-
-      BKE_image_release_ibuf(image, ibuf, NULL);
       break;
 
     case CAM_BGIMG_SOURCE_MOVIE:
@@ -376,7 +380,7 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
      * see: T59347 */
     int size[2] = {0};
     if (ima != NULL) {
-      tex = GPU_texture_from_blender(ima, ob->iuser, GL_TEXTURE_2D);
+      tex = GPU_texture_from_blender(ima, ob->iuser, NULL, GL_TEXTURE_2D);
       if (tex) {
         size[0] = GPU_texture_orig_width(tex);
         size[1] = GPU_texture_orig_height(tex);

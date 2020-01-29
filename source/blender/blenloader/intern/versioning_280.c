@@ -4411,8 +4411,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     /* Pose brush IK segments. */
-    if (!DNA_struct_elem_find(fd->filesdna, "Brush", "int", "pose_ik_segments")) {
-      for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
+    for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
+      if (br->pose_ik_segments == 0) {
         br->pose_ik_segments = 1;
       }
     }

@@ -522,7 +522,7 @@ static DRWShadingGroup *gpencil_shgroup_fill_create(GPENCIL_e_data *e_data,
       BKE_image_release_ibuf(image, ibuf, NULL);
     }
     else {
-      GPUTexture *texture = GPU_texture_from_blender(gp_style->ima, &iuser, GL_TEXTURE_2D);
+      GPUTexture *texture = GPU_texture_from_blender(gp_style->ima, &iuser, ibuf, GL_TEXTURE_2D);
       DRW_shgroup_uniform_texture(grp, "myTexture", texture);
       DRW_shgroup_uniform_bool_copy(
           grp, "myTexturePremultiplied", (image->alpha_mode == IMA_ALPHA_PREMUL));
@@ -705,7 +705,7 @@ DRWShadingGroup *gpencil_shgroup_stroke_create(GPENCIL_e_data *e_data,
       BKE_image_release_ibuf(image, ibuf, NULL);
     }
     else {
-      GPUTexture *texture = GPU_texture_from_blender(gp_style->sima, &iuser, GL_TEXTURE_2D);
+      GPUTexture *texture = GPU_texture_from_blender(gp_style->sima, &iuser, ibuf, GL_TEXTURE_2D);
       DRW_shgroup_uniform_texture(grp, "myTexture", texture);
       DRW_shgroup_uniform_bool_copy(
           grp, "myTexturePremultiplied", (image->alpha_mode == IMA_ALPHA_PREMUL));
@@ -878,7 +878,7 @@ static DRWShadingGroup *gpencil_shgroup_point_create(GPENCIL_e_data *e_data,
       BKE_image_release_ibuf(image, ibuf, NULL);
     }
     else {
-      GPUTexture *texture = GPU_texture_from_blender(gp_style->sima, &iuser, GL_TEXTURE_2D);
+      GPUTexture *texture = GPU_texture_from_blender(gp_style->sima, &iuser, ibuf, GL_TEXTURE_2D);
       DRW_shgroup_uniform_texture(grp, "myTexture", texture);
       DRW_shgroup_uniform_bool_copy(
           grp, "myTexturePremultiplied", (image->alpha_mode == IMA_ALPHA_PREMUL));

@@ -222,7 +222,7 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int frame)
   BKE_imageuser_default(&iuser);
   iuser.framenr = frame;
 
-  GPUTexture *tex = GPU_texture_from_blender(image, &iuser, GL_TEXTURE_2D);
+  GPUTexture *tex = GPU_texture_from_blender(image, &iuser, NULL, GL_TEXTURE_2D);
 
   if (tex == NULL) {
     BKE_reportf(reports, RPT_ERROR, "Failed to load image texture '%s'", image->id.name + 2);

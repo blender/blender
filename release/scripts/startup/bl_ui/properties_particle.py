@@ -584,7 +584,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
 
         layout = self.layout
         layout.prop(part, "use_rotations", text="")
-        layout.enabled = particle_panel_enabled(context, psys) and part.use_rotations
+        layout.enabled = particle_panel_enabled(context, psys)
 
 
     def draw(self, context):

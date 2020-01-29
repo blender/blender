@@ -96,6 +96,7 @@
     /* sculpting defaults to the draw tool for new brushes */ \
     .sculpt_tool = SCULPT_TOOL_DRAW, \
     .pose_smooth_iterations = 4, \
+    .pose_ik_segments = 1, \
  \
     /* A kernel radius of 1 has almost no effect (T63233). */ \
     .blur_kernel_radius = 2, \

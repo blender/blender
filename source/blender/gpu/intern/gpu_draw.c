@@ -851,7 +851,11 @@ static void gpu_texture_update_from_ibuf(
   GPU_texture_unbind(tex);
 }
 
-GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget)
+/* Get the GPUTexture for a given `Image`.
+ *
+ * `iuser` and `ibuf` are mutual exclusive parameters. The caller can pass the `ibuf` when already
+ * available. It is also required when requesting the GPUTexture for a render result. */
+GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, ImBuf *ibuf, int textarget)
 {
   if (ima == NULL) {
     return NULL;
@@ -882,27 +886,33 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
   }
 
   /* check if we have a valid image buffer */
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
-  if (ibuf == NULL) {
-    *tex = GPU_texture_from_bindcode(textarget, bindcode);
-    return *tex;
+  ImBuf *ibuf_intern = ibuf;
+  if (ibuf_intern == NULL) {
+    ibuf_intern = BKE_image_acquire_ibuf(ima, iuser, NULL);
+    if (ibuf_intern == NULL) {
+      *tex = GPU_texture_from_bindcode(textarget, bindcode);
+      return *tex;
+    }
   }
 
   if (textarget == GL_TEXTURE_2D_ARRAY) {
-    bindcode = gpu_texture_create_tile_array(ima, ibuf);
+    bindcode = gpu_texture_create_tile_array(ima, ibuf_intern);
   }
   else if (textarget == GL_TEXTURE_1D_ARRAY) {
     bindcode = gpu_texture_create_tile_mapping(ima);
   }
   else {
-    bindcode = gpu_texture_create_from_ibuf(ima, ibuf, textarget);
+    bindcode = gpu_texture_create_from_ibuf(ima, ibuf_intern, textarget);
   }
 
-  BKE_image_release_ibuf(ima, ibuf, NULL);
+  /* if `ibuf` was given, we don't own the `ibuf_intern` */
+  if (ibuf == NULL) {
+    BKE_image_release_ibuf(ima, ibuf_intern, NULL);
+  }
 
   *tex = GPU_texture_from_bindcode(textarget, bindcode);
 
-  GPU_texture_orig_size_set(*tex, ibuf->x, ibuf->y);
+  GPU_texture_orig_size_set(*tex, ibuf_intern->x, ibuf_intern->y);
 
   return *tex;
 }
