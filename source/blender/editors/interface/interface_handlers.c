@@ -4371,8 +4371,10 @@ static int ui_do_but_TEX(
       else if (but->dt == UI_EMBOSS_NONE && !event->ctrl) {
         /* pass */
       }
-      else if (!ui_but_extra_operator_icon_mouse_over_get(but, data, event)) {
-        button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+      else {
+        if (!ui_but_extra_operator_icon_mouse_over_get(but, data, event)) {
+          button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+        }
         return WM_UI_HANDLER_BREAK;
       }
     }
