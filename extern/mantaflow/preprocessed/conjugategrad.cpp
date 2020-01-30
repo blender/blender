@@ -650,7 +650,7 @@ void cgSolveDiffusion(const FlagGrid &flags,
                                                      << ", res:" << gcg->getSigma(),
            CG_DEBUGLEVEL);
   }
-  else if ((grid.getType() & GridBase::TypeVec3) || (grid.getType() & GridBase::TypeVec3)) {
+  else if ((grid.getType() & GridBase::TypeVec3) || (grid.getType() & GridBase::TypeMAC)) {
     Grid<Vec3> &vec = ((Grid<Vec3> &)grid);
     Grid<Real> u(parent);
 
