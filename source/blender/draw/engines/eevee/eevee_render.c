@@ -30,6 +30,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_global.h"
 #include "BKE_object.h"
 
 #include "BLI_rand.h"
@@ -38,6 +39,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "GPU_framebuffer.h"
+#include "GPU_extensions.h"
 #include "GPU_state.h"
 
 #include "RE_pipeline.h"
@@ -91,9 +93,24 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
     copy_v4_fl4(camtexcofac, 1.0f, 1.0f, 0.0f, 0.0f);
   }
 
+  int final_res[2] = {size_orig[0] + g_data->overscan_pixels * 2.0f,
+                      size_orig[1] + g_data->overscan_pixels * 2.0f};
+
+  int max_dim = max_ii(final_res[0], final_res[1]);
+  if (max_dim > GPU_max_texture_size()) {
+    char error_msg[128];
+    BLI_snprintf(error_msg,
+                 sizeof(error_msg),
+                 "Error: Reported texture size limit (%dpx) is lower than output size (%dpx).",
+                 GPU_max_texture_size(),
+                 max_dim);
+    RE_engine_set_error_message(engine, error_msg);
+    G.is_break = true;
+    return;
+  }
+
   /* XXX overriding viewport size. Simplify things but is not really 100% safe. */
-  DRW_render_viewport_size_set((int[2]){size_orig[0] + g_data->overscan_pixels * 2.0f,
-                                        size_orig[1] + g_data->overscan_pixels * 2.0f});
+  DRW_render_viewport_size_set(final_res);
 
   /* TODO 32 bit depth */
   DRW_texture_ensure_fullscreen_2d(&dtxl->depth, GPU_DEPTH24_STENCIL8, 0);
