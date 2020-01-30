@@ -228,6 +228,63 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
   ED_mesh_mirror_topo_table(NULL, NULL, 'e');
 }
 
+bool ED_editors_flush_edits_for_object_ex(Main *bmain,
+                                          Object *ob,
+                                          bool for_render,
+                                          bool check_needs_flush)
+{
+  bool has_edited = false;
+  if (ob->mode & OB_MODE_SCULPT) {
+    /* Don't allow flushing while in the middle of a stroke (frees data in use).
+     * Auto-save prevents this from happening but scripts
+     * may cause a flush on saving: T53986. */
+    if ((ob->sculpt && ob->sculpt->cache) == 0) {
+
+      {
+        char *needs_flush_ptr = &ob->sculpt->needs_flush_to_id;
+        if (check_needs_flush && (*needs_flush_ptr == 0)) {
+          return false;
+        }
+        *needs_flush_ptr = 0;
+      }
+
+      /* flush multires changes (for sculpt) */
+      multires_flush_sculpt_updates(ob);
+      has_edited = true;
+
+      if (for_render) {
+        /* flush changes from dynamic topology sculpt */
+        BKE_sculptsession_bm_to_me_for_render(ob);
+      }
+      else {
+        /* Set reorder=false so that saving the file doesn't reorder
+         * the BMesh's elements */
+        BKE_sculptsession_bm_to_me(ob, false);
+      }
+    }
+  }
+  else if (ob->mode & OB_MODE_EDIT) {
+
+    char *needs_flush_ptr = BKE_object_data_editmode_flush_ptr_get(ob->data);
+    if (needs_flush_ptr != NULL) {
+      if (check_needs_flush && (*needs_flush_ptr == 0)) {
+        return false;
+      }
+      *needs_flush_ptr = 0;
+    }
+
+    /* get editmode results */
+    has_edited = true;
+    ED_object_editmode_load(bmain, ob);
+  }
+  return has_edited;
+}
+
+bool ED_editors_flush_edits_for_object(Main *bmain, Object *ob)
+{
+  return ED_editors_flush_edits_for_object_ex(bmain, ob, false, false);
+}
+
 /* flush any temp data from object editing to DNA before writing files,
  * rendering, copying, etc. */
 bool ED_editors_flush_edits_ex(Main *bmain, bool for_render, bool check_needs_flush)
@@ -239,49 +296,7 @@ bool ED_editors_flush_edits_ex(Main *bmain, bool for_render, bool check_needs_fl
    * exiting we might not have a context for edit object and multiple sculpt
    * objects can exist at the same time */
   for (ob = bmain->objects.first; ob; ob = ob->id.next) {
-    if (ob->mode & OB_MODE_SCULPT) {
-      /* Don't allow flushing while in the middle of a stroke (frees data in use).
-       * Auto-save prevents this from happening but scripts
-       * may cause a flush on saving: T53986. */
-      if ((ob->sculpt && ob->sculpt->cache) == 0) {
-
-        {
-          char *needs_flush_ptr = &ob->sculpt->needs_flush_to_id;
-          if (check_needs_flush && (*needs_flush_ptr == 0)) {
-            continue;
-          }
-          *needs_flush_ptr = 0;
-        }
-
-        /* flush multires changes (for sculpt) */
-        multires_flush_sculpt_updates(ob);
-        has_edited = true;
-
-        if (for_render) {
-          /* flush changes from dynamic topology sculpt */
-          BKE_sculptsession_bm_to_me_for_render(ob);
-        }
-        else {
-          /* Set reorder=false so that saving the file doesn't reorder
-           * the BMesh's elements */
-          BKE_sculptsession_bm_to_me(ob, false);
-        }
-      }
-    }
-    else if (ob->mode & OB_MODE_EDIT) {
-
-      char *needs_flush_ptr = BKE_object_data_editmode_flush_ptr_get(ob->data);
-      if (needs_flush_ptr != NULL) {
-        if (check_needs_flush && (*needs_flush_ptr == 0)) {
-          continue;
-        }
-        *needs_flush_ptr = 0;
-      }
-
-      /* get editmode results */
-      has_edited = true;
-      ED_object_editmode_load(bmain, ob);
-    }
+    has_edited |= ED_editors_flush_edits_for_object_ex(bmain, ob, for_render, check_needs_flush);
   }
 
   bmain->is_memfile_undo_flush_needed = false;
@@ -289,9 +304,9 @@ bool ED_editors_flush_edits_ex(Main *bmain, bool for_render, bool check_needs_fl
   return has_edited;
 }
 
-bool ED_editors_flush_edits(Main *bmain, bool for_render)
+bool ED_editors_flush_edits(Main *bmain)
 {
-  return ED_editors_flush_edits_ex(bmain, for_render, false);
+  return ED_editors_flush_edits_ex(bmain, false, false);
 }
 
 /* ***** XXX: functions are using old blender names, cleanup later ***** */
@@ -472,7 +487,7 @@ void ED_spacedata_id_remap(struct ScrArea *sa, struct SpaceLink *sl, ID *old_id,
 static int ed_flush_edits_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
-  ED_editors_flush_edits(bmain, false);
+  ED_editors_flush_edits(bmain);
   return OPERATOR_FINISHED;
 }
 

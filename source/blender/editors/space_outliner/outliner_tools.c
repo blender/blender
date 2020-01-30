@@ -46,6 +46,7 @@
 #include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_constraint.h"
+#include "BKE_object.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
@@ -678,8 +679,8 @@ static void object_delete_cb(bContext *C,
     }
 
     // check also library later
-    if (ob == CTX_data_edit_object(C)) {
-      ED_object_editmode_exit(C, EM_FREEDATA);
+    if ((ob->mode && OB_MODE_EDIT) && BKE_object_is_in_editmode(ob)) {
+      ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
     }
     BKE_id_delete(bmain, ob);
   }
