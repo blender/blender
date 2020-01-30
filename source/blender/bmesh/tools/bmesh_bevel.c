@@ -4272,6 +4272,10 @@ static void snap_to_pipe_profile(BoundVert *vpipe, bool midline, float co[3])
 
   copy_v3_v3(va, pro->start);
   copy_v3_v3(vb, pro->end);
+  if (compare_v3v3(va, vb, BEVEL_EPSILON_D)) {
+    copy_v3_v3(co, va);
+    return;
+  }
 
   /* Get a plane with the normal pointing along the beveled edge */
   sub_v3_v3v3(edir, e->e->v1->co, e->e->v2->co);
@@ -4280,13 +4284,8 @@ static void snap_to_pipe_profile(BoundVert *vpipe, bool midline, float co[3])
   closest_to_plane_v3(va0, plane, va);
   closest_to_plane_v3(vb0, plane, vb);
   closest_to_plane_v3(vmid0, plane, pro->middle);
-  if (make_unit_square_map(va0, vmid0, vb0, m)) {
+  if (make_unit_square_map(va0, vmid0, vb0, m) && invert_m4_m4(minv, m)) {
     /* Transform co and project it onto superellipse */
-    if (!invert_m4_m4(minv, m)) {
-      /* shouldn't happen */
-      BLI_assert(!"failed inverse during pipe profile snap");
-      return;
-    }
     mul_v3_m4v3(p, minv, co);
     snap_to_superellipsoid(p, pro->super_r, midline);
 
