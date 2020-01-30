@@ -791,7 +791,10 @@ static void ui_apply_but_undo(uiBut *but)
       /* Exception for renaming ID data, we always need undo pushes in this case,
        * because undo systems track data by their ID, see: T67002. */
       extern PropertyRNA rna_ID_name;
-      if (but->rnaprop == &rna_ID_name) {
+      /* Exception for active shape-key, since changing this in edit-mode updates
+       * the shape key from object mode data. */
+      extern PropertyRNA rna_Object_active_shape_key_index;
+      if (ELEM(but->rnaprop, &rna_ID_name, &rna_Object_active_shape_key_index)) {
         /* pass */
       }
       else {
