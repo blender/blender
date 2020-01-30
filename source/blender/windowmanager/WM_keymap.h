@@ -55,8 +55,6 @@ void WM_keyconfig_update_operatortype(void);
 
 void WM_keymap_clear(struct wmKeyMap *keymap);
 
-wmKeyMapItem *WM_keymap_verify_item(
-    struct wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier);
 wmKeyMapItem *WM_keymap_add_item(
     struct wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier);
 wmKeyMapItem *WM_keymap_add_item_copy(struct wmKeyMap *keymap, wmKeyMapItem *kmi_src);
