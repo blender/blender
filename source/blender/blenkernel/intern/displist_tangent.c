@@ -128,11 +128,12 @@ void BKE_displist_tangent_calc(const DispList *dl, float (*fnormals)[3], float (
     genTangSpaceDefault(&sContext);
   }
   else if (dl->type == DL_SURF) {
+#if 0
     int vert_len = dl->parts * dl->nr;
     if (*r_tangent == NULL) {
-      //   *r_tangent = MEM_mallocN(sizeof(float[4]) * vert_len, "displist tangents");
+        *r_tangent = MEM_mallocN(sizeof(float[4]) * vert_len, "displist tangents");
     }
-
+#endif
     /* TODO */
     BLI_assert(0);
   }
