@@ -333,8 +333,7 @@ static void curve_cd_calc_used_gpu_layers(int *cd_layers,
           *cd_layers |= CD_MLOOPUV;
           break;
         case CD_TANGENT:
-          /* Currently unsupported */
-          // *cd_layers |= CD_TANGENT;
+          *cd_layers |= CD_TANGENT;
           break;
         case CD_MCOL:
           /* Curve object don't have Color data. */
@@ -358,6 +357,7 @@ typedef struct CurveBatchCache {
 
     GPUVertBuf *loop_pos_nor;
     GPUVertBuf *loop_uv;
+    GPUVertBuf *loop_tan;
   } ordered;
 
   struct {
@@ -992,6 +992,9 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
       if (cache->cd_used & CD_MLOOPUV) {
         DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_uv);
       }
+      if (cache->cd_used & CD_TANGENT) {
+        DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_tan);
+      }
       DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_pos_nor);
     }
   }
@@ -1007,6 +1010,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
   DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.curves_pos, CU_DATATYPE_WIRE);
   DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_pos_nor, CU_DATATYPE_SURFACE);
   DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_uv, CU_DATATYPE_SURFACE);
+  DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_tan, CU_DATATYPE_SURFACE);
   DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.surfaces_tris, CU_DATATYPE_SURFACE);
   DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.surfaces_lines, CU_DATATYPE_SURFACE);
   DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.curves_lines, CU_DATATYPE_WIRE);
@@ -1045,8 +1049,8 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 
   if (DRW_vbo_requested(cache->ordered.loop_pos_nor) ||
       DRW_vbo_requested(cache->ordered.loop_uv)) {
-    DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv(
-        lb, cache->ordered.loop_pos_nor, cache->ordered.loop_uv);
+    DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(
+        lb, cache->ordered.loop_pos_nor, cache->ordered.loop_uv, cache->ordered.loop_tan);
   }
 
   if (DRW_ibo_requested(cache->surf_per_mat_tris[0])) {

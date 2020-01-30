@@ -100,7 +100,7 @@ def rna2xml(
         elif val_type == bool:
             return "TRUE" if val else "FALSE"
         else:
-            raise NotImplemented("this type is not a number %s" % val_type)
+            raise NotImplementedError("this type is not a number %s" % val_type)
 
     def rna2xml_node(ident, value, parent):
         ident_next = ident + ident_val
