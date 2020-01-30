@@ -160,8 +160,6 @@ def pack_linux(builder):
     blender_executable = os.path.join(builder.install_dir, 'blender')
 
     info = buildbot_utils.VersionInfo(builder)
-    blender_glibc = builder.name.split('_')[1]
-    blender_arch = 'x86_64'
 
     # Strip all unused symbols from the binaries
     print("Stripping binaries...")
@@ -172,7 +170,7 @@ def pack_linux(builder):
     buildbot_utils.call(builder.command_prefix + ['find', py_target, '-iname', '*.so', '-exec', 'strip', '-s', '{}', ';'])
 
     # Construct package name
-    platform_name = 'linux-' + blender_glibc + '-' + blender_arch
+    platform_name = 'linux64'
     package_name = get_package_name(builder, platform_name)
     package_filename = package_name + ".tar.xz"
 
