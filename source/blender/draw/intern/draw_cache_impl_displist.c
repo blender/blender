@@ -33,6 +33,7 @@
 #include "DNA_curve_types.h"
 
 #include "BKE_displist.h"
+#include "BKE_displist_tangent.h"
 
 #include "GPU_batch.h"
 #include "GPU_extensions.h"
@@ -495,11 +496,12 @@ void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(ListBase *lb,
 
         GPUPackedNormal ptan = {0, 0, 0, 1};
         if (tan_step.size != 0) {
-          float tan[3];
-          /* We consider the surface flat so the vector is already ortogonal to the normal. */
-          sub_v3_v3v3(tan, verts[idx[0]], verts[idx[2]]);
-          normalize_v3(tan);
+          float tan[4];
+          float(*tan_ptr)[4] = &tan;
+          BKE_displist_tangent_calc(dl, NULL, &tan_ptr);
+
           ptan = GPU_normal_convert_i10_v3(tan);
+          ptan.w = (tan[3] > 0.0) ? 1 : -2;
         }
 
         const float x_max = (float)(dl->nr - 1);
