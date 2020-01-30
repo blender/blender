@@ -501,7 +501,7 @@ class AddPresetTrackingSettings(AddPresetBase, Operator):
         "settings.use_default_mask",
         "settings.use_default_red_channel",
         "settings.use_default_green_channel",
-        "settings.use_default_blue_channel"
+        "settings.use_default_blue_channel",
         "settings.default_weight"
     ]
 
