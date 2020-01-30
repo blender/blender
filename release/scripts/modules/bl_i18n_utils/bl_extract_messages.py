@@ -599,8 +599,8 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
     # We manually add funcs from bpy.app.translations
     for func_id, func_ids in pgettext_variants:
         func_translate_args[func_id] = pgettext_variants_args
-        for func_id in func_ids:
-            func_translate_args[func_id] = pgettext_variants_args
+        for sub_func_id in func_ids:
+            func_translate_args[sub_func_id] = pgettext_variants_args
     # print(func_translate_args)
 
     # Break recursive nodes look up on some kind of nodes.

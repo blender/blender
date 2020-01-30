@@ -1413,8 +1413,8 @@ class I18n:
                 "#       and edit the translations by hand.",
                 "#       Just carefully respect the format of the tuple!",
                 "",
-                "# Tuple of tuples "
-                "((msgctxt, msgid), (sources, gen_comments), (lang, translation, (is_fuzzy, comments)), ...)",
+                "# Tuple of tuples:",
+                "# ((msgctxt, msgid), (sources, gen_comments), (lang, translation, (is_fuzzy, comments)), ...)",
                 "translations_tuple = (",
             ]
             # First gather all keys (msgctxt, msgid) - theoretically, all translations should share the same, but...
