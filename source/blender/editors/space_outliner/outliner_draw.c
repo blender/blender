@@ -295,6 +295,10 @@ static void outliner_object_set_flag_recursive_cb(bContext *C,
       }
       else {
         Base *base_iter = BKE_view_layer_base_find(view_layer, ob_iter);
+        /* Child can be in a collection excluded from viewlayer. */
+        if (base_iter == NULL) {
+          continue;
+        }
         RNA_pointer_create(&scene->id, &RNA_ObjectBase, base_iter, &ptr);
       }
       RNA_property_boolean_set(&ptr, base_or_object_prop, value);
