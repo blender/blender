@@ -65,7 +65,7 @@ Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod me
 
     /* these can't be handled in blenkernel currently, so do them here */
     if (method == SCE_COPY_FULL) {
-      ED_editors_flush_edits(bmain, false);
+      ED_editors_flush_edits(bmain);
       ED_object_single_users(bmain, scene_new, true, true);
     }
   }
