@@ -505,31 +505,6 @@ static void keymap_item_set_id(wmKeyMap *keymap, wmKeyMapItem *kmi)
   }
 }
 
-/* if item was added, then bail out */
-wmKeyMapItem *WM_keymap_verify_item(
-    wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
-{
-  wmKeyMapItem *kmi;
-
-  for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
-    if (STREQLEN(kmi->idname, idname, OP_MAX_TYPENAME)) {
-      break;
-    }
-  }
-  if (kmi == NULL) {
-    kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
-
-    BLI_addtail(&keymap->items, kmi);
-    BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
-
-    keymap_item_set_id(keymap, kmi);
-
-    keymap_event_set(kmi, type, val, modifier, keymodifier);
-    wm_keymap_item_properties_set(kmi);
-  }
-  return kmi;
-}
-
 /* always add item */
 wmKeyMapItem *WM_keymap_add_item(
     wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
