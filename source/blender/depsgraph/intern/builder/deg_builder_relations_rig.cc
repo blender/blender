@@ -193,6 +193,9 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
   }
   OperationKey pose_done_key(&object->id, NodeType::EVAL_POSE, OperationCode::POSE_DONE);
   add_relation(solver_key, pose_done_key, "PoseEval Result-Bone Link");
+
+  /* Add relation when the root of this IK chain is influenced by another IK chain. */
+  build_inter_ik_chains(object, solver_key, rootchan, root_map);
 }
 
 /* Spline IK Eval Steps */
@@ -245,6 +248,33 @@ void DepsgraphRelationBuilder::build_splineik_pose(Object *object,
   }
   OperationKey pose_done_key(&object->id, NodeType::EVAL_POSE, OperationCode::POSE_DONE);
   add_relation(solver_key, pose_done_key, "PoseEval Result-Bone Link");
+
+  /* Add relation when the root of this IK chain is influenced by another IK chain. */
+  build_inter_ik_chains(object, solver_key, rootchan, root_map);
+}
+
+void DepsgraphRelationBuilder::build_inter_ik_chains(Object *object,
+                                                     const OperationKey &solver_key,
+                                                     const bPoseChannel *rootchan,
+                                                     const RootPChanMap *root_map)
+{
+  bPoseChannel *deepest_root = nullptr;
+  const char *root_name = rootchan->name;
+
+  /* Find shared IK chain root. */
+  for (bPoseChannel *parchan = rootchan->parent; parchan; parchan = parchan->parent) {
+    if (!root_map->has_common_root(root_name, parchan->name)) {
+      break;
+    }
+    deepest_root = parchan;
+  }
+  if (deepest_root == nullptr) {
+    return;
+  }
+
+  OperationKey other_bone_key(
+      &object->id, NodeType::BONE, deepest_root->name, OperationCode::BONE_DONE);
+  add_relation(other_bone_key, solver_key, "IK Chain Overlap");
 }
 
 /* Pose/Armature Bones Graph */

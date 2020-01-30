@@ -91,7 +91,7 @@ void RootPChanMap::add_bone(const char *bone, const char *root)
 }
 
 /* Check if there's a common root bone between two bones. */
-bool RootPChanMap::has_common_root(const char *bone1, const char *bone2)
+bool RootPChanMap::has_common_root(const char *bone1, const char *bone2) const
 {
   /* Ensure that both are in the map... */
   if (BLI_ghash_haskey(map_, bone1) == false) {
