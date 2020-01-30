@@ -60,6 +60,11 @@ class DATA_PT_empty_alpha(DataButtonsPanel, Panel):
     bl_label = "Transparency"
     bl_parent_id = "DATA_PT_empty"
 
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return (ob and ob.type == 'EMPTY' and ob.empty_display_type == 'IMAGE')
+
     def draw_header(self, context):
         ob = context.object
 
