@@ -1819,11 +1819,16 @@ static void bvhtree_ray_cast_data_precalc(BVHRayCastData *data, int flag)
 
   for (i = 0; i < 3; i++) {
     data->ray_dot_axis[i] = dot_v3v3(data->ray.direction, bvhtree_kdop_axes[i]);
-    data->idot_axis[i] = 1.0f / data->ray_dot_axis[i];
 
     if (fabsf(data->ray_dot_axis[i]) < FLT_EPSILON) {
-      data->ray_dot_axis[i] = 0.0;
+      data->ray_dot_axis[i] = 0.0f;
+      /* Sign is not important in this case, `data->index` is adjusted anyway. */
+      data->idot_axis[i] = FLT_MAX;
     }
+    else {
+      data->idot_axis[i] = 1.0f / data->ray_dot_axis[i];
+    }
+
     data->index[2 * i] = data->idot_axis[i] < 0.0f ? 1 : 0;
     data->index[2 * i + 1] = 1 - data->index[2 * i];
     data->index[2 * i] += 2 * i;
