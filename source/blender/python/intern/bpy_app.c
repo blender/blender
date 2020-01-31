@@ -33,6 +33,7 @@
 #include "bpy_app_opensubdiv.h"
 #include "bpy_app_openvdb.h"
 #include "bpy_app_sdl.h"
+#include "bpy_app_usd.h"
 #include "bpy_app_build_options.h"
 
 #include "bpy_app_translations.h"
@@ -108,6 +109,7 @@ static PyStructSequence_Field app_info_fields[] = {
 
     /* submodules */
     {"alembic", "Alembic library information backend"},
+    {"usd", "USD library information backend"},
     {"ffmpeg", "FFmpeg library information backend"},
     {"ocio", "OpenColorIO library information backend"},
     {"oiio", "OpenImageIO library information backend"},
@@ -201,6 +203,7 @@ static PyObject *make_app_info(void)
 #endif
 
   SetObjItem(BPY_app_alembic_struct());
+  SetObjItem(BPY_app_usd_struct());
   SetObjItem(BPY_app_ffmpeg_struct());
   SetObjItem(BPY_app_ocio_struct());
   SetObjItem(BPY_app_oiio_struct());

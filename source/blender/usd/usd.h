@@ -54,6 +54,8 @@ bool USD_export(struct bContext *C,
                 const struct USDExportParams *params,
                 bool as_background_job);
 
+int USD_get_version(void);
+
 #ifdef __cplusplus
 }
 #endif
