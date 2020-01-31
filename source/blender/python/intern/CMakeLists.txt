@@ -56,6 +56,7 @@ set(SRC
   bpy_app_sdl.c
   bpy_app_timers.c
   bpy_app_translations.c
+  bpy_app_usd.c
   bpy_capi_utils.c
   bpy_driver.c
   bpy_gizmo_wrap.c
@@ -95,6 +96,7 @@ set(SRC
   bpy_app_sdl.h
   bpy_app_timers.h
   bpy_app_translations.h
+  bpy_app_usd.h
   bpy_capi_utils.h
   bpy_driver.h
   bpy_gizmo_wrap.h
@@ -309,6 +311,9 @@ endif()
 
 if(WITH_USD)
   add_definitions(-DWITH_USD)
+  list(APPEND INC
+    ../../usd
+  )
 endif()
 
 if(WITH_OPENIMAGEIO)

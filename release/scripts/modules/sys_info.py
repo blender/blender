@@ -172,6 +172,13 @@ def write_sysinfo(filepath):
             else:
                 output.write("Blender was built without Alembic support\n")
 
+            usd = bpy.app.usd
+            output.write("USD: ")
+            if usd.supported:
+                output.write("%s\n" % usd.version_string)
+            else:
+                output.write("Blender was built without USD support\n")
+
             if not bpy.app.build_options.sdl:
                 output.write("SDL: Blender was built without SDL support\n")
 
