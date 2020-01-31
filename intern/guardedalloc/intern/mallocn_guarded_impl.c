@@ -735,8 +735,19 @@ void MEM_guarded_printmemlist_stats(void)
 
   mem_lock_thread();
 
-  /* put memory blocks into array */
-  printblock = malloc(sizeof(MemPrintBlock) * totblock);
+  if (totblock != 0) {
+    /* put memory blocks into array */
+    printblock = malloc(sizeof(MemPrintBlock) * totblock);
+
+    if (UNLIKELY(!printblock)) {
+      mem_unlock_thread();
+      print_error("malloc returned null while generating stats");
+      return;
+    }
+  }
+  else {
+    printblock = NULL;
+  }
 
   pb = printblock;
   totpb = 0;
@@ -745,7 +756,7 @@ void MEM_guarded_printmemlist_stats(void)
   if (membl)
     membl = MEMNEXT(membl);
 
-  while (membl) {
+  while (membl && pb) {
     pb->name = membl->name;
     pb->len = membl->len;
     pb->items = 1;
@@ -767,7 +778,10 @@ void MEM_guarded_printmemlist_stats(void)
   }
 
   /* sort by name and add together blocks with the same name */
-  qsort(printblock, totpb, sizeof(MemPrintBlock), compare_name);
+  if (totpb > 1) {
+    qsort(printblock, totpb, sizeof(MemPrintBlock), compare_name);
+  }
+
   for (a = 0, b = 0; a < totpb; a++) {
     if (a == b) {
       continue;
@@ -784,7 +798,10 @@ void MEM_guarded_printmemlist_stats(void)
   totpb = b + 1;
 
   /* sort by length and print */
-  qsort(printblock, totpb, sizeof(MemPrintBlock), compare_len);
+  if (totpb > 1) {
+    qsort(printblock, totpb, sizeof(MemPrintBlock), compare_len);
+  }
+
   printf("\ntotal memory len: %.3f MB\n", (double)mem_in_use / (double)(1024 * 1024));
   printf("peak memory len: %.3f MB\n", (double)peak_mem / (double)(1024 * 1024));
   printf("slop memory len: %.3f MB\n", (double)mem_in_use_slop / (double)(1024 * 1024));
@@ -796,7 +813,10 @@ void MEM_guarded_printmemlist_stats(void)
            (double)pb->len / 1024.0 / (double)pb->items,
            pb->name);
   }
-  free(printblock);
+
+  if (printblock != NULL) {
+    free(printblock);
+  }
 
   mem_unlock_thread();
 
