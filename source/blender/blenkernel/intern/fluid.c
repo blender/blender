@@ -1452,7 +1452,7 @@ static void update_mesh_distances(int index,
     return;
   }
 
-  /* b) Volumetric initialization: 1) Ray-casts around mesh object. */
+  /* b) Volumetric initialization: Ray-casts around mesh object. */
 
   /* Ray-casts in 26 directions.
    * (6 main axis + 12 quadrant diagonals (2D) + 8 octant diagonals (3D)). */
@@ -1508,45 +1508,8 @@ static void update_mesh_distances(int index,
     min_dist = (-1.0f) * fabsf(min_dist);
   }
 
-  /* Update global distance array with distance value. */
-  mesh_distances[index] = min_dist;
-
-  /* b) Volumetric initialization: 2) Use nearest neighbor search on mesh surface. */
-
-  /* Distance between two opposing vertices in a unit cube.
-   * I.e. the unit cube diagonal or sqrt(3).
-   * This value is our nearest neighbour search distance. */
-  const float surface_distance = 1.732;
-  BVHTreeNearest nearest = {0};
-  nearest.index = -1;
-  nearest.dist_sq = surface_distance * surface_distance; /* find_nearest uses squared distance. */
-
-  if (BLI_bvhtree_find_nearest(
-          tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1) {
-    float ray[3] = {0};
-    sub_v3_v3v3(ray, nearest.co, ray_start);
-    min_dist = len_v3(ray);
-
-    BVHTreeRayHit hit_tree = {0};
-    hit_tree.index = -1;
-    hit_tree.dist = PHI_MAX;
-
-    normalize_v3(ray);
-    BLI_bvhtree_ray_cast(
-        tree_data->tree, ray_start, ray, 0.0f, &hit_tree, tree_data->raycast_callback, tree_data);
-
-    /* Only proceed if casted ray hit the mesh surface. */
-    if (hit_tree.index != -1) {
-
-      /* Ray and normal are pointing in the same direction: Point must lie inside mesh. */
-      if (dot_v3v3(ray, hit_tree.no) > 0) {
-        min_dist = (-1.0f) * fabsf(min_dist);
-      }
-
-      /* Update distance map with more accurate distance from this nearest neighbor search. */
-      mesh_distances[index] = min_dist;
-    }
-  }
+  /* Update global distance array but ensure that older entries are not overridden. */
+  mesh_distances[index] = MIN2(mesh_distances[index], min_dist);
 
   /* Subtract optional surface thickness value and virtually increase the object size. */
   if (surface_thickness) {

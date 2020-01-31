@@ -279,14 +279,18 @@ def smoke_adaptive_step_$ID$(framenr):\n\
         mantaMsg('Initializing obstacle levelset')\n\
         phiObsIn_s$ID$.fillHoles(maxDepth=int(res_s$ID$), boundaryWidth=2)\n\
         extrapolateLsSimple(phi=phiObsIn_s$ID$, distance=int(res_s$ID$/2), inside=True)\n\
-        extrapolateLsSimple(phi=phiObsIn_s$ID$, distance=int(res_s$ID$/2), inside=False)\n\
+        extrapolateLsSimple(phi=phiObsIn_s$ID$, distance=3, inside=False)\n\
         phiObs_s$ID$.join(phiObsIn_s$ID$)\n\
         \n\
         # Using boundaryWidth=2 to not search beginning from walls (just a performance optimization)\n\
         # Additional sanity check: fill holes in phiObs which can result after joining with phiObsIn\n\
         phiObs_s$ID$.fillHoles(maxDepth=int(res_s$ID$), boundaryWidth=2)\n\
         extrapolateLsSimple(phi=phiObs_s$ID$, distance=int(res_s$ID$/2), inside=True)\n\
-        extrapolateLsSimple(phi=phiObs_s$ID$, distance=int(res_s$ID$/2), inside=False)\n\
+        extrapolateLsSimple(phi=phiObs_s$ID$, distance=3, inside=False)\n\
+    \n\
+    mantaMsg('Initializing fluid levelset')\n\
+    extrapolateLsSimple(phi=phiIn_s$ID$, distance=int(res_s$ID$/2), inside=True)\n\
+    extrapolateLsSimple(phi=phiIn_s$ID$, distance=3, inside=False)\n\
     \n\
     if using_outflow_s$ID$:\n\
         phiOut_s$ID$.join(phiOutIn_s$ID$)\n\
