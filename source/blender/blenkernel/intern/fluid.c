@@ -4012,7 +4012,7 @@ void BKE_fluid_particle_system_create(struct Main *bmain,
 
   part->type = psys_type;
   part->totpart = 0;
-  part->draw_size = 0.01f;  // make fluid particles more subtle in viewport
+  part->draw_size = 0.01f; /* Make fluid particles more subtle in viewport. */
   part->draw_col = PART_DRAW_COL_VEL;
   psys->part = part;
   psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
@@ -4386,7 +4386,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
     mmd->domain->particle_number = 2;
     mmd->domain->particle_minimum = 8;
     mmd->domain->particle_maximum = 16;
-    mmd->domain->particle_radius = 1.5f;
+    mmd->domain->particle_radius = 1.0f;
     mmd->domain->particle_band_width = 3.0f;
     mmd->domain->fractions_threshold = 0.05f;
 
@@ -4445,9 +4445,9 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
     mmd->domain->cache_flag = 0;
     mmd->domain->cache_type = FLUID_DOMAIN_CACHE_MODULAR;
     mmd->domain->cache_mesh_format = FLUID_DOMAIN_FILE_BIN_OBJECT;
-    mmd->domain->cache_data_format = FLUID_DOMAIN_FILE_UNI;
-    mmd->domain->cache_particle_format = FLUID_DOMAIN_FILE_UNI;
-    mmd->domain->cache_noise_format = FLUID_DOMAIN_FILE_UNI;
+    mmd->domain->cache_data_format = FLUID_DOMAIN_FILE_OPENVDB;
+    mmd->domain->cache_particle_format = FLUID_DOMAIN_FILE_OPENVDB;
+    mmd->domain->cache_noise_format = FLUID_DOMAIN_FILE_OPENVDB;
     modifier_path_init(mmd->domain->cache_directory,
                        sizeof(mmd->domain->cache_directory),
                        FLUID_DOMAIN_DIR_DEFAULT);
