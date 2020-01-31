@@ -1452,7 +1452,7 @@ static void update_mesh_distances(int index,
     return;
   }
 
-  /* b) Volumetric initialization: 1) Ray-casts around mesh object. */
+  /* b) Volumetric initialization: Ray-casts around mesh object. */
 
   /* Ray-casts in 26 directions.
    * (6 main axis + 12 quadrant diagonals (2D) + 8 octant diagonals (3D)). */
@@ -1508,45 +1508,8 @@ static void update_mesh_distances(int index,
     min_dist = (-1.0f) * fabsf(min_dist);
   }
 
-  /* Update global distance array with distance value. */
-  mesh_distances[index] = min_dist;
-
-  /* b) Volumetric initialization: 2) Use nearest neighbor search on mesh surface. */
-
-  /* Distance between two opposing vertices in a unit cube.
-   * I.e. the unit cube diagonal or sqrt(3).
-   * This value is our nearest neighbour search distance. */
-  const float surface_distance = 1.732;
-  BVHTreeNearest nearest = {0};
-  nearest.index = -1;
-  nearest.dist_sq = surface_distance * surface_distance; /* find_nearest uses squared distance. */
-
-  if (BLI_bvhtree_find_nearest(
-          tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1) {
-    float ray[3] = {0};
-    sub_v3_v3v3(ray, nearest.co, ray_start);
-    min_dist = len_v3(ray);
-
-    BVHTreeRayHit hit_tree = {0};
-    hit_tree.index = -1;
-    hit_tree.dist = PHI_MAX;
-
-    normalize_v3(ray);
-    BLI_bvhtree_ray_cast(
-        tree_data->tree, ray_start, ray, 0.0f, &hit_tree, tree_data->raycast_callback, tree_data);
-
-    /* Only proceed if casted ray hit the mesh surface. */
-    if (hit_tree.index != -1) {
-
-      /* Ray and normal are pointing in the same direction: Point must lie inside mesh. */
-      if (dot_v3v3(ray, hit_tree.no) > 0) {
-        min_dist = (-1.0f) * fabsf(min_dist);
-      }
-
-      /* Update distance map with more accurate distance from this nearest neighbor search. */
-      mesh_distances[index] = min_dist;
-    }
-  }
+  /* Update global distance array but ensure that older entries are not overridden. */
+  mesh_distances[index] = MIN2(mesh_distances[index], min_dist);
 
   /* Subtract optional surface thickness value and virtually increase the object size. */
   if (surface_thickness) {
@@ -4012,7 +3975,7 @@ void BKE_fluid_particle_system_create(struct Main *bmain,
 
   part->type = psys_type;
   part->totpart = 0;
-  part->draw_size = 0.01f;  // make fluid particles more subtle in viewport
+  part->draw_size = 0.01f; /* Make fluid particles more subtle in viewport. */
   part->draw_col = PART_DRAW_COL_VEL;
   psys->part = part;
   psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
@@ -4386,7 +4349,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
     mmd->domain->particle_number = 2;
     mmd->domain->particle_minimum = 8;
     mmd->domain->particle_maximum = 16;
-    mmd->domain->particle_radius = 1.5f;
+    mmd->domain->particle_radius = 1.0f;
     mmd->domain->particle_band_width = 3.0f;
     mmd->domain->fractions_threshold = 0.05f;
 
@@ -4445,9 +4408,9 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
     mmd->domain->cache_flag = 0;
     mmd->domain->cache_type = FLUID_DOMAIN_CACHE_MODULAR;
     mmd->domain->cache_mesh_format = FLUID_DOMAIN_FILE_BIN_OBJECT;
-    mmd->domain->cache_data_format = FLUID_DOMAIN_FILE_UNI;
-    mmd->domain->cache_particle_format = FLUID_DOMAIN_FILE_UNI;
-    mmd->domain->cache_noise_format = FLUID_DOMAIN_FILE_UNI;
+    mmd->domain->cache_data_format = FLUID_DOMAIN_FILE_OPENVDB;
+    mmd->domain->cache_particle_format = FLUID_DOMAIN_FILE_OPENVDB;
+    mmd->domain->cache_noise_format = FLUID_DOMAIN_FILE_OPENVDB;
     modifier_path_init(mmd->domain->cache_directory,
                        sizeof(mmd->domain->cache_directory),
                        FLUID_DOMAIN_DIR_DEFAULT);

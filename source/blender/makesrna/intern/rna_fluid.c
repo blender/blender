@@ -246,7 +246,7 @@ static void rna_Fluid_tracer_parts_update(Main *bmain, Scene *UNUSED(scene), Poi
     rna_Fluid_parts_create(bmain,
                            ptr,
                            "TracerParticleSettings",
-                           "Tracer Particles",
+                           "Tracers",
                            "Tracer Particle System",
                            PART_FLUID_TRACER);
     mmd->domain->particle_type |= FLUID_DOMAIN_PARTICLE_TRACER;
@@ -290,7 +290,7 @@ static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerR
       rna_Fluid_parts_create(bmain,
                              ptr,
                              "SprayFoamParticleSettings",
-                             "Spray + Foam Particles",
+                             "Spray + Foam",
                              "Spray + Foam Particle System",
                              PART_FLUID_SPRAYFOAM);
 
@@ -316,7 +316,7 @@ static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerR
       rna_Fluid_parts_create(bmain,
                              ptr,
                              "SprayBubbleParticleSettings",
-                             "Spray + Bubble Particles",
+                             "Spray + Bubbles",
                              "Spray + Bubble Particle System",
                              PART_FLUID_SPRAYBUBBLE);
 
@@ -369,7 +369,7 @@ static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerR
       rna_Fluid_parts_create(bmain,
                              ptr,
                              "SprayFoamBubbleParticleSettings",
-                             "Spray + Foam + Bubble Particles",
+                             "Spray + Foam + Bubbles",
                              "Spray + Foam + Bubble Particle System",
                              PART_FLUID_SPRAYFOAMBUBBLE);
 
@@ -1522,10 +1522,10 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "particle_radius", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0, 10.0);
-  RNA_def_property_ui_text(
-      prop,
-      "Radius",
-      "Particle radius factor. Adjust this parameter when the simulation appears to leak volume");
+  RNA_def_property_ui_text(prop,
+                           "Radius",
+                           "Particle radius factor. Increase this value if the simulation appears "
+                           "to leak volume, decrease it if the simulation seems to gain volume");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_resetCache");
 
   prop = RNA_def_property(srna, "particle_band_width", PROP_FLOAT, PROP_NONE);

@@ -134,7 +134,7 @@ static void view_display()
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluOrtho2D(0, V.width, 0, V.height);
+  glOrtho(0, V.width, 0, V.height, -1, 1);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();

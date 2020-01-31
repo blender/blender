@@ -120,6 +120,29 @@ static const EnumPropertyItem part_hair_ren_as_items[] = {
 };
 #endif
 
+static const EnumPropertyItem part_type_items[] = {
+    {PART_EMITTER, "EMITTER", 0, "Emitter", ""},
+    /*{PART_REACTOR, "REACTOR", 0, "Reactor", ""}, */
+    {PART_HAIR, "HAIR", 0, "Hair", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+#ifdef RNA_RUNTIME
+static const EnumPropertyItem part_fluid_type_items[] = {
+    {PART_FLUID, "FLUID", 0, "Fluid", ""},
+    {PART_FLUID_FLIP, "FLIP", 0, "Liquid", ""},
+    {PART_FLUID_SPRAY, "SPRAY", 0, "Spray", ""},
+    {PART_FLUID_BUBBLE, "BUBBLE", 0, "Bubble", ""},
+    {PART_FLUID_FOAM, "FOAM", 0, "Foam", ""},
+    {PART_FLUID_TRACER, "TRACER", 0, "Tracer", ""},
+    {PART_FLUID_SPRAYFOAM, "SPRAYFOAM", 0, "Spray-Foam", ""},
+    {PART_FLUID_SPRAYBUBBLE, "SPRAYBUBBLE", 0, "Spray-Bubble", ""},
+    {PART_FLUID_FOAMBUBBLE, "FOAMBUBBLE", 0, "Foam-Bubble", ""},
+    {PART_FLUID_SPRAYFOAMBUBBLE, "SPRAYFOAMBUBBLE", 0, "Spray-Foam-Bubble", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+#endif
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math.h"
@@ -1239,6 +1262,21 @@ static int rna_ParticleDupliWeight_name_length(PointerRNA *ptr)
   return strlen(tstr);
 }
 
+static const EnumPropertyItem *rna_Particle_type_itemf(bContext *UNUSED(C),
+                                                       PointerRNA *ptr,
+                                                       PropertyRNA *UNUSED(prop),
+                                                       bool *UNUSED(r_free))
+{
+  ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
+
+  if (part->type == PART_HAIR || part->type == PART_EMITTER) {
+    return part_type_items;
+  }
+  else {
+    return part_fluid_type_items;
+  }
+}
+
 static const EnumPropertyItem *rna_Particle_from_itemf(bContext *UNUSED(C),
                                                        PointerRNA *UNUSED(ptr),
                                                        PropertyRNA *UNUSED(prop),
@@ -2260,13 +2298,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem type_items[] = {
-      {PART_EMITTER, "EMITTER", 0, "Emitter", ""},
-      /*{PART_REACTOR, "REACTOR", 0, "Reactor", ""}, */
-      {PART_HAIR, "HAIR", 0, "Hair", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   static const EnumPropertyItem phys_type_items[] = {
       {PART_PHYS_NO, "NO", 0, "None", ""},
       {PART_PHYS_NEWTON, "NEWTON", 0, "Newtonian", ""},
@@ -2493,8 +2524,9 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, type_items);
+  RNA_def_property_enum_items(prop, part_type_items);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_type_itemf");
   RNA_def_property_ui_text(prop, "Type", "Particle Type");
   RNA_def_property_update(prop, 0, "rna_Particle_change_type");
 

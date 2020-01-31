@@ -139,7 +139,7 @@ waveCrest_sp$ID$     = sp$ID$.create(RealGrid)\n\
 kineticEnergy_sp$ID$ = sp$ID$.create(RealGrid)\n\
 \n\
 # Keep track of important objects in dict to load them later on\n\
-liquid_particles_dict_final_s$ID$   = dict(ppSnd=ppSnd_sp$ID$, pVelSnd=pVelSnd_pp$ID$, pLifeSnd=pLifeSnd_pp$ID$)\n\
+liquid_particles_dict_final_s$ID$  = dict(ppSnd=ppSnd_sp$ID$, pVelSnd=pVelSnd_pp$ID$, pLifeSnd=pLifeSnd_pp$ID$)\n\
 liquid_particles_dict_resume_s$ID$ = dict(trappedAir=trappedAir_sp$ID$, waveCrest=waveCrest_sp$ID$, kineticEnergy=kineticEnergy_sp$ID$)\n";
 
 const std::string liquid_init_phi =
@@ -166,15 +166,18 @@ def liquid_adaptive_step_$ID$(framenr):\n\
         mantaMsg('Initializing obstacle levelset')\n\
         phiObsIn_s$ID$.fillHoles(maxDepth=int(res_s$ID$), boundaryWidth=2)\n\
         extrapolateLsSimple(phi=phiObsIn_s$ID$, distance=int(res_s$ID$/2), inside=True)\n\
-        extrapolateLsSimple(phi=phiObsIn_s$ID$, distance=int(res_s$ID$/2), inside=False)\n\
+        extrapolateLsSimple(phi=phiObsIn_s$ID$, distance=3, inside=False)\n\
         phiObs_s$ID$.join(phiObsIn_s$ID$)\n\
         \n\
         # Using boundaryWidth=2 to not search beginning from walls (just a performance optimization)\n\
         # Additional sanity check: fill holes in phiObs which can result after joining with phiObsIn\n\
         phiObs_s$ID$.fillHoles(maxDepth=int(res_s$ID$), boundaryWidth=2)\n\
         extrapolateLsSimple(phi=phiObs_s$ID$, distance=int(res_s$ID$/2), inside=True)\n\
-        extrapolateLsSimple(phi=phiObs_s$ID$, distance=int(res_s$ID$/2), inside=False)\n\
+        extrapolateLsSimple(phi=phiObs_s$ID$, distance=3, inside=False)\n\
     \n\
+    mantaMsg('Initializing fluid levelset')\n\
+    extrapolateLsSimple(phi=phiIn_s$ID$, distance=int(res_s$ID$/2), inside=True)\n\
+    extrapolateLsSimple(phi=phiIn_s$ID$, distance=int(res_s$ID$/2), inside=False)\n\
     phi_s$ID$.join(phiIn_s$ID$)\n\
     \n\
     if using_obstacle_s$ID$:\n\
