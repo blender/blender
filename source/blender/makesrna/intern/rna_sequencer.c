@@ -2701,15 +2701,15 @@ static void rna_def_text(StructRNA *srna)
 {
   /* Avoid text icons because they imply this aligns within a frame, see: T71082 */
   static const EnumPropertyItem text_align_x_items[] = {
-      {SEQ_TEXT_ALIGN_X_LEFT, "LEFT", 0, "Left", ""},
-      {SEQ_TEXT_ALIGN_X_CENTER, "CENTER", 0, "Center", ""},
-      {SEQ_TEXT_ALIGN_X_RIGHT, "RIGHT", 0, "Right", ""},
+      {SEQ_TEXT_ALIGN_X_LEFT, "LEFT", ICON_ANCHOR_LEFT, "Left", ""},
+      {SEQ_TEXT_ALIGN_X_CENTER, "CENTER", ICON_ANCHOR_CENTER, "Center", ""},
+      {SEQ_TEXT_ALIGN_X_RIGHT, "RIGHT", ICON_ANCHOR_RIGHT, "Right", ""},
       {0, NULL, 0, NULL, NULL},
   };
   static const EnumPropertyItem text_align_y_items[] = {
-      {SEQ_TEXT_ALIGN_Y_TOP, "TOP", 0, "Top", ""},
-      {SEQ_TEXT_ALIGN_Y_CENTER, "CENTER", 0, "Center", ""},
-      {SEQ_TEXT_ALIGN_Y_BOTTOM, "BOTTOM", 0, "Bottom", ""},
+      {SEQ_TEXT_ALIGN_Y_TOP, "TOP", ICON_ANCHOR_TOP, "Top", ""},
+      {SEQ_TEXT_ALIGN_Y_CENTER, "CENTER", ICON_ANCHOR_CENTER, "Center", ""},
+      {SEQ_TEXT_ALIGN_Y_BOTTOM, "BOTTOM", ICON_ANCHOR_BOTTOM, "Bottom", ""},
       {0, NULL, 0, NULL, NULL},
   };
 

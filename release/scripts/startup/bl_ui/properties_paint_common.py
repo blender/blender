@@ -121,7 +121,7 @@ class UnifiedPaintPanel:
 
         if unified_name and not header:
             # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
-            row.prop(ups, unified_name, text="", icon="WORLD")
+            row.prop(ups, unified_name, text="", icon="BRUSHES_ALL")
 
         return row
 
