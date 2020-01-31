@@ -362,32 +362,6 @@ static void surf_uv_quad(const DispList *dl, const uint quad[4], float r_uv[4][2
   }
 }
 
-static GPUPackedNormal surf_tan_quad(const DispList *dl,
-                                     const float (*verts)[3],
-                                     const float nor[3],
-                                     uint index)
-{
-  float tan[3], tmp[3];
-
-  int v = index / dl->nr;
-  /* Note: For some reason the shading U and V are swapped compared to the
-   * one described in the surface format. So tangent is along V. */
-  if (v == 0) {
-    sub_v3_v3v3(tan, verts[index + dl->nr], verts[index]);
-  }
-  else {
-    sub_v3_v3v3(tan, verts[index], verts[index - dl->nr]);
-  }
-  /* Orthonormalize around the normal. */
-  cross_v3_v3v3(tmp, nor, tan);
-  cross_v3_v3v3(tan, tmp, nor);
-  normalize_v3(tan);
-
-  GPUPackedNormal ptan = GPU_normal_convert_i10_v3(tan);
-  ptan.w = 1; /* Pretty sure surfaces cannot have inverted normals. */
-  return ptan;
-}
-
 static void displist_vertbuf_attr_set_tri_pos_nor_uv(GPUVertBufRaw *pos_step,
                                                      GPUVertBufRaw *nor_step,
                                                      GPUVertBufRaw *uv_step,
@@ -426,6 +400,54 @@ static void displist_vertbuf_attr_set_tri_pos_nor_uv(GPUVertBufRaw *pos_step,
     *(GPUPackedNormal *)GPU_vertbuf_raw_step(tan_step) = *t2;
     *(GPUPackedNormal *)GPU_vertbuf_raw_step(tan_step) = *t3;
   }
+}
+
+#define SURFACE_QUAD_ITER_START(dl) \
+  { \
+    uint quad[4]; \
+    int quad_index = 0; \
+    int max_v = (dl->flag & DL_CYCL_V) ? dl->parts : (dl->parts - 1); \
+    int max_u = (dl->flag & DL_CYCL_U) ? dl->nr : (dl->nr - 1); \
+    for (int v = 0; v < max_v; v++) { \
+      quad[3] = dl->nr * v; \
+      quad[0] = quad[3] + 1; \
+      quad[2] = quad[3] + dl->nr; \
+      quad[1] = quad[0] + dl->nr; \
+      /* Cyclic wrap */ \
+      if (v == dl->parts - 1) { \
+        quad[1] -= dl->parts * dl->nr; \
+        quad[2] -= dl->parts * dl->nr; \
+      } \
+      for (int u = 0; u < max_u; u++, quad_index++) { \
+        /* Cyclic wrap */ \
+        if (u == dl->nr - 1) { \
+          quad[0] -= dl->nr; \
+          quad[1] -= dl->nr; \
+        }
+
+#define SURFACE_QUAD_ITER_END \
+  quad[2] = quad[1]; \
+  quad[1]++; \
+  quad[3] = quad[0]; \
+  quad[0]++; \
+  } \
+  } \
+  }
+
+static void displist_surf_fnors_ensure(const DispList *dl, float (**fnors)[3])
+{
+  int u_len = dl->nr - ((dl->flag & DL_CYCL_U) ? 0 : 1);
+  int v_len = dl->parts - ((dl->flag & DL_CYCL_V) ? 0 : 1);
+  const float(*verts)[3] = (float(*)[3])dl->verts;
+  float(*nor_flat)[3] = MEM_mallocN(sizeof(float) * 3 * u_len * v_len, __func__);
+  *fnors = nor_flat;
+
+  SURFACE_QUAD_ITER_START(dl)
+  {
+    normal_quad_v3(*nor_flat, verts[quad[0]], verts[quad[1]], verts[quad[2]], verts[quad[3]]);
+    nor_flat++;
+  }
+  SURFACE_QUAD_ITER_END
 }
 
 void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(ListBase *lb,
@@ -495,7 +517,7 @@ void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(ListBase *lb,
         const GPUPackedNormal pnor = GPU_normal_convert_i10_v3(dl->nors);
 
         GPUPackedNormal ptan = {0, 0, 0, 1};
-        if (tan_step.size != 0) {
+        if (vbo_tan) {
           float tan[4];
           float(*tan_ptr)[4] = &tan;
           BKE_displist_tangent_calc(dl, NULL, &tan_ptr);
@@ -533,102 +555,81 @@ void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(ListBase *lb,
         }
       }
       else if (dl->type == DL_SURF) {
-        uint quad[4];
-        for (int a = 0; a < dl->parts; a++) {
-          if ((dl->flag & DL_CYCL_V) == 0 && a == dl->parts - 1) {
-            break;
+        float(*tangents)[4] = NULL;
+        float(*fnors)[3] = NULL;
+
+        if (!is_smooth) {
+          displist_surf_fnors_ensure(dl, &fnors);
+        }
+
+        if (vbo_tan) {
+          BKE_displist_tangent_calc(dl, fnors, &tangents);
+        }
+
+        SURFACE_QUAD_ITER_START(dl)
+        {
+          if (vbo_uv) {
+            surf_uv_quad(dl, quad, uv);
           }
 
-          int b;
-          if (dl->flag & DL_CYCL_U) {
-            quad[0] = dl->nr * a;
-            quad[3] = quad[0] + dl->nr - 1;
-            quad[1] = quad[0] + dl->nr;
-            quad[2] = quad[3] + dl->nr;
-            b = 0;
+          GPUPackedNormal pnors_quad[4];
+          if (is_smooth) {
+            for (int j = 0; j < 4; j++) {
+              pnors_quad[j] = GPU_normal_convert_i10_v3(nors[quad[j]]);
+            }
           }
           else {
-            quad[3] = dl->nr * a;
-            quad[0] = quad[3] + 1;
-            quad[2] = quad[3] + dl->nr;
-            quad[1] = quad[0] + dl->nr;
-            b = 1;
-          }
-          if ((dl->flag & DL_CYCL_V) && a == dl->parts - 1) {
-            quad[1] -= dl->parts * dl->nr;
-            quad[2] -= dl->parts * dl->nr;
+            pnors_quad[0] = GPU_normal_convert_i10_v3(fnors[quad_index]);
+            pnors_quad[1] = pnors_quad[2] = pnors_quad[3] = pnors_quad[0];
           }
 
-          for (; b < dl->nr; b++) {
-            if (vbo_uv) {
-              surf_uv_quad(dl, quad, uv);
+          GPUPackedNormal ptans_quad[4];
+          if (vbo_tan) {
+            for (int j = 0; j < 4; j++) {
+              float *tan = tangents[quad_index * 4 + j];
+              ptans_quad[j] = GPU_normal_convert_i10_v3(tan);
+              ptans_quad[j].w = (tan[3] > 0.0f) ? 1 : -2;
             }
-
-            GPUPackedNormal pnors_quad[4];
-            GPUPackedNormal ptans_quad[4];
-            if (is_smooth) {
-              for (int j = 0; j < 4; j++) {
-                pnors_quad[j] = GPU_normal_convert_i10_v3(nors[quad[j]]);
-                if (tan_step.size != 0) {
-                  /* TODO(fclem) This is a waste of computation power because the same vertex
-                   * is computed 4 times. */
-                  ptans_quad[j] = surf_tan_quad(dl, verts, nors[quad[j]], quad[j]);
-                }
-              }
-            }
-            else {
-              float nor_flat[3];
-              normal_quad_v3(
-                  nor_flat, verts[quad[0]], verts[quad[1]], verts[quad[2]], verts[quad[3]]);
-              if (tan_step.size != 0) {
-                for (int j = 0; j < 4; j++) {
-                  ptans_quad[j] = surf_tan_quad(dl, verts, nor_flat, quad[j]);
-                }
-              }
-              pnors_quad[0] = GPU_normal_convert_i10_v3(nor_flat);
-              pnors_quad[1] = pnors_quad[2] = pnors_quad[3] = pnors_quad[0];
-            }
-
-            displist_vertbuf_attr_set_tri_pos_nor_uv(&pos_step,
-                                                     &nor_step,
-                                                     &uv_step,
-                                                     &tan_step,
-                                                     verts[quad[2]],
-                                                     verts[quad[0]],
-                                                     verts[quad[1]],
-                                                     &pnors_quad[2],
-                                                     &pnors_quad[0],
-                                                     &pnors_quad[1],
-                                                     &ptans_quad[2],
-                                                     &ptans_quad[0],
-                                                     &ptans_quad[1],
-                                                     uv[2],
-                                                     uv[0],
-                                                     uv[1]);
-
-            displist_vertbuf_attr_set_tri_pos_nor_uv(&pos_step,
-                                                     &nor_step,
-                                                     &uv_step,
-                                                     &tan_step,
-                                                     verts[quad[0]],
-                                                     verts[quad[2]],
-                                                     verts[quad[3]],
-                                                     &pnors_quad[0],
-                                                     &pnors_quad[2],
-                                                     &pnors_quad[3],
-                                                     &ptans_quad[0],
-                                                     &ptans_quad[2],
-                                                     &ptans_quad[3],
-                                                     uv[0],
-                                                     uv[2],
-                                                     uv[3]);
-
-            quad[2] = quad[1];
-            quad[1]++;
-            quad[3] = quad[0];
-            quad[0]++;
           }
+
+          displist_vertbuf_attr_set_tri_pos_nor_uv(&pos_step,
+                                                   &nor_step,
+                                                   &uv_step,
+                                                   &tan_step,
+                                                   verts[quad[2]],
+                                                   verts[quad[0]],
+                                                   verts[quad[1]],
+                                                   &pnors_quad[2],
+                                                   &pnors_quad[0],
+                                                   &pnors_quad[1],
+                                                   &ptans_quad[2],
+                                                   &ptans_quad[0],
+                                                   &ptans_quad[1],
+                                                   uv[2],
+                                                   uv[0],
+                                                   uv[1]);
+
+          displist_vertbuf_attr_set_tri_pos_nor_uv(&pos_step,
+                                                   &nor_step,
+                                                   &uv_step,
+                                                   &tan_step,
+                                                   verts[quad[0]],
+                                                   verts[quad[2]],
+                                                   verts[quad[3]],
+                                                   &pnors_quad[0],
+                                                   &pnors_quad[2],
+                                                   &pnors_quad[3],
+                                                   &ptans_quad[0],
+                                                   &ptans_quad[2],
+                                                   &ptans_quad[3],
+                                                   uv[0],
+                                                   uv[2],
+                                                   uv[3]);
         }
+        SURFACE_QUAD_ITER_END
+
+        MEM_SAFE_FREE(tangents);
+        MEM_SAFE_FREE(fnors);
       }
       else {
         BLI_assert(dl->type == DL_INDEX4);
@@ -656,9 +657,7 @@ void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(ListBase *lb,
               normal_quad_v3(nor_flat, verts[idx[0]], verts[idx[1]], verts[idx[2]], verts[idx[3]]);
             }
             pnors_idx[0] = GPU_normal_convert_i10_v3(nor_flat);
-            pnors_idx[1] = pnors_idx[0];
-            pnors_idx[2] = pnors_idx[0];
-            pnors_idx[3] = pnors_idx[0];
+            pnors_idx[1] = pnors_idx[2] = pnors_idx[3] = pnors_idx[0];
           }
 
           displist_vertbuf_attr_set_tri_pos_nor_uv(&pos_step,

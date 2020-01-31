@@ -29,16 +29,20 @@
 /* interface */
 #include "mikktspace.h"
 
-/** \name Tangent Space Calculation
- * \{ */
-
-/* Necessary complexity to handle looptri's as quads for correct tangents */
-#define USE_LOOPTRI_DETECT_QUADS
-
 typedef struct {
   const DispList *dl;
   float (*tangent)[4]; /* destination */
+  /** Face normal for flat shading. */
+  float (*fnormals)[3];
+  /** Use by surfaces. Size of the surface in faces. */
+  int u_len, v_len;
 } SGLSLDisplistToTangent;
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name DL_INDEX3 tangents
+ * \{ */
 
 static int dl3_ts_GetNumFaces(const SMikkTSpaceContext *pContext)
 {
@@ -102,10 +106,122 @@ static void dl3_ts_SetTSpace(const SMikkTSpaceContext *pContext,
   dlt->tangent[0][3] = fSign;
 }
 
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name DL_SURF tangents
+ * \{ */
+
+static int dlsurf_ts_GetNumFaces(const SMikkTSpaceContext *pContext)
+{
+  SGLSLDisplistToTangent *dlt = pContext->m_pUserData;
+
+  return dlt->v_len * dlt->u_len;
+}
+
+static int dlsurf_ts_GetNumVertsOfFace(const SMikkTSpaceContext *pContext, const int face_num)
+{
+  UNUSED_VARS(pContext, face_num);
+
+  return 4;
+}
+
+static int face_to_vert_index(SGLSLDisplistToTangent *dlt,
+                              const int face_num,
+                              const int vert_index)
+{
+  int u = face_num % dlt->u_len;
+  int v = face_num / dlt->u_len;
+
+  if (vert_index == 0) {
+    u += 1;
+  }
+  else if (vert_index == 1) {
+    u += 1;
+    v += 1;
+  }
+  else if (vert_index == 2) {
+    v += 1;
+  }
+
+  /*  Cyclic correction. */
+  u = u % dlt->dl->nr;
+  v = v % dlt->dl->parts;
+
+  return v * dlt->dl->nr + u;
+}
+
+static void dlsurf_ts_GetPosition(const SMikkTSpaceContext *pContext,
+                                  float r_co[3],
+                                  const int face_num,
+                                  const int vert_index)
+{
+  SGLSLDisplistToTangent *dlt = pContext->m_pUserData;
+  const float(*verts)[3] = (float(*)[3])dlt->dl->verts;
+
+  copy_v3_v3(r_co, verts[face_to_vert_index(dlt, face_num, vert_index)]);
+}
+
+static void dlsurf_ts_GetTextureCoordinate(const SMikkTSpaceContext *pContext,
+                                           float r_uv[2],
+                                           const int face_num,
+                                           const int vert_index)
+{
+  SGLSLDisplistToTangent *dlt = pContext->m_pUserData;
+
+  int idx = face_to_vert_index(dlt, face_num, vert_index);
+
+  /* Note: For some reason the shading U and V are swapped compared to the
+   * one described in the surface format. */
+  r_uv[0] = (idx / dlt->dl->nr) / (float)(dlt->v_len);
+  r_uv[1] = (idx % dlt->dl->nr) / (float)(dlt->u_len);
+
+  if (r_uv[0] == 0.0f && ELEM(vert_index, 1, 2)) {
+    r_uv[0] = 1.0f;
+  }
+  if (r_uv[1] == 0.0f && ELEM(vert_index, 0, 1)) {
+    r_uv[1] = 1.0f;
+  }
+}
+
+static void dlsurf_ts_GetNormal(const SMikkTSpaceContext *pContext,
+                                float r_no[3],
+                                const int face_num,
+                                const int vert_index)
+{
+  SGLSLDisplistToTangent *dlt = pContext->m_pUserData;
+  const float(*nors)[3] = (float(*)[3])dlt->dl->nors;
+
+  if (dlt->fnormals) {
+    copy_v3_v3(r_no, dlt->fnormals[face_num]);
+  }
+  else {
+    copy_v3_v3(r_no, nors[face_to_vert_index(dlt, face_num, vert_index)]);
+  }
+}
+
+static void dlsurf_ts_SetTSpace(const SMikkTSpaceContext *pContext,
+                                const float fvTangent[3],
+                                const float fSign,
+                                const int face_num,
+                                const int vert_index)
+{
+  SGLSLDisplistToTangent *dlt = pContext->m_pUserData;
+  UNUSED_VARS(face_num, vert_index);
+
+  float *r_tan = dlt->tangent[face_num * 4 + vert_index];
+  copy_v3_v3(r_tan, fvTangent);
+  r_tan[3] = fSign;
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Entry point
+ * \{ */
+
 void BKE_displist_tangent_calc(const DispList *dl, float (*fnormals)[3], float (**r_tangent)[4])
 {
-  UNUSED_VARS(fnormals);
-
   if (dl->type == DL_INDEX3) {
     /* INDEX3 have only one tangent so we don't need actual allocation. */
     BLI_assert(*r_tangent != NULL);
@@ -128,14 +244,31 @@ void BKE_displist_tangent_calc(const DispList *dl, float (*fnormals)[3], float (
     genTangSpaceDefault(&sContext);
   }
   else if (dl->type == DL_SURF) {
-#if 0
-    int vert_len = dl->parts * dl->nr;
+    SGLSLDisplistToTangent mesh2tangent = {
+        .dl = dl,
+        .u_len = dl->nr - ((dl->flag & DL_CYCL_U) ? 0 : 1),
+        .v_len = dl->parts - ((dl->flag & DL_CYCL_V) ? 0 : 1),
+        .fnormals = fnormals,
+    };
+
+    int loop_len = mesh2tangent.u_len * mesh2tangent.v_len * 4;
+
     if (*r_tangent == NULL) {
-        *r_tangent = MEM_mallocN(sizeof(float[4]) * vert_len, "displist tangents");
+      *r_tangent = MEM_mallocN(sizeof(float[4]) * loop_len, "displist tangents");
     }
-#endif
-    /* TODO */
-    BLI_assert(0);
+    mesh2tangent.tangent = *r_tangent;
+    SMikkTSpaceContext sContext = {NULL};
+    SMikkTSpaceInterface sInterface = {NULL};
+    sContext.m_pUserData = &mesh2tangent;
+    sContext.m_pInterface = &sInterface;
+    sInterface.m_getNumFaces = dlsurf_ts_GetNumFaces;
+    sInterface.m_getNumVerticesOfFace = dlsurf_ts_GetNumVertsOfFace;
+    sInterface.m_getPosition = dlsurf_ts_GetPosition;
+    sInterface.m_getTexCoord = dlsurf_ts_GetTextureCoordinate;
+    sInterface.m_getNormal = dlsurf_ts_GetNormal;
+    sInterface.m_setTSpaceBasic = dlsurf_ts_SetTSpace;
+    /* 0 if failed */
+    genTangSpaceDefault(&sContext);
   }
   else {
     /* Unsupported. */
