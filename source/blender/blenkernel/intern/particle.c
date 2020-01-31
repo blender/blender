@@ -3586,12 +3586,45 @@ void object_remove_particle_system(Main *bmain, Scene *UNUSED(scene), Object *ob
     return;
   }
 
-  /* clear all other appearances of this pointer (like on manta flow modifier) */
+  /* Clear particle system in fluid modifier. */
   if ((md = modifiers_findByType(ob, eModifierType_Fluid))) {
     FluidModifierData *mmd = (FluidModifierData *)md;
+
+    /* Clear particle system pointer in flow settings. */
     if ((mmd->type == MOD_FLUID_TYPE_FLOW) && mmd->flow && mmd->flow->psys) {
       if (mmd->flow->psys == psys) {
         mmd->flow->psys = NULL;
+      }
+    }
+    /* Clear particle flag in domain settings when removing particle system manually. */
+    if (mmd->type == MOD_FLUID_TYPE_DOMAIN) {
+      if (psys->part->type == PART_FLUID_FLIP) {
+        mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_FLIP;
+      }
+      if (psys->part->type == PART_FLUID_SPRAY || psys->part->type == PART_FLUID_SPRAYFOAM ||
+          psys->part->type == PART_FLUID_SPRAYBUBBLE ||
+          psys->part->type == PART_FLUID_SPRAYFOAMBUBBLE) {
+        mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_SPRAY;
+      }
+      if (psys->part->type == PART_FLUID_FOAM || psys->part->type == PART_FLUID_SPRAYFOAM ||
+          psys->part->type == PART_FLUID_FOAMBUBBLE ||
+          psys->part->type == PART_FLUID_SPRAYFOAMBUBBLE) {
+        mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_FOAM;
+      }
+      if (psys->part->type == PART_FLUID_BUBBLE || psys->part->type == PART_FLUID_FOAMBUBBLE ||
+          psys->part->type == PART_FLUID_SPRAYBUBBLE ||
+          psys->part->type == PART_FLUID_SPRAYFOAMBUBBLE) {
+        mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_BUBBLE;
+      }
+      if (psys->part->type == PART_FLUID_TRACER) {
+        mmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_TRACER;
+      }
+
+      /* Disable combined export if combined particle system was deleted. */
+      if (psys->part->type == PART_FLUID_SPRAYFOAM || psys->part->type == PART_FLUID_SPRAYBUBBLE ||
+          psys->part->type == PART_FLUID_FOAMBUBBLE ||
+          psys->part->type == PART_FLUID_SPRAYFOAMBUBBLE) {
+        mmd->domain->sndparticle_combined_export = SNDPARTICLE_COMBINED_EXPORT_OFF;
       }
     }
   }
