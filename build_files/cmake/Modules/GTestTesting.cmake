@@ -40,9 +40,14 @@ macro(BLENDER_SRC_GTEST_EX)
     add_executable(${TARGET_NAME} ${ARG_SRC} ${MANIFEST})
     target_include_directories(${TARGET_NAME} PUBLIC "${TEST_INC}")
     target_include_directories(${TARGET_NAME} SYSTEM PUBLIC "${TEST_INC_SYS}")
+    target_link_libraries(${TARGET_NAME} ${ARG_EXTRA_LIBS} ${PLATFORM_LINKLIBS})
+    if(WITH_TBB)
+      # Force TBB libraries to be in front of MKL (part of OpenImageDenoise), so
+      # that it is initialized before MKL and static library initialization order
+      # issues are avoided.
+      target_link_libraries(${TARGET_NAME} ${TBB_LIBRARIES})
+    endif()
     target_link_libraries(${TARGET_NAME}
-                          ${ARG_EXTRA_LIBS}
-                          ${PLATFORM_LINKLIBS}
                           bf_testing_main
                           bf_intern_eigen
                           bf_intern_guardedalloc

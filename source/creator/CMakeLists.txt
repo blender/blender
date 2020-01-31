@@ -38,20 +38,16 @@ blender_include_dirs(
 )
 
 set(LIB
-  # This forces TBB libraries to be in front of MKL (which is a part of OpenImageDenoise).
-  #
-  # The need of this comes to need to ensure static libraries initialization order, making it
-  # so TBB is initialized prior to MKL (or any other dpeendnecy).
-  #
-  # This isn't fully robust but seems to work.
-  ${TBB_LIBRARIES}
-
   bf_windowmanager
 )
 
-# Note: this should not be needed, but causes issues in some situations:
-# See reply to daf290dcc80c.
-if(WITH_TBB AND WITH_OPENIMAGEDENOISE)
+if(WITH_TBB)
+  # Force TBB libraries to be in front of MKL (part of OpenImageDenoise), so
+  # that it is initialized before MKL and static library initialization order
+  # issues are avoided.
+  #
+  # This isn't fully robust but seems to work.
+  list(INSERT LIB 0 ${TBB_LIBRARIES})
   list(INSERT LIB 0 bf_blenkernel)
 endif()
 
