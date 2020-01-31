@@ -115,11 +115,9 @@ class GHOST_WindowManager {
   /**
    * Return a vector of the windows currently managed by this
    * class.
-   * \warning It is very dangerous to mess with the contents of
-   * this vector. Please do not destroy or add windows use the
-   * interface above for this,
+   * \return Const reference to the vector of windows managed
    */
-  std::vector<GHOST_IWindow *> &getWindows();
+  const std::vector<GHOST_IWindow *> &getWindows() const;
 
   /**
    * Finds the window associated with an OS window object/handle

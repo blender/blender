@@ -546,9 +546,9 @@ GHOST_WindowX11 *GHOST_SystemX11::findGhostWindow(Window xwind) const
    * We should always check the window manager's list of windows
    * and only process events on these windows. */
 
-  vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
+  const vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
 
-  vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
+  vector<GHOST_IWindow *>::const_iterator win_it = win_vec.begin();
   vector<GHOST_IWindow *>::const_iterator win_end = win_vec.end();
 
   for (; win_it != win_end; ++win_it) {
@@ -840,8 +840,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
         /* update all window events */
         {
-          vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
-          vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
+          const vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
+          vector<GHOST_IWindow *>::const_iterator win_it = win_vec.begin();
           vector<GHOST_IWindow *>::const_iterator win_end = win_vec.end();
 
           for (; win_it != win_end; ++win_it) {
@@ -1661,7 +1661,7 @@ void GHOST_SystemX11::addDirtyWindow(GHOST_WindowX11 *bad_wind)
 
 bool GHOST_SystemX11::generateWindowExposeEvents()
 {
-  vector<GHOST_WindowX11 *>::iterator w_start = m_dirty_windows.begin();
+  vector<GHOST_WindowX11 *>::const_iterator w_start = m_dirty_windows.begin();
   vector<GHOST_WindowX11 *>::const_iterator w_end = m_dirty_windows.end();
   bool anyProcessed = false;
 
@@ -1871,8 +1871,8 @@ void GHOST_SystemX11::getClipboard_xcout(const XEvent *evt,
   unsigned long pty_size, pty_items;
   unsigned char *ltxt = *txt;
 
-  vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
-  vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
+  const vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
+  vector<GHOST_IWindow *>::const_iterator win_it = win_vec.begin();
   GHOST_WindowX11 *window = static_cast<GHOST_WindowX11 *>(*win_it);
   Window win = window->getXWindow();
 
@@ -2077,8 +2077,8 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
   else
     sseln = m_atom.CLIPBOARD;
 
-  vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
-  vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
+  const vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
+  vector<GHOST_IWindow *>::const_iterator win_it = win_vec.begin();
   GHOST_WindowX11 *window = static_cast<GHOST_WindowX11 *>(*win_it);
   Window win = window->getXWindow();
 
@@ -2157,8 +2157,8 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 {
   Window m_window, owner;
 
-  vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
-  vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
+  const vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
+  vector<GHOST_IWindow *>::const_iterator win_it = win_vec.begin();
   GHOST_WindowX11 *window = static_cast<GHOST_WindowX11 *>(*win_it);
   m_window = window->getXWindow();
 
