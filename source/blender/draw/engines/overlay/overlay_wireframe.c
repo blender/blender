@@ -23,6 +23,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_curve.h"
+#include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
@@ -138,6 +140,9 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     struct GPUBatch *geom = NULL;
     switch (ob->type) {
       case OB_CURVE:
+        if (ob->runtime.curve_cache && BKE_displist_has_faces(&ob->runtime.curve_cache->disp)) {
+          break;
+        }
         geom = DRW_cache_curve_edge_wire_get(ob);
         break;
       case OB_SURF:
