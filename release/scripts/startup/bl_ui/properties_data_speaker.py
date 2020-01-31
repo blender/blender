@@ -45,12 +45,10 @@ class DATA_PT_context_speaker(DataButtonsPanel, Panel):
         speaker = context.speaker
         space = context.space_data
 
-        split = layout.split(factor=0.65)
-
         if ob:
-            split.template_ID(ob, "data")
+            layout.template_ID(ob, "data")
         elif speaker:
-            split.template_ID(space, "pin_id")
+            layout.template_ID(space, "pin_id")
 
 
 class DATA_PT_speaker(DataButtonsPanel, Panel):
