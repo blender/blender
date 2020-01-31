@@ -33,7 +33,7 @@ void main()
     finalColor = vec4(weight_to_rgb(color), 1.0);
   }
   else {
-    finalColor = mix(colorWire, colorEdgeSelect, color);
+    finalColor = mix(colorWire, colorVertexSelect, color);
   }
 
 #ifdef USE_WORLD_CLIP_PLANES

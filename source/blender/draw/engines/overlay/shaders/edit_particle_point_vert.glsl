@@ -9,7 +9,7 @@ void main()
   vec3 world_pos = point_object_to_world(pos);
   gl_Position = point_world_to_ndc(world_pos);
 
-  finalColor = mix(colorWire, colorEdgeSelect, color);
+  finalColor = mix(colorWire, colorVertexSelect, color);
 
   gl_PointSize = sizeVertex * 2.0;
 

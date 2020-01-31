@@ -1037,7 +1037,8 @@ static void copy_particle_edit(Depsgraph *depsgraph,
   }
   update_world_cos(ob, edit);
 
-  UI_GetThemeColor3ubv(TH_EDGE_SELECT, edit->sel_col);
+  /* These are unused and can be removed. */
+  UI_GetThemeColor3ubv(TH_VERTEX_SELECT, edit->sel_col);
   UI_GetThemeColor3ubv(TH_WIRE, edit->nosel_col);
 
   recalc_lengths(edit);

@@ -5190,7 +5190,8 @@ void PE_create_particle_edit(
 
     /* Causes assert on startup. */
 #if 0
-    UI_GetThemeColor3ubv(TH_EDGE_SELECT, edit->sel_col);
+    /* These are unused and can be removed. */
+    UI_GetThemeColor3ubv(TH_VERTEX_SELECT, edit->sel_col);
     UI_GetThemeColor3ubv(TH_WIRE, edit->nosel_col);
 #else
     memset(edit->sel_col, 0xff, sizeof(edit->sel_col));
