@@ -26,6 +26,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
@@ -188,16 +189,47 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 
     struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
 
+    const bool use_transform_skip_children = (scene->toolsettings->transform_flag &
+                                              SCE_XFORM_SKIP_CHILDREN);
     const bool use_transform_data_origin = (scene->toolsettings->transform_flag &
                                             SCE_XFORM_DATA_ORIGIN);
+    struct XFormObjectSkipChild_Container *xcs = NULL;
     struct XFormObjectData_Container *xds = NULL;
 
+    /* Build object array. */
+    Object **objects_eval = NULL;
+    uint objects_eval_len;
+    {
+      BLI_array_declare(objects_eval);
+      FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN (view_layer_eval, v3d, ob_eval) {
+        BLI_array_append(objects_eval, ob_eval);
+      }
+      FOREACH_SELECTED_EDITABLE_OBJECT_END;
+      objects_eval_len = BLI_array_len(objects_eval);
+    }
+
+    if (use_transform_skip_children) {
+      ViewLayer *view_layer = CTX_data_view_layer(C);
+
+      Object **objects = MEM_malloc_arrayN(objects_eval_len, sizeof(*objects), __func__);
+
+      for (int ob_index = 0; ob_index < objects_eval_len; ob_index++) {
+        Object *ob_eval = objects_eval[ob_index];
+        objects[ob_index] = DEG_get_original_object(ob_eval);
+      }
+      BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+      xcs = ED_object_xform_skip_child_container_create();
+      ED_object_xform_skip_child_container_item_ensure_from_array(
+          xcs, view_layer, objects, objects_eval_len);
+      MEM_freeN(objects);
+    }
     if (use_transform_data_origin) {
       BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
       xds = ED_object_data_xform_container_create();
     }
 
-    FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN (view_layer_eval, v3d, ob_eval) {
+    for (int ob_index = 0; ob_index < objects_eval_len; ob_index++) {
+      Object *ob_eval = objects_eval[ob_index];
       Object *ob = DEG_get_original_object(ob_eval);
       vec[0] = -ob_eval->obmat[3][0] + gridf * floorf(0.5f + ob_eval->obmat[3][0] / gridf);
       vec[1] = -ob_eval->obmat[3][1] + gridf * floorf(0.5f + ob_eval->obmat[3][1] / gridf);
@@ -229,8 +261,12 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
     }
-    FOREACH_SELECTED_EDITABLE_OBJECT_END;
+    MEM_freeN(objects_eval);
 
+    if (use_transform_skip_children) {
+      ED_object_xform_skip_child_container_update_all(xcs, bmain, depsgraph);
+      ED_object_xform_skip_child_container_destroy(xcs);
+    }
     if (use_transform_data_origin) {
       ED_object_data_xform_container_update_all(xds, bmain, depsgraph);
       ED_object_data_xform_container_destroy(xds);
@@ -427,41 +463,52 @@ static int snap_selected_to_location(bContext *C,
     Main *bmain = CTX_data_main(C);
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
-    ListBase ctx_data_list;
-    CollectionPointerLink *ctx_ob;
-    Object *ob;
-
-    CTX_data_selected_editable_objects(C, &ctx_data_list);
-
-    /* reset flags */
-    for (ob = bmain->objects.first; ob; ob = ob->id.next) {
+    /* Reset flags. */
+    for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
       ob->flag &= ~OB_DONE;
     }
 
-    /* tag objects we're transforming */
-    for (ctx_ob = ctx_data_list.first; ctx_ob; ctx_ob = ctx_ob->next) {
-      ob = ctx_ob->ptr.data;
-      ob->flag |= OB_DONE;
+    /* Build object array, tag objects we're transforming. */
+    ViewLayer *view_layer = CTX_data_view_layer(C);
+    Object **objects = NULL;
+    uint objects_len;
+    {
+      BLI_array_declare(objects);
+      FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN (view_layer, v3d, ob) {
+        BLI_array_append(objects, ob);
+        ob->flag |= OB_DONE;
+      }
+      FOREACH_SELECTED_EDITABLE_OBJECT_END;
+      objects_len = BLI_array_len(objects);
     }
 
+    const bool use_transform_skip_children = (scene->toolsettings->transform_flag &
+                                              SCE_XFORM_SKIP_CHILDREN);
     const bool use_transform_data_origin = (scene->toolsettings->transform_flag &
                                             SCE_XFORM_DATA_ORIGIN);
+    struct XFormObjectSkipChild_Container *xcs = NULL;
     struct XFormObjectData_Container *xds = NULL;
 
+    if (use_transform_skip_children) {
+      BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+      xcs = ED_object_xform_skip_child_container_create();
+      ED_object_xform_skip_child_container_item_ensure_from_array(
+          xcs, view_layer, objects, objects_len);
+    }
     if (use_transform_data_origin) {
       BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
       xds = ED_object_data_xform_container_create();
 
       /* Initialize the transform data in a separate loop because the depsgraph
        * may be evaluated while setting the locations. */
-      for (ctx_ob = ctx_data_list.first; ctx_ob; ctx_ob = ctx_ob->next) {
-        ob = ctx_ob->ptr.data;
+      for (int ob_index = 0; ob_index < objects_len; ob_index++) {
+        Object *ob = objects[ob_index];
         ED_object_data_xform_container_item_ensure(xds, ob);
       }
     }
 
-    for (ctx_ob = ctx_data_list.first; ctx_ob; ctx_ob = ctx_ob->next) {
-      ob = ctx_ob->ptr.data;
+    for (int ob_index = 0; ob_index < objects_len; ob_index++) {
+      Object *ob = objects[ob_index];
 
       if ((ob->parent && BKE_object_flag_test_recursive(ob->parent, OB_DONE)) == 0) {
 
@@ -504,9 +551,12 @@ static int snap_selected_to_location(bContext *C,
         DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
       }
     }
+    MEM_freeN(objects);
 
-    BLI_freelistN(&ctx_data_list);
-
+    if (use_transform_skip_children) {
+      ED_object_xform_skip_child_container_update_all(xcs, bmain, depsgraph);
+      ED_object_xform_skip_child_container_destroy(xcs);
+    }
     if (use_transform_data_origin) {
       ED_object_data_xform_container_update_all(xds, bmain, depsgraph);
       ED_object_data_xform_container_destroy(xds);

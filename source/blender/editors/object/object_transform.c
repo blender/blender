@@ -44,6 +44,7 @@
 #include "BKE_curve.h"
 #include "BKE_main.h"
 #include "BKE_idcode.h"
+#include "BKE_layer.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
@@ -296,22 +297,43 @@ static int object_clear_transform_generic_exec(bContext *C,
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  /* May be NULL. */
+  View3D *v3d = CTX_wm_view3d(C);
   KeyingSet *ks;
   const bool clear_delta = RNA_boolean_get(op->ptr, "clear_delta");
 
-  /* sanity checks */
-  if (ELEM(NULL, clear_func, default_ksName)) {
-    BKE_report(op->reports,
-               RPT_ERROR,
-               "Programming error: missing clear transform function or keying set name");
+  BLI_assert(!ELEM(NULL, clear_func, default_ksName));
+
+  Object **objects = NULL;
+  uint objects_len = 0;
+  {
+    BLI_array_declare(objects);
+    FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN (view_layer, v3d, ob) {
+      BLI_array_append(objects, ob);
+    }
+    FOREACH_SELECTED_EDITABLE_OBJECT_END;
+    objects_len = BLI_array_len(objects);
+  }
+
+  if (objects == NULL) {
     return OPERATOR_CANCELLED;
   }
 
   /* Support transforming the object data. */
+  const bool use_transform_skip_children = (scene->toolsettings->transform_flag &
+                                            SCE_XFORM_SKIP_CHILDREN);
   const bool use_transform_data_origin = (scene->toolsettings->transform_flag &
                                           SCE_XFORM_DATA_ORIGIN);
+  struct XFormObjectSkipChild_Container *xcs = NULL;
   struct XFormObjectData_Container *xds = NULL;
 
+  if (use_transform_skip_children) {
+    BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+    xcs = ED_object_xform_skip_child_container_create();
+    ED_object_xform_skip_child_container_item_ensure_from_array(
+        xcs, view_layer, objects, objects_len);
+  }
   if (use_transform_data_origin) {
     BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
     xds = ED_object_data_xform_container_create();
@@ -320,7 +342,8 @@ static int object_clear_transform_generic_exec(bContext *C,
   /* get KeyingSet to use */
   ks = ANIM_get_keyingset_for_autokeying(scene, default_ksName);
 
-  CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *ob = objects[ob_index];
 
     if (use_transform_data_origin) {
       ED_object_data_xform_container_item_ensure(xds, ob);
@@ -334,7 +357,12 @@ static int object_clear_transform_generic_exec(bContext *C,
     /* tag for updates */
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
   }
-  CTX_DATA_END;
+  MEM_freeN(objects);
+
+  if (use_transform_skip_children) {
+    ED_object_xform_skip_child_container_update_all(xcs, bmain, depsgraph);
+    ED_object_xform_skip_child_container_destroy(xcs);
+  }
 
   if (use_transform_data_origin) {
     ED_object_data_xform_container_update_all(xds, bmain, depsgraph);
