@@ -81,17 +81,16 @@ static void set_crazy_vertex_quat(float r_quat[4],
   sub_qt_qtqt(r_quat, q2, q1);
 }
 
-static int modifiers_disable_subsurf_temporary(Object *ob)
+static bool modifiers_disable_subsurf_temporary(struct Scene *scene, Object *ob)
 {
-  ModifierData *md;
-  int disabled = 0;
+  bool disabled = false;
+  int cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 
-  for (md = ob->modifiers.first; md; md = md->next) {
+  ModifierData *md = ob->modifiers.first;
+  for (int i = 0; md && i <= cageIndex; i++, md = md->next) {
     if (md->type == eModifierType_Subsurf) {
-      if (md->mode & eModifierMode_OnCage) {
-        md->mode ^= eModifierMode_DisableTemporary;
-        disabled = 1;
-      }
+      md->mode ^= eModifierMode_DisableTemporary;
+      disabled = true;
     }
   }
 
@@ -108,7 +107,7 @@ float (*BKE_crazyspace_get_mapped_editverts(struct Depsgraph *depsgraph, Object 
   BMEditMesh *editmesh_eval = mesh_eval->edit_mesh;
 
   /* disable subsurf temporal, get mapped cos, and enable it */
-  if (modifiers_disable_subsurf_temporary(obedit_eval)) {
+  if (modifiers_disable_subsurf_temporary(scene_eval, obedit_eval)) {
     /* need to make new derivemesh */
     makeDerivedMesh(depsgraph, scene_eval, obedit_eval, editmesh_eval, &CD_MASK_BAREMESH);
   }
@@ -122,7 +121,7 @@ float (*BKE_crazyspace_get_mapped_editverts(struct Depsgraph *depsgraph, Object 
   mesh_get_mapped_verts_coords(mesh_eval_cage, vertexcos, nverts);
 
   /* set back the flag, no new cage needs to be built, transform does it */
-  modifiers_disable_subsurf_temporary(obedit_eval);
+  modifiers_disable_subsurf_temporary(scene_eval, obedit_eval);
 
   return vertexcos;
 }
