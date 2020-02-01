@@ -320,13 +320,7 @@ static int object_clear_transform_generic_exec(bContext *C,
   /* get KeyingSet to use */
   ks = ANIM_get_keyingset_for_autokeying(scene, default_ksName);
 
-  /* operate on selected objects only if they aren't in weight-paint mode
-   * (so that object-transform clearing won't be applied at same time as bone-clearing)
-   */
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
-    if (ob->mode & OB_MODE_WEIGHT_PAINT) {
-      continue;
-    }
 
     if (use_transform_data_origin) {
       ED_object_data_xform_container_item_ensure(xds, ob);
