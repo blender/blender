@@ -73,6 +73,51 @@ bool ED_object_calc_active_center_for_posemode(struct Object *ob,
                                                float r_center[3]);
 bool ED_object_calc_active_center(struct Object *ob, const bool select_only, float r_center[3]);
 
+/* Object Data Container helper API. */
+struct XFormObjectData_Container;
+struct XFormObjectData_Container *ED_object_data_xform_container_create(void);
+void ED_object_data_xform_container_destroy(struct XFormObjectData_Container *xds);
+void ED_object_data_xform_container_update_all(struct XFormObjectData_Container *xds,
+                                               struct Main *bmain,
+                                               struct Depsgraph *depsgraph);
+void ED_object_data_xform_container_item_ensure(struct XFormObjectData_Container *xds,
+                                                struct Object *ob);
+
+/* Object Skip-Child Container helper API. */
+enum {
+  /**
+   * The parent is transformed, this is held in place.
+   */
+  XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM = 1,
+  /**
+   * The same as #XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM,
+   * however this objects parent isn't transformed directly.
+   */
+  XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM_INDIRECT = 3,
+  /**
+   * Use the parent invert matrix to apply transformation,
+   * this is needed, because breaks in the selection chain prevents this from being transformed.
+   * This is used to add the transform which would have been added
+   * if there weren't breaks in the parent/child chain.
+   */
+  XFORM_OB_SKIP_CHILD_PARENT_APPLY = 2,
+};
+struct XFormObjectSkipChild_Container;
+struct XFormObjectSkipChild_Container *ED_object_xform_skip_child_container_create(void);
+void ED_object_xform_skip_child_container_item_ensure_from_array(
+    struct XFormObjectSkipChild_Container *xcs,
+    struct ViewLayer *view_layer,
+    struct Object **objects,
+    uint objects_len);
+void ED_object_xform_skip_child_container_destroy(struct XFormObjectSkipChild_Container *xcs);
+void ED_object_xform_skip_child_container_update_all(struct XFormObjectSkipChild_Container *xcs,
+                                                     struct Main *bmain,
+                                                     struct Depsgraph *depsgraph);
+void ED_object_xform_skip_child_container_item_ensure(struct XFormObjectSkipChild_Container *xcs,
+                                                      struct Object *ob,
+                                                      struct Object *ob_parent_recurse,
+                                                      int mode);
+
 /* object_ops.c */
 void ED_operatortypes_object(void);
 void ED_operatormacros_object(void);
@@ -420,16 +465,6 @@ void ED_object_data_xform_by_mat4(struct XFormObjectData *xod, const float mat[4
 
 void ED_object_data_xform_restore(struct XFormObjectData *xod);
 void ED_object_data_xform_tag_update(struct XFormObjectData *xod);
-
-/* Container helper API. */
-struct XFormObjectData_Container;
-struct XFormObjectData_Container *ED_object_data_xform_container_create(void);
-void ED_object_data_xform_container_destroy(struct XFormObjectData_Container *xds);
-void ED_object_data_xform_container_update_all(struct XFormObjectData_Container *xds,
-                                               struct Main *bmain,
-                                               struct Depsgraph *depsgraph);
-void ED_object_data_xform_container_item_ensure(struct XFormObjectData_Container *xds,
-                                                struct Object *ob);
 
 #ifdef __cplusplus
 }
