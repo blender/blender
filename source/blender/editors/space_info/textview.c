@@ -160,7 +160,6 @@ static bool console_draw_string(TextViewDrawState *tds,
                                  &tot_lines,
                                  &offsets);
 
-
   int line_height = (tot_lines * tds->lheight) + (tds->row_vpadding * 2);
   int line_bottom = tds->xy[1];
   int line_top = line_bottom + line_height;

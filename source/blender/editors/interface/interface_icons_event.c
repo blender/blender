@@ -74,8 +74,10 @@
 
 #include "interface_intern.h"
 
-static void icon_draw_rect_input_text(
-    const rctf *rect, const float color[4], const char *str, int font_size)
+static void icon_draw_rect_input_text(const rctf *rect,
+                                      const float color[4],
+                                      const char *str,
+                                      int font_size)
 {
   BLF_batch_draw_flush();
   const int font_id = BLF_default();
@@ -206,8 +208,7 @@ void icon_draw_rect_input(float x,
     icon_draw_rect_input_text(&rect, color, (const char[]){'P', 0xe2, 0x86, 0x91, 0x0}, 8);
   }
   else if (event_type == PAGEDOWNKEY) {
-    icon_draw_rect_input_text(
-        &rect, color, (const char[]){'P', 0xe2, 0x86, 0x93, 0x0}, 8);
+    icon_draw_rect_input_text(&rect, color, (const char[]){'P', 0xe2, 0x86, 0x93, 0x0}, 8);
   }
   else if (event_type == LEFTARROWKEY) {
     icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x86, 0x90, 0x0});

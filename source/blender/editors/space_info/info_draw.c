@@ -43,11 +43,11 @@
 #include "GPU_framebuffer.h"
 
 static int report_line_data(struct TextViewContext *tvc,
-                                     unsigned char fg[4],
-                                     unsigned char bg[4],
-                                     int *icon,
-                                     unsigned char icon_fg[4],
-                                     unsigned char icon_bg[4])
+                            unsigned char fg[4],
+                            unsigned char bg[4],
+                            int *icon,
+                            unsigned char icon_fg[4],
+                            unsigned char icon_bg[4])
 {
   Report *report = (Report *)tvc->iter;
 

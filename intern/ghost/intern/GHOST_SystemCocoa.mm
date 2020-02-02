@@ -1730,13 +1730,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
       NSPoint mousePos = [cocoawindow mouseLocationOutsideOfEventStream];
       GHOST_TInt32 x, y;
       window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
-      pushEvent(new GHOST_EventTrackpad([event timestamp] * 1000,
-                                        window,
-                                        GHOST_kTrackpadEventSmartMagnify,
-                                        x,
-                                        y,
-                                        0,
-                                        0));
+      pushEvent(new GHOST_EventTrackpad(
+          [event timestamp] * 1000, window, GHOST_kTrackpadEventSmartMagnify, x, y, 0, 0));
     } break;
 
     case NSEventTypeRotate: {

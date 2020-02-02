@@ -947,7 +947,10 @@ ImBuf *filelist_geticon_image(struct FileList *filelist, const int index)
   return filelist_geticon_image_ex(file->typeflag, file->relpath);
 }
 
-static int filelist_geticon_ex(FileDirEntry *file, const char *root, const bool is_main, const bool ignore_libdir)
+static int filelist_geticon_ex(FileDirEntry *file,
+                               const char *root,
+                               const bool is_main,
+                               const bool ignore_libdir)
 {
   const int typeflag = file->typeflag;
 

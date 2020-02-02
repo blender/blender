@@ -43,11 +43,11 @@
 #include "../space_info/textview.h"
 
 static int console_line_data(struct TextViewContext *tvc,
-                                      unsigned char fg[4],
-                                      unsigned char UNUSED(bg[4]),
-                                      int *UNUSED(icon),
-                                      unsigned char UNUSED(icon_fg[4]),
-                                      unsigned char UNUSED(icon_bg[4]))
+                             unsigned char fg[4],
+                             unsigned char UNUSED(bg[4]),
+                             int *UNUSED(icon),
+                             unsigned char UNUSED(icon_fg[4]),
+                             unsigned char UNUSED(icon_bg[4]))
 {
   ConsoleLine *cl_iter = (ConsoleLine *)tvc->iter;
   int fg_id = TH_TEXT;
