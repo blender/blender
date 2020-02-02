@@ -870,6 +870,7 @@ void ED_view3d_grid_steps(Scene *scene,
   int i, len;
   bUnit_GetSystem(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
   float grid_scale = v3d->grid;
+  BLI_assert(STEPS_LEN >= len);
 
   if (usys) {
     if (rv3d->view == RV3D_VIEW_USER) {
@@ -903,7 +904,6 @@ void ED_view3d_grid_steps(Scene *scene,
     }
   }
 }
-#undef STEPS_LEN
 
 /* Simulates the grid scale that is actually viewed.
  * The actual code is seen in `object_grid_frag.glsl` (see `grid_res`).
@@ -919,10 +919,11 @@ float ED_view3d_grid_view_scale(Scene *scene,
     /* `0.38` was a value visually obtained in order to get a snap distance
      * that matches previous versions Blender.*/
     float min_dist = 0.38f * (rv3d->dist / v3d->lens);
-    float grid_steps[8];
+    float grid_steps[STEPS_LEN];
     ED_view3d_grid_steps(scene, v3d, rv3d, grid_steps);
+    /* Skip last item, in case the 'mid_dist' is greater than the largest unit. */
     int i;
-    for (i = 0; i < ARRAY_SIZE(grid_steps); i++) {
+    for (i = 0; i < ARRAY_SIZE(grid_steps) - 1; i++) {
       grid_scale = grid_steps[i];
       if (grid_scale > min_dist) {
         break;
@@ -945,6 +946,8 @@ float ED_view3d_grid_view_scale(Scene *scene,
 
   return grid_scale;
 }
+
+#undef STEPS_LEN
 
 static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 {
