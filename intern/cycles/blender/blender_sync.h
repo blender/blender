@@ -127,16 +127,15 @@ class BlenderSync {
                   BL::Object &b_ob,
                   BL::Object &b_ob_instance,
                   bool object_updated,
-                  bool show_self,
-                  bool show_particles);
-  void sync_curves(
+                  bool use_particle_hair);
+  bool object_has_particle_hair(BL::Object b_ob);
+  void sync_particle_hair(
       Mesh *mesh, BL::Mesh &b_mesh, BL::Object &b_ob, bool motion, int motion_step = 0);
   Object *sync_object(BL::Depsgraph &b_depsgraph,
                       BL::ViewLayer &b_view_layer,
                       BL::DepsgraphObjectInstance &b_instance,
                       float motion_time,
-                      bool show_self,
-                      bool show_particles,
+                      bool use_particle_hair,
                       bool show_lights,
                       BlenderObjectCulling &culling,
                       bool *use_portal);
@@ -179,7 +178,7 @@ class BlenderSync {
 
   id_map<void *, Shader> shader_map;
   id_map<ObjectKey, Object> object_map;
-  id_map<void *, Mesh> mesh_map;
+  id_map<MeshKey, Mesh> mesh_map;
   id_map<ObjectKey, Light> light_map;
   id_map<ParticleSystemKey, ParticleSystem> particle_system_map;
   set<Mesh *> mesh_synced;

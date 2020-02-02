@@ -625,6 +625,11 @@ template<typename K, typename T> class id_map {
     return sync(r_data, id, id, id.ptr.owner_id);
   }
 
+  bool sync(T **r_data, const BL::ID &id, const K &key)
+  {
+    return sync(r_data, id, id, key);
+  }
+
   bool sync(T **r_data, const BL::ID &id, const BL::ID &parent, const K &key)
   {
     T *data = find(key);
@@ -639,8 +644,9 @@ template<typename K, typename T> class id_map {
     }
     else {
       recalc = (b_recalc.find(id.ptr.data) != b_recalc.end());
-      if (parent.ptr.data)
+      if (parent.ptr.data && parent.ptr.data != id.ptr.data) {
         recalc = recalc || (b_recalc.find(parent.ptr.data) != b_recalc.end());
+      }
     }
 
     used(data);
@@ -725,9 +731,10 @@ struct ObjectKey {
   void *parent;
   int id[OBJECT_PERSISTENT_ID_SIZE];
   void *ob;
+  bool use_particle_hair;
 
-  ObjectKey(void *parent_, int id_[OBJECT_PERSISTENT_ID_SIZE], void *ob_)
-      : parent(parent_), ob(ob_)
+  ObjectKey(void *parent_, int id_[OBJECT_PERSISTENT_ID_SIZE], void *ob_, bool use_particle_hair_)
+      : parent(parent_), ob(ob_), use_particle_hair(use_particle_hair_)
   {
     if (id_)
       memcpy(id, id_, sizeof(id));
@@ -741,10 +748,42 @@ struct ObjectKey {
       return true;
     }
     else if (ob == k.ob) {
-      if (parent < k.parent)
+      if (parent < k.parent) {
         return true;
-      else if (parent == k.parent)
-        return memcmp(id, k.id, sizeof(id)) < 0;
+      }
+      else if (parent == k.parent) {
+        if (use_particle_hair < k.use_particle_hair) {
+          return true;
+        }
+        else if (use_particle_hair == k.use_particle_hair) {
+          return memcmp(id, k.id, sizeof(id)) < 0;
+        }
+      }
+    }
+
+    return false;
+  }
+};
+
+/* Mesh Key */
+
+struct MeshKey {
+  void *id;
+  bool use_particle_hair;
+
+  MeshKey(void *id, bool use_particle_hair) : id(id), use_particle_hair(use_particle_hair)
+  {
+  }
+
+  bool operator<(const MeshKey &k) const
+  {
+    if (id < k.id) {
+      return true;
+    }
+    else if (id == k.id) {
+      if (use_particle_hair < k.use_particle_hair) {
+        return true;
+      }
     }
 
     return false;

@@ -964,7 +964,29 @@ void BlenderSync::sync_curve_settings()
     curve_system_manager->tag_update(scene);
 }
 
-void BlenderSync::sync_curves(
+bool BlenderSync::object_has_particle_hair(BL::Object b_ob)
+{
+  /* Test if the object has a particle modifier with hair. */
+  BL::Object::modifiers_iterator b_mod;
+  for (b_ob.modifiers.begin(b_mod); b_mod != b_ob.modifiers.end(); ++b_mod) {
+    if ((b_mod->type() == b_mod->type_PARTICLE_SYSTEM) &&
+        (preview ? b_mod->show_viewport() : b_mod->show_render())) {
+      BL::ParticleSystemModifier psmd((const PointerRNA)b_mod->ptr);
+      BL::ParticleSystem b_psys((const PointerRNA)psmd.particle_system().ptr);
+      BL::ParticleSettings b_part((const PointerRNA)b_psys.settings().ptr);
+
+      if ((b_part.render_type() == BL::ParticleSettings::render_type_PATH) &&
+          (b_part.type() == BL::ParticleSettings::type_HAIR)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/* Old particle hair. */
+void BlenderSync::sync_particle_hair(
     Mesh *mesh, BL::Mesh &b_mesh, BL::Object &b_ob, bool motion, int motion_step)
 {
   if (!motion) {

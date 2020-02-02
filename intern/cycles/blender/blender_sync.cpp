@@ -108,10 +108,12 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
     }
 
     if (dicing_prop_changed) {
-      for (const pair<void *, Mesh *> &iter : mesh_map.key_to_scene_data()) {
+      for (const pair<MeshKey, Mesh *> &iter : mesh_map.key_to_scene_data()) {
         Mesh *mesh = iter.second;
         if (mesh->subdivision_type != Mesh::SUBDIVISION_NONE) {
-          mesh_map.set_recalc(iter.first);
+          PointerRNA id_ptr;
+          RNA_id_pointer_create((::ID *)iter.first.id, &id_ptr);
+          mesh_map.set_recalc(BL::ID(id_ptr));
         }
       }
     }

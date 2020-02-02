@@ -115,7 +115,7 @@ void BlenderSync::sync_light(BL::Object &b_parent,
 {
   /* test if we need to sync */
   Light *light;
-  ObjectKey key(b_parent, persistent_id, b_ob_instance);
+  ObjectKey key(b_parent, persistent_id, b_ob_instance, false);
   BL::Light b_light(b_ob.data());
 
   /* Update if either object or light data changed. */
@@ -254,7 +254,7 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d, bool use_portal)
     if (sample_as_light || use_portal) {
       /* test if we need to sync */
       Light *light;
-      ObjectKey key(b_world, 0, b_world);
+      ObjectKey key(b_world, 0, b_world, false);
 
       if (light_map.sync(&light, b_world, b_world, key) || world_recalc ||
           b_world.ptr.data != world_map) {
@@ -295,8 +295,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
                                  BL::ViewLayer &b_view_layer,
                                  BL::DepsgraphObjectInstance &b_instance,
                                  float motion_time,
-                                 bool show_self,
-                                 bool show_particles,
+                                 bool use_particle_hair,
                                  bool show_lights,
                                  BlenderObjectCulling &culling,
                                  bool *use_portal)
@@ -378,7 +377,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   }
 
   /* key to lookup object */
-  ObjectKey key(b_parent, persistent_id, b_ob_instance);
+  ObjectKey key(b_parent, persistent_id, b_ob_instance, use_particle_hair);
   Object *object;
 
   /* motion vector case */
@@ -407,8 +406,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
     object_updated = true;
 
   /* mesh sync */
-  object->mesh = sync_mesh(
-      b_depsgraph, b_ob, b_ob_instance, object_updated, show_self, show_particles);
+  object->mesh = sync_mesh(b_depsgraph, b_ob, b_ob_instance, object_updated, use_particle_hair);
 
   /* special case not tracked by object update flags */
 
@@ -552,22 +550,34 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
     BL::DepsgraphObjectInstance b_instance = *b_instance_iter;
     BL::Object b_ob = b_instance.object();
 
-    /* load per-object culling data */
+    /* Viewport visibility. */
+    const bool show_in_viewport = !b_v3d || b_ob.visible_in_viewport_get(b_v3d);
+    if (show_in_viewport == false) {
+      continue;
+    }
+
+    /* Load per-object culling data. */
     culling.init_object(scene, b_ob);
 
-    /* test if object needs to be hidden */
-    const bool show_self = b_instance.show_self();
-    const bool show_particles = b_instance.show_particles();
-    const bool show_in_viewport = !b_v3d || b_ob.visible_in_viewport_get(b_v3d);
-
-    if (show_in_viewport && (show_self || show_particles)) {
-      /* object itself */
+    /* Object itself. */
+    if (b_instance.show_self()) {
       sync_object(b_depsgraph,
                   b_view_layer,
                   b_instance,
                   motion_time,
-                  show_self,
-                  show_particles,
+                  false,
+                  show_lights,
+                  culling,
+                  &use_portal);
+    }
+
+    /* Particle hair as separate object. */
+    if (b_instance.show_particles() && object_has_particle_hair(b_ob)) {
+      sync_object(b_depsgraph,
+                  b_view_layer,
+                  b_instance,
+                  motion_time,
+                  true,
                   show_lights,
                   culling,
                   &use_portal);

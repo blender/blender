@@ -967,12 +967,12 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph &b_depsgraph,
                              BL::Object &b_ob,
                              BL::Object &b_ob_instance,
                              bool object_updated,
-                             bool show_self,
-                             bool show_particles)
+                             bool use_particle_hair)
 {
   /* test if we can instance or if the object is modified */
   BL::ID b_ob_data = b_ob.data();
-  BL::ID key = (BKE_object_is_modified(b_ob)) ? b_ob_instance : b_ob_data;
+  BL::ID b_key_id = (BKE_object_is_modified(b_ob)) ? b_ob_instance : b_ob_data;
+  MeshKey key(b_key_id.ptr.data, use_particle_hair);
   BL::Material material_override = view_layer.material_override;
 
   /* find shader indices */
@@ -1006,7 +1006,7 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph &b_depsgraph,
   }
   Mesh *mesh;
 
-  if (!mesh_map.sync(&mesh, key)) {
+  if (!mesh_map.sync(&mesh, b_key_id, key)) {
     /* if transform was applied to mesh, need full update */
     if (object_updated && mesh->transform_applied)
       ;
@@ -1078,7 +1078,7 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph &b_depsgraph,
 
     if (b_mesh) {
       /* Sync mesh itself. */
-      if (view_layer.use_surfaces && show_self) {
+      if (view_layer.use_surfaces && !use_particle_hair) {
         if (mesh->subdivision_type != Mesh::SUBDIVISION_NONE)
           create_subd_mesh(scene, mesh, b_ob, b_mesh, used_shaders, dicing_rate, max_subdivisions);
         else
@@ -1088,9 +1088,9 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph &b_depsgraph,
       }
 
       /* Sync hair curves. */
-      if (view_layer.use_hair && show_particles &&
+      if (view_layer.use_hair && use_particle_hair &&
           mesh->subdivision_type == Mesh::SUBDIVISION_NONE) {
-        sync_curves(mesh, b_mesh, b_ob, false);
+        sync_particle_hair(mesh, b_mesh, b_ob, false);
       }
 
       free_object_to_mesh(b_data, b_ob, b_mesh);
@@ -1099,7 +1099,9 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph &b_depsgraph,
   mesh->geometry_flags = requested_geometry_flags;
 
   /* mesh fluid motion mantaflow */
-  sync_mesh_fluid_motion(b_ob, scene, mesh);
+  if (!use_particle_hair) {
+    sync_mesh_fluid_motion(b_ob, scene, mesh);
+  }
 
   /* tag update */
   bool rebuild = (oldtriangles != mesh->triangles) || (oldsubd_faces != mesh->subd_faces) ||
@@ -1258,7 +1260,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph &b_depsgraph,
 
   /* hair motion */
   if (numkeys)
-    sync_curves(mesh, b_mesh, b_ob, true, motion_step);
+    sync_particle_hair(mesh, b_mesh, b_ob, true, motion_step);
 
   /* free derived mesh */
   free_object_to_mesh(b_data, b_ob, b_mesh);
