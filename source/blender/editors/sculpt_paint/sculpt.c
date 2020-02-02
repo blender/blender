@@ -3230,6 +3230,91 @@ static void do_slide_relax_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
   }
 }
 
+static void calc_sculpt_plane(
+    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3], float r_area_co[3])
+{
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  if (ss->cache->mirror_symmetry_pass == 0 && ss->cache->radial_symmetry_pass == 0 &&
+      ss->cache->tile_pass == 0 &&
+      (ss->cache->first_time || !(brush->flag & BRUSH_ORIGINAL_PLANE) ||
+       !(brush->flag & BRUSH_ORIGINAL_NORMAL))) {
+    switch (brush->sculpt_plane) {
+      case SCULPT_DISP_DIR_VIEW:
+        copy_v3_v3(r_area_no, ss->cache->true_view_normal);
+        break;
+
+      case SCULPT_DISP_DIR_X:
+        ARRAY_SET_ITEMS(r_area_no, 1.0f, 0.0f, 0.0f);
+        break;
+
+      case SCULPT_DISP_DIR_Y:
+        ARRAY_SET_ITEMS(r_area_no, 0.0f, 1.0f, 0.0f);
+        break;
+
+      case SCULPT_DISP_DIR_Z:
+        ARRAY_SET_ITEMS(r_area_no, 0.0f, 0.0f, 1.0f);
+        break;
+
+      case SCULPT_DISP_DIR_AREA:
+        calc_area_normal_and_center(sd, ob, nodes, totnode, r_area_no, r_area_co);
+        if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+          project_plane_v3_v3v3(r_area_no, r_area_no, ss->cache->view_normal);
+          normalize_v3(r_area_no);
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    /* For flatten center. */
+    /* Flatten center has not been calculated yet if we are not using the area normal. */
+    if (brush->sculpt_plane != SCULPT_DISP_DIR_AREA) {
+      calc_area_center(sd, ob, nodes, totnode, r_area_co);
+    }
+
+    /* For area normal. */
+    if ((!ss->cache->first_time) && (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
+      copy_v3_v3(r_area_no, ss->cache->sculpt_normal);
+    }
+    else {
+      copy_v3_v3(ss->cache->sculpt_normal, r_area_no);
+    }
+
+    /* For flatten center. */
+    if ((!ss->cache->first_time) && (brush->flag & BRUSH_ORIGINAL_PLANE)) {
+      copy_v3_v3(r_area_co, ss->cache->last_center);
+    }
+    else {
+      copy_v3_v3(ss->cache->last_center, r_area_co);
+    }
+  }
+  else {
+    /* For area normal. */
+    copy_v3_v3(r_area_no, ss->cache->sculpt_normal);
+
+    /* For flatten center. */
+    copy_v3_v3(r_area_co, ss->cache->last_center);
+
+    /* For area normal. */
+    flip_v3(r_area_no, ss->cache->mirror_symmetry_pass);
+
+    /* For flatten center. */
+    flip_v3(r_area_co, ss->cache->mirror_symmetry_pass);
+
+    /* For area normal. */
+    mul_m4_v3(ss->cache->symm_rot_mat, r_area_no);
+
+    /* For flatten center. */
+    mul_m4_v3(ss->cache->symm_rot_mat, r_area_co);
+
+    /* Shift the plane for the current tile. */
+    add_v3_v3(r_area_co, ss->cache->plane_offset);
+  }
+}
+
 /** \} */
 
 /**
@@ -3354,6 +3439,7 @@ static void do_pinch_brush_task_cb_ex(void *__restrict userdata,
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
+  float(*stroke_xz)[3] = data->stroke_xz;
 
   PBVHVertexIter vd;
   float(*proxy)[3];
@@ -3364,6 +3450,11 @@ static void do_pinch_brush_task_cb_ex(void *__restrict userdata,
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = sculpt_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
+
+  float x_object_space[3];
+  float z_object_space[3];
+  copy_v3_v3(x_object_space, stroke_xz[0]);
+  copy_v3_v3(z_object_space, stroke_xz[1]);
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
@@ -3377,13 +3468,26 @@ static void do_pinch_brush_task_cb_ex(void *__restrict userdata,
                                                   vd.mask ? *vd.mask : 0.0f,
                                                   vd.index,
                                                   tls->thread_id);
-      float val[3];
+      float disp_center[3];
+      float x_disp[3];
+      float z_disp[3];
+      /* Calcualte displacement from the vertex to the brush center. */
+      sub_v3_v3v3(disp_center, test.location, vd.co);
 
-      sub_v3_v3v3(val, test.location, vd.co);
+      /* Project the displacement into the X vector (aligned to the stroke). */
+      mul_v3_v3fl(x_disp, x_object_space, dot_v3v3(disp_center, x_object_space));
+
+      /* Project the displacement into the Z vector (aligned to the surface normal). */
+      mul_v3_v3fl(z_disp, z_object_space, dot_v3v3(disp_center, z_object_space));
+
+      /* Add the two projected vectors to calculate the final displacement. The Y component is
+       * removed */
+      add_v3_v3v3(disp_center, x_disp, z_disp);
+
       if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-        project_plane_v3_v3v3(val, val, ss->cache->view_normal);
+        project_plane_v3_v3v3(disp_center, disp_center, ss->cache->view_normal);
       }
-      mul_v3_v3fl(proxy[vd.i], val, fade);
+      mul_v3_v3fl(proxy[vd.i], disp_center, fade);
 
       if (vd.mvert) {
         vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -3395,13 +3499,45 @@ static void do_pinch_brush_task_cb_ex(void *__restrict userdata,
 
 static void do_pinch_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
+  SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
+
+  float area_no[3];
+  float area_co[3];
+
+  float mat[4][4];
+  calc_sculpt_plane(sd, ob, nodes, totnode, area_no, area_co);
+
+  /* delay the first daub because grab delta is not setup */
+  if (ss->cache->first_time) {
+    return;
+  }
+
+  if (is_zero_v3(ss->cache->grab_delta_symmetry)) {
+    return;
+  }
+
+  /* Init mat */
+  cross_v3_v3v3(mat[0], area_no, ss->cache->grab_delta_symmetry);
+  mat[0][3] = 0.0f;
+  cross_v3_v3v3(mat[1], area_no, mat[0]);
+  mat[1][3] = 0.0f;
+  copy_v3_v3(mat[2], area_no);
+  mat[2][3] = 0.0f;
+  copy_v3_v3(mat[3], ss->cache->location);
+  mat[3][3] = 1.0f;
+  normalize_m4(mat);
+
+  float stroke_xz[2][3];
+  normalize_v3_v3(stroke_xz[0], mat[0]);
+  normalize_v3_v3(stroke_xz[1], mat[2]);
 
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
       .brush = brush,
       .nodes = nodes,
+      .stroke_xz = stroke_xz,
   };
 
   PBVHParallelSettings settings;
@@ -4769,91 +4905,6 @@ static void do_inflate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
   PBVHParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
   BKE_pbvh_parallel_range(0, totnode, &data, do_inflate_brush_task_cb_ex, &settings);
-}
-
-static void calc_sculpt_plane(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3], float r_area_co[3])
-{
-  SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
-
-  if (ss->cache->mirror_symmetry_pass == 0 && ss->cache->radial_symmetry_pass == 0 &&
-      ss->cache->tile_pass == 0 &&
-      (ss->cache->first_time || !(brush->flag & BRUSH_ORIGINAL_PLANE) ||
-       !(brush->flag & BRUSH_ORIGINAL_NORMAL))) {
-    switch (brush->sculpt_plane) {
-      case SCULPT_DISP_DIR_VIEW:
-        copy_v3_v3(r_area_no, ss->cache->true_view_normal);
-        break;
-
-      case SCULPT_DISP_DIR_X:
-        ARRAY_SET_ITEMS(r_area_no, 1.0f, 0.0f, 0.0f);
-        break;
-
-      case SCULPT_DISP_DIR_Y:
-        ARRAY_SET_ITEMS(r_area_no, 0.0f, 1.0f, 0.0f);
-        break;
-
-      case SCULPT_DISP_DIR_Z:
-        ARRAY_SET_ITEMS(r_area_no, 0.0f, 0.0f, 1.0f);
-        break;
-
-      case SCULPT_DISP_DIR_AREA:
-        calc_area_normal_and_center(sd, ob, nodes, totnode, r_area_no, r_area_co);
-        if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-          project_plane_v3_v3v3(r_area_no, r_area_no, ss->cache->view_normal);
-          normalize_v3(r_area_no);
-        }
-        break;
-
-      default:
-        break;
-    }
-
-    /* For flatten center. */
-    /* Flatten center has not been calculated yet if we are not using the area normal. */
-    if (brush->sculpt_plane != SCULPT_DISP_DIR_AREA) {
-      calc_area_center(sd, ob, nodes, totnode, r_area_co);
-    }
-
-    /* For area normal. */
-    if ((!ss->cache->first_time) && (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
-      copy_v3_v3(r_area_no, ss->cache->sculpt_normal);
-    }
-    else {
-      copy_v3_v3(ss->cache->sculpt_normal, r_area_no);
-    }
-
-    /* For flatten center. */
-    if ((!ss->cache->first_time) && (brush->flag & BRUSH_ORIGINAL_PLANE)) {
-      copy_v3_v3(r_area_co, ss->cache->last_center);
-    }
-    else {
-      copy_v3_v3(ss->cache->last_center, r_area_co);
-    }
-  }
-  else {
-    /* For area normal. */
-    copy_v3_v3(r_area_no, ss->cache->sculpt_normal);
-
-    /* For flatten center. */
-    copy_v3_v3(r_area_co, ss->cache->last_center);
-
-    /* For area normal. */
-    flip_v3(r_area_no, ss->cache->mirror_symmetry_pass);
-
-    /* For flatten center. */
-    flip_v3(r_area_co, ss->cache->mirror_symmetry_pass);
-
-    /* For area normal. */
-    mul_m4_v3(ss->cache->symm_rot_mat, r_area_no);
-
-    /* For flatten center. */
-    mul_m4_v3(ss->cache->symm_rot_mat, r_area_co);
-
-    /* Shift the plane for the current tile. */
-    add_v3_v3(r_area_co, ss->cache->plane_offset);
-  }
 }
 
 static int plane_trim(const StrokeCache *cache, const Brush *brush, const float val[3])
@@ -7137,6 +7188,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
            SCULPT_TOOL_ELASTIC_DEFORM,
            SCULPT_TOOL_NUDGE,
            SCULPT_TOOL_CLAY_STRIPS,
+           SCULPT_TOOL_PINCH,
            SCULPT_TOOL_MULTIPLANE_SCRAPE,
            SCULPT_TOOL_CLAY_THUMB,
            SCULPT_TOOL_SNAKE_HOOK,
@@ -7174,6 +7226,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
           add_v3_v3(cache->grab_delta, delta);
           break;
         case SCULPT_TOOL_CLAY_STRIPS:
+        case SCULPT_TOOL_PINCH:
         case SCULPT_TOOL_MULTIPLANE_SCRAPE:
         case SCULPT_TOOL_CLAY_THUMB:
         case SCULPT_TOOL_NUDGE:

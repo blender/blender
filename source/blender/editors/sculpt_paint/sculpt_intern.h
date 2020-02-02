@@ -202,6 +202,10 @@ typedef struct SculptThreadedTaskData {
   float (*mat)[4];
   float (*vertCos)[3];
 
+  /* X and Z vectors aligned to the stroke direction for operations where perpendicular vectors to
+   * the stroke direction are needed. */
+  float (*stroke_xz)[3];
+
   int filter_type;
   float filter_strength;
 
