@@ -2937,6 +2937,10 @@ class VIEW3D_MT_sculpt(Menu):
 
         layout.menu("VIEW3D_MT_sculpt_set_pivot", text="Set Pivot")
 
+        layout.separator()
+
+        layout.operator("sculpt.optimize")
+
 
 class VIEW3D_MT_mask(Menu):
     bl_label = "Mask"

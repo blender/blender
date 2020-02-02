@@ -8308,13 +8308,13 @@ static bool sculpt_and_dynamic_topology_poll(bContext *C)
 static void SCULPT_OT_optimize(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Optimize";
+  ot->name = "Rebuild BVH";
   ot->idname = "SCULPT_OT_optimize";
   ot->description = "Recalculate the sculpt BVH to improve performance";
 
   /* api callbacks */
   ot->exec = sculpt_optimize_exec;
-  ot->poll = sculpt_and_dynamic_topology_poll;
+  ot->poll = sculpt_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
