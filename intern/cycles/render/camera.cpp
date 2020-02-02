@@ -498,7 +498,7 @@ void Camera::device_update_volume(Device * /*device*/, DeviceScene *dscene, Scen
   BoundBox viewplane_boundbox = viewplane_bounds_get();
   for (size_t i = 0; i < scene->objects.size(); ++i) {
     Object *object = scene->objects[i];
-    if (object->mesh->has_volume && viewplane_boundbox.intersects(object->bounds)) {
+    if (object->geometry->has_volume && viewplane_boundbox.intersects(object->bounds)) {
       /* TODO(sergey): Consider adding more grained check. */
       VLOG(1) << "Detected camera inside volume.";
       kcam->is_inside_volume = 1;

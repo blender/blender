@@ -32,9 +32,9 @@ CCL_NAMESPACE_BEGIN
  */
 
 BVH4::BVH4(const BVHParams &params_,
-           const vector<Mesh *> &meshes_,
+           const vector<Geometry *> &geometry_,
            const vector<Object *> &objects_)
-    : BVH(params_, meshes_, objects_)
+    : BVH(params_, geometry_, objects_)
 {
   params.bvh_layout = BVH_LAYOUT_BVH4;
 }

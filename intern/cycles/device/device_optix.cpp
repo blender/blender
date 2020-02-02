@@ -22,6 +22,7 @@
 #  include "device/device_denoising.h"
 #  include "bvh/bvh.h"
 #  include "render/scene.h"
+#  include "render/hair.h"
 #  include "render/mesh.h"
 #  include "render/object.h"
 #  include "render/buffers.h"
@@ -1229,8 +1230,8 @@ class OptiXDevice : public Device {
     assert(bvh->params.top_level);
 
     unsigned int num_instances = 0;
-    unordered_map<Mesh *, vector<OptixTraversableHandle>> meshes;
-    meshes.reserve(bvh->meshes.size());
+    unordered_map<Geometry *, OptixTraversableHandle> geometry;
+    geometry.reserve(bvh->geometry.size());
 
     // Free all previous acceleration structures
     for (CUdeviceptr mem : as_mem) {
@@ -1241,23 +1242,25 @@ class OptiXDevice : public Device {
     // Build bottom level acceleration structures (BLAS)
     // Note: Always keep this logic in sync with bvh_optix.cpp!
     for (Object *ob : bvh->objects) {
-      // Skip meshes for which acceleration structure already exists
-      if (meshes.find(ob->mesh) != meshes.end())
+      // Skip geometry for which acceleration structure already exists
+      Geometry *geom = ob->geometry;
+      if (geometry.find(geom) != geometry.end())
         continue;
 
-      Mesh *const mesh = ob->mesh;
-      vector<OptixTraversableHandle> handles;
-      handles.reserve(2);
+      if (geom->type == Geometry::HAIR) {
+        // Build BLAS for curve primitives
+        Hair *const hair = static_cast<Hair *const>(ob->geometry);
+        if (hair->num_curves() == 0) {
+          continue;
+        }
 
-      // Build BLAS for curve primitives
-      if (bvh->params.primitive_mask & PRIMITIVE_ALL_CURVE && mesh->num_curves() > 0) {
-        const size_t num_curves = mesh->num_curves();
-        const size_t num_segments = mesh->num_segments();
+        const size_t num_curves = hair->num_curves();
+        const size_t num_segments = hair->num_segments();
 
         size_t num_motion_steps = 1;
-        Attribute *motion_keys = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-        if (motion_blur && mesh->use_motion_blur && motion_keys) {
-          num_motion_steps = mesh->motion_steps;
+        Attribute *motion_keys = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+        if (motion_blur && hair->use_motion_blur && motion_keys) {
+          num_motion_steps = hair->motion_steps;
         }
 
         device_vector<OptixAabb> aabb_data(this, "temp_aabb_data", MEM_READ_ONLY);
@@ -1266,21 +1269,21 @@ class OptiXDevice : public Device {
         // Get AABBs for each motion step
         for (size_t step = 0; step < num_motion_steps; ++step) {
           // The center step for motion vertices is not stored in the attribute
-          const float3 *keys = mesh->curve_keys.data();
+          const float3 *keys = hair->curve_keys.data();
           size_t center_step = (num_motion_steps - 1) / 2;
           if (step != center_step) {
             size_t attr_offset = (step > center_step) ? step - 1 : step;
             // Technically this is a float4 array, but sizeof(float3) is the same as sizeof(float4)
-            keys = motion_keys->data_float3() + attr_offset * mesh->curve_keys.size();
+            keys = motion_keys->data_float3() + attr_offset * hair->curve_keys.size();
           }
 
           size_t i = step * num_segments;
           for (size_t j = 0; j < num_curves; ++j) {
-            const Mesh::Curve c = mesh->get_curve(j);
+            const Hair::Curve c = hair->get_curve(j);
 
             for (size_t k = 0; k < c.num_segments(); ++i, ++k) {
               BoundBox bounds = BoundBox::empty;
-              c.bounds_grow(k, keys, mesh->curve_radius.data(), bounds);
+              c.bounds_grow(k, keys, hair->curve_radius.data(), bounds);
 
               aabb_data[i].minX = bounds.min.x;
               aabb_data[i].minY = bounds.min.y;
@@ -1311,16 +1314,24 @@ class OptiXDevice : public Device {
         build_input.aabbArray.strideInBytes = sizeof(OptixAabb);
         build_input.aabbArray.flags = &build_flags;
         build_input.aabbArray.numSbtRecords = 1;
-        build_input.aabbArray.primitiveIndexOffset = mesh->prim_offset;
+        build_input.aabbArray.primitiveIndexOffset = hair->optix_prim_offset;
 
         // Allocate memory for new BLAS and build it
-        handles.emplace_back();
-        if (!build_optix_bvh(build_input, num_motion_steps, handles.back()))
+        OptixTraversableHandle handle;
+        if (build_optix_bvh(build_input, num_motion_steps, handle)) {
+          geometry.insert({ob->geometry, handle});
+        }
+        else {
           return false;
+        }
       }
+      else if (geom->type == Geometry::MESH) {
+        // Build BLAS for triangle primitives
+        Mesh *const mesh = static_cast<Mesh *const>(ob->geometry);
+        if (mesh->num_triangles() == 0) {
+          continue;
+        }
 
-      // Build BLAS for triangle primitives
-      if (bvh->params.primitive_mask & PRIMITIVE_ALL_TRIANGLE && mesh->num_triangles() > 0) {
         const size_t num_verts = mesh->verts.size();
 
         size_t num_motion_steps = 1;
@@ -1375,23 +1386,24 @@ class OptiXDevice : public Device {
         // buffers for that purpose. OptiX does not allow this to be zero though, so just pass in
         // one and rely on that having the same meaning in this case.
         build_input.triangleArray.numSbtRecords = 1;
-        // Triangle primitives are packed right after the curve primitives of this mesh
-        build_input.triangleArray.primitiveIndexOffset = mesh->prim_offset + mesh->num_segments();
+        build_input.triangleArray.primitiveIndexOffset = mesh->optix_prim_offset;
 
         // Allocate memory for new BLAS and build it
-        handles.emplace_back();
-        if (!build_optix_bvh(build_input, num_motion_steps, handles.back()))
+        OptixTraversableHandle handle;
+        if (build_optix_bvh(build_input, num_motion_steps, handle)) {
+          geometry.insert({ob->geometry, handle});
+        }
+        else {
           return false;
+        }
       }
-
-      meshes.insert({mesh, handles});
     }
 
     // Fill instance descriptions
     device_vector<OptixAabb> aabbs(this, "tlas_aabbs", MEM_READ_ONLY);
-    aabbs.alloc(bvh->objects.size() * 2);
+    aabbs.alloc(bvh->objects.size());
     device_vector<OptixInstance> instances(this, "tlas_instances", MEM_READ_ONLY);
-    instances.alloc(bvh->objects.size() * 2);
+    instances.alloc(bvh->objects.size());
 
     for (Object *ob : bvh->objects) {
       // Skip non-traceable objects
@@ -1399,113 +1411,117 @@ class OptiXDevice : public Device {
         continue;
 
       // Create separate instance for triangle/curve meshes of an object
-      for (OptixTraversableHandle handle : meshes[ob->mesh]) {
-        OptixAabb &aabb = aabbs[num_instances];
-        aabb.minX = ob->bounds.min.x;
-        aabb.minY = ob->bounds.min.y;
-        aabb.minZ = ob->bounds.min.z;
-        aabb.maxX = ob->bounds.max.x;
-        aabb.maxY = ob->bounds.max.y;
-        aabb.maxZ = ob->bounds.max.z;
+      auto handle_it = geometry.find(ob->geometry);
+      if (handle_it == geometry.end()) {
+        continue;
+      }
+      OptixTraversableHandle handle = handle_it->second;
 
-        OptixInstance &instance = instances[num_instances++];
-        memset(&instance, 0, sizeof(instance));
+      OptixAabb &aabb = aabbs[num_instances];
+      aabb.minX = ob->bounds.min.x;
+      aabb.minY = ob->bounds.min.y;
+      aabb.minZ = ob->bounds.min.z;
+      aabb.maxX = ob->bounds.max.x;
+      aabb.maxY = ob->bounds.max.y;
+      aabb.maxZ = ob->bounds.max.z;
 
-        // Clear transform to identity matrix
-        instance.transform[0] = 1.0f;
-        instance.transform[5] = 1.0f;
-        instance.transform[10] = 1.0f;
+      OptixInstance &instance = instances[num_instances++];
+      memset(&instance, 0, sizeof(instance));
 
-        // Set user instance ID to object index
-        instance.instanceId = ob->get_device_index();
+      // Clear transform to identity matrix
+      instance.transform[0] = 1.0f;
+      instance.transform[5] = 1.0f;
+      instance.transform[10] = 1.0f;
 
-        // Volumes have a special bit set in the visibility mask so a trace can mask only volumes
-        // See 'scene_intersect_volume' in bvh.h
-        instance.visibilityMask = (ob->mesh->has_volume ? 3 : 1);
+      // Set user instance ID to object index
+      instance.instanceId = ob->get_device_index();
 
-        // Insert motion traversable if object has motion
-        if (motion_blur && ob->use_motion()) {
-          size_t motion_keys = max(ob->motion.size(), 2) - 2;
-          size_t motion_transform_size = sizeof(OptixSRTMotionTransform) +
-                                         motion_keys * sizeof(OptixSRTData);
+      // Volumes have a special bit set in the visibility mask so a trace can mask only volumes
+      // See 'scene_intersect_volume' in bvh.h
+      instance.visibilityMask = (ob->geometry->has_volume ? 3 : 1);
 
-          const CUDAContextScope scope(cuda_context);
+      // Insert motion traversable if object has motion
+      if (motion_blur && ob->use_motion()) {
+        size_t motion_keys = max(ob->motion.size(), 2) - 2;
+        size_t motion_transform_size = sizeof(OptixSRTMotionTransform) +
+                                       motion_keys * sizeof(OptixSRTData);
 
-          CUdeviceptr motion_transform_gpu = 0;
-          check_result_cuda_ret(cuMemAlloc(&motion_transform_gpu, motion_transform_size));
-          as_mem.push_back(motion_transform_gpu);
+        const CUDAContextScope scope(cuda_context);
 
-          // Allocate host side memory for motion transform and fill it with transform data
-          OptixSRTMotionTransform &motion_transform = *reinterpret_cast<OptixSRTMotionTransform *>(
-              new uint8_t[motion_transform_size]);
-          motion_transform.child = handle;
-          motion_transform.motionOptions.numKeys = ob->motion.size();
-          motion_transform.motionOptions.flags = OPTIX_MOTION_FLAG_NONE;
-          motion_transform.motionOptions.timeBegin = 0.0f;
-          motion_transform.motionOptions.timeEnd = 1.0f;
+        CUdeviceptr motion_transform_gpu = 0;
+        check_result_cuda_ret(cuMemAlloc(&motion_transform_gpu, motion_transform_size));
+        as_mem.push_back(motion_transform_gpu);
 
-          OptixSRTData *const srt_data = motion_transform.srtData;
-          array<DecomposedTransform> decomp(ob->motion.size());
-          transform_motion_decompose(decomp.data(), ob->motion.data(), ob->motion.size());
+        // Allocate host side memory for motion transform and fill it with transform data
+        OptixSRTMotionTransform &motion_transform = *reinterpret_cast<OptixSRTMotionTransform *>(
+            new uint8_t[motion_transform_size]);
+        motion_transform.child = handle;
+        motion_transform.motionOptions.numKeys = ob->motion.size();
+        motion_transform.motionOptions.flags = OPTIX_MOTION_FLAG_NONE;
+        motion_transform.motionOptions.timeBegin = 0.0f;
+        motion_transform.motionOptions.timeEnd = 1.0f;
 
-          for (size_t i = 0; i < ob->motion.size(); ++i) {
-            // Scale
-            srt_data[i].sx = decomp[i].y.w;  // scale.x.x
-            srt_data[i].sy = decomp[i].z.w;  // scale.y.y
-            srt_data[i].sz = decomp[i].w.w;  // scale.z.z
+        OptixSRTData *const srt_data = motion_transform.srtData;
+        array<DecomposedTransform> decomp(ob->motion.size());
+        transform_motion_decompose(decomp.data(), ob->motion.data(), ob->motion.size());
 
-            // Shear
-            srt_data[i].a = decomp[i].z.x;  // scale.x.y
-            srt_data[i].b = decomp[i].z.y;  // scale.x.z
-            srt_data[i].c = decomp[i].w.x;  // scale.y.z
-            assert(decomp[i].z.z == 0.0f);  // scale.y.x
-            assert(decomp[i].w.y == 0.0f);  // scale.z.x
-            assert(decomp[i].w.z == 0.0f);  // scale.z.y
+        for (size_t i = 0; i < ob->motion.size(); ++i) {
+          // Scale
+          srt_data[i].sx = decomp[i].y.w;  // scale.x.x
+          srt_data[i].sy = decomp[i].z.w;  // scale.y.y
+          srt_data[i].sz = decomp[i].w.w;  // scale.z.z
 
-            // Pivot point
-            srt_data[i].pvx = 0.0f;
-            srt_data[i].pvy = 0.0f;
-            srt_data[i].pvz = 0.0f;
+          // Shear
+          srt_data[i].a = decomp[i].z.x;  // scale.x.y
+          srt_data[i].b = decomp[i].z.y;  // scale.x.z
+          srt_data[i].c = decomp[i].w.x;  // scale.y.z
+          assert(decomp[i].z.z == 0.0f);  // scale.y.x
+          assert(decomp[i].w.y == 0.0f);  // scale.z.x
+          assert(decomp[i].w.z == 0.0f);  // scale.z.y
 
-            // Rotation
-            srt_data[i].qx = decomp[i].x.x;
-            srt_data[i].qy = decomp[i].x.y;
-            srt_data[i].qz = decomp[i].x.z;
-            srt_data[i].qw = decomp[i].x.w;
+          // Pivot point
+          srt_data[i].pvx = 0.0f;
+          srt_data[i].pvy = 0.0f;
+          srt_data[i].pvz = 0.0f;
 
-            // Translation
-            srt_data[i].tx = decomp[i].y.x;
-            srt_data[i].ty = decomp[i].y.y;
-            srt_data[i].tz = decomp[i].y.z;
-          }
+          // Rotation
+          srt_data[i].qx = decomp[i].x.x;
+          srt_data[i].qy = decomp[i].x.y;
+          srt_data[i].qz = decomp[i].x.z;
+          srt_data[i].qw = decomp[i].x.w;
 
-          // Upload motion transform to GPU
-          cuMemcpyHtoD(motion_transform_gpu, &motion_transform, motion_transform_size);
-          delete[] reinterpret_cast<uint8_t *>(&motion_transform);
+          // Translation
+          srt_data[i].tx = decomp[i].y.x;
+          srt_data[i].ty = decomp[i].y.y;
+          srt_data[i].tz = decomp[i].y.z;
+        }
 
-          // Disable instance transform if object uses motion transform already
-          instance.flags = OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM;
+        // Upload motion transform to GPU
+        cuMemcpyHtoD(motion_transform_gpu, &motion_transform, motion_transform_size);
+        delete[] reinterpret_cast<uint8_t *>(&motion_transform);
 
-          // Get traversable handle to motion transform
-          optixConvertPointerToTraversableHandle(context,
-                                                 motion_transform_gpu,
-                                                 OPTIX_TRAVERSABLE_TYPE_SRT_MOTION_TRANSFORM,
-                                                 &instance.traversableHandle);
+        // Disable instance transform if object uses motion transform already
+        instance.flags = OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM;
+
+        // Get traversable handle to motion transform
+        optixConvertPointerToTraversableHandle(context,
+                                               motion_transform_gpu,
+                                               OPTIX_TRAVERSABLE_TYPE_SRT_MOTION_TRANSFORM,
+                                               &instance.traversableHandle);
+      }
+      else {
+        instance.traversableHandle = handle;
+
+        if (ob->geometry->is_instanced()) {
+          // Set transform matrix
+          memcpy(instance.transform, &ob->tfm, sizeof(instance.transform));
         }
         else {
-          instance.traversableHandle = handle;
-
-          if (ob->mesh->is_instanced()) {
-            // Set transform matrix
-            memcpy(instance.transform, &ob->tfm, sizeof(instance.transform));
-          }
-          else {
-            // Disable instance transform if mesh already has it applied to vertex data
-            instance.flags = OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM;
-            // Non-instanced objects read ID from prim_object, so
-            // distinguish them from instanced objects with high bit set
-            instance.instanceId |= 0x800000;
-          }
+          // Disable instance transform if geometry already has it applied to vertex data
+          instance.flags = OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM;
+          // Non-instanced objects read ID from prim_object, so
+          // distinguish them from instanced objects with high bit set
+          instance.instanceId |= 0x800000;
         }
       }
     }
@@ -2603,8 +2619,8 @@ bool device_optix_init()
 #  ifdef WITH_CUDA_DYNLOAD
   // Load NVRTC function pointers for adaptive kernel compilation
   if (DebugFlags().cuda.adaptive_compile && cuewInit(CUEW_INIT_NVRTC) != CUEW_SUCCESS) {
-    VLOG(1)
-        << "CUEW initialization failed for NVRTC. Adaptive kernel compilation won't be available.";
+    VLOG(1) << "CUEW initialization failed for NVRTC. Adaptive kernel compilation won't be "
+               "available.";
   }
 #  endif
 

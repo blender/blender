@@ -49,6 +49,7 @@
 #  include "kernel/kernel_globals.h"
 #  include "kernel/kernel_random.h"
 
+#  include "render/hair.h"
 #  include "render/mesh.h"
 #  include "render/object.h"
 #  include "util/util_foreach.h"
@@ -301,10 +302,24 @@ RTCDevice BVHEmbree::rtc_shared_device = NULL;
 int BVHEmbree::rtc_shared_users = 0;
 thread_mutex BVHEmbree::rtc_shared_mutex;
 
+static size_t count_primitives(Geometry *geom)
+{
+  if (geom->type == Geometry::MESH) {
+    Mesh *mesh = static_cast<Mesh *>(geom);
+    return mesh->num_triangles();
+  }
+  else if (geom->type == Geometry::HAIR) {
+    Hair *hair = static_cast<Hair *>(geom);
+    return hair->num_segments();
+  }
+
+  return 0;
+}
+
 BVHEmbree::BVHEmbree(const BVHParams &params_,
-                     const vector<Mesh *> &meshes_,
+                     const vector<Geometry *> &geometry_,
                      const vector<Object *> &objects_)
-    : BVH(params_, meshes_, objects_),
+    : BVH(params_, geometry_, objects_),
       scene(NULL),
       mem_used(0),
       top_level(NULL),
@@ -436,29 +451,15 @@ void BVHEmbree::build(Progress &progress, Stats *stats_)
       if (!ob->is_traceable()) {
         continue;
       }
-      if (!ob->mesh->is_instanced()) {
-        if (params.primitive_mask & PRIMITIVE_ALL_TRIANGLE) {
-          prim_count += ob->mesh->num_triangles();
-        }
-        if (params.primitive_mask & PRIMITIVE_ALL_CURVE) {
-          for (size_t j = 0; j < ob->mesh->num_curves(); ++j) {
-            prim_count += ob->mesh->get_curve(j).num_segments();
-          }
-        }
+      if (!ob->geometry->is_instanced()) {
+        prim_count += count_primitives(ob->geometry);
       }
       else {
         ++prim_count;
       }
     }
     else {
-      if (params.primitive_mask & PRIMITIVE_ALL_TRIANGLE && ob->mesh->num_triangles() > 0) {
-        prim_count += ob->mesh->num_triangles();
-      }
-      if (params.primitive_mask & PRIMITIVE_ALL_CURVE) {
-        for (size_t j = 0; j < ob->mesh->num_curves(); ++j) {
-          prim_count += ob->mesh->get_curve(j).num_segments();
-        }
-      }
+      prim_count += count_primitives(ob->geometry);
     }
   }
 
@@ -477,7 +478,7 @@ void BVHEmbree::build(Progress &progress, Stats *stats_)
         ++i;
         continue;
       }
-      if (!ob->mesh->is_instanced()) {
+      if (!ob->geometry->is_instanced()) {
         add_object(ob, i);
       }
       else {
@@ -528,22 +529,29 @@ BVHNode *BVHEmbree::widen_children_nodes(const BVHNode * /*root*/)
 
 void BVHEmbree::add_object(Object *ob, int i)
 {
-  Mesh *mesh = ob->mesh;
-  if (params.primitive_mask & PRIMITIVE_ALL_TRIANGLE && mesh->num_triangles() > 0) {
-    add_triangles(ob, i);
+  Geometry *geom = ob->geometry;
+
+  if (geom->type == Geometry::MESH) {
+    Mesh *mesh = static_cast<Mesh *>(geom);
+    if (mesh->num_triangles() > 0) {
+      add_triangles(ob, mesh, i);
+    }
   }
-  if (params.primitive_mask & PRIMITIVE_ALL_CURVE && mesh->num_curves() > 0) {
-    add_curves(ob, i);
+  else if (geom->type == Geometry::HAIR) {
+    Hair *hair = static_cast<Hair *>(geom);
+    if (hair->num_curves() > 0) {
+      add_curves(ob, hair, i);
+    }
   }
 }
 
 void BVHEmbree::add_instance(Object *ob, int i)
 {
-  if (!ob || !ob->mesh) {
+  if (!ob || !ob->geometry) {
     assert(0);
     return;
   }
-  BVHEmbree *instance_bvh = (BVHEmbree *)(ob->mesh->bvh);
+  BVHEmbree *instance_bvh = (BVHEmbree *)(ob->geometry->bvh);
 
   if (instance_bvh->top_level != this) {
     instance_bvh->top_level = this;
@@ -577,10 +585,9 @@ void BVHEmbree::add_instance(Object *ob, int i)
   rtcReleaseGeometry(geom_id);
 }
 
-void BVHEmbree::add_triangles(Object *ob, int i)
+void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
 {
   size_t prim_offset = pack.prim_index.size();
-  Mesh *mesh = ob->mesh;
   const Attribute *attr_mP = NULL;
   size_t num_motion_steps = 1;
   if (mesh->has_motion_blur()) {
@@ -684,31 +691,31 @@ void BVHEmbree::update_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh)
   }
 }
 
-void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh)
+void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair)
 {
   const Attribute *attr_mP = NULL;
   size_t num_motion_steps = 1;
-  if (mesh->has_motion_blur()) {
-    attr_mP = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+  if (hair->has_motion_blur()) {
+    attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     if (attr_mP) {
-      num_motion_steps = mesh->motion_steps;
+      num_motion_steps = hair->motion_steps;
     }
   }
 
-  const size_t num_curves = mesh->num_curves();
+  const size_t num_curves = hair->num_curves();
   size_t num_keys = 0;
   for (size_t j = 0; j < num_curves; ++j) {
-    const Mesh::Curve c = mesh->get_curve(j);
+    const Hair::Curve c = hair->get_curve(j);
     num_keys += c.num_keys;
   }
 
   /* Copy the CV data to Embree */
   const int t_mid = (num_motion_steps - 1) / 2;
-  const float *curve_radius = &mesh->curve_radius[0];
+  const float *curve_radius = &hair->curve_radius[0];
   for (int t = 0; t < num_motion_steps; ++t) {
     const float3 *verts;
     if (t == t_mid || attr_mP == NULL) {
-      verts = &mesh->curve_keys[0];
+      verts = &hair->curve_keys[0];
     }
     else {
       int t_ = (t > t_mid) ? (t - 1) : t;
@@ -726,9 +733,9 @@ void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh
     assert(rtc_verts);
     if (rtc_verts) {
       if (use_curves && rtc_tangents) {
-        const size_t num_curves = mesh->num_curves();
+        const size_t num_curves = hair->num_curves();
         for (size_t j = 0; j < num_curves; ++j) {
-          Mesh::Curve c = mesh->get_curve(j);
+          Hair::Curve c = hair->get_curve(j);
           int fk = c.first_key;
           rtc_verts[0] = float3_to_float4(verts[fk]);
           rtc_verts[0].w = curve_radius[fk];
@@ -760,23 +767,22 @@ void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh
   }
 }
 
-void BVHEmbree::add_curves(Object *ob, int i)
+void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
 {
   size_t prim_offset = pack.prim_index.size();
-  const Mesh *mesh = ob->mesh;
   const Attribute *attr_mP = NULL;
   size_t num_motion_steps = 1;
-  if (mesh->has_motion_blur()) {
-    attr_mP = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+  if (hair->has_motion_blur()) {
+    attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     if (attr_mP) {
-      num_motion_steps = mesh->motion_steps;
+      num_motion_steps = hair->motion_steps;
     }
   }
 
-  const size_t num_curves = mesh->num_curves();
+  const size_t num_curves = hair->num_curves();
   size_t num_segments = 0;
   for (size_t j = 0; j < num_curves; ++j) {
-    Mesh::Curve c = mesh->get_curve(j);
+    Hair::Curve c = hair->get_curve(j);
     assert(c.num_segments() > 0);
     num_segments += c.num_segments();
   }
@@ -802,7 +808,7 @@ void BVHEmbree::add_curves(Object *ob, int i)
       geom_id, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT, sizeof(int), num_segments);
   size_t rtc_index = 0;
   for (size_t j = 0; j < num_curves; ++j) {
-    Mesh::Curve c = mesh->get_curve(j);
+    Hair::Curve c = hair->get_curve(j);
     for (size_t k = 0; k < c.num_segments(); ++k) {
       rtc_indices[rtc_index] = c.first_key + k;
       /* Cycles specific data. */
@@ -819,7 +825,7 @@ void BVHEmbree::add_curves(Object *ob, int i)
   rtcSetGeometryBuildQuality(geom_id, build_quality);
   rtcSetGeometryTimeStepCount(geom_id, num_motion_steps);
 
-  update_curve_vertex_buffer(geom_id, mesh);
+  update_curve_vertex_buffer(geom_id, hair);
 
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
   rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_func);
@@ -840,10 +846,7 @@ void BVHEmbree::pack_nodes(const BVHNode *)
 
   for (size_t i = 0; i < pack.prim_index.size(); ++i) {
     if (pack.prim_index[i] != -1) {
-      if (pack.prim_type[i] & PRIMITIVE_ALL_CURVE)
-        pack.prim_index[i] += objects[pack.prim_object[i]]->mesh->curve_offset;
-      else
-        pack.prim_index[i] += objects[pack.prim_object[i]]->mesh->tri_offset;
+      pack.prim_index[i] += objects[pack.prim_object[i]]->geometry->prim_offset;
     }
   }
 
@@ -857,22 +860,22 @@ void BVHEmbree::pack_nodes(const BVHNode *)
   size_t pack_prim_tri_verts_offset = prim_tri_verts_size;
   size_t object_offset = 0;
 
-  map<Mesh *, int> mesh_map;
+  map<Geometry *, int> geometry_map;
 
   foreach (Object *ob, objects) {
-    Mesh *mesh = ob->mesh;
-    BVH *bvh = mesh->bvh;
+    Geometry *geom = ob->geometry;
+    BVH *bvh = geom->bvh;
 
-    if (mesh->need_build_bvh(BVH_LAYOUT_EMBREE)) {
-      if (mesh_map.find(mesh) == mesh_map.end()) {
+    if (geom->need_build_bvh(BVH_LAYOUT_EMBREE)) {
+      if (geometry_map.find(geom) == geometry_map.end()) {
         prim_index_size += bvh->pack.prim_index.size();
         prim_tri_verts_size += bvh->pack.prim_tri_verts.size();
-        mesh_map[mesh] = 1;
+        geometry_map[geom] = 1;
       }
     }
   }
 
-  mesh_map.clear();
+  geometry_map.clear();
 
   pack.prim_index.resize(prim_index_size);
   pack.prim_type.resize(prim_index_size);
@@ -890,38 +893,37 @@ void BVHEmbree::pack_nodes(const BVHNode *)
 
   /* merge */
   foreach (Object *ob, objects) {
-    Mesh *mesh = ob->mesh;
+    Geometry *geom = ob->geometry;
 
     /* We assume that if mesh doesn't need own BVH it was already included
      * into a top-level BVH and no packing here is needed.
      */
-    if (!mesh->need_build_bvh(BVH_LAYOUT_EMBREE)) {
+    if (!geom->need_build_bvh(BVH_LAYOUT_EMBREE)) {
       pack.object_node[object_offset++] = prim_offset;
       continue;
     }
 
-    /* if mesh already added once, don't add it again, but used set
+    /* if geom already added once, don't add it again, but used set
      * node offset for this object */
-    map<Mesh *, int>::iterator it = mesh_map.find(mesh);
+    map<Geometry *, int>::iterator it = geometry_map.find(geom);
 
-    if (mesh_map.find(mesh) != mesh_map.end()) {
+    if (geometry_map.find(geom) != geometry_map.end()) {
       int noffset = it->second;
       pack.object_node[object_offset++] = noffset;
       continue;
     }
 
-    BVHEmbree *bvh = (BVHEmbree *)mesh->bvh;
+    BVHEmbree *bvh = (BVHEmbree *)geom->bvh;
 
     rtc_memory_monitor_func(stats, unaccounted_mem, true);
     unaccounted_mem = 0;
 
-    int mesh_tri_offset = mesh->tri_offset;
-    int mesh_curve_offset = mesh->curve_offset;
+    int prim_offset = geom->prim_offset;
 
     /* fill in node indexes for instances */
     pack.object_node[object_offset++] = prim_offset;
 
-    mesh_map[mesh] = pack.object_node[object_offset - 1];
+    geometry_map[geom] = pack.object_node[object_offset - 1];
 
     /* merge primitive, object and triangle indexes */
     if (bvh->pack.prim_index.size()) {
@@ -932,11 +934,11 @@ void BVHEmbree::pack_nodes(const BVHNode *)
 
       for (size_t i = 0; i < bvh_prim_index_size; ++i) {
         if (bvh->pack.prim_type[i] & PRIMITIVE_ALL_CURVE) {
-          pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + mesh_curve_offset;
+          pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + prim_offset;
           pack_prim_tri_index[pack_prim_index_offset] = -1;
         }
         else {
-          pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + mesh_tri_offset;
+          pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + prim_offset;
           pack_prim_tri_index[pack_prim_index_offset] = bvh_prim_tri_index[i] +
                                                         pack_prim_tri_verts_offset;
         }
@@ -966,15 +968,22 @@ void BVHEmbree::refit_nodes()
   /* Update all vertex buffers, then tell Embree to rebuild/-fit the BVHs. */
   unsigned geom_id = 0;
   foreach (Object *ob, objects) {
-    if (!params.top_level || (ob->is_traceable() && !ob->mesh->is_instanced())) {
-      if (params.primitive_mask & PRIMITIVE_ALL_TRIANGLE && ob->mesh->num_triangles() > 0) {
-        update_tri_vertex_buffer(rtcGetGeometry(scene, geom_id), ob->mesh);
-        rtcCommitGeometry(rtcGetGeometry(scene, geom_id));
-      }
+    if (!params.top_level || (ob->is_traceable() && !ob->geometry->is_instanced())) {
+      Geometry *geom = ob->geometry;
 
-      if (params.primitive_mask & PRIMITIVE_ALL_CURVE && ob->mesh->num_curves() > 0) {
-        update_curve_vertex_buffer(rtcGetGeometry(scene, geom_id + 1), ob->mesh);
-        rtcCommitGeometry(rtcGetGeometry(scene, geom_id + 1));
+      if (geom->type == Geometry::MESH) {
+        Mesh *mesh = static_cast<Mesh *>(geom);
+        if (mesh->num_triangles() > 0) {
+          update_tri_vertex_buffer(rtcGetGeometry(scene, geom_id), mesh);
+          rtcCommitGeometry(rtcGetGeometry(scene, geom_id));
+        }
+      }
+      else if (geom->type == Geometry::HAIR) {
+        Hair *hair = static_cast<Hair *>(geom);
+        if (hair->num_curves() > 0) {
+          update_curve_vertex_buffer(rtcGetGeometry(scene, geom_id + 1), hair);
+          rtcCommitGeometry(rtcGetGeometry(scene, geom_id + 1));
+        }
       }
     }
     geom_id += 2;

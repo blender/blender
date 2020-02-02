@@ -380,11 +380,11 @@ static Mesh *xml_add_mesh(Scene *scene, const Transform &tfm)
 {
   /* create mesh */
   Mesh *mesh = new Mesh();
-  scene->meshes.push_back(mesh);
+  scene->geometry.push_back(mesh);
 
   /* create object*/
   Object *object = new Object();
-  object->mesh = mesh;
+  object->geometry = mesh;
   object->tfm = tfm;
   scene->objects.push_back(object);
 

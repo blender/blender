@@ -32,7 +32,7 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 class DeviceScene;
-class Mesh;
+class Geometry;
 class ParticleSystem;
 class Progress;
 class Scene;
@@ -46,7 +46,7 @@ class Object : public Node {
  public:
   NODE_DECLARE
 
-  Mesh *mesh;
+  Geometry *geometry;
   Transform tfm;
   BoundBox bounds;
   uint random_id;

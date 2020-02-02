@@ -35,6 +35,8 @@ class BVHNode;
 class BVHSpatialSplitBuildTask;
 class BVHParams;
 class InnerNode;
+class Geometry;
+class Hair;
 class Mesh;
 class Object;
 class Progress;
@@ -65,8 +67,8 @@ class BVHBuild {
 
   /* Adding references. */
   void add_reference_triangles(BoundBox &root, BoundBox &center, Mesh *mesh, int i);
-  void add_reference_curves(BoundBox &root, BoundBox &center, Mesh *mesh, int i);
-  void add_reference_mesh(BoundBox &root, BoundBox &center, Mesh *mesh, int i);
+  void add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair, int i);
+  void add_reference_geometry(BoundBox &root, BoundBox &center, Geometry *geom, int i);
   void add_reference_object(BoundBox &root, BoundBox &center, Object *ob, int i);
   void add_references(BVHRange &root);
 

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#include "render/curves.h"
+#include "render/hair.h"
 #include "render/mesh.h"
 #include "render/object.h"
 
@@ -23,18 +25,22 @@
 
 CCL_NAMESPACE_BEGIN
 
-Mesh *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
-                                 BL::Object &b_ob,
-                                 BL::Object &b_ob_instance,
-                                 bool object_updated,
-                                 bool use_particle_hair)
+Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
+                                     BL::Object &b_ob,
+                                     BL::Object &b_ob_instance,
+                                     bool object_updated,
+                                     bool use_particle_hair)
 {
   /* Test if we can instance or if the object is modified. */
   BL::ID b_ob_data = b_ob.data();
   BL::ID b_key_id = (BKE_object_is_modified(b_ob)) ? b_ob_instance : b_ob_data;
-  MeshKey key(b_key_id.ptr.data, use_particle_hair);
+  GeometryKey key(b_key_id.ptr.data, use_particle_hair);
   BL::Material material_override = view_layer.material_override;
   Shader *default_shader = scene->default_surface;
+  Geometry::Type geom_type = (use_particle_hair &&
+                              (scene->curve_system_manager->primitive != CURVE_TRIANGLES)) ?
+                                 Geometry::HAIR :
+                                 Geometry::MESH;
 
   /* Find shader indices. */
   vector<Shader *> used_shaders;
@@ -58,53 +64,76 @@ Mesh *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   }
 
   /* Test if we need to sync. */
-  Mesh *mesh;
+  Geometry *geom = geometry_map.find(key);
+  bool sync = true;
+  if (geom == NULL) {
+    /* Add new geometry if it did not exist yet. */
+    if (geom_type == Geometry::HAIR) {
+      geom = new Hair();
+    }
+    else {
+      geom = new Mesh();
+    }
+    geometry_map.add(key, geom);
+  }
+  else {
+    /* Test if we need to update existing geometry. */
+    sync = geometry_map.update(geom, b_key_id);
+  }
 
-  if (!mesh_map.sync(&mesh, b_key_id, key)) {
-    /* If transform was applied to mesh, need full update. */
-    if (object_updated && mesh->transform_applied)
+  if (!sync) {
+    /* If transform was applied to geometry, need full update. */
+    if (object_updated && geom->transform_applied) {
       ;
-    /* Test if shaders changed, these can be object level so mesh
+    }
+    /* Test if shaders changed, these can be object level so geometry
      * does not get tagged for recalc. */
-    else if (mesh->used_shaders != used_shaders)
+    else if (geom->used_shaders != used_shaders) {
       ;
+    }
     else {
       /* Even if not tagged for recalc, we may need to sync anyway
-       * because the shader needs different mesh attributes. */
+       * because the shader needs different geometry attributes. */
       bool attribute_recalc = false;
 
-      foreach (Shader *shader, mesh->used_shaders)
-        if (shader->need_update_mesh)
+      foreach (Shader *shader, geom->used_shaders) {
+        if (shader->need_update_geometry) {
           attribute_recalc = true;
+        }
+      }
 
-      if (!attribute_recalc)
-        return mesh;
+      if (!attribute_recalc) {
+        return geom;
+      }
     }
   }
 
-  /* Ensure we only sync instanced meshes once. */
-  if (mesh_synced.find(mesh) != mesh_synced.end())
-    return mesh;
+  /* Ensure we only sync instanced geometry once. */
+  if (geometry_synced.find(geom) != geometry_synced.end()) {
+    return geom;
+  }
 
   progress.set_sync_status("Synchronizing object", b_ob.name());
 
-  mesh_synced.insert(mesh);
+  geometry_synced.insert(geom);
 
-  mesh->clear();
-  mesh->used_shaders = used_shaders;
-  mesh->name = ustring(b_ob_data.name().c_str());
+  geom->clear();
+  geom->used_shaders = used_shaders;
+  geom->name = ustring(b_ob_data.name().c_str());
 
   if (use_particle_hair) {
-    sync_hair(b_depsgraph, b_ob, mesh);
+    sync_hair(b_depsgraph, b_ob, geom);
   }
   else if (object_fluid_gas_domain_find(b_ob)) {
+    Mesh *mesh = static_cast<Mesh *>(geom);
     sync_volume(b_ob, mesh);
   }
   else {
+    Mesh *mesh = static_cast<Mesh *>(geom);
     sync_mesh(b_depsgraph, b_ob, mesh);
   }
 
-  return mesh;
+  return geom;
 }
 
 void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
@@ -113,32 +142,33 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
                                        float motion_time,
                                        bool use_particle_hair)
 {
-  /* Ensure we only sync instanced meshes once. */
-  Mesh *mesh = object->mesh;
+  /* Ensure we only sync instanced geometry once. */
+  Geometry *geom = object->geometry;
 
-  if (mesh_motion_synced.find(mesh) != mesh_motion_synced.end())
+  if (geometry_motion_synced.find(geom) != geometry_motion_synced.end())
     return;
 
-  mesh_motion_synced.insert(mesh);
+  geometry_motion_synced.insert(geom);
 
-  /* Ensure we only motion sync meshes that also had mesh synced, to avoid
+  /* Ensure we only motion sync geometry that also had geometry synced, to avoid
    * unnecessary work and to ensure that its attributes were clear. */
-  if (mesh_synced.find(mesh) == mesh_synced.end())
+  if (geometry_synced.find(geom) == geometry_synced.end())
     return;
 
-  /* Find time matching motion step required by mesh. */
-  int motion_step = mesh->motion_step(motion_time);
+  /* Find time matching motion step required by geometry. */
+  int motion_step = geom->motion_step(motion_time);
   if (motion_step < 0) {
     return;
   }
 
   if (use_particle_hair) {
-    sync_hair_motion(b_depsgraph, b_ob, mesh, motion_step);
+    sync_hair_motion(b_depsgraph, b_ob, geom, motion_step);
   }
   else if (object_fluid_gas_domain_find(b_ob)) {
     /* No volume motion blur support yet. */
   }
   else {
+    Mesh *mesh = static_cast<Mesh *>(geom);
     sync_mesh_motion(b_depsgraph, b_ob, mesh, motion_step);
   }
 }

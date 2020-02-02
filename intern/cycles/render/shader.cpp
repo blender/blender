@@ -214,7 +214,7 @@ Shader::Shader() : Node(node_type)
   used = false;
 
   need_update = true;
-  need_update_mesh = true;
+  need_update_geometry = true;
   need_sync_object = false;
 }
 
@@ -288,7 +288,7 @@ void Shader::set_graph(ShaderGraph *graph_)
     const char *new_hash = (graph_) ? graph_->displacement_hash.c_str() : "";
 
     if (strcmp(old_hash, new_hash) != 0) {
-      need_update_mesh = true;
+      need_update_geometry = true;
     }
   }
 
@@ -347,14 +347,14 @@ void Shader::tag_update(Scene *scene)
   }
 
   /* compare if the attributes changed, mesh manager will check
-   * need_update_mesh, update the relevant meshes and clear it. */
+   * need_update_geometry, update the relevant meshes and clear it. */
   if (attributes.modified(prev_attributes)) {
-    need_update_mesh = true;
-    scene->mesh_manager->need_update = true;
+    need_update_geometry = true;
+    scene->geometry_manager->need_update = true;
   }
 
   if (has_volume != prev_has_volume) {
-    scene->mesh_manager->need_flags_update = true;
+    scene->geometry_manager->need_flags_update = true;
     scene->object_manager->need_flags_update = true;
   }
 }
@@ -489,8 +489,8 @@ void ShaderManager::device_update_shaders_used(Scene *scene)
   if (scene->background->shader)
     scene->background->shader->used = true;
 
-  foreach (Mesh *mesh, scene->meshes)
-    foreach (Shader *shader, mesh->used_shaders)
+  foreach (Geometry *geom, scene->geometry)
+    foreach (Shader *shader, geom->used_shaders)
       shader->used = true;
 
   foreach (Light *light, scene->lights)

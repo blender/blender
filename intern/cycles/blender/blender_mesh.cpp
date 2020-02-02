@@ -719,7 +719,6 @@ static void create_mesh(Scene *scene,
   /* allocate memory */
   mesh->reserve_mesh(numverts, numtris);
   mesh->reserve_subd_faces(numfaces, numngons, numcorners);
-  mesh->geometry_flags |= Mesh::GEOMETRY_TRIANGLES;
 
   /* create vertex coordinates and normals */
   BL::Mesh::vertices_iterator v;
@@ -1053,18 +1052,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
   }
 
   /* No deformation on this frame, copy coordinates if other frames did have it. */
-  Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-
-  if (attr_mP) {
-    Attribute *attr_mN = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
-    Attribute *attr_N = mesh->attributes.find(ATTR_STD_VERTEX_NORMAL);
-    float3 *P = &mesh->verts[0];
-    float3 *N = (attr_N) ? attr_N->data_float3() : NULL;
-
-    memcpy(attr_mP->data_float3() + motion_step * numverts, P, sizeof(float3) * numverts);
-    if (attr_mN)
-      memcpy(attr_mN->data_float3() + motion_step * numverts, N, sizeof(float3) * numverts);
-  }
+  mesh->copy_center_to_motion_step(motion_step);
 }
 
 CCL_NAMESPACE_END

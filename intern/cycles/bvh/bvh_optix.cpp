@@ -18,6 +18,8 @@
 #ifdef WITH_OPTIX
 
 #  include "bvh/bvh_optix.h"
+#  include "render/hair.h"
+#  include "render/geometry.h"
 #  include "render/mesh.h"
 #  include "render/object.h"
 #  include "util/util_logging.h"
@@ -26,9 +28,9 @@
 CCL_NAMESPACE_BEGIN
 
 BVHOptiX::BVHOptiX(const BVHParams &params_,
-                   const vector<Mesh *> &meshes_,
+                   const vector<Geometry *> &geometry_,
                    const vector<Object *> &objects_)
-    : BVH(params_, meshes_, objects_)
+    : BVH(params_, geometry_, objects_)
 {
 }
 
@@ -56,47 +58,52 @@ void BVHOptiX::copy_to_device(Progress &progress, DeviceScene *dscene)
 void BVHOptiX::pack_blas()
 {
   // Bottom-level BVH can contain multiple primitive types, so merge them:
-  assert(meshes.size() == 1 && objects.size() == 1);  // These are build per-mesh
-  Mesh *const mesh = meshes[0];
+  assert(geometry.size() == 1 && objects.size() == 1);  // These are built per-mesh
+  Geometry *const geom = geometry[0];
 
-  if (params.primitive_mask & PRIMITIVE_ALL_CURVE && mesh->num_curves() > 0) {
-    const size_t num_curves = mesh->num_curves();
-    const size_t num_segments = mesh->num_segments();
-    pack.prim_type.reserve(pack.prim_type.size() + num_segments);
-    pack.prim_index.reserve(pack.prim_index.size() + num_segments);
-    pack.prim_object.reserve(pack.prim_object.size() + num_segments);
-    // 'pack.prim_time' is only used in geom_curve_intersect.h
-    // It is not needed because of OPTIX_MOTION_FLAG_[START|END]_VANISH
+  if (geom->type == Geometry::HAIR) {
+    Hair *const hair = static_cast<Hair *const>(geom);
+    if (hair->num_curves() > 0) {
+      const size_t num_curves = hair->num_curves();
+      const size_t num_segments = hair->num_segments();
+      pack.prim_type.reserve(pack.prim_type.size() + num_segments);
+      pack.prim_index.reserve(pack.prim_index.size() + num_segments);
+      pack.prim_object.reserve(pack.prim_object.size() + num_segments);
+      // 'pack.prim_time' is only used in geom_curve_intersect.h
+      // It is not needed because of OPTIX_MOTION_FLAG_[START|END]_VANISH
 
-    uint type = PRIMITIVE_CURVE;
-    if (mesh->use_motion_blur && mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION))
-      type = PRIMITIVE_MOTION_CURVE;
+      uint type = PRIMITIVE_CURVE;
+      if (hair->use_motion_blur && hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION))
+        type = PRIMITIVE_MOTION_CURVE;
 
-    for (size_t j = 0; j < num_curves; ++j) {
-      const Mesh::Curve curve = mesh->get_curve(j);
-      for (size_t k = 0; k < curve.num_segments(); ++k) {
-        pack.prim_type.push_back_reserved(PRIMITIVE_PACK_SEGMENT(type, k));
-        // Each curve segment points back to its curve index
-        pack.prim_index.push_back_reserved(j);
-        pack.prim_object.push_back_reserved(0);
+      for (size_t j = 0; j < num_curves; ++j) {
+        const Hair::Curve curve = hair->get_curve(j);
+        for (size_t k = 0; k < curve.num_segments(); ++k) {
+          pack.prim_type.push_back_reserved(PRIMITIVE_PACK_SEGMENT(type, k));
+          // Each curve segment points back to its curve index
+          pack.prim_index.push_back_reserved(j);
+          pack.prim_object.push_back_reserved(0);
+        }
       }
     }
   }
+  else if (geom->type == Geometry::MESH) {
+    Mesh *const mesh = static_cast<Mesh *const>(geom);
+    if (mesh->num_triangles() > 0) {
+      const size_t num_triangles = mesh->num_triangles();
+      pack.prim_type.reserve(pack.prim_type.size() + num_triangles);
+      pack.prim_index.reserve(pack.prim_index.size() + num_triangles);
+      pack.prim_object.reserve(pack.prim_object.size() + num_triangles);
 
-  if (params.primitive_mask & PRIMITIVE_ALL_TRIANGLE && mesh->num_triangles() > 0) {
-    const size_t num_triangles = mesh->num_triangles();
-    pack.prim_type.reserve(pack.prim_type.size() + num_triangles);
-    pack.prim_index.reserve(pack.prim_index.size() + num_triangles);
-    pack.prim_object.reserve(pack.prim_object.size() + num_triangles);
+      uint type = PRIMITIVE_TRIANGLE;
+      if (mesh->use_motion_blur && mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION))
+        type = PRIMITIVE_MOTION_TRIANGLE;
 
-    uint type = PRIMITIVE_TRIANGLE;
-    if (mesh->use_motion_blur && mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION))
-      type = PRIMITIVE_MOTION_TRIANGLE;
-
-    for (size_t k = 0; k < num_triangles; ++k) {
-      pack.prim_type.push_back_reserved(type);
-      pack.prim_index.push_back_reserved(k);
-      pack.prim_object.push_back_reserved(0);
+      for (size_t k = 0; k < num_triangles; ++k) {
+        pack.prim_type.push_back_reserved(type);
+        pack.prim_index.push_back_reserved(k);
+        pack.prim_object.push_back_reserved(0);
+      }
     }
   }
 
@@ -116,8 +123,8 @@ void BVHOptiX::pack_tlas()
   // Calculate total packed size
   size_t prim_index_size = 0;
   size_t prim_tri_verts_size = 0;
-  foreach (Mesh *mesh, meshes) {
-    BVH *const bvh = mesh->bvh;
+  foreach (Geometry *geom, geometry) {
+    BVH *const bvh = geom->bvh;
     prim_index_size += bvh->pack.prim_index.size();
     prim_tri_verts_size += bvh->pack.prim_tri_verts.size();
   }
@@ -141,13 +148,12 @@ void BVHOptiX::pack_tlas()
   pack.prim_tri_verts.resize(prim_tri_verts_size);
   float4 *pack_prim_tri_verts = pack.prim_tri_verts.data();
 
-  // Top-level BVH should only contain instances, see 'Mesh::need_build_bvh'
+  // Top-level BVH should only contain instances, see 'Geometry::need_build_bvh'
   // Iterate over scene mesh list instead of objects, since the 'prim_offset' is calculated based
   // on that list, which may be ordered differently from the object list.
-  foreach (Mesh *mesh, meshes) {
-    PackedBVH &bvh_pack = mesh->bvh->pack;
-    int mesh_tri_offset = mesh->tri_offset;
-    int mesh_curve_offset = mesh->curve_offset;
+  foreach (Geometry *geom, geometry) {
+    PackedBVH &bvh_pack = geom->bvh->pack;
+    int geom_prim_offset = geom->prim_offset;
 
     // Merge primitive, object and triangle indexes
     if (!bvh_pack.prim_index.empty()) {
@@ -158,16 +164,16 @@ void BVHOptiX::pack_tlas()
 
       for (size_t i = 0; i < bvh_pack.prim_index.size(); i++, pack_offset++) {
         if (bvh_pack.prim_type[i] & PRIMITIVE_ALL_CURVE) {
-          pack_prim_index[pack_offset] = bvh_prim_index[i] + mesh_curve_offset;
+          pack_prim_index[pack_offset] = bvh_prim_index[i] + geom_prim_offset;
           pack_prim_tri_index[pack_offset] = -1;
         }
         else {
-          pack_prim_index[pack_offset] = bvh_prim_index[i] + mesh_tri_offset;
+          pack_prim_index[pack_offset] = bvh_prim_index[i] + geom_prim_offset;
           pack_prim_tri_index[pack_offset] = bvh_prim_tri_index[i] + pack_verts_offset;
         }
 
         pack_prim_type[pack_offset] = bvh_prim_type[i];
-        pack_prim_object[pack_offset] = 0;  // Unused for instanced meshes
+        pack_prim_object[pack_offset] = 0;  // Unused for instanced geometry
         pack_prim_visibility[pack_offset] = bvh_prim_visibility[i];
       }
     }
@@ -182,15 +188,24 @@ void BVHOptiX::pack_tlas()
     }
   }
 
-  // Merge visibility flags of all objects and fix object indices for non-instanced meshes
+  // Merge visibility flags of all objects and fix object indices for non-instanced geometry
   foreach (Object *ob, objects) {
-    Mesh *const mesh = ob->mesh;
-    for (size_t i = 0; i < mesh->num_primitives(); ++i) {
-      if (!ob->mesh->is_instanced()) {
-        assert(pack.prim_object[mesh->prim_offset + i] == 0);
-        pack.prim_object[mesh->prim_offset + i] = ob->get_device_index();
+    Geometry *const geom = ob->geometry;
+    size_t num_primitives = 0;
+
+    if (geom->type == Geometry::MESH) {
+      num_primitives = static_cast<Mesh *const>(geom)->num_triangles();
+    }
+    else if (geom->type == Geometry::HAIR) {
+      num_primitives = static_cast<Hair *const>(geom)->num_segments();
+    }
+
+    for (size_t i = 0; i < num_primitives; ++i) {
+      if (!geom->is_instanced()) {
+        assert(pack.prim_object[geom->optix_prim_offset + i] == 0);
+        pack.prim_object[geom->optix_prim_offset + i] = ob->get_device_index();
       }
-      pack.prim_visibility[mesh->prim_offset + i] |= ob->visibility_for_tracing();
+      pack.prim_visibility[geom->optix_prim_offset + i] |= ob->visibility_for_tracing();
     }
   }
 }

@@ -153,12 +153,12 @@ struct NodeType {
   template<typename T> const NodeType *structname::register_type()
 
 #define NODE_ABSTRACT_DECLARE \
-  template<typename T> static const NodeType *register_type(); \
-  static const NodeType *node_type;
+  template<typename T> static const NodeType *register_base_type(); \
+  static const NodeType *node_base_type;
 
 #define NODE_ABSTRACT_DEFINE(structname) \
-  const NodeType *structname::node_type = structname::register_type<structname>(); \
-  template<typename T> const NodeType *structname::register_type()
+  const NodeType *structname::node_base_type = structname::register_base_type<structname>(); \
+  template<typename T> const NodeType *structname::register_base_type()
 
 /* Sock Definition Macros */
 

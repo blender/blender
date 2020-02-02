@@ -72,40 +72,60 @@ template<typename K, typename T> class id_map {
     used_set.clear();
   }
 
-  bool sync(T **r_data, const BL::ID &id)
+  /* Add new data. */
+  void add(const K &key, T *data)
   {
-    return sync(r_data, id, id, id.ptr.owner_id);
+    assert(find(key) == NULL);
+    scene_data->push_back(data);
+    b_map[key] = data;
+    used(data);
   }
 
-  bool sync(T **r_data, const BL::ID &id, const K &key)
+  /* Update existing data. */
+  bool update(T *data, const BL::ID &id)
   {
-    return sync(r_data, id, id, key);
+    return update(data, id, id);
+  }
+  bool update(T *data, const BL::ID &id, const BL::ID &parent)
+  {
+    bool recalc = (b_recalc.find(id.ptr.data) != b_recalc.end());
+    if (parent.ptr.data && parent.ptr.data != id.ptr.data) {
+      recalc = recalc || (b_recalc.find(parent.ptr.data) != b_recalc.end());
+    }
+    used(data);
+    return recalc;
   }
 
-  bool sync(T **r_data, const BL::ID &id, const BL::ID &parent, const K &key)
+  /* Combined add and update as needed. */
+  bool add_or_update(T **r_data, const BL::ID &id)
+  {
+    return add_or_update(r_data, id, id, id.ptr.owner_id);
+  }
+  bool add_or_update(T **r_data, const BL::ID &id, const K &key)
+  {
+    return add_or_update(r_data, id, id, key);
+  }
+  bool add_or_update(T **r_data, const BL::ID &id, const BL::ID &parent, const K &key)
   {
     T *data = find(key);
     bool recalc;
 
     if (!data) {
-      /* add data if it didn't exist yet */
+      /* Add data if it didn't exist yet. */
       data = new T();
-      scene_data->push_back(data);
-      b_map[key] = data;
+      add(key, data);
       recalc = true;
     }
     else {
-      recalc = (b_recalc.find(id.ptr.data) != b_recalc.end());
-      if (parent.ptr.data && parent.ptr.data != id.ptr.data) {
-        recalc = recalc || (b_recalc.find(parent.ptr.data) != b_recalc.end());
-      }
+      /* check if updated needed. */
+      recalc = update(data, id, parent);
     }
-
-    used(data);
 
     *r_data = data;
     return recalc;
   }
+
+  /* Combined add or update for convenience. */
 
   bool is_used(const K &key)
   {
@@ -220,20 +240,20 @@ struct ObjectKey {
   }
 };
 
-/* Mesh Key
+/* Geometry Key
  *
  * We export separate geomtry for a mesh and its particle hair, so key needs to
  * distinguish between them. */
 
-struct MeshKey {
+struct GeometryKey {
   void *id;
   bool use_particle_hair;
 
-  MeshKey(void *id, bool use_particle_hair) : id(id), use_particle_hair(use_particle_hair)
+  GeometryKey(void *id, bool use_particle_hair) : id(id), use_particle_hair(use_particle_hair)
   {
   }
 
-  bool operator<(const MeshKey &k) const
+  bool operator<(const GeometryKey &k) const
   {
     if (id < k.id) {
       return true;

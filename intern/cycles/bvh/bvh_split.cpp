@@ -20,6 +20,7 @@
 #include "bvh/bvh_build.h"
 #include "bvh/bvh_sort.h"
 
+#include "render/hair.h"
 #include "render/mesh.h"
 #include "render/object.h"
 
@@ -378,7 +379,7 @@ void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
   }
 }
 
-void BVHSpatialSplit::split_curve_primitive(const Mesh *mesh,
+void BVHSpatialSplit::split_curve_primitive(const Hair *hair,
                                             const Transform *tfm,
                                             int prim_index,
                                             int segment_index,
@@ -388,11 +389,11 @@ void BVHSpatialSplit::split_curve_primitive(const Mesh *mesh,
                                             BoundBox &right_bounds)
 {
   /* curve split: NOTE - Currently ignores curve width and needs to be fixed.*/
-  Mesh::Curve curve = mesh->get_curve(prim_index);
+  Hair::Curve curve = hair->get_curve(prim_index);
   const int k0 = curve.first_key + segment_index;
   const int k1 = k0 + 1;
-  float3 v0 = mesh->curve_keys[k0];
-  float3 v1 = mesh->curve_keys[k1];
+  float3 v0 = hair->curve_keys[k0];
+  float3 v1 = hair->curve_keys[k1];
 
   if (tfm != NULL) {
     v0 = transform_point(tfm, v0);
@@ -436,13 +437,13 @@ void BVHSpatialSplit::split_triangle_reference(const BVHReference &ref,
 }
 
 void BVHSpatialSplit::split_curve_reference(const BVHReference &ref,
-                                            const Mesh *mesh,
+                                            const Hair *hair,
                                             int dim,
                                             float pos,
                                             BoundBox &left_bounds,
                                             BoundBox &right_bounds)
 {
-  split_curve_primitive(mesh,
+  split_curve_primitive(hair,
                         NULL,
                         ref.prim_index(),
                         PRIMITIVE_UNPACK_SEGMENT(ref.prim_type()),
@@ -455,15 +456,22 @@ void BVHSpatialSplit::split_curve_reference(const BVHReference &ref,
 void BVHSpatialSplit::split_object_reference(
     const Object *object, int dim, float pos, BoundBox &left_bounds, BoundBox &right_bounds)
 {
-  Mesh *mesh = object->mesh;
-  for (int tri_idx = 0; tri_idx < mesh->num_triangles(); ++tri_idx) {
-    split_triangle_primitive(mesh, &object->tfm, tri_idx, dim, pos, left_bounds, right_bounds);
+  Geometry *geom = object->geometry;
+
+  if (geom->type == Geometry::MESH) {
+    Mesh *mesh = static_cast<Mesh *>(geom);
+    for (int tri_idx = 0; tri_idx < mesh->num_triangles(); ++tri_idx) {
+      split_triangle_primitive(mesh, &object->tfm, tri_idx, dim, pos, left_bounds, right_bounds);
+    }
   }
-  for (int curve_idx = 0; curve_idx < mesh->num_curves(); ++curve_idx) {
-    Mesh::Curve curve = mesh->get_curve(curve_idx);
-    for (int segment_idx = 0; segment_idx < curve.num_keys - 1; ++segment_idx) {
-      split_curve_primitive(
-          mesh, &object->tfm, curve_idx, segment_idx, dim, pos, left_bounds, right_bounds);
+  else if (geom->type == Geometry::MESH) {
+    Hair *hair = static_cast<Hair *>(geom);
+    for (int curve_idx = 0; curve_idx < hair->num_curves(); ++curve_idx) {
+      Hair::Curve curve = hair->get_curve(curve_idx);
+      for (int segment_idx = 0; segment_idx < curve.num_keys - 1; ++segment_idx) {
+        split_curve_primitive(
+            hair, &object->tfm, curve_idx, segment_idx, dim, pos, left_bounds, right_bounds);
+      }
     }
   }
 }
@@ -481,13 +489,14 @@ void BVHSpatialSplit::split_reference(const BVHBuild &builder,
 
   /* loop over vertices/edges. */
   const Object *ob = builder.objects[ref.prim_object()];
-  const Mesh *mesh = ob->mesh;
 
   if (ref.prim_type() & PRIMITIVE_ALL_TRIANGLE) {
+    Mesh *mesh = static_cast<Mesh *>(ob->geometry);
     split_triangle_reference(ref, mesh, dim, pos, left_bounds, right_bounds);
   }
   else if (ref.prim_type() & PRIMITIVE_ALL_CURVE) {
-    split_curve_reference(ref, mesh, dim, pos, left_bounds, right_bounds);
+    Hair *hair = static_cast<Hair *>(ob->geometry);
+    split_curve_reference(ref, hair, dim, pos, left_bounds, right_bounds);
   }
   else {
     split_object_reference(ob, dim, pos, left_bounds, right_bounds);

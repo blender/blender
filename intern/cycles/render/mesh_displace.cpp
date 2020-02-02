@@ -43,7 +43,7 @@ static float3 compute_face_normal(const Mesh::Triangle &t, float3 *verts)
   return norm / normlen;
 }
 
-bool MeshManager::displace(
+bool GeometryManager::displace(
     Device *device, DeviceScene *dscene, Scene *scene, Mesh *mesh, Progress &progress)
 {
   /* verify if we have a displacement shader */
@@ -58,7 +58,7 @@ bool MeshManager::displace(
   size_t object_index = OBJECT_NONE;
 
   for (size_t i = 0; i < scene->objects.size(); i++) {
-    if (scene->objects[i]->mesh == mesh) {
+    if (scene->objects[i]->geometry == mesh) {
       object_index = i;
       break;
     }
@@ -91,7 +91,7 @@ bool MeshManager::displace(
 
       /* set up object, primitive and barycentric coordinates */
       int object = object_index;
-      int prim = mesh->tri_offset + i;
+      int prim = mesh->prim_offset + i;
       float u, v;
 
       switch (j) {

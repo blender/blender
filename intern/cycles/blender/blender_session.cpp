@@ -720,9 +720,12 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
     int tri_offset = 0;
 
     for (size_t i = 0; i < scene->objects.size(); i++) {
-      if (strcmp(scene->objects[i]->name.c_str(), b_object.name().c_str()) == 0) {
+      const Object *object = scene->objects[i];
+      const Geometry *geom = object->geometry;
+      if (object->name == b_object.name() && geom->type == Geometry::MESH) {
+        const Mesh *mesh = static_cast<const Mesh *>(geom);
         object_index = i;
-        tri_offset = scene->objects[i]->mesh->tri_offset;
+        tri_offset = mesh->prim_offset;
         break;
       }
     }

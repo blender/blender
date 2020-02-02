@@ -24,6 +24,8 @@
 CCL_NAMESPACE_BEGIN
 
 class BVHBuild;
+class Hair;
+class Mesh;
 struct Transform;
 
 /* Object Split */
@@ -113,7 +115,7 @@ class BVHSpatialSplit {
                                 float pos,
                                 BoundBox &left_bounds,
                                 BoundBox &right_bounds);
-  void split_curve_primitive(const Mesh *mesh,
+  void split_curve_primitive(const Hair *hair,
                              const Transform *tfm,
                              int prim_index,
                              int segment_index,
@@ -134,7 +136,7 @@ class BVHSpatialSplit {
                                 BoundBox &left_bounds,
                                 BoundBox &right_bounds);
   void split_curve_reference(const BVHReference &ref,
-                             const Mesh *mesh,
+                             const Hair *hair,
                              int dim,
                              float pos,
                              BoundBox &left_bounds,

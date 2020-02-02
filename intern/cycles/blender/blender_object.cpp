@@ -191,7 +191,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
       }
 
       /* mesh deformation */
-      if (object->mesh)
+      if (object->geometry)
         sync_geometry_motion(b_depsgraph, b_ob, object, motion_time, use_particle_hair);
     }
 
@@ -201,11 +201,11 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   /* test if we need to sync */
   bool object_updated = false;
 
-  if (object_map.sync(&object, b_ob, b_parent, key))
+  if (object_map.add_or_update(&object, b_ob, b_parent, key))
     object_updated = true;
 
   /* mesh sync */
-  object->mesh = sync_geometry(
+  object->geometry = sync_geometry(
       b_depsgraph, b_ob, b_ob_instance, object_updated, use_particle_hair);
 
   /* special case not tracked by object update flags */
@@ -248,7 +248,8 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   /* object sync
    * transform comparison should not be needed, but duplis don't work perfect
    * in the depsgraph and may not signal changes, so this is a workaround */
-  if (object_updated || (object->mesh && object->mesh->need_update) || tfm != object->tfm) {
+  if (object_updated || (object->geometry && object->geometry->need_update) ||
+      tfm != object->tfm) {
     object->name = b_ob.name().c_str();
     object->pass_id = b_ob.pass_index();
     object->color = get_float3(b_ob.color());
@@ -257,23 +258,23 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
     /* motion blur */
     Scene::MotionType need_motion = scene->need_motion();
-    if (need_motion != Scene::MOTION_NONE && object->mesh) {
-      Mesh *mesh = object->mesh;
-      mesh->use_motion_blur = false;
-      mesh->motion_steps = 0;
+    if (need_motion != Scene::MOTION_NONE && object->geometry) {
+      Geometry *geom = object->geometry;
+      geom->use_motion_blur = false;
+      geom->motion_steps = 0;
 
       uint motion_steps;
 
       if (need_motion == Scene::MOTION_BLUR) {
         motion_steps = object_motion_steps(b_parent, b_ob);
-        mesh->motion_steps = motion_steps;
+        geom->motion_steps = motion_steps;
         if (motion_steps && object_use_deform_motion(b_parent, b_ob)) {
-          mesh->use_motion_blur = true;
+          geom->use_motion_blur = true;
         }
       }
       else {
         motion_steps = 3;
-        mesh->motion_steps = motion_steps;
+        geom->motion_steps = motion_steps;
       }
 
       object->motion.clear();
@@ -324,13 +325,13 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
   if (!motion) {
     /* prepare for sync */
     light_map.pre_sync();
-    mesh_map.pre_sync();
+    geometry_map.pre_sync();
     object_map.pre_sync();
     particle_system_map.pre_sync();
     motion_times.clear();
   }
   else {
-    mesh_motion_synced.clear();
+    geometry_motion_synced.clear();
   }
 
   /* initialize culling */
@@ -394,8 +395,8 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
     /* handle removed data and modified pointers */
     if (light_map.post_sync())
       scene->light_manager->tag_update(scene);
-    if (mesh_map.post_sync())
-      scene->mesh_manager->tag_update(scene);
+    if (geometry_map.post_sync())
+      scene->geometry_manager->tag_update(scene);
     if (object_map.post_sync())
       scene->object_manager->tag_update(scene);
     if (particle_system_map.post_sync())
@@ -403,7 +404,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
   }
 
   if (motion)
-    mesh_motion_synced.clear();
+    geometry_motion_synced.clear();
 }
 
 void BlenderSync::sync_motion(BL::RenderSettings &b_render,

@@ -22,6 +22,7 @@
 #include "bvh/bvh_params.h"
 #include "bvh_split.h"
 
+#include "render/hair.h"
 #include "render/mesh.h"
 #include "render/object.h"
 #include "render/scene.h"
@@ -194,21 +195,21 @@ void BVHBuild::add_reference_triangles(BoundBox &root, BoundBox &center, Mesh *m
   }
 }
 
-void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Mesh *mesh, int i)
+void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair, int i)
 {
   const Attribute *curve_attr_mP = NULL;
-  if (mesh->has_motion_blur()) {
-    curve_attr_mP = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+  if (hair->has_motion_blur()) {
+    curve_attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   }
-  const size_t num_curves = mesh->num_curves();
+  const size_t num_curves = hair->num_curves();
   for (uint j = 0; j < num_curves; j++) {
-    const Mesh::Curve curve = mesh->get_curve(j);
-    const float *curve_radius = &mesh->curve_radius[0];
+    const Hair::Curve curve = hair->get_curve(j);
+    const float *curve_radius = &hair->curve_radius[0];
     for (int k = 0; k < curve.num_keys - 1; k++) {
       if (curve_attr_mP == NULL) {
         /* Really simple logic for static hair. */
         BoundBox bounds = BoundBox::empty;
-        curve.bounds_grow(k, &mesh->curve_keys[0], curve_radius, bounds);
+        curve.bounds_grow(k, &hair->curve_keys[0], curve_radius, bounds);
         if (bounds.valid()) {
           int packed_type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_CURVE, k);
           references.push_back(BVHReference(bounds, j, i, packed_type));
@@ -223,9 +224,9 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Mesh *mesh
          */
         /* TODO(sergey): Support motion steps for spatially split BVH. */
         BoundBox bounds = BoundBox::empty;
-        curve.bounds_grow(k, &mesh->curve_keys[0], curve_radius, bounds);
-        const size_t num_keys = mesh->curve_keys.size();
-        const size_t num_steps = mesh->motion_steps;
+        curve.bounds_grow(k, &hair->curve_keys[0], curve_radius, bounds);
+        const size_t num_keys = hair->curve_keys.size();
+        const size_t num_steps = hair->motion_steps;
         const float3 *key_steps = curve_attr_mP->data_float3();
         for (size_t step = 0; step < num_steps - 1; step++) {
           curve.bounds_grow(k, key_steps + step * num_keys, curve_radius, bounds);
@@ -244,10 +245,10 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Mesh *mesh
          */
         const int num_bvh_steps = params.num_motion_curve_steps * 2 + 1;
         const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
-        const size_t num_steps = mesh->motion_steps;
-        const float3 *curve_keys = &mesh->curve_keys[0];
+        const size_t num_steps = hair->motion_steps;
+        const float3 *curve_keys = &hair->curve_keys[0];
         const float3 *key_steps = curve_attr_mP->data_float3();
-        const size_t num_keys = mesh->curve_keys.size();
+        const size_t num_keys = hair->curve_keys.size();
         /* Calculate bounding box of the previous time step.
          * Will be reused later to avoid duplicated work on
          * calculating BVH time step boundbox.
@@ -302,13 +303,15 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Mesh *mesh
   }
 }
 
-void BVHBuild::add_reference_mesh(BoundBox &root, BoundBox &center, Mesh *mesh, int i)
+void BVHBuild::add_reference_geometry(BoundBox &root, BoundBox &center, Geometry *geom, int i)
 {
-  if (params.primitive_mask & PRIMITIVE_ALL_TRIANGLE) {
+  if (geom->type == Geometry::MESH) {
+    Mesh *mesh = static_cast<Mesh *>(geom);
     add_reference_triangles(root, center, mesh, i);
   }
-  if (params.primitive_mask & PRIMITIVE_ALL_CURVE) {
-    add_reference_curves(root, center, mesh, i);
+  else if (geom->type == Geometry::HAIR) {
+    Hair *hair = static_cast<Hair *>(geom);
+    add_reference_curves(root, center, hair, i);
   }
 }
 
@@ -319,14 +322,28 @@ void BVHBuild::add_reference_object(BoundBox &root, BoundBox &center, Object *ob
   center.grow(ob->bounds.center2());
 }
 
-static size_t count_curve_segments(Mesh *mesh)
+static size_t count_curve_segments(Hair *hair)
 {
-  size_t num = 0, num_curves = mesh->num_curves();
+  size_t num = 0, num_curves = hair->num_curves();
 
   for (size_t i = 0; i < num_curves; i++)
-    num += mesh->get_curve(i).num_keys - 1;
+    num += hair->get_curve(i).num_keys - 1;
 
   return num;
+}
+
+static size_t count_primitives(Geometry *geom)
+{
+  if (geom->type == Geometry::MESH) {
+    Mesh *mesh = static_cast<Mesh *>(geom);
+    return mesh->num_triangles();
+  }
+  else if (geom->type == Geometry::HAIR) {
+    Hair *hair = static_cast<Hair *>(geom);
+    return count_curve_segments(hair);
+  }
+
+  return 0;
 }
 
 void BVHBuild::add_references(BVHRange &root)
@@ -339,24 +356,14 @@ void BVHBuild::add_references(BVHRange &root)
       if (!ob->is_traceable()) {
         continue;
       }
-      if (!ob->mesh->is_instanced()) {
-        if (params.primitive_mask & PRIMITIVE_ALL_TRIANGLE) {
-          num_alloc_references += ob->mesh->num_triangles();
-        }
-        if (params.primitive_mask & PRIMITIVE_ALL_CURVE) {
-          num_alloc_references += count_curve_segments(ob->mesh);
-        }
+      if (!ob->geometry->is_instanced()) {
+        num_alloc_references += count_primitives(ob->geometry);
       }
       else
         num_alloc_references++;
     }
     else {
-      if (params.primitive_mask & PRIMITIVE_ALL_TRIANGLE) {
-        num_alloc_references += ob->mesh->num_triangles();
-      }
-      if (params.primitive_mask & PRIMITIVE_ALL_CURVE) {
-        num_alloc_references += count_curve_segments(ob->mesh);
-      }
+      num_alloc_references += count_primitives(ob->geometry);
     }
   }
 
@@ -372,13 +379,13 @@ void BVHBuild::add_references(BVHRange &root)
         ++i;
         continue;
       }
-      if (!ob->mesh->is_instanced())
-        add_reference_mesh(bounds, center, ob->mesh, i);
+      if (!ob->geometry->is_instanced())
+        add_reference_geometry(bounds, center, ob->geometry, i);
       else
         add_reference_object(bounds, center, ob, i);
     }
     else
-      add_reference_mesh(bounds, center, ob->mesh, i);
+      add_reference_geometry(bounds, center, ob->geometry, i);
 
     i++;
 

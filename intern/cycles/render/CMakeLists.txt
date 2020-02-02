@@ -19,7 +19,9 @@ set(SRC
   coverage.cpp
   denoising.cpp
   film.cpp
+  geometry.cpp
   graph.cpp
+  hair.cpp
   image.cpp
   integrator.cpp
   light.cpp
@@ -54,7 +56,9 @@ set(SRC_HEADERS
   coverage.h
   denoising.h
   film.h
+  geometry.h
   graph.h
+  hair.h
   image.h
   integrator.h
   light.h

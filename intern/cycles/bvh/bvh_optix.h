@@ -26,11 +26,16 @@
 
 CCL_NAMESPACE_BEGIN
 
+class Geometry;
+class Optix;
+
 class BVHOptiX : public BVH {
   friend class BVH;
 
  public:
-  BVHOptiX(const BVHParams &params, const vector<Mesh *> &meshes, const vector<Object *> &objects);
+  BVHOptiX(const BVHParams &params,
+           const vector<Geometry *> &geometry,
+           const vector<Object *> &objects);
   virtual ~BVHOptiX();
 
   virtual void build(Progress &progress, Stats *) override;

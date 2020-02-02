@@ -40,6 +40,7 @@ class BlenderObjectCulling;
 class BlenderViewportParameters;
 class Camera;
 class Film;
+class Hair;
 class Light;
 class Mesh;
 class Object;
@@ -142,10 +143,13 @@ class BlenderSync {
   void sync_mesh_motion(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *mesh, int motion_step);
 
   /* Hair */
-  void sync_hair(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *mesh);
-  void sync_hair_motion(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *mesh, int motion_step);
+  void sync_hair(BL::Depsgraph b_depsgraph, BL::Object b_ob, Geometry *geom);
+  void sync_hair_motion(BL::Depsgraph b_depsgraph,
+                        BL::Object b_ob,
+                        Geometry *geom,
+                        int motion_step);
   void sync_particle_hair(
-      Mesh *mesh, BL::Mesh &b_mesh, BL::Object &b_ob, bool motion, int motion_step = 0);
+      Geometry *geom, BL::Mesh &b_mesh, BL::Object &b_ob, bool motion, int motion_step = 0);
   void sync_curve_settings();
   bool object_has_particle_hair(BL::Object b_ob);
 
@@ -154,11 +158,11 @@ class BlenderSync {
       BL::RenderSettings &b_render, BL::Object &b_ob, int width, int height, float motion_time);
 
   /* Geometry */
-  Mesh *sync_geometry(BL::Depsgraph &b_depsgrpah,
-                      BL::Object &b_ob,
-                      BL::Object &b_ob_instance,
-                      bool object_updated,
-                      bool use_particle_hair);
+  Geometry *sync_geometry(BL::Depsgraph &b_depsgrpah,
+                          BL::Object &b_ob,
+                          BL::Object &b_ob_instance,
+                          bool object_updated,
+                          bool use_particle_hair);
   void sync_geometry_motion(BL::Depsgraph &b_depsgraph,
                             BL::Object &b_ob,
                             Object *object,
@@ -199,11 +203,11 @@ class BlenderSync {
 
   id_map<void *, Shader> shader_map;
   id_map<ObjectKey, Object> object_map;
-  id_map<MeshKey, Mesh> mesh_map;
+  id_map<GeometryKey, Geometry> geometry_map;
   id_map<ObjectKey, Light> light_map;
   id_map<ParticleSystemKey, ParticleSystem> particle_system_map;
-  set<Mesh *> mesh_synced;
-  set<Mesh *> mesh_motion_synced;
+  set<Geometry *> geometry_synced;
+  set<Geometry *> geometry_motion_synced;
   set<float> motion_times;
   void *world_map;
   bool world_recalc;

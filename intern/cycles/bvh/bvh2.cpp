@@ -26,9 +26,9 @@
 CCL_NAMESPACE_BEGIN
 
 BVH2::BVH2(const BVHParams &params_,
-           const vector<Mesh *> &meshes_,
+           const vector<Geometry *> &geometry_,
            const vector<Object *> &objects_)
-    : BVH(params_, meshes_, objects_)
+    : BVH(params_, geometry_, objects_)
 {
 }
 

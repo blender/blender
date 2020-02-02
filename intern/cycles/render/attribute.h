@@ -21,6 +21,7 @@
 
 #include "util/util_list.h"
 #include "util/util_param.h"
+#include "util/util_set.h"
 #include "util/util_types.h"
 #include "util/util_vector.h"
 
@@ -31,6 +32,8 @@ class AttributeRequest;
 class AttributeRequestSet;
 class AttributeSet;
 class ImageManager;
+class Geometry;
+class Hair;
 class Mesh;
 struct Transform;
 
@@ -61,12 +64,12 @@ class Attribute {
   }
   ~Attribute();
   void set(ustring name, TypeDesc type, AttributeElement element);
-  void resize(Mesh *mesh, AttributePrimitive prim, bool reserve_only);
+  void resize(Geometry *geom, AttributePrimitive prim, bool reserve_only);
   void resize(size_t num_elements);
 
   size_t data_sizeof() const;
-  size_t element_size(Mesh *mesh, AttributePrimitive prim) const;
-  size_t buffer_size(Mesh *mesh, AttributePrimitive prim) const;
+  size_t element_size(Geometry *geom, AttributePrimitive prim) const;
+  size_t buffer_size(Geometry *geom, AttributePrimitive prim) const;
 
   char *data()
   {
@@ -157,6 +160,8 @@ class Attribute {
   static bool same_storage(TypeDesc a, TypeDesc b);
   static const char *standard_name(AttributeStandard std);
   static AttributeStandard name_standard(const char *name);
+
+  void get_uv_tiles(Geometry *geom, AttributePrimitive prim, unordered_set<int> &tiles) const;
 };
 
 /* Attribute Set
@@ -166,8 +171,8 @@ class Attribute {
 class AttributeSet {
  public:
   Mesh *triangle_mesh;
-  Mesh *curve_mesh;
   Mesh *subd_mesh;
+  Hair *hair;
   list<Attribute> attributes;
 
   AttributeSet();
@@ -200,7 +205,7 @@ class AttributeRequest {
   ustring name;
   AttributeStandard std;
 
-  /* temporary variables used by MeshManager */
+  /* temporary variables used by GeometryManager */
   TypeDesc triangle_type, curve_type, subd_type;
   AttributeDescriptor triangle_desc, curve_desc, subd_desc;
 

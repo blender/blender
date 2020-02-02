@@ -31,6 +31,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+class Geometry;
+class Hair;
 class Mesh;
 
 class BVHEmbree : public BVH {
@@ -47,7 +49,7 @@ class BVHEmbree : public BVH {
  protected:
   friend class BVH;
   BVHEmbree(const BVHParams &params,
-            const vector<Mesh *> &meshes,
+            const vector<Geometry *> &geometry,
             const vector<Object *> &objects);
 
   virtual void pack_nodes(const BVHNode *) override;
@@ -55,8 +57,8 @@ class BVHEmbree : public BVH {
 
   void add_object(Object *ob, int i);
   void add_instance(Object *ob, int i);
-  void add_curves(Object *ob, int i);
-  void add_triangles(Object *ob, int i);
+  void add_curves(const Object *ob, const Hair *hair, int i);
+  void add_triangles(const Object *ob, const Mesh *mesh, int i);
 
   ssize_t mem_used;
 
@@ -69,7 +71,7 @@ class BVHEmbree : public BVH {
  private:
   void delete_rtcScene();
   void update_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh);
-  void update_curve_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh);
+  void update_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair);
 
   static RTCDevice rtc_shared_device;
   static int rtc_shared_users;

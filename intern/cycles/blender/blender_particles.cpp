@@ -39,7 +39,7 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
   object->hide_on_missing_motion = true;
 
   /* test if we need particle data */
-  if (!object->mesh->need_attribute(scene, ATTR_STD_PARTICLE))
+  if (!object->geometry->need_attribute(scene, ATTR_STD_PARTICLE))
     return false;
 
   /* don't handle child particles yet */
@@ -53,10 +53,10 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
   ParticleSystem *psys;
 
   bool first_use = !particle_system_map.is_used(key);
-  bool need_update = particle_system_map.sync(&psys, b_ob, b_instance.object(), key);
+  bool need_update = particle_system_map.add_or_update(&psys, b_ob, b_instance.object(), key);
 
   /* no update needed? */
-  if (!need_update && !object->mesh->need_update && !scene->object_manager->need_update)
+  if (!need_update && !object->geometry->need_update && !scene->object_manager->need_update)
     return true;
 
   /* first time used in this sync loop? clear and tag update */

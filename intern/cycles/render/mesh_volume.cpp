@@ -362,7 +362,7 @@ struct VoxelAttributeGrid {
   int channels;
 };
 
-void MeshManager::create_volume_mesh(Scene *scene, Mesh *mesh, Progress &progress)
+void GeometryManager::create_volume_mesh(Scene *scene, Mesh *mesh, Progress &progress)
 {
   string msg = string_printf("Computing Volume Mesh %s", mesh->name.c_str());
   progress.set_status("Updating Mesh", msg);

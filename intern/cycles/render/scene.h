@@ -44,8 +44,8 @@ class Integrator;
 class Light;
 class LightManager;
 class LookupTables;
-class Mesh;
-class MeshManager;
+class Geometry;
+class GeometryManager;
 class Object;
 class ObjectManager;
 class ParticleSystemManager;
@@ -213,7 +213,7 @@ class Scene {
 
   /* data lists */
   vector<Object *> objects;
-  vector<Mesh *> meshes;
+  vector<Geometry *> geometry;
   vector<Shader *> shaders;
   vector<Light *> lights;
   vector<ParticleSystem *> particle_systems;
@@ -222,7 +222,7 @@ class Scene {
   ImageManager *image_manager;
   LightManager *light_manager;
   ShaderManager *shader_manager;
-  MeshManager *mesh_manager;
+  GeometryManager *geometry_manager;
   ObjectManager *object_manager;
   ParticleSystemManager *particle_system_manager;
   CurveSystemManager *curve_system_manager;

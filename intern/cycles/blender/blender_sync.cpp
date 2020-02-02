@@ -56,7 +56,7 @@ BlenderSync::BlenderSync(BL::RenderEngine &b_engine,
       b_scene(b_scene),
       shader_map(&scene->shaders),
       object_map(&scene->objects),
-      mesh_map(&scene->meshes),
+      geometry_map(&scene->geometry),
       light_map(&scene->lights),
       particle_system_map(&scene->particle_systems),
       world_map(NULL),
@@ -108,12 +108,15 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
     }
 
     if (dicing_prop_changed) {
-      for (const pair<MeshKey, Mesh *> &iter : mesh_map.key_to_scene_data()) {
-        Mesh *mesh = iter.second;
-        if (mesh->subdivision_type != Mesh::SUBDIVISION_NONE) {
-          PointerRNA id_ptr;
-          RNA_id_pointer_create((::ID *)iter.first.id, &id_ptr);
-          mesh_map.set_recalc(BL::ID(id_ptr));
+      for (const pair<GeometryKey, Geometry *> &iter : geometry_map.key_to_scene_data()) {
+        Geometry *geom = iter.second;
+        if (geom->type == Geometry::MESH) {
+          Mesh *mesh = static_cast<Mesh *>(geom);
+          if (mesh->subdivision_type != Mesh::SUBDIVISION_NONE) {
+            PointerRNA id_ptr;
+            RNA_id_pointer_create((::ID *)iter.first.id, &id_ptr);
+            geometry_map.set_recalc(BL::ID(id_ptr));
+          }
         }
       }
     }
@@ -148,7 +151,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
         if (updated_geometry ||
             (object_subdivision_type(b_ob, preview, experimental) != Mesh::SUBDIVISION_NONE)) {
           BL::ID key = BKE_object_is_modified(b_ob) ? b_ob : b_ob.data();
-          mesh_map.set_recalc(key);
+          geometry_map.set_recalc(key);
         }
       }
       else if (object_is_light(b_ob)) {
@@ -166,7 +169,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
     /* Mesh */
     else if (b_id.is_a(&RNA_Mesh)) {
       BL::Mesh b_mesh(b_id);
-      mesh_map.set_recalc(b_mesh);
+      geometry_map.set_recalc(b_mesh);
     }
     /* World */
     else if (b_id.is_a(&RNA_World)) {
@@ -213,7 +216,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
   sync_images();
   sync_curve_settings();
 
-  mesh_synced.clear(); /* use for objects and motion sync */
+  geometry_synced.clear(); /* use for objects and motion sync */
 
   if (scene->need_motion() == Scene::MOTION_PASS || scene->need_motion() == Scene::MOTION_NONE ||
       scene->camera->motion_position == Camera::MOTION_POSITION_CENTER) {
@@ -221,7 +224,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
   }
   sync_motion(b_render, b_depsgraph, b_v3d, b_override, width, height, python_thread_state);
 
-  mesh_synced.clear();
+  geometry_synced.clear();
 
   /* Shader sync done at the end, since object sync uses it.
    * false = don't delete unused shaders, not supported. */

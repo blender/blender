@@ -94,7 +94,7 @@ Scene::Scene(const SceneParams &params_, Device *device)
   film = new Film();
   background = new Background();
   light_manager = new LightManager();
-  mesh_manager = new MeshManager();
+  geometry_manager = new GeometryManager();
   object_manager = new ObjectManager();
   integrator = new Integrator();
   image_manager = new ImageManager(device->info);
@@ -118,8 +118,8 @@ void Scene::free_memory(bool final)
 {
   foreach (Shader *s, shaders)
     delete s;
-  foreach (Mesh *m, meshes)
-    delete m;
+  foreach (Geometry *g, geometry)
+    delete g;
   foreach (Object *o, objects)
     delete o;
   foreach (Light *l, lights)
@@ -128,7 +128,7 @@ void Scene::free_memory(bool final)
     delete p;
 
   shaders.clear();
-  meshes.clear();
+  geometry.clear();
   objects.clear();
   lights.clear();
   particle_systems.clear();
@@ -140,7 +140,7 @@ void Scene::free_memory(bool final)
     integrator->device_free(device, &dscene);
 
     object_manager->device_free(device, &dscene);
-    mesh_manager->device_free(device, &dscene);
+    geometry_manager->device_free(device, &dscene);
     shader_manager->device_free(device, &dscene, this);
     light_manager->device_free(device, &dscene);
 
@@ -165,7 +165,7 @@ void Scene::free_memory(bool final)
     delete background;
     delete integrator;
     delete object_manager;
-    delete mesh_manager;
+    delete geometry_manager;
     delete shader_manager;
     delete light_manager;
     delete particle_system_manager;
@@ -211,7 +211,7 @@ void Scene::device_update(Device *device_, Progress &progress)
   if (progress.get_cancel() || device->have_error())
     return;
 
-  mesh_manager->device_update_preprocess(device, this, progress);
+  geometry_manager->device_update_preprocess(device, this, progress);
 
   if (progress.get_cancel() || device->have_error())
     return;
@@ -235,7 +235,7 @@ void Scene::device_update(Device *device_, Progress &progress)
     return;
 
   progress.set_status("Updating Meshes");
-  mesh_manager->device_update(device, &dscene, this, progress);
+  geometry_manager->device_update(device, &dscene, this, progress);
 
   if (progress.get_cancel() || device->have_error())
     return;
@@ -356,7 +356,7 @@ bool Scene::need_update()
 bool Scene::need_data_update()
 {
   return (background->need_update || image_manager->need_update || object_manager->need_update ||
-          mesh_manager->need_update || light_manager->need_update || lookup_tables->need_update ||
+          geometry_manager->need_update || light_manager->need_update || lookup_tables->need_update ||
           integrator->need_update || shader_manager->need_update ||
           particle_system_manager->need_update || curve_system_manager->need_update ||
           bake_manager->need_update || film->need_update);
@@ -379,7 +379,7 @@ void Scene::reset()
   background->tag_update(this);
   integrator->tag_update(this);
   object_manager->tag_update(this);
-  mesh_manager->tag_update(this);
+  geometry_manager->tag_update(this);
   light_manager->tag_update(this);
   particle_system_manager->tag_update(this);
   curve_system_manager->tag_update(this);
@@ -392,7 +392,7 @@ void Scene::device_free()
 
 void Scene::collect_statistics(RenderStats *stats)
 {
-  mesh_manager->collect_statistics(this, stats);
+  geometry_manager->collect_statistics(this, stats);
   image_manager->collect_statistics(stats);
 }
 

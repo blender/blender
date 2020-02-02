@@ -253,8 +253,8 @@ int BakeManager::aa_samples(Scene *scene, BakeData *bake_data, ShaderEvalType ty
     /* Only antialias normal if mesh has bump mapping. */
     Object *object = scene->objects[bake_data->object()];
 
-    if (object->mesh) {
-      foreach (Shader *shader, object->mesh->used_shaders) {
+    if (object->geometry) {
+      foreach (Shader *shader, object->geometry->used_shaders) {
         if (shader->has_bump) {
           return scene->integrator->aa_samples;
         }

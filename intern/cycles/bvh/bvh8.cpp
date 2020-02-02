@@ -28,6 +28,7 @@
 
 #include "bvh/bvh8.h"
 
+#include "render/hair.h"
 #include "render/mesh.h"
 #include "render/object.h"
 
@@ -37,9 +38,9 @@
 CCL_NAMESPACE_BEGIN
 
 BVH8::BVH8(const BVHParams &params_,
-           const vector<Mesh *> &meshes_,
+           const vector<Geometry *> &geometry_,
            const vector<Object *> &objects_)
-    : BVH(params_, meshes_, objects_)
+    : BVH(params_, geometry_, objects_)
 {
 }
 
@@ -429,37 +430,37 @@ void BVH8::refit_node(int idx, bool leaf, BoundBox &bbox, uint &visibility)
       }
       else {
         /* Primitives. */
-        const Mesh *mesh = ob->mesh;
-
         if (pack.prim_type[prim] & PRIMITIVE_ALL_CURVE) {
           /* Curves. */
-          int str_offset = (params.top_level) ? mesh->curve_offset : 0;
-          Mesh::Curve curve = mesh->get_curve(pidx - str_offset);
+          const Hair *hair = static_cast<const Hair *>(ob->geometry);
+          int prim_offset = (params.top_level) ? hair->prim_offset : 0;
+          Hair::Curve curve = hair->get_curve(pidx - prim_offset);
           int k = PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[prim]);
 
-          curve.bounds_grow(k, &mesh->curve_keys[0], &mesh->curve_radius[0], bbox);
+          curve.bounds_grow(k, &hair->curve_keys[0], &hair->curve_radius[0], bbox);
 
           visibility |= PATH_RAY_CURVE;
 
           /* Motion curves. */
-          if (mesh->use_motion_blur) {
-            Attribute *attr = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+          if (hair->use_motion_blur) {
+            Attribute *attr = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
             if (attr) {
-              size_t mesh_size = mesh->curve_keys.size();
-              size_t steps = mesh->motion_steps - 1;
+              size_t hair_size = hair->curve_keys.size();
+              size_t steps = hair->motion_steps - 1;
               float3 *key_steps = attr->data_float3();
 
               for (size_t i = 0; i < steps; i++) {
-                curve.bounds_grow(k, key_steps + i * mesh_size, &mesh->curve_radius[0], bbox);
+                curve.bounds_grow(k, key_steps + i * hair_size, &hair->curve_radius[0], bbox);
               }
             }
           }
         }
         else {
           /* Triangles. */
-          int tri_offset = (params.top_level) ? mesh->tri_offset : 0;
-          Mesh::Triangle triangle = mesh->get_triangle(pidx - tri_offset);
+          const Mesh *mesh = static_cast<const Mesh *>(ob->geometry);
+          int prim_offset = (params.top_level) ? mesh->prim_offset : 0;
+          Mesh::Triangle triangle = mesh->get_triangle(pidx - prim_offset);
           const float3 *vpos = &mesh->verts[0];
 
           triangle.bounds_grow(vpos, bbox);

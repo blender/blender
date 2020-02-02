@@ -95,7 +95,7 @@ class Shader : public Node {
 
   /* synchronization */
   bool need_update;
-  bool need_update_mesh;
+  bool need_update_geometry;
   bool need_sync_object;
 
   /* If the shader has only volume components, the surface is assumed to

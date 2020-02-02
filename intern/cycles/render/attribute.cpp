@@ -15,6 +15,7 @@
  */
 
 #include "render/image.h"
+#include "render/hair.h"
 #include "render/mesh.h"
 #include "render/attribute.h"
 
@@ -52,13 +53,13 @@ void Attribute::set(ustring name_, TypeDesc type_, AttributeElement element_)
          type == TypeRGBA);
 }
 
-void Attribute::resize(Mesh *mesh, AttributePrimitive prim, bool reserve_only)
+void Attribute::resize(Geometry *geom, AttributePrimitive prim, bool reserve_only)
 {
   if (reserve_only) {
-    buffer.reserve(buffer_size(mesh, prim));
+    buffer.reserve(buffer_size(geom, prim));
   }
   else {
-    buffer.resize(buffer_size(mesh, prim), 0);
+    buffer.resize(buffer_size(geom, prim), 0);
   }
 }
 
@@ -157,13 +158,13 @@ size_t Attribute::data_sizeof() const
     return sizeof(float3);
 }
 
-size_t Attribute::element_size(Mesh *mesh, AttributePrimitive prim) const
+size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
 {
   if (flags & ATTR_FINAL_SIZE) {
     return buffer.size() / data_sizeof();
   }
 
-  size_t size;
+  size_t size = 0;
 
   switch (element) {
     case ATTR_ELEMENT_OBJECT:
@@ -172,54 +173,74 @@ size_t Attribute::element_size(Mesh *mesh, AttributePrimitive prim) const
       size = 1;
       break;
     case ATTR_ELEMENT_VERTEX:
-      size = mesh->verts.size() + mesh->num_ngons;
-      if (prim == ATTR_PRIM_SUBD) {
-        size -= mesh->num_subd_verts;
+      if (geom->type == Geometry::MESH) {
+        Mesh *mesh = static_cast<Mesh *>(geom);
+        size = mesh->verts.size() + mesh->num_ngons;
+        if (prim == ATTR_PRIM_SUBD) {
+          size -= mesh->num_subd_verts;
+        }
       }
       break;
     case ATTR_ELEMENT_VERTEX_MOTION:
-      size = (mesh->verts.size() + mesh->num_ngons) * (mesh->motion_steps - 1);
-      if (prim == ATTR_PRIM_SUBD) {
-        size -= mesh->num_subd_verts * (mesh->motion_steps - 1);
+      if (geom->type == Geometry::MESH) {
+        Mesh *mesh = static_cast<Mesh *>(geom);
+        size = (mesh->verts.size() + mesh->num_ngons) * (mesh->motion_steps - 1);
+        if (prim == ATTR_PRIM_SUBD) {
+          size -= mesh->num_subd_verts * (mesh->motion_steps - 1);
+        }
       }
       break;
     case ATTR_ELEMENT_FACE:
-      if (prim == ATTR_PRIM_TRIANGLE) {
-        size = mesh->num_triangles();
-      }
-      else {
-        size = mesh->subd_faces.size() + mesh->num_ngons;
+      if (geom->type == Geometry::MESH) {
+        Mesh *mesh = static_cast<Mesh *>(geom);
+        if (prim == ATTR_PRIM_TRIANGLE) {
+          size = mesh->num_triangles();
+        }
+        else {
+          size = mesh->subd_faces.size() + mesh->num_ngons;
+        }
       }
       break;
     case ATTR_ELEMENT_CORNER:
     case ATTR_ELEMENT_CORNER_BYTE:
-      if (prim == ATTR_PRIM_TRIANGLE) {
-        size = mesh->num_triangles() * 3;
-      }
-      else {
-        size = mesh->subd_face_corners.size() + mesh->num_ngons;
+      if (geom->type == Geometry::MESH) {
+        Mesh *mesh = static_cast<Mesh *>(geom);
+        if (prim == ATTR_PRIM_TRIANGLE) {
+          size = mesh->num_triangles() * 3;
+        }
+        else {
+          size = mesh->subd_face_corners.size() + mesh->num_ngons;
+        }
       }
       break;
     case ATTR_ELEMENT_CURVE:
-      size = mesh->num_curves();
+      if (geom->type == Geometry::HAIR) {
+        Hair *hair = static_cast<Hair *>(geom);
+        size = hair->num_curves();
+      }
       break;
     case ATTR_ELEMENT_CURVE_KEY:
-      size = mesh->curve_keys.size();
+      if (geom->type == Geometry::HAIR) {
+        Hair *hair = static_cast<Hair *>(geom);
+        size = hair->curve_keys.size();
+      }
       break;
     case ATTR_ELEMENT_CURVE_KEY_MOTION:
-      size = mesh->curve_keys.size() * (mesh->motion_steps - 1);
+      if (geom->type == Geometry::HAIR) {
+        Hair *hair = static_cast<Hair *>(geom);
+        size = hair->curve_keys.size() * (hair->motion_steps - 1);
+      }
       break;
     default:
-      size = 0;
       break;
   }
 
   return size;
 }
 
-size_t Attribute::buffer_size(Mesh *mesh, AttributePrimitive prim) const
+size_t Attribute::buffer_size(Geometry *geom, AttributePrimitive prim) const
 {
-  return element_size(mesh, prim) * data_sizeof();
+  return element_size(geom, prim) * data_sizeof();
 }
 
 bool Attribute::same_storage(TypeDesc a, TypeDesc b)
@@ -336,13 +357,44 @@ AttributeStandard Attribute::name_standard(const char *name)
   return ATTR_STD_NONE;
 }
 
+void Attribute::get_uv_tiles(Geometry *geom,
+                             AttributePrimitive prim,
+                             unordered_set<int> &tiles) const
+{
+  if (type != TypeFloat2) {
+    return;
+  }
+
+  const int num = element_size(geom, prim);
+  const float2 *uv = data_float2();
+  for (int i = 0; i < num; i++, uv++) {
+    float u = uv->x, v = uv->y;
+    int x = (int)u, y = (int)v;
+
+    if (x < 0 || y < 0 || x >= 10) {
+      continue;
+    }
+
+    /* Be conservative in corners - precisely touching the right or upper edge of a tile
+     * should not load its right/upper neighbor as well. */
+    if (x > 0 && (u < x + 1e-6f)) {
+      x--;
+    }
+    if (y > 0 && (v < y + 1e-6f)) {
+      y--;
+    }
+
+    tiles.insert(1001 + 10 * y + x);
+  }
+}
+
 /* Attribute Set */
 
 AttributeSet::AttributeSet()
 {
   triangle_mesh = NULL;
-  curve_mesh = NULL;
   subd_mesh = NULL;
+  hair = NULL;
 }
 
 AttributeSet::~AttributeSet()
@@ -378,10 +430,10 @@ Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement eleme
   /* this is weak .. */
   if (triangle_mesh)
     attr->resize(triangle_mesh, ATTR_PRIM_TRIANGLE, false);
-  if (curve_mesh)
-    attr->resize(curve_mesh, ATTR_PRIM_CURVE, false);
   if (subd_mesh)
     attr->resize(subd_mesh, ATTR_PRIM_SUBD, false);
+  if (hair)
+    attr->resize(hair, ATTR_PRIM_CURVE, false);
 
   return attr;
 }
@@ -478,7 +530,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         break;
     }
   }
-  else if (curve_mesh) {
+  else if (hair) {
     switch (std) {
       case ATTR_STD_UV:
         attr = add(name, TypeFloat2, ATTR_ELEMENT_CURVE);
@@ -563,10 +615,10 @@ void AttributeSet::resize(bool reserve_only)
   foreach (Attribute &attr, attributes) {
     if (triangle_mesh)
       attr.resize(triangle_mesh, ATTR_PRIM_TRIANGLE, reserve_only);
-    if (curve_mesh)
-      attr.resize(curve_mesh, ATTR_PRIM_CURVE, reserve_only);
     if (subd_mesh)
       attr.resize(subd_mesh, ATTR_PRIM_SUBD, reserve_only);
+    if (hair)
+      attr.resize(hair, ATTR_PRIM_CURVE, reserve_only);
   }
 }
 
