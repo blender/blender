@@ -18,6 +18,7 @@
  * \ingroup edinterface
  */
 
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -213,8 +214,8 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
   const float icon_size = GIZMO_SIZE;
   const float icon_offset_mini = icon_size * GIZMO_MINI_OFFSET_FAC * UI_DPI_FAC;
   const float co[2] = {
-      rect_visible->xmax - (icon_offset_mini * 0.75f),
-      rect_visible->ymax - (icon_offset_mini * 0.75f),
+      roundf(rect_visible->xmax - (icon_offset_mini * 0.75f)),
+      roundf(rect_visible->ymax - (icon_offset_mini * 0.75f)),
   };
 
   wmGizmo *gz;
