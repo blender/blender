@@ -531,7 +531,7 @@ static inline bool object_use_deform_motion(BL::Object &b_parent, BL::Object &b_
   return use_deform_motion;
 }
 
-static inline BL::FluidDomainSettings object_fluid_domain_find(BL::Object &b_ob)
+static inline BL::FluidDomainSettings object_fluid_liquid_domain_find(BL::Object &b_ob)
 {
   BL::Object::modifiers_iterator b_mod;
 
@@ -539,8 +539,28 @@ static inline BL::FluidDomainSettings object_fluid_domain_find(BL::Object &b_ob)
     if (b_mod->is_a(&RNA_FluidModifier)) {
       BL::FluidModifier b_mmd(*b_mod);
 
-      if (b_mmd.fluid_type() == BL::FluidModifier::fluid_type_DOMAIN)
+      if (b_mmd.fluid_type() == BL::FluidModifier::fluid_type_DOMAIN &&
+          b_mmd.domain_settings().domain_type() == BL::FluidDomainSettings::domain_type_LIQUID) {
         return b_mmd.domain_settings();
+      }
+    }
+  }
+
+  return BL::FluidDomainSettings(PointerRNA_NULL);
+}
+
+static inline BL::FluidDomainSettings object_fluid_gas_domain_find(BL::Object &b_ob)
+{
+  BL::Object::modifiers_iterator b_mod;
+
+  for (b_ob.modifiers.begin(b_mod); b_mod != b_ob.modifiers.end(); ++b_mod) {
+    if (b_mod->is_a(&RNA_FluidModifier)) {
+      BL::FluidModifier b_mmd(*b_mod);
+
+      if (b_mmd.fluid_type() == BL::FluidModifier::fluid_type_DOMAIN &&
+          b_mmd.domain_settings().domain_type() == BL::FluidDomainSettings::domain_type_GAS) {
+        return b_mmd.domain_settings();
+      }
     }
   }
 
@@ -573,248 +593,20 @@ static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
   return Mesh::SUBDIVISION_NONE;
 }
 
-/* ID Map
- *
- * Utility class to keep in sync with blender data.
- * Used for objects, meshes, lights and shaders. */
+static inline uint object_ray_visibility(BL::Object &b_ob)
+{
+  PointerRNA cvisibility = RNA_pointer_get(&b_ob.ptr, "cycles_visibility");
+  uint flag = 0;
 
-template<typename K, typename T> class id_map {
- public:
-  id_map(vector<T *> *scene_data_)
-  {
-    scene_data = scene_data_;
-  }
+  flag |= get_boolean(cvisibility, "camera") ? PATH_RAY_CAMERA : 0;
+  flag |= get_boolean(cvisibility, "diffuse") ? PATH_RAY_DIFFUSE : 0;
+  flag |= get_boolean(cvisibility, "glossy") ? PATH_RAY_GLOSSY : 0;
+  flag |= get_boolean(cvisibility, "transmission") ? PATH_RAY_TRANSMIT : 0;
+  flag |= get_boolean(cvisibility, "shadow") ? PATH_RAY_SHADOW : 0;
+  flag |= get_boolean(cvisibility, "scatter") ? PATH_RAY_VOLUME_SCATTER : 0;
 
-  T *find(const BL::ID &id)
-  {
-    return find(id.ptr.owner_id);
-  }
-
-  T *find(const K &key)
-  {
-    if (b_map.find(key) != b_map.end()) {
-      T *data = b_map[key];
-      return data;
-    }
-
-    return NULL;
-  }
-
-  void set_recalc(const BL::ID &id)
-  {
-    b_recalc.insert(id.ptr.data);
-  }
-
-  void set_recalc(void *id_ptr)
-  {
-    b_recalc.insert(id_ptr);
-  }
-
-  bool has_recalc()
-  {
-    return !(b_recalc.empty());
-  }
-
-  void pre_sync()
-  {
-    used_set.clear();
-  }
-
-  bool sync(T **r_data, const BL::ID &id)
-  {
-    return sync(r_data, id, id, id.ptr.owner_id);
-  }
-
-  bool sync(T **r_data, const BL::ID &id, const K &key)
-  {
-    return sync(r_data, id, id, key);
-  }
-
-  bool sync(T **r_data, const BL::ID &id, const BL::ID &parent, const K &key)
-  {
-    T *data = find(key);
-    bool recalc;
-
-    if (!data) {
-      /* add data if it didn't exist yet */
-      data = new T();
-      scene_data->push_back(data);
-      b_map[key] = data;
-      recalc = true;
-    }
-    else {
-      recalc = (b_recalc.find(id.ptr.data) != b_recalc.end());
-      if (parent.ptr.data && parent.ptr.data != id.ptr.data) {
-        recalc = recalc || (b_recalc.find(parent.ptr.data) != b_recalc.end());
-      }
-    }
-
-    used(data);
-
-    *r_data = data;
-    return recalc;
-  }
-
-  bool is_used(const K &key)
-  {
-    T *data = find(key);
-    return (data) ? used_set.find(data) != used_set.end() : false;
-  }
-
-  void used(T *data)
-  {
-    /* tag data as still in use */
-    used_set.insert(data);
-  }
-
-  void set_default(T *data)
-  {
-    b_map[NULL] = data;
-  }
-
-  bool post_sync(bool do_delete = true)
-  {
-    /* remove unused data */
-    vector<T *> new_scene_data;
-    typename vector<T *>::iterator it;
-    bool deleted = false;
-
-    for (it = scene_data->begin(); it != scene_data->end(); it++) {
-      T *data = *it;
-
-      if (do_delete && used_set.find(data) == used_set.end()) {
-        delete data;
-        deleted = true;
-      }
-      else
-        new_scene_data.push_back(data);
-    }
-
-    *scene_data = new_scene_data;
-
-    /* update mapping */
-    map<K, T *> new_map;
-    typedef pair<const K, T *> TMapPair;
-    typename map<K, T *>::iterator jt;
-
-    for (jt = b_map.begin(); jt != b_map.end(); jt++) {
-      TMapPair &pair = *jt;
-
-      if (used_set.find(pair.second) != used_set.end())
-        new_map[pair.first] = pair.second;
-    }
-
-    used_set.clear();
-    b_recalc.clear();
-    b_map = new_map;
-
-    return deleted;
-  }
-
-  const map<K, T *> &key_to_scene_data()
-  {
-    return b_map;
-  }
-
- protected:
-  vector<T *> *scene_data;
-  map<K, T *> b_map;
-  set<T *> used_set;
-  set<void *> b_recalc;
-};
-
-/* Object Key */
-
-enum { OBJECT_PERSISTENT_ID_SIZE = 16 };
-
-struct ObjectKey {
-  void *parent;
-  int id[OBJECT_PERSISTENT_ID_SIZE];
-  void *ob;
-  bool use_particle_hair;
-
-  ObjectKey(void *parent_, int id_[OBJECT_PERSISTENT_ID_SIZE], void *ob_, bool use_particle_hair_)
-      : parent(parent_), ob(ob_), use_particle_hair(use_particle_hair_)
-  {
-    if (id_)
-      memcpy(id, id_, sizeof(id));
-    else
-      memset(id, 0, sizeof(id));
-  }
-
-  bool operator<(const ObjectKey &k) const
-  {
-    if (ob < k.ob) {
-      return true;
-    }
-    else if (ob == k.ob) {
-      if (parent < k.parent) {
-        return true;
-      }
-      else if (parent == k.parent) {
-        if (use_particle_hair < k.use_particle_hair) {
-          return true;
-        }
-        else if (use_particle_hair == k.use_particle_hair) {
-          return memcmp(id, k.id, sizeof(id)) < 0;
-        }
-      }
-    }
-
-    return false;
-  }
-};
-
-/* Mesh Key */
-
-struct MeshKey {
-  void *id;
-  bool use_particle_hair;
-
-  MeshKey(void *id, bool use_particle_hair) : id(id), use_particle_hair(use_particle_hair)
-  {
-  }
-
-  bool operator<(const MeshKey &k) const
-  {
-    if (id < k.id) {
-      return true;
-    }
-    else if (id == k.id) {
-      if (use_particle_hair < k.use_particle_hair) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-};
-
-/* Particle System Key */
-
-struct ParticleSystemKey {
-  void *ob;
-  int id[OBJECT_PERSISTENT_ID_SIZE];
-
-  ParticleSystemKey(void *ob_, int id_[OBJECT_PERSISTENT_ID_SIZE]) : ob(ob_)
-  {
-    if (id_)
-      memcpy(id, id_, sizeof(id));
-    else
-      memset(id, 0, sizeof(id));
-  }
-
-  bool operator<(const ParticleSystemKey &k) const
-  {
-    /* first id is particle index, we don't compare that */
-    if (ob < k.ob)
-      return true;
-    else if (ob == k.ob)
-      return memcmp(id + 1, k.id + 1, sizeof(int) * (OBJECT_PERSISTENT_ID_SIZE - 1)) < 0;
-
-    return false;
-  }
-};
+  return flag;
+}
 
 class EdgeMap {
  public:

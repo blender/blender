@@ -1160,6 +1160,63 @@ void BlenderSync::sync_particle_hair(
   }
 
   mesh->compute_bounds();
+  mesh->geometry_flags |= Mesh::GEOMETRY_CURVES;
+}
+
+void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *mesh)
+{
+  /* compares curve_keys rather than strands in order to handle quick hair
+   * adjustments in dynamic BVH - other methods could probably do this better*/
+  array<float3> oldcurve_keys;
+  array<float> oldcurve_radius;
+  oldcurve_keys.steal_data(mesh->curve_keys);
+  oldcurve_radius.steal_data(mesh->curve_radius);
+
+  if (view_layer.use_hair) {
+    /* Particle hair. */
+    bool need_undeformed = mesh->need_attribute(scene, ATTR_STD_GENERATED);
+    BL::Mesh b_mesh = object_to_mesh(
+        b_data, b_ob, b_depsgraph, need_undeformed, Mesh::SUBDIVISION_NONE);
+
+    if (b_mesh) {
+      sync_particle_hair(mesh, b_mesh, b_ob, false);
+      free_object_to_mesh(b_data, b_ob, b_mesh);
+    }
+  }
+
+  /* tag update */
+  bool rebuild = (oldcurve_keys != mesh->curve_keys) || (oldcurve_radius != mesh->curve_radius);
+  mesh->tag_update(scene, rebuild);
+}
+
+void BlenderSync::sync_hair_motion(BL::Depsgraph b_depsgraph,
+                                   BL::Object b_ob,
+                                   Mesh *mesh,
+                                   int motion_step)
+{
+  /* Skip if no curves were exported. */
+  size_t numkeys = mesh->curve_keys.size();
+  if (numkeys == 0) {
+    return;
+  }
+
+  /* Export deformed coordinates. */
+  if (ccl::BKE_object_is_deform_modified(b_ob, b_scene, preview)) {
+    /* Particle hair. */
+    BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_depsgraph, false, Mesh::SUBDIVISION_NONE);
+    if (b_mesh) {
+      sync_particle_hair(mesh, b_mesh, b_ob, true, motion_step);
+      free_object_to_mesh(b_data, b_ob, b_mesh);
+      return;
+    }
+  }
+
+  /* No deformation on this frame, copy coordinates if other frames did have it. */
+  Attribute *attr_mP = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+  if (attr_mP) {
+    float3 *keys = &mesh->curve_keys[0];
+    memcpy(attr_mP->data_float3() + motion_step * numkeys, keys, sizeof(float3) * numkeys);
+  }
 }
 
 CCL_NAMESPACE_END

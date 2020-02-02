@@ -21,6 +21,7 @@
 #include "blender/blender_device.h"
 #include "blender/blender_sync.h"
 #include "blender/blender_session.h"
+#include "blender/blender_util.h"
 
 #include "render/denoising.h"
 #include "render/merge.h"
