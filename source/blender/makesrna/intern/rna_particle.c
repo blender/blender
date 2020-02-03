@@ -385,11 +385,11 @@ static void rna_ParticleSystem_co_hair(
     totchild = 0;
   }
 
-  if (particle_no < totpart) {
+  if (particle_no < totpart && particlesystem->pathcache) {
     cache = particlesystem->pathcache[particle_no];
     max_k = (int)cache->segments;
   }
-  else if (particle_no < totpart + totchild) {
+  else if (particle_no < totpart + totchild && particlesystem->childcache) {
     cache = particlesystem->childcache[particle_no - totpart];
 
     if (cache->segments < 0) {
@@ -400,6 +400,7 @@ static void rna_ParticleSystem_co_hair(
     }
   }
   else {
+    zero_v3(n_co);
     return;
   }
 
@@ -408,6 +409,9 @@ static void rna_ParticleSystem_co_hair(
     copy_v3_v3(n_co, (cache + step)->co);
     mul_m4_v3(particlesystem->imat, n_co);
     mul_m4_v3(object->obmat, n_co);
+  }
+  else {
+    zero_v3(n_co);
   }
 }
 
