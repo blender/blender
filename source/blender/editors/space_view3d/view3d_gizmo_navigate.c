@@ -285,8 +285,8 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
   }
 
   const float co[2] = {
-      rect_visible->xmax - icon_offset_mini * 0.75f,
-      rect_visible->ymax - icon_offset_from_axis,
+      roundf(rect_visible->xmax - icon_offset_mini * 0.75f),
+      roundf(rect_visible->ymax - icon_offset_from_axis),
   };
 
   wmGizmo *gz;
