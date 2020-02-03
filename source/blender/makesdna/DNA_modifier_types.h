@@ -492,7 +492,14 @@ typedef struct DisplaceModifierData {
   char defgrp_name[64];
   float midlevel;
   int space;
+  short flag;
+  char _pad[6];
 } DisplaceModifierData;
+
+/* DisplaceModifierData->flag */
+enum {
+  MOD_DISP_INVERT_VGROUP = (1 << 0),
+};
 
 /* DisplaceModifierData->direction */
 enum {

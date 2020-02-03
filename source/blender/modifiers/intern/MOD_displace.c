@@ -174,6 +174,7 @@ static void displaceModifier_do_task(void *__restrict userdata,
   DisplaceUserdata *data = (DisplaceUserdata *)userdata;
   DisplaceModifierData *dmd = data->dmd;
   MDeformVert *dvert = data->dvert;
+  const bool invert_vgroup = (dmd->flag & MOD_DISP_INVERT_VGROUP) != 0;
   float weight = data->weight;
   int defgrp_index = data->defgrp_index;
   int direction = data->direction;
@@ -192,7 +193,8 @@ static void displaceModifier_do_task(void *__restrict userdata,
   float local_vec[3];
 
   if (dvert) {
-    weight = defvert_find_weight(dvert + iter, defgrp_index);
+    weight = invert_vgroup ? 1.0f - defvert_find_weight(dvert + iter, defgrp_index) :
+                             defvert_find_weight(dvert + iter, defgrp_index);
     if (weight == 0.0f) {
       return;
     }
