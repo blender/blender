@@ -179,7 +179,7 @@ BLI_INLINE OVERLAY_DupliData *OVERLAY_duplidata_get(Object *ob, void *vedata, bo
 
 static bool overlay_object_is_edit_mode(const OVERLAY_PrivateData *pd, const Object *ob)
 {
-  if ((ob->mode & OB_MODE_EDIT) && BKE_object_is_in_editmode(ob)) {
+  if (DRW_object_is_in_edit_mode(ob)) {
     /* Also check for context mode as the object mode is not 100% reliable. (see T72490) */
     switch (ob->type) {
       case OB_MESH:
