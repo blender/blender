@@ -34,6 +34,8 @@
 
 #include "WM_types.h"
 
+#include "UI_interface.h"
+
 #include "text_intern.h"
 
 /* ************************ header area region *********************** */
@@ -83,6 +85,8 @@ static int text_text_search_exec(bContext *C, wmOperator *UNUSED(op))
     if (ar->flag & RGN_FLAG_HIDDEN) {
       ED_region_toggle_hidden(C, ar);
     }
+
+    UI_panel_category_active_set(ar, "Text");
 
     /* cannot send a button activate yet for case when region wasn't visible yet */
     /* flag gets checked and cleared in main draw callback */
