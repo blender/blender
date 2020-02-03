@@ -173,19 +173,20 @@ static bool ObtainCacheParticleData(
           CData->curve_firstkey.push_back_slow(keyno);
 
           float curve_length = 0.0f;
-          float3 pcKey;
+          float3 prev_co_world = make_float3(0.0f, 0.0f, 0.0f);
+          float3 prev_co_object = make_float3(0.0f, 0.0f, 0.0f);
           for (int step_no = 0; step_no < ren_step; step_no++) {
-            float nco[3];
-            b_psys.co_hair(*b_ob, pa_no, step_no, nco);
-            float3 cKey = make_float3(nco[0], nco[1], nco[2]);
-            cKey = transform_point(&itfm, cKey);
+            float3 co_world = prev_co_world;
+            b_psys.co_hair(*b_ob, pa_no, step_no, &co_world.x);
+            float3 co_object = transform_point(&itfm, co_world);
             if (step_no > 0) {
-              const float step_length = len(cKey - pcKey);
+              const float step_length = len(co_object - prev_co_object);
               curve_length += step_length;
             }
-            CData->curvekey_co.push_back_slow(cKey);
+            CData->curvekey_co.push_back_slow(co_object);
             CData->curvekey_time.push_back_slow(curve_length);
-            pcKey = cKey;
+            prev_co_object = co_object;
+            prev_co_world = co_world;
             keynum++;
           }
           keyno += keynum;
