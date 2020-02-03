@@ -79,6 +79,7 @@ static bool editbone_unique_check(void *arg, const char *name)
   return dupli && dupli != data->bone;
 }
 
+/* If bone is already in list, pass it as param to ignore it. */
 void ED_armature_ebone_unique_name(ListBase *edbo, char *name, EditBone *bone)
 {
   struct {
