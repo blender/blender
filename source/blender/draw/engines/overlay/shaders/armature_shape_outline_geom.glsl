@@ -7,6 +7,7 @@ in vec3 vPos[];
 in vec2 ssPos[];
 in vec2 ssNor[];
 in vec4 vColSize[];
+in int inverted[];
 
 flat out vec4 finalColor;
 flat out vec2 edgeStart;
@@ -39,6 +40,7 @@ void main(void)
     }
   }
 
+  n0 = (inverted[0] == 1) ? -n0 : n0;
   /* Don't outline if concave edge. */
   if (dot(n0, v13) > 0.0001) {
     return;

@@ -12,6 +12,7 @@ out vec3 vPos;
 out vec2 ssPos;
 out vec2 ssNor;
 out vec4 vColSize;
+out int inverted;
 
 /* project to screen space */
 vec2 proj(vec4 pos)
@@ -29,6 +30,8 @@ void main()
 
   vPos = viewpos.xyz;
   pPos = ProjectionMatrix * viewpos;
+
+  inverted = int(dot(cross(model_mat[0].xyz, model_mat[1].xyz), model_mat[2].xyz) < 0.0);
 
   /* This is slow and run per vertex, but it's still faster than
    * doing it per instance on CPU and sending it on via instance attribute. */
