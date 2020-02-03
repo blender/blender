@@ -1718,7 +1718,9 @@ static int mouse_action_keys(bAnimContext *ac,
     /* reset selection mode for next steps */
     select_mode = SELECT_ADD;
 
-    if (wait_to_deselect_others) {
+    /* Rather than deselecting others, users may want to drag to box-select (drag from empty space)
+     * or tweak-translate an already selected item. If these cases may apply, delay deselection. */
+    if (wait_to_deselect_others && (!found || is_selected)) {
       ret_value = OPERATOR_RUNNING_MODAL;
     }
     else {
