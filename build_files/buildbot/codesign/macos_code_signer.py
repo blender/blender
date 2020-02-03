@@ -389,8 +389,7 @@ class MacOSCodeSigner(BaseCodeSigner):
         Staple notarial label on the file
         """
 
-        logger_server.info(
-            'Waiting for a result from the notarization office.')
+        logger_server.info('Stapling notarial stamp.')
 
         command = ['xcrun', 'stapler', 'staple', '-v', file.absolute_filepath]
         self.check_output_or_mock(command, util.Platform.MACOS)
