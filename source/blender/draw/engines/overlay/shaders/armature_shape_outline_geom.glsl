@@ -70,7 +70,7 @@ void main(void)
   /* Offset away from the center to avoid overlap with solid shape. */
   gl_Position.xy += (edge_dir - perp) * sizeViewportInv.xy * gl_Position.w;
   /* Improve AA bleeding inside bone silhouette. */
-  gl_Position.z -= 1e-4;
+  gl_Position.z -= (is_persp) ? 1e-4 : 1e-6;
   edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
 #ifdef USE_WORLD_CLIP_PLANES
   world_clip_planes_set_clip_distance(gl_in[1].gl_ClipDistance);
@@ -81,7 +81,7 @@ void main(void)
   /* Offset away from the center to avoid overlap with solid shape. */
   gl_Position.xy += (edge_dir + perp) * sizeViewportInv.xy * gl_Position.w;
   /* Improve AA bleeding inside bone silhouette. */
-  gl_Position.z -= 1e-4;
+  gl_Position.z -= (is_persp) ? 1e-4 : 1e-6;
   edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
 #ifdef USE_WORLD_CLIP_PLANES
   world_clip_planes_set_clip_distance(gl_in[2].gl_ClipDistance);
