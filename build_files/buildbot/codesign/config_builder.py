@@ -25,13 +25,16 @@ import sys
 
 from pathlib import Path
 
+import codesign.util as util
+
 from codesign.config_common import *
 
-if sys.platform == 'linux':
+platform = util.get_current_platform()
+if platform == util.Platform.LINUX:
     SHARED_STORAGE_DIR = Path('/data/codesign')
-elif sys.platform == 'win32':
+elif platform == util.Platform.WINDOWS:
     SHARED_STORAGE_DIR = Path('Z:\\codesign')
-elif sys.platform == 'darwin':
+elif platform == util.Platform.MACOS:
     SHARED_STORAGE_DIR = Path('/Volumes/codesign_macos/codesign')
 
 # https://docs.python.org/3/library/logging.config.html#configuration-dictionary-schema

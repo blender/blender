@@ -51,7 +51,7 @@ class LinuxCodeSigner(BaseCodeSigner):
             self, file: AbsoluteAndRelativeFileName) -> bool:
         if file.relative_filepath == Path('blender'):
             return True
-        if (file.relative_filepath.parts()[-3:-1] == ('python', 'bin') and
+        if (file.relative_filepath.parts[-3:-1] == ('python', 'bin') and
                 file.relative_filepath.name.startwith('python')):
             return True
         if file.relative_filepath.suffix == '.so':

@@ -45,7 +45,7 @@ def create_argument_parser():
 def main():
     parser = create_argument_parser()
     args = parser.parse_args()
-    path_to_sign = args.path_to_sign
+    path_to_sign = args.path_to_sign.absolute()
 
     if sys.platform == 'win32':
         # When WIX packed is used to generate .msi on Windows the CPack will

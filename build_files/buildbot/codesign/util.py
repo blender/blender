@@ -18,7 +18,26 @@
 
 # <pep8 compliant>
 
+import sys
+
+from enum import Enum
 from pathlib import Path
+
+
+class Platform(Enum):
+    LINUX = 1
+    MACOS = 2
+    WINDOWS = 3
+
+
+def get_current_platform() -> Platform:
+    if sys.platform == 'linux':
+        return Platform.LINUX
+    elif sys.platform == 'darwin':
+        return Platform.MACOS
+    elif sys.platform == 'win32':
+        return Platform.WINDOWS
+    raise Exception(f'Unknown platform {sys.platform}')
 
 
 def ensure_file_does_not_exist_or_die(filepath: Path) -> None:

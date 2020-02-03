@@ -65,9 +65,13 @@ class AbsoluteAndRelativeFileName:
         """
         Create list of AbsoluteAndRelativeFileName for all the files in the
         given directory.
+
+        NOTE: Result will be pointing to a resolved paths.
         """
         assert base_dir.is_absolute()
         assert base_dir.is_dir()
+
+        base_dir = base_dir.resolve()
 
         result = []
         for filename in base_dir.glob('**/*'):

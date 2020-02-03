@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Optional
 
 import codesign.config_builder
+import codesign.util as util
 from codesign.base_code_signer import BaseCodeSigner
 
 
@@ -33,10 +34,14 @@ class SimpleCodeSigner:
     code_signer: Optional[BaseCodeSigner]
 
     def __init__(self):
-        if sys.platform == 'linux':
+        platform = util.get_current_platform()
+        if platform == util.Platform.LINUX:
             from codesign.linux_code_signer import LinuxCodeSigner
             self.code_signer = LinuxCodeSigner(codesign.config_builder)
-        elif sys.platform == 'win32':
+        elif platform == util.Platform.MACOS:
+            from codesign.macos_code_signer import MacOSCodeSigner
+            self.code_signer = MacOSCodeSigner(codesign.config_builder)
+        elif platform == util.Platform.WINDOWS:
             from codesign.windows_code_signer import WindowsCodeSigner
             self.code_signer = WindowsCodeSigner(codesign.config_builder)
         else:

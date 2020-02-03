@@ -19,10 +19,11 @@
 # <pep8 compliant>
 
 import logging
-import subprocess
 
 from pathlib import Path
 from typing import List
+
+import codesign.util as util
 
 from buildbot_utils import Builder
 
@@ -52,8 +53,8 @@ class WindowsCodeSigner(BaseCodeSigner):
     def get_sign_command_prefix(self) -> List[str]:
         return [
             'signtool', 'sign', '/v',
-            '/f', self.config.CERTIFICATE_FILEPATH,
-            '/tr', self.config.TIMESTAMP_AUTHORITY_URL]
+            '/f', self.config.WIN_CERTIFICATE_FILEPATH,
+            '/tr', self.config.WIN_TIMESTAMP_AUTHORITY_URL]
 
     def sign_all_files(self, files: List[AbsoluteAndRelativeFileName]) -> None:
         # NOTE: Sign files one by one to avoid possible command line length
@@ -64,6 +65,14 @@ class WindowsCodeSigner(BaseCodeSigner):
         # one go (but only if this actually known to be much faster).
         num_files = len(files)
         for file_index, file in enumerate(files):
+            # Ignore file if it is not to be signed.
+            # Allows to manually construct ZIP of package and get it signed.
+            if not self.check_file_is_to_be_signed(file):
+                logger_server.info(
+                    'Ignoring file [%d/%d] %s',
+                    file_index + 1, num_files, file.relative_filepath)
+                continue
+
             command = self.get_sign_command_prefix()
             command.append(file.absolute_filepath)
             logger_server.info(
@@ -71,5 +80,5 @@ class WindowsCodeSigner(BaseCodeSigner):
                 file_index + 1, num_files, file.relative_filepath)
             # TODO(sergey): Check the status somehow. With a missing certificate
             # the command still exists with a zero code.
-            subprocess.run(command)
+            self.run_command_or_mock(command, util.Platform.WINDOWS)
         # TODO(sergey): Report number of signed and ignored files.
