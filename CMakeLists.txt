@@ -98,7 +98,9 @@ cmake_policy(SET CMP0010 NEW)
 cmake_policy(SET CMP0014 NEW)
 
 # Silence draco warning on macOS, new policy works fine.
-cmake_policy(SET CMP0068 NEW)
+if(POLICY CMP0068)
+  cmake_policy(SET CMP0068 NEW)
+endif()
 
 #-----------------------------------------------------------------------------
 # Load some macros.
