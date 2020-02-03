@@ -31,6 +31,8 @@ if sys.platform == 'linux':
     SHARED_STORAGE_DIR = Path('/data/codesign')
 elif sys.platform == 'win32':
     SHARED_STORAGE_DIR = Path('Z:\\codesign')
+elif sys.platform == 'darwin':
+    SHARED_STORAGE_DIR = Path('/Volumes/codesign_macos/codesign')
 
 # https://docs.python.org/3/library/logging.config.html#configuration-dictionary-schema
 LOGGING = {
