@@ -45,12 +45,15 @@
 import abc
 import logging
 import shutil
+import subprocess
 import time
-import zipfile
+import tarfile
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Iterable, List
+
+import codesign.util as util
 
 from codesign.absolute_and_relative_filename import AbsoluteAndRelativeFileName
 from codesign.archive_with_indicator import ArchiveWithIndicator
@@ -64,14 +67,14 @@ logger_server = logger.getChild('server')
 def pack_files(files: Iterable[AbsoluteAndRelativeFileName],
                archive_filepath: Path) -> None:
     """
-    Create zip archive from given files for the signing pipeline.
+    Create tar archive from given files for the signing pipeline.
     Is used by buildbot worker to create an archive of files which are to be
     signed, and by signing server to send signed files back to the worker.
     """
-    with zipfile.ZipFile(archive_filepath, 'w') as zip_file_handle:
+    with tarfile.TarFile.open(archive_filepath, 'w') as tar_file_handle:
         for file_info in files:
-            zip_file_handle.write(file_info.absolute_filepath,
-                                  arcname=file_info.relative_filepath)
+            tar_file_handle.add(file_info.absolute_filepath,
+                                arcname=file_info.relative_filepath)
 
 
 def extract_files(archive_filepath: Path,
@@ -82,8 +85,8 @@ def extract_files(archive_filepath: Path,
 
     # TODO(sergey): Verify files in the archive have relative path.
 
-    with zipfile.ZipFile(archive_filepath, mode='r') as zip_file_handle:
-        zip_file_handle.extractall(path=extraction_dir)
+    with tarfile.TarFile.open(archive_filepath, mode='r') as tar_file_handle:
+        tar_file_handle.extractall(path=extraction_dir)
 
 
 class BaseCodeSigner(metaclass=abc.ABCMeta):
@@ -133,6 +136,9 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
     # This archive is created by the code signing server.
     signed_archive_info: ArchiveWithIndicator
 
+    # Platform the code is currently executing on.
+    platform: util.Platform
+
     def __init__(self, config):
         self.config = config
 
@@ -141,12 +147,14 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
         # Unsigned (signing server input) configuration.
         self.unsigned_storage_dir = absolute_shared_storage_dir / 'unsigned'
         self.unsigned_archive_info = ArchiveWithIndicator(
-            self.unsigned_storage_dir, 'unsigned_files.zip', 'ready.stamp')
+            self.unsigned_storage_dir, 'unsigned_files.tar', 'ready.stamp')
 
         # Signed (signing server output) configuration.
         self.signed_storage_dir = absolute_shared_storage_dir / 'signed'
         self.signed_archive_info = ArchiveWithIndicator(
-            self.signed_storage_dir, 'signed_files.zip', 'ready.stamp')
+            self.signed_storage_dir, 'signed_files.tar', 'ready.stamp')
+
+        self.platform = util.get_current_platform()
 
     """
     General note on cleanup environment functions.
@@ -383,3 +391,61 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
             logger_server.info(
                 'Got signing request, beging signign procedure.')
             self.run_signing_pipeline()
+
+    ############################################################################
+    # Command executing.
+    #
+    # Abstracted to a degree that allows to run commands from a foreign
+    # platform.
+    # The goal with this is to allow performing dry-run tests of code signer
+    # server from other platforms (for example, to test that macOS code signer
+    # does what it is supposed to after doing a refactor on Linux).
+
+    # TODO(sergey): What is the type annotation for the command?
+    def run_command_or_mock(self, command, platform: util.Platform) -> None:
+        """
+        Run given command if current platform matches given one
+
+        If the platform is different then it will only be printed allowing
+        to verify logic of the code signing process.
+        """
+
+        if platform != self.platform:
+            logger_server.info(
+                f'Will run command for {platform}: {command}')
+            return
+
+        logger_server.info(f'Running command: {command}')
+        subprocess.run(command)
+
+    # TODO(sergey): What is the type annotation for the command?
+    def check_output_or_mock(self, command,
+                             platform: util.Platform,
+                             allow_nonzero_exit_code=False) -> str:
+        """
+        Run given command if current platform matches given one
+
+        If the platform is different then it will only be printed allowing
+        to verify logic of the code signing process.
+
+        If allow_nonzero_exit_code is truth then the output will be returned
+        even if application quit with non-zero exit code.
+        Otherwise an subprocess.CalledProcessError exception will be raised
+        in such case.
+        """
+
+        if platform != self.platform:
+            logger_server.info(
+                f'Will run command for {platform}: {command}')
+            return
+
+        if allow_nonzero_exit_code:
+            process = subprocess.Popen(command,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT)
+            output = process.communicate()[0]
+            return output.decode()
+
+        logger_server.info(f'Running command: {command}')
+        return subprocess.check_output(
+            command, stderr=subprocess.STDOUT).decode()
