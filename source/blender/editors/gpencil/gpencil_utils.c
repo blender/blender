@@ -273,12 +273,10 @@ bGPdata *ED_annotation_data_get_active_direct(ID *screen_id, ScrArea *sa, Scene 
 bGPdata *ED_gpencil_data_get_active(const bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if (ob == NULL) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
     return NULL;
   }
-  bGPdata *gpd = (bGPdata *)ob->data;
-
-  return gpd;
+  return ob->data;
 }
 
 /* Get the active Grease Pencil datablock
