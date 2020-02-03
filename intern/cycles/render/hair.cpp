@@ -294,8 +294,6 @@ NODE_DEFINE(Hair)
 Hair::Hair() : Geometry(node_type, Geometry::HAIR)
 {
   curvekey_offset = 0;
-
-  attributes.hair = this;
 }
 
 Hair::~Hair()
@@ -368,7 +366,7 @@ void Hair::get_uv_tiles(ustring map, unordered_set<int> &tiles)
   }
 
   if (attr) {
-    attr->get_uv_tiles(this, ATTR_PRIM_CURVE, tiles);
+    attr->get_uv_tiles(this, ATTR_PRIM_GEOMETRY, tiles);
   }
 }
 

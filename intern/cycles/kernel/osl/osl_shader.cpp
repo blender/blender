@@ -382,10 +382,6 @@ int OSLShader::find_attribute(KernelGlobals *kg,
 {
   /* for OSL, a hash map is used to lookup the attribute by name. */
   int object = sd->object * ATTR_PRIM_TYPES;
-#ifdef __HAIR__
-  if (sd->type & PRIMITIVE_ALL_CURVE)
-    object += ATTR_PRIM_CURVE;
-#endif
 
   OSLGlobals::AttributeMap &attr_map = kg->osl->attribute_map[object];
   ustring stdname(std::string("geom:") +

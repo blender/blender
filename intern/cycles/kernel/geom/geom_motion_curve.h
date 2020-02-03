@@ -36,7 +36,7 @@ ccl_device_inline int find_attribute_curve_motion(KernelGlobals *kg,
    * zero iterations and rendering is really slow with motion curves. For until other
    * areas are speed up it's probably not so crucial to optimize this out.
    */
-  uint attr_offset = object_attribute_map_offset(kg, object) + ATTR_PRIM_CURVE;
+  uint attr_offset = object_attribute_map_offset(kg, object) + ATTR_PRIM_GEOMETRY;
   uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 
   while (attr_map.x != id) {

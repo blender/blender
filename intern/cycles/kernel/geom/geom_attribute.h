@@ -29,17 +29,11 @@ ccl_device_inline uint subd_triangle_patch(KernelGlobals *kg, const ShaderData *
 
 ccl_device_inline uint attribute_primitive_type(KernelGlobals *kg, const ShaderData *sd)
 {
-#ifdef __HAIR__
-  if (sd->type & PRIMITIVE_ALL_CURVE) {
-    return ATTR_PRIM_CURVE;
-  }
-  else
-#endif
-      if (subd_triangle_patch(kg, sd) != ~0) {
+  if ((sd->type & PRIMITIVE_ALL_TRIANGLE) && subd_triangle_patch(kg, sd) != ~0) {
     return ATTR_PRIM_SUBD;
   }
   else {
-    return ATTR_PRIM_TRIANGLE;
+    return ATTR_PRIM_GEOMETRY;
   }
 }
 

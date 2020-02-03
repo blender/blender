@@ -193,7 +193,7 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
     case ATTR_ELEMENT_FACE:
       if (geom->type == Geometry::MESH) {
         Mesh *mesh = static_cast<Mesh *>(geom);
-        if (prim == ATTR_PRIM_TRIANGLE) {
+        if (prim == ATTR_PRIM_GEOMETRY) {
           size = mesh->num_triangles();
         }
         else {
@@ -205,7 +205,7 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
     case ATTR_ELEMENT_CORNER_BYTE:
       if (geom->type == Geometry::MESH) {
         Mesh *mesh = static_cast<Mesh *>(geom);
-        if (prim == ATTR_PRIM_TRIANGLE) {
+        if (prim == ATTR_PRIM_GEOMETRY) {
           size = mesh->num_triangles() * 3;
         }
         else {
@@ -390,11 +390,9 @@ void Attribute::get_uv_tiles(Geometry *geom,
 
 /* Attribute Set */
 
-AttributeSet::AttributeSet()
+AttributeSet::AttributeSet(Geometry *geometry, AttributePrimitive prim)
+    : geometry(geometry), prim(prim)
 {
-  triangle_mesh = NULL;
-  subd_mesh = NULL;
-  hair = NULL;
 }
 
 AttributeSet::~AttributeSet()
@@ -428,12 +426,7 @@ Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement eleme
 #endif
 
   /* this is weak .. */
-  if (triangle_mesh)
-    attr->resize(triangle_mesh, ATTR_PRIM_TRIANGLE, false);
-  if (subd_mesh)
-    attr->resize(subd_mesh, ATTR_PRIM_SUBD, false);
-  if (hair)
-    attr->resize(hair, ATTR_PRIM_CURVE, false);
+  attr->resize(geometry, prim, false);
 
   return attr;
 }
@@ -470,7 +463,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
   if (name == ustring())
     name = Attribute::standard_name(std);
 
-  if (triangle_mesh || subd_mesh) {
+  if (geometry->type == Geometry::MESH) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
         attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_VERTEX);
@@ -530,7 +523,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         break;
     }
   }
-  else if (hair) {
+  else if (geometry->type == Geometry::HAIR) {
     switch (std) {
       case ATTR_STD_UV:
         attr = add(name, TypeFloat2, ATTR_ELEMENT_CURVE);
@@ -613,12 +606,7 @@ void AttributeSet::remove(Attribute *attribute)
 void AttributeSet::resize(bool reserve_only)
 {
   foreach (Attribute &attr, attributes) {
-    if (triangle_mesh)
-      attr.resize(triangle_mesh, ATTR_PRIM_TRIANGLE, reserve_only);
-    if (subd_mesh)
-      attr.resize(subd_mesh, ATTR_PRIM_SUBD, reserve_only);
-    if (hair)
-      attr.resize(hair, ATTR_PRIM_CURVE, reserve_only);
+    attr.resize(geometry, prim, reserve_only);
   }
 }
 
@@ -648,15 +636,10 @@ AttributeRequest::AttributeRequest(ustring name_)
   name = name_;
   std = ATTR_STD_NONE;
 
-  triangle_type = TypeDesc::TypeFloat;
-  triangle_desc.element = ATTR_ELEMENT_NONE;
-  triangle_desc.offset = 0;
-  triangle_desc.type = NODE_ATTR_FLOAT;
-
-  curve_type = TypeDesc::TypeFloat;
-  curve_desc.element = ATTR_ELEMENT_NONE;
-  curve_desc.offset = 0;
-  curve_desc.type = NODE_ATTR_FLOAT;
+  type = TypeDesc::TypeFloat;
+  desc.element = ATTR_ELEMENT_NONE;
+  desc.offset = 0;
+  desc.type = NODE_ATTR_FLOAT;
 
   subd_type = TypeDesc::TypeFloat;
   subd_desc.element = ATTR_ELEMENT_NONE;
@@ -669,15 +652,10 @@ AttributeRequest::AttributeRequest(AttributeStandard std_)
   name = ustring();
   std = std_;
 
-  triangle_type = TypeDesc::TypeFloat;
-  triangle_desc.element = ATTR_ELEMENT_NONE;
-  triangle_desc.offset = 0;
-  triangle_desc.type = NODE_ATTR_FLOAT;
-
-  curve_type = TypeDesc::TypeFloat;
-  curve_desc.element = ATTR_ELEMENT_NONE;
-  curve_desc.offset = 0;
-  curve_desc.type = NODE_ATTR_FLOAT;
+  type = TypeDesc::TypeFloat;
+  desc.element = ATTR_ELEMENT_NONE;
+  desc.offset = 0;
+  desc.type = NODE_ATTR_FLOAT;
 
   subd_type = TypeDesc::TypeFloat;
   subd_desc.element = ATTR_ELEMENT_NONE;

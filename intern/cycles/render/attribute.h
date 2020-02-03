@@ -170,12 +170,11 @@ class Attribute {
 
 class AttributeSet {
  public:
-  Mesh *triangle_mesh;
-  Mesh *subd_mesh;
-  Hair *hair;
+  Geometry *geometry;
+  AttributePrimitive prim;
   list<Attribute> attributes;
 
-  AttributeSet();
+  AttributeSet(Geometry *geometry, AttributePrimitive prim);
   ~AttributeSet();
 
   Attribute *add(ustring name, TypeDesc type, AttributeElement element);
@@ -206,8 +205,8 @@ class AttributeRequest {
   AttributeStandard std;
 
   /* temporary variables used by GeometryManager */
-  TypeDesc triangle_type, curve_type, subd_type;
-  AttributeDescriptor triangle_desc, curve_desc, subd_desc;
+  TypeDesc type, subd_type;
+  AttributeDescriptor desc, subd_desc;
 
   explicit AttributeRequest(ustring name_);
   explicit AttributeRequest(AttributeStandard std);

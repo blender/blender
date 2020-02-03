@@ -56,7 +56,8 @@ NODE_ABSTRACT_DEFINE(Geometry)
   return type;
 }
 
-Geometry::Geometry(const NodeType *node_type, const Type type) : Node(node_type), type(type)
+Geometry::Geometry(const NodeType *node_type, const Type type)
+    : Node(node_type), type(type), attributes(this, ATTR_PRIM_GEOMETRY)
 {
   need_update = true;
   need_update_rebuild = false;
@@ -300,9 +301,8 @@ void GeometryManager::update_osl_attributes(Device *device,
       osl_attr.desc.offset = 0;
       osl_attr.desc.flags = 0;
 
-      og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_TRIANGLE][attr.name()] = osl_attr;
+      og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_GEOMETRY][attr.name()] = osl_attr;
       og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_SUBD][attr.name()] = osl_attr;
-      og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_CURVE][attr.name()] = osl_attr;
     }
 
     /* find geometry attributes */
@@ -318,16 +318,16 @@ void GeometryManager::update_osl_attributes(Device *device,
     foreach (AttributeRequest &req, attributes.requests) {
       OSLGlobals::Attribute osl_attr;
 
-      if (req.triangle_desc.element != ATTR_ELEMENT_NONE) {
-        osl_attr.desc = req.triangle_desc;
+      if (req.desc.element != ATTR_ELEMENT_NONE) {
+        osl_attr.desc = req.desc;
 
-        if (req.triangle_type == TypeDesc::TypeFloat)
+        if (req.type == TypeDesc::TypeFloat)
           osl_attr.type = TypeDesc::TypeFloat;
-        else if (req.triangle_type == TypeDesc::TypeMatrix)
+        else if (req.type == TypeDesc::TypeMatrix)
           osl_attr.type = TypeDesc::TypeMatrix;
-        else if (req.triangle_type == TypeFloat2)
+        else if (req.type == TypeFloat2)
           osl_attr.type = TypeFloat2;
-        else if (req.triangle_type == TypeRGBA)
+        else if (req.type == TypeRGBA)
           osl_attr.type = TypeRGBA;
         else
           osl_attr.type = TypeDesc::TypeColor;
@@ -335,36 +335,11 @@ void GeometryManager::update_osl_attributes(Device *device,
         if (req.std != ATTR_STD_NONE) {
           /* if standard attribute, add lookup by geom: name convention */
           ustring stdname(string("geom:") + string(Attribute::standard_name(req.std)));
-          og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_TRIANGLE][stdname] = osl_attr;
+          og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_GEOMETRY][stdname] = osl_attr;
         }
         else if (req.name != ustring()) {
           /* add lookup by geometry attribute name */
-          og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_TRIANGLE][req.name] = osl_attr;
-        }
-      }
-
-      if (req.curve_desc.element != ATTR_ELEMENT_NONE) {
-        osl_attr.desc = req.curve_desc;
-
-        if (req.curve_type == TypeDesc::TypeFloat)
-          osl_attr.type = TypeDesc::TypeFloat;
-        else if (req.curve_type == TypeDesc::TypeMatrix)
-          osl_attr.type = TypeDesc::TypeMatrix;
-        else if (req.curve_type == TypeFloat2)
-          osl_attr.type = TypeFloat2;
-        else if (req.curve_type == TypeRGBA)
-          osl_attr.type = TypeRGBA;
-        else
-          osl_attr.type = TypeDesc::TypeColor;
-
-        if (req.std != ATTR_STD_NONE) {
-          /* if standard attribute, add lookup by geom: name convention */
-          ustring stdname(string("geom:") + string(Attribute::standard_name(req.std)));
-          og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_CURVE][stdname] = osl_attr;
-        }
-        else if (req.name != ustring()) {
-          /* add lookup by geometry attribute name */
-          og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_CURVE][req.name] = osl_attr;
+          og->attribute_map[i * ATTR_PRIM_TYPES + ATTR_PRIM_GEOMETRY][req.name] = osl_attr;
         }
       }
 
@@ -440,27 +415,22 @@ void GeometryManager::update_svm_attributes(Device *,
       else
         id = scene->shader_manager->get_attribute_id(req.std);
 
-      if (geom->type == Geometry::MESH) {
-        Mesh *mesh = static_cast<Mesh *>(geom);
-        if (mesh->num_triangles()) {
-          attr_map[index].x = id;
-          attr_map[index].y = req.triangle_desc.element;
-          attr_map[index].z = as_uint(req.triangle_desc.offset);
+      attr_map[index].x = id;
+      attr_map[index].y = req.desc.element;
+      attr_map[index].z = as_uint(req.desc.offset);
 
-          if (req.triangle_type == TypeDesc::TypeFloat)
-            attr_map[index].w = NODE_ATTR_FLOAT;
-          else if (req.triangle_type == TypeDesc::TypeMatrix)
-            attr_map[index].w = NODE_ATTR_MATRIX;
-          else if (req.triangle_type == TypeFloat2)
-            attr_map[index].w = NODE_ATTR_FLOAT2;
-          else if (req.triangle_type == TypeRGBA)
-            attr_map[index].w = NODE_ATTR_RGBA;
-          else
-            attr_map[index].w = NODE_ATTR_FLOAT3;
+      if (req.type == TypeDesc::TypeFloat)
+        attr_map[index].w = NODE_ATTR_FLOAT;
+      else if (req.type == TypeDesc::TypeMatrix)
+        attr_map[index].w = NODE_ATTR_MATRIX;
+      else if (req.type == TypeFloat2)
+        attr_map[index].w = NODE_ATTR_FLOAT2;
+      else if (req.type == TypeRGBA)
+        attr_map[index].w = NODE_ATTR_RGBA;
+      else
+        attr_map[index].w = NODE_ATTR_FLOAT3;
 
-          attr_map[index].w |= req.triangle_desc.flags << 8;
-        }
-      }
+      attr_map[index].w |= req.desc.flags << 8;
 
       index++;
 
@@ -477,34 +447,12 @@ void GeometryManager::update_svm_attributes(Device *,
             attr_map[index].w = NODE_ATTR_MATRIX;
           else if (req.subd_type == TypeFloat2)
             attr_map[index].w = NODE_ATTR_FLOAT2;
-          else if (req.triangle_type == TypeRGBA)
+          else if (req.subd_type == TypeRGBA)
             attr_map[index].w = NODE_ATTR_RGBA;
           else
             attr_map[index].w = NODE_ATTR_FLOAT3;
 
           attr_map[index].w |= req.subd_desc.flags << 8;
-        }
-      }
-
-      index++;
-
-      if (geom->type == Geometry::HAIR) {
-        Hair *hair = static_cast<Hair *>(geom);
-        if (hair->num_curves()) {
-          attr_map[index].x = id;
-          attr_map[index].y = req.curve_desc.element;
-          attr_map[index].z = as_uint(req.curve_desc.offset);
-
-          if (req.curve_type == TypeDesc::TypeFloat)
-            attr_map[index].w = NODE_ATTR_FLOAT;
-          else if (req.curve_type == TypeDesc::TypeMatrix)
-            attr_map[index].w = NODE_ATTR_MATRIX;
-          else if (req.curve_type == TypeFloat2)
-            attr_map[index].w = NODE_ATTR_FLOAT2;
-          else
-            attr_map[index].w = NODE_ATTR_FLOAT3;
-
-          attr_map[index].w |= req.curve_desc.flags << 8;
         }
       }
 
@@ -654,13 +602,13 @@ static void update_attribute_element_offset(Geometry *geom,
       else if (element == ATTR_ELEMENT_VERTEX_MOTION)
         offset -= mesh->vert_offset;
       else if (element == ATTR_ELEMENT_FACE) {
-        if (prim == ATTR_PRIM_TRIANGLE)
+        if (prim == ATTR_PRIM_GEOMETRY)
           offset -= mesh->prim_offset;
         else
           offset -= mesh->face_offset;
       }
       else if (element == ATTR_ELEMENT_CORNER || element == ATTR_ELEMENT_CORNER_BYTE) {
-        if (prim == ATTR_PRIM_TRIANGLE)
+        if (prim == ATTR_PRIM_GEOMETRY)
           offset -= 3 * mesh->prim_offset;
         else
           offset -= mesh->corner_offset;
@@ -720,33 +668,23 @@ void GeometryManager::device_update_attributes(Device *device,
     Geometry *geom = scene->geometry[i];
     AttributeRequestSet &attributes = geom_attributes[i];
     foreach (AttributeRequest &req, attributes.requests) {
+      Attribute *attr = geom->attributes.find(req);
+
+      update_attribute_element_size(geom,
+                                    attr,
+                                    ATTR_PRIM_GEOMETRY,
+                                    &attr_float_size,
+                                    &attr_float2_size,
+                                    &attr_float3_size,
+                                    &attr_uchar4_size);
+
       if (geom->type == Geometry::MESH) {
         Mesh *mesh = static_cast<Mesh *>(geom);
-        Attribute *triangle_mattr = mesh->attributes.find(req);
-        Attribute *subd_mattr = mesh->subd_attributes.find(req);
+        Attribute *subd_attr = mesh->subd_attributes.find(req);
 
         update_attribute_element_size(mesh,
-                                      triangle_mattr,
-                                      ATTR_PRIM_TRIANGLE,
-                                      &attr_float_size,
-                                      &attr_float2_size,
-                                      &attr_float3_size,
-                                      &attr_uchar4_size);
-        update_attribute_element_size(mesh,
-                                      subd_mattr,
+                                      subd_attr,
                                       ATTR_PRIM_SUBD,
-                                      &attr_float_size,
-                                      &attr_float2_size,
-                                      &attr_float3_size,
-                                      &attr_uchar4_size);
-      }
-      else if (geom->type == Geometry::HAIR) {
-        Hair *hair = static_cast<Hair *>(geom);
-        Attribute *curve_mattr = hair->attributes.find(req);
-
-        update_attribute_element_size(hair,
-                                      curve_mattr,
-                                      ATTR_PRIM_CURVE,
                                       &attr_float_size,
                                       &attr_float2_size,
                                       &attr_float3_size,
@@ -773,10 +711,24 @@ void GeometryManager::device_update_attributes(Device *device,
     /* todo: we now store std and name attributes from requests even if
      * they actually refer to the same mesh attributes, optimize */
     foreach (AttributeRequest &req, attributes.requests) {
+      Attribute *attr = geom->attributes.find(req);
+      update_attribute_element_offset(geom,
+                                      dscene->attributes_float,
+                                      attr_float_offset,
+                                      dscene->attributes_float2,
+                                      attr_float2_offset,
+                                      dscene->attributes_float3,
+                                      attr_float3_offset,
+                                      dscene->attributes_uchar4,
+                                      attr_uchar4_offset,
+                                      attr,
+                                      ATTR_PRIM_GEOMETRY,
+                                      req.type,
+                                      req.desc);
+
       if (geom->type == Geometry::MESH) {
         Mesh *mesh = static_cast<Mesh *>(geom);
-        Attribute *triangle_mattr = mesh->attributes.find(req);
-        Attribute *subd_mattr = mesh->subd_attributes.find(req);
+        Attribute *subd_attr = mesh->subd_attributes.find(req);
 
         update_attribute_element_offset(mesh,
                                         dscene->attributes_float,
@@ -787,41 +739,10 @@ void GeometryManager::device_update_attributes(Device *device,
                                         attr_float3_offset,
                                         dscene->attributes_uchar4,
                                         attr_uchar4_offset,
-                                        triangle_mattr,
-                                        ATTR_PRIM_TRIANGLE,
-                                        req.triangle_type,
-                                        req.triangle_desc);
-        update_attribute_element_offset(mesh,
-                                        dscene->attributes_float,
-                                        attr_float_offset,
-                                        dscene->attributes_float2,
-                                        attr_float2_offset,
-                                        dscene->attributes_float3,
-                                        attr_float3_offset,
-                                        dscene->attributes_uchar4,
-                                        attr_uchar4_offset,
-                                        subd_mattr,
+                                        subd_attr,
                                         ATTR_PRIM_SUBD,
                                         req.subd_type,
                                         req.subd_desc);
-      }
-      else if (geom->type == Geometry::HAIR) {
-        Hair *hair = static_cast<Hair *>(geom);
-        Attribute *curve_mattr = hair->attributes.find(req);
-
-        update_attribute_element_offset(hair,
-                                        dscene->attributes_float,
-                                        attr_float_offset,
-                                        dscene->attributes_float2,
-                                        attr_float2_offset,
-                                        dscene->attributes_float3,
-                                        attr_float3_offset,
-                                        dscene->attributes_uchar4,
-                                        attr_uchar4_offset,
-                                        curve_mattr,
-                                        ATTR_PRIM_CURVE,
-                                        req.curve_type,
-                                        req.curve_desc);
       }
 
       if (progress.get_cancel())

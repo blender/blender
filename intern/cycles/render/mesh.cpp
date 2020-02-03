@@ -135,7 +135,7 @@ NODE_DEFINE(Mesh)
   return type;
 }
 
-Mesh::Mesh() : Geometry(node_type, Geometry::MESH)
+Mesh::Mesh() : Geometry(node_type, Geometry::MESH), subd_attributes(this, ATTR_PRIM_SUBD)
 {
   vert_offset = 0;
 
@@ -144,9 +144,6 @@ Mesh::Mesh() : Geometry(node_type, Geometry::MESH)
   corner_offset = 0;
 
   num_subd_verts = 0;
-
-  attributes.triangle_mesh = this;
-  subd_attributes.subd_mesh = this;
 
   volume_isovalue = 0.001f;
 
@@ -329,7 +326,9 @@ void Mesh::get_uv_tiles(ustring map, unordered_set<int> &tiles)
   }
 
   if (attr) {
-    attr->get_uv_tiles(this, ATTR_PRIM_TRIANGLE, tiles);
+    attr->get_uv_tiles(this, ATTR_PRIM_GEOMETRY, tiles);
+  }
+  if (subd_attr) {
     subd_attr->get_uv_tiles(this, ATTR_PRIM_SUBD, tiles);
   }
 }
@@ -546,8 +545,7 @@ void Mesh::add_undisplaced()
   float3 *data = attr->data_float3();
 
   /* copy verts */
-  size_t size = attr->buffer_size(
-      this, (subdivision_type == SUBDIVISION_NONE) ? ATTR_PRIM_TRIANGLE : ATTR_PRIM_SUBD);
+  size_t size = attr->buffer_size(this, attrs.prim);
 
   /* Center points for ngons aren't stored in Mesh::verts but are included in size since they will
    * be calculated later, we subtract them from size here so we don't have an overflow while
