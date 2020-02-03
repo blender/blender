@@ -135,8 +135,13 @@ bool SocketType::is_float3(Type type)
 
 /* Node Type */
 
-NodeType::NodeType(Type type_) : type(type_)
+NodeType::NodeType(Type type, const NodeType *base) : type(type), base(base)
 {
+  if (base) {
+    /* Inherit sockets. */
+    inputs = base->inputs;
+    outputs = base->outputs;
+  }
 }
 
 NodeType::~NodeType()
@@ -209,7 +214,7 @@ unordered_map<ustring, NodeType, ustringHash> &NodeType::types()
   return _types;
 }
 
-NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_)
+NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const NodeType *base_)
 {
   ustring name(name_);
 
@@ -219,7 +224,7 @@ NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_)
     return NULL;
   }
 
-  types()[name] = NodeType(type_);
+  types()[name] = NodeType(type_, base_);
 
   NodeType *type = &types()[name];
   type->name = name;

@@ -326,6 +326,10 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
         fprintf(stderr, "Node type \"%s\" is not a shader node.\n", node_type->name.c_str());
         continue;
       }
+      else if (node_type->create == NULL) {
+        fprintf(stderr, "Can't create abstract node type \"%s\".\n", node_type->name.c_str());
+        continue;
+      }
 
       snode = (ShaderNode *)node_type->create(node_type);
     }

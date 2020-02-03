@@ -94,6 +94,9 @@ struct Node {
   /* Get total size of this node. */
   size_t get_total_size_in_bytes() const;
 
+  /* Type testing, taking into account base classes. */
+  bool is_a(const NodeType *type);
+
   ustring name;
   const NodeType *type;
 };

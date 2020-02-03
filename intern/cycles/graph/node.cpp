@@ -669,4 +669,14 @@ size_t Node::get_total_size_in_bytes() const
   return total_size;
 }
 
+bool Node::is_a(const NodeType *type_)
+{
+  for (const NodeType *base = type; base; base = base->base) {
+    if (base == type_) {
+      return true;
+    }
+  }
+  return false;
+}
+
 CCL_NAMESPACE_END

@@ -103,7 +103,7 @@ struct SocketType {
 struct NodeType {
   enum Type { NONE, SHADER };
 
-  explicit NodeType(Type type = NONE);
+  explicit NodeType(Type type = NONE, const NodeType *base = NULL);
   ~NodeType();
 
   void register_input(ustring name,
@@ -124,11 +124,15 @@ struct NodeType {
 
   ustring name;
   Type type;
+  const NodeType *base;
   vector<SocketType, std::allocator<SocketType>> inputs;
   vector<SocketType, std::allocator<SocketType>> outputs;
   CreateFunc create;
 
-  static NodeType *add(const char *name, CreateFunc create, Type type = NONE);
+  static NodeType *add(const char *name,
+                       CreateFunc create,
+                       Type type = NONE,
+                       const NodeType *base = NULL);
   static const NodeType *find(ustring name);
   static unordered_map<ustring, NodeType, ustringHash> &types();
 };
@@ -146,6 +150,14 @@ struct NodeType {
   { \
     return new structname(); \
   } \
+  template<typename T> const NodeType *structname::register_type()
+
+#define NODE_ABSTRACT_DECLARE \
+  template<typename T> static const NodeType *register_type(); \
+  static const NodeType *node_type;
+
+#define NODE_ABSTRACT_DEFINE(structname) \
+  const NodeType *structname::node_type = structname::register_type<structname>(); \
   template<typename T> const NodeType *structname::register_type()
 
 /* Sock Definition Macros */
