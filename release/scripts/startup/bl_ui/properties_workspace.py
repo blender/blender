@@ -77,8 +77,6 @@ class WORKSPACE_PT_addons(WorkSpaceButtonsPanel, Panel):
             if module is None:
                 continue
             info = addon_utils.module_bl_info(module)
-            if not info["use_owner"]:
-                continue
             is_enabled = module_name in owner_ids
             row = col.row()
             row.alignment = 'LEFT'
