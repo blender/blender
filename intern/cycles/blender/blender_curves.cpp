@@ -989,24 +989,11 @@ bool BlenderSync::object_has_particle_hair(BL::Object b_ob)
 void BlenderSync::sync_particle_hair(
     Mesh *mesh, BL::Mesh &b_mesh, BL::Object &b_ob, bool motion, int motion_step)
 {
-  if (!motion) {
-    /* Clear stored curve data */
-    mesh->curve_keys.clear();
-    mesh->curve_radius.clear();
-    mesh->curve_first_key.clear();
-    mesh->curve_shader.clear();
-    mesh->curve_attributes.clear();
-  }
-
-  /* obtain general settings */
-  const bool use_curves = scene->curve_system_manager->use_curves;
-
-  if (!(use_curves && b_ob.mode() != b_ob.mode_PARTICLE_EDIT && b_ob.mode() != b_ob.mode_EDIT)) {
-    if (!motion)
-      mesh->compute_bounds();
+  if (b_ob.mode() == b_ob.mode_PARTICLE_EDIT || b_ob.mode() == b_ob.mode_EDIT) {
     return;
   }
 
+  /* obtain general settings */
   const int primitive = scene->curve_system_manager->primitive;
   const int triangle_method = scene->curve_system_manager->triangle_method;
   const int resolution = scene->curve_system_manager->resolution;
@@ -1159,7 +1146,6 @@ void BlenderSync::sync_particle_hair(
     }
   }
 
-  mesh->compute_bounds();
   mesh->geometry_flags |= Mesh::GEOMETRY_CURVES;
 }
 
@@ -1172,7 +1158,7 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *me
   oldcurve_keys.steal_data(mesh->curve_keys);
   oldcurve_radius.steal_data(mesh->curve_radius);
 
-  if (view_layer.use_hair) {
+  if (view_layer.use_hair && scene->curve_system_manager->use_curves) {
     /* Particle hair. */
     bool need_undeformed = mesh->need_attribute(scene, ATTR_STD_GENERATED);
     BL::Mesh b_mesh = object_to_mesh(
