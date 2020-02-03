@@ -521,6 +521,9 @@ static void make_duplis_font(const DupliContext *ctx)
   family_len = strlen(cu->family);
   family_gh = BLI_ghash_int_new_ex(__func__, 256);
 
+  /* Safety check even if it might fail badly when called for original object. */
+  const bool is_eval_curve = DEG_is_evaluated_id(&cu->id);
+
   /* advance matching BLI_strncpy_wchar_from_utf8 */
   for (a = 0; a < text_len; a++, ct++) {
 
@@ -528,6 +531,12 @@ static void make_duplis_font(const DupliContext *ctx)
      * Definitively don't think it would be safe to put back Main *bmain pointer
      * in DupliContext as done in 2.7x? */
     ob = find_family_object(G.main, cu->family, family_len, (unsigned int)text[a], family_gh);
+
+    if (is_eval_curve) {
+      /* Workaround for the above hack. */
+      ob = DEG_get_evaluated_object(ctx->depsgraph, ob);
+    }
+
     if (ob) {
       vec[0] = fsize * (ct->xof - xof);
       vec[1] = fsize * (ct->yof - yof);
