@@ -30,6 +30,8 @@
 #include "DNA_object_types.h"
 
 #include "DEG_depsgraph.h"
+
+#include "BKE_armature.h"
 #include "BKE_library.h"
 #include "BKE_library_override.h"
 #include "BKE_library_remap.h"
@@ -579,6 +581,17 @@ bool BKE_override_library_status_check_local(Main *bmain, ID *local)
 
   BLI_assert(GS(local->name) == GS(reference->name));
 
+  if (GS(local->name) == ID_OB) {
+    /* Our beloved pose's bone cross-data pointers... Usually, depsgraph evaluation would ensure
+     * this is valid, but in some cases (like hidden collections etc.) this won't be the case, so
+     * we need to take care of this ourselves. */
+    Object *ob_local = (Object *)local;
+    if (ob_local->data != NULL && ob_local->type == OB_ARMATURE && ob_local->pose != NULL &&
+        ob_local->pose->flag & POSE_RECALC) {
+      BKE_pose_rebuild(bmain, ob_local, ob_local->data, true);
+    }
+  }
+
   /* Note that reference is assumed always valid, caller has to ensure that itself. */
 
   PointerRNA rnaptr_local, rnaptr_reference;
@@ -633,6 +646,17 @@ bool BKE_override_library_status_check_reference(Main *bmain, ID *local)
     }
   }
 
+  if (GS(local->name) == ID_OB) {
+    /* Our beloved pose's bone cross-data pointers... Usually, depsgraph evaluation would ensure
+     * this is valid, but in some cases (like hidden collections etc.) this won't be the case, so
+     * we need to take care of this ourselves. */
+    Object *ob_local = (Object *)local;
+    if (ob_local->data != NULL && ob_local->type == OB_ARMATURE && ob_local->pose != NULL &&
+        ob_local->pose->flag & POSE_RECALC) {
+      BKE_pose_rebuild(bmain, ob_local, ob_local->data, true);
+    }
+  }
+
   PointerRNA rnaptr_local, rnaptr_reference;
   RNA_id_pointer_create(local, &rnaptr_local);
   RNA_id_pointer_create(reference, &rnaptr_reference);
@@ -676,6 +700,17 @@ bool BKE_override_library_operations_create(Main *bmain, ID *local, const bool f
      * is in the file in that case, until broken lib is fixed. */
     if (ID_MISSING(local->override_library->reference)) {
       return ret;
+    }
+
+    if (GS(local->name) == ID_OB) {
+      /* Our beloved pose's bone cross-data pointers... Usually, depsgraph evaluation would ensure
+       * this is valid, but in some cases (like hidden collections etc.) this won't be the case, so
+       * we need to take care of this ourselves. */
+      Object *ob_local = (Object *)local;
+      if (ob_local->data != NULL && ob_local->type == OB_ARMATURE && ob_local->pose != NULL &&
+          ob_local->pose->flag & POSE_RECALC) {
+        BKE_pose_rebuild(bmain, ob_local, ob_local->data, true);
+      }
     }
 
     PointerRNA rnaptr_local, rnaptr_reference;
