@@ -842,8 +842,8 @@ struct Icon_Geom *BKE_icon_geom_from_memory(const uchar *data, size_t data_len)
   p += 2;
 
   geom->coords_len = coords_len;
-  geom->coords = (const void *)p;
-  geom->colors = (const void *)(p + (data_len / 3));
+  geom->coords = (void *)p;
+  geom->colors = (void *)(p + (data_len / 3));
   geom->icon_id = 0;
   geom->mem = data;
   return geom;

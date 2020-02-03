@@ -119,6 +119,7 @@ typedef struct DrawInfo {
     } vector;
     struct {
       ImBuf *image_cache;
+      bool inverted;
     } geom;
     struct {
       IconImage *image;
@@ -1833,15 +1834,23 @@ static void icon_draw_size(float x,
     }
 #endif
 
+    /* If the theme is light, we will adjust the icon colors. */
+    const bool invert = (rgb_to_grayscale_byte(btheme->tui.wcol_toolbar_item.inner) > 128);
+    const bool geom_inverted = di->data.geom.inverted;
+
     /* This could re-generate often if rendered at different sizes in the one interface.
      * TODO(campbell): support caching multiple sizes. */
     ImBuf *ibuf = di->data.geom.image_cache;
-    if ((ibuf == NULL) || (ibuf->x != w) || (ibuf->y != h)) {
+    if ((ibuf == NULL) || (ibuf->x != w) || (ibuf->y != h) || (invert != geom_inverted)) {
       if (ibuf) {
         IMB_freeImBuf(ibuf);
       }
+      if (invert != geom_inverted) {
+        BKE_icon_geom_invert_lightness(icon->obj);
+      }
       ibuf = BKE_icon_geom_rasterize(icon->obj, w, h);
       di->data.geom.image_cache = ibuf;
+      di->data.geom.inverted = invert;
     }
 
     GPU_blend_set_func_separate(
