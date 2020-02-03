@@ -177,6 +177,7 @@ typedef struct OVERLAY_ExtraCallBuffers {
 typedef struct OVERLAY_ArmatureCallBuffers {
   DRWCallBuffer *box_outline;
   DRWCallBuffer *box_solid;
+  DRWCallBuffer *box_transp;
 
   DRWCallBuffer *dof_lines;
   DRWCallBuffer *dof_sphere;
@@ -184,20 +185,25 @@ typedef struct OVERLAY_ArmatureCallBuffers {
   DRWCallBuffer *envelope_distance;
   DRWCallBuffer *envelope_outline;
   DRWCallBuffer *envelope_solid;
+  DRWCallBuffer *envelope_transp;
 
   DRWCallBuffer *octa_outline;
   DRWCallBuffer *octa_solid;
+  DRWCallBuffer *octa_transp;
 
   DRWCallBuffer *point_outline;
   DRWCallBuffer *point_solid;
+  DRWCallBuffer *point_transp;
 
   DRWCallBuffer *stick;
 
   DRWCallBuffer *wire;
 
-  DRWShadingGroup *custom_solid;
   DRWShadingGroup *custom_outline;
+  DRWShadingGroup *custom_solid;
+  DRWShadingGroup *custom_transp;
   DRWShadingGroup *custom_wire;
+  GHash *custom_shapes_transp_ghash;
   GHash *custom_shapes_ghash;
 } OVERLAY_ArmatureCallBuffers;
 
