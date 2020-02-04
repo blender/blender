@@ -2432,6 +2432,11 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
       int subframes = mfs->subframes;
       EmissionMap *em = &emaps[flow_index];
 
+      /* Optimization: Skip flow objects with disabled inflow flag. */
+      if (mfs->behavior == FLUID_FLOW_BEHAVIOR_INFLOW &&
+          (mfs->flags & FLUID_FLOW_USE_INFLOW) == 0) {
+        continue;
+      }
       /* Optimization: No need to compute emission value if it won't be applied. */
       if (mfs->behavior == FLUID_FLOW_BEHAVIOR_GEOMETRY && !is_first_frame) {
         continue;
