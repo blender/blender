@@ -90,6 +90,8 @@ void GPU_matrix_identity_projection_set(void);
 void GPU_matrix_projection_set(const float m[4][4]);
 
 void GPU_matrix_ortho_set(float left, float right, float bottom, float top, float near, float far);
+void GPU_matrix_ortho_set_z(float near, float far);
+
 void GPU_matrix_frustum_set(
     float left, float right, float bottom, float top, float near, float far);
 void GPU_matrix_perspective_set(float fovy, float aspect, float near, float far);
