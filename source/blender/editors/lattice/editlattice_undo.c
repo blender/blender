@@ -146,7 +146,8 @@ static int validate_undoLatt(void *data, void *edata)
 
 static Object *editlatt_object_from_context(bContext *C)
 {
-  Object *obedit = CTX_data_edit_object(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
   if (obedit && obedit->type == OB_LATTICE) {
     Lattice *lt = obedit->data;
     if (lt->editlatt != NULL) {
@@ -189,8 +190,7 @@ static bool lattice_undosys_step_encode(struct bContext *C, Main *bmain, UndoSte
    * outside of this list will be moved out of edit-mode when reading back undo steps. */
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, NULL, &objects_len);
+  Object **objects = ED_undo_editmode_objects_from_view_layer(view_layer, &objects_len);
 
   us->elems = MEM_callocN(sizeof(*us->elems) * objects_len, __func__);
   us->elems_len = objects_len;
