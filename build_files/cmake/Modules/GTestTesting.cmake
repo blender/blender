@@ -46,6 +46,9 @@ macro(BLENDER_SRC_GTEST_EX)
       # that it is initialized before MKL and static library initialization order
       # issues are avoided.
       target_link_libraries(${TARGET_NAME} ${TBB_LIBRARIES})
+      if(WITH_OPENIMAGEDENOISE)
+        target_link_libraries(${TARGET_NAME} ${OPENIMAGEDENOISE_LIBRARIES})
+      endif()
     endif()
     target_link_libraries(${TARGET_NAME}
                           bf_testing_main
