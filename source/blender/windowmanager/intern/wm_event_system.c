@@ -861,6 +861,16 @@ void WM_report_banner_show(void)
   wm_reports->reporttimer->customdata = rti;
 }
 
+/**
+ * Hide all currently displayed banners and abort their timer.
+ */
+void WM_report_banners_cancel(Main *bmain)
+{
+  wmWindowManager *wm = bmain->wm.first;
+  BKE_reports_clear(&wm->reports);
+  WM_event_remove_timer(wm, NULL, wm->reports.reporttimer);
+}
+
 bool WM_event_is_last_mousemove(const wmEvent *event)
 {
   while ((event = event->next)) {
