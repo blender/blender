@@ -996,13 +996,7 @@ void DRW_mesh_batch_cache_create_requested(
     BLI_assert(me->edit_mesh->mesh_eval_final != NULL);
   }
 
-  const bool is_editmode =
-      (me->edit_mesh != NULL) &&
-      (/* Simple case, the object is in edit-mode with an edit-mesh. */
-       (ob->mode & OB_MODE_EDIT) ||
-       /* This is needed so linked duplicates show updates while the user edits the mesh.
-        * While this is not essential, it's useful to see the edit-mode changes everywhere. */
-       (me->edit_mesh->mesh_eval_final != NULL));
+  const bool is_editmode = (me->edit_mesh != NULL) && DRW_object_is_in_edit_mode(ob);
 
   DRWBatchFlag batch_requested = cache->batch_requested;
   cache->batch_requested = 0;

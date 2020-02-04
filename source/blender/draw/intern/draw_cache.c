@@ -3424,7 +3424,7 @@ void drw_batch_cache_generate_requested(Object *ob)
   const bool use_hide = ((ob->type == OB_MESH) &&
                          ((is_paint_mode && (ob == draw_ctx->obact) &&
                            DRW_object_use_hide_faces(ob)) ||
-                          ((mode == CTX_MODE_EDIT_MESH) && BKE_object_is_in_editmode(ob))));
+                          ((mode == CTX_MODE_EDIT_MESH) && DRW_object_is_in_edit_mode(ob))));
 
   struct Mesh *mesh_eval = ob->runtime.mesh_eval;
   switch (ob->type) {

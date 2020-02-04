@@ -154,7 +154,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     }
   }
 
-  const bool is_edit_mode = BKE_object_is_in_editmode(ob);
+  const bool is_edit_mode = DRW_object_is_in_edit_mode(ob);
   bool has_edit_mesh_cage = false;
   if (is_mesh && is_edit_mode) {
     /* TODO: Should be its own function. */
