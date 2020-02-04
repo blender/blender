@@ -2335,6 +2335,11 @@ void OVERLAY_armature_cache_populate(OVERLAY_Data *vedata, Object *ob)
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   ArmatureDrawContext arm_ctx;
   float *color;
+
+  if (ob->dt == OB_BOUNDBOX) {
+    return;
+  }
+
   DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
   armature_context_setup(&arm_ctx, pd, ob, false, false, false, color);
   draw_armature_pose(&arm_ctx);

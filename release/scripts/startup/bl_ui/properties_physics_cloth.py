@@ -230,7 +230,7 @@ class PHYSICS_PT_cloth_pressure(PhysicButtonsPanel, Panel):
         col.prop(cloth, "uniform_pressure_force")
 
         col = flow.column()
-        col.prop(cloth, "use_pressure_volume", text="Custom volume")
+        col.prop(cloth, "use_pressure_volume", text="Custom Volume")
 
         col = flow.column()
         col.active = cloth.use_pressure_volume
