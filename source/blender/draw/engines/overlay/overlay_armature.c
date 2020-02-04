@@ -153,7 +153,8 @@ void OVERLAY_armature_cache_init(OVERLAY_Data *vedata)
                              XRAY_FLAG_ENABLED(draw_ctx->v3d);
   pd->armature.show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0) &&
                                 !is_select_mode;
-  pd->armature.do_pose_fade_geom = (pd->overlay.flag & V3D_OVERLAY_BONE_SELECT) &&
+  pd->armature.do_pose_xray = (pd->overlay.flag & V3D_OVERLAY_BONE_SELECT) != 0;
+  pd->armature.do_pose_fade_geom = pd->armature.do_pose_xray &&
                                    ((draw_ctx->object_mode & OB_MODE_WEIGHT_PAINT) == 0) &&
                                    draw_ctx->object_pose != NULL;
 
@@ -2238,8 +2239,7 @@ static void armature_context_setup(ArmatureDrawContext *ctx,
                                    float *const_color)
 {
   const bool is_object_mode = !do_envelope_dist;
-  const bool is_xray = (ob->dtx & OB_DRAWXRAY) != 0 ||
-                       (pd->armature.do_pose_fade_geom && is_pose_mode);
+  const bool is_xray = (ob->dtx & OB_DRAWXRAY) != 0 || (pd->armature.do_pose_xray && is_pose_mode);
   const bool draw_as_wire = (ob->dt < OB_SOLID);
   const bool is_filled = (!pd->armature.transparent && !draw_as_wire) || !is_object_mode;
   const bool is_transparent = pd->armature.transparent || (draw_as_wire && !is_object_mode);
@@ -2424,7 +2424,8 @@ void OVERLAY_pose_draw(OVERLAY_Data *vedata)
     DRW_draw_pass(psl->armature_bone_select_ps);
 
     if (DRW_state_is_fbo()) {
-      GPU_framebuffer_bind(fbl->overlay_line_fb);
+      GPU_framebuffer_bind(fbl->overlay_line_in_front_fb);
+      GPU_framebuffer_clear_depth(fbl->overlay_line_in_front_fb, 1.0f);
     }
 
     DRW_draw_pass(psl->armature_ps[1]);

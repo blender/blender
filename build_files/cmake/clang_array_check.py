@@ -33,7 +33,7 @@ defs_precalc = {
     "glColor3ubv": {0: 3},
     "glColor4ubv": {0: 4},
 
-    "glColor4usv": {0: 3},
+    "glColor3usv": {0: 3},
     "glColor4usv": {0: 4},
 
     "glColor3fv": {0: 3},

@@ -76,6 +76,11 @@ void BKE_reports_init(ReportList *reports, int flag)
   reports->flag = flag;
 }
 
+/**
+ * Only frees the list \a reports.
+ * To make displayed reports disappear, either remove window-manager reports
+ * (wmWindowManager.reports, or CTX_wm_reports()), or use #WM_report_banners_cancel().
+ */
 void BKE_reports_clear(ReportList *reports)
 {
   Report *report, *report_next;

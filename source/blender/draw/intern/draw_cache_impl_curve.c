@@ -949,8 +949,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 
   /* Init batches and request VBOs & IBOs */
   if (DRW_batch_requested(cache->batch.surfaces, GPU_PRIM_TRIS)) {
-    DRW_ibo_request(cache->batch.surfaces, &cache->ibo.surfaces_tris);
-    DRW_vbo_request(cache->batch.surfaces, &cache->ordered.pos_nor);
+    DRW_vbo_request(cache->batch.surfaces, &cache->ordered.loop_pos_nor);
   }
   if (DRW_batch_requested(cache->batch.surfaces_edges, GPU_PRIM_LINES)) {
     DRW_ibo_request(cache->batch.surfaces_edges, &cache->ibo.surfaces_lines);

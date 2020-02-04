@@ -70,6 +70,7 @@
 #include "RNA_access.h"
 
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "PIL_time.h"
 
@@ -82,6 +83,8 @@
 #include "wm_window.h"
 #include "wm_event_system.h"
 #include "wm_event_types.h"
+
+#include "RNA_enum_types.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -101,6 +104,7 @@
 #define USE_GIZMO_MOUSE_PRIORITY_HACK
 
 static void wm_notifier_clear(wmNotifier *note);
+static void update_tablet_data(wmWindow *win, wmEvent *event);
 
 static int wm_operator_call_internal(bContext *C,
                                      wmOperatorType *ot,
@@ -109,8 +113,6 @@ static int wm_operator_call_internal(bContext *C,
                                      const short context,
                                      const bool poll_only,
                                      wmEvent *event);
-
-static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot);
 
 /* -------------------------------------------------------------------- */
 /** \name Event Management
@@ -123,6 +125,14 @@ wmEvent *wm_event_add_ex(wmWindow *win,
   wmEvent *event = MEM_mallocN(sizeof(wmEvent), "wmEvent");
 
   *event = *event_to_add;
+
+  update_tablet_data(win, event);
+
+  if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+    /* We could have a preference to support relative tablet motion (we can't detect that). */
+    event->is_motion_absolute = ((event->tablet_data != NULL) &&
+                                 (event->tablet_data->Active != GHOST_kTabletModeNone));
+  }
 
   if (event_to_add_after == NULL) {
     BLI_addtail(&win->queue, event);
@@ -167,6 +177,10 @@ void wm_event_free(wmEvent *event)
     }
   }
 
+  if (event->tablet_data) {
+    MEM_freeN((void *)event->tablet_data);
+  }
+
   MEM_freeN(event);
 }
 
@@ -181,6 +195,9 @@ void wm_event_free_all(wmWindow *win)
 
 void wm_event_init_from_window(wmWindow *win, wmEvent *event)
 {
+  /* make sure we don't copy any owned pointers */
+  BLI_assert(win->eventstate->tablet_data == NULL);
+
   *event = *(win->eventstate);
 }
 
@@ -687,6 +704,26 @@ void WM_report_banner_show(void)
 
   rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
   wm_reports->reporttimer->customdata = rti;
+}
+
+/**
+ * Hide all currently displayed banners and abort their timer.
+ */
+void WM_report_banners_cancel(Main *bmain)
+{
+  wmWindowManager *wm = bmain->wm.first;
+  BKE_reports_clear(&wm->reports);
+  WM_event_remove_timer(wm, NULL, wm->reports.reporttimer);
+}
+
+bool WM_event_is_last_mousemove(const wmEvent *event)
+{
+  while ((event = event->next)) {
+    if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 #ifdef WITH_INPUT_NDOF
@@ -1201,6 +1238,105 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
     event->mval[1] = -1;
   }
 }
+
+#if 1 /* may want to disable operator remembering previous state for testing */
+
+static bool operator_last_properties_init_impl(wmOperator *op, IDProperty *last_properties)
+{
+  bool changed = false;
+  IDPropertyTemplate val = {0};
+  IDProperty *replaceprops = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
+  PropertyRNA *iterprop;
+
+  CLOG_INFO(WM_LOG_OPERATORS, 1, "loading previous properties for '%s'", op->type->idname);
+
+  iterprop = RNA_struct_iterator_property(op->type->srna);
+
+  RNA_PROP_BEGIN (op->ptr, itemptr, iterprop) {
+    PropertyRNA *prop = itemptr.data;
+    if ((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
+      if (!RNA_property_is_set(op->ptr, prop)) { /* don't override a setting already set */
+        const char *identifier = RNA_property_identifier(prop);
+        IDProperty *idp_src = IDP_GetPropertyFromGroup(last_properties, identifier);
+        if (idp_src) {
+          IDProperty *idp_dst = IDP_CopyProperty(idp_src);
+
+          /* note - in the future this may need to be done recursively,
+           * but for now RNA doesn't access nested operators */
+          idp_dst->flag |= IDP_FLAG_GHOST;
+
+          /* add to temporary group instead of immediate replace,
+           * because we are iterating over this group */
+          IDP_AddToGroup(replaceprops, idp_dst);
+          changed = true;
+        }
+      }
+    }
+  }
+  RNA_PROP_END;
+
+  IDP_MergeGroup(op->properties, replaceprops, true);
+  IDP_FreeProperty(replaceprops);
+  return changed;
+}
+
+bool WM_operator_last_properties_init(wmOperator *op)
+{
+  bool changed = false;
+  if (op->type->last_properties) {
+    changed |= operator_last_properties_init_impl(op, op->type->last_properties);
+    for (wmOperator *opm = op->macro.first; opm; opm = opm->next) {
+      IDProperty *idp_src = IDP_GetPropertyFromGroup(op->type->last_properties, opm->idname);
+      if (idp_src) {
+        changed |= operator_last_properties_init_impl(opm, idp_src);
+      }
+    }
+  }
+  return changed;
+}
+
+bool WM_operator_last_properties_store(wmOperator *op)
+{
+  if (op->type->last_properties) {
+    IDP_FreeProperty(op->type->last_properties);
+    op->type->last_properties = NULL;
+  }
+
+  if (op->properties) {
+    CLOG_INFO(WM_LOG_OPERATORS, 1, "storing properties for '%s'", op->type->idname);
+    op->type->last_properties = IDP_CopyProperty(op->properties);
+  }
+
+  if (op->macro.first != NULL) {
+    for (wmOperator *opm = op->macro.first; opm; opm = opm->next) {
+      if (opm->properties) {
+        if (op->type->last_properties == NULL) {
+          op->type->last_properties = IDP_New(
+              IDP_GROUP, &(IDPropertyTemplate){0}, "wmOperatorProperties");
+        }
+        IDProperty *idp_macro = IDP_CopyProperty(opm->properties);
+        STRNCPY(idp_macro->name, opm->type->idname);
+        IDP_ReplaceInGroup(op->type->last_properties, idp_macro);
+      }
+    }
+  }
+
+  return (op->type->last_properties != NULL);
+}
+
+#else
+
+bool WM_operator_last_properties_init(wmOperator *UNUSED(op))
+{
+  return false;
+}
+
+bool WM_operator_last_properties_store(wmOperator *UNUSED(op))
+{
+  return false;
+}
+
+#endif
 
 /**
  * Also used for exec when 'event' is NULL.
@@ -1756,6 +1892,42 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
   }
 }
 
+/* do userdef mappings */
+int WM_userdef_event_map(int kmitype)
+{
+  switch (kmitype) {
+    case WHEELOUTMOUSE:
+      return (U.uiflag & USER_WHEELZOOMDIR) ? WHEELUPMOUSE : WHEELDOWNMOUSE;
+    case WHEELINMOUSE:
+      return (U.uiflag & USER_WHEELZOOMDIR) ? WHEELDOWNMOUSE : WHEELUPMOUSE;
+  }
+
+  return kmitype;
+}
+
+/**
+ * Use so we can check if 'wmEvent.type' is released in modal operators.
+ *
+ * An alternative would be to add a 'wmEvent.type_nokeymap'... or similar.
+ */
+int WM_userdef_event_type_from_keymap_type(int kmitype)
+{
+  switch (kmitype) {
+    case EVT_TWEAK_L:
+      return LEFTMOUSE;
+    case EVT_TWEAK_M:
+      return MIDDLEMOUSE;
+    case EVT_TWEAK_R:
+      return RIGHTMOUSE;
+    case WHEELOUTMOUSE:
+      return (U.uiflag & USER_WHEELZOOMDIR) ? WHEELUPMOUSE : WHEELDOWNMOUSE;
+    case WHEELINMOUSE:
+      return (U.uiflag & USER_WHEELZOOMDIR) ? WHEELDOWNMOUSE : WHEELUPMOUSE;
+  }
+
+  return kmitype;
+}
+
 static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
 {
   if (kmi->flag & KMI_INACTIVE) {
@@ -1777,16 +1949,19 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
 
   if (kmitype != KM_ANY) {
     if (ELEM(kmitype, TABLET_STYLUS, TABLET_ERASER)) {
-      const wmTabletData *wmtab = &winevent->tablet;
+      const wmTabletData *wmtab = winevent->tablet_data;
 
-      if (winevent->type != LEFTMOUSE) {
+      if (wmtab == NULL) {
+        return false;
+      }
+      else if (winevent->type != LEFTMOUSE) {
         /* tablet events can occur on hover + keypress */
         return false;
       }
-      else if ((kmitype == TABLET_STYLUS) && (wmtab->active != EVT_TABLET_STYLUS)) {
+      else if ((kmitype == TABLET_STYLUS) && (wmtab->Active != EVT_TABLET_STYLUS)) {
         return false;
       }
-      else if ((kmitype == TABLET_ERASER) && (wmtab->active != EVT_TABLET_ERASER)) {
+      else if ((kmitype == TABLET_ERASER) && (wmtab->Active != EVT_TABLET_ERASER)) {
         return false;
       }
     }
@@ -1866,10 +2041,10 @@ static wmKeyMapItem *wm_eventmatch_modal_keymap_items(const wmKeyMap *keymap,
  *   This is done since we only want to use double click events to match key-map items,
  *   allowing modal functions to check for press/release events without having to interpret them.
  */
-static void wm_event_modalkeymap_begin(const bContext *C,
-                                       wmOperator *op,
-                                       wmEvent *event,
-                                       bool *dbl_click_disabled)
+static void wm_event_modalkeymap(const bContext *C,
+                                 wmOperator *op,
+                                 wmEvent *event,
+                                 bool *dbl_click_disabled)
 {
   BLI_assert(event->type != EVT_MODAL_MAP);
 
@@ -1922,13 +2097,25 @@ static void wm_event_modalkeymap_begin(const bContext *C,
 }
 
 /**
- * Restore changes from #wm_event_modalkeymap_begin
- *
- * \warning bad hacking event system...
- * better restore event type for checking of #KM_CLICK for example.
- * Modal maps could use different method (ton).
+ * Check whether operator is allowed to run in case interface is locked,
+ * If interface is unlocked, will always return truth.
  */
-static void wm_event_modalkeymap_end(wmEvent *event, bool dbl_click_disabled)
+static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+
+  if (wm->is_interface_locked) {
+    if ((ot->flag & OPTYPE_LOCK_BYPASS) == 0) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/* bad hacking event system... better restore event type for checking of KM_CLICK for example */
+/* XXX modal maps could use different method (ton) */
+static void wm_event_modalmap_end(wmEvent *event, bool dbl_click_disabled)
 {
   if (event->type == EVT_MODAL_MAP) {
     event->type = event->prevtype;
@@ -1947,8 +2134,7 @@ static int wm_handler_operator_call(bContext *C,
                                     ListBase *handlers,
                                     wmEventHandler *handler_base,
                                     wmEvent *event,
-                                    PointerRNA *properties,
-                                    const char *kmi_idname)
+                                    PointerRNA *properties)
 {
   int retval = OPERATOR_PASS_THROUGH;
 
@@ -1973,7 +2159,7 @@ static int wm_handler_operator_call(bContext *C,
 
       wm_handler_op_context(C, handler, event);
       wm_region_mouse_co(C, event);
-      wm_event_modalkeymap_begin(C, op, event, &dbl_click_disabled);
+      wm_event_modalkeymap(C, op, event, &dbl_click_disabled);
 
       if (ot->flag & OPTYPE_UNDO) {
         wm->op_undo_depth++;
@@ -1988,7 +2174,7 @@ static int wm_handler_operator_call(bContext *C,
        * the event, operator etc have all been freed. - campbell */
       if (CTX_wm_manager(C) == wm) {
 
-        wm_event_modalkeymap_end(event, dbl_click_disabled);
+        wm_event_modalmap_end(event, dbl_click_disabled);
 
         if (ot->flag & OPTYPE_UNDO) {
           wm->op_undo_depth--;
@@ -2050,7 +2236,7 @@ static int wm_handler_operator_call(bContext *C,
     }
   }
   else {
-    wmOperatorType *ot = WM_operatortype_find(kmi_idname, 0);
+    wmOperatorType *ot = WM_operatortype_find(event->keymap_idname, 0);
 
     if (ot && wm_operator_check_locked_interface(C, ot)) {
       bool use_last_properties = true;
@@ -2388,8 +2574,10 @@ static int wm_handlers_do_keymap_with_keymap_handler(
 
           PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
 
-          action |= wm_handler_operator_call(
-              C, handlers, &handler->head, event, kmi->ptr, kmi->idname);
+          /* weak, but allows interactive callback to not use rawkey */
+          event->keymap_idname = kmi->idname;
+
+          action |= wm_handler_operator_call(C, handlers, &handler->head, event, kmi->ptr);
 
           if (action & WM_HANDLER_BREAK) {
             /* not always_pass here, it denotes removed handler_base */
@@ -2443,11 +2631,13 @@ static int wm_handlers_do_keymap_with_gizmo_handler(
       if (wm_eventmatch(event, kmi)) {
         PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
 
+        /* weak, but allows interactive callback to not use rawkey */
+        event->keymap_idname = kmi->idname;
+
         CTX_wm_gizmo_group_set(C, gzgroup);
 
         /* handler->op is called later, we want keymap op to be triggered here */
-        action |= wm_handler_operator_call(
-            C, handlers, &handler->head, event, kmi->ptr, kmi->idname);
+        action |= wm_handler_operator_call(C, handlers, &handler->head, event, kmi->ptr);
 
         CTX_wm_gizmo_group_set(C, NULL);
 
@@ -2738,7 +2928,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
           }
         }
         else {
-          action |= wm_handler_operator_call(C, handlers, handler_base, event, NULL, NULL);
+          action |= wm_handler_operator_call(C, handlers, handler_base, event, NULL);
         }
       }
       else {
@@ -3847,6 +4037,91 @@ void WM_event_add_mousemove(const bContext *C)
   window->addmousemove = 1;
 }
 
+/* for modal callbacks, check configuration for how to interpret exit with tweaks  */
+bool WM_event_is_modal_tweak_exit(const wmEvent *event, int tweak_event)
+{
+  /* if the release-confirm userpref setting is enabled,
+   * tweak events can be canceled when mouse is released
+   */
+  if (U.flag & USER_RELEASECONFIRM) {
+    /* option on, so can exit with km-release */
+    if (event->val == KM_RELEASE) {
+      switch (tweak_event) {
+        case EVT_TWEAK_L:
+        case EVT_TWEAK_M:
+        case EVT_TWEAK_R:
+          return 1;
+      }
+    }
+    else {
+      /* if the initial event wasn't a tweak event then
+       * ignore USER_RELEASECONFIRM setting: see [#26756] */
+      if (ELEM(tweak_event, EVT_TWEAK_L, EVT_TWEAK_M, EVT_TWEAK_R) == 0) {
+        return 1;
+      }
+    }
+  }
+  else {
+    /* this is fine as long as not doing km-release, otherwise
+     * some items (i.e. markers) being tweaked may end up getting
+     * dropped all over
+     */
+    if (event->val != KM_RELEASE) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+bool WM_event_type_mask_test(const int event_type, const enum eEventType_Mask mask)
+{
+  /* Keyboard. */
+  if (mask & EVT_TYPE_MASK_KEYBOARD) {
+    if (ISKEYBOARD(event_type)) {
+      return true;
+    }
+  }
+  else if (mask & EVT_TYPE_MASK_KEYBOARD_MODIFIER) {
+    if (ISKEYMODIFIER(event_type)) {
+      return true;
+    }
+  }
+
+  /* Mouse. */
+  if (mask & EVT_TYPE_MASK_MOUSE) {
+    if (ISMOUSE(event_type)) {
+      return true;
+    }
+  }
+  else if (mask & EVT_TYPE_MASK_MOUSE_WHEEL) {
+    if (ISMOUSE_WHEEL(event_type)) {
+      return true;
+    }
+  }
+  else if (mask & EVT_TYPE_MASK_MOUSE_GESTURE) {
+    if (ISMOUSE_GESTURE(event_type)) {
+      return true;
+    }
+  }
+
+  /* Tweak. */
+  if (mask & EVT_TYPE_MASK_TWEAK) {
+    if (ISTWEAK(event_type)) {
+      return true;
+    }
+  }
+
+  /* Action Zone. */
+  if (mask & EVT_TYPE_MASK_ACTIONZONE) {
+    if (IS_EVENT_ACTIONZONE(event_type)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -4084,23 +4359,41 @@ static void wm_eventemulation(wmEvent *event, bool test_only)
   }
 }
 
-void wm_tablet_data_from_ghost(const GHOST_TabletData *tablet_data, wmTabletData *wmtab)
+/* applies the global tablet pressure correction curve */
+float wm_pressure_curve(float pressure)
 {
-  if ((tablet_data != NULL) && tablet_data->Active != GHOST_kTabletModeNone) {
-    wmtab->active = (int)tablet_data->Active;
-    wmtab->pressure = wm_pressure_curve(tablet_data->Pressure);
-    wmtab->x_tilt = tablet_data->Xtilt;
-    wmtab->y_tilt = tablet_data->Ytilt;
-    /* We could have a preference to support relative tablet motion (we can't detect that). */
-    wmtab->is_motion_absolute = true;
-    // printf("%s: using tablet %.5f\n", __func__, wmtab->pressure);
+  if (U.pressure_threshold_max != 0.0f) {
+    pressure /= U.pressure_threshold_max;
+  }
+
+  CLAMP(pressure, 0.0f, 1.0f);
+
+  if (U.pressure_softness != 0.0f) {
+    pressure = powf(pressure, powf(4.0f, -U.pressure_softness));
+  }
+
+  return pressure;
+}
+
+/* adds customdata to event */
+static void update_tablet_data(wmWindow *win, wmEvent *event)
+{
+  const GHOST_TabletData *td = GHOST_GetTabletData(win->ghostwin);
+
+  /* if there's tablet data from an active tablet device then add it */
+  if ((td != NULL) && td->Active != GHOST_kTabletModeNone) {
+    struct wmTabletData *wmtab = MEM_mallocN(sizeof(wmTabletData), "customdata tablet");
+
+    wmtab->Active = (int)td->Active;
+    wmtab->Pressure = wm_pressure_curve(td->Pressure);
+    wmtab->Xtilt = td->Xtilt;
+    wmtab->Ytilt = td->Ytilt;
+
+    event->tablet_data = wmtab;
+    // printf("%s: using tablet %.5f\n", __func__, wmtab->Pressure);
   }
   else {
-    wmtab->active = EVT_TABLET_NONE;
-    wmtab->pressure = 1.0f;
-    wmtab->x_tilt = 0.0f;
-    wmtab->y_tilt = 0.0f;
-    wmtab->is_motion_absolute = false;
+    event->tablet_data = NULL;
     // printf("%s: not using tablet\n", __func__);
   }
 }
@@ -4252,7 +4545,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 
       copy_v2_v2_int(&event.x, &cd->x);
       wm_stereo3d_mouse_offset_apply(win, &event.x);
-      wm_tablet_data_from_ghost(&cd->tablet, &event.tablet);
 
       event.prevtype = event.type;
       event.prevval = event.val;
@@ -4260,7 +4552,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       {
         wmEvent *event_new = wm_event_add_mousemove(win, &event);
         copy_v2_v2_int(&evt->x, &event_new->x);
-        evt->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
+        evt->is_motion_absolute = event_new->is_motion_absolute;
       }
 
       /* also add to other window if event is there, this makes overdraws disappear nicely */
@@ -4278,7 +4570,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         {
           wmEvent *event_new = wm_event_add_mousemove(owin, &oevent);
           copy_v2_v2_int(&oevt->x, &event_new->x);
-          oevt->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
+          oevt->is_motion_absolute = event_new->is_motion_absolute;
         }
       }
 
@@ -4291,9 +4583,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
           event.type = MOUSEZOOM;
           pd->deltaX = -pd->deltaX;
           pd->deltaY = -pd->deltaY;
-          break;
-        case GHOST_kTrackpadEventSmartMagnify:
-          event.type = MOUSESMARTZOOM;
           break;
         case GHOST_kTrackpadEventRotate:
           event.type = MOUSEROTATE;
@@ -4345,9 +4634,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         event.type = MIDDLEMOUSE;
       }
 
-      /* Get tablet data. */
-      wm_tablet_data_from_ghost(&bd->tablet, &event.tablet);
-
       wm_eventemulation(&event, false);
 
       /* copy previous state to prev event state (two old!) */
@@ -4357,6 +4643,17 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       /* copy to event state */
       evt->val = event.val;
       evt->type = event.type;
+
+      if (win->active == 0) {
+        int cx, cy;
+
+        /* Entering window, update mouse pos.
+         * (ghost sends win-activate *after* the mouseclick in window!) */
+        wm_get_cursor_position(win, &cx, &cy);
+
+        event.x = evt->x = cx;
+        event.y = evt->y = cy;
+      }
 
       /* double click test */
       if (wm_event_is_double_click(&event, evt)) {
@@ -4378,7 +4675,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         oevent.y = event.y;
         oevent.type = event.type;
         oevent.val = event.val;
-        oevent.tablet = event.tablet;
 
         wm_event_add(owin, &oevent);
       }
@@ -4645,29 +4941,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 #endif
 }
 
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name WM Interface Locking
- * \{ */
-
-/**
- * Check whether operator is allowed to run in case interface is locked,
- * If interface is unlocked, will always return truth.
- */
-static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot)
-{
-  wmWindowManager *wm = CTX_wm_manager(C);
-
-  if (wm->is_interface_locked) {
-    if ((ot->flag & OPTYPE_LOCK_BYPASS) == 0) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 void WM_set_locked_interface(wmWindowManager *wm, bool lock)
 {
   /* This will prevent events from being handled while interface is locked
@@ -4689,11 +4962,95 @@ void WM_set_locked_interface(wmWindowManager *wm, bool lock)
   BKE_spacedata_draw_locks(lock);
 }
 
-/** \} */
+#ifdef WITH_INPUT_NDOF
 
 /* -------------------------------------------------------------------- */
-/** \name Event / Keymap Matching API
+/** \name NDOF Utility Functions
  * \{ */
+
+void WM_event_ndof_pan_get(const wmNDOFMotionData *ndof, float r_pan[3], const bool use_zoom)
+{
+  int z_flag = use_zoom ? NDOF_ZOOM_INVERT : NDOF_PANZ_INVERT_AXIS;
+  r_pan[0] = ndof->tvec[0] * ((U.ndof_flag & NDOF_PANX_INVERT_AXIS) ? -1.0f : 1.0f);
+  r_pan[1] = ndof->tvec[1] * ((U.ndof_flag & NDOF_PANY_INVERT_AXIS) ? -1.0f : 1.0f);
+  r_pan[2] = ndof->tvec[2] * ((U.ndof_flag & z_flag) ? -1.0f : 1.0f);
+}
+
+void WM_event_ndof_rotate_get(const wmNDOFMotionData *ndof, float r_rot[3])
+{
+  r_rot[0] = ndof->rvec[0] * ((U.ndof_flag & NDOF_ROTX_INVERT_AXIS) ? -1.0f : 1.0f);
+  r_rot[1] = ndof->rvec[1] * ((U.ndof_flag & NDOF_ROTY_INVERT_AXIS) ? -1.0f : 1.0f);
+  r_rot[2] = ndof->rvec[2] * ((U.ndof_flag & NDOF_ROTZ_INVERT_AXIS) ? -1.0f : 1.0f);
+}
+
+float WM_event_ndof_to_axis_angle(const struct wmNDOFMotionData *ndof, float axis[3])
+{
+  float angle;
+  angle = normalize_v3_v3(axis, ndof->rvec);
+
+  axis[0] = axis[0] * ((U.ndof_flag & NDOF_ROTX_INVERT_AXIS) ? -1.0f : 1.0f);
+  axis[1] = axis[1] * ((U.ndof_flag & NDOF_ROTY_INVERT_AXIS) ? -1.0f : 1.0f);
+  axis[2] = axis[2] * ((U.ndof_flag & NDOF_ROTZ_INVERT_AXIS) ? -1.0f : 1.0f);
+
+  return ndof->dt * angle;
+}
+
+void WM_event_ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4])
+{
+  float axis[3];
+  float angle;
+
+  angle = WM_event_ndof_to_axis_angle(ndof, axis);
+  axis_angle_to_quat(q, axis, angle);
+}
+#endif /* WITH_INPUT_NDOF */
+
+/* if this is a tablet event, return tablet pressure and set *pen_flip
+ * to 1 if the eraser tool is being used, 0 otherwise */
+float WM_event_tablet_data(const wmEvent *event, int *pen_flip, float tilt[2])
+{
+  int erasor = 0;
+  float pressure = 1;
+
+  if (tilt) {
+    zero_v2(tilt);
+  }
+
+  if (event->tablet_data) {
+    const wmTabletData *wmtab = event->tablet_data;
+
+    erasor = (wmtab->Active == EVT_TABLET_ERASER);
+    if (wmtab->Active != EVT_TABLET_NONE) {
+      pressure = wmtab->Pressure;
+      if (tilt) {
+        tilt[0] = wmtab->Xtilt;
+        tilt[1] = wmtab->Ytilt;
+      }
+    }
+  }
+
+  if (pen_flip) {
+    (*pen_flip) = erasor;
+  }
+
+  return pressure;
+}
+
+bool WM_event_is_tablet(const struct wmEvent *event)
+{
+  return (event->tablet_data) ? true : false;
+}
+
+#ifdef WITH_INPUT_IME
+/* most os using ctrl/oskey + space to switch ime, avoid added space */
+bool WM_event_is_ime_switch(const struct wmEvent *event)
+{
+  return event->val == KM_PRESS && event->type == SPACEKEY &&
+         (event->ctrl || event->oskey || event->shift || event->alt);
+}
+#endif
+
+/** \} */
 
 wmKeyMap *WM_event_get_keymap_from_handler(wmWindowManager *wm, wmEventHandler_Keymap *handler)
 {
@@ -4722,10 +5079,10 @@ wmKeyMapItem *WM_event_match_keymap_item(bContext *C, wmKeyMap *keymap, const wm
   return NULL;
 }
 
-wmKeyMapItem *WM_event_match_keymap_item_from_handlers(bContext *C,
-                                                       wmWindowManager *wm,
-                                                       ListBase *handlers,
-                                                       const wmEvent *event)
+static wmKeyMapItem *wm_kmi_from_event(bContext *C,
+                                       wmWindowManager *wm,
+                                       ListBase *handlers,
+                                       const wmEvent *event)
 {
   LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
     /* during this loop, ui handlers for nested menus can tag multiple handlers free */
@@ -4747,8 +5104,6 @@ wmKeyMapItem *WM_event_match_keymap_item_from_handlers(bContext *C,
   }
   return NULL;
 }
-
-/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Cursor Keymap Status
@@ -4962,7 +5317,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
     wm_eventemulation(&test_event, true);
     wmKeyMapItem *kmi = NULL;
     for (int handler_index = 0; handler_index < ARRAY_SIZE(handlers); handler_index++) {
-      kmi = WM_event_match_keymap_item_from_handlers(C, wm, handlers[handler_index], &test_event);
+      kmi = wm_kmi_from_event(C, wm, handlers[handler_index], &test_event);
       if (kmi) {
         break;
       }
@@ -5055,6 +5410,46 @@ bool WM_window_modal_keymap_status_draw(bContext *UNUSED(C), wmWindow *win, uiLa
     }
   }
   return true;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Event Click/Drag Checks
+ *
+ * Values under this limit are detected as clicks.
+ *
+ * \{ */
+
+int WM_event_drag_threshold(const struct wmEvent *event)
+{
+  int drag_threshold;
+  if (WM_event_is_tablet(event)) {
+    drag_threshold = U.drag_threshold_tablet;
+  }
+  else if (ISMOUSE(event->prevtype)) {
+    drag_threshold = U.drag_threshold_mouse;
+  }
+  else {
+    /* Typically keyboard, could be NDOF button or other less common types. */
+    drag_threshold = U.drag_threshold;
+  }
+  return drag_threshold * U.dpi_fac;
+}
+
+bool WM_event_drag_test_with_delta(const wmEvent *event, const int drag_delta[2])
+{
+  const int drag_threshold = WM_event_drag_threshold(event);
+  return abs(drag_delta[0]) > drag_threshold || abs(drag_delta[1]) > drag_threshold;
+}
+
+bool WM_event_drag_test(const wmEvent *event, const int prev_xy[2])
+{
+  const int drag_delta[2] = {
+      prev_xy[0] - event->x,
+      prev_xy[1] - event->y,
+  };
+  return WM_event_drag_test_with_delta(event, drag_delta);
 }
 
 /** \} */
