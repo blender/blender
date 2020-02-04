@@ -537,6 +537,8 @@ static int fluid_bake_exec(struct bContext *C, struct wmOperator *op)
   if (!fluid_validatepaths(job, op->reports)) {
     return OPERATOR_CANCELLED;
   }
+  WM_report_banners_cancel(job->bmain);
+
   fluid_bake_startjob(job, NULL, NULL, NULL);
   fluid_bake_endjob(job);
   fluid_bake_free(job);
@@ -563,6 +565,9 @@ static int fluid_bake_invoke(struct bContext *C,
   if (!fluid_validatepaths(job, op->reports)) {
     return OPERATOR_CANCELLED;
   }
+
+  /* Clear existing banners so that the upcoming progress bar from this job has more room. */
+  WM_report_banners_cancel(job->bmain);
 
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                               CTX_wm_window(C),
@@ -637,6 +642,9 @@ static int fluid_free_exec(struct bContext *C, struct wmOperator *op)
   if (!fluid_validatepaths(job, op->reports)) {
     return OPERATOR_CANCELLED;
   }
+
+  /* Clear existing banners so that the upcoming progress bar from this job has more room. */
+  WM_report_banners_cancel(job->bmain);
 
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                               CTX_wm_window(C),
