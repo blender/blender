@@ -1378,7 +1378,7 @@ static void drw_engines_enable_overlays(void)
  */
 static void drw_engines_enable_basic(void)
 {
-  use_drw_engine(DRW_engine_viewport_basic_type.draw_engine);
+  use_drw_engine(&draw_engine_basic_type);
 }
 
 static void drw_engines_enable(ViewLayer *UNUSED(view_layer),
@@ -2830,6 +2830,7 @@ void DRW_engines_register(void)
 
   DRW_engine_register(&draw_engine_overlay_type);
   DRW_engine_register(&draw_engine_select_type);
+  DRW_engine_register(&draw_engine_basic_type);
 
   /* setup callbacks */
   {

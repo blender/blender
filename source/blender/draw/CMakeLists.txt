@@ -307,6 +307,10 @@ data_to_c_simple(engines/gpencil/shaders/fx/gpencil_fx_wave_frag.glsl SRC)
 data_to_c_simple(engines/select/shaders/selection_id_3D_vert.glsl SRC)
 data_to_c_simple(engines/select/shaders/selection_id_frag.glsl SRC)
 
+data_to_c_simple(engines/basic/shaders/conservative_depth_geom.glsl SRC)
+data_to_c_simple(engines/basic/shaders/conservative_depth_vert.glsl SRC)
+data_to_c_simple(engines/basic/shaders/conservative_depth_frag.glsl SRC)
+
 data_to_c_simple(engines/overlay/shaders/antialiasing_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/antialiasing_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/armature_dof_vert.glsl SRC)

@@ -1,0 +1,5 @@
+
+void main()
+{
+  /* Passthrough shader. */
+}
