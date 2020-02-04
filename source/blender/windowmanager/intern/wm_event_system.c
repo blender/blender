@@ -4998,8 +4998,9 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
  *
  * \{ */
 
-bool WM_window_modal_keymap_status_draw(bContext *UNUSED(C), wmWindow *win, uiLayout *layout)
+bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, uiLayout *layout)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   wmKeyMap *keymap = NULL;
   wmOperator *op = NULL;
   LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
@@ -5007,7 +5008,7 @@ bool WM_window_modal_keymap_status_draw(bContext *UNUSED(C), wmWindow *win, uiLa
       wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
       if (handler->op != NULL) {
         /* 'handler->keymap' could be checked too, seems not to be used. */
-        wmKeyMap *keymap_test = handler->op->type->modalkeymap;
+        wmKeyMap *keymap_test = WM_keymap_active(wm, handler->op->type->modalkeymap);
         if (keymap_test && keymap_test->modal_items) {
           keymap = keymap_test;
           op = handler->op;

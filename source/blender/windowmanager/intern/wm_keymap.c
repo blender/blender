@@ -1291,7 +1291,9 @@ int WM_modalkeymap_operator_items_to_string(wmOperatorType *ot,
                                             char *result,
                                             const int result_len)
 {
-  return WM_modalkeymap_items_to_string(ot->modalkeymap, propvalue, compact, result, result_len);
+  wmWindowManager *wm = G_MAIN->wm.first;
+  wmKeyMap *keymap = WM_keymap_active(wm, ot->modalkeymap);
+  return WM_modalkeymap_items_to_string(keymap, propvalue, compact, result, result_len);
 }
 
 char *WM_modalkeymap_operator_items_to_string_buf(wmOperatorType *ot,
