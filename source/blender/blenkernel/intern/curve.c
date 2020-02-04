@@ -4869,7 +4869,10 @@ bool BKE_nurb_order_clamp_v(struct Nurb *nu)
 /**
  * \note caller must ensure active vertex remains valid.
  */
-bool BKE_nurb_type_convert(Nurb *nu, const short type, const bool use_handles)
+bool BKE_nurb_type_convert(Nurb *nu,
+                           const short type,
+                           const bool use_handles,
+                           const char **r_err_msg)
 {
   BezTriple *bezt;
   BPoint *bp;
@@ -4976,6 +4979,9 @@ bool BKE_nurb_type_convert(Nurb *nu, const short type, const bool use_handles)
       nr = nu->pntsu / 3;
 
       if (nr < 2) {
+        if (r_err_msg != NULL) {
+          *r_err_msg = "At least 6 points required for conversion";
+        }
         return false; /* conversion impossible */
       }
       else {

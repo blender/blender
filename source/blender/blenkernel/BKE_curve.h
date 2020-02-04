@@ -220,7 +220,10 @@ bool BKE_nurb_order_clamp_u(struct Nurb *nu);
 bool BKE_nurb_order_clamp_v(struct Nurb *nu);
 
 void BKE_nurb_direction_switch(struct Nurb *nu);
-bool BKE_nurb_type_convert(struct Nurb *nu, const short type, const bool use_handles);
+bool BKE_nurb_type_convert(struct Nurb *nu,
+                           const short type,
+                           const bool use_handles,
+                           const char **r_err_msg);
 
 void BKE_nurb_points_add(struct Nurb *nu, int number);
 void BKE_nurb_bezierPoints_add(struct Nurb *nu, int number);
