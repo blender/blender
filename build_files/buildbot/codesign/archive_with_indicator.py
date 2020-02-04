@@ -21,7 +21,7 @@
 import os
 from pathlib import Path
 
-from codesign.util import ensure_file_does_not_exist_or_die
+import codesign.util as util
 
 
 class ArchiveWithIndicator:
@@ -85,16 +85,17 @@ class ArchiveWithIndicator:
         assert not self.is_ready()
         # Try the best to make sure everything is synced to the file system,
         # to avoid any possibility of stamp appearing on a network share prior to
-        # an actual filr.
-        os.sync()
+        # an actual file.
+        if util.get_current_platform() != util.Platform.WINDOWS:
+            os.sync()
         self.ready_indicator_filepath.touch()
 
     def clean(self) -> None:
         """
         Remove both archive and the ready indication file.
         """
-        ensure_file_does_not_exist_or_die(self.ready_indicator_filepath)
-        ensure_file_does_not_exist_or_die(self.archive_filepath)
+        util.ensure_file_does_not_exist_or_die(self.ready_indicator_filepath)
+        util.ensure_file_does_not_exist_or_die(self.archive_filepath)
 
     def is_fully_absent(self) -> bool:
         """
