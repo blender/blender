@@ -90,6 +90,8 @@ void GPU_matrix_identity_projection_set(void);
 void GPU_matrix_projection_set(const float m[4][4]);
 
 void GPU_matrix_ortho_set(float left, float right, float bottom, float top, float near, float far);
+void GPU_matrix_ortho_set_z(float near, float far);
+
 void GPU_matrix_frustum_set(
     float left, float right, float bottom, float top, float near, float far);
 void GPU_matrix_perspective_set(float fovy, float aspect, float near, float far);
@@ -221,5 +223,10 @@ int GPU_matrix_stack_level_get_projection(void);
 #  define GPU_matrix_normal_get(x) GPU_matrix_normal_get(_GPU_MAT3_CAST(x))
 #  define GPU_matrix_normal_inverse_get(x) GPU_matrix_normal_inverse_get(_GPU_MAT3_CAST(x))
 #endif /* SUPPRESS_GENERIC_MATRIX_API */
+
+/* Not part of the GPU_matrix API,
+ * however we need to check these limits in code that calls into these API's. */
+#define GPU_MATRIX_ORTHO_CLIP_NEAR_DEFAULT (-100)
+#define GPU_MATRIX_ORTHO_CLIP_FAR_DEFAULT (100)
 
 #endif /* __GPU_MATRIX_H__ */

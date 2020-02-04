@@ -197,6 +197,7 @@ static void axis_geom_draw(const wmGizmo *gz,
                            const bool select,
                            const struct AxisDrawInfo *draw_info)
 {
+
   GPU_line_width(gz->line_width);
 
   GPUVertFormat *format = immVertexFormat();
@@ -239,6 +240,7 @@ static void axis_geom_draw(const wmGizmo *gz,
   static float axis_color[3][4];
 
   const float axis_depth_bias = 0.01f;
+  const float sphere_scale = 1.15f;
 
 #ifdef USE_AXIS_FONT
   struct {
@@ -267,6 +269,13 @@ static void axis_geom_draw(const wmGizmo *gz,
 
   /* When the cursor is over any of the gizmos (show circle backdrop). */
   const bool is_active = (color[3] != 0.0f);
+
+  const float clip_range = gz->scale_final * sphere_scale;
+  bool use_project_matrix = (clip_range >= -GPU_MATRIX_ORTHO_CLIP_NEAR_DEFAULT);
+  if (use_project_matrix) {
+    GPU_matrix_push_projection();
+    GPU_matrix_ortho_set_z(-clip_range, clip_range);
+  }
 
   /* Circle defining active area. */
   if (is_active) {
@@ -364,11 +373,10 @@ static void axis_geom_draw(const wmGizmo *gz,
          * they use a faded color which can be similar to the circle backdrop in tone. */
         if (is_active && !is_highlight && !is_pos && !select && !(axis_align == axis)) {
           static const float axis_black_faded[4] = {0, 0, 0, 0.2f};
-          const float scale = 1.15f;
-          GPU_matrix_scale_1f(scale);
+          GPU_matrix_scale_1f(sphere_scale);
           GPU_batch_uniform_4fv(sphere, "color", axis_black_faded);
           GPU_batch_draw(sphere);
-          GPU_matrix_scale_1f(1.0 / scale);
+          GPU_matrix_scale_1f(1.0 / sphere_scale);
         }
 
         GPU_batch_uniform_4fv(sphere, "color", is_pos_color ? color_current : color_current_fade);
@@ -407,6 +415,10 @@ static void axis_geom_draw(const wmGizmo *gz,
 
   GPU_matrix_pop();
   immUnbindProgram();
+
+  if (use_project_matrix) {
+    GPU_matrix_pop_projection();
+  }
 }
 
 static void axis3d_draw_intern(const bContext *C,
