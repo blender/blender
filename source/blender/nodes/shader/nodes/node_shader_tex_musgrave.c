@@ -27,7 +27,7 @@ static bNodeSocketTemplate sh_node_tex_musgrave_in[] = {
     {SOCK_FLOAT, 1, N_("Scale"), 5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
     {SOCK_FLOAT, 1, N_("Detail"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 16.0f},
     {SOCK_FLOAT, 1, N_("Dimension"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_FLOAT, 1, N_("Lacunarity"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+    {SOCK_FLOAT, 1, N_("Lacunarity"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
     {SOCK_FLOAT, 1, N_("Offset"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
     {SOCK_FLOAT, 1, N_("Gain"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
     {-1, 0, ""},

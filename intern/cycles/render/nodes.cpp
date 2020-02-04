@@ -1350,7 +1350,7 @@ NODE_DEFINE(MusgraveTextureNode)
   SOCKET_IN_FLOAT(scale, "Scale", 1.0f);
   SOCKET_IN_FLOAT(detail, "Detail", 2.0f);
   SOCKET_IN_FLOAT(dimension, "Dimension", 2.0f);
-  SOCKET_IN_FLOAT(lacunarity, "Lacunarity", 1.0f);
+  SOCKET_IN_FLOAT(lacunarity, "Lacunarity", 2.0f);
   SOCKET_IN_FLOAT(offset, "Offset", 0.0f);
   SOCKET_IN_FLOAT(gain, "Gain", 1.0f);
 
