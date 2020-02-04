@@ -774,7 +774,7 @@ void ED_undo_object_editmode_restore_helper(struct bContext *C,
   uint bases_len = 0;
   /* Don't request unique data because we want to de-select objects when exiting edit-mode
    * for that to be done on all objects we can't skip ones that share data. */
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(view_layer, NULL, &bases_len);
+  Base **bases = ED_undo_editmode_bases_from_view_layer(view_layer, &bases_len);
   for (uint i = 0; i < bases_len; i++) {
     ((ID *)bases[i]->object->data)->tag |= LIB_TAG_DOIT;
   }
@@ -795,6 +795,107 @@ void ED_undo_object_editmode_restore_helper(struct bContext *C,
     }
   }
   MEM_freeN(bases);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Undo View Layer Helper Functions
+ *
+ * Needed because view layer functions such as
+ * #BKE_view_layer_array_from_objects_in_edit_mode_unique_data also check visibility,
+ * which is not reliable when it comes to object undo operations,
+ * since hidden objects can be operated on in the properties editor,
+ * and local collections may be used.
+ * \{ */
+
+static int undo_editmode_objects_from_view_layer_prepare(ViewLayer *view_layer,
+                                                         Object *obact,
+                                                         int *r_active_index)
+{
+  const short object_type = obact->type;
+
+  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    Object *ob = base->object;
+    if ((ob->type == object_type) && (ob->mode & OB_MODE_EDIT)) {
+      ID *id = ob->data;
+      id->tag &= ~LIB_TAG_DOIT;
+    }
+  }
+
+  int len = 0;
+  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    Object *ob = base->object;
+    if ((ob->type == object_type) && (ob->mode & OB_MODE_EDIT)) {
+      if (ob == obact) {
+        *r_active_index = len;
+      }
+      ID *id = ob->data;
+      if ((id->tag & LIB_TAG_DOIT) == 0) {
+        len += 1;
+        id->tag |= LIB_TAG_DOIT;
+      }
+    }
+  }
+  return len;
+}
+
+Object **ED_undo_editmode_objects_from_view_layer(ViewLayer *view_layer, uint *r_len)
+{
+  Object *obact = OBACT(view_layer);
+  if ((obact == NULL) || (obact->mode & OB_MODE_EDIT) == 0) {
+    return MEM_mallocN(0, __func__);
+  }
+  int active_index = 0;
+  const int len = undo_editmode_objects_from_view_layer_prepare(view_layer, obact, &active_index);
+  const short object_type = obact->type;
+  int i = 0;
+  Object **objects = MEM_malloc_arrayN(len, sizeof(*objects), __func__);
+  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    Object *ob = base->object;
+    if ((ob->type == object_type) && (ob->mode & OB_MODE_EDIT)) {
+      ID *id = ob->data;
+      if (id->tag & LIB_TAG_DOIT) {
+        objects[i++] = ob;
+        id->tag &= ~LIB_TAG_DOIT;
+      }
+    }
+  }
+  BLI_assert(i == len);
+  if (active_index > 0) {
+    SWAP(Object *, objects[0], objects[active_index]);
+  }
+  *r_len = len;
+  return objects;
+}
+
+Base **ED_undo_editmode_bases_from_view_layer(ViewLayer *view_layer, uint *r_len)
+{
+  Object *obact = OBACT(view_layer);
+  if ((obact == NULL) || (obact->mode & OB_MODE_EDIT) == 0) {
+    return MEM_mallocN(0, __func__);
+  }
+  int active_index = 0;
+  const int len = undo_editmode_objects_from_view_layer_prepare(view_layer, obact, &active_index);
+  const short object_type = obact->type;
+  int i = 0;
+  Base **base_array = MEM_malloc_arrayN(len, sizeof(*base_array), __func__);
+  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    Object *ob = base->object;
+    if ((ob->type == object_type) && (ob->mode & OB_MODE_EDIT)) {
+      ID *id = ob->data;
+      if (id->tag & LIB_TAG_DOIT) {
+        base_array[i++] = base;
+        id->tag &= ~LIB_TAG_DOIT;
+      }
+    }
+  }
+  BLI_assert(i == len);
+  if (active_index > 0) {
+    SWAP(Base *, base_array[0], base_array[active_index]);
+  }
+  *r_len = len;
+  return base_array;
 }
 
 /** \} */
