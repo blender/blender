@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+import os
 from pathlib import Path
 
 from codesign.util import ensure_file_does_not_exist_or_die
@@ -82,6 +83,10 @@ class ArchiveWithIndicator:
               If it is violated, an assert will fail.
         """
         assert not self.is_ready()
+        # Try the best to make sure everything is synced to the file system,
+        # to avoid any possibility of stamp appearing on a network share prior to
+        # an actual filr.
+        os.sync()
         self.ready_indicator_filepath.touch()
 
     def clean(self) -> None:
