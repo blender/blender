@@ -783,7 +783,10 @@ class _GenericUI:
                 for func in draw_ls._draw_funcs:
 
                     # Begin 'owner_id' filter.
-                    if owner_names is not None:
+                    # Exclude Import/Export menus from this filtering (io addons should always show there)
+                    if not getattr(self, "bl_owner_use_filter", True):
+                        pass
+                    elif owner_names is not None:
                         owner_id = getattr(func, "_owner", None)
                         if owner_id is not None:
                             if func._owner not in owner_names:

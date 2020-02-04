@@ -373,11 +373,9 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
         # 2) Try register collected modules.
         # Removed register_module, addons need to handle their own registration now.
 
-        use_owner = mod.bl_info.get("use_owner", True)
-        if use_owner:
-            from _bpy import _bl_owner_id_get, _bl_owner_id_set
-            owner_id_prev = _bl_owner_id_get()
-            _bl_owner_id_set(module_name)
+        from _bpy import _bl_owner_id_get, _bl_owner_id_set
+        owner_id_prev = _bl_owner_id_get()
+        _bl_owner_id_set(module_name)
 
         # 3) Try run the modules register function.
         try:
@@ -393,8 +391,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
                 _addon_remove(module_name)
             return None
         finally:
-            if use_owner:
-                _bl_owner_id_set(owner_id_prev)
+            _bl_owner_id_set(owner_id_prev)
 
     # * OK loaded successfully! *
     mod.__addon_enabled__ = True
@@ -513,7 +510,6 @@ def module_bl_info(mod, info_basis=None):
             "category": "",
             "warning": "",
             "show_expanded": False,
-            "use_owner": True,
         }
 
     addon_info = getattr(mod, "bl_info", {})
@@ -530,10 +526,6 @@ def module_bl_info(mod, info_basis=None):
 
     if not addon_info["name"]:
         addon_info["name"] = mod.__name__
-
-    # Temporary auto-magic, don't use_owner for import export menus.
-    if mod.bl_info["category"] == "Import-Export":
-        mod.bl_info["use_owner"] = False
 
     addon_info["_init"] = None
     return addon_info
