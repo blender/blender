@@ -26,7 +26,7 @@ uniform float hairRadTip = 0.0;
 uniform float hairRadShape = 0.5;
 uniform bool hairCloseTip = true;
 
-uniform mat4 hairDupliMatrix;
+uniform vec4 hairDupliMatrix[4];
 
 /* -- Per control points -- */
 uniform samplerBuffer hairPointBuffer; /* RGBA32F */
@@ -159,8 +159,11 @@ void hair_get_pos_tan_binor_time(bool is_persp,
     wtan = wpos - texelFetch(hairPointBuffer, id - 1).point_position;
   }
 
-  wpos = (hairDupliMatrix * vec4(wpos, 1.0)).xyz;
-  wtan = -normalize(mat3(hairDupliMatrix) * wtan);
+  mat4 obmat = mat4(
+      hairDupliMatrix[0], hairDupliMatrix[1], hairDupliMatrix[2], hairDupliMatrix[3]);
+
+  wpos = (obmat * vec4(wpos, 1.0)).xyz;
+  wtan = -normalize(mat3(obmat) * wtan);
 
   vec3 camera_vec = (is_persp) ? camera_pos - wpos : camera_z;
   wbinor = normalize(cross(camera_vec, wtan));
