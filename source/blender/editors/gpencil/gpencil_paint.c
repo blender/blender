@@ -1963,6 +1963,9 @@ static Brush *gp_get_default_eraser(Main *bmain, ToolSettings *ts)
   Paint *paint = &ts->gp_paint->paint;
   Brush *brush_old = paint->brush;
   for (Brush *brush = bmain->brushes.first; brush; brush = brush->id.next) {
+    if (brush->gpencil_settings == NULL) {
+      continue;
+    }
     if ((brush->ob_mode == OB_MODE_PAINT_GPENCIL) && (brush->gpencil_tool == GPAINT_TOOL_ERASE)) {
       /* save first eraser to use later if no default */
       if (brush_dft == NULL) {
