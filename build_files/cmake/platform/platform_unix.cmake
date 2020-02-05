@@ -486,6 +486,65 @@ endif()
 # lfs on glibc, all compilers should use
 add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
 
+# ----------------------------------------------------------------------------
+# System Libraries
+#
+# Keep last, so indirectly linked libraries don't override our own pre-compiled libs.
+
+if(WITH_X11)
+  find_package(X11 REQUIRED)
+
+  find_path(X11_XF86keysym_INCLUDE_PATH X11/XF86keysym.h ${X11_INC_SEARCH_PATH})
+  mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
+
+  list(APPEND PLATFORM_LINKLIBS ${X11_X11_LIB})
+
+  if(WITH_X11_XINPUT)
+    if(X11_Xinput_LIB)
+      list(APPEND PLATFORM_LINKLIBS ${X11_Xinput_LIB})
+    else()
+      message(FATAL_ERROR "LibXi not found. Disable WITH_X11_XINPUT if you
+      want to build without tablet support")
+    endif()
+  endif()
+
+  if(WITH_X11_XF86VMODE)
+    # XXX, why doesn't cmake make this available?
+    find_library(X11_Xxf86vmode_LIB Xxf86vm   ${X11_LIB_SEARCH_PATH})
+    mark_as_advanced(X11_Xxf86vmode_LIB)
+    if(X11_Xxf86vmode_LIB)
+      list(APPEND PLATFORM_LINKLIBS ${X11_Xxf86vmode_LIB})
+    else()
+      message(FATAL_ERROR "libXxf86vm not found. Disable WITH_X11_XF86VMODE if you
+      want to build without")
+    endif()
+  endif()
+
+  if(WITH_X11_XFIXES)
+    if(X11_Xfixes_LIB)
+      list(APPEND PLATFORM_LINKLIBS ${X11_Xfixes_LIB})
+    else()
+      message(FATAL_ERROR "libXfixes not found. Disable WITH_X11_XFIXES if you
+      want to build without")
+    endif()
+  endif()
+
+  if(WITH_X11_ALPHA)
+    find_library(X11_Xrender_LIB Xrender  ${X11_LIB_SEARCH_PATH})
+    mark_as_advanced(X11_Xrender_LIB)
+    if(X11_Xrender_LIB)
+      list(APPEND PLATFORM_LINKLIBS ${X11_Xrender_LIB})
+    else()
+      message(FATAL_ERROR "libXrender not found. Disable WITH_X11_ALPHA if you
+      want to build without")
+    endif()
+  endif()
+
+endif()
+
+# ----------------------------------------------------------------------------
+# Compilers
+
 # GNU Compiler
 if(CMAKE_COMPILER_IS_GNUCC)
   set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
