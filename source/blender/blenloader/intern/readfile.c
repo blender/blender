@@ -2668,6 +2668,18 @@ static void direct_link_id(FileData *fd, ID *id)
   id->tag = 0;
   id->flag &= ~LIB_INDIRECT_WEAK_LINK;
 
+  /* NOTE: It is important to not clear the recalc flags for undo/redo.
+   * Preserving recalc flags on redo/undo is the only way to make dependency graph detect
+   * that animation is to be evaluated on undo/redo. If this is not enforced by the recalc
+   * flags dependency graph does not do animation update to avoid loss of unkeyed changes.,
+   * which conflicts with undo/redo of changes to animation data itself.
+   *
+   * But for regular file load we clear the flag, since the flags might have been changed since
+   * the version the file has been saved with. */
+  if (!fd->memfile) {
+    id->recalc = 0;
+  }
+
   /* Link direct data of overrides. */
   if (id->override_library) {
     id->override_library = newdataadr(fd, id->override_library);
@@ -3519,8 +3531,6 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 
   ntree->adt = newdataadr(fd, ntree->adt);
   direct_link_animdata(fd, ntree->adt);
-
-  ntree->id.recalc &= ~ID_RECALC_ALL;
 
   link_list(fd, &ntree->nodes);
   for (node = ntree->nodes.first; node; node = node->next) {
@@ -9418,18 +9428,6 @@ static BHead *read_libblock(FileData *fd,
   id->icon_id = 0;
   id->newid = NULL; /* Needed because .blend may have been saved with crap value here... */
   id->orig_id = NULL;
-
-  /* NOTE: It is important to not clear the recalc flags for undo/redo.
-   * Preserving recalc flags on redo/undo is the only way to make dependency graph detect
-   * that animation is to be evaluated on undo/redo. If this is not enforced by the recalc
-   * flags dependency graph does not do animation update to avoid loss of unkeyed changes.,
-   * which conflicts with undo/redo of changes to animation data itself.
-   *
-   * But for regular file load we clear the flag, since the flags might have been changed since
-   * the version the file has been saved with. */
-  if (!fd->memfile) {
-    id->recalc = 0;
-  }
 
   /* this case cannot be direct_linked: it's just the ID part */
   if (bhead->code == ID_LINK_PLACEHOLDER) {
