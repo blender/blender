@@ -96,7 +96,6 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
 
   if ((flag & V3D_OVERLAY_EDIT_FACES) == 0) {
     pd->edit_mesh.do_faces = false;
-    pd->edit_mesh.do_zbufclip = false;
   }
   if ((flag & V3D_OVERLAY_EDIT_EDGES) == 0) {
     if ((tsettings->selectmode & SCE_SELECT_EDGE) == 0) {
