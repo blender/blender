@@ -458,16 +458,10 @@ static void curve_batch_cache_init(Curve *cu)
 #endif
 
   cache->cd_used = 0;
-  cache->mat_len = max_ii(1, cu->totcol);
-  cache->surf_per_mat_tris = MEM_mallocN(sizeof(*cache->surf_per_mat_tris) * cache->mat_len,
+  cache->mat_len = DRW_curve_material_count_get(cu);
+  cache->surf_per_mat_tris = MEM_callocN(sizeof(*cache->surf_per_mat_tris) * cache->mat_len,
                                          __func__);
-  cache->surf_per_mat = MEM_mallocN(sizeof(*cache->surf_per_mat) * cache->mat_len, __func__);
-
-  /* TODO Might be wiser to alloc in one chunk. */
-  for (int i = 0; i < cache->mat_len; i++) {
-    cache->surf_per_mat_tris[i] = MEM_callocN(sizeof(GPUIndexBuf), "GPUIndexBuf");
-    cache->surf_per_mat[i] = MEM_callocN(sizeof(GPUBatch), "GPUBatch");
-  }
+  cache->surf_per_mat = MEM_callocN(sizeof(*cache->surf_per_mat) * cache->mat_len, __func__);
 
   cache->is_editmode = (cu->editnurb != NULL) || (cu->editfont != NULL);
 
@@ -934,15 +928,13 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 
   /* Verify that all surface batches have needed attribute layers. */
   /* TODO(fclem): We could be a bit smarter here and only do it per material. */
-  for (int i = 0; i < cache->mat_len; i++) {
-    if ((cache->cd_used & cache->cd_needed) != cache->cd_needed) {
+  if ((cache->cd_used & cache->cd_needed) != cache->cd_needed) {
+    for (int i = 0; i < cache->mat_len; i++) {
       /* We can't discard batches at this point as they have been
        * referenced for drawing. Just clear them in place. */
-      GPU_batch_clear(cache->surf_per_mat[i]);
-      memset(cache->surf_per_mat[i], 0, sizeof(*cache->surf_per_mat[i]));
+      GPU_BATCH_CLEAR_SAFE(cache->surf_per_mat[i]);
     }
-  }
-  if ((cache->cd_used & cache->cd_needed) != cache->cd_needed) {
+
     cache->cd_used |= cache->cd_needed;
     cache->cd_needed = 0;
   }
