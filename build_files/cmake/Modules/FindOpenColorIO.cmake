@@ -35,9 +35,6 @@ SET(_opencolorio_FIND_COMPONENTS
 
 SET(_opencolorio_SEARCH_DIRS
   ${OPENCOLORIO_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
   /opt/lib/ocio
 )
 

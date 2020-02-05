@@ -29,10 +29,6 @@ ENDIF()
 
 SET(_embree_SEARCH_DIRS
   ${EMBREE_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
-  /opt/embree
   /opt/lib/embree
 )
 

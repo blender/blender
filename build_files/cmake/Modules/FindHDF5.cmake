@@ -26,9 +26,6 @@ ENDIF()
 
 SET(_hdf5_SEARCH_DIRS
   ${HDF5_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
   /opt/lib/hdf5
 )
 

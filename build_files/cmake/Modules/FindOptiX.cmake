@@ -26,9 +26,6 @@ ENDIF()
 SET(_optix_SEARCH_DIRS
   ${OPTIX_ROOT_DIR}
   "$ENV{PROGRAMDATA}/NVIDIA Corporation/OptiX SDK 7.0.0"
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
 )
 
 FIND_PATH(OPTIX_INCLUDE_DIR

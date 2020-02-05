@@ -29,9 +29,6 @@ ENDIF()
 
 SET(_spacenav_SEARCH_DIRS
   ${SPACENAV_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
 )
 
 FIND_PATH(SPACENAV_INCLUDE_DIR

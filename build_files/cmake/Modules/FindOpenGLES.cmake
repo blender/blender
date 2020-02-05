@@ -17,7 +17,6 @@ ENDIF()
 
 SET(_opengles_SEARCH_DIRS
   ${OPENGLES_ROOT_DIR}
-  /usr/local
 )
 
 FIND_PATH(OPENGLES_INCLUDE_DIR

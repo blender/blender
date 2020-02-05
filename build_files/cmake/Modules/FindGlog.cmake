@@ -128,7 +128,6 @@ list(APPEND GLOG_CHECK_INCLUDE_DIRS
   /opt/local/var/macports/software # Mac OS X.
   /opt/local/include
   /usr/include
-  /sw/include # Fink
   /opt/lib/glog/include)
 # Windows (for C:/Program Files prefix).
 list(APPEND GLOG_CHECK_PATH_SUFFIXES
@@ -143,7 +142,6 @@ list(APPEND GLOG_CHECK_LIBRARY_DIRS
   /usr/local/homebrew/lib # Mac OS X.
   /opt/local/lib
   /usr/lib
-  /sw/lib # Fink
   /opt/lib/gflags/lib)
 # Windows (for C:/Program Files prefix).
 list(APPEND GLOG_CHECK_LIBRARY_SUFFIXES

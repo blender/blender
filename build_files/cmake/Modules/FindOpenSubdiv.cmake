@@ -34,9 +34,6 @@ SET(_opensubdiv_FIND_COMPONENTS
 
 SET(_opensubdiv_SEARCH_DIRS
   ${OPENSUBDIV_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
   /opt/lib/opensubdiv
   /opt/lib/osd # install_deps.sh
 )

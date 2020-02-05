@@ -29,9 +29,6 @@ ENDIF()
 
 SET(_openjpeg_SEARCH_DIRS
   ${OPENJPEG_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
 )
 
 FIND_PATH(OPENJPEG_INCLUDE_DIR

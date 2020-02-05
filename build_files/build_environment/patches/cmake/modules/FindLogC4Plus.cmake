@@ -29,9 +29,6 @@ ENDIF()
 
 SET(_logc4plus_SEARCH_DIRS
   ${LOGC4PLUS_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
   /opt/lib/logc4plus
 )
 

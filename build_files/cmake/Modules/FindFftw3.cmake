@@ -29,9 +29,6 @@ ENDIF()
 
 SET(_fftw3_SEARCH_DIRS
   ${FFTW3_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
 )
 
 FIND_PATH(FFTW3_INCLUDE_DIR

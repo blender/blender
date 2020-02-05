@@ -29,9 +29,6 @@ ENDIF()
 
 SET(_jack_SEARCH_DIRS
   ${JACK_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
 )
 
 FIND_PATH(JACK_INCLUDE_DIR

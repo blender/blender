@@ -29,9 +29,6 @@ ENDIF()
 
 SET(_sndfile_SEARCH_DIRS
   ${LIBSNDFILE_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
 )
 
 FIND_PATH(LIBSNDFILE_INCLUDE_DIR sndfile.h

@@ -29,9 +29,6 @@ ENDIF()
 
 SET(_pugixml_SEARCH_DIRS
   ${PUGIXML_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
   /opt/lib/oiio
 )
 

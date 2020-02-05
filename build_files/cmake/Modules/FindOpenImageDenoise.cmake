@@ -29,9 +29,6 @@ ENDIF()
 
 SET(_openimagedenoise_SEARCH_DIRS
   ${OPENIMAGEDENOISE_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
   /opt/lib/openimagedenoise
 )
 
