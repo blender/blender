@@ -29,9 +29,6 @@ ENDIF()
 
 SET(_xml2_SEARCH_DIRS
   ${XML2_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
 )
 
 FIND_PATH(XML2_INCLUDE_DIR libxml2/libxml/xpath.h

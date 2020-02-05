@@ -25,9 +25,6 @@ ENDIF()
 
 SET(_eigen3_SEARCH_DIRS
   ${EIGEN3_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
 )
 
 FIND_PATH(EIGEN3_INCLUDE_DIR

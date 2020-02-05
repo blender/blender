@@ -119,7 +119,6 @@ set(OpenEXR_generic_include_paths
   /usr/include
   /usr/include/${CMAKE_LIBRARY_ARCHITECTURE}
   /usr/local/include
-  /sw/include
   /opt/local/include
 )
 set(OpenEXR_generic_library_paths
@@ -128,7 +127,6 @@ set(OpenEXR_generic_library_paths
   /usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}
   /usr/local/lib
   /usr/local/lib/${CMAKE_LIBRARY_ARCHITECTURE}
-  /sw/lib
   /opt/local/lib
 )
 

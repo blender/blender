@@ -62,9 +62,6 @@ SET(_opencollada_FIND_STATIC_COMPONENTS
 
 SET(_opencollada_SEARCH_DIRS
   ${OPENCOLLADA_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
   /opt/lib/opencollada
 )
 

@@ -28,12 +28,6 @@ ENDIF()
 
 SET(_sdl2_SEARCH_DIRS
   ${SDL2_ROOT_DIR}
-  ~/Library/Frameworks
-  /Library/Frameworks
-  /usr/local
-  /usr
-  /sw # Fink
-  /opt/local # DarwinPorts
 )
 
 FIND_PATH(SDL2_INCLUDE_DIR

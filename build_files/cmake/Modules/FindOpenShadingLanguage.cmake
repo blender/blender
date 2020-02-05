@@ -35,9 +35,6 @@ SET(_osl_FIND_COMPONENTS
 
 SET(_osl_SEARCH_DIRS
   ${OSL_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
   /opt/lib/osl
 )
 

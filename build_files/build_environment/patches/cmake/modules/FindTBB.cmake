@@ -29,9 +29,6 @@ ENDIF()
 
 SET(_tbb_SEARCH_DIRS
   ${TBB_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
   /opt/lib/tbb
 )
 

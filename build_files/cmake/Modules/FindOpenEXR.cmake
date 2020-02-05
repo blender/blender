@@ -47,9 +47,6 @@ SET(_openexr_FIND_COMPONENTS
 
 SET(_openexr_SEARCH_DIRS
   ${OPENEXR_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
   /opt/lib/openexr
 )
 

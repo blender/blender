@@ -29,9 +29,6 @@ ENDIF()
 
 SET(_jemalloc_SEARCH_DIRS
   ${JEMALLOC_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
   /opt/lib/jemalloc
 )
 

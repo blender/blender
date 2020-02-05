@@ -29,9 +29,6 @@ ENDIF()
 
 SET(_pcre_SEARCH_DIRS
   ${PCRE_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
 )
 
 FIND_PATH(PCRE_INCLUDE_DIR pcre.h

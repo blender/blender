@@ -17,9 +17,6 @@ ENDIF()
 
 SET(_audaspace_SEARCH_DIRS
   ${AUDASPACE_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
 )
 
 # Use pkg-config to get hints about paths

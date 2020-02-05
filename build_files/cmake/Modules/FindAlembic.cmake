@@ -27,9 +27,6 @@ ENDIF()
 
 SET(_alembic_SEARCH_DIRS
   ${ALEMBIC_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
   /opt/lib/alembic
 )
 

@@ -28,7 +28,6 @@ ENDIF()
 
 SET(_glew_SEARCH_DIRS
   ${GLEW_ROOT_DIR}
-  /usr/local
 )
 
 FIND_PATH(GLEW_INCLUDE_DIR
