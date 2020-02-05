@@ -6388,9 +6388,8 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
                                      const bool use_occlude_geometry,
                                      const bool use_calc_direction)
 {
-  TransDataEdgeSlideVert *sv_array = sld->sv;
+  TransDataEdgeSlideVert *sv;
   BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-  BMesh *bm = em->bm;
   ARegion *ar = t->ar;
   View3D *v3d = NULL;
   RegionView3D *rv3d = NULL;
@@ -6402,8 +6401,6 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
 
   float mval_start[2], mval_end[2];
   float mval_dir[3], dist_best_sq;
-  BMIter iter;
-  BMEdge *e;
 
   if (t->spacetype == SPACE_VIEW3D) {
     /* background mode support */
@@ -6437,69 +6434,64 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
     copy_vn_fl(loop_maxdist, loop_nr, -1.0f);
   }
 
-  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-    if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-      int i;
+  sv = &sld->sv[0];
+  for (int i = 0; i < sld->totsv; i++, sv++) {
+    BMIter iter_other;
+    BMEdge *e;
+    BMVert *v = sv->v;
 
-      /* search cross edges for visible edge to the mouse cursor,
-       * then use the shared vertex to calculate screen vector*/
-      for (i = 0; i < 2; i++) {
-        BMIter iter_other;
-        BMEdge *e_other;
+    UNUSED_VARS_NDEBUG(sv_table); /* silence warning */
+    BLI_assert(i == sv_table[BM_elem_index_get(v)]);
 
-        BMVert *v = i ? e->v1 : e->v2;
-        BM_ITER_ELEM (e_other, &iter_other, v, BM_EDGES_OF_VERT) {
-          /* screen-space coords */
-          float sco_a[3], sco_b[3];
-          float dist_sq;
-          int j, l_nr;
+    /* search cross edges for visible edge to the mouse cursor,
+     * then use the shared vertex to calculate screen vector*/
+    BM_ITER_ELEM (e, &iter_other, v, BM_EDGES_OF_VERT) {
+      /* screen-space coords */
+      float sco_a[3], sco_b[3];
+      float dist_sq;
+      int l_nr;
 
-          if (BM_elem_flag_test(e_other, BM_ELEM_SELECT)) {
-            continue;
-          }
+      if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+        continue;
+      }
 
-          /* This test is only relevant if object is not wire-drawn! See [#32068]. */
-          if (use_occlude_geometry &&
-              !BMBVH_EdgeVisible(bmbvh, e_other, t->depsgraph, ar, v3d, tc->obedit)) {
-            continue;
-          }
+      /* This test is only relevant if object is not wire-drawn! See [#32068]. */
+      if (use_occlude_geometry &&
+          !BMBVH_EdgeVisible(bmbvh, e, t->depsgraph, ar, v3d, tc->obedit)) {
+        continue;
+      }
 
-          BLI_assert(sv_table[BM_elem_index_get(v)] != -1);
-          j = sv_table[BM_elem_index_get(v)];
+      if (sv->v_side[1]) {
+        ED_view3d_project_float_v3_m4(ar, sv->v_side[1]->co, sco_b, projectMat);
+      }
+      else {
+        add_v3_v3v3(sco_b, v->co, sv->dir_side[1]);
+        ED_view3d_project_float_v3_m4(ar, sco_b, sco_b, projectMat);
+      }
 
-          if (sv_array[j].v_side[1]) {
-            ED_view3d_project_float_v3_m4(ar, sv_array[j].v_side[1]->co, sco_b, projectMat);
-          }
-          else {
-            add_v3_v3v3(sco_b, v->co, sv_array[j].dir_side[1]);
-            ED_view3d_project_float_v3_m4(ar, sco_b, sco_b, projectMat);
-          }
+      if (sv->v_side[0]) {
+        ED_view3d_project_float_v3_m4(ar, sv->v_side[0]->co, sco_a, projectMat);
+      }
+      else {
+        add_v3_v3v3(sco_a, v->co, sv->dir_side[0]);
+        ED_view3d_project_float_v3_m4(ar, sco_a, sco_a, projectMat);
+      }
 
-          if (sv_array[j].v_side[0]) {
-            ED_view3d_project_float_v3_m4(ar, sv_array[j].v_side[0]->co, sco_a, projectMat);
-          }
-          else {
-            add_v3_v3v3(sco_a, v->co, sv_array[j].dir_side[0]);
-            ED_view3d_project_float_v3_m4(ar, sco_a, sco_a, projectMat);
-          }
+      /* global direction */
+      dist_sq = dist_squared_to_line_segment_v2(mval, sco_b, sco_a);
+      if ((dist_best_sq == -1.0f) ||
+          /* intentionally use 2d size on 3d vector */
+          (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f))) {
+        dist_best_sq = dist_sq;
+        sub_v3_v3v3(mval_dir, sco_b, sco_a);
+      }
 
-          /* global direction */
-          dist_sq = dist_squared_to_line_segment_v2(mval, sco_b, sco_a);
-          if ((dist_best_sq == -1.0f) ||
-              /* intentionally use 2d size on 3d vector */
-              (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f))) {
-            dist_best_sq = dist_sq;
-            sub_v3_v3v3(mval_dir, sco_b, sco_a);
-          }
-
-          if (use_calc_direction) {
-            /* per loop direction */
-            l_nr = sv_array[j].loop_nr;
-            if (loop_maxdist[l_nr] == -1.0f || dist_sq < loop_maxdist[l_nr]) {
-              loop_maxdist[l_nr] = dist_sq;
-              sub_v3_v3v3(loop_dir[l_nr], sco_b, sco_a);
-            }
-          }
+      if (use_calc_direction) {
+        /* per loop direction */
+        l_nr = sv->loop_nr;
+        if (loop_maxdist[l_nr] == -1.0f || dist_sq < loop_maxdist[l_nr]) {
+          loop_maxdist[l_nr] = dist_sq;
+          sub_v3_v3v3(loop_dir[l_nr], sco_b, sco_a);
         }
       }
     }
@@ -6507,13 +6499,13 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
 
   if (use_calc_direction) {
     int i;
-    sv_array = sld->sv;
-    for (i = 0; i < sld->totsv; i++, sv_array++) {
+    sv = &sld->sv[0];
+    for (i = 0; i < sld->totsv; i++, sv++) {
       /* switch a/b if loop direction is different from global direction */
-      int l_nr = sv_array->loop_nr;
+      int l_nr = sv->loop_nr;
       if (dot_v3v3(loop_dir[l_nr], mval_dir) < 0.0f) {
-        swap_v3_v3(sv_array->dir_side[0], sv_array->dir_side[1]);
-        SWAP(BMVert *, sv_array->v_side[0], sv_array->v_side[1]);
+        swap_v3_v3(sv->dir_side[0], sv->dir_side[1]);
+        SWAP(BMVert *, sv->v_side[0], sv->v_side[1]);
       }
     }
 
