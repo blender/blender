@@ -6456,8 +6456,10 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
       }
 
       /* This test is only relevant if object is not wire-drawn! See [#32068]. */
-      if (use_occlude_geometry &&
-          !BMBVH_EdgeVisible(bmbvh, e, t->depsgraph, ar, v3d, tc->obedit)) {
+      bool is_visible = !use_occlude_geometry ||
+                        BMBVH_EdgeVisible(bmbvh, e, t->depsgraph, ar, v3d, tc->obedit);
+
+      if (!is_visible && !use_calc_direction) {
         continue;
       }
 
@@ -6479,11 +6481,13 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
 
       /* global direction */
       dist_sq = dist_squared_to_line_segment_v2(mval, sco_b, sco_a);
-      if ((dist_best_sq == -1.0f) ||
-          /* intentionally use 2d size on 3d vector */
-          (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f))) {
-        dist_best_sq = dist_sq;
-        sub_v3_v3v3(mval_dir, sco_b, sco_a);
+      if (is_visible) {
+        if ((dist_best_sq == -1.0f) ||
+            /* intentionally use 2d size on 3d vector */
+            (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f))) {
+          dist_best_sq = dist_sq;
+          sub_v3_v3v3(mval_dir, sco_b, sco_a);
+        }
       }
 
       if (use_calc_direction) {
