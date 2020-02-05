@@ -618,19 +618,6 @@ MaterialGPencilStyle *BKE_gpencil_material_settings(Object *ob, short act)
   }
 }
 
-Material *give_node_material(Material *ma)
-{
-  if (ma && ma->use_nodes && ma->nodetree) {
-    bNode *node = nodeGetActiveID(ma->nodetree, ID_MA);
-
-    if (node) {
-      return (Material *)node->id;
-    }
-  }
-
-  return NULL;
-}
-
 void BKE_material_resize_object(Main *bmain, Object *ob, const short totcol, bool do_id_user)
 {
   Material **newmatar;
@@ -937,7 +924,10 @@ void BKE_material_remap_object_calc(Object *ob_dst, Object *ob_src, short *remap
 }
 
 /* XXX - this calls many more update calls per object then are needed, could be optimized */
-void BKE_object_material_array_assign(Main *bmain, struct Object *ob, struct Material ***matar, short totcol)
+void BKE_object_material_array_assign(Main *bmain,
+                                      struct Object *ob,
+                                      struct Material ***matar,
+                                      short totcol)
 {
   int actcol_orig = ob->actcol;
   short i;

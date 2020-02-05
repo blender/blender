@@ -2290,7 +2290,6 @@ static size_t animdata_filter_ds_material(
 static size_t animdata_filter_ds_materials(
     bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Object *ob, int filter_mode)
 {
-  bool has_nested = false;
   size_t items = 0;
   int a = 0;
 
@@ -2302,34 +2301,6 @@ static size_t animdata_filter_ds_materials(
     if (ma) {
       /* add channels */
       items += animdata_filter_ds_material(ac, anim_data, ads, ma, filter_mode);
-
-      /* for optimising second pass - check if there's a nested material here to come back for */
-      if (has_nested == false) {
-        has_nested = (give_node_material(ma) != NULL);
-      }
-    }
-  }
-
-  /* Second pass: go through a second time looking for "nested" materials
-   * (material.material references).
-   *
-   * NOTE: here we ignore the expanded status of the parent, as it could be too confusing as to
-   * why these are disappearing/not available,
-   * since the relationships between these is not that clear.
-   */
-  if (has_nested) {
-    for (a = 1; a <= ob->totcol; a++) {
-      Material *base = BKE_object_material_get(ob, a);
-      Material *ma = give_node_material(base);
-
-      /* add channels from the nested material if it exists
-       *   - skip if the same material is referenced in its node tree
-       *     (which is common for BI materials) as that results in
-       *     confusing duplicates
-       */
-      if ((ma) && (ma != base)) {
-        items += animdata_filter_ds_material(ac, anim_data, ads, ma, filter_mode);
-      }
     }
   }
 

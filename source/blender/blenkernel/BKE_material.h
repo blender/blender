@@ -60,7 +60,6 @@ void BKE_material_copy_data(struct Main *bmain,
                             const int flag);
 struct Material *BKE_material_copy(struct Main *bmain, const struct Material *ma);
 struct Material *BKE_material_localize(struct Material *ma);
-struct Material *give_node_material(struct Material *ma); /* returns node material or self */
 void BKE_material_make_local(struct Main *bmain, struct Material *ma, const bool lib_local);
 void BKE_gpencil_material_attr_init(struct Material *ma);
 
@@ -87,7 +86,10 @@ struct Material *BKE_object_material_get(struct Object *ob, short act);
 void BKE_id_material_assign(struct Main *bmain, struct ID *id, struct Material *ma, short act);
 void BKE_object_material_assign(
     struct Main *bmain, struct Object *ob, struct Material *ma, short act, int assign_type);
-void BKE_object_material_array_assign(struct Main *bmain, struct Object *ob, struct Material ***matar, short totcol);
+void BKE_object_material_array_assign(struct Main *bmain,
+                                      struct Object *ob,
+                                      struct Material ***matar,
+                                      short totcol);
 
 short BKE_object_material_slot_find_index(struct Object *ob, struct Material *ma);
 bool BKE_object_material_slot_add(struct Main *bmain, struct Object *ob);
