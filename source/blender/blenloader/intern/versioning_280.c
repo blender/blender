@@ -70,6 +70,7 @@
 #include "BKE_customdata.h"
 #include "BKE_fcurve.h"
 #include "BKE_freestyle.h"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
@@ -1543,19 +1544,42 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
       }
     }
 
-    {
-      /* Update all ruler layers to set new flag. */
-      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        bGPdata *gpd = scene->gpd;
-        if (gpd == NULL) {
-          continue;
+    /* Update all ruler layers to set new flag. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      bGPdata *gpd = scene->gpd;
+      if (gpd == NULL) {
+        continue;
+      }
+      for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+        if (STREQ(gpl->info, "RulerData3D")) {
+          gpl->flag |= GP_LAYER_IS_RULER;
+          break;
         }
-        for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-          if (STREQ(gpl->info, "RulerData3D")) {
-            gpl->flag |= GP_LAYER_IS_RULER;
-            break;
-          }
-        }
+      }
+    }
+
+    /* This versionning could probably be done only on earlier versions, not sure however
+     * which exact version fully deprecated tessfaces, so think we can keep that one here, no
+     * harm to be expected anyway for being over-conservative. */
+    for (Mesh *me = bmain->meshes.first; me != NULL; me = me->id.next) {
+      /*check if we need to convert mfaces to mpolys*/
+      if (me->totface && !me->totpoly) {
+        /* temporarily switch main so that reading from
+         * external CustomData works */
+        Main *gmain = G_MAIN;
+        G_MAIN = bmain;
+
+        BKE_mesh_do_versions_convert_mfaces_to_mpolys(me);
+
+        G_MAIN = gmain;
+      }
+
+      /* Deprecated, only kept for conversion. */
+      BKE_mesh_tessface_clear(me);
+
+      /* Moved from do_versions because we need updated polygons for calculating normals. */
+      if (MAIN_VERSION_OLDER(bmain, 256, 6)) {
+        BKE_mesh_calc_normals(me);
       }
     }
   }
