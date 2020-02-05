@@ -425,7 +425,7 @@ static const EnumPropertyItem *rna_Particle_Material_itemf(bContext *C,
 
   if (ob && ob->totcol > 0) {
     for (i = 1; i <= ob->totcol; i++) {
-      ma = give_current_material(ob, i);
+      ma = BKE_object_material_get(ob, i);
       tmp.value = i;
       tmp.icon = ICON_MATERIAL_DATA;
       if (ma) {

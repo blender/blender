@@ -1223,7 +1223,7 @@ static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
     GHash *ma_to_name = gp_strokes_copypastebuf_colors_material_to_name_create(bmain);
     for (bGPDstroke *gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
       if (ED_gpencil_stroke_can_use(C, gps)) {
-        Material *ma = give_current_material(ob, gps->mat_nr + 1);
+        Material *ma = BKE_object_material_get(ob, gps->mat_nr + 1);
         /* Avoid default material. */
         if (ma == NULL) {
           continue;
@@ -2853,7 +2853,7 @@ static int gp_stroke_cyclical_set_exec(bContext *C, wmOperator *op)
         }
 
         for (gps = gpf->strokes.first; gps; gps = gps->next) {
-          MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
+          MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
           /* skip strokes that are not selected or invalid for current view */
           if (((gps->flag & GP_STROKE_SELECT) == 0) ||
               ED_gpencil_stroke_can_use(C, gps) == false) {
@@ -2967,7 +2967,7 @@ static int gp_stroke_caps_set_exec(bContext *C, wmOperator *op)
     }
 
     for (bGPDstroke *gps = gpl->actframe->strokes.last; gps; gps = gps->prev) {
-      MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
+      MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
 
       /* skip strokes that are not selected or invalid for current view */
       if (((gps->flag & GP_STROKE_SELECT) == 0) || (ED_gpencil_stroke_can_use(C, gps) == false)) {
@@ -4136,7 +4136,7 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
               /* add duplicate materials */
 
               /* XXX same material can be in multiple slots. */
-              ma = BKE_material_gpencil_get(ob, gps->mat_nr + 1);
+              ma = BKE_gpencil_material(ob, gps->mat_nr + 1);
 
               idx = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma);
 
@@ -4209,7 +4209,7 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
           if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
           }
-          ma = BKE_material_gpencil_get(ob, gps->mat_nr + 1);
+          ma = BKE_gpencil_material(ob, gps->mat_nr + 1);
           gps->mat_nr = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma);
         }
       }

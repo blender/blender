@@ -290,7 +290,7 @@ void BKE_brush_gpencil_presets(Main *bmain, ToolSettings *ts)
    * drawn. */
   Material *ma = BLI_findstring(&bmain->materials, "Black Dots", offsetof(ID, name) + 2);
   if (ma == NULL) {
-    ma = BKE_material_add_gpencil(bmain, "Black Dots");
+    ma = BKE_gpencil_material_add(bmain, "Black Dots");
   }
   brush->gpencil_settings->material = ma;
   /* Pin the matterial to the brush. */

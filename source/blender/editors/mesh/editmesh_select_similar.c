@@ -229,7 +229,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
         if (ob->totcol == 0) {
           continue;
         }
-        material_array = give_matarar(ob);
+        material_array = BKE_object_material_array(ob);
         break;
       }
       case SIMFACE_FREESTYLE: {
@@ -353,7 +353,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
         if (ob->totcol == 0) {
           continue;
         }
-        material_array = give_matarar(ob);
+        material_array = BKE_object_material_array(ob);
         break;
       }
       case SIMFACE_FREESTYLE: {

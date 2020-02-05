@@ -778,7 +778,7 @@ static void rna_BrushGpencilSettings_use_material_pin_update(bContext *C, Pointe
   Brush *brush = (Brush *)ptr->owner_id;
 
   if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
-    Material *material = give_current_material(ob, ob->actcol);
+    Material *material = BKE_object_material_get(ob, ob->actcol);
     BKE_gpencil_brush_material_set(brush, material);
   }
   else {

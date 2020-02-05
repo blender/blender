@@ -1534,16 +1534,16 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
             ob_dst->data = obdata_id;
 
             /* if amount of material indices changed: */
-            test_object_materials(bmain, ob_dst, ob_dst->data);
+            BKE_object_materials_test(bmain, ob_dst, ob_dst->data);
 
             DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY);
             break;
           case MAKE_LINKS_MATERIALS:
             /* new approach, using functions from kernel */
             for (a = 0; a < ob_src->totcol; a++) {
-              Material *ma = give_current_material(ob_src, a + 1);
+              Material *ma = BKE_object_material_get(ob_src, a + 1);
               /* also works with `ma == NULL` */
-              assign_material(bmain, ob_dst, ma, a + 1, BKE_MAT_ASSIGN_USERPREF);
+              BKE_object_material_assign(bmain, ob_dst, ma, a + 1, BKE_MAT_ASSIGN_USERPREF);
             }
             DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY);
             break;
@@ -1950,7 +1950,7 @@ static void single_mat_users(
   FOREACH_OBJECT_FLAG_BEGIN (scene, view_layer, v3d, flag, ob) {
     if (!ID_IS_LINKED(ob)) {
       for (a = 1; a <= ob->totcol; a++) {
-        ma = give_current_material(ob, a);
+        ma = BKE_object_material_get(ob, a);
         if (ma) {
           /* do not test for LIB_TAG_NEW or use newid:
            * this functions guaranteed delivers single_users! */
@@ -1960,7 +1960,7 @@ static void single_mat_users(
             BKE_animdata_copy_id_action(bmain, &man->id, false);
 
             man->id.us = 0;
-            assign_material(bmain, ob, man, a, BKE_MAT_ASSIGN_USERPREF);
+            BKE_object_material_assign(bmain, ob, man, a, BKE_MAT_ASSIGN_USERPREF);
           }
         }
       }
@@ -2262,7 +2262,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
           }
         }
 
-        matarar = (Material ***)give_matarar(ob);
+        matarar = (Material ***)BKE_object_material_array(ob);
         if (matarar) {
           for (a = 0; a < ob->totcol; a++) {
             ma = (*matarar)[a];
@@ -2676,7 +2676,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  assign_material(CTX_data_main(C), base->object, ma, 1, BKE_MAT_ASSIGN_USERPREF);
+  BKE_object_material_assign(CTX_data_main(C), base->object, ma, 1, BKE_MAT_ASSIGN_USERPREF);
 
   DEG_id_tag_update(&base->object->id, ID_RECALC_TRANSFORM);
 

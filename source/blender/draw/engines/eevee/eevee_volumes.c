@@ -395,7 +395,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
   float *texcoloc = NULL;
   float *texcosize = NULL;
   struct ModifierData *md = NULL;
-  Material *ma = give_current_material(ob, 1);
+  Material *ma = BKE_object_material_get(ob, 1);
 
   if (ma == NULL) {
     return;

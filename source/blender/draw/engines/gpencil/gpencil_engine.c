@@ -368,7 +368,7 @@ void GPENCIL_cache_init(void *vedata)
     }
     /* this is not common, but avoid any special situations when brush could be without material */
     if (gp_style == NULL) {
-      gp_style = BKE_material_gpencil_settings_get(obact, obact->actcol);
+      gp_style = BKE_gpencil_material_settings(obact, obact->actcol);
     }
   }
 

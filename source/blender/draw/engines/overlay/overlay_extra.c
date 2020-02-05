@@ -1358,7 +1358,7 @@ static void OVERLAY_gpencil_color_names(Object *ob)
       continue;
     }
     for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-      Material *ma = give_current_material(ob, gps->mat_nr + 1);
+      Material *ma = BKE_object_material_get(ob, gps->mat_nr + 1);
       if (ma == NULL) {
         continue;
       }

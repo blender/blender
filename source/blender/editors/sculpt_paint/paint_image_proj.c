@@ -4088,7 +4088,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
    * the materials by using the mf->mat_nr directly and leaving the last
    * material as NULL in case no materials exist on mesh, so indexing will not fail. */
   for (int i = 0; i < totmat - 1; i++) {
-    ps->mat_array[i] = give_current_material(ob, i + 1);
+    ps->mat_array[i] = BKE_object_material_get(ob, i + 1);
   }
   ps->mat_array[totmat - 1] = NULL;
 
@@ -6381,7 +6381,7 @@ bool BKE_paint_proj_mesh_data_check(
       hastex = false;
 
       for (i = 1; i < ob->totcol + 1; i++) {
-        Material *ma = give_current_material(ob, i);
+        Material *ma = BKE_object_material_get(ob, i);
 
         if (ma) {
           hasmat = true;
@@ -6573,7 +6573,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
     return false;
   }
 
-  ma = give_current_material(ob, ob->actcol);
+  ma = BKE_object_material_get(ob, ob->actcol);
 
   if (ma) {
     Main *bmain = CTX_data_main(C);
@@ -6686,11 +6686,11 @@ static int get_texture_layer_type(wmOperator *op, const char *prop_name)
 
 static Material *get_or_create_current_material(bContext *C, Object *ob)
 {
-  Material *ma = give_current_material(ob, ob->actcol);
+  Material *ma = BKE_object_material_get(ob, ob->actcol);
   if (!ma) {
     Main *bmain = CTX_data_main(C);
     ma = BKE_material_add(bmain, "Material");
-    assign_material(bmain, ob, ma, ob->actcol, BKE_MAT_ASSIGN_USERPREF);
+    BKE_object_material_assign(bmain, ob, ma, ob->actcol, BKE_MAT_ASSIGN_USERPREF);
   }
   return ma;
 }
@@ -6716,7 +6716,7 @@ static void get_default_texture_layer_name_for_object(Object *ob,
                                                       char *dst,
                                                       int dst_length)
 {
-  Material *ma = give_current_material(ob, ob->actcol);
+  Material *ma = BKE_object_material_get(ob, ob->actcol);
   const char *base_name = ma ? &ma->id.name[2] : &ob->id.name[2];
   BLI_snprintf(dst, dst_length, "%s %s", base_name, layer_type_items[texture_type].name);
 }

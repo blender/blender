@@ -3935,7 +3935,7 @@ static Base *mesh_separate_tagged(
   /* DAG_relations_tag_update(bmain); */
 
   /* new in 2.5 */
-  assign_matarar(bmain, base_new->object, give_matarar(obedit), *give_totcolp(obedit));
+  BKE_object_material_array_assign(bmain, base_new->object, BKE_object_material_array(obedit), *BKE_object_material_num(obedit));
 
   ED_object_base_select(base_new, BA_SELECT);
 
@@ -4002,7 +4002,7 @@ static Base *mesh_separate_arrays(Main *bmain,
   /* DAG_relations_tag_update(bmain); */
 
   /* new in 2.5 */
-  assign_matarar(bmain, base_new->object, give_matarar(obedit), *give_totcolp(obedit));
+  BKE_object_material_array_assign(bmain, base_new->object, BKE_object_material_array(obedit), *BKE_object_material_num(obedit));
 
   ED_object_base_select(base_new, BA_SELECT);
 
@@ -4046,8 +4046,8 @@ static void mesh_separate_material_assign_mat_nr(Main *bmain, Object *ob, const 
   Material ***matarar;
   const short *totcolp;
 
-  totcolp = give_totcolp_id(obdata);
-  matarar = give_matarar_id(obdata);
+  totcolp = BKE_id_material_num(obdata);
+  matarar = BKE_id_material_array(obdata);
 
   if ((totcolp && matarar) == 0) {
     BLI_assert(0);

@@ -465,7 +465,7 @@ void psys_thread_context_init(ParticleThreadContext *ctx, ParticleSimulationData
   memset(ctx, 0, sizeof(ParticleThreadContext));
   ctx->sim = *sim;
   ctx->mesh = ctx->sim.psmd->mesh_final;
-  ctx->ma = give_current_material(sim->ob, sim->psys->part->omat);
+  ctx->ma = BKE_object_material_get(sim->ob, sim->psys->part->omat);
 }
 
 void psys_tasks_create(ParticleThreadContext *ctx,

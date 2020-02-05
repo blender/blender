@@ -572,7 +572,7 @@ static int gp_layer_duplicate_object_exec(bContext *C, wmOperator *op)
 
       /* Check if material is in destination object,
        * otherwise add the slot with the material. */
-      Material *ma_src = give_current_material(ob_src, gps_src->mat_nr + 1);
+      Material *ma_src = BKE_object_material_get(ob_src, gps_src->mat_nr + 1);
       if (ma_src != NULL) {
         int idx = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma_src);
 
@@ -1460,7 +1460,7 @@ static int gp_stroke_change_color_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   Object *ob = CTX_data_active_object(C);
   if (name[0] == '\0') {
-    ma = BKE_material_gpencil_get(ob, ob->actcol);
+    ma = BKE_gpencil_material(ob, ob->actcol);
   }
   else {
     ma = (Material *)BKE_libblock_find_name(bmain, ID_MA, name);
@@ -1551,7 +1551,7 @@ static int gp_stroke_lock_color_exec(bContext *C, wmOperator *UNUSED(op))
 
   Object *ob = CTX_data_active_object(C);
 
-  short *totcol = give_totcolp(ob);
+  short *totcol = BKE_object_material_num(ob);
 
   /* sanity checks */
   if (ELEM(NULL, gpd)) {
@@ -1560,7 +1560,7 @@ static int gp_stroke_lock_color_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* first lock all colors */
   for (short i = 0; i < *totcol; i++) {
-    Material *tmp_ma = give_current_material(ob, i + 1);
+    Material *tmp_ma = BKE_object_material_get(ob, i + 1);
     if (tmp_ma) {
       tmp_ma->gp_style->flag |= GP_STYLE_COLOR_LOCKED;
       DEG_id_tag_update(&tmp_ma->id, ID_RECALC_COPY_ON_WRITE);
@@ -1579,7 +1579,7 @@ static int gp_stroke_lock_color_exec(bContext *C, wmOperator *UNUSED(op))
             continue;
           }
           /* unlock color */
-          Material *tmp_ma = give_current_material(ob, gps->mat_nr + 1);
+          Material *tmp_ma = BKE_object_material_get(ob, gps->mat_nr + 1);
           if (tmp_ma) {
             tmp_ma->gp_style->flag &= ~GP_STYLE_COLOR_LOCKED;
             DEG_id_tag_update(&tmp_ma->id, ID_RECALC_COPY_ON_WRITE);
@@ -2343,10 +2343,10 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
         }
 
         /* add missing materials reading source materials and checking in destination object */
-        short *totcol = give_totcolp(ob_src);
+        short *totcol = BKE_object_material_num(ob_src);
 
         for (short i = 0; i < *totcol; i++) {
-          Material *tmp_ma = BKE_material_gpencil_get(ob_src, i + 1);
+          Material *tmp_ma = BKE_gpencil_material(ob_src, i + 1);
           BKE_gpencil_object_material_ensure(bmain, ob_dst, tmp_ma);
         }
 
@@ -2380,7 +2380,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
             for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 
               /* Reassign material. Look old material and try to find in destination. */
-              ma_src = BKE_material_gpencil_get(ob_src, gps->mat_nr + 1);
+              ma_src = BKE_gpencil_material(ob_src, gps->mat_nr + 1);
               gps->mat_nr = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma_src);
 
               bGPDspoint *pt;
@@ -2462,7 +2462,7 @@ static bool gpencil_active_color_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob && ob->data && (ob->type == OB_GPENCIL)) {
-    short *totcolp = give_totcolp(ob);
+    short *totcolp = BKE_object_material_num(ob);
     return *totcolp > 0;
   }
   return false;
@@ -2482,13 +2482,13 @@ static int gpencil_lock_layer_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* first lock and hide all colors */
   Material *ma = NULL;
-  short *totcol = give_totcolp(ob);
+  short *totcol = BKE_object_material_num(ob);
   if (totcol == 0) {
     return OPERATOR_CANCELLED;
   }
 
   for (short i = 0; i < *totcol; i++) {
-    ma = BKE_material_gpencil_get(ob, i + 1);
+    ma = BKE_gpencil_material(ob, i + 1);
     if (ma) {
       gp_style = ma->gp_style;
       gp_style->flag |= GP_STYLE_COLOR_LOCKED;
@@ -2508,7 +2508,7 @@ static int gpencil_lock_layer_exec(bContext *C, wmOperator *UNUSED(op))
           continue;
         }
 
-        ma = BKE_material_gpencil_get(ob, gps->mat_nr + 1);
+        ma = BKE_gpencil_material(ob, gps->mat_nr + 1);
         DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
 
         gp_style = ma->gp_style;
@@ -2551,8 +2551,8 @@ static int gpencil_color_isolate_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   Object *ob = CTX_data_active_object(C);
-  Material *active_ma = BKE_material_gpencil_get(ob, ob->actcol);
-  MaterialGPencilStyle *active_color = BKE_material_gpencil_settings_get(ob, ob->actcol);
+  Material *active_ma = BKE_gpencil_material(ob, ob->actcol);
+  MaterialGPencilStyle *active_color = BKE_gpencil_material_settings(ob, ob->actcol);
   MaterialGPencilStyle *gp_style;
 
   int flags = GP_STYLE_COLOR_LOCKED;
@@ -2569,9 +2569,9 @@ static int gpencil_color_isolate_exec(bContext *C, wmOperator *op)
 
   /* Test whether to isolate or clear all flags */
   Material *ma = NULL;
-  short *totcol = give_totcolp(ob);
+  short *totcol = BKE_object_material_num(ob);
   for (short i = 0; i < *totcol; i++) {
-    ma = BKE_material_gpencil_get(ob, i + 1);
+    ma = BKE_gpencil_material(ob, i + 1);
     /* Skip if this is the active one */
     if ((ma == NULL) || (ma == active_ma)) {
       continue;
@@ -2591,7 +2591,7 @@ static int gpencil_color_isolate_exec(bContext *C, wmOperator *op)
   if (isolate) {
     /* Set flags on all "other" colors */
     for (short i = 0; i < *totcol; i++) {
-      ma = BKE_material_gpencil_get(ob, i + 1);
+      ma = BKE_gpencil_material(ob, i + 1);
       if (ma == NULL) {
         continue;
       }
@@ -2608,7 +2608,7 @@ static int gpencil_color_isolate_exec(bContext *C, wmOperator *op)
   else {
     /* Clear flags - Restore everything else */
     for (short i = 0; i < *totcol; i++) {
-      ma = BKE_material_gpencil_get(ob, i + 1);
+      ma = BKE_gpencil_material(ob, i + 1);
       if (ma == NULL) {
         continue;
       }
@@ -2659,12 +2659,12 @@ static int gpencil_color_hide_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
-  MaterialGPencilStyle *active_color = BKE_material_gpencil_settings_get(ob, ob->actcol);
+  MaterialGPencilStyle *active_color = BKE_gpencil_material_settings(ob, ob->actcol);
 
   bool unselected = RNA_boolean_get(op->ptr, "unselected");
 
   Material *ma = NULL;
-  short *totcol = give_totcolp(ob);
+  short *totcol = BKE_object_material_num(ob);
   if (totcol == 0) {
     return OPERATOR_CANCELLED;
   }
@@ -2673,7 +2673,7 @@ static int gpencil_color_hide_exec(bContext *C, wmOperator *op)
     /* hide unselected */
     MaterialGPencilStyle *color = NULL;
     for (short i = 0; i < *totcol; i++) {
-      ma = BKE_material_gpencil_get(ob, i + 1);
+      ma = BKE_gpencil_material(ob, i + 1);
       if (ma) {
         color = ma->gp_style;
         if (active_color != color) {
@@ -2726,7 +2726,7 @@ static int gpencil_color_reveal_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
   Material *ma = NULL;
-  short *totcol = give_totcolp(ob);
+  short *totcol = BKE_object_material_num(ob);
 
   if (totcol == 0) {
     return OPERATOR_CANCELLED;
@@ -2736,7 +2736,7 @@ static int gpencil_color_reveal_exec(bContext *C, wmOperator *UNUSED(op))
   MaterialGPencilStyle *gp_style = NULL;
 
   for (short i = 0; i < *totcol; i++) {
-    ma = BKE_material_gpencil_get(ob, i + 1);
+    ma = BKE_gpencil_material(ob, i + 1);
     if (ma) {
       gp_style = ma->gp_style;
       gp_style->flag &= ~GP_STYLE_COLOR_HIDE;
@@ -2779,7 +2779,7 @@ static int gpencil_color_lock_all_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
   Material *ma = NULL;
-  short *totcol = give_totcolp(ob);
+  short *totcol = BKE_object_material_num(ob);
 
   if (totcol == 0) {
     return OPERATOR_CANCELLED;
@@ -2789,7 +2789,7 @@ static int gpencil_color_lock_all_exec(bContext *C, wmOperator *UNUSED(op))
   MaterialGPencilStyle *gp_style = NULL;
 
   for (short i = 0; i < *totcol; i++) {
-    ma = BKE_material_gpencil_get(ob, i + 1);
+    ma = BKE_gpencil_material(ob, i + 1);
     if (ma) {
       gp_style = ma->gp_style;
       gp_style->flag |= GP_STYLE_COLOR_LOCKED;
@@ -2832,7 +2832,7 @@ static int gpencil_color_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
   Material *ma = NULL;
-  short *totcol = give_totcolp(ob);
+  short *totcol = BKE_object_material_num(ob);
 
   if (totcol == 0) {
     return OPERATOR_CANCELLED;
@@ -2842,7 +2842,7 @@ static int gpencil_color_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
   MaterialGPencilStyle *gp_style = NULL;
 
   for (short i = 0; i < *totcol; i++) {
-    ma = BKE_material_gpencil_get(ob, i + 1);
+    ma = BKE_gpencil_material(ob, i + 1);
     if (ma) {
       gp_style = ma->gp_style;
       gp_style->flag &= ~GP_STYLE_COLOR_LOCKED;
@@ -2883,7 +2883,7 @@ static int gpencil_color_select_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   Object *ob = CTX_data_active_object(C);
-  MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, ob->actcol);
+  MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, ob->actcol);
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   const bool deselected = RNA_boolean_get(op->ptr, "deselect");
 

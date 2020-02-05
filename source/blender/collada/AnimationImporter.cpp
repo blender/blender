@@ -1207,7 +1207,7 @@ void AnimationImporter::translate_Animations(
   }
   if (animType->material != 0) {
 
-    Material *ma = give_current_material(ob, 1);
+    Material *ma = BKE_object_material_get(ob, 1);
     if (!ma->adt || !ma->adt->action) {
       act = verify_adt_action(bmain, (ID *)&ma->id, 1);
     }

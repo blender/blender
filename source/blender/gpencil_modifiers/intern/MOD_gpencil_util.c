@@ -89,7 +89,7 @@ bool is_stroke_affected_by_modifier(Object *ob,
                                     const bool inv3,
                                     const bool inv4)
 {
-  Material *ma = BKE_material_gpencil_get(ob, gps->mat_nr + 1);
+  Material *ma = BKE_gpencil_material(ob, gps->mat_nr + 1);
   MaterialGPencilStyle *gp_style = ma->gp_style;
 
   /* omit if filter by layer */
@@ -201,7 +201,7 @@ void gpencil_apply_modifier_material(
       newmat = BKE_material_copy(bmain, mat);
       newmat->preview = NULL;
 
-      assign_material(bmain, ob, newmat, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
+      BKE_object_material_assign(bmain, ob, newmat, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
 
       copy_v4_v4(newmat->gp_style->stroke_rgba, gps->runtime.tmp_stroke_rgba);
       copy_v4_v4(newmat->gp_style->fill_rgba, gps->runtime.tmp_fill_rgba);

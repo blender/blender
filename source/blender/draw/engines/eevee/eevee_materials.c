@@ -1433,7 +1433,7 @@ static void material_transparent(Material *ma,
 /* Return correct material or &defmaterial if slot is empty. */
 BLI_INLINE Material *eevee_object_material_get(Object *ob, int slot)
 {
-  Material *ma = give_current_material(ob, slot + 1);
+  Material *ma = BKE_object_material_get(ob, slot + 1);
   if (ma == NULL) {
     ma = &defmaterial;
   }

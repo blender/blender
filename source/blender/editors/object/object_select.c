@@ -523,7 +523,7 @@ static bool object_select_all_by_material(bContext *C, Material *mat)
       int a;
 
       for (a = 1; a <= ob->totcol; a++) {
-        mat1 = give_current_material(ob, a);
+        mat1 = BKE_object_material_get(ob, a);
 
         if (mat1 == mat) {
           ED_object_base_select(base, BA_SELECT);
@@ -681,7 +681,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
   else if (nr == OBJECT_SELECT_LINKED_MATERIAL) {
     Material *mat = NULL;
 
-    mat = give_current_material(ob, ob->actcol);
+    mat = BKE_object_material_get(ob, ob->actcol);
     if (mat == NULL) {
       return OPERATOR_CANCELLED;
     }

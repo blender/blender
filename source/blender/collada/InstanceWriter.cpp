@@ -38,7 +38,7 @@ void InstanceWriter::add_material_bindings(COLLADASW::BindMaterial &bind_materia
                                            bool active_uv_only)
 {
   for (int a = 0; a < ob->totcol; a++) {
-    Material *ma = give_current_material(ob, a + 1);
+    Material *ma = BKE_object_material_get(ob, a + 1);
 
     COLLADASW::InstanceMaterialList &iml = bind_material.getInstanceMaterialList();
 

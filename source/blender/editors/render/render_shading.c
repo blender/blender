@@ -294,7 +294,7 @@ static int material_slot_de_select(bContext *C, bool select)
 {
   bool changed_multi = false;
   Object *obact = CTX_data_active_object(C);
-  const Material *mat_active = obact ? give_current_material(obact, obact->actcol) : NULL;
+  const Material *mat_active = obact ? BKE_object_material_get(obact, obact->actcol) : NULL;
 
   uint objects_len = 0;
   Object **objects = object_array_for_shading(C, &objects_len);
@@ -305,7 +305,7 @@ static int material_slot_de_select(bContext *C, bool select)
     if (ob->totcol == 0) {
       continue;
     }
-    if (obact && (mat_active == give_current_material(ob, obact->actcol))) {
+    if (obact && (mat_active == BKE_object_material_get(ob, obact->actcol))) {
       /* Avoid searching since there may be multiple slots with the same material.
        * For the active object or duplicates: match the material slot index first. */
       mat_nr_active = obact->actcol - 1;
@@ -314,7 +314,7 @@ static int material_slot_de_select(bContext *C, bool select)
       /* Find the first matching material.
        * Note: there may be multiple but that's not a common use case. */
       for (short i = 0; i < ob->totcol; i++) {
-        const Material *mat = give_current_material(ob, i + 1);
+        const Material *mat = BKE_object_material_get(ob, i + 1);
         if (mat_active == mat) {
           mat_nr_active = i;
           break;
@@ -441,14 +441,14 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = ED_object_context(C);
   Material ***matar;
 
-  if (!ob || !(matar = give_matarar(ob))) {
+  if (!ob || !(matar = BKE_object_material_array(ob))) {
     return OPERATOR_CANCELLED;
   }
 
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
-    if (ob != ob_iter && give_matarar(ob_iter)) {
+    if (ob != ob_iter && BKE_object_material_array(ob_iter)) {
       if (ob->data != ob_iter->data) {
-        assign_matarar(bmain, ob_iter, matar, ob->totcol);
+        BKE_object_material_array_assign(bmain, ob_iter, matar, ob->totcol);
       }
 
       if (ob_iter->totcol == ob->totcol) {
@@ -644,7 +644,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
       ma = BKE_material_add(bmain, name);
     }
     else {
-      ma = BKE_material_add_gpencil(bmain, name);
+      ma = BKE_gpencil_material_add(bmain, name);
     }
     ED_node_shader_default(C, &ma->id);
     ma->use_nodes = true;
@@ -654,7 +654,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
     if (ob != NULL) {
       /* Add slot follows user-preferences for creating new slots,
        * RNA pointer assignment doesn't, see: T60014. */
-      if (give_current_material_p(ob, ob->actcol) == NULL) {
+      if (BKE_object_material_get_p(ob, ob->actcol) == NULL) {
         BKE_object_material_slot_add(bmain, ob);
       }
     }
@@ -1915,7 +1915,7 @@ static int copy_material_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  copy_matcopybuf(CTX_data_main(C), ma);
+  BKE_material_copybuf_copy(CTX_data_main(C), ma);
 
   return OPERATOR_FINISHED;
 }
@@ -1943,7 +1943,7 @@ static int paste_material_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  paste_matcopybuf(CTX_data_main(C), ma);
+  BKE_material_copybuf_paste(CTX_data_main(C), ma);
 
   DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);

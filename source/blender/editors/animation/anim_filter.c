@@ -2296,7 +2296,7 @@ static size_t animdata_filter_ds_materials(
 
   /* First pass: take the materials referenced via the Material slots of the object. */
   for (a = 1; a <= ob->totcol; a++) {
-    Material *ma = give_current_material(ob, a);
+    Material *ma = BKE_object_material_get(ob, a);
 
     /* if material is valid, try to add relevant contents from here */
     if (ma) {
@@ -2319,7 +2319,7 @@ static size_t animdata_filter_ds_materials(
    */
   if (has_nested) {
     for (a = 1; a <= ob->totcol; a++) {
-      Material *base = give_current_material(ob, a);
+      Material *base = BKE_object_material_get(ob, a);
       Material *ma = give_node_material(base);
 
       /* add channels from the nested material if it exists

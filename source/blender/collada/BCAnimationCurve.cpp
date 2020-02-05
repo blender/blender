@@ -69,7 +69,7 @@ void BCAnimationCurve::init_pointer_rna(Object *ob)
       RNA_id_pointer_create(&ob->id, &id_ptr);
     } break;
     case BC_ANIMATION_TYPE_MATERIAL: {
-      Material *ma = give_current_material(ob, curve_key.get_subindex() + 1);
+      Material *ma = BKE_object_material_get(ob, curve_key.get_subindex() + 1);
       RNA_id_pointer_create(&ma->id, &id_ptr);
     } break;
     case BC_ANIMATION_TYPE_CAMERA: {
@@ -189,7 +189,7 @@ const std::string BCAnimationCurve::get_animation_name(Object *ob) const
     } break;
 
     case BC_ANIMATION_TYPE_MATERIAL: {
-      Material *ma = give_current_material(ob, this->curve_key.get_subindex() + 1);
+      Material *ma = BKE_object_material_get(ob, this->curve_key.get_subindex() + 1);
       name = id_name(ob) + "-" + id_name(ma) + "-material";
     } break;
 

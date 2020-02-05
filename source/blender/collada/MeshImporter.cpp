@@ -1076,7 +1076,7 @@ void MeshImporter::assign_material_to_geom(
   // Attention! This temporarily assigns material to object on purpose!
   // See note above.
   ob->actcol = 0;
-  assign_material(m_bmain, ob, ma, mat_index + 1, BKE_MAT_ASSIGN_OBJECT);
+  BKE_object_material_assign(m_bmain, ob, ma, mat_index + 1, BKE_MAT_ASSIGN_OBJECT);
 
   MaterialIdPrimitiveArrayMap &mat_prim_map = geom_uid_mat_mapping_map[*geom_uid];
   COLLADAFW::MaterialId mat_id = cmaterial.getMaterialId();

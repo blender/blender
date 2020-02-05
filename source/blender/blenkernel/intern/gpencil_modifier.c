@@ -813,7 +813,7 @@ static void gpencil_frame_copy_noalloc(Object *ob, bGPDframe *gpf, bGPDframe *gp
     bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(gps_src);
 
     /* copy color to temp fields to apply temporal changes in the stroke */
-    MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps_src->mat_nr + 1);
+    MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps_src->mat_nr + 1);
     if (gp_style) {
       copy_v4_v4(gps_dst->runtime.tmp_stroke_rgba, gp_style->stroke_rgba);
       copy_v4_v4(gps_dst->runtime.tmp_fill_rgba, gp_style->fill_rgba);

@@ -465,8 +465,8 @@ static Scene *preview_prepare_scene(
           copy_v4_v4(base->object->color, sp->color);
 
           if (OB_TYPE_SUPPORT_MATERIAL(base->object->type)) {
-            /* don't use assign_material, it changed mat->id.us, which shows in the UI */
-            Material ***matar = give_matarar(base->object);
+            /* don't use BKE_object_material_assign, it changed mat->id.us, which shows in the UI */
+            Material ***matar = BKE_object_material_array(base->object);
             int actcol = max_ii(base->object->actcol - 1, 0);
 
             if (matar && actcol < base->object->totcol) {

@@ -65,7 +65,7 @@ bool EffectsExporter::hasEffects(Scene *sce)
   FOREACH_SCENE_OBJECT_BEGIN (sce, ob) {
     int a;
     for (a = 0; a < ob->totcol; a++) {
-      Material *ma = give_current_material(ob, a + 1);
+      Material *ma = BKE_object_material_get(ob, a + 1);
 
       // no material, but check all of the slots
       if (!ma) {

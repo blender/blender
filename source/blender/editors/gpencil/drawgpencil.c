@@ -430,7 +430,7 @@ static void gp_draw_stroke_fill(bGPdata *gpd,
   BLI_assert(gps->totpoints >= 3);
   const bool use_mat = (gpd->mat != NULL);
 
-  Material *ma = (use_mat) ? gpd->mat[gps->mat_nr] : BKE_material_gpencil_default_get();
+  Material *ma = (use_mat) ? gpd->mat[gps->mat_nr] : BKE_gpencil_material_default();
   MaterialGPencilStyle *gp_style = (ma) ? ma->gp_style : NULL;
 
   /* Calculate triangles cache for filling area (must be done only after changes) */
@@ -884,7 +884,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
       continue;
     }
     /* check if the color is visible */
-    Material *ma = (use_mat) ? tgpw->gpd->mat[gps->mat_nr] : BKE_material_gpencil_default_get();
+    Material *ma = (use_mat) ? tgpw->gpd->mat[gps->mat_nr] : BKE_gpencil_material_default();
     MaterialGPencilStyle *gp_style = (ma) ? ma->gp_style : NULL;
 
     if ((gp_style == NULL) || (gp_style->flag & GP_STYLE_COLOR_HIDE) ||

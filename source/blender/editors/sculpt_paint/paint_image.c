@@ -1170,7 +1170,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
     /* entering paint mode also sets image to editors */
     if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
       /* set the current material active paint slot on image editor */
-      Material *ma = give_current_material(ob, ob->actcol);
+      Material *ma = BKE_object_material_get(ob, ob->actcol);
 
       if (ma && ma->texpaintslot) {
         ima = ma->texpaintslot[ma->paint_active_slot].ima;

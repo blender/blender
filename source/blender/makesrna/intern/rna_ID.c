@@ -630,12 +630,12 @@ static int rna_IDPArray_length(PointerRNA *ptr)
 int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assign_ptr)
 {
   ID *id = ptr->owner_id;
-  short *totcol = give_totcolp_id(id);
+  short *totcol = BKE_id_material_num(id);
   Material *mat_id = (Material *)assign_ptr->owner_id;
   if (totcol && (key >= 0 && key < *totcol)) {
     BLI_assert(BKE_id_is_in_global_main(id));
     BLI_assert(BKE_id_is_in_global_main(&mat_id->id));
-    assign_material_id(G_MAIN, id, mat_id, key + 1);
+    BKE_id_material_assign(G_MAIN, id, mat_id, key + 1);
     return 1;
   }
   else {
@@ -654,7 +654,7 @@ static void rna_IDMaterials_append_id(ID *id, Main *bmain, Material *ma)
 static Material *rna_IDMaterials_pop_id(ID *id, Main *bmain, ReportList *reports, int index_i)
 {
   Material *ma;
-  short *totcol = give_totcolp_id(id);
+  short *totcol = BKE_id_material_num(id);
   const short totcol_orig = *totcol;
   if (index_i < 0) {
     index_i += (*totcol);

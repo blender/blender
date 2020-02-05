@@ -165,7 +165,7 @@ bool ED_object_get_active_image(Object *ob,
                                 bNode **r_node,
                                 bNodeTree **r_ntree)
 {
-  Material *ma = give_current_material(ob, mat_nr);
+  Material *ma = BKE_object_material_get(ob, mat_nr);
   bNodeTree *ntree = (ma && ma->use_nodes) ? ma->nodetree : NULL;
   bNode *node = (ntree) ? nodeGetActiveTexture(ntree) : NULL;
 
@@ -211,7 +211,7 @@ bool ED_object_get_active_image(Object *ob,
 
 void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *ima)
 {
-  Material *ma = give_current_material(ob, mat_nr);
+  Material *ma = BKE_object_material_get(ob, mat_nr);
   bNode *node = (ma && ma->use_nodes) ? nodeGetActiveTexture(ma->nodetree) : NULL;
 
   if (node && is_image_texture_node(node)) {

@@ -717,9 +717,9 @@ void DepsgraphNodeBuilder::build_object_data(Object *object, bool is_object_visi
     }
   }
   /* Materials. */
-  Material ***materials_ptr = give_matarar(object);
+  Material ***materials_ptr = BKE_object_material_array(object);
   if (materials_ptr != nullptr) {
-    short *num_materials_ptr = give_totcolp(object);
+    short *num_materials_ptr = BKE_object_material_num(object);
     build_materials(*materials_ptr, *num_materials_ptr);
   }
 }

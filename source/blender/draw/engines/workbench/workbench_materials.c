@@ -334,7 +334,7 @@ void workbench_material_get_image_and_mat(
     Object *ob, int mat_nr, Image **r_image, ImageUser **r_iuser, int *r_interp, Material **r_mat)
 {
   bNode *node;
-  *r_mat = give_current_material(ob, mat_nr);
+  *r_mat = BKE_object_material_get(ob, mat_nr);
   ED_object_get_active_image(ob, mat_nr, r_image, r_iuser, &node, NULL);
   if (node && *r_image) {
     switch (node->type) {

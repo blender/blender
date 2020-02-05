@@ -273,7 +273,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
         continue;
       }
       /* check if the color is visible */
-      MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
+      MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
       if ((gp_style == NULL) || (gp_style->flag & GP_STYLE_COLOR_HIDE)) {
         continue;
       }
@@ -1367,7 +1367,7 @@ static int gpencil_fill_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
     }
   }
   else {
-    if (give_current_material(ob, ob->actcol) == NULL) {
+    if (BKE_object_material_get(ob, ob->actcol) == NULL) {
       valid = false;
     }
   }

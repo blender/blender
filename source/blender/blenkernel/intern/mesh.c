@@ -1092,7 +1092,7 @@ void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *me)
     id_us_plus((ID *)me);
   }
 
-  test_object_materials(bmain, ob, (ID *)me);
+  BKE_object_materials_test(bmain, ob, (ID *)me);
 
   test_object_modifiers(ob);
 }

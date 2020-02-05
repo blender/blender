@@ -270,7 +270,7 @@ static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char
   ob = BKE_object_add_only_object(bmain, type, safe_name);
 
   ob->data = data;
-  test_object_materials(bmain, ob, ob->data);
+  BKE_object_materials_test(bmain, ob, ob->data);
 
   return ob;
 }
@@ -289,7 +289,7 @@ static void rna_Main_materials_gpencil_data(Main *UNUSED(bmain), PointerRNA *id_
 {
   ID *id = id_ptr->data;
   Material *ma = (Material *)id;
-  BKE_material_init_gpencil_settings(ma);
+  BKE_gpencil_material_attr_init(ma);
 }
 
 static void rna_Main_materials_gpencil_remove(Main *UNUSED(bmain), PointerRNA *id_ptr)

@@ -428,7 +428,7 @@ void BCAnimationSampler::initialize_keyframes(BCFrameSet &frameset, Object *ob)
   add_keyframes_from(bc_getSceneLightAction(ob), frameset);
 
   for (int a = 0; a < ob->totcol; a++) {
-    Material *ma = give_current_material(ob, a + 1);
+    Material *ma = BKE_object_material_get(ob, a + 1);
     add_keyframes_from(bc_getSceneMaterialAction(ma), frameset);
   }
 }
@@ -490,7 +490,7 @@ void BCAnimationSampler::initialize_curves(BCAnimationCurveMap &curves, Object *
   object_type = BC_ANIMATION_TYPE_MATERIAL;
   for (int a = 0; a < ob->totcol; a++) {
     /* Export Material parameter animations. */
-    Material *ma = give_current_material(ob, a + 1);
+    Material *ma = BKE_object_material_get(ob, a + 1);
     if (ma) {
       action = bc_getSceneMaterialAction(ma);
       if (action) {

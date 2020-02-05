@@ -72,7 +72,7 @@
 #include "BKE_appdir.h"
 #include "BKE_sequencer.h" /* free seq clipboard */
 #include "BKE_studiolight.h"
-#include "BKE_material.h" /* clear_matcopybuf */
+#include "BKE_material.h" /* BKE_material_copybuf_clear */
 #include "BKE_tracking.h" /* free tracking clipboard */
 #include "BKE_mask.h"     /* free mask clipboard */
 
@@ -350,7 +350,7 @@ void WM_init(bContext *C, int argc, const char **argv)
     GHOST_toggleConsole(3);
   }
 
-  clear_matcopybuf();
+  BKE_material_copybuf_clear();
   ED_render_clear_mtex_copybuf();
 
   // glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -533,7 +533,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
 
   BKE_addon_pref_type_free();
   BKE_keyconfig_pref_type_free();
-  BKE_material_gpencil_default_free();
+  BKE_materials_exit();
 
   wm_operatortype_free();
   wm_dropbox_free();
@@ -582,7 +582,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
   }
 
   BKE_blender_free(); /* blender.c, does entire library and spacetypes */
-                      //  free_matcopybuf();
+                      //  BKE_material_copybuf_free();
   ANIM_fcurves_copybuf_free();
   ANIM_drivers_copybuf_free();
   ANIM_driver_vars_copybuf_free();

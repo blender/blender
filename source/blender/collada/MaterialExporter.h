@@ -66,7 +66,7 @@ template<class Functor> class ForEachMaterialFunctor {
     int a;
     for (a = 0; a < ob->totcol; a++) {
 
-      Material *ma = give_current_material(ob, a + 1);
+      Material *ma = BKE_object_material_get(ob, a + 1);
 
       if (!ma) {
         continue;

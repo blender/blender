@@ -2926,7 +2926,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
       &psys->pathcachebufs, totpart, segments + 1);
 
   psys->lattice_deform_data = psys_create_lattice_deform_data(sim);
-  ma = give_current_material(sim->ob, psys->part->omat);
+  ma = BKE_object_material_get(sim->ob, psys->part->omat);
   if (ma && (psys->part->draw_col == PART_DRAW_COL_MAT)) {
     copy_v3_v3(col, &ma->r);
   }
@@ -4309,7 +4309,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
   PARTICLE_PSMD;
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = sim->psys->part;
-  Material *ma = give_current_material(sim->ob, part->omat);
+  Material *ma = BKE_object_material_get(sim->ob, part->omat);
   ParticleData *pa;
   ChildParticle *cpa;
   ParticleTexture ptex;

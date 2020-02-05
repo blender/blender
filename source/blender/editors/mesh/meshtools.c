@@ -250,7 +250,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
     if (matmap) {
       /* make mapping for materials */
       for (a = 1; a <= ob_src->totcol; a++) {
-        Material *ma = give_current_material(ob_src, a);
+        Material *ma = BKE_object_material_get(ob_src, a);
 
         for (b = 0; b < totcol; b++) {
           if (ma == matar[b]) {
@@ -391,7 +391,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
   /* obact materials in new main array, is nicer start! */
   for (a = 0; a < ob->totcol; a++) {
-    matar[a] = give_current_material(ob, a + 1);
+    matar[a] = BKE_object_material_get(ob, a + 1);
     id_us_plus((ID *)matar[a]);
     /* increase id->us : will be lowered later */
   }
@@ -457,7 +457,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
          * (but only if limits not exceeded yet) */
         if (totcol < MAXMAT) {
           for (a = 1; a <= ob_iter->totcol; a++) {
-            ma = give_current_material(ob_iter, a);
+            ma = BKE_object_material_get(ob_iter, a);
 
             for (b = 0; b < totcol; b++) {
               if (ma == matar[b]) {
@@ -669,7 +669,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
   ob->totcol = me->totcol = totcol;
 
   /* other mesh users */
-  test_all_objects_materials(bmain, (ID *)me);
+  BKE_objects_materials_test_all(bmain, (ID *)me);
 
   /* free temp copy of destination shapekeys (if applicable) */
   if (nkey) {

@@ -1677,7 +1677,7 @@ Object *BKE_object_duplicate(Main *bmain, const Object *ob, const int dupflag)
     }
 
     if (dupflag & USER_DUP_MAT) {
-      matarar = give_matarar(obn);
+      matarar = BKE_object_material_array(obn);
       if (matarar) {
         for (a = 0; a < obn->totcol; a++) {
           id = (ID *)(*matarar)[a];
@@ -1907,7 +1907,7 @@ void BKE_object_make_proxy(Main *bmain, Object *ob, Object *target, Object *cob)
     ob->mat = MEM_dupallocN(target->mat);
     ob->matbits = MEM_dupallocN(target->matbits);
     for (i = 0; i < target->totcol; i++) {
-      /* don't need to run test_object_materials
+      /* don't need to run BKE_object_materials_test
        * since we know this object is new and not used elsewhere */
       id_us_plus((ID *)ob->mat[i]);
     }

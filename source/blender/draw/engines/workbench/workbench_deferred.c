@@ -1119,7 +1119,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
         struct DRWShadingGroup **shgrps = BLI_array_alloca(shgrps, materials_len);
 
         for (int i = 0; i < materials_len; i++) {
-          struct Material *mat = give_current_material(ob, i + 1);
+          struct Material *mat = BKE_object_material_get(ob, i + 1);
           if (mat != NULL && mat->a < 1.0f) {
             material = workbench_forward_get_or_create_material_data(
                 vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0);
@@ -1141,7 +1141,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
         geoms = DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len);
         for (int i = 0; i < materials_len; i++) {
           if (geoms != NULL && geoms[i] != NULL) {
-            Material *mat = give_current_material(ob, i + 1);
+            Material *mat = BKE_object_material_get(ob, i + 1);
             if (mat != NULL && mat->a < 1.0f) {
               material = workbench_forward_get_or_create_material_data(
                   vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0);

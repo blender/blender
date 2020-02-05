@@ -125,7 +125,7 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
     for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
       for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 
-        Material *mat = BKE_material_gpencil_get(ob, gps->mat_nr + 1);
+        Material *mat = BKE_gpencil_material(ob, gps->mat_nr + 1);
         if (mat == NULL) {
           continue;
         }

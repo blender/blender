@@ -356,7 +356,7 @@ void AnimationExporter::export_curve_animation(Object *ob, BCAnimationCurve &cur
 
   if (curve.is_of_animation_type(BC_ANIMATION_TYPE_MATERIAL)) {
     int material_index = curve.get_subindex();
-    Material *ma = give_current_material(ob, material_index + 1);
+    Material *ma = BKE_object_material_get(ob, material_index + 1);
     if (ma) {
       collada_target = translate_id(id_name(ma)) + "-effect/common/" +
                        get_collada_sid(curve, axis);

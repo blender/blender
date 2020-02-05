@@ -37,11 +37,11 @@ struct bNode;
 
 /* materials */
 
-void init_def_material(void);
-void BKE_material_gpencil_default_free(void);
+void BKE_materials_init(void);
+void BKE_materials_exit(void);
 void BKE_material_free(struct Material *ma);
-void test_object_materials(struct Main *bmain, struct Object *ob, struct ID *id);
-void test_all_objects_materials(struct Main *bmain, struct ID *id);
+void BKE_object_materials_test(struct Main *bmain, struct Object *ob, struct ID *id);
+void BKE_objects_materials_test_all(struct Main *bmain, struct ID *id);
 void BKE_material_resize_object(struct Main *bmain,
                                 struct Object *ob,
                                 const short totcol,
@@ -53,7 +53,7 @@ void BKE_material_remap_object_calc(struct Object *ob_dst,
                                     struct Object *ob_src,
                                     short *remap_src_to_dst);
 struct Material *BKE_material_add(struct Main *bmain, const char *name);
-struct Material *BKE_material_add_gpencil(struct Main *bmain, const char *name);
+struct Material *BKE_gpencil_material_add(struct Main *bmain, const char *name);
 void BKE_material_copy_data(struct Main *bmain,
                             struct Material *ma_dst,
                             const struct Material *ma_src,
@@ -62,17 +62,17 @@ struct Material *BKE_material_copy(struct Main *bmain, const struct Material *ma
 struct Material *BKE_material_localize(struct Material *ma);
 struct Material *give_node_material(struct Material *ma); /* returns node material or self */
 void BKE_material_make_local(struct Main *bmain, struct Material *ma, const bool lib_local);
-void BKE_material_init_gpencil_settings(struct Material *ma);
+void BKE_gpencil_material_attr_init(struct Material *ma);
 
 /* UNUSED */
 // void automatname(struct Material *);
 
 /* material slots */
 
-struct Material ***give_matarar(struct Object *ob);
-short *give_totcolp(struct Object *ob);
-struct Material ***give_matarar_id(struct ID *id); /* same but for ID's */
-short *give_totcolp_id(struct ID *id);
+struct Material ***BKE_object_material_array(struct Object *ob);
+short *BKE_object_material_num(struct Object *ob);
+struct Material ***BKE_id_material_array(struct ID *id); /* same but for ID's */
+short *BKE_id_material_num(struct ID *id);
 
 enum {
   /* use existing link option */
@@ -82,21 +82,21 @@ enum {
   BKE_MAT_ASSIGN_OBJECT,
 };
 
-struct Material **give_current_material_p(struct Object *ob, short act);
-struct Material *give_current_material(struct Object *ob, short act);
-void assign_material_id(struct Main *bmain, struct ID *id, struct Material *ma, short act);
-void assign_material(
+struct Material **BKE_object_material_get_p(struct Object *ob, short act);
+struct Material *BKE_object_material_get(struct Object *ob, short act);
+void BKE_id_material_assign(struct Main *bmain, struct ID *id, struct Material *ma, short act);
+void BKE_object_material_assign(
     struct Main *bmain, struct Object *ob, struct Material *ma, short act, int assign_type);
-void assign_matarar(struct Main *bmain, struct Object *ob, struct Material ***matar, short totcol);
+void BKE_object_material_array_assign(struct Main *bmain, struct Object *ob, struct Material ***matar, short totcol);
 
 short BKE_object_material_slot_find_index(struct Object *ob, struct Material *ma);
 bool BKE_object_material_slot_add(struct Main *bmain, struct Object *ob);
 bool BKE_object_material_slot_remove(struct Main *bmain, struct Object *ob);
 bool BKE_object_material_slot_used(struct ID *id, short actcol);
 
-struct Material *BKE_material_gpencil_get(struct Object *ob, short act);
-struct Material *BKE_material_gpencil_default_get(void);
-struct MaterialGPencilStyle *BKE_material_gpencil_settings_get(struct Object *ob, short act);
+struct Material *BKE_gpencil_material(struct Object *ob, short act);
+struct Material *BKE_gpencil_material_default(void);
+struct MaterialGPencilStyle *BKE_gpencil_material_settings(struct Object *ob, short act);
 
 void BKE_texpaint_slot_refresh_cache(struct Scene *scene, struct Material *ma);
 void BKE_texpaint_slots_refresh_object(struct Scene *scene, struct Object *ob);
@@ -115,10 +115,10 @@ void BKE_material_clear_id(struct Main *bmain, struct ID *id);
 void ramp_blend(int type, float r_col[3], const float fac, const float col[3]);
 
 /* copy/paste */
-void clear_matcopybuf(void);
-void free_matcopybuf(void);
-void copy_matcopybuf(struct Main *bmain, struct Material *ma);
-void paste_matcopybuf(struct Main *bmain, struct Material *ma);
+void BKE_material_copybuf_clear(void);
+void BKE_material_copybuf_free(void);
+void BKE_material_copybuf_copy(struct Main *bmain, struct Material *ma);
+void BKE_material_copybuf_paste(struct Main *bmain, struct Material *ma);
 
 /* Dependency graph evaluation. */
 

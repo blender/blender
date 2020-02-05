@@ -809,9 +809,9 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
     build_nested_shapekey(&object->id, key);
   }
   /* Materials. */
-  Material ***materials_ptr = give_matarar(object);
+  Material ***materials_ptr = BKE_object_material_array(object);
   if (materials_ptr != nullptr) {
-    short *num_materials_ptr = give_totcolp(object);
+    short *num_materials_ptr = BKE_object_material_num(object);
     build_materials(*materials_ptr, *num_materials_ptr);
   }
 }

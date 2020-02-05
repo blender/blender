@@ -339,7 +339,7 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
    * https://github.com/PixarAnimationStudios/USD/issues/542 for more info. */
   bool mesh_material_bound = false;
   for (short mat_num = 0; mat_num < context.object->totcol; mat_num++) {
-    Material *material = give_current_material(context.object, mat_num + 1);
+    Material *material = BKE_object_material_get(context.object, mat_num + 1);
     if (material == nullptr) {
       continue;
     }
@@ -373,7 +373,7 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
     short material_number = face_group.first;
     const pxr::VtIntArray &face_indices = face_group.second;
 
-    Material *material = give_current_material(context.object, material_number + 1);
+    Material *material = BKE_object_material_get(context.object, material_number + 1);
     if (material == nullptr) {
       continue;
     }

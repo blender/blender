@@ -1073,7 +1073,7 @@ static Mesh *mesh_new_from_mball_object(Object *object)
   mesh_result->mat = MEM_dupallocN(mball->mat);
   if (mball->mat != NULL) {
     for (int i = mball->totcol; i-- > 0;) {
-      mesh_result->mat[i] = give_current_material(object, i + 1);
+      mesh_result->mat[i] = BKE_object_material_get(object, i + 1);
     }
   }
 

@@ -1121,14 +1121,14 @@ Material *BKE_gpencil_object_material_ensure_from_brush(Main *bmain, Object *ob,
     /* check if the material is already on object material slots and add it if missing */
     if (ma && BKE_gpencil_object_material_get_index(ob, ma) < 0) {
       BKE_object_material_slot_add(bmain, ob);
-      assign_material(bmain, ob, ma, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
+      BKE_object_material_assign(bmain, ob, ma, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
     }
 
     return ma;
   }
   else {
     /* using active material instead */
-    return give_current_material(ob, ob->actcol);
+    return BKE_object_material_get(ob, ob->actcol);
   }
 }
 
@@ -1141,7 +1141,7 @@ int BKE_gpencil_object_material_ensure(Main *bmain, Object *ob, Material *materi
   int index = BKE_gpencil_object_material_get_index(ob, material);
   if (index < 0) {
     BKE_object_material_slot_add(bmain, ob);
-    assign_material(bmain, ob, material, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
+    BKE_object_material_assign(bmain, ob, material, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
     return ob->totcol - 1;
   }
   return index;
@@ -1154,11 +1154,11 @@ int BKE_gpencil_object_material_ensure(Main *bmain, Object *ob, Material *materi
  */
 Material *BKE_gpencil_object_material_new(Main *bmain, Object *ob, const char *name, int *r_index)
 {
-  Material *ma = BKE_material_add_gpencil(bmain, name);
+  Material *ma = BKE_gpencil_material_add(bmain, name);
   id_us_min(&ma->id); /* no users yet */
 
   BKE_object_material_slot_add(bmain, ob);
-  assign_material(bmain, ob, ma, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
+  BKE_object_material_assign(bmain, ob, ma, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
 
   if (r_index) {
     *r_index = ob->actcol - 1;
@@ -1175,7 +1175,7 @@ Material *BKE_gpencil_object_material_get_from_brush(Object *ob, Brush *brush)
     return ma;
   }
   else {
-    return give_current_material(ob, ob->actcol);
+    return BKE_object_material_get(ob, ob->actcol);
   }
 }
 
@@ -1228,7 +1228,7 @@ Material *BKE_gpencil_object_material_ensure_from_active_input_brush(Main *bmain
  */
 Material *BKE_gpencil_object_material_ensure_from_active_input_material(Object *ob)
 {
-  Material *ma = give_current_material(ob, ob->actcol);
+  Material *ma = BKE_object_material_get(ob, ob->actcol);
   if (ma) {
     return ma;
   }
@@ -1248,7 +1248,7 @@ Material *BKE_gpencil_object_material_ensure_active(Object *ob)
 
   ma = BKE_gpencil_object_material_ensure_from_active_input_material(ob);
   if (ma->gp_style == NULL) {
-    BKE_material_init_gpencil_settings(ma);
+    BKE_gpencil_material_attr_init(ma);
   }
 
   return ma;
@@ -2368,10 +2368,10 @@ void BKE_gpencil_stats_update(bGPdata *gpd)
 /* get material index (0-based like mat_nr not actcol) */
 int BKE_gpencil_object_material_get_index(Object *ob, Material *ma)
 {
-  short *totcol = give_totcolp(ob);
+  short *totcol = BKE_object_material_num(ob);
   Material *read_ma = NULL;
   for (short i = 0; i < *totcol; i++) {
-    read_ma = give_current_material(ob, i + 1);
+    read_ma = BKE_object_material_get(ob, i + 1);
     if (ma == read_ma) {
       return i;
     }
@@ -3027,7 +3027,7 @@ static int gpencil_check_same_material_color(Object *ob_gp, float color[4], Mate
   hsv1[3] = color[3];
 
   for (int i = 1; i <= ob_gp->totcol; i++) {
-    ma = give_current_material(ob_gp, i);
+    ma = BKE_object_material_get(ob_gp, i);
     MaterialGPencilStyle *gp_style = ma->gp_style;
     /* Check color with small tolerance (better in HSV). */
     float hsv2[4];
@@ -3194,7 +3194,7 @@ static void gpencil_convert_spline(Main *bmain,
    */
   bool do_stroke = false;
   if (ob_cu->totcol == 1) {
-    Material *ma_stroke = give_current_material(ob_cu, 1);
+    Material *ma_stroke = BKE_object_material_get(ob_cu, 1);
     if ((ma_stroke) && (strstr(ma_stroke->id.name, "_stroke") != NULL)) {
       do_stroke = true;
     }
@@ -3202,7 +3202,7 @@ static void gpencil_convert_spline(Main *bmain,
 
   int r_idx = gpencil_check_same_material_color(ob_gp, color, &mat_gp);
   if ((ob_cu->totcol > 0) && (r_idx < 0)) {
-    Material *mat_curve = give_current_material(ob_cu, 1);
+    Material *mat_curve = BKE_object_material_get(ob_cu, 1);
     mat_gp = gpencil_add_from_curve_material(bmain, ob_gp, color, gpencil_lines, fill, &r_idx);
 
     if ((mat_curve) && (mat_curve->gp_style != NULL)) {
@@ -3216,8 +3216,8 @@ static void gpencil_convert_spline(Main *bmain,
     }
 
     /* If object has more than 1 material, use second material for stroke color. */
-    if ((!only_stroke) && (ob_cu->totcol > 1) && (give_current_material(ob_cu, 2))) {
-      mat_curve = give_current_material(ob_cu, 2);
+    if ((!only_stroke) && (ob_cu->totcol > 1) && (BKE_object_material_get(ob_cu, 2))) {
+      mat_curve = BKE_object_material_get(ob_cu, 2);
       if (mat_curve) {
         linearrgb_to_srgb_v3_v3(mat_gp->gp_style->stroke_rgba, &mat_curve->r);
         mat_gp->gp_style->stroke_rgba[3] = mat_curve->a;
@@ -3226,7 +3226,7 @@ static void gpencil_convert_spline(Main *bmain,
     else if ((only_stroke) || (do_stroke)) {
       /* Also use the first color if the fill is none for stroke color. */
       if (ob_cu->totcol > 0) {
-        mat_curve = give_current_material(ob_cu, 1);
+        mat_curve = BKE_object_material_get(ob_cu, 1);
         if (mat_curve) {
           linearrgb_to_srgb_v3_v3(mat_gp->gp_style->stroke_rgba, &mat_curve->r);
           mat_gp->gp_style->stroke_rgba[3] = mat_curve->a;
