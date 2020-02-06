@@ -1430,12 +1430,12 @@ static void material_transparent(Material *ma,
   DRW_shgroup_state_enable(*shgrp, cur_state);
 }
 
-/* Return correct material or &defmaterial if slot is empty. */
+/* Return correct material or empty default material if slot is empty. */
 BLI_INLINE Material *eevee_object_material_get(Object *ob, int slot)
 {
   Material *ma = BKE_object_material_get(ob, slot + 1);
   if (ma == NULL) {
-    ma = &defmaterial;
+    ma = BKE_material_default_empty();
   }
   return ma;
 }

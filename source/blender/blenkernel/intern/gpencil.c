@@ -1233,7 +1233,7 @@ Material *BKE_gpencil_object_material_ensure_from_active_input_material(Object *
     return ma;
   }
 
-  return &defgpencil_material;
+  return BKE_material_default_gpencil();
 }
 
 /* Get active color, and add all default settings if we don't find anything */

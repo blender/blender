@@ -40,6 +40,7 @@
 #include "BLI_ghash.h"
 
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
 
@@ -778,7 +779,6 @@ void GPU_materials_free(Main *bmain)
 {
   Material *ma;
   World *wo;
-  extern Material defmaterial;
 
   for (ma = bmain->materials.first; ma; ma = ma->id.next) {
     GPU_material_free(&ma->gpumaterial);
@@ -788,5 +788,5 @@ void GPU_materials_free(Main *bmain)
     GPU_material_free(&wo->gpumaterial);
   }
 
-  GPU_material_free(&defmaterial.gpumaterial);
+  BKE_material_defaults_free_gpu();
 }

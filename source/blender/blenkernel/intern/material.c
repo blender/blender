@@ -70,24 +70,9 @@
 
 #include "GPU_material.h"
 
-/* used in UI and render */
-Material defmaterial;
-Material defgpencil_material;
+#include "NOD_shader.h"
 
 static CLG_LogRef LOG = {"bke.material"};
-
-/* called on startup, creator.c */
-void BKE_materials_init(void)
-{
-  BKE_material_init(&defmaterial);
-  BKE_material_gpencil_init(&defgpencil_material);
-}
-
-/* Free the GPencil data of the default material, creator.c */
-void BKE_materials_exit(void)
-{
-  MEM_SAFE_FREE(defgpencil_material.gp_style);
-}
 
 /** Free (or release) any data used by this material (does not free the material itself). */
 void BKE_material_free(Material *ma)
@@ -138,16 +123,6 @@ void BKE_material_init(Material *ma)
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ma, id));
 
   MEMCPY_STRUCT_AFTER(ma, DNA_struct_default_get(Material), id);
-}
-
-void BKE_material_gpencil_init(Material *ma)
-{
-  BKE_material_init(ma);
-
-  /* grease pencil settings */
-  strcpy(ma->id.name, "MADefault GPencil");
-  BKE_gpencil_material_attr_init(ma);
-  add_v3_fl(&ma->gp_style->stroke_rgba[0], 0.6f);
 }
 
 Material *BKE_material_add(Main *bmain, const char *name)
@@ -594,13 +569,8 @@ Material *BKE_gpencil_material(Object *ob, short act)
     return ma;
   }
   else {
-    return &defgpencil_material;
+    return BKE_material_default_gpencil();
   }
-}
-
-struct Material *BKE_gpencil_material_default(void)
-{
-  return &defgpencil_material;
 }
 
 MaterialGPencilStyle *BKE_gpencil_material_settings(Object *ob, short act)
@@ -614,7 +584,7 @@ MaterialGPencilStyle *BKE_gpencil_material_settings(Object *ob, short act)
     return ma->gp_style;
   }
   else {
-    return defgpencil_material.gp_style;
+    return BKE_material_default_gpencil()->gp_style;
   }
 }
 
@@ -1609,4 +1579,124 @@ void BKE_material_eval(struct Depsgraph *depsgraph, Material *material)
 {
   DEG_debug_print_eval(depsgraph, __func__, material->id.name, material);
   GPU_material_free(&material->gpumaterial);
+}
+
+/* Default Materials
+ *
+ * Used for rendering when objects have no materials assigned, and initializing
+ * default shader nodes. */
+
+static Material default_material_empty;
+static Material default_material_surface;
+static Material default_material_volume;
+static Material default_material_gpencil;
+
+static Material *default_materials[] = {&default_material_empty,
+                                        &default_material_surface,
+                                        &default_material_volume,
+                                        &default_material_gpencil,
+                                        NULL};
+
+static void material_default_gpencil_init(Material *ma)
+{
+  strcpy(ma->id.name, "MADefault GPencil");
+  BKE_gpencil_material_attr_init(ma);
+  add_v3_fl(&ma->gp_style->stroke_rgba[0], 0.6f);
+}
+
+static void material_default_surface_init(Material *ma)
+{
+  bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
+  ma->nodetree = ntree;
+
+  bNode *principled = nodeAddStaticNode(NULL, ntree, SH_NODE_BSDF_PRINCIPLED);
+  bNodeSocket *base_color = nodeFindSocket(principled, SOCK_IN, "Base Color");
+  copy_v3_v3(((bNodeSocketValueRGBA *)base_color->default_value)->value, &ma->r);
+
+  bNode *output = nodeAddStaticNode(NULL, ntree, SH_NODE_OUTPUT_MATERIAL);
+
+  nodeAddLink(ntree,
+              principled,
+              nodeFindSocket(principled, SOCK_OUT, "BSDF"),
+              output,
+              nodeFindSocket(output, SOCK_IN, "Surface"));
+
+  principled->locx = 10.0f;
+  principled->locy = 300.0f;
+  output->locx = 300.0f;
+  output->locy = 300.0f;
+
+  nodeSetActive(ntree, output);
+}
+
+static void material_default_volume_init(Material *ma)
+{
+  bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
+  ma->nodetree = ntree;
+
+  bNode *principled = nodeAddStaticNode(NULL, ntree, SH_NODE_VOLUME_PRINCIPLED);
+  bNode *output = nodeAddStaticNode(NULL, ntree, SH_NODE_OUTPUT_MATERIAL);
+
+  nodeAddLink(ntree,
+              principled,
+              nodeFindSocket(principled, SOCK_OUT, "Volume"),
+              output,
+              nodeFindSocket(output, SOCK_IN, "Volume"));
+
+  principled->locx = 10.0f;
+  principled->locy = 300.0f;
+  output->locx = 300.0f;
+  output->locy = 300.0f;
+
+  nodeSetActive(ntree, output);
+}
+
+Material *BKE_material_default_empty(void)
+{
+  return &default_material_empty;
+}
+
+Material *BKE_material_default_surface(void)
+{
+  return &default_material_surface;
+}
+
+Material *BKE_material_default_volume(void)
+{
+  return &default_material_volume;
+}
+
+Material *BKE_material_default_gpencil(void)
+{
+  return &default_material_gpencil;
+}
+
+void BKE_material_defaults_free_gpu(void)
+{
+  for (int i = 0; default_materials[i]; i++) {
+    Material *ma = default_materials[i];
+    if (ma->gpumaterial.first) {
+      GPU_material_free(&ma->gpumaterial);
+    }
+  }
+}
+
+/* Module functions called on startup and exit. */
+
+void BKE_materials_init(void)
+{
+  for (int i = 0; default_materials[i]; i++) {
+    BKE_material_init(default_materials[i]);
+  }
+
+  material_default_surface_init(&default_material_surface);
+  material_default_volume_init(&default_material_volume);
+  material_default_gpencil_init(&default_material_gpencil);
+}
+
+void BKE_materials_exit(void)
+{
+  for (int i = 0; default_materials[i]; i++) {
+    BKE_material_free(default_materials[i]);
+  }
 }

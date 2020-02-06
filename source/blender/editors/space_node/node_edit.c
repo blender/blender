@@ -37,6 +37,7 @@
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -441,81 +442,59 @@ bool ED_node_is_texture(struct SpaceNode *snode)
 /* called from shading buttons or header */
 void ED_node_shader_default(const bContext *C, ID *id)
 {
-  bNode *in, *out;
-  bNodeSocket *fromsock, *tosock, *sock;
-  bNodeTree *ntree;
-  int output_type, shader_type;
-  float color[4] = {0.0f, 0.0f, 0.0f, 1.0f}, strength = 1.0f;
+  Main *bmain = CTX_data_main(C);
 
-  ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-
-  switch (GS(id->name)) {
-    case ID_MA: {
-      Material *ma = (Material *)id;
-      ma->nodetree = ntree;
-
-      output_type = SH_NODE_OUTPUT_MATERIAL;
-      shader_type = SH_NODE_BSDF_PRINCIPLED;
-
-      copy_v3_v3(color, &ma->r);
-      strength = 0.0f;
-      break;
-    }
-    case ID_WO: {
-      World *wo = (World *)id;
-      wo->nodetree = ntree;
-
-      output_type = SH_NODE_OUTPUT_WORLD;
-      shader_type = SH_NODE_BACKGROUND;
-
-      copy_v3_v3(color, &wo->horr);
-      strength = 1.0f;
-      break;
-    }
-    case ID_LA: {
-      Light *la = (Light *)id;
-      la->nodetree = ntree;
-
-      output_type = SH_NODE_OUTPUT_LIGHT;
-      shader_type = SH_NODE_EMISSION;
-
-      copy_v3_fl3(color, 1.0f, 1.0f, 1.0f);
-      strength = 1.0f;
-      break;
-    }
-    default:
-      printf("ED_node_shader_default called on wrong ID type.\n");
-      return;
+  if (GS(id->name) == ID_MA) {
+    /* Materials */
+    Material *ma = (Material *)id;
+    Material *ma_default = BKE_material_default_surface();
+    ma->nodetree = ntreeCopyTree(bmain, ma_default->nodetree);
+    ntreeUpdateTree(bmain, ma->nodetree);
   }
+  else if (ELEM(GS(id->name), ID_WO, ID_LA)) {
+    /* Emission */
+    bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
+    bNode *shader, *output;
 
-  out = nodeAddStaticNode(C, ntree, output_type);
-  out->locx = 300.0f;
-  out->locy = 300.0f;
+    if (GS(id->name) == ID_WO) {
+      World *world = (World *)id;
+      world->nodetree = ntree;
 
-  in = nodeAddStaticNode(C, ntree, shader_type);
-  in->locx = 10.0f;
-  in->locy = 300.0f;
-  nodeSetActive(ntree, in);
+      shader = nodeAddStaticNode(NULL, ntree, SH_NODE_BACKGROUND);
+      output = nodeAddStaticNode(NULL, ntree, SH_NODE_OUTPUT_WORLD);
+      nodeAddLink(ntree,
+                  shader,
+                  nodeFindSocket(shader, SOCK_OUT, "Background"),
+                  output,
+                  nodeFindSocket(output, SOCK_IN, "Surface"));
 
-  /* only a link from color to color */
-  fromsock = in->outputs.first;
-  tosock = out->inputs.first;
-  nodeAddLink(ntree, in, fromsock, out, tosock);
+      bNodeSocket *color_sock = nodeFindSocket(shader, SOCK_IN, "Color");
+      copy_v3_v3(((bNodeSocketValueRGBA *)color_sock->default_value)->value, &world->horr);
+    }
+    else {
+      Light *light = (Light *)id;
+      light->nodetree = ntree;
 
-  /* default values */
-  PointerRNA sockptr;
-  sock = in->inputs.first;
-  RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &sockptr);
+      shader = nodeAddStaticNode(NULL, ntree, SH_NODE_EMISSION);
+      output = nodeAddStaticNode(NULL, ntree, SH_NODE_OUTPUT_LIGHT);
+      nodeAddLink(ntree,
+                  shader,
+                  nodeFindSocket(shader, SOCK_OUT, "Emission"),
+                  output,
+                  nodeFindSocket(output, SOCK_IN, "Surface"));
+    }
 
-  RNA_float_set_array(&sockptr, "default_value", color);
-
-  if (strength != 0.0f) {
-    sock = in->inputs.last;
-    RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &sockptr);
-    RNA_float_set(&sockptr, "default_value", strength);
+    shader->locx = 10.0f;
+    shader->locy = 300.0f;
+    output->locx = 300.0f;
+    output->locy = 300.0f;
+    nodeSetActive(ntree, output);
+    ntreeUpdateTree(bmain, ntree);
   }
-
-  ntreeUpdateTree(CTX_data_main(C), ntree);
+  else {
+    printf("ED_node_shader_default called on wrong ID type.\n");
+    return;
+  }
 }
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */

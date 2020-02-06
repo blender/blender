@@ -38,6 +38,8 @@
 #include "BLI_ghash.h"
 #include "BLI_threads.h"
 
+#include "BKE_material.h"
+
 #include "PIL_time.h"
 
 #include "GPU_extensions.h"
@@ -384,11 +386,7 @@ void gpu_codegen_init(void)
 
 void gpu_codegen_exit(void)
 {
-  extern Material defmaterial; /* render module abuse... */
-
-  if (defmaterial.gpumaterial.first) {
-    GPU_material_free(&defmaterial.gpumaterial);
-  }
+  BKE_material_defaults_free_gpu();
 
   if (FUNCTION_HASH) {
     BLI_ghash_free(FUNCTION_HASH, NULL, MEM_freeN);
