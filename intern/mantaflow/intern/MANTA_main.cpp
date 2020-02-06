@@ -2174,6 +2174,7 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
   bool floater = mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_FOAM;
   bool tracer = mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_TRACER;
   bool obstacle = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE;
+  bool fractions = mmd->domain->flags & FLUID_DOMAIN_USE_FRACTIONS;
   bool guiding = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
   bool invel = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
 
@@ -2210,6 +2211,8 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
     manta_script += fluid_alloc_guiding;
   if (obstacle)
     manta_script += fluid_alloc_obstacle;
+  if (fractions)
+    manta_script += fluid_alloc_fractions;
   if (invel)
     manta_script += fluid_alloc_invel;
 
@@ -2891,7 +2894,7 @@ int MANTA::updateGridFromVDB(const char *filename, float *grid)
   try {
     file.open();
   }
-  catch (const openvdb::v5_1::IoError) {
+  catch (const openvdb::IoError) {
     std::cout << "MANTA::updateGridFromVDB(): IOError, invalid OpenVDB file: " << filename
               << std::endl;
     return 0;
