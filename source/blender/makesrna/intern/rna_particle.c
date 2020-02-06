@@ -3481,7 +3481,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "rad_scale");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 2);
-  RNA_def_property_ui_text(prop, "Radius Scale", "Multiplier of radius properties");
+  RNA_def_property_ui_text(prop, "Diameter Scale", "Multiplier of diameter properties");
   RNA_def_property_update(
       prop, 0, "rna_Particle_redo"); /* TODO: Only need to tell the render engine to update. */
 }
