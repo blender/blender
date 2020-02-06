@@ -3505,10 +3505,14 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
           manta_needs_realloc(mds->fluid, mmd)) {
         BKE_fluid_reallocate_fluid(mds, mds->res, 1);
       }
-      has_noise = manta_read_noise(mds->fluid, mmd, noise_frame);
+      if (!baking_data && !baking_noise && !mode_replay) {
+        has_data = manta_update_noise_structures(mds->fluid, mmd, noise_frame);
+      }
+      else {
+        has_noise = manta_read_noise(mds->fluid, mmd, noise_frame);
+      }
 
-      /* In case of using the adaptive domain, copy all data that was read to a new fluid object.
-       */
+      /* When using the adaptive domain, copy all data that was read to a new fluid object. */
       if (with_adaptive && baking_noise) {
         /* Adaptive domain needs to know about current state, so save it, then copy. */
         copy_v3_v3_int(o_res, mds->res);
@@ -3521,7 +3525,13 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
               mds, o_res, mds->res, o_min, mds->res_min, o_max, o_shift, mds->shift);
         }
       }
-      has_data = manta_read_data(mds->fluid, mmd, data_frame);
+      if (!baking_data && !baking_noise && !mode_replay) {
+        /* There is no need to call manta_update_smoke_structures() here.
+         * The noise cache has already been read with manta_update_noise_structures(). */
+      }
+      else {
+        has_data = manta_read_data(mds->fluid, mmd, data_frame);
+      }
     }
     /* Read data cache only */
     else {
@@ -3532,7 +3542,12 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
           BKE_fluid_reallocate_fluid(mds, mds->res, 1);
         }
         /* Read data cache */
-        has_data = manta_read_data(mds->fluid, mmd, data_frame);
+        if (!baking_data && !baking_particles && !baking_mesh && !mode_replay) {
+          has_data = manta_update_smoke_structures(mds->fluid, mmd, data_frame);
+        }
+        else {
+          has_data = manta_read_data(mds->fluid, mmd, data_frame);
+        }
       }
       if (with_liquid) {
         if (!baking_data && !baking_particles && !baking_mesh && !mode_replay) {

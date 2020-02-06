@@ -55,6 +55,8 @@ int manta_update_mesh_structures(struct MANTA *fluid, struct FluidModifierData *
 int manta_update_particle_structures(struct MANTA *fluid,
                                      struct FluidModifierData *mmd,
                                      int framenr);
+int manta_update_smoke_structures(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
+int manta_update_noise_structures(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
 int manta_bake_data(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
 int manta_bake_noise(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
 int manta_bake_mesh(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
