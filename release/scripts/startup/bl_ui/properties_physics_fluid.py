@@ -680,7 +680,7 @@ class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guides are enabled but not baked yet.
-        layout.active = domain.use_noise and not self.check_domain_has_unbaked_guide(domain)
+        layout.enabled = domain.use_noise and not self.check_domain_has_unbaked_guide(domain)
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_noise = domain.has_cache_baked_noise
@@ -746,7 +746,7 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guides are enabled but not baked yet.
-        layout.active = domain.use_mesh and not self.check_domain_has_unbaked_guide(domain)
+        layout.enabled = domain.use_mesh and not self.check_domain_has_unbaked_guide(domain)
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_mesh = domain.has_cache_baked_mesh
@@ -818,7 +818,7 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         # Deactivate UI if guides are enabled but not baked yet.
-        layout.active = not self.check_domain_has_unbaked_guide(domain)
+        layout.enabled = not self.check_domain_has_unbaked_guide(domain)
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_particles = domain.has_cache_baked_particles
@@ -1072,7 +1072,10 @@ class PHYSICS_PT_cache(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         is_baking_any = domain.is_cache_baking_any
-        has_baked_any = domain.has_cache_baked_any
+        has_baked_data = domain.has_cache_baked_data
+        has_baked_noise = domain.has_cache_baked_noise
+        has_baked_mesh = domain.has_cache_baked_mesh
+        has_baked_particles = domain.has_cache_baked_particles
 
         col = layout.column()
         col.prop(domain, "cache_directory", text="")
@@ -1096,18 +1099,24 @@ class PHYSICS_PT_cache(PhysicButtonsPanel, Panel):
         col.separator()
 
         col = flow.column()
-        col.enabled = not is_baking_any and not has_baked_any
+        col.enabled = not is_baking_any and not has_baked_data
         col.prop(domain, "cache_data_format", text="Data File Format")
 
         if md.domain_settings.domain_type in {'GAS'}:
             if domain.use_noise:
+                col = flow.column()
+                col.enabled = not is_baking_any and not has_baked_noise
                 col.prop(domain, "cache_noise_format", text="Noise File Format")
 
         if md.domain_settings.domain_type in {'LIQUID'}:
             # File format for all particle systemes (FLIP and secondary)
+            col = flow.column()
+            col.enabled = not is_baking_any and not has_baked_particles
             col.prop(domain, "cache_particle_format", text="Particle File Format")
 
             if domain.use_mesh:
+                col = flow.column()
+                col.enabled = not is_baking_any and not has_baked_mesh
                 col.prop(domain, "cache_mesh_format", text="Mesh File Format")
 
         if domain.cache_type == 'FINAL':
