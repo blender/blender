@@ -610,6 +610,7 @@ typedef struct SmoothModifierData {
 
 /* Smooth modifier flags */
 enum {
+  MOD_SMOOTH_INVERT_VGROUP = (1 << 0),
   MOD_SMOOTH_X = (1 << 1),
   MOD_SMOOTH_Y = (1 << 2),
   MOD_SMOOTH_Z = (1 << 3),

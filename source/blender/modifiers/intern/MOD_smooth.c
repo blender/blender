@@ -101,6 +101,7 @@ static void smoothModifier_do(
 
   const float fac_new = smd->fac;
   const float fac_orig = 1.0f - fac_new;
+  const bool invert_vgroup = (smd->flag & MOD_SMOOTH_INVERT_VGROUP) != 0;
 
   MEdge *medges = mesh->medge;
   const int num_edges = mesh->totedge;
@@ -139,7 +140,8 @@ static void smoothModifier_do(
         }
         float *vco_new = accumulated_vecs[i];
 
-        const float f_new = defvert_find_weight(dv, defgrp_index) * fac_new;
+        const float f_new = invert_vgroup ? (1.0f - defvert_find_weight(dv, defgrp_index)) * fac_new :
+                                             defvert_find_weight(dv, defgrp_index) * fac_new;
         if (f_new <= 0.0f) {
           continue;
         }
