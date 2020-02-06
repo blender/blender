@@ -2242,25 +2242,35 @@ void ntreeSetOutput(bNodeTree *ntree)
    * might be different for editor or for "real" use... */
 }
 
-/* Returns the private NodeTree object of the datablock, if it has one. */
-bNodeTree *ntreeFromID(const ID *id)
+/** Get address of potential nodetree pointer of given ID.
+ *
+ * \warning Using this function directly is potentially dangerous, if you don't know or are not
+ * sure, please use `ntreeFromID()` instead. */
+bNodeTree **BKE_ntree_ptr_from_id(ID *id)
 {
   switch (GS(id->name)) {
     case ID_MA:
-      return ((const Material *)id)->nodetree;
+      return &((Material *)id)->nodetree;
     case ID_LA:
-      return ((const Light *)id)->nodetree;
+      return &((Light *)id)->nodetree;
     case ID_WO:
-      return ((const World *)id)->nodetree;
+      return &((World *)id)->nodetree;
     case ID_TE:
-      return ((const Tex *)id)->nodetree;
+      return &((Tex *)id)->nodetree;
     case ID_SCE:
-      return ((const Scene *)id)->nodetree;
+      return &((Scene *)id)->nodetree;
     case ID_LS:
-      return ((const FreestyleLineStyle *)id)->nodetree;
+      return &((FreestyleLineStyle *)id)->nodetree;
     default:
       return NULL;
   }
+}
+
+/* Returns the private NodeTree object of the datablock, if it has one. */
+bNodeTree *ntreeFromID(ID *id)
+{
+  bNodeTree **nodetree = BKE_ntree_ptr_from_id(id);
+  return (nodetree != NULL) ? *nodetree : NULL;
 }
 
 /* Finds and returns the datablock that privately owns the given tree, or NULL. */

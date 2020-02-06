@@ -387,7 +387,8 @@ struct bNodeTree *ntreeCopyTree(struct Main *bmain, const struct bNodeTree *ntre
 void ntreeUserIncrefID(struct bNodeTree *ntree);
 void ntreeUserDecrefID(struct bNodeTree *ntree);
 
-struct bNodeTree *ntreeFromID(const struct ID *id);
+struct bNodeTree **BKE_ntree_ptr_from_id(struct ID *id);
+struct bNodeTree *ntreeFromID(struct ID *id);
 struct ID *BKE_node_tree_find_owner_ID(struct Main *bmain, struct bNodeTree *ntree);
 
 void ntreeMakeLocal(struct Main *bmain,
