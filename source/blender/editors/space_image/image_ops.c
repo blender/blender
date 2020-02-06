@@ -4346,7 +4346,13 @@ static int tile_add_exec(bContext *C, wmOperator *op)
   Image *ima = CTX_data_edit_image(C);
 
   int start_tile = RNA_int_get(op->ptr, "number");
-  int end_tile = min_ii(start_tile + RNA_int_get(op->ptr, "count"), IMA_UDIM_MAX);
+  int end_tile = start_tile + RNA_int_get(op->ptr, "count");
+
+  if (start_tile < 1001 || end_tile > IMA_UDIM_MAX) {
+    BKE_report(op->reports, RPT_ERROR, "Invalid UDIM index range was specified");
+    return OPERATOR_CANCELLED;
+  }
+
   bool fill_tile = RNA_boolean_get(op->ptr, "fill");
   char *label = RNA_string_get_alloc(op->ptr, "label", NULL, 0);
 
@@ -4442,8 +4448,15 @@ void IMAGE_OT_tile_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_int(
-      ot->srna, "number", 1002, 1001, INT_MAX, "Number", "UDIM number of the tile", 1001, 1099);
+  RNA_def_int(ot->srna,
+              "number",
+              1002,
+              1001,
+              IMA_UDIM_MAX,
+              "Number",
+              "UDIM number of the tile",
+              1001,
+              1099);
   RNA_def_int(ot->srna, "count", 1, 1, INT_MAX, "Count", "How many tiles to add", 1, 1000);
   RNA_def_string(ot->srna, "label", NULL, 0, "Label", "Optional tile label");
   RNA_def_boolean(ot->srna, "fill", true, "Fill", "Fill new tile with a generated image");
