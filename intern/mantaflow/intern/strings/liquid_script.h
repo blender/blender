@@ -181,7 +181,7 @@ def liquid_adaptive_step_$ID$(framenr):\n\
     phi_s$ID$.join(phiIn_s$ID$)\n\
     \n\
     if using_obstacle_s$ID$:\n\
-        phi_s$ID$.subtract(phiObsIn_s$ID$)\n\
+        phi_s$ID$.subtract(o=phiObsIn_s$ID$, flags=flags_s$ID$, subtractType=FlagObstacle)\n\
     \n\
     if using_outflow_s$ID$:\n\
         phiOut_s$ID$.join(phiOutIn_s$ID$)\n\
