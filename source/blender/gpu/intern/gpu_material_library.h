@@ -139,9 +139,7 @@ static GPUMaterialLibrary gpu_shader_material_hash_library = {
 
 static GPUMaterialLibrary gpu_shader_material_noise_library = {
     .code = datatoc_gpu_shader_material_noise_glsl,
-    .dependencies = {&gpu_shader_material_math_util_library,
-                     &gpu_shader_material_hash_library,
-                     NULL},
+    .dependencies = {&gpu_shader_material_hash_library, NULL},
 };
 
 static GPUMaterialLibrary gpu_shader_material_fractal_noise_library = {
