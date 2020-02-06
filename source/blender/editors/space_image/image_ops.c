@@ -781,6 +781,29 @@ static int image_view_all_exec(bContext *C, wmOperator *op)
   w = width * aspx;
   h = height * aspy;
 
+  float xof = 0.0f, yof = 0.0f;
+  if ((sima->image == NULL) || (sima->image->source == IMA_SRC_TILED)) {
+    /* Extend the shown area to cover all UDIM tiles. */
+    int x_tiles, y_tiles;
+    if (sima->image == NULL) {
+      x_tiles = sima->tile_grid_shape[0];
+      y_tiles = sima->tile_grid_shape[1];
+    }
+    else {
+      x_tiles = y_tiles = 1;
+      LISTBASE_FOREACH (ImageTile *, tile, &sima->image->tiles) {
+        int tile_x = (tile->tile_number - 1001) % 10;
+        int tile_y = (tile->tile_number - 1001) / 10;
+        x_tiles = max_ii(x_tiles, tile_x + 1);
+        y_tiles = max_ii(y_tiles, tile_y + 1);
+      }
+    }
+    xof = 0.5f * (x_tiles - 1.0f) * w;
+    yof = 0.5f * (y_tiles - 1.0f) * h;
+    w *= x_tiles;
+    h *= y_tiles;
+  }
+
   /* check if the image will fit in the image with (zoom == 1) */
   width = BLI_rcti_size_x(&ar->winrct) + 1;
   height = BLI_rcti_size_y(&ar->winrct) + 1;
@@ -806,7 +829,8 @@ static int image_view_all_exec(bContext *C, wmOperator *op)
     }
   }
 
-  sima->xof = sima->yof = 0.0f;
+  sima->xof = xof;
+  sima->yof = yof;
 
   ED_region_tag_redraw(ar);
 
