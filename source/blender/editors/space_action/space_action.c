@@ -546,6 +546,12 @@ static void action_listener(wmWindow *UNUSED(win),
       break;
     case NC_SCENE:
       switch (wmn->data) {
+        case ND_SEQUENCER:
+          if (wmn->action == NA_SELECTED) {
+            saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+            ED_area_tag_refresh(sa);
+          }
+          break;
         case ND_OB_ACTIVE:
         case ND_OB_SELECT:
           /* Selection changed, so force refresh to flush
