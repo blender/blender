@@ -1141,7 +1141,8 @@ class PHYSICS_PT_export(PhysicButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        if not PhysicButtonsPanel.poll_fluid_domain(context):
+        # Only show the advanced panel to advanced users who know Mantaflow's birthday :)
+        if not PhysicButtonsPanel.poll_fluid_domain(context) or bpy.app.debug_value != 3001:
             return False
 
         return (context.engine in cls.COMPAT_ENGINES)
