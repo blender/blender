@@ -49,13 +49,6 @@ int quick_floor(float x)
   return int(x) - ((x < 0) ? 1 : 0);
 }
 
-float floorfrac(float x, out int i)
-{
-  float x_floor = floor(x);
-  i = int(x_floor);
-  return x - x_floor;
-}
-
 /* Vector Math */
 
 vec2 safe_divide(vec2 a, vec2 b)

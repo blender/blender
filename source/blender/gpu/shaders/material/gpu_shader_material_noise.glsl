@@ -1,3 +1,7 @@
+/* clang-format off */
+#define FLOORFRAC(x, x_int, x_fract) { float x_floor = floor(x); x_int = int(x_floor); x_fract = x - x_floor; }
+/* clang-format on */
+
 /* Bilinear Interpolation:
  *
  * v2          v3
@@ -124,7 +128,10 @@ float noise_grad(uint hash, float x, float y, float z, float w)
 float noise_perlin(float x)
 {
   int X;
-  float fx = floorfrac(x, X);
+  float fx;
+
+  FLOORFRAC(x, X, fx);
+
   float u = fade(fx);
 
   float r = mix(noise_grad(hash_int(X), fx), noise_grad(hash_int(X + 1), fx - 1.0), u);
@@ -134,11 +141,11 @@ float noise_perlin(float x)
 
 float noise_perlin(vec2 vec)
 {
-  int X;
-  int Y;
+  int X, Y;
+  float fx, fy;
 
-  float fx = floorfrac(vec.x, X);
-  float fy = floorfrac(vec.y, Y);
+  FLOORFRAC(vec.x, X, fx);
+  FLOORFRAC(vec.y, Y, fy);
 
   float u = fade(fx);
   float v = fade(fy);
@@ -155,13 +162,12 @@ float noise_perlin(vec2 vec)
 
 float noise_perlin(vec3 vec)
 {
-  int X;
-  int Y;
-  int Z;
+  int X, Y, Z;
+  float fx, fy, fz;
 
-  float fx = floorfrac(vec.x, X);
-  float fy = floorfrac(vec.y, Y);
-  float fz = floorfrac(vec.z, Z);
+  FLOORFRAC(vec.x, X, fx);
+  FLOORFRAC(vec.y, Y, fy);
+  FLOORFRAC(vec.z, Z, fz);
 
   float u = fade(fx);
   float v = fade(fy);
@@ -184,15 +190,13 @@ float noise_perlin(vec3 vec)
 
 float noise_perlin(vec4 vec)
 {
-  int X;
-  int Y;
-  int Z;
-  int W;
+  int X, Y, Z, W;
+  float fx, fy, fz, fw;
 
-  float fx = floorfrac(vec.x, X);
-  float fy = floorfrac(vec.y, Y);
-  float fz = floorfrac(vec.z, Z);
-  float fw = floorfrac(vec.w, W);
+  FLOORFRAC(vec.x, X, fx);
+  FLOORFRAC(vec.y, Y, fy);
+  FLOORFRAC(vec.z, Z, fz);
+  FLOORFRAC(vec.w, W, fw);
 
   float u = fade(fx);
   float v = fade(fy);
