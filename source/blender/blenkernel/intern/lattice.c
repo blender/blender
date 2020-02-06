@@ -749,12 +749,14 @@ void curve_deform_verts(Object *cuOb,
                         int numVerts,
                         MDeformVert *dvert,
                         const int defgrp_index,
+                        short flag,
                         short defaxis)
 {
   Curve *cu;
   int a;
   CurveDeform cd;
   const bool is_neg_axis = (defaxis > 2);
+  const bool invert_vgroup = (flag & MOD_CURVE_INVERT_VGROUP) != 0;
 
   if (cuOb->type != OB_CURVE) {
     return;
@@ -781,7 +783,8 @@ void curve_deform_verts(Object *cuOb,
 
     if (cu->flag & CU_DEFORM_BOUNDS_OFF) {
       for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
-        const float weight = defvert_find_weight(dvert_iter, defgrp_index);
+        const float weight = invert_vgroup? 1.0f - defvert_find_weight(dvert_iter, defgrp_index) :
+                                             defvert_find_weight(dvert_iter, defgrp_index);
 
         if (weight > 0.0f) {
           mul_m4_v3(cd.curvespace, vert_coords[a]);
@@ -797,14 +800,17 @@ void curve_deform_verts(Object *cuOb,
       INIT_MINMAX(cd.dmin, cd.dmax);
 
       for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
-        if (defvert_find_weight(dvert_iter, defgrp_index) > 0.0f) {
+        const float weight = invert_vgroup? 1.0f - defvert_find_weight(dvert_iter, defgrp_index) :
+                                             defvert_find_weight(dvert_iter, defgrp_index);
+        if (weight > 0.0f) {
           mul_m4_v3(cd.curvespace, vert_coords[a]);
           minmax_v3v3_v3(cd.dmin, cd.dmax, vert_coords[a]);
         }
       }
 
       for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
-        const float weight = defvert_find_weight(dvert_iter, defgrp_index);
+        const float weight = invert_vgroup? 1.0f - defvert_find_weight(dvert_iter, defgrp_index) :
+                                             defvert_find_weight(dvert_iter, defgrp_index);
 
         if (weight > 0.0f) {
           /* already in 'cd.curvespace', prev for loop */

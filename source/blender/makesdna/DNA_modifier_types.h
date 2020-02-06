@@ -199,8 +199,14 @@ typedef struct CurveModifierData {
   char name[64];
   /** Axis along which curve deforms. */
   short defaxis;
-  char _pad[6];
+  short flag;
+  char _pad[4];
 } CurveModifierData;
+
+/* Curve modifier flags */
+enum {
+  MOD_CURVE_INVERT_VGROUP = (1 << 0),
+};
 
 /* CurveModifierData->defaxis */
 enum {

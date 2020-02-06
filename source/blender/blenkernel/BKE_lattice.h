@@ -62,6 +62,7 @@ void curve_deform_verts(struct Object *cuOb,
                         int numVerts,
                         struct MDeformVert *dvert,
                         const int defgrp_index,
+                        short flag,
                         short defaxis);
 void curve_deform_vector(struct Object *cuOb,
                          struct Object *target,
