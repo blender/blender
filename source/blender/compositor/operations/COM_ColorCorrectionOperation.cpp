@@ -117,9 +117,10 @@ void ColorCorrectionOperation::executePixelSampled(float output[4],
   g = 0.5f + ((g - 0.5f) * contrast);
   b = 0.5f + ((b - 0.5f) * contrast);
 
-  r = powf(r * gain + lift, invgamma);
-  g = powf(g * gain + lift, invgamma);
-  b = powf(b * gain + lift, invgamma);
+  /* Check for negative values to avoid nan. */
+  r = (r > 0.0f) ? powf(r * gain + lift, invgamma) : r;
+  g = (g > 0.0f) ? powf(g * gain + lift, invgamma) : g;
+  b = (b > 0.0f) ? powf(b * gain + lift, invgamma) : b;
 
   // mix with mask
   r = mvalue * inputImageColor[0] + value * r;
