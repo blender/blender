@@ -216,29 +216,52 @@ class ToolSelectPanelHelper:
         else:
             return 0
 
+    # tool flattening
+    #
+    # usually 'tools' is already expanded into ToolDef
+    # but when registering a tool, this can still be a function
+    # (_tools_flatten is usually called with cls.tools_from_context(context)
+    # [that already yields from the function])
+    # so if item is still a function (e.g._defs_XXX.generate_from_brushes)
+    # seems like we cannot expand here (have no context yet)
+    # if we yield None here, this will risk running into duplicate tool bl_idname [in register_tool()]
+    # but still better than erroring out
     @staticmethod
     def _tools_flatten(tools):
-        for item in tools:
-            if type(item) is tuple:
-                yield from item
-            else:
-                # May be None.
-                yield item
+        for item_parent in tools:
+            if item_parent is None:
+                yield None
+            for item in item_parent if (type(item_parent) is tuple) else (item_parent,):
+                if item is None or _item_is_fn(item):
+                    yield None
+                else:
+                    yield item
 
     @staticmethod
     def _tools_flatten_with_tool_index(tools):
-        for item in tools:
-            if type(item) is tuple:
-                i = 0
-                for sub_item in item:
-                    if sub_item is None:
-                        yield None, -1
-                    else:
-                        yield sub_item, i
-                        i += 1
-            else:
-                # May be None.
-                yield item, -1
+        for item_parent in tools:
+            if item_parent is None:
+                yield None, -1
+            i = 0
+            for item in item_parent if (type(item_parent) is tuple) else (item_parent,):
+                if item is None or _item_is_fn(item):
+                    yield None, -1
+                else:
+                    yield item, i
+                    i += 1
+
+    # Special internal function, gives use items that contain keymaps.
+    @staticmethod
+    def _tools_flatten_with_keymap(tools):
+        for item_parent in tools:
+            if item_parent is None:
+                continue
+            for item in item_parent if (type(item_parent) is tuple) else (item_parent,):
+                # skip None or generator function
+                if item is None or _item_is_fn(item):
+                    continue
+                if item.keymap is not None:
+                    yield item
 
     @classmethod
     def _tool_get_active(cls, context, space_type, mode, with_icon=False):
@@ -412,19 +435,6 @@ class ToolSelectPanelHelper:
             km = kc.keymaps.new(km_idname, space_type=cls.bl_space_type, region_type='WINDOW', tool=True)
             keymap_fn[0](km)
         keymap_fn[0] = km.name
-
-    # Special internal function, gives use items that contain keymaps.
-    @staticmethod
-    def _tools_flatten_with_keymap(tools):
-        for item_parent in tools:
-            if item_parent is None:
-                continue
-            for item in item_parent if (type(item_parent) is tuple) else (item_parent,):
-                # skip None or generator function
-                if item is None or _item_is_fn(item):
-                    continue
-                if item.keymap is not None:
-                    yield item
 
     @classmethod
     def register(cls):
