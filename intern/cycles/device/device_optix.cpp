@@ -31,9 +31,6 @@
 #  include "util/util_debug.h"
 #  include "util/util_logging.h"
 
-#  undef _WIN32_WINNT  // Need minimum API support for Windows 7
-#  define _WIN32_WINNT _WIN32_WINNT_WIN7
-
 #  ifdef WITH_CUDA_DYNLOAD
 #    include <cuew.h>
 // Do not use CUDA SDK headers when using CUEW
