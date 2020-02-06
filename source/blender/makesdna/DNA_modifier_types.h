@@ -182,8 +182,14 @@ typedef struct LatticeModifierData {
   /** Optional vertexgroup name, MAX_VGROUP_NAME. */
   char name[64];
   float strength;
-  char _pad[4];
+  short flag;
+  char _pad[2];
 } LatticeModifierData;
+
+/*Lattice modifier flags */
+enum {
+  MOD_LATTICE_INVERT_VGROUP = (1 << 0),
+};
 
 typedef struct CurveModifierData {
   ModifierData modifier;

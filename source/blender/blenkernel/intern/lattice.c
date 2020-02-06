@@ -213,7 +213,7 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 
     copy_m4_m4(mat, ltOb->obmat);
     unit_m4(ltOb->obmat);
-    lattice_deform_verts(ltOb, NULL, NULL, vert_coords, uNew * vNew * wNew, NULL, 1.0f);
+    lattice_deform_verts(ltOb, NULL, NULL, vert_coords, uNew * vNew * wNew, 0, NULL, 1.0f);
     copy_m4_m4(ltOb->obmat, mat);
 
     lt->typeu = typeu;
@@ -883,6 +883,7 @@ typedef struct LatticeDeformUserdata {
   MDeformVert *dvert;
   int defgrp_index;
   float fac;
+  bool invert_vgroup;
 } LatticeDeformUserdata;
 
 static void lattice_deform_vert_task(void *__restrict userdata,
@@ -892,7 +893,8 @@ static void lattice_deform_vert_task(void *__restrict userdata,
   const LatticeDeformUserdata *data = userdata;
 
   if (data->dvert != NULL) {
-    const float weight = defvert_find_weight(data->dvert + index, data->defgrp_index);
+    const float weight = data->invert_vgroup? 1.0f - defvert_find_weight(data->dvert + index, data->defgrp_index) :
+                                                defvert_find_weight(data->dvert + index, data->defgrp_index);
     if (weight > 0.0f) {
       calc_latt_deform(data->lattice_deform_data, data->vert_coords[index], weight * data->fac);
     }
@@ -907,6 +909,7 @@ void lattice_deform_verts(Object *laOb,
                           Mesh *mesh,
                           float (*vert_coords)[3],
                           int numVerts,
+                          short flag,
                           const char *vgroup,
                           float fac)
 {
@@ -946,6 +949,7 @@ void lattice_deform_verts(Object *laOb,
       .dvert = dvert,
       .defgrp_index = defgrp_index,
       .fac = fac,
+      .invert_vgroup = (flag & MOD_LATTICE_INVERT_VGROUP) != 0,
   };
 
   TaskParallelSettings settings;
@@ -962,7 +966,7 @@ bool object_deform_mball(Object *ob, ListBase *dispbase)
     DispList *dl;
 
     for (dl = dispbase->first; dl; dl = dl->next) {
-      lattice_deform_verts(ob->parent, ob, NULL, (float(*)[3])dl->verts, dl->nr, NULL, 1.0f);
+      lattice_deform_verts(ob->parent, ob, NULL, (float(*)[3])dl->verts, dl->nr, 0, NULL, 1.0f);
     }
 
     return true;

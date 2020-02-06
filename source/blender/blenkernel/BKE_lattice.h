@@ -75,6 +75,7 @@ void lattice_deform_verts(struct Object *laOb,
                           struct Mesh *mesh,
                           float (*vert_coords)[3],
                           int numVerts,
+                          short flag,
                           const char *vgroup,
                           float influence);
 void armature_deform_verts(struct Object *armOb,
