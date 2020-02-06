@@ -7227,6 +7227,14 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
   gpd->adt = newdataadr(fd, gpd->adt);
   direct_link_animdata(fd, gpd->adt);
 
+  /* If linking from a library ensure full objectmode. */
+  if (gpd->id.lib != NULL) {
+    gpd->flag &= ~GP_DATA_STROKE_PAINTMODE;
+    gpd->flag &= ~GP_DATA_STROKE_EDITMODE;
+    gpd->flag &= ~GP_DATA_STROKE_SCULPTMODE;
+    gpd->flag &= ~GP_DATA_STROKE_WEIGHTMODE;
+  }
+
   /* init stroke buffer */
   gpd->runtime.sbuffer = NULL;
   gpd->runtime.sbuffer_used = 0;
