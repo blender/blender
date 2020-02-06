@@ -24,15 +24,21 @@
 #ifndef __ED_IMAGE_H__
 #define __ED_IMAGE_H__
 
+#include "DNA_listBase.h"
+#include "DNA_space_types.h"
+
 struct ARegion;
 struct ImBuf;
 struct Image;
 struct ImageUser;
+struct LinkNodePair;
+struct Main;
 struct ReportList;
 struct Scene;
 struct SpaceImage;
 struct ViewLayer;
 struct bContext;
+struct wmOperator;
 struct wmWindowManager;
 
 /* image_edit.c, exported for transform */
@@ -115,5 +121,25 @@ bool ED_space_image_show_cache(struct SpaceImage *sima);
 bool ED_image_should_save_modified(const struct bContext *C);
 int ED_image_save_all_modified_info(const struct bContext *C, struct ReportList *reports);
 bool ED_image_save_all_modified(const struct bContext *C, struct ReportList *reports);
+
+/* image_sequence.c */
+typedef struct ImageFrameRange {
+  struct ImageFrameRange *next, *prev;
+
+  /** Absolute file path of the first file in the range. */
+  char filepath[FILE_MAX];
+  /* Sequence parameters. */
+  int length;
+  int offset;
+  /* UDIM tiles. */
+  ListBase udim_tiles;
+
+  /* Temporary data. */
+  ListBase frames;
+} ImageFrameRange;
+
+ListBase ED_image_filesel_detect_sequences(struct Main *bmain,
+                                           struct wmOperator *op,
+                                           const bool detect_udim);
 
 #endif /* __ED_IMAGE_H__ */

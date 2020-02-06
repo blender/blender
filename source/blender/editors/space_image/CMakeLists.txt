@@ -43,6 +43,7 @@ set(SRC
   image_draw.c
   image_edit.c
   image_ops.c
+  image_sequence.c
   image_undo.c
   space_image.c
 

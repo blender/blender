@@ -1207,18 +1207,6 @@ typedef struct ImageOpenData {
   ImageFormatData im_format;
 } ImageOpenData;
 
-typedef struct ImageFrameRange {
-  struct ImageFrameRange *next, *prev;
-  ListBase frames;
-  /**  The full path of the first file in the list of image files */
-  char filepath[FILE_MAX];
-} ImageFrameRange;
-
-typedef struct ImageFrame {
-  struct ImageFrame *next, *prev;
-  int framenr;
-} ImageFrame;
-
 static void image_open_init(bContext *C, wmOperator *op)
 {
   ImageOpenData *iod;
@@ -1233,179 +1221,18 @@ static void image_open_cancel(bContext *UNUSED(C), wmOperator *op)
   op->customdata = NULL;
 }
 
-/**
- * Get a list of frames from the list of image files matching the first file name sequence pattern.
- * \param ptr[in]: The RNA pointer containing the "directory" entry and "files" collection.
- * \param frames_all[out]: the list of frame numbers found in the files matching
- * the first one by name.
- */
-static void image_sequence_get_frame_ranges(PointerRNA *ptr, ListBase *frames_all)
-{
-  char dir[FILE_MAXDIR];
-  const bool do_frame_range = RNA_boolean_get(ptr, "use_sequence_detection");
-  ImageFrameRange *frame_range = NULL;
-
-  RNA_string_get(ptr, "directory", dir);
-  RNA_BEGIN (ptr, itemptr, "files") {
-    char base_head[FILE_MAX], base_tail[FILE_MAX];
-    char head[FILE_MAX], tail[FILE_MAX];
-    unsigned short digits;
-    char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
-    ImageFrame *frame = MEM_callocN(sizeof(ImageFrame), "image_frame");
-
-    /* use the first file in the list as base filename */
-    frame->framenr = BLI_stringdec(filename, head, tail, &digits);
-
-    /* still in the same sequence */
-    if (do_frame_range && (frame_range != NULL) && (STREQLEN(base_head, head, FILE_MAX)) &&
-        (STREQLEN(base_tail, tail, FILE_MAX))) {
-      /* pass */
-    }
-    else {
-      /* start a new frame range */
-      frame_range = MEM_callocN(sizeof(*frame_range), __func__);
-      BLI_join_dirfile(frame_range->filepath, sizeof(frame_range->filepath), dir, filename);
-      BLI_addtail(frames_all, frame_range);
-
-      BLI_strncpy(base_head, head, sizeof(base_head));
-      BLI_strncpy(base_tail, tail, sizeof(base_tail));
-    }
-
-    BLI_addtail(&frame_range->frames, frame);
-    MEM_freeN(filename);
-  }
-  RNA_END;
-}
-
-static int image_cmp_frame(const void *a, const void *b)
-{
-  const ImageFrame *frame_a = a;
-  const ImageFrame *frame_b = b;
-
-  if (frame_a->framenr < frame_b->framenr) {
-    return -1;
-  }
-  if (frame_a->framenr > frame_b->framenr) {
-    return 1;
-  }
-  return 0;
-}
-
-/* Checks whether the given filepath refers to a UDIM texture.
- * If yes, the range from 1001 to the highest tile is returned, otherwise 0.
- *
- * If the result is positive, the filepath will be overwritten with that of
- * the 1001 tile.
- * udim_tiles may get filled even if the result ultimately is false! */
-static int image_get_udim(char *filepath, LinkNodePair *udim_tiles)
-{
-  char filename[FILE_MAX], dirname[FILE_MAXDIR];
-  BLI_split_dirfile(filepath, dirname, filename, sizeof(dirname), sizeof(filename));
-
-  unsigned short digits;
-  char base_head[FILE_MAX], base_tail[FILE_MAX];
-  int id = BLI_stringdec(filename, base_head, base_tail, &digits);
-
-  if (id < 1001 || id >= IMA_UDIM_MAX) {
-    return 0;
-  }
-
-  bool is_udim = true;
-  bool has_primary = false;
-  int max_udim = 0;
-
-  struct direntry *dir;
-  uint totfile = BLI_filelist_dir_contents(dirname, &dir);
-  for (int i = 0; i < totfile; i++) {
-    if (!(dir[i].type & S_IFREG)) {
-      continue;
-    }
-    char head[FILE_MAX], tail[FILE_MAX];
-    id = BLI_stringdec(dir[i].relname, head, tail, &digits);
-
-    if (digits > 4 || !(STREQLEN(base_head, head, FILE_MAX)) ||
-        !(STREQLEN(base_tail, tail, FILE_MAX))) {
-      continue;
-    }
-
-    if (id < 1001 || id >= IMA_UDIM_MAX) {
-      is_udim = false;
-      break;
-    }
-    if (id == 1001) {
-      has_primary = true;
-    }
-
-    BLI_linklist_append(udim_tiles, POINTER_FROM_INT(id));
-    max_udim = max_ii(max_udim, id);
-  }
-  BLI_filelist_free(dir, totfile);
-
-  if (is_udim && has_primary) {
-    char primary_filename[FILE_MAX];
-    BLI_stringenc(primary_filename, base_head, base_tail, digits, 1001);
-    BLI_join_dirfile(filepath, FILE_MAX, dirname, primary_filename);
-    return max_udim - 1000;
-  }
-  return 0;
-}
-
-/**
- * Return the start (offset) and the length of the sequence of
- * continuous frames in the list of frames.
- *
- * \param frames: [in] the list of frame numbers, as a side-effect the list is sorted.
- * \param ofs: [out] offset the first frame number in the sequence.
- * \return the number of contiguous frames in the sequence
- */
-static int image_sequence_get_len(ImageFrameRange *frame_range,
-                                  int *ofs,
-                                  char *filepath_range,
-                                  LinkNodePair *udim_tiles)
-{
-  ImageFrame *frame;
-
-  BLI_listbase_sort(&frame_range->frames, image_cmp_frame);
-  BLI_strncpy(filepath_range, frame_range->filepath, FILE_MAX);
-
-  frame = frame_range->frames.first;
-  if (frame != NULL) {
-    int frame_curr = frame->framenr;
-    (*ofs) = frame_curr;
-
-    if (udim_tiles != NULL) {
-      int len_udim = image_get_udim(filepath_range, udim_tiles);
-      if (len_udim > 0) {
-        *ofs = 1001;
-        return len_udim;
-      }
-    }
-
-    while (frame != NULL && (frame->framenr == frame_curr)) {
-      frame_curr++;
-      frame = frame->next;
-    }
-    return frame_curr - (*ofs);
-  }
-  *ofs = 0;
-  return 0;
-}
-
 static Image *image_open_single(Main *bmain,
                                 wmOperator *op,
-                                const char *filepath,
+                                ImageFrameRange *range,
                                 const char *relbase,
                                 bool is_relative_path,
-                                bool use_multiview,
-                                int frame_seq_len,
-                                int frame_seq_ofs,
-                                LinkNodePair *udim_tiles)
+                                bool use_multiview)
 {
   bool exists = false;
   Image *ima = NULL;
 
   errno = 0;
-  ima = BKE_image_load_exists_ex(bmain, filepath, &exists);
+  ima = BKE_image_load_exists_ex(bmain, range->filepath, &exists);
 
   if (!ima) {
     if (op->customdata) {
@@ -1414,7 +1241,7 @@ static Image *image_open_single(Main *bmain,
     BKE_reportf(op->reports,
                 RPT_ERROR,
                 "Cannot read '%s': %s",
-                filepath,
+                range->filepath,
                 errno ? strerror(errno) : TIP_("unsupported image format"));
     return NULL;
   }
@@ -1439,11 +1266,11 @@ static Image *image_open_single(Main *bmain,
       BKE_image_free_views(ima);
     }
 
-    if ((frame_seq_len > 1) && (ima->source == IMA_SRC_FILE)) {
-      if (udim_tiles && frame_seq_ofs == 1001) {
+    if ((range->length > 1) && (ima->source == IMA_SRC_FILE)) {
+      if (range->udim_tiles.first && range->offset == 1001) {
         ima->source = IMA_SRC_TILED;
-        for (LinkNode *node = udim_tiles->list; node; node = node->next) {
-          BKE_image_add_tile(ima, POINTER_AS_INT(node->link), NULL);
+        for (LinkData *node = range->udim_tiles.first; node; node = node->next) {
+          BKE_image_add_tile(ima, POINTER_AS_INT(node->data), NULL);
         }
       }
       else {
@@ -1464,7 +1291,6 @@ static int image_open_exec(bContext *C, wmOperator *op)
   ImageUser *iuser = NULL;
   ImageOpenData *iod = op->customdata;
   Image *ima = NULL;
-  char filepath[FILE_MAX];
   int frame_seq_len = 0;
   int frame_ofs = 1;
 
@@ -1476,83 +1302,21 @@ static int image_open_exec(bContext *C, wmOperator *op)
     image_open_init(C, op);
   }
 
-  RNA_string_get(op->ptr, "filepath", filepath);
+  ListBase ranges = ED_image_filesel_detect_sequences(bmain, op, use_udim);
+  for (ImageFrameRange *range = ranges.first; range; range = range->next) {
+    Image *ima_range = image_open_single(
+        bmain, op, range, BKE_main_blendfile_path(bmain), is_relative_path, use_multiview);
 
-  if (RNA_struct_property_is_set(op->ptr, "directory") &&
-      RNA_struct_property_is_set(op->ptr, "files")) {
-    bool was_relative = BLI_path_is_rel(filepath);
-    ListBase frame_ranges_all;
-
-    BLI_listbase_clear(&frame_ranges_all);
-    image_sequence_get_frame_ranges(op->ptr, &frame_ranges_all);
-    for (ImageFrameRange *frame_range = frame_ranges_all.first; frame_range;
-         frame_range = frame_range->next) {
-      int frame_range_ofs;
-
-      LinkNodePair udim_tiles = {NULL};
-      LinkNodePair *udim_tiles_ptr = use_udim ? (&udim_tiles) : NULL;
-
-      char filepath_range[FILE_MAX];
-      int frame_range_seq_len = image_sequence_get_len(
-          frame_range, &frame_range_ofs, filepath_range, udim_tiles_ptr);
-      BLI_freelistN(&frame_range->frames);
-
-      if (was_relative) {
-        BLI_path_rel(filepath_range, BKE_main_blendfile_path(bmain));
-      }
-
-      Image *ima_range = image_open_single(bmain,
-                                           op,
-                                           filepath_range,
-                                           BKE_main_blendfile_path(bmain),
-                                           is_relative_path,
-                                           use_multiview,
-                                           frame_range_seq_len,
-                                           frame_range_ofs,
-                                           udim_tiles_ptr);
-
-      /* take the first image */
-      if ((ima == NULL) && ima_range) {
-        ima = ima_range;
-        frame_seq_len = frame_range_seq_len;
-        frame_ofs = frame_range_ofs;
-      }
-
-      BLI_linklist_free(udim_tiles.list, NULL);
-    }
-    BLI_freelistN(&frame_ranges_all);
-  }
-  else {
-    /* for drag & drop etc. */
-
-    LinkNodePair udim_tiles = {NULL};
-    frame_seq_len = 1;
-    char filepath_range[FILE_MAX];
-    BLI_strncpy(filepath_range, filepath, FILE_MAX);
-
-    if (use_udim > 0) {
-      /* Try to find UDIM tiles corresponding to the image */
-      int udim_len = image_get_udim(filepath_range, &udim_tiles);
-
-      /* If we found something, mark the image as tiled. */
-      if (udim_len) {
-        frame_seq_len = udim_len;
-        frame_ofs = 1001;
-      }
+    /* take the first image */
+    if ((ima == NULL) && ima_range) {
+      ima = ima_range;
+      frame_seq_len = range->length;
+      frame_ofs = range->offset;
     }
 
-    ima = image_open_single(bmain,
-                            op,
-                            filepath_range,
-                            BKE_main_blendfile_path(bmain),
-                            is_relative_path,
-                            use_multiview,
-                            frame_seq_len,
-                            frame_ofs,
-                            &udim_tiles);
-
-    BLI_linklist_free(udim_tiles.list, NULL);
+    BLI_freelistN(&range->udim_tiles);
   }
+  BLI_freelistN(&ranges);
 
   if (ima == NULL) {
     return OPERATOR_CANCELLED;
