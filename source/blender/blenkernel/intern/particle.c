@@ -3638,12 +3638,14 @@ void object_remove_particle_system(Main *bmain, Scene *UNUSED(scene), Object *ob
     }
   }
 
-  /* clear modifier */
+  /* Clear modifier, skip empty ones. */
   psmd = psys_get_modifier(ob, psys);
-  BLI_remlink(&ob->modifiers, psmd);
-  modifier_free((ModifierData *)psmd);
+  if (psmd) {
+    BLI_remlink(&ob->modifiers, psmd);
+    modifier_free((ModifierData *)psmd);
+  }
 
-  /* clear particle system */
+  /* Clear particle system. */
   BLI_remlink(&ob->particlesystem, psys);
   if (psys->part) {
     id_us_min(&psys->part->id);

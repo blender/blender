@@ -143,6 +143,20 @@ int manta_update_particle_structures(MANTA *fluid, FluidModifierData *mmd, int f
   return fluid->updateParticleStructures(mmd, framenr);
 }
 
+int manta_update_smoke_structures(MANTA *fluid, FluidModifierData *mmd, int framenr)
+{
+  if (!fluid || !mmd)
+    return 0;
+  return fluid->updateSmokeStructures(mmd, framenr);
+}
+
+int manta_update_noise_structures(MANTA *fluid, FluidModifierData *mmd, int framenr)
+{
+  if (!fluid || !mmd)
+    return 0;
+  return fluid->updateNoiseStructures(mmd, framenr);
+}
+
 int manta_bake_data(MANTA *fluid, FluidModifierData *mmd, int framenr)
 {
   if (!fluid || !mmd)
