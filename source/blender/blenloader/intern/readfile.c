@@ -2613,7 +2613,29 @@ static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_p
 /** \name Read ID
  * \{ */
 
-static void lib_link_id(FileData *fd, Main *UNUSED(bmain), ID *id)
+static void lib_link_id(FileData *fd, Main *bmain, ID *id);
+static void lib_link_nodetree(FileData *fd, Main *bmain, bNodeTree *ntree);
+static void lib_link_collection(FileData *fd, Main *bmain, Collection *collection);
+
+static void lib_link_id_private_id(FileData *fd, Main *bmain, ID *id)
+{
+  /* Handle 'private IDs'. */
+  bNodeTree *nodetree = ntreeFromID(id);
+  if (nodetree != NULL) {
+    lib_link_id(fd, bmain, &nodetree->id);
+    lib_link_nodetree(fd, bmain, nodetree);
+  }
+
+  if (GS(id->name) == ID_SCE) {
+    Scene *scene = (Scene *)id;
+    if (scene->master_collection != NULL) {
+      lib_link_id(fd, bmain, &scene->master_collection->id);
+      lib_link_collection(fd, bmain, scene->master_collection);
+    }
+  }
+}
+
+static void lib_link_id(FileData *fd, Main *bmain, ID *id)
 {
   /* Note: WM IDProperties are never written to file, hence they should always be NULL here. */
   BLI_assert((GS(id->name) != ID_WM) || id->properties == NULL);
@@ -2628,6 +2650,8 @@ static void lib_link_id(FileData *fd, Main *UNUSED(bmain), ID *id)
     id->override_library->reference = newlibadr_us(fd, id->lib, id->override_library->reference);
     id->override_library->storage = newlibadr_us(fd, id->lib, id->override_library->storage);
   }
+
+  lib_link_id_private_id(fd, bmain, id);
 }
 
 static void direct_link_id_override_property_operation_cb(FileData *fd, void *data)
@@ -2644,6 +2668,30 @@ static void direct_link_id_override_property_cb(FileData *fd, void *data)
 
   op->rna_path = newdataadr(fd, op->rna_path);
   link_list_ex(fd, &op->operations, direct_link_id_override_property_operation_cb);
+}
+
+static void direct_link_id(FileData *fd, ID *id);
+static void direct_link_nodetree(FileData *fd, bNodeTree *ntree);
+static void direct_link_collection(FileData *fd, Collection *collection);
+
+static void direct_link_id_private_id(FileData *fd, ID *id)
+{
+  /* Handle 'private IDs'. */
+  bNodeTree **nodetree = BKE_ntree_ptr_from_id(id);
+  if (nodetree != NULL && *nodetree != NULL) {
+    *nodetree = newdataadr(fd, *nodetree);
+    direct_link_id(fd, (ID *)*nodetree);
+    direct_link_nodetree(fd, *nodetree);
+  }
+
+  if (GS(id->name) == ID_SCE) {
+    Scene *scene = (Scene *)id;
+    if (scene->master_collection != NULL) {
+      scene->master_collection = newdataadr(fd, scene->master_collection);
+      direct_link_id(fd, &scene->master_collection->id);
+      direct_link_collection(fd, scene->master_collection);
+    }
+  }
 }
 
 static void direct_link_id(FileData *fd, ID *id)
@@ -2685,6 +2733,9 @@ static void direct_link_id(FileData *fd, ID *id)
   if (drawdata) {
     BLI_listbase_clear((ListBase *)drawdata);
   }
+
+  /* Handle 'private IDs'. */
+  direct_link_id_private_id(fd, id);
 }
 
 /** \} */
@@ -3874,14 +3925,9 @@ static void direct_link_camera(FileData *fd, Camera *ca)
 /** \name Read ID: Light
  * \{ */
 
-static void lib_link_light(FileData *fd, Main *bmain, Light *la)
+static void lib_link_light(FileData *fd, Main *UNUSED(bmain), Light *la)
 {
   la->ipo = newlibadr_us(fd, la->id.lib, la->ipo);  // XXX deprecated - old animation system
-
-  if (la->nodetree) {
-    lib_link_id(fd, bmain, &la->nodetree->id);
-    lib_link_ntree(fd, la->id.lib, la->nodetree);
-  }
 }
 
 static void direct_link_light(FileData *fd, Light *la)
@@ -3892,12 +3938,6 @@ static void direct_link_light(FileData *fd, Light *la)
   la->curfalloff = newdataadr(fd, la->curfalloff);
   if (la->curfalloff) {
     direct_link_curvemapping(fd, la->curfalloff);
-  }
-
-  la->nodetree = newdataadr(fd, la->nodetree);
-  if (la->nodetree) {
-    direct_link_id(fd, &la->nodetree->id);
-    direct_link_nodetree(fd, la->nodetree);
   }
 
   la->preview = direct_link_preview_image(fd, la->preview);
@@ -4016,26 +4056,15 @@ static void direct_link_mball(FileData *fd, MetaBall *mb)
 /** \name Read ID: World
  * \{ */
 
-static void lib_link_world(FileData *fd, Main *bmain, World *wrld)
+static void lib_link_world(FileData *fd, Main *UNUSED(bmain), World *wrld)
 {
   wrld->ipo = newlibadr_us(fd, wrld->id.lib, wrld->ipo);  // XXX deprecated - old animation system
-
-  if (wrld->nodetree) {
-    lib_link_id(fd, bmain, &wrld->nodetree->id);
-    lib_link_ntree(fd, wrld->id.lib, wrld->nodetree);
-  }
 }
 
 static void direct_link_world(FileData *fd, World *wrld)
 {
   wrld->adt = newdataadr(fd, wrld->adt);
   direct_link_animdata(fd, wrld->adt);
-
-  wrld->nodetree = newdataadr(fd, wrld->nodetree);
-  if (wrld->nodetree) {
-    direct_link_id(fd, &wrld->nodetree->id);
-    direct_link_nodetree(fd, wrld->nodetree);
-  }
 
   wrld->preview = direct_link_preview_image(fd, wrld->preview);
   BLI_listbase_clear(&wrld->gpumaterial);
@@ -4278,15 +4307,10 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 /** \name Read ID: Texture
  * \{ */
 
-static void lib_link_texture(FileData *fd, Main *bmain, Tex *tex)
+static void lib_link_texture(FileData *fd, Main *UNUSED(bmain), Tex *tex)
 {
   tex->ima = newlibadr_us(fd, tex->id.lib, tex->ima);
   tex->ipo = newlibadr_us(fd, tex->id.lib, tex->ipo);  // XXX deprecated - old animation system
-
-  if (tex->nodetree) {
-    lib_link_id(fd, bmain, &tex->nodetree->id);
-    lib_link_ntree(fd, tex->id.lib, tex->nodetree);
-  }
 }
 
 static void direct_link_texture(FileData *fd, Tex *tex)
@@ -4295,12 +4319,6 @@ static void direct_link_texture(FileData *fd, Tex *tex)
   direct_link_animdata(fd, tex->adt);
 
   tex->coba = newdataadr(fd, tex->coba);
-
-  tex->nodetree = newdataadr(fd, tex->nodetree);
-  if (tex->nodetree) {
-    direct_link_id(fd, &tex->nodetree->id);
-    direct_link_nodetree(fd, tex->nodetree);
-  }
 
   tex->preview = direct_link_preview_image(fd, tex->preview);
 
@@ -4314,14 +4332,9 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 /** \name Read ID: Material
  * \{ */
 
-static void lib_link_material(FileData *fd, Main *bmain, Material *ma)
+static void lib_link_material(FileData *fd, Main *UNUSED(bmain), Material *ma)
 {
   ma->ipo = newlibadr_us(fd, ma->id.lib, ma->ipo);  // XXX deprecated - old animation system
-
-  if (ma->nodetree) {
-    lib_link_id(fd, bmain, &ma->nodetree->id);
-    lib_link_ntree(fd, ma->id.lib, ma->nodetree);
-  }
 
   /* relink grease pencil settings */
   if (ma->gp_style != NULL) {
@@ -4341,12 +4354,6 @@ static void direct_link_material(FileData *fd, Material *ma)
   direct_link_animdata(fd, ma->adt);
 
   ma->texpaintslot = NULL;
-
-  ma->nodetree = newdataadr(fd, ma->nodetree);
-  if (ma->nodetree) {
-    direct_link_id(fd, &ma->nodetree->id);
-    direct_link_nodetree(fd, ma->nodetree);
-  }
 
   ma->preview = direct_link_preview_image(fd, ma->preview);
   BLI_listbase_clear(&ma->gpumaterial);
@@ -6325,7 +6332,7 @@ static bool scene_validate_setscene__liblink(Scene *sce, const int totscene)
 }
 #endif
 
-static void lib_link_scene(FileData *fd, Main *bmain, Scene *sce)
+static void lib_link_scene(FileData *fd, Main *UNUSED(bmain), Scene *sce)
 {
   lib_link_keyingsets(fd, &sce->id, &sce->keyingsets);
 
@@ -6459,8 +6466,6 @@ static void lib_link_scene(FileData *fd, Main *bmain, Scene *sce)
   }
 
   if (sce->nodetree) {
-    lib_link_id(fd, bmain, &sce->nodetree->id);
-    lib_link_ntree(fd, sce->id.lib, sce->nodetree);
     composite_patch(sce->nodetree, sce);
   }
 
@@ -6482,11 +6487,6 @@ static void lib_link_scene(FileData *fd, Main *bmain, Scene *sce)
     lib_link_scene_collection(fd, sce->id.lib, sce->collection);
   }
 #endif
-
-  if (sce->master_collection) {
-    lib_link_id(fd, bmain, &sce->master_collection->id);
-    lib_link_collection_data(fd, sce->id.lib, sce->master_collection);
-  }
 
   for (ViewLayer *view_layer = sce->view_layers.first; view_layer; view_layer = view_layer->next) {
     lib_link_view_layer(fd, sce->id.lib, view_layer);
@@ -6817,12 +6817,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
     link_list(fd, &(srl->freestyleConfig.linesets));
   }
 
-  sce->nodetree = newdataadr(fd, sce->nodetree);
-  if (sce->nodetree) {
-    direct_link_id(fd, &sce->nodetree->id);
-    direct_link_nodetree(fd, sce->nodetree);
-  }
-
   direct_link_view_settings(fd, &sce->view_settings);
 
   sce->rigidbody_world = newdataadr(fd, sce->rigidbody_world);
@@ -6877,13 +6871,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
     direct_link_scene_collection(fd, sce->collection);
   }
 #endif
-
-  if (sce->master_collection) {
-    sce->master_collection = newdataadr(fd, sce->master_collection);
-    /* Needed because this is an ID outside of Main. */
-    direct_link_id(fd, &sce->master_collection->id);
-    direct_link_collection(fd, sce->master_collection);
-  }
 
   /* insert into global old-new map for reading without UI (link_global accesses it again) */
   link_glob_list(fd, &sce->view_layers);
@@ -8576,7 +8563,7 @@ static void lib_link_mask(FileData *fd, Main *UNUSED(bmain), Mask *mask)
 /** \name Read ID: Line Style
  * \{ */
 
-static void lib_link_linestyle(FileData *fd, Main *bmain, FreestyleLineStyle *linestyle)
+static void lib_link_linestyle(FileData *fd, Main *UNUSED(bmain), FreestyleLineStyle *linestyle)
 {
   LineStyleModifier *m;
 
@@ -8616,10 +8603,6 @@ static void lib_link_linestyle(FileData *fd, Main *bmain, FreestyleLineStyle *li
       mtex->tex = newlibadr_us(fd, linestyle->id.lib, mtex->tex);
       mtex->object = newlibadr(fd, linestyle->id.lib, mtex->object);
     }
-  }
-  if (linestyle->nodetree) {
-    lib_link_id(fd, bmain, &linestyle->nodetree->id);
-    lib_link_ntree(fd, linestyle->id.lib, linestyle->nodetree);
   }
 }
 
@@ -8810,11 +8793,6 @@ static void direct_link_linestyle(FileData *fd, FreestyleLineStyle *linestyle)
   }
   for (a = 0; a < MAX_MTEX; a++) {
     linestyle->mtex[a] = newdataadr(fd, linestyle->mtex[a]);
-  }
-  linestyle->nodetree = newdataadr(fd, linestyle->nodetree);
-  if (linestyle->nodetree) {
-    direct_link_id(fd, &linestyle->nodetree->id);
-    direct_link_nodetree(fd, linestyle->nodetree);
   }
 }
 
@@ -10104,39 +10082,6 @@ static void expand_constraint_channels(FileData *fd, Main *mainvar, ListBase *ch
   }
 }
 
-static void expand_id(FileData *fd, Main *mainvar, ID *id)
-{
-  if (id->override_library) {
-    expand_doit(fd, mainvar, id->override_library->reference);
-    expand_doit(fd, mainvar, id->override_library->storage);
-  }
-}
-
-static void expand_idprops(FileData *fd, Main *mainvar, IDProperty *prop)
-{
-  if (!prop) {
-    return;
-  }
-
-  switch (prop->type) {
-    case IDP_ID:
-      expand_doit(fd, mainvar, IDP_Id(prop));
-      break;
-    case IDP_IDPARRAY: {
-      IDProperty *idp_array = IDP_IDPArray(prop);
-      for (int i = 0; i < prop->len; i++) {
-        expand_idprops(fd, mainvar, &idp_array[i]);
-      }
-      break;
-    }
-    case IDP_GROUP:
-      for (IDProperty *loop = prop->data.group.first; loop; loop = loop->next) {
-        expand_idprops(fd, mainvar, loop);
-      }
-      break;
-  }
-}
-
 static void expand_fmodifiers(FileData *fd, Main *mainvar, ListBase *list)
 {
   FModifier *fcm;
@@ -10179,40 +10124,6 @@ static void expand_fcurves(FileData *fd, Main *mainvar, ListBase *list)
   }
 }
 
-static void expand_action(FileData *fd, Main *mainvar, bAction *act)
-{
-  bActionChannel *chan;
-
-  // XXX deprecated - old animation system --------------
-  for (chan = act->chanbase.first; chan; chan = chan->next) {
-    expand_doit(fd, mainvar, chan->ipo);
-    expand_constraint_channels(fd, mainvar, &chan->constraintChannels);
-  }
-  // ---------------------------------------------------
-
-  /* F-Curves in Action */
-  expand_fcurves(fd, mainvar, &act->curves);
-
-  for (TimeMarker *marker = act->markers.first; marker; marker = marker->next) {
-    if (marker->camera) {
-      expand_doit(fd, mainvar, marker->camera);
-    }
-  }
-}
-
-static void expand_keyingsets(FileData *fd, Main *mainvar, ListBase *list)
-{
-  KeyingSet *ks;
-  KS_Path *ksp;
-
-  /* expand the ID-pointers in KeyingSets's paths */
-  for (ks = list->first; ks; ks = ks->next) {
-    for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
-      expand_doit(fd, mainvar, ksp->id);
-    }
-  }
-}
-
 static void expand_animdata_nlastrips(FileData *fd, Main *mainvar, ListBase *list)
 {
   NlaStrip *strip;
@@ -10249,6 +10160,104 @@ static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
   }
 }
 
+static void expand_idprops(FileData *fd, Main *mainvar, IDProperty *prop)
+{
+  if (!prop) {
+    return;
+  }
+
+  switch (prop->type) {
+    case IDP_ID:
+      expand_doit(fd, mainvar, IDP_Id(prop));
+      break;
+    case IDP_IDPARRAY: {
+      IDProperty *idp_array = IDP_IDPArray(prop);
+      for (int i = 0; i < prop->len; i++) {
+        expand_idprops(fd, mainvar, &idp_array[i]);
+      }
+      break;
+    }
+    case IDP_GROUP:
+      for (IDProperty *loop = prop->data.group.first; loop; loop = loop->next) {
+        expand_idprops(fd, mainvar, loop);
+      }
+      break;
+  }
+}
+
+static void expand_id(FileData *fd, Main *mainvar, ID *id);
+static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree);
+static void expand_collection(FileData *fd, Main *mainvar, Collection *collection);
+
+static void expand_id_private_id(FileData *fd, Main *mainvar, ID *id)
+{
+  /* Handle 'private IDs'. */
+  bNodeTree *nodetree = ntreeFromID(id);
+  if (nodetree != NULL) {
+    expand_id(fd, mainvar, id);
+    expand_nodetree(fd, mainvar, nodetree);
+  }
+
+  if (GS(id->name) == ID_SCE) {
+    Scene *scene = (Scene *)id;
+    if (scene->master_collection != NULL) {
+      expand_id(fd, mainvar, id);
+      expand_collection(fd, mainvar, scene->master_collection);
+    }
+  }
+}
+
+static void expand_id(FileData *fd, Main *mainvar, ID *id)
+{
+  expand_idprops(fd, mainvar, id->properties);
+
+  if (id->override_library) {
+    expand_doit(fd, mainvar, id->override_library->reference);
+    expand_doit(fd, mainvar, id->override_library->storage);
+  }
+
+  AnimData *adt = BKE_animdata_from_id(id);
+  if (adt != NULL) {
+    expand_animdata(fd, mainvar, adt);
+  }
+
+  expand_id_private_id(fd, mainvar, id);
+}
+
+static void expand_action(FileData *fd, Main *mainvar, bAction *act)
+{
+  bActionChannel *chan;
+
+  // XXX deprecated - old animation system --------------
+  for (chan = act->chanbase.first; chan; chan = chan->next) {
+    expand_doit(fd, mainvar, chan->ipo);
+    expand_constraint_channels(fd, mainvar, &chan->constraintChannels);
+  }
+  // ---------------------------------------------------
+
+  /* F-Curves in Action */
+  expand_fcurves(fd, mainvar, &act->curves);
+
+  for (TimeMarker *marker = act->markers.first; marker; marker = marker->next) {
+    if (marker->camera) {
+      expand_doit(fd, mainvar, marker->camera);
+    }
+  }
+}
+
+static void expand_keyingsets(FileData *fd, Main *mainvar, ListBase *list)
+{
+  KeyingSet *ks;
+  KS_Path *ksp;
+
+  /* expand the ID-pointers in KeyingSets's paths */
+  for (ks = list->first; ks; ks = ks->next) {
+    for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
+      expand_doit(fd, mainvar, ksp->id);
+    }
+  }
+}
+
 static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSettings *part)
 {
   int a;
@@ -10258,10 +10267,6 @@ static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSetting
   expand_doit(fd, mainvar, part->force_group);
   expand_doit(fd, mainvar, part->bb_ob);
   expand_doit(fd, mainvar, part->collision_group);
-
-  if (part->adt) {
-    expand_animdata(fd, mainvar, part->adt);
-  }
 
   for (a = 0; a < MAX_MTEX; a++) {
     if (part->mtex[a]) {
@@ -10326,20 +10331,12 @@ static void expand_collection(FileData *fd, Main *mainvar, Collection *collectio
 static void expand_key(FileData *fd, Main *mainvar, Key *key)
 {
   expand_doit(fd, mainvar, key->ipo);  // XXX deprecated - old animation system
-
-  if (key->adt) {
-    expand_animdata(fd, mainvar, key->adt);
-  }
 }
 
 static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
 {
   bNode *node;
   bNodeSocket *sock;
-
-  if (ntree->adt) {
-    expand_animdata(fd, mainvar, ntree->adt);
-  }
 
   if (ntree->gpd) {
     expand_doit(fd, mainvar, ntree->gpd);
@@ -10372,14 +10369,6 @@ static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
 {
   expand_doit(fd, mainvar, tex->ima);
   expand_doit(fd, mainvar, tex->ipo);  // XXX deprecated - old animation system
-
-  if (tex->adt) {
-    expand_animdata(fd, mainvar, tex->adt);
-  }
-
-  if (tex->nodetree) {
-    expand_nodetree(fd, mainvar, tex->nodetree);
-  }
 }
 
 static void expand_brush(FileData *fd, Main *mainvar, Brush *brush)
@@ -10397,14 +10386,6 @@ static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 {
   expand_doit(fd, mainvar, ma->ipo);  // XXX deprecated - old animation system
 
-  if (ma->adt) {
-    expand_animdata(fd, mainvar, ma->adt);
-  }
-
-  if (ma->nodetree) {
-    expand_nodetree(fd, mainvar, ma->nodetree);
-  }
-
   if (ma->gp_style) {
     MaterialGPencilStyle *gp_style = ma->gp_style;
     expand_doit(fd, mainvar, gp_style->sima);
@@ -10415,37 +10396,17 @@ static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 static void expand_light(FileData *fd, Main *mainvar, Light *la)
 {
   expand_doit(fd, mainvar, la->ipo);  // XXX deprecated - old animation system
-
-  if (la->adt) {
-    expand_animdata(fd, mainvar, la->adt);
-  }
-
-  if (la->nodetree) {
-    expand_nodetree(fd, mainvar, la->nodetree);
-  }
 }
 
 static void expand_lattice(FileData *fd, Main *mainvar, Lattice *lt)
 {
   expand_doit(fd, mainvar, lt->ipo);  // XXX deprecated - old animation system
   expand_doit(fd, mainvar, lt->key);
-
-  if (lt->adt) {
-    expand_animdata(fd, mainvar, lt->adt);
-  }
 }
 
 static void expand_world(FileData *fd, Main *mainvar, World *wrld)
 {
   expand_doit(fd, mainvar, wrld->ipo);  // XXX deprecated - old animation system
-
-  if (wrld->adt) {
-    expand_animdata(fd, mainvar, wrld->adt);
-  }
-
-  if (wrld->nodetree) {
-    expand_nodetree(fd, mainvar, wrld->nodetree);
-  }
 }
 
 static void expand_mball(FileData *fd, Main *mainvar, MetaBall *mb)
@@ -10454,10 +10415,6 @@ static void expand_mball(FileData *fd, Main *mainvar, MetaBall *mb)
 
   for (a = 0; a < mb->totcol; a++) {
     expand_doit(fd, mainvar, mb->mat[a]);
-  }
-
-  if (mb->adt) {
-    expand_animdata(fd, mainvar, mb->adt);
   }
 }
 
@@ -10478,19 +10435,11 @@ static void expand_curve(FileData *fd, Main *mainvar, Curve *cu)
   expand_doit(fd, mainvar, cu->bevobj);
   expand_doit(fd, mainvar, cu->taperobj);
   expand_doit(fd, mainvar, cu->textoncurve);
-
-  if (cu->adt) {
-    expand_animdata(fd, mainvar, cu->adt);
-  }
 }
 
 static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 {
   int a;
-
-  if (me->adt) {
-    expand_animdata(fd, mainvar, me->adt);
-  }
 
   for (a = 0; a < me->totcol; a++) {
     expand_doit(fd, mainvar, me->mat[a]);
@@ -10560,10 +10509,6 @@ static void expand_bones(FileData *fd, Main *mainvar, Bone *bone)
 
 static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
 {
-  if (arm->adt) {
-    expand_animdata(fd, mainvar, arm->adt);
-  }
-
   for (Bone *curBone = arm->bonebase.first; curBone; curBone = curBone->next) {
     expand_bones(fd, mainvar, curBone);
   }
@@ -10649,10 +10594,6 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
   }
   // XXX deprecated - old animation system (for version patching only)
 
-  if (ob->adt) {
-    expand_animdata(fd, mainvar, ob->adt);
-  }
-
   for (a = 0; a < ob->totcol; a++) {
     expand_doit(fd, mainvar, ob->mat[a]);
   }
@@ -10728,17 +10669,10 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
   expand_doit(fd, mainvar, sce->camera);
   expand_doit(fd, mainvar, sce->world);
 
-  if (sce->adt) {
-    expand_animdata(fd, mainvar, sce->adt);
-  }
   expand_keyingsets(fd, mainvar, &sce->keyingsets);
 
   if (sce->set) {
     expand_doit(fd, mainvar, sce->set);
-  }
-
-  if (sce->nodetree) {
-    expand_nodetree(fd, mainvar, sce->nodetree);
   }
 
   for (srl = sce->r.layers.first; srl; srl = srl->next) {
@@ -10826,10 +10760,6 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
   }
 #endif
 
-  if (sce->master_collection) {
-    expand_collection(fd, mainvar, sce->master_collection);
-  }
-
   if (sce->r.bake.cage_object) {
     expand_doit(fd, mainvar, sce->r.bake.cage_object);
   }
@@ -10847,26 +10777,17 @@ static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)
       expand_doit(fd, mainvar, bgpic->ima);
     }
   }
-
-  if (ca->adt) {
-    expand_animdata(fd, mainvar, ca->adt);
-  }
 }
 
-static void expand_cachefile(FileData *fd, Main *mainvar, CacheFile *cache_file)
+static void expand_cachefile(FileData *UNUSED(fd),
+                             Main *UNUSED(mainvar),
+                             CacheFile *UNUSED(cache_file))
 {
-  if (cache_file->adt) {
-    expand_animdata(fd, mainvar, cache_file->adt);
-  }
 }
 
 static void expand_speaker(FileData *fd, Main *mainvar, Speaker *spk)
 {
   expand_doit(fd, mainvar, spk->sound);
-
-  if (spk->adt) {
-    expand_animdata(fd, mainvar, spk->adt);
-  }
 }
 
 static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
@@ -10874,18 +10795,12 @@ static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
   expand_doit(fd, mainvar, snd->ipo);  // XXX deprecated - old animation system
 }
 
-static void expand_lightprobe(FileData *fd, Main *mainvar, LightProbe *prb)
+static void expand_lightprobe(FileData *UNUSED(fd), Main *UNUSED(mainvar), LightProbe *UNUSED(prb))
 {
-  if (prb->adt) {
-    expand_animdata(fd, mainvar, prb->adt);
-  }
 }
 
-static void expand_movieclip(FileData *fd, Main *mainvar, MovieClip *clip)
+static void expand_movieclip(FileData *UNUSED(fd), Main *UNUSED(mainvar), MovieClip *UNUSED(clip))
 {
-  if (clip->adt) {
-    expand_animdata(fd, mainvar, clip->adt);
-  }
 }
 
 static void expand_mask_parent(FileData *fd, Main *mainvar, MaskParent *parent)
@@ -10898,10 +10813,6 @@ static void expand_mask_parent(FileData *fd, Main *mainvar, MaskParent *parent)
 static void expand_mask(FileData *fd, Main *mainvar, Mask *mask)
 {
   MaskLayer *mask_layer;
-
-  if (mask->adt) {
-    expand_animdata(fd, mainvar, mask->adt);
-  }
 
   for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
     MaskSpline *spline;
@@ -10931,13 +10842,7 @@ static void expand_linestyle(FileData *fd, Main *mainvar, FreestyleLineStyle *li
       expand_doit(fd, mainvar, linestyle->mtex[a]->object);
     }
   }
-  if (linestyle->nodetree) {
-    expand_nodetree(fd, mainvar, linestyle->nodetree);
-  }
 
-  if (linestyle->adt) {
-    expand_animdata(fd, mainvar, linestyle->adt);
-  }
   for (m = linestyle->color_modifiers.first; m; m = m->next) {
     if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
       expand_doit(fd, mainvar, ((LineStyleColorModifier_DistanceFromObject *)m)->target);
@@ -10957,10 +10862,6 @@ static void expand_linestyle(FileData *fd, Main *mainvar, FreestyleLineStyle *li
 
 static void expand_gpencil(FileData *fd, Main *mainvar, bGPdata *gpd)
 {
-  if (gpd->adt) {
-    expand_animdata(fd, mainvar, gpd->adt);
-  }
-
   for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
     expand_doit(fd, mainvar, gpl->parent);
   }
@@ -11013,7 +10914,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
       while (id) {
         if (id->tag & LIB_TAG_NEED_EXPAND) {
           expand_id(fd, mainvar, id);
-          expand_idprops(fd, mainvar, id->properties);
 
           switch (GS(id->name)) {
             case ID_OB:
