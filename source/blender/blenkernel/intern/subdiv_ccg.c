@@ -623,9 +623,9 @@ void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg)
   MEM_SAFE_FREE(subdiv_ccg->grid_flag_mats);
   if (subdiv_ccg->grid_hidden != NULL) {
     for (int grid_index = 0; grid_index < num_grids; grid_index++) {
-      MEM_freeN(subdiv_ccg->grid_hidden[grid_index]);
+      MEM_SAFE_FREE(subdiv_ccg->grid_hidden[grid_index]);
     }
-    MEM_freeN(subdiv_ccg->grid_hidden);
+    MEM_SAFE_FREE(subdiv_ccg->grid_hidden);
   }
   if (subdiv_ccg->subdiv != NULL) {
     BKE_subdiv_free(subdiv_ccg->subdiv);

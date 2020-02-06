@@ -1378,6 +1378,140 @@ void BKE_pbvh_update_vertex_data(PBVH *bvh, int flag)
   }
 }
 
+static void pbvh_faces_node_visibility_update(PBVH *bvh, PBVHNode *node)
+{
+  MVert *mvert;
+  const int *vert_indices;
+  int totvert, i;
+  BKE_pbvh_node_num_verts(bvh, node, NULL, &totvert);
+  BKE_pbvh_node_get_verts(bvh, node, &vert_indices, &mvert);
+
+  for (i = 0; i < totvert; i++) {
+    MVert *v = &mvert[vert_indices[i]];
+    if (!(v->flag & ME_HIDE)) {
+      BKE_pbvh_node_fully_hidden_set(node, false);
+      return;
+    }
+  }
+
+  BKE_pbvh_node_fully_hidden_set(node, true);
+}
+
+static void pbvh_grids_node_visibility_update(PBVH *bvh, PBVHNode *node)
+{
+  CCGElem **grids;
+  BLI_bitmap **grid_hidden;
+  int *grid_indices, totgrid, i;
+
+  BKE_pbvh_node_get_grids(bvh, node, &grid_indices, &totgrid, NULL, NULL, &grids);
+  grid_hidden = BKE_pbvh_grid_hidden(bvh);
+  CCGKey key = *BKE_pbvh_get_grid_key(bvh);
+
+  for (i = 0; i < totgrid; i++) {
+    int g = grid_indices[i], x, y;
+    BLI_bitmap *gh = grid_hidden[g];
+
+    if (!gh) {
+      BKE_pbvh_node_fully_hidden_set(node, false);
+      return;
+    }
+
+    for (y = 0; y < key.grid_size; y++) {
+      for (x = 0; x < key.grid_size; x++) {
+        if (!BLI_BITMAP_TEST(gh, y * key.grid_size + x)) {
+          BKE_pbvh_node_fully_hidden_set(node, false);
+          return;
+        }
+      }
+    }
+  }
+  BKE_pbvh_node_fully_hidden_set(node, true);
+}
+
+static void pbvh_bmesh_node_visibility_update(PBVH *bvh, PBVHNode *node)
+{
+  BMesh *bm;
+  GSet *unique, *other;
+
+  bm = BKE_pbvh_get_bmesh(bvh);
+  unique = BKE_pbvh_bmesh_node_unique_verts(node);
+  other = BKE_pbvh_bmesh_node_other_verts(node);
+
+  GSetIterator gs_iter;
+
+  GSET_ITER (gs_iter, unique) {
+    BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
+    if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+      BKE_pbvh_node_fully_hidden_set(node, false);
+      return;
+    }
+  }
+
+  GSET_ITER (gs_iter, other) {
+    BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
+    if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+      BKE_pbvh_node_fully_hidden_set(node, false);
+      return;
+    }
+  }
+
+  BKE_pbvh_node_fully_hidden_set(node, true);
+}
+
+static void pbvh_update_visibility_task_cb(void *__restrict userdata,
+                                           const int n,
+                                           const TaskParallelTLS *__restrict UNUSED(tls))
+{
+
+  PBVHUpdateData *data = userdata;
+  PBVH *bvh = data->bvh;
+  PBVHNode *node = data->nodes[n];
+  if (node->flag & PBVH_UpdateMask) {
+    switch (BKE_pbvh_type(bvh)) {
+      case PBVH_FACES:
+        pbvh_faces_node_visibility_update(bvh, node);
+        break;
+      case PBVH_GRIDS:
+        pbvh_grids_node_visibility_update(bvh, node);
+        break;
+      case PBVH_BMESH:
+        pbvh_bmesh_node_visibility_update(bvh, node);
+        break;
+    }
+    node->flag &= ~PBVH_UpdateMask;
+  }
+}
+
+static void pbvh_update_visibility(PBVH *bvh, PBVHNode **nodes, int totnode)
+{
+  PBVHUpdateData data = {
+      .bvh = bvh,
+      .nodes = nodes,
+  };
+
+  PBVHParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range(0, totnode, &data, pbvh_update_visibility_task_cb, &settings);
+}
+
+void BKE_pbvh_update_visibility(PBVH *bvh)
+{
+  if (!bvh->nodes) {
+    return;
+  }
+
+  PBVHNode **nodes;
+  int totnode;
+
+  BKE_pbvh_search_gather(
+      bvh, update_search_cb, POINTER_FROM_INT(PBVH_UpdateVisibility), &nodes, &totnode);
+  pbvh_update_visibility(bvh, nodes, totnode);
+
+  if (nodes) {
+    MEM_freeN(nodes);
+  }
+}
+
 void BKE_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3])
 {
   PBVHIter iter;
@@ -1531,6 +1665,11 @@ void BKE_pbvh_node_mark_redraw(PBVHNode *node)
 void BKE_pbvh_node_mark_normals_update(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateNormals;
+}
+
+void BKE_pbvh_node_mark_visibility_update(PBVHNode *node)
+{
+  node->flag |= PBVH_UpdateVisibility;
 }
 
 void BKE_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden)

@@ -80,6 +80,7 @@ static void update_cb(PBVHNode *node, void *rebuild)
   BKE_pbvh_node_mark_update_mask(node);
   if (*((bool *)rebuild)) {
     BKE_pbvh_node_mark_rebuild_draw(node);
+    BKE_pbvh_node_mark_visibility_update(node);
   }
   BKE_pbvh_node_fully_hidden_set(node, 0);
 }
@@ -639,6 +640,10 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
       BKE_sculptsession_free_deformMats(ss);
       tag_update |= true;
+    }
+
+    if (update_visibility) {
+      BKE_pbvh_update_visibility(ss->pbvh);
     }
 
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && update_visibility) {

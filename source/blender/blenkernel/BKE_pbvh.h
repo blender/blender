@@ -66,13 +66,14 @@ typedef enum {
   PBVH_UpdateDrawBuffers = 1 << 4,
   PBVH_UpdateRedraw = 1 << 5,
   PBVH_UpdateMask = 1 << 6,
+  PBVH_UpdateVisibility = 1 << 8,
 
-  PBVH_RebuildDrawBuffers = 1 << 7,
-  PBVH_FullyHidden = 1 << 8,
-  PBVH_FullyMasked = 1 << 9,
-  PBVH_FullyUnmasked = 1 << 10,
+  PBVH_RebuildDrawBuffers = 1 << 9,
+  PBVH_FullyHidden = 1 << 10,
+  PBVH_FullyMasked = 1 << 11,
+  PBVH_FullyUnmasked = 1 << 12,
 
-  PBVH_UpdateTopology = 1 << 11,
+  PBVH_UpdateTopology = 1 << 13,
 } PBVHNodeFlags;
 
 typedef struct PBVHFrustumPlanes {
@@ -246,6 +247,7 @@ void BKE_pbvh_node_mark_update_mask(PBVHNode *node);
 void BKE_pbvh_node_mark_rebuild_draw(PBVHNode *node);
 void BKE_pbvh_node_mark_redraw(PBVHNode *node);
 void BKE_pbvh_node_mark_normals_update(PBVHNode *node);
+void BKE_pbvh_node_mark_visibility_update(PBVHNode *node);
 void BKE_pbvh_node_mark_topology_update(PBVHNode *node);
 void BKE_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden);
 void BKE_pbvh_node_fully_masked_set(PBVHNode *node, int fully_masked);
@@ -286,6 +288,7 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *bvh);
 
 void BKE_pbvh_update_bounds(PBVH *bvh, int flags);
 void BKE_pbvh_update_vertex_data(PBVH *bvh, int flags);
+void BKE_pbvh_update_visibility(PBVH *bvh);
 void BKE_pbvh_update_normals(PBVH *bvh, struct SubdivCCG *subdiv_ccg);
 void BKE_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3]);
 void BKE_pbvh_get_grid_updates(PBVH *bvh, bool clear, void ***r_gridfaces, int *r_totface);
