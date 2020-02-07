@@ -87,7 +87,7 @@ void bezt_add_to_cfra_elem(ListBase *lb, struct BezTriple *bezt);
 void fcurve_free_driver(struct FCurve *fcu);
 struct ChannelDriver *fcurve_copy_driver(const struct ChannelDriver *driver);
 
-void driver_variables_copy(struct ListBase *dst_list, const struct ListBase *src_list);
+void driver_variables_copy(struct ListBase *dst_vars, const struct ListBase *src_vars);
 
 void BKE_driver_target_matrix_to_rot_channels(
     float mat[4][4], int auto_order, int rotation_mode, int channel, bool angles, float r_buf[4]);
@@ -280,7 +280,7 @@ struct FCurve *rna_get_fcurve_context_ui(struct bContext *C,
                                          struct PointerRNA *ptr,
                                          struct PropertyRNA *prop,
                                          int rnaindex,
-                                         struct AnimData **r_adt,
+                                         struct AnimData **r_animdata,
                                          struct bAction **r_action,
                                          bool *r_driven,
                                          bool *r_special);
