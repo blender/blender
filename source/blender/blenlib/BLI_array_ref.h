@@ -246,6 +246,11 @@ template<typename T> class ArrayRef {
     return fallback;
   }
 
+  IndexRange index_range() const
+  {
+    return IndexRange(m_size);
+  }
+
   /**
    * Get a new array ref to the same underlying memory buffer. No conversions are done.
    * Asserts when the sizes of the types don't match.
@@ -410,6 +415,11 @@ template<typename T> class MutableArrayRef {
   ArrayRef<T> as_ref() const
   {
     return ArrayRef<T>(m_start, m_size);
+  }
+
+  IndexRange index_range() const
+  {
+    return IndexRange(m_size);
   }
 };
 

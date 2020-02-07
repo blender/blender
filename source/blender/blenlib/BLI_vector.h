@@ -37,6 +37,7 @@
 #include "BLI_listbase_wrapper.h"
 #include "BLI_math_base.h"
 #include "BLI_allocator.h"
+#include "BLI_index_range.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -518,6 +519,11 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
   uint capacity() const
   {
     return (uint)(m_capacity_end - m_begin);
+  }
+
+  IndexRange index_range() const
+  {
+    return IndexRange(this->size());
   }
 
   void print_stats() const

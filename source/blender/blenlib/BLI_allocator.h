@@ -30,6 +30,7 @@
  */
 
 #include <stdlib.h>
+#include <algorithm>
 
 #include "MEM_guardedalloc.h"
 
