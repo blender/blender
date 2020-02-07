@@ -53,6 +53,8 @@ class Params:
         # Experimental option.
         "use_pie_click_drag",
         "v3d_tilde_action",
+        # Alt-MMB axis switching 'RELATIVE' or 'ABSOLUTE' axis switching.
+        "v3d_alt_mmb_drag_action",
     )
 
     def __init__(
@@ -70,6 +72,7 @@ class Params:
             use_v3d_shade_ex_pie=False,
             use_pie_click_drag=False,
             v3d_tilde_action='VIEW',
+            v3d_alt_mmb_drag_action='RELATIVE',
     ):
         from sys import platform
         self.apple = (platform == 'darwin')
@@ -117,6 +120,7 @@ class Params:
         self.use_v3d_tab_menu = use_v3d_tab_menu
         self.use_v3d_shade_ex_pie = use_v3d_shade_ex_pie
         self.v3d_tilde_action = v3d_tilde_action
+        self.v3d_alt_mmb_drag_action = v3d_alt_mmb_drag_action
 
         self.use_pie_click_drag = use_pie_click_drag
         if not use_pie_click_drag:
@@ -1043,14 +1047,25 @@ def km_view3d(params):
          {"properties": [("type", 'LEFT'), ("align_active", True)]}),
         ("view3d.view_axis", {"type": 'NUMPAD_7', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("type", 'BOTTOM'), ("align_active", True)]}),
-        ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'NORTH', "alt": True},
-         {"properties": [("type", 'TOP'), ("relative", True)]}),
-        ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'SOUTH', "alt": True},
-         {"properties": [("type", 'BOTTOM'), ("relative", True)]}),
-        ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'EAST', "alt": True},
-         {"properties": [("type", 'RIGHT'), ("relative", True)]}),
-        ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'WEST', "alt": True},
-         {"properties": [("type", 'LEFT'), ("relative", True)]}),
+        *((
+            ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'NORTH', "alt": True},
+             {"properties": [("type", 'TOP'), ("relative", True)]}),
+            ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'SOUTH', "alt": True},
+             {"properties": [("type", 'BOTTOM'), ("relative", True)]}),
+            ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'EAST', "alt": True},
+             {"properties": [("type", 'RIGHT'), ("relative", True)]}),
+            ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'WEST', "alt": True},
+             {"properties": [("type", 'LEFT'), ("relative", True)]}),
+        ) if params.v3d_alt_mmb_drag_action == 'RELATIVE' else (
+            ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'NORTH', "alt": True},
+             {"properties": [("type", 'TOP')]}),
+            ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'SOUTH', "alt": True},
+             {"properties": [("type", 'BOTTOM')]}),
+            ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'EAST', "alt": True},
+             {"properties": [("type", 'RIGHT')]}),
+            ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'WEST', "alt": True},
+             {"properties": [("type", 'LEFT')]}),
+        )),
         ("view3d.view_center_pick", {"type": 'MIDDLEMOUSE', "value": 'CLICK', "alt": True}, None),
         ("view3d.ndof_orbit_zoom", {"type": 'NDOF_MOTION', "value": 'ANY'}, None),
         ("view3d.ndof_orbit", {"type": 'NDOF_MOTION', "value": 'ANY', "ctrl": True}, None),

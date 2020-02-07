@@ -108,6 +108,22 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
 
+    v3d_alt_mmb_drag_action: EnumProperty(
+        name="Alt-MMB Drag Action",
+        items=(
+            ('RELATIVE', "Relative",
+             "Set the view axis where each mouse direction maps to an axis relative to the current orientation",
+             0),
+            ('ABSOLUTE', "Absolute",
+             "Set the view axis where each mouse direction always maps to the same axis",
+             1),
+        ),
+        description=(
+            "Action when Alt-MMB dragging in the 3D viewport"
+        ),
+        update=update_fn,
+    )
+
     # Developer note, this is an experemental option.
     use_pie_click_drag: BoolProperty(
         name="Pie Menu on Drag",
@@ -149,10 +165,12 @@ class Prefs(bpy.types.KeyConfigPreferences):
         col = split.column()
         col.prop(self, "use_v3d_tab_menu")
         col.prop(self, "use_pie_click_drag")
+        col.prop(self, "use_v3d_shade_ex_pie")
         col = split.column()
         col.label(text="Tilde Action:")
         col.row().prop(self, "v3d_tilde_action", expand=True)
-        col.prop(self, "use_v3d_shade_ex_pie")
+        col.label(text="Alt Middle Mouse Drag Action:")
+        col.row().prop(self, "v3d_alt_mmb_drag_action", expand=True)
 
 
 blender_default = bpy.utils.execfile(os.path.join(DIRNAME, "keymap_data", "blender_default.py"))
@@ -176,6 +194,7 @@ def load():
             ),
             spacebar_action=kc_prefs.spacebar_action,
             v3d_tilde_action=kc_prefs.v3d_tilde_action,
+            v3d_alt_mmb_drag_action=kc_prefs.v3d_alt_mmb_drag_action,
             use_select_all_toggle=kc_prefs.use_select_all_toggle,
             use_v3d_tab_menu=kc_prefs.use_v3d_tab_menu,
             use_v3d_shade_ex_pie=kc_prefs.use_v3d_shade_ex_pie,
