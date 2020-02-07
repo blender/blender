@@ -240,10 +240,7 @@ void interp_v3_v3v3v3_uv(
   p[2] = v1[2] + ((v2[2] - v1[2]) * uv[0]) + ((v3[2] - v1[2]) * uv[1]);
 }
 
-void interp_v3_v3v3_uchar(char unsigned target[3],
-                          const unsigned char a[3],
-                          const unsigned char b[3],
-                          const float t)
+void interp_v3_v3v3_uchar(uchar target[3], const uchar a[3], const uchar b[3], const float t)
 {
   const float s = 1.0f - t;
 
@@ -253,14 +250,10 @@ void interp_v3_v3v3_uchar(char unsigned target[3],
 }
 void interp_v3_v3v3_char(char target[3], const char a[3], const char b[3], const float t)
 {
-  interp_v3_v3v3_uchar(
-      (unsigned char *)target, (const unsigned char *)a, (const unsigned char *)b, t);
+  interp_v3_v3v3_uchar((uchar *)target, (const uchar *)a, (const uchar *)b, t);
 }
 
-void interp_v4_v4v4_uchar(char unsigned target[4],
-                          const unsigned char a[4],
-                          const unsigned char b[4],
-                          const float t)
+void interp_v4_v4v4_uchar(uchar target[4], const uchar a[4], const uchar b[4], const float t)
 {
   const float s = 1.0f - t;
 
@@ -271,8 +264,7 @@ void interp_v4_v4v4_uchar(char unsigned target[4],
 }
 void interp_v4_v4v4_char(char target[4], const char a[4], const char b[4], const float t)
 {
-  interp_v4_v4v4_uchar(
-      (unsigned char *)target, (const unsigned char *)a, (const unsigned char *)b, t);
+  interp_v4_v4v4_uchar((uchar *)target, (const uchar *)a, (const uchar *)b, t);
 }
 
 void mid_v3_v3v3(float v[3], const float v1[3], const float v2[3])
@@ -303,12 +295,12 @@ void mid_v3_v3v3v3v3(
   v[2] = (v1[2] + v2[2] + v3[2] + v4[2]) / 4.0f;
 }
 
-void mid_v3_v3_array(float r[3], const float (*vec_arr)[3], const unsigned int nbr)
+void mid_v3_v3_array(float r[3], const float (*vec_arr)[3], const uint nbr)
 {
   const float factor = 1.0f / (float)nbr;
   zero_v3(r);
 
-  for (unsigned int i = 0; i < nbr; i++) {
+  for (uint i = 0; i < nbr; i++) {
     madd_v3_v3fl(r, vec_arr[i], factor);
   }
 }
@@ -1119,10 +1111,10 @@ void range_vn_i(int *array_tar, const int size, const int start)
   }
 }
 
-void range_vn_u(unsigned int *array_tar, const int size, const unsigned int start)
+void range_vn_u(uint *array_tar, const int size, const uint start)
 {
-  unsigned int *array_pt = array_tar + (size - 1);
-  unsigned int j = start + (unsigned int)(size - 1);
+  uint *array_pt = array_tar + (size - 1);
+  uint j = start + (uint)(size - 1);
   int i = size;
   while (i--) {
     *(array_pt--) = j--;
@@ -1329,18 +1321,18 @@ void copy_vn_short(short *array_tar, const int size, const short val)
   }
 }
 
-void copy_vn_ushort(unsigned short *array_tar, const int size, const unsigned short val)
+void copy_vn_ushort(ushort *array_tar, const int size, const ushort val)
 {
-  unsigned short *tar = array_tar + (size - 1);
+  ushort *tar = array_tar + (size - 1);
   int i = size;
   while (i--) {
     *(tar--) = val;
   }
 }
 
-void copy_vn_uchar(unsigned char *array_tar, const int size, const unsigned char val)
+void copy_vn_uchar(uchar *array_tar, const int size, const uchar val)
 {
-  unsigned char *tar = array_tar + (size - 1);
+  uchar *tar = array_tar + (size - 1);
   int i = size;
   while (i--) {
     *(tar--) = val;

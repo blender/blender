@@ -86,7 +86,7 @@ enum {
   } \
   (void)0
 
-void poly_rotate_plane(const float normal[3], float (*verts)[3], unsigned const int nverts);
+void poly_rotate_plane(const float normal[3], float (*verts)[3], const uint nverts);
 
 /* include the rest of our private declarations */
 #include "bmesh_structure.h"

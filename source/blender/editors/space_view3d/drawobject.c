@@ -87,7 +87,7 @@ static void circball_array_fill(float verts[CIRCLE_RESOL][3],
   }
 }
 
-void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], unsigned pos)
+void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], uint pos)
 {
   float verts[CIRCLE_RESOL][3];
 

@@ -147,7 +147,7 @@ void ED_image_draw_info(Scene *scene,
                         int channels,
                         int x,
                         int y,
-                        const unsigned char cp[4],
+                        const uchar cp[4],
                         const float fp[4],
                         const float linearcol[4],
                         int *zp,
@@ -164,13 +164,13 @@ void ED_image_draw_info(Scene *scene,
   /* text colors */
   /* XXX colored text not allowed in Blender UI */
 #if 0
-  unsigned char red[3] = {255, 50, 50};
-  unsigned char green[3] = {0, 255, 0};
-  unsigned char blue[3] = {100, 100, 255};
+  uchar red[3] = {255, 50, 50};
+  uchar green[3] = {0, 255, 0};
+  uchar blue[3] = {100, 100, 255};
 #else
-  unsigned char red[3] = {255, 255, 255};
-  unsigned char green[3] = {255, 255, 255};
-  unsigned char blue[3] = {255, 255, 255};
+  uchar red[3] = {255, 255, 255};
+  uchar green[3] = {255, 255, 255};
+  uchar blue[3] = {255, 255, 255};
 #endif
   float hue = 0, sat = 0, val = 0, lum = 0, u = 0, v = 0;
   float col[4], finalcol[4];
@@ -613,7 +613,7 @@ static void draw_image_buffer(const bContext *C,
     }
     else {
       float shuffle[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-      unsigned char *display_buffer;
+      uchar *display_buffer;
       void *cache_handle;
       ColorManagedViewSettings *view_settings;
       ColorManagedDisplaySettings *display_settings;
@@ -760,7 +760,7 @@ static void draw_image_paint_helpers(
       float col[4] = {1.0f, 1.0f, 1.0f, brush->clone.alpha};
       UI_view2d_view_to_region(&ar->v2d, brush->clone.offset[0], brush->clone.offset[1], &x, &y);
 
-      unsigned char *display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+      uchar *display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
 
       if (!display_buffer) {
         BKE_image_release_ibuf(brush->clone.image, ibuf, NULL);
@@ -794,8 +794,8 @@ static void draw_image_paint_helpers(
   }
 }
 
-static void draw_udim_tile_grid(unsigned int pos_attr,
-                                unsigned int color_attr,
+static void draw_udim_tile_grid(uint pos_attr,
+                                uint color_attr,
                                 ARegion *ar,
                                 int x,
                                 int y,
@@ -832,8 +832,8 @@ static void draw_udim_tile_grids(ARegion *ar, SpaceImage *sima, Image *ima)
   float stepy = BLI_rcti_size_y(&ar->v2d.mask) / BLI_rctf_size_y(&ar->v2d.cur);
 
   GPUVertFormat *format = immVertexFormat();
-  unsigned int pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  unsigned color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
   immBegin(GPU_PRIM_LINES, 8 * num_tiles);

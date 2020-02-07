@@ -198,7 +198,7 @@ float (*BKE_mask_spline_differentiate_with_resolution(MaskSpline *spline,
 float (*BKE_mask_spline_differentiate(
     MaskSpline *spline, int width, int height, unsigned int *tot_diff_point))[2]
 {
-  int unsigned resol = BKE_mask_spline_resolution(spline, width, height);
+  uint resol = BKE_mask_spline_resolution(spline, width, height);
 
   return BKE_mask_spline_differentiate_with_resolution(spline, tot_diff_point, resol);
 }

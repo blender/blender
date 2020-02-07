@@ -224,7 +224,7 @@ MINLINE unsigned int power_of_2_max_u(unsigned int x)
   return x + 1;
 }
 
-MINLINE unsigned power_of_2_min_u(unsigned x)
+MINLINE unsigned int power_of_2_min_u(unsigned int x)
 {
   x |= (x >> 1);
   x |= (x >> 2);

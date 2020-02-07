@@ -91,9 +91,7 @@ struct Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(
     float (*vertexCos)[3],
     const struct Mesh *me_settings);
 
-int poly_find_loop_from_vert(const struct MPoly *poly,
-                             const struct MLoop *loopstart,
-                             unsigned vert);
+int poly_find_loop_from_vert(const struct MPoly *poly, const struct MLoop *loopstart, uint vert);
 int poly_get_adj_loops_from_vert(const struct MPoly *poly,
                                  const struct MLoop *mloop,
                                  unsigned int vert,

@@ -279,7 +279,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
 
   const std::string &name = bc_get_dae_name(mesh);
 
-  for (unsigned i = 0; i < prim_arr.getCount(); i++) {
+  for (unsigned int i = 0; i < prim_arr.getCount(); i++) {
 
     COLLADAFW::MeshPrimitive *mp = prim_arr[i];
     COLLADAFW::MeshPrimitive::PrimitiveType type = mp->getPrimitiveType();
@@ -683,7 +683,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
     // XXX The proper function of TRIANGLE_FANS is not tested!!!
     // XXX In particular the handling of the normal_indices looks very wrong to me
     if (collada_meshtype == COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
-      unsigned grouped_vertex_count = mp->getGroupedVertexElementsCount();
+      unsigned int grouped_vertex_count = mp->getGroupedVertexElementsCount();
       for (unsigned int group_index = 0; group_index < grouped_vertex_count; group_index++) {
         unsigned int first_vertex = position_indices[0];  // Store first trifan vertex
         unsigned int first_normal = normal_indices[0];    // Store first trifan vertex normal

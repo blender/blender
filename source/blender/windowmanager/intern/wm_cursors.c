@@ -132,11 +132,8 @@ static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
   }
 }
 
-static void window_set_custom_cursor(wmWindow *win,
-                                     unsigned const char mask[16][2],
-                                     unsigned char bitmap[16][2],
-                                     int hotx,
-                                     int hoty)
+static void window_set_custom_cursor(
+    wmWindow *win, const uchar mask[16][2], uchar bitmap[16][2], int hotx, int hoty)
 {
   GHOST_SetCustomCursorShape(
       win->ghostwin, (GHOST_TUns8 *)bitmap, (GHOST_TUns8 *)mask, 16, 16, hotx, hoty, true);
@@ -380,8 +377,8 @@ void WM_cursor_time(wmWindow *win, int nr)
       {0, 60, 66, 66, 60, 66, 66, 60},
       {0, 56, 68, 68, 120, 64, 68, 56},
   };
-  unsigned char mask[16][2];
-  unsigned char bitmap[16][2] = {{0}};
+  uchar mask[16][2];
+  uchar bitmap[16][2] = {{0}};
   int i, idx;
 
   if (win->lastcursor == 0) {

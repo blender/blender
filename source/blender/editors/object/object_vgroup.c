@@ -701,7 +701,7 @@ const EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(const bContext *
                                                                 PointerRNA *UNUSED(ptr),
                                                                 PropertyRNA *UNUSED(prop),
                                                                 bool *r_free,
-                                                                const unsigned int selection_mask)
+                                                                const uint selection_mask)
 {
   Object *ob;
   EnumPropertyItem *item = NULL;
@@ -1807,10 +1807,10 @@ static void vgroup_smooth_subset(Object *ob,
   float *weight_accum_prev;
   float *weight_accum_curr;
 
-  unsigned int subset_index;
+  uint subset_index;
 
   /* vertex indices that will be smoothed, (only to avoid iterating over verts that do nothing) */
-  unsigned int *verts_used;
+  uint *verts_used;
   STACK_DECLARE(verts_used);
 
   BKE_object_defgroup_subset_to_index_array(vgroup_validmap, vgroup_tot, vgroup_subset_map);
@@ -1882,12 +1882,12 @@ static void vgroup_smooth_subset(Object *ob,
     memcpy(weight_accum_curr, weight_accum_prev, sizeof(*weight_accum_curr) * dvert_tot);
 
     for (iter = 0; iter < repeat; iter++) {
-      unsigned *vi_step, *vi_end = verts_used + STACK_SIZE(verts_used);
+      uint *vi_step, *vi_end = verts_used + STACK_SIZE(verts_used);
 
       /* avoid looping over all verts */
       // for (i = 0; i < dvert_tot; i++)
       for (vi_step = verts_used; vi_step != vi_end; vi_step++) {
-        const unsigned int i = *vi_step;
+        const uint i = *vi_step;
         float weight_tot = 0.0f;
         float weight = 0.0f;
 

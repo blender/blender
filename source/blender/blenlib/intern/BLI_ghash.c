@@ -220,8 +220,8 @@ static void ghash_buckets_resize(GHash *gh, const uint nbuckets)
     if (nbuckets > nbuckets_old) {
       for (i = 0; i < nbuckets_old; i++) {
         for (Entry *e = buckets_old[i], *e_next; e; e = e_next) {
-          const unsigned hash = ghash_entryhash(gh, e);
-          const unsigned bucket_index = ghash_bucket_index(gh, hash);
+          const uint hash = ghash_entryhash(gh, e);
+          const uint bucket_index = ghash_bucket_index(gh, hash);
           e_next = e->next;
           e->next = buckets_new[bucket_index];
           buckets_new[bucket_index] = e;
@@ -232,8 +232,8 @@ static void ghash_buckets_resize(GHash *gh, const uint nbuckets)
       for (i = 0; i < nbuckets_old; i++) {
 #ifdef GHASH_USE_MODULO_BUCKETS
         for (Entry *e = buckets_old[i], *e_next; e; e = e_next) {
-          const unsigned hash = ghash_entryhash(gh, e);
-          const unsigned bucket_index = ghash_bucket_index(gh, hash);
+          const uint hash = ghash_entryhash(gh, e);
+          const uint bucket_index = ghash_bucket_index(gh, hash);
           e_next = e->next;
           e->next = buckets_new[bucket_index];
           buckets_new[bucket_index] = e;
@@ -241,7 +241,7 @@ static void ghash_buckets_resize(GHash *gh, const uint nbuckets)
 #else
         /* No need to recompute hashes in this case, since our mask is just smaller,
          * all items in old bucket 'i' will go in same new bucket (i & new_mask)! */
-        const unsigned bucket_index = ghash_bucket_index(gh, i);
+        const uint bucket_index = ghash_bucket_index(gh, i);
         BLI_assert(!buckets_old[i] ||
                    (bucket_index == ghash_bucket_index(gh, ghash_entryhash(gh, buckets_old[i]))));
         Entry *e;

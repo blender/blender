@@ -1200,7 +1200,7 @@ void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
  * Find the index of the loop in 'poly' which references vertex,
  * returns -1 if not found
  */
-int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart, unsigned vert)
+int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart, uint vert)
 {
   int j;
   for (j = 0; j < poly->totloop; j++, loopstart++) {

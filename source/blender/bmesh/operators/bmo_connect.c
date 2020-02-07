@@ -41,7 +41,7 @@
 
 static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenerate)
 {
-  const unsigned pair_split_max = f->len / 2;
+  const uint pair_split_max = f->len / 2;
   BMLoop *(*loops_split)[2] = BLI_array_alloca(loops_split, pair_split_max);
   STACK_DECLARE(loops_split);
   BMVert *(*verts_pair)[2] = BLI_array_alloca(verts_pair, pair_split_max);

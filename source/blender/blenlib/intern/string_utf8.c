@@ -600,7 +600,7 @@ uint BLI_str_utf8_as_unicode(const char *p)
 uint BLI_str_utf8_as_unicode_and_size(const char *__restrict p, size_t *__restrict index)
 {
   int i, len;
-  unsigned mask = 0;
+  uint mask = 0;
   uint result;
   const unsigned char c = (unsigned char)*p;
 

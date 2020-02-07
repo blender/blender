@@ -376,7 +376,7 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
   const int font_size = data->label_size / aspect;
   const float margin = (float)(NODE_DY / 4);
   int label_height;
-  unsigned char color[3];
+  uchar color[3];
 
   nodeLabel(ntree, node, label, sizeof(label));
 
@@ -3483,7 +3483,7 @@ void draw_nodespace_back_pix(const bContext *C,
     y = (ar->winy - snode->zoom * ibuf->y) / 2 + snode->yof;
 
     if (ibuf->rect || ibuf->rect_float) {
-      unsigned char *display_buffer = NULL;
+      uchar *display_buffer = NULL;
       void *cache_handle = NULL;
 
       if (snode->flag & (SNODE_SHOW_R | SNODE_SHOW_G | SNODE_SHOW_B | SNODE_SHOW_ALPHA)) {
@@ -3707,11 +3707,11 @@ static struct {
   GPUBatch *batch;        /* for batching line together */
   GPUBatch *batch_single; /* for single line */
   GPUVertBuf *inst_vbo;
-  unsigned int p0_id, p1_id, p2_id, p3_id;
-  unsigned int colid_id;
+  uint p0_id, p1_id, p2_id, p3_id;
+  uint colid_id;
   GPUVertBufRaw p0_step, p1_step, p2_step, p3_step;
   GPUVertBufRaw colid_step;
-  unsigned int count;
+  uint count;
   bool enabled;
 } g_batch_link = {0};
 
@@ -3727,11 +3727,11 @@ static void nodelink_batch_reset(void)
 }
 
 static void set_nodelink_vertex(GPUVertBuf *vbo,
-                                unsigned int uv_id,
-                                unsigned int pos_id,
-                                unsigned int exp_id,
-                                unsigned int v,
-                                const unsigned char uv[2],
+                                uint uv_id,
+                                uint pos_id,
+                                uint exp_id,
+                                uint v,
+                                const uchar uv[2],
                                 const float pos[2],
                                 const float exp[2])
 {
@@ -3756,7 +3756,7 @@ static void nodelink_batch_init(void)
   int v = 0;
 
   for (int k = 0; k < 2; k++) {
-    unsigned char uv[2] = {0, 0};
+    uchar uv[2] = {0, 0};
     float pos[2] = {0.0f, 0.0f};
     float exp[2] = {0.0f, 1.0f};
 
@@ -4000,8 +4000,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
   //  node_draw_link_straight(v2d, snode, link, th_col1, do_shaded, th_col2, do_triple, th_col3);
 }
 
-void ED_node_draw_snap(
-    View2D *v2d, const float cent[2], float size, NodeBorder border, unsigned pos)
+void ED_node_draw_snap(View2D *v2d, const float cent[2], float size, NodeBorder border, uint pos)
 {
   immBegin(GPU_PRIM_LINES, 4);
 

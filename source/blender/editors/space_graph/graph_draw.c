@@ -164,7 +164,7 @@ static void set_fcurve_vertex_color(FCurve *fcu, bool sel)
 }
 
 static void draw_fcurve_selected_keyframe_vertices(
-    FCurve *fcu, View2D *v2d, bool edit, bool sel, unsigned pos)
+    FCurve *fcu, View2D *v2d, bool edit, bool sel, uint pos)
 {
   const float fac = 0.05f * BLI_rctf_size_x(&v2d->cur);
 
@@ -200,7 +200,7 @@ static void draw_fcurve_selected_keyframe_vertices(
 }
 
 /* helper func - draw keyframe vertices only for an F-Curve */
-static void draw_fcurve_keyframe_vertices(FCurve *fcu, View2D *v2d, bool edit, unsigned pos)
+static void draw_fcurve_keyframe_vertices(FCurve *fcu, View2D *v2d, bool edit, uint pos)
 {
   immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 
@@ -214,7 +214,7 @@ static void draw_fcurve_keyframe_vertices(FCurve *fcu, View2D *v2d, bool edit, u
 
 /* helper func - draw handle vertices only for an F-Curve (if it is not protected) */
 static void draw_fcurve_selected_handle_vertices(
-    FCurve *fcu, View2D *v2d, bool sel, bool sel_handle_only, unsigned pos)
+    FCurve *fcu, View2D *v2d, bool sel, bool sel_handle_only, uint pos)
 {
   (void)v2d; /* TODO: use this to draw only points in view */
 
@@ -259,10 +259,7 @@ static void draw_fcurve_selected_handle_vertices(
 }
 
 /* helper func - draw handle vertices only for an F-Curve (if it is not protected) */
-static void draw_fcurve_handle_vertices(FCurve *fcu,
-                                        View2D *v2d,
-                                        bool sel_handle_only,
-                                        unsigned pos)
+static void draw_fcurve_handle_vertices(FCurve *fcu, View2D *v2d, bool sel_handle_only, uint pos)
 {
   /* smooth outlines for more consistent appearance */
   immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
@@ -353,7 +350,7 @@ static void draw_fcurve_handles(SpaceGraph *sipo, FCurve *fcu)
     BezTriple *bezt = fcu->bezt, *prevbezt = NULL;
     int basecol = (sel) ? TH_HANDLE_SEL_FREE : TH_HANDLE_FREE;
     const float *fp;
-    unsigned char col[4];
+    uchar col[4];
 
     for (b = 0; b < fcu->totvert; b++, prevbezt = bezt, bezt++) {
       /* if only selected keyframes can get their handles shown,
@@ -428,7 +425,7 @@ static void draw_fcurve_handles(SpaceGraph *sipo, FCurve *fcu)
  * have a consistent appearance (due to off-pixel alignments)...
  */
 static void draw_fcurve_sample_control(
-    float x, float y, float xscale, float yscale, float hsize, unsigned int pos)
+    float x, float y, float xscale, float yscale, float hsize, uint pos)
 {
   /* adjust view transform before starting */
   GPU_matrix_push();
@@ -491,8 +488,7 @@ static void draw_fcurve_samples(SpaceGraph *sipo, ARegion *ar, FCurve *fcu)
 
 /* Helper func - just draw the F-Curve by sampling the visible region
  * (for drawing curves with modifiers). */
-static void draw_fcurve_curve(
-    bAnimContext *ac, ID *id, FCurve *fcu_, View2D *v2d, unsigned int pos)
+static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu_, View2D *v2d, uint pos)
 {
   SpaceGraph *sipo = (SpaceGraph *)ac->sl;
   float samplefreq;
@@ -684,8 +680,7 @@ static bool fcurve_can_use_simple_bezt_drawing(FCurve *fcu)
 }
 
 /* helper func - draw one repeat of an F-Curve (using Bezier curve approximations) */
-static void draw_fcurve_curve_bezts(
-    bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, unsigned int pos)
+static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, uint pos)
 {
   BezTriple *prevbezt = fcu->bezt;
   BezTriple *bezt = prevbezt + 1;

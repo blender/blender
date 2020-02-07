@@ -194,10 +194,7 @@ bool paint_is_grid_face_hidden(const unsigned int *grid_hidden, int gridsize, in
 bool paint_is_bmesh_face_hidden(struct BMFace *f);
 
 /* paint masks */
-float paint_grid_paint_mask(const struct GridPaintMask *gpm,
-                            unsigned level,
-                            unsigned x,
-                            unsigned y);
+float paint_grid_paint_mask(const struct GridPaintMask *gpm, uint level, uint x, uint y);
 
 /* stroke related */
 bool paint_calculate_rake_rotation(struct UnifiedPaintSettings *ups,

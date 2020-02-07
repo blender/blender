@@ -64,53 +64,53 @@ MINLINE void blend_color_add_alpha_byte(unsigned char dst[4],
                                         const unsigned char src2[4]);
 
 MINLINE void blend_color_overlay_byte(unsigned char dst[4],
-                                      unsigned const char src1[4],
-                                      unsigned const char src2[4]);
+                                      const uchar src1[4],
+                                      const uchar src2[4]);
 MINLINE void blend_color_hardlight_byte(unsigned char dst[4],
-                                        unsigned const char src1[4],
-                                        unsigned const char src2[4]);
+                                        const uchar src1[4],
+                                        const uchar src2[4]);
 MINLINE void blend_color_burn_byte(unsigned char dst[4],
-                                   unsigned const char src1[4],
-                                   unsigned const char src2[4]);
+                                   const uchar src1[4],
+                                   const uchar src2[4]);
 MINLINE void blend_color_linearburn_byte(unsigned char dst[4],
-                                         unsigned const char src1[4],
-                                         unsigned const char src2[4]);
+                                         const uchar src1[4],
+                                         const uchar src2[4]);
 MINLINE void blend_color_dodge_byte(unsigned char dst[4],
-                                    unsigned const char src1[4],
-                                    unsigned const char src2[4]);
+                                    const uchar src1[4],
+                                    const uchar src2[4]);
 MINLINE void blend_color_screen_byte(unsigned char dst[4],
-                                     unsigned const char src1[4],
-                                     unsigned const char src2[4]);
+                                     const uchar src1[4],
+                                     const uchar src2[4]);
 MINLINE void blend_color_softlight_byte(unsigned char dst[4],
-                                        unsigned const char src1[4],
-                                        unsigned const char src2[4]);
+                                        const uchar src1[4],
+                                        const uchar src2[4]);
 MINLINE void blend_color_pinlight_byte(unsigned char dst[4],
-                                       unsigned const char src1[4],
-                                       unsigned const char src2[4]);
+                                       const uchar src1[4],
+                                       const uchar src2[4]);
 MINLINE void blend_color_linearlight_byte(unsigned char dst[4],
-                                          unsigned const char src1[4],
-                                          unsigned const char src2[4]);
+                                          const uchar src1[4],
+                                          const uchar src2[4]);
 MINLINE void blend_color_vividlight_byte(unsigned char dst[4],
-                                         unsigned const char src1[4],
-                                         unsigned const char src2[4]);
+                                         const uchar src1[4],
+                                         const uchar src2[4]);
 MINLINE void blend_color_difference_byte(unsigned char dst[4],
-                                         unsigned const char src1[4],
-                                         unsigned const char src2[4]);
+                                         const uchar src1[4],
+                                         const uchar src2[4]);
 MINLINE void blend_color_exclusion_byte(unsigned char dst[4],
-                                        unsigned const char src1[4],
-                                        unsigned const char src2[4]);
+                                        const uchar src1[4],
+                                        const uchar src2[4]);
 MINLINE void blend_color_color_byte(unsigned char dst[4],
-                                    unsigned const char src1[4],
-                                    unsigned const char src2[4]);
+                                    const uchar src1[4],
+                                    const uchar src2[4]);
 MINLINE void blend_color_hue_byte(unsigned char dst[4],
-                                  unsigned const char src1[4],
-                                  unsigned const char src2[4]);
+                                  const uchar src1[4],
+                                  const uchar src2[4]);
 MINLINE void blend_color_saturation_byte(unsigned char dst[4],
-                                         unsigned const char src1[4],
-                                         unsigned const char src2[4]);
+                                         const uchar src1[4],
+                                         const uchar src2[4]);
 MINLINE void blend_color_luminosity_byte(unsigned char dst[4],
-                                         unsigned const char src1[4],
-                                         unsigned const char src2[4]);
+                                         const uchar src1[4],
+                                         const uchar src2[4]);
 
 MINLINE void blend_color_interpolate_byte(unsigned char dst[4],
                                           const unsigned char src1[4],

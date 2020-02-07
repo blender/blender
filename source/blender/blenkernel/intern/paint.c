@@ -846,7 +846,7 @@ bool paint_is_face_hidden(const MLoopTri *lt, const MVert *mvert, const MLoop *m
 /* returns non-zero if any of the corners of the grid
  * face whose inner corner is at (x, y) are hidden,
  * zero otherwise */
-bool paint_is_grid_face_hidden(const unsigned int *grid_hidden, int gridsize, int x, int y)
+bool paint_is_grid_face_hidden(const uint *grid_hidden, int gridsize, int x, int y)
 {
   /* skip face if any of its corners are hidden */
   return (BLI_BITMAP_TEST(grid_hidden, y * gridsize + x) ||
@@ -871,7 +871,7 @@ bool paint_is_bmesh_face_hidden(BMFace *f)
   return false;
 }
 
-float paint_grid_paint_mask(const GridPaintMask *gpm, unsigned level, unsigned x, unsigned y)
+float paint_grid_paint_mask(const GridPaintMask *gpm, uint level, uint x, uint y)
 {
   int factor = BKE_ccg_factor(level, gpm->level);
   int gridsize = BKE_ccg_gridsize(gpm->level);

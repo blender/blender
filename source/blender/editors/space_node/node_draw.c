@@ -722,18 +722,18 @@ static void node_socket_draw(const bContext *C,
                              bNodeTree *ntree,
                              PointerRNA node_ptr,
                              bNodeSocket *sock,
-                             unsigned pos_id,
-                             unsigned col_id,
-                             unsigned shape_id,
-                             unsigned size_id,
-                             unsigned outline_col_id,
+                             uint pos_id,
+                             uint col_id,
+                             uint shape_id,
+                             uint size_id,
+                             uint outline_col_id,
                              float size,
                              bool selected)
 {
   PointerRNA ptr;
   float color[4];
   float outline_color[4];
-  unsigned int flags = 0;
+  uint flags = 0;
 
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
   sock->typeinfo->draw_color((bContext *)C, &ptr, &node_ptr, color);

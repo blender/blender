@@ -1090,7 +1090,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   /* validate loop edges */
 #if 0
   {
-    unsigned i = 0;
+    uint i = 0;
     printf("\n");
     for (; i < maxPolys * 4; i += 4) {
       uint ii;

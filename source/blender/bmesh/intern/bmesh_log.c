@@ -476,7 +476,7 @@ BMLog *BM_log_create(BMesh *bm)
   BMLog *log = MEM_callocN(sizeof(*log), __func__);
   const uint reserve_num = (uint)(bm->totvert + bm->totface);
 
-  log->unused_ids = range_tree_uint_alloc(0, (unsigned)-1);
+  log->unused_ids = range_tree_uint_alloc(0, (uint)-1);
   log->id_to_elem = BLI_ghash_new_ex(logkey_hash, logkey_cmp, __func__, reserve_num);
   log->elem_to_id = BLI_ghash_ptr_new_ex(__func__, reserve_num);
 
@@ -618,7 +618,7 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
   /* Create BMVert index remap array */
   id_to_idx = bm_log_compress_ids_to_indices(varr, (uint)bm->totvert);
   BM_ITER_MESH_INDEX (v, &bm_iter, bm, BM_VERTS_OF_MESH, i) {
-    const unsigned id = bm_log_vert_id_get(log, v);
+    const uint id = bm_log_vert_id_get(log, v);
     const void *key = POINTER_FROM_UINT(id);
     const void *val = BLI_ghash_lookup(id_to_idx, key);
     varr[i] = POINTER_AS_UINT(val);
@@ -628,7 +628,7 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
   /* Create BMFace index remap array */
   id_to_idx = bm_log_compress_ids_to_indices(farr, (uint)bm->totface);
   BM_ITER_MESH_INDEX (f, &bm_iter, bm, BM_FACES_OF_MESH, i) {
-    const unsigned id = bm_log_face_id_get(log, f);
+    const uint id = bm_log_face_id_get(log, f);
     const void *key = POINTER_FROM_UINT(id);
     const void *val = BLI_ghash_lookup(id_to_idx, key);
     farr[i] = POINTER_AS_UINT(val);
@@ -1039,7 +1039,7 @@ const float *BM_log_original_vert_co(BMLog *log, BMVert *v)
 {
   BMLogEntry *entry = log->current_entry;
   const BMLogVert *lv;
-  unsigned v_id = bm_log_vert_id_get(log, v);
+  uint v_id = bm_log_vert_id_get(log, v);
   void *key = POINTER_FROM_UINT(v_id);
 
   BLI_assert(entry);
@@ -1057,7 +1057,7 @@ const short *BM_log_original_vert_no(BMLog *log, BMVert *v)
 {
   BMLogEntry *entry = log->current_entry;
   const BMLogVert *lv;
-  unsigned v_id = bm_log_vert_id_get(log, v);
+  uint v_id = bm_log_vert_id_get(log, v);
   void *key = POINTER_FROM_UINT(v_id);
 
   BLI_assert(entry);
@@ -1075,7 +1075,7 @@ float BM_log_original_mask(BMLog *log, BMVert *v)
 {
   BMLogEntry *entry = log->current_entry;
   const BMLogVert *lv;
-  unsigned v_id = bm_log_vert_id_get(log, v);
+  uint v_id = bm_log_vert_id_get(log, v);
   void *key = POINTER_FROM_UINT(v_id);
 
   BLI_assert(entry);
@@ -1090,7 +1090,7 @@ void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const 
 {
   BMLogEntry *entry = log->current_entry;
   const BMLogVert *lv;
-  unsigned v_id = bm_log_vert_id_get(log, v);
+  uint v_id = bm_log_vert_id_get(log, v);
   void *key = POINTER_FROM_UINT(v_id);
 
   BLI_assert(entry);
