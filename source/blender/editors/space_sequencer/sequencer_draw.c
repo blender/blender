@@ -1055,11 +1055,8 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain,
   if (special_seq_update) {
     ibuf = BKE_sequencer_give_ibuf_direct(&context, cfra + frame_ofs, special_seq_update);
   }
-  else if (!U.prefetchframes) {  // XXX || (G.f & G_PLAYANIM) == 0) {
-    ibuf = BKE_sequencer_give_ibuf(&context, cfra + frame_ofs, sseq->chanshown);
-  }
   else {
-    ibuf = BKE_sequencer_give_ibuf_threaded(&context, cfra + frame_ofs, sseq->chanshown);
+    ibuf = BKE_sequencer_give_ibuf(&context, cfra + frame_ofs, sseq->chanshown);
   }
 
   if (fb) {
@@ -1621,27 +1618,6 @@ void sequencer_draw_preview(const bContext *C,
   UI_view2d_view_restore(C);
   seq_prefetch_wm_notify(C, scene);
 }
-
-#if 0
-void drawprefetchseqspace(Scene *scene, ARegion *UNUSED(ar), SpaceSeq *sseq)
-{
-  int rectx, recty;
-  int render_size = BKE_sequencer_rendersize_to_scale_factor(sseq->render_size);
-  if (sseq->render_size == SEQ_PROXY_RENDER_SIZE_NONE) {
-    return;
-  }
-
-  if (sseq->render_size == SEQ_PROXY_RENDER_SIZE_SCENE) {
-    render_size = scene->r.size / 100.0;
-  }
-  rectx = render_size * scene->r.xsch + 0.5;
-  recty = render_size * scene->r.ysch + 0.5;
-
-  if (sseq->mainb != SEQ_DRAW_SEQUENCE) {
-    give_ibuf_prefetch_request(rectx, recty, (scene->r.cfra), sseq->chanshown, sseq->render_size);
-  }
-}
-#endif
 
 /* draw backdrop of the sequencer strips view */
 static void draw_seq_backdrop(View2D *v2d)

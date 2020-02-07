@@ -724,6 +724,7 @@ typedef struct UserDef {
   short vbotimeout, vbocollectrate;
   short textimeout, texcollectrate;
   int memcachelimit;
+  /** Unused. */
   int prefetchframes;
   /** Control the rotation step of the view when PAD2, PAD4, PAD6&PAD8 is use. */
   float pad_rot_angle;

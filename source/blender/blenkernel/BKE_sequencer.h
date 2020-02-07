@@ -211,9 +211,6 @@ struct SeqEffectHandle {
 double BKE_sequencer_rendersize_to_scale_factor(int size);
 
 struct ImBuf *BKE_sequencer_give_ibuf(const SeqRenderData *context, float cfra, int chanshown);
-struct ImBuf *BKE_sequencer_give_ibuf_threaded(const SeqRenderData *context,
-                                               float cfra,
-                                               int chanshown);
 struct ImBuf *BKE_sequencer_give_ibuf_direct(const SeqRenderData *context,
                                              float cfra,
                                              struct Sequence *seq);
@@ -221,9 +218,6 @@ struct ImBuf *BKE_sequencer_give_ibuf_seqbase(const SeqRenderData *context,
                                               float cfra,
                                               int chan_shown,
                                               struct ListBase *seqbasep);
-void BKE_sequencer_give_ibuf_prefetch_request(const SeqRenderData *context,
-                                              float cfra,
-                                              int chan_shown);
 
 /* **********************************************************************
  * sequencer.c
