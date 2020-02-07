@@ -3526,8 +3526,8 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
         }
       }
       if (!baking_data && !baking_noise && !mode_replay) {
-        /* There is no need to call manta_update_smoke_structures() here.
-         * The noise cache has already been read with manta_update_noise_structures(). */
+        /* TODO (sebbas): Confirm if this read call is really needed or not. */
+        has_data = manta_update_smoke_structures(mds->fluid, mmd, data_frame);
       }
       else {
         has_data = manta_read_data(mds->fluid, mmd, data_frame);
@@ -4448,9 +4448,15 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
     mmd->domain->cache_flag = 0;
     mmd->domain->cache_type = FLUID_DOMAIN_CACHE_MODULAR;
     mmd->domain->cache_mesh_format = FLUID_DOMAIN_FILE_BIN_OBJECT;
+#ifdef WITH_OPENVDB
     mmd->domain->cache_data_format = FLUID_DOMAIN_FILE_OPENVDB;
     mmd->domain->cache_particle_format = FLUID_DOMAIN_FILE_OPENVDB;
     mmd->domain->cache_noise_format = FLUID_DOMAIN_FILE_OPENVDB;
+#else
+    mmd->domain->cache_data_format = FLUID_DOMAIN_FILE_UNI;
+    mmd->domain->cache_particle_format = FLUID_DOMAIN_FILE_UNI;
+    mmd->domain->cache_noise_format = FLUID_DOMAIN_FILE_UNI;
+#endif
     modifier_path_init(mmd->domain->cache_directory,
                        sizeof(mmd->domain->cache_directory),
                        FLUID_DOMAIN_DIR_DEFAULT);

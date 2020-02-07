@@ -856,12 +856,12 @@ struct MANTA {
   void updateMeshFromObj(const char *filename);
   void updateMeshFromUni(const char *filename);
   void updateParticlesFromUni(const char *filename, bool isSecondarySys, bool isVelData);
-  int updateGridFromUni(const char *filename, float *grid);
-  int updateGridFromVDB(const char *filename, float *grid);
-  int updateGridFromRaw(const char *filename, float *grid);
+  int updateGridFromUni(const char *filename, float *grid, bool isNoise);
+  int updateGridFromVDB(const char *filename, float *grid, bool isNoise);
+  int updateGridFromRaw(const char *filename, float *grid, bool isNoise);
   void updateMeshFromFile(const char *filename);
   void updateParticlesFromFile(const char *filename, bool isSecondarySys, bool isVelData);
-  int updateGridFromFile(const char *filename, float *grid);
+  int updateGridFromFile(const char *filename, float *grid, bool isNoise);
 };
 
 #endif
