@@ -79,7 +79,8 @@ bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
       error_context = "File access";
     }
 
-    else if (parserError.getErrorType() == GeneratedSaxParser::ParserError::ERROR_REQUIRED_ATTRIBUTE_MISSING) {
+    else if (parserError.getErrorType() ==
+             GeneratedSaxParser::ParserError::ERROR_REQUIRED_ATTRIBUTE_MISSING) {
       isError = true;
     }
 

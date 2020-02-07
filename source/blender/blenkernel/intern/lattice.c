@@ -783,7 +783,7 @@ void curve_deform_verts(Object *cuOb,
 
     if (cu->flag & CU_DEFORM_BOUNDS_OFF) {
       for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
-        const float weight = invert_vgroup? 1.0f - defvert_find_weight(dvert_iter, defgrp_index) :
+        const float weight = invert_vgroup ? 1.0f - defvert_find_weight(dvert_iter, defgrp_index) :
                                              defvert_find_weight(dvert_iter, defgrp_index);
 
         if (weight > 0.0f) {
@@ -800,7 +800,7 @@ void curve_deform_verts(Object *cuOb,
       INIT_MINMAX(cd.dmin, cd.dmax);
 
       for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
-        const float weight = invert_vgroup? 1.0f - defvert_find_weight(dvert_iter, defgrp_index) :
+        const float weight = invert_vgroup ? 1.0f - defvert_find_weight(dvert_iter, defgrp_index) :
                                              defvert_find_weight(dvert_iter, defgrp_index);
         if (weight > 0.0f) {
           mul_m4_v3(cd.curvespace, vert_coords[a]);
@@ -809,7 +809,7 @@ void curve_deform_verts(Object *cuOb,
       }
 
       for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
-        const float weight = invert_vgroup? 1.0f - defvert_find_weight(dvert_iter, defgrp_index) :
+        const float weight = invert_vgroup ? 1.0f - defvert_find_weight(dvert_iter, defgrp_index) :
                                              defvert_find_weight(dvert_iter, defgrp_index);
 
         if (weight > 0.0f) {
@@ -899,8 +899,9 @@ static void lattice_deform_vert_task(void *__restrict userdata,
   const LatticeDeformUserdata *data = userdata;
 
   if (data->dvert != NULL) {
-    const float weight = data->invert_vgroup? 1.0f - defvert_find_weight(data->dvert + index, data->defgrp_index) :
-                                                defvert_find_weight(data->dvert + index, data->defgrp_index);
+    const float weight = data->invert_vgroup ?
+                             1.0f - defvert_find_weight(data->dvert + index, data->defgrp_index) :
+                             defvert_find_weight(data->dvert + index, data->defgrp_index);
     if (weight > 0.0f) {
       calc_latt_deform(data->lattice_deform_data, data->vert_coords[index], weight * data->fac);
     }
