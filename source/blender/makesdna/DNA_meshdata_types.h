@@ -331,7 +331,7 @@ typedef struct MLoopUV {
 
 /** #MLoopUV.flag */
 enum {
-  MLOOPUV_EDGESEL = (1 << 0),
+  /* MLOOPUV_DEPRECATED = (1 << 0), MLOOPUV_EDGESEL removed */
   MLOOPUV_VERTSEL = (1 << 1),
   MLOOPUV_PINNED = (1 << 2),
 };
