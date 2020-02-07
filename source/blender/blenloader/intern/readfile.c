@@ -121,7 +121,7 @@
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
-#include "BKE_library_idmap.h"
+#include "BKE_main_idmap.h"
 #include "BKE_library_override.h"
 #include "BKE_library_query.h"
 #include "BKE_main.h"  // for Main

@@ -136,7 +136,6 @@ set(SRC
   intern/layer.c
   intern/layer_utils.c
   intern/library.c
-  intern/library_idmap.c
   intern/library_override.c
   intern/library_query.c
   intern/library_remap.c
@@ -144,6 +143,7 @@ set(SRC
   intern/lightprobe.c
   intern/linestyle.c
   intern/main.c
+  intern/main_idmap.c
   intern/mask.c
   intern/mask_evaluate.c
   intern/mask_rasterize.c
@@ -299,7 +299,6 @@ set(SRC
   BKE_lattice.h
   BKE_layer.h
   BKE_library.h
-  BKE_library_idmap.h
   BKE_library_override.h
   BKE_library_query.h
   BKE_library_remap.h
@@ -307,6 +306,7 @@ set(SRC
   BKE_lightprobe.h
   BKE_linestyle.h
   BKE_main.h
+  BKE_main_idmap.h
   BKE_mask.h
   BKE_material.h
   BKE_mball.h

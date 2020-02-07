@@ -13,8 +13,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef __BKE_LIBRARY_IDMAP_H__
-#define __BKE_LIBRARY_IDMAP_H__
+#ifndef __BKE_MAIN_IDMAP_H__
+#define __BKE_MAIN_IDMAP_H__
 
 /** \file
  * \ingroup bke
@@ -42,4 +42,4 @@ struct ID *BKE_main_idmap_lookup_id(struct IDNameLib_Map *id_typemap,
                                     const struct ID *id) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
 
-#endif /* __BKE_LIBRARY_IDMAP_H__ */
+#endif /* __BKE_MAIN_IDMAP_H__ */

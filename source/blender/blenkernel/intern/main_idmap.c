@@ -26,8 +26,8 @@
 #include "DNA_ID.h"
 
 #include "BKE_idcode.h"
-#include "BKE_library_idmap.h" /* own include */
 #include "BKE_main.h"
+#include "BKE_main_idmap.h" /* own include */
 
 /** \file
  * \ingroup bke
