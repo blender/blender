@@ -613,28 +613,24 @@ endif()
 
 # enable boost for cycles, audaspace or i18n
 # otherwise if the user disabled
-if(NOT WITH_BOOST)
-  # Explicitly disabled. so disable all deps.
-  macro(set_and_warn
-    _setting _val)
-    if(${${_setting}})
-      message(STATUS "'WITH_BOOST' is disabled: forcing 'set(${_setting} ${_val})'")
-    endif()
-    set(${_setting} ${_val})
-  endmacro()
 
-  set_and_warn(WITH_CYCLES         OFF)
-  set_and_warn(WITH_INTERNATIONAL  OFF)
-  set_and_warn(WITH_OPENVDB        OFF)
-  set_and_warn(WITH_OPENCOLORIO    OFF)
-  set_and_warn(WITH_QUADRIFLOW     OFF)
-elseif(WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_INTERNATIONAL OR
-       WITH_OPENVDB OR WITH_OPENCOLORIO)
-  # Keep enabled
-else()
-  # Disable boost if not needed.
+set_and_warn_dependency(WITH_BOOST WITH_CYCLES         OFF)
+set_and_warn_dependency(WITH_BOOST WITH_INTERNATIONAL  OFF)
+set_and_warn_dependency(WITH_BOOST WITH_OPENVDB        OFF)
+set_and_warn_dependency(WITH_BOOST WITH_OPENCOLORIO    OFF)
+set_and_warn_dependency(WITH_BOOST WITH_QUADRIFLOW     OFF)
+set_and_warn_dependency(WITH_BOOST WITH_USD            OFF)
+
+if(NOT (WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_INTERNATIONAL OR
+   WITH_OPENVDB OR WITH_OPENCOLORIO OR WITH_USD))
+  message(STATUS "No dependencies need 'WITH_BOOST' forcing WITH_BOOST=OFF")
   set(WITH_BOOST OFF)
 endif()
+
+set_and_warn_dependency(WITH_TBB WITH_USD               OFF)
+set_and_warn_dependency(WITH_TBB WITH_OPENIMAGEDENOISE  OFF)
+set_and_warn_dependency(WITH_TBB WITH_OPENVDB           OFF)
+set_and_warn_dependency(WITH_TBB WITH_MOD_FLUID         OFF)
 
 # auto enable openimageio for cycles
 if(WITH_CYCLES)

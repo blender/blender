@@ -448,17 +448,6 @@ if(WITH_TBB)
   find_package_wrapper(TBB)
 endif()
 
-if(NOT WITH_TBB OR NOT TBB_FOUND)
-  if(WITH_OPENIMAGEDENOISE)
-    message(STATUS "TBB not found, disabling OpenImageDenoise")
-    set(WITH_OPENIMAGEDENOISE OFF)
-  endif()
-  if(WITH_OPENVDB)
-    message(STATUS "TBB not found, disabling OpenVDB")
-    set(WITH_OPENVDB OFF)
-  endif()
-endif()
-
 # OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
 if(HAIKU)
   list(APPEND PLATFORM_LINKLIBS -lnetwork)

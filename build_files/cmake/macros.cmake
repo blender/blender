@@ -1157,3 +1157,13 @@ macro(blender_precompile_headers target cpp header)
     set_source_files_properties(${cpp} PROPERTIES COMPILE_FLAGS "/Yc${header} /Fp${pchfinal}")
   endif()
 endmacro()
+
+macro(set_and_warn_dependency
+    _dependency _setting _val)
+    # when $_dependency is disabled, forces $_setting = $_val
+    if(NOT ${${_dependency}} AND ${${_setting}})
+      message(STATUS "'${_dependency}' is disabled: forcing 'set(${_setting} ${_val})'")
+      set(${_setting} ${_val})
+    endif()
+endmacro()
+
