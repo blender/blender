@@ -210,4 +210,3 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d, bool use_portal)
 }
 
 CCL_NAMESPACE_END
-

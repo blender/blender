@@ -69,9 +69,7 @@ MINLINE void blend_color_overlay_byte(unsigned char dst[4],
 MINLINE void blend_color_hardlight_byte(unsigned char dst[4],
                                         const uchar src1[4],
                                         const uchar src2[4]);
-MINLINE void blend_color_burn_byte(unsigned char dst[4],
-                                   const uchar src1[4],
-                                   const uchar src2[4]);
+MINLINE void blend_color_burn_byte(unsigned char dst[4], const uchar src1[4], const uchar src2[4]);
 MINLINE void blend_color_linearburn_byte(unsigned char dst[4],
                                          const uchar src1[4],
                                          const uchar src2[4]);
@@ -102,9 +100,7 @@ MINLINE void blend_color_exclusion_byte(unsigned char dst[4],
 MINLINE void blend_color_color_byte(unsigned char dst[4],
                                     const uchar src1[4],
                                     const uchar src2[4]);
-MINLINE void blend_color_hue_byte(unsigned char dst[4],
-                                  const uchar src1[4],
-                                  const uchar src2[4]);
+MINLINE void blend_color_hue_byte(unsigned char dst[4], const uchar src1[4], const uchar src2[4]);
 MINLINE void blend_color_saturation_byte(unsigned char dst[4],
                                          const uchar src1[4],
                                          const uchar src2[4]);

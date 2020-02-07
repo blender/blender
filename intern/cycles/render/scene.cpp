@@ -356,8 +356,8 @@ bool Scene::need_update()
 bool Scene::need_data_update()
 {
   return (background->need_update || image_manager->need_update || object_manager->need_update ||
-          geometry_manager->need_update || light_manager->need_update || lookup_tables->need_update ||
-          integrator->need_update || shader_manager->need_update ||
+          geometry_manager->need_update || light_manager->need_update ||
+          lookup_tables->need_update || integrator->need_update || shader_manager->need_update ||
           particle_system_manager->need_update || curve_system_manager->need_update ||
           bake_manager->need_update || film->need_update);
 }
