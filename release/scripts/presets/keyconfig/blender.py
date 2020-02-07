@@ -108,6 +108,22 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
 
+    v3d_mmb_action: EnumProperty(
+        name="MMB Action",
+        items=(
+            ('ORBIT', "Orbit",
+             "Orbit",
+             0),
+            ('PAN', "Pan",
+             "Set the view axis where each mouse direction always maps to the same axis",
+             1),
+        ),
+        description=(
+            "The action when Middle-Mouse dragging in the viewport. Shift-Middle-Mouse is used for the other action"
+        ),
+        update=update_fn,
+    )
+
     v3d_alt_mmb_drag_action: EnumProperty(
         name="Alt-MMB Drag Action",
         items=(
@@ -169,6 +185,8 @@ class Prefs(bpy.types.KeyConfigPreferences):
         col = split.column()
         col.label(text="Tilde Action:")
         col.row().prop(self, "v3d_tilde_action", expand=True)
+        col.label(text="Middle Mouse Action:")
+        col.row().prop(self, "v3d_mmb_action", expand=True)
         col.label(text="Alt Middle Mouse Drag Action:")
         col.row().prop(self, "v3d_alt_mmb_drag_action", expand=True)
 
@@ -194,6 +212,7 @@ def load():
             ),
             spacebar_action=kc_prefs.spacebar_action,
             v3d_tilde_action=kc_prefs.v3d_tilde_action,
+            use_v3d_mmb_pan=(kc_prefs.v3d_mmb_action == 'PAN'),
             v3d_alt_mmb_drag_action=kc_prefs.v3d_alt_mmb_drag_action,
             use_select_all_toggle=kc_prefs.use_select_all_toggle,
             use_v3d_tab_menu=kc_prefs.use_v3d_tab_menu,
