@@ -1054,7 +1054,9 @@ static int parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
   if (parent->type == OB_ARMATURE) {
     uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE);
     uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_NAME);
-    uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_ENVELOPE);
+    if (!has_children_of_type.gpencil) {
+      uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_ENVELOPE);
+    }
     if (has_children_of_type.mesh || has_children_of_type.gpencil) {
       uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_AUTO);
     }
