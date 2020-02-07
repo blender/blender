@@ -19,6 +19,7 @@
 
 /** \file
  * \ingroup edtransform
+ * \brief conversion and adaptation of different datablocks to a common struct.
  */
 
 #ifndef __TRANSFORM_CONVERT_H__
@@ -60,28 +61,38 @@ void clipUVData(TransInfo *t);
 
 /* transform_convert_action.c */
 void flushTransIntFrameActionData(TransInfo *t);
+
 /* transform_convert_armature.c */
 void restoreMirrorPoseBones(TransDataContainer *tc);
 void restoreBones(TransDataContainer *tc);
+
 /* transform_convert_graph.c */
 void flushTransGraphData(TransInfo *t);
+
 /* transform_convert_mask.c */
 void flushTransMasking(TransInfo *t);
+
 /* transform_convert_mesh.c */
 void flushTransUVs(TransInfo *t);
 void trans_mesh_customdata_correction_init(TransInfo *t);
 void trans_mesh_customdata_correction_apply(struct TransDataContainer *tc, bool is_final);
+
 /* transform_convert_node.c */
 void flushTransNodes(TransInfo *t);
+
 /* transform_convert_object.c */
 void trans_obdata_in_obmode_update_all(struct TransInfo *t);
 void trans_obchild_in_obmode_update_all(struct TransInfo *t);
+
 /* transform_convert_paintcurve.c */
 void flushTransPaintCurve(TransInfo *t);
+
 /* transform_convert_particle.c */
 void flushTransParticles(TransInfo *t);
+
 /* transform_convert_sequencer.c */
 void flushTransSeq(TransInfo *t);
+
 /* transform_convert_tracking.c */
 void flushTransTracking(TransInfo *t);
 
@@ -96,45 +107,62 @@ bool FrameOnMouseSide(char side, float frame, float cframe);
 
 /* transform_convert_action.c */
 void createTransActionData(bContext *C, TransInfo *t);
+
 /* transform_convert_armature.c */
 struct bKinematicConstraint *has_targetless_ik(struct bPoseChannel *pchan);
 void createTransPose(TransInfo *t);
 void createTransArmatureVerts(TransInfo *t);
+
 /* transform_convert_cursor.c */
 void createTransCursor_image(TransInfo *t);
 void createTransCursor_view3d(TransInfo *t);
+
 /* transform_convert_curve.c */
 void createTransCurveVerts(TransInfo *t);
+
 /* transform_convert_graph.c */
 void createTransGraphEditData(bContext *C, TransInfo *t);
+
 /* transform_convert_gpencil.c */
 void createTransGPencil(bContext *C, TransInfo *t);
+
 /* transform_convert_lattice.c */
 void createTransLatticeVerts(TransInfo *t);
+
 /* transform_convert_mask.c */
 void createTransMaskingData(bContext *C, TransInfo *t);
+
 /* transform_convert_mball.c */
 void createTransMBallVerts(TransInfo *t);
+
 /* transform_convert_mesh.c */
 void createTransEditVerts(TransInfo *t);
 void createTransEdge(TransInfo *t);
 void createTransUVs(bContext *C, TransInfo *t);
+
 /* transform_convert_nla.c */
 void createTransNlaData(bContext *C, TransInfo *t);
+
 /* transform_convert_node.c */
 void createTransNodeData(bContext *UNUSED(C), TransInfo *t);
+
 /* transform_convert_object.c */
 void clear_trans_object_base_flags(TransInfo *t);
 void createTransObject(bContext *C, TransInfo *t);
 void createTransTexspace(TransInfo *t);
+
 /* transform_convert_paintcurve.c */
 void createTransPaintCurveVerts(bContext *C, TransInfo *t);
+
 /* transform_convert_particle.c */
 void createTransParticleVerts(bContext *C, TransInfo *t);
+
 /* transform_convert_sculpt.c */
 void createTransSculpt(TransInfo *t);
+
 /* transform_convert_sequence.c */
 void createTransSeqData(bContext *C, TransInfo *t);
+
 /* transform_convert_tracking.c */
 void createTransTrackingData(bContext *C, TransInfo *t);
 void cancelTransTracking(TransInfo *t);
