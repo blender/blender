@@ -836,7 +836,7 @@ void BKE_tracking_tracks_join(MovieTracking *tracking,
 
           MovieTrackingMarker *marker_a, *marker_b;
           int start_a = a, start_b = b, len = 0, frame = src_track->markers[a].framenr;
-          int j, inverse = 0;
+          int inverse = 0;
 
           inverse = (b == 0) || (dst_track->markers[b - 1].flag & MARKER_DISABLED) ||
                     (dst_track->markers[b - 1].framenr != frame - 1);
@@ -864,7 +864,7 @@ void BKE_tracking_tracks_join(MovieTracking *tracking,
           b = start_b;
 
           /* linear interpolation for intersecting frames */
-          for (j = 0; j < len; j++) {
+          for (int j = 0; j < len; j++) {
             float fac = 0.5f;
 
             if (len > 1) {
@@ -2897,8 +2897,6 @@ static void tracking_dopesheet_channels_calc(MovieTracking *tracking)
   bool show_hidden = (dopesheet->flag & TRACKING_DOPE_SHOW_HIDDEN) != 0;
 
   for (MovieTrackingTrack *track = tracksbase->first; track; track = track->next) {
-    MovieTrackingDopesheetChannel *channel;
-
     if (!show_hidden && (track->flag & TRACK_HIDDEN) != 0) {
       continue;
     }
@@ -2907,7 +2905,8 @@ static void tracking_dopesheet_channels_calc(MovieTracking *tracking)
       continue;
     }
 
-    channel = MEM_callocN(sizeof(MovieTrackingDopesheetChannel), "tracking dopesheet channel");
+    MovieTrackingDopesheetChannel *channel = MEM_callocN(sizeof(MovieTrackingDopesheetChannel),
+                                                         "tracking dopesheet channel");
     channel->track = track;
 
     if (reconstruction->flag & TRACKING_RECONSTRUCTED) {
