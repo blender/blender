@@ -10194,14 +10194,14 @@ static void expand_id_private_id(FileData *fd, Main *mainvar, ID *id)
   /* Handle 'private IDs'. */
   bNodeTree *nodetree = ntreeFromID(id);
   if (nodetree != NULL) {
-    expand_id(fd, mainvar, id);
+    expand_id(fd, mainvar, &nodetree->id);
     expand_nodetree(fd, mainvar, nodetree);
   }
 
   if (GS(id->name) == ID_SCE) {
     Scene *scene = (Scene *)id;
     if (scene->master_collection != NULL) {
-      expand_id(fd, mainvar, id);
+      expand_id(fd, mainvar, &scene->master_collection->id);
       expand_collection(fd, mainvar, scene->master_collection);
     }
   }
