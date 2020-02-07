@@ -613,7 +613,7 @@ static void tracking_scale_reconstruction(ListBase *tracksbase,
  */
 void BKE_tracking_reconstruction_scale(MovieTracking *tracking, float scale[3])
 {
-  for (MovieTrackingObject *object = tracking->objects.first; object; object = object->next) {
+  LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
     ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
     MovieTrackingReconstruction *reconstruction = BKE_tracking_object_get_reconstruction(tracking,
                                                                                          object);

@@ -34,6 +34,7 @@
 #include "BLI_sort_utils.h"
 #include "BLI_ghash.h"
 #include "BLI_math_vector.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
@@ -332,8 +333,7 @@ static void find_next_working_frames(StabContext *ctx,
                                      int *next_lower,
                                      int *next_higher)
 {
-  for (MovieTrackingTrack *track = ctx->tracking->tracks.first; track != NULL;
-       track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &ctx->tracking->tracks) {
     if (is_usable_for_stabilization(ctx, track)) {
       int startpoint = search_closest_marker_index(track, framenr);
       retrieve_next_higher_usable_frame(ctx, track, startpoint, framenr, next_higher);
@@ -558,7 +558,7 @@ static bool average_track_contributions(StabContext *ctx,
 
   ok = false;
   weight_sum = 0.0f;
-  for (MovieTrackingTrack *track = tracking->tracks.first; track; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking->tracks) {
     if (!is_init_for_stabilization(ctx, track)) {
       continue;
     }
@@ -596,7 +596,7 @@ static bool average_track_contributions(StabContext *ctx,
 
   ok = false;
   weight_sum = 0.0f;
-  for (MovieTrackingTrack *track = tracking->tracks.first; track; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking->tracks) {
     if (!is_init_for_stabilization(ctx, track)) {
       continue;
     }
@@ -655,7 +655,7 @@ static void average_marker_positions(StabContext *ctx, int framenr, float r_ref_
 
   zero_v2(r_ref_pos);
   weight_sum = 0.0f;
-  for (MovieTrackingTrack *track = tracking->tracks.first; track; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking->tracks) {
     if (track->flag & TRACK_USE_2D_STAB) {
       float weight = 0.0f;
       MovieTrackingMarker *marker = get_tracking_data_point(ctx, track, framenr, &weight);
@@ -678,7 +678,7 @@ static void average_marker_positions(StabContext *ctx, int framenr, float r_ref_
     int next_lower = MINAFRAME;
     int next_higher = MAXFRAME;
     use_values_from_fcurves(ctx, true);
-    for (MovieTrackingTrack *track = tracking->tracks.first; track; track = track->next) {
+    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking->tracks) {
       /* Note: we deliberately do not care if this track
        *       is already initialized for stabilization. */
       if (track->flag & TRACK_USE_2D_STAB) {
@@ -772,7 +772,7 @@ static int establish_track_initialization_order(StabContext *ctx, TrackInitOrder
   MovieTracking *tracking = ctx->tracking;
   int anchor_frame = tracking->stabilization.anchor_frame;
 
-  for (MovieTrackingTrack *track = tracking->tracks.first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking->tracks) {
     MovieTrackingMarker *marker;
     order[tracknr].data = track;
     marker = get_closest_marker(ctx, track, anchor_frame);
@@ -892,7 +892,7 @@ static void initialize_all_tracks(StabContext *ctx, float aspect)
   zero_v2(pivot);
 
   /* Initialize private working data. */
-  for (MovieTrackingTrack *track = tracking->tracks.first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking->tracks) {
     TrackStabilizationBase *local_data = access_stabilization_baseline_data(ctx, track);
     if (!local_data) {
       local_data = MEM_callocN(sizeof(TrackStabilizationBase),
@@ -1142,7 +1142,7 @@ static float calculate_autoscale_factor(StabContext *ctx, int size, float aspect
   float scale = 1.0f, scale_step = 0.0f;
 
   /* Calculate maximal frame range of tracks where stabilization is active. */
-  for (MovieTrackingTrack *track = ctx->tracking->tracks.first; track; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &ctx->tracking->tracks) {
     if ((track->flag & TRACK_USE_2D_STAB) ||
         ((stab->flag & TRACKING_STABILIZE_ROTATION) && (track->flag & TRACK_USE_2D_STAB_ROT))) {
       int first_frame = track->markers[0].framenr;
