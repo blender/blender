@@ -2354,6 +2354,98 @@ float driver_get_variable_value(ChannelDriver *driver, DriverVar *dvar)
   return dvar->curval;
 }
 
+static void evaluate_driver_sum(ChannelDriver *driver)
+{
+  DriverVar *dvar;
+
+  /* check how many variables there are first (i.e. just one?) */
+  if (BLI_listbase_is_single(&driver->variables)) {
+    /* just one target, so just use that */
+    dvar = driver->variables.first;
+    driver->curval = driver_get_variable_value(driver, dvar);
+    return;
+  }
+
+  /* more than one target, so average the values of the targets */
+  float value = 0.0f;
+  int tot = 0;
+
+  /* loop through targets, adding (hopefully we don't get any overflow!) */
+  for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
+    value += driver_get_variable_value(driver, dvar);
+    tot++;
+  }
+
+  /* perform operations on the total if appropriate */
+  if (driver->type == DRIVER_TYPE_AVERAGE) {
+    driver->curval = tot ? (value / (float)tot) : 0.0f;
+  }
+  else {
+    driver->curval = value;
+  }
+}
+
+static void evaluate_driver_min_max(ChannelDriver *driver)
+{
+  DriverVar *dvar;
+  float value = 0.0f;
+
+  /* loop through the variables, getting the values and comparing them to existing ones */
+  for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
+    /* get value */
+    float tmp_val = driver_get_variable_value(driver, dvar);
+
+    /* store this value if appropriate */
+    if (dvar->prev) {
+      /* check if greater/smaller than the baseline */
+      if (driver->type == DRIVER_TYPE_MAX) {
+        /* max? */
+        if (tmp_val > value) {
+          value = tmp_val;
+        }
+      }
+      else {
+        /* min? */
+        if (tmp_val < value) {
+          value = tmp_val;
+        }
+      }
+    }
+    else {
+      /* first item - make this the baseline for comparisons */
+      value = tmp_val;
+    }
+  }
+
+  /* store value in driver */
+  driver->curval = value;
+}
+
+static void evaluate_driver_python(PathResolvedRNA *anim_rna,
+                                   ChannelDriver *driver,
+                                   ChannelDriver *driver_orig,
+                                   const float evaltime)
+{
+  /* check for empty or invalid expression */
+  if ((driver_orig->expression[0] == '\0') || (driver_orig->flag & DRIVER_FLAG_INVALID)) {
+    driver->curval = 0.0f;
+  }
+  else if (!driver_try_evaluate_simple_expr(driver, driver_orig, &driver->curval, evaltime)) {
+#ifdef WITH_PYTHON
+    /* this evaluates the expression using Python, and returns its result:
+     * - on errors it reports, then returns 0.0f
+     */
+    BLI_mutex_lock(&python_driver_lock);
+
+    driver->curval = BPY_driver_exec(anim_rna, driver, driver_orig, evaltime);
+
+    BLI_mutex_unlock(&python_driver_lock);
+#else  /* WITH_PYTHON*/
+    UNUSED_VARS(anim_rna, evaltime);
+#endif /* WITH_PYTHON*/
+  }
+}
+
 /* Evaluate an Channel-Driver to get a 'time' value to use instead of "evaltime"
  * - "evaltime" is the frame at which F-Curve is being evaluated
  * - has to return a float value
@@ -2364,8 +2456,6 @@ float evaluate_driver(PathResolvedRNA *anim_rna,
                       ChannelDriver *driver_orig,
                       const float evaltime)
 {
-  DriverVar *dvar;
-
   /* check if driver can be evaluated */
   if (driver_orig->flag & DRIVER_FLAG_INVALID) {
     return 0.0f;
@@ -2374,99 +2464,21 @@ float evaluate_driver(PathResolvedRNA *anim_rna,
   switch (driver->type) {
     case DRIVER_TYPE_AVERAGE: /* average values of driver targets */
     case DRIVER_TYPE_SUM:     /* sum values of driver targets */
-    {
-      /* check how many variables there are first (i.e. just one?) */
-      if (BLI_listbase_is_single(&driver->variables)) {
-        /* just one target, so just use that */
-        dvar = driver->variables.first;
-        driver->curval = driver_get_variable_value(driver, dvar);
-      }
-      else {
-        /* more than one target, so average the values of the targets */
-        float value = 0.0f;
-        int tot = 0;
-
-        /* loop through targets, adding (hopefully we don't get any overflow!) */
-        for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
-          value += driver_get_variable_value(driver, dvar);
-          tot++;
-        }
-
-        /* perform operations on the total if appropriate */
-        if (driver->type == DRIVER_TYPE_AVERAGE) {
-          driver->curval = tot ? (value / (float)tot) : 0.0f;
-        }
-        else {
-          driver->curval = value;
-        }
-      }
+      evaluate_driver_sum(driver);
       break;
-    }
     case DRIVER_TYPE_MIN: /* smallest value */
     case DRIVER_TYPE_MAX: /* largest value */
-    {
-      float value = 0.0f;
-
-      /* loop through the variables, getting the values and comparing them to existing ones */
-      for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
-        /* get value */
-        float tmp_val = driver_get_variable_value(driver, dvar);
-
-        /* store this value if appropriate */
-        if (dvar->prev) {
-          /* check if greater/smaller than the baseline */
-          if (driver->type == DRIVER_TYPE_MAX) {
-            /* max? */
-            if (tmp_val > value) {
-              value = tmp_val;
-            }
-          }
-          else {
-            /* min? */
-            if (tmp_val < value) {
-              value = tmp_val;
-            }
-          }
-        }
-        else {
-          /* first item - make this the baseline for comparisons */
-          value = tmp_val;
-        }
-      }
-
-      /* store value in driver */
-      driver->curval = value;
+      evaluate_driver_min_max(driver);
       break;
-    }
     case DRIVER_TYPE_PYTHON: /* expression */
-    {
-      /* check for empty or invalid expression */
-      if ((driver_orig->expression[0] == '\0') || (driver_orig->flag & DRIVER_FLAG_INVALID)) {
-        driver->curval = 0.0f;
-      }
-      else if (!driver_try_evaluate_simple_expr(driver, driver_orig, &driver->curval, evaltime)) {
-#ifdef WITH_PYTHON
-        /* this evaluates the expression using Python, and returns its result:
-         * - on errors it reports, then returns 0.0f
-         */
-        BLI_mutex_lock(&python_driver_lock);
-
-        driver->curval = BPY_driver_exec(anim_rna, driver, driver_orig, evaltime);
-
-        BLI_mutex_unlock(&python_driver_lock);
-#else  /* WITH_PYTHON*/
-        UNUSED_VARS(anim_rna, evaltime);
-#endif /* WITH_PYTHON*/
-      }
+      evaluate_driver_python(anim_rna, driver, driver_orig, evaltime);
       break;
-    }
-    default: {
+    default:
       /* special 'hack' - just use stored value
        * This is currently used as the mechanism which allows animated settings to be able
        * to be changed via the UI.
        */
       break;
-    }
   }
 
   /* return value for driver */
