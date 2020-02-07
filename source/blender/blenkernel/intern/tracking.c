@@ -1276,15 +1276,14 @@ void BKE_tracking_marker_clamp(MovieTrackingMarker *marker, int event)
     sub_v2_v2v2(dim, pat_max, pat_min);
 
     for (int a = 0; a < 2; a++) {
-      int b;
       /* pattern shouldn't be moved outside of search */
       if (pat_min[a] < marker->search_min[a]) {
-        for (b = 0; b < 4; b++) {
+        for (int b = 0; b < 4; b++) {
           marker->pattern_corners[b][a] += marker->search_min[a] - pat_min[a];
         }
       }
       if (pat_max[a] > marker->search_max[a]) {
-        for (b = 0; b < 4; b++) {
+        for (int b = 0; b < 4; b++) {
           marker->pattern_corners[b][a] -= pat_max[a] - marker->search_max[a];
         }
       }
