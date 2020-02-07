@@ -616,8 +616,6 @@ void OBJECT_OT_parent_clear(wmOperatorType *ot)
   ot->invoke = WM_menu_invoke;
   ot->exec = parent_clear_exec;
 
-  ot->poll = ED_operator_object_active_editable;
-
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
