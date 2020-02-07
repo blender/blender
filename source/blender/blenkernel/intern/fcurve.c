@@ -204,28 +204,30 @@ FCurve *id_data_find_fcurve(
 
   RNA_pointer_create(id, type, data, &ptr);
   prop = RNA_struct_find_property(&ptr, prop_name);
-
-  if (prop) {
-    path = RNA_path_from_ID_to_property(&ptr, prop);
-
-    if (path) {
-      /* animation takes priority over drivers */
-      if ((adt->action) && (adt->action->curves.first)) {
-        fcu = list_find_fcurve(&adt->action->curves, path, index);
-      }
-
-      /* if not animated, check if driven */
-      if ((fcu == NULL) && (adt->drivers.first)) {
-        fcu = list_find_fcurve(&adt->drivers, path, index);
-        if (fcu && r_driven) {
-          *r_driven = true;
-        }
-        fcu = NULL;
-      }
-
-      MEM_freeN(path);
-    }
+  if (prop == NULL) {
+    return NULL;
   }
+
+  path = RNA_path_from_ID_to_property(&ptr, prop);
+  if (path == NULL) {
+    return NULL;
+  }
+
+  /* animation takes priority over drivers */
+  if (adt->action && adt->action->curves.first) {
+    fcu = list_find_fcurve(&adt->action->curves, path, index);
+  }
+
+  /* if not animated, check if driven */
+  if (fcu == NULL && adt->drivers.first) {
+    fcu = list_find_fcurve(&adt->drivers, path, index);
+    if (fcu && r_driven) {
+      *r_driven = true;
+    }
+    fcu = NULL;
+  }
+
+  MEM_freeN(path);
 
   return fcu;
 }
@@ -309,26 +311,28 @@ int list_find_data_fcurves(ListBase *dst,
   /* search each F-Curve one by one */
   for (fcu = src->first; fcu; fcu = fcu->next) {
     /* check if quoted string matches the path */
-    if ((fcu->rna_path) && strstr(fcu->rna_path, dataPrefix)) {
-      char *quotedName = BLI_str_quoted_substrN(fcu->rna_path, dataPrefix);
-
-      if (quotedName) {
-        /* check if the quoted name matches the required name */
-        if (STREQ(quotedName, dataName)) {
-          LinkData *ld = MEM_callocN(sizeof(LinkData), __func__);
-
-          ld->data = fcu;
-          BLI_addtail(dst, ld);
-
-          matches++;
-        }
-
-        /* always free the quoted string, since it needs freeing */
-        MEM_freeN(quotedName);
-      }
+    if (fcu->rna_path == NULL || !strstr(fcu->rna_path, dataPrefix)) {
+      continue;
     }
-  }
 
+    char *quotedName = BLI_str_quoted_substrN(fcu->rna_path, dataPrefix);
+    if (quotedName == NULL) {
+      continue;
+    }
+
+    /* check if the quoted name matches the required name */
+    if (STREQ(quotedName, dataName)) {
+      LinkData *ld = MEM_callocN(sizeof(LinkData), __func__);
+
+      ld->data = fcu;
+      BLI_addtail(dst, ld);
+
+      matches++;
+    }
+
+    /* always free the quoted string, since it needs freeing */
+    MEM_freeN(quotedName);
+  }
   /* return the number of matches */
   return matches;
 }
@@ -397,53 +401,58 @@ FCurve *rna_get_fcurve_context_ui(bContext *C,
 
     /* Standard F-Curve - Animation (Action) or Drivers */
     while (adt && step--) {
-      if ((adt->action && adt->action->curves.first) || (adt->drivers.first)) {
-        /* XXX this function call can become a performance bottleneck */
-        if (step) {
-          path = RNA_path_from_ID_to_property(&tptr, prop);
+      if ((adt->action == NULL || adt->action->curves.first == NULL) &&
+          (adt->drivers.first == NULL)) {
+        continue;
+      }
+
+      /* XXX this function call can become a performance bottleneck */
+      if (step) {
+        path = RNA_path_from_ID_to_property(&tptr, prop);
+      }
+      if (path == NULL) {
+        continue;
+      }
+
+      // XXX: the logic here is duplicated with a function up above
+      /* animation takes priority over drivers */
+      if (adt->action && adt->action->curves.first) {
+        fcu = list_find_fcurve(&adt->action->curves, path, rnaindex);
+
+        if (fcu && r_action) {
+          *r_action = adt->action;
         }
+      }
 
-        // XXX: the logic here is duplicated with a function up above
-        if (path) {
-          /* animation takes priority over drivers */
-          if (adt->action && adt->action->curves.first) {
-            fcu = list_find_fcurve(&adt->action->curves, path, rnaindex);
+      /* if not animated, check if driven */
+      if (!fcu && (adt->drivers.first)) {
+        fcu = list_find_fcurve(&adt->drivers, path, rnaindex);
 
-            if (fcu && r_action) {
-              *r_action = adt->action;
-            }
+        if (fcu) {
+          if (r_animdata) {
+            *r_animdata = adt;
           }
+          *r_driven = true;
+        }
+      }
 
-          /* if not animated, check if driven */
-          if (!fcu && (adt->drivers.first)) {
-            fcu = list_find_fcurve(&adt->drivers, path, rnaindex);
+      if (fcu && r_action) {
+        if (r_animdata) {
+          *r_animdata = adt;
+        }
+        *r_action = adt->action;
+        break;
+      }
 
-            if (fcu) {
-              if (r_animdata) {
-                *r_animdata = adt;
-              }
-              *r_driven = true;
-            }
-          }
-
-          if (fcu && r_action) {
-            if (r_animdata) {
-              *r_animdata = adt;
-            }
-            *r_action = adt->action;
-            break;
-          }
-          else if (step) {
-            char *tpath = BKE_animdata_driver_path_hack(C, &tptr, prop, path);
-            if (tpath && tpath != path) {
-              MEM_freeN(path);
-              path = tpath;
-              adt = BKE_animdata_from_id(tptr.owner_id);
-            }
-            else {
-              adt = NULL;
-            }
-          }
+      if (step) {
+        char *tpath = BKE_animdata_driver_path_hack(C, &tptr, prop, path);
+        if (tpath && tpath != path) {
+          MEM_freeN(path);
+          path = tpath;
+          adt = BKE_animdata_from_id(tptr.owner_id);
+        }
+        else {
+          adt = NULL;
         }
       }
     }
@@ -476,29 +485,28 @@ static int binarysearch_bezt_index_ex(
     CLOG_WARN(&LOG, "encountered invalid array");
     return 0;
   }
-  else {
-    /* check whether to add before/after/on */
-    float framenum;
 
-    /* 'First' Keyframe (when only one keyframe, this case is used) */
-    framenum = array[0].vec[1][0];
-    if (IS_EQT(frame, framenum, threshold)) {
-      *r_replace = true;
-      return 0;
-    }
-    else if (frame < framenum) {
-      return 0;
-    }
+  /* check whether to add before/after/on */
+  float framenum;
 
-    /* 'Last' Keyframe */
-    framenum = array[(arraylen - 1)].vec[1][0];
-    if (IS_EQT(frame, framenum, threshold)) {
-      *r_replace = true;
-      return (arraylen - 1);
-    }
-    else if (frame > framenum) {
-      return arraylen;
-    }
+  /* 'First' Keyframe (when only one keyframe, this case is used) */
+  framenum = array[0].vec[1][0];
+  if (IS_EQT(frame, framenum, threshold)) {
+    *r_replace = true;
+    return 0;
+  }
+  if (frame < framenum) {
+    return 0;
+  }
+
+  /* 'Last' Keyframe */
+  framenum = array[(arraylen - 1)].vec[1][0];
+  if (IS_EQT(frame, framenum, threshold)) {
+    *r_replace = true;
+    return (arraylen - 1);
+  }
+  if (frame > framenum) {
+    return arraylen;
   }
 
   /* most of the time, this loop is just to find where to put it
@@ -1171,41 +1179,42 @@ void testhandles_fcurve(FCurve *fcu, eBezTriple_Flag sel_flag, const bool use_ha
  */
 void sort_time_fcurve(FCurve *fcu)
 {
+  if (fcu->bezt == NULL) {
+    return;
+  }
 
   /* keep adjusting order of beztriples until nothing moves (bubble-sort) */
-  if (fcu->bezt) {
-    BezTriple *bezt;
-    uint a;
+  BezTriple *bezt;
+  uint a;
 
-    bool ok = true;
-    while (ok) {
-      ok = 0;
-      /* currently, will only be needed when there are beztriples */
+  bool ok = true;
+  while (ok) {
+    ok = 0;
+    /* currently, will only be needed when there are beztriples */
 
-      /* loop over ALL points to adjust position in array and recalculate handles */
-      for (a = 0, bezt = fcu->bezt; a < fcu->totvert; a++, bezt++) {
-        /* check if thee's a next beztriple which we could try to swap with current */
-        if (a < (fcu->totvert - 1)) {
-          /* swap if one is after the other (and indicate that order has changed) */
-          if (bezt->vec[1][0] > (bezt + 1)->vec[1][0]) {
-            SWAP(BezTriple, *bezt, *(bezt + 1));
-            ok = 1;
-          }
+    /* loop over ALL points to adjust position in array and recalculate handles */
+    for (a = 0, bezt = fcu->bezt; a < fcu->totvert; a++, bezt++) {
+      /* check if thee's a next beztriple which we could try to swap with current */
+      if (a < (fcu->totvert - 1)) {
+        /* swap if one is after the other (and indicate that order has changed) */
+        if (bezt->vec[1][0] > (bezt + 1)->vec[1][0]) {
+          SWAP(BezTriple, *bezt, *(bezt + 1));
+          ok = 1;
         }
       }
     }
+  }
 
-    for (a = 0, bezt = fcu->bezt; a < fcu->totvert; a++, bezt++) {
-      /* if either one of both of the points exceeds crosses over the keyframe time... */
-      if ((bezt->vec[0][0] > bezt->vec[1][0]) && (bezt->vec[2][0] < bezt->vec[1][0])) {
-        /* swap handles if they have switched sides for some reason */
-        swap_v2_v2(bezt->vec[0], bezt->vec[2]);
-      }
-      else {
-        /* clamp handles */
-        CLAMP_MAX(bezt->vec[0][0], bezt->vec[1][0]);
-        CLAMP_MIN(bezt->vec[2][0], bezt->vec[1][0]);
-      }
+  for (a = 0, bezt = fcu->bezt; a < fcu->totvert; a++, bezt++) {
+    /* if either one of both of the points exceeds crosses over the keyframe time... */
+    if ((bezt->vec[0][0] > bezt->vec[1][0]) && (bezt->vec[2][0] < bezt->vec[1][0])) {
+      /* swap handles if they have switched sides for some reason */
+      swap_v2_v2(bezt->vec[0], bezt->vec[2]);
+    }
+    else {
+      /* clamp handles */
+      CLAMP_MAX(bezt->vec[0][0], bezt->vec[1][0]);
+      CLAMP_MIN(bezt->vec[2][0], bezt->vec[1][0]);
     }
   }
 }
@@ -2539,11 +2548,10 @@ static int findzero(float x, float q0, float q1, float q2, float q3, float *o)
       if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) {
         return 1;
       }
-      else {
-        return 0;
-      }
+      return 0;
     }
-    else if (d == 0.0) {
+
+    if (d == 0.0) {
       t = sqrt3d(-q);
       o[0] = (float)(2 * t - a);
 
@@ -2555,87 +2563,78 @@ static int findzero(float x, float q0, float q1, float q2, float q3, float *o)
       if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) {
         return nr + 1;
       }
-      else {
-        return nr;
-      }
+      return nr;
     }
-    else {
-      phi = acos(-q / sqrt(-(p * p * p)));
-      t = sqrt(-p);
-      p = cos(phi / 3);
-      q = sqrt(3 - 3 * p * p);
-      o[0] = (float)(2 * t * p - a);
+
+    phi = acos(-q / sqrt(-(p * p * p)));
+    t = sqrt(-p);
+    p = cos(phi / 3);
+    q = sqrt(3 - 3 * p * p);
+    o[0] = (float)(2 * t * p - a);
+
+    if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) {
+      nr++;
+    }
+    o[nr] = (float)(-t * (p + q) - a);
+
+    if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) {
+      nr++;
+    }
+    o[nr] = (float)(-t * (p - q) - a);
+
+    if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) {
+      return nr + 1;
+    }
+    return nr;
+  }
+  a = c2;
+  b = c1;
+  c = c0;
+
+  if (a != 0.0) {
+    /* discriminant */
+    p = b * b - 4 * a * c;
+
+    if (p > 0) {
+      p = sqrt(p);
+      o[0] = (float)((-b - p) / (2 * a));
 
       if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) {
         nr++;
       }
-      o[nr] = (float)(-t * (p + q) - a);
-
-      if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) {
-        nr++;
-      }
-      o[nr] = (float)(-t * (p - q) - a);
+      o[nr] = (float)((-b + p) / (2 * a));
 
       if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) {
         return nr + 1;
       }
-      else {
-        return nr;
-      }
+      return nr;
     }
-  }
-  else {
-    a = c2;
-    b = c1;
-    c = c0;
 
-    if (a != 0.0) {
-      /* discriminant */
-      p = b * b - 4 * a * c;
-
-      if (p > 0) {
-        p = sqrt(p);
-        o[0] = (float)((-b - p) / (2 * a));
-
-        if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) {
-          nr++;
-        }
-        o[nr] = (float)((-b + p) / (2 * a));
-
-        if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) {
-          return nr + 1;
-        }
-        else {
-          return nr;
-        }
-      }
-      else if (p == 0) {
-        o[0] = (float)(-b / (2 * a));
-        if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) {
-          return 1;
-        }
-        else {
-          return 0;
-        }
-      }
-    }
-    else if (b != 0.0) {
-      o[0] = (float)(-c / b);
-
+    if (p == 0) {
+      o[0] = (float)(-b / (2 * a));
       if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) {
         return 1;
       }
-      else {
-        return 0;
-      }
-    }
-    else if (c == 0.0) {
-      o[0] = 0.0;
-      return 1;
     }
 
     return 0;
   }
+
+  if (b != 0.0) {
+    o[0] = (float)(-c / b);
+
+    if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) {
+      return 1;
+    }
+    return 0;
+  }
+
+  if (c == 0.0) {
+    o[0] = 0.0;
+    return 1;
+  }
+
+  return 0;
 }
 
 static void berekeny(float f1, float f2, float f3, float f4, float *o, int b)
@@ -3244,19 +3243,18 @@ float calculate_fcurve(PathResolvedRNA *anim_rna, FCurve *fcu, float evaltime)
   /* only calculate + set curval (overriding the existing value) if curve has
    * any data which warrants this...
    */
-  if (!BKE_fcurve_is_empty(fcu)) {
-    /* calculate and set curval (evaluates driver too if necessary) */
-    float curval;
-    if (fcu->driver) {
-      curval = evaluate_fcurve_driver(anim_rna, fcu, fcu->driver, evaltime);
-    }
-    else {
-      curval = evaluate_fcurve(fcu, evaltime);
-    }
-    fcu->curval = curval; /* debug display only, not thread safe! */
-    return curval;
-  }
-  else {
+  if (BKE_fcurve_is_empty(fcu)) {
     return 0.0f;
   }
+
+  /* calculate and set curval (evaluates driver too if necessary) */
+  float curval;
+  if (fcu->driver) {
+    curval = evaluate_fcurve_driver(anim_rna, fcu, fcu->driver, evaltime);
+  }
+  else {
+    curval = evaluate_fcurve(fcu, evaltime);
+  }
+  fcu->curval = curval; /* debug display only, not thread safe! */
+  return curval;
 }
