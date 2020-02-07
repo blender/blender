@@ -228,24 +228,34 @@ static void generate_geometry(GpencilModifierData *md,
     for (gps = gpf->strokes.first, idx = 0; gps; gps = gps->next, idx++) {
       /* check if stroke can be duplicated */
       if (valid_strokes[idx]) {
-        /* Duplicate stroke */
-        bGPDstroke *gps_dst = MEM_dupallocN(gps);
-        gps_dst->points = MEM_dupallocN(gps->points);
-        if (gps->dvert) {
-          gps_dst->dvert = MEM_dupallocN(gps->dvert);
-          BKE_gpencil_stroke_weights_duplicate(gps, gps_dst);
+        /* Calculate original stroke center (only first loop). */
+        float r_min[3], r_max[3], center[3];
+        if (x == 1) {
+          INIT_MINMAX(r_min, r_max);
+          BKE_gpencil_stroke_minmax(gps, false, r_min, r_max);
+          add_v3_v3v3(center, r_min, r_max);
+          mul_v3_fl(center, 0.5f);
+          sub_v3_v3v3(center, center, ob->obmat[3]);
         }
-        gps_dst->triangles = MEM_dupallocN(gps->triangles);
+
+        /* Duplicate stroke */
+        bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(gps);
 
         /* Move points */
         for (int i = 0; i < gps->totpoints; i++) {
           bGPDspoint *pt = &gps_dst->points[i];
+          /* Apply object local transform (Rot/Scale). */
           if (mmd->object) {
-            /* apply local changes (rot/scale) */
             mul_m4_v3(mat, &pt->x);
           }
-          /* global changes */
-          mul_m4_v3(current_offset, &pt->x);
+          /* Translate to object origin. */
+          float fpt[3];
+          sub_v3_v3v3(fpt, &pt->x, center);
+          /* Global Rotate and scale. */
+          mul_mat3_m4_v3(current_offset, fpt);
+          /* Global translate. */
+          add_v3_v3(fpt, center);
+          add_v3_v3v3(&pt->x, fpt, current_offset[3]);
         }
 
         /* if replace material, use new one */
