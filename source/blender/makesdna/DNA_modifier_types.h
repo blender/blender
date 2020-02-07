@@ -24,6 +24,10 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
  * (ONLY ADD NEW ITEMS AT THE END)
  */
@@ -2041,5 +2045,9 @@ enum {
 
 #define MOD_MESHSEQ_READ_ALL \
   (MOD_MESHSEQ_READ_VERT | MOD_MESHSEQ_READ_POLY | MOD_MESHSEQ_READ_UV | MOD_MESHSEQ_READ_COLOR)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __DNA_MODIFIER_TYPES_H__ */
