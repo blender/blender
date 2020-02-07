@@ -2894,7 +2894,7 @@ int MANTA::updateGridFromVDB(const char *filename, float *grid)
   try {
     file.open();
   }
-  catch (const openvdb::IoError) {
+  catch (const openvdb::IoError &) {
     std::cout << "MANTA::updateGridFromVDB(): IOError, invalid OpenVDB file: " << filename
               << std::endl;
     return 0;
@@ -2941,6 +2941,7 @@ int MANTA::updateGridFromRaw(const char *filename, float *grid)
   readBytes = gzread(gzf, grid, expectedBytes);
 
   assert(expectedBytes == readBytes);
+  (void)readBytes;  // Unused in release.
 
   gzclose(gzf);
   return 1;
