@@ -69,63 +69,6 @@ void studiolight_update_world(WORKBENCH_PrivateData *wpd,
   }
 
   copy_v3_v3(wd->ambient_color, studiolight->light_ambient);
-
-#if 0
-  BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED);
-
-#  if STUDIOLIGHT_SH_BANDS == 2
-  /* Use Geomerics non-linear SH. */
-  mul_v3_v3fl(wd->spherical_harmonics_coefs[0], sl->spherical_harmonics_coefs[0], M_1_PI);
-  /* Swizzle to make shader code simpler. */
-  for (int i = 0; i < 3; i++) {
-    copy_v3_fl3(wd->spherical_harmonics_coefs[i + 1],
-                -sl->spherical_harmonics_coefs[3][i],
-                sl->spherical_harmonics_coefs[2][i],
-                -sl->spherical_harmonics_coefs[1][i]);
-
-    /* 1.5f is to improve the contrast a bit. */
-    mul_v3_fl(wd->spherical_harmonics_coefs[i + 1], M_1_PI * 1.5f);
-  }
-
-  /* Precompute as much as we can. See shader code for derivation. */
-  float len_r1[3], lr1_r0[3], p[3], a[3];
-  for (int i = 0; i < 3; i++) {
-    mul_v3_fl(wd->spherical_harmonics_coefs[i + 1], 0.5f);
-    len_r1[i] = len_v3(wd->spherical_harmonics_coefs[i + 1]);
-    mul_v3_fl(wd->spherical_harmonics_coefs[i + 1], 1.0f / len_r1[i]);
-  }
-  /* lr1_r0 = lenR1 / R0; */
-  copy_v3_v3(lr1_r0, wd->spherical_harmonics_coefs[0]);
-  invert_v3(lr1_r0);
-  mul_v3_v3(lr1_r0, len_r1);
-  /* p = 1.0 + 2.0 * lr1_r0; */
-  copy_v3_v3(p, lr1_r0);
-  mul_v3_fl(p, 2.0f);
-  add_v3_fl(p, 1.0f);
-  /* a = (1.0 - lr1_r0) / (1.0 + lr1_r0); */
-  copy_v3_v3(a, lr1_r0);
-  add_v3_fl(a, 1.0f);
-  invert_v3(a);
-  negate_v3(lr1_r0);
-  add_v3_fl(lr1_r0, 1.0f);
-  mul_v3_v3(a, lr1_r0);
-  /* sh_coefs[4] = p; */
-  copy_v3_v3(wd->spherical_harmonics_coefs[4], p);
-  /* sh_coefs[5] = R0 * a; */
-  mul_v3_v3v3(wd->spherical_harmonics_coefs[5], wd->spherical_harmonics_coefs[0], a);
-  /* sh_coefs[0] = R0 * (1.0 - a) * (p + 1.0); */
-  negate_v3(a);
-  add_v3_fl(a, 1.0f);
-  add_v3_fl(p, 1.0f);
-  mul_v3_v3(a, p);
-  mul_v3_v3(wd->spherical_harmonics_coefs[0], a);
-#  else
-  for (int i = 0; i < STUDIOLIGHT_SH_EFFECTIVE_COEFS_LEN; i++) {
-    /* Can't memcpy because of alignment */
-    copy_v3_v3(wd->spherical_harmonics_coefs[i], sl->spherical_harmonics_coefs[i]);
-  }
-#  endif
-#endif
 }
 
 static void compute_parallel_lines_nor_and_dist(const float v1[2],

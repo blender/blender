@@ -665,7 +665,7 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
     return;
   }
 
-  WORKBENCH_MaterialData *material;
+  WORKBENCH_MaterialData *material = NULL;
   if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
     const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
                                  !DRW_state_is_image_render();
