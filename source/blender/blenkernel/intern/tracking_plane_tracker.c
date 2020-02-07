@@ -39,13 +39,13 @@ typedef double Vec2[2];
 static int point_markers_correspondences_on_both_image(
     MovieTrackingPlaneTrack *plane_track, int frame1, int frame2, Vec2 **x1_r, Vec2 **x2_r)
 {
-  int i, correspondence_index;
   Vec2 *x1, *x2;
 
   *x1_r = x1 = MEM_mallocN(sizeof(*x1) * plane_track->point_tracksnr, "point correspondences x1");
   *x2_r = x2 = MEM_mallocN(sizeof(*x1) * plane_track->point_tracksnr, "point correspondences x2");
 
-  for (i = 0, correspondence_index = 0; i < plane_track->point_tracksnr; i++) {
+  int correspondence_index = 0;
+  for (int i = 0; i < plane_track->point_tracksnr; i++) {
     MovieTrackingTrack *point_track = plane_track->point_tracks[i];
     MovieTrackingMarker *point_marker1, *point_marker2;
 
@@ -77,11 +77,11 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
                                                                                start_frame);
   MovieTrackingPlaneMarker *keyframe_plane_marker = NULL;
   MovieTrackingPlaneMarker new_plane_marker;
-  int current_frame, frame_delta = direction > 0 ? 1 : -1;
+  int frame_delta = direction > 0 ? 1 : -1;
 
   if (plane_track->flag & PLANE_TRACK_AUTOKEY) {
     /* Find a keyframe in given direction. */
-    for (current_frame = start_frame;; current_frame += frame_delta) {
+    for (int current_frame = start_frame;; current_frame += frame_delta) {
       MovieTrackingPlaneMarker *next_plane_marker = BKE_tracking_plane_marker_get_exact(
           plane_track, current_frame + frame_delta);
 
@@ -102,11 +102,10 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
   new_plane_marker = *start_plane_marker;
   new_plane_marker.flag |= PLANE_MARKER_TRACKED;
 
-  for (current_frame = start_frame;; current_frame += frame_delta) {
+  for (int current_frame = start_frame;; current_frame += frame_delta) {
     MovieTrackingPlaneMarker *next_plane_marker = BKE_tracking_plane_marker_get_exact(
         plane_track, current_frame + frame_delta);
     Vec2 *x1, *x2;
-    int i, num_correspondences;
     double H_double[3][3];
     float H[3][3];
 
@@ -118,13 +117,11 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
       }
     }
 
-    num_correspondences = point_markers_correspondences_on_both_image(
+    const int num_correspondences = point_markers_correspondences_on_both_image(
         plane_track, current_frame, current_frame + frame_delta, &x1, &x2);
-
     if (num_correspondences < 4) {
       MEM_freeN(x1);
       MEM_freeN(x2);
-
       break;
     }
 
@@ -132,7 +129,7 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
 
     copy_m3_m3d(H, H_double);
 
-    for (i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) {
       float vec[3] = {0.0f, 0.0f, 1.0f}, vec2[3];
       copy_v2_v2(vec, new_plane_marker.corners[i]);
 
@@ -155,7 +152,7 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
 
       fac = 3 * fac * fac - 2 * fac * fac * fac;
 
-      for (i = 0; i < 4; i++) {
+      for (int i = 0; i < 4; i++) {
         interp_v2_v2v2(new_plane_marker.corners[i],
                        new_plane_marker.corners[i],
                        next_plane_marker->corners[i],

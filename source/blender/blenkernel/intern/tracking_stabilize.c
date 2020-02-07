@@ -545,7 +545,6 @@ static bool average_track_contributions(StabContext *ctx,
 {
   bool ok;
   float weight_sum;
-  MovieTrackingTrack *track;
   MovieTracking *tracking = ctx->tracking;
   MovieTrackingStabilization *stab = &tracking->stabilization;
   float ref_pos[2];
@@ -559,7 +558,7 @@ static bool average_track_contributions(StabContext *ctx,
 
   ok = false;
   weight_sum = 0.0f;
-  for (track = tracking->tracks.first; track; track = track->next) {
+  for (MovieTrackingTrack *track = tracking->tracks.first; track; track = track->next) {
     if (!is_init_for_stabilization(ctx, track)) {
       continue;
     }
@@ -597,7 +596,7 @@ static bool average_track_contributions(StabContext *ctx,
 
   ok = false;
   weight_sum = 0.0f;
-  for (track = tracking->tracks.first; track; track = track->next) {
+  for (MovieTrackingTrack *track = tracking->tracks.first; track; track = track->next) {
     if (!is_init_for_stabilization(ctx, track)) {
       continue;
     }
@@ -652,12 +651,11 @@ static void average_marker_positions(StabContext *ctx, int framenr, float r_ref_
 {
   bool ok = false;
   float weight_sum;
-  MovieTrackingTrack *track;
   MovieTracking *tracking = ctx->tracking;
 
   zero_v2(r_ref_pos);
   weight_sum = 0.0f;
-  for (track = tracking->tracks.first; track; track = track->next) {
+  for (MovieTrackingTrack *track = tracking->tracks.first; track; track = track->next) {
     if (track->flag & TRACK_USE_2D_STAB) {
       float weight = 0.0f;
       MovieTrackingMarker *marker = get_tracking_data_point(ctx, track, framenr, &weight);
@@ -680,7 +678,7 @@ static void average_marker_positions(StabContext *ctx, int framenr, float r_ref_
     int next_lower = MINAFRAME;
     int next_higher = MAXFRAME;
     use_values_from_fcurves(ctx, true);
-    for (track = tracking->tracks.first; track; track = track->next) {
+    for (MovieTrackingTrack *track = tracking->tracks.first; track; track = track->next) {
       /* Note: we deliberately do not care if this track
        *       is already initialized for stabilization. */
       if (track->flag & TRACK_USE_2D_STAB) {
@@ -771,11 +769,10 @@ static bool interpolate_averaged_track_contributions(StabContext *ctx,
 static int establish_track_initialization_order(StabContext *ctx, TrackInitOrder *order)
 {
   size_t tracknr = 0;
-  MovieTrackingTrack *track;
   MovieTracking *tracking = ctx->tracking;
   int anchor_frame = tracking->stabilization.anchor_frame;
 
-  for (track = tracking->tracks.first; track != NULL; track = track->next) {
+  for (MovieTrackingTrack *track = tracking->tracks.first; track != NULL; track = track->next) {
     MovieTrackingMarker *marker;
     order[tracknr].data = track;
     marker = get_closest_marker(ctx, track, anchor_frame);
@@ -880,10 +877,9 @@ static void initialize_track_for_stabilization(StabContext *ctx,
 
 static void initialize_all_tracks(StabContext *ctx, float aspect)
 {
-  size_t i, track_len = 0;
+  size_t track_len = 0;
   MovieClip *clip = ctx->clip;
   MovieTracking *tracking = ctx->tracking;
-  MovieTrackingTrack *track;
   TrackInitOrder *order;
 
   /* Attempt to start initialization at anchor_frame.
@@ -896,7 +892,7 @@ static void initialize_all_tracks(StabContext *ctx, float aspect)
   zero_v2(pivot);
 
   /* Initialize private working data. */
-  for (track = tracking->tracks.first; track != NULL; track = track->next) {
+  for (MovieTrackingTrack *track = tracking->tracks.first; track != NULL; track = track->next) {
     TrackStabilizationBase *local_data = access_stabilization_baseline_data(ctx, track);
     if (!local_data) {
       local_data = MEM_callocN(sizeof(TrackStabilizationBase),
@@ -927,8 +923,8 @@ static void initialize_all_tracks(StabContext *ctx, float aspect)
   average_marker_positions(ctx, reference_frame, average_pos);
   setup_pivot(average_pos, pivot);
 
-  for (i = 0; i < track_len; i++) {
-    track = order[i].data;
+  for (int i = 0; i < track_len; i++) {
+    MovieTrackingTrack *track = order[i].data;
     if (reference_frame != order[i].reference_frame) {
       reference_frame = order[i].reference_frame;
       average_track_contributions(ctx,
@@ -1142,12 +1138,11 @@ static float calculate_autoscale_factor(StabContext *ctx, int size, float aspect
   float pixel_aspect = ctx->tracking->camera.pixel_aspect;
   int height = size, width = aspect * size;
 
-  int sfra = INT_MAX, efra = INT_MIN, cfra;
+  int sfra = INT_MAX, efra = INT_MIN;
   float scale = 1.0f, scale_step = 0.0f;
-  MovieTrackingTrack *track;
 
   /* Calculate maximal frame range of tracks where stabilization is active. */
-  for (track = ctx->tracking->tracks.first; track; track = track->next) {
+  for (MovieTrackingTrack *track = ctx->tracking->tracks.first; track; track = track->next) {
     if ((track->flag & TRACK_USE_2D_STAB) ||
         ((stab->flag & TRACKING_STABILIZE_ROTATION) && (track->flag & TRACK_USE_2D_STAB_ROT))) {
       int first_frame = track->markers[0].framenr;
@@ -1158,7 +1153,7 @@ static float calculate_autoscale_factor(StabContext *ctx, int size, float aspect
   }
 
   use_values_from_fcurves(ctx, true);
-  for (cfra = sfra; cfra <= efra; cfra++) {
+  for (int cfra = sfra; cfra <= efra; cfra++) {
     float translation[2], pivot[2], angle, tmp_scale;
     float mat[4][4];
     const float points[4][2] = {{0.0f, 0.0f}, {0.0f, height}, {width, height}, {width, 0.0f}};

@@ -38,7 +38,6 @@
 /* Check whether point is inside grease pencil stroke. */
 static bool check_point_in_stroke(bGPDstroke *stroke, float x, float y)
 {
-  int i, prev;
   int count = 0;
   bGPDspoint *points = stroke->points;
 
@@ -50,9 +49,7 @@ static bool check_point_in_stroke(bGPDstroke *stroke, float x, float y)
    * work, but such situation is crappy anyway.
    */
 
-  prev = stroke->totpoints - 1;
-
-  for (i = 0; i < stroke->totpoints; i++) {
+  for (int i = 0, prev = stroke->totpoints - 1; i < stroke->totpoints; prev = i, i++) {
     if ((points[i].y < y && points[prev].y >= y) || (points[prev].y < y && points[i].y >= y)) {
       float fac = (y - points[i].y) / (points[prev].y - points[i].y);
 
@@ -60,8 +57,6 @@ static bool check_point_in_stroke(bGPDstroke *stroke, float x, float y)
         count++;
       }
     }
-
-    prev = i;
   }
 
   return (count % 2) ? true : false;

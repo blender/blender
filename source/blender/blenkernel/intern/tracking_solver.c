@@ -90,13 +90,10 @@ static struct libmv_Tracks *libmv_tracks_new(MovieClip *clip,
 
   track = tracksbase->first;
   while (track) {
-    FCurve *weight_fcurve;
-    int a = 0;
-
-    weight_fcurve = id_data_find_fcurve(
+    FCurve *weight_fcurve = id_data_find_fcurve(
         &clip->id, track, &RNA_MovieTrackingTrack, "weight", 0, NULL);
 
-    for (a = 0; a < track->markersnr; a++) {
+    for (int a = 0; a < track->markersnr; a++) {
       MovieTrackingMarker *marker = &track->markers[a];
 
       if ((marker->flag & MARKER_DISABLED) == 0) {
@@ -149,7 +146,7 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
   MovieReconstructedCamera *reconstructed;
   MovieTrackingTrack *track;
   ListBase *tracksbase = NULL;
-  int tracknr = 0, a;
+  int tracknr = 0;
   bool ok = true;
   bool origin_set = false;
   int sfra = context->sfra, efra = context->efra;
@@ -200,16 +197,16 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
   reconstructed = MEM_callocN((efra - sfra + 1) * sizeof(MovieReconstructedCamera),
                               "temp reconstructed camera");
 
-  for (a = sfra; a <= efra; a++) {
+  for (int a = sfra; a <= efra; a++) {
     double matd[4][4];
 
     if (libmv_reprojectionCameraForImage(libmv_reconstruction, a, matd)) {
-      int i, j;
       float mat[4][4];
       float error = libmv_reprojectionErrorForImage(libmv_reconstruction, a);
 
-      for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
+      /* TODO(sergey): Use transpose utility. */
+      for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
           mat[i][j] = matd[i][j];
         }
       }
@@ -591,21 +588,19 @@ static void tracking_scale_reconstruction(ListBase *tracksbase,
                                           MovieTrackingReconstruction *reconstruction,
                                           const float scale[3])
 {
-  MovieTrackingTrack *track;
-  int i;
   float first_camera_delta[3] = {0.0f, 0.0f, 0.0f};
 
   if (reconstruction->camnr > 0) {
     mul_v3_v3v3(first_camera_delta, reconstruction->cameras[0].mat[3], scale);
   }
 
-  for (i = 0; i < reconstruction->camnr; i++) {
+  for (int i = 0; i < reconstruction->camnr; i++) {
     MovieReconstructedCamera *camera = &reconstruction->cameras[i];
     mul_v3_v3(camera->mat[3], scale);
     sub_v3_v3(camera->mat[3], first_camera_delta);
   }
 
-  for (track = tracksbase->first; track; track = track->next) {
+  for (MovieTrackingTrack *track = tracksbase->first; track; track = track->next) {
     if (track->flag & TRACK_HAS_BUNDLE) {
       mul_v3_v3(track->bundle_pos, scale);
       sub_v3_v3(track->bundle_pos, first_camera_delta);
@@ -618,14 +613,10 @@ static void tracking_scale_reconstruction(ListBase *tracksbase,
  */
 void BKE_tracking_reconstruction_scale(MovieTracking *tracking, float scale[3])
 {
-  MovieTrackingObject *object;
-
-  for (object = tracking->objects.first; object; object = object->next) {
-    ListBase *tracksbase;
-    MovieTrackingReconstruction *reconstruction;
-
-    tracksbase = BKE_tracking_object_get_tracks(tracking, object);
-    reconstruction = BKE_tracking_object_get_reconstruction(tracking, object);
+  for (MovieTrackingObject *object = tracking->objects.first; object; object = object->next) {
+    ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
+    MovieTrackingReconstruction *reconstruction = BKE_tracking_object_get_reconstruction(tracking,
+                                                                                         object);
 
     tracking_scale_reconstruction(tracksbase, reconstruction, scale);
   }
