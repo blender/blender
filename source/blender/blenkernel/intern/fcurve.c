@@ -1320,60 +1320,7 @@ static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
   RNA_id_pointer_create(id, &id_ptr);
 
   /* get property to read from, and get value as appropriate */
-  if (RNA_path_resolve_property_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
-    if (RNA_property_array_check(prop)) {
-      /* array */
-      if ((index >= 0) && (index < RNA_property_array_length(&ptr, prop))) {
-        switch (RNA_property_type(prop)) {
-          case PROP_BOOLEAN:
-            value = (float)RNA_property_boolean_get_index(&ptr, prop, index);
-            break;
-          case PROP_INT:
-            value = (float)RNA_property_int_get_index(&ptr, prop, index);
-            break;
-          case PROP_FLOAT:
-            value = RNA_property_float_get_index(&ptr, prop, index);
-            break;
-          default:
-            break;
-        }
-      }
-      else {
-        /* out of bounds */
-        if (G.debug & G_DEBUG) {
-          CLOG_ERROR(&LOG,
-                     "Driver Evaluation Error: array index is out of bounds for %s -> %s (%d)",
-                     id->name,
-                     dtar->rna_path,
-                     index);
-        }
-
-        driver->flag |= DRIVER_FLAG_INVALID;
-        dtar->flag |= DTAR_FLAG_INVALID;
-        return 0.0f;
-      }
-    }
-    else {
-      /* not an array */
-      switch (RNA_property_type(prop)) {
-        case PROP_BOOLEAN:
-          value = (float)RNA_property_boolean_get(&ptr, prop);
-          break;
-        case PROP_INT:
-          value = (float)RNA_property_int_get(&ptr, prop);
-          break;
-        case PROP_FLOAT:
-          value = RNA_property_float_get(&ptr, prop);
-          break;
-        case PROP_ENUM:
-          value = (float)RNA_property_enum_get(&ptr, prop);
-          break;
-        default:
-          break;
-      }
-    }
-  }
-  else {
+  if (!RNA_path_resolve_property_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
     /* path couldn't be resolved */
     if (G.debug & G_DEBUG) {
       CLOG_ERROR(&LOG,
@@ -1385,6 +1332,57 @@ static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
     driver->flag |= DRIVER_FLAG_INVALID;
     dtar->flag |= DTAR_FLAG_INVALID;
     return 0.0f;
+  }
+
+  if (RNA_property_array_check(prop)) {
+    /* array */
+    if (index < 0 || index >= RNA_property_array_length(&ptr, prop)) {
+      /* out of bounds */
+      if (G.debug & G_DEBUG) {
+        CLOG_ERROR(&LOG,
+                   "Driver Evaluation Error: array index is out of bounds for %s -> %s (%d)",
+                   id->name,
+                   dtar->rna_path,
+                   index);
+      }
+
+      driver->flag |= DRIVER_FLAG_INVALID;
+      dtar->flag |= DTAR_FLAG_INVALID;
+      return 0.0f;
+    }
+
+    switch (RNA_property_type(prop)) {
+      case PROP_BOOLEAN:
+        value = (float)RNA_property_boolean_get_index(&ptr, prop, index);
+        break;
+      case PROP_INT:
+        value = (float)RNA_property_int_get_index(&ptr, prop, index);
+        break;
+      case PROP_FLOAT:
+        value = RNA_property_float_get_index(&ptr, prop, index);
+        break;
+      default:
+        break;
+    }
+  }
+  else {
+    /* not an array */
+    switch (RNA_property_type(prop)) {
+      case PROP_BOOLEAN:
+        value = (float)RNA_property_boolean_get(&ptr, prop);
+        break;
+      case PROP_INT:
+        value = (float)RNA_property_int_get(&ptr, prop);
+        break;
+      case PROP_FLOAT:
+        value = RNA_property_float_get(&ptr, prop);
+        break;
+      case PROP_ENUM:
+        value = (float)RNA_property_enum_get(&ptr, prop);
+        break;
+      default:
+        break;
+    }
   }
 
   /* if we're still here, we should be ok... */
