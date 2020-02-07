@@ -2798,8 +2798,10 @@ int MANTA::updateGridFromFile(const char *filename, float *grid)
 
     if (extension.compare("uni") == 0)
       return updateGridFromUni(filename, grid);
+#ifdef WITH_OPENVDB
     else if (extension.compare("vdb") == 0)
       return updateGridFromVDB(filename, grid);
+#endif
     else if (extension.compare("raw") == 0)
       return updateGridFromRaw(filename, grid);
     else
@@ -2884,6 +2886,7 @@ int MANTA::updateGridFromUni(const char *filename, float *grid)
   return 1;
 }
 
+#ifdef WITH_OPENVDB
 int MANTA::updateGridFromVDB(const char *filename, float *grid)
 {
   if (with_debug)
@@ -2922,6 +2925,7 @@ int MANTA::updateGridFromVDB(const char *filename, float *grid)
   }
   return 1;
 }
+#endif
 
 int MANTA::updateGridFromRaw(const char *filename, float *grid)
 {
