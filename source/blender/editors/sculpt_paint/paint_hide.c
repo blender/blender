@@ -55,11 +55,13 @@
 #include "bmesh.h"
 
 #include "paint_intern.h"
-#include "sculpt_intern.h" /* for undo push */
+
+/* For undo push. */
+#include "sculpt_intern.h"
 
 #include <assert.h>
 
-/* return true if the element should be hidden/shown */
+/* Return true if the element should be hidden/shown. */
 static bool is_effected(PartialVisArea area,
                         float planes[4][4],
                         const float co[3],
@@ -101,7 +103,7 @@ static void partialvis_update_mesh(Object *ob,
     MVert *v = &mvert[vert_indices[i]];
     float vmask = paint_mask ? paint_mask[vert_indices[i]] : 0;
 
-    /* hide vertex if in the hide volume */
+    /* Hide vertex if in the hide volume. */
     if (is_effected(area, planes, v->co, vmask)) {
       if (action == PARTIALVIS_HIDE) {
         v->flag |= ME_HIDE;
@@ -138,7 +140,7 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
   int *grid_indices, totgrid, i;
   bool any_changed = false, any_visible = false;
 
-  /* get PBVH data */
+  /* Get PBVH data. */
   BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, NULL, NULL, &grids);
   grid_hidden = BKE_pbvh_grid_hidden(pbvh);
   CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
@@ -153,17 +155,16 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
     if (!gh) {
       switch (action) {
         case PARTIALVIS_HIDE:
-          /* create grid flags data */
+          /* Create grid flags data. */
           gh = grid_hidden[g] = BLI_BITMAP_NEW(key.grid_area, "partialvis_update_grids");
           break;
         case PARTIALVIS_SHOW:
-          /* entire grid is visible, nothing to show */
+          /* Entire grid is visible, nothing to show. */
           continue;
       }
     }
     else if (action == PARTIALVIS_SHOW && area == PARTIALVIS_ALL) {
-      /* special case if we're showing all, just free the
-       * grid */
+      /* Special case if we're showing all, just free the grid. */
       MEM_freeN(gh);
       grid_hidden[g] = NULL;
       any_changed = true;
@@ -177,15 +178,15 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
         const float *co = CCG_elem_co(&key, elem);
         float mask = key.has_mask ? *CCG_elem_mask(&key, elem) : 0.0f;
 
-        /* skip grid element if not in the effected area */
+        /* Skip grid element if not in the effected area. */
         if (is_effected(area, planes, co, mask)) {
-          /* set or clear the hide flag */
+          /* Set or clear the hide flag. */
           BLI_BITMAP_SET(gh, y * key.grid_size + x, action == PARTIALVIS_HIDE);
 
           any_changed = true;
         }
 
-        /* keep track of whether any elements are still hidden */
+        /* Keep track of whether any elements are still hidden. */
         if (BLI_BITMAP_TEST(gh, y * key.grid_size + x)) {
           any_hidden = true;
         }
@@ -195,15 +196,14 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
       }
     }
 
-    /* if everything in the grid is now visible, free the grid
-     * flags */
+    /* If everything in the grid is now visible, free the grid flags. */
     if (!any_hidden) {
       MEM_freeN(gh);
       grid_hidden[g] = NULL;
     }
   }
 
-  /* mark updates if anything was hidden/shown */
+  /* Mark updates if anything was hidden/shown. */
   if (any_changed) {
     BKE_pbvh_node_mark_rebuild_draw(node);
     BKE_pbvh_node_fully_hidden_set(node, !any_visible);
@@ -225,7 +225,7 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
     BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
     float *vmask = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_PAINT_MASK);
 
-    /* hide vertex if in the hide volume */
+    /* Hide vertex if in the hide volume. */
     if (is_effected(area, planes, v->co, *vmask)) {
       if (action == PARTIALVIS_HIDE) {
         BM_elem_flag_enable(v, BM_ELEM_HIDDEN);
@@ -280,7 +280,7 @@ static void partialvis_update_bmesh(Object *ob,
 
   partialvis_update_bmesh_verts(bm, other, action, area, planes, &any_changed, &any_visible);
 
-  /* finally loop over node faces and tag the ones that are fully hidden */
+  /* Finally loop over node faces and tag the ones that are fully hidden. */
   partialvis_update_bmesh_faces(faces);
 
   if (any_changed) {
@@ -319,7 +319,7 @@ static void get_pbvh_nodes(
 {
   BKE_pbvh_SearchCallback cb = NULL;
 
-  /* select search callback */
+  /* Select search callback. */
   switch (mode) {
     case PARTIALVIS_INSIDE:
       cb = BKE_pbvh_node_frustum_contain_AABB;
@@ -351,7 +351,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   rcti rect;
   int totnode, i;
 
-  /* read operator properties */
+  /* Read operator properties. */
   action = RNA_enum_get(op->ptr, "action");
   area = RNA_enum_get(op->ptr, "area");
   rect_from_props(&rect, op->ptr);
@@ -366,7 +366,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 
   negate_m4(clip_planes);
 
-  /* start undo */
+  /* Start undo. */
   switch (action) {
     case PARTIALVIS_HIDE:
       sculpt_undo_push_begin("Hide area");
@@ -394,11 +394,11 @@ static int hide_show_exec(bContext *C, wmOperator *op)
     MEM_freeN(nodes);
   }
 
-  /* end undo */
+  /* End undo. */
   sculpt_undo_push_end();
 
-  /* ensure that edges and faces get hidden as well (not used by
-   * sculpt but it looks wrong when entering editmode otherwise) */
+  /* Ensure that edges and faces get hidden as well (not used by
+   * sculpt but it looks wrong when entering editmode otherwise). */
   if (pbvh_type == PBVH_FACES) {
     BKE_mesh_flush_hidden_from_verts(me);
   }
@@ -440,21 +440,21 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
       {0, NULL, 0, NULL, NULL},
   };
 
-  /* identifiers */
+  /* Identifiers. */
   ot->name = "Hide/Show";
   ot->idname = "PAINT_OT_hide_show";
   ot->description = "Hide/show some vertices";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = hide_show_invoke;
   ot->modal = WM_gesture_box_modal;
   ot->exec = hide_show_exec;
-  /* sculpt-only for now */
+  /* Sculpt-only for now. */
   ot->poll = sculpt_mode_poll_view3d;
 
   ot->flag = OPTYPE_REGISTER;
 
-  /* rna */
+  /* RNA. */
   RNA_def_enum(ot->srna,
                "action",
                action_items,

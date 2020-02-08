@@ -98,7 +98,7 @@ static TexSnapshot primary_snap = {0};
 static TexSnapshot secondary_snap = {0};
 static CursorSnapshot cursor_snap = {0};
 
-/* delete overlay cursor textures to preserve memory and invalidate all overlay flags */
+/* Delete overlay cursor textures to preserve memory and invalidate all overlay flags. */
 void paint_cursor_delete_textures(void)
 {
   if (primary_snap.overlay_texture) {
@@ -173,7 +173,7 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
 
   if (mtex->tex && mtex->tex->type == TEX_IMAGE && mtex->tex->ima) {
     ImBuf *tex_ibuf = BKE_image_pool_acquire_ibuf(mtex->tex->ima, &mtex->tex->iuser, pool);
-    /* For consistency, sampling always returns color in linear space */
+    /* For consistency, sampling always returns color in linear space. */
     if (tex_ibuf && tex_ibuf->rect_float == NULL) {
       convert_to_linear = true;
       colorspace = tex_ibuf->rect_colorspace;
@@ -182,7 +182,7 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
   }
 
   for (int i = 0; i < size; i++) {
-    // largely duplicated from tex_strength
+    /* Largely duplicated from tex_strength. */
 
     int index = j * size + i;
 
@@ -227,7 +227,7 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
 
         avg += br->texture_sample_bias;
 
-        /* clamp to avoid precision overflow */
+        /* Clamp to avoid precision overflow. */
         CLAMP(avg, 0.0f, 1.0f);
         buffer[index] = 255 - (GLubyte)(255 * avg);
       }
@@ -269,7 +269,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
   if (refresh) {
     struct ImagePool *pool = NULL;
-    /* stencil is rotated later */
+    /* Stencil is rotated later. */
     const float rotation = (mtex->brush_map_mode != MTEX_MAP_MODE_STENCIL) ? -mtex->rot : 0.0f;
     const float radius = BKE_brush_size_get(vc->scene, br) * zoom;
 
@@ -317,7 +317,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
     pool = BKE_image_pool_new();
 
     if (mtex->tex && mtex->tex->nodetree) {
-      /* has internal flag to detect it only does it once */
+      /* Has internal flag to detect it only does it once. */
       ntreeTexBeginExecTree(mtex->tex->nodetree);
     }
 
@@ -400,7 +400,7 @@ static void load_tex_cursor_task_cb(void *__restrict userdata,
   const int size = data->size;
 
   for (int i = 0; i < size; i++) {
-    // largely duplicated from tex_strength
+    /* Largely duplicated from tex_strength. */
 
     const int index = j * size + i;
     const float x = (((float)i / size) - 0.5f) * 2.0f;
@@ -408,7 +408,9 @@ static void load_tex_cursor_task_cb(void *__restrict userdata,
     const float len = sqrtf(x * x + y * y);
 
     if (len <= 1.0f) {
-      float avg = BKE_brush_curve_strength_clamped(br, len, 1.0f); /* Falloff curve */
+
+      /* Falloff curve. */
+      float avg = BKE_brush_curve_strength_clamped(br, len, 1.0f);
 
       buffer[index] = (GLubyte)(255 * avg);
     }
@@ -520,7 +522,7 @@ static int project_brush_radius(ViewContext *vc, float radius, const float locat
 
   ED_view3d_global_to_vector(vc->rv3d, location, view);
 
-  /* create a vector that is not orthogonal to view */
+  /* Create a vector that is not orthogonal to view. */
 
   if (fabsf(view[0]) < 0.1f) {
     nonortho[0] = view[0] + 1.0f;
@@ -538,23 +540,24 @@ static int project_brush_radius(ViewContext *vc, float radius, const float locat
     nonortho[2] = view[2] + 1.0f;
   }
 
-  /* get a vector in the plane of the view */
+  /* Get a vector in the plane of the view. */
   cross_v3_v3v3(ortho, nonortho, view);
   normalize_v3(ortho);
 
-  /* make a point on the surface of the brush tangent to the view */
+  /* Make a point on the surface of the brush tangent to the view. */
   mul_v3_fl(ortho, radius);
   add_v3_v3v3(offset, location, ortho);
 
-  /* project the center of the brush, and the tangent point to the view onto the screen */
+  /* Project the center of the brush, and the tangent point to the view onto the screen. */
   if ((ED_view3d_project_float_global(vc->ar, location, p1, V3D_PROJ_TEST_NOP) ==
        V3D_PROJ_RET_OK) &&
       (ED_view3d_project_float_global(vc->ar, offset, p2, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK)) {
-    /* the distance between these points is the size of the projected brush in pixels */
+    /* The distance between these points is the size of the projected brush in pixels. */
     return len_v2v2(p1, p2);
   }
   else {
-    BLI_assert(0); /* assert because the code that sets up the vectors should disallow this */
+    /* Assert because the code that sets up the vectors should disallow this. */
+    BLI_assert(0);
     return 0;
   }
 }
@@ -608,7 +611,7 @@ static bool sculpt_get_brush_geometry(bContext *C,
 }
 
 /* Draw an overlay that shows what effect the brush's texture will
- * have on brush strength */
+ * have on brush strength. */
 static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
                                    Brush *brush,
                                    ViewContext *vc,
@@ -619,7 +622,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
                                    bool primary)
 {
   rctf quad;
-  /* check for overlay mode */
+  /* Check for overlay mode. */
 
   MTex *mtex = (primary) ? &brush->mtex : &brush->mask_mtex;
   bool valid = ((primary) ? (brush->overlay_flags & BRUSH_OVERLAY_PRIMARY) != 0 :
@@ -642,12 +645,12 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
     if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
       GPU_matrix_push();
 
-      /* brush rotation */
+      /* Brush rotation. */
       GPU_matrix_translate_2f(x, y);
       GPU_matrix_rotate_2d(-RAD2DEGF(primary ? ups->brush_rotation : ups->brush_rotation_sec));
       GPU_matrix_translate_2f(-x, -y);
 
-      /* scale based on tablet pressure */
+      /* Scale based on tablet pressure. */
       if (primary && ups->stroke_active && BKE_brush_use_size_pressure(brush)) {
         const float scale = ups->size_pressure_value;
         GPU_matrix_translate_2f(x, y);
@@ -675,7 +678,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
       quad.xmax = BLI_rcti_size_x(&vc->ar->winrct);
       quad.ymax = BLI_rcti_size_y(&vc->ar->winrct);
     }
-    /* Stencil code goes here */
+    /* Stencil code goes here. */
     else {
       if (primary) {
         quad.xmin = -brush->stencil_dimension[0];
@@ -699,7 +702,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
       GPU_matrix_rotate_2d(RAD2DEGF(mtex->rot));
     }
 
-    /* set quad color. Colored overlay does not get blending */
+    /* Set quad color. Colored overlay does not get blending. */
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     uint texCoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -714,7 +717,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
       immUniformColor3fvAlpha(U.sculpt_paint_overlay_col, overlay_alpha * 0.01f);
     }
 
-    /* draw textured quad */
+    /* Draw textured quad. */
     immUniform1i("image", 0);
 
     immBegin(GPU_PRIM_TRI_FAN, 4);
@@ -739,12 +742,12 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
 }
 
 /* Draw an overlay that shows what effect the brush's texture will
- * have on brush strength */
+ * have on brush strength. */
 static bool paint_draw_cursor_overlay(
     UnifiedPaintSettings *ups, Brush *brush, ViewContext *vc, int x, int y, float zoom)
 {
   rctf quad;
-  /* check for overlay mode */
+  /* Check for overlay mode. */
 
   if (!(brush->overlay_flags & BRUSH_OVERLAY_CURSOR)) {
     return false;
@@ -777,7 +780,7 @@ static bool paint_draw_cursor_overlay(
       quad.ymax = y + radius;
     }
 
-    /* scale based on tablet pressure */
+    /* Scale based on tablet pressure. */
     if (ups->stroke_active && BKE_brush_use_size_pressure(brush)) {
       do_pop = true;
       GPU_matrix_push();
@@ -795,9 +798,9 @@ static bool paint_draw_cursor_overlay(
 
     immUniformColor3fvAlpha(U.sculpt_paint_overlay_col, brush->cursor_overlay_alpha * 0.01f);
 
-    /* draw textured quad */
+    /* Draw textured quad. */
 
-    /* draw textured quad */
+    /* Draw textured quad. */
     immUniform1i("image", 0);
 
     immBegin(GPU_PRIM_TRI_FAN, 4);
@@ -980,7 +983,7 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
     GPU_line_smooth(true);
     GPU_blend(true);
 
-    /* draw the bezier handles and the curve segment between the current and next point */
+    /* Draw the bezier handles and the curve segment between the current and next point. */
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -994,7 +997,7 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
       int j;
       PaintCurvePoint *cp_next = cp + 1;
       float data[(PAINT_CURVE_NUM_SEGMENTS + 1) * 2];
-      /* use color coding to distinguish handles vs curve segments  */
+      /* Use color coding to distinguish handles vs curve segments.  */
       draw_bezier_handle_lines(pos, selec_col, &cp->bez);
       draw_tri_point(pos, selec_col, pivot_col, &cp->bez.vec[1][0], 10.0f, cp->bez.f2);
       draw_rect_point(
@@ -1031,7 +1034,7 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
       immEnd();
     }
 
-    /* draw last line segment */
+    /* Draw last line segment. */
     draw_bezier_handle_lines(pos, selec_col, &cp->bez);
     draw_tri_point(pos, selec_col, pivot_col, &cp->bez.vec[1][0], 10.0f, cp->bez.f2);
     draw_rect_point(
@@ -1048,7 +1051,7 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
 }
 
 /* Special actions taken when paint cursor goes over mesh */
-/* TODO: sculpt only for now */
+/* TODO: sculpt only for now. */
 static void paint_cursor_on_hit(UnifiedPaintSettings *ups,
                                 Brush *brush,
                                 ViewContext *vc,
@@ -1056,9 +1059,9 @@ static void paint_cursor_on_hit(UnifiedPaintSettings *ups,
 {
   float unprojected_radius, projected_radius;
 
-  /* update the brush's cached 3D radius */
+  /* Update the brush's cached 3D radius. */
   if (!BKE_brush_use_locked_size(vc->scene, brush)) {
-    /* get 2D brush radius */
+    /* Get 2D brush radius. */
     if (ups->draw_anchored) {
       projected_radius = ups->anchored_size;
     }
@@ -1071,15 +1074,15 @@ static void paint_cursor_on_hit(UnifiedPaintSettings *ups,
       }
     }
 
-    /* convert brush radius from 2D to 3D */
+    /* Convert brush radius from 2D to 3D. */
     unprojected_radius = paint_calc_object_space_radius(vc, location, projected_radius);
 
-    /* scale 3D brush radius by pressure */
+    /* Scale 3D brush radius by pressure. */
     if (ups->stroke_active && BKE_brush_use_size_pressure(brush)) {
       unprojected_radius *= ups->size_pressure_value;
     }
 
-    /* set cached value in either Brush or UnifiedPaintSettings */
+    /* Set cached value in either Brush or UnifiedPaintSettings. */
     BKE_brush_unprojected_radius_set(vc->scene, brush, unprojected_radius);
   }
 }
@@ -1142,7 +1145,7 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
     for (cur[1] = start[1]; cur[1] <= end[1]; cur[1]++) {
       for (cur[2] = start[2]; cur[2] <= end[2]; cur[2]++) {
         if (!cur[0] && !cur[1] && !cur[2]) {
-          /* skip tile at orgLoc, this was already handled before all others */
+          /* Skip tile at orgLoc, this was already handled before all others. */
           continue;
         }
         tile_pass++;
@@ -1168,14 +1171,14 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
   for (int i = 0; i <= symm; i++) {
     if (i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5)))) {
 
-      /* Axis Symmetry */
+      /* Axis Symmetry. */
       flip_v3_v3(location, true_location, (char)i);
       cursor_draw_point_screen_space(gpuattr, ar, location, ob->obmat, 3);
 
-      /* Tiling */
+      /* Tiling. */
       cursor_draw_tiling_preview(gpuattr, ar, location, sd, ob, radius);
 
-      /* Radial Symmetry */
+      /* Radial Symmetry. */
       for (char raxis = 0; raxis < 3; raxis++) {
         for (int r = 1; r < sd->radial_symm[raxis]; r++) {
           float angle = 2 * M_PI * r / sd->radial_symm[(int)raxis];
@@ -1311,8 +1314,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
     return;
   }
 
-  /* can't use stroke vc here because this will be called during
-   * mouse over too, not just during a stroke */
+  /* Can't use stroke vc here because this will be called during
+   * mouse over too, not just during a stroke. */
   ViewContext vc;
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
@@ -1320,7 +1323,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
     return;
   }
 
-  /* skip everything and draw brush here */
+  /* Skip everything and draw brush here. */
   if (brush->flag & BRUSH_CURVE) {
     paint_draw_curve_cursor(brush, &vc);
     return;
@@ -1330,20 +1333,20 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
   get_imapaint_zoom(C, &zoomx, &zoomy);
   zoomx = max_ff(zoomx, zoomy);
 
-  /* set various defaults */
+  /* Set various defaults. */
   const float *outline_col = brush->add_col;
   const float outline_alpha = brush->add_col[3];
   float translation[2] = {x, y};
   float final_radius = (BKE_brush_size_get(scene, brush) * zoomx);
 
-  /* don't calculate rake angles while a stroke is active because the rake variables are global
+  /* Don't calculate rake angles while a stroke is active because the rake variables are global
    * and we may get interference with the stroke itself.
-   * For line strokes, such interference is visible */
+   * For line strokes, such interference is visible. */
   if (!ups->stroke_active) {
     paint_calculate_rake_rotation(ups, brush, translation);
   }
 
-  /* draw overlay */
+  /* Draw overlay. */
   bool alpha_overlay_active = paint_draw_alpha_overlay(ups, brush, &vc, x, y, zoomx, mode);
 
   if (ups->draw_anchored) {
@@ -1353,9 +1356,12 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
                 ups->anchored_initial_mouse[1] + ar->winrct.ymin);
   }
 
-  /* make lines pretty */
+  /* Make lines pretty. */
   GPU_line_width(2.0f);
-  GPU_blend(true); /* TODO: also set blend mode? */
+
+  /* TODO: also set blend mode? */
+  GPU_blend(true);
+
   GPU_line_smooth(true);
 
   if (use_2d_cursor) {
@@ -1364,45 +1370,46 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
     immUniformColor3fvAlpha(outline_col, outline_alpha);
 
-    /* draw brush outline */
+    /* Draw brush outline. */
     if (ups->stroke_active && BKE_brush_use_size_pressure(brush)) {
       imm_draw_circle_wire_2d(
           pos, translation[0], translation[1], final_radius * ups->size_pressure_value, 40);
-      /* outer at half alpha */
+      /* Outer at half alpha. */
       immUniformColor3fvAlpha(outline_col, outline_alpha * 0.5f);
     }
 
     GPU_line_width(1.0f);
     imm_draw_circle_wire_2d(pos, translation[0], translation[1], final_radius, 40);
   }
-  else { /* 3d painting */
+  else {
+    /* 3D Painting. */
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* TODO: as sculpt and other paint modes are unified, this
-     * special mode of drawing will go away */
+     * special mode of drawing will go away. */
     Object *obact = vc.obact;
     SculptSession *ss = obact ? obact->sculpt : NULL;
     if ((mode == PAINT_MODE_SCULPT) && ss) {
       float location[3];
       int pixel_radius;
 
-      /* test if brush is over the mesh */
+      /* Test if brush is over the mesh. */
       bool hit = sculpt_get_brush_geometry(C, &vc, x, y, &pixel_radius, location, ups);
 
       if (BKE_brush_use_locked_size(scene, brush)) {
         BKE_brush_size_set(scene, brush, pixel_radius);
       }
 
-      /* check if brush is subtracting, use different color then */
+      /* Check if brush is subtracting, use different color then */
       /* TODO: no way currently to know state of pen flip or
-       * invert key modifier without starting a stroke */
+       * invert key modifier without starting a stroke. */
       if (((ups->draw_inverted == 0) ^ ((brush->flag & BRUSH_DIR_IN) == 0)) &&
           BKE_brush_sculpt_has_secondary_color(brush)) {
         outline_col = brush->sub_col;
       }
 
-      /* only do if brush is over the mesh */
+      /* Only do if brush is over the mesh. */
       if (hit) {
         paint_cursor_on_hit(ups, brush, &vc, location);
       }
@@ -1413,12 +1420,12 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
     if (ups->stroke_active && BKE_brush_use_size_pressure(brush) && mode != PAINT_MODE_SCULPT) {
       imm_draw_circle_wire_3d(
           pos, translation[0], translation[1], final_radius * ups->size_pressure_value, 40);
-      /* outer at half alpha */
+      /* Outer at half alpha. */
       immUniformColor3fvAlpha(outline_col, outline_alpha * 0.5f);
     }
 
-    /* Only sculpt mode cursor for now */
-    /* Disable for PBVH_GRIDS */
+    /* Only sculpt mode cursor for now. */
+    /* Disable for PBVH_GRIDS. */
     bool is_multires = ss && ss->pbvh && BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS;
 
     SculptCursorGeometryInfo gi;
@@ -1426,13 +1433,13 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
     int prev_active_vertex_index = -1;
     bool is_cursor_over_mesh = false;
 
-    /* Update the active vertex */
+    /* Update the active vertex. */
     if ((mode == PAINT_MODE_SCULPT) && ss && !ups->stroke_active) {
       prev_active_vertex_index = ss->active_vertex_index;
       is_cursor_over_mesh = sculpt_cursor_geometry_info_update(
           C, &gi, mouse, (brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
     }
-    /* Use special paint crosshair cursor in all paint modes*/
+    /* Use special paint crosshair cursor in all paint modes. */
     wmWindow *win = CTX_wm_window(C);
     WM_cursor_set(win, WM_CURSOR_PAINT);
 
@@ -1459,7 +1466,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
           wmViewport(&ar->winrct);
 
-          /* Draw 3D active vertex preview with symmetry*/
+          /* Draw 3D active vertex preview with symmetry. */
           if (len_v3v3(gi.active_vertex_co, gi.location) < rds) {
             cursor_draw_point_with_symmetry(pos, ar, gi.active_vertex_co, sd, vc.obact, rds);
           }
@@ -1490,7 +1497,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
             }
           }
 
-          /* Draw 3D brush cursor */
+          /* Draw 3D brush cursor. */
           GPU_matrix_push_projection();
           ED_view3d_draw_setup_view(CTX_wm_window(C),
                                     CTX_data_depsgraph_pointer(C),
@@ -1521,7 +1528,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
           imm_draw_circle_wire_3d(pos, 0, 0, rds * clamp_f(brush->alpha, 0.0f, 1.0f), 80);
           GPU_matrix_pop();
 
-          /* Update and draw dynamic mesh preview lines */
+          /* Update and draw dynamic mesh preview lines. */
           GPU_matrix_push();
           GPU_matrix_mul(vc.obact->obmat);
           if (brush->sculpt_tool == SCULPT_TOOL_GRAB && (brush->flag & BRUSH_GRAB_ACTIVE_VERTEX) &&
@@ -1532,7 +1539,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
             }
           }
 
-          /* Draw pose brush line preview */
+          /* Draw pose brush line preview. */
           if (brush->sculpt_tool == SCULPT_TOOL_POSE) {
             immUniformColor4f(1.0f, 1.0f, 1.0f, 0.8f);
             GPU_line_width(2.0f);
@@ -1554,9 +1561,9 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
         }
         else {
           /* Draw default cursor when the mouse is not over the mesh or there are no supported
-           * overlays active */
+           * overlays active. */
           GPU_line_width(1.0f);
-          /* Reduce alpha to increase the contrast when the cursor is over the mesh */
+          /* Reduce alpha to increase the contrast when the cursor is over the mesh. */
           immUniformColor3fvAlpha(outline_col, outline_alpha * 0.8);
           imm_draw_circle_wire_3d(pos, translation[0], translation[1], final_radius, 80);
           immUniformColor3fvAlpha(outline_col, outline_alpha * 0.35f);
@@ -1571,7 +1578,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
         if (vc.obact->sculpt->cache && !vc.obact->sculpt->cache->first_time) {
           wmViewport(&ar->winrct);
 
-          /* Draw cached dynamic mesh preview lines */
+          /* Draw cached dynamic mesh preview lines. */
           if (brush->sculpt_tool == SCULPT_TOOL_GRAB && (brush->flag & BRUSH_GRAB_ACTIVE_VERTEX) &&
               !is_multires) {
             if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && ss->deform_modifiers_active) {
@@ -1615,7 +1622,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
       }
     }
     else {
-      /* Draw default cursor in unsupported modes */
+      /* Draw default cursor in unsupported modes. */
       GPU_line_width(1.0f);
       imm_draw_circle_wire_3d(pos, translation[0], translation[1], final_radius, 40);
     }
@@ -1623,7 +1630,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
   immUnbindProgram();
 
-  /* restore GL state */
+  /* Restore GL state. */
   GPU_blend(false);
   GPU_line_smooth(false);
 }
@@ -1639,7 +1646,7 @@ void paint_cursor_start(bContext *C, bool (*poll)(bContext *C))
         CTX_wm_manager(C), SPACE_TYPE_ANY, RGN_TYPE_ANY, poll, paint_draw_cursor, NULL);
   }
 
-  /* invalidate the paint cursors */
+  /* Invalidate the paint cursors. */
   BKE_paint_invalidate_overlay_all();
 }
 

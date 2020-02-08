@@ -55,7 +55,9 @@
 #include "bmesh.h"
 
 #include "paint_intern.h"
-#include "sculpt_intern.h" /* for undo push */
+
+/* For undo push. */
+#include "sculpt_intern.h"
 
 #include <stdlib.h>
 
@@ -191,18 +193,18 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
 void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot)
 {
-  /* identifiers */
+  /* Identifiers. */
   ot->name = "Mask Flood Fill";
   ot->idname = "PAINT_OT_mask_flood_fill";
   ot->description = "Fill the whole mask with a given value, or invert its values";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_flood_fill_exec;
   ot->poll = sculpt_mode_poll;
 
   ot->flag = OPTYPE_REGISTER;
 
-  /* rna */
+  /* RNA. */
   RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", NULL);
   RNA_def_float(
       ot->srna,
@@ -216,7 +218,7 @@ void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot)
       1);
 }
 
-/* Box select, operator is VIEW3D_OT_select_box, defined in view3d_select.c */
+/* Box select, operator is VIEW3D_OT_select_box, defined in view3d_select.c. */
 
 static bool is_effected(float planes[4][4], const float co[3])
 {
@@ -309,7 +311,7 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
   mode = PAINT_MASK_FLOOD_VALUE;
   value = select ? 1.0 : 0.0;
 
-  /* transform the clip planes in object space */
+  /* Transform the clip planes in object space. */
   ED_view3d_clipping_calc(&bb, clip_planes, vc->ar, vc->obact, rect);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true);
@@ -323,7 +325,7 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
                           (symm != 6 || (symmpass != 3 && symmpass != 5)))) {
       int j = 0;
 
-      /* flip the planes symmetrically as needed */
+      /* Flip the planes symmetrically as needed. */
       for (; j < 4; j++) {
         flip_plane(clip_planes_final[j], clip_planes[j], symmpass);
       }
@@ -373,7 +375,8 @@ typedef struct LassoMaskData {
   float projviewobjmat[4][4];
   BLI_bitmap *px;
   int width;
-  rcti rect; /* bounding box for scanfilling */
+  /* Bounding box for scanfilling. */
+  rcti rect;
   int symmpass;
 
   MaskTaskData task_data;
@@ -390,13 +393,13 @@ static bool is_effected_lasso(LassoMaskData *data, float co[3])
   float co_final[3];
 
   flip_v3_v3(co_final, co, data->symmpass);
-  /* first project point to 2d space */
+  /* First project point to 2d space. */
   ED_view3d_project_float_v2_m4(data->vc->ar, co_final, scr_co_f, data->projviewobjmat);
 
   scr_co_s[0] = scr_co_f[0];
   scr_co_s[1] = scr_co_f[1];
 
-  /* clip against screen, because lasso is limited to screen only */
+  /* Clip against screen, because lasso is limited to screen only. */
   if ((scr_co_s[0] < data->rect.xmin) || (scr_co_s[1] < data->rect.ymin) ||
       (scr_co_s[0] >= data->rect.xmax) || (scr_co_s[1] >= data->rect.ymax)) {
     return false;
@@ -476,10 +479,10 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 
     /* Calculations of individual vertices are done in 2D screen space to diminish the amount of
      * calculations done. Bounding box PBVH collision is not computed against enclosing rectangle
-     * of lasso */
+     * of lasso. */
     ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
-    /* lasso data calculations */
+    /* Lasso data calculations. */
     data.vc = &vc;
     ob = vc.obact;
     ED_view3d_ob_project_mat_get(vc.rv3d, ob, data.projviewobjmat);
@@ -510,15 +513,15 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
                               (symm != 6 || (symmpass != 3 && symmpass != 5)))) {
         int j = 0;
 
-        /* flip the planes symmetrically as needed */
+        /* Flip the planes symmetrically as needed. */
         for (; j < 4; j++) {
           flip_plane(clip_planes_final[j], clip_planes[j], symmpass);
         }
 
         data.symmpass = symmpass;
 
-        /* gather nodes inside lasso's enclosing rectangle
-         * (should greatly help with bigger meshes) */
+        /* Gather nodes inside lasso's enclosing rectangle
+         * (should greatly help with bigger meshes). */
         PBVHFrustumPlanes frustum = {.planes = clip_planes_final, .num_planes = 4};
         BKE_pbvh_search_gather(
             pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum, &nodes, &totnode);
@@ -575,7 +578,7 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER;
 
-  /* properties */
+  /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
 
   RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", NULL);
