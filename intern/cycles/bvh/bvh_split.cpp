@@ -464,7 +464,7 @@ void BVHSpatialSplit::split_object_reference(
       split_triangle_primitive(mesh, &object->tfm, tri_idx, dim, pos, left_bounds, right_bounds);
     }
   }
-  else if (geom->type == Geometry::MESH) {
+  else if (geom->type == Geometry::HAIR) {
     Hair *hair = static_cast<Hair *>(geom);
     for (int curve_idx = 0; curve_idx < hair->num_curves(); ++curve_idx) {
       Hair::Curve curve = hair->get_curve(curve_idx);
