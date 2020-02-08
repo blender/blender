@@ -918,7 +918,7 @@ void BVHEmbree::pack_nodes(const BVHNode *)
     rtc_memory_monitor_func(stats, unaccounted_mem, true);
     unaccounted_mem = 0;
 
-    int prim_offset = geom->prim_offset;
+    int geom_prim_offset = geom->prim_offset;
 
     /* fill in node indexes for instances */
     pack.object_node[object_offset++] = prim_offset;
@@ -934,11 +934,11 @@ void BVHEmbree::pack_nodes(const BVHNode *)
 
       for (size_t i = 0; i < bvh_prim_index_size; ++i) {
         if (bvh->pack.prim_type[i] & PRIMITIVE_ALL_CURVE) {
-          pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + prim_offset;
+          pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + geom_prim_offset;
           pack_prim_tri_index[pack_prim_index_offset] = -1;
         }
         else {
-          pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + prim_offset;
+          pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + geom_prim_offset;
           pack_prim_tri_index[pack_prim_index_offset] = bvh_prim_tri_index[i] +
                                                         pack_prim_tri_verts_offset;
         }
