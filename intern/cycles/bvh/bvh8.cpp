@@ -439,8 +439,6 @@ void BVH8::refit_node(int idx, bool leaf, BoundBox &bbox, uint &visibility)
 
           curve.bounds_grow(k, &hair->curve_keys[0], &hair->curve_radius[0], bbox);
 
-          visibility |= PATH_RAY_CURVE;
-
           /* Motion curves. */
           if (hair->use_motion_blur) {
             Attribute *attr = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);

@@ -229,8 +229,6 @@ void BVH::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility)
 
         curve.bounds_grow(k, &hair->curve_keys[0], &hair->curve_radius[0], bbox);
 
-        visibility |= PATH_RAY_CURVE;
-
         /* Motion curves. */
         if (hair->use_motion_blur) {
           Attribute *attr = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -327,9 +325,6 @@ void BVH::pack_primitives()
         pack.prim_tri_index[i] = -1;
       }
       pack.prim_visibility[i] = ob->visibility_for_tracing();
-      if (pack.prim_type[i] & PRIMITIVE_ALL_CURVE) {
-        pack.prim_visibility[i] |= PATH_RAY_CURVE;
-      }
     }
     else {
       pack.prim_tri_index[i] = -1;

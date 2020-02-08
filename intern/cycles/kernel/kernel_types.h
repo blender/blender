@@ -273,6 +273,7 @@ enum SamplingPattern {
 /* these flags values correspond to raytypes in osl.cpp, so keep them in sync! */
 
 enum PathRayFlag {
+  /* Ray visibility. */
   PATH_RAY_CAMERA = (1 << 0),
   PATH_RAY_REFLECT = (1 << 1),
   PATH_RAY_TRANSMIT = (1 << 2),
@@ -281,6 +282,7 @@ enum PathRayFlag {
   PATH_RAY_SINGULAR = (1 << 5),
   PATH_RAY_TRANSPARENT = (1 << 6),
 
+  /* Shadow ray visibility. */
   PATH_RAY_SHADOW_OPAQUE_NON_CATCHER = (1 << 7),
   PATH_RAY_SHADOW_OPAQUE_CATCHER = (1 << 8),
   PATH_RAY_SHADOW_OPAQUE = (PATH_RAY_SHADOW_OPAQUE_NON_CATCHER | PATH_RAY_SHADOW_OPAQUE_CATCHER),
@@ -292,8 +294,11 @@ enum PathRayFlag {
                                  PATH_RAY_SHADOW_TRANSPARENT_NON_CATCHER),
   PATH_RAY_SHADOW = (PATH_RAY_SHADOW_OPAQUE | PATH_RAY_SHADOW_TRANSPARENT),
 
-  PATH_RAY_CURVE = (1 << 11),          /* visibility flag to define curve segments */
-  PATH_RAY_VOLUME_SCATTER = (1 << 12), /* volume scattering */
+  /* Unused, free to reuse. */
+  PATH_RAY_UNUSED = (1 << 11),
+
+  /* Ray visibility for volume scattering. */
+  PATH_RAY_VOLUME_SCATTER = (1 << 12),
 
   /* Special flag to tag unaligned BVH nodes. */
   PATH_RAY_NODE_UNALIGNED = (1 << 13),
