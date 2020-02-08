@@ -74,3 +74,14 @@ index 897e4dcf..98a69ff1 100644
  #endif
  
  namespace opencollada
+diff -Naur orig/Externals/LibXML/CMakeLists.txt external_opencollada/Externals/LibXML/CMakeLists.txt
+--- orig/Externals/LibXML/CMakeLists.txt	2018-11-26 15:43:10 -0700
++++ external_opencollada/Externals/LibXML/CMakeLists.txt	2020-01-21 14:15:04 -0700
+@@ -9,6 +9,7 @@
+ 		-DLIBXML_SCHEMAS_ENABLED
+ 		-DLIBXML_XPATH_ENABLED
+ 		-DLIBXML_TREE_ENABLED
++		-DLIBXML_STATIC
+ 	)
+ 	
+ if(USE_STATIC_MSVC_RUNTIME)
