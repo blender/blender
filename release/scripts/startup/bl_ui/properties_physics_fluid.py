@@ -445,32 +445,27 @@ class PHYSICS_PT_liquid(PhysicButtonsPanel, Panel):
         is_baking_any = domain.is_cache_baking_any
         has_baked_data = domain.has_cache_baked_data
 
+        layout.enabled = not is_baking_any and not has_baked_data
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column()
-        col0 = col.column()
-        col0.enabled = not is_baking_any and not has_baked_data
-        col0.prop(domain, "simulation_method", expand=False)
-        col0.prop(domain, "flip_ratio", text="FLIP Ratio")
-        col0.prop(domain, "particle_radius", text="Particle Radius")
+        col.prop(domain, "simulation_method", expand=False)
+        col.prop(domain, "flip_ratio", text="FLIP Ratio")
+        col.prop(domain, "particle_radius", text="Particle Radius")
 
-        col1 = flow.column(align=True)
-        col1.enabled = not is_baking_any and not has_baked_data
-        col1.prop(domain, "particle_max", text="Particles Maximum")
-        col1.prop(domain, "particle_min", text="Minimum")
+        col = flow.column()
+        col.prop(domain, "particle_max", text="Particles Maximum")
+        col.prop(domain, "particle_min", text="Minimum")
 
-        col1 = flow.column()
-        col1.enabled = not is_baking_any and not has_baked_data
-        col1.prop(domain, "particle_number", text="Particle Sampling")
-        col1.prop(domain, "particle_band_width", text="Narrow Band Width")
-        col1.prop(domain, "particle_randomness", text="Particle Randomness")
+        col = flow.column()
+        col.prop(domain, "particle_number", text="Particle Sampling")
+        col.prop(domain, "particle_band_width", text="Narrow Band Width")
+        col.prop(domain, "particle_randomness", text="Particle Randomness")
 
-        col2 = flow.column()
-        col2.enabled = not is_baking_any and not has_baked_data
-        col2.prop(domain, "use_fractions", text="Fractional Obstacles")
-        col3 = col2.column()
-        col3.enabled = domain.use_fractions and col2.enabled
-        col3.prop(domain, "fractions_threshold", text="Obstacle-Fluid Threshold")
+        col = flow.column()
+        col.prop(domain, "use_fractions", text="Fractional Obstacles")
+        col.active = domain.use_fractions
+        col.prop(domain, "fractions_threshold", text="Obstacle-Fluid Threshold")
 
 
 class PHYSICS_PT_flow_source(PhysicButtonsPanel, Panel):
