@@ -46,9 +46,7 @@ if(MSVC)
     set(CLANG_HARVEST_COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/ ${HARVEST_TARGET}/llvm/)
   else()
     set(CLANG_HARVEST_COMMAND
-      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/lib/ ${HARVEST_TARGET}/llvm/debug/lib/ &&
-      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/bin/ ${HARVEST_TARGET}/llvm/debug/bin/ &&
-      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/include/ ${HARVEST_TARGET}/llvm/debug/include/
+      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/lib/ ${HARVEST_TARGET}/llvm/debug/lib/
     )
   endif()
   ExternalProject_Add_Step(external_clang after_install
