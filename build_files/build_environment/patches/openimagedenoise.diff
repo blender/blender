@@ -117,3 +117,15 @@ diff '--ignore-matching-lines=:' -ur '--exclude=*.svn*' -u -r
  if(OIDN_STATIC_LIB)
    set(OIDN_LIB_TYPE STATIC)
  else()
+diff -Naur orig/core/api.cpp external_openimagedenoise/core/api.cpp
+--- orig/core/api.cpp	2019-07-19 08:37:04 -0600
++++ external_openimagedenoise/core/api.cpp	2020-01-21 15:10:56 -0700
+@@ -15,7 +15,7 @@
+ // ======================================================================== //
+ 
+ #ifdef _WIN32
+-#  define OIDN_API extern "C" __declspec(dllexport)
++#  define OIDN_API extern "C" 
+ #else
+ #  define OIDN_API extern "C" __attribute__ ((visibility ("default")))
+ #endif
