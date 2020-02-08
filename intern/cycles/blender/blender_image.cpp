@@ -255,7 +255,7 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
     if (!b_domain) {
       return false;
     }
-#if WITH_FLUID
+#ifdef WITH_FLUID
     int3 resolution = get_int3(b_domain.domain_resolution());
     int length, amplify = (b_domain.use_noise()) ? b_domain.noise_scale() : 1;
 
