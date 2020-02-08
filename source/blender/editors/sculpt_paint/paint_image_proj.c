@@ -732,7 +732,7 @@ static bool project_paint_PickColor(const ProjPaintState *ps,
   tri_index = project_paint_PickFace(ps, pt, w);
 
   if (tri_index == -1) {
-    return 0;
+    return false;
   }
 
   lt = &ps->mlooptri_eval[tri_index];
@@ -807,7 +807,7 @@ static bool project_paint_PickColor(const ProjPaintState *ps,
     }
   }
   BKE_image_release_ibuf(ima, ibuf, NULL);
-  return 1;
+  return true;
 }
 
 /**
@@ -1052,8 +1052,9 @@ static bool cmp_uv(const float vec2a[2], const float vec2b[2])
     yb += 1.0f;
   }
 
-  return ((fabsf(xa - xb) < PROJ_GEOM_TOLERANCE) && (fabsf(ya - yb) < PROJ_GEOM_TOLERANCE)) ? 1 :
-                                                                                              0;
+  return ((fabsf(xa - xb) < PROJ_GEOM_TOLERANCE) && (fabsf(ya - yb) < PROJ_GEOM_TOLERANCE)) ?
+             true :
+             false;
 }
 #endif
 
@@ -1084,7 +1085,7 @@ static bool pixel_bounds_uv(const float uv_quad[4][2],
   /*printf("%d %d %d %d\n", min_px[0], min_px[1], max_px[0], max_px[1]);*/
 
   /* face uses no UV area when quantized to pixels? */
-  return (bounds_px->xmin == bounds_px->xmax || bounds_px->ymin == bounds_px->ymax) ? 0 : 1;
+  return (bounds_px->xmin == bounds_px->xmax || bounds_px->ymin == bounds_px->ymax) ? false : true;
 }
 #endif
 
@@ -1095,7 +1096,7 @@ static bool pixel_bounds_array(
   float min_uv[2], max_uv[2];
 
   if (tot == 0) {
-    return 0;
+    return false;
   }
 
   INIT_MINMAX2(min_uv, max_uv);
@@ -1114,7 +1115,7 @@ static bool pixel_bounds_array(
   /*printf("%d %d %d %d\n", min_px[0], min_px[1], max_px[0], max_px[1]);*/
 
   /* face uses no UV area when quantized to pixels? */
-  return (bounds_px->xmin == bounds_px->xmax || bounds_px->ymin == bounds_px->ymax) ? 0 : 1;
+  return (bounds_px->xmin == bounds_px->xmax || bounds_px->ymin == bounds_px->ymax) ? false : true;
 }
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
@@ -1197,22 +1198,22 @@ static bool check_seam(const ProjPaintState *ps,
            * they are on the same side so edge is boundary */
           if ((ps->faceWindingFlags[tri_index] & PROJ_FACE_WINDING_CW) !=
               (ps->faceWindingFlags[orig_face] & PROJ_FACE_WINDING_CW)) {
-            return 1;
+            return true;
           }
 
           // printf("SEAM (NONE)\n");
-          return 0;
+          return false;
         }
         else {
           // printf("SEAM (UV GAP)\n");
-          return 1;
+          return true;
         }
       }
     }
   }
   // printf("SEAM (NO FACE)\n");
   *other_face = -1;
-  return 1;
+  return true;
 }
 
 static VertSeam *find_adjacent_seam(const ProjPaintState *ps,
@@ -2068,11 +2069,11 @@ static bool line_clip_rect2f(const rctf *cliprect,
   if (fabsf(l1[1] - l2[1]) < PROJ_PIXEL_TOLERANCE) {
     /* is the line out of range on its Y axis? */
     if (l1[1] < rect->ymin || l1[1] > rect->ymax) {
-      return 0;
+      return false;
     }
     /* line is out of range on its X axis */
     if ((l1[0] < rect->xmin && l2[0] < rect->xmin) || (l1[0] > rect->xmax && l2[0] > rect->xmax)) {
-      return 0;
+      return false;
     }
 
     /* this is a single point  (or close to)*/
@@ -2080,10 +2081,10 @@ static bool line_clip_rect2f(const rctf *cliprect,
       if (BLI_rctf_isect_pt_v(rect, l1)) {
         copy_v2_v2(l1_clip, l1);
         copy_v2_v2(l2_clip, l2);
-        return 1;
+        return true;
       }
       else {
-        return 0;
+        return false;
       }
     }
 
@@ -2091,7 +2092,7 @@ static bool line_clip_rect2f(const rctf *cliprect,
     copy_v2_v2(l2_clip, l2);
     CLAMP(l1_clip[0], rect->xmin, rect->xmax);
     CLAMP(l2_clip[0], rect->xmin, rect->xmax);
-    return 1;
+    return true;
   }
   else if (fabsf(l1[0] - l2[0]) < PROJ_PIXEL_TOLERANCE) {
     /* is the line out of range on its X axis? */
@@ -2109,10 +2110,10 @@ static bool line_clip_rect2f(const rctf *cliprect,
       if (BLI_rctf_isect_pt_v(rect, l1)) {
         copy_v2_v2(l1_clip, l1);
         copy_v2_v2(l2_clip, l2);
-        return 1;
+        return true;
       }
       else {
-        return 0;
+        return false;
       }
     }
 
@@ -2120,7 +2121,7 @@ static bool line_clip_rect2f(const rctf *cliprect,
     copy_v2_v2(l2_clip, l2);
     CLAMP(l1_clip[1], rect->ymin, rect->ymax);
     CLAMP(l2_clip[1], rect->ymin, rect->ymax);
-    return 1;
+    return true;
   }
   else {
     float isect;
@@ -2161,7 +2162,7 @@ static bool line_clip_rect2f(const rctf *cliprect,
     }
 
     if (ok1 && ok2) {
-      return 1;
+      return true;
     }
 
     if (line_isect_y(l1, l2, rect->ymax, &isect) && (isect >= cliprect->xmin) &&
@@ -2179,7 +2180,7 @@ static bool line_clip_rect2f(const rctf *cliprect,
     }
 
     if (ok1 && ok2) {
-      return 1;
+      return true;
     }
 
     /* left/right */
@@ -2198,7 +2199,7 @@ static bool line_clip_rect2f(const rctf *cliprect,
     }
 
     if (ok1 && ok2) {
-      return 1;
+      return true;
     }
 
     if (line_isect_x(l1, l2, rect->xmax, &isect) && (isect >= cliprect->ymin) &&
@@ -2216,10 +2217,10 @@ static bool line_clip_rect2f(const rctf *cliprect,
     }
 
     if (ok1 && ok2) {
-      return 1;
+      return true;
     }
     else {
-      return 0;
+      return false;
     }
   }
 }
@@ -2279,13 +2280,13 @@ static bool project_bucket_isect_circle(const float cent[2],
    */
 #if 0
   if (BLI_rctf_isect_pt_v(bucket_bounds, cent)) {
-    return 1;
+    return true;
   }
 #endif
 
   if ((bucket_bounds->xmin <= cent[0] && bucket_bounds->xmax >= cent[0]) ||
       (bucket_bounds->ymin <= cent[1] && bucket_bounds->ymax >= cent[1])) {
-    return 1;
+    return true;
   }
 
   /* out of bounds left */
@@ -2294,15 +2295,15 @@ static bool project_bucket_isect_circle(const float cent[2],
     if (cent[1] < bucket_bounds->ymin) {
       return (len_squared_v2v2_alt(cent, bucket_bounds->xmin, bucket_bounds->ymin) <
               radius_squared) ?
-                 1 :
-                 0;
+                 true :
+                 false;
     }
     /* top left test */
     else if (cent[1] > bucket_bounds->ymax) {
       return (len_squared_v2v2_alt(cent, bucket_bounds->xmin, bucket_bounds->ymax) <
               radius_squared) ?
-                 1 :
-                 0;
+                 true :
+                 false;
     }
   }
   else if (cent[0] > bucket_bounds->xmax) {
@@ -2310,19 +2311,19 @@ static bool project_bucket_isect_circle(const float cent[2],
     if (cent[1] < bucket_bounds->ymin) {
       return (len_squared_v2v2_alt(cent, bucket_bounds->xmax, bucket_bounds->ymin) <
               radius_squared) ?
-                 1 :
-                 0;
+                 true :
+                 false;
     }
     /* top right test */
     else if (cent[1] > bucket_bounds->ymax) {
       return (len_squared_v2v2_alt(cent, bucket_bounds->xmax, bucket_bounds->ymax) <
               radius_squared) ?
-                 1 :
-                 0;
+                 true :
+                 false;
     }
   }
 
-  return 0;
+  return false;
 }
 
 /* Note for rect_to_uvspace_ortho() and rect_to_uvspace_persp()
@@ -2951,29 +2952,28 @@ static bool IsectPoly2Df(const float pt[2], float uv[][2], const int tot)
 {
   int i;
   if (line_point_side_v2(uv[tot - 1], uv[0], pt) < 0.0f) {
-    return 0;
+    return false;
   }
 
   for (i = 1; i < tot; i++) {
     if (line_point_side_v2(uv[i - 1], uv[i], pt) < 0.0f) {
-      return 0;
+      return false;
     }
   }
 
-  return 1;
+  return true;
 }
 static bool IsectPoly2Df_twoside(const float pt[2], float uv[][2], const int tot)
 {
-  int i;
-  bool side = (line_point_side_v2(uv[tot - 1], uv[0], pt) > 0.0f);
+  const bool side = (line_point_side_v2(uv[tot - 1], uv[0], pt) > 0.0f);
 
-  for (i = 1; i < tot; i++) {
+  for (int i = 1; i < tot; i++) {
     if ((line_point_side_v2(uv[i - 1], uv[i], pt) > 0.0f) != side) {
-      return 0;
+      return false;
     }
   }
 
-  return 1;
+  return true;
 }
 
 /* One of the most important function for projection painting,
@@ -3600,7 +3600,7 @@ static bool project_bucket_face_isect(ProjPaintState *ps,
   do {
     v = ps->screenCoords[lt_vtri[fidx]];
     if (BLI_rctf_isect_pt_v(&bucket_bounds, v)) {
-      return 1;
+      return true;
     }
   } while (fidx--);
 
@@ -3624,10 +3624,10 @@ static bool project_bucket_face_isect(ProjPaintState *ps,
       (isect_seg_seg_v2(p2, p3, v1, v2) || isect_seg_seg_v2(p2, p3, v2, v3)) ||
       (isect_seg_seg_v2(p3, p4, v1, v2) || isect_seg_seg_v2(p3, p4, v2, v3)) ||
       (isect_seg_seg_v2(p4, p1, v1, v2) || isect_seg_seg_v2(p4, p1, v2, v3))) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /* Add faces to the bucket but don't initialize its pixels
@@ -3939,8 +3939,6 @@ static void proj_paint_state_seam_bleed_init(ProjPaintState *ps)
 
 static void proj_paint_state_thread_init(ProjPaintState *ps, const bool reset_threads)
 {
-  int a;
-
   /* Thread stuff
    *
    * very small brushes run a lot slower multi-threaded since the advantage with
@@ -3964,7 +3962,7 @@ static void proj_paint_state_thread_init(ProjPaintState *ps, const bool reset_th
     ED_image_paint_tile_lock_init();
   }
 
-  for (a = 0; a < ps->thread_tot; a++) {
+  for (int a = 0; a < ps->thread_tot; a++) {
     ps->arena_mt[a] = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "project paint arena");
   }
 }
@@ -6041,14 +6039,13 @@ void paint_proj_stroke_done(void *ps_handle_p)
 {
   ProjStrokeHandle *ps_handle = ps_handle_p;
   Scene *scene = ps_handle->scene;
-  int i;
 
   if (ps_handle->is_clone_cursor_pick) {
     MEM_freeN(ps_handle);
     return;
   }
 
-  for (i = 1; i < ps_handle->ps_views_tot; i++) {
+  for (int i = 1; i < ps_handle->ps_views_tot; i++) {
     PROJ_PAINT_STATE_SHARED_CLEAR(ps_handle->ps_views[i]);
   }
 
@@ -6056,7 +6053,7 @@ void paint_proj_stroke_done(void *ps_handle_p)
 
   paint_brush_exit_tex(ps_handle->brush);
 
-  for (i = 0; i < ps_handle->ps_views_tot; i++) {
+  for (int i = 0; i < ps_handle->ps_views_tot; i++) {
     ProjPaintState *ps;
     ps = ps_handle->ps_views[i];
     project_paint_end(ps);
@@ -6376,11 +6373,10 @@ bool BKE_paint_proj_mesh_data_check(
     }
     else {
       /* there may be material slots but they may be empty, check */
-      int i;
       hasmat = false;
       hastex = false;
 
-      for (i = 1; i < ob->totcol + 1; i++) {
+      for (int i = 1; i < ob->totcol + 1; i++) {
         Material *ma = BKE_object_material_get(ob, i);
 
         if (ma) {
@@ -6771,7 +6767,7 @@ void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
       ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, "Color", "Default fill color", 0.0f, 1.0f);
   RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
   RNA_def_property_float_array_default(prop, default_color);
-  RNA_def_boolean(ot->srna, "alpha", 1, "Alpha", "Create an image with an alpha channel");
+  RNA_def_boolean(ot->srna, "alpha", true, "Alpha", "Create an image with an alpha channel");
   RNA_def_enum(ot->srna,
                "generated_type",
                rna_enum_image_generated_type_items,

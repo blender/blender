@@ -167,7 +167,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
       }
       else {
         /* Key has been removed -- skip this undo node. */
-        return 0;
+        return false;
       }
     }
 
@@ -250,7 +250,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
     }
   }
 
-  return 1;
+  return true;
 }
 
 static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode)
@@ -259,12 +259,11 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode)
   Object *ob = OBACT(view_layer);
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
-  int i;
 
   if (unode->maxvert) {
     MVert *mvert = ss->mvert;
 
-    for (i = 0; i < unode->totvert; i++) {
+    for (int i = 0; i < unode->totvert; i++) {
       MVert *v = &mvert[unode->index[i]];
       if ((BLI_BITMAP_TEST(unode->vert_hidden, i) != 0) != ((v->flag & ME_HIDE) != 0)) {
         BLI_BITMAP_FLIP(unode->vert_hidden, i);
@@ -276,12 +275,12 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode)
   else if (unode->maxgrid && subdiv_ccg != NULL) {
     BLI_bitmap **grid_hidden = subdiv_ccg->grid_hidden;
 
-    for (i = 0; i < unode->totgrid; i++) {
+    for (int i = 0; i < unode->totgrid; i++) {
       SWAP(BLI_bitmap *, unode->grid_hidden[i], grid_hidden[unode->grids[i]]);
     }
   }
 
-  return 1;
+  return true;
 }
 
 static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode)
@@ -292,7 +291,7 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode)
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
   MVert *mvert;
   float *vmask;
-  int *index, i, j;
+  int *index;
 
   if (unode->maxvert) {
     /* Regular mesh restore. */
@@ -301,7 +300,7 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode)
     mvert = ss->mvert;
     vmask = ss->vmask;
 
-    for (i = 0; i < unode->totvert; i++) {
+    for (int i = 0; i < unode->totvert; i++) {
       if (vmask[index[i]] != unode->mask[i]) {
         SWAP(float, vmask[index[i]], unode->mask[i]);
         mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
@@ -320,16 +319,16 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode)
     BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
 
     mask = unode->mask;
-    for (j = 0; j < unode->totgrid; j++) {
+    for (int j = 0; j < unode->totgrid; j++) {
       grid = grids[unode->grids[j]];
 
-      for (i = 0; i < gridsize * gridsize; i++, mask++) {
+      for (int i = 0; i < gridsize * gridsize; i++, mask++) {
         SWAP(float, *CCG_elem_offset_mask(&key, grid, i), *mask);
       }
     }
   }
 
-  return 1;
+  return true;
 }
 
 static void sculpt_undo_bmesh_restore_generic_task_cb(

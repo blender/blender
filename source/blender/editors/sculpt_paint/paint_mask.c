@@ -209,13 +209,13 @@ void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot)
   RNA_def_float(
       ot->srna,
       "value",
-      0,
-      0,
-      1,
+      0.0f,
+      0.0f,
+      1.0f,
       "Value",
       "Mask level to use when mode is 'Value'; zero means no masking and one is fully masked",
-      0,
-      1);
+      0.0f,
+      1.0f);
 }
 
 /* Box select, operator is VIEW3D_OT_select_box, defined in view3d_select.c. */
@@ -301,15 +301,14 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
   ARegion *ar = vc->ar;
   Object *ob = vc->obact;
   PaintMaskFloodMode mode;
-  float value;
   bool multires;
   PBVH *pbvh;
   PBVHNode **nodes;
-  int totnode, symmpass;
+  int totnode;
   int symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
   mode = PAINT_MASK_FLOOD_VALUE;
-  value = select ? 1.0 : 0.0;
+  float value = select ? 1.0f : 0.0f;
 
   /* Transform the clip planes in object space. */
   ED_view3d_clipping_calc(&bb, clip_planes, vc->ar, vc->obact, rect);
@@ -320,13 +319,12 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
 
   sculpt_undo_push_begin("Mask box fill");
 
-  for (symmpass = 0; symmpass <= symm; symmpass++) {
+  for (int symmpass = 0; symmpass <= symm; symmpass++) {
     if (symmpass == 0 || (symm & symmpass && (symm != 5 || symmpass != 3) &&
                           (symm != 6 || (symmpass != 3 && symmpass != 5)))) {
-      int j = 0;
 
       /* Flip the planes symmetrically as needed. */
-      for (; j < 4; j++) {
+      for (int j = 0; j < 4; j++) {
         flip_plane(clip_planes_final[j], clip_planes[j], symmpass);
       }
 
@@ -472,7 +470,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
     int symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
     PBVH *pbvh;
     PBVHNode **nodes;
-    int totnode, symmpass;
+    int totnode;
     bool multires;
     PaintMaskFloodMode mode = RNA_enum_get(op->ptr, "mode");
     float value = RNA_float_get(op->ptr, "value");
@@ -508,13 +506,12 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 
     sculpt_undo_push_begin("Mask lasso fill");
 
-    for (symmpass = 0; symmpass <= symm; symmpass++) {
+    for (int symmpass = 0; symmpass <= symm; symmpass++) {
       if ((symmpass == 0) || (symm & symmpass && (symm != 5 || symmpass != 3) &&
                               (symm != 6 || (symmpass != 3 && symmpass != 5)))) {
-        int j = 0;
 
         /* Flip the planes symmetrically as needed. */
-        for (; j < 4; j++) {
+        for (int j = 0; j < 4; j++) {
           flip_plane(clip_planes_final[j], clip_planes[j], symmpass);
         }
 
@@ -585,11 +582,11 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
   RNA_def_float(
       ot->srna,
       "value",
-      1.0,
-      0,
-      1.0,
+      1.0f,
+      0.0f,
+      1.0f,
       "Value",
       "Mask level to use when mode is 'Value'; zero means no masking and one is fully masked",
-      0,
-      1);
+      0.0f,
+      1.0f);
 }

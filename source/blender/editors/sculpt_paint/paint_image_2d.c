@@ -446,9 +446,9 @@ static unsigned short *brush_painter_curve_mask_new(BrushPainter *painter,
           float len = len_v2(xy_rot);
           float p = len / radius;
           if (hardness < 1.0f) {
-            p = (p - hardness) / (1 - hardness);
+            p = (p - hardness) / (1.0f - hardness);
             p = 1.0f - p;
-            CLAMP(p, 0, 1);
+            CLAMP(p, 0.0f, 1.0f);
           }
           else {
             p = 1.0;
@@ -574,7 +574,7 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
   /* get brush color */
   if (brush->imagepaint_tool == PAINT_TOOL_DRAW) {
     paint_brush_color_get(
-        scene, brush, use_color_correction, cache->invert, 0.0, 1.0, brush_rgb, display);
+        scene, brush, use_color_correction, cache->invert, 0.0f, 1.0f, brush_rgb, display);
   }
   else {
     brush_rgb[0] = 1.0f;

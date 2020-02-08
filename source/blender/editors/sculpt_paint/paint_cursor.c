@@ -1099,8 +1099,11 @@ static bool ommit_cursor_drawing(Paint *paint, ePaintMode mode, Brush *brush)
   return true;
 }
 
-static void cursor_draw_point_screen_space(
-    const uint gpuattr, const ARegion *ar, float true_location[3], float obmat[4][4], int size)
+static void cursor_draw_point_screen_space(const uint gpuattr,
+                                           const ARegion *ar,
+                                           const float true_location[3],
+                                           const float obmat[4][4],
+                                           const int size)
 {
   float translation_vertex_cursor[3], location[3];
   copy_v3_v3(location, true_location);
@@ -1118,11 +1121,11 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
                                        const float true_location[3],
                                        Sculpt *sd,
                                        Object *ob,
-                                       float radius)
+                                       const float radius)
 {
   BoundBox *bb = BKE_object_boundbox_get(ob);
   float orgLoc[3], location[3];
-  int dim, tile_pass = 0;
+  int tile_pass = 0;
   int start[3];
   int end[3];
   int cur[3];
@@ -1131,7 +1134,7 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
   const float *step = sd->paint.tile_offset;
 
   copy_v3_v3(orgLoc, true_location);
-  for (dim = 0; dim < 3; dim++) {
+  for (int dim = 0; dim < 3; dim++) {
     if ((sd->paint.symmetry_flags & (PAINT_TILE_X << dim)) && step[dim] > 0) {
       start[dim] = (bbMin[dim] - orgLoc[dim] - radius) / step[dim];
       end[dim] = (bbMax[dim] - orgLoc[dim] + radius) / step[dim];
@@ -1149,7 +1152,7 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
           continue;
         }
         tile_pass++;
-        for (dim = 0; dim < 3; dim++) {
+        for (int dim = 0; dim < 3; dim++) {
           location[dim] = cur[dim] * step[dim] + orgLoc[dim];
         }
         cursor_draw_point_screen_space(gpuattr, ar, location, ob->obmat, 3);
@@ -1163,7 +1166,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
                                             const float true_location[3],
                                             Sculpt *sd,
                                             Object *ob,
-                                            float radius)
+                                            const float radius)
 {
   const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
   float location[3], symm_rot_mat[4][4];
@@ -1223,7 +1226,7 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr, SculptSession
 static void sculpt_multiplane_scrape_preview_draw(const uint gpuattr,
                                                   SculptSession *ss,
                                                   const float outline_col[3],
-                                                  float outline_alpha)
+                                                  const float outline_alpha)
 {
   float local_mat_inv[4][4];
   invert_m4_m4(local_mat_inv, ss->cache->stroke_local_mat);

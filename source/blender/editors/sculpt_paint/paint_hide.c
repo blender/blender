@@ -68,7 +68,7 @@ static bool is_effected(PartialVisArea area,
                         const float mask)
 {
   if (area == PARTIALVIS_ALL) {
-    return 1;
+    return true;
   }
   else if (area == PARTIALVIS_MASKED) {
     return mask > 0.5f;
@@ -137,7 +137,7 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 {
   CCGElem **grids;
   BLI_bitmap **grid_hidden;
-  int *grid_indices, totgrid, i;
+  int *grid_indices, totgrid;
   bool any_changed = false, any_visible = false;
 
   /* Get PBVH data. */
@@ -147,9 +147,9 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 
   sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
-  for (i = 0; i < totgrid; i++) {
+  for (int i = 0; i < totgrid; i++) {
     int any_hidden = 0;
-    int g = grid_indices[i], x, y;
+    int g = grid_indices[i];
     BLI_bitmap *gh = grid_hidden[g];
 
     if (!gh) {
@@ -172,8 +172,8 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
       continue;
     }
 
-    for (y = 0; y < key.grid_size; y++) {
-      for (x = 0; x < key.grid_size; x++) {
+    for (int y = 0; y < key.grid_size; y++) {
+      for (int x = 0; x < key.grid_size; x++) {
         CCGElem *elem = CCG_grid_elem(&key, grids[g], x, y);
         const float *co = CCG_elem_co(&key, elem);
         float mask = key.has_mask ? *CCG_elem_mask(&key, elem) : 0.0f;
@@ -349,7 +349,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   PBVHType pbvh_type;
   float clip_planes[4][4];
   rcti rect;
-  int totnode, i;
+  int totnode;
 
   /* Read operator properties. */
   action = RNA_enum_get(op->ptr, "action");
@@ -376,7 +376,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  for (i = 0; i < totnode; i++) {
+  for (int i = 0; i < totnode; i++) {
     switch (pbvh_type) {
       case PBVH_FACES:
         partialvis_update_mesh(ob, pbvh, nodes[i], action, area, clip_planes);
