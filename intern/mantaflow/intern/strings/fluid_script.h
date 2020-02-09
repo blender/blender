@@ -689,12 +689,12 @@ if (GUI):\n\
     gui.show()\n\
     gui.pause()\n\
 \n\
-cache_dir = '$CACHE_DIR$'\n\
-cache_resumable = $CACHE_RESUMABLE$\n\
-file_format_data      = '.uni'\n\
-file_format_noise     = '.uni'\n\
-file_format_particles = '.uni'\n\
-file_format_mesh      = '.bobj.gz'\n\
+cache_resumable       = $CACHE_RESUMABLE$\n\
+cache_dir             = '$CACHE_DIR$'\n\
+file_format_data      = '$CACHE_DATA_FORMAT$'\n\
+file_format_noise     = '$CACHE_NOISE_FORMAT$'\n\
+file_format_particles = '$CACHE_PARTICLE_FORMAT$'\n\
+file_format_mesh      = '$CACHE_MESH_FORMAT$'\n\
 \n\
 # Start and stop for simulation\n\
 current_frame  = $CURRENT_FRAME$\n\
