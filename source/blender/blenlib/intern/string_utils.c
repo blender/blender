@@ -410,11 +410,29 @@ bool BLI_uniquename(
 /** \name Join Strings
  *
  * For non array versions of these functions, use the macros:
+ * - #BLI_string_join
  * - #BLI_string_joinN
  * - #BLI_string_join_by_sep_charN
  * - #BLI_string_join_by_sep_char_with_tableN
  *
  * \{ */
+
+char *BLI_string_join_array(char *result,
+                            size_t result_len,
+                            const char *strings[],
+                            uint strings_len)
+{
+  char *c = result;
+  char *c_end = &result[result_len - 1];
+  for (uint i = 0; i < strings_len; i++) {
+    const char *p = strings[i];
+    while (*p && (c < c_end)) {
+      *c++ = *p++;
+    }
+  }
+  *c = '\0';
+  return c;
+}
 
 /**
  * Join an array of strings into a newly allocated, null terminated string.
