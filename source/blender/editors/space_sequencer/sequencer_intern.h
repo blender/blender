@@ -54,6 +54,7 @@ void sequencer_draw_preview(const struct bContext *C,
 void color3ubv_from_seq(struct Scene *curscene, struct Sequence *seq, unsigned char col[3]);
 
 void sequencer_special_update_set(Sequence *seq);
+float sequence_handle_size_get_clamped(struct Sequence *seq, const float pixelx);
 
 /* UNUSED */
 // void seq_reset_imageofs(struct SpaceSeq *sseq);

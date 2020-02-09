@@ -1018,15 +1018,17 @@ void SEQUENCER_OT_select_side(wmOperatorType *ot)
 static int sequencer_box_select_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
+  View2D *v2d = UI_view2d_fromcontext(C);
   Editing *ed = BKE_sequencer_editing_get(scene, false);
+
   if (ed == NULL) {
     return OPERATOR_CANCELLED;
   }
 
-  View2D *v2d = UI_view2d_fromcontext(C);
-
   const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+  const bool handles = RNA_boolean_get(op->ptr, "handles");
   const bool select = (sel_op != SEL_OP_SUB);
+
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     ED_sequencer_deselect_all(scene);
   }
@@ -1039,8 +1041,44 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
     rctf rq;
     seq_rectf(seq, &rq);
     if (BLI_rctf_isect(&rq, &rectf, NULL)) {
-      SET_FLAG_FROM_TEST(seq->flag, select, SELECT);
-      recurs_sel_seq(seq);
+      if (handles) {
+        /* Get the handles draw size. */
+        float pixelx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
+        float handsize = sequence_handle_size_get_clamped(seq, pixelx) * 0.75f;
+
+        /* Right handle. */
+        if (rectf.xmax > (seq->enddisp - handsize)) {
+          if (select) {
+            seq->flag |= SELECT | SEQ_RIGHTSEL;
+          }
+          else {
+            /* Deselect the strip if it's left with no handles selected. */
+            if ((seq->flag & SEQ_RIGHTSEL) && ((seq->flag & SEQ_LEFTSEL) == 0)) {
+              seq->flag &= ~SELECT;
+            }
+            seq->flag &= ~SEQ_RIGHTSEL;
+          }
+        }
+        /* Left handle. */
+        if (rectf.xmin < (seq->startdisp + handsize)) {
+          if (select) {
+            seq->flag |= SELECT | SEQ_LEFTSEL;
+          }
+          else {
+            /* Deselect the strip if it's left with no handles selected. */
+            if ((seq->flag & SEQ_LEFTSEL) && ((seq->flag & SEQ_RIGHTSEL) == 0)) {
+              seq->flag &= ~SELECT;
+            }
+            seq->flag &= ~SEQ_LEFTSEL;
+          }
+        }
+      }
+
+      /* Regular box selection. */
+      else {
+        SET_FLAG_FROM_TEST(seq->flag, select, SELECT);
+        seq->flag &= ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
+      }
     }
   }
 
@@ -1072,6 +1110,8 @@ static int sequencer_box_select_invoke(bContext *C, wmOperator *op, const wmEven
 
 void SEQUENCER_OT_select_box(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Box Select";
   ot->idname = "SEQUENCER_OT_select_box";
@@ -1092,8 +1132,10 @@ void SEQUENCER_OT_select_box(wmOperatorType *ot)
   WM_operator_properties_gesture_box(ot);
   WM_operator_properties_select_operation_simple(ot);
 
-  PropertyRNA *prop = RNA_def_boolean(
+  prop = RNA_def_boolean(
       ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a tweak event");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna, "handles", 0, "Select Handles", "Select the strips' handles");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

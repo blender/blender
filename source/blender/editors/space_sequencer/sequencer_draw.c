@@ -449,7 +449,7 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 }
 
 /* clamp handles to defined size in pixel space */
-static float draw_seq_handle_size_get_clamped(Sequence *seq, const float pixelx)
+float sequence_handle_size_get_clamped(Sequence *seq, const float pixelx)
 {
   const float minhandle = pixelx * SEQ_HANDLE_SIZE_MIN;
   const float maxhandle = pixelx * SEQ_HANDLE_SIZE_MAX;
@@ -806,7 +806,7 @@ static void draw_seq_strip(const bContext *C,
   View2D *v2d = &ar->v2d;
   float x1, x2, y1, y2;
   unsigned char col[4], background_col[4], is_single_image;
-  const float handsize_clamped = draw_seq_handle_size_get_clamped(seq, pixelx);
+  const float handsize_clamped = sequence_handle_size_get_clamped(seq, pixelx);
 
   /* we need to know if this is a single image/color or not for drawing */
   is_single_image = (char)BKE_sequence_single_check(seq);
