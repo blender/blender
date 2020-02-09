@@ -505,7 +505,9 @@ static void fluid_free_startjob(void *customdata, short *stop, short *do_update,
     cache_map |= FLUID_DOMAIN_OUTDATED_PARTICLES;
   }
   if (fluid_is_free_guiding(job) || fluid_is_free_all(job)) {
-    cache_map |= FLUID_DOMAIN_OUTDATED_GUIDE;
+    cache_map |= (FLUID_DOMAIN_OUTDATED_DATA | FLUID_DOMAIN_OUTDATED_NOISE |
+                  FLUID_DOMAIN_OUTDATED_MESH | FLUID_DOMAIN_OUTDATED_PARTICLES |
+                  FLUID_DOMAIN_OUTDATED_GUIDE);
   }
 #ifdef WITH_FLUID
   BKE_fluid_cache_free(mds, job->ob, cache_map);

@@ -559,11 +559,8 @@ def bake_particles_$ID$(path_data, path_particles, framenr, format_data, format_
 
 const std::string fluid_bake_guiding =
     "\n\
-def bake_guiding_process_$ID$(framenr, format_guiding, path_guiding):\n\
+def bake_guiding_process_$ID$(framenr, format_guiding, path_guiding, resumable):\n\
     mantaMsg('Bake fluid guiding')\n\
-    \n\
-    if framenr>1:\n\
-        fluid_load_guiding_$ID$(path_guiding, framenr-1, format_guiding)\n\
     \n\
     # Average out velocities from multiple guiding objects at one cell\n\
     x_guidevel_s$ID$.safeDivide(numGuides_s$ID$)\n\
@@ -582,13 +579,13 @@ def bake_guiding_process_$ID$(framenr, format_guiding, path_guiding):\n\
     extrapolateVec3Simple(vel=guidevelC_s$ID$, phi=phiGuideIn_s$ID$, distance=4, inside=False)\n\
     resampleVec3ToMac(source=guidevelC_s$ID$, target=guidevel_sg$ID$)\n\
     \n\
-    fluid_save_guiding_$ID$(path_guiding, framenr, format_guiding)\n\
+    fluid_save_guiding_$ID$(path_guiding, framenr, format_guiding, resumable)\n\
 \n\
-def bake_guiding_$ID$(path_guiding, framenr, format_guiding):\n\
+def bake_guiding_$ID$(path_guiding, framenr, format_guiding, resumable):\n\
     if not withMPBake or isWindows:\n\
-        bake_guiding_process_$ID$(framenr, format_guiding, path_guiding)\n\
+        bake_guiding_process_$ID$(framenr, format_guiding, path_guiding, resumable)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=bake_guiding_process_$ID$, framenr=framenr, format_guiding=format_guiding, path_guiding=path_guiding)\n";
+        fluid_cache_multiprocessing_start_$ID$(function=bake_guiding_process_$ID$, framenr=framenr, format_guiding=format_guiding, path_guiding=path_guiding, resumable=resumable)\n";
 
 //////////////////////////////////////////////////////////////////////
 // IMPORT

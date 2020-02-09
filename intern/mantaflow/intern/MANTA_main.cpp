@@ -2001,6 +2001,9 @@ int MANTA::bakeGuiding(FluidModifierData *mmd, int framenr)
 
   std::string gformat = getCacheFileEnding(mmd->domain->cache_data_format);
 
+  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  std::string resumable_cache = (final_cache) ? "False" : "True";
+
   BLI_path_join(cacheDirGuiding,
                 sizeof(cacheDirGuiding),
                 mmd->domain->cache_directory,
@@ -2010,7 +2013,7 @@ int MANTA::bakeGuiding(FluidModifierData *mmd, int framenr)
 
   ss.str("");
   ss << "bake_guiding_" << mCurrentID << "('" << escapeSlashes(cacheDirGuiding) << "', " << framenr
-     << ", '" << gformat << "')";
+     << ", '" << gformat << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
   runPythonString(pythonCommands);
