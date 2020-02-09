@@ -572,6 +572,29 @@ void MANTA::terminateMantaflow()
   mantaInitialized = false;
 }
 
+static std::string getCacheFileEnding(char cache_format)
+{
+  if (MANTA::with_debug)
+    std::cout << "MANTA::getCacheFileEnding()" << std::endl;
+
+  switch (cache_format) {
+    case FLUID_DOMAIN_FILE_UNI:
+      return ".uni";
+    case FLUID_DOMAIN_FILE_OPENVDB:
+      return ".vdb";
+    case FLUID_DOMAIN_FILE_RAW:
+      return ".raw";
+    case FLUID_DOMAIN_FILE_BIN_OBJECT:
+      return ".bobj.gz";
+    case FLUID_DOMAIN_FILE_OBJECT:
+      return ".obj";
+    default:
+      if (MANTA::with_debug)
+        std::cout << "Error: Could not find file extension" << std::endl;
+      return ".uni";
+  }
+}
+
 std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *mmd)
 {
   std::ostringstream ss;
@@ -815,6 +838,14 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
     ss << mmd->time;
   else if (varName == "END_FRAME")
     ss << mmd->domain->cache_frame_end;
+  else if (varName == "CACHE_DATA_FORMAT")
+    ss << getCacheFileEnding(mmd->domain->cache_data_format);
+  else if (varName == "CACHE_MESH_FORMAT")
+    ss << getCacheFileEnding(mmd->domain->cache_mesh_format);
+  else if (varName == "CACHE_NOISE_FORMAT")
+    ss << getCacheFileEnding(mmd->domain->cache_noise_format);
+  else if (varName == "CACHE_PARTICLE_FORMAT")
+    ss << getCacheFileEnding(mmd->domain->cache_particle_format);
   else if (varName == "SIMULATION_METHOD") {
     if (mmd->domain->simulation_method & FLUID_DOMAIN_METHOD_FLIP) {
       ss << "'FLIP'";
@@ -985,29 +1016,6 @@ std::string MANTA::parseScript(const std::string &setup_string, FluidModifierDat
     res << parseLine(line, mmd) << "\n";
   }
   return res.str();
-}
-
-static std::string getCacheFileEnding(char cache_format)
-{
-  if (MANTA::with_debug)
-    std::cout << "MANTA::getCacheFileEnding()" << std::endl;
-
-  switch (cache_format) {
-    case FLUID_DOMAIN_FILE_UNI:
-      return ".uni";
-    case FLUID_DOMAIN_FILE_OPENVDB:
-      return ".vdb";
-    case FLUID_DOMAIN_FILE_RAW:
-      return ".raw";
-    case FLUID_DOMAIN_FILE_BIN_OBJECT:
-      return ".bobj.gz";
-    case FLUID_DOMAIN_FILE_OBJECT:
-      return ".obj";
-    default:
-      if (MANTA::with_debug)
-        std::cout << "Error: Could not find file extension" << std::endl;
-      return ".uni";
-  }
 }
 
 int MANTA::updateFlipStructures(FluidModifierData *mmd, int framenr)
@@ -2001,6 +2009,9 @@ int MANTA::bakeGuiding(FluidModifierData *mmd, int framenr)
 
   std::string gformat = getCacheFileEnding(mmd->domain->cache_data_format);
 
+  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  std::string resumable_cache = (final_cache) ? "False" : "True";
+
   BLI_path_join(cacheDirGuiding,
                 sizeof(cacheDirGuiding),
                 mmd->domain->cache_directory,
@@ -2010,7 +2021,7 @@ int MANTA::bakeGuiding(FluidModifierData *mmd, int framenr)
 
   ss.str("");
   ss << "bake_guiding_" << mCurrentID << "('" << escapeSlashes(cacheDirGuiding) << "', " << framenr
-     << ", '" << gformat << "')";
+     << ", '" << gformat << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
   runPythonString(pythonCommands);

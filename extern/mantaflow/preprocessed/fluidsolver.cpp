@@ -136,9 +136,9 @@ FluidSolver::FluidSolver(Vec3i gridsize, int dim, int fourthDim)
       mDtMin(1.),
       mDtMax(1.),
       mFrameLength(1.),
+      mTimePerFrame(0.),
       mGridSize(gridsize),
       mDim(dim),
-      mTimePerFrame(0.),
       mLockDt(false),
       mFourthDim(fourthDim)
 {
