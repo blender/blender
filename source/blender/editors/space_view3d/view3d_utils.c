@@ -470,7 +470,7 @@ bool ED_view3d_persp_ensure(const Depsgraph *depsgraph, View3D *v3d, ARegion *ar
       char persp = (autopersp && RV3D_VIEW_IS_AXIS(rv3d->lview)) ? RV3D_PERSP : rv3d->lpersp;
       ED_view3d_persp_switch_from_camera(depsgraph, v3d, rv3d, persp);
     }
-    else if (autopersp && RV3D_VIEW_IS_AXIS(rv3d->view)) {
+    else if (autopersp && ED_view3d_quat_is_axis_aligned(rv3d->viewquat)) {
       rv3d->persp = RV3D_PERSP;
     }
     return true;
@@ -1337,6 +1337,22 @@ char ED_view3d_quat_to_axis_view(const float quat[4], const float epsilon)
   }
 
   return RV3D_VIEW_USER;
+}
+
+/**
+ * Returns true if input view quaternion is aligned view axis in direction & angle.
+ */
+bool ED_view3d_quat_is_axis_aligned(const float viewquat[4])
+{
+  float mat[3][3];
+  quat_to_mat3(mat, viewquat);
+  for (int row = 0; row < 3; row++) {
+    int axis = axis_dominant_v3_single(mat[row]);
+    if (fabsf(fabsf(mat[row][axis]) - 1.0f) > 1e-4f) {
+      return false;
+    }
+  }
+  return true;
 }
 
 char ED_view3d_lock_view_from_index(int index)
