@@ -80,7 +80,10 @@ if "%MUST_CONFIGURE%"=="1" (
 	)
 )
 
-echo call "%VCVARS%" %BUILD_ARCH% > %BUILD_DIR%\rebuild.cmd
+echo echo off > %BUILD_DIR%\rebuild.cmd
+echo if "%%VSCMD_VER%%" == "" ^( >> %BUILD_DIR%\rebuild.cmd
+echo   call "%VCVARS%" %BUILD_ARCH% >> %BUILD_DIR%\rebuild.cmd
+echo ^) >> %BUILD_DIR%\rebuild.cmd
 echo echo %%TIME%% ^> buildtime.txt >> %BUILD_DIR%\rebuild.cmd
 echo ninja install >> %BUILD_DIR%\rebuild.cmd 
 echo echo %%TIME%% ^>^> buildtime.txt >> %BUILD_DIR%\rebuild.cmd

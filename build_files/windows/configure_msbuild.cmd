@@ -59,21 +59,17 @@ if "%MUST_CONFIGURE%"=="1" (
 		exit /b 1
 	)
 )
-
-echo call "%VCVARS%" %BUILD_ARCH% > %BUILD_DIR%\rebuild.cmd
+echo echo off > %BUILD_DIR%\rebuild.cmd
+echo if "%%VSCMD_VER%%" == "" ^( >> %BUILD_DIR%\rebuild.cmd
+echo   call "%VCVARS%" %BUILD_ARCH% >> %BUILD_DIR%\rebuild.cmd
+echo ^) >> %BUILD_DIR%\rebuild.cmd
 echo "%CMAKE%" . >> %BUILD_DIR%\rebuild.cmd
 echo echo %%TIME%% ^> buildtime.txt >> %BUILD_DIR%\rebuild.cmd
 echo msbuild ^
-	%BUILD_DIR%\Blender.sln ^
-	/target:build ^
+	%BUILD_DIR%\INSTALL.vcxproj ^
 	/property:Configuration=%BUILD_TYPE% ^
 	/maxcpucount:2 ^
 	/verbosity:minimal ^
 	/p:platform=%MSBUILD_PLATFORM% ^
 	/flp:Summary;Verbosity=minimal;LogFile=%BUILD_DIR%\Build.log >> %BUILD_DIR%\rebuild.cmd
-echo msbuild ^
-	%BUILD_DIR%\INSTALL.vcxproj ^
-	/property:Configuration=%BUILD_TYPE% ^
-	/verbosity:minimal ^
-	/p:platform=%MSBUILD_PLATFORM% >> %BUILD_DIR%\rebuild.cmd
 echo echo %%TIME%% ^>^> buildtime.txt >> %BUILD_DIR%\rebuild.cmd
