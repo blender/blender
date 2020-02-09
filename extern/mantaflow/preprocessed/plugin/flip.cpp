@@ -1407,7 +1407,6 @@ struct correctLevelset : public KernelBase {
   {
     if (rAcc(i, j, k) <= VECTOR_EPSILON)
       return;  // outside nothing happens
-    Real x = pAcc(i, j, k).x;
 
     // create jacobian of pAcc via central differences
     Matrix3x3f jacobian = Matrix3x3f(0.5 * (pAcc(i + 1, j, k).x - pAcc(i - 1, j, k).x),

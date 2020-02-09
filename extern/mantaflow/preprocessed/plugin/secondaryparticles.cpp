@@ -1099,7 +1099,7 @@ void PbRegister_flipSampleSecondaryParticles()
 // evaluates cubic spline with radius h and distance l in dim dimensions
 Real cubicSpline(const Real h, const Real l, const int dim)
 {
-  const Real h2 = square(h), h3 = h2 * h, h4 = h3 * h, h5 = h4 * h;
+  const Real h2 = square(h), h3 = h2 * h;
   const Real c[] = {
       Real(2e0 / (3e0 * h)), Real(10e0 / (7e0 * M_PI * h2)), Real(1e0 / (M_PI * h3))};
   const Real q = l / h;
@@ -1175,9 +1175,6 @@ struct knFlipUpdateSecondaryParticlesLinear : public KernelBase {
     }
 
     Vec3i gridpos = toVec3i(pts_sec[idx].pos);
-    int i = gridpos.x;
-    int j = gridpos.y;
-    int k = gridpos.z;
 
     // spray particle
     if (neighborRatio(gridpos) < c_s) {
