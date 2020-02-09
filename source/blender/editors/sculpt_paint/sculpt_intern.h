@@ -35,9 +35,9 @@
 
 struct KeyBlock;
 struct Object;
+struct SculptPoseIKChainSegment;
 struct SculptUndoNode;
 struct bContext;
-struct SculptPoseIKChainSegment;
 
 bool sculpt_mode_poll(struct bContext *C);
 bool sculpt_mode_poll_view3d(struct bContext *C);

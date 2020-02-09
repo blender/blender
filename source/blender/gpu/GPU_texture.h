@@ -31,12 +31,12 @@ extern "C" {
 #endif
 
 struct GPUVertBuf;
+struct ImBuf;
 struct Image;
 struct ImageUser;
 struct MovieClip;
 struct MovieClipUser;
 struct PreviewImage;
-struct ImBuf;
 
 struct GPUFrameBuffer;
 typedef struct GPUTexture GPUTexture;

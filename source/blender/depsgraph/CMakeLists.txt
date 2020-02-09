@@ -83,8 +83,8 @@ set(SRC
   intern/depsgraph_query.cc
   intern/depsgraph_query_foreach.cc
   intern/depsgraph_query_iter.cc
-  intern/depsgraph_relation.cc
   intern/depsgraph_registry.cc
+  intern/depsgraph_relation.cc
   intern/depsgraph_tag.cc
   intern/depsgraph_type.cc
   intern/depsgraph_update.cc
