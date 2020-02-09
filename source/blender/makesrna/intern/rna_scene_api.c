@@ -365,7 +365,7 @@ void RNA_api_scene(StructRNA *srna)
   RNA_def_function_ui_description(func, "Clear sequence editor in this scene");
 
 #  ifdef WITH_ALEMBIC
-  /* XXX Deprecated, will be removed in 2.8 in favour of calling the export operator. */
+  /* XXX Deprecated, will be removed in 2.8 in favor of calling the export operator. */
   func = RNA_def_function(srna, "alembic_export", "rna_Scene_alembic_export");
   RNA_def_function_ui_description(
       func, "Export to Alembic file (deprecated, use the Alembic export operator)");

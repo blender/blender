@@ -59,7 +59,7 @@ bool USDGenericMeshWriter::is_supported(const HierarchyContext *context) const
 
   if (is_dupli) {
     /* Construct the object's base flags from its dupliparent, just like is done in
-     * deg_objects_dupli_iterator_next(). Without this, the visiblity check below will fail. Doing
+     * deg_objects_dupli_iterator_next(). Without this, the visibility check below will fail. Doing
      * this here, instead of a more suitable location in AbstractHierarchyIterator, prevents
      * copying the Object for every dupli. */
     base_flag = object->base_flag;

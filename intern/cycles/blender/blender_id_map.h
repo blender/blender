@@ -242,7 +242,7 @@ struct ObjectKey {
 
 /* Geometry Key
  *
- * We export separate geomtry for a mesh and its particle hair, so key needs to
+ * We export separate geometry for a mesh and its particle hair, so key needs to
  * distinguish between them. */
 
 struct GeometryKey {

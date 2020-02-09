@@ -576,7 +576,7 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
       float quat_diff[4];
 
       /* calculate the delta transform from the previous to the current */
-      /* TODO: investigate ways to favour one transform more? */
+      /* TODO: investigate ways to favor one transform more? */
       sub_qt_qtqt(quat_diff, quat_curr, quat_prev);
 
       /* increase the original by the delta transform, by an amount determined by percentage */

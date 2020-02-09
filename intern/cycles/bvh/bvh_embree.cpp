@@ -340,7 +340,7 @@ BVHEmbree::BVHEmbree(const BVHParams &params_,
     if (ret != 1) {
       assert(0);
       VLOG(1) << "Embree is compiled without the RTC_DEVICE_PROPERTY_RAY_MASK_SUPPORTED flag."
-                 "Ray visiblity will not work.";
+                 "Ray visibility will not work.";
     }
     ret = rtcGetDeviceProperty(rtc_shared_device, RTC_DEVICE_PROPERTY_FILTER_FUNCTION_SUPPORTED);
     if (ret != 1) {

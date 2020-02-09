@@ -632,7 +632,7 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
 
   /* Distance between two opposing vertices in a unit cube.
    * I.e. the unit cube diagonal or sqrt(3).
-   * This value is our nearest neighbour search distance. */
+   * This value is our nearest neighbor search distance. */
   const float surface_distance = 1.732;
 
   for (int x = mds->res_min[0]; x < mds->res_max[0]; x++) {
@@ -2219,7 +2219,7 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *mfs,
   }
 
   /* Set emission value for smoke inflow.
-   * Ensure that emission value is "maximised". */
+   * Ensure that emission value is "maximized". */
   if (emission_in) {
     emission_in[index] = MAX2(emission_value, emission_in[index]);
   }
@@ -3402,7 +3402,8 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   resume_guide = (!is_startframe) && (mds->cache_frame_pause_guide == scene_framenr);
 
   bool read_cache, bake_cache;
-  read_cache = false, bake_cache = baking_data || baking_noise || baking_mesh || baking_particles || baking_guide;
+  read_cache = false,
+  bake_cache = baking_data || baking_noise || baking_mesh || baking_particles || baking_guide;
 
   bool with_gdomain;
   with_gdomain = (mds->guide_source == FLUID_DOMAIN_GUIDE_SRC_DOMAIN);

@@ -722,7 +722,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize, bool mas
        * - width is OK, but need to check if outside of boundaries
        *
        * So, resolution is to just shift view by the gap between the extremities.
-       * We favour moving the 'minimum' across, as that's origin for most things
+       * We favor moving the 'minimum' across, as that's origin for most things.
        * (XXX - in the past, max was favored... if there are bugs, swap!)
        */
       if ((cur->xmin < tot->xmin) && (cur->xmax > tot->xmax)) {
@@ -779,7 +779,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize, bool mas
        * - height is OK, but need to check if outside of boundaries
        *
        * So, resolution is to just shift view by the gap between the extremities.
-       * We favour moving the 'minimum' across, as that's origin for most things
+       * We favor moving the 'minimum' across, as that's origin for most things.
        */
       if ((cur->ymin < tot->ymin) && (cur->ymax > tot->ymax)) {
         /* outside boundaries on both sides,

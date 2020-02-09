@@ -501,7 +501,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
       ok |= KEYFRAME_OK_KEY; \
 \
     if (ked && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES)) { \
-      /* Only act on visible items, so check handle visiblity state. */ \
+      /* Only act on visible items, so check handle visibility state. */ \
       const bool handles_visible = ((ked->iterflags & KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE) ? \
                                         (BEZT_ISSEL_ANY(bezt)) : \
                                         true); \
@@ -1459,7 +1459,7 @@ KeyframeEditFunc ANIM_editkeyframes_easing(short mode)
 
 static short select_bezier_add(KeyframeEditData *ked, BezTriple *bezt)
 {
-  /* Only act on visible items, so check handle visiblity state. */
+  /* Only act on visible items, so check handle visibility state. */
   const bool handles_visible = ked && ((ked->iterflags & KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE) ?
                                            (BEZT_ISSEL_ANY(bezt)) :
                                            true);
@@ -1485,7 +1485,7 @@ static short select_bezier_add(KeyframeEditData *ked, BezTriple *bezt)
 
 static short select_bezier_subtract(KeyframeEditData *ked, BezTriple *bezt)
 {
-  /* Only act on visible items, so check handle visiblity state. */
+  /* Only act on visible items, so check handle visibility state. */
   const bool handles_visible = ked && ((ked->iterflags & KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE) ?
                                            (BEZT_ISSEL_ANY(bezt)) :
                                            true);

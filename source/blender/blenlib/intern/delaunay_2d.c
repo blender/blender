@@ -1735,7 +1735,7 @@ static bool can_collapse(const SymEdge *se)
  * edges may end up with zero or negative area (see can_collapse, above).
  * So don't choose a collapse direction that is not allowed or one that has an original vertex
  * as origin and a non-original vertex as destination.
- * If both collapse directions are allowed by that rule, picke the one with the lower original
+ * If both collapse directions are allowed by that rule, pick the one with the lower original
  * index.
  *
  * After merging, the faces abc and adb disappear (if they are not the outer face).
