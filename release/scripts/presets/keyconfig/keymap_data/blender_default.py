@@ -1256,8 +1256,9 @@ def km_mask_editing(params):
         # click select keymap it's fine to have the context menu instead.
         items.extend([
             ("mask.select", {"type": 'RIGHTMOUSE', "value": 'PRESS'},
-             {"properties": [("extend", False), ("deselect", False), ("toggle", False),
-                             ("deselect_all", not params.legacy)]}),
+             {"properties": [
+                 ("extend", False), ("deselect", False), ("toggle", False),
+                 ("deselect_all", not params.legacy)]}),
             ("transform.translate", {"type": 'EVT_TWEAK_R', "value": 'ANY'}, None),
         ])
 
@@ -1430,8 +1431,9 @@ def km_graph_editor(params):
         ("wm.context_toggle", {"type": 'H', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.show_handles')]}),
         ("graph.clickselect", {"type": params.select_mouse, "value": 'PRESS'},
-         {"properties": [("extend", False), ("deselect_all", not params.legacy),
-                         ("column", False), ("curves", False)]}),
+         {"properties": [
+             ("extend", False), ("deselect_all", not params.legacy),
+             ("column", False), ("curves", False)]}),
         ("graph.clickselect", {"type": params.select_mouse, "value": 'PRESS', "alt": True},
          {"properties": [("extend", False), ("column", True), ("curves", False)]}),
         ("graph.clickselect", {"type": params.select_mouse, "value": 'PRESS', "shift": True},
@@ -1972,8 +1974,9 @@ def km_dopesheet(params):
 
     items.extend([
         ("action.clickselect", {"type": params.select_mouse, "value": 'PRESS'},
-         {"properties": [("extend", False), ("deselect_all", not params.legacy),
-                         ("column", False), ("channel", False)]}),
+         {"properties": [
+             ("extend", False), ("deselect_all", not params.legacy),
+             ("column", False), ("channel", False)]}),
         ("action.clickselect", {"type": params.select_mouse, "value": 'PRESS', "alt": True},
          {"properties": [("extend", False), ("column", True), ("channel", False)]}),
         ("action.clickselect", {"type": params.select_mouse, "value": 'PRESS', "shift": True},
@@ -2449,8 +2452,9 @@ def km_sequencer(params):
              )
         ),
         ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS'},
-         {"properties": [("extend", False), ("deselect_all", True),
-                         ("linked_handle", False), ("left_right", 'NONE'), ("linked_time", False)]}),
+         {"properties": [
+             ("extend", False), ("deselect_all", True),
+             ("linked_handle", False), ("left_right", 'NONE'), ("linked_time", False)]}),
         ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "shift": True},
          {"properties": [("extend", True), ("linked_handle", False), ("left_right", 'NONE'), ("linked_time", False)]}),
         ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "alt": True},
@@ -6119,7 +6123,7 @@ def km_sequencer_editor_tool_select_box(params):
     )
 
 
-def km_sequencer_editor_tool_cut(params):
+def km_sequencer_editor_tool_cut(_params):
     return (
         "Sequencer Tool: Cut",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
