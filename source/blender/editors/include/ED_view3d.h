@@ -622,9 +622,11 @@ void ED_view3d_update_viewmat(struct Depsgraph *depsgraph,
                               float winmat[4][4],
                               const struct rcti *rect,
                               bool offscreen);
-bool ED_view3d_quat_from_axis_view(const char view, float quat[4]);
-char ED_view3d_quat_to_axis_view(const float quat[4], const float epsilon);
-bool ED_view3d_quat_is_axis_aligned(const float viewquat[4]);
+bool ED_view3d_quat_from_axis_view(const char view, const char view_axis_roll, float quat[4]);
+bool ED_view3d_quat_to_axis_view(const float viewquat[4],
+                                 const float epsilon,
+                                 char *r_view,
+                                 char *r_view_axis_rotation);
 
 char ED_view3d_lock_view_from_index(int index);
 char ED_view3d_axis_view_opposite(char view);

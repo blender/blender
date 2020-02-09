@@ -27,6 +27,7 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_threads.h"
 #include "BLI_jitter_2d.h"
 
@@ -1255,21 +1256,44 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, int xoffset, int *yoffs
 {
   RegionView3D *rv3d = ar->regiondata;
   const char *name = view3d_get_name(v3d, rv3d);
+  const char *name_array[3] = {name, NULL, NULL};
+  int name_array_len = 1;
   const int font_id = BLF_default();
 
+  /* 6 is the maximum size of the axis roll text. */
   /* increase size for unicode languages (Chinese in utf-8...) */
 #ifdef WITH_INTERNATIONAL
-  char tmpstr[96];
+  char tmpstr[96 + 6];
 #else
-  char tmpstr[32];
+  char tmpstr[32 + 6];
 #endif
 
   BLF_enable(font_id, BLF_SHADOW);
   BLF_shadow(font_id, 5, (const float[4]){0.0f, 0.0f, 0.0f, 1.0f});
   BLF_shadow_offset(font_id, 1, -1);
 
+  if (RV3D_VIEW_IS_AXIS(rv3d->view) && (rv3d->view_axis_roll != RV3D_VIEW_AXIS_ROLL_0)) {
+    const char *axis_roll;
+    switch (rv3d->view_axis_roll) {
+      case RV3D_VIEW_AXIS_ROLL_90:
+        axis_roll = " 90\xC2\xB0";
+        break;
+      case RV3D_VIEW_AXIS_ROLL_180:
+        axis_roll = " 180\xC2\xB0";
+        break;
+      default:
+        axis_roll = " -90\xC2\xB0";
+        break;
+    }
+    name_array[name_array_len++] = axis_roll;
+  }
+
   if (v3d->localvd) {
-    BLI_snprintf(tmpstr, sizeof(tmpstr), IFACE_("%s (Local)"), name);
+    name_array[name_array_len++] = IFACE_(" (Local)");
+  }
+
+  if (name_array_len > 1) {
+    BLI_string_join_array(tmpstr, sizeof(tmpstr), name_array, name_array_len);
     name = tmpstr;
   }
 
@@ -1277,11 +1301,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, int xoffset, int *yoffs
 
   *yoffset -= U.widget_unit;
 
-#ifdef WITH_INTERNATIONAL
   BLF_draw_default(xoffset, *yoffset, 0.0f, name, sizeof(tmpstr));
-#else
-  BLF_draw_default_ascii(xoffset, *yoffset, 0.0f, name, sizeof(tmpstr));
-#endif
 
   BLF_disable(font_id, BLF_SHADOW);
 }

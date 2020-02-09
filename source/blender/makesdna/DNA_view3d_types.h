@@ -104,10 +104,11 @@ typedef struct RegionView3D {
   char is_persp;
   char persp;
   char view;
+  char view_axis_roll;
   char viewlock;
   /** Options for quadview (store while out of quad view). */
   char viewlock_quad;
-  char _pad[3];
+  char _pad[2];
   /** Normalized offset for locked view: (-1, -1) bottom left, (1, 1) upper right. */
   float ofs_lock[2];
 
@@ -118,7 +119,10 @@ typedef struct RegionView3D {
   /** Last view (use when switching out of camera view). */
   float lviewquat[4];
   /** Lpersp can never be set to 'RV3D_CAMOB'. */
-  short lpersp, lview;
+  char lpersp;
+  char lview;
+  char lview_axis_roll;
+  char _pad8[1];
 
   /** Active rotation from NDOF or elsewhere. */
   float rot_angle;
@@ -376,6 +380,19 @@ typedef struct View3D {
 #define RV3D_VIEW_CAMERA 8
 
 #define RV3D_VIEW_IS_AXIS(view) (((view) >= RV3D_VIEW_FRONT) && ((view) <= RV3D_VIEW_BOTTOM))
+
+/**
+ * #RegionView3D.view_axis_roll
+ *
+ * Clockwise rotation to use for axis-views, when #RV3D_VIEW_IS_AXIS is true.
+ */
+enum {
+  RV3D_VIEW_AXIS_ROLL_0 = 0,
+  RV3D_VIEW_AXIS_ROLL_90 = 1,
+  RV3D_VIEW_AXIS_ROLL_180 = 2,
+  RV3D_VIEW_AXIS_ROLL_270 = 3,
+};
+
 #define RV3D_CLIPPING_ENABLED(v3d, rv3d) \
   (rv3d && v3d && (rv3d->rflag & RV3D_CLIPPING) && ELEM(v3d->shading.type, OB_WIRE, OB_SOLID) && \
    rv3d->clipbb)

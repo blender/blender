@@ -700,9 +700,9 @@ static void viewrotate_apply_snap(ViewOpsData *vod)
 
     if (found) {
       /* lock 'quat_best' to an axis view if we can */
-      rv3d->view = ED_view3d_quat_to_axis_view(quat_best, 0.01f);
+      ED_view3d_quat_to_axis_view(quat_best, 0.01f, &rv3d->view, &rv3d->view_axis_roll);
       if (rv3d->view != RV3D_VIEW_USER) {
-        ED_view3d_quat_from_axis_view(rv3d->view, quat_best);
+        ED_view3d_quat_from_axis_view(rv3d->view, rv3d->view_axis_roll, quat_best);
       }
     }
     else {
@@ -3804,7 +3804,8 @@ static void axis_set_view(bContext *C,
                           View3D *v3d,
                           ARegion *ar,
                           const float quat_[4],
-                          short view,
+                          char view,
+                          char view_axis_roll,
                           int perspo,
                           const float *align_to_quat,
                           const int smooth_viewtx)
@@ -3818,10 +3819,12 @@ static void axis_set_view(bContext *C,
   if (align_to_quat) {
     mul_qt_qtqt(quat, quat, align_to_quat);
     rv3d->view = view = RV3D_VIEW_USER;
+    rv3d->view_axis_roll = RV3D_VIEW_AXIS_ROLL_0;
   }
 
   if (align_to_quat == NULL) {
     rv3d->view = view;
+    rv3d->view_axis_roll = view_axis_roll;
   }
 
   if (rv3d->viewlock & RV3D_LOCKED) {
@@ -3901,6 +3904,7 @@ static int view_axis_exec(bContext *C, wmOperator *op)
   RegionView3D *rv3d;
   static int perspo = RV3D_PERSP;
   int viewnum;
+  int view_axis_roll = RV3D_VIEW_AXIS_ROLL_0;
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
   /* no NULL check is needed, poll checks */
@@ -3928,58 +3932,73 @@ static int view_axis_exec(bContext *C, wmOperator *op)
   }
 
   if (RNA_boolean_get(op->ptr, "relative")) {
-    float z_rel[3];
+    float quat_rotate[4];
+    float quat_test[4];
 
-    if (viewnum == RV3D_VIEW_RIGHT) {
-      negate_v3_v3(z_rel, rv3d->viewinv[0]);
+    if (viewnum == RV3D_VIEW_LEFT) {
+      axis_angle_to_quat(quat_rotate, rv3d->viewinv[1], -M_PI / 2.0f);
     }
-    else if (viewnum == RV3D_VIEW_LEFT) {
-      copy_v3_v3(z_rel, rv3d->viewinv[0]);
+    else if (viewnum == RV3D_VIEW_RIGHT) {
+      axis_angle_to_quat(quat_rotate, rv3d->viewinv[1], M_PI / 2.0f);
     }
     else if (viewnum == RV3D_VIEW_TOP) {
-      negate_v3_v3(z_rel, rv3d->viewinv[1]);
+      axis_angle_to_quat(quat_rotate, rv3d->viewinv[0], -M_PI / 2.0f);
     }
     else if (viewnum == RV3D_VIEW_BOTTOM) {
-      copy_v3_v3(z_rel, rv3d->viewinv[1]);
+      axis_angle_to_quat(quat_rotate, rv3d->viewinv[0], M_PI / 2.0f);
     }
     else if (viewnum == RV3D_VIEW_FRONT) {
-      negate_v3_v3(z_rel, rv3d->viewinv[2]);
+      unit_qt(quat_rotate);
     }
     else if (viewnum == RV3D_VIEW_BACK) {
-      copy_v3_v3(z_rel, rv3d->viewinv[2]);
+      axis_angle_to_quat(quat_rotate, rv3d->viewinv[0], M_PI);
     }
     else {
       BLI_assert(0);
     }
 
-    float angle_max = FLT_MAX;
-    int view_closest = -1;
+    mul_qt_qtqt(quat_test, rv3d->viewquat, quat_rotate);
+
+    float angle_best = FLT_MAX;
+    int view_best = -1;
+    int view_axis_roll_best = -1;
     for (int i = RV3D_VIEW_FRONT; i <= RV3D_VIEW_BOTTOM; i++) {
-      float quat[4];
-      float mat[3][3];
-      ED_view3d_quat_from_axis_view(i, quat);
-      quat[0] *= -1.0f;
-      quat_to_mat3(mat, quat);
-      if (align_quat) {
-        mul_qt_qtqt(quat, quat, align_quat);
-      }
-      const float angle_test = angle_normalized_v3v3(z_rel, mat[2]);
-      if (angle_max > angle_test) {
-        angle_max = angle_test;
-        view_closest = i;
+      for (int j = RV3D_VIEW_AXIS_ROLL_0; j <= RV3D_VIEW_AXIS_ROLL_270; j++) {
+        float quat_axis[4];
+        ED_view3d_quat_from_axis_view(i, j, quat_axis);
+        if (align_quat) {
+          mul_qt_qtqt(quat_axis, quat_axis, align_quat);
+        }
+        const float angle_test = fabsf(angle_signed_qtqt(quat_axis, quat_test));
+        if (angle_best > angle_test) {
+          angle_best = angle_test;
+          view_best = i;
+          view_axis_roll_best = j;
+        }
       }
     }
-    if (view_closest == -1) {
-      view_closest = RV3D_VIEW_FRONT;
+    if (view_best == -1) {
+      view_best = RV3D_VIEW_FRONT;
+      view_axis_roll_best = RV3D_VIEW_AXIS_ROLL_0;
     }
-    viewnum = view_closest;
+
+    /* Disallow non-upright views in turn-table modes,
+     * it's too difficult to navigate out of them. */
+    if ((U.flag & USER_TRACKBALL) == 0) {
+      if (!ELEM(view_best, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
+        view_axis_roll_best = RV3D_VIEW_AXIS_ROLL_0;
+      }
+    }
+
+    viewnum = view_best;
+    view_axis_roll = view_axis_roll_best;
   }
 
   /* Use this to test if we started out with a camera */
   const int nextperspo = (rv3d->persp == RV3D_CAMOB) ? rv3d->lpersp : perspo;
   float quat[4];
-  ED_view3d_quat_from_axis_view(viewnum, quat);
-  axis_set_view(C, v3d, ar, quat, viewnum, nextperspo, align_quat, smooth_viewtx);
+  ED_view3d_quat_from_axis_view(viewnum, view_axis_roll, quat);
+  axis_set_view(C, v3d, ar, quat, viewnum, view_axis_roll, nextperspo, align_quat, smooth_viewtx);
 
   perspo = rv3d->persp;
 
@@ -4105,7 +4124,15 @@ static int view_camera_exec(bContext *C, wmOperator *op)
     else {
       /* return to settings of last view */
       /* does view3d_smooth_view too */
-      axis_set_view(C, v3d, ar, rv3d->lviewquat, rv3d->lview, rv3d->lpersp, NULL, smooth_viewtx);
+      axis_set_view(C,
+                    v3d,
+                    ar,
+                    rv3d->lviewquat,
+                    rv3d->lview,
+                    rv3d->lview_axis_roll,
+                    rv3d->lpersp,
+                    NULL,
+                    smooth_viewtx);
     }
   }
 
@@ -4217,7 +4244,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
       if (view_opposite != RV3D_VIEW_USER) {
         rv3d->view = view_opposite;
         /* avoid float in-precision, just get a new orientation */
-        ED_view3d_quat_from_axis_view(view_opposite, quat_new);
+        ED_view3d_quat_from_axis_view(view_opposite, rv3d->view_axis_roll, quat_new);
       }
       else {
         rv3d->view = RV3D_VIEW_USER;
