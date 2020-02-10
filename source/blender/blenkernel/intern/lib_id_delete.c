@@ -119,7 +119,7 @@ void BKE_libblock_free_data(ID *id, const bool do_id_user)
   }
 
   if (id->override_library) {
-    BKE_override_library_free(&id->override_library, do_id_user);
+    BKE_lib_override_library_free(&id->override_library, do_id_user);
   }
 
   /* XXX TODO remove animdata handling from each type's freeing func,

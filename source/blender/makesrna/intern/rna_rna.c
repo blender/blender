@@ -1290,13 +1290,13 @@ static int rna_property_override_diff_propptr(Main *bmain,
 
       if (do_create && comp != 0) {
         bool created = false;
-        IDOverrideLibraryProperty *op = BKE_override_library_property_get(
+        IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
             override, rna_path, &created);
 
         /* If not yet overridden, or if we are handling sub-items (inside a collection)... */
         if (op != NULL && (created || rna_itemname_a != NULL || rna_itemname_b != NULL ||
                            rna_itemindex_a != -1 || rna_itemindex_b != -1)) {
-          BKE_override_library_property_operation_get(op,
+          BKE_lib_override_library_property_operation_get(op,
                                                       IDOVERRIDE_LIBRARY_OP_REPLACE,
                                                       rna_itemname_b,
                                                       rna_itemname_a,
@@ -1421,11 +1421,11 @@ int rna_property_override_diff_default(Main *bmain,
         if (do_create && comp != 0) {
           /* XXX TODO this will have to be refined to handle array items */
           bool created = false;
-          IDOverrideLibraryProperty *op = BKE_override_library_property_get(
+          IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
               override, rna_path, &created);
 
           if (op != NULL && created) {
-            BKE_override_library_property_operation_get(
+            BKE_lib_override_library_property_operation_get(
                 op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
             if (r_override_changed) {
               *r_override_changed = created;
@@ -1452,11 +1452,11 @@ int rna_property_override_diff_default(Main *bmain,
 
         if (do_create && comp != 0) {
           bool created = false;
-          IDOverrideLibraryProperty *op = BKE_override_library_property_get(
+          IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
               override, rna_path, &created);
 
           if (op != NULL && created) { /* If not yet overridden... */
-            BKE_override_library_property_operation_get(
+            BKE_lib_override_library_property_operation_get(
                 op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
             if (r_override_changed) {
               *r_override_changed = created;
@@ -1486,11 +1486,11 @@ int rna_property_override_diff_default(Main *bmain,
         if (do_create && comp != 0) {
           /* XXX TODO this will have to be refined to handle array items */
           bool created = false;
-          IDOverrideLibraryProperty *op = BKE_override_library_property_get(
+          IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
               override, rna_path, &created);
 
           if (op != NULL && created) {
-            BKE_override_library_property_operation_get(
+            BKE_lib_override_library_property_operation_get(
                 op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
             if (r_override_changed) {
               *r_override_changed = created;
@@ -1517,11 +1517,11 @@ int rna_property_override_diff_default(Main *bmain,
 
         if (do_create && comp != 0) {
           bool created = false;
-          IDOverrideLibraryProperty *op = BKE_override_library_property_get(
+          IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
               override, rna_path, &created);
 
           if (op != NULL && created) { /* If not yet overridden... */
-            BKE_override_library_property_operation_get(
+            BKE_lib_override_library_property_operation_get(
                 op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
             if (r_override_changed) {
               *r_override_changed = created;
@@ -1551,11 +1551,11 @@ int rna_property_override_diff_default(Main *bmain,
         if (do_create && comp != 0) {
           /* XXX TODO this will have to be refined to handle array items */
           bool created = false;
-          IDOverrideLibraryProperty *op = BKE_override_library_property_get(
+          IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
               override, rna_path, &created);
 
           if (op != NULL && created) {
-            BKE_override_library_property_operation_get(
+            BKE_lib_override_library_property_operation_get(
                 op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
             if (r_override_changed) {
               *r_override_changed = created;
@@ -1582,11 +1582,11 @@ int rna_property_override_diff_default(Main *bmain,
 
         if (do_create && comp != 0) {
           bool created = false;
-          IDOverrideLibraryProperty *op = BKE_override_library_property_get(
+          IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
               override, rna_path, &created);
 
           if (op != NULL && created) { /* If not yet overridden... */
-            BKE_override_library_property_operation_get(
+            BKE_lib_override_library_property_operation_get(
                 op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
             if (r_override_changed) {
               *r_override_changed = created;
@@ -1605,11 +1605,11 @@ int rna_property_override_diff_default(Main *bmain,
 
       if (do_create && comp != 0) {
         bool created = false;
-        IDOverrideLibraryProperty *op = BKE_override_library_property_get(
+        IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
             override, rna_path, &created);
 
         if (op != NULL && created) { /* If not yet overridden... */
-          BKE_override_library_property_operation_get(
+          BKE_lib_override_library_property_operation_get(
               op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
           if (r_override_changed) {
             *r_override_changed = created;
@@ -1639,11 +1639,11 @@ int rna_property_override_diff_default(Main *bmain,
 
       if (do_create && comp != 0) {
         bool created = false;
-        IDOverrideLibraryProperty *op = BKE_override_library_property_get(
+        IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
             override, rna_path, &created);
 
         if (op != NULL && created) { /* If not yet overridden... */
-          BKE_override_library_property_operation_get(
+          BKE_lib_override_library_property_operation_get(
               op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
           if (r_override_changed) {
             *r_override_changed = created;
@@ -1794,7 +1794,7 @@ int rna_property_override_diff_default(Main *bmain,
            * also assume then that _a data is the one where things are inserted. */
           if (is_valid_for_insertion && use_insertion) {
             bool created;
-            IDOverrideLibraryProperty *op = BKE_override_library_property_get(
+            IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
                 override, rna_path, &created);
 
             if (is_first_insert) {
@@ -1806,14 +1806,14 @@ int rna_property_override_diff_default(Main *bmain,
                 if (ELEM(opop->operation,
                          IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
                          IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE)) {
-                  BKE_override_library_property_operation_delete(op, opop);
+                  BKE_lib_override_library_property_operation_delete(op, opop);
                 }
                 opop = opop_next;
               }
               is_first_insert = false;
             }
 
-            BKE_override_library_property_operation_get(op,
+            BKE_lib_override_library_property_operation_get(op,
                                                         IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
                                                         NULL,
                                                         prev_propname_a,

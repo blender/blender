@@ -9783,7 +9783,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
      * we can re-generate overrides from their references. */
     if (fd->memfile == NULL) {
       /* Do not apply in undo case! */
-      BKE_main_override_library_update(bfd->main);
+      BKE_lib_override_library_main_update(bfd->main);
     }
 
     BKE_collections_after_lib_link(bfd->main);

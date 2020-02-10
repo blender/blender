@@ -1366,7 +1366,7 @@ static bool wm_file_write(bContext *C, const char *filepath, int fileflags, Repo
   BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_PRE);
 
   /* Enforce full override check/generation on file save. */
-  BKE_main_override_library_operations_create(bmain, true);
+  BKE_lib_override_library_main_operations_create(bmain, true);
 
   /* blend file thumbnail */
   /* Save before exit_editmode, otherwise derivedmeshes for shared data corrupt T27765. */

@@ -396,7 +396,7 @@ PyDoc_STRVAR(bpy_app_use_override_library_doc,
              "Boolean, whether library override is exposed in UI or not.");
 static PyObject *bpy_app_use_override_library_get(PyObject *UNUSED(self), void *UNUSED(closure))
 {
-  return PyBool_FromLong((long)BKE_override_library_is_enabled());
+  return PyBool_FromLong((long)BKE_lib_override_library_is_enabled());
 }
 
 static int bpy_app_use_override_library_set(PyObject *UNUSED(self),
@@ -410,7 +410,7 @@ static int bpy_app_use_override_library_set(PyObject *UNUSED(self),
     return -1;
   }
 
-  BKE_override_library_enable((const bool)param);
+  BKE_lib_override_library_enable((const bool)param);
 
   return 0;
 }

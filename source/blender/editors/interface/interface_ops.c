@@ -650,7 +650,7 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
     bool is_strict_find;
     /* Remove override operation for given item,
      * add singular operations for the other items as needed. */
-    IDOverrideLibraryPropertyOperation *opop = BKE_override_library_property_operation_find(
+    IDOverrideLibraryPropertyOperation *opop = BKE_lib_override_library_property_operation_find(
         oprop, NULL, NULL, index, index, false, &is_strict_find);
     BLI_assert(opop != NULL);
     if (!is_strict_find) {
@@ -659,22 +659,22 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
        * before removing generic one. */
       for (int idx = RNA_property_array_length(&ptr, prop); idx--;) {
         if (idx != index) {
-          BKE_override_library_property_operation_get(
+          BKE_lib_override_library_property_operation_get(
               oprop, opop->operation, NULL, NULL, idx, idx, true, NULL, NULL);
         }
       }
     }
-    BKE_override_library_property_operation_delete(oprop, opop);
+    BKE_lib_override_library_property_operation_delete(oprop, opop);
     if (!is_template) {
       RNA_property_copy(bmain, &ptr, &src, prop, index);
     }
     if (BLI_listbase_is_empty(&oprop->operations)) {
-      BKE_override_library_property_delete(id->override_library, oprop);
+      BKE_lib_override_library_property_delete(id->override_library, oprop);
     }
   }
   else {
     /* Just remove whole generic override operation of this property. */
-    BKE_override_library_property_delete(id->override_library, oprop);
+    BKE_lib_override_library_property_delete(id->override_library, oprop);
     if (!is_template) {
       RNA_property_copy(bmain, &ptr, &src, prop, -1);
     }

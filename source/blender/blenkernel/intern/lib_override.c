@@ -50,30 +50,31 @@
 
 #define OVERRIDE_AUTO_CHECK_DELAY 0.2 /* 200ms between auto-override checks. */
 
-static void bke_override_property_copy(IDOverrideLibraryProperty *op_dst,
-                                       IDOverrideLibraryProperty *op_src);
-static void bke_override_property_operation_copy(IDOverrideLibraryPropertyOperation *opop_dst,
-                                                 IDOverrideLibraryPropertyOperation *opop_src);
+static void lib_override_library_property_copy(IDOverrideLibraryProperty *op_dst,
+                                               IDOverrideLibraryProperty *op_src);
+static void lib_override_library_property_operation_copy(
+    IDOverrideLibraryPropertyOperation *opop_dst, IDOverrideLibraryPropertyOperation *opop_src);
 
-static void bke_override_property_clear(IDOverrideLibraryProperty *op);
-static void bke_override_property_operation_clear(IDOverrideLibraryPropertyOperation *opop);
+static void lib_override_library_property_clear(IDOverrideLibraryProperty *op);
+static void lib_override_library_property_operation_clear(
+    IDOverrideLibraryPropertyOperation *opop);
 
 /* Temp, for until library override is ready and tested enough to go 'public',
  * we hide it by default in UI and such. */
-static bool _override_library_enabled = true;
+static bool _lib_override_library_enabled = true;
 
-void BKE_override_library_enable(const bool do_enable)
+void BKE_lib_override_library_enable(const bool do_enable)
 {
-  _override_library_enabled = do_enable;
+  _lib_override_library_enabled = do_enable;
 }
 
-bool BKE_override_library_is_enabled()
+bool BKE_lib_override_library_is_enabled()
 {
-  return _override_library_enabled;
+  return _lib_override_library_enabled;
 }
 
 /** Initialize empty overriding of \a reference_id by \a local_id. */
-IDOverrideLibrary *BKE_override_library_init(ID *local_id, ID *reference_id)
+IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
 {
   /* If reference_id is NULL, we are creating an override template for purely local data.
    * Else, reference *must* be linked data. */
@@ -89,7 +90,7 @@ IDOverrideLibrary *BKE_override_library_init(ID *local_id, ID *reference_id)
 
   if (ancestor_id != NULL && ancestor_id->override_library != NULL) {
     /* Original ID has a template, use it! */
-    BKE_override_library_copy(local_id, ancestor_id);
+    BKE_lib_override_library_copy(local_id, ancestor_id);
     if (local_id->override_library->reference != reference_id) {
       id_us_min(local_id->override_library->reference);
       local_id->override_library->reference = reference_id;
@@ -108,24 +109,24 @@ IDOverrideLibrary *BKE_override_library_init(ID *local_id, ID *reference_id)
 }
 
 /** Deep copy of a whole override from \a src_id to \a dst_id. */
-void BKE_override_library_copy(ID *dst_id, const ID *src_id)
+void BKE_lib_override_library_copy(ID *dst_id, const ID *src_id)
 {
   BLI_assert(src_id->override_library != NULL);
 
   if (dst_id->override_library != NULL) {
     if (src_id->override_library == NULL) {
-      BKE_override_library_free(&dst_id->override_library, true);
+      BKE_lib_override_library_free(&dst_id->override_library, true);
       return;
     }
     else {
-      BKE_override_library_clear(dst_id->override_library, true);
+      BKE_lib_override_library_clear(dst_id->override_library, true);
     }
   }
   else if (src_id->override_library == NULL) {
     return;
   }
   else {
-    BKE_override_library_init(dst_id, NULL);
+    BKE_lib_override_library_init(dst_id, NULL);
   }
 
   /* Source is already overriding data, we copy it but reuse its reference for dest ID.
@@ -140,14 +141,14 @@ void BKE_override_library_copy(ID *dst_id, const ID *src_id)
                                  *op_src = src_id->override_library->properties.first;
        op_dst;
        op_dst = op_dst->next, op_src = op_src->next) {
-    bke_override_property_copy(op_dst, op_src);
+    lib_override_library_property_copy(op_dst, op_src);
   }
 
   dst_id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_REFOK;
 }
 
 /** Clear any overriding data from given \a override. */
-void BKE_override_library_clear(IDOverrideLibrary *override, const bool do_id_user)
+void BKE_lib_override_library_clear(IDOverrideLibrary *override, const bool do_id_user)
 {
   BLI_assert(override != NULL);
 
@@ -156,7 +157,7 @@ void BKE_override_library_clear(IDOverrideLibrary *override, const bool do_id_us
   }
 
   for (IDOverrideLibraryProperty *op = override->properties.first; op; op = op->next) {
-    bke_override_property_clear(op);
+    lib_override_library_property_clear(op);
   }
   BLI_freelistN(&override->properties);
 
@@ -167,7 +168,7 @@ void BKE_override_library_clear(IDOverrideLibrary *override, const bool do_id_us
 }
 
 /** Free given \a override. */
-void BKE_override_library_free(struct IDOverrideLibrary **override, const bool do_id_user)
+void BKE_lib_override_library_free(struct IDOverrideLibrary **override, const bool do_id_user)
 {
   BLI_assert(*override != NULL);
 
@@ -176,12 +177,12 @@ void BKE_override_library_free(struct IDOverrideLibrary **override, const bool d
     (*override)->runtime = NULL;
   }
 
-  BKE_override_library_clear(*override, do_id_user);
+  BKE_lib_override_library_clear(*override, do_id_user);
   MEM_freeN(*override);
   *override = NULL;
 }
 
-static ID *override_library_create_from(Main *bmain, ID *reference_id)
+static ID *lib_override_library_create_from(Main *bmain, ID *reference_id)
 {
   ID *local_id;
 
@@ -190,19 +191,21 @@ static ID *override_library_create_from(Main *bmain, ID *reference_id)
   }
   id_us_min(local_id);
 
-  BKE_override_library_init(local_id, reference_id);
+  BKE_lib_override_library_init(local_id, reference_id);
   local_id->override_library->flag |= OVERRIDE_LIBRARY_AUTO;
 
   return local_id;
 }
 
 /** Create an overridden local copy of linked reference. */
-ID *BKE_override_library_create_from_id(Main *bmain, ID *reference_id, const bool do_tagged_remap)
+ID *BKE_lib_override_library_create_from_id(Main *bmain,
+                                            ID *reference_id,
+                                            const bool do_tagged_remap)
 {
   BLI_assert(reference_id != NULL);
   BLI_assert(reference_id->lib != NULL);
 
-  ID *local_id = override_library_create_from(bmain, reference_id);
+  ID *local_id = lib_override_library_create_from(bmain, reference_id);
 
   if (do_tagged_remap) {
     ID *other_id;
@@ -236,7 +239,7 @@ ID *BKE_override_library_create_from_id(Main *bmain, ID *reference_id, const boo
  *
  * \return \a true on success, \a false otherwise.
  */
-bool BKE_override_library_create_from_tag(Main *bmain)
+bool BKE_lib_override_library_create_from_tag(Main *bmain)
 {
   ID *reference_id;
   bool ret = true;
@@ -257,7 +260,7 @@ bool BKE_override_library_create_from_tag(Main *bmain)
   /* Override the IDs. */
   for (todo_id_iter = todo_ids.first; todo_id_iter != NULL; todo_id_iter = todo_id_iter->next) {
     reference_id = todo_id_iter->data;
-    if ((reference_id->newid = override_library_create_from(bmain, reference_id)) == NULL) {
+    if ((reference_id->newid = lib_override_library_create_from(bmain, reference_id)) == NULL) {
       ret = false;
     }
     else {
@@ -315,8 +318,8 @@ BLI_INLINE IDOverrideLibraryRuntime *override_library_rna_path_mapping_ensure(
 /**
  * Find override property from given RNA path, if it exists.
  */
-IDOverrideLibraryProperty *BKE_override_library_property_find(IDOverrideLibrary *override,
-                                                              const char *rna_path)
+IDOverrideLibraryProperty *BKE_lib_override_library_property_find(IDOverrideLibrary *override,
+                                                                  const char *rna_path)
 {
   IDOverrideLibraryRuntime *override_runtime = override_library_rna_path_mapping_ensure(override);
   return BLI_ghash_lookup(override_runtime, rna_path);
@@ -325,11 +328,11 @@ IDOverrideLibraryProperty *BKE_override_library_property_find(IDOverrideLibrary 
 /**
  * Find override property from given RNA path, or create it if it does not exist.
  */
-IDOverrideLibraryProperty *BKE_override_library_property_get(IDOverrideLibrary *override,
-                                                             const char *rna_path,
-                                                             bool *r_created)
+IDOverrideLibraryProperty *BKE_lib_override_library_property_get(IDOverrideLibrary *override,
+                                                                 const char *rna_path,
+                                                                 bool *r_created)
 {
-  IDOverrideLibraryProperty *op = BKE_override_library_property_find(override, rna_path);
+  IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(override, rna_path);
 
   if (op == NULL) {
     op = MEM_callocN(sizeof(IDOverrideLibraryProperty), __func__);
@@ -351,8 +354,8 @@ IDOverrideLibraryProperty *BKE_override_library_property_get(IDOverrideLibrary *
   return op;
 }
 
-void bke_override_property_copy(IDOverrideLibraryProperty *op_dst,
-                                IDOverrideLibraryProperty *op_src)
+void lib_override_library_property_copy(IDOverrideLibraryProperty *op_dst,
+                                        IDOverrideLibraryProperty *op_src)
 {
   op_dst->rna_path = BLI_strdup(op_src->rna_path);
   BLI_duplicatelist(&op_dst->operations, &op_src->operations);
@@ -361,18 +364,18 @@ void bke_override_property_copy(IDOverrideLibraryProperty *op_dst,
                                           *opop_src = op_src->operations.first;
        opop_dst;
        opop_dst = opop_dst->next, opop_src = opop_src->next) {
-    bke_override_property_operation_copy(opop_dst, opop_src);
+    lib_override_library_property_operation_copy(opop_dst, opop_src);
   }
 }
 
-void bke_override_property_clear(IDOverrideLibraryProperty *op)
+void lib_override_library_property_clear(IDOverrideLibraryProperty *op)
 {
   BLI_assert(op->rna_path != NULL);
 
   MEM_freeN(op->rna_path);
 
   for (IDOverrideLibraryPropertyOperation *opop = op->operations.first; opop; opop = opop->next) {
-    bke_override_property_operation_clear(opop);
+    lib_override_library_property_operation_clear(opop);
   }
   BLI_freelistN(&op->operations);
 }
@@ -380,10 +383,10 @@ void bke_override_property_clear(IDOverrideLibraryProperty *op)
 /**
  * Remove and free given \a override_property from given ID \a override.
  */
-void BKE_override_library_property_delete(IDOverrideLibrary *override,
-                                          IDOverrideLibraryProperty *override_property)
+void BKE_lib_override_library_property_delete(IDOverrideLibrary *override,
+                                              IDOverrideLibraryProperty *override_property)
 {
-  bke_override_property_clear(override_property);
+  lib_override_library_property_clear(override_property);
   if (override->runtime != NULL) {
     BLI_ghash_remove(override->runtime, override_property->rna_path, NULL, NULL);
   }
@@ -393,7 +396,7 @@ void BKE_override_library_property_delete(IDOverrideLibrary *override,
 /**
  * Find override property operation from given sub-item(s), if it exists.
  */
-IDOverrideLibraryPropertyOperation *BKE_override_library_property_operation_find(
+IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_find(
     IDOverrideLibraryProperty *override_property,
     const char *subitem_refname,
     const char *subitem_locname,
@@ -481,7 +484,7 @@ IDOverrideLibraryPropertyOperation *BKE_override_library_property_operation_find
 /**
  * Find override property operation from given sub-item(s), or create it if it does not exist.
  */
-IDOverrideLibraryPropertyOperation *BKE_override_library_property_operation_get(
+IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_get(
     IDOverrideLibraryProperty *override_property,
     const short operation,
     const char *subitem_refname,
@@ -492,7 +495,7 @@ IDOverrideLibraryPropertyOperation *BKE_override_library_property_operation_get(
     bool *r_strict,
     bool *r_created)
 {
-  IDOverrideLibraryPropertyOperation *opop = BKE_override_library_property_operation_find(
+  IDOverrideLibraryPropertyOperation *opop = BKE_lib_override_library_property_operation_find(
       override_property,
       subitem_refname,
       subitem_locname,
@@ -526,8 +529,8 @@ IDOverrideLibraryPropertyOperation *BKE_override_library_property_operation_get(
   return opop;
 }
 
-void bke_override_property_operation_copy(IDOverrideLibraryPropertyOperation *opop_dst,
-                                          IDOverrideLibraryPropertyOperation *opop_src)
+void lib_override_library_property_operation_copy(IDOverrideLibraryPropertyOperation *opop_dst,
+                                                  IDOverrideLibraryPropertyOperation *opop_src)
 {
   if (opop_src->subitem_reference_name) {
     opop_dst->subitem_reference_name = BLI_strdup(opop_src->subitem_reference_name);
@@ -537,7 +540,7 @@ void bke_override_property_operation_copy(IDOverrideLibraryPropertyOperation *op
   }
 }
 
-void bke_override_property_operation_clear(IDOverrideLibraryPropertyOperation *opop)
+void lib_override_library_property_operation_clear(IDOverrideLibraryPropertyOperation *opop)
 {
   if (opop->subitem_reference_name) {
     MEM_freeN(opop->subitem_reference_name);
@@ -550,11 +553,11 @@ void bke_override_property_operation_clear(IDOverrideLibraryPropertyOperation *o
 /**
  * Remove and free given \a override_property_operation from given ID \a override_property.
  */
-void BKE_override_library_property_operation_delete(
+void BKE_lib_override_library_property_operation_delete(
     IDOverrideLibraryProperty *override_property,
     IDOverrideLibraryPropertyOperation *override_property_operation)
 {
-  bke_override_property_operation_clear(override_property_operation);
+  lib_override_library_property_operation_clear(override_property_operation);
   BLI_freelinkN(&override_property->operations, override_property_operation);
 }
 
@@ -568,7 +571,7 @@ void BKE_override_library_property_operation_delete(
  * #IDOverrideProperty (of #IDOverridePropertyOperation) has to be added.
  *
  * \return true if status is OK, false otherwise. */
-bool BKE_override_library_status_check_local(Main *bmain, ID *local)
+bool BKE_lib_override_library_status_check_local(Main *bmain, ID *local)
 {
   BLI_assert(local->override_library != NULL);
 
@@ -623,7 +626,7 @@ bool BKE_override_library_status_check_local(Main *bmain, ID *local)
  * needs to be updated against it.
  *
  * \return true if status is OK, false otherwise. */
-bool BKE_override_library_status_check_reference(Main *bmain, ID *local)
+bool BKE_lib_override_library_status_check_reference(Main *bmain, ID *local)
 {
   BLI_assert(local->override_library != NULL);
 
@@ -637,7 +640,7 @@ bool BKE_override_library_status_check_reference(Main *bmain, ID *local)
   BLI_assert(GS(local->name) == GS(reference->name));
 
   if (reference->override_library && (reference->tag & LIB_TAG_OVERRIDE_LIBRARY_REFOK) == 0) {
-    if (!BKE_override_library_status_check_reference(bmain, reference)) {
+    if (!BKE_lib_override_library_status_check_reference(bmain, reference)) {
       /* If reference is also override of another data-block, and its status is not OK,
        * then this override is not OK either.
        * Note that this should only happen when reloading libraries... */
@@ -688,7 +691,7 @@ bool BKE_override_library_status_check_reference(Main *bmain, ID *local)
  * Generating diff values and applying overrides are much cheaper.
  *
  * \return true if new overriding op was created, or some local data was reset. */
-bool BKE_override_library_operations_create(Main *bmain, ID *local, const bool force_auto)
+bool BKE_lib_override_library_operations_create(Main *bmain, ID *local, const bool force_auto)
 {
   BLI_assert(local->override_library != NULL);
   const bool is_template = (local->override_library->reference == NULL);
@@ -744,14 +747,14 @@ bool BKE_override_library_operations_create(Main *bmain, ID *local, const bool f
 }
 
 /** Check all overrides from given \a bmain and create/update overriding operations as needed. */
-void BKE_main_override_library_operations_create(Main *bmain, const bool force_auto)
+void BKE_lib_override_library_main_operations_create(Main *bmain, const bool force_auto)
 {
   ID *id;
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if ((ID_IS_OVERRIDE_LIBRARY(id) && force_auto) ||
         (ID_IS_OVERRIDE_LIBRARY_AUTO(id) && (id->tag & LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH))) {
-      BKE_override_library_operations_create(bmain, id, force_auto);
+      BKE_lib_override_library_operations_create(bmain, id, force_auto);
       id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
     }
   }
@@ -759,7 +762,7 @@ void BKE_main_override_library_operations_create(Main *bmain, const bool force_a
 }
 
 /** Update given override from its reference (re-applying overridden properties). */
-void BKE_override_library_update(Main *bmain, ID *local)
+void BKE_lib_override_library_update(Main *bmain, ID *local)
 {
   if (local->override_library == NULL || local->override_library->reference == NULL) {
     return;
@@ -775,7 +778,7 @@ void BKE_override_library_update(Main *bmain, ID *local)
   /* Recursively do 'ancestors' overrides first, if any. */
   if (local->override_library->reference->override_library &&
       (local->override_library->reference->tag & LIB_TAG_OVERRIDE_LIBRARY_REFOK) == 0) {
-    BKE_override_library_update(bmain, local->override_library->reference);
+    BKE_lib_override_library_update(bmain, local->override_library->reference);
   }
 
   /* We want to avoid having to remap here, however creating up-to-date override is much simpler
@@ -837,13 +840,13 @@ void BKE_override_library_update(Main *bmain, ID *local)
 }
 
 /** Update all overrides from given \a bmain. */
-void BKE_main_override_library_update(Main *bmain)
+void BKE_lib_override_library_main_update(Main *bmain)
 {
   ID *id;
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (id->override_library != NULL && id->lib == NULL) {
-      BKE_override_library_update(bmain, id);
+      BKE_lib_override_library_update(bmain, id);
     }
   }
   FOREACH_MAIN_ID_END;
@@ -867,7 +870,7 @@ void BKE_main_override_library_update(Main *bmain)
  */
 
 /** Initialize an override storage. */
-OverrideLibraryStorage *BKE_override_library_operations_store_initialize(void)
+OverrideLibraryStorage *BKE_lib_override_library_operations_store_initialize(void)
 {
   return BKE_main_new();
 }
@@ -877,9 +880,9 @@ OverrideLibraryStorage *BKE_override_library_operations_store_initialize(void)
  *
  * Note that \a local ID is no more modified by this call,
  * all extra data are stored in its temp \a storage_id copy. */
-ID *BKE_override_library_operations_store_start(Main *bmain,
-                                                OverrideLibraryStorage *override_storage,
-                                                ID *local)
+ID *BKE_lib_override_library_operations_store_start(Main *bmain,
+                                                    OverrideLibraryStorage *override_storage,
+                                                    ID *local)
 {
   BLI_assert(local->override_library != NULL);
   BLI_assert(override_storage != NULL);
@@ -891,7 +894,7 @@ ID *BKE_override_library_operations_store_start(Main *bmain,
   }
 
   /* Forcefully ensure we know about all needed override operations. */
-  BKE_override_library_operations_create(bmain, local, false);
+  BKE_lib_override_library_operations_create(bmain, local, false);
 
   ID *storage_id;
 #ifdef DEBUG_OVERRIDE_TIMEIT
@@ -929,8 +932,8 @@ ID *BKE_override_library_operations_store_start(Main *bmain,
 }
 
 /** Restore given ID modified by \a BKE_override_operations_store_start, to its original state. */
-void BKE_override_library_operations_store_end(OverrideLibraryStorage *UNUSED(override_storage),
-                                               ID *local)
+void BKE_lib_override_library_operations_store_end(
+    OverrideLibraryStorage *UNUSED(override_storage), ID *local)
 {
   BLI_assert(local->override_library != NULL);
 
@@ -939,7 +942,7 @@ void BKE_override_library_operations_store_end(OverrideLibraryStorage *UNUSED(ov
   local->override_library->storage = NULL;
 }
 
-void BKE_override_library_operations_store_finalize(OverrideLibraryStorage *override_storage)
+void BKE_lib_override_library_operations_store_finalize(OverrideLibraryStorage *override_storage)
 {
   /* We cannot just call BKE_main_free(override_storage), not until we have option to make 'ghost'
    * copies of IDs without increasing usercount of used data-blocks. */

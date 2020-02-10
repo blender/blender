@@ -45,27 +45,28 @@ struct IDOverrideLibraryProperty;
 struct IDOverrideLibraryPropertyOperation;
 struct Main;
 
-void BKE_override_library_enable(const bool do_enable);
-bool BKE_override_library_is_enabled(void);
+void BKE_lib_override_library_enable(const bool do_enable);
+bool BKE_lib_override_library_is_enabled(void);
 
-struct IDOverrideLibrary *BKE_override_library_init(struct ID *local_id, struct ID *reference_id);
-void BKE_override_library_copy(struct ID *dst_id, const struct ID *src_id);
-void BKE_override_library_clear(struct IDOverrideLibrary *override, const bool do_id_user);
-void BKE_override_library_free(struct IDOverrideLibrary **override, const bool do_id_user);
+struct IDOverrideLibrary *BKE_lib_override_library_init(struct ID *local_id,
+                                                        struct ID *reference_id);
+void BKE_lib_override_library_copy(struct ID *dst_id, const struct ID *src_id);
+void BKE_lib_override_library_clear(struct IDOverrideLibrary *override, const bool do_id_user);
+void BKE_lib_override_library_free(struct IDOverrideLibrary **override, const bool do_id_user);
 
-struct ID *BKE_override_library_create_from_id(struct Main *bmain,
-                                               struct ID *reference_id,
-                                               const bool do_tagged_remap);
-bool BKE_override_library_create_from_tag(struct Main *bmain);
+struct ID *BKE_lib_override_library_create_from_id(struct Main *bmain,
+                                                   struct ID *reference_id,
+                                                   const bool do_tagged_remap);
+bool BKE_lib_override_library_create_from_tag(struct Main *bmain);
 
-struct IDOverrideLibraryProperty *BKE_override_library_property_find(
+struct IDOverrideLibraryProperty *BKE_lib_override_library_property_find(
     struct IDOverrideLibrary *override, const char *rna_path);
-struct IDOverrideLibraryProperty *BKE_override_library_property_get(
+struct IDOverrideLibraryProperty *BKE_lib_override_library_property_get(
     struct IDOverrideLibrary *override, const char *rna_path, bool *r_created);
-void BKE_override_library_property_delete(struct IDOverrideLibrary *override,
-                                          struct IDOverrideLibraryProperty *override_property);
+void BKE_lib_override_library_property_delete(struct IDOverrideLibrary *override,
+                                              struct IDOverrideLibraryProperty *override_property);
 
-struct IDOverrideLibraryPropertyOperation *BKE_override_library_property_operation_find(
+struct IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_find(
     struct IDOverrideLibraryProperty *override_property,
     const char *subitem_refname,
     const char *subitem_locname,
@@ -73,7 +74,7 @@ struct IDOverrideLibraryPropertyOperation *BKE_override_library_property_operati
     const int subitem_locindex,
     const bool strict,
     bool *r_strict);
-struct IDOverrideLibraryPropertyOperation *BKE_override_library_property_operation_get(
+struct IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_get(
     struct IDOverrideLibraryProperty *override_property,
     const short operation,
     const char *subitem_refname,
@@ -83,32 +84,31 @@ struct IDOverrideLibraryPropertyOperation *BKE_override_library_property_operati
     const bool strict,
     bool *r_strict,
     bool *r_created);
-void BKE_override_library_property_operation_delete(
+void BKE_lib_override_library_property_operation_delete(
     struct IDOverrideLibraryProperty *override_property,
     struct IDOverrideLibraryPropertyOperation *override_property_operation);
 
-bool BKE_override_library_status_check_local(struct Main *bmain, struct ID *local);
-bool BKE_override_library_status_check_reference(struct Main *bmain, struct ID *local);
+bool BKE_lib_override_library_status_check_local(struct Main *bmain, struct ID *local);
+bool BKE_lib_override_library_status_check_reference(struct Main *bmain, struct ID *local);
 
-bool BKE_override_library_operations_create(struct Main *bmain,
-                                            struct ID *local,
-                                            const bool force_auto);
-void BKE_main_override_library_operations_create(struct Main *bmain, const bool force_auto);
+bool BKE_lib_override_library_operations_create(struct Main *bmain,
+                                                struct ID *local,
+                                                const bool force_auto);
+void BKE_lib_override_library_main_operations_create(struct Main *bmain, const bool force_auto);
 
-void BKE_override_library_update(struct Main *bmain, struct ID *local);
-void BKE_main_override_library_update(struct Main *bmain);
+void BKE_lib_override_library_update(struct Main *bmain, struct ID *local);
+void BKE_lib_override_library_main_update(struct Main *bmain);
 
 /* Storage (.blend file writing) part. */
 
 /* For now, we just use a temp main list. */
 typedef struct Main OverrideLibraryStorage;
 
-OverrideLibraryStorage *BKE_override_library_operations_store_initialize(void);
-struct ID *BKE_override_library_operations_store_start(struct Main *bmain,
-                                                       OverrideLibraryStorage *override_storage,
-                                                       struct ID *local);
-void BKE_override_library_operations_store_end(OverrideLibraryStorage *override_storage,
-                                               struct ID *local);
-void BKE_override_library_operations_store_finalize(OverrideLibraryStorage *override_storage);
+OverrideLibraryStorage *BKE_lib_override_library_operations_store_initialize(void);
+struct ID *BKE_lib_override_library_operations_store_start(
+    struct Main *bmain, OverrideLibraryStorage *override_storage, struct ID *local);
+void BKE_lib_override_library_operations_store_end(OverrideLibraryStorage *override_storage,
+                                                   struct ID *local);
+void BKE_lib_override_library_operations_store_finalize(OverrideLibraryStorage *override_storage);
 
 #endif /* __BKE_LIB_OVERRIDE_H__ */

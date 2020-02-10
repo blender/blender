@@ -1115,7 +1115,7 @@ static int arg_handle_disable_override_library(int UNUSED(argc),
                                                const char **UNUSED(argv),
                                                void *UNUSED(data))
 {
-  BKE_override_library_enable(false);
+  BKE_lib_override_library_enable(false);
   return 0;
 }
 

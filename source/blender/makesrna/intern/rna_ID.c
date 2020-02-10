@@ -494,7 +494,7 @@ static ID *rna_ID_copy(ID *id, Main *bmain)
 
 static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
 {
-  if (!BKE_override_library_is_enabled() || !ID_IS_OVERRIDABLE_LIBRARY(id)) {
+  if (!BKE_lib_override_library_is_enabled() || !ID_IS_OVERRIDABLE_LIBRARY(id)) {
     return NULL;
   }
 
@@ -502,7 +502,7 @@ static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
     BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, true);
   }
 
-  ID *local_id = BKE_override_library_create_from_id(bmain, id, remap_local_usages);
+  ID *local_id = BKE_lib_override_library_create_from_id(bmain, id, remap_local_usages);
 
   if (remap_local_usages) {
     BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);

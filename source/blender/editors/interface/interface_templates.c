@@ -544,10 +544,10 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
     case UI_ID_LOCAL:
       if (id) {
         Main *bmain = CTX_data_main(C);
-        if (BKE_override_library_is_enabled() && CTX_wm_window(C)->eventstate->shift) {
+        if (BKE_lib_override_library_is_enabled() && CTX_wm_window(C)->eventstate->shift) {
           if (ID_IS_OVERRIDABLE_LIBRARY(id)) {
             /* Only remap that specific ID usage to overriding local data-block. */
-            ID *override_id = BKE_override_library_create_from_id(bmain, id, false);
+            ID *override_id = BKE_lib_override_library_create_from_id(bmain, id, false);
             if (override_id != NULL) {
               BKE_main_id_clear_newpoins(bmain);
 
@@ -570,7 +570,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       break;
     case UI_ID_OVERRIDE:
       if (id && id->override_library) {
-        BKE_override_library_free(&id->override_library, true);
+        BKE_lib_override_library_free(&id->override_library, true);
         /* reassign to get get proper updates/notifiers */
         idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
         RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, NULL);
@@ -894,7 +894,7 @@ static void template_ID(bContext *C,
                            0,
                            0,
                            0,
-                           BKE_override_library_is_enabled() ?
+                           BKE_lib_override_library_is_enabled() ?
                                TIP_("Direct linked library data-block, click to make local, "
                                     "Shift + Click to create a library override") :
                                TIP_("Direct linked library data-block, click to make local"));
