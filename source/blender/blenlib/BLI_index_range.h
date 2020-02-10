@@ -31,6 +31,11 @@
 
 #include "BLI_utildefines.h"
 
+/* Forward declare tbb::blocked_range for conversion operations. */
+namespace tbb {
+template<typename Value> class blocked_range;
+}
+
 namespace BLI {
 
 template<typename T> class ArrayRef;
@@ -48,6 +53,11 @@ class IndexRange {
   }
 
   IndexRange(uint start, uint size) : m_start(start), m_size(size)
+  {
+  }
+
+  template<typename T>
+  IndexRange(const tbb::blocked_range<T> &range) : m_start(range.begin()), m_size(range.size())
   {
   }
 
@@ -177,6 +187,11 @@ class IndexRange {
     uint new_start = m_start + start;
     BLI_assert(new_start + size <= m_start + m_size || size == 0);
     return IndexRange(new_start, size);
+  }
+
+  IndexRange slice(IndexRange range) const
+  {
+    return this->slice(range.start(), range.size());
   }
 
   /**

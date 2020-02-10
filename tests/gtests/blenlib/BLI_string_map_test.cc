@@ -43,6 +43,21 @@ TEST(string_map, MoveConstructor)
   EXPECT_EQ(map2.lookup("B")[5], 6);
 }
 
+TEST(string_map, Add)
+{
+  StringMap<int> map;
+  EXPECT_EQ(map.size(), 0);
+
+  map.add("test", 1);
+  EXPECT_EQ(map.lookup("test"), 1);
+
+  map.add("test", 2);
+  EXPECT_EQ(map.lookup("test"), 1);
+
+  map.add("test2", 2);
+  EXPECT_EQ(map.lookup("test2"), 2);
+}
+
 TEST(string_map, AddNew)
 {
   StringMap<int> map;
@@ -128,6 +143,15 @@ TEST(string_map, LookupDefault)
   EXPECT_EQ(map.lookup_default("test", 42), 5);
 }
 
+TEST(string_map, TryLookup)
+{
+  StringMap<int> map;
+  map.add_new("test", 4);
+  EXPECT_TRUE(map.try_lookup("test").has_value());
+  EXPECT_FALSE(map.try_lookup("value").has_value());
+  EXPECT_EQ(map.try_lookup("test").value(), 4);
+}
+
 TEST(string_map, FindKeyForValue)
 {
   StringMap<int> map;
@@ -179,7 +203,7 @@ TEST(string_map, ForeachKeyValuePair)
   Vector<std::string> keys;
   Vector<int> values;
 
-  map.foreach_key_value_pair([&keys, &values](StringRefNull key, int value) {
+  map.foreach_item([&keys, &values](StringRefNull key, int value) {
     keys.append(key);
     values.append(value);
   });

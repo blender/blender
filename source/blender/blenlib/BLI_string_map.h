@@ -30,6 +30,7 @@
 #include "BLI_map.h"
 #include "BLI_string_ref.h"
 #include "BLI_vector.h"
+#include "BLI_optional.h"
 
 namespace BLI {
 
@@ -190,6 +191,22 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
   }
 
   /**
+   * Add a new element to the map if the key does not exist yet.
+   */
+  void add(StringRef key, const T &value)
+  {
+    if (!this->contains(key)) {
+      this->add_new(key, value);
+    }
+  }
+  void add(StringRef key, T &&value)
+  {
+    if (!this->contains(key)) {
+      this->add_new(key, std::move(value));
+    }
+  }
+
+  /**
    * Return true when the key exists in the map, otherwise false.
    */
   bool contains(StringRef key) const
@@ -263,6 +280,11 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
     return const_cast<T *>(const_cast<const StringMap *>(this)->lookup_ptr(key));
   }
 
+  Optional<T> try_lookup(StringRef key) const
+  {
+    return Optional<T>::FromPointer(this->lookup_ptr(key));
+  }
+
   /**
    * Get a copy of the value corresponding to the key. If the key does not exist, return the
    * default value.
@@ -326,13 +348,26 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
   /**
    * Run a function for every key-value-pair in the map.
    */
-  template<typename FuncT> void foreach_key_value_pair(const FuncT &func)
+  template<typename FuncT> void foreach_item(const FuncT &func)
   {
     for (Item &item : m_array) {
       for (uint offset = 0; offset < 4; offset++) {
         if (item.is_set(offset)) {
           StringRefNull key = item.get_key(offset, m_chars);
           T &value = *item.value(offset);
+          func(key, value);
+        }
+      }
+    }
+  }
+
+  template<typename FuncT> void foreach_item(const FuncT &func) const
+  {
+    for (const Item &item : m_array) {
+      for (uint offset = 0; offset < 4; offset++) {
+        if (item.is_set(offset)) {
+          StringRefNull key = item.get_key(offset, m_chars);
+          const T &value = *item.value(offset);
           func(key, value);
         }
       }
@@ -412,6 +447,15 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
         m_array.update__empty_to_set();
         return;
       }
+    }
+    ITER_SLOTS_END(offset);
+  }
+
+  template<typename ForwardT> void add__impl(StringRef key, ForwardT &&value)
+  {
+    this->ensure_can_add();
+    uint32_t hash = this->compute_string_hash(key);
+    ITER_SLOTS_BEGIN (hash, m_array, , item, offset) {
     }
     ITER_SLOTS_END(offset);
   }

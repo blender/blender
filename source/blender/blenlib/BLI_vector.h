@@ -49,7 +49,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
   T *m_end;
   T *m_capacity_end;
   Allocator m_allocator;
-  char m_small_buffer[sizeof(T) * N];
+  AlignedBuffer<sizeof(T) * N, alignof(T)> m_small_buffer;
 
 #ifndef NDEBUG
   /* Storing size in debug builds, because it makes debugging much easier sometimes. */
@@ -216,6 +216,16 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
     return MutableArrayRef<T>(m_begin, this->size());
   }
 
+  ArrayRef<T> as_ref() const
+  {
+    return *this;
+  }
+
+  MutableArrayRef<T> as_mutable_ref()
+  {
+    return *this;
+  }
+
   Vector &operator=(const Vector &other)
   {
     if (this == &other) {
@@ -234,6 +244,8 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
       return *this;
     }
 
+    /* This can fail, when the vector is used to build a recursive data structure.
+       See https://youtu.be/7Qgd9B1KuMQ?t=840. */
     this->~Vector();
     new (this) Vector(std::move(other));
 
@@ -294,6 +306,20 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
     this->append_unchecked(std::move(value));
   }
 
+  uint append_and_get_index(const T &value)
+  {
+    uint index = this->size();
+    this->append(value);
+    return index;
+  }
+
+  void append_non_duplicates(const T &value)
+  {
+    if (!this->contains(value)) {
+      this->append(value);
+    }
+  }
+
   void append_unchecked(const T &value)
   {
     BLI_assert(m_end < m_capacity_end);
@@ -340,6 +366,13 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
   {
     this->reserve(this->size() + amount);
     this->extend_unchecked(start, amount);
+  }
+
+  void extend_non_duplicates(ArrayRef<T> array)
+  {
+    for (const T &value : array) {
+      this->append_non_duplicates(value);
+    }
   }
 
   void extend_unchecked(ArrayRef<T> array)
@@ -442,11 +475,17 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
     UPDATE_VECTOR_SIZE(this);
   }
 
+  void remove_first_occurrence_and_reorder(const T &value)
+  {
+    uint index = this->index(value);
+    this->remove_and_reorder((uint)index);
+  }
+
   /**
    * Do a linear search to find the value in the vector.
    * When found, return the first index, otherwise return -1.
    */
-  int index(const T &value) const
+  int index_try(const T &value) const
   {
     for (T *current = m_begin; current != m_end; current++) {
       if (*current == value) {
@@ -457,12 +496,23 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
   }
 
   /**
+   * Do a linear search to find the value in the vector.
+   * When found, return the first index, otherwise fail.
+   */
+  uint index(const T &value) const
+  {
+    int index = this->index_try(value);
+    BLI_assert(index >= 0);
+    return (uint)index;
+  }
+
+  /**
    * Do a linear search to see of the value is in the vector.
    * Return true when it exists, otherwise false.
    */
   bool contains(const T &value) const
   {
-    return this->index(value) != -1;
+    return this->index_try(value) != -1;
   }
 
   /**
@@ -537,7 +587,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
  private:
   T *small_buffer() const
   {
-    return (T *)m_small_buffer;
+    return (T *)m_small_buffer.ptr();
   }
 
   bool is_small() const
@@ -561,10 +611,11 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
     /* Round up to the next power of two. Otherwise consecutive calls to grow can cause a
      * reallocation every time even though the min_capacity only increments. */
     min_capacity = power_of_2_max_u(min_capacity);
+
     uint size = this->size();
 
     T *new_array = (T *)m_allocator.allocate_aligned(
-        min_capacity * (uint)sizeof(T), std::alignment_of<T>::value, __func__);
+        min_capacity * (uint)sizeof(T), std::alignment_of<T>::value, "grow BLI::Vector");
     uninitialized_relocate_n(m_begin, size, new_array);
 
     if (!this->is_small()) {
@@ -606,7 +657,11 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
 
 #undef UPDATE_VECTOR_SIZE
 
-template<typename T, uint N = 4> using TemporaryVector = Vector<T, N, TemporaryAllocator>;
+/**
+ * Use when the vector is used in the local scope of a function. It has a larger inline storage by
+ * default to make allocations less likely.
+ */
+template<typename T, uint N = 20> using ScopedVector = Vector<T, N, GuardedAllocator>;
 
 } /* namespace BLI */
 

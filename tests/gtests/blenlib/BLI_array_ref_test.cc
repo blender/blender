@@ -2,7 +2,8 @@
 #include "BLI_array_ref.h"
 #include "BLI_vector.h"
 
-using BLI::IndexRange;
+using namespace BLI;
+
 using IntVector = BLI::Vector<int>;
 using IntArrayRef = BLI::ArrayRef<int>;
 using MutableIntArrayRef = BLI::MutableArrayRef<int>;
@@ -15,6 +16,15 @@ TEST(array_ref, FromSmallVector)
   EXPECT_EQ(a_ref[0], 1);
   EXPECT_EQ(a_ref[1], 2);
   EXPECT_EQ(a_ref[2], 3);
+}
+
+TEST(array_ref, AddConstToPointer)
+{
+  int a = 0;
+  std::vector<int *> vec = {&a};
+  ArrayRef<int *> ref = vec;
+  ArrayRef<const int *> const_ref = ref;
+  EXPECT_EQ(const_ref.size(), 1);
 }
 
 TEST(array_ref, IsReferencing)
@@ -263,4 +273,48 @@ TEST(array_ref, ContainsPtr)
   EXPECT_FALSE(a_ref.contains_ptr(&a[0] + 3));
   EXPECT_FALSE(a_ref.contains_ptr(&a[0] - 1));
   EXPECT_FALSE(a_ref.contains_ptr(&other));
+}
+
+TEST(array_ref, FirstIndex)
+{
+  std::array<int, 5> a = {4, 5, 4, 2, 5};
+  IntArrayRef a_ref(a);
+
+  EXPECT_EQ(a_ref.first_index(4), 0);
+  EXPECT_EQ(a_ref.first_index(5), 1);
+  EXPECT_EQ(a_ref.first_index(2), 3);
+}
+
+TEST(array_ref, CastSameSize)
+{
+  int value = 0;
+  std::array<int *, 4> a = {&value, nullptr, nullptr, nullptr};
+  ArrayRef<int *> a_ref = a;
+  ArrayRef<float *> new_a_ref = a_ref.cast<float *>();
+
+  EXPECT_EQ(a_ref.size(), 4);
+  EXPECT_EQ(new_a_ref.size(), 4);
+
+  EXPECT_EQ(a_ref[0], &value);
+  EXPECT_EQ(new_a_ref[0], (float *)&value);
+}
+
+TEST(array_ref, CastSmallerSize)
+{
+  std::array<uint32_t, 4> a = {3, 4, 5, 6};
+  ArrayRef<uint32_t> a_ref = a;
+  ArrayRef<uint16_t> new_a_ref = a_ref.cast<uint16_t>();
+
+  EXPECT_EQ(a_ref.size(), 4);
+  EXPECT_EQ(new_a_ref.size(), 8);
+}
+
+TEST(array_ref, CastLargerSize)
+{
+  std::array<uint16_t, 4> a = {4, 5, 6, 7};
+  ArrayRef<uint16_t> a_ref = a;
+  ArrayRef<uint32_t> new_a_ref = a_ref.cast<uint32_t>();
+
+  EXPECT_EQ(a_ref.size(), 4);
+  EXPECT_EQ(new_a_ref.size(), 2);
 }

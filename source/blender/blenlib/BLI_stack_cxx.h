@@ -58,7 +58,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class St
   /**
    * Return true when the stack is empty, otherwise false.
    */
-  bool empty() const
+  bool is_empty() const
   {
     return this->size() == 0;
   }
@@ -76,6 +76,11 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class St
     m_elements.append(std::move(value));
   }
 
+  void push_multiple(ArrayRef<T> values)
+  {
+    m_elements.extend(values);
+  }
+
   /**
    * Remove the element from the top of the stack and return it.
    * This will assert when the stack is empty.
@@ -91,7 +96,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class St
    */
   T &peek()
   {
-    BLI_assert(!this->empty());
+    BLI_assert(!this->is_empty());
     return m_elements[this->size() - 1];
   }
 

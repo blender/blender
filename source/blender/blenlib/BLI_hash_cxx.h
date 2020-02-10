@@ -58,6 +58,7 @@ TRIVIAL_DEFAULT_INT_HASH(uint16_t);
 TRIVIAL_DEFAULT_INT_HASH(int32_t);
 TRIVIAL_DEFAULT_INT_HASH(uint32_t);
 TRIVIAL_DEFAULT_INT_HASH(int64_t);
+TRIVIAL_DEFAULT_INT_HASH(uint64_t);
 
 template<> struct DefaultHash<float> {
   uint32_t operator()(float value) const

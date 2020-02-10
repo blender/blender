@@ -119,6 +119,15 @@ TEST(index_range, Slice)
   EXPECT_EQ(slice.last(), 12);
 }
 
+TEST(index_range, SliceRange)
+{
+  IndexRange range = IndexRange(5, 15);
+  IndexRange slice = range.slice(IndexRange(3, 5));
+  EXPECT_EQ(slice.size(), 5);
+  EXPECT_EQ(slice.first(), 8);
+  EXPECT_EQ(slice.last(), 12);
+}
+
 TEST(index_range, AsArrayRef)
 {
   IndexRange range = IndexRange(4, 6);

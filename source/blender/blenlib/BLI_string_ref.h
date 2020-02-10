@@ -109,6 +109,8 @@ class StringRefBase {
    * Returns true when the string ends with the given suffix. Otherwise false.
    */
   bool endswith(StringRef suffix) const;
+
+  StringRef substr(uint start, uint size) const;
 };
 
 /**
@@ -240,6 +242,12 @@ inline bool StringRefBase::endswith(StringRef suffix) const
     }
   }
   return true;
+}
+
+inline StringRef StringRefBase::substr(uint start, uint size) const
+{
+  BLI_assert(start + size <= m_size);
+  return StringRef(m_data + start, size);
 }
 
 }  // namespace BLI

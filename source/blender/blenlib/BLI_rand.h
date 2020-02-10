@@ -20,6 +20,8 @@
 #ifndef __BLI_RAND_H__
 #define __BLI_RAND_H__
 
+#include "BLI_compiler_attrs.h"
+
 /** \file
  * \ingroup bli
  * \brief Random number functions.

@@ -31,23 +31,24 @@
 
 namespace BLI {
 
-template<typename T, typename Allocator = GuardedAllocator> class Array {
+template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Array {
  private:
   T *m_data;
   uint m_size;
   Allocator m_allocator;
+  AlignedBuffer<sizeof(T) * N, alignof(T)> m_inline_storage;
 
  public:
   Array()
   {
-    m_data = nullptr;
+    m_data = this->inline_storage();
     m_size = 0;
   }
 
   Array(ArrayRef<T> values)
   {
     m_size = values.size();
-    m_data = this->allocate(m_size);
+    m_data = this->get_buffer_for_size(values.size());
     uninitialized_copy_n(values.begin(), m_size, m_data);
   }
 
@@ -57,8 +58,8 @@ template<typename T, typename Allocator = GuardedAllocator> class Array {
 
   explicit Array(uint size)
   {
-    m_data = this->allocate(size);
     m_size = size;
+    m_data = this->get_buffer_for_size(size);
 
     for (uint i = 0; i < m_size; i++) {
       new (m_data + i) T();
@@ -67,8 +68,8 @@ template<typename T, typename Allocator = GuardedAllocator> class Array {
 
   Array(uint size, const T &value)
   {
-    m_data = this->allocate(size);
     m_size = size;
+    m_data = this->get_buffer_for_size(size);
     uninitialized_fill_n(m_data, m_size, value);
   }
 
@@ -77,30 +78,31 @@ template<typename T, typename Allocator = GuardedAllocator> class Array {
     m_size = other.size();
     m_allocator = other.m_allocator;
 
-    if (m_size == 0) {
-      m_data = nullptr;
-      return;
-    }
-    else {
-      m_data = this->allocate(m_size);
-      copy_n(other.begin(), m_size, m_data);
-    }
+    m_data = this->get_buffer_for_size(other.size());
+    copy_n(other.begin(), m_size, m_data);
   }
 
   Array(Array &&other) noexcept
   {
-    m_data = other.m_data;
     m_size = other.m_size;
     m_allocator = other.m_allocator;
 
-    other.m_data = nullptr;
+    if (!other.uses_inline_storage()) {
+      m_data = other.m_data;
+    }
+    else {
+      m_data = this->get_buffer_for_size(m_size);
+      uninitialized_relocate_n(other.m_data, m_size, m_data);
+    }
+
+    other.m_data = other.inline_storage();
     other.m_size = 0;
   }
 
   ~Array()
   {
     destruct_n(m_data, m_size);
-    if (m_data != nullptr) {
+    if (!this->uses_inline_storage()) {
       m_allocator.deallocate((void *)m_data);
     }
   }
@@ -142,7 +144,18 @@ template<typename T, typename Allocator = GuardedAllocator> class Array {
     return *this;
   }
 
+  MutableArrayRef<T> as_mutable_ref()
+  {
+    return *this;
+  }
+
   T &operator[](uint index)
+  {
+    BLI_assert(index < m_size);
+    return m_data[index];
+  }
+
+  const T &operator[](uint index) const
   {
     BLI_assert(index < m_size);
     return m_data[index];
@@ -189,14 +202,32 @@ template<typename T, typename Allocator = GuardedAllocator> class Array {
   }
 
  private:
+  T *get_buffer_for_size(uint size)
+  {
+    if (size <= N) {
+      return this->inline_storage();
+    }
+    else {
+      return this->allocate(size);
+    }
+  }
+
+  T *inline_storage() const
+  {
+    return (T *)m_inline_storage.ptr();
+  }
+
   T *allocate(uint size)
   {
     return (T *)m_allocator.allocate_aligned(
         size * sizeof(T), std::alignment_of<T>::value, __func__);
   }
-};
 
-template<typename T> using TemporaryArray = Array<T, TemporaryAllocator>;
+  bool uses_inline_storage() const
+  {
+    return m_data == this->inline_storage();
+  }
+};
 
 }  // namespace BLI
 

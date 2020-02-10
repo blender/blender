@@ -17,6 +17,10 @@
 #ifndef __BLI_KDTREE_H__
 #define __BLI_KDTREE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** \file
  * \ingroup bli
  * \brief A kd-tree for nearest neighbor search.
@@ -65,5 +69,9 @@
 #undef KDTree
 #undef KDTreeNearest
 #undef KDTREE_PREFIX_ID
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_KDTREE_H__ */

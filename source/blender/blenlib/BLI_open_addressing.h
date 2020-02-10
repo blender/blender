@@ -70,7 +70,7 @@ class OpenAddressingArray {
   /* Can be used to map a hash value into the range of valid slot indices. */
   uint32_t m_slot_mask;
   Allocator m_allocator;
-  char m_local_storage[sizeof(Item) * ItemsInSmallStorage];
+  AlignedBuffer<sizeof(Item) * ItemsInSmallStorage, alignof(Item)> m_local_storage;
 
  public:
   explicit OpenAddressingArray(uint8_t item_exponent = 0)
@@ -291,7 +291,7 @@ class OpenAddressingArray {
  private:
   Item *small_storage() const
   {
-    return reinterpret_cast<Item *>((char *)m_local_storage);
+    return reinterpret_cast<Item *>((char *)m_local_storage.ptr());
   }
 
   bool is_in_small_storage() const

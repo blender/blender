@@ -413,6 +413,19 @@ template<typename KeyT, typename ValueT, typename Allocator = GuardedAllocator> 
     return m_array.slots_set();
   }
 
+  template<typename FuncT> void foreach_item(const FuncT &func) const
+  {
+    for (const Item &item : m_array) {
+      for (uint offset = 0; offset < 4; offset++) {
+        if (item.is_set(offset)) {
+          const KeyT &key = *item.key(offset);
+          const ValueT &value = *item.value(offset);
+          func(key, value);
+        }
+      }
+    }
+  }
+
   void print_table() const
   {
     std::cout << "Hash Table:\n";

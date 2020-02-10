@@ -79,6 +79,16 @@ template<typename T> class ArrayRef {
   }
 
   /**
+   * ArrayRef<T *> -> ArrayRef<const T *>
+   * ArrayRef<Derived *> -> ArrayRef<Base *>
+   */
+  template<typename U,
+           typename std::enable_if<std::is_convertible<U *, T>::value>::type * = nullptr>
+  ArrayRef(ArrayRef<U *> array) : ArrayRef((T *)array.begin(), array.size())
+  {
+  }
+
+  /**
    * Return a continuous part of the array.
    * Asserts that the slice stays within the array.
    */
@@ -246,6 +256,73 @@ template<typename T> class ArrayRef {
     return fallback;
   }
 
+  /**
+   * Check if the array contains duplicates. Does a linear search for every element. So the total
+   * running time is O(n^2). Only use this for small arrays.
+   */
+  bool has_duplicates__linear_search() const
+  {
+    /* The size should really be smaller than that. If it is not, the calling code should be
+     * changed. */
+    BLI_assert(m_size < 1000);
+
+    for (uint i = 0; i < m_size; i++) {
+      const T &value = m_start[i];
+      for (uint j = i + 1; j < m_size; j++) {
+        if (value == m_start[j]) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool intersects__linear_search(ArrayRef other) const
+  {
+    /* The size should really be smaller than that. If it is not, the calling code should be
+     * changed. */
+    BLI_assert(m_size < 1000);
+
+    for (uint i = 0; i < m_size; i++) {
+      const T &value = m_start[i];
+      if (other.contains(value)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  uint first_index(const T &search_value) const
+  {
+    int index = this->first_index_try(search_value);
+    BLI_assert(index >= 0);
+    return (uint)index;
+  }
+
+  int first_index_try(const T &search_value) const
+  {
+    for (uint i = 0; i < m_size; i++) {
+      if (m_start[i] == search_value) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  template<typename PredicateT> bool any(const PredicateT predicate)
+  {
+    for (uint i = 0; i < m_size; i++) {
+      if (predicate(m_start[i])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Utility to make it more convenient to iterate over all indices that can be used with this
+   * array.
+   */
   IndexRange index_range() const
   {
     return IndexRange(m_size);
@@ -253,13 +330,12 @@ template<typename T> class ArrayRef {
 
   /**
    * Get a new array ref to the same underlying memory buffer. No conversions are done.
-   * Asserts when the sizes of the types don't match.
    */
   template<typename NewT> ArrayRef<NewT> cast() const
   {
-    /* Can be adjusted to allow different type sizes when necessary. */
-    BLI_STATIC_ASSERT(sizeof(T) == sizeof(NewT), "");
-    return ArrayRef<NewT>((NewT *)m_start, m_size);
+    BLI_assert((m_size * sizeof(T)) % sizeof(NewT) == 0);
+    uint new_size = m_size * sizeof(T) / sizeof(NewT);
+    return ArrayRef<NewT>(reinterpret_cast<const NewT *>(m_start), new_size);
   }
 
   /**
@@ -274,6 +350,11 @@ template<typename T> class ArrayRef {
       print_line(value);
       std::cout << '\n';
     }
+  }
+
+  void print_as_lines(std::string name) const
+  {
+    this->print_as_lines(name, [](const T &value) { std::cout << value; });
   }
 };
 
@@ -305,7 +386,7 @@ template<typename T> class MutableArrayRef {
   {
   }
 
-  operator ArrayRef<T>()
+  operator ArrayRef<T>() const
   {
     return ArrayRef<T>(m_start, m_size);
   }
@@ -421,6 +502,12 @@ template<typename T> class MutableArrayRef {
   {
     return IndexRange(m_size);
   }
+
+  const T &last() const
+  {
+    BLI_assert(m_size > 0);
+    return m_start[m_size - 1];
+  }
 };
 
 /**
@@ -429,6 +516,28 @@ template<typename T> class MutableArrayRef {
 template<typename T> ArrayRef<T> ref_c_array(const T *array, uint size)
 {
   return ArrayRef<T>(array, size);
+}
+
+template<typename T1, typename T2> void assert_same_size(const T1 &v1, const T2 &v2)
+{
+  UNUSED_VARS_NDEBUG(v1, v2);
+#ifdef DEBUG
+  uint size = v1.size();
+  BLI_assert(size == v1.size());
+  BLI_assert(size == v2.size());
+#endif
+}
+
+template<typename T1, typename T2, typename T3>
+void assert_same_size(const T1 &v1, const T2 &v2, const T3 &v3)
+{
+  UNUSED_VARS_NDEBUG(v1, v2, v3);
+#ifdef DEBUG
+  uint size = v1.size();
+  BLI_assert(size == v1.size());
+  BLI_assert(size == v2.size());
+  BLI_assert(size == v3.size());
+#endif
 }
 
 } /* namespace BLI */

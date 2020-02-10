@@ -33,6 +33,11 @@ using std::uninitialized_copy_n;
 using std::uninitialized_fill;
 using std::uninitialized_fill_n;
 
+template<typename T> void construct_default(T *ptr)
+{
+  new (ptr) T();
+}
+
 template<typename T> void destruct(T *ptr)
 {
   ptr->~T();
@@ -78,6 +83,38 @@ template<typename T> void relocate_n(T *src, uint n, T *dst)
   move_n(src, n, dst);
   destruct_n(src, n);
 }
+
+template<typename T, typename... Args> std::unique_ptr<T> make_unique(Args &&... args)
+{
+  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
+template<typename T> struct DestructValueAtAddress {
+  void operator()(T *ptr)
+  {
+    ptr->~T();
+  }
+};
+
+template<typename T> using destruct_ptr = std::unique_ptr<T, DestructValueAtAddress<T>>;
+
+template<uint Size, uint Alignment> class alignas(Alignment) AlignedBuffer {
+ private:
+  /* Don't create an empty array. This causes problems with some compilers. */
+  static constexpr uint ActualSize = (Size > 0) ? Size : 1;
+  char m_buffer[ActualSize];
+
+ public:
+  void *ptr()
+  {
+    return (void *)m_buffer;
+  }
+
+  const void *ptr() const
+  {
+    return (const void *)m_buffer;
+  }
+};
 
 }  // namespace BLI
 

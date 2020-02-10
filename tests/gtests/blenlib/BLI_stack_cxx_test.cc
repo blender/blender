@@ -8,7 +8,7 @@ TEST(stack, DefaultConstructor)
 {
   IntStack stack;
   EXPECT_EQ(stack.size(), 0);
-  EXPECT_TRUE(stack.empty());
+  EXPECT_TRUE(stack.is_empty());
 }
 
 TEST(stack, ArrayRefConstructor)
@@ -19,7 +19,7 @@ TEST(stack, ArrayRefConstructor)
   EXPECT_EQ(stack.pop(), 2);
   EXPECT_EQ(stack.pop(), 7);
   EXPECT_EQ(stack.pop(), 4);
-  EXPECT_TRUE(stack.empty());
+  EXPECT_TRUE(stack.is_empty());
 }
 
 TEST(stack, Push)
@@ -30,6 +30,17 @@ TEST(stack, Push)
   EXPECT_EQ(stack.size(), 1);
   stack.push(5);
   EXPECT_EQ(stack.size(), 2);
+}
+
+TEST(stack, PushMultiple)
+{
+  IntStack stack;
+  EXPECT_EQ(stack.size(), 0);
+  stack.push_multiple({1, 2, 3});
+  EXPECT_EQ(stack.size(), 3);
+  EXPECT_EQ(stack.pop(), 3);
+  EXPECT_EQ(stack.pop(), 2);
+  EXPECT_EQ(stack.pop(), 1);
 }
 
 TEST(stack, Pop)
