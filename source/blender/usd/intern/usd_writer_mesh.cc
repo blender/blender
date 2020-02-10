@@ -29,7 +29,7 @@ extern "C" {
 
 #include "BKE_anim.h"
 #include "BKE_customdata.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
