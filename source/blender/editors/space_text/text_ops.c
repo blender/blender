@@ -29,6 +29,7 @@
 #include "DNA_text_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math_base.h"
 
 #include "BLT_translation.h"
 
@@ -2544,7 +2545,7 @@ static void text_scroll_state_init(TextScroll *tsc, SpaceText *st, ARegion *ar)
   tsc->state.ofs_init[1] = st->top;
 
   tsc->state.ofs_max[0] = INT_MAX;
-  tsc->state.ofs_max[1] = text_get_total_lines(st, ar) - (st->runtime.viewlines / 2);
+  tsc->state.ofs_max[1] = max_ii(0, text_get_total_lines(st, ar) - (st->runtime.viewlines / 2));
 
   tsc->state.size_px[0] = st->runtime.cwidth_px;
   tsc->state.size_px[1] = TXT_LINE_HEIGHT(st);
