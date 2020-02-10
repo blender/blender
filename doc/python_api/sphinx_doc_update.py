@@ -27,7 +27,7 @@ You'll need to specify your user login and password, obviously.
 
 Example usage:
 
-   ./sphinx_doc_update.py --mirror ../../../docs/remote_api_backup/ --source ../.. --blender ../../../build_cmake/bin/blender --user foobar --password barfoo
+   ./sphinx_doc_update.py --jobs 16 --mirror ../../../docs/remote_api_backup/ --source ../.. --blender ../../../build_cmake/bin/blender --user foobar --password barfoo
 
 """
 
@@ -82,6 +82,10 @@ def argparse_create():
         "--password", dest="password",
         metavar='PASSWORD', type=str, required=True,
         help=("Password to login on rsync server"))
+    parser.add_argument(
+        "--jobs", dest="jobs_nr",
+        metavar='NR', type=int, required=False, default=1,
+        help="Number of sphinx building jobs to launch in parallel")
 
     return parser
 
@@ -141,7 +145,7 @@ def main():
         # IV) Build doc.
         curr_dir = os.getcwd()
         os.chdir(tmp_dir)
-        sphinx_cmd = ("sphinx-build", "-b", "html", "sphinx-in", "sphinx-out")
+        sphinx_cmd = ("sphinx-build", "-j", str(args.jobs_nr), "-b", "html", "sphinx-in", "sphinx-out")
         subprocess.run(sphinx_cmd)
         shutil.rmtree(os.path.join("sphinx-out", ".doctrees"))
         os.chdir(curr_dir)
