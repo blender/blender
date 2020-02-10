@@ -143,11 +143,7 @@ class _defs_view3d_generic:
 class _defs_annotate:
 
     def draw_settings_common(context, layout, tool):
-        if type(context.gpencil_data_owner) is bpy.types.Object:
-            gpd = context.scene.grease_pencil
-        else:
-            gpd = context.gpencil_data
-
+        gpd = context.annotation_data
         if gpd is not None:
             if gpd.layers.active_note is not None:
                 text = gpd.layers.active_note
@@ -157,7 +153,7 @@ class _defs_annotate:
             else:
                 text = ""
 
-            gpl = context.active_gpencil_layer
+            gpl = context.active_annotation_layer
             if gpl is not None:
                 layout.label(text="Annotation:")
                 sub = layout.row(align=True)
