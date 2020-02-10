@@ -243,6 +243,7 @@ set(SRC
   BLI_utildefines_iter.h
   BLI_utildefines_stack.h
   BLI_utildefines_variadic.h
+  BLI_utility_mixins.h
   BLI_uvproject.h
   BLI_vector.h
   BLI_vector_set.h
