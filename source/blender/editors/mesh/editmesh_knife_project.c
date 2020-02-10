@@ -153,7 +153,7 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
   else {
-    BKE_report(op->reports, RPT_ERROR, "No other selected objects found to use for projection");
+    BKE_report(op->reports, RPT_ERROR, "Projected object does not have any wire or boundary edges");
     return OPERATOR_CANCELLED;
   }
 }
