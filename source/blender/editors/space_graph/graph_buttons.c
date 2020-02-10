@@ -111,14 +111,13 @@ static bool graph_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 
 /* -------------- */
 
-/* Graph Editor View Settings */
-static void graph_panel_view(const bContext *C, Panel *pa)
+static void graph_panel_cursor_header(const bContext *C, Panel *pa)
 {
   bScreen *sc = CTX_wm_screen(C);
   SpaceGraph *sipo = CTX_wm_space_graph(C);
   Scene *scene = CTX_data_scene(C);
   PointerRNA spaceptr, sceneptr;
-  uiLayout *col, *sub, *row;
+  uiLayout *col;
 
   /* get RNA pointers for use when creating the UI elements */
   RNA_id_pointer_create(&scene->id, &sceneptr);
@@ -126,26 +125,43 @@ static void graph_panel_view(const bContext *C, Panel *pa)
 
   /* 2D-Cursor */
   col = uiLayoutColumn(pa->layout, false);
-  uiItemR(col, &spaceptr, "show_cursor", 0, NULL, ICON_NONE);
+  uiItemR(col, &spaceptr, "show_cursor", 0, "", ICON_NONE);
+}
+
+static void graph_panel_cursor(const bContext *C, Panel *pa)
+{
+  bScreen *sc = CTX_wm_screen(C);
+  SpaceGraph *sipo = CTX_wm_space_graph(C);
+  Scene *scene = CTX_data_scene(C);
+  PointerRNA spaceptr, sceneptr;
+  uiLayout *layout = pa->layout;
+  uiLayout *col, *sub;
+  uiBlock *block;
+
+  /* get RNA pointers for use when creating the UI elements */
+  RNA_id_pointer_create(&scene->id, &sceneptr);
+  RNA_pointer_create(&sc->id, &RNA_SpaceGraphEditor, sipo, &spaceptr);
+
+  block = uiLayoutGetBlock(layout);
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
+  /* 2D-Cursor */
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(col, RNA_boolean_get(&spaceptr, "show_cursor"));
 
   sub = uiLayoutColumn(col, true);
-  uiLayoutSetActive(sub, RNA_boolean_get(&spaceptr, "show_cursor"));
-  uiItemO(sub, IFACE_("Cursor from Selection"), ICON_NONE, "GRAPH_OT_frame_jump");
-
-  sub = uiLayoutColumn(col, true);
-  uiLayoutSetActive(sub, RNA_boolean_get(&spaceptr, "show_cursor"));
-  row = uiLayoutSplit(sub, 0.7f, true);
   if (sipo->mode == SIPO_MODE_DRIVERS) {
-    uiItemR(row, &spaceptr, "cursor_position_x", 0, IFACE_("Cursor X"), ICON_NONE);
+    uiItemR(sub, &spaceptr, "cursor_position_x", 0, IFACE_("Cursor X"), ICON_NONE);
   }
   else {
-    uiItemR(row, &sceneptr, "frame_current", 0, IFACE_("Cursor X"), ICON_NONE);
+    uiItemR(sub, &sceneptr, "frame_current", 0, IFACE_("Cursor X"), ICON_NONE);
   }
-  uiItemEnumO(row, "GRAPH_OT_snap", IFACE_("To Keys"), 0, "type", GRAPHKEYS_SNAP_CFRA);
 
-  row = uiLayoutSplit(sub, 0.7f, true);
-  uiItemR(row, &spaceptr, "cursor_position_y", 0, IFACE_("Cursor Y"), ICON_NONE);
-  uiItemEnumO(row, "GRAPH_OT_snap", IFACE_("To Keys"), 0, "type", GRAPHKEYS_SNAP_VALUE);
+  uiItemR(sub, &spaceptr, "cursor_position_y", 0, IFACE_("Y"), ICON_NONE);
+
+  sub = uiLayoutColumn(col, true);
+  uiItemO(sub, IFACE_("Cursor to Selection"), ICON_NONE, "GRAPH_OT_frame_jump");
 }
 
 /* ******************* active F-Curve ************** */
@@ -1429,9 +1445,10 @@ void graph_buttons_register(ARegionType *art)
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel view");
   strcpy(pt->idname, "GRAPH_PT_view");
-  strcpy(pt->label, N_("View Properties"));
+  strcpy(pt->label, N_("Show Cursor"));
   strcpy(pt->category, "View");
   strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-  pt->draw = graph_panel_view;
+  pt->draw = graph_panel_cursor;
+  pt->draw_header = graph_panel_cursor_header;
   BLI_addtail(&art->paneltypes, pt);
 }

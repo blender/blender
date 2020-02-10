@@ -1313,7 +1313,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_custom_shape_bone_size", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "drawflag", PCHAN_DRAW_NO_CUSTOM_BONE_SIZE);
-  RNA_def_property_ui_text(prop, "Use Bone Size", "Scale the custom object by the bone length");
+  RNA_def_property_ui_text(
+      prop, "Scale to Bone Length", "Scale the custom object by the bone length");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
   prop = RNA_def_property(srna, "custom_shape_transform", PROP_POINTER, PROP_NONE);
