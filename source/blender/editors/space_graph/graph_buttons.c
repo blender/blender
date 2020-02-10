@@ -136,13 +136,11 @@ static void graph_panel_cursor(const bContext *C, Panel *pa)
   PointerRNA spaceptr, sceneptr;
   uiLayout *layout = pa->layout;
   uiLayout *col, *sub;
-  uiBlock *block;
 
   /* get RNA pointers for use when creating the UI elements */
   RNA_id_pointer_create(&scene->id, &sceneptr);
   RNA_pointer_create(&sc->id, &RNA_SpaceGraphEditor, sipo, &spaceptr);
 
-  block = uiLayoutGetBlock(layout);
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
