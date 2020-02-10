@@ -87,39 +87,35 @@ static PaintCurvePoint *paintcurve_point_get_closest(
 {
   PaintCurvePoint *pcp, *closest = NULL;
   int i;
-  float dist, closest_dist = FLT_MAX;
+  float closest_dist = threshold;
 
   for (i = 0, pcp = pc->points; i < pc->tot_points; i++, pcp++) {
-    dist = len_manhattan_v2v2(pos, pcp->bez.vec[0]);
-    if (dist < threshold) {
-      if (dist < closest_dist) {
-        closest = pcp;
-        closest_dist = dist;
-        if (point) {
-          *point = SEL_F1;
-        }
-      }
+    float dist[3];
+    char point_sel = 0;
+
+    dist[0] = len_manhattan_v2v2(pos, pcp->bez.vec[0]);
+    dist[1] = len_manhattan_v2v2(pos, pcp->bez.vec[1]);
+    dist[2] = len_manhattan_v2v2(pos, pcp->bez.vec[2]);
+
+    if (dist[1] < closest_dist) {
+      closest_dist = dist[1];
+      point_sel = SEL_F2;
     }
-    if (!ignore_pivot) {
-      dist = len_manhattan_v2v2(pos, pcp->bez.vec[1]);
-      if (dist < threshold) {
-        if (dist < closest_dist) {
-          closest = pcp;
-          closest_dist = dist;
-          if (point) {
-            *point = SEL_F2;
-          }
-        }
-      }
+    if (dist[0] < closest_dist) {
+      closest_dist = dist[0];
+      point_sel = SEL_F1;
     }
-    dist = len_manhattan_v2v2(pos, pcp->bez.vec[2]);
-    if (dist < threshold) {
-      if (dist < closest_dist) {
-        closest = pcp;
-        closest_dist = dist;
-        if (point) {
-          *point = SEL_F3;
+    if (dist[2] < closest_dist) {
+      closest_dist = dist[2];
+      point_sel = SEL_F3;
+    }
+    if (point_sel) {
+      closest = pcp;
+      if (point) {
+        if (ignore_pivot && point_sel == SEL_F2) {
+          point_sel = (dist[0] < dist[2]) ? SEL_F1 : SEL_F3;
         }
+        *point = point_sel;
       }
     }
   }
