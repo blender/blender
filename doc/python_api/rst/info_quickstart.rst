@@ -228,13 +228,16 @@ Note that the context is read-only.
 These values cannot be modified directly,
 though they may be changed by running API functions or by using the data API.
 
-So ``bpy.context.object = obj`` will raise an error.
+So ``bpy.context.active_object = obj`` will raise an error.
 
-But ``bpy.context.scene.objects.active = obj`` will work as expected.
+But the following will work as expected:
 
+   >>> obj = bpy.data.objects["Cube"]
+   >>> obj.select_set(state = True, view_layer = bpy.context.view_layer)
+   >>> bpy.context.view_layer.objects.active = obj
 
 The context attributes change depending on where they are accessed.
-The 3D view has different context members than the console,
+The 3D Viewport has different context members than the Python Console,
 so take care when accessing context attributes that the user state is known.
 
 See :mod:`bpy.context` API reference.
