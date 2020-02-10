@@ -4611,7 +4611,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
             cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
       }
       else {
-        BKE_tracking_get_camera_object_matrix(cob->scene, camob, mat);
+        BKE_tracking_get_camera_object_matrix(camob, mat);
 
         mul_m4_m4m4(cob->matrix, obmat, mat);
         translate_m4(

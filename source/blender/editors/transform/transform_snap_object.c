@@ -2055,7 +2055,7 @@ static short snapCamera(const SnapObjectContext *sctx,
 
   tracking = &clip->tracking;
 
-  BKE_tracking_get_camera_object_matrix(scene, object, orig_camera_mat);
+  BKE_tracking_get_camera_object_matrix(object, orig_camera_mat);
 
   invert_m4_m4(orig_camera_imat, orig_camera_mat);
   invert_m4_m4(imat, obmat);

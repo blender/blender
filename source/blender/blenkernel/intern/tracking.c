@@ -395,23 +395,10 @@ MovieTrackingReconstruction *BKE_tracking_get_active_reconstruction(MovieTrackin
 /* Get transformation matrix for a given object which is used
  * for parenting motion tracker reconstruction to 3D world.
  */
-void BKE_tracking_get_camera_object_matrix(Scene *scene, Object *ob, float mat[4][4])
+void BKE_tracking_get_camera_object_matrix(Object *ob, float mat[4][4])
 {
-  if (!ob) {
-    if (scene->camera) {
-      ob = scene->camera;
-    }
-    else {
-      ob = BKE_view_layer_camera_find(BKE_view_layer_context_active_PLACEHOLDER(scene));
-    }
-  }
-
-  if (ob) {
-    BKE_object_where_is_calc_mat4(ob, mat);
-  }
-  else {
-    unit_m4(mat);
-  }
+  BLI_assert(ob != NULL);
+  BKE_object_where_is_calc_mat4(ob, mat);
 }
 
 /* Get projection matrix for camera specified by given tracking object

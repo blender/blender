@@ -876,7 +876,7 @@ static void camera_view3d_reconstruction(OVERLAY_ExtraCallBuffers *cb,
   UI_GetThemeColor4fv(TH_BUNDLE_SOLID, bundle_color_solid);
 
   float camera_mat[4][4], normal_mat[4][4];
-  BKE_tracking_get_camera_object_matrix(scene, ob, camera_mat);
+  BKE_tracking_get_camera_object_matrix(ob, camera_mat);
 
   normalize_m4_m4(normal_mat, ob->obmat);
 

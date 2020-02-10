@@ -709,7 +709,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float r_vec[3])
 
   copy_m4_m4(cammat, ob->obmat);
 
-  BKE_tracking_get_camera_object_matrix(scene, ob, mat);
+  BKE_tracking_get_camera_object_matrix(ob, mat);
 
   INIT_MINMAX(min, max);
 

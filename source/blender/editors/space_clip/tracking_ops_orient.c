@@ -210,7 +210,7 @@ static int set_origin_exec(bContext *C, wmOperator *op)
   mul_v3_fl(median, 1.0f / selected_count);
 
   float mat[4][4], vec[3];
-  BKE_tracking_get_camera_object_matrix(scene, camera, mat);
+  BKE_tracking_get_camera_object_matrix(camera, mat);
   mul_v3_m4v3(vec, mat, median);
 
   if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
@@ -267,7 +267,7 @@ static void set_axis(Scene *scene,
 
   BKE_object_to_mat4(ob, obmat);
 
-  BKE_tracking_get_camera_object_matrix(scene, camera, mat);
+  BKE_tracking_get_camera_object_matrix(camera, mat);
   mul_v3_m4v3(vec, mat, track->bundle_pos);
   copy_v3_v3(dvec, vec);
 
@@ -422,7 +422,7 @@ static int set_plane_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_tracking_get_camera_object_matrix(scene, camera, mat);
+  BKE_tracking_get_camera_object_matrix(camera, mat);
 
   /* Get 3 bundles to use as reference. */
   track = tracksbase->first;
@@ -629,7 +629,7 @@ static int do_set_scale(bContext *C, wmOperator *op, bool scale_solution, bool a
     }
   }
 
-  BKE_tracking_get_camera_object_matrix(scene, camera, mat);
+  BKE_tracking_get_camera_object_matrix(camera, mat);
 
   track = tracksbase->first;
   while (track) {
