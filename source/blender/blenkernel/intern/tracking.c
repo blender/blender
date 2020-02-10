@@ -398,6 +398,16 @@ MovieTrackingReconstruction *BKE_tracking_get_active_reconstruction(MovieTrackin
 void BKE_tracking_get_camera_object_matrix(Object *camera_object, float mat[4][4])
 {
   BLI_assert(camera_object != NULL);
+  /* NOTE: Construct matrix from scratch rather than using obmat because the camera object here
+   * will have camera solver constraint taken into account. But here we do not want or need it:
+   * object is solved in camera space (as in, camera is stationary and object is moving).
+   *
+   * This will include animation applied on the camera, but not possible camera rig. This isn't
+   * an issue in practice due to the way how VFX is constructed.
+   *
+   * If we ever need to support crazy setups like that one possible solution would be to use
+   * final camera matrix and multiple it by an inverse of solved camera matrix at the current
+   * frame. */
   BKE_object_where_is_calc_mat4(camera_object, mat);
 }
 
