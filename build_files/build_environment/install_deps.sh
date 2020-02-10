@@ -392,7 +392,7 @@ OIIO_FORCE_BUILD=false
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
 
-LLVM_VERSION="6.0.1"
+LLVM_VERSION="9.0.1"
 LLVM_VERSION_MIN="6.0"
 LLVM_VERSION_FOUND=""
 LLVM_FORCE_BUILD=false
@@ -400,7 +400,7 @@ LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
-OSL_VERSION="1.9.9"
+OSL_VERSION="1.10.9"
 OSL_VERSION_MIN=$OSL_VERSION
 OSL_FORCE_BUILD=false
 OSL_FORCE_REBUILD=false
@@ -2081,7 +2081,7 @@ compile_OSL() {
     fi
 
     if [ -d $INST/oiio ]; then
-      cmake_d="$cmake_d -D OPENIMAGEIOHOME=$INST/oiio"
+      cmake_d="$cmake_d -D OPENIMAGEIO_ROOT_DIR=$INST/oiio"
     fi
 
     if [ ! -z $LLVM_VERSION_FOUND ]; then
