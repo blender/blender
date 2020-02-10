@@ -268,17 +268,42 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
 
             col = layout.column()
             col.prop(bone, "hide", text="Hide")
+
+
+class BONE_PT_display_custom_shape(BoneButtonsPanel, Panel):
+    bl_label = "Custom Shape"
+    bl_parent_id = "BONE_PT_display"
+
+    @classmethod
+    def poll(cls, context):
+        return context.bone
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        ob = context.object
+        bone = context.bone
+        pchan = None
+
+        if ob and bone:
+            pchan = ob.pose.bones[bone.name]
+        elif bone is None:
+            bone = context.edit_bone
+
+        if bone and pchan:
+            col = layout.column()
+            col.prop(pchan, "custom_shape")
+
             sub = col.column()
             sub.active = bool(pchan and pchan.custom_shape)
+            sub.separator()
+            sub.prop(pchan, "custom_shape_scale", text="Scale")
+            sub.prop_search(pchan, "custom_shape_transform",
+                            ob.pose, "bones", text="Override Transform")
+            sub.prop(pchan, "use_custom_shape_bone_size")
+            sub.separator()
             sub.prop(bone, "show_wire", text="Wireframe")
-
-            if pchan:
-                col = layout.column()
-                col.prop(pchan, "custom_shape")
-                if pchan.custom_shape:
-                    col.prop(pchan, "use_custom_shape_bone_size", text="Bone Size")
-                    col.prop(pchan, "custom_shape_scale", text="Scale")
-                    col.prop_search(pchan, "custom_shape_transform", ob.pose, "bones")
 
 
 class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):
