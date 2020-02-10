@@ -46,7 +46,7 @@ extern "C" {
 #include "BKE_context.h"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_linestyle.h"
 #include "BKE_scene.h"
 #include "BKE_text.h"

@@ -24,7 +24,7 @@
 #include "node_composite_util.h"
 
 #include "BKE_context.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 
 static bNodeSocketTemplate cmp_node_movieclip_out[] = {
     {SOCK_RGBA, 0, N_("Image")},

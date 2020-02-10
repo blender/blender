@@ -36,8 +36,8 @@
 #include "DNA_object_types.h"
 
 #include "BKE_global.h" /* only to check G.debug */
-#include "BKE_library.h"
-#include "BKE_library_query.h"
+#include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"

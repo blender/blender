@@ -41,7 +41,7 @@
 #include "BKE_colortools.h"
 #include "BKE_icons.h"
 #include "BKE_light.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 
@@ -74,7 +74,7 @@ Light *BKE_light_add(Main *bmain, const char *name)
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_light_copy_data(Main *bmain, Light *la_dst, const Light *la_src, const int flag)
 {

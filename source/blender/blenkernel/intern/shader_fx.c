@@ -38,8 +38,8 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_shader_fx_types.h"
 
-#include "BKE_library.h"
-#include "BKE_library_query.h"
+#include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_gpencil.h"
 #include "BKE_shader_fx.h"
 #include "BKE_object.h"

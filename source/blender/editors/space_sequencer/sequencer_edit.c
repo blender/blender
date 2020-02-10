@@ -44,7 +44,7 @@
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
 #include "BKE_sound.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

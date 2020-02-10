@@ -27,7 +27,7 @@ extern "C" {
 
 struct wmWindowManager;
 
-/* BKE_libblock_free, delete are declared in BKE_library.h for convenience. */
+/* BKE_libblock_free, delete are declared in BKE_lib_id.h for convenience. */
 
 /* Also IDRemap->flag. */
 enum {

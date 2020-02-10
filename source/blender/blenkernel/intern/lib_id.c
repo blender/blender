@@ -98,9 +98,9 @@
 #include "BKE_key.h"
 #include "BKE_light.h"
 #include "BKE_lattice.h"
-#include "BKE_library.h"
-#include "BKE_library_query.h"
-#include "BKE_library_remap.h"
+#include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
+#include "BKE_lib_remap.h"
 #include "BKE_linestyle.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
@@ -189,7 +189,7 @@ void id_lib_indirect_weak_link(ID *id)
  *
  * \note Now that we have flags, we could get rid of the 'fake_user' special case,
  * flags are enough to ensure we always have a real user.
- * However, #ID_REAL_USERS is used in several places outside of core library.c,
+ * However, #ID_REAL_USERS is used in several places outside of core lib.c,
  * so think we can wait later to make this change.
  */
 void id_us_ensure_real(ID *id)

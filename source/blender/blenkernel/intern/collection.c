@@ -32,8 +32,8 @@
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_library.h"
-#include "BKE_library_remap.h"
+#include "BKE_lib_id.h"
+#include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_rigidbody.h"
@@ -196,7 +196,7 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_collection_copy_data(Main *bmain,
                               Collection *collection_dst,

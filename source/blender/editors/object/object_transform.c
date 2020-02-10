@@ -54,7 +54,7 @@
 #include "BKE_multires.h"
 #include "BKE_armature.h"
 #include "BKE_lattice.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_tracking.h"
 #include "BKE_gpencil.h"
 

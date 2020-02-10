@@ -55,7 +55,7 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_nla.h"
@@ -307,7 +307,7 @@ bool BKE_animdata_id_is_animated(const struct ID *id)
 /**
  * Make a copy of the given AnimData - to be used when copying data-blocks.
  * \param flag: Control ID pointers management,
- * see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
+ * see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_lib_id.h
  * \return The copied animdata.
  */
 AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
@@ -351,7 +351,7 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
 
 /**
  * \param flag: Control ID pointers management,
- * see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
+ * see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_lib_id.h
  * \return true is successfully copied.
  */
 bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const int flag)

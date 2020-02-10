@@ -37,7 +37,7 @@
 #include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_context.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 

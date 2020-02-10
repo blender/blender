@@ -31,7 +31,7 @@ extern "C" {
 
 #include "BKE_constraint.h"
 #include "BKE_idprop.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 

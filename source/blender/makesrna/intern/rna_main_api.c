@@ -54,7 +54,7 @@
 #  include "BKE_image.h"
 #  include "BKE_light.h"
 #  include "BKE_lattice.h"
-#  include "BKE_library_remap.h"
+#  include "BKE_lib_remap.h"
 #  include "BKE_lightprobe.h"
 #  include "BKE_linestyle.h"
 #  include "BKE_mask.h"

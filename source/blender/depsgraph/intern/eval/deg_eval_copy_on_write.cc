@@ -44,7 +44,7 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
@@ -84,7 +84,7 @@ extern "C" {
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_editmesh.h"
-#include "BKE_library_query.h"
+#include "BKE_lib_query.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"

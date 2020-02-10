@@ -47,7 +47,7 @@
 #include "DNA_node_types.h"
 #include "DNA_material_types.h"
 
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_text.h"
 #include "BKE_node.h"
@@ -401,7 +401,7 @@ Text *BKE_text_load(Main *bmain, const char *file, const char *relpath)
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_text_copy_data(Main *UNUSED(bmain),
                         Text *ta_dst,

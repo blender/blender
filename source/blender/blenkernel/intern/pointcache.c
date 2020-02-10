@@ -57,7 +57,7 @@
 #include "BKE_collection.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_global.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"

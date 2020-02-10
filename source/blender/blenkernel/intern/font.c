@@ -47,7 +47,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_packedFile.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_main.h"

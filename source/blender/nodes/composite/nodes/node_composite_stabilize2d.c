@@ -24,7 +24,7 @@
 #include "node_composite_util.h"
 
 #include "BKE_context.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 
 /* **************** Translate  ******************** */
 

@@ -39,7 +39,7 @@
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"

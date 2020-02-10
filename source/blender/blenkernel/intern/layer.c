@@ -32,7 +32,7 @@
 #include "BKE_freestyle.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
@@ -388,7 +388,7 @@ static void layer_collections_copy_data(ViewLayer *view_layer_dst,
 /**
  * Only copy internal data of ViewLayer from source to already allocated/initialized destination.
  *
- * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_view_layer_copy_data(Scene *scene_dst,
                               const Scene *UNUSED(scene_src),

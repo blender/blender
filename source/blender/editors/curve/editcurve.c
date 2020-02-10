@@ -44,7 +44,7 @@
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_report.h"

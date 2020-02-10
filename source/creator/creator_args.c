@@ -50,8 +50,8 @@
 
 #  include "BKE_global.h"
 #  include "BKE_image.h"
-#  include "BKE_library.h"
-#  include "BKE_library_override.h"
+#  include "BKE_lib_id.h"
+#  include "BKE_lib_override.h"
 #  include "BKE_main.h"
 #  include "BKE_report.h"
 #  include "BKE_scene.h"

@@ -38,7 +38,7 @@
 
 #include "BKE_effect.h"
 #include "BKE_fluid.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
 

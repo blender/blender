@@ -29,7 +29,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_gpencil.h"
 #include "BKE_object.h"
 

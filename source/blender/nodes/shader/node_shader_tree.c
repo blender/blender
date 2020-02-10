@@ -44,7 +44,7 @@
 #include "BKE_linestyle.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 
 #include "RNA_access.h"
 

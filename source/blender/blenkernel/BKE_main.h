@@ -59,7 +59,7 @@ typedef struct MainIDRelationsEntry {
   /* WARNING! for user_to_used,
    * that pointer is really an ID** one, but for used_to_user, it’s only an ID* one! */
   struct ID **id_pointer;
-  int usage_flag; /* Using IDWALK_ enums, in BKE_library_query.h */
+  int usage_flag; /* Using IDWALK_ enums, in BKE_lib_query.h */
 } MainIDRelationsEntry;
 
 typedef struct MainIDRelations {

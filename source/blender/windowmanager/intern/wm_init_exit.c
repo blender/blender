@@ -58,7 +58,7 @@
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
-#include "BKE_library_remap.h"
+#include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_mball_tessellate.h"
 #include "BKE_node.h"
@@ -249,13 +249,13 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   ED_undosys_type_init();
 
-  BKE_library_callback_free_window_manager_set(wm_close_and_free); /* library.c */
+  BKE_library_callback_free_window_manager_set(wm_close_and_free); /* lib_id.c */
   BKE_library_callback_free_notifier_reference_set(
-      WM_main_remove_notifier_reference);                    /* library.c */
+      WM_main_remove_notifier_reference);                    /* lib_id.c */
   BKE_region_callback_free_gizmomap_set(wm_gizmomap_remove); /* screen.c */
   BKE_region_callback_refresh_tag_gizmomap_set(WM_gizmomap_tag_refresh);
   BKE_library_callback_remap_editor_id_reference_set(
-      WM_main_remap_editor_id_reference);                     /* library.c */
+      WM_main_remap_editor_id_reference);                     /* lib_id.c */
   BKE_spacedata_callback_id_remap_set(ED_spacedata_id_remap); /* screen.c */
   DEG_editors_set_update_cb(ED_render_id_flush_update, ED_render_scene_update);
 

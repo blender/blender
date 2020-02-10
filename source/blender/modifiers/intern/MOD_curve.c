@@ -31,8 +31,8 @@
 
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
-#include "BKE_library.h"
-#include "BKE_library_query.h"
+#include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 

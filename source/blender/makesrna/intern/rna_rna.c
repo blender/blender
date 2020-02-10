@@ -127,7 +127,7 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
 #  include "BLI_ghash.h"
 #  include "BLI_string.h"
 
-#  include "BKE_library_override.h"
+#  include "BKE_lib_override.h"
 
 /* Struct */
 

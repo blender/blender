@@ -34,7 +34,7 @@
 #endif
 
 #include "BKE_idprop.h"
-#include "BKE_library_override.h"
+#include "BKE_lib_override.h"
 #include "BKE_main.h"
 
 #include "RNA_access.h"

@@ -31,7 +31,7 @@
 #include "BLI_string_utils.h"
 
 #include "BKE_freestyle.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_linestyle.h"
 
 // function declarations

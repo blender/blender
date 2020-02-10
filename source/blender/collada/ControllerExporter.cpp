@@ -33,7 +33,7 @@
 extern "C" {
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 }
 

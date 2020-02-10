@@ -29,7 +29,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_main.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_brush.h"
 #include "BKE_paint.h"
 

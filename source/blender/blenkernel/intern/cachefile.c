@@ -39,7 +39,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_cachefile.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_scene.h"
@@ -192,7 +192,7 @@ void BKE_cachefile_free(CacheFile *cache_file)
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_cachefile_copy_data(Main *UNUSED(bmain),
                              CacheFile *cache_file_dst,

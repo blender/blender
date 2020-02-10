@@ -50,7 +50,7 @@
 #include "BKE_appdir.h"
 #include "BKE_blender_version.h"
 #include "BKE_global.h"
-#include "BKE_library_override.h"
+#include "BKE_lib_override.h"
 
 #include "DNA_ID.h"
 

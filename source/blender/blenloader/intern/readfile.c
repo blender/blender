@@ -120,10 +120,10 @@
 #include "BKE_idcode.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_main_idmap.h"
-#include "BKE_library_override.h"
-#include "BKE_library_query.h"
+#include "BKE_lib_override.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"  // for Main
 #include "BKE_material.h"
 #include "BKE_mesh.h"  // for ME_ defines (patching)

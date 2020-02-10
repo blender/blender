@@ -41,7 +41,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_global.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"

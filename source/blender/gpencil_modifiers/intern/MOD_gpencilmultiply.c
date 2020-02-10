@@ -46,7 +46,7 @@
 #include "BKE_main.h"
 #include "BKE_scene.h"
 #include "BKE_layer.h"
-#include "BKE_library_query.h"
+#include "BKE_lib_query.h"
 #include "BKE_collection.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"

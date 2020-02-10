@@ -46,7 +46,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
 #include "BKE_context.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_mask.h"
 #include "BKE_global.h"
 #include "BKE_scene.h"

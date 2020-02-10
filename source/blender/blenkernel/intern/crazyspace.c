@@ -39,7 +39,7 @@
 #include "BKE_multires.h"
 #include "BKE_mesh.h"
 #include "BKE_editmesh.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 
 #include "DEG_depsgraph_query.h"
 

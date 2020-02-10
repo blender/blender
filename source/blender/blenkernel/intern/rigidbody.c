@@ -62,8 +62,8 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #ifdef WITH_BULLET
-#  include "BKE_library.h"
-#  include "BKE_library_query.h"
+#  include "BKE_lib_id.h"
+#  include "BKE_lib_query.h"
 #endif
 
 #include "DEG_depsgraph.h"

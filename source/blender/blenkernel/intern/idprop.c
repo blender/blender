@@ -32,7 +32,7 @@
 #include "BLI_math.h"
 
 #include "BKE_idprop.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 
 #include "CLG_log.h"
 

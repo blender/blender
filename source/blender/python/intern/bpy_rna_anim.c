@@ -40,7 +40,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_idcode.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_report.h"
 
 #include "RNA_access.h"

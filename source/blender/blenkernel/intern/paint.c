@@ -55,7 +55,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
@@ -498,7 +498,7 @@ PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name)
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_paint_curve_copy_data(Main *UNUSED(bmain),
                                PaintCurve *pc_dst,
@@ -587,7 +587,7 @@ Palette *BKE_palette_add(Main *bmain, const char *name)
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_palette_copy_data(Main *UNUSED(bmain),
                            Palette *palette_dst,

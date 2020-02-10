@@ -33,7 +33,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_scene.h"
 
 #include "DNA_screen_types.h"

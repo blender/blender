@@ -46,7 +46,7 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_nla.h"
 #include "BKE_scene.h"
 #include "BKE_report.h"

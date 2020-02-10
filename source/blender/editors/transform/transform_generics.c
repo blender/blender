@@ -72,7 +72,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_mask.h"
 #include "BKE_nla.h"
 #include "BKE_paint.h"

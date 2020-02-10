@@ -39,7 +39,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_modifier.h"
-#include "BKE_library_query.h"
+#include "BKE_lib_query.h"
 #include "BKE_scene.h"
 #include "BKE_main.h"
 

@@ -68,7 +68,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_scene.h"
 #include "BKE_mask.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_idprop.h"
 
 #include "DEG_depsgraph.h"

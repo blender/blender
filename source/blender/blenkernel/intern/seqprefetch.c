@@ -40,7 +40,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_scene.h"
 #include "BKE_main.h"
 #include "BKE_context.h"

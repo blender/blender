@@ -23,7 +23,7 @@ extern "C" {
 #include "BKE_collection.h"
 #include "BKE_object.h"
 #include "BLI_listbase.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 }
 
 #include "SceneExporter.h"

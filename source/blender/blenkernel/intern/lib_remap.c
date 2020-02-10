@@ -83,10 +83,10 @@
 #include "BKE_light.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
-#include "BKE_library.h"
-#include "BKE_library_override.h"
-#include "BKE_library_query.h"
-#include "BKE_library_remap.h"
+#include "BKE_lib_id.h"
+#include "BKE_lib_override.h"
+#include "BKE_lib_query.h"
+#include "BKE_lib_remap.h"
 #include "BKE_linestyle.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"
@@ -159,7 +159,7 @@ typedef struct IDRemap {
   int skipped_refcounted;
 } IDRemap;
 
-/* IDRemap->flag enums defined in BKE_library.h */
+/* IDRemap->flag enums defined in BKE_lib.h */
 
 /* IDRemap->status */
 enum {

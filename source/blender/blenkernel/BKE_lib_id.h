@@ -130,7 +130,7 @@ struct ID *BKE_libblock_find_name(struct Main *bmain,
                                   const short type,
                                   const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-/* library_remap.c (keep here since they're general functions) */
+/* lib_remap.c (keep here since they're general functions) */
 /**
  * New freeing logic options.
  */

@@ -50,7 +50,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_library_query.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"

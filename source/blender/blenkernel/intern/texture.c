@@ -48,7 +48,7 @@
 #include "BKE_main.h"
 
 #include "BKE_colorband.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
@@ -313,7 +313,7 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_texture_copy_data(Main *bmain, Tex *tex_dst, const Tex *tex_src, const int flag)
 {

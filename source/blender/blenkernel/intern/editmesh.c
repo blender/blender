@@ -31,7 +31,7 @@
 
 #include "BKE_editmesh.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_iterators.h"
 #include "BKE_object.h"

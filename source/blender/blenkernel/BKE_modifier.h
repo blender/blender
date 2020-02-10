@@ -161,7 +161,7 @@ typedef struct ModifierTypeInfo {
   /* Copy instance data for this modifier type. Should copy all user
    * level settings to the target modifier.
    *
-   * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+   * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
    */
   void (*copyData)(const struct ModifierData *md, struct ModifierData *target, const int flag);
 

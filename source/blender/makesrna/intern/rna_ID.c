@@ -29,7 +29,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_icons.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_object.h"
 
 #include "RNA_access.h"
@@ -90,9 +90,9 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 
 #  include "BKE_font.h"
 #  include "BKE_idprop.h"
-#  include "BKE_library_query.h"
-#  include "BKE_library_override.h"
-#  include "BKE_library_remap.h"
+#  include "BKE_lib_query.h"
+#  include "BKE_lib_override.h"
+#  include "BKE_lib_remap.h"
 #  include "BKE_animsys.h"
 #  include "BKE_material.h"
 #  include "BKE_global.h" /* XXX, remove me */
