@@ -361,10 +361,10 @@ static void view3d_main_region_init(wmWindowManager *wm, ARegion *ar)
   /* object ops. */
 
   /* important to be before Pose keymap since they can both be enabled at once */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Face Mask", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Paint Face Mask (Weight, Vertex, Texture)", 0, 0);
   WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Weight Paint Vertex Selection", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Paint Vertex Selection (Weight, Vertex)", 0, 0);
   WM_event_add_keymap_handler(&ar->handlers, keymap);
 
   /* Before 'Pose' so weight paint menus aren't overridden by pose menus. */

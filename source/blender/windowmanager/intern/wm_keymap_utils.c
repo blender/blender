@@ -318,7 +318,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
   }
   /* Paint Face Mask */
   else if (STRPREFIX(opname, "PAINT_OT_face_select")) {
-    km = WM_keymap_find_all(C, "Face Mask", 0, 0);
+    km = WM_keymap_find_all(C, "Paint Face Mask (Weight, Vertex, Texture)", 0, 0);
   }
   else if (STRPREFIX(opname, "PAINT_OT")) {
     /* check for relevant mode */
