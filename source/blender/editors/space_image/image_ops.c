@@ -3148,7 +3148,8 @@ static bool image_pack_test(bContext *C, wmOperator *op)
   }
 
   if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_TILED)) {
-    BKE_report(op->reports, RPT_ERROR, "Packing movies or image sequences not supported");
+    BKE_report(
+        op->reports, RPT_ERROR, "Packing movies, image sequences or tiled images not supported");
     return 0;
   }
 
@@ -3216,7 +3217,8 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
   }
 
   if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_TILED)) {
-    BKE_report(op->reports, RPT_ERROR, "Unpacking movies or image sequences not supported");
+    BKE_report(
+        op->reports, RPT_ERROR, "Unpacking movies, image sequences or tiled images not supported");
     return OPERATOR_CANCELLED;
   }
 
@@ -3249,7 +3251,8 @@ static int image_unpack_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
   }
 
   if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_TILED)) {
-    BKE_report(op->reports, RPT_ERROR, "Unpacking movies or image sequences not supported");
+    BKE_report(
+        op->reports, RPT_ERROR, "Unpacking movies, image sequences or tiled images not supported");
     return OPERATOR_CANCELLED;
   }
 
