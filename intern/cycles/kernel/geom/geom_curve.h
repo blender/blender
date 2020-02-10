@@ -83,6 +83,16 @@ ccl_device float curve_attribute_float(
 
     return (1.0f - sd->u) * f0 + sd->u * f1;
   }
+  else if(desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
+#  ifdef __RAY_DIFFERENTIALS__
+    if (dx)
+      *dx = 0.0f;
+    if (dy)
+      *dy = 0.0f;
+#  endif
+
+    return kernel_tex_fetch(__attributes_float, desc.offset);
+  }
   else {
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx)
@@ -133,6 +143,16 @@ ccl_device float2 curve_attribute_float2(KernelGlobals *kg,
 
     return (1.0f - sd->u) * f0 + sd->u * f1;
   }
+  else if(desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
+#  ifdef __RAY_DIFFERENTIALS__
+    if (dx)
+      *dx = make_float2(0.0f, 0.0f);
+    if (dy)
+      *dy = make_float2(0.0f, 0.0f);
+#  endif
+
+    return kernel_tex_fetch(__attributes_float2, desc.offset);
+  }
   else {
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx)
@@ -182,6 +202,16 @@ ccl_device float3 curve_attribute_float3(KernelGlobals *kg,
 #  endif
 
     return (1.0f - sd->u) * f0 + sd->u * f1;
+  }
+  else if(desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
+#  ifdef __RAY_DIFFERENTIALS__
+    if (dx)
+      *dx = make_float3(0.0f, 0.0f, 0.0f);
+    if (dy)
+      *dy = make_float3(0.0f, 0.0f, 0.0f);
+#  endif
+
+    return float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset));
   }
   else {
 #  ifdef __RAY_DIFFERENTIALS__

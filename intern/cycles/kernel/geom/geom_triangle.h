@@ -153,6 +153,14 @@ ccl_device float triangle_attribute_float(
 
     return sd->u * f0 + sd->v * f1 + (1.0f - sd->u - sd->v) * f2;
   }
+  else if(desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
+    if (dx)
+      *dx = 0.0f;
+    if (dy)
+      *dy = 0.0f;
+
+    return kernel_tex_fetch(__attributes_float, desc.offset);
+  }
   else {
     if (dx)
       *dx = 0.0f;
@@ -211,6 +219,14 @@ ccl_device float2 triangle_attribute_float2(KernelGlobals *kg,
 #endif
 
     return sd->u * f0 + sd->v * f1 + (1.0f - sd->u - sd->v) * f2;
+  }
+  else if(desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
+    if (dx)
+      *dx = make_float2(0.0f, 0.0f);
+    if (dy)
+      *dy = make_float2(0.0f, 0.0f);
+
+    return kernel_tex_fetch(__attributes_float2, desc.offset);
   }
   else {
     if (dx)
@@ -272,6 +288,14 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals *kg,
 
     return sd->u * f0 + sd->v * f1 + (1.0f - sd->u - sd->v) * f2;
   }
+  else if(desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
+    if (dx)
+      *dx = make_float3(0.0f, 0.0f, 0.0f);
+    if (dy)
+      *dy = make_float3(0.0f, 0.0f, 0.0f);
+
+    return float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset));
+  }
   else {
     if (dx)
       *dx = make_float3(0.0f, 0.0f, 0.0f);
@@ -303,6 +327,14 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals *kg,
 #endif
 
     return sd->u * f0 + sd->v * f1 + (1.0f - sd->u - sd->v) * f2;
+  }
+  else if(desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
+    if (dx)
+      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    if (dy)
+      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+    return color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, desc.offset));
   }
   else {
     if (dx)
