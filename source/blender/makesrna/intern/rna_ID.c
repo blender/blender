@@ -93,6 +93,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 #  include "BKE_lib_query.h"
 #  include "BKE_lib_override.h"
 #  include "BKE_lib_remap.h"
+#  include "BKE_library.h"
 #  include "BKE_animsys.h"
 #  include "BKE_material.h"
 #  include "BKE_global.h" /* XXX, remove me */

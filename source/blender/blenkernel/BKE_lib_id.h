@@ -182,7 +182,6 @@ void BKE_libblock_management_usercounts_clear(struct Main *bmain, void *idv);
 void BKE_id_lib_local_paths(struct Main *bmain, struct Library *lib, struct ID *id);
 void id_lib_extern(struct ID *id);
 void id_lib_indirect_weak_link(struct ID *id);
-void BKE_library_filepath_set(struct Main *bmain, struct Library *lib, const char *filepath);
 void id_us_ensure_real(struct ID *id);
 void id_us_clear_real(struct ID *id);
 void id_us_plus_no_lib(struct ID *id);
@@ -240,8 +239,6 @@ void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const struct ID *id);
 void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI], const struct ID *id);
 
 char *BKE_id_to_unique_string_key(const struct ID *id);
-
-void BKE_library_free(struct Library *lib);
 
 void BKE_library_make_local(struct Main *bmain,
                             const struct Library *lib,

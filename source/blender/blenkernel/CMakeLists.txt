@@ -140,6 +140,7 @@ set(SRC
   intern/lib_override.c
   intern/lib_query.c
   intern/lib_remap.c
+  intern/library.c
   intern/light.c
   intern/lightprobe.c
   intern/linestyle.c
@@ -303,6 +304,7 @@ set(SRC
   BKE_lib_override.h
   BKE_lib_query.h
   BKE_lib_remap.h
+  BKE_library.h
   BKE_light.h
   BKE_lightprobe.h
   BKE_linestyle.h

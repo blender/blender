@@ -78,6 +78,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
 #include "BKE_lib_remap.h"
+#include "BKE_library.h"
 #include "BKE_linestyle.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"

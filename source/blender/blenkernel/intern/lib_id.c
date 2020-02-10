@@ -1532,13 +1532,6 @@ void *BKE_libblock_copy_for_localize(const ID *id)
   return idn;
 }
 
-void BKE_library_free(Library *lib)
-{
-  if (lib->packedfile) {
-    BKE_packedfile_free(lib->packedfile);
-  }
-}
-
 /* ***************** ID ************************ */
 ID *BKE_libblock_find_name(struct Main *bmain, const short type, const char *name)
 {
@@ -2501,31 +2494,6 @@ char *BKE_id_to_unique_string_key(const struct ID *id)
      * Where 'LIfooOBbarOBbaz' could be ('LIfoo, OBbarOBbaz') or ('LIfooOBbar', 'OBbaz'). */
     const char ascii_len = strlen(id->lib->id.name + 2) + 32;
     return BLI_sprintfN("%c%s%s", ascii_len, id->lib->id.name, id->name);
-  }
-}
-
-void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath)
-{
-  /* in some cases this is used to update the absolute path from the
-   * relative */
-  if (lib->name != filepath) {
-    BLI_strncpy(lib->name, filepath, sizeof(lib->name));
-  }
-
-  BLI_strncpy(lib->filepath, filepath, sizeof(lib->filepath));
-
-  /* not essential but set filepath is an absolute copy of value which
-   * is more useful if its kept in sync */
-  if (BLI_path_is_rel(lib->filepath)) {
-    /* note that the file may be unsaved, in this case, setting the
-     * filepath on an indirectly linked path is not allowed from the
-     * outliner, and its not really supported but allow from here for now
-     * since making local could cause this to be directly linked - campbell
-     */
-    /* Never make paths relative to parent lib - reading code (blenloader) always set *all*
-     * lib->name relative to current main, not to their parent for indirectly linked ones. */
-    const char *basepath = BKE_main_blendfile_path(bmain);
-    BLI_path_abs(lib->filepath, basepath);
   }
 }
 
