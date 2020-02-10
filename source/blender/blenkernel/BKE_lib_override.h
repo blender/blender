@@ -17,8 +17,8 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_LIBRARY_OVERRIDE_H__
-#define __BKE_LIBRARY_OVERRIDE_H__
+#ifndef __BKE_LIB_OVERRIDE_H__
+#define __BKE_LIB_OVERRIDE_H__
 
 /** \file
  * \ingroup bke
@@ -111,4 +111,4 @@ void BKE_override_library_operations_store_end(OverrideLibraryStorage *override_
                                                struct ID *local);
 void BKE_override_library_operations_store_finalize(OverrideLibraryStorage *override_storage);
 
-#endif /* __BKE_LIBRARY_OVERRIDE_H__ */
+#endif /* __BKE_LIB_OVERRIDE_H__ */

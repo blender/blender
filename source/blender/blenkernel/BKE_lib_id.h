@@ -16,8 +16,8 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_LIBRARY_H__
-#define __BKE_LIBRARY_H__
+#ifndef __BKE_LIB_ID_H__
+#define __BKE_LIB_ID_H__
 
 /** \file
  * \ingroup bke
@@ -263,4 +263,4 @@ void BKE_id_reorder(const struct ListBase *lb, struct ID *id, struct ID *relativ
 }
 #endif
 
-#endif /* __BKE_LIBRARY_H__ */
+#endif /* __BKE_LIB_ID_H__ */
