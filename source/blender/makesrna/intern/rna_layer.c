@@ -88,11 +88,22 @@ static PointerRNA rna_LayerObjects_active_object_get(PointerRNA *ptr)
 
 static void rna_LayerObjects_active_object_set(PointerRNA *ptr,
                                                PointerRNA value,
-                                               struct ReportList *UNUSED(reports))
+                                               struct ReportList *reports)
 {
   ViewLayer *view_layer = (ViewLayer *)ptr->data;
   if (value.data) {
-    view_layer->basact = BKE_view_layer_base_find(view_layer, (Object *)value.data);
+    Object *ob = value.data;
+    Base *basact_test = BKE_view_layer_base_find(view_layer, ob);
+    if (basact_test != NULL) {
+      view_layer->basact = basact_test;
+    }
+    else {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "ViewLayer '%s' does not contain object '%s'",
+                  view_layer->name,
+                  ob->id.name + 2);
+    }
   }
   else {
     view_layer->basact = NULL;
