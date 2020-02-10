@@ -456,6 +456,7 @@ classes = (
     BONE_PT_inverse_kinematics,
     BONE_PT_deform,
     BONE_PT_display,
+    BONE_PT_display_custom_shape,
     BONE_PT_custom_props,
 )
 
