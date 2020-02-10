@@ -1058,7 +1058,7 @@ setup_liblinks(blender)
 if(WITH_USD)
   add_definitions(-DWITH_USD)
   install(DIRECTORY
-    ${LIBDIR}/usd/lib/usd
+    ${USD_LIBRARY_DIR}/usd
     DESTINATION "${TARGETDIR_VER}/datafiles"
   )
 endif()

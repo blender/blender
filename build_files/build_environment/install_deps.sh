@@ -55,13 +55,13 @@ with-all,with-opencollada,with-jack,with-embree,with-oidn,\
 ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,ver-openvdb:,\
 force-all,force-python,force-numpy,force-boost,\
 force-ocio,force-openexr,force-oiio,force-llvm,force-osl,force-osd,force-openvdb,\
-force-ffmpeg,force-opencollada,force-alembic,force-embree,force-oidn,\
+force-ffmpeg,force-opencollada,force-alembic,force-embree,force-oidn,force-usd,\
 build-all,build-python,build-numpy,build-boost,\
 build-ocio,build-openexr,build-oiio,build-llvm,build-osl,build-osd,build-openvdb,\
-build-ffmpeg,build-opencollada,build-alembic,build-embree,build-oidn,\
+build-ffmpeg,build-opencollada,build-alembic,build-embree,build-oidn,build-usd,\
 skip-python,skip-numpy,skip-boost,\
 skip-ocio,skip-openexr,skip-oiio,skip-llvm,skip-osl,skip-osd,skip-openvdb,\
-skip-ffmpeg,skip-opencollada,skip-alembic,skip-embree,skip-oidn \
+skip-ffmpeg,skip-opencollada,skip-alembic,skip-embree,skip-oidn,skip-usd \
 -- "$@" \
 )
 
@@ -221,6 +221,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --build-ffmpeg
         Force the build of FFMpeg.
 
+    --build-usd
+        Force the build of Universal Scene Description.
+
     Note about the --build-foo options:
         * They force the script to prefer building dependencies rather than using available packages.
           This may make things simpler and allow working around some distribution bugs, but on the other hand it will
@@ -279,6 +282,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --force-ffmpeg
         Force the rebuild of FFMpeg.
 
+    --force-usd
+        Force the rebuild of Universal Scene Description.
+
     Note about the --force-foo options:
         * They obviously only have an effect if those libraries are built by this script
           (i.e. if there is no available and satisfactory package)!
@@ -328,7 +334,10 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         Unconditionally skip OpenImageDenoise installation/building.
 
     --skip-ffmpeg
-        Unconditionally skip FFMpeg installation/building.\""
+        Unconditionally skip FFMpeg installation/building.
+
+    --skip-usd
+        Unconditionally skip Universal Scene Description installation/building.\""
 
 # ----------------------------------------------------------------------------
 # Main Vars
@@ -419,6 +428,11 @@ ALEMBIC_VERSION_MIN=$ALEMBIC_VERSION
 ALEMBIC_FORCE_BUILD=false
 ALEMBIC_FORCE_REBUILD=false
 ALEMBIC_SKIP=false
+
+USD_VERSION="19.11"
+USD_FORCE_BUILD=false
+USD_FORCE_REBUILD=false
+USD_SKIP=false
 
 OPENCOLLADA_VERSION="1.6.68"
 OPENCOLLADA_FORCE_BUILD=false
@@ -628,6 +642,7 @@ while true; do
       OIDN_FORCE_BUILD=true
       FFMPEG_FORCE_BUILD=true
       ALEMBIC_FORCE_BUILD=true
+      USD_FORCE_BUILD=true
       shift; continue
     ;;
     --build-python)
@@ -679,6 +694,9 @@ while true; do
     --build-alembic)
       ALEMBIC_FORCE_BUILD=true; shift; continue
     ;;
+    --build-usd)
+      USD_FORCE_BUILD=true; shift; continue
+    ;;
     --force-all)
       PYTHON_FORCE_REBUILD=true
       NUMPY_FORCE_REBUILD=true
@@ -695,6 +713,7 @@ while true; do
       OIDN_FORCE_REBUILD=true
       FFMPEG_FORCE_REBUILD=true
       ALEMBIC_FORCE_REBUILD=true
+      USD_FORCE_REBUILD=true
       shift; continue
     ;;
     --force-python)
@@ -744,6 +763,9 @@ while true; do
     --force-alembic)
       ALEMBIC_FORCE_REBUILD=true; shift; continue
     ;;
+    --force-usd)
+      USD_FORCE_REBUILD=true; shift; continue
+    ;;
     --skip-python)
       PYTHON_SKIP=true; shift; continue
     ;;
@@ -788,6 +810,9 @@ while true; do
     ;;
     --skip-alembic)
       ALEMBIC_SKIP=true; shift; continue
+    ;;
+    --skip-usd)
+      USD_SKIP=true; shift; continue
     ;;
     --)
       # no more arguments to parse
@@ -895,6 +920,8 @@ ALEMBIC_SOURCE=( "https://github.com/alembic/alembic/archive/${ALEMBIC_VERSION}.
 # ALEMBIC_SOURCE_REPO_UID="e6c90d4faa32c4550adeaaf3f556dad4b73a92bb"
 # ALEMBIC_SOURCE_REPO_BRANCH="master"
 
+USD_SOURCE=( "https://github.com/PixarAnimationStudios/USD/archive/v${USD_VERSION}.tar.gz" )
+
 OPENCOLLADA_USE_REPO=false
 OPENCOLLADA_SOURCE=( "https://github.com/KhronosGroup/OpenCOLLADA/archive/v${OPENCOLLADA_VERSION}.tar.gz" )
 #~ OPENCOLLADA_SOURCE_REPO=( "https://github.com/KhronosGroup/OpenCOLLADA.git" )
@@ -956,7 +983,8 @@ You may also want to build them yourself (optional ones are [between brackets]):
     * [OpenCollada $OPENCOLLADA_VERSION] (from $OPENCOLLADA_SOURCE).
     * [Embree $EMBREE_VERSION] (from $EMBREE_SOURCE).
     * [OpenImageDenoise $OIDN_VERSION] (from $OIDN_SOURCE).
-    * [Alembic $ALEMBIC_VERSION] (from $ALEMBIC_SOURCE).\""
+    * [Alembic $ALEMBIC_VERSION] (from $ALEMBIC_SOURCE).
+    * [Universal Scene Description $USD_VERSION] (from $USD_SOURCE).\""
 
 if [ "$DO_SHOW_DEPS" = true ]; then
   PRINT ""
@@ -2477,9 +2505,90 @@ compile_ALEMBIC() {
   run_ldconfig "alembic"
 }
 
+#### Build USD ####
+_init_usd() {
+  _src=$SRC/USD-$USD_VERSION
+  _git=false
+  _inst=$INST/usd-$USD_VERSION
+  _inst_shortcut=$INST/usd
+}
+
+clean_USD() {
+  _init_usd
+  _clean
+}
+
+compile_USD() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, USD will not be compiled!"
+    return
+  fi
+
+  # To be changed each time we make edits that would modify the compiled result!
+  usd_magic=1
+  _init_usd
+
+  # Clean install if needed!
+  magic_compile_check usd-$USD_VERSION $usd_magic
+  if [ $? -eq 1 -o "$USD_FORCE_REBUILD" = true ]; then
+    clean_USD
+  fi
+
+  if [ ! -d $_inst ]; then
+    INFO "Building USD-$USD_VERSION"
+
+    prepare_opt
+
+    if [ ! -d $_src ]; then
+      mkdir -p $SRC
+      download USD_SOURCE[@] "$_src.tar.gz"
+
+      INFO "Unpacking USD-$USD_VERSION"
+      tar -C $SRC -xf $_src.tar.gz
+      patch -d $_src -p1 < $SCRIPT_DIR/patches/usd.diff
+    fi
+
+    cd $_src
+
+    cmake_d="-D CMAKE_INSTALL_PREFIX=$_inst"
+    # For the reasoning behind these options, please see usd.cmake.
+    if [ -d $INST/boost ]; then
+      cmake_d="$cmake_d $cmake_d -D BOOST_ROOT=$INST/boost"
+    fi
+    cmake_d="$cmake_d -DPXR_SET_INTERNAL_NAMESPACE=usdBlender"
+    cmake_d="$cmake_d -DPXR_ENABLE_PYTHON_SUPPORT=OFF"
+    cmake_d="$cmake_d -DPXR_BUILD_IMAGING=OFF"
+    cmake_d="$cmake_d -DPXR_BUILD_TESTS=OFF"
+    cmake_d="$cmake_d -DBUILD_SHARED_LIBS=ON"
+    cmake_d="$cmake_d -DPXR_BUILD_MONOLITHIC=ON"
+    cmake_d="$cmake_d -DPXR_BUILD_USD_TOOLS=OFF"
+    cmake_d="$cmake_d -DCMAKE_DEBUG_POSTFIX=_d"
+
+    cmake $cmake_d ./
+    make -j$THREADS install
+    make clean
+
+    if [ -d $_inst ]; then
+      _create_inst_shortcut
+    else
+      ERROR "USD-$USD_VERSION failed to compile, exiting"
+      exit 1
+    fi
+
+    magic_compile_set usd-$USD_VERSION $usd_magic
+
+    cd $CWD
+    INFO "Done compiling USD-$USD_VERSION!"
+  else
+    INFO "Own USD-$USD_VERSION is up to date, nothing to do!"
+    INFO "If you want to force rebuild of this lib, use the --force-usd option."
+  fi
+
+  run_ldconfig "usd"
+}
+
 # ----------------------------------------------------------------------------
 # Build OpenCOLLADA
-
 _init_opencollada() {
   _src=$SRC/OpenCOLLADA-$OPENCOLLADA_VERSION
   _git=true
@@ -3332,6 +3441,15 @@ install_DEB() {
     compile_ALEMBIC
   fi
 
+  PRINT ""
+  if [ "$USD_SKIP" = true ]; then
+    WARNING "Skipping USD installation, as requested..."
+  elif [ "$USD_FORCE_BUILD" = true ]; then
+    INFO "Forced USD building, as requested..."
+    compile_USD
+  else
+    compile_USD
+  fi
 
   if [ "$WITH_OPENCOLLADA" = true ]; then
     _do_compile_collada=false
@@ -3936,6 +4054,15 @@ install_RPM() {
     compile_ALEMBIC
   fi
 
+  PRINT ""
+  if [ "$USD_SKIP" = true ]; then
+    WARNING "Skipping USD installation, as requested..."
+  elif [ "$USD_FORCE_BUILD" = true ]; then
+    INFO "Forced USD building, as requested..."
+    compile_USD
+  else
+    compile_USD
+  fi
 
   if [ "$WITH_OPENCOLLADA" = true ]; then
     PRINT ""
@@ -4418,6 +4545,15 @@ install_ARCH() {
     compile_ALEMBIC
   fi
 
+  PRINT ""
+  if [ "$USD_SKIP" = true ]; then
+    WARNING "Skipping USD installation, as requested..."
+  elif [ "$USD_FORCE_BUILD" = true ]; then
+    INFO "Forced USD building, as requested..."
+    compile_USD
+  else
+    compile_USD
+  fi
 
   if [ "$WITH_OPENCOLLADA" = true ]; then
     PRINT ""
@@ -4785,7 +4921,7 @@ print_info() {
 
   _buildargs="-U *SNDFILE* -U *PYTHON* -U *BOOST* -U *Boost*"
   _buildargs="$_buildargs -U *OPENCOLORIO* -U *OPENEXR* -U *OPENIMAGEIO* -U *LLVM* -U *CYCLES*"
-  _buildargs="$_buildargs -U *OPENSUBDIV* -U *OPENVDB* -U *COLLADA* -U *FFMPEG* -U *ALEMBIC*"
+  _buildargs="$_buildargs -U *OPENSUBDIV* -U *OPENVDB* -U *COLLADA* -U *FFMPEG* -U *ALEMBIC* -U *USD*"
 
   _1="-D WITH_CODEC_SNDFILE=ON"
   PRINT "  $_1"
@@ -4940,6 +5076,12 @@ print_info() {
       PRINT "  $_1"
       _buildargs="$_buildargs $_1"
     fi
+  fi
+
+  if [ "$USD_SKIP" = false ]; then
+    _1="-D WITH_USD=ON"
+    PRINT "  $_1"
+    _buildargs="$_buildargs $_1"
   fi
 
   if [ "$NO_SYSTEM_GLEW" = true ]; then
